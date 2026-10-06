@@ -2,7 +2,6 @@ import {
 	type Column,
 	type ColumnDef,
 	columnFilteringFeature,
-	columnGroupingFeature,
 	columnOrderingFeature,
 	columnPinningFeature,
 	columnResizingFeature,
@@ -11,7 +10,6 @@ import {
 	globalFilteringFeature,
 	type RowData,
 	rowPaginationFeature,
-	rowSortingFeature,
 	type Table,
 	type TableOptions,
 	tableFeatures,
@@ -27,19 +25,21 @@ import {
  * `groupRows`). The engine therefore gets no row-model factory, and makes no
  * row object for each datum.
  *
+ * The grid sorts and groups with its own state (see `useGridSort` and
+ * `useGroupTree`), so the engine has no sorting or grouping feature. The
+ * reference table of the parity tests adds them (see `helpers/grid-engine.ts`).
+ *
  * @internal
  */
 export const gridFeatures = tableFeatures({
 	columnFilteringFeature,
 	globalFilteringFeature,
-	columnGroupingFeature,
 	columnOrderingFeature,
 	columnPinningFeature,
 	columnSizingFeature,
 	columnResizingFeature,
 	columnVisibilityFeature,
 	rowPaginationFeature,
-	rowSortingFeature,
 	// Carries the source column on each column definition, so the visible
 	// columns of the engine map back to the columns of the grid (see
 	// `toGridColumns`). The value is a phantom; only its type is used. The slot

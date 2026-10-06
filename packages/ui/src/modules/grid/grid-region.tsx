@@ -259,7 +259,7 @@ type GridScrollRegionProps = {
 	expandable: boolean
 	/** Whether the table holds a grouped body, under client or manual grouping. */
 	grouped: boolean
-	/** Whether the body is a window. A flat master-detail or grouped body clears the native scroll anchor after a clamp (see {@link useGridClampAnchor}). */
+	/** Whether the body is a window. A flat master-detail or grouped body clears the native scroll anchor after a clamp (see {@link useGridClampAnchor}). A windowed one turns the native scroll anchor off (see `k.sticky.windowed`). */
 	virtualized: boolean
 	children: ReactNode
 }
@@ -280,7 +280,11 @@ export function GridScrollRegion({
 	virtualized,
 	children,
 }: GridScrollRegionProps) {
-	useGridClampAnchor(scrollRef, active && (expandable || grouped) && !virtualized)
+	// A master-detail or grouped body anchors its rows with the native scroll
+	// anchor, and with the start anchor of its window when it is a window.
+	const itemBody = expandable || grouped
+
+	useGridClampAnchor(scrollRef, active && itemBody && !virtualized)
 
 	if (!active) return children
 
@@ -290,7 +294,11 @@ export function GridScrollRegion({
 		<div
 			ref={scrollRef}
 			data-slot="grid-scroll"
-			className={cn(k.sticky.wrapper, fillHeight && k.fill.scroll)}
+			className={cn(
+				k.sticky.wrapper,
+				itemBody && virtualized && k.sticky.windowed,
+				fillHeight && k.fill.scroll,
+			)}
 			style={maxHeight && !fillHeight ? { maxHeight } : undefined}
 		>
 			{/* The wrapper scrolls the table, so the table does not scroll itself. */}

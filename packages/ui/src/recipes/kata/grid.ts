@@ -195,6 +195,10 @@ export const k = {
 		// bar appearing on the first overflow (an infinite-scroll viewport-fill, a
 		// grown row set) doesn't shrink the content width and reflow every column.
 		wrapper: 'overflow-auto scrollbar-gutter-stable',
+		// The scroller of a windowed master-detail or grouped body. The start anchor
+		// of the window holds the rows in view, so the native scroll anchor stands
+		// down (see `useGridItemWindow`).
+		windowed: '[overflow-anchor:none]',
 		// Sticky header bar: an opaque fill so body rows tuck under it on a vertical
 		// scroll. The fill matches the surface under the grid (see `hostSurface`): a
 		// card or dialog that holds the grid, else the content host.
