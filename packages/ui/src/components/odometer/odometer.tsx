@@ -1,5 +1,6 @@
 'use client'
 
+import { motion, useTransform } from 'motion/react'
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { useLocale } from '../../providers/locale'
@@ -56,13 +57,16 @@ export function Odometer({
 	// `|| 0` turns a negative zero into zero, so a value such as -0.3 prints `0`, not `-0`.
 	const resolvedFormat = format ?? ((next: number) => integer(Math.round(next) || 0))
 
+	// The tween writes this text to the element itself, so a frame causes no render.
+	const text = useTransform(display, resolvedFormat)
+
 	return (
 		// The settled target is text in a visually hidden copy, not a live region;
 		// a live region announces each intermediate tween value.
 		<span data-slot="odometer" className={cn('tabular-nums', className)} {...props}>
-			<span data-slot="odometer-display" aria-hidden="true">
-				{resolvedFormat(display)}
-			</span>
+			<motion.span data-slot="odometer-display" aria-hidden="true">
+				{text}
+			</motion.span>
 			<span data-slot="odometer-value" className="sr-only">
 				{resolvedFormat(value)}
 			</span>

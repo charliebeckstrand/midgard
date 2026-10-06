@@ -1,8 +1,9 @@
 import { animate } from 'motion'
+import type { MotionValue } from 'motion/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Odometer } from '../../components/odometer'
 import { LocaleProvider } from '../../providers/locale'
-import { bySlot, renderUI, withFakeTime } from '../helpers'
+import { bySlot, renderUI, waitFor, withFakeTime } from '../helpers'
 
 describe('Odometer', () => {
 	afterEach(() => {
@@ -33,24 +34,23 @@ describe('Odometer', () => {
 		expect(bySlot(container, 'odometer-display')).toHaveTextContent('42 pts')
 	})
 
-	it('snaps immediately when duration is 0', () => {
+	it('snaps immediately when duration is 0', async () => {
 		const { container, rerender } = renderUI(<Odometer value={0} duration={0} />)
 
 		rerender(<Odometer value={500} duration={0} />)
 
-		expect(bySlot(container, 'odometer-display')).toHaveTextContent('500')
+		expect(animate).not.toHaveBeenCalled()
+
+		await waitFor(() => expect(bySlot(container, 'odometer-display')).toHaveTextContent('500'))
 	})
 
-	it('animates toward the new value', () => {
-		// Stub the single `animate` call to invoke `onUpdate(to)` synchronously
-		// and return controls with a no-op `stop`; `mockImplementationOnce` keeps
-		// the call-through default for the unmount case below.
-		vi.mocked(animate).mockImplementationOnce(((
-			_from: number,
-			to: number,
-			options: { onUpdate?: (latest: number) => void },
-		) => {
-			options.onUpdate?.(to)
+	it('animates toward the new value', async () => {
+		// Stub the single `animate` call to land the motion value on its target
+		// synchronously and return controls with a no-op `stop`;
+		// `mockImplementationOnce` keeps the call-through default for the unmount
+		// case below.
+		vi.mocked(animate).mockImplementationOnce(((value: MotionValue<number>, to: number) => {
+			value.set(to)
 
 			return { stop: vi.fn() }
 		}) as unknown as typeof animate)
@@ -59,7 +59,8 @@ describe('Odometer', () => {
 
 		rerender(<Odometer value={100} duration={50} />)
 
-		expect(bySlot(container, 'odometer-display')).toHaveTextContent('100')
+		// Motion writes the readout on the next frame, with no React render.
+		await waitFor(() => expect(bySlot(container, 'odometer-display')).toHaveTextContent('100'))
 	})
 
 	it('exposes the settled value as text, not as an image or a live region', () => {
