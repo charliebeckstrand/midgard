@@ -563,7 +563,7 @@ export function PlaceDrawer({
 				aria-label={title}
 			>
 				{/* The panel has no inset of its own, so the row takes the inset of a drawer title. */}
-				<Flex justify="between" align="start" gap="md" className="px-6 pt-6">
+				<Flex justify="between" align="center" gap="md" className="px-6 pt-6">
 					{/* `min-w-0` is what lets the trail inside give way. Without it this flex
 				    child holds its full width, so a long trail runs past the panel edge
 				    instead of truncating — the crumbs cannot shrink below a parent that
