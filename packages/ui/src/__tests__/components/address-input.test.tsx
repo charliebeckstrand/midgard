@@ -765,7 +765,7 @@ describe('createPhotonProvider', () => {
 			return fetchMock.mock.calls.map((call) => new URL(String(call[0])))
 		}
 
-		it('searches the rest of the query near the code', async () => {
+		it('searches the query near the code', async () => {
 			const fetchMock = stubPostcode(SHERWOOD)
 
 			await createPhotonProvider({ region: 'US' })('ice cream 97140', {
@@ -778,7 +778,7 @@ describe('createPhotonProvider', () => {
 
 			expect(lookup?.searchParams.get('countrycode')).toBe('US')
 
-			expect(search?.searchParams.get('q')).toBe('ice cream')
+			expect(search?.searchParams.get('q')).toBe('ice cream 97140')
 
 			expect(search?.searchParams.get('lat')).toBe('45.36')
 
@@ -794,7 +794,23 @@ describe('createPhotonProvider', () => {
 
 			expect(urls(fetchMock)[0]?.searchParams.get('q')).toBe('97140')
 
-			expect(urls(fetchMock)[1]?.searchParams.get('q')).toBe('coffee')
+			expect(urls(fetchMock)[1]?.searchParams.get('q')).toBe('coffee 97140')
+		})
+
+		// An address with an abbreviated street matches on its code: Photon
+		// finds "11530 SW Pacific Hwy Tigard OR 97223" and not the query without
+		// the code.
+		it('keeps the code in an address', async () => {
+			const fetchMock = stubPostcode({
+				...SHERWOOD,
+				properties: { ...SHERWOOD.properties, name: '97223', city: 'Tigard' },
+			})
+
+			await createPhotonProvider({ region: 'US' })('11530 SW Pacific Hwy, Tigard, OR 97223', {
+				signal: new AbortController().signal,
+			})
+
+			expect(urls(fetchMock)[1]?.searchParams.get('q')).toBe('11530 SW Pacific Hwy Tigard OR 97223')
 		})
 
 		it('answers a query that is only a code with the code', async () => {

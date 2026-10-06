@@ -183,15 +183,15 @@ function browserRegion(): string | undefined {
  * in {@link AddressSuggestion.address} and the position in `latitude` /
  * `longitude`.
  *
- * A query that ends in a postal code searches near that code. Photon matches
- * each word against the text of a match, and many matches do not hold a postal
- * code. Without this step, "ice cream 97140" answers with ice cream in other
- * states.
- * The provider finds the position of the code first, then searches the rest of
- * the query with that position as the proximity bias. A query that is only a
- * code answers with that code. With `layers` or `osmTag`, it searches the code
- * near that position instead, so the filters apply. A query that ends in a code
- * that the geocoder does not know is searched as typed.
+ * A query that ends in a postal code searches near that code. Without this
+ * step, "ice cream 97140" answers with ice cream in other states. The provider
+ * finds the position of the code first, then searches the query with that
+ * position as the proximity bias. The code stays in the query, because an
+ * address holds its code: "11530 SW Pacific Hwy, Tigard, OR" matches nothing
+ * without "97223". A ZIP+4 is searched as its first five digits. A query that
+ * is only a code answers with that code. With `layers` or `osmTag`, it searches
+ * the code near that position instead, so the filters apply. A query that ends
+ * in a code that the geocoder does not know is searched as typed.
  *
  * Where the region is `US`, a query that ends in a state searches inside that
  * state. A full name matches in any case, and a USPS code only in capitals, so
@@ -335,19 +335,20 @@ export function createPhotonProvider(options: PhotonProviderOptions = {}): Addre
 
 			const [longitude, latitude] = code.geometry.coordinates
 
-			const near = { latitude, longitude }
-
 			// A query that is only a code asks for the code, and the code in the
-			// region is the one the reader means. The code is not a layer or a tag
-			// that a filter keeps, so a filtered provider searches the code near
-			// its position, and the filters apply.
-			if (rest === '') {
-				return layers === undefined && osmTag === undefined
-					? [code]
-					: search(qualifier, { near }, signal)
-			}
+			// region is the one the reader means.
+			if (rest === '' && layers === undefined && osmTag === undefined) return [code]
 
-			return search(rest, { near }, signal)
+			// The code stays in the query, as the geocoder holds it. Photon does not
+			// need each word to match, and an address with an abbreviated street
+			// matches on its code. The code is not a layer or a tag that a filter
+			// keeps, so a filtered provider that was given only a code searches the
+			// code, and the filters apply.
+			return search(
+				[rest, qualifier].filter(Boolean).join(' '),
+				{ near: { latitude, longitude } },
+				signal,
+			)
 		}
 
 		return null
