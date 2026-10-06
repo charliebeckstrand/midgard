@@ -1,22 +1,26 @@
 'use client'
 
-import { Settings2 } from 'lucide-react'
+import { ChevronsUpDown, Settings2 } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
 import { Button } from '../../components/button'
 import { Dialog, DialogBody, DialogHeader, DialogPanel, DialogTitle } from '../../components/dialog'
 import { Field, Label } from '../../components/fieldset'
 import { Icon } from '../../components/icon'
+import { Kbd } from '../../components/kbd'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
+import { useInSidebarLayout } from '../../layouts/sidebar/sidebar'
+import { Flex } from '../../structure/flex'
 import { Stack } from '../../structure/stack'
 import { densityLevels } from '../density/context'
 import { UIProvider } from '../ui'
 import { useAppearance } from './context'
-import { motionModes, themeModes } from './modes'
+import { motionModes, sidebarModes, themeModes } from './modes'
 
 type ChoiceListboxProps<T extends string> = {
 	options: readonly { label: string; value: T }[]
 	value: T
 	onValueChange: (value: T) => void
+	suffix?: ReactNode
 }
 
 /**
@@ -25,7 +29,12 @@ type ChoiceListboxProps<T extends string> = {
  *
  * @internal
  */
-function ChoiceListbox<T extends string>({ options, value, onValueChange }: ChoiceListboxProps<T>) {
+function ChoiceListbox<T extends string>({
+	options,
+	value,
+	onValueChange,
+	suffix,
+}: ChoiceListboxProps<T>) {
 	const labelFor = (v: T) => options.find((option) => option.value === v)?.label ?? v
 
 	return (
@@ -33,6 +42,7 @@ function ChoiceListbox<T extends string>({ options, value, onValueChange }: Choi
 			value={value}
 			displayValue={labelFor}
 			placement="bottom-start"
+			suffix={suffix}
 			onValueChange={(v) => v && onValueChange(v)}
 		>
 			{options.map((option) => (
@@ -44,11 +54,31 @@ function ChoiceListbox<T extends string>({ options, value, onValueChange }: Choi
 	)
 }
 
+// The modifier of the sidebar shortcut: ⌘ on Apple platforms, Ctrl elsewhere.
+// It follows the `$mod` rule of tinykeys, which binds the shortcut. The dialog
+// renders only in the client, so the label never renders on the server.
+function sidebarShortcut() {
+	return /Mac|iPod|iPhone|iPad/.test(navigator.platform) ? '⌘B' : 'Ctrl+B'
+}
+
+// The suffix of the sidebar picker: the key of the shortcut, then the chevron
+// of the listbox. A custom suffix replaces the chevron, so the suffix holds
+// both. Its content is not interactive, so a mousedown on it keeps the focus on
+// the trigger, as a mousedown on the default chevron does.
+function SidebarSuffix() {
+	return (
+		<Flex align="center" gap="sm" onMouseDown={(event) => event.preventDefault()}>
+			<Kbd>{sidebarShortcut()}</Kbd>
+			<Icon icon={<ChevronsUpDown />} />
+		</Flex>
+	)
+}
+
 /** Props for {@link AppearanceSettings}: more fields for the dialog. */
 export type AppearanceSettingsProps = {
 	/**
 	 * More fields for the dialog, such as the settings of one app. They go below
-	 * the motion picker, in the same stack. Their floating panels portal into
+	 * the motion and sidebar pickers, in the same stack. Their floating panels portal into
 	 * the dialog, as the panels of the pickers do.
 	 */
 	children?: ReactNode
@@ -58,6 +88,10 @@ export type AppearanceSettingsProps = {
  * Settings icon button that opens a dialog with the appearance, density, and
  * motion pickers of the nearest {@link AppearanceProvider}. A selection applies
  * immediately and persists. Put it in the header or the navbar of the app.
+ *
+ * Inside a `SidebarLayout`, the dialog also has the Sidebar picker (Locked or
+ * Offcanvas), with the key that toggles it. The picker shows from `lg` up,
+ * where the layout shows its desktop sidebar.
  *
  * The listbox panels portal into a node inside the dialog (through the
  * `portalContainer` of `UIProvider`), not into `document.body`. A modal
@@ -70,7 +104,10 @@ export type AppearanceSettingsProps = {
  * target on the first mount.
  */
 export function AppearanceSettings({ children }: AppearanceSettingsProps) {
-	const { theme, density, motion, setTheme, setDensity, setMotion } = useAppearance()
+	const { theme, density, motion, sidebar, setTheme, setDensity, setMotion, setSidebar } =
+		useAppearance()
+
+	const inSidebarLayout = useInSidebarLayout()
 
 	const [open, setOpen] = useState(false)
 
@@ -106,6 +143,17 @@ export function AppearanceSettings({ children }: AppearanceSettingsProps) {
 										<Label>Motion</Label>
 										<ChoiceListbox options={motionModes} value={motion} onValueChange={setMotion} />
 									</Field>
+									{inSidebarLayout && (
+										<Field className="max-lg:hidden">
+											<Label>Sidebar</Label>
+											<ChoiceListbox
+												options={sidebarModes}
+												value={sidebar}
+												onValueChange={setSidebar}
+												suffix={<SidebarSuffix />}
+											/>
+										</Field>
+									)}
 									{children}
 								</UIProvider>
 							)}

@@ -25,21 +25,23 @@ The integration points an app mounts once at its root: `UIDocument` in the root 
 
 ## `ui/providers/appearance`
 
-Holds the persisted theme, density, and motion of an app, and gives the settings button that edits them. An app mounts `AppearanceProvider` once at its root. The stylesheet of the app must key its `dark` variant on the `.dark` class.
+Holds the persisted theme, density, motion, and sidebar of an app, and gives the settings button that edits them. An app mounts `AppearanceProvider` once at its root. The stylesheet of the app must key its `dark` variant on the `.dark` class.
 
 | Export | Summary |
 |---|---|
-| `AppearanceProvider` | App-root owner of the theme, density, and motion preferences. It keeps them in `localStorage` and toggles the root `.dark` class. While the motion is `reduced`, the root has the `reduced-motion` class. The `motion-reduce` and `motion-safe` variants of `ui/tailwind.css` read the class, and `usePrefersReducedMotion` and `ReducedMotion` read the choice. It writes the step of the density as a class on the root element, the density scope of the app. At `md`, the default, the root has no density class. It renders the script that adds the latin subset of the font of ui before its children, so latin text never paints without the font. The other font faces come from `ui/tailwind.css`, which has no latin face. |
+| `AppearanceProvider` | App-root owner of the theme, density, motion, and sidebar preferences. It keeps them in `localStorage` and toggles the root `.dark` class. While the motion is `reduced`, the root has the `reduced-motion` class. While the sidebar is `offcanvas`, the root has the `sidebar-offcanvas` class. The `sidebar-offcanvas` variant reads it, and `SidebarLayout` then shows its desktop sidebar as a floating sheet. The `motion-reduce` and `motion-safe` variants of `ui/tailwind.css` read the class, and `usePrefersReducedMotion` and `ReducedMotion` read the choice. It writes the step of the density as a class on the root element, the density scope of the app. At `md`, the default, the root has no density class. It renders the script that adds the latin subset of the font of ui before its children, so latin text never paints without the font. The other font faces come from `ui/tailwind.css`, which has no latin face. |
 | `AppearanceProviderProps` *(type)* | Props for `AppearanceProvider`. |
-| `AppearanceSettings` | Settings icon button that opens a dialog with the appearance, density, and motion pickers. A selection applies immediately and persists. `children` adds more fields below the pickers. |
+| `AppearanceSettings` | Settings icon button that opens a dialog with the appearance, density, and motion pickers. Inside a `SidebarLayout`, the dialog also has the Sidebar picker (Locked or Offcanvas) with its ⌘B or Ctrl+B key, from `lg` up. A selection applies immediately and persists. `children` adds more fields below the pickers. |
 | `AppearanceSettingsProps` *(type)* | Props for `AppearanceSettings`: more fields for the dialog. |
-| `AppearanceScript` | Inline head script that applies the stored theme, density, and motion to the root element before the first paint. It has no `'use client'`, so a server layout can render it. `UIDocument` renders it. |
-| `useAppearance` | Reads the theme, the density, the motion, and their setters from the nearest `AppearanceProvider`; throws outside one. |
+| `AppearanceScript` | Inline head script that applies the stored theme, density, motion, and sidebar to the root element before the first paint. It has no `'use client'`, so a server layout can render it. `UIDocument` renders it. |
+| `useAppearance` | Reads the theme, the density, the motion, the sidebar, and their setters from the nearest `AppearanceProvider`; throws outside one. |
 | `AppearanceContextValue` *(type)* | The value that `useAppearance` returns. |
 | `ThemeMode` *(type)* | Theme preference: `light`, `dark`, or `system`. |
 | `themeModes` | Selectable theme modes with display labels, for theme pickers. |
 | `MotionMode` *(type)* | Motion preference: `system` follows the platform `prefers-reduced-motion` setting, and `reduced` reduces motion on each platform. |
 | `motionModes` | Selectable motion modes with display labels, for motion pickers. |
+| `SidebarMode` *(type)* | Sidebar preference: `locked` keeps the sidebar of a `SidebarLayout` inline from `lg` up. `offcanvas` hides it at the start edge, and a pointer near the edge opens it. |
+| `sidebarModes` | Selectable sidebar modes with display labels, for sidebar pickers. |
 
 ## `ui/providers/density`
 

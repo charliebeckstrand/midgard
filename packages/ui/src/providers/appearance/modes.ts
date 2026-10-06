@@ -23,3 +23,16 @@ export const motionModes: { label: string; value: MotionMode }[] = [
 	{ label: 'System', value: 'system' },
 	{ label: 'Reduced', value: 'reduced' },
 ]
+
+/**
+ * Sidebar preference an `<AppearanceProvider>` holds: `'locked'` keeps the
+ * sidebar of a `SidebarLayout` inline from `lg` up, and `'offcanvas'` hides it
+ * at the start edge, where a pointer that comes near the edge opens it.
+ */
+export type SidebarMode = 'locked' | 'offcanvas'
+
+/** Selectable sidebar modes with display labels, for use in sidebar pickers. */
+export const sidebarModes: { label: string; value: SidebarMode }[] = [
+	{ label: 'Locked', value: 'locked' },
+	{ label: 'Offcanvas', value: 'offcanvas' },
+]

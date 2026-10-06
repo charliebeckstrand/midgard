@@ -1,6 +1,13 @@
 import { createEmitter } from '../../utilities'
 import { type DensityLevel, densityLevels } from '../density/context'
-import { type MotionMode, motionModes, type ThemeMode, themeModes } from './modes'
+import {
+	type MotionMode,
+	motionModes,
+	type SidebarMode,
+	sidebarModes,
+	type ThemeMode,
+	themeModes,
+} from './modes'
 
 /**
  * One stored appearance choice: its `localStorage` key, the values it can
@@ -46,6 +53,17 @@ export const MOTION: AppearanceChoice<MotionMode> = {
 	key: 'motion',
 	values: motionModes.map((option) => option.value),
 	fallback: 'system',
+}
+
+/**
+ * The sidebar choice. With no stored choice, the sidebar is locked.
+ *
+ * @internal
+ */
+export const SIDEBAR: AppearanceChoice<SidebarMode> = {
+	key: 'sidebar',
+	values: sidebarModes.map((option) => option.value),
+	fallback: 'locked',
 }
 
 /**

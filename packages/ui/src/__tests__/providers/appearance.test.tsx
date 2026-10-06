@@ -4,6 +4,7 @@ import { use } from 'react'
 import { afterEach, describe, expect, it } from 'vitest'
 import { readRootDensity, writeRootDensity } from '../../core/density'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
+import { SidebarLayout } from '../../layouts/sidebar/sidebar'
 import { useDensityStep } from '../../primitives/density'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import {
@@ -12,7 +13,17 @@ import {
 	AppearanceSettings,
 	useAppearance,
 } from '../../providers/appearance'
-import { act, bySlot, renderUI, screen, stubMatchMedia, userEvent, waitFor } from '../helpers'
+import {
+	act,
+	bySlot,
+	fireEvent,
+	present,
+	renderUI,
+	screen,
+	stubMatchMedia,
+	userEvent,
+	waitFor,
+} from '../helpers'
 
 function Probe() {
 	const { theme, density, motion, setTheme, setDensity, setMotion } = useAppearance()
@@ -49,7 +60,7 @@ afterEach(() => {
 
 	localStorage.clear()
 
-	document.documentElement.classList.remove('dark', 'reduced-motion')
+	document.documentElement.classList.remove('dark', 'reduced-motion', 'sidebar-offcanvas')
 
 	writeRootDensity(document.documentElement, 'md')
 })
@@ -192,6 +203,43 @@ describe('AppearanceProvider', () => {
 		expect(screen.getByTestId('motion')).toHaveTextContent('false user')
 	})
 
+	it('marks the root while the sidebar is offcanvas', async () => {
+		function SidebarProbe() {
+			const { sidebar, setSidebar } = useAppearance()
+
+			return (
+				<button
+					type="button"
+					onClick={() => setSidebar(sidebar === 'locked' ? 'offcanvas' : 'locked')}
+				>
+					{sidebar}
+				</button>
+			)
+		}
+
+		renderUI(
+			<AppearanceProvider>
+				<SidebarProbe />
+			</AppearanceProvider>,
+		)
+
+		const button = screen.getByRole('button', { name: 'locked' })
+
+		expect(document.documentElement).not.toHaveClass('sidebar-offcanvas')
+
+		await userEvent.click(button)
+
+		expect(button).toHaveTextContent('offcanvas')
+
+		expect(document.documentElement).toHaveClass('sidebar-offcanvas')
+
+		expect(localStorage.getItem('sidebar')).toBe('offcanvas')
+
+		await userEvent.click(button)
+
+		expect(document.documentElement).not.toHaveClass('sidebar-offcanvas')
+	})
+
 	it('throws when useAppearance has no provider', () => {
 		expect(() => renderUI(<Probe />)).toThrow(
 			'useAppearance must be used within <AppearanceProvider>',
@@ -240,6 +288,54 @@ describe('AppearanceSettings', () => {
 
 		expect(dialog).toHaveTextContent('Motion')
 		expect(dialog).toHaveTextContent('System')
+	})
+
+	it('shows no sidebar picker outside a sidebar layout', async () => {
+		renderUI(
+			<AppearanceProvider>
+				<AppearanceSettings />
+			</AppearanceProvider>,
+		)
+
+		await userEvent.click(screen.getByRole('button', { name: 'Settings' }))
+
+		expect(screen.getByRole('dialog', { name: 'Settings' })).not.toHaveTextContent('Sidebar')
+	})
+
+	it('picks the sidebar mode inside a sidebar layout, and shows its key', async () => {
+		renderUI(
+			<AppearanceProvider>
+				<SidebarLayout sidebar={<div>side</div>} actions={<AppearanceSettings />}>
+					body
+				</SidebarLayout>
+			</AppearanceProvider>,
+		)
+
+		// The navbar and the header both hold the actions. The first button opens the dialog.
+		await userEvent.click(screen.getAllByRole('button', { name: 'Settings' })[0] as HTMLElement)
+
+		const dialog = screen.getByRole('dialog', { name: 'Settings' })
+
+		expect(dialog).toHaveTextContent('Sidebar')
+
+		expect(dialog).toHaveTextContent('Locked')
+
+		// The key sits before the chevron, and a mousedown on either keeps the focus.
+		const suffix = present(dialog.querySelector('kbd')?.parentElement, 'sidebar suffix')
+
+		expect(suffix.firstElementChild).toHaveTextContent('Ctrl+B')
+
+		expect(suffix.lastElementChild?.tagName.toLowerCase()).toBe('svg')
+
+		expect(fireEvent.mouseDown(suffix)).toBe(false)
+
+		await userEvent.click(screen.getByRole('combobox', { name: 'Sidebar' }))
+
+		await userEvent.click(screen.getByRole('option', { name: 'Offcanvas' }))
+
+		expect(localStorage.getItem('sidebar')).toBe('offcanvas')
+
+		expect(document.documentElement).toHaveClass('sidebar-offcanvas')
 	})
 })
 
@@ -291,5 +387,19 @@ describe('AppearanceScript', () => {
 		runScript()
 
 		expect(document.documentElement).toHaveClass('reduced-motion')
+	})
+
+	it('marks the root for the stored offcanvas sidebar only', () => {
+		localStorage.setItem('sidebar', 'locked')
+
+		runScript()
+
+		expect(document.documentElement).not.toHaveClass('sidebar-offcanvas')
+
+		localStorage.setItem('sidebar', 'offcanvas')
+
+		runScript()
+
+		expect(document.documentElement).toHaveClass('sidebar-offcanvas')
 	})
 })

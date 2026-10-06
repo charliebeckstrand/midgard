@@ -1,13 +1,14 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '../../../components/menu'
+import { rootOffcanvasSidebarClass } from '../../../core/sidebar/root'
 import { SidebarLayout } from '../../../layouts/sidebar/sidebar'
 import { fireEvent, present, renderUI, screen, waitFor } from '../../helpers'
 
 /**
  * Outside-press on the floating sidebar's own menu (real floating engine).
  *
- * The floating variant hosts the sidebar in a non-modal `Sheet`, which
+ * The offcanvas sidebar hosts the sidebar in a non-modal `Sheet`, which
  * dismisses on a pointer press outside its `Overlay` root. A `Menu` opened from
  * inside the sidebar portals out of that root, so plain DOM containment reads a
  * press on one of its items as outside: the sheet closed on pointer-down and
@@ -19,6 +20,14 @@ import { fireEvent, present, renderUI, screen, waitFor } from '../../helpers'
  * the real portal.
  */
 describe('floating sidebar menu dismissal (real browser)', () => {
+	beforeEach(() => {
+		document.documentElement.classList.add(rootOffcanvasSidebarClass)
+	})
+
+	afterEach(() => {
+		document.documentElement.classList.remove(rootOffcanvasSidebarClass)
+	})
+
 	function FloatingSidebar({ onAction }: { onAction: () => void }) {
 		return (
 			<Menu placement="top-start">
@@ -34,7 +43,7 @@ describe('floating sidebar menu dismissal (real browser)', () => {
 
 	async function openPeekMenu(sidebar: React.ReactNode) {
 		const { container } = renderUI(
-			<SidebarLayout sidebar={sidebar} floating>
+			<SidebarLayout sidebar={sidebar}>
 				<p data-testid="page-body">page body</p>
 			</SidebarLayout>,
 		)

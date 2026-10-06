@@ -1,14 +1,23 @@
 import { createRef } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
 	SidebarLayout,
 	SidebarLayoutBody,
 	SidebarLayoutHeader,
 } from '../../layouts/sidebar/sidebar'
-import { bySlot, densityStepOf, fireEvent, present, renderUI, screen } from '../helpers'
+import { readChoice, SIDEBAR, writeChoice } from '../../providers/appearance/appearance-storage'
+import { act, bySlot, densityStepOf, fireEvent, present, renderUI, screen } from '../helpers'
 
 /** The inline desktop panel: the one element with the `md` width of the rail. */
 const DESKTOP_PANEL = '.density-md\\:w-xs'
+
+/** The copy of the sidebar in the floating sheet. The inline panel holds the other copy. */
+const inSheet = (text: string) =>
+	screen.queryAllByText(text).find((element) => element.closest('[data-slot="overlay"]')) ?? null
+
+afterEach(() => {
+	localStorage.clear()
+})
 
 describe('SidebarLayout', () => {
 	it('renders the sidebar content', () => {
@@ -80,7 +89,7 @@ describe('SidebarLayout', () => {
 		const onOpenChange = vi.fn()
 
 		const { container } = renderUI(
-			<SidebarLayout floating sidebar={<div>drawer-sidebar</div>} onOpenChange={onOpenChange}>
+			<SidebarLayout sidebar={<div>drawer-sidebar</div>} onOpenChange={onOpenChange}>
 				<SidebarLayoutBody>body</SidebarLayoutBody>
 			</SidebarLayout>,
 		)
@@ -123,14 +132,16 @@ describe('SidebarLayout', () => {
 		expect(densityStepOf(panel as Element)).toBe('sm')
 	})
 
-	it('hides the inline desktop panel when floating is true', () => {
-		const { container } = renderUI(
-			<SidebarLayout sidebar={<div>sidebar</div>} floating>
-				body
-			</SidebarLayout>,
-		)
+	it('swaps the inline panel for the hot zone while the sidebar is offcanvas', () => {
+		const { container } = renderUI(<SidebarLayout sidebar={<div>sidebar</div>}>body</SidebarLayout>)
 
-		expect(container.querySelector(DESKTOP_PANEL)).toBeNull()
+		// The class of the root selects the sidebar, so the first paint is correct.
+		expect(container.querySelector(DESKTOP_PANEL)).toHaveClass('sidebar-offcanvas:hidden')
+
+		expect(container.querySelector('[aria-hidden="true"]')).toHaveClass(
+			'hidden',
+			'lg:sidebar-offcanvas:block',
+		)
 	})
 })
 
@@ -146,35 +157,29 @@ describe('SidebarLayoutBody', () => {
 	})
 })
 
-describe('SidebarLayout floating mode', () => {
+describe('SidebarLayout offcanvas mode', () => {
 	it('opens the floating sheet on pointer enter of the hot zone', () => {
 		const { container } = renderUI(
-			<SidebarLayout sidebar={<div>floating-sidebar</div>} floating>
-				body
-			</SidebarLayout>,
+			<SidebarLayout sidebar={<div>floating-sidebar</div>}>body</SidebarLayout>,
 		)
 
 		const hotZone = present(container.querySelector('[aria-hidden="true"]'), '[aria-hidden="true"]')
 
 		fireEvent.pointerEnter(hotZone)
 
-		const sidebars = screen.getAllByText('floating-sidebar')
-
-		expect(sidebars.length).toBeGreaterThan(0)
+		expect(inSheet('floating-sidebar')).toBeInTheDocument()
 	})
 
 	it('keeps the sheet open while the pointer moves across the sheet and the start-edge buffer', () => {
 		const { container } = renderUI(
-			<SidebarLayout sidebar={<div>floating-sidebar</div>} floating>
-				body
-			</SidebarLayout>,
+			<SidebarLayout sidebar={<div>floating-sidebar</div>}>body</SidebarLayout>,
 		)
 
 		const hotZone = present(container.querySelector('[aria-hidden="true"]'), '[aria-hidden="true"]')
 
 		fireEvent.pointerEnter(hotZone)
 
-		const inner = screen.getByText('floating-sidebar').parentElement as HTMLElement
+		const inner = present(inSheet('floating-sidebar'), 'sheet sidebar').parentElement as HTMLElement
 
 		// Hovering the sheet body itself keeps it open.
 		fireEvent.pointerEnter(inner)
@@ -191,16 +196,14 @@ describe('SidebarLayout floating mode', () => {
 
 		fireEvent.pointerLeave(inner)
 
-		expect(screen.queryByText('floating-sidebar')).not.toBeInTheDocument()
+		expect(inSheet('floating-sidebar')).toBeNull()
 
 		expect(document.body.querySelector('[class*="start-80"]')).not.toBeInTheDocument()
 	})
 
 	it('closes when the pointer leaves the start-edge buffer', () => {
 		const { container } = renderUI(
-			<SidebarLayout sidebar={<div>floating-sidebar</div>} floating>
-				body
-			</SidebarLayout>,
+			<SidebarLayout sidebar={<div>floating-sidebar</div>}>body</SidebarLayout>,
 		)
 
 		const hotZone = present(container.querySelector('[aria-hidden="true"]'), '[aria-hidden="true"]')
@@ -221,9 +224,7 @@ describe('SidebarLayout floating mode', () => {
 
 	it('blurs the page behind the floating peek once it opens', () => {
 		const { container } = renderUI(
-			<SidebarLayout sidebar={<div>floating-sidebar</div>} floating>
-				body
-			</SidebarLayout>,
+			<SidebarLayout sidebar={<div>floating-sidebar</div>}>body</SidebarLayout>,
 		)
 
 		// No backdrop until the peek opens.
@@ -249,7 +250,7 @@ describe('SidebarLayout floating mode', () => {
 		expect(overlay.className).toContain('pointer-events-none')
 	})
 
-	it('renders no backdrop when the sidebar is locked (not floating)', () => {
+	it('renders no backdrop until the peek opens', () => {
 		renderUI(<SidebarLayout sidebar={<div>side</div>}>body</SidebarLayout>)
 
 		expect(document.querySelector('[data-slot="overlay-backdrop"]')).toBeNull()
@@ -257,7 +258,7 @@ describe('SidebarLayout floating mode', () => {
 
 	it('does not trap focus or lock scroll when the hover-peek opens', () => {
 		const { container } = renderUI(
-			<SidebarLayout sidebar={<a href="/a">nav-link</a>} floating>
+			<SidebarLayout sidebar={<a href="/a">nav-link</a>}>
 				<button type="button">page button</button>
 			</SidebarLayout>,
 		)
@@ -282,12 +283,10 @@ describe('SidebarLayout floating mode', () => {
 		expect(container.querySelector('[class~="lg:hidden"]')).toHaveClass('density-p-[4,6,8]')
 	})
 
-	it('resets the floating sheet to closed when floating flips off', () => {
-		const { container, rerender } = renderUI(
-			<SidebarLayout sidebar={<div>side</div>} floating>
-				body
-			</SidebarLayout>,
-		)
+	it('resets the floating sheet to closed when the sidebar mode changes', () => {
+		writeChoice(SIDEBAR.key, 'offcanvas')
+
+		const { container } = renderUI(<SidebarLayout sidebar={<div>side</div>}>body</SidebarLayout>)
 
 		const hotZone = present(container.querySelector('[aria-hidden="true"]'), '[aria-hidden="true"]')
 
@@ -296,15 +295,11 @@ describe('SidebarLayout floating mode', () => {
 		// Opening paints the start-edge buffer — the open-state signal.
 		expect(document.body.querySelector('[class*="start-80"]')).toBeInTheDocument()
 
-		// Flipping `floating` off resets the sheet to closed; flipping it back on
-		// must re-mount it closed, so the buffer stays absent.
-		rerender(<SidebarLayout sidebar={<div>side</div>}>body</SidebarLayout>)
+		// Locking the sidebar closes the sheet; going back to offcanvas keeps it
+		// closed, so the buffer stays absent.
+		act(() => writeChoice(SIDEBAR.key, 'locked'))
 
-		rerender(
-			<SidebarLayout sidebar={<div>side</div>} floating>
-				body
-			</SidebarLayout>,
-		)
+		act(() => writeChoice(SIDEBAR.key, 'offcanvas'))
 
 		expect(document.body.querySelector('[class*="start-80"]')).not.toBeInTheDocument()
 	})
@@ -338,5 +333,68 @@ describe('SidebarLayout floating mode', () => {
 		lookup.mockRestore()
 
 		expect(current).toHaveLength(1)
+	})
+})
+
+describe('SidebarLayout shortcut', () => {
+	const press = (target: Element | Window, init: KeyboardEventInit = {}) =>
+		fireEvent.keyDown(target, { key: 'b', code: 'KeyB', ctrlKey: true, ...init })
+
+	it('toggles the sidebar setting one time for each press of Ctrl+B', () => {
+		renderUI(<SidebarLayout sidebar={<div>side</div>}>body</SidebarLayout>)
+
+		act(() => {
+			press(window)
+		})
+
+		expect(readChoice(SIDEBAR)).toBe('offcanvas')
+
+		act(() => {
+			press(window)
+		})
+
+		expect(readChoice(SIDEBAR)).toBe('locked')
+	})
+
+	it('ignores the auto-repeat of a held chord', () => {
+		renderUI(<SidebarLayout sidebar={<div>side</div>}>body</SidebarLayout>)
+
+		act(() => {
+			press(window)
+
+			press(window, { repeat: true })
+
+			press(window, { repeat: true })
+		})
+
+		expect(readChoice(SIDEBAR)).toBe('offcanvas')
+	})
+
+	it('toggles one time when a page nests a layout', () => {
+		renderUI(
+			<SidebarLayout sidebar={<div>outer</div>}>
+				<SidebarLayout sidebar={<div>inner</div>}>body</SidebarLayout>
+			</SidebarLayout>,
+		)
+
+		act(() => {
+			press(window)
+		})
+
+		expect(readChoice(SIDEBAR)).toBe('offcanvas')
+	})
+
+	it('leaves the chord to a form field', () => {
+		renderUI(
+			<SidebarLayout sidebar={<div>side</div>}>
+				<input aria-label="Name" />
+			</SidebarLayout>,
+		)
+
+		act(() => {
+			press(screen.getByRole('textbox', { name: 'Name' }))
+		})
+
+		expect(readChoice(SIDEBAR)).toBe('locked')
 	})
 })

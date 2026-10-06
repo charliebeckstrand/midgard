@@ -2,7 +2,8 @@
  * The Tailwind extensions of ui: the font of ui and its font stack
  * (`src/fonts/fonts.css`, with no latin face: `AppearanceProvider` adds it),
  * the `density-*` variants, the `motion-reduce` and `motion-safe` variants
- * that follow the Motion setting, the stepped and ring utilities
+ * that follow the Motion setting, the `sidebar-offcanvas` variant that follows
+ * the Sidebar setting, the stepped and ring utilities
  * (`density-p-[2,3,4]`, `px-ring-2`, …), the `scroll-fade-inline` edge fade,
  * two base styles on the root element: `touch-action: manipulation`, and
  * the `color-scheme` that follows the `dark` class, and the breakpoint classes
@@ -16,6 +17,7 @@
 @plugin './src/core/touch/base.ts';
 @plugin './src/core/scheme/base.ts';
 @plugin './src/core/motion/variants.ts';
+@plugin './src/core/sidebar/variants.ts';
 @plugin './src/core/scroll/fade.ts';
 
 /*

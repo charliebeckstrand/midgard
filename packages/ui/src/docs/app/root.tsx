@@ -1,6 +1,6 @@
 import pages from 'virtual:docs/pages'
 import { PanelLeft, PanelLeftDashed } from 'lucide-react'
-import { type ReactNode, useEffect, useState } from 'react'
+import { type ReactNode, useEffect } from 'react'
 import {
 	Link,
 	Links,
@@ -19,7 +19,7 @@ import { Icon } from 'ui/icon'
 import { SidebarLayout, SidebarLayoutHeader } from 'ui/layouts'
 import { CurrentScrollScript } from 'ui/primitives/current'
 import type { LinkProps } from 'ui/primitives/link'
-import { AppearanceSettings } from 'ui/providers/appearance'
+import { AppearanceSettings, useAppearance } from 'ui/providers/appearance'
 import { LocaleProvider } from 'ui/providers/locale'
 import { UIDocument, UIProvider } from 'ui/providers/ui'
 import { Stack } from 'ui/stack'
@@ -114,7 +114,7 @@ const ACTIONS = (
 export default function App() {
 	const { pathname } = useLocation()
 
-	const [locked, setLocked] = useState(true)
+	const { sidebar, setSidebar } = useAppearance()
 
 	const matches = useMatches()
 
@@ -135,21 +135,18 @@ export default function App() {
 		<UIProvider link={RouterLink} pathname={page?.path ?? pathname}>
 			<title>{title ? `${title} · Docs` : 'Docs'}</title>
 			<Stylesheet />
-			<SidebarLayout
-				stickyHeader
-				floating={!locked}
-				actions={ACTIONS}
-				sidebar={<DocsSidebar pages={pages} />}
-			>
+			<SidebarLayout stickyHeader actions={ACTIONS} sidebar={<DocsSidebar pages={pages} />}>
 				<SidebarLayoutHeader>
 					<Flex align="center" gap="md">
 						<Button
 							variant="bare"
 							className="max-lg:hidden"
-							aria-label={locked ? 'Float sidebar' : 'Lock sidebar'}
-							onClick={() => setLocked(!locked)}
+							aria-label="Toggle sidebar"
+							onClick={() => setSidebar(sidebar === 'offcanvas' ? 'locked' : 'offcanvas')}
 						>
-							<Icon icon={locked ? <PanelLeftDashed /> : <PanelLeft />} />
+							{/* The class of the root selects the icon, so the first paint shows the stored mode. */}
+							<Icon icon={<PanelLeftDashed />} className="sidebar-offcanvas:hidden" />
+							<Icon icon={<PanelLeft />} className="hidden sidebar-offcanvas:block" />
 						</Button>
 						<Heading>{title ?? 'Docs'}</Heading>
 					</Flex>
