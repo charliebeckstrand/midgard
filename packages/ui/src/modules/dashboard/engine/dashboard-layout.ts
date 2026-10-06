@@ -130,9 +130,52 @@ function usableRatio(ratio: number | undefined): number | undefined {
 	return ratio !== undefined && Number.isFinite(ratio) && ratio > 0 ? ratio : undefined
 }
 
+/** `value`, or `undefined` when it is not a finite number. */
+function finiteOrAbsent(value: number | undefined): number | undefined {
+	return value !== undefined && Number.isFinite(value) ? value : undefined
+}
+
 /**
- * `demands` without a `ratio` or a `minWidth` that the engine cannot use. A
- * `minWidth` that is not a finite number of 0 or more puts no floor on the width.
+ * `size` with each axis that is not a finite number made absent. A bad `w` takes
+ * `DEFAULT_CELL_WIDTH`, because the type requires `w`.
+ *
+ * @returns `size` itself when each axis is usable.
+ */
+function usableSize(size: DashboardTileSize | undefined): DashboardTileSize | undefined {
+	if (size === undefined) return undefined
+
+	const w = finiteOrAbsent(size.w) ?? DEFAULT_CELL_WIDTH
+
+	const h = finiteOrAbsent(size.h)
+
+	return w === size.w && h === size.h ? size : { w, h }
+}
+
+/**
+ * `limit` with each axis that is not a finite number made absent. A limit with no
+ * axis left is `undefined`.
+ *
+ * @returns `limit` itself when each axis is usable.
+ */
+function usableLimit(
+	limit: Partial<DashboardTileSize> | undefined,
+): Partial<DashboardTileSize> | undefined {
+	if (limit === undefined) return undefined
+
+	const w = finiteOrAbsent(limit.w)
+
+	const h = finiteOrAbsent(limit.h)
+
+	if (w === limit.w && h === limit.h) return limit
+
+	return w === undefined && h === undefined ? undefined : { w, h }
+}
+
+/**
+ * `demands` without a `ratio`, a `minWidth`, or a span axis that the engine
+ * cannot use. A `minWidth` that is not a finite number of 0 or more puts no floor
+ * on the width. An axis of `defaultSize`, `minSize`, or `maxSize` that is not a
+ * finite number is absent, so it takes its default.
  *
  * @remarks
  * The values come from app props, and a computed value can be bad for a moment.
@@ -148,9 +191,23 @@ export function usableDemands(demands: DashboardTileDemands): DashboardTileDeman
 
 	const minWidth = width !== undefined && Number.isFinite(width) && width >= 0 ? width : undefined
 
-	if (ratio === demands.ratio && minWidth === width) return demands
+	const defaultSize = usableSize(demands.defaultSize)
 
-	return { ...demands, ratio, minWidth }
+	const minSize = usableLimit(demands.minSize)
+
+	const maxSize = usableLimit(demands.maxSize)
+
+	if (
+		ratio === demands.ratio &&
+		minWidth === width &&
+		defaultSize === demands.defaultSize &&
+		minSize === demands.minSize &&
+		maxSize === demands.maxSize
+	) {
+		return demands
+	}
+
+	return { ...demands, ratio, minWidth, defaultSize, minSize, maxSize }
 }
 
 /**

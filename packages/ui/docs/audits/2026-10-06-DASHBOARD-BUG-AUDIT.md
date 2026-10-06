@@ -39,7 +39,7 @@ Status: `◯ OPEN` → `◐ FIXED` (on a branch) → `✅ RESOLVED ([#NNN](…))
 
 | Row | File | Symbol | Verdict | Severity | Reach | Group | Status |
 |---|---|---|---|---|---|---|---|
-| B01-C02 | `engine/dashboard-layout.ts` | `usableDemands` | CONFIRMED | medium | none | independent | ◯ OPEN |
+| B01-C02 | `engine/dashboard-layout.ts` | `usableDemands` | CONFIRMED | medium | none | independent | ◐ FIXED |
 | B01-C01 | `engine/dashboard-drag.ts` | `dragPreview` (`dominantPeer`, `reorderPreview`) | CONFIRMED | low | shipped | independent | ◯ OPEN |
 | B02-C03 | `use-dashboard-drag.ts` | `coordinateGetter` | CONFIRMED | low | shipped | independent | ◯ OPEN |
 | B02-C07 | `use-dashboard-resize.ts` | `beginResize` | NARROWED | low | shipped | independent | ◯ OPEN |
