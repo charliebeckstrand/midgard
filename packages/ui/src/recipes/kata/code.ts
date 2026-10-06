@@ -3,7 +3,8 @@
  * block `<CodeBlock>` (the `block` group, attached as an extra). One kata, two
  * units. The callable `k` is the inline mark recipe. The `block` group holds the
  * chrome of the block: its `base` frame, the `content` and the `fallback` inside
- * it, and the `copy` button. The chrome takes the step of the nearest density
+ * it, and the `copy` group: the line box of the button and its palettes for a
+ * dark or a light canvas. The chrome takes the step of the nearest density
  * scope. At `md` the frame is `p-4` with `gap-4`, and the code is `text-sm`.
  */
 import { defineScale, type ScaleStep } from '../../core/density'
@@ -99,16 +100,21 @@ export const k = defineRecipe(
 	},
 )
 
-/** The size scale of inline {@link Code}: the steps of the mark text and padding. */
-export const scale = defineScale(...mark.density)
+/**
+ * The size scales of the kata: `mark`, the steps of the inline mark text and
+ * padding, and `block`, the steps of the block text, padding, and gap.
+ */
+export const scale = {
+	mark: defineScale(...mark.density),
+	block: defineScale(text, dan.space.alert, dan.gap.timeline.x),
+} as const
 
 /** Recipe variant props for inline {@link Code}: the `size` step that the component writes as a density scope. */
-export type CodeVariants = { size?: ScaleStep<typeof scale> }
+export type CodeVariants = { size?: ScaleStep<typeof scale.mark> }
+
 /**
  * Recipe variant props for {@link CodeBlock}: the `size` step that the block
- * writes as a density scope. The block chrome has no other variants. Its code
- * takes the text ramp of the inline mark, so it has the steps of the inline
- * `Code` `size` axis. This is therefore an alias of {@link CodeVariants}, kept
- * as a distinct name for the public `CodeBlock` surface.
+ * writes as a density scope, from the steps of its own ramps. The block chrome
+ * has no other variants.
  */
-export type CodeBlockVariants = CodeVariants
+export type CodeBlockVariants = { size?: ScaleStep<typeof scale.block> }

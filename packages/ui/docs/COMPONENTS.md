@@ -69,7 +69,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > The root `<div>` of a `CodeBlock` takes the `<div>` attributes, such as `id`, `data-*`, and `aria-*`. The `lang` prop names the grammar, so the block does not take the HTML `lang` attribute.
 
-> The padding, the gap, and the code text of a `CodeBlock` take the step of the nearest density scope. An explicit `size` opens a scope on the block, with the steps of the inline `Code` `size`. At `md` the block is `p-4` with `text-sm` code, and its CopyButton keeps the `sm` size at each step.
+> The padding, the gap, and the code text of a `CodeBlock` take the step of the nearest density scope. An explicit `size` opens a scope on the block, with the steps of the ramps of the block. At `md` the block is `p-4` with `text-sm` code, and its CopyButton keeps the `sm` size at each step.
 
 > The frame of a `CodeBlock` paints the background of its `theme`, as Shiki writes it on the `<pre>`. Before the markup arrives, the frame paints the background of the default theme. The CopyButton of the block takes colors that read on the background in each color mode.
 

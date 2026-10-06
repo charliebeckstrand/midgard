@@ -1,6 +1,13 @@
 'use client'
 
-import { type ComponentProps, type CSSProperties, useEffect, useRef, useState } from 'react'
+import {
+	type ComponentProps,
+	type CSSProperties,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import type { BundledLanguage, BundledTheme } from 'shiki'
 import { announce, cn } from '../../core'
 import { useScrollRegion } from '../../hooks'
@@ -88,14 +95,7 @@ const languageNames: ReadonlyMap<string, string> = new Map(
 	).flatMap(([name, ids]) => ids.map((id) => [id, name] as const)),
 )
 
-/**
- * The default name of the code region: the display name of `lang` and "code",
- * such as "TypeScript code". With no `lang`, or a `lang` with no display name
- * here (`text`, for example), the name is "Code". Thus blocks of two languages
- * on one page are two regions with two names.
- *
- * @internal
- */
+/** "<Language> code" for a `lang` that the map names, else "Code". @internal */
 function regionName(lang: string | undefined): string {
 	const name = lang === undefined ? undefined : languageNames.get(lang)
 
@@ -130,14 +130,11 @@ type Canvas = { color: string; dark: boolean }
  * @internal
  */
 function canvasOf(html: string): Canvas | null {
-	const tag = /<pre\b[^>]*>/i.exec(html)?.[0]
-
-	const style = tag === undefined ? undefined : /\sstyle="([^"]*)"/i.exec(tag)?.[1]
-
-	const color =
-		style === undefined
-			? undefined
-			: /(?:^|;)\s*background-color\s*:([^;]+)/i.exec(style)?.[1]?.trim()
+	const color = /<pre\b[^>]*>/i
+		.exec(html)?.[0]
+		?.match(/\sstyle="([^"]*)"/i)?.[1]
+		?.match(/(?:^|;)\s*background-color\s*:([^;]+)/i)?.[1]
+		?.trim()
 
 	if (color === undefined) return null
 
@@ -165,7 +162,7 @@ export type CodeBlockProps = Omit<ComponentProps<'div'>, 'className' | 'children
 	 * @defaultValue 'github-dark-default'
 	 */
 	theme?: BundledTheme
-	/** Renders a CopyButton overlay. @defaultValue true */
+	/** Renders a CopyButton beside the code. @defaultValue true */
 	copy?: boolean
 	/**
 	 * The density step of the block. A `size` opens a density scope on the
@@ -231,8 +228,8 @@ export function primeCodeBlock({
 /**
  * Syntax-highlighted code block. Highlights `code` for the given `lang` and
  * `theme` with Shiki in a module worker, and renders an unstyled `<pre>`
- * fallback until the markup arrives. An optional CopyButton overlays the
- * snippet. The padding, the gap, and the code text take the step of the
+ * fallback until the markup arrives. An optional CopyButton sits beside the
+ * snippet, on its first line. The padding, the gap, and the code text take the step of the
  * nearest density scope. An explicit `size` opens a scope on the block.
  *
  * @remarks
@@ -310,9 +307,22 @@ export function CodeBlock({
 	})
 
 	// After hydration, a cached snippet paints on the render that asks for it.
+	// The render stores the entry in the result, so the effect finds it there
+	// and does not render the block again.
 	let html: string | null = null
 
-	if (hydrated) html = result?.key === key ? result.html : (htmlCache.get(key) ?? null)
+	if (hydrated) {
+		if (result?.key === key) html = result.html
+		else {
+			const cached = htmlCache.get(key)
+
+			if (cached !== undefined) {
+				html = cached
+
+				setResult({ key, html: cached })
+			}
+		}
+	}
 
 	// The snippet that the next tokenization takes, and whether one runs now.
 	// Streamed code changes on each chunk. One tokenization runs at a time, and
@@ -375,11 +385,8 @@ export function CodeBlock({
 	// the caller gives names the region.
 	const scrollRegionRef = useScrollRegion({ label: label ?? regionName(langProp) })
 
-	// The frame paints the background that the markup gives, so the frame and the
-	// `<pre>` have one tone. With no markup, the canvas of the recipe paints the
-	// background of the default theme. The copy button takes the colors of the
-	// canvas, not the colors of the color mode.
-	const canvas = html === null ? null : canvasOf(html)
+	// With no markup, the recipe paints the default canvas.
+	const canvas = useMemo(() => (html === null ? null : canvasOf(html)), [html])
 
 	return (
 		<div
