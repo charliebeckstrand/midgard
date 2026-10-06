@@ -280,6 +280,6 @@ export function textureClass(active: boolean, fill: string | undefined): string 
 	if (!fill) return false
 
 	return active
-		? 'forced-color-adjust-none [fill:var(--chart-fill)]!'
-		: 'forced-color-adjust-none forced-colors:[fill:var(--chart-fill)]! print:[fill:var(--chart-fill)]!'
+		? 'forced-color-adjust-none fill-(--chart-fill)!'
+		: 'forced-color-adjust-none forced-colors:fill-(--chart-fill)! print:fill-(--chart-fill)!'
 }
