@@ -80,10 +80,10 @@ export function EventLogSheet({
 				<SheetFooter className="justify-between">
 					<Flex gap="sm">
 						{/* The copied state of `CopyButton`, on a button with a text label. */}
-						<Button color={copied ? 'green' : undefined} onClick={() => void copy()}>
+						<Button size="sm" color={copied ? 'green' : undefined} onClick={() => void copy()}>
 							{copied ? 'Copied' : 'Copy'}
 						</Button>
-						<Button color="amber" onClick={() => log.clear()}>
+						<Button size="sm" color="amber" onClick={() => log.clear()}>
 							Clear
 						</Button>
 					</Flex>
