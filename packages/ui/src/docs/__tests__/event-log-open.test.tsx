@@ -146,7 +146,7 @@ describe('EventLogSheet type filter', () => {
 		act(() => {
 			record('route', '/filtered')
 
-			record('error', 'filtered boom')
+			record('error', 'filtered error')
 		})
 
 		rerender(<EventLogSheet open onOpenChange={() => {}} />)
@@ -157,7 +157,7 @@ describe('EventLogSheet type filter', () => {
 
 		expect(screen.getByText('/filtered')).toBeDefined()
 
-		expect(screen.getByText('filtered boom')).toBeDefined()
+		expect(screen.getByText('filtered error')).toBeDefined()
 
 		fireEvent.click(types)
 
@@ -165,7 +165,7 @@ describe('EventLogSheet type filter', () => {
 
 		expect(screen.getByText('/filtered')).toBeDefined()
 
-		expect(screen.queryByText('filtered boom')).toBeNull()
+		expect(screen.queryByText('filtered error')).toBeNull()
 
 		fireEvent.click(screen.getByRole('option', { name: 'hmr' }))
 
@@ -180,6 +180,6 @@ describe('EventLogSheet type filter', () => {
 
 		expect(screen.getByText('/filtered')).toBeDefined()
 
-		expect(screen.getByText('filtered boom')).toBeDefined()
+		expect(screen.getByText('filtered error')).toBeDefined()
 	})
 })
