@@ -10,6 +10,7 @@ import { Flex } from 'ui/flex'
 import { Icon } from 'ui/icon'
 import { JsonTree } from 'ui/json-tree'
 import { List, ListItem } from 'ui/list'
+import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 import { Sheet, SheetBody, SheetClose, SheetFooter, SheetPanel, SheetTitle } from 'ui/sheet'
 import { Text } from 'ui/text'
 import { dan } from '../../../recipes/kiso/dan/index.ts'
@@ -126,10 +127,12 @@ function EventLine({
 }
 
 /**
- * The viewer of the Event log: the title and "Preserve log", the lines, newest
- * first, Copy (oldest first, as text, with each detail), and Clear. With no
- * lines, it says that the log is empty. The log records nothing while the sheet
- * is on screen.
+ * The viewer of the Event log: the title, "Preserve log", and a type filter,
+ * the lines, newest first, Copy (oldest first, as text, with each detail), and
+ * Clear. With no selected type, the sheet shows each type, and Copy copies the
+ * lines that the sheet shows. With no lines, it says that the log is empty, or
+ * that the filter hides each entry. The log records nothing while the sheet is
+ * on screen.
  */
 export function EventLogSheet({
 	open,
@@ -148,10 +151,15 @@ export function EventLogSheet({
 
 	const preserve = useSyncExternalStore(subscribe, () => log.preserve)
 
-	const width = kindWidth(entries)
+	// The selected types. With no selected type, the sheet shows each type.
+	const [kinds, setKinds] = useState<Kind[]>([])
+
+	const shown = kinds.length === 0 ? entries : entries.filter((entry) => kinds.includes(entry.kind))
+
+	const width = kindWidth(shown)
 
 	const { copied, copy } = useCopyButtonState({
-		text: entries.map((entry) => line(entry, width)).join('\n'),
+		text: shown.map((entry) => line(entry, width)).join('\n'),
 	})
 
 	// The keys of the lines with an open detail. The list renders only the lines
@@ -178,17 +186,11 @@ export function EventLogSheet({
 		// The sheet takes the height of the log, up to the height of the screen.
 		<Sheet open={open} onOpenChange={onOpenChange}>
 			<SheetPanel side="bottom" className="max-h-full">
-				{/* The title row holds "Preserve log". The checkbox wraps under the
-				    title only when the row has no room for both. The row takes the
-				    inset of the title, as the slot does. */}
-				<Flex
-					wrap
-					align="center"
-					justify="between"
-					gap="md"
-					className={cn(dan.space.panel.x, dan.space.panel.top)}
-				>
-					<SheetTitle className="p-0">Event log</SheetTitle>
+				{/* The title row holds "Preserve log" and the type filter at its end.
+				    On a narrow screen, the filter takes a full row under the title and
+				    the checkbox. The row takes the inset of the title, as the slot does. */}
+				<Flex wrap align="center" gap="md" className={cn(dan.space.panel.x, dan.space.panel.top)}>
+					<SheetTitle className="me-auto p-0">Event log</SheetTitle>
 					<CheckboxField>
 						<Checkbox
 							checked={preserve}
@@ -198,13 +200,30 @@ export function EventLogSheet({
 						/>
 						<Label>Preserve log</Label>
 					</CheckboxField>
+					<Listbox<Kind>
+						multiple
+						aria-label="Types"
+						placeholder="All types"
+						value={kinds}
+						onValueChange={setKinds}
+						displayValue={(kind) => kind}
+						capitalize={false}
+						placement="bottom-end"
+						className="w-full sm:w-fit sm:max-w-full"
+					>
+						{KINDS.map((kind) => (
+							<ListboxOption key={kind} value={kind}>
+								<ListboxLabel>{kind}</ListboxLabel>
+							</ListboxOption>
+						))}
+					</Listbox>
 				</Flex>
 				<SheetBody className="min-h-0 flex-1 overflow-auto">
-					{entries.length > 0 ? (
+					{shown.length > 0 ? (
 						// The list renders the lines in the view of the body, so a long log
 						// opens as fast as a short one.
 						<List
-							items={entries.toReversed()}
+							items={shown.toReversed()}
 							getKey={getKey}
 							variant="plain"
 							sortable={false}
@@ -221,7 +240,9 @@ export function EventLogSheet({
 							)}
 						</List>
 					) : (
-						<Text tone="muted">No events</Text>
+						<Text tone="muted">
+							{entries.length > 0 ? 'No events of the selected types' : 'No events'}
+						</Text>
 					)}
 				</SheetBody>
 				<SheetFooter className="justify-between">
