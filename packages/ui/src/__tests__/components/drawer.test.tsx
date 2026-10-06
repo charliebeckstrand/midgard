@@ -89,7 +89,7 @@ describe('Drawer', () => {
 })
 
 describe('Drawer enter animation', () => {
-	// The motion mock surfaces `initial.y` as `data-initial-y`, so the enter offset —
+	// The motion mock surfaces `initial.transform` as `data-initial-transform`, so the enter offset —
 	// the slide the panel starts from — is observable without an animation runtime.
 	const panel = () => getSlot(document.body, 'drawer')
 
@@ -100,7 +100,7 @@ describe('Drawer enter animation', () => {
 			</Drawer>,
 		)
 
-		expect(panel()).toHaveAttribute('data-initial-y', '100%')
+		expect(panel()).toHaveAttribute('data-initial-transform', 'translateY(100%)')
 	})
 
 	it('mounts an arriving drawer already in place when animateOnMount is false', () => {
@@ -112,7 +112,7 @@ describe('Drawer enter animation', () => {
 			</Drawer>,
 		)
 
-		expect(panel()).not.toHaveAttribute('data-initial-y')
+		expect(panel()).not.toHaveAttribute('data-initial-transform')
 	})
 
 	it('slides on a reopen even while animateOnMount stays false', () => {
@@ -131,7 +131,7 @@ describe('Drawer enter animation', () => {
 		rerender(drawer(false))
 		rerender(drawer(true))
 
-		expect(panel()).toHaveAttribute('data-initial-y', '100%')
+		expect(panel()).toHaveAttribute('data-initial-transform', 'translateY(100%)')
 	})
 })
 

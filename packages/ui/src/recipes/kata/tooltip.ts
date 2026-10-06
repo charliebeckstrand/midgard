@@ -54,6 +54,8 @@ export const k = {
 		},
 	},
 	motion: tooltip,
+	/** The motion under reduced motion: the fade with no scale. */
+	still: ugoki.still(tooltip),
 } as const
 
 /** The size scale of {@link TooltipContent}: the steps of its padding and radius. */

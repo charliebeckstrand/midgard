@@ -7,6 +7,7 @@ import { useA11yPanel } from '../../hooks'
 import { useIsRtl } from '../../hooks/use-is-rtl'
 import { useOpenComplete } from '../../hooks/use-open-complete'
 import { panelAxis, usePanelResize } from '../../hooks/use-panel-resize'
+import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { Overlay } from '../../primitives/overlay'
 import {
 	type PanelOverlayProps,
@@ -206,7 +207,9 @@ export function SheetPanel({
 	// The physical edge. The recipe, the slide, and the drag all key on it.
 	const edge = physicalSide(side, rtl)
 
-	const preset = k.motion[edge]
+	// The slide moves `transform`, which `MotionConfig` does not hold still, so the
+	// panel reads the setting itself (WCAG 2.3.3).
+	const preset = (usePrefersReducedMotion() ? k.still : k.motion)[edge]
 
 	const { onAnimationComplete } = useOpenComplete(open, preset.animate, onOpenComplete)
 

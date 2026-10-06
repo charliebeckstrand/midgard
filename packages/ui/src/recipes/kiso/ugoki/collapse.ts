@@ -26,6 +26,10 @@ const slide = {
 	 * The motion of the content in the panel. The content moves by its full
 	 * height on the same curve as the panel height. The bottom edge of the
 	 * content then stays on the bottom edge of the panel.
+	 *
+	 * The move uses `y`, not `transform`, so that it stays on the main thread.
+	 * Only the main thread can move the height, and the two must move on the
+	 * same frames.
 	 */
 	content: {
 		initial: { y: '-100%' },
