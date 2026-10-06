@@ -17,7 +17,10 @@ const bubble = defineRecipe({
 		'px-4 py-3',
 		size.md,
 		'rounded-2xl',
-		'whitespace-pre-wrap break-words',
+		// `anywhere`, not `break-word`: a long word, such as a URL, then does not set
+		// the min-content width. In a flex or grid host, the message would
+		// otherwise grow to the full word.
+		'whitespace-pre-wrap wrap-anywhere',
 	],
 	sender: {
 		user: ['bg-blue-600 text-white', 'rounded-br-md'],
