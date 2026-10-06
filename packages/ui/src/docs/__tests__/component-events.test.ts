@@ -1,7 +1,11 @@
 // @vitest-environment node
 import { parseAst } from 'vite'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
-import { componentEvent, listenComponentEvents } from '../debug/event-log/component-events.ts'
+import {
+	ARGUMENT_LENGTH,
+	componentEvent,
+	listenComponentEvents,
+} from '../debug/event-log/component-events.ts'
 import { labelCallbacks } from '../plugin/component-events.ts'
 
 const label = (code: string, fromModules: string[] = []) =>
@@ -76,6 +80,24 @@ describe('componentEvent', () => {
 		expect(texts).toEqual([
 			'component Button onClick("<click>")',
 			'component Button onClick("<click>")',
+		])
+	})
+
+	it('writes a set as an array and a map as its entries', () => {
+		const texts = collect()
+
+		componentEvent('module', 'Grid onValueChange', spy())(new Set([1, 2]), new Map([['a', 1]]))
+
+		expect(texts).toEqual(['module Grid onValueChange([1,2], [["a",1]])'])
+	})
+
+	it('cuts a long argument', () => {
+		const texts = collect()
+
+		componentEvent('component', 'Input onChange', spy())('x'.repeat(ARGUMENT_LENGTH * 2), 'short')
+
+		expect(texts).toEqual([
+			`component Input onChange(${JSON.stringify('x'.repeat(ARGUMENT_LENGTH * 2)).slice(0, ARGUMENT_LENGTH)}…, "short")`,
 		])
 	})
 

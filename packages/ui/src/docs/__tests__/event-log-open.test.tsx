@@ -1,7 +1,9 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { __resetEventLogSheet, EventLogButton } from '../debug/event-log/index.tsx'
-import { halt } from '../debug/event-log/recorder.ts'
+import { Profiler } from 'react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { __resetEventLogSheet, EventLogButton, startEventLog } from '../debug/event-log/index.tsx'
+import { halt, record } from '../debug/event-log/recorder.ts'
+import { EventLogSheet } from '../debug/event-log/sheet.tsx'
 
 // A sheet that suspends opens late, because React holds the content back for
 // at least 300 ms. So the button opens the sheet only when its module is
@@ -45,5 +47,45 @@ describe('EventLogButton', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'Event log' }))
 
 		expect(await screen.findByRole('heading', { name: 'Event log' })).toBeDefined()
+	})
+})
+
+describe('startEventLog', () => {
+	it('resolves when the recorder fails to load, so the page hydrates', async () => {
+		document.documentElement.setAttribute('data-debug', '')
+
+		vi.doMock('../debug/event-log/recorder.ts', () => {
+			throw new Error('stale chunk')
+		})
+
+		try {
+			await expect(startEventLog()).resolves.toBeUndefined()
+		} finally {
+			vi.doUnmock('../debug/event-log/recorder.ts')
+		}
+	})
+})
+
+describe('EventLogSheet', () => {
+	it('does not render for a new entry while it is closed, and shows the entry when it opens', () => {
+		let commits = 0
+
+		const sheet = (open: boolean) => (
+			<Profiler id="sheet" onRender={() => commits++}>
+				<EventLogSheet open={open} onOpenChange={() => {}} />
+			</Profiler>
+		)
+
+		const { rerender } = render(sheet(false))
+
+		const before = commits
+
+		act(() => record('route', '/closed'))
+
+		expect(commits).toBe(before)
+
+		rerender(sheet(true))
+
+		expect(screen.getByText('/closed')).toBeDefined()
 	})
 })

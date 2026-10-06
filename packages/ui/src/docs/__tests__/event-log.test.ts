@@ -353,6 +353,22 @@ describe('listen', () => {
 		expect(texts(log).slice(0, 2)).toEqual(['boom', 'unhandled rejection gone'])
 	})
 
+	it('records a resource that fails to load with its element and its URL', () => {
+		const log = new EventLog(createStore())
+
+		listenTo(log)
+
+		const script = attach(
+			Object.assign(document.createElement('script'), { src: '/assets/chunk.js' }),
+		)
+
+		script.dispatchEvent(new Event('error'))
+
+		expect(log.entries.map(({ kind, text }) => `${kind} ${text}`)).toEqual([
+			'error load fails script /assets/chunk.js',
+		])
+	})
+
 	it('records the callbacks that a page gives to a component or a module, and stops with the log', () => {
 		const log = new EventLog(createStore())
 
