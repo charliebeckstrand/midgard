@@ -113,7 +113,7 @@ type CalendarDayGrid = {
 	navigateTo: (year: number, month: number) => void
 }
 
-/** Options for {@link useCalendarFocus}: the three zone refs, grid column count, the grid Tab stop, the seal flag, and the day grid model. @internal */
+/** Options for {@link useCalendarFocus}: the three zone refs, grid column count, the grid Tab stop, the seal flag, the steer flag, and the day grid model. @internal */
 type CalendarFocusOptions = {
 	headerRef: RefObject<HTMLElement | null>
 	gridRef: RefObject<HTMLElement | null>
@@ -139,6 +139,14 @@ type CalendarFocusOptions = {
 	 * drive the outer model underneath the open surface.
 	 */
 	stopPropagation?: boolean
+	/**
+	 * Set to true when a parent steers the calendar, as the date picker does.
+	 * The header and footer handlers then leave every key to the parent. They
+	 * move no focus and call no `preventDefault`, so the key gets to the
+	 * keyboard model of the parent.
+	 * @defaultValue false
+	 */
+	steered?: boolean
 	/**
 	 * The date model of a day grid that no parent steers, as in the WAI-ARIA APG
 	 * date grid. An arrow that leaves the shown month, and PageUp or PageDown,
@@ -179,6 +187,20 @@ function middleButton(container: HTMLElement | null): HTMLElement | null {
 /** Last focusable button within `container`. @internal */
 function lastButton(container: HTMLElement | null): HTMLElement | null {
 	return buttonsOf(container).at(-1) ?? null
+}
+
+/**
+ * The focusable button of `grid` that holds the Tab stop, as `activeSelector`
+ * names it. When no button matches, `fallback` gives the button.
+ *
+ * @internal
+ */
+function entryButton(
+	grid: HTMLElement | null,
+	activeSelector: string,
+	fallback: (container: HTMLElement | null) => HTMLElement | null,
+): HTMLElement | null {
+	return buttonsOf(grid).find((button) => button.matches(activeSelector)) ?? fallback(grid)
 }
 
 /** True when the active button sits in the grid's first row. @internal */
@@ -382,10 +404,14 @@ function focusAdjacentFooterButton(
 
 /**
  * Wires keyboard navigation across a calendar's header, grid, and footer zones.
- * ArrowDown from the header enters the grid, and ArrowUp from the footer goes
- * back to the grid. The grid is one Tab stop with a roving `tabIndex` (see
- * `activeSelector`). The header buttons are plain buttons, and each one is a
- * Tab stop. Returns the three zones' `keydown` handlers.
+ * The grid is one Tab stop with a roving `tabIndex` (see `activeSelector`).
+ * The header buttons are plain buttons, and each one is a Tab stop. Returns
+ * the three zones' `keydown` handlers.
+ *
+ * ArrowDown from the header and ArrowUp from the footer move the focus to the
+ * grid item that holds the Tab stop. When no item matches `activeSelector`,
+ * ArrowDown moves it to the first item and ArrowUp to the last item. With
+ * `steered`, the header and footer handlers leave every key to the parent.
  *
  * Without `dayGrid`, ArrowUp on the top row of the grid moves the focus to the
  * header. ArrowDown on the bottom row moves it to the footer, when there is one.
@@ -408,6 +434,7 @@ export function useCalendarFocus({
 	activeSelector = DAY_TAB_STOP,
 	gridMounted = true,
 	stopPropagation = false,
+	steered = false,
 	dayGrid,
 }: CalendarFocusOptions) {
 	const headerRoving = useA11yRoving(headerRef, {
@@ -424,10 +451,12 @@ export function useCalendarFocus({
 
 	const handleHeaderKeyDown = useCallback(
 		(event: KeyboardEvent) => {
+			if (steered) return
+
 			if (event.key === 'ArrowDown') {
 				preventAndStop(event, stopPropagation)
 
-				firstButton(gridRef.current)?.focus()
+				entryButton(gridRef.current, activeSelector, firstButton)?.focus()
 
 				return
 			}
@@ -436,7 +465,7 @@ export function useCalendarFocus({
 
 			seal(event, stopPropagation)
 		},
-		[gridRef, headerRoving, stopPropagation],
+		[gridRef, headerRoving, stopPropagation, steered, activeSelector],
 	)
 
 	const handleGridKeyDown = useCallback(
@@ -462,10 +491,12 @@ export function useCalendarFocus({
 
 	const handleFooterKeyDown = useCallback(
 		(event: KeyboardEvent) => {
+			if (steered) return
+
 			if (event.key === 'ArrowUp') {
 				preventAndStop(event, stopPropagation)
 
-				lastButton(gridRef.current)?.focus()
+				entryButton(gridRef.current, activeSelector, lastButton)?.focus()
 
 				return
 			}
@@ -476,7 +507,7 @@ export function useCalendarFocus({
 
 			seal(event, stopPropagation)
 		},
-		[gridRef, footerRef, stopPropagation],
+		[gridRef, footerRef, stopPropagation, steered, activeSelector],
 	)
 
 	return { handleHeaderKeyDown, handleGridKeyDown, handleFooterKeyDown }

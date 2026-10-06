@@ -674,3 +674,129 @@ describe('useCalendarFocus: Tab stops', () => {
 		expect(tabStops(header)).toEqual(['0', '1', '2'])
 	})
 })
+
+/**
+ * Mounts the hook on a header of three buttons, `grid`, and a footer of two
+ * buttons, and returns the zones with the handlers.
+ */
+function mountZones(
+	grid: HTMLElement,
+	options: { steered?: boolean; activeSelector?: string } = {},
+) {
+	const header = makeContainer(3)
+
+	const footer = makeContainer(2)
+
+	const { result } = renderHook(() =>
+		useCalendarFocus({
+			headerRef: { current: header },
+			gridRef: { current: grid },
+			footerRef: { current: footer },
+			...options,
+		}),
+	)
+
+	return { header, footer, ...result.current }
+}
+
+// The header ArrowDown and the footer ArrowUp enter the grid on its Tab stop,
+// as Tab does. The first and the last button are the fallbacks when no item
+// matches (see the header and footer cases above).
+describe('useCalendarFocus: grid entry', () => {
+	it('focuses the selected day on header ArrowDown', () => {
+		const grid = makeGrid([{}, { today: true }, {}, { selected: true }, {}])
+
+		const { header, handleHeaderKeyDown } = mountZones(grid)
+
+		present<HTMLButtonElement>(header.querySelector('button'), 'button').focus()
+
+		const event = makeKeyEvent('ArrowDown')
+
+		handleHeaderKeyDown(event)
+
+		expect(event.preventDefault).toHaveBeenCalled()
+
+		expect(document.activeElement?.textContent).toBe('3')
+	})
+
+	it('focuses today on header ArrowDown when no enabled day is selected', () => {
+		const grid = makeGrid([{}, { today: true }, {}, { selected: true, disabled: true }])
+
+		const { header, handleHeaderKeyDown } = mountZones(grid)
+
+		present<HTMLButtonElement>(header.querySelector('button'), 'button').focus()
+
+		handleHeaderKeyDown(makeKeyEvent('ArrowDown'))
+
+		expect(document.activeElement?.textContent).toBe('1')
+	})
+
+	it('focuses the selected day on footer ArrowUp', () => {
+		const grid = makeGrid([{}, { selected: true }, {}, {}])
+
+		const { footer, handleFooterKeyDown } = mountZones(grid)
+
+		present<HTMLButtonElement>(footer.querySelector('button'), 'button').focus()
+
+		const event = makeKeyEvent('ArrowUp')
+
+		handleFooterKeyDown(event)
+
+		expect(event.preventDefault).toHaveBeenCalled()
+
+		expect(document.activeElement?.textContent).toBe('1')
+	})
+
+	it('focuses the item that activeSelector names on header ArrowDown', () => {
+		const grid = makeGrid([{ today: true }, {}, { dataSelected: true }, {}])
+
+		const { header, handleHeaderKeyDown } = mountZones(grid, { activeSelector: '[data-selected]' })
+
+		present<HTMLButtonElement>(header.querySelector('button'), 'button').focus()
+
+		handleHeaderKeyDown(makeKeyEvent('ArrowDown'))
+
+		expect(document.activeElement?.textContent).toBe('2')
+	})
+})
+
+// A parent that steers the calendar owns the keys of the header and the footer.
+// The handlers then move no focus and call no preventDefault, so the key
+// reaches the handler of the parent.
+describe('useCalendarFocus: steered', () => {
+	it.each(['ArrowDown', 'ArrowLeft', 'ArrowRight'])('leaves header %s to the parent', (key) => {
+		const grid = makeGrid([{}, { selected: true }, {}])
+
+		const { header, handleHeaderKeyDown } = mountZones(grid, { steered: true })
+
+		const focused = present<HTMLButtonElement>(header.querySelectorAll('button').item(1), 'button')
+
+		focused.focus()
+
+		const event = makeKeyEvent(key)
+
+		handleHeaderKeyDown(event)
+
+		expect(event.preventDefault).not.toHaveBeenCalled()
+
+		expect(document.activeElement).toBe(focused)
+	})
+
+	it.each(['ArrowUp', 'ArrowLeft', 'ArrowRight'])('leaves footer %s to the parent', (key) => {
+		const grid = makeGrid([{}, { selected: true }, {}])
+
+		const { footer, handleFooterKeyDown } = mountZones(grid, { steered: true })
+
+		const focused = present<HTMLButtonElement>(footer.querySelector('button'), 'button')
+
+		focused.focus()
+
+		const event = makeKeyEvent(key)
+
+		handleFooterKeyDown(event)
+
+		expect(event.preventDefault).not.toHaveBeenCalled()
+
+		expect(document.activeElement).toBe(focused)
+	})
+})

@@ -194,14 +194,16 @@ export type CalendarProps = {
  * `sm` is the smallest step. At `xs`, set or inherited, the calendar opens a
  * scope at `sm`.
  * When a parent steers `active`, roving focus spans the header, grid, and
- * footer zones. Month changes are announced to screen readers (WCAG 4.1.3). Exposes navigation and picker control to a parent via
+ * footer zones, and the parent owns the keys of the header and the footer. Month changes are announced to screen readers (WCAG 4.1.3). Exposes navigation and picker control to a parent via
  * the {@link CalendarHandle} `ref` for embedded use (e.g. DatePicker).
  *
  * With no `active`, the day grid follows the WAI-ARIA APG date grid. An arrow
  * that leaves the month steps the month. That includes ArrowUp on the top row
  * and ArrowDown on the bottom row. PageUp and PageDown step a month, and Shift
  * with a Page key steps a year. Home and End go to the first and the last
- * enabled day of the shown month.
+ * enabled day of the shown month. ArrowDown from the header moves the focus
+ * to the day that holds the Tab stop of the grid: the selected day, else
+ * today, else the first enabled day.
  *
  * The focused day stays between `min` and `max`. An arrow or a Page key toward
  * a disabled day moves the focus to the nearest enabled day. When that is the
@@ -303,7 +305,8 @@ export function Calendar({
 	const gridRef = useRef<HTMLDivElement>(null)
 
 	// A calendar that no parent steers carries the date model of its day grid. A
-	// parent that steers `active` owns the month steps and the Page keys.
+	// parent that steers `active` owns the month steps, the Page keys, and the
+	// keys of the header and the footer.
 	const steered = active !== undefined
 
 	const dayGrid = useMemo(
@@ -315,6 +318,7 @@ export function Calendar({
 		headerRef,
 		gridRef,
 		footerRef,
+		steered,
 		dayGrid,
 	})
 

@@ -560,16 +560,16 @@ describe('Calendar keyboard navigation', () => {
 		expect(document.activeElement).toBe(screen.getByRole('button', { name: /June 2025/ }))
 	})
 
-	it('moves focus from the header down into the day grid', async () => {
+	it('moves focus from the header down into the day grid on the selected day', async () => {
 		const user = setupUser()
 
 		renderJune()
 
-		act(() => screen.getByLabelText('Previous month').focus())
+		act(() => screen.getByLabelText('Next month').focus())
 
 		await user.keyboard('{ArrowDown}')
 
-		expect(document.activeElement).toBe(day('1'))
+		expect(document.activeElement).toBe(day('15'))
 	})
 
 	it.each([
@@ -625,7 +625,9 @@ describe('Calendar keyboard navigation', () => {
 	it('enters the grid on the first enabled day when leading days are disabled', async () => {
 		const user = setupUser()
 
-		renderMinTenth()
+		// The selected day, June 5, is before `min` and so disabled. No enabled
+		// day holds the Tab stop, and the entry falls back to the first enabled day.
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 5)} min={new Date(2025, 5, 10)} />)
 
 		act(() => screen.getByLabelText('Previous month').focus())
 
