@@ -125,21 +125,20 @@ function PlaceFact({ icon, children }: { icon: ReactElement; children: ReactNode
 /**
  * The address of a place on one line, cut with an ellipsis, and a button that
  * copies the full address. The button is taller than a line, so it sits by the
- * fact and not in it, as the menu of a visit does. A negative block margin
- * cancels the padding of the button, so the button does not make the row
- * higher than the rows under it, at each density. The button then goes out of
- * its row by at most the margin. The row is the first row of the drawer body, a
- * box that scrolls and clips what goes out, so {@link PlaceDetails} has a top
- * padding of the same size.
+ * fact and not in it, as the menu of a visit does. The row is one line high,
+ * the same as the rows under it, so the button goes out of the row above and
+ * below: by up to 6px, at the loose density. The row is the first row of the
+ * drawer body, a box that scrolls and clips what goes out, so
+ * {@link PlaceDetails} has a top padding of that size.
  */
 function PlaceAddress({ address }: { address: string }) {
 	return (
-		<Flex justify="between" align="center" gap="sm">
+		<Flex justify="between" align="center" gap="sm" className="h-lh">
 			<PlaceFact icon={<MapPin />}>
 				<Text className="truncate">{address}</Text>
 			</PlaceFact>
 
-			<CopyButton text={address} icon={<Copy />} aria-label="Copy address" className="-my-1.5" />
+			<CopyButton text={address} icon={<Copy />} aria-label="Copy address" />
 		</Flex>
 	)
 }
@@ -160,25 +159,25 @@ function PlaceVisit({
 	const day = useDateFormat(DAY_FORMAT).format(new Date(visit.visitedAt))
 
 	return (
-		<Stack gap="sm">
-			<Stack gap="md">
-				<Flex justify="between" align="center" gap="sm">
-					<PlaceFact icon={<CalendarDays />}>
-						<Text>Visited {day}</Text>
-					</PlaceFact>
+		<Stack gap="md">
+			{/* One line high, as the address row is: the menu is taller than the
+			    line, and goes out of the row above and below. */}
+			<Flex justify="between" align="center" gap="sm" className="h-lh">
+				<PlaceFact icon={<CalendarDays />}>
+					<Text>{day}</Text>
+				</PlaceFact>
 
-					<PlaceMenu
-						items={visitMenuItems(place, visit, actions)}
-						aria-label={`Actions for the visit on ${day}`}
-					/>
-				</Flex>
+				<PlaceMenu
+					items={visitMenuItems(place, visit, actions)}
+					aria-label={`Actions for the visit on ${day}`}
+				/>
+			</Flex>
 
-				{visit.rating > 0 ? (
-					<PlaceFact icon={<Heart />}>
-						<Rating readOnly value={visit.rating} size="sm" />
-					</PlaceFact>
-				) : null}
-			</Stack>
+			{visit.rating > 0 ? (
+				<PlaceFact icon={<Heart />}>
+					<Rating readOnly value={visit.rating} size="sm" />
+				</PlaceFact>
+			) : null}
 
 			{/* `next/image` with `unoptimized`: the address is the one that the
 			    reader typed, so the host is not known at build time. The optimizer
@@ -223,7 +222,7 @@ function PlaceDetails({ place, actions }: { place: Place; actions: VisitActions 
 	const category = CATEGORY_BY_VALUE.get(place.category)
 
 	return (
-		// `pt-1.5` is the negative margin of the copy button in the first row.
+		// `pt-1.5` holds the top of the copy button in the first row.
 		<Stack gap="md" className="pt-1.5 pb-6">
 			<Stack gap="md">
 				<PlaceAddress address={place.address} />
