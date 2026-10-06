@@ -313,7 +313,7 @@ describe('Sidebar mini', () => {
 
 		// Visually collapsed on the desktop rail, still in the accessible name.
 		expect(bySlot(container, 'sidebar-label')?.className).toContain(
-			'lg:group-data-[mini]/sidebar:sr-only',
+			'lg:group-data-mini/sidebar:sr-only',
 		)
 	})
 
@@ -329,7 +329,7 @@ describe('Sidebar mini', () => {
 		// Height follows the rail width, so items stay uniform squares even
 		// when icon glyph aspect ratios differ.
 		expect(bySlot(container, 'sidebar-item-inner')?.className).toContain(
-			'lg:group-data-[mini]/sidebar:aspect-square',
+			'lg:group-data-mini/sidebar:aspect-square',
 		)
 	})
 

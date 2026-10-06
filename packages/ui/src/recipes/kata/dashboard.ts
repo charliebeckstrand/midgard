@@ -25,11 +25,11 @@ const { rounded } = kasane
 const guides = [
 	"before:pointer-events-none before:absolute before:content-['']",
 	'before:inset-[calc(var(--dashboard-gap)/2)]',
-	'before:[background-size:calc((100%_+_var(--dashboard-gap))_/_var(--dashboard-columns))_100%]',
-	'before:[background-position:calc(var(--dashboard-gap)_/_-2)_0]',
+	'before:bg-size-[calc((100%+var(--dashboard-gap))/var(--dashboard-columns))_100%]',
+	'before:bg-position-[calc(var(--dashboard-gap)/-2)_0]',
 	...mode(
-		'before:[background-image:linear-gradient(to_right,var(--color-zinc-100)_1px,transparent_1px)]',
-		'dark:before:[background-image:linear-gradient(to_right,var(--color-zinc-800)_1px,transparent_1px)]',
+		'before:bg-[linear-gradient(to_right,var(--color-zinc-100)_1px,transparent_1px)]',
+		'dark:before:bg-[linear-gradient(to_right,var(--color-zinc-800)_1px,transparent_1px)]',
 	),
 ]
 
@@ -102,10 +102,10 @@ const card = defineRecipe({
 const header = [
 	`flex min-w-0 items-center gap-2 ${dan.space.box.bottom} [--touch-target-gap-x:0px]`,
 	'has-data-own-fullscreen:**:data-[slot=dashboard-tile-expand]:hidden',
-	'**:data-[variant=bare]:not-data-[has-label]:density-xs:-mx-0.75',
-	'**:data-[variant=bare]:not-data-[has-label]:density-sm:-mx-1',
-	'**:data-[variant=bare]:not-data-[has-label]:density-md:-mx-1.25',
-	'**:data-[variant=bare]:not-data-[has-label]:density-[lg,xl]:-mx-1.5',
+	'**:data-[variant=bare]:not-data-has-label:density-xs:-mx-0.75',
+	'**:data-[variant=bare]:not-data-has-label:density-sm:-mx-1',
+	'**:data-[variant=bare]:not-data-has-label:density-md:-mx-1.25',
+	'**:data-[variant=bare]:not-data-has-label:density-[lg,xl]:-mx-1.5',
 ].join(' ')
 
 /**
@@ -203,7 +203,7 @@ const resizeHandle = defineRecipe({
 	base: [
 		'absolute z-10 touch-none select-none',
 		"after:absolute after:rounded-full after:opacity-0 motion-safe:after:transition-opacity after:content-['']",
-		'hover:after:opacity-100 focus-visible:after:opacity-100 data-[resizing]:after:opacity-100',
+		'hover:after:opacity-100 focus-visible:after:opacity-100 data-resizing:after:opacity-100',
 		'pointer-coarse:after:opacity-100',
 		...mode('after:bg-zinc-400', 'dark:after:bg-zinc-600'),
 		...sen.focus.ring,

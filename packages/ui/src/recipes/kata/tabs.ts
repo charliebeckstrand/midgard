@@ -60,7 +60,7 @@ const list = defineRecipe({
  * cross axis does not cut a tab label.
  */
 const scroll = defineRecipe({
-	base: ['[scrollbar-width:none]', '[&::-webkit-scrollbar]:hidden'],
+	base: ['scrollbar-none', '[&::-webkit-scrollbar]:hidden'],
 	orientation: {
 		horizontal: ['overflow-y-hidden', ...rail],
 		vertical: 'shrink-0 overflow-y-auto overflow-x-hidden',
