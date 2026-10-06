@@ -59,12 +59,14 @@ export function useDateInputOverride({
 		setKnown((current) => ({ ...current, commit: { date: committed } }))
 	}
 
-	if (!isSameInstant(known.date, date) || known.resets !== resets) {
+	const reset = known.resets !== resets
+
+	if (reset || !isSameInstant(known.date, date)) {
 		setKnown({ date, resets, commit: undefined })
 
 		const echo = known.commit !== undefined && isSameDay(date, known.commit.date)
 
-		if (editing && (known.resets !== resets || !echo)) onOverride()
+		if (editing && (reset || !echo)) onOverride()
 	}
 
 	return recordCommit

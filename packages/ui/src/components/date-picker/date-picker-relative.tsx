@@ -159,13 +159,13 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 							Back to presets
 						</Button>
 						{/* Each field is a single-date picker in `input` mode: a typed
-					    DateInput whose suffix button opens a calendar. The popover
-					    preventDefaults mousedown to hold DOM focus on the dialog for
-					    the calendar variants' virtual model. Stop mousedown here, so a
-					    click focuses the input. `clearable` is off so the suffix —
-					    and thus the field width — stays fixed as a date is entered.
-					    Each field takes the root `footer`, so a footer button that
-					    the author removes does not show in the field calendars. */}
+						    DateInput whose suffix button opens a calendar. The popover
+						    preventDefaults mousedown to hold DOM focus on the dialog for
+						    the calendar variants' virtual model. Stop mousedown here, so a
+						    click focuses the input. `clearable` is off so the suffix —
+						    and thus the field width — stays fixed as a date is entered.
+						    Each field takes the root `footer`, so a footer button that
+						    the author removes does not show in the field calendars. */}
 						<Field onMouseDown={(event) => event.stopPropagation()}>
 							<Label>Start</Label>
 							<DatePicker
