@@ -252,12 +252,6 @@ export function DrawerPanel({
 
 	const { report, onAnimationComplete } = useOpenComplete(open, preset.animate, onOpenComplete)
 
-	// A panel that arrives in place plays no enter, so there is no landing to report from —
-	// it is already up, and says so from here instead.
-	useEffect(() => {
-		if (open && !animateEnter) report()
-	}, [open, animateEnter, report])
-
 	const grip = drawerShowsGrip(handle, height)
 
 	// The gesture is held here, by the component that owns the panel it writes to.
@@ -269,6 +263,16 @@ export function DrawerPanel({
 		floorOf: drawerFloor,
 		ceilingOf: drawerCeiling,
 	})
+
+	// A panel that arrives in place plays no enter, so there is no landing to report from.
+	// It reports once its node is in the DOM, so that a consumer that measures the panel
+	// finds it. The portal mounts the panel on a later commit than the one that opens the
+	// drawer, and the gesture holds the node as state, so the effect can wait for it.
+	const panel = resize.panel
+
+	useEffect(() => {
+		if (open && !animateEnter && panel !== null) report()
+	}, [open, animateEnter, panel, report])
 
 	// The other half of the panel's height, and the one the panel itself decides:
 	// a `fit` panel grows and shrinks into whatever it is handed. It stands down

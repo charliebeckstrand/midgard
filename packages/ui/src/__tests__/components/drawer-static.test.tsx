@@ -1,6 +1,14 @@
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { Drawer, DrawerBody, DrawerPanel, DrawerStatic, DrawerTitle } from '../../components/drawer'
+import { Button } from '../../components/button'
+import {
+	Drawer,
+	DrawerBody,
+	DrawerClose,
+	DrawerPanel,
+	DrawerStatic,
+	DrawerTitle,
+} from '../../components/drawer'
 import { bySlot, getSlot, present, renderUI, screen } from '../helpers'
 
 /** The class list of `el`, order-free — the two trees build theirs through different calls. */
@@ -91,6 +99,124 @@ describe('DrawerStatic', () => {
 		expect(classes(staticGrip, 'static handle area')).toEqual(area)
 		expect(classes(staticGrip?.firstElementChild, 'static handle bar')).toEqual(bar)
 		expect(staticGrip).toHaveAttribute('aria-hidden', 'true')
+	})
+
+	/*
+	 * A drawer with no `DrawerFooter` shows the standard Close row, so its static copy shows the
+	 * same row. Without it, the panel grows by one row on the frame the two swap.
+	 */
+	it('paints the default footer of a drawer with no footer of its own', () => {
+		const { unmount } = renderUI(
+			<Drawer open onOpenChange={() => {}}>
+				<DrawerPanel animateOnMount={false}>
+					<DrawerTitle>Resolve</DrawerTitle>
+				</DrawerPanel>
+			</Drawer>,
+		)
+
+		const footer = classes(bySlot(document.body, 'drawer-footer'), 'footer')
+		const close = classes(bySlot(document.body, 'drawer-close'), 'close')
+
+		unmount()
+
+		const { container } = renderUI(
+			<DrawerStatic>
+				<DrawerTitle>Resolve</DrawerTitle>
+			</DrawerStatic>,
+		)
+
+		const staticPanel = getSlot(container, 'drawer-static-panel')
+
+		expect(classes(bySlot(staticPanel, 'drawer-footer'), 'static footer')).toEqual(footer)
+		expect(classes(bySlot(staticPanel, 'drawer-close'), 'static close')).toEqual(close)
+	})
+
+	// `footer={null}` drops the row on both, which a copy whose children hold a `DrawerFooter` needs.
+	it('paints no default footer with footer={null}, as the drawer does', () => {
+		const { unmount } = renderUI(
+			<Drawer open onOpenChange={() => {}}>
+				<DrawerPanel animateOnMount={false} footer={null}>
+					<DrawerTitle>Resolve</DrawerTitle>
+				</DrawerPanel>
+			</Drawer>,
+		)
+
+		expect(bySlot(document.body, 'drawer-footer')).toBeNull()
+
+		unmount()
+
+		const { container } = renderUI(
+			<DrawerStatic footer={null}>
+				<DrawerTitle>Resolve</DrawerTitle>
+			</DrawerStatic>,
+		)
+
+		expect(bySlot(container, 'drawer-footer')).toBeNull()
+	})
+
+	// Paint only: the static backdrop stays in place to take a press, but without the scrim.
+	it.each([
+		['modal={false}', { modal: false }],
+		['backdrop={false}', { backdrop: false }],
+	] as const)('paints no scrim with %s', (_, props) => {
+		const { container } = renderUI(
+			<DrawerStatic {...props}>
+				<DrawerTitle>Resolve</DrawerTitle>
+			</DrawerStatic>,
+		)
+
+		const staticDrawer = getSlot(container, 'drawer-static')
+
+		expect(classes(staticDrawer.children[0], 'static backdrop')).toEqual(['absolute', 'inset-0'])
+		expect(staticDrawer).not.toHaveAttribute('inert')
+	})
+
+	it('paints the scrim of a non-modal drawer with backdrop, as the drawer does', () => {
+		const { unmount } = renderUI(
+			<Drawer open onOpenChange={() => {}}>
+				<DrawerPanel animateOnMount={false} modal={false} backdrop>
+					<DrawerTitle>Resolve</DrawerTitle>
+				</DrawerPanel>
+			</Drawer>,
+		)
+
+		const backdrop = classes(bySlot(document.body, 'overlay-backdrop'), 'backdrop')
+
+		unmount()
+
+		const { container } = renderUI(
+			<DrawerStatic modal={false} backdrop>
+				<DrawerTitle>Resolve</DrawerTitle>
+			</DrawerStatic>,
+		)
+
+		const staticDrawer = getSlot(container, 'drawer-static')
+
+		expect(classes(staticDrawer.children[0], 'static backdrop')).toEqual(backdrop)
+	})
+
+	/*
+	 * The server paint is the reason the component exists. A `DrawerClose` reads the close context,
+	 * which throws when no panel gives it, so the static copy gives one that does nothing.
+	 */
+	it.each([
+		['the default footer', null],
+		['a DrawerClose child', <DrawerClose key="close" />],
+		[
+			'a DrawerClose child that wraps a button',
+			<DrawerClose key="close">
+				<Button>Done</Button>
+			</DrawerClose>,
+		],
+	])('renders on the server with %s', (_, child) => {
+		const html = renderToString(
+			<DrawerStatic>
+				<DrawerTitle>Resolve</DrawerTitle>
+				{child}
+			</DrawerStatic>,
+		)
+
+		expect(html).toContain('data-slot="drawer-close"')
 	})
 
 	it('resolves glass from the ambient provider, as the drawer does', () => {

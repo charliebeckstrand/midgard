@@ -184,4 +184,19 @@ describe.each(FAMILIES)('$name footer', ({ name, Root, Close, Content, Footer })
 
 		expect(screen.queryByRole('button')).not.toBeInTheDocument()
 	})
+
+	// A drawer can have a fixed height. Its content wrapper fills the panel, so a
+	// footer in the wrapper stays at the foot. Dialog and sheet keep the shared wrapper.
+	it(`${name === 'drawer' ? 'fills' : 'does not fill'} the panel with the content wrapper`, () => {
+		renderUI(
+			<Root open onOpenChange={() => {}}>
+				<Content>Body</Content>
+			</Root>,
+		)
+
+		const content = bySlot(document.body, `${name}-content`)
+
+		if (name === 'drawer') expect(content).toHaveClass('flex-1')
+		else expect(content).not.toHaveClass('flex-1')
+	})
 })
