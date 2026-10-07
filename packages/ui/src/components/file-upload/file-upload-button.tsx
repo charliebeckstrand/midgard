@@ -40,7 +40,7 @@ export function FileUploadButton(props: FileUploadButtonProps) {
 	// different file can be picked — or the selection cleared — without the
 	// trigger swapping out.
 	return (
-		<div data-slot="file-upload" className={cn('inline-flex gap-2', className)}>
+		<div data-slot="file-upload" className={cn(k.button, className)}>
 			<FileUploadHiddenInput
 				ariaLabel={triggerLabel(children, 'Upload')}
 				control={control}

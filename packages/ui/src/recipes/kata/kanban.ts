@@ -7,6 +7,7 @@
  */
 import { mode } from '../../core/recipe'
 import { hannou, iro, ji, kasane, kokkaku, narabi, omote, sen } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { disabled, grab } = hannou
 const { text } = iro
@@ -19,12 +20,12 @@ const { border, focus } = sen
 export const k = {
 	// While the columns overflow, the edge with more columns behind it fades, and
 	// the board is a tab stop with an inset ring.
-	base: ['flex gap-4 items-stretch', 'min-h-0', ...rail],
+	base: [`flex ${dan.gap.scale.lg} items-stretch`, 'min-h-0', ...rail],
 	column: {
 		base: [
 			flex.col,
 			'min-w-0',
-			'gap-2',
+			dan.gap.scale.sm,
 			'w-72 shrink-0',
 			'p-4',
 			...mode('bg-zinc-50', 'dark:bg-zinc-900/50'),
@@ -37,21 +38,21 @@ export const k = {
 				'dark:data-over:bg-zinc-800/50 dark:data-over:border-white/20',
 			),
 		],
-		header: [flex.row, 'gap-2', size.md, text.default, weight.semibold],
+		header: [flex.row, dan.gap.scale.sm, size.md, text.default, weight.semibold],
 		title: [flex.fill, 'min-w-0 truncate'],
-		body: [flex.col, flex.fill, 'gap-1', 'overflow-y-auto', focus.inset],
+		body: [flex.col, flex.fill, dan.gap.scale.xs, 'overflow-y-auto', focus.inset],
 		empty: [flex.row, 'justify-center', 'min-h-16', size.sm, text.muted],
 	},
 	card: {
 		// A card with a handle holds it at its start edge, centered on the height
-		// of the card. The card pads its start edge by the handle and the gap
-		// (`p-2`, `size-6`, `gap-1`: 36px), so the other children align with each
+		// of the card. The card pads its start edge by the handle and a space of one
+		// stop (`p-2`, `size-6`, and 4px: 36px), so the other children align with each
 		// other beside it. A card with no handle has no extra padding.
 		base: [
 			'group/kanban-card',
 			'relative',
 			flex.col,
-			'gap-1',
+			dan.gap.scale.xs,
 			'*:data-[slot=kanban-card-handle]:absolute *:data-[slot=kanban-card-handle]:start-2 *:data-[slot=kanban-card-handle]:inset-y-0 *:data-[slot=kanban-card-handle]:my-auto',
 			'p-2 has-[>[data-slot=kanban-card-handle]]:ps-9',
 			...mode('bg-white', 'dark:bg-zinc-950'),

@@ -1,35 +1,28 @@
 /**
  * Ma padding: padding utility maps keyed by the spacing label set. `p` is
- * the all-sides shorthand; `px` and `py` are the axis variants.
+ * the all-sides shorthand; `px` and `py` are the axis variants. Each stop but
+ * `0` is a ramp of `dan.space.scale`, so the padding takes the step of the
+ * nearest density scope.
  *
  * Layer: kiso · Concern: padding utilities
  */
 
+import { dan } from '../dan'
 import type { Ma } from './scale'
+
+const { scale } = dan.space
 
 export const p = {
 	0: 'p-0',
-	xs: 'p-1',
-	sm: 'p-2',
-	md: 'p-3',
-	lg: 'p-4',
-	xl: 'p-6',
+	...scale.p,
 } as const satisfies Record<Ma, string>
 
 export const px = {
 	0: 'px-0',
-	xs: 'px-1',
-	sm: 'px-2',
-	md: 'px-3',
-	lg: 'px-4',
-	xl: 'px-6',
+	...scale.px,
 } as const satisfies Record<Ma, string>
 
 export const py = {
 	0: 'py-0',
-	xs: 'py-1',
-	sm: 'py-2',
-	md: 'py-3',
-	lg: 'py-4',
-	xl: 'py-6',
+	...scale.py,
 } as const satisfies Record<Ma, string>

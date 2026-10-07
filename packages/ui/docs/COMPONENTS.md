@@ -55,6 +55,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > An `interactive` `tooltip` with a tabbable control in its content is a non-modal `role="dialog"`. The trigger names it and carries `aria-haspopup="dialog"`, `aria-expanded`, and `aria-controls`. Tab goes from the trigger into the panel controls and then on to the element after the trigger. Focus does not stay in the panel, and the page stays visible to assistive tech. Other tooltips are `role="tooltip"` and describe the trigger.
 
+> `TooltipContent` loads its panel module, with Motion and the floating surface, on the first hover or focus of a trigger. The panel opens when the module is there, and the hover delay covers the load. A page that opens no tooltip does not load Motion for it.
+
 > `confirm` exports `Confirm` and `useConfirm`. `Confirm` is the controlled alertdialog. `useConfirm()` gives a function that asks a question in the one `Confirm` that `UIProvider` mounts. The provider loads the dialog on the first question. The function returns a promise that resolves `true` on a confirm and `false` on a cancel or a dismissal. An optional `action` keeps the dialog open, with the confirm button pending, until the work is done. Use `Confirm` for a message with custom children.
 
 > `toast` holds the full toast unit. `ToastProvider` keeps the queue and the timers. `useToast()` adds and removes toasts, and the `Toast` viewport shows the queue in a portal. `UIProvider` mounts one `ToastProvider` and its viewport, so `useToast()` works anywhere under it with no setup. The viewport loads on the first toast; its `toast` prop sets the `position`, `duration`, and `maxToasts`. Use `ToastProvider` and `Toast` for a queue of their own in one part of the page.

@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
 import { Description, Field, Label, Message } from '../../components/fieldset'
 import { FileUploadButton, FileUploadDrop, FileUploadInput } from '../../components/file-upload'
+import { HeadlessProvider } from '../../providers/headless'
 import {
 	expectAnnouncement,
 	fireEvent,
@@ -216,6 +217,34 @@ describe('FileUpload input variant selection', () => {
 		expect(display(container)).toHaveTextContent('Choose…')
 
 		expect(onAccept).toHaveBeenLastCalledWith([])
+	})
+})
+
+describe('FileUpload input variant under headless', () => {
+	it('keeps a bare clear button that clears the selection and gives focus back', () => {
+		const onAccept = vi.fn()
+
+		const { container } = renderUI(
+			<HeadlessProvider>
+				<FileUploadInput onAccept={onAccept} />
+			</HeadlessProvider>,
+		)
+
+		expect(screen.queryByRole('button', { name: 'Clear selected file(s)' })).not.toBeInTheDocument()
+
+		selectFiles(container, [new File(['x'], 'resume.pdf')])
+
+		const clear = screen.getByRole('button', { name: 'Clear selected file(s)' })
+
+		expect(clear).toHaveAttribute('type', 'button')
+
+		fireEvent.click(clear)
+
+		expect(display(container)).toHaveFocus()
+
+		expect(onAccept).toHaveBeenLastCalledWith([])
+
+		expect(screen.queryByRole('button', { name: 'Clear selected file(s)' })).not.toBeInTheDocument()
 	})
 })
 
@@ -455,7 +484,7 @@ describe('FileUpload disabled dropzone', () => {
 
 		const zone = dropzone(container)
 
-		fireEvent.dragEnter(zone, { dataTransfer: { files: makeFileList([]) } })
+		fireEvent.dragEnter(zone, { dataTransfer: { types: ['Files'], files: makeFileList([]) } })
 
 		expect(zone).not.toHaveAttribute('data-drag-over')
 	})
@@ -473,7 +502,7 @@ describe('FileUpload disabled dropzone', () => {
 
 		const files = makeFileList([new File(['x'], 'resume.pdf')])
 
-		fireEvent.dragEnter(zone, { dataTransfer: { files } })
+		fireEvent.dragEnter(zone, { dataTransfer: { types: ['Files'], files } })
 
 		fireEvent.drop(zone, { dataTransfer: { files } })
 
@@ -572,15 +601,39 @@ describe('FileUpload drag-over reporting', () => {
 
 		const files = makeFileList([new File(['x'], 'resume.pdf')])
 
-		fireEvent.dragEnter(zone, { dataTransfer: { files } })
+		fireEvent.dragEnter(zone, { dataTransfer: { types: ['Files'], files } })
 
 		expect(onDragOverChange).toHaveBeenCalledExactlyOnceWith(true)
 
-		fireEvent.dragLeave(zone, { dataTransfer: { files } })
+		fireEvent.dragLeave(zone, { dataTransfer: { types: ['Files'], files } })
 
 		expect(onDragOverChange).toHaveBeenLastCalledWith(false)
 
 		expect(onDragOverChange).toHaveBeenCalledTimes(2)
+	})
+
+	// A text, link, or element drag lists no `'Files'` type. The zone must not
+	// light up for it or claim it as a drop target.
+	it('ignores a drag that carries no file', () => {
+		const onDragOverChange = vi.fn()
+
+		const { container } = renderUI(
+			<FileUploadDrop onDragOverChange={onDragOverChange}>Upload</FileUploadDrop>,
+		)
+
+		const zone = dropzone(container)
+
+		const dataTransfer = { types: ['text/plain'], files: makeFileList([]) }
+
+		fireEvent.dragEnter(zone, { dataTransfer })
+
+		const notPrevented = fireEvent.dragOver(zone, { dataTransfer })
+
+		expect(zone).not.toHaveAttribute('data-drag-over')
+
+		expect(onDragOverChange).not.toHaveBeenCalledWith(true)
+
+		expect(notPrevented).toBe(true)
 	})
 
 	// The depth counter exists because `dragleave` bubbles on every child
@@ -601,13 +654,13 @@ describe('FileUpload drag-over reporting', () => {
 
 		const files = makeFileList([new File(['x'], 'resume.pdf')])
 
-		fireEvent.dragEnter(zone, { dataTransfer: { files } })
+		fireEvent.dragEnter(zone, { dataTransfer: { types: ['Files'], files } })
 
 		onDragOverChange.mockClear()
 
-		fireEvent.dragEnter(child, { dataTransfer: { files } })
+		fireEvent.dragEnter(child, { dataTransfer: { types: ['Files'], files } })
 
-		fireEvent.dragLeave(zone, { dataTransfer: { files } })
+		fireEvent.dragLeave(zone, { dataTransfer: { types: ['Files'], files } })
 
 		expect(onDragOverChange).not.toHaveBeenCalled()
 	})
@@ -623,7 +676,7 @@ describe('FileUpload drag-over reporting', () => {
 
 		const files = makeFileList([new File(['x'], 'resume.pdf')])
 
-		fireEvent.dragEnter(zone, { dataTransfer: { files } })
+		fireEvent.dragEnter(zone, { dataTransfer: { types: ['Files'], files } })
 
 		fireEvent.drop(zone, { dataTransfer: { files } })
 
@@ -642,7 +695,7 @@ describe('FileUpload drag-over reporting', () => {
 		expect(onDragOverChange).not.toHaveBeenCalled()
 
 		fireEvent.dragEnter(dropzone(container), {
-			dataTransfer: { files: makeFileList([]) },
+			dataTransfer: { types: ['Files'], files: makeFileList([]) },
 		})
 
 		expect(onDragOverChange).not.toHaveBeenCalled()

@@ -59,7 +59,7 @@ const base = defineRecipe({
 	base: ['group relative list-none'],
 	affix: {
 		true: [
-			'flex items-center gap-1',
+			`flex items-center ${dan.gap.scale.xs}`,
 			...nav.tint,
 			rounded.lg,
 			'ring-inset has-[[data-slot=nav-item-inner]:focus-visible]:ring-2 has-[[data-slot=nav-item-inner]:focus-visible]:ring-blue-600',
@@ -106,14 +106,14 @@ export const k = {
 		// list, so two adjacent items split the gap and do not overlap.
 		orientation: {
 			vertical: ['flex-col', 'gap-0.5', '[--touch-target-gap-y:--spacing(0.5)]'],
-			horizontal: ['flex-row', 'gap-1', '[--touch-target-gap-x:--spacing(1)]'],
+			horizontal: ['flex-row', dan.gap.scale.xs, ...dan.gap.touch.x.xs],
 		},
 	},
 	bar: {
 		/** The `<NavBar>` landmark frame; pass `variant` (`solid` | `outline` | `plain`) for the border style. */
 		base: bar,
 		/** The row of items in a `<NavBar>`. While it overflows, the edge with more items behind it fades. */
-		rail: [flex.row, 'gap-4', ...rail],
+		rail: [flex.row, dan.gap.scale.lg, ...rail],
 	},
 	item: {
 		/** The `<li>` wrapper; pass `affix` to take over the interaction chrome. */

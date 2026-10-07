@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react'
-import { useState } from 'react'
+import { type ReactNode, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	Form,
@@ -758,6 +758,36 @@ describe('useFormActions', () => {
 		rerender()
 
 		expect(result.current).toBe(first)
+	})
+
+	it('keeps the actions identity when onReset changes, and calls the newest onReset', () => {
+		const firstOnReset = vi.fn()
+
+		const nextOnReset = vi.fn()
+
+		let onReset = firstOnReset
+
+		const wrapper = ({ children }: { children: ReactNode }) => (
+			<Form defaultValues={{ name: 'Ada' }} onReset={onReset}>
+				{children}
+			</Form>
+		)
+
+		const { result, rerender } = renderHook(() => useFormActions(), { wrapper })
+
+		const first = result.current
+
+		onReset = nextOnReset
+
+		rerender()
+
+		expect(result.current).toBe(first)
+
+		act(() => result.current?.reset())
+
+		expect(firstOnReset).not.toHaveBeenCalled()
+
+		expect(nextOnReset).toHaveBeenCalledOnce()
 	})
 })
 

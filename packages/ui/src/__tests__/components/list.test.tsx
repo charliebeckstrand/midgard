@@ -562,7 +562,7 @@ describe('ListItem', () => {
 
 		const row = bySlot(container, 'list-item')?.className ?? ''
 
-		expect(root).toContain('gap-2')
+		expect(root).toContain('density-gap-[1,2,3]')
 
 		expect(root).not.toContain('divide-y')
 

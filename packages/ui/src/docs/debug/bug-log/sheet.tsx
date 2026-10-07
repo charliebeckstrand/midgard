@@ -79,26 +79,25 @@ function ReportLine({
 	)
 }
 
-/** A button with a text label that copies `text`, with the copied state of `CopyButton`. */
-function CopyTextButton({ label, text }: { label: string; text: string }) {
+/** A button with the text label "Copy" that copies `text`, with the copied state of `CopyButton`. */
+function CopyTextButton({ text }: { text: string }) {
 	const { copied, copy } = useCopyButtonState({ text })
 
 	return (
 		<Button size="sm" color={copied ? 'green' : undefined} onClick={() => void copy()}>
-			{copied ? 'Copied' : label}
+			{copied ? 'Copied' : 'Copy'}
 		</Button>
 	)
 }
 
 /**
  * The viewer of the Bug log: the title and "Preserve", the reports, newest
- * first, then Copy all, Capture, and Clear. View, or a press on a row, shows
- * one report in place of the list, as the Markdown that Copy writes. The
- * crumbs "Bugs" and the hash of the report take the place of the title, and
- * Copy and Delete of that report take the place of "Preserve" and the actions
- * of the list. The Event log
- * records nothing while the sheet is on screen, so a capture holds the lines
- * before the open.
+ * first, then Capture, and Clear while the log holds a report. View, or a
+ * press on a row, shows one report in place of the list, as the Markdown that
+ * Copy writes. The crumbs "Bugs" and the hash of the report take the place of
+ * the title, and Copy and Delete of that report take the place of "Preserve"
+ * and the actions of the list. The Event log records nothing while the sheet
+ * is on screen, so a capture holds the lines before the open.
  */
 export function BugLogSheet({
 	open,
@@ -205,7 +204,7 @@ export function BugLogSheet({
 				<SheetFooter className="justify-between">
 					{report ? (
 						<Flex gap="sm">
-							<CopyTextButton label="Copy" text={markdownOf(report)} />
+							<CopyTextButton text={markdownOf(report)} />
 							<Button
 								size="sm"
 								color="red"
@@ -221,13 +220,14 @@ export function BugLogSheet({
 						</Flex>
 					) : (
 						<Flex gap="sm">
-							<CopyTextButton label="Copy all" text={newest.map(markdownOf).join('\n\n---\n\n')} />
 							<Button size="sm" color="blue" onClick={() => bugs.capture()}>
 								Capture
 							</Button>
-							<Button size="sm" color="amber" onClick={() => bugs.clear()}>
-								Clear
-							</Button>
+							{reports.length > 0 && (
+								<Button size="sm" color="amber" onClick={() => bugs.clear()}>
+									Clear
+								</Button>
+							)}
 						</Flex>
 					)}
 					<SheetClose />

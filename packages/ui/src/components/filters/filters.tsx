@@ -4,6 +4,7 @@ import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
 import { useA11yAnnouncements } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
+import { k } from '../../recipes/kata/filters'
 import type { AccessibleName } from '../../types'
 import {
 	FiltersContext,
@@ -153,11 +154,7 @@ export function Filters<T extends FilterValue = FilterValue>({
 			<FiltersNameContext value={name}>
 				{/* `min-w-auto` replaces the min-content floor of a `<fieldset>`, so the
 			    bar sizes as a `<div>` does. */}
-				<fieldset
-					{...labelProps}
-					data-slot="filters"
-					className={cn('flex min-w-auto flex-col gap-4', className)}
-				>
+				<fieldset {...labelProps} data-slot="filters" className={cn(k.base, className)}>
 					{children}
 				</fieldset>
 			</FiltersNameContext>

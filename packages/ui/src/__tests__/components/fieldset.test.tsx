@@ -542,6 +542,23 @@ describe('Field aria-describedby', () => {
 		expect(bySlot(container, 'input')).not.toHaveAttribute('aria-describedby')
 	})
 
+	it.each([
+		['false', false],
+		['true', true],
+		['an empty string', ''],
+	])('renders no error Message and no aria-describedby for %s children', (_, children) => {
+		const { container } = renderUI(
+			<Field>
+				<Input />
+				<Message>{children}</Message>
+			</Field>,
+		)
+
+		expect(container.querySelector('[role="alert"]')).toBeNull()
+
+		expect(bySlot(container, 'input')).not.toHaveAttribute('aria-describedby')
+	})
+
 	it('references a rendered warning Message', () => {
 		const { container } = renderUI(
 			<Field>

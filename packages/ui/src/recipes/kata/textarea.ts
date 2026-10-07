@@ -2,6 +2,7 @@ import type { VariantProps } from '../../core/recipe'
 import { bridge } from '../katakana'
 import { kokkaku, sen } from '../kiso'
 import { control } from '../kiso/control'
+import { dan } from '../kiso/dan'
 
 const { textarea } = kokkaku
 const { border } = sen
@@ -25,8 +26,12 @@ export const k = bridge.control(control, {
 		 * Right-justified actions row beneath the textarea. Its gap also caps the
 		 * hit areas of the actions (`TouchTarget`), so they do not overlap.
 		 */
-		actions:
-			'flex items-center justify-end mt-auto gap-2 pr-2 pb-2 [--touch-target-gap-x:--spacing(2)]',
+		actions: [
+			'flex items-center justify-end mt-auto',
+			dan.gap.scale.sm,
+			'pr-2 pb-2',
+			...dan.gap.touch.x.sm,
+		],
 	},
 	defaults: { resize: 'none' },
 	skeleton: textarea,

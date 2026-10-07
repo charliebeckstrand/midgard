@@ -1,4 +1,5 @@
 import { hannou, iro, narabi, sen } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { cursor, fg } = hannou
 const { text } = iro
@@ -6,7 +7,7 @@ const { flex } = narabi
 const { divider, focus } = sen
 
 export const k = {
-	base: [flex.col, 'gap-2'],
+	base: [flex.col, dan.gap.scale.sm],
 	// Leading slot for a frozen row, occupying (and aligned to) where an orderable
 	// row's drag grip sits — `px-3 -ms-3 -me-3` — so the checkboxes line up across
 	// the prepended, scrolling, and appended groups.
@@ -21,5 +22,5 @@ export const k = {
 	icon: [flex.inline, 'shrink-0', text.muted],
 	// Stands in for the lists when the filter matches no column in any group.
 	empty: [text.muted, 'py-1'],
-	footer: [flex.row, 'justify-end', 'gap-1', 'pt-2', ...divider.top],
+	footer: [flex.row, 'justify-end', dan.gap.scale.xs, 'pt-2', ...divider.top],
 } as const

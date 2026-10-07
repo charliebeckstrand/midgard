@@ -257,7 +257,7 @@ export function TagInput({
 				aria-label="Tags"
 				gap="xs"
 				wrap
-				className={k.tags}
+				className={cn(k.tags)}
 			>
 				{keyedTags.map(({ value: t, key }, i) => (
 					<TagInputBadge

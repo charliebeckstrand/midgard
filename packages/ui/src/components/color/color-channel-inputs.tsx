@@ -96,7 +96,7 @@ export function ColorChannelInputs() {
 
 	return (
 		<ControlContext value={undefined}>
-			<div className={cn('grid gap-2', alpha ? 'grid-cols-4' : 'grid-cols-3')}>
+			<div className={cn(k.channels, alpha ? 'grid-cols-4' : 'grid-cols-3')}>
 				{RGB.map((channel) => field(channel))}
 				{alpha && field('a')}
 			</div>

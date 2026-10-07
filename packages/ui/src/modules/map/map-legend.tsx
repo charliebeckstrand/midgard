@@ -5,6 +5,7 @@ import { Swatch } from '../../components/swatch'
 import { Text } from '../../components/text'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks/a11y'
+import { k } from '../../recipes/kata/map'
 import {
 	type LegendEmphasis,
 	LegendSwitch,
@@ -57,7 +58,7 @@ const MapLegendEntry = memo(function MapLegendEntry({
 			// The panel's entries stretch to the rail so the readouts share one right
 			// edge rather than each entry centering its own content; the row under the
 			// map keeps every entry its own width.
-			className={cn('gap-2', panel && '@lg:w-full @lg:justify-start')}
+			className={cn(k.legend.entry, panel && '@lg:w-full @lg:justify-start')}
 			keys={
 				// One key per distinct mark shape the entry stands for. That is a lone
 				// swatch for a category or an ungrouped mark. It is a square beside a dot

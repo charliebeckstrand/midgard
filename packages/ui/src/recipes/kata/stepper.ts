@@ -1,5 +1,6 @@
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
 import { hannou, iro, ji, kasane, kokkaku, narabi, sen } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { cursor, disabled } = hannou
 const { text } = iro
@@ -11,16 +12,21 @@ const { border } = sen
 const base = defineRecipe({
 	base: 'flex w-full',
 	orientation: {
-		horizontal: 'flex-row items-start gap-4 px-4',
-		vertical: 'flex-col items-start gap-4 pe-4 py-4',
+		horizontal: `flex-row items-start ${dan.gap.scale.lg} px-4`,
+		vertical: `flex-col items-start ${dan.gap.scale.lg} pe-4 py-4`,
 		// Vertical below `sm`, horizontal from it. CSS picks the layout, so the first
 		// paint is already correct on a narrow viewport.
-		responsive: 'flex-col items-start gap-4 pe-4 py-4 sm:flex-row sm:ps-4 sm:py-0',
+		responsive: `flex-col items-start ${dan.gap.scale.lg} pe-4 py-4 sm:flex-row sm:ps-4 sm:py-0`,
 	},
 	defaults: { orientation: 'horizontal' },
 })
 
-const verticalStep = [flex.row, 'w-full', 'gap-4 py-1 first:pt-0', ...border.color.subtle]
+const verticalStep = [
+	flex.row,
+	'w-full',
+	`${dan.gap.scale.lg} py-1 first:pt-0`,
+	...border.color.subtle,
+]
 
 // A horizontal step is `w-32` where the row has the space, and shrinks to
 // `min-w-20` where it does not, so that a narrow row does not overlap its steps.
@@ -78,8 +84,8 @@ const item = defineRecipe({
 })
 
 // The negative margins run the rule under the steps on each side, out to their
-// indicators. With the `gap-4` of the row on each side, `min-w-20` keeps a gap of
-// 16px between the boxes of two steps on a narrow row.
+// indicators. With the `lg` gap of the row on each side, `min-w-20` keeps a gap
+// between the boxes of two steps on a narrow row. The gap is 16px at `md`.
 const horizontalRule = [
 	'-mx-12 mt-2.25 min-w-20',
 	flex.fill,
@@ -109,7 +115,7 @@ export const k = {
 	title,
 	separator,
 	content: {
-		base: 'flex flex-1 flex-col gap-1',
+		base: `flex flex-1 flex-col ${dan.gap.scale.xs}`,
 		// From `sm`, the column dissolves so the title and description sit in the
 		// horizontal step like its direct children.
 		responsive: 'sm:contents',

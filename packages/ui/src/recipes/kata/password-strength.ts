@@ -7,6 +7,7 @@
  */
 import { defineRecipe, mode } from '../../core/recipe'
 import { iro, ji, kasane, narabi, omote } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { palette, text } = iro
 const { size, weight } = ji
@@ -39,13 +40,13 @@ const label = defineRecipe({
 })
 
 export const k = {
-	base: [flex.col, 'gap-2'],
-	meter: [flex.row, 'gap-1'],
+	base: [flex.col, dan.gap.scale.sm],
+	meter: [flex.row, dan.gap.scale.xs],
 	segment,
 	label,
 	rules: [flex.col, 'gap-0.5'],
 	rule: {
-		base: [flex.inline, 'gap-1', size.sm],
+		base: [flex.inline, dan.gap.scale.xs, size.sm],
 		icon: {
 			base: 'size-4 shrink-0',
 			pass: palette.bare.text.green,

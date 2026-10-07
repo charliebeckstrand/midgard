@@ -1,5 +1,6 @@
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
 import { iro, ji, narabi, sen } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { text } = iro
 const { size, weight } = ji
@@ -70,7 +71,7 @@ const bubble = defineRecipe({
  */
 const tool = {
 	base: ['rounded-xl border border-current/20 px-3 py-2'],
-	head: [flex.row, 'w-full items-center gap-2 text-start', size.sm],
+	head: [flex.row, `w-full items-center ${dan.gap.scale.sm} text-start`, size.sm],
 	// A disclosure head is a button: give it the pointer and the package's own
 	// focus ring rather than the UA outline. `inset` and not `ring`, because the
 	// step is a bordered box — the case `sen.focus`'s own doc names for it, and

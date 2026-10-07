@@ -13,7 +13,10 @@ import {
 } from './variants'
 
 type BoxBaseProps = {
-	/** Padding on all sides. Supports responsive breakpoints. */
+	/**
+	 * Padding on all sides. Supports responsive breakpoints. The padding takes the
+	 * step of the nearest density scope, as the `gap` of Flex does.
+	 */
 	p?: ResponsiveBoxPadding
 	/** Horizontal padding. Overrides p. Supports responsive breakpoints. */
 	px?: ResponsiveBoxPadding
