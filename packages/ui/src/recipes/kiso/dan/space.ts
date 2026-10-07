@@ -251,8 +251,8 @@ export const space = {
 		},
 	},
 	tree: {
-		/** The indent of a nested tree item. */
-		indent: 'density-ps-[6,7,8]',
+		/** The indent of a nested tree item: the chevron width plus the row gap. */
+		indent: 'density-ps-[5,7,9]',
 	},
 	timeline: {
 		/** The bottom padding of a vertical timeline item. */

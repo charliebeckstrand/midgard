@@ -20,10 +20,20 @@ export const k = {
 	//
 	// The row caps the hit areas of the remove buttons (`TouchTarget`) at the
 	// space between them. The row wraps, and the buttons of two rows are the
-	// `gap-1` of the row and the `py-ring-1` pad of two chips apart, 10px in all.
-	// Along the row, a one-letter tag still puts the gap, the leading pad, and the
-	// inner gap of its `xs` chip between two buttons, 14px or more.
-	tags: `${dan.space.tags.y} [--touch-target-gap-x:--spacing(3.5)] [--touch-target-gap-y:--spacing(2.5)]`,
+	// `xs` gap of the row and the `py-ring-1` pad of two chips apart, 10px in all
+	// at `md`. Along the row, a one-letter tag still puts the gap, the leading
+	// pad, and the inner gap of its `xs` chip between two buttons, 14px or more at
+	// `md`. The gap steps with the scope, so each cap is 2px less or more for
+	// each step below or above.
+	tags: [
+		dan.space.tags.y,
+		'density-[xs,sm]:[--touch-target-gap-x:--spacing(3)]',
+		'density-md:[--touch-target-gap-x:--spacing(3.5)]',
+		'density-[lg,xl]:[--touch-target-gap-x:--spacing(4)]',
+		'density-[xs,sm]:[--touch-target-gap-y:--spacing(2)]',
+		'density-md:[--touch-target-gap-y:--spacing(2.5)]',
+		'density-[lg,xl]:[--touch-target-gap-y:--spacing(3)]',
+	],
 	// The text input keeps a usable width. When the tag row leaves less, the input
 	// moves to the next row of the wrapping frame, and the add button goes with
 	// it. Without the floor, the input took the last sliver of the tag row and the

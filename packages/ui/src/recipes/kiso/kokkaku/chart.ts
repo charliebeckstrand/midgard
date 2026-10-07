@@ -21,7 +21,7 @@ const { rounded } = kasane
 export const chart = {
 	base: ['block', 'w-full', rounded.md, dan.size.chart],
 	aspect: ['block', 'w-full', 'h-auto', rounded.md],
-	sector: ['flex', 'w-full', 'flex-col', dan.gap.scale.md],
+	sector: ['flex', 'w-full', 'flex-col', 'gap-3'],
 	plot: ['block', 'aspect-square', 'w-full', 'h-auto', 'rounded-full'],
 	legend: ['self-center', 'w-48', 'max-w-full', rounded.lg, button.height],
 	density: true,

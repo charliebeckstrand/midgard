@@ -97,7 +97,7 @@ const card = defineRecipe({
  * the floor.
  */
 const header = [
-	`flex min-w-0 items-center ${dan.gap.scale.sm} ${dan.space.box.bottom} [--touch-target-gap-x:0px]`,
+	`flex min-w-0 items-center gap-2 ${dan.space.box.bottom} [--touch-target-gap-x:0px]`,
 	'has-data-own-fullscreen:**:data-[slot=dashboard-tile-expand]:hidden',
 	'**:data-[variant=bare]:not-data-has-label:density-xs:-mx-0.75',
 	'**:data-[variant=bare]:not-data-has-label:density-sm:-mx-1',
@@ -115,7 +115,7 @@ const heading = 'min-w-0 flex-1'
  * The action row at the far end of the header. Its gap is the gap of the header
  * row, so the controls of a widget after it keep the same gap.
  */
-const actions = `flex shrink-0 items-center ${dan.gap.scale.sm}`
+const actions = 'flex shrink-0 items-center gap-2'
 
 /**
  * The content box. It fills the height that the header leaves. A widget taller

@@ -93,17 +93,6 @@ export const k = {
 		tap: ['touch-manipulation'],
 	},
 	/** Motion vocabulary for the mount reveals, from `zu`. `chart-motion.ts` composes the chart's timings from it. */
-	/** The gaps of the chart frame. */
-	gap: {
-		/** The gap of the header and the body of a chart. */
-		frame: dan.gap.scale.md,
-		/** The gap of the plot and a side legend rail. */
-		rail: dan.gap.scale.lg,
-		/** The gap of the plot and a legend above or below it. */
-		legend: dan.gap.scale.sm,
-		/** The gap of the bar and the labels of a range legend. */
-		range: dan.gap.scale.sm,
-	},
 	motion,
 	skeleton: kokkaku.chart,
 } as const
