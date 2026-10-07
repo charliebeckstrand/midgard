@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from 'react'
 import { createContext } from '../../core'
-import { noopSubscribe } from '../../utilities'
+import { createEmitter, noopSubscribe } from '../../utilities'
 
 /**
  * The element in the header row of a box, such as a dashboard tile, where a
@@ -27,7 +27,7 @@ export type HeaderActionsHost = {
 export function createHeaderActionsHost(): HeaderActionsHost {
 	let element: HTMLElement | null = null
 
-	const listeners = new Set<() => void>()
+	const { subscribe, emit } = createEmitter()
 
 	return {
 		set: (next) => {
@@ -35,16 +35,10 @@ export function createHeaderActionsHost(): HeaderActionsHost {
 
 			element = next
 
-			for (const listener of listeners) listener()
+			emit()
 		},
 		get: () => element,
-		subscribe: (listener) => {
-			listeners.add(listener)
-
-			return () => {
-				listeners.delete(listener)
-			}
-		},
+		subscribe,
 	}
 }
 
