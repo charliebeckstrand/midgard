@@ -103,15 +103,6 @@ export type SheetPanelProps = Omit<SheetPanelVariants, 'surface' | 'width' | 'si
 		 * inside one.
 		 */
 		glass?: boolean
-		/**
-		 * Drain the color from whatever shows through the backdrop. Both scrims are
-		 * translucent, so the page behind stays legible while the sheet is up. This
-		 * renders it in gray, marking it as the inert surface rather than merely the
-		 * dimmed one. No effect where no backdrop renders (see `backdrop`).
-		 *
-		 * @defaultValue false
-		 */
-		desaturate?: boolean
 		className?: string
 		children: ReactNode
 		/**
@@ -186,7 +177,6 @@ export function SheetPanel({
 	width,
 	handle,
 	glass,
-	desaturate,
 	className,
 	children,
 	footer,
@@ -238,7 +228,7 @@ export function SheetPanel({
 			dismissOnBackdrop={dismissOnBackdrop}
 			modal={modal}
 			backdrop={backdrop}
-			backdropClassName={k.backdrop({ surface: resolvedSurface, desaturate })}
+			backdropClassName={k.backdrop({ surface: resolvedSurface })}
 		>
 			<motion.div
 				{...preset}

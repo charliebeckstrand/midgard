@@ -31,13 +31,7 @@ import {
 import { CurrencyInput } from '../../../components/currency-input'
 import { DateInput } from '../../../components/date-input'
 import { DatePicker, DatePickerSkeleton } from '../../../components/date-picker'
-import {
-	Drawer,
-	DrawerBody,
-	DrawerPanel,
-	DrawerStatic,
-	DrawerTitle,
-} from '../../../components/drawer'
+import { Drawer, DrawerBody, DrawerPanel, DrawerTitle } from '../../../components/drawer'
 import { FileUploadButton, FileUploadInput } from '../../../components/file-upload'
 import { Group } from '../../../components/group'
 import { Heading, HeadingSkeleton } from '../../../components/heading'
@@ -227,14 +221,6 @@ const FIXTURES: { [N in SizedComponent]: (size: (typeof SIZE_AXES)[N][number]) =
 				<DrawerBody>Body</DrawerBody>
 			</DrawerPanel>
 		</Drawer>
-	),
-	DrawerStatic: (size) => (
-		<div className="relative h-96 w-60">
-			<DrawerStatic size={size}>
-				<DrawerTitle>Title</DrawerTitle>
-				<DrawerBody>Body</DrawerBody>
-			</DrawerStatic>
-		</div>
 	),
 	FileUploadButton: (size) => <FileUploadButton size={size as never} />,
 	FileUploadInput: (size) => <FileUploadInput size={size as never} aria-label="File" />,

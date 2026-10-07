@@ -2,9 +2,8 @@
  * Backdrop bridge: the modal scrim shared by `dialog`, `drawer`, and `sheet`. A pure
  * bridge: it receives the `omote.backdrop` tokens from the calling kata and
  * returns the standard `defineRecipe` for a full-bleed backdrop. That backdrop
- * has a `surface` axis (`flat` scrim, denser `glass` fill) and a `desaturate`
- * axis (color drained from what shows through). It references kiso in neither
- * value nor type.
+ * has a `surface` axis (`flat` scrim, denser `glass` fill). It references kiso
+ * in neither value nor type.
  *
  * The panel bridge does not build it. Each modal panel calls it directly and
  * hands the result to `bridge.panel(…, { backdrop })`.
@@ -20,18 +19,13 @@ type BackdropTokens = {
 	base: ClassValue
 	/** Denser fill for use behind a glass panel — the `glass` surface. */
 	glass: ClassValue
-	/** Filter draining color from what shows through — the `desaturate` axis. */
-	grayscale: ClassValue
 }
 
 /**
- * Build the backdrop recipe from a `base` / `glass` fill pair and the
- * desaturating filter.
+ * Build the backdrop recipe from a `base` / `glass` fill pair.
  *
- * @param t - The `omote.backdrop` token bundle (`base` scrim, `glass` fill,
- * `grayscale` filter).
- * @returns A `defineRecipe` result with a `surface` axis defaulting to `flat`
- * and a `desaturate` axis defaulting to off.
+ * @param t - The `omote.backdrop` token bundle (`base` scrim, `glass` fill).
+ * @returns A `defineRecipe` result with a `surface` axis defaulting to `flat`.
  */
 export function backdrop(t: BackdropTokens) {
 	return defineRecipe({
@@ -40,10 +34,6 @@ export function backdrop(t: BackdropTokens) {
 			glass: t.glass,
 			flat: t.base,
 		},
-		desaturate: {
-			true: t.grayscale,
-			false: '',
-		},
-		defaults: { surface: 'flat', desaturate: false },
+		defaults: { surface: 'flat' },
 	})
 }

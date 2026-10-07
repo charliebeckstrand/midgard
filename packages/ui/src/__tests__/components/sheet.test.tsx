@@ -98,18 +98,6 @@ describe('Sheet', () => {
 		expect(document.querySelector('[data-slot="overlay-backdrop"]')).toBeNull()
 	})
 
-	it('grays out what shows through the backdrop when desaturate is set', () => {
-		renderUI(
-			<Sheet open onOpenChange={() => {}}>
-				<SheetPanel desaturate aria-label="Filters">
-					Filter content
-				</SheetPanel>
-			</Sheet>,
-		)
-
-		expect(getSlot(document.body, 'overlay-backdrop')).toHaveClass('backdrop-grayscale')
-	})
-
 	it('names a title-less sheet via the aria-label escape hatch', () => {
 		renderUI(
 			<Sheet open onOpenChange={() => {}}>

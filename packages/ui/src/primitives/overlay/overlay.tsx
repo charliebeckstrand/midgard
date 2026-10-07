@@ -19,7 +19,6 @@ import {
 import { cn } from '../../core'
 import { useComposedRef } from '../../hooks'
 import { useDismissable } from '../../hooks/use-dismissable'
-import { useEnterAnimation } from '../../hooks/use-enter-animation'
 import { useScrollLock } from '../../hooks/use-scroll-lock'
 import { k } from '../../recipes/kata/overlay'
 import { chromeRegions } from '../chrome'
@@ -77,20 +76,6 @@ export type OverlayProps = {
 	 */
 	modal?: boolean
 	/**
-	 * Whether the backdrop plays its enter animation on mount.
-	 *
-	 * `false` mounts it already in place. For a surface that is open because the URL says
-	 * so, the fade announces an opening the user never performed. A restored route or a
-	 * pasted deep link is the case. On a route that remounts it replays on every arrival.
-	 *
-	 * It suppresses that arrival only. A surface that closes and opens again while still
-	 * mounted plays the enter every time, whatever this says. By then the open is the
-	 * user's own doing.
-	 *
-	 * @defaultValue true
-	 */
-	animateOnMount?: boolean
-	/**
 	 * Paint the dimming backdrop independently of modality. A non-modal surface,
 	 * such as a hover-revealed sheet, can opt in to blur and dim the page while
 	 * staying interactive. The backdrop inherits the wrapper's
@@ -137,7 +122,6 @@ export function Overlay({
 	initialFocus,
 	modal = true,
 	backdrop = modal,
-	animateOnMount = true,
 	className,
 	ref,
 	...props
@@ -152,8 +136,6 @@ export function Overlay({
 		onOpenChange,
 		elements: { reference: null, floating },
 	})
-
-	const animateEnter = useEnterAnimation(open, animateOnMount)
 
 	// `Portal` owns the teleport and the mount-while-open lifecycle. An
 	// explicit `container` scopes the overlay to that element (`absolute`, no
@@ -230,8 +212,6 @@ export function Overlay({
 			{(backdrop || catchesPress) && (
 				<motion.div
 					{...k.motion}
-					// After the preset spread, so it overrides the preset's own `initial`.
-					initial={animateEnter ? k.motion.initial : false}
 					data-slot="overlay-backdrop"
 					className={
 						backdrop

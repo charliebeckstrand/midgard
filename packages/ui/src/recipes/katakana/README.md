@@ -31,7 +31,7 @@ The barrel surfaces the `bridge` object only, `palette` and `backdrop` included.
 | `check`    | `kiso/control`  | Check-surface recipe + visually-hidden `input` + `disabled` text.                        | `checkbox`, `radio`                           |
 | `popover`  | `kiso/popover`  | `trigger` / `portal` / `text` / `panel` bundle.                                          | `popover`                                     |
 | `panel`    | `kiso/panel`    | Caller `panel` / `backdrop` recipes + standard slot bundle.                              | `dialog`, `drawer`, `sheet`                   |
-| `backdrop` | `omote.backdrop`| Full-bleed scrim recipe with a `surface` axis (`flat` / `glass`) and a `desaturate` axis (gray out what shows through). *Shared recipe, not an archetype.* | `dialog`, `drawer`, `sheet`       |
+| `backdrop` | `omote.backdrop`| Full-bleed scrim recipe with a `surface` axis (`flat` / `glass`). *Shared recipe, not an archetype.* | `dialog`, `drawer`, `sheet`       |
 | `palette`  | `iro.palette`   | The solid / soft / outline matrix for `definePalette`. *Shared wiring, not an archetype.* | `alert`, `avatar`, `badge`                    |
 
 `backdrop` is a small shared recipe rather than an archetype: the panel bridge does not build it. Each modal panel builds it directly (`bridge.backdrop(omote.backdrop)`) and hands the result to `bridge.panel(…, { backdrop })`.
