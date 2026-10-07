@@ -1,5 +1,5 @@
 import { ChevronRight } from 'lucide-react'
-import { type ReactNode, useLayoutEffect, useState, useSyncExternalStore } from 'react'
+import { type ReactNode, useState, useSyncExternalStore } from 'react'
 import { Button } from 'ui/button'
 import { Checkbox, CheckboxField } from 'ui/checkbox'
 import { Collapse, CollapsePanel, CollapseTrigger } from 'ui/collapse'
@@ -18,7 +18,7 @@ import { iro } from '../../../recipes/kiso/iro/index.ts'
 import { getOrCompute } from '../../../utilities/get-or-compute.ts'
 import { noopSubscribe } from '../../../utilities/noop.ts'
 import { type Entry, KINDS, type Kind } from './log.ts'
-import { start } from './recorder.ts'
+import { usePausedLog } from './pause.ts'
 import { type Row, rowsOf, summaryOf } from './rows.ts'
 import { columns, kindWidth } from './text.ts'
 
@@ -200,7 +200,7 @@ export function EventLogSheet({
 	open: boolean
 	onOpenChange: (open: boolean) => void
 }) {
-	const [log] = useState(start)
+	const log = usePausedLog(open)
 
 	// The closed sheet stays mounted, and it does not render for each new entry.
 	// The open reads the current entries.
@@ -242,17 +242,6 @@ export function EventLogSheet({
 				return keys
 			}),
 	}
-
-	// A layout effect runs before the effect of the overlay that reports the
-	// open, so the log does not record the open of this sheet. A sheet that
-	// unmounts while it is open does not leave the log paused.
-	useLayoutEffect(() => {
-		log.paused = open
-
-		return () => {
-			log.paused = false
-		}
-	}, [log, open])
 
 	return (
 		// The sheet takes the height of the log, up to the height of the screen.

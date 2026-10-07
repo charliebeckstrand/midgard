@@ -1,5 +1,5 @@
 import type { JsonValue } from 'ui/json-tree'
-import { Journal, read, type Store, write } from '../journal.ts'
+import { Journal, type Store } from '../journal.ts'
 
 // The store of the Event log: a journal of entries in time order.
 
@@ -48,13 +48,8 @@ export type Entry = {
 	batch?: string
 }
 
-export { type Store, sessionStore } from '../journal.ts'
-
 /** The most entries that the log keeps. The oldest goes first. */
 export const CAPACITY = 500
-
-/** The `sessionStorage` key of the "Batch" flag. */
-const BATCH = 'docs:event-log:batch'
 
 /** The attribute of the buttons of the debug tools. The log skips the events in them. */
 export const OWN = 'data-event-log'
@@ -73,13 +68,11 @@ export class EventLog extends Journal<Entry> {
 
 	/** Whether the sheet shows the entries of a batch as one line. The flag stays for the tab. */
 	get batched(): boolean {
-		return read(this.store, BATCH) === '1'
+		return this.flag('batch')
 	}
 
 	set batched(on: boolean) {
-		write(this.store, BATCH, on ? '1' : null)
-
-		this.emit()
+		this.setFlag('batch', on)
 	}
 
 	/**

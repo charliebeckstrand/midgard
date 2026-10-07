@@ -1,5 +1,5 @@
 import { ArrowLeft, Copy, ListX, Trash2 } from 'lucide-react'
-import { useLayoutEffect, useState, useSyncExternalStore } from 'react'
+import { useState, useSyncExternalStore } from 'react'
 import { Button } from 'ui/button'
 import { Checkbox, CheckboxField } from 'ui/checkbox'
 import { CopyButton, useCopyButtonState } from 'ui/copy-button'
@@ -13,9 +13,10 @@ import { Sheet, SheetBody, SheetClose, SheetFooter, SheetPanel, SheetTitle } fro
 import { Text } from 'ui/text'
 import { dan } from '../../../recipes/kiso/dan/index.ts'
 import { noopSubscribe } from '../../../utilities/noop.ts'
-import { start, startBugs } from '../event-log/recorder.ts'
-import type { Report } from './log.ts'
-import { markdownOf } from './markdown.ts'
+import { usePausedLog } from '../event-log/pause.ts'
+import { startBugs } from '../event-log/recorder.ts'
+import { CAPTURE, type Report } from './log.ts'
+import { markdownOf, titleOf } from './markdown.ts'
 
 /** The key of a report in the list. */
 function getKey(report: Report): string {
@@ -39,11 +40,10 @@ function ReportLine({
 					<Text
 						className={cn(
 							'truncate font-mono text-xs',
-							report.title !== 'capture' && 'text-red-600 dark:text-red-400',
+							report.title !== CAPTURE && 'text-red-600 dark:text-red-400',
 						)}
 					>
-						{report.title}
-						{report.count > 1 && ` ×${report.count}`}
+						{titleOf(report)}
 					</Text>
 					<Text tone="muted" className="truncate text-xs">
 						{report.page} · {new Date(report.at).toLocaleTimeString()}
@@ -64,8 +64,9 @@ function ReportLine({
 /**
  * The viewer of the Bug log: the title and "Preserve", the reports, newest
  * first, then Copy all, Capture, and Clear. View shows one report in place of
- * the list and of "Preserve", as the Markdown that Copy writes. The Event log records nothing
- * while the sheet is on screen, so a capture holds the lines before the open.
+ * the list and of "Preserve", as the Markdown that Copy writes. The Event
+ * log records nothing while the sheet is on screen, so a capture holds the
+ * lines before the open.
  */
 export function BugLogSheet({
 	open,
@@ -74,7 +75,7 @@ export function BugLogSheet({
 	open: boolean
 	onOpenChange: (open: boolean) => void
 }) {
-	const [log] = useState(start)
+	usePausedLog(open)
 
 	const [bugs] = useState(startBugs)
 
@@ -89,17 +90,11 @@ export function BugLogSheet({
 
 	const report = reports.find(({ id }) => id === viewed)
 
+	const newest = reports.toReversed()
+
 	const { copied, copy } = useCopyButtonState({
-		text: reports.toReversed().map(markdownOf).join('\n\n---\n\n'),
+		text: newest.map(markdownOf).join('\n\n---\n\n'),
 	})
-
-	useLayoutEffect(() => {
-		log.paused = open
-
-		return () => {
-			log.paused = false
-		}
-	}, [log, open])
 
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>
@@ -128,7 +123,7 @@ export function BugLogSheet({
 						<Markdown headingOffset={1}>{markdownOf(report)}</Markdown>
 					) : reports.length > 0 ? (
 						<List
-							items={reports.toReversed()}
+							items={newest}
 							getKey={getKey}
 							variant="plain"
 							sortable={false}
@@ -151,7 +146,7 @@ export function BugLogSheet({
 						<Button size="sm" color={copied ? 'green' : undefined} onClick={() => void copy()}>
 							{copied ? 'Copied' : 'Copy all'}
 						</Button>
-						<Button size="sm" color="blue" onClick={() => bugs.capture(log.entries)}>
+						<Button size="sm" color="blue" onClick={() => bugs.capture()}>
 							Capture
 						</Button>
 						<Button size="sm" color="amber" onClick={() => bugs.clear()}>

@@ -1,6 +1,7 @@
-import { type Entry, OWN } from '../event-log/log.ts'
-import { type Viewport, viewport } from '../event-log/probes.ts'
-import { describe, type Line } from '../event-log/sources.ts'
+import { findScrollableAncestor } from '../../../components/scroll-area/scroll-area-utilities.ts'
+import type { EventLog } from '../event-log/log.ts'
+import { type ErrorDetail, type Viewport, viewport } from '../event-log/probes.ts'
+import { describe, isOwn, type Line, on } from '../event-log/sources.ts'
 import { columns, kindWidth } from '../event-log/text.ts'
 import { Journal, type Store } from '../journal.ts'
 
@@ -42,34 +43,40 @@ export const CAPACITY = 50
 /** The most lines of the Event log in a report. */
 export const TRAIL = 40
 
-/** The attribute of the root element while the Bug log holds a report. CSS shows the dot of the button by it. */
-const ATTRIBUTE = 'data-bugs'
+/** The title of a report that the reader captures. */
+export const CAPTURE = 'capture'
 
-/** The log of the reports of one tab, kept in `sessionStorage` while "Preserve" is on. */
+/** The file of this module, whose hash names the build. */
+const BUILD = new URL(import.meta.url).pathname.split('/').at(-1) ?? ''
+
+/**
+ * The log of the reports of one tab, kept in `sessionStorage` while
+ * "Preserve" is on. A report holds the last lines of the Event log.
+ */
 export class BugLog extends Journal<Report> {
+	private readonly log: EventLog
+
 	/** The element of the last `pointerdown`. */
 	private pointer: WeakRef<Element> | undefined
 
 	/** The element of the last `focusin`. */
 	private focus: WeakRef<Element> | undefined
 
-	constructor(store: Store) {
+	constructor(store: Store, log: EventLog) {
 		super(store, 'docs:bug-log', CAPACITY)
 
-		this.subscribe(() =>
-			document.documentElement.toggleAttribute(ATTRIBUTE, this.entries.length > 0),
-		)
-
-		document.documentElement.toggleAttribute(ATTRIBUTE, this.entries.length > 0)
+		this.log = log
 	}
 
 	/**
-	 * Files a report for an error line, with the last lines of the log. A
-	 * second error with the same title and first frame counts in the first
-	 * report.
+	 * Files a report for an error line. A second error with the same title and
+	 * first frame counts in the first report.
 	 */
-	file(line: Line, entries: readonly Entry[]): void {
-		const { stack = [], componentStack = [] } = framesOfDetail(line.detail)
+	file(line: Line): void {
+		// The detail of an error line is an `ErrorDetail`, or none.
+		const detail = line.detail as ErrorDetail | undefined
+
+		const stack = detail?.stack ?? []
 
 		const same = this.entries.find(
 			(report) => report.title === line.text && report.stack[0] === stack[0],
@@ -81,12 +88,12 @@ export class BugLog extends Journal<Report> {
 					report === same ? { ...same, count: same.count + 1 } : report,
 				),
 			)
-		else this.commit([...this.entries, this.report(line.text, stack, componentStack, entries)])
+		else this.commit([...this.entries, this.report(line.text, stack, detail?.componentStack ?? [])])
 	}
 
 	/** Files a report of the page now. */
-	capture(entries: readonly Entry[]): void {
-		this.commit([...this.entries, this.report('capture', [], [], entries)])
+	capture(): void {
+		this.commit([...this.entries, this.report(CAPTURE, [], [])])
 	}
 
 	remove(id: number): void {
@@ -95,41 +102,20 @@ export class BugLog extends Journal<Report> {
 
 	/**
 	 * Keeps the element of each `pointerdown` and each `focusin` outside the
-	 * debug tools, and returns a function that stops. `skip` tells when the
-	 * events are in the tools, such as while a debug sheet is on screen.
+	 * debug tools, and returns a function that stops. While the Event log is
+	 * paused, a debug sheet is on screen, so the events are in the tools.
 	 */
-	watch(skip: () => boolean): () => void {
-		const remember = (event: Event) => {
-			const { target } = event
+	watch(): () => void {
+		return on(document, ['pointerdown', 'focusin'], ({ type, target }) => {
+			if (!(target instanceof Element) || this.log.paused || isOwn(target)) return
 
-			if (!(target instanceof Element) || skip() || target.closest(`[${OWN}]`)) return
-
-			const ref = new WeakRef(target)
-
-			if (event.type === 'pointerdown') this.pointer = ref
-			else this.focus = ref
-		}
-
-		const options = { capture: true, passive: true }
-
-		document.addEventListener('pointerdown', remember, options)
-
-		document.addEventListener('focusin', remember, options)
-
-		return () => {
-			document.removeEventListener('pointerdown', remember, options)
-
-			document.removeEventListener('focusin', remember, options)
-		}
+			if (type === 'pointerdown') this.pointer = new WeakRef(target)
+			else this.focus = new WeakRef(target)
+		})
 	}
 
-	private report(
-		title: string,
-		stack: string[],
-		componentStack: string[],
-		entries: readonly Entry[],
-	): Report {
-		const trail = entries.slice(-TRAIL)
+	private report(title: string, stack: string[], componentStack: string[]): Report {
+		const trail = this.log.entries.slice(-TRAIL)
 
 		const width = kindWidth(trail)
 
@@ -138,14 +124,15 @@ export class BugLog extends Journal<Report> {
 		const focus = this.focus?.deref()
 
 		return {
-			id: Math.max(0, ...this.entries.map(({ id }) => id)) + 1,
+			// The reports are in the order of their ids.
+			id: (this.entries.at(-1)?.id ?? 0) + 1,
 			title,
 			stack,
 			componentStack,
 			count: 1,
 			at: new Date().toISOString(),
 			page: location.pathname + location.search + location.hash,
-			build: new URL(import.meta.url).pathname.split('/').at(-1) ?? '',
+			build: BUILD,
 			device: `${navigator.userAgent}, dpr ${devicePixelRatio}, ${matchMedia('(pointer: coarse)').matches ? 'coarse' : 'fine'} pointer${navigator.onLine ? '' : ', offline'}`,
 			root: Array.from(document.documentElement.attributes, ({ name, value }) =>
 				value ? `${name}="${value}"` : name,
@@ -156,11 +143,6 @@ export class BugLog extends Journal<Report> {
 			trail: trail.map((entry) => columns(entry, width) + entry.text),
 		}
 	}
-}
-
-/** The stack and the component stack in the detail of an error line. */
-function framesOfDetail(detail: unknown): { stack?: string[]; componentStack?: string[] } {
-	return typeof detail === 'object' && detail !== null && !Array.isArray(detail) ? detail : {}
 }
 
 /**
@@ -177,10 +159,11 @@ function place(element: Element): string {
 
 	const box = [x, y, width, height].map(Math.round)
 
-	let scroller = element.parentElement
+	const scroller = findScrollableAncestor(element.parentElement)
 
-	while (scroller && !/auto|scroll/.test(getComputedStyle(scroller).overflowY))
-		scroller = scroller.parentElement
+	const scroll = scroller
+		? `, in ${describe(scroller)} scrolled ${Math.round(scroller.scrollLeft)},${Math.round(scroller.scrollTop)}`
+		: ''
 
-	return `${names.join(' > ')} at ${box[0]},${box[1]} ${box[2]}×${box[3]}${scroller ? `, in ${describe(scroller)} scrolled ${Math.round(scroller.scrollTop)}` : ''}`
+	return `${names.join(' > ')} at ${box[0]},${box[1]} ${box[2]}×${box[3]}${scroll}`
 }

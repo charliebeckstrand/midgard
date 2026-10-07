@@ -1,10 +1,11 @@
-import { afterEach, describe, expect, it, onTestFinished } from 'vitest'
+import { describe, expect, it, onTestFinished } from 'vitest'
 import { attach } from '../../__tests__/helpers/attach.ts'
 import { BugLog, CAPACITY, TRAIL } from '../debug/bug-log/log.ts'
 import { markdownOf } from '../debug/bug-log/markdown.ts'
-import { type Entry, EventLog, OWN, type Store } from '../debug/event-log/log.ts'
-import { listen } from '../debug/event-log/recorder.ts'
+import { type Entry, EventLog, OWN } from '../debug/event-log/log.ts'
+import { halt, listen, startBugs } from '../debug/event-log/recorder.ts'
 import type { Line } from '../debug/event-log/sources.ts'
+import type { Store } from '../debug/journal.ts'
 
 /** A `sessionStorage` in memory. A new log on the same store is a reload of the tab. */
 function createStore(): Store {
@@ -30,26 +31,22 @@ function entry(time: number): Entry {
 	return { time, kind: 'input', text: `input at ${time}`, y: 0 }
 }
 
-/** A Bug log on a store in memory. The test clears it when it ends, which removes the dot. */
-function createBugLog(store: Store = createStore()): BugLog {
-	const bugs = new BugLog(store)
+/** A Bug log on a store in memory, with an Event log that holds `entries`. */
+function createBugLog(store: Store = createStore(), entries: readonly Entry[] = []): BugLog {
+	const log = new EventLog(createStore())
 
-	onTestFinished(() => bugs.clear())
+	log.entries = entries
 
-	return bugs
+	return new BugLog(store, log)
 }
-
-afterEach(() => {
-	document.documentElement.removeAttribute('data-bugs')
-})
 
 describe('BugLog', () => {
 	it('files a report with the stack, the page, and the last lines of the log', () => {
-		const bugs = createBugLog()
-
 		const entries = Array.from({ length: TRAIL + 5 }, (_, index) => entry(index))
 
-		bugs.file(errorLine('Uncaught Error: boom'), entries)
+		const bugs = createBugLog(createStore(), entries)
+
+		bugs.file(errorLine('Uncaught Error: boom'))
 
 		const [report] = bugs.entries
 
@@ -69,11 +66,11 @@ describe('BugLog', () => {
 	it('counts the same error in its first report, and files a new report for another first frame', () => {
 		const bugs = createBugLog()
 
-		bugs.file(errorLine('Uncaught Error: boom'), [])
+		bugs.file(errorLine('Uncaught Error: boom'))
 
-		bugs.file(errorLine('Uncaught Error: boom'), [])
+		bugs.file(errorLine('Uncaught Error: boom'))
 
-		bugs.file(errorLine('Uncaught Error: boom', ['at cells (grid.js:9:9)']), [])
+		bugs.file(errorLine('Uncaught Error: boom', ['at cells (grid.js:9:9)']))
 
 		expect(bugs.entries.map(({ count }) => count)).toEqual([2, 1])
 	})
@@ -81,9 +78,9 @@ describe('BugLog', () => {
 	it('files a capture, and removes a report by its id', () => {
 		const bugs = createBugLog()
 
-		bugs.file(errorLine('Uncaught Error: boom'), [])
+		bugs.file(errorLine('Uncaught Error: boom'))
 
-		bugs.capture([entry(1)])
+		bugs.capture()
 
 		expect(bugs.entries.map(({ title }) => title)).toEqual(['Uncaught Error: boom', 'capture'])
 
@@ -95,27 +92,11 @@ describe('BugLog', () => {
 	it('keeps the newest reports up to the capacity', () => {
 		const bugs = createBugLog()
 
-		for (let index = 0; index <= CAPACITY; index++) bugs.file(errorLine(`error ${index}`), [])
+		for (let index = 0; index <= CAPACITY; index++) bugs.file(errorLine(`error ${index}`))
 
 		expect(bugs.entries).toHaveLength(CAPACITY)
 
 		expect(bugs.entries[0]?.title).toBe('error 1')
-	})
-
-	it('sets the attribute of the dot while it holds a report', () => {
-		const bugs = createBugLog()
-
-		const root = document.documentElement
-
-		expect(root.hasAttribute('data-bugs')).toBe(false)
-
-		bugs.capture([])
-
-		expect(root.hasAttribute('data-bugs')).toBe(true)
-
-		bugs.clear()
-
-		expect(root.hasAttribute('data-bugs')).toBe(false)
 	})
 
 	it('keeps the reports through a reload while "Preserve" is on, apart from the Event log', () => {
@@ -125,7 +106,7 @@ describe('BugLog', () => {
 
 		bugs.preserve = true
 
-		bugs.capture([])
+		bugs.capture()
 
 		bugs.save()
 
@@ -135,11 +116,11 @@ describe('BugLog', () => {
 	})
 
 	it('names the element of the last pointerdown and focus outside the tools, and skips while paused', () => {
-		const bugs = createBugLog()
+		const log = new EventLog(createStore())
 
-		let paused = false
+		const bugs = new BugLog(createStore(), log)
 
-		onTestFinished(bugs.watch(() => paused))
+		onTestFinished(bugs.watch())
 
 		const region = attach(document.createElement('div'))
 
@@ -160,11 +141,11 @@ describe('BugLog', () => {
 		// A tap on the button of a tool, and a tap while a debug sheet is open, do not count.
 		own.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))
 
-		paused = true
+		log.paused = true
 
 		document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))
 
-		bugs.capture([])
+		bugs.capture()
 
 		const [report] = bugs.entries
 
@@ -178,7 +159,7 @@ describe('listen', () => {
 	it('files a report for each error line of the log, also while the log is paused', () => {
 		const log = new EventLog(createStore())
 
-		const bugs = createBugLog()
+		const bugs = new BugLog(createStore(), log)
 
 		onTestFinished(listen(log, bugs))
 
@@ -192,13 +173,33 @@ describe('listen', () => {
 	})
 })
 
+describe('startBugs', () => {
+	it('sets the attribute of the dot while the Bug log holds a report', () => {
+		onTestFinished(halt)
+
+		const root = document.documentElement
+
+		const bugs = startBugs()
+
+		expect(root.hasAttribute('data-bugs')).toBe(false)
+
+		bugs.capture()
+
+		expect(root.hasAttribute('data-bugs')).toBe(true)
+
+		halt()
+
+		expect(root.hasAttribute('data-bugs')).toBe(false)
+	})
+})
+
 describe('markdownOf', () => {
 	it('writes a report as a heading, a table, and fenced blocks', () => {
-		const bugs = createBugLog()
+		const bugs = createBugLog(createStore(), [entry(7)])
 
-		bugs.file(errorLine('Uncaught Error: a | b'), [entry(7)])
+		bugs.file(errorLine('Uncaught Error: a | b'))
 
-		bugs.file(errorLine('Uncaught Error: a | b'), [])
+		bugs.file(errorLine('Uncaught Error: a | b'))
 
 		const [report] = bugs.entries
 

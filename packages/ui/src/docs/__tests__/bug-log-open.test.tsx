@@ -1,11 +1,11 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { BugLogSheet } from '../debug/bug-log/sheet.tsx'
-import { __resetEventLogSheet, BugLogButton } from '../debug/event-log/index.tsx'
+import { __resetDebugSheets, BugLogButton } from '../debug/event-log/index.tsx'
 import { halt, startBugs } from '../debug/event-log/recorder.ts'
 
 // The button keeps the loaded sheets, so each case starts with no sheet.
-beforeEach(__resetEventLogSheet)
+beforeEach(__resetDebugSheets)
 
 // The sheet starts the recorder, which listens on the document. The stop empties the Bug log.
 afterEach(() => {

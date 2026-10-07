@@ -11,19 +11,19 @@ export type Store = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>
 /**
  * The items of one tab in memory, kept in `sessionStorage` while "Preserve"
  * is on. A new journal reads the kept items, so a reload starts from them.
- * The keys are `<name>:entries` and `<name>:preserve`.
+ * The keys are `<name>:entries`, and `<name>:<field>` for each flag.
  */
 export class Journal<T> {
 	entries: readonly T[] = []
 
 	private readonly changes = createEmitter()
 
-	/** Calls `listener` on each change of the items or of "Preserve". */
+	/** Calls `listener` on each change of the items or of a flag. */
 	readonly subscribe = this.changes.subscribe
 
 	private saveTimer: ReturnType<typeof setTimeout> | undefined
 
-	protected readonly store: Store
+	private readonly store: Store
 
 	private readonly name: string
 
@@ -49,17 +49,16 @@ export class Journal<T> {
 	}
 
 	get preserve(): boolean {
-		return read(this.store, this.key('preserve')) === '1'
+		return this.flag('preserve')
 	}
 
 	/** Turns "Preserve" on or off. Off deletes the kept items at once, and the items on screen stay. */
 	set preserve(on: boolean) {
-		write(this.store, this.key('preserve'), on ? '1' : null)
+		if (!on) write(this.store, this.key('entries'), null)
+
+		this.setFlag('preserve', on)
 
 		if (on) this.save()
-		else write(this.store, this.key('entries'), null)
-
-		this.changes.emit()
 	}
 
 	clear(): void {
@@ -104,20 +103,27 @@ export class Journal<T> {
 		this.changes.emit()
 	}
 
-	/** Tells the listeners of a change that is not a change of the items. */
-	protected emit(): void {
+	/** A flag of the tab, such as "Preserve". It stays in `sessionStorage` while "Preserve" is off too. */
+	protected flag(field: string): boolean {
+		return read(this.store, this.key(field)) === '1'
+	}
+
+	/** Sets a flag of the tab, and tells the listeners. */
+	protected setFlag(field: string, on: boolean): void {
+		write(this.store, this.key(field), on ? '1' : null)
+
 		this.changes.emit()
 	}
 
 	/** The `sessionStorage` key of a field of this journal. */
-	protected key(field: string): string {
+	private key(field: string): string {
 		return `${this.name}:${field}`
 	}
 }
 
 // Storage access can throw, such as with site data off, and the journal then
 // lives for the page only.
-export function read(store: Store, key: string): string | null {
+function read(store: Store, key: string): string | null {
 	try {
 		return store.getItem(key)
 	} catch {
@@ -126,7 +132,7 @@ export function read(store: Store, key: string): string | null {
 }
 
 /** Writes a value, or removes it for `null`, and returns whether the write ends. */
-export function write(store: Store, key: string, value: string | null): boolean {
+function write(store: Store, key: string, value: string | null): boolean {
 	try {
 		if (value === null) store.removeItem(key)
 		else store.setItem(key, value)

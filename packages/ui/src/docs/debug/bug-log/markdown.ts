@@ -12,12 +12,17 @@ function row(name: string, value: string | undefined): string[] {
 	return value ? [`| ${name} | ${value.replaceAll('|', '\\|')} |`] : []
 }
 
+/** The title of a report, with the count of a report of more than one error. */
+export function titleOf({ title, count }: Report): string {
+	return count > 1 ? `${title} ×${count}` : title
+}
+
 /** One report in Markdown: a heading, a table of the page, then the stacks and the trail. */
 export function markdownOf(report: Report): string {
 	const { visual, window, svh, dvh, lvh, safe, y } = report.viewport
 
 	return [
-		`## ${report.title}${report.count > 1 ? ` ×${report.count}` : ''}`,
+		`## ${titleOf(report)}`,
 		'',
 		'| Field | Value |',
 		'|:---|:---|',
