@@ -31,6 +31,10 @@ import { useFormStore } from './use-form-store'
 /**
  * Optional shape returned from `onSubmit` to surface server-side validation
  * issues without round-tripping through `helpers.setErrors`.
+ *
+ * @remarks
+ * An entry of `''` is an issue. An entry of `undefined` or `[]` clears the
+ * field. When no entry has an issue, the return counts as a success.
  */
 export type SubmitResult<T> = {
 	fieldErrors?: Partial<Record<keyof T, string | string[] | undefined>>
@@ -38,21 +42,34 @@ export type SubmitResult<T> = {
 
 /**
  * Terminal outcome of one submit attempt, delivered to `onSettled`. Client
- * validation failures and `{ fieldErrors }` returns are mid-flow and do not
- * fire `onSettled`.
+ * validation failures and `{ fieldErrors }` returns with at least one issue
+ * are mid-flow and do not fire `onSettled`. A `{ fieldErrors }` return with no
+ * issue is a success. On success, `values` are the values that `onSubmit` got,
+ * not the values after a later write or reset.
  */
 export type SubmitOutcome<T> = { ok: true; values: T } | { ok: false; error: Error }
 
 /** Second argument to a {@link FormSubmitHandler}: imperatively set field errors (e.g. from a server response) or reset the form, optionally to new defaults. */
 export type FormHelpers<T> = {
 	setErrors: (errors: Partial<Record<keyof T, string | string[]>>) => void
+	/**
+	 * Resets the form, optionally to new defaults.
+	 *
+	 * @remarks
+	 * From the handler of the current attempt, the reset keeps that attempt live:
+	 * `submitting` stays `true` until the handler settles, and `onSettled` gets
+	 * its outcome. From the handler of an attempt that a newer submit or an
+	 * outside reset superseded, it supersedes the current submit, as `reset`
+	 * from the form actions does.
+	 */
 	reset: (nextDefaults?: T) => void
 }
 
 /**
  * Return nothing (or `Promise<void>`) for success. Optionally return a
  * `SubmitResult<T>`, sync or async, to surface server-side validation
- * issues without going through `helpers.setErrors`. Throw or reject to
+ * issues without going through `helpers.setErrors`. A `SubmitResult<T>` with
+ * no issue applies its clears and counts as a success. Throw or reject to
  * trigger `onSettled({ ok: false, error })`. Annotate the return as
  * `satisfies SubmitResult<T>` for autocomplete on the shape.
  */
@@ -186,9 +203,9 @@ export function useFormReducer<T extends Record<string, unknown>>({
 		)
 	})
 
-	// Monotonic token identifying the current submit. Reset, unmount, and newer
-	// submits bump it; an in-flight handler compares against it to detect
-	// supersession before writing errors or clearing state.
+	// Monotonic token identifying the current submit. An outside reset, unmount,
+	// and newer submits bump it; an in-flight handler compares against it to
+	// detect supersession before writing errors or clearing state.
 	const submitTokenRef = useRef(0)
 
 	useEffect(() => () => void submitTokenRef.current++, [])
@@ -245,6 +262,20 @@ export function useFormReducer<T extends Record<string, unknown>>({
 		dispatch({ type: 'set-errors-external', errors: normalized })
 	}, [])
 
+	// Resets the store only, and leaves an in-flight submit live.
+	const resetForm = useCallback(
+		(nextDefaults?: Record<string, unknown>) => {
+			// No `nextDefaults` resets to the defaults the reducer holds.
+			dispatch({ type: 'reset', defaults: nextDefaults as T | undefined })
+
+			setResets((count) => count + 1)
+
+			reportReset()
+		},
+		[reportReset],
+	)
+
+	// The outside reset: the actions and the reset button.
 	const reset = useCallback(
 		// Typed wider than `T`; `FormActions.reset` carries no `T` at the context
 		// level. `FormHelpers<T>` re-narrows at the consumer via contravariance.
@@ -254,14 +285,9 @@ export function useFormReducer<T extends Record<string, unknown>>({
 
 			setSubmitting(false)
 
-			// No `nextDefaults` resets to the defaults the reducer holds.
-			dispatch({ type: 'reset', defaults: nextDefaults as T | undefined })
-
-			setResets((count) => count + 1)
-
-			reportReset()
+			resetForm(nextDefaults)
 		},
-		[reportReset],
+		[resetForm],
 	)
 
 	// Tracks the controlled `values` prop. Reference change → replace `values`
@@ -329,15 +355,33 @@ export function useFormReducer<T extends Record<string, unknown>>({
 
 			setSubmitting(true)
 
+			// A reset from the handler of the current attempt resets the store and
+			// keeps the attempt live. A handler that a newer submit or an outside
+			// reset superseded resets in full, as an outside reset does.
+			const helpers: FormHelpers<T> = {
+				setErrors: setErrorsExternal,
+				reset: (nextDefaults) =>
+					submitTokenRef.current === token ? resetForm(nextDefaults) : reset(nextDefaults),
+			}
+
 			// Superseded by a reset, unmount, or newer submit; discard the result.
 			const applyOutcome = (raw: unknown) => {
 				if (submitTokenRef.current !== token) return
 
 				const fieldErrors = extractFieldErrors(raw)
 
-				// Field errors: mid-flow, not a terminal outcome; does not fire `onSettled`.
-				if (fieldErrors) setErrorsExternal(fieldErrors)
-				else reportSettled({ ok: true, values: valuesRef.current })
+				// Apply the returned entries. This also clears each field whose entry
+				// has no issue. An entry with an issue keeps the attempt mid-flow, and
+				// `onSettled` does not fire. `''` normalizes to `['']`, an issue.
+				if (fieldErrors) {
+					setErrorsExternal(fieldErrors)
+
+					if (Object.values(fieldErrors).some((entry) => hasIssues(normalizeIssues(entry)))) return
+				}
+
+				// The outcome carries the values that `onSubmit` got, not the values
+				// after a reset or a write while the handler waited.
+				reportSettled({ ok: true, values: current })
 			}
 
 			const applyError = (err: unknown) => {
@@ -351,11 +395,19 @@ export function useFormReducer<T extends Record<string, unknown>>({
 
 			await settleSubmit(
 				async () => {
+					let raw: unknown
+
 					try {
-						applyOutcome(await onSubmit(valuesRef.current, { setErrors: setErrorsExternal, reset }))
+						raw = await onSubmit(current, helpers)
 					} catch (err) {
 						applyError(err)
+
+						return
 					}
+
+					// Outside the `try`, so a throw from `onSettled` does not report the
+					// attempt again as a failure.
+					applyOutcome(raw)
 				},
 				() => {
 					// Clear `submitting` only for the un-superseded submit.
@@ -363,7 +415,7 @@ export function useFormReducer<T extends Record<string, unknown>>({
 				},
 			)
 		},
-		[onSubmit, setErrorsExternal, reset, validateOn, reportInvalid, reportSettled],
+		[onSubmit, setErrorsExternal, reset, resetForm, validateOn, reportInvalid, reportSettled],
 	)
 
 	const handleReset = useCallback(

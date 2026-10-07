@@ -1,14 +1,17 @@
 import { act, renderHook } from '@testing-library/react'
-import { type ReactNode, useState } from 'react'
+import { type ReactNode, type SyntheticEvent, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	Form,
+	type FormHelpers,
+	type SubmitOutcome,
 	useFormActions,
 	useFormContext,
 	useFormField,
 	useFormStatus,
 } from '../../components/form'
 import { useFormState } from '../../components/form/context'
+import { useFormReducer } from '../../components/form/use-form-reducer'
 import { Input } from '../../components/input'
 import { useInputValue } from '../../components/input/use-input-value'
 import {
@@ -41,6 +44,14 @@ async function submit(container: HTMLElement) {
 	await act(async () => {
 		fireEvent.submit(getSlot<HTMLFormElement>(container, 'form'))
 	})
+}
+
+/** The values of the one-field forms below. */
+type Values = { name: string }
+
+/** A submit event for a handler of {@link useFormReducer} called directly. */
+function submitEvent(): SyntheticEvent<HTMLFormElement> {
+	return { preventDefault: vi.fn() } as unknown as SyntheticEvent<HTMLFormElement>
 }
 
 describe('Form', () => {
@@ -349,6 +360,100 @@ describe('Form', () => {
 		expect(container.querySelector('fieldset')).not.toBeDisabled()
 	})
 
+	it('keeps its own submit live when onSubmit calls helpers.reset, then settles', async () => {
+		const pending = deferred()
+
+		const onReset = vi.fn()
+
+		const onSettled = vi.fn()
+
+		const onSubmit = vi.fn(async (_values: Values, helpers: FormHelpers<Values>) => {
+			helpers.reset()
+
+			await pending.promise
+		})
+
+		let actions: ReturnType<typeof useFormActions>
+
+		function ActionsCapture() {
+			actions = useFormActions()
+
+			return null
+		}
+
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: 'Ada' }}
+				onSubmit={onSubmit}
+				onSettled={onSettled}
+				onReset={onReset}
+			>
+				<ActionsCapture />
+				<FieldProbe name="name" />
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		act(() => {
+			actions?.setValue('name', 'Grace')
+		})
+
+		await submit(container)
+
+		// The control: the handler got the edited values. Without it, the
+		// outcome below also holds for a submit of the defaults.
+		expect(onSubmit).toHaveBeenCalledWith({ name: 'Grace' }, expect.anything())
+
+		// The helper resets the store, but the attempt stays in flight.
+		expect(onReset).toHaveBeenCalledOnce()
+
+		expect(getFieldProbe('name').textContent).toBe('Ada')
+
+		expect(container.querySelector('fieldset')).toBeDisabled()
+
+		await act(async () => {
+			pending.resolve()
+		})
+
+		// The outcome carries the submitted values, not the values after the reset.
+		expect(onSettled).toHaveBeenCalledOnce()
+
+		expect(onSettled).toHaveBeenCalledWith({ ok: true, values: { name: 'Grace' } })
+
+		expect(container.querySelector('fieldset')).not.toBeDisabled()
+	})
+
+	it('reports a throw that follows helpers.reset inside onSubmit', async () => {
+		const failure = new Error('save failed')
+
+		const onReset = vi.fn()
+
+		const onSettled = vi.fn()
+
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: 'Ada' }}
+				onSubmit={(_values: Values, helpers: FormHelpers<Values>) => {
+					helpers.reset()
+
+					throw failure
+				}}
+				onSettled={onSettled}
+				onReset={onReset}
+			>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		await submit(container)
+
+		expect(onReset).toHaveBeenCalledOnce()
+
+		expect(onSettled).toHaveBeenCalledOnce()
+
+		expect(onSettled).toHaveBeenCalledWith({ ok: false, error: failure })
+	})
+
 	it('delivers { ok: true, values } to onSettled when onSubmit returns void', async () => {
 		const onSettled = vi.fn()
 
@@ -417,6 +522,81 @@ describe('Form', () => {
 		expect(outcome.error.message).toBe('boom')
 	})
 
+	it('settles with the submitted values when a value changes while onSubmit is pending', async () => {
+		const pending = deferred()
+
+		const onSettled = vi.fn()
+
+		let actions: ReturnType<typeof useFormActions>
+
+		function ActionsCapture() {
+			actions = useFormActions()
+
+			return null
+		}
+
+		const { container } = renderUI(
+			<Form defaultValues={{ name: 'Ada' }} onSubmit={() => pending.promise} onSettled={onSettled}>
+				<ActionsCapture />
+				<FieldProbe name="name" />
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		await submit(container)
+
+		// A write from outside the disabled fieldset, while the submit is in flight.
+		act(() => {
+			actions?.setValue('name', 'Grace')
+		})
+
+		// The control: the write landed. Without it, the outcome below also holds
+		// for a write that never happened.
+		expect(getFieldProbe('name').textContent).toBe('Grace')
+
+		await act(async () => {
+			pending.resolve()
+		})
+
+		expect(onSettled).toHaveBeenCalledOnce()
+
+		expect(onSettled).toHaveBeenCalledWith({ ok: true, values: { name: 'Ada' } })
+	})
+
+	it('delivers one outcome when onSettled throws on success', async () => {
+		const failure = new Error('navigation failed')
+
+		const onSettled = vi.fn((outcome: SubmitOutcome<Values>) => {
+			if (outcome.ok) throw failure
+		})
+
+		// The hook alone: React drops the promise of a submit handler, so the
+		// throw that leaves the handler shows only on that promise.
+		const { result } = renderHook(() =>
+			useFormReducer<Values>({
+				defaultValues: { name: 'Ada' },
+				validateOn: 'touched',
+				onSubmit: () => {},
+				onSettled,
+			}),
+		)
+
+		let thrown: unknown
+
+		await act(async () => {
+			await result.current.handleSubmit(submitEvent()).catch((err: unknown) => {
+				thrown = err
+			})
+		})
+
+		expect(onSettled).toHaveBeenCalledOnce()
+
+		expect(onSettled).toHaveBeenCalledWith({ ok: true, values: { name: 'Ada' } })
+
+		// The throw is not reported as a failed submit, and it is not lost.
+		expect(thrown).toBe(failure)
+	})
+
 	it('does not fire onSettled when onSubmit returns { fieldErrors }', async () => {
 		const onSettled = vi.fn()
 
@@ -431,6 +611,82 @@ describe('Form', () => {
 		)
 
 		await submit(container)
+
+		expect(onSettled).not.toHaveBeenCalled()
+	})
+
+	it.each([
+		['an empty map', {}],
+		['an undefined entry', { name: undefined }],
+		['an empty array entry', { name: [] }],
+	])('settles ok: true when the fieldErrors of onSubmit hold %s', async (_, fieldErrors) => {
+		const onSettled = vi.fn()
+
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: 'Ada' }}
+				onSubmit={() => ({ fieldErrors })}
+				onSettled={onSettled}
+			>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		await submit(container)
+
+		expect(onSettled).toHaveBeenCalledOnce()
+
+		expect(onSettled).toHaveBeenCalledWith({ ok: true, values: { name: 'Ada' } })
+	})
+
+	it('clears the field and settles ok: true when a later fieldErrors entry is undefined', async () => {
+		const onSettled = vi.fn()
+
+		const onSubmit = vi
+			.fn()
+			.mockReturnValueOnce({ fieldErrors: { name: 'taken on the server' } })
+			.mockReturnValueOnce({ fieldErrors: { name: undefined } })
+
+		const { container } = renderUI(
+			<Form defaultValues={{ name: 'Ada' }} onSubmit={onSubmit} onSettled={onSettled}>
+				<FieldProbe name="name" />
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		await submit(container)
+
+		expect(getFieldProbe('name')).toHaveAttribute('data-error', 'taken on the server')
+
+		expect(onSettled).not.toHaveBeenCalled()
+
+		await submit(container)
+
+		expect(getFieldProbe('name')).not.toHaveAttribute('data-error')
+
+		expect(onSettled).toHaveBeenCalledOnce()
+
+		expect(onSettled).toHaveBeenCalledWith({ ok: true, values: { name: 'Ada' } })
+	})
+
+	it('keeps an empty-string fieldErrors entry mid-flow', async () => {
+		const onSettled = vi.fn()
+
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: 'Ada' }}
+				onSubmit={() => ({ fieldErrors: { name: '' } })}
+				onSettled={onSettled}
+			>
+				<ValidProbe />
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		await submit(container)
+
+		// `''` normalizes to `['']`, which is an issue.
+		expect(screen.getByTestId('valid').textContent).toBe('false')
 
 		expect(onSettled).not.toHaveBeenCalled()
 	})
