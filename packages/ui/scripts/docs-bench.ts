@@ -19,6 +19,9 @@
  * pnpm turbo run docs:bench --filter=ui                    # 9 runs
  * pnpm turbo run docs:bench --filter=ui -- 15 samples.json # 15 runs, and each sample in a file
  * ```
+ *
+ * A count that is not a positive integer, a third argument, or an option stops
+ * the script before the first run.
  */
 
 import { generateKeyPairSync, sign } from 'node:crypto'
@@ -27,7 +30,7 @@ import { readFile, stat } from 'node:fs/promises'
 import { createSecureServer, type Http2SecureServer, type SecureServerOptions } from 'node:http2'
 import type { AddressInfo } from 'node:net'
 import path from 'node:path'
-import { promisify } from 'node:util'
+import { parseArgs, promisify } from 'node:util'
 import { brotliCompress, constants } from 'node:zlib'
 import { type Browser, chromium } from 'playwright'
 import { getOrCompute } from '../src/utilities/get-or-compute'
@@ -353,7 +356,17 @@ function table(samples: readonly Sample[]): string {
 	return ['| `/button` | Median | Budget |', '|---|---|---|', ...lines].join('\n')
 }
 
-const [runs = '9', out] = process.argv.slice(2)
+const { positionals } = parseArgs({ allowPositionals: true })
+
+const [count = '9', out, ...extra] = positionals
+
+const runs = Number(count)
+
+if (!Number.isInteger(runs) || runs < 1 || extra.length > 0) {
+	throw new Error(
+		`docs:bench: give a count of runs and an output file, such as \`15 samples.json\`, not \`${positionals.join(' ')}\`.`,
+	)
+}
 
 const tls = createCertificate()
 
@@ -364,7 +377,7 @@ const browser = await chromium.launch()
 const samples: Sample[] = []
 
 try {
-	for (let index = 0; index < Number(runs); index++) {
+	for (let index = 0; index < runs; index++) {
 		const sample = await run(browser, origin)
 
 		samples.push(sample)
