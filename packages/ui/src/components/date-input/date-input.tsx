@@ -1,13 +1,13 @@
 'use client'
 
 import { Calendar as CalendarIcon } from 'lucide-react'
-import { type ReactNode, useEffect, useEffectEvent, useId, useRef, useState } from 'react'
+import { type ReactNode, useEffect, useEffectEvent, useId, useState } from 'react'
 import { composeEventHandlers } from '../../core'
-import { useAriaIds, useComposedRef } from '../../hooks'
+import { useAriaIds } from '../../hooks'
 import { useFormattedInput } from '../../hooks/use-formatted-input'
-import { useStableEvent } from '../../hooks/use-stable-event'
 import { useLocale } from '../../providers/locale'
-import { clearNativeInput, isComposing } from '../../utilities'
+import { isComposing } from '../../utilities'
+import { isDayInRange } from '../calendar/calendar-utilities'
 import { useControl } from '../control/context'
 import { useControlFallbackLabel } from '../control/use-control-fallback-label'
 import type { CardValidity } from '../credit-card-input/credit-card-input-utilities'
@@ -15,12 +15,10 @@ import { Message } from '../fieldset'
 import { useFormValue } from '../form/use-form-value'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
-import { InputClearButton } from '../input/input-clear-button'
 import {
 	type DateInputFormat,
 	dateInputSeparator,
 	formatDateValue,
-	isDayInRange,
 	isSameDay,
 	maskDateText,
 	outOfRangeMessage,
@@ -36,7 +34,15 @@ import { useDateInputOverride } from './use-date-input-override'
  */
 export type DateInputProps = Omit<
 	InputProps,
-	'type' | 'inputMode' | 'value' | 'defaultValue' | 'onChange' | 'min' | 'max' | 'clearable'
+	| 'type'
+	| 'inputMode'
+	| 'value'
+	| 'defaultValue'
+	| 'onChange'
+	| 'min'
+	| 'max'
+	| 'clearable'
+	| 'clearLabel'
 > & {
 	/** Controlled date. `null` keeps the field controlled with no current value. */
 	value?: Date | null
@@ -81,6 +87,11 @@ export type DateInputProps = Omit<
 	 * @defaultValue true
 	 */
 	clearable?: boolean
+	/**
+	 * The accessible name of the clear button.
+	 * @defaultValue 'Clear date'
+	 */
+	clearLabel?: string
 	/**
 	 * Error message shown while the typed entry is invalid, as an error
 	 * `<Message>` wired into the `aria-describedby` of the input, also outside a
@@ -130,6 +141,7 @@ export function DateInput({
 	invalid,
 	suffix,
 	clearable = true,
+	clearLabel = 'Clear date',
 	disabled,
 	readOnly,
 	name,
@@ -153,10 +165,6 @@ export function DateInput({
 		ambient.locale,
 		invalidMessageProp,
 	)
-
-	const inputRef = useRef<HTMLInputElement>(null)
-
-	const setExternalRef = useComposedRef(inputRef, ref)
 
 	const {
 		value: date,
@@ -248,14 +256,13 @@ export function DateInput({
 	const { ref: setRefs, reformat } = useFormattedInput({
 		format: (raw) => maskDateText(raw, format),
 		atEnd: 'jump',
-		ref: setExternalRef,
+		ref,
 	})
 
-	const clearText = useStableEvent(() => clearNativeInput(inputRef.current))
-
-	const resolvedDisabled = disabled ?? control?.disabled
-
-	const resolvedReadOnly = readOnly ?? control?.readOnly
+	// The rule of Input for its clear button. Any text counts, also a partial
+	// entry that has no complete `Date` yet.
+	const clearShown =
+		clearable && text !== '' && !(disabled ?? control?.disabled) && !(readOnly ?? control?.readOnly)
 
 	const commit = (next: string): Date | undefined => {
 		const parsed = parse(next)
@@ -286,16 +293,12 @@ export function DateInput({
 				autoComplete="off"
 				disabled={disabled}
 				readOnly={readOnly}
-				suffix={dateInputSuffix({
-					clearable,
-					// Any text counts, including a partial entry that hasn't committed a
-					// complete `Date` yet — clearable tracks the field, not the value.
-					hasValue: text !== '',
-					disabled: resolvedDisabled,
-					readOnly: resolvedReadOnly,
-					suffix,
-					onClear: clearText,
-				})}
+				clearable={clearable}
+				clearLabel={clearLabel}
+				// The default calendar icon gives way to the clear button, so the
+				// trailing glyph holds its place. A suffix of the consumer, such as the
+				// calendar button of a DatePicker in `input` mode, stays beside it.
+				suffix={clearShown ? suffix : (suffix ?? <Icon icon={<CalendarIcon />} />)}
 				invalid={invalid ?? (typedInvalid || undefined)}
 				name={name}
 				value={text}
@@ -400,57 +403,4 @@ function resolveInvalidMessage(
 	if (completeDate === undefined || isDayInRange(completeDate, min, max)) return invalidMessage
 
 	return outOfRangeMessage(format, min, max) ?? invalidMessage
-}
-
-/**
- * Resolves the {@link DateInput} suffix: a clear button ahead of the field's own
- * suffix while `clearable` and the field holds text, else the suffix unchanged.
- * An absent suffix (`undefined`/`false`) therefore leaves no empty affix slot.
- *
- * @internal
- */
-function dateInputSuffix({
-	clearable,
-	hasValue,
-	disabled,
-	readOnly,
-	suffix,
-	onClear,
-}: {
-	clearable: boolean
-	hasValue: boolean
-	disabled?: boolean
-	readOnly?: boolean
-	suffix: ReactNode
-	onClear: () => void
-}): ReactNode {
-	const resolved = suffix ?? <Icon icon={<CalendarIcon />} />
-
-	if (!clearable || !hasValue || disabled || readOnly) return resolved
-
-	const clear = (
-		<InputClearButton
-			label="Clear date"
-			// Keep focus on the input: a blur here would run the field's
-			// commit-on-blur over a partial entry before the clear lands.
-			onMouseDown={(event) => event.preventDefault()}
-			onClick={onClear}
-		/>
-	)
-
-	// The default decorative calendar icon yields to the clear (mirroring
-	// Listbox/Combobox), so the trailing glyph holds its place rather than the
-	// icon sliding over to make room for the clear. A consumer-provided suffix —
-	// the DatePicker's calendar button in `input` mode — stays alongside instead;
-	// both being bare buttons, the affix slot's padding is unchanged either way.
-	const ownSuffix = suffix != null && suffix !== false
-
-	return ownSuffix ? (
-		<>
-			{clear}
-			{suffix}
-		</>
-	) : (
-		clear
-	)
 }

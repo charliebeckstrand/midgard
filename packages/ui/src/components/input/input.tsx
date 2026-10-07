@@ -17,7 +17,7 @@ import { InputClearButton } from './input-clear-button'
 import { InputFrame } from './input-frame'
 import { useInputValue } from './use-input-value'
 
-/** Props for {@link Input}: `size`/`variant`, `prefix`/`suffix` affixes, the `clearable` flag, and `invalid` override atop native `<input>` attributes. */
+/** Props for {@link Input}: `size`/`variant`, `prefix`/`suffix` affixes, the `clearable` flag and its `clearLabel`, and `invalid` override atop native `<input>` attributes. */
 export type InputProps = GroupStampProps &
 	Omit<InputVariants, 'size' | 'variant'> & {
 		size?: ScaleStep<typeof scale>
@@ -38,6 +38,11 @@ export type InputProps = GroupStampProps &
 		 * @defaultValue false
 		 */
 		clearable?: boolean
+		/**
+		 * The accessible name of the clear button of `clearable`.
+		 * @defaultValue 'Clear'
+		 */
+		clearLabel?: string
 		/** Forces the invalid state. When omitted, inherits from Control / Form context. */
 		invalid?: boolean
 		/** Controlled value. `undefined` leaves the input uncontrolled; `null` keeps it controlled with no current value (CONVENTIONS §7.3). */
@@ -72,6 +77,7 @@ export function Input({
 	prefix,
 	suffix,
 	clearable = false,
+	clearLabel = 'Clear',
 	id,
 	disabled,
 	required,
@@ -159,7 +165,7 @@ export function Input({
 	const clear =
 		clearable && filled && !sharedAttrs.disabled && !sharedAttrs.readOnly ? (
 			<InputClearButton
-				label="Clear"
+				label={clearLabel}
 				// Keep the focus in the input, so that no blur runs before the clear.
 				onMouseDown={(event) => event.preventDefault()}
 				onClick={() => clearNativeInput(inputRef.current)}

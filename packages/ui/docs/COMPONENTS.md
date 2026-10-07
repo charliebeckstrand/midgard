@@ -17,7 +17,7 @@ Components split into a **static** (server-renderable) tier and a **client** tie
 
 For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcodeMask` preset.
 
-> A `clearable` `input` shows a clear button while it holds a value. The button comes before the `suffix`, empties the value through a native `input` event, and keeps the focus in the input. A disabled or read-only `input` shows no clear button. `listbox`, `combobox`, `date-picker`, and `search-input` take the same `clearable` prop.
+> A `clearable` `input` shows a clear button while it holds a value. The button comes before the `suffix`, empties the value through a native `input` event, and keeps the focus in the input. A disabled or read-only `input` shows no clear button. `clearLabel` gives the button its accessible name, `Clear` by default. `search-input` and `date-input` render this button, with the names `Clear search` and `Clear date`. `listbox`, `combobox`, and `date-picker` take the same `clearable` prop.
 
 > `CheckboxGroup` and `RadioGroup` require their own name: give `aria-label` or `aria-labelledby`. The `<legend>` of an enclosing `<fieldset>` does not name the group.
 

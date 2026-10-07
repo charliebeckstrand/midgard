@@ -2,7 +2,6 @@
 import { describe, expect, it } from 'vitest'
 import {
 	formatDateValue,
-	isDayInRange,
 	isSameDay,
 	maskDateText,
 	parseDateText,
@@ -187,19 +186,5 @@ describe('isSameDay', () => {
 		expect(isSameDay(undefined, undefined)).toBe(true)
 
 		expect(isSameDay(new Date(2026, 5, 15), undefined)).toBe(false)
-	})
-})
-
-describe('isDayInRange', () => {
-	it('ignores time of day on the bounds', () => {
-		const date = new Date(2026, 5, 15)
-
-		expect(isDayInRange(date, new Date(2026, 5, 15, 23), undefined)).toBe(true)
-
-		expect(isDayInRange(date, undefined, new Date(2026, 5, 15, 0, 0, 1))).toBe(true)
-
-		expect(isDayInRange(date, new Date(2026, 5, 16), undefined)).toBe(false)
-
-		expect(isDayInRange(date, undefined, new Date(2026, 5, 14))).toBe(false)
 	})
 })
