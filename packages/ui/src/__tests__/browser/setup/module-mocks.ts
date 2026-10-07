@@ -1,4 +1,5 @@
-import { vi } from 'vitest'
+import { beforeAll, vi } from 'vitest'
+import { loadTooltipBody } from '../../../components/tooltip/tooltip-body-loader'
 
 /**
  * Browser-suite module mocks. `@floating-ui/react` is mocked: overlay panels
@@ -10,3 +11,12 @@ import { vi } from 'vitest'
  */
 vi.mock('@floating-ui/react', async () => (await import('../../mocks/floating-ui')).default)
 vi.mock('motion/react', async () => (await import('../../mocks/motion-react')).default)
+
+// A tooltip that mounts before its state module loads hands over to the state
+// when the load ends, and the handover is a nested commit. The first tooltip
+// starts the load in idle time, so without this load the handover lands at a
+// moment that the order of the files decides, and a case that counts commits
+// can see it. The load before each file gives each case the state of a page
+// that already loaded the module, as the jsdom setup does. The `floating-ui`
+// project tests the state before the load.
+beforeAll(() => loadTooltipBody())
