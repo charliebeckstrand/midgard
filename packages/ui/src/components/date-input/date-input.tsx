@@ -36,7 +36,7 @@ import { useDateInputOverride } from './use-date-input-override'
  */
 export type DateInputProps = Omit<
 	InputProps,
-	'type' | 'inputMode' | 'value' | 'defaultValue' | 'onChange' | 'min' | 'max'
+	'type' | 'inputMode' | 'value' | 'defaultValue' | 'onChange' | 'min' | 'max' | 'clearable'
 > & {
 	/** Controlled date. `null` keeps the field controlled with no current value. */
 	value?: Date | null
