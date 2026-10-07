@@ -10,6 +10,15 @@ import {
 	partitionFiles,
 } from './file-upload-utilities'
 
+/**
+ * Tells if a drag carries files. The browser keeps `dataTransfer.files` empty
+ * until the drop, but it lists `'Files'` in `dataTransfer.types` from
+ * `dragenter` on. A text, link, or element drag does not list it.
+ */
+function carriesFiles(event: DragEvent): boolean {
+	return event.dataTransfer?.types.includes('Files') ?? false
+}
+
 type FileHandlersOptions = {
 	disabled?: boolean
 	/** Accepted file types. The picker filters by them too, but a drop does not. */
@@ -29,7 +38,8 @@ type FileHandlersOptions = {
  * and the accepted set is announced to a live region. A batch with no
  * accepted file keeps the current selection. Drag highlight uses a depth counter so nested
  * children don't flicker `dragOver`; `disabled` short-circuits the picker and
- * drop handling.
+ * drop handling. Only a drag that carries files counts: a text, link, or
+ * element drag does not set `dragOver`, and the zone does not claim it.
  *
  * @param options - Constraints (`accept`, `maxSize`, `maxCount`), the
  * `disabled` flag, and the `onAccept`/`onReject`/`onDragOverChange` callbacks.
@@ -119,10 +129,10 @@ export function useFileUploadHandlers({
 
 	// Disabled dropzones skip `preventDefault`: the element never becomes a
 	// valid drop target, `data-drag-over` is never set, and the browser
-	// handles the drop natively.
+	// handles the drop natively. A drag with no file gets the same treatment.
 	const handleDragEnter = useCallback(
 		(event: DragEvent) => {
-			if (disabled) return
+			if (disabled || !carriesFiles(event)) return
 
 			event.preventDefault()
 
@@ -137,7 +147,7 @@ export function useFileUploadHandlers({
 	// `dragenter`/`dragleave` own the depth counter.
 	const handleDragOver = useCallback(
 		(event: DragEvent) => {
-			if (disabled) return
+			if (disabled || !carriesFiles(event)) return
 
 			event.preventDefault()
 
@@ -146,7 +156,11 @@ export function useFileUploadHandlers({
 		[disabled],
 	)
 
+	// Symmetric with `handleDragEnter`: a drag with no file was never counted,
+	// so its `dragleave` must not count down.
 	const handleDragLeave = useCallback((event: DragEvent) => {
+		if (!carriesFiles(event)) return
+
 		event.preventDefault()
 
 		event.stopPropagation()
