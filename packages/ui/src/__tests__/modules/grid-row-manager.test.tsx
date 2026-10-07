@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Grid, type GridColumn, type GridRowGroup, GridRowManager } from '../../modules/grid'
+import { Grid, type GridColumn, type GridRowGroup } from '../../modules/grid'
+import { GridRowManager } from '../../modules/grid/grid-row-manager'
 import { fireEvent, renderUI, screen, setupUser, waitFor, within } from '../helpers'
 
 /**

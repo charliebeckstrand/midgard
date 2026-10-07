@@ -203,11 +203,6 @@ function* writeXlsx<T>(
  * former Excel-flavored HTML `.xls`, which opened with a format warning and
  * carried no cell types.
  *
- * Public alongside {@link downloadExcel} so a custom
- * {@link GridExportTypeConfig.onExport | onExport} override can reuse the
- * built-in serialization under its own filename:
- * `downloadExcel('report.xlsx', rowsToXlsx(context.columns, context.rows))`.
- *
  * @typeParam T - Shape of a single row.
  */
 export function rowsToXlsx<T>(columns: GridColumn<T>[], rows: readonly T[]): Uint8Array {

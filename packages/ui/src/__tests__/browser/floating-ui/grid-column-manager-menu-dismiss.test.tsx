@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
-import type { GridColumnManagerItem } from '../../../modules/grid'
 import { GridColumnManager } from '../../../modules/grid/grid-column-manager'
 import { GridManagerDialog } from '../../../modules/grid/grid-manager-dialog'
+import type { GridColumnManagerItem } from '../../../modules/grid/types'
 import { renderUI, screen, waitFor } from '../../helpers'
 
 /**

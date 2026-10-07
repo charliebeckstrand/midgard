@@ -106,8 +106,15 @@ export function isQueryNode(value: unknown): value is QueryNode {
 }
 
 /**
- * Whether a value is a query group with the full structure of
- * {@link isQueryNode}.
+ * Whether a value is a query group whose children are all query nodes. Each
+ * node needs a string `id` and, when it has one, a combinator of `and` or `or`.
+ * A rule needs a string `field` and a string `operator`; its `value` can be any
+ * value.
+ *
+ * @remarks Use it on a tree from storage or from a URL, before the evaluator or
+ * the builder reads it. The guard reads groups to a depth of 32 levels, as
+ * `parseQuery` does. A deeper group fails the guard, so a hostile tree cannot
+ * exhaust the stack.
  *
  * @param value - The value to test.
  * @returns Whether `value` is a {@link QueryGroup}.

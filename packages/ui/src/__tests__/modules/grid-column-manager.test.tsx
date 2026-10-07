@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { GridColumnManager, type GridColumnManagerItem } from '../../modules/grid'
+import { GridColumnManager } from '../../modules/grid/grid-column-manager'
 import { GridManagerDialog } from '../../modules/grid/grid-manager-dialog'
+import type { GridColumnManagerItem } from '../../modules/grid/types'
 import { allBySlot, fireEvent, renderUI, screen, setupUser } from '../helpers'
 
 const columns: GridColumnManagerItem[] = [

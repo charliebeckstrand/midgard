@@ -1,7 +1,9 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
-import type { GridRowGroup, GridRowManagerGroup, GridRowManagerProps } from '../../modules/grid'
+import type { GridRowGroup } from '../../modules/grid'
 import { applyRowKeyOrder } from '../../modules/grid/engine/grid-group/row-manager'
+import type { GridRowManagerGroup } from '../../modules/grid/grid-row-group-types'
+import type { GridRowManagerProps } from '../../modules/grid/grid-row-manager'
 import { useGridRowManager } from '../../modules/grid/use-grid-row-manager'
 
 /** Three natural-order groups. */

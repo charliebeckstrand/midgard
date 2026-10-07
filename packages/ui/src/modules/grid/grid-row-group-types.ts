@@ -57,9 +57,7 @@ export type GridRowGroups =
  * {@link GridRowManagerProps.groups}.
  *
  * @remarks {@link Grid} makes this list from its grouped rows and puts it in
- * the display order of the {@link GridRowGroup} overlay. When you host
- * {@link GridRowManager} yourself, give one entry for each group, in the order
- * that the list shows.
+ * the display order of the {@link GridRowGroup} overlay.
  */
 export type GridRowManagerGroup = {
 	/** The identity of the group: the shared value of the grouping column. {@link GridRowManagerProps.onRecolor} and {@link GridRowManagerProps.onReorderGroups} receive it. */

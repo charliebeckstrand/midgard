@@ -594,13 +594,11 @@ export function GridData<T>({
 		reduceMotion,
 	})
 
-	// `resizing` stays on this table-wide value for external `useGrid()` consumers.
-	// The grid's own truncating head and cells read the drag state of the settle
-	// store (see `useGridResizing`), so a sort or a select-all, which churns this
-	// value, does not render every visible truncating cell again.
+	// The truncating head and cells read the drag state of the settle store (see
+	// `useGridResizing`), not this value, so a sort or a select-all, which churns
+	// this value, does not render every visible truncating cell again.
 	const context = useMemo(
 		() => ({
-			toggleRow,
 			toggleAll,
 			allSelected,
 			someSelected,
@@ -608,19 +606,8 @@ export function GridData<T>({
 			toggleSort,
 			pinColumn,
 			stickyHeader,
-			resizing,
 		}),
-		[
-			toggleRow,
-			toggleAll,
-			allSelected,
-			someSelected,
-			sort,
-			toggleSort,
-			pinColumn,
-			stickyHeader,
-			resizing,
-		],
+		[toggleAll, allSelected, someSelected, sort, toggleSort, pinColumn, stickyHeader],
 	)
 
 	const needsScrollWrapper = stickyHeader || gated.virtualize
