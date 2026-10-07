@@ -14,7 +14,13 @@ import {
 type Values = { name: string; age: number }
 
 function initialState(): FormState<Values> {
-	return { values: { name: '', age: 0 }, defaults: { name: '', age: 0 }, errors: {}, touched: {} }
+	return {
+		values: { name: '', age: 0 },
+		defaults: { name: '', age: 0 },
+		errors: {},
+		touched: {},
+		external: {},
+	}
 }
 
 const validators: Validators<Values> = {
@@ -149,6 +155,7 @@ describe('formReducer', () => {
 				defaults: { name: '', age: 0 },
 				errors: { name: ['stale'] },
 				touched: {},
+				external: {},
 			}
 
 			const next = formReducer(prior, {
@@ -207,6 +214,7 @@ describe('formReducer', () => {
 				defaults: { password: '', confirm: '' },
 				errors: { confirm: ['mismatch'] },
 				touched: { password: true },
+				external: {},
 			}
 
 			const next = formReducer(prior, {
@@ -218,6 +226,70 @@ describe('formReducer', () => {
 			})
 
 			expect(next.errors).toEqual({ confirm: undefined })
+		})
+
+		describe('with a server issue on name', () => {
+			function serverState(): FormState<Values> {
+				return {
+					values: { name: 'Ada', age: 30 },
+					defaults: { name: '', age: 0 },
+					errors: { name: ['taken'] },
+					touched: { name: true, age: true },
+					external: { name: true },
+				}
+			}
+
+			it.each<ValidateOn>(['touched', 'change'])(
+				'keeps the issue when a sibling changes and validateOn is "%s"',
+				(validateOn) => {
+					const prior = serverState()
+
+					const next = formReducer(prior, {
+						type: 'set-value',
+						name: 'age',
+						value: 10,
+						validate: validators,
+						validateOn,
+					})
+
+					expect(next.errors).toEqual({ name: ['taken'], age: ['too young'] })
+
+					expect(next.external).toBe(prior.external)
+				},
+			)
+
+			it.each<ValidateOn>(['touched', 'change'])(
+				'lands the result of name when name changes and validateOn is "%s"',
+				(validateOn) => {
+					const next = formReducer(serverState(), {
+						type: 'set-value',
+						name: 'name',
+						value: 'Grace',
+						validate: validators,
+						validateOn,
+					})
+
+					expect(next.errors).toEqual({ name: undefined })
+
+					expect(next.external).toEqual({})
+				},
+			)
+
+			it('drops name from external but keeps the issue when validateOn is "submit"', () => {
+				const prior = serverState()
+
+				const next = formReducer(prior, {
+					type: 'set-value',
+					name: 'name',
+					value: 'Grace',
+					validate: validators,
+					validateOn: 'submit',
+				})
+
+				expect(next.errors).toBe(prior.errors)
+
+				expect(next.external).toEqual({})
+			})
 		})
 
 		it('keeps the same errors reference when no validator produces a new error', () => {
@@ -242,6 +314,7 @@ describe('formReducer', () => {
 				defaults: { name: '', age: 0 },
 				errors: {},
 				touched: { name: true },
+				external: {},
 			}
 
 			const next = formReducer(prior, {
@@ -274,6 +347,7 @@ describe('formReducer', () => {
 				defaults: { name: '', age: 0 },
 				errors: { name: ['stale'] },
 				touched: {},
+				external: {},
 			}
 
 			const next = formReducer(prior, {
@@ -296,6 +370,7 @@ describe('formReducer', () => {
 				defaults: { name: '', age: 0 },
 				errors: { age: ['prev'] },
 				touched: {},
+				external: {},
 			}
 
 			const next = formReducer(prior, {
@@ -323,6 +398,22 @@ describe('formReducer', () => {
 
 			expect(next.touched).toEqual({})
 		})
+
+		it('records each key with an issue as external and drops each key without one', () => {
+			const prior: FormState<Values> = {
+				...initialState(),
+				errors: { age: ['taken'] },
+				touched: { age: true },
+				external: { age: true },
+			}
+
+			const next = formReducer(prior, {
+				type: 'set-errors-external',
+				errors: { name: ['x'], age: undefined },
+			})
+
+			expect(next.external).toEqual({ name: true })
+		})
 	})
 
 	describe('reset', () => {
@@ -332,6 +423,7 @@ describe('formReducer', () => {
 				defaults: { name: '', age: 0 },
 				errors: { name: ['oops'] },
 				touched: { name: true, age: true },
+				external: { name: true },
 			}
 
 			const next = formReducer(prior, {
@@ -344,6 +436,7 @@ describe('formReducer', () => {
 				defaults: { name: 'fresh', age: 21 },
 				errors: {},
 				touched: {},
+				external: {},
 			})
 		})
 
@@ -355,6 +448,7 @@ describe('formReducer', () => {
 				defaults,
 				errors: { name: ['oops'] },
 				touched: { name: true },
+				external: {},
 			}
 
 			const next = formReducer(prior, { type: 'reset' })
@@ -374,6 +468,7 @@ describe('formReducer', () => {
 				defaults: { name: '', age: 0 },
 				errors: { age: ['too young'] },
 				touched: { name: true },
+				external: { age: true },
 			}
 
 			const next = formReducer(prior, {
@@ -388,6 +483,8 @@ describe('formReducer', () => {
 			expect(next.errors).toBe(prior.errors)
 
 			expect(next.touched).toBe(prior.touched)
+
+			expect(next.external).toBe(prior.external)
 		})
 
 		it('is a no-op when the values reference is unchanged', () => {
@@ -398,6 +495,7 @@ describe('formReducer', () => {
 				defaults: sharedValues,
 				errors: {},
 				touched: {},
+				external: {},
 			}
 
 			const next = formReducer(prior, { type: 'sync-values', values: sharedValues })
@@ -413,6 +511,7 @@ describe('formReducer', () => {
 				defaults: { name: '', age: 0 },
 				errors: { name: ['stale'] },
 				touched: {},
+				external: { name: true },
 			}
 
 			const next = formReducer(prior, {
@@ -426,6 +525,9 @@ describe('formReducer', () => {
 			expect(next.errors).toEqual({ age: ['too young'] })
 
 			expect(next.touched).toEqual({ name: true, age: true })
+
+			// The submit result replaces each external issue.
+			expect(next.external).toEqual({})
 		})
 	})
 })

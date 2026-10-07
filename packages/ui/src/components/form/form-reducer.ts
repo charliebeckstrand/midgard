@@ -6,12 +6,14 @@ export type Touched = Record<string, boolean>
 type Validator<T, K extends keyof T> = (value: T[K], values: T) => string | string[] | undefined
 /** Optional {@link Validator} per field of `T`; the map {@link Form} consumes via its `validate` prop. Build one from a schema with {@link zodResolver}. */
 export type Validators<T> = { [K in keyof T]?: Validator<T, K> }
-/** When the reducer runs validators: on a field's first blur (`'touched'`), on each change of a field (`'change'`), or only on submit (`'submit'`). A change validates that field and the fields that are touched or have a result already, so that a cross-field rule (a confirmation) stays current. It does not validate a field that the user has not used. */
+/** When the reducer runs validators: on a field's first blur (`'touched'`), on each change of a field (`'change'`), or only on submit (`'submit'`). A change validates that field and the fields that are touched or have a result already, so that a cross-field rule (a confirmation) stays current. It does not validate a field that the user has not used. A change of one field does not replace an issue of another field that came from `setErrors` or a `{ fieldErrors }` return. */
 export type ValidateOn = 'touched' | 'change' | 'submit'
 
 /**
  * Reducer state for one form: current `values`, the `defaults` that `values`
  * compare against for dirtiness, and the {@link Errors} and {@link Touched} maps.
+ * `external` holds the keys whose current issue came from `set-errors-external`.
+ * A change of another field does not replace those issues.
  * @internal
  */
 export type FormState<T> = {
@@ -19,6 +21,7 @@ export type FormState<T> = {
 	defaults: T
 	errors: Errors
 	touched: Touched
+	external: Record<string, true>
 }
 
 /**
@@ -193,10 +196,22 @@ function changeValidationFields<T>(
 	)
 }
 
+/** Gives `external` without `name`, or the same reference when `name` is not in it. @internal */
+function dropExternal(external: Record<string, true>, name: string): Record<string, true> {
+	if (!Object.hasOwn(external, name)) return external
+
+	const next = { ...external }
+
+	delete next[name]
+
+	return next
+}
+
 /**
  * Applies the `set-value` action: writes the value, then validates per
  * `validateOn`. The `'change'` mode validates the fields that
- * {@link changeValidationFields} gives.
+ * {@link changeValidationFields} gives. The result of a field in `external`
+ * does not land, except for the changed field, which leaves `external`.
  *
  * @internal
  */
@@ -206,8 +221,10 @@ function setFieldValue<T extends Record<string, unknown>>(
 ): FormState<T> {
 	const nextValues = { ...state.values, [action.name]: action.value } as T
 
+	const external = dropExternal(state.external, action.name)
+
 	if (action.validateOn === 'submit') {
-		return { ...state, values: nextValues }
+		return { ...state, values: nextValues, external }
 	}
 
 	// The `fields` argument forces the run, so pass it in the `'change'` mode
@@ -225,10 +242,15 @@ function setFieldValue<T extends Record<string, unknown>>(
 		fields,
 	)
 
+	// Keep each issue from `set-errors-external`. Here, only a change of its own
+	// field replaces it.
+	for (const key in external) delete newErrors[key]
+
 	return {
 		...state,
 		values: nextValues,
 		errors: Object.keys(newErrors).length > 0 ? { ...state.errors, ...newErrors } : state.errors,
+		external,
 	}
 }
 
@@ -245,14 +267,19 @@ export function formReducer<T extends Record<string, unknown>>(
 		case 'set-errors-external': {
 			const nextErrors = { ...state.errors, ...action.errors }
 			const nextTouched = { ...state.touched }
+			const nextExternal = { ...state.external }
 
 			for (const key in action.errors) {
 				const issues = action.errors[key]
 
-				if (hasIssues(issues)) nextTouched[key] = true
+				if (hasIssues(issues)) {
+					nextTouched[key] = true
+
+					nextExternal[key] = true
+				} else delete nextExternal[key]
 			}
 
-			return { ...state, errors: nextErrors, touched: nextTouched }
+			return { ...state, errors: nextErrors, touched: nextTouched, external: nextExternal }
 		}
 		case 'sync-values':
 			if (state.values === action.values && state.defaults === action.values) return state
@@ -261,13 +288,14 @@ export function formReducer<T extends Record<string, unknown>>(
 		case 'reset': {
 			const defaults = action.defaults ?? state.defaults
 
-			return { values: { ...defaults }, defaults, errors: {}, touched: {} }
+			return { values: { ...defaults }, defaults, errors: {}, touched: {}, external: {} }
 		}
 		case 'submit-validate':
 			return {
 				...state,
 				errors: action.errors,
 				touched: action.touched,
+				external: {},
 			}
 	}
 }
