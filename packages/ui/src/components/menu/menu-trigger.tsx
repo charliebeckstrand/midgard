@@ -11,7 +11,7 @@ import {
 	useRef,
 } from 'react'
 import { cn, composeEventHandlers } from '../../core'
-import { useDeferredFloatingReference } from '../../hooks/use-floating-reference'
+import { useDeferredFloatingReference } from '../../hooks/use-deferred-floating-reference'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useMenuActions, useMenuState } from './context'
 import { useMenuPointer } from './use-menu-pointer'

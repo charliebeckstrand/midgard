@@ -51,12 +51,12 @@ const serverTooltipBody = () => null
  * via `<FloatingSurface>`, animates in, and adopts the glass surface from
  * `glass` or an active `<GlassProvider>`.
  *
- * @remarks The panel module carries Motion and the floating surface, so the
- * page does not load it before it hydrates. Each mounted panel loads the module
- * in idle time after the hydration, and the panels share one load. A hover or a
- * focus on the trigger starts the load sooner, and the panel opens when the
- * module is there. Thus a focus, which opens with no delay, does not wait for
- * the network after the idle load.
+ * @remarks The panel module carries the tooltip state, Motion, and the
+ * floating surface, so the page does not load it before it hydrates. Each
+ * mounted panel loads the module in idle time after the hydration, and the
+ * panels share one load. A hover, a focus, or a click on the trigger starts the
+ * load sooner, and the panel opens when the module is there. Thus a focus,
+ * which opens with no delay, does not wait for the network after the idle load.
  *
  * Pointer events are disabled unless the tooltip is `interactive`,
  * so a non-interactive panel never intercepts hover. An `interactive` panel
