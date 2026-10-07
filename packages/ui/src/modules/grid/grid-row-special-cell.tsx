@@ -16,13 +16,14 @@ import type { GridColumn } from './types'
  * The dnd-kit sortable bindings a {@link GridReorderableRow} threads into its
  * row. They are the `<tr>` node ref and lifted transform/transition style, plus
  * the activator ref, attributes, and listeners the drag-handle grip carries.
+ * The `attributes` are absent until the drag and drop module is loaded.
  *
  * @internal
  */
 export type GridRowSortable = {
 	setNodeRef: (node: HTMLElement | null) => void
 	setActivatorNodeRef: (node: HTMLElement | null) => void
-	attributes: DraggableAttributes
+	attributes: DraggableAttributes | undefined
 	listeners: DraggableSyntheticListeners
 	style: CSSProperties
 	dragging: boolean

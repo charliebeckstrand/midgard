@@ -1,6 +1,7 @@
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
+import { useSortableList } from '../../hooks/use-sortable-list'
 import type { GridColumn } from '../../modules/grid'
 import { useGridReorder } from '../../modules/grid/use-grid-reorder'
 import { useGridRowReorder } from '../../modules/grid/use-grid-row-reorder'
@@ -10,7 +11,8 @@ import { useGridRowReorder } from '../../modules/grid/use-grid-row-reorder'
  * dragged sortable item back to its grid domain id — a column id for the header
  * reorder, a row key for the row reorder — before handing it to the consumer.
  * The drag mechanics themselves ride `useSortableList` (covered by its own
- * tests); here we pin that id-mapping layer, driving the drag through the
+ * tests), which the drag and drop module of the grid calls with the options of
+ * each hook. Here we pin that id-mapping layer, driving the drag through the
  * `dndContextProps` handlers the same way.
  */
 describe('Grid column reorder lifecycle', () => {
@@ -27,13 +29,15 @@ describe('Grid column reorder lifecycle', () => {
 		const onReorderEnd = vi.fn()
 
 		const { result } = renderHook(() =>
-			useGridReorder<Row>({
-				reorder: true,
-				visibleColumns: columns,
-				reorderColumns: vi.fn(),
-				onReorderStart,
-				onReorderEnd,
-			}),
+			useSortableList(
+				useGridReorder<Row>({
+					reorder: true,
+					visibleColumns: columns,
+					reorderColumns: vi.fn(),
+					onReorderStart,
+					onReorderEnd,
+				}).sortable,
+			),
 		)
 
 		act(() => {
@@ -74,12 +78,14 @@ describe('Grid row reorder lifecycle', () => {
 		const onReorderEnd = vi.fn()
 
 		const { result } = renderHook(() =>
-			useGridRowReorder<Row>({
-				rowReorder: { onReorder: vi.fn(), onReorderStart, onReorderEnd },
-				enabled: true,
-				rows,
-				rowKeys,
-			}),
+			useSortableList(
+				useGridRowReorder<Row>({
+					rowReorder: { onReorder: vi.fn(), onReorderStart, onReorderEnd },
+					enabled: true,
+					rows,
+					rowKeys,
+				}).sortable,
+			),
 		)
 
 		act(() => {

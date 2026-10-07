@@ -7,6 +7,7 @@ import { createContext } from '../../core'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { k } from '../../recipes/kata/grid'
 import { columnShiftVar } from './engine/grid-reorder-compute'
+import type { GridReorderKit } from './grid-reorder-region'
 
 /**
  * The id of the column being drag-reordered, or `null` when idle. Provided by
@@ -19,6 +20,18 @@ import { columnShiftVar } from './engine/grid-reorder-compute'
  * @internal
  */
 export const [GridReorderContext] = createContext<string | null>('GridReorder', {
+	default: null,
+})
+
+/**
+ * The drag and drop parts of the grid, from the module that loads when the grid
+ * takes a reorder (see {@link GridReorderKit}). It is `null` until the module
+ * is loaded. The headers, the body, and the rows then render their static
+ * forms, which have the same layout as the draggable forms.
+ *
+ * @internal
+ */
+export const [GridReorderKitContext] = createContext<GridReorderKit | null>('GridReorderKit', {
 	default: null,
 })
 

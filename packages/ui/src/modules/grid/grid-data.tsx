@@ -486,13 +486,14 @@ export function GridData<T>({
 		manageLabel: managerLabel,
 	})
 
-	// Column reorder rides @dnd-kit's horizontal sortable; the dnd context wraps
-	// the whole table region (see `useGridReorder`), and the header reads
-	// `canReorder` to register each draggable cell against it. `reorderHandle`
-	// picks the grip vs. whole-header drag affordance the headers render.
+	// Column reorder rides @dnd-kit's horizontal sortable; the dnd context of the
+	// drag and drop module wraps the whole table region (see `GridRegion`), and
+	// the header reads `canReorder` to register each draggable cell against it.
+	// `reorderHandle` picks the grip vs. whole-header drag affordance the
+	// headers render.
 	const { enabled: reorderEnabled, handle: reorderHandle } = resolveGridReorder(reorder)
 
-	const { canReorder, itemIds, strategy, dndContextProps, activeId } = useGridReorder<T>({
+	const { canReorder, sortable: columnSortable } = useGridReorder<T>({
 		reorder: reorderEnabled,
 		visibleColumns,
 		reorderColumns,
@@ -682,7 +683,6 @@ export function GridData<T>({
 				reorderable: reorderActive,
 				rowReorderActive,
 				animateSortRows,
-				rowSortable: rowReorder.sortableContext,
 				groups,
 				toggleGroup: toggleClientGroup,
 				manualRows,
@@ -800,12 +800,9 @@ export function GridData<T>({
 							<GridRegion
 								reorderConfigured={reorderEnabled || rowReorderConfig != null}
 								canReorder={reorderActive}
-								dndContextProps={dndContextProps}
+								columnSortable={columnSortable}
 								rowReorderActive={rowReorderActive}
-								rowDndContextProps={rowReorder.dndContextProps}
-								itemIds={itemIds}
-								strategy={strategy}
-								activeReorderId={activeId}
+								rowSortable={rowReorder.sortable}
 								contextMenu={resolvedContextMenu}
 								contextMenuEnabled={contextMenuEnabled}
 								columns={visibleColumns}

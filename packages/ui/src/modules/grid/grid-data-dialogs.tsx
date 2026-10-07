@@ -1,59 +1,43 @@
 'use client'
 
-import type { ComponentProps, ReactNode } from 'react'
-import { Direction } from '../../primitives/direction'
-import { GridAutoSizeConfirmDialog } from './grid-auto-size-confirm-dialog'
-import { GridColumnManager, type GridColumnManagerProps } from './grid-column-manager'
-import { GridManagerDialog } from './grid-manager-dialog'
-import { GridRowManagerRegionDialog } from './grid-region'
-import type { GridRowManagerRegionResult } from './use-grid-row-manager'
-
-/** Props for {@link GridDataDialogs}. @internal */
-type GridDataDialogsProps = {
-	/** The direction of the grid, read from its wrapper. The dialogs portal out of the grid. */
-	direction: 'ltr' | 'rtl'
-	/** The column manager and the state of its dialog, or `null` when the grid renders no manager. */
-	columnManager: {
-		open: boolean
-		onOpenChange: (open: boolean) => void
-		label: ReactNode
-		manager: GridColumnManagerProps
-	} | null
-	/** The row manager of a client-grouped grid. */
-	rowManager: GridRowManagerRegionResult
-	/** The confirm step of a width action, or `null` when no seeded widths need it. */
-	widthConfirm: ComponentProps<typeof GridAutoSizeConfirmDialog> | null
-}
+import type { GridDataDialogsProps } from './grid-data-dialogs-body'
+import { gridLazyModule, useGridLazyModule } from './grid-lazy-module'
 
 /**
- * The dialogs of {@link GridData}: the column manager, the row manager, and the
- * confirm step of "Auto-size all columns" and "Reset column widths".
+ * The module of the dialogs. It carries the managers, their drag and drop, and
+ * the dialog surface, so a grid that opens no dialog does not load it.
  *
  * @internal
  */
-export function GridDataDialogs({
-	direction,
-	columnManager,
-	rowManager,
-	widthConfirm,
-}: GridDataDialogsProps) {
-	// The dialogs portal out of the grid. The direction scope makes each portal
-	// write the direction of the grid, so a dialog lays out as the grid does.
-	return (
-		<Direction dir={direction}>
-			{columnManager && (
-				<GridManagerDialog
-					open={columnManager.open}
-					onOpenChange={columnManager.onOpenChange}
-					label={columnManager.label}
-				>
-					<GridColumnManager {...columnManager.manager} />
-				</GridManagerDialog>
-			)}
+const dialogs = gridLazyModule(() => import('./grid-data-dialogs-body'))
 
-			<GridRowManagerRegionDialog region={rowManager} />
+/**
+ * Loads the module of the dialogs. Tests call it before a case that opens a
+ * dialog. @internal
+ */
+export const loadGridDataDialogs = dialogs.load
 
-			{widthConfirm && <GridAutoSizeConfirmDialog {...widthConfirm} />}
-		</Direction>
-	)
+/**
+ * The dialogs of {@link GridData}. A request to open one loads the module of
+ * the dialogs, and the dialog then mounts open, so it opens in one step. After
+ * the load the module stays mounted, so a closing dialog plays its exit.
+ *
+ * @remarks If the load fails, each requested dialog closes, so its trigger can
+ * try again. The error goes on to the error reporting of the app.
+ * @internal
+ */
+export function GridDataDialogs(props: GridDataDialogsProps) {
+	const { columnManager, rowManager, widthConfirm } = props
+
+	const requested = !!columnManager?.open || rowManager.open || !!widthConfirm?.open
+
+	const body = useGridLazyModule(dialogs, requested, () => {
+		columnManager?.onOpenChange(false)
+
+		rowManager.setOpen(false)
+
+		widthConfirm?.onOpenChange(false)
+	})
+
+	return body ? <body.GridDataDialogsBody {...props} /> : null
 }

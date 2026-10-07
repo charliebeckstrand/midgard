@@ -1,11 +1,11 @@
 'use client'
 
-import type { DraggableSyntheticListeners } from '@dnd-kit/core'
-import { useSortable } from '@dnd-kit/sortable'
+import type { DraggableAttributes, DraggableSyntheticListeners } from '@dnd-kit/core'
 import {
 	memo,
 	type ReactNode,
 	type PointerEvent as ReactPointerEvent,
+	use,
 	useCallback,
 	useMemo,
 	useRef,
@@ -25,7 +25,7 @@ import { GridColumnFilterButton } from './grid-column-filter-button'
 import { GridColumnHeaderLabel, GridPinnedHeaderLabel } from './grid-column-header-label'
 import { GridColumnResizeHandle } from './grid-column-resize-handle'
 import { GridGroupByButton } from './grid-group-by-button'
-import { useColumnReorderShift } from './grid-reorder'
+import { GridReorderKitContext, useColumnReorderShift } from './grid-reorder'
 import type { GridColumn } from './types'
 import type { GridColumnFilter, GridColumnPinning } from './use-grid-table'
 
@@ -69,7 +69,7 @@ function useSurfaceSafeActivators(
 }
 
 /** Props for the column header cells. @internal */
-type GridColumnHeaderProps = {
+export type GridColumnHeaderProps = {
 	column: Pick<
 		GridColumn<unknown>,
 		'id' | 'title' | 'sortable' | 'headerClassName' | 'filterType' | 'filterOptions' | 'groupable'
@@ -246,22 +246,73 @@ export const GridColumnHeader = memo(function GridColumnHeader({
 })
 
 /** Props for {@link GridReorderableColumnHeader}: the shared header props plus the drag affordance. @internal */
-type GridReorderableColumnHeaderProps = GridColumnHeaderProps & {
+export type GridReorderableColumnHeaderProps = GridColumnHeaderProps & {
 	/** `true` prefixes the header with a grip handle; `false` makes the whole header the drag handle. */
 	handle: boolean
 }
 
 /**
- * Reorderable column header cell: registers the `<th>` as a horizontal sortable
- * item and adds a resize separator when the grid is resizable. With `handle`, it
- * prefixes the title (and any sort control) with a grip drag handle carrying the
- * pointer/keyboard activator. Without it, the whole header cell carries the
- * activator and a grab cursor, and no grip renders. Its sort control keeps the
- * pointer cursor as a more specific child.
+ * The drag bindings of a reorderable header, from dnd-kit's `useSortable`. The
+ * `attributes` are absent until the drag and drop module is loaded.
  *
  * @internal
  */
-export const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
+export type GridColumnSortable = {
+	setNodeRef: (node: HTMLElement | null) => void
+	setActivatorNodeRef: (node: HTMLElement | null) => void
+	attributes: DraggableAttributes | undefined
+	listeners: DraggableSyntheticListeners
+	/** The horizontal translate of the drag, in px. */
+	x: number
+	isDragging: boolean
+	isSorting: boolean
+}
+
+/** Does nothing with a node, for the static bindings. @internal */
+const ignoreNode = () => {}
+
+/**
+ * The bindings of a header before the drag and drop module is loaded: a header
+ * at rest, which no drag can start. @internal
+ */
+const STATIC_COLUMN_SORTABLE: GridColumnSortable = {
+	setNodeRef: ignoreNode,
+	setActivatorNodeRef: ignoreNode,
+	attributes: undefined,
+	listeners: undefined,
+	x: 0,
+	isDragging: false,
+	isSorting: false,
+}
+
+/**
+ * Reorderable column header cell. It renders the draggable header of the drag
+ * and drop module when that module is loaded (see {@link GridReorderKitContext}),
+ * else the same header at rest, with the same layout.
+ *
+ * @internal
+ */
+export const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader(
+	props: GridReorderableColumnHeaderProps,
+) {
+	const kit = use(GridReorderKitContext)
+
+	if (kit) return <kit.SortableColumnHeader {...props} />
+
+	return <GridReorderableColumnHeaderView {...props} sortable={STATIC_COLUMN_SORTABLE} />
+})
+
+/**
+ * The cell of a reorderable column header: registers the `<th>` through the
+ * `sortable` bindings and adds a resize separator when the grid is resizable.
+ * With `handle`, it prefixes the title (and any sort control) with a grip drag
+ * handle carrying the pointer/keyboard activator. Without it, the whole header
+ * cell carries the activator and a grab cursor, and no grip renders. Its sort
+ * control keeps the pointer cursor as a more specific child.
+ *
+ * @internal
+ */
+export function GridReorderableColumnHeaderView({
 	column,
 	colIndex,
 	columnIndex,
@@ -280,16 +331,10 @@ export const GridReorderableColumnHeader = memo(function GridReorderableColumnHe
 	filter,
 	filterQuery,
 	handle,
-}: GridReorderableColumnHeaderProps) {
-	const {
-		setNodeRef,
-		setActivatorNodeRef,
-		attributes,
-		listeners,
-		transform,
-		isDragging,
-		isSorting,
-	} = useSortable({ id: String(column.id) })
+	sortable,
+}: GridReorderableColumnHeaderProps & { sortable: GridColumnSortable }) {
+	const { setNodeRef, setActivatorNodeRef, attributes, listeners, x, isDragging, isSorting } =
+		sortable
 
 	// The header animates its live drag translate onto a CSS variable on the
 	// enclosing <table> — the nearest common ancestor of this header and its
@@ -312,7 +357,7 @@ export const GridReorderableColumnHeader = memo(function GridReorderableColumnHe
 		[setNodeRef, setActivatorNodeRef, handle],
 	)
 
-	useColumnReorderShift(tableRef, columnIndex, transform?.x ?? 0, isDragging, isSorting)
+	useColumnReorderShift(tableRef, columnIndex, x, isDragging, isSorting)
 
 	const canResize = resizeActions !== null && interactive
 
@@ -328,7 +373,7 @@ export const GridReorderableColumnHeader = memo(function GridReorderableColumnHe
 		'aria-pressed': _pressed,
 		'aria-roledescription': _roleDescription,
 		...cellActivatorAttributes
-	} = attributes
+	} = attributes ?? {}
 
 	const cellActivators = useSurfaceSafeActivators(listeners)
 
@@ -386,4 +431,4 @@ export const GridReorderableColumnHeader = memo(function GridReorderableColumnHe
 			)}
 		</TableHeader>
 	)
-})
+}

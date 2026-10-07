@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useMemo } from 'react'
-import { useSortableList } from '../../hooks'
+import type { SortableListOptions } from '../../hooks/use-sortable-list'
 import { isDataColumn } from '../../utilities'
 import { columnLabel } from './engine/grid-column/label'
 import { isFrozen } from './engine/grid-pin/overrides'
@@ -28,17 +28,16 @@ type GridReorderOptions<T> = {
 }
 
 /**
- * Wires column reordering onto `@dnd-kit`'s horizontal sortable for
- * {@link Grid}. Only visible, non-frozen data columns are draggable (pinned and
- * locked columns hold their edge). A lone draggable column has nowhere to go,
- * so `canReorder` gates the chrome on there being at least two. The data
- * table renders `<DndContext>` / `<SortableContext>` from the returned props
+ * Resolves column reordering for {@link Grid}. Only visible, non-frozen data
+ * columns are draggable (pinned and locked columns hold their edge). A lone
+ * draggable column has nowhere to go, so `canReorder` gates the chrome on there
+ * being at least two. The drag and drop module gives the returned `sortable`
+ * options to `useSortableList`, and renders `<DndContext>` / `<SortableContext>`
  * around the whole table region, never the `<table>` itself. The dnd context
  * injects hidden accessibility nodes that must not be `<table>` children.
  *
- * @returns `canReorder` (render gate) plus the `itemIds`, `strategy`,
- * `dndContextProps`, and `activeId` to spread onto the sortable context and
- * dnd context.
+ * @returns `canReorder` (render gate) and the `sortable` options of
+ * `@dnd-kit`'s horizontal sortable.
  * @internal
  */
 export function useGridReorder<T>({
@@ -68,7 +67,7 @@ export function useGridReorder<T>({
 
 	const handleDragEnd = useCallback((col: GridColumn<T>) => onReorderEnd?.(col.id), [onReorderEnd])
 
-	const { itemIds, strategy, dndContextProps, activeId } = useSortableList<GridColumn<T>>({
+	const sortable: SortableListOptions<GridColumn<T>> = {
 		items: draggableColumns,
 		getKey: columnDragId,
 		onReorder: canReorder ? handleReorder : undefined,
@@ -76,7 +75,7 @@ export function useGridReorder<T>({
 		onDragStart: onReorderStart ? handleDragStart : undefined,
 		onDragEnd: onReorderEnd ? handleDragEnd : undefined,
 		describe: (col) => `${columnLabel(col)} column`,
-	})
+	}
 
-	return { canReorder, itemIds, strategy, dndContextProps, activeId }
+	return { canReorder, sortable }
 }
