@@ -9,6 +9,7 @@ import { type InputVariants, k } from '../../recipes/kata/input'
 import type { GroupStampProps } from '../../types/group-stamp'
 import { clearNativeInput } from '../../utilities'
 import type { ControlVariant } from '../control/context'
+import { markControlBinding } from '../control/control-binding'
 import { InputClearButton } from './input-clear-button'
 import { InputFrame } from './input-frame'
 import { useInputControl } from './use-input-control'
@@ -170,3 +171,5 @@ export function Input({
 		/>
 	)
 }
+
+markControlBinding(Input, 'text')

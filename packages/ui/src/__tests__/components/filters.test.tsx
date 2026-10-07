@@ -1,6 +1,7 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Checkbox } from '../../components/checkbox'
+import { controlBinding } from '../../components/control/control-binding'
 import { Label } from '../../components/fieldset'
 import {
 	Filters,
@@ -16,6 +17,8 @@ import {
 import { Input } from '../../components/input'
 import { Radio } from '../../components/radio'
 import { SearchInput } from '../../components/search-input'
+import { Switch } from '../../components/switch'
+import { Textarea } from '../../components/textarea'
 import {
 	allBySlot,
 	bySlot,
@@ -226,6 +229,62 @@ describe('FiltersField', () => {
 		expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ name: 'a' }))
 	})
 
+	it('drives a Switch via checked, reflecting the boolean slot', async () => {
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(
+			<Filters aria-label="Filters" value={{}} onValueChange={onValueChange}>
+				<FiltersField name="on">
+					<Switch />
+				</FiltersField>
+			</Filters>,
+		)
+
+		const toggle = getSlot<HTMLInputElement>(container, 'switch')
+
+		expect(toggle.checked).toBe(false)
+
+		await setupUser().click(toggle)
+
+		expect(onValueChange).toHaveBeenCalledWith({ on: true })
+	})
+
+	it('binds a Textarea through onChange', async () => {
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(
+			<Filters aria-label="Filters" value={{ note: 'a' }} onValueChange={onValueChange}>
+				<FiltersField name="note">
+					<Textarea />
+				</FiltersField>
+			</Filters>,
+		)
+
+		const textarea = getSlot<HTMLTextAreaElement>(container, 'textarea')
+
+		expect(textarea.value).toBe('a')
+
+		await setupUser().type(textarea, 'b')
+
+		expect(onValueChange).toHaveBeenCalledWith({ note: 'ab' })
+	})
+
+	it('clears the slot from the SearchInput clear button', async () => {
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<Filters aria-label="Filters" value={{ q: 'a' }} onValueChange={onValueChange}>
+				<FiltersField name="q">
+					<SearchInput />
+				</FiltersField>
+			</Filters>,
+		)
+
+		await setupUser().click(screen.getByRole('button', { name: 'Clear search' }))
+
+		expect(onValueChange).toHaveBeenCalledWith({})
+	})
+
 	it('supports render prop children', async () => {
 		const onChange = vi.fn()
 
@@ -307,6 +366,28 @@ describe('FiltersField', () => {
 		expect(input.value).toBe('b')
 
 		expect(onChange).not.toHaveBeenCalled()
+	})
+})
+
+// FiltersField reads the binding of a control from a marker on its type, and
+// imports no control. A control that loses its marker binds as a value-shaped
+// child, so this test holds each marker.
+describe('control binding markers', () => {
+	it.each([
+		['Input', Input, 'text'],
+		['Textarea', Textarea, 'text'],
+		['SearchInput', SearchInput, 'search'],
+		['Checkbox', Checkbox, 'toggle'],
+		['Switch', Switch, 'toggle'],
+		['Radio', Radio, 'option'],
+	] as const)('marks %s as %s', (_, control, binding) => {
+		expect(controlBinding(control)).toBe(binding)
+	})
+
+	it('gives no binding to an unmarked type', () => {
+		expect(controlBinding(Toggle)).toBeUndefined()
+
+		expect(controlBinding('input')).toBeUndefined()
 	})
 })
 
