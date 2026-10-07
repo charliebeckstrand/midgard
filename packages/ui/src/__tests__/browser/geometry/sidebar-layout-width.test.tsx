@@ -26,55 +26,62 @@ describe('sidebar layout width (real browser)', () => {
 		document.documentElement.classList.remove(rootOffcanvasSidebarClass)
 	})
 
-	it.each(densitySteps)('gives the floating sidebar the width of the rail at %s', async (step) => {
-		writeRootDensity(document.documentElement, step)
+	it.for(densitySteps)(
+		'gives the floating sidebar the width of the rail at %s',
+		async (step, { signal }) => {
+			writeRootDensity(document.documentElement, step)
 
-		const inline = renderUI(
-			<SidebarLayout sidebar={<nav>Links</nav>}>
-				<SidebarLayoutBody>Content</SidebarLayoutBody>
-			</SidebarLayout>,
-		)
+			const inline = renderUI(
+				<SidebarLayout sidebar={<nav>Links</nav>}>
+					<SidebarLayoutBody>Content</SidebarLayoutBody>
+				</SidebarLayout>,
+			)
 
-		await frames()
+			await frames()
 
-		const rail = present(
-			inline.container.firstElementChild?.querySelector<HTMLElement>(
-				':scope > :not([aria-hidden])',
-			),
-			'rail',
-		)
+			const rail = present(
+				inline.container.firstElementChild?.querySelector<HTMLElement>(
+					':scope > :not([aria-hidden])',
+				),
+				'rail',
+			)
 
-		const railWidth = rail.getBoundingClientRect().width
+			const railWidth = rail.getBoundingClientRect().width
 
-		inline.unmount()
+			inline.unmount()
 
-		document.documentElement.classList.add(rootOffcanvasSidebarClass)
+			// The `afterEach` above removes the class. A case that times out runs
+			// that hook before its body resumes here, so stop the body first.
+			signal.throwIfAborted()
 
-		const floating = renderUI(
-			<SidebarLayout sidebar={<nav>Links</nav>}>
-				<SidebarLayoutBody>Content</SidebarLayoutBody>
-			</SidebarLayout>,
-		)
+			document.documentElement.classList.add(rootOffcanvasSidebarClass)
 
-		await frames()
+			const floating = renderUI(
+				<SidebarLayout sidebar={<nav>Links</nav>}>
+					<SidebarLayoutBody>Content</SidebarLayoutBody>
+				</SidebarLayout>,
+			)
 
-		const strip = present(
-			floating.container.firstElementChild?.querySelector<HTMLElement>(':scope > [aria-hidden]'),
-			'hover strip',
-		)
+			await frames()
 
-		await userEvent.hover(strip)
+			const strip = present(
+				floating.container.firstElementChild?.querySelector<HTMLElement>(':scope > [aria-hidden]'),
+				'hover strip',
+			)
 
-		const sheet = await settledRect(getSlot(document.body, 'sheet'))
+			await userEvent.hover(strip)
 
-		expect(sheet.getBoundingClientRect().width).toBe(railWidth)
+			const sheet = await settledRect(getSlot(document.body, 'sheet'))
 
-		// The buffer starts at the far edge of the sheet.
-		const buffer = present(
-			document.querySelector<HTMLElement>('body > [aria-hidden].fixed'),
-			'pointer buffer',
-		)
+			expect(sheet.getBoundingClientRect().width).toBe(railWidth)
 
-		expect(buffer.getBoundingClientRect().left).toBe(railWidth)
-	})
+			// The buffer starts at the far edge of the sheet.
+			const buffer = present(
+				document.querySelector<HTMLElement>('body > [aria-hidden].fixed'),
+				'pointer buffer',
+			)
+
+			expect(buffer.getBoundingClientRect().left).toBe(railWidth)
+		},
+	)
 })
