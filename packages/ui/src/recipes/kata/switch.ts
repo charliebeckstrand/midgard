@@ -1,12 +1,11 @@
 import { defineScale, type ScaleStep } from '../../core/density'
 import { defineColors, defineRecipe, mode, type VariantProps } from '../../core/recipe'
-import { hannou, kasane, kokkaku, narabi, sen } from '../kiso'
+import { hannou, kasane, kokkaku, sen } from '../kiso'
 import { control } from '../kiso/control'
 import { dan } from '../kiso/dan'
 
 const { cursor } = hannou
 const { rounded } = kasane
-const { toggle } = narabi
 const { focus } = sen
 const { check } = control
 
@@ -59,15 +58,6 @@ const track = [
 	...mode('ring-zinc-950/40', 'dark:ring-white/30'),
 ]
 
-// The control column sizes to the switch itself so the toggle grid's gap
-// stays uniform across switch sizes without a matching field-level prop. The
-// switch stays in the label row, as the Checkbox and the Radio do, so it
-// centers on the label and not on the label and the description. A large switch
-// is taller than the label line, so the label also centers in its row.
-const field = defineRecipe({
-	base: [...toggle, 'grid-cols-[auto_1fr]', '*:data-[slot=label]:self-center'],
-})
-
 export const k = defineRecipe(
 	{
 		base: [
@@ -117,9 +107,6 @@ export const k = defineRecipe(
 				dan.size.thumb.on,
 			],
 		}),
-		field,
-		/** Disabled-state text class shared by the switch field wrapper. */
-		disabled: check.disabled,
 	},
 )
 
