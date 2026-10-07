@@ -46,6 +46,7 @@ export type ComponentApi = {
 	/**
 	 * The props that `ui` declares, in name order, without the events. A prop
 	 * that only a package declares, such as a DOM attribute, is not in the list.
+	 * An `@internal` prop is not in the list.
 	 */
 	props: PropApi[]
 	/** The props whose name is `on` and an uppercase letter, such as `onChange`, in name order. */
@@ -283,6 +284,10 @@ function readBarrel(ts: Ts, ast: Ast, program: Program, checker: Checker, file: 
 		const tags = new Map(
 			checker.getJsDocTagsOfSymbol(symbol).map((tag) => [tag.name, tag.text ?? '']),
 		)
+
+		// An `@internal` prop is for `ui` itself, such as the `disabled` that
+		// `ContextMenu` gives `Menu`. It is not in the API of the component.
+		if (tags.has('internal')) return undefined
 
 		const values = valuesOf(defined)
 
