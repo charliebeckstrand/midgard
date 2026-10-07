@@ -14,11 +14,21 @@ type Callback = (...args: unknown[]) => unknown
 /** Where a component comes from: a module of `ui`, such as `Grid`, or any other component, such as `Tabs`. */
 export type Source = 'component' | 'module'
 
-/**
- * Receives the source, the name of the component, the text, and the arguments
- * of each component event. A call with no arguments has no `detail`.
- */
-type Listener = (source: Source, name: string, text: string, detail?: JsonValue) => void
+/** One call of a callback that a page gives to a component. */
+export type ComponentCall = {
+	source: Source
+	/** The component, such as `Tabs`. */
+	name: string
+	/** The path of the callback in the value of the prop, such as `onValueChange` or `sort.onValueChange`. */
+	path: string
+	/** The text of the line, such as `onValueChange("Payment")`. */
+	text: string
+	/** The arguments. A call with no arguments has none. */
+	detail?: JsonValue
+}
+
+/** Receives each component event. */
+type Listener = (call: ComponentCall) => void
 
 let listener: Listener | undefined
 
@@ -153,12 +163,13 @@ function wrap(source: Source, name: string, path: string, original: Callback): C
 			function (this: unknown, ...args: unknown[]) {
 				const texts = args.map(serialize)
 
-				listener?.(
+				listener?.({
 					source,
 					name,
-					`${path}(${texts.map(cut).join(', ')})`,
-					args.length > 0 ? texts.map(parse) : undefined,
-				)
+					path,
+					text: `${path}(${texts.map(cut).join(', ')})`,
+					detail: args.length > 0 ? texts.map(parse) : undefined,
+				})
 
 				return Reflect.apply(original, this, args)
 			},

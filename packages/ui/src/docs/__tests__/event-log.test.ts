@@ -420,7 +420,65 @@ describe('listen', () => {
 
 		vi.advanceTimersByTime(150)
 
-		expect(texts(log)).toEqual(['scroll starts page', 'scroll ends'])
+		document.dispatchEvent(new Event('scroll'))
+
+		vi.advanceTimersByTime(150)
+
+		expect(texts(log)).toEqual([
+			'scroll starts page',
+			'scroll ends',
+			'scroll starts page',
+			'scroll ends',
+		])
+
+		// The start and the end of one scroll are one batch.
+		const [first, end, second] = log.entries.map(({ batch }) => batch)
+
+		expect(first).toBeDefined()
+
+		expect(end).toBe(first)
+
+		expect(second).not.toBe(first)
+	})
+
+	it('batches the input events of one gesture, from its start to its end', () => {
+		vi.useFakeTimers()
+
+		const log = new EventLog(createStore())
+
+		listenTo(log)
+
+		const button = attach(document.createElement('button'))
+
+		button.addEventListener('click', (event) => event.preventDefault())
+
+		for (const type of ['pointerdown', 'pointerup', 'mousedown', 'mouseup'])
+			button.dispatchEvent(new PointerEvent(type, { bubbles: true }))
+
+		button.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
+
+		// No gesture is open after the click.
+		button.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
+
+		button.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }))
+
+		vi.runOnlyPendingTimers()
+
+		const batches = log.entries.map(({ text, batch }) => [text, batch])
+
+		const tap = batches[0]?.[1]
+
+		expect(batches).toEqual([
+			['pointerdown button synthetic', tap],
+			['pointerup button synthetic', tap],
+			['mousedown button synthetic', tap],
+			['mouseup button synthetic', tap],
+			['click button synthetic', tap],
+			['focusin button synthetic', undefined],
+			['keydown Enter button synthetic', expect.not.stringMatching(`^${tap}$`)],
+			// The cancelled default takes the batch of its event.
+			['click cancelled', tap],
+		])
 	})
 
 	it('records errors, unhandled rejections, and an overlay that opens', () => {
@@ -619,6 +677,36 @@ describe('listen', () => {
 			['component', 'Tab', 'onPreload("Activity")', ['Activity']],
 			['module', 'Grid', 'onSortChange("name")', ['name']],
 		])
+	})
+
+	it('batches the calls of one callback of one component while they come less than 150 ms apart', () => {
+		vi.useFakeTimers()
+
+		const log = new EventLog(createStore())
+
+		listenTo(log)
+
+		const onSortChange = componentEvent('module', 'Grid', 'onSortChange', vi.fn())
+
+		const onPageChange = componentEvent('module', 'Grid', 'onPageChange', vi.fn())
+
+		onSortChange('name')
+
+		vi.advanceTimersByTime(100)
+
+		onSortChange('age')
+
+		onPageChange(2)
+
+		vi.advanceTimersByTime(150)
+
+		onSortChange('name')
+
+		const [a, b, page, c] = log.entries.map(({ batch }) => batch)
+
+		expect(b).toBe(a)
+
+		expect(new Set([a, page, c]).size).toBe(3)
 	})
 
 	it('records a script call that moves the focus, and restores the method when it stops', () => {

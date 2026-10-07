@@ -41,6 +41,13 @@ export type Entry = {
 	 * shows it under the line, and Copy writes it as JSON.
 	 */
 	detail?: JsonValue
+	/**
+	 * The batch of the entry: the id of the one browser operation that the
+	 * entry is a part of, such as a tap from `pointerdown` to `click`. The
+	 * entries of a batch have one kind. With "Batch" on, the sheet shows them
+	 * as one line that opens.
+	 */
+	batch?: string
 }
 
 /** The `sessionStorage` subset that the log uses. A test gives a fake. */
@@ -54,6 +61,9 @@ const ENTRIES = 'docs:event-log:entries'
 
 /** The `sessionStorage` key of the "Preserve log" flag. */
 const PRESERVE = 'docs:event-log:preserve'
+
+/** The `sessionStorage` key of the "Batch" flag. */
+const BATCH = 'docs:event-log:batch'
 
 /** The attribute of the button of the log. The log skips the events in it. */
 export const OWN = 'data-event-log'
@@ -98,6 +108,17 @@ export class EventLog {
 
 		if (on) this.save()
 		else write(this.store, ENTRIES, null)
+
+		this.changes.emit()
+	}
+
+	/** Whether the sheet shows the entries of a batch as one line. The flag stays for the tab. */
+	get batched(): boolean {
+		return read(this.store, BATCH) === '1'
+	}
+
+	set batched(on: boolean) {
+		write(this.store, BATCH, on ? '1' : null)
 
 		this.changes.emit()
 	}

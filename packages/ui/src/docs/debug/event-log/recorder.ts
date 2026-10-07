@@ -54,12 +54,14 @@ export function halt(): void {
 }
 
 /** The entry of a line, with the scroll position of now, at the time of now by default. */
-function entryOf({ kind, text, detail, time = performance.now(), name }: Line): Entry {
+function entryOf({ kind, text, detail, time = performance.now(), name, batch }: Line): Entry {
 	const entry: Entry = { time: Math.round(time), kind, text, y: Math.round(window.scrollY) }
 
 	if (name !== undefined) entry.name = name
 
 	if (detail !== undefined) entry.detail = detail
+
+	if (batch !== undefined) entry.batch = batch
 
 	return entry
 }
