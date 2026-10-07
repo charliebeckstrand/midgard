@@ -26,6 +26,7 @@ export function markdownOf(report: Report): string {
 		'',
 		'| Field | Value |',
 		'|:---|:---|',
+		...row('Id', `\`${report.hash}\``),
 		...row('At', report.at),
 		...row('Page', `\`${report.page}\``),
 		...row('Build', `\`${report.build}\``),

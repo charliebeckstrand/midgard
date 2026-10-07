@@ -51,7 +51,7 @@ describe('BugLogSheet', () => {
 
 		expect(screen.getByRole('button', { name: 'Copy' })).toBeDefined()
 
-		fireEvent.click(screen.getByRole('button', { name: 'Back' }))
+		fireEvent.click(screen.getByRole('link', { name: 'Bugs' }))
 
 		expect(screen.getByRole('list', { name: 'Reports' })).toBeDefined()
 
@@ -106,6 +106,68 @@ describe('BugLogSheet', () => {
 		expect(start().bugs.entries.map(({ title }) => title)).toEqual(['capture'])
 
 		expect(screen.getByRole('list', { name: 'Reports' })).toBeDefined()
+	})
+
+	it('opens a report on a press on its row, with the crumbs of its hash, and shows the hash in the list', () => {
+		render(<BugLogSheet open onOpenChange={() => {}} />)
+
+		act(() => {
+			fireEvent.click(screen.getByRole('button', { name: 'Capture' }))
+		})
+
+		const [report] = start().bugs.entries
+
+		const hash = report?.hash ?? ''
+
+		expect(hash).toMatch(/^[0-9a-f]{7}$/)
+
+		const list = screen.getByRole('list', { name: 'Reports' })
+
+		fireEvent.click(within(list).getByText(hash))
+
+		expect(screen.getByRole('heading', { name: 'capture' })).toBeDefined()
+
+		const crumbs = screen.getByRole('navigation')
+
+		expect(within(crumbs).getByText(hash).closest('[aria-current="page"]')).not.toBeNull()
+
+		// The table of the report holds the hash too.
+		expect(screen.getAllByText(hash)).toHaveLength(2)
+	})
+
+	it('opens on the list after a close from the report view, and after a Delete there', () => {
+		const sheet = (open: boolean) => <BugLogSheet open={open} onOpenChange={() => {}} />
+
+		const { rerender } = render(sheet(true))
+
+		act(() => {
+			fireEvent.click(screen.getByRole('button', { name: 'Capture' }))
+		})
+
+		fireEvent.click(screen.getByRole('button', { name: 'View' }))
+
+		expect(screen.getByRole('heading', { name: 'capture' })).toBeDefined()
+
+		rerender(sheet(false))
+
+		rerender(sheet(true))
+
+		expect(screen.getByRole('list', { name: 'Reports' })).toBeDefined()
+
+		fireEvent.click(screen.getByRole('button', { name: 'View' }))
+
+		act(() => {
+			fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
+		})
+
+		// The new report takes the id of the report that went out.
+		act(() => {
+			fireEvent.click(screen.getByRole('button', { name: 'Capture' }))
+		})
+
+		expect(screen.getByRole('list', { name: 'Reports' })).toBeDefined()
+
+		expect(screen.queryByRole('heading', { name: 'capture' })).toBeNull()
 	})
 
 	it('deletes a report, and shows an error report from the log', () => {
