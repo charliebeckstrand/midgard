@@ -163,12 +163,12 @@ jobs:
       # library, Chromium does not launch, and the error names the library.
       # Put `--with-deps` back then.
       - run: pnpm --filter ui exec playwright install chromium
-      # Filtered to `ui`, as in `compiler`. `docs:hydration` loads prerendered
-      # pages of the docs app in the same Chromium. `bundle:budget` measures
-      # the docs build (see bundle-budget.ts for what it asserts and why). The
-      # two tasks depend on `docs:build`, so this job builds the app one time.
-      # Before, `gate` also built the docs for the budget.
-      - run: pnpm turbo run test:browser docs:hydration bundle:budget --filter=ui --summarize
+      # Filtered to `ui`, as in `compiler`. `test:docs-build` loads prerendered
+      # pages of the docs app in the same Chromium, and measures the bundle of
+      # the docs build (packages/ui/src/__tests__/docs-build/). It depends on
+      # `docs:build`, so this job builds the app one time. Before, `gate` also
+      # built the docs for the budget.
+      - run: pnpm turbo run test:browser test:docs-build --filter=ui --summarize
       - name: Prune the Turbo cache to this run's tasks
         run: .github/actions/turbo-cache/prune.sh
 
