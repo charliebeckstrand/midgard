@@ -1,44 +1,17 @@
 /**
  * Sparkline kata: recipe-shaped surface for the in-cell trend chart. The root
  * is a bare inline box. The recipe has no axis. `svg` sizes the SVG at the step
- * of the nearest density scope, at 3:1 on each step (72×24, 96×32, 120×40). `color` is an extras table of per-color `stroke` / `fill` classes,
- * authored inline with `mode()`. The line and end-point read `stroke`, the bars and area fill read
- * `fill`. The shades track `kata/progress` so a sparkline and a progress bar in
- * the same color read as one family.
+ * of the nearest density scope, at 3:1 on each step (72×24, 96×32, 120×40).
+ * `color` is the `iro.meter` table, which Progress also reads. The line and the
+ * end point read `stroke`, and the bars and the area read `fill`. The area
+ * fill sets its own opacity at the render site, so one solid `fill` row serves
+ * both.
  */
 
 import { defineScale } from '../../core/density'
-import { defineRecipe, mode } from '../../core/recipe'
-import { kokkaku, ugoki } from '../kiso'
+import { defineRecipe } from '../../core/recipe'
+import { iro, kokkaku, ugoki } from '../kiso'
 import { dan } from '../kiso/dan'
-
-/**
- * Per-color `stroke` (line / point) and `fill` (bars / area) classes. The area
- * fill dials its own opacity down at the render site, so one solid `fill` slice
- * serves both the bars and the translucent area.
- */
-const color = {
-	zinc: {
-		stroke: mode('stroke-zinc-600', 'dark:stroke-zinc-400'),
-		fill: mode('fill-zinc-600', 'dark:fill-zinc-400'),
-	},
-	red: {
-		stroke: mode('stroke-red-600', 'dark:stroke-red-500'),
-		fill: mode('fill-red-600', 'dark:fill-red-500'),
-	},
-	amber: {
-		stroke: mode('stroke-amber-600', 'dark:stroke-amber-500'),
-		fill: mode('fill-amber-600', 'dark:fill-amber-500'),
-	},
-	green: {
-		stroke: mode('stroke-green-600', 'dark:stroke-green-500'),
-		fill: mode('fill-green-600', 'dark:fill-green-500'),
-	},
-	blue: {
-		stroke: mode('stroke-blue-600', 'dark:stroke-blue-500'),
-		fill: mode('fill-blue-600', 'dark:fill-blue-500'),
-	},
-}
 
 export const k = defineRecipe(
 	{
@@ -48,7 +21,7 @@ export const k = defineRecipe(
 	// `motion` is the shared data-viz mark-reveal family — the same timings the
 	// chart module draws with, so a sparkline and a chart animating side by side
 	// read as one.
-	{ color, motion: ugoki.mark, svg: ['block', ...kokkaku.sparkline.box] },
+	{ color: iro.meter, motion: ugoki.mark, svg: ['block', ...kokkaku.sparkline.box] },
 )
 
 /** The size scale of {@link Sparkline}: the steps of its box. */

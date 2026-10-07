@@ -11,7 +11,7 @@ import { hannou, narabi, omote, shaku, ugoki } from '../kiso'
 import { panel } from '../kiso/panel'
 
 const { flex, slide } = narabi
-const { glass, backdrop } = omote
+const { backdrop } = omote
 const { inset } = panel.layout
 
 /**
@@ -79,10 +79,7 @@ export const k = {
 			// `right` and `left`. A `top` or `bottom` sheet spans the screen, and a cap
 			// or a shrink-wrap would pull a full-width panel into a corner.
 			width: { ...STEPS, fit: [] },
-			surface: {
-				glass: [...glass],
-				flat: [...panel.surface.bg],
-			},
+			surface: panel.surface.axis,
 			compound: [
 				...DOCKED_STEPS,
 				{ side: 'right', width: 'full', class: `sm:left-4 ${CAP}` },

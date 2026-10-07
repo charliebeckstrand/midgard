@@ -1,9 +1,9 @@
 /**
  * Progress kata: recipe-shaped surface serving both the linear `<ProgressBar>`
- * and the radial `<ProgressGauge>`. Carries a local per-color `bg` / `stroke`
- * table authored inline with `mode()`, rather than the shared `iro.palette`.
- * The SVG gauge needs a `stroke` variant the palette doesn't provide. The bar
- * reads the `bg` slice, the gauge the `stroke` slice.
+ * and the radial `<ProgressGauge>`. Its colors are the `iro.meter` shades,
+ * which Sparkline also reads. The bar fill reads the `bg` row, and the gauge
+ * ring reads the `stroke` row. The track and the label of the gauge use fixed
+ * tokens.
  */
 
 import { defineScale, type ScaleStep } from '../../core/density'
@@ -11,49 +11,21 @@ import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
 import { iro, ji, kasane, kokkaku, narabi, sen, ugoki } from '../kiso'
 import { dan } from '../kiso/dan'
 
-const { text } = iro
+const { meter, text } = iro
 const { weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
 const { ease, spring } = ugoki
 const { forced } = sen
 
-/**
- * Per-color bg / stroke classes shared between bar and gauge. The bar's `fill`
- * recipe reads the `bg` slice, the gauge's indicator ring the `stroke` slice.
- * The gauge's track and label use fixed tokens, not this table.
- */
-const color = {
-	zinc: {
-		bg: mode('bg-zinc-600', 'dark:bg-zinc-400'),
-		stroke: mode('stroke-zinc-600', 'dark:stroke-zinc-400'),
-	},
-	red: {
-		bg: mode('bg-red-600', 'dark:bg-red-500'),
-		stroke: mode('stroke-red-600', 'dark:stroke-red-500'),
-	},
-	amber: {
-		bg: mode('bg-amber-600', 'dark:bg-amber-500'),
-		stroke: mode('stroke-amber-600', 'dark:stroke-amber-500'),
-	},
-	green: {
-		bg: mode('bg-green-600', 'dark:bg-green-500'),
-		stroke: mode('stroke-green-600', 'dark:stroke-green-500'),
-	},
-	blue: {
-		bg: mode('bg-blue-600', 'dark:bg-blue-500'),
-		stroke: mode('stroke-blue-600', 'dark:stroke-blue-500'),
-	},
-}
-
 const fill = defineRecipe({
 	base: ['h-full', rounded.full, forced.mark],
 	color: {
-		zinc: color.zinc.bg,
-		red: color.red.bg,
-		amber: color.amber.bg,
-		green: color.green.bg,
-		blue: color.blue.bg,
+		zinc: meter.zinc.bg,
+		red: meter.red.bg,
+		amber: meter.amber.bg,
+		green: meter.green.bg,
+		blue: meter.blue.bg,
 	},
 	defaults: { color: 'zinc' },
 })
@@ -78,7 +50,7 @@ export const k = defineRecipe(
 		skeleton: kokkaku.progress,
 	},
 	{
-		color,
+		color: meter,
 		/** Value-fill settle: the bar and gauge move to each new value on this spring. */
 		spring: spring.settle,
 		/** Value-fill jump: under reduced motion, the bar and gauge go to their value at once. */
