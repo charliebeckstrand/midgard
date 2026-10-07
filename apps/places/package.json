@@ -6,6 +6,7 @@
 	"scripts": {
 		"dev": "next dev --port 3001 --turbopack",
 		"build": "next build",
+		"atlas": "node scripts/atlas.ts",
 		"start": "next start --port 3001",
 		"lint": "biome check .",
 		"lint:fix": "biome check --write .",
@@ -28,9 +29,7 @@
 		"react-dom": "catalog:",
 		"shared": "workspace:*",
 		"topojson-client": "catalog:",
-		"ui": "workspace:*",
-		"us-atlas": "catalog:",
-		"world-atlas": "catalog:"
+		"ui": "workspace:*"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "catalog:",
@@ -44,6 +43,8 @@
 		"babel-plugin-react-compiler": "catalog:",
 		"tailwindcss": "catalog:",
 		"typescript": "catalog:",
-		"vitest": "catalog:"
+		"us-atlas": "catalog:",
+		"vitest": "catalog:",
+		"world-atlas": "catalog:"
 	}
 }

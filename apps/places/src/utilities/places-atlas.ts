@@ -1,19 +1,34 @@
 import type { MapFeatureCollection, MapTopology } from 'ui/modules/map'
-import states from 'us-atlas/states-10m.json'
-import countries from 'world-atlas/countries-110m.json'
+import countries from './atlas/countries.json'
+import states from './atlas/states.json'
 import { decodeRegions } from './places-geography'
-import { drawnRegions, type PlaceAtlas } from './places-view'
+import type { PlaceAtlas } from './places-view'
 
 /**
  * Decodes one atlas as the map draws it.
  *
+ * `pnpm atlas` (`scripts/atlas.ts`) writes the atlas files from `us-atlas` and
+ * `world-atlas`. A file keeps only the regions that the map draws, and it holds
+ * each arc as a flat list of numbers. This function makes the pairs of each arc
+ * again before it decodes the regions.
+ *
  * The atlas is a fixed import, so an atlas with no regions is a fault in the
- * package, not a state that the app can show.
+ * file, not a state that the app can show.
  */
-function regionsOf(topology: unknown, atlas: PlaceAtlas): MapFeatureCollection {
+function regionsOf(packed: { arcs: number[][] }, atlas: PlaceAtlas): MapFeatureCollection {
+	const arcs = packed.arcs.map((flat) => {
+		const pairs: [number, number][] = []
+
+		for (let index = 0; index < flat.length; index += 2) {
+			pairs.push([flat[index] as number, flat[index + 1] as number])
+		}
+
+		return pairs
+	})
+
 	// `resolveJsonModule` types the import as its literal shape, which is not
 	// assignable to the structural `MapTopology`. The two are the same at runtime.
-	const regions = drawnRegions(decodeRegions(topology as MapTopology, atlas))
+	const regions = decodeRegions({ ...packed, arcs } as unknown as MapTopology, atlas)
 
 	if (regions === null) throw new Error(`The ${atlas} atlas holds no regions`)
 

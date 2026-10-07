@@ -421,12 +421,6 @@ importers:
       ui:
         specifier: workspace:*
         version: link:../../packages/ui
-      us-atlas:
-        specifier: 'catalog:'
-        version: 3.0.1
-      world-atlas:
-        specifier: 'catalog:'
-        version: 2.0.2
     devDependencies:
       '@biomejs/biome':
         specifier: 'catalog:'
@@ -461,9 +455,15 @@ importers:
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
+      us-atlas:
+        specifier: 'catalog:'
+        version: 3.0.1
       vitest:
         specifier: 'catalog:'
         version: 4.1.11(@types/node@25.9.1)(@vitest/browser-playwright@4.1.11)(@vitest/coverage-v8@4.1.11)(jsdom@29.1.1)(vite@8.3.2(@types/node@25.9.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0))
+      world-atlas:
+        specifier: 'catalog:'
+        version: 2.0.2
 
   packages/auth:
     dependencies:

@@ -1,6 +1,4 @@
-import type { MapFeatureCollection } from 'ui/modules/map'
 import type { Place, VisitScope } from '../types'
-import { regionName } from './places-geography'
 
 /**
  * How the United States names itself in `world-atlas`, which is the one country
@@ -12,38 +10,6 @@ import { regionName } from './places-geography'
  * a name a place carries. Nothing here reads {@link Place.country}.
  */
 export const UNITED_STATES = 'United States of America'
-
-/**
- * Regions no map here draws.
- *
- * Antarctica alone, and for how it looks rather than for what it is. Every world
- * projection stretches the pole into a band across the foot of the frame — a
- * flat smear that reads as a drawing fault, and worse under Mercator than under
- * most — and it takes a tenth of the frame's height to say nothing a reader of
- * this app is looking for.
- *
- * A place recorded there still draws, because a dot is a position and not a
- * membership. It groups under no country and opens no drill, which is the same
- * answer the map gives for a place at sea.
- */
-const UNDRAWN = new Set(['Antarctica'])
-
-/**
- * An atlas as the map draws it, which is every region but {@link UNDRAWN}.
- *
- * Applied to both atlases rather than to the world alone: no state carries one
- * of these names, so the states atlas passes through untouched and neither the
- * query nor its callers need to know which grain they hold.
- */
-export function drawnRegions(regions: MapFeatureCollection | null): MapFeatureCollection | null {
-	if (regions === null) return null
-
-	const drawn = regions.features.filter((region) => !UNDRAWN.has(regionName(region)))
-
-	return drawn.length === regions.features.length
-		? regions
-		: { type: 'FeatureCollection', features: drawn }
-}
 
 /**
  * How far outside the world outline a place may sit and still be rescued by the
