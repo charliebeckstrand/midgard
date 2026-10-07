@@ -8,6 +8,7 @@ import { CopyButton } from 'ui/copy-button'
 import { DateTime } from 'ui/date-time'
 import { Divider } from 'ui/divider'
 import { Drawer, DrawerBody, DrawerClose, DrawerPanel, DrawerTitle } from 'ui/drawer'
+import { Heading } from 'ui/heading'
 import { Icon } from 'ui/icon'
 import { Link } from 'ui/link'
 import { List, ListItem } from 'ui/list'
@@ -144,8 +145,8 @@ function PlaceAddress({ address }: { address: string }) {
 }
 
 /**
- * One visit to the open place: the date with the menu of the visit, the score
- * under the date, then the photos and the review.
+ * One visit to the open place: the date, the score under the date, and the
+ * menu of the visit beside the two, then the photos and the review.
  */
 function PlaceVisit({
 	place,
@@ -160,24 +161,30 @@ function PlaceVisit({
 
 	return (
 		<Stack gap="md">
-			{/* One line high, as the address row is: the menu is taller than the
-			    line, and goes out of the row above and below. */}
-			<Flex justify="between" align="center" gap="sm" className="h-lh">
-				<PlaceFact icon={<CalendarDays />}>
-					<Text>{day}</Text>
-				</PlaceFact>
+			{/* The menu is centered on the date and the score together. Its box is
+			    one line high, so it adds no height to a visit with no score; the
+			    menu is taller than the line, and goes out of the box above and
+			    below. */}
+			<Flex justify="between" align="center" gap="sm">
+				<Stack gap="md" className="min-w-0">
+					<PlaceFact icon={<CalendarDays />}>
+						<Text>{day}</Text>
+					</PlaceFact>
 
-				<PlaceMenu
-					items={visitMenuItems(place, visit, actions)}
-					aria-label={`Actions for the visit on ${day}`}
-				/>
+					{visit.rating > 0 ? (
+						<PlaceFact icon={<Heart />}>
+							<Rating readOnly value={visit.rating} size="sm" />
+						</PlaceFact>
+					) : null}
+				</Stack>
+
+				<div className="flex h-lh items-center">
+					<PlaceMenu
+						items={visitMenuItems(place, visit, actions)}
+						aria-label={`Actions for the visit on ${day}`}
+					/>
+				</div>
 			</Flex>
-
-			{visit.rating > 0 ? (
-				<PlaceFact icon={<Heart />}>
-					<Rating readOnly value={visit.rating} size="sm" />
-				</PlaceFact>
-			) : null}
 
 			{/* `next/image` with `unoptimized`: the address is the one that the
 			    reader typed, so the host is not known at build time. The optimizer
@@ -237,19 +244,22 @@ function PlaceDetails({ place, actions }: { place: Place; actions: VisitActions 
 
 				{category ? (
 					<PlaceFact icon={<Tag />}>
-						{/* The badge is taller than a line. Its box is one line high, so the
-						    row is one line high, the same as the rows over it, and the badge
-						    goes out of the row above and below. */}
-						<div className="flex h-lh items-center">
-							<Badge color={category.color}>{category.label}</Badge>
-						</div>
+						<Text>{category.label}</Text>
 					</PlaceFact>
 				) : null}
 			</Stack>
 
-			{place.visits.map((visit) => (
-				<Stack key={visit.id} gap="md">
+			{place.visits.length > 0 ? (
+				<>
 					<Divider className="my-2" />
+
+					<Heading level={3}>Visits</Heading>
+				</>
+			) : null}
+
+			{place.visits.map((visit, at) => (
+				<Stack key={visit.id} gap="md">
+					{at > 0 ? <Divider className="my-2" /> : null}
 
 					<PlaceVisit place={place} visit={visit} actions={actions} />
 				</Stack>
