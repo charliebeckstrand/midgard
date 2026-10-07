@@ -1,7 +1,8 @@
 import { renderHook } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { createPanel, PanelA11yContext, PanelClose, usePanelA11y } from '../../primitives/panel'
+import { createPanel, PanelClose, usePanelA11y } from '../../primitives/panel'
+import { PanelA11yContext } from '../../primitives/panel/panel-providers'
 import { bySlot, renderUI } from '../helpers'
 
 describe('createPanel', () => {
