@@ -248,6 +248,68 @@ describe('TreeItem', () => {
 		expect(row).toHaveAttribute('aria-expanded', expanded)
 	})
 
+	// The other two arrow cases move focus, as in the APG tree model.
+	it('moves to the first child of an open branch, and to the parent', () => {
+		renderUI(
+			<Tree aria-label="Files">
+				<TreeItem label="src" defaultOpen>
+					<TreeItem label="lib">
+						<TreeItem label="a.ts" />
+					</TreeItem>
+				</TreeItem>
+			</Tree>,
+		)
+
+		const row = (name: string) => screen.getByRole('treeitem', { name })
+
+		const key = (name: string) =>
+			fireEvent.keyDown(present(document.activeElement, 'focused row'), { key: name })
+
+		row('src').focus()
+
+		// An open branch: ArrowRight moves to its first child.
+		key('ArrowRight')
+
+		expect(row('lib')).toHaveFocus()
+
+		// A closed branch: ArrowRight opens it, and focus stays.
+		key('ArrowRight')
+
+		expect(row('lib')).toHaveAttribute('aria-expanded', 'true')
+
+		expect(row('lib')).toHaveFocus()
+
+		key('ArrowRight')
+
+		expect(row('a.ts')).toHaveFocus()
+
+		// A leaf: ArrowLeft moves to its parent.
+		key('ArrowLeft')
+
+		expect(row('lib')).toHaveFocus()
+
+		// An open branch: ArrowLeft closes it, and focus stays.
+		key('ArrowLeft')
+
+		expect(row('lib')).toHaveAttribute('aria-expanded', 'false')
+
+		expect(row('lib')).toHaveFocus()
+
+		// A closed branch: ArrowLeft moves to its parent.
+		key('ArrowLeft')
+
+		expect(row('src')).toHaveFocus()
+
+		// The root has no parent: ArrowLeft closes it, then does nothing.
+		key('ArrowLeft')
+
+		key('ArrowLeft')
+
+		expect(row('src')).toHaveAttribute('aria-expanded', 'false')
+
+		expect(row('src')).toHaveFocus()
+	})
+
 	it('ignores key events that bubble from descendants', () => {
 		const { container } = renderUI(
 			<Tree aria-label="Files">

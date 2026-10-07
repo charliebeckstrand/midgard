@@ -9,11 +9,11 @@ import {
 	useId,
 } from 'react'
 import { ariaAttr, cn, dataAttr } from '../../core'
-import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { k } from '../../recipes/kata/tree'
 import { Icon } from '../icon'
 import { useTreeContext, useTreePosition } from './context'
 import { CHECK_SELECTOR } from './tree-constants'
+import { branchToggleKey } from './tree-keyboard'
 
 /**
  * Props for {@link TreeItemContent}.
@@ -45,8 +45,8 @@ type TreeItemContentProps = {
  * optional check box, optional `icon`, `label`, and `prefix`/`suffix` slots.
  * Toggles expansion on a branch row and the check on a checkable leaf row. On a
  * checkable row, `Space` and a click on the box toggle the check. `ArrowRight`
- * and `ArrowLeft` expand and collapse. Reads depth and ARIA position from tree
- * context.
+ * opens a closed branch and `ArrowLeft` closes an open one. Reads depth and
+ * ARIA position from tree context.
  *
  * @internal
  */
@@ -112,20 +112,12 @@ export function TreeItemContent({
 
 			return
 		}
-		// The branch opens toward the inline end, so the arrows swap in RTL.
-		const key = logicalArrowKey(event.key, event.currentTarget)
-
-		if (key === 'ArrowRight' && hasChildren && !open) {
+		// A branch opens on the arrow toward its children and closes on the arrow
+		// back. The tree moves focus on the other two cases.
+		if (hasChildren && branchToggleKey(event, open)) {
 			event.preventDefault()
 
-			onOpenChange(true)
-
-			return
-		}
-		if (key === 'ArrowLeft' && hasChildren && open) {
-			event.preventDefault()
-
-			onOpenChange(false)
+			onOpenChange(!open)
 		}
 	}
 

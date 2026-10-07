@@ -27,7 +27,7 @@ export type TreeItemProps = {
 	 * It fires for each kind of row, because the fact reported is the activation
 	 * rather than what follows it. A click on the check box and Space on a
 	 * checkable row toggle the check only, so neither fires. ArrowRight and
-	 * ArrowLeft move the expansion, not the row, so neither fires.
+	 * ArrowLeft open, close, or move focus, so neither fires.
 	 */
 	onAction?: () => void
 	/**
@@ -95,7 +95,8 @@ export type TreeItemProps = {
  * `aria-checked`. Keyboard: Enter toggles a branch (or the check of a checkable
  * leaf), Space toggles the check of a checkable row and acts as Enter on
  * another row, ArrowRight expands a collapsed branch, ArrowLeft collapses an
- * open one; cross-item roving lives on {@link Tree}.
+ * open one. Focus moves between items on {@link Tree}: ArrowRight on an open
+ * branch to its first child, ArrowLeft on a closed branch or a leaf to its parent.
  *
  * @see {@link Tree}
  */
