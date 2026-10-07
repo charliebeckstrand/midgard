@@ -67,7 +67,7 @@ function asNumber(value: unknown): number {
 /**
  * Whether a range bound is blank, so that the bound is open-ended. A nullish
  * bound, and a string that is empty or holds only whitespace, are blank. The
- * evaluator, the SQL format, and the summary all read a bound through it.
+ * evaluator and the summary both read a bound through it.
  *
  * @internal
  */
@@ -168,10 +168,10 @@ function isNumeric(value: unknown): boolean {
  * {@link NUMERIC_OPERATORS}, the value must also be numeric. The field set has
  * no part in the judgment, because the evaluator reads no field set.
  *
- * @remarks This is the one definition of an active rule. The fold, the SQL
- * format, the active judgment, and the summary all read it, so they give the
- * same reading of a rule. The own-key test stops an inherited name, such as
- * `toString`, from reading as a matcher. A `between` value that is not a range
+ * @remarks This is the one definition of an active rule. The fold, the active
+ * judgment, and the summary all read it, so they give the same reading of a
+ * rule. The own-key test stops an inherited name, such as `toString`, from
+ * reading as a matcher. A `between` value that is not a range
  * ({@link isRange}), such as `5`, `[10]`, or `[[1], 5]`, reads as no
  * constraint. So does a `gt` value that is not a scalar, such as `[1, 2]`, or
  * a `gt` value that is not numeric, such as `'abc'`.

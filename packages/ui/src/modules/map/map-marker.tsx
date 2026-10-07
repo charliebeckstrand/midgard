@@ -20,9 +20,8 @@ export type MapMarkerProps = MapOverlayProps & {
 	/** The journey's destination pin. */
 	end: LngLat
 	/**
-	 * The connecting geometry — a {@link fetchOsrmRoute} /
-	 * {@link fetchValhallaRoute} answer's `route.path`. A straight line when omitted or
-	 * empty (a totals-only routed leg).
+	 * The connecting geometry — a {@link fetchOsrmRoute} answer's `route.path`.
+	 * A straight line when omitted or empty (a totals-only routed leg).
 	 */
 	path?: LngLat[]
 }

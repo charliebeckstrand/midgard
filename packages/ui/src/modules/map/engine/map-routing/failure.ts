@@ -1,8 +1,7 @@
 /**
  * The kinds a routing request fails as, the evidence each one carries, and the
- * retry rule over them. One taxonomy serves both clients, so an OSRM failure
- * and a Valhalla failure read the same. The retry rule has one author rather
- * than one per caller.
+ * retry rule over them. The retry rule has one author rather than one per
+ * caller.
  */
 
 /**
