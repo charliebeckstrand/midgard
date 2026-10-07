@@ -73,7 +73,7 @@ function isOwn(target: unknown): boolean {
 }
 
 /** A short name of an event target: the tag, the anchor, and the value of an input. */
-function describe(target: unknown): string {
+export function describe(target: unknown): string {
 	if (!(target instanceof Element) || target === document.documentElement) return 'page'
 
 	const slot = target.getAttribute('data-slot')

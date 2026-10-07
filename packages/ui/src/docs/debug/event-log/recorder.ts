@@ -1,4 +1,5 @@
 import type { JsonValue } from 'ui/json-tree'
+import { BugLog } from '../bug-log/log.ts'
 import { type Entry, EventLog, type Kind, sessionStore } from './log.ts'
 import { scrollReading, viewport } from './probes.ts'
 import { type Line, SOURCES } from './sources.ts'
@@ -18,6 +19,23 @@ declare global {
 /** The log of this tab. It starts with {@link start}. */
 let log: EventLog | undefined
 
+/** The Bug log of this tab. It starts with the log. */
+let bugs: BugLog | undefined
+
+/** The Bug log of this tab. */
+function bugLog(): BugLog {
+	bugs ??= new BugLog(sessionStore())
+
+	return bugs
+}
+
+/** Starts the log of this tab, and returns its Bug log. */
+export function startBugs(): BugLog {
+	start()
+
+	return bugLog()
+}
+
 let stop: (() => void) | undefined
 
 /**
@@ -35,7 +53,7 @@ export function start(): EventLog {
 		begin(log, 'on')
 	}
 
-	stop ??= listen(log)
+	stop ??= listen(log, bugLog())
 
 	return log
 }
@@ -51,6 +69,8 @@ export function halt(): void {
 	stop = undefined
 
 	log?.clear()
+
+	bugs?.clear()
 }
 
 /** The entry of a line, with the scroll position of now, at the time of now by default. */
@@ -94,14 +114,21 @@ export function begin(target: EventLog, cause?: string): void {
  * Runs the sources of a log, and returns a function that stops them. A line
  * that a source writes after the stop, such as from a timer, goes out.
  */
-export function listen(target: EventLog): () => void {
+export function listen(target: EventLog, reports?: BugLog): () => void {
 	let running = true
 
+	// An error line also files a report, while the log is paused too.
 	const stops = SOURCES.map((source) =>
 		source((line) => {
-			if (running) target.add(entryOf(line))
+			if (!running) return
+
+			target.add(entryOf(line))
+
+			if (line.kind === 'error') reports?.file(line, target.entries)
 		}),
 	)
+
+	if (reports) stops.push(reports.watch(() => target.paused))
 
 	// The listener goes after the listener of the lifecycle source, so the
 	// saved log holds the `pagehide` line.
@@ -133,7 +160,7 @@ if (import.meta.hot) {
 
 		log.entries = kept.entries
 
-		stop = listen(log)
+		stop = listen(log, bugLog())
 	}
 
 	import.meta.hot.on('vite:afterUpdate', ({ updates }) =>
