@@ -2,7 +2,6 @@ import pages from 'virtual:docs/pages'
 import { PanelLeft, PanelLeftDashed } from 'lucide-react'
 import { type ReactNode, useEffect } from 'react'
 import {
-	Link,
 	Links,
 	Meta,
 	Outlet,
@@ -10,6 +9,7 @@ import {
 	ScrollRestoration,
 	useLocation,
 	useMatches,
+	useNavigate,
 } from 'react-router'
 import { Button } from 'ui/button'
 import { loadShiki } from 'ui/code'
@@ -18,7 +18,6 @@ import { Heading } from 'ui/heading'
 import { Icon } from 'ui/icon'
 import { SidebarLayout, SidebarLayoutHeader } from 'ui/layouts'
 import { CurrentScrollScript } from 'ui/primitives/current'
-import type { LinkProps } from 'ui/primitives/link'
 import { AppearanceSettings, useAppearance } from 'ui/providers/appearance'
 import { LocaleProvider } from 'ui/providers/locale'
 import { UIDocument, UIProvider } from 'ui/providers/ui'
@@ -34,6 +33,7 @@ import {
 import { useIdle } from '../kit/idle.ts'
 import appCss from './app.css?url'
 import { PageError } from './page-error.tsx'
+import { NavigateContext, RouterLink } from './router-link.tsx'
 import { DocsSidebar } from './sidebar.tsx'
 
 // The id of the last script that runs before the first paint. The page paints
@@ -67,12 +67,6 @@ export function Layout({ children }: { children: ReactNode }) {
 			<Scripts />
 		</UIDocument>
 	)
-}
-
-// The links of ui go through the router, so a page switch keeps the shell. A
-// link loads the code of its page when the reader points at it or focuses it.
-function RouterLink({ href, ...props }: LinkProps) {
-	return <Link to={href} prefetch="intent" {...props} />
 }
 
 // The full stylesheet. Each prerendered page holds its own critical CSS, so
@@ -118,6 +112,8 @@ export default function App() {
 
 	const matches = useMatches()
 
+	const navigate = useNavigate()
+
 	// The page of the matched route. A path that only starts with the path of a
 	// page, such as `/button/foo`, matches the not-found route, so it has no page.
 	const page = pages.find((link) => matches.some((match) => match.id === link.path))
@@ -132,32 +128,34 @@ export default function App() {
 	return (
 		// The links match the path of the page, so the item of a page is current
 		// on each tab of the page, and no item is current on the not-found page.
-		<UIProvider link={RouterLink} pathname={page?.path ?? pathname}>
-			<title>{title ? `${title} · Docs` : 'Docs'}</title>
-			<Stylesheet />
-			<SidebarLayout stickyHeader actions={ACTIONS} sidebar={<DocsSidebar pages={pages} />}>
-				<SidebarLayoutHeader>
-					<Flex align="center" gap="md">
-						<Button
-							variant="bare"
-							className="max-lg:hidden"
-							aria-label="Toggle sidebar"
-							onClick={() => setSidebar(sidebar === 'offcanvas' ? 'locked' : 'offcanvas')}
-						>
-							{/* The class of the root selects the icon, so the first paint shows the stored mode. */}
-							<Icon icon={<PanelLeftDashed />} className="sidebar-offcanvas:hidden" />
-							<Icon icon={<PanelLeft />} className="hidden sidebar-offcanvas:block" />
-						</Button>
-						<Heading>{title ?? 'Docs'}</Heading>
-					</Flex>
-				</SidebarLayoutHeader>
-				<Stack gap="xl">
-					<LocaleProvider locale="en-US">
-						<Outlet />
-					</LocaleProvider>
-				</Stack>
-			</SidebarLayout>
-		</UIProvider>
+		<NavigateContext value={navigate}>
+			<UIProvider link={RouterLink} pathname={page?.path ?? pathname}>
+				<title>{title ? `${title} · Docs` : 'Docs'}</title>
+				<Stylesheet />
+				<SidebarLayout stickyHeader actions={ACTIONS} sidebar={<DocsSidebar pages={pages} />}>
+					<SidebarLayoutHeader>
+						<Flex align="center" gap="md">
+							<Button
+								variant="bare"
+								className="max-lg:hidden"
+								aria-label="Toggle sidebar"
+								onClick={() => setSidebar(sidebar === 'offcanvas' ? 'locked' : 'offcanvas')}
+							>
+								{/* The class of the root selects the icon, so the first paint shows the stored mode. */}
+								<Icon icon={<PanelLeftDashed />} className="sidebar-offcanvas:hidden" />
+								<Icon icon={<PanelLeft />} className="hidden sidebar-offcanvas:block" />
+							</Button>
+							<Heading>{title ?? 'Docs'}</Heading>
+						</Flex>
+					</SidebarLayoutHeader>
+					<Stack gap="xl">
+						<LocaleProvider locale="en-US">
+							<Outlet />
+						</LocaleProvider>
+					</Stack>
+				</SidebarLayout>
+			</UIProvider>
+		</NavigateContext>
 	)
 }
 
