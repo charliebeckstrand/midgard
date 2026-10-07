@@ -1,20 +1,23 @@
 'use client'
 
-import type { ComponentProps, ReactNode } from 'react'
+import { type ChangeEvent, type ComponentProps, type ReactNode, useRef, useState } from 'react'
 import { cn, invalidAttrs } from '../../core'
 import type { ScaleStep } from '../../core/density'
+import { useComposedRef } from '../../hooks'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { useGlass } from '../../providers/glass/context'
 import { useHeadless } from '../../providers/headless/context'
 import type { scale } from '../../recipes/kata/input'
 import { type InputVariants, k } from '../../recipes/kata/input'
 import type { GroupStampProps } from '../../types/group-stamp'
+import { clearNativeInput } from '../../utilities'
 import { type ControlVariant, useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
+import { InputClearButton } from './input-clear-button'
 import { InputFrame } from './input-frame'
 import { useInputValue } from './use-input-value'
 
-/** Props for {@link Input}: `size`/`variant`, `prefix`/`suffix` affixes, and `invalid` override atop native `<input>` attributes. */
+/** Props for {@link Input}: `size`/`variant`, `prefix`/`suffix` affixes, the `clearable` flag, and `invalid` override atop native `<input>` attributes. */
 export type InputProps = GroupStampProps &
 	Omit<InputVariants, 'size' | 'variant'> & {
 		size?: ScaleStep<typeof scale>
@@ -27,6 +30,14 @@ export type InputProps = GroupStampProps &
 		variant?: ControlVariant
 		prefix?: ReactNode
 		suffix?: ReactNode
+		/**
+		 * Shows a clear button in the suffix while the input holds a value. The
+		 * button empties the value through a native `input` event, so `onChange`
+		 * and a bound field see the clear as an edit. A disabled or read-only
+		 * input shows no clear button.
+		 * @defaultValue false
+		 */
+		clearable?: boolean
 		/** Forces the invalid state. When omitted, inherits from Control / Form context. */
 		invalid?: boolean
 		/** Controlled value. `undefined` leaves the input uncontrolled; `null` keeps it controlled with no current value (CONVENTIONS §7.3). */
@@ -35,7 +46,8 @@ export type InputProps = GroupStampProps &
 	} & Omit<ComponentProps<'input'>, 'className' | 'size' | 'prefix' | 'value'>
 
 /**
- * Text input with optional `prefix`/`suffix` affixes.
+ * Text input with optional `prefix`/`suffix` affixes and an optional clear
+ * button.
  * Resolves variant and invalid state from enclosing Control, Form, and
  * GlassProvider context, and drops to a bare `<input>` under headless context.
  * The size takes the step of the nearest density scope through stepped
@@ -48,6 +60,8 @@ export type InputProps = GroupStampProps &
  * a bound input ignores it (§7.2).
  * `invalid` OR's the prop, the bound field, and any ambient Control error.
  * Under headless context the affix frame and recipe classes are all skipped.
+ * The clear button of `clearable` comes before the `suffix`. It keeps the focus
+ * in the input, and it does not show under headless context.
  * @see {@link InputFrame}
  */
 export function Input({
@@ -57,6 +71,7 @@ export function Input({
 	size,
 	prefix,
 	suffix,
+	clearable = false,
 	id,
 	disabled,
 	required,
@@ -80,6 +95,24 @@ export function Input({
 
 	const valueState = useInputValue({ name, value, onChange, onBlur })
 
+	const inputRef = useRef<HTMLInputElement>(null)
+
+	const setRefs = useComposedRef(inputRef, ref)
+
+	// An uncontrolled input keeps its value in the element, so the clear button
+	// follows each edit to know when the input is empty.
+	const [ownFilled, setOwnFilled] = useState(() => `${defaultValue ?? ''}` !== '')
+
+	const filled = valueState.value === undefined ? ownFilled : `${valueState.value}` !== ''
+
+	const handleChange = clearable
+		? (event: ChangeEvent<HTMLInputElement>) => {
+				valueState.onChange?.(event)
+
+				setOwnFilled(event.target.value !== '')
+			}
+		: valueState.onChange
+
 	const sharedAttrs = useControlProps({
 		id,
 		autoComplete,
@@ -101,7 +134,7 @@ export function Input({
 
 	const inputEl = (
 		<input
-			ref={ref}
+			ref={setRefs}
 			data-slot="input"
 			type={type}
 			id={scope.id}
@@ -112,7 +145,7 @@ export function Input({
 			readOnly={sharedAttrs.readOnly}
 			value={valueState.value}
 			defaultValue={valueState.value === undefined ? defaultValue : undefined}
-			onChange={valueState.onChange}
+			onChange={handleChange}
 			onBlur={valueState.onBlur}
 			aria-describedby={sharedAttrs['aria-describedby']}
 			className={cn(!headless && k({ variant: resolvedVariant }), className)}
@@ -123,11 +156,30 @@ export function Input({
 
 	if (headless) return inputEl
 
+	const clear =
+		clearable && filled && !sharedAttrs.disabled && !sharedAttrs.readOnly ? (
+			<InputClearButton
+				label="Clear"
+				// Keep the focus in the input, so that no blur runs before the clear.
+				onMouseDown={(event) => event.preventDefault()}
+				onClick={() => clearNativeInput(inputRef.current)}
+			/>
+		) : undefined
+
 	return (
 		<InputFrame
 			inputEl={inputEl}
 			prefix={prefix}
-			suffix={suffix}
+			suffix={
+				clear && suffix != null && suffix !== false ? (
+					<>
+						{clear}
+						{suffix}
+					</>
+				) : (
+					(clear ?? suffix)
+				)
+			}
 			variant={resolvedVariant}
 			density={size}
 			dataGroup={dataGroup}

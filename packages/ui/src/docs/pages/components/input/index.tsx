@@ -1,5 +1,6 @@
 import api from 'virtual:docs/api/components/input'
 import { ApiTable, Example, Playground } from '../../../kit/index.ts'
+import Clearable from './clearable.tsx'
 import Disabled from './disabled.tsx'
 import InputPlayground from './playground.tsx'
 import ReadOnly from './read-only.tsx'
@@ -13,6 +14,7 @@ export default function InputPage() {
 			<Playground of={InputPlayground} api={api} />
 			<Example of={WithPrefix} />
 			<Example of={WithSuffix} />
+			<Example of={Clearable} />
 			<Example of={Validation} />
 			<Example of={Disabled} />
 			<Example of={ReadOnly} />

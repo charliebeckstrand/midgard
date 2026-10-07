@@ -1,7 +1,8 @@
+import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Form } from '../../components/form'
 import { Input } from '../../components/input'
-import { bySlot, getSlot, renderUI, setupUser } from '../helpers'
+import { bySlot, getSlot, renderUI, screen, setupUser } from '../helpers'
 
 describe('Input', () => {
 	it('renders an input with data-slot="input"', () => {
@@ -104,5 +105,81 @@ describe('Input defaultValue under a binding (§7.2)', () => {
 		expect(input.value).toBe('seed')
 
 		expect(input.defaultValue).toBe('seed')
+	})
+
+	describe('clearable', () => {
+		it.each([
+			['the input is empty', () => <Input clearable aria-label="Photo" />],
+			[
+				'the input is disabled',
+				() => <Input clearable disabled defaultValue="a" aria-label="Photo" />,
+			],
+			[
+				'the input is read-only',
+				() => <Input clearable readOnly defaultValue="a" aria-label="Photo" />,
+			],
+			['clearable is off', () => <Input defaultValue="a" aria-label="Photo" />],
+		])('shows no clear button when %s', (_name, ui) => {
+			renderUI(ui())
+
+			expect(screen.queryByRole('button')).not.toBeInTheDocument()
+		})
+
+		it('empties an uncontrolled input, keeps the focus, and hides the button', async () => {
+			const user = setupUser()
+
+			const { container } = renderUI(<Input clearable defaultValue="abc" aria-label="Photo" />)
+
+			await user.click(getSlot(container, 'input'))
+
+			await user.click(screen.getByRole('button', { name: 'Clear' }))
+
+			expect(getSlot(container, 'input')).toHaveValue('')
+
+			expect(getSlot(container, 'input')).toHaveFocus()
+
+			expect(screen.queryByRole('button', { name: 'Clear' })).not.toBeInTheDocument()
+
+			await user.type(getSlot(container, 'input'), 'x')
+
+			expect(screen.getByRole('button', { name: 'Clear' })).toBeInTheDocument()
+		})
+
+		it('clears a controlled input through onChange', async () => {
+			function Controlled() {
+				const [value, setValue] = useState('abc')
+
+				return (
+					<Input
+						clearable
+						value={value}
+						onChange={(event) => setValue(event.target.value)}
+						aria-label="Photo"
+					/>
+				)
+			}
+
+			const user = setupUser()
+
+			const { container } = renderUI(<Controlled />)
+
+			await user.click(screen.getByRole('button', { name: 'Clear' }))
+
+			expect(getSlot(container, 'input')).toHaveValue('')
+
+			expect(screen.queryByRole('button', { name: 'Clear' })).not.toBeInTheDocument()
+		})
+
+		it('puts the clear button before the suffix', () => {
+			const { container } = renderUI(
+				<Input clearable defaultValue="acme" suffix=".example.com" aria-label="Subdomain" />,
+			)
+
+			const suffix = getSlot(container, 'suffix')
+
+			expect(suffix.firstElementChild?.tagName).toBe('BUTTON')
+
+			expect(suffix.textContent).toBe('.example.com')
+		})
 	})
 })
