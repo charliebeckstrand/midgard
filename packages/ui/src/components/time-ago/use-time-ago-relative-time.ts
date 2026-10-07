@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { getOrCompute } from '../../utilities'
 import { DAY, HOUR, MIN, MONTH, SEC, WEEK, YEAR } from './time-ago-constants'
 import { subscribeTimeAgoTick } from './time-ago-ticker'
 
@@ -10,14 +11,11 @@ type Unit = 'second' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'
 const relativeTimeFormatCache = new Map<string, Intl.RelativeTimeFormat>()
 
 function getRelativeTimeFormat(locale: string | undefined) {
-	const key = locale ?? ''
-
-	const formatter =
-		relativeTimeFormatCache.get(key) ?? new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
-
-	relativeTimeFormatCache.set(key, formatter)
-
-	return formatter
+	return getOrCompute(
+		relativeTimeFormatCache,
+		locale ?? '',
+		() => new Intl.RelativeTimeFormat(locale, { numeric: 'auto' }),
+	)
 }
 
 // Each unit's rollover is the rounded magnitude at which it becomes the next

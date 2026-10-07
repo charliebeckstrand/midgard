@@ -1,3 +1,5 @@
+import { subscribeDocumentEvent } from '../../utilities/document-listener'
+
 type Subscriber = () => void
 
 type Bucket = {
@@ -12,7 +14,7 @@ type Bucket = {
 // updates into one render).
 const buckets = new Map<number, Bucket>()
 
-let visibilityBound = false
+let unsubscribeVisibility: (() => void) | null = null
 
 function tick(bucket: Bucket): void {
 	// Dispatch over a snapshot so a mid-tick unsubscribe skips no subscriber.
@@ -67,11 +69,7 @@ function handleVisibility(): void {
  * the client — it touches `window`/`document`.
  */
 export function subscribeTimeAgoTick(intervalMs: number, cb: Subscriber): () => void {
-	if (!visibilityBound) {
-		document.addEventListener('visibilitychange', handleVisibility)
-
-		visibilityBound = true
-	}
+	unsubscribeVisibility ??= subscribeDocumentEvent('visibilitychange', handleVisibility)
 
 	const b: Bucket = buckets.get(intervalMs) ?? { subscribers: new Set(), timer: null }
 
@@ -90,10 +88,10 @@ export function subscribeTimeAgoTick(intervalMs: number, cb: Subscriber): () => 
 			buckets.delete(intervalMs)
 		}
 
-		if (buckets.size === 0 && visibilityBound) {
-			document.removeEventListener('visibilitychange', handleVisibility)
+		if (buckets.size === 0 && unsubscribeVisibility) {
+			unsubscribeVisibility()
 
-			visibilityBound = false
+			unsubscribeVisibility = null
 		}
 	}
 }
