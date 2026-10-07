@@ -42,8 +42,7 @@ beforeAll(() => {
 // `sequence.shuffle` decides which case of a worker is the first to open a
 // tooltip. The load before each file gives each case the state of a page that
 // already loaded the panel, so a case that reads an open panel at once does not
-// depend on the order. The `floating-ui` browser project opens tooltips with no
-// such load.
+// depend on the order. The browser setups load the panel in the same way.
 beforeAll(() => loadTooltipBody())
 
 // A reorderable `List` loads its `Reorder` parts after it mounts, and the rows
