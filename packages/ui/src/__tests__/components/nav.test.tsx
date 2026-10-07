@@ -5,12 +5,10 @@ import {
 	NavBar,
 	NavContent,
 	NavContents,
-	type NavContextValue,
 	NavItem,
 	NavList,
 	type NavMenuItemProps,
 	type NavProps,
-	useNavContext,
 } from '../../components/nav'
 import { bySlot, densityStepOf, fireEvent, renderUI, screen } from '../helpers'
 
@@ -349,12 +347,6 @@ describe('NavContent / NavContents', () => {
 		expect(screen.getByText('Billing panel')).toBeInTheDocument()
 
 		expect(screen.queryByText('Account panel')).not.toBeInTheDocument()
-	})
-})
-
-describe('useNavContext', () => {
-	it('returns the exported NavContextValue, or undefined outside a Nav', () => {
-		expectTypeOf(useNavContext).returns.toEqualTypeOf<NavContextValue | undefined>()
 	})
 })
 

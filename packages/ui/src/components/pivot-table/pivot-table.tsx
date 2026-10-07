@@ -67,7 +67,6 @@ export type PivotTableProps<T> = {
  * row header keeps one line, and a table that is too wide scrolls.
  *
  * @typeParam T - The shape of each source row.
- * @see {@link usePivotTable} for the headless aggregation hook.
  */
 export function PivotTable<T>({
 	rows,

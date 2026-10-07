@@ -1,7 +1,6 @@
 export {
 	Calendar,
 	type CalendarActive,
-	type CalendarDayContextValue,
 	type CalendarDayProps,
 	type CalendarHandle,
 	type CalendarProps,

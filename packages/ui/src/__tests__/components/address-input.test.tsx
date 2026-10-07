@@ -3,7 +3,8 @@ import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import type { AddressProvider, AddressSuggestion } from '../../components/address-input'
 import { AddressInput, createPhotonProvider, photonProvider } from '../../components/address-input'
 import { splitUsState } from '../../components/address-input/address-input-photon-query'
-import { Form, useFormState } from '../../components/form'
+import { Form } from '../../components/form'
+import { useFormState } from '../../components/form/context'
 import {
 	bySlot,
 	deferred,

@@ -1,7 +1,8 @@
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import { Description, Field, Label } from '../../components/fieldset'
-import { Form, useFormState } from '../../components/form'
+import { Form } from '../../components/form'
+import { useFormState } from '../../components/form/context'
 import { Rating, RatingSkeleton } from '../../components/rating'
 import { allBySlot, bySlot, renderUI, screen, setupUser } from '../helpers'
 

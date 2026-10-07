@@ -4,7 +4,6 @@ export type {
 	ResponsiveSplitGap,
 	ResponsiveSplitOrientation,
 	ResponsiveSplitRatio,
-	SplitGap,
 	SplitOrientation,
 	SplitRatio,
 } from './variants'

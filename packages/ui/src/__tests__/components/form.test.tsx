@@ -6,11 +6,11 @@ import {
 	useFormActions,
 	useFormContext,
 	useFormField,
-	useFormState,
 	useFormStatus,
-	useFormText,
 } from '../../components/form'
+import { useFormState } from '../../components/form/context'
 import { Input } from '../../components/input'
+import { useInputValue } from '../../components/input/use-input-value'
 import {
 	bySlot,
 	deferred,
@@ -725,7 +725,6 @@ describe('form hooks outside a Form', () => {
 		['useFormActions returns undefined', () => useFormActions()],
 		['useFormState returns undefined', () => useFormState()],
 		['useFormField returns undefined', () => useFormField('name')],
-		['useFormText returns undefined', () => useFormText('name')],
 		['useFormStatus returns undefined', () => useFormStatus()],
 	])('%s', (_name, useHook) => {
 		const { result } = renderHook(useHook)
@@ -814,27 +813,30 @@ describe('useFormField', () => {
 	})
 })
 
-describe('useFormText', () => {
-	it('returns a binding that updates the form value and calls external onChange', () => {
+describe('useInputValue bound to a Form field', () => {
+	it('updates the form value and calls external onChange', () => {
 		const onChange = vi.fn()
 
 		const wrapper = makeFormWrapper({ defaultValues: { name: '' } })
 
-		const { result } = renderHook(() => useFormText<HTMLInputElement>('name', { onChange }), {
-			wrapper,
-		})
+		const { result } = renderHook(
+			() => useInputValue<HTMLInputElement>({ name: 'name', onChange }),
+			{
+				wrapper,
+			},
+		)
 
-		expect(result.current?.value).toBe('')
+		expect(result.current.value).toBe('')
 
 		act(() => {
-			result.current?.onChange(
+			result.current.onChange?.(
 				makeChangeEvent<HTMLInputElement>({
 					target: { value: 'hello' } as HTMLInputElement,
 				}),
 			)
 		})
 
-		expect(result.current?.value).toBe('hello')
+		expect(result.current.value).toBe('hello')
 
 		expect(onChange).toHaveBeenCalled()
 	})
@@ -844,12 +846,12 @@ describe('useFormText', () => {
 
 		const wrapper = makeFormWrapper({ defaultValues: { name: '' } })
 
-		const { result } = renderHook(() => useFormText<HTMLInputElement>('name', { onBlur }), {
+		const { result } = renderHook(() => useInputValue<HTMLInputElement>({ name: 'name', onBlur }), {
 			wrapper,
 		})
 
 		act(() => {
-			result.current?.onBlur(makeFocusEvent<HTMLInputElement>())
+			result.current.onBlur?.(makeFocusEvent<HTMLInputElement>())
 		})
 
 		expect(onBlur).toHaveBeenCalledOnce()

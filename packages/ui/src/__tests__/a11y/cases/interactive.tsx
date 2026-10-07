@@ -1,11 +1,7 @@
 import { Button } from '../../../components/button'
 import { ColorPanelSkeleton, ColorPicker, ColorPickerSkeleton } from '../../../components/color'
-import {
-	Combobox,
-	ComboboxLabel,
-	ComboboxOption,
-	useComboboxQuery,
-} from '../../../components/combobox'
+import { Combobox, ComboboxLabel, ComboboxOption } from '../../../components/combobox'
+import { useComboboxQuery } from '../../../components/combobox/use-combobox-query'
 import { DatePicker, DatePickerSkeleton } from '../../../components/date-picker'
 import { Field, Label } from '../../../components/fieldset'
 import { Listbox, ListboxLabel, ListboxOption } from '../../../components/listbox'

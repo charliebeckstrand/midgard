@@ -15,7 +15,6 @@ export type {
 	GridRowClick,
 } from './engine/grid-row/cell'
 export { Grid, type GridProps } from './grid'
-export { gridExportMenuItems } from './grid-context-menu-utilities'
 export type {
 	GridColumnManagerConfig,
 	GridColumnOrder,

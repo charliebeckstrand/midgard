@@ -1,5 +1,4 @@
 export type { NavBarVariants } from '../../recipes/kata/nav'
-export { NavContext, type NavContextValue, useNavContext } from './context'
 export {
 	Nav,
 	type NavProps,

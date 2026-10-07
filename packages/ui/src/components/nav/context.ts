@@ -1,25 +1,6 @@
 'use client'
 
 import { createContext } from '../../core'
-import { CurrentContext, type CurrentContextValue, useCurrent } from '../../primitives/current'
-
-/**
- * Value broadcast by {@link NavContext}: the active `value` and its change
- * callback. `value` is `null` when the `Nav` is controlled with no item current.
- */
-export type NavContextValue = CurrentContextValue
-
-/** Context carrying the {@link Nav} selection state to descendant items. */
-export const NavContext = CurrentContext
-
-/**
- * Reads the enclosing {@link Nav} selection state ({@link NavContextValue}).
- *
- * @returns The selection state, or `undefined` outside a {@link Nav}.
- */
-export function useNavContext(): NavContextValue | undefined {
-	return useCurrent()
-}
 
 /**
  * Flags descendants that a {@link NavBar} encloses them; `useNavBar` reads it so
