@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup, configure } from '@testing-library/react'
 import { afterEach, beforeAll, inject, vi } from 'vitest'
+import { loadTooltipBody } from '../../components/tooltip/tooltip-body-loader'
 import { installSingletonResets } from '../helpers/reset-singletons'
 import { installResidueGuard } from '../helpers/residue'
 
@@ -35,6 +36,13 @@ installResidueGuard()
 beforeAll(() => {
 	globalThis.IS_REACT_ACT_ENVIRONMENT = true
 })
+
+// `TooltipContent` loads its panel module on the first hover or focus, and
+// `sequence.shuffle` decides which case of a worker is the first to open a
+// tooltip. The load before each file gives each case the state of a page that
+// already loaded the panel, so a case that reads an open panel at once does not
+// depend on the order. The browser suite opens tooltips with no such load.
+beforeAll(() => loadTooltipBody())
 
 // Registered before the `afterEach` below, whose `cleanup` then runs first.
 installSingletonResets()

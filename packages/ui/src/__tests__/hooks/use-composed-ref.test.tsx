@@ -44,4 +44,32 @@ describe('useComposedRef', () => {
 
 		expect(second.current).toBe(node)
 	})
+
+	it('runs the cleanup of a React 19 callback ref on detach, and gives no null to it', () => {
+		const cleanup = vi.fn()
+
+		const callbackRef = vi.fn(() => cleanup)
+
+		const { unmount } = render(<Probe refs={[callbackRef]} />)
+
+		unmount()
+
+		expect(cleanup).toHaveBeenCalledTimes(1)
+
+		expect(callbackRef).not.toHaveBeenCalledWith(null)
+	})
+
+	it('returns null when every ref is absent', () => {
+		let composed: unknown
+
+		function Absent() {
+			composed = useComposedRef<HTMLDivElement>(undefined, undefined)
+
+			return null
+		}
+
+		render(<Absent />)
+
+		expect(composed).toBeNull()
+	})
 })
