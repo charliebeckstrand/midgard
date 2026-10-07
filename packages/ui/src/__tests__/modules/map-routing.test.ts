@@ -2,7 +2,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { fetchOsrmRoute } from '../../modules/map/engine/map-routing/osrm'
 import { requestSignal } from '../../modules/map/engine/map-routing/request'
-import { fetchValhallaRoute } from '../../modules/map/engine/map-routing/valhalla'
 import type { LngLat } from '../../modules/map/engine/types'
 
 const WAYPOINTS: LngLat[] = [
@@ -252,92 +251,6 @@ describe('fetchOsrmRoute', () => {
 		await fetchOsrmRoute(WAYPOINTS, { timeoutMs: 5000 })
 
 		expect((mock.mock.calls[1]?.[1] as RequestInit | undefined)?.signal).toBeInstanceOf(AbortSignal)
-	})
-})
-
-describe('fetchValhallaRoute', () => {
-	it('POSTs OSRM-format locations and parses the same payload shape', async () => {
-		const mock = stubFetch({ ok: true, json: PAYLOAD })
-
-		const answer = await fetchValhallaRoute(WAYPOINTS)
-
-		expect(answer.ok && answer.route.distanceMeters).toBe(3243000)
-
-		const [url, init] = mock.mock.calls[0] as [string, RequestInit]
-
-		expect(url).toContain('/route?format=osrm')
-
-		expect(JSON.parse(String(init.body))).toMatchObject({
-			costing: 'auto',
-			directions_type: 'none',
-			shape_format: 'polyline6',
-			locations: [
-				{ lat: 34.05, lon: -118.24 },
-				{ lat: 41.88, lon: -87.63 },
-			],
-		})
-	})
-
-	it('decodes a polyline6 shape string into lon/lat coordinates', async () => {
-		// A precision-6 polyline for the lat/lng points (0, 0) then (1, 2); the
-		// codec stores lat before lng, so a correct decode yields the swapped
-		// [lon, lat] pairs [0, 0] and [2, 1] — an lng/lat transposition would
-		// surface here as [1, 2].
-		stubFetch({
-			ok: true,
-			json: { routes: [{ geometry: '??_c`|@_gayB', distance: 250, duration: 30 }] },
-		})
-
-		expect(await fetchValhallaRoute(WAYPOINTS)).toEqual({
-			ok: true,
-			route: {
-				path: [
-					[0, 0],
-					[2, 1],
-				],
-				distanceMeters: 250,
-				durationSeconds: 30,
-			},
-		})
-	})
-
-	it('drops a truncated trailing point instead of emitting a garbage coordinate', async () => {
-		// The full shape decodes to [[0,0],[2,1]]; dropping the last char truncates
-		// the second point's varint, so the partial pair is dropped rather than
-		// pushed as a coordinate built from a zeroed delta.
-		stubFetch({
-			ok: true,
-			json: { routes: [{ geometry: '??_c`|@_gay', distance: 250, duration: 30 }] },
-		})
-
-		expect(await fetchValhallaRoute(WAYPOINTS)).toEqual({
-			ok: true,
-			route: { path: [[0, 0]], distanceMeters: 250, durationSeconds: 30 },
-		})
-	})
-
-	it('maps the walking profile to pedestrian costing', async () => {
-		const mock = stubFetch({ ok: true, json: PAYLOAD })
-
-		await fetchValhallaRoute(WAYPOINTS, { profile: 'walking' })
-
-		const [, init] = mock.mock.calls[0] as [string, RequestInit]
-
-		expect(JSON.parse(String(init.body)).costing).toBe('pedestrian')
-	})
-
-	it('names its failures on the taxonomy both clients share', async () => {
-		stubFetch({ ok: false, status: 503 })
-
-		expect(await fetchValhallaRoute([])).toEqual({
-			ok: false,
-			failure: { kind: 'waypoints', retryable: false },
-		})
-
-		expect(await fetchValhallaRoute(WAYPOINTS)).toEqual({
-			ok: false,
-			failure: { kind: 'http', status: 503, retryable: true },
-		})
 	})
 })
 

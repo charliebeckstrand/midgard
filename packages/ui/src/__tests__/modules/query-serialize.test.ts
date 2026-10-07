@@ -8,11 +8,7 @@ import {
 	isQueryGroup,
 	isQueryNode,
 } from '../../modules/query/engine/query-node'
-import {
-	formatQuerySql,
-	parseQuery,
-	serializeQuery,
-} from '../../modules/query/engine/query-serialize'
+import { parseQuery, serializeQuery } from '../../modules/query/engine/query-serialize'
 import type {
 	QueryCombinator,
 	QueryField,
@@ -245,114 +241,5 @@ describe('parseQuery', () => {
 		])
 
 		expect(kinds(text)).toEqual([])
-	})
-})
-
-describe('formatQuerySql', () => {
-	const sql = (children: QueryNode[], options?: Parameters<typeof formatQuerySql>[1]) =>
-		formatQuerySql(createGroup('and', children), options)
-
-	it.each([
-		['equals', 'Ada', '"name" = ?', ['Ada']],
-		['notEquals', 'Ada', '("name" IS NULL OR "name" <> ?)', ['Ada']],
-		['contains', 'A_d%a!', `LOWER("name") LIKE ? ESCAPE '!'`, ['%a!_d!%a!!%']],
-		['startsWith', 'Ad', `LOWER("name") LIKE ? ESCAPE '!'`, ['ad%']],
-		['endsWith', 'Ad', `LOWER("name") LIKE ? ESCAPE '!'`, ['%ad']],
-		['isEmpty', undefined, `("name" IS NULL OR "name" = '')`, []],
-		['isNotEmpty', undefined, `("name" IS NOT NULL AND "name" <> '')`, []],
-		['gt', '40', '"name" > ?', [40]],
-		['gte', 40, '"name" >= ?', [40]],
-		['lt', 40, '"name" < ?', [40]],
-		['lte', 40, '"name" <= ?', [40]],
-		['between', [18, 65], '"name" BETWEEN ? AND ?', [18, 65]],
-		['between', [18, ''], '"name" >= ?', [18]],
-		['between', ['', 65], '"name" <= ?', [65]],
-		['between', ['  ', 65], '"name" <= ?', [65]],
-		['before', '2026-01-01', '"name" < ?', ['2026-01-01']],
-		['after', '2026-01-01', '"name" > ?', ['2026-01-01']],
-		['isTrue', null, '"name" = ?', [true]],
-		['isFalse', null, '"name" = ?', [false]],
-	])('formats %s %j', (operator, value, text, params) => {
-		expect(sql([rule('name', operator, value)])).toEqual({ sql: text, params })
-	})
-
-	it('folds left to right with no AND over OR precedence', () => {
-		const query = [
-			rule('name', 'equals', 'a'),
-			rule('name', 'equals', 'b', 'or'),
-			rule('age', 'gt', 1, 'and'),
-		]
-
-		// The evaluator reads (a OR b) AND c, not a OR (b AND c).
-		expect(sql(query)).toEqual({
-			sql: '(("name" = ? OR "name" = ?) AND "age" > ?)',
-			params: ['a', 'b', 1],
-		})
-	})
-
-	it('brackets a nested group', () => {
-		const query = [
-			rule('age', 'gt', 1),
-			createGroup('and', [rule('name', 'equals', 'a'), rule('name', 'equals', 'b', 'or')]),
-		]
-
-		expect(sql(query).sql).toBe('("age" > ? AND ("name" = ? OR "name" = ?))')
-	})
-
-	it('drops a rule with no constraint, as the evaluator does', () => {
-		expect(sql([rule('name', 'equals', ''), rule('age', 'gt', 1)])).toEqual({
-			sql: '"age" > ?',
-			params: [1],
-		})
-
-		expect(sql([rule('name', 'custom', 'x'), rule('age', 'gt', 1)]).sql).toBe('"age" > ?')
-
-		// A rule that constrains nothing drops out with its combinator, so an OR
-		// with it keeps the other side.
-		expect(sql([rule('age', 'gt', 1), rule('name', 'equals', '', 'or')])).toEqual({
-			sql: '"age" > ?',
-			params: [1],
-		})
-
-		expect(sql([rule('name', 'equals', ''), rule('age', 'gt', 1, 'or')]).sql).toBe('"age" > ?')
-
-		expect(sql([createGroup(), rule('age', 'gt', 1)]).sql).toBe('"age" > ?')
-
-		expect(sql([rule('age', 'gt', 1), createGroup('or')]).sql).toBe('"age" > ?')
-
-		expect(sql([rule('age', 'between', 5), rule('age', 'gt', 1, 'or')]).sql).toBe('"age" > ?')
-
-		expect(sql([rule('age', 'gt', [1, 2]), rule('age', 'lt', 9, 'or')]).sql).toBe('"age" < ?')
-
-		expect(sql([rule('age', 'between', [[1], 2]), rule('age', 'lt', 9, 'or')]).sql).toBe(
-			'"age" < ?',
-		)
-
-		expect(sql([rule('age', 'between', [1]), rule('age', 'lt', 9, 'or')]).sql).toBe('"age" < ?')
-
-		expect(sql([rule('age', 'gt', 'abc'), rule('age', 'lt', 9, 'or')])).toEqual({
-			sql: '"age" < ?',
-			params: [9],
-		})
-
-		expect(sql([rule('age', 'between', ['abc', 5]), rule('age', 'lt', 9, 'or')]).sql).toBe(
-			'"age" < ?',
-		)
-	})
-
-	it('gives an empty condition for an empty query', () => {
-		expect(sql([])).toEqual({ sql: '', params: [] })
-	})
-
-	it('uses the column and placeholder options', () => {
-		const query = [rule('name', 'equals', 'a'), rule('age', 'between', [1, 2])]
-
-		expect(
-			sql(query, { column: (field) => `u.${field}`, placeholder: (index) => `$${index}` }),
-		).toEqual({ sql: '(u.name = $1 AND u.age BETWEEN $2 AND $3)', params: ['a', 1, 2] })
-	})
-
-	it('quotes a field name so that it cannot close its identifier', () => {
-		expect(sql([rule('a" OR 1=1 --', 'equals', 'x')]).sql).toBe('"a"" OR 1=1 --" = ?')
 	})
 })

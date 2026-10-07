@@ -1,7 +1,7 @@
 /**
- * What both routing clients hand `fetch`. That is the travel profile they
- * share, and the abort signal that combines a caller's own with an optional
- * timeout. It also holds the send that turns a response into an answer.
+ * What the routing client hands `fetch`. That is the travel profile, and the
+ * abort signal that combines a caller's own with an optional timeout. It also
+ * holds the send that turns a response into an answer.
  */
 
 import { httpFailure, thrownFailure } from './failure'
@@ -56,11 +56,10 @@ function anySignal(signals: readonly AbortSignal[]): AbortSignal {
 }
 
 /**
- * Send one routing request and read what comes back. Both clients meet here, so
- * the three ways a request fails before its payload are told apart once rather
- * than once per service. Those are a request that never answered, a status the
- * service refused with, and a body that does not parse. Each client keeps only
- * the url and the body its own service takes.
+ * Send one routing request and read what comes back. It tells apart the three
+ * ways a request fails before its payload: a request that never answered, a
+ * status the service refused with, and a body that does not parse. The client
+ * keeps only the url its service takes.
  *
  * @param url - The service endpoint, with whatever the request rides in its path.
  * @param init - The method, headers, body, and signal for this service.

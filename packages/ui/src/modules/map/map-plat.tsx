@@ -682,8 +682,7 @@ const NO_CENTROIDS: (LngLat | null)[] = []
  *
  * @remarks Consumers geocode addresses to coordinates through `AddressInput`
  * (or any provider) and fetch street-following paths through
- * {@link fetchOsrmRoute} / {@link fetchValhallaRoute} — the plat itself
- * never calls the network.
+ * {@link fetchOsrmRoute} — the plat itself never calls the network.
  *
  * Without `width`, the frame is a query container at the full width of its
  * parent, so its content gives it no width. Give it a parent with a definite
