@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { List, ListItem } from '../../components/list'
+import { ListItem, ListSortable } from '../../components/list'
 import { allBySlot, getSlot, present, renderUI } from '../helpers'
 import { drag } from './helpers/drag'
 
@@ -35,9 +35,9 @@ describe('List drag semantics (real browser)', () => {
 		['a row whose content is a link', '#alpha'],
 	])('sets no aria-pressed on %s while it drags', async (_name, href) => {
 		const { container } = renderUI(
-			<List items={items} getKey={(i) => i.id} sortable onReorder={() => {}}>
+			<ListSortable items={items} getKey={(i) => i.id} onReorder={() => {}}>
 				{(item) => <ListItem href={href}>{item.label}</ListItem>}
-			</List>,
+			</ListSortable>,
 		)
 
 		const list = getSlot(container, 'list')
@@ -57,9 +57,9 @@ describe('List drag semantics (real browser)', () => {
 
 	it('holds the overlay row in a list, out of focus and the accessibility tree', async () => {
 		const { container } = renderUI(
-			<List items={items} getKey={(i) => i.id} sortable onReorder={() => {}}>
+			<ListSortable items={items} getKey={(i) => i.id} onReorder={() => {}}>
 				{(item) => <ListItem>{item.label}</ListItem>}
-			</List>,
+			</ListSortable>,
 		)
 
 		const list = getSlot(container, 'list')

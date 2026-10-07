@@ -7,7 +7,7 @@ import {
 	KanbanColumn,
 	KanbanColumnBody,
 } from '../../components/kanban'
-import { List } from '../../components/list'
+import { ListSortable } from '../../components/list'
 import { ListItem } from '../../components/list/list-item'
 import { useSortableItem } from '../../hooks'
 import { act, fireEvent, renderUI } from '../helpers'
@@ -51,9 +51,9 @@ function ReorderList() {
 	const [value, setValue] = useState(items)
 
 	return (
-		<List items={value} getKey={(item) => item.id} onReorder={setValue} aria-label="Items">
+		<ListSortable items={value} getKey={(item) => item.id} onReorder={setValue} aria-label="Items">
 			{(item) => <ListItem>{item.title}</ListItem>}
-		</List>
+		</ListSortable>
 	)
 }
 

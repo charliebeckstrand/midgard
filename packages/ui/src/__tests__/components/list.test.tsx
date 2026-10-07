@@ -1,5 +1,12 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
-import { List, ListDescription, ListItem, ListLabel, type ListProps } from '../../components/list'
+import {
+	List,
+	ListDescription,
+	ListItem,
+	ListLabel,
+	type ListProps,
+	ListSortable,
+} from '../../components/list'
 import { LIFT_INSTRUCTIONS } from '../../hooks/use-keyboard-lifted'
 import { DensityProvider } from '../../providers/density'
 import {
@@ -22,54 +29,33 @@ const items: Item[] = [
 ]
 
 describe('List', () => {
-	it('requires getKey for reorderable configurations (compile-time)', () => {
+	it('requires getKey for a sortable list (compile-time)', () => {
 		// Never rendered; exists for `tsc`. The index-key fallback produces
 		// positional keys that change on reorder, remounting items mid-drag, so
-		// `onReorder` without `getKey` must not typecheck.
+		// `ListSortable` without `getKey` must not typecheck.
 		const typeChecks = () => (
-			// @ts-expect-error: onReorder requires getKey
-			<List items={items} sortable={false} onReorder={() => {}}>
+			// @ts-expect-error: ListSortable requires getKey
+			<ListSortable items={items} handle={false} onReorder={() => {}}>
 				{(item) => <ListItem>{item.label}</ListItem>}
-			</List>
+			</ListSortable>
 		)
 
 		expect(typeChecks).toBeTypeOf('function')
 	})
 
-	it('keeps the three reorder arms of ListProps (compile-time)', () => {
-		// The arms share one declaration of `getKey` and `onReorder`, so the API
-		// prints each type one time. This pins the accepted set to the arms as
-		// they were before that change.
-		type Arms<P> = P extends unknown ? Pick<P, keyof ReorderArm & keyof P> : never
+	it('takes no reorder props on List (compile-time)', () => {
+		// Never rendered; exists for `tsc`. The reorder lives in `ListSortable`, so
+		// `List` loads no `@dnd-kit`.
+		const typeChecks = () => (
+			// @ts-expect-error: List does not reorder
+			<List items={items} getKey={(i) => i.id} onReorder={() => {}}>
+				{(item) => <ListItem>{item.label}</ListItem>}
+			</List>
+		)
 
-		type ReorderArm = {
-			sortable?: boolean
-			getKey?: (item: Item) => string
-			onReorder?: (next: Item[]) => void
-			virtual?: boolean
-		}
+		expect(typeChecks).toBeTypeOf('function')
 
-		type Before =
-			| {
-					sortable?: true
-					getKey: (item: Item) => string
-					onReorder?: (next: Item[]) => void
-					virtual?: false
-			  }
-			| {
-					sortable: false
-					getKey: (item: Item) => string
-					onReorder: (next: Item[]) => void
-					virtual?: false
-			  }
-			| {
-					sortable: false
-					getKey?: (item: Item) => string
-					onReorder?: undefined
-					virtual?: boolean
-			  }
-
-		expectTypeOf<Arms<ListProps<Item>>>().toEqualTypeOf<Before>()
+		expectTypeOf<ListProps<Item>>().not.toHaveProperty('disabled')
 	})
 
 	it('renders a data-slot="list" ul with one list item per input', () => {
@@ -98,19 +84,19 @@ describe('List', () => {
 		expect(allBySlot(readOnly.container, 'list-handle')).toHaveLength(0)
 
 		const reorderable = renderUI(
-			<List items={items} getKey={(i) => i.id} onReorder={() => {}}>
+			<ListSortable items={items} getKey={(i) => i.id} onReorder={() => {}}>
 				{(item) => <ListItem>{item.label}</ListItem>}
-			</List>,
+			</ListSortable>,
 		)
 
 		expect(allBySlot(reorderable.container, 'list-handle')).toHaveLength(items.length)
 	})
 
-	it('shows a disabled handle in a disabled list, and none in a disabled read-only list', () => {
+	it('shows a disabled handle in a disabled sortable list', () => {
 		const disabled = renderUI(
-			<List items={items} getKey={(i) => i.id} onReorder={() => {}} disabled>
+			<ListSortable items={items} getKey={(i) => i.id} onReorder={() => {}} disabled>
 				{(item) => <ListItem>{item.label}</ListItem>}
-			</List>,
+			</ListSortable>,
 		)
 
 		const handles = allBySlot(disabled.container, 'list-handle')
@@ -118,14 +104,6 @@ describe('List', () => {
 		expect(handles).toHaveLength(items.length)
 
 		for (const handle of handles) expect(handle).toHaveAttribute('data-disabled')
-
-		const readOnly = renderUI(
-			<List items={items} getKey={(i) => i.id} disabled>
-				{(item) => <ListItem>{item.label}</ListItem>}
-			</List>,
-		)
-
-		expect(allBySlot(readOnly.container, 'list-handle')).toHaveLength(0)
 	})
 
 	it('reflects orientation on data attribute', () => {
@@ -593,9 +571,9 @@ describe('ListDescription', () => {
 describe('List keyboard reordering', () => {
 	function renderList(onReorder: (next: Item[]) => void = () => {}) {
 		return renderUI(
-			<List items={items} getKey={(i) => i.id} sortable onReorder={onReorder}>
+			<ListSortable items={items} getKey={(i) => i.id} onReorder={onReorder}>
 				{(item) => <ListItem>{item.label}</ListItem>}
-			</List>,
+			</ListSortable>,
 		)
 	}
 
@@ -611,9 +589,9 @@ describe('List keyboard reordering', () => {
 
 	it('gives an activatable row one Tab stop, on the content rather than the row', () => {
 		const { container } = renderUI(
-			<List items={items} getKey={(i) => i.id} sortable onReorder={() => {}}>
+			<ListSortable items={items} getKey={(i) => i.id} onReorder={() => {}}>
 				{(item) => <ListItem href={`/${item.id}`}>{item.label}</ListItem>}
-			</List>,
+			</ListSortable>,
 		)
 
 		const row = bySlot(container, 'list-item')
@@ -631,13 +609,13 @@ describe('List keyboard reordering', () => {
 
 	it('keeps one Tab stop on a link row that suppresses the interactive treatment', () => {
 		const { container } = renderUI(
-			<List items={items} getKey={(i) => i.id} sortable onReorder={() => {}}>
+			<ListSortable items={items} getKey={(i) => i.id} onReorder={() => {}}>
 				{(item) => (
 					<ListItem href={`/${item.id}`} interactive={false}>
 						{item.label}
 					</ListItem>
 				)}
-			</List>,
+			</ListSortable>,
 		)
 
 		// The prop sets only the treatment. The link stays focusable, so the stop stays on it.
@@ -649,9 +627,9 @@ describe('List keyboard reordering', () => {
 
 	it('keeps the stop on the row when its content only displays', () => {
 		const { container } = renderUI(
-			<List items={items} getKey={(i) => i.id} sortable onReorder={() => {}}>
+			<ListSortable items={items} getKey={(i) => i.id} onReorder={() => {}}>
 				{(item) => <ListItem>{item.label}</ListItem>}
-			</List>,
+			</ListSortable>,
 		)
 
 		// Nothing focusable inside a display-only row, so the `<li>` has to be the stop — there is
@@ -664,9 +642,9 @@ describe('List keyboard reordering', () => {
 		const onReorder = vi.fn()
 
 		const { container } = renderUI(
-			<List items={items} getKey={(i) => i.id} sortable onReorder={onReorder}>
+			<ListSortable items={items} getKey={(i) => i.id} onReorder={onReorder}>
 				{(item) => <ListItem href={`/${item.id}`}>{item.label}</ListItem>}
-			</List>,
+			</ListSortable>,
 		)
 
 		const content = allBySlot(container, 'list-item-content')[0] as HTMLElement
@@ -684,13 +662,13 @@ describe('List keyboard reordering', () => {
 		const onKeyDown = vi.fn()
 
 		const { container } = renderUI(
-			<List items={items} getKey={(i) => i.id} sortable onReorder={onReorder}>
+			<ListSortable items={items} getKey={(i) => i.id} onReorder={onReorder}>
 				{(item) => (
 					<ListItem href={`/${item.id}`} onKeyDown={onKeyDown}>
 						{item.label}
 					</ListItem>
 				)}
-			</List>,
+			</ListSortable>,
 		)
 
 		const content = allBySlot(container, 'list-item-content')[0] as HTMLElement
@@ -711,14 +689,14 @@ describe('List keyboard reordering', () => {
 		const onReorder = vi.fn()
 
 		renderUI(
-			<List items={items} getKey={(i) => i.id} sortable onReorder={onReorder}>
+			<ListSortable items={items} getKey={(i) => i.id} onReorder={onReorder}>
 				{(item) => (
 					<ListItem>
 						{item.label}
 						<input aria-label={`edit ${item.label}`} />
 					</ListItem>
 				)}
-			</List>,
+			</ListSortable>,
 		)
 
 		const input = screen.getByLabelText('edit Alpha')
@@ -840,9 +818,7 @@ describe('List keyboard reordering', () => {
 describe('List: static (non-interactive) mode', () => {
 	it('falls back to index-based keys when no getKey is supplied to a read-only list', () => {
 		const { container } = renderUI(
-			<List items={items} sortable={false}>
-				{(item) => <ListItem>{item.label}</ListItem>}
-			</List>,
+			<List items={items}>{(item) => <ListItem>{item.label}</ListItem>}</List>,
 		)
 
 		// Static list still renders one item per input.
@@ -851,9 +827,7 @@ describe('List: static (non-interactive) mode', () => {
 
 	it('gives duplicate primitive items distinct positional ids', () => {
 		const { container } = renderUI(
-			<List items={['draft', 'draft', 'sent']} sortable={false}>
-				{(item) => <ListItem>{item}</ListItem>}
-			</List>,
+			<List items={['draft', 'draft', 'sent']}>{(item) => <ListItem>{item}</ListItem>}</List>,
 		)
 
 		const ids = allBySlot(container, 'list-item').map((row) => row.getAttribute('data-item-id'))

@@ -6,7 +6,7 @@
  */
 
 import { describe } from 'vitest'
-import { List } from '../components/list'
+import { List, ListSortable } from '../components/list'
 import { ListItem } from '../components/list/list-item'
 import { noop } from '../utilities/noop'
 import { makeListItems } from './fixtures'
@@ -28,9 +28,9 @@ describe('List · reorderable (onReorder provided)', () => {
 		SIZES,
 		(items) => `${items.length.toLocaleString()} items`,
 		(items) => (
-			<List items={items} getKey={getKey} onReorder={noop}>
+			<ListSortable items={items} getKey={getKey} onReorder={noop}>
 				{renderItem}
-			</List>
+			</ListSortable>
 		),
 	)
 })

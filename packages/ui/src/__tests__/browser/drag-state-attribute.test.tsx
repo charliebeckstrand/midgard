@@ -6,7 +6,7 @@ import {
 	KanbanColumn,
 	KanbanColumnBody,
 } from '../../components/kanban'
-import { List, ListItem } from '../../components/list'
+import { ListItem, ListSortable } from '../../components/list'
 import { allBySlot, getSlot, renderUI } from '../helpers'
 import { drag } from './helpers/drag'
 
@@ -119,9 +119,9 @@ describe('drag state attribute (real browser)', () => {
 
 	it('marks the dragged list item and its handle with data-dragging only', async () => {
 		const { container } = renderUI(
-			<List items={items} getKey={(i) => i.id} sortable onReorder={() => {}}>
+			<ListSortable items={items} getKey={(i) => i.id} onReorder={() => {}}>
 				{(item) => <ListItem>{item.label}</ListItem>}
-			</List>,
+			</ListSortable>,
 		)
 
 		const list = getSlot(container, 'list')

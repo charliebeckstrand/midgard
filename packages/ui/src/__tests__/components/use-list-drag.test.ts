@@ -1,7 +1,7 @@
 import { type Active, closestCenter, type DragStartEvent } from '@dnd-kit/core'
 import { horizontalListSortingStrategy, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { act, renderHook } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { useListDrag } from '../../components/list/use-list-drag'
 
 /** No root element: these tests read no names. */
@@ -23,43 +23,18 @@ const items: Item[] = [
 	{ id: 'c', label: 'C' },
 ]
 
+/** The options that each test shares. */
+const base = { containerRef, items, getKey: (item: Item) => item.id, onReorder: () => {} }
+
 describe('useListDrag', () => {
-	it('uses the provided getKey when one is supplied', () => {
-		const getKey = vi.fn((item: Item) => item.id)
-
-		const { result } = renderHook(() =>
-			useListDrag<Item>({ containerRef, items, getKey, orientation: 'vertical' }),
-		)
-
-		expect(result.current.effectiveGetKey).toBe(getKey)
+	it('keys the sortable ids with getKey', () => {
+		const { result } = renderHook(() => useListDrag<Item>({ ...base, orientation: 'vertical' }))
 
 		expect(result.current.itemIds).toEqual(['a', 'b', 'c'])
 	})
 
-	it('falls back to indexed keys when no getKey is provided', () => {
-		const { result } = renderHook(() =>
-			useListDrag<Item>({ containerRef, items, orientation: 'vertical' }),
-		)
-
-		expect(items.map(result.current.effectiveGetKey)).toEqual(['0', '1', '2'])
-	})
-
-	it('keys duplicate primitives by position when no getKey is provided', () => {
-		const labels = ['draft', 'draft', 'sent']
-
-		const { result } = renderHook(() =>
-			useListDrag<string>({ containerRef, items: labels, orientation: 'vertical' }),
-		)
-
-		expect(labels.map(result.current.effectiveGetKey)).toEqual(['0', '1', '2'])
-
-		expect(result.current.itemIds).toEqual(['0', '1', '2'])
-	})
-
 	it('reports no active item when none is being dragged', () => {
-		const { result } = renderHook(() =>
-			useListDrag<Item>({ containerRef, items, orientation: 'horizontal' }),
-		)
+		const { result } = renderHook(() => useListDrag<Item>({ ...base, orientation: 'horizontal' }))
 
 		expect(result.current.activeId).toBeNull()
 
@@ -69,9 +44,7 @@ describe('useListDrag', () => {
 	})
 
 	it('exposes the dnd context props for the drag wrapper', () => {
-		const { result } = renderHook(() =>
-			useListDrag<Item>({ containerRef, items, orientation: 'vertical' }),
-		)
+		const { result } = renderHook(() => useListDrag<Item>({ ...base, orientation: 'vertical' }))
 
 		const { dndContextProps } = result.current
 
@@ -90,14 +63,14 @@ describe('useListDrag', () => {
 		['vertical', verticalListSortingStrategy],
 		['horizontal', horizontalListSortingStrategy],
 	] as const)('sorts a %s list with the strategy of its axis', (orientation, strategy) => {
-		const { result } = renderHook(() => useListDrag<Item>({ containerRef, items, orientation }))
+		const { result } = renderHook(() => useListDrag<Item>({ ...base, orientation }))
 
 		expect(result.current.strategy).toBe(strategy)
 	})
 
 	it('reports interactive=false when disabled', () => {
 		const { result } = renderHook(() =>
-			useListDrag<Item>({ containerRef, items, orientation: 'vertical', disabled: true }),
+			useListDrag<Item>({ ...base, orientation: 'vertical', disabled: true }),
 		)
 
 		expect(result.current.interactive).toBe(false)

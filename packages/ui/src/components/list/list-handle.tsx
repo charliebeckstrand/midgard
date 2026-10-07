@@ -14,10 +14,10 @@ export type ListHandleProps = {
 }
 
 /**
- * Drag handle for a sortable {@link ListItem}, defaulting to a grip icon.
- * Carries the item's drag listeners when the list is interactive, and shows
- * a disabled grip when the list is disabled. Renders nothing in a read-only
- * list (no `onReorder`) and in a single-item list, because those lists have
+ * Drag handle for a {@link ListItem} in a `ListSortable`, defaulting to a grip
+ * icon. Carries the item's drag listeners when the list is interactive, and
+ * shows a disabled grip when the list is disabled. Renders nothing in a
+ * read-only `List` and in a single-item list, because those lists have
  * no order to change. Decorative (`aria-hidden`); keyboard reorder lives on
  * the item.
  *

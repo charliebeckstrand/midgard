@@ -67,14 +67,14 @@ export type ListItemProps<Fallback extends ElementType = 'div'> = {
 } & PolymorphicProps<Fallback, 'prefix' | 'ref'>
 
 /**
- * A row within a {@link List}, rendered as `<li>` with `prefix`/`suffix` slots
+ * A row within a {@link List} or a `ListSortable`, rendered as `<li>` with `prefix`/`suffix` slots
  * around a polymorphic content area. That area switches to the app's router link
  * when `href` is set, and otherwise renders the `as` element (`'div'` by
  * default, or `'button'` for a row with `onClick`). A
  * content area that acts on activation — `href` or `onClick` — counts as
  * interactive and takes the muted text plus hover and pointer treatment. Its hit
  * area covers the whole painted row, the padding and the slot chrome included. In
- * a reorderable list it wires the drag/keyboard bindings and auto-inserts a
+ * a `ListSortable` it wires the drag/keyboard bindings and auto-inserts a
  * {@link ListHandle} as the prefix unless one is supplied. An interactive row also
  * takes a hover wash, doubled inside a glass parent. Density-scaled.
  *
@@ -114,7 +114,7 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 	// content area's activation treatment. Alias the former to keep them apart.
 	const {
 		variant,
-		sortable,
+		handle,
 		interactive: reorderable,
 		liftedStore,
 		onItemKeyDown,
@@ -223,7 +223,7 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 				className,
 			)}
 		>
-			{prefix ?? (sortable ? <ListHandle /> : null)}
+			{prefix ?? (handle ? <ListHandle /> : null)}
 			<Polymorphic
 				as={as}
 				href={href}

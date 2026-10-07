@@ -419,7 +419,7 @@ describe('skeleton parity (real browser)', () => {
 	] as const)('ListSkeleton has the box of a %s list (description: %s)', (variant, described) => {
 		const real = box(
 			renderUI(
-				<List items={listRows} variant={variant} sortable={false} aria-label="Files">
+				<List items={listRows} variant={variant} aria-label="Files">
 					{(row) => (
 						<ListItem>
 							<ListLabel>{row.label}</ListLabel>

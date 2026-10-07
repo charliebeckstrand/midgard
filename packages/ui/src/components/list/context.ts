@@ -7,13 +7,13 @@ import { useKeyedValue } from '../../hooks/use-keyed-store'
 import type { ListVariant } from '../../recipes/kata/list'
 import type { KeyedStore } from '../../utilities'
 
-/** List-wide state shared with items: variant, interactivity/disabled flags, the keyboard-lift store, item count, the sortable flag, and item event handlers. */
+/** List-wide state shared with items: variant, interactivity/disabled flags, the keyboard-lift store, item count, the handle flag, and item event handlers. */
 export type ListContextValue = {
 	/** Visual variant; see `List.variant` for semantics. */
 	variant: ListVariant
 	/** Whether the list allows drag / keyboard reorder. */
 	interactive: boolean
-	/** Whether a reorderable list (one with `onReorder`) is disabled. A read-only list is never disabled. */
+	/** Whether a `<ListSortable>` is disabled. A read-only `<List>` is never disabled. */
 	disabled: boolean
 	/**
 	 * Whether each item id is "lifted" via keyboard (Space). Read one item with
@@ -29,7 +29,7 @@ export type ListContextValue = {
 	/** Number of items in the list. */
 	itemCount: number
 	/** Whether `<ListItem>` must auto-insert a `<ListHandle>`. */
-	sortable: boolean
+	handle: boolean
 	/** Keyboard handler for list items: Space lifts, arrows move / navigate. It keeps its identity. */
 	onItemKeyDown: (id: string, event: KeyboardEvent) => void
 	/** Blur handler that drops any active keyboard lift. */
@@ -37,19 +37,19 @@ export type ListContextValue = {
 }
 
 /**
- * Item-facing list cascade. Provided by `<List>`; read by descendant items.
+ * Item-facing list cascade. Provided by `<List>` and `<ListSortable>`; read by descendant items.
  *
  * @returns The enclosing {@link ListContextValue}.
- * @throws When no `<List>` is mounted above the caller.
+ * @throws When no `<List>` or `<ListSortable>` is mounted above the caller.
  */
 export const [ListContext, useListContext] = createContext<ListContextValue>('List')
 
 /**
- * Whether the item `id` of the enclosing `<List>` is lifted via keyboard (Space).
+ * Whether the item `id` of the enclosing `<ListSortable>` is lifted via keyboard (Space).
  *
  * @returns `true` while the item is lifted. The caller renders only when the
  * lift of this item changes, not for the lift of another item.
- * @throws When no `<List>` is mounted above the caller.
+ * @throws When no `<List>` or `<ListSortable>` is mounted above the caller.
  */
 export function useListItemLifted(id: string): boolean {
 	return useKeyedValue(useListContext().liftedStore, id)

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { List, ListItem, ListLabel } from 'ui/list'
+import { ListItem, ListLabel, ListSortable } from 'ui/list'
 
 const initialTasks = [
 	{ id: 'a', label: 'Design the sortable hook API' },
@@ -12,12 +12,12 @@ export default function Sortable() {
 	const [tasks, setTasks] = useState(initialTasks)
 
 	return (
-		<List items={tasks} getKey={(task) => task.id} onReorder={setTasks} aria-label="Tasks">
+		<ListSortable items={tasks} getKey={(task) => task.id} onReorder={setTasks} aria-label="Tasks">
 			{(task) => (
 				<ListItem>
 					<ListLabel>{task.label}</ListLabel>
 				</ListItem>
 			)}
-		</List>
+		</ListSortable>
 	)
 }

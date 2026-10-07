@@ -155,7 +155,6 @@ export function Sheet() {
 					<FixtureCase key={variant} label={variant}>
 						<List
 							variant={variant}
-							sortable={false}
 							items={TASKS}
 							getKey={(task) => task.id}
 							aria-label={variant}
@@ -172,7 +171,6 @@ export function Sheet() {
 				<FixtureCase label="horizontal">
 					<List
 						orientation="horizontal"
-						sortable={false}
 						items={TASKS}
 						getKey={(task) => task.id}
 						aria-label="Horizontal"
@@ -185,13 +183,7 @@ export function Sheet() {
 					</List>
 				</FixtureCase>
 				<FixtureCase label="with descriptions">
-					<List
-						sortable={false}
-						items={TASKS}
-						getKey={(task) => task.id}
-						aria-label="Described"
-						className="w-full"
-					>
+					<List items={TASKS} getKey={(task) => task.id} aria-label="Described" className="w-full">
 						{(task) => (
 							<ListItem>
 								<ListLabel>{task.label}</ListLabel>
@@ -201,13 +193,7 @@ export function Sheet() {
 					</List>
 				</FixtureCase>
 				<FixtureCase label="disabled">
-					<List
-						disabled
-						items={TASKS}
-						getKey={(task) => task.id}
-						aria-label="Disabled"
-						className="w-full"
-					>
+					<List items={TASKS} getKey={(task) => task.id} aria-label="Disabled" className="w-full">
 						{(task) => (
 							<ListItem>
 								<ListLabel>{task.label}</ListLabel>
@@ -218,7 +204,6 @@ export function Sheet() {
 				<FixtureCase label="long content, full width" wide>
 					<List
 						variant="outline"
-						sortable={false}
 						items={[
 							{
 								id: 'long',

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
-import { List, ListItem } from '../../components/list'
+import { List, ListItem, ListSortable } from '../../components/list'
 import { allBySlot, noop, renderUI } from '../helpers'
 
 /**
@@ -95,13 +95,13 @@ describe('List rounded dividers (real browser)', () => {
 	it('paints the focus wash on the layer of a row that holds the Tab stop', () => {
 		// A reorderable row with no handler of its own takes focus on the `<li>`.
 		const { container } = renderUI(
-			<List items={items} variant="plain" getKey={(i) => i.id} sortable onReorder={noop}>
+			<ListSortable items={items} variant="plain" getKey={(i) => i.id} onReorder={noop}>
 				{(item) => (
 					<ListItem rounded interactive>
 						{item.label}
 					</ListItem>
 				)}
-			</List>,
+			</ListSortable>,
 		)
 
 		const [, row] = allBySlot(container, 'list-item')

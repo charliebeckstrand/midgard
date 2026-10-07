@@ -9,7 +9,7 @@ import WithDescriptions from './with-descriptions.tsx'
 export default function ListPage() {
 	return (
 		<>
-			<Playground of={ListPlayground} api={api} omit={['sortable', 'virtual', 'disabled']} />
+			<Playground of={ListPlayground} api={api} omit={['virtual']} />
 			<Example of={InteractiveRows} />
 			<Example of={Sortable} />
 			<Example of={Horizontal} />

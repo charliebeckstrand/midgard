@@ -17,7 +17,7 @@ type ListItemStaticProps = {
 
 /**
  * Everything except `id` is constant for a static (non-sortable) item; the drag
- * overlay in `list.tsx` reuses it with `dragging: true`.
+ * overlay in `list-sortable.tsx` reuses it with `dragging: true`.
  *
  * @internal
  */

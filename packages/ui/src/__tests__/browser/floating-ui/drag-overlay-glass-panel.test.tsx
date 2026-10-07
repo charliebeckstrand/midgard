@@ -8,7 +8,7 @@ import {
 	KanbanColumn,
 	KanbanColumnBody,
 } from '../../../components/kanban'
-import { List, ListItem } from '../../../components/list'
+import { ListItem, ListSortable } from '../../../components/list'
 import { DensityProvider } from '../../../providers/density'
 import { LocaleProvider } from '../../../providers/locale'
 import { renderUI, waitFor } from '../../helpers'
@@ -36,9 +36,9 @@ describe('drag overlay in a glass drawer (real browser)', () => {
 		const [rows, setRows] = useState(['a', 'b', 'c'])
 
 		return (
-			<List items={rows} getKey={(row) => row} onReorder={setRows} aria-label="Rows">
+			<ListSortable items={rows} getKey={(row) => row} onReorder={setRows} aria-label="Rows">
 				{(row) => <ListItem>Row {row}</ListItem>}
-			</List>
+			</ListSortable>
 		)
 	}
 

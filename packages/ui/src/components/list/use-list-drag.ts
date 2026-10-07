@@ -8,8 +8,8 @@ import { listItemName } from './use-list-keyboard'
 
 type Options<T> = {
 	items: T[]
-	getKey?: (item: T) => string
-	onReorder?: (next: T[]) => void
+	getKey: (item: T) => string
+	onReorder: (next: T[]) => void
 	orientation: Orientation
 	disabled?: boolean
 	/** List root. The announcements read the names of the items in it. */
@@ -17,10 +17,9 @@ type Options<T> = {
 }
 
 /**
- * DnD orchestration for `<List>`. It derives a stable key extractor, wraps
- * `useSortableList`, and resolves the active item being dragged. A read-only
- * list falls back to the render position for that key. The announcements name each item, and
- * the instructions give the keys of the lift model. Pairs with `useListKeyboard`; mirrors
+ * DnD orchestration for `<ListSortable>`. It wraps `useSortableList` and resolves
+ * the active item being dragged. The announcements name each item, and the
+ * instructions give the keys of the lift model. Pairs with `useListKeyboard`; mirrors
  * `useKanbanDrag`.
  */
 export function useListDrag<T>({
@@ -31,22 +30,14 @@ export function useListDrag<T>({
 	disabled,
 	containerRef,
 }: Options<T>) {
-	// The fallback reads the position, not the item, so duplicate primitives get
-	// distinct keys. Only the read-only arm reaches it. There, no drag or keyboard
-	// lookup calls the extractor without the index.
-	const effectiveGetKey = useMemo<(item: T, index?: number) => string>(
-		() => getKey ?? ((_item, index) => String(index)),
-		[getKey],
-	)
-
 	const sortable = useSortableList({
 		items,
-		getKey: effectiveGetKey,
+		getKey,
 		onReorder,
 		orientation,
 		disabled,
 		keyboardSensor: false,
-		describe: (item) => listItemName(containerRef.current, effectiveGetKey(item)),
+		describe: (item) => listItemName(containerRef.current, getKey(item)),
 	})
 
 	const { itemIds, strategy, interactive, activeId } = sortable
@@ -63,14 +54,11 @@ export function useListDrag<T>({
 		[sortable.dndContextProps],
 	)
 
-	const activeItem = activeId
-		? (items.find((item) => effectiveGetKey(item) === activeId) ?? null)
-		: null
+	const activeItem = activeId ? (items.find((item) => getKey(item) === activeId) ?? null) : null
 
 	const activeIndex = activeItem ? items.indexOf(activeItem) : -1
 
 	return {
-		effectiveGetKey,
 		itemIds,
 		strategy,
 		interactive,

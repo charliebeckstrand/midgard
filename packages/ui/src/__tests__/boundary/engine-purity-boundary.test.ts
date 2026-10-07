@@ -1,5 +1,6 @@
 import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { importsOf } from '../helpers/source-imports'
 import { isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
 // The pure-core invariant the grid, query, map, chat, and dashboard ROADMAPs each
@@ -27,47 +28,6 @@ const PURE_ENGINES = ['chat', 'dashboard', 'grid', 'map', 'query'] as const
 
 const enginePath = (module: string) => join(srcDir, 'modules', module, 'engine')
 
-/**
- * One import statement's specifier, and whether it survives compilation.
- *
- * Parsed rather than pattern-matched: this codebase writes no semicolons, so a
- * `[^;]*` body runs past the end of its own statement and swallows the imports
- * below it. The clause is instead taken non-greedily up to its own `from`.
- */
-type ImportRef = { specifier: string; runtime: boolean }
-
-const IMPORT = /^import\s+([\s\S]*?)\sfrom\s*['"]([^'"]+)['"]/gm
-
-/**
- * Whether an import clause emits a runtime dependency: `import type { … }` and
- * a clause whose every named binding carries its own `type` are both erased, so
- * neither costs the engine its independence. A bare `import 'x'` has no clause
- * and never reaches here — it carries no `from`.
- */
-function isRuntimeClause(clause: string): boolean {
-	const body = clause.trim()
-
-	if (body.startsWith('type ')) return false
-
-	const named = body.match(/\{([\s\S]*)\}/)
-
-	// A default or namespace binding sits outside the braces and is always runtime.
-	if (
-		!named ||
-		body
-			.replace(/\{[\s\S]*\}/, '')
-			.replace(/,/g, '')
-			.trim() !== ''
-	)
-		return true
-
-	return (named[1] ?? '')
-		.split(',')
-		.map((part) => part.trim())
-		.filter(Boolean)
-		.some((part) => !part.startsWith('type '))
-}
-
 /** Whether a runtime import of `specifier` costs an engine its independence. */
 function isFrameworkSpecifier(specifier: string): boolean {
 	return (
@@ -75,13 +35,6 @@ function isFrameworkSpecifier(specifier: string): boolean {
 		/^(motion|framer-motion)\b/.test(specifier) ||
 		/^@(dnd-kit|floating-ui)\//.test(specifier)
 	)
-}
-
-function importsOf(content: string): ImportRef[] {
-	return [...content.matchAll(IMPORT)].map((match) => ({
-		specifier: match[2] as string,
-		runtime: isRuntimeClause(match[1] as string),
-	}))
 }
 
 /**

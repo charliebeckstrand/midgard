@@ -23,7 +23,7 @@ type Item = (typeof items)[number]
 
 function Rows({ virtual }: { virtual: boolean }) {
 	return (
-		<List items={items} sortable={false} virtual={virtual} getKey={(item: Item) => item.id}>
+		<List items={items} virtual={virtual} getKey={(item: Item) => item.id}>
 			{(item) => <ListItem href={`#${item.id}`}>{item.label}</ListItem>}
 		</List>
 	)
