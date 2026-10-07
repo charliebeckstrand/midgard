@@ -1,5 +1,6 @@
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
 import { hannou, iro, ji, kasane, kokkaku, narabi, sen, ugoki } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { cursor, disabled, fg } = hannou
 const { text } = iro
@@ -33,13 +34,13 @@ const item = defineRecipe({
  * The box of an item header: the axis, the gap, the padding, and the text. The
  * skeleton header takes the same box, so the two boxes match.
  */
-const header = ['w-full', flex.row, 'justify-between', 'gap-2', 'p-4', size.md]
+const header = ['w-full', flex.row, 'justify-between', dan.gap.scale.sm, 'p-4', size.md]
 
 export const k = defineRecipe(
 	{
 		base: flex.col,
 		variant: {
-			separated: 'gap-1',
+			separated: dan.gap.scale.xs,
 			outline: ['overflow-hidden', rounded.lg, ...border.default, ...divider.between],
 			plain: divider.between,
 		},

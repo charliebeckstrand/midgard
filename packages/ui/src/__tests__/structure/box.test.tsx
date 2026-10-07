@@ -80,8 +80,8 @@ describe('Box', () => {
 			</DensityProvider>,
 		)
 
-		// Static leaf: spacing tokens are explicit; ambient density reaches
-		// client components only.
+		// The padding is explicit. A density scope sets the step of a padding, but
+		// it does not add a padding.
 		expect(bySlot(container, 'box')?.className).not.toMatch(/(^|\s)p-\d/)
 	})
 

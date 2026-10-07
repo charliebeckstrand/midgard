@@ -558,7 +558,7 @@ export function RangeLegend({
 			    direction. */}
 			<div
 				dir="ltr"
-				className={cn('flex gap-2', horizontal ? 'w-40 flex-col' : 'h-40 items-stretch')}
+				className={cn('flex', k.gap.range, horizontal ? 'w-40 flex-col' : 'h-40 items-stretch')}
 			>
 				<RangeTrack
 					slot={slot}

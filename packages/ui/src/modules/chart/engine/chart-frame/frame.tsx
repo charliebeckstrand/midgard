@@ -617,7 +617,8 @@ export function ChartFrame({
 				// twMerge for a caller that wants to bound it.
 				// The named group scopes the spark header's hover / focus veil to the
 				// chart, so it never trips on an unnamed `group-hover` inside the marks.
-				'group/chart @container flex flex-col gap-3',
+				'group/chart @container flex flex-col',
+				k.gap.frame,
 				// The whole chart, labels included, selects no text and opens no callout
 				// under a hold.
 				k.touch.readout,
@@ -753,7 +754,7 @@ function ChartFigure({
 			data-slot="chart-body"
 			className={cn(
 				'flex min-h-0 flex-1 flex-col',
-				rail ? 'gap-4' : 'gap-2',
+				rail ? k.gap.rail : k.gap.legend,
 				stretch ? '@sm:items-stretch' : '@sm:items-center',
 				// The side is physical: a right-to-left row runs from the right, so it
 				// swaps the order back, and a `left` legend still draws on the left.
@@ -795,7 +796,8 @@ function ChartFigure({
 			// `max-h-full`, so the ratio governs as normal; `min-h-0` lets the clamp
 			// actually shrink it.
 			className={cn(
-				'flex min-h-0 flex-col gap-3',
+				'flex min-h-0 flex-col',
+				k.gap.frame,
 				aspect !== undefined && 'max-h-full',
 				containerFill && 'h-full flex-1',
 			)}

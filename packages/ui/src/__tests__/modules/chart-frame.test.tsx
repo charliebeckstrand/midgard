@@ -95,11 +95,11 @@ describe('ChartFrame', () => {
 	it('keeps the wider gap of a color-scale rail beside the plot', () => {
 		const panel = renderUI(frame(400, { legendPlacement: 'right' }))
 
-		expect(bySlot(panel.container, 'chart-body')).toHaveClass('gap-2')
+		expect(bySlot(panel.container, 'chart-body')).toHaveClass('density-gap-[1,2,3]')
 
 		const rail = renderUI(frame(400, { legendPlacement: 'right', rail: true }))
 
-		expect(bySlot(rail.container, 'chart-body')).toHaveClass('gap-4')
+		expect(bySlot(rail.container, 'chart-body')).toHaveClass('density-gap-[3,4,5]')
 	})
 
 	it('draws no header for a title that names the context menu alone', () => {

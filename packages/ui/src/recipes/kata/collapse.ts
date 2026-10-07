@@ -1,5 +1,6 @@
 import { mode } from '../../core/recipe'
 import { hannou, iro, ji, narabi, sen, ugoki } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { cursor, disabled, fg } = hannou
 const { text } = iro
@@ -12,7 +13,7 @@ export const k = {
 	base: 'group/collapse',
 	trigger: [
 		flex.inline,
-		'gap-2',
+		dan.gap.scale.sm,
 		size.md,
 		text.muted,
 		fg.hover,

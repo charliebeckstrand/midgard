@@ -97,7 +97,7 @@ const card = defineRecipe({
  * the floor.
  */
 const header = [
-	`flex min-w-0 items-center gap-2 ${dan.space.box.bottom} [--touch-target-gap-x:0px]`,
+	`flex min-w-0 items-center ${dan.gap.scale.sm} ${dan.space.box.bottom} [--touch-target-gap-x:0px]`,
 	'has-data-own-fullscreen:**:data-[slot=dashboard-tile-expand]:hidden',
 	'**:data-[variant=bare]:not-data-has-label:density-xs:-mx-0.75',
 	'**:data-[variant=bare]:not-data-has-label:density-sm:-mx-1',
@@ -115,7 +115,7 @@ const heading = 'min-w-0 flex-1'
  * The action row at the far end of the header. Its gap is the gap of the header
  * row, so the controls of a widget after it keep the same gap.
  */
-const actions = 'flex shrink-0 items-center gap-2'
+const actions = `flex shrink-0 items-center ${dan.gap.scale.sm}`
 
 /**
  * The content box. It fills the height that the header leaves. A widget taller
@@ -150,7 +150,7 @@ const content = defineRecipe({
 const expanded = 'flex max-h-[min(70dvh,40rem)] min-h-0 w-full flex-col'
 
 /** The error state of a tile: a centered message and a retry button. */
-const error = 'flex size-full flex-col items-center justify-center gap-2 p-2 text-center'
+const error = `flex size-full flex-col items-center justify-center ${dan.gap.scale.sm} p-2 text-center`
 
 /** The state of a spec tile whose kind no widget claims: a centered message. */
 const missing = 'flex size-full items-center justify-center p-2 text-center'

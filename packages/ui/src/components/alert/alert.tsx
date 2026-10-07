@@ -168,12 +168,7 @@ function AlertContent({
 	const Title = titleLevel === undefined ? 'div' : (`h${titleLevel}` as const)
 
 	return (
-		<div
-			className={cn(
-				k.content,
-				resolvedIcon ? 'grid grid-cols-[auto_minmax(0,1fr)] gap-x-2' : 'flex flex-col',
-			)}
-		>
+		<div className={cn(k.content, resolvedIcon ? k.columns : 'flex flex-col')}>
 			{resolvedIcon && <Icon icon={resolvedIcon} className={cn(k.icon)} />}
 
 			{title && <Title className={cn(k.title, resolvedIcon && 'self-center')}>{title}</Title>}

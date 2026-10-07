@@ -1,5 +1,6 @@
 import { mode } from '../../core/recipe'
 import { hannou, iro, ji, kasane, narabi, sen } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { cursor, disabled } = hannou
 const { text } = iro
@@ -9,10 +10,12 @@ const { flex } = narabi
 const { focus } = sen
 
 export const k = {
+	/** The row of `FileUploadButton`: the trigger and the `Reset` button beside it. */
+	button: ['inline-flex', dan.gap.scale.sm],
 	dropzone: [
 		flex.col,
 		'items-center justify-center',
-		'gap-1',
+		dan.gap.scale.xs,
 		// Inner padding so a selection's filename doesn't hug the dashed edges.
 		'px-4',
 		size.md,

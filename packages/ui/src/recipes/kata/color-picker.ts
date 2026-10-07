@@ -12,7 +12,7 @@ const { portal, panel, fit } = popover
 
 const button = defineRecipe({
 	base: [
-		'flex items-center gap-2',
+		`flex items-center ${dan.gap.scale.sm}`,
 		...reset.base,
 		'text-start',
 		'appearance-none',
