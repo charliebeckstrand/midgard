@@ -25,6 +25,26 @@ describe('BugLogButton', () => {
 })
 
 describe('BugLogSheet', () => {
+	it('shows Clear only while the log holds a report, and no Copy all', () => {
+		render(<BugLogSheet open onOpenChange={() => {}} />)
+
+		expect(screen.queryByRole('button', { name: 'Clear' })).toBeNull()
+
+		act(() => {
+			fireEvent.click(screen.getByRole('button', { name: 'Capture' }))
+		})
+
+		expect(screen.queryByRole('button', { name: /^Copy all$/ })).toBeNull()
+
+		act(() => {
+			fireEvent.click(screen.getByRole('button', { name: 'Clear' }))
+		})
+
+		expect(screen.getByText('No bugs')).toBeDefined()
+
+		expect(screen.queryByRole('button', { name: 'Clear' })).toBeNull()
+	})
+
 	it('shows a report in place of the list and of "Preserve", and goes back', () => {
 		render(<BugLogSheet open onOpenChange={() => {}} />)
 

@@ -185,9 +185,10 @@ function EventRow({ row, width, state }: { row: Row; width: number; state: OpenS
 
 /**
  * The viewer of the Event log: the title, "Preserve", and "Batch", the lines,
- * newest first, Copy (oldest first, as text, with each detail), and Clear.
- * With "Batch" on, the default, the entries of one batch are one line that
- * opens to their lines. The log records nothing while the sheet is on screen.
+ * newest first, Copy (oldest first, as text, with each detail), and Clear
+ * while the log holds a line. With "Batch" on, the default, the entries of one
+ * batch are one line that opens to their lines. The log records nothing while
+ * the sheet is on screen.
  */
 export function EventLogSheet({
 	open,
@@ -288,9 +289,11 @@ export function EventLogSheet({
 						<Button size="sm" color={copied ? 'green' : undefined} onClick={() => void copy()}>
 							{copied ? 'Copied' : 'Copy'}
 						</Button>
-						<Button size="sm" color="amber" onClick={() => log.clear()}>
-							Clear
-						</Button>
+						{entries.length > 0 && (
+							<Button size="sm" color="amber" onClick={() => log.clear()}>
+								Clear
+							</Button>
+						)}
 					</Flex>
 					<SheetClose />
 				</SheetFooter>
