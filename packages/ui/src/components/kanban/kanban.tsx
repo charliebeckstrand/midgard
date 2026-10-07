@@ -46,8 +46,8 @@ export type KanbanProps<T, C extends KanbanColumnBase<T>> = AccessibleName &
  * With `onReorder` and `disabled`, the board is disabled: each card takes
  * `data-disabled`, and each handle shows a muted grip. Shares drag/keyboard state
  * with descendant {@link KanbanColumn} and {@link KanbanCard} via context.
- * Compose the column header/body slots within. A pointer drags a card from any
- * part of it, and the keyboard lifts a card from its {@link KanbanCardHandle}.
+ * Compose the column header/body slots within. A pointer drags a card, and the
+ * keyboard lifts a card, only from its {@link KanbanCardHandle}.
  *
  * @remarks
  * Client component. The board is a named `role="region"` (`<section>`), so the
@@ -182,9 +182,9 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 									data-slot="kanban-card"
 									data-card-id={activeId}
 									data-overlay="true"
-									// The pointer rides the overlay, so it shows the held hand.
+									// The clone follows a live drag.
 									data-dragging=""
-									className={cn(k.card.base, k.card.draggable, k.card.active)}
+									className={cn(k.card.base, k.card.active)}
 								>
 									{overlayMap.current.get(activeId)}
 								</div>

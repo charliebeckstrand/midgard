@@ -32,11 +32,12 @@ export type KanbanCardProps = {
  * Client component. The card is a list item of the `<ul>` of its column body.
  * A read-only or disabled card is the `<li>` itself. An interactive card is a
  * `<div>` inside its `<li>`, with no role and no tab stop. A control or a link
- * inside the card thus keeps its own role. A mouse drags the card from any
- * part of it. A finger on the card scrolls, and a finger on the
- * {@link KanbanCardHandle} drags. The keyboard reaches the card through its
- * handle, which takes the drag instructions and the keyboard lift. An
- * interactive card with no handle warns in development. Set
+ * inside the card thus keeps its own role. Only the {@link KanbanCardHandle}
+ * starts a drag: a mouse or a finger on the rest of the card selects text and
+ * scrolls. The handle also takes the drag instructions and the keyboard lift.
+ * The card holds the handle at its start edge, centered on its height, and
+ * pads its other children past the handle, so they align with each other. An interactive
+ * card with no handle warns in development. Set
  * `aria-label` only when the content yields no usable name. Memoized: the card
  * reads only the card-facing {@link KanbanContext}, so a pointer drag doesn't
  * re-render the whole board.
@@ -91,7 +92,7 @@ function KanbanCardImpl({
 		if (!interactive || handleCount.current > 0) return
 
 		console.warn(
-			`Kanban: <KanbanCard value="${cardId}"> holds no <KanbanCardHandle>. A mouse drags the card, but a finger and the keyboard cannot.`,
+			`Kanban: <KanbanCard value="${cardId}"> holds no <KanbanCardHandle>. No pointer and no key can move the card.`,
 		)
 	}, [interactive, cardId])
 
@@ -101,11 +102,21 @@ function KanbanCardImpl({
 			interactive,
 			setActivatorNodeRef,
 			attributes,
+			listeners,
 			dragging,
 			itemId,
 			registerHandle,
 		}),
-		[cardId, interactive, setActivatorNodeRef, attributes, dragging, itemId, registerHandle],
+		[
+			cardId,
+			interactive,
+			setActivatorNodeRef,
+			attributes,
+			listeners,
+			dragging,
+			itemId,
+			registerHandle,
+		],
 	)
 
 	// The card reads its own lift, so a lift renders only the cards that lift and drop.
@@ -126,12 +137,7 @@ function KanbanCardImpl({
 		}
 	}, [interactive, cardId, children, overlayMap])
 
-	const cardClassName = cn(
-		k.card.base,
-		interactive && k.card.draggable,
-		lifted && k.card.lifted,
-		className,
-	)
+	const cardClassName = cn(k.card.base, lifted && k.card.lifted, className)
 
 	// A read-only or disabled card is the list item itself.
 	if (!interactive) {
@@ -151,16 +157,15 @@ function KanbanCardImpl({
 		)
 	}
 
-	// The list item carries the name, and the handle reads it. The dnd-kit node
-	// takes only the pointer listeners: the drag attributes and the keys go on
-	// the handle, so the card adds no role over its content.
+	// The list item carries the name, and the handle reads it. The drag
+	// attributes, the pointer listeners, and the keys go on the handle, so the
+	// card adds no role over its content and keeps its touch scrolling.
 	return (
 		<KanbanCardContext value={cardValue}>
 			<li id={itemId} aria-label={ariaLabel} data-slot="kanban-card-item">
 				<div
 					ref={setNodeRef}
 					style={style}
-					{...listeners}
 					data-slot="kanban-card"
 					data-card-id={cardId}
 					data-dragging={dataAttr(dragging)}

@@ -61,20 +61,13 @@ const tile = defineRecipe({
 
 /**
  * The card of a tile: a column of the header row and the content box. A movable
- * card in edit mode is a drag surface, so it takes the grab cursor. It keeps
- * touch scrolling, and the grip is the handle on a touch screen.
+ * card in edit mode shows a dashed outline. The grip is its drag surface, so the
+ * card keeps touch scrolling.
  */
 const card = defineRecipe({
 	base: ['relative flex size-full min-h-0 flex-col'],
 	editable: {
-		true: [
-			// The cursors alone: the card keeps touch scrolling, and the grip is the
-			// handle on a touch screen.
-			...grab.cursor,
-			'select-none',
-			'outline-dashed',
-			...mode('outline-zinc-300', 'dark:outline-zinc-700'),
-		],
+		true: ['select-none', 'outline-dashed', ...mode('outline-zinc-300', 'dark:outline-zinc-700')],
 		false: '',
 	},
 	dragging: { true: 'shadow-xl', false: '' },
@@ -119,11 +112,10 @@ const header = [
 const heading = 'min-w-0 flex-1'
 
 /**
- * The action row at the far end of the header. A press in it starts no drag,
- * so it takes the default cursor over the grab hand of the card. Its gap is the
- * gap of the header row, so the controls of a widget after it keep the same gap.
+ * The action row at the far end of the header. Its gap is the gap of the header
+ * row, so the controls of a widget after it keep the same gap.
  */
-const actions = 'flex shrink-0 cursor-default items-center gap-2'
+const actions = 'flex shrink-0 items-center gap-2'
 
 /**
  * The content box. It fills the height that the header leaves. A widget taller

@@ -326,7 +326,6 @@ export function DashboardTile(props: DashboardTileProps) {
 				movable={movable}
 				dragging={drag.dragging}
 				grip={drag.grip}
-				surface={drag.surface}
 				mount={mount}
 				fallback={placeholder}
 				onError={onError}

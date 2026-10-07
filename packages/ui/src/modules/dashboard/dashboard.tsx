@@ -211,7 +211,8 @@ export type DashboardProps = AccessibleName & {
 	selection?: DashboardSelectionBinding
 	/**
 	 * Edit mode. The column guides show, each tile gets a drag grip and resize
-	 * splitters, and the content of each tile goes inert. Edit mode never changes
+	 * splitters, and the content of each tile goes inert. A drag starts only from
+	 * the grip, so the rest of a tile keeps touch scrolling. Edit mode never changes
 	 * a tile size, so no widget re-lays out on the switch. While the responsive
 	 * projection is on screen, edit mode stands down, because a gesture edits the
 	 * saved layout and not the re-pack. When edit mode ends or stands down, or when

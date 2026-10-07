@@ -189,9 +189,11 @@ describe('the glide of a dashboard tile', () => {
 
 		expect(glide.cancel).not.toHaveBeenCalled()
 
-		const card = screen.getByRole('group', { name: 'Traffic' })
-
-		fireEvent.pointerDown(card, { ...PRIMARY, clientX: 0, clientY: 0 })
+		fireEvent.pointerDown(screen.getByRole('button', { name: 'Move Traffic' }), {
+			...PRIMARY,
+			clientX: 0,
+			clientY: 0,
+		})
 
 		// The pointer sensor lifts the tile after 3 px of travel.
 		fireEvent.pointerMove(document, { ...PRIMARY, clientX: 10, clientY: 0 })

@@ -69,7 +69,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > A `TreeItem` row is one control, so its `prefix` and `suffix` hold no control. For a checkbox tree, give each item `checked` (or `defaultChecked`) and `onCheckedChange`. The row carries `aria-checked` and draws the box, Space toggles the check, and Enter toggles a branch. The caller computes the `'mixed'` state of a branch.
 
-> `kanban` composes a `KanbanColumn` of a `KanbanColumnHeader` and a `KanbanColumnBody` of `KanbanCard`s. Put a `KanbanCardHandle` in each card. The handle is the keyboard stop of the card and takes the keyboard lift. A mouse drags the card from any part of it. On a touch screen the handle drags, and the rest of the card scrolls. A read-only board, with no `onReorder`, shows no handle.
+> `kanban` composes a `KanbanColumn` of a `KanbanColumnHeader` and a `KanbanColumnBody` of `KanbanCard`s. Put a `KanbanCardHandle` in each card. The handle is the only part of the card that starts a drag, and it is the keyboard stop that takes the keyboard lift. The rest of the card scrolls under a finger. The card centers the handle on its start edge. The other children of the card align with each other beside the handle. A read-only board, with no `onReorder`, shows no handle.
 
 > A `list` auto-inserts a `ListHandle` in each `ListItem` only when it has `onReorder`. A read-only list shows no handle, and a disabled list shows a muted one. The `bare` variant has no row padding and no dividers. It is for rows of form controls, such as a reorderable list of inputs in a `Field`.
 

@@ -62,7 +62,7 @@ describe('drag state attribute (real browser)', () => {
 
 		if (!card) throw new Error('expected a kanban card')
 
-		const held = await startDrag(card)
+		const held = await startDrag(getSlot(card, 'kanban-card-handle'))
 
 		await expect.poll(() => card.hasAttribute('data-dragging')).toBe(true)
 
@@ -100,7 +100,7 @@ describe('drag state attribute (real browser)', () => {
 
 		expect(card).not.toHaveAttribute('data-dragging')
 
-		const held = await startDrag(card)
+		const held = await startDrag(getSlot(card, 'kanban-card-handle'))
 
 		await expect.poll(() => card.hasAttribute('data-dragging')).toBe(true)
 

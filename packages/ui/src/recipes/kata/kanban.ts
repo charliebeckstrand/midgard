@@ -2,7 +2,7 @@
  * Kanban kata: object-literal surface for the `<Kanban>` board, its columns, and
  * cards. No variants axis. The `column` group nests `base` / `header` / `title`
  * / `body` / `empty` slots, and `base` marks the column a card is over. The `card` group nests `base`, the `handle`, and
- * the drag-state classes (`draggable`, `lifted`, `active`). `skeleton` is the
+ * the drag-state classes (`lifted`, `active`). `skeleton` is the
  * form of the lines of the `KanbanCardSkeleton`.
  */
 import { mode } from '../../core/recipe'
@@ -43,11 +43,17 @@ export const k = {
 		empty: [flex.row, 'justify-center', 'min-h-16', size.sm, text.muted],
 	},
 	card: {
+		// A card with a handle holds it at its start edge, centered on the height
+		// of the card. The card pads its start edge by the handle and the gap
+		// (`p-2`, `size-6`, `gap-1`: 36px), so the other children align with each
+		// other beside it. A card with no handle has no extra padding.
 		base: [
 			'group/kanban-card',
+			'relative',
 			flex.col,
 			'gap-1',
-			'p-2',
+			'*:data-[slot=kanban-card-handle]:absolute *:data-[slot=kanban-card-handle]:start-2 *:data-[slot=kanban-card-handle]:inset-y-0 *:data-[slot=kanban-card-handle]:my-auto',
+			'p-2 has-[>[data-slot=kanban-card-handle]]:ps-9',
 			...mode('bg-white', 'dark:bg-zinc-950'),
 			border.default,
 			size.sm,
@@ -58,12 +64,7 @@ export const k = {
 			...disabled,
 			'data-readonly:cursor-default data-disabled:cursor-not-allowed',
 		],
-		// The cursors alone: the card keeps touch scrolling, and the handle is the
-		// drag surface on a touch screen.
-		draggable: [...grab.cursor],
-		// The keyboard stop of an interactive card, and the touch drag surface. A
-		// mouse drags the card from any part of it, so the handle shows the same
-		// hand.
+		// The only drag surface of an interactive card, and its keyboard stop.
 		handle: [
 			flex.row,
 			'size-6 shrink-0 justify-center',
@@ -74,7 +75,7 @@ export const k = {
 			focus.ring,
 		],
 		lifted: [...focus.lifted.raise, focus.lifted.ring],
-		active: 'z-10 shadow-lg relative opacity-95',
+		active: 'z-10 shadow-lg opacity-95',
 	},
 	skeleton: kokkaku.kanban,
 } as const

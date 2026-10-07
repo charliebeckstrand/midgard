@@ -24,9 +24,10 @@ export type KanbanCardHandleProps = {
 /**
  * Drag handle of a {@link KanbanCard}: the keyboard stop of the card. On an
  * interactive board it is a `<button>` that takes the dnd-kit activator, the
- * drag instructions, and the keyboard lift. A mouse drags the card from the
- * handle or from any other part of the card. On a touch screen the handle is
- * the drag surface, and the rest of the card scrolls.
+ * pointer listeners, the drag instructions, and the keyboard lift. It is the
+ * only part of the card that starts a drag, and the rest of the card scrolls
+ * under a finger. The card holds the handle at its start edge, centered on
+ * the height of the card, beside its other children.
  *
  * @remarks
  * Client component. Put one handle in each card. The card itself has no role
@@ -71,7 +72,7 @@ export function KanbanCardHandle({
 		)
 	}
 
-	const { cardId, setActivatorNodeRef, attributes, dragging, itemId } = card
+	const { cardId, setActivatorNodeRef, attributes, listeners, dragging, itemId } = card
 
 	// The handle is a native `<button>`, so the `role="button"` of dnd-kit is redundant.
 	const { role: _role, ...handleAttributes } = attributes
@@ -80,6 +81,7 @@ export function KanbanCardHandle({
 		<button
 			ref={setActivatorNodeRef}
 			{...handleAttributes}
+			{...listeners}
 			type="button"
 			id={handleId}
 			// "Drag" and then the name of the card item. An explicit name replaces both.

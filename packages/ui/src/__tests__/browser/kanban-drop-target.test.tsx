@@ -74,11 +74,20 @@ describe('Kanban drop target (real browser)', () => {
 			return el
 		}
 
-		return { column, card }
+		// The handle is the only drag surface of a card.
+		const handle = (id: string) => {
+			const el = card(id).querySelector<HTMLElement>('[data-slot="kanban-card-handle"]')
+
+			if (!el) throw new Error(`expected the handle of the card ${id}`)
+
+			return el
+		}
+
+		return { column, card, handle }
 	}
 
 	it('steps up the fill of an empty column while a card is over it', async () => {
-		const { column, card } = board([
+		const { column, handle } = board([
 			{ id: 'todo', items: [{ id: 'a', label: 'Alpha' }] },
 			{ id: 'done', items: [] },
 		])
@@ -87,9 +96,9 @@ describe('Kanban drop target (real browser)', () => {
 
 		const resting = getComputedStyle(target).backgroundColor
 
-		const from = centerOf(card('a'))
+		const from = centerOf(handle('a'))
 
-		const held = await drag(card('a'), from, [{ x: from.x, y: from.y + 20 }, centerOf(target)])
+		const held = await drag(handle('a'), from, [{ x: from.x, y: from.y + 20 }, centerOf(target)])
 
 		await expect.poll(() => target.hasAttribute('data-over')).toBe(true)
 
@@ -105,7 +114,7 @@ describe('Kanban drop target (real browser)', () => {
 	})
 
 	it('steps up the fill of a column that holds cards once the card moves into it', async () => {
-		const { column, card } = board([
+		const { column, card, handle } = board([
 			{ id: 'todo', items: [{ id: 'a', label: 'Alpha' }] },
 			{ id: 'done', items: [{ id: 'b', label: 'Bravo' }] },
 		])
@@ -114,9 +123,9 @@ describe('Kanban drop target (real browser)', () => {
 
 		const resting = getComputedStyle(target).backgroundColor
 
-		const from = centerOf(card('a'))
+		const from = centerOf(handle('a'))
 
-		const held = await drag(card('a'), from, [{ x: from.x, y: from.y + 20 }, centerOf(card('b'))])
+		const held = await drag(handle('a'), from, [{ x: from.x, y: from.y + 20 }, centerOf(card('b'))])
 
 		await expect.poll(() => target.hasAttribute('data-over')).toBe(true)
 
@@ -130,7 +139,7 @@ describe('Kanban drop target (real browser)', () => {
 	})
 
 	it('keeps the column that the drag started in quiet', async () => {
-		const { column, card } = board([
+		const { column, card, handle } = board([
 			{
 				id: 'todo',
 				items: [
@@ -143,10 +152,10 @@ describe('Kanban drop target (real browser)', () => {
 
 		const source = column('todo')
 
-		const from = centerOf(card('a'))
+		const from = centerOf(handle('a'))
 
 		// The lift, and a reorder in place over the card below it.
-		const held = await drag(card('a'), from, [{ x: from.x, y: from.y + 20 }, centerOf(card('c'))])
+		const held = await drag(handle('a'), from, [{ x: from.x, y: from.y + 20 }, centerOf(card('c'))])
 
 		await expect.poll(() => card('a').hasAttribute('data-dragging')).toBe(true)
 
