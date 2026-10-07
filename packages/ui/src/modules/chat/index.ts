@@ -20,7 +20,6 @@ export type {
 export type { ChatMessageData } from './engine/types'
 export type { ChatEmbedRegistry, ChatEmbedRenderer } from './types'
 export { type ChatDraft, type ChatDraftOptions, useChatDraft } from './use-chat-draft'
-export { useChatScroll } from './use-chat-scroll'
 export {
 	type ChatSend,
 	type ChatSendOptions,
