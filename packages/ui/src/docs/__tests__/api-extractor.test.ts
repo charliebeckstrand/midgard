@@ -4,7 +4,8 @@ import { afterAll, describe, expect, it } from 'vitest'
 import { type BarrelApi, createApiExtractor } from '../plugin/api.ts'
 
 // The API data that the docs plugin makes for some components whose props
-// have a union, an inherited tag, or a default that is a sentence.
+// have a union, an inherited tag, a default that is a sentence, or an
+// `@internal` tag.
 
 const UI_ROOT = path.resolve(import.meta.dirname, '..', '..', '..')
 
@@ -14,6 +15,7 @@ const BARRELS = [
 	'components/confirm',
 	'components/date-picker',
 	'components/hold-button',
+	'components/menu',
 	'components/segment',
 	'components/table',
 	'components/tabs',
@@ -98,5 +100,14 @@ describe('API extractor', { timeout: 60_000 }, () => {
 		expect(initialFocus?.default).toBeUndefined()
 
 		expect(initialFocus?.description).toMatch(/Default: the first tabbable child\.$/)
+	})
+
+	it('leaves out an internal prop', async () => {
+		const api = await load()
+
+		// `ContextMenu` sets the `disabled` of `Menu`. A dropdown ignores it.
+		expect(propOf(api, 'Menu', 'disabled')).toBeUndefined()
+
+		expect(propOf(api, 'Menu', 'sheet')).toBeDefined()
 	})
 })
