@@ -18,6 +18,5 @@ vi.mock('motion/react-m', async () => (await import('../../mocks/motion-react-m'
 // starts the load in idle time, so without this load the handover lands at a
 // moment that the order of the files decides, and a case that counts commits
 // can see it. The load before each file gives each case the state of a page
-// that already loaded the module, as the jsdom setup does. The `floating-ui`
-// project tests the state before the load.
+// that already loaded the module, as the jsdom setup does.
 beforeAll(() => loadTooltipBody())
