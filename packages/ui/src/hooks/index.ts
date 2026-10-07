@@ -79,12 +79,8 @@ export { type ScrollOverflowOptions, useScrollOverflow } from './use-scroll-over
 export { type ScrollRegionOptions, useScrollRegion } from './use-scroll-region'
 export { type ScrollWithinOptions, useScrollWithin } from './use-scroll-within'
 export { useSelectableValueChange } from './use-selectable-value-change'
-export {
-	type SortableGridKeyboardOptions,
-	useSortableGridKeyboard,
-} from './use-sortable-grid-keyboard'
 export { type SortableItemOptions, useSortableItem } from './use-sortable-item'
-export { type SortableLayout, type SortableListOptions, useSortableList } from './use-sortable-list'
+export { type SortableListOptions, useSortableList } from './use-sortable-list'
 export { type SortableSensorsOptions, useSortableSensors } from './use-sortable-sensors'
 export { type Timeout, useTimeout } from './use-timeout'
 export {

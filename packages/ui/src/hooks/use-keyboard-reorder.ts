@@ -42,7 +42,7 @@ function focusTarget(key: string, step: number | null, { index, last }: ReorderT
 }
 
 /**
- * The keyboard reorder model that a list and a grid share. Space lifts, a step key moves focus
+ * The keyboard reorder model of a sortable list. Space lifts, a step key moves focus
  * or, when lifted, moves the item, Home and End jump to the ends, and Escape or Enter drops.
  * Each change is announced.
  *
