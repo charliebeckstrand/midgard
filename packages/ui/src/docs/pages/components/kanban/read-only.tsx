@@ -25,7 +25,9 @@ export default function ReadOnly() {
 						{column.items.map((load) => (
 							<KanbanCard key={load.id} value={load.id}>
 								<Text className="font-medium">{load.code}</Text>
-								<Text tone="muted">{load.customer}</Text>
+								<Text tone="muted" className="line-clamp-2">
+									{load.customer}
+								</Text>
 							</KanbanCard>
 						))}
 					</KanbanColumnBody>

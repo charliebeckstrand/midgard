@@ -35,8 +35,8 @@ export type KanbanCardProps = {
  * inside the card thus keeps its own role. Only the {@link KanbanCardHandle}
  * starts a drag: a mouse or a finger on the rest of the card selects text and
  * scrolls. The handle also takes the drag instructions and the keyboard lift.
- * The card puts the handle in a column at its start edge, and its other
- * children in a second column, so they align with each other. An interactive
+ * The card holds the handle at its start edge, centered on its height, and
+ * pads its other children past the handle, so they align with each other. An interactive
  * card with no handle warns in development. Set
  * `aria-label` only when the content yields no usable name. Memoized: the card
  * reads only the card-facing {@link KanbanContext}, so a pointer drag doesn't

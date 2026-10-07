@@ -37,7 +37,9 @@ export default function KanbanPlayground(props: KanbanProps<Load, Column>) {
 							<KanbanCard key={load.id} value={load.id} aria-label={load.code}>
 								<KanbanCardHandle />
 								<Text className="font-medium">{load.code}</Text>
-								<Text tone="muted">{load.customer}</Text>
+								<Text tone="muted" className="line-clamp-2">
+									{load.customer}
+								</Text>
 								<Text tone="muted" size="xs">
 									{load.weight}
 								</Text>

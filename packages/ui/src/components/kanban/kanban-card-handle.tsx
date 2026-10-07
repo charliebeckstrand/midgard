@@ -26,8 +26,8 @@ export type KanbanCardHandleProps = {
  * interactive board it is a `<button>` that takes the dnd-kit activator, the
  * pointer listeners, the drag instructions, and the keyboard lift. It is the
  * only part of the card that starts a drag, and the rest of the card scrolls
- * under a finger. The card puts the handle at its start edge, beside the
- * column of its other children.
+ * under a finger. The card holds the handle at its start edge, centered on
+ * the height of the card, beside its other children.
  *
  * @remarks
  * Client component. Put one handle in each card. The card itself has no role

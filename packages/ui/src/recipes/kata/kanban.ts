@@ -43,17 +43,17 @@ export const k = {
 		empty: [flex.row, 'justify-center', 'min-h-16', size.sm, text.muted],
 	},
 	card: {
-		// A card with a handle is a grid of two columns: the handle at the start
-		// edge, and every other child in the second column, so the lines of the
-		// card align with each other. A card with no handle is one column.
+		// A card with a handle holds it at its start edge, centered on the height
+		// of the card. The card pads its start edge by the handle and the gap
+		// (`p-2`, `size-6`, `gap-1`: 36px), so the other children align with each
+		// other beside it. A card with no handle has no extra padding.
 		base: [
 			'group/kanban-card',
+			'relative',
 			flex.col,
 			'gap-1',
-			'has-[>[data-slot=kanban-card-handle]]:grid has-[>[data-slot=kanban-card-handle]]:grid-cols-[auto_minmax(0,1fr)] has-[>[data-slot=kanban-card-handle]]:items-center',
-			'*:col-start-2',
-			'*:data-[slot=kanban-card-handle]:col-start-1 *:data-[slot=kanban-card-handle]:row-start-1',
-			'p-2',
+			'*:data-[slot=kanban-card-handle]:absolute *:data-[slot=kanban-card-handle]:start-2 *:data-[slot=kanban-card-handle]:inset-y-0 *:data-[slot=kanban-card-handle]:my-auto',
+			'p-2 has-[>[data-slot=kanban-card-handle]]:ps-9',
 			...mode('bg-white', 'dark:bg-zinc-950'),
 			border.default,
 			size.sm,
@@ -75,7 +75,7 @@ export const k = {
 			focus.ring,
 		],
 		lifted: [...focus.lifted.raise, focus.lifted.ring],
-		active: 'z-10 shadow-lg relative opacity-95',
+		active: 'z-10 shadow-lg opacity-95',
 	},
 	skeleton: kokkaku.kanban,
 } as const

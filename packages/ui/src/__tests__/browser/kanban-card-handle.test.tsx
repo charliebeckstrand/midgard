@@ -15,8 +15,8 @@ import { drag } from './helpers/drag'
  * The handle of a kanban card is the keyboard stop of the card. The card has no
  * role, so a control inside it keeps its own role. The keyboard lifts and moves
  * the card from the handle, and a pointer drags the card only from the handle.
- * The card puts the handle at its start edge and its other children in one
- * column beside it.
+ * The card centers the handle at its start edge, and its other children align
+ * beside it.
  *
  * Rides the real browser for real focus, the accessible name that the browser
  * engine computes, and a real pointer drag past the sensor's activation
@@ -159,7 +159,7 @@ describe('kanban card handle (real browser)', () => {
 		await held.release()
 	})
 
-	it('puts the handle at the start edge, and aligns the other children with each other', () => {
+	it('centers the handle at the start edge, and aligns the other children with each other', () => {
 		const { container } = renderUI(<Board />)
 
 		const [card] = allBySlot(container, 'kanban-card')
@@ -174,10 +174,12 @@ describe('kanban card handle (real browser)', () => {
 
 		if (!text || !edit) throw new Error('expected the card children')
 
-		// The text sits beside the handle, on the row of the handle.
-		expect(text.left).toBeGreaterThanOrEqual(handle.right)
+		const box = card.getBoundingClientRect()
 
-		expect(Math.abs(text.top + text.height / 2 - (handle.top + handle.height / 2))).toBeLessThan(1)
+		// The handle is centered on the height of the card, and the text sits beside it.
+		expect(Math.abs(handle.top + handle.height / 2 - (box.top + box.height / 2))).toBeLessThan(1)
+
+		expect(text.left).toBeGreaterThanOrEqual(handle.right)
 
 		// The control on the next line starts at the left edge of the text.
 		expect(edit.top).toBeGreaterThanOrEqual(text.bottom)
