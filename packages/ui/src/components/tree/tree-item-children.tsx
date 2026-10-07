@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { createElement, isValidElement, type ReactNode, useMemo } from 'react'
 import { cn, dataAttr } from '../../core'
 import { MountHold, useMountHold } from '../../primitives/mount'
+import { heldMotionProps } from '../../primitives/mount/mount-held-motion'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k } from '../../recipes/kata/tree'
 import { flattenChildren } from '../../utilities/flatten-children'
@@ -98,19 +99,7 @@ export function TreeItemChildren({ id, open, label, children }: TreeItemChildren
 	return (
 		<ReducedMotion>
 			<MountHold hold={hold} name="tree-group">
-				{group({
-					// A `lazy` group mounts on its first open and so enters from the
-					// closed state; an `always` group is present from the start and takes
-					// its open-or-closed state without playing anything.
-					initial: mount === 'lazy' ? k.motion.initial : false,
-					// Held, so it animates between the two states in place — no `exit`,
-					// which only `AnimatePresence` reads.
-					animate: open ? k.motion.animate : k.motion.exit,
-					transition: k.motion.transition,
-					// `rest` ignores a landing that arrives while open, so the entrance
-					// passes through without a guard here.
-					onAnimationComplete: hold.rest,
-				})}
+				{group(heldMotionProps(k.motion, open, hold))}
 			</MountHold>
 		</ReducedMotion>
 	)
