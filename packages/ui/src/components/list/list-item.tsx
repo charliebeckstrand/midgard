@@ -1,6 +1,5 @@
 'use client'
 
-import { Reorder } from 'motion/react'
 import type { ComponentProps, ElementType, FocusEvent, KeyboardEvent, ReactNode } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useKeyedValue } from '../../hooks/use-keyed-store'
@@ -8,6 +7,7 @@ import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic
 import { k } from '../../recipes/kata/list'
 import { type ListItemContextValue, useListContext, useListItemContext } from './context'
 import { ListHandle } from './list-handle'
+import type { ListReorderParts } from './list-reorder'
 
 /**
  * Props for {@link ListItem}: `prefix`/`suffix` slots plus the content area's
@@ -67,9 +67,6 @@ export type ListItemProps<Fallback extends ElementType = 'div'> = {
 	// `<li>`.
 } & PolymorphicProps<Fallback, 'prefix' | 'ref'>
 
-/** The transition of a reorderable row that moves with no animation. */
-const INSTANT = { duration: 0 }
-
 /**
  * A row within a {@link List}, rendered as `<li>` with `prefix`/`suffix` slots
  * around a polymorphic content area. That area switches to the app's router link
@@ -123,6 +120,7 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 		liftedStore,
 		onItemKeyDown,
 		onItemBlur,
+		reorderParts,
 	} = useListContext()
 
 	// The row reads its own lift, so a lift renders only the rows that lift and drop.
@@ -238,35 +236,25 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 	)
 
 	return (
-		<ListItemRow id={id} reorder={reorder} {...row}>
+		<ListItemRow id={id} reorder={reorder} parts={reorderParts} {...row}>
 			{content}
 		</ListItemRow>
 	)
 }
 
 /**
- * The `<li>` of a {@link ListItem}. A reorderable row is a Motion `Reorder.Item`.
- * Only the handle starts its drag, through the controls; the content area stays
- * free for a press or a scroll.
+ * The `<li>` of a {@link ListItem}. A reorderable row is a Motion `Reorder.Item`
+ * after the `Reorder` parts arrive (see `useListReorder`), and a plain `<li>`
+ * before.
  */
 function ListItemRow({
 	id,
 	reorder,
+	parts,
 	...row
 }: Omit<ComponentProps<'li'>, 'onAnimationStart' | 'onDrag' | 'onDragStart' | 'onDragEnd'> &
-	Pick<ListItemContextValue, 'id' | 'reorder'>) {
-	if (reorder === undefined) return <li {...row} />
+	Pick<ListItemContextValue, 'id' | 'reorder'> & { parts: ListReorderParts | undefined }) {
+	if (reorder === undefined || parts === undefined) return <li {...row} />
 
-	return (
-		<Reorder.Item
-			{...row}
-			as="li"
-			value={id}
-			dragListener={false}
-			dragControls={reorder.controls}
-			transition={reorder.instant ? INSTANT : undefined}
-			onDragStart={reorder.onDragStart}
-			onDragEnd={reorder.onDragEnd}
-		/>
-	)
+	return <parts.Row {...row} id={id} reorder={reorder} />
 }

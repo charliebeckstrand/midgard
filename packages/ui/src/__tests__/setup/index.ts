@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup, configure } from '@testing-library/react'
 import { afterEach, beforeAll, inject, vi } from 'vitest'
+import { loadListReorder } from '../../components/list/use-list-reorder'
 import { loadTooltipBody } from '../../components/tooltip/tooltip-body-loader'
 import { installSingletonResets } from '../helpers/reset-singletons'
 import { installResidueGuard } from '../helpers/residue'
@@ -44,6 +45,12 @@ beforeAll(() => {
 // depend on the order. The `floating-ui` browser project opens tooltips with no
 // such load.
 beforeAll(() => loadTooltipBody())
+
+// A reorderable `List` loads its `Reorder` parts after it mounts, and the rows
+// mount again when they arrive. A case that drags or lifts a row at once would
+// then depend on the order of the cases. The load before each file gives each
+// case the state of a page that already loaded the parts.
+beforeAll(() => loadListReorder())
 
 // Registered before the `afterEach` below, whose `cleanup` then runs first.
 installSingletonResets()
