@@ -79,8 +79,8 @@ and the visited regions under a key per atlas. The gateway checks the session
 and forwards `/api/places/*` and `/api/visits/*` to it. Mimir decides who can
 change what and how many places a user keeps. `src/api/places-api.ts` calls it
 from the browser and `src/server/mimir.ts` from the page, both typed from
-`src/api/openapi.d.ts`. After a change to the Mimir API, run
-`pnpm --filter places openapi`. The contract is in asgard's
+`shared/mimir`. After a change to the Mimir API, run
+`pnpm --filter shared openapi`. The contract is in asgard's
 [`.claude/docs/midgard.md`](https://github.com/charliebeckstrand/asgard/blob/main/.claude/docs/midgard.md).
 
 The two scopes are kept apart because the names collide: Georgia is a state of
