@@ -17,8 +17,7 @@ export type SortableItemOptions = {
  * sortable components in this package. That composition is a translate via
  * `CSS.Translate.toString`, the hook's transition value, and a hidden opacity
  * while dragging (the `<DragOverlay>` owns the dragged visual). The style
- * drops the scale that `rectSortingStrategy` gives to items of different
- * sizes, so an item moves and does not change its size. When the reader asks
+ * has no scale, so an item moves and does not change its size. When the reader asks
  * for reduced motion, the style has no transition, so a displaced item moves
  * to its new slot at once.
  *

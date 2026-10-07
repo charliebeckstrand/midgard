@@ -75,9 +75,8 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 
 | Hook | Summary |
 |---|---|
-| `useSortableList` | Single-list reorder backed by @dnd-kit: owns the drag lifecycle and commits via `arrayMove`. `layout: 'grid'` sorts a wrapping grid rather than one track. |
+| `useSortableList` | Single-list reorder backed by @dnd-kit: owns the drag lifecycle and commits via `arrayMove`. |
 | `useSortableItem` | Wraps dnd-kit `useSortable` with standard translate/transition/drag-opacity style composition (no scale). Under reduced motion the style has no transition. |
-| `useSortableGridKeyboard` | Keyboard reordering for a wrapping grid: Space lifts, Left/Right step one, Up/Down step a row, Enter/Escape drops, each move announced. |
 | `useSortableSensors` | Standard dnd-kit sensor config: low-threshold pointer sensor plus arrow-key keyboard sensor. A keyboard move scrolls smoothly, and at once under reduced motion. |
 | `useDragCursor` | Holds a drag cursor (`grabbing` by default, or a resize cursor) on the whole page while active, over elements that set their own cursor. Every drag in the library goes through it, and `drag-cursor-boundary.test.ts` keeps it that way. `useSortableList` calls it for each sortable list. |
 
@@ -123,8 +122,7 @@ Hooks export the option and return shapes consumers thread through their own pro
 | `ScrollOverflowOptions` | Options for `useScrollOverflow`: the enable gate, for a container that cannot overflow in one of its states. |
 | `ScrollRegionOptions` | Options for `useScrollRegion`: the `label` or `labelledBy` that names the region while it scrolls. |
 | `ScrollWithinOptions` | Options for `useScrollWithin`. |
-| `SortableItemOptions` / `SortableListOptions` / `SortableSensorsOptions` / `SortableGridKeyboardOptions` | Options for the `@dnd-kit` wrappers and the grid keyboard model. |
-| `SortableLayout` | `'list' \| 'grid'`: the `useSortableList` layout that picks its sorting strategy. |
+| `SortableItemOptions` / `SortableListOptions` / `SortableSensorsOptions` | Options for the `@dnd-kit` wrappers. |
 | `DragCursor` | The cursors that `useDragCursor` can hold. |
 | `VirtualWindowOptions` / `MeasuredVirtualWindowOptions` | Options for `useVirtualWindow`: the item count, the size estimate, the overscan, and the offsets of the content above the list. The measured form adds the stable row key, the `anchorTo` edge, and `followOnAppend`. |
 

@@ -41,8 +41,7 @@ function listStep(key: string, orientation: Orientation, container: HTMLElement 
  * arrow keys focus neighbors (or move the lifted item), Escape/Enter drops.
  * Pairs with a disabled dnd-kit keyboard sensor, keeping the original item
  * visible during a keyboard move; mirrors `useKanbanKeyboard`. The model is
- * `useKeyboardReorder`, which `useSortableGridKeyboard` shares, with a step of
- * one along the list's axis.
+ * `useKeyboardReorder`, with a step of one along the list's axis.
  */
 export function useListKeyboard<T>({
 	items,
