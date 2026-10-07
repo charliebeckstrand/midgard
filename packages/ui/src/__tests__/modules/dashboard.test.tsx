@@ -465,7 +465,11 @@ describe('Dashboard', () => {
 
 		const card = screen.getByRole('group', { name: 'Revenue' })
 
-		fireEvent.pointerDown(card, { ...PRIMARY, clientX: 0, clientY: 0 })
+		fireEvent.pointerDown(screen.getByRole('button', { name: 'Move Revenue' }), {
+			...PRIMARY,
+			clientX: 0,
+			clientY: 0,
+		})
 
 		// The pointer sensor lifts the tile after 3 px of travel.
 		fireEvent.pointerMove(document, { ...PRIMARY, clientX: 10, clientY: 0 })
@@ -490,6 +494,26 @@ describe('Dashboard', () => {
 		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith(
 			expect.objectContaining({ id: 'a', canceled: false }),
 		)
+
+		await teardown()
+	})
+
+	it('starts no drag from a press on the card outside the grip', async () => {
+		const onDragStart = vi.fn()
+
+		renderUI(<Grid onDragStart={onDragStart} />)
+
+		const card = screen.getByRole('group', { name: 'Revenue' })
+
+		fireEvent.pointerDown(card, { ...PRIMARY, clientX: 0, clientY: 0 })
+
+		fireEvent.pointerMove(document, { ...PRIMARY, clientX: 10, clientY: 0 })
+
+		expect(onDragStart).not.toHaveBeenCalled()
+
+		expect(card).not.toHaveAttribute('data-dragging')
+
+		fireEvent.pointerUp(document, { ...PRIMARY, clientX: 10, clientY: 0 })
 
 		await teardown()
 	})
@@ -573,15 +597,6 @@ describe('Dashboard', () => {
 		expect(onPress).toHaveBeenCalledTimes(1)
 
 		await teardown()
-	})
-
-	it('gives the actions row the default cursor, so a badge or a gap in it shows no grab hand', () => {
-		renderUI(<Board editing />)
-
-		const card = screen.getByRole('group', { name: 'Revenue' })
-
-		// jsdom applies no Tailwind CSS, so the class carries the pin. The row starts no drag.
-		expect(bySlot(card, 'dashboard-tile-actions')).toHaveClass('cursor-default')
 	})
 
 	it('reports each change of the projection to the app', () => {
@@ -1788,9 +1803,9 @@ describe('Dashboard gesture owner', () => {
 
 		const { rerender } = renderUI(<Controlled onLayout={onLayout} onDragEnd={onDragEnd} />)
 
-		/** Presses the card of Revenue, and moves past the 3 px that lift it. */
+		/** Presses the grip of Revenue, and moves past the 3 px that lift it. */
 		const press = () => {
-			fireEvent.pointerDown(screen.getByRole('group', { name: 'Revenue' }), {
+			fireEvent.pointerDown(screen.getByRole('button', { name: 'Move Revenue' }), {
 				...PRIMARY,
 				clientX: 0,
 				clientY: 0,

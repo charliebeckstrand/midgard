@@ -6,8 +6,7 @@ import { srcDir, srcRelative, stripSourceComments, walkSource } from '../helpers
 
 // Grab-cursor boundary.
 //
-// A surface the reader drags takes its cursors from `hannou.grab.default`, or
-// from `hannou.grab.cursor` where it must keep touch scrolling. The rules lived
+// A surface the reader drags takes its cursors from `hannou.grab.default`. The rules lived
 // in ten places, each slightly different: some closed the hand on `:active`,
 // some on `data-dragging`, and two grips never closed it or never set
 // `touch-none`.
@@ -55,22 +54,18 @@ describe('grab-cursor boundary', () => {
 
 		expect(
 			violations,
-			`files spelling a grab cursor (spread \`hannou.grab.default\` or \`hannou.grab.cursor\` instead):\n  ${violations.join('\n  ')}`,
+			`files spelling a grab cursor (spread \`hannou.grab.default\` instead):\n  ${violations.join('\n  ')}`,
 		).toEqual([])
 	})
 
 	it('closes the hand on data-dragging, never on :active', () => {
-		for (const bundle of [hannou.grab.default, hannou.grab.cursor]) {
-			const classes = bundle.join(' ').split(/\s+/)
+		const classes = hannou.grab.default.join(' ').split(/\s+/)
 
-			expect(classes).toContain('data-dragging:cursor-grabbing')
+		expect(classes).toContain('data-dragging:cursor-grabbing')
 
-			expect(classes.filter((name) => name.startsWith('active:'))).toEqual([])
-		}
+		expect(classes.filter((name) => name.startsWith('active:'))).toEqual([])
 
-		expect(hannou.grab.default.join(' ')).toContain('touch-none')
-
-		expect(hannou.grab.cursor.join(' ')).not.toContain('touch-none')
+		expect(classes).toContain('touch-none')
 	})
 
 	it('stops a long press on iOS from selecting text or showing the callout', () => {

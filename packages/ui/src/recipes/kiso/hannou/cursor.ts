@@ -16,8 +16,6 @@ export const cursor = [
 	'disabled:cursor-not-allowed data-disabled:cursor-not-allowed has-[:disabled,[data-disabled]]:cursor-not-allowed',
 ]
 
-const grabCursor = ['cursor-grab', 'data-dragging:cursor-grabbing']
-
 /**
  * What a surface the reader drags looks and behaves like.
  *
@@ -45,10 +43,8 @@ export const grab = {
 	 * also set it. A finger that rests before it moves is a long press, and iOS
 	 * shows its callout menu without `-webkit-touch-callout: none`.
 	 */
-	default: [...grabCursor, 'touch-none select-none **:select-none [-webkit-touch-callout:none]'],
-	/**
-	 * The two hands alone, for a surface that must keep touch scrolling, such as a
-	 * card that a grip also drags.
-	 */
-	cursor: grabCursor,
+	default: [
+		'cursor-grab data-dragging:cursor-grabbing',
+		'touch-none select-none **:select-none [-webkit-touch-callout:none]',
+	],
 } as const

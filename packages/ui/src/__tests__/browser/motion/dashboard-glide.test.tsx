@@ -87,7 +87,9 @@ describe('dashboard tile glide (real Motion)', () => {
 		expect(tile).toHaveAttribute('data-gliding')
 
 		// The pointer sensor lifts the tile after 3 px of travel.
-		const held = await drag(card, { x: 0, y: 0 }, [{ x: 10, y: 0 }])
+		const held = await drag(screen.getByRole('button', { name: 'Move A' }), { x: 0, y: 0 }, [
+			{ x: 10, y: 0 },
+		])
 
 		// The carry starts at the point of the pickup. No frame of the glide stays on
 		// the tile, so the tile paints the carry alone, and not the glide offset.

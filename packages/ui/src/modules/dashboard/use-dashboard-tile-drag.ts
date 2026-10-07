@@ -5,13 +5,7 @@ import {
 	type DraggableSyntheticListeners,
 	useDraggable,
 } from '@dnd-kit/core'
-import {
-	type PointerEventHandler,
-	type PointerEvent as ReactPointerEvent,
-	type RefObject,
-	useCallback,
-	useMemo,
-} from 'react'
+import { type RefObject, useCallback, useMemo } from 'react'
 import {
 	type DashboardDragTravel,
 	type DashboardOffset,
@@ -20,20 +14,6 @@ import {
 import type { DashboardCell } from './engine/dashboard-layout'
 import type { DashboardState, DashboardView } from './engine/dashboard-store'
 import { useDashboardStore } from './use-dashboard-store'
-
-/** The row at the far end of the header: the clear control, the app actions, and the standard controls. */
-const ACTIONS = '[data-slot="dashboard-tile-actions"]'
-
-/**
- * Whether a press on the card belongs to a control, so that it starts no drag.
- * The press lands in the actions row, or in a portal that a control opens, such
- * as the items of a menu. React sends the events of a portal to the card too.
- */
-function pressesControl({ currentTarget, target }: ReactPointerEvent<HTMLElement>): boolean {
-	if (!(target instanceof Element) || !currentTarget.contains(target)) return true
-
-	return target.closest(ACTIONS) !== null
-}
 
 /** What {@link useDashboardTileDrag} returns. @internal */
 export type DashboardTileDrag = {
@@ -45,17 +25,12 @@ export type DashboardTileDrag = {
 	setNodeRef: (element: HTMLElement | null) => void
 	/** The tile shell, which `setNodeRef` holds. */
 	node: RefObject<HTMLElement | null>
-	/** The props for the drag grip: the keyboard activator. */
+	/** The props for the drag grip: the pointer and keyboard activator. */
 	grip: {
 		attributes: DraggableAttributes
 		listeners: DraggableSyntheticListeners
 		setActivatorNodeRef: (element: HTMLElement | null) => void
 	}
-	/**
-	 * The pointer listener for the card, so a drag can start anywhere on the tile.
-	 * A press in the actions row of the header, or in a portal of a control, starts no drag.
-	 */
-	surface: { onPointerDown?: PointerEventHandler<HTMLElement> }
 }
 
 /**
@@ -75,8 +50,8 @@ function carriedOffset(
 }
 
 /**
- * The drag state of one tile. A pointer starts a drag anywhere on the card
- * outside the actions row, and the keyboard starts one from the grip. During a
+ * The drag state of one tile. A pointer and the keyboard start a drag only
+ * from the grip, so the rest of the card keeps touch scrolling. During a
  * drag, the tile reads the travel range and the pitch of the gesture from the
  * store. It clamps the pointer offset with them. The tile lifts only while the
  * store gesture drags it, and not for each drag that dnd-kit runs.
@@ -130,32 +105,16 @@ export function useDashboardTileDrag(
 		[dragging, cell, transform, travel, pitch, inline],
 	)
 
-	// The pointer sensor rides the card and the keyboard sensor rides the grip, so
-	// neither event reaches the same sensor twice. dnd-kit presses the grip for
-	// each of its drags, so the pressed state follows the gesture.
-	const grip = useMemo(() => {
-		const onKeyDown = listeners?.onKeyDown
-
-		return {
+	// dnd-kit presses the grip for each of its drags, so the pressed state
+	// follows the gesture.
+	const grip = useMemo(
+		() => ({
 			attributes: { ...attributes, 'aria-pressed': dragging || undefined },
-			listeners: onKeyDown === undefined ? undefined : { onKeyDown },
+			listeners,
 			setActivatorNodeRef,
-		}
-	}, [attributes, dragging, listeners, setActivatorNodeRef])
+		}),
+		[attributes, dragging, listeners, setActivatorNodeRef],
+	)
 
-	const surface = useMemo(() => {
-		const onPointerDown = listeners?.onPointerDown
-
-		if (onPointerDown === undefined) return {}
-
-		// The guard sends no stopPropagation, so a press in the row still reaches the
-		// outside-press listener of an open popover.
-		return {
-			onPointerDown: (event: ReactPointerEvent<HTMLElement>) => {
-				if (!pressesControl(event)) onPointerDown(event)
-			},
-		}
-	}, [listeners])
-
-	return { dragging, carried, setNodeRef, node, grip, surface }
+	return { dragging, carried, setNodeRef, node, grip }
 }

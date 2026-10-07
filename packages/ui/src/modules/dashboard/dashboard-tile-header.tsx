@@ -25,8 +25,7 @@ type DashboardTileTitleProps = {
  * tooltip shows the full text. This is the reveal of the chart header and the
  * grid header.
  *
- * @remarks In edit mode the tooltip stays closed. The title is then a part of
- * the drag surface, and the grab cursor and the drag own the pointer.
+ * @remarks In edit mode the tooltip stays closed.
  * @internal
  */
 function DashboardTileTitle({ id, title, editing }: DashboardTileTitleProps) {

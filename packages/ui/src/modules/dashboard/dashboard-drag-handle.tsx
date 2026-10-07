@@ -10,7 +10,7 @@ import { k } from '../../recipes/kata/dashboard'
 export type DashboardDragHandleProps = {
 	/** The accessibility attributes from `useDraggable`. */
 	attributes: DraggableAttributes
-	/** The keyboard listener from `useDraggable`. The card takes the pointer listener. */
+	/** The pointer and keyboard listeners from `useDraggable`. */
 	listeners: DraggableSyntheticListeners
 	/** The activator ref from `useDraggable`, so dnd-kit returns focus here after a drag. */
 	setActivatorNodeRef: (element: HTMLElement | null) => void
@@ -23,10 +23,9 @@ export type DashboardDragHandleProps = {
 }
 
 /**
- * The drag grip of a tile in edit mode. It is the keyboard activator of the tile,
- * and the handle on a touch screen, where the card keeps touch scrolling. The card
- * takes the pointer, so a press on the grip drags through the card. With the
- * keyboard, Space picks the tile up, the arrow keys move it, and Space drops it.
+ * The drag grip of a tile in edit mode: the only part of the tile that starts a
+ * drag, so the rest of the card keeps touch scrolling. With the keyboard, Space
+ * picks the tile up, the arrow keys move it, and Space drops it.
  *
  * @internal
  */

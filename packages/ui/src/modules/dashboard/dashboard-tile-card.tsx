@@ -43,8 +43,6 @@ export type DashboardTileCardProps = {
 	dragging: boolean
 	/** The props for the drag grip. */
 	grip: DashboardTileDrag['grip']
-	/** The pointer listener that starts a drag on the card, outside the actions row. */
-	surface: DashboardTileDrag['surface']
 	/** The mount policy of the content. */
 	mount: Mount
 	/** What the tile shows while its content suspends or is held back. */
@@ -74,8 +72,8 @@ export type DashboardTileCardProps = {
  *
  * It renders again only when one of its props changes by identity. Each tile
  * reads the dnd-kit context, which changes when a drag lifts and when it drops.
- * A tile that is not dragged keeps its grip and its pointer listener. Such a
- * change therefore renders only the thin shell of that tile.
+ * A tile that is not dragged keeps its grip. Such a change therefore renders
+ * only the thin shell of that tile.
  *
  * @internal
  */
@@ -91,7 +89,6 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 	movable,
 	dragging,
 	grip,
-	surface,
 	mount,
 	fallback,
 	onError,
@@ -150,8 +147,6 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 			size="sm"
 			bg="surface"
 			{...(title === undefined ? {} : { role: 'group', 'aria-labelledby': titleId })}
-			{...(movable ? surface : {})}
-			// The pointer drags the card itself, so the card closes the grab hand too.
 			data-dragging={dataAttr(dragging)}
 			className={cn(k.card({ editable: movable, dragging }))}
 		>
