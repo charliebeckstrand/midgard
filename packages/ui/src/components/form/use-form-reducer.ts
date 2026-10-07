@@ -163,6 +163,7 @@ export function useFormReducer<T extends Record<string, unknown>>({
 			defaults: initialValues,
 			errors: {},
 			touched: {},
+			external: {},
 		}),
 	)
 

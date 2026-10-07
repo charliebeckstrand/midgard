@@ -707,6 +707,43 @@ describe('Form', () => {
 		expect(getFieldProbe('name')).toHaveAttribute('data-error', 'taken on the server')
 	})
 
+	it('keeps a server fieldErrors issue when a sibling field changes', async () => {
+		const required = (value: unknown) => (value ? undefined : 'required')
+
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ address: 'Nowhere', name: 'Home' }}
+				validate={{ address: required, name: required }}
+				onSubmit={() => ({ fieldErrors: { address: 'That address was not found.' } })}
+			>
+				<Input name="address" />
+				<Input name="name" />
+				<FieldProbe name="address" />
+				<ValidProbe />
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		await submit(container)
+
+		expect(getFieldProbe('address')).toHaveAttribute('data-error', 'That address was not found.')
+
+		const [address, name] = container.querySelectorAll('input')
+
+		fireEvent.change(name as HTMLInputElement, { target: { value: 'Office' } })
+
+		expect(getFieldProbe('address')).toHaveAttribute('data-error', 'That address was not found.')
+
+		expect(screen.getByTestId('valid').textContent).toBe('false')
+
+		// An edit to the field that carries the issue still clears it.
+		fireEvent.change(address as HTMLInputElement, { target: { value: '1 Main St' } })
+
+		expect(getFieldProbe('address')).not.toHaveAttribute('data-error')
+
+		expect(screen.getByTestId('valid').textContent).toBe('true')
+	})
+
 	it('reports valid=false once server fieldErrors are applied, with no client validator', async () => {
 		const { container } = renderUI(
 			<Form
