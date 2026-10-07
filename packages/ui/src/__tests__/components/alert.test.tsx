@@ -203,9 +203,8 @@ describe('Alert', () => {
 		expect(onOpenChange).toHaveBeenCalledWith(false)
 	})
 
-	it('dismisses locally when controlled open has no onOpenChange', () => {
-		// With a controlled `open` and no handler, setOpen can't notify the parent,
-		// so the close button falls back to local dismissal rather than going inert.
+	it('stays open when controlled open has no onOpenChange', () => {
+		// The standard controlled contract: only a change to `open` hides the alert.
 		renderUI(
 			<Alert open closable>
 				content
@@ -213,33 +212,6 @@ describe('Alert', () => {
 		)
 
 		fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
-
-		expect(screen.queryByText('content')).not.toBeInTheDocument()
-	})
-
-	it('re-shows after a local dismissal when the controlled open prop changes', () => {
-		const { rerender } = renderUI(
-			<Alert open closable>
-				content
-			</Alert>,
-		)
-
-		fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
-
-		expect(screen.queryByText('content')).not.toBeInTheDocument()
-
-		rerender(
-			<Alert open={false} closable>
-				content
-			</Alert>,
-		)
-
-		// The prop change supersedes the sticky local dismissal.
-		rerender(
-			<Alert open closable>
-				content
-			</Alert>,
-		)
 
 		expect(screen.getByText('content')).toBeInTheDocument()
 	})

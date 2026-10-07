@@ -1,6 +1,5 @@
 'use client'
 
-import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import type { Color } from '../../recipes'
 import { k } from '../../recipes/kata/timeline'
@@ -10,8 +9,7 @@ import { Swatch } from '../swatch'
 import { useTimeline } from './context'
 
 /**
- * Marker styling shared between {@link TimelineMarker} and the implicit marker
- * spread by {@link TimelineItem}. `status` and `color` are mutually exclusive:
+ * The marker keys of {@link TimelineItem}. `status` and `color` are mutually exclusive:
  * `status` drives a semantic `<StatusDot>` (and names it), `color` paints a
  * decorative dot.
  */
@@ -38,19 +36,14 @@ export type TimelineMarkerConfig = {
 	  }
 )
 
-/** Props for {@link TimelineMarker}. */
-export type TimelineMarkerProps = TimelineMarkerConfig & {
-	className?: string
-	/** Custom marker content; replaces the default `<StatusDot>` and relaxes the fixed dot size. */
-	children?: ReactNode
-}
-
 /**
- * Dot and connector lines for a timeline row. With no `children`, it renders a
- * semantic, labeled `<StatusDot>` when `status` is set. It renders a decorative
- * `<Swatch>` dot in the requested hue when `color` is set. Both are styled to
- * the orientation and variant from context. Custom `children` replace the dot
- * entirely. ARIA stays on the parent `<li>`; the marker itself is decorative.
+ * Dot and connector lines for a timeline row. It renders a semantic, labeled
+ * `<StatusDot>` when `status` is set, and a decorative `<Swatch>` dot in the
+ * requested hue when `color` is set. Both are styled to the orientation and
+ * variant from context. ARIA stays on the parent `<li>`; the marker itself is
+ * decorative.
+ *
+ * @internal
  */
 export function TimelineMarker({
 	status,
@@ -58,9 +51,7 @@ export function TimelineMarker({
 	pulse,
 	lineBefore,
 	lineAfter,
-	className,
-	children,
-}: TimelineMarkerProps) {
+}: TimelineMarkerConfig) {
 	const { orientation, variant } = useTimeline()
 
 	return (
@@ -73,13 +64,9 @@ export function TimelineMarker({
 				orientation === 'vertical' ? k.marker.vertical : k.marker.horizontal,
 				k.marker.palette[lineBefore ?? 'zinc'].line.before,
 				k.marker.palette[lineAfter ?? 'zinc'].line.after,
-				children != null && 'size-auto',
-				className,
 			)}
 		>
-			{children != null ? (
-				children
-			) : color != null ? (
+			{color != null ? (
 				// A color-only marker is decorative: paint the dot straight from the
 				// marker hue via <Swatch>. <StatusDot> forces its own status color and
 				// omits `color`, so the requested hue can reach the dot only this way.

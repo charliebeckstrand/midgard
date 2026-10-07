@@ -3,14 +3,12 @@
 import { type ReactNode, useMemo } from 'react'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/timeline'
-import { hasChildOfType } from '../../utilities/flatten-children'
 import { TimelineContext, type TimelineVariant, useTimeline } from './context'
-import type { TimelineMarkerConfig } from './timeline-marker'
-import { TimelineMarker } from './timeline-marker'
+import { TimelineMarker, type TimelineMarkerConfig } from './timeline-marker'
 
 /**
- * Props for {@link TimelineItem}. Marker config keys ({@link TimelineMarkerConfig})
- * are forwarded to the implicit `<TimelineMarker>` when no explicit one is composed.
+ * Props for {@link TimelineItem}. The marker keys ({@link TimelineMarkerConfig})
+ * set the dot and the connector lines of the row.
  */
 export type TimelineItemProps = {
 	/**
@@ -25,9 +23,8 @@ export type TimelineItemProps = {
 } & TimelineMarkerConfig
 
 /**
- * A single `<li>` row within a `<Timeline>`. Renders an implicit
- * `<TimelineMarker>` from its marker-config props, unless one is composed
- * explicitly among `children`. It carries `aria-current` when `current`, and
+ * A single `<li>` row within a `<Timeline>`. Renders its marker from
+ * the marker keys. It carries `aria-current` when `current`, and
  * re-shares the resolved orientation and variant to descendants via context.
  */
 export function TimelineItem(props: TimelineItemProps) {
@@ -36,8 +33,6 @@ export function TimelineItem(props: TimelineItemProps) {
 	const { orientation, variant: contextVariant } = useTimeline()
 
 	const variant = variantProp ?? contextVariant
-
-	const hasMarker = useMemo(() => hasChildOfType(children, TimelineMarker), [children])
 
 	const providerValue = useMemo(() => ({ orientation, variant }), [orientation, variant])
 
@@ -49,7 +44,7 @@ export function TimelineItem(props: TimelineItemProps) {
 			className={cn(k.item({ orientation }), className)}
 		>
 			<TimelineContext value={providerValue}>
-				{!hasMarker && <TimelineMarker {...markerConfig} />}
+				<TimelineMarker {...markerConfig} />
 				{children}
 			</TimelineContext>
 		</li>
