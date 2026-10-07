@@ -1,6 +1,6 @@
 'use client'
 
-import { Plus, X } from 'lucide-react'
+import { Plus, Trash } from 'lucide-react'
 import { useId } from 'react'
 import { Button } from 'ui/button'
 import { Field, Label, Message } from 'ui/fieldset'
@@ -56,7 +56,7 @@ export function PlacePhotosField() {
 						suffix={
 							several ? (
 								<ToggleIconButton
-									icon={<Icon icon={<X />} />}
+									icon={<Icon icon={<Trash />} />}
 									aria-label={`Remove photo ${rows.indexOf(row) + 1}`}
 									onClick={() => setValue(rows.filter((held) => held.key !== row.key))}
 								/>
