@@ -8,7 +8,6 @@ import {
 	useEffect,
 	useId,
 	useLayoutEffect,
-	useMemo,
 	useRef,
 	useState,
 } from 'react'
@@ -25,7 +24,6 @@ import { isReservedTextboxKey } from '../combobox/use-combobox-input'
 
 type CommandPaletteStateOptions = {
 	open: boolean
-	onOpenChange: (open: boolean) => void
 	onActiveChange?: (optionId: string | null) => void
 }
 
@@ -152,11 +150,7 @@ function createSourceRegistry(
  * @internal
  * @see {@link useA11yRoving}
  */
-export function useCommandPaletteState({
-	open,
-	onOpenChange,
-	onActiveChange,
-}: CommandPaletteStateOptions) {
+export function useCommandPaletteState({ open, onActiveChange }: CommandPaletteStateOptions) {
 	const [query, setQuery] = useState('')
 
 	// Bypasses deferral on empty query: the deferred copy paints one stale
@@ -394,10 +388,6 @@ export function useCommandPaletteState({
 		reportActive(null)
 	}, [open, reportActive])
 
-	const close = useCallback(() => onOpenChange(false), [onOpenChange])
-
-	const context = useMemo(() => ({ close }), [close])
-
 	return {
 		query,
 		deferredQuery,
@@ -407,8 +397,6 @@ export function useCommandPaletteState({
 		attachList,
 		empty,
 		onKeyDown,
-		close,
-		context,
 		virtualSourceRef,
 	}
 }

@@ -27,7 +27,7 @@ function renderLaggingPalette(slowQuery: string) {
 
 	const view = renderHook(
 		({ open }: { open: boolean }) => {
-			const state = useCommandPaletteState({ open, onOpenChange: () => {} })
+			const state = useCommandPaletteState({ open })
 
 			const { deferredQuery } = state
 
@@ -72,9 +72,7 @@ function renderLaggingPalette(slowQuery: string) {
 
 describe('useCommandPaletteState', () => {
 	it('starts with an empty query and a stable listbox id', () => {
-		const { result } = renderHook(() =>
-			useCommandPaletteState({ open: false, onOpenChange: () => {} }),
-		)
+		const { result } = renderHook(() => useCommandPaletteState({ open: false }))
 
 		expect(result.current.query).toBe('')
 
@@ -84,10 +82,9 @@ describe('useCommandPaletteState', () => {
 	})
 
 	it('resets the query when transitioning from open to closed', () => {
-		const { result, rerender } = renderHook(
-			({ open }) => useCommandPaletteState({ open, onOpenChange: () => {} }),
-			{ initialProps: { open: true } },
-		)
+		const { result, rerender } = renderHook(({ open }) => useCommandPaletteState({ open }), {
+			initialProps: { open: true },
+		})
 
 		act(() => {
 			result.current.setQuery('search term')
@@ -98,18 +95,6 @@ describe('useCommandPaletteState', () => {
 		rerender({ open: false })
 
 		expect(result.current.query).toBe('')
-	})
-
-	it('calls onOpenChange(false) when close() is invoked', () => {
-		const onOpenChange = vi.fn()
-
-		const { result } = renderHook(() => useCommandPaletteState({ open: true, onOpenChange }))
-
-		act(() => {
-			result.current.close()
-		})
-
-		expect(onOpenChange).toHaveBeenCalledWith(false)
 	})
 })
 
