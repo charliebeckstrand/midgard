@@ -28,6 +28,11 @@ export const UNITED_STATES = 'United States of America'
  */
 const UNDRAWN = new Set(['Antarctica'])
 
+/** Whether a map here draws the region `name`: each region but {@link UNDRAWN}. */
+export function isDrawn(name: string): boolean {
+	return !UNDRAWN.has(name)
+}
+
 /**
  * An atlas as the map draws it, which is every region but {@link UNDRAWN}.
  *
@@ -38,7 +43,7 @@ const UNDRAWN = new Set(['Antarctica'])
 export function drawnRegions(regions: MapFeatureCollection | null): MapFeatureCollection | null {
 	if (regions === null) return null
 
-	const drawn = regions.features.filter((region) => !UNDRAWN.has(regionName(region)))
+	const drawn = regions.features.filter((region) => isDrawn(regionName(region)))
 
 	return drawn.length === regions.features.length
 		? regions

@@ -181,6 +181,29 @@ export function regionName(shape: MapFeature): string {
 }
 
 /**
+ * The object `key` of a topology, or its first object where the atlas names it
+ * something else.
+ */
+function topologyObject(topology: MapTopology, key: string): object | undefined {
+	return topology.objects[key] ?? Object.values(topology.objects)[0]
+}
+
+/**
+ * The region names of one object of a TopoJSON topology, in the order of the
+ * atlas, with no decode.
+ *
+ * Each name is the name that {@link regionName} reads off the decoded region,
+ * because the decode copies the `properties` and the `id` of each geometry.
+ */
+export function topologyNames(topology: MapTopology, key: string): string[] {
+	const object = topologyObject(topology, key) as
+		| { geometries?: { id?: unknown; properties?: { name?: unknown } | null }[] }
+		| undefined
+
+	return (object?.geometries ?? []).map((shape) => String(shape.properties?.name ?? shape.id))
+}
+
+/**
  * Decodes one object's regions out of a TopoJSON topology.
  *
  * `key` names the object to draw — `states` for us-atlas, `countries` for
@@ -191,7 +214,7 @@ export function regionName(shape: MapFeature): string {
  * region out of the set and a topology has no single region to read.
  */
 export function decodeRegions(topology: MapTopology, key: string): MapFeatureCollection | null {
-	const object = topology.objects[key] ?? Object.values(topology.objects)[0]
+	const object = topologyObject(topology, key)
 
 	if (object === undefined) return null
 
@@ -310,16 +333,30 @@ export type GroupPlacesOptions = {
  * coordinate pairs — and a place outside every region paid all of it before
  * reaching the fallback. Measured over 200 places: 110 ms to 2.4 ms, for the
  * same grouping. The boxes come from {@link boundRegions}.
+ *
+ * `regions` can be a function that gives the boxes. The grouping then calls it
+ * on the first place that `known` does not settle, and never where `known`
+ * settles each place. A collection inside the United States thus groups by
+ * country with no decode of the world.
  */
 export function groupPlacesByRegion(
-	bounded: readonly BoundedRegion[],
+	regions: readonly BoundedRegion[] | (() => readonly BoundedRegion[]),
 	places: readonly Place[],
 	fallback: (place: Place) => string | undefined,
 	{ known, snapKm }: GroupPlacesOptions = {},
 ): Map<string, Place[]> {
 	const grouped = new Map<string, Place[]>()
 
-	const drawn = new Set(bounded.map((region) => region.name))
+	let bounded: readonly BoundedRegion[] | undefined
+
+	let drawn: Set<string> | undefined
+
+	/** The geometry, read on the first place that `known` does not settle. */
+	function geometry(): readonly BoundedRegion[] {
+		bounded ??= typeof regions === 'function' ? regions() : regions
+
+		return bounded
+	}
 
 	/** Adds one place under a region, starting that region's list where it is the first. */
 	function hold(name: string, place: Place): void {
@@ -340,7 +377,7 @@ export function groupPlacesByRegion(
 
 		const at: [number, number] = [place.longitude, place.latitude]
 
-		const held = bounded.find(
+		const held = geometry().find(
 			(region) =>
 				withinBounds(region.bounds, at) &&
 				region.feature.geometry !== null &&
@@ -353,7 +390,7 @@ export function groupPlacesByRegion(
 			continue
 		}
 
-		const snapped = snapKm === undefined ? null : nearestRegion(bounded, at, snapKm)
+		const snapped = snapKm === undefined ? null : nearestRegion(geometry(), at, snapKm)
 
 		if (snapped !== null) {
 			hold(snapped, place)
@@ -363,7 +400,11 @@ export function groupPlacesByRegion(
 
 		const named = fallback(place)
 
-		if (named === undefined || !drawn.has(named)) continue
+		if (named === undefined) continue
+
+		drawn ??= new Set(geometry().map((region) => region.name))
+
+		if (!drawn.has(named)) continue
 
 		hold(named, place)
 	}

@@ -22,14 +22,9 @@ import {
 	useVisits,
 } from '../../queries/places-queries'
 import type { Place, Visit, Visits } from '../../types'
-import { ATLASES } from '../../utilities/places-atlas'
+import { atlasBounded, atlasNames, atlasRegions } from '../../utilities/places-atlas'
 import { DAY_FORMAT, filterPlaces } from '../../utilities/places-filter'
-import {
-	type BoundedRegion,
-	boundRegions,
-	groupPlacesByRegion,
-	regionName,
-} from '../../utilities/places-geography'
+import { groupPlacesByRegion, regionName } from '../../utilities/places-geography'
 import type { PaletteSource } from '../../utilities/places-palette'
 import {
 	COUNTRY_SNAP_KM,
@@ -119,16 +114,6 @@ function usePanelRendered(open: boolean, loaded: boolean): boolean {
 	return opened || open || loaded
 }
 
-/**
- * Each region beside its bounding box, per atlas. Measured once for the module,
- * because an atlas never changes: adding a place does not re-measure 56 states,
- * and crossing out to the world does not re-measure 177 countries.
- */
-const BOUNDED: Record<PlaceAtlas, BoundedRegion[]> = {
-	states: boundRegions(ATLASES.states),
-	countries: boundRegions(ATLASES.countries),
-}
-
 /** The empty list a pending places query stands in for, held so its identity is stable. */
 const NO_PLACES: Place[] = []
 
@@ -187,7 +172,7 @@ function trailPlaces(
 function mapForView<Regions>(
 	view: PlaceView,
 	sources: {
-		atlases: Record<PlaceAtlas, Regions>
+		atlases: (atlas: PlaceAtlas) => Regions
 		groupings: Record<PlaceAtlas, ReadonlyMap<string, readonly Place[]>>
 		filtered: Place[]
 		visits: Visits
@@ -197,7 +182,7 @@ function mapForView<Regions>(
 
 	return {
 		view,
-		regions: sources.atlases[at],
+		regions: sources.atlases(at),
 		places: placesInRegion(sources.filtered, sources.groupings[at], viewRegion(view)),
 		visited: new Set(sources.visits[at]),
 	}
@@ -600,7 +585,7 @@ export function PlacesApp({
 	// the states atlas accounts for whole is a collection inside the United States
 	// — and it is the grouping the app uses whenever the view draws states.
 	const placesByState = useMemo(
-		() => groupPlacesByRegion(BOUNDED.states, places, stateOf),
+		() => groupPlacesByRegion(() => atlasBounded('states'), places, stateOf),
 		[places],
 	)
 
@@ -637,7 +622,7 @@ export function PlacesApp({
 
 	const indexRendered = usePanelRendered(listing, panelsLoaded)
 
-	const regions = ATLASES[atlas]
+	const regions = atlasRegions(atlas)
 
 	// The one region the view is cut to, which the picker and the crumbs share.
 	const cut = viewRegion(view)
@@ -680,9 +665,11 @@ export function PlacesApp({
 	// answers rather than a recompute on every crossing. The countries grouping
 	// takes what the states already settled as its `known`: see `knownCountry` for
 	// why the coarse world outline defers to the finer atlas, and what it saves.
+	// The world geometry is a function, so the grouping decodes the world only
+	// for a place that the states do not settle.
 	const placesByCountry = useMemo(
 		() =>
-			groupPlacesByRegion(BOUNDED.countries, places, countryOf, {
+			groupPlacesByRegion(() => atlasBounded('countries'), places, countryOf, {
 				known: knownCountry(stateOfPlace),
 				snapKm: COUNTRY_SNAP_KM,
 			}),
@@ -793,7 +780,7 @@ export function PlacesApp({
 			preloaded === null
 				? null
 				: mapForView(preloaded, {
-						atlases: ATLASES,
+						atlases: atlasRegions,
 						groupings: { states: placesByState, countries: placesByCountry },
 						filtered,
 						visits,
@@ -836,8 +823,8 @@ export function PlacesApp({
 	const regionCommands = useMemo(
 		() =>
 			regionSource({
-				countries: ATLASES.countries.features.map(regionName),
-				states: ATLASES.states.features.map(regionName),
+				countries: atlasNames('countries'),
+				states: atlasNames('states'),
 				countryPlaces: placesByCountry,
 				statePlaces: placesByState,
 				goTo: setView,

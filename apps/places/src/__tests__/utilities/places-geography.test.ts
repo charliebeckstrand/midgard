@@ -1,7 +1,7 @@
 import type { GeoGeometryObjects } from 'd3-geo'
 import type { MapFeature, MapFeatureCollection, MapTopology } from 'ui/modules/map'
 import states from 'us-atlas/states-10m.json'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { Place } from '../../types'
 import {
 	boundRegions,
@@ -11,6 +11,7 @@ import {
 	nearestRegion,
 	regionFrame,
 	regionName,
+	topologyNames,
 } from '../../utilities/places-geography'
 import { stateOf } from '../../utilities/places-view'
 import { placeAt } from '../fixtures'
@@ -320,5 +321,43 @@ describe('groupPlacesByRegion', () => {
 		)
 
 		expect(grouped.get('Oregon')).toHaveLength(1)
+	})
+
+	// The world is a decode and a measure of 177 countries. A collection that the
+	// states settle whole must not pay for it.
+	it('reads no geometry where the known answer settles each place', () => {
+		const regions = vi.fn(() => bounded)
+
+		const grouped = groupPlacesByRegion(regions, [placeAt('a', [0, 0])], stateOf, {
+			known: () => 'Oregon',
+		})
+
+		expect(grouped.get('Oregon')).toHaveLength(1)
+
+		expect(regions).not.toHaveBeenCalled()
+	})
+
+	it('reads the geometry once where the known answer declines', () => {
+		const regions = vi.fn(() => bounded)
+
+		const grouped = groupPlacesByRegion(
+			regions,
+			[placeAt('corvallis', [-123.26, 44.56]), placeAt('salem', [-123.03, 44.94])],
+			stateOf,
+		)
+
+		expect(grouped.get('Oregon')).toHaveLength(2)
+
+		expect(regions).toHaveBeenCalledTimes(1)
+	})
+})
+
+describe('topologyNames', () => {
+	it('gives the names that the decoded regions carry, in the same order', () => {
+		const topology = states as MapTopology
+
+		expect(topologyNames(topology, 'states')).toEqual(
+			decodeRegions(topology, 'states')?.features.map(regionName),
+		)
 	})
 })
