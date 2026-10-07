@@ -31,6 +31,10 @@ import { useFormStore } from './use-form-store'
 /**
  * Optional shape returned from `onSubmit` to surface server-side validation
  * issues without round-tripping through `helpers.setErrors`.
+ *
+ * @remarks
+ * An entry of `''` is an issue. An entry of `undefined` or `[]` clears the
+ * field. When no entry has an issue, the return counts as a success.
  */
 export type SubmitResult<T> = {
 	fieldErrors?: Partial<Record<keyof T, string | string[] | undefined>>
@@ -38,8 +42,9 @@ export type SubmitResult<T> = {
 
 /**
  * Terminal outcome of one submit attempt, delivered to `onSettled`. Client
- * validation failures and `{ fieldErrors }` returns are mid-flow and do not
- * fire `onSettled`. On success, `values` are the values that `onSubmit` got,
+ * validation failures and `{ fieldErrors }` returns with at least one issue
+ * are mid-flow and do not fire `onSettled`. A `{ fieldErrors }` return with no
+ * issue is a success. On success, `values` are the values that `onSubmit` got,
  * not the values after a later write or reset.
  */
 export type SubmitOutcome<T> = { ok: true; values: T } | { ok: false; error: Error }
@@ -63,7 +68,8 @@ export type FormHelpers<T> = {
 /**
  * Return nothing (or `Promise<void>`) for success. Optionally return a
  * `SubmitResult<T>`, sync or async, to surface server-side validation
- * issues without going through `helpers.setErrors`. Throw or reject to
+ * issues without going through `helpers.setErrors`. A `SubmitResult<T>` with
+ * no issue applies its clears and counts as a success. Throw or reject to
  * trigger `onSettled({ ok: false, error })`. Annotate the return as
  * `satisfies SubmitResult<T>` for autocomplete on the shape.
  */
@@ -364,11 +370,18 @@ export function useFormReducer<T extends Record<string, unknown>>({
 
 				const fieldErrors = extractFieldErrors(raw)
 
-				// Field errors: mid-flow, not a terminal outcome; does not fire `onSettled`.
+				// Apply the returned entries. This also clears each field whose entry
+				// has no issue. An entry with an issue keeps the attempt mid-flow, and
+				// `onSettled` does not fire. `''` normalizes to `['']`, an issue.
+				if (fieldErrors) {
+					setErrorsExternal(fieldErrors)
+
+					if (Object.values(fieldErrors).some((entry) => hasIssues(normalizeIssues(entry)))) return
+				}
+
 				// The outcome carries the values that `onSubmit` got, not the values
 				// after a reset or a write while the handler waited.
-				if (fieldErrors) setErrorsExternal(fieldErrors)
-				else reportSettled({ ok: true, values: current })
+				reportSettled({ ok: true, values: current })
 			}
 
 			const applyError = (err: unknown) => {
