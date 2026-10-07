@@ -615,6 +615,82 @@ describe('Form', () => {
 		expect(onSettled).not.toHaveBeenCalled()
 	})
 
+	it.each([
+		['an empty map', {}],
+		['an undefined entry', { name: undefined }],
+		['an empty array entry', { name: [] }],
+	])('settles ok: true when the fieldErrors of onSubmit hold %s', async (_, fieldErrors) => {
+		const onSettled = vi.fn()
+
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: 'Ada' }}
+				onSubmit={() => ({ fieldErrors })}
+				onSettled={onSettled}
+			>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		await submit(container)
+
+		expect(onSettled).toHaveBeenCalledOnce()
+
+		expect(onSettled).toHaveBeenCalledWith({ ok: true, values: { name: 'Ada' } })
+	})
+
+	it('clears the field and settles ok: true when a later fieldErrors entry is undefined', async () => {
+		const onSettled = vi.fn()
+
+		const onSubmit = vi
+			.fn()
+			.mockReturnValueOnce({ fieldErrors: { name: 'taken on the server' } })
+			.mockReturnValueOnce({ fieldErrors: { name: undefined } })
+
+		const { container } = renderUI(
+			<Form defaultValues={{ name: 'Ada' }} onSubmit={onSubmit} onSettled={onSettled}>
+				<FieldProbe name="name" />
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		await submit(container)
+
+		expect(getFieldProbe('name')).toHaveAttribute('data-error', 'taken on the server')
+
+		expect(onSettled).not.toHaveBeenCalled()
+
+		await submit(container)
+
+		expect(getFieldProbe('name')).not.toHaveAttribute('data-error')
+
+		expect(onSettled).toHaveBeenCalledOnce()
+
+		expect(onSettled).toHaveBeenCalledWith({ ok: true, values: { name: 'Ada' } })
+	})
+
+	it('keeps an empty-string fieldErrors entry mid-flow', async () => {
+		const onSettled = vi.fn()
+
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: 'Ada' }}
+				onSubmit={() => ({ fieldErrors: { name: '' } })}
+				onSettled={onSettled}
+			>
+				<ValidProbe />
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		await submit(container)
+
+		// `''` normalizes to `['']`, which is an issue.
+		expect(screen.getByTestId('valid').textContent).toBe('false')
+
+		expect(onSettled).not.toHaveBeenCalled()
+	})
+
 	it('applies fieldErrors returned from onSubmit', async () => {
 		const { container } = renderUI(
 			<Form
