@@ -1,9 +1,10 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { type ReactNode, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import type { FloatingPlacement } from '../../hooks'
-import { TooltipContext } from './context'
-import { useTooltipState } from './use-tooltip-state'
+import { TooltipContext, type TooltipContextValue } from './context'
+import { preloadTooltipBody, readTooltipBody, subscribeTooltipBody } from './tooltip-body-loader'
+import { useTooltipIntent } from './tooltip-intent'
 
 /** Props for {@link Tooltip}. */
 export type TooltipProps = {
@@ -78,6 +79,33 @@ export type TooltipProps = {
 	children: ReactNode
 }
 
+/** The server renders no tooltip state: the state loads on the client. */
+const serverTooltipBody = () => null
+
+/** A closed tooltip sets no styles on a panel, and no props on the trigger or the panel. */
+const NO_STYLES = {}
+
+const noProps = () => ({})
+
+const noop = () => {}
+
+/** Whether a mounted tooltip already scheduled the idle load of the state module. */
+let prefetchScheduled = false
+
+/**
+ * Loads the state module in idle time, after the first tooltip mounts. A first
+ * keyboard focus then finds the module ready and opens the tooltip at once.
+ */
+function prefetchTooltipBody(): void {
+	if (prefetchScheduled) return
+
+	prefetchScheduled = true
+
+	const idle = window.requestIdleCallback ?? ((call: () => void) => window.setTimeout(call, 1))
+
+	idle(preloadTooltipBody)
+}
+
 /**
  * Hover/focus tooltip root; wires up floating state and shares `placement` and
  * `delay` with its `<TooltipTrigger>` and `<TooltipContent>` via context.
@@ -92,12 +120,95 @@ export type TooltipProps = {
  * tabbable control is a non-modal `role="dialog"` that the trigger names. The
  * trigger then carries `aria-haspopup="dialog"`, `aria-expanded`, and
  * `aria-controls`.
+ *
+ * The floating state loads on demand, with the panel, so a page that only
+ * shows a trigger does not load Floating UI before it is interactive. The
+ * first tooltip schedules the load in idle time. Before the load, native
+ * listeners on the trigger start the load on a hover, a focus, or a click,
+ * and the state replays that intent when it takes over. A hover opens after
+ * the same delay, a keyboard focus opens at once, and a click toggles. An
+ * `open` tooltip starts the load at once.
  * @see {@link useTooltipState}
  */
 export function Tooltip({ disabled, children, ...props }: TooltipProps) {
+	// The module as the tooltip mounts. A tooltip that mounts after the load
+	// runs the full state from its first render, so only a tooltip that mounts
+	// before the load takes the light state and the handover. The choice holds
+	// for the life of the tooltip, so the tree keeps its shape.
+	const [module] = useState(readTooltipBody)
+
+	useEffect(() => {
+		prefetchTooltipBody()
+	}, [])
+
 	// The public polarity is `disabled`; the state hook and floating-ui's own
 	// hooks under it read `enabled`, so the inversion happens once, here.
-	const contextValue = useTooltipState({ ...props, enabled: !disabled })
+	const enabled = !disabled
 
-	return <TooltipContext value={contextValue}>{children}</TooltipContext>
+	return module ? (
+		<module.TooltipStateRoot {...props} enabled={enabled}>
+			{children}
+		</module.TooltipStateRoot>
+	) : (
+		<LightTooltip {...props} enabled={enabled}>
+			{children}
+		</LightTooltip>
+	)
+}
+
+/** Props for {@link LightTooltip}. */
+type LightTooltipProps = Omit<TooltipProps, 'disabled'> & { enabled: boolean }
+
+/**
+ * A `<Tooltip>` that mounted before the state module loaded. It shares a
+ * closed state and records the intent of the reader. When the module loads,
+ * it renders `TooltipStateHost` beside its children and shares the value that
+ * the host gives.
+ */
+function LightTooltip({ enabled, children, ...props }: LightTooltipProps) {
+	const { trigger = 'hover', interactive = false, open: held = false } = props
+
+	const module = useSyncExternalStore(subscribeTooltipBody, readTooltipBody, serverTooltipBody)
+
+	// The value of the loaded state, which `TooltipStateHost` gives back.
+	const [state, setState] = useState<TooltipContextValue | null>(null)
+
+	const { setReference, takeIntent } = useTooltipIntent({ enabled, trigger })
+
+	// A tooltip that `open` holds open needs its state now.
+	useEffect(() => {
+		if (enabled && held) preloadTooltipBody()
+	}, [enabled, held])
+
+	// Until the state loads, the tooltip is closed. The trigger gives its node to
+	// the intent listeners.
+	const light = useMemo<TooltipContextValue>(
+		() => ({
+			open: false,
+			interactive,
+			enabled,
+			setReference,
+			setFloating: noop,
+			floatingStyles: NO_STYLES,
+			getReferenceProps: noProps,
+			getFloatingProps: noProps,
+		}),
+		[interactive, enabled, setReference],
+	)
+
+	// The host sits before the children, and both keep their places when the
+	// host mounts, so the trigger does not mount again and keeps its focus.
+	return (
+		<TooltipContext value={state ?? light}>
+			{module && (
+				<module.TooltipStateHost
+					{...props}
+					enabled={enabled}
+					takeIntent={takeIntent}
+					onState={setState}
+				/>
+			)}
+			{children}
+		</TooltipContext>
+	)
 }

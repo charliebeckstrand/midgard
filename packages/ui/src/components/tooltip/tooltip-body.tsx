@@ -12,6 +12,10 @@ import { k } from '../../recipes/kata/tooltip'
 import { useTooltipContext } from './context'
 import type { TooltipContentProps } from './tooltip-content'
 
+// The state of a `<Tooltip>` loads with its panel, so the first open of a
+// tooltip takes one fetch.
+export { TooltipStateHost, TooltipStateRoot } from './tooltip-state-root'
+
 /**
  * The focus manager of an interactive panel that holds a tabbable control. The
  * panel is a non-modal dialog, so the manager does not trap Tab and does not

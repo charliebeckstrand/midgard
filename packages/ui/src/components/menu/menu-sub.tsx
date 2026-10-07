@@ -16,7 +16,7 @@ import {
 import { ariaAttr, cn, dataAttr } from '../../core'
 import { useFloatingUI } from '../../hooks'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
-import { useDeferredFloatingReference } from '../../hooks/use-floating-reference'
+import { useDeferredFloatingReference } from '../../hooks/use-deferred-floating-reference'
 import { fitMiddleware } from '../../hooks/use-floating-ui'
 import { useOpenChange } from '../../hooks/use-open-change'
 import { useStableEvent } from '../../hooks/use-stable-event'

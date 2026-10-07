@@ -11,7 +11,7 @@ import {
 	useCallback,
 } from 'react'
 import { cn } from '../../core'
-import { useDeferredFloatingReference } from '../../hooks/use-floating-reference'
+import { useDeferredFloatingReference } from '../../hooks/use-deferred-floating-reference'
 import { k } from '../../recipes/kata/popover'
 import { usePopoverContext } from './context'
 

@@ -55,7 +55,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > An `interactive` `tooltip` with a tabbable control in its content is a non-modal `role="dialog"`. The trigger names it and carries `aria-haspopup="dialog"`, `aria-expanded`, and `aria-controls`. Tab goes from the trigger into the panel controls and then on to the element after the trigger. Focus does not stay in the panel, and the page stays visible to assistive tech. Other tooltips are `role="tooltip"` and describe the trigger.
 
-> `TooltipContent` loads its panel module, with Motion and the floating surface, on the first hover or focus of a trigger. The panel opens when the module is there, and the hover delay covers the load. A page that opens no tooltip does not load Motion for it.
+> `Tooltip` loads its state and its panel in one module, with Floating UI, Motion, and the floating surface. The first tooltip of a page starts the load in idle time. A hover, a focus, or a click on a trigger starts it at once. Before the load, the trigger records the intent, and the state replays it. A hover opens after the same delay, a keyboard focus opens at once, and a click toggles. A page that shows a trigger does not load Floating UI before it is interactive.
 
 > `confirm` exports `Confirm` and `useConfirm`. `Confirm` is the controlled alertdialog. `useConfirm()` gives a function that asks a question in the one `Confirm` that `UIProvider` mounts. The provider loads the dialog on the first question. The function returns a promise that resolves `true` on a confirm and `false` on a cancel or a dismissal. An optional `action` keeps the dialog open, with the confirm button pending, until the work is done. Use `Confirm` for a message with custom children.
 

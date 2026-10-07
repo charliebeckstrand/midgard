@@ -45,11 +45,12 @@ const serverTooltipBody = () => null
  * via `<FloatingSurface>`, animates in, and adopts the glass surface from
  * `glass` or an active `<GlassProvider>`.
  *
- * @remarks The panel loads on demand. A hover or a focus on the trigger
- * starts the load of the panel module, which carries Motion and the floating
- * surface, and the panel opens when the module is there. The hover open delay
- * covers the load, so only a focus on the first tooltip of a page can show the
- * panel a fetch late. A page that opens no tooltip does not load Motion for it.
+ * @remarks The panel loads on demand, in one module with the tooltip state.
+ * The first tooltip of a page starts the load in idle time. A hover, a focus,
+ * or a click on the trigger starts it at once. The module carries Motion
+ * and the floating surface, and the panel opens when the module is there. The
+ * hover open delay covers the load, so only a focus before the load ends can
+ * show the panel a fetch late.
  *
  * Pointer events are disabled unless the tooltip is `interactive`,
  * so a non-interactive panel never intercepts hover. An `interactive` panel

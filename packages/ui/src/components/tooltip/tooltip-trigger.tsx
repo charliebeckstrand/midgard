@@ -32,6 +32,9 @@ export type TooltipTriggerProps = {
  * a wrapping `<span>`. Those props are the focus/hover/click handlers plus the
  * `useRole` tooltip `aria-describedby`. Keyboard focus reaches the trigger, and
  * the description announces on the focusable node itself (WCAG 2.1.1 / 1.4.13 / 4.1.2).
+ * Before the tooltip state loads, the trigger takes no props from it. Native
+ * listeners on the node record the first hover, focus, or click, and the
+ * state replays that intent when it takes over (see {@link Tooltip}).
  *
  * When the panel is a dialog (an `interactive` panel that holds a tabbable
  * control), the trigger carries `aria-haspopup="dialog"`, `aria-expanded`, and
