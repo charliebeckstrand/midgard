@@ -1,6 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import { useFormField, useFormToggle } from '../../components/form'
+import { useFormField } from '../../components/form'
+import { useFormToggle } from '../../components/form/use-form-toggle'
 import { makeChangeEvent } from '../helpers'
 import { makeFormWrapper } from '../helpers/form-wrapper'
 

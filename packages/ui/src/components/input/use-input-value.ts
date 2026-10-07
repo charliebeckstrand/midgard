@@ -1,7 +1,9 @@
 'use client'
 
 import type { ChangeEventHandler, ComponentProps, FocusEventHandler } from 'react'
-import { useFormText } from '../form/use-form-text'
+import { composeEventHandlers } from '../../core'
+import { useFormField } from '../form/context'
+import { hasIssues } from '../form/form-reducer'
 
 type InputValueOptions<E extends HTMLInputElement | HTMLTextAreaElement> = {
 	name?: string
@@ -31,8 +33,12 @@ type InputValueResult<E extends HTMLInputElement | HTMLTextAreaElement> = {
  * to native (`defaultValue`) state. `value === null` keeps it controlled with no
  * current value, coerced to `''`. Any other `value` is controlled. An
  * explicit (non-`undefined`) `value` wins over the bound field, which still
- * supplies `invalid`.
- * @see {@link useFormText}
+ * supplies `invalid`. The field subscription is through {@link useFormField},
+ * so a keystroke renders only this control. A bound `onChange` writes the
+ * field and a bound `onBlur` marks it touched, after the handlers of the
+ * caller. A `preventDefault()` in a handler of the caller does not stop the
+ * write. A field value that is not a string becomes `''`. The boolean analogue
+ * is `useFormToggle`.
  */
 export function useInputValue<E extends HTMLInputElement | HTMLTextAreaElement = HTMLInputElement>({
 	name,
@@ -40,18 +46,29 @@ export function useInputValue<E extends HTMLInputElement | HTMLTextAreaElement =
 	onChange,
 	onBlur,
 }: InputValueOptions<E>): InputValueResult<E> {
-	const binding = useFormText<E>(name, { onChange, onBlur })
+	const field = useFormField(name)
 
 	// §7.3: `undefined` is uncontrolled (binds to the Form field or native
 	// state); `null` is controlled with no value; anything else is controlled.
-	const bound = value === undefined && binding !== undefined
-
-	const own = value === null ? '' : value
+	if (value === undefined && field) {
+		return {
+			value: typeof field.value === 'string' ? field.value : '',
+			// The field write and the touched mark run whatever the caller does
+			// (CONVENTIONS.md §3.9).
+			onChange: composeEventHandlers(onChange, (event) => field.setValue(event.target.value), {
+				checkForDefaultPrevented: false,
+			}),
+			onBlur: composeEventHandlers(onBlur, () => field.setTouched(), {
+				checkForDefaultPrevented: false,
+			}),
+			invalid: hasIssues(field.errors),
+		}
+	}
 
 	return {
-		value: bound ? binding.value : own,
-		onChange: bound ? binding.onChange : onChange,
-		onBlur: bound ? binding.onBlur : onBlur,
-		invalid: binding?.invalid,
+		value: value === null ? '' : value,
+		onChange,
+		onBlur,
+		invalid: field ? hasIssues(field.errors) : undefined,
 	}
 }

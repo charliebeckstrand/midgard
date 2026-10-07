@@ -1,4 +1,3 @@
-import type { Ma } from '../../recipes'
 import {
 	atBreakpoint,
 	BREAKPOINTS,
@@ -12,9 +11,6 @@ import {
 	resolveAlign,
 	resolveGap,
 } from '../flex/variants'
-
-/** Gap step between the two panes, drawn from the shared `Ma` spacing scale. */
-export type SplitGap = Ma
 
 /** First-pane-to-second-pane size ratio: the first pane's share of the two `fr` tracks. */
 export type SplitRatio = '1/4' | '1/3' | '1/2' | '2/3' | '3/4'
@@ -123,7 +119,7 @@ export function resolveTemplate(
 
 /** Flex's align values per breakpoint, or a single value applied at all sizes; the Flex axis. */
 export type ResponsiveSplitAlign = ResponsiveAlign
-/** {@link SplitGap} per breakpoint, or a single value applied at all sizes; the Flex axis. */
+/** The `Ma` gap step between the two panes per breakpoint, or a single value applied at all sizes; the Flex axis. */
 export type ResponsiveSplitGap = ResponsiveGap
 
 export { resolveAlign, resolveGap }

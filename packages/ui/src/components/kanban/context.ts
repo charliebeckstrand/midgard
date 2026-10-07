@@ -3,7 +3,6 @@
 import type { DraggableAttributes, DraggableSyntheticListeners } from '@dnd-kit/core'
 import type { KeyboardEvent, ReactNode, RefObject } from 'react'
 import { createContext } from '../../core'
-import { useKeyedValue } from '../../hooks/use-keyed-store'
 import type { KeyedStore } from '../../utilities'
 
 /**
@@ -18,8 +17,8 @@ export type KanbanContextValue = {
 	/** Whether a reorderable board (one with `onReorder`) is disabled. A read-only board is never disabled. */
 	disabled: boolean
 	/**
-	 * Whether each card id is lifted via keyboard. Read one card with
-	 * `useKanbanCardLifted(cardId)`.
+	 * Whether each card id is lifted via keyboard. A card reads its own id with
+	 * `useKeyedValue`.
 	 *
 	 * @remarks
 	 * It replaces `liftedCardId`. A lifted id in the context gave the context a
@@ -44,17 +43,6 @@ export type KanbanContextValue = {
  * @throws When no `<Kanban>` is mounted above the caller.
  */
 export const [KanbanContext, useKanbanContext] = createContext<KanbanContextValue>('Kanban')
-
-/**
- * Whether the card `cardId` of the enclosing `<Kanban>` is lifted via keyboard.
- *
- * @returns `true` while the card is lifted. The caller renders only when the
- * lift of this card changes, not for the lift of another card.
- * @throws When no `<Kanban>` is mounted above the caller.
- */
-export function useKanbanCardLifted(cardId: string): boolean {
-	return useKeyedValue(useKanbanContext().liftedStore, cardId)
-}
 
 /** Column-facing pointer-drag state: the active card and per-column ordering, both of which change every drag-over move. */
 export type KanbanDragStateValue = {

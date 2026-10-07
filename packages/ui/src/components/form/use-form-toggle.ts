@@ -21,7 +21,7 @@ export type FormToggleResult = {
 
 /**
  * Resolves a toggle's `checked`/`onChange` against the Form binding cascade
- * (`Checkbox`, `Switch`): the boolean analogue of {@link useFormText}.
+ * (`Checkbox`, `Switch`): the boolean analogue of `useInputValue`.
  *
  * @param options - `name` of the field to bind, plus optional explicit
  * `checked`/`onChange` props from the control.

@@ -145,7 +145,7 @@ export type FormFieldState = {
  * @remarks Re-renders only when this field's slice changes by content. The
  * snapshot is cached and returned by reference when unchanged, so typing in one
  * field does not re-render its siblings. Used by the binding hooks
- * ({@link useFormText}, {@link useFormToggle}, {@link useFormValue}).
+ * (`useInputValue`, {@link useFormToggle}, {@link useFormValue}).
  */
 export function useFormField(name: string | undefined): FormFieldState | undefined {
 	const store = useFormStoreContext()

@@ -26,7 +26,7 @@ export type FormValueResult<T> = {
 
 /**
  * Binds `useControllable` to an enclosing Form field by `name`: the
- * value-typed analogue of {@link useFormText} / {@link useFormToggle} for
+ * value-typed analogue of `useInputValue` / {@link useFormToggle} for
  * controls that emit `onValueChange` rather than DOM change events.
  *
  * @param name - Field key to bind; undefined leaves the hook unbound (plain

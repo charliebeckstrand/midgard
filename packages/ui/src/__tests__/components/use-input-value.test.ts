@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { useInputValue } from '../../components/input/use-input-value'
 
-// Outside a Form provider `useFormText` returns undefined; that's the seam this
+// Outside a Form provider `useFormField` returns undefined; that's the seam this
 // hook normalizes around. The Form-bound branch is covered by form.test.tsx.
 
 describe('useInputValue', () => {

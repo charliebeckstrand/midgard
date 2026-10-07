@@ -6,9 +6,9 @@ import {
 	type ComboboxCreateOptionProps,
 	ComboboxLabel,
 	ComboboxOption,
-	useComboboxQuery,
 } from '../../components/combobox'
 import { ComboboxContext } from '../../components/combobox/context'
+import { useComboboxQuery } from '../../components/combobox/use-combobox-query'
 import { DeferredQueryContext, QueryContext } from '../../primitives/query'
 import { fireEvent, renderUI, screen, setupUser } from '../helpers'
 

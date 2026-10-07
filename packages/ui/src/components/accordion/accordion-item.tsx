@@ -52,8 +52,8 @@ export function AccordionItem({
 
 	const everyPanel = useMountsEveryPanel(mount)
 
-	// The wiring is whole here, so a custom header from `useAccordionItem` gets it
-	// too. A reference needs its target id in the DOM: an open panel is there, and
+	// The wiring is whole here, so each reader of `useAccordionItem` gets all of
+	// it. A reference needs its target id in the DOM: an open panel is there, and
 	// a closed panel only under `mount="always"` after hydration, because the
 	// server markup does not hold it. An open section that a toggle cannot close
 	// is `aria-disabled`, per the WAI-ARIA accordion pattern.

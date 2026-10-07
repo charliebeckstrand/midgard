@@ -3,7 +3,6 @@
 import type { DragControls } from 'motion/react'
 import type { KeyboardEvent } from 'react'
 import { createContext } from '../../core'
-import { useKeyedValue } from '../../hooks/use-keyed-store'
 import type { ListVariant } from '../../recipes/kata/list'
 import type { KeyedStore } from '../../utilities'
 
@@ -16,8 +15,8 @@ export type ListContextValue = {
 	/** Whether a reorderable list (one with `onReorder`) is disabled. A read-only list is never disabled. */
 	disabled: boolean
 	/**
-	 * Whether each item id is "lifted" via keyboard (Space). Read one item with
-	 * `useListItemLifted(id)`.
+	 * Whether each item id is "lifted" via keyboard (Space). An item reads its own
+	 * id with `useKeyedValue`.
 	 *
 	 * @remarks
 	 * It replaces `liftedId`. A lifted id in the context gave the context a new
@@ -43,17 +42,6 @@ export type ListContextValue = {
  * @throws When no `<List>` is mounted above the caller.
  */
 export const [ListContext, useListContext] = createContext<ListContextValue>('List')
-
-/**
- * Whether the item `id` of the enclosing `<List>` is lifted via keyboard (Space).
- *
- * @returns `true` while the item is lifted. The caller renders only when the
- * lift of this item changes, not for the lift of another item.
- * @throws When no `<List>` is mounted above the caller.
- */
-export function useListItemLifted(id: string): boolean {
-	return useKeyedValue(useListContext().liftedStore, id)
-}
 
 /** Per-item drag bindings shared with an item and its handle: the item `id`, the row ref, the reorder bindings, and the `dragging` flag. */
 export type ListItemContextValue = {

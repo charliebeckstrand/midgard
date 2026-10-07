@@ -8,8 +8,8 @@ import {
 	AccordionPanel,
 	AccordionTrigger,
 	type AccordionTriggerProps,
-	useAccordionItem,
 } from '../../components/accordion'
+import { useAccordionItem } from '../../components/accordion/context'
 import type { Mount } from '../../primitives/mount'
 import {
 	act,
