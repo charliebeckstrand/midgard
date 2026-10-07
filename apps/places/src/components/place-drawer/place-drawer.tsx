@@ -13,6 +13,7 @@ import { Icon } from 'ui/icon'
 import { Link } from 'ui/link'
 import { List, ListItem } from 'ui/list'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
+import { Markdown } from 'ui/markdown'
 import { useDateFormat } from 'ui/providers/locale'
 import { Rating } from 'ui/rating'
 import { Flex } from 'ui/structure/flex'
@@ -215,7 +216,17 @@ function PlaceVisit({
 				</Flex>
 			) : null}
 
-			{visit.review ? <Text>{visit.review}</Text> : null}
+			{/* The review is Markdown, so its paragraphs, lists, and emphasis show.
+			    `whitespace-pre-line` keeps each line break that the reader typed,
+			    because Markdown joins the lines of a paragraph. The offset puts a
+			    heading of the review under the "Visits" heading. */}
+			{visit.review ? (
+				<Text as="div">
+					<Markdown headingOffset={3} className="whitespace-pre-line">
+						{visit.review}
+					</Markdown>
+				</Text>
+			) : null}
 		</Stack>
 	)
 }
