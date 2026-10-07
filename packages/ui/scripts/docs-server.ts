@@ -1,6 +1,6 @@
 /**
  * Serves the docs build the way App Platform serves it, for `docs:preview` and
- * `docs:hydration`. `docs:bench` serves the build with the same paths, over
+ * `test:docs-build`. `docs:bench` serves the build with the same paths, over
  * HTTP/2.
  *
  * A path gets the file at that path, or `index.html` in the directory at that
@@ -25,7 +25,7 @@ export const CLIENT_DIR = path.resolve(import.meta.dirname, '..', 'src', 'docs',
 
 /**
  * A browser expression that is `true` when the page hydrated, for
- * `docs:hydration` and `docs:bench`. Hydration gives the heading a React
+ * `test:docs-build` and `docs:bench`. Hydration gives the heading a React
  * fiber. A prerendered heading has none.
  */
 export const HYDRATED = `Object.keys(document.querySelector('h1') ?? {}).some((key) => key.startsWith('__reactFiber'))`
@@ -90,7 +90,7 @@ export async function serveDocs(port: number): Promise<{ origin: string; server:
 	return { origin: `http://localhost:${(server.address() as AddressInfo).port}`, server }
 }
 
-// Run as a script, not as an import of `docs:hydration`.
+// Run as a script, not as an import of `test:docs-build`.
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
 	const { origin } = await serveDocs(3456)
 
