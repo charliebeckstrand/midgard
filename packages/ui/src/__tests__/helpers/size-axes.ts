@@ -45,7 +45,6 @@ export const SIZE_AXES = {
 	DatePicker: ['sm', 'md', 'lg'],
 	DatePickerSkeleton: ['sm', 'md', 'lg'],
 	DrawerPanel: ['sm', 'md', 'lg'],
-	DrawerStatic: ['sm', 'md', 'lg'],
 	FileUploadButton: ['xs', 'sm', 'md', 'lg'],
 	FileUploadInput: ['sm', 'md', 'lg'],
 	Grid: ['sm', 'md', 'lg'],

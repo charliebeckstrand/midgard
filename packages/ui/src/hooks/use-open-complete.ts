@@ -21,8 +21,8 @@ import { useStableEvent } from './use-stable-event'
  * module constants, so the identity holds.
  * @param onOpenComplete The caller's callback, raised once per arrival.
  * @returns `onAnimationComplete` to spread onto the animated element, plus `report`. A
- * panel that can arrive with no animation to land (Drawer's `animateOnMount={false}`) uses
- * `report` to say so from an effect.
+ * panel that can arrive with no animation to land (Collapse's `animate={false}`) uses
+ * `report` to say so.
  * @internal
  */
 export function useOpenComplete(
@@ -38,9 +38,8 @@ export function useOpenComplete(
 		if (!open) reportedRef.current = false
 	}, [open])
 
-	// Stable for the mount: Drawer's arrival effect depends on its identity. It
-	// reads the latest callback, so a caller that binds a payload (an accordion
-	// section that names itself) does not memoize a callback that only Drawer reads.
+	// It reads the latest callback, so a caller that binds a payload (an accordion
+	// section that names itself) does not have to memoize it.
 	const report = useStableEvent(() => {
 		if (reportedRef.current) return
 

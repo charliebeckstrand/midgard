@@ -1,10 +1,8 @@
 /**
  * Omote backdrop: modal / sheet overlay fills. Two intensities: `base`
  * is the default modal scrim; `glass` is denser for use behind a glass
- * panel. Both are translucent, so `grayscale` rides on top of either to
- * drain the color from what still shows through. That leaves it inert rather
- * than merely dimmed. The raw color pairs live here, not in `bg.ts`; the
- * two filters are their own concerns (`blur`, `grayscale`).
+ * panel. The raw color pairs live here, not in `bg.ts`; the `blur` filter
+ * is its own concern.
  *
  * Layer: kiso · Concern: backdrop fill
  */
@@ -12,7 +10,6 @@
 import { mode } from '../../../core/recipe'
 
 import { blur } from './blur'
-import { grayscale } from './grayscale'
 
 const fill = {
 	md: mode('bg-white/50', 'dark:bg-zinc-950/50'),
@@ -22,5 +19,4 @@ const fill = {
 export const backdrop = {
 	base: [fill.md, blur.sm],
 	glass: fill.lg,
-	grayscale,
 } as const
