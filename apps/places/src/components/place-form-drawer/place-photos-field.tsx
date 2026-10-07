@@ -1,6 +1,6 @@
 'use client'
 
-import { Plus, X } from 'lucide-react'
+import { Plus, Trash } from 'lucide-react'
 import { useId } from 'react'
 import { Button } from 'ui/button'
 import { Field, Label, Message } from 'ui/fieldset'
@@ -16,8 +16,9 @@ import { MAX_PHOTOS, type PhotoRow, photoRow } from './place-form'
  * The photos of a visit: one address per row, and a button that adds a row.
  *
  * The field always holds one row at least, so a visit with no photo shows one
- * empty row, as the single field did before. With more than one row, each row
- * has a remove button and a drag handle. The list shows the handle only while
+ * empty row, as the single field did before. Each input has a clear button
+ * while it holds an address. The clear button empties the row and keeps it.
+ * With more than one row, each row also has a remove button and a drag handle. The list shows the handle only while
  * it holds more than one row, because one row has no order to change.
  *
  * The field is a `Field` with a `Label`, as the other fields of the form are, so
@@ -55,7 +56,7 @@ export function PlacePhotosField() {
 						suffix={
 							several ? (
 								<ToggleIconButton
-									icon={<Icon icon={<X />} />}
+									icon={<Icon icon={<Trash />} />}
 									aria-label={`Remove photo ${rows.indexOf(row) + 1}`}
 									onClick={() => setValue(rows.filter((held) => held.key !== row.key))}
 								/>
@@ -65,6 +66,7 @@ export function PlacePhotosField() {
 						<Input
 							id={`${id}${row.key}`}
 							type="url"
+							clearable
 							placeholder="https://"
 							aria-label={`Photo ${rows.indexOf(row) + 1}`}
 							value={row.url}

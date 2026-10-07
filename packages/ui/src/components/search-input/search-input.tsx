@@ -13,13 +13,13 @@ import { InputClearButton } from '../input/input-clear-button'
 import { LoadingSpinner } from '../loading'
 
 /**
- * Props for {@link SearchInput}: {@link InputProps} (less `type`/`prefix`/`suffix`/`value`/`defaultValue`) plus a loading flag and the clear affordance.
+ * Props for {@link SearchInput}: {@link InputProps} (less `type`/`prefix`/`suffix`/`value`/`defaultValue`/`clearable`) plus a loading flag and the clear affordance.
  *
  * @see {@link SearchInput}
  */
 export type SearchInputProps = Omit<
 	InputProps,
-	'type' | 'prefix' | 'suffix' | 'value' | 'defaultValue'
+	'type' | 'prefix' | 'suffix' | 'value' | 'defaultValue' | 'clearable'
 > & {
 	/** Controlled text. `undefined` leaves the field uncontrolled; `null` keeps it controlled and empty (CONVENTIONS §7.3). */
 	value?: string | null
