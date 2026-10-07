@@ -19,3 +19,8 @@ export function kindWidth(entries: readonly Entry[]): number {
 export function columns(entry: Entry, width: number): string {
 	return `${String(entry.time).padStart(6)} y${String(entry.y).padEnd(5)} ${nameOf(entry).padEnd(width)} `
 }
+
+/** One line with no detail: the columns, then the text. Copy and the trail of a report write it. */
+export function lineOf(entry: Entry, width: number): string {
+	return columns(entry, width) + entry.text
+}

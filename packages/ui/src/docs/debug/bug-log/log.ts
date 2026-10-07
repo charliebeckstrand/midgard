@@ -2,7 +2,7 @@ import { findScrollableAncestor } from '../../../components/scroll-area/scroll-a
 import type { EventLog } from '../event-log/log.ts'
 import { type ErrorDetail, type Viewport, viewport } from '../event-log/probes.ts'
 import { describe, isOwn, type Line, on } from '../event-log/sources.ts'
-import { columns, kindWidth } from '../event-log/text.ts'
+import { kindWidth, lineOf } from '../event-log/text.ts'
 import { Journal, type Store } from '../journal.ts'
 
 // The store of the Bug log: a report for each error line of the Event log,
@@ -140,7 +140,7 @@ export class BugLog extends Journal<Report> {
 			viewport: { ...viewport(), y: Math.round(scrollY) },
 			pointer: pointer?.isConnected ? place(pointer) : undefined,
 			focus: focus?.isConnected ? place(focus) : undefined,
-			trail: trail.map((entry) => columns(entry, width) + entry.text),
+			trail: trail.map((entry) => lineOf(entry, width)),
 		}
 	}
 }

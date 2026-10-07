@@ -1,11 +1,12 @@
 import { notifyOverlaySignal } from 'ui/primitives/overlay'
 import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { attach } from '../../__tests__/helpers/attach.ts'
+import { BugLog } from '../debug/bug-log/log.ts'
 import { onCaughtError } from '../debug/event-log/caught-errors.ts'
 import { componentEvent } from '../debug/event-log/component-events.ts'
 import { CAPACITY, type Entry, EventLog, OWN } from '../debug/event-log/log.ts'
-import { begin, listen } from '../debug/event-log/recorder.ts'
 import type { Store } from '../debug/journal.ts'
+import { begin, listen } from '../debug/recorder.ts'
 
 /** A `sessionStorage` in memory. A new log on the same store is a reload of the tab. */
 function createStore(): Store {
@@ -44,9 +45,14 @@ function texts(log: EventLog): string[] {
 	return log.entries.map((line) => line.text)
 }
 
+/** Starts the listeners of a log and of its Bug log, and returns a function that stops them. */
+function listenOn(log: EventLog): () => void {
+	return listen({ log, bugs: new BugLog(createStore(), log) })
+}
+
 /** Starts the listeners of a log, which the test stops when it ends. */
 function listenTo(log: EventLog): void {
-	onTestFinished(listen(log))
+	onTestFinished(listenOn(log))
 }
 
 afterEach(() => {
@@ -339,7 +345,7 @@ describe('listen', () => {
 
 		const log = new EventLog(createStore())
 
-		const stop = listen(log)
+		const stop = listenOn(log)
 
 		const button = attach(document.createElement('button'))
 
@@ -664,7 +670,7 @@ describe('listen', () => {
 	it('records the callbacks that a page gives to a component or a module, and stops with the log', () => {
 		const log = new EventLog(createStore())
 
-		const stop = listen(log)
+		const stop = listenOn(log)
 
 		componentEvent('component', 'Tab', 'onPreload', vi.fn<(value: string) => void>())('Activity')
 
@@ -715,7 +721,7 @@ describe('listen', () => {
 
 		const log = new EventLog(createStore())
 
-		const stop = listen(log)
+		const stop = listenOn(log)
 
 		attach(document.createElement('button')).focus()
 

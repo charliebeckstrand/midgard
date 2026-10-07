@@ -1,12 +1,12 @@
 import type { JsonValue } from 'ui/json-tree'
-import { BugLog } from '../bug-log/log.ts'
-import { sessionStore } from '../journal.ts'
-import { type Entry, EventLog, type Kind } from './log.ts'
-import { scrollReading, viewport } from './probes.ts'
-import { type Line, SOURCES } from './sources.ts'
+import { BugLog } from './bug-log/log.ts'
+import { type Entry, EventLog, type Kind } from './event-log/log.ts'
+import { scrollReading, viewport } from './event-log/probes.ts'
+import { type Line, SOURCES } from './event-log/sources.ts'
+import { sessionStore } from './journal.ts'
 
-// The recorder of the Event log: it starts the log of the tab, writes the
-// lines of each page load, and runs the sources.
+// The recorder of the debug tools: it starts the Event log and the Bug log of
+// the tab, writes the lines of each page load, and runs the sources.
 
 /** The readings before hydration, from the head script (`index.tsx`). */
 type Buffer = { entries: Entry[]; stop: () => void }
@@ -17,74 +17,66 @@ declare global {
 	}
 }
 
-/** The log of this tab. It starts with {@link start}. */
-let log: EventLog | undefined
+/** The two logs of a tab. The Bug log reads the Event log for the trail of a report. */
+export type Debug = { log: EventLog; bugs: BugLog }
 
-/** The Bug log of this tab. It starts with the log. */
-let bugs: BugLog | undefined
+/** The logs of this tab. They start with {@link start}. */
+let debug: Debug | undefined
 
 let stop: (() => void) | undefined
 
 /**
- * The Bug log of this tab, which `target` is the log of. CSS shows the dot of
- * the Bug button by the `data-bugs` attribute of the root element, which is
- * on while the Bug log holds a report.
+ * The logs of a tab, kept in `sessionStorage`. CSS shows the dot of the Bug
+ * button by the `data-bugs` attribute of the root element, which is on while
+ * the Bug log holds a report.
  */
-function bugLog(target: EventLog): BugLog {
-	if (bugs) return bugs
+function create(): Debug {
+	const log = new EventLog(sessionStore())
 
-	const reports = new BugLog(sessionStore(), target)
+	const bugs = new BugLog(sessionStore(), log)
 
-	const mark = () =>
-		document.documentElement.toggleAttribute('data-bugs', reports.entries.length > 0)
+	const mark = () => document.documentElement.toggleAttribute('data-bugs', bugs.entries.length > 0)
 
-	reports.subscribe(mark)
+	bugs.subscribe(mark)
 
 	mark()
 
-	bugs = reports
-
-	return reports
-}
-
-/** Starts the log of this tab, and returns its Bug log. */
-export function startBugs(): BugLog {
-	return bugLog(start())
+	return { log, bugs }
 }
 
 /**
- * Starts the log of this tab, and returns it. The first start of a page load
- * writes the load lines and takes the readings of the head script. A start
- * after {@link halt} writes a separator and the readings of now. A call while
- * the log runs returns the same log.
+ * Starts the logs of this tab, and returns them. The first start of a page
+ * load writes the load lines and takes the readings of the head script. A
+ * start after {@link halt} writes a separator and the readings of now. A call
+ * while the logs run returns the same logs.
  */
-export function start(): EventLog {
-	if (!log) {
-		log = new EventLog(sessionStore())
+export function start(): Debug {
+	if (!debug) {
+		debug = create()
 
-		begin(log)
+		begin(debug.log)
 	} else if (!stop) {
-		begin(log, 'on')
+		begin(debug.log, 'on')
 	}
 
-	stop ??= listen(log, bugLog(log))
+	stop ??= listen(debug)
 
-	return log
+	return debug
 }
 
 /**
- * Stops the listeners of the log, and drops its entries and the kept copy.
- * The log stays the log of the tab, so the sheet keeps it, and "Preserve"
- * keeps its value.
+ * Stops the listeners of the logs, and drops their entries and the kept
+ * copies. The logs stay the logs of the tab, so the sheets keep them, and
+ * "Preserve" keeps its value.
  */
 export function halt(): void {
 	stop?.()
 
 	stop = undefined
 
-	log?.clear()
+	debug?.log.clear()
 
-	bugs?.clear()
+	debug?.bugs.clear()
 }
 
 /** The entry of a line, with the scroll position of now, at the time of now by default. */
@@ -102,7 +94,7 @@ function entryOf({ kind, text, detail, time = performance.now(), name, batch }: 
 
 /** Adds an entry to the log of this tab while it runs. */
 export function record(kind: Kind, text: string, detail?: JsonValue): void {
-	if (stop) log?.add(entryOf({ kind, text, detail }))
+	if (stop) debug?.log.add(entryOf({ kind, text, detail }))
 }
 
 /**
@@ -125,29 +117,30 @@ export function begin(target: EventLog, cause?: string): void {
 }
 
 /**
- * Runs the sources of a log, and returns a function that stops them. A line
- * that a source writes after the stop, such as from a timer, goes out. Each
- * error line also files a report in `reports`, the Bug log of the log.
+ * Runs the sources of the logs, and returns a function that stops them. A
+ * line that a source writes after the stop, such as from a timer, goes out.
+ * Each error line also files a report in the Bug log.
  */
-export function listen(target: EventLog, reports?: BugLog): () => void {
+export function listen({ log, bugs }: Debug): () => void {
 	let running = true
 
 	// An error line files a report while the log is paused too.
-	const stops = SOURCES.map((source) =>
-		source((line) => {
-			if (!running) return
+	const stops = [
+		...SOURCES.map((source) =>
+			source((line) => {
+				if (!running) return
 
-			target.add(entryOf(line))
+				log.add(entryOf(line))
 
-			if (line.kind === 'error') reports?.file(line)
-		}),
-	)
-
-	if (reports) stops.push(reports.watch())
+				if (line.kind === 'error') bugs.file(line)
+			}),
+		),
+		bugs.watch(),
+	]
 
 	// The listener goes after the listener of the lifecycle source, so the
 	// saved log holds the `pagehide` line.
-	const save = () => target.save()
+	const save = () => log.save()
 
 	window.addEventListener('pagehide', save, true)
 
@@ -171,11 +164,11 @@ if (import.meta.hot) {
 
 	// The kept log continues with no separator.
 	if (kept.entries) {
-		log = new EventLog(sessionStore())
+		debug = create()
 
-		log.entries = kept.entries
+		debug.log.entries = kept.entries
 
-		stop = listen(log, bugLog(log))
+		stop = listen(debug)
 	}
 
 	import.meta.hot.on('vite:afterUpdate', ({ updates }) =>
@@ -187,7 +180,7 @@ if (import.meta.hot) {
 	// The new module takes the entries, so the old one stops its listeners and
 	// keeps the entries and the kept copy.
 	import.meta.hot.dispose((data: Kept) => {
-		data.entries = stop ? log?.entries : undefined
+		data.entries = stop ? debug?.log.entries : undefined
 
 		stop?.()
 

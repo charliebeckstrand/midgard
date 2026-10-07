@@ -3,9 +3,9 @@ import { attach } from '../../__tests__/helpers/attach.ts'
 import { BugLog, CAPACITY, TRAIL } from '../debug/bug-log/log.ts'
 import { markdownOf } from '../debug/bug-log/markdown.ts'
 import { type Entry, EventLog, OWN } from '../debug/event-log/log.ts'
-import { halt, listen, startBugs } from '../debug/event-log/recorder.ts'
 import type { Line } from '../debug/event-log/sources.ts'
 import type { Store } from '../debug/journal.ts'
+import { halt, listen, start } from '../debug/recorder.ts'
 
 /** A `sessionStorage` in memory. A new log on the same store is a reload of the tab. */
 function createStore(): Store {
@@ -161,7 +161,7 @@ describe('listen', () => {
 
 		const bugs = new BugLog(createStore(), log)
 
-		onTestFinished(listen(log, bugs))
+		onTestFinished(listen({ log, bugs }))
 
 		log.paused = true
 
@@ -173,13 +173,13 @@ describe('listen', () => {
 	})
 })
 
-describe('startBugs', () => {
+describe('start', () => {
 	it('sets the attribute of the dot while the Bug log holds a report', () => {
 		onTestFinished(halt)
 
 		const root = document.documentElement
 
-		const bugs = startBugs()
+		const { bugs } = start()
 
 		expect(root.hasAttribute('data-bugs')).toBe(false)
 

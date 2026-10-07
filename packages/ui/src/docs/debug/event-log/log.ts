@@ -52,14 +52,14 @@ export type Entry = {
 export const CAPACITY = 500
 
 /** The attribute of the buttons of the debug tools. The log skips the events in them. */
-export const OWN = 'data-event-log'
+export const OWN = 'data-debug-tool'
 
 /**
  * The log of one tab: the entries in time order, kept in `sessionStorage`
  * while "Preserve" is on.
  */
 export class EventLog extends Journal<Entry> {
-	/** Whether the log skips each new entry. A debug sheet pauses the log while it is on screen. */
+	/** Whether the log skips each new entry. A debug tool pauses the log from the load of its sheet, and while its sheet is on screen. */
 	paused = false
 
 	constructor(store: Store) {
