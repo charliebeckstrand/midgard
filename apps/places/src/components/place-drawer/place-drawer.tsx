@@ -217,12 +217,11 @@ function PlaceVisit({
 			) : null}
 
 			{/* The review is Markdown, so its paragraphs, lists, and emphasis show.
-			    `whitespace-pre-line` keeps each line break that the reader typed,
-			    because Markdown joins the lines of a paragraph. The offset puts a
-			    heading of the review under the "Visits" heading. */}
+			    `breaks` keeps each line break that the reader typed. The offset
+			    puts a heading of the review under the "Visits" heading. */}
 			{visit.review ? (
 				<Text as="div">
-					<Markdown headingOffset={3} className="whitespace-pre-line">
+					<Markdown headingOffset={3} breaks>
 						{visit.review}
 					</Markdown>
 				</Text>
