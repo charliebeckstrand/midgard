@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { MapLine } from '../../../modules/map/map-line'
+import { ReducedMotion } from '../../../primitives/reduced-motion'
 import { bySlot, present, renderUI, waitFor } from '../../helpers'
 import { nextPaint } from '../../helpers/frames'
 
@@ -34,16 +35,19 @@ function opacity(line: SVGPathElement): number {
 describe('MapLine draw (real Motion)', () => {
 	it('paints nothing while the draw holds at zero length, and the whole line after', async () => {
 		const { container } = renderUI(
-			<svg aria-hidden="true" width={200} height={20} viewBox="0 0 200 20">
-				<MapLine
-					slot="map-line"
-					d="M10,10L190,10"
-					scale={1}
-					className="stroke-current"
-					animate
-					transition={HELD}
-				/>
-			</svg>,
+			// The animated marks of a map render under its `ReducedMotion` root.
+			<ReducedMotion>
+				<svg aria-hidden="true" width={200} height={20} viewBox="0 0 200 20">
+					<MapLine
+						slot="map-line"
+						d="M10,10L190,10"
+						scale={1}
+						className="stroke-current"
+						animate
+						transition={HELD}
+					/>
+				</svg>
+			</ReducedMotion>,
 		)
 
 		const line = present<SVGPathElement>(bySlot(container, 'map-line'), 'map-line')

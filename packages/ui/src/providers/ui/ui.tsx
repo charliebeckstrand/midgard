@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, use, useMemo } from 'react'
+import { type ReactNode, use, useEffect, useMemo } from 'react'
 import { ConfirmHost } from '../../components/confirm/use-confirm'
 import type { ToastProps, ToastProviderProps } from '../../components/toast'
 import { ToastHost } from '../../components/toast/toast-host'
@@ -16,6 +16,7 @@ import {
 	useLink,
 } from '../../primitives/link'
 import { type PortalContainer, PortalContext, usePortalContext } from '../../primitives/portal'
+import { prefetchMotionFeatures } from '../../primitives/reduced-motion/reduced-motion-features'
 
 /** Props for {@link UIProvider}: the optional framework `link` component, default `portalContainer`, current `pathname`, and `toast` setup, plus `children`. */
 export type UIProviderProps = {
@@ -70,7 +71,9 @@ export type UIProviderProps = {
  * path. It also mounts the dialog that `useConfirm` from `ui/confirm` asks in,
  * and the toast queue and viewport that `useToast` from `ui/toast` uses. The
  * dialog loads on the first question, and the viewport on the first toast, so
- * neither loads before the app hydrates.
+ * neither loads before the app hydrates. It loads the Motion features of the
+ * `ReducedMotion` roots at idle after hydration, so the first dialog, menu, or
+ * popover that opens animates in its first frame.
  *
  * Each binding is independent and optional: the provider broadcasts a binding
  * only when its prop is provided. A nested `<UIProvider>` overrides one
@@ -94,6 +97,11 @@ export function UIProvider({ link, portalContainer, pathname, toast, children }:
 		() => (link === undefined ? outerLink : { component: link }),
 		[link, outerLink],
 	)
+
+	// The Motion features load at idle after hydration, so the first surface
+	// that opens finds them ready. A load that is in progress or done is not
+	// started again, so a nested provider adds no second load.
+	useEffect(() => prefetchMotionFeatures(), [])
 
 	// Each provider renders each time, and an omitted binding passes the outer
 	// value through. A provider that comes and goes with its prop changes the

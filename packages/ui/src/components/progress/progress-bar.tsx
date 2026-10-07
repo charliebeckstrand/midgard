@@ -1,8 +1,9 @@
 'use client'
 
-import { motion } from 'motion/react'
 import { cn } from '../../core'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
+import { ReducedMotion } from '../../primitives/reduced-motion'
+import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import {
 	k,
 	type ProgressBarFillVariants,
@@ -83,23 +84,26 @@ export function ProgressBar({
 			aria-valuemax={max}
 			className={cn(k(), className)}
 		>
-			{determinate ? (
-				<motion.div
-					className={k.bar.fill({ color })}
-					initial={false}
-					animate={{ width: `${percent}%` }}
-					transition={still ? k.still : k.spring}
-				/>
-			) : (
-				// The sweep moves a transform, so it needs no keyframe in a stylesheet.
-				// Under reduced motion the fill holds still: at the start of the track
-				// from its mount, or where a change of the preference stops the sweep.
-				<motion.div
-					className={cn(k.bar.fill({ color }), k.bar.indeterminate)}
-					animate={still ? undefined : k.sweep.animate}
-					transition={k.sweep.transition}
-				/>
-			)}
+			{/* The `m` fill animates with the features that a `ReducedMotion` root loads. */}
+			<ReducedMotion>
+				{determinate ? (
+					<m.div
+						className={k.bar.fill({ color })}
+						initial={false}
+						animate={{ width: `${percent}%` }}
+						transition={still ? k.still : k.spring}
+					/>
+				) : (
+					// The sweep moves a transform, so it needs no keyframe in a stylesheet.
+					// Under reduced motion the fill holds still: at the start of the track
+					// from its mount, or where a change of the preference stops the sweep.
+					<m.div
+						className={cn(k.bar.fill({ color }), k.bar.indeterminate)}
+						animate={still ? undefined : k.sweep.animate}
+						transition={k.sweep.transition}
+					/>
+				)}
+			</ReducedMotion>
 		</div>
 	)
 }

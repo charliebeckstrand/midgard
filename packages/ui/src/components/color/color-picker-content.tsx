@@ -1,11 +1,11 @@
 'use client'
 
 import type { FloatingRootContext } from '@floating-ui/react'
-import { motion } from 'motion/react'
 import type { CSSProperties, ReactNode } from 'react'
 import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { FloatingSurface, type FloatingSurfaceProps } from '../../primitives/floating-surface'
+import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { useGlass } from '../../providers/glass/context'
 import type { scale } from '../../recipes/kata/color-picker'
 import { k } from '../../recipes/kata/color-picker'
@@ -70,7 +70,7 @@ export function ColorPickerContent({
 			className={cn(k.content.portal)}
 			tabIndex={-1}
 		>
-			<motion.div
+			<m.div
 				{...k.content.motion}
 				data-slot="color-picker-content"
 				className={cn('z-50', k.content.column, k.content.text, glass && k.content.glass)}
@@ -84,7 +84,7 @@ export function ColorPickerContent({
 				>
 					{children}
 				</Box>
-			</motion.div>
+			</m.div>
 		</FloatingSurface>
 	)
 }

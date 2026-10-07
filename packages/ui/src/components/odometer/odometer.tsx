@@ -1,8 +1,10 @@
 'use client'
 
-import { motion, useTransform } from 'motion/react'
+import { useTransform } from 'motion/react'
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
+import { ReducedMotion } from '../../primitives/reduced-motion'
+import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { useLocale } from '../../providers/locale'
 import { integerFormat } from '../../utilities'
 import { useOdometerAnimatedValue } from './use-odometer-animated-value'
@@ -64,9 +66,13 @@ export function Odometer({
 		// The settled target is text in a visually hidden copy, not a live region;
 		// a live region announces each intermediate tween value.
 		<span data-slot="odometer" className={cn('tabular-nums', className)} {...props}>
-			<motion.span data-slot="odometer-display" aria-hidden="true">
-				{text}
-			</motion.span>
+			{/* The `m` element writes each tween value to the DOM, so it needs the
+			features that a `ReducedMotion` root loads. */}
+			<ReducedMotion>
+				<m.span data-slot="odometer-display" aria-hidden="true">
+					{text}
+				</m.span>
+			</ReducedMotion>
 			<span data-slot="odometer-value" className="sr-only">
 				{resolvedFormat(value)}
 			</span>

@@ -1,6 +1,5 @@
 'use client'
 
-import { motion } from 'motion/react'
 import type { ReactNode, RefObject } from 'react'
 import { cn, dataAttr } from '../../core'
 import type { ScaleStep } from '../../core/density'
@@ -19,6 +18,7 @@ import {
 	type PanelRootProps,
 	usePanelState,
 } from '../../primitives/panel'
+import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { type DrawerPanelVariants, k, type scale } from '../../recipes/kata/drawer'
 import { drawerCeiling, drawerFloor } from './drawer-floor'
@@ -262,7 +262,7 @@ export function DrawerPanel({
 			container={container}
 			backdropClassName={k.backdrop({ surface: resolvedSurface })}
 		>
-			<motion.div
+			<m.div
 				{...preset}
 				onAnimationComplete={onAnimationComplete}
 				ref={panelRef}
@@ -316,7 +316,7 @@ export function DrawerPanel({
 						</DrawerDefaultFooter>
 					</Density>
 				</PanelProviders>
-			</motion.div>
+			</m.div>
 		</Overlay>
 	)
 }

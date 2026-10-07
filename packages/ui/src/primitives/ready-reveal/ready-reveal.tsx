@@ -1,6 +1,5 @@
 'use client'
 
-import { motion } from 'motion/react'
 import {
 	Activity,
 	type FocusEvent,
@@ -14,6 +13,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/ready-reveal'
 import { FOCUSABLE_SELECTOR } from '../../utilities'
 import { ReducedMotion } from '../reduced-motion'
+import * as m from '../reduced-motion/reduced-motion-elements'
 
 /** Props for {@link ReadyReveal}. */
 export type ReadyRevealProps = {
@@ -216,7 +216,7 @@ export function ReadyReveal({
 					</span>
 				)}
 				<Activity mode={ready && settled ? 'hidden' : 'visible'}>
-					<motion.div
+					<m.div
 						ref={placeholderRef}
 						// Track the last focused element in each layer (focusin bubbles
 						// here), so the effect can tell whether the deactivating layer
@@ -243,13 +243,13 @@ export function ReadyReveal({
 						style={PLACEHOLDER_CELL}
 					>
 						{placeholder}
-					</motion.div>
+					</m.div>
 				</Activity>
 				{/* The content layer is never rested. It stays live and in flow, so
 				    the grid cell always reserves the real content's size. That holds
 				    behind the placeholder while loading as much as after the reveal,
 				    which keeps the swap free of layout shift. */}
-				<motion.div
+				<m.div
 					ref={contentRef}
 					onFocus={trackFocus}
 					aria-hidden={!ready}
@@ -260,7 +260,7 @@ export function ReadyReveal({
 					style={CONTENT_CELL}
 				>
 					{children}
-				</motion.div>
+				</m.div>
 			</div>
 		</ReducedMotion>
 	)

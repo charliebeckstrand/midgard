@@ -1,7 +1,7 @@
 'use client'
 
-import { motion } from 'motion/react'
 import { cn } from '../../../core'
+import * as m from '../../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../../recipes/kata/chart'
 import type { ChartValueAxisId } from './chart-axes/schema'
 import { type ChartPaint, fillClass, rawColor } from './chart-color/paint'
@@ -165,7 +165,7 @@ export function ChartValueLabels({ labels, animate, dataKey }: ChartValueLabelsP
 				}
 
 				return animate ? (
-					<motion.text
+					<m.text
 						key={label.key}
 						{...shared}
 						initial={LABEL_HIDDEN}
@@ -174,7 +174,7 @@ export function ChartValueLabels({ labels, animate, dataKey }: ChartValueLabelsP
 						transition={POINT_POP}
 					>
 						{label.text}
-					</motion.text>
+					</m.text>
 				) : (
 					<text key={label.key} {...shared}>
 						{label.text}

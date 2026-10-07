@@ -1,0 +1,38 @@
+language js
+
+// The full `motion` component of Motion loads each feature when its module
+// loads: the animations, the gestures, drag, and layout projection. A page that
+// imports it gets all of them before it hydrates, and a `LazyMotion` above it
+// cannot remove them. Use an `m` element under a `ReducedMotion` root. The root
+// loads the features in a chunk of their own.
+//
+// Take the `m` elements from `primitives/reduced-motion/reduced-motion-elements`,
+// not from `motion/react-m`. A namespace import of `motion/react-m` puts each of
+// its 164 elements in the bundle, because the bundler keeps the whole namespace
+// object. The module of the library lists only the tags that it renders.
+//
+// `Reorder` uses the full component internally. It stays allowed, and its
+// callers render it inside a `LazyMotion` that is not strict.
+//
+// Reach is the `includes` beside this plugin in `biome.json`: the `ui` source,
+// minus tests and benchmarks, which mock motion, and minus the module of the
+// `m` elements.
+`import $clause from $source` as $import where {
+	or {
+		and {
+			$source <: r"['\"](?:motion/react|framer-motion)['\"]",
+			$clause <: contains or { `motion`, `motion as $_` },
+			register_diagnostic(
+				span = $import,
+				message = "render an `m` element under a `ReducedMotion` root: the full `motion` component puts every Motion feature in the eager bundle"
+			)
+		},
+		and {
+			$source <: r"['\"]motion/react-m['\"]",
+			register_diagnostic(
+				span = $import,
+				message = "take the `m` elements from `primitives/reduced-motion/reduced-motion-elements`: a namespace import of `motion/react-m` puts all 164 elements in the bundle"
+			)
+		}
+	}
+}

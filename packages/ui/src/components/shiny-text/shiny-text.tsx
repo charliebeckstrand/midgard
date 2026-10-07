@@ -1,11 +1,13 @@
 'use client'
 
 import { animate } from 'motion'
-import { motion, useInView, useMotionValue, useTransform } from 'motion/react'
+import { useInView, useMotionValue, useTransform } from 'motion/react'
 import { type ComponentProps, useEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { useComposedRef } from '../../hooks/use-composed-ref'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
+import { ReducedMotion } from '../../primitives/reduced-motion'
+import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 
 /**
  * Props for {@link ShinyText}; tunes the sweep animation and gradient colors atop a `<span>`.
@@ -114,26 +116,30 @@ export function ShinyText({
 		return () => controls.stop()
 	}, [disabled, reduceMotion, inView, speed, position])
 
+	// The `m` element writes the shine position to the DOM with the features that a
+	// `ReducedMotion` root loads.
 	return (
-		<motion.span
-			ref={composedRef}
-			data-slot="shiny-text"
-			className={cn(
-				'inline-block bg-clip-text text-transparent',
-				'[--shiny-text-color:var(--color-zinc-600)] dark:[--shiny-text-color:var(--color-zinc-400)]',
-				// A white shine erases the glyphs on a light page, so the light shine is dark.
-				'[--shiny-text-shine:var(--color-zinc-950)] dark:[--shiny-text-shine:var(--color-white)]',
-				className,
-			)}
-			{...props}
-			style={{
-				...style,
-				backgroundImage: `linear-gradient(${spread}deg, ${color} 0%, ${color} 35%, ${shineColor} 50%, ${color} 65%, ${color} 100%)`,
-				backgroundSize: '200% auto',
-				backgroundPosition,
-			}}
-		>
-			{children}
-		</motion.span>
+		<ReducedMotion>
+			<m.span
+				ref={composedRef}
+				data-slot="shiny-text"
+				className={cn(
+					'inline-block bg-clip-text text-transparent',
+					'[--shiny-text-color:var(--color-zinc-600)] dark:[--shiny-text-color:var(--color-zinc-400)]',
+					// A white shine erases the glyphs on a light page, so the light shine is dark.
+					'[--shiny-text-shine:var(--color-zinc-950)] dark:[--shiny-text-shine:var(--color-white)]',
+					className,
+				)}
+				{...props}
+				style={{
+					...style,
+					backgroundImage: `linear-gradient(${spread}deg, ${color} 0%, ${color} 35%, ${shineColor} 50%, ${color} 65%, ${color} 100%)`,
+					backgroundSize: '200% auto',
+					backgroundPosition,
+				}}
+			>
+				{children}
+			</m.span>
+		</ReducedMotion>
 	)
 }

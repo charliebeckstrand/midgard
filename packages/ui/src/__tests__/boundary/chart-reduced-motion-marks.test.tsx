@@ -1,3 +1,4 @@
+import type { ElementType } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Sparkline } from '../../components/sparkline'
 import { LineChart } from '../../modules/chart/line-chart'
@@ -18,35 +19,26 @@ import { renderUI, stubMatchMedia } from '../helpers'
  */
 const initials = vi.hoisted(() => new Map<string, unknown[]>())
 
-vi.mock('motion/react', async (importActual) => {
-	const actual = await importActual<typeof import('motion/react')>()
+vi.mock('motion/react-m', async (importActual) => {
+	const actual = await importActual<typeof import('motion/react-m')>()
 
 	const { createElement } = await import('react')
 
 	// One wrapper for each tag, so each element keeps its component identity.
-	const wrapped = new Map<string, unknown>()
+	return Object.fromEntries(
+		(Object.entries(actual) as [string, ElementType][]).map(([tag, real]) => [
+			tag,
+			tag === 'create'
+				? real
+				: (props: Record<string, unknown>) => {
+						const slot = String(props['data-slot'] ?? tag)
 
-	const motion = new Proxy(actual.motion, {
-		get(target, tag, receiver) {
-			const real = Reflect.get(target, tag, receiver)
+						initials.set(slot, [...(initials.get(slot) ?? []), props.initial])
 
-			if (typeof tag !== 'string' || real === undefined) return real
-
-			if (!wrapped.has(tag)) {
-				wrapped.set(tag, (props: Record<string, unknown>) => {
-					const slot = String(props['data-slot'] ?? tag)
-
-					initials.set(slot, [...(initials.get(slot) ?? []), props.initial])
-
-					return createElement(real, props)
-				})
-			}
-
-			return wrapped.get(tag)
-		},
-	})
-
-	return { ...actual, motion }
+						return createElement(real, props)
+					},
+		]),
+	)
 })
 
 const DATA = [

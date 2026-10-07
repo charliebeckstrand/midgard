@@ -1,11 +1,12 @@
 'use client'
 
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence } from 'motion/react'
 import { createElement, isValidElement, type ReactNode, useMemo } from 'react'
 import { cn, dataAttr } from '../../core'
 import { MountHold, useMountHold } from '../../primitives/mount'
 import { heldMotionProps } from '../../primitives/mount/mount-held-motion'
 import { ReducedMotion } from '../../primitives/reduced-motion'
+import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/tree'
 import { flattenChildren } from '../../utilities/flatten-children'
 import { TreeContext, TreePositionContext, useTreeContext } from './context'
@@ -69,7 +70,7 @@ export function TreeItemChildren({ id, open, label, children }: TreeItemChildren
 
 	const group = (motionProps: object) => (
 		<TreeContext value={childContextValue}>
-			<motion.div
+			<m.div
 				id={id}
 				role="group"
 				aria-label={typeof label === 'string' ? label : undefined}
@@ -80,7 +81,7 @@ export function TreeItemChildren({ id, open, label, children }: TreeItemChildren
 				className={cn(indent && k.group.indent)}
 			>
 				{stampTreePositions(children)}
-			</motion.div>
+			</m.div>
 		</TreeContext>
 	)
 
