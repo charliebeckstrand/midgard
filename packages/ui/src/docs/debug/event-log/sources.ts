@@ -4,7 +4,7 @@ import { noop } from '../../../utilities/noop.ts'
 import { listenCaughtErrors } from './caught-errors.ts'
 import { listenComponentEvents } from './component-events.ts'
 import { type Kind, OWN } from './log.ts'
-import { errorDetail, framesOf, scrollReading, viewport } from './probes.ts'
+import { type ErrorDetail, errorDetail, framesOf, scrollReading, viewport } from './probes.ts'
 
 // The sources of the Event log. Each source adds its listeners, writes its
 // lines through `note`, and returns a function that removes the listeners.
@@ -67,13 +67,13 @@ function bursts(): { batchOf: (key: string) => string; stop: () => void } {
 	}
 }
 
-/** Whether an event target is in the button of the log. */
-function isOwn(target: unknown): boolean {
+/** Whether an event target is in the button of a debug tool. */
+export function isOwn(target: unknown): boolean {
 	return target instanceof Element && target.closest(`[${OWN}]`) !== null
 }
 
 /** A short name of an event target: the tag, the anchor, and the value of an input. */
-function describe(target: unknown): string {
+export function describe(target: unknown): string {
 	if (!(target instanceof Element) || target === document.documentElement) return 'page'
 
 	const slot = target.getAttribute('data-slot')
@@ -91,7 +91,7 @@ function resourceOf(target: unknown): string {
 }
 
 /** Adds a passive capture listener for each type, and returns a function that removes them. */
-function on(
+export function on(
 	where: EventTarget | null | undefined,
 	types: readonly string[],
 	listener: (event: Event) => void,
@@ -336,7 +336,7 @@ const caught: Source = (note) =>
 			detail: {
 				stack: error instanceof Error ? framesOf(error.stack) : [],
 				componentStack: components,
-			},
+			} satisfies ErrorDetail,
 		})
 	})
 

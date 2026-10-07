@@ -3,8 +3,9 @@ import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { attach } from '../../__tests__/helpers/attach.ts'
 import { onCaughtError } from '../debug/event-log/caught-errors.ts'
 import { componentEvent } from '../debug/event-log/component-events.ts'
-import { CAPACITY, type Entry, EventLog, OWN, type Store } from '../debug/event-log/log.ts'
+import { CAPACITY, type Entry, EventLog, OWN } from '../debug/event-log/log.ts'
 import { begin, listen } from '../debug/event-log/recorder.ts'
+import type { Store } from '../debug/journal.ts'
 
 /** A `sessionStorage` in memory. A new log on the same store is a reload of the tab. */
 function createStore(): Store {

@@ -1,5 +1,3 @@
-import type { JsonValue } from 'ui/json-tree'
-
 // The probes of the Event log: the reading of the viewport, the frames of a
 // stack, and the kept scroll position.
 
@@ -51,8 +49,14 @@ export function framesOf(stack: string | undefined): string[] {
 		.filter((frame) => frame && frame !== 'Error')
 }
 
+/**
+ * The detail of an error line: the frames of the stack, and the frames of the
+ * component stack when an error boundary catches the error.
+ */
+export type ErrorDetail = { stack: string[]; componentStack?: string[] }
+
 /** The detail of an error: its stack. A thrown value that is not an `Error` has none. */
-export function errorDetail(error: unknown): JsonValue | undefined {
+export function errorDetail(error: unknown): ErrorDetail | undefined {
 	return error instanceof Error && error.stack ? { stack: framesOf(error.stack) } : undefined
 }
 

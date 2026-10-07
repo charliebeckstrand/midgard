@@ -25,6 +25,7 @@ import { Stack } from 'ui/stack'
 import { useHydrated } from '../../hooks/use-hydrated.ts'
 import { noop } from '../../utilities/noop.ts'
 import {
+	BugLogButton,
 	EventLogButton,
 	EventLogScript,
 	EventLogSwitch,
@@ -92,6 +93,7 @@ function warmShiki() {
 const ACTIONS = (
 	<>
 		<EventLogButton />
+		<BugLogButton />
 		<AppearanceSettings>
 			<EventLogSwitch />
 		</AppearanceSettings>

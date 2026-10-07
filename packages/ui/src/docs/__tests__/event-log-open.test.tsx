@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { Profiler } from 'react'
 import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { componentEvent } from '../debug/event-log/component-events.ts'
-import { __resetEventLogSheet, EventLogButton } from '../debug/event-log/index.tsx'
+import { __resetDebugSheets, EventLogButton } from '../debug/event-log/index.tsx'
 import { halt, record, start } from '../debug/event-log/recorder.ts'
 import { EventLogSheet } from '../debug/event-log/sheet.tsx'
 
@@ -11,7 +11,7 @@ import { EventLogSheet } from '../debug/event-log/sheet.tsx'
 // loaded, and a loaded sheet opens in the frame of the click.
 
 // The button keeps the loaded sheet module, so each case starts with no sheet.
-beforeEach(__resetEventLogSheet)
+beforeEach(__resetDebugSheets)
 
 // The sheet starts the recorder, which listens on the document.
 afterEach(() => {

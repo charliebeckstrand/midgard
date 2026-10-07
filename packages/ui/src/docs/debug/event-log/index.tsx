@@ -1,6 +1,7 @@
-import { ScrollText } from 'lucide-react'
-import { useState } from 'react'
+import { Bug, ScrollText } from 'lucide-react'
+import { type ComponentType, type ReactElement, useState } from 'react'
 import { Button } from 'ui/button'
+import { cn } from 'ui/core'
 import { Fieldset, Label, Legend } from 'ui/fieldset'
 import { Icon } from 'ui/icon'
 import { Switch, SwitchField } from 'ui/switch'
@@ -20,28 +21,52 @@ const ATTRIBUTE = 'data-debug'
 
 const loadRecorder = () => import('./recorder.ts')
 
-// The sheet module, once its load ends. The button reads it in the render, so
-// the sheet mounts in the frame that opens it.
-let sheet: typeof import('./sheet.tsx') | undefined
+/** A sheet of a debug tool. */
+type DebugSheet = ComponentType<{ open: boolean; onOpenChange: (open: boolean) => void }>
 
-const loadSheet = () =>
-	import('./sheet.tsx').then((module) => {
-		sheet = module
-	})
+/**
+ * The sheet of a debug tool, which loads on demand. The button reads `current`
+ * in the render, so the sheet mounts in the frame that opens it.
+ */
+type LazySheet = {
+	/** The sheet, once its load ends. */
+	current?: DebugSheet
+	load: () => Promise<void>
+	/** Loads the sheet while the tool is on. A load that fails does nothing. The open of the sheet shows the failure. */
+	prepare: () => void
+}
 
-/** Test-only: drops the loaded sheet module, so the next open loads it again. @internal */
-export function __resetEventLogSheet(): void {
-	sheet = undefined
+/** The sheet that `load` loads. */
+function lazySheet(load: () => Promise<DebugSheet>): LazySheet {
+	const sheet: LazySheet = {
+		load: () =>
+			load().then((loaded) => {
+				sheet.current = loaded
+			}),
+		prepare: () => {
+			if (isEventLogOn()) sheet.load().catch(noop)
+		},
+	}
+
+	return sheet
+}
+
+const eventLogSheet = lazySheet(() => import('./sheet.tsx').then((module) => module.EventLogSheet))
+
+const bugLogSheet = lazySheet(() =>
+	import('../bug-log/sheet.tsx').then((module) => module.BugLogSheet),
+)
+
+/** Test-only: drops the loaded sheets, so the next open loads them again. @internal */
+export function __resetDebugSheets(): void {
+	eventLogSheet.current = undefined
+
+	bugLogSheet.current = undefined
 }
 
 /** Whether the tool is on. The head script sets the attribute before the first paint. */
 function isEventLogOn(): boolean {
 	return document.documentElement.hasAttribute(ATTRIBUTE)
-}
-
-/** Loads the sheet while the tool is on. A load that fails does nothing. The open of the sheet shows the failure. */
-function prepareSheet(): void {
-	if (isEventLogOn()) loadSheet().catch(noop)
 }
 
 /**
@@ -87,16 +112,26 @@ export function EventLogScript() {
 }
 
 /**
- * The header button of the Event log. The prerendered page holds it, and CSS
- * shows it while the tool is on, so it paints with the header. The sheet
- * loads in idle time while the tool is on, or when the reader points at the
- * button.
+ * The header button of a debug tool. The prerendered page holds it, and CSS
+ * shows it while the tool is on, so it paints with the header. The sheet loads
+ * in idle time while the tool is on, or when the reader points at the button.
  */
-export function EventLogButton() {
+function DebugButton({
+	label,
+	icon,
+	sheet,
+	dot,
+}: {
+	label: string
+	icon: ReactElement
+	sheet: LazySheet
+	/** A mark on the button, which CSS shows by a state of the root element. */
+	dot?: string
+}) {
 	// No sheet renders before the first open.
 	const [open, setOpen] = useState<boolean>()
 
-	useIdle(prepareSheet)
+	useIdle(sheet.prepare)
 
 	const fail = useFail()
 
@@ -104,19 +139,42 @@ export function EventLogButton() {
 	// late, because React holds the content back for at least 300 ms. When the
 	// load fails, the error boundary shows the failure.
 	const show = () => {
-		if (sheet) setOpen(true)
-		else loadSheet().then(() => setOpen(true), fail)
+		if (sheet.current) setOpen(true)
+		else sheet.load().then(() => setOpen(true), fail)
 	}
 
-	const EventLogSheet = sheet?.EventLogSheet
+	const Sheet = sheet.current
 
 	return (
 		<span data-event-log="" className="hidden [:root[data-debug]_&]:contents">
-			<Button variant="bare" aria-label="Event log" onPointerEnter={prepareSheet} onClick={show}>
-				<Icon icon={<ScrollText />} />
+			<Button
+				variant="bare"
+				aria-label={label}
+				className="relative"
+				onPointerEnter={sheet.prepare}
+				onClick={show}
+			>
+				<Icon icon={icon} />
+				{dot && (
+					<span
+						className={cn('absolute end-1 top-1 hidden size-1.5 rounded-full bg-red-500', dot)}
+					/>
+				)}
 			</Button>
-			{open !== undefined && EventLogSheet && <EventLogSheet open={open} onOpenChange={setOpen} />}
+			{open !== undefined && Sheet && <Sheet open={open} onOpenChange={setOpen} />}
 		</span>
+	)
+}
+
+/** The header button of the Event log. */
+export function EventLogButton() {
+	return <DebugButton label="Event log" icon={<ScrollText />} sheet={eventLogSheet} />
+}
+
+/** The header button of the Bug log. A dot shows while the Bug log holds a report. */
+export function BugLogButton() {
+	return (
+		<DebugButton label="Bugs" icon={<Bug />} sheet={bugLogSheet} dot="[:root[data-bugs]_&]:block" />
 	)
 }
 

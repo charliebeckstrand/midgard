@@ -1,5 +1,7 @@
 import type { JsonValue } from 'ui/json-tree'
-import { type Entry, EventLog, type Kind, sessionStore } from './log.ts'
+import { BugLog } from '../bug-log/log.ts'
+import { sessionStore } from '../journal.ts'
+import { type Entry, EventLog, type Kind } from './log.ts'
 import { scrollReading, viewport } from './probes.ts'
 import { type Line, SOURCES } from './sources.ts'
 
@@ -18,7 +20,37 @@ declare global {
 /** The log of this tab. It starts with {@link start}. */
 let log: EventLog | undefined
 
+/** The Bug log of this tab. It starts with the log. */
+let bugs: BugLog | undefined
+
 let stop: (() => void) | undefined
+
+/**
+ * The Bug log of this tab, which `target` is the log of. CSS shows the dot of
+ * the Bug button by the `data-bugs` attribute of the root element, which is
+ * on while the Bug log holds a report.
+ */
+function bugLog(target: EventLog): BugLog {
+	if (bugs) return bugs
+
+	const reports = new BugLog(sessionStore(), target)
+
+	const mark = () =>
+		document.documentElement.toggleAttribute('data-bugs', reports.entries.length > 0)
+
+	reports.subscribe(mark)
+
+	mark()
+
+	bugs = reports
+
+	return reports
+}
+
+/** Starts the log of this tab, and returns its Bug log. */
+export function startBugs(): BugLog {
+	return bugLog(start())
+}
 
 /**
  * Starts the log of this tab, and returns it. The first start of a page load
@@ -35,7 +67,7 @@ export function start(): EventLog {
 		begin(log, 'on')
 	}
 
-	stop ??= listen(log)
+	stop ??= listen(log, bugLog(log))
 
 	return log
 }
@@ -51,6 +83,8 @@ export function halt(): void {
 	stop = undefined
 
 	log?.clear()
+
+	bugs?.clear()
 }
 
 /** The entry of a line, with the scroll position of now, at the time of now by default. */
@@ -92,16 +126,24 @@ export function begin(target: EventLog, cause?: string): void {
 
 /**
  * Runs the sources of a log, and returns a function that stops them. A line
- * that a source writes after the stop, such as from a timer, goes out.
+ * that a source writes after the stop, such as from a timer, goes out. Each
+ * error line also files a report in `reports`, the Bug log of the log.
  */
-export function listen(target: EventLog): () => void {
+export function listen(target: EventLog, reports?: BugLog): () => void {
 	let running = true
 
+	// An error line files a report while the log is paused too.
 	const stops = SOURCES.map((source) =>
 		source((line) => {
-			if (running) target.add(entryOf(line))
+			if (!running) return
+
+			target.add(entryOf(line))
+
+			if (line.kind === 'error') reports?.file(line)
 		}),
 	)
+
+	if (reports) stops.push(reports.watch())
 
 	// The listener goes after the listener of the lifecycle source, so the
 	// saved log holds the `pagehide` line.
@@ -133,7 +175,7 @@ if (import.meta.hot) {
 
 		log.entries = kept.entries
 
-		stop = listen(log)
+		stop = listen(log, bugLog(log))
 	}
 
 	import.meta.hot.on('vite:afterUpdate', ({ updates }) =>

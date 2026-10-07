@@ -1,5 +1,5 @@
 import { ChevronRight } from 'lucide-react'
-import { type ReactNode, useLayoutEffect, useState, useSyncExternalStore } from 'react'
+import { type ReactNode, useState, useSyncExternalStore } from 'react'
 import { Button } from 'ui/button'
 import { Checkbox, CheckboxField } from 'ui/checkbox'
 import { Collapse, CollapsePanel, CollapseTrigger } from 'ui/collapse'
@@ -18,26 +18,9 @@ import { iro } from '../../../recipes/kiso/iro/index.ts'
 import { getOrCompute } from '../../../utilities/get-or-compute.ts'
 import { noopSubscribe } from '../../../utilities/noop.ts'
 import { type Entry, KINDS, type Kind } from './log.ts'
-import { start } from './recorder.ts'
+import { usePausedLog } from './pause.ts'
 import { type Row, rowsOf, summaryOf } from './rows.ts'
-
-/** The shortest width of the kind column: the longest kind. */
-const KIND_WIDTH = Math.max(...KINDS.map((kind) => kind.length))
-
-/** What the kind column shows: the name of a component line, else the kind. */
-function nameOf(entry: Entry): string {
-	return entry.name ?? entry.kind
-}
-
-/** The width of the kind column: the longest kind, or the longest name in the log. */
-function kindWidth(entries: readonly Entry[]): number {
-	return entries.reduce((width, entry) => Math.max(width, nameOf(entry).length), KIND_WIDTH)
-}
-
-/** The columns before the text of a line: the time, the scroll position, and the kind or the name. */
-function columns(entry: Entry, width: number): string {
-	return `${String(entry.time).padStart(6)} y${String(entry.y).padEnd(5)} ${nameOf(entry).padEnd(width)} `
-}
+import { columns, kindWidth } from './text.ts'
 
 /**
  * One entry as text: the columns, then the text. A detail follows as indented
@@ -217,7 +200,7 @@ export function EventLogSheet({
 	open: boolean
 	onOpenChange: (open: boolean) => void
 }) {
-	const [log] = useState(start)
+	const log = usePausedLog(open)
 
 	// The closed sheet stays mounted, and it does not render for each new entry.
 	// The open reads the current entries.
@@ -259,17 +242,6 @@ export function EventLogSheet({
 				return keys
 			}),
 	}
-
-	// A layout effect runs before the effect of the overlay that reports the
-	// open, so the log does not record the open of this sheet. A sheet that
-	// unmounts while it is open does not leave the log paused.
-	useLayoutEffect(() => {
-		log.paused = open
-
-		return () => {
-			log.paused = false
-		}
-	}, [log, open])
 
 	return (
 		// The sheet takes the height of the log, up to the height of the screen.
