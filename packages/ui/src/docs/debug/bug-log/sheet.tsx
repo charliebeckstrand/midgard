@@ -13,8 +13,7 @@ import { Sheet, SheetBody, SheetClose, SheetFooter, SheetPanel, SheetTitle } fro
 import { Text } from 'ui/text'
 import { dan } from '../../../recipes/kiso/dan/index.ts'
 import { noopSubscribe } from '../../../utilities/noop.ts'
-import { usePausedLog } from '../event-log/pause.ts'
-import { startBugs } from '../event-log/recorder.ts'
+import { useDebug } from '../pause.ts'
 import { CAPTURE, type Report } from './log.ts'
 import { markdownOf, titleOf } from './markdown.ts'
 
@@ -61,12 +60,24 @@ function ReportLine({
 	)
 }
 
+/** A button with a text label that copies `text`, with the copied state of `CopyButton`. */
+function CopyTextButton({ label, text }: { label: string; text: string }) {
+	const { copied, copy } = useCopyButtonState({ text })
+
+	return (
+		<Button size="sm" color={copied ? 'green' : undefined} onClick={() => void copy()}>
+			{copied ? 'Copied' : label}
+		</Button>
+	)
+}
+
 /**
  * The viewer of the Bug log: the title and "Preserve", the reports, newest
  * first, then Copy all, Capture, and Clear. View shows one report in place of
- * the list and of "Preserve", as the Markdown that Copy writes. The Event
- * log records nothing while the sheet is on screen, so a capture holds the
- * lines before the open.
+ * the list, as the Markdown that Copy writes, with Copy and Delete of that
+ * report in place of "Preserve" and the actions of the list. The Event log
+ * records nothing while the sheet is on screen, so a capture holds the lines
+ * before the open.
  */
 export function BugLogSheet({
 	open,
@@ -75,9 +86,7 @@ export function BugLogSheet({
 	open: boolean
 	onOpenChange: (open: boolean) => void
 }) {
-	usePausedLog(open)
-
-	const [bugs] = useState(startBugs)
+	const { bugs } = useDebug(open)
 
 	const subscribe = open ? bugs.subscribe : noopSubscribe
 
@@ -91,10 +100,6 @@ export function BugLogSheet({
 	const report = reports.find(({ id }) => id === viewed)
 
 	const newest = reports.toReversed()
-
-	const { copied, copy } = useCopyButtonState({
-		text: newest.map(markdownOf).join('\n\n---\n\n'),
-	})
 
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>
@@ -142,17 +147,24 @@ export function BugLogSheet({
 					)}
 				</SheetBody>
 				<SheetFooter className="justify-between">
-					<Flex gap="sm">
-						<Button size="sm" color={copied ? 'green' : undefined} onClick={() => void copy()}>
-							{copied ? 'Copied' : 'Copy all'}
-						</Button>
-						<Button size="sm" color="blue" onClick={() => bugs.capture()}>
-							Capture
-						</Button>
-						<Button size="sm" color="amber" onClick={() => bugs.clear()}>
-							Clear
-						</Button>
-					</Flex>
+					{report ? (
+						<Flex gap="sm">
+							<CopyTextButton label="Copy" text={markdownOf(report)} />
+							<Button size="sm" color="amber" onClick={() => bugs.remove(report.id)}>
+								Delete
+							</Button>
+						</Flex>
+					) : (
+						<Flex gap="sm">
+							<CopyTextButton label="Copy all" text={newest.map(markdownOf).join('\n\n---\n\n')} />
+							<Button size="sm" color="blue" onClick={() => bugs.capture()}>
+								Capture
+							</Button>
+							<Button size="sm" color="amber" onClick={() => bugs.clear()}>
+								Clear
+							</Button>
+						</Flex>
+					)}
 					<SheetClose />
 				</SheetFooter>
 			</SheetPanel>

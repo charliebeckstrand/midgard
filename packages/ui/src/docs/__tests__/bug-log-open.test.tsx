@@ -1,8 +1,8 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { BugLogSheet } from '../debug/bug-log/sheet.tsx'
-import { __resetDebugSheets, BugLogButton } from '../debug/event-log/index.tsx'
-import { halt, startBugs } from '../debug/event-log/recorder.ts'
+import { __resetDebugSheets, BugLogButton } from '../debug/index.tsx'
+import { halt, start } from '../debug/recorder.ts'
 
 // The button keeps the loaded sheets, so each case starts with no sheet.
 beforeEach(__resetDebugSheets)
@@ -44,11 +44,68 @@ describe('BugLogSheet', () => {
 
 		expect(screen.queryByRole('checkbox', { name: 'Preserve' })).toBeNull()
 
+		// The footer holds the actions of the report, not of the list.
+		expect(screen.queryByRole('button', { name: 'Capture' })).toBeNull()
+
+		expect(screen.queryByRole('button', { name: 'Clear' })).toBeNull()
+
+		expect(screen.getByRole('button', { name: 'Copy' })).toBeDefined()
+
 		fireEvent.click(screen.getByRole('button', { name: 'Back' }))
 
 		expect(screen.getByRole('list', { name: 'Reports' })).toBeDefined()
 
 		expect(screen.getByRole('checkbox', { name: 'Preserve' })).toBeDefined()
+	})
+
+	it('copies the report on view, and its Delete goes back to the list', async () => {
+		const writeText = vi.fn<(text: string) => Promise<void>>().mockResolvedValue()
+
+		const original = Object.getOwnPropertyDescriptor(window.navigator, 'clipboard')
+
+		Object.defineProperty(window.navigator, 'clipboard', {
+			configurable: true,
+			value: { writeText },
+		})
+
+		onTestFinished(() => {
+			if (original) Object.defineProperty(window.navigator, 'clipboard', original)
+			else delete (window.navigator as { clipboard?: unknown }).clipboard
+		})
+
+		render(<BugLogSheet open onOpenChange={() => {}} />)
+
+		act(() => {
+			window.dispatchEvent(new ErrorEvent('error', { message: 'boom', error: new Error('boom') }))
+
+			fireEvent.click(screen.getByRole('button', { name: 'Capture' }))
+		})
+
+		const list = screen.getByRole('list', { name: 'Reports' })
+
+		fireEvent.click(
+			within(within(list).getByText('boom').closest('li') ?? list).getByRole('button', {
+				name: 'View',
+			}),
+		)
+
+		await act(async () => {
+			fireEvent.click(screen.getByRole('button', { name: 'Copy' }))
+		})
+
+		const text = writeText.mock.calls[0]?.[0] ?? ''
+
+		expect(text).toMatch(/^## boom\n/)
+
+		expect(text).not.toContain('## capture')
+
+		act(() => {
+			fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
+		})
+
+		expect(start().bugs.entries.map(({ title }) => title)).toEqual(['capture'])
+
+		expect(screen.getByRole('list', { name: 'Reports' })).toBeDefined()
 	})
 
 	it('deletes a report, and shows an error report from the log', () => {
@@ -58,7 +115,7 @@ describe('BugLogSheet', () => {
 			window.dispatchEvent(new ErrorEvent('error', { message: 'boom', error: new Error('boom') }))
 		})
 
-		expect(startBugs().entries.map(({ title }) => title)).toEqual(['boom'])
+		expect(start().bugs.entries.map(({ title }) => title)).toEqual(['boom'])
 
 		const list = screen.getByRole('list', { name: 'Reports' })
 

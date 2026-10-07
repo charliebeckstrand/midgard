@@ -2,9 +2,9 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { Profiler } from 'react'
 import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { componentEvent } from '../debug/event-log/component-events.ts'
-import { __resetDebugSheets, EventLogButton } from '../debug/event-log/index.tsx'
-import { halt, record, start } from '../debug/event-log/recorder.ts'
 import { EventLogSheet } from '../debug/event-log/sheet.tsx'
+import { __resetDebugSheets, EventLogButton } from '../debug/index.tsx'
+import { halt, record, start } from '../debug/recorder.ts'
 
 // A sheet that suspends opens late, because React holds the content back for
 // at least 300 ms. So the button opens the sheet only when its module is
@@ -28,11 +28,13 @@ describe('EventLogButton', () => {
 
 		const trigger = screen.getByRole('button', { name: 'Event log' })
 
-		// A pointer on the button loads the sheet.
-		await act(async () => {
-			fireEvent.pointerEnter(trigger)
+		// The first press loads the sheet.
+		fireEvent.click(trigger)
 
-			await import('../debug/event-log/sheet.tsx')
+		const close = await screen.findByRole('button', { name: 'Close' })
+
+		act(() => {
+			fireEvent.click(close)
 		})
 
 		act(() => {
@@ -40,6 +42,32 @@ describe('EventLogButton', () => {
 		})
 
 		expect(screen.getByRole('heading', { name: 'Event log' })).toBeDefined()
+	})
+
+	it('pauses the log from the press, so the log does not record the load of its own sheet', async () => {
+		const { log } = start()
+
+		render(<EventLogButton />)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Event log' }))
+
+		await vi.waitFor(() => expect(log.paused).toBe(true))
+
+		record('route', '/during-load')
+
+		await screen.findByRole('heading', { name: 'Event log' })
+
+		act(() => {
+			fireEvent.click(screen.getByRole('button', { name: 'Close' }))
+		})
+
+		expect(log.paused).toBe(false)
+
+		record('route', '/after-close')
+
+		expect(log.entries.map(({ text }) => text)).not.toContain('/during-load')
+
+		expect(log.entries.at(-1)?.text).toBe('/after-close')
 	})
 
 	it('opens the sheet when its module loads', async () => {
@@ -59,7 +87,7 @@ describe('EventLogSheet', () => {
 
 		record('route', '/after-unmount')
 
-		expect(start().entries.at(-1)?.text).toBe('/after-unmount')
+		expect(start().log.entries.at(-1)?.text).toBe('/after-unmount')
 	})
 
 	it('does not render for a new entry while it is closed, and shows the entry when it opens', () => {
@@ -153,7 +181,7 @@ describe('EventLogSheet', () => {
 describe('EventLogSheet Batch', () => {
 	it('shows a batch as one line that opens to its lines, and copies its lines under the summary', async () => {
 		// The sheet starts the same log.
-		const log = start()
+		const { log } = start()
 
 		const writeText = vi.fn<(text: string) => Promise<void>>().mockResolvedValue()
 
@@ -256,7 +284,7 @@ describe('EventLogSheet type filter', () => {
 
 describe('the recorder', () => {
 	it('drops the lines and the kept copy when the log turns off, and starts again with a separator', () => {
-		const log = start()
+		const { log } = start()
 
 		log.preserve = true
 
@@ -279,7 +307,7 @@ describe('the recorder', () => {
 
 		expect(log.entries).toEqual([])
 
-		expect(start()).toBe(log)
+		expect(start().log).toBe(log)
 
 		record('route', '/after')
 

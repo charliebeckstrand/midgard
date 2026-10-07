@@ -2,7 +2,7 @@ import { StrictMode, startTransition } from 'react'
 import { hydrateRoot } from 'react-dom/client'
 import { HydratedRouter } from 'react-router/dom'
 import { onCaughtError } from '../debug/event-log/caught-errors.ts'
-import { startEventLog } from '../debug/event-log/index.tsx'
+import { startDebug } from '../debug/index.tsx'
 
 // A deploy replaces the hashed file names under an open tab, so the load of a
 // chunk can fail. React Router reloads the page when a navigation cannot load
@@ -11,7 +11,7 @@ import { startEventLog } from '../debug/event-log/index.tsx'
 // page, as the reload closes what the reader has open.
 
 // While the Event log is on, it records from before hydration.
-await startEventLog()
+await startDebug()
 
 startTransition(() => {
 	hydrateRoot(

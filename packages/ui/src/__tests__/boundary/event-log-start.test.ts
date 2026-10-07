@@ -1,19 +1,19 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 /**
- * The client entry waits for `startEventLog` before it hydrates. Each case
+ * The client entry waits for `startDebug` before it hydrates. Each case
  * needs a recorder module that fails to load, which wants `vi.resetModules()`
  * and a mock of its own. The `unit` project bars both (see
  * `test-isolation-boundary.test.ts`), so this suite sits in `boundary/`, which
  * runs on forks.
  */
 
-const RECORDER = '../../docs/debug/event-log/recorder.ts'
+const RECORDER = '../../docs/debug/recorder.ts'
 
 // The `ui` program excludes the docs app, which has a program of its own. The
 // path is a variable, so this program does not check the docs modules, and the
 // case gives the type of the one export that it reads.
-const EVENT_LOG = '../../docs/debug/event-log/index.tsx'
+const DEBUG = '../../docs/debug/index.tsx'
 
 afterEach(() => {
 	vi.doUnmock(RECORDER)
@@ -21,7 +21,7 @@ afterEach(() => {
 	document.documentElement.removeAttribute('data-debug')
 })
 
-describe('startEventLog', () => {
+describe('startDebug', () => {
 	it('resolves when the recorder fails to load, so the page hydrates', async ({ signal }) => {
 		document.documentElement.setAttribute('data-debug', '')
 
@@ -31,10 +31,10 @@ describe('startEventLog', () => {
 			throw new Error('stale chunk')
 		})
 
-		const { startEventLog }: { startEventLog: () => Promise<void> } = await import(EVENT_LOG)
+		const { startDebug }: { startDebug: () => Promise<void> } = await import(DEBUG)
 
 		signal.throwIfAborted()
 
-		await expect(startEventLog()).resolves.toBeUndefined()
+		await expect(startDebug()).resolves.toBeUndefined()
 	})
 })

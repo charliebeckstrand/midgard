@@ -17,25 +17,25 @@ import { dan } from '../../../recipes/kiso/dan/index.ts'
 import { iro } from '../../../recipes/kiso/iro/index.ts'
 import { getOrCompute } from '../../../utilities/get-or-compute.ts'
 import { noopSubscribe } from '../../../utilities/noop.ts'
+import { useDebug } from '../pause.ts'
 import { type Entry, KINDS, type Kind } from './log.ts'
-import { usePausedLog } from './pause.ts'
 import { type Row, rowsOf, summaryOf } from './rows.ts'
-import { columns, kindWidth } from './text.ts'
+import { columns, kindWidth, lineOf } from './text.ts'
 
 /**
  * One entry as text: the columns, then the text. A detail follows as indented
  * JSON, each line under the start of the text.
  */
 function line(entry: Entry, width: number): string {
-	const head = columns(entry, width)
+	const text = lineOf(entry, width)
 
-	if (entry.detail === undefined) return head + entry.text
+	if (entry.detail === undefined) return text
 
-	const indent = ' '.repeat(head.length)
+	const indent = ' '.repeat(columns(entry, width).length)
 
 	const detail = JSON.stringify(entry.detail, null, 2).replaceAll('\n', `\n${indent}`)
 
-	return `${head}${entry.text}\n${indent}${detail}`
+	return `${text}\n${indent}${detail}`
 }
 
 /**
@@ -200,7 +200,7 @@ export function EventLogSheet({
 	open: boolean
 	onOpenChange: (open: boolean) => void
 }) {
-	const log = usePausedLog(open)
+	const { log } = useDebug(open)
 
 	// The closed sheet stays mounted, and it does not render for each new entry.
 	// The open reads the current entries.
