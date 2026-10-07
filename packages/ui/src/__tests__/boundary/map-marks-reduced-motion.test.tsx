@@ -8,25 +8,18 @@ import { renderUI, stubMatchMedia } from '../helpers'
  * Under reduced motion a line does not draw itself in, and a dot does not pop.
  * The draw (`pathLength`) and the pop (opacity and `strokeWidth` from one motion
  * value) are no transform, so the reduced-motion config of motion does not skip
- * them. The suite reads the props that each mark gives `motion.path`, so it
- * mocks `motion/react`, and sits in `boundary/`.
+ * them. The suite reads the props that each mark gives `m.path`, so it
+ * mocks `motion/react-m`, and sits in `boundary/`.
  */
 const paths = vi.hoisted(() => new Map<string, Record<string, unknown>>())
 
-vi.mock('motion/react', async (importActual) => {
-	const actual = await importActual<typeof import('motion/react')>()
+vi.mock('motion/react-m', () => ({
+	path: (props: Record<string, unknown>) => {
+		paths.set(String(props['data-slot']), props)
 
-	return {
-		...actual,
-		motion: {
-			path: (props: Record<string, unknown>) => {
-				paths.set(String(props['data-slot']), props)
-
-				return null
-			},
-		},
-	}
-})
+		return null
+	},
+}))
 
 const REVEAL = { duration: 0.3 }
 

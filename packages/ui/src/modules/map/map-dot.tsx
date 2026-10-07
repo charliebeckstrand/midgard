@@ -1,10 +1,11 @@
 'use client'
 
-import { motion, useMotionValue, useTransform } from 'motion/react'
+import { useMotionValue, useTransform } from 'motion/react'
 import type { CSSProperties } from 'react'
 import { memo } from 'react'
 import { cn } from '../../core'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
+import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/map'
 import { groundPoints, type MapGround } from './engine/map-cluster/ground'
 import { POINT_HIT_RADIUS } from './engine/map-constants'
@@ -125,7 +126,7 @@ export function MapDot({
 	if (!animate) return <path {...shared} />
 
 	return (
-		<motion.path
+		<m.path
 			{...shared}
 			style={{ opacity: shown, strokeWidth: drawn }}
 			animate={{ opacity: 1 }}
@@ -207,14 +208,9 @@ export function MapDotCount({
 	if (!animate) return <text {...shared}>{count}</text>
 
 	return (
-		<motion.text
-			{...shared}
-			initial={{ opacity: 0 }}
-			animate={{ opacity: 1 }}
-			transition={transition}
-		>
+		<m.text {...shared} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={transition}>
 			{count}
-		</motion.text>
+		</m.text>
 	)
 }
 

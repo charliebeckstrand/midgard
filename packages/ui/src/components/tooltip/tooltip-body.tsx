@@ -1,12 +1,12 @@
 'use client'
 
 import type { FloatingFocusManagerProps } from '@floating-ui/react'
-import { motion } from 'motion/react'
 import { useLayoutEffect, useState } from 'react'
 import { cn } from '../../core'
 import { useA11yHasTabbable } from '../../hooks'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { FloatingSurface } from '../../primitives/floating-surface'
+import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/tooltip'
 import { useTooltipContext } from './context'
@@ -97,7 +97,7 @@ export function TooltipBody({
 			data-slot="tooltip-content"
 			density={size}
 		>
-			<motion.div
+			<m.div
 				{...preset}
 				ref={setPanel}
 				onFocus={(event) => setFocusedPanel(event.currentTarget)}
@@ -107,7 +107,7 @@ export function TooltipBody({
 				className={cn(k.content.base, k.content.surface[glass ? 'glass' : 'default'], className)}
 			>
 				{children}
-			</motion.div>
+			</m.div>
 		</FloatingSurface>
 	)
 }

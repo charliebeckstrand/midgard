@@ -1,3 +1,4 @@
+import type { ElementType } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
 import { LineChart } from '../../modules/chart/line-chart'
@@ -17,35 +18,26 @@ import { act, allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
  */
 const renders = vi.hoisted(() => new Map<string, number>())
 
-vi.mock('motion/react', async (importActual) => {
-	const actual = await importActual<typeof import('motion/react')>()
+vi.mock('motion/react-m', async (importActual) => {
+	const actual = await importActual<typeof import('motion/react-m')>()
 
 	const { createElement } = await import('react')
 
 	// One wrapper for each tag, so each element keeps its component identity.
-	const counted = new Map<string, unknown>()
+	return Object.fromEntries(
+		(Object.entries(actual) as [string, ElementType][]).map(([tag, real]) => [
+			tag,
+			tag === 'create'
+				? real
+				: (props: Record<string, unknown>) => {
+						const slot = String(props['data-slot'] ?? tag)
 
-	const motion = new Proxy(actual.motion, {
-		get(target, tag, receiver) {
-			const real = Reflect.get(target, tag, receiver)
+						renders.set(slot, (renders.get(slot) ?? 0) + 1)
 
-			if (typeof tag !== 'string' || real === undefined) return real
-
-			if (!counted.has(tag)) {
-				counted.set(tag, (props: Record<string, unknown>) => {
-					const slot = String(props['data-slot'] ?? tag)
-
-					renders.set(slot, (renders.get(slot) ?? 0) + 1)
-
-					return createElement(real, props)
-				})
-			}
-
-			return counted.get(tag)
-		},
-	})
-
-	return { ...actual, motion }
+						return createElement(real, props)
+					},
+		]),
+	)
 })
 
 const DATA = Array.from({ length: 12 }, (_, index) => ({ m: `M${index}`, a: 100, b: 90 }))

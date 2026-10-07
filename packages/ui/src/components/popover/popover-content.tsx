@@ -1,11 +1,11 @@
 'use client'
 
-import { motion } from 'motion/react'
 import { type ReactNode, useLayoutEffect, useState } from 'react'
 import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { useA11yAutoFocus } from '../../hooks'
 import { FloatingSurface } from '../../primitives/floating-surface'
+import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { k, type scale } from '../../recipes/kata/popover'
 import { Box } from '../../structure/box'
@@ -107,7 +107,7 @@ export function PopoverContent({
 			trapFocusContext={floatingContext}
 			trapFocusProps={{ modal }}
 		>
-			<motion.div
+			<m.div
 				{...k.panel.motion}
 				ref={setContent}
 				id={panelId}
@@ -126,7 +126,7 @@ export function PopoverContent({
 				>
 					{children}
 				</Box>
-			</motion.div>
+			</m.div>
 		</FloatingSurface>
 	)
 }

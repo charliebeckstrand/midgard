@@ -33,6 +33,7 @@ export default defineConfig({
 			'lucide-react',
 			'motion',
 			'motion/react',
+			'motion/react-m',
 			'pdfjs-dist',
 			'pdfjs-dist/legacy/build/pdf.mjs',
 			'react',

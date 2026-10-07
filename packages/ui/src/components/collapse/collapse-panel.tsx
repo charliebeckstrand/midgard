@@ -1,12 +1,13 @@
 'use client'
 
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence } from 'motion/react'
 import type { ReactNode } from 'react'
 import { useOpenChange } from '../../hooks/use-open-change'
 import { useOpenComplete } from '../../hooks/use-open-complete'
 import { MountHold, useMountHold } from '../../primitives/mount'
 import { heldMotionProps, heldMotionTargets } from '../../primitives/mount/mount-held-motion'
 import { ReducedMotion } from '../../primitives/reduced-motion'
+import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/collapse'
 import { useCollapseContext } from './context'
 
@@ -63,9 +64,9 @@ export function CollapsePanel({ children, className }: CollapsePanelProps) {
 	// The panel's identity — element, a11y wiring, classes — is one shape across
 	// every branch below; only how it animates (or whether it does) differs.
 	const panel = (motionProps: object, contentProps?: object) => (
-		<motion.div id={id} data-slot="collapse-panel" {...motionProps} className={className}>
-			{contentProps ? <motion.div {...contentProps}>{children}</motion.div> : children}
-		</motion.div>
+		<m.div id={id} data-slot="collapse-panel" {...motionProps} className={className}>
+			{contentProps ? <m.div {...contentProps}>{children}</m.div> : children}
+		</m.div>
 	)
 
 	// `slide` moves the content inside the clip of the panel. The panel element

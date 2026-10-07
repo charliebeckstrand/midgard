@@ -1,12 +1,13 @@
 'use client'
 
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence } from 'motion/react'
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { useOpenComplete } from '../../hooks/use-open-complete'
 import { MountHold, useMountHold } from '../../primitives/mount'
 import { heldMotionProps } from '../../primitives/mount/mount-held-motion'
 import { ReducedMotion } from '../../primitives/reduced-motion'
+import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/accordion'
 import { useAccordion, useAccordionItem } from './context'
 
@@ -61,9 +62,9 @@ export function AccordionPanel({ className, children }: AccordionPanelProps) {
 
 	// One shape across every branch below; only how it animates differs.
 	const panel = (motionProps: object) => (
-		<motion.div data-slot="accordion-panel" {...a11yProps} {...motionProps} className={cn(k.panel)}>
+		<m.div data-slot="accordion-panel" {...a11yProps} {...motionProps} className={cn(k.panel)}>
 			<div className={cn(k.body, className)}>{children}</div>
-		</motion.div>
+		</m.div>
 	)
 
 	// `active` unmounts the closed panel, so its exit rides `AnimatePresence` and

@@ -189,6 +189,16 @@ function LayoutGroup({ children }: { children: ReactNode }) {
 	return children
 }
 
+// `LazyMotion` renders its children. The mock elements run no animation, so they
+// need no features, and the bundles are empty.
+function LazyMotion({ children }: { children: ReactNode }) {
+	return children
+}
+
+const domAnimation = {}
+
+const domMax = {}
+
 type MotionConfigValue = { reducedMotion: 'always' | 'never' | 'user' }
 
 // Real motion defaults `reducedMotion` to `never`, and `MotionConfig` merges its
@@ -271,6 +281,9 @@ export default {
 	motion,
 	AnimatePresence,
 	LayoutGroup,
+	LazyMotion,
+	domAnimation,
+	domMax,
 	MotionConfig,
 	MotionConfigContext,
 	useAnimate,

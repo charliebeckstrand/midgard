@@ -1,9 +1,9 @@
 'use client'
 
-import { motion } from 'motion/react'
 import { type RefObject, useEffect, useEffectEvent, useRef } from 'react'
 import { announce, cn } from '../../core'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
+import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/toast'
 import { Alert, type AlertVariants } from '../alert'
 import type { ToastData, ToastSeverity } from './types'
@@ -155,7 +155,7 @@ export function ToastAlert({
 	}
 
 	return (
-		<motion.li
+		<m.li
 			layout
 			style={{
 				...(positionTop ? { paddingBottom: k.gap } : { paddingTop: k.gap }),
@@ -164,7 +164,7 @@ export function ToastAlert({
 			exit={t.dismissed ? manualDismiss : autoDismiss}
 			transition={layoutTransition}
 		>
-			<motion.div
+			<m.div
 				initial={{ ...motionConfig.initial, opacity: 0 }}
 				animate={motionConfig.animate}
 				transition={motionConfig.transition}
@@ -197,7 +197,7 @@ export function ToastAlert({
 					onOpenChange={(open) => onOpenChange(open, t.id)}
 					className={cn(k.card)}
 				/>
-			</motion.div>
-		</motion.li>
+			</m.div>
+		</m.li>
 	)
 }
