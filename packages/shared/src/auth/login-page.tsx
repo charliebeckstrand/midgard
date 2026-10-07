@@ -15,6 +15,7 @@ import { Input } from 'ui/input'
 import { AuthLayout } from 'ui/layouts'
 import { Link } from 'ui/link'
 import { PasswordInput } from 'ui/password-input'
+import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import { oauthStartPath, signInProviderNames } from './account'
 import { bifrost } from './bifrost'
@@ -155,62 +156,65 @@ export function LoginPage({ providers = [] }: LoginPageProps) {
 				}}
 				onSubmit={handleSubmit}
 				disabled={leaving}
-				className="grid gap-6 w-full sm:max-w-sm p-6"
 			>
-				<Heading className="text-center">Sign in to your account</Heading>
+				<Stack gap="xl" className="w-full sm:max-w-sm p-6">
+					<Heading className="text-center">Sign in to your account</Heading>
 
-				{serverError && <ErrorAlert onDismiss={() => setServerError('')}>{serverError}</ErrorAlert>}
+					{serverError && (
+						<ErrorAlert onDismiss={() => setServerError('')}>{serverError}</ErrorAlert>
+					)}
 
-				<Suspense>
-					<QueryNotice />
-				</Suspense>
+					<Suspense>
+						<QueryNotice />
+					</Suspense>
 
-				<Field>
-					<Label>Email</Label>
-					<Input type="email" name="email" autoComplete="email" />
-					<Message name="email" />
-				</Field>
+					<Field>
+						<Label>Email</Label>
+						<Input type="email" name="email" autoComplete="email" />
+						<Message name="email" />
+					</Field>
 
-				<Field>
-					<Label>Password</Label>
-					<PasswordInput name="password" autoComplete="current-password" />
-					<Message name="password" />
-					<Text className="text-right">
-						<Link href="/forgot-password" underline>
-							Forgot password?
-						</Link>
-					</Text>
-				</Field>
+					<Field>
+						<Label>Password</Label>
+						<PasswordInput name="password" autoComplete="current-password" />
+						<Message name="password" />
+						<Text className="text-right">
+							<Link href="/forgot-password" underline>
+								Forgot password?
+							</Link>
+						</Text>
+					</Field>
 
-				<Button type="submit" className="w-full">
-					Sign in
-				</Button>
-
-				<Button type="button" variant="outline" className="w-full" onClick={signInWithPasskey}>
-					Sign in with a passkey
-				</Button>
-
-				{providers.map((provider) => (
-					<Button
-						key={provider}
-						type="button"
-						variant="outline"
-						className="w-full"
-						// A full page load: the gateway answers with a redirect to the provider.
-						onClick={() => leave(() => window.location.assign(oauthStartPath(provider)))}
-					>
-						Continue with {signInProviderNames[provider]}
+					<Button type="submit" className="w-full">
+						Sign in
 					</Button>
-				))}
 
-				<div className="text-center">
-					<Text>
-						Don't have an account?{' '}
-						<Link href="/register" underline>
-							Create one
-						</Link>
-					</Text>
-				</div>
+					<Button type="button" variant="outline" className="w-full" onClick={signInWithPasskey}>
+						Sign in with a passkey
+					</Button>
+
+					{providers.map((provider) => (
+						<Button
+							key={provider}
+							type="button"
+							variant="outline"
+							className="w-full"
+							// A full page load: the gateway answers with a redirect to the provider.
+							onClick={() => leave(() => window.location.assign(oauthStartPath(provider)))}
+						>
+							Continue with {signInProviderNames[provider]}
+						</Button>
+					))}
+
+					<div className="text-center">
+						<Text>
+							Don't have an account?{' '}
+							<Link href="/register" underline>
+								Create one
+							</Link>
+						</Text>
+					</div>
+				</Stack>
 			</Form>
 		</AuthLayout>
 	)

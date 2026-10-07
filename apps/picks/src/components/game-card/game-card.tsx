@@ -4,6 +4,7 @@ import { Badge } from 'ui/badge'
 import { Card } from 'ui/card'
 import { cn } from 'ui/core'
 import { StatusDot } from 'ui/status'
+import { Columns } from 'ui/structure/columns'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
 import type { Game, Pick, Team } from '../../types'
@@ -141,9 +142,14 @@ export function GameCard({ game, pick }: { game: Game; pick: Pick | undefined })
 					gap="md"
 					className="border-t border-zinc-950/5 pt-3 text-sm dark:border-white/10"
 				>
-					<span className="flex shrink-0 items-center gap-2 whitespace-nowrap tabular-nums">
+					<Flex
+						as="span"
+						align="center"
+						gap="sm"
+						className="shrink-0 whitespace-nowrap tabular-nums"
+					>
 						<PickLine game={game} pick={pick} team={picked.abbreviation} />
-					</span>
+					</Flex>
 
 					{status}
 				</Flex>
@@ -154,5 +160,5 @@ export function GameCard({ game, pick }: { game: Game; pick: Pick | undefined })
 
 /** The grid of the game cards of a week: one column on a phone, up to three on a wide screen. */
 export function GameGrid({ children }: { children: ReactNode }) {
-	return <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{children}</div>
+	return <Columns columns={{ initial: 1, sm: 2, lg: 3 }}>{children}</Columns>
 }

@@ -10,6 +10,7 @@ import { Input } from 'ui/input'
 import { AuthLayout } from 'ui/layouts'
 import { Link } from 'ui/link'
 import { PasswordInput } from 'ui/password-input'
+import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import { bifrost } from './bifrost'
 import { ErrorAlert } from './error-alert'
@@ -93,56 +94,59 @@ export function RegisterPage({ turnstileSiteKey }: RegisterPageProps) {
 					confirmPassword: chain(required(), matches('password', 'password')),
 				}}
 				onSubmit={handleSubmit}
-				className="grid gap-6 w-full sm:max-w-sm p-6"
 			>
-				<Heading className="text-center">Create your account</Heading>
+				<Stack gap="xl" className="w-full sm:max-w-sm p-6">
+					<Heading className="text-center">Create your account</Heading>
 
-				{serverError && <ErrorAlert onDismiss={() => setServerError('')}>{serverError}</ErrorAlert>}
+					{serverError && (
+						<ErrorAlert onDismiss={() => setServerError('')}>{serverError}</ErrorAlert>
+					)}
 
-				<Field>
-					<Label>Email</Label>
-					<Input type="email" name="email" autoComplete="email" />
-					<Message name="email" />
-				</Field>
+					<Field>
+						<Label>Email</Label>
+						<Input type="email" name="email" autoComplete="email" />
+						<Message name="email" />
+					</Field>
 
-				<Field>
-					<Label>Full name</Label>
-					<Input name="name" />
-					<Message name="name" />
-				</Field>
+					<Field>
+						<Label>Full name</Label>
+						<Input name="name" />
+						<Message name="name" />
+					</Field>
 
-				<Field>
-					<Label>Password</Label>
-					<PasswordInput name="password" autoComplete="new-password" />
-					<Message name="password" />
-				</Field>
+					<Field>
+						<Label>Password</Label>
+						<PasswordInput name="password" autoComplete="new-password" />
+						<Message name="password" />
+					</Field>
 
-				<Field>
-					<Label>Confirm password</Label>
-					<PasswordInput name="confirmPassword" />
-					<Message name="confirmPassword" />
-				</Field>
+					<Field>
+						<Label>Confirm password</Label>
+						<PasswordInput name="confirmPassword" />
+						<Message name="confirmPassword" />
+					</Field>
 
-				{turnstileSiteKey && (
-					<Turnstile key={attempt} siteKey={turnstileSiteKey} onToken={setTurnstileToken} />
-				)}
+					{turnstileSiteKey && (
+						<Turnstile key={attempt} siteKey={turnstileSiteKey} onToken={setTurnstileToken} />
+					)}
 
-				<Button
-					type="submit"
-					className="w-full"
-					disabled={Boolean(turnstileSiteKey) && !turnstileToken}
-				>
-					Create account
-				</Button>
+					<Button
+						type="submit"
+						className="w-full"
+						disabled={Boolean(turnstileSiteKey) && !turnstileToken}
+					>
+						Create account
+					</Button>
 
-				<div className="text-center">
-					<Text>
-						Already have an account?{' '}
-						<Link href="/login" underline>
-							Sign in
-						</Link>
-					</Text>
-				</div>
+					<div className="text-center">
+						<Text>
+							Already have an account?{' '}
+							<Link href="/login" underline>
+								Sign in
+							</Link>
+						</Text>
+					</div>
+				</Stack>
 			</Form>
 		</AuthLayout>
 	)

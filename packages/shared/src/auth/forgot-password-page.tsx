@@ -8,6 +8,7 @@ import { Heading } from 'ui/heading'
 import { Input } from 'ui/input'
 import { AuthLayout } from 'ui/layouts'
 import { Link } from 'ui/link'
+import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import { bifrost } from './bifrost'
 import { ErrorAlert } from './error-alert'
@@ -51,39 +52,42 @@ export function ForgotPasswordPage() {
 				defaultValues={{ email: '' }}
 				validate={{ email: chain(required(), email()) }}
 				onSubmit={handleSubmit}
-				className="grid gap-6 w-full sm:max-w-sm p-6"
 			>
-				<Heading className="text-center">Reset your password</Heading>
+				<Stack gap="xl" className="w-full sm:max-w-sm p-6">
+					<Heading className="text-center">Reset your password</Heading>
 
-				{sent ? (
-					<Text tone="success">
-						If an account has that email, we sent it a link. The link works for one hour.
-					</Text>
-				) : (
-					<Text>
-						Type the email of your account. We will send you a link to set a new password.
-					</Text>
-				)}
+					{sent ? (
+						<Text tone="success">
+							If an account has that email, we sent it a link. The link works for one hour.
+						</Text>
+					) : (
+						<Text>
+							Type the email of your account. We will send you a link to set a new password.
+						</Text>
+					)}
 
-				{serverError && <ErrorAlert onDismiss={() => setServerError('')}>{serverError}</ErrorAlert>}
+					{serverError && (
+						<ErrorAlert onDismiss={() => setServerError('')}>{serverError}</ErrorAlert>
+					)}
 
-				<Field>
-					<Label>Email</Label>
-					<Input type="email" name="email" autoComplete="email" />
-					<Message name="email" />
-				</Field>
+					<Field>
+						<Label>Email</Label>
+						<Input type="email" name="email" autoComplete="email" />
+						<Message name="email" />
+					</Field>
 
-				<Button type="submit" className="w-full">
-					{sent ? 'Send another link' : 'Send link'}
-				</Button>
+					<Button type="submit" className="w-full">
+						{sent ? 'Send another link' : 'Send link'}
+					</Button>
 
-				<div className="text-center">
-					<Text>
-						<Link href="/login" underline>
-							Back to sign in
-						</Link>
-					</Text>
-				</div>
+					<div className="text-center">
+						<Text>
+							<Link href="/login" underline>
+								Back to sign in
+							</Link>
+						</Text>
+					</div>
+				</Stack>
 			</Form>
 		</AuthLayout>
 	)

@@ -79,7 +79,7 @@ function SidebarShell({ user, children }: { user: User; children: ReactNode }) {
 			<SidebarLayout
 				navbar={
 					<NavBar variant="plain" className="px-0 py-0">
-						<Link href="/" className="flex items-center gap-2">
+						<Link href="/" className="flex">
 							<Brand />
 						</Link>
 					</NavBar>
@@ -144,7 +144,7 @@ function HeaderShell({ user, children }: { user: User; children: ReactNode }) {
 			<StackedLayoutHeader className="border-b border-zinc-950/5 dark:border-white/5">
 				<Container size="md" padding="md">
 					<Flex align="center" gap="sm" className="py-2.5">
-						<Link href="/account" className="flex items-center gap-2">
+						<Link href="/account" className="flex">
 							<Brand />
 						</Link>
 						<Spacer />
@@ -169,10 +169,10 @@ function HeaderShell({ user, children }: { user: User; children: ReactNode }) {
 /** The mark and the name of the app. @internal */
 function Brand() {
 	return (
-		<>
+		<Flex as="span" align="center" gap="sm">
 			<Image src="/gradient.png" alt="" width={24} height={24} />
 			<Text className="font-black text-lg">Admin</Text>
-		</>
+		</Flex>
 	)
 }
 
