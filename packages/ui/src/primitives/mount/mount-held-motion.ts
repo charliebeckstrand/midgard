@@ -30,7 +30,7 @@ export type HeldMotionPreset = {
  * @param open - Whether the panel is open now.
  * @param hold - The panel's hold; `rest` latches it on every landing and
  * `mountedActive` names the state it mounted in.
- * @param onAnimationComplete - The arrival gate's completion handler.
+ * @param onAnimationComplete - The arrival gate's completion handler, if the panel has one.
  * @returns The `initial`/`animate`/`transition`/`onAnimationComplete` bag to
  * spread onto the motion element.
  * @internal
@@ -39,7 +39,7 @@ export function heldMotionProps<P extends HeldMotionPreset>(
 	preset: P,
 	open: boolean,
 	hold: Pick<MountHoldState, 'rest' | 'mountedActive'>,
-	onAnimationComplete: (definition: unknown) => void,
+	onAnimationComplete?: (definition: unknown) => void,
 ): {
 	initial: P['initial'] | P['animate']
 	animate: P['animate'] | P['exit']
@@ -51,7 +51,7 @@ export function heldMotionProps<P extends HeldMotionPreset>(
 		onAnimationComplete: (definition) => {
 			hold.rest()
 
-			onAnimationComplete(definition)
+			onAnimationComplete?.(definition)
 		},
 	}
 }

@@ -17,7 +17,7 @@ Components split into a **static** (server-renderable) tier and a **client** tie
 
 For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcodeMask` preset.
 
-> A `clearable` `input` shows a clear button while it holds a value. The button comes before the `suffix`, empties the value through a native `input` event, and keeps the focus in the input. A disabled or read-only `input` shows no clear button. `listbox`, `combobox`, `date-picker`, and `search-input` take the same `clearable` prop.
+> A `clearable` `input` shows a clear button while it holds a value. The button comes before the `suffix`, empties the value through a native `input` event, and keeps the focus in the input. A disabled or read-only `input` shows no clear button. `clearLabel` gives the button its accessible name, `Clear` by default. `search-input` and `date-input` render this button, with the names `Clear search` and `Clear date`. `listbox`, `combobox`, and `date-picker` take the same `clearable` prop.
 
 > `CheckboxGroup` and `RadioGroup` require their own name: give `aria-label` or `aria-labelledby`. The `<legend>` of an enclosing `<fieldset>` does not name the group.
 
@@ -61,15 +61,13 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > `dialog`, `drawer`, and `sheet` have the root-and-parts shape of `popover`. The root (`Dialog`, `Drawer`, `Sheet`) holds the open state, controlled or uncontrolled, and renders no element. The trigger part (`DialogTrigger`, `DrawerTrigger`, `SheetTrigger`) opens the panel. The panel part (`DialogPanel`, `DrawerPanel`, `SheetPanel`) is the surface, and takes the props that style it or place it.
 
-> `drawer` also exports `DrawerStatic`: an open drawer as static, in-place markup, for the server paint of a page that loads with its drawer open. The overlay itself portals, and a portal has no server output.
-
 ## Data display
 
 `table` · `pivot-table` · `list` · `listbox` · `tree` · `kanban` · `json-tree` · `pagination` · `description-list` · `timeline` · `stat` · `sparkline` · `odometer` · `date-time` · `time-ago` · `status` · `swatch` · `badge` · `avatar` · `kbd` · `code`
 
 > `date-time` shows an absolute date or time in a `<time>` element, in the locale of the nearest `LocaleProvider`. The server render and the hydration render use the `timeZone` of the provider, and a format with a time adds the name of the zone. The render after hydration uses the zone of the reader. A `timeZone` in `format` fixes the zone for all renders, as a calendar day needs. A server component can render it.
 
-> A `TreeItem` row is one control, so its `prefix` and `suffix` hold no control. For a checkbox tree, give each item `checked` (or `defaultChecked`) and `onCheckedChange`. The row carries `aria-checked` and draws the box, Space toggles the check, and Enter toggles a branch. The caller computes the `'mixed'` state of a branch.
+> A `TreeItem` row is one control, so its `prefix` and `suffix` hold no control. For a checkbox tree, give each item `checked` (or `defaultChecked`) and `onCheckedChange`. The row carries `aria-checked` and draws the box, Space toggles the check, and Enter toggles a branch. ArrowRight opens a closed branch, and on an open branch moves to its first child. ArrowLeft closes an open branch, and on a closed branch or a leaf moves to its parent. The caller computes the `'mixed'` state of a branch.
 
 > `kanban` composes a `KanbanColumn` of a `KanbanColumnHeader` and a `KanbanColumnBody` of `KanbanCard`s. Put a `KanbanCardHandle` in each card. The handle is the only part of the card that starts a drag, and it is the keyboard stop that takes the keyboard lift. The rest of the card scrolls under a finger. The card centers the handle on its start edge. The other children of the card align with each other beside the handle. A read-only board, with no `onReorder`, shows no handle.
 
@@ -91,7 +89,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 `heading` · `text` · `shiny-text` · `icon` · `markdown`
 
-> `markdown` exports `Markdown`, which lexes its source with `marked`, and `MarkdownInline`. The first lex on a page is slow, because the regular expressions of `marked` compile then. `primeMarkdown` lexes a source before a block renders it, such as in idle time, and the block then renders from the stored tokens. With `breaks`, each line break in a paragraph renders as a `<br>`, and `primeMarkdown` takes the same option.
+> `markdown` exports `Markdown`, which lexes its source with `marked`. The first lex on a page is slow, because the regular expressions of `marked` compile then. `primeMarkdown` lexes a source before a block renders it, such as in idle time, and the block then renders from the stored tokens. With `breaks`, each line break in a paragraph renders as a `<br>`, and `primeMarkdown` takes the same option.
 
 ## Feedback
 

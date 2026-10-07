@@ -10,10 +10,10 @@ import {
 	useRef,
 } from 'react'
 import { useHoverAcrossScroll } from '../../../hooks'
+import { useTouchTap } from '../../../hooks/use-touch-tap'
 import type { PlotRect } from './chart-orientation'
 import type { ChartTooltipTrigger } from './chart-tooltip'
 import { type ChartMarkRef, useChartHoverStore, useChartMarkPoint } from './context'
-import { useChartTouchTap } from './use-chart-touch-tap'
 
 /** The handlers {@link useChartPointer} spreads onto the hit layer's rect. @internal */
 export type ChartPointerHandlers = {
@@ -118,7 +118,7 @@ export type ChartPointerOptions = {
  * A touch reads nothing from the chart on either trigger. It opens no readout,
  * isolates no mark, and pins nothing. The data stays available through the
  * "View data" item of the chart menu. A tap only activates: it reports from the
- * tap that {@link useChartTouchTap} finds, and not from the click. The click of
+ * tap that {@link useTouchTap} finds, and not from the click. The click of
  * a touch press is canceled, so the browser cannot send it to a control near
  * the finger, such as a legend switch.
  *
@@ -358,7 +358,7 @@ export function useChartPointer({
 	useHoverAcrossScroll(trigger === 'hover', clear, resolveAt)
 
 	// A touch activates from its tap, and a mouse or a pen from its click.
-	const touch = useChartTouchTap(activate)
+	const touch = useTouchTap(activate)
 
 	if (trigger === 'click') {
 		return {

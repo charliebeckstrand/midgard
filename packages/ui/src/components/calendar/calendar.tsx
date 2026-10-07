@@ -28,7 +28,7 @@ import {
 	getFirstDayColumn,
 	getMonthLabels,
 	getWeekdayLabels,
-	isBeforeDay,
+	isDayInRange,
 	isSameDay,
 } from './calendar-utilities'
 import { dayTabStop, useCalendarFocus } from './use-calendar-focus'
@@ -304,12 +304,7 @@ export function Calendar({
 		setPickerOpen(true)
 	}, [])
 
-	const isDisabled = useCallback(
-		(date: Date) =>
-			(min !== undefined && isBeforeDay(date, min)) ||
-			(max !== undefined && isBeforeDay(max, date)),
-		[min, max],
-	)
+	const isDisabled = useCallback((date: Date) => !isDayInRange(date, min, max), [min, max])
 
 	const headerRef = useRef<HTMLDivElement>(null)
 	const gridRef = useRef<HTMLDivElement>(null)

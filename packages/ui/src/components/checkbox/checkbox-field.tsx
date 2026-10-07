@@ -1,9 +1,7 @@
 'use client'
 
 import type { ComponentProps } from 'react'
-import { cn } from '../../core'
 import { ToggleField } from '../../primitives/toggle'
-import { k } from '../../recipes/kata/checkbox'
 import { ControlField } from '../control/control-field'
 
 /** Props for {@link CheckboxField}. */
@@ -17,10 +15,10 @@ export type CheckboxFieldProps = {
  * through `ControlContext`; the inner Checkbox and Label auto-wire without
  * the consumer touching `id` / `htmlFor`. Pass `htmlFor` to pin the id.
  */
-export function CheckboxField({ className, htmlFor, ...props }: CheckboxFieldProps) {
+export function CheckboxField({ htmlFor, ...props }: CheckboxFieldProps) {
 	return (
 		<ControlField htmlFor={htmlFor}>
-			<ToggleField className={cn(k.disabled, className)} {...props} />
+			<ToggleField {...props} />
 		</ControlField>
 	)
 }

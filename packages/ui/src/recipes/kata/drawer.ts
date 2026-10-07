@@ -6,7 +6,7 @@ import { dan } from '../kiso/dan'
 import { panel } from '../kiso/panel'
 
 const { flex } = narabi
-const { glass, backdrop } = omote
+const { backdrop } = omote
 const { css } = ugoki
 
 /**
@@ -34,10 +34,7 @@ export const k = {
 				'overflow-hidden',
 				'w-full',
 			],
-			surface: {
-				glass: [...glass],
-				flat: [...surface.bg],
-			},
+			surface: surface.axis,
 			// How much of the screen the panel docks over. `auto` and `fit` grow to
 			// their content; `half` and `full` fix the height instead, for a panel whose
 			// own content scrolls: a detail panel beside the thing it describes, and a

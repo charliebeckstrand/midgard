@@ -5,9 +5,9 @@ import { cn, composeEventHandlers } from '../../core'
 import { useLink } from '../../primitives/link'
 import { inertLinkProps } from '../../primitives/link/link-inert'
 import { resolveLinkRel } from '../../primitives/link/link-rel'
+import { usePanelCloseContext } from '../../primitives/panel'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
 import { k } from '../../recipes/kata/command-palette'
-import { useCommandPaletteContext } from './context'
 
 type CommandPaletteItemBaseProps = {
 	/**
@@ -47,7 +47,7 @@ export type CommandPaletteItemProps = CommandPaletteItemBaseProps &
  * row mounting.
  */
 export function CommandPaletteItem(props: CommandPaletteItemProps) {
-	const { close } = useCommandPaletteContext()
+	const { close } = usePanelCloseContext()
 
 	const { component: LinkComponent } = useLink()
 

@@ -9,16 +9,17 @@
  * "no kiso import" contract is pinned by the `recipes/katakana/**` override in
  * `biome.json`.
  *
- * Five archetypes, and four of them have a bridge:
+ * Five archetypes, and two of them have bridges:
  *
  * - `control` and `check`, the Control family: text-input and check-input
  *   branches;
- * - `popover`, a floating overlay;
- * - `panel`, the panel bundle shared by Dialog, Drawer, and Sheet.
+ * - `panel`, the panel bundle shared by Drawer and Sheet.
  *
- * The fifth, `segment`, has no bridge: Segment and Tabs share it through one
- * kata, `kata/tabs`, which reads kiso directly. `slider` has no bridge either;
- * it's a pure color token bundle the slider kata read from kiso directly.
+ * `popover` has no bridge: `kata/popover` reads `kiso/popover` directly, as
+ * the other floating kata do. `segment` has no bridge: Segment and Tabs share
+ * it through one kata, `kata/tabs`, which reads kiso directly. `slider` has no
+ * bridge either; it's a pure color token bundle the slider kata read from kiso
+ * directly.
  * Alongside the archetypes, `backdrop` is a small shared recipe (not an
  * archetype) for the modal scrim of dialog, drawer, and sheet, and `palette` is
  * a shared palette wiring (not an archetype either).
@@ -45,6 +46,5 @@ import { backdrop } from './backdrop'
 import { check, control } from './control'
 import { palette } from './palette'
 import { panel } from './panel'
-import { popover } from './popover'
 
-export const bridge = { control, check, popover, panel, backdrop, palette }
+export const bridge = { control, check, panel, backdrop, palette }

@@ -3,39 +3,38 @@ import { bridge } from '../katakana'
 import { omote, shaku, ugoki } from '../kiso'
 import { panel } from '../kiso/panel'
 
-const { glass, backdrop } = omote
+const { backdrop } = omote
 const { popover } = ugoki
 const { surface, layout } = panel
 
+/**
+ * The panel and backdrop recipes of the {@link Dialog}. Dialog uses the default
+ * slots of `createPanel`, so it does not build them through `bridge.panel`.
+ */
 export const k = {
-	...bridge.panel(panel, {
-		panel: defineRecipe({
-			base: [
-				...surface.chrome.flat(),
-				layout.base,
-				'relative',
-				'w-full',
-				layout.inset.x,
-				layout.inset.top,
-				layout.inset.bottom,
-				// Each cap is a share of the overlay root. Above `sm`, the root has an
-				// inset of 1rem on each edge, so the full share stops 1rem short of each.
-				'max-sm:rounded-t-2xl max-sm:rounded-b-none max-sm:max-h-[85%] max-sm:overflow-y-auto max-sm:overscroll-contain',
-				// Below `sm`, the panel sits on the bottom edge. In a page with
-				// `viewport-fit=cover`, this keeps its content clear of the home
-				// indicator.
-				...layout.inset.safe,
-				'sm:rounded-2xl sm:max-h-full',
-			],
-			surface: {
-				glass: [...glass],
-				flat: [...surface.bg],
-			},
-			width: shaku.panel,
-			defaults: { width: 'lg', surface: 'flat' },
-		}),
-		backdrop: bridge.backdrop(backdrop),
+	panel: defineRecipe({
+		base: [
+			...surface.chrome.flat(),
+			layout.base,
+			'relative',
+			'w-full',
+			layout.inset.x,
+			layout.inset.top,
+			layout.inset.bottom,
+			// Each cap is a share of the overlay root. Above `sm`, the root has an
+			// inset of 1rem on each edge, so the full share stops 1rem short of each.
+			'max-sm:rounded-t-2xl max-sm:rounded-b-none max-sm:max-h-[85%] max-sm:overflow-y-auto max-sm:overscroll-contain',
+			// Below `sm`, the panel sits on the bottom edge. In a page with
+			// `viewport-fit=cover`, this keeps its content clear of the home
+			// indicator.
+			...layout.inset.safe,
+			'sm:rounded-2xl sm:max-h-full',
+		],
+		surface: surface.axis,
+		width: shaku.panel,
+		defaults: { width: 'lg', surface: 'flat' },
 	}),
+	backdrop: bridge.backdrop(backdrop),
 	motion: { desktop: popover, mobile: ugoki.panel.bottom },
 	/**
 	 * The motion under reduced motion: the phone panel shows with no slide. The

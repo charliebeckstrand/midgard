@@ -2,6 +2,7 @@
 
 import { Menu } from 'lucide-react'
 import {
+	type ComponentProps,
 	type PropsWithChildren,
 	type ReactNode,
 	type Ref,
@@ -17,7 +18,7 @@ import { Drawer, DrawerPanel } from '../../components/drawer/drawer'
 import { DrawerTrigger } from '../../components/drawer/slots'
 import { Icon } from '../../components/icon'
 import { Sheet, SheetPanel } from '../../components/sheet/sheet'
-import { cn, createContext } from '../../core'
+import { cn, createContext, createSlot } from '../../core'
 import { useScrollWithin } from '../../hooks'
 import { useIsRtl } from '../../hooks/use-is-rtl'
 import { useKeybindings } from '../../hooks/use-keybindings'
@@ -280,36 +281,18 @@ export function SidebarLayoutHeader({ ref, children, className }: SidebarLayoutH
 	)
 }
 
-/** Props for {@link SidebarLayoutBody}; `ref` reaches the `<main>`. */
-export type SidebarLayoutBodyProps = PropsWithChildren<{
-	className?: string
-	ref?: Ref<HTMLElement>
-}>
+/** Props for {@link SidebarLayoutBody} (`<main>` attributes); `ref` reaches the `<main>`. */
+export type SidebarLayoutBodyProps = ComponentProps<'main'>
 
 /**
  * Main content slot for {@link SidebarLayout} (`data-slot="body"`). It scrolls
  * with the page at each width. It grows into the free height of the content
  * region, so the footer sits at the bottom of a short page.
  */
-export function SidebarLayoutBody({ ref, children, className }: SidebarLayoutBodyProps) {
-	return (
-		<main ref={ref} data-slot="body" className={cn(k.body(), className)}>
-			{children}
-		</main>
-	)
-}
+export const SidebarLayoutBody = createSlot('main', 'body', k.body())
 
-/** Props for {@link SidebarLayoutFooter}. */
-export type SidebarLayoutFooterProps = PropsWithChildren<{
-	className?: string
-	ref?: Ref<HTMLElement>
-}>
+/** Props for {@link SidebarLayoutFooter} (`<footer>` attributes). */
+export type SidebarLayoutFooterProps = ComponentProps<'footer'>
 
 /** Footer slot for {@link SidebarLayout} (`data-slot="footer"`). */
-export function SidebarLayoutFooter({ ref, children, className }: SidebarLayoutFooterProps) {
-	return (
-		<footer ref={ref} data-slot="footer" className={cn(k.footer(), className)}>
-			{children}
-		</footer>
-	)
-}
+export const SidebarLayoutFooter = createSlot('footer', 'footer', k.footer())

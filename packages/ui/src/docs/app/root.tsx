@@ -26,11 +26,11 @@ import { useHydrated } from '../../hooks/use-hydrated.ts'
 import { noop } from '../../utilities/noop.ts'
 import {
 	BugLogButton,
+	DebugScript,
+	DebugSwitch,
 	EventLogButton,
-	EventLogScript,
-	EventLogSwitch,
 	recordRoute,
-} from '../debug/event-log/index.tsx'
+} from '../debug/index.tsx'
 import { useIdle } from '../kit/idle.ts'
 import appCss from './app.css?url'
 import { PageError } from './page-error.tsx'
@@ -56,7 +56,7 @@ export function Layout({ children }: { children: ReactNode }) {
 					<meta charSet="UTF-8" />
 					<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 					<link rel="expect" href={`#${FIRST_PAINT}`} blocking="render" />
-					<EventLogScript />
+					<DebugScript />
 					<Meta />
 					<Links />
 				</>
@@ -95,7 +95,7 @@ const ACTIONS = (
 		<EventLogButton />
 		<BugLogButton />
 		<AppearanceSettings>
-			<EventLogSwitch />
+			<DebugSwitch />
 		</AppearanceSettings>
 	</>
 )

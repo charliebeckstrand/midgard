@@ -1,9 +1,7 @@
 import { kasane, ma, omote, sen } from '../kiso'
-import { panel } from '../kiso/panel'
 
-const { bg, popover, glass } = omote
+const { bg, popover } = omote
 const { outline } = sen
-const { surface } = panel
 
 export const k = {
 	padding: ma.p,
@@ -14,9 +12,7 @@ export const k = {
 		none: 'bg-transparent',
 		surface: bg.surface,
 		tint: bg.tint,
-		panel: surface.bg,
 		popover,
-		glass,
 	},
 	outline: {
 		/** The weight that `outline={true}` selects. */

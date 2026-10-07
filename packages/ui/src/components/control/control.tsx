@@ -1,20 +1,14 @@
 'use client'
 
-import { type ReactNode, useMemo } from 'react'
+import type { ReactNode } from 'react'
 import { cn, dataAttr } from '../../core'
 import type { ScaleStep } from '../../core/density'
-import { useA11yControl } from '../../hooks'
 import { useIdScope } from '../../hooks/use-id-scope'
 import type { scale } from '../../recipes/kata/control'
 import { k } from '../../recipes/kata/fieldset'
 import { Box } from '../../structure/box'
-import {
-	ControlContext,
-	type ControlContextValue,
-	type ControlSeverity,
-	type ControlVariant,
-	useControl,
-} from './context'
+import { ControlContext, type ControlSeverity, type ControlVariant } from './context'
+import { useControlFieldContext } from './use-control-field-context'
 
 /** Props for {@link Control}; the shared form-field state broadcast to control-aware descendants. */
 export type ControlProps = {
@@ -40,9 +34,9 @@ export type ControlProps = {
  * `autoComplete`, `disabled`, `readOnly`, `required`, `severity`, and `variant`
  * to control-aware descendants. Those are input, textarea, switch, listbox,
  * combobox, datepicker, checkbox, and radio. Nests: `disabled` / `readOnly`
- * cascade through inner Controls, and `severity` / `variant` inherit unless
- * overridden. A `size` makes the field a density scope. It is not in the
- * context: each field, and each nested Control, takes the step of its nearest
+ * cascade through inner Controls, and `required` / `severity` / `variant`
+ * inherit unless overridden. A `size` makes the field a density scope. It is
+ * not in the context: each field, and each nested Control, takes the step of its nearest
  * density scope in CSS.
  *
  * @remarks A Control holds one control-aware descendant, because that
@@ -63,53 +57,24 @@ export function Control({
 	className,
 	children,
 }: ControlProps) {
-	const parent = useControl()
-
 	const scope = useIdScope({ id: idProp })
 
-	// disabled/readOnly OR-merge with parent; severity/variant inherit unless overridden.
-	const mergedDisabled = disabled || parent?.disabled
-	const mergedReadOnly = readOnly || parent?.readOnly
-
-	const mergedSeverity = severity ?? parent?.severity
-
-	const mergedVariant = variant ?? parent?.variant
-
-	const mergedAutoComplete = autoComplete ?? parent?.autoComplete
-
-	const a11y = useA11yControl(scope.id)
-
-	const value = useMemo<ControlContextValue>(
-		() => ({
-			id: scope.id,
-			autoComplete: mergedAutoComplete,
-			disabled: mergedDisabled,
-			readOnly: mergedReadOnly,
-			required,
-			severity: mergedSeverity,
-			variant: mergedVariant,
-			// Spreads the a11y bundle wholesale: label / description / error ids,
-			// registrars, and composed labelledBy/describedBy.
-			...a11y,
-		}),
-		[
-			scope.id,
-			mergedAutoComplete,
-			mergedDisabled,
-			mergedReadOnly,
-			required,
-			mergedSeverity,
-			mergedVariant,
-			a11y,
-		],
-	)
+	// disabled/readOnly OR-merge with parent; the other props inherit unless set.
+	const value = useControlFieldContext(scope.id, {
+		autoComplete,
+		disabled,
+		readOnly,
+		required,
+		severity,
+		variant,
+	})
 
 	return (
 		<ControlContext value={value}>
 			<Box
 				data-slot="control"
 				density={size}
-				data-disabled={dataAttr(mergedDisabled)}
+				data-disabled={dataAttr(value.disabled)}
 				className={cn(k.field, className)}
 			>
 				{children}

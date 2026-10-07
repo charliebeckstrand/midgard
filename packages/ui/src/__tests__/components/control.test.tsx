@@ -452,6 +452,18 @@ describe('Control nesting', () => {
 		expect(bySlot(container, 'input')).toHaveAttribute('readonly')
 	})
 
+	it('parent required reaches the input of a child Control', () => {
+		const { container } = renderUI(
+			<Control required>
+				<Control id="child">
+					<Input />
+				</Control>
+			</Control>,
+		)
+
+		expect(bySlot(container, 'input')).toBeRequired()
+	})
+
 	it('error severity propagates into a nested child Control', () => {
 		// severity cascades like variant: a nested Control inherits the
 		// parent's error unless it sets its own severity.
@@ -464,18 +476,6 @@ describe('Control nesting', () => {
 		)
 
 		expect(bySlot(container, 'input')).toHaveAttribute('data-invalid')
-	})
-
-	it('parent required does NOT propagate to child', () => {
-		const { container } = renderUI(
-			<Control required>
-				<Control id="child">
-					<Input />
-				</Control>
-			</Control>,
-		)
-
-		expect(bySlot(container, 'input')).not.toBeRequired()
 	})
 
 	it('each nested Control has its own unique id', () => {

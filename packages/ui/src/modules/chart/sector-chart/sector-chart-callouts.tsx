@@ -3,7 +3,7 @@
 import { motion } from 'motion/react'
 import { cn } from '../../../core'
 import { k } from '../../../recipes/kata/chart'
-import { getOrCompute } from '../../../utilities'
+import { getOrCompute, sameElements } from '../../../utilities'
 import { MARK_GAP } from '../engine/chart-constants'
 import {
 	CALLOUT_GAP,
@@ -85,11 +85,6 @@ function textsOf(spec: CalloutText, values: (number | null)[]): string[] {
 	)
 }
 
-/** Whether two value lists hold the same value at each row. @internal */
-function sameValues(a: (number | null)[], b: (number | null)[]): boolean {
-	return a.length === b.length && a.every((entry, index) => entry === b[index])
-}
-
 /**
  * The callout texts of one render: the whole dataset, and the visible slices.
  * The visible set reuses the whole set when no slice is hidden, so each text
@@ -107,7 +102,7 @@ export function calloutTexts(
 
 	const full = textsOf(spec, values)
 
-	return { full, shown: sameValues(values, sliceValues) ? full : textsOf(spec, sliceValues) }
+	return { full, shown: sameElements(values, sliceValues) ? full : textsOf(spec, sliceValues) }
 }
 
 /** Fits the pie of one value set, once for each frame width that a render asks for. @internal */

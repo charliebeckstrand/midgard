@@ -1,12 +1,11 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { type ReactNode, type RefObject, useEffect } from 'react'
+import type { ReactNode, RefObject } from 'react'
 import { cn, dataAttr } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { useA11yPanel } from '../../hooks'
 import { useComposedRef } from '../../hooks/use-composed-ref'
-import { useEnterAnimation } from '../../hooks/use-enter-animation'
 import { useOpenComplete } from '../../hooks/use-open-complete'
 import { usePanelFit } from '../../hooks/use-panel-fit'
 import { usePanelResize } from '../../hooks/use-panel-resize'
@@ -24,7 +23,6 @@ import { useResolvedSurface } from '../../providers/glass/context'
 import { type DrawerPanelVariants, k, type scale } from '../../recipes/kata/drawer'
 import { drawerCeiling, drawerFloor } from './drawer-floor'
 import { DrawerHandle } from './drawer-handle'
-import { drawerPanelProps, drawerShowsGrip } from './drawer-panel-props'
 import { DrawerClose, DrawerDefaultFooter } from './slots'
 
 /** Props for {@link Drawer}: the open state, controlled or uncontrolled. */
@@ -42,10 +40,8 @@ export type DrawerPanelProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
 		 * is actually up. Do not guess at the slide with a matching delay.
 		 *
 		 * Deliberately named for the open, not for the animation. It fires whether or not the
-		 * panel animated. It fires on the enter slide's landing. It also fires on the mount
-		 * itself, for a panel that arrives in place (`animateOnMount={false}`) with no slide
-		 * to land. A slide the user's reduced-motion preference collapses still resolves, and
-		 * so still reports. That is the same property the accordion's hold relies on to
+		 * panel animated. It fires on the enter slide's landing. A slide the user's
+		 * reduced-motion preference collapses still resolves, and so still reports. That is the same property the accordion's hold relies on to
 		 * unmount a closed panel.
 		 *
 		 * Once per arrival, and never for a close.
@@ -123,31 +119,7 @@ export type DrawerPanelProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
 		 * inside one.
 		 */
 		glass?: boolean
-		/**
-		 * Drain the color from whatever shows through the backdrop. Both scrims are
-		 * translucent, so the page behind stays legible while the drawer is up. This
-		 * renders it in gray, marking it as the inert surface rather than merely the
-		 * dimmed one.
-		 *
-		 * @defaultValue false
-		 */
-		desaturate?: boolean
 		className?: string
-		/**
-		 * Whether the panel plays its enter slide on mount.
-		 *
-		 * `false` mounts it already in place, backdrop included. The enter animation is keyed
-		 * to *mount*, not to the open transition. A drawer whose open state comes from the URL
-		 * therefore slides up again every time its route mounts. That is a restored tab, or a
-		 * pasted deep link. It re-animates something the user never opened. Pass `false` for
-		 * that case and leave it alone for a drawer opened by a press.
-		 *
-		 * Only that arrival is suppressed. Once the drawer has closed, a reopen while it is
-		 * still mounted slides up regardless — the user asked for that one.
-		 *
-		 * @defaultValue true
-		 */
-		animateOnMount?: boolean
 		children: ReactNode
 		/**
 		 * The content of the footer row that the drawer shows when no `DrawerFooter`
@@ -225,9 +197,7 @@ export function DrawerPanel({
 	height,
 	handle,
 	glass,
-	desaturate,
 	className,
-	animateOnMount = true,
 	children,
 	footer,
 	initialFocus,
@@ -242,17 +212,17 @@ export function DrawerPanel({
 
 	const resolvedSurface = useResolvedSurface(glass)
 
-	// The panel unmounts while closed (`Portal`), so the flag has to be scoped to
-	// this component's own mount or a minimize/maximize cycle would land in place.
-	const animateEnter = useEnterAnimation(open, animateOnMount)
-
 	// The slide moves `transform`, which `MotionConfig` does not hold still, so the
 	// panel reads the setting itself (WCAG 2.3.3).
 	const preset = usePrefersReducedMotion() ? k.still : k.motion
 
-	const { report, onAnimationComplete } = useOpenComplete(open, preset.animate, onOpenComplete)
+	const { onAnimationComplete } = useOpenComplete(open, preset.animate, onOpenComplete)
 
-	const grip = drawerShowsGrip(handle, height)
+	// The grip only resizes, so only a panel with a fixed height shows it. A panel grown to
+	// its content (`auto` or `fit`) has no height for the grip to set.
+	const grip = handle === true && (height === 'half' || height === 'full')
+
+	const isGlass = resolvedSurface === 'glass'
 
 	// The gesture is held here, by the component that owns the panel it writes to.
 	// A pixel height means nothing off the screen it was set on, so it stays in
@@ -263,16 +233,6 @@ export function DrawerPanel({
 		floorOf: drawerFloor,
 		ceilingOf: drawerCeiling,
 	})
-
-	// A panel that arrives in place plays no enter, so there is no landing to report from.
-	// It reports once its node is in the DOM, so that a consumer that measures the panel
-	// finds it. The portal mounts the panel on a later commit than the one that opens the
-	// drawer, and the gesture holds the node as state, so the effect can wait for it.
-	const panel = resize.panel
-
-	useEffect(() => {
-		if (open && !animateEnter && panel !== null) report()
-	}, [open, animateEnter, panel, report])
 
 	// The other half of the panel's height, and the one the panel itself decides:
 	// a `fit` panel grows and shrinks into whatever it is handed. It stands down
@@ -300,13 +260,10 @@ export function DrawerPanel({
 			modal={modal}
 			backdrop={backdrop}
 			container={container}
-			animateOnMount={animateOnMount}
-			backdropClassName={k.backdrop({ surface: resolvedSurface, desaturate })}
+			backdropClassName={k.backdrop({ surface: resolvedSurface })}
 		>
 			<motion.div
 				{...preset}
-				// After the preset spread, so it overrides the preset's own `initial`.
-				initial={animateEnter ? preset.initial : false}
 				onAnimationComplete={onAnimationComplete}
 				ref={panelRef}
 				{...ariaProps}
@@ -314,13 +271,21 @@ export function DrawerPanel({
 				id={panelId}
 				data-slot="drawer"
 				data-density={size}
-				{...drawerPanelProps({
-					surface: resolvedSurface,
-					height,
+				data-height={height ?? 'auto'}
+				// Opens the glass cascade to the panel contents: `hannou.tint.glass` keys on
+				// `group-data-glass/glass`, which needs the named group and the attribute on
+				// one element. Rows inside take their hover wash at double strength, because
+				// 5% under the translucency of the panel reads as no hover at all.
+				data-glass={dataAttr(isGlass)}
+				className={cn(
+					'group/drawer',
+					isGlass && 'group/glass',
+					k.panel({ surface: resolvedSurface, height }),
 					// A non-modal overlay turns off pointer events on its full-viewport
 					// root, so the page stays live. The panel turns them on again for itself.
-					className: cn(!modal && 'pointer-events-auto', className),
-				})}
+					!modal && 'pointer-events-auto',
+					className,
+				)}
 				// The panel eases between its `height` variants, which is right for a step
 				// and wrong for a finger: eased, each frame's height becomes an animation
 				// toward where the pointer already is, so the edge trails the drag and

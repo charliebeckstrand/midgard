@@ -3,7 +3,7 @@
 import { type PointerEvent, type TouchEvent, useMemo, useRef } from 'react'
 import { flushSync } from 'react-dom'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { useChartTouchTap } from '../chart/engine/use-chart-touch-tap'
+import { useTouchTap } from '../../hooks/use-touch-tap'
 import type { Coord } from './use-grid-navigation'
 
 /**
@@ -35,7 +35,7 @@ export type GridTouchEntry = {
  * finger came down, and the lift opens it. Thus the tap that moves the cursor
  * never opens the cell, and no time limit joins two taps.
  *
- * {@link useChartTouchTap} finds the tap. A press that travels more than its
+ * {@link useTouchTap} finds the tap. A press that travels more than its
  * slop is a scroll, and a press that the browser cancels is a scroll that the
  * browser took. A press that holds past its window is a hold. None of them
  * opens the cell. A mouse and a pen do nothing here, so the double-click stays
@@ -66,7 +66,7 @@ export function useGridTouchEntry(
 
 	const open = useStableEvent(enter)
 
-	const touch = useChartTouchTap(() => {
+	const touch = useTouchTap(() => {
 		const coord = pressed.current
 
 		pressed.current = null

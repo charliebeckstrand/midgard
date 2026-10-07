@@ -1,15 +1,14 @@
 'use client'
 
-import { type AnimationPlaybackControls, animate } from 'motion'
+import { animate } from 'motion'
 import { motion, useInView, useMotionValue, useTransform } from 'motion/react'
 import { type ComponentProps, useEffect, useRef } from 'react'
-import { cn, composeEventHandlers } from '../../core'
+import { cn } from '../../core'
 import { useComposedRef } from '../../hooks/use-composed-ref'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
-import { useStableEvent } from '../../hooks/use-stable-event'
 
 /**
- * Props for {@link ShinyText}; tunes the sweep animation, gradient colors, and hover behavior atop a `<span>`.
+ * Props for {@link ShinyText}; tunes the sweep animation and gradient colors atop a `<span>`.
  *
  * @remarks
  * The span is a motion element, and motion gives its own meaning to `onDrag`,
@@ -44,21 +43,6 @@ export type ShinyTextProps = {
 	 * @defaultValue 120
 	 */
 	spread?: number
-	/**
-	 * Reverse on each cycle instead of jumping back to the start.
-	 * @defaultValue false
-	 */
-	yoyo?: boolean
-	/**
-	 * Pause the sweep while the pointer is over the text.
-	 * @defaultValue false
-	 */
-	pauseOnHover?: boolean
-	/**
-	 * Direction the shine travels: `'left'` or `'right'`.
-	 * @defaultValue 'left'
-	 */
-	sweep?: 'left' | 'right'
 	className?: string
 } & Omit<
 	ComponentProps<'span'>,
@@ -68,6 +52,7 @@ export type ShinyTextProps = {
 // Background-position percentages that park the shine past each edge. The
 // gradient is twice the width of the text, so a higher percentage moves the
 // gradient to the left, and the shine at its center goes past the left edge.
+// The shine travels to the left: it starts past the right edge.
 const OFF_LEFT = 150
 const OFF_RIGHT = -50
 
@@ -82,9 +67,9 @@ const OFF_RIGHT = -50
  * The sweep runs only while the text is in the viewport. Off screen it stops,
  * and it starts again from the start position when the text comes back.
  *
- * The eight tuning props are deliberate. No app consumes this component, and
+ * The five tuning props are deliberate. No app consumes this component, and
  * its demo exercises every one of them. A decorative surface earns its knobs,
- * so the zero-usage rule that deleted `delay` keeps the rest.
+ * but the zero-usage rule deleted `delay`, `yoyo`, `pauseOnHover`, and `sweep`.
  *
  * @see {@link ShinyTextSkeleton} for the loading placeholder.
  */
@@ -94,15 +79,10 @@ export function ShinyText({
 	color = 'var(--shiny-text-color)',
 	shineColor = 'var(--shiny-text-shine)',
 	spread = 120,
-	yoyo = false,
-	pauseOnHover = false,
-	sweep = 'left',
 	ref,
 	className,
 	children,
 	style,
-	onMouseEnter,
-	onMouseLeave,
 	...props
 }: ShinyTextProps) {
 	const reduceMotion = usePrefersReducedMotion()
@@ -114,54 +94,25 @@ export function ShinyText({
 
 	const composedRef = useComposedRef(ref, own)
 
-	const from = sweep === 'left' ? OFF_RIGHT : OFF_LEFT
-
-	const to = sweep === 'left' ? OFF_LEFT : OFF_RIGHT
-
-	const position = useMotionValue(from)
+	const position = useMotionValue(OFF_RIGHT)
 
 	const backgroundPosition = useTransform(position, (p) => `${p}% center`)
-
-	const controlsRef = useRef<AnimationPlaybackControls | null>(null)
 
 	useEffect(() => {
 		// Always re-park first: a mid-sweep `disabled` flip otherwise leaves the
 		// shine frozen wherever the previous cleanup's `stop()` caught it.
-		position.set(from)
+		position.set(OFF_RIGHT)
 
 		if (disabled || reduceMotion || !inView) return
 
-		const controls = animate(position, to, {
+		const controls = animate(position, OFF_LEFT, {
 			duration: speed,
 			ease: 'linear',
 			repeat: Number.POSITIVE_INFINITY,
-			repeatType: yoyo ? 'reverse' : 'loop',
 		})
 
-		controlsRef.current = controls
-
-		return () => {
-			controls.stop()
-
-			controlsRef.current = null
-		}
-	}, [disabled, reduceMotion, inView, from, to, speed, yoyo, position])
-
-	// A hover can pause the sweep. When `pauseOnHover` turns off during that
-	// hover, the leave handler does not resume it, so resume it here.
-	useEffect(() => {
-		if (!pauseOnHover) controlsRef.current?.play()
-	}, [pauseOnHover])
-
-	// The handlers read the controls ref, so each is a stable event and not a
-	// closure that render passes to a function.
-	const pause = useStableEvent(() => {
-		if (pauseOnHover) controlsRef.current?.pause()
-	})
-
-	const play = useStableEvent(() => {
-		if (pauseOnHover) controlsRef.current?.play()
-	})
+		return () => controls.stop()
+	}, [disabled, reduceMotion, inView, speed, position])
 
 	return (
 		<motion.span
@@ -181,11 +132,6 @@ export function ShinyText({
 				backgroundSize: '200% auto',
 				backgroundPosition,
 			}}
-			// Composed after the spread so a consumer handler can't clobber
-			// `pauseOnHover`. The pause is side behavior, so a consumer's
-			// preventDefault() skips it (CONVENTIONS.md §3.9).
-			onMouseEnter={composeEventHandlers(onMouseEnter, pause)}
-			onMouseLeave={composeEventHandlers(onMouseLeave, play)}
 		>
 			{children}
 		</motion.span>

@@ -1,25 +1,21 @@
 'use client'
 
 import { Search } from 'lucide-react'
-import { type ChangeEvent, type ReactNode, useCallback, useMemo, useRef } from 'react'
+import { type ChangeEvent, type ReactNode, useMemo } from 'react'
 import { cn, composeEventHandlers } from '../../core'
-import { useComposedRef } from '../../hooks'
-import { clearNativeInput } from '../../utilities'
-import { useControl } from '../control/context'
 import { useFormValue } from '../form/use-form-value'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
-import { InputClearButton } from '../input/input-clear-button'
 import { LoadingSpinner } from '../loading'
 
 /**
- * Props for {@link SearchInput}: {@link InputProps} (less `type`/`prefix`/`suffix`/`value`/`defaultValue`/`clearable`) plus a loading flag and the clear affordance.
+ * Props for {@link SearchInput}: {@link InputProps} (less `type`/`prefix`/`suffix`/`value`/`defaultValue`/`clearable`/`clearLabel`) plus a loading flag and the clear affordance.
  *
  * @see {@link SearchInput}
  */
 export type SearchInputProps = Omit<
 	InputProps,
-	'type' | 'prefix' | 'suffix' | 'value' | 'defaultValue' | 'clearable'
+	'type' | 'prefix' | 'suffix' | 'value' | 'defaultValue' | 'clearable' | 'clearLabel'
 > & {
 	/** Controlled text. `undefined` leaves the field uncontrolled; `null` keeps it controlled and empty (CONVENTIONS §7.3). */
 	value?: string | null
@@ -36,8 +32,8 @@ export type SearchInputProps = Omit<
 	 */
 	loading?: boolean
 	/**
-	 * Renders a clear button in the suffix once the query is non-empty, under the
-	 * same name the rest of the family uses.
+	 * Renders the clear button of {@link Input} in the suffix once the query is
+	 * non-empty.
 	 *
 	 * @defaultValue true
 	 * @remarks
@@ -45,11 +41,16 @@ export type SearchInputProps = Omit<
 	 * picker family defaults it off, because a trigger states its own emptiness.
 	 */
 	clearable?: boolean
+	/**
+	 * The accessible name of the clear button.
+	 * @defaultValue 'Clear search'
+	 */
+	clearLabel?: string
 	/** Fires when the field is cleared, whether by the clear button or by emptying it. */
 	onClear?: () => void
 	/**
 	 * Extra trailing content rendered after the field's own suffix: the spinner
-	 * or clear button. One example is a go-to-result action once a search resolves
+	 * or the clear button. One example is a go-to-result action once a search resolves
 	 * to a single match. The field's own suffix keeps its slot either way.
 	 */
 	suffix?: ReactNode
@@ -76,26 +77,16 @@ export function SearchInput({
 	defaultValue,
 	loading,
 	clearable = true,
+	clearLabel = 'Clear search',
 	onChange,
 	onValueChange,
 	onClear,
 	onBlur,
 	name,
-	ref,
 	className,
 	suffix: extraSuffix,
 	...props
 }: SearchInputProps) {
-	const control = useControl()
-
-	// A clear writes the value, so a field that takes no edits shows no clear.
-	const locked =
-		(props.disabled ?? control?.disabled) === true || (props.readOnly ?? control?.readOnly) === true
-
-	const inputRef = useRef<HTMLInputElement>(null)
-
-	const setRefs = useComposedRef(inputRef, ref)
-
 	const {
 		value: current,
 		setValue: setCurrentValue,
@@ -108,9 +99,9 @@ export function SearchInput({
 		onValueChange: onValueChange && ((next) => onValueChange(next ?? '')),
 	})
 
-	const currentValue = current ?? ''
-
-	// The value write runs whatever the caller does (CONVENTIONS.md §3.9).
+	// The value write runs whatever the caller does (CONVENTIONS.md §3.9). The
+	// clear button of Input empties the field through a native input event, so
+	// a clear reaches `onClear` here like any edit.
 	const handleChange = useMemo(
 		() =>
 			composeEventHandlers(
@@ -125,52 +116,29 @@ export function SearchInput({
 		[onChange, onClear, setCurrentValue],
 	)
 
-	const handleClear = useCallback(() => {
-		const input = inputRef.current
-
-		// Drive the clear through a native input event; it flows through
-		// `handleChange` like any edit. `setCurrentValue('')` alone is a no-op
-		// while controlled; the dispatch reaches both controlled and
-		// uncontrolled consumers.
-		clearNativeInput(input)
-	}, [])
-
-	const ownSuffix = loading ? (
-		<LoadingSpinner />
-	) : clearable && !locked && currentValue !== '' ? (
-		<InputClearButton
-			label="Clear search"
-			// Keep focus in the field, so that no blur runs before the clear.
-			onMouseDown={(event) => event.preventDefault()}
-			onClick={handleClear}
-		/>
-	) : undefined
-
-	// The consumer's trailing content joins after the field's own suffix. With
-	// neither present, the slot stays empty (no wrapper). `false` is not content,
-	// so that `condition && <Action />` gives no slot, as in InputFrame.
-	const suffix =
-		extraSuffix != null && extraSuffix !== false ? (
-			<>
-				{ownSuffix}
-				{extraSuffix}
-			</>
-		) : (
-			ownSuffix
-		)
-
 	return (
 		<Input
-			ref={setRefs}
 			data-slot="search-input"
 			type="search"
 			name={name}
-			value={currentValue}
+			value={current ?? ''}
 			onChange={handleChange}
 			// The touched mark runs whatever the caller does (CONVENTIONS.md §3.9).
 			onBlur={composeEventHandlers(onBlur, setTouched, { checkForDefaultPrevented: false })}
 			prefix={SEARCH_PREFIX}
-			suffix={suffix}
+			// The spinner takes the place of the clear button while a query is in flight.
+			clearable={clearable && !loading}
+			clearLabel={clearLabel}
+			suffix={
+				loading ? (
+					<>
+						<LoadingSpinner />
+						{extraSuffix}
+					</>
+				) : (
+					extraSuffix
+				)
+			}
 			className={cn('[&::-webkit-search-cancel-button]:appearance-none', className)}
 			{...props}
 		/>

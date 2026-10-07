@@ -26,7 +26,6 @@ import {
 import { Icon } from '../icon'
 import { Input } from '../input'
 import { CommandPaletteClose } from './command-palette-close'
-import { CommandPaletteContext } from './context'
 import { useCommandPaletteState } from './use-command-palette-state'
 
 // The filters of the shortcut. Each palette skips a press that an earlier handler
@@ -172,9 +171,8 @@ export function CommandPalette({
 		attachList,
 		empty,
 		onKeyDown,
-		context,
 		virtualSourceRef,
-	} = useCommandPaletteState({ open, onOpenChange: setOpen, onActiveChange })
+	} = useCommandPaletteState({ open, onActiveChange })
 
 	const triggerBindings = useMemo<KeybindingsMap>(() => {
 		if (triggerShortcut === false) return {}
@@ -217,57 +215,55 @@ export function CommandPalette({
 				// context, so the dialog adds none.
 				footer={null}
 			>
-				<CommandPaletteContext value={context}>
-					<QueryContext value={queryValue}>
-						{/* A filtering consumer reads the deferred query alone, so a keystroke
+				<QueryContext value={queryValue}>
+					{/* A filtering consumer reads the deferred query alone, so a keystroke
 					    renders it one time and not also on the pass of the live query. */}
-						<DeferredQueryContext value={deferredQuery}>
-							<Input
-								ref={inputRef}
-								prefix={<Icon icon={<Search />} />}
-								role="combobox"
+					<DeferredQueryContext value={deferredQuery}>
+						<Input
+							ref={inputRef}
+							prefix={<Icon icon={<Search />} />}
+							role="combobox"
+							aria-label={placeholder}
+							// The listbox collapses on zero results, so the combobox reports it
+							// collapsed then (APG).
+							aria-expanded={open && !empty}
+							aria-haspopup="listbox"
+							aria-controls={listboxId}
+							aria-autocomplete="list"
+							data-slot="command-palette-input"
+							placeholder={placeholder}
+							value={query}
+							onChange={(event) => setQuery(event.target.value)}
+							onKeyDown={onKeyDown}
+						/>
+						{/* A press on the chrome of the list, such as a heading or the gap
+						    between the rows, keeps the focus on the input, as a row does. */}
+						<DialogBody onMouseDown={keepInputFocus}>
+							<div
+								ref={attachList}
+								id={listboxId}
+								role="listbox"
 								aria-label={placeholder}
-								// The listbox collapses on zero results, so the combobox reports it
-								// collapsed then (APG).
-								aria-expanded={open && !empty}
-								aria-haspopup="listbox"
-								aria-controls={listboxId}
-								aria-autocomplete="list"
-								data-slot="command-palette-input"
-								placeholder={placeholder}
-								value={query}
-								onChange={(event) => setQuery(event.target.value)}
-								onKeyDown={onKeyDown}
-							/>
-							{/* A press on the chrome of the list, such as a heading or the gap
-							    between the rows, keeps the focus on the input, as a row does. */}
-							<DialogBody onMouseDown={keepInputFocus}>
-								<div
-									ref={attachList}
-									id={listboxId}
-									role="listbox"
-									aria-label={placeholder}
-									data-slot="command-palette-list"
-									className={cn(k.list)}
-								>
-									<VirtualItemSourceContext value={virtualSourceRef}>
-										{children}
-									</VirtualItemSourceContext>
-								</div>
-								{/* The listbox owns only options (`aria-required-children`), so the
-								    no-results status is a sibling `<output>`. It stays in the
-								    accessibility tree, and it holds text only on zero results: a live
-								    region speaks only a change of text. */}
-								<output data-slot="command-palette-no-results" className={cn(k.empty)}>
-									{empty ? 'No results' : null}
-								</output>
-							</DialogBody>
-							{footerContent === null || footerContent === false ? null : (
-								<DialogFooter data-slot="command-palette-footer">{footerContent}</DialogFooter>
-							)}
-						</DeferredQueryContext>
-					</QueryContext>
-				</CommandPaletteContext>
+								data-slot="command-palette-list"
+								className={cn(k.list)}
+							>
+								<VirtualItemSourceContext value={virtualSourceRef}>
+									{children}
+								</VirtualItemSourceContext>
+							</div>
+							{/* The listbox owns only options (`aria-required-children`), so the
+							    no-results status is a sibling `<output>`. It stays in the
+							    accessibility tree, and it holds text only on zero results: a live
+							    region speaks only a change of text. */}
+							<output data-slot="command-palette-no-results" className={cn(k.empty)}>
+								{empty ? 'No results' : null}
+							</output>
+						</DialogBody>
+						{footerContent === null || footerContent === false ? null : (
+							<DialogFooter data-slot="command-palette-footer">{footerContent}</DialogFooter>
+						)}
+					</DeferredQueryContext>
+				</QueryContext>
 			</DialogPanel>
 		</Dialog>
 	)
