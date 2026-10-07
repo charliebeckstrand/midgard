@@ -30,8 +30,8 @@ import { useDragCursor, useSortableItem, useSortableSensors } from '../../hooks'
 import { useStableValue } from '../../hooks/use-stable-value'
 import { PortalDragOverlay } from '../../primitives/portal/portal-drag-overlay'
 import { k } from '../../recipes/kata/grid-group'
+import { sameElements } from '../../utilities'
 import { columnLabel } from './engine/grid-column/label'
-import { sameElements } from './engine/grid-table/equality'
 import {
 	findZoneId,
 	GROUP_PREFIX,

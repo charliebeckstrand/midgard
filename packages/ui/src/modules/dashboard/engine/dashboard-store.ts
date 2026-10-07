@@ -8,7 +8,7 @@
  * A drag preview therefore wakes only the tiles that it moves.
  */
 
-import { createEmitter } from '../../../utilities'
+import { createEmitter, sameElements } from '../../../utilities'
 import type { QueryGroup } from '../../query/engine/types'
 import { type DashboardDragKind, type DashboardDragTravel, dragTravel } from './dashboard-drag'
 import {
@@ -286,9 +286,7 @@ export function internList<T>(
 	previous: readonly T[] | undefined,
 	next: readonly T[],
 ): readonly T[] {
-	if (previous === undefined || previous.length !== next.length) return next
-
-	return previous.every((item, index) => item === next[index]) ? previous : next
+	return previous && sameElements(previous, next) ? previous : next
 }
 
 /** Creates a store with the given initial state. */

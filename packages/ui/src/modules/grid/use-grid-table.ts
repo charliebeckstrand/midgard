@@ -37,14 +37,13 @@ import type { DensityStep } from '../../core/density'
 import { useControllable } from '../../hooks'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useStableValue } from '../../hooks/use-stable-value'
-import { isDataColumn } from '../../utilities'
+import { isDataColumn, sameElements } from '../../utilities'
 import type { GridSortState } from './context'
 import { compileColumnFilters } from './engine/grid-filter/filter'
 import type { GridGroup, GridLeaf } from './engine/grid-group/tree'
 import { isManualPagination } from './engine/grid-pagination-utilities'
 import { createSettleStore, type GridSettleStore } from './engine/grid-sizing/settle'
 import { grandTotalRowsOf, hiddenSelectionCount, viewLeaves } from './engine/grid-table/client-view'
-import { sameElements } from './engine/grid-table/equality'
 import {
 	type EngineColumn,
 	type EngineData,

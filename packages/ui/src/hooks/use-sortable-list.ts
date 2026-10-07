@@ -16,6 +16,7 @@ import {
 } from '@dnd-kit/sortable'
 import { useCallback, useId, useMemo, useRef, useState } from 'react'
 import type { Orientation } from '../types'
+import { sameElements } from '../utilities'
 import { useDragCursor } from './use-drag-cursor'
 import { useSortableSensors } from './use-sortable-sensors'
 import { useStableEvent } from './use-stable-event'
@@ -111,11 +112,6 @@ export type SortableListOptions<T> = {
 	describe?: (item: T) => string
 }
 
-/** Whether two key lists hold the same keys in the same order. @internal */
-function sameKeys(a: readonly string[], b: readonly string[]): boolean {
-	return a.length === b.length && a.every((key, index) => key === b[index])
-}
-
 /**
  * Single-list reorder hook backed by @dnd-kit. Owns the drag lifecycle and
  * commits reorders via `arrayMove`, leaving rendering of `<DndContext>` and
@@ -168,7 +164,7 @@ export function useSortableList<T>({
 
 	const [itemIds, setItemIds] = useState(keys)
 
-	if (!sameKeys(itemIds, keys)) setItemIds(keys)
+	if (!sameElements(itemIds, keys)) setItemIds(keys)
 
 	const strategy =
 		layout === 'grid'

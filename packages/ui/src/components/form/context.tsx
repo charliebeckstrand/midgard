@@ -2,7 +2,7 @@
 
 import { type ReactNode, useCallback, useRef, useSyncExternalStore } from 'react'
 import { createContext } from '../../core'
-import { noopSubscribe } from '../../utilities'
+import { noopSubscribe, sameElements } from '../../utilities'
 
 /** Snapshot of a form's reactive state: field values, per-field errors/touched/dirty maps, and the derived `dirty`/`valid`/`submitting` flags. */
 export type FormStateValue = {
@@ -118,15 +118,6 @@ export function useFormState(): FormStateValue | undefined {
 	)
 }
 
-/** Shallow element-wise equality for two issue lists; gates the {@link useFormField} slice cache. @internal */
-function errorsEqual(a: string[] | undefined, b: string[] | undefined): boolean {
-	if (a === b) return true
-
-	if (a === undefined || b === undefined) return false
-
-	return a.length === b.length && a.every((issue, i) => issue === b[i])
-}
-
 type FieldSlice = {
 	value: unknown
 	errors: string[] | undefined
@@ -182,7 +173,7 @@ export function useFormField(name: string | undefined): FormFieldState | undefin
 				prev.value === next.value &&
 				prev.touched === next.touched &&
 				prev.dirty === next.dirty &&
-				errorsEqual(prev.errors, next.errors)
+				sameElements(prev.errors, next.errors)
 			) {
 				return prev
 			}

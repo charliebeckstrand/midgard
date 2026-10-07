@@ -14,7 +14,7 @@
  */
 
 import type { AccessibleName } from '../../../types'
-import { toNumericCell } from '../../../utilities'
+import { sameElements, toNumericCell } from '../../../utilities'
 import type { ChartRangeLegendConfig } from '../engine/chart-legend/range'
 import type { ChartLegendPlacement } from '../engine/chart-legend/schema'
 import type { ChartBaseProps, DataKey } from '../engine/types'
@@ -204,15 +204,6 @@ export function resolveHeatmapMatrix<T>(
 	return { columns, rows, values }
 }
 
-/** Whether two lists hold the same values in the same order; `undefined` matches only itself. @internal */
-function sameList<V>(a: readonly V[] | undefined, b: readonly V[] | undefined): boolean {
-	if (a === b) return true
-
-	if (a === undefined || b === undefined || a.length !== b.length) return false
-
-	return a.every((value, index) => value === b[index])
-}
-
 /**
  * Whether two heatmap series read the same fields and paint the same scale. A
  * series literal is a new object on each render of the caller, so the heatmap
@@ -235,7 +226,7 @@ export function sameHeatmapSeries<T>(
 		a.colorName === b.colorName &&
 		a.bins === b.bins &&
 		a.binning === b.binning &&
-		sameList(a.colorRange, b.colorRange) &&
-		sameList(a.colorDomain, b.colorDomain)
+		sameElements(a.colorRange, b.colorRange) &&
+		sameElements(a.colorDomain, b.colorDomain)
 	)
 }
