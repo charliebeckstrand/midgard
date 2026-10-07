@@ -5,7 +5,8 @@ import { GripVertical } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { Checkbox } from '../../components/checkbox'
 import { Icon } from '../../components/icon'
-import { cn, dataAttr } from '../../core'
+import { cn } from '../../core'
+import { SortableGrip } from '../../primitives/sortable-grip/sortable-grip'
 import { k } from '../../recipes/kata/grid'
 import { rowName } from './engine/grid-row/cell'
 import { GridRowActions } from './grid-row-actions'
@@ -59,23 +60,8 @@ function GridRowDragHandle({ sortable, rowLabel, rowKey }: GridRowDragHandleProp
 		)
 	}
 
-	const { setActivatorNodeRef, dragging, attributes, listeners } = sortable
-
-	// The grip is a native `<button>`, so the `role="button"` of dnd-kit is redundant.
-	const { role: _role, ...gripAttributes } = attributes
-
 	return (
-		<button
-			type="button"
-			ref={setActivatorNodeRef}
-			data-dragging={dataAttr(dragging)}
-			className={cn(k.row.reorder.handle.base)}
-			aria-label={label}
-			{...gripAttributes}
-			{...listeners}
-		>
-			<Icon icon={<GripVertical />} />
-		</button>
+		<SortableGrip sortable={sortable} label={label} className={cn(k.row.reorder.handle.base)} />
 	)
 }
 

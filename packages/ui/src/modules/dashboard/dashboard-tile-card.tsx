@@ -10,8 +10,8 @@ import {
 	HeaderActionsSlot,
 } from '../../primitives/header-actions'
 import type { Mount } from '../../primitives/mount'
+import { SortableGrip } from '../../primitives/sortable-grip/sortable-grip'
 import { k } from '../../recipes/kata/dashboard'
-import { DashboardDragHandle } from './dashboard-drag-handle'
 import { DashboardTileClear } from './dashboard-tile-clear'
 import { DashboardTileContent } from './dashboard-tile-content'
 import { DashboardTileControls } from './dashboard-tile-controls'
@@ -108,12 +108,16 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 	// renders again.
 	const [widgetActions] = useState(createHeaderActionsHost)
 
+	// The grip is the only part of the tile that starts a drag, so the rest of
+	// the card keeps touch scrolling. With the keyboard, Space picks the tile
+	// up, the arrow keys move it, and Space drops it. A tile with no header row
+	// floats the grip on its corner.
 	const handle = movable && (
-		<DashboardDragHandle
-			{...grip}
+		<SortableGrip
+			data-slot="dashboard-handle"
+			sortable={{ ...grip, dragging }}
 			label={`Move ${label}`}
-			floating={!hasHeader}
-			dragging={dragging}
+			className={cn(k.handle({ floating: !hasHeader, dragging }))}
 		/>
 	)
 
