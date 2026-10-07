@@ -1,6 +1,6 @@
 import { Lexer } from 'marked'
 import { describe, expect, it, vi } from 'vitest'
-import { Markdown, MarkdownInline, primeMarkdown } from '../../components/markdown'
+import { Markdown, primeMarkdown } from '../../components/markdown'
 import { bySlot, renderUI, screen, waitFor } from '../helpers'
 
 // `shiki` is mocked globally in setup/module-mocks.ts (its markup carries
@@ -97,18 +97,6 @@ describe('Markdown', () => {
 		// ...and the wrapper no longer pours descendant-projection utilities
 		// (`[&_h1]:…`) into its own class attribute.
 		expect(el?.className).not.toMatch(/\[&_/)
-	})
-
-	it('renders inline mode into a span without block wrapping', () => {
-		const { container } = renderUI(<MarkdownInline>{'Some **bold** text'}</MarkdownInline>)
-
-		const el = bySlot(container, 'markdown')
-
-		expect(el?.tagName).toBe('SPAN')
-
-		expect(el?.querySelector('strong')?.textContent).toBe('bold')
-
-		expect(el?.querySelector('p')).toBeNull()
 	})
 
 	it('renders GFM task lists with a disabled checkbox', () => {

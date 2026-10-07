@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 import {
 	Timeline,
 	TimelineItem,
-	TimelineMarker,
 	TimelineSkeleton,
 	TimelineTimestamp,
 	TimelineTitle,
@@ -109,13 +108,11 @@ describe('TimelineTimestamp', () => {
 	})
 })
 
-describe('TimelineMarker', () => {
+describe('TimelineItem marker', () => {
 	it('renders a StatusDot by default', () => {
 		const { container } = renderUI(
 			<Timeline>
-				<TimelineItem>
-					<TimelineMarker />
-				</TimelineItem>
+				<TimelineItem />
 			</Timeline>,
 		)
 
@@ -126,30 +123,10 @@ describe('TimelineMarker', () => {
 		expect(marker?.querySelector('[data-slot="status-dot"]')).toBeInTheDocument()
 	})
 
-	it('renders custom children in place of the default StatusDot', () => {
-		const { container } = renderUI(
-			<Timeline>
-				<TimelineItem>
-					<TimelineMarker>
-						<span data-testid="custom-marker">M</span>
-					</TimelineMarker>
-				</TimelineItem>
-			</Timeline>,
-		)
-
-		const marker = bySlot(container, 'timeline-marker')
-
-		expect(marker?.querySelector('[data-testid="custom-marker"]')).toBeInTheDocument()
-
-		expect(marker?.querySelector('[data-slot="status-dot"]')).toBeNull()
-	})
-
 	it('names the status dot so its color is not the sole signal', () => {
 		const { container } = renderUI(
 			<Timeline>
-				<TimelineItem>
-					<TimelineMarker status="error" />
-				</TimelineItem>
+				<TimelineItem status="error" />
 			</Timeline>,
 		)
 
@@ -163,9 +140,7 @@ describe('TimelineMarker', () => {
 	it('leaves a color-only marker decorative', () => {
 		const { container } = renderUI(
 			<Timeline>
-				<TimelineItem>
-					<TimelineMarker color="blue" />
-				</TimelineItem>
+				<TimelineItem color="blue" />
 			</Timeline>,
 		)
 
@@ -179,9 +154,7 @@ describe('TimelineMarker', () => {
 	it('applies lineBefore / lineAfter classes when configured', () => {
 		const { container } = renderUI(
 			<Timeline>
-				<TimelineItem>
-					<TimelineMarker lineBefore="blue" lineAfter="amber" />
-				</TimelineItem>
+				<TimelineItem lineBefore="blue" lineAfter="amber" />
 			</Timeline>,
 		)
 
@@ -198,9 +171,7 @@ describe('TimelineMarker', () => {
 	it('paints a color-only marker in the requested hue', () => {
 		const { container } = renderUI(
 			<Timeline>
-				<TimelineItem>
-					<TimelineMarker color="blue" />
-				</TimelineItem>
+				<TimelineItem color="blue" />
 			</Timeline>,
 		)
 
@@ -213,9 +184,7 @@ describe('TimelineMarker', () => {
 	it('renders the horizontal variant via Timeline orientation', () => {
 		const { container } = renderUI(
 			<Timeline orientation="horizontal">
-				<TimelineItem>
-					<TimelineMarker />
-				</TimelineItem>
+				<TimelineItem />
 			</Timeline>,
 		)
 

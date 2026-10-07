@@ -3,7 +3,6 @@
 import type { ReactNode } from 'react'
 import { createContext } from '../../core'
 import type { DensityStep } from '../../core/density'
-import { type Scale, snapToScale } from '../../core/density/scale'
 import { useDensityRoot } from './use-density-root'
 
 /**
@@ -24,8 +23,8 @@ const [DensityContext, useDensityScope] = createContext<DensityStep | null>('Den
  * The root step is `md` on the server and in the hydration render (see
  * `useDensityRoot`).
  *
- * A component with a size scale reads its step through {@link useStep}, which
- * snaps the result to the scale.
+ * A component with a size scale snaps the result to its scale with
+ * `snapToScale`.
  *
  * @param explicit - The `size` prop of the component, if it has one.
  * @returns The resolved step.
@@ -36,20 +35,6 @@ export function useDensityStep(explicit?: DensityStep): DensityStep {
 	const root = useDensityRoot()
 
 	return explicit ?? inherited ?? root
-}
-
-/**
- * Resolves the step of a client component with a size scale, as
- * {@link useDensityStep} does, and snaps it to the scale: an outer step that
- * the scale does not hold becomes its inner neighbor. It is the one place where
- * a JS reader clamps a step.
- *
- * @param explicit - The `size` prop of the component, if it has one.
- * @param scale - The scale of the component, from `defineScale`.
- * @returns A step of the scale.
- */
-export function useStep<S extends DensityStep>(explicit: S | undefined, scale: Scale<S>): S {
-	return snapToScale(useDensityStep(explicit), scale)
 }
 
 /**

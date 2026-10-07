@@ -8,7 +8,7 @@ import { Group } from '../../../components/group'
 import { Icon } from '../../../components/icon'
 import { Nav, NavItem, NavList } from '../../../components/nav'
 import { NumberInput } from '../../../components/number-input'
-import { Sidebar, SidebarItem, SidebarItemActions, SidebarLabel } from '../../../components/sidebar'
+import { Sidebar, SidebarItem, SidebarLabel } from '../../../components/sidebar'
 import { TagInput } from '../../../components/tag-input'
 import { Toolbar, ToolbarGroup } from '../../../components/toolbar'
 import { ChatPrompt } from '../../../modules/chat'
@@ -259,12 +259,16 @@ const packed: readonly { name: string; element: ReactElement }[] = [
 		name: 'sidebar item with actions',
 		element: (
 			<Sidebar>
-				<SidebarItem href="#inbox">
+				<SidebarItem
+					href="#inbox"
+					suffix={
+						<>
+							{iconButton('Archive')}
+							{iconButton('Delete')}
+						</>
+					}
+				>
 					<SidebarLabel>Inbox</SidebarLabel>
-					<SidebarItemActions>
-						{iconButton('Archive')}
-						{iconButton('Delete')}
-					</SidebarItemActions>
 				</SidebarItem>
 				<SidebarItem href="#sent">
 					<SidebarLabel>Sent</SidebarLabel>
