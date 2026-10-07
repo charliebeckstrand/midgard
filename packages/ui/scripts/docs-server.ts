@@ -59,8 +59,9 @@ export async function fileOf(root: string, pathname: string): Promise<string | u
 
 	const file = path.join(root, decoded)
 
-	// A path that goes out of the build gets the fallback page.
-	if (file.startsWith(root)) {
+	// A path that goes out of the build gets the fallback page. The separator
+	// keeps out a directory next to the build whose name starts with its name.
+	if (file.startsWith(`${root}${path.sep}`)) {
 		if (await isFile(file)) return file
 
 		if (await isFile(path.join(file, 'index.html'))) return path.join(file, 'index.html')
