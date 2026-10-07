@@ -4,17 +4,17 @@ import type { ReactNode } from 'react'
 import type { ScaleStep } from '../../core/density'
 import type { scale } from '../../recipes/kata/tooltip'
 import { TooltipContext } from './context'
-import { TooltipContent } from './tooltip-content'
+import { TooltipBody } from './tooltip-body'
 import { type TooltipAnchorOptions, useTooltipAnchor } from './use-tooltip-anchor'
 
 /** Props for {@link TooltipAnchor}. @internal */
 export type TooltipAnchorProps = TooltipAnchorOptions & {
 	/**
-	 * The density step, forwarded to the inner `<TooltipContent>`. Omit it to
+	 * The density step, forwarded to the inner `<TooltipBody>`. Omit it to
 	 * take the step of the nearest density scope.
 	 */
 	size?: ScaleStep<typeof scale>
-	/** Class forwarded to the inner `<TooltipContent>`. */
+	/** Class forwarded to the inner `<TooltipBody>`. */
 	className?: string
 	/** Class for the positioned wrapper; see {@link TooltipContentProps.surfaceClassName}. */
 	surfaceClassName?: string
@@ -22,7 +22,7 @@ export type TooltipAnchorProps = TooltipAnchorOptions & {
 }
 
 /**
- * An element-anchored tooltip: the standard Tooltip chrome (`<TooltipContent>` —
+ * An element-anchored tooltip: the standard Tooltip chrome (`<TooltipBody>` —
  * glass adoption, motion, sizing) positioned against an element the caller
  * names, opened from the caller's own state. The sibling of
  * `<TooltipPointer>`, one anchoring mode over.
@@ -55,9 +55,9 @@ export function TooltipAnchor({
 
 	return (
 		<TooltipContext value={value}>
-			<TooltipContent size={size} className={className} surfaceClassName={surfaceClassName}>
+			<TooltipBody size={size} className={className} surfaceClassName={surfaceClassName}>
 				{children}
-			</TooltipContent>
+			</TooltipBody>
 		</TooltipContext>
 	)
 }

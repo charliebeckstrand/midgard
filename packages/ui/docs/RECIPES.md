@@ -21,7 +21,7 @@ Atomic concerns, one sub-folder each; `index.ts` assembles the named bundle. Ful
 | `dan` 段 | Density ramps — each stepped `density-*` class that writes a value for each step, nested under the unit that reads it (`space.box.bottom`). |
 | `iro` 色 | Variant × color × slot palette matrix plus the semantic intent-color text bundle. `palette` is the standard five-color set; `extended` is the opt-in wide palette (standard + rose / violet / sky). `marker` inks a chromatic dot, `meter` paints the measured value of Progress and Sparkline, and `on.wash` inks text on the neutral wash. |
 | `ji` 字 | Typography — size scale plus `weight` / `leading` / `family` aliases, and `ramp`, the stepped text size of a density-native component. |
-| `ma` 間 | Named spacing scale projected as Tailwind padding and gap utilities — all-sides and axis variants. |
+| `ma` 間 | Named spacing scale projected as padding and gap utilities — all-sides and axis variants. Each stop but `0` is a ramp of `dan`, so it takes the step of the nearest density scope. |
 | `narabi` 並び | Sibling arrangement — field adjacency, toggle grid, slide positioning, icon slot, nav slot inset, stacked item text, truncation, flex primitives. |
 | `omote` 面 | Generic surface fills and chromes (`bg`, `popover`, `glass`, `backdrop`, `content`, `skeleton`), and the `checkerboard` pattern behind a translucent color. It also holds the inline `rail` of a scroll container, which composes the edge fade. |
 | `hannou` 反応 | Interaction feedback (`disabled`, `fg`, `cursor`, `grab`, `active`, and the `tint` washes: `tint.base`, `tint.before`, `tint.filled`, `tint.surface`, and `tint.glass`) plus the kata-shaped `item` / `nav` composites. |

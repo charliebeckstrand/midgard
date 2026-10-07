@@ -69,7 +69,7 @@ export const k = defineRecipe(
 			 * also caps the hit areas (`TouchTarget`), so the copy button of the hex
 			 * field and the eyedropper after it do not overlap.
 			 */
-			row: 'flex items-center gap-2 [--touch-target-gap-x:--spacing(2)]',
+			row: ['flex items-center', dan.gap.scale.sm, ...dan.gap.touch.x.sm],
 		},
 		handle,
 		/** Full hue wheel laid left to right for the hue track. */
@@ -77,9 +77,11 @@ export const k = defineRecipe(
 		/** Alpha / preview chequerboard surfaced behind translucent color. */
 		checkerboard: [omote.checkerboard, 'bg-size-[12px_12px]'],
 		/** Full-width stack for the hue (and optional alpha) tracks. */
-		sliders: 'flex flex-col gap-2',
+		sliders: `flex flex-col ${dan.gap.scale.sm}`,
+		/** The grid of the channel inputs. */
+		channels: ['grid', dan.gap.scale.sm],
 		/** Label-above-input column for one channel input. */
-		field: 'flex min-w-0 flex-col gap-1',
+		field: `flex min-w-0 flex-col ${dan.gap.scale.xs}`,
 		label: 'text-[10px] font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400',
 		swatches: 'grid grid-cols-10 gap-1.5',
 		/**

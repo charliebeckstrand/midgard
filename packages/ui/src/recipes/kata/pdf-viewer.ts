@@ -9,6 +9,7 @@
  */
 import { mode } from '../../core/recipe'
 import { hannou, iro, ji, narabi, omote, sen, sou } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { cursor } = hannou
 const { palette, text } = iro
@@ -40,8 +41,13 @@ export const k = {
 		// the inline axis, and the edge with more controls behind it fades. The
 		// padding is inside the scroll container, so the wheel scrolls the bar at
 		// each point of its height.
-		base: ['flex flex-nowrap items-center justify-between', 'gap-1', 'px-2 py-1.5', ...rail],
-		section: [flex.row, 'shrink-0', 'gap-1'],
+		base: [
+			'flex flex-nowrap items-center justify-between',
+			dan.gap.scale.xs,
+			'px-2 py-1.5',
+			...rail,
+		],
+		section: [flex.row, 'shrink-0', dan.gap.scale.xs],
 		total: [size.sm, text.muted, 'tabular-nums select-none whitespace-nowrap'],
 	},
 	/**
@@ -72,7 +78,7 @@ export const k = {
 		options: [
 			flex.row,
 			'flex-wrap',
-			'gap-x-6 gap-y-2',
+			`${dan.gap.x.xl} ${dan.gap.y.sm}`,
 			'[&>[data-slot=field]+[data-slot=field]]:mt-0',
 		],
 	},
@@ -93,7 +99,7 @@ export const k = {
 		closed: '-ms-56',
 		header: [
 			flex.row,
-			'gap-1',
+			dan.gap.scale.xs,
 			'px-3 py-2',
 			size.md,
 			text.muted,
@@ -103,15 +109,15 @@ export const k = {
 		],
 	},
 	thumbnails: {
-		base: [flex.col, 'basis-0 grow shrink min-h-0', 'gap-2', 'overflow-y-auto px-4 pb-4'],
-		grid: ['grid grid-cols-2', 'gap-2'],
+		base: [flex.col, 'basis-0 grow shrink min-h-0', dan.gap.scale.sm, 'overflow-y-auto px-4 pb-4'],
+		grid: ['grid grid-cols-2', dan.gap.scale.sm],
 	},
 	thumbnail: {
 		base: [
 			'group/thumb',
 			flex.col,
 			'items-center',
-			'gap-2',
+			dan.gap.scale.sm,
 			'bg-transparent',
 			'outline-none',
 			...cursor,

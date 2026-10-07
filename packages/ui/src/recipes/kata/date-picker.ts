@@ -49,7 +49,7 @@ const value = defineRecipe({
 // an inline Calendar carries no chrome of its own, so this lives here,
 // not in the calendar kata. Each takes the step of the nearest density scope.
 // The body scrolls when the floating layer caps the height of the panel.
-const body = [flex.col, dan.space.box.base, dan.gap.y, fit.scroll]
+const body = [flex.col, dan.space.box.base, dan.gap.y.sm, fit.scroll]
 
 /**
  * The box of the trigger. It is as wide as the date and the calendar icon. It
@@ -97,7 +97,7 @@ export const k = {
 		// the rest, trailed by the custom-range row, fill the second. `min-w` gives
 		// the grid a stable floor independent of label length. Width-scoped here so
 		// it never touches the single/range calendars.
-		list: 'grid grid-flow-col gap-2 min-w-52',
+		list: `grid grid-flow-col ${dan.gap.scale.sm} min-w-52`,
 		// Preset rows read as a left-aligned menu rather than centered chips.
 		preset: 'w-full justify-start',
 		// The custom-range affordance in the second column, trailing the presets.
@@ -105,9 +105,9 @@ export const k = {
 			// The row itself: label left, chevron right.
 			row: 'w-full justify-between',
 			// Custom mode: the back affordance above the stacked Start/End inputs.
-			panel: [flex.col, 'gap-3'],
+			panel: [flex.col, dan.gap.scale.md],
 			// The back affordance of custom mode, which returns to the preset list.
-			back: 'justify-start gap-1',
+			back: `justify-start ${dan.gap.scale.xs}`,
 		},
 		// The trigger chip row wraps the chips (each `shrink-0`, see the view) onto
 		// new lines rather than scrolling or shrinking them; the gap doubles as the
@@ -116,7 +116,7 @@ export const k = {
 		// constant one-step (4px) gap at every size — to even the inset all around
 		// the chips. No height pin: the trigger grows to fit the rows, like
 		// TagInput's tag row.
-		chips: 'flex flex-wrap items-center gap-1 min-w-0 py-1',
+		chips: `flex flex-wrap items-center ${dan.gap.scale.xs} min-w-0 py-1`,
 	},
 }
 

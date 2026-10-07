@@ -8,8 +8,10 @@ function makeFile(name = 'a.txt') {
 	return new File(['hello'], name, { type: 'text/plain' })
 }
 
-function makeDragEvent(files: File[] = []): DragEvent {
-	const dataTransfer: Partial<DataTransfer> = { files: makeFileList(files) }
+// A real file drag lists `'Files'` in `types` from `dragenter` on. The browser
+// keeps `files` empty until the drop.
+function makeDragEvent(files: File[] = [], types: string[] = ['Files']): DragEvent {
+	const dataTransfer: Partial<DataTransfer> = { files: makeFileList(files), types }
 
 	const partial: Partial<DragEvent> = {
 		preventDefault: vi.fn(),
@@ -154,6 +156,48 @@ describe('useFileUploadHandlers', () => {
 		expect(event.stopPropagation).toHaveBeenCalled()
 
 		expect(result.current.dragOver).toBe(false)
+	})
+
+	it('handleDragEnter ignores a drag that carries no file', () => {
+		const { result } = renderHook(() => useFileUploadHandlers({}))
+
+		const event = makeDragEvent([], ['text/plain'])
+
+		act(() => {
+			result.current.handleDragEnter(event)
+		})
+
+		expect(event.preventDefault).not.toHaveBeenCalled()
+
+		expect(result.current.dragOver).toBe(false)
+	})
+
+	it('handleDragOver leaves a drag that carries no file unprevented', () => {
+		const { result } = renderHook(() => useFileUploadHandlers({}))
+
+		const event = makeDragEvent([], ['text/uri-list', 'text/plain'])
+
+		act(() => {
+			result.current.handleDragOver(event)
+		})
+
+		expect(event.preventDefault).not.toHaveBeenCalled()
+	})
+
+	it('handleDragLeave does not count down for a drag that carries no file', () => {
+		const { result } = renderHook(() => useFileUploadHandlers({}))
+
+		act(() => {
+			result.current.handleDragEnter(makeDragEvent())
+		})
+
+		// The matching `dragenter` of a text drag is not counted, so its
+		// `dragleave` must not consume the depth of the file drag.
+		act(() => {
+			result.current.handleDragLeave(makeDragEvent([], ['text/plain']))
+		})
+
+		expect(result.current.dragOver).toBe(true)
 	})
 
 	it('handleDragLeave clears dragOver after a single enter', () => {

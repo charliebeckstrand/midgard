@@ -1,5 +1,6 @@
 import { hannou, ji, kasane, narabi, sen } from '../kiso'
 import { control } from '../kiso/control'
+import { dan } from '../kiso/dan'
 
 const { disabled } = hannou
 const { size } = ji
@@ -30,5 +31,5 @@ export const k = {
 		'text-zinc-500',
 		'pointer-events-none',
 	],
-	actions: ['absolute right-2 bottom-2', flex.row, 'gap-1'],
+	actions: ['absolute right-2 bottom-2', flex.row, dan.gap.scale.xs],
 } as const

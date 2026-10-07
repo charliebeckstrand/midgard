@@ -180,7 +180,7 @@ export const k = {
 	// the tie and paints over it). Portaled surfaces (the column-manager dialog,
 	// context menus, tooltips) render at the body, outside this context, so they
 	// still overlay the page.
-	wrapper: ['relative', 'isolate', flex.col, 'gap-2'],
+	wrapper: ['relative', 'isolate', flex.col, dan.gap.scale.sm],
 	// `maxHeight="fill"`: the grid takes its parent's box instead of a fixed cap —
 	// the wrapper stretches to the parent's height and the scroll region flexes to
 	// the remainder under the toolbar/footer (`min-h-0` lets each shrink below its
@@ -307,10 +307,10 @@ export const k = {
 		// The toolbar is its own size container, as the footer is. The top row then
 		// follows the width that the grid has (a dashboard tile, a dialog, a page),
 		// not the viewport.
-		base: ['@container', flex.col, 'gap-2'],
+		base: ['@container', flex.col, dan.gap.scale.sm],
 		// Top row: the quick-search field at the start, the column-manager trigger at
 		// the end. Stacks in a narrow grid, then lays out as a row from `@lg`.
-		bar: [flex.col, 'gap-2', '@lg:flex-row', '@lg:items-center'],
+		bar: [flex.col, dan.gap.scale.sm, '@lg:flex-row', '@lg:items-center'],
 		// Column-manager cluster: pushed to the row's end from `@lg` so it sits
 		// across from the search field. The toolbar applies it only when no consumer
 		// content renders, because two auto margins in one row share the free space.
@@ -363,9 +363,9 @@ export const k = {
 		// A frozen column's header affordances: the pin button paired with the title.
 		pinned: {
 			// Leading group pairing a pinned column's pin button with its title. `min-w-0`
-			// keeps the title shrinkable so it still truncates beside the button; `gap-1`
-			// sets the button-to-title spacing.
-			label: [flex.inline, 'min-w-0', 'gap-1'],
+			// keeps the title shrinkable so it still truncates beside the button; the `xs`
+			// gap sets the button-to-title spacing.
+			label: [flex.inline, 'min-w-0', dan.gap.scale.xs],
 			// Pin button on a frozen column's header: an icon-only control that unpins the
 			// column. Muted at rest, tinting on hover/focus so it reads as the actionable
 			// affordance it is. `-ms-1` pulls the button toward the inline start by the
@@ -461,7 +461,7 @@ export const k = {
 		// flex (not inline) fills the header width so the title between the grip and
 		// the filter button can shrink to an ellipsis instead of overrunning the cell.
 		// The gap caps the hit areas of the header buttons, as in `filter.slot`.
-		layout: [flex.row, 'min-w-0', 'gap-1', '[--touch-target-gap-x:--spacing(1)]'],
+		layout: [flex.row, 'min-w-0', dan.gap.scale.xs, ...dan.gap.touch.x.xs],
 		// The grabbing cursor follows the live drag (`data-[dragging]`), not the
 		// pointer's `:active` state: a right-click presses the grip `<button>` into
 		// `:active` too, and the context menu swallowing the matching pointerup
@@ -689,7 +689,7 @@ export const k = {
 		// Header row: title on the left, filter button across from it on the right.
 		// In a narrow column the group-by and filter buttons close to the gap, so
 		// the gap also caps their hit areas (`TouchTarget`).
-		slot: [flex.row, 'justify-between', 'gap-1', '[--touch-target-gap-x:--spacing(1)]'],
+		slot: [flex.row, 'justify-between', dan.gap.scale.xs, ...dan.gap.touch.x.xs],
 		// The filter icon button in a column header.
 		...headerButton,
 	},
@@ -701,10 +701,10 @@ export const k = {
 		// One row of three equal `flex-1` tracks at all widths: the page-size
 		// picker at the start, the navigation centered, and the row-range status
 		// at the end.
-		bar: [flex.row, 'gap-3'],
+		bar: [flex.row, dan.gap.scale.md],
 		// Page-size picker: the start track. It renders even when it is empty,
 		// so the navigation stays centered.
-		controls: [flex.inline, flex.fill, 'gap-4'],
+		controls: [flex.inline, flex.fill, dan.gap.scale.lg],
 		// Page navigation: the centered middle track.
 		nav: ['flex', flex.fill, 'justify-center'],
 		// The `<Pagination>` in the track. The footer has its own narrow layout
@@ -746,11 +746,11 @@ export const k = {
 	// (the selected total swaps in over the row total in place), and any custom
 	// content is pushed to the far edge by `ms-auto` in the trailing cluster.
 	summary: {
-		bar: [flex.row, 'flex-wrap', 'gap-x-4', 'gap-y-1', size.md, text.muted],
+		bar: [flex.row, 'flex-wrap', dan.gap.x.lg, dan.gap.y.xs, size.md, text.muted],
 		// `min-w-0` so the cluster can shrink past its content: a flex item's automatic
 		// minimum is its content width, which pinned this slot to the intrinsic width of
 		// whatever the consumer rendered, overflowing the bar instead of clipping inside it.
-		trailing: [flex.row, 'flex-wrap', 'gap-x-4', 'gap-y-1', 'ms-auto', 'min-w-0'],
+		trailing: [flex.row, 'flex-wrap', dan.gap.x.lg, dan.gap.y.xs, 'ms-auto', 'min-w-0'],
 		item: 'whitespace-nowrap',
 	},
 	// Data-body state washes projected from the `<table>` onto its data `<tbody>`
@@ -787,7 +787,7 @@ export const k = {
 		label: [
 			// `flex.row` centers its items already; only the gap and box are ours.
 			flex.row,
-			'gap-2',
+			dan.gap.scale.sm,
 			'px-3 py-2',
 			rounded.md,
 			'shadow-md',

@@ -20,7 +20,9 @@ import { formatFileNames, selectionSummary } from './file-upload-utilities'
  * File picker rendered as a field-shaped button over a hidden
  * `<input type="file">`. Activating the button opens the picker, and a
  * selection shows the file name with a clear button in the suffix. The clear
- * button gives focus back to the display button.
+ * button gives focus back to the display button. Under a `HeadlessProvider`,
+ * the field has no frame and no Browse button. The clear button stays, as a
+ * bare button after the display button.
  *
  * @remarks
  * Shares every internal with {@link FileUploadDrop}: the hidden input is the
@@ -118,7 +120,16 @@ export function FileUploadInput(props: FileUploadInputProps) {
 				onChange={handleChange}
 			/>
 			{headless ? (
-				field
+				<>
+					{field}
+					{hasFiles && (
+						<InputClearButton
+							label="Clear selected file(s)"
+							disabled={disabled}
+							onClick={handleClear}
+						/>
+					)}
+				</>
 			) : (
 				<InputFrame
 					inputEl={field}

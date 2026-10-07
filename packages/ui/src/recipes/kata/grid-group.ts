@@ -8,6 +8,7 @@
  */
 import type { PaletteColor } from '../../core/recipe'
 import { hannou, iro, kasane, narabi, omote, sen } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { fg, grab } = hannou
 const { text } = iro
@@ -17,7 +18,7 @@ const { bg } = omote
 const { focus } = sen
 
 /** The stack of the column-manager group editor, and the list of its zones in it. */
-const managerStack = [flex.col, 'gap-3']
+const managerStack = [flex.col, dan.gap.scale.md]
 
 /**
  * The fill for a group's 2px underline rule, keyed by {@link PaletteColor} so a
@@ -67,7 +68,7 @@ export const k = {
 	// A group band's cell content: the Badge row above the colored rule, stacked so
 	// the rule spans the cell's content width — inset by the header's cell padding,
 	// so it lines up with the column titles and leaves a gap between groups.
-	content: [flex.col, 'gap-2'],
+	content: [flex.col, dan.gap.scale.sm],
 	// A group's 2px underline rule: a rounded bar spanning the band content width,
 	// under the Badge. Every group draws it. A colored group takes `color`, and a
 	// colorless group takes `neutral`.
@@ -82,7 +83,7 @@ export const k = {
 		// A group band's row: the colored Badge, then the bare chevron toggle when
 		// collapsible, then the `+N` count. `min-w-0` lets the Badge label truncate
 		// within the band rather than overrun.
-		row: [flex.inline, 'gap-1', 'min-w-0'],
+		row: [flex.inline, dan.gap.scale.xs, 'min-w-0'],
 		// The fold caret. An open group points it to the inline end, and a folded
 		// group to the inline start. The glyphs are physical, so a right-to-left
 		// grid mirrors them.
@@ -102,10 +103,10 @@ export const k = {
 		zone: {
 			// The gap also caps the hit areas (`TouchTarget`), so the move buttons of
 			// two adjacent rows do not overlap.
-			base: [flex.col, 'gap-1', '[--touch-target-gap-y:--spacing(1)]'],
+			base: [flex.col, dan.gap.scale.xs, ...dan.gap.touch.y.xs],
 			// A group zone's header row: the reorder handle, the name Input, the color
 			// Menu, and the remove button, on one row.
-			header: [flex.row, 'gap-2'],
+			header: [flex.row, dan.gap.scale.sm],
 			// The name Input grows to fill the header row. The color Menu keeps its
 			// natural width.
 			name: 'grow',
@@ -115,7 +116,7 @@ export const k = {
 		// One column row: the drag grip, the visibility checkbox + label, and the
 		// move menu, in a line.
 		row: {
-			base: [flex.row, 'gap-2'],
+			base: [flex.row, dan.gap.scale.sm],
 			// The checkbox Control grows to fill the row, pushing the move menu (or,
 			// on the overlay, the row's own right edge) flush against it.
 			control: 'grow',

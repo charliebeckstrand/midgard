@@ -514,7 +514,7 @@ describe('items and slots at the first paint (real browser)', () => {
 				</TreeItem>
 			</Tree>,
 			14,
-			24,
+			20,
 		],
 		[
 			'an explicit size',
@@ -524,7 +524,7 @@ describe('items and slots at the first paint (real browser)', () => {
 				</TreeItem>
 			</Tree>,
 			18,
-			32,
+			36,
 		],
 	])('sizes and indents a tree at the step of %s', (_, element, font, indent) => {
 		writeRootDensity(document.documentElement, 'sm')

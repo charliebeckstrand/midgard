@@ -16,7 +16,7 @@ const value = defineRecipe({
 })
 
 const delta = defineRecipe({
-	base: [flex.inline, dan.text.small, 'gap-1', weight.medium, 'tabular-nums'],
+	base: [flex.inline, dan.text.small, dan.gap.scale.xs, weight.medium, 'tabular-nums'],
 	trend: {
 		up: text.success,
 		down: text.error,
@@ -27,7 +27,7 @@ const delta = defineRecipe({
 
 export const k = defineRecipe(
 	{
-		base: [flex.col, 'justify-center', 'h-full', 'gap-1'],
+		base: [flex.col, 'justify-center', 'h-full', dan.gap.scale.xs],
 		slots: {
 			description: [dan.text.small, ...text.muted],
 		},

@@ -89,22 +89,22 @@ export const k = defineRecipe(
 		 * The thumb: the sibling that follows the native input. It moves and takes
 		 * the colors of the switch when the input is checked, and it takes the step
 		 * of the nearest density scope. Each class selects the thumb itself, so
-		 * Chromium tests the rules only against the thumbs. The resting offset
-		 * applies only to an unchecked input: a plain `inset-s` is not in a density
-		 * sublayer, so it wins over the stepped offset of the checked thumb.
+		 * Chromium tests the rules only against the thumbs. At each step, the track
+		 * is two thumbs and two gaps wide, so a checked thumb moves by a translate
+		 * of its own width. That value does not change with the density, so a change
+		 * of density starts no transition and the thumb settles with its track.
 		 */
 		thumb: defineRecipe({
 			base: [
-				'absolute top-1 inline-block',
-				'[:not(:checked)~&]:inset-s-1',
+				'absolute inset-s-1 top-1 inline-block',
+				'[:checked~&]:translate-x-full rtl:[:checked~&]:-translate-x-full',
 				'bg-white ring-1 ring-zinc-950/5',
 				'shadow-sm',
 				rounded.full,
 				'pointer-events-none',
-				'motion-safe:transition-[inset-inline-start] duration-200 ease-in-out',
+				'motion-safe:transition-[translate] duration-200 ease-in-out',
 				'[:checked~&]:bg-(--switch) [:checked~&]:shadow-(color:--switch-shadow) [:checked~&]:ring-(--switch-ring)',
 				dan.size.thumb.base,
-				dan.size.thumb.on,
 			],
 		}),
 	},

@@ -4,24 +4,24 @@ import type { ReactNode } from 'react'
 import type { ScaleStep } from '../../core/density'
 import type { scale } from '../../recipes/kata/tooltip'
 import { TooltipContext } from './context'
-import { TooltipContent } from './tooltip-content'
+import { TooltipBody } from './tooltip-body'
 import { type TooltipPointerOptions, useTooltipPointer } from './use-tooltip-pointer'
 
 /** Props for {@link TooltipPointer}. @internal */
 export type TooltipPointerProps = TooltipPointerOptions & {
 	/**
-	 * The density step, forwarded to the inner `<TooltipContent>`. Omit it to
+	 * The density step, forwarded to the inner `<TooltipBody>`. Omit it to
 	 * take the step of the nearest density scope.
 	 */
 	size?: ScaleStep<typeof scale>
-	/** Class forwarded to the inner `<TooltipContent>`. */
+	/** Class forwarded to the inner `<TooltipBody>`. */
 	className?: string
 	children: ReactNode
 }
 
 /**
  * A pointer-anchored tooltip: the standard Tooltip chrome
- * (`<TooltipContent>` — glass adoption, motion, sizing) driven by a client
+ * (`<TooltipBody>` — glass adoption, motion, sizing) driven by a client
  * `point` rather than a DOM trigger. The chart, map, and heatmap hover readouts
  * share it, each feeding the point and `open` flag from its own hover pipeline.
  * All three therefore collapse to `<TooltipPointer>`, instead of hand-rolling
@@ -38,9 +38,9 @@ export function TooltipPointer({ children, size, className, ...options }: Toolti
 
 	return (
 		<TooltipContext value={value}>
-			<TooltipContent size={size} className={className}>
+			<TooltipBody size={size} className={className}>
 				{children}
-			</TooltipContent>
+			</TooltipBody>
 		</TooltipContext>
 	)
 }

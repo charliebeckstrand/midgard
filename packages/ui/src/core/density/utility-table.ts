@@ -1,11 +1,12 @@
 /**
  * The kind of value that a stepped utility takes: a stop of the spacing scale,
- * a name of the text scale, or a radius (a name of the radius scale or a stop
- * of the spacing scale).
+ * a margin (a stop of the spacing scale, or a negative stop), a name of the
+ * text scale, or a radius (a name of the radius scale or a stop of the spacing
+ * scale).
  *
  * @internal
  */
-export type UtilityValue = 'spacing' | 'text' | 'radius'
+export type UtilityValue = 'spacing' | 'margin' | 'text' | 'radius'
 
 /**
  * One utility of {@link utilityTable}.
@@ -51,9 +52,9 @@ export const utilityTable = {
 	pe: { properties: ['padding-inline-end'], value: 'spacing', ring: true },
 	ms: { properties: ['margin-inline-start'], value: 'spacing', ring: true },
 	me: { properties: ['margin-inline-end'], value: 'spacing', ring: true },
-	my: { properties: ['margin-block'], value: 'spacing' },
-	mt: { properties: ['margin-top'], value: 'spacing' },
-	mb: { properties: ['margin-bottom'], value: 'spacing' },
+	my: { properties: ['margin-block'], value: 'margin' },
+	mt: { properties: ['margin-top'], value: 'margin' },
+	mb: { properties: ['margin-bottom'], value: 'margin' },
 	gap: { properties: ['gap'], value: 'spacing' },
 	'gap-x': { properties: ['column-gap'], value: 'spacing' },
 	'gap-y': { properties: ['row-gap'], value: 'spacing' },

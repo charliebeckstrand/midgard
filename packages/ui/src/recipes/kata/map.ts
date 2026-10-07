@@ -12,6 +12,7 @@
  */
 import { mode } from '../../core/recipe'
 import { kokkaku, omote, type SeriesSlot, sen, ugoki, zu } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { palette, ink, motion } = zu
 
@@ -30,6 +31,8 @@ const CLICKABLE = 'cursor-pointer'
 const SELECTED = mode('stroke-zinc-900', 'dark:stroke-white')
 
 export const k = {
+	/** The gap of the map frame, and of the map and its legend panel. */
+	frame: dan.gap.scale.lg,
 	/**
 	 * The pointer affordance on a mark that answers a click: an overlay's hit
 	 * shape. It carries it per shape, because a mark draws at most three. The
@@ -168,6 +171,8 @@ export const k = {
 	 * The plot's width therefore never depends on what has registered.
 	 */
 	legend: {
+		/** The gap of the swatch and the label of a legend entry. */
+		entry: dan.gap.scale.sm,
 		row: 'min-h-4',
 		panel: ['min-h-4', 'shrink-0', '@lg:w-48'],
 	},

@@ -1,5 +1,6 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { hannou, iro, ji, kasane, kokkaku, narabi, sen } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { cursor, fg } = hannou
 const { text } = iro
@@ -17,7 +18,7 @@ const list = defineRecipe({
 	base: [
 		flex.row,
 		'list-none',
-		'gap-1',
+		dan.gap.scale.xs,
 		'm-0 p-0',
 		'@max-sm/pagination:[&>li:not(:has([aria-current=page]))]:hidden',
 	],
@@ -61,8 +62,8 @@ export const k = defineRecipe(
 			'w-full',
 			flex.row,
 			'list-none',
-			'gap-1',
-			'[--touch-target-gap-x:--spacing(1)]',
+			dan.gap.scale.xs,
+			...dan.gap.touch.x.xs,
 		],
 		skeleton: kokkaku.pagination,
 	},

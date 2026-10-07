@@ -80,6 +80,32 @@ describe('EventLogButton', () => {
 })
 
 describe('EventLogSheet', () => {
+	it('shows Clear only while the log holds a line', () => {
+		const { log } = start()
+
+		log.clear()
+
+		const { rerender } = render(<EventLogSheet open={false} onOpenChange={() => {}} />)
+
+		rerender(<EventLogSheet open onOpenChange={() => {}} />)
+
+		expect(screen.queryByRole('button', { name: 'Clear' })).toBeNull()
+
+		rerender(<EventLogSheet open={false} onOpenChange={() => {}} />)
+
+		act(() => record('route', '/to-clear'))
+
+		rerender(<EventLogSheet open onOpenChange={() => {}} />)
+
+		act(() => {
+			fireEvent.click(screen.getByRole('button', { name: 'Clear' }))
+		})
+
+		expect(screen.getByText('No events')).toBeDefined()
+
+		expect(screen.queryByRole('button', { name: 'Clear' })).toBeNull()
+	})
+
 	it('does not leave the log paused when it unmounts while it is open', () => {
 		const { unmount } = render(<EventLogSheet open onOpenChange={() => {}} />)
 

@@ -22,7 +22,7 @@ const { border, focus, forced } = sen
 
 /** Tab-group root: stacks the list and panels, swapping axis with orientation. */
 const group = defineRecipe({
-	base: ['flex gap-4'],
+	base: [`flex ${dan.gap.scale.lg}`],
 	orientation: {
 		horizontal: 'flex-col',
 		vertical: 'flex-row',

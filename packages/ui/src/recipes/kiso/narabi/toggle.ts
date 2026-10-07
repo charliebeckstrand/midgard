@@ -11,12 +11,14 @@
  * Layer: kiso · Concern: toggle-field grid
  */
 
+import { dan } from '../dan'
+
 export const toggle = [
 	// The first column takes the width of the control, so the gap to the label is
 	// the same at each step of the box. A fixed column does not fit a box that
 	// steps with the density scope.
 	'group/field grid grid-cols-[auto_1fr]',
-	'gap-x-3',
+	dan.gap.x.md,
 	// When the page is zoomed in, iOS holds each tap for a possible double tap
 	// and shows the tap highlight while it waits. A second tap on a near row in
 	// that time is a double tap, and neither tap toggles a control.
