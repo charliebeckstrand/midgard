@@ -1,12 +1,12 @@
 /**
- * Panel bridge: slot bundle shared by `dialog`, `drawer`, and `sheet`. A
+ * Panel bridge: slot bundle shared by `drawer` and `sheet`. A
  * pure bridge: it receives the `panel` token bundle plus the kata's
  * caller-supplied recipes. It stitches them into the standard slot bundle
  * (title / description / header / body / footer), and references kiso in
  * neither value nor type.
  *
  * Each kata's panel has its own variant axes (side + width + surface for
- * sheet, surface + height for drawer, surface + width for dialog). Unlike
+ * sheet, surface + height for drawer). Unlike
  * `control` / `check`, the bridge doesn't own the variants. The kata
  * defines them via its own `defineRecipe` call and hands the result to
  * `panel(t, { … })`, which composes the bundle's `layout` with caller
@@ -32,7 +32,7 @@ type Slot = {
 type PanelInput<P, B = undefined> = {
 	/** Recipe for the panel root element. Defines positioning, size, glass, etc. */
 	panel: P
-	/** Recipe for the backdrop. Present on modal variants (dialog, drawer, sheet). */
+	/** Recipe for the backdrop. Present on modal variants (drawer, sheet). */
 	backdrop?: B
 	/** Extra padding / layout for the Title slot. */
 	title?: Slot
