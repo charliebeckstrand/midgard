@@ -253,7 +253,9 @@ function PlaceDetails({ place, actions }: { place: Place; actions: VisitActions 
 				<>
 					<Divider className="my-2" />
 
-					<Heading level={3}>Visits</Heading>
+					<Heading level={3} size="sm">
+						Visits
+					</Heading>
 				</>
 			) : null}
 
