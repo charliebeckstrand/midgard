@@ -10,7 +10,10 @@ import { Journal, type Store } from '../journal.ts'
 
 /** One report: the snapshot of the page at the first time of an error, or at a capture. */
 export type Report = {
+	/** The place of the report in the order of the log. */
 	id: number
+	/** A short hash that names the report, such as `3f9a0c1`. It stays the same through a reload and in a copy. */
+	hash: string
 	/** The text of the error line, or `capture`. */
 	title: string
 	/** The frames of the stack of the error. */
@@ -126,6 +129,7 @@ export class BugLog extends Journal<Report> {
 		return {
 			// The reports are in the order of their ids.
 			id: (this.entries.at(-1)?.id ?? 0) + 1,
+			hash: hashOf(`${title} ${location.href} ${performance.timeOrigin + performance.now()}`),
 			title,
 			stack,
 			componentStack,
@@ -143,6 +147,16 @@ export class BugLog extends Journal<Report> {
 			trail: trail.map((entry) => lineOf(entry, width)),
 		}
 	}
+}
+
+/** A 7-digit hex hash of a text (32-bit FNV-1a). */
+function hashOf(text: string): string {
+	let hash = 0x811c9dc5
+
+	for (let index = 0; index < text.length; index++)
+		hash = Math.imul(hash ^ text.charCodeAt(index), 0x01000193)
+
+	return (hash >>> 0).toString(16).padStart(8, '0').slice(0, 7)
 }
 
 /**

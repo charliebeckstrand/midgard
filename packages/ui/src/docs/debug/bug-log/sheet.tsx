@@ -1,5 +1,12 @@
-import { ArrowLeft, Copy, ListX, Trash2 } from 'lucide-react'
-import { useState, useSyncExternalStore } from 'react'
+import { Copy, ListX, Trash2 } from 'lucide-react'
+import { type MouseEvent, useState, useSyncExternalStore } from 'react'
+import {
+	Breadcrumb,
+	BreadcrumbItem,
+	BreadcrumbLink,
+	BreadcrumbList,
+	BreadcrumbSeparator,
+} from 'ui/breadcrumb'
 import { Button } from 'ui/button'
 import { Checkbox, CheckboxField } from 'ui/checkbox'
 import { CopyButton, useCopyButtonState } from 'ui/copy-button'
@@ -22,7 +29,11 @@ function getKey(report: Report): string {
 	return String(report.id)
 }
 
-/** One report in the list: the title and the page, then View, Copy, and Delete. */
+/**
+ * One report in the list: the title, the page and the time, and the hash, then
+ * View, Copy, and Delete. A press on the row outside the actions opens the
+ * report, as View does.
+ */
 function ReportLine({
 	report,
 	onView,
@@ -33,29 +44,37 @@ function ReportLine({
 	onDelete: () => void
 }) {
 	return (
-		<ListItem>
-			<Flex align="center" gap="sm">
-				<div className="min-w-0 flex-1">
-					<Text
-						className={cn(
-							'truncate font-mono text-xs',
-							report.title !== CAPTURE && 'text-red-600 dark:text-red-400',
-						)}
-					>
-						{titleOf(report)}
-					</Text>
-					<Text tone="muted" className="truncate text-xs">
-						{report.page} · {new Date(report.at).toLocaleTimeString()}
-					</Text>
-				</div>
-				<Button variant="bare" size="sm" aria-label="View" onClick={onView}>
-					<Icon icon={<ListX />} />
-				</Button>
-				<CopyButton size="sm" icon={<Copy />} text={markdownOf(report)} />
-				<Button variant="bare" size="sm" aria-label="Delete" onClick={onDelete}>
-					<Icon icon={<Trash2 />} />
-				</Button>
-			</Flex>
+		<ListItem
+			onClick={onView}
+			className="text-start"
+			suffix={
+				<Flex align="center" gap="sm">
+					<Button variant="bare" size="sm" aria-label="View" onClick={onView}>
+						<Icon icon={<ListX />} />
+					</Button>
+					<CopyButton size="sm" icon={<Copy />} text={markdownOf(report)} />
+					<Button variant="bare" size="sm" aria-label="Delete" onClick={onDelete}>
+						<Icon icon={<Trash2 />} />
+					</Button>
+				</Flex>
+			}
+		>
+			<span className="block min-w-0">
+				<Text
+					className={cn(
+						'truncate font-mono text-xs',
+						report.title !== CAPTURE && 'text-red-600 dark:text-red-400',
+					)}
+				>
+					{titleOf(report)}
+				</Text>
+				<Text tone="muted" className="truncate text-xs">
+					{report.page} · {new Date(report.at).toLocaleTimeString()}
+				</Text>
+				<Text className="truncate font-mono text-xs text-rose-600 dark:text-rose-400">
+					{report.hash}
+				</Text>
+			</span>
 		</ListItem>
 	)
 }
@@ -73,9 +92,11 @@ function CopyTextButton({ label, text }: { label: string; text: string }) {
 
 /**
  * The viewer of the Bug log: the title and "Preserve", the reports, newest
- * first, then Copy all, Capture, and Clear. View shows one report in place of
- * the list, as the Markdown that Copy writes, with Copy and Delete of that
- * report in place of "Preserve" and the actions of the list. The Event log
+ * first, then Copy all, Capture, and Clear. View, or a press on a row, shows
+ * one report in place of the list, as the Markdown that Copy writes. The
+ * crumbs "Bugs" and the hash of the report take the place of the title, and
+ * Copy and Delete of that report take the place of "Preserve" and the actions
+ * of the list. The Event log
  * records nothing while the sheet is on screen, so a capture holds the lines
  * before the open.
  */
@@ -114,12 +135,38 @@ export function BugLogSheet({
 		<Sheet open={open} onOpenChange={onOpenChange}>
 			<SheetPanel side="bottom" className="max-h-full">
 				<Flex align="center" gap="md" className={cn(dan.space.panel.x, dan.space.panel.top)}>
-					{report && (
-						<Button variant="bare" aria-label="Back" onClick={() => setViewed(undefined)}>
-							<Icon icon={<ArrowLeft />} />
-						</Button>
+					{report ? (
+						// The crumbs name the report and lead back to the list. The title
+						// stays for the name of the sheet.
+						<>
+							<SheetTitle className="sr-only p-0">Bugs</SheetTitle>
+							<Breadcrumb className="me-auto min-w-0">
+								<BreadcrumbList className="text-xl/8">
+									<BreadcrumbItem>
+										<BreadcrumbLink
+											href="#"
+											className="font-semibold"
+											onClick={(event: MouseEvent) => {
+												event.preventDefault()
+
+												setViewed(undefined)
+											}}
+										>
+											Bugs
+										</BreadcrumbLink>
+									</BreadcrumbItem>
+									<BreadcrumbSeparator />
+									<BreadcrumbItem>
+										<BreadcrumbLink current className="font-semibold">
+											{report.hash}
+										</BreadcrumbLink>
+									</BreadcrumbItem>
+								</BreadcrumbList>
+							</Breadcrumb>
+						</>
+					) : (
+						<SheetTitle className="me-auto p-0">Bugs</SheetTitle>
 					)}
-					<SheetTitle className="me-auto p-0">Bugs</SheetTitle>
 					{!report && (
 						<CheckboxField>
 							<Checkbox
