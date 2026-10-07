@@ -31,7 +31,9 @@ export type MessageProps = {
 
 /**
  * True when the error severity auto-renders: form-bound with errors, or
- * (unbound) given children. Other severities render their children verbatim.
+ * (unbound) given children that show text. `null`, `undefined`, `false`,
+ * `true`, and `''` show no text, so they do not render. `0` shows "0", so it
+ * renders. Other severities render their children verbatim.
  *
  * @internal
  */
@@ -43,7 +45,9 @@ function shouldRenderError(
 ): boolean {
 	if (severity !== 'error') return false
 
-	return isFormBoundError ? hasIssues(issues) : children != null
+	if (isFormBoundError) return hasIssues(issues)
+
+	return children != null && typeof children !== 'boolean' && children !== ''
 }
 
 /**
