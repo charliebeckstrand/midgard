@@ -722,6 +722,36 @@ describe('FileUpload focus handoff', () => {
 		expect(elsewhere).toHaveFocus()
 	})
 
+	// A re-pick in the filled state keeps the state, so no swap uses the note
+	// that focus was in the zone. A later swap from `children` must not use it.
+	it('leaves focus alone when a children swap follows a re-pick', () => {
+		const { container, rerender } = renderUI(
+			<>
+				<button type="button">Elsewhere</button>
+				<FileUploadDrop />
+			</>,
+		)
+
+		selectFiles(container, [file])
+
+		screen.getByRole('button', { name: 'Choose a different file' }).focus()
+
+		selectFiles(container, [new File(['y'], 'cover.pdf')])
+
+		const elsewhere = screen.getByRole('button', { name: 'Elsewhere' })
+
+		elsewhere.focus()
+
+		rerender(
+			<>
+				<button type="button">Elsewhere</button>
+				<FileUploadDrop>Upload</FileUploadDrop>
+			</>,
+		)
+
+		expect(elsewhere).toHaveFocus()
+	})
+
 	it('moves focus from the button variant Reset to the trigger', () => {
 		const { container } = renderUI(<FileUploadButton />)
 

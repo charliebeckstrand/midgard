@@ -171,31 +171,33 @@ export function FileUploadDrop(props: FileUploadDropProps) {
 
 	const overlayRef = useRef<HTMLButtonElement>(null)
 
-	const refocusRef = useRef(false)
+	// The `filled` value that the last event can make, when focus was in the
+	// zone at that event. Otherwise `null`.
+	const refocusRef = useRef<boolean | null>(null)
 
-	// Each event that can swap the state first notes if focus is in the zone.
-	// The hidden input is outside the zone, but the native picker leaves focus
-	// on the control that opened it.
-	const noteFocus = () => {
+	// Each event that can swap the state first notes if focus is in the zone,
+	// and the state that the event can make. The hidden input is outside the
+	// zone, but the native picker leaves focus on the control that opened it.
+	const noteFocus = (next: boolean) => {
 		const zone = filledRef.current ?? emptyRef.current
 
-		refocusRef.current = zone?.contains(document.activeElement) ?? false
+		refocusRef.current = zone?.contains(document.activeElement) ? next : null
 	}
 
 	const handlePickChange = (event: ChangeEvent<HTMLInputElement>) => {
-		noteFocus()
+		noteFocus(children == null)
 
 		handleChange(event)
 	}
 
 	const handleZoneDrop = (event: DragEvent) => {
-		noteFocus()
+		noteFocus(children == null)
 
 		handleDrop(event)
 	}
 
 	const handleClear = () => {
-		noteFocus()
+		noteFocus(false)
 
 		clearFiles()
 	}
@@ -209,11 +211,15 @@ export function FileUploadDrop(props: FileUploadDropProps) {
 	}
 
 	// The swap unmounts the focused control. Focus then moves to the control
-	// that replaces it, not to the page.
+	// that replaces it, not to the page. A note from an event that kept the
+	// state (a re-pick, or a drop with no accepted file) does not match a later
+	// swap from `children`, so that swap leaves focus alone.
 	useEffect(() => {
-		if (!refocusRef.current) return
+		const expected = refocusRef.current
 
-		refocusRef.current = false
+		refocusRef.current = null
+
+		if (expected !== filled) return
 
 		const target = filled ? overlayRef.current : emptyRef.current
 
