@@ -1,11 +1,9 @@
 import type { ComponentProps } from 'react'
-import { cn } from '../../core'
+import { createSlot } from '../../core'
 import { k } from '../../recipes/kata/stat'
 
 /** Props for {@link Stat}: an optional `className` plus `<div>` attributes. */
-export type StatProps = {
-	className?: string
-} & Omit<ComponentProps<'div'>, 'className'>
+export type StatProps = ComponentProps<'div'>
 
 /**
  * Composition root for a data-display metric: a full-height flex column that
@@ -15,10 +13,4 @@ export type StatProps = {
  * React Server Components; mirror its tree with the matching `*Skeleton` parts
  * while loading.
  */
-export function Stat({ className, children, ...props }: StatProps) {
-	return (
-		<div data-slot="stat" className={cn(k(), className)} {...props}>
-			{children}
-		</div>
-	)
-}
+export const Stat = createSlot('div', 'stat', k())

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TOUCH_CONTEXT_MENU_DELAY } from '../../components/menu/use-menu-touch-hold'
+import { TOUCH_TAP_WINDOW } from '../../hooks/use-touch-tap'
 import { BarChart, DonutChart } from '../../modules/chart'
-import { TOUCH_TAP_WINDOW } from '../../modules/chart/engine/use-chart-touch-tap'
 import { act, bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 /**
