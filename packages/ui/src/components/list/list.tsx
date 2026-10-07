@@ -1,21 +1,26 @@
 'use client'
 
-import { DndContext, type DragStartEvent } from '@dnd-kit/core'
-import { SortableContext } from '@dnd-kit/sortable'
-import { type ComponentProps, type ReactNode, useCallback, useMemo, useRef } from 'react'
+import { Reorder } from 'motion/react'
+import { type ComponentProps, type ReactNode, useCallback, useId, useMemo, useRef } from 'react'
 import { cn } from '../../core'
+import { LIFT_INSTRUCTIONS } from '../../hooks/use-keyboard-lifted'
 import { keyMatcher, useKeyedStore } from '../../hooks/use-keyed-store'
-import { PortalDragOverlay } from '../../primitives/portal/portal-drag-overlay'
+import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { k, type ListVariant } from '../../recipes/kata/list'
 import type { Orientation } from '../../types'
-import { ListContext, ListItemContext } from './context'
-import { ListItemSortable } from './list-item-sortable'
-import { ListItemStatic, STATIC_CONTEXT } from './list-item-static'
-import { useListDrag } from './use-list-drag'
+import { ListContext } from './context'
+import { ListItemReorder } from './list-item-reorder'
+import { ListItemStatic } from './list-item-static'
 import { useListKeyboard } from './use-list-keyboard'
+import { useListReorder } from './use-list-reorder'
 import { useListWindow } from './use-list-window'
 
-type BaseListProps<T> = Omit<ComponentProps<'ul'>, 'className' | 'children'> & {
+// A reorderable list renders a Motion element, which gives its own meaning to
+// `onDrag`, `onDragStart`, `onDragEnd`, and `onAnimationStart`.
+type BaseListProps<T> = Omit<
+	ComponentProps<'ul'>,
+	'className' | 'children' | 'onDrag' | 'onDragStart' | 'onDragEnd' | 'onAnimationStart'
+> & {
 	/** Ordered items. */
 	items: T[]
 	/** Visual variant. `separated` spaces cards apart; `outline` draws one border around the whole list with dividers; `plain` uses dividers only; `solid` renders tinted cards; `bare` spaces rows apart with no chrome, for rows of form controls. @defaultValue 'separated' */
@@ -39,7 +44,7 @@ type BaseListProps<T> = Omit<ComponentProps<'ul'>, 'className' | 'children'> & {
  */
 type ListKey<T> = {
 	/**
-	 * Stable key extractor. A reorderable list requires it for DnD tracking. A
+	 * Stable key extractor. A reorderable list requires it to track each row in a drag. A
 	 * read-only list can omit it, and then keys each item by its index.
 	 */
 	getKey?: (item: T) => string
@@ -92,11 +97,10 @@ export type ListProps<T> = BaseListProps<T> &
 /**
  * Renders an ordered `items` source as a `<ul>` through a `children` render
  * function, in one of five `variant`s and either orientation. With `onReorder`
- * it becomes reorderable over `@dnd-kit`, by pointer drag (with a drag overlay)
+ * it becomes reorderable over Motion's `Reorder`, by pointer drag on the handle
  * or keyboard lift (Space then arrows). It auto-inserts a {@link ListHandle}
  * per item unless `sortable: false`. A read-only list (no `onReorder`) shows
- * no handle. Read-only lists skip per-item sortable
- * registration entirely. Compose {@link ListItem} (with {@link ListLabel} /
+ * no handle. A read-only list renders a plain `<ul>` with no drag wiring. Compose {@link ListItem} (with {@link ListLabel} /
  * {@link ListDescription}) in the render function.
  *
  * @remarks
@@ -104,7 +108,10 @@ export type ListProps<T> = BaseListProps<T> &
  * fallback remounts items mid-drag and breaks keyboard-move refocus. Each
  * reorderable row adds one Tab stop of its own, on its content area when that
  * area activates and on the `<li>` otherwise. A focusable child, such as a
- * checkbox, keeps its own stop — see {@link ListItem}.
+ * checkbox, keeps its own stop — see {@link ListItem}. Only the handle starts a
+ * pointer drag. The rows move as the pointer passes them, and the list calls
+ * `onReorder` once, on the drop. Escape cancels the drag. The list loads no
+ * drag library of its own: Motion's `Reorder` runs the drag.
  *
  * `virtual` renders only the rows in view, plus a few on each side, for a long
  * read-only vertical list. The list windows over the nearest ancestor with
@@ -137,15 +144,19 @@ export function List<T>({
 }: ListProps<T>) {
 	const containerRef = useRef<HTMLUListElement>(null)
 
-	const {
-		effectiveGetKey,
-		itemIds,
-		strategy,
-		interactive,
-		activeItem,
-		activeIndex,
-		dndContextProps,
-	} = useListDrag({ items, getKey, onReorder, orientation, disabled, containerRef })
+	const interactive = !disabled && onReorder !== undefined
+
+	// The fallback reads the position, not the item, so duplicate primitives get
+	// distinct keys. Only the read-only arm reaches it.
+	const effectiveGetKey = useMemo<(item: T, index?: number) => string>(
+		() => getKey ?? ((_item, index) => String(index)),
+		[getKey],
+	)
+
+	const ids = useMemo(
+		() => items.map((item, index) => effectiveGetKey(item, index)),
+		[items, effectiveGetKey],
+	)
 
 	const { liftedId, setLiftedId, onItemKeyDown, onItemBlur } = useListKeyboard({
 		items,
@@ -159,14 +170,20 @@ export function List<T>({
 	// that lifts and the item that drops.
 	const liftedStore = useKeyedStore(liftedId, keyMatcher)
 
-	// Clear keyboard-lifted state when a pointer drag begins.
-	const handleDragStart = useCallback(
-		(event: DragStartEvent) => {
-			setLiftedId(null)
-			dndContextProps.onDragStart(event)
-		},
-		[dndContextProps, setLiftedId],
-	)
+	const { order, setDraft, onDragStart, onDragEnd } = useListReorder({
+		items,
+		ids,
+		onReorder,
+		containerRef,
+		// A pointer drag drops a keyboard lift.
+		onStart: useCallback(() => setLiftedId(null), [setLiftedId]),
+	})
+
+	const describedBy = useId()
+
+	// Motion's `MotionConfig` leaves `layout` animations running, so the rows
+	// read the preference themselves (WCAG 2.3.3).
+	const instant = usePrefersReducedMotion()
 
 	const contextValue = useMemo(
 		() => ({
@@ -211,9 +228,8 @@ export function List<T>({
 		listRef: containerRef,
 	})
 
-	// Memoized so an active-drag change (which only drives the overlay below) does
-	// not recreate every item element and re-run their sortable wiring. Only the
-	// rows are held: the consumer rest spread is a fresh object every render, so
+	// Memoized so a render that changes neither the order nor the rows does not
+	// recreate every item element. Only the rows are held: the consumer rest spread is a fresh object every render, so
 	// keeping the `<ul>` itself in here would make the memo miss every time.
 	const rows = useMemo(() => {
 		if (listWindow.indexes !== null) {
@@ -237,70 +253,89 @@ export function List<T>({
 			})
 		}
 
-		return items.map((item, index) => {
-			const id = effectiveGetKey(item, index)
+		if (!interactive) {
+			return items.map((item, index) => {
+				const id = effectiveGetKey(item, index)
 
-			// Read-only lists use `ListItemStatic`, skipping sortable-item
-			// registration. `useSortableItem` does non-trivial per-item work
-			// (ref wiring, dnd context reads) even when `disabled: true`.
-			return interactive ? (
-				<ListItemSortable key={id} id={id}>
+				return (
+					<ListItemStatic key={id} id={id}>
+						{children(item, index)}
+					</ListItemStatic>
+				)
+			})
+		}
+
+		const byKey = new Map(ids.map((id, index) => [id, items[index] as T]))
+
+		return order.flatMap((id, index) => {
+			const item = byKey.get(id)
+
+			if (item === undefined) return []
+
+			return (
+				<ListItemReorder
+					key={id}
+					id={id}
+					describedBy={describedBy}
+					instant={instant}
+					onDragStart={onDragStart}
+					onDragEnd={onDragEnd}
+				>
 					{children(item, index)}
-				</ListItemSortable>
-			) : (
-				<ListItemStatic key={id} id={id}>
-					{children(item, index)}
-				</ListItemStatic>
+				</ListItemReorder>
 			)
 		})
-	}, [items, effectiveGetKey, interactive, children, listWindow.indexes, listWindow.measureRef])
+	}, [
+		items,
+		ids,
+		order,
+		effectiveGetKey,
+		interactive,
+		children,
+		describedBy,
+		instant,
+		onDragStart,
+		onDragEnd,
+		listWindow.indexes,
+		listWindow.measureRef,
+	])
 
-	const ul = (
-		<ul
-			{...props}
-			ref={containerRef}
-			aria-label={ariaLabel}
-			data-slot="list"
-			data-orientation={orientation}
-			className={cn(k.base({ variant, orientation }), className)}
-			style={
-				listWindow.indexes === null
-					? props.style
-					: {
-							...props.style,
-							paddingTop: listWindow.paddingTop,
-							paddingBottom: listWindow.paddingBottom,
-						}
-			}
-		>
-			{rows}
-		</ul>
-	)
+	const ulProps = {
+		...props,
+		ref: containerRef,
+		'aria-label': ariaLabel,
+		'data-slot': 'list',
+		'data-orientation': orientation,
+		className: cn(k.base({ variant, orientation }), className),
+		style:
+			listWindow.indexes === null
+				? props.style
+				: {
+						...props.style,
+						paddingTop: listWindow.paddingTop,
+						paddingBottom: listWindow.paddingBottom,
+					},
+	}
 
 	return (
 		<ListContext value={contextValue}>
 			{interactive ? (
-				<DndContext {...dndContextProps} onDragStart={handleDragStart}>
-					<SortableContext items={itemIds} strategy={strategy}>
-						{ul}
-					</SortableContext>
-					<PortalDragOverlay>
-						{activeItem != null ? (
-							// The overlay is a picture of the dragged row. A `<ul>` holds its
-							// `<li>`, and `inert` keeps the picture out of the focus order and
-							// the accessibility tree.
-							<ul inert>
-								<ListItemContext
-									value={{ ...STATIC_CONTEXT, id: effectiveGetKey(activeItem), dragging: true }}
-								>
-									{children(activeItem, activeIndex)}
-								</ListItemContext>
-							</ul>
-						) : null}
-					</PortalDragOverlay>
-				</DndContext>
+				<>
+					<Reorder.Group
+						{...ulProps}
+						as="ul"
+						axis={orientation === 'vertical' ? 'y' : 'x'}
+						values={order}
+						onReorder={setDraft}
+					>
+						{rows}
+					</Reorder.Group>
+					<div hidden id={describedBy}>
+						{LIFT_INSTRUCTIONS.draggable}
+					</div>
+				</>
 			) : (
-				ul
+				<ul {...ulProps}>{rows}</ul>
 			)}
 		</ListContext>
 	)

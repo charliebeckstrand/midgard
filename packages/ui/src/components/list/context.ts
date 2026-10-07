@@ -1,7 +1,7 @@
 'use client'
 
-import type { DraggableAttributes, DraggableSyntheticListeners } from '@dnd-kit/core'
-import type { CSSProperties, KeyboardEvent } from 'react'
+import type { DragControls } from 'motion/react'
+import type { KeyboardEvent } from 'react'
 import { createContext } from '../../core'
 import { useKeyedValue } from '../../hooks/use-keyed-store'
 import type { ListVariant } from '../../recipes/kata/list'
@@ -55,21 +55,26 @@ export function useListItemLifted(id: string): boolean {
 	return useKeyedValue(useListContext().liftedStore, id)
 }
 
-/** Per-item drag bindings shared with an item and its handle: the item `id`, sortable refs/attributes/listeners, transform `style`, and the `dragging` flag. */
+/** Per-item drag bindings shared with an item and its handle: the item `id`, the row ref, the reorder bindings, and the `dragging` flag. */
 export type ListItemContextValue = {
 	id: string
-	/** Ref for the draggable `<li>` element. */
+	/** Ref for the `<li>` element. */
 	setNodeRef: (node: HTMLElement | null) => void
-	/** Activator ref for the drag handle (used for keyboard focus management). */
-	setActivatorNodeRef: (node: HTMLElement | null) => void
-	/** a11y attributes for the drag handle. */
-	attributes: DraggableAttributes
-	/** Drag handle listeners; applied to `<ListHandle>`. */
-	listeners: DraggableSyntheticListeners
-	/** Transform + transition + opacity style for the `<li>`. */
-	style: CSSProperties
+	/**
+	 * The Motion `Reorder.Item` bindings of a row in a reorderable list. The handle
+	 * starts the drag through `controls`. Absent in a read-only list.
+	 */
+	reorder?: {
+		controls: DragControls
+		/** Whether the row moves to its new place with no animation, for reduced motion. */
+		instant: boolean
+		onDragStart: () => void
+		onDragEnd: () => void
+	}
 	/** Whether this item is currently being dragged. */
 	dragging: boolean
+	/** The id of the hidden reorder instructions that each row names. */
+	describedBy?: string
 	/**
 	 * The place of the row in a windowed list. The row writes it as `data-index`,
 	 * which the window measures by, and as `aria-posinset` and `aria-setsize`,

@@ -6,7 +6,6 @@ import {
 	KanbanColumn,
 	KanbanColumnBody,
 } from '../../components/kanban'
-import { List, ListItem } from '../../components/list'
 import { allBySlot, getSlot, renderUI } from '../helpers'
 import { drag } from './helpers/drag'
 
@@ -115,42 +114,5 @@ describe('drag state attribute (real browser)', () => {
 		await held.release()
 
 		await expect.poll(() => card.hasAttribute('data-dragging')).toBe(false)
-	})
-
-	it('marks the dragged list item and its handle with data-dragging only', async () => {
-		const { container } = renderUI(
-			<List items={items} getKey={(i) => i.id} sortable onReorder={() => {}}>
-				{(item) => <ListItem>{item.label}</ListItem>}
-			</List>,
-		)
-
-		const list = getSlot(container, 'list')
-
-		const [row, other] = allBySlot(list, 'list-item')
-
-		if (!row || !other) throw new Error('expected two list items')
-
-		const handle = getSlot(row, 'list-handle')
-
-		expect(row).not.toHaveAttribute('data-dragging')
-
-		const held = await startDrag(handle)
-
-		await expect.poll(() => row.hasAttribute('data-dragging')).toBe(true)
-
-		expect(handle).toHaveAttribute('data-dragging')
-
-		// The overlay clone renders outside the list, through the same item.
-		const overlay = allBySlot(document.body, 'list-item').find((el) => !list.contains(el))
-
-		expect(overlay).toHaveAttribute('data-dragging')
-
-		for (const el of [row, overlay, other]) expect(el).not.toHaveAttribute('data-active')
-
-		expect(other).not.toHaveAttribute('data-dragging')
-
-		await held.release()
-
-		await expect.poll(() => row.hasAttribute('data-dragging')).toBe(false)
 	})
 })

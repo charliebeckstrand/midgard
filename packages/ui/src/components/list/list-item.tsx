@@ -1,11 +1,12 @@
 'use client'
 
-import type { ElementType, FocusEvent, KeyboardEvent, ReactNode } from 'react'
+import { Reorder } from 'motion/react'
+import type { ComponentProps, ElementType, FocusEvent, KeyboardEvent, ReactNode } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useKeyedValue } from '../../hooks/use-keyed-store'
 import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic'
 import { k } from '../../recipes/kata/list'
-import { useListContext, useListItemContext } from './context'
+import { type ListItemContextValue, useListContext, useListItemContext } from './context'
 import { ListHandle } from './list-handle'
 
 /**
@@ -63,8 +64,11 @@ export type ListItemProps<Fallback extends ElementType = 'div'> = {
 	// app-registered router link, the `as` element otherwise. An `onClick` here
 	// lands on that content area and marks the row interactive. `prefix` is a
 	// string-typed RDFa global we repurpose as a slot; `ref` is owned by the
-	// dnd-kit `<li>`.
+	// `<li>`.
 } & PolymorphicProps<Fallback, 'prefix' | 'ref'>
+
+/** The transition of a reorderable row that moves with no animation. */
+const INSTANT = { duration: 0 }
 
 /**
  * A row within a {@link List}, rendered as `<li>` with `prefix`/`suffix` slots
@@ -108,7 +112,7 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 	as: asProp,
 	...props
 }: ListItemProps<Fallback>) {
-	const { id, setNodeRef, attributes, style, dragging, position } = useListItemContext()
+	const { id, setNodeRef, reorder, describedBy, dragging, position } = useListItemContext()
 
 	// The list's own `interactive` is the reorder wiring; the row's is the
 	// content area's activation treatment. Alias the former to keep them apart.
@@ -154,12 +158,6 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 	// would grow a target it does not paint.
 	const stretched = interactive && activates
 
-	// dnd-kit's attributes set role="button", overriding the host element's semantics
-	// (a row is a list item; its content area is a link or a button). Drop the role;
-	// keep the focus/aria hints. Also drop `aria-pressed`, which dnd-kit sets on the
-	// dragged node: a list item or a link is not a toggle button.
-	const { role: _role, tabIndex, 'aria-pressed': _pressed, ...dragAttrs } = attributes
-
 	// One row, one Tab stop of its own. An activatable content area is focusable
 	// already, so the reorder gestures ride it rather than the `<li>`. Wiring both
 	// put two stops on each row: one to move it, one to open it. Read `activates`,
@@ -180,7 +178,8 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 	const reorderProps = {
 		// The library's stop wins over a consumer `tabIndex`: a reorderable row has to be reachable,
 		// and a row that is silently unreachable reads as the feature being broken.
-		tabIndex: tabIndex ?? 0,
+		tabIndex: 0,
+		'aria-describedby': describedBy,
 		onKeyDown: (event: KeyboardEvent) => {
 			if (stopOnContent) consumerKeyDown?.(event)
 
@@ -195,34 +194,34 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 
 			onItemBlur()
 		},
-		...dragAttrs,
 	}
 
-	return (
-		<li
-			ref={setNodeRef}
-			style={style}
-			{...(stopOnRow ? reorderProps : {})}
-			data-slot="list-item"
-			data-item-id={id}
-			data-index={position?.index}
-			aria-posinset={position === undefined ? undefined : position.index + 1}
-			aria-setsize={position?.count}
-			data-dragging={dataAttr(dragging)}
-			data-lifted={dataAttr(lifted)}
-			data-interactive={dataAttr(interactive)}
-			className={cn(
-				k.item({
-					variant,
-					active: dragging,
-					lifted,
-					interactive,
-					stretched,
-					rounded,
-				}),
-				className,
-			)}
-		>
+	const row = {
+		ref: setNodeRef,
+		...(stopOnRow ? reorderProps : {}),
+		'data-slot': 'list-item',
+		'data-item-id': id,
+		'data-index': position?.index,
+		'aria-posinset': position === undefined ? undefined : position.index + 1,
+		'aria-setsize': position?.count,
+		'data-dragging': dataAttr(dragging),
+		'data-lifted': dataAttr(lifted),
+		'data-interactive': dataAttr(interactive),
+		className: cn(
+			k.item({
+				variant,
+				active: dragging,
+				lifted,
+				interactive,
+				stretched,
+				rounded,
+			}),
+			className,
+		),
+	}
+
+	const content = (
+		<>
 			{prefix ?? (sortable ? <ListHandle /> : null)}
 			<Polymorphic
 				as={as}
@@ -235,6 +234,39 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 				{children}
 			</Polymorphic>
 			{suffix}
-		</li>
+		</>
+	)
+
+	return (
+		<ListItemRow id={id} reorder={reorder} {...row}>
+			{content}
+		</ListItemRow>
+	)
+}
+
+/**
+ * The `<li>` of a {@link ListItem}. A reorderable row is a Motion `Reorder.Item`.
+ * Only the handle starts its drag, through the controls; the content area stays
+ * free for a press or a scroll.
+ */
+function ListItemRow({
+	id,
+	reorder,
+	...row
+}: Omit<ComponentProps<'li'>, 'onAnimationStart' | 'onDrag' | 'onDragStart' | 'onDragEnd'> &
+	Pick<ListItemContextValue, 'id' | 'reorder'>) {
+	if (reorder === undefined) return <li {...row} />
+
+	return (
+		<Reorder.Item
+			{...row}
+			as="li"
+			value={id}
+			dragListener={false}
+			dragControls={reorder.controls}
+			transition={reorder.instant ? INSTANT : undefined}
+			onDragStart={reorder.onDragStart}
+			onDragEnd={reorder.onDragEnd}
+		/>
 	)
 }

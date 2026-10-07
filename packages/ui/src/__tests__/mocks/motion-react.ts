@@ -231,7 +231,43 @@ function useReducedMotion(): boolean {
 		: false
 }
 
+// `Reorder` renders its plain elements. The drag runs only in a real browser
+// (see browser/motion/list-reorder.test.tsx), so the group and the item drop
+// their reorder and drag props.
+function ReorderGroup({
+	as = 'ul',
+	values: _values,
+	onReorder: _onReorder,
+	axis: _axis,
+	...props
+}: Record<string, unknown> & { as?: string }) {
+	return createElement(as, stripMotionProps(props))
+}
+
+function ReorderItem({
+	as = 'li',
+	value: _value,
+	dragListener: _dragListener,
+	dragControls: _dragControls,
+	onDragStart: _onDragStart,
+	onDragEnd: _onDragEnd,
+	...props
+}: Record<string, unknown> & { as?: string }) {
+	return createElement(as, stripMotionProps(props))
+}
+
+const Reorder = { Group: ReorderGroup, Item: ReorderItem }
+
+// The controls of a drag that never starts in jsdom.
+const dragControls = { start: noop, stop: noop, cancel: noop }
+
+function useDragControls() {
+	return dragControls
+}
+
 export default {
+	Reorder,
+	useDragControls,
 	motion,
 	AnimatePresence,
 	LayoutGroup,
