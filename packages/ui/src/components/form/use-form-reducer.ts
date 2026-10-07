@@ -171,6 +171,10 @@ export function useFormReducer<T extends Record<string, unknown>>({
 
 	const reportSettled = useStableEvent((outcome: SubmitOutcome<T>) => onSettled?.(outcome))
 
+	// A stable event, so `reset` and `actions` keep one identity when the
+	// consumer gives a new `onReset` on each render.
+	const reportReset = useStableEvent(() => onReset?.())
+
 	// The payload is built only when a callback reads it.
 	const reportInvalid = useStableEvent((errors: Errors) => {
 		if (!onInvalidSubmit) return
@@ -255,9 +259,9 @@ export function useFormReducer<T extends Record<string, unknown>>({
 
 			setResets((count) => count + 1)
 
-			onReset?.()
+			reportReset()
 		},
-		[onReset],
+		[reportReset],
 	)
 
 	// Tracks the controlled `values` prop. Reference change → replace `values`
