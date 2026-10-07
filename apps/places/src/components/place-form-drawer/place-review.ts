@@ -12,7 +12,6 @@ export type ReviewEdit = {
 export const REVIEW_MARKERS = {
 	bold: '**',
 	italic: '_',
-	strikethrough: '~~',
 } as const
 
 /** An inline format of the review toolbar. */

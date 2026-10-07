@@ -41,9 +41,7 @@ describe('toggleMarker', () => {
 	})
 
 	it('leaves the spaces at the ends of the selection outside the markers', () => {
-		expect(show(toggleMarker(edit('It was[ good ]food'), 'strikethrough'))).toBe(
-			'It was ~~[good]~~ food',
-		)
+		expect(show(toggleMarker(edit('It was[ good ]food'), 'italic'))).toBe('It was _[good]_ food')
 	})
 
 	it('puts a pair of markers at a caret, with the caret between them', () => {

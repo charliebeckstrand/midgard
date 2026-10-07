@@ -1,6 +1,6 @@
 'use client'
 
-import { Bold, Italic, List, ListOrdered, Strikethrough } from 'lucide-react'
+import { Bold, Italic, List, ListOrdered } from 'lucide-react'
 import { type ReactElement, useRef } from 'react'
 import { flushSync } from 'react-dom'
 import { Button } from 'ui/button'
@@ -61,12 +61,6 @@ export function PlaceReviewField() {
 						label="Italic"
 						icon={<Italic />}
 						onPress={() => apply((edit) => toggleMarker(edit, 'italic'))}
-					/>
-
-					<FormatButton
-						label="Strikethrough"
-						icon={<Strikethrough />}
-						onPress={() => apply((edit) => toggleMarker(edit, 'strikethrough'))}
 					/>
 				</ToolbarGroup>
 
