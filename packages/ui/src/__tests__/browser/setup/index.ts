@@ -3,6 +3,7 @@ import { cleanup, configure } from '@testing-library/react'
 import { toHaveNoViolations } from 'jest-axe'
 import { afterEach, beforeAll, beforeEach, expect, inject, vi } from 'vitest'
 import { commands } from 'vitest/browser'
+import { loadListReorder } from '../../../components/list/use-list-reorder'
 import { installSingletonResets } from '../../helpers/reset-singletons'
 import { installResidueGuard } from '../../helpers/residue'
 import '../../setup/geometry'
@@ -90,3 +91,10 @@ afterEach((ctx) => {
 
 	cleanup()
 })
+
+// A reorderable `List` loads its `Reorder` parts after it mounts, and the rows
+// mount again when they arrive. A case that drags a row at once would then
+// depend on the order of the cases. The load before each file gives each case
+// the state of a page that already loaded the parts.
+// `list-reorder-hydration.test.tsx` checks a list that hydrates.
+beforeAll(() => loadListReorder())

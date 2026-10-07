@@ -5,6 +5,7 @@ import type { KeyboardEvent } from 'react'
 import { createContext } from '../../core'
 import type { ListVariant } from '../../recipes/kata/list'
 import type { KeyedStore } from '../../utilities'
+import type { ListReorderParts } from './list-reorder'
 
 /** List-wide state shared with items: variant, interactivity/disabled flags, the keyboard-lift store, item count, the sortable flag, and item event handlers. */
 export type ListContextValue = {
@@ -33,6 +34,11 @@ export type ListContextValue = {
 	onItemKeyDown: (id: string, event: KeyboardEvent) => void
 	/** Blur handler that drops any active keyboard lift. */
 	onItemBlur: () => void
+	/**
+	 * The `Reorder` parts of a reorderable list after their module arrives. Until
+	 * then, and in a read-only list, it is absent, and a row is a plain `<li>`.
+	 */
+	reorderParts?: ListReorderParts
 }
 
 /**
