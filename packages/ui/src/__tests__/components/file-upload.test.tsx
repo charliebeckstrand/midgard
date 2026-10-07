@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
 import { Description, Field, Label, Message } from '../../components/fieldset'
 import { FileUploadButton, FileUploadDrop, FileUploadInput } from '../../components/file-upload'
+import { HeadlessProvider } from '../../providers/headless'
 import {
 	expectAnnouncement,
 	fireEvent,
@@ -216,6 +217,34 @@ describe('FileUpload input variant selection', () => {
 		expect(display(container)).toHaveTextContent('Choose…')
 
 		expect(onAccept).toHaveBeenLastCalledWith([])
+	})
+})
+
+describe('FileUpload input variant under headless', () => {
+	it('keeps a bare clear button that clears the selection and gives focus back', () => {
+		const onAccept = vi.fn()
+
+		const { container } = renderUI(
+			<HeadlessProvider>
+				<FileUploadInput onAccept={onAccept} />
+			</HeadlessProvider>,
+		)
+
+		expect(screen.queryByRole('button', { name: 'Clear selected file(s)' })).not.toBeInTheDocument()
+
+		selectFiles(container, [new File(['x'], 'resume.pdf')])
+
+		const clear = screen.getByRole('button', { name: 'Clear selected file(s)' })
+
+		expect(clear).toHaveAttribute('type', 'button')
+
+		fireEvent.click(clear)
+
+		expect(display(container)).toHaveFocus()
+
+		expect(onAccept).toHaveBeenLastCalledWith([])
+
+		expect(screen.queryByRole('button', { name: 'Clear selected file(s)' })).not.toBeInTheDocument()
 	})
 })
 
