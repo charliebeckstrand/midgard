@@ -8,6 +8,7 @@ import { ControlFrame } from '../../primitives/control'
 import type { scale } from '../../recipes/kata/textarea'
 import { k, type TextareaVariants } from '../../recipes/kata/textarea'
 import type { ControlVariant } from '../control/context'
+import { markControlBinding } from '../control/control-binding'
 import { useInputControl } from '../input/use-input-control'
 import { useTextareaAutoResize } from './use-textarea-auto-resize'
 
@@ -147,3 +148,5 @@ export function Textarea({
 		</ControlFrame>
 	)
 }
+
+markControlBinding(Textarea, 'text')
