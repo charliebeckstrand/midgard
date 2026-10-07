@@ -1,122 +1,27 @@
 'use client'
 
 import { Search } from 'lucide-react'
-import { type PointerEvent, useId, useRef, useState } from 'react'
+import { useState } from 'react'
 import { Button } from 'ui/button'
-import {
-	CommandPalette,
-	CommandPaletteDescription,
-	CommandPaletteGroup,
-	CommandPaletteHeading,
-	CommandPaletteItem,
-	CommandPaletteLabel,
-	CommandPaletteText,
-	useCommandPaletteDeferredQuery,
-} from 'ui/command-palette'
-import type { ContextMenuEntry } from 'ui/context-menu'
-import { useTimeout } from 'ui/hooks'
+import { useKeybindings } from 'ui/hooks'
 import { Icon } from 'ui/icon'
-import {
-	matchCommands,
-	type PaletteCommand,
-	type PaletteSource,
-} from '../../utilities/places-palette'
-import { PlaceMenu } from '../place-menu'
+import type { PaletteSource } from '../../utilities/places-palette'
+import type { PlacePalettePanel } from './place-palette-panel'
 
 /**
- * How long, in milliseconds, the highlight must stay on a row before the
- * palette calls its `preload`. A reader who moves through the list with the
- * arrow keys passes each row in less time, so only the row that they stop on
- * starts work.
+ * Loads the module of the command palette, which carries the dialog and the
+ * menu of a row. The page loads it on the first open, so the home page does not
+ * load the dialog and the menu code before it hydrates.
  */
-const PRELOAD_DWELL_MS = 150
+const loadPalette = () => import('./place-palette-panel')
+
+/** Starts the load for a reader who shows intent: a pointer or a focus on the button. */
+const preloadPalette = () => void loadPalette()
 
 /** Props for {@link PlacePalette}. */
 export type PlacePaletteProps = {
 	/** The groups, in the order that they show. */
 	sources: readonly PaletteSource[]
-}
-
-/**
- * The option id of a command. It holds the indexes of the source and of the
- * command, so the palette can read the command back from an id.
- */
-function optionId(prefix: string, source: number, command: number): string {
-	return `${prefix}${source}-${command}`
-}
-
-/**
- * The rows of a command menu, each of which closes the palette before it acts.
- * A row opens a panel or a confirmation, which the open palette would cover.
- */
-function closingEntries(entries: ContextMenuEntry[], close: () => void): ContextMenuEntry[] {
-	return entries.map((entry) =>
-		'onAction' in entry
-			? {
-					...entry,
-					onAction: () => {
-						close()
-
-						entry.onAction?.()
-					},
-				}
-			: entry,
-	)
-}
-
-/** The groups that match the query. Only this part renders again on a keystroke. */
-function PaletteGroups({
-	sources,
-	prefix,
-	close,
-}: {
-	sources: readonly PaletteSource[]
-	prefix: string
-	close: () => void
-}) {
-	const query = useCommandPaletteDeferredQuery()
-
-	return sources.map((source, sourceIndex) => {
-		const matches = matchCommands(source, query)
-
-		if (matches.length === 0) return null
-
-		return (
-			<CommandPaletteGroup key={source.heading}>
-				<CommandPaletteHeading>{source.heading}</CommandPaletteHeading>
-
-				{matches.map((command) => {
-					const item = (
-						<CommandPaletteItem
-							key={command.id}
-							id={optionId(prefix, sourceIndex, source.commands.indexOf(command))}
-							onAction={command.run}
-						>
-							{command.icon}
-							<CommandPaletteText>
-								<CommandPaletteLabel>{command.label}</CommandPaletteLabel>
-								{command.description === undefined ? null : (
-									<CommandPaletteDescription>{command.description}</CommandPaletteDescription>
-								)}
-							</CommandPaletteText>
-						</CommandPaletteItem>
-					)
-
-					return command.menu === undefined ? (
-						item
-					) : (
-						<PlaceMenu
-							key={command.id}
-							items={closingEntries(command.menu, close)}
-							aria-label={`Actions for ${command.label}`}
-						>
-							{item}
-						</PlaceMenu>
-					)
-				})}
-			</CommandPaletteGroup>
-		)
-	})
 }
 
 /**
@@ -126,64 +31,54 @@ function PaletteGroups({
  *
  * ⌘K or Ctrl+K also opens the palette. The page does not show the shortcut.
  *
- * A row is active when the pointer is on it, or when the arrow keys highlight
- * it. On a device with hover, a filter change also makes the top result active.
- * When a row stays active for {@link PRELOAD_DWELL_MS}, the palette calls the
- * `preload` of its command, if it has one.
+ * @remarks The palette loads on demand. A pointer on the button or a focus on
+ * it starts the load, and a press or ⌘K opens the palette when the module is
+ * there. Until then, this component holds ⌘K. After the load, the palette
+ * holds it.
  */
 export function PlacePalette({ sources }: PlacePaletteProps) {
 	const [open, setOpen] = useState(false)
 
-	const prefix = `${useId()}-command-`
+	// The module of the palette, from the first open on.
+	const [palette, setPalette] = useState<{ PlacePalettePanel: typeof PlacePalettePanel } | null>(
+		null,
+	)
 
-	const dwell = useTimeout()
+	const show = () => {
+		void loadPalette().then((module) => {
+			setPalette(module)
 
-	const commandOf = (id: string | null): PaletteCommand | undefined => {
-		if (id === null || !id.startsWith(prefix)) return undefined
-
-		const [source, command] = id.slice(prefix.length).split('-').map(Number)
-
-		return sources[source ?? -1]?.commands[command ?? -1]
+			setOpen(true)
+		})
 	}
 
-	// The id of the active row, and the timer that waits for it to stay.
-	const active = useRef<string | null>(null)
+	useKeybindings(
+		{
+			'$mod+KeyK': (event) => {
+				event.preventDefault()
 
-	const activate = (id: string | null) => {
-		if (id === active.current) return
-
-		active.current = id
-
-		dwell.clear()
-
-		const preload = commandOf(id)?.preload
-
-		if (preload !== undefined) dwell.set(preload, PRELOAD_DWELL_MS)
-	}
-
-	const optionOf = (target: EventTarget | null): string | null =>
-		target instanceof Element ? (target.closest('[role=option]')?.id ?? null) : null
-
-	// The pointer. The palette is in a portal, and React sends the events of a
-	// portal to its React parents, so this wrapper gets them.
-	const onPointerOver = (event: PointerEvent) => activate(optionOf(event.target))
-
-	const onPointerOut = (event: PointerEvent) => activate(optionOf(event.relatedTarget))
+				show()
+			},
+		},
+		{ enabled: palette === null },
+	)
 
 	return (
-		<div className="contents" onPointerOver={onPointerOver} onPointerOut={onPointerOut}>
-			<Button variant="plain" aria-label="Search" onClick={() => setOpen(true)}>
+		<>
+			<Button
+				variant="plain"
+				aria-label="Search"
+				onPointerEnter={preloadPalette}
+				onPointerDown={preloadPalette}
+				onFocus={preloadPalette}
+				onClick={show}
+			>
 				<Icon icon={<Search />} />
 			</Button>
 
-			<CommandPalette
-				open={open}
-				onOpenChange={setOpen}
-				onActiveChange={activate}
-				placeholder="Search places, countries, and actions"
-			>
-				<PaletteGroups sources={sources} prefix={prefix} close={() => setOpen(false)} />
-			</CommandPalette>
-		</div>
+			{palette && (
+				<palette.PlacePalettePanel sources={sources} open={open} onOpenChange={setOpen} />
+			)}
+		</>
 	)
 }
