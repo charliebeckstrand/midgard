@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import type { Entry } from '../debug/event-log/log.ts'
 import { rowsOf, summaryOf } from '../debug/event-log/rows.ts'
