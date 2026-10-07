@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
+import { TOUCH_TAP_WINDOW } from '../../hooks/use-touch-tap'
 import { DonutChart } from '../../modules/chart/donut-chart'
 import { ChartFullscreenContext } from '../../modules/chart/engine/context'
-import { TOUCH_TAP_WINDOW } from '../../modules/chart/engine/use-chart-touch-tap'
 import { act, allBySlot, bySlot, fireEvent, present, renderUI } from '../helpers'
 
 /** Whether each slice recedes behind an emphasis. */

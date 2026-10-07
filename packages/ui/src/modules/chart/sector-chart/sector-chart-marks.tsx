@@ -5,6 +5,7 @@ import { type MouseEvent, type PointerEvent, useId, useRef } from 'react'
 import { cn } from '../../../core'
 import { useHoverAcrossScroll } from '../../../hooks'
 import { usePrefersReducedMotion } from '../../../hooks/use-prefers-reduced-motion'
+import { useTouchTap } from '../../../hooks/use-touch-tap'
 import type { SlotPaint } from '../engine/chart-color/paint'
 import { TICK_CHAR_WIDTH } from '../engine/chart-constants'
 import { type PieSlice, pieCentroidRadius, segmentLabelFits } from '../engine/chart-geometry/pie'
@@ -14,7 +15,6 @@ import { seriesGroupClass } from '../engine/chart-series'
 import type { ChartTooltipTrigger } from '../engine/chart-tooltip'
 import { useChartHoverStore, useChartSeriesEmphasis, useChartSeriesFocus } from '../engine/context'
 import { toFrame } from '../engine/use-chart-pointer'
-import { useChartTouchTap } from '../engine/use-chart-touch-tap'
 
 /** One placed segment label: its slice and resolved text. @internal */
 export type SectorSegmentLabel = {
@@ -275,7 +275,7 @@ export function SectorChartMarks({
 
 	// A touch activates from its tap, and a mouse or a pen from its click. A
 	// touch reads nothing from the pie: it opens no readout and isolates no slice.
-	const touch = useChartTouchTap(() => {
+	const touch = useTouchTap(() => {
 		if (pressed.current !== null) onIndexClick?.(pressed.current)
 	})
 

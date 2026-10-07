@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { TOUCH_TAP_SLOP } from '../../modules/chart/engine/use-chart-touch-tap'
+import { TOUCH_TAP_SLOP } from '../../hooks/use-touch-tap'
 import { Grid, type GridColumn, type GridEditableConfig } from '../../modules/grid'
 import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 
