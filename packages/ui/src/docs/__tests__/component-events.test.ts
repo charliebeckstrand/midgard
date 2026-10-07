@@ -6,10 +6,10 @@ import {
 	componentEvent,
 	listenComponentEvents,
 } from '../debug/event-log/component-events.ts'
-import { labelCallbacks } from '../plugin/component-events.ts'
+import { labelProps } from '../plugin/component-events.ts'
 
 const label = (code: string, fromModules: string[] = []) =>
-	labelCallbacks(parseAst(code, { lang: 'tsx' }), code, new Set(fromModules))
+	labelProps(parseAst(code, { lang: 'tsx' }), code, new Set(fromModules))
 
 /** A callback that takes any arguments. */
 const spy = () => vi.fn<(...args: unknown[]) => unknown>()
@@ -25,10 +25,10 @@ function collect(): string[] {
 	return texts
 }
 
-describe('labelCallbacks', () => {
+describe('labelProps', () => {
 	it('wraps each callback prop of a component with its source, and the tag and the prop as the label', () => {
-		expect(label('const a = <Tabs value={v} onValueChange={(value) => set(value)} />')).toBe(
-			'const a = <Tabs value={v} onValueChange={__componentEvent("component", "Tabs", "onValueChange", (value) => set(value))} />',
+		expect(label('const a = <Tabs value="Payment" onValueChange={(value) => set(value)} />')).toBe(
+			'const a = <Tabs value="Payment" onValueChange={__componentEvent("component", "Tabs", "onValueChange", (value) => set(value))} />',
 		)
 
 		expect(label('const a = <Chat.Prompt onSubmit={send} />', ['Chat'])).toBe(
@@ -42,8 +42,20 @@ describe('labelCallbacks', () => {
 		)
 	})
 
-	it('leaves host elements, props that are not callbacks, and code with no callback prop', () => {
-		expect(label('<div onClick={f}><Tabs once={f} /></div>')).toBeUndefined()
+	it('wraps each value of a component that can hold a callback, and each spread', () => {
+		expect(
+			label('<Grid rows={rows} sort={{ value, onValueChange: set }} {...tree} />', ['Grid']),
+		).toBe(
+			'<Grid rows={__componentEvent("module", "Grid", "rows", rows)} sort={__componentEvent("module", "Grid", "sort", { value, onValueChange: set })} {...__componentEvent("module", "Grid", "", tree)} />',
+		)
+	})
+
+	it('leaves host elements, and the values that cannot hold a callback', () => {
+		expect(
+			label(
+				'<div onClick={f}><Tabs key={k} ref={r} size="sm" count={2} label={`a`} icon={<I />} render={(row) => row} /></div>',
+			),
+		).toBeUndefined()
 	})
 })
 
@@ -131,5 +143,70 @@ describe('componentEvent', () => {
 		expect(componentEvent('component', 'Tab', 'onPreload', callback)).toBe(
 			componentEvent('component', 'Tab', 'onPreload', callback),
 		)
+	})
+
+	it('wraps each callback in a plain object or an array, with its path', () => {
+		const texts = collect()
+
+		const set = spy()
+
+		const sort = componentEvent('module', 'Grid', 'sort', { value: 'name', onValueChange: set })
+
+		sort.onValueChange('age')
+
+		expect(sort.value).toBe('name')
+
+		expect(set).toHaveBeenCalledWith('age')
+
+		const items = componentEvent('component', 'Menu', 'items', [
+			{ key: 'a' },
+			{ key: 'b', onAction: spy() },
+		])
+
+		items[1]?.onAction?.()
+
+		const tree = componentEvent('component', 'JsonTree', '', { data: {}, onExpandedChange: spy() })
+
+		tree.onExpandedChange(new Set(['$']))
+
+		expect(texts).toEqual([
+			'module Grid sort.onValueChange("age")',
+			'component Menu items[1].onAction()',
+			'component JsonTree onExpandedChange(["$"])',
+		])
+	})
+
+	it('keeps a value that holds no callback, and the identity of a copy while the value keeps its own', () => {
+		collect()
+
+		const rows = [{ name: 'Ada' }]
+
+		const render = () => null
+
+		const element = { $$typeof: Symbol.for('react.element'), props: { onClick: spy() } }
+
+		expect(componentEvent('module', 'Grid', 'rows', rows)).toBe(rows)
+
+		expect(componentEvent('component', 'List', 'render', render)).toBe(render)
+
+		expect(componentEvent('component', 'Card', 'icon', element)).toBe(element)
+
+		const sort = { onValueChange: spy() }
+
+		expect(componentEvent('module', 'Grid', 'sort', sort)).toBe(
+			componentEvent('module', 'Grid', 'sort', sort),
+		)
+	})
+
+	it('stops at a value that holds itself', () => {
+		const texts = collect()
+
+		const loop: { self?: unknown; onPick: () => void } = { onPick: spy() }
+
+		loop.self = loop
+
+		componentEvent('component', 'Tree', 'node', loop).onPick()
+
+		expect(texts).toEqual(['component Tree node.onPick()'])
 	})
 })

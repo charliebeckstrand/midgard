@@ -5,12 +5,22 @@ import { type ESTree, type Plugin, Visitor } from 'vite'
 /** A prop that holds a callback: `on`, then a capital letter. */
 const CALLBACK = /^on[A-Z]/
 
+/** The props that React keeps, and that never get to the component. */
+const RESERVED = new Set(['key', 'ref'])
+
+/** The values that hold no function: a literal, a template, and an element. */
+const INERT = new Set(['Literal', 'TemplateLiteral', 'JSXElement', 'JSXFragment'])
+
+/** The values that are functions. */
+const FUNCTION = new Set(['ArrowFunctionExpression', 'FunctionExpression'])
+
 /** The local name of `componentEvent` in a page module. */
 const WRAP = '__componentEvent'
 
 /**
- * The Vite plugin that sends each callback that the JSX of `pages/` gives to a
- * component through the Event log (`debug/event-log/component-events.ts`).
+ * The Vite plugin that sends each value that the JSX of `pages/` gives to a
+ * component through the Event log (`debug/event-log/component-events.ts`),
+ * which records each call of an `on…` callback in the value.
  * The plugin reads the name of the component from the tag in the source, so a
  * line names the component in the minified build too. A tag that the page
  * imports from `src/modules` gives a module event, and any other tag gives a
@@ -47,7 +57,7 @@ export function componentEvents(): Plugin {
 					for (const specifier of node.specifiers) fromModules.add(specifier.local.name)
 				}
 
-				const labeled = labelCallbacks(program, code, fromModules)
+				const labeled = labelProps(program, code, fromModules)
 
 				// The import goes on the first line, so the lines keep their numbers.
 				return labeled === undefined
@@ -59,14 +69,21 @@ export function componentEvents(): Plugin {
 }
 
 /**
- * The code with each `on…` prop of a component element wrapped in a call of
+ * The code with each value that a component element gets wrapped in a call of
  * `componentEvent`, with the source, the tag, and the prop: `<Tabs onValueChange={f}>`
  * gives `<Tabs onValueChange={__componentEvent("component", "Tabs", "onValueChange", f)}>`.
- * The source is `module` when `fromModules` holds the first name of the tag. A
- * host element, such as `<div>`, stays as it is, because the input listeners
- * of the log record the DOM events. It gives nothing for code with no such prop.
+ * A spread gets an empty prop: `<JsonTree {...tree}>` gives
+ * `<JsonTree {...__componentEvent("component", "JsonTree", "", tree)}>`. The
+ * call finds each callback in the value at run time, such as the
+ * `onValueChange` of `sort={{ value, onValueChange }}`, or of a list of menu
+ * items. The source is `module` when `fromModules` holds the first name of
+ * the tag. A host element, such as `<div>`, stays as it is, because the input
+ * listeners of the log record the DOM events. These values also stay as they
+ * are, because they cannot hold a callback: `key` and `ref`, a literal, a
+ * template, an element, and a function under a prop that is not `on…`, such
+ * as a render prop. It gives nothing for code with no value to wrap.
  */
-export function labelCallbacks(
+export function labelProps(
 	program: ESTree.Program,
 	code: string,
 	fromModules: ReadonlySet<string>,
@@ -88,22 +105,16 @@ export function labelCallbacks(
 			const source = JSON.stringify(fromModules.has(rootOf(name)) ? 'module' : 'component')
 
 			for (const attribute of attributes) {
-				if (
-					attribute.type !== 'JSXAttribute' ||
-					attribute.name.type !== 'JSXIdentifier' ||
-					!CALLBACK.test(attribute.name.name) ||
-					attribute.value?.type !== 'JSXExpressionContainer' ||
-					attribute.value.expression.type === 'JSXEmptyExpression'
-				)
-					continue
+				const target = wrapTarget(attribute)
 
-				const { start, end } = attribute.value.expression
-
-				const prop = JSON.stringify(attribute.name.name)
+				if (!target) continue
 
 				inserts.push(
-					{ at: start, text: `${WRAP}(${source}, ${tag}, ${prop}, ` },
-					{ at: end, text: ')' },
+					{
+						at: target.node.start,
+						text: `${WRAP}(${source}, ${tag}, ${JSON.stringify(target.prop)}, `,
+					},
+					{ at: target.node.end, text: ')' },
 				)
 			}
 		},
@@ -118,6 +129,36 @@ export function labelCallbacks(
 	}
 
 	return labeled
+}
+
+/**
+ * The prop of an attribute and the value to wrap, or nothing for a value that
+ * cannot hold a callback. A spread gives an empty prop and its object.
+ */
+function wrapTarget(
+	attribute: ESTree.JSXAttributeItem,
+): { prop: string; node: ESTree.Expression } | undefined {
+	if (attribute.type === 'JSXSpreadAttribute') return { prop: '', node: attribute.argument }
+
+	if (
+		attribute.name.type !== 'JSXIdentifier' ||
+		RESERVED.has(attribute.name.name) ||
+		attribute.value?.type !== 'JSXExpressionContainer'
+	)
+		return undefined
+
+	const { expression } = attribute.value
+
+	const prop = attribute.name.name
+
+	if (
+		expression.type === 'JSXEmptyExpression' ||
+		INERT.has(expression.type) ||
+		(FUNCTION.has(expression.type) && !CALLBACK.test(prop))
+	)
+		return undefined
+
+	return { prop, node: expression }
 }
 
 /** The first name of a tag: `Grid` of `<Grid>`, and `Chart` of `<Chart.Line>`. */

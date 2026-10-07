@@ -2,10 +2,12 @@ import type { JsonValue } from 'ui/json-tree'
 import { getOrCompute } from '../../../utilities/get-or-compute.ts'
 
 // The component events of the Event log: each call of an `on…` callback that
-// the JSX of a page gives to a component, such as the `onValueChange` of
-// `Tabs`. The docs plugin sends each such callback through `componentEvent`
-// (`plugin/component-events.ts`). While no listener is set, the callback goes
-// through with no change, so the log adds no cost while it is off.
+// a page gives to a component, such as the `onValueChange` of `Tabs`. The
+// docs plugin sends each value that the JSX of a page gives to a component
+// through `componentEvent` (`plugin/component-events.ts`), and the callback
+// can be the value, or it can be in the value, such as the `onValueChange` of
+// the `sort` of `Grid`. While no listener is set, the value goes through with
+// no change, so the log adds no cost while it is off.
 
 type Callback = (...args: unknown[]) => unknown
 
@@ -29,31 +31,124 @@ export function listenComponentEvents(next: Listener): () => void {
 	}
 }
 
-// The wrapper of each callback, by the component and the prop. A callback that
+/** A prop that holds a callback: `on`, then a capital letter. */
+const CALLBACK = /^on[A-Z]/
+
+// The wrapper of each callback, by the component and the path. A callback that
 // keeps its identity keeps the identity of its wrapper, so the memos and the
 // effects that read it do not run again.
 const wrappers = new WeakMap<Callback, Map<string, Callback>>()
 
+// The copy of each object or array that holds a callback, by the component and
+// the path, with each callback in it wrapped. An object that keeps its
+// identity keeps the identity of its copy, for the same reason. An object that
+// holds no callback is its own copy.
+const copies = new WeakMap<object, Map<string, object>>()
+
+// The objects and the arrays that `label` reads now. A value that holds
+// itself is its own copy, so the read stops.
+const reading = new WeakSet<object>()
+
 /**
- * The callback that a page gives to a component, wrapped while the log
- * listens, so that each call writes a line of the component, such as `Tabs`
- * with the text `onValueChange("Payment")`. The line cuts a long argument, and the
- * detail of the line holds the arguments in full. A value that is not a
- * function goes through with no change.
+ * The value that a page gives to a component, with each `on…` callback in it
+ * wrapped while the log listens, so that each call writes a line of the
+ * component, such as `Tabs` with the text `onValueChange("Payment")`. The
+ * callback can be the value, or a property at any depth of a plain object or
+ * an array in the value, such as `Grid` with the text
+ * `sort.onValueChange([…])`. The line cuts a long argument, and the detail of
+ * the line holds the arguments in full. Any other value goes through with no
+ * change.
  *
  * @param source - Where the component comes from.
  * @param name - The component, such as `Tabs` or `Chat.Prompt`.
- * @param prop - The prop, such as `onValueChange`.
- * @param callback - The value of the prop.
+ * @param prop - The prop, such as `onValueChange`, or an empty string for a spread.
+ * @param value - The value of the prop, or the object of the spread.
  */
-export function componentEvent<T>(source: Source, name: string, prop: string, callback: T): T {
-	if (!listener || typeof callback !== 'function') return callback
+export function componentEvent<T>(source: Source, name: string, prop: string, value: T): T {
+	if (!listener) return value
 
-	const original = callback as Callback
+	return label(source, name, prop, value) as T
+}
+
+function label(source: Source, name: string, path: string, value: unknown): unknown {
+	if (typeof value === 'function') {
+		return CALLBACK.test(path.slice(path.lastIndexOf('.') + 1))
+			? wrap(source, name, path, value as Callback)
+			: value
+	}
+
+	if (!isPlain(value) || reading.has(value)) return value
 
 	return getOrCompute(
+		getOrCompute(copies, value, () => new Map()),
+		`${name} ${path}`,
+		() => {
+			reading.add(value)
+
+			try {
+				return copy(value, (key, item) =>
+					label(source, name, typeof key === 'number' ? `${path}[${key}]` : join(path, key), item),
+				)
+			} finally {
+				reading.delete(value)
+			}
+		},
+	)
+}
+
+/** The path of a property of the value at `path`. */
+function join(path: string, key: string): string {
+	return path === '' ? key : `${path}.${key}`
+}
+
+/**
+ * A plain object or an array, which a page builds as a prop, such as the
+ * `sort` of `Grid` or the items of a menu. A React element, a class instance,
+ * and a `Set` are not plain.
+ */
+function isPlain(value: unknown): value is object {
+	if (typeof value !== 'object' || value === null) return false
+
+	if (Array.isArray(value)) return true
+
+	const prototype = Object.getPrototypeOf(value)
+
+	return (prototype === Object.prototype || prototype === null) && !('$$typeof' in value)
+}
+
+/**
+ * A shallow copy of an object or an array with each property as `map` gives
+ * it, or the value itself when `map` gives each property with no change.
+ */
+function copy(value: object, map: (key: string | number, item: unknown) => unknown): object {
+	if (Array.isArray(value)) {
+		const items = value.map((item, index) => map(index, item))
+
+		return items.every((item, index) => item === value[index]) ? value : items
+	}
+
+	const changes: Record<string, unknown> = {}
+
+	let changed = false
+
+	for (const [key, item] of Object.entries(value)) {
+		const next = map(key, item)
+
+		if (next === item) continue
+
+		changes[key] = next
+
+		changed = true
+	}
+
+	return changed ? { ...value, ...changes } : value
+}
+
+/** The callback, wrapped to write a line of the component on each call. */
+function wrap(source: Source, name: string, path: string, original: Callback): Callback {
+	return getOrCompute(
 		getOrCompute(wrappers, original, () => new Map()),
-		`${name} ${prop}`,
+		`${name} ${path}`,
 		() =>
 			function (this: unknown, ...args: unknown[]) {
 				const texts = args.map(serialize)
@@ -61,13 +156,13 @@ export function componentEvent<T>(source: Source, name: string, prop: string, ca
 				listener?.(
 					source,
 					name,
-					`${prop}(${texts.map(cut).join(', ')})`,
+					`${path}(${texts.map(cut).join(', ')})`,
 					args.length > 0 ? texts.map(parse) : undefined,
 				)
 
 				return Reflect.apply(original, this, args)
 			},
-	) as T
+	)
 }
 
 /** The most characters of one argument in a line. A longer argument ends in `…`. */
