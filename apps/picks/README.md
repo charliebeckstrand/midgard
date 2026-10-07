@@ -58,6 +58,7 @@ Mimir, in asgard, keeps the picks of each user. The gateway forwards
 `/api/predictions/*` to it. Mimir does not read the schedule, so the writes go
 through `app/api/predictions/[season]/[week]` first. That route keeps the stored
 pick of each locked game, sets the line of each new pick, and refuses a delete
-after the first kickoff. After a change to the Mimir API, run
-`pnpm --filter picks openapi`. The contract is in asgard's
+after the first kickoff. The types of the Mimir API come from `shared/mimir`.
+After a change to the Mimir API, run `pnpm --filter shared openapi`. The
+contract is in asgard's
 [`.claude/docs/midgard.md`](https://github.com/charliebeckstrand/asgard/blob/main/.claude/docs/midgard.md).
