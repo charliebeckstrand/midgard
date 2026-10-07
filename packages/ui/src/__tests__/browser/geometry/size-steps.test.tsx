@@ -1,6 +1,6 @@
 import { cleanup } from '@testing-library/react'
 import type { ReactNode } from 'react'
-import { describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import { AddressInput } from '../../../components/address-input'
 import { Avatar, AvatarGroup, AvatarSkeleton } from '../../../components/avatar'
 import { Badge, BadgeSkeleton } from '../../../components/badge'
@@ -85,6 +85,7 @@ import { Text, TextSkeleton } from '../../../components/text'
 import { Textarea, TextareaSkeleton } from '../../../components/textarea'
 import { ToggleIconButton, ToggleIconButtonSkeleton } from '../../../components/toggle-icon-button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
+import { loadTooltipBody } from '../../../components/tooltip/tooltip-body-loader'
 import { Tree, TreeItem, TreeSkeleton } from '../../../components/tree'
 import type { DensityStep } from '../../../core/density'
 import { ChartSkeleton } from '../../../modules/chart'
@@ -491,6 +492,11 @@ async function settledReadings(
 }
 
 describe('distinct size steps (real browser)', () => {
+	// `TooltipContent` loads its panel module on the first open. The read takes two
+	// frames with no change as settled, which can come before the panel shows, so
+	// the module loads before the reads.
+	beforeAll(() => loadTooltipBody())
+
 	it.each(Object.keys(SIZE_AXES) as SizedComponent[])(
 		'renders each size step of %s with a look of its own',
 		{ timeout: budget(30_000) },
