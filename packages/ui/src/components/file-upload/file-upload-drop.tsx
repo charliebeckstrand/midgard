@@ -7,9 +7,10 @@ import {
 	type ReactNode,
 	type Ref,
 	useEffect,
+	useId,
 	useRef,
 } from 'react'
-import { cn, dataAttr } from '../../core'
+import { cn, dataAttr, invalidAttrs } from '../../core'
 import { useIsTruncated } from '../../hooks'
 import { k } from '../../recipes/kata/file-upload'
 import { Button } from '../button'
@@ -36,6 +37,10 @@ type DropSelectionProps = {
 	files: File[]
 	multiple?: boolean
 	disabled?: boolean
+	/** The id of the enclosing Field Label. With it, the overlay takes the Label and the selection text as its name. */
+	labelledBy?: string
+	/** Marks the overlay invalid, from the error state of the enclosing Field. */
+	invalid?: boolean
 	/** Forces the tooltip open for the multi-file summary (see {@link FileUploadRenderState.showTooltip}). */
 	alwaysTooltip: boolean
 	/** Takes the overlay trigger, so that focus can move to it after the swap. */
@@ -60,12 +65,16 @@ function DropSelection({
 	files,
 	multiple,
 	disabled,
+	labelledBy,
+	invalid,
 	alwaysTooltip,
 	overlayRef,
 	onPick,
 	onClear,
 }: DropSelectionProps) {
 	const labelRef = useRef<HTMLDivElement>(null)
+
+	const textId = useId()
 
 	const text = selectionSummary(files, multiple) ?? ''
 
@@ -79,7 +88,11 @@ function DropSelection({
 						ref={overlayRef}
 						type="button"
 						aria-label="Choose a different file"
+						// A Field Label wins over `aria-label`, so the name is the Label
+						// and then the selection text.
+						aria-labelledby={labelledBy ? `${labelledBy} ${textId}` : undefined}
 						disabled={disabled}
+						{...invalidAttrs(invalid)}
 						onClick={onPick}
 						className={cn(k.overlay)}
 					/>
@@ -90,6 +103,7 @@ function DropSelection({
 			    still catches the pick anywhere the text sits. */}
 			<div
 				ref={labelRef}
+				id={textId}
 				className={cn(k.label, 'pointer-events-none relative z-10 w-full truncate text-center')}
 			>
 				{text}
@@ -114,10 +128,16 @@ function DropSelection({
  * `<Field>` invalid and required state onto the real input.
  *
  * @remarks
- * The visually-hidden input is the real control and carries the accessible
- * name; the visible zone is presentational. Accepted selections are announced
- * to a live region (WCAG 4.1.3). Selection state, drag highlighting, and
- * `maxSize` / `maxCount` filtering live in {@link useFileUploadHandlers}.
+ * The visually-hidden input is the real control. It takes the id, `required`,
+ * and `aria-describedby` of the enclosing `<Control>` / `<Field>`. The visible
+ * zone does not take them, but its focusable buttons show the error state of
+ * the Field. In a Field with a Label, the name of the empty zone is the Label
+ * and then the prompt, and the name of the overlay is the Label and then the
+ * selection text, through `aria-labelledby`. With no Label, the empty zone
+ * takes its name from its content, and the overlay keeps the name "Choose a
+ * different file". Accepted selections are announced to a live region (WCAG
+ * 4.1.3). Selection state, drag highlighting, and `maxSize` / `maxCount`
+ * filtering live in {@link useFileUploadHandlers}.
  *
  * Once a selection exists the zone shows the file name and a `Reset` button
  * under it. A `multiple` selection past one shows an "x files selected"
@@ -170,6 +190,10 @@ export function FileUploadDrop(props: FileUploadDropProps) {
 	const filledRef = useRef<HTMLDivElement>(null)
 
 	const overlayRef = useRef<HTMLButtonElement>(null)
+
+	const emptyId = useId()
+
+	const invalid = control?.severity === 'error' || undefined
 
 	// The `filled` value that the last event can make, when focus was in the
 	// zone at that event. Otherwise `null`.
@@ -252,6 +276,8 @@ export function FileUploadDrop(props: FileUploadDropProps) {
 						files={files}
 						multiple={multiple}
 						disabled={disabled}
+						labelledBy={control?.labelledBy}
+						invalid={invalid}
 						alwaysTooltip={showTooltip}
 						overlayRef={overlayRef}
 						onPick={openPicker}
@@ -261,9 +287,13 @@ export function FileUploadDrop(props: FileUploadDropProps) {
 			) : (
 				<button
 					ref={emptyRef}
+					id={emptyId}
 					type="button"
 					data-slot="file-upload"
+					// The self-reference adds the content of the button to the name.
+					aria-labelledby={control?.labelledBy ? `${control.labelledBy} ${emptyId}` : undefined}
 					disabled={disabled}
+					{...invalidAttrs(invalid)}
 					onClick={openPicker}
 					className={cn(k.dropzone, 'h-40 w-full', className)}
 					{...dragProps}

@@ -375,6 +375,41 @@ describe('FileUpload + Control', () => {
 		expect(display(container)).toHaveAccessibleName('Resume resume.pdf')
 	})
 
+	it('names the drop zone and its overlay from the Field label and marks both invalid', () => {
+		const { container } = renderUI(
+			<Field severity="error">
+				<Label>Resume</Label>
+				<FileUploadDrop />
+			</Field>,
+		)
+
+		const zone = dropzone(container)
+
+		expect(zone).toHaveAccessibleName('Resume Drop files here or click to browse')
+
+		expect(zone).toHaveAttribute('aria-invalid', 'true')
+
+		selectFiles(container, [new File(['x'], 'resume.pdf')])
+
+		const overlay = present(dropzone(container).querySelector('button'), 'overlay button')
+
+		expect(overlay).toHaveAccessibleName('Resume resume.pdf')
+
+		expect(overlay).toHaveAttribute('aria-invalid', 'true')
+	})
+
+	it('keeps the overlay name outside a Field', () => {
+		const { container } = renderUI(<FileUploadDrop />)
+
+		selectFiles(container, [new File(['x'], 'resume.pdf')])
+
+		const overlay = present(dropzone(container).querySelector('button'), 'overlay button')
+
+		expect(overlay).toHaveAccessibleName('Choose a different file')
+
+		expect(overlay).not.toHaveAttribute('aria-invalid')
+	})
+
 	it.each([
 		['drop', <FileUploadDrop key="drop">Upload</FileUploadDrop>],
 		['input', <FileUploadInput key="input" />],
