@@ -17,7 +17,12 @@ export default function SwitchViews() {
 				</SegmentControl>
 			</Segment>
 			{view === 'list' ? (
-				<List items={campaigns} getKey={(campaign) => campaign.name} variant="solid">
+				<List
+					items={campaigns}
+					getKey={(campaign) => campaign.name}
+					variant="solid"
+					sortable={false}
+				>
 					{(campaign) => (
 						<ListItem>
 							<ListLabel>{campaign.name}</ListLabel>

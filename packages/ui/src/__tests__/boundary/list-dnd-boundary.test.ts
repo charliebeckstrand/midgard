@@ -4,14 +4,14 @@ import { describe, expect, it } from 'vitest'
 import { importsOf } from '../helpers/source-imports'
 import { srcDir, srcRelative } from '../helpers/walk-source'
 
-// `List` is the read-only list, and `ListSortable` holds the reorder. A bundler
-// keeps each static import, so one runtime import of `@dnd-kit` in the module
-// graph of `List` loads the drag library for each read-only list. This test
+// `List` reorders over Motion's `Reorder`, which each page loads. A bundler keeps
+// each static import, so one runtime import of `@dnd-kit` in the module graph of
+// `List` loads the drag library for each list, also a read-only one. This test
 // walks that graph.
 
 const listModule = join(srcDir, 'components', 'list', 'list.tsx')
 
-const sortableListModule = join(srcDir, 'components', 'list', 'list-sortable.tsx')
+const kanbanModule = join(srcDir, 'components', 'kanban', 'kanban.tsx')
 
 /** The source file that a relative specifier names, or `undefined`. */
 function resolveSource(from: string, specifier: string): string | undefined {
@@ -70,13 +70,10 @@ describe('list dnd-kit boundary', () => {
 	it('List loads no @dnd-kit', () => {
 		const reaches = dndReaches(listModule)
 
-		expect(
-			reaches,
-			`\`List\` must not load \`@dnd-kit\`; put the reorder in \`ListSortable\`:\n  ${reaches.join('\n  ')}`,
-		).toEqual([])
+		expect(reaches, `\`List\` must not load \`@dnd-kit\`:\n  ${reaches.join('\n  ')}`).toEqual([])
 	})
 
-	it('detects the @dnd-kit import of ListSortable', () => {
-		expect(dndReaches(sortableListModule)).not.toEqual([])
+	it('detects the @dnd-kit import of Kanban', () => {
+		expect(dndReaches(kanbanModule)).not.toEqual([])
 	})
 })

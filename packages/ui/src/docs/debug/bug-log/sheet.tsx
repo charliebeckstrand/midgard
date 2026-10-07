@@ -127,7 +127,13 @@ export function BugLogSheet({
 					{report ? (
 						<Markdown headingOffset={1}>{markdownOf(report)}</Markdown>
 					) : reports.length > 0 ? (
-						<List items={newest} getKey={getKey} variant="plain" aria-label="Reports">
+						<List
+							items={newest}
+							getKey={getKey}
+							variant="plain"
+							sortable={false}
+							aria-label="Reports"
+						>
 							{(item) => (
 								<ReportLine
 									report={item}

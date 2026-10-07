@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
-import { List, ListItem, ListLabel, ListSortable } from '../../../components/list'
+import { List, ListItem, ListLabel } from '../../../components/list'
 import { fireEvent, getSlot, present, renderUI } from '../../helpers'
 import { centerOf } from '../../helpers/geometry/box'
 
@@ -128,13 +128,13 @@ describe('list item hit area (real browser)', () => {
 
 	it('keeps the drag handle over the overlay', async () => {
 		const { container } = renderUI(
-			<ListSortable items={items} getKey={(i) => i.id} onReorder={() => {}}>
+			<List items={items} getKey={(i) => i.id} onReorder={() => {}}>
 				{(item) => (
 					<ListItem href={`/${item.id}`}>
 						<ListLabel>{item.label}</ListLabel>
 					</ListItem>
 				)}
-			</ListSortable>,
+			</List>,
 		)
 
 		const row = getSlot(container, 'list-item')

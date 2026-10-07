@@ -421,7 +421,7 @@ function PlaceList({
 					No places match the selected {categories.length > 1 ? 'categories' : 'category'}.
 				</Text>
 			) : (
-				<List items={[...shown]} virtual getKey={(item) => item.id}>
+				<List items={[...shown]} sortable={false} virtual getKey={(item) => item.id}>
 					{(item) => (
 						// The `onClick` marks the row interactive, which is where its
 						// cursor, focus ring, and hover wash come from — the card variant's

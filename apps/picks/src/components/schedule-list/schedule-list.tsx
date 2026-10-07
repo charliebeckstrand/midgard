@@ -193,7 +193,12 @@ export function ScheduleList({
 				</CheckboxField>
 			</div>
 
-			<List items={weeks} getKey={(week) => String(week.number)} aria-label="Weeks">
+			<List
+				items={weeks}
+				getKey={(week) => String(week.number)}
+				sortable={false}
+				aria-label="Weeks"
+			>
 				{(week) => {
 					const predicted = picks[week.number] !== undefined
 

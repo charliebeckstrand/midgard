@@ -7,7 +7,7 @@ import { Field, Label, Message } from 'ui/fieldset'
 import { useFormValue } from 'ui/form'
 import { Icon } from 'ui/icon'
 import { Input } from 'ui/input'
-import { ListItem, ListSortable } from 'ui/list'
+import { List, ListItem } from 'ui/list'
 import { ToggleIconButton } from 'ui/toggle-icon-button'
 import { isWebAddress } from '../../schemas/place'
 import { MAX_PHOTOS, type PhotoRow, photoRow } from './place-form'
@@ -43,7 +43,7 @@ export function PlacePhotosField() {
 				Photos
 			</Label>
 
-			<ListSortable
+			<List
 				id={`${id}list`}
 				items={rows}
 				getKey={(row) => row.key}
@@ -76,7 +76,7 @@ export function PlacePhotosField() {
 						/>
 					</ListItem>
 				)}
-			</ListSortable>
+			</List>
 
 			<Button
 				type="button"

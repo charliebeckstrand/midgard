@@ -221,7 +221,7 @@ export const dataDisplayCases: readonly Case[] = [
 		// Named list of items; the set is labeled and not sortable here.
 		name: 'list',
 		element: (
-			<List key="ls" items={listTasks} aria-label="Tasks">
+			<List key="ls" items={listTasks} aria-label="Tasks" sortable={false}>
 				{(task) => (
 					<ListItem>
 						<ListLabel>{task.label}</ListLabel>
@@ -239,7 +239,13 @@ export const dataDisplayCases: readonly Case[] = [
 		// `separated` variant with a label only, so it exercises neither.
 		name: 'list (solid, described interactive rows)',
 		element: (
-			<List key="lss" items={listTasks} aria-label="Described tasks" variant="solid">
+			<List
+				key="lss"
+				items={listTasks}
+				aria-label="Described tasks"
+				variant="solid"
+				sortable={false}
+			>
 				{(task) => (
 					<ListItem href={`#${task.id}`}>
 						<ListLabel>{task.label}</ListLabel>

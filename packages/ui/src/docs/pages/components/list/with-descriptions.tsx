@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ListDescription, ListItem, ListLabel, ListSortable } from 'ui/list'
+import { List, ListDescription, ListItem, ListLabel } from 'ui/list'
 
 const initialTasks = [
 	{
@@ -24,13 +24,13 @@ export default function WithDescriptions() {
 	const [tasks, setTasks] = useState(initialTasks)
 
 	return (
-		<ListSortable items={tasks} getKey={(task) => task.id} onReorder={setTasks} aria-label="Tasks">
+		<List items={tasks} getKey={(task) => task.id} onReorder={setTasks} aria-label="Tasks">
 			{(task) => (
 				<ListItem>
 					<ListLabel>{task.label}</ListLabel>
 					<ListDescription>{task.description}</ListDescription>
 				</ListItem>
 			)}
-		</ListSortable>
+		</List>
 	)
 }

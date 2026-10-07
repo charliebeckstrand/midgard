@@ -5,7 +5,7 @@ import {
 	AccordionPanel,
 	AccordionTrigger,
 } from '../../components/accordion'
-import { ListItem, ListLabel, ListSortable } from '../../components/list'
+import { List, ListItem, ListLabel } from '../../components/list'
 import { Tree, TreeItem } from '../../components/tree'
 import { present, renderUI, screen } from '../helpers'
 
@@ -50,9 +50,9 @@ describe('button text alignment in a right-to-left layout (real browser)', () =>
 	it('aligns a list row that acts on a press to the inline start', () => {
 		renderUI(
 			<div dir="rtl">
-				<ListSortable
+				<List
 					items={[{ id: 'invoice', label: 'Invoice' }]}
-					handle={false}
+					sortable={false}
 					getKey={(item) => item.id}
 					onReorder={() => {}}
 				>
@@ -61,7 +61,7 @@ describe('button text alignment in a right-to-left layout (real browser)', () =>
 							<ListLabel>{item.label}</ListLabel>
 						</ListItem>
 					)}
-				</ListSortable>
+				</List>
 			</div>,
 		)
 

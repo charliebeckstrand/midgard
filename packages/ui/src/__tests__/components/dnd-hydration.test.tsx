@@ -10,7 +10,7 @@ import {
 	KanbanColumn,
 	KanbanColumnBody,
 } from '../../components/kanban'
-import { ListItem, ListSortable } from '../../components/list'
+import { List, ListItem } from '../../components/list'
 import { act, attach } from '../helpers'
 
 type Item = { id: string; label: string }
@@ -82,9 +82,9 @@ describe.each([
 	],
 	[
 		'sortable List',
-		<ListSortable key="list" items={items} getKey={(item) => item.id} onReorder={() => {}}>
+		<List key="list" items={items} getKey={(item) => item.id} onReorder={() => {}}>
 			{(item) => <ListItem>{item.label}</ListItem>}
-		</ListSortable>,
+		</List>,
 	],
 ])('%s drag description id across server renders', (_name, element) => {
 	it('gives each server render the same id, and the client hydrates it with no mismatch', () => {

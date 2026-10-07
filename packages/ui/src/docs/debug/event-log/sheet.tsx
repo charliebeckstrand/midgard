@@ -297,6 +297,7 @@ export function EventLogSheet({
 							items={rows.toReversed()}
 							getKey={getKey}
 							variant="plain"
+							sortable={false}
 							virtual
 							aria-label="Events"
 						>

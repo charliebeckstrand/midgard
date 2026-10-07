@@ -8,9 +8,6 @@ import {
 	KanbanColumn,
 	KanbanColumnBody,
 } from '../../../components/kanban'
-import { ListItem, ListSortable } from '../../../components/list'
-import { DensityProvider } from '../../../providers/density'
-import { LocaleProvider } from '../../../providers/locale'
 import { renderUI, waitFor } from '../../helpers'
 import { drag } from '../helpers/drag'
 
@@ -31,16 +28,6 @@ describe('drag overlay in a glass drawer (real browser)', () => {
 
 	/** A spacer above the sortable, so the panel and the item have different tops. */
 	const spacer = <div style={{ height: 200 }} />
-
-	function Rows() {
-		const [rows, setRows] = useState(['a', 'b', 'c'])
-
-		return (
-			<ListSortable items={rows} getKey={(row) => row} onReorder={setRows} aria-label="Rows">
-				{(row) => <ListItem>Row {row}</ListItem>}
-			</ListSortable>
-		)
-	}
 
 	function Board() {
 		const [columns, setColumns] = useState([{ id: 'todo', items: ['a', 'b', 'c'] }])
@@ -69,13 +56,6 @@ describe('drag overlay in a glass drawer (real browser)', () => {
 	}
 
 	it.each([
-		{
-			name: 'List',
-			sortable: <Rows />,
-			item: '[data-slot="list-item"]',
-			handle: '[data-slot="list-handle"]',
-			overlay: 'ul[inert]',
-		},
 		{
 			name: 'Kanban',
 			sortable: <Board />,
@@ -134,66 +114,5 @@ describe('drag overlay in a glass drawer (real browser)', () => {
 		expect(picture?.top).toBeCloseTo(start.top + TRAVEL, 0)
 
 		expect(picture?.left).toBeCloseTo(start.left, 0)
-	})
-
-	// The portal host writes the density and the direction of the sortable, so the
-	// picture keeps the size and the side of the row that it follows.
-	it('keeps the density and the direction of the List row', async () => {
-		renderUI(
-			<DensityProvider density="compact">
-				<LocaleProvider dir="rtl">
-					<Drawer open onOpenChange={() => {}}>
-						<DrawerPanel glass aria-label="Sortable">
-							<DrawerTitle>Sortable</DrawerTitle>
-
-							<DrawerBody>
-								<Rows />
-							</DrawerBody>
-						</DrawerPanel>
-					</Drawer>
-				</LocaleProvider>
-			</DensityProvider>,
-		)
-
-		const grip = await waitFor(() => {
-			const node = document.querySelector<HTMLElement>('[data-slot="list-handle"]')
-
-			expect(node).not.toBeNull()
-
-			return node as HTMLElement
-		})
-
-		const source = grip.closest('[data-slot="list-item"]') as HTMLElement
-
-		const box = grip.getBoundingClientRect()
-
-		const x = box.left + box.width / 2
-
-		const y = box.top + box.height / 2
-
-		const held = await drag(grip, { x, y }, [
-			{ x, y: y + 4 },
-			{ x, y: y + TRAVEL },
-		])
-
-		const picture = document.querySelector<HTMLElement>('ul[inert] [data-slot="list-item"]')
-
-		const read = (node: HTMLElement | null | undefined) =>
-			node && {
-				direction: getComputedStyle(node).direction,
-				fontSize: getComputedStyle(node).fontSize,
-				height: node.getBoundingClientRect().height,
-			}
-
-		// Read while the drag is live, because the picture leaves with the drop.
-		const seen = { inPortal: picture?.closest('[data-slot="portal"]') != null, row: read(picture) }
-
-		await held.release()
-
-		// The row itself is compact (16px, not the 18px of md) and right to left, so
-		// the match says that the picture took the scopes of the row.
-		expect(read(source)).toMatchObject({ direction: 'rtl', fontSize: '16px' })
-
-		expect(seen).toEqual({ inPortal: true, row: read(source) })
 	})
 })

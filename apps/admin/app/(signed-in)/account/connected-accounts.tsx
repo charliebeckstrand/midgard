@@ -75,6 +75,7 @@ export function ConnectedAccounts({
 					items={shown}
 					getKey={(provider) => provider}
 					variant="outline"
+					sortable={false}
 					aria-label="Connected accounts"
 				>
 					{(provider) => {

@@ -13,7 +13,7 @@ import {
 } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
-import { List, ListItem, ListSortable } from '../../components/list'
+import { List, ListItem } from '../../components/list'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
 import { SearchInput } from '../../components/search-input'
 import { cn, createContext } from '../../core'
@@ -286,7 +286,7 @@ function GridColumnManagerFrozenGroup({
 	onPinChange,
 }: GridColumnManagerFrozenGroupProps) {
 	return (
-		<List items={items} getKey={getKey} variant="plain">
+		<List items={items} getKey={getKey} variant="plain" sortable={false}>
 			{(col) => (
 				<ListItem prefix={frozenLeading(col, onPinChange)}>
 					<GridManagerCheckboxRow
@@ -354,10 +354,10 @@ function GridColumnManagerOrderableList({
 		</ListItem>
 	)
 
-	// The read-only list renders no grip; the reorderable list keeps the
-	// auto-inserted handle and commits moves through `onReorder`.
+	// A read-only list drops `sortable` so no static grip renders; the reorderable
+	// list keeps the auto-inserted handle and commits moves through `onReorder`.
 	return reorderable ? (
-		<ListSortable
+		<List
 			items={items}
 			getKey={getKey}
 			onReorder={onReorder}
@@ -365,9 +365,9 @@ function GridColumnManagerOrderableList({
 			aria-label="Reorder columns"
 		>
 			{renderRow}
-		</ListSortable>
+		</List>
 	) : (
-		<List items={items} getKey={getKey} variant="plain" aria-label="Columns">
+		<List items={items} getKey={getKey} sortable={false} variant="plain" aria-label="Columns">
 			{renderRow}
 		</List>
 	)

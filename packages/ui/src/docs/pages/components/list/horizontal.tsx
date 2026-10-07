@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ListItem, ListLabel, ListSortable } from 'ui/list'
+import { List, ListItem, ListLabel } from 'ui/list'
 
 const initialColumns = [
 	{ id: 'todo', label: 'Todo' },
@@ -12,7 +12,7 @@ export default function Horizontal() {
 	const [columns, setColumns] = useState(initialColumns)
 
 	return (
-		<ListSortable
+		<List
 			items={columns}
 			getKey={(column) => column.id}
 			onReorder={setColumns}
@@ -24,6 +24,6 @@ export default function Horizontal() {
 					<ListLabel>{column.label}</ListLabel>
 				</ListItem>
 			)}
-		</ListSortable>
+		</List>
 	)
 }
