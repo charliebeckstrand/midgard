@@ -9,6 +9,7 @@ import { Heading } from 'ui/heading'
 import { AuthLayout } from 'ui/layouts'
 import { Link } from 'ui/link'
 import { PasswordInput } from 'ui/password-input'
+import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import { bifrost } from './bifrost'
 import { ErrorAlert } from './error-alert'
@@ -61,36 +62,39 @@ export function ResetPasswordPage() {
 					confirmPassword: chain(required(), matches('password', 'password')),
 				}}
 				onSubmit={handleSubmit}
-				className="grid gap-6 w-full sm:max-w-sm p-6"
 			>
-				<Heading className="text-center">Choose a new password</Heading>
+				<Stack gap="xl" className="w-full sm:max-w-sm p-6">
+					<Heading className="text-center">Choose a new password</Heading>
 
-				{serverError && <ErrorAlert onDismiss={() => setServerError('')}>{serverError}</ErrorAlert>}
+					{serverError && (
+						<ErrorAlert onDismiss={() => setServerError('')}>{serverError}</ErrorAlert>
+					)}
 
-				<Field>
-					<Label>New password</Label>
-					<PasswordInput name="password" autoComplete="new-password" />
-					<Message name="password" />
-				</Field>
+					<Field>
+						<Label>New password</Label>
+						<PasswordInput name="password" autoComplete="new-password" />
+						<Message name="password" />
+					</Field>
 
-				<Field>
-					<Label>Confirm password</Label>
-					<PasswordInput name="confirmPassword" autoComplete="new-password" />
-					<Message name="confirmPassword" />
-				</Field>
+					<Field>
+						<Label>Confirm password</Label>
+						<PasswordInput name="confirmPassword" autoComplete="new-password" />
+						<Message name="confirmPassword" />
+					</Field>
 
-				<Button type="submit" className="w-full">
-					Set password
-				</Button>
+					<Button type="submit" className="w-full">
+						Set password
+					</Button>
 
-				<div className="text-center">
-					<Text>
-						Link expired?{' '}
-						<Link href="/forgot-password" underline>
-							Get a new one
-						</Link>
-					</Text>
-				</div>
+					<div className="text-center">
+						<Text>
+							Link expired?{' '}
+							<Link href="/forgot-password" underline>
+								Get a new one
+							</Link>
+						</Text>
+					</div>
+				</Stack>
 			</Form>
 		</AuthLayout>
 	)

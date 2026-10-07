@@ -3,6 +3,7 @@ import { type ReactNode, Suspense } from 'react'
 import { Card } from 'ui/card'
 import { Link } from 'ui/link'
 import { Stat, StatDescription, StatLabel, StatValue, StatValueSkeleton } from 'ui/stat'
+import { Columns } from 'ui/structure/columns'
 import { Stack } from 'ui/structure/stack'
 import { PageHeader } from '@/components/page-header'
 
@@ -53,7 +54,7 @@ type Counts = {
  */
 function Summaries({ counts }: { counts?: Counts }) {
 	return (
-		<div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+		<Columns columns={{ initial: 1, sm: 2, xl: 4 }}>
 			<Summary label="Users" value={counts ? counts.users : null} href="/users">
 				Manage the users
 			</Summary>
@@ -66,7 +67,7 @@ function Summaries({ counts }: { counts?: Counts }) {
 			<Summary label="Bans" value={counts ? counts.bans : null} href="/security">
 				Review the bans
 			</Summary>
-		</div>
+		</Columns>
 	)
 }
 

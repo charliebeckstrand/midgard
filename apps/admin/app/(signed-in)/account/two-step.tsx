@@ -13,6 +13,7 @@ import { Divider } from 'ui/divider'
 import { Field, Label, Message } from 'ui/fieldset'
 import { Form, type FormSubmitHandler } from 'ui/form'
 import { Input } from 'ui/input'
+import { Columns } from 'ui/structure/columns'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
 import type { Factors, TotpSetup } from './account-api'
@@ -146,21 +147,22 @@ export function TwoStep({ factors, admin, children }: TwoStepProps) {
 										: 'Type the six digits that the app shows',
 							}}
 							onSubmit={handleConfirm}
-							className="grid gap-4"
 						>
-							<Field>
-								<Label>Code from the app</Label>
-								<Input name="code" inputMode="numeric" autoComplete="one-time-code" />
-								<Message name="code" />
-							</Field>
-							<Flex gap="sm" wrap>
-								<Button type="submit" color="blue" disabled={confirmTotp.isPending}>
-									Turn on
-								</Button>
-								<Button variant="plain" onClick={() => setSetup(null)}>
-									Cancel
-								</Button>
-							</Flex>
+							<Stack gap="lg">
+								<Field>
+									<Label>Code from the app</Label>
+									<Input name="code" inputMode="numeric" autoComplete="one-time-code" />
+									<Message name="code" />
+								</Field>
+								<Flex gap="sm" wrap>
+									<Button type="submit" color="blue" disabled={confirmTotp.isPending}>
+										Turn on
+									</Button>
+									<Button variant="plain" onClick={() => setSetup(null)}>
+										Cancel
+									</Button>
+								</Flex>
+							</Stack>
 						</Form>
 					</Section>
 				) : (
@@ -226,11 +228,14 @@ function RecoveryCodes({ codes, count, pending, onMake }: RecoveryCodesProps) {
 				description="Keep these codes in a safe place. Each code works once, in place of your passkey or app. They do not show again."
 				action={<CopyButton text={codes.join('\n')} aria-label="Copy the recovery codes" />}
 			>
-				<ul className="grid grid-cols-2 gap-2 font-mono">
-					{codes.map((code) => (
-						<li key={code}>{code}</li>
-					))}
-				</ul>
+				{/* The list is `contents`, so each code is a cell of the grid. */}
+				<Columns columns={2} gap="sm" className="font-mono">
+					<ul className="contents">
+						{codes.map((code) => (
+							<li key={code}>{code}</li>
+						))}
+					</ul>
+				</Columns>
 			</Section>
 		)
 	}

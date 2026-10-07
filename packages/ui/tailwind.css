@@ -21,7 +21,7 @@
 @plugin './src/core/scroll/fade.ts';
 
 /*
- * The breakpoint classes of Box, Flex, and Split. `atBreakpoint` in
+ * The breakpoint classes of Box, Columns, Flex, and Split. `atBreakpoint` in
  * `src/types/responsive.ts` puts the prefix on a class of the shared scale
  * (`ma`) at run time, so the scanner does not find these classes in the
  * source. Each line gives one axis for each breakpoint. A test makes sure that
@@ -34,6 +34,7 @@
 @source inline('{sm,md,lg,xl,2xl}:density-{p,px,py,gap}-[3,4,5]');
 @source inline('{sm,md,lg,xl,2xl}:density-{p,px,py,gap}-[5,6,7]');
 @source inline('{sm,md,lg,xl,2xl}:flex-{row,col,row-reverse,col-reverse}');
+@source inline('{sm,md,lg,xl,2xl}:grid-cols-{1,2,3,4,6}');
 @source inline('{sm,md,lg,xl,2xl}:items-{start,center,end,stretch,baseline}');
 @source inline('{sm,md,lg,xl,2xl}:justify-{start,center,end,between,around,evenly}');
 @source inline('{sm,md,lg,xl,2xl}:grid-{cols,rows}-{[1fr_3fr],[1fr_2fr],[1fr_1fr],[2fr_1fr],[3fr_1fr],none}');

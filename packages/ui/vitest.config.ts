@@ -46,6 +46,7 @@ const nodeFiles = nodeEnvironmentFiles()
 // those files as its inputs. Thus an edit outside ui does not clear the cache of
 // the whole ui suite.
 const workspaceScans = [
+	'src/__tests__/boundary/app-gap-boundary.test.ts',
 	'src/__tests__/boundary/biome-plugin-boundary.test.ts',
 	'src/__tests__/boundary/cadence-boundary.test.ts',
 	'src/__tests__/boundary/controlled-language-boundary.test.ts',

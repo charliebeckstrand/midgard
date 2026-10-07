@@ -5,6 +5,7 @@ import { compile } from '@tailwindcss/node'
 import { describe, expect, it } from 'vitest'
 import { ma } from '../../recipes/kiso'
 import { resolvePadding, resolvePx, resolvePy } from '../../structure/box/variants'
+import { type ColumnCount, resolveColumns } from '../../structure/columns/variants'
 import {
 	type FlexAlign,
 	type FlexDirection,
@@ -60,6 +61,8 @@ const JUSTIFIES = keysOf<FlexJustify>({
 	evenly: true,
 })
 
+const COUNTS: ColumnCount[] = [1, 2, 3, 4, 6]
+
 const ORIENTATIONS = keysOf<Orientation>({ horizontal: true, vertical: true })
 
 const RATIOS = keysOf<SplitRatio>({
@@ -87,6 +90,7 @@ function prefixedClasses(): string[] {
 			...DIRECTIONS.flatMap((direction) => resolveDirection(at(direction))),
 			...ALIGNS.flatMap((align) => resolveAlign(at(align))),
 			...JUSTIFIES.flatMap((justify) => resolveJustify(at(justify))),
+			...COUNTS.flatMap((count) => resolveColumns(at(count))),
 			// The change of axis at `bp` also gives the reset of the old axis.
 			...ORIENTATIONS.flatMap((from) =>
 				ORIENTATIONS.flatMap((to) =>
@@ -125,8 +129,8 @@ describe('the breakpoint classes of the structure units', () => {
 		const classes = prefixedClasses()
 
 		// A step of each axis at each breakpoint: 4 × 6 spacing, 4 + 5 + 6
-		// keywords, and 10 templates and 2 resets.
-		expect(classes).toHaveLength(MIN_BREAKPOINTS.length * (24 + 15 + 12))
+		// keywords, 5 column counts, and 10 templates and 2 resets.
+		expect(classes).toHaveLength(MIN_BREAKPOINTS.length * (24 + 15 + 5 + 12))
 
 		// The build with no candidates has only the inline classes. A class
 		// that is not one of them adds CSS.

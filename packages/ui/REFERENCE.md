@@ -73,7 +73,7 @@ Enforced by boundary tests (`packages/ui/src/__tests__/boundary/`). Add a page u
 | Load time of the docs app | `packages/ui` | `pnpm docs:bench` |
 | Dev (docs site) | `packages/ui` | `pnpm dev` |
 
-`test:changed` also runs the whole `boundary` and `workspace` projects, so each gate runs before a push. CI runs each suite except the benchmarks and the Percy snapshots. The `build` job builds the apps. The `browser` job also runs `docs:hydration`, which fails when a prerendered page of the docs app reports a hydration error. The same job runs `bundle:budget` on the docs build. The `Visual` workflow runs the Percy snapshots each Thursday, and on demand from the Actions tab. A Thursday on which `packages/ui` and the lockfile did not change takes no snapshots. No pull request or push starts it.
+`test:changed` also runs the whole `boundary` and `workspace` projects, so each gate runs before a push. CI runs each suite except the benchmarks and the Percy snapshots. The `build` job builds the apps. The `browser` job also runs `docs:hydration`, which fails when a prerendered page of the docs app reports a hydration error. It also fails when a page whose HTML names a removed chunk does not reload one time and hydrate. The same job runs `bundle:budget` on the docs build. The `Visual` workflow runs the Percy snapshots each Thursday, and on demand from the Actions tab. A Thursday on which `packages/ui` and the lockfile did not change takes no snapshots. No pull request or push starts it.
 
 ## 5. Where to look
 

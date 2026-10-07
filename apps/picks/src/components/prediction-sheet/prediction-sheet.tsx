@@ -9,6 +9,7 @@ import { cn } from 'ui/core'
 import { Form, type SubmitResult } from 'ui/form'
 import { Icon } from 'ui/icon'
 import { Sheet, SheetBody, SheetClose, SheetFooter, SheetPanel, SheetTitle } from 'ui/sheet'
+import { Columns } from 'ui/structure/columns'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
 import { Text } from 'ui/text'
@@ -121,13 +122,11 @@ function PredictionForm({
 					)}
 
 					{/* One grid for all the games, so their sides line up. A week with a game that is off adds a column for its badge. */}
-					<div
-						className={cn('grid gap-3', games.some(isOff) ? 'grid-cols-[1fr_auto]' : 'grid-cols-1')}
-					>
+					<Columns gap="md" className={cn(games.some(isOff) && 'grid-cols-[1fr_auto]')}>
 						{games.map((game) => (
 							<PickField key={game.id} game={game} />
 						))}
-					</div>
+					</Columns>
 				</Stack>
 			</SheetBody>
 

@@ -38,6 +38,10 @@
 			"types": "./src/structure/box/index.ts",
 			"default": "./src/structure/box/index.ts"
 		},
+		"./columns": {
+			"types": "./src/structure/columns/index.ts",
+			"default": "./src/structure/columns/index.ts"
+		},
 		"./container": {
 			"types": "./src/structure/container/index.ts",
 			"default": "./src/structure/container/index.ts"
