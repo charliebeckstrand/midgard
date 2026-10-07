@@ -184,14 +184,20 @@ export function ScheduleList({
 
 	return (
 		<>
-			<div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+			<Flex
+				direction={{ initial: 'col', sm: 'row' }}
+				align={{ initial: 'stretch', sm: 'center' }}
+				justify={{ sm: 'between' }}
+				gap="lg"
+				className="mb-6"
+			>
 				{header}
 
 				<CheckboxField className="sm:ms-auto">
 					<Checkbox checked={showDates} onChange={(event) => setShowDates(event.target.checked)} />
 					<Label>Show dates</Label>
 				</CheckboxField>
-			</div>
+			</Flex>
 
 			<List
 				items={weeks}
@@ -248,14 +254,16 @@ export function ScheduleList({
 								</Flex>
 							}
 						>
-							<ListLabel className="flex items-center gap-2">
-								{week.label}
-								{/* The smallest step fits the line of the name, so the row keeps its height. */}
-								{current === week.number ? (
-									<Badge variant="soft" color="blue" size="xs">
-										Current week
-									</Badge>
-								) : null}
+							<ListLabel>
+								<Flex as="span" align="center" gap="sm">
+									{week.label}
+									{/* The smallest step fits the line of the name, so the row keeps its height. */}
+									{current === week.number ? (
+										<Badge variant="soft" color="blue" size="xs">
+											Current week
+										</Badge>
+									) : null}
+								</Flex>
 							</ListLabel>
 
 							{showDates ? (

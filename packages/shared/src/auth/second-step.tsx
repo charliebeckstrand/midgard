@@ -14,6 +14,7 @@ import { Form, type FormSubmitHandler } from 'ui/form'
 import { Heading } from 'ui/heading'
 import { Input } from 'ui/input'
 import { AuthLayout } from 'ui/layouts'
+import { Stack } from 'ui/stack'
 import { signOut } from './account'
 import { bifrost } from './bifrost'
 import { ErrorAlert } from './error-alert'
@@ -104,71 +105,74 @@ function SecondStep({ methods, onVerified, onExpired, onCancel, cancelLabel }: S
 	}
 
 	return (
-		<Fieldset disabled={leaving} className="grid gap-6">
-			{error && <ErrorAlert onDismiss={() => setError('')}>{error}</ErrorAlert>}
+		<Fieldset disabled={leaving}>
+			<Stack gap="xl">
+				{error && <ErrorAlert onDismiss={() => setError('')}>{error}</ErrorAlert>}
 
-			{showCode && (
-				<Form<CodeValues>
-					key={useRecovery ? 'recovery' : 'totp'}
-					defaultValues={{ code: '' }}
-					validate={{ code: chain(required()) }}
-					onSubmit={handleSubmit}
-					className="grid gap-6"
-				>
-					<Field>
-						<Label>{useRecovery ? 'Recovery code' : 'Code from your authenticator app'}</Label>
-						{useRecovery ? (
-							<Input name="code" autoComplete="off" autoCapitalize="none" spellCheck={false} />
-						) : (
-							<Input name="code" inputMode="numeric" autoComplete="one-time-code" />
-						)}
-						<Message name="code" />
-					</Field>
+				{showCode && (
+					<Form<CodeValues>
+						key={useRecovery ? 'recovery' : 'totp'}
+						defaultValues={{ code: '' }}
+						validate={{ code: chain(required()) }}
+						onSubmit={handleSubmit}
+					>
+						<Stack gap="xl">
+							<Field>
+								<Label>{useRecovery ? 'Recovery code' : 'Code from your authenticator app'}</Label>
+								{useRecovery ? (
+									<Input name="code" autoComplete="off" autoCapitalize="none" spellCheck={false} />
+								) : (
+									<Input name="code" inputMode="numeric" autoComplete="one-time-code" />
+								)}
+								<Message name="code" />
+							</Field>
 
-					<Button type="submit" className="w-full">
-						Continue
+							<Button type="submit" className="w-full">
+								Continue
+							</Button>
+						</Stack>
+					</Form>
+				)}
+
+				{methods.includes('passkey') && (
+					<Button
+						type="button"
+						variant={showCode ? 'outline' : undefined}
+						className="w-full"
+						onClick={usePasskey}
+					>
+						Use a passkey
 					</Button>
-				</Form>
-			)}
+				)}
 
-			{methods.includes('passkey') && (
-				<Button
-					type="button"
-					variant={showCode ? 'outline' : undefined}
-					className="w-full"
-					onClick={usePasskey}
-				>
-					Use a passkey
+				{hasRecovery && !useRecovery && (
+					<Button
+						type="button"
+						variant="plain"
+						color="blue"
+						className="self-center"
+						onClick={() => setUseRecovery(true)}
+					>
+						Use a recovery code
+					</Button>
+				)}
+
+				{useRecovery && hasTotp && (
+					<Button
+						type="button"
+						variant="plain"
+						color="blue"
+						className="self-center"
+						onClick={() => setUseRecovery(false)}
+					>
+						Use your authenticator app
+					</Button>
+				)}
+
+				<Button type="button" variant="plain" className="self-center" onClick={onCancel}>
+					{cancelLabel}
 				</Button>
-			)}
-
-			{hasRecovery && !useRecovery && (
-				<Button
-					type="button"
-					variant="plain"
-					color="blue"
-					className="justify-self-center"
-					onClick={() => setUseRecovery(true)}
-				>
-					Use a recovery code
-				</Button>
-			)}
-
-			{useRecovery && hasTotp && (
-				<Button
-					type="button"
-					variant="plain"
-					color="blue"
-					className="justify-self-center"
-					onClick={() => setUseRecovery(false)}
-				>
-					Use your authenticator app
-				</Button>
-			)}
-
-			<Button type="button" variant="plain" className="justify-self-center" onClick={onCancel}>
-				{cancelLabel}
-			</Button>
+			</Stack>
 		</Fieldset>
 	)
 }
@@ -193,7 +197,7 @@ export function VerifyPage({ methods }: VerifyPageProps) {
 
 	return (
 		<AuthLayout>
-			<div className="grid gap-6 w-full sm:max-w-sm p-6">
+			<Stack gap="xl" className="w-full sm:max-w-sm p-6">
 				<Heading className="text-center">Confirm that it is you</Heading>
 
 				<SecondStep
@@ -203,7 +207,7 @@ export function VerifyPage({ methods }: VerifyPageProps) {
 					onCancel={signOut}
 					cancelLabel="Sign out"
 				/>
-			</div>
+			</Stack>
 		</AuthLayout>
 	)
 }

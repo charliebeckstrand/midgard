@@ -12,6 +12,7 @@ import { Icon } from 'ui/icon'
 import { Input } from 'ui/input'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 import { Rating } from 'ui/rating'
+import { Columns } from 'ui/structure/columns'
 import { Flex } from 'ui/structure/flex'
 import { Text } from 'ui/text'
 import { ToggleIconButton } from 'ui/toggle-icon-button'
@@ -224,7 +225,7 @@ export function PlaceFormDrawer({ target, onOpenChange, onSubmit }: PlaceFormDra
 					    screen and the reader scrolls to reach the button they are aiming
 					    for. The search leads across both, because it is the field that
 					    fills the others. */}
-						<div className="grid grid-cols-1 items-start gap-x-6 gap-y-5 pb-6 sm:grid-cols-2">
+						<Columns columns={{ initial: 1, sm: 2 }} gap="xl" align="start" className="pb-6">
 							{placeFields ? (
 								<>
 									<div className="sm:col-span-2">
@@ -305,7 +306,7 @@ export function PlaceFormDrawer({ target, onOpenChange, onSubmit }: PlaceFormDra
 									<Text>{failure}</Text>
 								</Alert>
 							)}
-						</div>
+						</Columns>
 					</DrawerBody>
 
 					<DrawerFooter>

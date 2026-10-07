@@ -42,7 +42,7 @@ export type PlaceTrailProps = {
  */
 export function PlaceTrail({ steps, className, children }: PlaceTrailProps) {
 	return (
-		<Breadcrumb collapse className="gap-3">
+		<Breadcrumb collapse>
 			<BreadcrumbList className={className}>
 				{steps.map((step, at) => {
 					const picks = step.onPick !== undefined
