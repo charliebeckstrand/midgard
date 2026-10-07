@@ -8,9 +8,8 @@ import type { GridSortState } from './engine/grid-sort/state'
 
 export type { GridSortState }
 
-/** Table-wide state shared with head and rows: selection flags and toggles, sort, pinning, and resize/sticky-header flags. */
+/** Table-wide state shared with the head: the select-all flags and toggle, sort, pinning, and the sticky-header flag. */
 export type GridContextValue = {
-	toggleRow: (key: string | number) => void
 	toggleAll: () => void
 	allSelected: boolean
 	someSelected: boolean
@@ -30,18 +29,6 @@ export type GridContextValue = {
 	 */
 	pinColumn: (column: string | number, side: 'left' | 'right' | false) => void
 	stickyHeader: boolean
-	/**
-	 * Whether a column drag-resize is in flight. Head and cells read it to
-	 * suppress their truncation tooltips for the duration. A resize reflows the
-	 * columns, and the overflow tooltip would otherwise flash open over the
-	 * content the drag is reshaping.
-	 *
-	 * @remarks The grid's own truncation surfaces read this flag through the
-	 * narrower {@link useGridResizing} instead. A resize therefore doesn't
-	 * re-render every cell through this table-wide value. It stays here for
-	 * external `useGrid()` consumers.
-	 */
-	resizing: boolean
 }
 
 /**
@@ -70,8 +57,7 @@ export const [GridSettleContext, useGridSettle] = createContext<GridSettleStore 
 const notResizing = () => false
 
 /**
- * Reads whether a column drag-resize is in flight, mirroring
- * {@link GridContextValue.resizing} on a narrower channel. The grid's truncation
+ * Reads whether a column drag-resize is in flight. The grid's truncation
  * surfaces (head titles and body cells) read it to suppress their tooltips for
  * the duration. A resize reflows the columns, and the overflow tooltip would
  * otherwise flash open over the content the drag is reshaping.

@@ -46,7 +46,7 @@ const FLOW_PAGINATION: GridPagination = { defaultValue: { pageIndex: 0, pageSize
 /**
  * Data grid over a flat `rows` source. Maps each row through `columns`, keys rows
  * via `getKey`, and sorts its rows by column value itself. It shares that state
- * with head and cells via {@link useGrid}. Sort, selection, and `columnOrder`
+ * with head and cells through context. Sort, selection, and `columnOrder`
  * are controllable. Selecting rows surfaces a batch-action {@link Toolbar}, and
  * a column manager dialog reorders and hides columns. The `reorder` adds header
  * drag handles, and `navigable` adds a keyboard cell cursor (`role="grid"` with

@@ -1,5 +1,4 @@
-export { type GridContextValue, type GridSortState, useGrid } from './context'
-export { downloadExcel, rowsToXlsx } from './engine/grid-export/excel'
+export type { GridSortState } from './context'
 export type {
 	GridExportAction,
 	GridExportable,
@@ -16,10 +15,6 @@ export type {
 	GridRowClick,
 } from './engine/grid-row/cell'
 export { Grid, type GridProps } from './grid'
-export {
-	GridColumnManager,
-	type GridColumnManagerProps,
-} from './grid-column-manager'
 export { gridExportMenuItems } from './grid-context-menu-utilities'
 export type {
 	GridColumnManagerConfig,
@@ -55,8 +50,7 @@ export type {
 	GridRowActionsContext,
 } from './grid-editing-types'
 export type { GridColumnGroup, GridColumnGroups } from './grid-group-types'
-export type { GridRowGroup, GridRowGroups, GridRowManagerGroup } from './grid-row-group-types'
-export { GridRowManager, type GridRowManagerProps } from './grid-row-manager'
+export type { GridRowGroup, GridRowGroups } from './grid-row-group-types'
 export type {
 	GridAggCellContext,
 	GridAggFunc,
@@ -66,7 +60,6 @@ export type {
 	GridColumn,
 	GridColumnFilterState,
 	GridColumnFilters,
-	GridColumnManagerItem,
 	GridColumnMenu,
 	GridColumnMenuContext,
 	GridColumnSizing,
