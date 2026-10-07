@@ -18,6 +18,8 @@ export type Line = {
 	time?: number
 	/** The name that the kind column shows in place of the kind. */
 	name?: string
+	/** The batch of the line: the id of the browser operation that the line is a part of. */
+	batch?: string
 }
 
 /** Writes a line to the log. */
@@ -25,6 +27,45 @@ export type Note = (line: Line) => void
 
 /** One source of lines: it adds its listeners, and returns a function that removes them. */
 export type Source = (note: Note) => () => void
+
+// The ids of the batches. An id starts with the time origin of the page load,
+// so the ids of two page loads in a kept log are not the same.
+let lastBatch = 0
+
+/** A new batch id. */
+function nextBatch(): string {
+	return `${Math.round(performance.timeOrigin)}.${++lastBatch}`
+}
+
+/** The time with no new event that ends a scroll or a burst, in milliseconds. */
+const QUIET = 150
+
+/**
+ * The batches of the bursts of a source. A line takes the batch of its key
+ * while the lines of that key come less than {@link QUIET} apart.
+ */
+function bursts(): { batchOf: (key: string) => string; stop: () => void } {
+	const open = new Map<string, { id: string; timer: ReturnType<typeof setTimeout> }>()
+
+	return {
+		batchOf(key) {
+			const burst = open.get(key)
+
+			clearTimeout(burst?.timer)
+
+			const id = burst?.id ?? nextBatch()
+
+			open.set(key, { id, timer: setTimeout(() => open.delete(key), QUIET) })
+
+			return id
+		},
+		stop() {
+			for (const { timer } of open.values()) clearTimeout(timer)
+
+			open.clear()
+		},
+	}
+}
 
 /** Whether an event target is in the button of the log. */
 function isOwn(target: unknown): boolean {
@@ -134,10 +175,28 @@ function chord(event: KeyboardEvent): string {
 	return [...modifiers.map(([, name]) => name), key].join('+')
 }
 
-/** The input events, the keys with their modifiers, and each default that a script cancels. */
-const input: Source = (note) =>
-	on(document, INPUT, (event) => {
+/** The events that start a gesture: a press of a pointer or of a key. */
+const GESTURE_STARTS = new Set(['pointerdown', 'keydown'])
+
+/** The events that end a gesture. A gesture with no end ends at the next start. */
+const GESTURE_ENDS = new Set(['click', 'pointercancel'])
+
+/**
+ * The input events, the keys with their modifiers, and each default that a
+ * script cancels. The events of one gesture, from its start to its end, are
+ * one batch, such as the eight events of a tap from `pointerdown` to `click`.
+ */
+const input: Source = (note) => {
+	let gesture: string | undefined
+
+	return on(document, INPUT, (event) => {
 		if (isOwn(event.target)) return
+
+		if (GESTURE_STARTS.has(event.type)) gesture = nextBatch()
+
+		const batch = gesture
+
+		if (GESTURE_ENDS.has(event.type)) gesture = undefined
 
 		const keys = event instanceof KeyboardEvent
 
@@ -145,30 +204,39 @@ const input: Source = (note) =>
 			kind: 'input',
 			text: `${event.type}${keys ? ` ${chord(event)}` : ''} ${describe(event.target)}${event.isTrusted ? '' : ' synthetic'}`,
 			detail: keys ? { key: event.key, code: event.code, repeat: event.repeat } : undefined,
+			batch,
 		})
 
 		// The listeners of the target run after this capture listener.
 		setTimeout(
-			() => event.defaultPrevented && note({ kind: 'input', text: `${event.type} cancelled` }),
+			() =>
+				event.defaultPrevented && note({ kind: 'input', text: `${event.type} cancelled`, batch }),
 		)
 	})
+}
 
-/** The start and the end of each scroll. */
+/** The start and the end of each scroll, as one batch. */
 const scroll: Source = (note) => {
 	let scrolling: ReturnType<typeof setTimeout> | undefined
+
+	let batch = ''
 
 	const stop = on(document, ['scroll'], (event) => {
 		if (isOwn(event.target)) return
 
-		if (!scrolling) note({ kind: 'scroll', text: `scroll starts ${describe(event.target)}` })
+		if (!scrolling) {
+			batch = nextBatch()
+
+			note({ kind: 'scroll', text: `scroll starts ${describe(event.target)}`, batch })
+		}
 
 		clearTimeout(scrolling)
 
 		scrolling = setTimeout(() => {
 			scrolling = undefined
 
-			note({ kind: 'scroll', text: 'scroll ends' })
-		}, 150)
+			note({ kind: 'scroll', text: 'scroll ends', batch })
+		}, QUIET)
 	})
 
 	return () => {
@@ -178,15 +246,31 @@ const scroll: Source = (note) => {
 	}
 }
 
-/** Each resize of the window and of the visual viewport, with the reading of the viewport. */
+/**
+ * Each resize of the window and of the visual viewport, with the reading of
+ * the viewport. A burst of resizes is one batch.
+ */
 const resize: Source = (note) => {
+	const { batchOf, stop } = bursts()
+
 	const stops = [
 		on(window, ['resize'], () =>
-			note({ kind: 'viewport', text: 'window resize', detail: viewport() }),
+			note({
+				kind: 'viewport',
+				text: 'window resize',
+				detail: viewport(),
+				batch: batchOf('resize'),
+			}),
 		),
 		on(window.visualViewport, ['resize'], () =>
-			note({ kind: 'viewport', text: 'visual resize', detail: viewport() }),
+			note({
+				kind: 'viewport',
+				text: 'visual resize',
+				detail: viewport(),
+				batch: batchOf('resize'),
+			}),
 		),
+		stop,
 	]
 
 	return all(stops)
@@ -298,12 +382,22 @@ function timingOf(entry: PerformanceResourceTiming): JsonValue {
  * Each script and each link that the page loads, at the start time of its
  * load: the file name, the duration, `cache` for a load from the HTTP cache,
  * and the status of a load that fails. The detail holds the resource timing.
+ * The loads of one pass are one batch: a load that starts before each load of
+ * the pass ends is a part of the pass.
  */
-const network: Source = (note) =>
-	observe(['resource'], (entry) => {
+const network: Source = (note) => {
+	let pass = ''
+
+	let passEnd = Number.NEGATIVE_INFINITY
+
+	return observe(['resource'], (entry) => {
 		const resource = entry as PerformanceResourceTiming
 
 		if (resource.initiatorType !== 'script' && resource.initiatorType !== 'link') return
+
+		if (resource.startTime > passEnd) pass = nextBatch()
+
+		passEnd = Math.max(passEnd, resource.responseEnd)
 
 		// A load from the cache transfers no bytes, but has a body.
 		const cache = resource.transferSize === 0 && resource.decodedBodySize > 0 ? ' cache' : ''
@@ -316,8 +410,10 @@ const network: Source = (note) =>
 			text: `${new URL(resource.name).pathname.split('/').at(-1)} ${Math.round(resource.duration)} ms${cache}${failed}`,
 			detail: timingOf(resource),
 			time: resource.startTime,
+			batch: pass,
 		})
 	})
+}
 
 /** The paints, and the layout shifts that no input causes. */
 const paint: Source = (note) =>
@@ -334,9 +430,20 @@ const paint: Source = (note) =>
 			})
 	})
 
-/** The callbacks that a page gives to a component or to a module. */
-const components: Source = (note) =>
-	listenComponentEvents((kind, name, text, detail) => note({ kind, name, text, detail }))
+/**
+ * The callbacks that a page gives to a component or to a module. A burst of
+ * calls of one callback of one component is one batch.
+ */
+const components: Source = (note) => {
+	const { batchOf, stop } = bursts()
+
+	return all([
+		listenComponentEvents(({ source, name, path, text, detail }) =>
+			note({ kind: source, name, text, detail, batch: batchOf(`${name} ${path}`) }),
+		),
+		stop,
+	])
+}
 
 /** Each overlay that opens, with the reading of the viewport. */
 const overlay: Source = (note) =>

@@ -19,7 +19,9 @@ function collect(): string[] {
 	const texts: string[] = []
 
 	onTestFinished(
-		listenComponentEvents((source, name, text) => texts.push(`${source} ${name} ${text}`)),
+		listenComponentEvents(({ source, name, text }) => {
+			texts.push(`${source} ${name} ${text}`)
+		}),
 	)
 
 	return texts
@@ -124,7 +126,11 @@ describe('componentEvent', () => {
 	it('gives the full arguments as the detail, and no detail for a call with none', () => {
 		const details: unknown[] = []
 
-		onTestFinished(listenComponentEvents((_source, _name, _text, detail) => details.push(detail)))
+		onTestFinished(
+			listenComponentEvents(({ detail }) => {
+				details.push(detail)
+			}),
+		)
 
 		const long = 'x'.repeat(ARGUMENT_LENGTH * 2)
 
