@@ -1,7 +1,6 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Checkbox } from '../../components/checkbox'
-import { controlBinding } from '../../components/control/control-binding'
 import { Label } from '../../components/fieldset'
 import {
 	Filters,
@@ -14,6 +13,8 @@ import {
 	FiltersSuffix,
 	useFilters,
 } from '../../components/filters'
+import { Form } from '../../components/form'
+import { useFormValue } from '../../components/form/use-form-value'
 import { Input } from '../../components/input'
 import { Radio } from '../../components/radio'
 import { SearchInput } from '../../components/search-input'
@@ -30,10 +31,18 @@ import {
 	setupUser,
 } from '../helpers'
 
-/** A value-shaped control: no DOM event reaches its `onValueChange`. */
-function Toggle({ onValueChange }: { onValueChange?: (value: boolean) => void }) {
+/** A value-shaped control that binds a field by `name`, as the library controls do. */
+function Toggle({
+	name,
+	onValueChange,
+}: {
+	name?: string
+	onValueChange?: (value: boolean | null) => void
+}) {
+	const { setValue } = useFormValue<boolean>(name, { onValueChange })
+
 	return (
-		<button type="button" onClick={() => onValueChange?.(true)}>
+		<button type="button" onClick={() => setValue(true)}>
 			Toggle
 		</button>
 	)
@@ -54,7 +63,7 @@ describe('Filters group', () => {
 })
 
 describe('FiltersField', () => {
-	it('injects value into child via cloneElement', () => {
+	it('binds the slot to the control by name', () => {
 		const { container } = renderUI(
 			<Filters aria-label="Filters" value={{ name: 'hello' }} onValueChange={() => {}}>
 				<FiltersField name="name">
@@ -102,65 +111,45 @@ describe('FiltersField', () => {
 		expect(onValueChange).toHaveBeenCalledWith({ done: true })
 	})
 
-	it('keeps a Radio option value and checks it against the slot', async () => {
+	it('binds a Radio group through the render function', async () => {
 		const onValueChange = vi.fn()
 
-		const { container } = renderUI(
-			<Filters aria-label="Filters" value={{ status: 'open' }} onValueChange={onValueChange}>
-				<FiltersField name="status">
-					<Radio name="status" value="open" />
-				</FiltersField>
-				<FiltersField name="status">
-					<Radio name="status" value="closed" />
+		const { container, rerender } = renderUI(
+			<Filters aria-label="Filters" value={{ rating: 3 }} onValueChange={onValueChange}>
+				<FiltersField<number> name="rating">
+					{({ value, onValueChange: set }) =>
+						[3, 4].map((option) => (
+							<Radio
+								key={option}
+								name="rating"
+								value={option}
+								checked={value === option}
+								onChange={() => set(option)}
+							/>
+						))
+					}
 				</FiltersField>
 			</Filters>,
 		)
 
 		const radios = allBySlot(container, 'radio') as HTMLInputElement[]
 
-		// The option `value` must survive cloning; it is the radio's identity.
-		expect(radios[0]).toHaveAttribute('value', 'open')
-
-		expect(radios[1]).toHaveAttribute('value', 'closed')
-
 		expect(radios[0]?.checked).toBe(true)
 
-		expect(radios[1]?.checked).toBe(false)
+		await setupUser().click(radios[1] as HTMLInputElement)
 
-		const user = setupUser()
-
-		await user.click(radios[1] as HTMLInputElement)
-
-		expect(onValueChange).toHaveBeenCalledWith({ status: 'closed' })
-	})
-
-	it('checks a Radio with a numeric value against the slot', async () => {
-		const onValueChange = vi.fn()
-
-		const { container, rerender } = renderUI(
-			<Filters aria-label="Filters" value={{}} onValueChange={onValueChange}>
-				<FiltersField name="rating">
-					<Radio name="rating" value={3} />
-				</FiltersField>
-			</Filters>,
-		)
-
-		const radio = getSlot<HTMLInputElement>(container, 'radio')
-
-		await setupUser().click(radio)
-
-		// The slot holds the option value of the Radio, not the string of the DOM.
-		expect(onValueChange).toHaveBeenCalledWith({ rating: 3 })
+		// The slot holds the option value, not the string of the DOM.
+		expect(onValueChange).toHaveBeenCalledWith({ rating: 4 })
 
 		rerender(
-			<Filters aria-label="Filters" value={{ rating: 3 }} onValueChange={onValueChange}>
-				<FiltersField name="rating">
-					<Radio name="rating" value={3} />
+			<Filters aria-label="Filters" value={{}} onValueChange={onValueChange}>
+				<FiltersField<number> name="rating">
+					{({ value }) => <Radio name="rating" value={3} checked={value === 3} readOnly />}
 				</FiltersField>
 			</Filters>,
 		)
 
-		expect(radio.checked).toBe(true)
+		expect(getSlot<HTMLInputElement>(container, 'radio').checked).toBe(false)
 	})
 
 	it('runs the own handlers of the child beside the binding', async () => {
@@ -189,7 +178,7 @@ describe('FiltersField', () => {
 		expect(onValueChange).toHaveBeenCalledWith({})
 	})
 
-	it('runs the own onValueChange of a value-shaped child beside the binding', async () => {
+	it('binds a control built on the Form field hooks', async () => {
 		const own = vi.fn()
 
 		const onValueChange = vi.fn()
@@ -311,10 +300,29 @@ describe('FiltersField', () => {
 		expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ name: 'b' }))
 	})
 
-	// The element form matches on component identity, so it reaches a control this
-	// library exports and nothing else. These two pin that boundary, which the
-	// doccomment sends a wrapper to the render function to cross.
-	it('leaves a wrapped control unbound', async () => {
+	// The element form gives the slot `name` to its control, so a wrapper binds
+	// when it passes `name` on, and binds nothing when it drops it.
+	it('binds a wrapper that passes name to its control', async () => {
+		const onChange = vi.fn()
+
+		function WrappedInput({ name }: { name?: string }) {
+			return <Input name={name} />
+		}
+
+		const { container } = renderUI(
+			<Filters aria-label="Filters" value={{ name: '' }} onValueChange={onChange}>
+				<FiltersField name="name">
+					<WrappedInput />
+				</FiltersField>
+			</Filters>,
+		)
+
+		await setupUser().type(getSlot<HTMLInputElement>(container, 'input'), 'b')
+
+		expect(onChange).toHaveBeenCalledWith({ name: 'b' })
+	})
+
+	it('leaves a wrapper that drops name unbound', async () => {
 		const onChange = vi.fn()
 
 		function WrappedInput() {
@@ -331,14 +339,49 @@ describe('FiltersField', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'input')
 
-		const user = setupUser()
-
-		await user.type(input, 'b')
+		await setupUser().type(input, 'b')
 
 		// The control took the text, so the field rendered it and never bound it.
 		expect(input.value).toBe('b')
 
 		expect(onChange).not.toHaveBeenCalled()
+	})
+
+	it('lets the own value of a control win over the slot', () => {
+		const { container } = renderUI(
+			<Filters aria-label="Filters" value={{ name: 'slot' }} onValueChange={() => {}}>
+				<FiltersField name="name">
+					<Input value="own" onChange={() => {}} />
+				</FiltersField>
+			</Filters>,
+		)
+
+		expect(getSlot<HTMLInputElement>(container, 'input').value).toBe('own')
+	})
+
+	it('keeps the fields of a bar inside a Form out of the Form', async () => {
+		const onSubmit = vi.fn()
+
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(
+			<Form defaultValues={{ q: 'form' }} onSubmit={onSubmit}>
+				<Input name="q" />
+				<Filters aria-label="Filters" value={{}} onValueChange={onValueChange}>
+					<FiltersField name="q">
+						<Input />
+					</FiltersField>
+				</Filters>
+			</Form>,
+		)
+
+		const inputs = allBySlot(container, 'input') as HTMLInputElement[]
+
+		await setupUser().type(inputs[1] as HTMLInputElement, 'b')
+
+		expect(onValueChange).toHaveBeenCalledWith({ q: 'b' })
+
+		expect(inputs[0]?.value).toBe('form')
 	})
 
 	it('lets a wrapped decoration take the control slot', async () => {
@@ -366,28 +409,6 @@ describe('FiltersField', () => {
 		expect(input.value).toBe('b')
 
 		expect(onChange).not.toHaveBeenCalled()
-	})
-})
-
-// FiltersField reads the binding of a control from a marker on its type, and
-// imports no control. A control that loses its marker binds as a value-shaped
-// child, so this test holds each marker.
-describe('control binding markers', () => {
-	it.each([
-		['Input', Input, 'text'],
-		['Textarea', Textarea, 'text'],
-		['SearchInput', SearchInput, 'search'],
-		['Checkbox', Checkbox, 'toggle'],
-		['Switch', Switch, 'toggle'],
-		['Radio', Radio, 'option'],
-	] as const)('marks %s as %s', (_, control, binding) => {
-		expect(controlBinding(control)).toBe(binding)
-	})
-
-	it('gives no binding to an unmarked type', () => {
-		expect(controlBinding(Toggle)).toBeUndefined()
-
-		expect(controlBinding('input')).toBeUndefined()
 	})
 })
 

@@ -4,7 +4,6 @@ import { type ChangeEvent, type ComponentProps, useEffect, useRef } from 'react'
 import { ariaAttr, cn } from '../../core'
 import { useComposedRef, useControllableFlag } from '../../hooks'
 import { k, type SwitchVariants } from '../../recipes/kata/switch'
-import { markControlBinding } from '../control/control-binding'
 import { useControlProps } from '../control/use-control-props'
 import { useFormToggle } from '../form/use-form-toggle'
 
@@ -165,5 +164,3 @@ export function Switch({
 		</label>
 	)
 }
-
-markControlBinding(Switch, 'toggle')

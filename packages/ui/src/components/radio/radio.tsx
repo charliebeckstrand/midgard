@@ -3,7 +3,6 @@
 import type { ChangeEventHandler, ComponentProps } from 'react'
 import { cn } from '../../core'
 import { k, type RadioVariants } from '../../recipes/kata/radio'
-import { markControlBinding } from '../control/control-binding'
 import { useControlProps } from '../control/use-control-props'
 import { useRadioGroupReadOnly } from './context'
 
@@ -111,5 +110,3 @@ export function Radio({
 		</label>
 	)
 }
-
-markControlBinding(Radio, 'option')
