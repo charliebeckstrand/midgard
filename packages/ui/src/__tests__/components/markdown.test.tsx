@@ -58,6 +58,22 @@ describe('Markdown', () => {
 		expect(el?.querySelector('a')).toHaveAttribute('href', 'https://example.com')
 	})
 
+	it('joins the lines of a paragraph, and renders each line break as a <br> with breaks', () => {
+		const md = 'First line\nSecond line'
+
+		const { container: plain } = renderUI(<Markdown>{md}</Markdown>)
+
+		expect(plain.querySelector('br')).toBeNull()
+
+		const { container } = renderUI(<Markdown breaks>{md}</Markdown>)
+
+		const paragraphs = container.querySelectorAll('p')
+
+		expect(paragraphs).toHaveLength(1)
+
+		expect(paragraphs[0]?.querySelectorAll('br')).toHaveLength(1)
+	})
+
 	it('supports GitHub-flavored strikethrough', () => {
 		const { container } = renderUI(<Markdown>{'~~gone~~'}</Markdown>)
 
@@ -274,6 +290,26 @@ describe('primeMarkdown', () => {
 		expect(container.querySelector('em')?.textContent).toBe('primed')
 
 		expect(lex).toHaveBeenCalledTimes(1)
+
+		lex.mockRestore()
+	})
+
+	it('primes the breaks form apart from the plain form', () => {
+		const lex = vi.spyOn(Lexer.prototype, 'lex')
+
+		primeMarkdown('A primed\nsource.', { breaks: true })
+
+		expect(lex).toHaveBeenCalledTimes(1)
+
+		const { container } = renderUI(<Markdown breaks>{'A primed\nsource.'}</Markdown>)
+
+		expect(container.querySelector('br')).toBeInTheDocument()
+
+		expect(lex).toHaveBeenCalledTimes(1)
+
+		renderUI(<Markdown>{'A primed\nsource.'}</Markdown>)
+
+		expect(lex).toHaveBeenCalledTimes(2)
 
 		lex.mockRestore()
 	})

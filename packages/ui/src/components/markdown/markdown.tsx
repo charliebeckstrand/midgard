@@ -9,7 +9,11 @@ import { type MarkdownHeadingOffset, MarkdownRenderer } from './markdown-rendere
 // task lists, strikethrough, autolinks).
 const md = new Marked({ gfm: true })
 
-/** The count of sources that the token cache holds. */
+// The same, with each line break in a paragraph as a `<br>` (the `breaks`
+// option of `marked`).
+const mdBreaks = new Marked({ gfm: true, breaks: true })
+
+/** The count of sources that each token cache holds. */
 export const MARKDOWN_CACHE_SIZE = 200
 
 /**
@@ -17,23 +21,30 @@ export const MARKDOWN_CACHE_SIZE = 200
  * {@link primeMarkdown} stored. Process-wide, so it serves each block with the
  * same source. The first lex of a page is slow, because the regular
  * expressions of `marked` compile then. Insertion-ordered: when the cache is
- * full, the oldest entry goes.
+ * full, the oldest entry goes. The `breaks` form lexes a source to different
+ * tokens, so it has a cache of its own.
  */
 const tokenCache = new Map<string, Token[]>()
 
+const breaksTokenCache = new Map<string, Token[]>()
+
 /** The block tokens of `source`, from the cache or from a new lex. */
-function lex(source: string): Token[] {
-	const cached = tokenCache.get(source)
+function lex(source: string, breaks = false): Token[] {
+	const lexer = breaks ? mdBreaks : md
+
+	const cache = breaks ? breaksTokenCache : tokenCache
+
+	const cached = cache.get(source)
 
 	if (cached) return cached
 
-	const tokens = md.lexer(source)
+	const tokens = lexer.lexer(source)
 
-	if (tokenCache.size >= MARKDOWN_CACHE_SIZE) {
-		tokenCache.delete(tokenCache.keys().next().value as string)
+	if (cache.size >= MARKDOWN_CACHE_SIZE) {
+		cache.delete(cache.keys().next().value as string)
 	}
 
-	tokenCache.set(source, tokens)
+	cache.set(source, tokens)
 
 	return tokens
 }
@@ -44,13 +55,15 @@ function lex(source: string): Token[] {
  * tokens, and its render does not lex.
  *
  * @param source - The source, as the `children` of the block give it.
+ * @param options - `breaks`, as the block that renders the source sets it.
  * @remarks
  * The cache holds 200 sources and drops the oldest first, so prime the
- * sources of one page, not the sources of a whole site. {@link MarkdownInline}
- * does not read the cache.
+ * sources of one page, not the sources of a whole site. The `breaks` form has
+ * a cache of its own of the same size. {@link MarkdownInline} does not read
+ * the cache.
  */
-export function primeMarkdown(source: string): void {
-	lex(source)
+export function primeMarkdown(source: string, options?: { breaks?: boolean }): void {
+	lex(source, options?.breaks)
 }
 
 /** Props for {@link Markdown}: the Markdown source string to render as prose, and the heading offset. */
@@ -66,6 +79,14 @@ export type MarkdownProps = {
 	 * @defaultValue 0
 	 */
 	headingOffset?: MarkdownHeadingOffset
+	/**
+	 * Renders each line break in a paragraph as a `<br>`, as a GitHub comment
+	 * does. Without it, the lines of a paragraph join, and only a blank line
+	 * starts a new paragraph. Use it for text that a person typed, such as a
+	 * review, where each line break is intentional.
+	 * @defaultValue false
+	 */
+	breaks?: boolean
 	className?: string
 }
 
@@ -73,7 +94,8 @@ export type MarkdownProps = {
  * Markdown source rendered to a React element tree with
  * [marked](https://marked.js.org) and styled as prose, in a block `<div>`.
  * GitHub-flavored Markdown is enabled, so tables, task lists,
- * `~~strikethrough~~`, and autolinks all parse. For Markdown inside a line of
+ * `~~strikethrough~~`, and autolinks all parse. With `breaks`, each line break
+ * in a paragraph renders as a `<br>`. For Markdown inside a line of
  * text, reach for {@link MarkdownInline}.
  *
  * @remarks
@@ -110,11 +132,12 @@ export type MarkdownProps = {
 export const Markdown = memo(function Markdown({
 	children,
 	headingOffset,
+	breaks,
 	className,
 }: MarkdownProps) {
 	return (
 		<div data-slot="markdown" className={cn(k.base, className)}>
-			<MarkdownRenderer tokens={lex(children)} headingOffset={headingOffset} />
+			<MarkdownRenderer tokens={lex(children, breaks)} headingOffset={headingOffset} />
 		</div>
 	)
 })
