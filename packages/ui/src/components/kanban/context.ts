@@ -1,6 +1,6 @@
 'use client'
 
-import type { DraggableAttributes } from '@dnd-kit/core'
+import type { DraggableAttributes, DraggableSyntheticListeners } from '@dnd-kit/core'
 import type { KeyboardEvent, ReactNode, RefObject } from 'react'
 import { createContext } from '../../core'
 import { useKeyedValue } from '../../hooks/use-keyed-store'
@@ -115,7 +115,8 @@ export const [KanbanColumnContext, useKanbanColumnContext] =
 
 /**
  * Per-card state shared with its {@link KanbanCardHandle}: the card key, the
- * dnd-kit activator bindings, and the id of the list item that names the card.
+ * dnd-kit activator bindings and pointer listeners, and the id of the list item
+ * that names the card.
  *
  * @internal
  */
@@ -127,6 +128,8 @@ export type KanbanCardContextValue = {
 	setActivatorNodeRef: (node: HTMLElement | null) => void
 	/** dnd-kit drag attributes: the role description, the instructions, and the disabled state. */
 	attributes: DraggableAttributes
+	/** dnd-kit pointer listeners. The handle takes them, so only the handle starts a drag. */
+	listeners: DraggableSyntheticListeners
 	/** Whether a pointer drags the card now. */
 	dragging: boolean
 	/** The id of the `<li>` of the card. The handle takes the name of the card from it. */

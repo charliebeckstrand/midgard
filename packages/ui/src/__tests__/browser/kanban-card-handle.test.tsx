@@ -14,8 +14,9 @@ import { drag } from './helpers/drag'
 /**
  * The handle of a kanban card is the keyboard stop of the card. The card has no
  * role, so a control inside it keeps its own role. The keyboard lifts and moves
- * the card from the handle, and a mouse still drags the card from any part of
- * it.
+ * the card from the handle, and a pointer drags the card only from the handle.
+ * The card puts the handle at its start edge and its other children in one
+ * column beside it.
  *
  * Rides the real browser for real focus, the accessible name that the browser
  * engine computes, and a real pointer drag past the sensor's activation
@@ -108,34 +109,79 @@ describe('kanban card handle (real browser)', () => {
 		expect(document.activeElement?.getAttribute('data-slot')).toBe('kanban-card-handle')
 	})
 
-	it.each([
-		['the card body', 'kanban-card'],
-		['the handle', 'kanban-card-handle'],
-	])('drags the card with a pointer from %s', async (_name, slot) => {
+	it('drags the card with a pointer from the handle', async () => {
 		const { container } = renderUI(<Board />)
 
 		const [card] = allBySlot(container, 'kanban-card')
 
-		const [target] = allBySlot(container, slot)
+		if (!card) throw new Error('expected a card')
 
-		if (!card || !target) throw new Error('expected a card')
+		const handle = getSlot(card, 'kanban-card-handle')
 
-		// The body press lands on the text, away from the handle and the button.
-		const box = (
-			slot === 'kanban-card' ? getSlot(card, 'kanban-card-handle') : target
-		).getBoundingClientRect()
+		const box = handle.getBoundingClientRect()
 
-		const from =
-			slot === 'kanban-card'
-				? { x: box.right + 4, y: box.top + box.height / 2 }
-				: { x: box.left + box.width / 2, y: box.top + box.height / 2 }
+		const from = { x: box.left + box.width / 2, y: box.top + box.height / 2 }
 
-		const held = await drag(target, from, [{ x: from.x, y: from.y + 20 }])
+		const held = await drag(handle, from, [{ x: from.x, y: from.y + 20 }])
 
 		await expect.poll(() => card.hasAttribute('data-dragging')).toBe(true)
 
 		await held.release()
 
 		await expect.poll(() => card.hasAttribute('data-dragging')).toBe(false)
+	})
+
+	it('starts no drag from the card body', async () => {
+		const { container } = renderUI(<Board />)
+
+		const [card] = allBySlot(container, 'kanban-card')
+
+		if (!card) throw new Error('expected a card')
+
+		// The press lands on the text, away from the handle and the button.
+		const text = card.querySelector('span')
+
+		if (!text) throw new Error('expected the card text')
+
+		const box = text.getBoundingClientRect()
+
+		const from = { x: box.left + 2, y: box.top + box.height / 2 }
+
+		const held = await drag(text, from, [
+			{ x: from.x, y: from.y + 20 },
+			{ x: from.x, y: from.y + 40 },
+		])
+
+		expect(card).not.toHaveAttribute('data-dragging')
+
+		expect(document.querySelector('[data-slot="kanban-card"][data-overlay]')).toBeNull()
+
+		await held.release()
+	})
+
+	it('puts the handle at the start edge, and aligns the other children with each other', () => {
+		const { container } = renderUI(<Board />)
+
+		const [card] = allBySlot(container, 'kanban-card')
+
+		if (!card) throw new Error('expected a card')
+
+		const handle = getSlot(card, 'kanban-card-handle').getBoundingClientRect()
+
+		const text = card.querySelector('span')?.getBoundingClientRect()
+
+		const edit = card.querySelector('button:not([data-slot])')?.getBoundingClientRect()
+
+		if (!text || !edit) throw new Error('expected the card children')
+
+		// The text sits beside the handle, on the row of the handle.
+		expect(text.left).toBeGreaterThanOrEqual(handle.right)
+
+		expect(Math.abs(text.top + text.height / 2 - (handle.top + handle.height / 2))).toBeLessThan(1)
+
+		// The control on the next line starts at the left edge of the text.
+		expect(edit.top).toBeGreaterThanOrEqual(text.bottom)
+
+		expect(edit.left).toBe(text.left)
 	})
 })

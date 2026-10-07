@@ -2,7 +2,7 @@
  * Kanban kata: object-literal surface for the `<Kanban>` board, its columns, and
  * cards. No variants axis. The `column` group nests `base` / `header` / `title`
  * / `body` / `empty` slots, and `base` marks the column a card is over. The `card` group nests `base`, the `handle`, and
- * the drag-state classes (`draggable`, `lifted`, `active`). `skeleton` is the
+ * the drag-state classes (`lifted`, `active`). `skeleton` is the
  * form of the lines of the `KanbanCardSkeleton`.
  */
 import { mode } from '../../core/recipe'
@@ -43,10 +43,16 @@ export const k = {
 		empty: [flex.row, 'justify-center', 'min-h-16', size.sm, text.muted],
 	},
 	card: {
+		// A card with a handle is a grid of two columns: the handle at the start
+		// edge, and every other child in the second column, so the lines of the
+		// card align with each other. A card with no handle is one column.
 		base: [
 			'group/kanban-card',
 			flex.col,
 			'gap-1',
+			'has-[>[data-slot=kanban-card-handle]]:grid has-[>[data-slot=kanban-card-handle]]:grid-cols-[auto_minmax(0,1fr)] has-[>[data-slot=kanban-card-handle]]:items-center',
+			'*:col-start-2',
+			'*:data-[slot=kanban-card-handle]:col-start-1 *:data-[slot=kanban-card-handle]:row-start-1',
 			'p-2',
 			...mode('bg-white', 'dark:bg-zinc-950'),
 			border.default,
@@ -58,12 +64,7 @@ export const k = {
 			...disabled,
 			'data-readonly:cursor-default data-disabled:cursor-not-allowed',
 		],
-		// The cursors alone: the card keeps touch scrolling, and the handle is the
-		// drag surface on a touch screen.
-		draggable: [...grab.cursor],
-		// The keyboard stop of an interactive card, and the touch drag surface. A
-		// mouse drags the card from any part of it, so the handle shows the same
-		// hand.
+		// The only drag surface of an interactive card, and its keyboard stop.
 		handle: [
 			flex.row,
 			'size-6 shrink-0 justify-center',

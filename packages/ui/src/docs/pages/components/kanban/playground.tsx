@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Badge } from 'ui/badge'
-import { Flex } from 'ui/flex'
 import {
 	Kanban,
 	KanbanCard,
@@ -36,12 +35,8 @@ export default function KanbanPlayground(props: KanbanProps<Load, Column>) {
 					<KanbanColumnBody>
 						{column.items.map((load) => (
 							<KanbanCard key={load.id} value={load.id} aria-label={load.code}>
-								<Flex align="center" gap="xs">
-									<KanbanCardHandle />
-									<Text as="span" className="font-medium">
-										{load.code}
-									</Text>
-								</Flex>
+								<KanbanCardHandle />
+								<Text className="font-medium">{load.code}</Text>
 								<Text tone="muted">{load.customer}</Text>
 								<Text tone="muted" size="xs">
 									{load.weight}
