@@ -3,7 +3,7 @@ import { createEmitter } from '../../../utilities/emitter.ts'
 import { noop } from '../../../utilities/noop.ts'
 
 // The store of the Event log: the entries of one tab, and the copy that
-// "Preserve log" keeps in `sessionStorage`.
+// "Preserve" keeps in `sessionStorage`.
 
 /** The kinds of an {@link Entry}. */
 export const KINDS = [
@@ -59,7 +59,7 @@ export const CAPACITY = 500
 /** The `sessionStorage` key of the kept entries. */
 const ENTRIES = 'docs:event-log:entries'
 
-/** The `sessionStorage` key of the "Preserve log" flag. */
+/** The `sessionStorage` key of the "Preserve" flag. */
 const PRESERVE = 'docs:event-log:preserve'
 
 /** The `sessionStorage` key of the "Batch" flag. */
@@ -70,7 +70,7 @@ export const OWN = 'data-event-log'
 
 /**
  * The log of one tab: the entries in memory, kept in `sessionStorage` while
- * "Preserve log" is on. A new log reads the kept entries, so a reload starts
+ * "Preserve" is on. A new log reads the kept entries, so a reload starts
  * from them.
  */
 export class EventLog {
@@ -81,7 +81,7 @@ export class EventLog {
 
 	private readonly changes = createEmitter()
 
-	/** Calls `listener` on each change of the entries or of "Preserve log". */
+	/** Calls `listener` on each change of the entries or of "Preserve". */
 	readonly subscribe = this.changes.subscribe
 
 	private saveTimer: ReturnType<typeof setTimeout> | undefined
@@ -102,7 +102,7 @@ export class EventLog {
 		return read(this.store, PRESERVE) === '1'
 	}
 
-	/** Turns "Preserve log" on or off. Off deletes the kept entries at once, and the entries on screen stay. */
+	/** Turns "Preserve" on or off. Off deletes the kept entries at once, and the entries on screen stay. */
 	set preserve(on: boolean) {
 		write(this.store, PRESERVE, on ? '1' : null)
 
@@ -150,7 +150,7 @@ export class EventLog {
 	}
 
 	/**
-	 * Writes the entries to `sessionStorage` while "Preserve log" is on. When the
+	 * Writes the entries to `sessionStorage` while "Preserve" is on. When the
 	 * storage is full, the kept copy holds the newest entries that fit, so a
 	 * reload does not show an old copy.
 	 */
