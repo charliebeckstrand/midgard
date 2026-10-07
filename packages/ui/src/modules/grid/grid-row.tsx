@@ -1,10 +1,8 @@
 'use client'
 
-import { CSS } from '@dnd-kit/utilities'
-import { Fragment, memo, type ReactElement } from 'react'
+import { Fragment, memo, type ReactElement, use } from 'react'
 import { TableCell, TableRow } from '../../components/table'
 import { cn, dataAttr } from '../../core'
-import { useMotionSafeSortable } from '../../hooks/use-motion-safe-sortable'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/grid'
@@ -26,6 +24,7 @@ import {
 } from './engine/grid-row/shell'
 import { GridDataCell } from './grid-data-cell'
 import { GridDetailRow, GridExpandToggle } from './grid-detail-row'
+import { GridReorderKitContext } from './grid-reorder'
 import { type GridRowSortable, GridRowSpecialCell } from './grid-row-special-cell'
 import type { GridColumn } from './types'
 import type { GridColumnPinning } from './use-grid-table'
@@ -214,7 +213,7 @@ export function renderGridRow<T>(
 }
 
 /** Props for {@link GridRow}. @internal */
-type GridRowProps<T> = {
+export type GridRowProps<T> = {
 	row: T
 	rowKey: string | number
 	/**
@@ -336,7 +335,7 @@ const MotionTableRow = m.create(TableRow)
  *
  * @internal
  */
-function GridRowImpl<T>({
+export function GridRowImpl<T>({
 	row,
 	rowKey,
 	columns,
@@ -501,36 +500,40 @@ function GridRowImpl<T>({
 /** Memoized {@link GridRowImpl}; re-renders a row only when its own props change. @internal */
 export const GridRow = memo(GridRowImpl) as typeof GridRowImpl
 
+/** Does nothing with a node, for the static bindings. @internal */
+const ignoreNode = () => {}
+
+/** The style of a row at rest. @internal */
+const REST_STYLE = {}
+
 /**
- * A drag-reorderable body row. It registers the `<tr>` as a vertical dnd-kit
- * sortable keyed by its row key, and composes the lift transform/transition. It
- * threads the activator ref and listeners down to its drag-handle grip. Unlike
- * {@link useSortableItem}, the dragged row stays visible (no `<DragOverlay>`) and
- * lifts in place via {@link k.row.reorder.dragging}.
+ * The bindings of a row before the drag and drop module is loaded: a row at
+ * rest, which no drag can start. Its grip has the layout of a live grip.
+ *
+ * @internal
+ */
+const STATIC_ROW_SORTABLE: GridRowSortable = {
+	setNodeRef: ignoreNode,
+	setActivatorNodeRef: ignoreNode,
+	attributes: undefined,
+	listeners: undefined,
+	style: REST_STYLE,
+	dragging: false,
+}
+
+/**
+ * A drag-reorderable body row. It renders the sortable row of the drag and drop
+ * module when that module is loaded (see {@link GridReorderKitContext}), else
+ * the same row at rest, with the same layout.
  *
  * @internal
  */
 function GridReorderableRowImpl<T>(props: GridRowProps<T>) {
-	const {
-		setNodeRef,
-		setActivatorNodeRef,
-		attributes,
-		listeners,
-		transform,
-		transition,
-		isDragging,
-	} = useMotionSafeSortable({ id: String(props.rowKey) })
+	const kit = use(GridReorderKitContext)
 
-	const sortable: GridRowSortable = {
-		setNodeRef,
-		setActivatorNodeRef,
-		attributes,
-		listeners,
-		style: { transform: CSS.Transform.toString(transform), transition },
-		dragging: isDragging,
-	}
+	if (kit) return <kit.SortableRow<T> {...props} />
 
-	return <GridRowImpl<T> {...props} sortable={sortable} />
+	return <GridRowImpl<T> {...props} sortable={STATIC_ROW_SORTABLE} />
 }
 
 /** Memoized {@link GridReorderableRowImpl}. @internal */

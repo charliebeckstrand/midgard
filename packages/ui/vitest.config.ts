@@ -194,7 +194,9 @@ export default defineConfig({
 				plugins: [reactDocs()],
 				test: {
 					name: 'unit',
-					setupFiles,
+					// The grid modules load before each file of this project only (see
+					// `setup/grid-modules.ts`).
+					setupFiles: [...setupFiles, './src/__tests__/setup/grid-modules.ts'],
 					pool: 'threads',
 					// `isolate: false` keeps the evaluated module graph across a
 					// worker's files, and does not rebuild it for each one. That

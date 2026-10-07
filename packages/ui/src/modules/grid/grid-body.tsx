@@ -1,13 +1,12 @@
 'use client'
 
-import { SortableContext } from '@dnd-kit/sortable'
 import {
-	type ComponentProps,
 	Fragment,
 	memo,
 	type ReactElement,
 	type ReactNode,
 	type RefObject,
+	use,
 	useMemo,
 } from 'react'
 import { Alert } from '../../components/alert'
@@ -28,6 +27,7 @@ import type { GridGroupBy, GridGroupHeaderRow } from './grid-data-types'
 import { GridGroupLeafRow, leafRowProps } from './grid-group-leaf-row'
 import { GridGroupRow } from './grid-group-row'
 import { GridManualGroupPlaceholderRows, GridManualGroupRow } from './grid-manual-group-row'
+import { GridReorderKitContext } from './grid-reorder'
 import { type GridRowsProps, renderGridRow } from './grid-row'
 import type { GridRowGroupPresentation } from './grid-row-group-types'
 import { GridLoadingBody } from './grid-skeleton-cells'
@@ -37,24 +37,12 @@ import { GridVirtualizedDetailBody } from './grid-virtualized-detail-body'
 import { GridVirtualizedGroupedBody } from './grid-virtualized-grouped-body'
 import type { GridScrollRowIntoView } from './use-grid-navigation'
 
-/** The vertical row sortable's items and strategy, spread onto the body's `SortableContext`. @internal */
-type GridRowSortableContext = {
-	itemIds: ComponentProps<typeof SortableContext>['items']
-	strategy: ComponentProps<typeof SortableContext>['strategy']
-}
-
 /** Props for {@link GridBody}. @internal */
 type GridBodyProps<T> = GridRowsProps<T> & {
 	loading: boolean
 	empty: ReactNode
 	/** Error-state node shown in place of the body; `true` for a default alert. Takes precedence over `empty`. */
 	error: ReactNode
-	/**
-	 * Row-reorder sortable context (items + strategy) wrapping the plain body
-	 * rows when {@link GridRowsProps.rowReorderActive}; `null` otherwise. The
-	 * enclosing grid provides the `<DndContext>` outside the `<table>`.
-	 */
-	rowSortable: GridRowSortableContext | null
 	/**
 	 * The groups in display order, each with all of its leaves, when grouping is
 	 * active; `null` otherwise. Rendered in place of the flat row map, group
@@ -391,7 +379,7 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 		error,
 		gridSemantics,
 		rowIndexOffset,
-		rowSortable,
+		rowReorderActive,
 		groups,
 		manualRows,
 		manualGroup,
@@ -401,6 +389,9 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 		virtualize,
 		pinning,
 	} = props
+
+	// The drag and drop module, or `null` until it is loaded. The rows then render at rest.
+	const reorderKit = use(GridReorderKitContext)
 
 	if (loading) return <GridLoadingBody columns={visibleColumns} pinning={pinning} />
 
@@ -477,9 +468,10 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 		),
 	)
 
-	// When rows are drag-reorderable, the sortable context wraps them (its
-	// `<DndContext>` sits outside the `<table>`, provided by the grid). A DOM-less
-	// fragment, so it nests inside `<tbody>` without adding an element.
+	// When rows are drag-reorderable, the sortable context of the drag and drop
+	// module wraps them (its `<DndContext>` sits outside the `<table>`, provided
+	// by the grid). A DOM-less fragment, so it nests inside `<tbody>` without
+	// adding an element.
 	// A master-detail body gives its panels to the cursor as rows of their own.
 	const { expansion } = props
 
@@ -493,10 +485,8 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 					rowExpandable={expansion.rowExpandable}
 				/>
 			)}
-			{rowSortable ? (
-				<SortableContext items={rowSortable.itemIds} strategy={rowSortable.strategy}>
-					{body}
-				</SortableContext>
+			{rowReorderActive && reorderKit ? (
+				<reorderKit.RowSortableScope>{body}</reorderKit.RowSortableScope>
 			) : (
 				body
 			)}

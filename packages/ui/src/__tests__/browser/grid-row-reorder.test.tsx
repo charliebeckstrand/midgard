@@ -1,8 +1,14 @@
 import { useState } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
+import { loadGridReorderKit } from '../../modules/grid/grid-region'
 import { renderUI, screen } from '../helpers'
 import { drag } from './helpers/drag'
+
+// The grid loads its drag and drop module as it mounts. The load before the
+// cases gives each case the state of a page that already loaded the module,
+// so a drag right after the render reaches a sortable.
+beforeAll(() => loadGridReorderKit())
 
 /**
  * Row drag-reorder over a real pointer drag: each row is a vertical @dnd-kit

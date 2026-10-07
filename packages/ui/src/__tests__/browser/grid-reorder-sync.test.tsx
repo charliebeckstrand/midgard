@@ -1,7 +1,13 @@
-import { describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
+import { loadGridReorderKit } from '../../modules/grid/grid-region'
 import { renderUI, screen } from '../helpers'
 import { drag } from './helpers/drag'
+
+// The grid loads its drag and drop module as it mounts. The load before the
+// cases gives each case the state of a page that already loaded the module,
+// so a drag right after the render reaches a sortable.
+beforeAll(() => loadGridReorderKit())
 
 /**
  * During a column-reorder drag the body cells shift via a CSS variable their

@@ -1,11 +1,14 @@
 'use client'
 
 import { useCallback, useMemo } from 'react'
-import { useSortableList } from '../../hooks'
+import type { SortableListOptions } from '../../hooks/use-sortable-list'
 import type { GridRowReorder } from './grid-data-types'
 
 /** A row paired with its stable key — the shape the vertical row sortable orders. @internal */
-type RowItem<T> = { row: T; key: string | number }
+export type GridRowItem<T> = { row: T; key: string | number }
+
+/** The drag id of a row item. @internal */
+const rowItemKey = (item: GridRowItem<unknown>) => String(item.key)
 
 /** Stable empty list so a non-reorderable grid keeps a constant sortable `items` reference. @internal */
 const EMPTY_ITEMS: never[] = []
@@ -31,17 +34,16 @@ type GridRowReorderOptions<T> = {
 }
 
 /**
- * Wires row drag-reordering onto `@dnd-kit`'s vertical sortable for {@link Grid}.
- * Each rendered row is a sortable item keyed by its row key. The enclosing grid
- * renders the `<DndContext>` from the returned `dndContextProps` around the
- * table region, and a `<SortableContext>` around the body rows. The
- * `<DndContext>` sits outside the `<table>`, whose children the context's a11y
- * nodes must not join. A drop commits
- * the reordered rows through the binding's `onReorder` and narrates the move.
+ * Resolves row drag-reordering for {@link Grid}. Each rendered row is a
+ * sortable item keyed by its row key. The drag and drop module gives the
+ * returned `sortable` options to `useSortableList`, and renders the
+ * `<DndContext>` around the table region and a `<SortableContext>` around the
+ * body rows. The `<DndContext>` sits outside the `<table>`, whose children the
+ * context's a11y nodes must not join. A drop commits the reordered rows through
+ * the binding's `onReorder` and narrates the move.
  *
- * @returns `active` (whether reordering is live — the render gate), plus the
- * `itemIds`, `strategy`, `dndContextProps`, and `activeId` for the sortable and
- * dnd contexts.
+ * @returns `active` (whether reordering is live — the render gate) and the
+ * `sortable` options of `@dnd-kit`'s vertical sortable.
  * @internal
  */
 export function useGridRowReorder<T>({
@@ -53,7 +55,7 @@ export function useGridRowReorder<T>({
 }: GridRowReorderOptions<T>) {
 	const canReorder = enabled && !!rowReorder && !rowReorder.disabled && rows.length > 1
 
-	const items = useMemo<RowItem<T>[]>(
+	const items = useMemo<GridRowItem<T>[]>(
 		() =>
 			canReorder
 				? rows.map((row, index) => ({ row, key: rowKeys[index] as string | number }))
@@ -68,39 +70,35 @@ export function useGridRowReorder<T>({
 	const onReorderEnd = rowReorder?.onReorderEnd
 
 	const handleReorder = useCallback(
-		(next: RowItem<T>[]) => onReorder?.(next.map((item) => item.row)),
+		(next: GridRowItem<T>[]) => onReorder?.(next.map((item) => item.row)),
 		[onReorder],
 	)
 
 	const handleDragStart = useCallback(
-		(item: RowItem<T>) => onReorderStart?.(item.key),
+		(item: GridRowItem<T>) => onReorderStart?.(item.key),
 		[onReorderStart],
 	)
 
-	const handleDragEnd = useCallback((item: RowItem<T>) => onReorderEnd?.(item.key), [onReorderEnd])
+	const handleDragEnd = useCallback(
+		(item: GridRowItem<T>) => onReorderEnd?.(item.key),
+		[onReorderEnd],
+	)
 
-	const { itemIds, strategy, dndContextProps, activeId } = useSortableList<RowItem<T>>({
+	const sortable: SortableListOptions<GridRowItem<T>> = {
 		items,
-		getKey: (item) => String(item.key),
+		getKey: rowItemKey,
 		onReorder: canReorder ? handleReorder : undefined,
 		orientation: 'vertical',
 		onDragStart: onReorderStart ? handleDragStart : undefined,
 		onDragEnd: onReorderEnd ? handleDragEnd : undefined,
 		// Each drag step is announced by the row's name; the drag gives no visible text cue (WCAG 4.1.3).
 		describe: (item) => rowLabel?.(item.row) ?? `row ${item.key}`,
-	})
+	}
 
 	return {
 		/** Whether row reordering is live — the grid's render gate. */
 		active: canReorder,
-		/** dnd-kit context props for the `<DndContext>` the grid renders outside the `<table>`. */
-		dndContextProps,
-		/** Id of the row being dragged, or `null`. */
-		activeId,
-		/**
-		 * The vertical sortable's `items`/`strategy` for the body's `SortableContext`,
-		 * or `null` when reordering is inactive — spread straight onto the grid body.
-		 */
-		sortableContext: canReorder ? { itemIds, strategy } : null,
+		/** The options of the vertical sortable, for the drag and drop module. */
+		sortable,
 	}
 }

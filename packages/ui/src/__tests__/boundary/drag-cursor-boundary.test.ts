@@ -48,8 +48,6 @@ const SCRIPTED_CURSOR = /\.style\.cursor\s*=|cursor:[^;'"`]*!important/
 /** Files that start a drag and leave the cursor to another file, each with the reason. */
 const DELEGATED: Record<string, string> = {
 	'hooks/use-sortable-sensors.ts': 'defines the sensors; each caller holds the cursor',
-	'modules/grid/grid-region.tsx':
-		'renders the contexts; use-grid-reorder.ts and use-grid-row-reorder.ts run useSortableList',
 	'modules/dashboard/use-dashboard-drag.ts':
 		'arms the sensors; dashboard.tsx holds the cursor from the drag gesture in the store',
 	'hooks/use-hover-across-scroll.ts':
