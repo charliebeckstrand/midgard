@@ -108,6 +108,41 @@ describe('BugLogSheet', () => {
 		expect(screen.getByRole('list', { name: 'Reports' })).toBeDefined()
 	})
 
+	it('opens on the list after a close from the report view, and after a Delete there', () => {
+		const sheet = (open: boolean) => <BugLogSheet open={open} onOpenChange={() => {}} />
+
+		const { rerender } = render(sheet(true))
+
+		act(() => {
+			fireEvent.click(screen.getByRole('button', { name: 'Capture' }))
+		})
+
+		fireEvent.click(screen.getByRole('button', { name: 'View' }))
+
+		expect(screen.getByRole('heading', { name: 'capture' })).toBeDefined()
+
+		rerender(sheet(false))
+
+		rerender(sheet(true))
+
+		expect(screen.getByRole('list', { name: 'Reports' })).toBeDefined()
+
+		fireEvent.click(screen.getByRole('button', { name: 'View' }))
+
+		act(() => {
+			fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
+		})
+
+		// The new report takes the id of the report that went out.
+		act(() => {
+			fireEvent.click(screen.getByRole('button', { name: 'Capture' }))
+		})
+
+		expect(screen.getByRole('list', { name: 'Reports' })).toBeDefined()
+
+		expect(screen.queryByRole('heading', { name: 'capture' })).toBeNull()
+	})
+
 	it('deletes a report, and shows an error report from the log', () => {
 		render(<BugLogSheet open onOpenChange={() => {}} />)
 

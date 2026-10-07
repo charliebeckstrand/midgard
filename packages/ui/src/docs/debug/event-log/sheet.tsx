@@ -10,7 +10,6 @@ import { Flex } from 'ui/flex'
 import { Icon } from 'ui/icon'
 import { JsonTree } from 'ui/json-tree'
 import { List, ListItem } from 'ui/list'
-import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 import { Sheet, SheetBody, SheetClose, SheetFooter, SheetPanel, SheetTitle } from 'ui/sheet'
 import { Text } from 'ui/text'
 import { dan } from '../../../recipes/kiso/dan/index.ts'
@@ -18,7 +17,7 @@ import { iro } from '../../../recipes/kiso/iro/index.ts'
 import { getOrCompute } from '../../../utilities/get-or-compute.ts'
 import { noopSubscribe } from '../../../utilities/noop.ts'
 import { useDebug } from '../pause.ts'
-import { type Entry, KINDS, type Kind } from './log.ts'
+import type { Entry, Kind } from './log.ts'
 import { type Row, rowsOf, summaryOf } from './rows.ts'
 import { columns, kindWidth, lineOf } from './text.ts'
 
@@ -185,13 +184,10 @@ function EventRow({ row, width, state }: { row: Row; width: number; state: OpenS
 }
 
 /**
- * The viewer of the Event log: the title, "Preserve", "Batch", and a type
- * filter, the lines, newest first, Copy (oldest first, as text, with each
- * detail), and Clear. With "Batch" on, the entries of one batch are one line
- * that opens to their lines. With no selected type, the sheet shows each type,
- * and Copy copies the lines that the sheet shows. With no lines, it says that
- * the log is empty, or that the filter hides each entry. The log records
- * nothing while the sheet is on screen.
+ * The viewer of the Event log: the title, "Preserve", and "Batch", the lines,
+ * newest first, Copy (oldest first, as text, with each detail), and Clear.
+ * With "Batch" on, the default, the entries of one batch are one line that
+ * opens to their lines. The log records nothing while the sheet is on screen.
  */
 export function EventLogSheet({
 	open,
@@ -212,15 +208,9 @@ export function EventLogSheet({
 
 	const batched = useSyncExternalStore(subscribe, () => log.batched)
 
-	// The selected types. With no selected type, the sheet shows each type.
-	const [kinds, setKinds] = useState<Kind[]>([])
+	const rows = rowsOf(entries, batched)
 
-	const shown = kinds.length === 0 ? entries : entries.filter((entry) => kinds.includes(entry.kind))
-
-	// The filter applies first, so a batch holds only the shown entries.
-	const rows = rowsOf(shown, batched)
-
-	const width = kindWidth(shown)
+	const width = kindWidth(entries)
 
 	const { copied, copy } = useCopyButtonState({
 		text: rows.map((row) => rowText(row, width)).join('\n'),
@@ -247,10 +237,8 @@ export function EventLogSheet({
 		// The sheet takes the height of the log, up to the height of the screen.
 		<Sheet open={open} onOpenChange={onOpenChange}>
 			<SheetPanel side="bottom" className="max-h-full">
-				{/* The title row holds "Preserve", "Batch", and the type filter at
-				    its end. On a narrow screen, the filter takes a full row under the
-				    title and the checkboxes. The row takes the inset of the title, as
-				    the slot does. */}
+				{/* The title row holds "Preserve" and "Batch" at its end. The row
+				    takes the inset of the title, as the slot does. */}
 				<Flex wrap align="center" gap="md" className={cn(dan.space.panel.x, dan.space.panel.top)}>
 					<SheetTitle className="me-auto p-0">Event log</SheetTitle>
 					<CheckboxField>
@@ -271,26 +259,9 @@ export function EventLogSheet({
 						/>
 						<Label>Batch</Label>
 					</CheckboxField>
-					<Listbox<Kind>
-						multiple
-						aria-label="Types"
-						placeholder="All types"
-						value={kinds}
-						onValueChange={setKinds}
-						displayValue={(kind) => kind}
-						capitalize={false}
-						placement="bottom-end"
-						className="w-full sm:w-fit sm:max-w-full"
-					>
-						{KINDS.map((kind) => (
-							<ListboxOption key={kind} value={kind}>
-								<ListboxLabel>{kind}</ListboxLabel>
-							</ListboxOption>
-						))}
-					</Listbox>
 				</Flex>
 				<SheetBody className="min-h-0 flex-1 overflow-auto">
-					{shown.length > 0 ? (
+					{entries.length > 0 ? (
 						// The list renders the lines in the view of the body, so a long log
 						// opens as fast as a short one.
 						<List
@@ -308,9 +279,7 @@ export function EventLogSheet({
 							)}
 						</List>
 					) : (
-						<Text tone="muted">
-							{entries.length > 0 ? 'No events of the selected types' : 'No events'}
-						</Text>
+						<Text tone="muted">No events</Text>
 					)}
 				</SheetBody>
 				<SheetFooter className="justify-between">

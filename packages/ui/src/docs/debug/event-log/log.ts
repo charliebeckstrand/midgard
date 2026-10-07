@@ -66,13 +66,16 @@ export class EventLog extends Journal<Entry> {
 		super(store, 'docs:event-log', CAPACITY)
 	}
 
-	/** Whether the sheet shows the entries of a batch as one line. The flag stays for the tab. */
+	/**
+	 * Whether the sheet shows the entries of a batch as one line. It is on by
+	 * default, so the tab keeps only the flag of "off".
+	 */
 	get batched(): boolean {
-		return this.flag('batch')
+		return !this.flag('unbatched')
 	}
 
 	set batched(on: boolean) {
-		this.setFlag('batch', on)
+		this.setFlag('unbatched', !on)
 	}
 
 	/**

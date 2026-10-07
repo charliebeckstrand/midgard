@@ -179,7 +179,7 @@ describe('EventLogSheet', () => {
 })
 
 describe('EventLogSheet Batch', () => {
-	it('shows a batch as one line that opens to its lines, and copies its lines under the summary', async () => {
+	it('shows a batch as one line by default, which opens to its lines, and copies its lines under the summary', async () => {
 		// The sheet starts the same log.
 		const { log } = start()
 
@@ -196,7 +196,7 @@ describe('EventLogSheet Batch', () => {
 			if (original) Object.defineProperty(window.navigator, 'clipboard', original)
 			else delete (window.navigator as { clipboard?: unknown }).clipboard
 
-			log.batched = false
+			log.batched = true
 		})
 
 		const { rerender } = render(<EventLogSheet open={false} onOpenChange={() => {}} />)
@@ -210,10 +210,6 @@ describe('EventLogSheet Batch', () => {
 		})
 
 		rerender(<EventLogSheet open onOpenChange={() => {}} />)
-
-		expect(screen.getByText('onValueChange("Payment")')).toBeDefined()
-
-		fireEvent.click(screen.getByRole('checkbox', { name: 'Batch' }))
 
 		const summary = screen.getByText(
 			/^onValueChange\("Payment"\) … onValueChange\("Billing"\) \(2 lines, \d+ ms\)$/,
@@ -234,51 +230,17 @@ describe('EventLogSheet Batch', () => {
 		const at = lines.findIndex((line) => line.includes('(2 lines,'))
 
 		expect(lines[at + 1]).toMatch(/^ {2}\s*\d+ y\d+\s+Tabs\s+onValueChange\("Payment"\)$/)
-	})
-})
 
-describe('EventLogSheet type filter', () => {
-	it('shows each type with no selected type, and only the selected types after a selection', () => {
-		const { rerender } = render(<EventLogSheet open={false} onOpenChange={() => {}} />)
+		// With "Batch" off, each entry is its own line.
+		fireEvent.click(screen.getByRole('checkbox', { name: 'Batch' }))
 
-		act(() => {
-			record('route', '/filtered')
+		expect(log.batched).toBe(false)
 
-			record('error', 'filtered error')
-		})
+		expect(screen.queryByText(/\(2 lines,/)).toBeNull()
 
-		rerender(<EventLogSheet open onOpenChange={() => {}} />)
+		expect(screen.getByText('onValueChange("Payment")')).toBeDefined()
 
-		const types = screen.getByRole('combobox', { name: 'Types' })
-
-		expect(types.textContent).toContain('All types')
-
-		expect(screen.getByText('/filtered')).toBeDefined()
-
-		expect(screen.getByText('filtered error')).toBeDefined()
-
-		fireEvent.click(types)
-
-		fireEvent.click(screen.getByRole('option', { name: 'route' }))
-
-		expect(screen.getByText('/filtered')).toBeDefined()
-
-		expect(screen.queryByText('filtered error')).toBeNull()
-
-		fireEvent.click(screen.getByRole('option', { name: 'hmr' }))
-
-		fireEvent.click(screen.getByRole('option', { name: 'route' }))
-
-		expect(screen.queryByText('/filtered')).toBeNull()
-
-		expect(screen.getByText('No events of the selected types')).toBeDefined()
-
-		// With no selected type, the sheet shows each type again.
-		fireEvent.click(screen.getByRole('option', { name: 'hmr' }))
-
-		expect(screen.getByText('/filtered')).toBeDefined()
-
-		expect(screen.getByText('filtered error')).toBeDefined()
+		expect(screen.getByText('onValueChange("Billing")')).toBeDefined()
 	})
 })
 

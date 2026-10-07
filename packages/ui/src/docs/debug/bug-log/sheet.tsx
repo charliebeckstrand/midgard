@@ -97,6 +97,15 @@ export function BugLogSheet({
 	// The id of the report on view. A report that goes out returns the sheet to the list.
 	const [viewed, setViewed] = useState<number>()
 
+	// The sheet stays mounted while it is closed, so each open starts on the list.
+	const [wasOpen, setWasOpen] = useState(open)
+
+	if (open !== wasOpen) {
+		setWasOpen(open)
+
+		if (open) setViewed(undefined)
+	}
+
 	const report = reports.find(({ id }) => id === viewed)
 
 	const newest = reports.toReversed()
@@ -150,7 +159,16 @@ export function BugLogSheet({
 					{report ? (
 						<Flex gap="sm">
 							<CopyTextButton label="Copy" text={markdownOf(report)} />
-							<Button size="sm" color="red" onClick={() => bugs.remove(report.id)}>
+							<Button
+								size="sm"
+								color="red"
+								onClick={() => {
+									// A new report can take the id of the report that goes out.
+									setViewed(undefined)
+
+									bugs.remove(report.id)
+								}}
+							>
 								Delete
 							</Button>
 						</Flex>
