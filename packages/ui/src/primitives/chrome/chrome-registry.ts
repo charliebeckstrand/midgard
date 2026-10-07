@@ -23,13 +23,12 @@ export function registerChrome(node: HTMLElement): () => void {
 
 /**
  * The regions registered right now, as the live element list a focus manager
- * counts as part of the open surface.
+ * counts as part of the open surface. Each mounted `Chrome` registers its
+ * region.
  *
  * The list is read when a surface marks the page, so a region that mounts later
  * is not exempt from a surface already up. Chrome that outlives surfaces, which
  * is what this is for, always registers first.
- *
- * @see {@link registerChrome}
  */
 export function chromeRegions(): HTMLElement[] {
 	return [...regions]

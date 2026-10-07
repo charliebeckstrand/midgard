@@ -2,13 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
-import {
-	type Mount,
-	MountHold,
-	mountsEveryPanel,
-	useMountHold,
-	useMountsEveryPanel,
-} from '../../primitives/mount'
+import { type Mount, MountHold, useMountHold, useMountsEveryPanel } from '../../primitives/mount'
+import { mountsEveryPanel } from '../../primitives/mount/mount'
 import { act, attach, renderUI, screen, setupUser } from '../helpers'
 
 /**

@@ -1,6 +1,7 @@
 import { createRef } from 'react'
 import { describe, expect, it } from 'vitest'
-import { Chrome, chromeRegions, registerChrome } from '../../primitives/chrome'
+import { Chrome, chromeRegions } from '../../primitives/chrome'
+import { registerChrome } from '../../primitives/chrome/chrome-registry'
 import { renderUI, screen } from '../helpers'
 
 /*

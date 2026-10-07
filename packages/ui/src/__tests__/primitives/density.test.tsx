@@ -1,7 +1,7 @@
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
-import { densitySteps, stepDown, toInnerStep } from '../../core'
-import { writeRootDensity } from '../../core/density'
+import { densitySteps } from '../../core'
+import { stepDown, toInnerStep, writeRootDensity } from '../../core/density'
 import { slotStep } from '../../core/density/steps'
 import { Density, useDensityScope, useDensityStep } from '../../primitives/density'
 

@@ -1,7 +1,6 @@
 export {
 	type Mount,
 	type MountHoldState,
-	mountsEveryPanel,
 	useMountHold,
 	useMountsEveryPanel,
 } from './mount'

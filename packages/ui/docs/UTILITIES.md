@@ -1,6 +1,6 @@
 # Utilities
 
-> **Quick-glance index of `src/utilities/`.** Small, dependency-free pure helpers shared across the package: numeric clamping and formatting, locale coalescing, and WCAG color-contrast maths. They also cover caret bookkeeping for formatted inputs, the Escape dismiss-layer stack, a shared document-event subscriber, and roving keyboard-navigation math. **Internal:** `utilities` is not a `package.json` export. Reach it by relative import within the package (`from '../../utilities'`), not as `ui/utilities`.
+> **Quick-glance index of `src/utilities/`.** Small, dependency-free pure helpers shared across the package: numeric clamping and formatting, locale coalescing, and WCAG color-contrast maths. They also cover caret bookkeeping for formatted inputs, the Escape dismiss-layer stack, a shared document-event subscriber, and roving keyboard-navigation math. **Internal:** `utilities` is not a `package.json` export. Reach it by relative import within the package (`from '../../utilities'`), not as `ui/utilities`. The barrel exports only the helpers that a caller imports through it. A caller imports each other helper from its own file, such as `from '../../utilities/contrast'`.
 
 ## Numeric
 
@@ -14,8 +14,8 @@
 | `toNumericCell` | Coerces a raw data cell to a number. Numbers pass through and non-blank numeric strings parse. A blank (`null`, `''`, whitespace) becomes `NaN`, not `0`; callers finite-filter. |
 | `formatInteger` | Locale-formats `value` with no fraction digits (cached formatter). An optional `locale` overrides the runtime locale. |
 | `formatFraction` | Locale-formats `value` with up to two fraction digits (cached formatter). An optional `locale` overrides the runtime locale. |
-| `formatPercent` | Locale-formats a `0..1` share as a whole percent (cached formatter). An optional `locale` overrides the runtime locale. |
-| `integerFormat` / `fractionFormat` / `percentFormat` | The formatter behind each helper above for a `locale`. The same locale gives the same function, so a component can pass the formatter to a memo as a stable input. |
+| `integerFormat` / `fractionFormat` | The formatter behind each helper above for a `locale`. The same locale gives the same function, so a component can pass the formatter to a memo as a stable input. |
+| `percentFormat` | A `0..1` share as a whole percent for a `locale`, as a stable formatter. |
 | `compactFormat` | Compact notation to one fraction digit (`48.2K`) for a `locale`, as a stable formatter. Chart ticks in a narrow frame take it. |
 | `resolveFormat` | Resolves a `FormatSpec` to a cached `(value) => string` formatter — number, integer, currency, percent, compact, or prefixed id. |
 | `FormatSpec` *(type)* | What to format a value as: a numeric `Intl` format (`number`/`integer`/`currency`/`percent`/`compact`) or a prefixed `id`. |

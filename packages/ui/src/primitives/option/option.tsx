@@ -258,7 +258,6 @@ function isOptionSelected(
  * It throws outside a provider, so an orphan option fails at render with a
  * message that names the host. A raw `use(Context)` returns the missing-value
  * sentinel, and the fault then shows as an unnamed error at the first click.
- * @see {@link Option}
  */
 export function createSelectOption<
 	TValue = unknown,

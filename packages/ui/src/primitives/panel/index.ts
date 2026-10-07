@@ -1,16 +1,7 @@
 export { PanelClose, type PanelCloseProps } from './panel-close'
-export {
-	PanelCloseContext,
-	usePanelCloseContext,
-	usePanelCloseValue,
-} from './panel-close-context'
-export {
-	PanelA11yContext,
-	PanelProviders,
-	type PanelProvidersProps,
-	usePanelA11y,
-} from './panel-providers'
-export { PanelRoot, type PanelRootProps, PanelStateContext, usePanelState } from './panel-root'
+export { PanelCloseContext, usePanelCloseContext } from './panel-close-context'
+export { PanelProviders, type PanelProvidersProps, usePanelA11y } from './panel-providers'
+export { PanelRoot, type PanelRootProps, usePanelState } from './panel-root'
 export { PanelTrigger, type PanelTriggerProps } from './panel-trigger'
 export { createPanel } from './slots'
 export type {

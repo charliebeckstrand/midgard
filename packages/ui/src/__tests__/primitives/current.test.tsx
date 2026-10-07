@@ -5,11 +5,11 @@ import {
 	CurrentContent,
 	CurrentContents,
 	CurrentContext,
-	type CurrentMount,
 	useCurrent,
-	useCurrentPanelActive,
 	useCurrentState,
 } from '../../primitives/current'
+import { useCurrentPanelActive } from '../../primitives/current/current'
+import type { Mount } from '../../primitives/mount'
 import { act, bySlot, renderUI, screen, setupUser } from '../helpers'
 
 function ActiveProbe({ id }: { id: string }) {
@@ -207,7 +207,7 @@ describe('CurrentContent mount policy', () => {
 		onSetup,
 		onCleanup,
 	}: {
-		mount?: CurrentMount
+		mount?: Mount
 		animate?: 'fade' | 'slide' | false
 		initial?: string
 		onSetup?: () => void
