@@ -48,9 +48,24 @@ describe('Tooltip first intent before the state loads (real browser)', () => {
 			</Tooltip>,
 		)
 
-		await userEvent.hover(getSlot(container, 'tooltip-trigger'))
+		const trigger = getSlot(container, 'tooltip-trigger')
 
-		const start = performance.now()
+		// The delay starts at the pointerenter, not when the hover call returns.
+		// The return comes after the round trip to the driver, so a clock that
+		// starts there reads short.
+		let start = Number.NaN
+
+		trigger.addEventListener(
+			'pointerenter',
+			() => {
+				start = performance.now()
+			},
+			{ once: true },
+		)
+
+		await userEvent.hover(trigger)
+
+		expect(start).not.toBeNaN()
 
 		await pause(200)
 
