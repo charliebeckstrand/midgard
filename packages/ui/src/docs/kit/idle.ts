@@ -1,20 +1,11 @@
 import { useEffect } from 'react'
+import { cancelIdle, requestIdle } from '../../utilities/idle.ts'
 
 /**
- * Calls `callback` in idle time. A browser with no `requestIdleCallback`, such
- * as Safari, calls it after a timeout of 1 ms, with no deadline.
+ * The delay of the fallback in a browser with no `requestIdleCallback`, such as
+ * Safari. The docs work starts at once there, with no deadline.
  */
-function requestIdle(callback: (deadline?: IdleDeadline) => void): number {
-	const idle = window.requestIdleCallback ?? ((call: () => void) => window.setTimeout(call, 1))
-
-	return idle(callback)
-}
-
-function cancelIdle(handle: number): void {
-	const cancel = window.cancelIdleCallback ?? window.clearTimeout
-
-	cancel(handle)
-}
+const FALLBACK_DELAY_MS = 1
 
 /**
  * Runs `task` once in idle time after the mount, so a later step that needs
@@ -30,7 +21,7 @@ export function useIdle(task: (signal: AbortSignal) => unknown): void {
 
 		const handle = requestIdle(() => {
 			task(controller.signal)
-		})
+		}, FALLBACK_DELAY_MS)
 
 		return () => {
 			cancelIdle(handle)
@@ -52,8 +43,8 @@ export function runInSlices(step: () => boolean, signal: AbortSignal): void {
 			if (signal.aborted || !step()) return
 		} while ((deadline?.timeRemaining() ?? 0) > 2)
 
-		requestIdle(slice)
+		requestIdle(slice, FALLBACK_DELAY_MS)
 	}
 
-	requestIdle(slice)
+	requestIdle(slice, FALLBACK_DELAY_MS)
 }

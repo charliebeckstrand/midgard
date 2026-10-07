@@ -89,23 +89,6 @@ const noProps = () => ({})
 
 const noop = () => {}
 
-/** Whether a mounted tooltip already scheduled the idle load of the state module. */
-let prefetchScheduled = false
-
-/**
- * Loads the state module in idle time, after the first tooltip mounts. A first
- * keyboard focus then finds the module ready and opens the tooltip at once.
- */
-function prefetchTooltipBody(): void {
-	if (prefetchScheduled) return
-
-	prefetchScheduled = true
-
-	const idle = window.requestIdleCallback ?? ((call: () => void) => window.setTimeout(call, 1))
-
-	idle(preloadTooltipBody)
-}
-
 /**
  * Hover/focus tooltip root; wires up floating state and shares `placement` and
  * `delay` with its `<TooltipTrigger>` and `<TooltipContent>` via context.
@@ -122,8 +105,8 @@ function prefetchTooltipBody(): void {
  * `aria-controls`.
  *
  * The floating state loads on demand, with the panel, so a page that only
- * shows a trigger does not load Floating UI before it is interactive. The
- * first tooltip schedules the load in idle time. Before the load, native
+ * shows a trigger does not load Floating UI before it is interactive.
+ * `<TooltipContent>` schedules the load in idle time. Before the load, native
  * listeners on the trigger start the load on a hover, a focus, or a click,
  * and the state replays that intent when it takes over. A hover opens after
  * the same delay, a keyboard focus opens at once, and a click toggles. An
@@ -136,10 +119,6 @@ export function Tooltip({ disabled, children, ...props }: TooltipProps) {
 	// before the load takes the light state and the handover. The choice holds
 	// for the life of the tooltip, so the tree keeps its shape.
 	const [module] = useState(readTooltipBody)
-
-	useEffect(() => {
-		prefetchTooltipBody()
-	}, [])
 
 	// The public polarity is `disabled`; the state hook and floating-ui's own
 	// hooks under it read `enabled`, so the inversion happens once, here.

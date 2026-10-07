@@ -13,12 +13,14 @@ const listeners = new Set<() => void>()
 
 /**
  * Loads the module of the tooltip body, which carries Motion and the floating
- * surface. A page that opens no tooltip does not load it. The first call starts
- * the load, and each later call gets the same promise. A load that fails is
- * forgotten, so the next call tries again.
+ * surface. `TooltipContent` calls it in idle time after the hydration, so a page
+ * with no tooltip does not load it. The first call starts the load, and each
+ * later call gets the same promise. A load that fails is forgotten, so the
+ * next call tries again.
  *
- * @remarks A load that fails is an unhandled rejection, so the error reaches
- * the error reporting of the app.
+ * @remarks A preload that fails is an unhandled rejection, so the error
+ * reaches the error reporting of the app. The idle load gives no error, and a
+ * later preload reports it.
  * @internal
  */
 export function loadTooltipBody(): Promise<TooltipBodyModule> {
@@ -42,7 +44,8 @@ export function loadTooltipBody(): Promise<TooltipBodyModule> {
 
 /**
  * Starts the load of the tooltip body for a reader who shows intent: a hover
- * or a focus on a trigger. The open delay of a hover covers the load.
+ * or a focus on a trigger, before the idle load. The open delay of a hover
+ * covers the load.
  * @internal
  */
 export function preloadTooltipBody(): void {

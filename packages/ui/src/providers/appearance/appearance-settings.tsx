@@ -4,12 +4,13 @@ import { Settings2 } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
+import { useIdleLoad } from '../../hooks/use-idle-load'
 import type { AppearanceSettingsDialog } from './appearance-settings-dialog'
 
 /**
  * Loads the module of the dialog, which carries the dialog and the listboxes. A
- * page loads it on the first press of the button, so a page that opens no
- * settings does not load the dialog before it hydrates.
+ * page loads it in idle time after the hydration. Thus the page does not load
+ * the dialog before it hydrates, and the first press does not wait for it.
  * @internal
  */
 const loadDialog = () => import('./appearance-settings-dialog')
@@ -36,21 +37,31 @@ export type AppearanceSettingsProps = {
  * Offcanvas), with the key that toggles it. The picker shows from `lg` up,
  * where the layout shows its desktop sidebar.
  *
- * @remarks The dialog loads on demand. A pointer on the button or a focus on
- * it starts the load of the dialog module, and a press opens the dialog when
- * the module is there. The button does not change, so the dialog gives the
- * focus back to it when it closes.
+ * @remarks The dialog module loads in idle time after the hydration. The
+ * dialog then renders closed, so the first open is the same as a later open. A
+ * pointer on the button or a focus on it starts the load sooner. A press before
+ * the load opens the dialog when the module arrives. The button does not
+ * change, so the dialog gives the focus back to it when it closes.
  */
 export function AppearanceSettings({ children }: AppearanceSettingsProps) {
 	const [open, setOpen] = useState(false)
 
-	const [dialog, setDialog] = useState<{
+	// The module of the dialog, from a press before the idle load on.
+	const [pressed, setPressed] = useState<{
 		AppearanceSettingsDialog: typeof AppearanceSettingsDialog
 	} | null>(null)
 
+	const dialog = useIdleLoad(loadDialog) ?? pressed
+
 	const show = () => {
+		if (dialog) {
+			setOpen(true)
+
+			return
+		}
+
 		void loadDialog().then((module) => {
-			setDialog(module)
+			setPressed(module)
 
 			setOpen(true)
 		})

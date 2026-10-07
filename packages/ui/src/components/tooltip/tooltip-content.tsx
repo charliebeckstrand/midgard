@@ -2,9 +2,15 @@
 
 import { type ReactNode, useEffect, useSyncExternalStore } from 'react'
 import type { ScaleStep } from '../../core/density'
+import { useIdleLoad } from '../../hooks/use-idle-load'
 import type { scale } from '../../recipes/kata/tooltip'
 import { useTooltipContext } from './context'
-import { preloadTooltipBody, readTooltipBody, subscribeTooltipBody } from './tooltip-body-loader'
+import {
+	loadTooltipBody,
+	preloadTooltipBody,
+	readTooltipBody,
+	subscribeTooltipBody,
+} from './tooltip-body-loader'
 
 /** Props for {@link TooltipContent}. */
 export type TooltipContentProps = {
@@ -45,12 +51,12 @@ const serverTooltipBody = () => null
  * via `<FloatingSurface>`, animates in, and adopts the glass surface from
  * `glass` or an active `<GlassProvider>`.
  *
- * @remarks The panel loads on demand, in one module with the tooltip state.
- * The first tooltip of a page starts the load in idle time. A hover, a focus,
- * or a click on the trigger starts it at once. The module carries Motion
- * and the floating surface, and the panel opens when the module is there. The
- * hover open delay covers the load, so only a focus before the load ends can
- * show the panel a fetch late.
+ * @remarks The panel module carries the tooltip state, Motion, and the
+ * floating surface, so the page does not load it before it hydrates. Each
+ * mounted panel loads the module in idle time after the hydration, and the
+ * panels share one load. A hover, a focus, or a click on the trigger starts the
+ * load sooner, and the panel opens when the module is there. Thus a focus,
+ * which opens with no delay, does not wait for the network after the idle load.
  *
  * Pointer events are disabled unless the tooltip is `interactive`,
  * so a non-interactive panel never intercepts hover. An `interactive` panel
@@ -71,6 +77,9 @@ export function TooltipContent(props: TooltipContentProps) {
 	const { open } = useTooltipContext()
 
 	const body = useSyncExternalStore(subscribeTooltipBody, readTooltipBody, serverTooltipBody)
+
+	// A body that a hover or a focus loaded needs no idle load.
+	useIdleLoad(body ? null : loadTooltipBody)
 
 	useEffect(() => {
 		if (open && !body) preloadTooltipBody()

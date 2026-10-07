@@ -22,11 +22,13 @@
  * A run takes the default density, `snug`. Give `--density` with a list of
  * levels to snapshot other levels too, for example `--density=loose,compact`.
  * Each level adds one snapshot for each sheet and theme. The name of a snapshot
- * at a level other than the default names the level.
+ * at a level other than the default names the level. An unknown option stops
+ * the script before it sends a snapshot.
  */
 
 import { spawnSync } from 'node:child_process'
 import { join } from 'node:path'
+import { parseArgs } from 'node:util'
 import percySnapshot from '@percy/playwright'
 import { type Browser, chromium } from 'playwright'
 import { build, preview } from 'vite'
@@ -47,11 +49,13 @@ const configFile = join(root, 'vite.fixtures.config.ts')
 
 const args = process.argv.slice(2)
 
-const ids = args.filter((arg) => !arg.startsWith('--'))
+const { values, positionals: ids } = parseArgs({
+	args,
+	allowPositionals: true,
+	options: { density: { type: 'string' } },
+})
 
-const densityArg = args.find((arg) => arg.startsWith('--density='))
-
-const densities = densityArg ? densityArg.slice('--density='.length).split(',') : [DENSITY.fallback]
+const densities = values.density ? values.density.split(',') : [DENSITY.fallback]
 
 const unknownDensities = densities.filter(
 	(level) => !densityLevels.some((known) => known.value === level),

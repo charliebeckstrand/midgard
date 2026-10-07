@@ -13,7 +13,7 @@ vi.mock('@floating-ui/react', async () => (await import('../../mocks/floating-ui
 vi.mock('motion/react', async () => (await import('../../mocks/motion-react')).default)
 
 // A tooltip that mounts before its state module loads hands over to the state
-// when the load ends, and the handover is a nested commit. The first tooltip
+// when the load ends, and the handover is a nested commit. `TooltipContent`
 // starts the load in idle time, so without this load the handover lands at a
 // moment that the order of the files decides, and a case that counts commits
 // can see it. The load before each file gives each case the state of a page
