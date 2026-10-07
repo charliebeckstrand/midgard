@@ -40,6 +40,17 @@ describe('holdTextSelection', () => {
 		})
 	}
 
+	/** Hides the page, as a browser does for a tab in the background. */
+	const hidePage = () => {
+		const hidden = vi.spyOn(document, 'hidden', 'get').mockReturnValue(true)
+
+		act(() => {
+			document.dispatchEvent(new Event('visibilitychange'))
+		})
+
+		hidden.mockRestore()
+	}
+
 	it('turns off selection on the root element until the delay after the touch ends', () => {
 		holdTextSelection({ pointerType: 'touch', pointerId: 1 })
 
@@ -102,6 +113,40 @@ describe('holdTextSelection', () => {
 		holdTextSelection({ pointerType: 'touch', pointerId: 2 })
 
 		release()
+
+		expect(root).toHaveClass('select-none')
+	})
+
+	// iOS can hide the tab during a touch and send no `pointerup` or
+	// `pointercancel`. A touch that never ends must not hold the page.
+	it('releases at once when the page hides during a touch', () => {
+		holdTextSelection({ pointerType: 'touch', pointerId: 1 })
+
+		hidePage()
+
+		expect(root).not.toHaveClass('select-none')
+	})
+
+	it('releases a later touch after the page hides during a touch', () => {
+		holdTextSelection({ pointerType: 'touch', pointerId: 1 })
+
+		hidePage()
+
+		holdTextSelection({ pointerType: 'touch', pointerId: 2 })
+
+		fireEvent.pointerUp(window, { pointerType: 'touch', pointerId: 2 })
+
+		release()
+
+		expect(root).not.toHaveClass('select-none')
+	})
+
+	it('keeps the hold when the page shows', () => {
+		holdTextSelection({ pointerType: 'touch', pointerId: 1 })
+
+		act(() => {
+			document.dispatchEvent(new Event('visibilitychange'))
+		})
 
 		expect(root).toHaveClass('select-none')
 	})

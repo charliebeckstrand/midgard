@@ -15,12 +15,48 @@ let release: ReturnType<typeof setTimeout> | undefined
 /** Whether the root element had the class before the first hold, so the release keeps it. */
 let owned = false
 
-function end(event: PointerEvent) {
-	if (!held.delete(event.pointerId) || held.size > 0) return
+function listen() {
+	window.addEventListener('pointerup', end, true)
 
+	window.addEventListener('pointercancel', end, true)
+
+	document.addEventListener('visibilitychange', hide)
+}
+
+function unlisten() {
 	window.removeEventListener('pointerup', end, true)
 
 	window.removeEventListener('pointercancel', end, true)
+
+	document.removeEventListener('visibilitychange', hide)
+}
+
+/** Ends each hold, and gives the root element selection back at once. */
+function releaseAll() {
+	held.clear()
+
+	clearTimeout(release)
+
+	release = undefined
+
+	unlisten()
+
+	if (owned) document.documentElement.classList.remove(HOLD)
+
+	owned = false
+}
+
+// iOS can hide the tab during a touch and send no `pointerup` or
+// `pointercancel`. The touch then stays in `held`, and the root element keeps
+// the class after each later touch. A hidden page has no touch that holds.
+function hide() {
+	if (document.hidden) releaseAll()
+}
+
+function end(event: PointerEvent) {
+	if (!held.delete(event.pointerId) || held.size > 0) return
+
+	unlisten()
 
 	release = setTimeout(() => {
 		release = undefined
@@ -40,7 +76,8 @@ function end(event: PointerEvent) {
  * surface that takes the long press calls this function on each `pointerdown`. A touch that is
  * not a hold, such as a tap or a scroll, ends before the selection starts, so it loses nothing.
  * The root element gets selection back {@link TEXT_SELECTION_RELEASE_DELAY} ms after the last
- * held touch ends. Nested surfaces can call this function for the same touch.
+ * held touch ends, and at once when the page hides. Nested surfaces can call this function for
+ * the same touch.
  *
  * Prior art: React Aria's `disableTextSelection` does the same on iOS.
  *
@@ -58,11 +95,7 @@ export function holdTextSelection({
 
 	release = undefined
 
-	if (held.size === 0) {
-		window.addEventListener('pointerup', end, true)
-
-		window.addEventListener('pointercancel', end, true)
-	}
+	if (held.size === 0) listen()
 
 	held.add(pointerId)
 
@@ -80,17 +113,5 @@ export function holdTextSelection({
  * root class it had before the first hold.
  */
 export function __resetTextSelectionHold(): void {
-	held.clear()
-
-	clearTimeout(release)
-
-	release = undefined
-
-	window.removeEventListener('pointerup', end, true)
-
-	window.removeEventListener('pointercancel', end, true)
-
-	if (owned) document.documentElement.classList.remove(HOLD)
-
-	owned = false
+	releaseAll()
 }
