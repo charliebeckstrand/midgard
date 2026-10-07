@@ -11,7 +11,8 @@
  * density-lg:p-4`, so the element takes the value of its nearest scope, and a
  * consumer `className` wins. `rungs.ts` gives the rank.
  *
- * A spacing utility takes stops of the spacing scale. `density-text` takes the
+ * A spacing utility takes stops of the spacing scale. A margin utility also
+ * takes negative stops, for example `density-mb-[-3,-4,-5]`. `density-text` takes the
  * names of the text scale. `density-rounded` takes the names of the radius
  * scale, or stops of the spacing scale as `rounded-[--spacing(n)]` does. A
  * stepped utility takes each variant, as a core utility does, for example
@@ -34,6 +35,9 @@ import { type UtilityValue, utilityTable } from './utility-table'
 
 /** A stop of the spacing scale, such as `2` or `1.5`. */
 const isStop = (value: string) => /^\d+(\.\d+)?$/.test(value)
+
+/** A stop of the spacing scale, or a negative stop, such as `-4`. */
+const isMargin = (value: string) => isStop(value.replace(/^-/, ''))
 
 /** A name of a theme scale, such as `sm` or `2xl`. */
 const isName = (value: string) => /^[a-z0-9]+$/.test(value)
@@ -58,6 +62,7 @@ const each = (properties: readonly string[], value: string) =>
 /** The values that each kind of stepped utility takes. */
 const valid: Record<UtilityValue, (value: string) => boolean> = {
 	spacing: isStop,
+	margin: isMargin,
 	text: isName,
 	radius: (value) => isStop(value) || isName(value),
 }
@@ -65,6 +70,7 @@ const valid: Record<UtilityValue, (value: string) => boolean> = {
 /** The declarations of one value of each kind of stepped utility. */
 const declare: Record<UtilityValue, (properties: readonly string[], value: string) => CssInJs> = {
 	spacing: (properties, stop) => each(properties, spacing(stop)),
+	margin: (properties, stop) => each(properties, spacing(stop)),
 	text: (_, name) => ({
 		'font-size': `var(--text-${name})`,
 		'line-height': `var(--tw-leading, var(--text-${name}--line-height))`,

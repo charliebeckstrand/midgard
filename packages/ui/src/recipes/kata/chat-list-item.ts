@@ -1,5 +1,6 @@
 import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, ji, narabi } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { nav, cursor } = hannou
 const { text } = iro
@@ -14,7 +15,7 @@ export const k = defineRecipe({
 		flex.row,
 		'items-center',
 		'w-full',
-		'gap-2',
+		dan.gap.scale.sm,
 		'p-ring-2',
 		'rounded-[--spacing(2)]',
 		...cursor,

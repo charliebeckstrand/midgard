@@ -16,11 +16,11 @@ export type ListVariant = NonNullable<VariantProps<typeof base>['variant']>
 const base = defineRecipe({
 	base: [flex.col, 'm-0 p-0'],
 	variant: {
-		separated: ['gap-2'],
+		separated: [dan.gap.scale.sm],
 		outline: ['overflow-hidden', rounded.lg, ...border.default, ...divider.between],
 		plain: divider.between,
-		solid: ['gap-2'],
-		bare: ['gap-2'],
+		solid: [dan.gap.scale.sm],
+		bare: [dan.gap.scale.sm],
 	},
 	// A horizontal row wraps onto the next line when its items do not fit, so it
 	// stays inside a narrow parent.
@@ -48,7 +48,16 @@ const item = defineRecipe({
 	// `list-none` is stated, not inherited from the flex display: a row only avoids
 	// drawing a marker today because `display: flex` generates no marker box, so a
 	// future non-flex variant would grow a bullet.
-	base: ['group', 'list-none', flex.row, 'gap-2', 'gap-y-0', size.md, text.default, focus.inset],
+	base: [
+		'group',
+		'list-none',
+		flex.row,
+		dan.gap.scale.sm,
+		'gap-y-0',
+		size.md,
+		text.default,
+		focus.inset,
+	],
 	variant: {
 		separated: [...bg.surface, border.default, rounded.lg, pad],
 		outline: pad,

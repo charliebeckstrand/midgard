@@ -7,6 +7,7 @@
  */
 import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, ji, narabi } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { cursor, disabled } = hannou
 const { text } = iro
@@ -45,7 +46,7 @@ const message = defineRecipe({
 const legend = [ji.ramp, weight.semibold, text.default, ...disabled]
 
 export const k = {
-	base: ['[&>legend+*]:pt-4', ...disabled],
+	base: [dan.space.fieldset.legend, ...disabled],
 	legend,
 	field: [
 		...field,

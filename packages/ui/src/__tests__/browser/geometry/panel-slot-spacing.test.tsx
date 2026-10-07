@@ -37,8 +37,8 @@ import { settledRect } from '../helpers/sample'
  * between two slots, and each gap between two slots is the same. The body is
  * the part that scrolls, so the header and the footer stay in place while it
  * scrolls. The visible space must stay even then too: an inset that is padding
- * inside the scrolling body moves out of view with the content. The inset takes
- * the step of the nearest density scope, and the gap does not.
+ * inside the scrolling body moves out of view with the content. The inset and
+ * the gap take the step of the nearest density scope.
  */
 
 /** Text that is taller than each panel, so the body scrolls. */
@@ -138,14 +138,12 @@ const VIEWPORTS = [
 	{ name: 'desktop', width: 1280, height: 800 },
 ] as const
 
-/** The inset at each density, in pixels. The slot gap is 16 at each density. */
+/** The inset and the slot gap at each density, in pixels. */
 const DENSITIES = [
-	{ density: 'compact', inset: 20 },
-	{ density: 'snug', inset: 24 },
-	{ density: 'loose', inset: 28 },
+	{ density: 'compact', inset: 20, gap: 12 },
+	{ density: 'snug', inset: 24, gap: 16 },
+	{ density: 'loose', inset: 28, gap: 20 },
 ] as const
-
-const GAP = 16
 
 /** The content box of `el`: the edges that its text starts and stops at. */
 function contentBox(el: Element) {
@@ -185,7 +183,7 @@ function scrollMiddle(el: HTMLElement) {
 describe.each(VIEWPORTS)('panel slot spacing at the $name width', ({ width, height }) => {
 	beforeAll(() => page.viewport(width, height))
 
-	describe.each(DENSITIES)('at the $density density', ({ density, inset }) => {
+	describe.each(DENSITIES)('at the $density density', ({ density, inset, gap }) => {
 		describe.each(PANELS)('$name', ({ slot, full, bare }) => {
 			it('keeps the edge insets even and larger than the slot gap, before and after a scroll', async () => {
 				renderUI(<DensityProvider density={density}>{full}</DensityProvider>)
@@ -221,8 +219,8 @@ describe.each(VIEWPORTS)('panel slot spacing at the $name width', ({ width, heig
 					left: inset,
 					right: inset,
 					bottom: inset,
-					above: GAP,
-					below: GAP,
+					above: gap,
+					below: gap,
 				})
 
 				scrollMiddle(body)
