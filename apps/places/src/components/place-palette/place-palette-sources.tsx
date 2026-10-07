@@ -5,7 +5,9 @@ import { CATEGORY_BY_VALUE, categoryLabel } from '../../constants'
 import type { Place } from '../../types'
 import type { PaletteCommand, PaletteSource } from '../../utilities/places-palette'
 import { type PlaceView, UNITED_STATES } from '../../utilities/places-view'
-import { type PlaceActions, placeMenuItems } from '../place-menu'
+// The rows alone, not the barrel: the barrel also holds `PlaceMenu`, and the
+// bundle then keeps the menu code of ui on the home page.
+import { type PlaceActions, placeMenuItems } from '../place-menu/place-menu-items'
 
 /** How many of the newest places show for an empty query. */
 const RECENT_PLACES = 5

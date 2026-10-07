@@ -257,7 +257,7 @@ describe('AppearanceSettings', () => {
 
 		await userEvent.click(screen.getByRole('button', { name: 'Settings' }))
 
-		expect(screen.getByRole('dialog', { name: 'Settings' })).toBeInTheDocument()
+		expect(await screen.findByRole('dialog', { name: 'Settings' })).toBeInTheDocument()
 	})
 
 	it('shows the density level name without its step', async () => {
@@ -269,7 +269,7 @@ describe('AppearanceSettings', () => {
 
 		await userEvent.click(screen.getByRole('button', { name: 'Settings' }))
 
-		const dialog = screen.getByRole('dialog', { name: 'Settings' })
+		const dialog = await screen.findByRole('dialog', { name: 'Settings' })
 
 		expect(dialog).toHaveTextContent('Snug')
 		expect(dialog).not.toHaveTextContent('(md)')
@@ -284,7 +284,7 @@ describe('AppearanceSettings', () => {
 
 		await userEvent.click(screen.getByRole('button', { name: 'Settings' }))
 
-		const dialog = screen.getByRole('dialog', { name: 'Settings' })
+		const dialog = await screen.findByRole('dialog', { name: 'Settings' })
 
 		expect(dialog).toHaveTextContent('Motion')
 		expect(dialog).toHaveTextContent('System')
@@ -299,7 +299,7 @@ describe('AppearanceSettings', () => {
 
 		await userEvent.click(screen.getByRole('button', { name: 'Settings' }))
 
-		expect(screen.getByRole('dialog', { name: 'Settings' })).not.toHaveTextContent('Sidebar')
+		expect(await screen.findByRole('dialog', { name: 'Settings' })).not.toHaveTextContent('Sidebar')
 	})
 
 	it('picks the sidebar mode inside a sidebar layout, and shows its key', async () => {
@@ -314,7 +314,7 @@ describe('AppearanceSettings', () => {
 		// The navbar and the header both hold the actions. The first button opens the dialog.
 		await userEvent.click(screen.getAllByRole('button', { name: 'Settings' })[0] as HTMLElement)
 
-		const dialog = screen.getByRole('dialog', { name: 'Settings' })
+		const dialog = await screen.findByRole('dialog', { name: 'Settings' })
 
 		expect(dialog).toHaveTextContent('Sidebar')
 
