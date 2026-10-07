@@ -3,6 +3,7 @@
 import { GripVertical } from 'lucide-react'
 import { type ReactNode, useEffect, useId } from 'react'
 import { cn, dataAttr } from '../../core'
+import { SortableGrip } from '../../primitives/sortable-grip/sortable-grip'
 import { k } from '../../recipes/kata/kanban'
 import { Icon } from '../icon'
 import { useKanbanCardContext, useKanbanContext } from './context'
@@ -74,27 +75,20 @@ export function KanbanCardHandle({
 
 	const { cardId, setActivatorNodeRef, attributes, listeners, dragging, itemId } = card
 
-	// The handle is a native `<button>`, so the `role="button"` of dnd-kit is redundant.
-	const { role: _role, ...handleAttributes } = attributes
-
 	return (
-		<button
-			ref={setActivatorNodeRef}
-			{...handleAttributes}
-			{...listeners}
-			type="button"
+		<SortableGrip
+			data-slot="kanban-card-handle"
+			sortable={{ setActivatorNodeRef, attributes, listeners, dragging }}
 			id={handleId}
 			// "Drag" and then the name of the card item. An explicit name replaces both.
-			aria-label={ariaLabel ?? 'Drag'}
+			label={ariaLabel ?? 'Drag'}
 			aria-labelledby={ariaLabel ? undefined : `${handleId} ${itemId}`}
 			onKeyDown={(event) => onCardKeyDown(cardId, event)}
 			onBlur={onCardBlur}
-			data-slot="kanban-card-handle"
 			data-card-id={cardId}
-			data-dragging={dataAttr(dragging)}
 			className={cn(k.card.handle, className)}
 		>
 			{content}
-		</button>
+		</SortableGrip>
 	)
 }

@@ -1,11 +1,10 @@
 'use client'
 
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { Icon } from '../../../components/icon'
 import { cn, dataAttr } from '../../../core'
 import { useMotionSafeSortable } from '../../../hooks/use-motion-safe-sortable'
+import { SortableGrip } from '../../../primitives/sortable-grip/sortable-grip'
 import { k } from '../../../recipes/kata/query-builder'
 
 /** Props for {@link QueryBuilderSortableItem}. @internal */
@@ -45,9 +44,6 @@ export function QueryBuilderSortableItem({
 		isDragging,
 	} = useMotionSafeSortable({ id, disabled: disabled || !handle })
 
-	// The grip is a native `<button>`, so the `role="button"` of dnd-kit is redundant.
-	const { role: _role, ...gripAttributes } = attributes
-
 	return (
 		<div
 			ref={setNodeRef}
@@ -57,19 +53,14 @@ export function QueryBuilderSortableItem({
 			className={cn(k.sortable.base)}
 		>
 			{handle && (
-				<button
-					ref={setActivatorNodeRef}
+				<SortableGrip
 					data-slot="query-reorder-handle"
-					data-dragging={dataAttr(isDragging)}
-					className={cn(k.sortable.handle)}
-					{...gripAttributes}
-					{...listeners}
-					type="button"
-					aria-label={`Reorder ${label}`}
+					sortable={{ setActivatorNodeRef, attributes, listeners, dragging: isDragging }}
+					label={`Reorder ${label}`}
+					size="sm"
 					disabled={disabled}
-				>
-					<Icon icon={<GripVertical />} size="sm" />
-				</button>
+					className={cn(k.sortable.handle)}
+				/>
 			)}
 			<div className={cn(k.sortable.node)}>{children}</div>
 		</div>

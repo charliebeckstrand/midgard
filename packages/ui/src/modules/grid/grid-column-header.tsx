@@ -2,7 +2,6 @@
 
 import type { DraggableSyntheticListeners } from '@dnd-kit/core'
 import { useSortable } from '@dnd-kit/sortable'
-import { GripVertical } from 'lucide-react'
 import {
 	memo,
 	type ReactNode,
@@ -11,9 +10,9 @@ import {
 	useMemo,
 	useRef,
 } from 'react'
-import { Icon } from '../../components/icon'
 import { TableHeader } from '../../components/table'
 import { cn, dataAttr } from '../../core'
+import { SortableGrip } from '../../primitives/sortable-grip/sortable-grip'
 import { k } from '../../recipes/kata/grid'
 import type { QueryGroup } from '../query'
 import { columnLabel } from './engine/grid-column/label'
@@ -323,15 +322,13 @@ export const GridReorderableColumnHeader = memo(function GridReorderableColumnHe
 	// `aria-roledescription="sortable"`, which hides "column header". The
 	// handle-less header strips all three and keeps the focus stop and the
 	// `aria-disabled` and `aria-describedby` hints. The grip of a gripped header is
-	// a native `<button>`, so it strips only the redundant role.
+	// a `SortableGrip`, which strips only the redundant role.
 	const {
 		role: _role,
 		'aria-pressed': _pressed,
 		'aria-roledescription': _roleDescription,
 		...cellActivatorAttributes
 	} = attributes
-
-	const { role: _gripRole, ...gripAttributes } = attributes
 
 	const cellActivators = useSurfaceSafeActivators(listeners)
 
@@ -367,17 +364,11 @@ export const GridReorderableColumnHeader = memo(function GridReorderableColumnHe
 			    non-reorderable header above). */}
 			<span data-grid-header className={cn(k.reorder.layout)}>
 				{handle && (
-					<button
-						type="button"
-						ref={setActivatorNodeRef}
-						data-dragging={dataAttr(isDragging)}
+					<SortableGrip
+						sortable={{ setActivatorNodeRef, attributes, listeners, dragging: isDragging }}
+						label={`Reorder ${columnLabel(column)}`}
 						className={cn(k.reorder.handle)}
-						aria-label={`Reorder ${columnLabel(column)}`}
-						{...gripAttributes}
-						{...listeners}
-					>
-						<Icon icon={<GripVertical />} />
-					</button>
+					/>
 				)}
 				<GridColumnHeaderLabel
 					column={column}

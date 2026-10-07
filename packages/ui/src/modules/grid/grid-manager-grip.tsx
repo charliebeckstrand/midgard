@@ -1,18 +1,13 @@
 'use client'
 
-import type { DraggableAttributes, DraggableSyntheticListeners } from '@dnd-kit/core'
 import { GripVertical } from 'lucide-react'
 import { Icon } from '../../components/icon'
-import { cn, dataAttr } from '../../core'
+import { cn } from '../../core'
+import {
+	SortableGrip,
+	type SortableGripBindings,
+} from '../../primitives/sortable-grip/sortable-grip'
 import { k } from '../../recipes/kata/grid-group'
-
-/** The sortable bindings a {@link GridManagerGrip} carries. @internal */
-type GridManagerGripSortable = {
-	setActivatorNodeRef: (node: HTMLElement | null) => void
-	attributes: DraggableAttributes
-	listeners: DraggableSyntheticListeners
-	dragging: boolean
-}
 
 /**
  * The drag grip of a row or a group in a manager dialog. With `sortable`, it
@@ -25,7 +20,7 @@ export function GridManagerGrip({
 	sortable,
 	label,
 }: {
-	sortable?: GridManagerGripSortable
+	sortable?: SortableGripBindings
 	/** The accessible name of the activator. */
 	label?: string
 }) {
@@ -37,22 +32,5 @@ export function GridManagerGrip({
 		)
 	}
 
-	const { setActivatorNodeRef, attributes, listeners, dragging } = sortable
-
-	// The grip is a native `<button>`, so the `role="button"` of dnd-kit is redundant.
-	const { role: _role, ...gripAttributes } = attributes
-
-	return (
-		<button
-			type="button"
-			ref={setActivatorNodeRef}
-			data-dragging={dataAttr(dragging)}
-			className={cn(k.manager.row.grip)}
-			aria-label={label}
-			{...gripAttributes}
-			{...listeners}
-		>
-			<Icon icon={<GripVertical />} />
-		</button>
-	)
+	return <SortableGrip sortable={sortable} label={label} className={cn(k.manager.row.grip)} />
 }
