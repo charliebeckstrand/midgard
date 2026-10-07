@@ -1,11 +1,11 @@
 'use client'
 
-import { motion } from 'motion/react'
 import { type ComponentProps, useCallback, useEffect, useState } from 'react'
 import { dataAttr } from '../../core'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { k } from '../../recipes/kata/current'
 import { MountHold, useMountHold } from '../mount'
+import * as m from '../reduced-motion/reduced-motion-elements'
 import {
 	type CurrentDirection,
 	CurrentPanelActiveContext,
@@ -283,7 +283,7 @@ export function CurrentContent({
 	}
 
 	const panel = (
-		<motion.div
+		<m.div
 			ref={ref}
 			{...props}
 			data-slot={slot}
@@ -311,7 +311,7 @@ export function CurrentContent({
 			className={className}
 		>
 			<CurrentPanelActiveContext value={active}>{children}</CurrentPanelActiveContext>
-		</motion.div>
+		</m.div>
 	)
 
 	// Held panels keep the Activity wrapper while visible too: adding it only

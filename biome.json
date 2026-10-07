@@ -573,6 +573,15 @@
 			"plugins": ["./.biome/plugins/no-motion-reduced-motion-hook.grit"]
 		},
 		{
+			"includes": [
+				"packages/ui/src/**",
+				"!packages/ui/src/primitives/reduced-motion/reduced-motion-elements.ts",
+				"!**/__tests__/**",
+				"!**/__benchmarks__/**"
+			],
+			"plugins": ["./.biome/plugins/no-full-motion-component.grit"]
+		},
+		{
 			"includes": ["packages/ui/src/**", "!**/__tests__/**", "!**/__benchmarks__/**"],
 			"plugins": ["./.biome/plugins/no-whole-floating-context-dep.grit"]
 		},

@@ -1,6 +1,5 @@
 'use client'
 
-import { motion } from 'motion/react'
 import type { ReactNode, RefObject } from 'react'
 import { cn } from '../../core'
 import { useA11yPanel } from '../../hooks'
@@ -16,6 +15,7 @@ import {
 	type PanelRootProps,
 	usePanelState,
 } from '../../primitives/panel'
+import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { k, type SheetPanelVariants } from '../../recipes/kata/sheet'
 import { sheetCeiling, sheetFloor } from './sheet-floor'
@@ -230,7 +230,7 @@ export function SheetPanel({
 			backdrop={backdrop}
 			backdropClassName={k.backdrop({ surface: resolvedSurface })}
 		>
-			<motion.div
+			<m.div
 				{...preset}
 				onAnimationComplete={onAnimationComplete}
 				{...ariaProps}
@@ -276,7 +276,7 @@ export function SheetPanel({
 					{children}
 					<SheetDefaultFooter>{footer === undefined ? <SheetClose /> : footer}</SheetDefaultFooter>
 				</PanelProviders>
-			</motion.div>
+			</m.div>
 		</Overlay>
 	)
 }

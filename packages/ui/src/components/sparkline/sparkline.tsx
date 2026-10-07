@@ -1,11 +1,11 @@
 'use client'
 
-import { motion } from 'motion/react'
 import { useMemo } from 'react'
 import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { ReducedMotion } from '../../primitives/reduced-motion'
+import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k, type scale } from '../../recipes/kata/sparkline'
 import type { AccessibleName } from '../../types'
 import { SPARKLINE_METRICS } from './sparkline-constants'
@@ -183,7 +183,7 @@ function AnimatedSparklineMarks({
 	if (shape === 'bar') {
 		// `bar.index` paces the stagger too, so a bar rises on its own slot's beat.
 		return geometry.bars.map((bar) => (
-			<motion.rect
+			<m.rect
 				key={bar.index}
 				x={bar.x}
 				width={bar.width}
@@ -201,7 +201,7 @@ function AnimatedSparklineMarks({
 	return (
 		<>
 			{fill && (
-				<motion.path
+				<m.path
 					d={geometry.area}
 					stroke="none"
 					fillOpacity={AREA_FILL_OPACITY}
@@ -212,7 +212,7 @@ function AnimatedSparklineMarks({
 				/>
 			)}
 
-			<motion.path
+			<m.path
 				d={geometry.line}
 				fill="none"
 				strokeWidth={strokeWidth}
@@ -225,7 +225,7 @@ function AnimatedSparklineMarks({
 			/>
 
 			{endPoint && geometry.last && (
-				<motion.circle
+				<m.circle
 					cx={geometry.last.x}
 					cy={geometry.last.y}
 					className={fillClass}

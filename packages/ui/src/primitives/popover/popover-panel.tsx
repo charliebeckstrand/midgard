@@ -1,6 +1,5 @@
 'use client'
 
-import { motion } from 'motion/react'
 import {
 	type AriaRole,
 	type KeyboardEventHandler,
@@ -14,6 +13,7 @@ import { useA11yRoving, useScrollWithin, type VirtualItemSource } from '../../ho
 import { k } from '../../recipes/kata/popover'
 import { Density } from '../density'
 import { ReducedMotion } from '../reduced-motion'
+import * as m from '../reduced-motion/reduced-motion-elements'
 import { VirtualItemSourceContext } from '../virtual-options/context'
 
 /**
@@ -161,7 +161,7 @@ export function PopoverPanel({
 
 	return (
 		<ReducedMotion>
-			<motion.div
+			<m.div
 				ref={panelRef}
 				id={id}
 				data-slot="popover-panel"
@@ -192,7 +192,7 @@ export function PopoverPanel({
 				<Density step={density}>
 					<VirtualItemSourceContext value={virtualSourceRef}>{children}</VirtualItemSourceContext>
 				</Density>
-			</motion.div>
+			</m.div>
 		</ReducedMotion>
 	)
 }

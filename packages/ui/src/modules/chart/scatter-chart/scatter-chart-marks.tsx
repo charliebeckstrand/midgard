@@ -1,9 +1,9 @@
 'use client'
 
-import { motion } from 'motion/react'
 import { memo, useMemo } from 'react'
 import { cn } from '../../../core'
 import { usePrefersReducedMotion } from '../../../hooks/use-prefers-reduced-motion'
+import * as m from '../../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../../recipes/kata/chart'
 import { rangeKeys } from '../../../utilities'
 import { type ChartPaint, fillClass, rawColor } from '../engine/chart-color/paint'
@@ -204,7 +204,7 @@ const AnimatedDisc = memo(function AnimatedDisc({
 	still,
 }: AnimatedDiscProps) {
 	return (
-		<motion.circle
+		<m.circle
 			data-slot="chart-scatter-point"
 			cx={cx}
 			cy={cy}

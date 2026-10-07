@@ -1,7 +1,7 @@
 'use client'
 
-import { motion } from 'motion/react'
 import { cn } from '../../../core'
+import * as m from '../../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../../recipes/kata/chart'
 import { getOrCompute, sameElements } from '../../../utilities'
 import { MARK_GAP } from '../engine/chart-constants'
@@ -283,14 +283,14 @@ export function SectorChartCallouts({ items, animate, selected = null }: SectorC
 				return (
 					<g key={item.index} className={sliceGroupClass(emphasis, item.index, selected)}>
 						{animate ? (
-							<motion.g
+							<m.g
 								initial={{ opacity: 0 }}
 								animate={{ opacity: 1 }}
 								exit={{ opacity: 0, transition: SLICE_UNFADE }}
 								transition={{ ...SLICE_FADE, delay: sweepDelay(item.mid) }}
 							>
 								{callout}
-							</motion.g>
+							</m.g>
 						) : (
 							callout
 						)}

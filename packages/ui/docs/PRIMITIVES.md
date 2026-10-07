@@ -50,7 +50,7 @@ import { TouchTarget } from 'ui/primitives/touch-target'
 
 | Primitive | Summary | Key exports |
 |---|---|---|
-| `reduced-motion` | Bridges `prefers-reduced-motion` and the Motion setting of `AppearanceProvider` into Motion via `MotionConfig`; skips transform animations while keeping fades at every library motion root. A root inside another root adds no second `MotionConfig`. | `ReducedMotion` |
+| `reduced-motion` | The root of each library part that animates with Motion. It gives the Motion features to the `m` elements below it through a strict `LazyMotion`, and loads them in a chunk after it mounts. With `layout`, it also loads drag and layout projection. It bridges `prefers-reduced-motion` and the Motion setting of `AppearanceProvider` into Motion via `MotionConfig`; skips transform animations while keeping fades. A root inside another root adds no second `LazyMotion` when the outer root loads the same features, and no second `MotionConfig`. | `ReducedMotion` |
 | `touch-target` | Floors the hit target to WCAG pointer minimums (24px fine / 44px coarse) via an invisible expansion sibling, without altering visual layout. A container of small hosts sets `--touch-target-gap-x` (a row) or `--touch-target-gap-y` (a stack) to its gap. Thus adjacent hit areas split the gap at the midpoint and do not overlap. | `TouchTarget` |
 
 ---

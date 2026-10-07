@@ -5,7 +5,6 @@ import {
 	type FloatingRootContext,
 	useFloatingRootContext,
 } from '@floating-ui/react'
-import { motion } from 'motion/react'
 import {
 	type ComponentProps,
 	type ReactElement,
@@ -23,6 +22,7 @@ import { useScrollLock } from '../../hooks/use-scroll-lock'
 import { k } from '../../recipes/kata/overlay'
 import { chromeRegions } from '../chrome'
 import { Portal } from '../portal'
+import * as m from '../reduced-motion/reduced-motion-elements'
 import { notifyOverlaySignal } from './overlay-signal'
 
 /**
@@ -210,7 +210,7 @@ export function Overlay({
 			)}
 		>
 			{(backdrop || catchesPress) && (
-				<motion.div
+				<m.div
 					{...k.motion}
 					data-slot="overlay-backdrop"
 					className={

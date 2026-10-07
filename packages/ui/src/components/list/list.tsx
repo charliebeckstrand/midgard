@@ -1,6 +1,6 @@
 'use client'
 
-import { Reorder } from 'motion/react'
+import { domMax, LazyMotion, Reorder } from 'motion/react'
 import { type ComponentProps, type ReactNode, useCallback, useId, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { LIFT_INSTRUCTIONS } from '../../hooks/use-keyboard-lifted'
@@ -331,15 +331,21 @@ export function List<T>({
 		<ListContext value={contextValue}>
 			{interactive ? (
 				<>
-					<Reorder.Group
-						{...ulProps}
-						as="ul"
-						axis={orientation === 'vertical' ? 'y' : 'x'}
-						values={order}
-						onReorder={setDraft}
-					>
-						{rows}
-					</Reorder.Group>
+					{/* `Reorder` renders the full `motion` element. A strict `LazyMotion` of a
+					`ReducedMotion` root above the list throws in development, so this
+					`LazyMotion` is not strict. `Reorder` already loads each feature of `domMax`,
+					so the bundle adds no code. */}
+					<LazyMotion features={domMax}>
+						<Reorder.Group
+							{...ulProps}
+							as="ul"
+							axis={orientation === 'vertical' ? 'y' : 'x'}
+							values={order}
+							onReorder={setDraft}
+						>
+							{rows}
+						</Reorder.Group>
+					</LazyMotion>
 					<div hidden id={describedBy}>
 						{LIFT_INSTRUCTIONS.draggable}
 					</div>

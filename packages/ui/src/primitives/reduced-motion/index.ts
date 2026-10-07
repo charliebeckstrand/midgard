@@ -1,1 +1,1 @@
-export { ReducedMotion } from './reduced-motion'
+export { ReducedMotion, type ReducedMotionProps } from './reduced-motion'

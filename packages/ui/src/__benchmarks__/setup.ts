@@ -14,7 +14,8 @@ import { vi } from 'vitest'
 // The cost of the split is that it must track the same API surface: every
 // export the package imports from `motion/react` needs an entry here *and*
 // there, and a missing one fails at import of whichever bench renders it. Keep
-// the two in step.
+// the two in step. The `motion/react-m` shim below reuses the elements of this
+// one.
 vi.mock('motion/react', async () => {
 	const { createElement, forwardRef } = await import('react')
 
@@ -84,6 +85,10 @@ vi.mock('motion/react', async () => {
 		return children
 	}
 
+	function LazyMotion({ children }: { children: ReactNode }) {
+		return children
+	}
+
 	function useAnimate() {
 		return [{ current: null }, vi.fn()]
 	}
@@ -115,12 +120,27 @@ vi.mock('motion/react', async () => {
 		motion,
 		AnimatePresence,
 		LayoutGroup,
+		LazyMotion,
+		domAnimation: {},
+		domMax: {},
 		MotionConfig,
 		useAnimate,
 		useMotionValue,
 		useReducedMotion,
 		useTransform,
 	}
+})
+
+// The `m` elements of `motion/react-m` are the shim elements of `motion/react`
+// for the same tags. The keys are the exports of the real module.
+vi.mock('motion/react-m', async () => {
+	const actual = await vi.importActual<typeof import('motion/react-m')>('motion/react-m')
+
+	const { motion } = (await import('motion/react')) as unknown as {
+		motion: Record<string, unknown>
+	}
+
+	return Object.fromEntries(Object.keys(actual).map((tag) => [tag, motion[tag]]))
 })
 
 // Browser shims, installed only in jsdom runs. Pure-logic benchmark files

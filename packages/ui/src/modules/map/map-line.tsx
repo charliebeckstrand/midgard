@@ -1,8 +1,9 @@
 'use client'
 
 import type { Transition } from 'motion/react'
-import { motion, useMotionValue, useTransform } from 'motion/react'
+import { useMotionValue, useTransform } from 'motion/react'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
+import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { ROUTE_HIT_WIDTH, ROUTE_STROKE_WIDTH } from './engine/map-constants'
 import type { MapOverlayHit } from './use-map-overlay'
 
@@ -109,7 +110,7 @@ export function MapLine({
 	if (!animate) return <path {...shape} />
 
 	return (
-		<motion.path
+		<m.path
 			{...shape}
 			style={{ pathLength: drawn, opacity }}
 			animate={{ pathLength: 1 }}
