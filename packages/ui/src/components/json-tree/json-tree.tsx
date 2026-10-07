@@ -5,8 +5,8 @@ import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks'
 import { useKeyedStore } from '../../hooks/use-keyed-store'
 import { k } from '../../recipes/kata/json-tree'
+import { treeMoveForKey, treeMoveTarget } from '../tree/tree-keyboard'
 import { JsonTreeContext } from './context'
-import { treeMoveForKey, treeMoveTarget } from './json-tree-keyboard'
 import { JsonTreeNode } from './json-tree-node'
 import {
 	buildSearchIndex,

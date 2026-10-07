@@ -3,7 +3,7 @@ import { type KeyboardEvent, useId } from 'react'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/json-tree'
 import { Icon } from '../icon'
-import { branchToggleKey } from './json-tree-keyboard'
+import { branchToggleKey } from '../tree/tree-keyboard'
 import { type FlatSetPosition, NodeKey } from './json-tree-utilities'
 
 type JsonTreeBranchHeaderProps = {

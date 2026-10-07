@@ -13,8 +13,9 @@ import { cn } from '../../core'
 import { useVirtualWindow } from '../../hooks'
 import { k } from '../../recipes/kata/json-tree'
 import { nextIndexForKey } from '../../utilities'
+import { treeMoveForKey } from '../tree/tree-keyboard'
 import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT } from './json-tree-constants'
-import { flatTreeMoveTarget, treeMoveForKey } from './json-tree-keyboard'
+import { flatTreeMoveTarget } from './json-tree-keyboard'
 import { JsonTreeNodeRow } from './json-tree-node-row'
 import {
 	type FlatNode,

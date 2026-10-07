@@ -1,6 +1,13 @@
 'use client'
 
-import { type ComponentProps, type ReactNode, useMemo, useRef } from 'react'
+import {
+	type ComponentProps,
+	type KeyboardEvent,
+	type ReactNode,
+	useCallback,
+	useMemo,
+	useRef,
+} from 'react'
 import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { useA11yRoving } from '../../hooks'
@@ -9,8 +16,9 @@ import { k, type scale } from '../../recipes/kata/tree'
 import { Box } from '../../structure/box'
 import type { AccessibleName } from '../../types'
 import { TreeContext } from './context'
-import { ROVING_ITEM_SELECTOR } from './tree-constants'
+import { ITEM_SELECTOR, ROVING_ITEM_SELECTOR } from './tree-constants'
 import { stampTreePositions } from './tree-item-children'
+import { treeMoveForKey, treeMoveTarget } from './tree-keyboard'
 
 /** Props for {@link Tree}. Requires `aria-label` or `aria-labelledby`. */
 export type TreeProps = AccessibleName &
@@ -46,7 +54,7 @@ export type TreeProps = AccessibleName &
 		className?: string
 	}
 
-/** Root of a `role="tree"` with roving-tabindex keyboard navigation. It keeps the first item tabbable across open/close and filtering, and shares depth and `indent` to nested items via context. Requires `aria-label`/`aria-labelledby`. */
+/** Root of a `role="tree"` with roving-tabindex keyboard navigation and the APG arrow moves to a first child and to a parent. It keeps the first item tabbable across open/close and filtering, and shares depth and `indent` to nested items via context. Requires `aria-label`/`aria-labelledby`. */
 export function Tree({
 	size,
 	indent = true,
@@ -67,6 +75,33 @@ export function Tree({
 		manageTabIndex: true,
 	})
 
+	// The horizontal arrows of the tree model: to the first child of an open
+	// branch, or to the parent of a closed branch or a leaf. A branch row opens
+	// and closes itself first and cancels the event. Every other key goes to roving.
+	const handleKeyDown = useCallback(
+		(event: KeyboardEvent<HTMLDivElement>) => {
+			const container = ref.current
+
+			const item = event.target
+
+			const onItem =
+				!event.defaultPrevented && item instanceof HTMLElement && item.matches(ITEM_SELECTOR)
+
+			const move = onItem && treeMoveForKey(event, item.getAttribute('aria-expanded') === 'true')
+
+			if (container && onItem && move) {
+				event.preventDefault()
+
+				treeMoveTarget(container, item, move)?.focus()
+
+				return
+			}
+
+			rovingKeyDown(event)
+		},
+		[rovingKeyDown],
+	)
+
 	const rootContextValue = useMemo(() => ({ depth: 0, indent, mount }), [indent, mount])
 
 	return (
@@ -78,7 +113,7 @@ export function Tree({
 				data-slot="tree"
 				density={size}
 				className={cn(k.base, className)}
-				onKeyDown={rovingKeyDown}
+				onKeyDown={handleKeyDown}
 			>
 				{stampTreePositions(children)}
 			</Box>
