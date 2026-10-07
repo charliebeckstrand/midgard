@@ -83,9 +83,8 @@ export function control<
 
 /**
  * Wire the check-input branch (`checkbox`, `radio`). It returns a
- * visually-hidden native `<input>` (`k.input`) over the `check.surface` chrome,
- * plus the shared `k.disabled` text class. `switch` reads `check.hidden` and uses
- * `defineRecipe` directly instead.
+ * visually-hidden native `<input>` (`k.input`) over the `check.surface` chrome.
+ * `switch` reads `check.hidden` and uses `defineRecipe` directly instead.
  */
 export function check<
 	Overlay extends RecipeConfig = Empty,
@@ -100,8 +99,6 @@ export function check<
 			extras: {
 				/** Visually-hidden native `<input>` overlaying the custom check surface. */
 				input: defineRecipe({ base: t.check.hidden }),
-				/** Disabled-state text class shared by the surrounding field wrapper. */
-				disabled: t.check.disabled,
 			},
 		},
 		overlay,

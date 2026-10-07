@@ -2,8 +2,8 @@
 
 import { type PointerEvent, useRef } from 'react'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { type TouchTap, useTouchTap } from '../../hooks/use-touch-tap'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
-import { type ChartTouchTap, useChartTouchTap } from '../chart/engine/use-chart-touch-tap'
 import { targetAt } from './engine/map-hover/anchor'
 import type { MapHoverTarget } from './engine/map-hover/target'
 
@@ -24,18 +24,18 @@ type Tap = { x: number; y: number; at: number }
  * pick goes through `activate`, which is the path of the keyboard's Enter, so a
  * touch pick and a click carry the same identity.
  *
- * {@link useChartTouchTap} finds each tap and cancels the click of a touch. A
+ * {@link useTouchTap} finds each tap and cancels the click of a touch. A
  * press with a second finger on the plot is a pinch, and it is not a tap.
  *
  * Spread the handlers on the plot element. A tap off that element picks nothing.
  *
  * @param activate - Picks one target, as the keyboard cursor does.
- * @returns The press handlers. {@link ChartTouchTap.fromTouch} tells the click
+ * @returns The press handlers. {@link TouchTap.fromTouch} tells the click
  * handler which clicks came from a touch.
  *
  * @internal
  */
-export function useMapTouchTap(activate: (target: MapHoverTarget) => void): ChartTouchTap {
+export function useMapTouchTap(activate: (target: MapHoverTarget) => void): TouchTap {
 	// The touch pointers on the plot now.
 	const contacts = useRef(new Set<number>())
 
@@ -50,7 +50,7 @@ export function useMapTouchTap(activate: (target: MapHoverTarget) => void): Char
 
 	const pick = useStableEvent(activate)
 
-	const touch = useChartTouchTap((x, y) => {
+	const touch = useTouchTap((x, y) => {
 		const previous = last.current
 
 		const at = performance.now()

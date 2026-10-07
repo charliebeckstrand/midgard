@@ -125,6 +125,11 @@ export function isBeforeDay(a: Date, b: Date): boolean {
 	return dayNumber(a) < dayNumber(b)
 }
 
+/** True when the calendar day of `date` is on or after `min` and on or before `max`; the time of day on each bound has no effect. @internal */
+export function isDayInRange(date: Date, min?: Date, max?: Date): boolean {
+	return !(min && isBeforeDay(date, min)) && !(max && isBeforeDay(max, date))
+}
+
 /** True when `date` falls strictly between the endpoints (exclusive); the caller can give the endpoints in either order. @internal */
 export function isBetween(date: Date, start: Date, end: Date): boolean {
 	const [lo, hi] = isBeforeDay(start, end) ? [start, end] : [end, start]

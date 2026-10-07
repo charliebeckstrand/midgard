@@ -15,7 +15,13 @@ import { createContext } from '../../core'
 import { useIdScope } from '../../hooks'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { clamp, createEmitter, FOCUSABLE_SELECTOR, noopSubscribe } from '../../utilities'
+import {
+	clamp,
+	createEmitter,
+	FOCUSABLE_SELECTOR,
+	noopSubscribe,
+	sameElements,
+} from '../../utilities'
 import { FLOATING_PORTAL, NAV_PAGE_STEP } from './engine/grid-constants'
 import { type GridRangeCells, inRangeRect, rangeCells, rangeRect } from './engine/grid-range/range'
 import type { GridCellActivate, GridRowActivate } from './engine/grid-row/bridges'
@@ -506,11 +512,6 @@ function clampCoord(
 /** The row and the column at the end of a data cell's element id (see `cellId`). @internal */
 const CELL_ID_TAIL = /cell-(\d+)-(\d+)$/
 
-/** Whether two lists hold the same items in the same order. @internal */
-function sameItems(a: readonly unknown[], b: readonly unknown[]): boolean {
-	return a.length === b.length && a.every((item, index) => Object.is(item, b[index]))
-}
-
 /**
  * The active cell of the cursor as an external store. The cells subscribe to
  * it, each to its own flag, and the event handlers read it. The hook writes it
@@ -992,7 +993,7 @@ export function useGridNavigation({
 			layoutRef.current = next
 
 			const moved =
-				seen !== null && !(sameItems(seen.rows, rowKeys) && sameItems(seen.cols, columnIds))
+				seen !== null && !(sameElements(seen.rows, rowKeys) && sameElements(seen.cols, columnIds))
 
 			// The cells under the range moved, so its rectangle names other cells now.
 			if (moved) setAnchor(null)

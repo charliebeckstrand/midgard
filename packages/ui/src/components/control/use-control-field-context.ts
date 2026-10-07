@@ -2,11 +2,16 @@
 
 import { useMemo } from 'react'
 import { useA11yControl } from '../../hooks'
-import { type ControlContextValue, type ControlSeverity, useControl } from './context'
+import {
+	type ControlContextValue,
+	type ControlSeverity,
+	type ControlVariant,
+	useControl,
+} from './context'
 
 /**
- * The three axes a field wrapper can layer over the inherited cascade. Every
- * other key passes through from the parent unchanged.
+ * The axes a field wrapper can layer over the inherited cascade. Every other
+ * key passes through from the parent unchanged.
  *
  * @internal
  */
@@ -14,7 +19,11 @@ type ControlFieldOverrides = {
 	autoComplete?: string
 	/** ORed with the parent, so a field cannot re-enable a disabled ancestor. */
 	disabled?: boolean
+	/** ORed with the parent, so a field cannot make a read-only ancestor editable. */
+	readOnly?: boolean
+	required?: boolean
 	severity?: ControlSeverity
+	variant?: ControlVariant
 }
 
 /**
@@ -22,10 +31,10 @@ type ControlFieldOverrides = {
  * parent control cascade and spreads the `useA11yControl` bundle off the field
  * id. That bundle is the label, description, and error slots.
  *
- * Two wrappers share it. {@link ControlField} — the envelope behind
+ * Three wrappers share it. {@link ControlField} — the envelope behind
  * `CheckboxField` / `RadioField` / `SwitchField` — passes no overrides and
  * inherits everything. `Field` passes its own `autoComplete`, `disabled`, and
- * `severity` props.
+ * `severity` props. `Control` passes all of its own cascade props.
  *
  * @param id - The scoped field id the context broadcasts and the a11y slots key off.
  * @param overrides - The wrapper's own props, where it has them.
@@ -40,7 +49,7 @@ export function useControlFieldContext(
 
 	const a11y = useA11yControl(id)
 
-	const { autoComplete, disabled, severity } = overrides
+	const { autoComplete, disabled, readOnly, required, severity, variant } = overrides
 
 	// Keyed on the destructured values, not the `overrides` object: call sites
 	// pass a fresh literal each render, which would defeat the memo.
@@ -49,12 +58,12 @@ export function useControlFieldContext(
 			id,
 			autoComplete: autoComplete ?? parent?.autoComplete,
 			disabled: disabled || parent?.disabled,
-			readOnly: parent?.readOnly,
-			required: parent?.required,
+			readOnly: readOnly || parent?.readOnly,
+			required: required ?? parent?.required,
 			severity: severity ?? parent?.severity,
-			variant: parent?.variant,
+			variant: variant ?? parent?.variant,
 			...a11y,
 		}),
-		[id, autoComplete, disabled, severity, parent, a11y],
+		[id, autoComplete, disabled, readOnly, required, severity, variant, parent, a11y],
 	)
 }

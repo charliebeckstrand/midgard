@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
+import { TOUCH_TAP_SLOP, TOUCH_TAP_WINDOW } from '../../hooks/use-touch-tap'
 import { BarChart } from '../../modules/chart/bar-chart'
 import { TICK_CHAR_WIDTH } from '../../modules/chart/engine/chart-constants'
-import { TOUCH_TAP_SLOP, TOUCH_TAP_WINDOW } from '../../modules/chart/engine/use-chart-touch-tap'
 import { act, allBySlot, bySlot, fireEvent, getSlot, nonEmpty, present, renderUI } from '../helpers'
 import { subpathCount } from '../helpers/geometry/svg-path'
 

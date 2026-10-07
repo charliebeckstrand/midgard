@@ -12,10 +12,6 @@ import { tone } from './tone'
 export const border = {
 	/** Default border: 1 px, low-contrast palette. */
 	default: ['border', ...tone.border],
-	/** Emphasis border: hover / active states. */
-	emphasis: ['border', ...tone.borderEmphasis],
-	/** Subtle border: secondary separators. */
-	subtle: ['border', ...tone.borderSubtle],
 	/** The color of each border only, for composites that already apply the width. */
 	color: {
 		/** The default color. */

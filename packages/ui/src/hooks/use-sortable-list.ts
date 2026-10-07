@@ -11,11 +11,11 @@ import {
 import {
 	arrayMove,
 	horizontalListSortingStrategy,
-	rectSortingStrategy,
 	verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { useCallback, useId, useMemo, useRef, useState } from 'react'
 import type { Orientation } from '../types'
+import { sameElements } from '../utilities'
 import { useDragCursor } from './use-drag-cursor'
 import { useSortableSensors } from './use-sortable-sensors'
 import { useStableEvent } from './use-stable-event'
@@ -68,9 +68,6 @@ export function sortableAnnouncements(
 	}
 }
 
-/** How a sortable's items are laid out — one track along an axis, or a wrapping grid. */
-export type SortableLayout = 'list' | 'grid'
-
 /** Options for {@link useSortableList}: the items, the key extractor, the axis, and the reorder report. */
 export type SortableListOptions<T> = {
 	/** Ordered items. */
@@ -79,19 +76,8 @@ export type SortableListOptions<T> = {
 	getKey: (item: T) => string
 	/** Called with the next ordering whenever the list reorders. Omit for read-only. */
 	onReorder?: (next: T[]) => void
-	/** Layout axis. Ignored when `layout` is `'grid'`, which is two-axis by nature. @defaultValue 'vertical' */
+	/** Layout axis. @defaultValue 'vertical' */
 	orientation?: Orientation
-	/**
-	 * How the items are laid out, which decides the sorting strategy: a single
-	 * `'list'` track along `orientation`, or a `'grid'` that wraps across rows and
-	 * columns (catalog cards). A wrapping grid needs `rectSortingStrategy` —
-	 * the single-axis strategies assume every item shares one track, so in a grid
-	 * they animate items sideways through positions they never occupy. Pair a
-	 * grid with `useSortableGridKeyboard` for its keyboard model.
-	 *
-	 * @defaultValue 'list'
-	 */
-	layout?: SortableLayout
 	/** Disable pointer + keyboard interaction. @defaultValue false */
 	disabled?: boolean
 	/** Register dnd-kit's keyboard sensor. Disable when the caller handles keyboard reordering itself. @defaultValue true */
@@ -111,11 +97,6 @@ export type SortableListOptions<T> = {
 	describe?: (item: T) => string
 }
 
-/** Whether two key lists hold the same keys in the same order. @internal */
-function sameKeys(a: readonly string[], b: readonly string[]): boolean {
-	return a.length === b.length && a.every((key, index) => key === b[index])
-}
-
 /**
  * Single-list reorder hook backed by @dnd-kit. Owns the drag lifecycle and
  * commits reorders via `arrayMove`, leaving rendering of `<DndContext>` and
@@ -128,15 +109,13 @@ function sameKeys(a: readonly string[], b: readonly string[]): boolean {
  * `<SortableContext>`, plus `interactive` (false when disabled or read-only).
  * `activeId` is the item being dragged (or `null`), `orientation` is the
  * resolved axis, and `dndContextProps` (an id that the server and the browser
- * agree on, sensors, collision detection, drag handlers) spreads onto `<DndContext>`. `layout` is not returned — it only
- * picks `strategy`.
+ * agree on, sensors, collision detection, drag handlers) spreads onto `<DndContext>`.
  */
 export function useSortableList<T>({
 	items,
 	getKey,
 	onReorder,
 	orientation = 'vertical',
-	layout = 'list',
 	disabled = false,
 	keyboardSensor = true,
 	onDragStart,
@@ -168,14 +147,10 @@ export function useSortableList<T>({
 
 	const [itemIds, setItemIds] = useState(keys)
 
-	if (!sameKeys(itemIds, keys)) setItemIds(keys)
+	if (!sameElements(itemIds, keys)) setItemIds(keys)
 
 	const strategy =
-		layout === 'grid'
-			? rectSortingStrategy
-			: orientation === 'horizontal'
-				? horizontalListSortingStrategy
-				: verticalListSortingStrategy
+		orientation === 'horizontal' ? horizontalListSortingStrategy : verticalListSortingStrategy
 
 	const handleDragStart = useCallback(
 		(event: DragStartEvent) => {

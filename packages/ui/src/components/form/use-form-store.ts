@@ -1,6 +1,7 @@
 'use client'
 
 import { useLayoutEffect, useState } from 'react'
+import { createEmitter } from '../../utilities'
 import type { FormStateValue, FormStore } from './context'
 
 /**
@@ -14,24 +15,18 @@ function createFormStore(initial: FormStateValue): {
 } {
 	let state = initial
 
-	const listeners = new Set<() => void>()
+	const { subscribe, emit } = createEmitter()
 
 	return {
 		store: {
-			subscribe: (listener) => {
-				listeners.add(listener)
-
-				return () => {
-					listeners.delete(listener)
-				}
-			},
+			subscribe,
 			getState: () => state,
 			getServerState: () => initial,
 		},
 		publish: (next) => {
 			state = next
 
-			for (const listener of listeners) listener()
+			emit()
 		},
 	}
 }

@@ -7,7 +7,6 @@ export {
 	CommandPaletteItem,
 	type CommandPaletteItemProps,
 } from './command-palette-item'
-export { useCommandPaletteContext } from './context'
 export {
 	CommandPaletteDescription,
 	type CommandPaletteDescriptionProps,

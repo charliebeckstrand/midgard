@@ -10,10 +10,9 @@ The contract is pinned by the `recipes/katakana/**` override in `biome.json` (no
 
 ## 2. Shape
 
-Every bridge is a function `(<tokens>, …) => k` generic only over its per-call overlay. `defineApplicator` no longer fits — the standard config is built per call from the injected tokens, not baked at module load — so bridges call `applyRecipe(standard(tokens), overlay, extras)` (control, check) or hand-roll the returned bundle (popover, panel, palette). No bridge has a step axis: the density classes are stepped utilities in the base, so a kata's variant types hold only its other axes. The pass-through bridge stays generic and annotates its return with the token field types:
+Every bridge is a function `(<tokens>, …) => k` generic only over its per-call overlay. `defineApplicator` no longer fits — the standard config is built per call from the injected tokens, not baked at module load — so bridges call `applyRecipe(standard(tokens), overlay, extras)` (control, check) or hand-roll the returned bundle (panel, palette). No bridge has a step axis: the density classes are stepped utilities in the base, so a kata's variant types hold only its other axes. The pass-through bridge stays generic and annotates its return with the token field types:
 
 - `control` / `check` — build the standard config / extras from the `control` token contract and forward to `applyRecipe`. The kata derives variants from `VariantProps<typeof k>`.
-- `popover` — no `defineRecipe` calls; returns a bundle of class fragments anchored by an optional caller `text` override, defaulting to the bundle's own `text`. Generic over the bundle so the panel slot's concrete shape (motion config and all) flows through.
 - `panel` — the kata supplies its own `defineRecipe` results (each panel has different variants); the bridge composes the `panel` bundle's `layout` into the standard title / description / header / body / footer slots.
 - `palette` — no `defineRecipe` calls; bundles the solid / soft / outline slots of an `iro` palette into the matrix that `definePalette` takes. Generic over the color set, so the wider `iro` palette widens the `color` axis of the kata.
 
@@ -29,14 +28,13 @@ The barrel surfaces the `bridge` object only, `palette` and `backdrop` included.
 | ---------- | --------------- | ---------------------------------------------------------------------------------------- | --------------------------------------------- |
 | `control`  | `kiso/control`  | Outer-frame recipe + the `surface` recipe of the ControlFrame + the `number` slot.     | `input`, `textarea`                           |
 | `check`    | `kiso/control`  | Check-surface recipe + visually-hidden `input` + `disabled` text.                        | `checkbox`, `radio`                           |
-| `popover`  | `kiso/popover`  | `trigger` / `portal` / `text` / `panel` bundle.                                          | `popover`                                     |
-| `panel`    | `kiso/panel`    | Caller `panel` / `backdrop` recipes + standard slot bundle.                              | `dialog`, `drawer`, `sheet`                   |
+| `panel`    | `kiso/panel`    | Caller `panel` / `backdrop` recipes + standard slot bundle.                              | `drawer`, `sheet`                             |
 | `backdrop` | `omote.backdrop`| Full-bleed scrim recipe with a `surface` axis (`flat` / `glass`). *Shared recipe, not an archetype.* | `dialog`, `drawer`, `sheet`       |
 | `palette`  | `iro.palette`   | The solid / soft / outline matrix for `definePalette`. *Shared wiring, not an archetype.* | `alert`, `avatar`, `badge`                    |
 
-`backdrop` is a small shared recipe rather than an archetype: the panel bridge does not build it. Each modal panel builds it directly (`bridge.backdrop(omote.backdrop)`) and hands the result to `bridge.panel(…, { backdrop })`.
+`backdrop` is a small shared recipe rather than an archetype: the panel bridge does not build it. Each modal panel builds it directly (`bridge.backdrop(omote.backdrop)`). Drawer and Sheet hand the result to `bridge.panel(…, { backdrop })`. Dialog uses the default slots of `createPanel`, so it has no `bridge.panel` call and keeps the backdrop on its own `k`.
 
-`segment` has no bridge: Segment and Tabs share it through one kata, `kata/tabs`, which reads `kiso/segment` directly. `slider` has no bridge — it's a pure color bundle the slider kata read from `kiso/slider` directly. Kata that need only a subset of an archetype's fragments (combobox / listbox / date-picker / select / switch / box) likewise read the bundle from `kiso/<archetype>` without a bridge.
+`popover` has no bridge: it has one kata, `kata/popover`, which reads `kiso/popover` directly. `segment` has no bridge: Segment and Tabs share it through one kata, `kata/tabs`, which reads `kiso/segment` directly. `slider` has no bridge — it's a pure color bundle the slider kata read from `kiso/slider` directly. Kata that need only a subset of an archetype's fragments (combobox / listbox / date-picker / color-picker / select / switch / box) likewise read the bundle from `kiso/<archetype>` without a bridge.
 
 ## 5. Rules
 

@@ -8,7 +8,6 @@ import {
 	SidebarBody,
 	SidebarHeader,
 	SidebarItem,
-	SidebarItemActions,
 	SidebarLabel,
 	SidebarList,
 	useSidebarMini,
@@ -260,9 +259,7 @@ describe('Sidebar mini', () => {
 			<Sidebar mini>
 				<SidebarItem>
 					<SidebarLabel>Home</SidebarLabel>
-					<SidebarItemActions>
-						<span>remove</span>
-					</SidebarItemActions>
+					<span>New</span>
 				</SidebarItem>
 			</Sidebar>,
 		)
@@ -625,77 +622,26 @@ describe('SidebarItem', () => {
 		expect(bySlot(container, 'sidebar-item-suffix')).toBeNull()
 	})
 
-	it('hoists a SidebarItemActions child into the suffix slot, outside the button', () => {
+	it('renders a suffix control beside the button, not inside it', () => {
 		const { container } = renderUI(
 			<Sidebar>
-				<SidebarItem>
+				<SidebarItem suffix={<button type="button">remove</button>}>
 					<SidebarLabel>Home</SidebarLabel>
-					<SidebarItemActions>
-						<button type="button">remove</button>
-					</SidebarItemActions>
 				</SidebarItem>
 			</Sidebar>,
 		)
 
 		const suffix = bySlot(container, 'sidebar-item-suffix')
 
-		const actions = bySlot(container, 'sidebar-item-actions')
-
 		const inner = bySlot(container, 'sidebar-item-inner')
 
-		// Actions render through the suffix slot rather than nested in the button.
-		expect(suffix?.contains(actions ?? null)).toBe(true)
-
-		// The interactive control is hoisted out of the <button>, keeping markup
+		// The interactive control stays out of the <button>, keeping markup
 		// valid, and the affix flips the row to its chrome.
 		expect(inner?.querySelector('button')).toBeNull()
 
 		expect(suffix?.contains(screen.getByRole('button', { name: 'remove' }))).toBe(true)
 
 		expect(bySlot(container, 'sidebar-item')?.className).toContain('hover:bg-zinc-950/5')
-	})
-
-	it('lets an explicit suffix prop win over a SidebarItemActions child, and warns', () => {
-		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-
-		renderUI(
-			<Sidebar>
-				<SidebarItem suffix={<button type="button">from-prop</button>}>
-					<SidebarLabel>Home</SidebarLabel>
-					<SidebarItemActions>
-						<button type="button">from-child</button>
-					</SidebarItemActions>
-				</SidebarItem>
-			</Sidebar>,
-		)
-
-		expect(screen.getByRole('button', { name: 'from-prop' })).toBeInTheDocument()
-
-		expect(screen.queryByRole('button', { name: 'from-child' })).toBeNull()
-
-		// The dropped controls must not vanish with no signal.
-		expect(warn).toHaveBeenCalledWith(expect.stringContaining('SidebarItemActions'))
-
-		warn.mockRestore()
-	})
-
-	it('does not warn when a SidebarItemActions child has the slot alone', () => {
-		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-
-		renderUI(
-			<Sidebar>
-				<SidebarItem>
-					<SidebarLabel>Home</SidebarLabel>
-					<SidebarItemActions>
-						<button type="button">from-child</button>
-					</SidebarItemActions>
-				</SidebarItem>
-			</Sidebar>,
-		)
-
-		expect(warn).not.toHaveBeenCalled()
-
-		warn.mockRestore()
 	})
 })
 
@@ -739,15 +685,19 @@ describe('SidebarList', () => {
 		expect(bySlot(container, 'sidebar-item')?.tagName).toBe('DIV')
 	})
 
-	it('renders the affix slots as <div> elements, so SidebarItemActions is valid inside', () => {
+	it('renders the affix slots as <div> elements, so flow content is valid inside', () => {
 		const { container } = renderUI(
 			<Sidebar>
 				<SidebarList>
-					<SidebarItem prefix={<span>P</span>}>
+					<SidebarItem
+						prefix={<span>P</span>}
+						suffix={
+							<div>
+								<button type="button">Edit</button>
+							</div>
+						}
+					>
 						Home
-						<SidebarItemActions>
-							<button type="button">Edit</button>
-						</SidebarItemActions>
 					</SidebarItem>
 				</SidebarList>
 			</Sidebar>,
@@ -755,11 +705,7 @@ describe('SidebarList', () => {
 
 		expect(bySlot(container, 'sidebar-item-prefix')?.tagName).toBe('DIV')
 
-		// SidebarItemActions is a `<div>`, which a `<span>` slot cannot hold.
-		const suffix = bySlot(container, 'sidebar-item-suffix')
-
-		expect(suffix?.tagName).toBe('DIV')
-
-		expect(suffix?.querySelector('[data-slot="sidebar-item-actions"]')).not.toBeNull()
+		// A `<span>` slot cannot hold a `<div>`.
+		expect(bySlot(container, 'sidebar-item-suffix')?.tagName).toBe('DIV')
 	})
 })

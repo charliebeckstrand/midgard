@@ -1,18 +1,14 @@
 'use client'
 
 import { type ComponentProps, type ReactNode, useRef } from 'react'
-import { cn, invalidAttrs } from '../../core'
+import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { useComposedRef } from '../../hooks/use-composed-ref'
-import { useIdScope } from '../../hooks/use-id-scope'
 import { ControlFrame } from '../../primitives/control'
-import { useGlass } from '../../providers/glass/context'
-import { useHeadless } from '../../providers/headless/context'
 import type { scale } from '../../recipes/kata/textarea'
 import { k, type TextareaVariants } from '../../recipes/kata/textarea'
-import { type ControlVariant, useControl } from '../control/context'
-import { useControlProps } from '../control/use-control-props'
-import { useInputValue } from '../input/use-input-value'
+import type { ControlVariant } from '../control/context'
+import { useInputControl } from '../input/use-input-control'
 import { useTextareaAutoResize } from './use-textarea-auto-resize'
 
 /** Props for {@link Textarea}: density `size`, `variant`, `autoResize`, an `actions` slot, an `invalid` override, and the remaining `<textarea>` surface. */
@@ -51,9 +47,10 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
  * `<GlassProvider>` contexts, and takes the step of the nearest density scope.
  * Under headless context, it drops to a bare `<textarea>`.
  *
- * @remarks Shares the Input value cascade through {@link useInputValue},
- * including the §7.3 value contract it owns. `defaultValue` reaches the element
- * only while the textarea is uncontrolled, so a bound textarea ignores it.
+ * @remarks Shares the control setup of Input through {@link useInputControl},
+ * including the §7.3 value contract that `useInputValue` owns. `defaultValue`
+ * reaches the element only while the textarea is uncontrolled, so a bound
+ * textarea ignores it.
  * With `autoResize`, the textarea measures its content before paint, on each
  * input, and when its width changes. It does not use `field-sizing: content`,
  * because that property ignores `rows` and is not in each browser at the
@@ -88,35 +85,21 @@ export function Textarea({
 	'aria-describedby': ariaDescribedBy,
 	...rest
 }: TextareaProps) {
-	const glass = useGlass()
-	const control = useControl()
-	const headless = useHeadless()
-	const valueState = useInputValue<HTMLTextAreaElement>({
-		name,
-		value,
-		onChange,
-		onBlur,
-	})
-
-	const {
-		id: resolvedId,
-		autoComplete: resolvedAutoComplete,
-		disabled: resolvedDisabled,
-		required: resolvedRequired,
-		readOnly: resolvedReadOnly,
-		validation,
-		'aria-describedby': resolvedDescribedBy,
-	} = useControlProps({
+	const field = useInputControl<HTMLTextAreaElement>({
 		id,
+		name,
 		autoComplete,
 		disabled,
 		required,
 		readOnly,
+		invalid,
+		variant,
+		value,
+		defaultValue,
+		onChange,
+		onBlur,
 		'aria-describedby': ariaDescribedBy,
-		invalid: valueState.invalid,
 	})
-
-	const scope = useIdScope({ id: resolvedId })
 
 	const fieldRef = useRef<HTMLTextAreaElement>(null)
 
@@ -124,38 +107,20 @@ export function Textarea({
 
 	useTextareaAutoResize(fieldRef, autoResize)
 
-	const resolvedVariant = variant ?? control?.variant ?? (glass ? 'glass' : undefined)
-
-	const controlProps = {
-		id: scope.id,
-		name,
-		autoComplete: resolvedAutoComplete,
-		disabled: resolvedDisabled,
-		required: resolvedRequired,
-		readOnly: resolvedReadOnly,
-		value: valueState.value,
-		defaultValue: valueState.value === undefined ? defaultValue : undefined,
-		onChange: valueState.onChange,
-		onBlur: valueState.onBlur,
-		'aria-describedby': resolvedDescribedBy,
-		// An explicit `invalid` fully controls the validation chrome, as on Input.
-		...(invalid === undefined ? validation : invalidAttrs(invalid)),
-	}
-
 	// Under headless context the actions row is not rendered, so it sets no layout.
 	// An absent slot (`undefined`, `null`, or `false`) renders no row either.
-	const hasActions = !headless && actions != null && actions !== false
+	const hasActions = !field.headless && actions != null && actions !== false
 
 	const textareaEl = (
 		<textarea
 			data-slot="textarea"
 			ref={composedRef}
-			{...controlProps}
+			{...field.attrs}
 			rows={rows}
 			className={cn(
-				!headless &&
+				!field.headless &&
 					k({
-						variant: resolvedVariant,
+						variant: field.variant,
 						resize: hasActions ? 'none' : resize,
 					}),
 				hasActions && k.bare,
@@ -165,12 +130,12 @@ export function Textarea({
 		/>
 	)
 
-	if (headless) return textareaEl
+	if (field.headless) return textareaEl
 
 	return (
 		<ControlFrame
 			density={size}
-			className={cn(hasActions && k.frame, k.surface({ variant: resolvedVariant }))}
+			className={cn(hasActions && k.frame, k.surface({ variant: field.variant }))}
 		>
 			{textareaEl}
 			{/* The ControlFrame is a `<span>`, so the actions row is a `<span>` too. */}

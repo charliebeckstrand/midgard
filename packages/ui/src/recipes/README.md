@@ -18,7 +18,7 @@ Dependencies point one way: `kata → kiso` (tokens) and `kata → katakana` (st
 
 A kata reaches the layers below in one of three ways:
 
-- **Through a bridge** (`bridge.<archetype>(tokens, overlay)`) when the kata matches an archetype shape (input, textarea, checkbox, dialog, …). The kata reads the token bundle from `kiso/<archetype>` and hands it to the bridge, which owns the variant axes and slot wiring.
+- **Through a bridge** (`bridge.<archetype>(tokens, overlay)`) when the kata matches an archetype shape (input, textarea, checkbox, drawer, …). The kata reads the token bundle from `kiso/<archetype>` and hands it to the bridge, which owns the variant axes and slot wiring.
 - **Through `defineRecipe` directly** (`from '../../core/recipe'`) when the kata doesn't fit any archetype (button, alert, card, code, …), composing kiso tokens itself.
 - **Through `kiso/<archetype>` directly** when the kata needs a *subset* of a semantic bundle without the bridge (combobox / listbox / date-picker use control's reset / density; dialog / drawer / sheet / box use panel's surface / layout; slider / slider-range share the slider color table).
 

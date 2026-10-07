@@ -2,14 +2,7 @@ import { ChevronDown, Inbox } from 'lucide-react'
 import { Button } from 'ui/button'
 import { Icon } from 'ui/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from 'ui/menu'
-import {
-	Sidebar,
-	SidebarBody,
-	SidebarItem,
-	SidebarItemActions,
-	SidebarLabel,
-	SidebarList,
-} from 'ui/sidebar'
+import { Sidebar, SidebarBody, SidebarItem, SidebarLabel, SidebarList } from 'ui/sidebar'
 
 export default function WithActions() {
 	return (
@@ -17,9 +10,9 @@ export default function WithActions() {
 			<Sidebar aria-label="Sidebar with actions">
 				<SidebarBody>
 					<SidebarList aria-label="Main">
-						<SidebarItem icon={<Inbox />}>
-							<SidebarLabel>Inbox</SidebarLabel>
-							<SidebarItemActions>
+						<SidebarItem
+							icon={<Inbox />}
+							suffix={
 								<Menu placement="bottom-end">
 									<MenuTrigger>
 										<Button variant="bare" aria-label="Inbox actions">
@@ -38,7 +31,9 @@ export default function WithActions() {
 										</MenuItem>
 									</MenuContent>
 								</Menu>
-							</SidebarItemActions>
+							}
+						>
+							<SidebarLabel>Inbox</SidebarLabel>
 						</SidebarItem>
 					</SidebarList>
 				</SidebarBody>

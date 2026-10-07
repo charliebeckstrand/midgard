@@ -19,9 +19,9 @@ Atomic concerns, one sub-folder each; `index.ts` assembles the named bundle. Ful
 | Token | Concern |
 |---|---|
 | `dan` 段 | Density ramps — each stepped `density-*` class that writes a value for each step, nested under the unit that reads it (`space.box.bottom`). |
-| `iro` 色 | Variant × color × slot palette matrix plus the semantic intent-color text bundle. `palette` is the standard five-color set; `extended` is the opt-in wide palette (standard + rose / violet / sky). `marker` inks a chromatic dot, and `on.wash` inks text on the neutral wash. |
+| `iro` 色 | Variant × color × slot palette matrix plus the semantic intent-color text bundle. `palette` is the standard five-color set; `extended` is the opt-in wide palette (standard + rose / violet / sky). `marker` inks a chromatic dot, `meter` paints the measured value of Progress and Sparkline, and `on.wash` inks text on the neutral wash. |
 | `ji` 字 | Typography — size scale plus `weight` / `leading` / `family` aliases, and `ramp`, the stepped text size of a density-native component. |
-| `ma` 間 | Named spacing scale projected as Tailwind padding, margin, and gap utilities — all-sides and axis variants. |
+| `ma` 間 | Named spacing scale projected as Tailwind padding and gap utilities — all-sides and axis variants. |
 | `narabi` 並び | Sibling arrangement — field adjacency, toggle grid, slide positioning, icon slot, nav slot inset, stacked item text, truncation, flex primitives. |
 | `omote` 面 | Generic surface fills and chromes (`bg`, `popover`, `glass`, `backdrop`, `content`, `skeleton`), and the `checkerboard` pattern behind a translucent color. It also holds the inline `rail` of a scroll container, which composes the edge fade. |
 | `hannou` 反応 | Interaction feedback (`disabled`, `fg`, `cursor`, `grab`, `active`, and the `tint` washes: `tint.base`, `tint.before`, `tint.filled`, `tint.surface`, and `tint.glass`) plus the kata-shaped `item` / `nav` composites. |
@@ -41,9 +41,9 @@ Archetype bundles compose primitive atoms into the multi-fragment shape an arche
 | Bundle | Composes | Consumers |
 |---|---|---|
 | `control` | Field archetype: frame + surface + input + reset (`reset.base`, `reset.number`) + density + radius + scale + affix + check (composes `kasane`). | `bridge.control` / `bridge.check`; subset reach from combobox, listbox, date-picker, select, switch, color-picker, rating, signature-pad, control. |
-| `popover` | Floating overlay — `trigger` / `portal` / `text` / `panel` fragments. | `bridge.popover`; subset reach from combobox, listbox, date-picker, color-picker. |
+| `popover` | Floating overlay — `trigger` / `portal` / `text` / `panel` fragments. *No bridge.* | `kata/popover`; subset reach from combobox, listbox, date-picker, color-picker. |
 | `segment` | Segmented control — `control` / `item` fragments plus `indicator` color fragments. *No bridge.* | `kata/tabs`, which Segment and Tabs share. |
-| `panel` | Panel archetype — `surface` (fill + chrome), `layout` (title / description / header / body / footer, and the `inset` at each edge), and `grip`. The `inset` is the same on the four sides, follows density, and is larger than the slot gap. The grip is the drag bar that resizes a panel, keyed by the separator's line. | `bridge.panel`; subset reach from box, panel, grid, command-palette. |
+| `panel` | Panel archetype — `surface` (fill + chrome), `layout` (title / description / header / body / footer, and the `inset` at each edge), and `grip`. The `inset` is the same on the four sides, follows density, and is larger than the slot gap. The grip is the drag bar that resizes a panel, keyed by the separator's line. `surface.axis` is the `surface` axis of a modal panel. | `bridge.panel`; subset reach from dialog, box, panel, grid, command-palette. |
 | `slider` | Slider palette — the `--slider-fill` / `--slider-track` CSS-variable bundle per color, and the size `scale` that both sliders share. *No bridge.* | `kata/slider`, `kata/slider-range`. |
 | `zu` 図 | Data-viz substrate — the categorical series `palette`, the chrome and readout `ink`, and the reveal `motion`. *No bridge.* | `kata/chart`, `kata/map`. |
 
@@ -55,8 +55,7 @@ Each bridge is a pure function `(<tokens>, overlay?) => k`, reached through the 
 |---|---|---|---|
 | `control` | `kiso/control` | Outer-frame recipe + the `surface` recipe of the ControlFrame + the `number` slot. | `input`, `textarea` |
 | `check` | `kiso/control` | Check-surface recipe + visually-hidden `input` + `disabled` text. | `checkbox`, `radio` |
-| `popover` | `kiso/popover` | `trigger` / `portal` / `text` / `panel` bundle. | `popover` |
-| `panel` | `kiso/panel` | Caller `panel` / `backdrop` recipes + standard slot bundle. | `dialog`, `drawer`, `sheet` |
+| `panel` | `kiso/panel` | Caller `panel` / `backdrop` recipes + standard slot bundle. | `drawer`, `sheet` |
 | `backdrop` | `omote.backdrop` | Full-bleed scrim recipe with a `surface` axis (`flat` / `glass`). *Shared recipe, not an archetype.* | `dialog`, `drawer`, `sheet` |
 | `palette` | `iro.palette` | The solid / soft / outline matrix for `definePalette`. *Shared wiring, not an archetype.* | `alert`, `avatar`, `badge` |
 

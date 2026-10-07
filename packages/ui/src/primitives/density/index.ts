@@ -3,5 +3,4 @@ export {
 	type DensityProps,
 	useDensityScope,
 	useDensityStep,
-	useStep,
 } from './density'

@@ -171,8 +171,7 @@ describe('density after a pseudo-element', () => {
 //     a scope sets `xs`, and the server reads both, so the first paint is right.
 //   - GridData: the virtualizer estimate, the autosizer refit key, and the
 //     step of the overlays that the grid opens.
-//   - The density primitive and its barrel: `useDensityStep` itself, and
-//     `useStep`, which snaps the step to the scale of a component.
+//   - The density primitive and its barrel: `useDensityStep` itself.
 //
 // The check reads each name, not only each call, so an aliased import fails it.
 

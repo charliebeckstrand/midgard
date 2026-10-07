@@ -1,16 +1,12 @@
 import { animate } from 'motion'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ShinyText, ShinyTextSkeleton } from '../../components/shiny-text'
-import { bySlot, getSlot, renderUI, setupUser, stubMatchMedia } from '../helpers'
+import { bySlot, getSlot, renderUI, stubMatchMedia } from '../helpers'
 import { installControlledObserver } from '../helpers/controlled-intersection'
 
 // `animate` is the imperative sweep, stubbed globally in setup/module-mocks.ts,
 // which is also why this file drives that mock with spies rather than declaring
-// its own. The gate watches whether a sweep starts (animate) and hover
-// pause/resume (pause/playSpy).
-const pauseSpy = vi.fn()
-
-const playSpy = vi.fn()
+// its own. The gate watches whether a sweep starts.
 
 describe('ShinyText', () => {
 	beforeEach(() => {
@@ -26,11 +22,8 @@ describe('ShinyText', () => {
 		// into the negative `not.toHaveBeenCalled()` assertions below.
 		vi.mocked(animate).mockClear()
 
-		// Stub the controls so the sweep never runs in jsdom while hover
-		// pause/resume stays observable.
+		// Stub the controls so the sweep never runs in jsdom.
 		vi.mocked(animate).mockReturnValue({
-			pause: pauseSpy,
-			play: playSpy,
 			stop: vi.fn(),
 		} as unknown as ReturnType<typeof animate>)
 	})
@@ -38,10 +31,6 @@ describe('ShinyText', () => {
 	afterEach(() => {
 		// Restore animate's call-through default.
 		vi.mocked(animate).mockRestore()
-
-		pauseSpy.mockClear()
-
-		playSpy.mockClear()
 	})
 
 	it('renders its children inside the masked span', () => {
@@ -90,15 +79,11 @@ describe('ShinyText', () => {
 
 	// The gradient is twice the width of the text, so a position of p% puts the
 	// shine at (1 - p/100) of the text width. A shine that travels left needs a
-	// position that increases, and a shine that travels right needs one that
-	// decreases.
-	it.each([
-		['left', 150],
-		['right', -50],
-	] as const)('moves the shine to the %s', (sweep, to) => {
-		renderUI(<ShinyText sweep={sweep}>Shine</ShinyText>)
+	// position that increases.
+	it('moves the shine to the left', () => {
+		renderUI(<ShinyText>Shine</ShinyText>)
 
-		expect(vi.mocked(animate).mock.calls[0]?.[1]).toBe(to)
+		expect(vi.mocked(animate).mock.calls[0]?.[1]).toBe(150)
 	})
 
 	it('renders static text and starts no sweep under reduced motion', () => {
@@ -141,60 +126,6 @@ describe('ShinyText', () => {
 		expect(bySlot(container, 'shiny-text')).toHaveTextContent('Shine')
 
 		expect(animate).not.toHaveBeenCalled()
-	})
-
-	// Pause on hover is side behavior, so a consumer `preventDefault()` skips it
-	// (CONVENTIONS.md §3.9).
-	it('keeps the sweep running when a consumer onMouseEnter prevents the default', async () => {
-		const { container } = renderUI(
-			<ShinyText pauseOnHover onMouseEnter={(event) => event.preventDefault()}>
-				Shine
-			</ShinyText>,
-		)
-
-		await setupUser().hover(getSlot(container, 'shiny-text'))
-
-		expect(pauseSpy).not.toHaveBeenCalled()
-	})
-
-	it('runs a consumer hover handler without clobbering pauseOnHover', async () => {
-		const onMouseEnter = vi.fn()
-
-		const onMouseLeave = vi.fn()
-
-		const { container } = renderUI(
-			<ShinyText pauseOnHover onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
-				Shine
-			</ShinyText>,
-		)
-
-		const el = getSlot(container, 'shiny-text')
-
-		const user = setupUser()
-
-		await user.hover(el)
-
-		expect(onMouseEnter).toHaveBeenCalled()
-
-		expect(pauseSpy).toHaveBeenCalled()
-
-		await user.unhover(el)
-
-		expect(onMouseLeave).toHaveBeenCalled()
-
-		expect(playSpy).toHaveBeenCalled()
-	})
-
-	it('resumes a paused sweep when pauseOnHover turns off during a hover', async () => {
-		const { container, rerender } = renderUI(<ShinyText pauseOnHover>Shine</ShinyText>)
-
-		await setupUser().hover(getSlot(container, 'shiny-text'))
-
-		expect(pauseSpy).toHaveBeenCalled()
-
-		rerender(<ShinyText pauseOnHover={false}>Shine</ShinyText>)
-
-		expect(playSpy).toHaveBeenCalled()
 	})
 })
 

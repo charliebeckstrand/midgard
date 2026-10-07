@@ -24,6 +24,9 @@ export const toggle = [
 	'touch-manipulation',
 	'*:data-[slot=control]:col-start-1 *:data-[slot=control]:row-start-1 *:data-[slot=control]:self-center',
 	'*:data-[slot=label]:col-start-2 *:data-[slot=label]:row-start-1',
+	// A control that is taller than the label line makes the row taller. The
+	// label then centers on the control, as the control centers on the label.
+	'*:data-[slot=label]:self-center',
 	'*:data-[slot=description]:col-start-2 *:data-[slot=description]:row-start-2',
 	// A message goes under the label and the description. Auto placement puts it in
 	// the first free cell, which is the narrow control column when the control

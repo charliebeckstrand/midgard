@@ -1,14 +1,7 @@
 'use client'
 
 import { AlertTriangle, CheckCircle, Info, X, XCircle } from 'lucide-react'
-import {
-	type ReactElement,
-	type ReactNode,
-	type RefObject,
-	useEffect,
-	useRef,
-	useState,
-} from 'react'
+import { type ReactElement, type ReactNode, type RefObject, useEffect, useRef } from 'react'
 import { announce, cn } from '../../core'
 import { useControllableFlag } from '../../hooks'
 import { type AlertVariants, k } from '../../recipes/kata/alert'
@@ -90,7 +83,10 @@ export type AlertProps = Omit<AlertVariants, 'color'> & {
 	closable?: boolean
 	/** Initial open state (uncontrolled). @defaultValue true */
 	defaultOpen?: boolean
-	/** Controlled open state. */
+	/**
+	 * Controlled open state. A controlled alert stays open until `open` changes,
+	 * so pass `onOpenChange` with it to let the close button dismiss the alert.
+	 */
 	open?: boolean
 	/** Called when the open state changes. */
 	onOpenChange?: (open: boolean) => void
@@ -243,21 +239,6 @@ export function Alert({
 		onValueChange: onOpenChange,
 	})
 
-	// When `open` is controlled but `onOpenChange` is absent, `setOpen(false)`
-	// is a no-op; local state tracks dismissal instead.
-	const controlledWithoutHandler = openProp !== undefined && onOpenChange === undefined
-
-	const [locallyDismissed, setLocallyDismissed] = useState(false)
-
-	// Any change to the controlled prop supersedes a local dismissal.
-	const [prevOpenProp, setPrevOpenProp] = useState(openProp)
-
-	if (openProp !== prevOpenProp) {
-		setPrevOpenProp(openProp)
-
-		setLocallyDismissed(false)
-	}
-
 	const alertRef = useRef<HTMLDivElement>(null)
 
 	// An alert that mounts open counts as one that opened, when the caller asks for it.
@@ -281,7 +262,7 @@ export function Alert({
 		if (message) announce(message)
 	}, [open, politeSeverity])
 
-	if (!open || (controlledWithoutHandler && locallyDismissed)) return null
+	if (!open) return null
 
 	const { resolvedColor, resolvedIcon, role } = resolveAlertPresentation(
 		severity,
@@ -326,8 +307,6 @@ export function Alert({
 						aria-label="Dismiss"
 						onClick={() => {
 							setOpen(false)
-
-							if (controlledWithoutHandler) setLocallyDismissed(true)
 
 							// Moves focus to the caller's element rather than <body> (WCAG 2.4.3).
 							returnFocusTo?.current?.focus()

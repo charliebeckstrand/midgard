@@ -5,6 +5,7 @@ import { arrayMove } from '@dnd-kit/sortable'
 import { type ReactNode, type RefObject, useCallback, useMemo, useRef, useState } from 'react'
 import { LIFT_INSTRUCTIONS } from '../../hooks/use-keyboard-lifted'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { sameElements } from '../../utilities'
 import { kanbanAnnouncements, kanbanNames } from './kanban-announcements'
 import type { KanbanColumnBase } from './types'
 
@@ -29,7 +30,7 @@ function reuseColumnIds<T>(
 
 		const prior = previous[column.id]
 
-		const same = prior?.length === ids.length && ids.every((id, index) => prior[index] === id)
+		const same = sameElements(prior, ids)
 
 		next[column.id] = same && prior ? prior : ids
 

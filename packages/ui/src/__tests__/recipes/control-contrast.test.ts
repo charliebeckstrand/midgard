@@ -47,7 +47,7 @@ describe('Text color contrast', () => {
 })
 
 describe('check surface edge contrast', () => {
-	const { surface } = control.check
+	const { base: surface } = control.check
 
 	it('the resting border clears 3:1 against the light page', () => {
 		const fill = tinted(only(surface, /^bg-white$/), SURFACE.light)
