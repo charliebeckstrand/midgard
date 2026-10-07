@@ -1,12 +1,9 @@
 /**
- * What a routing answer reduces to, and the OSRM-shaped payload both services
- * answer with. One reader serves both clients, so a Valhalla leg and an OSRM
- * leg reach an overlay in the same shape.
+ * What a routing answer reduces to, and the OSRM payload it reads from.
  */
 
 import type { LngLat } from '../types'
 import { type MapRouteFailure, noRouteFailure, routeFailure } from './failure'
-import { decodePolyline } from './polyline'
 
 /**
  * A routed leg: the street-following geometry to draw — a {@link MapRoute}
@@ -37,30 +34,16 @@ export type MapRouteAnswer =
 	| { ok: true; route: MapRouteResult }
 	| { ok: false; failure: MapRouteFailure }
 
-/** The OSRM-shaped route payload both services answer with. @internal */
+/** The OSRM route payload. @internal */
 export type OsrmPayload = {
 	routes?: Array<{
-		/** GeoJSON geometry (OSRM `geometries=geojson`) or an encoded polyline6 string (Valhalla `shape_format`). */
-		geometry?: { coordinates?: LngLat[] } | string
+		/** GeoJSON geometry (OSRM `geometries=geojson`). */
+		geometry?: { coordinates?: LngLat[] }
 		distance?: number
 		duration?: number
 	}>
 	/** The service's own status: `'Ok'` on a routed answer, its own refusal otherwise. */
 	code?: string
-}
-
-/**
- * A route geometry's coordinates as `LngLat`, from either encoding the services
- * answer with. A GeoJSON `{ coordinates }` object (OSRM `geometries=geojson`)
- * passes through; an encoded polyline6 string (Valhalla) decodes. `undefined`
- * when neither is present.
- *
- * @internal
- */
-function geometryPath(
-	geometry: { coordinates?: LngLat[] } | string | undefined,
-): LngLat[] | undefined {
-	return typeof geometry === 'string' ? decodePolyline(geometry) : geometry?.coordinates
 }
 
 /**
@@ -85,7 +68,7 @@ export function routeAnswer(json: OsrmPayload): MapRouteAnswer {
 
 	if (route === undefined) return { ok: false, failure: emptyPayloadFailure(json) }
 
-	const path = geometryPath(route.geometry) ?? []
+	const path = route.geometry?.coordinates ?? []
 
 	// `overview: 'false'` answers with the totals and no geometry — the cheap
 	// distance/duration-only request the option documents — so keep them and hand
