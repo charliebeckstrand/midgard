@@ -3,7 +3,6 @@
 import { Search } from 'lucide-react'
 import { type ChangeEvent, type ReactNode, useMemo } from 'react'
 import { cn, composeEventHandlers } from '../../core'
-import { markControlBinding } from '../control/control-binding'
 import { useFormValue } from '../form/use-form-value'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
@@ -145,5 +144,3 @@ export function SearchInput({
 		/>
 	)
 }
-
-markControlBinding(SearchInput, 'search')

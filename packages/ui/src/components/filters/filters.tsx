@@ -1,11 +1,14 @@
 'use client'
 
-import { type ReactNode, useCallback, useMemo } from 'react'
+import { type ReactNode, useCallback, useMemo, useState } from 'react'
 import { cn } from '../../core'
 import { useA11yAnnouncements } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { k } from '../../recipes/kata/filters'
 import type { AccessibleName } from '../../types'
+import { noop } from '../../utilities'
+import { type FormActions, FormProvider, type FormStateValue } from '../form/context'
+import { useFormStore } from '../form/use-form-store'
 import {
 	FiltersContext,
 	type FiltersContextValue,
@@ -65,6 +68,11 @@ export type FiltersProps<T extends FilterValue = FilterValue> = AccessibleName &
 // its identity.
 const NO_FILTERS: Record<string, unknown> = {}
 
+// A filter has no validation, touch, or baseline, so these maps stay empty.
+const NO_ERRORS: FormStateValue['errors'] = {}
+
+const NO_FLAGS: Record<string, boolean> = {}
+
 /**
  * Coordinator for a row of filter controls over a `Record` value. Shares
  * set/clear and an active-count through context to enclosed {@link FiltersField}
@@ -73,6 +81,9 @@ const NO_FILTERS: Record<string, unknown> = {}
  *
  * @remarks
  * Controlled via `value`/`onValueChange`, uncontrolled from `defaultValue`.
+ * The bar is the form store of its fields: a control inside it binds the slot
+ * that its `name` gives, as it binds a field of a `Form`. A bar inside a `Form`
+ * holds its own fields, and they do not reach the `Form`.
  * Clearing restores `defaultValue` when set, else empties the record. The bar
  * is a `<fieldset>`, which has the `group` role. Pass `aria-label` or
  * `aria-labelledby` to name it. The active count is announced to assistive
@@ -122,12 +133,46 @@ export function Filters<T extends FilterValue = FilterValue>({
 		[setState],
 	)
 
+	// A clear counts as a form reset, so a control drops a partial entry that
+	// leaves its value as it was.
+	const [resets, setResets] = useState(0)
+
 	// Without a default, drop keys entirely, matching setValue's delete semantics.
 	const handleClear = useCallback(() => {
 		setState(defaultValue ?? ({} as T))
 
+		setResets((n) => n + 1)
+
 		onClear?.()
 	}, [defaultValue, setState, onClear])
+
+	// The bar is the form store of its fields. Each control binds the slot
+	// that its `name` gives, as it binds a field of a `Form`.
+	const formState: FormStateValue = useMemo(
+		() => ({
+			values: filterValue,
+			errors: NO_ERRORS,
+			touchedFields: NO_FLAGS,
+			dirtyFields: NO_FLAGS,
+			dirty: false,
+			valid: true,
+			submitting: false,
+		}),
+		[filterValue],
+	)
+
+	const store = useFormStore(formState)
+
+	const formActions: FormActions = useMemo(
+		() => ({
+			getValue: (name) => store.getState().values[name],
+			setValue,
+			setErrors: noop,
+			setTouched: noop,
+			reset: (next) => setState((next ?? defaultValue ?? {}) as T),
+		}),
+		[store, setValue, setState, defaultValue],
+	)
 
 	const activeCount = useMemo(
 		() => Object.values(filterValue).filter(isActive).length,
@@ -155,7 +200,9 @@ export function Filters<T extends FilterValue = FilterValue>({
 				{/* `min-w-auto` replaces the min-content floor of a `<fieldset>`, so the
 			    bar sizes as a `<div>` does. */}
 				<fieldset {...labelProps} data-slot="filters" className={cn(k.base, className)}>
-					{children}
+					<FormProvider store={store} actions={formActions} resets={resets}>
+						{children}
+					</FormProvider>
 				</fieldset>
 			</FiltersNameContext>
 		</FiltersContext>

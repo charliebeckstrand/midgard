@@ -5,7 +5,6 @@ import { type ChangeEventHandler, type ComponentProps, useLayoutEffect, useRef }
 import { ariaAttr, cn, dataAttr } from '../../core'
 import { useComposedRef } from '../../hooks'
 import { type CheckboxVariants, k } from '../../recipes/kata/checkbox'
-import { markControlBinding } from '../control/control-binding'
 import { useControlProps } from '../control/use-control-props'
 import { useFormToggle } from '../form/use-form-toggle'
 
@@ -151,5 +150,3 @@ export function Checkbox({
 		</label>
 	)
 }
-
-markControlBinding(Checkbox, 'toggle')
