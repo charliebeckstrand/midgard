@@ -293,21 +293,12 @@ function plainText(tokens: Token[]): string {
 		.join('')
 }
 
-/**
- * Renders a table. A header row of empty cells, such as `| | |`, is the form of
- * a table with no header, because GFM needs a header row. That table renders
- * no `thead`, so no empty row shows above the rows.
- */
 function renderTable(token: Tokens.Table, key: number, offset: number): ReactNode {
-	const header = token.header.some((cell) => cell.text.trim() !== '')
-
 	return (
 		<table key={key} className={cn(k.table)}>
-			{header && (
-				<thead>
-					<tr>{token.header.map((cell, index) => renderCell('th', k.th, cell, index, offset))}</tr>
-				</thead>
-			)}
+			<thead>
+				<tr>{token.header.map((cell, index) => renderCell('th', k.th, cell, index, offset))}</tr>
+			</thead>
 			<tbody>{token.rows.map((row, index) => renderRow(row, index, offset))}</tbody>
 		</table>
 	)

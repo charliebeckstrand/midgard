@@ -155,16 +155,6 @@ describe('Markdown', () => {
 		expect(el?.querySelector('tbody td')?.textContent).toBe('1')
 	})
 
-	it('renders no header for a table whose header cells are empty', () => {
-		const { container } = renderUI(<Markdown>{'| | |\n|---|---|\n| 1 | 2 |'}</Markdown>)
-
-		const el = bySlot(container, 'markdown')
-
-		expect(el?.querySelector('thead')).toBeNull()
-
-		expect(el?.querySelectorAll('tbody td')).toHaveLength(2)
-	})
-
 	it('drops raw HTML in the source instead of injecting it', () => {
 		const { container } = renderUI(
 			<Markdown>{'<script>alert(1)</script>\n\nSafe **text**.'}</Markdown>,

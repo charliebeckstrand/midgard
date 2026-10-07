@@ -19,8 +19,8 @@ export function markdownOf(report: Report): string {
 	return [
 		`## ${report.title}${report.count > 1 ? ` ×${report.count}` : ''}`,
 		'',
-		'| | |',
-		'|---|---|',
+		'| Field | Value |',
+		'|:---|:---|',
 		...row('At', report.at),
 		...row('Page', `\`${report.page}\``),
 		...row('Build', `\`${report.build}\``),
