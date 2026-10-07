@@ -194,9 +194,14 @@ export function EventLogSheet({
 		})
 
 	// A layout effect runs before the effect of the overlay that reports the
-	// open, so the log does not record the open of this sheet.
+	// open, so the log does not record the open of this sheet. A sheet that
+	// unmounts while it is open does not leave the log paused.
 	useLayoutEffect(() => {
 		log.paused = open
+
+		return () => {
+			log.paused = false
+		}
 	}, [log, open])
 
 	return (

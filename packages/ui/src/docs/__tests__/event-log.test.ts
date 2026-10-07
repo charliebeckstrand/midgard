@@ -333,6 +333,27 @@ describe('listen', () => {
 		])
 	})
 
+	it('writes no line that a source writes after the stop', () => {
+		vi.useFakeTimers()
+
+		const log = new EventLog(createStore())
+
+		const stop = listen(log)
+
+		const button = attach(document.createElement('button'))
+
+		button.addEventListener('click', (event) => event.preventDefault())
+
+		button.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
+
+		stop()
+
+		// The line of the cancelled default comes from a timer after the stop.
+		vi.runOnlyPendingTimers()
+
+		expect(texts(log)).toEqual(['click button synthetic'])
+	})
+
 	it('skips the events in its own button, and records the others', () => {
 		const log = new EventLog(createStore())
 

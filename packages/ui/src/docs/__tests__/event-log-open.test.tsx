@@ -3,7 +3,7 @@ import { Profiler } from 'react'
 import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { componentEvent } from '../debug/event-log/component-events.ts'
 import { __resetEventLogSheet, EventLogButton } from '../debug/event-log/index.tsx'
-import { halt, record } from '../debug/event-log/recorder.ts'
+import { halt, record, start } from '../debug/event-log/recorder.ts'
 import { EventLogSheet } from '../debug/event-log/sheet.tsx'
 
 // A sheet that suspends opens late, because React holds the content back for
@@ -52,6 +52,16 @@ describe('EventLogButton', () => {
 })
 
 describe('EventLogSheet', () => {
+	it('does not leave the log paused when it unmounts while it is open', () => {
+		const { unmount } = render(<EventLogSheet open onOpenChange={() => {}} />)
+
+		unmount()
+
+		record('route', '/after-unmount')
+
+		expect(start().entries.at(-1)?.text).toBe('/after-unmount')
+	})
+
 	it('does not render for a new entry while it is closed, and shows the entry when it opens', () => {
 		let commits = 0
 
@@ -182,5 +192,42 @@ describe('EventLogSheet type filter', () => {
 		expect(screen.getByText('/filtered')).toBeDefined()
 
 		expect(screen.getByText('filtered error')).toBeDefined()
+	})
+})
+
+describe('the recorder', () => {
+	it('drops the lines and the kept copy when the log turns off, and starts again with a separator', () => {
+		const log = start()
+
+		log.preserve = true
+
+		onTestFinished(() => {
+			log.preserve = false
+		})
+
+		record('route', '/before')
+
+		log.save()
+
+		halt()
+
+		expect(log.entries).toEqual([])
+
+		expect(JSON.parse(sessionStorage.getItem('docs:event-log:entries') ?? '[]')).toEqual([])
+
+		// The log takes no line while it is off.
+		record('route', '/off')
+
+		expect(log.entries).toEqual([])
+
+		expect(start()).toBe(log)
+
+		record('route', '/after')
+
+		expect(log.entries.map(({ text }) => text)).toEqual([
+			`──── on ${location.pathname}`,
+			expect.stringMatching(/^restore /),
+			'/after',
+		])
 	})
 })
