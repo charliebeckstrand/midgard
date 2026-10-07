@@ -45,8 +45,6 @@ export const size = {
 	thumb: {
 		/** The thumb of a switch and a range slider. */
 		base: 'density-size-[3,4,5]',
-		/** The offset of a checked switch thumb. */
-		on: '[:checked~&]:density-inset-s-[4,5,6]',
 	},
 	colorPanel: {
 		/** The color preview of a color panel. */
