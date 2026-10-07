@@ -21,6 +21,7 @@ import { type FloatingPlacement, useFloatingDisclosure } from '../../hooks'
 import { useOpenChange } from '../../hooks/use-open-change'
 import { subscribeOverlaySignal } from '../../primitives/overlay'
 import type { TooltipProps } from './tooltip'
+import { preloadTooltipBody } from './tooltip-body-loader'
 
 type TooltipStateOptions = {
 	placement?: FloatingPlacement
@@ -30,6 +31,15 @@ type TooltipStateOptions = {
 	enabled?: boolean
 	open?: boolean
 	onOpenChange?: (open: boolean) => void
+}
+
+/**
+ * Starts the load of the panel module when a pointer enters the trigger or the
+ * trigger takes focus. The hover open delay then covers the load. The
+ * handlers chain with the handlers of the other interactions.
+ */
+const PRELOAD: ElementProps = {
+	reference: { onPointerEnter: preloadTooltipBody, onFocus: preloadTooltipBody },
 }
 
 /**
@@ -219,6 +229,7 @@ export function useTooltipState({
 		dismiss,
 		role,
 		label,
+		PRELOAD,
 	])
 
 	return useMemo(
