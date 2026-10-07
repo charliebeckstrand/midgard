@@ -1,4 +1,4 @@
-import { ArrowLeft, Eye, Trash2 } from 'lucide-react'
+import { ArrowLeft, Copy, ListX, Trash2 } from 'lucide-react'
 import { useLayoutEffect, useState, useSyncExternalStore } from 'react'
 import { Button } from 'ui/button'
 import { Checkbox, CheckboxField } from 'ui/checkbox'
@@ -50,9 +50,9 @@ function ReportLine({
 					</Text>
 				</div>
 				<Button variant="bare" size="sm" aria-label="View" onClick={onView}>
-					<Icon icon={<Eye />} />
+					<Icon icon={<ListX />} />
 				</Button>
-				<CopyButton size="sm" text={markdownOf(report)} />
+				<CopyButton size="sm" icon={<Copy />} text={markdownOf(report)} />
 				<Button variant="bare" size="sm" aria-label="Delete" onClick={onDelete}>
 					<Icon icon={<Trash2 />} />
 				</Button>
@@ -149,7 +149,7 @@ export function BugLogSheet({
 						<Button size="sm" color={copied ? 'green' : undefined} onClick={() => void copy()}>
 							{copied ? 'Copied' : 'Copy all'}
 						</Button>
-						<Button size="sm" onClick={() => bugs.capture(log.entries)}>
+						<Button size="sm" color="blue" onClick={() => bugs.capture(log.entries)}>
 							Capture
 						</Button>
 						<Button size="sm" color="amber" onClick={() => bugs.clear()}>
