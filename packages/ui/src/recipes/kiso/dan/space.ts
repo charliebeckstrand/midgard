@@ -4,10 +4,41 @@
  * Layer: kiso · Concern: density ramps
  */
 
+/**
+ * The named padding scale (`ma.p`, `ma.px`, `ma.py`) of Box. Each stop has its
+ * plain value at `md`, the stop below at `sm`, and the stop above at `lg`, as
+ * the gap scale (`gap.scale`) does.
+ */
+const scale = {
+	p: {
+		xs: 'density-p-[0.5,1,1.5]',
+		sm: 'density-p-[1,2,3]',
+		md: 'density-p-[2,3,4]',
+		lg: 'density-p-[3,4,5]',
+		xl: 'density-p-[5,6,7]',
+	},
+	px: {
+		xs: 'density-px-[0.5,1,1.5]',
+		sm: 'density-px-[1,2,3]',
+		md: 'density-px-[2,3,4]',
+		lg: 'density-px-[3,4,5]',
+		xl: 'density-px-[5,6,7]',
+	},
+	py: {
+		xs: 'density-py-[0.5,1,1.5]',
+		sm: 'density-py-[1,2,3]',
+		md: 'density-py-[2,3,4]',
+		lg: 'density-py-[3,4,5]',
+		xl: 'density-py-[5,6,7]',
+	},
+} as const
+
 export const space = {
+	scale,
+
 	box: {
 		/** The padding of a box: a card, a list, or a date picker body. */
-		base: 'density-p-[2,3,4]',
+		base: scale.p.md,
 		/** The bottom padding of a box header. */
 		bottom: 'density-pb-[2,3,4]',
 	},
@@ -26,18 +57,18 @@ export const space = {
 	},
 	cell: {
 		/** The padding of a grid cell. It matches `cell.x` and `cell.y`. */
-		base: 'density-p-[1,2,3]',
+		base: scale.p.sm,
 		/** The inline padding of a table cell. */
-		x: 'density-px-[1,2,3]',
+		x: scale.px.sm,
 		/** The block padding of a table cell. */
-		y: 'density-py-[1,2,3]',
+		y: scale.py.sm,
 	},
 	nav: {
 		/** The padding of a nav item. */
 		item: 'density-p-[1.5,2,2.5]',
 	},
 	/** The padding of an alert and a code block. */
-	alert: 'density-p-[3,4,5]',
+	alert: scale.p.lg,
 	/** The padding of a popover panel. */
 	popover: 'density-p-[3,4,6]',
 	/**
@@ -46,7 +77,14 @@ export const space = {
 	 */
 	panel: {
 		/** The inset at the left edge and at the right edge, on the panel or on each slot. */
-		x: 'density-px-[5,6,7]',
+		x: scale.px.xl,
+		/**
+		 * The negative bottom margin that cancels the slot gap of a panel
+		 * (`gap.scale.lg`) under a child that is the edge of the panel.
+		 */
+		flush: 'density-mb-[-3,-4,-5]',
+		/** The slot gap of a panel (`gap.scale.lg`) above a child that follows a sibling. */
+		above: 'not-first:density-mt-[3,4,5]',
 		/** The inset above the first slot, on the panel or on the slot. */
 		top: 'density-pt-[5,6,7]',
 		/** The inset under the last slot, on the panel or on the slot. */
@@ -184,12 +222,12 @@ export const space = {
 	},
 	tab: {
 		/** The inline padding of a tab and of the calendar month picker. */
-		x: 'density-px-[2,3,4]',
+		x: scale.px.md,
 		/** The bottom padding of an underline tab. */
 		bottom: 'density-pb-[3,4,5]',
 		pill: {
 			/** The inline padding of a pill tab. */
-			x: 'density-px-[3,4,5]',
+			x: scale.px.lg,
 			/** The block padding of a pill tab. */
 			y: 'density-py-[1.5,2,2.5]',
 		},
@@ -206,7 +244,7 @@ export const space = {
 	},
 	slider: {
 		/** The block padding of a slider, which holds the thumb. */
-		y: 'density-py-[3,4,5]',
+		y: scale.py.lg,
 		track: {
 			/** The block margin of a slider skeleton track. */
 			y: 'density-my-[3,4,5]',
@@ -256,11 +294,36 @@ export const space = {
 			top: '[&>dd]:density-pt-[0.5,1,1.5]',
 		},
 	},
+	field: {
+		/** The gap from a label, or a label row, to the control under it. */
+		label: '[&>[data-slot=label]:has(+*:not([data-slot=description]))]:density-mb-[0.5,1,1.5]',
+		/** The gap from a label row (a Flex that holds the label) to the control under it. */
+		labelRow:
+			'[&>[data-slot=flex]:has(>[data-slot=label]):has(+*:not([data-slot=description]))]:density-mb-[0.5,1,1.5]',
+		/** The gap from a description to the slot under it. */
+		description: '[&>[data-slot=description]+[data-slot]]:density-mt-[0.5,1,1.5]',
+		/** The gap from a control to the slot under it. */
+		control:
+			'[&>:is([data-slot=control],[data-slot=control-frame],[data-slot=field])+[data-slot]]:density-mt-[1,2,3]',
+		/** The gap from a list of controls to the slots under it. */
+		list: '[&>[data-slot=list]~[data-slot]]:density-mt-[1,2,3]',
+		/** The gap above a message or an alert that is not under a label or a description. */
+		message:
+			'[&>:not([data-slot=label]):not([data-slot=description])+:is([data-slot=message],[role=alert])]:density-mt-[1,2,3]',
+	},
+	fieldset: {
+		/** The gap from a legend to the slot under it. */
+		legend: '[&>legend+*]:density-pt-[3,4,5]',
+		/** The gap between two fields of a group. */
+		field: '[&>[data-slot=field]+[data-slot=field]]:density-mt-[1,2,3]',
+		/** The gap from the label of a group to its first field. */
+		label: '[&>[data-slot=label]+[data-slot=field]]:density-mt-[3,4,5]',
+	},
 	mark: {
 		/** The inline padding of an inline code mark and a key. */
 		x: 'density-px-[1,1.5,2]',
 		/** The block padding of an inline code mark and a key. */
-		y: 'density-py-[0.5,1,1.5]',
+		y: scale.py.xs,
 	},
 	kbd: {
 		button: {

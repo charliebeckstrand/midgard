@@ -52,7 +52,7 @@ describe('Box', () => {
 			</Box>,
 		)
 
-		expect(bySlot(container, 'box')).toHaveClass('rounded-md', 'bg-white', 'p-3')
+		expect(bySlot(container, 'box')).toHaveClass('rounded-md', 'bg-white', 'density-p-[2,3,4]')
 	})
 
 	it('respects px / py overrides', () => {
@@ -62,7 +62,7 @@ describe('Box', () => {
 			</Box>,
 		)
 
-		expect(bySlot(container, 'box')).toHaveClass('px-4', 'py-2')
+		expect(bySlot(container, 'box')).toHaveClass('density-px-[3,4,5]', 'density-py-[1,2,3]')
 	})
 
 	it('renders with a custom data-slot', () => {
@@ -94,9 +94,9 @@ describe('Box', () => {
 
 		const el = getSlot(container, 'box')
 
-		expect(el.className).toContain('p-4')
+		expect(el.className).toContain('density-p-[3,4,5]')
 
-		expect(el.className).not.toContain('p-2')
+		expect(el.className).not.toContain('density-p-[1,2,3]')
 	})
 
 	it('does not apply any padding class when no p and no ambient Density are present', () => {
@@ -116,9 +116,9 @@ describe('Box responsive padding', () => {
 
 		const className = bySlot(container, 'box')?.className ?? ''
 
-		expect(className).toContain('p-2')
+		expect(className).toContain('density-p-[1,2,3]')
 
-		expect(className).toContain('md:p-4')
+		expect(className).toContain('md:density-p-[3,4,5]')
 	})
 
 	it('resolves the axis padding the same way', () => {
@@ -132,8 +132,8 @@ describe('Box responsive padding', () => {
 
 		expect(className).toContain('px-0')
 
-		expect(className).toContain('lg:px-6')
+		expect(className).toContain('lg:density-px-[5,6,7]')
 
-		expect(className).toContain('py-1')
+		expect(className).toContain('density-py-[0.5,1,1.5]')
 	})
 })

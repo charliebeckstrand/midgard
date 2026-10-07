@@ -4,9 +4,23 @@
  * Layer: kiso · Concern: density ramps
  */
 
+/**
+ * The named gap scale (`ma.gap`) of Flex, Stack, and Split, and the layout gap
+ * of a kata. Each stop has its plain value at `md`, the stop below at `sm`,
+ * and the stop above at `lg`.
+ */
+const scale = {
+	xs: 'density-gap-[0.5,1,1.5]',
+	sm: 'density-gap-[1,2,3]',
+	md: 'density-gap-[2,3,4]',
+	lg: 'density-gap-[3,4,5]',
+	xl: 'density-gap-[5,6,7]',
+} as const
+
 export const gap = {
+	scale,
 	/** The default gap: a card footer, the calendar footer, and the segment control. */
-	default: 'density-gap-[1,2,3]',
+	default: scale.sm,
 	/** The block gap of a date picker body. */
 	y: 'density-gap-y-[1,2,3]',
 	/** The gap of a nav item and a sidebar item. */
