@@ -1,6 +1,5 @@
 import { ArrowDownAZ, ArrowUpZA } from 'lucide-react'
 import { memo, use, useId, useState } from 'react'
-import { useNavigate } from 'react-router'
 import { Button } from 'ui/button'
 import { Combobox, ComboboxOption, useComboboxDeferredQuery } from 'ui/combobox'
 import { Flex } from 'ui/flex'
@@ -18,6 +17,7 @@ import {
 } from 'ui/sidebar'
 import { Text } from 'ui/text'
 import type { PageLink } from '../plugin/pages.ts'
+import { useShellNavigate } from './router-link.tsx'
 
 /** The pages of each section, in the order of `pages`, which the plugin gives by section and then by name. */
 export function sectionsOf(pages: readonly PageLink[]): { section: string; links: PageLink[] }[] {
@@ -63,7 +63,7 @@ export const DocsSidebar = memo(function DocsSidebar({ pages }: { pages: readonl
 
 	const offcanvas = use(OffcanvasContext)
 
-	const navigate = useNavigate()
+	const navigate = useShellNavigate()
 
 	const [descending, setDescending] = useState(false)
 
