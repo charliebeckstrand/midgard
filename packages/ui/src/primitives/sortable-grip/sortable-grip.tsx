@@ -7,12 +7,18 @@ import { cn, dataAttr } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { k, type scale } from '../../recipes/kata/icon'
 
-/** The dnd-kit bindings that a {@link SortableGrip} carries. @internal */
+/**
+ * The drag bindings that a {@link SortableGrip} carries. A dnd-kit sortable
+ * gives all of them. A Motion `Reorder` item gives only its listeners and its
+ * drag state.
+ *
+ * @internal
+ */
 export type SortableGripBindings = {
 	/** The activator ref, so dnd-kit returns the focus to the grip after a drag. */
-	setActivatorNodeRef: (element: HTMLElement | null) => void
+	setActivatorNodeRef?: (element: HTMLElement | null) => void
 	/** The accessibility attributes of the sortable. */
-	attributes: DraggableAttributes
+	attributes?: DraggableAttributes
 	/** The pointer and keyboard listeners of the sortable. */
 	listeners: DraggableSyntheticListeners
 	/** Whether the item is held now, which closes the grab hand. */
@@ -30,8 +36,8 @@ export type SortableGripProps = Omit<ComponentProps<'button'>, 'ref' | 'type'> &
 }
 
 /**
- * The drag grip of a sortable item: a native `<button>` that takes the dnd-kit
- * activator ref, attributes, and listeners. It is the only part of the item
+ * The drag grip of a sortable item: a native `<button>` that takes the drag
+ * bindings of the item. It is the only part of the item
  * that starts a drag, so the rest of the item keeps its controls and its touch
  * scrolling.
  *
@@ -56,7 +62,7 @@ export function SortableGrip({
 }: SortableGripProps) {
 	const { setActivatorNodeRef, attributes, listeners, dragging } = sortable
 
-	const { role: _role, ...gripAttributes } = attributes
+	const { role: _role, ...gripAttributes } = attributes ?? {}
 
 	return (
 		<button

@@ -16,8 +16,11 @@ export type KeyboardReorderOptions<T> = {
 	items: T[]
 	/** Stable key extractor. */
 	getKey: (item: T) => string
-	/** Called with the next ordering. Omit to navigate without reordering. */
-	onReorder?: (next: T[]) => void
+	/**
+	 * Called with the next ordering, the key of the item that moved, and its new
+	 * index. Omit to navigate without reordering.
+	 */
+	onReorder?: (next: T[], id: string, index: number) => void
 	/** Moves focus to the item with the key. It must keep its identity. */
 	focusItem: (id: string) => void
 	/** The accessible name of the item with the key, for announcements. */
@@ -107,7 +110,7 @@ export function useKeyboardReorder<T>(options: KeyboardReorderOptions<T>) {
 
 			if (!onReorder || at.index === -1 || target === at.index) return
 
-			onReorder(moveItem(items, at.index, target))
+			onReorder(moveItem(items, at.index, target), at.id, target)
 
 			announce(`${itemName(at.id)} moved to position ${target + 1} of ${items.length}.`, {
 				assertive: true,

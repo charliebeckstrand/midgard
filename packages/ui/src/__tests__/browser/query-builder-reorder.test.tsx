@@ -8,13 +8,12 @@ import {
 	type QueryRule,
 } from '../../modules/query'
 import { fireEvent, renderUI, screen, waitFor } from '../helpers'
-import { drag } from './helpers/drag'
 
 /**
- * Rule reorder over real dnd-kit sensors: each child of a group is a vertical
- * sortable behind a grip. A drop commits through the tree's `move` action, and
- * each AND/OR keeps its position. Real focus and layout, so this runs in the
- * browser suite; the jsdom suite pins the grips.
+ * The keyboard reorder of the query builder: each child of a group lifts from
+ * its grip, and each move commits through the tree's `move` action. Each AND/OR
+ * keeps its position. Real focus, so this runs in the browser suite. The pointer
+ * drag needs the real Motion, so it runs in `motion/query-builder-reorder.test.tsx`.
  */
 describe('QueryBuilder reorder (real browser)', () => {
 	const fields: QueryField[] = [{ name: 'name', label: 'Name', type: 'text' }]
@@ -60,21 +59,18 @@ describe('QueryBuilder reorder (real browser)', () => {
 
 		grip.focus()
 
-		// dnd-kit's keyboard sensor reads `code`: Space picks up, the arrow moves,
-		// and Space drops.
-		fireEvent.keyDown(grip, { code: 'Space' })
+		// Space picks up, each arrow moves and commits, and Space drops.
+		fireEvent.keyDown(grip, { key: ' ' })
 
 		await waitFor(() => expect(grip).toHaveAttribute('data-dragging'))
 
-		fireEvent.keyDown(grip, { code: 'ArrowDown' })
+		fireEvent.keyDown(grip, { key: 'ArrowDown' })
 
 		await waitFor(() =>
 			expect(screen.getByText('Name contains a moved to position 2 of 3.')).toBeInTheDocument(),
 		)
 
-		fireEvent.keyDown(grip, { code: 'Space' })
-
-		await waitFor(() => expect(onValueChange).toHaveBeenCalledTimes(1))
+		expect(onValueChange).toHaveBeenCalledTimes(1)
 
 		const next: QueryGroup = onValueChange.mock.calls[0]?.[0]
 
@@ -83,12 +79,19 @@ describe('QueryBuilder reorder (real browser)', () => {
 		// The combinators keep their positions: OR still joins positions 1 and 2.
 		expect(combinators(next)).toEqual(['and', 'or', 'and'])
 
+		// The move re-renders the nodes, and the grip takes the focus back.
 		await waitFor(() => expect(document.activeElement).toBe(grip))
 
+		fireEvent.keyDown(grip, { key: ' ' })
+
+		await waitFor(() => expect(grip).not.toHaveAttribute('data-dragging'))
+
 		expect(screen.getByText('Dropped Name contains a, position 2 of 3.')).toBeInTheDocument()
+
+		expect(onValueChange).toHaveBeenCalledTimes(1)
 	})
 
-	it('cancels a keyboard move with Escape', async () => {
+	it('drops a keyboard lift with Escape', async () => {
 		const onValueChange = vi.fn()
 
 		renderUI(<Harness onValueChange={onValueChange} />)
@@ -97,43 +100,36 @@ describe('QueryBuilder reorder (real browser)', () => {
 
 		grip.focus()
 
-		fireEvent.keyDown(grip, { code: 'Space' })
+		fireEvent.keyDown(grip, { key: ' ' })
 
 		await waitFor(() => expect(grip).toHaveAttribute('data-dragging'))
 
-		fireEvent.keyDown(grip, { code: 'ArrowDown' })
-
-		fireEvent.keyDown(grip, { code: 'Escape' })
+		fireEvent.keyDown(grip, { key: 'Escape' })
 
 		await waitFor(() => expect(grip).not.toHaveAttribute('data-dragging'))
 
 		expect(onValueChange).not.toHaveBeenCalled()
 	})
 
-	it('moves the first rule below the second on a pointer drop', async () => {
-		const onValueChange = vi.fn()
-
-		renderUI(<Harness onValueChange={onValueChange} />)
+	it('moves focus between the grips with the arrows when nothing is lifted', () => {
+		renderUI(<Harness onValueChange={() => {}} />)
 
 		const grip = screen.getByRole('button', { name: 'Reorder Name contains a' })
 
-		const target = screen.getByRole('button', { name: 'Reorder Name contains b' })
+		grip.focus()
 
-		const from = grip.getBoundingClientRect()
+		fireEvent.keyDown(grip, { key: 'ArrowDown' })
 
-		const over = target.getBoundingClientRect()
+		expect(document.activeElement).toBe(
+			screen.getByRole('button', { name: 'Reorder Name contains b' }),
+		)
+	})
 
-		const x = from.x + 5
+	it('describes the reorder keys on each grip', () => {
+		renderUI(<Harness onValueChange={() => {}} />)
 
-		const held = await drag(grip, { x, y: from.y + 5 }, [
-			{ x, y: from.y + 12 },
-			{ x, y: over.y + over.height / 2 + 4 },
-		])
+		const grip = screen.getByRole('button', { name: 'Reorder Name contains a' })
 
-		await held.release()
-
-		expect(onValueChange).toHaveBeenCalledTimes(1)
-
-		expect(order(onValueChange.mock.calls[0]?.[0])).toEqual(['b', 'a', 'c'])
+		expect(grip).toHaveAccessibleDescription(/To pick up an item, press Space/)
 	})
 })

@@ -1,18 +1,23 @@
 'use client'
 
 import type { DragControls } from 'motion/react'
-import { type RefObject, useCallback, useEffect, useRef, useState } from 'react'
-import { announce } from '../../core'
-import { useDragCursorHold } from '../../hooks/use-drag-cursor'
-import { listItemName } from './use-list-keyboard'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { announce } from '../core'
+import { useDragCursorHold } from './use-drag-cursor'
 
-type Options<T> = {
-	items: T[]
-	/** The key of each item, in the order of `items`. */
+/**
+ * Options for {@link useReorderDrag}: the keys, the drop report, the names for
+ * the announcements, and the start callback.
+ *
+ * @internal
+ */
+export type ReorderDragOptions = {
+	/** The key of each item, in the committed order. */
 	ids: string[]
-	onReorder?: (next: T[]) => void
-	/** List root. The announcements read the names of the items in it. */
-	containerRef: RefObject<HTMLElement | null>
+	/** Called once, on the drop, with the next order and the key of the dragged item. */
+	onReorder?: (order: string[], id: string) => void
+	/** The accessible name of the item with the key, for the announcements. */
+	name: (id: string) => string
 	/** Called when a pointer drag starts, so a keyboard lift can drop. */
 	onStart: () => void
 }
@@ -25,17 +30,19 @@ const position = (order: readonly string[], id: string) =>
 	`position ${order.indexOf(id) + 1} of ${order.length}`
 
 /**
- * The pointer drag of `<List>` over Motion's `Reorder`. During a drag, Motion
- * moves the rows in a draft order as the pointer passes them. The hook reports
- * the draft through `onReorder` once, on the drop, and only when the order
- * changed. Escape cancels the drag and puts the rows back. The hook holds the
- * drag cursor and announces the pick-up, the drop, and the cancel. Pairs with
- * `useListKeyboard`, which owns the keyboard lift.
+ * The pointer drag of one Motion `Reorder.Group`. During a drag, Motion moves
+ * the items in a draft order as the pointer passes them. The hook reports the
+ * draft through `onReorder` once, on the drop, and only when the order changed.
+ * Escape cancels the drag and puts the items back. The hook holds the drag
+ * cursor and announces the pick-up, the drop, and the cancel. The keyboard lift
+ * is `useKeyboardReorder`.
  *
- * @returns `order` (the draft during a drag, else `ids`), `setDraft` for the
- * `onReorder` of `Reorder.Group`, and `onDragStart` / `onDragEnd` for each row.
+ * @returns `order` (the draft during a drag, else `ids`), `sorting` (whether a
+ * drag is live), `setDraft` for the `onReorder` of `Reorder.Group`, and
+ * `onDragStart` / `onDragEnd` for each item.
+ * @internal
  */
-export function useListReorder<T>({ items, ids, onReorder, containerRef, onStart }: Options<T>) {
+export function useReorderDrag({ ids, onReorder, name, onStart }: ReorderDragOptions) {
 	const [draft, setDraftState] = useState<string[] | null>(null)
 
 	// The handlers read the draft at the drop, after the renders of the drag.
@@ -51,9 +58,7 @@ export function useListReorder<T>({ items, ids, onReorder, containerRef, onStart
 		setDraftState(next)
 	}, [])
 
-	const name = useCallback((id: string) => listItemName(containerRef.current, id), [containerRef])
-
-	// Escape stops the drag. The stop runs the drop of the row, which reads
+	// Escape stops the drag. The stop runs the drop of the item, which reads
 	// `canceled` and reports nothing.
 	const onKeyDown = useCallback(
 		(event: KeyboardEvent) => {
@@ -128,10 +133,8 @@ export function useListReorder<T>({ items, ids, onReorder, containerRef, onStart
 
 		if (onReorder === undefined || order.every((id, index) => id === ids[index])) return
 
-		const byKey = new Map(ids.map((id, index) => [id, items[index] as T]))
+		onReorder(order, live.id)
+	}, [ids, onReorder, setDraft, cursor, unlisten, name])
 
-		onReorder(order.flatMap((id) => byKey.get(id) ?? []))
-	}, [ids, items, onReorder, setDraft, cursor, unlisten, name])
-
-	return { order: draft ?? ids, setDraft, onDragStart, onDragEnd }
+	return { order: draft ?? ids, sorting: draft !== null, setDraft, onDragStart, onDragEnd }
 }

@@ -12,13 +12,11 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/too
 import { cn } from '../../../core'
 import { k } from '../../../recipes/kata/query-builder'
 import { Flex } from '../../../structure/flex'
-import { describeNode } from '../engine/query-announcements'
-import type { QueryCombinator, QueryGroup } from '../engine/types'
+import type { QueryCombinator, QueryGroup, QueryNode } from '../engine/types'
 import { useFocusableRef, useQueryBuilderActions, useQueryBuilderState } from './context'
 import { focusKeys } from './query-builder-focus'
 import { QueryBuilderRule } from './query-builder-rule'
 import { QueryBuilderSortable } from './query-builder-sortable'
-import { QueryBuilderSortableItem } from './query-builder-sortable-item'
 
 /** Props for {@link QueryBuilderGroup}: the group node to render and whether it is the tree root. @internal */
 export type QueryBuilderGroupProps = {
@@ -40,18 +38,13 @@ export type QueryBuilderGroupProps = {
  * identity of untouched subtrees, so an edit re-renders only the affected group.
  */
 function QueryBuilderGroupImpl({ group, root, className }: QueryBuilderGroupProps) {
-	const { fields, disabled, allowGroups, requireRule, reorderable } = useQueryBuilderState()
+	const { disabled, allowGroups, requireRule, reorderable } = useQueryBuilderState()
 
 	const { updateCombinator, addRule, addGroup, remove } = useQueryBuilderActions()
 
 	// With `requireRule`, a group keeps its last rule: the sole remaining rule
 	// hides its remove control so the query can't be emptied.
 	const rulesRemovable = !requireRule || group.children.length > 1
-
-	// A group with one child has no order to change, so it shows no grip. The
-	// drag wrappers stay while the builder reorders: a group that grows to two
-	// children or shrinks to one keeps the same tree, so no child remounts.
-	const sortable = reorderable && group.children.length > 1
 
 	// The focus ladder degrades to a group's "add" affordance; that is now the
 	// menu trigger, the always-mounted control that replaced the bare "Add rule"
@@ -66,19 +59,22 @@ function QueryBuilderGroupImpl({ group, root, className }: QueryBuilderGroupProp
 	// Tailwind preflight zeroes fieldset border/margin/padding.
 	const Wrapper = root ? 'div' : 'fieldset'
 
-	// The combinator segment sits outside the grip's node. So a drag moves the
-	// node, and each AND/OR stays in its position between the nodes.
-	const children = group.children.map((child, index) => {
-		const node =
-			child.type === 'group' ? (
-				<QueryBuilderGroup group={child} />
-			) : (
-				<QueryBuilderRule rule={child} removable={rulesRemovable} />
-			)
+	const node = (child: QueryNode) =>
+		child.type === 'group' ? (
+			<QueryBuilderGroup group={child} />
+		) : (
+			<QueryBuilderRule rule={child} removable={rulesRemovable} />
+		)
 
-		// The segment is a density scope one step below the scope around it, so it
-		// stays one step below the controls of the rules.
-		const separator = index > 0 && (
+	// The AND/OR before the child at the index. The segment is a density scope
+	// one step below the scope around it, so it stays one step below the
+	// controls of the rules.
+	const separator = (index: number) => {
+		const child = group.children[index]
+
+		if (index === 0 || child === undefined) return null
+
+		return (
 			<div data-density="slot">
 				<Segment
 					value={child.combinator ?? 'and'}
@@ -91,29 +87,7 @@ function QueryBuilderGroupImpl({ group, root, className }: QueryBuilderGroupProp
 				</Segment>
 			</div>
 		)
-
-		return (
-			<div key={child.id} className={cn(k.group.base)}>
-				{reorderable && separator ? (
-					<div className={cn(k.sortable.separator)}>{separator}</div>
-				) : (
-					separator
-				)}
-				{reorderable ? (
-					<QueryBuilderSortableItem
-						id={child.id}
-						label={describeNode(child, fields)}
-						disabled={disabled}
-						handle={sortable}
-					>
-						{node}
-					</QueryBuilderSortableItem>
-				) : (
-					node
-				)}
-			</div>
-		)
-	})
+	}
 
 	return (
 		<Wrapper
@@ -126,9 +100,14 @@ function QueryBuilderGroupImpl({ group, root, className }: QueryBuilderGroupProp
 				{group.children.length === 0 ? (
 					<Alert severity="warning" variant="soft" title="No rules added" className="w-full" />
 				) : reorderable ? (
-					<QueryBuilderSortable group={group}>{children}</QueryBuilderSortable>
+					<QueryBuilderSortable group={group} separator={separator} node={node} />
 				) : (
-					children
+					group.children.map((child, index) => (
+						<div key={child.id} className={cn(k.group.base)}>
+							{separator(index)}
+							{node(child)}
+						</div>
+					))
 				)}
 			</div>
 
