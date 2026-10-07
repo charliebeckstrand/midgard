@@ -64,7 +64,7 @@ function ReportLine({
 /**
  * The viewer of the Bug log: the title and "Preserve", the reports, newest
  * first, then Copy all, Capture, and Clear. View shows one report in place of
- * the list, as the Markdown that Copy writes. The Event log records nothing
+ * the list and of "Preserve", as the Markdown that Copy writes. The Event log records nothing
  * while the sheet is on screen, so a capture holds the lines before the open.
  */
 export function BugLogSheet({
@@ -111,15 +111,17 @@ export function BugLogSheet({
 						</Button>
 					)}
 					<SheetTitle className="me-auto p-0">Bugs</SheetTitle>
-					<CheckboxField>
-						<Checkbox
-							checked={preserve}
-							onChange={(event) => {
-								bugs.preserve = event.target.checked
-							}}
-						/>
-						<Label>Preserve</Label>
-					</CheckboxField>
+					{!report && (
+						<CheckboxField>
+							<Checkbox
+								checked={preserve}
+								onChange={(event) => {
+									bugs.preserve = event.target.checked
+								}}
+							/>
+							<Label>Preserve</Label>
+						</CheckboxField>
+					)}
 				</Flex>
 				<SheetBody className="min-h-0 flex-1 overflow-auto">
 					{report ? (
