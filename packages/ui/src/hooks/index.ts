@@ -57,6 +57,7 @@ export { type FormattedInputOptions, useFormattedInput } from './use-formatted-i
 export { useHasHover } from './use-has-hover'
 export { useHoverAcrossScroll } from './use-hover-across-scroll'
 export { type IdScopeOptions, useIdScope } from './use-id-scope'
+export { useIdleLoad } from './use-idle-load'
 export { type InView, type InViewOptions, useInView } from './use-in-view'
 export { useIsTruncated } from './use-is-truncated'
 export { type KeybindingsOptions, useKeybindings } from './use-keybindings'

@@ -2,11 +2,13 @@
 
 import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 import { createContext } from '../../core'
+import { useIdleLoad } from '../../hooks/use-idle-load'
 import type { Confirm, ConfirmProps } from './confirm'
 
 /**
- * Loads the module of the dialog. The host loads it on the first question, so an
- * app that never asks does not load the dialog before it hydrates.
+ * Loads the module of the dialog. The host loads it in idle time after the
+ * hydration. Thus the app does not load the dialog before it hydrates, and the
+ * first question does not wait for it.
  * @internal
  */
 const loadConfirm = () => import('./confirm')
@@ -58,9 +60,10 @@ const [ConfirmContext, useConfirmContext] = createContext<ConfirmFunction>('Conf
  * {@link Confirm} dialog that their questions show in. `UIProvider` mounts it.
  *
  * @remarks
- * The host loads the module of the dialog on the first question, and renders
- * the dialog when the module is loaded. When the module does not load, the
- * question rejects with the error. The dialog is open while a question is set.
+ * The host loads the module of the dialog in idle time after the hydration,
+ * and renders the dialog closed when the module is loaded. A question before
+ * that loads the module at once. When the module does not load, the question
+ * rejects with the error. The dialog is open while a question is set.
  * When it closes, the overlay keeps its last open render for the exit
  * animation, so the words do not change. The function in the context keeps
  * its identity, so a question does not render the children again. When the
@@ -70,7 +73,10 @@ const [ConfirmContext, useConfirmContext] = createContext<ConfirmFunction>('Conf
 export function ConfirmHost({ children }: { children: ReactNode }) {
 	const [question, setQuestion] = useState<Question | null>(null)
 
-	const [dialog, setDialog] = useState<{ Confirm: typeof Confirm } | null>(null)
+	// The module of the dialog, from a question before the idle load on.
+	const [asking, setAsking] = useState<{ Confirm: typeof Confirm } | null>(null)
+
+	const dialog = useIdleLoad(loadConfirm) ?? asking
 
 	const settleRef = useRef<Settle | null>(null)
 
@@ -105,7 +111,7 @@ export function ConfirmHost({ children }: { children: ReactNode }) {
 	useEffect(() => {
 		if (!asked || dialog) return
 
-		loadConfirm().then(setDialog, (error: unknown) => settle()?.reject(error))
+		loadConfirm().then(setAsking, (error: unknown) => settle()?.reject(error))
 	}, [asked, dialog, settle])
 
 	const pending = question?.pending ?? false
@@ -175,9 +181,10 @@ export function ConfirmHost({ children }: { children: ReactNode }) {
  *
  * @remarks
  * The dialog is the one that `UIProvider` mounts, and it portals into the
- * container of that provider. The provider loads the module of the dialog on
- * the first question, so the dialog of that question can show some frames
- * later. When the module does not load, the promise rejects with the error.
+ * container of that provider. The provider loads the module of the dialog in
+ * idle time after the hydration. A question before that loads it at once, so
+ * the dialog of that question can show some frames later. When the module does
+ * not load, the promise rejects with the error.
  * Use it in place of a `Confirm` of your own when the question has no custom
  * children: the caller then keeps no open state and no target state. The function keeps its identity across renders.
  *

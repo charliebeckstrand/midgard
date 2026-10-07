@@ -85,6 +85,8 @@ The sequential-scale primitives the data-driven color charts share — the choro
 | `isNativeContextMenuRequest` | Whether a `contextmenu` event asks for the browser's native menu (Ctrl + secondary-button click) instead of a custom one. |
 | `isScrollbarPress` | Whether a press landed on an element's own scrollbar gutter rather than on its content. A gutter press starts a pan, so a floating surface does not dismiss for it and no selection follows it. Tests an axis only where it can scroll, and reads the vertical gutter off the inline-start edge under `direction: rtl`. The border widths are not part of the gutter. |
 | `printInHiddenFrame` | Prints a document through an off-screen iframe and reclaims the frame on `afterprint`, with a window-`focus` backstop, and on either failure route. `prepare` points the frame at markup (`srcdoc`) or a URL (`src`). The optional `onFail` says what to do besides reclaiming, and its absence lets a blocked `print()` propagate. |
+| `requestIdle` | Calls a callback in idle time. A browser with no `requestIdleCallback`, such as Safari, calls it after a fallback delay, with no deadline. Import it from `utilities/idle`. |
+| `cancelIdle` | Cancels a callback that `requestIdle` scheduled. |
 
 ## Measurement
 

@@ -41,8 +41,8 @@ export type UserMenuPanelProps = UserMenuProps & {
  * `shared/auth`. Sign-out loads `/login` as a full page, so no data of the user
  * stays in the query cache.
  *
- * `UserMenu` loads this module on the first press of its button, and then
- * renders the menu open in place of the button.
+ * `UserMenu` loads this module in idle time, and renders the menu open in
+ * place of its button on the first press.
  */
 export function UserMenuPanel({ user, count, onAdd, onList, focus }: UserMenuPanelProps) {
 	const trigger = useRef<HTMLButtonElement>(null)
