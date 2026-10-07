@@ -6,13 +6,13 @@ import { cn } from '../../core'
 import { LIFT_INSTRUCTIONS } from '../../hooks/use-keyboard-lifted'
 import { keyMatcher, useKeyedStore } from '../../hooks/use-keyed-store'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
+import { useReorderDrag } from '../../hooks/use-reorder-drag'
 import { k, type ListVariant } from '../../recipes/kata/list'
 import type { Orientation } from '../../types'
 import { ListContext } from './context'
 import { ListItemReorder } from './list-item-reorder'
 import { ListItemStatic } from './list-item-static'
-import { useListKeyboard } from './use-list-keyboard'
-import { useListReorder } from './use-list-reorder'
+import { listItemName, useListKeyboard } from './use-list-keyboard'
 import { useListWindow } from './use-list-window'
 
 // A reorderable list renders a Motion element, which gives its own meaning to
@@ -170,11 +170,21 @@ export function List<T>({
 	// that lifts and the item that drops.
 	const liftedStore = useKeyedStore(liftedId, keyMatcher)
 
-	const { order, setDraft, onDragStart, onDragEnd } = useListReorder({
-		items,
+	// The drag reports keys. The list maps them back to its items.
+	const onReorderIds = useMemo(() => {
+		if (onReorder === undefined) return undefined
+
+		return (order: string[]) => {
+			const byKey = new Map(ids.map((id, index) => [id, items[index] as T]))
+
+			onReorder(order.flatMap((id) => byKey.get(id) ?? []))
+		}
+	}, [ids, items, onReorder])
+
+	const { order, setDraft, onDragStart, onDragEnd } = useReorderDrag({
 		ids,
-		onReorder,
-		containerRef,
+		onReorder: onReorderIds,
+		name: useCallback((id: string) => listItemName(containerRef.current, id), []),
 		// A pointer drag drops a keyboard lift.
 		onStart: useCallback(() => setLiftedId(null), [setLiftedId]),
 	})

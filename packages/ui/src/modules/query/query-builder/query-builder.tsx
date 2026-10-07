@@ -44,7 +44,10 @@ export type QueryBuilderProps = {
 	/**
 	 * Let the user reorder the children of each group, by drag or by keyboard.
 	 * Each child shows a grip when its group has more than one child. A node
-	 * moves only among its siblings, and each AND/OR stays in its position.
+	 * moves only among its siblings, and each AND/OR stays in its position. A
+	 * pointer drag calls `onValueChange` once, on the drop, and Escape cancels
+	 * it. With the keyboard, each arrow key moves the node and calls
+	 * `onValueChange`.
 	 * @defaultValue false
 	 */
 	reorder?: boolean

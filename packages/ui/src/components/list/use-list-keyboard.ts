@@ -39,7 +39,7 @@ function listStep(key: string, orientation: Orientation, container: HTMLElement 
 /**
  * Keyboard reordering for flat sortable lists. Space toggles "lifted" state,
  * arrow keys focus neighbors (or move the lifted item), Escape/Enter drops.
- * Pairs with `useListReorder`, which owns the pointer drag; mirrors
+ * Pairs with `useReorderDrag`, which owns the pointer drag; mirrors
  * `useKanbanKeyboard`. The model is
  * `useKeyboardReorder`, with a step of one along the list's axis.
  */
@@ -68,7 +68,8 @@ export function useListKeyboard<T>({
 	return useKeyboardReorder({
 		items,
 		getKey,
-		onReorder,
+		// The list reports the next order alone.
+		onReorder: onReorder && ((next) => onReorder(next)),
 		focusItem,
 		itemName: (id) => listItemName(containerRef.current, id),
 		stepFor: (key) => listStep(key, orientation, containerRef.current),

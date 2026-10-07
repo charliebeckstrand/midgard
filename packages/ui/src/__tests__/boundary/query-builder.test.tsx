@@ -713,7 +713,7 @@ describe('QueryBuilder removal focus', () => {
 
 // Reorder is opt-in. With `reorder`, each child of a group with two or more
 // children carries a grip; the drag itself runs in the browser suite, because
-// jsdom cannot drive dnd-kit's sensors.
+// the jsdom suite mocks Motion and lays nothing out.
 describe('QueryBuilder reorder grips', () => {
 	const named = (value: string) => ({ ...createRule(fields[0]), operator: 'contains', value })
 

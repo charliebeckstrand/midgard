@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { importsOf } from '../helpers/source-imports'
-import { srcDir, srcRelative } from '../helpers/walk-source'
+import { srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
 // `List` reorders over Motion's `Reorder`, which each page loads. A bundler keeps
 // each static import, so one runtime import of `@dnd-kit` in the module graph of
@@ -75,5 +75,26 @@ describe('list dnd-kit boundary', () => {
 
 	it('detects the @dnd-kit import of Kanban', () => {
 		expect(dndReaches(kanbanModule)).not.toEqual([])
+	})
+})
+
+// The query builder reorders over Motion's `Reorder` too. Its graph reaches the
+// `hooks` barrel through many components, and the walk above follows each name of
+// a barrel, so it reports the sortable hooks that a bundler drops. This test
+// holds the module itself to no runtime import of `@dnd-kit`.
+describe('query dnd-kit boundary', () => {
+	it('modules/query imports no @dnd-kit at runtime', () => {
+		const found: string[] = []
+
+		walkSource(join(srcDir, 'modules', 'query'), (file, content) => {
+			for (const { specifier, runtime } of importsOf(content)) {
+				if (runtime && specifier.startsWith('@dnd-kit/'))
+					found.push(`${srcRelative(file)} → '${specifier}'`)
+			}
+		})
+
+		expect(found, `\`modules/query\` must not load \`@dnd-kit\`:\n  ${found.join('\n  ')}`).toEqual(
+			[],
+		)
 	})
 })

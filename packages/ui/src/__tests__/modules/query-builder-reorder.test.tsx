@@ -27,7 +27,7 @@ describe('QueryBuilder reorder', () => {
 
 		expect(allBySlot(container, 'query-reorder-handle')).toHaveLength(2)
 
-		// The grip is a native `<button>`, so dnd-kit's `role="button"` is redundant.
+		// The grip is a native `<button>`, so it needs no `role`.
 		for (const handle of allBySlot(container, 'query-reorder-handle')) {
 			expect(handle).not.toHaveAttribute('role')
 		}
