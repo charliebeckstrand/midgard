@@ -121,8 +121,8 @@ function PaletteGroups({
 /**
  * The command palette of the search, over the sources that it gets. The palette
  * knows nothing of places. Each source gives its commands, and a pick runs the
- * command. `PlacePalette` loads this module on the first open, and the open
- * state is its own.
+ * command. `PlacePalette` loads this module in idle time, or on the first
+ * open when that comes first, and the open state is its own.
  *
  * ⌘K or Ctrl+K toggles the palette. The page does not show the shortcut.
  *

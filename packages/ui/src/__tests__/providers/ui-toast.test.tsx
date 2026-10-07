@@ -1,10 +1,10 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Toast, ToastProvider, useToast } from '../../components/toast'
 import { UIProvider } from '../../providers/ui'
 import { act, attach, renderUI, screen, waitFor } from '../helpers'
 
-// The provider loads its viewport on the first toast, so each check of the
-// viewport waits for it.
+// The provider loads its viewport in idle time, or on the first toast when that
+// comes first, so each check of the viewport waits for it.
 
 const viewports = () => document.querySelectorAll('[data-slot="toast-viewport"]')
 
@@ -52,16 +52,20 @@ describe('UIProvider toast', () => {
 		await waitFor(() => expect(target.querySelector('[data-slot="toast-viewport"]')).not.toBeNull())
 	})
 
-	it('loads no viewport before the first toast', async () => {
+	it('mounts an empty viewport in idle time, before the first toast', async () => {
+		vi.stubGlobal('requestIdleCallback', (callback: () => void) => window.setTimeout(callback))
+
+		vi.stubGlobal('cancelIdleCallback', (handle: number) => window.clearTimeout(handle))
+
 		renderUI(
 			<UIProvider>
 				<span />
 			</UIProvider>,
 		)
 
-		await act(async () => {})
+		await waitFor(() => expect(viewports()).toHaveLength(1))
 
-		expect(viewports()).toHaveLength(0)
+		expect(viewports()[0]?.querySelectorAll('li')).toHaveLength(0)
 	})
 
 	it('applies the maxToasts of its toast prop', async () => {
@@ -122,9 +126,14 @@ describe('UIProvider toast', () => {
 
 		await act(async () => {})
 
-		// The queue of the provider gets no toast, so it loads no viewport.
-		expect(viewports()).toHaveLength(1)
+		// The queue of the provider gets no toast, so its viewport, if the idle
+		// load mounted it, holds no toast.
+		const [local, ...others] = [...viewports()].sort(
+			(a, b) => b.querySelectorAll('li').length - a.querySelectorAll('li').length,
+		)
 
-		expect(viewports()[0]).toHaveTextContent('Local')
+		expect(local).toHaveTextContent('Local')
+
+		for (const viewport of others) expect(viewport.querySelectorAll('li')).toHaveLength(0)
 	})
 })

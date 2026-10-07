@@ -7,6 +7,7 @@ import { Activity, useCallback, useEffect, useMemo, useState } from 'react'
 import { Alert } from 'ui/alert'
 import { type ConfirmOptions, useConfirm } from 'ui/confirm'
 import { DateTime } from 'ui/date-time'
+import { useIdleLoad } from 'ui/hooks'
 import { AppearanceSettings } from 'ui/providers/appearance'
 import { Flex } from 'ui/structure/flex'
 import { Text } from 'ui/text'
@@ -75,11 +76,8 @@ const loadForm = () => import('../place-form-drawer')
 
 const loadDrawer = () => import('../place-drawer')
 
-/**
- * How long a browser without `requestIdleCallback` waits before it fetches the
- * panels. Safari does not have the call.
- */
-const IDLE_FALLBACK_MS = 1000
+/** Loads the code of the three panels. {@link usePanelPrefetch} calls it in idle time. */
+const loadPanels = () => Promise.all([loadIndex(), loadForm(), loadDrawer()])
 
 /**
  * Each panel suspends in the render that first shows it, also when its code is
@@ -274,8 +272,9 @@ function deleteQuestion(deletion: Deletion): ConfirmOptions {
 
 /**
  * Fetches the code of the panels when the main thread is idle after the mount,
- * and tells when all of it has loaded. The browser runs the code of a chunk when
- * it arrives, so a fetch at the mount ran it while the page hydrated.
+ * and tells when all of it has loaded. `useIdleLoad` schedules the fetch. The
+ * browser runs the code of a chunk when it arrives, so a fetch at the mount ran
+ * it while the page hydrated.
  *
  * The app renders each panel closed from that point on. The render that first
  * shows a lazy panel suspends, also when its code is in the cache, and React
@@ -285,23 +284,7 @@ function deleteQuestion(deletion: Deletion): ConfirmOptions {
  * the screen, and the first open renders it at once.
  */
 function usePanelPrefetch(): boolean {
-	const [loaded, setLoaded] = useState(false)
-
-	useEffect(() => {
-		const load = () => {
-			void Promise.all([loadIndex(), loadForm(), loadDrawer()]).then(() => setLoaded(true))
-		}
-
-		const idle = window.requestIdleCallback?.(load)
-
-		if (idle !== undefined) return () => window.cancelIdleCallback?.(idle)
-
-		const timer = window.setTimeout(load, IDLE_FALLBACK_MS)
-
-		return () => window.clearTimeout(timer)
-	}, [])
-
-	return loaded
+	return useIdleLoad(loadPanels) !== undefined
 }
 
 /**
