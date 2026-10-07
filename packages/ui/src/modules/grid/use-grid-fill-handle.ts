@@ -1,6 +1,7 @@
 'use client'
 
 import { type MouseEvent, useMemo } from 'react'
+import { createEmitter } from '../../utilities'
 
 /**
  * The fill handle of a grid that can fill. The active cell holds it, and one
@@ -41,7 +42,7 @@ export function useGridFillHandle(press: GridFillHandle['press'] | null): GridFi
 
 /** A fill handle for the press `press`. @internal */
 function createGridFillHandle(press: GridFillHandle['press']): GridFillHandle {
-	const listeners = new Set<() => void>()
+	const { subscribe, emit } = createEmitter()
 
 	let held: HTMLElement | null = null
 
@@ -50,7 +51,7 @@ function createGridFillHandle(press: GridFillHandle['press']): GridFillHandle {
 	const set = (cell: HTMLElement | null) => {
 		held = cell
 
-		for (const listener of listeners) listener()
+		emit()
 	}
 
 	return {
@@ -64,13 +65,7 @@ function createGridFillHandle(press: GridFillHandle['press']): GridFillHandle {
 		},
 		place: () => place?.(),
 		cell: () => held,
-		subscribe: (listener) => {
-			listeners.add(listener)
-
-			return () => {
-				listeners.delete(listener)
-			}
-		},
+		subscribe,
 		placeWith: (next) => {
 			place = next
 
