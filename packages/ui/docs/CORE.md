@@ -27,13 +27,9 @@ import { cn, createContext, createSlot, announce } from 'ui/core'
 | `DensityStep` *(type)* | A step of density: a value of `data-density` and of the density context. |
 | `ControlStep` *(type)* | Each density step but `xl`: the steps that a control frame can write. A control stops at `lg`, so in an `xl` scope it takes the `lg` value. A `size` prop takes `ScaleStep` instead. |
 | `InnerStep` *(type)* | The three inner steps (`sm` / `md` / `lg`): a density level maps to one, and a JS reader with three values clamps to one. A `SidebarItem` `size` takes one. |
-| `toInnerStep` | Clamps a density step to the inner steps: `xs` becomes `sm`, `xl` becomes `lg`. |
-| `stepDown` | The step below a density step (`xs` stays `xs`). A control slot is a scope one step below its host. The host stops at `lg`, so in an `xl` scope the slot takes `md`. |
 | `defineScale` | Makes the size scale of a component from the ramps that its `size` drives. The scale holds each step at which one ramp at least has a value of its own. |
 | `Scale` *(type)* | A size scale: the steps that a component renders with a look of its own. |
 | `ScaleStep` *(type)* | A step of a scale: the type of a `size` prop that the scale drives. It is a plain union of step literals, such as `sm`, `md`, and `lg`. |
-| `Ramp` *(type)* | A stepped `density-*` utility with three or five values, such as `density-p-[2,3,4]`. |
-| `RampSteps` *(type)* | The steps that a ramp renders with a value of its own. These are `sm` / `md` / `lg`, and an outer step when its value differs from its inner neighbor. |
 | `snapToScale` | Snaps a density step to the nearest step of a scale: `xs` becomes `sm`, and `xl` becomes `lg`, when the scale does not hold them. |
 
 > For declarative announcements that track a changing value, prefer `useA11yAnnouncements` ([`HOOKS.md`](HOOKS.md)) over calling `announce` directly.

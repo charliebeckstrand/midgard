@@ -3,7 +3,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { Icon } from '../../components/icon'
 import { Menu, MenuContent, MenuItem } from '../../components/menu'
-import { Option } from '../../primitives/option'
+import { Option } from '../../primitives/option/option'
 import { DensityProvider, densityLevels } from '../../providers/density'
 import { present, renderUI, screen } from '../helpers'
 

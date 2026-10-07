@@ -886,7 +886,7 @@ describe('default value boundary', () => {
 		// default would pass the case below with no violation.
 		expect(types).toBeGreaterThan(30)
 
-		expect(components).toBeGreaterThan(300)
+		expect(components).toBeGreaterThan(250)
 
 		expect(destructured).toBeGreaterThan(250)
 

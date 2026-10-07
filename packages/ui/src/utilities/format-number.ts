@@ -32,7 +32,7 @@ export const integerFormat = perLocale({ type: 'integer' })
 /** The formatter behind {@link formatFraction} for `locale`, as for {@link integerFormat}. */
 export const fractionFormat = perLocale({ type: 'number', maximumFractionDigits: 2 })
 
-/** The formatter behind {@link formatPercent} for `locale`, as for {@link integerFormat}. */
+/** A `0..1` share as a whole percent for `locale`, as for {@link integerFormat}. */
 export const percentFormat = perLocale({ type: 'percent', maximumFractionDigits: 0 })
 
 /** Compact notation to one fraction digit (`48.2K`, `1.3M`) for `locale`, as for {@link integerFormat}. */
@@ -57,13 +57,4 @@ export function formatInteger(value: number, locale?: string): string {
  */
 export function formatFraction(value: number, locale?: string): string {
 	return fractionFormat(locale)(value)
-}
-
-/**
- * Locale-format a `0..1` share as a whole percent.
- *
- * @param locale - As for {@link formatInteger}.
- */
-export function formatPercent(share: number, locale?: string): string {
-	return percentFormat(locale)(share)
 }

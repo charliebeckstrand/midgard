@@ -4,8 +4,8 @@ import { describe, expect, it } from 'vitest'
 import {
 	formatFraction,
 	formatInteger,
-	formatPercent,
 	fractionFormat,
+	percentFormat,
 } from '../../utilities/format-number'
 
 // Assertions assume the en-US default locale, matching the existing Odometer
@@ -126,13 +126,13 @@ describe('formatFraction · properties', () => {
 	})
 })
 
-describe('formatPercent · properties', () => {
+describe('percentFormat · properties', () => {
 	// A share is a 0..1 fraction, so the band below covers the whole documented
 	// domain and the over-100% readings a computed share reaches.
 	const share = () => fc.double({ min: -10, max: 10, noNaN: true })
 
 	test.prop([share()])('ends in a percent sign over a grouped integer', (value) => {
-		const text = formatPercent(value)
+		const text = percentFormat(undefined)(value)
 
 		expect(text.endsWith('%')).toBe(true)
 
@@ -140,9 +140,9 @@ describe('formatPercent · properties', () => {
 	})
 
 	test.prop([share()])('states the share times a hundred, rounded whole', (value) => {
-		expect(Math.abs(parseFormatted(formatPercent(value)) - value * 100)).toBeLessThanOrEqual(
-			0.5000001,
-		)
+		expect(
+			Math.abs(parseFormatted(percentFormat(undefined)(value)) - value * 100),
+		).toBeLessThanOrEqual(0.5000001)
 	})
 })
 
@@ -152,7 +152,7 @@ describe('with a locale', () => {
 
 		expect(formatFraction(1234.5, 'de-DE')).toBe('1.234,5')
 
-		expect(formatPercent(0.6, 'de-DE')).toBe('60\u00a0%')
+		expect(percentFormat('de-DE')(0.6)).toBe('60\u00a0%')
 	})
 
 	it('hands the same formatter back for the same locale', () => {

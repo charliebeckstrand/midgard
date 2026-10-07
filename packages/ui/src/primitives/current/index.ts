@@ -1,9 +1,7 @@
 export {
 	CurrentContext,
 	type CurrentContextValue,
-	type CurrentMount,
 	useCurrent,
-	useCurrentPanelActive,
 	useCurrentState,
 } from './current'
 export { CurrentContent, type CurrentContentProps } from './current-content'

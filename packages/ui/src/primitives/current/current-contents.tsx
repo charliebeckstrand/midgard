@@ -4,12 +4,12 @@ import { type ComponentProps, useEffect, useLayoutEffect, useRef, useState } fro
 import { cn } from '../../core'
 import { isRtl } from '../../hooks/a11y/logical-arrow'
 import { useComposedRef } from '../../hooks/use-composed-ref'
+import type { Mount } from '../mount'
 import { ReducedMotion } from '../reduced-motion'
 import {
 	CurrentAnimationContext,
 	type CurrentDirection,
 	CurrentDirectionContext,
-	type CurrentMount,
 	CurrentMountContext,
 	CurrentSettledContext,
 	useCurrent,
@@ -48,9 +48,9 @@ export type CurrentContentsProps = ComponentProps<'div'> & {
 	 * unmounts.
 	 *
 	 * @defaultValue 'active'
-	 * @see {@link CurrentMount}
+	 * @see {@link Mount}
 	 */
-	mount?: CurrentMount
+	mount?: Mount
 }
 
 /**
@@ -62,7 +62,7 @@ export type CurrentContentsProps = ComponentProps<'div'> & {
  * children how to animate. Under `'slide'` it reads the direction of each switch
  * from the document order of the two panels, and broadcasts it. When `animate`
  * is `false`, renders a plain wrapper. Either way it broadcasts the resolved
- * {@link CurrentMount} policy, so `CurrentContent` knows whether to keep, lazily
+ * {@link Mount} policy, so `CurrentContent` knows whether to keep, lazily
  * mount, or unmount unmatched children. An animating container also broadcasts
  * its post-mount latch, so late-mounting panels enter from transparent. A consumer `ref` reaches the container element.
  */

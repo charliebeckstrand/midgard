@@ -15,13 +15,9 @@ export {
 	defineScale,
 	densitySteps,
 	type InnerStep,
-	type Ramp,
-	type RampSteps,
 	type Scale,
 	type ScaleStep,
 	snapToScale,
-	stepDown,
-	toInnerStep,
 } from './density'
 export { invalidAttrs } from './invalid-attrs'
 export { querySlot } from './query-slot'

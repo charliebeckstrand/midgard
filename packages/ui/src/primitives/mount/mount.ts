@@ -67,9 +67,9 @@ const yes = () => true
 const no = () => false
 
 /**
- * Whether every panel is in the DOM that this render writes: the
- * {@link mountsEveryPanel} answer, after hydration. It is `false` on the server
- * and in the hydration render.
+ * Whether every panel is in the DOM that this render writes. Only `always` puts
+ * every panel in the client DOM, and the answer is `true` only after hydration.
+ * It is `false` on the server and in the hydration render.
  *
  * @remarks
  * Under `always`, a resting panel is in a hidden `<Activity>`. The server

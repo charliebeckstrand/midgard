@@ -36,7 +36,7 @@ type TriggerChild = ReactElement<
  * Either way the trigger carries `aria-haspopup="dialog"`, `aria-expanded`, and,
  * while the panel is open, `aria-controls`.
  *
- * @remarks The trigger reads the open state from {@link PanelStateContext}, so it
+ * @remarks The trigger reads the open state with {@link usePanelState}, so it
  * must be inside the root. A trigger outside the root throws.
  */
 export function PanelTrigger({ children }: PanelTriggerProps) {

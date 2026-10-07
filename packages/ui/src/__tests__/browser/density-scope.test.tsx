@@ -29,7 +29,7 @@ import { maxDepth } from '../../core/density/rungs'
 import { SidebarLayout } from '../../layouts/sidebar'
 import { ChatListItem } from '../../modules/chat'
 import { Grid } from '../../modules/grid'
-import { Option } from '../../primitives/option'
+import { Option } from '../../primitives/option/option'
 import { DensityProvider } from '../../providers/density'
 import { attach, present, renderUI, screen } from '../helpers'
 

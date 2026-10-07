@@ -38,8 +38,8 @@ export type PanelRootProps = {
 }
 
 /**
- * Holds the open state of a panel and gives it to the trigger and the panel
- * through {@link PanelStateContext}. Controlled when `open` is set, and
+ * Holds the open state of a panel and gives it to the trigger and the panel,
+ * which read it with {@link usePanelState}. Controlled when `open` is set, and
  * uncontrolled from `defaultOpen` when it is not. It renders no element.
  */
 export function PanelRoot({ open, defaultOpen, onOpenChange, children }: PanelRootProps) {

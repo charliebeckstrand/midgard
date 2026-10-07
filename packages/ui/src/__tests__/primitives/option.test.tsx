@@ -1,6 +1,6 @@
 import { createContext, type FC, Profiler, type ReactNode, use } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createSelectOption, Option } from '../../primitives/option'
+import { createSelectOption, Option } from '../../primitives/option/option'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Option', () => {

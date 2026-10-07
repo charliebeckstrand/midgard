@@ -210,26 +210,12 @@ export const [CurrentPanelActiveContext, useCurrentPanelActive] = createContext<
 )
 
 /**
- * Mount policy for {@link CurrentContent} panels — the shared {@link Mount}
- * vocabulary, named for this cascade:
- *
- * - `always` — every panel is mounted up front and inactive ones are held (state
- *   preserved, effects paused).
- * - `lazy` — a panel is absent until it first becomes active, then held like
- *   `always`; defers the mount cost of never-visited panels.
- * - `active` — only the active panel is mounted; switching unmounts the outgoing
- *   panel and resets its state — under an animating container, once its exit
- *   completes.
- */
-export type CurrentMount = Mount
-
-/**
  * Mount policy broadcast from {@link CurrentContents} to its {@link CurrentContent}
  * children. Defaults to `always` outside a container, so an ungrouped panel is
  * never unmounted.
  *
  * @internal
  */
-export const [CurrentMountContext, useCurrentMount] = createContext<CurrentMount>('CurrentMount', {
+export const [CurrentMountContext, useCurrentMount] = createContext<Mount>('CurrentMount', {
 	default: 'always',
 })
