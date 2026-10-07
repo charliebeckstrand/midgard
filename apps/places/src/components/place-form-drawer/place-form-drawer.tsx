@@ -14,7 +14,6 @@ import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 import { Rating } from 'ui/rating'
 import { Flex } from 'ui/structure/flex'
 import { Text } from 'ui/text'
-import { Textarea } from 'ui/textarea'
 import { ToggleIconButton } from 'ui/toggle-icon-button'
 import { CATEGORIES, categoryLabel } from '../../constants'
 import type { PlaceCategory, PlaceDraft } from '../../types'
@@ -30,6 +29,7 @@ import {
 } from './place-form'
 import { placeGeocoder } from './place-geocoder'
 import { PlacePhotosField } from './place-photos-field'
+import { PlaceReviewField } from './place-review-field'
 import { PlaceSearchField } from './place-search-field'
 
 /**
@@ -296,11 +296,7 @@ export function PlaceFormDrawer({ target, onOpenChange, onSubmit }: PlaceFormDra
 										<Rating name="rating" size="lg" step={0.5} />
 									</Field>
 
-									<Field className="sm:col-span-2">
-										<Label>Your review</Label>
-
-										<Textarea name="review" rows={3} autoResize placeholder="How was it?" />
-									</Field>
+									<PlaceReviewField />
 								</>
 							) : null}
 
