@@ -150,7 +150,7 @@ export function BugLogSheet({
 					{report ? (
 						<Flex gap="sm">
 							<CopyTextButton label="Copy" text={markdownOf(report)} />
-							<Button size="sm" color="amber" onClick={() => bugs.remove(report.id)}>
+							<Button size="sm" color="red" onClick={() => bugs.remove(report.id)}>
 								Delete
 							</Button>
 						</Flex>
