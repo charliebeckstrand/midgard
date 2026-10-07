@@ -2,8 +2,8 @@
 
 import type { ReactNode } from 'react'
 import { composeEventHandlers } from '../../core'
+import { usePanelCloseContext } from '../../primitives/panel'
 import { Button, type ButtonProps } from '../button'
-import { useCommandPaletteContext } from './context'
 
 /**
  * The close is the activation that this button exists to do. A caller
@@ -33,7 +33,7 @@ export function CommandPaletteClose({
 	onClick,
 	...props
 }: CommandPaletteCloseProps) {
-	const { close } = useCommandPaletteContext()
+	const { close } = usePanelCloseContext()
 
 	return (
 		<Button
