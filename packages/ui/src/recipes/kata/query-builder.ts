@@ -10,6 +10,7 @@
  */
 import { mode } from '../../core/recipe'
 import { hannou, iro, ji, kasane, narabi, sen } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { disabled, grab } = hannou
 const { text } = iro
@@ -19,9 +20,9 @@ const { flex } = narabi
 const { border, focus } = sen
 
 export const k = {
-	base: [flex.col, 'gap-3 p-3', border.default, rounded.lg],
+	base: [flex.col, `${dan.gap.scale.md} p-3`, border.default, rounded.lg],
 	group: {
-		base: [flex.col, 'gap-3'],
+		base: [flex.col, dan.gap.scale.md],
 		nested: ['p-3', ...mode('bg-zinc-50', 'dark:bg-zinc-900/40'), border.default, rounded.lg],
 	},
 	rule: ['p-2.5', border.default, rounded.lg],
@@ -40,7 +41,7 @@ export const k = {
 	},
 	remove: 'flex-none',
 	value: ['px-3', size.sm, ...text.muted],
-	actions: [flex.row, 'gap-2'],
+	actions: [flex.row, dan.gap.scale.sm],
 	sortable: {
 		// The children of a group while they reorder. The box adds no layout, and
 		// it marks a drag in progress for the separators below.

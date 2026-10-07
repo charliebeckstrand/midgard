@@ -1,5 +1,6 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { hannou, iro, ji, kasane, kokkaku, narabi, sen } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { fg } = hannou
 const { text } = iro
@@ -15,7 +16,7 @@ const list = defineRecipe({
 	base: [
 		flex.row,
 		'flex-wrap',
-		'gap-2',
+		dan.gap.scale.sm,
 		'wrap-break-word',
 		size.md,
 		'in-data-collapse:min-w-0 in-data-collapse:flex-nowrap',
@@ -25,7 +26,7 @@ const list = defineRecipe({
 const item = defineRecipe({
 	base: [
 		flex.inline,
-		'gap-2',
+		dan.gap.scale.sm,
 		'in-data-collapse:shrink-0 in-data-collapse:last:min-w-0 in-data-collapse:last:shrink',
 	],
 })

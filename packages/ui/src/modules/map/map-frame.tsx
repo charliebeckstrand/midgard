@@ -79,7 +79,8 @@ export function MapFrame({
 			// plot region has a real height to grow into; every other mode reserves
 			// height from the plot's own width and needs none.
 			className={cn(
-				'@container flex min-w-48 flex-col gap-4',
+				'@container flex min-w-48 flex-col',
+				k.frame,
 				width === undefined && 'w-full',
 				fill && 'h-full',
 				className,
@@ -102,7 +103,8 @@ export function MapFrame({
 					// its own width and a centered plot has no width to reserve from.
 					<div
 						className={cn(
-							'flex flex-col gap-4 @lg:items-center',
+							'flex flex-col @lg:items-center',
+							k.frame,
 							legendPlacement === 'left' ? '@lg:flex-row-reverse' : '@lg:flex-row',
 						)}
 					>

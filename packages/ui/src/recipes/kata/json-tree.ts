@@ -7,6 +7,7 @@
  */
 import { mode } from '../../core/recipe'
 import { hannou, iro, ji, kasane, narabi, ugoki } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { cursor, fg } = hannou
 const { text } = iro
@@ -30,7 +31,7 @@ const row = [
 	'group/json-node',
 	flex.row,
 	'w-full',
-	'gap-1',
+	dan.gap.scale.xs,
 	'py-0.5',
 	size.sm,
 	rounded.lg,
@@ -47,20 +48,20 @@ export const k = {
 	 */
 	spacer: 'shrink-0',
 	row,
-	leaf: [flex.row, flex.fill, 'min-w-0 outline-none', 'gap-1'],
+	leaf: [flex.row, flex.fill, 'min-w-0 outline-none', dan.gap.scale.xs],
 	toggle: [
 		flex.row,
 		flex.fill,
 		'min-w-0 text-start',
 		...cursor,
 		'outline-none',
-		'gap-1',
+		dan.gap.scale.xs,
 		text.muted,
 		fg.hover,
 		...mode('data-open:text-zinc-950', 'dark:data-open:text-white'),
 		rounded.lg,
 	],
-	content: [flex.inline, 'min-w-0', 'gap-1'],
+	content: [flex.inline, 'min-w-0', dan.gap.scale.xs],
 	chevron: {
 		base: ['flex-none', css.transform, css.duration],
 		spacer: 'inline-block w-4 flex-none',

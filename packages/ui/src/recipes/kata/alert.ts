@@ -18,7 +18,7 @@ const titleRamp = dan.text.title
  * the alert is `p-4` with `text-base` and a `text-lg` title.
  */
 export const k = defineRecipe({
-	base: [flex.row, 'w-fit', dan.space.alert, 'gap-2', rounded.lg, ji.ramp],
+	base: [flex.row, 'w-fit', dan.space.alert, dan.gap.scale.sm, rounded.lg, ji.ramp],
 	variant: {
 		outline: 'ring-1 ring-inset',
 	},
@@ -27,9 +27,11 @@ export const k = defineRecipe({
 		icon: 'shrink-0 self-center',
 		title: [titleRamp, weight.semibold],
 		description: [leading.tight, 'col-start-2'],
-		content: [flex.fill, 'min-w-0', 'gap-2'],
+		content: [flex.fill, 'min-w-0', dan.gap.scale.sm],
+		/** The two columns of the content beside an icon. */
+		columns: ['grid grid-cols-[auto_minmax(0,1fr)]', dan.gap.x.sm],
 		body: 'col-start-2',
-		actions: [flex.row, 'gap-1'],
+		actions: [flex.row, dan.gap.scale.xs],
 		close: {
 			base: [flex.row, 'shrink-0'],
 			// One line box of the title: the button centers on it and overhangs it into

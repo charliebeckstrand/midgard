@@ -99,10 +99,14 @@ const SHARED_REGISTRY_SCANS = [
 ]
 
 // `vitest` is a global alias for `vi` under `globals: true`, so both spellings
-// reach the same registry.
+// reach the same registry. A call can have a type argument, and white space
+// can come before the dot, after the dot, or before the parenthesis.
 const FORBIDDEN_PATTERNS = [
-	{ label: 'per-file module mock', regex: /\b(?:vi|vitest)\.(?:mock|doMock|unmock|doUnmock)\(/g },
-	{ label: 'module registry reset', regex: /\b(?:vi|vitest)\.resetModules\(/g },
+	{
+		label: 'per-file module mock',
+		regex: /\b(?:vi|vitest)\s*\.\s*(?:mock|doMock|unmock|doUnmock)\s*[<(]/g,
+	},
+	{ label: 'module registry reset', regex: /\b(?:vi|vitest)\s*\.\s*resetModules\s*[<(]/g },
 ] as const
 
 // The browser instances share one page, and `page.viewport` writes to it. A
@@ -126,6 +130,15 @@ const FILE_VIEWPORT = /^beforeAll\(\(\) => page\.viewport\(/m
 
 /** A viewport hook at the head of a top-level block. */
 const BLOCK_VIEWPORT = /^\tbeforeAll\(\(\) => page\.viewport\(/m
+
+// A hook in a nested block changes the width for its block only while that
+// block runs. The shuffle can run a sibling block after it, and that sibling
+// then runs at the width of the nested hook. So a hook goes at file level or
+// at the head of a top-level block, and at no lower level.
+const NESTED_VIEWPORT = {
+	label: 'viewport set in a nested block',
+	regex: /^\t{2,}beforeAll\(\(\) => page\.viewport\(.*$/gm,
+} as const
 
 /**
  * The top-level blocks of a browser file that set the viewport at block level,
@@ -168,20 +181,47 @@ const NULLABLE_CAST = {
 // registry, a global, the environment, the clock, the mock registry, a spy on
 // a global or a prototype, and a module-scope `let`. A global includes a
 // constructor or a namespace, such as `URL` or `Math`, because a static on it
-// outlives the case. The type check resolves each name that no scope around
-// the write declares to a global, so the scan needs no list of globals.
+// outlives the case. A `const` that holds a global or a prototype counts as
+// that global. The type check resolves each name that no scope around the
+// write declares to a global, so the scan needs no list of globals. A call
+// that writes through a method needs a list: `GLOBAL_WRITE_CALL` names the
+// calls on a global object, and `MOCK_WRITE_METHOD` names the calls that
+// change an imported mock.
 //
 // A helper that makes such a write counts as one. The scan reads the helpers
 // of the file, and the modules in a `__tests__` tree that the file imports,
 // with the same rules. It does not read the source tree, so `SOURCE_WRITERS`
-// names each reset seam there. A write to the DOM is out of scope: `cleanup`,
-// the residue guard, and the page reset of the browser suite undo it. In a
+// names each reset seam there. Another write to the DOM is out of scope:
+// `cleanup`, the residue guard, and the page reset of the browser suite undo
+// it. In a
 // loop, an `await` lower in the body comes before the write of the next pass,
 // so the scan counts the head of the loop body as a resume point.
 
 /** The `vi` calls that change state that outlives a case. */
 const SHARED_STATE_CALL =
 	/^(?:vi|vitest)\.(?:doMock|doUnmock|stubGlobal|stubEnv|resetModules|useFakeTimers|useRealTimers|setSystemTime|restoreAllMocks|resetAllMocks|unstubAllGlobals|unstubAllEnvs)$/
+
+/**
+ * The calls on a global object that change state that outlives a case: web
+ * storage, the session history, and the attributes, classes, and style of the
+ * root and body elements. `cleanup` does not undo them. The residue guard does
+ * not read storage or history. It reads the root and the body, but it blames a
+ * late write on the case that runs at that time. A leading `window.`,
+ * `globalThis.`, or `self.` is removed before the match.
+ */
+const GLOBAL_WRITE_CALL =
+	/^(?:(?:localStorage|sessionStorage)\.(?:setItem|removeItem|clear)|history\.(?:pushState|replaceState|back|forward|go)|document\.(?:documentElement|body)\.(?:(?:set|remove|toggle)Attribute(?:NS)?|classList\.(?:add|remove|toggle|replace)|style\.(?:setProperty|removeProperty)))$/
+
+/** The global names that a callee can start with before the global object. */
+const GLOBAL_SCOPE = /^(?:window|globalThis|self)\./
+
+/**
+ * The calls that change the implementation of a mock. `clearMocks` keeps an
+ * implementation, so a change to a mock that a module exports outlives the
+ * case and reaches each file that imports the mock.
+ */
+const MOCK_WRITE_METHOD =
+	/^(?:mock(?:Implementation|ReturnValue|ResolvedValue|RejectedValue)(?:Once)?|mockReturnThis|mockReset|mockRestore)$/
 
 /** A prototype, which every case shares. */
 const PROTOTYPE = /^[\w.]+\.prototype\b/
@@ -279,10 +319,11 @@ function statementDeclares(statement: Statement, name: string): boolean {
 }
 
 /**
- * Whether a scope around `node` declares `name`: a block, a module, a
- * function, a loop head, or a `catch`. A `var` in a nested block is not read.
+ * The nearest scope around `node` that declares `name`: a block, a module, a
+ * function, a loop head, or a `catch`. For a block or a module, the result is
+ * the statement that declares the name. A `var` in a nested block is not read.
  */
-function declaredAround(node: Node, name: string): boolean {
+function declarationAround(node: Node, name: string): Node | undefined {
 	for (let up = node.parent; up; up = up.parent) {
 		if (
 			isBlock(up) ||
@@ -291,13 +332,15 @@ function declaredAround(node: Node, name: string): boolean {
 			isCaseClause(up) ||
 			isDefaultClause(up)
 		) {
-			if (up.statements.some((statement) => statementDeclares(statement, name))) return true
+			const statement = up.statements.find((statement) => statementDeclares(statement, name))
+
+			if (statement) return statement
 		}
 
 		if (isFunctionLike(up)) {
-			if (up.parameters.some((parameter) => bindsName(parameter.name, name))) return true
+			if (up.parameters.some((parameter) => bindsName(parameter.name, name))) return up
 
-			if (isFunctionExpression(up) && up.name?.text === name) return true
+			if (isFunctionExpression(up) && up.name?.text === name) return up
 		}
 
 		if (
@@ -306,17 +349,35 @@ function declaredAround(node: Node, name: string): boolean {
 			isVariableDeclarationList(up.initializer) &&
 			up.initializer.declarations.some((declaration) => bindsName(declaration.name, name))
 		) {
-			return true
+			return up
 		}
 
 		if (isCatchClause(up) && up.variableDeclaration) {
-			if (bindsName(up.variableDeclaration.name, name)) return true
+			if (bindsName(up.variableDeclaration.name, name)) return up
 		}
 
-		if (isClassExpression(up) && up.name?.text === name) return true
+		if (isClassExpression(up) && up.name?.text === name) return up
 	}
 
-	return false
+	return undefined
+}
+
+/**
+ * The value of `name` when a `const` declares it as a plain name, such as `p`
+ * in `const p = X.prototype`. Otherwise `undefined`.
+ */
+function constValue(declaration: Node | undefined, name: string): Expression | undefined {
+	if (
+		!declaration ||
+		!isVariableStatement(declaration) ||
+		(declaration.declarationList.flags & NodeFlags.Const) === 0
+	) {
+		return undefined
+	}
+
+	return declaration.declarationList.declarations.find(
+		(item) => isIdentifier(item.name) && item.name.text === name,
+	)?.initializer
 }
 
 /**
@@ -516,14 +577,47 @@ function scanModule(file: string, parse: Parse) {
 
 	/**
 	 * Whether a write to `target` reaches state that every case shares: a
-	 * prototype, or a name that no scope around it declares, such as `URL`.
+	 * prototype, a name that no scope around it declares, such as `URL`, or a
+	 * `const` that holds one of these, such as `p` in `const p = X.prototype`.
 	 */
-	function isSharedTarget(target: Expression): boolean {
+	function isSharedTarget(target: Expression, depth = 0): boolean {
 		if (PROTOTYPE.test(target.getText())) return true
 
 		const root = targetRoot(target)
 
-		return isIdentifier(root) && !declaredAround(root, root.text)
+		if (!isIdentifier(root)) return false
+
+		const declaration = declarationAround(root, root.text)
+
+		if (!declaration) return true
+
+		const value = constValue(declaration, root.text)
+
+		// The limit stops a cycle of names, which only code that throws can make.
+		return value !== undefined && depth < 8 && isSharedTarget(value, depth + 1)
+	}
+
+	/**
+	 * Whether `mock` is a mock that a module exports: the root of `mock`, or of
+	 * the argument of `vi.mocked(mock)`, is an import.
+	 */
+	function isImportedMock(mock: Expression): boolean {
+		const bare = uncast(mock)
+
+		const inner =
+			isCallExpression(bare) &&
+			/^(?:vi|vitest)\.mocked$/.test(bare.expression.getText()) &&
+			bare.arguments[0]
+				? bare.arguments[0]
+				: bare
+
+		const root = targetRoot(inner)
+
+		if (!isIdentifier(root)) return false
+
+		const declaration = declarationAround(root, root.text)
+
+		return declaration !== undefined && isImportDeclaration(declaration)
 	}
 
 	/** The label of a write to shared state, or `undefined` for any other node. */
@@ -540,7 +634,9 @@ function scanModule(file: string, parse: Parse) {
 			}
 
 			if (
-				/^(?:Object|Reflect)\.(?:defineProperty|set|deleteProperty)$/.test(callee) &&
+				/^(?:Object|Reflect)\.(?:assign|defineProperty|defineProperties|set|deleteProperty)$/.test(
+					callee,
+				) &&
 				target &&
 				isSharedTarget(target)
 			) {
@@ -548,6 +644,24 @@ function scanModule(file: string, parse: Parse) {
 			}
 
 			if (isIdentifier(node.expression) && writers.has(callee)) return `${callee}()`
+
+			const method = uncast(node.expression)
+
+			if (
+				GLOBAL_WRITE_CALL.test(callee.replace(GLOBAL_SCOPE, '')) &&
+				isPropertyAccessExpression(method) &&
+				isSharedTarget(method.expression)
+			) {
+				return `${callee}()`
+			}
+
+			if (
+				isPropertyAccessExpression(method) &&
+				MOCK_WRITE_METHOD.test(method.name.text) &&
+				isImportedMock(method.expression)
+			) {
+				return `${callee}()`
+			}
 		}
 
 		if (isDeleteExpression(node) && isSharedTarget(node.expression)) {
@@ -758,9 +872,18 @@ describe('test isolation boundary', () => {
 			new Set(['setup']),
 		)
 
+		gaps.push(
+			...collectPatternViolations({
+				dir: join(testsDir, 'browser'),
+				patterns: [NESTED_VIEWPORT],
+				skip: new Set(['setup']),
+				stripComments: true,
+			}),
+		)
+
 		expect(
 			gaps,
-			`a block with no viewport hook runs at the width a block above it left — state it at file level, or at the head of each top-level block:\n  ${gaps.join('\n  ')}`,
+			`a block with no viewport hook runs at the width a block above it left, or a nested hook left — state it at file level, or at the head of each top-level block:\n  ${gaps.join('\n  ')}`,
 		).toEqual([])
 	})
 
@@ -803,5 +926,172 @@ describe('test isolation boundary', () => {
 			late,
 			`a case that runs longer than its time limit continues at its next \`await\` while a later case runs — take \`{ signal }\` from the test context, and call \`signal.throwIfAborted()\` after the last \`await\` and before the write (CONVENTIONS.md §10.9):\n  ${late.join('\n  ')}`,
 		).toEqual([])
+	})
+
+	/** The late writes of a fixture `source`, by label. */
+	const lateIn = (source: string) => {
+		const file = server.write('fixture.test.ts', source)
+
+		return unguardedLateWrites(file, parser(server, [file])).map((late) =>
+			late.slice(late.indexOf('→ ') + 2),
+		)
+	}
+
+	/** A case that runs `line` after an `await`, under the imports of `head`. */
+	const afterAwait = (line: string, head = '') =>
+		`${head}\nit('a', async () => {\n\tawait tick()\n\n\t${line}\n})\n`
+
+	/** The labels of the module-registry rules that `text` breaks. */
+	const forbiddenIn = (text: string) =>
+		FORBIDDEN_PATTERNS.flatMap(({ label, regex }) => [...text.matchAll(regex)].map(() => label))
+
+	it('reads a module mock or a registry reset in each spelling', () => {
+		// The scan above reads this file too, so no fixture spells a call whole.
+		const vi = 'vi'
+
+		expect(forbiddenIn(`${vi}.mock('x')`)).toEqual(['per-file module mock'])
+
+		expect(forbiddenIn(`${vi}.mock<typeof import('x')>('x')`)).toEqual(['per-file module mock'])
+
+		expect(forbiddenIn(`${vi}.doMock ('x')`)).toEqual(['per-file module mock'])
+
+		expect(forbiddenIn(`vitest\n\t.unmock(\n\t\t'x',\n\t)`)).toEqual(['per-file module mock'])
+
+		expect(forbiddenIn(`${vi}.resetModules ()`)).toEqual(['module registry reset'])
+
+		expect(forbiddenIn(`${vi}.mocked(fn)`)).toEqual([])
+
+		expect(forbiddenIn(`${vi}.mockObject(api)`)).toEqual([])
+
+		expect(forbiddenIn(`na${vi}.mock('x')`)).toEqual([])
+	})
+
+	it('reads a viewport hook in a nested block', () => {
+		const nested = [
+			`import { page } from 'vitest/browser'`,
+			`describe('a', () => {`,
+			`\tbeforeAll(() => page.viewport(1280, 800))`,
+			`\tdescribe('wide', () => {`,
+			`\t\tbeforeAll(() => page.viewport(1600, 800))`,
+			`\t})`,
+			`\tdescribe('narrow', () => {})`,
+			`})`,
+		].join('\n')
+
+		expect([...nested.matchAll(NESTED_VIEWPORT.regex)].map(([line]) => line.trim())).toEqual([
+			'beforeAll(() => page.viewport(1600, 800))',
+		])
+
+		// The top-level hook is in order, so the block rule alone does not see it.
+		expect(unstatedViewports(nested)).toEqual([])
+
+		const flat = nested.replace(/^\t\tbeforeAll.*\n/m, '')
+
+		expect([...flat.matchAll(NESTED_VIEWPORT.regex)]).toEqual([])
+	})
+
+	it('reads a late call that writes a global object', () => {
+		expect(lateIn(afterAwait(`localStorage.setItem('k', 'v')`))).toEqual(['localStorage.setItem()'])
+
+		expect(lateIn(afterAwait(`window.sessionStorage.clear()`))).toEqual([
+			'window.sessionStorage.clear()',
+		])
+
+		expect(lateIn(afterAwait(`history.pushState({}, '', '/x')`))).toEqual(['history.pushState()'])
+
+		expect(lateIn(afterAwait(`document.documentElement.setAttribute('dir', 'rtl')`))).toEqual([
+			'document.documentElement.setAttribute()',
+		])
+
+		expect(lateIn(afterAwait(`document.body.classList.add('x')`))).toEqual([
+			'document.body.classList.add()',
+		])
+
+		expect(lateIn(afterAwait(`Object.assign(window, { a: 1 })`))).toEqual(['Object.assign(window)'])
+
+		// A write before the first `await`, or after the guard, is in order.
+		expect(
+			lateIn(`it('a', async () => {\n\tlocalStorage.setItem('k', 'v')\n\tawait tick()\n})\n`),
+		).toEqual([])
+
+		expect(
+			lateIn(
+				afterAwait(`signal.throwIfAborted()\n\tlocalStorage.setItem('k', 'v')`).replace(
+					'async ()',
+					'async ({ signal })',
+				),
+			),
+		).toEqual([])
+
+		// A local object, or a read, is not shared state.
+		expect(lateIn(afterAwait(`const store = new Map()\n\tstore.clear()`))).toEqual([])
+
+		expect(
+			lateIn(afterAwait(`const localStorage = memory()\n\tlocalStorage.setItem('k', 'v')`)),
+		).toEqual([])
+
+		expect(lateIn(afterAwait(`localStorage.getItem('k')`))).toEqual([])
+
+		expect(lateIn(afterAwait(`element.setAttribute('dir', 'rtl')`, 'let element'))).toEqual([])
+
+		expect(lateIn(afterAwait(`Object.assign({}, window)`))).toEqual([])
+	})
+
+	it('reads a late spy on a const that holds a prototype or a global', () => {
+		expect(lateIn(afterAwait(`const p = HTMLElement.prototype\n\tvi.spyOn(p, 'focus')`))).toEqual([
+			'vi.spyOn(p)',
+		])
+
+		expect(
+			lateIn(
+				afterAwait(
+					`vi.spyOn(proto, 'focus')`,
+					'const base = HTMLElement\nconst proto = base.prototype',
+				),
+			),
+		).toEqual(['vi.spyOn(proto)'])
+
+		expect(lateIn(afterAwait(`const w = window\n\tvi.spyOn(w, 'open')`))).toEqual(['vi.spyOn(w)'])
+
+		expect(
+			lateIn(
+				afterAwait(`const element = document.createElement('a')\n\tvi.spyOn(element, 'focus')`),
+			),
+		).toEqual([])
+
+		expect(lateIn(afterAwait(`let p = HTMLElement.prototype\n\tvi.spyOn(p, 'focus')`))).toEqual([])
+	})
+
+	it('reads a late change to the implementation of an imported mock', () => {
+		const head = `import { useReducedMotion } from 'motion/react'`
+
+		expect(
+			lateIn(afterAwait(`vi.mocked(useReducedMotion).mockImplementation(() => true)`, head)),
+		).toEqual(['vi.mocked(useReducedMotion).mockImplementation()'])
+
+		expect(
+			lateIn(afterAwait(`vi.mocked(useReducedMotion).mockReturnValueOnce(true)`, head)),
+		).toEqual(['vi.mocked(useReducedMotion).mockReturnValueOnce()'])
+
+		expect(
+			lateIn(
+				afterAwait(
+					`motion.useReducedMotion.mockReturnValue(true)`,
+					`import * as motion from 'motion/react'`,
+				),
+			),
+		).toEqual(['motion.useReducedMotion.mockReturnValue()'])
+
+		// A mock that the file or the case declares does not outlive the file.
+		expect(
+			lateIn(afterAwait(`const local = vi.fn()\n\tlocal.mockImplementation(() => 1)`)),
+		).toEqual([])
+
+		expect(lateIn(afterAwait(`fileMock.mockReturnValue(1)`, 'const fileMock = vi.fn()'))).toEqual(
+			[],
+		)
+
+		// A read of an imported mock is not a write.
+		expect(lateIn(afterAwait(`vi.mocked(useReducedMotion).mock.calls`, head))).toEqual([])
 	})
 })

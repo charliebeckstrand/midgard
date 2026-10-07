@@ -1,29 +1,10 @@
 'use client'
 
-import type { FloatingFocusManagerProps } from '@floating-ui/react'
-import { motion } from 'motion/react'
-import { type ReactNode, useLayoutEffect, useState } from 'react'
-import { cn } from '../../core'
+import { type ReactNode, useEffect, useSyncExternalStore } from 'react'
 import type { ScaleStep } from '../../core/density'
-import { useA11yHasTabbable } from '../../hooks'
-import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
-import { FloatingSurface } from '../../primitives/floating-surface'
-import { useResolvedSurface } from '../../providers/glass/context'
-import { k, type scale } from '../../recipes/kata/tooltip'
+import type { scale } from '../../recipes/kata/tooltip'
 import { useTooltipContext } from './context'
-
-/**
- * The focus manager of an interactive panel that holds a tabbable control. The
- * panel is a non-modal dialog, so the manager does not trap Tab and does not
- * hide the page from assistive tech. The guards of the portal keep the tab
- * order of the trigger: Tab from the trigger goes into the panel controls, and
- * Tab after the last control goes to the element after the trigger.
- * `TooltipContent` sets `returnFocus`, which puts focus back on the trigger
- * when the tooltip closes from inside the panel.
- */
-const DIALOG_FOCUS: Omit<FloatingFocusManagerProps, 'context' | 'children'> = {
-	modal: false,
-}
+import { preloadTooltipBody, readTooltipBody, subscribeTooltipBody } from './tooltip-body-loader'
 
 /** Props for {@link TooltipContent}. */
 export type TooltipContentProps = {
@@ -56,12 +37,21 @@ export type TooltipContentProps = {
 	children: ReactNode
 }
 
+/** The server renders no panel: a tooltip is closed until a reader opens it. */
+const serverTooltipBody = () => null
+
 /**
  * Floating panel rendered when the enclosing `<Tooltip>` is open. Positions
  * via `<FloatingSurface>`, animates in, and adopts the glass surface from
  * `glass` or an active `<GlassProvider>`.
  *
- * @remarks Pointer events are disabled unless the tooltip is `interactive`,
+ * @remarks The panel loads on demand. A hover or a focus on the trigger
+ * starts the load of the panel module, which carries Motion and the floating
+ * surface, and the panel opens when the module is there. The hover open delay
+ * covers the load, so only a focus on the first tooltip of a page can show the
+ * panel a fetch late. A page that opens no tooltip does not load Motion for it.
+ *
+ * Pointer events are disabled unless the tooltip is `interactive`,
  * so a non-interactive panel never intercepts hover. An `interactive` panel
  * that holds something tabbable joins the tab order of the trigger. Tab goes
  * from the trigger into the panel controls, and Tab after the last control
@@ -75,85 +65,15 @@ export type TooltipContentProps = {
  * control is a non-modal `role="dialog"` without `aria-modal`, and the trigger
  * gives its name. Any other panel is a `role="tooltip"` that describes the
  * trigger.
- * @see {@link useA11yHasTabbable}
  */
-export function TooltipContent({
-	size,
-	className,
-	surfaceClassName,
-	glass: glassProp,
-	children,
-}: TooltipContentProps) {
-	const {
-		open,
-		interactive,
-		setFloating,
-		floatingStyles,
-		getFloatingProps,
-		floatingContext,
-		reportTabbable,
-	} = useTooltipContext()
+export function TooltipContent(props: TooltipContentProps) {
+	const { open } = useTooltipContext()
 
-	const glass = useResolvedSurface(glassProp) === 'glass'
+	const body = useSyncExternalStore(subscribeTooltipBody, readTooltipBody, serverTooltipBody)
 
-	// The scale moves `transform`, which `MotionConfig` does not hold still, so the
-	// panel reads the setting itself (WCAG 2.3.3).
-	const preset = usePrefersReducedMotion() ? k.still : k.motion
+	useEffect(() => {
+		if (open && !body) preloadTooltipBody()
+	}, [open, body])
 
-	// State, not a ref: the panel mounts a commit after the portal node exists,
-	// and the probe has to run against the node React attaches.
-	const [panel, setPanel] = useState<HTMLDivElement | null>(null)
-
-	const hasTabbable = useA11yHasTabbable(panel)
-
-	// The panel that holds focus, or `null`. Focus goes back to the trigger on a
-	// close only from the panel. Floating UI also puts focus on the trigger when
-	// focus is on the body, but a tap in WebKit gives a button no focus. A
-	// trigger that a close focused then loses the focus on the press of the next
-	// tap, and `useFocus` closes the tooltip that the tap opens. The node, not a
-	// flag: a removed node sends no `blur`, and the next panel is a new node.
-	const [focusedPanel, setFocusedPanel] = useState<HTMLElement | null>(null)
-
-	// Reported only while the panel is mounted. A closed tooltip keeps the last
-	// state, so the trigger relation does not change between two opens.
-	useLayoutEffect(() => {
-		if (panel) reportTabbable?.(hasTabbable)
-	}, [panel, hasTabbable, reportTabbable])
-
-	return (
-		<FloatingSurface
-			open={open}
-			setFloating={setFloating}
-			floatingStyles={floatingStyles}
-			getFloatingProps={getFloatingProps}
-			className={surfaceClassName}
-			// `pointer-events` is inherited, so gating it here gates the whole panel
-			// subtree; the inner surface carries no rule of its own.
-			style={{ pointerEvents: interactive ? 'auto' : 'none' }}
-			// Mounted for the whole open lifetime of an interactive tooltip and
-			// gated through `disabled`. The probe finds a tabbable control one commit
-			// after the panel mounts, and the manager then starts in place. It does
-			// not remount the panel around a new manager.
-			trapFocusContext={interactive ? floatingContext : undefined}
-			trapFocusProps={{
-				...DIALOG_FOCUS,
-				returnFocus: panel !== null && focusedPanel === panel,
-				disabled: !hasTabbable,
-			}}
-			data-slot="tooltip-content"
-			density={size}
-		>
-			<motion.div
-				{...preset}
-				ref={setPanel}
-				onFocus={(event) => setFocusedPanel(event.currentTarget)}
-				onBlur={(event) => {
-					if (!event.currentTarget.contains(event.relatedTarget)) setFocusedPanel(null)
-				}}
-				className={cn(k.content.base, k.content.surface[glass ? 'glass' : 'default'], className)}
-			>
-				{children}
-			</motion.div>
-		</FloatingSurface>
-	)
+	return body && <body.TooltipBody {...props} />
 }

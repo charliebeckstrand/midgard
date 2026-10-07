@@ -6,7 +6,7 @@ import {
 } from '@simplewebauthn/browser'
 import type { Schema } from 'auth'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Button } from 'ui/button'
 import { Dialog, DialogBody, DialogHeader, DialogPanel, DialogTitle } from 'ui/dialog'
 import { Field, Fieldset, Label, Message } from 'ui/fieldset'
@@ -18,7 +18,7 @@ import { signOut } from './account'
 import { bifrost } from './bifrost'
 import { ErrorAlert } from './error-alert'
 import { chain, required } from './form-validators'
-import { type SecondFactorMethod, setSecondStepDialog } from './second-step-request'
+import type { SecondFactorMethod } from './second-step-request'
 import { useLeaving } from './use-leaving'
 
 /** The proof that `/auth/session/verify` accepts. */
@@ -208,45 +208,22 @@ export function VerifyPage({ methods }: VerifyPageProps) {
 	)
 }
 
-type Pending = {
+/** A request for the second step, from `ensureSecondStep`. */
+export type SecondStepPending = {
 	methods: SecondFactorMethod[]
 	resolve: (verified: boolean) => void
 }
 
 /**
- * Dialog of the second step, for `ensureSecondStep` and
- * `fetchWithSecondStep`. Mount it one time, in the providers of the app.
+ * Dialog of the second step. The `SecondStepDialog` host loads this module
+ * when the gateway first asks for the second step, and then renders it.
  *
+ * @internal
  * @remarks
- * After the second step, the dialog refreshes the Server Components, so they
- * read the new session. After the fifth wrong try, the gateway ends the
- * session, and the page goes to `/login?expired=true`.
+ * The dialog is open while `pending` is set. After the fifth wrong try, the
+ * gateway ends the session, and the page goes to `/login?expired=true`.
  */
-export function SecondStepDialog() {
-	const router = useRouter()
-
-	const [pending, setPending] = useState<Pending>()
-
-	useEffect(() => {
-		setSecondStepDialog(
-			(methods) =>
-				new Promise<boolean>((resolve) => {
-					setPending({
-						methods,
-						resolve: (verified) => {
-							setPending(undefined)
-
-							if (verified) router.refresh()
-
-							resolve(verified)
-						},
-					})
-				}),
-		)
-
-		return () => setSecondStepDialog(undefined)
-	}, [router])
-
+export function SecondStepPanel({ pending }: { pending: SecondStepPending | undefined }) {
 	return (
 		<Dialog open={pending !== undefined} onOpenChange={(open) => open || pending?.resolve(false)}>
 			<DialogPanel

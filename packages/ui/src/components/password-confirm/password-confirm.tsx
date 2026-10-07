@@ -2,6 +2,7 @@
 
 import { type ReactNode, useCallback, useId, useMemo, useState } from 'react'
 import { useA11yLiveRegion } from '../../hooks'
+import { Stack } from '../../structure/stack'
 import { useFormContext } from '../form/context'
 import { Text } from '../text'
 import { PasswordConfirmContext, type PasswordConfirmRole } from './context'
@@ -91,7 +92,7 @@ export function PasswordConfirm({
 	return (
 		<PasswordConfirmContext value={context}>
 			<div data-slot="password-confirm" className={className}>
-				<div className="space-y-4">{children}</div>
+				<Stack gap="lg">{children}</Stack>
 				{/*
 					The region stays mounted and only its children change: a live region that
 					enters the DOM together with its text does not announce. The spacing moves

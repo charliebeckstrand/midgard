@@ -447,7 +447,7 @@ describe('SidebarHeader', () => {
 
 		const header = bySlot(container, 'sidebar-header')
 
-		expect(header?.className).toContain('gap-3')
+		expect(header?.className).toContain('density-gap-[2,3,4]')
 
 		const closeButton = screen.getByRole('button', { name: 'Close navigation' })
 

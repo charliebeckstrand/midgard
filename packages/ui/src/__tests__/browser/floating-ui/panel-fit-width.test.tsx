@@ -134,8 +134,12 @@ describe('a floating panel wider than the viewport (real floating engine)', () =
 			</Frame>,
 		)
 
+		// The panel module loads on the first open, so the panel can show a
+		// fetch after the render.
+		const tooltip = await screen.findByRole('tooltip')
+
 		await settle()
 
-		expectInside(screen.getByRole('tooltip'))
+		expectInside(tooltip)
 	})
 })

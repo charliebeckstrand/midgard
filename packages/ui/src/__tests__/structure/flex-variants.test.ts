@@ -69,16 +69,19 @@ describe('resolveGap', () => {
 
 	it.each([
 		[0, 'gap-0'],
-		['xs', 'gap-1'],
-		['sm', 'gap-2'],
-		['md', 'gap-3'],
-		['lg', 'gap-4'],
-		['xl', 'gap-6'],
+		['xs', 'density-gap-[0.5,1,1.5]'],
+		['sm', 'density-gap-[1,2,3]'],
+		['md', 'density-gap-[2,3,4]'],
+		['lg', 'density-gap-[3,4,5]'],
+		['xl', 'density-gap-[5,6,7]'],
 	] as const)('maps the %s gap step to %s', (value, cls) => {
 		expect(resolveGap(value)).toEqual([cls])
 	})
 
 	it('emits breakpoint-prefixed classes for a responsive value', () => {
-		expect(resolveGap({ initial: 'sm', md: 'lg' })).toEqual(['gap-2', 'md:gap-4'])
+		expect(resolveGap({ initial: 'sm', md: 'lg' })).toEqual([
+			'density-gap-[1,2,3]',
+			'md:density-gap-[3,4,5]',
+		])
 	})
 })

@@ -45,8 +45,6 @@ export const size = {
 	thumb: {
 		/** The thumb of a switch and a range slider. */
 		base: 'density-size-[3,4,5]',
-		/** The offset of a checked switch thumb. */
-		on: '[:checked~&]:density-inset-s-[4,5,6]',
 	},
 	colorPanel: {
 		/** The color preview of a color panel. */
@@ -61,7 +59,7 @@ export const size = {
 		 * The height of the preview row and the channel inputs of a color panel
 		 * skeleton, with the gap between them.
 		 */
-		fields: 'density-h-[22.25,27.75,33.75]',
+		fields: 'density-h-[21.75,27.75,34.25]',
 	},
 	/** The diameter of a progress gauge and of its skeleton. */
 	gauge: 'density-size-[12,16,20]',

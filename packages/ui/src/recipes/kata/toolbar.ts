@@ -6,6 +6,7 @@
  */
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { kasane, narabi, omote, sen } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { rounded } = kasane
 const { flex } = narabi
@@ -21,10 +22,12 @@ const toolbar = defineRecipe({
 	base: flex.row,
 	orientation: {
 		horizontal: [
-			'flex-row flex-wrap gap-1',
-			'[--touch-target-gap-x:--spacing(1)] [--touch-target-gap-y:--spacing(1)]',
+			'flex-row flex-wrap',
+			dan.gap.scale.xs,
+			...dan.gap.touch.x.xs,
+			...dan.gap.touch.y.xs,
 		],
-		vertical: 'flex-col w-fit gap-1 [--touch-target-gap-y:--spacing(1)]',
+		vertical: ['flex-col w-fit', dan.gap.scale.xs, ...dan.gap.touch.y.xs],
 	},
 	variant: {
 		plain: '',
