@@ -61,7 +61,7 @@ export const OWN = 'data-event-log'
 
 /**
  * The log of one tab: the entries in time order, kept in `sessionStorage`
- * while "Preserve log" is on.
+ * while "Preserve" is on.
  */
 export class EventLog extends Journal<Entry> {
 	/** Whether the log skips each new entry. A debug sheet pauses the log while it is on screen. */

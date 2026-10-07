@@ -53,7 +53,7 @@ afterEach(() => {
 })
 
 describe('EventLog', () => {
-	it('keeps no entries through a reload while "Preserve log" is off', () => {
+	it('keeps no entries through a reload while "Preserve" is off', () => {
 		const store = createStore()
 
 		const log = new EventLog(store)
@@ -65,7 +65,7 @@ describe('EventLog', () => {
 		expect(new EventLog(store).entries).toEqual([])
 	})
 
-	it('keeps the entries through a reload while "Preserve log" is on', () => {
+	it('keeps the entries through a reload while "Preserve" is on', () => {
 		const store = createStore()
 
 		const log = new EventLog(store)
@@ -103,7 +103,7 @@ describe('EventLog', () => {
 		expect(new EventLog(store).entries).toEqual([entry(10)])
 	})
 
-	it('deletes the kept entries at once when "Preserve log" goes off, and keeps the lines on screen', () => {
+	it('deletes the kept entries at once when "Preserve" goes off, and keeps the lines on screen', () => {
 		const store = createStore()
 
 		const log = new EventLog(store)
@@ -732,7 +732,7 @@ describe('listen', () => {
 		expect(HTMLElement.prototype.focus).toBe(native)
 	})
 
-	it('saves the entries on pagehide while "Preserve log" is on, with the pagehide line', () => {
+	it('saves the entries on pagehide while "Preserve" is on, with the pagehide line', () => {
 		const store = createStore()
 
 		const log = new EventLog(store)

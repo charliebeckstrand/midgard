@@ -185,7 +185,7 @@ function EventRow({ row, width, state }: { row: Row; width: number; state: OpenS
 }
 
 /**
- * The viewer of the Event log: the title, "Preserve log", "Batch", and a type
+ * The viewer of the Event log: the title, "Preserve", "Batch", and a type
  * filter, the lines, newest first, Copy (oldest first, as text, with each
  * detail), and Clear. With "Batch" on, the entries of one batch are one line
  * that opens to their lines. With no selected type, the sheet shows each type,
@@ -258,7 +258,7 @@ export function EventLogSheet({
 		// The sheet takes the height of the log, up to the height of the screen.
 		<Sheet open={open} onOpenChange={onOpenChange}>
 			<SheetPanel side="bottom" className="max-h-full">
-				{/* The title row holds "Preserve log", "Batch", and the type filter at
+				{/* The title row holds "Preserve", "Batch", and the type filter at
 				    its end. On a narrow screen, the filter takes a full row under the
 				    title and the checkboxes. The row takes the inset of the title, as
 				    the slot does. */}
@@ -271,7 +271,7 @@ export function EventLogSheet({
 								log.preserve = event.target.checked
 							}}
 						/>
-						<Label>Preserve log</Label>
+						<Label>Preserve</Label>
 					</CheckboxField>
 					<CheckboxField>
 						<Checkbox

@@ -60,7 +60,7 @@ export function start(): EventLog {
 
 /**
  * Stops the listeners of the log, and drops its entries and the kept copy.
- * The log stays the log of the tab, so the sheet keeps it, and "Preserve log"
+ * The log stays the log of the tab, so the sheet keeps it, and "Preserve"
  * keeps its value.
  */
 export function halt(): void {
