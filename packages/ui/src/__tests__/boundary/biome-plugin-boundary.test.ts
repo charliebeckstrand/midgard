@@ -75,6 +75,21 @@ export const d = () => fetch('/auth/logout', { method: 'POST' })
 		},
 		{ file: 'server.tsx', source: `import { bifrost } from 'auth'\n\nexport const a = bifrost\n` },
 	],
+	'no-full-motion-component': [
+		{
+			file: 'motion.tsx',
+			source: `import { motion } from 'motion/react' // flag
+import { AnimatePresence, motion as full } from 'motion/react' // flag
+import { motion as framer } from 'framer-motion' // flag
+import { type MotionStyle, MotionConfig, Reorder, useMotionValue } from 'motion/react'
+import * as m from 'motion/react-m' // flag
+import { div } from 'motion/react-m' // flag
+import * as elements from './reduced-motion-elements'
+export { motion, AnimatePresence, full, framer, MotionConfig, Reorder, useMotionValue, m, div, elements }
+export type { MotionStyle }
+`,
+		},
+	],
 	'no-hand-composed-handler': [
 		{
 			file: 'compose.tsx',

@@ -15,10 +15,15 @@
 			"types": "./src/providers/index.ts",
 			"default": "./src/providers/index.ts"
 		},
+		"./mimir": {
+			"types": "./src/mimir/index.ts",
+			"default": "./src/mimir/index.ts"
+		},
 		"./globals.css": "./src/globals.css"
 	},
 	"scripts": {
 		"check-types": "tsc --noEmit",
+		"openapi": "openapi-typescript https://raw.githubusercontent.com/charliebeckstrand/asgard/main/services/mimir/openapi.json -o src/mimir/openapi.d.ts && biome format --write src/mimir/openapi.d.ts",
 		"test": "vitest run",
 		"test:changed": "vitest run",
 		"test:related": "vitest related --run",
@@ -43,6 +48,7 @@
 		"@types/node": "catalog:",
 		"@types/react": "catalog:",
 		"next": "catalog:",
+		"openapi-typescript": "^7.13.0",
 		"react": "catalog:",
 		"typescript": "catalog:",
 		"vitest": "catalog:"

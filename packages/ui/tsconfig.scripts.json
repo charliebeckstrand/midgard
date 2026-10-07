@@ -5,6 +5,6 @@
 		"allowImportingTsExtensions": true,
 		"tsBuildInfoFile": ".tsbuildinfo/scripts.tsbuildinfo"
 	},
-	"include": ["src/__benchmarks__/docs", "scripts", "*.config.ts"],
+	"include": ["scripts", "*.config.ts"],
 	"exclude": []
 }

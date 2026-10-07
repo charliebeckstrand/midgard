@@ -1,7 +1,7 @@
 import createClient from 'openapi-fetch'
 import { unwrap } from 'shared/auth'
+import type { paths } from 'shared/mimir'
 import type { Place, PlaceDraft, VisitScope, Visits } from '../types'
-import type { paths } from './openapi'
 
 /**
  * The client's whole reach: same-origin `/api/*` paths, per CONVENTIONS §6.3.

@@ -1,11 +1,11 @@
 'use client'
 
-import { motion } from 'motion/react'
 import { type MouseEvent, type PointerEvent, useId, useRef } from 'react'
 import { cn } from '../../../core'
 import { useHoverAcrossScroll } from '../../../hooks'
 import { usePrefersReducedMotion } from '../../../hooks/use-prefers-reduced-motion'
 import { useTouchTap } from '../../../hooks/use-touch-tap'
+import * as m from '../../../primitives/reduced-motion/reduced-motion-elements'
 import type { SlotPaint } from '../engine/chart-color/paint'
 import { TICK_CHAR_WIDTH } from '../engine/chart-constants'
 import { type PieSlice, pieCentroidRadius, segmentLabelFits } from '../engine/chart-geometry/pie'
@@ -93,7 +93,7 @@ export function SectorSegmentLabels({
 				return (
 					<g key={slice.index} className={sliceGroupClass(emphasis, slice.index, selected)}>
 						{animate ? (
-							<motion.text
+							<m.text
 								{...shared}
 								initial={{ opacity: 0 }}
 								animate={{ opacity: 1 }}
@@ -101,7 +101,7 @@ export function SectorSegmentLabels({
 								transition={{ ...SLICE_FADE, delay: sweepDelay(slice.mid) }}
 							>
 								{text}
-							</motion.text>
+							</m.text>
 						) : (
 							<text {...shared}>{text}</text>
 						)}
@@ -328,7 +328,7 @@ export function SectorChartMarks({
 				<mask id={sweepId}>
 					{/* The circle's stroke starts at 3 o'clock; the group turns it to 12. */}
 					<g transform={`rotate(-90 ${center.x} ${center.y})`}>
-						<motion.circle
+						<m.circle
 							cx={center.x}
 							cy={center.y}
 							r={radius / 2}

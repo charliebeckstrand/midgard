@@ -40,17 +40,14 @@
 			],
 			"outputs": ["src/docs/dist/**"]
 		},
-		"bundle:budget": {
+		"test:docs-build": {
 			"dependsOn": ["docs:build"],
 			"inputs": [
 				"src/docs/dist/**",
-				"src/__benchmarks__/docs/bundle-budget.ts",
-				"scripts/docs-server.ts"
+				"src/__tests__/docs-build/**",
+				"scripts/docs-server.ts",
+				"vitest.docs-build.config.ts"
 			]
-		},
-		"docs:hydration": {
-			"dependsOn": ["docs:build"],
-			"inputs": ["src/docs/dist/**", "scripts/docs-server.ts", "scripts/docs-hydration.ts"]
 		},
 		"docs:bench": {
 			"dependsOn": ["docs:build"],

@@ -1,10 +1,11 @@
 'use client'
 
-import { LayoutGroup, type MotionStyle, motion, useAnimate } from 'motion/react'
+import { LayoutGroup, type MotionStyle, useAnimate } from 'motion/react'
 import { type ReactNode, type Ref, useCallback, useId } from 'react'
 import { cn, createContext } from '../../core'
 import { k } from '../../recipes/kata/active-indicator'
 import { ReducedMotion } from '../reduced-motion'
+import * as m from '../reduced-motion/reduced-motion-elements'
 
 // Default indicator corner radius (px). Kept inline (not a Tailwind class) so
 // Motion's layout projection can apply inverse-scale correction to it during
@@ -29,7 +30,8 @@ const [ActiveIndicatorScopeContext, useActiveIndicatorScope] = createContext<str
  * each other rather than against indicators in sibling groups.
  *
  * @remarks Wraps the group in {@link ReducedMotion} so the morph degrades to a
- * fade under `prefers-reduced-motion`.
+ * fade under `prefers-reduced-motion`. The root loads layout projection, which
+ * the morph needs. Until it arrives, the indicator moves with no morph.
  * @see {@link useActiveIndicatorScope}
  */
 export function ActiveIndicatorScope({ children }: { children: ReactNode }) {
@@ -37,7 +39,7 @@ export function ActiveIndicatorScope({ children }: { children: ReactNode }) {
 
 	return (
 		<ActiveIndicatorScopeContext value={layoutId}>
-			<ReducedMotion>
+			<ReducedMotion layout>
 				<LayoutGroup id={layoutId}>{children}</LayoutGroup>
 			</ReducedMotion>
 		</ActiveIndicatorScopeContext>
@@ -97,8 +99,8 @@ export function ActiveIndicator({
 	const instanceId = useId()
 
 	return (
-		<ReducedMotion>
-			<motion.span
+		<ReducedMotion layout>
+			<m.span
 				ref={ref}
 				data-slot="active-indicator"
 				layoutId={resolvedLayoutId}

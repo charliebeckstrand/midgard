@@ -90,12 +90,28 @@ export const space = {
 		/** The inset under the last slot, on the panel or on the slot. */
 		bottom: 'density-pb-[5,6,7]',
 		/**
-		 * The inset of a body that is the first slot. It is a margin, because a padding
-		 * in a scrolling body moves out of view with the content.
+		 * The inset of a body that is the first slot, for each panel that scrolls its
+		 * body. It is a margin, because a padding in a scrolling body moves out of view
+		 * with the content.
+		 *
+		 * A form around the body is `display: contents`, so the body can be the first
+		 * child of the form while a title comes before the form. Thus the body must
+		 * also have no ancestor in the panel that is not a first child. Without this
+		 * condition, the inset adds to the slot gap under the title.
 		 */
-		first: 'first:density-mt-[5,6,7]',
-		/** The inset of a body that is the last slot, a margin for the reason that `first` gives. */
-		last: 'last:density-mb-[5,6,7]',
+		first: {
+			drawer: 'first:not-in-[[data-slot=drawer]_:not(:first-child)]:density-mt-[5,6,7]',
+			sheet: 'first:not-in-[[data-slot=sheet]_:not(:first-child)]:density-mt-[5,6,7]',
+		},
+		/**
+		 * The inset of a body that is the last slot, a margin for the reason that `first`
+		 * gives. The body must have no ancestor in the panel that is not a last child,
+		 * for the reason that `first` gives.
+		 */
+		last: {
+			drawer: 'last:not-in-[[data-slot=drawer]_:not(:last-child)]:density-mb-[5,6,7]',
+			sheet: 'last:not-in-[[data-slot=sheet]_:not(:last-child)]:density-mb-[5,6,7]',
+		},
 		/**
 		 * The bottom inset of a panel on the bottom edge below `sm`, plus the home
 		 * indicator inset of a page with `viewport-fit=cover`. Elsewhere the inset of

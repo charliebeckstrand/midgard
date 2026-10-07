@@ -1,90 +1,67 @@
 'use client'
 
-import type { User } from 'auth'
-import { CircleUserRound, LogOut, MailCheck, MapPinned, Plus } from 'lucide-react'
-import { useState } from 'react'
-import { sendVerificationEmail, signOut } from 'shared/auth'
+import { CircleUserRound } from 'lucide-react'
+import { type MouseEvent, useState } from 'react'
 import { Button } from 'ui/button'
+import { useIdleLoad } from 'ui/hooks'
 import { Icon } from 'ui/icon'
-import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from 'ui/menu'
+import type { UserMenuPanel, UserMenuProps } from './user-menu-panel'
 
-type UserMenuProps = {
-	user: User
-	/** The number of places that the list opens on, or `undefined` to show no count. */
-	count?: number
-	onAdd: () => void
-	/** Opens the list. Without it, the menu has no list item. */
-	onList?: () => void
-}
+/**
+ * Loads the module of the menu, which carries the menu code of ui. The page
+ * loads it in idle time after the hydration. Thus the home page does not load
+ * the menu code before it hydrates, and the first press does not wait for it.
+ */
+const loadMenu = () => import('./user-menu-panel')
 
-/** Where sending a verification link stands, and the label it shows. */
-const verifyLabels = {
-	idle: 'Verify your email',
-	sent: 'Link sent, check your email',
-	failed: 'Link not sent, try again later',
-} as const
+/** Starts the load for a reader who shows intent: a pointer or a focus on the button. */
+const preloadMenu = () => void loadMenu()
 
 /**
  * The menu of the signed-in user: add a place, open the list, and sign out. A
- * user whose email is not verified can also send a verification link, since
- * places can't be changed until it is. The heading is the name of the user,
- * with the email below it. A user with no name gets the email as the heading.
+ * user whose email is not verified can also send a verification link.
  *
- * @remarks Sign-out and the link are `signOut` and `sendVerificationEmail` from
- * `shared/auth`. Sign-out loads `/login` as a full page, so no data of the user
- * stays in the query cache.
+ * @remarks The menu loads in idle time after the hydration. A pointer on the
+ * button or a focus on it starts the load sooner. Until the first press, this
+ * is the button of the menu alone. A press opens the menu, with its trigger in
+ * place of the button. When the module is there, the menu opens in the render
+ * of the press. Before that, it opens when the module arrives. A press from the
+ * keyboard leaves the focus on the trigger, as the menu does.
+ *
+ * The trigger replaces the button only on a press, not in idle time. A swap in
+ * idle time can come between the pointer down and the click of a press, and
+ * the press is then lost. A swap under a keyboard focus moves the focus to a
+ * new element.
  */
-export function UserMenu({ user, count, onAdd, onList }: UserMenuProps) {
-	const [verify, setVerify] = useState<keyof typeof verifyLabels>('idle')
+export function UserMenu(props: UserMenuProps) {
+	const [menu, setMenu] = useState<{
+		module: { UserMenuPanel: typeof UserMenuPanel }
+		focus: boolean
+	} | null>(null)
 
-	function sendVerification() {
-		sendVerificationEmail().then(
-			() => setVerify('sent'),
-			() => setVerify('failed'),
-		)
+	const loaded = useIdleLoad(loadMenu)
+
+	if (menu !== null) return <menu.module.UserMenuPanel {...props} focus={menu.focus} />
+
+	const press = (event: MouseEvent<HTMLButtonElement>) => {
+		const focus = event.currentTarget === document.activeElement
+
+		if (loaded) setMenu({ module: loaded, focus })
+		else void loadMenu().then((module) => setMenu({ module, focus }))
 	}
 
 	return (
-		<Menu placement="bottom-end">
-			<MenuTrigger>
-				<Button variant="plain" aria-label="User menu">
-					<Icon icon={<CircleUserRound />} />
-				</Button>
-			</MenuTrigger>
-
-			<MenuContent title={user.name ?? user.email} description={user.name ? user.email : undefined}>
-				<MenuItem onAction={onAdd}>
-					<Icon icon={<Plus />} />
-					<MenuLabel>Add place</MenuLabel>
-				</MenuItem>
-
-				{onList === undefined ? null : (
-					<MenuItem onAction={onList}>
-						<Icon icon={<MapPinned />} />
-						<MenuLabel>{count === undefined ? 'My places' : `My places (${count})`}</MenuLabel>
-					</MenuItem>
-				)}
-
-				{user.is_verified ? null : (
-					<>
-						<MenuSeparator />
-
-						<MenuItem
-							onAction={sendVerification}
-							disabled={verify === 'sent'}
-							closeOnAction={false}
-						>
-							<Icon icon={<MailCheck />} />
-							<MenuLabel>{verifyLabels[verify]}</MenuLabel>
-						</MenuItem>
-					</>
-				)}
-
-				<MenuItem onAction={signOut}>
-					<Icon icon={<LogOut />} />
-					<MenuLabel>Sign out</MenuLabel>
-				</MenuItem>
-			</MenuContent>
-		</Menu>
+		<Button
+			variant="plain"
+			aria-label="User menu"
+			aria-haspopup="menu"
+			aria-expanded={false}
+			onPointerEnter={preloadMenu}
+			onPointerDown={preloadMenu}
+			onFocus={preloadMenu}
+			onClick={press}
+		>
+			<Icon icon={<CircleUserRound />} />
+		</Button>
 	)
 }

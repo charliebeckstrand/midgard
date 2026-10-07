@@ -1,5 +1,5 @@
 import { createGatewayClient } from 'auth'
-import type { paths } from '../api/openapi'
+import type { paths } from 'shared/mimir'
 
 /**
  * The typed client of Mimir on the server, through the gateway. It forwards the

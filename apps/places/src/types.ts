@@ -1,7 +1,7 @@
-import type { components } from './api/openapi'
+import type { components } from 'shared/mimir'
 
 /**
- * The shapes that Mimir, in asgard, sends and takes. `pnpm --filter places
+ * The shapes that Mimir, in asgard, sends and takes. `pnpm --filter shared
  * openapi` generates them from its spec, so the app and the service cannot
  * disagree about a place.
  */

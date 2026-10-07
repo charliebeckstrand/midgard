@@ -1,9 +1,11 @@
 'use client'
 
-import { motion, useMotionValue, useTransform } from 'motion/react'
+import { useMotionValue, useTransform } from 'motion/react'
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
+import { ReducedMotion } from '../../primitives/reduced-motion'
+import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k, type ProgressGaugeVariants } from '../../recipes/kata/progress'
 import type { AccessibleName } from '../../types'
 import { clamp, pct } from '../../utilities'
@@ -126,21 +128,23 @@ export function ProgressGauge({
 					className={cn(k.gauge.track)}
 				/>
 
-				{/* Fill */}
-				<motion.circle
-					cx={GAUGE_VIEW_BOX / 2}
-					cy={GAUGE_VIEW_BOX / 2}
-					r={radius}
-					fill="none"
-					strokeWidth={strokeWidth}
-					strokeLinecap="round"
-					strokeDasharray={circumference}
-					className={cn(k.color[color].stroke)}
-					style={{ strokeDashoffset: dashOffset, opacity: fillOpacity }}
-					initial={false}
-					animate={{ strokeDashoffset: offset }}
-					transition={still ? k.still : k.spring}
-				/>
+				{/* Fill. The `m` circle animates with the features that a `ReducedMotion` root loads. */}
+				<ReducedMotion>
+					<m.circle
+						cx={GAUGE_VIEW_BOX / 2}
+						cy={GAUGE_VIEW_BOX / 2}
+						r={radius}
+						fill="none"
+						strokeWidth={strokeWidth}
+						strokeLinecap="round"
+						strokeDasharray={circumference}
+						className={cn(k.color[color].stroke)}
+						style={{ strokeDashoffset: dashOffset, opacity: fillOpacity }}
+						initial={false}
+						animate={{ strokeDashoffset: offset }}
+						transition={still ? k.still : k.spring}
+					/>
+				</ReducedMotion>
 			</svg>
 
 			{resolvedLabel != null && resolvedLabel !== false && (

@@ -2,6 +2,7 @@
 
 import {
 	type ElementProps,
+	type FloatingRootContext,
 	safePolygon,
 	useClick,
 	useFocus,
@@ -12,6 +13,7 @@ import {
 	useCallback,
 	useEffect,
 	useId,
+	useLayoutEffect,
 	useMemo,
 	useRef,
 	useState,
@@ -21,9 +23,11 @@ import { type FloatingPlacement, useFloatingDisclosure } from '../../hooks'
 import { useOpenChange } from '../../hooks/use-open-change'
 import { subscribeOverlaySignal } from '../../primitives/overlay'
 import type { TooltipProps } from './tooltip'
-import { preloadTooltipBody } from './tooltip-body-loader'
+import type { TooltipIntent } from './tooltip-intent'
+import { isReferenceDisabled, observeReferenceDisabled } from './tooltip-reference-disabled'
 
-type TooltipStateOptions = {
+/** Options for {@link useTooltipState}. @internal */
+export type TooltipStateOptions = {
 	placement?: FloatingPlacement
 	trigger?: TooltipProps['trigger']
 	delay?: number
@@ -31,46 +35,72 @@ type TooltipStateOptions = {
 	enabled?: boolean
 	open?: boolean
 	onOpenChange?: (open: boolean) => void
+	/**
+	 * Gives the intent that the trigger recorded before this state loaded, and
+	 * removes the listeners that recorded it. The state calls it one time, when
+	 * it holds the trigger node.
+	 */
+	takeIntent?: () => TooltipIntent
 }
 
-/**
- * Starts the load of the panel module when a pointer enters the trigger or the
- * trigger takes focus. The hover open delay then covers the load. The
- * handlers chain with the handlers of the other interactions.
- */
-const PRELOAD: ElementProps = {
-	reference: { onPointerEnter: preloadTooltipBody, onFocus: preloadTooltipBody },
-}
+const noop = () => {}
 
 /**
- * Whether the floating reference is disabled. The reference node matches
- * `:disabled`, where the trigger is cloned onto a `<button>` switched off by
- * its own `disabled` attribute or an ancestor `<fieldset disabled>`. A
- * disabled control can also sit inside it (the wrapper-`<div>` fallback).
- * `querySelector` scans descendants only; `matches` covers the
- * reference-is-the-control case.
+ * Opens the tooltip for the intent that the trigger recorded before the state
+ * loaded. A click or a keyboard focus opens it at once. A hover opens it at the
+ * end of the open delay, which counts from the start of the hover, so the load
+ * does not add to the delay. The hover replay stops when the pointer leaves or
+ * when the open state changes another way.
+ *
+ * @returns A function that stops a hover replay, or `undefined`.
  */
-function isReferenceDisabled(reference: unknown): boolean {
-	return (
-		reference instanceof Element &&
-		(reference.matches(':disabled') || reference.querySelector(':disabled') !== null)
-	)
-}
+function replayIntent(
+	intent: TooltipIntent,
+	reference: Element,
+	context: FloatingRootContext,
+	setOpen: (open: boolean) => void,
+	delay: number,
+): (() => void) | undefined {
+	if (intent.reenabled && reference.matches(':hover')) {
+		setOpen(true)
 
-/**
- * The `<fieldset>` ancestors of `reference`, nearest first. A `disabled` change
- * on any of them changes whether the reference matches `:disabled`.
- */
-function fieldsetAncestors(reference: Element): Element[] {
-	const fieldsets: Element[] = []
-
-	for (let node = reference.parentElement?.closest('fieldset'); node; ) {
-		fieldsets.push(node)
-
-		node = node.parentElement?.closest('fieldset')
+		return
 	}
 
-	return fieldsets
+	if (intent.click) {
+		context.onOpenChange(true, intent.click, 'click')
+
+		return
+	}
+
+	if (intent.focus && reference.contains(reference.ownerDocument.activeElement)) {
+		context.onOpenChange(true, intent.focus, 'focus')
+
+		return
+	}
+
+	const { hover } = intent
+
+	if (!hover || context.open) return
+
+	const timer = window.setTimeout(
+		() => context.onOpenChange(true, hover.event, 'hover'),
+		Math.max(0, hover.at + delay - performance.now()),
+	)
+
+	const stop = () => {
+		window.clearTimeout(timer)
+
+		reference.removeEventListener('pointerleave', stop)
+
+		context.events.off('openchange', stop)
+	}
+
+	reference.addEventListener('pointerleave', stop)
+
+	context.events.on('openchange', stop)
+
+	return stop
 }
 
 /**
@@ -96,6 +126,7 @@ export function useTooltipState({
 	enabled = true,
 	open: held = false,
 	onOpenChange,
+	takeIntent,
 }: TooltipStateOptions) {
 	// The `open` option, `held` here, controls the disclosure open — a programmatic
 	// reveal that skips the pointer, for a tooltip whose trigger can't take hover (an
@@ -134,19 +165,8 @@ export function useTooltipState({
 	const domReference = context.elements.domReference
 
 	const subscribeDisabled = useCallback(
-		(onChange: () => void) => {
-			if (!domReference) return () => {}
-
-			const observer = new MutationObserver(onChange)
-
-			const watch = { attributes: true, attributeFilter: ['disabled'] }
-
-			observer.observe(domReference, { ...watch, subtree: true })
-
-			for (const fieldset of fieldsetAncestors(domReference)) observer.observe(fieldset, watch)
-
-			return () => observer.disconnect()
-		},
+		(onChange: () => void) =>
+			domReference ? observeReferenceDisabled(domReference, onChange) : () => {},
 		[domReference],
 	)
 
@@ -229,15 +249,44 @@ export function useTooltipState({
 		dismiss,
 		role,
 		label,
-		PRELOAD,
 	])
+
+	// The trigger hands its node to this state on the render after the state
+	// loads. The intent of the reader before that moment opens the tooltip as
+	// the node arrives, after the engine holds it, so the disabled gate reads
+	// it. The first node takes the intent, and a later node finds none. Refs
+	// keep `setReference` stable, so the trigger does not attach its ref again
+	// on each render.
+	const replayRef = useRef<((reference: Element) => (() => void) | undefined) | null>(null)
+
+	const stopReplayRef = useRef<(() => void) | undefined>(undefined)
+
+	useLayoutEffect(() => {
+		replayRef.current = (reference) =>
+			takeIntent ? replayIntent(takeIntent(), reference, context, setOpen, delay) : undefined
+	})
+
+	const { setReference: setEngineReference } = refs
+
+	const setReference = useCallback(
+		(node: HTMLElement | null) => {
+			setEngineReference(node)
+
+			if (!node || stopReplayRef.current) return
+
+			stopReplayRef.current = replayRef.current?.(node) ?? noop
+		},
+		[setEngineReference],
+	)
+
+	useEffect(() => () => stopReplayRef.current?.(), [])
 
 	return useMemo(
 		() => ({
 			open,
 			interactive,
 			enabled,
-			setReference: refs.setReference,
+			setReference,
 			setFloating: refs.setFloating,
 			floatingStyles,
 			getReferenceProps,
@@ -252,7 +301,7 @@ export function useTooltipState({
 			open,
 			interactive,
 			enabled,
-			refs.setReference,
+			setReference,
 			refs.setFloating,
 			floatingStyles,
 			getReferenceProps,

@@ -11,13 +11,8 @@ import {
 	useCallback,
 } from 'react'
 import { cn } from '../../core'
-import { Checkbox } from '../checkbox'
+import { type ControlBinding, controlBinding } from '../control/control-binding'
 import { Description, Field, Label, Message } from '../fieldset'
-import { Input } from '../input'
-import { Radio } from '../radio'
-import { SearchInput } from '../search-input'
-import { Switch } from '../switch'
-import { Textarea } from '../textarea'
 import { useFilters } from './context'
 
 /** True when a change argument is a DOM event rather than a value. @internal */
@@ -34,52 +29,22 @@ function isDecoration(child: ReactElement): boolean {
 }
 
 /**
- * Children that receive a DOM `ChangeEvent` on `onChange`; everything else
- * receives the value-shaped `onValueChange`. The same dispatcher handles both
- * at runtime; only the prop name differs.
+ * Maps the slot value to control props. Toggles read `checked`: an option
+ * compares its own value, and a toggle reflects the boolean. Others read
+ * `value`, passing `null` rather than `undefined` to stay controlled.
  *
  * @internal
  */
-const EVENT_CALLBACK_TYPES = new Set<ElementType>([
-	Input,
-	SearchInput,
-	Textarea,
-	Checkbox,
-	Switch,
-	Radio,
-])
-
-/** True when `child` is wired through `onChange` with a DOM event. @internal */
-function expectsEventCallback(child: ReactElement): boolean {
-	return EVENT_CALLBACK_TYPES.has(child.type as ElementType)
-}
-
-/**
- * Children that expose an `onClear` callback (e.g. SearchInput's X button),
- * wired to clear the filter slot.
- *
- * @internal
- */
-const CLEAR_CALLBACK_TYPES = new Set<ElementType>([SearchInput])
-
-/** True when `child` exposes an `onClear` callback. @internal */
-function expectsClearCallback(child: ReactElement): boolean {
-	return CLEAR_CALLBACK_TYPES.has(child.type as ElementType)
-}
-
-/**
- * Maps the slot value to control props. Toggles read `checked`: Radio compares
- * its own option value, and Checkbox and Switch reflect the boolean. Others
- * read `value`, passing `null` rather than `undefined` to stay controlled.
- *
- * @internal
- */
-function controlValueProps(child: ReactElement, fieldValue: unknown): Record<string, unknown> {
-	if (child.type === Radio) {
+function controlValueProps(
+	binding: ControlBinding | undefined,
+	child: ReactElement,
+	fieldValue: unknown,
+): Record<string, unknown> {
+	if (binding === 'option') {
 		return { checked: fieldValue === (child.props as { value?: unknown }).value }
 	}
 
-	if (child.type === Checkbox || child.type === Switch) return { checked: !!fieldValue }
+	if (binding === 'toggle') return { checked: !!fieldValue }
 
 	return { value: fieldValue ?? null }
 }
@@ -143,17 +108,17 @@ export type FiltersFieldProps<V = unknown> = {
  * `onValueChange`, or `onClear` of the child runs first, then the binding. Must
  * render inside a `Filters`.
  *
- * The element form matches on component identity, so it fits a control this
- * library exports directly. A wrapper around one of those controls is a
- * different component, and the match fails: the field renders the wrapper and
- * binds nothing. The same holds for a wrapped `Label`, which then takes the
- * control slot and leaves the real control unbound.
+ * The element form reads a binding marker that each of those controls carries,
+ * so it fits a control this library exports directly. A wrapper around one of
+ * those controls is a different component with no marker: the field renders
+ * the wrapper and binds nothing. A wrapped `Label` also fails the match, so it
+ * takes the control slot and leaves the real control unbound.
  *
  * Use the render function for a wrapper, for your own control, or for one that
  * rejects `null`. The element form binds `value={slot ?? null}` as its explicit
  * empty, which a multi-select or a range control refuses. The two forms are
  * deliberate: the element form keeps the common call site terse, and the render
- * function covers everything identity cannot reach.
+ * function covers everything a marker cannot reach.
  *
  * The field is generic over the slot value. Give the type at the call site,
  * as in `<FiltersField<number> name="minPrice">`, or annotate the parameter of
@@ -220,26 +185,31 @@ export function FiltersField<V = unknown>({ name, children, className }: Filters
 
 		const props = child.props as Record<string, unknown>
 
+		// The control carries its binding as a marker, so the field does not
+		// import each control to compare identity.
+		const binding = controlBinding(child.type)
+
 		// Toggles read `checked`, not `value`: a Checkbox/Switch reflects the
 		// boolean slot; a Radio keeps its own option `value`, checked when it
 		// matches the slot.
-		const cloned = controlValueProps(child, fieldValue)
+		const cloned = controlValueProps(binding, child, fieldValue)
 
 		// A Radio writes its own option `value` to the slot, not the string that
 		// the DOM holds, so a numeric option still matches the slot.
 		const bind =
-			child.type === Radio && props.value !== undefined
+			binding === 'option' && props.value !== undefined
 				? () => setValue(name, props.value)
 				: handleChange
 
-		// The own handlers of the child run first, then the binding. The binding
-		// keeps the slot true, so a `preventDefault()` does not skip it
-		// (CONVENTIONS.md §3.9).
-		const handlerProp = expectsEventCallback(child) ? 'onChange' : 'onValueChange'
+		// A marked control gets `onChange` with a DOM event, and another child
+		// gets the value-shaped `onValueChange`. The own handlers of the child run
+		// first, then the binding. The binding keeps the slot true, so a
+		// `preventDefault()` does not skip it (CONVENTIONS.md §3.9).
+		const handlerProp = binding === undefined ? 'onValueChange' : 'onChange'
 
 		cloned[handlerProp] = chainCallbacks(props[handlerProp], bind)
 
-		if (expectsClearCallback(child)) cloned.onClear = chainCallbacks(props.onClear, handleClear)
+		if (binding === 'search') cloned.onClear = chainCallbacks(props.onClear, handleClear)
 
 		return cloneElement(child as ReactElement<Record<string, unknown>>, cloned)
 	})

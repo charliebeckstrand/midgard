@@ -1,6 +1,6 @@
 'use client'
 
-import { Reorder } from 'motion/react'
+import { domMax, LazyMotion, Reorder } from 'motion/react'
 import { type ReactNode, useCallback, useId, useMemo, useRef } from 'react'
 import { cn, dataAttr, querySlot } from '../../../core'
 import { LIFT_INSTRUCTIONS } from '../../../hooks/use-keyboard-lifted'
@@ -104,50 +104,56 @@ export function QueryBuilderSortable({ group, separator, node }: QueryBuilderSor
 
 	return (
 		<>
-			<Reorder.Group
-				ref={listRef}
-				as="div"
-				axis="y"
-				values={order}
-				onReorder={setDraft}
-				data-slot="query-sortable-list"
-				data-sorting={dataAttr(sorting)}
-				className={cn(k.sortable.list)}
-			>
-				{order.flatMap((id, index) => {
-					const child = byKey.get(id)
+			{/* `Reorder` renders the full `motion` element. A strict `LazyMotion` of a
+			`ReducedMotion` root above the builder throws in development, so this
+			`LazyMotion` is not strict. `Reorder` already loads each feature of `domMax`,
+			so the bundle adds no code. */}
+			<LazyMotion features={domMax}>
+				<Reorder.Group
+					ref={listRef}
+					as="div"
+					axis="y"
+					values={order}
+					onReorder={setDraft}
+					data-slot="query-sortable-list"
+					data-sorting={dataAttr(sorting)}
+					className={cn(k.sortable.list)}
+				>
+					{order.flatMap((id, index) => {
+						const child = byKey.get(id)
 
-					if (child === undefined) return []
+						if (child === undefined) return []
 
-					const between = separator(index)
+						const between = separator(index)
 
-					return [
-						between ? (
-							// The separator keeps its slot through the drag, so it takes the
-							// key of the node that the slot holds before the drag.
-							<div key={`${children[index]?.id}-separator`} className={cn(k.sortable.separator)}>
-								{between}
-							</div>
-						) : null,
-						<QueryBuilderSortableItem
-							key={id}
-							id={id}
-							label={name(id)}
-							disabled={disabled}
-							handle={children.length > 1}
-							lifted={liftedId === id}
-							describedBy={describedBy}
-							instant={instant}
-							onKeyDown={onItemKeyDown}
-							onBlur={onItemBlur}
-							onDragStart={onDragStart}
-							onDragEnd={onDragEnd}
-						>
-							{node(child)}
-						</QueryBuilderSortableItem>,
-					]
-				})}
-			</Reorder.Group>
+						return [
+							between ? (
+								// The separator keeps its slot through the drag, so it takes the
+								// key of the node that the slot holds before the drag.
+								<div key={`${children[index]?.id}-separator`} className={cn(k.sortable.separator)}>
+									{between}
+								</div>
+							) : null,
+							<QueryBuilderSortableItem
+								key={id}
+								id={id}
+								label={name(id)}
+								disabled={disabled}
+								handle={children.length > 1}
+								lifted={liftedId === id}
+								describedBy={describedBy}
+								instant={instant}
+								onKeyDown={onItemKeyDown}
+								onBlur={onItemBlur}
+								onDragStart={onDragStart}
+								onDragEnd={onDragEnd}
+							>
+								{node(child)}
+							</QueryBuilderSortableItem>,
+						]
+					})}
+				</Reorder.Group>
+			</LazyMotion>
 			<div hidden id={describedBy}>
 				{LIFT_INSTRUCTIONS.draggable}
 			</div>

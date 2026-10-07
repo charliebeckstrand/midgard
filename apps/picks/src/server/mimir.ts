@@ -1,5 +1,5 @@
 import { createGatewayClient, requireGateway } from 'auth'
-import type { paths } from '../api/openapi'
+import type { paths } from 'shared/mimir'
 import type { SeasonPicks } from '../types'
 
 /**

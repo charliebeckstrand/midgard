@@ -1,9 +1,10 @@
 'use client'
 
-import { motion } from 'motion/react'
 import { Fragment, memo, type ReactElement, use } from 'react'
 import { TableCell, TableRow } from '../../components/table'
 import { cn, dataAttr } from '../../core'
+import { ReducedMotion } from '../../primitives/reduced-motion'
+import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/grid'
 import type { GridDetailExpansion } from './engine/grid-group/resolve'
 import { detailOpen } from './engine/grid-items/items'
@@ -322,11 +323,11 @@ export type GridRowProps<T> = {
 /**
  * A `TableRow` that can carry Framer's `layout` prop. A sort-animated row thus
  * FLIPs from its old slot to its new one when a sort reorders it (see
- * {@link GridRowProps.animateSortRows}). `motion.create` wraps the primitive
- * rather than a bare `motion.tr` so the row keeps `TableRow`'s base styling and
+ * {@link GridRowProps.animateSortRows}). `m.create` wraps the primitive
+ * rather than a bare `m.tr` so the row keeps `TableRow`'s base styling and
  * `data-slot`. @internal
  */
-const MotionTableRow = motion.create(TableRow)
+const MotionTableRow = m.create(TableRow)
 
 /**
  * One data row: maps `columns` to cells: drag handle, selection checkbox,
@@ -377,7 +378,7 @@ export function GridRowImpl<T>({
 	// plain row — React drops undefined props, so nothing lands on a static `<tr>`.
 	const Row = (animate ? MotionTableRow : TableRow) as typeof MotionTableRow
 
-	return (
+	const element = (
 		<Row
 			layout={animate ? 'position' : undefined}
 			transition={animate ? k.motion.sort : undefined}
@@ -490,6 +491,10 @@ export function GridRowImpl<T>({
 			})}
 		</Row>
 	)
+
+	// A sort-animated row loads layout projection through its own root. A root
+	// above the grid that already loads it makes this root add nothing.
+	return animate ? <ReducedMotion layout>{element}</ReducedMotion> : element
 }
 
 /** Memoized {@link GridRowImpl}; re-renders a row only when its own props change. @internal */

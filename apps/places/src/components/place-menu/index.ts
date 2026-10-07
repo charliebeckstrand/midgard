@@ -1,8 +1,7 @@
+export { PlaceMenu, type PlaceMenuProps } from './place-menu'
 export {
 	type PlaceActions,
-	PlaceMenu,
-	type PlaceMenuProps,
 	placeMenuItems,
 	type VisitActions,
 	visitMenuItems,
-} from './place-menu'
+} from './place-menu-items'

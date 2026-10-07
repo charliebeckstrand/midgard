@@ -1,8 +1,8 @@
 'use client'
 
-import { motion } from 'motion/react'
 import { useMemo } from 'react'
 import { cn } from '../../core'
+import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/map'
 import { useMapPlat, useMapZoomScale } from './context'
 import { GEOFENCE_FILL_OPACITY, GEOFENCE_STROKE_WIDTH } from './engine/map-constants'
@@ -224,7 +224,7 @@ export function MapGeofence({ at, radius, boundary, area, ...shared }: MapGeofen
 
 			<g className={dim} onPointerLeave={onPointerLeave}>
 				{animate ? (
-					<motion.path
+					<m.path
 						{...wash}
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}

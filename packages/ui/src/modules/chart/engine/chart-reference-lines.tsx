@@ -1,10 +1,10 @@
 'use client'
 
-import { motion } from 'motion/react'
 import { type ReactNode, useEffect, useRef } from 'react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { cn, dataAttr } from '../../../core'
 import { ReducedMotion } from '../../../primitives/reduced-motion'
+import * as m from '../../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../../recipes/kata/chart'
 import {
 	type ChartPaint,
@@ -171,15 +171,15 @@ function ReferenceRuleStroke({
 }
 
 /**
- * The mount slide-in of a rule: its content in a `motion.g` that rises from the
+ * The mount slide-in of a rule: its content in a `m.g` that rises from the
  * baseline, or the content as is on a static chart. The rule, its hit line, and
  * its label ride it as one. @internal
  */
 function RuleRise({ rise, children }: { rise: ReferenceRuleProps['rise']; children: ReactNode }) {
 	return rise ? (
-		<motion.g {...rise} transition={REFERENCE_RISE}>
+		<m.g {...rise} transition={REFERENCE_RISE}>
 			{children}
-		</motion.g>
+		</m.g>
 	) : (
 		children
 	)

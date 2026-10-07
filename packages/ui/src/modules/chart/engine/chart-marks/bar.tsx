@@ -1,8 +1,8 @@
 'use client'
 
-import { motion } from 'motion/react'
 import { memo, useMemo } from 'react'
 import { cn } from '../../../../core'
+import * as m from '../../../../primitives/reduced-motion/reduced-motion-elements'
 import { rangeKeys } from '../../../../utilities'
 import { type ChartPaint, fillClass, rawColor } from '../chart-color/paint'
 import type { BarMark } from '../chart-geometry/bar'
@@ -177,7 +177,7 @@ const AnimatedBar = memo(function AnimatedBar({
 	const grow = barGrow(orientation, positive)
 
 	return (
-		<motion.path
+		<m.path
 			data-slot="chart-bar"
 			d={d}
 			fill={fill}

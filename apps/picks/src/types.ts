@@ -1,4 +1,4 @@
-import type { components } from './api/openapi'
+import type { components } from 'shared/mimir'
 
 /** One side of a game. */
 export type Team = {
@@ -63,7 +63,7 @@ export type Schedule = {
 
 /**
  * The picks of one week, by game id, as Mimir stores them. `pnpm --filter
- * picks openapi` generates the shape from its spec, so the app and the
+ * shared openapi` generates the shape from its spec, so the app and the
  * service cannot disagree about a pick.
  */
 export type WeekPicks = components['schemas']['WeekPicks']

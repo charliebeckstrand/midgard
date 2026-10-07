@@ -1,9 +1,9 @@
 'use client'
 
-import { motion } from 'motion/react'
 import { memo, useId } from 'react'
 import { cn } from '../../../../core'
 import { usePrefersReducedMotion } from '../../../../hooks/use-prefers-reduced-motion'
+import * as m from '../../../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../../../recipes/kata/chart'
 import { rangeKeys } from '../../../../utilities'
 import { type ChartPaint, fillClass, rawColor, strokeClass } from '../chart-color/paint'
@@ -158,7 +158,7 @@ const LineSeriesBody = memo(function LineSeriesBody({
 			{fill &&
 				rangeKeys(geometry.areas.length, `${label}-area`).map((key, index) =>
 					animated ? (
-						<motion.path
+						<m.path
 							key={key}
 							data-slot="chart-area"
 							d={geometry.areas[index]}
@@ -188,7 +188,7 @@ const LineSeriesBody = memo(function LineSeriesBody({
 
 			{rangeKeys(geometry.segments.length, `${label}-seg`).map((key, index) =>
 				animated && !dashed ? (
-					<motion.path
+					<m.path
 						key={key}
 						data-slot="chart-line"
 						d={geometry.segments[index]}
@@ -211,7 +211,7 @@ const LineSeriesBody = memo(function LineSeriesBody({
 
 			{rangeKeys(points.length, `${label}-pt`).map((key, index) =>
 				animated ? (
-					<motion.circle
+					<m.circle
 						key={key}
 						data-slot="chart-point"
 						cx={points[index]?.x}
@@ -314,7 +314,7 @@ export function AnimatedChartLineMarks({
 			{wipe && (
 				<defs>
 					<clipPath id={wipeId} data-slot="chart-line-wipe">
-						<motion.rect
+						<m.rect
 							x={plot.x}
 							y={plot.y}
 							width={plot.width}

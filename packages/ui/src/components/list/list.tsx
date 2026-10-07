@@ -1,6 +1,5 @@
 'use client'
 
-import { Reorder } from 'motion/react'
 import { type ComponentProps, type ReactNode, useCallback, useId, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { LIFT_INSTRUCTIONS } from '../../hooks/use-keyboard-lifted'
@@ -13,6 +12,7 @@ import { ListContext } from './context'
 import { ListItemReorder } from './list-item-reorder'
 import { ListItemStatic } from './list-item-static'
 import { listItemName, useListKeyboard } from './use-list-keyboard'
+import { useListReorder } from './use-list-reorder'
 import { useListWindow } from './use-list-window'
 
 // A reorderable list renders a Motion element, which gives its own meaning to
@@ -111,7 +111,10 @@ export type ListProps<T> = BaseListProps<T> &
  * checkbox, keeps its own stop — see {@link ListItem}. Only the handle starts a
  * pointer drag. The rows move as the pointer passes them, and the list calls
  * `onReorder` once, on the drop. Escape cancels the drag. The list loads no
- * drag library of its own: Motion's `Reorder` runs the drag.
+ * drag library of its own: Motion's `Reorder` runs the drag. `Reorder` loads in
+ * a chunk of its own after a reorderable list mounts, so a page with only
+ * read-only lists does not load it. Until the chunk arrives, the keyboard
+ * reorder works, and a pointer drag does not start.
  *
  * `virtual` renders only the rows in view, plus a few on each side, for a long
  * read-only vertical list. The list windows over the nearest ancestor with
@@ -191,6 +194,9 @@ export function List<T>({
 
 	const describedBy = useId()
 
+	// `Reorder` loads in a chunk of its own, so a read-only list does not load it.
+	const reorderParts = useListReorder(interactive)
+
 	// Motion's `MotionConfig` leaves `layout` animations running, so the rows
 	// read the preference themselves (WCAG 2.3.3).
 	const instant = usePrefersReducedMotion()
@@ -206,6 +212,7 @@ export function List<T>({
 			sortable,
 			onItemKeyDown,
 			onItemBlur,
+			reorderParts,
 		}),
 		[
 			variant,
@@ -217,6 +224,7 @@ export function List<T>({
 			sortable,
 			onItemKeyDown,
 			onItemBlur,
+			reorderParts,
 		],
 	)
 
@@ -331,15 +339,18 @@ export function List<T>({
 		<ListContext value={contextValue}>
 			{interactive ? (
 				<>
-					<Reorder.Group
-						{...ulProps}
-						as="ul"
-						axis={orientation === 'vertical' ? 'y' : 'x'}
-						values={order}
-						onReorder={setDraft}
-					>
-						{rows}
-					</Reorder.Group>
+					{reorderParts ? (
+						<reorderParts.Group
+							{...ulProps}
+							axis={orientation === 'vertical' ? 'y' : 'x'}
+							values={order}
+							onReorder={setDraft}
+						>
+							{rows}
+						</reorderParts.Group>
+					) : (
+						<ul {...ulProps}>{rows}</ul>
+					)}
 					<div hidden id={describedBy}>
 						{LIFT_INSTRUCTIONS.draggable}
 					</div>

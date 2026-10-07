@@ -1,10 +1,11 @@
 'use client'
 
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence } from 'motion/react'
 import { memo, useId, useMemo, useState } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useKeyedValue } from '../../hooks/use-keyed-store'
 import { ReducedMotion } from '../../primitives/reduced-motion'
+import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/json-tree'
 import { JsonTreeContext, useJsonTreeContext } from './context'
 import { JsonTreeBranchClose } from './json-tree-branch-close'
@@ -200,7 +201,7 @@ function JsonTreeNodeView({ keyName, value }: JsonNodeProps) {
 			<ReducedMotion>
 				<AnimatePresence initial={false}>
 					{open && (
-						<motion.div
+						<m.div
 							id={groupId}
 							role="group"
 							data-slot="json-group"
@@ -217,7 +218,7 @@ function JsonTreeNodeView({ keyName, value }: JsonNodeProps) {
 								</JsonTreeContext>
 							</div>
 							<JsonTreeBranchClose isArray={isArray} />
-						</motion.div>
+						</m.div>
 					)}
 				</AnimatePresence>
 			</ReducedMotion>

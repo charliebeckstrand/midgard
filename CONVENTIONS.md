@@ -71,6 +71,7 @@ Side behavior, such as a preload or a pause on hover, keeps the default. [`2026-
 | The grab cursors of a surface that the reader drags | `hannou.grab` in `recipes/kiso/hannou/cursor.ts` | `grab-cursor-boundary.test.ts` |
 | A box that scrolls on the inline axis, with the fade on the edge that has more content behind it | `omote.rail` in `recipes/kiso/omote/rail.ts`; the `scroll-fade-inline` utility in `core/scroll/fade.ts` draws the fade in CSS, with no script | `inline-scroll-boundary.test.ts` |
 | The reduced-motion setting of the reader | `usePrefersReducedMotion` in `ui/hooks` | `no-motion-reduced-motion-hook` |
+| An element that Motion animates | `m` from `primitives/reduced-motion/reduced-motion-elements`, under a `ReducedMotion` root from `primitives/reduced-motion`, which loads the features of Motion in a chunk after it mounts | `no-full-motion-component` |
 | A boolean ARIA state or `data-*` attribute | `ariaAttr` and `dataAttr` in `ui/core` | `no-hand-written-bool-attr` |
 | A value held inside a range | `clamp` in `src/utilities` | `no-hand-written-clamp` |
 

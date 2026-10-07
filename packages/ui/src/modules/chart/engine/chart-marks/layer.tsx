@@ -1,9 +1,10 @@
 'use client'
 
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence } from 'motion/react'
 import { type ReactNode, useState } from 'react'
 import { usePrefersReducedMotion } from '../../../../hooks/use-prefers-reduced-motion'
 import { ReducedMotion } from '../../../../primitives/reduced-motion'
+import * as m from '../../../../primitives/reduced-motion/reduced-motion-elements'
 import { STATIC_GENERATION } from '../chart-motion'
 import { seriesGroupClass } from '../chart-series'
 import { useChartEmphasis } from '../context'
@@ -34,7 +35,7 @@ export type ChartGenerationProps = {
  *
  * The reveal plays when the content first mounts. Later geometry changes animate
  * in place on stable keys and never replay it: that is the resize path. A
- * genuine data change replays it out-then-in. The group is a `motion.g` keyed by
+ * genuine data change replays it out-then-in. The group is a `m.g` keyed by
  * {@link ChartGenerationProps.dataKey}, in an `AnimatePresence mode="wait"`. The
  * outgoing generation runs its reverse reveal fully before the incoming
  * generation reveals the new data. Each child's `exit` target is the `initial`
@@ -88,7 +89,7 @@ export function ChartGeneration({
 	return (
 		<ReducedMotion>
 			<AnimatePresence mode="wait">
-				<motion.g
+				<m.g
 					key={generation}
 					data-slot={slot}
 					data-generation={generation}
@@ -96,7 +97,7 @@ export function ChartGeneration({
 					pointerEvents={pointerEvents}
 				>
 					{children}
-				</motion.g>
+				</m.g>
 			</AnimatePresence>
 		</ReducedMotion>
 	)

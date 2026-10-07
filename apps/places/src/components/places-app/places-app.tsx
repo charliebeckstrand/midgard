@@ -7,6 +7,7 @@ import { Activity, useCallback, useEffect, useMemo, useState } from 'react'
 import { Alert } from 'ui/alert'
 import { type ConfirmOptions, useConfirm } from 'ui/confirm'
 import { DateTime } from 'ui/date-time'
+import { useIdleLoad } from 'ui/hooks'
 import { AppearanceSettings } from 'ui/providers/appearance'
 import { Flex } from 'ui/structure/flex'
 import { Text } from 'ui/text'
@@ -22,14 +23,9 @@ import {
 	useVisits,
 } from '../../queries/places-queries'
 import type { Place, Visit, Visits } from '../../types'
-import { ATLASES } from '../../utilities/places-atlas'
+import { atlasBounded, atlasNames, atlasRegions } from '../../utilities/places-atlas'
 import { DAY_FORMAT, filterPlaces } from '../../utilities/places-filter'
-import {
-	type BoundedRegion,
-	boundRegions,
-	groupPlacesByRegion,
-	regionName,
-} from '../../utilities/places-geography'
+import { groupPlacesByRegion, regionName } from '../../utilities/places-geography'
 import type { PaletteSource } from '../../utilities/places-palette'
 import {
 	COUNTRY_SNAP_KM,
@@ -75,11 +71,8 @@ const loadForm = () => import('../place-form-drawer')
 
 const loadDrawer = () => import('../place-drawer')
 
-/**
- * How long a browser without `requestIdleCallback` waits before it fetches the
- * panels. Safari does not have the call.
- */
-const IDLE_FALLBACK_MS = 1000
+/** Loads the code of the three panels. {@link usePanelPrefetch} calls it in idle time. */
+const loadPanels = () => Promise.all([loadIndex(), loadForm(), loadDrawer()])
 
 /**
  * Each panel suspends in the render that first shows it, also when its code is
@@ -117,16 +110,6 @@ function usePanelRendered(open: boolean, loaded: boolean): boolean {
 	if (open && !opened) setOpened(true)
 
 	return opened || open || loaded
-}
-
-/**
- * Each region beside its bounding box, per atlas. Measured once for the module,
- * because an atlas never changes: adding a place does not re-measure 56 states,
- * and crossing out to the world does not re-measure 177 countries.
- */
-const BOUNDED: Record<PlaceAtlas, BoundedRegion[]> = {
-	states: boundRegions(ATLASES.states),
-	countries: boundRegions(ATLASES.countries),
 }
 
 /** The empty list a pending places query stands in for, held so its identity is stable. */
@@ -187,7 +170,7 @@ function trailPlaces(
 function mapForView<Regions>(
 	view: PlaceView,
 	sources: {
-		atlases: Record<PlaceAtlas, Regions>
+		atlases: (atlas: PlaceAtlas) => Regions
 		groupings: Record<PlaceAtlas, ReadonlyMap<string, readonly Place[]>>
 		filtered: Place[]
 		visits: Visits
@@ -197,7 +180,7 @@ function mapForView<Regions>(
 
 	return {
 		view,
-		regions: sources.atlases[at],
+		regions: sources.atlases(at),
 		places: placesInRegion(sources.filtered, sources.groupings[at], viewRegion(view)),
 		visited: new Set(sources.visits[at]),
 	}
@@ -274,8 +257,9 @@ function deleteQuestion(deletion: Deletion): ConfirmOptions {
 
 /**
  * Fetches the code of the panels when the main thread is idle after the mount,
- * and tells when all of it has loaded. The browser runs the code of a chunk when
- * it arrives, so a fetch at the mount ran it while the page hydrated.
+ * and tells when all of it has loaded. `useIdleLoad` schedules the fetch. The
+ * browser runs the code of a chunk when it arrives, so a fetch at the mount ran
+ * it while the page hydrated.
  *
  * The app renders each panel closed from that point on. The render that first
  * shows a lazy panel suspends, also when its code is in the cache, and React
@@ -285,23 +269,7 @@ function deleteQuestion(deletion: Deletion): ConfirmOptions {
  * the screen, and the first open renders it at once.
  */
 function usePanelPrefetch(): boolean {
-	const [loaded, setLoaded] = useState(false)
-
-	useEffect(() => {
-		const load = () => {
-			void Promise.all([loadIndex(), loadForm(), loadDrawer()]).then(() => setLoaded(true))
-		}
-
-		const idle = window.requestIdleCallback?.(load)
-
-		if (idle !== undefined) return () => window.cancelIdleCallback?.(idle)
-
-		const timer = window.setTimeout(load, IDLE_FALLBACK_MS)
-
-		return () => window.clearTimeout(timer)
-	}, [])
-
-	return loaded
+	return useIdleLoad(loadPanels) !== undefined
 }
 
 /**
@@ -600,7 +568,7 @@ export function PlacesApp({
 	// the states atlas accounts for whole is a collection inside the United States
 	// — and it is the grouping the app uses whenever the view draws states.
 	const placesByState = useMemo(
-		() => groupPlacesByRegion(BOUNDED.states, places, stateOf),
+		() => groupPlacesByRegion(() => atlasBounded('states'), places, stateOf),
 		[places],
 	)
 
@@ -637,7 +605,7 @@ export function PlacesApp({
 
 	const indexRendered = usePanelRendered(listing, panelsLoaded)
 
-	const regions = ATLASES[atlas]
+	const regions = atlasRegions(atlas)
 
 	// The one region the view is cut to, which the picker and the crumbs share.
 	const cut = viewRegion(view)
@@ -680,9 +648,11 @@ export function PlacesApp({
 	// answers rather than a recompute on every crossing. The countries grouping
 	// takes what the states already settled as its `known`: see `knownCountry` for
 	// why the coarse world outline defers to the finer atlas, and what it saves.
+	// The world geometry is a function, so the grouping decodes the world only
+	// for a place that the states do not settle.
 	const placesByCountry = useMemo(
 		() =>
-			groupPlacesByRegion(BOUNDED.countries, places, countryOf, {
+			groupPlacesByRegion(() => atlasBounded('countries'), places, countryOf, {
 				known: knownCountry(stateOfPlace),
 				snapKm: COUNTRY_SNAP_KM,
 			}),
@@ -793,7 +763,7 @@ export function PlacesApp({
 			preloaded === null
 				? null
 				: mapForView(preloaded, {
-						atlases: ATLASES,
+						atlases: atlasRegions,
 						groupings: { states: placesByState, countries: placesByCountry },
 						filtered,
 						visits,
@@ -836,8 +806,8 @@ export function PlacesApp({
 	const regionCommands = useMemo(
 		() =>
 			regionSource({
-				countries: ATLASES.countries.features.map(regionName),
-				states: ATLASES.states.features.map(regionName),
+				countries: atlasNames('countries'),
+				states: atlasNames('states'),
 				countryPlaces: placesByCountry,
 				statePlaces: placesByState,
 				goTo: setView,

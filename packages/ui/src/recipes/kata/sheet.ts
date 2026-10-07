@@ -97,7 +97,13 @@ export const k = {
 		description: { extra: inset.x },
 		footer: { extra: [inset.x, inset.bottom] },
 		body: {
-			extra: [flex.fill, 'overflow-y-auto overscroll-contain', inset.x, inset.first, inset.last],
+			extra: [
+				flex.fill,
+				'overflow-y-auto overscroll-contain',
+				inset.x,
+				inset.first.sheet,
+				inset.last.sheet,
+			],
 		},
 	}),
 	/**

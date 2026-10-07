@@ -1,6 +1,7 @@
 import { Profiler, type ProfilerOnRenderCallback } from 'react'
 import { describe, expect, it } from 'vitest'
 import { MapDot } from '../../../modules/map/map-dot'
+import { ReducedMotion } from '../../../primitives/reduced-motion'
 import { renderUI, waitFor } from '../../helpers'
 import { frames } from '../../helpers/frames'
 import { sampleMotionFrames } from '../helpers/motion-frame'
@@ -55,13 +56,15 @@ describe('MapDot pop (real Motion)', () => {
 		}
 
 		const { container } = renderUI(
-			<svg aria-hidden="true" width={200} height={20} viewBox="0 0 200 20">
-				{DELAYS.map((delay) => (
-					<Profiler key={delay} id={`dot-${delay}`} onRender={count}>
-						{dot(1, delay)}
-					</Profiler>
-				))}
-			</svg>,
+			<ReducedMotion>
+				<svg aria-hidden="true" width={200} height={20} viewBox="0 0 200 20">
+					{DELAYS.map((delay) => (
+						<Profiler key={delay} id={`dot-${delay}`} onRender={count}>
+							{dot(1, delay)}
+						</Profiler>
+					))}
+				</svg>
+			</ReducedMotion>,
 		)
 
 		await waitFor(() => {
@@ -76,9 +79,11 @@ describe('MapDot pop (real Motion)', () => {
 
 	it('applies a new width at once after the pop', async () => {
 		const svg = (scale: number) => (
-			<svg aria-hidden="true" width={200} height={20} viewBox="0 0 200 20">
-				{dot(scale)}
-			</svg>
+			<ReducedMotion>
+				<svg aria-hidden="true" width={200} height={20} viewBox="0 0 200 20">
+					{dot(scale)}
+				</svg>
+			</ReducedMotion>
 		)
 
 		const { container, rerender } = renderUI(svg(1))
