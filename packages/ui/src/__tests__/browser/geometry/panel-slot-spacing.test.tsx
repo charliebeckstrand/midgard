@@ -19,6 +19,7 @@ import {
 	DrawerPanel,
 	DrawerTitle,
 } from '../../../components/drawer'
+import { Form } from '../../../components/form'
 import {
 	Sheet,
 	SheetBody,
@@ -53,6 +54,16 @@ type Panel = {
 	full: ReactElement
 	/** The panel with a body that scrolls and no other slot. */
 	bare: ReactElement
+	/**
+	 * The panel with a title, then a form that holds the body and the footer. The
+	 * form is `display: contents`, so the body is the first child of its parent
+	 * but not the first slot of the panel.
+	 */
+	formed: ReactElement
+	/** The panel with a title, a form that holds the body, and a footer after the form. */
+	split: ReactElement
+	/** The panel with a form that holds a body that scrolls, and no other slot. */
+	bareFormed: ReactElement
 }
 
 const PANELS: Panel[] = [
@@ -77,6 +88,41 @@ const PANELS: Panel[] = [
 			<Sheet open onOpenChange={() => {}}>
 				<SheetPanel aria-label="Bare" footer={null}>
 					<SheetBody>{LONG}</SheetBody>
+				</SheetPanel>
+			</Sheet>
+		),
+		formed: (
+			<Sheet open onOpenChange={() => {}}>
+				<SheetPanel>
+					<SheetTitle>Settings</SheetTitle>
+					<Form defaultValues={{}}>
+						<SheetBody>{LONG}</SheetBody>
+						<SheetFooter>
+							<button type="button">Save</button>
+						</SheetFooter>
+					</Form>
+				</SheetPanel>
+			</Sheet>
+		),
+		split: (
+			<Sheet open onOpenChange={() => {}}>
+				<SheetPanel>
+					<SheetTitle>Settings</SheetTitle>
+					<Form defaultValues={{}}>
+						<SheetBody>{LONG}</SheetBody>
+					</Form>
+					<SheetFooter>
+						<button type="button">Save</button>
+					</SheetFooter>
+				</SheetPanel>
+			</Sheet>
+		),
+		bareFormed: (
+			<Sheet open onOpenChange={() => {}}>
+				<SheetPanel aria-label="Bare" footer={null}>
+					<Form defaultValues={{}}>
+						<SheetBody>{LONG}</SheetBody>
+					</Form>
 				</SheetPanel>
 			</Sheet>
 		),
@@ -105,6 +151,41 @@ const PANELS: Panel[] = [
 				</DialogPanel>
 			</Dialog>
 		),
+		formed: (
+			<Dialog open onOpenChange={() => {}}>
+				<DialogPanel>
+					<DialogTitle>Settings</DialogTitle>
+					<Form defaultValues={{}}>
+						<DialogBody>{LONG}</DialogBody>
+						<DialogFooter>
+							<button type="button">Save</button>
+						</DialogFooter>
+					</Form>
+				</DialogPanel>
+			</Dialog>
+		),
+		split: (
+			<Dialog open onOpenChange={() => {}}>
+				<DialogPanel>
+					<DialogTitle>Settings</DialogTitle>
+					<Form defaultValues={{}}>
+						<DialogBody>{LONG}</DialogBody>
+					</Form>
+					<DialogFooter>
+						<button type="button">Save</button>
+					</DialogFooter>
+				</DialogPanel>
+			</Dialog>
+		),
+		bareFormed: (
+			<Dialog open onOpenChange={() => {}}>
+				<DialogPanel aria-label="Bare" footer={null}>
+					<Form defaultValues={{}}>
+						<DialogBody>{LONG}</DialogBody>
+					</Form>
+				</DialogPanel>
+			</Dialog>
+		),
 	},
 	{
 		name: 'Drawer',
@@ -127,6 +208,41 @@ const PANELS: Panel[] = [
 			<Drawer open onOpenChange={() => {}}>
 				<DrawerPanel aria-label="Bare" footer={null}>
 					<DrawerBody>{LONG}</DrawerBody>
+				</DrawerPanel>
+			</Drawer>
+		),
+		formed: (
+			<Drawer open onOpenChange={() => {}}>
+				<DrawerPanel>
+					<DrawerTitle>Settings</DrawerTitle>
+					<Form defaultValues={{}}>
+						<DrawerBody>{LONG}</DrawerBody>
+						<DrawerFooter>
+							<button type="button">Save</button>
+						</DrawerFooter>
+					</Form>
+				</DrawerPanel>
+			</Drawer>
+		),
+		split: (
+			<Drawer open onOpenChange={() => {}}>
+				<DrawerPanel>
+					<DrawerTitle>Settings</DrawerTitle>
+					<Form defaultValues={{}}>
+						<DrawerBody>{LONG}</DrawerBody>
+					</Form>
+					<DrawerFooter>
+						<button type="button">Save</button>
+					</DrawerFooter>
+				</DrawerPanel>
+			</Drawer>
+		),
+		bareFormed: (
+			<Drawer open onOpenChange={() => {}}>
+				<DrawerPanel aria-label="Bare" footer={null}>
+					<Form defaultValues={{}}>
+						<DrawerBody>{LONG}</DrawerBody>
+					</Form>
 				</DrawerPanel>
 			</Drawer>
 		),
@@ -184,7 +300,7 @@ describe.each(VIEWPORTS)('panel slot spacing at the $name width', ({ width, heig
 	beforeAll(() => page.viewport(width, height))
 
 	describe.each(DENSITIES)('at the $density density', ({ density, inset, gap }) => {
-		describe.each(PANELS)('$name', ({ slot, full, bare }) => {
+		describe.each(PANELS)('$name', ({ slot, full, bare, formed, split, bareFormed }) => {
 			it('keeps the edge insets even and larger than the slot gap, before and after a scroll', async () => {
 				renderUI(<DensityProvider density={density}>{full}</DensityProvider>)
 
@@ -228,8 +344,26 @@ describe.each(VIEWPORTS)('panel slot spacing at the $name width', ({ width, heig
 				expect(measure()).toEqual(rest)
 			})
 
-			it('keeps the edge insets of a body with no header or footer while it scrolls', async () => {
-				renderUI(<DensityProvider density={density}>{bare}</DensityProvider>)
+			it.each([
+				['that holds the footer', () => formed],
+				['before the footer', () => split],
+			])('puts only the slot gap around a body in a form %s', async (_, element) => {
+				renderUI(<DensityProvider density={density}>{element()}</DensityProvider>)
+
+				const panel = await settledRect(getSlot(document.body, slot))
+				const body = getSlot(panel, `${slot}-body`)
+
+				expect({
+					above: visibleTop(body) - contentBox(getSlot(panel, `${slot}-title`)).bottom,
+					below: contentBox(getSlot(panel, `${slot}-footer`)).top - visibleBottom(body),
+				}).toEqual({ above: gap, below: gap })
+			})
+
+			it.each([
+				['with no header or footer', () => bare],
+				['in a form, with no header or footer', () => bareFormed],
+			])('keeps the edge insets of a body %s while it scrolls', async (_, element) => {
+				renderUI(<DensityProvider density={density}>{element()}</DensityProvider>)
 
 				const panel = await settledRect(getSlot(document.body, slot))
 				const body = getSlot(panel, `${slot}-body`)
