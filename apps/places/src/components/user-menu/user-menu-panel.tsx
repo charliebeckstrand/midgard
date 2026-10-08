@@ -66,7 +66,7 @@ export function UserMenuPanel({ user, count, onAdd, onList, focus }: UserMenuPan
 	return (
 		<Menu placement="bottom-end" defaultOpen>
 			<MenuTrigger>
-				<Button ref={trigger} variant="plain" aria-label="User menu">
+				<Button ref={trigger} variant="bare" aria-label="User menu">
 					<Icon icon={<CircleUserRound />} />
 				</Button>
 			</MenuTrigger>

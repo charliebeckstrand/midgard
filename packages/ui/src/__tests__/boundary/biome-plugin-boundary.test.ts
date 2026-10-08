@@ -263,6 +263,24 @@ export function useA() {
 `,
 		},
 	],
+	'require-bare-icon-button': [
+		{
+			file: 'button.tsx',
+			source: `export const a = <Button variant="plain" aria-label="A"><Icon icon={<X />} /></Button> // flag
+export const b = <Button aria-label="B" prefix={<Icon icon={<X />} />} /> // flag
+export const c = <Button variant="soft" aria-label="C" suffix={<Icon icon={<X />} />}></Button> // flag
+export const d = <Button variant="plain" aria-label="D" // flag
+>
+	<Icon icon={<X />} />
+</Button>
+export const e = <Button variant="plain" aria-label="E" onClick={() => <Button variant="bare" />}><Icon icon={<X />} /></Button> // flag
+export const f = <Button variant="bare" aria-label="F" prefix={<Icon icon={<X />} />} />
+export const g = <Button variant="plain" prefix={<Icon icon={<X />} />}>Add</Button>
+export const h = <Button variant="plain"><Icon icon={<X />} />Add</Button>
+export const i = <Button variant="plain"><Icon icon={<X />} /><Badge /></Button>
+`,
+		},
+	],
 	'require-client-directive-in-hooks': [
 		{
 			file: 'use-a.ts',

@@ -605,6 +605,10 @@
 				"./.biome/plugins/no-hand-composed-handler.grit",
 				"./.biome/plugins/no-hand-written-bool-attr.grit"
 			]
+		},
+		{
+			"includes": ["apps/places/app/**/*.tsx", "apps/places/src/**/*.tsx", "!**/__tests__/**"],
+			"plugins": ["./.biome/plugins/require-bare-icon-button.grit"]
 		}
 	],
 	"files": {

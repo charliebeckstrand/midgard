@@ -107,7 +107,7 @@ function FormatButton({
 			<TooltipTrigger>
 				<Button
 					type="button"
-					variant="plain"
+					variant="bare"
 					aria-label={label}
 					onPointerDown={(event) => {
 						if (event.pointerType === 'mouse') event.preventDefault()

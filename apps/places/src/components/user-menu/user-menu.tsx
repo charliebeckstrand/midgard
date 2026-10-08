@@ -52,7 +52,7 @@ export function UserMenu(props: UserMenuProps) {
 
 	return (
 		<Button
-			variant="plain"
+			variant="bare"
 			aria-label="User menu"
 			aria-haspopup="menu"
 			aria-expanded={false}
