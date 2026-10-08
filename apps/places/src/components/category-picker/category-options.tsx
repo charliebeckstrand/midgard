@@ -45,8 +45,9 @@ export function CategoryOptions() {
 }
 
 /**
- * The `displayValue` of each category Listbox: the swatch and the name, as the
- * option shows them. A value that the app does not know shows as it is stored.
+ * The `displayValue` of a single category Listbox with no prefix: the swatch
+ * and the name, as the option shows them. A value that the app does not know
+ * shows as it is stored.
  */
 export function categoryDisplayValue(value: PlaceCategory) {
 	const category = CATEGORY_BY_VALUE.get(value)

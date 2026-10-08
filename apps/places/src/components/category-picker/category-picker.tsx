@@ -2,8 +2,9 @@
 
 import type { ReactNode } from 'react'
 import { Listbox } from 'ui/listbox'
+import { categoryLabel } from '../../constants'
 import type { PlaceCategory } from '../../types'
-import { CategoryOptions, categoryDisplayValue } from './category-options'
+import { CategoryOptions } from './category-options'
 
 /** Props for {@link CategoryPicker}. */
 export type CategoryPickerProps = {
@@ -23,9 +24,10 @@ export type CategoryPickerProps = {
  * The category picker, wherever categories are narrowed — the bar over the map,
  * and the list inside a drawer.
  *
- * Each option and each selected value carries its category's color, which is
- * the only key the map has: the dots are painted by category and nothing else
- * names those colors.
+ * Each option carries its category's color, which is the only key the map has:
+ * the dots are painted by category and nothing else names those colors. The
+ * trigger shows the names alone. A caller can give it a prefix icon, and a
+ * swatch for each name next to that icon makes a busy trigger.
  *
  * An empty pick is not "admit nothing". A reader who clears the last category
  * means to stop filtering, so both callers read empty as unfiltered and the
@@ -40,7 +42,7 @@ export function CategoryPicker({ value, onValueChange, prefix, className }: Cate
 			clearable
 			prefix={prefix}
 			className={className}
-			displayValue={categoryDisplayValue}
+			displayValue={categoryLabel}
 			value={[...value]}
 			onValueChange={onValueChange}
 		>
