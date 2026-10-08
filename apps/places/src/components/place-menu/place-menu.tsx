@@ -33,7 +33,7 @@ export function PlaceMenu({ items, 'aria-label': ariaLabel, children }: PlaceMen
 		<Menu placement={children === undefined ? 'bottom-end' : undefined}>
 			{children ?? (
 				<MenuTrigger>
-					<Button type="button" variant="plain" aria-label={ariaLabel}>
+					<Button type="button" variant="bare" aria-label={ariaLabel}>
 						<Icon icon={<EllipsisVertical />} />
 					</Button>
 				</MenuTrigger>

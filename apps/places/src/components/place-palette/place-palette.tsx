@@ -76,7 +76,7 @@ export function PlacePalette({ sources }: PlacePaletteProps) {
 	return (
 		<>
 			<Button
-				variant="plain"
+				variant="bare"
 				aria-label="Search"
 				onPointerEnter={preloadPalette}
 				onPointerDown={preloadPalette}
