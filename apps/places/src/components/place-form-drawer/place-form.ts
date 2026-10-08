@@ -5,6 +5,7 @@ import { isWebAddress } from '../../schemas/place'
 import type { Place, PlaceCategory, PlaceDraft, Visit, VisitDraft } from '../../types'
 import { fromDay, toDay } from '../../utilities/places-filter'
 import { placeDraft } from '../../utilities/places-visits'
+import { addressQueries } from './place-address-query'
 
 /**
  * What the form writes: a place, new (`place: null`) or on record, or a visit
@@ -23,6 +24,12 @@ export type PlaceFormTarget =
  * address, and an empty one has none.
  */
 export type PhotoRow = { key: string; url: string }
+
+/**
+ * What gives the position of a place: the address, which the geocoder finds,
+ * or the latitude and the longitude that the reader types.
+ */
+export type LocateBy = 'address' | 'coordinates'
 
 /** The most photos one visit holds, the same limit that Mimir sets. */
 export const MAX_PHOTOS = 12
@@ -53,6 +60,15 @@ export type PlaceValues = {
 	name: string
 	/** The address on one line. A pick in the search fills it, and the reader can type it. */
 	address: string
+	/** Which fields give the position. The address field has a button that changes it. */
+	locateBy: LocateBy
+	/**
+	 * The latitude and the longitude as the reader typed them. A pick in the
+	 * search fills them, and they give the position only where `locateBy` is
+	 * `coordinates`.
+	 */
+	latitude: string
+	longitude: string
 	category?: PlaceCategory
 	url: string
 	visitedAt?: Date
@@ -68,6 +84,27 @@ function required(field: string): string {
 }
 
 /**
+ * A coordinate as a number, or `undefined` where the text is not a decimal
+ * number. `Number` alone reads "" as 0 and "0x10" as 16.
+ */
+export function parseCoordinate(text: string): number | undefined {
+	const trimmed = text.trim()
+
+	return /^[+-]?(?:\d+\.?\d*|\.\d+)$/.test(trimmed) ? Number(trimmed) : undefined
+}
+
+/** What a coordinate field says, where the position comes from the coordinates. */
+function coordinateIssue(field: string, text: string, limit: number): string | undefined {
+	if (text.trim() === '') return required(field)
+
+	const value = parseCoordinate(text)
+
+	if (value === undefined) return `${field} is not a number.`
+
+	return Math.abs(value) > limit ? `${field} is not between -${limit} and ${limit}.` : undefined
+}
+
+/**
  * Per-field validators, in the shape `Form` takes.
  *
  * An empty field reads the same way whichever it is — the reader is scanning a
@@ -79,7 +116,9 @@ function required(field: string): string {
  * coordinate fields, because the reader never sees coordinates: a match that
  * carried none is the failure, and the search field is where they can fix it.
  * The search is not required. A place that the map data does not have is added
- * by its address, and the address is the field that is required.
+ * by its address, and the address is the field that is required. Where the
+ * reader gives the coordinates, the coordinates are required and the address
+ * is not.
  */
 export const placeValidators: NonNullable<FormProps<PlaceValues>['validate']> = {
 	place: (value) => {
@@ -92,7 +131,12 @@ export const placeValidators: NonNullable<FormProps<PlaceValues>['validate']> = 
 		return undefined
 	},
 	name: (value) => (value.trim() === '' ? required('Name') : undefined),
-	address: (value) => (value.trim() === '' ? required('Address') : undefined),
+	address: (value, values) =>
+		values.locateBy === 'address' && value.trim() === '' ? required('Address') : undefined,
+	latitude: (value, values) =>
+		values.locateBy === 'coordinates' ? coordinateIssue('Latitude', value, 90) : undefined,
+	longitude: (value, values) =>
+		values.locateBy === 'coordinates' ? coordinateIssue('Longitude', value, 180) : undefined,
 	category: (value) => (value === undefined ? required('Category') : undefined),
 	visitedAt: (value) =>
 		value === undefined || Number.isNaN(value.getTime()) ? required('Visited') : undefined,
@@ -121,14 +165,51 @@ export function addressLine(place: AddressSuggestion): string {
 	return parted || place.description || place.label
 }
 
+/** Whether a match has a position. */
+function hasPosition(match: AddressSuggestion): boolean {
+	return match.latitude !== undefined && match.longitude !== undefined
+}
+
+/** Whether a match is one house, which is the position of a street address. */
+function isHouse(match: AddressSuggestion): boolean {
+	return /^\d/.test(match.address?.street ?? '')
+}
+
+/** A position on one line, which is the address line of a place that has no address. */
+function coordinateLine(latitude: number, longitude: number): string {
+	return `${latitude}, ${longitude}`
+}
+
+/**
+ * The position that the reader typed, as a match. A match from the search, or
+ * the match of an edited place, stays where it has the same position, so that
+ * the place keeps its city, its state, and its country.
+ */
+function coordinateMatch(values: PlaceValues): AddressSuggestion {
+	const latitude = parseCoordinate(values.latitude) ?? 0
+
+	const longitude = parseCoordinate(values.longitude) ?? 0
+
+	const { place } = values
+
+	if (place?.latitude === latitude && place.longitude === longitude) return place
+
+	return { id: 'coordinates', label: coordinateLine(latitude, longitude), latitude, longitude }
+}
+
 /**
  * Finds the position of the values, which is the match that {@link toPlaceDraft}
  * reads.
  *
- * A match in the search is the position already. Without one, the reader typed
- * the address, and the geocoder's first match for that address with a position
- * is the position. The address line stays as the reader typed it. `null` means
- * that the geocoder found no such address.
+ * Where the reader gave the coordinates, the coordinates are the position. A
+ * match in the search is the position also. Without one, the reader typed the
+ * address, and the geocoder finds it. The address line stays as the reader
+ * typed it. `null` means that the geocoder found no such address.
+ *
+ * The geocoder searches the address as typed, then in the form that the map
+ * data holds ({@link addressQueries}). The first match that is a house is the
+ * position. Where no query finds a house, the first match with a position is
+ * the position, such as the street of a house that the map data does not hold.
  *
  * @param values - The filled form values.
  * @param geocode - The provider that resolves the typed address.
@@ -140,13 +221,23 @@ export async function locatePlace(
 	geocode: AddressProvider,
 	signal: AbortSignal,
 ): Promise<AddressSuggestion | null> {
+	if (values.locateBy === 'coordinates') return coordinateMatch(values)
+
 	if (values.place !== undefined) return values.place
 
-	const matches = await geocode(values.address.trim(), { signal })
+	let fallback: AddressSuggestion | null = null
 
-	return (
-		matches.find((match) => match.latitude !== undefined && match.longitude !== undefined) ?? null
-	)
+	for (const query of addressQueries(values.address)) {
+		const matches = (await geocode(query, { signal })).filter(hasPosition)
+
+		const house = matches.find(isHouse)
+
+		if (house !== undefined) return house
+
+		fallback ??= matches[0] ?? null
+	}
+
+	return fallback
 }
 
 /**
@@ -178,6 +269,8 @@ export function toVisitDraft(values: PlaceValues, id?: string): VisitDraft {
  *
  * `place` is the match from {@link locatePlace}, and it gives the position and
  * the parts that the list filters by. The address line is the field's own.
+ * Where the reader gave the coordinates and no address, the coordinates are
+ * the address line.
  *
  * `base` is the record an edit started from. The store holds only three parts
  * of the address, so a place dressed back up as a match by {@link toFormValues}
@@ -195,15 +288,19 @@ export function toPlaceDraft(
 	// kind replaces the id and the record stops answering.
 	const kept = base !== null && place?.id === base.id ? base : null
 
+	const latitude = place?.latitude ?? 0
+
+	const longitude = place?.longitude ?? 0
+
 	return {
 		name: values.name.trim(),
 		category: values.category ?? 'other',
-		address: values.address.trim(),
+		address: values.address.trim() || coordinateLine(latitude, longitude),
 		city: kept?.city ?? place?.address?.city,
 		state: kept?.state ?? place?.address?.state,
 		country: kept?.country ?? place?.address?.country,
-		latitude: place?.latitude ?? 0,
-		longitude: place?.longitude ?? 0,
+		latitude,
+		longitude,
 		url: values.url.trim() || undefined,
 		visits: base === null ? [toVisitDraft(values)] : base.visits,
 	}
@@ -253,6 +350,9 @@ export function emptyValues(): PlaceValues {
 		place: undefined,
 		name: '',
 		address: '',
+		locateBy: 'address',
+		latitude: '',
+		longitude: '',
 		category: undefined,
 		url: '',
 		...toVisitValues(null),
@@ -286,6 +386,9 @@ export function toFormValues(place: Place, visit: Visit | null = null): PlaceVal
 		},
 		name: place.name,
 		address: place.address,
+		locateBy: 'address',
+		latitude: String(place.latitude),
+		longitude: String(place.longitude),
 		category: place.category,
 		url: place.url ?? '',
 		...toVisitValues(visit),

@@ -17,6 +17,9 @@ function typed(fields: Partial<PlaceValues> = {}): PlaceValues {
 		place: undefined,
 		name: "Stella's Ice Cream",
 		address: '16020 SW Tualatin-Sherwood Rd, Sherwood, OR',
+		locateBy: 'address',
+		latitude: '',
+		longitude: '',
 		category: 'food',
 		url: '',
 		visitedAt: new Date(2026, 8, 27),
@@ -52,6 +55,34 @@ describe('placeValidators', () => {
 		expect(placeValidators.address?.('  ', typed())).toBe('Address is required.')
 	})
 
+	it('requires the coordinates and not the address where the coordinates give the position', () => {
+		const values = typed({ locateBy: 'coordinates', address: '' })
+
+		expect(placeValidators.address?.('', values)).toBeUndefined()
+
+		expect(placeValidators.latitude?.(' ', values)).toBe('Latitude is required.')
+
+		expect(placeValidators.longitude?.('', values)).toBe('Longitude is required.')
+	})
+
+	it('refuses a coordinate that is not a number or is out of range', () => {
+		const values = typed({ locateBy: 'coordinates' })
+
+		expect(placeValidators.latitude?.('0x10', values)).toBe('Latitude is not a number.')
+
+		expect(placeValidators.latitude?.('-90.5', values)).toBe('Latitude is not between -90 and 90.')
+
+		expect(placeValidators.longitude?.('-122.84', values)).toBeUndefined()
+
+		expect(placeValidators.longitude?.('181', values)).toBe(
+			'Longitude is not between -180 and 180.',
+		)
+	})
+
+	it('does not check the coordinates where the address gives the position', () => {
+		expect(placeValidators.latitude?.('', typed())).toBeUndefined()
+	})
+
 	it('takes empty photo rows, and names the first row that is not a web address', () => {
 		const rows = [photoRow(''), photoRow('https://example.com/a.jpg'), photoRow('nope')]
 
@@ -85,6 +116,78 @@ describe('locatePlace', () => {
 
 		await expect(locatePlace(typed(), geocode, signal)).resolves.toBeNull()
 	})
+
+	it('searches the address in the form of the map data when the typed form finds nothing', async () => {
+		const geocode = vi
+			.fn<AddressProvider>()
+			.mockResolvedValueOnce([])
+			.mockResolvedValueOnce([sherwood])
+
+		const address = '16784 SW Edy Rd Unit 103, Sherwood, OR 97140'
+
+		await expect(locatePlace(typed({ address }), geocode, signal)).resolves.toBe(sherwood)
+
+		expect(geocode.mock.calls.map(([query]) => query)).toEqual([
+			address,
+			'16784 Southwest Edy Road, Sherwood, OR 97140',
+		])
+	})
+
+	it('prefers a house from a later query to a street from an earlier one', async () => {
+		const street: AddressSuggestion = {
+			id: 'W2:street',
+			label: 'Southwest Edy Road',
+			name: 'Southwest Edy Road',
+			latitude: 45.35,
+			longitude: -122.85,
+		}
+
+		const geocode = vi
+			.fn<AddressProvider>()
+			.mockResolvedValueOnce([street])
+			.mockResolvedValueOnce([street, sherwood])
+
+		await expect(
+			locatePlace(typed({ address: '16784 SW Edy Rd, Sherwood' }), geocode, signal),
+		).resolves.toBe(sherwood)
+	})
+
+	it('takes the first match with a position where no query finds a house', async () => {
+		const street: AddressSuggestion = { id: 'W2:street', label: 'Edy', latitude: 1, longitude: 2 }
+
+		const geocode = vi.fn<AddressProvider>().mockResolvedValue([street])
+
+		await expect(locatePlace(typed({ address: '16784 SW Edy Rd' }), geocode, signal)).resolves.toBe(
+			street,
+		)
+
+		expect(geocode).toHaveBeenCalledTimes(2)
+	})
+
+	it('takes the typed coordinates and does not geocode', async () => {
+		const geocode = vi.fn<AddressProvider>()
+
+		const located = await locatePlace(
+			typed({ locateBy: 'coordinates', latitude: ' 45.3584 ', longitude: '-122.8406' }),
+			geocode,
+			signal,
+		)
+
+		expect(located).toMatchObject({ latitude: 45.3584, longitude: -122.8406 })
+
+		expect(geocode).not.toHaveBeenCalled()
+	})
+
+	it('keeps the match where the coordinates are its position', async () => {
+		const values = typed({
+			locateBy: 'coordinates',
+			place: sherwood,
+			latitude: '45.36',
+			longitude: '-122.84',
+		})
+
+		await expect(locatePlace(values, vi.fn<AddressProvider>(), signal)).resolves.toBe(sherwood)
+	})
 })
 
 describe('toPlaceDraft', () => {
@@ -97,6 +200,23 @@ describe('toPlaceDraft', () => {
 			state: 'Oregon',
 			latitude: 45.36,
 			longitude: -122.84,
+		})
+	})
+
+	it('stores the coordinates as the address line where there is no address', async () => {
+		const values = typed({
+			locateBy: 'coordinates',
+			address: ' ',
+			latitude: '45.5',
+			longitude: '-122.5',
+		})
+
+		const located = await locatePlace(values, vi.fn<AddressProvider>(), signal)
+
+		expect(toPlaceDraft(values, located ?? undefined)).toMatchObject({
+			address: '45.5, -122.5',
+			latitude: 45.5,
+			longitude: -122.5,
 		})
 	})
 
