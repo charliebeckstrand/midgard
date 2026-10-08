@@ -88,6 +88,12 @@ export type OverlayProps = {
 	 * @defaultValue modal
 	 */
 	backdrop?: boolean
+	/**
+	 * Whether an overlay that mounts open plays its enter animation.
+	 * @defaultValue true
+	 * @see {@link PortalProps.appear}
+	 */
+	appear?: boolean
 } & Omit<ComponentProps<'div'>, 'children'>
 
 /**
@@ -122,6 +128,7 @@ export function Overlay({
 	initialFocus,
 	modal = true,
 	backdrop = modal,
+	appear,
 	className,
 	ref,
 	...props
@@ -235,7 +242,7 @@ export function Overlay({
 	)
 
 	return (
-		<Portal open={open} container={container}>
+		<Portal open={open} container={container} appear={appear}>
 			<OverlayFocus modal={modal} context={context} initialFocus={initialFocus}>
 				{panel}
 			</OverlayFocus>
