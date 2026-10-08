@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { type ReactElement, type ReactNode, useEffect, useMemo, useState } from 'react'
 import { Badge } from 'ui/badge'
 import { CopyButton } from 'ui/copy-button'
+import { cn } from 'ui/core'
 import { DateTime } from 'ui/date-time'
 import { Divider } from 'ui/divider'
 import { Drawer, DrawerBody, DrawerClose, DrawerPanel, DrawerTitle } from 'ui/drawer'
@@ -14,6 +15,7 @@ import { Link } from 'ui/link'
 import { List, ListItem } from 'ui/list'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 import { Markdown } from 'ui/markdown'
+import { Placeholder } from 'ui/placeholder'
 import { useDateFormat } from 'ui/providers/locale'
 import { Rating } from 'ui/rating'
 import { Flex } from 'ui/structure/flex'
@@ -146,6 +148,53 @@ function PlaceAddress({ address }: { address: string }) {
 }
 
 /**
+ * One photo of a visit, in a square of 96 pixels. A placeholder fills the
+ * square until the photo loads, and stays when the photo does not load.
+ *
+ * `next/image` with `unoptimized`: the address is the one that the reader
+ * typed, so the host is not known at build time. The optimizer serves only the
+ * hosts that `images.remotePatterns` lists, so the browser gets the photo from
+ * its own address. The name of the place is the alt text because it is the one
+ * thing known about the picture.
+ *
+ * Squares, stated on both axes, so every photo reads the same however it was
+ * shot, and the row wraps them at any panel width. The fixed box also keeps
+ * the text below in position while the photo loads. `object-cover` fills the
+ * box and crops the overflow, which is what makes one size honest for any
+ * aspect.
+ *
+ * The photo is on the placeholder and is transparent until it loads, so the
+ * browser loads it while the placeholder shows. A photo that does not load
+ * goes out of the tree, so the browser shows no broken image. The caller keys
+ * each photo by its address, so a new address starts from the placeholder.
+ */
+function PlacePhoto({ src, alt }: { src: string; alt: string }) {
+	const [status, setStatus] = useState<'loading' | 'loaded' | 'failed'>('loading')
+
+	return (
+		<div className="relative size-24 shrink-0">
+			{status === 'loaded' ? null : <Placeholder className="absolute inset-0 size-full" />}
+
+			{status === 'failed' ? null : (
+				<Image
+					src={src}
+					alt={alt}
+					width={96}
+					height={96}
+					unoptimized
+					onLoad={() => setStatus('loaded')}
+					onError={() => setStatus('failed')}
+					className={cn(
+						'relative size-full rounded-lg object-cover',
+						status === 'loading' && 'opacity-0',
+					)}
+				/>
+			)}
+		</div>
+	)
+}
+
+/**
  * One visit to the open place: the date, the score under the date, and the
  * menu of the visit beside the two, then the photos and the review.
  */
@@ -187,30 +236,14 @@ function PlaceVisit({
 				</div>
 			</Flex>
 
-			{/* `next/image` with `unoptimized`: the address is the one that the
-			    reader typed, so the host is not known at build time. The optimizer
-			    serves only the hosts that `images.remotePatterns` lists, so the
-			    browser gets the photo from its own address. The name is the alt
-			    text because it is the one thing known about the picture.
-
-			    Squares, stated on both axes, so every photo reads the same however
-			    it was shot, and the row wraps them at any panel width. Stating the
-			    size also reserves the space before the picture arrives; unsized,
-			    the `img` laid out at nothing and shoved the text down on load.
-			    `object-cover` fills the box and crops the overflow, which is what
-			    makes one size honest for any aspect. */}
 			{visit.photos.length > 0 ? (
 				<Flex gap="sm" wrap>
 					{visit.photos.map((photo, at) => (
-						<Image
+						<PlacePhoto
 							// The address alone is not unique: a reader can add one photo twice.
 							key={`${at}:${photo}`}
 							src={photo}
 							alt={place.name}
-							width={96}
-							height={96}
-							unoptimized
-							className="size-24 rounded-lg bg-white/5 object-cover"
 						/>
 					))}
 				</Flex>
