@@ -1,6 +1,6 @@
 'use client'
 
-import { Info } from 'lucide-react'
+import { Crosshair, Info, MapPin } from 'lucide-react'
 import { Button } from 'ui/button'
 import { Field, Label, Message } from 'ui/fieldset'
 import { useFormActions, useFormValue } from 'ui/form'
@@ -98,8 +98,9 @@ function CoordinateFields() {
  * type the address, change to the coordinates when the address is not found,
  * and the place keeps the typed address as its address line.
  *
- * The button stays mounted and only its words change, so the focus stays on it
- * after a press.
+ * The button stays mounted and only its words and its icon change, so the focus
+ * stays on it after a press. The icon shows the fields that a press shows: the
+ * pin of the address in the place drawer, or a crosshair for one exact point.
  */
 export function PlaceAddressField() {
 	const { value: locateBy = 'address', setValue } = useFormValue<LocateBy>('locateBy', {})
@@ -115,6 +116,7 @@ export function PlaceAddressField() {
 					type="button"
 					variant="plain"
 					size="sm"
+					prefix={<Icon icon={coordinates ? <MapPin /> : <Crosshair />} />}
 					onClick={() => setValue(coordinates ? 'address' : 'coordinates')}
 				>
 					{coordinates ? 'Input address' : 'Input coordinates'}
