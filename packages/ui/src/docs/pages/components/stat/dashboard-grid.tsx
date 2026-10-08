@@ -14,7 +14,7 @@ export default function DashboardGrid() {
 	return (
 		<Flex direction={{ initial: 'col', sm: 'row' }} gap="md">
 			{metrics.map((metric) => (
-				<Card key={metric.label} className="flex-1">
+				<Card key={metric.label} className="min-w-fit flex-1">
 					<CardBody>
 						<Stat>
 							<StatLabel>{metric.label}</StatLabel>

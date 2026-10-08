@@ -11,7 +11,7 @@ export default function StatPage() {
 			<Playground of={StatPlayground} api={api} />
 			<Example of={Trend} />
 			<Example of={WithDeltaAndDescription} />
-			<Example of={DashboardGrid} />
+			<Example of={DashboardGrid} surface />
 			<ApiTable api={api} />
 		</>
 	)
