@@ -88,12 +88,6 @@ export type OverlayProps = {
 	 * @defaultValue modal
 	 */
 	backdrop?: boolean
-	/**
-	 * Whether an overlay that mounts open plays its enter animation.
-	 * @defaultValue true
-	 * @see {@link PortalProps.appear}
-	 */
-	appear?: boolean
 } & Omit<ComponentProps<'div'>, 'children'>
 
 /**
@@ -101,8 +95,15 @@ export type OverlayProps = {
  * Drawer). Manages focus trapping, body scroll lock, dismissal, and the
  * dimming backdrop; consumers render the panel as `children`.
  *
- * @remarks Client-only: returns `null` during SSR. Renders into the explicit
- * `container`, else the ambient `<UIProvider>` portal node, else
+ * @remarks An overlay that is open in the server render is part of the page.
+ * It renders in place on the server and in the hydration render, so it paints
+ * with the server HTML. Hydration then moves it into its portal at rest, with
+ * no enter animation, and the panel does not report an arrival. Until the
+ * move, an ancestor with a `transform`, a `filter`, or `contain` is the
+ * containing block of the overlay. A closed overlay renders nothing on the
+ * server.
+ *
+ * Renders into the explicit `container`, else the ambient `<UIProvider>` portal node, else
  * `document.body`. A `container` scopes the overlay to that element
  * (`absolute`, no scroll lock). For transient pointer-driven surfaces,
  * `modal={false}` drops focus management, scroll lock, and the backdrop (unless
@@ -128,7 +129,6 @@ export function Overlay({
 	initialFocus,
 	modal = true,
 	backdrop = modal,
-	appear,
 	className,
 	ref,
 	...props
@@ -242,7 +242,7 @@ export function Overlay({
 	)
 
 	return (
-		<Portal open={open} container={container} appear={appear}>
+		<Portal open={open} container={container} ssr>
 			<OverlayFocus modal={modal} context={context} initialFocus={initialFocus}>
 				{panel}
 			</OverlayFocus>

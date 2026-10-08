@@ -60,13 +60,4 @@ export type PanelOverlayProps = {
 	 * @defaultValue `document.body`, with full-viewport `fixed` positioning.
 	 */
 	container?: HTMLElement | null
-	/**
-	 * Whether a panel that mounts open plays its enter animation. Set `false`
-	 * for a panel that the page restores, such as one that the address opens on
-	 * a load. The panel and its backdrop are then on screen at the first paint,
-	 * and `onOpenComplete` does not fire for that open. Each later open plays the
-	 * enter, and each close plays the exit.
-	 * @defaultValue true
-	 */
-	appear?: boolean
 }

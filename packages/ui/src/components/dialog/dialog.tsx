@@ -138,7 +138,6 @@ export function DialogPanel({
 	onOpenComplete,
 	align = 'center',
 	dismissOnBackdrop,
-	appear,
 	modal = true,
 	backdrop,
 	container,
@@ -179,7 +178,6 @@ export function DialogPanel({
 			open={open}
 			onOpenChange={setOpen}
 			dismissOnBackdrop={dismissOnBackdrop}
-			appear={appear}
 			modal={modal}
 			backdrop={backdrop}
 			container={container}

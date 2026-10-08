@@ -44,9 +44,9 @@ export type DrawerPanelProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
 		 * reduced-motion preference collapses still resolves, and so still reports. That is the same property the accordion's hold relies on to
 		 * unmount a closed panel.
 		 *
-		 * Once per arrival, and never for a close. A panel that mounts open with
-		 * `appear` off does not arrive, so it does not report, as a `Collapse` that
-		 * mounts open does not.
+		 * Once per arrival, and never for a close. A panel that is open in the server
+		 * render is part of the page and does not arrive, so it does not report, as a
+		 * `Collapse` that mounts open does not.
 		 */
 		onOpenComplete?: () => void
 		/**
@@ -204,7 +204,6 @@ export function DrawerPanel({
 	footer,
 	initialFocus,
 	dismissOnBackdrop,
-	appear,
 	modal = true,
 	backdrop,
 	container,
@@ -260,7 +259,6 @@ export function DrawerPanel({
 			onOpenChange={setOpen}
 			initialFocus={initialFocus}
 			dismissOnBackdrop={dismissOnBackdrop}
-			appear={appear}
 			modal={modal}
 			backdrop={backdrop}
 			container={container}
