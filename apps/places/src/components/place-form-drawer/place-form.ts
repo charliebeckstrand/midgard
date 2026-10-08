@@ -206,8 +206,8 @@ function coordinateMatch(values: PlaceValues): AddressSuggestion {
  * address, and the geocoder finds it. The address line stays as the reader
  * typed it. `null` means that the geocoder found no such address.
  *
- * The geocoder searches the address as typed, then in the form that the map
- * data holds ({@link addressQueries}). The first match that is a house is the
+ * The geocoder searches the address as typed, then without its secondary unit
+ * ({@link addressQueries}). The first match that is a house is the
  * position. Where no query finds a house, the first match with a position is
  * the position, such as the street of a house that the map data does not hold.
  *

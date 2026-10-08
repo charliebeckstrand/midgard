@@ -117,7 +117,7 @@ describe('locatePlace', () => {
 		await expect(locatePlace(typed(), geocode, signal)).resolves.toBeNull()
 	})
 
-	it('searches the address in the form of the map data when the typed form finds nothing', async () => {
+	it('searches the address without its unit when the typed address finds nothing', async () => {
 		const geocode = vi
 			.fn<AddressProvider>()
 			.mockResolvedValueOnce([])
@@ -129,15 +129,15 @@ describe('locatePlace', () => {
 
 		expect(geocode.mock.calls.map(([query]) => query)).toEqual([
 			address,
-			'16784 Southwest Edy Road, Sherwood, OR 97140',
+			'16784 SW Edy Rd, Sherwood, OR 97140',
 		])
 	})
 
 	it('prefers a house from a later query to a street from an earlier one', async () => {
 		const street: AddressSuggestion = {
 			id: 'W2:street',
-			label: 'Southwest Edy Road',
-			name: 'Southwest Edy Road',
+			label: 'SW Edy Rd',
+			name: 'SW Edy Rd',
 			latitude: 45.35,
 			longitude: -122.85,
 		}
@@ -148,7 +148,7 @@ describe('locatePlace', () => {
 			.mockResolvedValueOnce([street, sherwood])
 
 		await expect(
-			locatePlace(typed({ address: '16784 SW Edy Rd, Sherwood' }), geocode, signal),
+			locatePlace(typed({ address: '16784 SW Edy Rd Unit 103, Sherwood' }), geocode, signal),
 		).resolves.toBe(sherwood)
 	})
 
@@ -157,9 +157,9 @@ describe('locatePlace', () => {
 
 		const geocode = vi.fn<AddressProvider>().mockResolvedValue([street])
 
-		await expect(locatePlace(typed({ address: '16784 SW Edy Rd' }), geocode, signal)).resolves.toBe(
-			street,
-		)
+		await expect(
+			locatePlace(typed({ address: '16784 SW Edy Rd Unit 103' }), geocode, signal),
+		).resolves.toBe(street)
 
 		expect(geocode).toHaveBeenCalledTimes(2)
 	})
