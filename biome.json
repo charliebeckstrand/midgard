@@ -607,7 +607,7 @@
 			]
 		},
 		{
-			"includes": ["apps/places/app/**", "apps/places/src/**", "!**/__tests__/**"],
+			"includes": ["apps/places/app/**/*.tsx", "apps/places/src/**/*.tsx", "!**/__tests__/**"],
 			"plugins": ["./.biome/plugins/require-bare-icon-button.grit"]
 		}
 	],

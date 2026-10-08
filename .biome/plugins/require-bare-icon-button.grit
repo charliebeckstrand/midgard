@@ -8,34 +8,17 @@ language js
 // The plugin cannot read types or follow a value. An icon that comes in
 // through a variable, such as `{children}`, does not match.
 //
-// Reach is the `includes` beside this plugin in `biome.json`: the Places
-// source, minus tests.
-or {
-	`<Button $attrs>$children</Button>` as $button where {
-		or {
-			$children <: [$icon] where { $icon <: `<Icon $_ />` },
-			$children <: [JsxText() as $before, $icon, JsxText() as $after] where {
-				$icon <: `<Icon $_ />`,
-				$before <: r"\s*",
-				$after <: r"\s*"
-			},
-			and {
-				$children <: r"\s*",
-				$attrs <: contains JsxAttribute(name = $slot, initializer = $value) where {
-					$slot <: r"prefix|suffix",
-					$value <: contains `<Icon $_ />`
-				}
-			}
+// Reach is the `includes` beside this plugin in `biome.json`: the TSX files of
+// the Places source, minus tests.
+or { `<Button $attrs>$children</Button>`, `<Button $attrs />` } as $button where {
+	or {
+		$children <: or { [`<Icon $_ />`], [r"\s*", `<Icon $_ />`, r"\s*"] },
+		and {
+			or { $children <: undefined, $children <: r"\s*" },
+			$attrs <: some JsxAttribute(name = r"prefix|suffix", initializer = contains `<Icon $_ />`)
 		}
 	},
-	`<Button $attrs />` as $button where {
-		$attrs <: contains JsxAttribute(name = $slot, initializer = $value) where {
-			$slot <: r"prefix|suffix",
-			$value <: contains `<Icon $_ />`
-		}
-	}
-} where {
-	not $attrs <: contains `variant="bare"`,
+	not $attrs <: some `variant="bare"`,
 	register_diagnostic(
 		span = $button,
 		message = "give an icon-only `Button` the `bare` variant: each icon button in Places has the same look"
