@@ -22,8 +22,39 @@ const panel = () => present(bySlot(document.body, 'drawer'), '[data-slot="drawer
 const backdrop = () =>
 	present(bySlot(document.body, 'overlay-backdrop'), '[data-slot="overlay-backdrop"]')
 
-/** The vertical offset of the panel from its rest position, in pixels. */
-const offset = () => new DOMMatrix(getComputedStyle(panel()).transform).m42
+/** The vertical offset of `node` from its rest position, in pixels. */
+const offset = (node: HTMLElement) => new DOMMatrix(getComputedStyle(node).transform).m42
+
+/**
+ * The largest offset of the panel over each frame, from the next frame until
+ * `done` holds. A slide takes 150 ms, and a loaded machine can start it some
+ * frames late, so a case reads each frame and not one fixed frame.
+ */
+function travel(done: () => boolean): Promise<number> {
+	return new Promise((resolve) => {
+		let largest = 0
+
+		const sample = () => {
+			const node = bySlot(document.body, 'drawer')
+
+			if (node) largest = Math.max(largest, offset(node))
+
+			if (done()) resolve(largest)
+			else requestAnimationFrame(sample)
+		}
+
+		requestAnimationFrame(sample)
+	})
+}
+
+/** Whether the panel is at rest: `transform: none`, which the slide sets as it lands. */
+const atRest = () => {
+	const node = bySlot(document.body, 'drawer')
+
+	return node !== null && getComputedStyle(node).transform === 'none'
+}
+
+const gone = () => bySlot(document.body, 'drawer') === null
 
 const drawer = (open: boolean, onOpenComplete?: () => void) => (
 	<Drawer open={open} onOpenChange={() => {}}>
@@ -101,32 +132,30 @@ describe('Overlay open in the server render (real Motion)', () => {
 
 		await nextPaint()
 
+		const exit = travel(gone)
+
 		act(() => root.render(drawer(false, onOpenComplete)))
 
-		await nextPaint()
-
 		// The panel stays for its exit and slides out.
-		expect(offset()).toBeGreaterThan(0)
-
-		await waitFor(() => expect(bySlot(document.body, 'drawer')).toBeNull())
+		expect(await exit).toBeGreaterThan(0)
 
 		// The restore ran no entrance, so it landed no arrival.
 		expect(onOpenComplete).not.toHaveBeenCalled()
 
+		const enter = travel(atRest)
+
 		act(() => root.render(drawer(true, onOpenComplete)))
 
-		await nextPaint()
-
-		expect(offset()).toBeGreaterThan(0)
+		expect(await enter).toBeGreaterThan(0)
 
 		await waitFor(() => expect(onOpenComplete).toHaveBeenCalledOnce())
 	})
 
 	it('slides in a panel that mounts open on the client', async () => {
+		const enter = travel(atRest)
+
 		renderUI(drawer(true))
 
-		await nextPaint()
-
-		expect(offset()).toBeGreaterThan(0)
+		expect(await enter).toBeGreaterThan(0)
 	})
 })
