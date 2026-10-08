@@ -89,6 +89,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 `group` · `card` · `divider` · `aspect-ratio` · `scroll-area` · `resizable` · `collapse` · `accordion` · `segment` · `placeholder`
 
+> A `Card` clips its overflow, but it is not a scroll container. Thus in a flex row or a grid track, a card is at least as wide as its widest word. A `Stat` value in a card stays on one line. To let a card become narrower than a long token, such as a hash or a URL, give it `min-w-0`. The `CardBody` then breaks the token.
+
 ## Typography
 
 `heading` · `text` · `shiny-text` · `icon` · `markdown`
