@@ -1,6 +1,7 @@
 import type { ComponentType, ReactNode } from 'react'
 import { useState } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { renderToString } from 'react-dom/server'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { Button } from '../../components/button'
 import {
 	Dialog,
@@ -17,7 +18,11 @@ import {
 	DrawerPanel,
 } from '../../components/drawer'
 import { Sheet, SheetClose, SheetContent, SheetFooter, SheetPanel } from '../../components/sheet'
-import { allBySlot, bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { allBySlot, bySlot, fireEvent, renderUI, screen, within } from '../helpers'
+
+/** The elements of `elements` that the page shows, by their computed `display`. */
+const shown = (elements: HTMLElement[]) =>
+	elements.filter((element) => getComputedStyle(element).display !== 'none')
 
 type PanelRootProps = {
 	open: boolean
@@ -118,11 +123,11 @@ describe.each(FAMILIES)('$name footer', ({ name, Root, Close, Content, Footer })
 			</Root>,
 		)
 
-		expect(allBySlot(document.body, `${name}-footer`)).toHaveLength(1)
+		const footers = shown(allBySlot(document.body, `${name}-footer`))
 
-		expect(bySlot(document.body, `${name}-footer`)).toContainElement(
-			screen.getByRole('button', { name: 'Save' }),
-		)
+		expect(footers).toHaveLength(1)
+
+		expect(footers[0]).toContainElement(screen.getByRole('button', { name: 'Save' }))
 
 		expect(screen.queryByRole('button', { name: 'Close' })).not.toBeInTheDocument()
 	})
@@ -148,6 +153,34 @@ describe.each(FAMILIES)('$name footer', ({ name, Root, Close, Content, Footer })
 		fireEvent.click(screen.getByRole('button', { name: 'Drop footer' }))
 
 		expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument()
+	})
+
+	// The case the base style exists for: the server HTML holds the default footer
+	// too, and no effect runs before the first paint to remove it.
+	it('shows only the footer child in the server HTML', () => {
+		const container = document.createElement('div')
+
+		document.body.append(container)
+
+		onTestFinished(() => container.remove())
+
+		container.innerHTML = renderToString(
+			<Root open onOpenChange={() => {}}>
+				<Content>
+					<Footer>
+						<Button type="button">Save</Button>
+					</Footer>
+				</Content>
+			</Root>,
+		)
+
+		const footers = shown(allBySlot(container, `${name}-footer`))
+
+		expect(footers).toHaveLength(1)
+
+		expect(footers[0]).toContainElement(within(container).getByRole('button', { name: 'Save' }))
+
+		expect(within(container).queryByRole('button', { name: 'Close' })).not.toBeInTheDocument()
 	})
 
 	it('shows the footer prop as the content of the footer row', () => {

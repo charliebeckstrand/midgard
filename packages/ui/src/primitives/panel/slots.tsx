@@ -1,10 +1,9 @@
 'use client'
 
-import { type ReactNode, useEffect, useLayoutEffect } from 'react'
+import { type ReactNode, useEffect } from 'react'
 import { cn } from '../../core'
 import { k as heading } from '../../recipes/kata/heading'
 import { k } from '../../recipes/kata/panel'
-import { DEFAULT_FOOTER_SCOPE, PanelFooterContext, usePanelFooter } from './panel-footer-context'
 import { usePanelA11y } from './panel-providers'
 import type {
 	PanelBodyProps,
@@ -35,9 +34,11 @@ type PanelSlots = {
  * Title and Description adopt the ambient `PanelA11yContext` ids; Body is the
  * scroll region. Pass `slots` to override individual slot classes.
  *
- * A mounted Footer registers with the panel. `DefaultFooter` is the footer that
- * the root renders after its children, and it renders only while no Footer is
- * registered. So a Footer from the consumer replaces the default footer.
+ * `DefaultFooter` is the footer that the root renders after its children. It
+ * shows only while the panel has no Footer, so a Footer from the consumer
+ * replaces it. A base style of `ui/tailwind.css` makes that decision, not an
+ * effect (`core/panel/base.ts`). Thus the server HTML shows the correct footer
+ * before hydration.
  *
  * @returns The `{ Title, Description, Header, Body, Footer, Content,
  * DefaultFooter }` slot family bound to `slotPrefix`.
@@ -104,32 +105,28 @@ export function createPanel(slotPrefix: string, slots?: PanelSlots) {
 	}
 
 	function Footer({ className, ...props }: PanelFooterProps) {
-		const { register } = usePanelFooter()
-
-		// A layout effect, so the default footer goes before the first paint and
-		// the two footers never show together.
-		useLayoutEffect(() => register?.(), [register])
-
 		return (
-			<div data-slot={`${slotPrefix}-footer`} className={cn(footerClass, className)} {...props} />
+			<div
+				data-slot={`${slotPrefix}-footer`}
+				// The mark that the default footer of the root looks for.
+				data-panel-footer
+				className={cn(footerClass, className)}
+				{...props}
+			/>
 		)
 	}
 
 	/**
-	 * The footer that the root shows when no Footer slot is registered. Pass the
+	 * The footer that the root shows when the panel has no Footer slot. Pass the
 	 * content of the footer row. `null` or `false` shows no footer.
 	 */
 	function DefaultFooter({ children }: { children?: ReactNode }) {
-		const { registered } = usePanelFooter()
-
-		if (registered || children === undefined || children === null || children === false) {
-			return null
-		}
+		if (children === undefined || children === null || children === false) return null
 
 		return (
-			<PanelFooterContext value={DEFAULT_FOOTER_SCOPE}>
-				<Footer>{children}</Footer>
-			</PanelFooterContext>
+			<div data-slot={`${slotPrefix}-footer`} data-panel-fallback className={cn(footerClass)}>
+				{children}
+			</div>
 		)
 	}
 
