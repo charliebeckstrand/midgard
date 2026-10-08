@@ -101,6 +101,8 @@ function CoordinateFields() {
  * The button stays mounted and only its words and its icon change, so the focus
  * stays on it after a press. The icon shows the fields that a press shows: the
  * pin of the address in the place drawer, or a crosshair for one exact point.
+ * The button has no `size`, so it takes the density step of the reader, as the
+ * other buttons of the form do.
  */
 export function PlaceAddressField() {
 	const { value: locateBy = 'address', setValue } = useFormValue<LocateBy>('locateBy', {})
@@ -115,7 +117,6 @@ export function PlaceAddressField() {
 				<Button
 					type="button"
 					variant="plain"
-					size="sm"
 					prefix={<Icon icon={coordinates ? <MapPin /> : <Crosshair />} />}
 					onClick={() => setValue(coordinates ? 'address' : 'coordinates')}
 				>
