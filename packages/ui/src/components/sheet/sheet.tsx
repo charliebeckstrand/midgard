@@ -182,7 +182,6 @@ export function SheetPanel({
 	footer,
 	container,
 	dismissOnBackdrop,
-	appear,
 	initialFocus,
 	modal,
 	backdrop,
@@ -227,7 +226,6 @@ export function SheetPanel({
 			container={container}
 			initialFocus={initialFocus}
 			dismissOnBackdrop={dismissOnBackdrop}
-			appear={appear}
 			modal={modal}
 			backdrop={backdrop}
 			backdropClassName={k.backdrop({ surface: resolvedSurface })}

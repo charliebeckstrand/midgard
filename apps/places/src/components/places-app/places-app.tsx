@@ -526,10 +526,6 @@ export function PlacesApp({
 	// What the form drawer writes, or `null` while it is closed.
 	const formTarget = form ?? (adding ? NEW_PLACE : null)
 
-	// Whether the address opened the form on the load. That form is a restore and
-	// not a step of the reader, so it is up at the first paint and does not slide in.
-	const [addingOnLoad] = useState(adding)
-
 	// Whether the index is up. Its own bit rather than a mode of the drawers: it
 	// docks from the side and they dock from the bottom, so a reader can have a
 	// place open and the list open at once — which is what opening one from the
@@ -925,7 +921,6 @@ export function PlacesApp({
 			{formRendered ? (
 				<PlaceFormDrawer
 					target={formTarget}
-					appear={!addingOnLoad}
 					onOpenChange={(next) => {
 						if (next) return
 

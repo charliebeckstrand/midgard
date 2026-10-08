@@ -3,6 +3,7 @@
 import { FloatingPortal } from '@floating-ui/react'
 import { AnimatePresence } from 'motion/react'
 import { type ReactNode, useEffectEvent, useId, useLayoutEffect, useState } from 'react'
+import { useHydrated } from '../../hooks/use-hydrated'
 import { useDensityScope } from '../density'
 import { useDirectionScope } from '../direction'
 import { ReducedMotion } from '../reduced-motion'
@@ -21,13 +22,18 @@ export type PortalProps = {
 	 */
 	container?: PortalContainer
 	/**
-	 * Whether a surface that mounts open plays its enter animation. Set `false`
-	 * for a surface that the page restores, such as one that a link opens. The
-	 * surface is then on screen at the first paint. Each later open plays the
+	 * Whether a surface that is open in the server render is part of the page.
+	 * The portal then renders it in place on the server and in the hydration
+	 * render, so it paints with the server HTML. After hydration, it moves into
+	 * the portal at rest, with no enter animation. Each later open plays the
 	 * enter, and each close plays the exit.
-	 * @defaultValue true
+	 *
+	 * Only a surface that needs no measurement to place itself can paint before
+	 * hydration. An overlay covers its frame, and a floating surface waits for its
+	 * anchor.
+	 * @defaultValue false
 	 */
-	appear?: boolean
+	ssr?: boolean
 	/** Fires once the exit animation finishes and the portal node unmounts. */
 	onExitComplete?: () => void
 	/** The open surface, mounted while `open` and kept through its exit animation. */
@@ -59,7 +65,8 @@ function PortalScope({ children }: { children: ReactNode }) {
  * @remarks Teleports through floating-ui's `FloatingPortal`, not React's
  * `createPortal`. A floating menu opened inside the surface therefore nests in
  * the portal context, rather than being stranded inert by a modal focus
- * manager's `markOthers`. Client-only: returns `null` during SSR.
+ * manager's `markOthers`. Returns `null` on the server, except for an open
+ * surface with `ssr` set.
  *
  * The teleport takes the surface out of the DOM subtree of the place that
  * opened it, so the attributes that cascade through the DOM do not reach it.
@@ -77,7 +84,7 @@ function PortalScope({ children }: { children: ReactNode }) {
  * exit. When the boundary reveals it, the exit completes at once, without the
  * animation.
  */
-export function Portal({ open, container, appear = true, onExitComplete, children }: PortalProps) {
+export function Portal({ open, container, ssr = false, onExitComplete, children }: PortalProps) {
 	const root = usePortalContainer(container)
 
 	const density = useDensityScope()
@@ -90,10 +97,14 @@ export function Portal({ open, container, appear = true, onExitComplete, childre
 
 	if (open && !mounted) setMounted(true)
 
-	// Whether the next entrance is a restore, which plays no enter. Only the
-	// first one can be: the closed portal unmounts its `AnimatePresence`, so each
+	// `false` on the server and in the hydration render. No portal exists then.
+	const hydrated = useHydrated()
+
+	// Whether the next entrance is a restore, which plays no enter: a surface that
+	// the page painted, first in place and then in the portal. Only the first
+	// entrance can be: the closed portal unmounts its `AnimatePresence`, so each
 	// open mounts a new one, and `initial` reads only at that mount.
-	const [restore, setRestore] = useState(open && !appear)
+	const [restore, setRestore] = useState(ssr && open && !hydrated)
 
 	const handleExitComplete = () => {
 		setMounted(false)
@@ -117,24 +128,28 @@ export function Portal({ open, container, appear = true, onExitComplete, childre
 		completeStoppedExit()
 	}, [])
 
-	if (typeof document === 'undefined' || !mounted) return null
+	if (!mounted || (!hydrated && !ssr)) return null
 
-	return (
-		<FloatingPortal root={root ?? undefined}>
-			<div
-				data-slot="portal"
-				data-density={density ?? undefined}
-				dir={dir ?? undefined}
-				className="contents"
-			>
-				<PortalScope>
-					<ReducedMotion>
-						<AnimatePresence initial={!restore} onExitComplete={handleExitComplete}>
-							{open && children}
-						</AnimatePresence>
-					</ReducedMotion>
-				</PortalScope>
-			</div>
-		</FloatingPortal>
+	const surface = (
+		<div
+			data-slot="portal"
+			data-h={String(hydrated)}
+			data-density={density ?? undefined}
+			dir={dir ?? undefined}
+			className="contents"
+		>
+			<PortalScope>
+				<ReducedMotion>
+					<AnimatePresence initial={!restore} onExitComplete={handleExitComplete}>
+						{open && children}
+					</AnimatePresence>
+				</ReducedMotion>
+			</PortalScope>
+		</div>
 	)
+
+	// In place until hydration. The move remounts the surface, which is still at rest.
+	if (!hydrated) return surface
+
+	return <FloatingPortal root={root ?? undefined}>{surface}</FloatingPortal>
 }
