@@ -73,7 +73,7 @@ function CoordinateFields() {
 			<Field>
 				<Label>Latitude</Label>
 
-				<Input name="latitude" inputMode="decimal" autoComplete="off" placeholder="45.5152" />
+				<Input name="latitude" inputMode="decimal" autoComplete="off" placeholder="45.6789" />
 
 				<Message name="latitude" />
 			</Field>
@@ -81,7 +81,7 @@ function CoordinateFields() {
 			<Field>
 				<Label>Longitude</Label>
 
-				<Input name="longitude" inputMode="decimal" autoComplete="off" placeholder="-122.6784" />
+				<Input name="longitude" inputMode="decimal" autoComplete="off" placeholder="-123.4567" />
 
 				<Message name="longitude" />
 			</Field>
