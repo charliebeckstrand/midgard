@@ -20,6 +20,7 @@ import {
 import { Stack } from 'ui/stack'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'ui/table'
 import { Text } from 'ui/text'
+import { ResetButton } from '../../../kit/reset-button.tsx'
 
 const navItems = [
 	{ icon: <Inbox />, label: 'Inbox', current: true },
@@ -42,16 +43,14 @@ type OrderFilters = {
 	status: string | undefined
 }
 
-function ResetButton() {
+function FiltersReset() {
 	const { activeCount } = useFilters()
 
 	if (activeCount === 0) return null
 
 	return (
 		<FiltersClear>
-			<Button variant="soft" color="red">
-				Reset
-			</Button>
+			<ResetButton />
 		</FiltersClear>
 	)
 }
@@ -84,7 +83,7 @@ function OrdersFilters({
 						</Select>
 					</FiltersField>
 				</FiltersRow>
-				<ResetButton />
+				<FiltersReset />
 			</FiltersBar>
 		</Filters>
 	)

@@ -3,7 +3,7 @@ import { Label } from 'ui/fieldset'
 import { Filters, FiltersBar, FiltersField, FiltersRow, FiltersSuffix } from 'ui/filters'
 import { Input } from 'ui/input'
 import { Select, SelectLabel, SelectOption } from 'ui/select'
-import { FilterValue, ResetButton } from './parts.tsx'
+import { FiltersReset, FilterValue } from './parts.tsx'
 
 type Value = {
 	search: string | undefined
@@ -43,7 +43,7 @@ export default function SearchAndStatus() {
 						</Select>
 					</FiltersField>
 				</FiltersRow>
-				<ResetButton />
+				<FiltersReset />
 			</FiltersBar>
 			<FiltersSuffix>
 				<FilterValue expanded={expanded} onExpandedChange={setExpanded} />

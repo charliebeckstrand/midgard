@@ -1,6 +1,6 @@
-import { Button } from 'ui/button'
 import { FiltersClear, useFilters } from 'ui/filters'
 import { JsonTree } from 'ui/json-tree'
+import { ResetButton } from '../../../kit/reset-button.tsx'
 
 export function FilterValue({
 	expanded,
@@ -20,16 +20,14 @@ export function FilterValue({
 	)
 }
 
-export function ResetButton() {
+export function FiltersReset() {
 	const { activeCount } = useFilters()
 
 	if (activeCount === 0) return null
 
 	return (
 		<FiltersClear>
-			<Button variant="soft" color="red">
-				Reset
-			</Button>
+			<ResetButton />
 		</FiltersClear>
 	)
 }

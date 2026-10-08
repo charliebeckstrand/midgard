@@ -7,19 +7,16 @@ import { Heading, HeadingSkeleton } from 'ui/heading'
 import { ReadyReveal } from 'ui/primitives/ready-reveal'
 import { Stack } from 'ui/stack'
 import { Text, TextSkeleton } from 'ui/text'
+import { resetButtonProps } from '../../../kit/reset-button.tsx'
+
+const simulateProps = { variant: 'outline', children: 'Simulate load' } as const
 
 export default function ProfileCard() {
 	const [ready, setReady] = useState(false)
 
 	return (
 		<>
-			<Button
-				variant={ready ? 'soft' : 'outline'}
-				color={ready ? 'red' : undefined}
-				onClick={() => setReady(!ready)}
-			>
-				{ready ? 'Reset' : 'Simulate load'}
-			</Button>
+			<Button {...(ready ? resetButtonProps : simulateProps)} onClick={() => setReady(!ready)} />
 			<Card>
 				<CardHeader>
 					<Flex gap="md">

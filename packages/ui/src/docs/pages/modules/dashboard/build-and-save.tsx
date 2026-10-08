@@ -37,6 +37,7 @@ import { Spacer } from 'ui/spacer'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import { PointerHint } from '../../../kit/pointer-hint.tsx'
+import { ResetButton } from '../../../kit/reset-button.tsx'
 import {
 	Kpi,
 	type KpiProps,
@@ -317,11 +318,7 @@ export default function BuildAndSave() {
 						</MenuContent>
 					</Menu>
 					<Spacer />
-					{!pristine && (
-						<Button color="red" variant="soft" onClick={() => restart(fresh(initial))}>
-							Reset
-						</Button>
-					)}
+					{!pristine && <ResetButton onClick={() => restart(fresh(initial))} />}
 					{editing && !empty && (
 						<Button variant="outline" onClick={() => handle.current?.tidy()}>
 							Tidy
