@@ -331,6 +331,23 @@ describe('Listbox', () => {
 		expect(screen.getByText('ALPHA')).toBeInTheDocument()
 	})
 
+	it('renders a node from displayValue, and joins the nodes of a multiple selection', () => {
+		const { container } = renderUI(
+			<Listbox<string>
+				multiple
+				truncateTooltip
+				value={['alpha', 'beta']}
+				displayValue={(v) => <b data-testid="mark">{v}</b>}
+			>
+				<div>Option</div>
+			</Listbox>,
+		)
+
+		expect(screen.getAllByTestId('mark')).toHaveLength(2)
+
+		expect(bySlot(container, 'listbox-button')).toHaveTextContent('alpha, beta')
+	})
+
 	it('renders tabular numerals via a tabular-nums className that inherits to the value', () => {
 		const { container } = renderUI(
 			<Listbox className="tabular-nums" value="1.234" displayValue={(v) => v}>

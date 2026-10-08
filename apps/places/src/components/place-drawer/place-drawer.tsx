@@ -1,6 +1,6 @@
 'use client'
 
-import { CalendarDays, Copy, Globe, Heart, MapPin, Tag, X } from 'lucide-react'
+import { ArrowUpDown, CalendarDays, Copy, Globe, Heart, MapPin, Tag, X } from 'lucide-react'
 import Image from 'next/image'
 import { type ReactElement, type ReactNode, useEffect, useMemo, useState } from 'react'
 import { Badge } from 'ui/badge'
@@ -433,12 +433,14 @@ function PlaceList({
 					<CategoryPicker
 						value={categories}
 						onValueChange={onCategoriesChange}
+						prefix={<Icon icon={<Tag />} />}
 						className="w-full sm:w-52"
 					/>
 				) : null}
 
 				<Listbox<PlaceOrder>
 					aria-label="Sort"
+					prefix={<Icon icon={<ArrowUpDown />} />}
 					className="w-full sm:w-44"
 					displayValue={(value) => PLACE_ORDER_LABEL[value]}
 					value={order}

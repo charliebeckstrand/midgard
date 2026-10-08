@@ -1,24 +1,16 @@
 'use client'
 
 import { Field, Label, Message } from 'ui/fieldset'
-import { useFormValue } from 'ui/form'
-import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
-import { Swatch } from 'ui/swatch'
-import { CATEGORIES, CATEGORY_BY_VALUE, categoryLabel } from '../../constants'
+import { Listbox } from 'ui/listbox'
 import type { PlaceCategory } from '../../types'
+import { CategoryOptions, categoryDisplayValue } from '../category-picker'
 
 /**
  * The category of the place. Each option and the trigger carry the category
- * color, which is the color of the dot on the map.
- *
- * The `displayValue` of the Listbox gives only text, so the trigger shows the
- * swatch as its prefix. The field reads the form value to find that color.
+ * color, which is the color of the dot on the map. The options and the trigger
+ * label come from the category picker, so the two category fields cannot drift.
  */
 export function PlaceCategoryField() {
-	const { value } = useFormValue<PlaceCategory>('category', {})
-
-	const selected = value === undefined ? undefined : CATEGORY_BY_VALUE.get(value)
-
 	return (
 		<Field>
 			<Label>Category</Label>
@@ -31,18 +23,9 @@ export function PlaceCategoryField() {
 				name="category"
 				placeholder="Pick a category"
 				clearable
-				displayValue={categoryLabel}
-				prefix={selected ? <Swatch shape="circle" color={selected.color} /> : undefined}
+				displayValue={categoryDisplayValue}
 			>
-				{CATEGORIES.map((category) => (
-					<ListboxOption key={category.value} value={category.value}>
-						{/* The option row lays its children out flush, so the swatch carries
-						    its own gap. */}
-						<Swatch shape="circle" color={category.color} className="mr-2" />
-
-						<ListboxLabel>{category.label}</ListboxLabel>
-					</ListboxOption>
-				))}
+				<CategoryOptions />
 			</Listbox>
 
 			<Message name="category" />
