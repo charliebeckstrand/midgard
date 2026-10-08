@@ -10,15 +10,14 @@ import { Field, Label, Message } from 'ui/fieldset'
 import { Form, type SubmitResult } from 'ui/form'
 import { Icon } from 'ui/icon'
 import { Input } from 'ui/input'
-import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 import { Rating } from 'ui/rating'
 import { Columns } from 'ui/structure/columns'
 import { Flex } from 'ui/structure/flex'
 import { Text } from 'ui/text'
 import { ToggleIconButton } from 'ui/toggle-icon-button'
-import { CATEGORIES, categoryLabel } from '../../constants'
-import type { PlaceCategory, PlaceDraft } from '../../types'
+import type { PlaceDraft } from '../../types'
 import { PlaceAddressField } from './place-address-field'
+import { PlaceCategoryField } from './place-category-field'
 import {
 	locatePlace,
 	type PlaceFormTarget,
@@ -249,28 +248,7 @@ export function PlaceFormDrawer({ target, onOpenChange, onSubmit, appear }: Plac
 										<Message name="name" />
 									</Field>
 
-									<Field>
-										<Label>Category</Label>
-
-										{/* Clearable, because a reader who picked the wrong one otherwise has
-									    no way back to having picked nothing. Category is required, so
-									    clearing surfaces the field's own message on submit rather than
-									    writing a place without one. */}
-										<Listbox<PlaceCategory>
-											name="category"
-											placeholder="Pick a category"
-											clearable
-											displayValue={categoryLabel}
-										>
-											{CATEGORIES.map((category) => (
-												<ListboxOption key={category.value} value={category.value}>
-													<ListboxLabel>{category.label}</ListboxLabel>
-												</ListboxOption>
-											))}
-										</Listbox>
-
-										<Message name="category" />
-									</Field>
+									<PlaceCategoryField />
 
 									<div className="sm:col-span-2">
 										<PlaceAddressField />
