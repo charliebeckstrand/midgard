@@ -20,6 +20,14 @@ export type PortalProps = {
 	 * then floating-ui's own root. @see {@link usePortalContainer}
 	 */
 	container?: PortalContainer
+	/**
+	 * Whether a surface that mounts open plays its enter animation. Set `false`
+	 * for a surface that the page restores, such as one that a link opens. The
+	 * surface is then on screen at the first paint. Each later open plays the
+	 * enter, and each close plays the exit.
+	 * @defaultValue true
+	 */
+	appear?: boolean
 	/** Fires once the exit animation finishes and the portal node unmounts. */
 	onExitComplete?: () => void
 	/** The open surface, mounted while `open` and kept through its exit animation. */
@@ -69,7 +77,7 @@ function PortalScope({ children }: { children: ReactNode }) {
  * exit. When the boundary reveals it, the exit completes at once, without the
  * animation.
  */
-export function Portal({ open, container, onExitComplete, children }: PortalProps) {
+export function Portal({ open, container, appear = true, onExitComplete, children }: PortalProps) {
 	const root = usePortalContainer(container)
 
 	const density = useDensityScope()
@@ -82,8 +90,15 @@ export function Portal({ open, container, onExitComplete, children }: PortalProp
 
 	if (open && !mounted) setMounted(true)
 
+	// Whether the next entrance is a restore, which plays no enter. Only the
+	// first one can be: the closed portal unmounts its `AnimatePresence`, so each
+	// open mounts a new one, and `initial` reads only at that mount.
+	const [restore, setRestore] = useState(open && !appear)
+
 	const handleExitComplete = () => {
 		setMounted(false)
+
+		setRestore(false)
 
 		onExitComplete?.()
 	}
@@ -114,7 +129,7 @@ export function Portal({ open, container, onExitComplete, children }: PortalProp
 			>
 				<PortalScope>
 					<ReducedMotion>
-						<AnimatePresence onExitComplete={handleExitComplete}>
+						<AnimatePresence initial={!restore} onExitComplete={handleExitComplete}>
 							{open && children}
 						</AnimatePresence>
 					</ReducedMotion>
