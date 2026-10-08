@@ -4,12 +4,30 @@
  * Layer: kiso · Concern: density ramps
  */
 
+/**
+ * The icon scale at the inner steps: `size-4` to `size-6`. In an `xs` scope it
+ * takes `sm`, and in an `xl` scope it takes `lg`.
+ */
+const inner = 'density-size-[4,5,6]'
+
 export const size = {
 	icon: {
 		/** An icon and a loading spinner. `shaku.icon.size` holds the same steps. */
 		base: 'density-size-[3,4,5,6,6]',
 		/** An icon in the icon slot of a host. */
 		slot: '*:data-[slot=icon]:density-size-[3,4,5,6,6]',
+		/**
+		 * An icon in a nav item and a sidebar item. It stops at `sm` and `lg`, as the
+		 * text, the gap, and the padding of the row do.
+		 */
+		row: {
+			/** The icon element, for the skeleton of a row. */
+			base: inner,
+			/** An icon in the icon slot of a row. */
+			slot: '*:data-[slot=icon]:density-size-[4,5,6]',
+			/** A loading spinner in a sidebar row, the same size as the icon of the row. */
+			spinner: '*:data-[slot=loading-spinner]:density-size-[4,5,6]',
+		},
 	},
 	/** A loading dot. */
 	dot: 'density-size-[1,1.5,2,2.5,2.5]',
@@ -36,7 +54,7 @@ export const size = {
 		 * The box of a checkbox and a radio, the color picker swatch, the check of an
 		 * option, and a rating star.
 		 */
-		box: 'density-size-[4,5,6]',
+		box: inner,
 	},
 	radio: {
 		/** The dot of a checked radio. */

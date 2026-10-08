@@ -12,6 +12,7 @@ import { Icon } from '../../components/icon'
 import { Input } from '../../components/input'
 import { List, ListItem } from '../../components/list'
 import { LoadingDots, LoadingSpinner } from '../../components/loading'
+import { NavItem } from '../../components/nav'
 import { PasswordInput } from '../../components/password-input'
 import { Placeholder } from '../../components/placeholder'
 import { ProgressBar, ProgressGauge } from '../../components/progress'
@@ -455,9 +456,30 @@ describe('items and slots at the first paint (real browser)', () => {
 		expect(px(inner, 'fontSize')).toBe(14)
 
 		// The row padding wins over the label padding of the inner Button.
-		expect(px(inner, 'paddingTop')).toBe(5)
+		expect(px(inner, 'paddingTop')).toBe(6)
 
 		expect(px(container.querySelector('[data-slot="icon"]'), 'width')).toBe(16)
+	})
+
+	it('stops an unsized sidebar item and its icon at sm under an xs root', () => {
+		writeRootDensity(document.documentElement, 'xs')
+
+		const container = mountMarkup(
+			<SidebarItem icon={icon}>
+				<LoadingSpinner label="Loading" />
+				Home
+			</SidebarItem>,
+		)
+
+		const inner = container.querySelector('[data-slot="sidebar-item-inner"]')
+
+		expect(px(inner, 'fontSize')).toBe(14)
+
+		expect(px(inner, 'paddingTop')).toBe(6)
+
+		expect(px(container.querySelector('[data-slot="icon"]'), 'width')).toBe(16)
+
+		expect(px(container.querySelector('[data-slot="loading-spinner"]'), 'width')).toBe(16)
 	})
 
 	it.each([
@@ -475,6 +497,20 @@ describe('items and slots at the first paint (real browser)', () => {
 		expect(px(container.querySelector('[data-slot="loading-spinner"]'), 'width')).toBe(width)
 
 		expect(px(container.querySelector('[data-slot="icon"]'), 'width')).toBe(width)
+	})
+
+	it('stops an unsized nav item and its icon at sm under an xs root', () => {
+		writeRootDensity(document.documentElement, 'xs')
+
+		const container = mountMarkup(<NavItem icon={icon}>Home</NavItem>)
+
+		const inner = container.querySelector('[data-slot="nav-item-inner"]')
+
+		expect(px(inner, 'fontSize')).toBe(14)
+
+		expect(px(inner, 'paddingTop')).toBe(6)
+
+		expect(px(container.querySelector('[data-slot="icon"]'), 'width')).toBe(16)
 	})
 
 	it('lets an explicit size of a sidebar item win over the root', () => {

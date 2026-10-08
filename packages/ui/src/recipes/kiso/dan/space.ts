@@ -33,6 +33,9 @@ const scale = {
 	},
 } as const
 
+/** The padding of a nav item and a sidebar item. */
+const navItem = 'density-p-[1.5,2,2.5]'
+
 export const space = {
 	scale,
 
@@ -65,7 +68,7 @@ export const space = {
 	},
 	nav: {
 		/** The padding of a nav item. */
-		item: 'density-p-[1.5,2,2.5]',
+		item: navItem,
 	},
 	/** The padding of an alert and a code block. */
 	alert: scale.p.lg,
@@ -158,10 +161,10 @@ export const space = {
 	},
 	sidebar: {
 		item: {
-			/** The padding of a sidebar item, inside its ring. */
-			base: 'density-p-ring-[1.5,2,2.5]',
+			/** The padding of a sidebar item. It equals `nav.item`, because the item draws no ring. */
+			base: navItem,
 			/** The block padding of the button of a sidebar item, equal to the row padding. */
-			label: 'data-has-label:density-py-ring-[1.5,2,2.5]',
+			label: 'data-has-label:density-py-[1.5,2,2.5]',
 		},
 	},
 	badge: {
