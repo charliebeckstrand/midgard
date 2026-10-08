@@ -19,6 +19,7 @@ import type { PlaceView } from './places-view'
  * - `paint` — which regions carry the visited fill.
  * - `when` — repeated, one `YYYY-MM-DD..YYYY-MM-DD` span per committed range.
  * - `place` — repeated, one per place the open panel stands for.
+ * - `add` — `true` while the form for a new place is open.
  */
 export type PlaceLocation = {
 	/**
@@ -32,6 +33,12 @@ export type PlaceLocation = {
 	filter: PlaceFilterValue
 	/** The places the open panel stands for, by id. */
 	selected: readonly string[]
+	/**
+	 * Whether the form for a new place is open. It is in the address so that a
+	 * reload or a shared link opens the form again. An edit and a visit are not:
+	 * each names a record that a link can outlive.
+	 */
+	adding: boolean
 }
 
 /**
@@ -123,6 +130,11 @@ export function readSelected(params: URLSearchParams): readonly string[] {
 	return list(params, 'place')
 }
 
+/** Whether the form for a new place is open. Only `true` opens it. */
+export function readAdding(params: URLSearchParams): boolean {
+	return text(params, 'add') === 'true'
+}
+
 /**
  * Reads an address as a location.
  *
@@ -132,7 +144,12 @@ export function readSelected(params: URLSearchParams): readonly string[] {
  * stale link opens the app it can rather than an error.
  */
 export function readLocation(params: URLSearchParams): PlaceLocation {
-	return { view: readView(params), filter: readFilter(params), selected: readSelected(params) }
+	return {
+		view: readView(params),
+		filter: readFilter(params),
+		selected: readSelected(params),
+		adding: readAdding(params),
+	}
 }
 
 /**
@@ -143,7 +160,7 @@ export function readLocation(params: URLSearchParams): PlaceLocation {
  * `country` at all, which is what {@link PlaceLocation.view} reads back as
  * "the opening rule still has the say".
  */
-export function writeLocation({ view, filter, selected }: PlaceLocation): URLSearchParams {
+export function writeLocation({ view, filter, selected, adding }: PlaceLocation): URLSearchParams {
 	const params = new URLSearchParams()
 
 	if (view !== null) {
@@ -163,6 +180,8 @@ export function writeLocation({ view, filter, selected }: PlaceLocation): URLSea
 	}
 
 	for (const id of selected) params.append('place', id)
+
+	if (adding) params.set('add', 'true')
 
 	return params
 }

@@ -17,11 +17,17 @@ function read(query: string): PlaceLocation {
 
 /** A location, written back as a query string. */
 function write(location: Partial<PlaceLocation>): string {
-	return writeLocation({ view: null, filter: {}, selected: [], ...location }).toString()
+	return writeLocation({
+		view: null,
+		filter: {},
+		selected: [],
+		adding: false,
+		...location,
+	}).toString()
 }
 
 /** The empty location, which is what an address states before the reader does anything. */
-const NOTHING: PlaceLocation = { view: null, filter: {}, selected: [] }
+const NOTHING: PlaceLocation = { view: null, filter: {}, selected: [], adding: false }
 
 describe('readLocation', () => {
 	it('reads an empty address as nothing stated', () => {
@@ -105,8 +111,16 @@ describe('readLocation', () => {
 		expect(read('place=a1&place=b2').selected).toEqual(['a1', 'b2'])
 	})
 
+	it('reads the open form for a new place, and only from a value of "true"', () => {
+		expect(read('add=true').adding).toBe(true)
+
+		expect(read('add=false').adding).toBe(false)
+
+		expect(read('add=1').adding).toBe(false)
+	})
+
 	it('drops empty fields rather than holding them', () => {
-		expect(read('state=&category=&place=&paint=')).toEqual(NOTHING)
+		expect(read('state=&category=&place=&paint=&add=')).toEqual(NOTHING)
 	})
 })
 
@@ -142,6 +156,12 @@ describe('writeLocation', () => {
 	it('writes the open places', () => {
 		expect(write({ selected: ['a1', 'b2'] })).toBe('place=a1&place=b2')
 	})
+
+	it('writes the open form for a new place, and nothing while it is closed', () => {
+		expect(write({ adding: true })).toBe('add=true')
+
+		expect(write({ adding: false })).toBe('')
+	})
 })
 
 describe('a location round trip', () => {
@@ -159,13 +179,14 @@ describe('a location round trip', () => {
 				],
 			},
 			selected: ['a1', 'b2'],
+			adding: true,
 		}
 
 		expect(readLocation(writeLocation(location))).toEqual(location)
 	})
 
 	it('survives the world, which is the case the mark exists for', () => {
-		const location: PlaceLocation = { view: WORLD, filter: {}, selected: [] }
+		const location: PlaceLocation = { view: WORLD, filter: {}, selected: [], adding: false }
 
 		expect(readLocation(writeLocation(location))).toEqual(location)
 	})
@@ -175,6 +196,7 @@ describe('a location round trip', () => {
 			view: { country: "Côte d'Ivoire", state: null },
 			filter: {},
 			selected: [],
+			adding: false,
 		}
 
 		expect(readLocation(writeLocation(location))).toEqual(location)
