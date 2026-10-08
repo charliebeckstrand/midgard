@@ -112,6 +112,12 @@ function usePanelRendered(open: boolean, loaded: boolean): boolean {
 	return opened || open || loaded
 }
 
+/**
+ * The target of the form for a new place. It is held so that its identity is
+ * stable, because the drawer takes a new target as a new open.
+ */
+const NEW_PLACE: PlaceFormTarget = { kind: 'place', place: null }
+
 /** The empty list a pending places query stands in for, held so its identity is stable. */
 const NO_PLACES: Place[] = []
 
@@ -503,16 +509,22 @@ export function PlacesApp({
 		view: stated,
 		filter,
 		selected: selectedIds,
+		adding,
 		setView,
 		setFilter,
 		setSelected,
 		settleView,
 		openAt,
+		setAdding,
 	} = usePlaceLocation()
 
-	// What the form drawer writes, or `null` while it is closed: a new place, an
-	// edit of one, or a visit to one.
+	// An edit of a place or a visit to one, or `null`. A new place is not held
+	// here: the address holds it, so that a reload or a shared link opens the form
+	// again.
 	const [form, setForm] = useState<PlaceFormTarget | null>(null)
+
+	// What the form drawer writes, or `null` while it is closed.
+	const formTarget = form ?? (adding ? NEW_PLACE : null)
 
 	// Whether the index is up. Its own bit rather than a mode of the drawers: it
 	// docks from the side and they dock from the bottom, so a reader can have a
@@ -562,7 +574,7 @@ export function PlacesApp({
 	)
 
 	// Held for the palette's action source, which is a memo keyed on it.
-	const onAdd = useCallback(() => setForm({ kind: 'place', place: null }), [])
+	const onAdd = useCallback(() => setAdding(true), [setAdding])
 
 	// Which state holds each place. It answers the opening question — a collection
 	// the states atlas accounts for whole is a collection inside the United States
@@ -599,7 +611,7 @@ export function PlacesApp({
 
 	const panelsLoaded = usePanelPrefetch()
 
-	const formOpen = form !== null
+	const formOpen = formTarget !== null
 
 	const formRendered = usePanelRendered(formOpen, panelsLoaded)
 
@@ -908,12 +920,16 @@ export function PlacesApp({
 			    part of the first load. */}
 			{formRendered ? (
 				<PlaceFormDrawer
-					target={form}
+					target={formTarget}
 					onOpenChange={(next) => {
-						if (!next) setForm(null)
+						if (next) return
+
+						setForm(null)
+
+						if (adding) setAdding(false)
 					}}
 					onSubmit={(draft) => {
-						const place = form?.place ?? null
+						const place = formTarget?.place ?? null
 
 						return place === null
 							? addPlace.mutateAsync(draft)

@@ -5,6 +5,7 @@ import { useCallback, useMemo, useState } from 'react'
 import type { PlaceFilterValue } from '../../utilities/places-filter'
 import {
 	type PlaceLocation,
+	readAdding,
 	readFilter,
 	readSelected,
 	readView,
@@ -47,6 +48,11 @@ export type PlaceLocationHandle = PlaceLocation & {
 	 * by their own reload.
 	 */
 	settleView: (view: PlaceView) => void
+	/**
+	 * Opens or closes the form for a new place, without a history entry. A step
+	 * would let Back open the form again after a submit.
+	 */
+	setAdding: (adding: boolean) => void
 }
 
 /**
@@ -102,11 +108,13 @@ export function usePlaceLocation(): PlaceLocationHandle {
 
 	const selected = useSlice(params, readSelected)
 
+	const adding = readAdding(params)
+
 	// Where the reader is, whole. Held rather than rebuilt, so a setter that
 	// changes one part is not a new identity for the two it leaves alone.
 	const location = useMemo<PlaceLocation>(
-		() => ({ view, filter, selected }),
-		[view, filter, selected],
+		() => ({ view, filter, selected, adding }),
+		[view, filter, selected, adding],
 	)
 
 	// Takes the parts that move and composes them over the parts that do not, so
@@ -148,10 +156,23 @@ export function usePlaceLocation(): PlaceLocationHandle {
 
 	const setFilter = useCallback((filter: PlaceFilterValue) => write({ filter }, 'stay'), [write])
 
+	const setAdding = useCallback((adding: boolean) => write({ adding }, 'stay'), [write])
+
 	const setSelected = useCallback(
 		(selected: readonly string[]) => write({ selected }, 'walk'),
 		[write],
 	)
 
-	return { view, filter, selected, setView, setFilter, setSelected, settleView, openAt }
+	return {
+		view,
+		filter,
+		selected,
+		adding,
+		setView,
+		setFilter,
+		setSelected,
+		settleView,
+		openAt,
+		setAdding,
+	}
 }
