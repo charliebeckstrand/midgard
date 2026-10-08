@@ -175,12 +175,7 @@ function PlacePhoto({ src, alt }: { src: string; alt: string }) {
 	return (
 		<div className="relative size-24 shrink-0">
 			{status === 'loaded' ? null : (
-				<Placeholder
-					className={cn(
-						'absolute inset-0 size-full',
-						status === 'failed' && 'motion-safe:animate-none',
-					)}
-				/>
+				<Placeholder pulse={status === 'loading'} className="absolute inset-0 size-full" />
 			)}
 
 			{status === 'failed' ? null : (
