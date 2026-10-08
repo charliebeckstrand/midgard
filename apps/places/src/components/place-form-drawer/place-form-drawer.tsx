@@ -54,6 +54,12 @@ export type PlaceFormDrawerProps = {
 	 * drawer shows the message of the error.
 	 */
 	onSubmit: (draft: PlaceDraft) => Promise<unknown>
+	/**
+	 * Whether a drawer that mounts open slides in. Set `false` where the address
+	 * opened the drawer on a load, so the drawer is already up at the first paint.
+	 * @defaultValue true
+	 */
+	appear?: boolean
 }
 
 /**
@@ -110,7 +116,7 @@ function failureMessage(error: unknown): string {
  * position from it. Where the geocoder does not find the address either, the
  * reader types the latitude and the longitude ({@link PlaceAddressField}).
  */
-export function PlaceFormDrawer({ target, onOpenChange, onSubmit }: PlaceFormDrawerProps) {
+export function PlaceFormDrawer({ target, onOpenChange, onSubmit, appear }: PlaceFormDrawerProps) {
 	const open = target !== null
 
 	// The target the panel last opened on. A close clears the caller's, and the
@@ -156,6 +162,7 @@ export function PlaceFormDrawer({ target, onOpenChange, onSubmit }: PlaceFormDra
 				// jumped would move the fields under the reader's cursor at the moment they
 				// are being told to fix one.
 				height="fit"
+				appear={appear}
 				aria-label={title}
 			>
 				<Flex justify="between" align="center" className="px-6 pt-6">
