@@ -8,19 +8,20 @@ import { addressLine } from './place-form'
 import { placeGeocoder } from './place-geocoder'
 
 /**
- * The search field: one control that fills three of the form's fields.
+ * The search field: one control that fills five of the form's fields.
  *
- * `place` is its own, bound by name. A pick also writes `name` and `address`
- * through the form's actions, which is the sanctioned way to write a field a
- * control does not own and keeps this component off that field's re-render path.
+ * `place` is its own, bound by name. A pick also writes `name`, `address`,
+ * `latitude`, and `longitude` through the form's actions. That is the
+ * sanctioned way to write a field that a control does not own, and it keeps
+ * this component off the re-render path of that field.
  *
- * A pick always writes the address, because the address and the match must
- * agree: the match is the position, and the address says where that position
- * is. The name is different. The name the reader searched for is the name they
- * mean, so a pick writes it, but it leaves a name the reader typed. It replaces
- * a name that an earlier pick wrote, so picking the wrong business and then the
- * right one ends with the right name. A plain address names nothing, so a pick of
- * one leaves the name alone.
+ * A pick always writes the address and the coordinates, because they and the
+ * match must agree: the match is the position, and the address says where that
+ * position is. The name is different. The name the reader searched for is the
+ * name they mean, so a pick writes it, but it leaves a name the reader typed. It
+ * replaces a name that an earlier pick wrote, so picking the wrong business and
+ * then the right one ends with the right name. A plain address names nothing, so
+ * a pick of one leaves the name alone.
  */
 export function PlaceSearchField() {
 	const actions = useFormActions()
@@ -35,6 +36,12 @@ export function PlaceSearchField() {
 		if (place === null) return
 
 		actions?.setValue('address', addressLine(place))
+
+		if (place.latitude !== undefined && place.longitude !== undefined) {
+			actions?.setValue('latitude', String(place.latitude))
+
+			actions?.setValue('longitude', String(place.longitude))
+		}
 
 		if (place.name === undefined) return
 

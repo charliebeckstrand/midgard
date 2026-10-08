@@ -107,7 +107,8 @@ function failureMessage(error: unknown): string {
  * place reaches the map without the reader ever typing coordinates — see
  * {@link PlaceSearchField} for what one pick fills in. For a place that the
  * search does not find, the reader types the address, and a submit finds the
- * position from it ({@link PlaceAddressField}).
+ * position from it. Where the geocoder does not find the address either, the
+ * reader types the latitude and the longitude ({@link PlaceAddressField}).
  */
 export function PlaceFormDrawer({ target, onOpenChange, onSubmit }: PlaceFormDrawerProps) {
 	const open = target !== null
@@ -201,7 +202,8 @@ export function PlaceFormDrawer({ target, onOpenChange, onSubmit }: PlaceFormDra
 								if (located === null) {
 									return {
 										fieldErrors: {
-											address: 'That address was not found. Check it, or search for the place.',
+											address:
+												'That address was not found. Check it, search for the place, or input its coordinates.',
 										},
 									}
 								}

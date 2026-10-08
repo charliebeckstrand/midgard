@@ -3,11 +3,14 @@
 import { Info } from 'lucide-react'
 import { Button } from 'ui/button'
 import { Field, Label, Message } from 'ui/fieldset'
-import { useFormActions } from 'ui/form'
+import { useFormActions, useFormValue } from 'ui/form'
 import { Icon } from 'ui/icon'
 import { Input } from 'ui/input'
+import { Columns } from 'ui/structure/columns'
 import { Flex } from 'ui/structure/flex'
+import { Stack } from 'ui/structure/stack'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
+import type { LocateBy } from './place-form'
 
 /**
  * The address field. A pick in the search fills it, and the reader can type it
@@ -26,7 +29,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
  * The button is `sm`, so that it is not taller than the label and the row keeps
  * the gap of a plain label. Its hit area stays at 44 px on a touch screen.
  */
-export function PlaceAddressField() {
+function AddressInputField() {
 	const actions = useFormActions()
 
 	return (
@@ -50,11 +53,73 @@ export function PlaceAddressField() {
 			<Input
 				name="address"
 				autoComplete="street-address"
-				placeholder="Street, city, state"
+				placeholder="Street, city, state, zip"
 				onChange={() => actions?.setValue('place', undefined)}
 			/>
 
 			<Message name="address" />
 		</Field>
+	)
+}
+
+/**
+ * The latitude and the longitude, in decimal degrees. A pick in the search
+ * fills them. The keyboard of a touch screen shows the decimal keys, and the
+ * reader types the minus sign of a south latitude or a west longitude.
+ */
+function CoordinateFields() {
+	return (
+		<Columns columns={{ initial: 1, sm: 2 }} gap="xl" align="start">
+			<Field>
+				<Label>Latitude</Label>
+
+				<Input name="latitude" inputMode="decimal" autoComplete="off" placeholder="45.5152" />
+
+				<Message name="latitude" />
+			</Field>
+
+			<Field>
+				<Label>Longitude</Label>
+
+				<Input name="longitude" inputMode="decimal" autoComplete="off" placeholder="-122.6784" />
+
+				<Message name="longitude" />
+			</Field>
+		</Columns>
+	)
+}
+
+/**
+ * Where the place is: the address, or the latitude and the longitude for a
+ * place that the geocoder does not find. A button under the fields changes
+ * between the two, and `locateBy` holds which one gives the position.
+ *
+ * The other fields keep their values while they do not show. Thus a reader can
+ * type the address, change to the coordinates when the address is not found,
+ * and the place keeps the typed address as its address line.
+ *
+ * The button stays mounted and only its words change, so the focus stays on it
+ * after a press.
+ */
+export function PlaceAddressField() {
+	const { value: locateBy = 'address', setValue } = useFormValue<LocateBy>('locateBy', {})
+
+	const coordinates = locateBy === 'coordinates'
+
+	return (
+		<Stack gap="sm">
+			{coordinates ? <CoordinateFields /> : <AddressInputField />}
+
+			<div>
+				<Button
+					type="button"
+					variant="plain"
+					size="sm"
+					onClick={() => setValue(coordinates ? 'address' : 'coordinates')}
+				>
+					{coordinates ? 'Input address' : 'Input coordinates'}
+				</Button>
+			</div>
+		</Stack>
 	)
 }
