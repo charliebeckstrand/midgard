@@ -1,6 +1,6 @@
 'use client'
 
-import { type FocusEventHandler, type Ref, useRef } from 'react'
+import { type FocusEventHandler, type ReactNode, type Ref, useRef } from 'react'
 import { ariaAttr, cn, dataAttr, type ValidationAttrs } from '../../core'
 import { useIsTruncated } from '../../hooks'
 import { HeadlessProvider } from '../../providers/headless'
@@ -21,11 +21,11 @@ type ListboxButtonProps = {
 	required?: boolean
 	/** The resolved validation attributes. The frame paints its ring from them. */
 	validation?: ValidationAttrs
-	label?: string
+	label?: ReactNode
 	onBlur?: FocusEventHandler<HTMLButtonElement>
 	placeholder: string
 	truncate: boolean
-	/** Shows the whole label in a hover tooltip while the trigger truncates it. */
+	/** Shows the whole label in a hover tooltip while the trigger truncates it. A label that is not a string shows no tooltip. */
 	truncateTooltip: boolean
 	/** Holds the truncation tooltip closed while the panel is open. */
 	truncateTooltipSuppressed: boolean
@@ -111,7 +111,8 @@ export function ListboxButton({
 				{...validation}
 				className={cn(k())}
 			>
-				{truncateTooltip && label ? (
+				{/* The truncation measure reads a string, so a node label skips the tooltip. */}
+				{truncateTooltip && typeof label === 'string' && label ? (
 					<ListboxTruncateTooltip
 						label={label}
 						truncate={truncate}

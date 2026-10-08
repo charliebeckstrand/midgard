@@ -80,7 +80,8 @@ type ListboxBaseProps = GroupStampProps & {
 	/**
 	 * Shows the whole selected label in a tooltip on hover while the trigger
 	 * truncates it. The tooltip does not open while the panel is open. A touch
-	 * press does not open it, as with any hover tooltip.
+	 * press does not open it, as with any hover tooltip. A label that is not a
+	 * string shows no tooltip.
 	 * @defaultValue false
 	 */
 	truncateTooltip?: boolean
@@ -139,7 +140,12 @@ type ListboxMultipleProps<T> = {
  * @typeParam T - The option value type.
  */
 export type ListboxProps<T> = ListboxBaseProps & {
-	displayValue?: (value: T) => string
+	/**
+	 * Gives the trigger label of a selected value. A string takes `capitalize` and
+	 * the `truncateTooltip`. A node, such as a swatch next to a name, renders as
+	 * written and shows no truncation tooltip.
+	 */
+	displayValue?: (value: T) => ReactNode
 } & (ListboxSingleProps<T> | ListboxMultipleProps<T>)
 
 /** True when the listbox holds a selection: a non-empty array in `multiple` mode, else a defined scalar. @internal */

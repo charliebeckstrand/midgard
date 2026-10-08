@@ -1,9 +1,10 @@
 'use client'
 
-import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
-import { Swatch } from 'ui/swatch'
-import { CATEGORIES, categoryLabel } from '../../constants'
+import type { ReactNode } from 'react'
+import { Listbox } from 'ui/listbox'
+import { categoryLabel } from '../../constants'
 import type { PlaceCategory } from '../../types'
+import { CategoryOptions } from './category-options'
 
 /** Props for {@link CategoryPicker}. */
 export type CategoryPickerProps = {
@@ -14,6 +15,8 @@ export type CategoryPickerProps = {
 	value: readonly PlaceCategory[]
 	/** Fires with the picked categories, empty where the reader cleared them. */
 	onValueChange: (categories: PlaceCategory[]) => void
+	/** The prefix of the trigger, such as an icon that names the field. */
+	prefix?: ReactNode
 	className?: string
 }
 
@@ -22,33 +25,28 @@ export type CategoryPickerProps = {
  * and the list inside a drawer.
  *
  * Each option carries its category's color, which is the only key the map has:
- * the dots are painted by category and nothing else names those colors.
+ * the dots are painted by category and nothing else names those colors. The
+ * trigger shows the names alone. A caller can give it a prefix icon, and a
+ * swatch for each name next to that icon makes a busy trigger.
  *
  * An empty pick is not "admit nothing". A reader who clears the last category
  * means to stop filtering, so both callers read empty as unfiltered and the
  * component says so once here rather than at each of them.
  */
-export function CategoryPicker({ value, onValueChange, className }: CategoryPickerProps) {
+export function CategoryPicker({ value, onValueChange, prefix, className }: CategoryPickerProps) {
 	return (
 		<Listbox<PlaceCategory>
 			multiple
 			aria-label="Categories"
 			placeholder="All categories"
 			clearable
+			prefix={prefix}
 			className={className}
 			displayValue={categoryLabel}
 			value={[...value]}
 			onValueChange={onValueChange}
 		>
-			{CATEGORIES.map((category) => (
-				<ListboxOption key={category.value} value={category.value}>
-					{/* The option row lays its children out flush, so the swatch carries
-					    its own gap. */}
-					<Swatch shape="circle" color={category.color} className="mr-2" />
-
-					<ListboxLabel>{category.label}</ListboxLabel>
-				</ListboxOption>
-			))}
+			<CategoryOptions />
 		</Listbox>
 	)
 }

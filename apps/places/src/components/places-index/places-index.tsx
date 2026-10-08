@@ -1,6 +1,6 @@
 'use client'
 
-import { Info, X } from 'lucide-react'
+import { Info, MapIcon, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Badge } from 'ui/badge'
 import { Button } from 'ui/button'
@@ -286,13 +286,17 @@ export function PlacesIndex({
 						//
 						// "All regions" rather than the bar's "All states", because this panel
 						// names the column "Region" and answers in its own vocabulary.
+						//
+						// The toolbar is a size container. It stacks its row under `@lg`, and
+						// there the filter fills the row, as the search above it does.
 						toolbar={
 							regions.length > 1 ? (
 								<Listbox<string>
 									aria-label="Region"
 									placeholder="All regions"
 									clearable
-									className="w-52"
+									prefix={<Icon icon={<MapIcon />} />}
+									className="w-full @lg:w-52"
 									displayValue={(name) => name}
 									value={picked}
 									onValueChange={setPicked}

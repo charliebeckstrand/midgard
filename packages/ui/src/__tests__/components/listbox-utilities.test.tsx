@@ -60,6 +60,14 @@ describe('resolveLabel', () => {
 		).toBe('4 selected')
 	})
 
+	it('returns a node from displayValue in single mode, untouched by capitalize', () => {
+		const node = <b>alpha</b>
+
+		expect(
+			resolveLabel({ value: 'a', displayValue: () => node, multiple: false, capitalize: true }),
+		).toBe(node)
+	})
+
 	it('summarizes the selection count when displayValue is missing', () => {
 		expect(resolveLabel({ value: ['a', 'b'], multiple: true })).toBe('2 selected')
 	})
