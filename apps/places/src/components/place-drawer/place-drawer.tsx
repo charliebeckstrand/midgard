@@ -149,7 +149,8 @@ function PlaceAddress({ address }: { address: string }) {
 
 /**
  * One photo of a visit, in a square of 96 pixels. A placeholder fills the
- * square until the photo loads, and stays when the photo does not load.
+ * square until the photo loads. When the photo does not load, the placeholder
+ * stays and stops its pulse, so it does not look like a photo that loads.
  *
  * `next/image` with `unoptimized`: the address is the one that the reader
  * typed, so the host is not known at build time. The optimizer serves only the
@@ -173,7 +174,14 @@ function PlacePhoto({ src, alt }: { src: string; alt: string }) {
 
 	return (
 		<div className="relative size-24 shrink-0">
-			{status === 'loaded' ? null : <Placeholder className="absolute inset-0 size-full" />}
+			{status === 'loaded' ? null : (
+				<Placeholder
+					className={cn(
+						'absolute inset-0 size-full',
+						status === 'failed' && 'motion-safe:animate-none',
+					)}
+				/>
+			)}
 
 			{status === 'failed' ? null : (
 				<Image
