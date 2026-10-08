@@ -10,4 +10,16 @@ describe('Placeholder', () => {
 
 		expect(el).toHaveAttribute('aria-hidden', 'true')
 	})
+
+	it('pulses by default', () => {
+		const { container } = renderUI(<Placeholder />)
+
+		expect(bySlot(container, 'placeholder')?.className).toContain('animate-pulse')
+	})
+
+	it('stays still when pulse is false', () => {
+		const { container } = renderUI(<Placeholder pulse={false} />)
+
+		expect(bySlot(container, 'placeholder')?.className).not.toContain('animate-pulse')
+	})
 })
