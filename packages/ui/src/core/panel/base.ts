@@ -19,14 +19,19 @@
 
 import type { PluginCreator } from 'tailwindcss/plugin'
 
-/** The rule: a default footer after a Footer slot, or after an element that holds one. */
-export const panelFallbackSelector =
-	':is([data-panel-footer], :has([data-panel-footer])) ~ [data-panel-fallback]'
+/**
+ * The rule: a default footer after a footer, or after an element that holds one.
+ * Each footer of a panel has `data-panel-footer`, and the default footer has the
+ * value `default`. The default footer is the last child, so it is never an
+ * earlier sibling.
+ */
+export const defaultFooterSelector =
+	":is([data-panel-footer], :has([data-panel-footer])) ~ [data-panel-footer='default']"
 
 /**
  * The plugin handler. Tailwind reads a named `handler` export as a plugin, so
  * the module needs no default export.
  */
 export const handler: PluginCreator = ({ addBase }) => {
-	addBase({ [panelFallbackSelector]: { display: 'none !important' } })
+	addBase({ [defaultFooterSelector]: { display: 'none !important' } })
 }

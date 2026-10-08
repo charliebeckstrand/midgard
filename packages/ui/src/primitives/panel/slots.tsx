@@ -109,7 +109,7 @@ export function createPanel(slotPrefix: string, slots?: PanelSlots) {
 			<div
 				data-slot={`${slotPrefix}-footer`}
 				// The mark that the default footer of the root looks for.
-				data-panel-footer
+				data-panel-footer=""
 				className={cn(footerClass, className)}
 				{...props}
 			/>
@@ -124,7 +124,11 @@ export function createPanel(slotPrefix: string, slots?: PanelSlots) {
 		if (children === undefined || children === null || children === false) return null
 
 		return (
-			<div data-slot={`${slotPrefix}-footer`} data-panel-fallback className={cn(footerClass)}>
+			<div
+				data-slot={`${slotPrefix}-footer`}
+				data-panel-footer="default"
+				className={cn(footerClass)}
+			>
 				{children}
 			</div>
 		)

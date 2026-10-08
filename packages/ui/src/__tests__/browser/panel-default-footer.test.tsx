@@ -36,7 +36,7 @@ function served(withFooter: boolean) {
 	container.innerHTML = renderToString(drawer(withFooter))
 
 	return allBySlot(container, 'drawer-footer').map((footer) => ({
-		fallback: footer.hasAttribute('data-panel-fallback'),
+		default: footer.dataset.panelFooter === 'default',
 		display: getComputedStyle(footer).display,
 	}))
 }
@@ -44,12 +44,12 @@ function served(withFooter: boolean) {
 describe('panel default footer (real CSS)', () => {
 	it('hides the default footer in the server HTML of a panel with a nested footer', () => {
 		expect(served(true)).toEqual([
-			{ fallback: false, display: 'flex' },
-			{ fallback: true, display: 'none' },
+			{ default: false, display: 'flex' },
+			{ default: true, display: 'none' },
 		])
 	})
 
 	it('shows the default footer in the server HTML of a panel with no footer', () => {
-		expect(served(false)).toEqual([{ fallback: true, display: 'flex' }])
+		expect(served(false)).toEqual([{ default: true, display: 'flex' }])
 	})
 })

@@ -3,7 +3,7 @@ import { cleanup, configure } from '@testing-library/react'
 import { afterEach, beforeAll, inject, vi } from 'vitest'
 import { loadListReorder } from '../../components/list/use-list-reorder'
 import { loadTooltipBody } from '../../components/tooltip/tooltip-body-loader'
-import { panelFallbackSelector } from '../../core/panel/base'
+import { defaultFooterSelector } from '../../core/panel/base'
 import { installSingletonResets } from '../helpers/reset-singletons'
 import { installResidueGuard } from '../helpers/residue'
 
@@ -55,12 +55,12 @@ beforeAll(() => loadListReorder())
 // jsdom loads no Tailwind, but a panel needs one base style of `ui/tailwind.css`
 // to hide its default footer when it has its own. Without the style, each panel
 // with a Footer shows two, and a query for its Close button finds the hidden one.
-if (!document.querySelector('style[data-panel-fallback-style]')) {
+if (!document.querySelector('style[data-default-footer-style]')) {
 	const style = document.createElement('style')
 
-	style.setAttribute('data-panel-fallback-style', '')
+	style.setAttribute('data-default-footer-style', '')
 
-	style.textContent = `${panelFallbackSelector} { display: none !important }`
+	style.textContent = `${defaultFooterSelector} { display: none !important }`
 
 	document.head.append(style)
 }
