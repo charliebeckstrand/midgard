@@ -5,6 +5,7 @@ import { Heading, HeadingSkeleton } from 'ui/heading'
 import { Input } from 'ui/input'
 import { ReadyReveal } from 'ui/primitives/ready-reveal'
 import { Textarea, TextareaSkeleton } from 'ui/textarea'
+import { resetButtonProps } from '../../../kit/reset-button.tsx'
 
 // Chrome puts all fields that have no form into one form for the page. Thus a
 // password field with no form can make the password manager of Chrome use a
@@ -13,18 +14,14 @@ function prevent(event: FormEvent) {
 	event.preventDefault()
 }
 
+const simulateProps = { variant: 'outline', children: 'Simulate load' } as const
+
 export default function Form() {
 	const [ready, setReady] = useState(false)
 
 	return (
 		<>
-			<Button
-				variant={ready ? 'soft' : 'outline'}
-				color={ready ? 'red' : undefined}
-				onClick={() => setReady(!ready)}
-			>
-				{ready ? 'Reset' : 'Simulate load'}
-			</Button>
+			<Button {...(ready ? resetButtonProps : simulateProps)} onClick={() => setReady(!ready)} />
 			<form className="space-y-4" onSubmit={prevent}>
 				<ReadyReveal ready={ready} placeholder={<HeadingSkeleton level={3} />}>
 					<Heading level={3}>Create account</Heading>

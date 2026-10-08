@@ -1,16 +1,12 @@
 import { useState } from 'react'
 import { Alert } from 'ui/alert'
-import { Button } from 'ui/button'
+import { ResetButton } from '../../../kit/reset-button.tsx'
 
 export default function Closable() {
 	const [open, setOpen] = useState(true)
 
 	if (!open) {
-		return (
-			<Button variant="soft" onClick={() => setOpen(true)}>
-				Reset
-			</Button>
-		)
+		return <ResetButton onClick={() => setOpen(true)} />
 	}
 
 	return (

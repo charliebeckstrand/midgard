@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { Button } from 'ui/button'
 import { Grid, type GridColumn } from 'ui/grid'
 import { HoldButton } from 'ui/hold-button'
+import { ResetButton } from '../../../../kit/reset-button.tsx'
 import { columns, type Person, people } from '../data.tsx'
 
 const selectColumns: GridColumn<Person>[] = [{ id: 'select', selectable: true }, ...columns]
@@ -11,11 +11,7 @@ export default function BatchActions() {
 
 	return (
 		<>
-			{rows.length === 0 && (
-				<Button color="red" variant="soft" onClick={() => setRows(people)}>
-					Reset
-				</Button>
-			)}
+			{rows.length === 0 && <ResetButton onClick={() => setRows(people)} />}
 			<Grid
 				columns={selectColumns}
 				rows={rows}

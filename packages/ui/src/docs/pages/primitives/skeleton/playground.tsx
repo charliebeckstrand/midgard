@@ -2,19 +2,16 @@ import { useState } from 'react'
 import { Button } from 'ui/button'
 import { Heading, HeadingSkeleton } from 'ui/heading'
 import { ReadyReveal, type ReadyRevealProps } from 'ui/primitives/ready-reveal'
+import { resetButtonProps } from '../../../kit/reset-button.tsx'
+
+const simulateProps = { variant: 'outline', children: 'Simulate load' } as const
 
 export default function SkeletonPlayground(props: ReadyRevealProps) {
 	const [ready, setReady] = useState(false)
 
 	return (
 		<>
-			<Button
-				variant={ready ? 'soft' : 'outline'}
-				color={ready ? 'red' : undefined}
-				onClick={() => setReady(!ready)}
-			>
-				{ready ? 'Reset' : 'Simulate load'}
-			</Button>
+			<Button {...(ready ? resetButtonProps : simulateProps)} onClick={() => setReady(!ready)} />
 			<ReadyReveal {...props} ready={ready} placeholder={<HeadingSkeleton level={3} />}>
 				<Heading level={3}>Create account</Heading>
 			</ReadyReveal>
