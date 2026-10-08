@@ -3,6 +3,7 @@ import { cleanup, configure } from '@testing-library/react'
 import { afterEach, beforeAll, inject, vi } from 'vitest'
 import { loadListReorder } from '../../components/list/use-list-reorder'
 import { loadTooltipBody } from '../../components/tooltip/tooltip-body-loader'
+import { defaultFooterSelector } from '../../core/panel/base'
 import { installSingletonResets } from '../helpers/reset-singletons'
 import { installResidueGuard } from '../helpers/residue'
 
@@ -50,6 +51,19 @@ beforeAll(() => loadTooltipBody())
 // then depend on the order of the cases. The load before each file gives each
 // case the state of a page that already loaded the parts.
 beforeAll(() => loadListReorder())
+
+// jsdom loads no Tailwind, but a panel needs one base style of `ui/tailwind.css`
+// to hide its default footer when it has its own. Without the style, each panel
+// with a Footer shows two, and a query for its Close button finds the hidden one.
+if (!document.querySelector('style[data-default-footer-style]')) {
+	const style = document.createElement('style')
+
+	style.setAttribute('data-default-footer-style', '')
+
+	style.textContent = `${defaultFooterSelector} { display: none !important }`
+
+	document.head.append(style)
+}
 
 // Registered before the `afterEach` below, whose `cleanup` then runs first.
 installSingletonResets()

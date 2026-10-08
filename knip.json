@@ -29,7 +29,8 @@
 				"src/core/scheme/base.ts",
 				"src/core/motion/variants.ts",
 				"src/core/sidebar/variants.ts",
-				"src/core/scroll/fade.ts"
+				"src/core/scroll/fade.ts",
+				"src/core/panel/base.ts"
 			]
 		}
 	}

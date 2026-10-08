@@ -6,8 +6,9 @@
  * the Sidebar setting, the stepped and ring utilities
  * (`density-p-[2,3,4]`, `px-ring-2`, …), the `scroll-fade-inline` edge fade,
  * two base styles on the root element: `touch-action: manipulation`, and
- * the `color-scheme` that follows the `dark` class, and the breakpoint classes
- * of the structure units. Import this file in each Tailwind entry that scans
+ * the `color-scheme` that follows the `dark` class, the rule that hides the
+ * default footer of a panel that has its own, and the breakpoint classes of
+ * the structure units. Import this file in each Tailwind entry that scans
  * ui. Each plugin explains its classes or its style.
  */
 @import './src/fonts/fonts.css';
@@ -19,6 +20,7 @@
 @plugin './src/core/motion/variants.ts';
 @plugin './src/core/sidebar/variants.ts';
 @plugin './src/core/scroll/fade.ts';
+@plugin './src/core/panel/base.ts';
 
 /*
  * The breakpoint classes of Box, Columns, Flex, and Split. `atBreakpoint` in
