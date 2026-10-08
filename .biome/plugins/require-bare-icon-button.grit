@@ -1,0 +1,43 @@
+language js
+
+// In Places, an icon-only `Button` uses the `bare` variant, so each icon
+// button in the app has the same look. A `Button` is icon-only when an `Icon`
+// is its one child, or when it has no child and its `prefix` or its `suffix`
+// holds an `Icon`. A button with a text label can use any variant.
+//
+// The plugin cannot read types or follow a value. An icon that comes in
+// through a variable, such as `{children}`, does not match.
+//
+// Reach is the `includes` beside this plugin in `biome.json`: the Places
+// source, minus tests.
+or {
+	`<Button $attrs>$children</Button>` as $button where {
+		or {
+			$children <: [$icon] where { $icon <: `<Icon $_ />` },
+			$children <: [JsxText() as $before, $icon, JsxText() as $after] where {
+				$icon <: `<Icon $_ />`,
+				$before <: r"\s*",
+				$after <: r"\s*"
+			},
+			and {
+				$children <: r"\s*",
+				$attrs <: contains JsxAttribute(name = $slot, initializer = $value) where {
+					$slot <: r"prefix|suffix",
+					$value <: contains `<Icon $_ />`
+				}
+			}
+		}
+	},
+	`<Button $attrs />` as $button where {
+		$attrs <: contains JsxAttribute(name = $slot, initializer = $value) where {
+			$slot <: r"prefix|suffix",
+			$value <: contains `<Icon $_ />`
+		}
+	}
+} where {
+	not $attrs <: contains `variant="bare"`,
+	register_diagnostic(
+		span = $button,
+		message = "give an icon-only `Button` the `bare` variant: each icon button in Places has the same look"
+	)
+}
