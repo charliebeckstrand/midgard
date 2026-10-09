@@ -5,18 +5,20 @@
 // so these hooks read no engine table. `useGridTable` calls them (see
 // `use-grid-table.ts`).
 
-import type { ExpandedState, PaginationState } from '@tanstack/react-table'
+import type { PaginationState } from '@tanstack/react-table'
 import { type Dispatch, type SetStateAction, useCallback, useEffect, useMemo } from 'react'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useLocale } from '../../providers/locale'
 import type { GridSortState } from './context'
 import { columnAccessor } from './engine/grid-column/accessor'
 import { type ColumnTests, filterRowIndices, type RowTest } from './engine/grid-filter/filter'
-import { allGroupIds, groupMembers, orderGroups } from './engine/grid-group/client'
+import { groupMembers, orderGroups } from './engine/grid-group/client'
 import {
+	ALL_GROUPS_OPEN,
 	expandGroups,
 	type GridGroup,
 	type GridLeaf,
+	type GroupExpansion,
 	toggleGroupExpanded,
 	toRowLeaf,
 } from './engine/grid-group/tree'
@@ -212,8 +214,8 @@ export function useGroupTree<T>(args: {
 	/** The grouped column, or `null` when ungrouped. */
 	grouping: string | number | null
 	/** The expansion state; absent opens every group. */
-	expanded: ExpandedState | undefined
-	onExpandedChange: Dispatch<SetStateAction<ExpandedState>> | undefined
+	expanded: GroupExpansion | undefined
+	onExpandedChange: Dispatch<SetStateAction<GroupExpansion>> | undefined
 	getKey: (row: T, index: number) => string | number
 }): {
 	groups: GridGroup<T>[] | null
@@ -224,7 +226,7 @@ export function useGroupTree<T>(args: {
 
 	const columnId = grouping == null ? null : String(grouping)
 
-	const expanded = args.expanded ?? true
+	const expanded = args.expanded ?? ALL_GROUPS_OPEN
 
 	// The value accessor of the grouped column, or `null` when no column of the
 	// grid is grouped. A grouping by no column of the grid has no groups.
@@ -265,19 +267,9 @@ export function useGroupTree<T>(args: {
 
 	const groups = useMemo(() => (closed ? expandGroups(closed, expanded) : null), [closed, expanded])
 
-	// The first toggle from all-open takes an entry for every group of the rows,
-	// not only the groups that the filters keep. A group that a search hides then
-	// stays open. The ids are read in the toggle, not in render.
 	const toggleGroup = useCallback(
-		(id: string) =>
-			onExpandedChange?.((previous) =>
-				toggleGroupExpanded(
-					previous,
-					id,
-					previous === true && read && columnId != null ? allGroupIds(rows, columnId, read) : [],
-				),
-			),
-		[onExpandedChange, read, columnId, rows],
+		(id: string) => onExpandedChange?.((previous) => toggleGroupExpanded(previous, id)),
+		[onExpandedChange],
 	)
 
 	return { groups, closed, toggleGroup }

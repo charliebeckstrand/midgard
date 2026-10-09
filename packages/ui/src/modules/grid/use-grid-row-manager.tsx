@@ -1,6 +1,5 @@
 'use client'
 
-import type { ExpandedState } from '@tanstack/react-table'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { PaletteColor } from '../../core/recipe'
 import { useControllable } from '../../hooks'
@@ -11,7 +10,12 @@ import {
 	buildRowManagerGroups,
 	normalizeRowGroups,
 } from './engine/grid-group/row-manager'
-import type { GridGroup } from './engine/grid-group/tree'
+import {
+	ALL_GROUPS_CLOSED,
+	ALL_GROUPS_OPEN,
+	type GridGroup,
+	type GroupExpansion,
+} from './engine/grid-group/tree'
 import type { GridMenuResolution } from './engine/grid-menu-targeting'
 import { buildRowGroupMenu } from './grid-context-menu-utilities'
 import type { GridGroupBy } from './grid-data-types'
@@ -157,7 +161,7 @@ type GridRowManagerRegionOptions<T> = {
 	/** Whether the header context menu is live — the manager's only entry point. */
 	contextMenuActive: boolean
 	/** Commits an engine expansion change (backs Expand all / Collapse all). */
-	setGroupExpanded: (next: ExpandedState) => void
+	setGroupExpanded: (next: GroupExpansion) => void
 }
 
 /**
@@ -235,8 +239,8 @@ export function useGridRowManagerRegion<T>({
 				onToggle: () => {
 					if (group) toggleGroup(group.id)
 				},
-				onExpandAll: () => setGroupExpanded(true),
-				onCollapseAll: () => setGroupExpanded({}),
+				onExpandAll: () => setGroupExpanded(ALL_GROUPS_OPEN),
+				onCollapseAll: () => setGroupExpanded(ALL_GROUPS_CLOSED),
 				onClearColor: () => recolor(key, undefined),
 			})
 
