@@ -32,8 +32,8 @@ declare module 'vitest/browser' {
 	interface BrowserCommands {
 		/** Moves the real mouse off the tester iframe. `vitest.browser.config.ts` defines it. */
 		parkPointer: () => Promise<void>
-		/** Holds the real primary button down over the element that `selector` matches. `vitest.browser.config.ts` defines it. */
-		pressPointer: (selector: string) => Promise<void>
+		/** Holds the real primary button down over the element that `selector` matches, at its center or at the fraction `at` of its box. `vitest.browser.config.ts` defines it. */
+		pressPointer: (selector: string, at?: { x: number; y: number }) => Promise<void>
 		/** Releases the real primary button, over the element that `selector` matches when one is given. `vitest.browser.config.ts` defines it. */
 		releasePointer: (selector?: string) => Promise<void>
 	}

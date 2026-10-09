@@ -3,6 +3,7 @@
 import { memo, type ReactNode, useCallback, useEffect, useId, useMemo, useRef } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useSortableItem } from '../../hooks'
+import { useDevWarning } from '../../hooks/use-dev-warning'
 import { useKeyedValue } from '../../hooks/use-keyed-store'
 import { k } from '../../recipes/kata/kanban'
 import { KanbanCardContext, useKanbanColumnContext, useKanbanContext } from './context'
@@ -56,15 +57,10 @@ function KanbanCardImpl({
 	// The board's other unjoined key. A card key its column's `items` does not
 	// hold drags nowhere: `onReorder` computes the next columns from the data,
 	// which never held it.
-	useEffect(() => {
-		if (process.env.NODE_ENV === 'production') return
-
-		if (itemIds.includes(cardId)) return
-
-		console.warn(
-			`Kanban: <KanbanCard value="${cardId}"> names no item in its column's \`items\`. The card renders and never reorders.`,
-		)
-	}, [cardId, itemIds])
+	useDevWarning(
+		process.env.NODE_ENV !== 'production' && !itemIds.includes(cardId),
+		`Kanban: <KanbanCard value="${cardId}"> names no item in its column's \`items\`. The card renders and never reorders.`,
+	)
 
 	const { setNodeRef, setActivatorNodeRef, attributes, listeners, style, dragging } =
 		useSortableItem({

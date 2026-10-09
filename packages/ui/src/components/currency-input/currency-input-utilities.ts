@@ -9,17 +9,7 @@ export function escapeRegExp(s: string) {
 function memoRe(source: (key: string) => string): (key: string) => RegExp {
 	const cache = new Map<string, RegExp>()
 
-	return (key) => {
-		let re = cache.get(key)
-
-		if (re === undefined) {
-			re = new RegExp(source(key), 'g')
-
-			cache.set(key, re)
-		}
-
-		return re
-	}
+	return (key) => getOrCompute(cache, key, () => new RegExp(source(key), 'g'))
 }
 
 const separatorRe = memoRe(escapeRegExp)

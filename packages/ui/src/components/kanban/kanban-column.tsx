@@ -2,8 +2,9 @@
 
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import { type ReactNode, useCallback, useEffect, useId, useMemo, useState } from 'react'
+import { type ReactNode, useCallback, useId, useMemo, useState } from 'react'
 import { cn, dataAttr } from '../../core'
+import { useDevWarning } from '../../hooks/use-dev-warning'
 import { k } from '../../recipes/kata/kanban'
 import { KanbanColumnContext, useKanbanContext, useKanbanDragState } from './context'
 
@@ -52,15 +53,10 @@ export function KanbanColumn({
 	// The board takes its columns as data and its structure as children, so the
 	// same key is written twice and nothing joins them. A key that names no
 	// column silently renders an empty group that takes no drop.
-	useEffect(() => {
-		if (process.env.NODE_ENV === 'production') return
-
-		if (known !== undefined) return
-
-		console.warn(
-			`Kanban: <KanbanColumn value="${columnId}"> names no column in the board's \`columns\`. The column renders, takes no drop, and holds no cards.`,
-		)
-	}, [columnId, known])
+	useDevWarning(
+		known === undefined,
+		`Kanban: <KanbanColumn value="${columnId}"> names no column in the board's \`columns\`. The column renders, takes no drop, and holds no cards.`,
+	)
 
 	const { setNodeRef } = useDroppable({ id: columnId, disabled: !interactive })
 

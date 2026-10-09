@@ -1,12 +1,12 @@
 'use client'
 
 import type { User } from 'auth'
-import { CircleUserRound, LogOut, MailCheck, MapPinned, Plus } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
-import { sendVerificationEmail, signOut } from 'shared/auth'
+import { CircleUserRound, MapPinned, Plus } from 'lucide-react'
+import { useEffect, useRef } from 'react'
+import { SignOutMenuItem, VerifyEmailMenuItem } from 'shared/auth'
 import { Button } from 'ui/button'
 import { Icon } from 'ui/icon'
-import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from 'ui/menu'
+import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from 'ui/menu'
 
 /** Props for {@link UserMenuPanel}. */
 export type UserMenuProps = {
@@ -17,13 +17,6 @@ export type UserMenuProps = {
 	/** Opens the list. Without it, the menu has no list item. */
 	onList?: () => void
 }
-
-/** Where sending a verification link stands, and the label it shows. */
-const verifyLabels = {
-	idle: 'Verify your email',
-	sent: 'Link sent, check your email',
-	failed: 'Link not sent, try again later',
-} as const
 
 /** Props for {@link UserMenuPanel}: the menu, and where the focus goes when it opens. */
 export type UserMenuPanelProps = UserMenuProps & {
@@ -37,9 +30,8 @@ export type UserMenuPanelProps = UserMenuProps & {
  * places can't be changed until it is. The heading is the name of the user,
  * with the email below it. A user with no name gets the email as the heading.
  *
- * @remarks Sign-out and the link are `signOut` and `sendVerificationEmail` from
- * `shared/auth`. Sign-out loads `/login` as a full page, so no data of the user
- * stays in the query cache.
+ * @remarks The verification and sign-out items are `VerifyEmailMenuItem` and
+ * `SignOutMenuItem` from `shared/auth`.
  *
  * `UserMenu` loads this module in idle time, and renders the menu open in
  * place of its button on the first press.
@@ -53,15 +45,6 @@ export function UserMenuPanel({ user, count, onAdd, onList, focus }: UserMenuPan
 	useEffect(() => {
 		if (focus) trigger.current?.focus()
 	}, [focus])
-
-	const [verify, setVerify] = useState<keyof typeof verifyLabels>('idle')
-
-	function sendVerification() {
-		sendVerificationEmail().then(
-			() => setVerify('sent'),
-			() => setVerify('failed'),
-		)
-	}
 
 	return (
 		<Menu placement="bottom-end" defaultOpen>
@@ -84,25 +67,9 @@ export function UserMenuPanel({ user, count, onAdd, onList, focus }: UserMenuPan
 					</MenuItem>
 				)}
 
-				{user.is_verified ? null : (
-					<>
-						<MenuSeparator />
+				<VerifyEmailMenuItem user={user} />
 
-						<MenuItem
-							onAction={sendVerification}
-							disabled={verify === 'sent'}
-							closeOnAction={false}
-						>
-							<Icon icon={<MailCheck />} />
-							<MenuLabel>{verifyLabels[verify]}</MenuLabel>
-						</MenuItem>
-					</>
-				)}
-
-				<MenuItem onAction={signOut}>
-					<Icon icon={<LogOut />} />
-					<MenuLabel>Sign out</MenuLabel>
-				</MenuItem>
+				<SignOutMenuItem />
 			</MenuContent>
 		</Menu>
 	)

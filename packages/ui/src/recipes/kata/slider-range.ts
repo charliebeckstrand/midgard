@@ -46,9 +46,13 @@ const thumb = defineRecipe({
 		'shadow-sm',
 		forced.mark,
 		css.transform,
-		'hover:scale-110',
-		'active:scale-110',
+		'hover:not-disabled:scale-110',
+		'active:not-disabled:scale-110',
+		// The thumb rings match the native thumb of `Slider` (`kata/slider.ts`).
+		// Tailwind needs literal pseudo-element classes there, so the two lists stay apart.
+		'data-invalid:ring-2 data-invalid:ring-red-600',
 		'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-600',
+		'dark:focus-visible:ring-blue-500',
 		dan.size.thumb.base,
 	],
 })
