@@ -63,12 +63,15 @@ function press(result: ReturnType<typeof renderResize>['result']) {
 
 describe('usePanelResize', () => {
 	describe('pointer', () => {
-		it('ignores a press of a secondary mouse button', () => {
+		it.each([
+			['a secondary mouse button', { button: 2 }],
+			['a macOS Ctrl-click', { ctrlKey: true }],
+		])('ignores a press of %s', (_name, init) => {
 			const { result, floorOf } = renderAttached()
 
 			act(() => {
 				result.current.handleProps.onPointerDown(
-					makePointerEvent({ pointerType: 'mouse', button: 2, clientY: 400 }),
+					makePointerEvent({ pointerType: 'mouse', clientY: 400, ...init }),
 				)
 			})
 

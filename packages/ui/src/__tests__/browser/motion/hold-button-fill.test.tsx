@@ -34,7 +34,7 @@ describe('HoldButton fill (real Motion)', () => {
 
 		const scales: number[] = []
 
-		fireEvent.pointerDown(button, { button: 0 })
+		fireEvent.pointerDown(button, { isPrimary: true, button: 0 })
 
 		await sampleUntil(
 			() => {
@@ -54,7 +54,7 @@ describe('HoldButton fill (real Motion)', () => {
 	it('takes the fill back to 0 from the scale it paints when the hold ends early', async () => {
 		const { button, fill } = renderFill()
 
-		fireEvent.pointerDown(button, { button: 0 })
+		fireEvent.pointerDown(button, { isPrimary: true, button: 0 })
 
 		await sampleUntil(
 			() => scaleOf(fill),

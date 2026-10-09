@@ -113,7 +113,13 @@ describe('ColorArea', () => {
 
 		area.getBoundingClientRect = () => DOMRect.fromRect({ width: 200, height: 100 })
 
-		fireEvent.pointerDown(area, { button: 0, pointerId: 1, clientX: 50, clientY: 25 })
+		fireEvent.pointerDown(area, {
+			isPrimary: true,
+			button: 0,
+			pointerId: 1,
+			clientX: 50,
+			clientY: 25,
+		})
 
 		expect(area).toHaveAttribute('aria-valuenow', '25')
 
@@ -149,7 +155,13 @@ describe('ColorArea', () => {
 
 		expect(area).toHaveAttribute('aria-valuenow', '50')
 
-		fireEvent.pointerDown(area, { button: 0, pointerId: 1, clientX: 50, clientY: 25 })
+		fireEvent.pointerDown(area, {
+			isPrimary: true,
+			button: 0,
+			pointerId: 1,
+			clientX: 50,
+			clientY: 25,
+		})
 
 		expect(area).toHaveAttribute('aria-valuenow', '50')
 

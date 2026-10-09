@@ -8,6 +8,7 @@ import {
 	useRef,
 } from 'react'
 import { useDragCursorHold } from '../../hooks/use-drag-cursor'
+import { isPrimaryPress } from '../../utilities/primary-press'
 import { getCanvasPoint, resolveStrokeColor } from './signature-pad-utilities'
 
 type SignatureDrawingOptions = {
@@ -36,7 +37,8 @@ type SignatureDrawingOptions = {
  * @returns The `handlePointerDown`, `handlePointerMove`, and `commit` handlers
  * to wire onto the `<canvas>`.
  * @remarks
- * `handlePointerDown` ignores non-primary mouse buttons and captures the pointer
+ * `handlePointerDown` starts a stroke only on a primary press (`isPrimaryPress`), so a
+ * secondary button, a macOS Ctrl-click, and a second finger draw nothing. It captures the pointer
  * so a stroke continues past the canvas edge. `commit` gives the snapshot to
  * `setCurrent`, which the state hook records as shown, so its value-sync effect
  * skips a repaint of a value it just drew. `commit` returns `true` only
@@ -64,7 +66,7 @@ export function useSignaturePadDrawing({
 	const handlePointerDown = (event: ReactPointerEvent) => {
 		if (disabled || readOnly) return
 
-		if (event.pointerType === 'mouse' && event.button !== 0) return
+		if (!isPrimaryPress(event)) return
 
 		const point = getCanvasPoint(canvasRef.current, event)
 

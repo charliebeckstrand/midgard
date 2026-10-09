@@ -78,6 +78,8 @@ describe('useSignaturePadDrawing', () => {
 		['when disabled', { disabled: true }, {}],
 		['when readOnly', { readOnly: true }, {}],
 		['for a non-primary mouse button', {}, { button: 2 }],
+		['for a macOS Ctrl-click', {}, { ctrlKey: true }],
+		['for a second finger', {}, { pointerType: 'touch', isPrimary: false }],
 	])('does nothing on pointerdown %s', (_name, options, overrides) => {
 		const { result, context } = setup(options)
 
@@ -272,6 +274,7 @@ describe('useSignaturePadDrawing', () => {
 			['when disabled', { disabled: true }, {}],
 			['when read-only', { readOnly: true }, {}],
 			['on a non-primary mouse button', {}, { button: 2 }],
+			['on a macOS Ctrl-click', {}, { ctrlKey: true }],
 			['when the canvas is absent', { canvasNull: true }, {}],
 			['when the canvas has no 2D context', { contextNull: true }, {}],
 		])('says nothing %s', (_name, options, overrides) => {
