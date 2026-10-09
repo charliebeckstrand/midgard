@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react'
-import { type ReactNode, type SyntheticEvent, useState } from 'react'
+import { type ReactNode, type SyntheticEvent, useLayoutEffect, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	Form,
@@ -1009,6 +1009,110 @@ describe('Form', () => {
 		})
 
 		expect(getFieldProbe('name').textContent).toBe('Ada')
+	})
+})
+
+describe('useFormReducer controlled sync', () => {
+	/** Renders the hook with a controlled `values` prop, and records each commit. */
+	function renderControlled(initial: Values) {
+		const commits: Array<{ prop: Values; state: Record<string, unknown> }> = []
+
+		const view = renderHook(
+			({ values }: { values: Values }) => {
+				const result = useFormReducer<Values>({
+					defaultValues: { name: '' },
+					values,
+					validateOn: 'touched',
+				})
+
+				useLayoutEffect(() => {
+					commits.push({ prop: values, state: result.formState.values })
+				})
+
+				return result
+			},
+			{ initialProps: { values: initial } },
+		)
+
+		return { ...view, commits }
+	}
+
+	it('never commits a controlled change with the values from before it', () => {
+		const { rerender, commits } = renderControlled({ name: 'Ada' })
+
+		rerender({ values: { name: 'Grace' } })
+
+		expect(commits.map(({ prop, state }) => [prop.name, state.name])).toEqual([
+			['Ada', 'Ada'],
+			['Grace', 'Grace'],
+		])
+	})
+
+	it('publishes to the store once per controlled change', () => {
+		const { result, rerender } = renderControlled({ name: 'Ada' })
+
+		const listener = vi.fn()
+
+		const unsubscribe = result.current.store.subscribe(listener)
+
+		const next = { name: 'Grace' }
+
+		rerender({ values: next })
+
+		expect(listener).toHaveBeenCalledOnce()
+
+		expect(result.current.store.getState().values).toBe(next)
+
+		unsubscribe()
+	})
+
+	it('reads the same value from getValue as the field slice in each render', () => {
+		const renders: Array<[unknown, unknown]> = []
+
+		function Reader() {
+			const actions = useFormActions()
+
+			const field = useFormField('name')
+
+			renders.push([actions?.getValue('name'), field?.value])
+
+			return (
+				<button type="button" onClick={() => actions?.setValue('name', 'Lin')}>
+					write
+				</button>
+			)
+		}
+
+		function Host() {
+			const [values, setValues] = useState({ name: 'Ada' })
+
+			return (
+				<>
+					<button type="button" onClick={() => setValues({ name: 'Grace' })}>
+						sync
+					</button>
+					<Form defaultValues={{ name: '' }} values={values}>
+						<Reader />
+					</Form>
+				</>
+			)
+		}
+
+		renderUI(<Host />)
+
+		act(() => {
+			screen.getByText('sync').click()
+		})
+
+		act(() => {
+			screen.getByText('write').click()
+		})
+
+		for (const [read, slice] of renders) expect(read).toBe(slice)
+
+		expect(renders.map(([read]) => read)).toEqual(expect.arrayContaining(['Ada', 'Grace', 'Lin']))
+
+		expect(renders.at(-1)).toEqual(['Lin', 'Lin'])
 	})
 })
 
