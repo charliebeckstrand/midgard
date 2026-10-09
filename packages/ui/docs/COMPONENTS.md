@@ -53,7 +53,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 ## Overlays
 
-`dialog` · `drawer` · `sheet` · `popover` · `tooltip` · `confirm` · `alert` · `banner` · `toast`
+`dialog` · `drawer` · `sheet` · `popover` · `tooltip` · `confirm` · `alert` · `banner` · `toast` · `lightbox`
 
 > An `interactive` `tooltip` with a tabbable control in its content is a non-modal `role="dialog"`. The trigger names it and carries `aria-haspopup="dialog"`, `aria-expanded`, and `aria-controls`. Tab goes from the trigger into the panel controls and then on to the element after the trigger. Focus does not stay in the panel, and the page stays visible to assistive tech. Other tooltips are `role="tooltip"` and describe the trigger.
 
@@ -64,6 +64,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 > `toast` holds the full toast unit. `ToastProvider` keeps the queue and the timers. `useToast()` adds and removes toasts, and the `Toast` viewport shows the queue in a portal. `UIProvider` mounts one `ToastProvider` and its viewport, so `useToast()` works anywhere under it with no setup. The viewport loads in idle time after the hydration, or on the first toast when that comes first. Its `toast` prop sets the `position`, `duration`, and `maxToasts`. Use `ToastProvider` and `Toast` for a queue of their own in one part of the page.
 
 > `dialog`, `drawer`, and `sheet` have the root-and-parts shape of `popover`. The root (`Dialog`, `Drawer`, `Sheet`) holds the open state, controlled or uncontrolled, and renders no element. The trigger part (`DialogTrigger`, `DrawerTrigger`, `SheetTrigger`) opens the panel. The panel part (`DialogPanel`, `DrawerPanel`, `SheetPanel`) is the surface, and takes the props that style it or place it.
+
+> `lightbox` shows one photo or a set of photos in a modal viewer. `Lightbox` holds the `photos` and the open photo, controlled (`index`) or uncontrolled (`defaultIndex`). Each `LightboxTrigger` is the thumbnail of one photo. A press on a thumbnail raises its photo to the stage. A close puts the photo back into its thumbnail. The flight moves `transform` and `clip-path` off the main thread, and under reduced motion the photo fades. In a set, the arrow keys, the step buttons, and a swipe step through the photos.
 
 ## Data display
 

@@ -28,7 +28,10 @@ function registerRegion(node: HTMLDivElement | null) {
  *
  * Wrap that chrome here and every modal surface in the app keeps it in the
  * focus order, in the accessibility tree, and clickable. The rest of the page
- * stays sealed, and no surface needs to know this region exists.
+ * stays sealed, and no surface needs to know this region exists. The one
+ * exception is an `Overlay` with `coverChrome`, such as the stage of a
+ * `Lightbox`. It covers the region and seals it with the rest of the page,
+ * live regions included.
  *
  * @remarks Modality holds. Focus still moves into a panel on open and returns
  * on close, the body stays scroll-locked, and the scrim still dismisses on a
@@ -42,7 +45,8 @@ function registerRegion(node: HTMLDivElement | null) {
  * `role="alert"` toasts. Regions are read when a surface marks the page, so
  * chrome that mounts after a surface is already up is not exempt from it.
  *
- * The region paints above modal surfaces and below floats and toasts. It
+ * The region paints above modal surfaces and below floats and toasts. An
+ * overlay with `coverChrome` paints above it. It
  * positions itself so that rung binds; a `className` that positions it
  * differently (`sticky`, `fixed`) wins.
  *

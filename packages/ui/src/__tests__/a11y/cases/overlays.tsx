@@ -9,6 +9,7 @@ import {
 import { Confirm } from '../../../components/confirm'
 import { Dialog, DialogBody, DialogPanel, DialogTitle } from '../../../components/dialog'
 import { Drawer, DrawerBody, DrawerPanel, DrawerTitle } from '../../../components/drawer'
+import { Lightbox, LightboxTrigger } from '../../../components/lightbox'
 import {
 	Menu,
 	MenuContent,
@@ -200,6 +201,26 @@ export const overlays: readonly Case[] = [
 			<ToastProvider key="ts">
 				<ToastCase />
 			</ToastProvider>
+		),
+	},
+	{
+		// Photo viewer: a modal dialog named by `aria-label`. The photos next to
+		// the center are inert and hidden, and the step buttons have names.
+		name: 'lightbox',
+		element: (
+			<Lightbox
+				key="lb"
+				photos={[
+					{ src: '/a.jpg', alt: 'Harbor at dawn', width: 1500, height: 1000 },
+					{ src: '/b.jpg', alt: 'Snow on a ridge', width: 1000, height: 1500 },
+					{ src: '/c.jpg', alt: 'Field of poppies', width: 1200, height: 1200 },
+				]}
+				defaultIndex={1}
+			>
+				<LightboxTrigger index={0} />
+				<LightboxTrigger index={1} />
+				<LightboxTrigger index={2} />
+			</Lightbox>
 		),
 	},
 ]

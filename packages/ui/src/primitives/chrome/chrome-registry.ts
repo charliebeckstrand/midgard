@@ -5,7 +5,8 @@ const regions = new Set<HTMLElement>()
 /**
  * Registers a chrome region. A modal surface seals the page behind
  * it. A registered region is exempt, keeping its tab stop, its place in the
- * accessibility tree, and its pointer events.
+ * accessibility tree, and its pointer events. An `Overlay` with `coverChrome`
+ * does not read the registry, so it seals the region too.
  *
  * Registration is by node rather than by selector, so nothing has to name the
  * region and nothing has to agree on a marker attribute.

@@ -9,6 +9,8 @@ export const k = {
 	// Seals the page for a transaction. `Chrome`, floats, and toasts all
 	// sit above — see the `sou` ladder.
 	base: sou.overlay,
+	/** The rung of an overlay that covers the `Chrome` regions too. */
+	cover: sou.cover,
 	/**
 	 * The box of an overlay fixed to the viewport: the full viewport. The browser
 	 * keeps a fixed box clear of its own toolbars.

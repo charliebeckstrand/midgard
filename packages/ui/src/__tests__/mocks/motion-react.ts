@@ -185,6 +185,17 @@ function AnimatePresence({ children }: { children: ReactNode }) {
 	return children
 }
 
+// The mock `AnimatePresence` removes a child at once, so a child is present
+// for its whole life and never waits to be removed. The context is `null`, as
+// outside a real `AnimatePresence`.
+const PresenceContext = createContext<{ initial?: false | string | string[] } | null>(null)
+
+const present: [true, null] = [true, null]
+
+function usePresence(): [true, null] {
+	return present
+}
+
 function LayoutGroup({ children }: { children: ReactNode }) {
 	return children
 }
@@ -280,6 +291,8 @@ export default {
 	useDragControls,
 	motion,
 	AnimatePresence,
+	PresenceContext,
+	usePresence,
 	LayoutGroup,
 	LazyMotion,
 	domAnimation,
