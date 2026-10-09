@@ -27,13 +27,13 @@ export default function Form() {
 					<Heading level={3}>Create account</Heading>
 				</ReadyReveal>
 				<ReadyReveal ready={ready} placeholder={<ControlSkeleton />}>
-					<Input placeholder="Email" />
+					<Input aria-label="Email" placeholder="Email" />
 				</ReadyReveal>
 				<ReadyReveal ready={ready} placeholder={<ControlSkeleton />}>
-					<Input placeholder="Password" type="password" />
+					<Input aria-label="Password" placeholder="Password" type="password" />
 				</ReadyReveal>
 				<ReadyReveal ready={ready} placeholder={<TextareaSkeleton />}>
-					<Textarea placeholder="Bio" />
+					<Textarea aria-label="Bio" placeholder="Bio" />
 				</ReadyReveal>
 				<ReadyReveal ready={ready} placeholder={<ButtonSkeleton />}>
 					<Button color="blue">Sign up</Button>

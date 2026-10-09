@@ -7,7 +7,7 @@ export default function GaugeSize() {
 	return (
 		<Flex gap="md" align="center" wrap>
 			{sizes.map((size) => (
-				<ProgressGauge key={size} size={size} value={75} aria-label="Progress" />
+				<ProgressGauge key={size} size={size} value={75} aria-label={`Progress, size ${size}`} />
 			))}
 		</Flex>
 	)

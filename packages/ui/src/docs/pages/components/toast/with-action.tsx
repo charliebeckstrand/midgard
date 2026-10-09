@@ -5,16 +5,13 @@ export default function WithAction() {
 	const { toast, dismiss } = useToast()
 
 	function deleteMessage() {
-		const id = crypto.randomUUID()
-
 		function undo() {
 			dismiss(id)
 
 			toast({ title: 'Message restored', severity: 'success' })
 		}
 
-		toast({
-			id,
+		const id = toast({
 			title: 'Message deleted',
 			description: 'The message is in the trash.',
 			duration: 10000,

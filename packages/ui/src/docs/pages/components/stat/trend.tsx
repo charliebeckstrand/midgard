@@ -7,11 +7,11 @@ export default function Trend() {
 		<>
 			<StatDelta trend="up">
 				<Icon icon={<ArrowUp />} size="xs" />
-				12.5%
+				+12.5%
 			</StatDelta>
 			<StatDelta trend="down">
 				<Icon icon={<ArrowDown />} size="xs" />
-				0.8%
+				−0.8%
 			</StatDelta>
 			<StatDelta trend="neutral">
 				<Icon icon={<ArrowRight />} size="xs" />

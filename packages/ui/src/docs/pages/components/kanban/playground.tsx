@@ -34,7 +34,7 @@ export default function KanbanPlayground(props: KanbanProps<Load, Column>) {
 					</KanbanColumnHeader>
 					<KanbanColumnBody>
 						{column.items.map((load) => (
-							<KanbanCard key={load.id} value={load.id} aria-label={load.code}>
+							<KanbanCard key={load.id} value={load.id}>
 								<KanbanCardHandle />
 								<Text className="font-medium">{load.code}</Text>
 								<Text tone="muted" className="line-clamp-2">

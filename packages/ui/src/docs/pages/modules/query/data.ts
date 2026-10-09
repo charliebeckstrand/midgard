@@ -26,7 +26,8 @@ export const seed: QueryGroup = {
 	children: [{ id: 'r1', type: 'rule', field: 'status', operator: 'equals', value: 'active' }],
 }
 
-// Two active rules and a nested OR group, so the chips show each separator.
+// Three active rules, two of them in a nested group joined by OR, so the chips
+// show each separator.
 export const filters: QueryGroup = {
 	id: 'root',
 	type: 'group',
@@ -38,7 +39,7 @@ export const filters: QueryGroup = {
 			type: 'group',
 			combinator: 'and',
 			children: [
-				{ id: 'r2', type: 'rule', field: 'age', operator: 'gte', value: '18' },
+				{ id: 'r2', type: 'rule', field: 'age', operator: 'gte', value: 18 },
 				{
 					id: 'r3',
 					type: 'rule',

@@ -15,6 +15,7 @@ export default function DrivenFromAList() {
 					<Button
 						key={region.id}
 						variant={active === region.id ? 'solid' : 'outline'}
+						aria-pressed={active === region.id}
 						onClick={() => setActive(region.id)}
 					>
 						{region.label}
