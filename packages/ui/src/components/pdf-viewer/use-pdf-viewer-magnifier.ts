@@ -12,6 +12,7 @@ import {
 } from 'react'
 import { useFloatingPanel } from '../../hooks'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { TOUCH_SLOP } from '../../hooks/use-touch-tap'
 import type { PdfViewerMagnifierOptions } from './types'
 
 /**
@@ -85,9 +86,6 @@ const DEFAULT_DELAY = delaySteps[DEFAULT_CHOICE.delay]
  * delay, but a finger that lands to start a scroll must not open a lens first.
  */
 const TOUCH_HOLD_MIN = 300
-
-/** How far a finger can drift during the hold, in pixels, before the hold becomes a scroll. */
-const TOUCH_SLOP = 10
 
 /** The gap between the lens and a held finger. It is larger than the cursor gap, because a fingertip covers more of the page. */
 const TOUCH_OFFSET = 48

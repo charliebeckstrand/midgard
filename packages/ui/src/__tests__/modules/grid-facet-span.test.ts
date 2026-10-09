@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { facetSpan } from '../../modules/grid/engine/grid-table/filter-view'
+import { facetSpan, toColumnFacets } from '../../modules/grid/engine/grid-table/filter-view'
 
 describe('facetSpan', () => {
 	it('gives the min and max of the numbers among the values', () => {
@@ -23,5 +23,11 @@ describe('facetSpan', () => {
 		expect(facetSpan([])).toBeUndefined()
 
 		expect(facetSpan([null, '', 'x'])).toBeUndefined()
+	})
+})
+
+describe('toColumnFacets', () => {
+	it('orders the values as the grid sorts them, with numbers in numeric order', () => {
+		expect(toColumnFacets(['10', '2', 1, 'b', 'a']).values).toEqual(['1', '2', '10', 'a', 'b'])
 	})
 })

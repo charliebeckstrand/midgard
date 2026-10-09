@@ -17,10 +17,10 @@ import { AuthLayout } from 'ui/layouts'
 import { Stack } from 'ui/stack'
 import { signOut } from './account'
 import { bifrost } from './bifrost'
-import { ErrorAlert } from './error-alert'
 import { chain, required } from './form-validators'
 import type { SecondFactorMethod } from './second-step-request'
 import { useLeaving } from './use-leaving'
+import { unexpectedError, useServerError } from './use-server-error'
 
 /** The proof that `/auth/session/verify` accepts. */
 type SecondFactorProof = Schema<'SecondFactorRequest'>
@@ -59,7 +59,7 @@ function SecondStep({ methods, onVerified, onExpired, onCancel, cancelLabel }: S
 
 	const [useRecovery, setUseRecovery] = useState(!hasTotp && !methods.includes('passkey'))
 
-	const [error, setError] = useState('')
+	const [errorAlert, setError] = useServerError()
 
 	const [leaving, leave] = useLeaving()
 
@@ -76,7 +76,7 @@ function SecondStep({ methods, onVerified, onExpired, onCancel, cancelLabel }: S
 
 			setError(error?.message || 'That code was not accepted. Please try again.')
 		} catch {
-			setError('An unexpected error occurred. Please try again later.')
+			setError(unexpectedError)
 		}
 	}
 
@@ -107,7 +107,7 @@ function SecondStep({ methods, onVerified, onExpired, onCancel, cancelLabel }: S
 	return (
 		<Fieldset disabled={leaving}>
 			<Stack gap="xl">
-				{error && <ErrorAlert onDismiss={() => setError('')}>{error}</ErrorAlert>}
+				{errorAlert}
 
 				{showCode && (
 					<Form<CodeValues>

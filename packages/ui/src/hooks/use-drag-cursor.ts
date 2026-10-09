@@ -1,6 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { NO_CURSOR_QUERY } from '../utilities/media-query'
+import { noop } from '../utilities/noop'
 
 /**
  * A cursor that a drag holds on the whole page. `grabbing` is the closed hand of
@@ -55,11 +57,17 @@ function paint() {
  * listeners. The release is idempotent.
  *
  * @remarks The caller must release on each end of the drag, and also on unmount.
- * A hold that is not released keeps the cursor on the page.
+ * A hold that is not released keeps the cursor on the page. On a device where
+ * no pointer hovers, the hold does nothing.
  *
  * @internal
  */
 export function holdDragCursor(cursor: DragCursor = 'grabbing'): () => void {
+	// A device with no pointer that hovers, such as a phone, shows no cursor. The
+	// rule then does nothing but restyle each element of the page, at the start
+	// and at the end of the drag, which stalls the frames of a touch drag.
+	if (window.matchMedia(NO_CURSOR_QUERY).matches) return noop
+
 	const hold = { cursor }
 
 	holds.push(hold)
@@ -127,7 +135,8 @@ export function useDragCursorHold(cursor: DragCursor = 'grabbing') {
  * repair this in each browser. This hook injects one universal `!important` rule
  * into `<head>` for the span of the drag. Overlapping drags share the rule, and
  * the newest drag sets its cursor. The rule goes when the last drag releases, on
- * a drop, a cancel, or an unmount. It does nothing during SSR.
+ * a drop, a cancel, or an unmount. It does nothing during SSR, or on a device
+ * where no pointer hovers.
  */
 export function useDragCursor(active: boolean, cursor: DragCursor = 'grabbing'): void {
 	useEffect(() => {

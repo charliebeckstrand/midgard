@@ -787,6 +787,35 @@ describe('HeatmapChart keyboard navigation', () => {
 		expect(readout(container)).toBe('Late—Tue')
 	})
 
+	it('keys the readout with the chart swatch, a no-data cell in a text color it can paint', () => {
+		const { container } = renderUI(
+			<HeatmapChart aria-label="Commits" data={GRID.slice(0, 3)} series={SERIES} width={400} />,
+		)
+
+		const plot = getSlot(container, 'chart-plot')
+
+		const swatch = () => getSlot(getSlot(container, 'tooltip-content'), 'swatch')
+
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		// A datum inks its cell fill inline on `currentColor`.
+		expect(swatch().style.color).not.toBe('')
+
+		fireEvent.keyDown(plot, { key: 'End' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		// An HTML span paints no SVG `fill-*` class, so the no-data key takes a
+		// `text-*` class on `currentColor`.
+		const empty = swatch()
+
+		expect(empty.className).not.toMatch(/\bfill-/)
+
+		expect(empty.className).toMatch(/\btext-zinc-/)
+
+		expect(empty.style.color).toBe('')
+	})
+
 	it('offers no tab stop without a tooltip or at the spark tier', () => {
 		const off = renderUI(
 			<HeatmapChart aria-label="Commits" data={GRID} series={SERIES} width={400} tooltip={false} />,

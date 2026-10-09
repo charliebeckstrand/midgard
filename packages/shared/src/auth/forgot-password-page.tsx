@@ -11,8 +11,8 @@ import { Link } from 'ui/link'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import { bifrost } from './bifrost'
-import { ErrorAlert } from './error-alert'
 import { chain, email, required } from './form-validators'
+import { unexpectedError, useServerError } from './use-server-error'
 
 type ForgotPasswordValues = { email: string }
 
@@ -28,7 +28,7 @@ type ForgotPasswordValues = { email: string }
 export function ForgotPasswordPage() {
 	const [sent, setSent] = useState(false)
 
-	const [serverError, setServerError] = useState('')
+	const [errorAlert, setServerError] = useServerError()
 
 	const handleSubmit: FormSubmitHandler<ForgotPasswordValues> = async (values) => {
 		try {
@@ -42,7 +42,7 @@ export function ForgotPasswordPage() {
 
 			setServerError(error?.message || 'The request failed. Please try again.')
 		} catch {
-			setServerError('An unexpected error occurred. Please try again later.')
+			setServerError(unexpectedError)
 		}
 	}
 
@@ -66,9 +66,7 @@ export function ForgotPasswordPage() {
 						</Text>
 					)}
 
-					{serverError && (
-						<ErrorAlert onDismiss={() => setServerError('')}>{serverError}</ErrorAlert>
-					)}
+					{errorAlert}
 
 					<Field>
 						<Label>Email</Label>

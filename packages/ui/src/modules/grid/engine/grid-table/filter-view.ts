@@ -1,9 +1,11 @@
+import { toNumericCell } from '../../../../utilities'
 import { isQueryActive } from '../../../query/engine/query-active'
 import { isQueryGroup } from '../../../query/engine/query-node'
 import type { QueryGroup } from '../../../query/engine/types'
 import type { GridColumn, GridColumnFilterState } from '../../types'
 import { type ColumnTests, type RowTest, uniqueValues } from '../grid-filter/filter'
 import { compileSearch } from '../grid-search/search'
+import { naturalCollator } from '../grid-sort/utilities'
 import type { EngineTable } from './features'
 
 /**
@@ -103,9 +105,9 @@ export function resolveFilterMode(args: {
 
 /**
  * The `[min, max]` of the numbers among a column's faceted values, or
- * `undefined` when there is no number. A number or a numeric string counts. A
- * blank cell is no number, so it does not pull the minimum to 0, as
- * `getFacetedMinMaxValues` does.
+ * `undefined` when there is no number. A cell reads through `toNumericCell`,
+ * so a number or a numeric string counts. A blank cell is no number, so it
+ * does not pull the minimum to 0, as `getFacetedMinMaxValues` does.
  *
  * @internal
  */
@@ -115,9 +117,7 @@ export function facetSpan(values: Iterable<unknown>): readonly [number, number] 
 	let max = Number.NEGATIVE_INFINITY
 
 	for (const value of values) {
-		if (typeof value !== 'number' && (typeof value !== 'string' || value.trim() === '')) continue
-
-		const number = Number(value)
+		const number = toNumericCell(value)
 
 		if (!Number.isFinite(number)) continue
 
@@ -134,18 +134,20 @@ const NO_FACETS: GridColumnFacets = { values: [], span: undefined }
 
 /**
  * The facets of a column from the distinct values of its cells. The facets
- * hold each value that is not blank as sorted text, and the span of the
- * numbers.
+ * hold each value that is not blank as text, and the span of the numbers.
+ * The text sorts by {@link naturalCollator}, as the string sort of the grid
+ * does, so "2" comes before "10".
  *
+ * @param locale - The locale that the values collate in.
  * @internal
  */
-export function toColumnFacets(values: Iterable<unknown>): GridColumnFacets {
+export function toColumnFacets(values: Iterable<unknown>, locale?: string): GridColumnFacets {
 	const all = [...values]
 
 	const text = all.filter((value) => value != null && value !== '').map((value) => String(value))
 
 	return {
-		values: [...new Set(text)].sort((a, b) => a.localeCompare(b)),
+		values: [...new Set(text)].sort(naturalCollator(locale).compare),
 		span: facetSpan(all),
 	}
 }
@@ -158,12 +160,14 @@ export function toColumnFacets(values: Iterable<unknown>): GridColumnFacets {
  *   server page, so its columns have no facets.
  * @param facetValues - The distinct cell values that the facets of a column
  *   read, which the grid collects itself (see `useFacetSource`).
+ * @param locale - The locale that the facet values collate in.
  * @internal
  */
 export function columnFilterActions<T>(
 	table: EngineTable<T>,
 	manual: boolean,
 	facetValues: (id: string) => Iterable<unknown>,
+	locale?: string,
 ): GridColumnFilterActions {
 	return {
 		setQuery: (id, query) => table.getColumn(String(id))?.setFilterValue(query),
@@ -173,7 +177,7 @@ export function columnFilterActions<T>(
 		facets: (id) => {
 			if (manual) return NO_FACETS
 
-			return toColumnFacets(facetValues(String(id)))
+			return toColumnFacets(facetValues(String(id)), locale)
 		},
 	}
 }

@@ -146,12 +146,12 @@ describe('Lightbox', () => {
 		expect(centerPhoto()).toHaveAttribute('alt', 'Snow on a ridge')
 	})
 
-	it('closes on the close button, and reports `null`', async () => {
+	it('closes on the close button with `closable`, and reports `null`', async () => {
 		const user = setupUser()
 
 		const onIndexChange = vi.fn()
 
-		renderUI(<Gallery defaultIndex={2} onIndexChange={onIndexChange} />)
+		renderUI(<Gallery defaultIndex={2} closable onIndexChange={onIndexChange} />)
 
 		await user.click(screen.getByRole('button', { name: 'Close' }))
 
@@ -202,7 +202,7 @@ describe('Lightbox', () => {
 		const first = photos.slice(0, 1)
 
 		renderUI(
-			<Lightbox photos={first} defaultIndex={0}>
+			<Lightbox photos={first} defaultIndex={0} closable>
 				<LightboxTrigger />
 			</Lightbox>,
 		)
@@ -218,6 +218,7 @@ describe('Lightbox', () => {
 		renderUI(
 			<Gallery
 				defaultIndex={1}
+				closable
 				aria-label="Trip photos"
 				closeLabel="Fermer"
 				previousLabel="Photo précédente"
@@ -230,5 +231,50 @@ describe('Lightbox', () => {
 		for (const name of ['Fermer', 'Photo précédente', 'Photo suivante']) {
 			expect(screen.getByRole('button', { name })).toBeInTheDocument()
 		}
+	})
+
+	it('keeps a close button for the keyboard with no `closable`, and closes on Escape', async () => {
+		const onIndexChange = vi.fn()
+
+		renderUI(<Gallery defaultIndex={1} onIndexChange={onIndexChange} />)
+
+		// It shows only when it has the keyboard focus.
+		expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument()
+
+		expect(screen.getByRole('button', { name: 'Next photo' })).toBeInTheDocument()
+
+		await setupUser().keyboard('{Escape}')
+
+		expect(onIndexChange).toHaveBeenLastCalledWith(null)
+	})
+
+	it('hides the step controls with `controls={false}`, and still steps on the arrow keys', () => {
+		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+
+		renderUI(<Gallery defaultIndex={0} closable controls={false} />)
+
+		expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument()
+
+		expect(screen.queryByRole('button', { name: 'Next photo' })).toBeNull()
+
+		expect(screen.queryByText('1 / 3')).toBeNull()
+
+		fireEvent.keyDown(screen.getByRole('dialog'), { key: 'ArrowRight' })
+
+		expect(centerPhoto()).toHaveAttribute('alt', 'Snow on a ridge')
+	})
+
+	it('paints the enabled step buttons solid and the disabled one soft', () => {
+		renderUI(<Gallery defaultIndex={0} />)
+
+		expect(screen.getByRole('button', { name: 'Previous photo' })).toHaveAttribute(
+			'data-variant',
+			'soft',
+		)
+
+		expect(screen.getByRole('button', { name: 'Next photo' })).toHaveAttribute(
+			'data-variant',
+			'solid',
+		)
 	})
 })

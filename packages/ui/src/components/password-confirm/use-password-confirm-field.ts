@@ -3,6 +3,7 @@
 import { type ChangeEvent, type Ref, useEffect, useRef, useState } from 'react'
 import { composeEventHandlers } from '../../core'
 import { useComposedRef } from '../../hooks'
+import { useFormResetSync } from '../../hooks/use-form-reset-sync'
 import { useFormField } from '../form/context'
 import type { PasswordInputProps } from '../password-input'
 import { type PasswordConfirmRole, usePasswordConfirm } from './context'
@@ -64,31 +65,7 @@ export function usePasswordConfirmField(
 
 	const inputRef = useRef<HTMLInputElement>(null)
 
-	useEffect(() => {
-		if (!tracked) return
-
-		const input = inputRef.current
-
-		const form = input?.form
-
-		if (!input || !form) return
-
-		let frame = 0
-
-		// The browser reverts the input after the `reset` event, so read it on the
-		// next frame.
-		const handleReset = () => {
-			frame = requestAnimationFrame(() => setOwn(input.value))
-		}
-
-		form.addEventListener('reset', handleReset)
-
-		return () => {
-			form.removeEventListener('reset', handleReset)
-
-			cancelAnimationFrame(frame)
-		}
-	}, [tracked])
+	useFormResetSync(inputRef, tracked, (input) => setOwn(input.value))
 
 	return {
 		ref: useComposedRef(inputRef, ref),

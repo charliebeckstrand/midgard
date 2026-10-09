@@ -7,7 +7,7 @@ import {
 	sameGeometry,
 } from './engine/dashboard-layout'
 import type { DashboardStore, DashboardView } from './engine/dashboard-store'
-import type { DashboardGestureEndEvent } from './types'
+import type { DashboardGestureEndEvent, DashboardGestureStartEvent } from './types'
 
 /**
  * What a commit leaves. The layout binding runs app code, so a commit catches
@@ -74,6 +74,39 @@ export function measureGesture(
 		inline: inlineSign(getComputedStyle(canvas).direction),
 		snapshot: [...view.cells.values()],
 	}
+}
+
+/**
+ * Starts a drag or a resize of the tile `id`: it writes the live gesture from
+ * the start measure, and gives `onStart` the start event. The container width
+ * and the layout come from the store at the start.
+ *
+ * @internal
+ */
+export function startGesture(
+	store: DashboardStore,
+	kind: 'drag' | 'resize',
+	id: string,
+	{ snapshot, pitch, inline }: Pick<DashboardGestureMeasure, 'snapshot' | 'pitch' | 'inline'>,
+	onStart: (event: DashboardGestureStartEvent) => void,
+): void {
+	const { width, layout } = store.getState()
+
+	store.setState({
+		gesture: {
+			kind,
+			id,
+			snapshot,
+			preview: null,
+			change: null,
+			partner: null,
+			width,
+			pitch,
+			inline,
+		},
+	})
+
+	onStart({ id, layout })
 }
 
 /**

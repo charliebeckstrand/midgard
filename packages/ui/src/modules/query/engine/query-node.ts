@@ -62,8 +62,8 @@ function defaultValueFor(field?: QueryField): JsonValue {
  */
 export const MAX_DEPTH = 32
 
-/** Whether a value is a plain object, which JSON gives for `{}`. @internal */
-function isFields(value: unknown): value is Record<string, unknown> {
+/** Whether a value is a plain object, which JSON gives for `{}`. The dashboard spec parse reads it too. @internal */
+export function isFields(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 

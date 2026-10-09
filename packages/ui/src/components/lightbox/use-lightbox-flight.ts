@@ -11,8 +11,12 @@ import { isFlightTarget, type LightboxBox, RESTING_FRAME, raisedFrame } from './
 export type LightboxFlight = {
 	/** Raises the photo from `thumbnail` to its place on the stage. */
 	raise: (thumbnail: HTMLElement | undefined) => void
-	/** Takes the photo back into `thumbnail`. It resolves when the photo lands. */
-	lower: (thumbnail: HTMLElement | undefined) => Promise<void>
+	/**
+	 * Takes the photo back into `thumbnail`. It resolves when the photo lands.
+	 * `from` is the transform that a swipe holds the photo at, where the return
+	 * starts.
+	 */
+	lower: (thumbnail: HTMLElement | undefined, from?: string) => Promise<void>
 }
 
 /**
@@ -124,7 +128,7 @@ export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): Ligh
 		})
 	}
 
-	const lower = (thumbnail: HTMLElement | undefined) => {
+	const lower = (thumbnail: HTMLElement | undefined, from?: string) => {
 		const photo = photoRef.current
 
 		if (!photo) return Promise.resolve()
@@ -134,15 +138,18 @@ export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): Ligh
 		if (!frame) return landed(animate(photo, { opacity: 0 }, k.motion.fade))
 
 		// A raise that still runs turns around where it is: with no start frame,
-		// Motion starts from the value that the photo paints now. A photo at rest
-		// starts from rest.
+		// Motion starts from the value that the photo paints now. A photo that a
+		// swipe holds starts where the swipe left it, and a photo at rest starts
+		// from rest.
 		const flying = rising.current
+
+		const start = from ?? RESTING_FRAME.transform
 
 		return landed(
 			animate(
 				photo,
 				{
-					transform: flying ? frame.transform : [RESTING_FRAME.transform, frame.transform],
+					transform: flying ? frame.transform : [start, frame.transform],
 					clipPath: flying ? frame.clipPath : [RESTING_FRAME.clipPath, frame.clipPath],
 				},
 				k.motion.raise,

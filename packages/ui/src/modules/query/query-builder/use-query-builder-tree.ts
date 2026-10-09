@@ -1,11 +1,12 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo } from 'react'
 import { useStableEvent } from '../../../hooks/use-stable-event'
 import type { QueryGroup } from '../engine/types'
+import { useQueryRemovalFocus } from '../use-query-removal-focus'
 import { type QueryTreeOptions, useQueryTree } from '../use-query-tree'
 import type { FocusRegister, QueryBuilderActions } from './context'
-import { type FocusTarget, findFocusTarget, focusKeyOf } from './query-builder-focus'
+import { findFocusTarget, focusKeyOf } from './query-builder-focus'
 
 type QueryBuilderTreeResult = {
 	root: QueryGroup
@@ -22,36 +23,10 @@ type QueryBuilderTreeResult = {
 export function useQueryBuilderTree(options: QueryTreeOptions): QueryBuilderTreeResult {
 	const { root, actions } = useQueryTree(options)
 
-	// Focus registry: each remove/add control registers its element by key. A
-	// removal stashes ordered focus candidates; the effect runs once the tree
-	// has re-rendered (the removed node now unregistered) and moves focus to
-	// the first surviving candidate, keeping focus off <body> (WCAG 2.4.3).
-	const focusables = useRef(new Map<string, HTMLElement>())
-
-	const register = useCallback<FocusRegister>((key, el) => {
-		if (el) focusables.current.set(key, el)
-		else focusables.current.delete(key)
-	}, [])
-
-	// Each removal sets a fresh candidate array; the effect runs only after a
-	// removal commits (the removed node now unregistered), never on unrelated
-	// re-renders. `pendingFocus` stays set: clearing it triggers an extra
-	// render that remounts the newly focused control.
-	const [pendingFocus, setPendingFocus] = useState<FocusTarget[] | null>(null)
-
-	useEffect(() => {
-		if (!pendingFocus) return
-
-		for (const target of pendingFocus) {
-			const el = focusables.current.get(focusKeyOf(target))
-
-			if (el) {
-				el.focus()
-
-				return
-			}
-		}
-	}, [pendingFocus])
+	// Each remove or add control registers its element by key. A removal gives
+	// the ordered candidates, and focus moves to the first live one once the
+	// removed node unmounts.
+	const { register, focusFirst } = useQueryRemovalFocus<HTMLElement>()
 
 	// The wrapped `remove` keeps its identity, and it reads the newest tree to
 	// find where focus lands after a node goes.
@@ -62,7 +37,7 @@ export function useQueryBuilderTree(options: QueryTreeOptions): QueryBuilderTree
 
 		actions.remove(id)
 
-		if (targets.length > 0) setPendingFocus(targets)
+		if (targets.length > 0) focusFirst(targets.map(focusKeyOf))
 	})
 
 	const builderActions = useMemo<QueryBuilderActions>(

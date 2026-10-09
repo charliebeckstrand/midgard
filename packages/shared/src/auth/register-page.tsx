@@ -13,9 +13,9 @@ import { PasswordInput } from 'ui/password-input'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import { bifrost } from './bifrost'
-import { ErrorAlert } from './error-alert'
 import { chain, email, matches, minLength, required } from './form-validators'
 import { Turnstile } from './turnstile'
+import { unexpectedError, useServerError } from './use-server-error'
 
 type RegisterValues = {
 	email: string
@@ -44,7 +44,7 @@ type RegisterPageProps = {
 export function RegisterPage({ turnstileSiteKey }: RegisterPageProps) {
 	const router = useRouter()
 
-	const [serverError, setServerError] = useState('')
+	const [errorAlert, setServerError] = useServerError()
 
 	const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
 
@@ -79,7 +79,7 @@ export function RegisterPage({ turnstileSiteKey }: RegisterPageProps) {
 
 			setAttempt((n) => n + 1)
 
-			setServerError('Registration failed. Please try again later.')
+			setServerError(unexpectedError)
 		}
 	}
 
@@ -98,9 +98,7 @@ export function RegisterPage({ turnstileSiteKey }: RegisterPageProps) {
 				<Stack gap="xl" className="w-full sm:max-w-sm p-6">
 					<Heading className="text-center">Create your account</Heading>
 
-					{serverError && (
-						<ErrorAlert onDismiss={() => setServerError('')}>{serverError}</ErrorAlert>
-					)}
+					{errorAlert}
 
 					<Field>
 						<Label>Email</Label>

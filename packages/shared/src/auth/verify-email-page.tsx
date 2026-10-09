@@ -8,8 +8,8 @@ import { Link } from 'ui/link'
 import { Stack } from 'ui/structure/stack'
 import { Text } from 'ui/text'
 import { bifrost } from './bifrost'
-import { ErrorAlert } from './error-alert'
 import { linkToken } from './link-token'
+import { unexpectedError, useServerError } from './use-server-error'
 
 /**
  * Page that verifies an email: posts the token of the emailed link to
@@ -26,7 +26,7 @@ import { linkToken } from './link-token'
 export function VerifyEmailPage() {
 	const [state, setState] = useState<'idle' | 'pending' | 'verified'>('idle')
 
-	const [serverError, setServerError] = useState('')
+	const [errorAlert, setServerError] = useServerError()
 
 	async function verify() {
 		setState('pending')
@@ -46,7 +46,7 @@ export function VerifyEmailPage() {
 
 			setServerError(error?.message || 'The email was not verified. Please try again.')
 		} catch {
-			setServerError('An unexpected error occurred. Please try again later.')
+			setServerError(unexpectedError)
 		}
 
 		setState('idle')
@@ -69,9 +69,7 @@ export function VerifyEmailPage() {
 					</>
 				) : (
 					<>
-						{serverError && (
-							<ErrorAlert onDismiss={() => setServerError('')}>{serverError}</ErrorAlert>
-						)}
+						{errorAlert}
 
 						<Button className="w-full" disabled={state === 'pending'} onClick={verify}>
 							Verify email
