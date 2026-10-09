@@ -43,7 +43,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 `button` · `copy-button` · `hold-button` · `toggle-icon-button`
 
-> `CopyButton` is an icon button. For a copy control with a text label, use `useCopyButtonState` from `copy-button`. It gives `copied` and `copy`, with the same clipboard write, announcement, and revert timing as `CopyButton`. A call to `copy` during a write or in the copied window does nothing.
+> `CopyButton` is an icon button. For a copy control with a text label, use `useCopyButtonState` from `copy-button`. It gives `copied` and `copy`, with the same clipboard write, announcement, and revert timing as `CopyButton`. A call to `copy` during a write or in the copied window does nothing. Each copy reads `timeout` when it starts the revert timer.
 
 ## Navigation
 

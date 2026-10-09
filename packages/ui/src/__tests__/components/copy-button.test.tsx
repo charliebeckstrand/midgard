@@ -438,4 +438,48 @@ describe('useCopyButtonState', () => {
 
 		expect(onCopiedChange.mock.calls).toEqual([[true], [false], [true]])
 	})
+
+	// The copy starts the revert window. A later `timeout` applies to the next copy.
+	it('keeps the revert window when the timeout changes while the copied state holds', async () => {
+		vi.useFakeTimers()
+
+		onTestFinished(() => {
+			vi.useRealTimers()
+		})
+
+		stubClipboard(vi.fn().mockResolvedValue(undefined))
+
+		const { result, rerender } = renderHook(
+			({ timeout }: { timeout: number }) => useCopyButtonState({ text: 'hello', timeout }),
+			{ initialProps: { timeout: 1000 } },
+		)
+
+		await act(() => result.current.copy())
+
+		act(() => {
+			vi.advanceTimersByTime(600)
+		})
+
+		rerender({ timeout: 5000 })
+
+		act(() => {
+			vi.advanceTimersByTime(400)
+		})
+
+		expect(result.current.copied).toBe(false)
+
+		await act(() => result.current.copy())
+
+		act(() => {
+			vi.advanceTimersByTime(4999)
+		})
+
+		expect(result.current.copied).toBe(true)
+
+		act(() => {
+			vi.advanceTimersByTime(1)
+		})
+
+		expect(result.current.copied).toBe(false)
+	})
 })
