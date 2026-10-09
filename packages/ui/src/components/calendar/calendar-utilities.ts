@@ -1,5 +1,6 @@
 import {
 	CalendarDate,
+	type DateDuration,
 	endOfMonth,
 	GregorianCalendar,
 	getDayOfWeek,
@@ -7,6 +8,7 @@ import {
 	startOfWeek,
 	toCalendar,
 } from '@internationalized/date'
+import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { getOrCompute } from '../../utilities'
 
 /**
@@ -119,6 +121,73 @@ export function isSameInstant(a: Date | null | undefined, b: Date | null | undef
 	if (a == null || b == null) return a == null && b == null
 
 	return a.getTime() === b.getTime()
+}
+
+/** Whether two values are the same calendar day, or are both empty. @internal */
+export function isSameDayOrEmpty(a: Date | null | undefined, b: Date | null | undefined): boolean {
+	if (a == null || b == null) return a == null && b == null
+
+	return isSameDay(a, b)
+}
+
+/** The last day that the calendar can show. @internal */
+const LAST_DAY = new CalendarDate(MAX_YEAR, 12, 31)
+
+/**
+ * `day` moved by `step`, or `null` when the move leaves years 1 to 9999.
+ *
+ * A `CalendarDate` clamps a sum past the last day to that day. So the check
+ * compares `day` with the last start that the step can leave. A step back
+ * never passes the last day, and the year check stops it at year 1.
+ *
+ * @internal
+ */
+export function stepDay(day: CalendarDate, step: DateDuration): CalendarDate | null {
+	if (day.compare(LAST_DAY.subtract(step)) > 0) return null
+
+	const moved = day.add(step)
+
+	return isYearInRange(fromCalendarDate(moved).getFullYear()) ? moved : null
+}
+
+/** `day` held between the days of `min` and `max`. @internal */
+export function clampDay(day: CalendarDate, min?: Date, max?: Date): CalendarDate {
+	if (min && day.compare(toCalendarDate(min)) < 0) return toCalendarDate(min)
+
+	if (max && day.compare(toCalendarDate(max)) > 0) return toCalendarDate(max)
+
+	return day
+}
+
+/**
+ * The step of a key in a day grid, by the APG date grid. An arrow moves one day
+ * across, or one week down or up. The arrows read in the reading order of
+ * `grid`, so `ArrowRight` is the next day in a right-to-left layout too. A Page
+ * key moves one month, or one year with Shift.
+ *
+ * @returns The step, or `null` for every other key.
+ * @internal
+ */
+export function gridStep(
+	event: { key: string; shiftKey: boolean },
+	grid: EventTarget | null,
+): DateDuration | null {
+	switch (logicalArrowKey(event.key, grid)) {
+		case 'ArrowRight':
+			return { days: 1 }
+		case 'ArrowLeft':
+			return { days: -1 }
+		case 'ArrowDown':
+			return { weeks: 1 }
+		case 'ArrowUp':
+			return { weeks: -1 }
+		case 'PageDown':
+			return event.shiftKey ? { years: 1 } : { months: 1 }
+		case 'PageUp':
+			return event.shiftKey ? { years: -1 } : { months: -1 }
+		default:
+			return null
+	}
 }
 
 /** True when `a`'s calendar day strictly precedes `b`'s. @internal */

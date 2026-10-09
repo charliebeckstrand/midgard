@@ -1,6 +1,10 @@
-import { endOfMonth as calendarEndOfMonth, DateFormatter } from '@internationalized/date'
+import {
+	endOfMonth as calendarEndOfMonth,
+	type DateDuration,
+	DateFormatter,
+} from '@internationalized/date'
 import { resolveLocale } from '../../utilities'
-import { fromCalendarDate, isYearInRange, toCalendarDate } from '../calendar/calendar-utilities'
+import { clampDay, fromCalendarDate, stepDay, toCalendarDate } from '../calendar/calendar-utilities'
 
 /**
  * Trigger label for a single date, in `locale`. That is the ambient
@@ -62,42 +66,22 @@ export function addMonths(date: Date, amount: number): Date {
 	return fromCalendarDate(toCalendarDate(date).add({ months: amount }))
 }
 
-/** A step of days or of months. @internal */
-export type DateStep = { days: number } | { months: number }
-
 /**
- * Date moved by `step` days or months, as {@link addDays} and {@link addMonths}
- * move it. A step that leaves years 1 to 9999 gives `date` itself, so a move at
- * a limit stays put, as the Calendar grid does. Without the check, a step back
- * from 1 January 0001 goes to December 0001.
+ * Date moved by `step`, as {@link stepDay} moves a day. A step that leaves
+ * years 1 to 9999 gives `date` itself, so a move at a limit stays put, as the
+ * Calendar grid does.
  *
  * @internal
  */
-export function stepDate(date: Date, step: DateStep): Date {
-	if ('days' in step) {
-		// A native `Date` holds every year, so it shows the target year before the
-		// library clamps it.
-		const target = new Date(date)
+export function stepDate(date: Date, step: DateDuration): Date {
+	const moved = stepDay(toCalendarDate(date), step)
 
-		target.setDate(target.getDate() + step.days)
-
-		return isYearInRange(target.getFullYear()) ? addDays(date, step.days) : date
-	}
-
-	const year = Math.floor((date.getFullYear() * 12 + date.getMonth() + step.months) / 12)
-
-	return isYearInRange(year) ? addMonths(date, step.months) : date
+	return moved ? fromCalendarDate(moved) : date
 }
 
 /** Date confined to the inclusive `min`/`max` bounds (day resolution). @internal */
 export function clampDate(date: Date, min?: Date, max?: Date): Date {
-	let value = toCalendarDate(date)
-
-	if (min && value.compare(toCalendarDate(min)) < 0) value = toCalendarDate(min)
-
-	if (max && value.compare(toCalendarDate(max)) > 0) value = toCalendarDate(max)
-
-	return fromCalendarDate(value)
+	return fromCalendarDate(clampDay(toCalendarDate(date), min, max))
 }
 
 /** Local-midnight first day of `date`'s month. @internal */

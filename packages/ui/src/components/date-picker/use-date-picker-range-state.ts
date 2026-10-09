@@ -1,5 +1,6 @@
 'use client'
 
+import type { DateDuration } from '@internationalized/date'
 import { useCallback, useMemo, useReducer, useRef } from 'react'
 
 import { useLocale } from '../../providers/locale'
@@ -8,7 +9,7 @@ import { useControlPickerField } from '../control/use-control-picker-field'
 import { useControlPickerPopover } from '../control/use-control-picker-popover'
 import type { DatePickerBaseProps, DatePickerRangeProps } from './date-picker'
 import { datePickerRangeReducer, initialDatePickerRangeState } from './date-picker-range-reducer'
-import { clampDate, type DateStep, formatRange, stepDate } from './date-picker-utilities'
+import { clampDate, formatRange, stepDate } from './date-picker-utilities'
 import { useDatePickerControlled } from './use-date-picker-controlled'
 import {
 	type FooterButton,
@@ -92,7 +93,7 @@ export function useDatePickerRangeState({
 	// gives, and stays between `min` and `max`. While a range is in progress, the
 	// new day also previews the end of the range.
 	const moveGrid = useCallback(
-		(step: DateStep, from: Date) => {
+		(step: DateDuration, from: Date) => {
 			const next = clampDate(stepDate(from, step), min, max)
 
 			if (rangeStart !== null) dispatch({ type: 'hover', date: next })

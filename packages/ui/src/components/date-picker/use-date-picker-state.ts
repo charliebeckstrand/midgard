@@ -1,5 +1,6 @@
 'use client'
 
+import type { DateDuration } from '@internationalized/date'
 import { useCallback, useId, useMemo, useRef, useState } from 'react'
 
 import { useLocale } from '../../providers/locale'
@@ -7,7 +8,7 @@ import type { CalendarActive, CalendarHandle } from '../calendar'
 import { useControlPickerField } from '../control/use-control-picker-field'
 import { useControlPickerPopover } from '../control/use-control-picker-popover'
 import type { DatePickerBaseProps, DatePickerSingleProps } from './date-picker'
-import { clampDate, type DateStep, formatDate, startOfDay, stepDate } from './date-picker-utilities'
+import { clampDate, formatDate, startOfDay, stepDate } from './date-picker-utilities'
 import { useDatePickerControlled } from './use-date-picker-controlled'
 import {
 	type FooterButton,
@@ -116,7 +117,7 @@ export function useDatePickerState({
 	// A step of days or months starts on `from`, the day that the key handler
 	// gives, and stays between `min` and `max`.
 	const moveGrid = useCallback(
-		(step: DateStep, from: Date) => clampDate(stepDate(from, step), min, max),
+		(step: DateDuration, from: Date) => clampDate(stepDate(from, step), min, max),
 		[min, max],
 	)
 

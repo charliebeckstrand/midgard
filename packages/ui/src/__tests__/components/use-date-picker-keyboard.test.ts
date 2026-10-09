@@ -1,8 +1,9 @@
+import type { DateDuration } from '@internationalized/date'
 import { renderHook } from '@testing-library/react'
 import type { KeyboardEvent, RefObject } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import type { CalendarActive, CalendarHandle } from '../../components/calendar'
-import type { DateStep } from '../../components/date-picker/date-picker-utilities'
+import { stepDate } from '../../components/date-picker/date-picker-utilities'
 import {
 	type FooterButton,
 	useDatePickerKeyboard,
@@ -26,11 +27,7 @@ function setup(overrides: Setup = {}) {
 	const closeCalendar = vi.fn()
 
 	// Each step and each page start on `from`.
-	const moveGrid = vi.fn((step: DateStep, from: Date) =>
-		'days' in step
-			? new Date(2026, from.getMonth(), from.getDate() + step.days)
-			: new Date(2026, from.getMonth() + step.months, from.getDate()),
-	)
+	const moveGrid = vi.fn((step: DateDuration, from: Date) => stepDate(from, step))
 
 	const getInitialActiveDate = vi.fn(() => new Date(2026, 0, 15))
 
@@ -217,11 +214,11 @@ describe('useDatePickerKeyboard: grid zone', () => {
 
 		handler(makeKeyEvent<HTMLElement>('PageUp', { shiftKey: true }))
 
-		expect(moveGrid).toHaveBeenCalledWith({ months: -12 }, new Date(2026, 0, 15))
+		expect(moveGrid).toHaveBeenCalledWith({ years: -1 }, new Date(2026, 0, 15))
 
 		handler(makeKeyEvent<HTMLElement>('PageDown', { shiftKey: true }))
 
-		expect(moveGrid).toHaveBeenCalledWith({ months: 12 }, new Date(2026, 0, 15))
+		expect(moveGrid).toHaveBeenCalledWith({ years: 1 }, new Date(2026, 0, 15))
 
 		expect(setActive).toHaveBeenCalledTimes(4)
 	})
@@ -236,17 +233,17 @@ describe('useDatePickerKeyboard: grid zone', () => {
 		expect(setActive).toHaveBeenCalledWith({ zone: 'grid', date: expect.any(Date) })
 	})
 
-	it.each<[string, string, number]>([
-		['moves grid date backward one day on ArrowLeft', 'ArrowLeft', -1],
-		['moves grid date forward one day on ArrowRight', 'ArrowRight', 1],
-		['moves grid date backward one week on ArrowUp', 'ArrowUp', -7],
-		['moves grid date forward one week on ArrowDown', 'ArrowDown', 7],
-	])('%s', (_name, key, delta) => {
+	it.each<[string, string, DateDuration]>([
+		['moves grid date backward one day on ArrowLeft', 'ArrowLeft', { days: -1 }],
+		['moves grid date forward one day on ArrowRight', 'ArrowRight', { days: 1 }],
+		['moves grid date backward one week on ArrowUp', 'ArrowUp', { weeks: -1 }],
+		['moves grid date forward one week on ArrowDown', 'ArrowDown', { weeks: 1 }],
+	])('%s', (_name, key, step) => {
 		const { handler, moveGrid, setActive } = setup({ active: gridActive })
 
 		handler(makeKeyEvent<HTMLElement>(key))
 
-		expect(moveGrid).toHaveBeenCalledWith({ days: delta }, gridActive.date)
+		expect(moveGrid).toHaveBeenCalledWith(step, gridActive.date)
 
 		expect(setActive).toHaveBeenCalled()
 	})
@@ -623,7 +620,7 @@ describe('useDatePickerKeyboard: Tab-focused toolbar buttons', () => {
 
 		handler(keyFrom('ArrowDown', dialog, dialog))
 
-		expect(moveGrid).toHaveBeenCalledWith({ days: 7 }, new Date(2026, 0, 15))
+		expect(moveGrid).toHaveBeenCalledWith({ weeks: 1 }, new Date(2026, 0, 15))
 
 		expect(setActive).toHaveBeenCalledTimes(1)
 	})
@@ -637,7 +634,7 @@ describe('useDatePickerKeyboard: Tab-focused toolbar buttons', () => {
 
 		handler(keyFrom('ArrowDown', grid, dialog))
 
-		expect(moveGrid).toHaveBeenCalledWith({ days: 7 }, new Date(2026, 0, 15))
+		expect(moveGrid).toHaveBeenCalledWith({ weeks: 1 }, new Date(2026, 0, 15))
 
 		expect(setActive).toHaveBeenCalledTimes(1)
 	})
@@ -672,7 +669,7 @@ describe('useDatePickerKeyboard: a Tab-focused day button', () => {
 
 		handler(keyFrom('ArrowUp', day, dialog))
 
-		expect(moveGrid).toHaveBeenCalledWith({ days: -7 }, new Date(2026, 0, 20))
+		expect(moveGrid).toHaveBeenCalledWith({ weeks: -1 }, new Date(2026, 0, 20))
 
 		expect(setActive).toHaveBeenLastCalledWith({ zone: 'grid', date: new Date(2026, 0, 13) })
 	})
@@ -692,11 +689,11 @@ describe('useDatePickerKeyboard: a Tab-focused day button', () => {
 	})
 
 	// B01-C12, Q11: the dialog takes focus back for the Page keys too, so they map the day.
-	it.each<[string, boolean, number, Date]>([
-		['PageDown', false, 1, new Date(2026, 1, 20)],
-		['PageUp', false, -1, new Date(2025, 11, 20)],
-		['PageDown', true, 12, new Date(2027, 0, 20)],
-	])('steps from the focused day on %s (Shift: %s)', (key, shiftKey, delta, expected) => {
+	it.each<[string, boolean, DateDuration, Date]>([
+		['PageDown', false, { months: 1 }, new Date(2026, 1, 20)],
+		['PageUp', false, { months: -1 }, new Date(2025, 11, 20)],
+		['PageDown', true, { years: 1 }, new Date(2027, 0, 20)],
+	])('steps from the focused day on %s (Shift: %s)', (key, shiftKey, step, expected) => {
 		const { dialog, day } = renderToolbars()
 
 		const { handler, setActive, moveGrid } = setup({
@@ -711,7 +708,7 @@ describe('useDatePickerKeyboard: a Tab-focused day button', () => {
 
 		expect(setActive).toHaveBeenCalledWith({ zone: 'grid', date: new Date(2026, 0, 20) })
 
-		expect(moveGrid).toHaveBeenCalledWith({ months: delta }, new Date(2026, 0, 20))
+		expect(moveGrid).toHaveBeenCalledWith(step, new Date(2026, 0, 20))
 
 		expect(setActive).toHaveBeenLastCalledWith({ zone: 'grid', date: expected })
 	})

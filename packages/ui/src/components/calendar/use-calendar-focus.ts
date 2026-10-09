@@ -1,6 +1,6 @@
 'use client'
 
-import { CalendarDate, type DateDuration, isSameMonth } from '@internationalized/date'
+import { isSameMonth } from '@internationalized/date'
 import { type KeyboardEvent, type RefObject, useCallback } from 'react'
 import { flushSync } from 'react-dom'
 
@@ -9,10 +9,11 @@ import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { queryItems, rovedStop } from '../../hooks/a11y/use-a11y-roving'
 import { wrap } from '../../utilities'
 import {
+	clampDay,
 	fromCalendarDate,
+	gridStep,
 	isSameDay,
-	isYearInRange,
-	MAX_YEAR,
+	stepDay,
 	toCalendarDate,
 } from './calendar-utilities'
 
@@ -82,20 +83,6 @@ export const NAVIGATION_KEYS = new Set([
 	'End',
 	'PageUp',
 	'PageDown',
-])
-
-/**
- * The step of each arrow key in a day grid: one day across, or one week down
- * or up. The keys are logical, so `ArrowRight` is the next day in a
- * right-to-left layout too.
- *
- * @internal
- */
-const ARROW_STEPS = new Map<string, DateDuration>([
-	['ArrowRight', { days: 1 }],
-	['ArrowLeft', { days: -1 }],
-	['ArrowDown', { weeks: 1 }],
-	['ArrowUp', { weeks: -1 }],
 ])
 
 /**
@@ -242,40 +229,6 @@ function preventAndStop(event: KeyboardEvent, stopPropagation: boolean): void {
 /** Every day button of a day grid, the disabled days too. @internal */
 const DAY_BUTTON = 'button'
 
-/** The step of a Page key in a day grid: a month, or a year with Shift. `null` for every other key. @internal */
-function pageStep(event: KeyboardEvent): DateDuration | null {
-	const direction = event.key === 'PageDown' ? 1 : event.key === 'PageUp' ? -1 : 0
-
-	if (direction === 0) return null
-
-	return event.shiftKey ? { years: direction } : { months: direction }
-}
-
-/** The last day that the view can show. @internal */
-const LAST_DAY = new CalendarDate(MAX_YEAR, 12, 31)
-
-/**
- * Whether `step` from `from` passes the last day that the view can show. A
- * `CalendarDate` clamps such a sum to the last day, so the sum alone looks like
- * a move inside December of the last year. A step back from the last day gives
- * the last start that the step can leave. A step back never passes the last
- * day, and the check of the year range stops it at year 1.
- *
- * @internal
- */
-function passesLastDay(from: CalendarDate, step: DateDuration): boolean {
-	return from.compare(LAST_DAY.subtract(step)) > 0
-}
-
-/** `day` held between the days of `min` and `max`. @internal */
-function clampDay(day: CalendarDate, min: Date | undefined, max: Date | undefined): CalendarDate {
-	if (min && day.compare(toCalendarDate(min)) < 0) return toCalendarDate(min)
-
-	if (max && day.compare(toCalendarDate(max)) > 0) return toCalendarDate(max)
-
-	return day
-}
-
 /**
  * Moves the focus of a day grid by the date model of the key. Each arrow and
  * each Page key move the focus to the target day, held between `min` and
@@ -293,11 +246,11 @@ function moveDay(
 	grid: HTMLElement | null,
 	dayGrid: CalendarDayGrid,
 ): boolean {
-	const page = pageStep(event)
-
-	const step = page ?? ARROW_STEPS.get(logicalArrowKey(event.key, grid))
+	const step = gridStep(event, grid)
 
 	if (!step) return false
+
+	const page = event.key === 'PageUp' || event.key === 'PageDown'
 
 	const buttons = queryItems(grid, DAY_BUTTON)
 
@@ -307,11 +260,10 @@ function moveDay(
 
 	const from = toCalendarDate(focused)
 
-	// The view holds years 1 to 9999 only, so the focus stays at a limit. A step
-	// past the last day is caught here, because the sum below clamps to it.
-	if (passesLastDay(from, step)) return true
+	const moved = stepDay(from, step)
 
-	const moved = from.add(step)
+	// The view holds years 1 to 9999 only, so the focus stays at a limit.
+	if (!moved) return true
 
 	const to = clampDay(moved, dayGrid.min, dayGrid.max)
 
@@ -321,9 +273,6 @@ function moveDay(
 	if (!page && isSameMonth(moved, from) && to.compare(moved) === 0) return false
 
 	const date = fromCalendarDate(to)
-
-	// A step back before year 1 stays at the limit too.
-	if (!isYearInRange(date.getFullYear())) return true
 
 	if (isSameMonth(to, from)) {
 		buttons[to.day - 1]?.focus()

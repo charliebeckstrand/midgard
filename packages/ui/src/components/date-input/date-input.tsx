@@ -7,7 +7,7 @@ import { useAriaIds } from '../../hooks'
 import { useFormattedInput } from '../../hooks/use-formatted-input'
 import { useLocale } from '../../providers/locale'
 import { isComposing } from '../../utilities'
-import { isDayInRange } from '../calendar/calendar-utilities'
+import { isDayInRange, isSameDayOrEmpty } from '../calendar/calendar-utilities'
 import { useControl } from '../control/context'
 import { useControlFallbackLabel } from '../control/use-control-fallback-label'
 import type { CardValidity } from '../credit-card-input/credit-card-input-utilities'
@@ -19,7 +19,6 @@ import {
 	type DateInputFormat,
 	dateInputSeparator,
 	formatDateValue,
-	isSameDay,
 	maskDateText,
 	outOfRangeMessage,
 	parseDateText,
@@ -269,7 +268,7 @@ export function DateInput({
 
 		// Re-stating the held day is not a change; the value keeps its identity
 		// (and any time of day it carries).
-		if (!isSameDay(parsed, date)) {
+		if (!isSameDayOrEmpty(parsed, date)) {
 			recordCommit(parsed)
 
 			setDate(parsed)
