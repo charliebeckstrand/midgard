@@ -1,4 +1,4 @@
-import { isComposing, wrap } from '../../../utilities'
+import { getOrCompute, isComposing, wrap } from '../../../utilities'
 import { tabbablesIn } from '../../../utilities/focusable-selector'
 import type { GridCellRef } from '../grid-editing-types'
 import { GRID_ROLE } from './grid-constants'
@@ -287,15 +287,7 @@ function rowOf<V>(
 	outer: Map<GridDraftKey, Map<string | number, V>>,
 	key: GridDraftKey,
 ): Map<string | number, V> {
-	let row = outer.get(key)
-
-	if (!row) {
-		row = new Map()
-
-		outer.set(key, row)
-	}
-
-	return row
+	return getOrCompute(outer, key, () => new Map())
 }
 
 /**

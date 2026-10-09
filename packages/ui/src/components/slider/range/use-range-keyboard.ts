@@ -2,8 +2,7 @@
 
 import { type KeyboardEvent, useCallback } from 'react'
 import { logicalArrowKey } from '../../../hooks/a11y/logical-arrow'
-import { clamp } from '../../../utilities'
-import { snapToStep } from './range-utilities'
+import { snapValue } from './range-utilities'
 import type { OverlapMode, ThumbButtonRefs, ThumbIndex } from './types'
 import { useRangeUpdate } from './use-range-update'
 
@@ -61,7 +60,7 @@ function focusSwappedThumb(
 
 /**
  * Keyboard control for a range slider's two thumbs. Arrows, Page, Home, and End
- * move the thumb by `step`, clamped and snapped. In `swap` overlap, focus
+ * move the thumb by `step`, snapped and clamped. In `swap` overlap, focus
  * follows a thumb that crosses past its partner.
  *
  * The track mirrors in a right-to-left layout, so the horizontal arrows mirror
@@ -96,7 +95,7 @@ export function useRangeKeyboard(opts: {
 			// In swap mode, a cross-thumb key flips the value's index; focus
 			// follows to the button that now holds the moving value.
 			if (overlap === 'swap') {
-				const snapped = clamp(snapToStep(raw, min, step), min, max)
+				const snapped = snapValue(raw, min, max, step)
 
 				focusSwappedThumb(index, snapped, current, thumbRefs)
 			}

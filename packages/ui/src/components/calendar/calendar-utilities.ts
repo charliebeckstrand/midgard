@@ -7,6 +7,7 @@ import {
 	startOfWeek,
 	toCalendar,
 } from '@internationalized/date'
+import { getOrCompute } from '../../utilities'
 
 /**
  * The first year that the calendar can show. `@internationalized/date` holds
@@ -172,19 +173,18 @@ const dayNameFormatters = new Map<string, Intl.DateTimeFormat>()
 
 /** Accessible name of a day in `locale`, such as "Sunday, June 15, 2025". @internal */
 export function formatDayName(date: Date, locale: string): string {
-	let formatter = dayNameFormatters.get(locale)
-
-	if (!formatter) {
-		formatter = new Intl.DateTimeFormat(locale, {
-			...GREGORIAN,
-			weekday: 'long',
-			day: 'numeric',
-			month: 'long',
-			year: 'numeric',
-		})
-
-		dayNameFormatters.set(locale, formatter)
-	}
+	const formatter = getOrCompute(
+		dayNameFormatters,
+		locale,
+		() =>
+			new Intl.DateTimeFormat(locale, {
+				...GREGORIAN,
+				weekday: 'long',
+				day: 'numeric',
+				month: 'long',
+				year: 'numeric',
+			}),
+	)
 
 	return formatter.format(date)
 }

@@ -1,3 +1,5 @@
+import { getOrCompute } from './get-or-compute'
+
 /**
  * A store that holds one value for each key, and calls only the listeners of
  * the keys whose value changed.
@@ -38,13 +40,7 @@ export function createKeyedStore<K, V>(read: (key: K) => V): KeyedStore<K, V> {
 	return {
 		get: (key) => current(key),
 		subscribe: (key, listener) => {
-			let set = listeners.get(key)
-
-			if (!set) {
-				set = new Set()
-
-				listeners.set(key, set)
-			}
+			const set = getOrCompute(listeners, key, () => new Set<() => void>())
 
 			set.add(listener)
 
