@@ -43,11 +43,12 @@ export type ChartValueLabelConfig = {
 	 * rule's value. The standing
 	 * readout replaces the rule's hover tooltip. With it on, the rules shed their
 	 * pointer target and keyboard stop, since the label already reads what the
-	 * tooltip would. Each label takes the first free spot beside its rule: the
-	 * far end, then the near end, above and then below. A rule whose label finds
-	 * no free spot keeps its tooltip. A point label that meets a reference label
-	 * drops. Each label has a
-	 * halo in the surface color, so it stays legible where a line or a rule
+	 * tooltip would. Each label takes the first free spot beside its rule. In a
+	 * vertical chart that is the far end, above and then below, and it prefers a
+	 * spot that no other rule crosses. In a horizontal chart that is the first
+	 * row down from the top of the rule. A rule whose label finds no free spot keeps its
+	 * tooltip. A point label that meets a reference label drops. Each label has
+	 * a halo in the surface color, so it stays legible where a line or a rule
 	 * crosses it. The visually-hidden reference list keeps the assistive-tech
 	 * parity either way.
 	 * @defaultValue false

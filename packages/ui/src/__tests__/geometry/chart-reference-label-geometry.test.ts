@@ -42,7 +42,7 @@ describe('referenceLabels', () => {
 		expect(goal?.y).toBeLessThan(60)
 	})
 
-	it('moves a crowded label to the near end of its rule, and never off it', () => {
+	it('flips a crowded label below its rule, at the same end', () => {
 		const [target, stretch] = referenceLabels(
 			[
 				{ at: 60, text: 'Target' },
@@ -54,11 +54,29 @@ describe('referenceLabels', () => {
 
 		expect(target?.anchor).toBe('end')
 
-		expect(stretch?.anchor).toBe('start')
+		expect(target?.y).toBeLessThan(60)
 
-		expect(stretch?.x).toBe(PLOT.x)
+		expect(stretch?.anchor).toBe('end')
+
+		expect(stretch?.y).toBeGreaterThan(57)
 
 		expect(overlaps(target?.box as LabelBox, stretch?.box as LabelBox)).toBe(false)
+	})
+
+	it('prefers a spot that no other rule crosses', () => {
+		const [target] = referenceLabels(
+			[
+				{ at: 60, text: 'Target' },
+				{ at: 50, text: 'Stretch' },
+			],
+			'vertical',
+			PLOT,
+		)
+
+		// Above, the label would sit over the Stretch rule, so it goes below its own.
+		expect(target?.anchor).toBe('end')
+
+		expect(target?.y).toBeGreaterThan(60)
 	})
 
 	it('drops a label with no free spot, so its rule keeps the tooltip', () => {
@@ -85,23 +103,24 @@ describe('referenceLabels', () => {
 		}
 	})
 
-	it('moves a crowded label to the bottom end of its rule in a horizontal chart', () => {
-		const [target, stretch] = referenceLabels(
+	it('stacks crowded labels in rows from the top in a horizontal chart', () => {
+		const [target, stretch, ceiling] = referenceLabels(
 			[
 				{ at: 100, text: 'Target' },
 				{ at: 110, text: 'Stretch' },
+				{ at: 120, text: 'Ceiling' },
 			],
 			'horizontal',
 			PLOT,
 		)
 
-		expect(target?.anchor).toBe('middle')
+		// Each label stays centered on its own rule.
+		expect([target?.x, stretch?.x, ceiling?.x]).toEqual([100, 110, 120])
 
-		expect(target?.x).toBe(100)
+		// Each crowded label sits one label height under its neighbor.
+		expect((stretch?.y ?? 0) - (target?.y ?? 0)).toBe(LABEL_HEIGHT)
 
-		expect(stretch?.x).toBe(110)
-
-		expect(stretch?.y).toBeGreaterThan(target?.y ?? 0)
+		expect((ceiling?.y ?? 0) - (stretch?.y ?? 0)).toBe(LABEL_HEIGHT)
 	})
 
 	it('places nothing for a rule that draws nothing, and keeps the slots aligned', () => {

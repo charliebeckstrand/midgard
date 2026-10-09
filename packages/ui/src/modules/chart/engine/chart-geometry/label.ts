@@ -424,10 +424,12 @@ export type PlacedReferenceLabel = {
 
 /**
  * The spots a reference label can take beside its rule, in the order it tries
- * them. In a vertical chart, a label sits at the right end of its rule, then at
- * the left end, above the rule and then below it. In a horizontal chart, a label
- * sits at the top end of its rule and then at the bottom end, centered on the
- * rule or anchored inward from it near a side ({@link anchorAt}).
+ * them. In a vertical chart, a label sits at the right end of its rule, above
+ * the rule and then below it, so every label reads down one side. In a
+ * horizontal chart, a label hangs from the top of its rule, centered on it or
+ * anchored inward from it near a side ({@link anchorAt}), in the first row
+ * down that it fits. The rows stack at one label height, so a crowded label
+ * sits just under its neighbor.
  *
  * @internal
  */
@@ -440,17 +442,17 @@ function referenceSpots(
 	if (orientation === 'vertical') {
 		if (width > plot.width) return []
 
-		const [left, right] = [plot.x, plot.x + plot.width]
+		const x = plot.x + plot.width
 
-		return [true, false].flatMap((above) => {
+		return [true, false].map((above) => {
 			const y = labelBesideY(at, plot, above)
 
-			const [y0, y1] = [y - LABEL_HALF, y + LABEL_HALF]
-
-			return [
-				{ x: right, y, anchor: 'end' as const, box: { x0: right - width, x1: right, y0, y1 } },
-				{ x: left, y, anchor: 'start' as const, box: { x0: left, x1: left + width, y0, y1 } },
-			]
+			return {
+				x,
+				y,
+				anchor: 'end',
+				box: { x0: x - width, x1: x, y0: y - LABEL_HALF, y1: y + LABEL_HALF },
+			}
 		})
 	}
 
@@ -460,17 +462,36 @@ function referenceSpots(
 
 	const { anchor, x0, x1 } = across
 
-	return [plot.y + LABEL_OFFSET + LABEL_HALF, plot.y + plot.height - LABEL_OFFSET - LABEL_HALF].map(
-		(y) => ({ x: at, y, anchor, box: { x0, x1, y0: y - LABEL_HALF, y1: y + LABEL_HALF } }),
-	)
+	const rows = Math.max(0, Math.floor((plot.height - LABEL_OFFSET) / LABEL_HEIGHT))
+
+	return Array.from({ length: rows }, (_, row) => {
+		const y = plot.y + LABEL_OFFSET + LABEL_HALF + row * LABEL_HEIGHT
+
+		return { x: at, y, anchor, box: { x0, x1, y0: y - LABEL_HALF, y1: y + LABEL_HALF } }
+	})
+}
+
+/**
+ * The box that a rule's line takes across the plot: no thickness, so a label
+ * box meets it only where the line runs through the label.
+ *
+ * @internal
+ */
+function ruleBox(at: number, orientation: ChartOrientation, plot: PlotRect): LabelBox {
+	return orientation === 'vertical'
+		? { x0: plot.x, x1: plot.x + plot.width, y0: at, y1: at }
+		: { x0: at, x1: at, y0: plot.y, y1: plot.y + plot.height }
 }
 
 /**
  * Places the standing reference labels, aligned with `rules`, in the order of
- * `rules`. Each label takes the first spot beside its rule whose box meets no
- * label already placed ({@link referenceSpots}). A label never leaves its rule,
- * so a label with no free spot is `null`, as is the label of a rule that draws
- * nothing. That rule keeps its hover tooltip and its keyboard stop.
+ * `rules`. Each label takes the first spot beside its rule
+ * ({@link referenceSpots}) whose box meets no label already placed and no
+ * other rule. Where every free spot crosses another rule, the label takes the
+ * first spot that meets no label, and its halo keeps it legible over the line.
+ * A label never leaves its rule, so a label with no free spot is `null`, as is
+ * the label of a rule that draws nothing. That rule keeps its hover tooltip and
+ * its keyboard stop.
  *
  * The value labels place after these and treat the boxes as obstacles
  * ({@link resolveValueLabels}): a value label that meets one drops.
@@ -484,12 +505,19 @@ export function referenceLabels(
 ): (PlacedReferenceLabel | null)[] {
 	const placed: LabelBox[] = []
 
-	return rules.map((rule) => {
+	const lines = rules.map((rule) => (rule.at === null ? null : ruleBox(rule.at, orientation, plot)))
+
+	return rules.map((rule, index) => {
 		if (rule.at === null) return null
 
-		const spot = referenceSpots(rule.at, labelWidth(rule.text), orientation, plot).find(
+		const others = lines.filter((line, other): line is LabelBox => line !== null && other !== index)
+
+		const free = referenceSpots(rule.at, labelWidth(rule.text), orientation, plot).filter(
 			(candidate) => !placed.some((other) => overlaps(other, candidate.box)),
 		)
+
+		const spot =
+			free.find((candidate) => !others.some((line) => overlaps(line, candidate.box))) ?? free[0]
 
 		if (!spot) return null
 
