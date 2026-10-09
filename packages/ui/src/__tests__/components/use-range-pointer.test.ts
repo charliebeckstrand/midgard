@@ -32,7 +32,12 @@ function makeEvent(overrides: Partial<ReactPointerEvent> = {}): ReactPointerEven
 }
 
 function setup(
-	options: { disabled?: boolean; current?: [number, number]; overlap?: 'clamp' | 'swap' } = {},
+	options: {
+		disabled?: boolean
+		current?: [number, number]
+		overlap?: 'clamp' | 'swap'
+		bounds?: { min: number; max: number; step: number }
+	} = {},
 ) {
 	const track = makeTrack()
 
@@ -49,6 +54,7 @@ function setup(
 			min: 0,
 			max: 100,
 			step: 1,
+			...options.bounds,
 			disabled: options.disabled ?? false,
 			current: options.current ?? [20, 80],
 			trackRef: { current: track },
@@ -278,6 +284,44 @@ describe('useRangePointer', () => {
 
 		// valueFromPointer returns min=5; closest thumb to value=5 is index 0.
 		expect(firstUpdate(setRange, [20, 80])[0]).toBe(5)
+	})
+
+	// With min 2, max 10, and step 3, the step grid holds 11, past max. A value
+	// snaps to the grid and then clamps, as `update` writes it, so a press near
+	// max lands on 10 and not on 11.
+	describe('a step grid that ends past max', () => {
+		const bounds = { min: 2, max: 10, step: 3 }
+
+		// clientX 95 on the 100px track is the raw value 9.6, which snaps to 11.
+		it('defers a press near max on thumbs stacked at max', () => {
+			const { api, setRange, thumbs } = setup({ bounds, current: [10, 10] })
+
+			api.onPointerDown(makeEvent({ clientX: 95 }))
+
+			expect(setRange).not.toHaveBeenCalled()
+
+			expect(document.activeElement).toBe(thumbs[1])
+		})
+
+		it('drags the lower thumb off a stack at max when the pointer moves down', () => {
+			const { api, setRange } = setup({ bounds, current: [10, 10] })
+
+			api.onPointerDown(makeEvent({ clientX: 95 }))
+
+			api.onPointerMove(makeEvent({ clientX: 50 }))
+
+			expect(firstUpdate(setRange, [10, 10])).toEqual([5, 10])
+		})
+
+		it('keeps the focus on a swap-mode drag that reaches max without a cross', () => {
+			const { api, thumbs } = setup({ bounds, current: [2, 10], overlap: 'swap' })
+
+			api.onPointerDown(makeEvent({ clientX: 0 }))
+
+			api.onPointerMove(makeEvent({ clientX: 95 }))
+
+			expect(document.activeElement).toBe(thumbs[0])
+		})
 	})
 
 	describe('the drag bracket', () => {

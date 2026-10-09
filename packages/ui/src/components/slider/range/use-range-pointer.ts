@@ -5,7 +5,7 @@ import { isRtl } from '../../../hooks/a11y/logical-arrow'
 import { useDragCursorHold } from '../../../hooks/use-drag-cursor'
 import { useStableEvent } from '../../../hooks/use-stable-event'
 import { clamp } from '../../../utilities'
-import { snapToStep } from './range-utilities'
+import { snapValue } from './range-utilities'
 import type { OverlapMode, ThumbButtonRefs, ThumbIndex } from './types'
 import { useRangeUpdate } from './use-range-update'
 
@@ -206,7 +206,7 @@ export function useRangePointer(opts: {
 			const raw = valueFromPointer(event.clientX)
 
 			if (current[0] === current[1]) {
-				const snapped = snapToStep(clamp(raw, min, max), min, step)
+				const snapped = snapValue(raw, min, max, step)
 
 				// Pointer off the stack: pick the thumb on that side and jump it.
 				if (snapped < current[0]) {
@@ -287,7 +287,7 @@ export function useRangePointer(opts: {
 
 			// Passes the index active when this move began.
 			if (overlap === 'swap') {
-				const snapped = snapToStep(clamp(raw, min, max), min, step)
+				const snapped = snapValue(raw, min, max, step)
 
 				applySwapResort(dragging, snapped, current, draggingRef)
 

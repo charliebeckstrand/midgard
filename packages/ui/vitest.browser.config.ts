@@ -91,13 +91,32 @@ const parkPointer: BrowserCommand<[]> = async (context) => {
 
 /**
  * Moves the real mouse to the center of the element that `selector` matches in the tester
- * iframe, and holds the primary button down there.
+ * iframe, and holds the primary button down there. An `at` moves the mouse to that fraction of
+ * the box of the element instead, from its top-left corner: `{ x: 0.95, y: 0.5 }` is near the
+ * right edge, half way down.
+ *
+ * `at` is a fraction because the page scales the tester iframe. The box of the element is in page
+ * pixels, and a CSS length of the element is not.
  *
  * `userEvent.click` sends `mousedown` and `mouseup` as one step. A case that reads the page
  * between the two (the focus during a press) needs the halves apart.
  */
-const pressPointer: BrowserCommand<[selector: string]> = async (context, selector) => {
-	await context.iframe.locator(selector).hover()
+const pressPointer: BrowserCommand<[selector: string, at?: { x: number; y: number }]> = async (
+	context,
+	selector,
+	at,
+) => {
+	const target = context.iframe.locator(selector)
+
+	await target.hover()
+
+	if (at) {
+		const box = await target.boundingBox()
+
+		if (!box) throw new Error(`pressPointer: ${selector} has no box`)
+
+		await context.page.mouse.move(box.x + box.width * at.x, box.y + box.height * at.y)
+	}
 
 	await context.page.mouse.down()
 }
