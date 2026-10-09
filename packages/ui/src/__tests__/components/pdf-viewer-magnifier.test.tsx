@@ -644,6 +644,7 @@ describe('usePdfViewerMagnifier under a held finger', () => {
 			pointerType: 'touch',
 			pointerId: 1,
 			isPrimary: true,
+			button: 0,
 			clientX,
 			clientY,
 			currentTarget: frame,
