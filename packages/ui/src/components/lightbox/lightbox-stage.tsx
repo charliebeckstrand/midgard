@@ -111,14 +111,14 @@ export function LightboxStage({
 
 	const close = () => onIndexChange(null)
 
-	// The scrim and the controls, which a swipe up or down fades.
+	// The scrim and the controls, which a swipe to close fades.
 	const backdropRef = useRef<HTMLDivElement>(null)
 
 	const controlsRef = useRef<HTMLDivElement>(null)
 
 	const stageRef = useRef<HTMLDivElement>(null)
 
-	// The transform that a swipe up or down left the photo at, where the return starts.
+	// The transform that a swipe to close left the photo at, where the return starts.
 	const dismissedFrom = useRef<string | undefined>(undefined)
 
 	const track = useLightboxTrack(trackRef, {

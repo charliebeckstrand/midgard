@@ -27,20 +27,26 @@ describe('swipeStep', () => {
 })
 
 describe('dismisses', () => {
-	it('closes on a far swipe up or down', () => {
-		expect(dismisses(120, 0, 800)).toBe(true)
+	const still = { x: 0, y: 0 }
 
-		expect(dismisses(-120, 0, 800)).toBe(true)
+	it('closes on a far swipe in any direction', () => {
+		expect(dismisses({ x: 0, y: 120 }, still, 800)).toBe(true)
+
+		expect(dismisses({ x: 0, y: -120 }, still, 800)).toBe(true)
+
+		expect(dismisses({ x: -120, y: 0 }, still, 800)).toBe(true)
 	})
 
 	it('closes on a short, fast flick, and not on a short, slow swipe', () => {
-		expect(dismisses(30, 0.8, 800)).toBe(true)
+		expect(dismisses({ x: 0, y: 30 }, { x: 0, y: 0.8 }, 800)).toBe(true)
 
-		expect(dismisses(30, 0.1, 800)).toBe(false)
+		expect(dismisses({ x: 0, y: 30 }, { x: 0, y: 0.1 }, 800)).toBe(false)
 	})
 
-	it('does not close on a flick back toward the start', () => {
-		expect(dismisses(30, -0.8, 800)).toBe(false)
+	it('does not close on a flick back toward the start, or on no travel', () => {
+		expect(dismisses({ x: 0, y: 30 }, { x: 0, y: -0.8 }, 800)).toBe(false)
+
+		expect(dismisses(still, { x: 0, y: 0.8 }, 800)).toBe(false)
 	})
 })
 
@@ -48,14 +54,14 @@ describe('dismissFrame', () => {
 	const photo = { width: 400, height: 300 }
 
 	it('holds the photo at rest, with the scrim dark, before the finger moves', () => {
-		expect(dismissFrame(0, 0, photo, 800)).toEqual({
+		expect(dismissFrame({ x: 0, y: 0 }, photo, 800)).toEqual({
 			transform: 'translate(0px, 0px) scale(1)',
 			opacity: 1,
 		})
 	})
 
 	it('shrinks the photo around its center and clears the scrim at half the stage height', () => {
-		const { transform, opacity } = dismissFrame(10, 400, photo, 800)
+		const { transform, opacity } = dismissFrame({ x: 10, y: 400 }, photo, 800)
 
 		// A quarter less: 50 px and 37.5 px of the size go, half on each side.
 		expect(transform).toBe('translate(60px, 437.5px) scale(0.75)')

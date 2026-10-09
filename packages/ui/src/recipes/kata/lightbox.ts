@@ -21,7 +21,7 @@ export const k = {
 		raised: 'opacity-0',
 	},
 	/**
-	 * A layer that a swipe up or down fades: one holds the scrim, and one holds
+	 * A layer that a swipe to close fades: one holds the scrim, and one holds
 	 * the controls. It has a layer of its own, so the fade paints nothing.
 	 */
 	dim: 'pointer-events-none absolute inset-0 will-change-[opacity]',
@@ -29,7 +29,7 @@ export const k = {
 	backdrop: 'absolute inset-0 bg-zinc-950/90',
 	/**
 	 * The stage takes each press, so a swipe can start on any part of it. While
-	 * the photo leaves its place, in a swipe up or down and in the return to its
+	 * the photo leaves its place, in a swipe to close and in the return to its
 	 * thumbnail, the stage is raised above the controls, so the photo moves over
 	 * them.
 	 */
