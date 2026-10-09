@@ -21,8 +21,8 @@ beforeAll(() => page.viewport(1024, 768))
 type Density = 'compact' | 'snug' | 'loose'
 
 const EXPECTED = {
-	compact: { text: 12, pitch: 28, padding: 6, termGap: 12, detailsGap: 2 },
-	snug: { text: 14, pitch: 36, padding: 8, termGap: 16, detailsGap: 4 },
+	compact: { text: 12, pitch: 32, padding: 6, termGap: 12, detailsGap: 2 },
+	snug: { text: 14, pitch: 38, padding: 8, termGap: 16, detailsGap: 4 },
 	loose: { text: 16, pitch: 44, padding: 10, termGap: 20, detailsGap: 6 },
 } as const
 

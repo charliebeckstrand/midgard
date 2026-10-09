@@ -206,7 +206,7 @@ describe('Dialog', () => {
 			</Dialog>,
 		)
 
-		expect(screen.getByText('Settings')).toHaveClass('density-text-[base,lg,xl]')
+		expect(screen.getByText('Settings')).toHaveClass('density-text-[sm,base,lg,xl,2xl]')
 	})
 
 	it('DialogTitle follows an ambient compact density through the portal', () => {

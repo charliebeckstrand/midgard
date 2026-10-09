@@ -1331,7 +1331,7 @@ describe('MenuItem density', () => {
 			'density-gap-[2,3,3]',
 			'density-px-[2.5,3,3.5]',
 			'density-py-[1,1.5,2.5]',
-			'density-text-[sm,base,lg]',
+			'density-text-[xs,sm,base,lg,xl]',
 		)
 	})
 })

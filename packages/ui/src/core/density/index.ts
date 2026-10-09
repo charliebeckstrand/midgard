@@ -7,7 +7,6 @@ export {
 	snapToScale,
 } from './scale'
 export {
-	type ControlStep,
 	type DensityStep,
 	densitySteps,
 	type InnerStep,

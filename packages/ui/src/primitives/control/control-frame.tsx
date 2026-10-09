@@ -1,6 +1,6 @@
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
-import type { ControlStep } from '../../core/density'
+import type { DensityStep } from '../../core/density'
 import { k } from '../../recipes/kata/control'
 import { PolymorphicStatic } from '../polymorphic'
 
@@ -10,7 +10,7 @@ export type ControlFrameProps = ComponentProps<'span'> & {
 	 * The density step. Omit it to take the step of the nearest density scope.
 	 * A step makes the frame a density scope.
 	 */
-	density?: ControlStep
+	density?: DensityStep
 }
 
 /**

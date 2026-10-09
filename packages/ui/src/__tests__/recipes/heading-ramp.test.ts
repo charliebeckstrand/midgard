@@ -12,13 +12,14 @@ import { findSteps } from '../helpers/class-stops'
  * level has a rung of its own, the levels keep their order at each step, and a
  * step moves a level one rung.
  */
-const scale = ['xs', 'sm', 'base', 'lg', 'xl', '2xl', '3xl', '4xl'] as const
+const scale = ['2xs', 'xs', 'sm', 'base', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl'] as const
 
 /**
  * The skeleton height of each rung. The silhouette of a heading is as tall as
  * the rung that the heading takes.
  */
 const heightOf = {
+	'2xs': '1',
 	xs: '2',
 	sm: '3',
 	base: '4',
@@ -27,6 +28,7 @@ const heightOf = {
 	'2xl': '7',
 	'3xl': '8',
 	'4xl': '9',
+	'5xl': '10',
 } as const satisfies Record<(typeof scale)[number], string>
 
 const levels = [1, 2, 3, 4, 5, 6] as const
@@ -70,10 +72,10 @@ describe('heading ramps', () => {
 		const md = indexOf(rungs.md)
 
 		expect([rungs.xs, rungs.sm, rungs.lg, rungs.xl].map(indexOf)).toStrictEqual([
-			md - 1,
+			md - 2,
 			md - 1,
 			md + 1,
-			md + 1,
+			md + 2,
 		])
 	})
 

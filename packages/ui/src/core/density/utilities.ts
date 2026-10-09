@@ -13,7 +13,10 @@
  *
  * A spacing utility takes stops of the spacing scale. A margin utility also
  * takes negative stops, for example `density-mb-[-3,-4,-5]`. `density-text` takes the
- * names of the text scale. `density-rounded` takes the names of the radius
+ * names of the text scale. It sets the line height to the text size plus 8 px,
+ * and not to the line height of the Tailwind size, so the line, the text, and
+ * the icon of each step move by the same 2 px (`geometry.ts`). A `leading-*`
+ * class still wins. `density-rounded` takes the names of the radius
  * scale, or stops of the spacing scale as `rounded-[--spacing(n)]` does. A
  * stepped utility takes each variant, as a core utility does, for example
  * `*:data-[slot=icon]:density-size-[3,4,5,6,6]`. After a pseudo-element
@@ -73,7 +76,7 @@ const declare: Record<UtilityValue, (properties: readonly string[], value: strin
 	margin: (properties, stop) => each(properties, spacing(stop)),
 	text: (_, name) => ({
 		'font-size': `var(--text-${name})`,
-		'line-height': `var(--tw-leading, var(--text-${name}--line-height))`,
+		'line-height': `var(--tw-leading, calc(var(--text-${name}) + 0.5rem))`,
 	}),
 	radius: (properties, value) =>
 		each(properties, isStop(value) ? spacing(value) : `var(--radius-${value})`),

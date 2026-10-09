@@ -70,7 +70,9 @@ describe('rungs', () => {
 	it('names a group of steps with :is()', () => {
 		const [descendant] = selectorsAt(rungs(['lg', 'xl'], body), 1)
 
-		expect(descendant).toBe("[data-density]:where(:is([data-density='lg'], [data-density='xl'])) &")
+		expect(descendant).toBe(
+			"[data-density]:where(:is([data-density='lg'], [data-density='xl']), .density-root-xl [data-density='slot']) &",
+		)
 	})
 
 	it('writes one more scope above the step at each depth', () => {
@@ -97,17 +99,14 @@ describe('rungs', () => {
 		)
 	})
 
-	// A slot does not take `lg`: the host stops at `lg`, so the slot takes `md` under `xl`.
-	it.each(['lg', 'xl'] as const)(
-		'writes no slot rung for %s, a step that no slot takes',
-		(step) => {
-			const layers = rungs([step], body)
+	// A slot does not take `xl`: no step is above `xl`, so no host has `xl` as its slot step.
+	it('writes no slot rung for xl, a step that no slot takes', () => {
+		const layers = rungs(['xl'], body)
 
-			for (let depth = 1; depth <= maxDepth; depth++) {
-				for (const selector of selectorsAt(layers, depth)) expect(selector).not.toContain('slot')
-			}
-		},
-	)
+		for (let depth = 1; depth <= maxDepth; depth++) {
+			for (const selector of selectorsAt(layers, depth)) expect(selector).not.toContain('slot')
+		}
+	})
 
 	it('gives a slot under the unmarked root the step below md', () => {
 		const [descendant, self] = selectorsAt(rungs(['sm'], body), 1)
@@ -146,8 +145,8 @@ describe('rungs', () => {
 	it('gives a slot under a deeper scope the step below the host scope', () => {
 		const layers = rungs(['md'], body)
 
-		// The host stops at `lg`, so a slot takes `md` under `lg` and under `xl`.
-		const hosts = ":is([data-density='lg'], [data-density='xl'])"
+		// A slot takes `md` under `lg`.
+		const hosts = "[data-density='lg']"
 
 		expect(selectorsAt(layers, 2).slice(0, 2)).toEqual([
 			`[data-density]:where([data-density] [data-density='md'], ${hosts} [data-density='slot']) &`,

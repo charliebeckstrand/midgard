@@ -278,7 +278,7 @@ describe('Button', () => {
 			expect(densityStepOf(present(bySlot(container, 'button'), 'button'))).toBe('md')
 		})
 
-		it('takes lg in an xl scope, because it has no xl size', () => {
+		it('takes xl in an xl scope', () => {
 			const { container } = renderUI(
 				<div data-density="xl">
 					<Button>Large</Button>
@@ -287,8 +287,8 @@ describe('Button', () => {
 
 			expect(densityStepOf(present(bySlot(container, 'button'), 'button'))).toBe('xl')
 
-			// The stepped classes give `xl` the `lg` value.
-			expect(findSteps([k.config.base], 'density-text-').xl).toBe('lg')
+			// The stepped classes give `xl` a value of its own.
+			expect(findSteps([k.config.base], 'density-text-').xl).toBe('xl')
 		})
 	})
 

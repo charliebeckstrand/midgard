@@ -134,7 +134,7 @@ export const CHART_HEADER_LINE_GAP = 2
  * so the row keeps this height at every density.
  * @internal
  */
-export const CHART_LEGEND_ROW_HEIGHT = 30
+export const CHART_LEGEND_ROW_HEIGHT = 32
 
 /**
  * Gap, in px, between the figure's stacked flex children — the header, the plot,

@@ -36,54 +36,54 @@ const px = (value: string) => Number.parseFloat(value)
 
 /**
  * The measured sizes at each step. A combinator is one step below the chips,
- * and the segment is one step below the rules. No step is below `xs`, and the
- * segment has no `xs` rung, so at `compact` each of them keeps its `snug` size.
+ * and the segment is one step below the rules. No step is below `xs`, so at
+ * `compact` a combinator keeps its `snug` size.
  */
 const EXPECTED = {
 	chips: {
 		compact: {
-			chipHeight: 24,
+			chipHeight: 28,
 			chipText: 12,
-			removeIcon: 12,
-			combinatorHeight: 22,
+			removeIcon: 16,
+			combinatorHeight: 26,
 			combinatorText: 12,
 		},
 		snug: {
-			chipHeight: 30,
+			chipHeight: 32,
 			chipText: 14,
-			removeIcon: 16,
-			combinatorHeight: 22,
+			removeIcon: 18,
+			combinatorHeight: 26,
 			combinatorText: 12,
 		},
 		loose: {
 			chipHeight: 36,
 			chipText: 16,
 			removeIcon: 20,
-			combinatorHeight: 30,
+			combinatorHeight: 32,
 			combinatorText: 14,
 		},
 	},
 	readOnly: {
 		compact: {
-			chipHeight: 22,
+			chipHeight: 26,
 			chipText: 12,
 			removeIcon: 0,
-			combinatorHeight: 16,
+			combinatorHeight: 20,
 			combinatorText: 12,
 		},
-		snug: { chipHeight: 26, chipText: 14, removeIcon: 0, combinatorHeight: 16, combinatorText: 12 },
+		snug: { chipHeight: 28, chipText: 14, removeIcon: 0, combinatorHeight: 20, combinatorText: 12 },
 		loose: {
 			chipHeight: 30,
 			chipText: 16,
 			removeIcon: 0,
-			combinatorHeight: 20,
+			combinatorHeight: 22,
 			combinatorText: 14,
 		},
 	},
 	segment: {
-		compact: { height: 32, text: 12 },
-		snug: { height: 32, text: 12 },
-		loose: { height: 40, text: 14 },
+		compact: { height: 30, text: 10 },
+		snug: { height: 36, text: 12 },
+		loose: { height: 42, text: 14 },
 	},
 } as const
 

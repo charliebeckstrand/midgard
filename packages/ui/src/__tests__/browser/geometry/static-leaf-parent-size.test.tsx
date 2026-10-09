@@ -5,6 +5,8 @@ import { Button } from '../../../components/button'
 import { Kbd } from '../../../components/kbd'
 import { LoadingSpinner } from '../../../components/loading'
 import { Sidebar, SidebarItem, SidebarLabel } from '../../../components/sidebar'
+import { densitySteps } from '../../../core/density'
+import { iconSize } from '../../../core/density/geometry'
 import { present, renderUI } from '../../helpers'
 
 /**
@@ -18,7 +20,7 @@ import { present, renderUI } from '../../helpers'
  * Rides the real browser because the claim is a computed one: jsdom loads no stylesheet.
  */
 describe('a static leaf in a sized parent (real browser)', () => {
-	for (const size of ['xs', 'sm', 'md', 'lg'] as const) {
+	for (const size of densitySteps) {
 		it(`keeps a ${size} Button with a Kbd suffix at the height of the button`, () => {
 			const { container } = renderUI(
 				<div>
@@ -83,9 +85,7 @@ describe('a static leaf in a sized parent (real browser)', () => {
 		})
 	}
 
-	const ICON_PX = { xs: 12, sm: 16, md: 20, lg: 24 } as const
-
-	for (const size of ['xs', 'sm', 'md', 'lg'] as const) {
+	for (const size of densitySteps) {
 		it(`sizes a spinner in a ${size} Badge to the icon row`, () => {
 			const { container } = renderUI(
 				<Badge size={size}>
@@ -99,11 +99,11 @@ describe('a static leaf in a sized parent (real browser)', () => {
 				'loading spinner',
 			)
 
-			expect(spinner.getBoundingClientRect().width).toBe(ICON_PX[size])
+			expect(spinner.getBoundingClientRect().width).toBe(iconSize(size))
 		})
 	}
 
-	for (const size of ['sm', 'md', 'lg'] as const) {
+	for (const size of densitySteps) {
 		it(`sizes a spinner in a ${size} SidebarItem to the icon row`, () => {
 			const { container } = renderUI(
 				<Sidebar>
@@ -119,7 +119,7 @@ describe('a static leaf in a sized parent (real browser)', () => {
 				'loading spinner',
 			)
 
-			expect(spinner.getBoundingClientRect().width).toBe(ICON_PX[size])
+			expect(spinner.getBoundingClientRect().width).toBe(iconSize(size))
 		})
 	}
 })

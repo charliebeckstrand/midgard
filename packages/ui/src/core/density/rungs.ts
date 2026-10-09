@@ -45,10 +45,9 @@
  *
  * A control slot, such as the prefix of an Input, is an element with
  * `data-density="slot"`. It is a scope one step below the scope above it, so a
- * slot needs no step in JS. The host of a slot stops at `lg`, so in an `xl`
- * scope the slot takes `md`, as it does in an `lg` scope (`slotStep`). The slot
- * counts as one depth, and its rung names the step of the scope above it. A
- * slot in a slot takes the step of the outer slot, because a rung reads one
+ * slot needs no step in JS. No step is below `xs`, so in an `xs` scope the
+ * slot takes `xs` (`slotStep`). The slot counts as one depth, and its rung
+ * names the step of the scope above it. A slot in a slot takes the step of the outer slot, because a rung reads one
  * slot after a scope.
  */
 
@@ -74,7 +73,7 @@ export const maxDepth = 2
 /** A density scope under the root: an explicit scope or a control slot. */
 const scope = '[data-density]'
 
-/** A control slot: a scope one step below the scope above it, and `md` in an `xl` scope. */
+/** A control slot: a scope one step below the scope above it, and `xs` in an `xs` scope. */
 const slot = "[data-density='slot']"
 
 /** Matches an element with one of `steps` on `data-density`. */

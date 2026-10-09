@@ -104,14 +104,14 @@ export const k = defineRecipe(
 				'pointer-events-none',
 				'motion-safe:transition-[translate] duration-200 ease-in-out',
 				'[:checked~&]:bg-(--switch) [:checked~&]:shadow-(color:--switch-shadow) [:checked~&]:ring-(--switch-ring)',
-				dan.size.thumb.base,
+				dan.size.switch.thumb,
 			],
 		}),
 	},
 )
 
 /** The size scale of {@link Switch}: the steps of its track and thumb. */
-export const scale = defineScale(dan.size.row, dan.size.switch.width, dan.size.thumb.base)
+export const scale = defineScale(dan.size.row, dan.size.switch.width, dan.size.switch.thumb)
 
 /** Recipe variant props for {@link Switch}: the `color` axis of its kata, and the `size` step that the component writes as a density scope. */
 export type SwitchVariants = Omit<VariantProps<typeof k>, 'color'> & {

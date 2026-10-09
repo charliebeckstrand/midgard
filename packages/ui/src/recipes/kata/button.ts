@@ -26,10 +26,10 @@ export const k = defineRecipe({
 		...cursor,
 		// Each step is in a stepped `density-*` class: the button takes the step of
 		// its nearest density scope, and an explicit `size` makes the button its own
-		// scope. Five values give the steps from `xs` to `xl`, and `xl` takes the
-		// `lg` values, so the size scale is `xs` to `lg` (`scale`). The `xl` value
-		// is only for a button in an `xl` scope. Square padding (`p`) keeps
-		// an icon-only button even-sided.
+		// scope. Five values give the steps from `xs` to `xl`, so the size scale is
+		// `xs` to `xl` (`scale`). Square padding (`p`) keeps an icon-only button
+		// even-sided, and it is 2 px more than `py`, so the square is as tall as a
+		// labeled button (`core/density/geometry.ts`).
 		// When a text label is present the component sets `data-has-label`, which
 		// overrides `py` with the matching control step. A labeled button thus
 		// aligns with the Input and Select chrome of the same size (md → 38px).
