@@ -20,6 +20,19 @@ export type LightboxProps = {
 	defaultIndex?: number
 	/** Fires with the index of the photo that the viewer shows, or `null` when it closes. */
 	onIndexChange?: (index: number | null) => void
+	/**
+	 * Shows the close button, one gap above the photo. Without it, Escape and a
+	 * press outside the photo still close the viewer.
+	 * @defaultValue true
+	 */
+	closable?: boolean
+	/**
+	 * Shows the previous button, the count, and the next button, one gap below
+	 * the photo, when there is more than one photo. Without them, the arrow keys
+	 * and a swipe still step.
+	 * @defaultValue true
+	 */
+	controls?: boolean
 	/** The accessible name of the viewer. @defaultValue 'Photos' */
 	'aria-label'?: string
 	/** The accessible name of the close button. @defaultValue 'Close' */
@@ -69,6 +82,8 @@ export function Lightbox({
 	index: indexProp,
 	defaultIndex,
 	onIndexChange,
+	closable = true,
+	controls = true,
 	'aria-label': ariaLabel = 'Photos',
 	closeLabel = 'Close',
 	previousLabel = 'Previous photo',
@@ -90,6 +105,11 @@ export function Lightbox({
 	if (open && shown !== index) setShown(index)
 
 	const thumbnails = useRef(new Map<number, HTMLImageElement>())
+
+	// With no button on the stage, the focus goes to the viewer, which takes the arrow keys.
+	const viewerRef = useRef<HTMLDivElement>(null)
+
+	const buttons = closable || (controls && photos.length > 1)
 
 	const context: LightboxContextValue = {
 		photos,
@@ -116,12 +136,16 @@ export function Lightbox({
 				backdrop={false}
 				dismissOnBackdrop={false}
 				coverChrome
+				initialFocus={buttons ? undefined : viewerRef}
 			>
 				{shown !== null && (
 					<LightboxStage
+						ref={viewerRef}
 						index={shown}
 						onIndexChange={setIndex}
 						onReturn={() => setShown(null)}
+						closable={closable}
+						controls={controls}
 						labels={{
 							viewer: ariaLabel,
 							close: closeLabel,

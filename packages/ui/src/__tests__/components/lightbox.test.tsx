@@ -231,4 +231,54 @@ describe('Lightbox', () => {
 			expect(screen.getByRole('button', { name })).toBeInTheDocument()
 		}
 	})
+
+	it('hides the close button with `closable={false}`, and still closes on Escape', async () => {
+		const onIndexChange = vi.fn()
+
+		renderUI(<Gallery defaultIndex={1} closable={false} onIndexChange={onIndexChange} />)
+
+		expect(screen.queryByRole('button', { name: 'Close' })).toBeNull()
+
+		expect(screen.getByRole('button', { name: 'Next photo' })).toBeInTheDocument()
+
+		await setupUser().keyboard('{Escape}')
+
+		expect(onIndexChange).toHaveBeenLastCalledWith(null)
+	})
+
+	it('hides the step controls with `controls={false}`, and still steps on the arrow keys', () => {
+		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+
+		renderUI(<Gallery defaultIndex={0} controls={false} />)
+
+		expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument()
+
+		expect(screen.queryByRole('button', { name: 'Next photo' })).toBeNull()
+
+		expect(screen.queryByText('1 / 3')).toBeNull()
+
+		fireEvent.keyDown(screen.getByRole('dialog'), { key: 'ArrowRight' })
+
+		expect(centerPhoto()).toHaveAttribute('alt', 'Snow on a ridge')
+	})
+
+	it('gives the focus to the viewer when it shows no button', () => {
+		renderUI(<Gallery defaultIndex={0} closable={false} controls={false} />)
+
+		expect(screen.getByRole('dialog')).toHaveFocus()
+	})
+
+	it('paints the enabled step buttons solid and the disabled one soft', () => {
+		renderUI(<Gallery defaultIndex={0} />)
+
+		expect(screen.getByRole('button', { name: 'Previous photo' })).toHaveAttribute(
+			'data-variant',
+			'soft',
+		)
+
+		expect(screen.getByRole('button', { name: 'Next photo' })).toHaveAttribute(
+			'data-variant',
+			'solid',
+		)
+	})
 })

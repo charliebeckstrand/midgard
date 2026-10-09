@@ -8,6 +8,13 @@ export const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
  */
 export const NO_HOVER_QUERY = '(hover: none)'
 
+/**
+ * The media query that matches a device where no pointer hovers, such as a
+ * phone with no mouse. Such a device shows no cursor. An environment that
+ * matches nothing, such as jsdom, takes the path of a device with a cursor.
+ */
+export const NO_CURSOR_QUERY = '(any-hover: none)'
+
 type Registry = {
 	mql: MediaQueryList
 	handlers: Set<() => void>
