@@ -37,14 +37,13 @@ const itemBox = [flex.row, 'w-full', dan.space.nav.item, dan.gap.item, ji.ramp, 
 
 /**
  * Shared item structure minus the interaction surface. The icon takes the
- * step of the nearest density scope. At `md` it is `size-5`. It stops at `sm`
- * and `lg`, as the text, the gap, and the padding of the item do.
+ * step of the nearest density scope. At `md` it is `size-5`.
  */
 const itemShell = [
 	'group',
 	...itemBox,
 	...nav.base,
-	...shaku.icon.row.slot,
+	...shaku.icon.slot.base,
 	...cursor,
 	'text-start',
 ]

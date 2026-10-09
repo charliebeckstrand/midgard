@@ -102,7 +102,8 @@ const header = [
 	'**:data-[variant=bare]:not-data-has-label:density-xs:-mx-0.75',
 	'**:data-[variant=bare]:not-data-has-label:density-sm:-mx-1',
 	'**:data-[variant=bare]:not-data-has-label:density-md:-mx-1.25',
-	'**:data-[variant=bare]:not-data-has-label:density-[lg,xl]:-mx-1.5',
+	'**:data-[variant=bare]:not-data-has-label:density-lg:-mx-1.5',
+	'**:data-[variant=bare]:not-data-has-label:density-xl:-mx-1.75',
 ].join(' ')
 
 /**
@@ -165,10 +166,15 @@ const placeholder = [
 	...mode('bg-zinc-200/60', 'dark:bg-zinc-800/60'),
 ].join(' ')
 
-/** The drag grip. The floating form sits on the corner of a tile that has no header row. */
+/**
+ * The drag grip. It has the box of a bare icon button, so the header row keeps
+ * its height when edit mode swaps the controls of the tile for the grip. The
+ * floating form sits on the corner of a tile that has no header row.
+ */
 const handle = defineRecipe({
 	base: [
-		'flex size-6 shrink-0 items-center justify-center',
+		'flex shrink-0 items-center justify-center',
+		dan.size.button.icon,
 		rounded.md,
 		...grab.default,
 		...text.muted,

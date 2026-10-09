@@ -93,13 +93,13 @@ describe('Heading', () => {
 
 			expect(placeholder).toHaveAttribute('data-density', 'sm')
 
-			expect(placeholder).toHaveClass('density-h-[7,8,9]')
+			expect(placeholder).toHaveClass('density-h-[6,7,8,9,10]')
 		})
 
 		it('takes the density ramp with no size', () => {
 			const { container } = renderUI(<HeadingSkeleton level={1} />)
 
-			expect(bySlot(container, 'placeholder')?.className).toContain('density-h-[7,8,9]')
+			expect(bySlot(container, 'placeholder')?.className).toContain('density-h-[6,7,8,9,10]')
 		})
 	})
 })

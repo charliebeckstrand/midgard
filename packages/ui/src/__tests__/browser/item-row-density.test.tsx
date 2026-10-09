@@ -20,7 +20,7 @@ beforeAll(() => page.viewport(1280, 800))
 
 const ROW_PADDING_PX = { compact: 4, snug: 6, loose: 10 } as const
 
-const ICON_PX = { compact: 16, snug: 20, loose: 24 } as const
+const ICON_PX = { compact: 18, snug: 20, loose: 22 } as const
 
 const levels = densityLevels.map(({ value }) => value)
 
@@ -81,8 +81,8 @@ describe('item rows at a desktop width (real browser)', () => {
 			writeRootDensity(document.documentElement, 'md')
 		})
 
-		// The text, the padding, and the gap of a row stop at `sm`, so the icon stops there too.
-		it('stops a menu row icon at sm', async () => {
+		// The text and the icon of a row take the `xs` step.
+		it('sizes a menu row icon at xs', async () => {
 			writeRootDensity(document.documentElement, 'xs')
 
 			renderUI(
@@ -100,9 +100,9 @@ describe('item rows at a desktop width (real browser)', () => {
 
 			const icon = present(row.querySelector('[data-slot="icon"]'), 'menu row icon')
 
-			expect(Number.parseFloat(getComputedStyle(row).fontSize)).toBe(14)
+			expect(Number.parseFloat(getComputedStyle(row).fontSize)).toBe(12)
 
-			expect(Number.parseFloat(getComputedStyle(icon).width)).toBe(ICON_PX.compact)
+			expect(Number.parseFloat(getComputedStyle(icon).width)).toBe(16)
 		})
 	})
 })

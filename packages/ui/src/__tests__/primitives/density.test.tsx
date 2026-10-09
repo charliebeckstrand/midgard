@@ -106,7 +106,7 @@ describe('stepDown', () => {
 })
 
 describe('slotStep', () => {
-	it('takes the step below the host, which stops at lg', () => {
-		expect(densitySteps.map((step) => slotStep(step))).toEqual(['xs', 'xs', 'sm', 'md', 'md'])
+	it('takes the step below the host, and xs for an xs host', () => {
+		expect(densitySteps.map((step) => slotStep(step))).toEqual(['xs', 'xs', 'sm', 'md', 'lg'])
 	})
 })

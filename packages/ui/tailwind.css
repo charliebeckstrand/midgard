@@ -5,7 +5,8 @@
  * that follow the Motion setting, the `sidebar-offcanvas` variant that follows
  * the Sidebar setting, the stepped and ring utilities
  * (`density-p-[2,3,4]`, `px-ring-2`, …), the `scroll-fade-inline` edge fade,
- * two base styles on the root element: `touch-action: manipulation`, and
+ * the 10 px `2xs` step of the text scale, two base styles on the root
+ * element: `touch-action: manipulation`, and
  * the `color-scheme` that follows the `dark` class, the rule that hides the
  * default footer of a panel that has its own, and the breakpoint classes of
  * the structure units. Import this file in each Tailwind entry that scans
@@ -21,6 +22,16 @@
 @plugin './src/core/sidebar/variants.ts';
 @plugin './src/core/scroll/fade.ts';
 @plugin './src/core/panel/base.ts';
+
+/*
+ * The `2xs` step of the text scale: 10 px. The small text ramp of the density
+ * utilities takes it at `xs` (`dan.text.small`). Its line height is the size
+ * plus 8 px, as `density-text` writes for each size.
+ */
+@theme {
+	--text-2xs: 0.625rem;
+	--text-2xs--line-height: calc(1.125 / 0.625);
+}
 
 /*
  * The breakpoint classes of Box, Columns, Flex, and Split. `atBreakpoint` in

@@ -412,7 +412,7 @@ describe('RatingSkeleton', () => {
 
 	const hue = 'text-amber-600 dark:text-amber-500'
 
-	const glyph = 'density-size-[4,5,6]'
+	const glyph = 'density-size-[4,4.5,5,5.5,6]'
 
 	it.each(['sm', 'md', 'lg', undefined] as const)(
 		'keeps the silhouette classes at size %s',

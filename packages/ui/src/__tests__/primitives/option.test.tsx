@@ -191,7 +191,7 @@ describe('Option', () => {
 			</Option>,
 		)
 
-		expect(bySlot(container, 'icon')).toHaveClass('density-size-[4,5,6]')
+		expect(bySlot(container, 'icon')).toHaveClass('density-size-[4,4.5,5,5.5,6]')
 	})
 })
 

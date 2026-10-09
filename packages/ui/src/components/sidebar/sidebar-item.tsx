@@ -19,10 +19,9 @@ import { SidebarLabel } from './sidebar-label'
 /** Props for {@link SidebarItem}: the `NavItem` surface plus a `size` step. */
 export type SidebarItemProps = NavItemProps & {
 	/**
-	 * The density step of the row: `sm`, `md`, or `lg`. Omit it to take the step
-	 * of the nearest density scope. A step makes the row a density scope, so the
-	 * icon and the slots take the step too. The row has no `xs` or `xl` step,
-	 * because the text, the padding, and the gap stop at `sm` and `lg`.
+	 * The density step of the row: `xs` to `xl`. Omit it to take the step of the
+	 * nearest density scope. A step makes the row a density scope, so the icon
+	 * and the slots take the step too.
 	 */
 	size?: ScaleStep<typeof scale>
 }

@@ -34,7 +34,7 @@ const scale = {
 } as const
 
 /** The padding of a nav item and a sidebar item. */
-const navItem = 'density-p-[1.5,2,2.5]'
+const navItem = 'density-p-[1,1.5,2,2.5,3]'
 
 export const space = {
 	scale,
@@ -147,69 +147,69 @@ export const space = {
 	tooltip: 'density-p-ring-[1,2,3]',
 	combinator: {
 		/** The padding of the combinator button between query chips, inside its ring. */
-		base: 'density-p-ring-[1.5,1.5,2,2.5,2.5]',
+		base: 'density-p-ring-[1.5,1.5,2,2.5,3]',
 		/** The block padding of the combinator button with a label. */
-		label: 'data-has-label:density-py-ring-[1,1,1.5,2,2]',
+		label: 'data-has-label:density-py-ring-[1,1,1.5,2,2.5]',
 	},
 	button: {
 		/** The padding of a button, inside its ring. */
-		base: 'density-p-ring-[1.5,2,2.5,3,3]',
+		base: 'density-p-ring-[1.5,2,2.5,3,3.5]',
 		/** The block padding of a button with a label. */
-		label: 'data-has-label:density-py-ring-[1,1.5,2,2.5,2.5]',
+		label: 'data-has-label:density-py-ring-[1,1.5,2,2.5,3]',
 		/** The padding of a bare icon button. */
-		bare: 'not-data-has-label:density-p-[0.75,1,1.25,1.5,1.5]',
+		bare: 'not-data-has-label:density-p-[0.75,1,1.25,1.5,1.75]',
 	},
 	sidebar: {
 		item: {
 			/** The padding of a sidebar item. It equals `nav.item`, because the item draws no ring. */
 			base: navItem,
 			/** The block padding of the button of a sidebar item, equal to the row padding. */
-			label: 'data-has-label:density-py-[1.5,2,2.5]',
+			label: 'data-has-label:density-py-[1,1.5,2,2.5,3]',
 		},
 	},
 	badge: {
 		/** The inline padding of a badge, inside its ring. */
-		base: 'density-px-ring-[1,1.5,2,2.5,2.5]',
+		base: 'density-px-ring-[1,1.5,2,2.5,3]',
 		/** The inline padding of a pill badge, inside its ring. */
-		pill: 'density-px-ring-[1.5,2,2.5,3,3]',
+		pill: 'density-px-ring-[1.5,2,2.5,3,3.5]',
 		/** The start padding of a removable badge. */
-		removable: 'data-has-suffix:density-ps-ring-[2.25,3,3.75,4.5,4.5]',
+		removable: 'data-has-suffix:density-ps-ring-[2.25,3,3.75,4.5,5.25]',
 	},
 	control: {
 		/** The inline padding of a control, inside its ring. */
-		x: 'density-px-ring-[2.5,3,3.5]',
+		x: 'density-px-ring-[2,2.5,3,3.5,4]',
 		/** The block padding of a control, inside its ring. */
-		y: 'density-py-ring-[1.5,2,2.5]',
+		y: 'density-py-ring-[1,1.5,2,2.5,3]',
 	},
 	affix: {
 		/** The start padding of a control prefix slot. */
-		prefix: 'density-ps-ring-[2.5,3,3.5,3.5,3.5]',
+		prefix: 'density-ps-ring-[2.5,3,3.5,4,4.5]',
 		/** The end padding of a control suffix slot. */
-		suffix: 'density-pe-ring-[2.5,3,3.5,3.5,3.5]',
+		suffix: 'density-pe-ring-[2.5,3,3.5,4,4.5]',
 		bare: {
 			/** The start padding of a prefix slot that holds a bare icon button. */
 			prefix:
-				'has-[[data-variant=bare]:not([data-has-label])]:density-ps-ring-[1.75,2,2.25,2.25,2.25]',
+				'has-[[data-variant=bare]:not([data-has-label])]:density-ps-ring-[1.75,2,2.25,2.5,2.75]',
 			/** The end padding of a suffix slot that holds a bare icon button. */
 			suffix:
-				'has-[[data-variant=bare]:not([data-has-label])]:density-pe-ring-[1.75,2,2.25,2.25,2.25]',
+				'has-[[data-variant=bare]:not([data-has-label])]:density-pe-ring-[1.75,2,2.25,2.5,2.75]',
 		},
 	},
 	autofill: {
 		/** The start inset of the autofill fill beside a prefix. It equals `control.x`. */
-		prefix: 'group-has-[[data-slot=prefix]]/control:autofill:density-ms-ring-[2.5,3,3.5]',
+		prefix: 'group-has-[[data-slot=prefix]]/control:autofill:density-ms-ring-[2,2.5,3,3.5,4]',
 		/** The end inset of the autofill fill beside a suffix. It equals `control.x`. */
-		suffix: 'group-has-[[data-slot=suffix]]/control:autofill:density-me-ring-[2.5,3,3.5]',
+		suffix: 'group-has-[[data-slot=suffix]]/control:autofill:density-me-ring-[2,2.5,3,3.5,4]',
 	},
 	slot: {
 		/** The start margin of a nav row prefix slot, one step below the item. */
-		prefix: 'density-ms-[1.5,2,2.5,2.5,2.5]',
+		prefix: 'density-ms-[1.5,2,2.5,3,3.5]',
 		/** The end margin of a nav row suffix slot, one step below the item. */
-		suffix: 'density-me-[1.5,2,2.5,2.5,2.5]',
+		suffix: 'density-me-[1.5,2,2.5,3,3.5]',
 	},
 	tags: {
 		/** The block padding of the tag row of a tag input. */
-		y: 'density-py-ring-[2,2.5,3,3,3]',
+		y: 'density-py-ring-[2,2.5,3,3.5,4]',
 	},
 	list: {
 		plain: {
@@ -219,7 +219,7 @@ export const space = {
 	},
 	row: {
 		/** The block padding of a list row and a segment item. */
-		y: 'density-py-[1,1.5,2]',
+		y: 'density-py-[0.5,1,1.5,2,2.5]',
 	},
 	option: {
 		/** The inline padding of an option row. */
@@ -271,7 +271,7 @@ export const space = {
 	},
 	tree: {
 		/** The indent of a nested tree item: the chevron width plus the row gap. */
-		indent: 'density-ps-[5,7,9]',
+		indent: 'density-ps-[5,5.5,7,8.5,9]',
 	},
 	timeline: {
 		/** The bottom padding of a vertical timeline item. */
@@ -348,8 +348,12 @@ export const space = {
 		button: {
 			/** The inline padding of a key in a button. */
 			x: '[&:is([data-variant]>*)]:density-px-[1,1.5,1.5]',
-			/** The block padding of a key in a button. */
-			y: '[&:is([data-variant]>*)]:density-py-[0,0.5,0.5,0.5,0.5]',
+			/**
+			 * The block padding of a key in a button: 1 px at each step. The key text is
+			 * one step below the label, so its line is 2 px shorter than the line of the
+			 * label, and the key keeps the height of the label line.
+			 */
+			y: '[&:is([data-variant]>*)]:py-px',
 		},
 	},
 } as const

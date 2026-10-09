@@ -141,7 +141,7 @@ Each row changes what a reader sees, a public type, or the module layout. None o
 | Q13 | `chart-marks/bar.tsx:194` | The bar stagger has no cap: the last of 365 bars starts after 18s. Cap it, as the map does? | Fixed in #1637 |
 | Q14 | `chart-reference-lines.tsx:153-175`; label inks | Standing reference labels overlap each other and the value labels, and no label has a halo. | Fixed in #2218 |
 | Q15 | `layer.tsx:64`, `chart-value-labels.tsx:499` | The generation key reads `static` through hydration and flips after, so an SSR animated chart reveals twice. Decouple the key from reduced motion? | Fixed in #1637 |
-| Q16 | `chart-export.ts:124`; fonts | A dark-mode JPG draws on white; web fonts do not reach the bitmap. | Part fixed in #1637 |
+| Q16 | `chart-export.ts:124`; fonts | A dark-mode JPG draws on white; web fonts do not reach the bitmap. | Fixed in #1637 and #2217 |
 | Q17 | `heatmap-chart.tsx:549, 821` | The default heatmap ratio is unbounded (1 × 24 draws as a spark strip); a spark heatmap stays clickable. | Fixed in #1637 |
 | Q18 | SVG `direction`; `frame.tsx:641` | Pie callouts and heatmap row labels flip their anchor in RTL; `legend="right"` renders on the left in RTL. Pin the drawing to LTR? | Fixed in #1637 |
 | Q19 | `use-chart-series-toggle.ts:104` | Reference hides key on position, so a dropped rule shifts the hide onto its neighbor. Key them by occurrence, as series are? | Fixed in #1637 |

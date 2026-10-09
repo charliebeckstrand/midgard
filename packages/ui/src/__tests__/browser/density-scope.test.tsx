@@ -13,7 +13,6 @@ import { Input } from '../../components/input'
 import { List, ListItem } from '../../components/list'
 import { LoadingDots, LoadingSpinner } from '../../components/loading'
 import { NavItem } from '../../components/nav'
-import { PasswordInput } from '../../components/password-input'
 import { Placeholder } from '../../components/placeholder'
 import { ProgressBar, ProgressGauge } from '../../components/progress'
 import { Radio } from '../../components/radio'
@@ -26,6 +25,7 @@ import { Table, TableBody, TableCell, TableRow } from '../../components/table'
 import { Tab, TabList, Tabs } from '../../components/tabs'
 import { Tree, TreeItem } from '../../components/tree'
 import { writeRootDensity } from '../../core/density'
+import { boxHeight, iconSize } from '../../core/density/geometry'
 import { maxDepth } from '../../core/density/rungs'
 import { SidebarLayout } from '../../layouts/sidebar'
 import { ChatListItem } from '../../modules/chat'
@@ -215,9 +215,8 @@ describe('the relative slot scope (real browser)', () => {
 })
 
 /**
- * A control stops at `lg`, so in an `xl` scope it takes the `lg` look. Its slot must also take the
- * look that it has in an `lg` scope: the step below `lg`, not the step below `xl`. Thus nothing in
- * the control grows past `lg`.
+ * A control has an `xl` step of its own. Its slot is a scope one step below it, so the slot of an
+ * `xl` control takes `lg`, and the slot of an `lg` control takes `md`.
  */
 describe('a control slot in an xl scope (real browser)', () => {
 	afterEach(() => {
@@ -234,54 +233,37 @@ describe('a control slot in an xl scope (real browser)', () => {
 		/>
 	)
 
-	/** The boxes and the font sizes that a control and its slots show. */
+	/** The height of the frame and the size of the prefix icon of an Input. */
 	const measure = (container: HTMLElement) => {
 		const one = (selector: string) => present(container.querySelector(selector), selector)
 
-		const box = (element: Element) => {
-			const { width, height } = element.getBoundingClientRect()
-
-			return { width, height }
-		}
-
-		const frames = [...container.querySelectorAll('[data-slot="control-frame"]')]
-
 		return {
-			frames: frames.map(box),
-			reveal: box(one('[data-slot="suffix"] [data-slot="icon"]')),
-			affixIcon: box(one('[data-slot="prefix"] [data-slot="icon"]')),
-			affixText: getComputedStyle(one('[data-slot="prefix"]:not(:has([data-slot="icon"]))'))
-				.fontSize,
-			button: getComputedStyle(one('[data-slot="suffix"] button')).fontSize,
+			frame: one('[data-slot="control-frame"]').getBoundingClientRect().height,
+			affixIcon: one('[data-slot="prefix"] [data-slot="icon"]').getBoundingClientRect().height,
 		}
 	}
 
-	const controls = (
-		<>
-			<PasswordInput aria-label="Password" />
-			<Input aria-label="Search" prefix={icon} />
-			<Input aria-label="Price" prefix="$" />
-		</>
-	)
+	const control = <Input aria-label="Search" prefix={icon} />
 
-	it('gives the slots of an xl scope the look of an lg scope', () => {
-		const xl = measure(mountMarkup(<div data-density="xl">{controls}</div>))
+	it('gives the slot of an xl scope the step below xl', () => {
+		expect(measure(mountMarkup(<div data-density="xl">{control}</div>))).toEqual({
+			frame: boxHeight('xl'),
+			affixIcon: iconSize('lg'),
+		})
 
-		const lg = measure(mountMarkup(<div data-density="lg">{controls}</div>))
-
-		expect(xl).toEqual(lg)
+		expect(measure(mountMarkup(<div data-density="lg">{control}</div>))).toEqual({
+			frame: boxHeight('lg'),
+			affixIcon: iconSize('md'),
+		})
 	})
 
-	it('gives the slots under an xl root the look under an lg root', () => {
+	it('gives the slot under an xl root the step below xl', () => {
 		writeRootDensity(document.documentElement, 'xl')
 
-		const xl = measure(mountMarkup(controls))
-
-		writeRootDensity(document.documentElement, 'lg')
-
-		const lg = measure(mountMarkup(controls))
-
-		expect(xl).toEqual(lg)
+		expect(measure(mountMarkup(control))).toEqual({
+			frame: boxHeight('xl'),
+			affixIcon: iconSize('lg'),
+		})
 	})
 })
 
@@ -374,7 +356,7 @@ describe('controls at the first paint (real browser)', () => {
 			(control) => control.getBoundingClientRect().width,
 		)
 
-		expect(widths).toEqual([16, 16, 32])
+		expect(widths).toEqual([18, 18, 36])
 	})
 
 	it('sizes the native slider track at an explicit size of the slider', () => {
@@ -410,7 +392,7 @@ describe('controls at the first paint (real browser)', () => {
 		const box = (slot: string) =>
 			present(container.querySelector(`[data-slot="${slot}"]`), slot).getBoundingClientRect()
 
-		expect(box('rating-star').width).toBe(24)
+		expect(box('rating-star').width).toBe(22)
 
 		expect(box('progress-bar').height).toBe(16)
 
@@ -458,10 +440,10 @@ describe('items and slots at the first paint (real browser)', () => {
 		// The row padding wins over the label padding of the inner Button.
 		expect(px(inner, 'paddingTop')).toBe(6)
 
-		expect(px(container.querySelector('[data-slot="icon"]'), 'width')).toBe(16)
+		expect(px(container.querySelector('[data-slot="icon"]'), 'width')).toBe(18)
 	})
 
-	it('stops an unsized sidebar item and its icon at sm under an xs root', () => {
+	it('sizes an unsized sidebar item and its icon at xs under an xs root', () => {
 		writeRootDensity(document.documentElement, 'xs')
 
 		const container = mountMarkup(
@@ -473,9 +455,9 @@ describe('items and slots at the first paint (real browser)', () => {
 
 		const inner = container.querySelector('[data-slot="sidebar-item-inner"]')
 
-		expect(px(inner, 'fontSize')).toBe(14)
+		expect(px(inner, 'fontSize')).toBe(12)
 
-		expect(px(inner, 'paddingTop')).toBe(6)
+		expect(px(inner, 'paddingTop')).toBe(4)
 
 		expect(px(container.querySelector('[data-slot="icon"]'), 'width')).toBe(16)
 
@@ -483,9 +465,11 @@ describe('items and slots at the first paint (real browser)', () => {
 	})
 
 	it.each([
-		['sm', 16],
+		['xs', 16],
+		['sm', 18],
 		['md', 20],
-		['lg', 24],
+		['lg', 22],
+		['xl', 24],
 	] as const)('sizes a spinner in a %s sidebar item as its icon', (size, width) => {
 		const container = mountMarkup(
 			<SidebarItem size={size} icon={icon}>
@@ -499,21 +483,21 @@ describe('items and slots at the first paint (real browser)', () => {
 		expect(px(container.querySelector('[data-slot="icon"]'), 'width')).toBe(width)
 	})
 
-	it('stops an unsized nav item and its icon at sm under an xs root', () => {
+	it('sizes an unsized nav item and its icon at xs under an xs root', () => {
 		writeRootDensity(document.documentElement, 'xs')
 
 		const container = mountMarkup(<NavItem icon={icon}>Home</NavItem>)
 
 		const inner = container.querySelector('[data-slot="nav-item-inner"]')
 
-		expect(px(inner, 'fontSize')).toBe(14)
+		expect(px(inner, 'fontSize')).toBe(12)
 
-		expect(px(inner, 'paddingTop')).toBe(6)
+		expect(px(inner, 'paddingTop')).toBe(4)
 
 		expect(px(container.querySelector('[data-slot="icon"]'), 'width')).toBe(16)
 	})
 
-	it('stops an unsized option and its icon at sm under an xs root', () => {
+	it('sizes an unsized option and its icon at xs under an xs root', () => {
 		writeRootDensity(document.documentElement, 'xs')
 
 		const container = mountMarkup(
@@ -523,7 +507,7 @@ describe('items and slots at the first paint (real browser)', () => {
 			</Option>,
 		)
 
-		expect(px(container.querySelector('[role="option"]'), 'fontSize')).toBe(14)
+		expect(px(container.querySelector('[role="option"]'), 'fontSize')).toBe(12)
 
 		expect(px(container.querySelector('[data-slot="icon"]'), 'width')).toBe(16)
 	})
@@ -565,7 +549,7 @@ describe('items and slots at the first paint (real browser)', () => {
 				</TreeItem>
 			</Tree>,
 			14,
-			20,
+			22,
 		],
 		[
 			'an explicit size',
@@ -575,7 +559,7 @@ describe('items and slots at the first paint (real browser)', () => {
 				</TreeItem>
 			</Tree>,
 			18,
-			36,
+			34,
 		],
 	])('sizes and indents a tree at the step of %s', (_, element, font, indent) => {
 		writeRootDensity(document.documentElement, 'sm')
@@ -705,13 +689,13 @@ describe('density scopes on static leaves (real browser)', () => {
 			10,
 		],
 		[
-			'gives an xl scope the lg dot',
+			'gives an xl scope the xl dot',
 			() => (
 				<div data-density="xl">
 					<LoadingDots />
 				</div>
 			),
-			10,
+			12,
 		],
 	])('a loading dot %s', (_name, element, width) => {
 		const { container } = renderUI(element())
@@ -842,8 +826,8 @@ describe('density scopes on static leaves (real browser)', () => {
 	})
 
 	it.each([
-		['takes the step of the scope', undefined, 26],
-		['keeps an explicit size', 'lg', 34],
+		['takes the step of the scope', undefined, 28],
+		['keeps an explicit size', 'lg', 32],
 	] as const)('a badge skeleton %s', (_name, size, height) => {
 		const { container } = renderUI(
 			<DensityProvider density="compact">
@@ -895,8 +879,8 @@ describe('density scopes on static leaves (real browser)', () => {
 	})
 
 	it.each([
-		['takes the step of the scope', undefined, { height: 30, width: 80 }],
-		['keeps an explicit size', 'lg', { height: 46, width: 112 }],
+		['takes the step of the scope', undefined, { height: 32, width: 80 }],
+		['keeps an explicit size', 'lg', { height: 44, width: 112 }],
 	] as const)('a button skeleton %s', (_name, size, box) => {
 		const { container } = renderUI(
 			<DensityProvider density="compact">
@@ -1025,7 +1009,7 @@ describe('density scopes on families (real browser)', () => {
 
 		const check = present(container.querySelector<SVGElement>('[data-slot="icon"]'), 'check')
 
-		expect(Number.parseFloat(getComputedStyle(check).width)).toBe(24)
+		expect(Number.parseFloat(getComputedStyle(check).width)).toBe(22)
 	})
 
 	it.each([

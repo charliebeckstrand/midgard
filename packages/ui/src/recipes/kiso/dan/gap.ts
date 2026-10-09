@@ -98,6 +98,9 @@ const touchY = {
 	],
 } as const
 
+/** The gap of a control and of a badge: half of the block padding of a control. */
+const narrow = 'density-gap-[0.5,0.75,1,1.25,1.5]'
+
 export const gap = {
 	scale,
 	/** The inline gap at each stop of `scale`. */
@@ -109,7 +112,7 @@ export const gap = {
 	/** The default gap: a card footer, the calendar footer, and the segment control. */
 	default: scale.sm,
 	/** The gap of a nav item and a sidebar item. */
-	item: 'density-gap-[1.5,2,2.5]',
+	item: 'density-gap-[1,1.5,2,2.5,3]',
 	/** The gap of an option row and a menu item. */
 	option: 'density-gap-[2,3,3]',
 	/** The gap of a color panel. */
@@ -121,13 +124,13 @@ export const gap = {
 		x: scaleX.lg,
 	},
 	/** The gap of a control. */
-	control: 'density-gap-[0.75,1,1.25]',
+	control: narrow,
 	/** The gap of a button. */
-	button: 'density-gap-[0.75,1,1.25,1.5,1.5]',
+	button: 'density-gap-[0.75,1,1.25,1.5,1.75]',
 	/** The gap of a badge. */
-	badge: 'density-gap-[0.5,0.75,1,1.25,1.25]',
+	badge: narrow,
 	/** The gap of loading dots. */
-	dots: 'density-gap-[0.5,1,1.5,2,2]',
+	dots: 'density-gap-[0.5,1,1.5,2,2.5]',
 	/** The gap of a rating skeleton. */
 	rating: 'density-gap-[0.5,0.5,1]',
 } as const

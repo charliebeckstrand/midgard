@@ -100,7 +100,7 @@ describe('density utilities', () => {
 		expect(call('density-text', 'sm,sm,sm')).toEqual([
 			rungs(['xs', 'sm', 'md', 'lg', 'xl'], {
 				'font-size': 'var(--text-sm)',
-				'line-height': 'var(--tw-leading, var(--text-sm--line-height))',
+				'line-height': 'var(--tw-leading, calc(var(--text-sm) + 0.5rem))',
 			}),
 		])
 	})

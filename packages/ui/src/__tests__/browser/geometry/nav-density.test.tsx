@@ -16,9 +16,9 @@ import { present, renderUI } from '../../helpers'
 type Density = 'compact' | 'snug' | 'loose'
 
 const EXPECTED = {
-	compact: { height: 32, text: 14, icon: 16, slotIcon: 12, slotInset: 6 },
-	snug: { height: 40, text: 16, icon: 20, slotIcon: 16, slotInset: 8 },
-	loose: { height: 48, text: 18, icon: 24, slotIcon: 20, slotInset: 10 },
+	compact: { height: 34, text: 14, icon: 18, slotIcon: 16, slotInset: 6 },
+	snug: { height: 40, text: 16, icon: 20, slotIcon: 18, slotInset: 8 },
+	loose: { height: 46, text: 18, icon: 22, slotIcon: 20, slotInset: 10 },
 } as const
 
 function measure(density: Density) {

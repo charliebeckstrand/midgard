@@ -7,7 +7,7 @@
  * literal-hue override authored inline with `mode()`. A consumer sets one or
  * the other — tone for emphasis, color for a bespoke tint.
  *
- * `size` is a density step from `xs` to `lg` (`text-xs` to `text-lg`). The
+ * `size` is a density step from `xs` to `xl` (`text-xs` to `text-xl`). The
  * component writes it as a density scope, and `sized` gives the text the step
  * of that scope. Without `size`, Text takes the size of its parent text, which
  * follows the density of its scope. `xs` is for a subordinate line set under a

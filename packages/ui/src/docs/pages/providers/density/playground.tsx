@@ -50,7 +50,7 @@ function FiltersReset() {
 
 	return (
 		<FiltersClear>
-			<ResetButton />
+			<ResetButton type="button" />
 		</FiltersClear>
 	)
 }

@@ -21,8 +21,8 @@ export const heading = {
 	ramp: {
 		1: dan.size.line.title.large,
 		2: dan.size.line.title.base,
-		3: dan.size.row,
-		4: dan.size.line.base,
+		3: dan.size.line.title.small,
+		4: dan.size.line.subtitle,
 		5: dan.size.line.small,
 		6: dan.size.line.tiny,
 	},

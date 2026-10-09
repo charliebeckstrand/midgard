@@ -885,7 +885,7 @@ describe('ListItem density', () => {
 	it('pads the plain variant on its tighter px/py ratio, with no uniform padding', () => {
 		const item = firstItem(list('plain'))
 
-		expect(item).toHaveClass('density-px-[1.5,2,2.5]', 'density-py-[1,1.5,2]')
+		expect(item).toHaveClass('density-px-[1.5,2,2.5]', 'density-py-[0.5,1,1.5,2,2.5]')
 
 		expect(item).not.toHaveClass('density-p-[2,3,4]')
 	})

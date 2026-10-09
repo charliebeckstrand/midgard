@@ -69,7 +69,7 @@ const HAND_STEP = new RegExp(
 		String.raw`[=!]==\s*'(?:xs|xl)'`,
 		String.raw`'(?:xs|xl)'\s*[=!]==`,
 		String.raw`\b(?:toInnerStep|stepDown|slotStep)\(`,
-		String.raw`\bsize\??:\s*(?:DensityStep|ControlStep|InnerStep)\b`,
+		String.raw`\bsize\??:\s*(?:DensityStep|InnerStep)\b`,
 		String.raw`\bsize\??:\s*'(?:xs|sm|md|lg|xl)'(?:\s*\|\s*'(?:xs|sm|md|lg|xl)')+`,
 	].join('|'),
 	'g',
