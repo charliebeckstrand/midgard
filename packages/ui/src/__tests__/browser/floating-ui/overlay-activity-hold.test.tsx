@@ -14,7 +14,9 @@ import { renderUI, screen, waitFor } from '../../helpers'
  * `<Activity>` runs cleanups to hide a subtree and re-runs the effects to reveal it. Left
  * alone, the reveal built a *new* node, which changed `createPortal`'s container and
  * remounted the whole surface: state gone, scroll offsets gone. `patches/@floating-ui__react`
- * makes the node re-attach instead. See that patch for the reasoning.
+ * makes the node re-attach instead. See that patch for the reasoning. The Vite dep cache can
+ * serve the module from before the patch, so clear `packages/ui/node_modules/.vite` when you
+ * add or remove the patch.
  *
  * This is not a hypothetical arrangement. `primitives/mount`'s `MountHold` parks an inactive
  * Tabs/Nav panel in exactly this boundary, and Next's App Router parks a navigated-away

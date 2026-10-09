@@ -169,6 +169,9 @@ function focusLadder(tokens: QuerySummaryToken[], id: string): string[] {
  * The row is a density scope one step below the scope around it. So the chips
  * stay one step below the controls around them, and each combinator stays one
  * step below the chips. At `md` the chips are `sm` Badges.
+ *
+ * The row does not compose `Toolbar`, because `Toolbar` writes its own
+ * `data-slot` after the spread and takes no ref.
  */
 export function QueryChips({
 	fields,

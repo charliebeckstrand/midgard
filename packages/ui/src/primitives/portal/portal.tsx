@@ -80,6 +80,13 @@ function PortalScope({ children }: { children: ReactNode }) {
  * Each portal also opens a portal scope (`usePortalScope`). A context that a
  * surface keeps to itself ends there, such as the button defaults of an alert.
  *
+ * A pnpm patch of `@floating-ui/react` keeps the portal node when an
+ * `<Activity>` hides the surface, so the reveal does not remount it
+ * (`overlay-activity-hold.test.tsx`). Remove the patch only when the upstream
+ * portal keeps its node, or when the package vendors the portal and the focus
+ * manager together. The focus manager reads the portal context for the Tab
+ * order, so a vendored portal alone breaks that order.
+ *
  * A Suspense boundary or an `<Activity>` above the surface can hide it during its
  * exit. When the boundary reveals it, the exit completes at once, without the
  * animation.

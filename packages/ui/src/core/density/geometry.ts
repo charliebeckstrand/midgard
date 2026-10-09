@@ -13,6 +13,11 @@
  * control pads as the label of a button does, so a control and a button of a
  * step have the same height.
  *
+ * Tailwind's line heights step 4 px while its text sizes step 2 px, so
+ * `density-text` couples the line height to the size. Each size is even, so an
+ * icon centers on a whole pixel. An icon of a fractional size, such as
+ * 17.5 px, sits at a quarter pixel and blurs on a 1x screen.
+ *
  * A ramp that does not follow the text, such as a padding, a gap, a radius, or
  * a width, keeps its three inner values. {@link spacingSteps} gives its outer
  * values.

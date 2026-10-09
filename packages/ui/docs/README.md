@@ -27,9 +27,8 @@ already shipped.
   last finding closes ([`CONVENTIONS.md`](../../../CONVENTIONS.md) §12.4).
 - **`plans/`** — dated design records. Each plan records one decision: what a
   feature or module must be, and the increments that make it. The pull requests
-  that carry the work hold its progress, and the plan holds none. A plan stays as
-  the historical record after its work lands
-  ([`CONVENTIONS.md`](../../../CONVENTIONS.md) §12.5).
+  that carry the work hold its progress, and the plan holds none. Delete it once
+  its last step lands ([`CONVENTIONS.md`](../../../CONVENTIONS.md) §12.5).
 
 New top-level subjects get their own folder here as they appear.
 
@@ -47,6 +46,6 @@ A plan file follows the same convention as `{date}-{SUBJECT}-PLAN.md`. The
 in chronological order. `{SUBJECT}` is the upper-case feature or module the
 design covers (`GRID-EDITING`, `QUERY-MODULE`, …).
 
-An audit is temporary and a plan is permanent. [`CONVENTIONS.md`](../../../CONVENTIONS.md)
+An audit and a plan are both temporary. [`CONVENTIONS.md`](../../../CONVENTIONS.md)
 §12.4 gives the lifecycle of an audit and its consequence for inbound
-references, and §12.5 gives the rule for a plan.
+references, and §12.5 gives the same rule for a plan.

@@ -1,6 +1,6 @@
 # Grid Range Selection, Fill, and Paste — Design Plan — 2026-09-29
 
-How the grid cursor grows a rectangular cell range, and how copy, paste, and fill act on that range. This is increment 7 of the [Grid editing plan](2026-07-08-GRID-EDITING-PLAN.md), which deferred it to its own plan. The decision here is the one model under all three features: the range is an extension of the cursor, and every write it makes goes through the one `onCommit` sink.
+How the grid cursor grows a rectangular cell range, and how copy, paste, and fill act on that range. This is increment 7 of the Grid editing plan, which deferred it to its own plan. The decision here is the one model under all three features: the range is an extension of the cursor, and every write it makes goes through the one `onCommit` sink.
 
 ## Thesis
 

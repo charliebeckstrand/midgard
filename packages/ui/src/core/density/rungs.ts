@@ -10,6 +10,11 @@
  * utility is in `utilities` itself, and it outranks each nested layer. So a
  * consumer `className` always wins over a density class.
  *
+ * Other forms do not work. An ancestor selector alone does not follow nesting,
+ * because the source order wins and the nearest scope does not. `@scope` and
+ * container style queries ship in Firefox after the browser floor. Custom
+ * properties move the styles out of the Tailwind classes.
+ *
  * The root element is the scope of the app. `md` is the base of each stepped
  * class: its rung is in the layer `density-0` and reads no ancestor. For each
  * other step, `AppearanceScript` writes a class on the root before the first
@@ -18,7 +23,10 @@
  * wins over the base. At `md` the root has no mark. The root does not count as
  * a depth: `density-0` is below the layer of each depth, so each other scope
  * wins over it, and the trees keep each ranked depth. The rungs write
- * `density-0` first, so it is the first layer in the output. `density-any` is
+ * `density-0` first, so it is the first layer in the output. Tailwind writes
+ * nested layers in the order of first use, and it moves a `@layer` order
+ * statement after the utilities, so only the order of the rules sets the
+ * order of the layers. `density-any` is
  * in the same layer with no specificity, so the base wins over it.
  *
  * A scope element with a step is its own nearest scope, so its rung reads no

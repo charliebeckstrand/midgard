@@ -128,7 +128,9 @@ export type DashboardTileProps = {
 	 *
 	 * @remarks
 	 * Under `lazy` and `active`, the server renders the fallback. The content
-	 * mounts on the client after hydration.
+	 * mounts on the client after hydration. The default is `always`, because most
+	 * of a board is on screen at load. A `lazy` default adds an observer and a
+	 * placeholder to each visible tile to save the few tiles below the fold.
 	 * @defaultValue 'always'
 	 */
 	mount?: Mount

@@ -66,7 +66,8 @@ export function stepDown<S extends DensityStep>(step: S): (typeof below)[S] {
 /**
  * The step of a control slot in a scope at `step`: the step below the step of
  * the host, and `xs` for an `xs` host, because no step is below `xs`. The
- * rungs give a slot this step in CSS.
+ * rungs give a slot this step in CSS. A `2xs` step for the slot would add a
+ * step to the scale for one case.
  *
  * @internal
  */

@@ -96,7 +96,8 @@ function isNodeAt(value: unknown, depth: number): boolean {
  * @remarks Use it on a tree from storage or from a URL, before the evaluator or
  * the builder reads it. The guard reads groups to a depth of 32 levels, as
  * `parseQuery` does. A deeper group fails the guard, so a hostile tree cannot
- * exhaust the stack.
+ * exhaust the stack. `QueryBuilder` sets no depth limit, so a tree that it
+ * builds deeper than 32 levels fails the guard too.
  *
  * @param value - The value to test.
  * @returns Whether `value` has the full structure of a {@link QueryNode}.

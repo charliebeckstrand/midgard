@@ -129,6 +129,10 @@ const THUMBNAIL_WIDTH = 192
  * The canvas lives for one render. Its backing store is freed when the render ends,
  * and the page frees its operator list. So a document keeps no canvas and no operator list
  * between renders, only the images that the cache holds.
+ *
+ * pdf.js waits for an animation frame before each slice of a display render, and it has no
+ * option to skip the waits. The `print` intent skips them, but it changes the annotations
+ * that draw, so the render keeps the display intent.
  * @internal
  */
 function renderPage(page: PDFPageProxy, raster: PdfPageRaster, scale: number): PdfRenderJob {
