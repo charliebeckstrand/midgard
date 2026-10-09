@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
 
@@ -6,7 +7,7 @@ import { Stack } from 'ui/structure/stack'
  *
  * @remarks
  * Each app re-exports it as the default export of its `app/not-found.tsx`,
- * which also exports the `metadata` of the page.
+ * and re-exports {@link notFoundMetadata} as the `metadata` of the page.
  */
 export function NotFoundPage() {
 	return (
@@ -17,4 +18,9 @@ export function NotFoundPage() {
 			</Stack>
 		</Flex>
 	)
+}
+
+/** The `metadata` of {@link NotFoundPage}. */
+export const notFoundMetadata: Metadata = {
+	title: '404 - Page Not Found',
 }
