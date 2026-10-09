@@ -33,14 +33,65 @@ jobs:
           echo "::error::Set the DIGITALOCEAN_PROJECT_ID variable to the ID of the Ivory Image project."
           exit 1
 
-      # Creates the app from .do/app.yaml on the first run, in the Ivory Image
-      # project, then updates it and waits for the deployment to go live. The
-      # action reads `project_id` only when it creates the app.
-      - uses: digitalocean/app_action/deploy@v2
+      # The digitalocean/app_action action is a Docker action. The runner builds
+      # its image from Docker Hub before the first step, so a Docker Hub rate
+      # limit or outage stops the deploy. doctl is one binary from a GitHub
+      # release, and the checksum below locks it to one build.
+      - name: Install doctl
         env:
+          DOCTL_VERSION: 1.177.0
+          DOCTL_SHA256: 34d3954721bfb8cdb42032e78d98274f157426fa6332511ae356edcce59dade3
+        run: |
+          archive="doctl-${DOCTL_VERSION}-linux-amd64.tar.gz"
+          curl --fail --silent --show-error --location --retry 3 --output "$RUNNER_TEMP/$archive" \
+            "https://github.com/digitalocean/doctl/releases/download/v${DOCTL_VERSION}/$archive"
+          echo "$DOCTL_SHA256  $RUNNER_TEMP/$archive" | sha256sum --check --strict
+          mkdir -p "$RUNNER_TEMP/doctl"
+          tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP/doctl"
+          echo "$RUNNER_TEMP/doctl" >> "$GITHUB_PATH"
+
+      # Creates the app from .do/app.yaml on the first run, in the Ivory Image
+      # project, then updates it from the latest source and waits for the
+      # deployment to go live. doctl reads `--project-id` only when it creates
+      # the app. The step puts the secret into a copy of the spec, because
+      # doctl does not expand variables in the spec.
+      - name: Deploy to App Platform
+        env:
+          DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
           CLIENT_IP_SECRET: ${{ secrets.CLIENT_IP_SECRET }}
-        with:
-          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-          project_id: ${{ vars.DIGITALOCEAN_PROJECT_ID }}
-          print_build_logs: true
-          print_deploy_logs: true
+          PROJECT_ID: ${{ vars.DIGITALOCEAN_PROJECT_ID }}
+        run: |
+          spec="$RUNNER_TEMP/app.yaml"
+          envsubst '${CLIENT_IP_SECRET}' < .do/app.yaml > "$spec"
+
+          app=$(doctl apps create --spec "$spec" --upsert --update-sources \
+            --project-id "$PROJECT_ID" --format ID --no-header)
+
+          # The latest deployment is the one that the update started.
+          deployment=$(doctl apps list-deployments "$app" --format ID --no-header | sed -n 1p)
+          echo "App $app, deployment $deployment"
+
+          # The job timeout stops a deployment that does not end.
+          last=""
+          while :; do
+            phase=$(doctl apps get-deployment "$app" "$deployment" --format Phase --no-header)
+            if [ "$phase" != "$last" ]; then
+              echo "Phase: $phase"
+              last="$phase"
+            fi
+            case "$phase" in
+              ACTIVE | ERROR | CANCELED | SUPERSEDED) break ;;
+            esac
+            sleep 10
+          done
+
+          for type in build deploy; do
+            echo "::group::$type logs"
+            doctl apps logs "$app" --deployment "$deployment" --type "$type" || true
+            echo "::endgroup::"
+          done
+
+          if [ "$phase" != ACTIVE ]; then
+            echo "::error::The deployment ended in phase $phase."
+            exit 1
+          fi
