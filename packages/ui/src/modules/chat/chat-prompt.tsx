@@ -1,14 +1,13 @@
 'use client'
 
-import { ArrowUp, Paperclip, Square, X } from 'lucide-react'
+import { ArrowUp, Paperclip, Square } from 'lucide-react'
 import { type KeyboardEvent, type ReactNode, type Ref, useCallback } from 'react'
-import { Badge } from '../../components/badge'
+import { BadgeRemovable } from '../../components/badge/badge-removable'
 import { Button } from '../../components/button'
 import { Control } from '../../components/control'
 import { useFileUploadHandlers } from '../../components/file-upload'
 import { Icon } from '../../components/icon'
 import { Textarea } from '../../components/textarea'
-import { k as badgeKata } from '../../recipes/kata/badge'
 import { isComposing } from '../../utilities'
 import { canSubmitDraft } from './engine/chat-draft'
 
@@ -209,30 +208,13 @@ export function ChatPrompt({
 					className="mt-2 flex list-none flex-wrap gap-1 [--touch-target-gap-y:--spacing(2.5)]"
 				>
 					{attachments.map((file, index) => (
-						// `flex` keeps the line box of the item off the height of the chip.
-						<li key={`${file.name}-${file.lastModified}-${file.size}`} className="flex">
-							<Badge
-								// Outline (page-surface bg) keeps the bare remove button's muted
-								// `onSurface` glyph above the 3:1 non-text-contrast floor; a solid
-								// fill would sink it. The chip is the removable chip of TagInput.
-								variant="outline"
-								radius="full"
-								className={badgeKata.removable}
-								suffix={
-									onRemoveAttachment && (
-										<Button
-											type="button"
-											variant="bare"
-											aria-label={`Remove ${file.name}`}
-											onClick={() => onRemoveAttachment(index)}
-										>
-											<Icon icon={<X />} />
-										</Button>
-									)
-								}
-							>
-								{file.name}
-							</Badge>
+						// `flex` keeps the line box of the item off the height of the chip, and
+						// `max-w-full` holds a long name to the row, so the chip truncates it.
+						<li key={`${file.name}-${file.lastModified}-${file.size}`} className="flex max-w-full">
+							<BadgeRemovable
+								label={file.name}
+								onRemove={onRemoveAttachment && (() => onRemoveAttachment(index))}
+							/>
 						</li>
 					))}
 				</ul>

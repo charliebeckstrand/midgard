@@ -1,13 +1,10 @@
 'use client'
 
-import { X } from 'lucide-react'
-import { Fragment, type KeyboardEvent, type ReactNode, useCallback, useId, useRef } from 'react'
-import { Badge } from '../../components/badge'
+import { Fragment, type ReactNode, useCallback, useId, useRef } from 'react'
+import { BadgeRemovable } from '../../components/badge/badge-removable'
 import { Button } from '../../components/button'
-import { Icon } from '../../components/icon'
 import { announce, cn, dataAttr } from '../../core'
 import { useA11yRoving } from '../../hooks'
-import { k as badgeKata } from '../../recipes/kata/badge'
 import { k } from '../../recipes/kata/query-chips'
 import {
 	formatQuerySummary,
@@ -73,7 +70,7 @@ type QueryChipProps = {
 /**
  * One active rule as a chip: field, operator, and value, and a remove button
  * when the row is interactive. Delete or Backspace on the button also removes
- * the rule, as on a `TagInput` chip.
+ * the rule. The chip is a `BadgeRemovable`.
  *
  * @internal
  */
@@ -82,37 +79,14 @@ function QueryChip({ token, onRemove, disabled, register }: QueryChipProps) {
 
 	const ref = useCallback((el: HTMLButtonElement | null) => register(id, el), [register, id])
 
-	const remove = () => onRemove?.(token)
-
-	const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
-		if (event.key !== 'Delete' && event.key !== 'Backspace') return
-
-		event.preventDefault()
-
-		remove()
-	}
-
 	return (
-		<Badge
-			variant="outline"
-			radius="full"
-			className={cn(k.chip, badgeKata.removable)}
-			suffix={
-				onRemove && (
-					<Button
-						ref={ref}
-						type="button"
-						variant="bare"
-						data-slot="query-chip-remove"
-						aria-label={`Remove ${renderToken(token)}`}
-						disabled={disabled}
-						onClick={remove}
-						onKeyDown={onKeyDown}
-					>
-						<Icon icon={<X />} />
-					</Button>
-				)
-			}
+		<BadgeRemovable
+			label={renderToken(token)}
+			className={cn(k.chip)}
+			disabled={disabled}
+			removeRef={ref}
+			removeProps={{ 'data-slot': 'query-chip-remove' }}
+			onRemove={onRemove && (() => onRemove(token))}
 		>
 			<span className={cn(k.field)}>{token.field}</span>{' '}
 			<span className={cn(k.operator)}>{token.operator}</span>
@@ -122,7 +96,7 @@ function QueryChip({ token, onRemove, disabled, register }: QueryChipProps) {
 					<span className={cn(k.value)}>{token.value}</span>
 				</>
 			)}
-		</Badge>
+		</BadgeRemovable>
 	)
 }
 

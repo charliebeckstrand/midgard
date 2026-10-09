@@ -8,12 +8,12 @@ import type { Color } from '../../recipes'
 import { k } from '../../recipes/kata/tag-input'
 import { Flex } from '../../structure/flex'
 import { keyByOccurrence } from '../../utilities'
+import { BadgeRemovable } from '../badge/badge-removable'
 import { Button } from '../button'
 import { useControlFallbackLabel } from '../control/use-control-fallback-label'
 import { useControlProps } from '../control/use-control-props'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
-import { TagInputBadge } from './tag-input-badge'
 import { hasSeparator, splitTokens, type TokenRejection } from './tag-input-utilities'
 import { useTagInput } from './use-tag-input'
 import { useTagInputKeyboard } from './use-tag-input-keyboard'
@@ -260,19 +260,32 @@ export function TagInput({
 				className={cn(k.tags)}
 			>
 				{keyedTags.map(({ value: t, key }, i) => (
-					<TagInputBadge
+					// The chip sits in the prefix scope of the host Input, one step below
+					// the control, so it takes that step with no `size`. A locked chip has
+					// no remove button and no Tab stop. A press on the button keeps the
+					// focus in the input, and its click does not reach the frame.
+					<BadgeRemovable
 						key={key}
+						role="listitem"
 						label={t}
 						color={resolvedColor}
-						disabled={locked}
-						onRemove={() => {
-							removeTag(i)
-
-							// Returns focus to the input after badge removal (WCAG 2.4.3).
-							// The field stays focusable at the cap (read-only, not disabled),
-							// so this lands even when the removal is what clears the cap.
-							inputRef.current?.focus()
+						className={cn(k.badge)}
+						removeProps={{
+							onMouseDown: (event) => event.preventDefault(),
+							onClick: (event) => event.stopPropagation(),
 						}}
+						onRemove={
+							locked
+								? undefined
+								: () => {
+										removeTag(i)
+
+										// Returns focus to the input after badge removal (WCAG 2.4.3).
+										// The field stays focusable at the cap (read-only, not disabled),
+										// so this lands even when the removal is what clears the cap.
+										inputRef.current?.focus()
+									}
+						}
 					/>
 				))}
 			</Flex>

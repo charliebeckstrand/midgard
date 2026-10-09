@@ -94,8 +94,8 @@ export const k = defineRecipe(
 	{
 		/**
 		 * The leading pad of a removable chip: an `outline` pill whose suffix is
-		 * a `bare` remove Button with no `size`. TagInput, QueryChips, and
-		 * ChatPrompt build their chips this way.
+		 * a `bare` remove Button with no `size`. `BadgeRemovable` builds the
+		 * chip of TagInput, QueryChips, and ChatPrompt this way.
 		 *
 		 * The padding of the button insets its glyph from the trailing edge. So
 		 * the leading side takes the `px` of the pill plus the `bare` pad of the
