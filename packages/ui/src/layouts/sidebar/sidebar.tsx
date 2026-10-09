@@ -20,6 +20,7 @@ import { Icon } from '../../components/icon'
 import { Sheet, SheetPanel } from '../../components/sheet/sheet'
 import { cn, createContext, createSlot } from '../../core'
 import { useScrollWithin } from '../../hooks'
+import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useIsRtl } from '../../hooks/use-is-rtl'
 import { useKeybindings } from '../../hooks/use-keybindings'
 import { useOffcanvas } from '../../hooks/use-offcanvas'
@@ -28,8 +29,12 @@ import { readChoice, SIDEBAR, writeChoice } from '../../providers/appearance/app
 import { useAppearanceChoice } from '../../providers/appearance/use-appearance-choice'
 import { k } from '../../recipes/kata/sidebar-layout'
 import { Flex } from '../../structure/flex'
+import { type StickyBars, useStickyBars } from './use-sticky-bars'
 
-const [SidebarLayoutContext] = createContext<{ actions?: ReactNode } | null>('SidebarLayout', {
+const [SidebarLayoutContext] = createContext<{
+	actions?: ReactNode
+	bar?: StickyBars['bar']
+} | null>('SidebarLayout', {
 	default: null,
 })
 
@@ -104,6 +109,12 @@ export type SidebarLayoutProps = PropsWithChildren<{
  * panel stops there, and the page does not move. There, `stickyHeader` keeps the
  * header at the top of the page.
  *
+ * The layout sets the top `scroll-padding` of its scroller to the height of the
+ * bar that sticks at the current width. A scroll into view, a jump to an
+ * anchor, and the flight of a `Lightbox` photo then keep clear of the bar. The
+ * padding is an inline style, so it wins over a `scroll-padding-top` that the
+ * app sets on the same scroller.
+ *
  * To show the layout inside another page, put it in a box that has a height and
  * scrolls. Make the box a size container (`@container-size`). The layout then
  * fills the box, and the box scrolls in place of the page. The switch at `lg`
@@ -167,11 +178,13 @@ export function SidebarLayout({
 
 	const offcanvasValue = useMemo(() => ({ close }), [close])
 
-	const layoutValue = useMemo(() => ({ actions }), [actions])
+	const { root: setRoot, bar: setBar } = useStickyBars()
+
+	const layoutValue = useMemo(() => ({ actions, bar: setBar }), [actions, setBar])
 
 	return (
 		<SidebarLayoutContext value={layoutValue}>
-			<div className={k.base()}>
+			<div ref={setRoot} className={k.base()}>
 				{/* Hot zone to peek the floating sidebar. It shows only while offcanvas. */}
 				<div
 					aria-hidden
@@ -235,7 +248,7 @@ export function SidebarLayout({
 					{/* Navbar on mobile. A named section, so the menu button, the navbar, and the
 					    actions are in a landmark below `lg`. The section is the sticky bar, as a
 					    sticky child sticks only inside the box of its parent. */}
-					<section aria-label="Navigation bar" className={k.navbar()}>
+					<section ref={setBar} aria-label="Navigation bar" className={k.navbar()}>
 						<Flex align="center">
 							<DrawerTrigger>
 								<Button
@@ -271,10 +284,15 @@ export type SidebarLayoutHeaderProps = PropsWithChildren<{
  * layout's `actions` alongside its children on desktop.
  */
 export function SidebarLayoutHeader({ ref, children, className }: SidebarLayoutHeaderProps) {
-	const actions = use(SidebarLayoutContext)?.actions
+	const layout = use(SidebarLayoutContext)
+
+	const actions = layout?.actions
+
+	// The header joins the sticky bars, as it sticks from `lg` up with `stickyHeader`.
+	const setHeader = useComposedRef<HTMLElement>(layout?.bar, ref)
 
 	return (
-		<header ref={ref} data-slot="header" className={cn(k.header(), className)}>
+		<header ref={setHeader} data-slot="header" className={cn(k.header(), className)}>
 			<div className="flex-1 min-w-0">{children}</div>
 			{actions && <div className={cn(k.actions(), 'max-lg:hidden')}>{actions}</div>}
 		</header>
