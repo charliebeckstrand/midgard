@@ -286,6 +286,31 @@ describe('Tooltip', () => {
 		await waitFor(() => expect(screen.queryByText('Tooltip text')).not.toBeInTheDocument())
 	})
 
+	it('opens on a click again after a hold is released', async () => {
+		const user = setupUser()
+
+		function tip(open: boolean) {
+			return (
+				<Tooltip open={open} trigger="click">
+					<TooltipTrigger>
+						<button type="button">Anchor</button>
+					</TooltipTrigger>
+					<TooltipContent>Tooltip text</TooltipContent>
+				</Tooltip>
+			)
+		}
+
+		const { rerender } = renderUI(tip(true))
+
+		rerender(tip(false))
+
+		await waitFor(() => expect(screen.queryByText('Tooltip text')).not.toBeInTheDocument())
+
+		await user.click(screen.getByRole('button', { name: 'Anchor' }))
+
+		expect(await screen.findByText('Tooltip text')).toBeInTheDocument()
+	})
+
 	it('yields open to disabled', () => {
 		renderUI(
 			<Tooltip open disabled>

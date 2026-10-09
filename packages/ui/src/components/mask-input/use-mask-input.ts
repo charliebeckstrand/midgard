@@ -59,8 +59,9 @@ export function useMaskInput({
 		setTouched,
 		invalid,
 	} = useFormValue<string>(name, {
-		// Format the controlled arm on read. The bound arm stays raw, because the Form submits it.
-		value: typeof value === 'string' ? format(value) : value,
+		// The controlled arm goes in raw, so the controllable compares a set with the
+		// value that the parent holds. A set that formats that value then reports.
+		value,
 		defaultValue: defaultValue !== undefined ? format(defaultValue) : '',
 		onValueChange: onChange ? (v) => onChange(v ?? '') : undefined,
 	})
@@ -68,7 +69,8 @@ export function useMaskInput({
 	const { ref, reformat } = useFormattedInput({ format, meaningful, ref: externalRef })
 
 	return {
-		value: current ?? '',
+		// Format the controlled arm on read. The bound arm stays raw, because the Form submits it.
+		value: typeof value === 'string' ? format(value) : (current ?? ''),
 		ref,
 		invalid,
 		setValue: (raw: string) => setValue(format(raw)),

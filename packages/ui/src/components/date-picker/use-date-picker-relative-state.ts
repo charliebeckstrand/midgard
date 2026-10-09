@@ -24,7 +24,6 @@ import {
 	selectedPresetIds,
 	togglePresetValue,
 } from './date-picker-relative-utilities'
-import { useDatePickerControlled } from './use-date-picker-controlled'
 import type { FooterButton } from './use-date-picker-keyboard'
 
 /** The two surfaces of the relative popover: the preset list or the custom Start/End inputs. @internal */
@@ -81,7 +80,7 @@ export function useDatePickerRelativeState({
 	// resolves the Control cascade.
 	const { value, setValue, setTouched, field } = useControlPickerField<DatePickerRelativeValue[]>({
 		name,
-		value: useDatePickerControlled(valueProp),
+		value: valueProp,
 		defaultValue,
 		onValueChange,
 		disabled,

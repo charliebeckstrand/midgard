@@ -318,6 +318,27 @@ describe('PopoverClose', () => {
 		expect(calls).toEqual(['child', 'close'])
 	})
 
+	it('reports no change for a close of a popover that is already closed', async () => {
+		const user = setupUser()
+
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<Popover onOpenChange={onOpenChange}>
+				<PopoverTrigger>
+					<Button>Open</Button>
+				</PopoverTrigger>
+				<PopoverClose>
+					<Button>Dismiss</Button>
+				</PopoverClose>
+			</Popover>,
+		)
+
+		await user.click(screen.getByRole('button', { name: 'Dismiss' }))
+
+		expect(onOpenChange).not.toHaveBeenCalled()
+	})
+
 	it('returns focus to the trigger', async () => {
 		const user = setupUser()
 

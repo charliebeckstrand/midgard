@@ -169,6 +169,120 @@ describe('useControllable', () => {
 	})
 })
 
+describe('useControllable change reports', () => {
+	it('does not report a set to the value it already holds', () => {
+		const onValueChange = vi.fn()
+
+		const { result } = renderHook(() => useControllable({ defaultValue: 'a', onValueChange }))
+
+		act(() => result.current[1]('a'))
+
+		act(() => result.current[1]((prev) => prev))
+
+		expect(onValueChange).not.toHaveBeenCalled()
+	})
+
+	it('does not report a controlled set to the value the owner passes', () => {
+		const onValueChange = vi.fn()
+
+		const { result } = renderHook(() => useControllable({ value: 'a', onValueChange }))
+
+		act(() => result.current[1]('a'))
+
+		expect(onValueChange).not.toHaveBeenCalled()
+	})
+
+	it('reports a repeated set in one batch once', () => {
+		const onValueChange = vi.fn()
+
+		const { result } = renderHook(() => useControllable({ defaultValue: 'a', onValueChange }))
+
+		act(() => {
+			result.current[1]('b')
+
+			result.current[1]('b')
+		})
+
+		expect(onValueChange).toHaveBeenCalledTimes(1)
+	})
+
+	it('reports each refused controlled change, and renders nothing for it', async () => {
+		const onValueChange = vi.fn()
+
+		let renders = 0
+
+		const { result } = renderHook(() => {
+			renders += 1
+
+			return useControllable({ value: 'a', onValueChange })
+		})
+
+		const before = renders
+
+		// Each act is its own task, as two presses are.
+		await act(async () => result.current[1]('b'))
+
+		await act(async () => result.current[1]('b'))
+
+		expect(renders).toBe(before)
+
+		expect(onValueChange).toHaveBeenCalledTimes(2)
+
+		expect(result.current[0]).toBe('a')
+	})
+
+	it('resolves an updater from the value on screen after a refused change', async () => {
+		const onValueChange = vi.fn()
+
+		const { result } = renderHook(() => useControllable({ value: 10, onValueChange }))
+
+		await act(async () => result.current[1]((prev) => (prev ?? 0) + 1))
+
+		await act(async () => result.current[1]((prev) => (prev ?? 0) + 1))
+
+		expect(onValueChange).toHaveBeenNthCalledWith(1, 11)
+
+		expect(onValueChange).toHaveBeenNthCalledWith(2, 11)
+	})
+
+	it('reports a change back to a value the owner shows but did not hold', async () => {
+		// The owner derives what it shows from its own state and more: it holds
+		// `true` after the first report, but shows `false`. The second report
+		// changes the state of the owner, so it goes out.
+		const onValueChange = vi.fn()
+
+		const { result } = renderHook(() => useControllable({ value: false, onValueChange }))
+
+		await act(async () => result.current[1](true))
+
+		await act(async () => result.current[1](false))
+
+		expect(onValueChange.mock.calls).toEqual([[true], [false]])
+	})
+})
+
+describe('useControllable controlled to uncontrolled', () => {
+	it('stays controlled once the owner passes a value, so undefined reads as empty', () => {
+		const { result, rerender } = renderHook(
+			({ value }: { value?: string }) => useControllable({ value, defaultValue: 'default' }),
+			{ initialProps: { value: 'a' } as { value?: string } },
+		)
+
+		// A pick from the reader, then the owner moves the value on its own.
+		act(() => result.current[1]('picked'))
+
+		rerender({ value: 'b' })
+
+		rerender({ value: undefined })
+
+		expect(result.current[0]).toBeUndefined()
+
+		act(() => result.current[1]('c'))
+
+		expect(result.current[0]).toBeUndefined()
+	})
+})
+
 describe('useControllableFlag', () => {
 	it('starts false with no defaultValue', () => {
 		const { result } = renderHook(() => useControllableFlag({}))
@@ -194,6 +308,18 @@ describe('useControllableFlag', () => {
 		expect(result.current[0]).toBe(false)
 
 		expect(onValueChange).toHaveBeenCalledWith(false)
+	})
+
+	it('does not report a cleared flag that is already false', () => {
+		const onValueChange = vi.fn()
+
+		const { result } = renderHook(() => useControllableFlag({ onValueChange }))
+
+		act(() => result.current[1](null))
+
+		act(() => result.current[1](undefined))
+
+		expect(onValueChange).not.toHaveBeenCalled()
 	})
 
 	it('toggles through a functional update', () => {

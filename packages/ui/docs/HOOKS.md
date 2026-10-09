@@ -10,7 +10,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 
 | Hook | Summary |
 |---|---|
-| `useControllable` | Manages controlled / uncontrolled value state with a unified setter. |
+| `useControllable` | Manages controlled / uncontrolled value state with a unified setter. It reports only a change, and it stays controlled after its first value. |
 | `useControllableFlag` | The boolean form of `useControllable` for `open`, `pressed`, or `checked`: the value is never `undefined`, and a cleared flag reports `false`. |
 | `useDeferredToggle` | Listbox/Combobox toggle logic; freezes the rendered selection through the panel's close animation. |
 | `useSelectableValueChange` | Wraps `onValueChange` to drop the "cleared to undefined" event in multi-select mode. |
