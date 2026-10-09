@@ -496,8 +496,8 @@ export function PlacesApp({
 
 	const setVisit = useSetVisit()
 
-	// Where the reader is: the view, the filter, and what the open panel stands
-	// for, all read from the address bar rather than held here. `view` is `null`
+	// Where the reader is: the view, the filter, what the open panel stands for,
+	// and the step of its trail that it shows, all read from the address bar rather than held here. `view` is `null`
 	// until the address states one, which is what leaves the opening rule below
 	// the say exactly once.
 	//
@@ -509,10 +509,12 @@ export function PlacesApp({
 		view: stated,
 		filter,
 		selected: selectedIds,
+		step,
 		adding,
 		setView,
 		setFilter,
 		setSelected,
+		setStep,
 		settleView,
 		openAt,
 		setAdding,
@@ -970,6 +972,8 @@ export function PlacesApp({
 					places={selected}
 					trail={trail}
 					regionPlaces={openedRegionPlaces}
+					step={step}
+					onStepChange={setStep}
 					onNavigate={onNavigate}
 					onOpenChange={() => setSelected([])}
 					actions={actions}

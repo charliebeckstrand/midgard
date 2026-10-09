@@ -7,7 +7,12 @@ const flags = vi.hoisted(() => ({ visitedRegions: true }))
 vi.mock('../../flags', () => ({ flags }))
 
 import { fromDay } from '../../utilities/places-filter'
-import { type PlaceLocation, readLocation, writeLocation } from '../../utilities/places-url'
+import {
+	PANEL_START,
+	type PlaceLocation,
+	readLocation,
+	writeLocation,
+} from '../../utilities/places-url'
 import { UNITED_STATES, WORLD } from '../../utilities/places-view'
 
 /** An address, read. */
@@ -21,13 +26,20 @@ function write(location: Partial<PlaceLocation>): string {
 		view: null,
 		filter: {},
 		selected: [],
+		step: PANEL_START,
 		adding: false,
 		...location,
 	}).toString()
 }
 
 /** The empty location, which is what an address states before the reader does anything. */
-const NOTHING: PlaceLocation = { view: null, filter: {}, selected: [], adding: false }
+const NOTHING: PlaceLocation = {
+	view: null,
+	filter: {},
+	selected: [],
+	step: PANEL_START,
+	adding: false,
+}
 
 describe('readLocation', () => {
 	it('reads an empty address as nothing stated', () => {
@@ -111,6 +123,20 @@ describe('readLocation', () => {
 		expect(read('place=a1&place=b2').selected).toEqual(['a1', 'b2'])
 	})
 
+	// The step is what a reload opens the panel on: a place that the reader went
+	// into from a list, or the list widened to the whole region.
+	it('reads the step of the open panel', () => {
+		expect(read('place=a1&place=b2&open=b2').step).toEqual({ opened: 'b2', widened: false })
+
+		expect(read('place=a1&list=all').step).toEqual({ opened: null, widened: true })
+
+		expect(read('place=a1&list=some').step).toEqual(PANEL_START)
+	})
+
+	it('drops a step with no open panel', () => {
+		expect(read('open=b2&list=all').step).toEqual(PANEL_START)
+	})
+
 	it('reads the open form for a new place, and only from a value of "true"', () => {
 		expect(read('add=true').adding).toBe(true)
 
@@ -120,7 +146,7 @@ describe('readLocation', () => {
 	})
 
 	it('drops empty fields rather than holding them', () => {
-		expect(read('state=&category=&place=&paint=&add=')).toEqual(NOTHING)
+		expect(read('state=&category=&place=&open=&list=&paint=&add=')).toEqual(NOTHING)
 	})
 })
 
@@ -157,6 +183,18 @@ describe('writeLocation', () => {
 		expect(write({ selected: ['a1', 'b2'] })).toBe('place=a1&place=b2')
 	})
 
+	it('writes the step of the open panel after its places', () => {
+		expect(write({ selected: ['a1', 'b2'], step: { opened: 'b2', widened: true } })).toBe(
+			'place=a1&place=b2&open=b2&list=all',
+		)
+
+		expect(write({ selected: ['a1'] })).toBe('place=a1')
+	})
+
+	it('writes no step without an open panel', () => {
+		expect(write({ step: { opened: 'b2', widened: true } })).toBe('')
+	})
+
 	it('writes the open form for a new place, and nothing while it is closed', () => {
 		expect(write({ adding: true })).toBe('add=true')
 
@@ -179,6 +217,7 @@ describe('a location round trip', () => {
 				],
 			},
 			selected: ['a1', 'b2'],
+			step: { opened: 'b2', widened: true },
 			adding: true,
 		}
 
@@ -186,7 +225,13 @@ describe('a location round trip', () => {
 	})
 
 	it('survives the world, which is the case the mark exists for', () => {
-		const location: PlaceLocation = { view: WORLD, filter: {}, selected: [], adding: false }
+		const location: PlaceLocation = {
+			view: WORLD,
+			filter: {},
+			selected: [],
+			step: PANEL_START,
+			adding: false,
+		}
 
 		expect(readLocation(writeLocation(location))).toEqual(location)
 	})
@@ -196,6 +241,7 @@ describe('a location round trip', () => {
 			view: { country: "Côte d'Ivoire", state: null },
 			filter: {},
 			selected: [],
+			step: PANEL_START,
 			adding: false,
 		}
 

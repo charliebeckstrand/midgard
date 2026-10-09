@@ -19,6 +19,8 @@ import type { PlaceView } from './places-view'
  * - `paint` — which regions carry the visited fill.
  * - `when` — repeated, one `YYYY-MM-DD..YYYY-MM-DD` span per committed range.
  * - `place` — repeated, one per place the open panel stands for.
+ * - `open` — the place of the panel's list that the reader went into.
+ * - `list` — `all` while the panel lists every place of its region.
  * - `add` — `true` while the form for a new place is open.
  */
 export type PlaceLocation = {
@@ -34,12 +36,40 @@ export type PlaceLocation = {
 	/** The places the open panel stands for, by id. */
 	selected: readonly string[]
 	/**
+	 * The step of the open panel that the reader is on. It is in the address so
+	 * that a reload or a shared link opens the panel on the same crumb.
+	 */
+	step: PlacePanelStep
+	/**
 	 * Whether the form for a new place is open. It is in the address so that a
 	 * reload or a shared link opens the form again. An edit and a visit are not:
 	 * each names a record that a link can outlive.
 	 */
 	adding: boolean
 }
+
+/**
+ * The step of the open panel: the place that the reader went into from its
+ * list, and the list that the panel shows.
+ *
+ * A panel with no step stated opens on what the reader picked. A lone place
+ * opens on its details, and a group of places opens on the list of the group.
+ */
+export type PlacePanelStep = {
+	/** The place of the list that the reader went into, by id, or `null` on a list. */
+	opened: string | null
+	/**
+	 * Whether the list is every place of the region, and not only the places that
+	 * the reader picked. The region crumb sets it.
+	 */
+	widened: boolean
+}
+
+/** The step of a panel that the reader has not moved in. */
+export const PANEL_START: PlacePanelStep = { opened: null, widened: false }
+
+/** What `list` holds while the panel lists every place of its region. */
+const WIDENED = 'all'
 
 /**
  * What a stated world writes in place of a country name.
@@ -92,9 +122,9 @@ function readSpans(params: URLSearchParams): DatePickerRelativeValue[] {
 /**
  * Where the map is pointed, or `null` where the address has not said.
  *
- * Its own reader, like the two below it: a location moves one part at a time,
- * and a reader that answers the whole address hands back three new values for
- * a write that changed one of them. See {@link readLocation}.
+ * Its own reader, like the ones below it: a location moves one part at a time,
+ * and a reader that answers the whole address hands back a new value for each
+ * part on a write that changed one of them. See {@link readLocation}.
  */
 export function readView(params: URLSearchParams): PlaceView | null {
 	if (!params.has('country')) return null
@@ -130,6 +160,19 @@ export function readSelected(params: URLSearchParams): readonly string[] {
 	return list(params, 'place')
 }
 
+/**
+ * The step of the open panel. A panel that stands for no place has no step, so
+ * a step with no `place` beside it is dropped.
+ */
+export function readStep(params: URLSearchParams): PlacePanelStep {
+	if (readSelected(params).length === 0) return PANEL_START
+
+	return {
+		opened: text(params, 'open') ?? null,
+		widened: text(params, 'list') === WIDENED,
+	}
+}
+
 /** Whether the form for a new place is open. Only `true` opens it. */
 export function readAdding(params: URLSearchParams): boolean {
 	return text(params, 'add') === 'true'
@@ -148,8 +191,16 @@ export function readLocation(params: URLSearchParams): PlaceLocation {
 		view: readView(params),
 		filter: readFilter(params),
 		selected: readSelected(params),
+		step: readStep(params),
 		adding: readAdding(params),
 	}
+}
+
+/** Writes the step of the open panel into `params`. The start step writes nothing. */
+function writeStep(params: URLSearchParams, { opened, widened }: PlacePanelStep): void {
+	if (opened !== null) params.set('open', opened)
+
+	if (widened) params.set('list', WIDENED)
 }
 
 /**
@@ -160,7 +211,13 @@ export function readLocation(params: URLSearchParams): PlaceLocation {
  * `country` at all, which is what {@link PlaceLocation.view} reads back as
  * "the opening rule still has the say".
  */
-export function writeLocation({ view, filter, selected, adding }: PlaceLocation): URLSearchParams {
+export function writeLocation({
+	view,
+	filter,
+	selected,
+	step,
+	adding,
+}: PlaceLocation): URLSearchParams {
 	const params = new URLSearchParams()
 
 	if (view !== null) {
@@ -180,6 +237,9 @@ export function writeLocation({ view, filter, selected, adding }: PlaceLocation)
 	}
 
 	for (const id of selected) params.append('place', id)
+
+	// Only beside a place, because a step is a step of the panel that it opens.
+	if (selected.length > 0) writeStep(params, step)
 
 	if (adding) params.set('add', 'true')
 
