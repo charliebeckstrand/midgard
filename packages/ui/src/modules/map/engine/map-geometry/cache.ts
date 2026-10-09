@@ -105,15 +105,9 @@ export function cachedGeographyFeatures(
 
 	const byName = getOrCompute(decoded, geography, () => new Map())
 
-	let features = byName.get(objectName)
-
-	if (features === undefined) {
-		features = rewindFeatures(geographyFeatures(geography, objectName))
-
-		byName.set(objectName, features)
-	}
-
-	return features
+	return getOrCompute(byName, objectName, () =>
+		rewindFeatures(geographyFeatures(geography, objectName)),
+	)
 }
 
 // Atlas → (object name + named projection) → computed geometry. The atlas keys
@@ -179,15 +173,9 @@ export function staticMapGeometry(
 	// above), and JSON serializes `undefined` in an array slot to `null`.
 	const key = JSON.stringify([geographyObject, projection])
 
-	let geometry = byKey.get(key)
-
-	if (geometry === undefined) {
-		geometry = computeStaticMapGeometry(geography, geographyObject, projection)
-
-		byKey.set(key, geometry)
-	}
-
-	return geometry
+	return getOrCompute(byKey, key, () =>
+		computeStaticMapGeometry(geography, geographyObject, projection),
+	)
 }
 
 // The last measured-fit paths per shared geometry. Reprojecting every region

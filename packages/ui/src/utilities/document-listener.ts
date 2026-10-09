@@ -1,3 +1,5 @@
+import { getOrCompute } from './get-or-compute'
+
 type Registry = {
 	handlers: Set<(event: Event) => void>
 	listener: ((event: Event) => void) | null
@@ -22,15 +24,11 @@ export function subscribeDocumentEvent<K extends keyof DocumentEventMap>(
 	type: K,
 	handler: (event: DocumentEventMap[K]) => void,
 ): () => void {
-	let registry = registries.get(type)
-
-	if (registry === undefined) {
-		registry = { handlers: new Set(), listener: null }
-
-		registries.set(type, registry)
-	}
-
-	const reg = registry
+	const reg = getOrCompute(
+		registries,
+		type,
+		(): Registry => ({ handlers: new Set(), listener: null }),
+	)
 
 	const wrapped = handler as (event: Event) => void
 

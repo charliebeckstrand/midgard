@@ -1,4 +1,5 @@
 import { type FormatSpec, resolveFormat } from './format'
+import { getOrCompute } from './get-or-compute'
 
 /**
  * A formatter for `spec` per locale, built on first use and kept.
@@ -10,17 +11,7 @@ import { type FormatSpec, resolveFormat } from './format'
 function perLocale(spec: FormatSpec): (locale: string | undefined) => (value: number) => string {
 	const formatters = new Map<string | undefined, (value: number) => string>()
 
-	return (locale) => {
-		let formatter = formatters.get(locale)
-
-		if (formatter === undefined) {
-			formatter = resolveFormat(spec, { locale })
-
-			formatters.set(locale, formatter)
-		}
-
-		return formatter
-	}
+	return (locale) => getOrCompute(formatters, locale, () => resolveFormat(spec, { locale }))
 }
 
 /**
