@@ -9,7 +9,9 @@ export default function Controlled() {
 
 	return (
 		<>
-			<Button onClick={() => setOpen(!open)}>{open ? 'Hide panel' : 'Show panel'}</Button>
+			<Button aria-expanded={open} onClick={() => setOpen(!open)}>
+				{open ? 'Hide panel' : 'Show panel'}
+			</Button>
 			<Collapse open={open} onOpenChange={setOpen}>
 				<CollapsePanel>
 					<Text tone="muted">
