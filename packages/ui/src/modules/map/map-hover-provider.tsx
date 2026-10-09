@@ -12,6 +12,8 @@ import { useHoverAcrossScroll } from '../../hooks'
 import { createEmitter } from '../../utilities'
 import { samePoint } from '../chart/engine/context'
 import {
+	type MapHoverGet,
+	MapHoverGetContext,
 	type MapHoverHold,
 	MapHoverHoldContext,
 	type MapHoverSet,
@@ -100,8 +102,13 @@ export function MapHoverProvider({
 	// Whether a pinch holds the readout. See {@link MapHoverHold}.
 	const held = useRef(false)
 
+	// The target of the last write that `set` took. See {@link MapHoverGet}.
+	const hovered = useRef<MapHoverTarget | null>(null)
+
 	const set = useCallback<MapHoverSet>((target, point) => {
 		if (held.current && target !== null) return
+
+		hovered.current = target
 
 		// Bail on a no-op so a scroll's repeated clears cost one render, and a
 		// page scroll far from this map costs none. A same-mark move keeps the
@@ -151,6 +158,8 @@ export function MapHoverProvider({
 
 	useLayoutEffect(() => pointedStore.publish(pointed, emphasis), [pointedStore, pointed, emphasis])
 
+	const get = useCallback<MapHoverGet>(() => hovered.current, [])
+
 	const clear = useCallback(() => set(null, null), [set])
 
 	// A scroll slides the marks under a stationary pointer without firing a pointer
@@ -181,11 +190,13 @@ export function MapHoverProvider({
 
 	return (
 		<MapHoverSetContext value={set}>
-			<MapHoverHoldContext value={hold}>
-				<MapPointedMarkContext value={pointedStore}>
-					<MapHoverStateContext value={state}>{children}</MapHoverStateContext>
-				</MapPointedMarkContext>
-			</MapHoverHoldContext>
+			<MapHoverGetContext value={get}>
+				<MapHoverHoldContext value={hold}>
+					<MapPointedMarkContext value={pointedStore}>
+						<MapHoverStateContext value={state}>{children}</MapHoverStateContext>
+					</MapPointedMarkContext>
+				</MapHoverHoldContext>
+			</MapHoverGetContext>
 		</MapHoverSetContext>
 	)
 }

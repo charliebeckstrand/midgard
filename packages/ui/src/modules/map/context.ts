@@ -41,6 +41,17 @@ export const [MapHoverStateContext, useMapHoverState] =
 export const [MapHoverSetContext, useMapHoverSet] = createContext<MapHoverSet>('MapHoverSet')
 
 /**
+ * Reads the hover target that the provider holds now, with no subscription.
+ * The keyboard cursor reads it on Escape to find whether a pointer readout is
+ * live. A pointer move therefore renders nothing that reads it.
+ *
+ * @internal
+ */
+export type MapHoverGet = () => MapHoverTarget | null
+
+export const [MapHoverGetContext, useMapHoverGet] = createContext<MapHoverGet>('MapHoverGet')
+
+/**
  * Holds the readout through a pinch, or lets it go. A held readout takes a clear
  * and no new target, and holding it clears it.
  *

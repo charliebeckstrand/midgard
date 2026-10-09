@@ -1,19 +1,11 @@
 'use client'
 
-import {
-	type FocusEvent,
-	type KeyboardEvent,
-	type RefObject,
-	useEffect,
-	useMemo,
-	useRef,
-	useState,
-} from 'react'
+import { type KeyboardEvent, type RefObject, useEffect, useMemo, useRef, useState } from 'react'
 import { announce } from '../../core'
-import { usePlotTabStop } from '../../hooks/use-plot-tab-stop'
+import { type PlotTabStopProps, usePlotTabStop } from '../../hooks/use-plot-tab-stop'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { once } from '../../utilities'
-import { useMapHoverSet } from './context'
+import { useMapHoverGet, useMapHoverSet } from './context'
 import { MAP_CURSOR_INSET, MAP_ZOOM_FIT } from './engine/map-constants'
 import { type MapHoverTarget, sameTarget } from './engine/map-hover/target'
 import { isMapActivateKey, moveMapCursor } from './engine/map-keyboard/cursor'
@@ -44,13 +36,6 @@ function stopKey(target: MapHoverTarget): string {
  */
 function describeZoom(transform: MapTransform): string {
 	return `Zoom ${Math.round((transform.k / MAP_ZOOM_FIT) * 100)}%`
-}
-
-/** The handlers {@link useMapKeyboard} spreads onto the plot region to make it a navigable tab stop. @internal */
-export type MapKeyboardProps = {
-	tabIndex: 0
-	onKeyDown: (event: KeyboardEvent<HTMLElement>) => void
-	onBlur: (event: FocusEvent<HTMLElement>) => void
 }
 
 /** What {@link useMapKeyboard} needs from the plat to drive a cursor. @internal */
@@ -100,8 +85,10 @@ export type MapKeyboardOptions = {
  * From there each arrow steps to the nearest stop bearing that way. Regions and
  * overlay marks stand in one field, as the pointer crosses them. Home and End
  * jump to the ends of the list. Enter or Space picks the stop under the cursor,
- * and Escape leaves through the shared {@link usePlotTabStop} exit. Each step
- * onto a stop speaks its readout through the shared polite live region.
+ * and Escape leaves through the shared {@link usePlotTabStop} exit. That exit
+ * claims the press only when it clears a live readout, so an overlay around the
+ * map closes on the first Escape. Each step onto a stop speaks its readout
+ * through the shared polite live region.
  *
  * A zooming map answers three more keys on that one stop. `+` and `-` step the
  * scale about the frame's center, and `0` returns to the fit. A step speaks the
@@ -135,8 +122,10 @@ export function useMapKeyboard({
 	activate,
 	describe,
 	zoom,
-}: MapKeyboardOptions): MapKeyboardProps | null {
+}: MapKeyboardOptions): PlotTabStopProps | null {
 	const set = useMapHoverSet()
+
+	const hovered = useMapHoverGet()
 
 	// The cursor holds the mark it sits on, not its position in the stop list: an
 	// overlay that registers or unmounts re-orders that list, and an index would
@@ -226,7 +215,7 @@ export function useMapKeyboard({
 		if (text) announce(text)
 	}
 
-	const { exit, onBlur } = usePlotTabStop(cursor !== null, () => show(null))
+	const { leave, onBlur } = usePlotTabStop(cursor !== null, () => show(null))
 
 	// Release what the cursor held once navigation switches off — the readout
 	// unmounted, the pick removed — so no stale emphasis lingers with no way to
@@ -303,13 +292,20 @@ export function useMapKeyboard({
 
 		if (!move.handled) return
 
+		// Escape claims the press only when it clears a live readout: the cursor's,
+		// or one that the pointer holds. With nothing to clear, the press reaches an
+		// overlay around the map, which closes as it does around a chart.
+		if (move.stop === null) {
+			leave(event, hovered() !== null)
+
+			return
+		}
+
 		event.preventDefault()
 
 		show(move.stop)
 
 		speak(move.stop)
-
-		if (move.stop === null) exit(event.currentTarget)
 	}
 
 	return enabled ? { tabIndex: 0, onKeyDown, onBlur } : null

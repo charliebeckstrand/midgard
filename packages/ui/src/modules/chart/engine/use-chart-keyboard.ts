@@ -1,14 +1,7 @@
 'use client'
 
-import {
-	type FocusEvent,
-	type KeyboardEvent,
-	useEffect,
-	useEffectEvent,
-	useRef,
-	useState,
-} from 'react'
-import { usePlotTabStop } from '../../../hooks/use-plot-tab-stop'
+import { type KeyboardEvent, useEffect, useEffectEvent, useRef, useState } from 'react'
+import { type PlotTabStopProps, usePlotTabStop } from '../../../hooks/use-plot-tab-stop'
 import { useStableValue } from '../../../hooks/use-stable-value'
 import { clamp } from '../../../utilities'
 import { type ChartOrientation, project, type Vec, valueCoord } from './chart-orientation'
@@ -421,13 +414,6 @@ export function moveCursor(
 	}
 }
 
-/** The handlers {@link useChartKeyboard} spreads onto the plot region to make it a navigable tab stop. @internal */
-export type ChartKeyboardProps = {
-	tabIndex: 0
-	onKeyDown: (event: KeyboardEvent<HTMLElement>) => void
-	onBlur: (event: FocusEvent<HTMLElement>) => void
-}
-
 /**
  * A parked cursor resolved against the current targets: its clamped stop, its
  * frame point, and its series. A cursor on a reference line has no point and no
@@ -522,7 +508,7 @@ export function useChartKeyboard(
 	setActiveSeries: (series: number | null) => void,
 	onRead?: (index: number, series: number | null) => void,
 	onReadReference?: (reference: number) => void,
-): ChartKeyboardProps | null {
+): PlotTabStopProps | null {
 	const [cursor, setCursor] = useState<ChartCursor | null>(null)
 
 	// The frame point the keyboard last wrote to the hover, or `null` for a clear.
@@ -614,7 +600,7 @@ export function useChartKeyboard(
 		if (stop !== null) reanchor(stop.live)
 	}, [stop])
 
-	const { exit, onBlur } = usePlotTabStop(cursor !== null, () => applyCursor(null))
+	const { leave, onBlur } = usePlotTabStop(cursor !== null, () => applyCursor(null))
 
 	// Reports what a key moved the cursor onto. A band step slides a parked rule
 	// along with the cursor, and the rule reads the same at each band, so only the
@@ -644,11 +630,7 @@ export function useChartKeyboard(
 		// pinned or the pointer holds. With nothing to clear, the press also reaches
 		// an overlay around the chart, which closes as it does for the legend.
 		if (move.cursor === null) {
-			if (cursor !== null || store.get().index !== null) event.preventDefault()
-
-			applyCursor(null)
-
-			exit(event.currentTarget)
+			leave(event, store.get().index !== null)
 
 			return
 		}
