@@ -19,6 +19,10 @@
 			"types": "./src/mimir/index.ts",
 			"default": "./src/mimir/index.ts"
 		},
+		"./queries": {
+			"types": "./src/queries/index.ts",
+			"default": "./src/queries/index.ts"
+		},
 		"./pages": {
 			"types": "./src/pages/index.ts",
 			"default": "./src/pages/index.ts"

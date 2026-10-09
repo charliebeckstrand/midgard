@@ -1,6 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { type Seed, seededQuery } from 'shared/queries'
 import { deletePicks, listPicks, savePicks } from '../api/predictions-api'
 import type { Game, SeasonPicks, TeamPicks } from '../types'
 
@@ -12,13 +13,14 @@ export const picksKeys = {
 
 /**
  * Every pick of the user in `season`. `initial` is what the page read on the
- * server, so the buttons of each week show their true state on the first paint.
+ * server (see `seededQuery`), so the buttons of each week show their true state
+ * on the first paint.
  */
-export function usePicks(season: number, initial: SeasonPicks) {
+export function usePicks(season: number, initial: Seed<SeasonPicks>) {
 	return useQuery({
 		queryKey: picksKeys.picks(season),
 		queryFn: () => listPicks(season),
-		initialData: initial,
+		...seededQuery(initial),
 	})
 }
 

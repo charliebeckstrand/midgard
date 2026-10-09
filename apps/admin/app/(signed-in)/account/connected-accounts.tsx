@@ -1,6 +1,7 @@
 'use client'
 
 import { ensureSecondStep, oauthStartPath, signInProviderNames } from 'shared/auth'
+import type { Seed } from 'shared/queries'
 import { Alert } from 'ui/alert'
 import { Button } from 'ui/button'
 import { Card, CardDescription, CardHeader, CardTitle } from 'ui/card'
@@ -13,7 +14,7 @@ import { useIdentities, useUnlinkIdentity } from './account-queries'
 type ConnectedAccountsProps = {
 	/** The providers that the gateway has set up. */
 	providers: Provider[]
-	identities: Identity[]
+	identities: Seed<Identity[]>
 	/** The `?error=` code that a connect came back with, if any. */
 	connectError?: string
 }

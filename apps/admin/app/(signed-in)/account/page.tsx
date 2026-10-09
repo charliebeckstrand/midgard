@@ -1,5 +1,6 @@
 import { bifrost, getSignInProviders, requireGateway, requireSession } from 'auth'
 import { Suspense } from 'react'
+import { seed } from 'shared/queries'
 import { Card, CardHeader, CardTitle } from 'ui/card'
 import { Stack } from 'ui/structure/stack'
 import { TextSkeleton } from 'ui/text'
@@ -83,9 +84,9 @@ async function Account({ searchParams }: { searchParams: SearchParams }) {
 	return (
 		<AccountClient
 			user={user}
-			passkeys={passkeys}
-			factors={factors}
-			identities={identities}
+			passkeys={seed(passkeys)}
+			factors={seed(factors)}
+			identities={seed(identities)}
 			activity={activity}
 			providers={providers}
 			connectError={typeof error === 'string' ? error : undefined}

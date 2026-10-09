@@ -7,6 +7,7 @@ import {
 	useQuery,
 	useQueryClient,
 } from '@tanstack/react-query'
+import { type Seed, seededQuery } from 'shared/queries'
 import {
 	createPlace,
 	deletePlace,
@@ -32,16 +33,16 @@ export const placesKeys = {
 /**
  * Every stored place.
  *
- * `initial` is the list that the page read on the server. It fills the cache
- * before the first render, so the filter bar is there on the first paint, and
- * the map does not change size when the list lands. The query refetches it when
- * it goes stale, as with any other entry.
+ * `initial` is the list that the page read on the server (see `seededQuery`).
+ * It fills the cache before the first render, so the filter bar is there on the
+ * first paint, and the map does not change size when the list lands. The query
+ * refetches it when it goes stale, as with any other entry.
  */
-export function usePlaces(initial: Place[]) {
+export function usePlaces(initial: Seed<Place[]>) {
 	return useQuery({
 		queryKey: placesKeys.all,
 		queryFn: ({ signal }) => fetchPlaces(signal),
-		initialData: initial,
+		...seededQuery(initial),
 	})
 }
 
@@ -52,16 +53,16 @@ export function usePlaces(initial: Place[]) {
  * or not anything was recorded in it, so nothing about this set can be read off
  * the other one.
  *
- * `initial` is the set that the page read on the server. It fills the cache
+ * `initial` is the set that the page read on the server (see `seededQuery`). It fills the cache
  * before the first render, so the Visited toggle paints its true state on the
  * first frame. Without it, the toggle paints as not visited until the fetch
  * lands. The query refetches it when it goes stale, as with any other entry.
  */
-export function useVisits(initial: Visits) {
+export function useVisits(initial: Seed<Visits>) {
 	return useQuery({
 		queryKey: placesKeys.visits,
 		queryFn: ({ signal }) => fetchVisits(signal),
-		initialData: initial,
+		...seededQuery(initial),
 		// Nothing reads the set while the visited regions feature is off.
 		enabled: flags.visitedRegions,
 	})

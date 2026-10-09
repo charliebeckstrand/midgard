@@ -1,4 +1,5 @@
 import { requireGateway, requireSession } from 'auth'
+import { seed } from 'shared/queries'
 import { PlacesApp } from '@/components/places-app'
 import { flags } from '@/flags'
 import { mimir } from '@/server/mimir'
@@ -50,5 +51,5 @@ export default async function Page() {
 			: undefined,
 	])
 
-	return <PlacesApp user={user} places={places} visits={visits} />
+	return <PlacesApp user={user} places={seed(places)} visits={seed(visits)} />
 }

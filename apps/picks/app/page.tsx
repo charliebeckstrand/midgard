@@ -1,5 +1,6 @@
 import { requireSession } from 'auth'
 import { Suspense } from 'react'
+import { seed } from 'shared/queries'
 import { Container } from 'ui/structure/container'
 import { PicksHeader } from '@/components/picks-header'
 import { type ClosingWeek, ScheduleList } from '@/components/schedule-list'
@@ -125,7 +126,7 @@ export default async function Page() {
 						header={<TallyTotal tally={season} />}
 						season={schedule.season}
 						weeks={schedule.weeks}
-						picks={picks}
+						picks={seed(picks)}
 						started={started}
 						closed={closed}
 						current={current}

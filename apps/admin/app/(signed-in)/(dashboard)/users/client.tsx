@@ -2,6 +2,7 @@
 
 import type { User } from 'auth'
 import type { ReactNode } from 'react'
+import type { Seed } from 'shared/queries'
 import { Alert } from 'ui/alert'
 import { Badge } from 'ui/badge'
 import { Button } from 'ui/button'
@@ -14,7 +15,7 @@ import { Stack } from 'ui/structure/stack'
 import { useSetUserActive, useUsers } from './users-queries'
 
 type UsersClientProps = {
-	users: User[]
+	users: Seed<User[]>
 }
 
 const roleName = (user: User) => (user.roles.includes('admin') ? 'Admin' : 'User')

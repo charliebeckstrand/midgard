@@ -1,6 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { type Seed, seededQuery } from 'shared/queries'
 import {
 	type Ban,
 	fetchBans,
@@ -18,21 +19,21 @@ export const securityKeys = {
 	bans: ['security', 'bans'] as const,
 }
 
-/** The newest threats. The server page gives the first list as `initialData`. */
-export function useThreats(initialThreats: Threat[]) {
+/** The newest threats. The server page seeds the first list (see `seededQuery`). */
+export function useThreats(initialThreats: Seed<Threat[]>) {
 	return useQuery({
 		queryKey: securityKeys.threats,
 		queryFn: ({ signal }) => fetchThreats(signal),
-		initialData: initialThreats,
+		...seededQuery(initialThreats),
 	})
 }
 
-/** The bans in force. The server page gives the first list as `initialData`. */
-export function useBans(initialBans: Ban[]) {
+/** The bans in force. The server page seeds the first list (see `seededQuery`). */
+export function useBans(initialBans: Seed<Ban[]>) {
 	return useQuery({
 		queryKey: securityKeys.bans,
 		queryFn: ({ signal }) => fetchBans(signal),
-		initialData: initialBans,
+		...seededQuery(initialBans),
 	})
 }
 

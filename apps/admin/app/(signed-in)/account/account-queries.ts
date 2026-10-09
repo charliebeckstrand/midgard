@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { sendVerificationEmail } from 'shared/auth'
+import { type Seed, seededQuery } from 'shared/queries'
 import {
 	addPasskey,
 	confirmTotp,
@@ -32,14 +33,14 @@ export const accountKeys = {
 }
 
 /**
- * The passkeys of the signed-in user. The server page fetches the list first
- * and gives it here as `initialData`, so the first render has no fetch.
+ * The passkeys of the signed-in user. The server page reads the list first and
+ * seeds the query with it (see `seededQuery`), so the first render has no fetch.
  */
-export function usePasskeys(initialPasskeys: Passkey[]) {
+export function usePasskeys(initialPasskeys: Seed<Passkey[]>) {
 	return useQuery({
 		queryKey: accountKeys.passkeys,
 		queryFn: ({ signal }) => fetchPasskeys(signal),
-		initialData: initialPasskeys,
+		...seededQuery(initialPasskeys),
 	})
 }
 
@@ -47,11 +48,11 @@ export function usePasskeys(initialPasskeys: Passkey[]) {
  * The second factors of the signed-in user. The server page seeds it, like
  * {@link usePasskeys}.
  */
-export function useFactors(initialFactors: Factors) {
+export function useFactors(initialFactors: Seed<Factors>) {
 	return useQuery({
 		queryKey: accountKeys.factors,
 		queryFn: ({ signal }) => fetchFactors(signal),
-		initialData: initialFactors,
+		...seededQuery(initialFactors),
 	})
 }
 
@@ -137,11 +138,11 @@ export function useGenerateRecoveryCodes() {
  * The GitHub and Google accounts of the signed-in user. The server page seeds
  * it, like {@link usePasskeys}.
  */
-export function useIdentities(initialIdentities: Identity[]) {
+export function useIdentities(initialIdentities: Seed<Identity[]>) {
 	return useQuery({
 		queryKey: accountKeys.identities,
 		queryFn: ({ signal }) => fetchIdentities(signal),
-		initialData: initialIdentities,
+		...seededQuery(initialIdentities),
 	})
 }
 

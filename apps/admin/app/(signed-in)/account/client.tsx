@@ -3,6 +3,7 @@
 import { KeyIcon } from '@heroicons/react/20/solid'
 import type { User } from 'auth'
 import { latestError } from 'shared/providers'
+import type { Seed } from 'shared/queries'
 import { Alert } from 'ui/alert'
 import { Button } from 'ui/button'
 import { Card, CardHeader, CardTitle } from 'ui/card'
@@ -28,9 +29,9 @@ import { YourData } from './your-data'
 
 type AccountClientProps = {
 	user: User
-	passkeys: Passkey[]
-	factors: Factors
-	identities: Identity[]
+	passkeys: Seed<Passkey[]>
+	factors: Seed<Factors>
+	identities: Seed<Identity[]>
 	/** The recent activity of the user, newest first. */
 	activity: Activity[]
 	/** The providers that the gateway has set up. */

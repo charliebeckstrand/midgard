@@ -1,5 +1,6 @@
 import { bifrost } from 'auth'
 import { Suspense } from 'react'
+import { seed } from 'shared/queries'
 import { Alert } from 'ui/alert'
 import { Stack } from 'ui/structure/stack'
 import { TextSkeleton } from 'ui/text'
@@ -30,7 +31,7 @@ async function Security() {
 		)
 	}
 
-	return <SecurityClient threats={threats.data.data} bans={bans.data.data} />
+	return <SecurityClient threats={seed(threats.data.data)} bans={seed(bans.data.data)} />
 }
 
 /**

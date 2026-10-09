@@ -4,6 +4,7 @@ import type { User } from 'auth'
 import { MapPin, MapPinCheck } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { Activity, useCallback, useEffect, useMemo, useState } from 'react'
+import type { Seed } from 'shared/queries'
 import { Alert } from 'ui/alert'
 import { type ConfirmOptions, useConfirm } from 'ui/confirm'
 import { DateTime } from 'ui/date-time'
@@ -481,8 +482,8 @@ export function PlacesApp({
 	visits: initialVisits,
 }: {
 	user: User
-	places: Place[]
-	visits: Visits
+	places: Seed<Place[]>
+	visits: Seed<Visits>
 }) {
 	const { data: places, error } = usePlaces(initialPlaces)
 
