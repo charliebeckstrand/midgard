@@ -94,14 +94,17 @@ export const [GridHighlightContext, useGridHighlight] = createContext<string | n
 )
 
 /**
- * Reports an open editor to the truncating content of its cell (see
- * `GridCellContent`). The editor calls it with `true` as it mounts and with
- * `false` as it unmounts. While an editor is open, the cell keeps its element
- * tree, so the reveal does not reparent the focused editor. It is `null`
- * outside a truncating cell.
+ * The truncating content of the editor's cell (see `GridCellContent`).
+ * `markEditing` reports an open editor: the editor calls it with `true` as it
+ * mounts and with `false` as it unmounts. While an editor is open, the cell
+ * keeps its element tree, so the reveal does not reparent the focused editor.
+ * `editing` tells the editor when the cell has stopped clipping its content.
+ * It is `null` outside a truncating cell.
  *
  * @internal
  */
-export const [GridCellEditingContext, useGridCellEditing] = createContext<
-	((editing: boolean) => void) | null
->('GridCellEditing', { default: null })
+export const [GridCellEditingContext, useGridCellEditing] = createContext<{
+	/** Whether the cell lets its content overflow (`k.cell.editing`). */
+	editing: boolean
+	markEditing: (editing: boolean) => void
+} | null>('GridCellEditing', { default: null })

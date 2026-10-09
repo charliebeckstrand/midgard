@@ -3,6 +3,7 @@
 import { Check, X } from 'lucide-react'
 import {
 	type MouseEvent,
+	type ReactNode,
 	useEffect,
 	useEffectEvent,
 	useId,
@@ -94,12 +95,35 @@ export function keepFocus(event: MouseEvent<HTMLButtonElement>) {
  *
  * @remarks The message renders below the cell (`top-full`). A cell at the bottom
  * or right edge of the scroll container can therefore clip it. The message
- * mounts when an error shows, and it stays while the error stays, so the scroll
- * runs once for each error. `nearest` does nothing when the message fits, so the
- * view does not move (WCAG 1.4.10). @internal
+ * mounts when an error shows and the cell no longer clips its content. It stays
+ * while the error stays, so the scroll runs once for each error. `nearest` does
+ * nothing when the message fits, so the view does not move (WCAG 1.4.10).
+ * @internal
  */
 function revealMessage(node: HTMLSpanElement | null) {
 	node?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+}
+
+/**
+ * The error message of {@link GridCellEditor}, below the cell. It mounts only
+ * once the cell stops clipping its content, so the scroll of
+ * {@link revealMessage} measures the layout that shows.
+ *
+ * @remarks An editor that opens with an error mounts before its cell lets the
+ * content overflow (see `GridCellEditingContext`). A scroll in that commit
+ * reveals only the clipped part of the message, and the message then shows
+ * past the edge of the scroll container. @internal
+ */
+function GridEditMessage({ id, children }: { id: string; children: ReactNode }) {
+	const cell = useGridCellEditing()
+
+	if (cell && !cell.editing) return null
+
+	return (
+		<span ref={revealMessage} id={id} role="alert" className={cn(k.edit.error.base)}>
+			{children}
+		</span>
+	)
 }
 
 /**
@@ -267,7 +291,7 @@ export function GridCellEditor<T>({
 	// Tell the truncating content of the cell that an editor is open, before the
 	// focus claim below. The focus arms the truncation reveal, and the reveal
 	// must not reparent the editor that the focus went to.
-	const markEditing = useGridCellEditing()
+	const markEditing = useGridCellEditing()?.markEditing
 
 	useLayoutEffect(() => {
 		if (!markEditing) return
@@ -383,11 +407,7 @@ export function GridCellEditor<T>({
 				settle={(outcome) => dataKey !== null && endSession(dataKey, outcome)}
 			/>
 
-			{error && (
-				<span ref={revealMessage} id={errorId} role="alert" className={cn(k.edit.error.base)}>
-					{error}
-				</span>
-			)}
+			{error && <GridEditMessage id={errorId}>{error}</GridEditMessage>}
 		</span>
 	)
 }
