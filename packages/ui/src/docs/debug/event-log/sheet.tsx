@@ -1,22 +1,18 @@
 import { ChevronRight } from 'lucide-react'
 import { type ReactNode, useState, useSyncExternalStore } from 'react'
 import { Button } from 'ui/button'
-import { Checkbox, CheckboxField } from 'ui/checkbox'
 import { Collapse, CollapsePanel, CollapseTrigger } from 'ui/collapse'
-import { useCopyButtonState } from 'ui/copy-button'
 import { cn } from 'ui/core'
-import { Label } from 'ui/fieldset'
-import { Flex } from 'ui/flex'
 import { Icon } from 'ui/icon'
 import { JsonTree } from 'ui/json-tree'
 import { List, ListItem } from 'ui/list'
-import { Sheet, SheetBody, SheetClose, SheetFooter, SheetPanel, SheetTitle } from 'ui/sheet'
+import { SheetTitle } from 'ui/sheet'
 import { Text } from 'ui/text'
-import { dan } from '../../../recipes/kiso/dan/index.ts'
 import { iro } from '../../../recipes/kiso/iro/index.ts'
 import { getOrCompute } from '../../../utilities/get-or-compute.ts'
 import { noopSubscribe } from '../../../utilities/noop.ts'
 import { useDebug } from '../pause.ts'
+import { CopyTextButton, FlagField, SheetFrame } from '../sheet-frame.tsx'
 import type { Entry, Kind } from './log.ts'
 import { type Row, rowsOf, summaryOf } from './rows.ts'
 import { columns, kindWidth, lineOf } from './text.ts'
@@ -213,10 +209,6 @@ export function EventLogSheet({
 
 	const width = kindWidth(entries)
 
-	const { copied, copy } = useCopyButtonState({
-		text: rows.map((row) => rowText(row, width)).join('\n'),
-	})
-
 	// The keys of the open lines. The list renders only the rows in view, so the
 	// sheet keeps the open state of a row out of view.
 	const [openKeys, setOpenKeys] = useState<ReadonlySet<string>>(() => new Set())
@@ -235,69 +227,59 @@ export function EventLogSheet({
 	}
 
 	return (
-		// The sheet takes the height of the log, up to the height of the screen.
-		<Sheet open={open} onOpenChange={onOpenChange}>
-			<SheetPanel side="bottom" className="max-h-full">
-				{/* The title row holds "Preserve" and "Batch" at its end. The row
-				    takes the inset of the title, as the slot does. */}
-				<Flex wrap align="center" gap="md" className={cn(dan.space.panel.x, dan.space.panel.top)}>
-					<SheetTitle className="me-auto p-0">Event log</SheetTitle>
-					<CheckboxField>
-						<Checkbox
-							checked={preserve}
-							onChange={(event) => {
-								log.preserve = event.target.checked
-							}}
-						/>
-						<Label>Preserve</Label>
-					</CheckboxField>
-					<CheckboxField>
-						<Checkbox
-							checked={batched}
-							onChange={(event) => {
-								log.batched = event.target.checked
-							}}
-						/>
-						<Label>Batch</Label>
-					</CheckboxField>
-				</Flex>
-				<SheetBody className="min-h-0 flex-1 overflow-auto">
-					{entries.length > 0 ? (
-						// The list renders the lines in the view of the body, so a long log
-						// opens as fast as a short one.
-						<List
-							items={rows.toReversed()}
-							getKey={getKey}
-							variant="plain"
-							sortable={false}
-							virtual
-							aria-label="Events"
-						>
-							{(row) => (
-								<ListItem>
-									<EventRow row={row} width={width} state={state} />
-								</ListItem>
-							)}
-						</List>
-					) : (
-						<Text tone="muted">No events</Text>
-					)}
-				</SheetBody>
-				<SheetFooter className="justify-between">
-					<Flex gap="sm">
-						{/* The copied state of `CopyButton`, on a button with a text label. */}
-						<Button size="sm" color={copied ? 'green' : undefined} onClick={() => void copy()}>
-							{copied ? 'Copied' : 'Copy'}
+		<SheetFrame
+			open={open}
+			onOpenChange={onOpenChange}
+			title={<SheetTitle className="me-auto p-0">Event log</SheetTitle>}
+			actions={
+				<>
+					<FlagField
+						label="Preserve"
+						checked={preserve}
+						onChange={(checked) => {
+							log.preserve = checked
+						}}
+					/>
+					<FlagField
+						label="Batch"
+						checked={batched}
+						onChange={(checked) => {
+							log.batched = checked
+						}}
+					/>
+				</>
+			}
+			footer={
+				<>
+					<CopyTextButton text={rows.map((row) => rowText(row, width)).join('\n')} />
+					{entries.length > 0 && (
+						<Button size="sm" color="amber" onClick={() => log.clear()}>
+							Clear
 						</Button>
-						{entries.length > 0 && (
-							<Button size="sm" color="amber" onClick={() => log.clear()}>
-								Clear
-							</Button>
-						)}
-					</Flex>
-					<SheetClose />
-				</SheetFooter>
-			</SheetPanel>
-		</Sheet>
+					)}
+				</>
+			}
+		>
+			{entries.length > 0 ? (
+				// The list renders the lines in the view of the body, so a long log
+				// opens as fast as a short one.
+				<List
+					items={rows.toReversed()}
+					getKey={getKey}
+					variant="plain"
+					sortable={false}
+					virtual
+					aria-label="Events"
+				>
+					{(row) => (
+						<ListItem>
+							<EventRow row={row} width={width} state={state} />
+						</ListItem>
+					)}
+				</List>
+			) : (
+				<Text tone="muted">No events</Text>
+			)}
+		</SheetFrame>
 	)
 }
