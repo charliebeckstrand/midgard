@@ -44,7 +44,22 @@ describe('grid edit validation visibility (real browser)', () => {
 		return null
 	}
 
-	function Harness() {
+	/** Whether the message sits inside the box of its scroll container. */
+	const expectInView = (message: HTMLElement) => {
+		const scroller = scrollParent(message)
+
+		expect(scroller).not.toBeNull()
+
+		const m = message.getBoundingClientRect()
+
+		const c = (scroller as HTMLElement).getBoundingClientRect()
+
+		expect(m.bottom).toBeLessThanOrEqual(c.bottom + 1)
+
+		expect(m.top).toBeGreaterThanOrEqual(c.top - 1)
+	}
+
+	function Harness({ rows }: { rows: Row[] }) {
 		const [editing, setEditing] = useState<Set<string | number>>(new Set())
 
 		return (
@@ -66,7 +81,7 @@ describe('grid edit validation visibility (real browser)', () => {
 	}
 
 	it('scrolls a clipped validation message into the grid viewport', async () => {
-		const { container } = renderUI(<Harness />)
+		const { container } = renderUI(<Harness rows={rows} />)
 
 		// Edit the last row, whose cell sits below the 140px scroll window.
 		fireEvent.click(screen.getByRole('button', { name: 'edit-last' }))
@@ -87,21 +102,23 @@ describe('grid edit validation visibility (real browser)', () => {
 		// Trigger the validation error.
 		fireEvent.change(input, { target: { value: 'bad' } })
 
-		await waitFor(() => {
-			const message = screen.getByRole('alert')
+		// The message is inside the scroll container's box, not clipped past its edge.
+		await waitFor(() => expectInView(screen.getByRole('alert')))
+	})
 
-			const scroller = scrollParent(message)
+	it('scrolls the message of an editor that opens invalid into the grid viewport', async () => {
+		// The editor mounts with its error. The message then mounts in the same
+		// commit as the editor, while the cell can still clip it.
+		const invalid = rows.map((row) => (row.id === 12 ? { ...row, name: 'bad' } : row))
 
-			expect(scroller).not.toBeNull()
+		renderUI(<Harness rows={invalid} />)
 
-			const m = message.getBoundingClientRect()
+		fireEvent.click(screen.getByRole('button', { name: 'edit-last' }))
 
-			const c = (scroller as HTMLElement).getBoundingClientRect()
+		const message = await waitFor(() => screen.getByRole('alert'))
 
-			// The message is inside the scroll container's box, not clipped past its edge.
-			expect(m.bottom).toBeLessThanOrEqual(c.bottom + 1)
-
-			expect(m.top).toBeGreaterThanOrEqual(c.top - 1)
-		})
+		// The scroll runs before the first paint, so the check waits for nothing
+		// more than the editor.
+		expectInView(message)
 	})
 })

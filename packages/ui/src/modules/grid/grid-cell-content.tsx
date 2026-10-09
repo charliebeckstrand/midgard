@@ -56,6 +56,8 @@ export function GridCellContent({ content, tooltip, columnId }: GridCellContentP
 	// Whether the content holds an open editor (see `GridCellEditingContext`).
 	const [editing, setEditing] = useState(false)
 
+	const editingContext = useMemo(() => ({ editing, markEditing: setEditing }), [editing])
+
 	const reveal = tooltip.kind !== 'none' && contacted && truncated
 
 	// Mount the reveal machinery only for a cell that is both visited and
@@ -76,7 +78,7 @@ export function GridCellContent({ content, tooltip, columnId }: GridCellContentP
 		// column it's measuring.
 		// An open editor lets the span overflow (see `k.cell.editing`).
 		<span ref={ref} data-grid-content className={editing ? EDITING_CLASS : TRUNCATE_CLASS}>
-			<GridCellEditingContext value={setEditing}>{content}</GridCellEditingContext>
+			<GridCellEditingContext value={editingContext}>{content}</GridCellEditingContext>
 		</span>
 	)
 
