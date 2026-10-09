@@ -3735,7 +3735,10 @@ describe('Grid async commit', () => {
 	 */
 	function renderAsyncGrid(
 		editable: Partial<GridEditableConfig> = {},
-		{ controlRows = false }: { controlRows?: boolean } = {},
+		{
+			controlRows = false,
+			columns = sessionColumns,
+		}: { controlRows?: boolean; columns?: GridColumn<SessionRow>[] } = {},
 	) {
 		const flights: Flight[] = []
 
@@ -3822,7 +3825,7 @@ describe('Grid async commit', () => {
 
 			return (
 				<Grid
-					columns={sessionColumns}
+					columns={columns}
 					rows={rows}
 					getKey={(row) => row.id}
 					editable={{
@@ -4194,6 +4197,78 @@ describe('Grid async commit', () => {
 		expect(view.cell('name')).toHaveTextContent('Alice')
 
 		expect(view.queryByRole('alert')).toBeNull()
+	})
+
+	describe('focus into a held editor with its own handlers and surface', () => {
+		// A name slot whose input stops the focus event, and that renders a portaled
+		// surface, as a date picker or a listbox does.
+		const columns: GridColumn<SessionRow>[] = [
+			{
+				...(sessionColumns[0] as GridColumn<SessionRow>),
+				editCell: ({ value, onValueUpdate, ariaLabel }) => (
+					<>
+						<input
+							data-slot="slot-input"
+							aria-label={ariaLabel}
+							value={String(value)}
+							onChange={(event) => onValueUpdate(event.target.value)}
+							onFocus={(event) => event.stopPropagation()}
+						/>
+						{createPortal(
+							<div data-floating-ui-portal="">
+								<button type="button">held-surface</button>
+							</div>,
+							document.body,
+						)}
+					</>
+				),
+			},
+			sessionColumns[1] as GridColumn<SessionRow>,
+		]
+
+		/** Holds a refused name cell beside a session on the count cell. */
+		async function holdName() {
+			const view = renderAsyncGrid({ scope: 'cell' }, { columns })
+
+			fireEvent.doubleClick(view.cell('name'))
+
+			const input = getSlot<HTMLInputElement>(view.container, 'slot-input')
+
+			fireEvent.change(input, { target: { value: 'Alicia' } })
+
+			fireEvent.keyDown(input, { key: 'Tab' })
+
+			fireEvent.change(editorAt(view, view.cell('count')), { target: { value: '9' } })
+
+			await view.flights[0]?.reject(new Error('Server down'))
+
+			return { view, input: getSlot<HTMLInputElement>(view.container, 'slot-input') }
+		}
+
+		// The cell listens on its own element, so it hears the focus before the
+		// handlers of the slot run, and a handler that stops the event does not
+		// keep the session off the cell.
+		it('moves the session onto the cell when a handler of the slot stops the focus event', async () => {
+			const { view, input } = await holdName()
+
+			act(() => input.focus())
+
+			expect(view.onCommit).toHaveBeenLastCalledWith([{ rowKey: 1, columnId: 'count', value: 9 }])
+
+			expect(editorIn(view, view.cell('count'))).toBeUndefined()
+		})
+
+		// Focus in a portaled surface does not enter the element of the cell, so the
+		// session stays on its own cell.
+		it('keeps the session on its cell when focus enters a portaled surface of the held editor', async () => {
+			const { view } = await holdName()
+
+			act(() => view.getByRole('button', { name: 'held-surface' }).focus())
+
+			expect(view.onCommit).toHaveBeenCalledTimes(1)
+
+			expect(editorAt(view, view.cell('count')).value).toBe('9')
+		})
 	})
 
 	it('enters a held cell from the tab stop: F2 keeps the draft, a typed key replaces it', async () => {
