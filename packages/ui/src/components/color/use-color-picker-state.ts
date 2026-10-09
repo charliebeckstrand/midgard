@@ -1,11 +1,8 @@
 'use client'
 
-import { useCallback, useRef } from 'react'
-import { type FloatingPlacement, useControllableFlag, useFloatingUI } from '../../hooks'
-import { useFloatingReference } from '../../hooks/use-floating-reference'
-import { useIdScope } from '../../hooks/use-id-scope'
-import { useControlProps } from '../control/use-control-props'
-import { useFormValue } from '../form/use-form-value'
+import type { FloatingPlacement } from '../../hooks'
+import { useControlPickerField } from '../control/use-control-picker-field'
+import { useControlPickerPopover } from '../control/use-control-picker-popover'
 import type { ColorFormat, Hsva } from './types'
 import { useColorState } from './use-color-state'
 
@@ -32,17 +29,16 @@ export type ColorPickerStateOptions = {
  * @returns The color state (`hsva`, `setHsva`), the open state (`open`,
  * `onOpenChange`), and the Control-derived field metadata (`triggerId`,
  * `describedBy`, `disabled`, `readOnly`, `validation`). It also returns the
- * Floating UI plumbing (`setReference`, `setFloating`, `floatingStyles`,
- * `getReferenceProps`, `getFloatingProps`, `context`).
+ * Floating UI plumbing (`dialogId`, `setReference`, `setFloating`,
+ * `floatingStyles`, `getReferenceProps`, `getFloatingProps`, `context`).
  * @remarks
  * Binds to an enclosing `<Form>` field by `name` (CONVENTIONS §7.2); the field's
  * own errors reach `validation` beside the Control severity, as
  * `useControlProps` resolves them. An explicit `disabled` or `readOnly` wins
  * over the enclosing Control's. The open setter refuses an open while
  * `readOnly` is on, and a close stays allowed. A close of the panel marks the
- * bound field touched. `setReference` captures the trigger node for
- * `useFloatingUI`'s `returnFocusTo` alongside Floating UI's own reference
- * setter.
+ * bound field touched. `onOpenChange` routes through the floating-ui context,
+ * as in DatePicker.
  * @internal
  */
 export function useColorPickerState({
@@ -61,100 +57,54 @@ export function useColorPickerState({
 	// field is the value channel, and `useColorState` keeps the HSVA the swatch
 	// and the panel share. An emission round-trips through the field and comes
 	// back as `value`, which the state's own echo guard then skips.
-	const bound = useFormValue<string | Hsva>(name, {
+	const {
+		value: current,
+		setValue,
+		setTouched,
+		field,
+	} = useControlPickerField<string | Hsva>({
+		name,
 		value,
 		defaultValue,
 		// The picker always holds a color — the swatch has to paint something — so
 		// the cleared `null` §7.3 admits never reaches the consumer.
 		onValueChange: onValueChange && ((next) => next != null && onValueChange(next)),
+		disabled,
+		readOnly,
 	})
 
-	// The Control cascade: an explicit prop wins over the enclosing Control, and
-	// the field error merges with an ambient error severity.
-	const controlProps = useControlProps({ disabled, readOnly, invalid: bound.invalid })
-
-	const scope = useIdScope({ id: controlProps.id })
-
-	// `useFormValue` owns the seed: it gives `defaultValue` when the picker is
+	// `useControlPickerField` owns the seed: it gives `defaultValue` when the picker is
 	// unbound and uncontrolled, and ignores it for a bound field (§7.2). The
 	// color state is always controlled, so an empty value goes in as `null`
 	// and paints black.
 	const { hsva, setHsva } = useColorState({
-		value: bound.value ?? null,
+		value: current ?? null,
 		format,
 		alpha,
-		onValueChange: bound.setValue,
+		onValueChange: setValue,
 	})
 
-	// The single writer: the trigger toggles through it, and floating-ui's dismiss paths
-	// are armed only while open, so every set it takes is a real transition and the
-	// caller's callback rides the setter with no change guard. `useControllableFlag` rather
-	// than bare state for the seam, not the machinery — the picker is uncontrolled today,
-	// and this is where an `open` prop slots in without moving the report.
-	const [open, setOpenValue] = useControllableFlag({
-		onValueChange: onOpenChange,
-	})
-
-	const { setTouched } = bound
-
-	const resolvedReadOnly = controlProps.readOnly === true
-
-	// Narrowed on the way out: the controllable setter also takes `null` and a functional
-	// updater, and neither belongs in the boolean `onOpenChange` this hook publishes.
-	// Each set is a real transition, so a `false` is a close. A close (the trigger, an
-	// outside press, or Escape) is the "blur" of the field. It marks the field touched,
-	// so that the rules of `validateOn="touched"` run. readOnly refuses each open, as
-	// in DatePicker and Listbox. A panel that is open can still close.
-	const setOpen = useCallback(
-		(next: boolean) => {
-			if (resolvedReadOnly && next) return
-
-			setOpenValue(next)
-
-			if (!next) setTouched()
-		},
-		[resolvedReadOnly, setOpenValue, setTouched],
-	)
-
-	const triggerRef = useRef<HTMLElement | null>(null)
-
-	// The trigger button (`aria-haspopup="dialog"`, `aria-expanded`) and the panel
-	// (`role="dialog"`) carry their own roles; `role: null` suppresses floating-ui's
-	// `useRole`, which stamps a second dialog widget onto the roleless positioning
-	// wrapper that takes `getReferenceProps()`.
-	const { refs, floatingStyles, context, getReferenceProps, getFloatingProps } = useFloatingUI({
+	// The picker is uncontrolled today, so no `open` prop goes in. The public
+	// callback only observes the open state.
+	const popover = useControlPickerPopover({
 		placement,
-		open,
-		onOpenChange: setOpen,
-		offset: 8,
-		// A panel taller than the space on its side of the trigger shrinks into that
-		// space and scrolls, as a menu does.
-		fitHeight: true,
-		role: null,
-		returnFocusTo: triggerRef,
+		onOpenChange,
+		readOnly: field.readOnly,
+		setTouched,
 	})
-
-	// Captures the trigger for `useFloatingUI`'s `returnFocusTo`;
-	// `FloatingFocusManager` runs with `returnFocus={false}`. Composed through the
-	// shared hook rather than by hand, so the panel's own `setReference` never takes
-	// a `null` during deletion effects — see {@link useFloatingReference}.
-	const setReference = useFloatingReference<HTMLElement>(refs.setReference, triggerRef, undefined)
 
 	return {
-		triggerId: scope.id,
-		describedBy: controlProps['aria-describedby'],
-		disabled: controlProps.disabled === true,
-		readOnly: resolvedReadOnly,
-		validation: controlProps.validation,
+		...field,
+		dialogId: popover.dialogId,
 		hsva,
 		setHsva,
-		open,
-		onOpenChange: setOpen,
-		setReference,
-		setFloating: refs.setFloating,
-		floatingStyles,
-		getReferenceProps,
-		getFloatingProps,
-		context,
+		open: popover.open,
+		onOpenChange: popover.onOpenChange,
+		setReference: popover.setReference,
+		setFloating: popover.refs.setFloating,
+		floatingStyles: popover.floatingStyles,
+		getReferenceProps: popover.getReferenceProps,
+		getFloatingProps: popover.getFloatingProps,
+		context: popover.context,
 	}
 }

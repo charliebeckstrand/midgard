@@ -2,8 +2,8 @@
  * Date-picker kata: object-literal surface for the `<DatePicker>` trigger and
  * its popover. A stepped `button`, a stepped `content.body`, and a `value`
  * sub-recipe with a truncate axis drive the control, the popover inset, and the
- * value text. `surface`, `control` (the input-mode field adjacency), `icon`,
- * `placeholder`, `affix`, and the `content` group are slots.
+ * value text. `control` (the input-mode field adjacency), `icon`, `placeholder`, and
+ * the `content` group are slots.
  * `relative` adds the layout of the relative popover: the preset `list`, the
  * `custom` range affordance, and the trigger chip row. `root` sizes the box of
  * the trigger to its content, and `skeleton` is the form of DatePickerSkeleton.
@@ -17,9 +17,9 @@ import { popover } from '../kiso/popover'
 const { cursor } = hannou
 const { focus } = sen
 const { text } = iro
-const { affix, reset, density, surface } = control
+const { reset, density } = control
 const { field, flex } = narabi
-const { portal, panel, fit } = popover
+const { fit, picker } = popover
 
 const button = defineRecipe({
 	base: [
@@ -51,18 +51,8 @@ const value = defineRecipe({
 // The body scrolls when the floating layer caps the height of the panel.
 const body = [flex.col, dan.space.box.base, dan.gap.y.sm, fit.scroll]
 
-/**
- * The box of the trigger. It is as wide as the date and the calendar icon. It
- * does not fill its parent, and it does not get wider than its parent.
- */
-const root = ['w-fit', 'max-w-full']
-
 export const k = {
-	root,
-	surface: {
-		default: surface.default,
-		glass: [],
-	},
+	root: picker.root,
 	button,
 	value,
 	// Input mode wraps the DateInput — its frame plus the error Message — in the
@@ -73,19 +63,9 @@ export const k = {
 	icon: [flex.row, 'pointer-events-none', text.muted],
 	placeholder: text.muted,
 	skeleton: kokkaku.datePicker,
-	affix: {
-		base: affix.base,
-		suffix: affix.suffix,
-	},
 	content: {
-		// `portal` is a single class string — include it, don't spread it (spreading
-		// a string scatters it into junk chars, dropping the z-index and letting the
-		// calendar fall behind a modal overlay's backdrop).
-		portal: [focus.ring, portal, fit.wrapper],
-		motion: panel.motion,
-		column: fit.column,
-		text: text.default,
-		glass: panel.glass,
+		...picker.content,
+		portal: [focus.ring, ...picker.content.portal],
 		body,
 	},
 	// Relative variant: the preset list and custom-range affordance in the

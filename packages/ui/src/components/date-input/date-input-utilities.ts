@@ -1,7 +1,6 @@
 import { CalendarDate, DateFormatter, endOfMonth } from '@internationalized/date'
 import type { ReactNode } from 'react'
 import { resolveLocale } from '../../utilities'
-import { isSameDay as calendarIsSameDay } from '../calendar/calendar-utilities'
 
 /**
  * Supported date layout for {@link DateInput}: month/day/year order and the
@@ -316,13 +315,6 @@ export function parseDateText(text: string, format: DateInputFormat): Date | und
 	date.setFullYear(year)
 
 	return date
-}
-
-/** Same calendar day in local time; two empty values count as the same. @internal */
-export function isSameDay(a: Date | undefined, b: Date | undefined): boolean {
-	if (a === undefined || b === undefined) return a === b
-
-	return calendarIsSameDay(a, b)
 }
 
 /**

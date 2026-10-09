@@ -456,6 +456,17 @@ describe('DatePicker clearable', () => {
 		expect(screen.queryByRole('button', { name: 'Clear selection' })).not.toBeInTheDocument()
 	})
 
+	it('gives the clear suffix the select affix, as Listbox and Combobox do', () => {
+		renderUI(<DatePicker clearable value={new Date(2025, 0, 15)} />)
+
+		const suffix = screen
+			.getByRole('button', { name: 'Clear selection' })
+			.closest('[data-slot="suffix"]')
+
+		// The whole column of the affix is a press target, as in the select family.
+		expect(suffix).toHaveClass('self-stretch', 'peer/suffix')
+	})
+
 	it('clears the value from the trigger and returns focus to the trigger', async () => {
 		const user = setupUser()
 

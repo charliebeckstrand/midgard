@@ -2,7 +2,6 @@
 import { describe, expect, it } from 'vitest'
 import {
 	formatDateValue,
-	isSameDay,
 	maskDateText,
 	parseDateText,
 } from '../../components/date-input/date-input-utilities'
@@ -174,17 +173,5 @@ describe('formatDateValue', () => {
 		expect(parseDateText(formatDateValue(date, 'MM/DD/YYYY'), 'MM/DD/YYYY')?.getTime()).toBe(
 			date.getTime(),
 		)
-	})
-})
-
-describe('isSameDay', () => {
-	it('compares at day resolution and treats two empties as same', () => {
-		expect(isSameDay(new Date(2026, 5, 15, 9), new Date(2026, 5, 15, 17))).toBe(true)
-
-		expect(isSameDay(new Date(2026, 5, 15), new Date(2026, 5, 16))).toBe(false)
-
-		expect(isSameDay(undefined, undefined)).toBe(true)
-
-		expect(isSameDay(new Date(2026, 5, 15), undefined)).toBe(false)
 	})
 })

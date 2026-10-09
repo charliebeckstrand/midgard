@@ -9,6 +9,7 @@ import {
 	isBetween,
 	isDayInRange,
 	isSameDay,
+	isSameDayOrEmpty,
 	toCalendarDate,
 } from '../../components/calendar/calendar-utilities'
 
@@ -185,5 +186,17 @@ describe('isDayInRange', () => {
 		expect(isDayInRange(date, new Date(2026, 5, 16), undefined)).toBe(false)
 
 		expect(isDayInRange(date, undefined, new Date(2026, 5, 14))).toBe(false)
+	})
+})
+
+describe('isSameDayOrEmpty', () => {
+	it('compares at day resolution and treats two empties as same', () => {
+		expect(isSameDayOrEmpty(new Date(2026, 5, 15, 9), new Date(2026, 5, 15, 17))).toBe(true)
+
+		expect(isSameDayOrEmpty(new Date(2026, 5, 15), new Date(2026, 5, 16))).toBe(false)
+
+		expect(isSameDayOrEmpty(undefined, null)).toBe(true)
+
+		expect(isSameDayOrEmpty(new Date(2026, 5, 15), undefined)).toBe(false)
 	})
 })

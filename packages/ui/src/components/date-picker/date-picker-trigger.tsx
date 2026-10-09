@@ -5,12 +5,11 @@ import { type KeyboardEvent, type ReactNode, useRef } from 'react'
 import { ariaAttr, cn, dataAttr, type ValidationAttrs } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { useIsTruncated } from '../../hooks'
-import { ControlFrame } from '../../primitives/control'
+import { SelectTrigger } from '../../primitives/select-trigger'
 import { useGlass } from '../../providers/glass/context'
 import { HeadlessProvider } from '../../providers/headless'
 import type { scale } from '../../recipes/kata/date-picker'
 import { k } from '../../recipes/kata/date-picker'
-import { Box } from '../../structure/box'
 import type { GroupStampProps } from '../../types/group-stamp'
 import { Button } from '../button'
 import { Icon } from '../icon'
@@ -130,70 +129,66 @@ export function DatePickerTrigger({
 	return (
 		// An explicit `size` makes the trigger a density scope. Without it, the
 		// stepped classes of the control bridge take the step of the nearest scope.
-		<Box
-			data-slot="control"
-			density={size}
-			ref={setReference}
+		<SelectTrigger
+			open={open}
+			setReference={setReference}
+			getReferenceProps={getReferenceProps}
+			glass={glass}
+			size={size}
 			className={cn(k.root, className)}
-			{...getReferenceProps()}
+			data-group={dataGroup}
+			data-group-orientation={dataGroupOrientation}
+			suffix={
+				showClear ? (
+					<InputClearButton
+						label="Clear selection"
+						onMouseDown={(event) => event.stopPropagation()}
+						onClick={(event) => {
+							event.stopPropagation()
+
+							onClear?.()
+
+							triggerButtonRef.current?.focus()
+						}}
+					/>
+				) : undefined
+			}
 		>
-			<ControlFrame
-				data-open={dataAttr(open)}
-				data-group={dataGroup}
-				data-group-orientation={dataGroupOrientation}
-				className={cn('', k.surface[glass ? 'glass' : 'default'])}
-			>
-				<HeadlessProvider>
-					<Button
-						ref={triggerButtonRef}
-						type="button"
-						id={triggerId}
-						role="combobox"
-						aria-label={ariaLabel}
-						aria-haspopup="dialog"
-						aria-expanded={open}
-						aria-controls={open ? dialogId : undefined}
-						aria-describedby={describedBy}
-						aria-readonly={ariaAttr(readOnly)}
-						aria-required={ariaAttr(required)}
-						data-slot="datepicker-button"
-						disabled={disabled}
-						data-readonly={dataAttr(readOnly)}
-						{...validation}
-						onClick={() => onOpenChange(!open)}
-						onKeyDown={onKeyDown}
-						className={cn(k.button())}
-					>
-						{children ?? (
-							<Tooltip disabled={!truncate || !isTruncated || !displayValue}>
-								<TooltipTrigger>{valueNode}</TooltipTrigger>
-								<TooltipContent>{displayValue}</TooltipContent>
-							</Tooltip>
-						)}
-						{!showClear && (
-							// A slot scope, so the icon is one step below the trigger.
-							<span data-density="slot" className={cn(k.icon)}>
-								<Icon icon={<CalendarIcon />} />
-							</span>
-						)}
-					</Button>
-				</HeadlessProvider>
-				{showClear && (
-					<span data-slot="suffix" data-density="slot" className={cn(k.affix.base, k.affix.suffix)}>
-						<InputClearButton
-							label="Clear selection"
-							onMouseDown={(event) => event.stopPropagation()}
-							onClick={(event) => {
-								event.stopPropagation()
-
-								onClear?.()
-
-								triggerButtonRef.current?.focus()
-							}}
-						/>
-					</span>
-				)}
-			</ControlFrame>
-		</Box>
+			<HeadlessProvider>
+				<Button
+					ref={triggerButtonRef}
+					type="button"
+					id={triggerId}
+					role="combobox"
+					aria-label={ariaLabel}
+					aria-haspopup="dialog"
+					aria-expanded={open}
+					aria-controls={open ? dialogId : undefined}
+					aria-describedby={describedBy}
+					aria-readonly={ariaAttr(readOnly)}
+					aria-required={ariaAttr(required)}
+					data-slot="datepicker-button"
+					disabled={disabled}
+					data-readonly={dataAttr(readOnly)}
+					{...validation}
+					onClick={() => onOpenChange(!open)}
+					onKeyDown={onKeyDown}
+					className={cn(k.button())}
+				>
+					{children ?? (
+						<Tooltip disabled={!truncate || !isTruncated || !displayValue}>
+							<TooltipTrigger>{valueNode}</TooltipTrigger>
+							<TooltipContent>{displayValue}</TooltipContent>
+						</Tooltip>
+					)}
+					{!showClear && (
+						// A slot scope, so the icon is one step below the trigger.
+						<span data-density="slot" className={cn(k.icon)}>
+							<Icon icon={<CalendarIcon />} />
+						</span>
+					)}
+				</Button>
+			</HeadlessProvider>
+		</SelectTrigger>
 	)
 }

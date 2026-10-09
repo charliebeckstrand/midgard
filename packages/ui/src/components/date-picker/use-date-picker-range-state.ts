@@ -1,23 +1,21 @@
 'use client'
 
+import type { DateDuration } from '@internationalized/date'
 import { useCallback, useMemo, useReducer, useRef } from 'react'
 
-import { useIdScope } from '../../hooks/use-id-scope'
 import { useLocale } from '../../providers/locale'
 import type { CalendarActive, CalendarHandle } from '../calendar'
-import { useControlProps } from '../control/use-control-props'
-import { useFormValue } from '../form/use-form-value'
+import { useControlPickerField } from '../control/use-control-picker-field'
+import { useControlPickerPopover } from '../control/use-control-picker-popover'
 import type { DatePickerBaseProps, DatePickerRangeProps } from './date-picker'
 import { datePickerRangeReducer, initialDatePickerRangeState } from './date-picker-range-reducer'
-import { clampDate, type DateStep, formatRange, stepDate } from './date-picker-utilities'
+import { clampDate, formatRange, stepDate } from './date-picker-utilities'
 import { useDatePickerControlled } from './use-date-picker-controlled'
-import { useDatePickerFloating } from './use-date-picker-floating'
 import {
 	type FooterButton,
 	useDatePickerGridEntry,
 	useDatePickerKeyboard,
 } from './use-date-picker-keyboard'
-import { useDatePickerOpen } from './use-date-picker-open'
 
 /**
  * Range state for {@link DatePicker}: a two-tap start/end selection held in a
@@ -60,32 +58,13 @@ export function useDatePickerRangeState({
 	// Binds the committed range to an enclosing Form field by `name`. The
 	// reducer holds only the in-progress selection; the final `[Date, Date]`
 	// still commits through this cascade.
-	const {
-		value,
-		setValue,
-		setTouched,
-		invalid: fieldInvalid,
-	} = useFormValue<[Date, Date]>(name, {
+	const { value, setValue, setTouched, field } = useControlPickerField<[Date, Date]>({
+		name,
 		value: useDatePickerControlled(valueProp),
 		defaultValue,
 		onValueChange,
-	})
-
-	// The Control cascade: an explicit prop wins over the enclosing Control, and
-	// the field error merges with an ambient error severity.
-	const controlProps = useControlProps({ disabled, readOnly, invalid: fieldInvalid })
-
-	const scope = useIdScope({ id: controlProps.id })
-
-	const resolvedDisabled = controlProps.disabled === true
-
-	const resolvedReadOnly = controlProps.readOnly === true
-
-	const { open, setOpen, triggerRef } = useDatePickerOpen({
-		open: openProp,
-		defaultOpen,
-		onOpenChange: onOpenChangeProp,
-		readOnly: resolvedReadOnly,
+		disabled,
+		readOnly,
 	})
 
 	const [state, dispatch] = useReducer(datePickerRangeReducer, initialDatePickerRangeState)
@@ -114,7 +93,7 @@ export function useDatePickerRangeState({
 	// gives, and stays between `min` and `max`. While a range is in progress, the
 	// new day also previews the end of the range.
 	const moveGrid = useCallback(
-		(step: DateStep, from: Date) => {
+		(step: DateDuration, from: Date) => {
 			const next = clampDate(stepDate(from, step), min, max)
 
 			if (rangeStart !== null) dispatch({ type: 'hover', date: next })
@@ -124,33 +103,39 @@ export function useDatePickerRangeState({
 		[min, max, rangeStart],
 	)
 
-	const openCalendar = useCallback(() => {
-		resetSelection()
+	const {
+		open,
+		openPicker: openCalendar,
+		closePicker: closeCalendar,
+		onOpenChange,
+		refs,
+		setReference,
+		dialogId,
+		floatingStyles,
+		getReferenceProps,
+		getFloatingProps,
+		context,
+	} = useControlPickerPopover({
+		placement,
+		open: openProp,
+		defaultOpen,
+		onOpenChange: onOpenChangeProp,
+		readOnly: field.readOnly,
+		setTouched,
+		onOpen: resetSelection,
+	})
 
-		setOpen(true)
-	}, [resetSelection, setOpen])
-
-	const closeCalendar = useCallback(() => {
-		setOpen(false)
-
-		// Closing the popover is the field's "blur" — mark it touched so
-		// validateOn="touched" rules can fire.
-		setTouched()
-	}, [setTouched, setOpen])
-
-	// readOnly blocks every value write, not only the open paths, because a
-	// controlled `open` can still show the calendar.
 	const handleClear = useCallback(() => {
-		if (resolvedReadOnly) return
-
 		setValue(undefined)
 
 		closeCalendar()
-	}, [closeCalendar, resolvedReadOnly, setValue])
+	}, [closeCalendar, setValue])
 
 	const handleSelect = useCallback(
 		(date: Date) => {
-			if (resolvedReadOnly) return
+			// readOnly also keeps the in-progress selection, which a controlled
+			// `open` can show.
+			if (field.readOnly) return
 
 			if (rangeStart === null) {
 				dispatch({ type: 'startRange', date })
@@ -171,21 +156,13 @@ export function useDatePickerRangeState({
 				closeCalendar()
 			}
 		},
-		[closeCalendar, rangeStart, resolvedReadOnly, setValue],
-	)
-
-	const handleOpenChange = useCallback(
-		(nextOpen: boolean) => {
-			if (nextOpen) openCalendar()
-			else closeCalendar()
-		},
-		[closeCalendar, openCalendar],
+		[closeCalendar, field.readOnly, rangeStart, setValue],
 	)
 
 	// `footer.clear` (default on) gates the only footer button this variant has.
 	// readOnly drops it, because the button cannot write a value.
 	const showClear =
-		!resolvedReadOnly && footer?.clear !== false && rangeStart === null && value != null
+		!field.readOnly && footer?.clear !== false && rangeStart === null && value != null
 
 	const footerButtons = useMemo<FooterButton[]>(() => (showClear ? ['clear'] : []), [showClear])
 
@@ -196,17 +173,6 @@ export function useDatePickerRangeState({
 		[handleClear],
 	)
 
-	const {
-		refs,
-		floatingStyles,
-		context,
-		getReferenceProps,
-		getFloatingProps,
-		onOpenChange,
-		setReference,
-		dialogId,
-	} = useDatePickerFloating({ placement, open, onOpenChange: handleOpenChange, triggerRef })
-
 	const setActive = useCallback(
 		(next: CalendarActive | null) => dispatch({ type: 'setActive', active: next }),
 		[],
@@ -215,7 +181,7 @@ export function useDatePickerRangeState({
 	const onHoverDate = useCallback((date: Date | null) => dispatch({ type: 'hover', date }), [])
 
 	const onTriggerKeyDown = useDatePickerKeyboard({
-		disabled: resolvedDisabled,
+		disabled: field.disabled,
 		open,
 		active,
 		setActive,
@@ -231,14 +197,8 @@ export function useDatePickerRangeState({
 	})
 
 	return {
-		triggerId: scope.id,
+		...field,
 		dialogId,
-		describedBy: controlProps['aria-describedby'],
-		disabled: resolvedDisabled,
-		readOnly: resolvedReadOnly,
-		required: controlProps.required,
-		invalid: controlProps.invalid,
-		validation: controlProps.validation,
 		hasValue: value != null,
 		onClear: handleClear,
 		displayValue: value ? formatRange(value[0], value[1], ambient.locale, ambient.dateFormat) : '',

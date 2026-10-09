@@ -13,6 +13,8 @@ import { Box } from '../../structure/box'
 
 type ColorPickerContentProps = {
 	open: boolean
+	/** The dialog id, which the trigger names in `aria-controls`. */
+	id?: string
 	setFloating: (node: HTMLElement | null) => void
 	floatingStyles: CSSProperties
 	getFloatingProps: FloatingSurfaceProps['getFloatingProps']
@@ -42,6 +44,7 @@ type ColorPickerContentProps = {
  */
 export function ColorPickerContent({
 	open,
+	id,
 	setFloating,
 	floatingStyles,
 	getFloatingProps,
@@ -64,6 +67,7 @@ export function ColorPickerContent({
 			getFloatingProps={getFloatingProps}
 			trapFocusContext={context}
 			trapFocusProps={{ initialFocus: 0 }}
+			id={id}
 			role="dialog"
 			aria-modal="true"
 			aria-label="Choose color"

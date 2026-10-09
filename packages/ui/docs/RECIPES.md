@@ -41,7 +41,7 @@ Archetype bundles compose primitive atoms into the multi-fragment shape an arche
 | Bundle | Composes | Consumers |
 |---|---|---|
 | `control` | Field archetype: frame + surface + input + reset (`reset.base`, `reset.number`) + density + radius + scale + affix + check (composes `kasane`). | `bridge.control` / `bridge.check`; subset reach from combobox, listbox, date-picker, select, switch, color-picker, rating, signature-pad, control. |
-| `popover` | Floating overlay — `trigger` / `portal` / `text` / `panel` fragments. *No bridge.* | `kata/popover`; subset reach from combobox, listbox, date-picker, color-picker. |
+| `popover` | Floating overlay — `trigger` / `portal` / `fit` / `text` / `panel` fragments, and the `picker` group that date-picker and color-picker share. *No bridge.* | `kata/popover`; subset reach from combobox, listbox, date-picker, color-picker. |
 | `segment` | Segmented control — `control` / `item` fragments plus `indicator` color fragments. *No bridge.* | `kata/tabs`, which Segment and Tabs share. |
 | `panel` | Panel archetype — `surface` (fill + chrome), `layout` (title / description / header / body / footer, and the `inset` at each edge), and `grip`. The `inset` is the same on the four sides, follows density, and is larger than the slot gap. The grip is the drag bar that resizes a panel, keyed by the separator's line. `surface.axis` is the `surface` axis of a modal panel. | `bridge.panel`; subset reach from dialog, box, panel, grid, command-palette. |
 | `slider` | Slider palette — the `--slider-fill` / `--slider-track` CSS-variable bundle per color, and the size `scale` that both sliders share. *No bridge.* | `kata/slider`, `kata/slider-range`. |

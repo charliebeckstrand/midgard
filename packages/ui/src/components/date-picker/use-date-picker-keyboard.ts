@@ -1,9 +1,10 @@
+import type { DateDuration } from '@internationalized/date'
 import { type KeyboardEvent, type RefObject, useCallback } from 'react'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { wrap } from '../../utilities'
 import type { CalendarActive, CalendarHandle } from '../calendar'
-import { DAY_KEY_SELECTOR, dayOfKey, isSameDay } from '../calendar/calendar-utilities'
-import { clampDate, type DateStep } from './date-picker-utilities'
+import { DAY_KEY_SELECTOR, dayOfKey, gridStep, isSameDay } from '../calendar/calendar-utilities'
+import { clampDate } from './date-picker-utilities'
 
 /** A footer action button in the date picker. */
 export type FooterButton = 'clear' | 'today'
@@ -28,7 +29,7 @@ type DatePickerKeyDownParams = {
 	openCalendar: () => void
 	closeCalendar: () => void
 	/** The day `step` days or months from `from`, held between `min` and `max`. */
-	moveGrid: (step: DateStep, from: Date) => Date
+	moveGrid: (step: DateDuration, from: Date) => Date
 	getInitialActiveDate: () => Date
 	/**
 	 * The day where an arrow key moves the highlight into the grid: from the
@@ -192,15 +193,16 @@ function handlePageKey(
 	current: CalendarActive | null,
 	ctx: DatePickerKeyContext,
 ): boolean {
-	if (event.key !== 'PageUp' && event.key !== 'PageDown') return false
+	const step =
+		event.key === 'PageUp' || event.key === 'PageDown' ? gridStep(event, event.currentTarget) : null
+
+	if (!step) return false
 
 	event.preventDefault()
 
-	const direction = event.key === 'PageUp' ? -1 : 1
-
 	const from = current?.zone === 'grid' ? current.date : ctx.getInitialActiveDate()
 
-	const next = ctx.moveGrid({ months: event.shiftKey ? direction * 12 : direction }, from)
+	const next = ctx.moveGrid(step, from)
 
 	ctx.setActive({ zone: 'grid', date: next })
 
@@ -248,14 +250,6 @@ function handleNoActiveKey(
 	}
 }
 
-/** Day delta per arrow key in the grid zone: a column left/right, a week up/down. @internal */
-const GRID_DELTAS: Record<string, number> = {
-	ArrowLeft: -1,
-	ArrowRight: 1,
-	ArrowUp: -7,
-	ArrowDown: 7,
-}
-
 /**
  * Grid-zone keys: arrows move the highlight by day/week from `active.date`,
  * Enter/Space selects. `active` can be a focused day button that the model
@@ -269,12 +263,12 @@ function handleGridKey(
 	active: GridActive,
 	ctx: DatePickerKeyContext,
 ) {
-	const delta = GRID_DELTAS[key]
+	const step = isArrowKey(key) ? gridStep(event, event.currentTarget) : null
 
-	if (delta !== undefined) {
+	if (step) {
 		event.preventDefault()
 
-		ctx.setActive({ zone: 'grid', date: ctx.moveGrid({ days: delta }, active.date) })
+		ctx.setActive({ zone: 'grid', date: ctx.moveGrid(step, active.date) })
 
 		return
 	}
