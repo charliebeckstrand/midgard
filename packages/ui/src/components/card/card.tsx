@@ -44,6 +44,11 @@ export type CardProps = BoxProps<
  * section pads only an inner edge that it shares with a sibling (header below,
  * footer above). With no body, the header owns the edge that it shares with
  * the footer. Padding therefore has a single source on each edge.
+ *
+ * The card clips its overflow, but it is not a scroll container. Thus in a flex
+ * row or a grid track, the card is at least as wide as its widest word, as is
+ * any other box. To let a card become narrower than a long token, such as a
+ * hash or a URL, give it `min-w-0`. The body then breaks the token.
  */
 export function Card({
 	size,
@@ -59,7 +64,7 @@ export function Card({
 			density={size}
 			bg={bg}
 			outline={outline}
-			className={cn('overflow-hidden -outline-offset-1', k.base, className)}
+			className={cn('overflow-clip -outline-offset-1', k.base, className)}
 			{...props}
 		>
 			{children}
