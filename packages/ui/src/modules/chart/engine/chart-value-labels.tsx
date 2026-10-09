@@ -87,7 +87,7 @@ export function cartesianValueLabels(
 	list: { paint: ChartPaint; geometry: { points: { x: number; y: number }[] } }[],
 	metas: { values: (number | null)[]; axis: ChartValueAxisId }[],
 	gapSkipped = true,
-	obstacles: LabelBox[] = [],
+	obstacles?: LabelBox[],
 ): PlacedValueLabel[] {
 	if (!chart.valueLabelRoom) return []
 

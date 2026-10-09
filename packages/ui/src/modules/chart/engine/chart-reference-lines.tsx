@@ -82,7 +82,7 @@ export type ChartReferenceLinesProps = {
 	 * once did. A rule with no label, or with the whole prop omitted, floats the
 	 * hover tooltip.
 	 */
-	labels?: (PlacedReferenceLabel | null)[] | null
+	labels?: (PlacedReferenceLabel | null)[]
 }
 
 /** The text of a rule's standing label: its own label, else its value. @internal */
@@ -92,7 +92,8 @@ function referenceLabelText(line: ChartReferenceLine, format: (value: number) =>
 
 /**
  * Places the standing reference labels of the `labels.references` mode, aligned
- * with `reference`, or `null` when the mode is off. The chart places them once
+ * with `reference`, or none when the mode is off. The caller turns the mode off
+ * at the spark tier, which draws no label. The chart places them once
  * and passes them to {@link ChartReferenceLines}, which draws them, and to the
  * point value labels, which drop where they meet one. Each label takes the first
  * free spot beside its rule ({@link referenceLabels}). A rule whose label finds
@@ -104,8 +105,8 @@ export function placeReferenceLabels(
 	chart: ChartReferenceFrame,
 	reference: ChartReferenceLine[] | undefined,
 	labels: boolean | undefined,
-): (PlacedReferenceLabel | null)[] | null {
-	if (!labels || !reference || reference.length === 0) return null
+): (PlacedReferenceLabel | null)[] | undefined {
+	if (!labels || !reference || reference.length === 0) return undefined
 
 	return referenceLabels(
 		reference.map((line, index) => ({
@@ -127,7 +128,7 @@ export function placeReferenceLabels(
  * @internal
  */
 export function referenceStops(
-	labels: (PlacedReferenceLabel | null)[] | null,
+	labels: (PlacedReferenceLabel | null)[] | undefined,
 	positions: (number | null)[],
 ): (number | null)[] {
 	return labels ? positions.map((at, index) => (labels[index] ? null : at)) : positions
@@ -147,12 +148,13 @@ type ReferenceRuleProps = {
 	/** The mount slide-in transform from {@link referenceRise}, or `null` when the chart is static. */
 	rise: ReturnType<typeof referenceRise> | null
 	/**
-	 * The placed standing label at the rule's far end, drawn in place of the
-	 * hover tooltip — the `labels.references` mode. The rule then sheds its wide
-	 * hit target and floats no surface, and the caller drops its keyboard stop.
-	 * `undefined` when the mode is off.
+	 * The placed standing label of the rule ({@link placeReferenceLabels}),
+	 * which {@link ReferenceLabel} draws in place of the hover tooltip. The rule
+	 * then sheds its wide hit target and floats no surface, and the caller drops
+	 * its keyboard stop. `null` when the mode is off, or when the label found no
+	 * free spot.
 	 */
-	label: PlacedReferenceLabel | undefined
+	label: PlacedReferenceLabel | null
 }
 
 /** The two endpoints of a rule's drawn line, in `viewBox` user units. @internal */
@@ -228,7 +230,7 @@ function LabeledReferenceRule({ line, index, paint, points, rise }: ReferenceRul
  * shows the rule's own label when it has one, else the rule's value. It recedes
  * with its rule and rides the same mount rise, so rule and label reveal as one.
  * It draws in a layer over every rule, so its halo clears a neighboring rule
- * that crosses it. The spark tier draws no label.
+ * that crosses it.
  *
  * @internal
  */
@@ -239,12 +241,10 @@ function ReferenceLabel({
 	format,
 	rise,
 	label,
-}: ReferenceRuleProps & { label: PlacedReferenceLabel }) {
+}: Pick<ReferenceRuleProps, 'line' | 'index' | 'paint' | 'format' | 'rise'> & {
+	label: PlacedReferenceLabel
+}) {
 	const { emphasizedReference } = useChartEmphasis()
-
-	const spark = useChartTier() === 'spark'
-
-	if (spark) return null
 
 	const color = rawColor(paint)
 
@@ -417,7 +417,7 @@ function ReferenceRule(props: ReferenceRuleProps) {
  * target or threshold therefore reads against the data, rather than hiding
  * behind it. Each rule
  * floats its value and label from a {@link Tooltip} on hover, or — under
- * `labels` — carries them in a standing label at its far end.
+ * `labels` — carries them in a standing label beside it.
  *
  * @remarks Self-gating. A chart mounts it unconditionally, and it draws nothing
  * until both a scale and reference lines exist. The gate therefore lives here
@@ -425,8 +425,8 @@ function ReferenceRule(props: ReferenceRuleProps) {
  * win the pointer where they sit. Under `animate` each rule rises along the
  * value axis from the baseline to its value ({@link referenceRise}). A
  * {@link ReducedMotion} around it settles it at rest for a reduced-motion
- * preference. Under `labels` each rule carries a standing value label at its far
- * end and drops the hover tooltip — the `labels.references` mode. The chart
+ * preference. Under `labels` each rule carries a standing value label beside it
+ * and drops the hover tooltip — the `labels.references` mode. The chart
  * places the labels ({@link placeReferenceLabels}), so no two overlap, and a rule
  * whose label finds no free spot keeps the hover tooltip. At the spark
  * tier each rule sheds its hit target, tooltip, and label to the bare dashed
@@ -477,7 +477,7 @@ export function ChartReferenceLines({
 					orientation,
 					format: (value: number) => chart.formatAxisValue(value, axis),
 					rise,
-					label: labels?.[index] ?? undefined,
+					label: labels?.[index] ?? null,
 				},
 			]
 		},

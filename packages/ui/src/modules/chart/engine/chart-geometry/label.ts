@@ -25,10 +25,10 @@
  */
 
 import { TICK_CHAR_WIDTH } from '../chart-constants'
-import type { ChartOrientation, PlotRect } from '../chart-orientation'
+import { type ChartOrientation, type PlotRect, valueRule } from '../chart-orientation'
 
 /** The gap from a point or a rule to its label. @internal */
-export const LABEL_OFFSET = 8
+const LABEL_OFFSET = 8
 
 /** The collision height of a label, which its flip tests. @internal */
 export const LABEL_HEIGHT = 13
@@ -318,13 +318,18 @@ function place(
 			fill: candidate.series.fill,
 			color: candidate.series.color,
 		},
-		box: { x0, x1, y0: y - LABEL_HALF, y1: y + LABEL_HALF },
+		box: labelBox(x0, x1, y),
 	}
 }
 
 /** The estimated width of a label's box: its text and the padding each side. @internal */
 function labelWidth(text: string): number {
 	return text.length * TICK_CHAR_WIDTH + 2 * LABEL_PAD
+}
+
+/** The box of a label that spans `x0` to `x1` and centers on `y`. @internal */
+function labelBox(x0: number, x1: number, y: number): LabelBox {
+	return { x0, x1, y0: y - LABEL_HALF, y1: y + LABEL_HALF }
 }
 
 /** Two boxes share area. @internal */
@@ -395,7 +400,7 @@ export function resolveValueLabels(
 	list: LabelableSeries[],
 	plot: PlotRect,
 	gapSkipped = true,
-	obstacles: LabelBox[] = [],
+	obstacles?: LabelBox[],
 ): PlacedValueLabel[] {
 	if ((!config?.endpoints && !config?.extremes) || list.length !== 1) return []
 
@@ -453,12 +458,7 @@ function referenceSpots(
 		return [true, false].map((above) => {
 			const y = labelBesideY(at, plot, above)
 
-			return {
-				x,
-				y,
-				anchor: 'end',
-				box: { x0: x - width, x1: x, y0: y - LABEL_HALF, y1: y + LABEL_HALF },
-			}
+			return { x, y, anchor: 'end', box: labelBox(x - width, x, y) }
 		})
 	}
 
@@ -476,20 +476,20 @@ function referenceSpots(
 	return Array.from({ length: rows }, (_, row) => {
 		const y = plot.y + LABEL_OFFSET + LABEL_HALF + row * LABEL_ROW_STEP
 
-		return { x: at, y, anchor, box: { x0, x1, y0: y - LABEL_HALF, y1: y + LABEL_HALF } }
+		return { x: at, y, anchor, box: labelBox(x0, x1, y) }
 	})
 }
 
 /**
- * The box that a rule's line takes across the plot: no thickness, so a label
+ * The box of a rule's drawn line ({@link valueRule}): no thickness, so a label
  * box meets it only where the line runs through the label.
  *
  * @internal
  */
 function ruleBox(at: number, orientation: ChartOrientation, plot: PlotRect): LabelBox {
-	return orientation === 'vertical'
-		? { x0: plot.x, x1: plot.x + plot.width, y0: at, y1: at }
-		: { x0: at, x1: at, y0: plot.y, y1: plot.y + plot.height }
+	const { from, to } = valueRule(orientation, plot, at)
+
+	return { x0: from.x, x1: to.x, y0: from.y, y1: to.y }
 }
 
 /**
@@ -519,14 +519,14 @@ export function referenceLabels(
 	return rules.map((rule, index) => {
 		if (rule.at === null) return null
 
-		const others = lines.filter((line, other): line is LabelBox => line !== null && other !== index)
-
 		const free = referenceSpots(rule.at, labelWidth(rule.text), orientation, plot).filter(
 			(candidate) => !placed.some((other) => overlaps(other, candidate.box)),
 		)
 
-		const spot =
-			free.find((candidate) => !others.some((line) => overlaps(line, candidate.box))) ?? free[0]
+		const crossed = (box: LabelBox) =>
+			lines.some((line, other) => other !== index && line !== null && overlaps(line, box))
+
+		const spot = free.find((candidate) => !crossed(candidate.box)) ?? free[0]
 
 		if (!spot) return null
 

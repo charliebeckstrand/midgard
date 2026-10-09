@@ -173,8 +173,13 @@ export function ChartCartesianFrame({
 
 	const count = chart.bandPositions.length
 
-	// Placed once: the rules draw them, and the point labels drop where they meet one.
-	const referenceLabels = placeReferenceLabels(chart, reference, labels?.references)
+	// Placed once: the rules draw them, and the point labels drop where they meet
+	// one. The spark tier draws no label, so it places none.
+	const referenceLabels = placeReferenceLabels(
+		chart,
+		reference,
+		labels?.references && chart.tier !== 'spark',
+	)
 
 	const marksLayer = (
 		<ChartMarksLayer animate={animate} dataKey={chart.dataKey}>
