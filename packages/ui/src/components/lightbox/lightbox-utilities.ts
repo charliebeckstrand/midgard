@@ -14,31 +14,39 @@ export type LightboxFrame = { transform: string; clipPath: string }
  */
 export const RESTING_FRAME: LightboxFrame = {
 	transform: 'translate(0px, 0px) scale(1)',
-	clipPath: 'inset(0px 0px 0px 0px round 0px)',
+	clipPath: 'inset(0px 0px 0px 0px round 0px 0px 0px 0px)',
 }
+
+/** The distance, in CSS px, inside which two edges are the same edge. */
+const EDGE_TOLERANCE = 0.5
 
 /**
  * The frame that paints the photo at rest in `rest` exactly as its thumbnail
- * paints it in `thumbnail`.
+ * paints it in `thumbnail`, cut to the part of the thumbnail in `shown`.
  *
  * The thumbnail shows the photo with `object-fit: cover`, so it shows the
  * center of the photo and crops the rest. The frame scales the photo until it
  * covers the thumbnail, and moves its center onto the center of the thumbnail.
- * The clip then cuts the photo to the box of the thumbnail, with the radius of
- * the thumbnail. A tween from this frame to {@link RESTING_FRAME} raises the
- * photo, and the reverse tween puts it back.
+ * The clip then cuts the photo to `shown`. A corner of the clip has the radius
+ * of the thumbnail when its two edges are edges of the thumbnail. A corner on
+ * an edge that a scroll container or a sticky bar hides is square. A tween from
+ * this frame to {@link RESTING_FRAME} raises the photo, and the reverse tween
+ * puts it back.
  *
  * The transform origin of the photo must be its top left corner.
  *
  * @param thumbnail - The box of the thumbnail.
  * @param rest - The box of the photo at rest, with no transform.
  * @param radius - The corner radius of the thumbnail, in px.
+ * @param shown - The part of the thumbnail that the reader sees. It is the
+ * full thumbnail when the page hides none of it.
  * @internal
  */
 export function raisedFrame(
 	thumbnail: LightboxBox,
 	rest: LightboxBox,
 	radius: number,
+	shown: LightboxBox = thumbnail,
 ): LightboxFrame {
 	const scale = Math.max(thumbnail.width / rest.width, thumbnail.height / rest.height)
 
@@ -46,33 +54,58 @@ export function raisedFrame(
 
 	const y = thumbnail.y + thumbnail.height / 2 - rest.y - (rest.height * scale) / 2
 
-	// The clip applies before the transform, so it is in the px of the photo at rest.
-	const insetX = (rest.width - thumbnail.width / scale) / 2
+	// The clip applies before the transform, so it is in the px of the photo at
+	// rest. The photo paints its top left corner at (left, top).
+	const left = rest.x + x
 
-	const insetY = (rest.height - thumbnail.height / scale) / 2
+	const top = rest.y + y
+
+	const same = (a: number, b: number) => Math.abs(a - b) < EDGE_TOLERANCE
+
+	const edges = {
+		top: same(shown.y, thumbnail.y),
+		right: same(shown.x + shown.width, thumbnail.x + thumbnail.width),
+		bottom: same(shown.y + shown.height, thumbnail.y + thumbnail.height),
+		left: same(shown.x, thumbnail.x),
+	}
+
+	const corner = (a: boolean, b: boolean) => `${a && b ? radius / scale : 0}px`
+
+	const inset = [
+		(shown.y - top) / scale,
+		rest.width - (shown.x + shown.width - left) / scale,
+		rest.height - (shown.y + shown.height - top) / scale,
+		(shown.x - left) / scale,
+	]
+
+	const round = [
+		corner(edges.top, edges.left),
+		corner(edges.top, edges.right),
+		corner(edges.bottom, edges.right),
+		corner(edges.bottom, edges.left),
+	]
 
 	return {
 		transform: `translate(${x}px, ${y}px) scale(${scale})`,
-		clipPath: `inset(${insetY}px ${insetX}px ${insetY}px ${insetX}px round ${radius / scale}px)`,
+		clipPath: `inset(${inset.map((value) => `${value}px`).join(' ')} round ${round.join(' ')})`,
 	}
 }
 
 /**
- * Whether a thumbnail can be the start or the end of a flight: it has a size,
- * and part of it is in the viewport. A photo does not fly to a thumbnail that
- * the page hides or scrolls out of view. It fades.
+ * The part that two boxes share, or `undefined` when they share no area.
  *
  * @internal
  */
-export function isFlightTarget(box: LightboxBox, viewport: { width: number; height: number }) {
-	if (box.width <= 0 || box.height <= 0) return false
+export function overlapOf(a: LightboxBox, b: LightboxBox): LightboxBox | undefined {
+	const x = Math.max(a.x, b.x)
 
-	return (
-		box.x < viewport.width &&
-		box.y < viewport.height &&
-		box.x + box.width > 0 &&
-		box.y + box.height > 0
-	)
+	const y = Math.max(a.y, b.y)
+
+	const width = Math.min(a.x + a.width, b.x + b.width) - x
+
+	const height = Math.min(a.y + a.height, b.y + b.height) - y
+
+	return width > 0 && height > 0 ? { x, y, width, height } : undefined
 }
 
 /** Travel, in CSS px, past which a press on the stage is a swipe. @internal */

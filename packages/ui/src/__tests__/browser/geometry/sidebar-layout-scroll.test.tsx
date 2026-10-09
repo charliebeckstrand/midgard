@@ -25,7 +25,7 @@ import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
  */
 
 function renderTallLayout(sidebar: ReactNode = <nav>Links</nav>) {
-	const { container } = renderUI(
+	const { container, unmount } = renderUI(
 		<SidebarLayout stickyHeader sidebar={sidebar}>
 			<SidebarLayoutHeader>Title</SidebarLayoutHeader>
 			<div className="h-[3000px]">Content</div>
@@ -49,7 +49,7 @@ function renderTallLayout(sidebar: ReactNode = <nav>Links</nav>) {
 	// The inline desktop panel holds the sidebar. The closed drawer renders no copy.
 	const panel = present(screen.getByText('Links').parentElement, 'desktop panel')
 
-	return { layout, header, content, navbar, panel }
+	return { layout, header, content, navbar, panel, unmount }
 }
 
 /** The ancestors of `node` that clip or scroll on an axis, from the parent up. */
@@ -116,6 +116,16 @@ describe('sidebar layout below lg (real browser)', () => {
 		await frames()
 
 		expect(clippingAncestors(navbar)).toEqual([])
+	})
+
+	it('names the height of the navbar as the scroll padding of the page', async () => {
+		const { navbar } = renderTallLayout()
+
+		await frames()
+
+		const padding = Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop)
+
+		expect(padding).toBeNear(navbar.getBoundingClientRect().height, HALF_PIXEL)
 	})
 })
 
@@ -249,6 +259,27 @@ describe('sidebar layout from lg up (real browser)', () => {
 	})
 })
 
+describe('sidebar layout scroll padding from lg up (real browser)', () => {
+	beforeAll(() => page.viewport(1100, 800))
+
+	it('names the height of the sticky header, and clears it on unmount', async () => {
+		const { header, unmount } = renderTallLayout()
+
+		await frames()
+
+		const root = document.documentElement
+
+		expect(Number.parseFloat(getComputedStyle(root).scrollPaddingTop)).toBeNear(
+			header.getBoundingClientRect().height,
+			HALF_PIXEL,
+		)
+
+		unmount()
+
+		expect(root.style.scrollPaddingTop).toBe('')
+	})
+})
+
 describe('sidebar layout in a size container (real browser)', () => {
 	beforeAll(() => page.viewport(1100, 800))
 
@@ -272,6 +303,19 @@ describe('sidebar layout in a size container (real browser)', () => {
 			panel: present(screen.getByText('Links').parentElement, 'desktop panel'),
 		}
 	}
+
+	it('puts the scroll padding on the box, not on the page', async () => {
+		const { box, header } = renderInBox('Short')
+
+		await frames()
+
+		expect(document.documentElement.style.scrollPaddingTop).toBe('')
+
+		expect(Number.parseFloat(box.style.scrollPaddingTop)).toBeNear(
+			header.getBoundingClientRect().height,
+			HALF_PIXEL,
+		)
+	})
 
 	it('fills the box, and not the viewport, when the content is short', async () => {
 		const { box, layout, panel } = renderInBox('Short')

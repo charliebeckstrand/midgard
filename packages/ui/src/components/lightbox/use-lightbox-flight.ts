@@ -5,7 +5,7 @@ import type { RefObject } from 'react'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { k } from '../../recipes/kata/lightbox'
 import { noop } from '../../utilities/noop'
-import { isFlightTarget, type LightboxBox, RESTING_FRAME, raisedFrame } from './lightbox-utilities'
+import { type LightboxBox, overlapOf, RESTING_FRAME, raisedFrame } from './lightbox-utilities'
 
 /** The raise and the return of the photo that a {@link useLightboxFlight} gives. @internal */
 export type LightboxFlight = {
@@ -34,15 +34,83 @@ function restingBox(photo: HTMLElement): LightboxBox {
 	}
 }
 
-/** The box of a thumbnail, when the photo can fly to it, else `undefined`. */
-function targetBox(thumbnail: HTMLElement): LightboxBox | undefined {
-	const box = thumbnail.getBoundingClientRect()
+/** A box inset by the scroll padding in `style`, the edges that sticky bars cover. */
+function paddedBox(box: LightboxBox, style: CSSStyleDeclaration): LightboxBox {
+	const top = Number.parseFloat(style.scrollPaddingTop) || 0
 
-	const view = thumbnail.ownerDocument.documentElement
+	const right = Number.parseFloat(style.scrollPaddingRight) || 0
 
-	const viewport = { width: view.clientWidth, height: view.clientHeight }
+	const bottom = Number.parseFloat(style.scrollPaddingBottom) || 0
 
-	return isFlightTarget(box, viewport) ? box : undefined
+	const left = Number.parseFloat(style.scrollPaddingLeft) || 0
+
+	return {
+		x: box.x + left,
+		y: box.y + top,
+		width: box.width - left - right,
+		height: box.height - top - bottom,
+	}
+}
+
+/**
+ * The part of a box that an element with `style` lets show: its padding box on
+ * each axis that it clips, less its scroll padding. On an axis that it does not
+ * clip, the box stays whole.
+ */
+function clipOf(box: LightboxBox, element: HTMLElement, style: CSSStyleDeclaration) {
+	const rect = element.getBoundingClientRect()
+
+	const port = paddedBox(
+		{
+			x: rect.x + element.clientLeft,
+			y: rect.y + element.clientTop,
+			width: element.clientWidth,
+			height: element.clientHeight,
+		},
+		style,
+	)
+
+	const clipsX = style.overflowX !== 'visible'
+
+	const clipsY = style.overflowY !== 'visible'
+
+	return overlapOf(box, {
+		x: clipsX ? port.x : box.x,
+		y: clipsY ? port.y : box.y,
+		width: clipsX ? port.width : box.width,
+		height: clipsY ? port.height : box.height,
+	})
+}
+
+/**
+ * The part of a thumbnail that the reader sees, or `undefined` when the reader
+ * sees none of it. Each ancestor that clips its overflow cuts the box, and so
+ * does the viewport. The scroll padding of each one cuts the edges that its
+ * sticky bars cover. A fixed ancestor ends the walk, because the boxes above it
+ * do not clip it.
+ *
+ * The walk stops below the body. The body and the root give their overflow to
+ * the viewport, and the scroll padding of the root is the scroll padding of the
+ * viewport.
+ */
+function shownPart(thumbnail: HTMLElement, box: LightboxBox): LightboxBox | undefined {
+	const { body, documentElement: root } = thumbnail.ownerDocument
+
+	let shown: LightboxBox | undefined = box
+
+	for (let element = thumbnail.parentElement; shown && element && element !== body; ) {
+		const style = getComputedStyle(element)
+
+		if (style.overflowX !== 'visible' || style.overflowY !== 'visible') {
+			shown = clipOf(shown, element, style)
+		}
+
+		element = style.position === 'fixed' ? null : element.parentElement
+	}
+
+	const viewport = { x: 0, y: 0, width: root.clientWidth, height: root.clientHeight }
+
+	return shown && overlapOf(shown, paddedBox(viewport, getComputedStyle(root)))
 }
 
 /**
@@ -67,7 +135,10 @@ function radiusOf(thumbnail: HTMLElement): number {
  * Moves the photo of a lightbox between its thumbnail and the stage.
  *
  * The raise paints the photo over its thumbnail in the first frame, with the
- * crop and the radius of the thumbnail (see `raisedFrame`). It then tweens
+ * crop and the radius of the thumbnail, cut to the part of the thumbnail that
+ * the reader sees (see `raisedFrame`). So a thumbnail that a sticky bar or a
+ * scroll container hides in part does not paint its hidden part over the bar.
+ * It then tweens
  * `transform` and `clip-path` to the photo at rest. The return plays the same
  * tween backward, from the frame that the photo paints at that time. So a close
  * during the raise, or while a finger holds the photo, turns the photo around
@@ -78,8 +149,9 @@ function radiusOf(thumbnail: HTMLElement): number {
  * clip of `none` cannot tween to an inset, and a clip makes no containing
  * block.
  *
- * Under reduced motion, or with no thumbnail on the screen, the photo fades in
- * and out at its place on the stage.
+ * Under reduced motion, or when the reader sees no part of the thumbnail, the
+ * photo fades in and out at its place on the stage. A page names the edges
+ * that its sticky bars cover with `scroll-padding` on the scroller.
  *
  * @param photoRef - The image of the photo that the stage shows. Its transform
  * origin must be its top left corner.
@@ -95,9 +167,11 @@ export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): Ligh
 	const frameAt = (photo: HTMLElement, thumbnail: HTMLElement | undefined) => {
 		if (reduceMotion || !thumbnail) return undefined
 
-		const box = targetBox(thumbnail)
+		const box = thumbnail.getBoundingClientRect()
 
-		return box && raisedFrame(box, restingBox(photo), radiusOf(thumbnail))
+		const shown = shownPart(thumbnail, box)
+
+		return shown && raisedFrame(box, restingBox(photo), radiusOf(thumbnail), shown)
 	}
 
 	const raise = (thumbnail: HTMLElement | undefined) => {

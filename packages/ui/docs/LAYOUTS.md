@@ -41,7 +41,7 @@ Client app shell: a desktop sidebar, a mobile drawer-and-navbar, and a content r
 
 | Export | Summary |
 |---|---|
-| `SidebarLayout` | App shell: a desktop sidebar (inline, or a hover-revealed floating sheet), a mobile drawer-and-navbar, and a density-aware content region. The Sidebar setting of `AppearanceProvider` selects the desktop sidebar. The `locked` sidebar is inline, and the `offcanvas` sidebar is a floating sheet. The ⌘B or Ctrl+B key toggles it one time for each press. The page scrolls at each width: under a sticky navbar below `lg`, and beside a sticky desktop panel from `lg` up. The sidebar sits on the start edge. |
+| `SidebarLayout` | App shell: a desktop sidebar (inline, or a hover-revealed floating sheet), a mobile drawer-and-navbar, and a density-aware content region. The Sidebar setting of `AppearanceProvider` selects the desktop sidebar. The `locked` sidebar is inline, and the `offcanvas` sidebar is a floating sheet. The ⌘B or Ctrl+B key toggles it one time for each press. The page scrolls at each width: under a sticky navbar below `lg`, and beside a sticky desktop panel from `lg` up. The height of the bar that sticks is the top `scroll-padding` of the scroller. A scroll into view, an anchor, and a `Lightbox` flight keep clear of the bar. The sidebar sits on the start edge. |
 | `SidebarLayoutHeader` | Header slot; surfaces the layout's `actions` inline on desktop (`data-slot="header"`). |
 | `SidebarLayoutBody` | Main slot (`data-slot="body"`); scrolls with the page at each width. |
 | `SidebarLayoutFooter` | Footer slot (`data-slot="footer"`). |
