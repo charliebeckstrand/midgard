@@ -49,6 +49,8 @@ export function useSavePicks(season: number) {
 	return useMutation({
 		mutationFn: ({ week, picks }: { week: number; picks: TeamPicks }) =>
 			savePicks(season, week, picks),
+		// The prediction sheet shows the error.
+		meta: { inlineError: true },
 		onSuccess: (stored, { week }) => {
 			client.setQueryData<SeasonPicks>(picksKeys.picks(season), (held) => ({
 				...held,
@@ -58,7 +60,7 @@ export function useSavePicks(season: number) {
 	})
 }
 
-/** Deletes the picks of one week, and takes them out of the cache. */
+/** Deletes the picks of one week, and takes them out of the cache. A failure shows in a toast. */
 export function useDeletePicks(season: number) {
 	const client = useQueryClient()
 

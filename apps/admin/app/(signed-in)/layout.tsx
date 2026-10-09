@@ -14,15 +14,19 @@ export const instant = false
  * {@link SignedInClient} chrome.
  *
  * @remarks
- * An admin that passed the second step gets the sidebar, and each other user
- * gets the header. The admin pages add their own check in the layout of the
- * `(dashboard)` group. This layout only picks the chrome.
+ * An admin gets the sidebar, and each other user gets the header. The role
+ * picks the chrome, not the second step. The second step can pass while a page
+ * is open. A change of the chrome at that time mounts the page again, and the
+ * page loses its state, for example the recovery codes that show only one time.
+ * The role does not change while a page is open. The admin pages add their own
+ * check in the layout of the `(dashboard)` group, and send an admin without the
+ * second step to `/verify`. This layout only picks the chrome.
  */
 export default async function SignedInLayout({ children }: { children: ReactNode }) {
-	const { user, two_step } = await requireSession()
+	const { user } = await requireSession()
 
 	return (
-		<SignedInClient user={user} admin={user.roles.includes('admin') && two_step}>
+		<SignedInClient user={user} admin={user.roles.includes('admin')}>
 			{children}
 		</SignedInClient>
 	)

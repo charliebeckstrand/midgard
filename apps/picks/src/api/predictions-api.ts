@@ -1,4 +1,5 @@
-import { createMimirClient, type paths, settle } from 'shared/mimir'
+import { unwrap } from 'shared/auth'
+import { createMimirClient, type paths } from 'shared/mimir'
 import type { SeasonPicks, TeamPicks, WeekPicks } from '../types'
 
 /**
@@ -25,12 +26,12 @@ const mimir = createMimirClient<PicksPaths>()
 
 /** Every pick of the user in `season`. */
 export function listPicks(season: number): Promise<SeasonPicks> {
-	return settle(mimir.GET('/api/predictions/{season}', { params: { path: { season } } }))
+	return unwrap(mimir.GET('/api/predictions/{season}', { params: { path: { season } } }))
 }
 
 /** Writes the picks of one week, and answers with what was stored, each pick with its line. */
 export function savePicks(season: number, week: number, picks: TeamPicks): Promise<WeekPicks> {
-	return settle(
+	return unwrap(
 		mimir.PUT('/api/predictions/{season}/{week}', {
 			params: { path: { season, week } },
 			body: { picks },
@@ -40,7 +41,7 @@ export function savePicks(season: number, week: number, picks: TeamPicks): Promi
 
 /** Deletes the picks of one week. */
 export async function deletePicks(season: number, week: number): Promise<void> {
-	await settle(
+	await unwrap(
 		mimir.DELETE('/api/predictions/{season}/{week}', { params: { path: { season, week } } }),
 	)
 }

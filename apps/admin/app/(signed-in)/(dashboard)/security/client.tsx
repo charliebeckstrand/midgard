@@ -1,5 +1,6 @@
 'use client'
 
+import { latestError } from 'shared/providers'
 import type { Seed } from 'shared/queries'
 import { Alert } from 'ui/alert'
 import { Badge } from 'ui/badge'
@@ -47,7 +48,7 @@ export function SecurityClient({
 	const unban = useRemoveBan()
 	const confirm = useConfirm()
 
-	const error = resolve.error ?? unban.error
+	const error = latestError(resolve, unban)
 
 	return (
 		<Stack gap="xl">

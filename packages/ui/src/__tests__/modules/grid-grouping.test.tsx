@@ -192,4 +192,65 @@ describe('Grid row grouping', () => {
 
 		expect(bySlot(container, 'grid-footer')).toHaveTextContent('5 rows')
 	})
+	it('opens every group of a new grouping after one group of the old grouping closes', async () => {
+		const user = setupUser()
+
+		const { rerender } = renderUI(
+			<Grid columns={columns} rows={people} getKey={getKey} groupBy={{ value: 'role' }} />,
+		)
+
+		await user.click(screen.getByRole('button', { name: 'Collapse group Developer' }))
+
+		rerender(<Grid columns={columns} rows={people} getKey={getKey} groupBy={{ value: 'name' }} />)
+
+		// The grid keeps the change from the default, not the open state of each
+		// group, so the groups of the new column open as the default says.
+		expect(screen.queryAllByRole('button', { name: /^Expand group/ })).toHaveLength(0)
+
+		expect(leafRow('Wade')).not.toHaveAttribute('aria-hidden')
+	})
+
+	it('opens a group that new rows add after one group closes', async () => {
+		const user = setupUser()
+
+		const { rerender } = renderUI(
+			<Grid columns={columns} rows={people} getKey={getKey} groupBy={{ value: 'role' }} />,
+		)
+
+		await user.click(screen.getByRole('button', { name: 'Collapse group Developer' }))
+
+		const more = [...people, { id: 6, name: 'Jane', role: 'Analyst' }]
+
+		rerender(<Grid columns={columns} rows={more} getKey={getKey} groupBy={{ value: 'role' }} />)
+
+		expect(leafRow('Jane')).not.toHaveAttribute('aria-hidden')
+
+		expect(leafRow('Wade')).toHaveAttribute('aria-hidden', 'true')
+	})
+
+	it('closes every group of a new grouping under defaultExpanded: false after one group opens', async () => {
+		const user = setupUser()
+
+		const { rerender } = renderUI(
+			<Grid
+				columns={columns}
+				rows={people}
+				getKey={getKey}
+				groupBy={{ value: 'role', defaultExpanded: false }}
+			/>,
+		)
+
+		await user.click(screen.getByRole('button', { name: 'Expand group Developer' }))
+
+		rerender(
+			<Grid
+				columns={columns}
+				rows={people}
+				getKey={getKey}
+				groupBy={{ value: 'name', defaultExpanded: false }}
+			/>,
+		)
+
+		expect(screen.queryAllByRole('button', { name: /^Collapse group/ })).toHaveLength(0)
+	})
 })

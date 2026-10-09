@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic'
 import { type ReactNode, useState } from 'react'
+import { latestError } from 'shared/providers'
 import { Alert } from 'ui/alert'
 import { Badge } from 'ui/badge'
 import { Button } from 'ui/button'
@@ -69,7 +70,7 @@ export function TwoStep({ factors, admin, children }: TwoStepProps) {
 	const [codes, setCodes] = useState<string[] | null>(null)
 	const confirm = useConfirm()
 
-	const error = start.error ?? confirmTotp.error ?? removeApp.error ?? makeCodes.error
+	const error = latestError(start, confirmTotp, removeApp, makeCodes)
 
 	const handleConfirm: FormSubmitHandler<CodeValues> = async ({ code }) => {
 		await confirmTotp.mutateAsync(code.replace(/\s/g, ''))

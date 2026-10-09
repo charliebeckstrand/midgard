@@ -2,6 +2,7 @@
 
 import { KeyIcon } from '@heroicons/react/20/solid'
 import type { User } from 'auth'
+import { latestError } from 'shared/providers'
 import type { Seed } from 'shared/queries'
 import { Alert } from 'ui/alert'
 import { Button } from 'ui/button'
@@ -67,7 +68,7 @@ export function AccountClient({
 	const sendLink = useSendVerificationEmail()
 	const confirm = useConfirm()
 
-	const error = add.error ?? remove.error ?? sendLink.error
+	const error = latestError(add, remove, sendLink)
 
 	return (
 		<Stack gap="xl">

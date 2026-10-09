@@ -1,8 +1,12 @@
-import type { ExpandedState } from '@tanstack/react-table'
 import { act, renderHook } from '@testing-library/react'
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import type { GridColumn } from '../../modules/grid'
+import {
+	ALL_GROUPS_CLOSED,
+	ALL_GROUPS_OPEN,
+	type GroupExpansion,
+} from '../../modules/grid/engine/grid-group/tree'
 import { useGridTable } from '../../modules/grid/use-grid-table'
 
 /**
@@ -27,9 +31,9 @@ describe('useGridTable groups', () => {
 
 	const getKey = (row: Row) => row.id
 
-	function renderGroups(initial: ExpandedState = true) {
+	function renderGroups(initial: GroupExpansion = ALL_GROUPS_OPEN) {
 		return renderHook(() => {
-			const [expanded, setExpanded] = useState<ExpandedState>(initial)
+			const [expanded, setExpanded] = useState<GroupExpansion>(initial)
 
 			return {
 				expanded,
@@ -52,7 +56,7 @@ describe('useGridTable groups', () => {
 	})
 
 	it('gives each group its value, its leaves, and its expansion', () => {
-		const { result } = renderGroups({ 'role:B': true })
+		const { result } = renderGroups({ open: false, toggled: new Set(['role:B']) })
 
 		expect(
 			result.current.table.groups?.map((group) => [
@@ -73,7 +77,7 @@ describe('useGridTable groups', () => {
 
 		act(() => result.current.table.toggleGroup('role:A'))
 
-		expect(result.current.expanded).toEqual({ 'role:B': true })
+		expect(result.current.expanded).toEqual({ open: true, toggled: new Set(['role:A']) })
 
 		const [nextA, nextB] = result.current.table.groups ?? []
 
@@ -85,7 +89,7 @@ describe('useGridTable groups', () => {
 	})
 
 	it('opens a closed group again', () => {
-		const { result } = renderGroups({})
+		const { result } = renderGroups(ALL_GROUPS_CLOSED)
 
 		act(() => result.current.table.toggleGroup('role:B'))
 

@@ -17,12 +17,34 @@ import { fetchWithSecondStep } from './second-step-request'
 export const bifrost: Client<Paths> = createClient<Paths>({ fetch: fetchWithSecondStep })
 
 /**
- * Resolves to the `data` of an OK result, and throws for any other status.
+ * The error of a request that the gateway answered with a status that is not
+ * OK. `status` holds that status.
+ *
+ * @remarks
+ * The query client of `AppProviders` reads `status`: a `401` means that the
+ * session ended, so the page goes to `/login`.
+ */
+export class RequestError extends Error {
+	readonly status: number
+
+	constructor(message: string, status: number) {
+		super(message)
+
+		this.name = 'RequestError'
+
+		this.status = status
+	}
+}
+
+/**
+ * Resolves to the `data` of an OK result, and throws a {@link RequestError}
+ * for any other status.
  *
  * @remarks
  * A query or a mutation reads a thrown error as a failure. The error holds the
  * message of the gateway, such as "Sign in again to change how you sign in", so
- * that the page can show it.
+ * that the page can show it. The clients of the gateway and of Mimir both
+ * resolve through this function.
  */
 export async function unwrap<Data>(
 	result: Promise<{ data?: Data; error?: { message?: string } | string; response: Response }>,
@@ -32,7 +54,7 @@ export async function unwrap<Data>(
 	if (!response.ok) {
 		const message = typeof error === 'object' ? error.message : undefined
 
-		throw new Error(message ?? `${response.url} failed: ${response.status}`)
+		throw new RequestError(message ?? `${response.url} failed: ${response.status}`, response.status)
 	}
 
 	// An OK status without a body, such as a `204`, has no `data`.

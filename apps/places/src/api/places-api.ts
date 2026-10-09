@@ -1,4 +1,5 @@
-import { createMimirClient, settle } from 'shared/mimir'
+import { unwrap } from 'shared/auth'
+import { createMimirClient } from 'shared/mimir'
 import type { Place, PlaceDraft, VisitScope, Visits } from '../types'
 
 /**
@@ -11,32 +12,32 @@ const mimir = createMimirClient()
 
 /** Every stored place, newest visit first. */
 export function fetchPlaces(signal?: AbortSignal): Promise<Place[]> {
-	return settle(mimir.GET('/api/places', { signal }))
+	return unwrap(mimir.GET('/api/places', { signal }))
 }
 
 /** Adds one place and hands back the stored record, identity and all. */
 export function createPlace(draft: PlaceDraft): Promise<Place> {
-	return settle(mimir.POST('/api/places', { body: draft }))
+	return unwrap(mimir.POST('/api/places', { body: draft }))
 }
 
 /** Replaces one place and hands back the stored record. */
 export function savePlace(id: string, draft: PlaceDraft): Promise<Place> {
-	return settle(mimir.PUT('/api/places/{id}', { params: { path: { id } }, body: draft }))
+	return unwrap(mimir.PUT('/api/places/{id}', { params: { path: { id } }, body: draft }))
 }
 
 /** Removes one place. */
 export async function deletePlace(id: string): Promise<void> {
-	await settle(mimir.DELETE('/api/places/{id}', { params: { path: { id } } }))
+	await unwrap(mimir.DELETE('/api/places/{id}', { params: { path: { id } } }))
 }
 
 /** Every visited region, by the name its own atlas gives it. */
 export function fetchVisits(signal?: AbortSignal): Promise<Visits> {
-	return settle(mimir.GET('/api/visits', { signal }))
+	return unwrap(mimir.GET('/api/visits', { signal }))
 }
 
 /** Marks one region visited or not, and hands back both scopes. */
 export function setVisit(scope: VisitScope, region: string, visited: boolean): Promise<Visits> {
-	return settle(
+	return unwrap(
 		mimir.PUT('/api/visits/{scope}/{region}', {
 			params: { path: { scope, region } },
 			body: { visited },

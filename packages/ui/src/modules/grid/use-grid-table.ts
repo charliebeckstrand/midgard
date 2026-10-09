@@ -17,7 +17,6 @@ import {
 	type ColumnSizingState,
 	type ColumnVisibilityState,
 	type columnResizingState,
-	type ExpandedState,
 	functionalUpdate,
 	type OnChangeFn,
 	type PaginationState,
@@ -41,7 +40,7 @@ import { useLocale } from '../../providers/locale'
 import { isDataColumn, sameElements } from '../../utilities'
 import type { GridSortState } from './context'
 import { compileColumnFilters } from './engine/grid-filter/filter'
-import type { GridGroup, GridLeaf } from './engine/grid-group/tree'
+import type { GridGroup, GridLeaf, GroupExpansion } from './engine/grid-group/tree'
 import { isManualPagination } from './engine/grid-pagination-utilities'
 import { createSettleStore, type GridSettleStore } from './engine/grid-sizing/settle'
 import { grandTotalRowsOf, hiddenSelectionCount, viewLeaves } from './engine/grid-table/client-view'
@@ -136,9 +135,9 @@ type GridTableParams<T> = {
 	/** The single column id the rows are grouped by, or `null`/absent for no grouping. */
 	grouping?: (string | number) | null
 	/** Which groups are open. The grid owns this state, and the engine never reads it. */
-	expanded?: ExpandedState
+	expanded?: GroupExpansion
 	/** Writes the expansion state; a group toggle writes through it as an update. */
-	onExpandedChange?: Dispatch<SetStateAction<ExpandedState>>
+	onExpandedChange?: Dispatch<SetStateAction<GroupExpansion>>
 	/**
 	 * Marks a row as a manual-grouping group header, or `null`/absent outside
 	 * manual grouping. When set, the supplied rows are a consumer-shaped grouped
