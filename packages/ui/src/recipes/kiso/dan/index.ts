@@ -1,6 +1,6 @@
 /**
  * Dan (段): the density ramps. A ramp is a stepped `density-*` class with a
- * value for each step, such as `density-p-[2,3,4]`. It is the one place that
+ * value for each step, such as `density-p-[1,2,3,4,5]`. It is the one place that
  * writes those values. A kata, a skeleton dimension, and another kiso token
  * read the ramp from here, and `defineScale` reads the steps of a size scale
  * from it. `size-scale-boundary.test.ts` holds each ramp of the package here.
