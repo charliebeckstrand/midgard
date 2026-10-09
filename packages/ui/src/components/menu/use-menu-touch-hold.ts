@@ -1,4 +1,5 @@
-import { type PointerEvent, useEffect, useRef } from 'react'
+import { type PointerEvent, useRef } from 'react'
+import { useTimeout } from '../../hooks/use-timeout'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
 
 /** Hold time, in ms, before a touch opens the context menu. Android opens its own at about 500. */
@@ -12,8 +13,6 @@ const CLICK_WINDOW = 1000
 
 /** Native pointer events that a surface has already claimed, so a nested surface does not claim them again. */
 const claimed = new WeakSet<Event>()
-
-type Hold = { timer: ReturnType<typeof setTimeout>; x: number; y: number }
 
 /**
  * Opens a context menu on a touch long press.
@@ -32,23 +31,15 @@ type Hold = { timer: ReturnType<typeof setTimeout>; x: number; y: number }
  * @internal
  */
 export function useMenuTouchHold() {
-	const hold = useRef<Hold | null>(null)
+	// The timer clears on unmount, so it does not dispatch at a gone surface.
+	const hold = useTimeout()
+
+	// The point where the pending hold started.
+	const origin = useRef({ x: 0, y: 0 })
 
 	const dropClickUntil = useRef(0)
 
-	const cancel = () => {
-		if (hold.current) clearTimeout(hold.current.timer)
-
-		hold.current = null
-	}
-
-	// Clear a pending hold on unmount, so the timer does not dispatch at a gone surface.
-	useEffect(
-		() => () => {
-			if (hold.current) clearTimeout(hold.current.timer)
-		},
-		[],
-	)
+	const cancel = hold.clear
 
 	return {
 		onPointerDown: (event: PointerEvent) => {
@@ -76,9 +67,7 @@ export function useMenuTouchHold() {
 			// A chart or a map keeps the hold: a map opens its readout, and a chart does nothing.
 			if (target.closest('[data-touch-readout]')) return
 
-			const timer = setTimeout(() => {
-				hold.current = null
-
+			hold.set(() => {
 				const menu = new MouseEvent('contextmenu', {
 					bubbles: true,
 					cancelable: true,
@@ -93,14 +82,14 @@ export function useMenuTouchHold() {
 				if (!target.dispatchEvent(menu)) dropClickUntil.current = Date.now() + CLICK_WINDOW
 			}, TOUCH_CONTEXT_MENU_DELAY)
 
-			hold.current = { timer, x: clientX, y: clientY }
+			origin.current = { x: clientX, y: clientY }
 		},
 		onPointerMove: (event: PointerEvent) => {
-			const current = hold.current
+			if (!hold.pending()) return
 
-			if (!current) return
+			const { x, y } = origin.current
 
-			if (Math.hypot(event.clientX - current.x, event.clientY - current.y) > SLOP) cancel()
+			if (Math.hypot(event.clientX - x, event.clientY - y) > SLOP) cancel()
 		},
 		onPointerUp: cancel,
 		onPointerCancel: cancel,

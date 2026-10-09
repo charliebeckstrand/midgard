@@ -8,6 +8,7 @@ import {
 	useState,
 } from 'react'
 import { holdDragCursor } from '../../hooks/use-drag-cursor'
+import { useTimeout } from '../../hooks/use-timeout'
 import type { ScrollOrientation } from '../../types'
 import { hiddenThumb, SCROLL_FADE_DELAY_MS, type ThumbState } from './scroll-area-constants'
 import { computeThumb, findScrollableAncestor } from './scroll-area-utilities'
@@ -116,7 +117,7 @@ export function useScrollAreaScrollbar({ orientation, scrollbar }: ScrollbarOpti
 	const viewportRef = useRef<HTMLDivElement>(null)
 	const verticalTrackRef = useRef<HTMLDivElement>(null)
 	const horizontalTrackRef = useRef<HTMLDivElement>(null)
-	const scrollFadeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+	const scrollFade = useTimeout()
 	const thumbFrameRef = useRef<number | null>(null)
 
 	const [verticalThumb, setVerticalThumb] = useState<ThumbState>(hiddenThumb)
@@ -195,8 +196,6 @@ export function useScrollAreaScrollbar({ orientation, scrollbar }: ScrollbarOpti
 
 	useEffect(
 		() => () => {
-			if (scrollFadeTimeoutRef.current) clearTimeout(scrollFadeTimeoutRef.current)
-
 			if (thumbFrameRef.current !== null) cancelAnimationFrame(thumbFrameRef.current)
 		},
 		[],
@@ -237,11 +236,9 @@ export function useScrollAreaScrollbar({ orientation, scrollbar }: ScrollbarOpti
 		if (scrollbar === 'auto') {
 			setIsScrolling(true)
 
-			if (scrollFadeTimeoutRef.current) clearTimeout(scrollFadeTimeoutRef.current)
-
-			scrollFadeTimeoutRef.current = setTimeout(() => setIsScrolling(false), SCROLL_FADE_DELAY_MS)
+			scrollFade.set(() => setIsScrolling(false), SCROLL_FADE_DELAY_MS)
 		}
-	}, [scrollbar, scheduleThumbs])
+	}, [scrollbar, scheduleThumbs, scrollFade])
 
 	const dragCleanupRef = useRef<(() => void) | null>(null)
 
