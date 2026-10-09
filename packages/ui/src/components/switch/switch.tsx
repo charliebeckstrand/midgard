@@ -1,8 +1,9 @@
 'use client'
 
-import { type ChangeEvent, type ComponentProps, useEffect, useRef } from 'react'
+import { type ChangeEvent, type ComponentProps, useRef } from 'react'
 import { ariaAttr, cn } from '../../core'
 import { useComposedRef, useControllableFlag } from '../../hooks'
+import { useFormResetSync } from '../../hooks/use-form-reset-sync'
 import { k, type SwitchVariants } from '../../recipes/kata/switch'
 import { useControlProps } from '../control/use-control-props'
 import { useFormToggle } from '../form/use-form-toggle'
@@ -74,30 +75,8 @@ export function Switch({
 	const setRef = useComposedRef(inputRef, ref)
 
 	// A native form reset reverts the uncontrolled input without firing onChange;
-	// mirror the reverted value into the owned aria state on the next frame.
-	useEffect(() => {
-		if (isControlled) return
-
-		const input = inputRef.current
-
-		const form = input?.form
-
-		if (!form) return
-
-		let frame = 0
-
-		const handleReset = () => {
-			frame = requestAnimationFrame(() => setOn(input.checked))
-		}
-
-		form.addEventListener('reset', handleReset)
-
-		return () => {
-			form.removeEventListener('reset', handleReset)
-
-			cancelAnimationFrame(frame)
-		}
-	}, [isControlled, setOn])
+	// mirror the reverted value into the owned aria state.
+	useFormResetSync(inputRef, !isControlled, (input) => setOn(input.checked))
 
 	const {
 		id: resolvedId,
