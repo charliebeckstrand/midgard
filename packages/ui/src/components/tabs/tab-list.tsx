@@ -30,6 +30,7 @@ export function TabList({
 	className,
 	children,
 	onKeyDown,
+	onFocus,
 	ref: consumerRef,
 	...props
 }: TabListProps) {
@@ -53,7 +54,7 @@ export function TabList({
 
 	// The segment variant is a fixed pill control; only the underline list
 	// scrolls, so the viewport (and its scroll-into-view) is gated off for it.
-	useTabListScroll(scrollRef, orientation, !isSegment)
+	const handleFocus = useTabListScroll(scrollRef, orientation, !isSegment)
 
 	useEffect(() => {
 		const el = ref.current
@@ -97,6 +98,10 @@ export function TabList({
 			aria-orientation={orientation}
 			// Roving takes no gate: the consumer's handler runs first, then roving.
 			onKeyDown={composeEventHandlers(onKeyDown, handleKeyDown, {
+				checkForDefaultPrevented: false,
+			})}
+			// Scrolls a focused tab into the viewport after the consumer's handler.
+			onFocus={composeEventHandlers(onFocus, handleFocus, {
 				checkForDefaultPrevented: false,
 			})}
 		>

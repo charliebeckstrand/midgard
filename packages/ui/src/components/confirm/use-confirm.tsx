@@ -97,22 +97,24 @@ export function ConfirmHost({ children }: { children: ReactNode }) {
 			new Promise<boolean>((resolve, reject) => {
 				settleRef.current?.resolve(false)
 
-				settleRef.current = { resolve, reject }
+				const current = { resolve, reject }
+
+				settleRef.current = current
 
 				setQuestion({ options, pending: false })
+
+				// The module caches, so a question after the first load waits for
+				// nothing. A failed load rejects this question while it is open.
+				loadConfirm().then(setAsking, (error: unknown) => {
+					if (settleRef.current === current) settle()?.reject(error)
+				})
 			}),
-		[],
+		[settle],
 	)
 
 	useEffect(() => () => settleRef.current?.resolve(false), [])
 
 	const asked = question !== null
-
-	useEffect(() => {
-		if (!asked || dialog) return
-
-		loadConfirm().then(setAsking, (error: unknown) => settle()?.reject(error))
-	}, [asked, dialog, settle])
 
 	const pending = question?.pending ?? false
 
