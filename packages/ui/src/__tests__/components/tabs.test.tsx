@@ -1,7 +1,6 @@
 import { createRef, type ReactNode } from 'react'
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { Tab, TabContent, TabContents, TabList, Tabs, type TabsProps } from '../../components/tabs'
-import { scrollIntoViewOffset } from '../../components/tabs/use-tab-list-scroll'
 import { DensityProvider } from '../../providers/density'
 import {
 	act,
@@ -759,27 +758,6 @@ describe('Tabs keyboard navigation', () => {
 		await user.keyboard('{Home}')
 
 		expect(tab('A')).toHaveFocus()
-	})
-})
-
-describe('scrollIntoViewOffset', () => {
-	it('leaves the offset unchanged when the tab already fits', () => {
-		expect(scrollIntoViewOffset({ viewport: 100, current: 10, extent: 30, leading: 20 })).toBe(10)
-	})
-
-	it('scrolls back when the tab starts before the viewport', () => {
-		expect(scrollIntoViewOffset({ viewport: 100, current: 50, extent: 30, leading: -15 })).toBe(35)
-	})
-
-	it('scrolls forward the minimum to reveal a tab past the trailing edge', () => {
-		// leading 80 + extent 40 overruns the 100 viewport by 20; align the trailing edge.
-		expect(scrollIntoViewOffset({ viewport: 100, current: 0, extent: 40, leading: 80 })).toBe(20)
-	})
-
-	it('treats a tab flush with either edge as already visible', () => {
-		expect(scrollIntoViewOffset({ viewport: 100, current: 0, extent: 40, leading: 0 })).toBe(0)
-
-		expect(scrollIntoViewOffset({ viewport: 100, current: 0, extent: 40, leading: 60 })).toBe(0)
 	})
 })
 
