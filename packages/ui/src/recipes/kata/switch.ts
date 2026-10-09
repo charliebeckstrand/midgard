@@ -68,10 +68,10 @@ export const k = defineRecipe(
 			...track,
 			'has-checked:bg-(--switch-bg) has-checked:ring-(--switch-bg-ring) has-checked:ring-inset',
 			...mode(
-				'not-has-[:disabled,:checked]:hover:bg-zinc-300 not-has-[:disabled,:checked]:group-has-[[data-slot=label]:hover]/field:bg-zinc-300',
-				'dark:not-has-[:disabled,:checked]:hover:bg-white/15 dark:not-has-[:disabled,:checked]:group-has-[[data-slot=label]:hover]/field:bg-white/15',
+				'not-has-[:disabled,:checked,[aria-readonly=true]]:hover:bg-zinc-300 not-has-[:disabled,:checked,[aria-readonly=true]]:group-has-[[data-slot=label]:hover]/field:bg-zinc-300',
+				'dark:not-has-[:disabled,:checked,[aria-readonly=true]]:hover:bg-white/15 dark:not-has-[:disabled,:checked,[aria-readonly=true]]:group-has-[[data-slot=label]:hover]/field:bg-white/15',
 			),
-			'not-has-disabled:has-checked:hover:opacity-90 not-has-disabled:has-checked:group-has-[[data-slot=label]:hover]/field:opacity-90',
+			'not-has-[:disabled,[aria-readonly=true]]:has-checked:hover:opacity-90 not-has-[:disabled,[aria-readonly=true]]:has-checked:group-has-[[data-slot=label]:hover]/field:opacity-90',
 			// Validation ring overrides the resting / checked track ring when the
 			// input carries a data-* severity attribute.
 			...check.validation,

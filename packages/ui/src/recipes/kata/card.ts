@@ -20,7 +20,9 @@ const { flex } = narabi
  *
  * The card clips its overflow, because media fills the card to its rounded
  * edge. Thus content that runs past the edge of the card is hidden, and the
- * user cannot scroll to it. The footer wraps its actions onto a new line when
+ * user cannot scroll to it. The clip is `overflow: clip`, not `hidden`, so the
+ * card is not a scroll container. Thus in a flex row, the card does not become
+ * narrower than its widest word. The footer wraps its actions onto a new line when
  * the row is wider than the card. The gap also spaces the lines. The body
  * breaks a token that is wider than its line.
  */

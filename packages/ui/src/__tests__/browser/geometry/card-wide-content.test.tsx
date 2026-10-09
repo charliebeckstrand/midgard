@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Button } from '../../../components/button'
 import { Card, CardBody, CardFooter } from '../../../components/card'
+import { Stat, StatLabel, StatValue } from '../../../components/stat'
 import { getSlot, renderUI, screen } from '../../helpers'
 
 /**
@@ -10,6 +11,9 @@ import { getSlot, renderUI, screen } from '../../helpers'
  * edge. Thus content that runs past the edge of the card is hidden, and the
  * user cannot scroll to it. The footer wraps a row of actions that is wider
  * than the card. The body breaks a token that is wider than the card.
+ *
+ * The clip is not a scroll container. Thus a card in a flex row is at least as
+ * wide as its widest word, and the body does not break a word to fit a row.
  *
  * Rides the real browser because the claim is a computed one: jsdom lays out no
  * box.
@@ -74,5 +78,33 @@ describe('content wider than a card (real browser)', () => {
 
 		// The clip of the card hides no part of the token.
 		expect(card.scrollWidth).toBeLessThanOrEqual(card.clientWidth)
+	})
+
+	it('does not shrink below its widest word in a flex row', () => {
+		const { container } = renderUI(
+			<div style={{ display: 'flex', width: WIDTH }}>
+				{['$12,345', '8,421', '2.4%'].map((value) => (
+					<Card key={value} className="flex-1">
+						<CardBody>
+							<Stat>
+								<StatLabel>Metric</StatLabel>
+								<StatValue>{value}</StatValue>
+							</Stat>
+						</CardBody>
+					</Card>
+				))}
+			</div>,
+		)
+
+		const value = getSlot(container, 'stat-value')
+
+		// One line: the value is no taller than its line box.
+		const line = Number.parseFloat(getComputedStyle(value).lineHeight)
+
+		expect(value.getBoundingClientRect().height).toBeLessThanOrEqual(line)
+
+		expect(getSlot(container, 'card').scrollWidth).toBeLessThanOrEqual(
+			getSlot(container, 'card').clientWidth,
+		)
 	})
 })
