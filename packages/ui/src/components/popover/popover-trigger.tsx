@@ -1,17 +1,9 @@
 'use client'
 
-import {
-	type HTMLAttributes,
-	isValidElement,
-	type ReactElement,
-	type ReactNode,
-	type Ref,
-	type RefAttributes,
-	type SyntheticEvent,
-	useCallback,
-} from 'react'
+import { type ReactNode, type SyntheticEvent, useCallback } from 'react'
 import { cn } from '../../core'
 import { useDeferredFloatingReference } from '../../hooks/use-deferred-floating-reference'
+import { TriggerChild, triggerChild } from '../../primitives/trigger-child/trigger-child'
 import { k } from '../../recipes/kata/popover'
 import { usePopoverContext } from './context'
 
@@ -27,20 +19,21 @@ export type PopoverTriggerProps = {
  * `<button>` otherwise, stamping `aria-haspopup="dialog"`, `aria-expanded`, and
  * `aria-controls`. A {@link PopoverContent} with no accessible name is not a
  * dialog, so the trigger then omits `aria-haspopup`. Clicks within a `[data-popover-ignore]` subtree are ignored.
+ *
+ * The trigger writes `data-slot="popover-trigger"` only on a host element child,
+ * such as a `<button>`, that has no `data-slot` of its own. A component child,
+ * such as a `<Button>`, keeps the anchor that it writes for itself. The
+ * `className` of a cloned child comes after the `className` of the trigger, so
+ * the child wins a clash.
  */
 export function PopoverTrigger({ children, className }: PopoverTriggerProps) {
 	const { open, panelId, dialog, triggerRef, setReference, getReferenceProps } = usePopoverContext()
 
-	const child = isValidElement(children)
-		? (children as ReactElement<
-				HTMLAttributes<HTMLElement> &
-					RefAttributes<HTMLElement> & { [key: `data-${string}`]: string | undefined }
-			>)
-		: null
+	const child = triggerChild(children)
 
 	// Merges the child's own ref (React 19 ref-as-prop) with the floating
 	// reference; both receive the node.
-	const childRef = (child?.props as { ref?: Ref<HTMLElement> } | undefined)?.ref
+	const childRef = child?.props.ref
 
 	// Registration waits for the first open, so a closed popover renders once
 	// rather than twice. `Popover` wires `useClick`, and its outside-press is
@@ -75,23 +68,18 @@ export function PopoverTrigger({ children, className }: PopoverTriggerProps) {
 	)
 
 	if (child) {
-		const referenceProps = wrapReferenceProps(child.props as Record<string, unknown>)
-
-		// The clone renders the child's type through JSX, not through `cloneElement`.
-		// The React Compiler rejects a ref passed to a function during render.
-		const Child = child.type
-
 		return (
-			<Child
-				key={child.key}
-				{...child.props}
-				{...(referenceProps as HTMLAttributes<HTMLElement>)}
+			<TriggerChild
+				child={child}
+				props={{
+					...wrapReferenceProps(child.props),
+					'aria-haspopup': dialog ? 'dialog' : undefined,
+					'aria-expanded': open,
+					'aria-controls': open ? panelId : undefined,
+				}}
 				ref={mergeRefs}
-				aria-haspopup={dialog ? 'dialog' : undefined}
-				aria-expanded={open}
-				aria-controls={open ? panelId : undefined}
-				data-slot="popover-trigger"
-				className={cn(k.trigger, child.props.className, className)}
+				slot="popover-trigger"
+				className={cn(k.trigger, className)}
 			/>
 		)
 	}

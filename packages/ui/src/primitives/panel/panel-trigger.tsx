@@ -1,14 +1,8 @@
 'use client'
 
-import {
-	type AriaAttributes,
-	cloneElement,
-	isValidElement,
-	type MouseEventHandler,
-	type ReactElement,
-	type ReactNode,
-} from 'react'
+import type { MouseEventHandler, ReactNode } from 'react'
 import { composeEventHandlers } from '../../core'
+import { TriggerChild, triggerChild } from '../trigger-child/trigger-child'
 import { usePanelState } from './panel-root'
 
 /** Props for {@link PanelTrigger}: the clickable child. */
@@ -20,14 +14,6 @@ export type PanelTriggerProps = {
 	 */
 	children: ReactNode
 }
-
-/** The child shape the clone path reads: its own click handler and the ARIA attributes the trigger sets. @internal */
-type TriggerChild = ReactElement<
-	{ onClick?: MouseEventHandler } & Pick<
-		AriaAttributes,
-		'aria-haspopup' | 'aria-expanded' | 'aria-controls'
-	>
->
 
 /**
  * Opens the panel of the enclosing Dialog, Sheet, or Drawer root. A single
@@ -46,17 +32,26 @@ export function PanelTrigger({ children }: PanelTriggerProps) {
 
 	const controls = open ? panelId : undefined
 
-	if (isValidElement(children)) {
-		const child = children as TriggerChild
+	const child = triggerChild(children)
 
-		return cloneElement(child, {
-			onClick: composeEventHandlers(child.props.onClick, handleClick, {
-				checkForDefaultPrevented: false,
-			}),
-			'aria-haspopup': child.props['aria-haspopup'] ?? 'dialog',
-			'aria-expanded': child.props['aria-expanded'] ?? open,
-			'aria-controls': controls,
-		})
+	if (child) {
+		return (
+			<TriggerChild
+				child={child}
+				props={{
+					onClick: composeEventHandlers(
+						child.props.onClick as MouseEventHandler | undefined,
+						handleClick,
+						{
+							checkForDefaultPrevented: false,
+						},
+					),
+					'aria-haspopup': child.props['aria-haspopup'] ?? 'dialog',
+					'aria-expanded': child.props['aria-expanded'] ?? open,
+					'aria-controls': controls,
+				}}
+			/>
+		)
 	}
 
 	return (

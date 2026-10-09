@@ -1,6 +1,6 @@
 import type { Ref } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-
+import { Button } from '../../components/button'
 import {
 	Menu,
 	MenuContent,
@@ -175,6 +175,18 @@ describe('MenuTrigger', () => {
 		fireEvent.click(screen.getByText('Open'))
 
 		expect(onClick).toHaveBeenCalled()
+	})
+
+	it('keeps the anchor of a component child', () => {
+		renderUI(
+			<Menu>
+				<MenuTrigger>
+					<Button>Open</Button>
+				</MenuTrigger>
+			</Menu>,
+		)
+
+		expect(screen.getByRole('button', { name: 'Open' })).toHaveAttribute('data-slot', 'button')
 	})
 
 	it('preserves the child className and onKeyDown when cloning', () => {

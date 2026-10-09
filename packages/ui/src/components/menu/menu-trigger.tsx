@@ -2,10 +2,8 @@
 
 import {
 	type ComponentProps,
-	isValidElement,
 	type KeyboardEvent,
 	type ReactElement,
-	type Ref,
 	type SyntheticEvent,
 	useId,
 	useRef,
@@ -13,6 +11,7 @@ import {
 import { cn, composeEventHandlers } from '../../core'
 import { useDeferredFloatingReference } from '../../hooks/use-deferred-floating-reference'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { TriggerChild, triggerChild } from '../../primitives/trigger-child/trigger-child'
 import { useMenuActions, useMenuState } from './context'
 import { useMenuPointer } from './use-menu-pointer'
 
@@ -65,6 +64,10 @@ function mergeTriggerProps(
  * The trigger names the dropdown panel through `aria-labelledby`. It keeps the
  * `id` of a cloned child or of the consumer, and else gets a generated `id`.
  *
+ * The trigger writes `data-slot="menu-trigger"` only on a host element child,
+ * such as a `<button>`, that has no `data-slot` of its own. A component child,
+ * such as a `<Button>`, keeps the anchor that it writes for itself.
+ *
  * The trigger keeps focus while the menu is open. Tab off it therefore closes
  * the menu, and lets focus proceed to the next tabbable in one keystroke.
  */
@@ -83,9 +86,9 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 	// reference so a consumer can register the trigger element (e.g. as a focus
 	// target) rather than have it clobbered — matching `TooltipTrigger`/
 	// `PopoverTrigger`.
-	const childRef = isValidElement(children)
-		? ((children.props as { ref?: Ref<HTMLElement> }).ref ?? undefined)
-		: undefined
+	const child = triggerChild(children)
+
+	const childRef = child?.props.ref
 
 	// Registration waits for the first open, so a closed menu renders once
 	// rather than twice. That takes a closed menu from 0.064ms to 0.036ms,
@@ -154,9 +157,7 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 	// their event handlers with the floating interactions instead of clobbering
 	// them (the `TooltipTrigger`/`PopoverTrigger` pattern). The toggle itself is
 	// `useClick`'s, composed at the state level, so only the key handlers wrap.
-	if (isValidElement(children)) {
-		const child = children as ReactElement<Record<string, unknown>>
-
+	if (child) {
 		const childProps =
 			Object.keys(props).length > 0 ? mergeTriggerProps(props, child.props) : child.props
 
@@ -164,32 +165,29 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 
 		const childOnKeyUp = childProps.onKeyUp as ((event: KeyboardEvent) => void) | undefined
 
-		// The clone renders the child's type through JSX, not through `cloneElement`.
-		// The React Compiler rejects a ref passed to a function during render.
-		const Child = child.type
-
 		return (
-			<Child
-				key={child.key}
-				{...childProps}
-				{...getReferenceProps({
-					...childProps,
-					onKeyDown: (event: KeyboardEvent) => {
-						childOnKeyDown?.(event)
-						handleTriggerKeyDown(event)
-					},
-					onKeyUp: (event: KeyboardEvent) => {
-						childOnKeyUp?.(event)
-						handleTriggerKeyUp(event)
-					},
-				})}
+			<TriggerChild
+				child={child}
+				props={{
+					...getReferenceProps({
+						...childProps,
+						onKeyDown: (event: KeyboardEvent) => {
+							childOnKeyDown?.(event)
+							handleTriggerKeyDown(event)
+						},
+						onKeyUp: (event: KeyboardEvent) => {
+							childOnKeyUp?.(event)
+							handleTriggerKeyUp(event)
+						},
+					}),
+					id: (childProps.id as string | undefined) ?? fallbackId,
+					'aria-haspopup': 'menu',
+					'aria-expanded': open,
+					'aria-controls': open ? menuId : undefined,
+				}}
 				ref={mergeRefs}
-				id={(childProps.id as string | undefined) ?? fallbackId}
-				aria-haspopup="menu"
-				aria-expanded={open}
-				aria-controls={open ? menuId : undefined}
-				data-slot="menu-trigger"
-				className={cn(className, child.props.className as string | undefined)}
+				slot="menu-trigger"
+				className={className}
 			/>
 		)
 	}
