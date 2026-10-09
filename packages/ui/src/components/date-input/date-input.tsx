@@ -1,17 +1,15 @@
 'use client'
 
 import { Calendar as CalendarIcon } from 'lucide-react'
-import { type ReactNode, useEffect, useEffectEvent, useId, useState } from 'react'
+import { type ReactNode, useState } from 'react'
 import { composeEventHandlers } from '../../core'
-import { useAriaIds } from '../../hooks'
 import { useFormattedInput } from '../../hooks/use-formatted-input'
 import { useLocale } from '../../providers/locale'
 import { isComposing } from '../../utilities'
 import { isDayInRange } from '../calendar/calendar-utilities'
 import { useControl } from '../control/context'
-import { useControlFallbackLabel } from '../control/use-control-fallback-label'
+import { useControlTypedVerdict } from '../control/use-control-typed-verdict'
 import type { CardValidity } from '../credit-card-input/credit-card-input-utilities'
-import { Message } from '../fieldset'
 import { useFormValue } from '../form/use-form-value'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
@@ -94,11 +92,11 @@ export type DateInputProps = Omit<
 	clearLabel?: string
 	/**
 	 * Error message shown while the typed entry is invalid, as an error
-	 * `<Message>` wired into the `aria-describedby` of the input, also outside a
-	 * Field. A complete entry that parses to a real date but falls outside
-	 * `min`/`max` instead shows a bound-specific message (e.g. "Enter a date on
-	 * or after 06/01/2026"). Pass `null` (or `false`) to suppress both and supply
-	 * your own.
+	 * `<Message>` with an id of its own, wired into the `aria-describedby` of the
+	 * input, also outside a Field. A complete entry that parses to a real date
+	 * but falls outside `min`/`max` instead shows a bound-specific message (e.g.
+	 * "Enter a date on or after 06/01/2026"). Pass `null` (or `false`) to
+	 * suppress both and supply your own.
 	 *
 	 * @defaultValue `Enter a valid date (${format})`
 	 */
@@ -115,9 +113,10 @@ export type DateInputProps = Omit<
  * field by `name` (the stored value is the `Date`).
  *
  * @remarks
- * Falls back to an `aria-label` of `'Date'` only when no Field `<Label>` names
- * it, from the first render on; `placeholder` is not a programmatic name
- * (WCAG 3.3.2 / 4.1.2).
+ * Falls back to an `aria-label` of `'Date'` only when nothing names it. It
+ * yields to a Field `<Label>` from the first render, and to a native `<label>`
+ * after each commit. The `placeholder` is not a programmatic name (WCAG 3.3.2 /
+ * 4.1.2).
  * Enter blurs the input, committing or renormalizing the current entry.
  * A reset of the bound Form drops the typed text and its verdict, also when
  * the value stays the same. A controlled value that is set again to the same
@@ -154,8 +153,6 @@ export function DateInput({
 }: DateInputProps) {
 	const control = useControl()
 
-	const fallbackLabel = useControlFallbackLabel('Date')
-
 	const ambient = useLocale()
 
 	// Field order follows the ambient locale unless the caller pins it, so the
@@ -175,8 +172,6 @@ export function DateInput({
 	// Text being edited; null means "derive the display from the value".
 	const [editingText, setEditingText] = useState<string | null>(null)
 
-	const [typedInvalid, setTypedInvalid] = useState(false)
-
 	const separator = dateInputSeparator(format)
 
 	const parse = (text: string): Date | undefined => {
@@ -185,11 +180,19 @@ export function DateInput({
 		return parsed && isDayInRange(parsed, min, max) ? parsed : undefined
 	}
 
-	// A count of the typed verdicts that an external change cleared. The change
-	// clears the verdict during render, where a report must not run. The effect
-	// below carries the report, so the reported verdict cannot drift from the one
-	// the field renders.
-	const [clearedVerdicts, setClearedVerdicts] = useState(0)
+	const text = editingText ?? (date === undefined ? '' : formatDateValue(date, format))
+
+	const verdict = useControlTypedVerdict({
+		fallbackLabel: 'Date',
+		ref,
+		describedBy: ariaDescribedBy,
+		// Resolved eagerly though only an invalid verdict shows it: gating it buys
+		// one skipped parse of a ≤10-character text.
+		message: resolveInvalidMessage(text, format, invalidMessage, min, max),
+		reportCleared: () => {
+			onValidityChange?.({ isValid: date !== undefined, isPotentiallyValid: true })
+		},
+	})
 
 	// An external change or a form reset overrides any in-progress text. The
 	// hook keeps the last own commit, so it can tell an external change (a form
@@ -201,13 +204,9 @@ export function DateInput({
 		onOverride: () => {
 			setEditingText(null)
 
-			setTypedInvalid(false)
-
-			setClearedVerdicts((count) => count + 1)
+			verdict.clear()
 		},
 	})
-
-	const text = editingText ?? (date === undefined ? '' : formatDateValue(date, format))
 
 	/*
 	 * The field's one verdict on the typed text, stated where both writers reach it.
@@ -221,42 +220,17 @@ export function DateInput({
 	const settle = (parsed: Date | undefined, closed: boolean) => {
 		const refused = closed && !parsed
 
-		setTypedInvalid(refused)
+		verdict.setInvalid(refused)
 
 		onValidityChange?.({ isValid: Boolean(parsed), isPotentiallyValid: !refused })
 	}
-
-	const reportClearedVerdict = useEffectEvent(() => {
-		onValidityChange?.({ isValid: date !== undefined, isPotentiallyValid: true })
-	})
-
-	useEffect(() => {
-		if (clearedVerdicts > 0) reportClearedVerdict()
-	}, [clearedVerdicts])
-
-	// Resolved eagerly though only the `typedInvalid` branch renders it: gating it
-	// buys one skipped parse of a ≤10-character text and costs this component its
-	// cognitive-complexity budget.
-	const activeMessage = resolveInvalidMessage(text, format, invalidMessage, min, max)
-
-	const showMessage = typedInvalid && Boolean(activeMessage)
-
-	const ownMessageId = useId()
-
-	const { messageId, describedId } = standaloneMessageIds(
-		control !== undefined,
-		ownMessageId,
-		showMessage,
-	)
-
-	const describedBy = useAriaIds(ariaDescribedBy, describedId)
 
 	// `atEnd: 'jump'`: the mask pads `1/` to `01/`, so a restore at the end would pin
 	// the caret before the padded digit.
 	const { ref: setRefs, reformat } = useFormattedInput({
 		format: (raw) => maskDateText(raw, format),
 		atEnd: 'jump',
-		ref,
+		ref: verdict.ref,
 	})
 
 	// The rule of Input for its clear button. Any text counts, also a partial
@@ -287,8 +261,8 @@ export function DateInput({
 				inputMode="numeric"
 				// The placeholder is not a programmatic name (WCAG 3.3.2 / 4.1.2);
 				// defaults an aria-label, yielding to a Field <Label> from the first
-				// render (useControlFallbackLabel).
-				aria-label={ariaLabel ?? fallbackLabel}
+				// render and to a native label after each commit (useControlTypedVerdict).
+				aria-label={ariaLabel ?? verdict.fallbackLabel}
 				placeholder={placeholder ?? format}
 				autoComplete="off"
 				disabled={disabled}
@@ -299,7 +273,7 @@ export function DateInput({
 				// trailing glyph holds its place. A suffix of the consumer, such as the
 				// calendar button of a DatePicker in `input` mode, stays beside it.
 				suffix={clearShown ? suffix : (suffix ?? <Icon icon={<CalendarIcon />} />)}
-				invalid={invalid ?? (typedInvalid || undefined)}
+				invalid={invalid ?? (verdict.invalid || undefined)}
 				name={name}
 				value={text}
 				onChange={(event) => {
@@ -347,38 +321,16 @@ export function DateInput({
 					if (event.key === 'Enter' && !isComposing(event)) event.currentTarget.blur()
 				})}
 				{...props}
-				aria-describedby={describedBy}
+				aria-describedby={verdict.describedBy}
 			/>
 
 			{/* Visible feedback gated on the component's own detection, not the
 			    external `invalid` prop. The input's aria-invalid comes from the
 			    `invalid` prop above, never from this Message. `resolveInvalidMessage`
 			    picks the bound- or format-specific text. */}
-			{showMessage ? (
-				<Message severity="error" id={messageId}>
-					{activeMessage}
-				</Message>
-			) : null}
+			{verdict.message}
 		</>
 	)
-}
-
-/**
- * The ids that wire the invalid Message of a {@link DateInput} outside a
- * Control. Inside a Control, the Message registers its id in the
- * `aria-describedby` of the field, so both ids stay `undefined`. Outside one,
- * the Message takes `ownId`, and the input references it while it shows.
- *
- * @internal
- */
-function standaloneMessageIds(
-	inControl: boolean,
-	ownId: string,
-	shown: boolean,
-): { messageId: string | undefined; describedId: string | undefined } {
-	if (inControl) return { messageId: undefined, describedId: undefined }
-
-	return { messageId: ownId, describedId: shown ? ownId : undefined }
 }
 
 /**
