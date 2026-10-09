@@ -513,6 +513,21 @@ describe('items and slots at the first paint (real browser)', () => {
 		expect(px(container.querySelector('[data-slot="icon"]'), 'width')).toBe(16)
 	})
 
+	it('stops an unsized option and its icon at sm under an xs root', () => {
+		writeRootDensity(document.documentElement, 'xs')
+
+		const container = mountMarkup(
+			<Option selected={false} onSelect={() => {}}>
+				{icon}
+				Option
+			</Option>,
+		)
+
+		expect(px(container.querySelector('[role="option"]'), 'fontSize')).toBe(14)
+
+		expect(px(container.querySelector('[data-slot="icon"]'), 'width')).toBe(16)
+	})
+
 	it('lets an explicit size of a sidebar item win over the root', () => {
 		writeRootDensity(document.documentElement, 'lg')
 

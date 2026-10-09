@@ -17,8 +17,8 @@ export const size = {
 		/** An icon in the icon slot of a host. */
 		slot: '*:data-[slot=icon]:density-size-[3,4,5,6,6]',
 		/**
-		 * An icon in a nav item and a sidebar item. It stops at `sm` and `lg`, as the
-		 * text, the gap, and the padding of the row do.
+		 * An icon in a nav item, a sidebar item, a menu item, and an option. It stops
+		 * at `sm` and `lg`, as the text, the gap, and the padding of the row do.
 		 */
 		row: {
 			/** The icon element, for the skeleton of a row. */
