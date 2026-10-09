@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Grid, type GridColumn, type GridSortState } from 'ui/grid'
+import { useTimeout } from 'ui/hooks'
 import { columns, type Person, people } from '../data.tsx'
 
 const sortableColumns: GridColumn<Person>[] = columns.map((column) =>
@@ -28,20 +29,22 @@ export default function ServerSideSorting() {
 
 	const [rows, setRows] = useState(() => sortPeople(sort))
 
+	const timeout = useTimeout()
+
 	// The timeout stands in for the request. The grid dims its rows until the
 	// sorted rows arrive. Shift-click a header to sort by one more column.
-	useEffect(() => {
-		const id = setTimeout(() => setRows(sortPeople(sort)), 600)
+	const onValueChange = (next: GridSortState[]) => {
+		setSort(next)
 
-		return () => clearTimeout(id)
-	}, [sort])
+		timeout.set(() => setRows(sortPeople(next)), 600)
+	}
 
 	return (
 		<Grid
 			columns={sortableColumns}
 			rows={rows}
 			getKey={(row) => row.id}
-			sort={{ value: sort, onValueChange: setSort, manual: true }}
+			sort={{ value: sort, onValueChange, manual: true }}
 		/>
 	)
 }
