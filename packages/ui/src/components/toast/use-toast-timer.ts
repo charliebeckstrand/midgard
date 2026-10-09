@@ -1,6 +1,7 @@
 'use client'
 
-import { type RefObject, useCallback, useEffect, useRef } from 'react'
+import { type RefObject, useCallback, useRef } from 'react'
+import { useTimeout } from '../../hooks/use-timeout'
 import type { ToastData } from './types'
 
 /**
@@ -32,13 +33,11 @@ export function useToastTimer(
 	// The time left for each counted toast, measured at `sinceRef`.
 	const remainingRef = useRef(new Map<string, number>())
 
-	const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
+	const timer = useTimeout()
 
 	const sinceRef = useRef(0)
 
 	const pauseCountRef = useRef(0)
-
-	useEffect(() => () => clearTimeout(timerRef.current), [])
 
 	// Recorded, not guarded: on whole-provider unmount, parent-first cleanup order
 	// can re-arm a timer nothing then clears. It fires `start` into detached refs
@@ -68,7 +67,7 @@ export function useToastTimer(
 		// the React Compiler does not compile a `useCallback` that reads its own
 		// binding.
 		const run = () => {
-			clearTimeout(timerRef.current)
+			timer.clear()
 
 			// WCAG 2.2.1: no live auto-dismiss timer under the user's pointer or focus.
 			// The final `resume` arms again.
@@ -76,7 +75,7 @@ export function useToastTimer(
 
 			const next = Math.min(...remainingRef.current.values())
 
-			timerRef.current = setTimeout(() => {
+			timer.set(() => {
 				settle()
 
 				const expired = toastsRef.current
@@ -92,7 +91,7 @@ export function useToastTimer(
 		}
 
 		run()
-	}, [settle, start, toastsRef])
+	}, [settle, start, timer, toastsRef])
 
 	// Sets the countdown of one toast to `ms` from now, for a new toast or a reset.
 	// While held, the countdown stays frozen until the final `resume`.
@@ -127,9 +126,9 @@ export function useToastTimer(
 			}
 		}
 
-		clearTimeout(timerRef.current)
+		timer.clear()
 		stop()
-	}, [settle, stop, toastsRef])
+	}, [settle, stop, timer, toastsRef])
 
 	const resume = useCallback(() => {
 		// Before the count drops, so that the held time is not subtracted.

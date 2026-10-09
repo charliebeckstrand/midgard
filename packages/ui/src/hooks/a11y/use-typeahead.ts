@@ -1,7 +1,8 @@
 'use client'
 
-import { type KeyboardEvent, useCallback, useEffect, useMemo, useRef } from 'react'
+import { type KeyboardEvent, useCallback, useMemo, useRef } from 'react'
 import { accessibleName } from '../../core'
+import { type Timeout, useTimeout } from '../use-timeout'
 
 /** Idle window after which the type-ahead buffer resets. */
 const TYPEAHEAD_TIMEOUT_MS = 500
@@ -18,8 +19,13 @@ function itemLabel(el: HTMLElement): string {
 	return accessibleName(el).toLowerCase()
 }
 
-/** Mutable buffer backing one type-ahead instance. @internal */
-export type TypeaheadState = { query: string; timer: number }
+/**
+ * Mutable buffer backing one type-ahead instance. `reset` is the idle timer
+ * that clears `query`.
+ *
+ * @internal
+ */
+export type TypeaheadState = { query: string; reset: Timeout }
 
 /**
  * Extends the type-ahead buffer with `key` and walks `count` candidates from
@@ -38,13 +44,9 @@ function matchTypeaheadCore(
 	key: string,
 	currentIndex: number,
 ): number | null {
-	if (typeof window !== 'undefined') {
-		window.clearTimeout(state.timer)
-
-		state.timer = window.setTimeout(() => {
-			state.query = ''
-		}, TYPEAHEAD_TIMEOUT_MS)
-	}
+	state.reset.set(() => {
+		state.query = ''
+	}, TYPEAHEAD_TIMEOUT_MS)
 
 	state.query += key.toLowerCase()
 
@@ -133,15 +135,9 @@ function matchTypeaheadIndexed(
  * @internal
  */
 export function useTypeahead() {
-	const stateRef = useRef<TypeaheadState>({ query: '', timer: 0 })
+	const reset = useTimeout()
 
-	// The matchers schedule a 500 ms buffer-reset timer; clear it on unmount.
-	useEffect(
-		() => () => {
-			if (typeof window !== 'undefined') window.clearTimeout(stateRef.current.timer)
-		},
-		[],
-	)
+	const stateRef = useRef<TypeaheadState>({ query: '', reset })
 
 	const match = useCallback(
 		(items: HTMLElement[], key: string, currentIndex: number) =>
