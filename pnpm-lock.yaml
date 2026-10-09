@@ -223,8 +223,8 @@ catalogs:
       specifier: ^8.5.1
       version: 8.5.1
     typescript:
-      specifier: ^6.0.3
-      version: 6.0.3
+      specifier: ^7.0.2
+      version: 7.0.2
     us-atlas:
       specifier: ^3.0.1
       version: 3.0.1
@@ -234,6 +234,10 @@ catalogs:
     world-atlas:
       specifier: ^2.0.2
       version: 2.0.2
+  typescript6:
+    typescript:
+      specifier: ^6.0.3
+      version: 6.0.3
 
 overrides:
   esbuild: '>=0.28.2 <0.29'
@@ -327,7 +331,7 @@ importers:
         version: 4.3.0
       typescript:
         specifier: 'catalog:'
-        version: 6.0.3
+        version: 7.0.2
 
   apps/picks:
     dependencies:
@@ -379,7 +383,7 @@ importers:
         version: 4.3.0
       typescript:
         specifier: 'catalog:'
-        version: 6.0.3
+        version: 7.0.2
       vitest:
         specifier: 'catalog:'
         version: 4.1.11(@types/node@25.9.1)(@vitest/browser-playwright@4.1.11)(@vitest/coverage-v8@4.1.11)(jsdom@29.1.1)(vite@8.3.2)
@@ -452,7 +456,7 @@ importers:
         version: 4.3.0
       typescript:
         specifier: 'catalog:'
-        version: 6.0.3
+        version: 7.0.2
       vitest:
         specifier: 'catalog:'
         version: 4.1.11(@types/node@25.9.1)(@vitest/browser-playwright@4.1.11)(@vitest/coverage-v8@4.1.11)(jsdom@29.1.1)(vite@8.3.2)
@@ -485,7 +489,7 @@ importers:
         specifier: 'catalog:'
         version: 8.5.1(jiti@2.7.0)(postcss@8.5.28)(supports-color@10.2.2)(tsx@4.22.3)(typescript@6.0.3)(yaml@2.9.0)
       typescript:
-        specifier: 'catalog:'
+        specifier: catalog:typescript6
         version: 6.0.3
       vitest:
         specifier: 'catalog:'
@@ -531,7 +535,7 @@ importers:
         specifier: 'catalog:'
         version: 19.3.0
       typescript:
-        specifier: 'catalog:'
+        specifier: catalog:typescript6
         version: 6.0.3
       vitest:
         specifier: 'catalog:'
@@ -5257,6 +5261,7 @@ snapshots:
       semver: 6.3.1
     transitivePeerDependencies:
       - supports-color
+    optional: true
 
   '@babel/core@7.29.7(supports-color@7.2.0)':
     dependencies:
@@ -5302,6 +5307,7 @@ snapshots:
       '@babel/types': 7.29.7
     transitivePeerDependencies:
       - supports-color
+    optional: true
 
   '@babel/helper-module-imports@7.29.7(supports-color@7.2.0)':
     dependencies:
@@ -5318,6 +5324,7 @@ snapshots:
       '@babel/traverse': 7.29.7(supports-color@10.2.2)
     transitivePeerDependencies:
       - supports-color
+    optional: true
 
   '@babel/helper-module-transforms@7.29.7(@babel/core@7.29.7)(supports-color@7.2.0)':
     dependencies:
@@ -5362,6 +5369,7 @@ snapshots:
       debug: 4.4.3(supports-color@10.2.2)
     transitivePeerDependencies:
       - supports-color
+    optional: true
 
   '@babel/traverse@7.29.7(supports-color@7.2.0)':
     dependencies:
@@ -9087,7 +9095,7 @@ snapshots:
       client-only: 0.0.1
       react: 19.3.0
     optionalDependencies:
-      '@babel/core': 7.29.7(supports-color@7.2.0)
+      '@babel/core': 7.29.7(supports-color@10.2.2)
       babel-plugin-macros: 3.1.0
 
   subset-font@2.9.0:

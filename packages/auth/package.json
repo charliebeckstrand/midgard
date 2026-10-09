@@ -44,7 +44,7 @@
 		"openapi-typescript": "^7.13.0",
 		"react": "catalog:",
 		"tsup": "catalog:",
-		"typescript": "catalog:",
+		"typescript": "catalog:typescript6",
 		"vitest": "catalog:"
 	},
 	"dependencies": {
