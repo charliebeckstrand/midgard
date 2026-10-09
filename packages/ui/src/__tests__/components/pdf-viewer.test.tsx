@@ -7,6 +7,7 @@ import {
 } from '../../components/pdf-viewer/pdf-viewer-document-cache'
 import { usePdfViewerHighlightsContext } from '../../components/pdf-viewer/pdf-viewer-highlights-context'
 import { PdfViewerHighlightsProvider } from '../../components/pdf-viewer/pdf-viewer-highlights-provider'
+import { PdfViewerPageImage } from '../../components/pdf-viewer/pdf-viewer-page-image'
 import { PdfViewerThumbnailList } from '../../components/pdf-viewer/pdf-viewer-thumbnail-list'
 import {
 	downloadPdf,
@@ -14,6 +15,7 @@ import {
 	printPdf,
 } from '../../components/pdf-viewer/pdf-viewer-utilities'
 import { PdfViewerZoomControls } from '../../components/pdf-viewer/pdf-viewer-zoom-controls'
+import type { PdfViewerSlot } from '../../components/pdf-viewer/types'
 import { Toolbar } from '../../components/toolbar'
 import { BREAKPOINT_WIDTHS } from '../../types/responsive'
 import {
@@ -399,6 +401,37 @@ describe('PdfViewer', () => {
 		signal.throwIfAborted()
 
 		resetDocumentCache()
+	})
+
+	// The canvas takes the size of its bitmap. A new bitmap sizes it again, and an unmount
+	// frees the backing store.
+	it('sizes the page canvas to each bitmap and zeroes it on unmount', () => {
+		const page = (width: number, height: number): PdfViewerSlot => ({
+			id: 1,
+			src: '',
+			label: 'Page 1',
+			width,
+			height,
+			bitmap: { width, height, close: vi.fn() } as unknown as ImageBitmap,
+		})
+
+		const { container, rerender, unmount } = renderUI(
+			<PdfViewerPageImage page={page(918, 1188)} alt="Page 1" />,
+		)
+
+		const canvas = container.querySelector('canvas')
+
+		expect([canvas?.width, canvas?.height]).toEqual([918, 1188])
+
+		rerender(<PdfViewerPageImage page={page(459, 594)} alt="Page 1" />)
+
+		expect(container.querySelector('canvas')).toBe(canvas)
+
+		expect([canvas?.width, canvas?.height]).toEqual([459, 594])
+
+		unmount()
+
+		expect([canvas?.width, canvas?.height]).toEqual([0, 0])
 	})
 
 	// A page that shows wider than its slot renders again at a larger scale. The viewport here

@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useCallback, useLayoutEffect, useRef, useSyncExternalStore } from 'react'
+import { type ReactNode, useCallback, useSyncExternalStore } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { isCellEditing, isColumnEditable } from './engine/grid-editing-utilities'
@@ -25,26 +25,29 @@ type GridEditingCellProps<T> = {
 }
 
 /**
+ * Marks the `role="gridcell"` ancestor of `node` `aria-busy`, and returns the
+ * cleanup that removes the mark. A ref callback for {@link GridPendingCell}.
+ * @internal
+ */
+function markCellBusy(node: HTMLElement) {
+	const cell = node.closest<HTMLElement>('[role="gridcell"]')
+
+	cell?.setAttribute('aria-busy', 'true')
+
+	return () => {
+		cell?.removeAttribute('aria-busy')
+	}
+}
+
+/**
  * A data cell whose commit is in flight. It shows the committed value, marks
  * the cell `aria-busy`, and pulses. The attribute goes on the cell itself,
  * the `role="gridcell"` element around this content, the way
  * {@link GridNavCell} writes `data-active`. @internal
  */
 function GridPendingCell({ children }: { children: ReactNode }) {
-	const ref = useRef<HTMLSpanElement>(null)
-
-	useLayoutEffect(() => {
-		const cell = ref.current?.closest<HTMLElement>('[role="gridcell"]')
-
-		cell?.setAttribute('aria-busy', 'true')
-
-		return () => {
-			cell?.removeAttribute('aria-busy')
-		}
-	}, [])
-
 	return (
-		<span ref={ref} data-slot="grid-edit-pending" className={cn(k.edit.pending)}>
+		<span ref={markCellBusy} data-slot="grid-edit-pending" className={cn(k.edit.pending)}>
 			{children}
 		</span>
 	)
