@@ -1,7 +1,15 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Lightbox, type LightboxPhoto, LightboxTrigger } from '../../components/lightbox'
 import { REDUCED_MOTION_QUERY } from '../../utilities/media-query'
-import { fireEvent, renderUI, screen, setupUser, stubMatchMedia } from '../helpers'
+import {
+	createEvent,
+	fireEvent,
+	getSlot,
+	renderUI,
+	screen,
+	setupUser,
+	stubMatchMedia,
+} from '../helpers'
 
 const photos: LightboxPhoto[] = [
 	{ src: '/a.jpg', alt: 'Harbor at dawn', width: 1500, height: 1000 },
@@ -186,6 +194,45 @@ describe('Lightbox', () => {
 		await user.keyboard('{Escape}')
 
 		expect(screen.queryByRole('dialog')).toBeNull()
+	})
+
+	it('raises the stage above the controls while a swipe up or down moves the photo', () => {
+		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+
+		renderUI(<Gallery defaultIndex={1} />)
+
+		const stage = getSlot(document.body, 'lightbox-stage')
+
+		// jsdom has no layout. A swipe of 40px on a stage 800px tall is short.
+		Object.defineProperty(stage.firstElementChild, 'clientHeight', { value: 800 })
+
+		// A slow press: one second between each event.
+		const press = (type: string, clientY: number, timeStamp: number) => {
+			const event = createEvent[type as 'pointerDown'](stage, {
+				pointerId: 1,
+				isPrimary: true,
+				button: 0,
+				clientX: 100,
+				clientY,
+			})
+
+			Object.defineProperty(event, 'timeStamp', { value: timeStamp })
+
+			fireEvent(stage, event)
+		}
+
+		press('pointerDown', 100, 0)
+
+		press('pointerMove', 140, 1000)
+
+		expect(stage).toHaveAttribute('data-raised')
+
+		// A short, slow swipe puts the photo back, and the stage back under the controls.
+		press('pointerUp', 140, 2000)
+
+		expect(stage).not.toHaveAttribute('data-raised')
+
+		expect(screen.getByRole('dialog')).toBeInTheDocument()
 	})
 
 	it('follows a controlled index', () => {

@@ -27,8 +27,13 @@ export const k = {
 	dim: 'pointer-events-none absolute inset-0 will-change-[opacity]',
 	/** The dark scrim behind the photo. It does not follow the color scheme. */
 	backdrop: 'absolute inset-0 bg-zinc-950/90',
-	/** The stage takes each press, so a swipe can start on any part of it. */
-	stage: 'absolute inset-0 touch-none select-none',
+	/**
+	 * The stage takes each press, so a swipe can start on any part of it. While
+	 * the photo leaves its place, in a swipe up or down and in the return to its
+	 * thumbnail, the stage is raised above the controls, so the photo moves over
+	 * them.
+	 */
+	stage: 'absolute inset-0 touch-none select-none data-raised:z-10',
 	/**
 	 * The row of slots that a swipe moves. It is a layer of its own, so a swipe
 	 * moves the painted photos and does not paint them again.

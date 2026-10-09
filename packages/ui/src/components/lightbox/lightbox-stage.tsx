@@ -116,6 +116,8 @@ export function LightboxStage({
 
 	const controlsRef = useRef<HTMLDivElement>(null)
 
+	const stageRef = useRef<HTMLDivElement>(null)
+
 	// The transform that a swipe up or down left the photo at, where the return starts.
 	const dismissedFrom = useRef<string | undefined>(undefined)
 
@@ -148,6 +150,8 @@ export function LightboxStage({
 
 			dismissedFrom.current = undefined
 
+			stageRef.current?.toggleAttribute('data-raised', false)
+
 			for (const element of [backdropRef.current, controlsRef.current]) {
 				if (element) element.style.opacity = ''
 			}
@@ -158,6 +162,9 @@ export function LightboxStage({
 		leaving.current = true
 
 		track.halt()
+
+		// The photo goes back to its thumbnail over the controls.
+		stageRef.current?.toggleAttribute('data-raised', true)
 
 		flight.lower(thumbnail(index), dismissedFrom.current).then(() => {
 			if (!leaving.current) return
@@ -210,7 +217,7 @@ export function LightboxStage({
 			</div>
 			{/* The stage takes only the pointer. Escape, the close button, and the
 			    arrow keys give each of its actions to the keyboard. */}
-			<div data-slot="lightbox-stage" {...track.handlers} className={k.stage}>
+			<div ref={stageRef} data-slot="lightbox-stage" {...track.handlers} className={k.stage}>
 				<div ref={trackRef} className={k.track}>
 					{slotsAround(index, photos).map(({ slot, offset, photo }) => {
 						const placeholder = photo.thumbnail && photo.thumbnail !== photo.src

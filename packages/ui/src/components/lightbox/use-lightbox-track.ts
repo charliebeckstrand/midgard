@@ -65,6 +65,8 @@ type Press = {
 	mode: 'wait' | 'swipe' | 'dismiss'
 	/** Whether the line runs right to left. The swipe reads it once, when it starts. */
 	rtl: boolean
+	/** The stage, which a swipe up or down raises above the controls. */
+	stage: HTMLElement | null
 	/** The photo that a swipe up or down moves, and its size at rest. */
 	photo: HTMLElement | null
 	size: { width: number; height: number }
@@ -242,17 +244,21 @@ export function useLightboxTrack(
 		else slide(track, 0, () => rest(track))
 	}
 
-	// A swipe up or down that does not close puts the photo back at rest and
-	// brings back the scrim and the controls.
+	// A swipe up or down that does not close puts the photo back at rest, brings
+	// back the scrim and the controls, and puts the stage back under the controls.
 	const restore = (current: Press) => {
-		const { photo, frame } = current
+		const { stage, photo, frame } = current
 
 		if (!photo) return
+
+		const lower = () => stage?.toggleAttribute('data-raised', false)
 
 		if (reduceMotion) {
 			photo.style.transform = 'none'
 
 			dim(dimmed(), 1)
+
+			lower()
 
 			return
 		}
@@ -273,7 +279,11 @@ export function useLightboxTrack(
 		running.current = controls
 
 		controls.finished.then(() => {
-			if (running.current === controls) running.current = null
+			if (running.current !== controls) return
+
+			running.current = null
+
+			lower()
 		})
 	}
 
@@ -285,6 +295,13 @@ export function useLightboxTrack(
 		if (current.mode === 'wait') return false
 
 		current.rtl = isRtl(track)
+
+		// The photo moves over the controls.
+		if (current.mode === 'dismiss') {
+			current.stage = event.currentTarget
+
+			current.stage.toggleAttribute('data-raised', true)
+		}
 
 		current.photo = slotAt(track, 0)?.querySelector<HTMLElement>('img') ?? null
 
@@ -328,6 +345,7 @@ export function useLightboxTrack(
 					y: event.clientY,
 					mode: 'wait',
 					rtl: false,
+					stage: null,
 					photo: null,
 					size: { width: 0, height: 0 },
 					frame: { transform: RESTING_FRAME.transform, opacity: 1 },
