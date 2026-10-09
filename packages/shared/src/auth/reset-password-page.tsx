@@ -1,7 +1,6 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
 import { Button } from 'ui/button'
 import { Field, Label, Message } from 'ui/fieldset'
 import { Form, type FormSubmitHandler } from 'ui/form'
@@ -12,9 +11,9 @@ import { PasswordInput } from 'ui/password-input'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import { bifrost } from './bifrost'
-import { ErrorAlert } from './error-alert'
 import { chain, matches, minLength, required } from './form-validators'
 import { linkToken } from './link-token'
+import { unexpectedError, useServerError } from './use-server-error'
 
 type ResetPasswordValues = { password: string; confirmPassword: string }
 
@@ -33,7 +32,7 @@ type ResetPasswordValues = { password: string; confirmPassword: string }
 export function ResetPasswordPage() {
 	const router = useRouter()
 
-	const [serverError, setServerError] = useState('')
+	const [errorAlert, setServerError] = useServerError()
 
 	const handleSubmit: FormSubmitHandler<ResetPasswordValues> = async (values) => {
 		try {
@@ -49,7 +48,7 @@ export function ResetPasswordPage() {
 
 			setServerError(error?.message || 'The password did not change. Please try again.')
 		} catch {
-			setServerError('An unexpected error occurred. Please try again later.')
+			setServerError(unexpectedError)
 		}
 	}
 
@@ -66,9 +65,7 @@ export function ResetPasswordPage() {
 				<Stack gap="xl" className="w-full sm:max-w-sm p-6">
 					<Heading className="text-center">Choose a new password</Heading>
 
-					{serverError && (
-						<ErrorAlert onDismiss={() => setServerError('')}>{serverError}</ErrorAlert>
-					)}
+					{errorAlert}
 
 					<Field>
 						<Label>New password</Label>
