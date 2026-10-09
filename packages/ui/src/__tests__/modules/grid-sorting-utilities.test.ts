@@ -6,58 +6,9 @@ import {
 	compareSmart,
 	computeSortOrder,
 	materializeSort,
-	parseNumeric,
 	type SmartSortField,
 	sortRowsSmart,
 } from '../../modules/grid/engine/grid-sort/utilities'
-
-describe('parseNumeric', () => {
-	it('parses plain numbers, comma grouping, currency, percent, and accounting negatives', () => {
-		expect(parseNumeric(42)).toBe(42)
-
-		expect(parseNumeric('1,234')).toBe(1234)
-
-		expect(parseNumeric('$1,234.56')).toBe(1234.56)
-
-		expect(parseNumeric('€90')).toBe(90)
-
-		expect(parseNumeric('45%')).toBe(45)
-
-		expect(parseNumeric('(1,234)')).toBe(-1234)
-
-		expect(parseNumeric('-$50')).toBe(-50)
-
-		// A leading decimal point and surrounding whitespace still read as numbers —
-		// the fast-reject gate runs after the trim and admits a `.`-led value.
-		expect(parseNumeric('.5')).toBe(0.5)
-
-		expect(parseNumeric('  42  ')).toBe(42)
-	})
-
-	it('returns null for ambiguous or non-numeric values (kept as text)', () => {
-		// Letters are never stripped: a trailing number does not make it a number.
-		expect(parseNumeric('Item 10')).toBeNull()
-
-		expect(parseNumeric('USD 90')).toBeNull()
-
-		expect(parseNumeric('2024-01-05')).toBeNull()
-
-		expect(parseNumeric('555-1234')).toBeNull()
-
-		expect(parseNumeric('abc')).toBeNull()
-
-		// A value not starting like a number is fast-rejected (a text column's case).
-		expect(parseNumeric('LAX')).toBeNull()
-
-		expect(parseNumeric('N/A')).toBeNull()
-
-		expect(parseNumeric('')).toBeNull()
-
-		expect(parseNumeric(null)).toBeNull()
-
-		expect(parseNumeric(Number.NaN)).toBeNull()
-	})
-})
 
 describe('compareSmart', () => {
 	const asc = (values: unknown[]) => [...values].sort(compareSmart)

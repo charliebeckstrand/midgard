@@ -34,6 +34,20 @@ describe('matchQueryRule', () => {
 		expect(matchQueryRule('lt', 5, 3)).toBe(false)
 	})
 
+	it('reads money, grouped, and accounting values as the grid sorts them', () => {
+		expect(matchQueryRule('gt', '$1,200', 1000)).toBe(true)
+
+		expect(matchQueryRule('lt', '(50)', 0)).toBe(true)
+
+		expect(matchQueryRule('between', '$1,200', ['$1,000', '$2,000'])).toBe(true)
+	})
+
+	it('does not read a blank cell as zero', () => {
+		expect(matchQueryRule('gt', null, -1)).toBe(false)
+
+		expect(matchQueryRule('between', '', [-1, 1])).toBe(false)
+	})
+
 	it('handles noValue and unknown operators', () => {
 		expect(matchQueryRule('isEmpty', '', undefined)).toBe(true)
 

@@ -10,11 +10,10 @@
  */
 
 import type { ReactNode } from 'react'
-import { formatFraction, getOrCompute } from '../../../utilities'
+import { formatFraction, getOrCompute, parseNumeric } from '../../../utilities'
 import { reduceNumbers } from '../../../utilities/aggregate'
 import type { GridColumn } from '../types'
 import { columnAccessor } from './grid-column/accessor'
-import { parseNumeric } from './grid-sort/utilities'
 
 /**
  * `rows` as the type that the public `aggFunc` and `aggCell` take. The array is

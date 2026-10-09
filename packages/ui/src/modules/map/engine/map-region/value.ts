@@ -9,7 +9,7 @@
  * the heatmap share one scale.
  */
 
-import { fractionFormat, resolveBinScale, toNumericCell, valueExtent } from '../../../../utilities'
+import { fractionFormat, parseNumeric, resolveBinScale, valueExtent } from '../../../../utilities'
 import type { DataKey } from '../types'
 import type { MapCategoryMeta } from './category'
 
@@ -74,7 +74,7 @@ export function resolveValueBins<T>(
 	/** The class edges `assign` reads under `'quantile'` binning; absent under `'linear'`. */
 	thresholds?: number[]
 } {
-	const values = data.map((datum) => toNumericCell(datum[valueKey]))
+	const values = data.map((datum) => parseNumeric(datum[valueKey]) ?? Number.NaN)
 
 	// `domain` applies to linear binning. Quantile bins cut the data, so the
 	// scale spans the data extent, where the bins sit.
@@ -143,15 +143,13 @@ export function regionValueJoin<T>(
 	for (const id of regionIds) {
 		const datum = byRegion.get(id)
 
-		const value = datum == null ? Number.NaN : toNumericCell(datum[valueKey])
+		const value = datum == null ? null : parseNumeric(datum[valueKey])
 
-		const finite = Number.isFinite(value)
+		regionCategory.push(value === null ? null : assign(value))
 
-		regionCategory.push(finite ? assign(value) : null)
+		regionValues.push(value === null ? null : format(value))
 
-		regionValues.push(finite ? format(value) : null)
-
-		regionNumbers.push(finite ? value : null)
+		regionNumbers.push(value)
 	}
 
 	return { regionCategory, regionValues, regionNumbers }

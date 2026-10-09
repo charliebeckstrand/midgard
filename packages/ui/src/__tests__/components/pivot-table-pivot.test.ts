@@ -75,6 +75,18 @@ describe('groupValues', () => {
 		// be bucketed; only the real 10 survives.
 		expect(groups.get('NA')?.get('2024')).toEqual([10])
 	})
+
+	it('reads money, grouped, and accounting values as the grid does', () => {
+		const money = [
+			{ region: 'NA', year: '2024', amount: '$1,200' },
+			{ region: 'NA', year: '2024', amount: '(50)' },
+			{ region: 'NA', year: '2024', amount: '12%' },
+		]
+
+		expect(groupValues(money, 'region', 'year', 'amount').get('NA')?.get('2024')).toEqual([
+			1200, -50, 12,
+		])
+	})
 })
 
 describe('aggregate', () => {

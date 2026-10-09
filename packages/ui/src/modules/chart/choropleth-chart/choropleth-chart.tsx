@@ -5,7 +5,7 @@ import { cn } from '../../../core'
 import { useLocale } from '../../../providers/locale'
 import { k } from '../../../recipes/kata/chart'
 import type { AccessibleName } from '../../../types'
-import { fractionFormat, once, toNumericCell } from '../../../utilities'
+import { fractionFormat, once, parseNumeric } from '../../../utilities'
 import {
 	type MapAspectRatio,
 	type MapFeature,
@@ -203,9 +203,9 @@ function choroplethReadout<T>(
 				swatchClass: '',
 				swatch: 'rect',
 				values: data.map((row) => {
-					const value = toNumericCell(row[colorKey])
+					const value = parseNumeric(row[colorKey])
 
-					return Number.isFinite(value) ? format(value) : READOUT_GAP
+					return value === null ? READOUT_GAP : format(value)
 				}),
 			},
 		],

@@ -6,7 +6,7 @@
 
 import { cn } from '../../../core'
 import type { ChartColorSlot } from '../../../recipes/kata/chart'
-import { toNumericCell } from '../../../utilities'
+import { parseNumeric } from '../../../utilities'
 import type { ChartValueAxisId } from './chart-axes/schema'
 import { rawColor, textClass } from './chart-color/paint'
 import type { ChartSeriesPaint } from './chart-color/palette'
@@ -47,18 +47,14 @@ export function readoutCell(
 }
 
 /**
- * Reads one series' values off the rows through `toNumericCell`, with
- * non-finite results as `null` — a gap, never a collapsed scale. A `null`,
+ * Reads one series' values off the rows through {@link parseNumeric}. A value
+ * that does not parse is `null`: a gap, never a collapsed scale. A `null`,
  * blank, or missing value is therefore a gap and not a zero.
  *
  * @internal
  */
 export function seriesValues<T>(data: T[], key: DataKey<T>): (number | null)[] {
-	return data.map((datum) => {
-		const value = toNumericCell(datum[key])
-
-		return Number.isFinite(value) ? value : null
-	})
+	return data.map((datum) => parseNumeric(datum[key]))
 }
 
 /** One series with everything the frame parts need to draw it. @internal */

@@ -10,7 +10,7 @@
  * isolation.
  */
 
-import { toNumericCell } from '../../../../utilities'
+import { parseNumeric } from '../../../../utilities'
 import type { ChartAxisTick } from '../chart-axes/axis'
 import { BUBBLE_MAX_DIAMETER, BUBBLE_MIN_DIAMETER, MARKER_RADIUS } from '../chart-constants'
 import { coord } from '../chart-coords'
@@ -36,8 +36,8 @@ type ScatterKeys<T> = {
 }
 
 /**
- * Reads one series' points off the rows through `toNumericCell` on both axes.
- * It drops a point whose x or y is non-finite (`null` and blank included),
+ * Reads one series' points off the rows through {@link parseNumeric} on both
+ * axes. It drops a point whose x or y does not parse (`null` and blank included),
  * never the scale. Ragged or
  * agent-generated rows therefore degrade to the points that parse. Duplicate
  * positions survive; each row that parses is a point.
@@ -50,15 +50,15 @@ export function scatterData<T>(data: T[], keys: ScatterKeys<T>): ScatterDatum[] 
 	for (let row = 0; row < data.length; row++) {
 		const datum = data[row] as T
 
-		const x = toNumericCell(datum[keys.xKey])
+		const x = parseNumeric(datum[keys.xKey])
 
-		const y = toNumericCell(datum[keys.yKey])
+		const y = parseNumeric(datum[keys.yKey])
 
-		if (!Number.isFinite(x) || !Number.isFinite(y)) continue
+		if (x === null || y === null) continue
 
-		const size = keys.sizeKey === undefined ? null : toNumericCell(datum[keys.sizeKey])
+		const size = keys.sizeKey === undefined ? null : parseNumeric(datum[keys.sizeKey])
 
-		points.push({ x, y, row, size: size !== null && Number.isFinite(size) ? size : null })
+		points.push({ x, y, row, size })
 	}
 
 	return points

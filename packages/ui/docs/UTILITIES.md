@@ -13,7 +13,7 @@
 | `reduceNumbers` | Reduces a set of numbers that is not empty to its sum, mean, minimum, or maximum. The pivot table and the grid aggregate rows use it. Each caller keeps its own `count` and empty-set rules. |
 | `Aggregation` *(type)* | The built-in aggregation names. `PivotAggregation` and `GridAggFuncName` are aliases of it. |
 | `capitalizeFirst` | Returns `value` with its first letter uppercased and the rest unchanged. The select-family `capitalize` prop, the Avatar status label, the Timeline marker label, and the grid color menu use it. |
-| `toNumericCell` | Coerces a raw data cell to a number. Numbers pass through and non-blank numeric strings parse. A blank (`null`, `''`, whitespace) becomes `NaN`, not `0`; callers finite-filter. |
+| `parseNumeric` | Parses a data cell to a number, or `null`. It is the one numeric rule for data cells: Grid, PivotTable, the query evaluator, the charts, and the map read values through it. It accepts grouping (`1,234`), a currency symbol (`$1,200`), a trailing percent, and an accounting negative (`(50)`). A blank, a boolean, text, and a non-finite number give `null`, not `0`. |
 | `formatInteger` | Locale-formats `value` with no fraction digits (cached formatter). An optional `locale` overrides the runtime locale. |
 | `formatFraction` | Locale-formats `value` with up to two fraction digits (cached formatter). An optional `locale` overrides the runtime locale. |
 | `integerFormat` / `fractionFormat` | The formatter behind each helper above for a `locale`. The same locale gives the same function, so a component can pass the formatter to a memo as a stable input. |

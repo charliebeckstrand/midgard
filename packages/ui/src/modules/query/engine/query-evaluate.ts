@@ -1,3 +1,4 @@
+import { parseNumeric } from '../../../utilities'
 import type { QueryGroup, QueryNode } from './types'
 
 /**
@@ -59,9 +60,15 @@ export function asText(value: unknown): string {
 	return value == null ? '' : String(value)
 }
 
-/** Coerces any value to a number for numeric operators. @internal */
+/**
+ * Reads a cell or a bound as a number for numeric operators, through
+ * {@link parseNumeric}, the rule the grid sorts by. A value that does not parse
+ * is `NaN`, so a blank cell matches no comparison and is not read as `0`.
+ *
+ * @internal
+ */
 function asNumber(value: unknown): number {
-	return typeof value === 'number' ? value : Number(value)
+	return parseNumeric(value) ?? Number.NaN
 }
 
 /**

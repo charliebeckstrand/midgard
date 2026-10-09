@@ -1,4 +1,4 @@
-import { toNumericCell } from '../../utilities'
+import { parseNumeric } from '../../utilities'
 import { reduceNumbers } from '../../utilities/aggregate'
 import type { PivotAggregation } from './types'
 
@@ -15,9 +15,10 @@ export function resolveAxis<T>(
 }
 
 /**
- * Buckets each row's numeric `valueKey` into a `row → column → values` map,
- * skipping any cell that isn't a finite number or a numeric string. `null`,
- * `''`, and other non-numeric values are dropped, not counted as `0`.
+ * Buckets each row's numeric `valueKey` into a `row → column → values` map. A
+ * cell reads through {@link parseNumeric}, the rule the grid aggregates by, so
+ * `$1,200` counts as `1200`. A cell that does not parse (`null`, `''`, text) is
+ * dropped, not counted as `0`.
  */
 export function groupValues<T>(
 	rows: readonly T[],
@@ -31,9 +32,9 @@ export function groupValues<T>(
 		const r = String(entry[rowKey])
 		const c = String(entry[columnKey])
 
-		const value = toNumericCell(entry[valueKey])
+		const value = parseNumeric(entry[valueKey])
 
-		if (!Number.isFinite(value)) continue
+		if (value === null) continue
 
 		const row = groups.get(r) ?? new Map<string, number[]>()
 
