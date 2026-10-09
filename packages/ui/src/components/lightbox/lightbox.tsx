@@ -69,8 +69,8 @@ export type LightboxProps = {
  * double click zooms into the point that it taps. A double tap on a zoomed
  * photo takes it back to rest. A swipe on a zoomed photo moves it and does
  * not step or close. A step takes the photo back to rest. On the keyboard,
- * `+` and `-` zoom about the center of the stage, the arrow keys move a zoomed
- * photo and do not step, and `0` takes the photo back to rest.
+ * `+` and `-` zoom about the center of the stage, and `0` takes the photo back
+ * to rest. The arrow keys move a zoomed photo and do not step.
  *
  * The open photo is controlled (`index`/`onIndexChange`) or uncontrolled
  * (`defaultIndex`). Give each photo a `width` and a `height` when they are

@@ -67,8 +67,8 @@ const PAN_KEYS: Readonly<Record<string, readonly [number, number]>> = {
 
 /**
  * Zooms or pans the photo for a key press, and tells whether the key did. `+`
- * and `-` zoom about the center of the stage, `0` takes the photo back to
- * rest, and an arrow key pans a zoomed photo toward the part on its side.
+ * and `-` zoom about the center of the stage, and `0` takes the photo back to
+ * rest. An arrow key pans a zoomed photo toward the part on its side.
  */
 function zoomByKey(key: string, zoom: LightboxZoom, stage: HTMLElement | null): boolean {
 	const factor = ZOOM_KEYS[key]
