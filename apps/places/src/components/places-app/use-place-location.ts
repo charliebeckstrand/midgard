@@ -4,10 +4,13 @@ import { usePathname, useSearchParams } from 'next/navigation'
 import { useCallback, useMemo, useState } from 'react'
 import type { PlaceFilterValue } from '../../utilities/places-filter'
 import {
+	PANEL_START,
 	type PlaceLocation,
+	type PlacePanelStep,
 	readAdding,
 	readFilter,
 	readSelected,
+	readStep,
 	readView,
 	writeLocation,
 } from '../../utilities/places-url'
@@ -16,8 +19,9 @@ import type { PlaceView } from '../../utilities/places-view'
 /**
  * Whether a change is a step the reader can walk back out of.
  *
- * A drill, a crumb, and an opened place are places they went, so each earns a
- * history entry and the browser's Back button undoes it. Narrowing the bar is
+ * A drill, a crumb, an opened place, and a step inside the open panel are places
+ * they went, so each earns a history entry and the browser's Back button undoes
+ * it. Narrowing the bar is
  * not: a reader picking through categories would otherwise have to press Back
  * once per pick to leave the page they arrived on.
  */
@@ -29,8 +33,13 @@ export type PlaceLocationHandle = PlaceLocation & {
 	setView: (view: PlaceView) => void
 	/** Narrows the bar, without a history entry of its own. */
 	setFilter: (filter: PlaceFilterValue) => void
-	/** Opens the panel on some places, or closes it with an empty list. */
+	/**
+	 * Opens the panel on some places, or closes it with an empty list. The panel
+	 * opens at its start, whatever step it was on before.
+	 */
 	setSelected: (selected: readonly string[]) => void
+	/** Moves the open panel to a step of its trail, as a step the reader can walk back out of. */
+	setStep: (step: PlacePanelStep) => void
 	/**
 	 * Points the map somewhere and opens the panel there, as one step.
 	 *
@@ -60,7 +69,7 @@ export type PlaceLocationHandle = PlaceLocation & {
  * was read from.
  *
  * `useSearchParams` hands back a new object on every write, so a location read
- * whole gives all three slices new identities whenever any one of them moves.
+ * whole gives every slice a new identity whenever any one of them moves.
  * Downstream that is not free: `filter` and `selected` are memo keys for the
  * filtered list, the drawn points, and the clustering the map runs over them,
  * so opening a place used to re-cluster a map that had not changed.
@@ -108,19 +117,21 @@ export function usePlaceLocation(): PlaceLocationHandle {
 
 	const selected = useSlice(params, readSelected)
 
+	const step = useSlice(params, readStep)
+
 	const adding = readAdding(params)
 
 	// Where the reader is, whole. Held rather than rebuilt, so a setter that
-	// changes one part is not a new identity for the two it leaves alone.
+	// changes one part is not a new identity for the parts it leaves alone.
 	const location = useMemo<PlaceLocation>(
-		() => ({ view, filter, selected, adding }),
-		[view, filter, selected, adding],
+		() => ({ view, filter, selected, step, adding }),
+		[view, filter, selected, step, adding],
 	)
 
 	// Takes the parts that move and composes them over the parts that do not, so
 	// each setter below states its own change and nothing else.
 	const write = useCallback(
-		(next: Partial<PlaceLocation>, step: PlaceStep) => {
+		(next: Partial<PlaceLocation>, entry: PlaceStep) => {
 			const query = writeLocation({ ...location, ...next }).toString()
 
 			const href = query === '' ? pathname : `${pathname}?${query}`
@@ -133,14 +144,15 @@ export function usePlaceLocation(): PlaceLocationHandle {
 			// these two calls, so `useSearchParams` gets the new address, and Back
 			// and Forward restore it from the router cache. The page does not
 			// scroll, so no scroll step is necessary.
-			if (step === 'walk') window.history.pushState(null, '', href)
+			if (entry === 'walk') window.history.pushState(null, '', href)
 			else window.history.replaceState(null, '', href)
 		},
 		[location, pathname],
 	)
 
 	const openAt = useCallback(
-		(view: PlaceView, selected: readonly string[]) => write({ view, selected }, 'walk'),
+		(view: PlaceView, selected: readonly string[]) =>
+			write({ view, selected, step: PANEL_START }, 'walk'),
 		[write],
 	)
 
@@ -159,18 +171,22 @@ export function usePlaceLocation(): PlaceLocationHandle {
 	const setAdding = useCallback((adding: boolean) => write({ adding }, 'stay'), [write])
 
 	const setSelected = useCallback(
-		(selected: readonly string[]) => write({ selected }, 'walk'),
+		(selected: readonly string[]) => write({ selected, step: PANEL_START }, 'walk'),
 		[write],
 	)
+
+	const setStep = useCallback((step: PlacePanelStep) => write({ step }, 'walk'), [write])
 
 	return {
 		view,
 		filter,
 		selected,
+		step,
 		adding,
 		setView,
 		setFilter,
 		setSelected,
+		setStep,
 		settleView,
 		openAt,
 		setAdding,

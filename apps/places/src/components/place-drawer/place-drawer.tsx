@@ -23,6 +23,7 @@ import { ToggleIconButton } from 'ui/toggle-icon-button'
 import { CATEGORY_BY_VALUE } from '../../constants'
 import type { Place, PlaceCategory, Visit } from '../../types'
 import { DAY_FORMAT } from '../../utilities/places-filter'
+import type { PlacePanelStep } from '../../utilities/places-url'
 import { groupName } from '../../utilities/places-view'
 import {
 	latestVisit,
@@ -59,6 +60,13 @@ export type PlaceDrawerProps = {
 	trail: readonly string[]
 	/** Every place in the trail's last region — the list its crumb leads back to. */
 	regionPlaces: readonly Place[]
+	/**
+	 * The step of the trail that the panel shows. The caller holds it, so that the
+	 * address carries it and a reload opens the panel on the same crumb.
+	 */
+	step: PlacePanelStep
+	/** Moves the panel to another step of its trail. */
+	onStepChange: (step: PlacePanelStep) => void
 	onOpenChange: (open: boolean) => void
 	/**
 	 * Takes the map to one of the trail's upper regions.
@@ -292,7 +300,7 @@ function PlaceDetails({ place, actions }: { place: Place; actions: VisitActions 
  * group step. A place the map placed in no region has no region list, so the
  * group it was picked from stands in.
  */
-function drawerList(
+export function drawerList(
 	group: readonly Place[],
 	regionPlaces: readonly Place[],
 	widened: boolean,
@@ -309,19 +317,38 @@ function drawerList(
 }
 
 /**
+ * The place the drawer shows, or `null` on a list.
+ *
+ * The opened place is read back through the live list, so an edit shows in the
+ * open panel rather than at the next pick, and an id that the list does not hold
+ * falls back to the list. A lone dot opens on its place until the reader widens
+ * the list, because a lone dot has no group to list.
+ */
+export function drawerPlace(
+	group: readonly Place[],
+	list: readonly Place[],
+	step: PlacePanelStep,
+): Place | null {
+	const opened = step.opened === null ? undefined : list.find((item) => item.id === step.opened)
+
+	if (opened !== undefined) return opened
+
+	return !step.widened && group.length === 1 ? (group[0] ?? null) : null
+}
+
+/**
  * The trail of the drawer as steps that act. Every region step but the last
  * leads out to the map. The last leads to the region's list, where the reader is
  * not already on it; the group's step leads back to the group's list; and the
  * place itself leads nowhere, because it is where the reader already is.
  */
-function trailSteps({
+export function trailSteps({
 	where,
 	group,
 	place,
 	hasList,
 	onNavigate,
-	onList,
-	onWiden,
+	onStepChange,
 }: {
 	/** The regions, from the drawn one down. */
 	where: readonly string[]
@@ -332,28 +359,26 @@ function trailSteps({
 	/** Whether there is a list to go back to. */
 	hasList: boolean
 	onNavigate: (region: string) => void
-	/** Shows this panel's own list. */
-	onList: () => void
-	/** Widens the list from the group to the region. */
-	onWiden: () => void
+	onStepChange: (step: PlacePanelStep) => void
 }): PlaceTrailStep[] {
-	const regionPick = (): (() => void) | undefined => {
-		if (group !== null)
-			return () => {
-				onWiden()
-
-				onList()
-			}
-
-		return place !== null && hasList ? onList : undefined
-	}
+	// The region crumb lists the whole region. It acts where the group is a step of
+	// its own under it, or where a place is open over a list to go back to.
+	const regionPick =
+		group !== null || (place !== null && hasList)
+			? () => onStepChange({ opened: null, widened: true })
+			: undefined
 
 	const steps: PlaceTrailStep[] = where.map((label, at) => ({
 		label,
-		onPick: at < where.length - 1 ? () => onNavigate(label) : regionPick(),
+		onPick: at < where.length - 1 ? () => onNavigate(label) : regionPick,
 	}))
 
-	if (group !== null) steps.push({ label: group, onPick: place === null ? undefined : onList })
+	if (group !== null) {
+		steps.push({
+			label: group,
+			onPick: place === null ? undefined : () => onStepChange({ opened: null, widened: false }),
+		})
+	}
 
 	if (place !== null) steps.push({ label: place.name })
 
@@ -471,33 +496,20 @@ function PlaceList({
  *
  * The title is the trail rather than a name, so it is also the way back: each
  * crumb returns to the list it names. There is no Back button, because the crumb
- * is one.
+ * is one. The caller holds the step of the trail in the address, so a reload or
+ * a shared link opens the panel on the same crumb, and the browser's Back button
+ * walks back along the trail.
  */
 export function PlaceDrawer({
 	places,
 	trail,
 	regionPlaces,
+	step,
+	onStepChange,
 	onOpenChange,
 	onNavigate,
 	actions,
 }: PlaceDrawerProps) {
-	// Which place of a group is open, by id. The pick is held rather than derived,
-	// because a group is a list until the reader picks from it; the id rather than
-	// the record, because an edit rewrites the record and a held one would go on
-	// showing what the store no longer holds.
-	const [openedId, setOpenedId] = useState<string | null>(null)
-
-	// Whether the reader asked for the list back. It is its own bit rather than a
-	// cleared `opened`, because a lone dot has no group to fall back to — clearing
-	// alone would resolve straight to that one place again and the crumb would do
-	// nothing.
-	const [listing, setListing] = useState(false)
-
-	// Whether the reader stepped out of a summary's own places to the region's.
-	// Its own bit, because a summary opens as its group and only the region crumb
-	// widens it.
-	const [widened, setWidened] = useState(false)
-
 	// Which categories the list is narrowed to; empty is unfiltered. Held here
 	// rather than lifted, because it narrows this panel's list and nothing else —
 	// the bar over the map already narrows the map.
@@ -507,13 +519,16 @@ export function PlaceDrawer({
 	// pick, the same as the categories.
 	const [order, setOrder] = useState<PlaceOrder>('name')
 
-	// The last group the drawer was given. The panel stays mounted while it closes
-	// so the slide out plays, and a closing panel is handed an empty group — so the
-	// body reads the last non-empty one rather than the current one, or it would
-	// blank halfway through its own exit.
-	const [held, setHeld] = useState<readonly Place[]>(places)
+	// The last group the drawer was given, and its step. The panel stays mounted
+	// while it closes so the slide out plays, and a closing panel is handed an
+	// empty group and the start step — so the body reads the last open ones rather
+	// than the current ones, or it would blank or flip back to the list halfway
+	// through its own exit.
+	const [last, setLast] = useState({ places, step })
 
 	const open = places.length > 0
+
+	const { places: held, step: heldStep } = open ? { places, step } : last
 
 	// Which dots the group stands for, as one string. It is what a new pick
 	// changes and what a re-read of the same pick does not: an edit or a refetch
@@ -521,26 +536,19 @@ export function PlaceDrawer({
 	// would throw a reader out of the row they had opened.
 	const groupKey = places.map((place) => place.id).join('|')
 
-	// Refreshes the group the body reads. Keyed on the array, so an edit reaches
-	// the open panel; guarded on the close, which is what hands over the empty
-	// group the hold exists to survive.
+	// Keeps the group and the step that a close will need. Guarded on the close,
+	// which is what hands over the empty group the hold exists to survive.
 	useEffect(() => {
 		if (places.length === 0) return
 
-		setHeld(places)
-	}, [places])
+		setLast({ places, step })
+	}, [places, step])
 
-	// Returns to the top of the group. Keyed on the pick alone — the reset belongs
-	// to a new pick, not to every re-read — and skipped while closing, or a reader
-	// who had drilled into a row would be flipped back to the list mid-exit.
+	// Returns the list's own pickers to their start. Keyed on the pick alone — the
+	// reset belongs to a new pick, not to every re-read — and skipped while
+	// closing, or the list would change under its own exit.
 	useEffect(() => {
 		if (groupKey === '') return
-
-		setOpenedId(null)
-
-		setListing(false)
-
-		setWidened(false)
 
 		setCategories([])
 
@@ -550,8 +558,8 @@ export function PlaceDrawer({
 	// The list under the trail, and the group's own step over it where there is
 	// one. See `drawerList` for which list that is.
 	const { list, group } = useMemo(
-		() => drawerList(held, regionPlaces, widened),
-		[held, regionPlaces, widened],
+		() => drawerList(held, regionPlaces, heldStep.widened),
+		[held, regionPlaces, heldStep.widened],
 	)
 
 	// What the list narrows to. Empty admits everything: a reader who clears the
@@ -569,13 +577,7 @@ export function PlaceDrawer({
 	// reader a choice between everything and everything, so it is not offered.
 	const spanned = useMemo(() => new Set(list.map((item) => item.category)).size, [list])
 
-	// The pick read back through the live list, so an edit shows in the open panel
-	// rather than at the next pick.
-	const opened = openedId === null ? null : (list.find((item) => item.id === openedId) ?? null)
-
-	// `?? null` because an indexed read is optional under `noUncheckedIndexedAccess`,
-	// and every reader below tests for `null` alone.
-	const place = listing ? null : (opened ?? (held.length === 1 ? (held[0] ?? null) : null))
+	const place = drawerPlace(held, list, heldStep)
 
 	// A place the map placed in no region falls back to the count, which is the
 	// only other thing the group has to say about itself. Counted after the
@@ -596,14 +598,9 @@ export function PlaceDrawer({
 				place,
 				hasList: list.length > 0,
 				onNavigate,
-				onList: () => {
-					setOpenedId(null)
-
-					setListing(true)
-				},
-				onWiden: () => setWidened(true),
+				onStepChange,
 			}),
-		[where, group, place, list.length, onNavigate],
+		[where, group, place, list.length, onNavigate, onStepChange],
 	)
 
 	const title = steps.map((step) => step.label).join(' › ')
@@ -671,11 +668,7 @@ export function PlaceDrawer({
 							onCategoriesChange={setCategories}
 							order={order}
 							onOrderChange={setOrder}
-							onOpen={(id) => {
-								setOpenedId(id)
-
-								setListing(false)
-							}}
+							onOpen={(id) => onStepChange({ opened: id, widened: heldStep.widened })}
 						/>
 					)}
 				</DrawerBody>
