@@ -32,12 +32,12 @@ afterEach(() => {
 })
 
 describe('predictions api', () => {
-	it('sends an ended session to the sign-in page', async () => {
+	it('throws an ended session with its status, for the query client to send to the sign-in page', async () => {
 		const assign = stub(json({ error: 'unauthorized', message: 'Not signed in' }, 401))
 
-		await expect(listPicks(2026)).rejects.toThrow('Not signed in')
+		await expect(listPicks(2026)).rejects.toMatchObject({ message: 'Not signed in', status: 401 })
 
-		expect(assign).toHaveBeenCalledWith('/login')
+		expect(assign).not.toHaveBeenCalled()
 	})
 
 	it('throws the message of the service and stays on the page', async () => {

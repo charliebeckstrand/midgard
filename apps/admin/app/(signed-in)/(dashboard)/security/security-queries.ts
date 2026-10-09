@@ -10,6 +10,8 @@ import {
 	type Threat,
 } from './security-api'
 
+// Each mutation sets `inlineError`, because the page shows its error in place.
+
 /** The query keys, in one place (see `usersKeys`). */
 export const securityKeys = {
 	threats: ['security', 'threats'] as const,
@@ -39,6 +41,7 @@ export function useResolveThreat() {
 	const client = useQueryClient()
 
 	return useMutation({
+		meta: { inlineError: true },
 		mutationFn: ({ id, resolved }: { id: string; resolved: boolean }) =>
 			resolveThreat(id, resolved),
 		onSuccess: (updated) => {
@@ -54,6 +57,7 @@ export function useRemoveBan() {
 	const client = useQueryClient()
 
 	return useMutation({
+		meta: { inlineError: true },
 		mutationFn: (ip: string) => removeBan(ip),
 		onSuccess: (_, ip) => {
 			client.setQueryData<Ban[]>(securityKeys.bans, (bans) => bans?.filter((ban) => ban.ip !== ip))

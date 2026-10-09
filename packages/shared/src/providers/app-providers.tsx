@@ -1,10 +1,12 @@
 'use client'
 
-import { type DefaultOptions, QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { type DefaultOptions, QueryClientProvider } from '@tanstack/react-query'
 import NextLink from 'next/link'
 import { type ReactNode, useState } from 'react'
 import { type LocaleConfig, LocaleProvider } from 'ui/providers/locale'
 import { UIProvider } from 'ui/providers/ui'
+import { useToast } from 'ui/toast'
+import { createAppQueryClient } from './query-client'
 
 type AppProvidersProps = {
 	/**
@@ -34,19 +36,36 @@ type AppProvidersProps = {
  * `LocaleProvider` is above `UIProvider`, so the dialog of `useConfirm`, which
  * `UIProvider` renders, formats dates in the same way as the page.
  *
+ * A failed mutation shows its error in a toast, and a `401` sends the page to
+ * `/login` (see {@link createAppQueryClient}). The `QueryClientProvider` is in
+ * `UIProvider`, so that the client can show toasts.
+ *
  * @remarks Top-level context per CONVENTIONS.md §6.1. Render it from the root
  * layout. The client is built in state rather than at module scope, so a render
  * on the server never shares a cache between requests. The client reads
  * `queries` one time, when it is built.
  */
 export function AppProviders({ queries, timeZone, dateFormat, children }: AppProvidersProps) {
-	const [client] = useState(() => new QueryClient({ defaultOptions: { queries } }))
-
 	return (
-		<QueryClientProvider client={client}>
-			<LocaleProvider locale="en-US" timeZone={timeZone} dateFormat={dateFormat}>
-				<UIProvider link={NextLink}>{children}</UIProvider>
-			</LocaleProvider>
-		</QueryClientProvider>
+		<LocaleProvider locale="en-US" timeZone={timeZone} dateFormat={dateFormat}>
+			<UIProvider link={NextLink}>
+				<AppQueryProvider queries={queries}>{children}</AppQueryProvider>
+			</UIProvider>
+		</LocaleProvider>
 	)
+}
+
+// The `toast` of `useToast` keeps one identity, so the client can hold the first one.
+function AppQueryProvider({
+	queries,
+	children,
+}: {
+	queries?: DefaultOptions['queries']
+	children: ReactNode
+}) {
+	const { toast } = useToast()
+
+	const [client] = useState(() => createAppQueryClient({ queries, toast }))
+
+	return <QueryClientProvider client={client}>{children}</QueryClientProvider>
 }
