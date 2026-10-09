@@ -285,7 +285,7 @@ describe('Resizable: drag', () => {
 
 		const handle = getSlot(container, 'resizable-handle')
 
-		fireEvent.pointerDown(handle, { button: 0, clientX: 100, clientY: 0 })
+		fireEvent.pointerDown(handle, { isPrimary: true, button: 0, clientX: 100, clientY: 0 })
 
 		expect(handle).toHaveAttribute('data-dragging')
 
@@ -294,7 +294,11 @@ describe('Resizable: drag', () => {
 		expect(handle).not.toHaveAttribute('data-dragging')
 	})
 
-	it('ignores non-left mouse buttons', () => {
+	it.each([
+		['a secondary mouse button', { isPrimary: true, button: 2 }],
+		['a macOS Ctrl-click', { isPrimary: true, button: 0, ctrlKey: true }],
+		['a pointer that is not primary', { isPrimary: false, button: 0 }],
+	])('ignores %s', (_name, init) => {
 		const onSizesChange = vi.fn()
 
 		const { container } = renderUI(
@@ -313,7 +317,7 @@ describe('Resizable: drag', () => {
 
 		const handle = getSlot(container, 'resizable-handle')
 
-		fireEvent.pointerDown(handle, { button: 2, clientX: 100, clientY: 0 })
+		fireEvent.pointerDown(handle, { clientX: 100, clientY: 0, ...init })
 
 		expect(handle).not.toHaveAttribute('data-dragging')
 

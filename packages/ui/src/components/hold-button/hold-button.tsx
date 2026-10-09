@@ -7,6 +7,7 @@ import { useStableEvent } from '../../hooks/use-stable-event'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
+import { isPrimaryPress } from '../../utilities/primary-press'
 import { Button, type ButtonProps } from '../button'
 import { useHoldButtonGesture } from './use-hold-button-gesture'
 
@@ -53,7 +54,9 @@ export type HoldButtonProps = Omit<
  * Only the activation key that started the hold cancels it; the other key's
  * release mid-hold is ignored. Blur and pointer leave/cancel abort the hold, and
  * the gesture hook adds window-blur and tab-visibility guards so a backgrounded
- * tab cannot silently complete it. Left mouse button only (`button === 0`).
+ * tab cannot silently complete it. Only a primary press starts a pointer hold: the primary
+ * pointer and button, with no Ctrl. Thus a macOS Ctrl-click, which opens a context menu, starts
+ * no hold.
  *
  * A caller's pointer and key handlers run before the hold logic. A caller
  * `preventDefault()` on a pointer press or an activation keydown keeps the hold
@@ -163,7 +166,7 @@ export function HoldButton({
 				// A held touch selects no text on the page.
 				holdTextSelection(event)
 
-				if (event.button === 0) start()
+				if (isPrimaryPress(event)) start()
 			})}
 			onPointerUp={composeEventHandlers(onPointerUp, cancel, alwaysEnd)}
 			onPointerCancel={composeEventHandlers(onPointerCancel, cancel, alwaysEnd)}

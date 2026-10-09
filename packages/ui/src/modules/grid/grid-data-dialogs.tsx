@@ -1,7 +1,8 @@
 'use client'
 
+import { useLazyModule } from '../../hooks/use-lazy-module'
+import { createLazyModule } from '../../utilities/lazy-module'
 import type { GridDataDialogsProps } from './grid-data-dialogs-body'
-import { gridLazyModule, useGridLazyModule } from './grid-lazy-module'
 
 /**
  * The module of the dialogs. It carries the managers, their drag and drop, and
@@ -9,7 +10,7 @@ import { gridLazyModule, useGridLazyModule } from './grid-lazy-module'
  *
  * @internal
  */
-const dialogs = gridLazyModule(() => import('./grid-data-dialogs-body'))
+const dialogs = createLazyModule(() => import('./grid-data-dialogs-body'))
 
 /**
  * Loads the module of the dialogs. Tests call it before a case that opens a
@@ -31,7 +32,7 @@ export function GridDataDialogs(props: GridDataDialogsProps) {
 
 	const requested = !!columnManager?.open || rowManager.open || !!widthConfirm?.open
 
-	const body = useGridLazyModule(dialogs, requested, () => {
+	const body = useLazyModule(dialogs, requested, () => {
 		columnManager?.onOpenChange(false)
 
 		rowManager.setOpen(false)

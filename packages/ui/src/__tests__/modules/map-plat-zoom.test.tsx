@@ -126,6 +126,7 @@ function twoFinger(
 /** Presses, drags, and releases one pointer across the plot region. */
 function drag(plot: HTMLElement, from: { x: number; y: number }, to: { x: number; y: number }) {
 	fireEvent.pointerDown(plot, {
+		isPrimary: true,
 		pointerId: 1,
 		button: 0,
 		pointerType: 'mouse',
@@ -216,7 +217,13 @@ describe('MapPlat gesture suspends the readout', () => {
 		// open and the release is the only thing that can end the gesture.
 		fireEvent.keyDown(plot, { key: '+' })
 
-		fireEvent.pointerDown(plot, { pointerId: 1, button: 0, clientX: 200, clientY: 100 })
+		fireEvent.pointerDown(plot, {
+			isPrimary: true,
+			pointerId: 1,
+			button: 0,
+			clientX: 200,
+			clientY: 100,
+		})
 
 		fireEvent.pointerMove(plot, { pointerId: 1, clientX: 140, clientY: 60 })
 
@@ -227,13 +234,44 @@ describe('MapPlat gesture suspends the readout', () => {
 		expect(answersPointer(container)).toBe(true)
 	})
 
+	// On macOS a Ctrl-click is the secondary click. It opens the region menu, so it must start no pan.
+	it('starts no pan on a macOS Ctrl-click', () => {
+		const { container, plot } = renderZoomable()
+
+		fireEvent.keyDown(plot, { key: '+' })
+
+		const before = transformOf(container)
+
+		fireEvent.pointerDown(plot, {
+			isPrimary: true,
+			pointerId: 1,
+			button: 0,
+			ctrlKey: true,
+			pointerType: 'mouse',
+			clientX: 200,
+			clientY: 100,
+		})
+
+		fireEvent.pointerMove(plot, { pointerId: 1, clientX: 140, clientY: 60 })
+
+		expect(transformOf(container)).toBe(before)
+
+		expect(answersPointer(container)).toBe(true)
+	})
+
 	it('holds the drawing inert while a wheel settles under a live pan', async () => {
 		await withFakeTime(async (clock) => {
 			const { container, plot, svg } = renderZoomable()
 
 			zoomWheel(svg, -400)
 
-			fireEvent.pointerDown(plot, { pointerId: 1, button: 0, clientX: 200, clientY: 100 })
+			fireEvent.pointerDown(plot, {
+				isPrimary: true,
+				pointerId: 1,
+				button: 0,
+				clientX: 200,
+				clientY: 100,
+			})
 
 			fireEvent.pointerMove(plot, { pointerId: 1, clientX: 140, clientY: 60 })
 
@@ -459,7 +497,13 @@ describe('MapPlat two-finger gestures', () => {
 
 		const before = transformOf(container)
 
-		fireEvent.pointerDown(plot, { pointerId: 1, pointerType: 'touch', clientX: 200, clientY: 100 })
+		fireEvent.pointerDown(plot, {
+			isPrimary: true,
+			pointerId: 1,
+			pointerType: 'touch',
+			clientX: 200,
+			clientY: 100,
+		})
 
 		fireEvent.pointerMove(plot, { pointerId: 1, clientX: 140, clientY: 60 })
 
@@ -475,7 +519,13 @@ describe('MapPlat two-finger gestures', () => {
 
 		const before = transformOf(container)
 
-		fireEvent.pointerDown(plot, { pointerId: 1, pointerType: 'touch', clientX: 200, clientY: 100 })
+		fireEvent.pointerDown(plot, {
+			isPrimary: true,
+			pointerId: 1,
+			pointerType: 'touch',
+			clientX: 200,
+			clientY: 100,
+		})
 
 		fireEvent.pointerMove(plot, { pointerId: 1, clientX: 140, clientY: 60 })
 
@@ -531,7 +581,13 @@ describe('MapPlat two-finger gestures', () => {
 		// finger. Only the touch events carry the pinch.
 		const { container, plot, svg } = renderZoomable()
 
-		fireEvent.pointerDown(plot, { pointerId: 1, pointerType: 'touch', clientX: 190, clientY: 100 })
+		fireEvent.pointerDown(plot, {
+			isPrimary: true,
+			pointerId: 1,
+			pointerType: 'touch',
+			clientX: 190,
+			clientY: 100,
+		})
 
 		touch(svg, 'touchStart', [{ id: 1, x: 190, y: 100 }])
 
@@ -560,6 +616,7 @@ describe('MapPlat two-finger gestures', () => {
 
 		for (const [index, x] of [190, 210].entries()) {
 			fireEvent.pointerDown(plot, {
+				isPrimary: index === 0,
 				pointerId: index + 1,
 				pointerType: 'touch',
 				clientX: x,
@@ -579,6 +636,7 @@ describe('MapPlat two-finger gestures', () => {
 
 		for (const [index, x] of [190, 210].entries()) {
 			fireEvent.pointerDown(plot, {
+				isPrimary: index === 0,
 				pointerId: index + 1,
 				pointerType: 'touch',
 				clientX: x,
@@ -597,6 +655,7 @@ describe('MapPlat two-finger gestures', () => {
 
 		for (const [index, x] of [190, 210].entries()) {
 			fireEvent.pointerDown(plot, {
+				isPrimary: index === 0,
 				pointerId: index + 1,
 				pointerType: 'touch',
 				clientX: x,
@@ -650,7 +709,13 @@ describe('MapPlat touch over the marks', () => {
 	function landFinger(container: HTMLElement, pointerId: number) {
 		const region = present<SVGPathElement>(firstRegion(container), 'region path')
 
-		const at = { pointerId, pointerType: 'touch', clientX: 40, clientY: 20 }
+		const at = {
+			isPrimary: pointerId === 1,
+			pointerId,
+			pointerType: 'touch',
+			clientX: 40,
+			clientY: 20,
+		}
 
 		fireEvent.pointerEnter(region, at)
 
@@ -691,7 +756,13 @@ describe('MapPlat touch over the marks', () => {
 
 		const region = landFinger(container, 1)
 
-		fireEvent.pointerDown(plot, { pointerId: 2, pointerType: 'touch', clientX: 80, clientY: 20 })
+		fireEvent.pointerDown(plot, {
+			isPrimary: false,
+			pointerId: 2,
+			pointerType: 'touch',
+			clientX: 80,
+			clientY: 20,
+		})
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
@@ -956,7 +1027,13 @@ describe('MapPlat pan', () => {
 
 			zoomWheel(svg, -400)
 
-			fireEvent.pointerDown(plot, { pointerId: 1, button: 0, clientX: 200, clientY: 100 })
+			fireEvent.pointerDown(plot, {
+				isPrimary: true,
+				pointerId: 1,
+				button: 0,
+				clientX: 200,
+				clientY: 100,
+			})
 
 			act(() => {
 				if (split) fireEvent.pointerMove(plot, { pointerId: 1, clientX: 170, clientY: 80 })
@@ -987,7 +1064,13 @@ describe('MapPlat pan', () => {
 	it('takes the pointer once the press becomes a pan, and lets it go on release', () => {
 		const { plot } = renderZoomable()
 
-		fireEvent.pointerDown(plot, { pointerId: 1, button: 0, clientX: 200, clientY: 100 })
+		fireEvent.pointerDown(plot, {
+			isPrimary: true,
+			pointerId: 1,
+			button: 0,
+			clientX: 200,
+			clientY: 100,
+		})
 
 		// A press is not a gesture yet. A capture here would retarget the click that
 		// a region pick needs.

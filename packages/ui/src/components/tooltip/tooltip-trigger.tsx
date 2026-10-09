@@ -1,16 +1,9 @@
 'use client'
 
-import {
-	type ComponentProps,
-	type HTMLAttributes,
-	isValidElement,
-	type ReactElement,
-	type ReactNode,
-	type Ref,
-	type RefAttributes,
-} from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core'
 import { useFloatingReference } from '../../hooks/use-floating-reference'
+import { TriggerChild, triggerChild } from '../../primitives/trigger-child/trigger-child'
 import { k } from '../../recipes/kata/tooltip'
 import { useTooltipContext } from './context'
 
@@ -61,14 +54,9 @@ export type TooltipTriggerProps = {
 export function TooltipTrigger({ children }: TooltipTriggerProps) {
 	const { setReference, getReferenceProps, enabled, triggerId } = useTooltipContext()
 
-	const child = isValidElement(children)
-		? (children as ReactElement<
-				HTMLAttributes<HTMLElement> &
-					RefAttributes<HTMLElement> & { [key: `data-${string}`]: string | undefined }
-			>)
-		: null
+	const child = triggerChild(children)
 
-	const childRef = (child?.props as { ref?: Ref<HTMLElement> } | undefined)?.ref
+	const childRef = child?.props.ref
 
 	// No trigger ref of its own: the tooltip reads its reference through
 	// floating-ui alone.
@@ -77,27 +65,13 @@ export function TooltipTrigger({ children }: TooltipTriggerProps) {
 	const triggerClassName = cn(k.trigger.base, enabled && k.trigger.cursor)
 
 	if (child) {
-		// The clone renders the child's type through JSX, not through `cloneElement`.
-		// The React Compiler rejects a ref passed to a function during render.
-		const Child = child.type
-
 		return (
-			<Child
-				key={child.key}
-				{...child.props}
-				{...(getReferenceProps(
-					child.props as Record<string, unknown>,
-				) as HTMLAttributes<HTMLElement>)}
+			<TriggerChild
+				child={child}
+				props={{ ...getReferenceProps(child.props), id: child.props.id ?? triggerId }}
 				ref={mergeRefs}
-				id={child.props.id ?? triggerId}
-				// A component child writes its own default anchor, so only a host child
-				// takes the anchor of the trigger. The key stays out of a component
-				// child's props, because an undefined value also overrides an anchor
-				// that the component writes before its spread.
-				{...(typeof Child === 'string' && {
-					'data-slot': child.props['data-slot'] ?? 'tooltip-trigger',
-				})}
-				className={cn(triggerClassName, child.props.className)}
+				slot="tooltip-trigger"
+				className={triggerClassName}
 			/>
 		)
 	}

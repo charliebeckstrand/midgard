@@ -326,7 +326,12 @@ describe('Drawer drag handle', () => {
 
 		const { handle, panel } = renderHandled({ onOpenChange })
 
-		fireEvent.pointerDown(handle, { pointerType: 'touch', clientY: 100, timeStamp: 0 })
+		fireEvent.pointerDown(handle, {
+			isPrimary: true,
+			pointerType: 'touch',
+			clientY: 100,
+			timeStamp: 0,
+		})
 
 		fireEvent.pointerMove(window, { pointerType: 'touch', clientY: 600, timeStamp: 10 })
 
@@ -343,7 +348,12 @@ describe('Drawer drag handle', () => {
 
 		expect(handle).not.toHaveAttribute('data-dragging')
 
-		fireEvent.pointerDown(handle, { pointerType: 'mouse', button: 0, clientY: 400 })
+		fireEvent.pointerDown(handle, {
+			isPrimary: true,
+			pointerType: 'mouse',
+			button: 0,
+			clientY: 400,
+		})
 
 		expect(handle).toHaveAttribute('data-dragging')
 
@@ -407,7 +417,7 @@ describe('Drawer drag handle', () => {
 	it('ends a drag that the close interrupts, so a reopen keeps its own height', () => {
 		const { container, rerender, handle } = renderHandled()
 
-		fireEvent.pointerDown(handle, { pointerType: 'touch', clientY: 400 })
+		fireEvent.pointerDown(handle, { isPrimary: true, pointerType: 'touch', clientY: 400 })
 
 		fireEvent.pointerMove(window, { pointerType: 'touch', clientY: 300 })
 

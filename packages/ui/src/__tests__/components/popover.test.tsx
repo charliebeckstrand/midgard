@@ -37,6 +37,36 @@ describe('Popover', () => {
 		expect(trigger).toHaveAttribute('data-testid', 'manual-child')
 	})
 
+	it('keeps the anchor of a component child', () => {
+		renderUI(
+			<Popover>
+				<PopoverTrigger>
+					<Button>Open</Button>
+				</PopoverTrigger>
+			</Popover>,
+		)
+
+		expect(screen.getByRole('button', { name: 'Open' })).toHaveAttribute('data-slot', 'button')
+	})
+
+	it('lets the className of the child win over the className of the trigger', () => {
+		renderUI(
+			<Popover>
+				<PopoverTrigger className="p-1">
+					<button type="button" className="p-2">
+						Open
+					</button>
+				</PopoverTrigger>
+			</Popover>,
+		)
+
+		const trigger = screen.getByRole('button', { name: 'Open' })
+
+		expect(trigger).toHaveClass('p-2')
+
+		expect(trigger).not.toHaveClass('p-1')
+	})
+
 	it('merges the floating ref with a ref already on the child', () => {
 		const ref = createRef<HTMLButtonElement>()
 
@@ -162,7 +192,7 @@ describe('Popover non-modal semantics', () => {
 	})
 
 	it('exposes a single dialog wired to the trigger, with no role on the positioning wrapper', () => {
-		const { container } = renderUI(
+		renderUI(
 			<Popover open>
 				<PopoverTrigger>
 					<Button>Open</Button>
@@ -180,7 +210,7 @@ describe('Popover non-modal semantics', () => {
 		expect(panel?.parentElement).not.toHaveAttribute('role')
 
 		// The trigger's `aria-controls` resolves to the real panel id.
-		const trigger = bySlot(container, 'popover-trigger')
+		const trigger = screen.getByRole('button', { name: 'Open' })
 
 		expect(panel?.id).toBeTruthy()
 
@@ -193,7 +223,7 @@ describe('Popover non-modal semantics', () => {
 		['an unlabeled panel', {}, null],
 		['a labeled panel', { 'aria-label': 'Details' }, 'dialog'],
 	])('sets aria-haspopup on the trigger to match %s', (_name, nameProps, haspopup) => {
-		const { container } = renderUI(
+		renderUI(
 			<Popover>
 				<PopoverTrigger>
 					<Button>Open</Button>
@@ -202,7 +232,7 @@ describe('Popover non-modal semantics', () => {
 			</Popover>,
 		)
 
-		const trigger = present(bySlot(container, 'popover-trigger'), 'trigger')
+		const trigger = screen.getByRole('button', { name: 'Open' })
 
 		expect(trigger.getAttribute('aria-haspopup')).toBe(haspopup)
 	})
@@ -304,6 +334,6 @@ describe('PopoverClose', () => {
 
 		await user.click(present(bySlot(document.body, 'popover-close'), 'close'))
 
-		expect(document.activeElement).toBe(bySlot(document.body, 'popover-trigger'))
+		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Open' }))
 	})
 })

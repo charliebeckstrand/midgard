@@ -15,6 +15,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `useDeferredToggle` | Listbox/Combobox toggle logic; freezes the rendered selection through the panel's close animation. |
 | `useSelectableValueChange` | Wraps `onValueChange` to drop the "cleared to undefined" event in multi-select mode. |
 | `useIdleLoad` | Loads a value, such as the module of a menu or a dialog, in idle time after the mount, and gives it when it resolves. The mounts of one loader share one idle callback and one load, and an unmount before the callback cancels it. A browser without `requestIdleCallback` loads after 1 s. |
+| `useIntentLoad` | `useIdleLoad` with a load on intent, for the trigger of a menu or a dialog that loads its code first. `preload` goes on the pointer and the focus. `request` loads on a press, puts the value into state, and then calls back. |
 | `useTimeout` | One restartable timer that clears on unmount: `set` (the last call wins), `clear`, and `pending`, each with a stable identity. For a debounce, a settle window, or a dwell delay. |
 | `useOffcanvas` | Offcanvas sidebar open state with auto-close when the viewport widens to the `lg` breakpoint; reports every transition to `onOpenChange`. |
 

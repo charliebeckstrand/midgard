@@ -12,6 +12,7 @@ import { useDragCursor } from '../../hooks'
 import { isRtl } from '../../hooks/a11y/logical-arrow'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { clamp } from '../../utilities'
+import { isPrimaryPress } from '../../utilities/primary-press'
 import type { PanelConfig, ResizableOrientation } from './types'
 
 type DragState = {
@@ -208,7 +209,7 @@ export function useResizablePanel({
 	const startDrag = useStableEvent((handleIndex: number, event: ReactPointerEvent) => {
 		const group = groupRef.current
 
-		if (!group || event.button !== 0) return
+		if (!group || !isPrimaryPress(event)) return
 
 		event.preventDefault()
 

@@ -126,6 +126,8 @@ describe('useRangePointer', () => {
 	it.each<[string, { disabled?: boolean }, Partial<ReactPointerEvent>]>([
 		['when disabled', { disabled: true }, {}],
 		['on a non-primary press', {}, { button: 2 }],
+		['on a macOS Ctrl-click', {}, { ctrlKey: true }],
+		['on a pointer that is not primary', {}, { isPrimary: false }],
 	])('onPointerDown is a no-op %s', (_name, options, overrides) => {
 		const { api, setRange } = setup(options)
 
@@ -412,6 +414,7 @@ describe('useRangePointer', () => {
 		it.each<[string, { disabled?: boolean }, Partial<ReactPointerEvent>]>([
 			['when disabled', { disabled: true }, {}],
 			['on a non-primary press', {}, { button: 2 }],
+			['on a macOS Ctrl-click', {}, { ctrlKey: true }],
 		])('says nothing %s', (_name, options, overrides) => {
 			const { api, onDragStart, onDragEnd } = setup(options)
 

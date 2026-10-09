@@ -5,6 +5,7 @@ import { isRtl } from '../../../hooks/a11y/logical-arrow'
 import { useDragCursorHold } from '../../../hooks/use-drag-cursor'
 import { useStableEvent } from '../../../hooks/use-stable-event'
 import { clamp } from '../../../utilities'
+import { isPrimaryPress } from '../../../utilities/primary-press'
 import { snapValue } from './range-utilities'
 import type { OverlapMode, ThumbButtonRefs, ThumbIndex } from './types'
 import { useRangeUpdate } from './use-range-update'
@@ -191,9 +192,9 @@ export function useRangePointer(opts: {
 
 	const onPointerDown = useCallback(
 		(event: PointerEvent) => {
-			// A context-menu press must write no value; `use-color-drag.ts`
-			// guards the same way.
-			if (disabled || event.button !== 0) return
+			// A context-menu press, a macOS Ctrl-click included, writes no value.
+			// A second finger grabs no thumb.
+			if (disabled || !isPrimaryPress(event)) return
 
 			event.preventDefault()
 

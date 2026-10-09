@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import { Dialog, DialogPanel } from '../../components/dialog'
 import { MapPlat } from '../../modules/map'
 import {
 	act,
@@ -13,6 +14,7 @@ import {
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 import { renderNavigable } from '../helpers/map-navigable'
 import { categoricalPlat } from '../helpers/map-plat'
+import { allRegions } from '../helpers/map-queries'
 
 /** The tooltip's current text, or `null` while the readout is away. */
 function readout(container: HTMLElement): string | null {
@@ -126,6 +128,57 @@ describe('MapPlat keyboard navigation', () => {
 		fireEvent.blur(plot)
 
 		expect(readout(container)).toBeNull()
+	})
+
+	it('claims Escape only when it clears a readout, so an overlay around it can close', () => {
+		const { plot } = renderNavigable(categoricalPlat())
+
+		// `fireEvent` returns false for a press that a handler claimed with `preventDefault`.
+		expect(fireEvent.keyDown(plot, { key: 'Escape' })).toBe(true)
+
+		plot.focus()
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		expect(fireEvent.keyDown(plot, { key: 'Escape' })).toBe(false)
+
+		expect(document.activeElement).not.toBe(plot)
+	})
+
+	it('claims Escape when it clears a readout that the pointer holds', () => {
+		const { container, plot } = renderNavigable(categoricalPlat())
+
+		const [alpha] = allRegions(container)
+
+		fireEvent.pointerEnter(alpha as Element, { clientX: 40, clientY: 20 })
+
+		expect(readout(container)).toContain('Alpha')
+
+		plot.focus()
+
+		expect(fireEvent.keyDown(plot, { key: 'Escape' })).toBe(false)
+
+		expect(readout(container)).toBeNull()
+	})
+
+	it('lets the first Escape close a dialog around a focused map with nothing to clear', () => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<Dialog open onOpenChange={onOpenChange}>
+				<DialogPanel>{categoricalPlat()}</DialogPanel>
+			</Dialog>,
+		)
+
+		const plot = bySlot(document.body, 'map-plot')
+
+		if (plot === null) throw new Error('the dialog drew no plot region')
+
+		plot.focus()
+
+		fireEvent.keyDown(plot, { key: 'Escape' })
+
+		expect(onOpenChange).toHaveBeenCalledWith(false)
 	})
 
 	it('speaks the readout of each region that an arrow key moves the cursor onto', async () => {

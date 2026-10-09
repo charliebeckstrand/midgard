@@ -17,6 +17,9 @@ afterEach(() => {
 	vi.mocked(animate).mockRestore()
 })
 
+/** A plain primary press. jsdom gives a synthetic pointer event `isPrimary: false`. */
+const PRESS = { isPrimary: true, button: 0 }
+
 describe('HoldButton', () => {
 	it('renders a button with data-slot="hold-button"', () => {
 		const { container } = renderUI(<HoldButton>Hold</HoldButton>)
@@ -45,7 +48,7 @@ describe('HoldButton', () => {
 
 		const el = getSlot(container, 'hold-button')
 
-		fireEvent.pointerDown(el)
+		fireEvent.pointerDown(el, PRESS)
 
 		expect(onHoldStart).toHaveBeenCalledOnce()
 	})
@@ -63,7 +66,7 @@ describe('HoldButton', () => {
 
 		const el = getSlot(container, 'hold-button')
 
-		fireEvent.pointerDown(el)
+		fireEvent.pointerDown(el, PRESS)
 
 		fireEvent.pointerUp(el)
 
@@ -79,7 +82,7 @@ describe('HoldButton', () => {
 
 		const el = getSlot(container, 'hold-button')
 
-		fireEvent.pointerDown(el)
+		fireEvent.pointerDown(el, PRESS)
 
 		fireEvent.pointerLeave(el)
 
@@ -207,7 +210,7 @@ describe('HoldButton', () => {
 
 		const el = getSlot(container, 'hold-button')
 
-		fireEvent.pointerDown(el)
+		fireEvent.pointerDown(el, PRESS)
 
 		expect(onHoldStart).not.toHaveBeenCalled()
 	})
@@ -222,7 +225,7 @@ describe('HoldButton', () => {
 
 	// The handler composition block checks that onKeyDown and onKeyUp reach the caller.
 	it.each([
-		['onPointerDown', (el: HTMLElement) => fireEvent.pointerDown(el)],
+		['onPointerDown', (el: HTMLElement) => fireEvent.pointerDown(el, PRESS)],
 		['onPointerUp', (el: HTMLElement) => fireEvent.pointerUp(el)],
 		['onPointerCancel', (el: HTMLElement) => fireEvent.pointerCancel(el)],
 		['onPointerLeave', (el: HTMLElement) => fireEvent.pointerLeave(el)],
@@ -236,14 +239,18 @@ describe('HoldButton', () => {
 		expect(handler).toHaveBeenCalledOnce()
 	})
 
-	it('ignores non-primary pointer buttons on pointerdown', () => {
+	// On macOS a Ctrl-click is the secondary click. It sends button 0 with Ctrl and opens a
+	// context menu, which can take the release, so a hold that it starts would complete.
+	it.each([
+		['a secondary button', { isPrimary: true, button: 2 }],
+		['a macOS Ctrl-click', { isPrimary: true, button: 0, ctrlKey: true }],
+		['a pointer that is not primary', { isPrimary: false, button: 0 }],
+	])('starts no hold on %s', (_name, init) => {
 		const onHoldStart = vi.fn()
 
 		const { container } = renderUI(<HoldButton onHoldStart={onHoldStart}>Hold</HoldButton>)
 
-		const el = getSlot(container, 'hold-button')
-
-		fireEvent.pointerDown(el, { button: 2 })
+		fireEvent.pointerDown(getSlot(container, 'hold-button'), init)
 
 		expect(onHoldStart).not.toHaveBeenCalled()
 	})
@@ -278,7 +285,7 @@ describe('HoldButton', () => {
 		// A quick press cancels the hold, but the browser sends a native click
 		// after the pointer pair. That click must not submit the form, or the
 		// hold gate stops nothing.
-		fireEvent.pointerDown(el)
+		fireEvent.pointerDown(el, PRESS)
 
 		fireEvent.pointerUp(el)
 
@@ -324,7 +331,7 @@ describe('HoldButton', () => {
 
 			const el = getSlot(container, 'hold-button')
 
-			fireEvent.pointerDown(el)
+			fireEvent.pointerDown(el, PRESS)
 
 			act(() => {
 				vi.advanceTimersByTime(1000)
@@ -352,7 +359,7 @@ describe('HoldButton', () => {
 
 			const el = getSlot(container, 'hold-button')
 
-			fireEvent.pointerDown(el)
+			fireEvent.pointerDown(el, PRESS)
 
 			act(() => {
 				vi.advanceTimersByTime(1000)
@@ -377,7 +384,7 @@ describe('HoldButton', () => {
 
 			input.value = 'b'
 
-			fireEvent.pointerDown(getSlot(container, 'hold-button'))
+			fireEvent.pointerDown(getSlot(container, 'hold-button'), PRESS)
 
 			act(() => {
 				vi.advanceTimersByTime(1000)
@@ -395,7 +402,7 @@ describe('HoldButton', () => {
 				</form>,
 			)
 
-			fireEvent.pointerDown(getSlot(container, 'hold-button'))
+			fireEvent.pointerDown(getSlot(container, 'hold-button'), PRESS)
 
 			act(() => {
 				vi.advanceTimersByTime(1000)
@@ -417,7 +424,7 @@ describe('HoldButton', () => {
 
 			const el = getSlot(container, 'hold-button')
 
-			fireEvent.pointerDown(el)
+			fireEvent.pointerDown(el, PRESS)
 
 			act(() => {
 				vi.advanceTimersByTime(500)
@@ -454,7 +461,7 @@ describe('HoldButton', () => {
 
 			const el = getSlot(container, 'hold-button')
 
-			fireEvent.pointerDown(el)
+			fireEvent.pointerDown(el, PRESS)
 
 			act(() => {
 				vi.advanceTimersByTime(500)
@@ -500,7 +507,7 @@ describe('HoldButton', () => {
 
 			const el = getSlot(container, 'hold-button')
 
-			fireEvent.pointerDown(el)
+			fireEvent.pointerDown(el, PRESS)
 
 			fireEvent.pointerUp(el)
 
@@ -521,7 +528,7 @@ describe('HoldButton', () => {
 		})
 
 		it.each([
-			['a pointer press', 'onPointerDown', (el: HTMLElement) => fireEvent.pointerDown(el)],
+			['a pointer press', 'onPointerDown', (el: HTMLElement) => fireEvent.pointerDown(el, PRESS)],
 			['a Space keydown', 'onKeyDown', (el: HTMLElement) => fireEvent.keyDown(el, { key: ' ' })],
 		] as const)(
 			'lets a caller preventDefault() on %s keep the hold from starting',
@@ -583,7 +590,7 @@ describe('HoldButton', () => {
 
 			const el = getSlot(container, 'hold-button')
 
-			if (press === 'pointer') fireEvent.pointerDown(el)
+			if (press === 'pointer') fireEvent.pointerDown(el, PRESS)
 			else fireEvent.keyDown(el, { key: ' ' })
 
 			release(el)

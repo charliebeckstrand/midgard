@@ -62,7 +62,13 @@ describe('Resizable in RTL (real browser)', () => {
 
 			const away = dir === 'ltr' ? 40 : -40
 
-			fireEvent.pointerDown(handle, { button: 0, pointerId: 1, clientX: x, clientY: 50 })
+			fireEvent.pointerDown(handle, {
+				isPrimary: true,
+				button: 0,
+				pointerId: 1,
+				clientX: x,
+				clientY: 50,
+			})
 
 			fireEvent.pointerMove(document, { pointerId: 1, clientX: x + away, clientY: 50 })
 
