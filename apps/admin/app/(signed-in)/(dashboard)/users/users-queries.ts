@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { User } from 'auth'
+import { type Seed, seededQuery } from 'shared/queries'
 import { fetchUsers, setUserActive } from './users-api'
 
 /**
@@ -13,14 +14,14 @@ export const usersKeys = {
 }
 
 /**
- * Every user. The server page fetches the list first and gives it here as
- * `initialData`, so the first render has no fetch.
+ * Every user. The server page reads the list first and seeds the query with it
+ * (see `seededQuery`), so the first render has no fetch.
  */
-export function useUsers(initialUsers: User[]) {
+export function useUsers(initialUsers: Seed<User[]>) {
 	return useQuery({
 		queryKey: usersKeys.all,
 		queryFn: ({ signal }) => fetchUsers(signal),
-		initialData: initialUsers,
+		...seededQuery(initialUsers),
 	})
 }
 

@@ -1,5 +1,6 @@
 'use client'
 
+import type { Seed } from 'shared/queries'
 import { Alert } from 'ui/alert'
 import { Badge } from 'ui/badge'
 import { Button } from 'ui/button'
@@ -13,8 +14,8 @@ import type { Ban, Threat } from './security-api'
 import { useBans, useRemoveBan, useResolveThreat, useThreats } from './security-queries'
 
 type SecurityClientProps = {
-	threats: Threat[]
-	bans: Ban[]
+	threats: Seed<Threat[]>
+	bans: Seed<Ban[]>
 }
 
 const threatLabels: Record<string, string> = {

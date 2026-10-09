@@ -3,6 +3,7 @@
 import { CircleAlert, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { type ReactElement, type ReactNode, useState } from 'react'
+import type { Seed } from 'shared/queries'
 import { Badge } from 'ui/badge'
 import { Button } from 'ui/button'
 import { Checkbox, CheckboxField } from 'ui/checkbox'
@@ -120,7 +121,7 @@ type ScheduleListProps = {
 	season: number
 	weeks: Week[]
 	/** The picks of the season that the page read on the server. */
-	picks: SeasonPicks
+	picks: Seed<SeasonPicks>
 	/** The weeks that have kicked off, whose prediction can no longer be deleted. */
 	started: number[]
 	/** The weeks whose every game is locked, which take no more picks. */
