@@ -217,3 +217,23 @@ jobs:
       - run: pnpm turbo run test:compiler --filter=ui --summarize -- --shard=${{ matrix.shard }}/2
       - name: Prune the Turbo cache to this run's tasks
         run: .github/actions/turbo-cache/prune.sh
+
+  # The one check that branch protection requires, with `commitlint` from the
+  # `PR title` workflow. A required check has to match the name of a job, and a
+  # change to a job name or to a matrix leaves a required check that never
+  # reports. This job keeps its name when the other jobs change.
+  #
+  # Add each new job to `needs`. The job runs when a needed job fails, and then
+  # it fails. A needed job that fails, is cancelled, or is skipped makes it fail.
+  ci-ok:
+    needs: [gate, build, test, browser, docs, compiler]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped')
+        run: |
+          echo "$RESULTS"
+          exit 1
+        env:
+          RESULTS: ${{ toJSON(needs) }}
