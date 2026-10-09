@@ -39,6 +39,15 @@ allowBuilds:
   protobufjs: false
   sharp: false
 
+# pnpm gives a package one copy for each set of peers that it resolves to. The
+# optional peers of `next` reach `supports-color` through `@babel/core` and
+# `debug`, and two versions of `supports-color` are in the graph. Without this
+# setting, `next` had two copies, and `shared` did not use the same copy as all
+# of the apps. Thus a type from `next` that `shared` exports did not match the
+# same type in an app. This setting compares only the versions of the peers, so
+# the workspace keeps one copy of `next`.
+dedupePeers: true
+
 # These entries set a minimum safe version for transitive packages with known
 # advisories. Each entry is a range, not a pin. pnpm resolves the newest match,
 # so a lockfile refresh carries the floor forward without an edit here. Renovate
