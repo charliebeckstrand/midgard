@@ -38,8 +38,8 @@ import { Text } from 'ui/text'
 type SignedInClientProps = {
 	user: User
 	/**
-	 * Whether the user can open the admin pages: an admin that passed the second
-	 * step. Such a user gets the sidebar, and each other user gets the header.
+	 * Whether the user is an admin. An admin gets the sidebar, and each other
+	 * user gets the header.
 	 */
 	admin: boolean
 	children: ReactNode
@@ -132,9 +132,8 @@ function SidebarShell({ user, children }: { user: User; children: ReactNode }) {
 }
 
 /**
- * Header chrome of a user that is not an admin, or of an admin before the
- * second step: the name of the app, the appearance settings, and the account
- * menu.
+ * Header chrome of a user that is not an admin: the name of the app, the
+ * appearance settings, and the account menu.
  *
  * @internal
  */

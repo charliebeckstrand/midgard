@@ -21,7 +21,7 @@ pnpm --filter admin dev
 
 | Path | Role |
 |---|---|
-| `app/(signed-in)/` | Pages of each signed-in user. `requireSession` in its layout sends everyone else to `/login`. The layout picks the chrome: an admin that passed the second step gets the sidebar, and each other user gets a header. The chrome stays mounted between the pages of the group. |
+| `app/(signed-in)/` | Pages of each signed-in user. `requireSession` in its layout sends everyone else to `/login`. The layout picks the chrome by the role: an admin gets the sidebar, and each other user gets a header. The chrome stays mounted between the pages of the group, and when the second step passes. |
 | `app/(signed-in)/(dashboard)/*` | Admin-only product surface (dashboard, security, settings, users). `requireAdmin` in its layout sends a signed-in user that is not an admin to `/account`, and an admin without the second step to `/verify`. |
 | `app/(signed-in)/account/` | Account page of each signed-in user: two-step sign-in (passkeys, an authenticator app, and recovery codes), the connected GitHub and Google accounts, and the recent activity. The account menu of the chrome holds sign-out. |
 | `app/components/page-header/` | The title row of each signed-in page: the title, the breadcrumb, the description, and the actions. |
