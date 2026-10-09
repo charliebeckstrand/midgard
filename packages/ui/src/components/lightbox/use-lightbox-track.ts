@@ -29,11 +29,11 @@ export type LightboxTrackOptions = {
 	/** A tap on the stage: a click that does not end a swipe. */
 	onTap: (event: MouseEvent<HTMLElement>) => void
 	/**
-	 * A swipe up or down that closes the viewer. It gets the transform that the
+	 * A swipe that closes the viewer. It gets the transform that the
 	 * photo paints at the lift, so the return starts there.
 	 */
 	onDismiss: (transform: string) => void
-	/** The scrim and the controls, which fade as a swipe up or down travels. */
+	/** The scrim and the controls, which fade as a swipe to close travels. */
 	dimmed: () => readonly (HTMLElement | null)[]
 }
 
@@ -60,15 +60,17 @@ type Press = {
 	y: number
 	/**
 	 * What the press does once it travels past the slop: `'swipe'` along the line
-	 * steps, and `'dismiss'` up or down closes.
+	 * steps, and `'dismiss'` closes.
 	 */
 	mode: 'wait' | 'swipe' | 'dismiss'
 	/** Whether the line runs right to left. The swipe reads it once, when it starts. */
 	rtl: boolean
-	/** The photo that a swipe up or down moves, and its size at rest. */
+	/** The stage, which a swipe to close raises above the controls. */
+	stage: HTMLElement | null
+	/** The photo that a swipe to close moves, and its size at rest. */
 	photo: HTMLElement | null
 	size: { width: number; height: number }
-	/** The frame that a swipe up or down paints now. */
+	/** The frame that a swipe to close paints now. */
 	frame: { transform: string; opacity: number }
 	/** The last point and time, for the speed at the lift. */
 	lastX: number
@@ -101,16 +103,17 @@ function travelTo(track: HTMLElement, offset: number): number {
 
 /**
  * What a press means once it travels: `'swipe'` along the line, `'dismiss'` up
- * or down, or `'wait'` while it stays inside the slop.
+ * or down, or `'wait'` while it stays inside the slop. With one photo, there
+ * is no photo to swipe to, so a press in any direction is `'dismiss'`.
  */
-function intentOf(press: Press, event: PointerEvent): Press['mode'] {
+function intentOf(press: Press, event: PointerEvent, count: number): Press['mode'] {
 	const dx = Math.abs(event.clientX - press.x)
 
 	const dy = Math.abs(event.clientY - press.y)
 
 	if (Math.max(dx, dy) < SWIPE_SLOP) return 'wait'
 
-	return dy > dx ? 'dismiss' : 'swipe'
+	return count < 2 || dy > dx ? 'dismiss' : 'swipe'
 }
 
 /** Records the point of a move, and the speed since the move before it. */
@@ -150,7 +153,8 @@ function paint(track: HTMLElement, travel: number) {
  * when it traveled far enough or fast enough (see `swipeStep`), and it
  * slides back otherwise. Past the first or the last photo, the track follows
  * the finger at a fraction of its travel. A press that moves more up or down
- * than along the line moves the photo with the finger instead, and the
+ * than along the line, or any press on the only photo, moves the photo with the
+ * finger instead, and the
  * scrim and the controls fade as it travels. At the lift, it closes the viewer
  * when it traveled far enough or fast enough (see `dismisses`), and the photo
  * goes back to rest otherwise. A click that ends a swipe is not a tap.
@@ -242,17 +246,21 @@ export function useLightboxTrack(
 		else slide(track, 0, () => rest(track))
 	}
 
-	// A swipe up or down that does not close puts the photo back at rest and
-	// brings back the scrim and the controls.
+	// A swipe to close that does not close puts the photo back at rest, brings
+	// back the scrim and the controls, and puts the stage back under the controls.
 	const restore = (current: Press) => {
-		const { photo, frame } = current
+		const { stage, photo, frame } = current
 
 		if (!photo) return
+
+		const lower = () => stage?.toggleAttribute('data-raised', false)
 
 		if (reduceMotion) {
 			photo.style.transform = 'none'
 
 			dim(dimmed(), 1)
+
+			lower()
 
 			return
 		}
@@ -273,18 +281,29 @@ export function useLightboxTrack(
 		running.current = controls
 
 		controls.finished.then(() => {
-			if (running.current === controls) running.current = null
+			if (running.current !== controls) return
+
+			running.current = null
+
+			lower()
 		})
 	}
 
 	// A press that travels past the slop starts a swipe along the line or up and
 	// down. It reads the layout once, here, and never during the moves.
 	const begin = (current: Press, track: HTMLElement, event: PointerEvent<HTMLElement>) => {
-		current.mode = intentOf(current, event)
+		current.mode = intentOf(current, event, count)
 
 		if (current.mode === 'wait') return false
 
 		current.rtl = isRtl(track)
+
+		// The photo moves over the controls.
+		if (current.mode === 'dismiss') {
+			current.stage = event.currentTarget
+
+			current.stage.toggleAttribute('data-raised', true)
+		}
 
 		current.photo = slotAt(track, 0)?.querySelector<HTMLElement>('img') ?? null
 
@@ -328,6 +347,7 @@ export function useLightboxTrack(
 					y: event.clientY,
 					mode: 'wait',
 					rtl: false,
+					stage: null,
 					photo: null,
 					size: { width: 0, height: 0 },
 					frame: { transform: RESTING_FRAME.transform, opacity: 1 },
@@ -354,7 +374,7 @@ export function useLightboxTrack(
 				follow(current, event)
 
 				if (current.mode === 'dismiss') {
-					current.frame = dismissFrame(dx, dy, current.size, track.clientHeight)
+					current.frame = dismissFrame({ x: dx, y: dy }, current.size, track.clientHeight)
 
 					if (current.photo) current.photo.style.transform = current.frame.transform
 
@@ -383,7 +403,11 @@ export function useLightboxTrack(
 				if (!current || current.mode === 'wait' || !track) return
 
 				if (current.mode === 'dismiss') {
-					if (dismisses(event.clientY - current.y, current.speedY, track.clientHeight)) {
+					const travel = { x: event.clientX - current.x, y: event.clientY - current.y }
+
+					const speed = { x: current.speedX, y: current.speedY }
+
+					if (dismisses(travel, speed, track.clientHeight)) {
 						onDismiss(current.frame.transform)
 					} else {
 						restore(current)

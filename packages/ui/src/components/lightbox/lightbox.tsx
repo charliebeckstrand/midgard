@@ -22,7 +22,7 @@ export type LightboxProps = {
 	onIndexChange?: (index: number | null) => void
 	/**
 	 * Shows a close button, one gap above the photo. Without it, Escape, a press
-	 * outside the photo, and a swipe up or down close the viewer, and the close
+	 * outside the photo, and a swipe up or down (in any direction for one photo) close the viewer, and the close
 	 * button shows only when it has the keyboard focus.
 	 * @defaultValue false
 	 */

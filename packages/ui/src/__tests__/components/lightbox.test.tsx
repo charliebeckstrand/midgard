@@ -1,7 +1,15 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Lightbox, type LightboxPhoto, LightboxTrigger } from '../../components/lightbox'
 import { REDUCED_MOTION_QUERY } from '../../utilities/media-query'
-import { fireEvent, renderUI, screen, setupUser, stubMatchMedia } from '../helpers'
+import {
+	createEvent,
+	fireEvent,
+	getSlot,
+	renderUI,
+	screen,
+	setupUser,
+	stubMatchMedia,
+} from '../helpers'
 
 const photos: LightboxPhoto[] = [
 	{ src: '/a.jpg', alt: 'Harbor at dawn', width: 1500, height: 1000 },
@@ -22,6 +30,27 @@ function Gallery(props: Partial<Parameters<typeof Lightbox>[0]>) {
 /** The image of the photo in the center of the stage. */
 function centerPhoto() {
 	return document.querySelector<HTMLImageElement>('[data-offset="0"] img')
+}
+
+/** A slow press on the stage. Each event gives its own time, in ms. */
+function press(
+	stage: HTMLElement,
+	type: 'pointerDown' | 'pointerMove' | 'pointerUp',
+	clientX: number,
+	clientY: number,
+	timeStamp: number,
+) {
+	const event = createEvent[type](stage, {
+		pointerId: 1,
+		isPrimary: true,
+		button: 0,
+		clientX,
+		clientY,
+	})
+
+	Object.defineProperty(event, 'timeStamp', { value: timeStamp })
+
+	fireEvent(stage, event)
 }
 
 describe('Lightbox', () => {
@@ -186,6 +215,52 @@ describe('Lightbox', () => {
 		await user.keyboard('{Escape}')
 
 		expect(screen.queryByRole('dialog')).toBeNull()
+	})
+
+	it('raises the stage above the controls while a swipe up or down moves the photo', () => {
+		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+
+		renderUI(<Gallery defaultIndex={1} />)
+
+		const stage = getSlot(document.body, 'lightbox-stage')
+
+		// jsdom has no layout. A swipe of 40px on a stage 800px tall is short.
+		Object.defineProperty(stage.firstElementChild, 'clientHeight', { value: 800 })
+
+		press(stage, 'pointerDown', 100, 100, 0)
+
+		press(stage, 'pointerMove', 100, 140, 1000)
+
+		expect(stage).toHaveAttribute('data-raised')
+
+		// A short, slow swipe puts the photo back, and the stage back under the controls.
+		press(stage, 'pointerUp', 100, 140, 2000)
+
+		expect(stage).not.toHaveAttribute('data-raised')
+
+		expect(screen.getByRole('dialog')).toBeInTheDocument()
+	})
+
+	it('moves the only photo with a swipe to the side, and not the track', () => {
+		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+
+		renderUI(<Gallery photos={photos.slice(0, 1)} defaultIndex={0} />)
+
+		const stage = getSlot(document.body, 'lightbox-stage')
+
+		const track = stage.firstElementChild as HTMLElement
+
+		Object.defineProperty(track, 'clientHeight', { value: 800 })
+
+		press(stage, 'pointerDown', 100, 100, 0)
+
+		press(stage, 'pointerMove', 140, 100, 1000)
+
+		expect(track.style.transform).toBe('')
+
+		expect(centerPhoto()?.style.transform).toMatch(/^translate\(4\d/)
+
+		expect(stage).toHaveAttribute('data-raised')
 	})
 
 	it('follows a controlled index', () => {
