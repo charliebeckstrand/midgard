@@ -146,12 +146,12 @@ describe('Lightbox', () => {
 		expect(centerPhoto()).toHaveAttribute('alt', 'Snow on a ridge')
 	})
 
-	it('closes on the close button, and reports `null`', async () => {
+	it('closes on the close button with `closable`, and reports `null`', async () => {
 		const user = setupUser()
 
 		const onIndexChange = vi.fn()
 
-		renderUI(<Gallery defaultIndex={2} onIndexChange={onIndexChange} />)
+		renderUI(<Gallery defaultIndex={2} closable onIndexChange={onIndexChange} />)
 
 		await user.click(screen.getByRole('button', { name: 'Close' }))
 
@@ -202,7 +202,7 @@ describe('Lightbox', () => {
 		const first = photos.slice(0, 1)
 
 		renderUI(
-			<Lightbox photos={first} defaultIndex={0}>
+			<Lightbox photos={first} defaultIndex={0} closable>
 				<LightboxTrigger />
 			</Lightbox>,
 		)
@@ -218,6 +218,7 @@ describe('Lightbox', () => {
 		renderUI(
 			<Gallery
 				defaultIndex={1}
+				closable
 				aria-label="Trip photos"
 				closeLabel="Fermer"
 				previousLabel="Photo précédente"
@@ -232,10 +233,10 @@ describe('Lightbox', () => {
 		}
 	})
 
-	it('hides the close button with `closable={false}`, and still closes on Escape', async () => {
+	it('shows no close button by default, and closes on Escape', async () => {
 		const onIndexChange = vi.fn()
 
-		renderUI(<Gallery defaultIndex={1} closable={false} onIndexChange={onIndexChange} />)
+		renderUI(<Gallery defaultIndex={1} onIndexChange={onIndexChange} />)
 
 		expect(screen.queryByRole('button', { name: 'Close' })).toBeNull()
 
@@ -249,7 +250,7 @@ describe('Lightbox', () => {
 	it('hides the step controls with `controls={false}`, and still steps on the arrow keys', () => {
 		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
 
-		renderUI(<Gallery defaultIndex={0} controls={false} />)
+		renderUI(<Gallery defaultIndex={0} closable controls={false} />)
 
 		expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument()
 
@@ -263,7 +264,7 @@ describe('Lightbox', () => {
 	})
 
 	it('gives the focus to the viewer when it shows no button', () => {
-		renderUI(<Gallery defaultIndex={0} closable={false} controls={false} />)
+		renderUI(<Gallery defaultIndex={0} controls={false} />)
 
 		expect(screen.getByRole('dialog')).toHaveFocus()
 	})

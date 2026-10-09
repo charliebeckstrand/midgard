@@ -21,9 +21,9 @@ export type LightboxProps = {
 	/** Fires with the index of the photo that the viewer shows, or `null` when it closes. */
 	onIndexChange?: (index: number | null) => void
 	/**
-	 * Shows the close button, one gap above the photo. Without it, Escape and a
-	 * press outside the photo still close the viewer.
-	 * @defaultValue true
+	 * Shows a close button, one gap above the photo. Without it, Escape and a
+	 * press outside the photo close the viewer.
+	 * @defaultValue false
 	 */
 	closable?: boolean
 	/**
@@ -82,7 +82,7 @@ export function Lightbox({
 	index: indexProp,
 	defaultIndex,
 	onIndexChange,
-	closable = true,
+	closable = false,
 	controls = true,
 	'aria-label': ariaLabel = 'Photos',
 	closeLabel = 'Close',
