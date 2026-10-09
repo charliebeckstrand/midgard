@@ -1,5 +1,7 @@
 # Density Geometry — Design Plan — 2026-10-09
 
+> **Status.** Closed. Parts 1 and 2 landed in [#2215](https://github.com/charliebeckstrand/midgard/pull/2215), part 3 in [#2219](https://github.com/charliebeckstrand/midgard/pull/2219), part 4 in [#2220](https://github.com/charliebeckstrand/midgard/pull/2220), and part 5 in the docs pull request that adds this line.
+
 A plan for a later session to carry out. It replaces the label icon work of 2026-10-09 (the `fix/label-icon-ramp` branch), whose findings it keeps. Read all of it before you change a file: section 3 states the model, section 4 lists the decisions, and section 6 gives the order of work.
 
 ## 1. Goal and state

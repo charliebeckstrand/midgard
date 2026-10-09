@@ -8,6 +8,8 @@
 > `viewBox`. The relative slot scope ranked correctly, so the first open question closed in
 > [#1548](https://github.com/charliebeckstrand/midgard/pull/1548).
 
+> **Note.** In this plan, an `xl` Button takes the `lg` values. [`2026-10-09-DENSITY-GEOMETRY-PLAN.md`](2026-10-09-DENSITY-GEOMETRY-PLAN.md) replaced that contract. Each ramp now has five values, and `xs` and `xl` are real steps.
+
 How a stored density applies at the first paint of a static shell. It follows [`2026-09-27-DENSITY-ENGINE-PLAN.md`](2026-09-27-DENSITY-ENGINE-PLAN.md) and makes increment 6 of [`2026-09-27-DENSITY-VARIANTS-PLAN.md`](2026-09-27-DENSITY-VARIANTS-PLAN.md) the goal, not an option.
 
 ## Thesis
