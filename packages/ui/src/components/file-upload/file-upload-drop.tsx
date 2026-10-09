@@ -39,7 +39,7 @@ type DropSelectionProps = {
 	disabled?: boolean
 	/** The id of the enclosing Field Label. With it, the overlay takes the Label and the selection text as its name. */
 	labelledBy?: string
-	/** Marks the overlay invalid, from the error state of the enclosing Field. */
+	/** Marks the overlay invalid, from the error state of the enclosing Field or the bound Form field. */
 	invalid?: boolean
 	/** Forces the tooltip open for the multi-file summary (see {@link FileUploadRenderState.showTooltip}). */
 	alwaysTooltip: boolean
@@ -163,6 +163,7 @@ export function FileUploadDrop(props: FileUploadDropProps) {
 	const {
 		control,
 		disabled,
+		invalid,
 		inputRef,
 		files,
 		hasFiles,
@@ -192,8 +193,6 @@ export function FileUploadDrop(props: FileUploadDropProps) {
 	const overlayRef = useRef<HTMLButtonElement>(null)
 
 	const emptyId = useId()
-
-	const invalid = control?.severity === 'error' || undefined
 
 	// The `filled` value that the last event can make, when focus was in the
 	// zone at that event. Otherwise `null`.
@@ -261,6 +260,7 @@ export function FileUploadDrop(props: FileUploadDropProps) {
 				accept={accept}
 				multiple={multiple}
 				disabled={disabled}
+				invalid={invalid}
 				filesEmpty={!hasFiles}
 				onChange={handlePickChange}
 			/>

@@ -25,7 +25,8 @@ export function FileUploadButton(props: FileUploadButtonProps) {
 	const state = useFileUploadState(props)
 
 	const { accept, multiple, className, children, size, color } = props
-	const { control, disabled, inputRef, hasFiles, handleChange, openPicker, clearFiles } = state
+	const { control, disabled, invalid, inputRef, hasFiles, handleChange, openPicker, clearFiles } =
+		state
 
 	const triggerRef = useRef<HTMLButtonElement>(null)
 
@@ -48,6 +49,7 @@ export function FileUploadButton(props: FileUploadButtonProps) {
 				accept={accept}
 				multiple={multiple}
 				disabled={disabled}
+				invalid={invalid}
 				filesEmpty={!hasFiles}
 				onChange={handleChange}
 			/>

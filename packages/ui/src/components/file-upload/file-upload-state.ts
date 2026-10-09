@@ -9,8 +9,19 @@ import { useControl } from '../control/context'
 import type { FileRejection } from './file-upload-utilities'
 import { useFileUploadHandlers } from './use-file-upload-handlers'
 
-/** What every file-upload component takes: the accept and limit rules, and the selection reports. */
+/** What every file-upload component takes: the value binding, the accept and limit rules, and the selection reports. */
 type FileUploadSharedProps = {
+	/**
+	 * Binds the selection to an enclosing Form field. `Form.defaultValues` seeds
+	 * a `File[]`. The hidden file input stays nameless.
+	 */
+	name?: string
+	/** The selected files (controlled). `null` is controlled and empty (CONVENTIONS §7.3). */
+	value?: File[] | null
+	/** The initial selection (uncontrolled). A native form reset goes back to it. */
+	defaultValue?: File[]
+	/** Fires with the next selection, as `onAccept` does. A clear fires with `[]`. */
+	onValueChange?: (files: File[]) => void
 	/**
 	 * Accepted file types (e.g. `"image/*"`, `".pdf,.doc"`). The picker shows
 	 * only these, and a dropped file of a different type goes to `onReject`.
@@ -103,6 +114,8 @@ export type FileUploadRenderState = ReturnType<typeof useFileUploadHandlers> & {
 	control: ReturnType<typeof useControl>
 	/** The `disabled` prop, else the disabled state of the enclosing Control. */
 	disabled: boolean | undefined
+	/** The error state of the enclosing Control, or an error on the bound Form field. */
+	invalid: true | undefined
 	hasFiles: boolean
 	/** Forces the selection tooltip open for the "x files selected" summary,
 	 * whose collapsed count hides the names. A single name needs it only when
@@ -113,7 +126,8 @@ export type FileUploadRenderState = ReturnType<typeof useFileUploadHandlers> & {
 
 /**
  * The state every file-upload component shares: the hidden input's handlers,
- * the resolved Control context, and the two derived selection flags.
+ * the resolved Control context, the merged `invalid` flag, and the two derived
+ * selection flags.
  *
  * @remarks
  * The three components differ in what they draw, not in how they pick. This is
@@ -123,7 +137,19 @@ export type FileUploadRenderState = ReturnType<typeof useFileUploadHandlers> & {
  * @internal
  */
 export function useFileUploadState(props: FileUploadSharedProps): FileUploadRenderState {
-	const { accept, multiple, maxSize, maxCount, onAccept, onReject, onDragOverChange } = props
+	const {
+		name,
+		value,
+		defaultValue,
+		onValueChange,
+		accept,
+		multiple,
+		maxSize,
+		maxCount,
+		onAccept,
+		onReject,
+		onDragOverChange,
+	} = props
 
 	// Mirrors Control/Field id + invalid + required + error-message wiring onto
 	// the hidden `<input type="file">`, the real control in each component. The
@@ -134,6 +160,10 @@ export function useFileUploadState(props: FileUploadSharedProps): FileUploadRend
 	const disabled = props.disabled ?? control?.disabled
 
 	const handlers = useFileUploadHandlers({
+		name,
+		value,
+		defaultValue,
+		onValueChange,
 		disabled,
 		accept,
 		maxSize,
@@ -149,6 +179,7 @@ export function useFileUploadState(props: FileUploadSharedProps): FileUploadRend
 		...handlers,
 		control,
 		disabled,
+		invalid: control?.severity === 'error' || handlers.invalid || undefined,
 		hasFiles: handlers.files.length > 0,
 		showTooltip: Boolean(multiple && handlers.files.length > 1),
 	}

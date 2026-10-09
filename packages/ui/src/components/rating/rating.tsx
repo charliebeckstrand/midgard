@@ -1,9 +1,10 @@
 'use client'
 
 import { Star } from 'lucide-react'
-import { type MouseEvent, type PointerEvent, type ReactNode, useState } from 'react'
+import { type MouseEvent, type PointerEvent, type ReactNode, useRef, useState } from 'react'
 import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
+import { useFormResetSync } from '../../hooks/use-form-reset-sync'
 import { useIdScope } from '../../hooks/use-id-scope'
 import type { scale } from '../../recipes/kata/rating'
 import { k, type RatingVariants } from '../../recipes/kata/rating'
@@ -148,7 +149,8 @@ export type RatingProps = RatingVariants & {
  * The readout is necessary, because color and shape alone do not carry a score
  * (WCAG 1.4.1).
  *
- * Binds to an enclosing Form field by `name`. Resolves `id` / `disabled` /
+ * Binds to an enclosing Form field by `name`. An uncontrolled rating goes back
+ * to `defaultValue` on a native form reset, and `onValueChange` reports it. Resolves `id` / `disabled` /
  * `readOnly` / `invalid` from an enclosing `<Control>` or `<Field>`. The stars
  * take the step of the nearest density scope. A `<Label as="span">` in the
  * Field names the stars through `aria-labelledby`. No one element of the stars
@@ -186,6 +188,7 @@ export function Rating({
 }: RatingProps) {
 	const {
 		value: bound,
+		controlled,
 		setValue,
 		setTouched,
 		invalid,
@@ -216,6 +219,13 @@ export function Rating({
 	// A disabled row still shows its score and takes no pointer, so the preview
 	// is gated on the input being live rather than dropped at the handler.
 	const live = !resolvedReadOnly && !resolvedDisabled
+
+	// The radio of the first score. Every radio of the row is in the same form.
+	const firstInputRef = useRef<HTMLInputElement>(null)
+
+	// A native form reset reverts the radios without a change event. The
+	// uncontrolled score then goes back to its seed, as the radios do.
+	useFormResetSync(firstInputRef, live && !controlled, () => setValue(defaultValue ?? null))
 
 	// The preview the pointer is asking for, or none. A dead row shows its score
 	// and nothing else, so the gate sits here rather than on each reader below.
@@ -367,6 +377,7 @@ export function Rating({
 				onPointerEnter={(event) => handlePointerEnter(event, score)}
 			>
 				<input
+					ref={score === step ? firstInputRef : undefined}
 					type="radio"
 					data-slot="rating-input"
 					name={scope.id}

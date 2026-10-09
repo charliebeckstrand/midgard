@@ -14,9 +14,14 @@ type FormValueOptions<T> = {
 	onValueChange?: (value: T | null) => void
 }
 
-/** Resolved value binding: the current `value`, a `setValue` accepting a value or updater, and a `setTouched` for blur. It also carries an `invalid` flag from any bound field's errors. */
+/** Resolved value binding: the current `value`, a `setValue` accepting a value or updater, and a `setTouched` for blur. It also carries an `invalid` flag from any bound field's errors, and the `controlled` flag. */
 export type FormValueResult<T> = {
 	value: T | undefined
+	/**
+	 * `true` when a `value` prop or a bound field drives the value. An
+	 * uncontrolled control mirrors a native form reset only while this is `false`.
+	 */
+	controlled: boolean
 	setValue: (value: SetValue<T>) => void
 	/** Marks the field touched; no-op outside a Form. Call from `onBlur`. */
 	setTouched: () => void
@@ -33,8 +38,8 @@ export type FormValueResult<T> = {
  * controlled/uncontrolled state).
  * @param options - `value` (controlled), `defaultValue` (uncontrolled seed,
  * can be a lazy initializer), and `onValueChange`.
- * @returns A {@link FormValueResult} with `value`, `setValue`, `setTouched`,
- * and `invalid`.
+ * @returns A {@link FormValueResult} with `value`, `controlled`, `setValue`,
+ * `setTouched`, and `invalid`.
  * @typeParam T - The control's value type.
  * @remarks Resolution mirrors Input's cascade. An explicit `value` prop wins.
  * Otherwise a field with this `name` drives the state: the store is the single
@@ -76,6 +81,7 @@ export function useFormValue<T>(
 
 	return {
 		value: current,
+		controlled: bound || value !== undefined,
 		setValue: setCurrent,
 		setTouched,
 		invalid: field && hasIssues(field.errors),

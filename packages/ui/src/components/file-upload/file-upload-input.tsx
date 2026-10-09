@@ -47,6 +47,7 @@ export function FileUploadInput(props: FileUploadInputProps) {
 	const {
 		control,
 		disabled,
+		invalid,
 		inputRef,
 		files,
 		hasFiles,
@@ -94,7 +95,7 @@ export function FileUploadInput(props: FileUploadInputProps) {
 					data-slot="file-upload-field"
 					aria-labelledby={control?.labelledBy ? `${control.labelledBy} ${valueId}` : undefined}
 					disabled={disabled}
-					{...invalidAttrs(control?.severity === 'error' || undefined)}
+					{...invalidAttrs(invalid)}
 					className={cn(!headless && inputKata({ variant }), k.field, k.cursor)}
 					onClick={openPicker}
 				>
@@ -116,6 +117,7 @@ export function FileUploadInput(props: FileUploadInputProps) {
 				accept={accept}
 				multiple={multiple}
 				disabled={disabled}
+				invalid={invalid}
 				filesEmpty={!hasFiles}
 				onChange={handleChange}
 			/>

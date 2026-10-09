@@ -5,6 +5,7 @@ import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbo
 import { Description, Label } from '../../components/fieldset'
 import { Form } from '../../components/form'
 import {
+	act,
 	bySlot,
 	densityStepOf,
 	fireEvent,
@@ -383,5 +384,31 @@ describe('Checkbox touch', () => {
 		expect(field).toHaveClass('touch-manipulation')
 
 		expect(getSlot(field, 'control')).toHaveClass('touch-manipulation')
+	})
+})
+
+describe('Checkbox native form reset', () => {
+	it('returns an uncontrolled checkbox to defaultChecked', async () => {
+		const user = setupUser()
+
+		renderUI(
+			<form>
+				<Checkbox aria-label="Terms" defaultChecked />
+				<Checkbox aria-label="News" />
+				<button type="reset">Reset</button>
+			</form>,
+		)
+
+		await user.click(screen.getByRole('checkbox', { name: 'Terms' }))
+
+		await user.click(screen.getByRole('checkbox', { name: 'News' }))
+
+		await user.click(screen.getByRole('button', { name: 'Reset' }))
+
+		await act(() => new Promise(requestAnimationFrame))
+
+		expect(screen.getByRole('checkbox', { name: 'Terms' })).toBeChecked()
+
+		expect(screen.getByRole('checkbox', { name: 'News' })).not.toBeChecked()
 	})
 })

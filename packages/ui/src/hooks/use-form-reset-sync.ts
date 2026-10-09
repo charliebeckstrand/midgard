@@ -10,7 +10,8 @@ import { useStableEvent } from './use-stable-event'
  * A native form reset reverts an uncontrolled input and does not fire
  * `onChange`. The browser reverts the input after the `reset` event, so the hook
  * calls `onReset` with the input on the next frame. The component then reads
- * the reverted value from the input. Unmount, or a change of `enabled` to
+ * the reverted value from the input. A canceled reset does not call `onReset`.
+ * Unmount, or a change of `enabled` to
  * `false`, removes the listener and cancels a waiting frame.
  *
  * @param inputRef The input that the form reverts.
@@ -36,8 +37,12 @@ export function useFormResetSync(
 
 		let frame = 0
 
-		const handleReset = () => {
-			frame = requestAnimationFrame(() => handle(input))
+		// A handler after this one can cancel the reset, as `Form` does. The frame
+		// reads the result, because a canceled reset reverts nothing.
+		const handleReset = (event: Event) => {
+			frame = requestAnimationFrame(() => {
+				if (!event.defaultPrevented) handle(input)
+			})
 		}
 
 		form.addEventListener('reset', handleReset)

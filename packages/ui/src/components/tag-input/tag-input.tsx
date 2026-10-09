@@ -12,6 +12,7 @@ import { BadgeRemovable } from '../badge/badge-removable'
 import { Button } from '../button'
 import { useControlFallbackLabel } from '../control/use-control-fallback-label'
 import { useControlProps } from '../control/use-control-props'
+import { useFormResets } from '../form/context'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
 import { hasSeparator, splitTokens, type TokenRejection } from './tag-input-utilities'
@@ -83,7 +84,8 @@ export type TagInputProps = Omit<
  *
  * @remarks
  * Binds to an enclosing `<Form>` field by `name` (the inner text input stays
- * nameless). Resolves `disabled` and `readOnly` against an enclosing
+ * nameless). A reset of that Form also drops the typed draft and the refused
+ * mark. Resolves `disabled` and `readOnly` against an enclosing
  * `<Control>`. Then the tags stay, and no tag is added or removed. A consumer
  * `onKeyDown`, `onPaste`, or `onBlur` runs before the handler of the field.
  * At the cap the field switches to read-only rather than disabled,
@@ -153,6 +155,24 @@ export function TagInput({
 	// only arrive from a bound Form field, so without this a rejected draft had no sighted feedback
 	// at all — the reason a refused paste read as nothing happening.
 	const [refused, setRefused] = useState(false)
+
+	// A Form reset restores the bound tags. The draft and the refused mark are
+	// the partial entry of the field, so the reset drops them too. Otherwise a
+	// later blur commits the old draft. As DateInput does, only a bound field
+	// follows the resets of the Form.
+	const formResets = useFormResets()
+
+	const resets = name === undefined ? 0 : formResets
+
+	const [knownResets, setKnownResets] = useState(resets)
+
+	if (knownResets !== resets) {
+		setKnownResets(resets)
+
+		setInputValue('')
+
+		setRefused(false)
+	}
 
 	const resolvedColor = tagColor ?? 'zinc'
 

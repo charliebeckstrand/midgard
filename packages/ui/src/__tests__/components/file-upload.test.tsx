@@ -2,8 +2,10 @@ import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
 import { Description, Field, Label, Message } from '../../components/fieldset'
 import { FileUploadButton, FileUploadDrop, FileUploadInput } from '../../components/file-upload'
+import { Form } from '../../components/form'
 import { HeadlessProvider } from '../../providers/headless'
 import {
+	act,
 	expectAnnouncement,
 	fireEvent,
 	getSlot,
@@ -854,5 +856,112 @@ describe('FileUpload focus handoff', () => {
 		fireEvent.click(browse)
 
 		expect(display(container)).toHaveFocus()
+	})
+})
+
+describe('FileUpload value binding', () => {
+	it('shows a defaultValue selection when uncontrolled', () => {
+		const { container } = renderUI(<FileUploadInput defaultValue={[new File(['x'], 'seed.pdf')]} />)
+
+		expect(display(container)).toHaveTextContent('seed.pdf')
+	})
+
+	it('shows a controlled value and reports a pick through onValueChange', () => {
+		const onValueChange = vi.fn()
+
+		const picked = new File(['y'], 'picked.pdf')
+
+		const { container } = renderUI(
+			<FileUploadInput value={[new File(['x'], 'held.pdf')]} onValueChange={onValueChange} />,
+		)
+
+		selectFiles(container, [picked])
+
+		expect(onValueChange).toHaveBeenLastCalledWith([picked])
+
+		// The owner did not take the pick, so the display keeps the held file.
+		expect(display(container)).toHaveTextContent('held.pdf')
+	})
+
+	it('reports a clear through onValueChange as an empty list', () => {
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(<FileUploadInput onValueChange={onValueChange} />)
+
+		selectFiles(container, [new File(['x'], 'resume.pdf')])
+
+		fireEvent.click(screen.getByRole('button', { name: 'Clear selected file(s)' }))
+
+		expect(onValueChange).toHaveBeenLastCalledWith([])
+	})
+
+	it('binds to a Form field by name, submits the files, and follows a Form reset', async () => {
+		const onSubmit = vi.fn()
+
+		const file = new File(['x'], 'resume.pdf')
+
+		const { container } = renderUI(
+			<Form defaultValues={{ files: [] as File[] }} onSubmit={onSubmit}>
+				<FileUploadInput name="files" placeholder="Choose a file" />
+				<button type="reset">Reset</button>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		selectFiles(container, [file])
+
+		expect(display(container)).toHaveTextContent('resume.pdf')
+
+		fireEvent.click(screen.getByRole('button', { name: 'Submit' }))
+
+		await act(() => Promise.resolve())
+
+		expect(onSubmit).toHaveBeenCalledWith(
+			expect.objectContaining({ files: [file] }),
+			expect.anything(),
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Reset' }))
+
+		expect(display(container)).toHaveTextContent('Choose a file')
+	})
+
+	it('marks the field invalid from a bound Form error', async () => {
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ files: [] as File[] }}
+				validate={{ files: (v) => ((v as File[]).length === 0 ? 'Pick a file' : undefined) }}
+			>
+				<FileUploadInput name="files" />
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Submit' }))
+
+		await act(() => Promise.resolve())
+
+		expect(fileInput(container)).toHaveAttribute('aria-invalid', 'true')
+
+		expect(display(container)).toHaveAttribute('aria-invalid', 'true')
+	})
+
+	it('goes back to defaultValue on a native form reset when uncontrolled', async () => {
+		const { container } = renderUI(
+			<form>
+				<FileUploadDrop />
+				<button type="reset">Reset form</button>
+			</form>,
+		)
+
+		selectFiles(container, [new File(['x'], 'resume.pdf')])
+
+		expect(screen.getByText('resume.pdf')).toBeInTheDocument()
+
+		fireEvent.click(screen.getByRole('button', { name: 'Reset form' }))
+
+		await act(() => new Promise(requestAnimationFrame))
+
+		expect(screen.getByText('Drop files here or click to browse')).toBeInTheDocument()
 	})
 })

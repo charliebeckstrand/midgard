@@ -2,7 +2,9 @@
 
 import { type ChangeEvent, type DragEvent, useCallback, useRef, useState } from 'react'
 import { announce } from '../../core'
+import { useFormResetSync } from '../../hooks/use-form-reset-sync'
 import { useOpenChange } from '../../hooks/use-open-change'
+import { useFormValue } from '../form/use-form-value'
 import {
 	type FileRejection,
 	fileListToArray,
@@ -20,6 +22,14 @@ function carriesFiles(event: DragEvent): boolean {
 }
 
 type FileHandlersOptions = {
+	/** Binds the selection to an enclosing Form field. */
+	name?: string
+	/** Controlled selection; `null` is controlled and empty (CONVENTIONS §7.3). */
+	value?: File[] | null
+	/** Initial selection when uncontrolled. */
+	defaultValue?: File[]
+	/** Fires with the next selection. A clear reports `[]`. */
+	onValueChange?: (files: File[]) => void
 	disabled?: boolean
 	/** Accepted file types. The picker filters by them too, but a drop does not. */
 	accept?: string
@@ -32,7 +42,11 @@ type FileHandlersOptions = {
 
 /**
  * Drives a hidden `<input type="file">`: opens the native picker, tracks the
- * accepted selection, and wires drag-and-drop. Incoming files (picker or drop)
+ * accepted selection, and wires drag-and-drop. The selection goes through
+ * {@link useFormValue}: a `value` prop wins, then a Form field bound by `name`,
+ * then own state seeded from `defaultValue`. The hidden input stays nameless,
+ * because the bound value is the `File[]`. An uncontrolled selection goes back
+ * to `defaultValue` on a native form reset. Incoming files (picker or drop)
  * are split through `partitionFiles` against `accept`, `maxSize` and
  * `maxCount`. Accepted files fire `onAccept`, rejected ones fire `onReject`,
  * and the accepted set is announced to a live region. A batch with no
@@ -41,13 +55,18 @@ type FileHandlersOptions = {
  * drop handling. Only a drag that carries files counts: a text, link, or
  * element drag does not set `dragOver`, and the zone does not claim it.
  *
- * @param options - Constraints (`accept`, `maxSize`, `maxCount`), the
+ * @param options - The value binding (`name`, `value`, `defaultValue`,
+ * `onValueChange`), constraints (`accept`, `maxSize`, `maxCount`), the
  * `disabled` flag, and the `onAccept`/`onReject`/`onDragOverChange` callbacks.
- * @returns The hidden input `ref`, the current `dragOver` flag, and the accepted
- * `files`. It also returns `openPicker`, `handleChange`, `clearFiles`, and the
+ * @returns The hidden input `ref`, the current `dragOver` flag, the selected
+ * `files`, and the `invalid` flag of a bound field. It also returns `openPicker`, `handleChange`, `clearFiles`, and the
  * drag/drop event handlers to spread onto the trigger and dropzone.
  */
 export function useFileUploadHandlers({
+	name,
+	value,
+	defaultValue,
+	onValueChange,
 	disabled,
 	accept,
 	maxSize,
@@ -62,7 +81,24 @@ export function useFileUploadHandlers({
 	// crossing. Depth > 0 means the pointer is over the dropzone.
 	const [dragDepth, setDragDepth] = useState(0)
 
-	const [files, setFiles] = useState<File[]>([])
+	const {
+		value: current,
+		controlled,
+		setValue: setFiles,
+		setTouched,
+		invalid,
+	} = useFormValue<File[]>(name, {
+		value,
+		defaultValue: defaultValue ?? [],
+		// An empty selection is `[]`, so a cleared value reports as one.
+		onValueChange: onValueChange && ((next) => onValueChange(next ?? [])),
+	})
+
+	const files = current ?? []
+
+	// The hidden input holds no file between picks, so a native form reset has
+	// nothing to revert there. The uncontrolled selection goes back to its seed.
+	useFormResetSync(inputRef, !controlled, () => setFiles(defaultValue ?? []))
 
 	const dragOver = dragDepth > 0
 
@@ -93,6 +129,8 @@ export function useFileUploadHandlers({
 
 			setFiles(accepted)
 
+			setTouched()
+
 			onAccept?.(accepted)
 
 			// The selection lands on a visually-hidden input with no audible
@@ -103,7 +141,7 @@ export function useFileUploadHandlers({
 				accepted.length === 1 ? `Selected ${names}` : `Selected ${accepted.length} files: ${names}`,
 			)
 		},
-		[accept, maxSize, maxCount, onAccept, onReject],
+		[accept, maxSize, maxCount, onAccept, onReject, setFiles, setTouched],
 	)
 
 	const handleChange = useCallback(
@@ -120,12 +158,14 @@ export function useFileUploadHandlers({
 	const clearFiles = useCallback(() => {
 		setFiles([])
 
+		setTouched()
+
 		onAccept?.([])
 
 		// Mirrors handleChange's reset: an empty value lets the same file be
 		// picked again immediately after clearing.
 		if (inputRef.current) inputRef.current.value = ''
-	}, [onAccept])
+	}, [onAccept, setFiles, setTouched])
 
 	// Disabled dropzones skip `preventDefault`: the element never becomes a
 	// valid drop target, `data-drag-over` is never set, and the browser
@@ -194,6 +234,7 @@ export function useFileUploadHandlers({
 		inputRef,
 		dragOver,
 		files,
+		invalid,
 		openPicker,
 		handleChange,
 		clearFiles,

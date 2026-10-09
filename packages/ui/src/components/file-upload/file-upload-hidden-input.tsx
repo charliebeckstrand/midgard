@@ -12,6 +12,7 @@ type FileUploadHiddenInputProps = {
 	accept?: string
 	multiple?: boolean
 	disabled?: boolean
+	invalid?: boolean
 	filesEmpty: boolean
 	onChange: ChangeEventHandler<HTMLInputElement>
 }
@@ -31,6 +32,7 @@ export function FileUploadHiddenInput({
 	accept,
 	multiple,
 	disabled,
+	invalid,
 	filesEmpty,
 	onChange,
 }: FileUploadHiddenInputProps) {
@@ -56,7 +58,7 @@ export function FileUploadHiddenInput({
 			onChange={onChange}
 			className="sr-only"
 			tabIndex={-1}
-			{...invalidAttrs(control?.severity === 'error' || undefined)}
+			{...invalidAttrs(invalid)}
 		/>
 	)
 }

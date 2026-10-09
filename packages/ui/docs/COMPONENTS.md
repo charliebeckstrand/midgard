@@ -19,6 +19,10 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > A `clearable` `input` shows a clear button while it holds a value. The button comes before the `suffix`, empties the value through a native `input` event, and keeps the focus in the input. A disabled or read-only `input` shows no clear button. `clearLabel` gives the button its accessible name, `Clear` by default. `search-input` and `date-input` render this button, with the names `Clear search` and `Clear date`. `listbox`, `combobox`, and `date-picker` take the same `clearable` prop.
 
+> The `file-upload` components bind like the other controls. They take `name` for a `Form` or `Filters` field, `value` and `defaultValue` as a `File[]`, and `onValueChange`. The hidden file input has no name, because the bound value is the `File[]`.
+
+> An uncontrolled control follows a native form reset. A `clearable` `input` shows its clear button again for the reverted value, and an uncontrolled `rating` or `file-upload` goes back to `defaultValue`. A `Form` cancels the native reset and resets its bound fields. A bound `tag-input` then drops its typed draft too.
+
 > `CheckboxGroup` and `RadioGroup` require their own name: give `aria-label` or `aria-labelledby`. The `<legend>` of an enclosing `<fieldset>` does not name the group.
 
 > A `readOnly` or `disabled` `rating` renders one image. Its name is the consumer's name or the `Field` label, then the score readout. The image keeps the consumer's `aria-describedby` and the `Field` description and error message. A touch shows no preview, because a touch has no hover. A `rating` with `step={0.5}` has two radios for each star. The start half sets the half score, and the halves mirror in a right-to-left row.

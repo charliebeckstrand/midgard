@@ -631,6 +631,60 @@ describe('TagInput + Form', () => {
 	})
 })
 
+describe('TagInput + Form reset', () => {
+	it('drops the typed draft on a Form reset, so a later blur commits nothing', async () => {
+		const onSubmit = vi.fn()
+
+		const { container } = renderUI(
+			<Form defaultValues={{ topics: ['react'] }} onSubmit={onSubmit}>
+				<TagInput name="topics" />
+				<button type="reset">Reset</button>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		const user = setupUser()
+
+		await user.type(getInput(container), 'vue')
+
+		// A reset from code keeps the focus in the field. A pointer press on the
+		// reset button would blur the field first and commit the draft.
+		fireEvent.click(screen.getByRole('button', { name: 'Reset' }))
+
+		expect(getInput(container)).toHaveValue('')
+
+		fireEvent.blur(getInput(container))
+
+		await user.click(screen.getByRole('button', { name: 'Submit' }))
+
+		expect(onSubmit).toHaveBeenCalledWith(
+			expect.objectContaining({ topics: ['react'] }),
+			expect.anything(),
+		)
+	})
+
+	it('drops the refused mark on a Form reset', async () => {
+		const { container } = renderUI(
+			<Form defaultValues={{ topics: [] as string[] }}>
+				<TagInput name="topics" validate={(tag) => tag !== 'bad'} />
+				<button type="reset">Reset</button>
+			</Form>,
+		)
+
+		const user = setupUser()
+
+		await user.type(getInput(container), 'bad{Enter}')
+
+		expect(getInput(container)).toHaveAttribute('aria-invalid', 'true')
+
+		await user.click(screen.getByRole('button', { name: 'Reset' }))
+
+		expect(getInput(container)).toHaveValue('')
+
+		expect(getInput(container)).not.toHaveAttribute('aria-invalid')
+	})
+})
+
 // B04-C11: the consumer handlers compose with the field's own handlers.
 describe('TagInput consumer handlers', () => {
 	it('runs a consumer onKeyDown, onPaste, and onBlur beside its own', () => {

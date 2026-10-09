@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Description, Label } from '../../components/fieldset'
 import { Radio, RadioField, RadioGroup } from '../../components/radio'
 import {
+	act,
 	bySlot,
 	densityStepOf,
 	fireEvent,
@@ -291,5 +292,29 @@ describe('Radio touch', () => {
 		expect(field).toHaveClass('touch-manipulation')
 
 		expect(getSlot(field, 'control')).toHaveClass('touch-manipulation')
+	})
+})
+
+describe('Radio native form reset', () => {
+	it('returns an uncontrolled group to its defaultChecked radio', async () => {
+		const user = setupUser()
+
+		renderUI(
+			<form>
+				<Radio name="plan" value="free" aria-label="Free" defaultChecked />
+				<Radio name="plan" value="pro" aria-label="Pro" />
+				<button type="reset">Reset</button>
+			</form>,
+		)
+
+		await user.click(screen.getByRole('radio', { name: 'Pro' }))
+
+		await user.click(screen.getByRole('button', { name: 'Reset' }))
+
+		await act(() => new Promise(requestAnimationFrame))
+
+		expect(screen.getByRole('radio', { name: 'Free' })).toBeChecked()
+
+		expect(screen.getByRole('radio', { name: 'Pro' })).not.toBeChecked()
 	})
 })
