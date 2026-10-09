@@ -20,6 +20,7 @@ import {
 import type { HeadingLevel } from '../../components/heading'
 import { cn, dataAttr } from '../../core'
 import { useControllable, useDragCursor, useEscapeLayer, useResizeObserver } from '../../hooks'
+import { useReportedChange } from '../../hooks/use-reported-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { k } from '../../recipes/kata/dashboard'
 import type { AccessibleName } from '../../types'
@@ -494,19 +495,9 @@ export function Dashboard({
 
 	const projected = useSyncExternalStore(store.subscribe, readProjected, readProjected)
 
-	// It reads the newest listener, and its identity holds for the mount.
-	const reportProjected = useStableEvent((next: boolean) => onProjectedChange?.(next))
-
-	// The last value that the app received. The app starts from the saved layout.
-	const reported = useRef(false)
-
-	useLayoutEffect(() => {
-		if (projected === reported.current) return
-
-		reported.current = projected
-
-		reportProjected(projected)
-	}, [projected, reportProjected])
+	// The first render paints the saved layout, so the mount value is `false` and the
+	// app hears only a change.
+	useReportedChange(projected, onProjectedChange)
 
 	// The store gesture owns the drag. The dnd-kit drag of a tile can outlive the
 	// gesture after an edit exit, and the tile can unmount before the drag ends.
