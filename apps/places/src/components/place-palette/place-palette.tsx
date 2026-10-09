@@ -3,10 +3,9 @@
 import { Search } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from 'ui/button'
-import { useIdleLoad, useKeybindings } from 'ui/hooks'
+import { useIntentLoad, useKeybindings } from 'ui/hooks'
 import { Icon } from 'ui/icon'
 import type { PaletteSource } from '../../utilities/places-palette'
-import type { PlacePalettePanel } from './place-palette-panel'
 
 /**
  * Loads the module of the command palette, which carries the dialog and the
@@ -15,9 +14,6 @@ import type { PlacePalettePanel } from './place-palette-panel'
  * does not wait for it.
  */
 const loadPalette = () => import('./place-palette-panel')
-
-/** Starts the load for a reader who shows intent: a pointer or a focus on the button. */
-const preloadPalette = () => void loadPalette()
 
 /** Props for {@link PlacePalette}. */
 export type PlacePaletteProps = {
@@ -41,26 +37,9 @@ export type PlacePaletteProps = {
 export function PlacePalette({ sources }: PlacePaletteProps) {
 	const [open, setOpen] = useState(false)
 
-	// The module of the palette, from a press or a ⌘K before the idle load on.
-	const [pressed, setPressed] = useState<{ PlacePalettePanel: typeof PlacePalettePanel } | null>(
-		null,
-	)
+	const { module: palette, request, preload } = useIntentLoad(loadPalette)
 
-	const palette = useIdleLoad(loadPalette) ?? pressed
-
-	const show = () => {
-		if (palette) {
-			setOpen(true)
-
-			return
-		}
-
-		void loadPalette().then((module) => {
-			setPressed(module)
-
-			setOpen(true)
-		})
-	}
+	const show = () => request(() => setOpen(true))
 
 	useKeybindings(
 		{
@@ -70,7 +49,7 @@ export function PlacePalette({ sources }: PlacePaletteProps) {
 				show()
 			},
 		},
-		{ enabled: palette === null },
+		{ enabled: palette === undefined },
 	)
 
 	return (
@@ -78,9 +57,9 @@ export function PlacePalette({ sources }: PlacePaletteProps) {
 			<Button
 				variant="bare"
 				aria-label="Search"
-				onPointerEnter={preloadPalette}
-				onPointerDown={preloadPalette}
-				onFocus={preloadPalette}
+				onPointerEnter={preload}
+				onPointerDown={preload}
+				onFocus={preload}
 				onClick={show}
 			>
 				<Icon icon={<Search />} />
