@@ -3,6 +3,7 @@ import type { ChatEmbedRenderer, ChatMessageData } from '../../modules/chat'
 import { ChatEmbedProvider, ChatTranscript } from '../../modules/chat'
 import { frames, renderUI, waitFor } from '../helpers'
 import { hasIntermediate, settledValue } from './helpers/sample'
+import { budget } from './helpers/wall-clock'
 
 /**
  * The transcript's window, in a real browser.
@@ -16,6 +17,18 @@ import { hasIntermediate, settledValue } from './helpers/sample'
  */
 
 const HEIGHT = 300
+
+/**
+ * The budget of a wait for a smooth follow to land.
+ *
+ * The suite budget is 1s on a dev machine, and a follow can take longer than
+ * that. Each time a row measures, the follow target moves. While the target is
+ * more than one viewport away, the virtualizer then starts a new smooth scroll,
+ * and the browser starts its curve again. On an idle 4-core container, a follow
+ * of 1,000px took 0.8s. With a busy main thread, it took 1.2s, and the wait
+ * failed on the last few pixels of the travel.
+ */
+const FOLLOW = budget(3_000)
 
 /** Filler that wraps to a number of lines set by the index, so no two rows share a height. */
 const filler = (index: number) =>
@@ -197,11 +210,14 @@ describe('the transcript window', () => {
 
 		rerender(<Frame messages={[...messages, ...appended]} />)
 
-		await waitFor(() => {
-			expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1)
+		await waitFor(
+			() => {
+				expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1)
 
-			expect(showsEnd(transcript, 'New 4.')).toBe(true)
-		})
+				expect(showsEnd(transcript, 'New 4.')).toBe(true)
+			},
+			{ timeout: FOLLOW },
+		)
 
 		sampling = false
 
@@ -253,11 +269,14 @@ describe('the transcript window', () => {
 
 		rerender(<Frame messages={[...messages, { id: 'sent', sender: 'user', content: 'Sent.' }]} />)
 
-		await waitFor(() => {
-			expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1)
+		await waitFor(
+			() => {
+				expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1)
 
-			expect(showsEnd(transcript, 'Sent.')).toBe(true)
-		})
+				expect(showsEnd(transcript, 'Sent.')).toBe(true)
+			},
+			{ timeout: FOLLOW },
+		)
 
 		// It stays landed once the new row has measured.
 		expect(await settledValue(() => distanceFromEnd(transcript))).toBeLessThanOrEqual(1)
@@ -287,11 +306,14 @@ describe('the transcript window', () => {
 			/>,
 		)
 
-		await waitFor(() => {
-			expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1)
+		await waitFor(
+			() => {
+				expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1)
 
-			expect(showsEnd(transcript, 'Reply.')).toBe(true)
-		})
+				expect(showsEnd(transcript, 'Reply.')).toBe(true)
+			},
+			{ timeout: FOLLOW },
+		)
 	})
 
 	it('glides, not jumps, when a reader at the end sends a message', async () => {
@@ -333,11 +355,14 @@ describe('the transcript window', () => {
 			/>,
 		)
 
-		await waitFor(() => {
-			expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1)
+		await waitFor(
+			() => {
+				expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1)
 
-			expect(showsEnd(transcript, 'Sent.')).toBe(true)
-		})
+				expect(showsEnd(transcript, 'Sent.')).toBe(true)
+			},
+			{ timeout: FOLLOW },
+		)
 
 		sampling = false
 
