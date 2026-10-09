@@ -250,6 +250,15 @@ export function useLightboxTrack(
 		})
 	}
 
+	const settle = () => {
+		const track = trackRef.current
+
+		if (!track || travel.current === 0) return
+
+		if (reduceMotion) rest(track)
+		else slide(track, 0, 0, () => rest(track))
+	}
+
 	// Stops a slide where it paints. A slide to a photo lands that photo at once,
 	// and the track then paints the same place from the new center slot, so
 	// nothing moves on the screen. It returns `false` for any other tween, which
@@ -311,15 +320,6 @@ export function useLightboxTrack(
 
 	const step = (direction: -1 | 1) => {
 		if (interrupt()) advance(direction)
-	}
-
-	const settle = () => {
-		const track = trackRef.current
-
-		if (!track || travel.current === 0) return
-
-		if (reduceMotion) rest(track)
-		else slide(track, 0, 0, () => rest(track))
 	}
 
 	// A swipe to close that does not close puts the photo back at rest, brings
