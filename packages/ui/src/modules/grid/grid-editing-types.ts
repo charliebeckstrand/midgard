@@ -178,6 +178,10 @@ export type GridNewRowAddContext = {
  * it. Selection
  * and editing are independent — a row can be selected without being editable, and
  * vice versa.
+ *
+ * The `editCell` slot and the staging callbacks are the whole override surface:
+ * the package exports no editor component. The grid has no form model, so it
+ * gives no dirty state and no submit lifecycle.
  */
 export type GridEditableConfig = {
 	/**
@@ -277,7 +281,9 @@ export type GridEditableConfig = {
 	 * the open editors of the row commits the row. Row scope shows
 	 * none: its settle control is the consumer's own row action, at the
 	 * granularity that matches. The session's cell is a binding of its own,
-	 * {@link GridEditableConfig.cell}, beside `rows`.
+	 * {@link GridEditableConfig.cell}, beside `rows`. The settle pair is grid
+	 * chrome that you cannot replace or remove, so an `editCell` slot that draws
+	 * its own save shows two.
 	 * @defaultValue 'row'
 	 */
 	scope?: 'row' | 'cell'
@@ -306,8 +312,10 @@ export type GridEditableConfig = {
 	 * session, so a press on discard discards. The third is a window blur, such
 	 * as a switch to another tab or app. Only a focus move inside the document
 	 * leaves. Under `'leaveEditor'` the held cell shows only its discard control,
-	 * because a move away saves. The setting needs {@link
-	 * GridEditableConfig.session} `'managed'`. Anywhere else it has no effect,
+	 * because a move away saves. Under `'leaveEditor'`, a pointer move to another
+	 * cell ends the session on mousedown, and the double-click starts a new one.
+	 * So `cell` reads `null` and `rows` changes between the two cells. The
+	 * setting needs {@link GridEditableConfig.session} `'managed'`. Anywhere else it has no effect,
 	 * and it warns in development.
 	 * @defaultValue 'explicit'
 	 */

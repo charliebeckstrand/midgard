@@ -132,7 +132,9 @@ export type DashboardWidgetRenderer = (
 /**
  * One widget kind: the renderer, and the demands that its tiles make of their
  * cells. Each demand is the `DashboardTile` prop of the same name, with the same
- * default. A kind with no `minWidth` thus gets the floor of 320 px.
+ * default. A kind with no `minWidth` thus gets the floor of 320 px. The type
+ * takes no type parameter for its options, because a registry of mixed kinds
+ * erases that parameter.
  */
 export type DashboardWidget = Pick<
 	DashboardTileProps,

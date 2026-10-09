@@ -160,7 +160,7 @@ This is the increment that makes virtualization optional for a dashboard chat ra
 
 ### 10. Window the transcript — done
 
-Increment 7 put a number on the transcript: a streamed chunk at 5,000 messages cost 41 ms, and the bar was to hold the 500-message cost, about 3.4 ms, out to 5,000. The design lives in [`docs/plans/2026-08-12-VARIABLE-HEIGHT-VIRTUALIZATION-PLAN.md`](../../../docs/plans/2026-08-12-VARIABLE-HEIGHT-VIRTUALIZATION-PLAN.md), because the limit was in the package's one virtualizer and not in the chat.
+Increment 7 put a number on the transcript: a streamed chunk at 5,000 messages cost 41 ms, and the bar was to hold the 500-message cost, about 3.4 ms, out to 5,000. The fix went into the package's one virtualizer, because the limit was there and not in the chat. `content-visibility: auto` could not change the number, because the 41 ms was React that rebuilt 5,000 elements.
 
 The transcript now renders a window through the measured path of [`useVirtualWindow`](../../hooks/use-virtual-window.ts). Each row carries its message id as its key, and each row measures its real height. A bubble that wraps, a step a reader opens, and an embed that draws all move the rows below them, and the spacers follow. A streamed chunk re-renders the rows in the window and does not map the whole list.
 

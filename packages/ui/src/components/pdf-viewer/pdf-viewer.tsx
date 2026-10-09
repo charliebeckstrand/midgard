@@ -189,6 +189,11 @@ export type PdfViewerProps = {
  * @remarks The viewer fills the width of its host. In a host that sizes to its content (for
  * example `w-max`), the page area takes the width of the page at 100%: 96 px for each inch of
  * the page, or US Letter before the page size is known.
+ *
+ * `highlights` is a controlled projection, and the viewer never changes it. The viewer has
+ * no annotation authoring, no text search, no form fields, and no continuous scroll, and it
+ * finds no regions of its own. A text layer needs the page surface in a component of its own
+ * first.
  */
 export function PdfViewer({
 	pages,

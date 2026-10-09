@@ -1,12 +1,12 @@
 # Dashboard roadmap
 
-> **Goal: a board that composes widgets it does not know.** A tile holds a chart, a grid, a stat, or app content, and the board shares one filter scope between the tiles. A new kind of widget needs no change to the dashboard. The design record is [`docs/plans/2026-09-23-DASHBOARD-PLAN.md`](../../../docs/plans/2026-09-23-DASHBOARD-PLAN.md).
+> **Goal: a board that composes widgets it does not know.** A tile holds a chart, a grid, a stat, or app content, and the board shares one filter scope between the tiles. A new kind of widget needs no change to the dashboard.
 
 ## Status
 
-Version one covers layers 1 to 3 of the plan: the engine, the shell, and the scope.
+Version one covers layers 1 to 3: the engine (`engine/`, pure functions), the shell (`Dashboard`, `DashboardTile`, and their hooks), and the scope (`useDashboardScope`, `useDashboardRows`). Each layer reads only the layers under it.
 
-The dashboard imports no chart, grid, or map, and none of them imports the dashboard. `DashboardTile` owns its chrome: the title, the description, the actions, and the drag grip. In edit mode the tile sets `inert` on its content box, so no widget needs edit-mode code.
+The dashboard imports no chart, grid, or map, and none of them imports the dashboard. `DashboardTile` owns its chrome: the title, the description, the actions, and the drag grip. In edit mode the tile sets `inert` on its content box, so no widget needs edit-mode code. An earlier branch broke this rule: the chart header held the drag grip, and the legend became inert in edit mode. Each of its 16 merge conflicts with `main` was in the chart engine.
 
 The board is a CSS grid inside an inline-size container, and its row unit is a fraction of `100cqi`. Each content box is an inline-size container too, so a container query in a widget reads its tile. The server renders each tile that has a layout entry at its saved cell, with no measurement.
 
@@ -28,7 +28,7 @@ The spec operations `addSpecTile`, `removeSpecTile`, and `duplicateSpecTile` kee
 
 A tile draws the standard actions in its header row. `onRemove` and `onDuplicate` show controls in edit mode, and `expandable` shows an expand control at rest, which opens the content in a dialog in the scope of the same tile. The app owns the tile list, so it applies each action; `DashboardTiles` hands it the spec tile. A remove moves the focus to the grip of a neighbor tile, and the live region names each change.
 
-The markup follows the board: the tiles render by row, then by column, so the keyboard and assistive tech meet them as the eye reads them. The order comes from the saved entries, so the server renders it too. In edit mode the markup holds still, so a gesture never moves a focused grip in the DOM; the new order takes effect when edit mode ends. Both `DashboardTiles` and each `DashboardTile` child follow it, also a tile inside a Fragment. A component that renders a tile keeps its own slot, and `DashboardTiles` orders only its own tiles. React focuses a moved element again after the commit, so a move keeps the focus.
+The markup follows the board: the tiles render by row, then by column, so the keyboard and assistive tech meet them as the eye reads them. The order comes from the saved entries, so the server renders it too. In edit mode the markup holds still, so a gesture never moves a focused grip in the DOM; the new order takes effect when edit mode ends. A move in the DOM also costs an iframe its document and a scroll box its offset, so it occurs at most once for each edit session. Both `DashboardTiles` and each `DashboardTile` child follow it, also a tile inside a Fragment. A component that renders a tile keeps its own slot, and `DashboardTiles` orders only its own tiles. React focuses a moved element again after the commit, so a move keeps the focus.
 
 `parseDashboardSpec` reads a spec from storage. It drops each part that the board cannot use: a tile with no id or kind, a repeated id, a malformed or orphan entry, and a filter that is not a query tree or is deeper than 32 levels. It keeps each other part, and it reports each change with its path, so the app decides whether to log, warn, or reset. It does not check the kinds against a registry, because a kind that no widget claims keeps its tile. A board that puts JSX tiles beside the spec tiles passes their ids in `tileIds`. The parse then keeps the entries of those tiles, and `startFromPreset` passes the ids on.
 

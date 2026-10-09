@@ -58,7 +58,7 @@ A `ref` is such a key. The component destructures it and joins it to its own ref
 
 Pass `checkForDefaultPrevented: false` in three cases only. The first is the activation that the component exists to perform. The second is a roving keyboard model, which no consumer switches off. The third is the wiring that keeps the state of the component true. Examples are the touched mark and the value of a form field, the end of a gesture, and an event the browser cannot cancel. React's synthetic `preventDefault()` marks even an event that cannot be canceled, so the default would let a consumer switch that wiring off.
 
-Side behavior, such as a preload or a pause on hover, keeps the default. [`2026-09-25-HANDLER-COMPOSITION-PLAN.md`](packages/ui/docs/plans/2026-09-25-HANDLER-COMPOSITION-PLAN.md) records the sweep that found the third case.
+Side behavior, such as a preload or a pause on hover, keeps the default.
 
 `spread-order-boundary.test.ts` gates the position rules and the internal `ref`. It computes the read set, and its allowlist holds the known backlog. The `no-hand-composed-handler` Biome plugin gates a handler composed by hand inside JSX. No gate holds the rest of the rule for composed keys yet.
 
@@ -180,7 +180,7 @@ The `ui` package keeps its manual `useMemo` and `useCallback`. The jsdom suite, 
 
 Two causes are common, and each has a local fix. When a hook gives an object that holds a ref, the compiler reads each property of that object as a ref. Destructure the ref where you call the hook. When a `useCallback` or a `useMemo` calls an effect event, the compiler reads the event as a dependency. A new event comes on each render, so the list cannot name it. Use `useStableEvent` from `src/hooks/use-stable-event.ts` there. Its identity holds for the mount, so the list names it.
 
-Use `useStableEvent` also for each other handler that keeps one identity for the mount and calls the newest props. Such a handler is one that a subscription holds, or one that an effect or a memo lists. Do not keep the newest handler in a ref that an effect writes. A child runs its layout effects first, so it can read the handler of the last commit. React writes the handler of a stable event before each effect of the commit.
+Use `useStableEvent` also for each other handler that keeps one identity for the mount and calls the newest props. Such a handler is one that a subscription holds, or one that an effect or a memo lists. Do not keep the newest handler in a ref that an effect writes. A child runs its layout effects first, so it can read the handler of the last commit. React writes the handler of a stable event before each effect of the commit. A caller in the render phase can reach the handler through a setter that another hook passes on. So run a conversion in the browser suite as well as under jsdom before it lands.
 
 10.9 A case that runs longer than its time limit fails, but its body does not stop. JavaScript cannot cancel a pending promise, so the body continues at its next `await` while a later case runs. A write to shared state at that point changes the later case. Vitest aborts the `signal` of the test context before the next case starts. When a case writes shared state after an `await`, take `{ signal }` from the test context. Call `signal.throwIfAborted()` after the last `await` and before the write.
 
@@ -216,9 +216,9 @@ A change that adds, removes, or renames an export updates the matching doc in th
 
 A resolution changes the status of the row and cites the pull request, and nothing else. The outcome belongs in the pull request and its commit, which outlive the audit. Change the prose of a row only when a fact in it no longer holds. A mechanism that moved on `main` is such a fact.
 
-12.5 A plan under [`packages/ui/docs/plans/`](packages/ui/docs/plans) records one decision, named `{date}-{TOPIC}-PLAN.md`. It stays after the work lands, unlike an audit. Progress lives in the pull requests that carry the work, not in the plan.
+12.5 A plan under [`packages/ui/docs/plans/`](packages/ui/docs/plans) records one decision, named `{date}-{TOPIC}-PLAN.md`. It is a living record while a step of it has not landed. Progress lives in the pull requests that carry the work, not in the plan. Delete the file when the last step lands, because the pull requests hold the history. Never name a plan from code, or from a document that outlives it, as §12.4 says for an audit.
 
-Do not mark a step done in the plan. Do not add the result of a step. Edit the plan only when the decision changes. When the last step lands, add one closing note that names the pull requests.
+Do not mark a step done in the plan. Do not add the result of a step. Edit the plan only when the decision changes. Before you delete a plan, move each fact of it that is still true to a document that lasts. Such a document is `REFERENCE.md`, a surface index, a module `ROADMAP.md`, or TSDoc.
 
 ---
 

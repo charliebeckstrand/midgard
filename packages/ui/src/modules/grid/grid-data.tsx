@@ -63,6 +63,13 @@ function useMaxHeightGuard(maxHeight: string | undefined): void {
  * The data-grid implementation behind {@link Grid}, read-only and editable.
  * {@link Grid} renders it through a memoized wrapper.
  *
+ * @remarks The body runs in phases, and the data goes down only. Each path
+ * back up has one named mechanism: the `GridIndexRefs` bundle, the
+ * `wrapperRef` that `GridData` makes, and `setMeasuredAddWidth`, which goes down
+ * as a prop. No context is between the phases, so the flow stays visible here.
+ * A split by feature does not work, because grouping gates the cursor, the
+ * engine, and the frame.
+ *
  * @typeParam T - Shape of a single row.
  * @internal
  */
