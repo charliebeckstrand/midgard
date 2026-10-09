@@ -78,38 +78,41 @@ export default function EditorTypes() {
 	// Each row stays in edit mode, so each editor shows at once, and no row saves.
 	const editing = useMemo(() => new Set<string | number>(tasks.map((task) => task.id)), [])
 
-	const columns: GridColumn<Task>[] = [
-		{ id: 'title', title: 'Title', field: 'title', cell: (row) => row.title, width: '200px' },
-		{
-			id: 'status',
-			title: 'Status',
-			field: 'status',
-			cell: (row) =>
-				statusOptions.find((option) => option.value === row.status)?.label ?? row.status,
-			editCell: (context) => (
-				<CellListbox
-					value={String(context.value ?? '')}
-					options={statusOptions}
-					onValueUpdate={context.onValueUpdate}
-					ariaLabel={context.ariaLabel}
-				/>
-			),
-		},
-		{ id: 'due', title: 'Due', field: 'due', cell: (row) => row.due, editCell: CellDate },
-		{
-			id: 'budget',
-			title: 'Budget',
-			field: 'budget',
-			cell: (row) => money(row.budget),
-			editCell: CellCurrency,
-		},
-		{
-			id: 'done',
-			title: 'Done',
-			field: 'done',
-			cell: (row) => <Badge color={row.done ? 'green' : 'zinc'}>{row.done ? 'Yes' : 'No'}</Badge>,
-		},
-	]
+	const columns = useMemo(
+		(): GridColumn<Task>[] => [
+			{ id: 'title', title: 'Title', field: 'title', cell: (row) => row.title, width: '200px' },
+			{
+				id: 'status',
+				title: 'Status',
+				field: 'status',
+				cell: (row) =>
+					statusOptions.find((option) => option.value === row.status)?.label ?? row.status,
+				editCell: (context) => (
+					<CellListbox
+						value={String(context.value ?? '')}
+						options={statusOptions}
+						onValueUpdate={context.onValueUpdate}
+						ariaLabel={context.ariaLabel}
+					/>
+				),
+			},
+			{ id: 'due', title: 'Due', field: 'due', cell: (row) => row.due, editCell: CellDate },
+			{
+				id: 'budget',
+				title: 'Budget',
+				field: 'budget',
+				cell: (row) => money(row.budget),
+				editCell: CellCurrency,
+			},
+			{
+				id: 'done',
+				title: 'Done',
+				field: 'done',
+				cell: (row) => <Badge color={row.done ? 'green' : 'zinc'}>{row.done ? 'Yes' : 'No'}</Badge>,
+			},
+		],
+		[money],
+	)
 
 	return (
 		<>

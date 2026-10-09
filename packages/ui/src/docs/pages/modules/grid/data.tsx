@@ -19,14 +19,20 @@ export const people: Person[] = [
 
 export const roles = ['Developer', 'Designer', 'Manager', 'Analyst']
 
+// The generated person of an id. Each example that needs many people reads it,
+// so a person is the same in each example.
+export function makePerson(id: number): Person {
+	return {
+		id,
+		name: `Person ${id}`,
+		email: `person${id}@example.com`,
+		role: roles[(id - 1) % roles.length] ?? 'Developer',
+		status: (id - 1) % 3 === 0 ? 'inactive' : 'active',
+	}
+}
+
 // A larger set, so that the pagination and the window examples have pages to move through.
-export const manyPeople: Person[] = Array.from({ length: 47 }, (_, i) => ({
-	id: i + 1,
-	name: `Person ${i + 1}`,
-	email: `person${i + 1}@example.com`,
-	role: roles[i % roles.length] ?? 'Developer',
-	status: i % 3 === 0 ? 'inactive' : 'active',
-}))
+export const manyPeople: Person[] = Array.from({ length: 47 }, (_, i) => makePerson(i + 1))
 
 export const columns: GridColumn<Person>[] = [
 	{ id: 'name', title: 'Name', cell: (row) => row.name },
@@ -38,6 +44,13 @@ export const columns: GridColumn<Person>[] = [
 		cell: (row) => <Badge color={row.status === 'active' ? 'green' : 'zinc'}>{row.status}</Badge>,
 	},
 ]
+
+// The columns of an example that pages from a server with no server sort. They
+// do not sort, as a client sort orders only the rows that loaded.
+export const serverColumns: GridColumn<Person>[] = columns.map((column) => ({
+	...column,
+	sortable: false,
+}))
 
 // Each column with a `value` that search, filters, and the client sort read.
 export const searchableColumns: GridColumn<Person>[] = columns.map((column) => ({

@@ -17,7 +17,9 @@ export const sales: Sale[] = [
 	{ id: 6, region: 'East', rep: 'Cody', units: 9, revenue: 1170 },
 ]
 
-const dollars = (value: unknown) => `$${Number(value).toLocaleString('en-US')}`
+// The one money format of the sales columns, for leaf cells and group cells.
+const dollars = (value: unknown) =>
+	`$${Number(value).toLocaleString('en-US', { maximumFractionDigits: 2 })}`
 
 // An `aggFunc` gives the value of a column on a group header and on a total
 // row. Units and revenue add up. The price of a unit is a function of the
@@ -43,14 +45,15 @@ export const salesColumns: GridColumn<Sale>[] = [
 	{
 		id: 'perUnit',
 		title: '$/unit',
-		cell: (row) => dollars((row.revenue / row.units).toFixed(2)),
+		cell: (row) => dollars(row.revenue / row.units),
+		value: (row) => row.revenue / row.units,
 		aggFunc: (rows: Sale[]) => {
 			const revenue = rows.reduce((sum, row) => sum + row.revenue, 0)
 
 			const units = rows.reduce((sum, row) => sum + row.units, 0)
 
-			return units === 0 ? '' : (revenue / units).toFixed(2)
+			return units === 0 ? null : revenue / units
 		},
-		aggCell: ({ value }) => (value === '' ? '' : `$${value}`),
+		aggCell: ({ value }) => (value === null ? '' : dollars(value)),
 	},
 ]

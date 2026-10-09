@@ -9,7 +9,9 @@ export default function ErrorState() {
 			columns={columns}
 			rows={people}
 			getKey={(row) => row.id}
-			error={<Alert color="red" variant="soft" title="Couldn't load people" className="w-full" />}
+			error={
+				<Alert severity="error" variant="soft" title="Couldn't load people" className="w-full" />
+			}
 		/>
 	)
 }
