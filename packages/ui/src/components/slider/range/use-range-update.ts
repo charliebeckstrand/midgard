@@ -1,6 +1,5 @@
 import { useCallback } from 'react'
-import { clamp } from '../../../utilities'
-import { snapToStep } from './range-utilities'
+import { snapValue } from './range-utilities'
 import type { OverlapMode, ThumbIndex } from './types'
 
 /**
@@ -9,8 +8,8 @@ import type { OverlapMode, ThumbIndex } from './types'
  * thumb `index`, and resolves a crossing. `swap` re-sorts the pair, and `clamp`
  * (default) pins the moved thumb to its neighbor.
  *
- * @remarks Snap-first, clamp-last is load-bearing (see the inline note): rounding
- * a clamped value can otherwise land past a bound.
+ * @remarks `snapValue` gives the value, so the pointer hook predicts the same
+ * value that this setter writes.
  * @internal
  */
 export function useRangeUpdate(opts: {
@@ -24,12 +23,7 @@ export function useRangeUpdate(opts: {
 
 	return useCallback(
 		(index: ThumbIndex, raw: number) => {
-			// Snap first, clamp last: rounding a clamped value can land past the
-			// bound (min=2 max=10 step=3: End -> 11), pushing aria-valuenow over
-			// aria-valuemax and the thumb past the track.
-			const snapped = clamp(snapToStep(raw, min, step), min, max)
-
-			const rounded = parseFloat(snapped.toFixed(10))
+			const rounded = snapValue(raw, min, max, step)
 
 			setRange((prev) => {
 				const next = [...(prev ?? [min, max])] as [number, number]

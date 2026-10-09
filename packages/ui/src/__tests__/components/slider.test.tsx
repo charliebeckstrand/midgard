@@ -4,7 +4,7 @@ import { Control } from '../../components/control'
 import { Description, Field, Label, Message } from '../../components/fieldset'
 import { Form } from '../../components/form'
 import { RangeSlider, Slider } from '../../components/slider'
-import { snapToStep } from '../../components/slider/range/range-utilities'
+import { snapValue } from '../../components/slider/range/range-utilities'
 import {
 	allBySlot,
 	bySlot,
@@ -254,17 +254,22 @@ describe('RangeSlider', () => {
 	})
 })
 
-describe('snapToStep', () => {
+describe('snapValue', () => {
 	it('snaps a value down to the nearest step', () => {
-		expect(snapToStep(7, 0, 5)).toBe(5)
+		expect(snapValue(7, 0, 100, 5)).toBe(5)
 	})
 
 	it('snaps a value up to the nearest step', () => {
-		expect(snapToStep(8, 0, 5)).toBe(10)
+		expect(snapValue(8, 0, 100, 5)).toBe(10)
 	})
 
 	it('offsets the step grid by min', () => {
-		expect(snapToStep(13, 3, 5)).toBe(13)
+		expect(snapValue(13, 3, 100, 5)).toBe(13)
+	})
+
+	// The step grid holds 11 past max 10, so the clamp comes after the snap.
+	it('clamps a grid value past max into the bound', () => {
+		expect(snapValue(9.6, 2, 10, 3)).toBe(10)
 	})
 })
 

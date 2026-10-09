@@ -233,6 +233,31 @@ export function RangeSlider({
 	const lo = pct(current[0], min, max)
 	const hi = pct(current[1], min, max)
 
+	// Each thumb is bounded by the other: the start thumb runs from `min` to the
+	// end value, and the end thumb from the start value to `max`.
+	const renderThumb = (thumb: ThumbIndex) => (
+		<button
+			ref={thumbRefs[thumb]}
+			id={thumb === 0 ? scope.id : undefined}
+			type="button"
+			role="slider"
+			tabIndex={resolvedDisabled ? -1 : 0}
+			disabled={resolvedDisabled}
+			aria-valuemin={thumb === 0 ? min : current[0]}
+			aria-valuemax={thumb === 0 ? current[1] : max}
+			aria-valuenow={current[thumb]}
+			aria-valuetext={getValueText?.(current[thumb], thumb)}
+			{...thumbName(thumb)}
+			aria-describedby={describedBy}
+			{...validation}
+			data-slot="slider-range-thumb"
+			className={cn(k.thumb(), 'top-1/2 -translate-y-1/2')}
+			style={{ insetInlineStart: `${thumb === 0 ? lo : hi}%` }}
+			onKeyDown={handleKeyDown(thumb)}
+			onBlur={handleThumbBlur}
+		/>
+	)
+
 	return (
 		<div
 			ref={ref}
@@ -261,48 +286,8 @@ export function RangeSlider({
 				/>
 			</div>
 
-			{/* Low thumb */}
-			<button
-				ref={loThumbRef}
-				id={scope.id}
-				type="button"
-				role="slider"
-				tabIndex={resolvedDisabled ? -1 : 0}
-				disabled={resolvedDisabled}
-				aria-valuemin={min}
-				aria-valuemax={current[1]}
-				aria-valuenow={current[0]}
-				aria-valuetext={getValueText?.(current[0], 0)}
-				{...thumbName(0)}
-				aria-describedby={describedBy}
-				{...validation}
-				data-slot="slider-range-thumb"
-				className={cn(k.thumb(), 'top-1/2 -translate-y-1/2')}
-				style={{ insetInlineStart: `${lo}%` }}
-				onKeyDown={handleKeyDown(0)}
-				onBlur={handleThumbBlur}
-			/>
-
-			{/* High thumb */}
-			<button
-				ref={hiThumbRef}
-				type="button"
-				role="slider"
-				tabIndex={resolvedDisabled ? -1 : 0}
-				disabled={resolvedDisabled}
-				aria-valuemin={current[0]}
-				aria-valuemax={max}
-				aria-valuenow={current[1]}
-				aria-valuetext={getValueText?.(current[1], 1)}
-				{...thumbName(1)}
-				aria-describedby={describedBy}
-				{...validation}
-				data-slot="slider-range-thumb"
-				className={cn(k.thumb(), 'top-1/2 -translate-y-1/2')}
-				style={{ insetInlineStart: `${hi}%` }}
-				onKeyDown={handleKeyDown(1)}
-				onBlur={handleThumbBlur}
-			/>
+			{renderThumb(0)}
+			{renderThumb(1)}
 
 			{fieldLabelledBy && (
 				<>
