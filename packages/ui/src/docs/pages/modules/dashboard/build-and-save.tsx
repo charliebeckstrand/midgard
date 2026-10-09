@@ -199,6 +199,10 @@ export default function BuildAndSave() {
 
 	const [loaded, setLoaded] = useState(false)
 
+	// The key of the board. Each start counts up, so a reset to the same template
+	// also mounts a new board, with no selection and no widget state of the old one.
+	const [starts, setStarts] = useState(0)
+
 	const { spec } = board
 
 	const [editing, setEditing] = useState(false)
@@ -219,8 +223,10 @@ export default function BuildAndSave() {
 
 		setEditing(false)
 
-		// A new template mounts a new board, which reports its own projection.
-		if (next.template !== board.template) setProjected(false)
+		// A start mounts a new board, which reports its own projection.
+		setStarts((count) => count + 1)
+
+		setProjected(false)
 	}
 
 	useEffect(() => {
@@ -228,7 +234,11 @@ export default function BuildAndSave() {
 
 		setBoard(saved)
 
-		if (saved.template !== initial.id) setProjected(false)
+		if (saved.template !== initial.id) {
+			setStarts((count) => count + 1)
+
+			setProjected(false)
+		}
 
 		setLoaded(true)
 	}, [])
@@ -348,7 +358,7 @@ export default function BuildAndSave() {
 			/>
 			<DashboardWidgetProvider widgets={widgets}>
 				<Dashboard
-					key={board.template}
+					key={starts}
 					ref={handle}
 					aria-label="Custom dashboard"
 					editing={editing}
