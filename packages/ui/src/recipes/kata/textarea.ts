@@ -45,5 +45,5 @@ export type TextareaVariants = Omit<VariantProps<typeof k>, 'resize' | 'variant'
 	variant?: VariantProps<typeof k>['variant']
 }
 
-/** The size scale of the control: `sm`, `md`, and `lg`. */
+/** The size scale of the control: each step from `xs` to `xl`. */
 export const scale = control.scale

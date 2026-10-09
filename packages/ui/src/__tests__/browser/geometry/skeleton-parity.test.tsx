@@ -107,7 +107,7 @@ import {
 } from '../../../components/timeline'
 import { ToggleIconButton, ToggleIconButtonSkeleton } from '../../../components/toggle-icon-button'
 import { Tree, TreeItem, TreeSkeleton } from '../../../components/tree'
-import type { InnerStep } from '../../../core/density'
+import { type DensityStep, densitySteps } from '../../../core/density'
 import { BarChart, ChartSkeleton, PieChart } from '../../../modules/chart'
 import { ChatMessage, ChatTranscriptSkeleton } from '../../../modules/chat'
 import { MapSkeleton } from '../../../modules/map'
@@ -167,8 +167,8 @@ describe('skeleton parity (real browser)', () => {
 	const pairs: [
 		string,
 		string,
-		(size: InnerStep) => ReactElement,
-		(size: InnerStep) => ReactElement,
+		(size: DensityStep) => ReactElement,
+		(size: DensityStep) => ReactElement,
 	][] = [
 		[
 			'Checkbox',
@@ -197,7 +197,7 @@ describe('skeleton parity (real browser)', () => {
 	]
 
 	describe.each(pairs)('%sSkeleton', (_, slot, real, skeleton) => {
-		it.each(['sm', 'md', 'lg'] as const)('has the box of a %s component', (size) => {
+		it.each(densitySteps)('has the box of a %s component', (size) => {
 			const { container } = renderUI(real(size))
 
 			expect(placeholder(renderUI(skeleton(size)).container)).toStrictEqual(
@@ -206,7 +206,7 @@ describe('skeleton parity (real browser)', () => {
 		})
 	})
 
-	it.each(['sm', 'md', 'lg'] as const)('ProgressBarSkeleton has the height of a %s bar', (size) => {
+	it.each(densitySteps)('ProgressBarSkeleton has the height of a %s bar', (size) => {
 		const real = box(
 			renderUI(<ProgressBar aria-label="Upload" size={size} />).container.firstElementChild,
 			'progress bar',
@@ -217,7 +217,7 @@ describe('skeleton parity (real browser)', () => {
 		)
 	})
 
-	it.each(['sm', 'md', 'lg'] as const)('SliderSkeleton has the height of a %s slider', (size) => {
+	it.each(densitySteps)('SliderSkeleton has the height of a %s slider', (size) => {
 		const real = box(
 			renderUI(<Slider aria-label="Volume" size={size} />).container.firstElementChild,
 			'slider',
@@ -238,7 +238,7 @@ describe('skeleton parity (real browser)', () => {
 		).toBe(real.height)
 	})
 
-	it.each(['sm', 'md', 'lg'] as const)('RatingSkeleton has the box of a %s rating', (size) => {
+	it.each(densitySteps)('RatingSkeleton has the box of a %s rating', (size) => {
 		const real = box(
 			renderUI(<Rating aria-label="Score" readOnly value={3} size={size} />).container
 				.firstElementChild,
@@ -260,7 +260,7 @@ describe('skeleton parity (real browser)', () => {
 	]
 
 	describe.each(panels)('ColorPanelSkeleton of %s', (_, props) => {
-		it.each(['sm', 'md', 'lg'] as const)('has the box of the panel at %s', (size) => {
+		it.each(densitySteps)('has the box of the panel at %s', (size) => {
 			const real = box(
 				renderUI(<ColorPanel {...props} size={size} defaultValue="#3b82f6" />).container
 					.firstElementChild,
@@ -341,7 +341,7 @@ describe('skeleton parity (real browser)', () => {
 		expect(skeleton.height).toBeNear(short.height, PIXEL)
 	})
 
-	it.each(['sm', 'md', 'lg'] as const)('TextareaSkeleton has the box of a %s textarea', (size) => {
+	it.each(densitySteps)('TextareaSkeleton has the box of a %s textarea', (size) => {
 		const real = box(
 			renderUI(
 				<Box density={size}>
@@ -446,40 +446,37 @@ describe('skeleton parity (real browser)', () => {
 		{ id: 'settings', label: 'Settings', icon: <Settings /> },
 	]
 
-	it.each(['sm', 'md', 'lg'] as const)(
-		'SidebarSkeleton has the box of a %s sidebar list',
-		(size) => {
-			const real = box(
+	it.each(densitySteps)('SidebarSkeleton has the box of a %s sidebar list', (size) => {
+		const real = box(
+			renderUI(
+				<Box density={size}>
+					<Sidebar>
+						<SidebarList aria-label="Primary">
+							{navRows.map((row) => (
+								<SidebarItem key={row.id} href={`#${row.id}`} icon={row.icon}>
+									<SidebarLabel>{row.label}</SidebarLabel>
+								</SidebarItem>
+							))}
+						</SidebarList>
+					</Sidebar>
+				</Box>,
+			).container.querySelector('[data-slot="sidebar-list"]'),
+			'sidebar list',
+		)
+
+		expect(
+			box(
 				renderUI(
 					<Box density={size}>
 						<Sidebar>
-							<SidebarList aria-label="Primary">
-								{navRows.map((row) => (
-									<SidebarItem key={row.id} href={`#${row.id}`} icon={row.icon}>
-										<SidebarLabel>{row.label}</SidebarLabel>
-									</SidebarItem>
-								))}
-							</SidebarList>
+							<SidebarSkeleton items={3} />
 						</Sidebar>
 					</Box>,
-				).container.querySelector('[data-slot="sidebar-list"]'),
-				'sidebar list',
-			)
-
-			expect(
-				box(
-					renderUI(
-						<Box density={size}>
-							<Sidebar>
-								<SidebarSkeleton items={3} />
-							</Sidebar>
-						</Box>,
-					).container.querySelector('[data-slot="sidebar"]')?.firstElementChild,
-					'skeleton',
-				),
-			).toStrictEqual(real)
-		},
-	)
+				).container.querySelector('[data-slot="sidebar"]')?.firstElementChild,
+				'skeleton',
+			),
+		).toStrictEqual(real)
+	})
 
 	it('SidebarSkeleton takes the step of its size, as the items do', () => {
 		const real = box(
@@ -705,7 +702,7 @@ describe('skeleton parity (real browser)', () => {
 
 	const height = (el: Element | null | undefined, what: string) => box(el, what).height
 
-	it.each(['sm', 'md', 'lg'] as const)('AvatarSkeleton has the box of a %s avatar', (size) => {
+	it.each(densitySteps)('AvatarSkeleton has the box of a %s avatar', (size) => {
 		const { container } = renderUI(<Avatar size={size} initials="WC" alt="Wade Cooper" />)
 
 		expect(placeholder(renderUI(<AvatarSkeleton size={size} />).container)).toStrictEqual(
@@ -724,7 +721,7 @@ describe('skeleton parity (real browser)', () => {
 		},
 	)
 
-	it.each(['sm', 'md', 'lg'] as const)('ControlSkeleton has the height of a %s input', (size) => {
+	it.each(densitySteps)('ControlSkeleton has the height of a %s input', (size) => {
 		const { container } = renderUI(<Input aria-label="Name" size={size} />)
 
 		expect(placeholder(renderUI(<ControlSkeleton size={size} />).container).height).toBe(
@@ -732,18 +729,13 @@ describe('skeleton parity (real browser)', () => {
 		)
 	})
 
-	it.each(['sm', 'md', 'lg'] as const)(
-		'SparklineSkeleton has the box of a %s sparkline',
-		(size) => {
-			const { container } = renderUI(
-				<Sparkline data={[3, 5, 4, 8]} size={size} aria-label="Trend" />,
-			)
+	it.each(densitySteps)('SparklineSkeleton has the box of a %s sparkline', (size) => {
+		const { container } = renderUI(<Sparkline data={[3, 5, 4, 8]} size={size} aria-label="Trend" />)
 
-			expect(placeholder(renderUI(<SparklineSkeleton size={size} />).container)).toStrictEqual(
-				box(container.querySelector('[data-slot="sparkline"]'), 'sparkline'),
-			)
-		},
-	)
+		expect(placeholder(renderUI(<SparklineSkeleton size={size} />).container)).toStrictEqual(
+			box(container.querySelector('[data-slot="sparkline"]'), 'sparkline'),
+		)
+	})
 
 	it('SegmentSkeleton has the height of a segment control', () => {
 		const { container } = renderUI(
@@ -797,7 +789,7 @@ describe('skeleton parity (real browser)', () => {
 		).toBe(height(container.querySelector('ol'), 'breadcrumb list'))
 	})
 
-	it.each(['sm', 'md', 'lg'] as const)('StatValueSkeleton has the height of a %s value', (size) => {
+	it.each(densitySteps)('StatValueSkeleton has the height of a %s value', (size) => {
 		const { container } = renderUI(
 			<Stat>
 				<StatValue size={size}>$12,345</StatValue>
@@ -831,7 +823,7 @@ describe('skeleton parity (real browser)', () => {
 		)
 	})
 
-	it.each(['sm', 'md', 'lg'] as const)('StatSkeleton has the height of a %s stat', (size) => {
+	it.each(densitySteps)('StatSkeleton has the height of a %s stat', (size) => {
 		const { container } = renderUI(
 			<Stat>
 				<StatLabel>Revenue</StatLabel>
@@ -879,7 +871,7 @@ describe('skeleton parity (real browser)', () => {
 		},
 	)
 
-	it.each(['sm', 'md', 'lg'] as const)('CalendarSkeleton has the box of a %s calendar', (size) => {
+	it.each(densitySteps)('CalendarSkeleton has the box of a %s calendar', (size) => {
 		// A month that spans six weeks, the tallest month a calendar draws.
 		const { container } = renderUI(<Calendar size={size} defaultValue={new Date(2026, 4, 15)} />)
 
@@ -1026,7 +1018,7 @@ describe('skeleton parity (real browser)', () => {
 	})
 
 	// The rows go to the depths 0, 1, 2, 1, 0: the pattern of the skeleton.
-	const fileTree = (size: InnerStep) => (
+	const fileTree = (size: DensityStep) => (
 		<Tree size={size} aria-label="Files">
 			<TreeItem label="src" icon={<File />} defaultOpen>
 				<TreeItem label="components" icon={<File />} defaultOpen>
@@ -1038,7 +1030,7 @@ describe('skeleton parity (real browser)', () => {
 		</Tree>
 	)
 
-	it.each(['sm', 'md', 'lg'] as const)('TreeSkeleton has the box of a %s tree', (size) => {
+	it.each(densitySteps)('TreeSkeleton has the box of a %s tree', (size) => {
 		const { container } = renderUI(fileTree(size))
 
 		const real = box(container.querySelector('[data-slot="tree"]'), 'tree')

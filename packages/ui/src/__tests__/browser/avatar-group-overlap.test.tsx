@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Avatar, AvatarGroup } from '../../components/avatar'
+import { densitySteps } from '../../core/density'
 import { allBySlot, bySlot, present, renderUI } from '../helpers'
 
 /** The width of the ring that the group puts around each avatar, in CSS pixels. */
@@ -16,7 +17,7 @@ const SIDE_BEARING = 1
  * Avatar geometry that only a real layout shows: jsdom loads no stylesheet.
  */
 describe('avatar geometry (real browser)', () => {
-	it.each(['sm', 'md', 'lg'] as const)(
+	it.each(densitySteps)(
 		'keeps the initials of each %s avatar clear of the next avatar in a group',
 		(size) => {
 			const { container } = renderUI(

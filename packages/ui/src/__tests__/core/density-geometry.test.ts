@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { type DensityStep, densitySteps } from '../../core/density'
-import { geometry, lineHeight } from '../../core/density/geometry'
+import { geometry, lineHeight, spacingSteps } from '../../core/density/geometry'
 import { valuesByStep } from '../../core/density/steps'
 import { dan } from '../../recipes/kiso/dan'
 
@@ -113,5 +113,68 @@ describe('density geometry', () => {
 
 			expect(control).toBe(button)
 		})
+	})
+})
+
+describe('spacing steps', () => {
+	it.each([
+		[
+			[8, 12, 16],
+			[4, 8, 12, 16, 20],
+		],
+		[
+			[-12, -16, -20],
+			[-8, -12, -16, -20, -24],
+		],
+		[
+			[4, 8, 12],
+			[2, 4, 8, 12, 18],
+		],
+		[
+			[2, 4, 6],
+			[1, 2, 4, 6, 10],
+		],
+		[
+			[8, 16, 24],
+			[4, 8, 16, 24, 36],
+		],
+	])('extends %j to %j', ([sm, md, lg], steps) => {
+		expect(spacingSteps(sm as number, md as number, lg as number)).toStrictEqual(steps)
+	})
+
+	const scales = {
+		'gap.scale': dan.gap.scale,
+		'gap.x': dan.gap.x,
+		'gap.y': dan.gap.y,
+		'space.scale.p': dan.space.scale.p,
+		'space.scale.px': dan.space.scale.px,
+		'space.scale.py': dan.space.scale.py,
+	}
+
+	describe.each(Object.entries(scales))('dan.%s', (_, scale) => {
+		it.each(Object.entries(scale))('extends the %s stop by the rule', (_, ramp) => {
+			const { sm, md, lg } = pxOf(ramp)
+
+			expect(densitySteps.map((step) => pxOf(ramp)[step])).toStrictEqual(spacingSteps(sm, md, lg))
+		})
+	})
+
+	describe.each(['x', 'y'] as const)('dan.gap.touch.%s', (axis) => {
+		it.each(Object.keys(dan.gap.scale) as (keyof typeof dan.gap.scale)[])(
+			'fills the gap of the %s stop at each step',
+			(stop) => {
+				const gap = pxOf(dan.gap.scale[stop])
+
+				const fills = Object.fromEntries(
+					dan.gap.touch[axis][stop].map((name) => {
+						const [, step, value] = /^density-([a-z]+):.+--spacing\(([\d.]+)\)\]$/.exec(name) ?? []
+
+						return [step, Number(value) * 4]
+					}),
+				)
+
+				expect(fills).toStrictEqual(gap)
+			},
+		)
 	})
 })

@@ -11,6 +11,7 @@ import { NumberInput } from '../../../components/number-input'
 import { Sidebar, SidebarItem, SidebarLabel } from '../../../components/sidebar'
 import { TagInput } from '../../../components/tag-input'
 import { Toolbar, ToolbarGroup } from '../../../components/toolbar'
+import { densitySteps } from '../../../core/density'
 import { ChatPrompt } from '../../../modules/chat'
 import { Dashboard, DashboardTile } from '../../../modules/dashboard'
 import { Grid, type GridColumn } from '../../../modules/grid'
@@ -193,7 +194,7 @@ const packed: readonly { name: string; element: ReactElement }[] = [
 		name: `color panel, ${size}`,
 		element: <ColorPanel size={size} defaultValue="#3b82f6" />,
 	})),
-	...(['sm', 'md', 'lg'] as const).map((size) => ({
+	...densitySteps.map((size) => ({
 		name: `tag input that wraps, ${size}`,
 		element: (
 			<div style={{ width: 300 }}>

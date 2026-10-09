@@ -13,9 +13,11 @@ const { frame, radius } = control
  */
 const frameRadius = [
 	radius,
-	'density-[xs,sm]:before:rounded-ring-1.5',
+	'density-xs:before:rounded-ring-1',
+	'density-sm:before:rounded-ring-1.5',
 	'density-md:before:rounded-ring-2',
-	'density-[lg,xl]:before:rounded-ring-2.5',
+	'density-lg:before:rounded-ring-2.5',
+	'density-xl:before:rounded-ring-3',
 	'after:rounded-[inherit]',
 ] as const
 
@@ -27,5 +29,5 @@ export const k = {
 	},
 }
 
-/** The size scale of the control: `sm`, `md`, and `lg`. */
+/** The size scale of the control: each step from `xs` to `xl`. */
 export const scale = control.scale

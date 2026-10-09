@@ -24,7 +24,7 @@ import { Switch } from '../../components/switch'
 import { Table, TableBody, TableCell, TableRow } from '../../components/table'
 import { Tab, TabList, Tabs } from '../../components/tabs'
 import { Tree, TreeItem } from '../../components/tree'
-import { writeRootDensity } from '../../core/density'
+import { densitySteps, writeRootDensity } from '../../core/density'
 import { boxHeight, iconSize } from '../../core/density/geometry'
 import { maxDepth } from '../../core/density/rungs'
 import { SidebarLayout } from '../../layouts/sidebar'
@@ -601,7 +601,7 @@ describe('the sparkline at the first paint (real browser)', () => {
 	})
 
 	it('sizes the skeleton to the box of the sparkline at each step', () => {
-		for (const step of ['sm', 'md', 'lg'] as const) {
+		for (const step of densitySteps) {
 			writeRootDensity(document.documentElement, step)
 
 			const container = mountMarkup(

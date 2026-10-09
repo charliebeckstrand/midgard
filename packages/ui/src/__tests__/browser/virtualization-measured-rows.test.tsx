@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Combobox, ComboboxLabel, ComboboxOption } from '../../components/combobox'
 import { JsonTree } from '../../components/json-tree'
+import { densitySteps } from '../../core/density'
 import { VirtualOptions } from '../../primitives/virtual-options'
 import { present, renderUI, screen, waitFor } from '../helpers'
 import { settledValue } from './helpers/sample'
@@ -36,7 +37,7 @@ const COUNT = 200
 const ITEMS = Array.from({ length: COUNT }, (_, i) => ({ id: i, label: `item-${i}` }))
 
 describe('VirtualOptions measures each row', () => {
-	for (const size of ['sm', 'md', 'lg'] as const) {
+	for (const size of densitySteps) {
 		// The Combobox keeps focus on its input, so only `scrollToIndex` brings the
 		// active option into view. It reads the row positions, so a position from
 		// a wrong height scrolls the list away from the active option.

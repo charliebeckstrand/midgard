@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { ControlSkeleton } from '../../../components/control'
 import { Group } from '../../../components/group'
 import { Input } from '../../../components/input'
+import { densitySteps } from '../../../core/density'
 import { getAllSlots, getSlot, renderUI } from '../../helpers'
 
 /**
@@ -14,7 +15,7 @@ import { getAllSlots, getSlot, renderUI } from '../../helpers'
  * no layout.
  */
 describe('ControlSkeleton in a Group (real browser)', () => {
-	it.each(['sm', 'md', 'lg'] as const)(
+	it.each(densitySteps)(
 		'keeps the height of a %s input in a vertical group, and takes the group width',
 		(size) => {
 			const input = renderUI(<Input aria-label="Name" size={size} />).container

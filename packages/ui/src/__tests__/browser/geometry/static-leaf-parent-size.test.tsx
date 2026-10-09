@@ -39,7 +39,7 @@ describe('a static leaf in a sized parent (real browser)', () => {
 		})
 	}
 
-	for (const size of ['sm', 'md', 'lg'] as const) {
+	for (const size of densitySteps) {
 		it(`keeps a ${size} SidebarItem with an Avatar at the height of an item with text`, () => {
 			const { container } = renderUI(
 				<Sidebar>

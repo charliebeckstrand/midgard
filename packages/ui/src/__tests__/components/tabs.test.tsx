@@ -241,8 +241,8 @@ describe('Tab', () => {
 
 		expect(bySlot(container, 'tab')).toHaveClass(
 			'density-text-[xs,sm,base,lg,xl]',
-			'density-px-[2,3,4]',
-			'density-pb-[3,4,5]',
+			'density-px-[1,2,3,4,5]',
+			'density-pb-[2,3,4,5,6]',
 		)
 	})
 

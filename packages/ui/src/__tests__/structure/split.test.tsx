@@ -81,9 +81,9 @@ describe('Split responsive axes', () => {
 
 		const className = bySlot(container, 'split')?.className ?? ''
 
-		expect(className).toContain('density-gap-[0.5,1,1.5]')
+		expect(className).toContain('density-gap-[0.25,0.5,1,1.5,2.5]')
 
-		expect(className).toContain('md:density-gap-[5,6,7]')
+		expect(className).toContain('md:density-gap-[4,5,6,7,8]')
 
 		expect(className).toContain('items-start')
 
@@ -101,7 +101,7 @@ describe('Split gap resolution', () => {
 
 		// Static leaf: gap is explicit (default lg); ambient density reaches
 		// client components only.
-		expect(bySlot(container, 'split')?.className).toContain('density-gap-[3,4,5]')
+		expect(bySlot(container, 'split')?.className).toContain('density-gap-[2,3,4,5,6]')
 	})
 
 	it('explicit gap applies inside a Density provider', () => {
@@ -113,14 +113,14 @@ describe('Split gap resolution', () => {
 
 		const el = getSlot(container, 'split')
 
-		expect(el.className).toContain('density-gap-[5,6,7]')
+		expect(el.className).toContain('density-gap-[4,5,6,7,8]')
 
-		expect(el.className).not.toContain('density-gap-[1,2,3]')
+		expect(el.className).not.toContain('density-gap-[0.5,1,2,3,4.5]')
 	})
 
 	it('falls back to the lg gap with no explicit prop and no ambient Density', () => {
 		const { container } = renderUI(<Split>content</Split>)
 
-		expect(bySlot(container, 'split')?.className).toContain('density-gap-[3,4,5]')
+		expect(bySlot(container, 'split')?.className).toContain('density-gap-[2,3,4,5,6]')
 	})
 })

@@ -664,7 +664,7 @@ describe('MenuContent', () => {
 		})
 
 		it('caps at the density height when opted in', () => {
-			expect(viewportFor(true)).toHaveClass('density-max-h-[48,52,56]')
+			expect(viewportFor(true)).toHaveClass('density-max-h-[44,48,52,56,60]')
 		})
 
 		it('keeps the scroll container either way, so a capped menu still reaches its end', () => {
@@ -715,7 +715,7 @@ describe('MenuContent', () => {
 			expect(panels.length).toBeGreaterThan(1)
 
 			for (const panel of panels) {
-				expect(panel).toHaveClass('density-max-h-[48,52,56]')
+				expect(panel).toHaveClass('density-max-h-[44,48,52,56,60]')
 			}
 		})
 	})
@@ -1329,7 +1329,7 @@ describe('MenuItem density', () => {
 
 		expect(bySlot(container, 'menu-item')).toHaveClass(
 			'density-gap-[2,3,3]',
-			'density-px-[2.5,3,3.5]',
+			'density-px-[2,2.5,3,3.5,4]',
 			'density-py-[1,1.5,2.5]',
 			'density-text-[xs,sm,base,lg,xl]',
 		)
