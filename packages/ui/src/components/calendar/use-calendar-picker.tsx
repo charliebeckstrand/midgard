@@ -3,14 +3,15 @@
 import {
 	type KeyboardEvent,
 	type ReactNode,
+	type Ref,
 	type RefObject,
 	useCallback,
-	useEffect,
 	useMemo,
 	useReducer,
 	useRef,
 	useState,
 } from 'react'
+import { useComposedRef } from '../../hooks/use-composed-ref'
 import { resolveFormat } from '../../utilities'
 import type { CalendarPickerGridCell } from './calendar-picker-grid'
 import { calendarPickerReducer, initialCalendarPickerState } from './calendar-picker-reducer'
@@ -50,7 +51,7 @@ type CalendarPickerViewConfig = {
 /** Return shape of {@link useCalendarPicker}. It holds the header/grid refs, their roving-focus keydown handlers, and the active view's render config. @internal */
 type CalendarPickerResult = {
 	pickerHeaderRef: RefObject<HTMLDivElement | null>
-	pickerGridRef: RefObject<HTMLDivElement | null>
+	pickerGridRef: Ref<HTMLDivElement>
 	handleHeaderKeyDown: (event: KeyboardEvent<HTMLElement>) => void
 	handleGridKeyDown: (event: KeyboardEvent<HTMLElement>) => void
 	viewConfig: CalendarPickerViewConfig
@@ -88,9 +89,8 @@ export function useCalendarPicker({
 	const [wasOpen, setWasOpen] = useState(open)
 
 	// The popover mounts the grid in its portal one commit after `open` turns on.
-	// The effects of the open commit run before the grid is in the DOM. The frame
-	// after the open sets `gridMounted`, and each close clears it, so the roving
-	// hook puts the Tab stop on the grid after the grid mounts.
+	// The grid ref callback sets `gridMounted` on each open, and each close clears
+	// it, so the roving hook puts the Tab stop on the grid after the grid mounts.
 	const [gridMounted, setGridMounted] = useState(false)
 
 	if (open !== wasOpen) {
@@ -114,38 +114,46 @@ export function useCalendarPicker({
 	)
 
 	const pickerHeaderRef = useRef<HTMLDivElement>(null)
-	const pickerGridRef = useRef<HTMLDivElement>(null)
+	const gridRef = useRef<HTMLDivElement>(null)
 
 	const { handleHeaderKeyDown, handleGridKeyDown } = useCalendarFocus({
 		headerRef: pickerHeaderRef,
-		gridRef: pickerGridRef,
+		gridRef,
 		cols: 3,
 		activeSelector: SELECTED_CELL,
 		gridMounted,
 		stopPropagation: true,
 	})
 
-	const focusPickerGrid = useCallback(() => {
-		requestAnimationFrame(() => {
-			const grid = pickerGridRef.current
+	// Returns the frame, so the grid ref callback can cancel it on detach.
+	const focusPickerGrid = useCallback(
+		() =>
+			requestAnimationFrame(() => {
+				const grid = gridRef.current
 
-			if (!grid) return
+				if (!grid) return
 
-			const selected = grid.querySelector<HTMLElement>(SELECTED_CELL)
+				const selected = grid.querySelector<HTMLElement>(SELECTED_CELL)
 
-			;(selected ?? grid.querySelector<HTMLElement>('button:not(:disabled)'))?.focus()
-		})
-	}, [])
+				;(selected ?? grid.querySelector<HTMLElement>('button:not(:disabled)'))?.focus()
+			}),
+		[],
+	)
 
-	useEffect(() => {
+	// The callback lists `open`, so React attaches the grid again on each open
+	// and each close. A reopen during the exit animation keeps the same grid
+	// node, and the open attach still focuses it and restores its Tab stop.
+	const attachGrid = useCallback(() => {
 		if (!open) return
 
-		focusPickerGrid()
+		setGridMounted(true)
 
-		const frame = requestAnimationFrame(() => setGridMounted(true))
+		const frame = focusPickerGrid()
 
 		return () => cancelAnimationFrame(frame)
 	}, [open, focusPickerGrid])
+
+	const pickerGridRef = useComposedRef(gridRef, attachGrid)
 
 	let viewConfig: CalendarPickerViewConfig
 

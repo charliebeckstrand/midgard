@@ -5,6 +5,8 @@ import { CardTitle } from '../../components/card'
 import { HoldButton } from '../../components/hold-button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { TooltipContext } from '../../components/tooltip/context'
+import type { TooltipIntent } from '../../components/tooltip/tooltip-intent'
+import { useTooltipState } from '../../components/tooltip/use-tooltip-state'
 import { notifyOverlaySignal } from '../../primitives/overlay'
 import { act, bySlot, getSlot, noop, renderUI, screen, setupUser, waitFor } from '../helpers'
 
@@ -296,6 +298,42 @@ describe('Tooltip', () => {
 
 		// A suppressed tooltip stays shut even when forced.
 		expect(screen.queryByText('Tooltip text')).not.toBeInTheDocument()
+	})
+})
+
+describe('useTooltipState', () => {
+	// The trigger can attach its node in the commit that mounts the state. A
+	// child attaches its ref before the layout effects of its parent run, so the
+	// replay that `setReference` calls must already hold the handler of that commit.
+	it('replays the intent of a trigger that attaches in the commit that mounts the state', () => {
+		const takeIntent = vi.fn(
+			(): TooltipIntent => ({
+				hover: null,
+				focus: null,
+				click: new MouseEvent('click'),
+				reenabled: false,
+			}),
+		)
+
+		let open = false
+
+		function Harness() {
+			const state = useTooltipState({ trigger: 'click', takeIntent })
+
+			open = state.open
+
+			return (
+				<button type="button" ref={state.setReference}>
+					Trigger
+				</button>
+			)
+		}
+
+		renderUI(<Harness />)
+
+		expect(takeIntent).toHaveBeenCalledTimes(1)
+
+		expect(open).toBe(true)
 	})
 })
 

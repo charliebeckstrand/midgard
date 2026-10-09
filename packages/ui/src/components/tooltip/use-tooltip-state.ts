@@ -13,7 +13,6 @@ import {
 	useCallback,
 	useEffect,
 	useId,
-	useLayoutEffect,
 	useMemo,
 	useRef,
 	useState,
@@ -21,6 +20,7 @@ import {
 } from 'react'
 import { type FloatingPlacement, useFloatingDisclosure } from '../../hooks'
 import { useOpenChange } from '../../hooks/use-open-change'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { subscribeOverlaySignal } from '../../primitives/overlay'
 import type { TooltipProps } from './tooltip'
 import type { TooltipIntent } from './tooltip-intent'
@@ -254,17 +254,16 @@ export function useTooltipState({
 	// The trigger hands its node to this state on the render after the state
 	// loads. The intent of the reader before that moment opens the tooltip as
 	// the node arrives, after the engine holds it, so the disabled gate reads
-	// it. The first node takes the intent, and a later node finds none. Refs
-	// keep `setReference` stable, so the trigger does not attach its ref again
-	// on each render.
-	const replayRef = useRef<((reference: Element) => (() => void) | undefined) | null>(null)
+	// it. The first node takes the intent, and a later node finds none. The
+	// replay is a stable event, so `setReference` keeps one identity and the
+	// trigger does not attach its ref again on each render. A trigger can attach
+	// in the commit that mounts the state, before the layout effects of this
+	// hook run, and the stable event already holds the handler of that commit.
+	const replay = useStableEvent((reference: Element) =>
+		takeIntent ? replayIntent(takeIntent(), reference, context, setOpen, delay) : undefined,
+	)
 
 	const stopReplayRef = useRef<(() => void) | undefined>(undefined)
-
-	useLayoutEffect(() => {
-		replayRef.current = (reference) =>
-			takeIntent ? replayIntent(takeIntent(), reference, context, setOpen, delay) : undefined
-	})
 
 	const { setReference: setEngineReference } = refs
 
@@ -274,9 +273,9 @@ export function useTooltipState({
 
 			if (!node || stopReplayRef.current) return
 
-			stopReplayRef.current = replayRef.current?.(node) ?? noop
+			stopReplayRef.current = replay(node) ?? noop
 		},
-		[setEngineReference],
+		[setEngineReference, replay],
 	)
 
 	useEffect(() => () => stopReplayRef.current?.(), [])

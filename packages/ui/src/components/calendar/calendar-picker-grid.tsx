@@ -1,4 +1,4 @@
-import type { KeyboardEvent, ReactNode, RefObject } from 'react'
+import type { KeyboardEvent, ReactNode, Ref, RefObject } from 'react'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/calendar'
 import { Button } from '../button'
@@ -21,7 +21,7 @@ export type CalendarPickerGridCell = {
 
 type CalendarPickerGridProps = {
 	headerRef: RefObject<HTMLDivElement | null>
-	gridRef: RefObject<HTMLDivElement | null>
+	gridRef: Ref<HTMLDivElement>
 	onHeaderKeyDown: (event: KeyboardEvent<HTMLElement>) => void
 	onGridKeyDown: (event: KeyboardEvent<HTMLElement>) => void
 	prevLabel: string
