@@ -32,9 +32,7 @@ function restingBox(photo: HTMLElement): LightboxBox {
 }
 
 /** The box of a thumbnail, when the photo can fly to it, else `undefined`. */
-function targetBox(thumbnail: HTMLElement | undefined): LightboxBox | undefined {
-	if (!thumbnail) return undefined
-
+function targetBox(thumbnail: HTMLElement): LightboxBox | undefined {
 	const box = thumbnail.getBoundingClientRect()
 
 	const view = thumbnail.ownerDocument.documentElement
@@ -80,22 +78,29 @@ export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): Ligh
 	const landed = (controls: AnimationPlaybackControls): Promise<void> =>
 		controls.finished.then(noop)
 
+	// The frame of the photo over its thumbnail, or `undefined` when the photo fades.
+	const frameAt = (photo: HTMLElement, thumbnail: HTMLElement | undefined) => {
+		if (reduceMotion || !thumbnail) return undefined
+
+		const box = targetBox(thumbnail)
+
+		return box && raisedFrame(box, restingBox(photo), radiusOf(thumbnail))
+	}
+
 	const raise = (thumbnail: HTMLElement | undefined) => {
 		const photo = photoRef.current
 
 		if (!photo) return
 
-		const from = reduceMotion ? undefined : targetBox(thumbnail)
+		const frame = frameAt(photo, thumbnail)
 
-		if (!thumbnail || !from) {
+		if (!frame) {
 			photo.style.opacity = '0'
 
 			animate(photo, { opacity: [0, 1] }, k.motion.fade)
 
 			return
 		}
-
-		const frame = raisedFrame(from, restingBox(photo), radiusOf(thumbnail))
 
 		// The first paint shows the photo over its thumbnail, before Motion starts.
 		photo.style.transform = frame.transform
@@ -124,11 +129,9 @@ export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): Ligh
 
 		if (!photo) return Promise.resolve()
 
-		const to = reduceMotion ? undefined : targetBox(thumbnail)
+		const frame = frameAt(photo, thumbnail)
 
-		if (!thumbnail || !to) return landed(animate(photo, { opacity: 0 }, k.motion.fade))
-
-		const frame = raisedFrame(to, restingBox(photo), radiusOf(thumbnail))
+		if (!frame) return landed(animate(photo, { opacity: 0 }, k.motion.fade))
 
 		// A raise that still runs turns around where it is: with no start frame,
 		// Motion starts from the value that the photo paints now. A photo at rest

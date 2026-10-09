@@ -46,7 +46,13 @@ export const k = {
 		raise: { duration: duration[300], ease: ease.out },
 		/** The step from one photo to the next. */
 		step: { duration: duration[250], ease: ease.out },
-		/** The fade of the photo under reduced motion, and of the scrim and the controls. */
+		/** The fade of the photo under reduced motion. */
 		fade: { duration: duration[200] },
+		/**
+		 * The fade of the scrim and the controls. It has the timing of the flight,
+		 * so the scrim is dark when the photo lands on the stage, and clear when
+		 * the photo lands in its thumbnail.
+		 */
+		scrim: { ...ugoki.overlay, transition: { duration: duration[300], ease: ease.out } },
 	},
 }

@@ -255,7 +255,7 @@ export function Overlay({
 		<Portal open={open} container={container} ssr>
 			<OverlayFocus
 				modal={modal}
-				coverChrome={coverChrome}
+				regions={coverChrome ? noRegions : chromeRegions}
 				context={context}
 				initialFocus={initialFocus}
 			>
@@ -264,6 +264,9 @@ export function Overlay({
 		</Portal>
 	)
 }
+
+// The regions of an overlay that covers the chrome: none, so its trap stays strict.
+const noRegions = (): HTMLElement[] => []
 
 /**
  * Wraps the overlay panel in a modal `FloatingFocusManager`, which traps focus,
@@ -275,13 +278,14 @@ export function Overlay({
  */
 function OverlayFocus({
 	modal,
-	coverChrome,
+	regions,
 	context,
 	initialFocus,
 	children,
 }: {
 	modal: boolean
-	coverChrome: boolean
+	/** The regions that the trap exempts: `chromeRegions`, or none. */
+	regions: () => HTMLElement[]
 	context: FloatingRootContext
 	initialFocus: RefObject<HTMLElement | null> | undefined
 	children: ReactElement
@@ -296,9 +300,9 @@ function OverlayFocus({
 	// the registered regions through as part of the surface, exempting them.
 	//
 	// Read at render rather than hoisted: with nothing registered the trap stays
-	// strict, which is the whole behavior on a page that declares no chrome.
-	// An overlay that covers the chrome keeps the strict trap.
-	const chrome = coverChrome ? [] : chromeRegions()
+	// strict, which is the whole behavior on a page that declares no chrome, and
+	// on an overlay that covers the chrome.
+	const chrome = regions()
 
 	// `guards={false}` alone already forces the `inert` marking in 0.27, so this
 	// states the intent through the prop that documents it rather than resting on
@@ -310,7 +314,7 @@ function OverlayFocus({
 			initialFocus={initialFocus}
 			guards={chrome.length === 0}
 			outsideElementsInert={chrome.length > 0}
-			getInsideElements={coverChrome ? undefined : chromeRegions}
+			getInsideElements={regions}
 		>
 			{children}
 		</FloatingFocusManager>

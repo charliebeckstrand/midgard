@@ -8,6 +8,7 @@ import { useDragCursorHold } from '../../hooks/use-drag-cursor'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { k } from '../../recipes/kata/lightbox'
+import { isPrimaryPress } from '../../utilities/primary-press'
 import { SWIPE_EDGE_RESISTANCE, SWIPE_SLOP, swipeStep } from './lightbox-utilities'
 
 /** Options for {@link useLightboxTrack}. @internal */
@@ -45,6 +46,8 @@ type Press = {
 	y: number
 	/** Whether the press is a swipe: it traveled past the slop, along the line. */
 	swiping: boolean
+	/** Whether the line runs right to left. The swipe reads it once, when it starts. */
+	rtl: boolean
 	/** The last point and time, for the speed at the lift. */
 	lastX: number
 	lastTime: number
@@ -142,14 +145,16 @@ export function useLightboxTrack(
 
 	// The commit and the reset happen in one task, so the browser paints the new
 	// center slot at rest and never the old slot at rest.
-	const land = useStableEvent((step: -1 | 1) => {
-		const track = trackRef.current
-
-		flushSync(() => onIndexChange(index + step))
-
+	const rest = (track: HTMLElement | null) => {
 		travel.current = 0
 
 		if (track) paint(track, 0)
+	}
+
+	const land = useStableEvent((step: -1 | 1) => {
+		flushSync(() => onIndexChange(index + step))
+
+		rest(trackRef.current)
 	})
 
 	const slide = (track: HTMLElement, to: number, then: () => void) => {
@@ -195,19 +200,8 @@ export function useLightboxTrack(
 
 		if (!track || travel.current === 0) return
 
-		if (reduceMotion) {
-			travel.current = 0
-
-			paint(track, 0)
-
-			return
-		}
-
-		slide(track, 0, () => {
-			travel.current = 0
-
-			paint(track, 0)
-		})
+		if (reduceMotion) rest(track)
+		else slide(track, 0, () => rest(track))
 	}
 
 	const halt = () => {
@@ -225,7 +219,7 @@ export function useLightboxTrack(
 			onPointerDown: (event) => {
 				swipedRef.current = false
 
-				if (event.button !== 0 || running.current) return
+				if (!isPrimaryPress(event) || running.current) return
 
 				// A press on a control is the control's own.
 				if (event.target instanceof Element && event.target.closest('button')) return
@@ -235,6 +229,7 @@ export function useLightboxTrack(
 					x: event.clientX,
 					y: event.clientY,
 					swiping: false,
+					rtl: false,
 					lastX: event.clientX,
 					lastTime: event.timeStamp,
 					speed: 0,
@@ -258,6 +253,8 @@ export function useLightboxTrack(
 
 					current.swiping = true
 
+					current.rtl = isRtl(track)
+
 					swipedRef.current = true
 
 					event.currentTarget.setPointerCapture(event.pointerId)
@@ -269,7 +266,7 @@ export function useLightboxTrack(
 
 				// A swipe to the right shows the photo on the left, which is the photo
 				// before in a left-to-right line.
-				const toward = dx > 0 !== isRtl(track) ? -1 : 1
+				const toward = dx > 0 !== current.rtl ? -1 : 1
 
 				travel.current = canStep(toward) ? dx : dx * SWIPE_EDGE_RESISTANCE
 
@@ -290,17 +287,11 @@ export function useLightboxTrack(
 					event.clientX - current.x,
 					current.speed,
 					track.clientWidth,
-					isRtl(track),
+					current.rtl,
 				)
 
-				if (direction !== 0 && canStep(direction)) {
-					if (reduceMotion) land(direction)
-					else slide(track, travelTo(track, direction), () => land(direction))
-
-					return
-				}
-
-				settle()
+				if (direction !== 0 && canStep(direction)) step(direction)
+				else settle()
 			},
 			onPointerCancel: () => {
 				press.current = null

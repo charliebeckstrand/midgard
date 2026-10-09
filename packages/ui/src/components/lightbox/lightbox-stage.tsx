@@ -9,6 +9,7 @@ import { k } from '../../recipes/kata/lightbox'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { useLightboxContext } from './context'
+import type { LightboxPhoto } from './types'
 import { useLightboxFlight } from './use-lightbox-flight'
 import { useLightboxTrack } from './use-lightbox-track'
 
@@ -31,16 +32,13 @@ export type LightboxStageProps = {
 	labels: LightboxLabels
 }
 
-const fade = {
-	initial: { opacity: 0 },
-	animate: { opacity: 1 },
-	exit: { opacity: 0 },
-	transition: k.motion.raise,
-}
-
 /** The slots of the track: the photo in the center and each photo next to it. */
-function slotsAround(index: number, count: number): number[] {
-	return [index - 1, index, index + 1].filter((slot) => slot >= 0 && slot < count)
+function slotsAround(index: number, photos: readonly LightboxPhoto[]) {
+	return [-1, 0, 1].flatMap((offset) => {
+		const photo = photos[index + offset]
+
+		return photo ? [{ slot: index + offset, offset, photo }] : []
+	})
 }
 
 /**
@@ -85,15 +83,12 @@ export function LightboxStage({ index, onIndexChange, onReturn, labels }: Lightb
 		},
 	})
 
-	const enter = useEffectEvent(() => {
-		if (!restore) flight.raise(thumbnail(index))
-	})
-
-	// Whether the photo is on its way back to its thumbnail.
-	const leaving = useRef(false)
+	// Whether the photo is in its thumbnail, or on its way back to it. The photo
+	// starts in its thumbnail, except when the viewer is restored at rest.
+	const leaving = useRef(!restore)
 
 	const followPresence = useEffectEvent((present: boolean) => {
-		// The viewer opens again during the return: the photo rises again.
+		// The viewer opens, or opens again during the return: the photo rises.
 		if (present) {
 			if (leaving.current) flight.raise(thumbnail(index))
 
@@ -114,10 +109,6 @@ export function LightboxStage({ index, onIndexChange, onReturn, labels }: Lightb
 			safeToRemove?.()
 		})
 	})
-
-	useLayoutEffect(() => {
-		enter()
-	}, [])
 
 	useLayoutEffect(() => {
 		followPresence(isPresent)
@@ -144,18 +135,17 @@ export function LightboxStage({ index, onIndexChange, onReturn, labels }: Lightb
 			onKeyDown={handleKeyDown}
 			className="absolute inset-0"
 		>
-			<m.div {...fade} data-slot="lightbox-backdrop" aria-hidden="true" className={k.backdrop} />
+			<m.div
+				{...k.motion.scrim}
+				data-slot="lightbox-backdrop"
+				aria-hidden="true"
+				className={k.backdrop}
+			/>
 			{/* The stage takes only the pointer. Escape, the close button, and the
 			    arrow keys give each of its actions to the keyboard. */}
 			<div data-slot="lightbox-stage" {...track.handlers} className={k.stage}>
 				<div ref={trackRef} className={k.track}>
-					{slotsAround(index, count).map((slot) => {
-						const photo = photos[slot]
-
-						const offset = slot - index
-
-						if (!photo) return null
-
+					{slotsAround(index, photos).map(({ slot, offset, photo }) => {
 						const placeholder = photo.thumbnail && photo.thumbnail !== photo.src
 
 						return (
@@ -185,7 +175,7 @@ export function LightboxStage({ index, onIndexChange, onReturn, labels }: Lightb
 					})}
 				</div>
 			</div>
-			<m.div {...fade} className="contents">
+			<m.div {...k.motion.scrim} className="contents">
 				<Button
 					type="button"
 					variant="soft"

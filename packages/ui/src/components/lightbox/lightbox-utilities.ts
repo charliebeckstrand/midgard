@@ -76,11 +76,11 @@ export function isFlightTarget(box: LightboxBox, viewport: { width: number; heig
 /** Travel, in CSS px, past which a press on the stage is a swipe. @internal */
 export const SWIPE_SLOP = 8
 
-/** The share of the stage width past which a swipe steps to the next photo. @internal */
-export const SWIPE_DISTANCE = 0.2
+/** The share of the stage width past which a swipe steps to the next photo. */
+const SWIPE_DISTANCE = 0.2
 
-/** Speed, in CSS px per ms, past which a short swipe steps to the next photo. @internal */
-export const SWIPE_SPEED = 0.4
+/** Speed, in CSS px per ms, past which a short swipe steps to the next photo. */
+const SWIPE_SPEED = 0.4
 
 /** The share of the travel that the track follows past the first or the last photo. @internal */
 export const SWIPE_EDGE_RESISTANCE = 0.3
