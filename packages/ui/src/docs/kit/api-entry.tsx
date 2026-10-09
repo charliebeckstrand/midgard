@@ -1,5 +1,6 @@
 import { Badge } from 'ui/badge'
 import { cn } from 'ui/core'
+import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
 import { Markdown, primeMarkdown } from 'ui/markdown'
 import { Stack } from 'ui/stack'
@@ -41,21 +42,21 @@ function PropFacts({ prop }: { prop: PropApi }) {
 	const kind = fallback && KINDS.find(([pattern]) => pattern.test(fallback))?.[1]
 
 	return (
-		<div className="flex flex-wrap items-baseline gap-x-4 gap-y-2 text-sm">
-			<span className="flex flex-wrap items-baseline gap-1.5">
+		<Flex align="baseline" gap="lg" wrap className="text-sm">
+			<Flex as="span" align="baseline" gap="sm" wrap>
 				{options?.map((option) => (
 					<code key={String(option)} className={OPTION}>
 						{typeof option === 'string' ? `'${option}'` : String(option)}
 					</code>
 				))}
 				{type && <code className={TYPE}>{type}</code>}
-			</span>
+			</Flex>
 			{fallback && (
 				<span className="text-zinc-500 dark:text-zinc-400">
 					default <code className={cn('font-mono', kind)}>{fallback}</code>
 				</span>
 			)}
-		</div>
+		</Flex>
 	)
 }
 
@@ -66,7 +67,7 @@ function PropFacts({ prop }: { prop: PropApi }) {
 function PropRow({ prop }: { prop: PropApi }) {
 	return (
 		<Stack gap="sm" className="py-5 first:pt-0 last:pb-0">
-			<span className="flex flex-wrap items-baseline gap-x-2">
+			<Flex as="span" align="baseline" gap="sm" wrap>
 				<span
 					className={cn(
 						'font-mono font-medium text-zinc-900 dark:text-white',
@@ -86,7 +87,7 @@ function PropRow({ prop }: { prop: PropApi }) {
 						{prop.deprecated && <TooltipContent>{prop.deprecated}</TooltipContent>}
 					</Tooltip>
 				)}
-			</span>
+			</Flex>
 			<PropFacts prop={prop} />
 			{prop.description && <Markdown>{prop.description}</Markdown>}
 		</Stack>
@@ -97,14 +98,14 @@ function PropSection({ title, props }: { title: string; props: readonly PropApi[
 	if (props.length === 0) return null
 
 	return (
-		<div className="space-y-4">
+		<Stack gap="lg">
 			<Heading level={4}>{title}</Heading>
 			<div className="divide-y divide-zinc-200 dark:divide-zinc-800">
 				{props.map((prop) => (
 					<PropRow key={prop.name} prop={prop} />
 				))}
 			</div>
-		</div>
+		</Stack>
 	)
 }
 
@@ -133,18 +134,18 @@ function ElementsNote({ elements }: { elements: readonly string[] }) {
 /** The description, the props, the events, and the HTML attributes of one component. */
 export function ApiEntry({ component }: { component: ComponentApi }) {
 	return (
-		<div className="space-y-4">
+		<Stack gap="lg">
 			{component.description && <Markdown>{component.description}</Markdown>}
 			{component.props.length + component.events.length > 0 ? (
-				<div className="space-y-6">
+				<Stack gap="xl">
 					<PropSection title="Props" props={component.props} />
 					<PropSection title="Events" props={component.events} />
-				</div>
+				</Stack>
 			) : (
 				<Text tone="muted">This component accepts no explicit props.</Text>
 			)}
 			<ElementsNote elements={component.elements ?? []} />
-		</div>
+		</Stack>
 	)
 }
 

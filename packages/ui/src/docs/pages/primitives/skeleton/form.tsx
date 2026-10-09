@@ -4,6 +4,7 @@ import { ControlSkeleton } from 'ui/control'
 import { Heading, HeadingSkeleton } from 'ui/heading'
 import { Input } from 'ui/input'
 import { ReadyReveal } from 'ui/primitives/ready-reveal'
+import { Stack } from 'ui/stack'
 import { Textarea, TextareaSkeleton } from 'ui/textarea'
 import { resetButtonProps } from '../../../kit/reset-button.tsx'
 
@@ -22,22 +23,24 @@ export default function Form() {
 	return (
 		<>
 			<Button {...(ready ? resetButtonProps : simulateProps)} onClick={() => setReady(!ready)} />
-			<form className="space-y-4" onSubmit={prevent}>
-				<ReadyReveal ready={ready} placeholder={<HeadingSkeleton level={3} />}>
-					<Heading level={3}>Create account</Heading>
-				</ReadyReveal>
-				<ReadyReveal ready={ready} placeholder={<ControlSkeleton />}>
-					<Input aria-label="Email" placeholder="Email" />
-				</ReadyReveal>
-				<ReadyReveal ready={ready} placeholder={<ControlSkeleton />}>
-					<Input aria-label="Password" placeholder="Password" type="password" />
-				</ReadyReveal>
-				<ReadyReveal ready={ready} placeholder={<TextareaSkeleton />}>
-					<Textarea aria-label="Bio" placeholder="Bio" />
-				</ReadyReveal>
-				<ReadyReveal ready={ready} placeholder={<ButtonSkeleton />}>
-					<Button color="blue">Sign up</Button>
-				</ReadyReveal>
+			<form onSubmit={prevent}>
+				<Stack gap="lg">
+					<ReadyReveal ready={ready} placeholder={<HeadingSkeleton level={3} />}>
+						<Heading level={3}>Create account</Heading>
+					</ReadyReveal>
+					<ReadyReveal ready={ready} placeholder={<ControlSkeleton />}>
+						<Input aria-label="Email" placeholder="Email" />
+					</ReadyReveal>
+					<ReadyReveal ready={ready} placeholder={<ControlSkeleton />}>
+						<Input aria-label="Password" placeholder="Password" type="password" />
+					</ReadyReveal>
+					<ReadyReveal ready={ready} placeholder={<TextareaSkeleton />}>
+						<Textarea aria-label="Bio" placeholder="Bio" />
+					</ReadyReveal>
+					<ReadyReveal ready={ready} placeholder={<ButtonSkeleton />}>
+						<Button color="blue">Sign up</Button>
+					</ReadyReveal>
+				</Stack>
 			</form>
 		</>
 	)

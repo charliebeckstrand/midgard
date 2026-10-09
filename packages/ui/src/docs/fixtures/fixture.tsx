@@ -1,4 +1,7 @@
 import type { ReactNode } from 'react'
+import { Columns } from '../../structure/columns'
+import { Flex } from '../../structure/flex'
+import { Stack } from '../../structure/stack'
 
 /**
  * The frame of one fixture sheet: a title, then each case in a grid.
@@ -11,9 +14,11 @@ import type { ReactNode } from 'react'
  */
 export function FixtureSheet({ title, children }: { title: string; children: ReactNode }) {
 	return (
-		<main data-slot="fixture-sheet" className="flex flex-col gap-8 p-4 sm:p-8">
-			<h1 className="text-xl font-semibold">{title}</h1>
-			{children}
+		<main data-slot="fixture-sheet" className="p-4 sm:p-8">
+			<Stack gap="xl">
+				<h1 className="text-xl font-semibold">{title}</h1>
+				{children}
+			</Stack>
 		</main>
 	)
 }
@@ -21,9 +26,13 @@ export function FixtureSheet({ title, children }: { title: string; children: Rea
 /** One group of cases on a sheet, for example the cases of one component. */
 export function FixtureGroup({ title, children }: { title: string; children: ReactNode }) {
 	return (
-		<section className="flex flex-col gap-3">
-			<h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">{title}</h2>
-			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">{children}</div>
+		<section>
+			<Stack gap="md">
+				<h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">{title}</h2>
+				<Columns columns={{ initial: 1, sm: 2, lg: 3 }} gap="lg">
+					{children}
+				</Columns>
+			</Stack>
 		</section>
 	)
 }
@@ -47,15 +56,11 @@ export function FixtureCase({
 	children: ReactNode
 }) {
 	return (
-		<div
-			className={
-				wide
-					? 'flex min-w-0 flex-col gap-2 sm:col-span-2 lg:col-span-3'
-					: 'flex min-w-0 flex-col gap-2'
-			}
-		>
+		<Stack gap="sm" className={wide ? 'min-w-0 sm:col-span-2 lg:col-span-3' : 'min-w-0'}>
 			<span className="text-xs text-zinc-500 dark:text-zinc-400">{label}</span>
-			<div className="flex min-w-0 flex-wrap items-start gap-2">{children}</div>
-		</div>
+			<Flex align="start" gap="sm" wrap className="min-w-0">
+				{children}
+			</Flex>
+		</Stack>
 	)
 }

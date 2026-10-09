@@ -1,3 +1,4 @@
+import { Stack } from 'ui/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from 'ui/tabs'
 import { Example } from '../../../../kit/index.ts'
 import ClientInfiniteScroll from './client-infinite-scroll.tsx'
@@ -13,12 +14,14 @@ export default function VirtualizationTab() {
 				<Tab value="server">Server</Tab>
 			</TabList>
 			<TabContents animate={false}>
-				<TabContent value="client" className="space-y-10">
-					<Example of={ClientInfiniteScroll} />
-					<Example of={GroupedWindow} />
-					<Example of={MasterDetailWindow} />
+				<TabContent value="client">
+					<Stack gap="xl">
+						<Example of={ClientInfiniteScroll} />
+						<Example of={GroupedWindow} />
+						<Example of={MasterDetailWindow} />
+					</Stack>
 				</TabContent>
-				<TabContent value="server" className="space-y-10">
+				<TabContent value="server">
 					<Example of={ServerInfiniteScroll} />
 				</TabContent>
 			</TabContents>

@@ -1,7 +1,6 @@
 import { type ComponentType, type ReactNode, useCallback } from 'react'
 import { CodeBlock, primeCodeBlock } from 'ui/code'
 import { Collapse, CollapsePanel, CollapseTrigger } from 'ui/collapse'
-import { cn } from 'ui/core'
 import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
 import { Stack } from 'ui/stack'
@@ -147,17 +146,17 @@ export function ExampleFrame({
 				/>
 				<div className="overflow-auto rounded-lg border border-zinc-200 peer-hover:border-zinc-400 peer-data-dragging:border-zinc-400 dark:border-zinc-800 dark:peer-hover:border-zinc-600 dark:peer-data-dragging:border-zinc-600">
 					<div className="p-4">
-						<div
+						<Stack
 							data-slot="example-instance"
-							className={cn(
-								'flex flex-col gap-4',
+							gap="lg"
+							className={
 								surface
 									? 'w-full'
-									: 'w-max min-w-[min(24rem,100%)] max-w-full phrasing:flex-row phrasing:flex-wrap phrasing:items-center',
-							)}
+									: 'w-max min-w-[min(24rem,100%)] max-w-full phrasing:flex-row phrasing:flex-wrap phrasing:items-center'
+							}
 						>
 							{children}
-						</div>
+						</Stack>
 					</div>
 					<Collapse animate="slide" open={open} onOpenChange={(next) => change(() => next)}>
 						<div className="border-t border-zinc-200 dark:border-zinc-800">

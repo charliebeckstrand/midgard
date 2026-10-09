@@ -1,8 +1,10 @@
 import { useLayoutEffect } from 'react'
 import { BarChart, DonutChart, LineChart } from 'ui/chart'
 import { useDashboardRows, useDashboardScope } from 'ui/dashboard'
+import { Flex } from 'ui/flex'
 import { Grid, type GridColumn } from 'ui/grid'
 import { useContentHeightHost } from 'ui/primitives/content-height'
+import { Stack } from 'ui/stack'
 import { Stat, StatDelta, StatDescription, StatValue } from 'ui/stat'
 import { PointerHint } from '../../../kit/pointer-hint.tsx'
 import { products, type Sale, sales, sumBy } from './data.ts'
@@ -65,7 +67,7 @@ function useStatFlow() {
 	useLayoutEffect(() => (flow ? host?.claim() : undefined), [flow, host])
 
 	return {
-		root: flow ? 'flex flex-col gap-2' : 'flex size-full flex-col gap-2',
+		root: flow ? undefined : 'size-full',
 		trend: flow ? 'h-20' : 'min-h-0 flex-1',
 	}
 }
@@ -80,10 +82,12 @@ export function Units() {
 	const flow = useStatFlow()
 
 	return (
-		<div className={flow.root}>
-			<Stat className="h-auto flex-row flex-wrap items-baseline justify-start gap-x-2">
-				<StatValue size="sm">{units.toLocaleString('en-US')}</StatValue>
-				<StatDescription>in {data.length} months</StatDescription>
+		<Stack gap="sm" className={flow.root}>
+			<Stat className="h-auto">
+				<Flex align="baseline" gap="sm" wrap>
+					<StatValue size="sm">{units.toLocaleString('en-US')}</StatValue>
+					<StatDescription>in {data.length} months</StatDescription>
+				</Flex>
 			</Stat>
 			<div className={flow.trend}>
 				<BarChart
@@ -93,7 +97,7 @@ export function Units() {
 					aspectRatio={false}
 				/>
 			</div>
-		</div>
+		</Stack>
 	)
 }
 
@@ -126,13 +130,15 @@ export function Kpi({ value }: KpiProps) {
 	const flow = useStatFlow()
 
 	return (
-		<div className={flow.root}>
-			<Stat className="h-auto flex-row flex-wrap items-baseline justify-start gap-x-2">
-				<StatValue size="sm">{latest?.total.toLocaleString('en-US') ?? '–'}</StatValue>
-				<StatDelta trend={change > 0 ? 'up' : change < 0 ? 'down' : 'neutral'}>
-					{change > 0 ? '↑' : change < 0 ? '↓' : '→'} {Math.abs(change * 100).toFixed(1)}% vs{' '}
-					{previous?.key ?? 'last month'}
-				</StatDelta>
+		<Stack gap="sm" className={flow.root}>
+			<Stat className="h-auto">
+				<Flex align="baseline" gap="sm" wrap>
+					<StatValue size="sm">{latest?.total.toLocaleString('en-US') ?? '–'}</StatValue>
+					<StatDelta trend={change > 0 ? 'up' : change < 0 ? 'down' : 'neutral'}>
+						{change > 0 ? '↑' : change < 0 ? '↓' : '→'} {Math.abs(change * 100).toFixed(1)}% vs{' '}
+						{previous?.key ?? 'last month'}
+					</StatDelta>
+				</Flex>
 			</Stat>
 			<div className={flow.trend}>
 				<LineChart
@@ -142,7 +148,7 @@ export function Kpi({ value }: KpiProps) {
 					aspectRatio={false}
 				/>
 			</div>
-		</div>
+		</Stack>
 	)
 }
 

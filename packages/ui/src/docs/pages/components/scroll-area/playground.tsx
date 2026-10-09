@@ -1,4 +1,5 @@
 import { Badge } from 'ui/badge'
+import { Columns } from 'ui/columns'
 import { ScrollArea, type ScrollAreaProps } from 'ui/scroll-area'
 
 const cells = Array.from({ length: 48 }, (_, index) => `Item ${index + 1}`)
@@ -6,11 +7,11 @@ const cells = Array.from({ length: 48 }, (_, index) => `Item ${index + 1}`)
 export default function ScrollAreaPlayground(props: ScrollAreaProps) {
 	return (
 		<ScrollArea extent="sm" {...props}>
-			<div className="grid w-max grid-cols-8 gap-2">
+			<Columns gap="sm" className="w-max grid-cols-8">
 				{cells.map((cell) => (
 					<Badge key={cell}>{cell}</Badge>
 				))}
-			</div>
+			</Columns>
 		</ScrollArea>
 	)
 }
