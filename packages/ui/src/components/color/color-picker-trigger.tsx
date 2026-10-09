@@ -17,6 +17,8 @@ type ColorPickerTriggerProps = GroupStampProps & {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	triggerId?: string
+	/** The id of the dialog panel. The trigger names it in `aria-controls` while open. */
+	dialogId?: string
 	describedBy?: string
 	/** Callback ref for the trigger node; returns a cleanup, so React skips the `null` call. */
 	setReference: RefCallback<HTMLElement>
@@ -55,6 +57,7 @@ export function ColorPickerTrigger({
 	open,
 	onOpenChange,
 	triggerId,
+	dialogId,
 	describedBy,
 	setReference,
 	getReferenceProps,
@@ -96,6 +99,7 @@ export function ColorPickerTrigger({
 						id={triggerId}
 						aria-haspopup="dialog"
 						aria-expanded={open}
+						aria-controls={open ? dialogId : undefined}
 						aria-describedby={describedBy}
 						data-slot="color-picker-button"
 						aria-disabled={ariaAttr(readOnly && !open)}

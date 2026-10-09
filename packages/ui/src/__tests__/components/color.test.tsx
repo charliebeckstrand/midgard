@@ -797,6 +797,20 @@ describe('ColorPicker', () => {
 		expect(bySlot(container, 'color-picker-swatch')).toBeInTheDocument()
 	})
 
+	it('names the open dialog from the trigger with aria-controls', () => {
+		const { container } = renderUI(<ColorPicker defaultValue="#ef4444" />)
+
+		const button = getSlot(container, 'color-picker-button')
+
+		expect(button).not.toHaveAttribute('aria-controls')
+
+		fireEvent.click(button)
+
+		const controls = button.getAttribute('aria-controls')
+
+		expect(document.getElementById(controls as string)).toHaveAttribute('role', 'dialog')
+	})
+
 	it('keeps the hex label of the trigger left to right under a right-to-left ancestor', () => {
 		const { container } = renderUI(
 			<div dir="rtl">

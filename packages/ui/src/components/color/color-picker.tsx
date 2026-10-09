@@ -127,6 +127,7 @@ export function ColorPicker(props: ColorPickerProps) {
 				open={state.open}
 				onOpenChange={state.onOpenChange}
 				triggerId={state.triggerId}
+				dialogId={state.dialogId}
 				describedBy={state.describedBy}
 				setReference={state.setReference}
 				getReferenceProps={state.getReferenceProps}
@@ -142,6 +143,7 @@ export function ColorPicker(props: ColorPickerProps) {
 			/>
 			<ColorPickerContent
 				open={state.open}
+				id={state.dialogId}
 				setFloating={state.setFloating}
 				floatingStyles={state.floatingStyles}
 				getFloatingProps={state.getFloatingProps}

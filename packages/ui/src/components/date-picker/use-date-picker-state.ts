@@ -2,21 +2,18 @@
 
 import { useCallback, useId, useMemo, useRef, useState } from 'react'
 
-import { useIdScope } from '../../hooks/use-id-scope'
 import { useLocale } from '../../providers/locale'
 import type { CalendarActive, CalendarHandle } from '../calendar'
-import { useControlProps } from '../control/use-control-props'
-import { useFormValue } from '../form/use-form-value'
+import { useControlPickerField } from '../control/use-control-picker-field'
+import { useControlPickerPopover } from '../control/use-control-picker-popover'
 import type { DatePickerBaseProps, DatePickerSingleProps } from './date-picker'
 import { clampDate, type DateStep, formatDate, startOfDay, stepDate } from './date-picker-utilities'
 import { useDatePickerControlled } from './use-date-picker-controlled'
-import { useDatePickerFloating } from './use-date-picker-floating'
 import {
 	type FooterButton,
 	useDatePickerGridEntry,
 	useDatePickerKeyboard,
 } from './use-date-picker-keyboard'
-import { useDatePickerOpen } from './use-date-picker-open'
 
 /**
  * Single-date state for {@link DatePicker}: Form/Control binding, popover
@@ -58,34 +55,15 @@ export function useDatePickerState({
 
 	const activeDescendantId = useId()
 
-	// Binds the selected date to an enclosing Form field by `name` (value-typed
-	// cascade); the field error merges with Control's invalid below.
-	const {
-		value,
-		setValue,
-		setTouched,
-		invalid: fieldInvalid,
-	} = useFormValue<Date>(name, {
+	// Binds the selected date to an enclosing Form field by `name`, and resolves
+	// the Control cascade. `setValue` writes nothing while readOnly is on.
+	const { value, setValue, setTouched, field } = useControlPickerField<Date>({
+		name,
 		value: useDatePickerControlled(valueProp),
 		defaultValue,
 		onValueChange,
-	})
-
-	// The Control cascade: an explicit prop wins over the enclosing Control, and
-	// the field error merges with an ambient error severity.
-	const controlProps = useControlProps({ disabled, readOnly, invalid: fieldInvalid })
-
-	const scope = useIdScope({ id: controlProps.id })
-
-	const resolvedDisabled = controlProps.disabled === true
-
-	const resolvedReadOnly = controlProps.readOnly === true
-
-	const { open, setOpen, triggerRef } = useDatePickerOpen({
-		open: openProp,
-		defaultOpen,
-		onOpenChange: onOpenChangeProp,
-		readOnly: resolvedReadOnly,
+		disabled,
+		readOnly,
 	})
 
 	// The native input of the DateInput in `input` mode. The dialog opens with
@@ -96,6 +74,34 @@ export function useDatePickerState({
 	const focusHomeRef = input ? inputRef : undefined
 
 	const [active, setActive] = useState<CalendarActive | null>(null)
+
+	// Each open and each close drops the highlight of the keyboard model.
+	const clearActive = useCallback(() => setActive(null), [])
+
+	const {
+		open,
+		openPicker: openCalendar,
+		closePicker: closeCalendar,
+		onOpenChange,
+		triggerRef,
+		refs,
+		setReference,
+		dialogId,
+		floatingStyles,
+		getReferenceProps,
+		getFloatingProps,
+		context,
+	} = useControlPickerPopover({
+		placement,
+		open: openProp,
+		defaultOpen,
+		onOpenChange: onOpenChangeProp,
+		readOnly: field.readOnly,
+		setTouched,
+		onOpen: clearActive,
+		onClose: clearActive,
+		returnFocusTo: focusHomeRef,
+	})
 
 	const calendarRef = useRef<CalendarHandle>(null)
 
@@ -114,63 +120,28 @@ export function useDatePickerState({
 		[min, max],
 	)
 
-	const openCalendar = useCallback(() => {
-		setOpen(true)
-
-		setActive(null)
-	}, [setOpen])
-
-	const closeCalendar = useCallback(() => {
-		setOpen(false)
-
-		setActive(null)
-
-		// Closing the popover (select, clear, dismiss, or Escape) is the field's
-		// "blur" — mark it touched so validateOn="touched" rules can fire.
-		setTouched()
-	}, [setTouched, setOpen])
-
-	// readOnly blocks every value write, not only the open paths. A controlled
-	// `open` can still show the calendar, and the typed input reaches this too.
-	const writeValue = useCallback(
-		(next: Date | null | undefined) => {
-			if (resolvedReadOnly) return
-
-			setValue(next)
-		},
-		[resolvedReadOnly, setValue],
-	)
-
 	const handleSelect = useCallback(
 		(date: Date | null) => {
 			if (date === null) return
 
-			writeValue(date)
+			setValue(date)
 
 			closeCalendar()
 		},
-		[closeCalendar, writeValue],
+		[closeCalendar, setValue],
 	)
 
 	const handleClear = useCallback(() => {
-		writeValue(undefined)
+		setValue(undefined)
 
 		closeCalendar()
-	}, [closeCalendar, writeValue])
+	}, [closeCalendar, setValue])
 
 	const handleSelectToday = useCallback(() => {
 		// Clamp so the footer Today action can never commit a date outside the
 		// min/max bounds (every other entry path is already bounds-checked).
 		handleSelect(clampDate(new Date(), min, max))
 	}, [handleSelect, min, max])
-
-	const handleOpenChange = useCallback(
-		(nextOpen: boolean) => {
-			if (nextOpen) openCalendar()
-			else closeCalendar()
-		},
-		[closeCalendar, openCalendar],
-	)
 
 	const onFooterActivate = useCallback(
 		(kind: FooterButton) => {
@@ -188,7 +159,7 @@ export function useDatePickerState({
 	const showToday = footer?.today !== false
 
 	const footerButtons = useMemo<FooterButton[]>(() => {
-		if (resolvedReadOnly) return []
+		if (field.readOnly) return []
 
 		const today = new Date()
 
@@ -203,24 +174,7 @@ export function useDatePickerState({
 		if (showToday && todayInRange) buttons.push('today')
 
 		return buttons
-	}, [resolvedReadOnly, value, min, max, showClear, showToday])
-
-	const {
-		refs,
-		floatingStyles,
-		context,
-		getReferenceProps,
-		getFloatingProps,
-		onOpenChange,
-		setReference,
-		dialogId,
-	} = useDatePickerFloating({
-		placement,
-		open,
-		onOpenChange: handleOpenChange,
-		triggerRef,
-		returnFocusTo: focusHomeRef,
-	})
+	}, [field.readOnly, value, min, max, showClear, showToday])
 
 	// Captures the dialog for `useDatePickerInputTab`'s reference-side handler.
 	const floatingRef = useRef<HTMLElement | null>(null)
@@ -235,7 +189,7 @@ export function useDatePickerState({
 	)
 
 	const onTriggerKeyDown = useDatePickerKeyboard({
-		disabled: resolvedDisabled,
+		disabled: field.disabled,
 		open,
 		input,
 		active,
@@ -252,16 +206,10 @@ export function useDatePickerState({
 	})
 
 	return {
-		triggerId: scope.id,
+		...field,
 		dialogId,
-		describedBy: controlProps['aria-describedby'],
-		disabled: resolvedDisabled,
-		readOnly: resolvedReadOnly,
-		required: controlProps.required,
-		invalid: controlProps.invalid,
-		validation: controlProps.validation,
 		value,
-		setValue: writeValue,
+		setValue,
 		hasValue: value != null,
 		onClear: handleClear,
 		displayValue: value ? formatDate(value, ambient.locale, ambient.dateFormat) : '',

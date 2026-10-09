@@ -3,13 +3,12 @@
 import { type KeyboardEvent, useCallback, useMemo, useState } from 'react'
 
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
-import { useIdScope } from '../../hooks/use-id-scope'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useLocale } from '../../providers/locale'
 import { wrap } from '../../utilities'
 import { NAVIGATION_KEYS } from '../calendar/use-calendar-focus'
-import { useControlProps } from '../control/use-control-props'
-import { useFormValue } from '../form/use-form-value'
+import { useControlPickerField } from '../control/use-control-picker-field'
+import { useControlPickerPopover } from '../control/use-control-picker-popover'
 import type { DatePickerBaseProps, DatePickerRelativeProps } from './date-picker'
 import {
 	type DatePickerRelativePreset,
@@ -26,9 +25,7 @@ import {
 	togglePresetValue,
 } from './date-picker-relative-utilities'
 import { useDatePickerControlled } from './use-date-picker-controlled'
-import { useDatePickerFloating } from './use-date-picker-floating'
 import type { FooterButton } from './use-date-picker-keyboard'
-import { useDatePickerOpen } from './use-date-picker-open'
 
 /** The two surfaces of the relative popover: the preset list or the custom Start/End inputs. @internal */
 export type DatePickerRelativeMode = 'list' | 'custom'
@@ -80,34 +77,35 @@ export function useDatePickerRelativeState({
 	// either way.
 	const showChips = resolveRelativeChips(relative)
 
-	// Binds the committed spans to an enclosing Form field by `name`; the field
-	// error merges with Control's invalid below.
-	const {
-		value,
-		setValue,
-		setTouched,
-		invalid: fieldInvalid,
-	} = useFormValue<DatePickerRelativeValue[]>(name, {
+	// Binds the committed spans to an enclosing Form field by `name`, and
+	// resolves the Control cascade.
+	const { value, setValue, setTouched, field } = useControlPickerField<DatePickerRelativeValue[]>({
+		name,
 		value: useDatePickerControlled(valueProp),
 		defaultValue,
 		onValueChange,
+		disabled,
+		readOnly,
 	})
 
-	// The Control cascade: an explicit prop wins over the enclosing Control, and
-	// the field error merges with an ambient error severity.
-	const controlProps = useControlProps({ disabled, readOnly, invalid: fieldInvalid })
-
-	const scope = useIdScope({ id: controlProps.id })
-
-	const resolvedDisabled = controlProps.disabled === true
-
-	const resolvedReadOnly = controlProps.readOnly === true
-
-	const { open, setOpen, triggerRef } = useDatePickerOpen({
+	const {
+		open,
+		openPicker,
+		onOpenChange,
+		refs,
+		setReference,
+		dialogId,
+		floatingStyles,
+		getReferenceProps,
+		getFloatingProps,
+		context,
+	} = useControlPickerPopover({
+		placement,
 		open: openProp,
 		defaultOpen,
 		onOpenChange: onOpenChangeProp,
-		readOnly: resolvedReadOnly,
+		readOnly: field.readOnly,
+		setTouched,
 	})
 
 	const [mode, setMode] = useState<DatePickerRelativeMode>('list')
@@ -159,7 +157,7 @@ export function useDatePickerRelativeState({
 	// controlled `open` can still show the preset list.
 	const togglePreset = useCallback(
 		(preset: DatePickerRelativePreset) => {
-			if (resolvedReadOnly) return
+			if (field.readOnly) return
 
 			// Which presets read as selected right now, biased by the existing picks so a
 			// collision toggles off the picked preset rather than re-selecting a twin.
@@ -188,50 +186,21 @@ export function useDatePickerRelativeState({
 
 			setPickedIds(nextPicked)
 		},
-		[multiple, now, pickedIds, presets, resolvedReadOnly, setValue, value],
+		[multiple, now, pickedIds, presets, field.readOnly, setValue, value],
 	)
-
-	const openPicker = useCallback(() => setOpen(true), [setOpen])
-
-	const closePicker = useCallback(() => {
-		setOpen(false)
-
-		// Closing the popover is the field's "blur" — mark it touched so
-		// validateOn="touched" rules can fire.
-		setTouched()
-	}, [setTouched, setOpen])
 
 	// Clears every span but keeps the popover open: a selection is still being
 	// edited after a reset, so the dialog stays put (dismiss closes it). Also wipes
 	// the custom draft so the Start/End inputs empty alongside the committed value.
 	const handleClear = useCallback(() => {
-		if (resolvedReadOnly) return
+		if (field.readOnly) return
 
 		setDraft({})
 
 		setPickedIds(new Set())
 
 		setValue(undefined)
-	}, [resolvedReadOnly, setValue])
-
-	const handleOpenChange = useCallback(
-		(nextOpen: boolean) => {
-			if (nextOpen) openPicker()
-			else closePicker()
-		},
-		[closePicker, openPicker],
-	)
-
-	const {
-		refs,
-		floatingStyles,
-		context,
-		getReferenceProps,
-		getFloatingProps,
-		onOpenChange,
-		setReference,
-		dialogId,
-	} = useDatePickerFloating({ placement, open, onOpenChange: handleOpenChange, triggerRef })
+	}, [field.readOnly, setValue])
 
 	// --- Custom range (Start/End inputs) ---
 
@@ -242,7 +211,7 @@ export function useDatePickerRelativeState({
 	// custom span replaces any preset selection (they are mutually exclusive).
 	const applyDraft = useCallback(
 		(next: { from?: Date; to?: Date }) => {
-			if (resolvedReadOnly) return
+			if (field.readOnly) return
 
 			setDraft(next)
 
@@ -259,7 +228,7 @@ export function useDatePickerRelativeState({
 
 			setValue([span])
 		},
-		[resolvedReadOnly, setValue],
+		[field.readOnly, setValue],
 	)
 
 	// Stable events, so an endpoint handler reads the latest other endpoint
@@ -283,7 +252,7 @@ export function useDatePickerRelativeState({
 	// bundle covers both. `footer.clear` (default on) suppresses it outright.
 	// readOnly drops it too, because the button cannot write a value.
 	const showFooterClear =
-		!resolvedReadOnly && footer?.clear !== false && (mode === 'custom' ? customComplete : hasValue)
+		!field.readOnly && footer?.clear !== false && (mode === 'custom' ? customComplete : hasValue)
 
 	const footerButtons = useMemo<FooterButton[]>(
 		() => (showFooterClear ? ['clear'] : []),
@@ -318,7 +287,7 @@ export function useDatePickerRelativeState({
 	// convention; Enter/Space open through the native button click.
 	const onTriggerKeyDown = useCallback(
 		(event: KeyboardEvent<HTMLElement>) => {
-			if (resolvedDisabled || open) return
+			if (field.disabled || open) return
 
 			if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
 				event.preventDefault()
@@ -326,7 +295,7 @@ export function useDatePickerRelativeState({
 				openPicker()
 			}
 		},
-		[open, openPicker, resolvedDisabled],
+		[open, openPicker, field.disabled],
 	)
 
 	// List mode: roving focus across the preset rows and the trailing custom row.
@@ -375,14 +344,8 @@ export function useDatePickerRelativeState({
 	)
 
 	return {
-		triggerId: scope.id,
+		...field,
 		dialogId,
-		describedBy: controlProps['aria-describedby'],
-		disabled: resolvedDisabled,
-		readOnly: resolvedReadOnly,
-		required: controlProps.required,
-		invalid: controlProps.invalid,
-		validation: controlProps.validation,
 		value,
 		hasValue,
 		onClear: handleClear,
