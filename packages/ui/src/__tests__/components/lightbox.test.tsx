@@ -5,6 +5,7 @@ import {
 	createEvent,
 	fireEvent,
 	getSlot,
+	present,
 	renderUI,
 	screen,
 	setupUser,
@@ -291,6 +292,60 @@ describe('Lightbox', () => {
 		await waitFor(() => expect(centerPhoto()).toHaveAttribute('alt', 'Field of poppies'))
 	})
 
+	it('reads the size of a photo with none from its thumbnail, and holds the button until then', () => {
+		const unsized = [{ src: '/d.jpg', alt: 'Night market' }]
+
+		renderUI(
+			<Lightbox photos={unsized}>
+				<LightboxTrigger index={0} />
+			</Lightbox>,
+		)
+
+		const trigger = screen.getByRole('button', { name: 'Night market' })
+
+		expect(trigger).toBeDisabled()
+
+		expect(getSlot(trigger, 'placeholder')).toBeInTheDocument()
+
+		const image = present(trigger.querySelector('img'), 'thumbnail')
+
+		Object.defineProperties(image, {
+			naturalWidth: { value: 800 },
+			naturalHeight: { value: 600 },
+		})
+
+		fireEvent.load(image)
+
+		expect(trigger).toBeEnabled()
+
+		expect(trigger.querySelector('[data-slot="placeholder"]')).toBeNull()
+
+		fireEvent.click(trigger)
+
+		expect(centerPhoto()).toHaveAttribute('width', '800')
+	})
+
+	it('leaves a still placeholder for a thumbnail that does not load, and steps over its photo', () => {
+		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+
+		renderUI(<Gallery defaultIndex={0} />)
+
+		const snow = present(
+			screen.getByRole('button', { name: 'Snow on a ridge' }).querySelector('img'),
+			'thumbnail',
+		)
+
+		fireEvent.error(snow)
+
+		expect(screen.queryByRole('button', { name: 'Snow on a ridge' })).toBeNull()
+
+		expect(screen.getByText('1 / 2')).toBeInTheDocument()
+
+		fireEvent.click(screen.getByRole('button', { name: 'Next photo' }))
+
+		expect(centerPhoto()).toHaveAttribute('alt', 'Field of poppies')
+	})
+
 	it('follows a controlled index', () => {
 		const { rerender } = renderUI(<Gallery index={null} />)
 
@@ -367,17 +422,15 @@ describe('Lightbox', () => {
 		expect(centerPhoto()).toHaveAttribute('alt', 'Snow on a ridge')
 	})
 
-	it('paints the enabled step buttons solid and the disabled one soft', () => {
+	it('hides the step button at the first photo, and keeps its place', () => {
 		renderUI(<Gallery defaultIndex={0} />)
 
-		expect(screen.getByRole('button', { name: 'Previous photo' })).toHaveAttribute(
-			'data-variant',
-			'soft',
-		)
+		const previous = screen.getByRole('button', { name: 'Previous photo' })
 
-		expect(screen.getByRole('button', { name: 'Next photo' })).toHaveAttribute(
-			'data-variant',
-			'solid',
-		)
+		expect(previous).toBeDisabled()
+
+		expect(previous).toHaveClass('invisible')
+
+		expect(screen.getByRole('button', { name: 'Next photo' })).not.toHaveClass('invisible')
 	})
 })

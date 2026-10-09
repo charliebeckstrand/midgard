@@ -1,3 +1,5 @@
+import type { LightboxLoad, LightboxPhoto, LightboxViewPhoto } from './types'
+
 /** A box on the screen, in CSS px from the top left corner of the viewport. @internal */
 export type LightboxBox = { x: number; y: number; width: number; height: number }
 
@@ -181,4 +183,30 @@ export function dismisses(travel: Vector, speed: Vector, height: number): boolea
 	const away = (speed.x * travel.x + speed.y * travel.y) / distance
 
 	return distance > height * DISMISS_DISTANCE || away > SWIPE_SPEED
+}
+
+/** The URL of the image that the thumbnail of a photo shows. @internal */
+export function thumbnailOf(photo: LightboxPhoto): string {
+	return photo.thumbnail ?? photo.src
+}
+
+/**
+ * The photos that the viewer can show, in their order: each photo with a size,
+ * given or read from its thumbnail, whose thumbnail did not fail to load.
+ *
+ * @internal
+ */
+export function viewablePhotos(
+	photos: readonly LightboxPhoto[],
+	loadOf: (source: string) => LightboxLoad | undefined,
+): LightboxViewPhoto[] {
+	return photos.flatMap((photo, index) => {
+		const load = loadOf(thumbnailOf(photo))
+
+		if (load === 'failed') return []
+
+		const size = photo.width && photo.height ? { width: photo.width, height: photo.height } : load
+
+		return size ? [{ ...photo, ...size, index }] : []
+	})
 }

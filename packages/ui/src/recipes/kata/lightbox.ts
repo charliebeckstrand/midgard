@@ -12,11 +12,16 @@ export const k = {
 	 * photo.
 	 */
 	trigger: {
-		base: ['block overflow-hidden cursor-zoom-in', rounded.lg, focus.ring],
+		/** The box of a thumbnail, which a placeholder takes when the thumbnail does not load. */
+		base: ['relative block overflow-hidden', rounded.lg],
+		button: ['cursor-zoom-in disabled:cursor-default', focus.ring],
 		image: 'block size-full rounded-[inherit] object-cover',
+		/** The placeholder over a thumbnail that loads. */
+		placeholder: 'absolute inset-0 size-full rounded-[inherit]',
 		/**
 		 * The thumbnail of the photo that the viewer shows. The photo flies from
 		 * this box and back to it, so the box stays empty while the photo is up.
+		 * A thumbnail that loads is clear too, under its placeholder.
 		 */
 		raised: 'opacity-0',
 	},
@@ -87,6 +92,11 @@ export const k = {
 		'absolute inset-x-0 top-(--lightbox-edge) flex items-center justify-center gap-4',
 		'transition-[inset] duration-250 ease-out motion-reduce:transition-none',
 	],
+	/**
+	 * A step button at the first or the last photo. It keeps its place, so the
+	 * count stays in the center, and it does not show.
+	 */
+	ended: 'invisible',
 	count: 'min-w-16 text-center text-sm text-zinc-100 tabular-nums',
 	motion: {
 		/** The flight of the photo from its thumbnail to the stage, and back. */

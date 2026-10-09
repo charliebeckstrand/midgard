@@ -5,7 +5,8 @@ import { useControllable } from '../../hooks/use-controllable'
 import { Overlay } from '../../primitives/overlay'
 import { LightboxContext, type LightboxContextValue } from './context'
 import { LightboxStage } from './lightbox-stage'
-import type { LightboxPhoto } from './types'
+import { viewablePhotos } from './lightbox-utilities'
+import type { LightboxLoad, LightboxPhoto } from './types'
 
 /** Props for {@link Lightbox}: the photos, the open photo, and the names of the viewer and its controls. */
 export type LightboxProps = {
@@ -59,8 +60,11 @@ export type LightboxProps = {
  * thumbnail.
  *
  * The open photo is controlled (`index`/`onIndexChange`) or uncontrolled
- * (`defaultIndex`). Give each photo a `width` and a `height`, so its box is
- * correct before it loads.
+ * (`defaultIndex`). Give each photo a `width` and a `height` when they are
+ * known, so its box is correct before it loads. Without them, the root reads
+ * the size of the thumbnail when it loads, and the thumbnail is disabled until
+ * then. A thumbnail that does not load stays as a still placeholder, and the
+ * viewer steps over its photo.
  *
  * @example
  * ```tsx
@@ -97,7 +101,14 @@ export function Lightbox({
 		onValueChange: onIndexChange,
 	})
 
-	const open = index !== undefined && index >= 0 && index < photos.length
+	// How each thumbnail loaded, by its URL. A URL can show in more than one photo.
+	const [loads, setLoads] = useState<ReadonlyMap<string, LightboxLoad>>(() => new Map())
+
+	const loadOf = (source: string) => loads.get(source)
+
+	const viewable = viewablePhotos(photos, loadOf)
+
+	const open = index !== undefined && viewable.some((photo) => photo.index === index)
 
 	// The photo on the stage. It holds the last photo through the return, and the
 	// thumbnail of that photo stays empty until the photo lands in it.
@@ -119,7 +130,15 @@ export function Lightbox({
 			}
 		},
 		thumbnail: (slot) => thumbnails.current.get(slot),
+		loadOf,
+		record: (source, load) =>
+			setLoads((previous) =>
+				previous.has(source) ? previous : new Map(previous).set(source, load),
+			),
 	}
+
+	// The place of the shown photo among the photos that the viewer can show.
+	const position = viewable.findIndex((photo) => photo.index === shown)
 
 	return (
 		<LightboxContext value={context}>
@@ -133,10 +152,13 @@ export function Lightbox({
 				dismissOnBackdrop={false}
 				coverChrome
 			>
-				{shown !== null && (
+				{position >= 0 && (
 					<LightboxStage
-						index={shown}
-						onIndexChange={setIndex}
+						photos={viewable}
+						index={position}
+						onIndexChange={(next) =>
+							setIndex(next === null ? null : (viewable[next]?.index ?? null))
+						}
 						onReturn={() => setShown(null)}
 						closable={closable}
 						controls={controls}

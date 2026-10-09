@@ -4,7 +4,6 @@ import { ArrowUpDown, CalendarDays, Copy, Globe, Heart, MapPin, Tag, X } from 'l
 import { type ReactElement, type ReactNode, useEffect, useMemo, useState } from 'react'
 import { Badge } from 'ui/badge'
 import { CopyButton } from 'ui/copy-button'
-import { cn } from 'ui/core'
 import { DateTime } from 'ui/date-time'
 import { Divider } from 'ui/divider'
 import { Drawer, DrawerBody, DrawerClose, DrawerPanel, DrawerTitle } from 'ui/drawer'
@@ -15,7 +14,6 @@ import { Link } from 'ui/link'
 import { List, ListItem } from 'ui/list'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 import { Markdown } from 'ui/markdown'
-import { Placeholder } from 'ui/placeholder'
 import { useDateFormat } from 'ui/providers/locale'
 import { Rating } from 'ui/rating'
 import { Flex } from 'ui/structure/flex'
@@ -147,26 +145,15 @@ function PlaceAddress({ address }: { address: string }) {
 	)
 }
 
-/** How the thumbnail of a photo ended: the natural size of the photo, or `'failed'`. */
-type PhotoLoad = { width: number; height: number } | 'failed'
-
 /**
  * The photos of a visit, in squares of 96 pixels. A press on a square raises
  * its photo into a `Lightbox`, which steps through the photos of the visit.
  *
  * The address of a photo is the one that the reader typed, so its size is not
- * known before it loads. Each square records the natural size of its photo
- * when the thumbnail loads, and the viewer takes the size from that record. A
- * square is disabled until its photo loads, so the viewer never opens on a
- * photo with no size. The `load` and `error` events do not bubble, so the
- * square takes them in the capture phase from the image of its trigger.
- *
- * A placeholder fills the square until the photo loads. When the photo does
- * not load, the placeholder stays and stops its pulse, so it does not look
- * like a photo that loads. The trigger then goes out of the tree, so the
- * browser shows no broken image, and the viewer does not step to that photo.
- * The name of the place is the alt text because it is the one thing known
- * about the picture.
+ * known before it loads. The `Lightbox` reads the size from the thumbnail, and
+ * a placeholder pulses in the square until then. A photo that does not load
+ * leaves a still placeholder, and the viewer steps over it. The name of the
+ * place is the alt text because it is the one thing known about the picture.
  *
  * Squares, stated on both axes, so every photo reads the same however it was
  * shot, and the row wraps them at any panel width. The fixed box also keeps
@@ -175,59 +162,13 @@ type PhotoLoad = { width: number; height: number } | 'failed'
  * honest for any aspect.
  */
 function PlacePhotos({ photos, alt }: { photos: readonly string[]; alt: string }) {
-	const [loads, setLoads] = useState<ReadonlyMap<string, PhotoLoad>>(new Map())
-
-	const settle = (src: string, load: PhotoLoad) =>
-		setLoads((previous) => new Map(previous).set(src, load))
-
-	// The address alone is not unique: a reader can add one photo twice.
-	const squares = photos.map((src, at) => ({ key: `${at}:${src}`, src, load: loads.get(src) }))
-
-	const viewable = squares.filter((square) => square.load !== 'failed')
-
-	const gallery = viewable.map(({ src, load }) => ({
-		src,
-		alt,
-		// A photo that still loads has a disabled square, so the viewer never shows it.
-		width: typeof load === 'object' ? load.width : 1,
-		height: typeof load === 'object' ? load.height : 1,
-	}))
-
 	return (
-		<Lightbox photos={gallery} aria-label={`Photos of ${alt}`}>
+		<Lightbox photos={photos.map((src) => ({ src, alt }))} aria-label={`Photos of ${alt}`}>
 			<Flex gap="sm" wrap>
-				{squares.map((square) => {
-					const loaded = typeof square.load === 'object'
-
-					const failed = square.load === 'failed'
-
-					return (
-						<div
-							key={square.key}
-							className="relative size-24 shrink-0"
-							onLoadCapture={(event) => {
-								const image = event.target
-
-								if (image instanceof HTMLImageElement) {
-									settle(square.src, { width: image.naturalWidth, height: image.naturalHeight })
-								}
-							}}
-							onErrorCapture={() => settle(square.src, 'failed')}
-						>
-							{loaded ? null : (
-								<Placeholder pulse={!failed} className="absolute inset-0 size-full" />
-							)}
-
-							{failed ? null : (
-								<LightboxTrigger
-									index={viewable.indexOf(square)}
-									disabled={!loaded}
-									className={cn('relative size-full', !loaded && 'opacity-0')}
-								/>
-							)}
-						</div>
-					)
-				})}
+				{/* The address alone is not unique: a reader can add one photo twice. */}
+				{photos.map((src, at) => (
+					<LightboxTrigger key={`${at}:${src}`} index={at} className="size-24 shrink-0" />
+				))}
 			</Flex>
 		</Lightbox>
 	)

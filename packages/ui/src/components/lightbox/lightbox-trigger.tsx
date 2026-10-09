@@ -3,7 +3,9 @@
 import type { ComponentProps, Ref } from 'react'
 import { cn, composeEventHandlers } from '../../core'
 import { k } from '../../recipes/kata/lightbox'
+import { Placeholder } from '../placeholder'
 import { useLightboxContext } from './context'
+import { thumbnailOf } from './lightbox-utilities'
 
 /** Props for {@link LightboxTrigger}: the index of its photo, and the `<button>` attributes. */
 export type LightboxTriggerProps = {
@@ -27,6 +29,11 @@ export type LightboxTriggerProps = {
  * size class on the button, such as `aspect-square w-32`, crops the photo to
  * that box. The alternative text of the photo names the button.
  *
+ * A photo with no `width` and `height` takes the size of its thumbnail when
+ * the thumbnail loads. Until then, a placeholder pulses in the button, and the
+ * button is disabled. A thumbnail that does not load leaves a still
+ * placeholder in the box of the button, and no button.
+ *
  * @remarks A click opens the viewer, as a press on a `DialogTrigger` does. A
  * thumbnail is often in a page that scrolls, so a touch that starts a scroll
  * must not open it.
@@ -38,11 +45,21 @@ export function LightboxTrigger({
 	ref,
 	...props
 }: LightboxTriggerProps) {
-	const { photos, shown, show, register } = useLightboxContext()
+	const { photos, shown, show, register, loadOf, record } = useLightboxContext()
 
 	const photo = photos[index]
 
 	if (!photo) return null
+
+	const source = thumbnailOf(photo)
+
+	const load = loadOf(source)
+
+	if (load === 'failed') {
+		return <Placeholder pulse={false} className={cn(k.trigger.base, className)} />
+	}
+
+	const ready = Boolean(photo.width && photo.height) || load !== undefined
 
 	return (
 		<button
@@ -50,18 +67,35 @@ export function LightboxTrigger({
 			data-slot="lightbox-trigger"
 			{...props}
 			type="button"
+			disabled={!ready || props.disabled}
 			onClick={composeEventHandlers(onClick, () => show(index))}
 			aria-haspopup="dialog"
-			className={cn(k.trigger.base, className)}
+			className={cn(k.trigger.base, k.trigger.button, className)}
 		>
+			{ready ? null : <Placeholder className={k.trigger.placeholder} />}
 			<img
-				ref={(image) => (image ? register(index, image) : undefined)}
-				src={photo.thumbnail ?? photo.src}
+				ref={(image) => {
+					if (!image) return
+
+					// An image that loaded before hydration fires no `load` event for React.
+					if (image.complete && image.naturalWidth > 0) {
+						record(source, { width: image.naturalWidth, height: image.naturalHeight })
+					}
+
+					return register(index, image)
+				}}
+				src={source}
 				alt={photo.alt}
 				width={photo.width}
 				height={photo.height}
 				draggable={false}
-				className={cn(k.trigger.image, shown === index && k.trigger.raised)}
+				onLoad={(event) => {
+					const { naturalWidth: width, naturalHeight: height } = event.currentTarget
+
+					record(source, { width, height })
+				}}
+				onError={() => record(source, 'failed')}
+				className={cn(k.trigger.image, (shown === index || !ready) && k.trigger.raised)}
 			/>
 		</button>
 	)

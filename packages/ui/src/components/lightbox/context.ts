@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext } from '../../core'
-import type { LightboxPhoto } from './types'
+import type { LightboxLoad, LightboxPhoto } from './types'
 
 /** The state that a {@link Lightbox} root gives to its triggers and its viewer. @internal */
 export type LightboxContextValue = {
@@ -18,6 +18,10 @@ export type LightboxContextValue = {
 	register: (index: number, image: HTMLImageElement) => () => void
 	/** The image of the thumbnail of a photo, if a trigger renders one. */
 	thumbnail: (index: number) => HTMLImageElement | undefined
+	/** How the thumbnail at a URL loaded, or `undefined` while it loads. */
+	loadOf: (source: string) => LightboxLoad | undefined
+	/** Records how the thumbnail at a URL loaded. The first record for a URL holds. */
+	record: (source: string, load: LightboxLoad) => void
 }
 
 /**
