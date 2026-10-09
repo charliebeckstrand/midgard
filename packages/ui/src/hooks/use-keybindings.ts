@@ -20,14 +20,15 @@ export type KeybindingsOptions = {
 	 * default, which skips auto-repeat events, events during IME composition, and
 	 * events from form fields and contenteditable elements. To fire regardless of
 	 * focus, for a key that a form field never uses, pass
-	 * `(e) => e.repeat || e.isComposing`. This keeps the repeat and composition
-	 * guards. Do not pass `() => false`: a held key then fires on each auto-repeat.
+	 * `(e) => e.repeat || isComposing(e)`. This keeps the repeat and composition
+	 * guards. Use the `isComposing` utility, because Safari leaves `e.isComposing`
+	 * false on some keys that an IME takes. Do not pass `() => false`: a held key then fires on each auto-repeat.
 	 * To extend the default, call `defaultKeybindingsHandlerIgnore` from tinykeys
 	 * in the predicate, as `CommandPalette` does.
 	 *
 	 * @example
 	 * ```ts
-	 * useKeybindings({ Escape: close }, { ignore: (e) => e.repeat || e.isComposing })
+	 * useKeybindings({ Escape: close }, { ignore: (e) => e.repeat || isComposing(e) })
 	 * ```
 	 */
 	ignore?: KeybindingFilter

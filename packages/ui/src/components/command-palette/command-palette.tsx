@@ -13,6 +13,7 @@ import { useKeybindings } from '../../hooks/use-keybindings'
 import { DeferredQueryContext, QueryContext, useQueryValue } from '../../primitives/query'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/context'
 import { k } from '../../recipes/kata/command-palette'
+import { isComposing } from '../../utilities/is-composing'
 import { keepInputFocus } from '../combobox/combobox-utilities'
 import {
 	Dialog,
@@ -33,13 +34,14 @@ import { useCommandPaletteState } from './use-command-palette-state'
 // auto-repeat of a held chord, so a held key toggles the palette one time, and a
 // keydown during an IME composition. A closed palette also skips a press in a
 // form field, as the other keybindings do, so the key stays with the field. The
-// tinykeys default skips the repeat and the composition too. An open palette
-// holds the focus, so it takes the press from its own search field and closes.
+// tinykeys default skips the repeat and the composition too, but it reads only
+// `isComposing`, which Safari leaves false. An open palette holds the focus, so it
+// takes the press from its own search field and closes.
 const IGNORE_TAKEN: KeybindingFilter = (event) =>
-	event.defaultPrevented || event.repeat || event.isComposing
+	event.defaultPrevented || event.repeat || isComposing(event)
 
 const IGNORE_TAKEN_OR_FIELD: KeybindingFilter = (event) =>
-	event.defaultPrevented || defaultKeybindingsHandlerIgnore(event)
+	event.defaultPrevented || isComposing(event) || defaultKeybindingsHandlerIgnore(event)
 
 /**
  * Props for {@link CommandPalette}. The open state (`open` or `defaultOpen`) comes

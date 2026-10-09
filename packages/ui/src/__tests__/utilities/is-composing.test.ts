@@ -20,4 +20,12 @@ describe('isComposing', () => {
 	it('is false for a plain key press', () => {
 		expect(isComposing(press(false, 13))).toBe(false)
 	})
+
+	it('reads the flag from a DOM keyboard event', () => {
+		expect(isComposing({ keyCode: 13, isComposing: true })).toBe(true)
+
+		expect(isComposing({ keyCode: 229, isComposing: false })).toBe(true)
+
+		expect(isComposing({ keyCode: 13, isComposing: false })).toBe(false)
+	})
 })

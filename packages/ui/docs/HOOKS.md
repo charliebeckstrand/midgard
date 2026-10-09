@@ -119,7 +119,7 @@ Hooks export the option and return shapes consumers thread through their own pro
 | `FloatingPlacement` | A floating-ui placement, or `<side>-auto`, which aligns the panel to the edge that is nearer to the reference. |
 | `FormattedInputOptions` | Options for `useFormattedInput`: the `format` pass, the meaningful-character test (it gets the character, its index, and the text), and the ref to compose. |
 | `IdScopeOptions` | Options for `useIdScope`: the id to adopt in place of a generated one. |
-| `KeybindingsOptions` | Options for `useKeybindings`: the enable gate, the target, the capture phase, and the skip predicate. To fire in form fields, `ignore: (e) => e.repeat \|\| e.isComposing` keeps the repeat and composition guards. |
+| `KeybindingsOptions` | Options for `useKeybindings`: the enable gate, the target, the capture phase, and the skip predicate. To fire in form fields, `ignore: (e) => e.repeat \|\| isComposing(e)` keeps the repeat and composition guards. |
 | `OffcanvasOptions` | Options for `useOffcanvas`. |
 | `ScrollOverflowOptions` | Options for `useScrollOverflow`: the enable gate, for a container that cannot overflow in one of its states. |
 | `ScrollRegionOptions` | Options for `useScrollRegion`: the `label` or `labelledBy` that names the region while it scrolls. |
