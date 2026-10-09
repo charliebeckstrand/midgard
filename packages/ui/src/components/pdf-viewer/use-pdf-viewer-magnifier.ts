@@ -172,7 +172,8 @@ export type PdfViewerMagnifierResult = {
 	referenceProps: Record<string, unknown>
 	/** Spread onto the lens. */
 	floatingProps: Record<string, unknown>
-	setReference: (node: HTMLElement | null) => void
+	/** The ref callback of the page frame. It gives back the cleanup that detaches the frame. */
+	setReference: (node: HTMLElement | null) => (() => void) | undefined
 	setFloating: (node: HTMLElement | null) => void
 	floatingStyles: React.CSSProperties
 }
@@ -495,23 +496,6 @@ export function usePdfViewerMagnifier(
 		event.stopPropagation()
 	})
 
-	/**
-	 * The page frame, as state, so the `touchmove` listener below can attach to the node.
-	 *
-	 * @remarks The listener must be on the node before the finger lands. A browser decides at
-	 * the touch start whether a listener can cancel the scroll, and one added later cannot.
-	 */
-	const [frameNode, setFrameNode] = useState<HTMLElement | null>(null)
-
-	const setReference = useCallback(
-		(node: HTMLElement | null) => {
-			refs.setReference(node)
-
-			setFrameNode(node)
-		},
-		[refs],
-	)
-
 	/*
 	 * Holds the page still while the finger moves the lens.
 	 *
@@ -519,36 +503,48 @@ export function usePdfViewerMagnifier(
 	 * passive listener cannot cancel. It cancels only while a hold has the lens open. Before
 	 * that, a finger still scrolls the page as it did. The same technique as the map's pinch.
 	 * The `touchend` listener cancels the lift that ends a hold, for the same reason.
+	 *
+	 * The ref callback adds the listeners, so they are on the node before the finger lands. A
+	 * browser decides at the touch start whether a listener can cancel the scroll, and one added
+	 * later cannot. The callback lists `enabled`, so a toggle of the loupe detaches the frame and
+	 * attaches it again, and a page with no loupe has no non-passive listener.
 	 */
-	useEffect(() => {
-		if (!enabled || !frameNode) return
+	const setReference = useCallback(
+		(node: HTMLElement | null) => {
+			refs.setReference(node)
 
-		function handleTouchMove(event: TouchEvent) {
-			if (holdingRef.current && event.cancelable) event.preventDefault()
-		}
+			if (!node || !enabled) return
 
-		// The lift at the end of a hold fires no compatibility mouse events. A `mousedown` from
-		// the lift reaches the highlight layer before any click, so it presses a region or clears
-		// the selection, and {@link swallowClick} cannot stop it. A canceled `touchend` fires no
-		// click either, so the click guard has no more work.
-		function handleTouchEnd(event: TouchEvent) {
-			if (!swallowClickRef.current || !event.cancelable) return
+			function handleTouchMove(event: TouchEvent) {
+				if (holdingRef.current && event.cancelable) event.preventDefault()
+			}
 
-			event.preventDefault()
+			// The lift at the end of a hold fires no compatibility mouse events. A `mousedown` from
+			// the lift reaches the highlight layer before any click, so it presses a region or clears
+			// the selection, and {@link swallowClick} cannot stop it. A canceled `touchend` fires no
+			// click either, so the click guard has no more work.
+			function handleTouchEnd(event: TouchEvent) {
+				if (!swallowClickRef.current || !event.cancelable) return
 
-			swallowClickRef.current = false
-		}
+				event.preventDefault()
 
-		frameNode.addEventListener('touchmove', handleTouchMove, { passive: false })
+				swallowClickRef.current = false
+			}
 
-		frameNode.addEventListener('touchend', handleTouchEnd, { passive: false })
+			node.addEventListener('touchmove', handleTouchMove, { passive: false })
 
-		return () => {
-			frameNode.removeEventListener('touchmove', handleTouchMove)
+			node.addEventListener('touchend', handleTouchEnd, { passive: false })
 
-			frameNode.removeEventListener('touchend', handleTouchEnd)
-		}
-	}, [enabled, frameNode])
+			return () => {
+				node.removeEventListener('touchmove', handleTouchMove)
+
+				node.removeEventListener('touchend', handleTouchEnd)
+
+				refs.setReference(null)
+			}
+		},
+		[refs, enabled],
+	)
 
 	/* A hold does not outlive the loupe being switched off, or the viewer. */
 	useEffect(() => {
