@@ -1,6 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback } from 'react'
+import { type AnimationFrame, useAnimationFrame } from './use-timeout'
 
 /**
  * Polls the visual viewport until its height stabilizes after the keyboard
@@ -11,7 +12,7 @@ import { useCallback, useEffect, useRef } from 'react'
  */
 function startSettlePoll(
 	viewport: VisualViewport,
-	rafRef: { current: number | null },
+	frame: AnimationFrame,
 	callback: () => void,
 ): void {
 	const initialHeight = viewport.height
@@ -41,17 +42,15 @@ function startSettlePoll(
 		}
 
 		if ((heightChanged && stableFrames >= 5) || totalFrames >= 60) {
-			rafRef.current = null
-
 			callback()
 
 			return
 		}
 
-		rafRef.current = requestAnimationFrame(check)
+		frame.set(check)
 	}
 
-	rafRef.current = requestAnimationFrame(check)
+	frame.set(check)
 }
 
 /**
@@ -65,30 +64,24 @@ function startSettlePoll(
  * viewport settles, or synchronously when no virtual keyboard is involved.
  */
 export function useKeyboardSettled() {
-	const rafRef = useRef<number | null>(null)
+	const frame = useAnimationFrame()
 
-	useEffect(
-		() => () => {
-			if (rafRef.current !== null) cancelAnimationFrame(rafRef.current)
+	return useCallback(
+		(callback: () => void) => {
+			frame.clear()
+
+			const viewport = window.visualViewport
+
+			// No visual viewport API, not a touch device, or the keyboard is already
+			// visible: fire now.
+			if (!viewport || !('ontouchstart' in window) || viewport.height < window.innerHeight * 0.85) {
+				callback()
+
+				return
+			}
+
+			startSettlePoll(viewport, frame, callback)
 		},
-		[],
+		[frame],
 	)
-
-	return useCallback((callback: () => void) => {
-		if (rafRef.current !== null) cancelAnimationFrame(rafRef.current)
-
-		rafRef.current = null
-
-		const viewport = window.visualViewport
-
-		// No visual viewport API, not a touch device, or the keyboard is already
-		// visible: fire now.
-		if (!viewport || !('ontouchstart' in window) || viewport.height < window.innerHeight * 0.85) {
-			callback()
-
-			return
-		}
-
-		startSettlePoll(viewport, rafRef, callback)
-	}, [])
 }

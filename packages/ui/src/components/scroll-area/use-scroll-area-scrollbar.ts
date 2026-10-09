@@ -9,7 +9,7 @@ import {
 } from 'react'
 import { observeScrollExtent } from '../../hooks/observe-scroll-extent'
 import { holdDragCursor } from '../../hooks/use-drag-cursor'
-import { useTimeout } from '../../hooks/use-timeout'
+import { useAnimationFrame, useTimeout } from '../../hooks/use-timeout'
 import type { ScrollOrientation } from '../../types'
 import { hiddenThumb, SCROLL_FADE_DELAY_MS, type ThumbState } from './scroll-area-constants'
 import { computeThumb, findScrollableAncestor } from './scroll-area-utilities'
@@ -119,7 +119,7 @@ export function useScrollAreaScrollbar({ orientation, scrollbar }: ScrollbarOpti
 	const verticalTrackRef = useRef<HTMLDivElement>(null)
 	const horizontalTrackRef = useRef<HTMLDivElement>(null)
 	const scrollFade = useTimeout()
-	const thumbFrameRef = useRef<number | null>(null)
+	const thumbFrame = useAnimationFrame()
 
 	const [verticalThumb, setVerticalThumb] = useState<ThumbState>(hiddenThumb)
 	const [horizontalThumb, setHorizontalThumb] = useState<ThumbState>(hiddenThumb)
@@ -150,14 +150,8 @@ export function useScrollAreaScrollbar({ orientation, scrollbar }: ScrollbarOpti
 	// layout read plus two setStates) into one commit per frame. Resize/mutation
 	// re-measures stay synchronous — the browser already batches those per frame.
 	const scheduleThumbs = useCallback(() => {
-		if (thumbFrameRef.current !== null) return
-
-		thumbFrameRef.current = requestAnimationFrame(() => {
-			thumbFrameRef.current = null
-
-			updateThumbs()
-		})
-	}, [updateThumbs])
+		if (!thumbFrame.pending()) thumbFrame.set(updateThumbs)
+	}, [thumbFrame, updateThumbs])
 
 	useEffect(() => {
 		const el = viewportRef.current
@@ -168,13 +162,6 @@ export function useScrollAreaScrollbar({ orientation, scrollbar }: ScrollbarOpti
 
 		return observeScrollExtent(el, updateThumbs)
 	}, [updateThumbs])
-
-	useEffect(
-		() => () => {
-			if (thumbFrameRef.current !== null) cancelAnimationFrame(thumbFrameRef.current)
-		},
-		[],
-	)
 
 	useEffect(() => {
 		const el = viewportRef.current
