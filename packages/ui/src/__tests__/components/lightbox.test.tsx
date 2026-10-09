@@ -9,6 +9,7 @@ import {
 	screen,
 	setupUser,
 	stubMatchMedia,
+	waitFor,
 } from '../helpers'
 
 const photos: LightboxPhoto[] = [
@@ -261,6 +262,33 @@ describe('Lightbox', () => {
 		expect(centerPhoto()?.style.transform).toMatch(/^translate\(4\d/)
 
 		expect(stage).toHaveAttribute('data-raised')
+	})
+
+	it('moves the focus to the other step button when a step disables the pressed one', async () => {
+		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+
+		const user = setupUser()
+
+		renderUI(<Gallery defaultIndex={1} />)
+
+		await user.click(screen.getByRole('button', { name: 'Next photo' }))
+
+		expect(screen.getByRole('button', { name: 'Next photo' })).toBeDisabled()
+
+		expect(screen.getByRole('button', { name: 'Previous photo' })).toHaveFocus()
+	})
+
+	it('does not drop a step that the reader presses during a slide', async () => {
+		renderUI(<Gallery defaultIndex={0} />)
+
+		const next = screen.getByRole('button', { name: 'Next photo' })
+
+		// The second press comes while the first slide runs.
+		fireEvent.click(next)
+
+		fireEvent.click(next)
+
+		await waitFor(() => expect(centerPhoto()).toHaveAttribute('alt', 'Field of poppies'))
 	})
 
 	it('follows a controlled index', () => {
