@@ -4,10 +4,20 @@ import { Button } from '../../components/button'
 import { DateInput } from '../../components/date-input'
 import { DateInputResetContext } from '../../components/date-input/context'
 import { localeDateInputFormat } from '../../components/date-input/date-input-utilities'
-import { Field, Label } from '../../components/fieldset'
+import { Field, Label, Message } from '../../components/fieldset'
 import { Form } from '../../components/form'
 import { LocaleProvider } from '../../providers/locale'
-import { act, bySlot, fireEvent, getSlot, noop, renderUI, screen, setupUser } from '../helpers'
+import {
+	act,
+	allBySlot,
+	bySlot,
+	fireEvent,
+	getSlot,
+	noop,
+	renderUI,
+	screen,
+	setupUser,
+} from '../helpers'
 
 // Controlled usage with an external setter: the harness can move the value
 // while the input holds in-progress text.
@@ -70,6 +80,43 @@ describe('DateInput', () => {
 		)
 
 		expect(bySlot(container, 'date-input')).not.toHaveAttribute('aria-label')
+	})
+
+	it('yields the aria-label default to a native label outside a Field after mount', () => {
+		renderUI(
+			<>
+				<label htmlFor="due">Due date</label>
+				<DateInput id="due" />
+			</>,
+		)
+
+		expect(screen.getByRole('textbox', { name: 'Due date' })).not.toHaveAttribute('aria-label')
+	})
+
+	it('gives the built-in message an id apart from another error Message in the Field', async () => {
+		const { container } = renderUI(
+			<Field>
+				<Label>Due date</Label>
+
+				<DateInput />
+
+				<Message>Date taken</Message>
+			</Field>,
+		)
+
+		const input = getSlot<HTMLInputElement>(container, 'date-input')
+
+		await setupUser().type(input, '02312025')
+
+		const [builtIn, other] = allBySlot(container, 'message')
+
+		expect(builtIn?.id).not.toBe(other?.id)
+
+		expect(input).toHaveAccessibleDescription(
+			expect.stringContaining('Enter a valid date (MM/DD/YYYY)'),
+		)
+
+		expect(input).toHaveAccessibleDescription(expect.stringContaining('Date taken'))
 	})
 
 	it('shows the clear button by default for any entered text and clears partial input', async () => {

@@ -1,20 +1,9 @@
 'use client'
 
-import {
-	type ChangeEvent,
-	type ReactNode,
-	useEffect,
-	useEffectEvent,
-	useId,
-	useRef,
-	useState,
-} from 'react'
+import { type ChangeEvent, type ReactNode, useState } from 'react'
 import { composeEventHandlers } from '../../core'
-import { useAriaIds, useComposedRef } from '../../hooks'
 import { isDecimalDigit } from '../../utilities/caret'
-import { useControl } from '../control/context'
-import { useControlFallbackLabel } from '../control/use-control-fallback-label'
-import { Message } from '../fieldset'
+import { useControlTypedVerdict } from '../control/use-control-typed-verdict'
 import { Input, type InputProps } from '../input'
 import { useMaskInput } from '../mask-input/use-mask-input'
 import {
@@ -125,17 +114,16 @@ export function CreditCardInputExpiry({
 	'aria-describedby': ariaDescribedBy,
 	...props
 }: CreditCardInputExpiryProps) {
-	const control = useControl()
-
-	// The fallback reads the labels of the input after each commit, so a native
-	// label outside a Field also turns it off.
-	const inputRef = useRef<HTMLInputElement>(null)
-
-	const fallbackLabel = useControlFallbackLabel('Expiration date', inputRef)
-
-	const composedRef = useComposedRef(ref, inputRef)
-
-	const [typedInvalid, setTypedInvalid] = useState(false)
+	const verdict = useControlTypedVerdict({
+		fallbackLabel: 'Expiration date',
+		ref,
+		describedBy: ariaDescribedBy,
+		message: invalidMessage,
+		// Runs after the render, so it reads the value that cleared the verdict.
+		reportCleared: () => {
+			onValidityChange?.(validateCardExpiry(maskedValue))
+		},
+	})
 
 	const {
 		ref: maskedRef,
@@ -152,7 +140,7 @@ export function CreditCardInputExpiry({
 		onChange: onValueChange,
 		format: maskExpiry,
 		meaningful: isDecimalDigit,
-		ref: composedRef,
+		ref: verdict.ref,
 	})
 
 	// Last text this field typed. Tells a value from outside (a form reset, a
@@ -161,28 +149,11 @@ export function CreditCardInputExpiry({
 
 	const [known, setKnown] = useState(maskedValue)
 
-	// A count of the typed verdicts that a value from outside cleared. The change
-	// clears the verdict during render, where a report must not run. The effect
-	// below carries the report, as in DateInput.
-	const [clearedVerdicts, setClearedVerdicts] = useState(0)
-
 	if (known !== maskedValue) {
 		setKnown(maskedValue)
 
-		if (typedInvalid && maskedValue !== typed) {
-			setTypedInvalid(false)
-
-			setClearedVerdicts((count) => count + 1)
-		}
+		if (verdict.invalid && maskedValue !== typed) verdict.clear()
 	}
-
-	const reportClearedVerdict = useEffectEvent(() => {
-		onValidityChange?.(validateCardExpiry(maskedValue))
-	})
-
-	useEffect(() => {
-		if (clearedVerdicts > 0) reportClearedVerdict()
-	}, [clearedVerdicts])
 
 	// Reports validity and, mirroring DateInput, flags only a complete entry
 	// that isn't valid; a still-growing one stays unmarked until blur.
@@ -193,21 +164,8 @@ export function CreditCardInputExpiry({
 
 		onValidityChange?.(validity)
 
-		setTypedInvalid(next.length === EXPIRY_PATTERN.length && !validity.isValid)
+		verdict.setInvalid(next.length === EXPIRY_PATTERN.length && !validity.isValid)
 	}
-
-	const showMessage = typedInvalid && Boolean(invalidMessage)
-
-	// The built-in Message takes an id of its own, so it never shares the id of
-	// the error slot of a Field with a different error Message. Inside a
-	// Control, the Message registers this id into the `aria-describedby` of the
-	// field. Outside one, the input references it here.
-	const messageId = useId()
-
-	const describedBy = useAriaIds(
-		ariaDescribedBy,
-		showMessage && control === undefined ? messageId : undefined,
-	)
 
 	return (
 		<>
@@ -220,14 +178,14 @@ export function CreditCardInputExpiry({
 				// The placeholder is not a programmatic name (WCAG 3.3.2 / 4.1.2);
 				// defaults an aria-label, yielding to a Field <Label> from the first
 				// render and to a native label after each commit
-				// (useControlFallbackLabel).
-				aria-label={ariaLabel ?? fallbackLabel}
+				// (useControlTypedVerdict).
+				aria-label={ariaLabel ?? verdict.fallbackLabel}
 				placeholder={placeholder ?? EXPIRY_PATTERN}
-				invalid={invalid ?? (typedInvalid || undefined)}
+				invalid={invalid ?? (verdict.invalid || undefined)}
 				name={name}
 				value={maskedValue}
 				{...props}
-				aria-describedby={describedBy}
+				aria-describedby={verdict.describedBy}
 				// The masking wiring sits after the spread, so a stray `onChange`
 				// does not replace it. The touched mark and the verdict run
 				// whatever the caller does (CONVENTIONS.md §3.9).
@@ -238,7 +196,7 @@ export function CreditCardInputExpiry({
 
 						// A partial or impossible entry left on blur reads invalid; an empty
 						// field doesn't (that's a required-field concern, not a format one).
-						setTypedInvalid(maskedValue !== '' && !validateCardExpiry(maskedValue).isValid)
+						verdict.setInvalid(maskedValue !== '' && !validateCardExpiry(maskedValue).isValid)
 					},
 					{ checkForDefaultPrevented: false },
 				)}
@@ -262,11 +220,7 @@ export function CreditCardInputExpiry({
 			{/* Visible feedback gated on the component's own detection, not the
 			    external `invalid` prop. The input's aria-invalid comes from the
 			    `invalid` prop above, never from this Message. */}
-			{showMessage ? (
-				<Message severity="error" id={messageId}>
-					{invalidMessage}
-				</Message>
-			) : null}
+			{verdict.message}
 		</>
 	)
 }
