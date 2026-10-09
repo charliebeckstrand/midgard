@@ -32,11 +32,11 @@ type PasswordConfirmStateResult = {
  * period.
  * @remarks
  * `onMatchChange(matched)` fires from an effect on transitions only, so a
- * match→match repeat won't re-fire. It is read through a ref, so a changed
- * callback identity doesn't retrigger. When a match ends because a field
- * becomes empty or the confirmation becomes partial, it fires `false`, so no
- * stale `true` stays. `disabled` suppresses each report, not mismatch alone,
- * and keeps the last reported value.
+ * match→match repeat won't re-fire. The effect calls it through
+ * `useEffectEvent`, so a changed callback identity doesn't retrigger. When a
+ * match ends because a field becomes empty or the confirmation becomes
+ * partial, it fires `false`, so no stale `true` stays. `disabled` suppresses
+ * each report, not mismatch alone, and keeps the last reported value.
  * @internal
  */
 export function usePasswordConfirmState({
