@@ -11,6 +11,7 @@ import {
 	useSyncExternalStore,
 } from 'react'
 import { cn } from '../../core'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { useStableValue } from '../../hooks/use-stable-value'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import { useMapHoverSet, useMapPlat, useMapPointed, useMapZoomScale } from './context'
@@ -324,11 +325,10 @@ export function useMapOverlay({
 	// question — the drift `engine/map-overlay/selection.ts` exists to prevent.
 	const resolveStop = stopOf ?? ownStop
 
-	// The live stops and reporters, read when each one runs rather than captured in
-	// the registration: a consumer's inline handler is a fresh identity every render,
-	// and a mark's geometry changes as it lands — neither can churn the ledger,
-	// whose every write re-sorts it and re-renders the legend. `stopsAt` also runs
-	// during render: a neighbor pools the dots of this mark for its ground
+	// The live stops, read when each one runs rather than captured in the
+	// registration: a mark's geometry changes as it lands, and that cannot churn the
+	// ledger, whose every write re-sorts it and re-renders the legend. `stopsAt` also
+	// runs during render: a neighbor pools the dots of this mark for its ground
 	// (`map-point.tsx`). So the values are in a ref, not in an effect event, which
 	// throws when it runs during render.
 	//
@@ -338,11 +338,11 @@ export function useMapOverlay({
 	// table resolves its picked row once per `entries` or pick. By the time any of
 	// those runs again, this effect has written the committed values. The restake
 	// below also reads `stopsAt`, so it must stay after this effect.
-	const live = useRef({ stops, onClick, onContextMenu, resolveStop, ownSpare })
+	const live = useRef({ stops, resolveStop, ownSpare })
 
 	useLayoutEffect(() => {
-		live.current = { stops, onClick, onContextMenu, resolveStop, ownSpare }
-	}, [stops, onClick, onContextMenu, resolveStop, ownSpare])
+		live.current = { stops, resolveStop, ownSpare }
+	}, [stops, resolveStop, ownSpare])
 
 	const stopsAt = useCallback(() => live.current.stops(), [])
 
@@ -382,11 +382,13 @@ export function useMapOverlay({
 
 	const stopAt = useCallback((index: number) => live.current.resolveStop(index), [])
 
-	const pick = useCallback((stop: number) => live.current.onClick?.(id, stop), [id])
+	// The reporters run only in events, so they are stable events: a consumer's
+	// inline handler is a fresh identity every render, and it cannot churn the ledger.
+	const pick = useStableEvent((stop: number) => onClick?.(id, stop))
 
 	// Registered only where the mark answers a pick, so its presence is the
-	// question the plat's tab-stop gate asks. The handler itself still rides the
-	// ref — this depends on whether there is one, a boolean that changes only when
+	// question the plat's tab-stop gate asks. The handler itself is a stable
+	// event — this depends on whether there is one, a boolean that changes only when
 	// a consumer adds or drops the prop.
 	const pickable = onClick !== undefined
 
@@ -460,9 +462,8 @@ export function useMapOverlay({
 
 	// Bubbles, and never prevents default: a wrapping menu still opens, and this
 	// only names which mark it opened over.
-	const menuMark = useCallback(
-		(event: MouseEvent<SVGElement>) => live.current.onContextMenu?.(id, stopFrom(event)),
-		[id],
+	const menuMark = useStableEvent((event: MouseEvent<SVGElement>) =>
+		onContextMenu?.(id, stopFrom(event)),
 	)
 
 	const menuable = onContextMenu !== undefined
@@ -475,7 +476,7 @@ export function useMapOverlay({
 	// The factory itself is held across renders, which is what lets a plural
 	// mark's dots sit behind a memo — the memo holds, so the dots never call it
 	// again at all. (Each call still returns a fresh object; nothing compares
-	// those.) Both reporters ride the `live` ref for it: a consumer's inline
+	// those.) Both reporters are stable events for it: a consumer's inline
 	// handler is a fresh identity every render, and what this depends on instead
 	// is whether there is one at all — a boolean a consumer changes by adding or
 	// dropping the prop.
