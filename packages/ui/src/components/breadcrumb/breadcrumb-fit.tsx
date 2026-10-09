@@ -2,6 +2,7 @@
 
 import {
 	type ComponentProps,
+	useEffect,
 	useEffectEvent,
 	useId,
 	useLayoutEffect,
@@ -79,7 +80,9 @@ export function BreadcrumbFit({ ref, className, children, ...props }: ComponentP
 		measure()
 	})
 
-	useLayoutEffect(() => {
+	// The layout effect above measures before the first paint. This one only
+	// waits for the fonts, so it is passive.
+	useEffect(() => {
 		let canceled = false
 
 		document.fonts?.ready.then(() => {
