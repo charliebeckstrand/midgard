@@ -51,7 +51,7 @@ describe('Card size system', () => {
 
 		expect(bySlot(container, 'card')).toHaveClass(
 			'density-p-[1,2,3,4,5]',
-			'density-rounded-[sm,md,lg]',
+			'density-rounded-[0.5,1,1.5,2,2.5]',
 		)
 	})
 

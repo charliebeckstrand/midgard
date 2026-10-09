@@ -19,7 +19,7 @@ const { focus } = sen
 const { css, collapse } = ugoki
 
 /** The box of a row: its layout, padding, and gap. The skeleton rows take it too. */
-const row = [flex.row, 'w-full', 'py-1 px-2', dan.gap.scale.sm]
+const row = [flex.row, 'w-full', dan.space.tree.y, dan.space.tree.x, dan.gap.scale.sm]
 
 const itemContent = defineRecipe(
 	{

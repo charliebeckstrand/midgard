@@ -36,6 +36,15 @@ const scale = {
 /** The padding of a nav item and a sidebar item. */
 const navItem = 'density-p-[1,1.5,2,2.5,3]'
 
+/** The block padding of a list row, a segment item, an option row, and a menu item. */
+const rowY = 'density-py-[0.5,1,1.5,2,2.5]'
+
+/** The inline padding of a menu item and a segment item. */
+const itemX = 'density-px-[2,2.5,3,3.5,4]'
+
+/** The bottom padding of a tab and of an accordion body: the `lg` stop of the padding scale. */
+const bottom = 'density-pb-[2,3,4,5,6]'
+
 export const space = {
 	scale,
 
@@ -73,7 +82,7 @@ export const space = {
 	/** The padding of an alert and a code block. */
 	alert: scale.p.lg,
 	/** The padding of a popover panel. */
-	popover: 'density-p-[3,4,6]',
+	popover: scale.p.lg,
 	/**
 	 * The inset of a dialog, a drawer, and a sheet: the same length on the four
 	 * sides. `panel.layout.inset` is this set, and its doc gives the rule.
@@ -221,31 +230,41 @@ export const space = {
 	},
 	row: {
 		/** The block padding of a list row and a segment item. */
-		y: 'density-py-[0.5,1,1.5,2,2.5]',
+		y: rowY,
 	},
 	option: {
 		/** The inline padding of an option row. */
 		x: 'density-px-[1.5,2,2.5,3,3.5]',
 		/** The block padding of an option row and a menu item. */
-		y: 'density-py-[1,1.5,2.5]',
+		y: rowY,
 	},
 	menu: {
 		item: {
 			/** The inline padding of a menu item. */
-			x: 'density-px-[2,2.5,3,3.5,4]',
+			x: itemX,
 		},
 	},
 	segment: {
 		item: {
 			/** The inline padding of a segment item. */
-			x: 'density-px-[2.5,3,4]',
+			x: itemX,
+		},
+	},
+	accordion: {
+		/** The padding of an accordion header: the `lg` stop of the padding scale. */
+		header: scale.p.lg,
+		body: {
+			/** The inline padding of an accordion body. */
+			x: scale.px.lg,
+			/** The bottom padding of an accordion body. */
+			bottom,
 		},
 	},
 	tab: {
 		/** The inline padding of a tab and of the calendar month picker. */
 		x: scale.px.md,
 		/** The bottom padding of an underline tab. */
-		bottom: 'density-pb-[2,3,4,5,6]',
+		bottom,
 		pill: {
 			/** The inline padding of a pill tab. */
 			x: scale.px.lg,
@@ -272,6 +291,10 @@ export const space = {
 		},
 	},
 	tree: {
+		/** The block padding of a tree row: the `xs` stop of the padding scale. */
+		y: scale.py.xs,
+		/** The inline padding of a tree row: the `sm` stop of the padding scale. */
+		x: scale.px.sm,
 		/** The indent of a nested tree item: the chevron width plus the row gap (`gap.scale.sm`). */
 		indent: 'density-ps-[4.5,5.5,7,8.5,10.5]',
 	},
@@ -350,7 +373,7 @@ export const space = {
 	kbd: {
 		button: {
 			/** The inline padding of a key in a button. */
-			x: '[&:is([data-variant]>*)]:density-px-[1,1.5,1.5]',
+			x: '[&:is([data-variant]>*)]:density-px-[0.5,1,1.5,2,2.5]',
 			/**
 			 * The block padding of a key in a button: 1 px at each step. The key text is
 			 * one step below the label, so its line is 2 px shorter than the line of the

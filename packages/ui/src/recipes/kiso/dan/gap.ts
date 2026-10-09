@@ -134,7 +134,7 @@ export const gap = {
 	/** The gap of a nav item and a sidebar item. */
 	item: 'density-gap-[1,1.5,2,2.5,3]',
 	/** The gap of an option row and a menu item. */
-	option: 'density-gap-[2,3,3]',
+	option: scale.md,
 	/** The gap of a color panel. */
 	loose: 'density-gap-[1,2,4,6,9]',
 	/** The gap of the date picker panes. */
@@ -152,5 +152,5 @@ export const gap = {
 	/** The gap of loading dots. */
 	dots: 'density-gap-[0.5,1,1.5,2,2.5]',
 	/** The gap of a rating skeleton. */
-	rating: 'density-gap-[0.5,0.5,1]',
+	rating: 'density-gap-[0.25,0.5,0.75,1,1.25]',
 } as const

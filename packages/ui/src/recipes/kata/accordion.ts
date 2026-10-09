@@ -4,7 +4,6 @@ import { dan } from '../kiso/dan'
 
 const { cursor, disabled, fg } = hannou
 const { text } = iro
-const { size } = ji
 const { rounded } = kasane
 const { flex } = narabi
 const { border, divider } = sen
@@ -34,7 +33,14 @@ const item = defineRecipe({
  * The box of an item header: the axis, the gap, the padding, and the text. The
  * skeleton header takes the same box, so the two boxes match.
  */
-const header = ['w-full', flex.row, 'justify-between', dan.gap.scale.sm, 'p-4', size.md]
+const header = [
+	'w-full',
+	flex.row,
+	'justify-between',
+	dan.gap.scale.sm,
+	dan.space.accordion.header,
+	ji.ramp,
+]
 
 export const k = defineRecipe(
 	{
@@ -71,7 +77,13 @@ export const k = defineRecipe(
 			// itself, so there nothing changes. The panel has no clip of its own: its
 			// motion clips it only while its height moves.
 			panel: 'contain-inline-size',
-			body: ['px-4 pb-4 pt-0', size.md, text.muted],
+			body: [
+				dan.space.accordion.body.x,
+				dan.space.accordion.body.bottom,
+				'pt-0',
+				ji.ramp,
+				text.muted,
+			],
 		},
 		defaults: { variant: 'separated' },
 		skeleton: kokkaku.accordion,

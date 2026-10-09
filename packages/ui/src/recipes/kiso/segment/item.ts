@@ -48,5 +48,9 @@ export const item = {
 		...disabled,
 		...cursor,
 		`${dan.text.small} ${dan.space.segment.item.x} ${dan.space.row.y}`,
+		// An icon is the small text size plus 4 px, as an icon beside body text is.
+		dan.size.icon.small,
+		'*:data-[slot=icon]:shrink-0',
+		dan.gap.item,
 	],
 } as const

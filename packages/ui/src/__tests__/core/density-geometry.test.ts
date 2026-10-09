@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest'
 import { type DensityStep, densitySteps } from '../../core/density'
 import { geometry, lineHeight, spacingSteps } from '../../core/density/geometry'
-import { valuesByStep } from '../../core/density/steps'
+import { slotStep, valuesByStep } from '../../core/density/steps'
 import { dan } from '../../recipes/kiso/dan'
 
 /**
@@ -176,5 +176,81 @@ describe('spacing steps', () => {
 				expect(fills).toStrictEqual(gap)
 			},
 		)
+	})
+})
+
+/** Each ramp of `dan` and its path, such as `size.icon.base`. */
+function rampsOf(node: unknown, path: string[] = []): [string, string][] {
+	if (typeof node === 'string') {
+		return /density-[a-z-]+-\[[^\]]+\]$/.test(node) ? [[path.join('.'), node]] : []
+	}
+
+	if (node && typeof node === 'object' && !Array.isArray(node)) {
+		return Object.entries(node).flatMap(([key, child]) => rampsOf(child, [...path, key]))
+	}
+
+	return []
+}
+
+/** The values of `ramp` at each step, as written. */
+const valuesOf = (ramp: string) => (/\[([^\]]+)\]$/.exec(ramp)?.[1] ?? '').split(',')
+
+/**
+ * The ramps of the combinator between query chips. The combinator sits one step
+ * below the chips, which sit one step below the scope, so each ramp is the ramp
+ * of the Button or the chip at the slot step. No step is below `xs`, so `xs` and
+ * `sm` share a value (`slotStep`).
+ */
+const slotRamps = {
+	'text.combinator': dan.text.chip,
+	'space.combinator.base': dan.space.button.base,
+	'space.combinator.label': dan.space.button.label,
+	'radius.combinator': dan.radius.button,
+} as const
+
+describe('every ramp of dan', () => {
+	const ramps = rampsOf(dan)
+
+	it('finds the ramps', () => {
+		expect(ramps.length).toBeGreaterThan(100)
+	})
+
+	const own = ramps.filter(([path]) => !(path in slotRamps))
+
+	it.each(own)('gives dan.%s a distinct value at each step', (_, ramp) => {
+		const values = valuesOf(ramp)
+
+		expect(values).toHaveLength(5)
+
+		expect(new Set(values).size).toBe(5)
+	})
+
+	it.each(Object.entries(slotRamps))('reads dan.%s at the slot step', (path, source) => {
+		const ramp = rampsOf(dan).find(([name]) => name === path)?.[1] ?? ''
+
+		const values = valuesOf(ramp)
+
+		const sourceValues = valuesOf(source)
+
+		expect(densitySteps.map((step) => values[densitySteps.indexOf(step)])).toStrictEqual(
+			densitySteps.map((step) => sourceValues[densitySteps.indexOf(slotStep(step))]),
+		)
+	})
+})
+
+describe('the line of a skeleton', () => {
+	// A skeleton line is as tall as the line of the text that it stands in for:
+	// the text size plus 8 px.
+	const lines = [
+		['size.line.timeline', dan.size.line.timeline, dan.text.title],
+		['size.stat.value.base', dan.size.stat.value.base, dan.text.h1],
+	] as const
+
+	it.each(lines)('gives dan.%s the line of its text at each step', (_, line, text) => {
+		const height = pxOf(line)
+
+		const size = pxOf(text)
+
+		for (const step of densitySteps) expect(height[step]).toBe(size[step] + 8)
 	})
 })

@@ -186,7 +186,7 @@ export type CalendarProps = {
 	 * The density step of the width, the padding, and the weekday labels. Omit
 	 * it to take the step of the nearest density scope. A step makes the calendar
 	 * a density scope, so the navigation buttons and the day cells take the step
-	 * too. `sm` is the smallest step: `xs` renders as `sm`.
+	 * too.
 	 */
 	size?: ScaleStep<typeof scale>
 	className?: string
