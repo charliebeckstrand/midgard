@@ -40,10 +40,10 @@ function Page({ chrome = true, children }: { chrome?: boolean; children: ReactNo
 }
 
 /** A modal overlay over {@link Page}, open on mount, with two tabbables in the panel. @internal */
-function Surface({ chrome }: { chrome?: boolean }) {
+function Surface({ chrome, coverChrome }: { chrome?: boolean; coverChrome?: boolean }) {
 	return (
 		<Page chrome={chrome}>
-			<Overlay open onOpenChange={noop}>
+			<Overlay open onOpenChange={noop} coverChrome={coverChrome}>
 				<div>
 					<Button>Panel first</Button>
 					<Button>Panel last</Button>
@@ -151,5 +151,18 @@ describe('a11y focus order (real browser): Chrome', () => {
 		expect(tabStrip().closest('[aria-hidden="true"]')).not.toBeNull()
 
 		expect(tabStrip().closest('[inert]')).toBeNull()
+	})
+	// A full-screen surface, such as a lightbox stage, covers the region. The
+	// region then gets the strict trap of a page with no region.
+	it('traps over the region with `coverChrome`', async () => {
+		renderUI(<Surface coverChrome />)
+
+		await waitFor(() => expect(screen.getByRole('button', { name: 'Panel first' })).toHaveFocus())
+
+		await userEvent.keyboard('{Shift>}{Tab}{/Shift}')
+
+		await waitFor(() => expect(screen.getByRole('button', { name: 'Panel last' })).toHaveFocus())
+
+		expect(tabStrip().closest('[aria-hidden="true"]')).not.toBeNull()
 	})
 })

@@ -88,6 +88,15 @@ export type OverlayProps = {
 	 * @defaultValue modal
 	 */
 	backdrop?: boolean
+	/**
+	 * Cover the `Chrome` regions too. A modal overlay then paints above them, and
+	 * its trap holds the focus away from them, as on a page that declares no
+	 * chrome. Use it for a full-screen surface that the chrome would hide, such
+	 * as the stage of a `Lightbox`.
+	 *
+	 * @defaultValue false
+	 */
+	coverChrome?: boolean
 } & Omit<ComponentProps<'div'>, 'children'>
 
 /**
@@ -108,7 +117,7 @@ export type OverlayProps = {
  * (`absolute`, no scroll lock). For transient pointer-driven surfaces,
  * `modal={false}` drops focus management, scroll lock, and the backdrop (unless
  * `backdrop` is set). Any `Chrome` region stays reachable through the
- * trap without modality being given up. Fires the overlay signal on open so
+ * trap without modality being given up, unless `coverChrome` is set. Fires the overlay signal on open so
  * non-modal floats (tooltips) dismiss. A click on the backdrop stops at the
  * backdrop, so the React ancestors of the overlay do not receive it.
  *
@@ -129,6 +138,7 @@ export function Overlay({
 	initialFocus,
 	modal = true,
 	backdrop = modal,
+	coverChrome = false,
 	className,
 	ref,
 	...props
@@ -210,7 +220,7 @@ export function Overlay({
 			data-slot="overlay"
 			{...props}
 			className={cn(
-				k.base,
+				coverChrome ? k.cover : k.base,
 				scoped ? k.scoped : k.frame,
 				!modal && 'pointer-events-none',
 				className,
@@ -243,7 +253,12 @@ export function Overlay({
 
 	return (
 		<Portal open={open} container={container} ssr>
-			<OverlayFocus modal={modal} context={context} initialFocus={initialFocus}>
+			<OverlayFocus
+				modal={modal}
+				coverChrome={coverChrome}
+				context={context}
+				initialFocus={initialFocus}
+			>
 				{panel}
 			</OverlayFocus>
 		</Portal>
@@ -260,11 +275,13 @@ export function Overlay({
  */
 function OverlayFocus({
 	modal,
+	coverChrome,
 	context,
 	initialFocus,
 	children,
 }: {
 	modal: boolean
+	coverChrome: boolean
 	context: FloatingRootContext
 	initialFocus: RefObject<HTMLElement | null> | undefined
 	children: ReactElement
@@ -280,7 +297,8 @@ function OverlayFocus({
 	//
 	// Read at render rather than hoisted: with nothing registered the trap stays
 	// strict, which is the whole behavior on a page that declares no chrome.
-	const chrome = chromeRegions()
+	// An overlay that covers the chrome keeps the strict trap.
+	const chrome = coverChrome ? [] : chromeRegions()
 
 	// `guards={false}` alone already forces the `inert` marking in 0.27, so this
 	// states the intent through the prop that documents it rather than resting on
@@ -292,7 +310,7 @@ function OverlayFocus({
 			initialFocus={initialFocus}
 			guards={chrome.length === 0}
 			outsideElementsInert={chrome.length > 0}
-			getInsideElements={chromeRegions}
+			getInsideElements={coverChrome ? undefined : chromeRegions}
 		>
 			{children}
 		</FloatingFocusManager>
