@@ -1,6 +1,6 @@
 'use client'
 
-import { type RefObject, useEffect } from 'react'
+import { type FocusEvent, type RefObject, useEffect } from 'react'
 import type { TabsOrientation } from './context'
 import { TAB_SELECTOR } from './tabs-constants'
 
@@ -73,42 +73,48 @@ function scrollTabIntoView(scroller: HTMLElement, tab: HTMLElement, axis: 'x' | 
 /**
  * Keeps the active tab visible inside the scroll viewport. On mount it brings
  * the current tab into view, so a deep-linked or overflowed selection survives
- * page load. A delegated `focusin` listener does the same for whichever
- * tab takes focus, so roving never strands focus off-screen. Both scope the
- * scroll to the viewport, never an outer container or the page.
+ * page load. The returned `onFocus` handler goes on the tab list in the
+ * viewport. It does the same for whichever tab takes focus, so roving never
+ * strands focus off-screen. Both scope the scroll to the viewport, never an outer container
+ * or the page.
  *
  * @param scrollRef - The overflow viewport wrapping the tab list.
  * @param orientation - List flow axis; selects the scroll axis.
  * @param enabled - Off for the segment variant, which renders no viewport.
+ * @returns The focus handler of the tab list.
  */
 export function useTabListScroll(
 	scrollRef: RefObject<HTMLDivElement | null>,
 	orientation: TabsOrientation,
 	enabled: boolean,
 ) {
+	const axis = orientation === 'vertical' ? 'y' : 'x'
+
 	useEffect(() => {
 		const scroller = scrollRef.current
 
 		if (!scroller || !enabled) return
 
-		const axis = orientation === 'vertical' ? 'y' : 'x'
-
 		const current = scroller.querySelector<HTMLElement>(CURRENT_TAB_SELECTOR)
 
 		if (current) scrollTabIntoView(scroller, current, axis)
+	}, [scrollRef, axis, enabled])
 
-		const onFocusIn = (event: FocusEvent) => {
-			const target = event.target
+	const onFocus = (event: FocusEvent<HTMLDivElement>) => {
+		const scroller = scrollRef.current
 
-			if (!(target instanceof HTMLElement)) return
+		if (!scroller || !enabled) return
 
-			const tab = target.closest<HTMLElement>(TAB_SELECTOR)
+		const target = event.target
 
-			if (tab && scroller.contains(tab)) scrollTabIntoView(scroller, tab, axis)
-		}
+		if (!(target instanceof HTMLElement)) return
 
-		scroller.addEventListener('focusin', onFocusIn)
+		const tab = target.closest<HTMLElement>(TAB_SELECTOR)
 
-		return () => scroller.removeEventListener('focusin', onFocusIn)
-	}, [scrollRef, orientation, enabled])
+		// A React focus event also bubbles from a portal. Thus the handler
+		// scrolls only for a tab in the viewport.
+		if (tab && scroller.contains(tab)) scrollTabIntoView(scroller, tab, axis)
+	}
+
+	return onFocus
 }
