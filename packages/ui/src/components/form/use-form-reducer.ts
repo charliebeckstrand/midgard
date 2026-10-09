@@ -139,7 +139,7 @@ type FormReducerResult = {
  * reset handlers. Submits validate every field, run `onSubmit`, and route a
  * `{ fieldErrors }` return back into the error map or settle through
  * `onSettled`. A monotonic token discards superseded in-flight submits. Syncs
- * the controlled `values` prop before paint and re-anchors the dirty baseline.
+ * the controlled `values` prop during render and re-anchors the dirty baseline.
  *
  * @returns The {@link FormReducerResult} consumed by the `Form` provider.
  */
@@ -175,8 +175,9 @@ export function useFormReducer<T extends Record<string, unknown>>({
 
 	// Mount-time snapshot of `defaultValues`; restores the original baseline
 	// when `controlledValues` transitions to `undefined`. The reducer's
-	// `defaults` shift on each sync and cannot serve this role.
-	const initialDefaultsRef = useRef(defaultValues)
+	// `defaults` shift on each sync and cannot serve this role. State, not a
+	// ref, because the sync below reads it during render.
+	const [initialDefaults] = useState(defaultValues)
 
 	// A ref, not an effect event: the reducer runs the validators during render,
 	// and an effect event throws when render calls it. Synced before paint, and
@@ -213,14 +214,6 @@ export function useFormReducer<T extends Record<string, unknown>>({
 
 	const { values, defaults, errors, touched } = state
 
-	// Mirrors the committed values; `getValue` reads the latest state without
-	// changing actions object identity across re-renders. Synced before paint.
-	const valuesRef = useRef(values)
-
-	useLayoutEffect(() => {
-		valuesRef.current = values
-	}, [values])
-
 	const dirtyFields = useMemo(() => {
 		const d: Record<string, boolean> = {}
 
@@ -239,7 +232,24 @@ export function useFormReducer<T extends Record<string, unknown>>({
 	// than re-running validators.
 	const valid = useMemo(() => !Object.values(errors).some(hasIssues), [errors])
 
-	const getValue = useCallback((name: string) => valuesRef.current[name as keyof T], [])
+	const formState = useMemo<FormStateValue>(
+		() => ({
+			values,
+			errors,
+			touchedFields: touched,
+			dirtyFields,
+			dirty,
+			valid,
+			submitting,
+		}),
+		[values, errors, touched, dirtyFields, dirty, valid, submitting],
+	)
+
+	// Made before the callbacks, so that `getValue` and `handleSubmit` read the
+	// committed values from it.
+	const store = useFormStore(formState)
+
+	const getValue = useCallback((name: string) => store.getState().values[name], [store])
 
 	const setValue = useCallback(
 		(name: string, value: unknown) => {
@@ -295,25 +305,21 @@ export function useFormReducer<T extends Record<string, unknown>>({
 	// and shift the dirty baseline; `touched`/`errors`/`submitting` persist.
 	// Transitioning to `undefined` re-syncs to the mount-time `defaultValues`.
 	// Use `reset(nextDefaults)` to also clear touched and errors.
-	const lastSyncedValuesRef = useRef(controlledValues)
+	const [lastSyncedValues, setLastSyncedValues] = useState(controlledValues)
 
-	// Runs before paint (layout effect, not a passive side effect); a
-	// controlled-value change lands before the next frame renders.
-	useLayoutEffect(() => {
-		if (controlledValues === lastSyncedValuesRef.current) return
+	// The sync dispatches during render. React then renders the form again
+	// before the commit, so the old values never commit with the new prop.
+	if (controlledValues !== lastSyncedValues) {
+		setLastSyncedValues(controlledValues)
 
-		const next = controlledValues ?? initialDefaultsRef.current
-
-		lastSyncedValuesRef.current = controlledValues
-
-		dispatch({ type: 'sync-values', values: next })
-	}, [controlledValues])
+		dispatch({ type: 'sync-values', values: controlledValues ?? initialDefaults })
+	}
 
 	const handleSubmit = useCallback(
 		async (event: SyntheticEvent<HTMLFormElement>) => {
 			event.preventDefault()
 
-			const current = valuesRef.current
+			const current = store.getState().values as T
 
 			const allTouched: Touched = {}
 
@@ -416,7 +422,16 @@ export function useFormReducer<T extends Record<string, unknown>>({
 				},
 			)
 		},
-		[onSubmit, setErrorsExternal, reset, resetForm, validateOn, reportInvalid, reportSettled],
+		[
+			store,
+			onSubmit,
+			setErrorsExternal,
+			reset,
+			resetForm,
+			validateOn,
+			reportInvalid,
+			reportSettled,
+		],
 	)
 
 	const handleReset = useCallback(
@@ -426,19 +441,6 @@ export function useFormReducer<T extends Record<string, unknown>>({
 			reset()
 		},
 		[reset],
-	)
-
-	const formState = useMemo<FormStateValue>(
-		() => ({
-			values,
-			errors,
-			touchedFields: touched,
-			dirtyFields,
-			dirty,
-			valid,
-			submitting,
-		}),
-		[values, errors, touched, dirtyFields, dirty, valid, submitting],
 	)
 
 	const actions = useMemo<FormActions>(
@@ -451,8 +453,6 @@ export function useFormReducer<T extends Record<string, unknown>>({
 		}),
 		[getValue, setValue, setErrorsExternal, setTouched, reset],
 	)
-
-	const store = useFormStore(formState)
 
 	return { formState, store, actions, handleSubmit, handleReset, resets }
 }
