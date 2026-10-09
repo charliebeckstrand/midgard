@@ -394,13 +394,18 @@ export function useGridCursor<T>({
 
 	const copies = cursorEnabled && range
 
+	// The clipboard listeners act only on a seated cursor, so a grid with no
+	// cursor keeps none on the document. A boolean, so a cursor move does not
+	// add them again.
+	const seated = copies && rangeFocus !== null
+
 	useEffect(() => {
-		if (!copies) return
+		if (!seated) return
 
 		document.addEventListener('copy', copyRange)
 
 		return () => document.removeEventListener('copy', copyRange)
-	}, [copies, copyRange])
+	}, [seated, copyRange])
 
 	useEffect(() => {
 		if (!rangeAnchor || !rangeFocus) return
@@ -713,7 +718,7 @@ export function useGridCursor<T>({
 		}
 	}, [fills, planFill])
 
-	const pastes = copies && pasteCells !== undefined
+	const pastes = seated && pasteCells !== undefined
 
 	useEffect(() => {
 		if (!pastes) return

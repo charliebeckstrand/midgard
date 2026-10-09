@@ -1,3 +1,4 @@
+import { useLayoutEffect } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '../../components/menu'
@@ -549,5 +550,32 @@ describe('Grid busy live region', () => {
 
 			expect(screen.getByText('No results')).toBeInTheDocument()
 		})
+	})
+
+	// A live region speaks a change of its text, not the text it mounts with. A
+	// grid that mounts while it loads must therefore commit the region empty, and
+	// fill it in a later commit.
+	it('mounts the region empty and then says Loading, so a load at mount is heard', () => {
+		const firstCommit: (string | null | undefined)[] = []
+
+		// Reads the region in the commit that mounts it, after the grid.
+		function Probe() {
+			useLayoutEffect(() => {
+				firstCommit.push(document.querySelector('[data-slot="grid-busy-status"]')?.textContent)
+			}, [])
+
+			return null
+		}
+
+		renderUI(
+			<>
+				<Grid columns={columns} rows={[]} getKey={getKey} loading />
+				<Probe />
+			</>,
+		)
+
+		expect(firstCommit).toEqual([''])
+
+		expect(document.querySelector('[data-slot="grid-busy-status"]')).toHaveTextContent('Loading')
 	})
 })

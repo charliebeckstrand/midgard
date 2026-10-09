@@ -153,6 +153,30 @@ describe('grid range pointer and clipboard (real browser)', () => {
 
 		expect(written).toEqual(['Name 1\tAdmin\nName 2\tUser'])
 	})
+
+	// The focus that enters the grid seats the cursor, and a copy at once after
+	// it copies the seated cell. The test waits for no render between the two.
+	it('copies the cell that the focus seats, at once after the focus', async () => {
+		await renderGrid()
+
+		await userEvent.tab()
+
+		const written: string[] = []
+
+		const read = (event: ClipboardEvent) => {
+			written.push(event.clipboardData?.getData('text/plain') ?? '')
+		}
+
+		window.addEventListener('copy', read)
+
+		onTestFinished(() => window.removeEventListener('copy', read))
+
+		expect(document.activeElement).toBe(screen.getByRole('grid'))
+
+		document.execCommand('copy')
+
+		expect(written).toEqual(['Name 1'])
+	})
 })
 
 /**

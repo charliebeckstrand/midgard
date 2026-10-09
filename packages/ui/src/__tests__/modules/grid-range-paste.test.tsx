@@ -125,6 +125,16 @@ describe('Grid range paste', () => {
 		await expectAnnouncement('4 cells pasted')
 	})
 
+	it('pastes into the cell that the focus seats, at once after the focus', () => {
+		const view = renderPasteGrid()
+
+		act(() => view.grid.focus())
+
+		view.paste('Ann')
+
+		expect(view.onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Ann' }])
+	})
+
 	it('writes one field into each cell of the range', () => {
 		const view = renderPasteGrid()
 

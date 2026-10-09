@@ -1,6 +1,6 @@
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { expectAnnouncement, fireEvent, gridCells, renderUI, screen } from '../helpers'
+import { act, expectAnnouncement, fireEvent, gridCells, renderUI, screen } from '../helpers'
 
 type Row = { id: number; name: string; role: string; note: string }
 
@@ -198,6 +198,14 @@ describe('Grid range', () => {
 		fireEvent.mouseDown(cell(2, 0))
 
 		expect(copy()).toBe('Carol')
+	})
+
+	it('copies the cell that the focus seats, at once after the focus', () => {
+		const { grid } = renderRangeGrid()
+
+		act(() => grid.focus())
+
+		expect(copy()).toBe('Alice')
 	})
 
 	it('leaves a copy of selected text to the browser', () => {

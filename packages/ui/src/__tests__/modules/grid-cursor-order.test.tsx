@@ -1,3 +1,4 @@
+import { useLayoutEffect, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { act, fireEvent, renderUI, screen } from '../helpers'
@@ -293,6 +294,48 @@ describe('Grid cursor over grouped rows', () => {
 		view.rerender(groupedUi([...west, ...north, sales[2] as Sale]))
 
 		expect(activeCell(grid)).toHaveTextContent('40 units')
+	})
+
+	// Two orders can publish before the cursor's own layout effects run: a layout
+	// effect of the consumer that changes the rows again commits at once. The
+	// stored cursor still names a place in the first order then, so the cursor
+	// finds its row by the key it seated on, not by that place.
+	it('keeps its row when a second order publishes before the cursor commits', () => {
+		const added: Sale = { id: 4, region: 'West', units: 50 }
+
+		const later: Sale = { id: 5, region: 'North', units: 40 }
+
+		// Adds `later` in a layout effect, as soon as the rows hold `added`.
+		function Chained({ rows }: { rows: Sale[] }) {
+			const [data, setData] = useState(rows)
+
+			const [seen, setSeen] = useState(rows)
+
+			if (seen !== rows) {
+				setSeen(rows)
+
+				setData(rows)
+			}
+
+			useLayoutEffect(() => {
+				if (data.includes(added) && !data.includes(later)) setData([...data, later])
+			}, [data])
+
+			return groupedUi(data)
+		}
+
+		const view = renderUI(<Chained rows={sales} />)
+
+		const grid = screen.getByRole('treegrid')
+
+		fireEvent.mouseDown(screen.getByText('20 units').closest('td') as HTMLElement)
+
+		// The West group gains a row, so each later place moves down by one.
+		view.rerender(<Chained rows={[...sales, added]} />)
+
+		expect(screen.getByText('40 units')).toBeInTheDocument()
+
+		expect(activeCell(grid)).toHaveTextContent('20 units')
 	})
 
 	it('keeps a plain grouped table free of tree attributes', () => {
