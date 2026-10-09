@@ -27,6 +27,21 @@ describe('shaku icon ramps', () => {
 		expect(shaku.icon.slot.base).toContain('*:data-[slot=icon]:shrink-0')
 	})
 
+	it('icon.row holds the icon size of each inner step', () => {
+		const inner = (step: (typeof densitySteps)[number]) => scale(step === 'xs' ? 'sm' : step)
+
+		const base = findSteps([shaku.icon.row.base], 'density-size-')
+
+		const slot = findSteps([shaku.icon.row.slot], '*:data-[slot=icon]:density-size-')
+
+		for (const step of densitySteps) {
+			expect(base[step]).toBe(inner(step))
+			expect(slot[step]).toBe(inner(step))
+		}
+
+		expect(shaku.icon.row.slot).toContain('*:data-[slot=icon]:shrink-0')
+	})
+
 	it('icon.md holds the icon slot size of md', () => {
 		expect(shaku.icon.slot.md).toBe(
 			`*:data-[slot=icon]:size-${scale('md')} *:data-[slot=icon]:shrink-0`,

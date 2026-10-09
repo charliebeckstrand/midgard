@@ -1,8 +1,9 @@
 import { Check } from 'lucide-react'
-import { beforeAll, describe, expect, it } from 'vitest'
+import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { Icon } from '../../components/icon'
 import { Menu, MenuContent, MenuItem } from '../../components/menu'
+import { writeRootDensity } from '../../core/density'
 import { Option } from '../../primitives/option/option'
 import { DensityProvider, densityLevels } from '../../providers/density'
 import { present, renderUI, screen } from '../helpers'
@@ -73,5 +74,35 @@ describe('item rows at a desktop width (real browser)', () => {
 		const icon = present(row.querySelector('[data-slot="icon"]'), 'menu row icon')
 
 		expect(Number.parseFloat(getComputedStyle(icon).width)).toBe(ICON_PX[density])
+	})
+
+	describe('under an xs root', () => {
+		afterEach(() => {
+			writeRootDensity(document.documentElement, 'md')
+		})
+
+		// The text, the padding, and the gap of a row stop at `sm`, so the icon stops there too.
+		it('stops a menu row icon at sm', async () => {
+			writeRootDensity(document.documentElement, 'xs')
+
+			renderUI(
+				<Menu defaultOpen>
+					<MenuContent aria-label="Actions">
+						<MenuItem>
+							<Icon icon={<Check />} />
+							Copy
+						</MenuItem>
+					</MenuContent>
+				</Menu>,
+			)
+
+			const row = await screen.findByRole('menuitem', { name: 'Copy' })
+
+			const icon = present(row.querySelector('[data-slot="icon"]'), 'menu row icon')
+
+			expect(Number.parseFloat(getComputedStyle(row).fontSize)).toBe(14)
+
+			expect(Number.parseFloat(getComputedStyle(icon).width)).toBe(ICON_PX.compact)
+		})
 	})
 })
