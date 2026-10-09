@@ -79,7 +79,8 @@ export type ChartReferenceLinesProps = {
 	 * has one, else the rule's value. The rules then shed their pointer target
 	 * and float no surface. The caller also drops their keyboard stop
 	 * ({@link referenceStops}), since the label reads the value where pointing
-	 * once did. Omitted, each rule floats the hover tooltip.
+	 * once did. A rule with no label, or with the whole prop omitted, floats the
+	 * hover tooltip.
 	 */
 	labels?: (PlacedReferenceLabel | null)[] | null
 }
@@ -93,8 +94,9 @@ function referenceLabelText(line: ChartReferenceLine, format: (value: number) =>
  * Places the standing reference labels of the `labels.references` mode, aligned
  * with `reference`, or `null` when the mode is off. The chart places them once
  * and passes them to {@link ChartReferenceLines}, which draws them, and to the
- * point value labels, which drop where they meet one. The labels declump against
- * each other ({@link referenceLabels}).
+ * point value labels, which drop where they meet one. Each label takes the first
+ * free spot beside its rule ({@link referenceLabels}). A rule whose label finds
+ * none keeps its hover tooltip.
  *
  * @internal
  */
@@ -116,17 +118,19 @@ export function placeReferenceLabels(
 }
 
 /**
- * The keyboard stops of the reference rules, or none when `labels.references`
- * draws their values beside them. A labeled rule reads its value without the
- * rove, so it leaves the value-axis roving as it leaves the hover tooltip.
+ * The keyboard stops of the reference rules: each rule's position, or `null`
+ * for a rule that carries a standing label ({@link placeReferenceLabels}). A
+ * labeled rule reads its value without the rove, so it leaves the value-axis
+ * roving as it leaves the hover tooltip. A rule whose label found no free spot
+ * keeps both.
  *
  * @internal
  */
 export function referenceStops(
-	labels: boolean | undefined,
+	labels: (PlacedReferenceLabel | null)[] | null,
 	positions: (number | null)[],
-): (number | null)[] | undefined {
-	return labels ? undefined : positions
+): (number | null)[] {
+	return labels ? positions.map((at, index) => (labels[index] ? null : at)) : positions
 }
 
 /** Props for {@link ReferenceRule}. @internal */
@@ -423,7 +427,8 @@ function ReferenceRule(props: ReferenceRuleProps) {
  * {@link ReducedMotion} around it settles it at rest for a reduced-motion
  * preference. Under `labels` each rule carries a standing value label at its far
  * end and drops the hover tooltip — the `labels.references` mode. The chart
- * places the labels ({@link placeReferenceLabels}), so no two overlap. At the spark
+ * places the labels ({@link placeReferenceLabels}), so no two overlap, and a rule
+ * whose label finds no free spot keeps the hover tooltip. At the spark
  * tier each rule sheds its hit target, tooltip, and label to the bare dashed
  * stroke. That tier is read through {@link ChartTierContext}, over either mode.
  * A sparkline is read-only, so the rules keep their ink and give up the pointer.

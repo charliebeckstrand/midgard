@@ -19,13 +19,13 @@
  * by priority: extremes outrank endpoints, and a label whose box meets one
  * already placed is dropped rather than stacked.
  *
- * The standing reference labels place first (see {@link referenceLabels}). They
- * declump against each other, and a value label whose box meets one drops.
+ * The standing reference labels place first (see {@link referenceLabels}), by
+ * the same rule: each takes the first free spot of a short list beside its
+ * rule. A value label whose box meets one drops.
  */
 
 import { TICK_CHAR_WIDTH } from '../chart-constants'
 import type { ChartOrientation, PlotRect } from '../chart-orientation'
-import { declump } from './declump'
 
 /** The gap from a point or a rule to its label. @internal */
 export const LABEL_OFFSET = 8
@@ -418,24 +418,62 @@ export type ReferenceLabelRule = { at: number | null; text: string }
 export type PlacedReferenceLabel = {
 	x: number
 	y: number
-	anchor: 'middle' | 'end'
+	anchor: PlacedValueLabel['anchor']
 	box: LabelBox
 }
 
 /**
- * Places the standing reference labels, aligned with `rules`, with `null` for
- * a rule that draws nothing. The labels declump along the axis that they stack
- * on ({@link declump}), so no two overlap.
+ * The spots a reference label can take beside its rule, in the order it tries
+ * them. In a vertical chart, a label sits at the right end of its rule, then at
+ * the left end, above the rule and then below it. In a horizontal chart, a label
+ * sits at the top end of its rule and then at the bottom end, centered on the
+ * rule or anchored inward from it near a side ({@link anchorAt}).
  *
- * In a vertical chart, each label ends at the far end of its rule. It sits
- * above the rule, and flips below where the rule crowds the top edge
- * ({@link labelBesideY}). Labels stack along y, and a crowded run grows up, off
- * its own rules. In a horizontal chart, each label hangs below the top of its
- * rule, centered on it. Labels stack along x, inside the plot sides.
+ * @internal
+ */
+function referenceSpots(
+	at: number,
+	width: number,
+	orientation: ChartOrientation,
+	plot: PlotRect,
+): PlacedReferenceLabel[] {
+	if (orientation === 'vertical') {
+		if (width > plot.width) return []
+
+		const [left, right] = [plot.x, plot.x + plot.width]
+
+		return [true, false].flatMap((above) => {
+			const y = labelBesideY(at, plot, above)
+
+			const [y0, y1] = [y - LABEL_HALF, y + LABEL_HALF]
+
+			return [
+				{ x: right, y, anchor: 'end' as const, box: { x0: right - width, x1: right, y0, y1 } },
+				{ x: left, y, anchor: 'start' as const, box: { x0: left, x1: left + width, y0, y1 } },
+			]
+		})
+	}
+
+	const across = anchorAt(at, width, plot)
+
+	if (!across) return []
+
+	const { anchor, x0, x1 } = across
+
+	return [plot.y + LABEL_OFFSET + LABEL_HALF, plot.y + plot.height - LABEL_OFFSET - LABEL_HALF].map(
+		(y) => ({ x: at, y, anchor, box: { x0, x1, y0: y - LABEL_HALF, y1: y + LABEL_HALF } }),
+	)
+}
+
+/**
+ * Places the standing reference labels, aligned with `rules`, in the order of
+ * `rules`. Each label takes the first spot beside its rule whose box meets no
+ * label already placed ({@link referenceSpots}). A label never leaves its rule,
+ * so a label with no free spot is `null`, as is the label of a rule that draws
+ * nothing. That rule keeps its hover tooltip and its keyboard stop.
  *
  * The value labels place after these and treat the boxes as obstacles
- * ({@link resolveValueLabels}). The reference labels are the readout of their
- * rules, so they keep their place, and a value label that meets one drops.
+ * ({@link resolveValueLabels}): a value label that meets one drops.
  *
  * @internal
  */
@@ -444,60 +482,19 @@ export function referenceLabels(
 	orientation: ChartOrientation,
 	plot: PlotRect,
 ): (PlacedReferenceLabel | null)[] {
-	const placed = new Array<PlacedReferenceLabel | null>(rules.length).fill(null)
+	const placed: LabelBox[] = []
 
-	const drawn = rules.flatMap((rule, index) =>
-		rule.at === null ? [] : [{ index, at: rule.at, width: labelWidth(rule.text) }],
-	)
+	return rules.map((rule) => {
+		if (rule.at === null) return null
 
-	if (orientation === 'vertical') {
-		const x = plot.x + plot.width
-
-		const ys = declump(
-			drawn.map((rule) => ({ at: labelBesideY(rule.at, plot, true), half: LABEL_HALF })),
-			plot.y,
-			plot.y + plot.height,
-			'low',
+		const spot = referenceSpots(rule.at, labelWidth(rule.text), orientation, plot).find(
+			(candidate) => !placed.some((other) => overlaps(other, candidate.box)),
 		)
 
-		for (const [order, rule] of drawn.entries()) {
-			const y = ys[order] as number
+		if (!spot) return null
 
-			placed[rule.index] = {
-				x,
-				y,
-				anchor: 'end',
-				box: { x0: x - rule.width, x1: x, y0: y - LABEL_HALF, y1: y + LABEL_HALF },
-			}
-		}
+		placed.push(spot.box)
 
-		return placed
-	}
-
-	const y = plot.y + LABEL_OFFSET + LABEL_HALF
-
-	const xs = declump(
-		drawn.map((rule) => ({ at: rule.at, half: rule.width / 2 })),
-		plot.x,
-		plot.x + plot.width,
-		'high',
-	)
-
-	for (const [order, rule] of drawn.entries()) {
-		const x = xs[order] as number
-
-		placed[rule.index] = {
-			x,
-			y,
-			anchor: 'middle',
-			box: {
-				x0: x - rule.width / 2,
-				x1: x + rule.width / 2,
-				y0: y - LABEL_HALF,
-				y1: y + LABEL_HALF,
-			},
-		}
-	}
-
-	return placed
+		return spot
+	})
 }

@@ -229,7 +229,7 @@ export function ChartCartesianFrame({
 				chart.bandPositions,
 				focus.points,
 				orientation,
-				referenceStops(labels?.references, chart.referencePositions),
+				referenceStops(referenceLabels, chart.referencePositions),
 				focus.series,
 			)}
 			describeReference={(index) => {

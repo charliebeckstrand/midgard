@@ -1,6 +1,5 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { declump } from '../../modules/chart/engine/chart-geometry/declump'
 import {
 	LABEL_HEIGHT,
 	type LabelBox,
@@ -32,67 +31,19 @@ function drawn(labels: (PlacedReferenceLabel | null)[]): PlacedReferenceLabel[] 
 	return labels.filter((label): label is PlacedReferenceLabel => label !== null)
 }
 
-describe('declump', () => {
-	it('leaves spans that do not overlap at their centers', () => {
-		expect(
-			declump(
-				[
-					{ at: 20, half: 5 },
-					{ at: 60, half: 5 },
-				],
-				0,
-				100,
-				'high',
-			),
-		).toEqual([20, 60])
-	})
-
-	it('pushes a crowded run the way `toward` names, and keeps the order', () => {
-		const spans = [
-			{ at: 50, half: 5 },
-			{ at: 52, half: 5 },
-		]
-
-		// Growing up holds the high span and moves the low span off it.
-		expect(declump(spans, 0, 100, 'low')).toEqual([42, 52])
-
-		// Growing down holds the low span and moves the high span off it.
-		expect(declump(spans, 0, 100, 'high')).toEqual([50, 60])
-	})
-
-	it('keeps each span inside the band', () => {
-		expect(
-			declump(
-				[
-					{ at: 2, half: 5 },
-					{ at: 3, half: 5 },
-				],
-				0,
-				100,
-				'low',
-			),
-		).toEqual([5, 15])
-	})
-
-	it('returns the centers in the input order', () => {
-		expect(
-			declump(
-				[
-					{ at: 60, half: 5 },
-					{ at: 20, half: 5 },
-					{ at: 58, half: 5 },
-				],
-				0,
-				100,
-				'high',
-			),
-		).toEqual([68, 20, 58])
-	})
-})
-
 describe('referenceLabels', () => {
-	it('stacks the labels of close rules in a vertical chart, growing up', () => {
-		const labels = referenceLabels(
+	it('puts a label at the far end of its rule, above it, in a vertical chart', () => {
+		const [goal] = referenceLabels([{ at: 60, text: 'Goal' }], 'vertical', PLOT)
+
+		expect(goal?.anchor).toBe('end')
+
+		expect(goal?.x).toBe(PLOT.x + PLOT.width)
+
+		expect(goal?.y).toBeLessThan(60)
+	})
+
+	it('moves a crowded label to the near end of its rule, and never off it', () => {
+		const [target, stretch] = referenceLabels(
 			[
 				{ at: 60, text: 'Target' },
 				{ at: 57, text: 'Stretch' },
@@ -101,48 +52,56 @@ describe('referenceLabels', () => {
 			PLOT,
 		)
 
-		const [target, stretch] = labels
-
-		// Each label ends at the far end of the plot.
 		expect(target?.anchor).toBe('end')
 
-		expect(target?.x).toBe(PLOT.x + PLOT.width)
+		expect(stretch?.anchor).toBe('start')
 
-		// The labels keep the order of their rules, one label height apart, and the
-		// crowded run grows up: the lower rule's label holds its place above its rule.
-		expect((target?.y ?? 0) - (stretch?.y ?? 0)).toBe(LABEL_HEIGHT)
-
-		expect(target?.y).toBeLessThan(60)
-
-		expect(stretch?.y).toBeLessThan(57)
+		expect(stretch?.x).toBe(PLOT.x)
 
 		expect(overlaps(target?.box as LabelBox, stretch?.box as LabelBox)).toBe(false)
 	})
 
-	it('spreads the labels of close rules in a horizontal chart, inside the plot sides', () => {
-		const labels = drawn(
-			referenceLabels(
-				[
-					{ at: 150, text: 'Target' },
-					{ at: 155, text: 'Stretch' },
-					{ at: 196, text: 'Ceiling' },
-				],
-				'horizontal',
-				PLOT,
-			),
+	it('drops a label with no free spot, so its rule keeps the tooltip', () => {
+		const labels = referenceLabels(
+			[
+				{ at: 60, text: 'A' },
+				{ at: 59, text: 'B' },
+				{ at: 61, text: 'C' },
+				{ at: 60.5, text: 'D' },
+				{ at: 59.5, text: 'E' },
+			],
+			'vertical',
+			PLOT,
 		)
 
-		expect(labels.map((label) => label.anchor)).toEqual(['middle', 'middle', 'middle'])
+		expect(labels.filter((label) => label === null).length).toBeGreaterThan(0)
 
-		for (const [index, label] of labels.entries()) {
-			expect(label.box.x0).toBeGreaterThanOrEqual(PLOT.x)
+		const placed = drawn(labels)
 
-			expect(label.box.x1).toBeLessThanOrEqual(PLOT.x + PLOT.width)
-
-			for (const other of labels.slice(index + 1)) {
+		for (const [index, label] of placed.entries()) {
+			for (const other of placed.slice(index + 1)) {
 				expect(overlaps(label.box, other.box)).toBe(false)
 			}
 		}
+	})
+
+	it('moves a crowded label to the bottom end of its rule in a horizontal chart', () => {
+		const [target, stretch] = referenceLabels(
+			[
+				{ at: 100, text: 'Target' },
+				{ at: 110, text: 'Stretch' },
+			],
+			'horizontal',
+			PLOT,
+		)
+
+		expect(target?.anchor).toBe('middle')
+
+		expect(target?.x).toBe(100)
+
+		expect(stretch?.x).toBe(110)
+
+		expect(stretch?.y).toBeGreaterThan(target?.y ?? 0)
 	})
 
 	it('places nothing for a rule that draws nothing, and keeps the slots aligned', () => {

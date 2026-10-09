@@ -938,7 +938,7 @@ describe('reference value labels', () => {
 		expect(bySlot(container, 'chart-reference-line')?.querySelectorAll('line').length).toBe(1)
 	})
 
-	it('stacks the labels of close rules apart, over every rule', () => {
+	it('moves a crowded label to the near end of its rule, over every rule', () => {
 		const { container } = lineLabels([
 			{ value: 60, label: 'Target' },
 			{ value: 61, label: 'Stretch' },
@@ -946,9 +946,9 @@ describe('reference value labels', () => {
 
 		const [target, stretch] = allBySlot(container, 'chart-reference-label')
 
-		const gap = Number(target?.getAttribute('y')) - Number(stretch?.getAttribute('y'))
+		expect(target?.getAttribute('text-anchor')).toBe('end')
 
-		expect(gap).toBeGreaterThanOrEqual(13)
+		expect(stretch?.getAttribute('text-anchor')).toBe('start')
 
 		// Each label follows every rule in paint order, so no rule crosses its halo.
 		const lastRule = allBySlot(container, 'chart-reference-line').at(-1) as Node
