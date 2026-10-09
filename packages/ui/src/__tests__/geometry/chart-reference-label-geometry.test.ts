@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest'
 import {
 	LABEL_HEIGHT,
+	LABEL_ROW_GAP,
 	type LabelBox,
 	type PlacedReferenceLabel,
 	referenceLabels,
@@ -117,10 +118,10 @@ describe('referenceLabels', () => {
 		// Each label stays centered on its own rule.
 		expect([target?.x, stretch?.x, ceiling?.x]).toEqual([100, 110, 120])
 
-		// Each crowded label sits one label height under its neighbor.
-		expect((stretch?.y ?? 0) - (target?.y ?? 0)).toBe(LABEL_HEIGHT)
+		// Each crowded label sits one row, a label height and the row gap, under its neighbor.
+		expect((stretch?.y ?? 0) - (target?.y ?? 0)).toBe(LABEL_HEIGHT + LABEL_ROW_GAP)
 
-		expect((ceiling?.y ?? 0) - (stretch?.y ?? 0)).toBe(LABEL_HEIGHT)
+		expect((ceiling?.y ?? 0) - (stretch?.y ?? 0)).toBe(LABEL_HEIGHT + LABEL_ROW_GAP)
 	})
 
 	it('places nothing for a rule that draws nothing, and keeps the slots aligned', () => {

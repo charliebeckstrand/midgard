@@ -39,6 +39,12 @@ const LABEL_HALF = LABEL_HEIGHT / 2
 /** The padding each side of a value label's box. @internal */
 const LABEL_PAD = 3
 
+/** The gap between two rows of stacked reference labels. @internal */
+export const LABEL_ROW_GAP = 4
+
+/** The step from one row of stacked reference labels to the next. @internal */
+const LABEL_ROW_STEP = LABEL_HEIGHT + LABEL_ROW_GAP
+
 /**
  * The y that a label centers on beside a point or a rule at `y`. It takes its
  * preferred side, `above` or below, and flips to the other side where the
@@ -428,8 +434,8 @@ export type PlacedReferenceLabel = {
  * the rule and then below it, so every label reads down one side. In a
  * horizontal chart, a label hangs from the top of its rule, centered on it or
  * anchored inward from it near a side ({@link anchorAt}), in the first row
- * down that it fits. The rows stack at one label height, so a crowded label
- * sits just under its neighbor.
+ * down that it fits. The rows stack one label height and {@link LABEL_ROW_GAP}
+ * apart, so a crowded label sits just under its neighbor.
  *
  * @internal
  */
@@ -462,10 +468,13 @@ function referenceSpots(
 
 	const { anchor, x0, x1 } = across
 
-	const rows = Math.max(0, Math.floor((plot.height - LABEL_OFFSET) / LABEL_HEIGHT))
+	const rows = Math.max(
+		0,
+		Math.floor((plot.height - LABEL_OFFSET + LABEL_ROW_GAP) / LABEL_ROW_STEP),
+	)
 
 	return Array.from({ length: rows }, (_, row) => {
-		const y = plot.y + LABEL_OFFSET + LABEL_HALF + row * LABEL_HEIGHT
+		const y = plot.y + LABEL_OFFSET + LABEL_HALF + row * LABEL_ROW_STEP
 
 		return { x: at, y, anchor, box: { x0, x1, y0: y - LABEL_HALF, y1: y + LABEL_HALF } }
 	})
