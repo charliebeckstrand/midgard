@@ -96,6 +96,67 @@ describe('useHoverAcrossScroll', () => {
 		expect(resolveAt).not.toHaveBeenCalled()
 	})
 
+	// A chart with no tooltip adds no listener. Once the readout turns on, the hook
+	// knows the pointer only from the next move.
+	it('tracks no pointer while disabled', () => {
+		const add = vi.spyOn(window, 'addEventListener')
+
+		const clear = vi.fn()
+
+		const resolveAt = vi.fn()
+
+		const { rerender } = renderHook(
+			({ enabled }: { enabled: boolean }) => useHoverAcrossScroll(enabled, clear, resolveAt),
+			{ initialProps: { enabled: false } },
+		)
+
+		expect(add).not.toHaveBeenCalled()
+
+		movePointer(10, 10)
+
+		rerender({ enabled: true })
+
+		window.dispatchEvent(new Event('scroll'))
+
+		vi.advanceTimersByTime(200)
+
+		expect(clear).toHaveBeenCalledOnce()
+
+		expect(resolveAt).not.toHaveBeenCalled()
+
+		movePointer(30, 40)
+
+		window.dispatchEvent(new Event('scroll'))
+
+		vi.advanceTimersByTime(200)
+
+		expect(resolveAt).toHaveBeenCalledExactlyOnceWith(30, 40)
+
+		add.mockRestore()
+	})
+
+	// A pointer seen before the readout turned off is stale when it turns on again.
+	it('forgets the pointer when it turns off', () => {
+		const resolveAt = vi.fn()
+
+		const { rerender } = renderHook(
+			({ enabled }: { enabled: boolean }) => useHoverAcrossScroll(enabled, () => {}, resolveAt),
+			{ initialProps: { enabled: true } },
+		)
+
+		movePointer(10, 10)
+
+		rerender({ enabled: false })
+
+		rerender({ enabled: true })
+
+		window.dispatchEvent(new Event('scroll'))
+
+		vi.advanceTimersByTime(200)
+
+		expect(resolveAt).not.toHaveBeenCalled()
+	})
+
 	it('reads the latest callbacks without resubscribing', () => {
 		const firstClear = vi.fn()
 
