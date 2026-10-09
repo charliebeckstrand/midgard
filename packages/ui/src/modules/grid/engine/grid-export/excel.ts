@@ -1,5 +1,5 @@
 import { strToU8, Zip, ZipDeflate } from 'fflate'
-import { downloadBlob } from '../../../../utilities/export-output'
+import { downloadBlob } from '../../../../core/download-blob'
 import type { GridColumn } from '../../types'
 import { cellText, escapeXml, exportFields } from './accessor'
 

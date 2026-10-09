@@ -4,6 +4,7 @@ import {
 } from '@simplewebauthn/browser'
 import type { Schema, SignInProvider } from 'auth'
 import { bifrost, unwrap } from 'shared/auth'
+import { downloadBlob } from 'ui/core'
 
 /**
  * The requests that the account page sends from the client. Each goes to a
@@ -122,17 +123,10 @@ export type AccountExport = Schema<'AccountExport'>
 export async function downloadAccount(): Promise<void> {
 	const data: AccountExport = await unwrap(bifrost.GET('/auth/account/export'))
 
-	const url = URL.createObjectURL(
+	downloadBlob(
 		new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }),
+		`account-${data.exported_at.slice(0, 10)}.json`,
 	)
-
-	const link = document.createElement('a')
-
-	link.href = url
-	link.download = `account-${data.exported_at.slice(0, 10)}.json`
-	link.click()
-
-	URL.revokeObjectURL(url)
 }
 
 /**

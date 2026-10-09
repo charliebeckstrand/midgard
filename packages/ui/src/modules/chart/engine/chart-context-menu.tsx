@@ -20,8 +20,9 @@ import {
 	resolveContextMenuEntries,
 } from '../../../components/context-menu'
 import { Dialog, DialogClose, DialogFooter, DialogPanel } from '../../../components/dialog'
+import { downloadBlob } from '../../../core/download-blob'
 import { useStableEvent } from '../../../hooks/use-stable-event'
-import { copyText, downloadBlob, downloadCsv } from '../../../utilities/export-output'
+import { copyText, downloadCsv } from '../../../utilities/export-output'
 import { ChartDataDialog } from './chart-data-dialog'
 import {
 	type ChartImageType,
