@@ -19,6 +19,7 @@ import { holdTextSelection } from '../../../../utilities/hold-text-selection'
 import type { ChartContextMenuConfig } from '../chart-context-menu'
 import { ChartContextMenu } from '../chart-context-menu'
 import { ChartHeader } from '../chart-header'
+import { legendBandRow } from '../chart-legend/band'
 import { type ChartLegendPlacement, legendAside } from '../chart-legend/schema'
 import { ChartMenuButton } from '../chart-menu-button'
 import type { ChartOrientation } from '../chart-orientation'
@@ -755,11 +756,7 @@ function ChartFigure({
 				'flex min-h-0 flex-1 flex-col',
 				rail ? 'gap-4' : 'gap-2',
 				stretch ? '@sm:items-stretch' : '@sm:items-center',
-				// The side is physical: a right-to-left row runs from the right, so it
-				// swaps the order back, and a `left` legend still draws on the left.
-				legendPlacement === 'left'
-					? '@sm:flex-row-reverse rtl:@sm:flex-row'
-					: '@sm:flex-row rtl:@sm:flex-row-reverse',
+				legendBandRow(legendPlacement, 'sm'),
 			)}
 		>
 			{plot}
