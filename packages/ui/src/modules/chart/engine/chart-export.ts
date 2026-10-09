@@ -28,6 +28,19 @@ const PLOT_SELECTOR = '[data-slot="chart-plot"],[data-slot="map-plot"]'
 /** The chart header. An export without the legend keeps the extent of its text. @internal */
 const HEADER_SELECTOR = '[data-slot="chart-header"]'
 
+/**
+ * The latin face of the ui font. The bundler of the app copies the file and
+ * gives its URL. The face of the page comes from the bytes in
+ * `google-sans-flex-latin.js`, and a page cannot read the bytes of a face back.
+ * The export thus loads the same subset from this file.
+ *
+ * @internal
+ */
+const FONT_URL = new URL('../../../fonts/google-sans-flex-latin.woff2', import.meta.url)
+
+/** The `@font-face` rule that an export embeds, once a load of {@link FONT_URL} succeeds. @internal */
+let fontRule: Promise<string> | undefined
+
 /** The subpixel slack of an edge test, so a sibling that meets a box edge to edge counts as past it. @internal */
 const EDGE_SLACK = 0.5
 
@@ -472,6 +485,53 @@ export function prepareChartCapture(root: HTMLElement, includeLegend: boolean): 
 	return { clone, box, ground: groundOf(root) }
 }
 
+/** Reads a blob as a `data:` URL. @internal */
+function dataUrlOf(blob: Blob): Promise<string> {
+	return new Promise((resolve, reject) => {
+		const reader = new FileReader()
+
+		reader.addEventListener('load', () => resolve(reader.result as string))
+
+		reader.addEventListener('error', () => reject(reader.error))
+
+		reader.readAsDataURL(blob)
+	})
+}
+
+/**
+ * Gives the `@font-face` rule of the latin face of the ui font, with the bytes
+ * of the face in a `data:` URL.
+ *
+ * An image that an SVG draws loads no file, so the face of the page does not
+ * reach the `foreignObject` raster, and the text of the image falls back to a
+ * system font. A `data:` URL holds the bytes in the image, so the raster draws
+ * the text in the ui font. The first export loads the file, and each later
+ * export uses the same rule. When the load fails, the rule is empty, the image
+ * draws its text in the fallback font, and the next export tries again.
+ *
+ * @internal
+ */
+function embeddedFontRule(): Promise<string> {
+	fontRule ??= fetch(FONT_URL)
+		.then((response) => {
+			if (!response.ok) throw new Error(`chart font failed to load: ${response.status}`)
+
+			return response.blob()
+		})
+		.then((blob) => dataUrlOf(new Blob([blob], { type: 'font/woff2' })))
+		.then(
+			(source) =>
+				`@font-face{font-family:'Google Sans Flex';font-weight:300 900;font-display:block;src:url(${source}) format('woff2-variations');}`,
+		)
+		.catch(() => {
+			fontRule = undefined
+
+			return ''
+		})
+
+	return fontRule
+}
+
 /** Loads a data-URL into an `Image`, resolving once decoded. @internal */
 function loadImage(source: string): Promise<HTMLImageElement> {
 	return new Promise((resolve, reject) => {
@@ -532,7 +592,8 @@ async function encode(
  * Rasterizes a whole chart — plot, header, and (by default) legend — to a
  * {@link Blob}. Clones the root, freezes its computed styles onto the clone, and
  * draws it through an SVG `foreignObject`. The HTML chrome and the SVG marks
- * then export as one image. `includeLegend: false` prunes the legend from the
+ * then export as one image. The SVG embeds the latin face of the ui font, so
+ * the text of the image keeps the font of the chart. `includeLegend: false` prunes the legend from the
  * clone and crops the image to the plot and the header text, so no blank band
  * remains. The live chart does not change. A JPEG takes the surface under the
  * chart as its ground, so a dark theme exports on its dark surface. A PNG stays
@@ -558,8 +619,11 @@ export async function rasterizeChartImage(
 
 	const serialized = new XMLSerializer().serializeToString(clone)
 
+	const font = await embeddedFontRule()
+
 	const svg =
 		`<svg xmlns="http://www.w3.org/2000/svg" width="${box.width}" height="${box.height}">` +
+		`<style>${font}</style>` +
 		`<foreignObject x="0" y="0" width="${box.width}" height="${box.height}">${serialized}</foreignObject></svg>`
 
 	const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
