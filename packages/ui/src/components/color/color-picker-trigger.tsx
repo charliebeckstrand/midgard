@@ -3,7 +3,7 @@
 import type { RefCallback } from 'react'
 import { ariaAttr, cn, dataAttr, type ValidationAttrs } from '../../core'
 import type { ScaleStep } from '../../core/density'
-import { ControlFrame } from '../../primitives/control'
+import { SelectTrigger } from '../../primitives/select-trigger'
 import { useGlass } from '../../providers/glass/context'
 import { HeadlessProvider } from '../../providers/headless'
 import type { scale } from '../../recipes/kata/color-picker'
@@ -80,49 +80,45 @@ export function ColorPickerTrigger({
 	return (
 		// An explicit `size` makes the trigger a density scope. Without it, the
 		// stepped classes of the control bridge take the step of the nearest scope.
-		<div
-			data-slot="control"
-			data-density={size}
-			ref={setReference}
+		<SelectTrigger
+			open={open}
+			setReference={setReference}
+			getReferenceProps={getReferenceProps}
+			glass={glass}
+			size={size}
 			className={cn(k.root, className)}
-			{...getReferenceProps()}
+			data-group={dataGroup}
+			data-group-orientation={dataGroupOrientation}
 		>
-			<ControlFrame
-				data-open={dataAttr(open)}
-				data-group={dataGroup}
-				data-group-orientation={dataGroupOrientation}
-				className={cn(k.surface[glass ? 'glass' : 'default'])}
-			>
-				<HeadlessProvider>
-					<Button
-						type="button"
-						id={triggerId}
-						aria-haspopup="dialog"
-						aria-expanded={open}
-						aria-controls={open ? dialogId : undefined}
-						aria-describedby={describedBy}
-						data-slot="color-picker-button"
-						aria-disabled={ariaAttr(readOnly && !open)}
-						data-readonly={dataAttr(readOnly)}
-						disabled={disabled}
-						{...validation}
-						onClick={() => onOpenChange(!open)}
-						className={cn(k.button())}
+			<HeadlessProvider>
+				<Button
+					type="button"
+					id={triggerId}
+					aria-haspopup="dialog"
+					aria-expanded={open}
+					aria-controls={open ? dialogId : undefined}
+					aria-describedby={describedBy}
+					data-slot="color-picker-button"
+					aria-disabled={ariaAttr(readOnly && !open)}
+					data-readonly={dataAttr(readOnly)}
+					disabled={disabled}
+					{...validation}
+					onClick={() => onOpenChange(!open)}
+					className={cn(k.button())}
+				>
+					<span
+						data-slot="color-picker-swatch"
+						className={cn(k.swatch.base, alpha && k.swatch.checkerboard)}
 					>
-						<span
-							data-slot="color-picker-swatch"
-							className={cn(k.swatch.base, alpha && k.swatch.checkerboard)}
-						>
-							<span className={cn(k.swatch.fill)} style={{ backgroundColor: swatchColor }} />
-						</span>
-						<span className={cn(k.value, 'min-w-0 flex-1 font-mono')}>
-							{/* A hex code reads left to right in each direction, so the '#' stays at the left. The
+						<span className={cn(k.swatch.fill)} style={{ backgroundColor: swatchColor }} />
+					</span>
+					<span className={cn(k.value, 'min-w-0 flex-1 font-mono')}>
+						{/* A hex code reads left to right in each direction, so the '#' stays at the left. The
 							    outer span keeps the inherited direction, so the code stays next to the swatch. */}
-							<span dir="ltr">{label}</span>
-						</span>
-					</Button>
-				</HeadlessProvider>
-			</ControlFrame>
-		</div>
+						<span dir="ltr">{label}</span>
+					</span>
+				</Button>
+			</HeadlessProvider>
+		</SelectTrigger>
 	)
 }
