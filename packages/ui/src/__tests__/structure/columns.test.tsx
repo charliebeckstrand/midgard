@@ -6,7 +6,11 @@ describe('Columns', () => {
 	it('renders one column with the lg gap by default', () => {
 		const { container } = renderUI(<Columns>a</Columns>)
 
-		expect(bySlot(container, 'columns')).toHaveClass('grid', 'grid-cols-1', 'density-gap-[3,4,5]')
+		expect(bySlot(container, 'columns')).toHaveClass(
+			'grid',
+			'grid-cols-1',
+			'density-gap-[2,3,4,5,6]',
+		)
 	})
 
 	it('gives a class for each breakpoint of columns and gap', () => {
@@ -20,8 +24,8 @@ describe('Columns', () => {
 			'grid-cols-1',
 			'sm:grid-cols-2',
 			'xl:grid-cols-4',
-			'density-gap-[1,2,3]',
-			'md:density-gap-[3,4,5]',
+			'density-gap-[0.5,1,2,3,4.5]',
+			'md:density-gap-[2,3,4,5,6]',
 		)
 	})
 

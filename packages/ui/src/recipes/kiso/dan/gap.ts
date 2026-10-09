@@ -10,29 +10,29 @@
  * and the stop above at `lg`.
  */
 const scale = {
-	xs: 'density-gap-[0.5,1,1.5]',
-	sm: 'density-gap-[1,2,3]',
-	md: 'density-gap-[2,3,4]',
-	lg: 'density-gap-[3,4,5]',
-	xl: 'density-gap-[5,6,7]',
+	xs: 'density-gap-[0.25,0.5,1,1.5,2.5]',
+	sm: 'density-gap-[0.5,1,2,3,4.5]',
+	md: 'density-gap-[1,2,3,4,5]',
+	lg: 'density-gap-[2,3,4,5,6]',
+	xl: 'density-gap-[4,5,6,7,8]',
 } as const
 
 /** The inline gap (`column-gap`) at each stop of the gap scale. */
 const scaleX = {
-	xs: 'density-gap-x-[0.5,1,1.5]',
-	sm: 'density-gap-x-[1,2,3]',
-	md: 'density-gap-x-[2,3,4]',
-	lg: 'density-gap-x-[3,4,5]',
-	xl: 'density-gap-x-[5,6,7]',
+	xs: 'density-gap-x-[0.25,0.5,1,1.5,2.5]',
+	sm: 'density-gap-x-[0.5,1,2,3,4.5]',
+	md: 'density-gap-x-[1,2,3,4,5]',
+	lg: 'density-gap-x-[2,3,4,5,6]',
+	xl: 'density-gap-x-[4,5,6,7,8]',
 } as const
 
 /** The block gap (`row-gap`) at each stop of the gap scale. */
 const scaleY = {
-	xs: 'density-gap-y-[0.5,1,1.5]',
-	sm: 'density-gap-y-[1,2,3]',
-	md: 'density-gap-y-[2,3,4]',
-	lg: 'density-gap-y-[3,4,5]',
-	xl: 'density-gap-y-[5,6,7]',
+	xs: 'density-gap-y-[0.25,0.5,1,1.5,2.5]',
+	sm: 'density-gap-y-[0.5,1,2,3,4.5]',
+	md: 'density-gap-y-[1,2,3,4,5]',
+	lg: 'density-gap-y-[2,3,4,5,6]',
+	xl: 'density-gap-y-[4,5,6,7,8]',
 } as const
 
 /**
@@ -43,58 +43,78 @@ const scaleY = {
  */
 const touchX = {
 	xs: [
-		'density-[xs,sm]:[--touch-target-gap-x:--spacing(0.5)]',
+		'density-xs:[--touch-target-gap-x:--spacing(0.25)]',
+		'density-sm:[--touch-target-gap-x:--spacing(0.5)]',
 		'density-md:[--touch-target-gap-x:--spacing(1)]',
-		'density-[lg,xl]:[--touch-target-gap-x:--spacing(1.5)]',
+		'density-lg:[--touch-target-gap-x:--spacing(1.5)]',
+		'density-xl:[--touch-target-gap-x:--spacing(2.5)]',
 	],
 	sm: [
-		'density-[xs,sm]:[--touch-target-gap-x:--spacing(1)]',
+		'density-xs:[--touch-target-gap-x:--spacing(0.5)]',
+		'density-sm:[--touch-target-gap-x:--spacing(1)]',
 		'density-md:[--touch-target-gap-x:--spacing(2)]',
-		'density-[lg,xl]:[--touch-target-gap-x:--spacing(3)]',
+		'density-lg:[--touch-target-gap-x:--spacing(3)]',
+		'density-xl:[--touch-target-gap-x:--spacing(4.5)]',
 	],
 	md: [
-		'density-[xs,sm]:[--touch-target-gap-x:--spacing(2)]',
+		'density-xs:[--touch-target-gap-x:--spacing(1)]',
+		'density-sm:[--touch-target-gap-x:--spacing(2)]',
 		'density-md:[--touch-target-gap-x:--spacing(3)]',
-		'density-[lg,xl]:[--touch-target-gap-x:--spacing(4)]',
+		'density-lg:[--touch-target-gap-x:--spacing(4)]',
+		'density-xl:[--touch-target-gap-x:--spacing(5)]',
 	],
 	lg: [
-		'density-[xs,sm]:[--touch-target-gap-x:--spacing(3)]',
+		'density-xs:[--touch-target-gap-x:--spacing(2)]',
+		'density-sm:[--touch-target-gap-x:--spacing(3)]',
 		'density-md:[--touch-target-gap-x:--spacing(4)]',
-		'density-[lg,xl]:[--touch-target-gap-x:--spacing(5)]',
+		'density-lg:[--touch-target-gap-x:--spacing(5)]',
+		'density-xl:[--touch-target-gap-x:--spacing(6)]',
 	],
 	xl: [
-		'density-[xs,sm]:[--touch-target-gap-x:--spacing(5)]',
+		'density-xs:[--touch-target-gap-x:--spacing(4)]',
+		'density-sm:[--touch-target-gap-x:--spacing(5)]',
 		'density-md:[--touch-target-gap-x:--spacing(6)]',
-		'density-[lg,xl]:[--touch-target-gap-x:--spacing(7)]',
+		'density-lg:[--touch-target-gap-x:--spacing(7)]',
+		'density-xl:[--touch-target-gap-x:--spacing(8)]',
 	],
 } as const
 
 /** The gap that a hit area can fill between two hosts in a stack, as `touchX` gives in a row. */
 const touchY = {
 	xs: [
-		'density-[xs,sm]:[--touch-target-gap-y:--spacing(0.5)]',
+		'density-xs:[--touch-target-gap-y:--spacing(0.25)]',
+		'density-sm:[--touch-target-gap-y:--spacing(0.5)]',
 		'density-md:[--touch-target-gap-y:--spacing(1)]',
-		'density-[lg,xl]:[--touch-target-gap-y:--spacing(1.5)]',
+		'density-lg:[--touch-target-gap-y:--spacing(1.5)]',
+		'density-xl:[--touch-target-gap-y:--spacing(2.5)]',
 	],
 	sm: [
-		'density-[xs,sm]:[--touch-target-gap-y:--spacing(1)]',
+		'density-xs:[--touch-target-gap-y:--spacing(0.5)]',
+		'density-sm:[--touch-target-gap-y:--spacing(1)]',
 		'density-md:[--touch-target-gap-y:--spacing(2)]',
-		'density-[lg,xl]:[--touch-target-gap-y:--spacing(3)]',
+		'density-lg:[--touch-target-gap-y:--spacing(3)]',
+		'density-xl:[--touch-target-gap-y:--spacing(4.5)]',
 	],
 	md: [
-		'density-[xs,sm]:[--touch-target-gap-y:--spacing(2)]',
+		'density-xs:[--touch-target-gap-y:--spacing(1)]',
+		'density-sm:[--touch-target-gap-y:--spacing(2)]',
 		'density-md:[--touch-target-gap-y:--spacing(3)]',
-		'density-[lg,xl]:[--touch-target-gap-y:--spacing(4)]',
+		'density-lg:[--touch-target-gap-y:--spacing(4)]',
+		'density-xl:[--touch-target-gap-y:--spacing(5)]',
 	],
 	lg: [
-		'density-[xs,sm]:[--touch-target-gap-y:--spacing(3)]',
+		'density-xs:[--touch-target-gap-y:--spacing(2)]',
+		'density-sm:[--touch-target-gap-y:--spacing(3)]',
 		'density-md:[--touch-target-gap-y:--spacing(4)]',
-		'density-[lg,xl]:[--touch-target-gap-y:--spacing(5)]',
+		'density-lg:[--touch-target-gap-y:--spacing(5)]',
+		'density-xl:[--touch-target-gap-y:--spacing(6)]',
 	],
 	xl: [
-		'density-[xs,sm]:[--touch-target-gap-y:--spacing(5)]',
+		'density-xs:[--touch-target-gap-y:--spacing(4)]',
+		'density-sm:[--touch-target-gap-y:--spacing(5)]',
 		'density-md:[--touch-target-gap-y:--spacing(6)]',
-		'density-[lg,xl]:[--touch-target-gap-y:--spacing(7)]',
+		'density-lg:[--touch-target-gap-y:--spacing(7)]',
+		'density-xl:[--touch-target-gap-y:--spacing(8)]',
 	],
 } as const
 
@@ -116,9 +136,9 @@ export const gap = {
 	/** The gap of an option row and a menu item. */
 	option: 'density-gap-[2,3,3]',
 	/** The gap of a color panel. */
-	loose: 'density-gap-[2,4,6]',
+	loose: 'density-gap-[1,2,4,6,9]',
 	/** The gap of the date picker panes. */
-	datePicker: 'density-gap-[2.25,2.75,3.25]',
+	datePicker: 'density-gap-[1.75,2.25,2.75,3.25,3.75]',
 	timeline: {
 		/** The inline gap of a timeline item and a code block. */
 		x: scaleX.lg,

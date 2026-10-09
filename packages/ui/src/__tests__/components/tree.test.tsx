@@ -396,7 +396,7 @@ describe('TreeItem', () => {
 		// The rows carry no inline indent: the nested group pads its start.
 		for (const row of rows) expect(row.style.paddingLeft).toBe('')
 
-		expect(getSlot(container, 'tree-group').className).toContain('density-ps-[5,5.5,7,8.5,9]')
+		expect(getSlot(container, 'tree-group').className).toContain('density-ps-[4.5,5.5,7,8.5,10.5]')
 	})
 
 	it('pads no nested group when the Tree opts out of the indent', () => {

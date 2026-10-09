@@ -41,11 +41,11 @@
  * each class that a resolver can make is in these lines.
  */
 @source inline('{sm,md,lg,xl,2xl}:{p,px,py,gap}-0');
-@source inline('{sm,md,lg,xl,2xl}:density-{p,px,py,gap}-[0.5,1,1.5]');
-@source inline('{sm,md,lg,xl,2xl}:density-{p,px,py,gap}-[1,2,3]');
-@source inline('{sm,md,lg,xl,2xl}:density-{p,px,py,gap}-[2,3,4]');
-@source inline('{sm,md,lg,xl,2xl}:density-{p,px,py,gap}-[3,4,5]');
-@source inline('{sm,md,lg,xl,2xl}:density-{p,px,py,gap}-[5,6,7]');
+@source inline('{sm,md,lg,xl,2xl}:density-{p,px,py,gap}-[0.25,0.5,1,1.5,2.5]');
+@source inline('{sm,md,lg,xl,2xl}:density-{p,px,py,gap}-[0.5,1,2,3,4.5]');
+@source inline('{sm,md,lg,xl,2xl}:density-{p,px,py,gap}-[1,2,3,4,5]');
+@source inline('{sm,md,lg,xl,2xl}:density-{p,px,py,gap}-[2,3,4,5,6]');
+@source inline('{sm,md,lg,xl,2xl}:density-{p,px,py,gap}-[4,5,6,7,8]');
 @source inline('{sm,md,lg,xl,2xl}:flex-{row,col,row-reverse,col-reverse}');
 @source inline('{sm,md,lg,xl,2xl}:grid-cols-{1,2,3,4,6}');
 @source inline('{sm,md,lg,xl,2xl}:items-{start,center,end,stretch,baseline}');

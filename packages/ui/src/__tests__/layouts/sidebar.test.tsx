@@ -280,7 +280,7 @@ describe('SidebarLayout offcanvas mode', () => {
 	it('pads the mobile navbar with a stepped class, which follows the nearest scope', () => {
 		const { container } = renderUI(<SidebarLayout sidebar={<div>side</div>}>body</SidebarLayout>)
 
-		expect(container.querySelector('[class~="lg:hidden"]')).toHaveClass('density-p-[4,6,8]')
+		expect(container.querySelector('[class~="lg:hidden"]')).toHaveClass('density-p-[2,4,6,8,10]')
 	})
 
 	it('resets the floating sheet to closed when the sidebar mode changes', () => {

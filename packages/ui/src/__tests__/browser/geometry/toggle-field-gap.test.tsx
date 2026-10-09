@@ -3,9 +3,10 @@ import { describe, expect, it } from 'vitest'
 import { Checkbox, CheckboxField } from '../../../components/checkbox'
 import { Label } from '../../../components/fieldset'
 import { Radio, RadioField, RadioGroup } from '../../../components/radio'
+import { type DensityStep, densitySteps } from '../../../core/density'
 import { renderUI } from '../../helpers'
 
-type Size = 'sm' | 'md' | 'lg'
+type Size = DensityStep
 
 const fields: [string, (size: Size) => ReactNode][] = [
 	[
@@ -31,7 +32,7 @@ const fields: [string, (size: Size) => ReactNode][] = [
 ]
 
 const cases = fields.flatMap(([name, field]) =>
-	(['sm', 'md', 'lg'] as const).flatMap((size) =>
+	densitySteps.flatMap((size) =>
 		(['ltr', 'rtl'] as const).map((dir) => [name, size, dir, field] as const),
 	),
 )

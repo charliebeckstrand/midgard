@@ -13,6 +13,10 @@
  * control pads as the label of a button does, so a control and a button of a
  * step have the same height.
  *
+ * A ramp that does not follow the text, such as a padding, a gap, a radius, or
+ * a width, keeps its three inner values. {@link spacingSteps} gives its outer
+ * values.
+ *
  * @internal
  */
 
@@ -64,6 +68,43 @@ export const badgeHeight = (step: DensityStep) => lineHeight(step) + 6
 export const thumbSize = (step: DensityStep) => lineHeight(step) - 8
 
 /**
+ * Snaps a spacing length to the grid: the 1 px grid below 8 px, and the 2 px
+ * grid from 8 px. A half rounds away from zero.
+ */
+const snap = (px: number) => {
+	const size = Math.abs(px)
+
+	const snapped = size < 8 ? Math.floor(size + 0.5) : 2 * Math.floor(size / 2 + 0.5)
+
+	return Math.sign(px) * snapped
+}
+
+/**
+ * The five values of a spacing ramp in px, from its values at `sm`, `md`, and
+ * `lg`. Padding, gaps, radii, and widths do not follow the text, so each ramp
+ * keeps the look of its three inner steps. The outer steps continue the
+ * constant difference of the inner steps. When that difference gives `xs` a
+ * value of 0 or less, the outer steps continue the ratio instead: `xs` is
+ * sm²/md and `xl` is lg²/md, snapped to the grid. For example, 4/8/12 gives
+ * 2/4/8/12/18.
+ */
+export function spacingSteps(sm: number, md: number, lg: number): number[] {
+	const step = md - sm
+
+	if (Math.sign(sm - step) === Math.sign(md)) return [sm - step, sm, md, lg, lg + step]
+
+	return [snap((sm * sm) / md), sm, md, lg, snap((lg * lg) / md)]
+}
+
+/**
+ * The indent of a nested tree item: the chevron, which is as wide as an icon,
+ * and the row gap, which is the `sm` stop of the gap scale (4/8/12 at `sm`,
+ * `md`, and `lg`). 18 px to 42 px.
+ */
+export const treeIndent = (step: DensityStep) =>
+	iconSize(step) + (spacingSteps(4, 8, 12)[stepIndex[step] + 2] ?? Number.NaN)
+
+/**
  * The ramps of `recipes/kiso/dan` that the formulas give, keyed by their path
  * in `dan`. Each formula gives the px value that the ramp renders at a step: a
  * ring utility subtracts its 1 px ring, and a text ramp gives its font size.
@@ -93,4 +134,5 @@ export const geometry = {
 	'space.button.label': padY,
 	'space.button.bare': padBare,
 	'space.control.y': padY,
+	'space.tree.indent': treeIndent,
 } as const satisfies Record<string, (step: DensityStep) => number>

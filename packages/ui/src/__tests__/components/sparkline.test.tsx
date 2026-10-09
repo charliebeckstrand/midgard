@@ -175,7 +175,9 @@ describe('Sparkline density', () => {
 
 		expect(densityStepOf(sparkline)).toBe('sm')
 
-		expect(sparkline.querySelector('svg')?.getAttribute('class')).toContain('density-w-[18,24,30]')
+		expect(sparkline.querySelector('svg')?.getAttribute('class')).toContain(
+			'density-w-[12,18,24,30,36]',
+		)
 	})
 
 	it('draws one 3:1 viewBox at each step and pins the box to an explicit width', () => {

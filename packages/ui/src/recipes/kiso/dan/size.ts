@@ -36,7 +36,7 @@ export const size = {
 	dot: 'density-size-[1,1.5,2,2.5,3]',
 	avatar: {
 		/** An avatar. */
-		base: 'density-size-[7,9,11]',
+		base: 'density-size-[5,7,9,11,13]',
 		/**
 		 * An avatar in a sidebar item: a child of the row button, or the circle in a
 		 * status wrapper that is such a child.
@@ -61,26 +61,26 @@ export const size = {
 	},
 	radio: {
 		/** The dot of a checked radio. */
-		dot: 'density-size-[1,1.5,2]',
+		dot: 'density-size-[0.5,1,1.5,2,2.5]',
 	},
 	thumb: {
 		/** The thumb of a range slider. */
-		base: 'density-size-[3,4,5]',
+		base: 'density-size-[2,3,4,5,6]',
 	},
 	colorPanel: {
 		/** The color preview of a color panel. */
-		preview: 'density-size-[8,9,10]',
+		preview: 'density-size-[7,8,9,10,11]',
 		/** The height of the color area of a color panel. */
-		area: 'density-h-[32,40,48]',
+		area: 'density-h-[24,32,40,48,56]',
 		/** The height of a color channel slider. */
-		channel: 'density-h-[3,3.5,4]',
+		channel: 'density-h-[2.5,3,3.5,4,4.5]',
 		/** The width of a color panel. */
-		width: 'density-w-[72,80,88]',
+		width: 'density-w-[64,72,80,88,96]',
 		/**
 		 * The height of the preview row and the channel inputs of a color panel
 		 * skeleton, with the gap between them.
 		 */
-		fields: 'density-h-[22.25,27.75,33.25]',
+		fields: 'density-h-[18.5,22.25,27.75,33.25,40.25]',
 	},
 	/** The diameter of a progress gauge and of its skeleton. */
 	gauge: 'density-size-[8,12,16,20,24]',
@@ -107,7 +107,7 @@ export const size = {
 		 */
 		base: box,
 		/** The minimum width of a control skeleton. */
-		min: 'density-min-w-[16,24,32]',
+		min: 'density-min-w-[8,16,24,32,40]',
 	},
 	line: {
 		/** A line of small text in a skeleton: the line height of the small text. */
@@ -139,7 +139,7 @@ export const size = {
 			/** The height of a stat value skeleton. */
 			base: 'density-h-[7,8,9.5,11,14]',
 			/** The width of a stat value skeleton. */
-			width: 'density-w-[16,20,24]',
+			width: 'density-w-[12,16,20,24,28]',
 		},
 	},
 	/** A row in a skeleton: a nav item, a tab, a tree item, or a switch. */
@@ -148,7 +148,7 @@ export const size = {
 		/** The height of a segment skeleton. */
 		base: 'density-h-[7.5,9,10.5,12,13.5]',
 		/** The width of a segment skeleton. */
-		width: 'density-w-[40,48,56]',
+		width: 'density-w-[32,40,48,56,64]',
 	},
 	tab: {
 		/** The width of a tab skeleton. */
@@ -162,30 +162,30 @@ export const size = {
 	},
 	slider: {
 		/** The height of a slider skeleton track. */
-		track: 'density-h-[1,1.5,2]',
+		track: 'density-h-[0.5,1,1.5,2,2.5]',
 	},
 	sparkline: {
 		/** The height of a sparkline. */
-		base: 'density-h-[6,8,10]',
+		base: 'density-h-[4,6,8,10,12]',
 		/** The width of a sparkline. */
-		width: 'density-w-[18,24,30]',
+		width: 'density-w-[12,18,24,30,36]',
 	},
 	calendar: {
 		/** The width of a calendar. */
 		width: 'density-w-[52,68,80]',
 	},
 	/** The height of a chart skeleton with no ratio. */
-	chart: 'density-h-[40,60,80]',
+	chart: 'density-h-[20,40,60,80,100]',
 	tree: {
 		/** The width of a tree indent guide. */
 		indent: 'density-w-[4,4.5,5,5.5,6]',
 	},
 	resize: {
 		/** The width of a grid column resize handle. */
-		handle: 'density-w-[2,4,6]',
+		handle: 'density-w-[1,2,4,6,9]',
 	},
 	menu: {
 		/** The maximum height of a capped menu. */
-		max: 'density-max-h-[48,52,56]',
+		max: 'density-max-h-[44,48,52,56,60]',
 	},
 } as const

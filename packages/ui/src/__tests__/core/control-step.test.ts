@@ -74,14 +74,9 @@ describe('the size of a control', () => {
 		expectTypeOf<ComponentProps<typeof FileUploadInput>['size']>().toEqualTypeOf<Size>()
 		expectTypeOf<ComponentProps<typeof Rating>['size']>().toEqualTypeOf<Size>()
 		expectTypeOf<ComponentProps<typeof SelectTrigger>['size']>().toEqualTypeOf<Size>()
-	})
-
-	it('runs from sm to lg for a color panel and a slider, whose ramps have three values', () => {
-		type Inner = Exclude<DensityStep, 'xs' | 'xl'> | undefined
-
-		expectTypeOf<ComponentProps<typeof ColorPanel>['size']>().toEqualTypeOf<Inner>()
-		expectTypeOf<ComponentProps<typeof Slider>['size']>().toEqualTypeOf<Inner>()
-		expectTypeOf<ComponentProps<typeof RangeSlider>['size']>().toEqualTypeOf<Inner>()
+		expectTypeOf<ComponentProps<typeof ColorPanel>['size']>().toEqualTypeOf<Size>()
+		expectTypeOf<ComponentProps<typeof Slider>['size']>().toEqualTypeOf<Size>()
+		expectTypeOf<ComponentProps<typeof RangeSlider>['size']>().toEqualTypeOf<Size>()
 	})
 
 	it('takes each step on the frame density', () => {

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { DatePicker } from '../../../components/date-picker'
 import { Listbox, ListboxOption } from '../../../components/listbox'
+import { densitySteps } from '../../../core/density'
 import { present, renderUI } from '../../helpers'
 
 /**
@@ -27,7 +28,7 @@ function iconStart(root: Element): number {
 }
 
 describe('DatePicker trigger icon gap', () => {
-	it.each(['sm', 'md', 'lg'] as const)('matches the Listbox chevron gap at %s', (size) => {
+	it.each(densitySteps)('matches the Listbox chevron gap at %s', (size) => {
 		const { container } = renderUI(
 			<div className="flex flex-col items-start">
 				<DatePicker size={size} defaultValue={new Date(2026, 0, 15)} />
