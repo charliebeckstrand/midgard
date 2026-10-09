@@ -1,10 +1,10 @@
 'use client'
 
-import type { ExpandedState } from '@tanstack/react-table'
 import { type Dispatch, type SetStateAction, useState } from 'react'
 import { useControllable } from '../../hooks'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { toggleItem } from '../../utilities'
+import { ALL_GROUPS_CLOSED, ALL_GROUPS_OPEN, type GroupExpansion } from './engine/grid-group/tree'
 import type { GridGroupBy, GridGroupHeaderRow } from './grid-data-types'
 
 /** Stable empty expanded-key set; read-only, replaced wholesale on change. @internal */
@@ -21,9 +21,9 @@ type GridRowGroupingResult<T> = {
 	/** Manual-mode group-header resolver, or `undefined` outside manual mode. */
 	groupRow: ((row: T) => GridGroupHeaderRow | null) | undefined
 	/** Which groups are open (client mode). */
-	expanded: ExpandedState
+	expanded: GroupExpansion
 	/** Writes the client expansion state: a group toggle, or Expand all and Collapse all. */
-	setExpanded: Dispatch<SetStateAction<ExpandedState>>
+	setExpanded: Dispatch<SetStateAction<GroupExpansion>>
 	/** Expanded group keys (manual mode; controllable through the binding). */
 	manualExpanded: ReadonlySet<string | number>
 	/** Toggles a manual group's expansion, emitting `onExpandedChange` (and `onGroupExpand` when opening). */
@@ -64,8 +64,8 @@ export function useGridRowGrouping<T>(
 
 	const resolved = grouping != null && isGroupable(grouping) ? grouping : null
 
-	const [expanded, setExpanded] = useState<ExpandedState>(
-		config?.defaultExpanded === false ? {} : true,
+	const [expanded, setExpanded] = useState<GroupExpansion>(
+		config?.defaultExpanded === false ? ALL_GROUPS_CLOSED : ALL_GROUPS_OPEN,
 	)
 
 	// Manual expansion is a key set, not engine state: the groups live on the

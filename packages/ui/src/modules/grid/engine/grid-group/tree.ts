@@ -1,5 +1,4 @@
-import type { ExpandedState } from '@tanstack/react-table'
-import { getOrCompute } from '../../../../utilities'
+import { getOrCompute, toggleItem } from '../../../../utilities'
 
 /**
  * One row of the source data, as a value the grouped bodies render from.
@@ -59,12 +58,33 @@ export function toRowLeaf<T>(
 }
 
 /**
- * Whether a group is open in the expansion state. `true` opens every group.
+ * Which groups of a client-grouped grid are open. The state keeps the default
+ * and the groups that differ from it, not the open state of each group. A group
+ * that the state does not name, such as a group of a new grouping or of new
+ * rows, therefore opens as the default says.
  *
  * @internal
  */
-function isGroupExpanded(expanded: ExpandedState, id: string): boolean {
-	return expanded === true || Boolean(expanded[id])
+export type GroupExpansion = {
+	/** Whether a group opens by default. */
+	open: boolean
+	/** The ids of the groups that differ from the default. */
+	toggled: ReadonlySet<string>
+}
+
+/** Every group open, with no group toggled. @internal */
+export const ALL_GROUPS_OPEN: GroupExpansion = { open: true, toggled: new Set() }
+
+/** Every group closed, with no group toggled. @internal */
+export const ALL_GROUPS_CLOSED: GroupExpansion = { open: false, toggled: new Set() }
+
+/**
+ * Whether a group is open in the expansion state.
+ *
+ * @internal
+ */
+function isGroupExpanded(expansion: GroupExpansion, id: string): boolean {
+	return expansion.open !== expansion.toggled.has(id)
 }
 
 /** The open value of each closed group, made once. @internal */
@@ -85,28 +105,15 @@ function openGroup<T>(group: GridGroup<T>): GridGroup<T> {
  *
  * @internal
  */
-export function expandGroups<T>(groups: GridGroup<T>[], expanded: ExpandedState): GridGroup<T>[] {
-	return groups.map((group) => (isGroupExpanded(expanded, group.id) ? openGroup(group) : group))
+export function expandGroups<T>(groups: GridGroup<T>[], expansion: GroupExpansion): GridGroup<T>[] {
+	return groups.map((group) => (isGroupExpanded(expansion, group.id) ? openGroup(group) : group))
 }
 
 /**
- * The expansion state with one group opened or closed. `true`, which opens
- * every group, first becomes an entry for each group in `ids`.
+ * The expansion state with one group opened or closed.
  *
- * @param ids - The id of every group, so an all-open state can close one.
  * @internal
  */
-export function toggleGroupExpanded(
-	expanded: ExpandedState,
-	id: string,
-	ids: readonly string[],
-): ExpandedState {
-	const open: Record<string, boolean> =
-		expanded === true ? Object.fromEntries(ids.map((each) => [each, true])) : expanded
-
-	if (!open[id]) return { ...open, [id]: true }
-
-	const { [id]: _closed, ...rest } = open
-
-	return rest
+export function toggleGroupExpanded(expansion: GroupExpansion, id: string): GroupExpansion {
+	return { open: expansion.open, toggled: toggleItem(expansion.toggled, id) }
 }

@@ -91,21 +91,6 @@ export function groupMembers<T>(
 }
 
 /**
- * The id of each group of `rows`, with no filter. The first toggle of an
- * all-open expansion takes an entry for each of them, so a group that a search
- * hides at that time stays open (see `toggleGroupExpanded`).
- *
- * @internal
- */
-export function allGroupIds<T>(
-	rows: readonly T[],
-	columnId: string,
-	read: (row: T) => unknown,
-): string[] {
-	return groupMembers(rows, null, read).keys.map((key) => `${columnId}:${key}`)
-}
-
-/**
  * Orders the {@link GroupMembers} by the sort, and builds the closed groups.
  * This is the part of {@link groupRows} that a sort change runs again.
  *
