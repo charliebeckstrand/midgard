@@ -8,7 +8,7 @@
 
 **Severity:** **high** means a reader sees wrong output on a common path. **medium** means a defect on one path, or an example that teaches wrong use. **low** means drift, dead code, or a small a11y gap.
 
-**Status:** *Open*, *In review* (a pull request is open), or *Resolved* (merged). Resolve each row against the pull request that closes it (CONVENTIONS §12.4).
+**Status:** *Open*, *In review* (a pull request is open), *Resolved* (merged), or *Declined* (the owner chose to leave the row as it is). Resolve each row against the pull request that closes it (CONVENTIONS §12.4).
 
 ## Summary
 
@@ -26,9 +26,9 @@ The rows cluster in three places. The Grid examples that pose as a server (R1 to
 
 | ID | Legacy | Where | Finding | Proposed change | Sev | Check | Status |
 |---|---|---|---|---|---|---|---|
-| K1 | E13 | `kit/api-entry.tsx:79-87` | The deprecation reason lives only in a tooltip on the "deprecated" `Badge`. The badge is a `<span>`, so keyboard users cannot reach the reason, and a tooltip does not show on touch. No prop in `ui` carries `@deprecated` today, so the gap is latent. | Render the reason inline and muted, after the badge. | low | R | Open |
-| K2 | B4 | `plugin/index.ts:108, 121, 125`; `plugin/component-events.ts:33` | `pages` and `docs` are native paths, and Vite gives posix ids and files. On Windows the transform filter and the `hotUpdate` tests never match, so no example gets its meta. | Pass both paths through `normalizePath` once. | low | L | Open |
-| K3 | A14 | `plugin/api.ts:217` | The extractor reads the props of the first call signature only, so an overloaded component shows its first overload. `ui` has no overloaded component today. | Read the props of each call signature, or of the declaration with a body. | low | R | Open |
+| K1 | E13 | `kit/api-entry.tsx:79-87` | The deprecation reason lives only in a tooltip on the "deprecated" `Badge`. The badge is a `<span>`, so keyboard users cannot reach the reason, and a tooltip does not show on touch. No prop in `ui` carries `@deprecated` today, so the gap is latent. | Render the reason inline and muted, after the badge. | low | R | Declined: latent |
+| K2 | B4 | `plugin/index.ts:108, 121, 125`; `plugin/component-events.ts:33` | `pages` and `docs` are native paths, and Vite gives posix ids and files. On Windows the transform filter and the `hotUpdate` tests never match, so no example gets its meta. | Pass both paths through `normalizePath` once. | low | L | Declined: latent |
+| K3 | A14 | `plugin/api.ts:217` | The extractor reads the props of the first call signature only, so an overloaded component shows its first overload. `ui` has no overloaded component today. | Read the props of each call signature, or of the declaration with a body. | low | R | Declined: latent |
 
 ## 2. Behavior
 
