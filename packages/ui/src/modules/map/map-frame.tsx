@@ -6,6 +6,7 @@ import { k as chart } from '../../recipes/kata/chart'
 import { k } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types'
 import { noop } from '../../utilities'
+import { legendBandRow } from '../chart/engine/chart-legend/band'
 import { legendAside } from '../chart/engine/chart-legend/schema'
 import { ChartPlotBox } from '../chart/engine/chart-plot-box'
 import { useMapZoomView } from './context'
@@ -100,12 +101,13 @@ export function MapFrame({
 					// rail. Below it they stack with the panel always under the map, so a
 					// left panel reverses the row instead of moving in the DOM. The stack
 					// stretches its children, because the plot reserves its height from
-					// its own width and a centered plot has no width to reserve from.
+					// its own width and a centered plot has no width to reserve from. The
+					// side is physical, so a left panel stays left in a right-to-left page.
 					<div
 						className={cn(
 							'flex flex-col @lg:items-center',
 							k.frame,
-							legendPlacement === 'left' ? '@lg:flex-row-reverse' : '@lg:flex-row',
+							legendBandRow(legendPlacement, 'lg'),
 						)}
 					>
 						{plot}
