@@ -1,6 +1,6 @@
 'use client'
 
-import { type FocusEvent, useEffect, useRef } from 'react'
+import { type FocusEvent, type KeyboardEvent, useEffect, useRef } from 'react'
 
 /**
  * The exit half of a navigable plot region, shared by the chart and map
@@ -22,13 +22,28 @@ export type PlotTabStop = {
 	 * then arms the next forward Tab to return here. The catch cedes the Tab on
 	 * any other exit: a Shift+Tab, or a click that moved focus elsewhere. It
 	 * therefore only ever reclaims a reader who is still where Escape left them.
+	 *
+	 * The step claims the press only when a readout is live, because only then
+	 * does Escape clear something. A readout is live while the cursor is live or
+	 * while the pointer holds one. With nothing to clear, the press reaches an
+	 * overlay around the plot, and that overlay closes on the first Escape.
+	 *
+	 * @param event - The Escape press on the region.
+	 * @param pointed - Whether the pointer holds a readout. A live cursor counts without it.
 	 */
-	exit: (region: HTMLElement) => void
+	leave: (event: KeyboardEvent<HTMLElement>, pointed: boolean) => void
 	/**
 	 * Clears the cursor when focus leaves the region for good. A blur that stays
 	 * inside it is not a real exit. A focus that never navigated (a click,
 	 * with the pointer owning the readout) leaves that readout untouched.
 	 */
+	onBlur: (event: FocusEvent<HTMLElement>) => void
+}
+
+/** The handlers a plot spreads onto its region to make it a navigable tab stop. @internal */
+export type PlotTabStopProps = {
+	tabIndex: 0
+	onKeyDown: (event: KeyboardEvent<HTMLElement>) => void
 	onBlur: (event: FocusEvent<HTMLElement>) => void
 }
 
@@ -47,7 +62,13 @@ export function usePlotTabStop(navigated: boolean, clear: () => void): PlotTabSt
 
 	useEffect(() => () => returnTab.current?.(), [])
 
-	const exit = (region: HTMLElement) => {
+	const leave = (event: KeyboardEvent<HTMLElement>, pointed: boolean) => {
+		if (navigated || pointed) event.preventDefault()
+
+		clear()
+
+		const region = event.currentTarget
+
 		const doc = region.ownerDocument
 
 		returnTab.current?.()
@@ -79,5 +100,5 @@ export function usePlotTabStop(navigated: boolean, clear: () => void): PlotTabSt
 		if (navigated) clear()
 	}
 
-	return { exit, onBlur }
+	return { leave, onBlur }
 }

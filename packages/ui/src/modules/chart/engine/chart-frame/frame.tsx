@@ -13,6 +13,7 @@ import {
 } from 'react'
 import { announce, cn } from '../../../../core'
 import { type FrameReserve, useComposedRef } from '../../../../hooks'
+import type { PlotTabStopProps } from '../../../../hooks/use-plot-tab-stop'
 import { k } from '../../../../recipes/kata/chart'
 import type { AccessibleName } from '../../../../types'
 import { holdTextSelection } from '../../../../utilities/hold-text-selection'
@@ -44,11 +45,7 @@ import {
 	sameMark,
 } from '../context'
 import type { ChartReadoutSource } from '../types'
-import {
-	type ChartFocusTargets,
-	type ChartKeyboardProps,
-	useChartKeyboard,
-} from '../use-chart-keyboard'
+import { type ChartFocusTargets, useChartKeyboard } from '../use-chart-keyboard'
 
 /** The stable no-op the keyboard takes when its stops name no single series. @internal */
 function ignoreActiveSeries(_series: number | null): void {}
@@ -126,7 +123,7 @@ export function plotName(label: PlotName): PlotName {
  *
  * @internal
  */
-function plotRegionProps(keyboard: ChartKeyboardProps | null, aside: boolean, fill: boolean) {
+function plotRegionProps(keyboard: PlotTabStopProps | null, aside: boolean, fill: boolean) {
 	return {
 		...keyboard,
 		className: cn(
