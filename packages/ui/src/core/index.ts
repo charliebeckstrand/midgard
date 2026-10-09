@@ -18,6 +18,7 @@ export {
 	type ScaleStep,
 	snapToScale,
 } from './density'
+export { downloadBlob } from './download-blob'
 export { invalidAttrs } from './invalid-attrs'
 export { querySlot } from './query-slot'
 export { type Severity, type ValidationAttrs, validationAttrs } from './validation-attrs'
