@@ -382,4 +382,12 @@ export const space = {
 			y: '[&:is([data-variant]>*)]:py-px',
 		},
 	},
+	lightbox: {
+		/**
+		 * The block space around a photo with controls: the edge, the height of a
+		 * button, and the gap between the button and the photo. The edge and the
+		 * gap are 16 px each.
+		 */
+		frame: 'density-py-[14.5,16,17.5,19,20.5]',
+	},
 } as const

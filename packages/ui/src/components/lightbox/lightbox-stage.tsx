@@ -2,7 +2,15 @@
 
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { PresenceContext, usePresence } from 'motion/react'
-import { type KeyboardEvent, use, useEffectEvent, useLayoutEffect, useRef } from 'react'
+import {
+	type CSSProperties,
+	type KeyboardEvent,
+	use,
+	useEffectEvent,
+	useLayoutEffect,
+	useRef,
+} from 'react'
+import { cn } from '../../core'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/lightbox'
@@ -30,6 +38,29 @@ export type LightboxStageProps = {
 	/** Called when the photo lands in its thumbnail after a close. */
 	onReturn: () => void
 	labels: LightboxLabels
+	/** Whether the viewer shows its close button. */
+	closable: boolean
+	/** Whether the viewer shows the previous button, the count, and the next button. */
+	controls: boolean
+}
+
+/**
+ * The box of the photo in the center, for the controls. The photo shrinks to
+ * fit the slot and keeps its aspect ratio, so its height is the least of its
+ * own height, the height of the slot, and the width of the slot at its ratio.
+ * The layer of the controls is a size container with the space of a slot, so
+ * `cqw` and `cqh` give the box of the slot. The edge is one gap past the photo,
+ * from the center of the layer, and the end is the end of the photo.
+ */
+function controlsFrame(photo: LightboxPhoto): CSSProperties {
+	const ratio = `${photo.height} / ${photo.width}`
+
+	const height = `min(${photo.height}px, 100cqh, 100cqw * ${ratio})`
+
+	return {
+		'--lightbox-edge': `calc(50% + ${height} / 2 + var(--spacing) * 4)`,
+		'--lightbox-end': `calc(50% - ${height} / (${ratio}) / 2)`,
+	} as CSSProperties
 }
 
 /** The slots of the track: the photo in the center and each photo next to it. */
@@ -56,7 +87,14 @@ function slotsAround(index: number, photos: readonly LightboxPhoto[]) {
  *
  * @internal
  */
-export function LightboxStage({ index, onIndexChange, onReturn, labels }: LightboxStageProps) {
+export function LightboxStage({
+	index,
+	onIndexChange,
+	onReturn,
+	labels,
+	closable,
+	controls,
+}: LightboxStageProps) {
 	const { photos, thumbnail } = useLightboxContext()
 
 	const [isPresent, safeToRemove] = usePresence()
@@ -73,6 +111,14 @@ export function LightboxStage({ index, onIndexChange, onReturn, labels }: Lightb
 
 	const close = () => onIndexChange(null)
 
+	// The scrim and the controls, which a swipe up or down fades.
+	const backdropRef = useRef<HTMLDivElement>(null)
+
+	const controlsRef = useRef<HTMLDivElement>(null)
+
+	// The transform that a swipe up or down left the photo at, where the return starts.
+	const dismissedFrom = useRef<string | undefined>(undefined)
+
 	const track = useLightboxTrack(trackRef, {
 		index,
 		count: photos.length,
@@ -81,6 +127,12 @@ export function LightboxStage({ index, onIndexChange, onReturn, labels }: Lightb
 		onTap: (event) => {
 			if (!(event.target instanceof HTMLImageElement)) close()
 		},
+		onDismiss: (transform) => {
+			dismissedFrom.current = transform
+
+			close()
+		},
+		dimmed: () => [backdropRef.current, controlsRef.current],
 	})
 
 	// Whether the photo is in its thumbnail, or on its way back to it. The photo
@@ -94,6 +146,12 @@ export function LightboxStage({ index, onIndexChange, onReturn, labels }: Lightb
 
 			leaving.current = false
 
+			dismissedFrom.current = undefined
+
+			for (const element of [backdropRef.current, controlsRef.current]) {
+				if (element) element.style.opacity = ''
+			}
+
 			return
 		}
 
@@ -101,7 +159,7 @@ export function LightboxStage({ index, onIndexChange, onReturn, labels }: Lightb
 
 		track.halt()
 
-		flight.lower(thumbnail(index)).then(() => {
+		flight.lower(thumbnail(index), dismissedFrom.current).then(() => {
 			if (!leaving.current) return
 
 			onReturn()
@@ -126,6 +184,13 @@ export function LightboxStage({ index, onIndexChange, onReturn, labels }: Lightb
 
 	const count = photos.length
 
+	const bar = controls && count > 1
+
+	// A tall photo leaves room above and below it for the controls that show.
+	const frame = cn(k.frame.base, closable || bar ? k.frame.controls : k.frame.bare)
+
+	const current = photos[index]
+
 	return (
 		<div
 			data-slot="lightbox"
@@ -135,12 +200,14 @@ export function LightboxStage({ index, onIndexChange, onReturn, labels }: Lightb
 			onKeyDown={handleKeyDown}
 			className="absolute inset-0"
 		>
-			<m.div
-				{...k.motion.scrim}
-				data-slot="lightbox-backdrop"
-				aria-hidden="true"
-				className={k.backdrop}
-			/>
+			<div ref={backdropRef} className={k.dim}>
+				<m.div
+					{...k.motion.scrim}
+					data-slot="lightbox-backdrop"
+					aria-hidden="true"
+					className={k.backdrop}
+				/>
+			</div>
 			{/* The stage takes only the pointer. Escape, the close button, and the
 			    arrow keys give each of its actions to the keyboard. */}
 			<div data-slot="lightbox-stage" {...track.handlers} className={k.stage}>
@@ -154,7 +221,7 @@ export function LightboxStage({ index, onIndexChange, onReturn, labels }: Lightb
 								data-offset={offset}
 								aria-hidden={offset === 0 ? undefined : true}
 								inert={offset !== 0}
-								className={k.slot}
+								className={cn(k.slot, frame)}
 								// One slot width and one gap for each place from the center.
 								style={{ insetInlineStart: `calc(${offset} * (100% + var(--spacing) * 4))` }}
 							>
@@ -175,42 +242,51 @@ export function LightboxStage({ index, onIndexChange, onReturn, labels }: Lightb
 					})}
 				</div>
 			</div>
-			<m.div {...k.motion.scrim} className="contents">
-				<Button
-					type="button"
-					variant="soft"
-					aria-label={labels.close}
-					onClick={close}
-					className={k.close}
+			<div ref={controlsRef} className={k.dim}>
+				<m.div
+					{...k.motion.scrim}
+					data-slot="lightbox-controls"
+					className={cn(k.controls, frame)}
+					style={current && controlsFrame(current)}
 				>
-					<Icon icon={<X />} />
-				</Button>
-				{count > 1 && (
-					<div className={k.bar}>
-						<Button
-							type="button"
-							variant="soft"
-							aria-label={labels.previous}
-							disabled={index === 0}
-							onClick={() => track.step(-1)}
-						>
-							<Icon icon={<ChevronLeft />} className="rtl:-scale-x-100" />
-						</Button>
-						<span aria-live="polite" className={k.count}>
-							{index + 1} / {count}
-						</span>
-						<Button
-							type="button"
-							variant="soft"
-							aria-label={labels.next}
-							disabled={index === count - 1}
-							onClick={() => track.step(1)}
-						>
-							<Icon icon={<ChevronRight />} className="rtl:-scale-x-100" />
-						</Button>
-					</div>
-				)}
-			</m.div>
+					{/* With no `closable`, the button shows only when it has the
+					    keyboard focus, so a screen reader and a keyboard always have a
+					    way out. */}
+					<Button
+						type="button"
+						aria-label={labels.close}
+						onClick={close}
+						className={cn(closable ? k.close.shown : k.close.hidden)}
+					>
+						<Icon icon={<X />} />
+					</Button>
+					{bar && (
+						<div className={cn(k.bar)}>
+							<Button
+								type="button"
+								variant={index === 0 ? 'soft' : 'solid'}
+								aria-label={labels.previous}
+								disabled={index === 0}
+								onClick={() => track.step(-1)}
+							>
+								<Icon icon={<ChevronLeft />} className="rtl:-scale-x-100" />
+							</Button>
+							<span aria-live="polite" className={k.count}>
+								{index + 1} / {count}
+							</span>
+							<Button
+								type="button"
+								variant={index === count - 1 ? 'soft' : 'solid'}
+								aria-label={labels.next}
+								disabled={index === count - 1}
+								onClick={() => track.step(1)}
+							>
+								<Icon icon={<ChevronRight />} className="rtl:-scale-x-100" />
+							</Button>
+						</div>
+					)}
+				</m.div>
+			</div>
 		</div>
 	)
 }

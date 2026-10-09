@@ -1,6 +1,8 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { holdDragCursor, useDragCursor, useDragCursorHold } from '../../hooks/use-drag-cursor'
+import { NO_CURSOR_QUERY } from '../../utilities/media-query'
+import { stubMatchMedia } from '../helpers'
 
 const rule = () => document.head.querySelector<HTMLStyleElement>('style[data-drag-cursor]')
 
@@ -119,5 +121,23 @@ describe('useDragCursorHold', () => {
 		unmount()
 
 		expect(rule()).toBeNull()
+	})
+
+	it('holds nothing on a device that shows no cursor', () => {
+		stubMatchMedia((query) => query === NO_CURSOR_QUERY)
+
+		const release = holdDragCursor()
+
+		const { result, unmount } = renderHook(() => useDragCursorHold())
+
+		result.current.start()
+
+		expect(rule()).toBeNull()
+
+		release()
+
+		result.current.end()
+
+		unmount()
 	})
 })

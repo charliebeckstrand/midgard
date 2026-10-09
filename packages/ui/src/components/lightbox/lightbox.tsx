@@ -20,6 +20,20 @@ export type LightboxProps = {
 	defaultIndex?: number
 	/** Fires with the index of the photo that the viewer shows, or `null` when it closes. */
 	onIndexChange?: (index: number | null) => void
+	/**
+	 * Shows a close button, one gap above the photo. Without it, Escape, a press
+	 * outside the photo, and a swipe up or down close the viewer, and the close
+	 * button shows only when it has the keyboard focus.
+	 * @defaultValue false
+	 */
+	closable?: boolean
+	/**
+	 * Shows the previous button, the count, and the next button, one gap below
+	 * the photo, when there is more than one photo. Without them, the arrow keys
+	 * and a swipe still step.
+	 * @defaultValue true
+	 */
+	controls?: boolean
 	/** The accessible name of the viewer. @defaultValue 'Photos' */
 	'aria-label'?: string
 	/** The accessible name of the close button. @defaultValue 'Close' */
@@ -69,6 +83,8 @@ export function Lightbox({
 	index: indexProp,
 	defaultIndex,
 	onIndexChange,
+	closable = false,
+	controls = true,
 	'aria-label': ariaLabel = 'Photos',
 	closeLabel = 'Close',
 	previousLabel = 'Previous photo',
@@ -122,6 +138,8 @@ export function Lightbox({
 						index={shown}
 						onIndexChange={setIndex}
 						onReturn={() => setShown(null)}
+						closable={closable}
+						controls={controls}
 						labels={{
 							viewer: ariaLabel,
 							close: closeLabel,

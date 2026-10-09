@@ -216,6 +216,7 @@ export const overlays: readonly Case[] = [
 					{ src: '/c.jpg', alt: 'Field of poppies', width: 1200, height: 1200 },
 				]}
 				defaultIndex={1}
+				closable
 			>
 				<LightboxTrigger index={0} />
 				<LightboxTrigger index={1} />
