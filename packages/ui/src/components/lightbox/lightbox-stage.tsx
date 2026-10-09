@@ -118,9 +118,6 @@ export function LightboxStage({
 
 	const stageRef = useRef<HTMLDivElement>(null)
 
-	// The transform that a swipe to close left the photo at, where the return starts.
-	const dismissedFrom = useRef<string | undefined>(undefined)
-
 	const track = useLightboxTrack(trackRef, {
 		index,
 		count: photos.length,
@@ -129,11 +126,7 @@ export function LightboxStage({
 		onTap: (event) => {
 			if (!(event.target instanceof HTMLImageElement)) close()
 		},
-		onDismiss: (transform) => {
-			dismissedFrom.current = transform
-
-			close()
-		},
+		onDismiss: close,
 		dimmed: () => [backdropRef.current, controlsRef.current],
 	})
 
@@ -147,8 +140,6 @@ export function LightboxStage({
 			if (leaving.current) flight.raise(thumbnail(index))
 
 			leaving.current = false
-
-			dismissedFrom.current = undefined
 
 			stageRef.current?.toggleAttribute('data-raised', false)
 
@@ -166,7 +157,7 @@ export function LightboxStage({
 		// The photo goes back to its thumbnail over the controls.
 		stageRef.current?.toggleAttribute('data-raised', true)
 
-		flight.lower(thumbnail(index), dismissedFrom.current).then(() => {
+		flight.lower(thumbnail(index)).then(() => {
 			if (!leaving.current) return
 
 			onReturn()
@@ -197,6 +188,22 @@ export function LightboxStage({
 	const frame = cn(k.frame.base, closable || bar ? k.frame.controls : k.frame.bare)
 
 	const current = photos[index]
+
+	const previousRef = useRef<HTMLButtonElement>(null)
+
+	const nextRef = useRef<HTMLButtonElement>(null)
+
+	// A step to the first or the last photo disables the button that the reader
+	// pressed, and a disabled button drops the focus. The focus thus goes to the
+	// other step button first, so the keyboard keeps its place in the viewer.
+	const stepBy = (step: -1 | 1) => {
+		const to = index + step
+
+		if (to === 0) nextRef.current?.focus()
+		else if (to === count - 1) previousRef.current?.focus()
+
+		track.step(step)
+	}
 
 	return (
 		<div
@@ -271,10 +278,11 @@ export function LightboxStage({
 						<div className={cn(k.bar)}>
 							<Button
 								type="button"
+								ref={previousRef}
 								variant={index === 0 ? 'soft' : 'solid'}
 								aria-label={labels.previous}
 								disabled={index === 0}
-								onClick={() => track.step(-1)}
+								onClick={() => stepBy(-1)}
 							>
 								<Icon icon={<ChevronLeft />} className="rtl:-scale-x-100" />
 							</Button>
@@ -283,10 +291,11 @@ export function LightboxStage({
 							</span>
 							<Button
 								type="button"
+								ref={nextRef}
 								variant={index === count - 1 ? 'soft' : 'solid'}
 								aria-label={labels.next}
 								disabled={index === count - 1}
-								onClick={() => track.step(1)}
+								onClick={() => stepBy(1)}
 							>
 								<Icon icon={<ChevronRight />} className="rtl:-scale-x-100" />
 							</Button>

@@ -4,25 +4,30 @@ import { dismisses, dismissFrame, swipeStep } from '../../components/lightbox/li
 
 describe('swipeStep', () => {
 	it('steps forward on a far swipe to the left, and back on a far swipe to the right', () => {
-		expect(swipeStep(-120, 0, 400, false)).toBe(1)
+		expect(swipeStep(-120, -120, 0, 400, false)).toBe(1)
 
-		expect(swipeStep(120, 0, 400, false)).toBe(-1)
+		expect(swipeStep(120, 120, 0, 400, false)).toBe(-1)
 	})
 
 	it('steps on a short, fast flick, but not on a short, slow drag', () => {
-		expect(swipeStep(-30, -0.8, 400, false)).toBe(1)
+		expect(swipeStep(-30, -30, -0.8, 400, false)).toBe(1)
 
-		expect(swipeStep(-30, -0.1, 400, false)).toBe(0)
+		expect(swipeStep(-30, -30, -0.1, 400, false)).toBe(0)
 	})
 
 	it('does not step on a flick that turns back against the travel', () => {
-		expect(swipeStep(-30, 0.8, 400, false)).toBe(0)
+		expect(swipeStep(-30, -30, 0.8, 400, false)).toBe(0)
+	})
+
+	it('steps in the direction of a fast flick that caught the track during a slide', () => {
+		// The press caught the track 60px to the right of rest, and the finger flicks 40px to the left.
+		expect(swipeStep(20, -40, -0.8, 400, false)).toBe(1)
 	})
 
 	it('swaps the direction in a right-to-left stage', () => {
-		expect(swipeStep(-120, 0, 400, true)).toBe(-1)
+		expect(swipeStep(-120, -120, 0, 400, true)).toBe(-1)
 
-		expect(swipeStep(120, 0, 400, true)).toBe(1)
+		expect(swipeStep(120, 120, 0, 400, true)).toBe(1)
 	})
 })
 

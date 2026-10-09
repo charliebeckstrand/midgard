@@ -1,7 +1,7 @@
 'use client'
 
 import { type AnimationPlaybackControls, animate } from 'motion'
-import { type RefObject, useRef } from 'react'
+import type { RefObject } from 'react'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { k } from '../../recipes/kata/lightbox'
 import { noop } from '../../utilities/noop'
@@ -12,11 +12,10 @@ export type LightboxFlight = {
 	/** Raises the photo from `thumbnail` to its place on the stage. */
 	raise: (thumbnail: HTMLElement | undefined) => void
 	/**
-	 * Takes the photo back into `thumbnail`. It resolves when the photo lands.
-	 * `from` is the transform that a swipe holds the photo at, where the return
-	 * starts.
+	 * Takes the photo back into `thumbnail`, from the frame that it paints now.
+	 * It resolves when the photo lands.
 	 */
-	lower: (thumbnail: HTMLElement | undefined, from?: string) => Promise<void>
+	lower: (thumbnail: HTMLElement | undefined) => Promise<void>
 }
 
 /**
@@ -46,6 +45,19 @@ function targetBox(thumbnail: HTMLElement): LightboxBox | undefined {
 	return isFlightTarget(box, viewport) ? box : undefined
 }
 
+/**
+ * The frame that the photo paints now: in a raise, in a swipe, or at rest. The
+ * computed style includes the tween that runs.
+ */
+function paintedFrame(photo: HTMLElement): typeof RESTING_FRAME {
+	const { transform, clipPath } = getComputedStyle(photo)
+
+	return {
+		transform: transform === 'none' ? RESTING_FRAME.transform : transform,
+		clipPath: clipPath === 'none' ? RESTING_FRAME.clipPath : clipPath,
+	}
+}
+
 /** The corner radius of a thumbnail, in px. */
 function radiusOf(thumbnail: HTMLElement): number {
 	return Number.parseFloat(getComputedStyle(thumbnail).borderTopLeftRadius) || 0
@@ -58,8 +70,9 @@ function radiusOf(thumbnail: HTMLElement): number {
  * crop and the radius of the thumbnail (see `raisedFrame`). It then tweens
  * `transform` and `clip-path` to the photo at rest. The return plays the same
  * tween backward, from the frame that the photo paints at that time. So a close
- * during the raise turns the photo around where it is. Both values run in the
- * animation engine of the browser, off the main thread.
+ * during the raise, or while a finger holds the photo, turns the photo around
+ * where it is. Both values run in the animation engine of the browser, off the
+ * main thread.
  *
  * The photo rests at `transform: none`, and its clip stays at a zero inset. A
  * clip of `none` cannot tween to an inset, and a clip makes no containing
@@ -74,10 +87,6 @@ function radiusOf(thumbnail: HTMLElement): number {
  */
 export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): LightboxFlight {
 	const reduceMotion = usePrefersReducedMotion()
-
-	// The raise while it runs. Motion stops the tween that runs on a value when a
-	// new tween starts on it, so the return needs no stop of its own.
-	const rising = useRef<AnimationPlaybackControls | null>(null)
 
 	const landed = (controls: AnimationPlaybackControls): Promise<void> =>
 		controls.finished.then(noop)
@@ -111,7 +120,7 @@ export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): Ligh
 
 		photo.style.clipPath = frame.clipPath
 
-		const controls = animate(
+		animate(
 			photo,
 			{
 				transform: [frame.transform, RESTING_FRAME.transform],
@@ -120,15 +129,9 @@ export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): Ligh
 			},
 			k.motion.raise,
 		)
-
-		rising.current = controls
-
-		controls.finished.then(() => {
-			if (rising.current === controls) rising.current = null
-		})
 	}
 
-	const lower = (thumbnail: HTMLElement | undefined, from?: string) => {
+	const lower = (thumbnail: HTMLElement | undefined) => {
 		const photo = photoRef.current
 
 		if (!photo) return Promise.resolve()
@@ -137,20 +140,16 @@ export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): Ligh
 
 		if (!frame) return landed(animate(photo, { opacity: 0 }, k.motion.fade))
 
-		// A raise that still runs turns around where it is: with no start frame,
-		// Motion starts from the value that the photo paints now. A photo that a
-		// swipe holds starts where the swipe left it, and a photo at rest starts
-		// from rest.
-		const flying = rising.current
-
-		const start = from ?? RESTING_FRAME.transform
+		// Motion stops the tween that runs on a value when a new tween starts on
+		// it, so the return reads the painted frame first and needs no stop.
+		const start = paintedFrame(photo)
 
 		return landed(
 			animate(
 				photo,
 				{
-					transform: flying ? frame.transform : [start, frame.transform],
-					clipPath: flying ? frame.clipPath : [RESTING_FRAME.clipPath, frame.clipPath],
+					transform: [start.transform, frame.transform],
+					clipPath: [start.clipPath, frame.clipPath],
 				},
 				k.motion.raise,
 			),

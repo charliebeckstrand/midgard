@@ -87,26 +87,38 @@ export const SWIPE_EDGE_RESISTANCE = 0.3
 
 /**
  * The step that a swipe ends with: `1` to the photo after, `-1` to the photo
- * before, or `0` to stay. A swipe steps when it travels past
- * {@link SWIPE_DISTANCE} of the stage, or when it moves faster than
- * {@link SWIPE_SPEED} at its end. A swipe toward the start of the line steps
- * forward, so a right-to-left stage swaps the sign.
+ * before, or `0` to stay. A swipe steps when it moves faster than
+ * {@link SWIPE_SPEED} at its end, in the direction that the finger traveled,
+ * and it steps in that direction. Otherwise it steps when the track travels
+ * past {@link SWIPE_DISTANCE} of the stage, in the direction of that travel.
+ * A swipe toward the start of the line steps forward, so a right-to-left
+ * stage swaps the sign.
  *
- * @param travel - The horizontal travel of the swipe, in px. Positive is to the right.
+ * The travel of the track and the travel of the finger are the same, except
+ * when the press caught the track during a slide.
+ *
+ * @param travel - The horizontal travel of the track from rest, in px. Positive is to the right.
+ * @param push - The horizontal travel of the finger, in px.
  * @param speed - The horizontal speed at the end of the swipe, in px per ms.
  * @param width - The width of the stage.
  * @param rtl - Whether the stage lays out right to left.
  * @internal
  */
-export function swipeStep(travel: number, speed: number, width: number, rtl: boolean): -1 | 0 | 1 {
+export function swipeStep(
+	travel: number,
+	push: number,
+	speed: number,
+	width: number,
+	rtl: boolean,
+): -1 | 0 | 1 {
+	// A fast flick steps only in the direction that the finger travels.
+	const fast = Math.abs(speed) > SWIPE_SPEED && Math.sign(speed) === Math.sign(push)
+
 	const far = Math.abs(travel) > width * SWIPE_DISTANCE
 
-	// A fast flick steps only in the direction that it travels.
-	const fast = Math.abs(speed) > SWIPE_SPEED && Math.sign(speed) === Math.sign(travel)
+	if (!fast && !far) return 0
 
-	if (travel === 0 || (!far && !fast)) return 0
-
-	const forward = travel < 0 ? 1 : -1
+	const forward = (fast ? speed : travel) < 0 ? 1 : -1
 
 	return (rtl ? -forward : forward) as -1 | 1
 }
