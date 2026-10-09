@@ -2,11 +2,10 @@
 
 import { type RefObject, useMemo } from 'react'
 import { TooltipPointer } from '../../../components/tooltip/tooltip-pointer'
-import { cn } from '../../../core'
-import { ChartReadoutCard, ChartReadoutRow } from '../engine/chart-readout-card'
+import { ChartReadoutCard, ChartReadoutRow, ReadoutSwatch } from '../engine/chart-readout-card'
 import { readoutCell } from '../engine/chart-series'
 import { useChartHover } from '../engine/context'
-import { NO_DATA_FILL } from './heatmap-chart-cells'
+import { NO_DATA_TEXT } from './heatmap-chart-cells'
 
 /** Props for {@link HeatmapChartTooltip}: the plot it anchors in, and the labels and values a cell reads. @internal */
 type HeatmapChartTooltipProps = {
@@ -61,9 +60,10 @@ export function HeatmapChartTooltip({
 			<ChartReadoutCard title={columns[col]}>
 				<ChartReadoutRow
 					swatch={
-						<span
-							className={cn('size-2.5 shrink-0 rounded-xs', fill === null && NO_DATA_FILL)}
-							style={fill === null ? undefined : { backgroundColor: fill }}
+						<ReadoutSwatch
+							shape="rect"
+							className={fill === null ? NO_DATA_TEXT : undefined}
+							color={fill ?? undefined}
 						/>
 					}
 					value={readoutCell(values[row]?.[col], format)}
