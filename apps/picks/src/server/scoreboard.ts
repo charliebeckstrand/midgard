@@ -5,6 +5,9 @@ import { REGULAR_SEASON, readGames, readSchedule } from './espn-scoreboard'
 /** The scoreboard of the NFL in the public API of ESPN. It needs no key. */
 const SCOREBOARD = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard'
 
+/** The revalidate time of the `hours` cache life, in milliseconds. */
+const HOUR = 60 * 60 * 1000
+
 async function scoreboard(search: Record<string, string> = {}): Promise<unknown> {
 	const response = await fetch(`${SCOREBOARD}?${new URLSearchParams(search)}`)
 
@@ -36,7 +39,9 @@ export async function getSchedule(): Promise<Schedule> {
  *
  * @remarks
  * A week in play changes each minute, a week that is over does not change, and
- * a week to come changes only when a kickoff moves. The cache life follows.
+ * a week to come changes only when a kickoff moves. The cache life follows. A
+ * week with a kickoff within the hour, or past it, also takes the life of a
+ * week in play, so the live scores start at kickoff and not up to an hour late.
  */
 export async function getWeekGames(season: number, week: number): Promise<Game[]> {
 	'use cache'
@@ -45,7 +50,13 @@ export async function getWeekGames(season: number, week: number): Promise<Game[]
 		await scoreboard({ dates: String(season), seasontype: REGULAR_SEASON, week: String(week) }),
 	)
 
-	if (games.some((game) => game.state === 'live')) cacheLife('minutes')
+	const now = Date.now()
+
+	const kickoffSoon = games.some(
+		(game) => game.state === 'scheduled' && Date.parse(game.kickoff) - now < HOUR,
+	)
+
+	if (kickoffSoon || games.some((game) => game.state === 'live')) cacheLife('minutes')
 	else if (games.length > 0 && games.every((game) => game.state === 'final')) cacheLife('days')
 	else cacheLife('hours')
 
