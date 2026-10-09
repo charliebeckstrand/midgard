@@ -8,6 +8,7 @@ import { useLocale } from '../../providers/locale'
 import { isComposing } from '../../utilities'
 import { isDayInRange } from '../calendar/calendar-utilities'
 import { useControl } from '../control/context'
+import { useControlLabelRef } from '../control/use-control-label-ref'
 import { useControlTypedVerdict } from '../control/use-control-typed-verdict'
 import type { CardValidity } from '../credit-card-input/credit-card-input-utilities'
 import { useFormValue } from '../form/use-form-value'
@@ -182,9 +183,9 @@ export function DateInput({
 
 	const text = editingText ?? (date === undefined ? '' : formatDateValue(date, format))
 
+	const labelled = useControlLabelRef('Date', ref)
+
 	const verdict = useControlTypedVerdict({
-		fallbackLabel: 'Date',
-		ref,
 		describedBy: ariaDescribedBy,
 		// Resolved eagerly though only an invalid verdict shows it: gating it buys
 		// one skipped parse of a ≤10-character text.
@@ -230,7 +231,7 @@ export function DateInput({
 	const { ref: setRefs, reformat } = useFormattedInput({
 		format: (raw) => maskDateText(raw, format),
 		atEnd: 'jump',
-		ref: verdict.ref,
+		ref: labelled.ref,
 	})
 
 	// The rule of Input for its clear button. Any text counts, also a partial
@@ -261,8 +262,8 @@ export function DateInput({
 				inputMode="numeric"
 				// The placeholder is not a programmatic name (WCAG 3.3.2 / 4.1.2);
 				// defaults an aria-label, yielding to a Field <Label> from the first
-				// render and to a native label after each commit (useControlTypedVerdict).
-				aria-label={ariaLabel ?? verdict.fallbackLabel}
+				// render and to a native label after each commit (useControlLabelRef).
+				aria-label={ariaLabel ?? labelled.fallbackLabel}
 				placeholder={placeholder ?? format}
 				autoComplete="off"
 				disabled={disabled}

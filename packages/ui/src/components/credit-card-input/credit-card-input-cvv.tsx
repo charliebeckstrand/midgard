@@ -1,14 +1,10 @@
 'use client'
 
 import { useEffect, useEffectEvent, useRef } from 'react'
-import { composeEventHandlers } from '../../core'
-import { useComposedRef } from '../../hooks'
-import { isDecimalDigit } from '../../utilities/caret'
-import { useControlFallbackLabel } from '../control/use-control-fallback-label'
 import { Input, type InputProps } from '../input'
-import { useMaskInput } from '../mask-input/use-mask-input'
 import { type CardValidity, formatCvv, validateCardCvv } from './credit-card-input-utilities'
 import type { CreditCardBrand } from './types'
+import { useCreditCardInputField } from './use-credit-card-input-field'
 
 /**
  * Props for {@link CreditCardInputCvv}; extends Input minus the masked value and
@@ -66,30 +62,24 @@ export function CreditCardInputCvv({
 	'aria-label': ariaLabel,
 	...props
 }: CreditCardInputCvvProps) {
-	// The fallback reads the labels of the input after each commit, so a native
-	// label outside a Field also turns it off.
-	const inputRef = useRef<HTMLInputElement>(null)
-
-	const fallbackLabel = useControlFallbackLabel('Security code', inputRef)
-
-	const composedRef = useComposedRef(ref, inputRef)
-
 	const maxLength = resolveCvvLength(brand)
 
 	const {
-		ref: maskedRef,
-		value: maskedValue,
-		setValue: setMaskedValue,
-		onChange: onMaskedChange,
-		onBlur: onMaskedBlur,
-	} = useMaskInput({
+		ref: fieldRef,
+		value: fieldValue,
+		setValue: setFieldValue,
+		onChange: onFieldChange,
+		onBlur: onFieldBlur,
+		fallbackLabel,
+	} = useCreditCardInputField({
+		fallbackLabel: 'Security code',
+		ref,
 		name,
 		value,
 		defaultValue,
-		onChange: onValueChange,
+		onValueChange,
 		format: (raw) => formatCvv(raw, maxLength),
-		meaningful: isDecimalDigit,
-		ref: composedRef,
+		onBlur,
 	})
 
 	// Re-fits the stored value to a new length, and reports validity. An effect
@@ -99,11 +89,11 @@ export function CreditCardInputCvv({
 		// The mask formats a controlled value on read, so `maskedValue` already
 		// fits the new length. Compare the cap with the value that the parent
 		// holds, so that `onValueChange` tells the parent about the truncation.
-		const held = typeof value === 'string' ? value : maskedValue
+		const held = typeof value === 'string' ? value : fieldValue
 
 		const truncated = formatCvv(held, length)
 
-		if (truncated !== held) setMaskedValue(truncated)
+		if (truncated !== held) setFieldValue(truncated)
 
 		onValidityChange?.(validateCardCvv(truncated, nextBrand))
 	})
@@ -127,7 +117,7 @@ export function CreditCardInputCvv({
 
 	return (
 		<Input
-			ref={maskedRef}
+			ref={fieldRef}
 			data-slot="credit-card-input-cvv"
 			type="text"
 			inputMode="numeric"
@@ -135,21 +125,19 @@ export function CreditCardInputCvv({
 			// The placeholder is not a programmatic name (WCAG 3.3.2 / 4.1.2);
 			// defaults an aria-label, yielding to a Field <Label> from the first
 			// render and to a native label after each commit
-			// (useControlFallbackLabel).
+			// (useControlLabelRef).
 			aria-label={ariaLabel ?? fallbackLabel}
 			maxLength={maxLength}
 			placeholder={placeholder ?? (maxLength === 4 ? '1234' : '123')}
 			name={name}
-			value={maskedValue}
+			value={fieldValue}
 			{...props}
 			// The masking wiring sits after the spread, so a stray `onChange`
 			// does not replace it. The touched mark runs whatever the caller
 			// does (CONVENTIONS.md §3.9).
-			onBlur={composeEventHandlers(onBlur, () => onMaskedBlur(), {
-				checkForDefaultPrevented: false,
-			})}
+			onBlur={onFieldBlur}
 			onChange={(event) => {
-				onMaskedChange(event)
+				onFieldChange(event)
 
 				// The verdict reads the masked text that the field shows, not the raw
 				// text, which can hold digits that the mask changes to ASCII.
