@@ -4,6 +4,7 @@ import { type ChangeEvent, type ComponentProps, type ReactNode, useRef, useState
 import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { useComposedRef } from '../../hooks'
+import { useFormResetSync } from '../../hooks/use-form-reset-sync'
 import type { scale } from '../../recipes/kata/input'
 import { type InputVariants, k } from '../../recipes/kata/input'
 import type { GroupStampProps } from '../../types/group-stamp'
@@ -62,7 +63,8 @@ export type InputProps = GroupStampProps &
  * `invalid` OR's the prop, the bound field, and any ambient Control error.
  * Under headless context the affix frame and recipe classes are all skipped.
  * The clear button of `clearable` comes before the `suffix`. It keeps the focus
- * in the input, and it does not show under headless context.
+ * in the input, and it does not show under headless context. On an uncontrolled
+ * input, it follows a native form reset.
  * @see {@link InputFrame}
  */
 export function Input({
@@ -115,7 +117,13 @@ export function Input({
 	// follows each edit to know when the input is empty.
 	const [ownFilled, setOwnFilled] = useState(() => `${defaultValue ?? ''}` !== '')
 
-	const filled = field.attrs.value === undefined ? ownFilled : `${field.attrs.value}` !== ''
+	const uncontrolled = field.attrs.value === undefined
+
+	const filled = uncontrolled ? ownFilled : `${field.attrs.value}` !== ''
+
+	// A native form reset reverts the uncontrolled input without firing onChange,
+	// so the clear button reads the reverted value.
+	useFormResetSync(inputRef, clearable && uncontrolled, (input) => setOwnFilled(input.value !== ''))
 
 	const handleChange = clearable
 		? (event: ChangeEvent<HTMLInputElement>) => {

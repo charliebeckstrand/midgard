@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Form } from '../../components/form'
 import { Input } from '../../components/input'
-import { bySlot, getSlot, renderUI, screen, setupUser } from '../helpers'
+import { act, bySlot, getSlot, renderUI, screen, setupUser } from '../helpers'
 
 describe('Input', () => {
 	it('renders an input with data-slot="input"', () => {
@@ -168,6 +168,54 @@ describe('Input defaultValue under a binding (§7.2)', () => {
 			expect(getSlot(container, 'input')).toHaveValue('')
 
 			expect(screen.queryByRole('button', { name: 'Clear' })).not.toBeInTheDocument()
+		})
+
+		it('hides the clear button when a native form reset empties the input', async () => {
+			const user = setupUser()
+
+			const { container } = renderUI(
+				<form>
+					<Input clearable aria-label="Photo" />
+					<button type="reset">Reset</button>
+				</form>,
+			)
+
+			await user.type(getSlot(container, 'input'), 'abc')
+
+			expect(screen.getByRole('button', { name: 'Clear' })).toBeInTheDocument()
+
+			await user.click(screen.getByRole('button', { name: 'Reset' }))
+
+			// The browser reverts the input after the event, and the input reads it
+			// on the next frame.
+			await act(() => new Promise(requestAnimationFrame))
+
+			expect(getSlot(container, 'input')).toHaveValue('')
+
+			expect(screen.queryByRole('button', { name: 'Clear' })).not.toBeInTheDocument()
+		})
+
+		it('shows the clear button again when a native form reset restores defaultValue', async () => {
+			const user = setupUser()
+
+			const { container } = renderUI(
+				<form>
+					<Input clearable defaultValue="seed" aria-label="Photo" />
+					<button type="reset">Reset</button>
+				</form>,
+			)
+
+			await user.click(screen.getByRole('button', { name: 'Clear' }))
+
+			expect(screen.queryByRole('button', { name: 'Clear' })).not.toBeInTheDocument()
+
+			await user.click(screen.getByRole('button', { name: 'Reset' }))
+
+			await act(() => new Promise(requestAnimationFrame))
+
+			expect(getSlot(container, 'input')).toHaveValue('seed')
+
+			expect(screen.getByRole('button', { name: 'Clear' })).toBeInTheDocument()
 		})
 
 		it('puts the clear button before the suffix', () => {

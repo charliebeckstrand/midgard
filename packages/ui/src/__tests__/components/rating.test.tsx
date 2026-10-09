@@ -4,7 +4,7 @@ import { Description, Field, Label } from '../../components/fieldset'
 import { Form } from '../../components/form'
 import { useFormState } from '../../components/form/context'
 import { Rating, RatingSkeleton } from '../../components/rating'
-import { allBySlot, bySlot, renderUI, screen, setupUser } from '../helpers'
+import { act, allBySlot, bySlot, fireEvent, renderUI, screen, setupUser } from '../helpers'
 
 /** The stars' own radios, in draw order. */
 function stars(container: HTMLElement): HTMLInputElement[] {
@@ -457,5 +457,49 @@ describe('RatingSkeleton', () => {
 		])
 
 		expect(container.children).toHaveLength(1)
+	})
+})
+
+describe('Rating native form reset', () => {
+	it('returns an uncontrolled rating to defaultValue', async () => {
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(
+			<form>
+				<Rating aria-label="Score" defaultValue={2} onValueChange={onValueChange} />
+				<button type="reset">Reset</button>
+			</form>,
+		)
+
+		fireEvent.click(stars(container)[3] as HTMLInputElement)
+
+		expect(allBySlot(container, 'rating-fill')).toHaveLength(4)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Reset' }))
+
+		await act(() => new Promise(requestAnimationFrame))
+
+		expect(stars(container).map((star) => star.checked)).toEqual([false, true, false, false, false])
+
+		expect(allBySlot(container, 'rating-fill')).toHaveLength(2)
+
+		expect(onValueChange).toHaveBeenLastCalledWith(2)
+	})
+
+	it('keeps the score when a Form cancels the native reset', async () => {
+		const { container } = renderUI(
+			<Form defaultValues={{}}>
+				<Rating aria-label="Score" defaultValue={2} />
+				<button type="reset">Reset</button>
+			</Form>,
+		)
+
+		fireEvent.click(stars(container)[3] as HTMLInputElement)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Reset' }))
+
+		await act(() => new Promise(requestAnimationFrame))
+
+		expect(allBySlot(container, 'rating-fill')).toHaveLength(4)
 	})
 })
