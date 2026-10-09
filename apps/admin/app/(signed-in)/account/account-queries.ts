@@ -19,6 +19,8 @@ import {
 	unlinkIdentity,
 } from './account-api'
 
+// Each mutation sets `inlineError`, because the page shows its error in place.
+
 /**
  * The query keys, in one place. A reader and a writer name the same entry, and
  * an update that spelled a key a second way would change nothing.
@@ -58,6 +60,7 @@ export function useAddPasskey() {
 	const client = useQueryClient()
 
 	return useMutation({
+		meta: { inlineError: true },
 		mutationFn: addPasskey,
 		onSuccess: (added) => {
 			client.setQueryData<Passkey[]>(accountKeys.passkeys, (passkeys) => [
@@ -75,6 +78,7 @@ export function useRemovePasskey() {
 	const client = useQueryClient()
 
 	return useMutation({
+		meta: { inlineError: true },
 		mutationFn: removePasskey,
 		onSuccess: (_, id) => {
 			client.setQueryData<Passkey[]>(accountKeys.passkeys, (passkeys) =>
@@ -88,12 +92,12 @@ export function useRemovePasskey() {
 
 /** Emails the signed-in user a new link that verifies the email. */
 export function useSendVerificationEmail() {
-	return useMutation({ mutationFn: sendVerificationEmail })
+	return useMutation({ mutationFn: sendVerificationEmail, meta: { inlineError: true } })
 }
 
 /** Starts adding an authenticator app. The caller keeps the secret it returns. */
 export function useStartTotpSetup() {
-	return useMutation({ mutationFn: startTotpSetup })
+	return useMutation({ mutationFn: startTotpSetup, meta: { inlineError: true } })
 }
 
 /** Turns on the authenticator app, and refetches the factors. */
@@ -101,6 +105,7 @@ export function useConfirmTotp() {
 	const client = useQueryClient()
 
 	return useMutation({
+		meta: { inlineError: true },
 		mutationFn: confirmTotp,
 		onSuccess: () => client.invalidateQueries({ queryKey: accountKeys.factors }),
 	})
@@ -111,6 +116,7 @@ export function useRemoveTotp() {
 	const client = useQueryClient()
 
 	return useMutation({
+		meta: { inlineError: true },
 		mutationFn: removeTotp,
 		onSuccess: () => client.invalidateQueries({ queryKey: accountKeys.factors }),
 	})
@@ -121,6 +127,7 @@ export function useGenerateRecoveryCodes() {
 	const client = useQueryClient()
 
 	return useMutation({
+		meta: { inlineError: true },
 		mutationFn: generateRecoveryCodes,
 		onSuccess: () => client.invalidateQueries({ queryKey: accountKeys.factors }),
 	})
@@ -143,6 +150,7 @@ export function useUnlinkIdentity() {
 	const client = useQueryClient()
 
 	return useMutation({
+		meta: { inlineError: true },
 		mutationFn: unlinkIdentity,
 		onSuccess: (_, provider: Provider) => {
 			client.setQueryData<Identity[]>(accountKeys.identities, (identities) =>

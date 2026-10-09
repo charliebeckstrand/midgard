@@ -1,6 +1,12 @@
 'use client'
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+	mutationOptions,
+	type QueryClient,
+	useMutation,
+	useQuery,
+	useQueryClient,
+} from '@tanstack/react-query'
 import {
 	createPlace,
 	deletePlace,
@@ -10,7 +16,8 @@ import {
 	setVisit,
 } from '../api/places-api'
 import { flags } from '../flags'
-import type { Place, PlaceDraft, VisitScope, Visits } from '../types'
+import type { Place, PlaceDraft, Visit, VisitScope, Visits } from '../types'
+import { placeDraft } from '../utilities/places-visits'
 
 /**
  * The query keys, in one place. Both a reader and a writer name the places
@@ -60,32 +67,53 @@ export function useVisits(initial: Visits) {
 	})
 }
 
-/**
- * Marks one region visited or not. The route answers with both scopes, so the
- * cache takes what the store settled on rather than a copy patched here — which
- * is what makes the first write of a seeded file land whole.
- */
-export function useSetVisit() {
-	const client = useQueryClient()
+type VisitMark = { scope: VisitScope; region: string; visited: boolean }
 
-	return useMutation({
-		mutationFn: ({
-			scope,
-			region,
-			visited,
-		}: {
-			scope: VisitScope
-			region: string
-			visited: boolean
-		}) => setVisit(scope, region, visited),
+/**
+ * Marks one region visited or not. The cache takes the mark at once, so the
+ * toggle shows it on the press, and a second press reads the first one. A
+ * failure puts back the set from before the press.
+ *
+ * The route answers with both scopes, so the cache then takes what the store
+ * settled on rather than a copy patched here — which is what makes the first
+ * write of a seeded file land whole.
+ */
+export function setVisitMutation(client: QueryClient) {
+	return mutationOptions({
+		mutationFn: ({ scope, region, visited }: VisitMark) => setVisit(scope, region, visited),
+		onMutate: async ({ scope, region, visited }: VisitMark) => {
+			// A refetch that lands after the mark would overwrite it.
+			await client.cancelQueries({ queryKey: placesKeys.visits })
+
+			const before = client.getQueryData<Visits>(placesKeys.visits)
+
+			if (before !== undefined) {
+				const others = before[scope].filter((held) => held !== region)
+
+				client.setQueryData<Visits>(placesKeys.visits, {
+					...before,
+					[scope]: visited ? [...others, region] : others,
+				})
+			}
+
+			return { before }
+		},
+		onError: (_error, _mark, context) => {
+			if (context?.before !== undefined) client.setQueryData(placesKeys.visits, context.before)
+		},
 		onSuccess: (visits) => {
 			client.setQueryData<Visits>(placesKeys.visits, visits)
 		},
 	})
 }
 
+/** {@link setVisitMutation} on the client of the app. */
+export function useSetVisit() {
+	return useMutation(setVisitMutation(useQueryClient()))
+}
+
 /**
- * Adds a place and puts it straight into the cached list, so the new point is on
+ * Adds a place from the form, and puts it straight into the cached list, so the new point is on
  * the map by the time the drawer closes.
  *
  * No refetch behind it: the route answers with the stored record, so the cache
@@ -99,6 +127,8 @@ export function useAddPlace() {
 
 	return useMutation({
 		mutationFn: (draft: PlaceDraft) => createPlace(draft),
+		// The form shows the error.
+		meta: { inlineError: true },
 		onSuccess: (place) => {
 			client.setQueryData<Place[]>(placesKeys.all, (places) => [place, ...(places ?? [])])
 		},
@@ -106,7 +136,7 @@ export function useAddPlace() {
 }
 
 /**
- * Replaces a place and writes the stored record straight into the cached list,
+ * Replaces a place from the form, and writes the stored record straight into the cached list,
  * so the map and the open panel show the edit before the refetch lands.
  */
 export function useSavePlace() {
@@ -114,6 +144,8 @@ export function useSavePlace() {
 
 	return useMutation({
 		mutationFn: ({ id, draft }: { id: string; draft: PlaceDraft }) => savePlace(id, draft),
+		// The form shows the error.
+		meta: { inlineError: true },
 		onSuccess: (place) => {
 			client.setQueryData<Place[]>(placesKeys.all, (places) =>
 				(places ?? []).map((held) => (held.id === place.id ? place : held)),
@@ -134,6 +166,28 @@ export function useDeletePlace() {
 		onSuccess: (_result, id) => {
 			client.setQueryData<Place[]>(placesKeys.all, (places) =>
 				(places ?? []).filter((place) => place.id !== id),
+			)
+		},
+	})
+}
+
+/**
+ * Removes one visit of a place, and writes the stored record into the cached
+ * list. A failure shows in a toast, because the confirm that asked for the
+ * removal is closed.
+ */
+export function useDeleteVisit() {
+	const client = useQueryClient()
+
+	return useMutation({
+		mutationFn: ({ place, visit }: { place: Place; visit: Visit }) =>
+			savePlace(place.id, {
+				...placeDraft(place),
+				visits: place.visits.filter((held) => held.id !== visit.id),
+			}),
+		onSuccess: (place) => {
+			client.setQueryData<Place[]>(placesKeys.all, (places) =>
+				(places ?? []).map((held) => (held.id === place.id ? place : held)),
 			)
 		},
 	})

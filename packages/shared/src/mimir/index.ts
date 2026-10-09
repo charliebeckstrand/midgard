@@ -5,5 +5,5 @@
  * shape. `pnpm --filter shared openapi` generates `openapi.d.ts` from the spec
  * on the `main` branch of asgard.
  */
-export { createMimirClient, settle } from './client'
+export { createMimirClient } from './client'
 export type { components, paths } from './openapi'

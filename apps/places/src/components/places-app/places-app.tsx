@@ -17,6 +17,7 @@ import { flags } from '../../flags'
 import {
 	useAddPlace,
 	useDeletePlace,
+	useDeleteVisit,
 	usePlaces,
 	useSavePlace,
 	useSetVisit,
@@ -48,7 +49,6 @@ import {
 	viewRegion,
 	viewUp,
 } from '../../utilities/places-view'
-import { placeDraft } from '../../utilities/places-visits'
 import { PlaceFilters } from '../place-filters'
 import type { PlaceFormTarget } from '../place-form-drawer'
 import type { PlaceActions, VisitActions } from '../place-menu'
@@ -492,6 +492,8 @@ export function PlacesApp({
 
 	const deletePlace = useDeletePlace()
 
+	const deleteVisit = useDeleteVisit()
+
 	const { data: visits } = useVisits(initialVisits)
 
 	const setVisit = useSetVisit()
@@ -546,20 +548,14 @@ export function PlacesApp({
 			const { place, visit } = deletion
 
 			if (visit === null || deletesPlace(deletion)) {
-				void deletePlace.mutateAsync(place.id)
+				deletePlace.mutate(place.id)
 
 				return
 			}
 
-			void savePlace.mutateAsync({
-				id: place.id,
-				draft: {
-					...placeDraft(place),
-					visits: place.visits.filter((held) => held.id !== visit.id),
-				},
-			})
+			deleteVisit.mutate({ place, visit })
 		},
-		[confirm, deletePlace.mutateAsync, savePlace.mutateAsync],
+		[confirm, deletePlace.mutate, deleteVisit.mutate],
 	)
 
 	// What the menus of a place and of a visit do, in every spot that shows one.
