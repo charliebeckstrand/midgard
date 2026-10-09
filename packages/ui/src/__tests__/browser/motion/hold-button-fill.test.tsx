@@ -17,8 +17,12 @@ describe('HoldButton fill (real Motion)', () => {
 		return transform === 'none' ? 1 : new DOMMatrixReadOnly(transform).a
 	}
 
-	function renderFill() {
-		const { container } = renderUI(<HoldButton duration={600}>Hold</HoldButton>)
+	function renderFill(onHoldComplete?: () => void) {
+		const { container } = renderUI(
+			<HoldButton duration={600} onHoldComplete={onHoldComplete}>
+				Hold
+			</HoldButton>,
+		)
 
 		const button = present(bySlot(container, 'hold-button'), 'the button')
 
@@ -28,7 +32,11 @@ describe('HoldButton fill (real Motion)', () => {
 	}
 
 	it('grows the fill through the scales between 0 and 1 on the first hold', async () => {
-		const { button, fill } = renderFill()
+		let complete = false
+
+		const { button, fill } = renderFill(() => {
+			complete = true
+		})
 
 		expect(scaleOf(fill)).toBe(0)
 
@@ -36,6 +44,9 @@ describe('HoldButton fill (real Motion)', () => {
 
 		fireEvent.pointerDown(button, { button: 0 })
 
+		// The wait ends when the hold completes. A full fill is not the end: the
+		// completion resets the fill at once, so a full fill shows for only one
+		// or two frames, and a stalled frame skips it.
 		await sampleUntil(
 			() => {
 				const scale = scaleOf(fill)
@@ -44,7 +55,7 @@ describe('HoldButton fill (real Motion)', () => {
 
 				return scale
 			},
-			(scale) => scale > 0.99,
+			() => complete,
 			{ deadline: budget(3000) },
 		)
 
