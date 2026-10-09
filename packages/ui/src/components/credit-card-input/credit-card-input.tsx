@@ -1,16 +1,12 @@
 'use client'
 
 import { CreditCard } from 'lucide-react'
-import { type ReactNode, useId, useMemo, useRef } from 'react'
-import { composeEventHandlers } from '../../core'
-import { useAriaIds, useComposedRef } from '../../hooks'
+import { type ReactNode, useId, useMemo } from 'react'
+import { useAriaIds } from '../../hooks'
 import { useHeadless } from '../../providers/headless/context'
 import { digitsOnly } from '../../utilities'
-import { isDecimalDigit } from '../../utilities/caret'
-import { useControlFallbackLabel } from '../control/use-control-fallback-label'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
-import { useMaskInput } from '../mask-input/use-mask-input'
 import {
 	type CardValidity,
 	detectCardBrand,
@@ -18,6 +14,7 @@ import {
 	validateCardNumber,
 } from './credit-card-input-utilities'
 import type { CreditCardBrand } from './types'
+import { useCreditCardInputField } from './use-credit-card-input-field'
 
 /** Props for {@link CreditCardInput}; extends Input minus the masked value, change, and prefix slots. */
 export type CreditCardInputProps = Omit<
@@ -82,32 +79,26 @@ export function CreditCardInput({
 
 	const brandId = useId()
 
-	// The fallback reads the labels of the input after each commit, so a native
-	// label outside a Field also turns it off.
-	const inputRef = useRef<HTMLInputElement>(null)
-
-	const fallbackLabel = useControlFallbackLabel('Card number', inputRef)
-
-	const composedRef = useComposedRef(ref, inputRef)
-
 	const {
-		ref: maskedRef,
-		value: maskedValue,
-		onChange: onMaskedChange,
-		onBlur: onMaskedBlur,
-	} = useMaskInput({
+		ref: fieldRef,
+		value: fieldValue,
+		onChange: onFieldChange,
+		onBlur: onFieldBlur,
+		fallbackLabel,
+	} = useCreditCardInputField({
+		fallbackLabel: 'Card number',
+		ref,
 		name,
 		value,
 		defaultValue,
-		onChange: onValueChange,
+		onValueChange,
 		format: (raw) => formatCardNumber(raw).formatted,
-		meaningful: isDecimalDigit,
-		ref: composedRef,
+		onBlur,
 	})
 
 	// Brand only: `formatCardNumber` would re-run the whole grouping walk to
 	// return a `formatted` string the masked input already holds.
-	const brand = useMemo(() => detectCardBrand(digitsOnly(maskedValue)), [maskedValue])
+	const brand = useMemo(() => detectCardBrand(digitsOnly(fieldValue)), [fieldValue])
 
 	// The brand is text in an affix, so focus mode does not read it. The brand
 	// describes the input, unless the caller replaces the suffix. A headless
@@ -118,7 +109,7 @@ export function CreditCardInput({
 
 	return (
 		<Input
-			ref={maskedRef}
+			ref={fieldRef}
 			data-slot="credit-card-input"
 			type="text"
 			inputMode="numeric"
@@ -126,23 +117,21 @@ export function CreditCardInput({
 			// The placeholder is not a programmatic name (WCAG 3.3.2 / 4.1.2);
 			// defaults an aria-label, yielding to a Field <Label> from the first
 			// render and to a native label after each commit
-			// (useControlFallbackLabel).
+			// (useControlLabelRef).
 			aria-label={ariaLabel ?? fallbackLabel}
 			placeholder={placeholder ?? '1234 1234 1234 1234'}
 			prefix={prefix ?? <Icon icon={<CreditCard />} />}
 			suffix={suffix ?? (brandShows ? <span id={brandId}>{brand.label}</span> : undefined)}
 			aria-describedby={describedBy}
 			name={name}
-			value={maskedValue}
+			value={fieldValue}
 			{...props}
 			// The masking wiring sits after the spread, so a stray `onChange`
 			// does not replace it. The touched mark runs whatever the caller
 			// does (CONVENTIONS.md §3.9).
-			onBlur={composeEventHandlers(onBlur, () => onMaskedBlur(), {
-				checkForDefaultPrevented: false,
-			})}
+			onBlur={onFieldBlur}
 			onChange={(event) => {
-				onMaskedChange(event)
+				onFieldChange(event)
 
 				const next = formatCardNumber(event.target.value)
 

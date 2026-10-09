@@ -1,25 +1,11 @@
 'use client'
 
-import {
-	type ReactNode,
-	type Ref,
-	type RefCallback,
-	useEffect,
-	useEffectEvent,
-	useId,
-	useRef,
-	useState,
-} from 'react'
-import { useAriaIds, useComposedRef } from '../../hooks'
+import { type ReactNode, useEffect, useEffectEvent, useId, useState } from 'react'
+import { useAriaIds } from '../../hooks'
 import { Message } from '../fieldset'
 import { useControl } from './context'
-import { useControlFallbackLabel } from './use-control-fallback-label'
 
 type ControlTypedVerdictOptions = {
-	/** The default `aria-label`. See {@link useControlFallbackLabel}. */
-	fallbackLabel: string
-	/** The ref of the caller. The hook composes it with the ref that the fallback label reads. */
-	ref: Ref<HTMLInputElement> | undefined
 	/** The `aria-describedby` of the caller. The ids of the caller come first. */
 	describedBy: string | undefined
 	/** The text of the built-in Message. A falsy value shows no Message. */
@@ -29,10 +15,6 @@ type ControlTypedVerdictOptions = {
 }
 
 type ControlTypedVerdict = {
-	/** Give it to the input. */
-	ref: RefCallback<HTMLInputElement> | null
-	/** The default `aria-label`, or `undefined` when a label names the field. */
-	fallbackLabel: string | undefined
 	/** True while the field refuses its typed text. */
 	invalid: boolean
 	setInvalid: (invalid: boolean) => void
@@ -52,8 +34,7 @@ type ControlTypedVerdict = {
  * The built-in Message always takes an id of its own, so it never shares the
  * id of the error slot of a Field with a different error Message. Inside a
  * Control, the Message registers its id into the `aria-describedby` of the
- * field. Outside one, the input references it. The fallback label reads the
- * input, so a native `<label for>` outside a Field also turns it off.
+ * field. Outside one, the input references it.
  *
  * A value from outside clears the verdict during render, where a report must
  * not run. Thus `clear` counts the clears, and an effect carries the report,
@@ -61,19 +42,11 @@ type ControlTypedVerdict = {
  * @internal
  */
 export function useControlTypedVerdict({
-	fallbackLabel,
-	ref,
 	describedBy,
 	message,
 	reportCleared,
 }: ControlTypedVerdictOptions): ControlTypedVerdict {
 	const control = useControl()
-
-	const inputRef = useRef<HTMLInputElement>(null)
-
-	const label = useControlFallbackLabel(fallbackLabel, inputRef)
-
-	const composedRef = useComposedRef(ref, inputRef)
 
 	const [invalid, setInvalid] = useState(false)
 
@@ -92,8 +65,6 @@ export function useControlTypedVerdict({
 	const ids = useAriaIds(describedBy, shown && control === undefined ? messageId : undefined)
 
 	return {
-		ref: composedRef,
-		fallbackLabel: label,
 		invalid,
 		setInvalid,
 		clear: () => {
