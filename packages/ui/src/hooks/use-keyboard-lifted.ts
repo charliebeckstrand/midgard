@@ -1,7 +1,8 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { announce } from '../core'
+import { useAnimationFrame } from './use-timeout'
 
 /**
  * The dnd-kit `screenReaderInstructions` of a surface with the lift model of
@@ -76,30 +77,19 @@ export function useKeyboardLifted(focus: (id: string) => void) {
 
 	// The pending refocus frame. A new reorder replaces it, and an unmount
 	// cancels it, so no frame moves focus after the list is gone.
-	const frameRef = useRef<number | null>(null)
+	const frame = useAnimationFrame()
 
 	const refocus = useCallback(
 		(id: string) => {
 			movingRef.current = true
 
-			if (frameRef.current !== null) cancelAnimationFrame(frameRef.current)
-
-			frameRef.current = requestAnimationFrame(() => {
-				frameRef.current = null
-
+			frame.set(() => {
 				focus(id)
 
 				movingRef.current = false
 			})
 		},
-		[focus],
-	)
-
-	useEffect(
-		() => () => {
-			if (frameRef.current !== null) cancelAnimationFrame(frameRef.current)
-		},
-		[],
+		[focus, frame],
 	)
 
 	const onBlur = useCallback(() => {
