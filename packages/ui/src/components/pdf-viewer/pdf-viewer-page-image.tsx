@@ -1,6 +1,6 @@
 'use client'
 
-import { type CSSProperties, type SyntheticEvent, useLayoutEffect, useRef } from 'react'
+import { type CSSProperties, type SyntheticEvent, useCallback } from 'react'
 import type { PdfViewerSlot } from './types'
 
 /** Props for {@link PdfViewerPageImage}. @internal */
@@ -48,8 +48,9 @@ export function PdfViewerPageImage({
  * Draws a bitmap onto a canvas at its own size. The styles scale the canvas as they scale an
  * image.
  *
- * @remarks The draw is in a layout effect, so the page is on the canvas in the frame that
- * mounts it. The cleanup frees the backing store, and does not wait for the collector.
+ * @remarks The draw is in the ref callback of the canvas, so the page is on the canvas in the
+ * frame that mounts it. The callback changes with `bitmap`, so React runs the cleanup and then
+ * draws the new bitmap. The cleanup frees the backing store, and does not wait for the collector.
  * @internal
  */
 function PdfViewerBitmap({
@@ -63,27 +64,24 @@ function PdfViewerBitmap({
 	className?: string
 	style?: CSSProperties
 }) {
-	const ref = useRef<HTMLCanvasElement>(null)
+	const draw = useCallback(
+		(canvas: HTMLCanvasElement) => {
+			canvas.width = bitmap.width
+			canvas.height = bitmap.height
 
-	useLayoutEffect(() => {
-		const canvas = ref.current
+			canvas.getContext('2d')?.drawImage(bitmap, 0, 0)
 
-		if (!canvas) return
-
-		canvas.width = bitmap.width
-		canvas.height = bitmap.height
-
-		canvas.getContext('2d')?.drawImage(bitmap, 0, 0)
-
-		return () => {
-			canvas.width = 0
-			canvas.height = 0
-		}
-	}, [bitmap])
+			return () => {
+				canvas.width = 0
+				canvas.height = 0
+			}
+		},
+		[bitmap],
+	)
 
 	return (
 		<canvas
-			ref={ref}
+			ref={draw}
 			data-slot="pdf-viewer-page-image"
 			role={alt ? 'img' : undefined}
 			aria-label={alt || undefined}
