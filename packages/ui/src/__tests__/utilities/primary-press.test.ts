@@ -9,6 +9,15 @@ describe('isPrimaryPress', () => {
 		expect(isPrimaryPress(press)).toBe(true)
 	})
 
+	// A mouse event has no `isPrimary`. The browser sends it only for the primary pointer.
+	it('accepts a plain mouse press, which carries no isPrimary', () => {
+		expect(isPrimaryPress({ button: 0, ctrlKey: false })).toBe(true)
+	})
+
+	it('refuses a mouse Ctrl-click', () => {
+		expect(isPrimaryPress({ button: 0, ctrlKey: true })).toBe(false)
+	})
+
 	// On macOS a Ctrl-click is the secondary click. It sends button 0 with ctrlKey.
 	it.each([
 		['a Ctrl-click', { ctrlKey: true }],

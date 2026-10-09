@@ -9,6 +9,7 @@ import {
 } from 'react'
 import { type DragCursor, useDragCursorHold } from '../../hooks/use-drag-cursor'
 import { clamp } from '../../utilities'
+import { isPrimaryPress } from '../../utilities/primary-press'
 
 /** Pointer position within the tracked element, each axis normalized to `0-1`. */
 export type DragPosition = { x: number; y: number }
@@ -107,7 +108,7 @@ export function useColorDrag(
 
 	const onPointerDown = useCallback(
 		(event: ReactPointerEvent<HTMLElement>) => {
-			if (disabled || event.button !== 0 || inDisabledFieldset(event.currentTarget)) return
+			if (disabled || !isPrimaryPress(event) || inDisabledFieldset(event.currentTarget)) return
 
 			event.preventDefault()
 

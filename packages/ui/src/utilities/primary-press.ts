@@ -1,5 +1,8 @@
-/** The subset of a pointer press that {@link isPrimaryPress} reads. */
-type Press = Pick<PointerEvent, 'isPrimary' | 'button' | 'ctrlKey'>
+/**
+ * The subset of a press that {@link isPrimaryPress} reads. A `MouseEvent` has no `isPrimary`, and
+ * the browser sends the mouse events only for the primary pointer, so the field is optional.
+ */
+type Press = Pick<PointerEvent, 'button' | 'ctrlKey'> & Partial<Pick<PointerEvent, 'isPrimary'>>
 
 /**
  * Whether a press can start a gesture: the primary pointer, the primary button, and no Ctrl.
@@ -12,5 +15,5 @@ type Press = Pick<PointerEvent, 'isPrimary' | 'button' | 'ctrlKey'>
  * @internal
  */
 export function isPrimaryPress(event: Press): boolean {
-	return event.isPrimary && event.button === 0 && !event.ctrlKey
+	return event.isPrimary !== false && event.button === 0 && !event.ctrlKey
 }

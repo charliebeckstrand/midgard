@@ -123,7 +123,7 @@ export function GridColumnResizeHandle({
 				// press opens swallows the `mouseup`, leaving the column stuck
 				// resizing to the pointer. These presses fall through untouched so
 				// the header's context menu still opens.
-				if (event.button !== 0 || event.ctrlKey) return
+				if (!isPrimaryPress(event)) return
 
 				event.stopPropagation()
 

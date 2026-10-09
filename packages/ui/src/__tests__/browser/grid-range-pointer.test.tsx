@@ -77,6 +77,28 @@ describe('grid range pointer and clipboard (real browser)', () => {
 		expect(screen.getByRole('grid')).toHaveAttribute('aria-activedescendant', cell(2, 'role').id)
 	})
 
+	// On macOS a Ctrl-click is the secondary click. It opens a context menu, which can take the
+	// release, so a range drag that it starts would follow the pointer with no button down.
+	it('makes no range with a Ctrl-drag', async () => {
+		await renderGrid()
+
+		onTestFinished(async () => {
+			await commands.releasePointer()
+
+			await userEvent.keyboard('{/Control}')
+		})
+
+		await userEvent.keyboard('{Control>}')
+
+		await commands.pressPointer(cellSelector(1, 'name'))
+
+		await userEvent.hover(cell(2, 'role'))
+
+		await commands.releasePointer()
+
+		expect(marked()).toBe(0)
+	})
+
 	it('scrolls the region while the drag is past its bottom edge', async () => {
 		await renderGrid()
 

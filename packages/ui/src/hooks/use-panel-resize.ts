@@ -10,6 +10,7 @@ import {
 } from 'react'
 import { dataAttr } from '../core'
 import { clamp, pct } from '../utilities'
+import { isPrimaryPress } from '../utilities/primary-press'
 import { type DragCursor, useDragCursor } from './use-drag-cursor'
 
 /** How far one arrow press moves the edge, as a share of the screen. */
@@ -367,7 +368,7 @@ export function usePanelResize({
 	}
 
 	function onPointerDown(event: ReactPointerEvent<HTMLElement>) {
-		if (event.pointerType === 'mouse' && event.button !== 0) return
+		if (!isPrimaryPress(event)) return
 
 		if (panel === null || grab.current !== null) return
 

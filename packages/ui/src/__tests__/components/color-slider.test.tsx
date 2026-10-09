@@ -69,7 +69,7 @@ describe('ColorSlider (semantics)', () => {
 
 		giveRect(hue)
 
-		fireEvent.pointerDown(track(hue), { button: 0, pointerId: 1, clientX: 0 })
+		fireEvent.pointerDown(track(hue), { isPrimary: true, button: 0, pointerId: 1, clientX: 0 })
 
 		expect(document.activeElement).toBe(hue)
 	})
@@ -144,7 +144,12 @@ describe('ColorSlider (hue)', () => {
 
 		giveRect(hue)
 
-		fireEvent.pointerDown(track(hue), { button: 0, pointerId: 1, clientX: WIDTH / 4 })
+		fireEvent.pointerDown(track(hue), {
+			isPrimary: true,
+			button: 0,
+			pointerId: 1,
+			clientX: WIDTH / 4,
+		})
 
 		expect(hue).toHaveValue('90')
 
@@ -210,7 +215,12 @@ describe('ColorSlider (alpha)', () => {
 
 		giveRect(alpha)
 
-		fireEvent.pointerDown(track(alpha), { button: 0, pointerId: 1, clientX: (WIDTH * 3) / 4 })
+		fireEvent.pointerDown(track(alpha), {
+			isPrimary: true,
+			button: 0,
+			pointerId: 1,
+			clientX: (WIDTH * 3) / 4,
+		})
 
 		expect(alpha).toHaveValue('0.75')
 	})
@@ -254,7 +264,12 @@ describe('ColorSlider (disabled fieldset)', () => {
 
 		giveRect(alpha)
 
-		fireEvent.pointerDown(track(alpha), { button: 0, pointerId: 1, clientX: (WIDTH * 3) / 4 })
+		fireEvent.pointerDown(track(alpha), {
+			isPrimary: true,
+			button: 0,
+			pointerId: 1,
+			clientX: (WIDTH * 3) / 4,
+		})
 
 		expect(alpha).toHaveValue('0.5')
 

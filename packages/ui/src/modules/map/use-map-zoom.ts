@@ -14,6 +14,7 @@ import {
 import { useDragCursorHold } from '../../hooks/use-drag-cursor'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { useTimeout } from '../../hooks/use-timeout'
+import { isPrimaryPress } from '../../utilities/primary-press'
 import { useMapHoverHold } from './context'
 import { MAP_PAN_THRESHOLD, MAP_WHEEL_SETTLE_MS } from './engine/map-constants'
 import { clientToFrame, frameScale, type MapClientBox } from './engine/map-projection/frame'
@@ -579,9 +580,10 @@ export function useMapZoom({
 	function onPointerDown(event: PointerEvent<HTMLElement>) {
 		if (fromTouch(event)) return
 
-		// A right-click opens the region menu the plat reports for; only the
-		// primary button drives the view.
-		if (event.pointerType === 'mouse' && event.button !== 0) return
+		// A right-click or a macOS Ctrl-click opens the region menu the plat
+		// reports for, so only a primary press starts a gesture. A further
+		// pointer joins the gesture under way, as the second finger of a pinch.
+		if (!isPrimaryPress(event) && (pointers.current.size === 0 || event.button !== 0)) return
 
 		const at = { x: event.clientX, y: event.clientY }
 

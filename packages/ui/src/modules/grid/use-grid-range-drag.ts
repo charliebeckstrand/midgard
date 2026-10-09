@@ -3,6 +3,7 @@
 import { type MouseEvent, type RefObject, useEffect, useRef } from 'react'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { clamp } from '../../utilities'
+import { isPrimaryPress } from '../../utilities/primary-press'
 import { GRID_ROLE } from './engine/grid-constants'
 import { edgeScrollStep, RANGE_EDGE } from './engine/grid-range/range'
 import type { Coord } from './use-grid-navigation'
@@ -46,7 +47,7 @@ export function useGridRangeDrag({
 
 		const grid = root ?? event.currentTarget.closest<HTMLElement>(GRID_ROLE)
 
-		if (event.button !== 0 || !grid) return
+		if (!isPrimaryPress(event) || !grid) return
 
 		let point = { x: event.clientX, y: event.clientY }
 

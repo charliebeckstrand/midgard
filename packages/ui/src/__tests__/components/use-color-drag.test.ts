@@ -145,10 +145,14 @@ describe('useColorDrag', () => {
 		expect(onPosition).toHaveBeenCalledWith({ x: 0.5, y: 0.5 })
 	})
 
-	it('ignores non-primary buttons', () => {
+	it.each([
+		['a secondary button', { button: 2 }],
+		['a macOS Ctrl-click', { ctrlKey: true }],
+		['a pointer that is not primary', { isPrimary: false }],
+	])('ignores %s', (_name, init) => {
 		const { api, node, onPosition } = setup()
 
-		api.onPointerDown(makeEvent(node, { button: 2, clientX: 100, clientY: 50 }))
+		api.onPointerDown(makeEvent(node, { clientX: 100, clientY: 50, ...init }))
 
 		expect(node.setPointerCapture).not.toHaveBeenCalled()
 
