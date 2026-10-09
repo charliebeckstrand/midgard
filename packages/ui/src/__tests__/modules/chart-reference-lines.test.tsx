@@ -938,6 +938,28 @@ describe('reference value labels', () => {
 		expect(bySlot(container, 'chart-reference-line')?.querySelectorAll('line').length).toBe(1)
 	})
 
+	it('stacks the labels of close rules apart, over every rule', () => {
+		const { container } = lineLabels([
+			{ value: 60, label: 'Target' },
+			{ value: 61, label: 'Stretch' },
+		])
+
+		const [target, stretch] = allBySlot(container, 'chart-reference-label')
+
+		const gap = Number(target?.getAttribute('y')) - Number(stretch?.getAttribute('y'))
+
+		expect(gap).toBeGreaterThanOrEqual(13)
+
+		// Each label follows every rule in paint order, so no rule crosses its halo.
+		const lastRule = allBySlot(container, 'chart-reference-line').at(-1) as Node
+
+		for (const label of [target, stretch]) {
+			expect(
+				lastRule.compareDocumentPosition(label as Node) & Node.DOCUMENT_POSITION_FOLLOWING,
+			).toBeTruthy()
+		}
+	})
+
 	it('reads the value alone for an unlabeled rule', () => {
 		const { container } = lineLabels([{ value: 50 }])
 

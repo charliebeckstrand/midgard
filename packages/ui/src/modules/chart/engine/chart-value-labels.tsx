@@ -5,7 +5,7 @@ import * as m from '../../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../../recipes/kata/chart'
 import type { ChartValueAxisId } from './chart-axes/schema'
 import { type ChartPaint, fillClass, rawColor } from './chart-color/paint'
-import { type PlacedValueLabel, resolveValueLabels } from './chart-geometry/label'
+import { type LabelBox, type PlacedValueLabel, resolveValueLabels } from './chart-geometry/label'
 import { ChartGeneration } from './chart-marks/layer'
 import { POINT_POP, POINT_UNPOP } from './chart-motion'
 import type { PlotRect } from './chart-orientation'
@@ -43,7 +43,10 @@ export type ChartValueLabelConfig = {
 	 * rule's value. The standing
 	 * readout replaces the rule's hover tooltip. With it on, the rules shed their
 	 * pointer target and keyboard stop, since the label already reads what the
-	 * tooltip would. The visually-hidden reference list keeps the assistive-tech
+	 * tooltip would. The labels of close rules stack apart, so no two overlap,
+	 * and a point label that meets a reference label drops. Each label has a
+	 * halo in the surface color, so it stays legible where a line or a rule
+	 * crosses it. The visually-hidden reference list keeps the assistive-tech
 	 * parity either way.
 	 * @defaultValue false
 	 */
@@ -71,6 +74,8 @@ type ValueLabelChart = {
  * @param gapSkipped Whether the points of each series already drop the null
  * categories. A stacked ribbon's edge carries one point for each category, so
  * it passes `false`.
+ * @param obstacles The boxes of the standing reference labels
+ * ({@link placeReferenceLabels}). A point label that meets one drops.
  * @internal
  */
 export function cartesianValueLabels(
@@ -79,6 +84,7 @@ export function cartesianValueLabels(
 	list: { paint: ChartPaint; geometry: { points: { x: number; y: number }[] } }[],
 	metas: { values: (number | null)[]; axis: ChartValueAxisId }[],
 	gapSkipped = true,
+	obstacles: LabelBox[] = [],
 ): PlacedValueLabel[] {
 	if (!chart.valueLabelRoom) return []
 
@@ -99,6 +105,7 @@ export function cartesianValueLabels(
 		}),
 		chart.plot,
 		gapSkipped,
+		obstacles,
 	)
 }
 

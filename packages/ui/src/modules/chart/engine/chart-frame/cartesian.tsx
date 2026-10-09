@@ -14,7 +14,12 @@ import { ChartLegend } from '../chart-legend/legend'
 import { legendAside } from '../chart-legend/schema'
 import { ChartMarksLayer } from '../chart-marks/layer'
 import { referenceText } from '../chart-reference'
-import { ChartReferenceLines, ChartReferenceList, referenceStops } from '../chart-reference-lines'
+import {
+	ChartReferenceLines,
+	ChartReferenceList,
+	placeReferenceLabels,
+	referenceStops,
+} from '../chart-reference-lines'
 import { snappedSeriesAt, snapTargets } from '../chart-snap'
 import { resolveTooltip } from '../chart-tooltip'
 import {
@@ -121,7 +126,7 @@ const NO_VALUES: { values: (number | null)[]; axis: ChartValueAxisId } = { value
  * combo) shares. It is the {@link ChartFrame} wired to the resolved chart's
  * sizing, tier, cartesian legend, readout, and reference annotations. Inside
  * the plot it draws the texture defs, the axes, the crosshair, the marks, the
- * value labels, the hit area, and the reference rules, in that order. A bar
+ * hit area, the reference rules, and the value labels, in that order. A bar
  * draws its marks before the crosshair, the line charts after.
  *
  * The chart hands in its own props, its marks, and its hit test on the marks.
@@ -167,6 +172,9 @@ export function ChartCartesianFrame({
 	const focus = focusStops ?? snap
 
 	const count = chart.bandPositions.length
+
+	// Placed once: the rules draw them, and the point labels drop where they meet one.
+	const referenceLabels = placeReferenceLabels(chart, reference, labels?.references)
 
 	const marksLayer = (
 		<ChartMarksLayer animate={animate} dataKey={chart.dataKey}>
@@ -259,20 +267,6 @@ export function ChartCartesianFrame({
 
 			{!crosshairOver && marksLayer}
 
-			{valueLabels && (
-				<ChartValueLabels
-					labels={cartesianValueLabels(
-						chart,
-						labels,
-						valueLabels.list,
-						valueLabels.list.map((entry) => chart.metas[entry.index] ?? NO_VALUES),
-						valueLabels.gapSkipped,
-					)}
-					animate={animate}
-					dataKey={chart.dataKey}
-				/>
-			)}
-
 			{cartesianHitActive(showTooltip, rails, chart.onBandClick, count) && (
 				<ChartHitArea
 					plot={chart.plot}
@@ -306,13 +300,30 @@ export function ChartCartesianFrame({
 				/>
 			)}
 
-			{/* Last, over the hit area, so the rules win the pointer where they sit. */}
+			{/* Over the hit area, so the rules win the pointer where they sit. */}
 			<ChartReferenceLines
 				chart={chart}
 				reference={reference}
 				animate={animate}
-				labels={labels?.references}
+				labels={referenceLabels}
 			/>
+
+			{/* Last, over the rules, so no rule paints over a label's halo. The labels
+			    take no pointer, so the rules keep it. */}
+			{valueLabels && (
+				<ChartValueLabels
+					labels={cartesianValueLabels(
+						chart,
+						labels,
+						valueLabels.list,
+						valueLabels.list.map((entry) => chart.metas[entry.index] ?? NO_VALUES),
+						valueLabels.gapSkipped,
+						referenceLabels?.flatMap((placed) => (placed ? [placed.box] : [])),
+					)}
+					animate={animate}
+					dataKey={chart.dataKey}
+				/>
+			)}
 		</ChartFrame>
 	)
 }

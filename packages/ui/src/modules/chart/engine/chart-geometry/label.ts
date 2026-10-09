@@ -1,9 +1,9 @@
 /**
- * Pure placement of the labels that a chart draws beside its marks: the
- * selective value labels of a line-bearing chart's single series (its
- * endpoints and its extremes), and the flip that the standing reference labels
- * share. Independent of React and styling, so the placement is unit-testable
- * in isolation.
+ * Pure placement of the labels that a chart draws beside its marks and its
+ * rules: the selective value labels of a line-bearing chart's single series
+ * (its endpoints and its extremes), and the standing reference labels.
+ * Independent of React and styling, so the placement is unit-testable in
+ * isolation.
  *
  * A reader gets the numbers without the tooltip. The chart layer only feeds
  * the value labels a lone series. A multi-series plot would crowd its labels
@@ -18,10 +18,14 @@
  * Overlaps resolve
  * by priority: extremes outrank endpoints, and a label whose box meets one
  * already placed is dropped rather than stacked.
+ *
+ * The standing reference labels place first (see {@link referenceLabels}). They
+ * declump against each other, and a value label whose box meets one drops.
  */
 
 import { TICK_CHAR_WIDTH } from '../chart-constants'
-import type { PlotRect } from '../chart-orientation'
+import type { ChartOrientation, PlotRect } from '../chart-orientation'
+import { declump } from './declump'
 
 /** The gap from a point or a rule to its label. @internal */
 export const LABEL_OFFSET = 8
@@ -150,6 +154,11 @@ export type ValueLabelsOptions = {
 	endpoints: boolean
 	/** Label each series' minimum and maximum point. */
 	extremes: boolean
+	/**
+	 * The boxes of the labels that placed first: the standing reference labels.
+	 * A value label whose box meets one drops.
+	 */
+	obstacles?: LabelBox[]
 }
 
 /** A placed label: where its text anchors, what it reads, and its ink. @internal */
@@ -177,7 +186,7 @@ type Candidate = ValueLabelPoint & {
 }
 
 /** An axis-aligned box, for the overlap test. @internal */
-type Box = { x0: number; x1: number; y0: number; y1: number }
+export type LabelBox = { x0: number; x1: number; y0: number; y1: number }
 
 /**
  * The endpoint and extreme candidates for one series, de-duped so a point that
@@ -279,10 +288,13 @@ function anchorAt(
  *
  * @internal
  */
-function place(candidate: Candidate, plot: PlotRect): { label: PlacedValueLabel; box: Box } | null {
+function place(
+	candidate: Candidate,
+	plot: PlotRect,
+): { label: PlacedValueLabel; box: LabelBox } | null {
 	const text = candidate.series.format(candidate.value)
 
-	const across = anchorAt(candidate.x, text.length * TICK_CHAR_WIDTH + 2 * LABEL_PAD, plot)
+	const across = anchorAt(candidate.x, labelWidth(text), plot)
 
 	if (!across) return null
 
@@ -304,15 +316,20 @@ function place(candidate: Candidate, plot: PlotRect): { label: PlacedValueLabel;
 	}
 }
 
+/** The estimated width of a label's box: its text and the padding each side. @internal */
+function labelWidth(text: string): number {
+	return text.length * TICK_CHAR_WIDTH + 2 * LABEL_PAD
+}
+
 /** Two boxes share area. @internal */
-function overlaps(a: Box, b: Box): boolean {
+function overlaps(a: LabelBox, b: LabelBox): boolean {
 	return a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1
 }
 
 /**
  * Places the selective value labels across every series, highest rank first. It
  * drops any that no longer fits its natural spot, and any whose box meets one
- * already placed.
+ * already placed or an obstacle.
  *
  * @internal
  */
@@ -321,7 +338,7 @@ export function valueLabels(options: ValueLabelsOptions): PlacedValueLabel[] {
 		.flatMap((series, order) => candidatesFor(series, order, options.endpoints, options.extremes))
 		.sort((a, b) => b.priority - a.priority)
 
-	const placed: Box[] = []
+	const placed: LabelBox[] = [...(options.obstacles ?? [])]
 
 	const labels: PlacedValueLabel[] = []
 
@@ -363,6 +380,7 @@ export type LabelableSeries = {
  * series, the numbers would crowd between the lines with no reliable place to
  * sit. The labels therefore stand down, and the tooltip carries the readout.
  * Reference labels are unaffected: they route through the reference rules.
+ * Their boxes arrive as `obstacles`, and a value label that meets one drops.
  *
  * @internal
  */
@@ -371,6 +389,7 @@ export function resolveValueLabels(
 	list: LabelableSeries[],
 	plot: PlotRect,
 	gapSkipped = true,
+	obstacles: LabelBox[] = [],
 ): PlacedValueLabel[] {
 	if ((!config?.endpoints && !config?.extremes) || list.length !== 1) return []
 
@@ -384,5 +403,101 @@ export function resolveValueLabels(
 		plot,
 		endpoints: config.endpoints ?? false,
 		extremes: config.extremes ?? false,
+		obstacles,
 	})
+}
+
+/**
+ * One rule that a standing reference label names: the value-axis position of
+ * the rule, or `null` where the rule draws nothing, and the label's text.
+ * @internal
+ */
+export type ReferenceLabelRule = { at: number | null; text: string }
+
+/** A placed reference label: where its text anchors, how it aligns, and its collision box. @internal */
+export type PlacedReferenceLabel = {
+	x: number
+	y: number
+	anchor: 'middle' | 'end'
+	box: LabelBox
+}
+
+/**
+ * Places the standing reference labels, aligned with `rules`, with `null` for
+ * a rule that draws nothing. The labels declump along the axis that they stack
+ * on ({@link declump}), so no two overlap.
+ *
+ * In a vertical chart, each label ends at the far end of its rule. It sits
+ * above the rule, and flips below where the rule crowds the top edge
+ * ({@link labelBesideY}). Labels stack along y, and a crowded run grows up, off
+ * its own rules. In a horizontal chart, each label hangs below the top of its
+ * rule, centered on it. Labels stack along x, inside the plot sides.
+ *
+ * The value labels place after these and treat the boxes as obstacles
+ * ({@link resolveValueLabels}). The reference labels are the readout of their
+ * rules, so they keep their place, and a value label that meets one drops.
+ *
+ * @internal
+ */
+export function referenceLabels(
+	rules: ReferenceLabelRule[],
+	orientation: ChartOrientation,
+	plot: PlotRect,
+): (PlacedReferenceLabel | null)[] {
+	const placed = new Array<PlacedReferenceLabel | null>(rules.length).fill(null)
+
+	const drawn = rules.flatMap((rule, index) =>
+		rule.at === null ? [] : [{ index, at: rule.at, width: labelWidth(rule.text) }],
+	)
+
+	if (orientation === 'vertical') {
+		const x = plot.x + plot.width
+
+		const ys = declump(
+			drawn.map((rule) => ({ at: labelBesideY(rule.at, plot, true), half: LABEL_HALF })),
+			plot.y,
+			plot.y + plot.height,
+			'low',
+		)
+
+		for (const [order, rule] of drawn.entries()) {
+			const y = ys[order] as number
+
+			placed[rule.index] = {
+				x,
+				y,
+				anchor: 'end',
+				box: { x0: x - rule.width, x1: x, y0: y - LABEL_HALF, y1: y + LABEL_HALF },
+			}
+		}
+
+		return placed
+	}
+
+	const y = plot.y + LABEL_OFFSET + LABEL_HALF
+
+	const xs = declump(
+		drawn.map((rule) => ({ at: rule.at, half: rule.width / 2 })),
+		plot.x,
+		plot.x + plot.width,
+		'high',
+	)
+
+	for (const [order, rule] of drawn.entries()) {
+		const x = xs[order] as number
+
+		placed[rule.index] = {
+			x,
+			y,
+			anchor: 'middle',
+			box: {
+				x0: x - rule.width / 2,
+				x1: x + rule.width / 2,
+				y0: y - LABEL_HALF,
+				y1: y + LABEL_HALF,
+			},
+		}
+	}
+
+	return placed
 }

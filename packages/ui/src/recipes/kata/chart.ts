@@ -15,6 +15,16 @@ const { text } = iro
 
 const { palette, ink, motion } = zu
 
+/**
+ * A stroke in the fill of the surface under the chart. It reads `--surface-fill`,
+ * which a surface card sets. Without a card, it takes the page ground, as the
+ * grid host does.
+ */
+const surfaceStroke = mode('stroke-(--surface-fill,var(--color-white))', [
+	'dark:stroke-(--surface-fill,var(--color-zinc-950))',
+	'dark:lg:stroke-(--surface-fill,var(--color-zinc-900))',
+])
+
 /** A named chart color slot: the eight categorical slots plus `zinc`. */
 export type ChartColorSlot = SeriesSlot
 
@@ -42,19 +52,25 @@ export const k = {
 	mark: {
 		/**
 		 * The ink of an SVG label beside a mark or a rule: small, semibold, and tabular.
-		 * The color of the series or the rule fills it.
+		 * The color of the series or the rule fills it. A halo in the surface fill
+		 * paints under the glyphs, so a label stays legible where it crosses a line,
+		 * a rule, or a mark.
 		 */
-		label: ['text-xs', 'font-semibold', 'tabular-nums'],
+		label: [
+			'text-xs',
+			'font-semibold',
+			'tabular-nums',
+			'stroke-3',
+			'[stroke-linejoin:round]',
+			'[paint-order:stroke]',
+			...surfaceStroke,
+		],
 		/**
 		 * Point-marker stroke: the fill of the surface under the chart, so a dot stays legible
-		 * where it crosses an opaque mark or another dot. It reads `--surface-fill`, which a
-		 * surface card sets. Without a card, it takes the page ground, as the grid host does.
-		 * A white ring in dark mode showed as a halo on each dot.
+		 * where it crosses an opaque mark or another dot. A white ring in dark mode showed as
+		 * a halo on each dot.
 		 */
-		stroke: mode('stroke-(--surface-fill,var(--color-white))', [
-			'dark:stroke-(--surface-fill,var(--color-zinc-950))',
-			'dark:lg:stroke-(--surface-fill,var(--color-zinc-900))',
-		]),
+		stroke: surfaceStroke,
 	},
 	/**
 	 * The hit layer of the plot. Under the `'click'` trigger, the pointer hook sets
