@@ -34,6 +34,29 @@ function centerPhoto() {
 	return document.querySelector<HTMLImageElement>('[data-offset="0"] img')
 }
 
+/**
+ * Lays out the stage, 400px by 800px, and the photo in its center, 300px by
+ * 200px at (50, 300). jsdom has no layout.
+ */
+function layOut(stage: HTMLElement) {
+	const track = stage.firstElementChild as HTMLElement
+
+	track.getBoundingClientRect = () => DOMRect.fromRect({ x: 0, y: 0, width: 400, height: 800 })
+
+	const photo = present(centerPhoto(), 'photo')
+
+	for (const [key, value] of Object.entries({
+		offsetLeft: 50,
+		offsetTop: 300,
+		offsetWidth: 300,
+		offsetHeight: 200,
+	})) {
+		Object.defineProperty(photo, key, { value, configurable: true })
+	}
+
+	return photo
+}
+
 /** A slow press on the stage. Each event gives its own time, in ms. */
 function press(
 	stage: HTMLElement,
@@ -41,10 +64,12 @@ function press(
 	clientX: number,
 	clientY: number,
 	timeStamp: number,
+	{ pointerId = 1, pointerType = 'mouse' }: { pointerId?: number; pointerType?: string } = {},
 ) {
 	const event = createEvent[type](stage, {
-		pointerId: 1,
-		isPrimary: true,
+		pointerId,
+		pointerType,
+		isPrimary: pointerId === 1,
 		button: 0,
 		clientX,
 		clientY,
@@ -432,5 +457,179 @@ describe('Lightbox', () => {
 		expect(previous).toHaveClass('invisible')
 
 		expect(screen.getByRole('button', { name: 'Next photo' })).not.toHaveClass('invisible')
+	})
+
+	describe('zoom', () => {
+		it('zooms into the point of a double tap on the photo, and back out on the next', () => {
+			stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+
+			renderUI(<Gallery defaultIndex={1} />)
+
+			const stage = getSlot(document.body, 'lightbox-stage')
+
+			const photo = layOut(stage)
+
+			const doubleTap = (start: number) => {
+				press(photo, 'pointerDown', 200, 400, start)
+
+				press(photo, 'pointerUp', 200, 400, start + 50)
+
+				press(photo, 'pointerDown', 200, 400, start + 100)
+
+				press(photo, 'pointerUp', 200, 400, start + 150)
+			}
+
+			doubleTap(0)
+
+			// The point under the tap stays under it: (200 - 50) / 300 of the width.
+			expect(photo.style.transform).toBe('translate(-225px, -150px) scale(2.5)')
+
+			expect(stage).toHaveAttribute('data-zoomed')
+
+			doubleTap(1000)
+
+			expect(photo.style.transform).toBe('none')
+
+			expect(stage).not.toHaveAttribute('data-zoomed')
+		})
+
+		it('does not take two taps far apart in time as a double tap', () => {
+			stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+
+			renderUI(<Gallery defaultIndex={1} />)
+
+			const photo = layOut(getSlot(document.body, 'lightbox-stage'))
+
+			press(photo, 'pointerDown', 200, 400, 0)
+
+			press(photo, 'pointerUp', 200, 400, 50)
+
+			press(photo, 'pointerDown', 200, 400, 700)
+
+			press(photo, 'pointerUp', 200, 400, 750)
+
+			expect(photo.style.transform).toBe('')
+		})
+
+		it('scales the photo about the point between two fingers, then pans with the finger that stays', () => {
+			stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+
+			renderUI(<Gallery defaultIndex={1} />)
+
+			const stage = getSlot(document.body, 'lightbox-stage')
+
+			const photo = layOut(stage)
+
+			const first = { pointerId: 1, pointerType: 'touch' }
+
+			const second = { pointerId: 2, pointerType: 'touch' }
+
+			press(stage, 'pointerDown', 150, 400, 0, first)
+
+			press(stage, 'pointerDown', 250, 400, 10, second)
+
+			// The gap grows from 100px to 300px about (200, 400).
+			press(stage, 'pointerMove', 350, 400, 20, second)
+
+			press(stage, 'pointerMove', 50, 400, 30, first)
+
+			expect(photo.style.transform).toBe('translate(-300px, -200px) scale(3)')
+
+			press(stage, 'pointerUp', 350, 400, 40, second)
+
+			press(stage, 'pointerMove', 100, 400, 50, first)
+
+			expect(photo.style.transform).toBe('translate(-250px, -200px) scale(3)')
+
+			press(stage, 'pointerUp', 100, 400, 60, first)
+
+			expect(photo.style.transform).toBe('translate(-250px, -200px) scale(3)')
+
+			expect(screen.getByRole('dialog')).toBeInTheDocument()
+		})
+
+		it('pans a zoomed photo with a swipe, and does not step or close', () => {
+			stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+
+			renderUI(<Gallery defaultIndex={1} />)
+
+			const stage = getSlot(document.body, 'lightbox-stage')
+
+			const photo = layOut(stage)
+
+			press(photo, 'pointerDown', 200, 400, 0)
+
+			press(photo, 'pointerUp', 200, 400, 50)
+
+			press(photo, 'pointerDown', 200, 400, 100)
+
+			press(photo, 'pointerUp', 200, 400, 150)
+
+			press(stage, 'pointerDown', 300, 400, 1000)
+
+			press(stage, 'pointerMove', 200, 300, 1100)
+
+			press(stage, 'pointerUp', 200, 300, 1200)
+
+			// The photo is shorter than the stage, so it stays in the middle on that axis.
+			expect(photo.style.transform).toBe('translate(-325px, -150px) scale(2.5)')
+
+			expect(centerPhoto()).toBe(photo)
+
+			expect(screen.getByRole('dialog')).toBeInTheDocument()
+		})
+
+		it('holds a pan inside the stage when the finger lifts past its edge', () => {
+			stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+
+			renderUI(<Gallery defaultIndex={1} />)
+
+			const stage = getSlot(document.body, 'lightbox-stage')
+
+			const photo = layOut(stage)
+
+			press(photo, 'pointerDown', 200, 400, 0)
+
+			press(photo, 'pointerUp', 200, 400, 50)
+
+			press(photo, 'pointerDown', 200, 400, 100)
+
+			press(photo, 'pointerUp', 200, 400, 150)
+
+			press(stage, 'pointerDown', 200, 400, 1000)
+
+			press(stage, 'pointerMove', 600, 400, 1100)
+
+			// The left edge of the photo stops at the left edge of the stage.
+			press(stage, 'pointerUp', 600, 400, 1200)
+
+			expect(photo.style.transform).toBe('translate(-50px, -150px) scale(2.5)')
+		})
+
+		it('takes a zoomed photo back to rest when it steps away', () => {
+			stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+
+			renderUI(<Gallery defaultIndex={1} />)
+
+			const stage = getSlot(document.body, 'lightbox-stage')
+
+			const photo = layOut(stage)
+
+			press(photo, 'pointerDown', 200, 400, 0)
+
+			press(photo, 'pointerUp', 200, 400, 50)
+
+			press(photo, 'pointerDown', 200, 400, 100)
+
+			press(photo, 'pointerUp', 200, 400, 150)
+
+			fireEvent.click(screen.getByRole('button', { name: 'Next photo' }))
+
+			expect(photo.style.transform).toBe('none')
+
+			expect(stage).not.toHaveAttribute('data-zoomed')
+
+			expect(centerPhoto()).toHaveAttribute('alt', 'Field of poppies')
+		})
 	})
 })
