@@ -1,6 +1,8 @@
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { cache } from 'react'
 import { bifrost, requireGateway, type Schema } from './fetch'
+import { sessionCookie } from './session-cookie'
 
 /**
  * A role of a user. `user` lets the account change data in the apps, and
@@ -26,15 +28,20 @@ export type Session = Schema<'Session'>
  * @remarks
  * For Server Components and route handlers. It reads the session through
  * {@link bifrost}. React `cache` wraps it, so repeat calls in one request hit the
- * gateway once. A `401` resolves to `undefined`. Any other failure throws a
- * `GatewayError`, so an outage of the gateway does not look like a signed-out
- * user. The control-flow errors of Next, such as the dynamic-usage signal of a
- * prerender, propagate.
+ * gateway once. A request without the session cookie resolves to `undefined`,
+ * and it does not go to the gateway, so a guest page costs no round trip. A
+ * `401` resolves to `undefined`. Any other failure throws a `GatewayError`, so
+ * an outage of the gateway does not look like a signed-out user. The
+ * control-flow errors of Next, such as the dynamic-usage signal of a prerender,
+ * propagate.
  */
-export const getSession = cache(
-	(): Promise<Session | undefined> =>
-		requireGateway('/auth/session', () => bifrost.GET('/auth/session'), { absent: [401] }),
-)
+export const getSession = cache(async (): Promise<Session | undefined> => {
+	const cookieStore = await cookies()
+
+	if (!cookieStore.has(sessionCookie)) return undefined
+
+	return requireGateway('/auth/session', () => bifrost.GET('/auth/session'), { absent: [401] })
+})
 
 /**
  * Returns the current {@link Session}, or redirects to `/login`.
