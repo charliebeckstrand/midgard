@@ -12,8 +12,13 @@ export default function PickAState() {
 
 	const zone = timezones.find((row) => row.state === picked)?.zone
 
-	// A click on the picked state clears the pick.
-	const pick = (state: string) => setPicked((prev) => (prev === state ? null : state))
+	// A click on the picked state clears the pick. A state with no timezone row
+	// has no option in the select, so a click on it picks nothing.
+	const pick = (state: string) => {
+		if (!timezones.some((row) => row.state === state)) return
+
+		setPicked((prev) => (prev === state ? null : state))
+	}
 
 	return (
 		<Stack gap="md">

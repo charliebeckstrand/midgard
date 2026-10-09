@@ -38,8 +38,8 @@ export function stateFrame(name: string | null): MapFeatureCollection {
 export type StateZone = { state: string; zone: string }
 
 /**
- * The contiguous states by primary timezone. Alaska and Hawaii have no row, so
- * they show in the fill for no data.
+ * The contiguous states by primary timezone. Alaska, Hawaii, and the District of
+ * Columbia have no row, so they show in the fill for no data.
  */
 export const timezones: StateZone[] = [
 	{ state: 'Washington', zone: 'Pacific' },
