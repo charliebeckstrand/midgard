@@ -11,6 +11,7 @@
 
 import type { ReactNode } from 'react'
 import { formatFraction, getOrCompute } from '../../../utilities'
+import { reduceNumbers } from '../../../utilities/aggregate'
 import type { GridColumn } from '../types'
 import { columnAccessor } from './grid-column/accessor'
 import { parseNumeric } from './grid-sort/utilities'
@@ -79,15 +80,7 @@ export function aggregateColumn<T>(column: GridColumn<T>, rows: readonly T[]): u
 
 	if (values.length === 0) return null
 
-	if (aggFunc === 'sum') return values.reduce((sum, value) => sum + value, 0)
-
-	if (aggFunc === 'avg') return values.reduce((sum, value) => sum + value, 0) / values.length
-
-	// Reduce, not `Math.min(...values)` — spreading a large value set as call
-	// arguments overflows the stack on a grand total over many thousands of rows.
-	return aggFunc === 'min'
-		? values.reduce((min, value) => (value < min ? value : min))
-		: values.reduce((max, value) => (value > max ? value : max))
+	return reduceNumbers(values, aggFunc)
 }
 
 /**
