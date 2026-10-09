@@ -1,4 +1,4 @@
-import { toNumericCell } from '../../../../utilities'
+import { parseNumeric } from '../../../../utilities'
 import { isQueryActive } from '../../../query/engine/query-active'
 import { isQueryGroup } from '../../../query/engine/query-node'
 import type { QueryGroup } from '../../../query/engine/types'
@@ -105,8 +105,9 @@ export function resolveFilterMode(args: {
 
 /**
  * The `[min, max]` of the numbers among a column's faceted values, or
- * `undefined` when there is no number. A cell reads through `toNumericCell`,
- * so a number or a numeric string counts. A blank cell is no number, so it
+ * `undefined` when there is no number. A cell reads through
+ * {@link parseNumeric}, the rule the grid sorts by, so a number or a numeric
+ * string counts. A blank cell is no number, so it
  * does not pull the minimum to 0, as `getFacetedMinMaxValues` does.
  *
  * @internal
@@ -117,9 +118,9 @@ export function facetSpan(values: Iterable<unknown>): readonly [number, number] 
 	let max = Number.NEGATIVE_INFINITY
 
 	for (const value of values) {
-		const number = toNumericCell(value)
+		const number = parseNumeric(value)
 
-		if (!Number.isFinite(number)) continue
+		if (number === null) continue
 
 		if (number < min) min = number
 

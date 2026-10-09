@@ -107,10 +107,12 @@ export type PieChartSeries<T> = Omit<ChartSeries<T>, 'color' | 'axis' | 'dashed'
  * order, and can repeat an x value. An optional `sizeKey` adds the bubble
  * encoding.
  *
- * @remarks Both fields are read as numbers: a number passes through and a
- * numeric string parses. A `null`, a blank, or a value that does not parse on
- * either field drops the point, never the scale. Agent-generated or otherwise ragged
- * datasets therefore degrade to the points that parse.
+ * @remarks Both fields are read as numbers by the rule the grid sorts by: a
+ * number passes through, and a numeric string parses, with grouping, a currency
+ * symbol, a percent, or an accounting negative (`$1,200`, `(50)`). A `null`, a
+ * blank, or a value that does not parse on either field drops the point, never
+ * the scale. Agent-generated or otherwise ragged datasets therefore degrade to
+ * the points that parse.
  */
 export type ScatterChartSeries<T> = Pick<ChartSeries<T>, 'yKey' | 'yName' | 'color'> & {
 	/** The field holding each point's numeric x position. */

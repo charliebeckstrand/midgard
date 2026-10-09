@@ -11,6 +11,10 @@ describe('facetSpan', () => {
 		expect(facetSpan(['7', 3, '12.5'])).toEqual([3, 12.5])
 	})
 
+	it('reads money, grouped, and accounting values as the grid sorts them', () => {
+		expect(facetSpan(['$1,200', '(50)', '7'])).toEqual([-50, 1200])
+	})
+
 	it('skips a blank, a nullish, and a non-numeric value', () => {
 		expect(facetSpan([null, undefined, '', '  ', 'n/a', true, 8, 4])).toEqual([4, 8])
 	})

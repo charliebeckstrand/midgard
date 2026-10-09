@@ -1,5 +1,5 @@
+import { parseNumeric } from '../../../../utilities'
 import { inferEditorKind } from '../grid-editing-utilities'
-import { parseNumeric } from '../grid-sort/utilities'
 
 /**
  * One cell that a paste writes: a data row index, a data column index, and the

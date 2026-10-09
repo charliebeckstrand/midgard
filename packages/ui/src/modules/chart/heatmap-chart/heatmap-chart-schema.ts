@@ -14,7 +14,7 @@
  */
 
 import type { AccessibleName } from '../../../types'
-import { sameElements, toNumericCell } from '../../../utilities'
+import { parseNumeric, sameElements } from '../../../utilities'
 import type { ChartRangeLegendConfig } from '../engine/chart-legend/range'
 import type { ChartLegendPlacement } from '../engine/chart-legend/schema'
 import type { ChartBaseProps, DataKey } from '../engine/types'
@@ -194,11 +194,9 @@ export function resolveHeatmapMatrix<T>(
 
 		if (col === undefined || row === undefined) continue
 
-		const value = toNumericCell(datum[colorKey])
-
 		const cells = values[row]
 
-		if (cells) cells[col] = Number.isFinite(value) ? value : null
+		if (cells) cells[col] = parseNumeric(datum[colorKey])
 	}
 
 	return { columns, rows, values }

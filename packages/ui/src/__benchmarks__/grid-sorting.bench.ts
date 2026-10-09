@@ -7,12 +7,12 @@ import {
 	compareSortKeys,
 	computeSortOrder,
 	materializeSort,
-	parseNumeric,
 	type SmartSortField,
 	type SortKey,
 	sortRowsSmart,
 	toSortKey,
 } from '../modules/grid/engine/grid-sort/utilities'
+import { parseNumeric } from '../utilities'
 import { type Shipment, shipmentKey, shipments } from './fixtures'
 
 // The grid's client sort runs these comparators O(n log n) times per sorted
