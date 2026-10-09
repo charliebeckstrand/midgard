@@ -68,45 +68,12 @@ export function useComboboxState<T>({
 
 	const deferredQuery = query === '' ? '' : deferredQueryInternal
 
-	// The open state that the consumer knows. The setters repeat a value: each
-	// keystroke opens the panel, and an outside press and then the input blur
-	// both close it. A report goes out only for a value that is new to the
-	// consumer. Such a value differs from the last report or from the open state
-	// on screen. A report also moves the shown state, so two calls in one batch
-	// report once.
-	//
-	// Each check covers one controlled consumer. The check of the shown state
-	// covers a consumer that closes the panel itself: an open must reach it after
-	// an earlier open report. The check of the last report covers AddressInput.
-	// It derives `open` and keeps the panel closed until results arrive, so a
-	// close must reach it while the panel shows closed.
-	//
-	// The report is a stable event, which throws during render. The combobox
-	// calls its open setter only from events and effects.
-	const reportedOpenRef = useRef(openProp ?? false)
-
-	const shownOpenRef = useRef(openProp ?? false)
-
-	const reportOpen = useStableEvent((next: boolean) => {
-		if (next === reportedOpenRef.current && next === shownOpenRef.current) return
-
-		reportedOpenRef.current = next
-
-		shownOpenRef.current = next
-
-		onOpenChange?.(next)
-	})
-
+	// The setters repeat a value: each keystroke opens the panel, and an outside
+	// press and then the input blur both close it. The controllable reports only
+	// a change, so the repeats report nothing.
 	const [open, setOpen] = useControllableFlag({
 		value: openProp,
-		onValueChange: reportOpen,
-	})
-
-	// The layout effect syncs the shown state before paint, so an event after a
-	// commit reads the open state of that commit. It runs on each commit, because
-	// a controlled owner that refuses a change keeps its `open`.
-	useLayoutEffect(() => {
-		shownOpenRef.current = open
+		onValueChange: onOpenChange,
 	})
 
 	const [editing, setEditing] = useState(false)

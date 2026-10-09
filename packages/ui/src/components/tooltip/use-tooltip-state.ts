@@ -128,21 +128,26 @@ export function useTooltipState({
 	onOpenChange,
 	takeIntent,
 }: TooltipStateOptions) {
-	// The `open` option, `held` here, controls the disclosure open — a programmatic
-	// reveal that skips the pointer, for a tooltip whose trigger can't take hover (an
-	// SVG rule the keyboard drives). Left `undefined`, the disclosure stays
-	// uncontrolled and hover / focus / click own it; a disabled tooltip never holds.
 	// Whether the panel holds a tabbable control. `<TooltipContent>` reports it,
 	// as `<PopoverContent>` reports its role to `<Popover>`.
 	const [tabbable, setTabbable] = useState(false)
 
 	const dialog = interactive && tabbable
 
+	// The open state that hover, focus, and click ask for. The `open` option,
+	// `held` here, shows the tooltip open over it: a programmatic reveal that
+	// skips the pointer, for a tooltip whose trigger can't take hover (an SVG
+	// rule the keyboard drives). A release shows this state again. A disabled
+	// tooltip never holds. The disclosure stays controlled through a hold and a
+	// release, because a controllable that took a value stays controlled.
+	const [requested, setRequested] = useState(false)
+
 	const { open, setOpen, refs, floatingStyles, context, dismiss, role } = useFloatingDisclosure({
 		role: dialog ? 'dialog' : 'tooltip',
 		placement,
 		offset: 8,
-		open: enabled && held ? true : undefined,
+		open: (enabled && held) || requested,
+		onOpenChange: setRequested,
 		gate: (next, gateRefs) =>
 			!next || (enabled && !isReferenceDisabled(gateRefs.reference.current)),
 	})
@@ -200,12 +205,12 @@ export function useTooltipState({
 	}, [open, setOpen])
 
 	/*
-	 * Watched rather than wrapped around the disclosure's setter. `held` holds the
-	 * disclosure controlled, and `useControllable` fires on every set, even the ones a
-	 * controlled `open` then overrides. Hovering off a forced-open tooltip would therefore
-	 * report a close that never happened. The committed value reports exactly what the
-	 * reader sees, on every route into it. Those routes are hover, focus, click,
-	 * `held`, `enabled`, the `:disabled` store above, and the overlay signal.
+	 * Watched rather than wrapped around the disclosure's setter. The open state on
+	 * screen is derived: `held` or the requested state. A hover off a held tooltip
+	 * changes the requested state but not the screen, so a report of the request
+	 * would announce a close that never happened. The committed value reports exactly
+	 * what the reader sees, on every route into it. Those routes are hover, focus,
+	 * click, `held`, `enabled`, the `:disabled` store above, and the overlay signal.
 	 */
 	useOpenChange(open, onOpenChange)
 

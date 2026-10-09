@@ -9,7 +9,6 @@ import { useControlPickerField } from '../control/use-control-picker-field'
 import { useControlPickerPopover } from '../control/use-control-picker-popover'
 import type { DatePickerBaseProps, DatePickerSingleProps } from './date-picker'
 import { clampDate, formatDate, startOfDay, stepDate } from './date-picker-utilities'
-import { useDatePickerControlled } from './use-date-picker-controlled'
 import {
 	type FooterButton,
 	useDatePickerGridEntry,
@@ -60,7 +59,7 @@ export function useDatePickerState({
 	// the Control cascade. `setValue` writes nothing while readOnly is on.
 	const { value, setValue, setTouched, field } = useControlPickerField<Date>({
 		name,
-		value: useDatePickerControlled(valueProp),
+		value: valueProp,
 		defaultValue,
 		onValueChange,
 		disabled,

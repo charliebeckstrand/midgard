@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useLayoutEffect, useMemo, useRef } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useControllable } from '../../hooks'
 import { useKeyedStore } from '../../hooks/use-keyed-store'
 import { type KeyedStore, toggleListItem } from '../../utilities'
@@ -128,30 +128,14 @@ export function useAccordionSelection(props: SingleProps | MultipleProps): Accor
 		onValueChange: onControllableChange,
 	})
 
-	// The open set that the next toggle starts from. A toggle writes its result here
-	// at once, so a second toggle in the same batch starts from the first.
-	const latest = useRef(current)
-
 	const openStore = useKeyedStore(current, openReader)
 
-	// Each commit writes the committed set again, also a commit that keeps it. A
-	// controlled owner that refuses a toggle keeps its `value`, and the eager write
-	// of the toggle must fall back to that value.
-	useLayoutEffect(() => {
-		latest.current = current
-	})
-
+	// The updater starts from the set of the last toggle in the batch, so a
+	// second toggle in the same batch starts from the first. A toggle that
+	// changes nothing gives the same set back, which reports no change.
 	const toggle = useCallback(
-		(value: string) => {
-			const next = nextOpenSet(latest.current, value, isMultiple, collapsible)
-
-			// A toggle that changes nothing reports no change.
-			if (!next) return
-
-			latest.current = next
-
-			setCurrent(next)
-		},
+		(value: string) =>
+			setCurrent((prev = []) => nextOpenSet(prev, value, isMultiple, collapsible) ?? prev),
 		[collapsible, setCurrent, isMultiple],
 	)
 

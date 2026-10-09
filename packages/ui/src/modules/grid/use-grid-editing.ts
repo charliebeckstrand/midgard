@@ -931,9 +931,14 @@ export function useGridEditing<T>({
 
 			// The set is unchanged when the session moves along one row, or moves off a
 			// borrowed row onto one already in the set. Writing it anyway would
-			// announce a transition that never happened, because the controllable
-			// emits `onRowsChange` on every write, equal or not.
+			// announce a transition that never happened, because a new `Set` is a new
+			// value to the controllable, equal or not.
 			if (leaving === null && editableRows.has(rowKey)) return
+
+			// A controlled `rows` that declines this write renders nothing, and the
+			// focus intent drops only after a render. This one goes in the same batch
+			// as an accepted write.
+			bump()
 
 			setEditableRows((prev) => {
 				const next = new Set(prev ?? EMPTY_SET)
@@ -949,7 +954,7 @@ export function useGridEditing<T>({
 				return next.add(rowKey)
 			})
 		},
-		[cellScoped, controlled, isPending, setEditableRows, writeActiveCell],
+		[bump, cellScoped, controlled, isPending, setEditableRows, writeActiveCell],
 	)
 
 	// Drops the drafts that a discard abandons. A cell-scoped session abandons

@@ -10,7 +10,6 @@ import { useControlPickerPopover } from '../control/use-control-picker-popover'
 import type { DatePickerBaseProps, DatePickerRangeProps } from './date-picker'
 import { datePickerRangeReducer, initialDatePickerRangeState } from './date-picker-range-reducer'
 import { clampDate, formatRange, stepDate } from './date-picker-utilities'
-import { useDatePickerControlled } from './use-date-picker-controlled'
 import {
 	type FooterButton,
 	useDatePickerGridEntry,
@@ -60,7 +59,7 @@ export function useDatePickerRangeState({
 	// still commits through this cascade.
 	const { value, setValue, setTouched, field } = useControlPickerField<[Date, Date]>({
 		name,
-		value: useDatePickerControlled(valueProp),
+		value: valueProp,
 		defaultValue,
 		onValueChange,
 		disabled,

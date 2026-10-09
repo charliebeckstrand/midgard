@@ -507,7 +507,9 @@ describe('Accordion multiple-select behavior', () => {
 		expect(screen.getByText('Panel B')).toBeInTheDocument()
 	})
 
-	it('starts a toggle from the committed set after a controlled owner refuses one', () => {
+	it('starts a toggle from the committed set after a controlled owner refuses one', async () => {
+		const user = setupUser()
+
 		const onValueChange = vi.fn()
 
 		// One identity across renders, so a refused toggle leaves the value unchanged.
@@ -526,9 +528,9 @@ describe('Accordion multiple-select behavior', () => {
 			</Accordion>,
 		)
 
-		fireEvent.click(screen.getByRole('button', { name: 'A' }))
+		await user.click(screen.getByRole('button', { name: 'A' }))
 
-		fireEvent.click(screen.getByRole('button', { name: 'B' }))
+		await user.click(screen.getByRole('button', { name: 'B' }))
 
 		expect(onValueChange).toHaveBeenLastCalledWith(['b'])
 	})

@@ -7,21 +7,43 @@ export type SetValue<T> = T | null | undefined | ((prev: T | undefined) => T | n
 
 /** Options for {@link useControllable}: the controlled `value`, the uncontrolled `defaultValue`, and the change report. */
 export type ControllableOptions<T> = {
-	/** Controlled value. `undefined` leaves the hook uncontrolled; pass `null` to stay controlled with no current value. */
+	/**
+	 * Controlled value. `undefined` leaves the hook uncontrolled; pass `null` to stay controlled with no current value.
+	 * After the first value that is not `undefined`, the hook stays controlled, and a later `undefined` reads as `null`.
+	 */
 	value?: T | null
 	/** Initial value when uncontrolled. Pass a thunk for a lazy initializer, evaluated once on mount (mirrors `useState`). */
 	defaultValue?: T | (() => T)
-	/** Fires with the committed value, or `null` once it is cleared (CONVENTIONS §7.3). */
+	/**
+	 * Fires with the next value, or `null` once it is cleared (CONVENTIONS §7.3). It fires only for a change: a set
+	 * to the value on screen that is also the value of the last report reports nothing.
+	 */
 	onValueChange?: (value: T | null) => void
 }
+
+// The mark for "no set in this batch". A set value can be `undefined`, so the
+// mark must be a value that no set can give.
+const NONE: unique symbol = Symbol('none')
 
 /**
  * Manages controlled / uncontrolled value state with a unified setter.
  *
  * @typeParam T - The value type; the hook stores and emits `T | undefined`.
  * @returns A `[value, setValue]` tuple. `setValue` accepts a next value or a
- * functional updater, writes the shadow state, and fires `onValueChange`;
- * controlled-ness is decided per render from the `value` prop.
+ * functional updater. It reports a change to `onValueChange`, and an
+ * uncontrolled hook also stores it.
+ * @remarks A report goes out only for a change. A set is not a change when its
+ * value is the value on screen and also the value of the last report. Thus a
+ * controlled owner that refuses a change gets the next request for that change
+ * too. An owner that shows a value other than the value it holds gets the
+ * report that moves its state back. After a refusal, the hook can report the
+ * value on screen once, which the owner already holds.
+ *
+ * The hook is uncontrolled until `value` is not `undefined` for the first
+ * time. After that it stays controlled, and a `value` of `undefined` reads as
+ * an empty value. An owner that clears its state to `undefined` thus shows an
+ * empty control, not a value from before it took control. A controlled set
+ * stores nothing in the hook, so a refused change renders nothing.
  */
 export function useControllable<T>({
 	value,
@@ -30,14 +52,32 @@ export function useControllable<T>({
 }: ControllableOptions<T>): [T | undefined, (value: SetValue<T>) => void] {
 	const [internalValue, setInternalValue] = useState<T | undefined>(defaultValue)
 
-	const isControlled = value !== undefined
+	// Adjusted during render: the first render with a value takes control.
+	const [controlled, setControlled] = useState(value !== undefined)
+
+	if (value !== undefined && !controlled) setControlled(true)
+
+	const isControlled = controlled || value !== undefined
 
 	const currentValue = isControlled ? (value ?? undefined) : internalValue
 
-	// Resolution base for functional updaters: re-synced to the committed value
-	// on each commit, advanced eagerly on every `setValue` call so updaters
-	// batched in one tick chain instead of resolving against the same stale value.
-	const valueRef = useRef(currentValue)
+	// The value on screen, as of the last commit.
+	const shownRef = useRef(currentValue)
+
+	// The value that the owner holds, as far as the hook knows: the value of the
+	// last report. An owner can show a value that it does not hold. AddressInput
+	// shows its menu closed until results arrive, and Tooltip shows a held tooltip
+	// open. Such an owner must hear a change back from the value of the last
+	// report, though the screen does not move.
+	const heldRef = useRef(currentValue)
+
+	// The value of the last set in this batch. Updaters batched in one tick
+	// chain from it, instead of from the same stale value. A commit clears it,
+	// and so does the end of the task, because a refused controlled change
+	// commits nothing.
+	const pendingRef = useRef<T | undefined | typeof NONE>(NONE)
+
+	const controlledRef = useRef(isControlled)
 
 	// A ref, not an effect event. A caller can set the value during render
 	// (`useTooltipState` closes a tooltip that turns off, as an adjustment during
@@ -46,32 +86,46 @@ export function useControllable<T>({
 
 	// Synced before paint, not during render. Events run after the commit, and a
 	// set during render adjusts from the committed value, which is the value the
-	// refs hold. Run on every commit, not keyed on the value: a controlled owner
-	// that refuses a change keeps its `value`, and the eager write above must still
-	// fall back to it once the render lands.
+	// refs hold.
 	useLayoutEffect(() => {
-		valueRef.current = currentValue
+		shownRef.current = currentValue
+
+		pendingRef.current = NONE
+
+		controlledRef.current = isControlled
 
 		onValueChangeRef.current = onValueChange
 	})
 
 	const setValue = useCallback((next: SetValue<T>) => {
+		const pending = pendingRef.current
+
+		const base = pending === NONE ? shownRef.current : pending
+
 		const resolved =
 			typeof next === 'function'
-				? (next as (prev: T | undefined) => T | null | undefined)(valueRef.current)
+				? (next as (prev: T | undefined) => T | null | undefined)(base)
 				: next
 
 		// Internally "no value" is always `undefined`, so a `null` clear from a
 		// caller and an `undefined` one converge on one stored representation.
 		const normalized = resolved ?? undefined
 
-		valueRef.current = normalized
+		if (Object.is(normalized, base) && Object.is(normalized, heldRef.current)) return
 
-		// Written even while controlled: `value !== undefined` decides
-		// controlled-ness per render, so a controlled consumer that clears to
-		// `undefined` flips the hook to uncontrolled; the shadow keeps that
-		// flip resolving to the last committed value instead of a stale one.
-		setInternalValue(normalized)
+		// A controlled set commits nothing when the owner refuses it, so the end
+		// of the task clears the batch value.
+		if (pending === NONE && controlledRef.current) {
+			queueMicrotask(() => {
+				pendingRef.current = NONE
+			})
+		}
+
+		pendingRef.current = normalized
+
+		heldRef.current = normalized
+
+		if (!controlledRef.current) setInternalValue(normalized)
 
 		// §7.3: the public callback reports a cleared value as `null` — echoing
 		// `undefined` back into `value` would read as uncontrolled.
@@ -114,5 +168,15 @@ export function useControllableFlag({
 		onValueChange: onValueChange && ((next) => onValueChange(next ?? false)),
 	})
 
-	return [current, setValue]
+	// A clear becomes `false` before the change check, so a clear of a flag that
+	// is already `false` reports nothing.
+	const setFlag = useCallback(
+		(next: SetValue<boolean>) =>
+			setValue(
+				typeof next === 'function' ? (prev) => next(prev ?? false) ?? false : (next ?? false),
+			),
+		[setValue],
+	)
+
+	return [current, setFlag]
 }
