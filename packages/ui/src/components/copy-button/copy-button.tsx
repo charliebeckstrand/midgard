@@ -26,7 +26,8 @@ export type CopyButtonProps = {
 	 * Milliseconds the copied state holds before reverting to the rest glyph.
 	 *
 	 * The state holds for 2^31−1 ms (about 24.8 days) at most. A larger value,
-	 * `Infinity` included, clamps to that limit.
+	 * `Infinity` included, clamps to that limit. Each copy reads the value, so a
+	 * change while the copied state holds applies to the next copy.
 	 * @defaultValue 2000
 	 */
 	timeout?: number

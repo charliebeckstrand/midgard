@@ -1,4 +1,4 @@
-import { type ReactNode, useCallback, useState } from 'react'
+import { type MouseEvent, type ReactNode, useCallback, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	Dashboard,
@@ -242,6 +242,58 @@ describe('DashboardTile actions', () => {
 		await act(async () => {})
 
 		expect(document.activeElement).toBe(outside)
+	})
+
+	// Edit mode reaches a tile through the store, one commit after the click, so
+	// the expand control unmounts in the batch of a click only when the app drops
+	// `expandable`. The cleanup reads the open state that the last render
+	// committed: the dialog was open, so the focus in it goes to the board. A ref
+	// that `handleOpenChange` writes would read the close, and the focus would go
+	// to the body.
+	it('hands the focus back when a close and a drop of expandable come in one batch', async () => {
+		function Collapsing() {
+			const [expandable, setExpandable] = useState(true)
+
+			// A React handler of the same event as the Close click, so React renders
+			// the two updates in one batch.
+			const drop = (event: MouseEvent<HTMLDivElement>) => {
+				if (
+					event.target instanceof Element &&
+					event.target.closest('button')?.textContent === 'Close'
+				)
+					setExpandable(false)
+			}
+
+			return (
+				<div onClickCapture={drop}>
+					<Dashboard
+						aria-label="Sales"
+						layout={{ defaultValue: [{ id: 'a', x: 0, y: 0, w: 8, h: 10, static: true }] }}
+					>
+						<DashboardTile id="a" title="Tile a" expandable={expandable}>
+							<p>Content a</p>
+						</DashboardTile>
+					</Dashboard>
+				</div>
+			)
+		}
+
+		renderUI(<Collapsing />)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Expand Tile a' }))
+
+		const close = screen.getByRole('button', { name: 'Close' })
+
+		close.focus()
+
+		fireEvent.click(close)
+
+		// The hand-off runs in a microtask.
+		await act(async () => {})
+
+		expect(screen.queryByRole('button', { name: 'Expand Tile a' })).toBeNull()
+
+		expect(document.activeElement).toBe(screen.getByRole('region', { name: 'Sales' }))
 	})
 
 	it('names the dialog of an untitled tile by its id', () => {

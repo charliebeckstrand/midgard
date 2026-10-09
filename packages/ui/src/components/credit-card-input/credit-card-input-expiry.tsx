@@ -2,10 +2,8 @@
 
 import { type ChangeEvent, type ReactNode, useState } from 'react'
 import { composeEventHandlers } from '../../core'
-import { isDecimalDigit } from '../../utilities/caret'
 import { useControlTypedVerdict } from '../control/use-control-typed-verdict'
 import { Input, type InputProps } from '../input'
-import { useMaskInput } from '../mask-input/use-mask-input'
 import {
 	type CardValidity,
 	cardDigits,
@@ -13,6 +11,7 @@ import {
 	formatExpiry,
 	validateCardExpiry,
 } from './credit-card-input-utilities'
+import { useCreditCardInputField } from './use-credit-card-input-field'
 
 /** The default `invalidMessage`. A module constant, because the compiler cannot compile a template literal default. */
 const DEFAULT_INVALID_MESSAGE = `Enter a valid expiration date (${EXPIRY_PATTERN})`
@@ -115,8 +114,6 @@ export function CreditCardInputExpiry({
 	...props
 }: CreditCardInputExpiryProps) {
 	const verdict = useControlTypedVerdict({
-		fallbackLabel: 'Expiration date',
-		ref,
 		describedBy: ariaDescribedBy,
 		message: invalidMessage,
 		// Runs after the render, so it reads the value that cleared the verdict.
@@ -130,17 +127,19 @@ export function CreditCardInputExpiry({
 		value: maskedValue,
 		setValue: setMaskedValue,
 		onChange: onMaskedChange,
-		onBlur: onMaskedBlur,
-	} = useMaskInput({
+		onBlur: onFieldBlur,
+		fallbackLabel,
+	} = useCreditCardInputField({
+		fallbackLabel: 'Expiration date',
+		ref,
 		name,
 		// The mask adds no pad. A value from outside gets the pad here, and a
 		// change gets it from `resolveExpiryEdit`.
 		value: typeof value === 'string' ? formatExpiry(value) : value,
 		defaultValue: defaultValue === undefined ? undefined : formatExpiry(defaultValue),
-		onChange: onValueChange,
+		onValueChange,
 		format: maskExpiry,
-		meaningful: isDecimalDigit,
-		ref: verdict.ref,
+		onBlur,
 	})
 
 	// Last text this field typed. Tells a value from outside (a form reset, a
@@ -178,8 +177,8 @@ export function CreditCardInputExpiry({
 				// The placeholder is not a programmatic name (WCAG 3.3.2 / 4.1.2);
 				// defaults an aria-label, yielding to a Field <Label> from the first
 				// render and to a native label after each commit
-				// (useControlTypedVerdict).
-				aria-label={ariaLabel ?? verdict.fallbackLabel}
+				// (useControlLabelRef).
+				aria-label={ariaLabel ?? fallbackLabel}
 				placeholder={placeholder ?? EXPIRY_PATTERN}
 				invalid={invalid ?? (verdict.invalid || undefined)}
 				name={name}
@@ -190,10 +189,8 @@ export function CreditCardInputExpiry({
 				// does not replace it. The touched mark and the verdict run
 				// whatever the caller does (CONVENTIONS.md §3.9).
 				onBlur={composeEventHandlers(
-					onBlur,
+					onFieldBlur,
 					() => {
-						onMaskedBlur()
-
 						// A partial or impossible entry left on blur reads invalid; an empty
 						// field doesn't (that's a required-field concern, not a format one).
 						verdict.setInvalid(maskedValue !== '' && !validateCardExpiry(maskedValue).isValid)

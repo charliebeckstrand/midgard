@@ -631,6 +631,24 @@ describe('Dashboard', () => {
 		expect(onProjectedChange).toHaveBeenCalledTimes(2)
 	})
 
+	// The first render paints the saved layout. A board whose first measure
+	// projects reports `true` one time, after the mount.
+	it('reports a projection that the first measure makes', () => {
+		const onProjectedChange = vi.fn()
+
+		renderUI(
+			<Dashboard
+				aria-label="Sales"
+				layout={{ defaultValue: LAYOUT }}
+				onProjectedChange={onProjectedChange}
+			>
+				<DashboardTile id="c" title="Orders" minWidth={600} />
+			</Dashboard>,
+		)
+
+		expect(onProjectedChange).toHaveBeenCalledExactlyOnceWith(true)
+	})
+
 	it('renders only the tile whose cell changed', () => {
 		const renders = new Map<string, number>()
 

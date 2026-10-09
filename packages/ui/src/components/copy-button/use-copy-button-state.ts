@@ -1,9 +1,10 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { announce } from '../../core'
 import { useMountedRef } from '../../hooks/use-mounted-ref'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { useTimeout } from '../../hooks/use-timeout'
 
 // The longest delay that the platform timer holds: a 32-bit signed count of
 // milliseconds. The timer wraps a longer delay to 32 bits, and `Infinity`
@@ -16,7 +17,8 @@ type CopyStateOptions = {
 	/**
 	 * Milliseconds before the "copied" flag resets.
 	 *
-	 * A value above 2^31−1, `Infinity` included, clamps to 2^31−1.
+	 * A value above 2^31−1, `Infinity` included, clamps to 2^31−1. Each copy
+	 * reads the value. A change while the copied state holds applies to the next copy.
 	 * @defaultValue 2000
 	 */
 	timeout?: number
@@ -92,6 +94,9 @@ export function useCopyButtonState({
 	// success. The React Compiler does not compile a `finally` clause.
 	const busyRef = useRef(false)
 
+	// The revert timer. The unmount clears it.
+	const revert = useTimeout()
+
 	const copy = useCallback(async () => {
 		if (busyRef.current) return
 
@@ -108,6 +113,17 @@ export function useCopyButtonState({
 			announce('Copied')
 
 			notifyCopiedChange(true)
+
+			revert.set(
+				() => {
+					busyRef.current = false
+
+					setCopied(false)
+
+					notifyCopiedChange(false)
+				},
+				Math.min(timeout, MAX_TIMEOUT),
+			)
 		} catch (error) {
 			busyRef.current = false
 
@@ -115,23 +131,7 @@ export function useCopyButtonState({
 			// `copied` stays false and the rejection goes to the caller instead of nowhere.
 			notifyCopyError(error)
 		}
-	}, [text, notifyCopiedChange, notifyCopyError, mountedRef])
-
-	useEffect(() => {
-		if (!copied) return
-
-		const delay = Math.min(timeout, MAX_TIMEOUT)
-
-		const timer = setTimeout(() => {
-			busyRef.current = false
-
-			setCopied(false)
-
-			notifyCopiedChange(false)
-		}, delay)
-
-		return () => clearTimeout(timer)
-	}, [copied, timeout, notifyCopiedChange])
+	}, [text, timeout, notifyCopiedChange, notifyCopyError, mountedRef, revert])
 
 	return { copied, copy }
 }

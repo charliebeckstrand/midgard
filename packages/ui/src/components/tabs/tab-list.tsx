@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentProps, useEffect, useRef } from 'react'
+import { type ComponentProps, useRef } from 'react'
 import { cn, composeEventHandlers } from '../../core'
 import { useA11yRoving } from '../../hooks'
 import { useComposedRef } from '../../hooks/use-composed-ref'
@@ -10,6 +10,36 @@ import type { AccessibleName } from '../../types'
 import { useTabsContext } from './context'
 import { TAB_SELECTOR } from './tabs-constants'
 import { useTabListScroll } from './use-tab-list-scroll'
+
+/**
+ * Keeps at least one enabled tab in `list` tabbable, now and after each change
+ * of the tabs. A ref callback, so React stops the observer when it detaches the
+ * list, as a hidden `<Activity>` does, and starts it again on the next attach.
+ */
+function observeTabbableFloor(list: HTMLDivElement) {
+	const ensureTabbable = () => {
+		const tabs = Array.from(list.querySelectorAll<HTMLButtonElement>(TAB_SELECTOR))
+
+		const first = tabs[0]
+
+		if (!first) return
+
+		if (!tabs.some((t) => t.tabIndex === 0)) first.tabIndex = 0
+	}
+
+	ensureTabbable()
+
+	const observer = new MutationObserver(ensureTabbable)
+
+	observer.observe(list, {
+		childList: true,
+		subtree: true,
+		attributes: true,
+		attributeFilter: ['tabindex', 'disabled'],
+	})
+
+	return () => observer.disconnect()
+}
 
 /** Props for {@link TabList}. Requires an accessible name (`aria-label` or `aria-labelledby`). */
 export type TabListProps = AccessibleName &
@@ -42,8 +72,8 @@ export function TabList({
 
 	const ref = useRef<HTMLDivElement>(null)
 
-	// Roving and the tabbable floor read `ref`, so a consumer `ref` joins it.
-	const setList = useComposedRef(ref, consumerRef)
+	// Roving reads `ref`, so a consumer `ref` joins it, with the tabbable floor.
+	const setList = useComposedRef(ref, consumerRef, observeTabbableFloor)
 
 	const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -55,35 +85,6 @@ export function TabList({
 	// The segment variant is a fixed pill control; only the underline list
 	// scrolls, so the viewport (and its scroll-into-view) is gated off for it.
 	const handleFocus = useTabListScroll(scrollRef, orientation, !isSegment)
-
-	useEffect(() => {
-		const el = ref.current
-
-		if (!el) return
-
-		const ensureTabbable = () => {
-			const tabs = Array.from(el.querySelectorAll<HTMLButtonElement>(TAB_SELECTOR))
-
-			const first = tabs[0]
-
-			if (!first) return
-
-			if (!tabs.some((t) => t.tabIndex === 0)) first.tabIndex = 0
-		}
-
-		ensureTabbable()
-
-		const observer = new MutationObserver(ensureTabbable)
-
-		observer.observe(el, {
-			childList: true,
-			subtree: true,
-			attributes: true,
-			attributeFilter: ['tabindex', 'disabled'],
-		})
-
-		return () => observer.disconnect()
-	}, [])
 
 	const list = (
 		<div

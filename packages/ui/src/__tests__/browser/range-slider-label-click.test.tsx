@@ -39,6 +39,21 @@ describe('a click on the RangeSlider Field Label (real browser)', () => {
 		expect(hi).toHaveAttribute('aria-valuenow', '50')
 	})
 
+	// Chromium focuses a button on a label click, and WebKit and Firefox do not. A
+	// dispatched click moves no focus in any engine, so it stands in for the click
+	// that the label sends to the start thumb in those engines.
+	it('focuses the start thumb on the click that the label sends to it', () => {
+		const { lo, hi } = renderLabeled()
+
+		lo?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+
+		expect(document.activeElement).toBe(lo)
+
+		expect(lo).toHaveAttribute('aria-valuenow', '20')
+
+		expect(hi).toHaveAttribute('aria-valuenow', '50')
+	})
+
 	it('focuses no thumb when the slider is disabled', async () => {
 		const { lo, hi, label } = renderLabeled(true)
 

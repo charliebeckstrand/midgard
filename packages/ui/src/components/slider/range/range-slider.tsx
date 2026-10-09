@@ -1,6 +1,6 @@
 'use client'
 
-import { type CSSProperties, type FocusEvent, type Ref, useEffect, useRef } from 'react'
+import { type CSSProperties, type FocusEvent, type Ref, useRef } from 'react'
 import { cn, dataAttr, invalidAttrs } from '../../../core'
 import { useIdScope } from '../../../hooks/use-id-scope'
 import { k, type RangeSliderVariants } from '../../../recipes/kata/slider-range'
@@ -183,25 +183,10 @@ export function RangeSlider({
 
 	// The field id is on the start thumb, because a `<button>` is labelable and the `<div>`
 	// root is not. A label click sends a click to the button, but some browsers do not focus a
-	// button. This listener focuses the start thumb, as a label click focuses the native input
-	// of `Slider`. The focus does not change a value.
-	useEffect(() => {
-		const root = loThumbRef.current?.ownerDocument
-
-		if (!root || resolvedDisabled) return
-
-		const handleClick = (event: MouseEvent) => {
-			if (event.defaultPrevented || !(event.target instanceof Element)) return
-
-			const label = event.target.closest('label')
-
-			if (label?.htmlFor === scope.id) loThumbRef.current?.focus()
-		}
-
-		root.addEventListener('click', handleClick)
-
-		return () => root.removeEventListener('click', handleClick)
-	}, [resolvedDisabled, scope.id])
+	// button. This handler focuses the start thumb, as a label click focuses the native input
+	// of `Slider`. The focus does not change a value. A press captures the pointer on the root,
+	// so the click of a press goes to the root and not to a thumb.
+	const focusStartThumb = () => loThumbRef.current?.focus()
 
 	const overlap = allowCross ? 'swap' : 'clamp'
 
@@ -255,6 +240,7 @@ export function RangeSlider({
 			style={{ insetInlineStart: `${thumb === 0 ? lo : hi}%` }}
 			onKeyDown={handleKeyDown(thumb)}
 			onBlur={handleThumbBlur}
+			onClick={thumb === 0 ? focusStartThumb : undefined}
 		/>
 	)
 

@@ -1,4 +1,4 @@
-import { createRef, type ReactNode } from 'react'
+import { Activity, createRef, type ReactNode } from 'react'
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { Tab, TabContent, TabContents, TabList, Tabs, type TabsProps } from '../../components/tabs'
 import { DensityProvider } from '../../providers/density'
@@ -685,6 +685,78 @@ describe('TabContents mount policy', () => {
 		const inactive = container.querySelectorAll('[role="tab"]')[1] as HTMLElement
 
 		expect(inactive).not.toHaveAttribute('aria-controls')
+	})
+})
+
+describe('TabList tabbable floor', () => {
+	function FloorTabs({ mode, disabled }: { mode: 'visible' | 'hidden'; disabled?: boolean }) {
+		return (
+			<Activity mode={mode}>
+				{/* No tab matches the value, so no tab takes the Tab stop. */}
+				<Tabs value="none" onValueChange={() => {}}>
+					<TabList aria-label="Sections">
+						<Tab value="a" disabled={disabled}>
+							A
+						</Tab>
+						<Tab value="b">B</Tab>
+					</TabList>
+				</Tabs>
+			</Activity>
+		)
+	}
+
+	it('makes the first tab tabbable when no tab is current', () => {
+		renderUI(<FloorTabs mode="visible" />)
+
+		const [a, b] = screen.getAllByRole('tab')
+
+		expect(a).toHaveAttribute('tabindex', '0')
+
+		expect(b).toHaveAttribute('tabindex', '-1')
+	})
+
+	// React detaches the refs and the effects of a hidden Activity and attaches
+	// them again when it shows. The floor must hold after each pass.
+	it('holds the floor after a hidden Activity shows', async () => {
+		const { rerender } = renderUI(<FloorTabs mode="hidden" />)
+
+		rerender(<FloorTabs mode="visible" />)
+
+		const [a] = screen.getAllByRole('tab', { hidden: true })
+
+		expect(a).toHaveAttribute('tabindex', '0')
+
+		rerender(<FloorTabs mode="hidden" />)
+
+		rerender(<FloorTabs mode="visible" />)
+
+		// The observer runs again: a disabled first tab moves the floor to the next tab.
+		rerender(<FloorTabs mode="visible" disabled />)
+
+		const [, b] = screen.getAllByRole('tab')
+
+		await waitFor(() => expect(b).toHaveAttribute('tabindex', '0'))
+	})
+
+	it('stops the observer while the Activity is hidden', async () => {
+		const { rerender } = renderUI(<FloorTabs mode="visible" />)
+
+		rerender(<FloorTabs mode="hidden" />)
+
+		rerender(<FloorTabs mode="hidden" disabled />)
+
+		const [, b] = screen.getAllByRole('tab', { hidden: true })
+
+		// A mutation while hidden reaches no observer.
+		await act(async () => {
+			await Promise.resolve()
+		})
+
+		expect(b).toHaveAttribute('tabindex', '-1')
+
+		rerender(<FloorTabs mode="visible" disabled />)
+
+		expect(b).toHaveAttribute('tabindex', '0')
 	})
 })
 

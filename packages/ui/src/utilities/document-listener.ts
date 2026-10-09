@@ -1,11 +1,16 @@
-import { getOrCompute } from './get-or-compute'
+import { createListenerRegistry } from './listener-registry'
 
-type Registry = {
-	handlers: Set<(event: Event) => void>
-	listener: ((event: Event) => void) | null
-}
+// The registry keeps an empty entry: event-type names are a small bounded set,
+// and the source is the document, which holds nothing live.
+const registry = createListenerRegistry<Document, Event>({
+	source: () => document,
+	attach: (doc, type, listener) => {
+		doc.addEventListener(type, listener)
 
-const registries = new Map<string, Registry>()
+		return () => doc.removeEventListener(type, listener)
+	},
+	keep: true,
+})
 
 /**
  * Subscribe to a document-level event through a single shared listener per
@@ -24,47 +29,5 @@ export function subscribeDocumentEvent<K extends keyof DocumentEventMap>(
 	type: K,
 	handler: (event: DocumentEventMap[K]) => void,
 ): () => void {
-	const reg = getOrCompute(
-		registries,
-		type,
-		(): Registry => ({ handlers: new Set(), listener: null }),
-	)
-
-	const wrapped = handler as (event: Event) => void
-
-	reg.handlers.add(wrapped)
-
-	if (reg.listener === null) {
-		reg.listener = (event) => {
-			// Dispatch over a snapshot; a mid-dispatch unsubscribe skips no handler.
-			for (const h of [...reg.handlers]) {
-				try {
-					h(event)
-				} catch (error) {
-					// Match native addEventListener semantics: a throw in one listener
-					// does not stop the others. The microtask rethrow surfaces it to
-					// the global error handler out of band.
-					queueMicrotask(() => {
-						throw error
-					})
-				}
-			}
-		}
-
-		document.addEventListener(type, reg.listener)
-	}
-
-	return () => {
-		reg.handlers.delete(wrapped)
-
-		// The emptied registry entry stays in the map: event-type names are a
-		// small bounded set, so there is nothing worth reclaiming. Contrast
-		// `media-query.ts`, which deletes its entry — query strings are
-		// unbounded and each entry pins a live `MediaQueryList`.
-		if (reg.handlers.size === 0 && reg.listener !== null) {
-			document.removeEventListener(type, reg.listener)
-
-			reg.listener = null
-		}
-	}
+	return registry.subscribe(type, handler as (event: Event) => void)
 }

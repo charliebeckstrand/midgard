@@ -13,7 +13,7 @@ import {
 } from 'react'
 import { useDragCursorHold } from '../../hooks/use-drag-cursor'
 import { useReportedChange } from '../../hooks/use-reported-change'
-import { useTimeout } from '../../hooks/use-timeout'
+import { useAnimationFrame, useTimeout } from '../../hooks/use-timeout'
 import { isPrimaryPress } from '../../utilities/primary-press'
 import { useMapHoverHold } from './context'
 import { MAP_PAN_THRESHOLD, MAP_WHEEL_SETTLE_MS } from './engine/map-constants'
@@ -253,11 +253,11 @@ export function useMapZoom({
 	const midpoint = useRef<MapPoint2D | null>(null)
 
 	/**
-	 * The frame that applies the pinch, or `null` when none waits. Both fingers
+	 * The frame that applies the pinch. Both fingers
 	 * move in one frame, so the pinch applies once per frame and not once per
 	 * finger. That halves the renders, and the marks regroup at each new scale.
 	 */
-	const pinchFrame = useRef<number | null>(null)
+	const pinchFrame = useAnimationFrame()
 
 	/** Whether the gesture just ended moved the view, so the click it produced is swallowed. */
 	const panned = useRef(false)
@@ -306,13 +306,6 @@ export function useMapZoom({
 			}, MAP_WHEEL_SETTLE_MS)
 		},
 		[settleGesture, wheelSettle],
-	)
-
-	useEffect(
-		() => () => {
-			if (pinchFrame.current !== null) cancelAnimationFrame(pinchFrame.current)
-		},
-		[],
 	)
 
 	// The SVG's box, read once when the gesture starts and held until a scroll
@@ -408,8 +401,6 @@ export function useMapZoom({
 
 	/** Applies the pinch to where the first two pointers are now. */
 	function applyPinch() {
-		pinchFrame.current = null
-
 		const [first, second] = [...pointers.current.values()]
 
 		if (first !== undefined && second !== undefined) pinch(first, second)
@@ -417,9 +408,9 @@ export function useMapZoom({
 
 	/** Applies a pinch that waits for its frame, now. */
 	function flushPinch() {
-		if (pinchFrame.current === null) return
+		if (!pinchFrame.pending()) return
 
-		cancelAnimationFrame(pinchFrame.current)
+		pinchFrame.clear()
 
 		applyPinch()
 	}
@@ -511,9 +502,7 @@ export function useMapZoom({
 		if (pairKey(contacts) === pairKey(pointers.current)) {
 			pointers.current = contacts
 
-			if (contacts.size > 1 && pinchFrame.current === null) {
-				pinchFrame.current = requestAnimationFrame(applyPinch)
-			}
+			if (contacts.size > 1 && !pinchFrame.pending()) pinchFrame.set(applyPinch)
 
 			return contacts.size > 0
 		}
@@ -673,7 +662,7 @@ export function useMapZoom({
 
 		hold(event)
 
-		if (pinchFrame.current === null) pinchFrame.current = requestAnimationFrame(applyPinch)
+		if (!pinchFrame.pending()) pinchFrame.set(applyPinch)
 	}
 
 	// A drag ends over whatever region it happens to land on, and the click that

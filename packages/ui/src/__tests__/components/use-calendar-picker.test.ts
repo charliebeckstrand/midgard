@@ -222,3 +222,69 @@ describe('useCalendarPicker: header ArrowDown', () => {
 		expect(document.activeElement).toBe(selected)
 	})
 })
+
+/**
+ * Renders the picker grid that the hook drives while `mounted`. The popover
+ * keeps the grid mounted through its exit animation, so a reopen in that
+ * window finds the same grid node.
+ */
+function PickerGrid({ open, mounted }: { open: boolean; mounted: boolean }) {
+	const picker = useCalendarPicker({
+		year: 2026,
+		month: 5,
+		today: null,
+		monthLabels,
+		localeTag: 'en-US',
+		onNavigate: () => {},
+		open,
+		onOpenChange: () => {},
+	})
+
+	if (!mounted) return null
+
+	return createElement(CalendarPickerGrid, {
+		headerRef: picker.pickerHeaderRef,
+		gridRef: picker.pickerGridRef,
+		onHeaderKeyDown: picker.handleHeaderKeyDown,
+		onGridKeyDown: picker.handleGridKeyDown,
+		...picker.viewConfig,
+	})
+}
+
+describe('useCalendarPicker: open focus', () => {
+	it('focuses the selected month when the grid mounts on open', async () => {
+		const { rerender } = renderUI(createElement(PickerGrid, { open: false, mounted: false }))
+
+		rerender(createElement(PickerGrid, { open: true, mounted: true }))
+
+		const selected = screen.getByRole('option', { name: 'M6', selected: true })
+
+		await waitFor(() => expect(document.activeElement).toBe(selected))
+
+		expect(selected.tabIndex).toBe(0)
+	})
+
+	// The grid node stays through the exit animation. A reopen in that window
+	// must focus the grid and restore its Tab stop again.
+	it('focuses the selected month on a reopen during the exit animation', async () => {
+		const { rerender } = renderUI(createElement(PickerGrid, { open: true, mounted: true }))
+
+		const selected = screen.getByRole('option', { name: 'M6', selected: true })
+
+		await waitFor(() => expect(document.activeElement).toBe(selected))
+
+		rerender(createElement(PickerGrid, { open: false, mounted: true }))
+
+		act(() => selected.blur())
+
+		expect(document.activeElement).not.toBe(selected)
+
+		rerender(createElement(PickerGrid, { open: true, mounted: true }))
+
+		await waitFor(() => expect(document.activeElement).toBe(selected))
+
+		expect(selected.tabIndex).toBe(0)
+
+		expect(screen.getByRole('option', { name: 'M6', selected: true })).toBe(selected)
+	})
+})

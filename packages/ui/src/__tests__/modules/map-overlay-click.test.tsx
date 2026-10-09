@@ -117,6 +117,44 @@ describe('overlay identity and click', () => {
 	})
 })
 
+describe('overlay reporters across renders', () => {
+	// An inline handler is a new function on each render. Each route reaches the
+	// handler of the newest render.
+	it('reports a click, a right-click, and an Enter to the newest handlers', () => {
+		const first = { onClick: vi.fn(), onContextMenu: vi.fn() }
+
+		const second = { onClick: vi.fn(), onContextMenu: vi.fn() }
+
+		const point = (handlers: typeof first) =>
+			overlayPlat(<MapPoint id="yard" label="Yard" at={YARD} {...handlers} />)
+
+		const { container, plot, rerender } = renderNavigable(point(first))
+
+		rerender(point(second))
+
+		const hit = bySlot(container, 'map-point-hit') as Element
+
+		fireEvent.click(hit)
+
+		fireEvent.contextMenu(hit)
+
+		fireEvent.keyDown(plot, { key: 'End' })
+
+		fireEvent.keyDown(plot, { key: 'Enter' })
+
+		expect(first.onClick).not.toHaveBeenCalled()
+
+		expect(first.onContextMenu).not.toHaveBeenCalled()
+
+		expect(second.onClick.mock.calls).toEqual([
+			['yard', 0],
+			['yard', 0],
+		])
+
+		expect(second.onContextMenu).toHaveBeenCalledExactlyOnceWith('yard', 0)
+	})
+})
+
 describe('overlay keyboard reach', () => {
 	it('steps onto an overlay and picks it with Enter', () => {
 		const onClick = vi.fn()
