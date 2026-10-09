@@ -4,7 +4,6 @@ import {
 	type RefObject,
 	useCallback,
 	useDeferredValue,
-	useEffect,
 	useLayoutEffect,
 	useRef,
 	useState,
@@ -154,40 +153,23 @@ export function useComboboxState<T>({
 		flush: flushFrozenQuery,
 	} = useFrozenOnClose<{ query: string; deferredQuery: string }>(open)
 
-	// Latest query values for `close` to snapshot without carrying them as
-	// dependencies: with `query` in its deps, `close` — and through it `select`
-	// and the combobox context — would take a new identity on every keystroke,
-	// re-rendering each option on the typing path the deferred query keeps cheap.
-	const queryRef = useRef(query)
-
-	const deferredQueryRef = useRef(deferredQuery)
-
-	// The open state, in a ref for the same reason. Only the close of an open
-	// panel starts an exit animation, so only that close takes a snapshot.
-	const openRef = useRef(open)
-
-	useEffect(() => {
-		queryRef.current = query
-
-		deferredQueryRef.current = deferredQuery
-
-		openRef.current = open
-	})
-
-	const close = useCallback(() => {
+	// A stable event, so that `close` — and through it `select` and the combobox
+	// context — keeps one identity on each keystroke. A new identity would
+	// re-render each option on the typing path that the deferred query keeps
+	// cheap.
+	const close = useStableEvent(() => {
 		// An outside press closes the panel, and then the input blur calls close()
 		// again. The query is empty by then, so a second snapshot would expand the
-		// list under the exit animation.
-		if (openRef.current) {
-			freezeQuery({ query: queryRef.current, deferredQuery: deferredQueryRef.current })
-		}
+		// list under the exit animation. Only the close of an open panel starts an
+		// exit animation, so only that close takes a snapshot.
+		if (open) freezeQuery({ query, deferredQuery })
 
 		setOpen(false)
 
 		setQuery('')
 
 		setEditing(false)
-	}, [freezeQuery, setOpen, setQuery])
+	})
 
 	const shouldClose = closeOnSelect ?? !multiple
 

@@ -1,9 +1,10 @@
 'use client'
 
-import { type KeyboardEvent, useCallback, useLayoutEffect, useMemo, useRef } from 'react'
+import { type KeyboardEvent, useCallback, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks'
 import { useKeyedStore } from '../../hooks/use-keyed-store'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { k } from '../../recipes/kata/json-tree'
 import { treeMoveForKey, treeMoveTarget } from '../tree/tree-keyboard'
 import { JsonTreeContext } from './context'
@@ -144,20 +145,11 @@ export function JsonTree({
 	// path, so a new set renders only the nodes whose open state changed.
 	const expansion = useKeyedStore(expanded, expansionReader)
 
-	// The latest set and handler, for a toggle that keeps its identity.
-	const latest = useRef({ expanded, onExpandedChange })
-
-	useLayoutEffect(() => {
-		latest.current = { expanded, onExpandedChange }
-	}, [expanded, onExpandedChange])
-
 	// Controlled without a handler is read-only, as a controlled input with no
 	// `onChange` is.
-	const toggleExpanded = useCallback((path: string) => {
-		const { expanded: current, onExpandedChange: report } = latest.current
-
-		if (current && report) toggleExpandedSet(current, path, report)
-	}, [])
+	const toggleExpanded = useStableEvent((path: string) => {
+		if (expanded && onExpandedChange) toggleExpandedSet(expanded, path, onExpandedChange)
+	})
 
 	// Keyed on `data` identity, so a structurally identical value with a new
 	// identity rebuilds the whole index. Correct as written: a content equality
@@ -180,15 +172,13 @@ export function JsonTree({
 
 	// Union the paths into the controlled set. Reports nothing when the set
 	// already holds each path, or when the tree has no handler.
-	const expandControlled = useCallback((paths: ReadonlySet<string>) => {
-		const { expanded: current, onExpandedChange: report } = latest.current
+	const expandControlled = useStableEvent((paths: ReadonlySet<string>) => {
+		if (!expanded || !onExpandedChange) return
 
-		if (!current || !report) return
+		const next = unionExpandedSet(expanded, paths)
 
-		const next = unionExpandedSet(current, paths)
-
-		if (next) report(next)
-	}, [])
+		if (next) onExpandedChange(next)
+	})
 
 	// A controlled walk follows only `expanded`, so the match paths go into the
 	// set as a seed. One seed serves both variants.

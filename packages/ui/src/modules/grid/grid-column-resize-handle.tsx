@@ -1,9 +1,10 @@
 'use client'
 
-import { type KeyboardEvent, useEffect, useRef } from 'react'
+import type { KeyboardEvent } from 'react'
 import { announce, cn, dataAttr } from '../../core'
 import { useDragCursor } from '../../hooks'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { useTimeout } from '../../hooks/use-timeout'
 import { PanelSplitter } from '../../primitives/panel/panel-splitter'
 import { k } from '../../recipes/kata/grid'
@@ -50,23 +51,16 @@ export function GridColumnResizeHandle({
 	// control with a cursor of its own.
 	useDragCursor(resizing, 'col-resize')
 
-	// The width of the latest commit. A nudge or an auto-size lands in a later
-	// commit than the key press, so the announcement reads the width from here.
-	const sizeRef = useRef(size)
-
-	useEffect(() => {
-		sizeRef.current = size
-	}, [size])
+	// A nudge or an auto-size lands in a later commit than the key press, so the
+	// timer calls a stable event, which reads the width of the newest commit.
+	const announceWidth = useStableEvent(() => announce(describeResize(label, size)))
 
 	// Debounce the post-resize announcement so a run of keyboard nudges settles into
 	// one polite message rather than chattering on every keystroke (WCAG 4.1.3).
 	const announceTimer = useTimeout()
 
 	function announceSettledWidth() {
-		announceTimer.set(
-			() => announce(describeResize(label, sizeRef.current)),
-			GRID_STATUS_DEBOUNCE_MS,
-		)
+		announceTimer.set(announceWidth, GRID_STATUS_DEBOUNCE_MS)
 	}
 
 	function handleKeyDown(event: KeyboardEvent<HTMLSpanElement>) {
