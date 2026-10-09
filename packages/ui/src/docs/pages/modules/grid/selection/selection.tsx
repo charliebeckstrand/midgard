@@ -12,7 +12,7 @@ export default function Selection() {
 			columns={selectColumns}
 			rows={people}
 			getKey={(row) => row.id}
-			selection={{ value: selection, onValueChange: (next) => setSelection(next ?? new Set()) }}
+			selection={{ value: selection, onValueChange: setSelection }}
 		/>
 	)
 }

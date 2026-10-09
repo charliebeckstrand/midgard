@@ -13,7 +13,7 @@ import {
 } from 'ui/dialog'
 import { Field, Label } from 'ui/fieldset'
 import { Flex } from 'ui/flex'
-import { Form, useFormField } from 'ui/form'
+import { Form } from 'ui/form'
 import { Grid, type GridColumn } from 'ui/grid'
 import { NumberInput } from 'ui/number-input'
 import { useFormat } from 'ui/providers/locale'
@@ -32,19 +32,6 @@ const initialRates: LaneRate[] = [
 	{ id: 5, state: 'WA', perMile: 2.4, minCharge: 255, fuelPct: 28 },
 	{ id: 6, state: 'TX', perMile: 2.15, minCharge: 215, fuelPct: 26 },
 ]
-
-// A CurrencyInput that binds to the Form by its name, as a NumberInput does.
-function FormCurrencyInput({ name, placeholder }: { name: string; placeholder?: string }) {
-	const field = useFormField(name)
-
-	return (
-		<CurrencyInput
-			placeholder={placeholder}
-			value={typeof field?.value === 'number' ? field.value : null}
-			onValueChange={(value) => field?.setValue(value)}
-		/>
-	)
-}
 
 export default function BulkEdit() {
 	const money = useFormat({ type: 'currency' })
@@ -72,13 +59,16 @@ export default function BulkEdit() {
 		return row ? { perMile: row.perMile, minCharge: row.minCharge, fuelPct: row.fuelPct } : {}
 	}, [rates, selection])
 
-	const columns: GridColumn<LaneRate>[] = [
-		{ id: 'select', selectable: true },
-		{ id: 'state', title: 'State', cell: (row) => row.state, width: '80px' },
-		{ id: 'perMile', title: 'Per-mile', cell: (row) => money(row.perMile) },
-		{ id: 'minCharge', title: 'Min charge', cell: (row) => money(row.minCharge) },
-		{ id: 'fuelPct', title: 'Fuel %', cell: (row) => `${row.fuelPct}%` },
-	]
+	const columns = useMemo(
+		(): GridColumn<LaneRate>[] => [
+			{ id: 'select', selectable: true },
+			{ id: 'state', title: 'State', cell: (row) => row.state, width: '80px' },
+			{ id: 'perMile', title: 'Per-mile', cell: (row) => money(row.perMile) },
+			{ id: 'minCharge', title: 'Min charge', cell: (row) => money(row.minCharge) },
+			{ id: 'fuelPct', title: 'Fuel %', cell: (row) => `${row.fuelPct}%` },
+		],
+		[money],
+	)
 
 	return (
 		<>
@@ -92,7 +82,7 @@ export default function BulkEdit() {
 				getKey={(row) => row.id}
 				selection={{
 					value: selection,
-					onValueChange: (next) => setSelection(next ?? new Set()),
+					onValueChange: setSelection,
 					batchActions: ({ setSelection: setSelected }) => (
 						<Flex gap="sm">
 							<Button variant="soft" onClick={() => setSelected(new Set())}>
@@ -135,11 +125,11 @@ export default function BulkEdit() {
 								<Stack gap="lg">
 									<Field>
 										<Label>Per-mile</Label>
-										<FormCurrencyInput name="perMile" placeholder="No change" />
+										<CurrencyInput name="perMile" placeholder="No change" />
 									</Field>
 									<Field>
 										<Label>Min charge</Label>
-										<FormCurrencyInput name="minCharge" placeholder="No change" />
+										<CurrencyInput name="minCharge" placeholder="No change" />
 									</Field>
 									<Field>
 										<Label>Fuel %</Label>

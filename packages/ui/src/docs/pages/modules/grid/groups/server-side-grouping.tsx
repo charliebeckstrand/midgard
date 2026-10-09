@@ -57,7 +57,9 @@ const dollars = (value: unknown) => `$${Number(value).toLocaleString('en-US')}`
 
 const orderColumns: GridColumn<Order>[] = [
 	// A `groupable` column has a button on its header that groups by it. It is
-	// sortable too, so a sort moves the groups.
+	// sortable too, so a sort moves the groups. Manual grouping makes the sort of
+	// each other column manual, and the mock server does not sort, so those
+	// columns do not sort.
 	{
 		id: 'country',
 		title: 'Country',
@@ -69,12 +71,14 @@ const orderColumns: GridColumn<Order>[] = [
 	{
 		id: 'customer',
 		title: 'Customer',
+		sortable: false,
 		cell: (row) => row.customer ?? '',
 		value: (row) => row.customer,
 	},
 	{
 		id: 'orders',
 		title: 'Orders',
+		sortable: false,
 		cell: (row) => String(row.orders),
 		value: (row) => row.orders,
 		aggFunc: 'sum',
@@ -82,6 +86,7 @@ const orderColumns: GridColumn<Order>[] = [
 	{
 		id: 'revenue',
 		title: 'Revenue',
+		sortable: false,
 		cell: (row) => dollars(row.revenue),
 		value: (row) => row.revenue,
 		aggFunc: 'sum',
@@ -105,11 +110,15 @@ export default function ServerSideGrouping() {
 	// The groups whose rows arrived. A collapsed group keeps its rows.
 	const loaded = useRef(new Set<string | number>())
 
+	// Each grouping is a new epoch. A response from an earlier epoch is stale,
+	// so it changes nothing.
+	const epoch = useRef(0)
+
 	useEffect(() => {
-		let current = true
+		const request = epoch.current
 
 		fetchGroups().then((groups) => {
-			if (!current) return
+			if (request !== epoch.current) return
 
 			setRows(groups)
 
@@ -117,11 +126,15 @@ export default function ServerSideGrouping() {
 		})
 
 		return () => {
-			current = false
+			epoch.current += 1
 		}
 	}, [])
 
 	const regroup = (columnId: string | number | null) => {
+		epoch.current += 1
+
+		const request = epoch.current
+
 		setGroupedBy(columnId)
 
 		setExpanded(new Set())
@@ -131,6 +144,8 @@ export default function ServerSideGrouping() {
 		setLoading(true)
 
 		;(columnId === null ? fetchRows() : fetchGroups()).then((next) => {
+			if (request !== epoch.current) return
+
 			setRows(next)
 
 			setLoading(false)
@@ -143,7 +158,11 @@ export default function ServerSideGrouping() {
 
 		loaded.current.add(key)
 
+		const request = epoch.current
+
 		fetchChildren(String(key)).then((children) => {
+			if (request !== epoch.current) return
+
 			setRows((current) => {
 				const at = current.findIndex((row) => row.group?.key === key) + 1
 
