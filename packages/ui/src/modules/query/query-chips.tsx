@@ -1,16 +1,7 @@
 'use client'
 
 import { X } from 'lucide-react'
-import {
-	Fragment,
-	type KeyboardEvent,
-	type ReactNode,
-	useCallback,
-	useEffect,
-	useId,
-	useRef,
-	useState,
-} from 'react'
+import { Fragment, type KeyboardEvent, type ReactNode, useCallback, useId, useRef } from 'react'
 import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
@@ -27,6 +18,7 @@ import {
 	summarizeQuery,
 } from './engine/query-summary'
 import type { QueryField, QueryGroup } from './engine/types'
+import { useQueryRemovalFocus } from './use-query-removal-focus'
 import { useQueryTree } from './use-query-tree'
 
 /** Props for {@link QueryChips}: the queryable `fields` and the controlled/uncontrolled query tree. */
@@ -134,9 +126,6 @@ function QueryChip({ token, onRemove, disabled, register }: QueryChipProps) {
 	)
 }
 
-/** Focus targets after a removal: rule ids, best first, then the row itself. @internal */
-type PendingFocus = { ids: string[] }
-
 /**
  * The rule ids that take focus after the rule `id` goes, best first: the
  * previous chips, nearest first, then the next chips. This is the ladder of the
@@ -201,36 +190,15 @@ export function QueryChips({
 		enabled: !readOnly,
 	})
 
-	// Each remove button registers here by rule id. A removal stashes its focus
-	// ladder, and the effect moves focus after the chip unmounts.
-	const removers = useRef(new Map<string, HTMLButtonElement>())
-
-	const register = useCallback((id: string, el: HTMLButtonElement | null) => {
-		if (el) removers.current.set(id, el)
-		else removers.current.delete(id)
-	}, [])
-
-	const [pendingFocus, setPendingFocus] = useState<PendingFocus | null>(null)
-
-	useEffect(() => {
-		if (!pendingFocus) return
-
-		for (const id of pendingFocus.ids) {
-			const el = removers.current.get(id)
-
-			if (el?.isConnected && !el.disabled) {
-				el.focus()
-
-				return
-			}
-		}
-
-		// No chip is left, so the row takes focus with its empty text.
-		rowRef.current?.focus()
-	}, [pendingFocus])
+	// Each remove button registers here by rule id. A removal gives its focus
+	// ladder, and focus moves after the chip unmounts. With no chip left, the
+	// row takes focus with its empty text.
+	const { register, focusFirst } = useQueryRemovalFocus<HTMLButtonElement>(() =>
+		rowRef.current?.focus(),
+	)
 
 	const remove = (token: QuerySummaryRuleToken) => {
-		setPendingFocus({ ids: focusLadder(tokens, token.id) })
+		focusFirst(focusLadder(tokens, token.id))
 
 		actions.remove(token.id)
 

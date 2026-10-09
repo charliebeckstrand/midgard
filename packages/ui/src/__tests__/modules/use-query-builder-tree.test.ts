@@ -1,6 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import type { QueryField } from '../../modules/query'
+import { focusKeys } from '../../modules/query/query-builder/query-builder-focus'
 import { useQueryBuilderTree } from '../../modules/query/query-builder/use-query-builder-tree'
 
 const fields: QueryField[] = [
@@ -38,5 +39,49 @@ describe('useQueryBuilderTree', () => {
 		})
 
 		expect(onValueChange.mock.calls.at(-1)?.[0].children).toHaveLength(0)
+	})
+
+	it('skips a disabled target and focuses the next live one, as the focus ladder says', () => {
+		const onValueChange = vi.fn()
+
+		const { result } = renderHook(() => useQueryBuilderTree({ fields, onValueChange }))
+
+		for (let i = 0; i < 3; i++) {
+			act(() => {
+				result.current.actions.addRule(result.current.root.id)
+			})
+		}
+
+		const [first, middle, last] = onValueChange.mock.calls.at(-1)?.[0].children ?? []
+
+		const button = (disabled: boolean) => {
+			const el = document.createElement('button')
+
+			el.disabled = disabled
+
+			document.body.append(el)
+
+			return el
+		}
+
+		const previous = button(true)
+
+		const next = button(false)
+
+		act(() => {
+			result.current.register(focusKeys.node(first.id), previous)
+
+			result.current.register(focusKeys.node(last.id), next)
+		})
+
+		act(() => {
+			result.current.actions.remove(middle.id)
+		})
+
+		expect(document.activeElement).toBe(next)
+
+		previous.remove()
+
+		next.remove()
 	})
 })
