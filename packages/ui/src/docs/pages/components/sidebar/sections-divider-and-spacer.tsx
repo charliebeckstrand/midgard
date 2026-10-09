@@ -39,17 +39,40 @@ export default function SectionsDividerAndSpacer() {
 	const [active, setActive] = useState('home')
 
 	return (
-		<div className="h-108 overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800">
-			<Sidebar aria-label="Sidebar with sections">
-				<SidebarHeader>
-					<Heading level={3}>Workspace</Heading>
-				</SidebarHeader>
-				<SidebarBody>
-					<SidebarList aria-label="Main">
-						{main.map((item) => (
+		<Sidebar aria-label="Sidebar with sections">
+			<SidebarHeader>
+				<Heading level={3}>Workspace</Heading>
+			</SidebarHeader>
+			<SidebarBody>
+				<SidebarList aria-label="Main">
+					{main.map((item) => (
+						<SidebarItem
+							key={item.value}
+							icon={item.icon}
+							current={active === item.value}
+							onClick={() => setActive(item.value)}
+						>
+							<SidebarLabel>{item.label}</SidebarLabel>
+						</SidebarItem>
+					))}
+				</SidebarList>
+
+				<SidebarDivider />
+
+				<SidebarSection>
+					<Flex align="center" justify="between" gap="sm">
+						<Text tone="muted" size="xs" className="uppercase tracking-wide">
+							Projects
+						</Text>
+						<Button variant="plain" size="sm" aria-label="New project">
+							<Icon icon={<Plus />} />
+						</Button>
+					</Flex>
+					<SidebarList aria-label="Projects">
+						{projects.map((item) => (
 							<SidebarItem
 								key={item.value}
-								icon={item.icon}
+								icon={<Folder />}
 								current={active === item.value}
 								onClick={() => setActive(item.value)}
 							>
@@ -57,72 +80,47 @@ export default function SectionsDividerAndSpacer() {
 							</SidebarItem>
 						))}
 					</SidebarList>
+				</SidebarSection>
 
-					<SidebarDivider />
-
-					<SidebarSection>
-						<Flex align="center" justify="between" gap="sm">
-							<Text tone="muted" size="xs" className="uppercase tracking-wide">
-								Projects
-							</Text>
-							<Button variant="plain" size="sm" aria-label="New project">
-								<Icon icon={<Plus />} />
-							</Button>
-						</Flex>
-						<SidebarList aria-label="Projects">
-							{projects.map((item) => (
-								<SidebarItem
-									key={item.value}
-									icon={<Folder />}
-									current={active === item.value}
-									onClick={() => setActive(item.value)}
-								>
-									<SidebarLabel>{item.label}</SidebarLabel>
-								</SidebarItem>
-							))}
-						</SidebarList>
-					</SidebarSection>
-
-					<SidebarSection>
-						<Flex align="center" justify="between" gap="sm">
-							<Text tone="muted" size="xs" className="uppercase tracking-wide">
-								Chats
-							</Text>
-							<Button variant="plain" size="sm" aria-label="New chat">
-								<Icon icon={<Plus />} />
-							</Button>
-						</Flex>
-						<SidebarList aria-label="Chats">
-							{chats.map((item) => (
-								<SidebarItem
-									key={item.value}
-									icon={<MessageCircle />}
-									current={active === item.value}
-									onClick={() => setActive(item.value)}
-								>
-									<SidebarLabel>{item.label}</SidebarLabel>
-								</SidebarItem>
-							))}
-						</SidebarList>
-					</SidebarSection>
-
-					<Spacer />
-
-					<SidebarSection>
-						<Text tone="muted" size="xs" className="py-2 uppercase tracking-wide">
-							Wade Cooper
+				<SidebarSection>
+					<Flex align="center" justify="between" gap="sm">
+						<Text tone="muted" size="xs" className="uppercase tracking-wide">
+							Chats
 						</Text>
-						<SidebarList aria-label="Account">
-							<SidebarItem icon={<Cog />}>
-								<SidebarLabel>Settings</SidebarLabel>
+						<Button variant="plain" size="sm" aria-label="New chat">
+							<Icon icon={<Plus />} />
+						</Button>
+					</Flex>
+					<SidebarList aria-label="Chats">
+						{chats.map((item) => (
+							<SidebarItem
+								key={item.value}
+								icon={<MessageCircle />}
+								current={active === item.value}
+								onClick={() => setActive(item.value)}
+							>
+								<SidebarLabel>{item.label}</SidebarLabel>
 							</SidebarItem>
-							<SidebarItem icon={<LogOut />}>
-								<SidebarLabel>Log out</SidebarLabel>
-							</SidebarItem>
-						</SidebarList>
-					</SidebarSection>
-				</SidebarBody>
-			</Sidebar>
-		</div>
+						))}
+					</SidebarList>
+				</SidebarSection>
+
+				<Spacer />
+
+				<SidebarSection>
+					<Text tone="muted" size="xs" className="py-2 uppercase tracking-wide">
+						Wade Cooper
+					</Text>
+					<SidebarList aria-label="Account">
+						<SidebarItem icon={<Cog />}>
+							<SidebarLabel>Settings</SidebarLabel>
+						</SidebarItem>
+						<SidebarItem icon={<LogOut />}>
+							<SidebarLabel>Log out</SidebarLabel>
+						</SidebarItem>
+					</SidebarList>
+				</SidebarSection>
+			</SidebarBody>
+		</Sidebar>
 	)
 }
