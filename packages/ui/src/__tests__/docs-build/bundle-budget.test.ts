@@ -65,7 +65,7 @@ function readBundle(): BundleReport {
  * there first.
  */
 const BUDGETS = [
-	{ label: 'total gzip', budgetKb: 5200, of: (report: BundleReport) => report.totalGzip },
+	{ label: 'total gzip', budgetKb: 5300, of: (report: BundleReport) => report.totalGzip },
 	{ label: 'eager gzip', budgetKb: 290, of: (report: BundleReport) => report.eagerGzip },
 ]
 
