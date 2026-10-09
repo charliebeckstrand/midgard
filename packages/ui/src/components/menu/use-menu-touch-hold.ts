@@ -1,12 +1,10 @@
 import { type PointerEvent, useRef } from 'react'
 import { useTimeout } from '../../hooks/use-timeout'
+import { TOUCH_SLOP } from '../../hooks/use-touch-tap'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
 
 /** Hold time, in ms, before a touch opens the context menu. Android opens its own at about 500. */
 export const TOUCH_CONTEXT_MENU_DELAY = 500
-
-/** Travel, in px, that turns a held touch into a scroll or a drag. */
-const SLOP = 10
 
 /** Time, in ms, in which the click that ends the hold is dropped, unless a new press starts first. */
 const CLICK_WINDOW = 1000
@@ -89,7 +87,7 @@ export function useMenuTouchHold() {
 
 			const { x, y } = origin.current
 
-			if (Math.hypot(event.clientX - x, event.clientY - y) > SLOP) cancel()
+			if (Math.hypot(event.clientX - x, event.clientY - y) > TOUCH_SLOP) cancel()
 		},
 		onPointerUp: cancel,
 		onPointerCancel: cancel,
