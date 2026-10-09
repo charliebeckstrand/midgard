@@ -1,6 +1,7 @@
-import { type MouseEvent, useEffect, useState } from 'react'
+import { type MouseEvent, useState } from 'react'
 import { type NavigateFunction, PrefetchPageLinks } from 'react-router'
 import { composeEventHandlers, createContext } from 'ui/core'
+import { useTimeout } from 'ui/hooks'
 import type { LinkProps } from 'ui/primitives/link'
 
 /**
@@ -45,26 +46,21 @@ export function RouterLink({
 }: LinkProps) {
 	const navigate = useShellNavigate()
 
-	const [intent, setIntent] = useState(false)
-
 	const [prefetch, setPrefetch] = useState(false)
 
-	useEffect(() => {
-		if (!intent) return
-
-		const timer = setTimeout(() => setPrefetch(true), 100)
-
-		return () => clearTimeout(timer)
-	}, [intent])
+	const timeout = useTimeout()
 
 	// A path that starts with one slash is a page of the site. A URL, or a path
 	// that starts with two slashes, goes to another host.
 	const internal = href.startsWith('/') && !href.startsWith('//')
 
-	const start = () => setIntent(true)
+	// A second hover, focus, or touch does not start the 100 ms again.
+	const start = () => {
+		if (!timeout.pending()) timeout.set(() => setPrefetch(true), 100)
+	}
 
 	const cancel = () => {
-		setIntent(false)
+		timeout.clear()
 
 		setPrefetch(false)
 	}
