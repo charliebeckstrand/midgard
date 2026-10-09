@@ -382,4 +382,35 @@ describe('ChatPrompt', () => {
 
 		expect(onRemoveAttachment).toHaveBeenCalledWith(1)
 	})
+
+	it.each(['Delete', 'Backspace'])(
+		'%s on a chip remove button removes that attachment',
+		async (key) => {
+			const onRemoveAttachment = vi.fn()
+
+			const first = new File(['a'], 'first.pdf', { type: 'application/pdf' })
+
+			const second = new File(['b'], 'second.pdf', { type: 'application/pdf' })
+
+			renderUI(
+				<ChatPrompt
+					value=""
+					onValueChange={noop}
+					onSubmit={noop}
+					attachments={[first, second]}
+					onRemoveAttachment={onRemoveAttachment}
+				/>,
+			)
+
+			const button = screen.getByRole('button', { name: 'Remove second.pdf' })
+
+			const event = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true })
+
+			button.dispatchEvent(event)
+
+			expect(onRemoveAttachment).toHaveBeenCalledExactlyOnceWith(1)
+
+			expect(event.defaultPrevented).toBe(true)
+		},
+	)
 })
