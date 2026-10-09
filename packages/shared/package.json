@@ -55,7 +55,7 @@
 		"next": "catalog:",
 		"openapi-typescript": "^7.13.0",
 		"react": "catalog:",
-		"typescript": "catalog:",
+		"typescript": "catalog:typescript6",
 		"vitest": "catalog:"
 	}
 }

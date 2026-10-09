@@ -27,10 +27,18 @@ catalog:
   tailwindcss: ^4.3.0
   topojson-client: ^3.1.0
   tsup: ^8.5.1
-  typescript: ^6.0.3
+  typescript: ^7.0.2
   us-atlas: ^3.0.1
   vitest: 4.1.11
   world-atlas: ^2.0.2
+
+# `auth` and `shared` generate their API types with `openapi-typescript`, which
+# reads the JavaScript API of TypeScript through its peer. TypeScript 7 has no
+# such API, so these two packages keep TypeScript 6. The apps and `ui` check
+# with TypeScript 7, and `next build` runs its CLI.
+catalogs:
+  typescript6:
+    typescript: ^6.0.3
 
 allowBuilds:
   '@percy/core': false
