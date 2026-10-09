@@ -5,7 +5,16 @@
 		"build": {
 			"dependsOn": ["^build"],
 			"env": ["BIFROST_URL"],
-			"inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/postcss.config.mjs"],
+			"inputs": [
+				"$TURBO_DEFAULT$",
+				"!src/**/__tests__/**",
+				"!*.md",
+				"$TURBO_ROOT$/.browserslistrc",
+				"$TURBO_ROOT$/postcss.config.mjs",
+				"$TURBO_ROOT$/tsconfig.base.json",
+				"$TURBO_ROOT$/tsconfig.nextjs.json",
+				"$TURBO_ROOT$/vitest.shared.ts"
+			],
 			"outputs": [".next/**", "!.next/cache/**", "dist/**"]
 		},
 		"transit": {
@@ -35,6 +44,7 @@
 				"src/**",
 				"!src/**/__tests__/**",
 				"!src/__benchmarks__/**",
+				"tailwind.css",
 				"tsconfig.json",
 				"$TURBO_ROOT$/tsconfig.base.json"
 			],
