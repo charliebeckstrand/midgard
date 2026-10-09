@@ -3,7 +3,7 @@
 import { CircleUserRound } from 'lucide-react'
 import { type MouseEvent, useState } from 'react'
 import { Button } from 'ui/button'
-import { useIdleLoad } from 'ui/hooks'
+import { useIntentLoad } from 'ui/hooks'
 import { Icon } from 'ui/icon'
 import type { UserMenuPanel, UserMenuProps } from './user-menu-panel'
 
@@ -13,9 +13,6 @@ import type { UserMenuPanel, UserMenuProps } from './user-menu-panel'
  * the menu code before it hydrates, and the first press does not wait for it.
  */
 const loadMenu = () => import('./user-menu-panel')
-
-/** Starts the load for a reader who shows intent: a pointer or a focus on the button. */
-const preloadMenu = () => void loadMenu()
 
 /**
  * The menu of the signed-in user: add a place, open the list, and sign out. A
@@ -39,15 +36,14 @@ export function UserMenu(props: UserMenuProps) {
 		focus: boolean
 	} | null>(null)
 
-	const loaded = useIdleLoad(loadMenu)
+	const { request, preload } = useIntentLoad(loadMenu)
 
 	if (menu !== null) return <menu.module.UserMenuPanel {...props} focus={menu.focus} />
 
 	const press = (event: MouseEvent<HTMLButtonElement>) => {
 		const focus = event.currentTarget === document.activeElement
 
-		if (loaded) setMenu({ module: loaded, focus })
-		else void loadMenu().then((module) => setMenu({ module, focus }))
+		request((module) => setMenu({ module, focus }))
 	}
 
 	return (
@@ -56,9 +52,9 @@ export function UserMenu(props: UserMenuProps) {
 			aria-label="User menu"
 			aria-haspopup="menu"
 			aria-expanded={false}
-			onPointerEnter={preloadMenu}
-			onPointerDown={preloadMenu}
-			onFocus={preloadMenu}
+			onPointerEnter={preload}
+			onPointerDown={preload}
+			onFocus={preload}
 			onClick={press}
 		>
 			<Icon icon={<CircleUserRound />} />

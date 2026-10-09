@@ -4,8 +4,7 @@ import { Settings2 } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
-import { useIdleLoad } from '../../hooks/use-idle-load'
-import type { AppearanceSettingsDialog } from './appearance-settings-dialog'
+import { useIntentLoad } from '../../hooks/use-intent-load'
 
 /**
  * Loads the module of the dialog, which carries the dialog and the listboxes. A
@@ -14,9 +13,6 @@ import type { AppearanceSettingsDialog } from './appearance-settings-dialog'
  * @internal
  */
 const loadDialog = () => import('./appearance-settings-dialog')
-
-/** Starts the load for a reader who shows intent: a pointer or a focus on the button. @internal */
-const preloadDialog = () => void loadDialog()
 
 /** Props for {@link AppearanceSettings}: more fields for the dialog. */
 export type AppearanceSettingsProps = {
@@ -46,36 +42,17 @@ export type AppearanceSettingsProps = {
 export function AppearanceSettings({ children }: AppearanceSettingsProps) {
 	const [open, setOpen] = useState(false)
 
-	// The module of the dialog, from a press before the idle load on.
-	const [pressed, setPressed] = useState<{
-		AppearanceSettingsDialog: typeof AppearanceSettingsDialog
-	} | null>(null)
-
-	const dialog = useIdleLoad(loadDialog) ?? pressed
-
-	const show = () => {
-		if (dialog) {
-			setOpen(true)
-
-			return
-		}
-
-		void loadDialog().then((module) => {
-			setPressed(module)
-
-			setOpen(true)
-		})
-	}
+	const { module: dialog, request, preload } = useIntentLoad(loadDialog)
 
 	return (
 		<>
 			<Button
 				variant="bare"
 				aria-label="Settings"
-				onPointerEnter={preloadDialog}
-				onPointerDown={preloadDialog}
-				onFocus={preloadDialog}
-				onClick={show}
+				onPointerEnter={preload}
+				onPointerDown={preload}
+				onFocus={preload}
+				onClick={() => request(() => setOpen(true))}
 			>
 				<Icon icon={<Settings2 />} />
 			</Button>
