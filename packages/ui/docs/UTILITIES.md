@@ -112,7 +112,7 @@ The sequential-scale primitives the data-driven color charts share — the choro
 | `crossAxisDelta` | Cross-axis arrow delta for an orientation: the pair the main axis doesn't use. |
 | `wrap` | Wraps an index into `[0, count)`, so a step past either end lands at the other. |
 | `NavigationConfig` *(type)* | Navigation mode for `nextIndexForKey`: 2D grid when `cols` set, else single-axis along `orientation`. |
-| `isComposing` | Whether an input method composes a key press: `isComposing`, or `keyCode` 229, which the first key of a composition and the Safari confirm Enter report. |
+| `isComposing` | Whether an input method composes a key press: `isComposing`, or `keyCode` 229, which the first key of a composition and the Safari confirm Enter report. It accepts a React or a DOM keyboard event. |
 
 ## Collections & data
 

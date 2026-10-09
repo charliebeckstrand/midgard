@@ -906,6 +906,8 @@ describe('CommandPaletteItem', () => {
 
 		fireEvent.keyDown(input, { key: 'Enter', isComposing: true })
 
+		fireEvent.keyDown(input, { key: 'Enter', keyCode: 229 })
+
 		expect(onAction).not.toHaveBeenCalled()
 
 		fireEvent.keyDown(input, { key: 'Enter' })
@@ -1205,6 +1207,24 @@ describe('CommandPalette triggerShortcut', () => {
 		)
 
 		pressModK({ isComposing: true })
+
+		expect(onOpenChange).not.toHaveBeenCalled()
+	})
+
+	// Safari reports keyCode 229 with `isComposing` false on a key that an IME takes.
+	it.each([
+		['closed', false],
+		['open', true],
+	])('leaves the shortcut to the IME on a Safari keyCode 229 press while %s', (_, open) => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<CommandPalette open={open} onOpenChange={onOpenChange}>
+				<div>Items</div>
+			</CommandPalette>,
+		)
+
+		pressModK({ keyCode: 229 })
 
 		expect(onOpenChange).not.toHaveBeenCalled()
 	})

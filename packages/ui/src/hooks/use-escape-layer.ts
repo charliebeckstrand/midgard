@@ -68,7 +68,7 @@ export function useEscapeLayer({
 			if (event.key !== 'Escape' || event.defaultPrevented) return
 
 			// An IME uses Escape to cancel a composition, so the key belongs to the textbox.
-			if (isComposing({ keyCode: event.keyCode, nativeEvent: event })) return
+			if (isComposing(event)) return
 
 			if (layered && !isTopDismissLayer(layer)) return
 
