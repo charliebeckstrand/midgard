@@ -19,6 +19,10 @@
 			"types": "./src/mimir/index.ts",
 			"default": "./src/mimir/index.ts"
 		},
+		"./pages": {
+			"types": "./src/pages/index.ts",
+			"default": "./src/pages/index.ts"
+		},
 		"./globals.css": "./src/globals.css"
 	},
 	"scripts": {

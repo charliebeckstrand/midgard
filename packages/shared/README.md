@@ -1,6 +1,6 @@
 # shared
 
-Cross-app auth UI, the types of the Mimir API, and the global stylesheet.
+Cross-app auth UI, the error and 404 pages, the types of the Mimir API, and the global stylesheet.
 
 ## 0. Prerequisites
 
@@ -15,6 +15,7 @@ The apps compile this package from its source, as they do `ui`, so it has no bui
 | `shared/auth` | Auth UI: `LoginPage`, `RegisterPage`, `VerifyPage` (the second step after a sign-in), and `SecondStepDialog` with `ensureSecondStep` (the second step when a request needs it). `bifrost` is the typed client of the gateway in the browser, and `unwrap` throws for a status that is not OK. `signOut`, `sendVerificationEmail`, `oauthStartPath`, and `signInProviderNames` are the account helpers of the apps. The requests go to the same-origin `/auth/*` and `/api/*` paths, which `withAuth` rewrites to the gateway. |
 | `shared/providers` | `AppProviders`: `UIProvider` with the `Link` of Next, `AppearanceProvider`, and one `QueryClient`. The app gives its query defaults. |
 | `shared/mimir` | The `paths` and `components` types of the Mimir API, in asgard, from `src/mimir/openapi.d.ts`. The places and the picks apps type their Mimir clients from it. |
+| `shared/pages` | `ErrorPage` and `NotFoundPage`, which the `app/error.tsx` and `app/not-found.tsx` of each app re-export as their default exports. The app keeps the `metadata` of its 404 page. |
 | `shared/globals.css` | Global stylesheet: `ui/tailwind.css`, which gives the font (except its latin face) and `--font-sans`, the root styles, and a `dark` variant that follows the `.dark` class. `AppearanceProvider` from `ui/providers/appearance` sets that class, and it adds the latin face. |
 
 `shared/globals.css` names `shared` and `ui` as Tailwind sources, so an app that imports it gets the classes of both. The app names only its own sources.
@@ -30,7 +31,7 @@ The apps compile this package from its source, as they do `ui`, so it has no bui
 
 ## 3. Consumers
 
-[`apps/admin`](../../apps/admin/README.md) and [`apps/places`](../../apps/places/README.md) use the auth UI, the providers, and the stylesheet. [`apps/places`](../../apps/places/README.md) and [`apps/picks`](../../apps/picks/README.md) use the Mimir types. This package depends on [`ui`](../ui/README.md).
+[`apps/admin`](../../apps/admin/README.md) and [`apps/places`](../../apps/places/README.md) use the auth UI, the providers, and the stylesheet. All three apps use the error and 404 pages. [`apps/places`](../../apps/places/README.md) and [`apps/picks`](../../apps/picks/README.md) use the Mimir types. This package depends on [`ui`](../ui/README.md).
 
 ---
 
