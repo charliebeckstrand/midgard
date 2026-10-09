@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { type InnerStep, stepDown } from '../../core/density'
+import { type DensityStep, stepDown } from '../../core/density'
 import { k as badge } from '../../recipes/kata/badge'
 import { k as button } from '../../recipes/kata/button'
 import { control } from '../../recipes/kiso/control'
@@ -30,15 +30,18 @@ import { findBareCompoundP, findSteps, findStop } from '../helpers/class-stops'
 // override resolves to a different constant (`2`); the has-badge arm
 // below pins it directly off `badge.px`.
 
-const STEPS = ['sm', 'md', 'lg'] as const satisfies readonly InnerStep[]
+// Each host above `xs`: its slot is one step below it. The slot of an `xs`
+// host is `xs` too (no step is below `xs`), so it takes the values of the
+// slot of an `sm` host.
+const STEPS = ['sm', 'md', 'lg', 'xl'] as const satisfies readonly DensityStep[]
 
 const CHIP_INSET = 0.5
 
 /** The `px` of a control at `step`, from the stepped density axis. */
-const hostPxAt = (step: InnerStep) => Number(findSteps(control.density, 'density-px-ring-')[step])
+const hostPxAt = (step: DensityStep) => Number(findSteps(control.density, 'density-px-ring-')[step])
 
 /** The value of a stepped affix class for a control at `step`, read at the slot step. */
-const affixAt = (classes: readonly unknown[], prefix: string, step: InnerStep) =>
+const affixAt = (classes: readonly unknown[], prefix: string, step: DensityStep) =>
 	Number(findSteps(classes, prefix)[stepDown(step)])
 
 describe('control affix text padding', () => {
@@ -154,7 +157,7 @@ describe('control affix has-badge compensation', () => {
 //
 // Unlike the non-bare arm this cannot collapse to a constant: the bare compound
 // scale grows 0.25 per notch (half of `density.px`'s 0.5), so the per-step
-// deltas can't cancel and the value drifts (1.75 → 2 → 2.25). The test parses
+// deltas can't cancel and the value drifts (1.75 → 2 → 2.25 → 2.5). The test parses
 // the live compound rule rather than the literals; if input.px, the bare
 // compound p, or stepDown drifts, the assertion points at the source.
 

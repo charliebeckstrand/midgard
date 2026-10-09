@@ -28,7 +28,7 @@
  * `px`, landing the icon exactly where a text affix sits. The non-bare constant
  * has no counterpart here. The bare compound scale grows 0.25 per notch (half
  * the 0.5 of the control `px`), so the deltas can't cancel and the padding
- * drifts (`1.75 → 2 → 2.25`). A *labeled* bare button carries the regular `p`
+ * drifts (`1.75 → 2 → 2.25 → 2.5`). A *labeled* bare button carries the regular `p`
  * and stays on the base path of the control `px`, hence the
  * `:not([data-has-label])` scope.
  *
@@ -41,7 +41,7 @@
  *
  * Each slot writes `data-density="slot"`. The rungs read it as a scope one
  * step below the scope above it (`slotStep` in `core/density`): sm → xs,
- * md → sm, lg → md. A control stops at `lg`, so xl → md also. An `<Icon>`,
+ * md → sm, lg → md, xl → lg. No step is below `xs`, so xs → xs. An `<Icon>`,
  * a `<LoadingSpinner>`, or a `<Badge>` in the slot takes that step through its
  * stepped classes, and so does a `<Button>`.
  * So the slot projects no size. An explicit `size` on a slot child wins, as it
@@ -50,9 +50,10 @@
  * The slot is its own nearest scope, so its own padding takes the slot step
  * and not the step of the control. Each stepped list thus gives the value of a
  * control one step above: the `xs` value is for an `sm` control, the `sm`
- * value is for an `md` control, and the `md` value is for an `lg` control. A
- * slot does not take `lg` or `xl`, so the `lg` and `xl` values repeat the `md`
- * value.
+ * value is for an `md` control, and so on to the `lg` value for an `xl`
+ * control. A slot does not take `xl`, so the `xl` value continues the step of
+ * the list. The slot of an `xs` control is `xs` too, so it takes the values of
+ * the slot of an `sm` control.
  *
  * `autofill` is the input-side counterpart. The browser's autofill
  * highlight paints the inner input's full box, which sits flush against

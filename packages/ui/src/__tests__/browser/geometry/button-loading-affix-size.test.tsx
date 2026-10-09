@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { Button } from '../../../components/button'
 import { LoadingDots, LoadingSpinner } from '../../../components/loading'
+import { densitySteps } from '../../../core/density'
+import { iconSize } from '../../../core/density/geometry'
 import { present, renderUI } from '../../helpers'
 
 /**
@@ -13,11 +15,10 @@ import { present, renderUI } from '../../helpers'
  *
  * Rides the real browser because the claim is a computed one: jsdom loads no stylesheet.
  */
-const SPINNER_PX = { xs: 12, sm: 16, md: 20, lg: 24 } as const
-const DOT_PX = { xs: 4, sm: 6, md: 8, lg: 10 } as const
+const DOT_PX = { xs: 4, sm: 6, md: 8, lg: 10, xl: 12 } as const
 
 describe('a loading indicator in a Button affix (real browser)', () => {
-	for (const size of ['xs', 'sm', 'md', 'lg'] as const) {
+	for (const size of densitySteps) {
 		it(`sizes a prefix spinner to the ${size} icon row`, () => {
 			const { container } = renderUI(
 				<Button size={size} prefix={<LoadingSpinner />}>
@@ -30,7 +31,7 @@ describe('a loading indicator in a Button affix (real browser)', () => {
 				'loading spinner',
 			)
 
-			expect(spinner.getBoundingClientRect().width).toBe(SPINNER_PX[size])
+			expect(spinner.getBoundingClientRect().width).toBe(iconSize(size))
 		})
 
 		it(`sizes prefix dots to the ${size} dots step`, () => {

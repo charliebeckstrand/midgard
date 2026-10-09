@@ -76,8 +76,8 @@ type SizedSkeletonProps<S extends DensityStep> = {
  * explicit `size` prop (default `'md'`); the returned component takes an
  * optional `size` prop. A density recipe (`{ base, density }`) writes an
  * explicit `size` to `data-density`, and without `size` it follows the nearest
- * density scope. Its type argument limits the `size`, such as `ControlStep`
- * for a control. A base-only recipe (`{ base }`) has a fixed silhouette and
+ * density scope. Its type argument limits the `size`, such as the `ScaleStep`
+ * of a control. A base-only recipe (`{ base }`) has a fixed silhouette and
  * takes no `size` prop. An `inline` recipe renders an inline-block `<span>`.
  *
  * Use only for skeletons whose entire body is that. A count-keyed row of
@@ -93,7 +93,7 @@ type SizedSkeletonProps<S extends DensityStep> = {
  *   recipe's shape classes; it accepts a `size` prop only for a sized recipe.
  * @example
  *   export const BadgeSkeleton = createSkeleton(k.skeleton, 'BadgeSkeleton')
- *   export const RadioSkeleton = createSkeleton<ControlStep>(k.skeleton, 'RadioSkeleton')
+ *   export const RadioSkeleton = createSkeleton<ScaleStep<typeof scale>>(k.skeleton, 'RadioSkeleton')
  */
 export function createSkeleton<S extends DensityStep = DensityStep>(
 	skeleton: DensitySkeletonRecipe,

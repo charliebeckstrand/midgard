@@ -56,11 +56,10 @@ const itemBase = defineRecipe({
 		// repeats the row padding. Thus the Button class merges away.
 		dan.space.sidebar.item.label,
 		// The item wraps its `icon` in Icon. The row sizes the icon and a
-		// LoadingSpinner child, so each stops at `sm` and `lg`, as the text, the
-		// gap, and the padding do. An Avatar child sizes itself in a row: its own
+		// LoadingSpinner child at the glyph size of its step. An Avatar child sizes itself in a row: its own
 		// recipe selects the inner button of the row. See `kata/avatar.ts`.
-		...shaku.icon.row.slot,
-		dan.size.icon.row.spinner,
+		...shaku.icon.slot.base,
+		dan.size.icon.spinner,
 	],
 	// Where the interaction surface lives. `item`: on the element itself, the
 	// affixless default. `row`: re-seated on the wrapper (`k.item.row`) so affix

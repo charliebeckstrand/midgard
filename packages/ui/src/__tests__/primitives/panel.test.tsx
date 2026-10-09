@@ -69,7 +69,7 @@ describe('createPanel', () => {
 		[
 			'Title sizes on the title ramp, which follows the nearest scope',
 			() => <Title>Title</Title>,
-			'density-text-[base,lg,xl]',
+			'density-text-[sm,base,lg,xl,2xl]',
 		],
 		[
 			'Title weight is sourced from the heading scale (h2 → semibold)',

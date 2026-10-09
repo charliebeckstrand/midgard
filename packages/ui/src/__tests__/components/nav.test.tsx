@@ -235,7 +235,7 @@ describe('NavItem', () => {
 		// The slot insets from the row edge by the padding step of the item, so
 		// the control never sits flush against the chrome.
 		expect(affixed?.querySelector('[data-slot="nav-item-suffix"]')?.className).toContain(
-			'density-me-[1.5,2,2.5,2.5,2.5]',
+			'density-me-[1.5,2,2.5,3,3.5]',
 		)
 	})
 

@@ -90,7 +90,7 @@ describe('Card size system', () => {
 
 		expect(title).toHaveAttribute('data-density', 'lg')
 
-		expect(title).toHaveClass('density-text-[base,lg,xl]')
+		expect(title).toHaveClass('density-text-[sm,base,lg,xl,2xl]')
 	})
 
 	it('CardTitle with no size follows the Card scope on the title ramp', () => {
@@ -103,7 +103,7 @@ describe('Card size system', () => {
 		const title = present(bySlot(container, 'card-title'), 'card title')
 
 		// The ramp replaces the fixed size of the heading level, so the scope selects the size.
-		expect(title).toHaveClass('density-text-[base,lg,xl]')
+		expect(title).toHaveClass('density-text-[sm,base,lg,xl,2xl]')
 
 		expect(title).not.toHaveClass('text-xl')
 
@@ -132,7 +132,7 @@ describe('Card size system', () => {
 		const description = present(bySlot(container, 'card-description'), 'card description')
 
 		// The ramp replaces a fixed size, so the scope selects the size. The md step is text-sm.
-		expect(description).toHaveClass('density-text-[xs,sm,base]')
+		expect(description).toHaveClass('density-text-[2xs,xs,sm,base,lg]')
 
 		expect(description).not.toHaveClass('text-sm')
 

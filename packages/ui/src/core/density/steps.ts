@@ -30,17 +30,8 @@ export type MarkedStep = keyof typeof rootDensityClasses
 export type DensityStep = (typeof densitySteps)[number]
 
 /**
- * A step that a control takes as its `size`: each step but `xl`. A control
- * stops at `lg`, so in an `xl` scope it takes the `lg` value, and `xl` is not
- * a size of its own. Input, Textarea, Select, Button, and the other controls
- * type their `size` with it.
- */
-export type ControlStep = Exclude<DensityStep, 'xl'>
-
-/**
  * An inner step: `sm`, `md`, or `lg`. A density level maps to one, and a JS
- * reader with three values, such as the chart tick cap, clamps to one. The
- * `size` of a `SidebarItem` is one, because the row stops at `sm` and `lg`.
+ * reader with three values, such as the chart tick cap, clamps to one.
  */
 export type InnerStep = Extract<DensityStep, 'sm' | 'md' | 'lg'>
 
@@ -74,14 +65,13 @@ export function stepDown<S extends DensityStep>(step: S): (typeof below)[S] {
 
 /**
  * The step of a control slot in a scope at `step`: the step below the step of
- * the host. The host of a slot stops at `lg`, so in an `xl` scope it takes the
- * `lg` look, and the slot takes `md`. Thus no part of the host grows past `lg`.
- * The rungs give a slot this step in CSS.
+ * the host, and `xs` for an `xs` host, because no step is below `xs`. The
+ * rungs give a slot this step in CSS.
  *
  * @internal
  */
 export function slotStep(step: DensityStep) {
-	return stepDown(toInnerStep(step))
+	return stepDown(step)
 }
 
 /**

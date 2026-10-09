@@ -32,8 +32,7 @@ export const k = {
 	description: [description, on.wash.muted],
 	/**
 	 * The selected-state check icon: its color and its size. The size is the
-	 * `sm`, `md`, and `lg` steps of `shaku.icon.size`, and each outer step takes
-	 * the size of its neighbor.
+	 * glyph size of each step, as `shaku.icon.size` gives it.
 	 */
 	check: [...mode('text-green-600', 'dark:text-green-500'), dan.size.check.box],
 } as const
