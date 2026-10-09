@@ -88,6 +88,21 @@ export function keepFocus(event: MouseEvent<HTMLButtonElement>) {
 }
 
 /**
+ * Scrolls the error message of an editor into view as it mounts. A ref callback
+ * for the message of {@link GridCellEditor}, so the scroll runs in the commit,
+ * before the browser paints.
+ *
+ * @remarks The message renders below the cell (`top-full`). A cell at the bottom
+ * or right edge of the scroll container can therefore clip it. The message
+ * mounts when an error shows, and it stays while the error stays, so the scroll
+ * runs once for each error. `nearest` does nothing when the message fits, so the
+ * view does not move (WCAG 1.4.10). @internal
+ */
+function revealMessage(node: HTMLSpanElement | null) {
+	node?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+}
+
+/**
  * The settle controls beside the editor on the cell a cell-scoped session
  * holds: a save and a discard, or a discard alone. The session decides which
  * (see {@link GridEditingSession.settleControls}). Row scope shows none: its
@@ -320,18 +335,6 @@ export function GridCellEditor<T>({
 	// not just sighted users (WCAG 1.3.1 / 3.3.1).
 	const errorId = useId()
 
-	// The message renders below the cell (`top-full`), so a cell at the scroll
-	// container's bottom or right edge can clip it. Scroll it into view when it first
-	// appears — `nearest` is a no-op when it already fits, so it doesn't yank the
-	// view while the error persists (WCAG 1.4.10).
-	const messageRef = useRef<HTMLSpanElement>(null)
-
-	const hasError = error != null
-
-	useEffect(() => {
-		if (hasError) messageRef.current?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
-	}, [hasError])
-
 	const body = column.editCell ? (
 		column.editCell({
 			row,
@@ -381,7 +384,7 @@ export function GridCellEditor<T>({
 			/>
 
 			{error && (
-				<span ref={messageRef} id={errorId} role="alert" className={cn(k.edit.error.base)}>
+				<span ref={revealMessage} id={errorId} role="alert" className={cn(k.edit.error.base)}>
 					{error}
 				</span>
 			)}
