@@ -1,15 +1,12 @@
 'use client'
 
+import { createLazyModule } from '../../utilities/lazy-module'
+
 /** The module of the tooltip body. @internal */
 type TooltipBodyModule = typeof import('./tooltip-body')
 
-/** The loaded module, or `null` until the first load resolves. */
-let body: TooltipBodyModule | null = null
-
-/** The load in flight or resolved, or `null` before the first load and after a failure. */
-let pending: Promise<TooltipBodyModule> | null = null
-
-const listeners = new Set<() => void>()
+/** The tooltip body, which loads in a chunk of its own. */
+const tooltipBody = createLazyModule(() => import('./tooltip-body'))
 
 /**
  * Loads the module of the tooltip body, which carries Motion and the floating
@@ -24,22 +21,7 @@ const listeners = new Set<() => void>()
  * @internal
  */
 export function loadTooltipBody(): Promise<TooltipBodyModule> {
-	pending ??= import('./tooltip-body').then(
-		(module) => {
-			body = module
-
-			for (const listener of listeners) listener()
-
-			return module
-		},
-		(error: unknown) => {
-			pending = null
-
-			throw error
-		},
-	)
-
-	return pending
+	return tooltipBody.load()
 }
 
 /**
@@ -54,14 +36,10 @@ export function preloadTooltipBody(): void {
 
 /** Subscribes to the load of the tooltip body, for `useSyncExternalStore`. @internal */
 export function subscribeTooltipBody(listener: () => void): () => void {
-	listeners.add(listener)
-
-	return () => {
-		listeners.delete(listener)
-	}
+	return tooltipBody.subscribe(listener)
 }
 
 /** The loaded module of the tooltip body, or `null`. @internal */
 export function readTooltipBody(): TooltipBodyModule | null {
-	return body
+	return tooltipBody.read()
 }

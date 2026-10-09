@@ -4,11 +4,12 @@ import type { ReactNode, RefObject } from 'react'
 import { TableScrollsContext } from '../../components/table/context'
 import { cn, createContext } from '../../core'
 import type { DensityStep } from '../../core/density'
+import { useLazyModule } from '../../hooks/use-lazy-module'
 import type { SortableListOptions } from '../../hooks/use-sortable-list'
 import { Density } from '../../primitives/density'
 import { k } from '../../recipes/kata/grid'
+import { createLazyModule } from '../../utilities/lazy-module'
 import { GridContextMenu, type GridContextMenuProps } from './grid-context-menu'
-import { gridLazyModule, useGridLazyModule } from './grid-lazy-module'
 import type { GridColumn, GridContextMenu as GridContextMenuConfig } from './types'
 import { useGridClampAnchor } from './use-grid-clamp-anchor'
 import type { GridRowItem } from './use-grid-row-reorder'
@@ -19,7 +20,7 @@ import type { GridRowItem } from './use-grid-row-reorder'
  *
  * @internal
  */
-const reorderKit = gridLazyModule(() => import('./grid-reorder-region'))
+const reorderKit = createLazyModule(() => import('./grid-reorder-region'))
 
 /**
  * Loads the drag and drop module. Tests call it before a case that drags.
@@ -113,7 +114,7 @@ type GridReorderHostProps<T> = Pick<
  * @internal
  */
 function GridReorderHost<T>({ configured, children, ...props }: GridReorderHostProps<T>) {
-	const kit = useGridLazyModule(reorderKit, configured)
+	const kit = useLazyModule(reorderKit, configured)
 
 	if (!configured || !kit) return children
 
