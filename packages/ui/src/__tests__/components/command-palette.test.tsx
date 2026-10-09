@@ -733,6 +733,35 @@ describe('CommandPalette no results', () => {
 		await waitFor(() => expect(input).toHaveAttribute('aria-expanded', 'true'))
 	})
 
+	// A close detaches the listbox and resets the query. The next open must show
+	// the results of the reset query at its first commit, not the stale empty state.
+	it('shows no stale no-results text when it opens again after an empty filter', async () => {
+		const palette = (open: boolean) => (
+			<CommandPalette open={open} onOpenChange={() => {}}>
+				<FilteredItems />
+			</CommandPalette>
+		)
+
+		const { rerender } = renderUI(palette(true))
+
+		await setupUser().type(screen.getByRole('combobox'), 'zzz')
+
+		await waitFor(() =>
+			expect(getSlot(document.body, 'command-palette-no-results')).toHaveTextContent('No results'),
+		)
+
+		rerender(palette(false))
+
+		await waitFor(() => expect(screen.queryByRole('combobox')).not.toBeInTheDocument())
+
+		rerender(palette(true))
+
+		// No wait: the layout effect measures the listbox before the paint.
+		expect(getSlot(document.body, 'command-palette-no-results').textContent).toBe('')
+
+		expect(screen.getByRole('combobox')).toHaveAttribute('aria-expanded', 'true')
+	})
+
 	it('reads emptiness from a virtual list, not from its rendered rows', async () => {
 		const { rerender } = renderUI(
 			<CommandPalette open onOpenChange={() => {}}>

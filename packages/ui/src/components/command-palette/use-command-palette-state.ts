@@ -55,11 +55,7 @@ function useEmptyResults(list: HTMLElement | null, onChange: () => void): boolea
 	// A layout effect, so that the first measure lands before the paint and the
 	// no-results text does not flash.
 	useLayoutEffect(() => {
-		if (!list) {
-			setEmpty(false)
-
-			return
-		}
+		if (!list) return
 
 		// A write of the same value still costs a render of the palette while a
 		// deferred render is pending, so the probe writes only a change.
@@ -93,7 +89,9 @@ function useEmptyResults(list: HTMLElement | null, onChange: () => void): boolea
 		return () => observer.disconnect()
 	}, [list, onChange])
 
-	return empty
+	// The state from the last attach stays while no listbox is attached. The
+	// first measure after the next attach writes it before the paint.
+	return list !== null && empty
 }
 
 /**

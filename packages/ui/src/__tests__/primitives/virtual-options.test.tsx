@@ -129,6 +129,50 @@ describe('VirtualOptions: indexed item source registration', () => {
 		expect(registryRef.current).toBeNull()
 	})
 
+	// Both docs callers pass inline callbacks. The source keeps its identity
+	// across such a render and reads the newest callbacks when it runs.
+	it('keeps the source across a render with new inline callbacks', () => {
+		const registryRef: RefObject<VirtualItemSource | null> = { current: null }
+
+		const panel = (prefix: string, withIsDisabled = true) => (
+			<VirtualItemSourceContext value={registryRef}>
+				<div role="listbox">
+					<VirtualOptions
+						items={items}
+						getOptionId={(item) => `${prefix}-${item.id}`}
+						isDisabled={withIsDisabled ? (item) => item.disabled : undefined}
+						getTextValue={(item) => `${prefix} ${item.label}`}
+					>
+						{(item, _index, meta) => (
+							<div key={item.id} role="option" tabIndex={-1} {...meta}>
+								{item.label}
+							</div>
+						)}
+					</VirtualOptions>
+				</div>
+			</VirtualItemSourceContext>
+		)
+
+		const { rerender } = renderUI(panel('a'))
+
+		const first = registryRef.current
+
+		rerender(panel('b'))
+
+		expect(registryRef.current).toBe(first)
+
+		expect(registryRef.current?.getKey(4)).toBe('b-4')
+
+		expect(registryRef.current?.getTextValue?.(4)).toBe('b Item 4')
+
+		// A callback that leaves drops out of the source.
+		rerender(panel('b', false))
+
+		expect(registryRef.current).not.toBe(first)
+
+		expect(registryRef.current?.isDisabled).toBeUndefined()
+	})
+
 	it('renders without a registering ancestor (no context, DOM-only roving unchanged)', () => {
 		function StandalonePanel() {
 			return (

@@ -33,7 +33,7 @@ const SETTLE_MS = 120
  *
  * @param enabled - Whether the readout feature is on. Pass a stable flag (the
  * tooltip prop), not the transient hover. A scroll's own clear then never tears
- * the listener down mid-gesture.
+ * the listeners down mid-gesture. While it is false, no listener runs.
  * @param clear - Hides the readout; called on each scroll frame. Make it bail
  * when already clear so a page scroll far from this plot costs no render.
  * @param resolveAt - Recomputes hover at a viewport point once the scroll
@@ -52,22 +52,17 @@ export function useHoverAcrossScroll(
 
 	const resolveHover = useEffectEvent(resolveAt)
 
-	// The pointer's last viewport position, tracked for the whole mount: a scroll
-	// fires no `pointermove`, so this is where the pointer still sits when it does.
 	useEffect(() => {
+		if (!enabled) return
+
+		// The pointer's last viewport position: a scroll fires no `pointermove`, so
+		// this is where the pointer still sits when it does. It is tracked only while
+		// the readout is on, so a scroll before the first move resolves nothing.
 		const onMove = (event: PointerEvent) => {
 			pointer.current = { x: event.clientX, y: event.clientY }
 
 			touch.current = event.pointerType === 'touch'
 		}
-
-		window.addEventListener('pointermove', onMove, { capture: true, passive: true })
-
-		return () => window.removeEventListener('pointermove', onMove, { capture: true })
-	}, [])
-
-	useEffect(() => {
-		if (!enabled) return
 
 		let settle: ReturnType<typeof setTimeout> | undefined
 
@@ -85,12 +80,19 @@ export function useHoverAcrossScroll(
 			}, SETTLE_MS)
 		}
 
+		window.addEventListener('pointermove', onMove, { capture: true, passive: true })
+
 		window.addEventListener('scroll', onScroll, { capture: true, passive: true })
 
 		return () => {
+			window.removeEventListener('pointermove', onMove, { capture: true })
+
 			window.removeEventListener('scroll', onScroll, { capture: true })
 
 			clearTimeout(settle)
+
+			// A later turn-on must not resolve at a pointer that this effect no longer tracks.
+			pointer.current = null
 		}
 	}, [enabled])
 }
