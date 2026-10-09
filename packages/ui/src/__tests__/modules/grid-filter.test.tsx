@@ -123,6 +123,30 @@ describe('Grid search', () => {
 		})
 	})
 
+	it('sends no query when the owner sets the pending text before the debounce settles', async () => {
+		await withFakeTime(async (clock) => {
+			const onValueChange = vi.fn()
+
+			const search = (value: string) => (
+				<Grid columns={columns} rows={rows} getKey={getKey} search={{ value, onValueChange }} />
+			)
+
+			const { rerender } = renderUI(search(''))
+
+			await clock.user.type(screen.getByRole('searchbox'), 'Bob')
+
+			// The owner sets the same text that the field has pending. The owner
+			// holds the query already, so the field does not send it back.
+			rerender(search('Bob'))
+
+			await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
+
+			expect(onValueChange).not.toHaveBeenCalled()
+
+			expect(screen.queryByText('Alice')).not.toBeInTheDocument()
+		})
+	})
+
 	it('applies a cleared query immediately, recovering the hidden rows', async () => {
 		await withFakeTime(async (clock) => {
 			renderUI(<Grid columns={columns} rows={rows} getKey={getKey} search={{}} />)

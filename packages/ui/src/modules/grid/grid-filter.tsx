@@ -1,7 +1,8 @@
 'use client'
 
-import { type SubmitEvent, startTransition, useEffect, useState } from 'react'
+import { type SubmitEvent, startTransition, useState } from 'react'
 import { SearchInput } from '../../components/search-input'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { useTimeout } from '../../hooks/use-timeout'
 import { GRID_SEARCH_DEBOUNCE_MS } from './engine/grid-constants'
 import type { GridGlobalFilterView } from './use-grid-table'
@@ -56,17 +57,18 @@ export function GridFilter({ filter }: GridFilterProps) {
 
 	const debounce = useTimeout()
 
-	// An owner reset cancels the pending query, so the old text does not
-	// overwrite the reset when the debounce settles.
-	useEffect(() => {
-		if (resets > 0) debounce.clear()
-	}, [debounce, resets])
-
 	const push = (next: string) => {
 		setPushed(next)
 
 		startTransition(() => filter.setValue(next))
 	}
+
+	// An owner reset cancels the pending query, so the old text does not
+	// overwrite the reset when the debounce settles. The query settles only when
+	// no reset came after the keystroke that set it.
+	const settle = useStableEvent((next: string, since: number) => {
+		if (resets === since) push(next)
+	})
 
 	const apply = (next: string) => {
 		setText(next)
@@ -81,7 +83,7 @@ export function GridFilter({ filter }: GridFilterProps) {
 			return
 		}
 
-		debounce.set(() => push(next), GRID_SEARCH_DEBOUNCE_MS)
+		debounce.set(() => settle(next, resets), GRID_SEARCH_DEBOUNCE_MS)
 	}
 
 	// Enter submits the field: cancel the pending debounce and apply the typed
