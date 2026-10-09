@@ -107,7 +107,8 @@ function beginScrollbarDrag(
  * Returns viewport/track refs, per-axis thumb state, and event handlers.
  *
  * @remarks
- * Re-measures via a {@link ResizeObserver} on the viewport and its children and
+ * Measures when a track attaches, in the commit, so the first paint holds the
+ * thumb. Re-measures via a {@link ResizeObserver} on the viewport and its children and
  * a {@link MutationObserver} on child additions/removals. Shift+wheel over a
  * non-horizontally-scrollable viewport forwards to the nearest scrollable
  * ancestor.
@@ -153,12 +154,34 @@ export function useScrollAreaScrollbar({ orientation, scrollbar }: ScrollbarOpti
 		if (!thumbFrame.pending()) thumbFrame.set(updateThumbs)
 	}, [thumbFrame, updateThumbs])
 
+	// A track measures its thumb when it attaches. React attaches refs in the
+	// commit, before the paint, so the paint that shows a track also shows its
+	// thumb. A track attaches when the area mounts and when the scrollbar or the
+	// axis changes. The viewport comes before the tracks in the tree, so React
+	// attaches its ref first.
+	const verticalTrack = useCallback(
+		(node: HTMLDivElement | null) => {
+			verticalTrackRef.current = node
+
+			if (node) updateThumbs()
+		},
+		[updateThumbs],
+	)
+
+	const horizontalTrack = useCallback(
+		(node: HTMLDivElement | null) => {
+			horizontalTrackRef.current = node
+
+			if (node) updateThumbs()
+		},
+		[updateThumbs],
+	)
+
+	// The tracks measure first, so the watch reports only later changes.
 	useEffect(() => {
 		const el = viewportRef.current
 
 		if (!el) return
-
-		updateThumbs()
 
 		return observeScrollExtent(el, updateThumbs)
 	}, [updateThumbs])
@@ -220,8 +243,8 @@ export function useScrollAreaScrollbar({ orientation, scrollbar }: ScrollbarOpti
 
 	return {
 		viewportRef,
-		verticalTrackRef,
-		horizontalTrackRef,
+		verticalTrackRef: verticalTrack,
+		horizontalTrackRef: horizontalTrack,
 		verticalThumb,
 		horizontalThumb,
 		isScrolling,

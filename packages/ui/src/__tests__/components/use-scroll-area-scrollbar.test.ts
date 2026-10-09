@@ -75,9 +75,13 @@ function setupHook(orientation: 'vertical' | 'horizontal' | 'both', scrollbar: '
 
 	hook.result.current.viewportRef.current = viewport
 
-	hook.result.current.verticalTrackRef.current = vTrack
+	// A track is a ref callback that measures as it attaches, so attach it as
+	// React does, after the viewport.
+	act(() => {
+		hook.result.current.verticalTrackRef(vTrack)
 
-	hook.result.current.horizontalTrackRef.current = hTrack
+		hook.result.current.horizontalTrackRef(hTrack)
+	})
 
 	return { hook, viewport, vTrack, hTrack }
 }
