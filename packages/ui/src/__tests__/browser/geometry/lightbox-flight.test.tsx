@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it } from 'vitest'
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { Lightbox, type LightboxPhoto, LightboxTrigger } from '../../../components/lightbox'
 import { frames, present, renderUI, screen } from '../../helpers'
@@ -25,26 +25,52 @@ const photos: LightboxPhoto[] = [
 
 const NUMBER = /-?\d+(?:\.\d+)?(?:e-?\d+)?/g
 
-/** The top edge, in viewport px, that the photo paints in the first frame of its raise. */
-function paintedTop(photo: HTMLElement): number {
-	// The raise runs in the browser. Its first keyframe is the inline frame.
-	for (const animation of photo.getAnimations()) {
-		animation.pause()
+/** The clip and the top edge, in viewport px, that the photo paints in the first frame of its raise. */
+type FirstFrame = { clipPath: string; top: number }
 
-		animation.currentTime = 0
-	}
+/**
+ * Reads the first frame of the raise when Motion starts its transform tween,
+ * the first tween of the raise. At that time, no tween paints the photo, and
+ * the inline style is the first frame. At the end of the raise, Motion writes
+ * the last frame inline, and a loaded runner can get to that end before the
+ * test reads the photo. A pause does not hold the raise, because Motion sets
+ * the start time of each tween, and that starts the tween again.
+ */
+function watchRaise(): FirstFrame[] {
+	const native = Element.prototype.animate
 
-	const scale = Number(photo.style.transform.match(NUMBER)?.[2] ?? 1)
+	const frames: FirstFrame[] = []
 
-	const inset = Number(photo.style.clipPath.match(NUMBER)?.[0] ?? 0)
+	vi.spyOn(Element.prototype, 'animate').mockImplementation(function (
+		this: Element,
+		...args: Parameters<Element['animate']>
+	) {
+		const [keyframes] = args
 
-	return photo.getBoundingClientRect().top + inset * scale
+		if (this instanceof HTMLImageElement && keyframes && 'transform' in keyframes) {
+			const { clipPath, transform } = this.style
+
+			const scale = Number(transform.match(NUMBER)?.[2] ?? 1)
+
+			const inset = Number(clipPath.match(NUMBER)?.[0] ?? 0)
+
+			frames.push({ clipPath, top: this.getBoundingClientRect().top + inset * scale })
+		}
+
+		return native.apply(this, args)
+	})
+
+	return frames
 }
 
 describe('Lightbox flight from a hidden thumbnail (real browser)', () => {
 	beforeAll(() => page.viewport(390, 664))
 
-	it('starts at the part of the thumbnail below the scroll padding of its scroller', async () => {
+	afterEach(() => vi.restoreAllMocks())
+
+	it('starts at the part of the thumbnail below the scroll padding of its scroller', async ({
+		signal,
+	}) => {
 		const { container } = renderUI(
 			<div className="h-[300px] overflow-auto scroll-pt-[40px]">
 				<div className="h-[200px]" />
@@ -68,15 +94,18 @@ describe('Lightbox flight from a hidden thumbnail (real browser)', () => {
 
 		expect(trigger.getBoundingClientRect().top).toBeNear(top + 20, HALF_PIXEL)
 
+		signal.throwIfAborted()
+
+		const raise = watchRaise()
+
 		await userEvent.click(trigger, { position: { x: 48, y: 80 } })
 
-		const photo = present(
-			document.querySelector<HTMLImageElement>('[data-offset="0"] img'),
-			'photo',
-		)
+		await expect.poll(() => raise.length).toBe(1)
 
-		expect(photo.style.clipPath).toMatch(/ round 0px 0px [\d.]+px [\d.]+px\)$/)
+		const [first] = raise
 
-		expect(paintedTop(photo)).toBeNear(top + 40, HALF_PIXEL)
+		expect(first?.clipPath).toMatch(/ round 0px 0px [\d.]+px [\d.]+px\)$/)
+
+		expect(first?.top).toBeNear(top + 40, HALF_PIXEL)
 	})
 })
