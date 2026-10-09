@@ -770,6 +770,59 @@ describe('MapPlat touch over the marks', () => {
 		// The spread went from 20 to 60, so the scale is three times the fit.
 		expect(scaleOf(container)).toBeCloseTo(3, 3)
 	})
+
+	it('keeps a finger in the pinch when the frame resizes under it', () => {
+		const { container, svg, rerender } = renderZoomable()
+
+		const region = present<SVGPathElement>(firstRegion(container), 'region path')
+
+		const a = { identifier: 1, clientX: 190, clientY: 100, target: region }
+
+		const b = { identifier: 2, clientX: 210, clientY: 100, target: svg }
+
+		fireEvent.touchStart(region, { touches: [a], changedTouches: [a] })
+
+		fireEvent.touchStart(svg, { touches: [a, b], changedTouches: [b] })
+
+		// The browser bar slides away mid-pinch, and the frame takes the new size.
+		rerender(categoricalPlat({ zoom: true, width: 420 }))
+
+		const parent = present<Element>(region.parentNode as Element, 'region layer')
+
+		const next = region.nextSibling
+
+		region.remove()
+
+		const moved = { ...a, clientX: 170 }
+
+		const spread = { ...b, clientX: 230 }
+
+		fireEvent.touchMove(region, { touches: [moved, spread], changedTouches: [moved] })
+
+		fireEvent.touchEnd(region, { touches: [spread], changedTouches: [moved] })
+
+		fireEvent.touchEnd(svg, { touches: [], changedTouches: [spread] })
+
+		parent.insertBefore(region, next)
+
+		expect(scaleOf(container)).toBeCloseTo(3, 3)
+	})
+
+	it('binds its native listeners once, not once per frame size', () => {
+		const { svg, rerender } = renderZoomable()
+
+		const add = vi.spyOn(svg, 'addEventListener')
+
+		const remove = vi.spyOn(svg, 'removeEventListener')
+
+		rerender(categoricalPlat({ zoom: true, width: 420 }))
+
+		rerender(categoricalPlat({ zoom: true, width: 440 }))
+
+		expect(add).not.toHaveBeenCalled()
+
+		expect(remove).not.toHaveBeenCalled()
+	})
 })
 
 describe('MapPlat pinch under the page', () => {

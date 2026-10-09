@@ -1,10 +1,11 @@
 'use client'
 
 import { arrayMove } from '@dnd-kit/sortable'
-import { type KeyboardEvent, type RefObject, useCallback, useEffect, useRef } from 'react'
+import { type KeyboardEvent, type RefObject, useCallback } from 'react'
 import { announce, querySlot } from '../../core'
 import { useKeyboardLifted } from '../../hooks'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import {
 	cardName,
 	columnName,
@@ -292,53 +293,42 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 		[columns, getKey, onReorder, findColumnByCardId, refocusCard, containerRef],
 	)
 
-	// The state of the last commit, for a key handler that keeps its identity. With
-	// `columns` in its dependencies, the handler, and through it the board context,
-	// took a new identity for each move, and each card on the board rendered.
-	const latest = useRef({ describe, focusNeighbor, moveWithinColumn, moveToColumn })
+	// A stable event, so that the key handler keeps one identity. With `columns`
+	// in its dependencies, the handler, and through it the board context, took a
+	// new identity for each move, and each card on the board rendered.
+	const onCardKeyDown = useStableEvent((cardId: string, event: KeyboardEvent) => {
+		// A key from a control inside the card belongs to that control.
+		if (event.target !== event.currentTarget) return
 
-	useEffect(() => {
-		latest.current = { describe, focusNeighbor, moveWithinColumn, moveToColumn }
+		if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return
+
+		const deps: KanbanKeyDeps = {
+			drop,
+			describe,
+			focusNeighbor,
+			moveWithinColumn,
+			moveToColumn,
+		}
+
+		if (event.key === ' ') {
+			event.preventDefault()
+
+			toggleLift(cardId, () => describe(cardId))
+
+			return
+		}
+
+		// The columns follow the reading order, so the arrows swap in RTL.
+		const key = logicalArrowKey(event.key, containerRef.current)
+
+		if (readLifted() !== cardId) {
+			handleCardNeighborNav(cardId, event, key, deps)
+
+			return
+		}
+
+		handleCardLiftedNav(cardId, event, key, deps)
 	})
-
-	const onCardKeyDown = useCallback(
-		(cardId: string, event: KeyboardEvent) => {
-			// A key from a control inside the card belongs to that control.
-			if (event.target !== event.currentTarget) return
-
-			if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return
-
-			const { describe, focusNeighbor, moveWithinColumn, moveToColumn } = latest.current
-
-			const deps: KanbanKeyDeps = {
-				drop,
-				describe,
-				focusNeighbor,
-				moveWithinColumn,
-				moveToColumn,
-			}
-
-			if (event.key === ' ') {
-				event.preventDefault()
-
-				toggleLift(cardId, () => describe(cardId))
-
-				return
-			}
-
-			// The columns follow the reading order, so the arrows swap in RTL.
-			const key = logicalArrowKey(event.key, containerRef.current)
-
-			if (readLifted() !== cardId) {
-				handleCardNeighborNav(cardId, event, key, deps)
-
-				return
-			}
-
-			handleCardLiftedNav(cardId, event, key, deps)
-		},
-		[readLifted, toggleLift, drop, containerRef],
-	)
 
 	return { liftedCardId, setLiftedCardId, onCardKeyDown, onCardBlur }
 }

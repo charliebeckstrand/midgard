@@ -200,8 +200,8 @@ export function useMapZoom({
 	const [gesturing, setGesturing] = useState(false)
 
 	// The gesture handlers read the view through this rather than through their
-	// own closure: the wheel listener is attached once per frame size, and a
-	// pointer sequence outlives the render it began on.
+	// own closure: the wheel listener is attached once while the frame has an
+	// area, and a pointer sequence outlives the render it began on.
 	const live = useRef({ transform, view, max })
 
 	// Synced in a layout effect, ahead of the effects below and of any event. Only
@@ -340,9 +340,14 @@ export function useMapZoom({
 		return () => window.removeEventListener('scroll', onScroll, { capture: true })
 	}, [zooms])
 
-	useMapWheelZoom(zooms, modifier, svgRef, view, commit, holdGesture, live, wheelStream)
+	// The SVG mounts when the frame has an area, so the native listeners below
+	// bind on that beat. They read the frame's size off `live`, so a resize does
+	// not bind them again.
+	const framed = view.width > 0 && view.height > 0
 
-	useMapGestureGuard(zooms, svgRef, view)
+	useMapWheelZoom(zooms, framed, modifier, svgRef, commit, holdGesture, live, wheelStream)
+
+	useMapGestureGuard(zooms, framed, svgRef)
 
 	// A modifier map reads its touch contacts off the touch events, not the
 	// pointer events. The first finger of a pinch that lands a moment early starts
@@ -564,7 +569,7 @@ export function useMapZoom({
 		midpoint.current = pairFocus(first, second)
 	}
 
-	useMapTouchPinch(touchDriven, svgRef, view, onTouch)
+	useMapTouchPinch(touchDriven, framed, svgRef, onTouch)
 
 	/** Whether the pointer handlers leave this event to {@link onTouch}. */
 	function fromTouch(event: PointerEvent<HTMLElement>) {
@@ -744,15 +749,15 @@ export function useMapZoom({
  * Split out because it is the one part of the gesture set that carries a
  * dependency array. That is why `commit` above is the hook's one memoized
  * callback. Everything it reads per event comes off `live`, so the listener
- * binds once per frame size rather than once per gesture.
+ * binds once while the frame has an area, not once per gesture or per resize.
  *
  * @internal
  */
 function useMapWheelZoom(
 	enabled: boolean,
+	framed: boolean,
 	modifier: MapZoomSettings['modifier'],
 	svgRef: RefObject<SVGSVGElement | null>,
-	view: MapViewFrame,
 	commit: (next: MapTransform) => void,
 	hold: (push: number, coasting: boolean) => void,
 	live: RefObject<{ transform: MapTransform; view: MapViewFrame; max: number }>,
@@ -761,10 +766,9 @@ function useMapWheelZoom(
 	useEffect(() => {
 		const svg = svgRef.current
 
-		// The frame's own area is the beat the SVG mounts on, so reading it here is
-		// what re-runs this effect onto the live node — and a frame with no area
-		// draws nothing to zoom.
-		if (!enabled || svg === null || view.width <= 0 || view.height <= 0) return
+		// The SVG mounts when the frame gets an area, so `framed` is what re-runs
+		// this effect onto the live node. A frame with no area draws nothing to zoom.
+		if (!enabled || !framed || svg === null) return
 
 		const onWheel = (event: WheelEvent) => {
 			const armed = modifier === 'shift' && event.shiftKey
@@ -817,7 +821,7 @@ function useMapWheelZoom(
 		return () => {
 			svg.removeEventListener('wheel', onWheel)
 		}
-	}, [enabled, modifier, svgRef, commit, hold, live, stream, view.width, view.height])
+	}, [enabled, framed, modifier, svgRef, commit, hold, live, stream])
 }
 
 /**
@@ -848,19 +852,20 @@ function useMapWheelZoom(
  */
 function useMapTouchPinch(
 	enabled: boolean,
+	framed: boolean,
 	svgRef: RefObject<SVGSVGElement | null>,
-	view: MapViewFrame,
 	handler: (event: TouchEvent) => boolean,
 ) {
-	// The handler reads the gesture's refs, and the listener binds once per frame
-	// size rather than once per render.
+	// The handler reads the gesture's refs, and the listener binds once while the
+	// frame has an area, not once per render. A resize mid-pinch keeps the
+	// listeners on the contacts' own targets.
 	const onTouch = useEffectEvent(handler)
 
 	useEffect(() => {
 		const svg = svgRef.current
 
-		// The frame's area is the beat the SVG mounts on, as in the wheel's effect.
-		if (!enabled || svg === null || view.width <= 0 || view.height <= 0) return
+		// `framed` is the beat the SVG mounts on, as in the wheel's effect.
+		if (!enabled || !framed || svg === null) return
 
 		// The nodes that the contacts landed on, each with listeners of its own.
 		const followed = new Set<EventTarget>()
@@ -912,7 +917,7 @@ function useMapTouchPinch(
 
 			unfollow()
 		}
-	}, [enabled, svgRef, view.width, view.height])
+	}, [enabled, framed, svgRef])
 }
 
 /**
@@ -929,14 +934,14 @@ function useMapTouchPinch(
  */
 function useMapGestureGuard(
 	enabled: boolean,
+	framed: boolean,
 	svgRef: RefObject<SVGSVGElement | null>,
-	view: MapViewFrame,
 ) {
 	useEffect(() => {
 		const svg = svgRef.current
 
-		// The frame's area is the beat the SVG mounts on, as in the wheel's effect.
-		if (!enabled || svg === null || view.width <= 0 || view.height <= 0) return
+		// `framed` is the beat the SVG mounts on, as in the wheel's effect.
+		if (!enabled || !framed || svg === null) return
 
 		const cancel = (event: Event) => event.preventDefault()
 
@@ -945,7 +950,7 @@ function useMapGestureGuard(
 		return () => {
 			for (const type of GESTURE_EVENTS) svg.removeEventListener(type, cancel)
 		}
-	}, [enabled, svgRef, view.width, view.height])
+	}, [enabled, framed, svgRef])
 }
 
 /** The pinch events that WebKit sends, which zoom the page unless canceled. */

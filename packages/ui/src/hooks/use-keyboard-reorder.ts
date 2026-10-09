@@ -1,9 +1,10 @@
 'use client'
 
-import { type KeyboardEvent, useCallback, useEffect, useRef } from 'react'
+import type { KeyboardEvent } from 'react'
 import { announce } from '../core'
 import { clamp, moveItem } from '../utilities'
 import { useKeyboardLifted } from './use-keyboard-lifted'
+import { useStableEvent } from './use-stable-event'
 
 /**
  * Options for {@link useKeyboardReorder}: the items, the reorder report, the item lookups, and
@@ -50,9 +51,9 @@ function focusTarget(key: string, step: number | null, { index, last }: ReorderT
  * Each change is announced.
  *
  * @remarks
- * A step clamps at the ends and does not wrap. `onItemKeyDown` keeps its identity: it reads the
- * options of the last commit through a ref. With `items` in its dependencies, the handler, and
- * each item that takes it, got a new identity for each move.
+ * A step clamps at the ends and does not wrap. `onItemKeyDown` is a stable event: it keeps its
+ * identity and reads the newest options. With `items` in its dependencies, the handler, and each
+ * item that takes it, got a new identity for each move.
  *
  * @returns `{ liftedId, setLiftedId, onItemKeyDown, onItemBlur }`.
  * @internal
@@ -68,30 +69,27 @@ export function useKeyboardReorder<T>(options: KeyboardReorderOptions<T>) {
 		onBlur: onItemBlur,
 	} = useKeyboardLifted(options.focusItem)
 
-	const latest = useRef(options)
+	const onItemKeyDown = useStableEvent((id: string, event: KeyboardEvent) => {
+		// A modified key is a browser or OS gesture, never a move.
+		if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return
 
-	useEffect(() => {
-		latest.current = options
-	})
+		const { items, getKey, onReorder, focusItem, itemName, stepFor } = options
 
-	/** Not lifted: a step or Home or End moves focus. */
-	const navigate = useCallback((event: KeyboardEvent, step: number | null, at: ReorderTarget) => {
-		const { items, getKey, focusItem } = latest.current
+		/** Not lifted: a step or Home or End moves focus. */
+		const navigate = (step: number | null, at: ReorderTarget) => {
+			const target = focusTarget(event.key, step, at)
 
-		const target = focusTarget(event.key, step, at)
+			const item = target === null || target === at.index ? undefined : items[target]
 
-		const item = target === null || target === at.index ? undefined : items[target]
+			if (item === undefined) return
 
-		if (item === undefined) return
+			event.preventDefault()
 
-		event.preventDefault()
+			focusItem(getKey(item))
+		}
 
-		focusItem(getKey(item))
-	}, [])
-
-	/** Lifted: a step moves the item, and Escape or Enter drops it. */
-	const carry = useCallback(
-		(event: KeyboardEvent, step: number | null, at: ReorderTarget) => {
+		/** Lifted: a step moves the item, and Escape or Enter drops it. */
+		const carry = (step: number | null, at: ReorderTarget) => {
 			if (step === null) {
 				if (event.key !== 'Escape' && event.key !== 'Enter') return
 
@@ -104,8 +102,6 @@ export function useKeyboardReorder<T>(options: KeyboardReorderOptions<T>) {
 
 			event.preventDefault()
 
-			const { items, onReorder, itemName } = latest.current
-
 			const target = clamp(at.index + step, 0, at.last)
 
 			if (!onReorder || at.index === -1 || target === at.index) return
@@ -117,41 +113,30 @@ export function useKeyboardReorder<T>(options: KeyboardReorderOptions<T>) {
 			})
 
 			refocus(at.id)
-		},
-		[drop, refocus],
-	)
+		}
 
-	const onItemKeyDown = useCallback(
-		(id: string, event: KeyboardEvent) => {
-			// A modified key is a browser or OS gesture, never a move.
-			if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return
+		const index = items.findIndex((item) => getKey(item) === id)
 
-			const { items, getKey, itemName, stepFor } = latest.current
+		const describe = () =>
+			index === -1 ? itemName(id) : `${itemName(id)}, position ${index + 1} of ${items.length}`
 
-			const index = items.findIndex((item) => getKey(item) === id)
+		if (event.key === ' ') {
+			event.preventDefault()
 
-			const describe = () =>
-				index === -1 ? itemName(id) : `${itemName(id)}, position ${index + 1} of ${items.length}`
+			toggleLift(id, describe)
 
-			if (event.key === ' ') {
-				event.preventDefault()
+			return
+		}
 
-				toggleLift(id, describe)
+		const at = { id, index, last: items.length - 1, describe }
 
-				return
-			}
+		const step = stepFor(event.key)
 
-			const at = { id, index, last: items.length - 1, describe }
-
-			const step = stepFor(event.key)
-
-			// The lift of the last write, not the last render, so a second key in the same tick
-			// carries the item that the first one lifted.
-			if (readLifted() === id) carry(event, step, at)
-			else if (index !== -1) navigate(event, step, at)
-		},
-		[readLifted, toggleLift, carry, navigate],
-	)
+		// The lift of the last write, not the last render, so a second key in the same tick
+		// carries the item that the first one lifted.
+		if (readLifted() === id) carry(step, at)
+		else if (index !== -1) navigate(step, at)
+	})
 
 	return { liftedId, setLiftedId, onItemKeyDown, onItemBlur }
 }
