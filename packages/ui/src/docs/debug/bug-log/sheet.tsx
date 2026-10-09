@@ -8,19 +8,17 @@ import {
 	BreadcrumbSeparator,
 } from 'ui/breadcrumb'
 import { Button } from 'ui/button'
-import { Checkbox, CheckboxField } from 'ui/checkbox'
-import { CopyButton, useCopyButtonState } from 'ui/copy-button'
+import { CopyButton } from 'ui/copy-button'
 import { cn } from 'ui/core'
-import { Label } from 'ui/fieldset'
 import { Flex } from 'ui/flex'
 import { Icon } from 'ui/icon'
 import { List, ListItem } from 'ui/list'
 import { Markdown } from 'ui/markdown'
-import { Sheet, SheetBody, SheetClose, SheetFooter, SheetPanel, SheetTitle } from 'ui/sheet'
+import { SheetTitle } from 'ui/sheet'
 import { Text } from 'ui/text'
-import { dan } from '../../../recipes/kiso/dan/index.ts'
 import { noopSubscribe } from '../../../utilities/noop.ts'
 import { useDebug } from '../pause.ts'
+import { CopyTextButton, FlagField, SheetFrame } from '../sheet-frame.tsx'
 import { CAPTURE, type Report } from './log.ts'
 import { markdownOf, titleOf } from './markdown.ts'
 
@@ -79,17 +77,6 @@ function ReportLine({
 	)
 }
 
-/** A button with the text label "Copy" that copies `text`, with the copied state of `CopyButton`. */
-function CopyTextButton({ text }: { text: string }) {
-	const { copied, copy } = useCopyButtonState({ text })
-
-	return (
-		<Button size="sm" color={copied ? 'green' : undefined} onClick={() => void copy()}>
-			{copied ? 'Copied' : 'Copy'}
-		</Button>
-	)
-}
-
 /**
  * The viewer of the Bug log: the title and "Preserve", the reports, newest
  * first, then Capture, and Clear while the log holds a report. View, or a
@@ -131,108 +118,100 @@ export function BugLogSheet({
 	const newest = reports.toReversed()
 
 	return (
-		<Sheet open={open} onOpenChange={onOpenChange}>
-			<SheetPanel side="bottom" className="max-h-full">
-				<Flex align="center" gap="md" className={cn(dan.space.panel.x, dan.space.panel.top)}>
-					{report ? (
-						// The crumbs name the report and lead back to the list. The title
-						// stays for the name of the sheet.
-						<>
-							<SheetTitle className="sr-only p-0">Bugs</SheetTitle>
-							<Breadcrumb className="me-auto min-w-0">
-								<BreadcrumbList className="text-xl/8">
-									<BreadcrumbItem>
-										<BreadcrumbLink
-											href="#"
-											className="font-semibold"
-											onClick={(event: MouseEvent) => {
-												event.preventDefault()
+		<SheetFrame
+			open={open}
+			onOpenChange={onOpenChange}
+			title={
+				report ? (
+					// The crumbs name the report and lead back to the list. The title
+					// stays for the name of the sheet.
+					<>
+						<SheetTitle className="sr-only p-0">Bugs</SheetTitle>
+						<Breadcrumb className="me-auto min-w-0">
+							<BreadcrumbList className="text-xl/8">
+								<BreadcrumbItem>
+									<BreadcrumbLink
+										href="#"
+										className="font-semibold"
+										onClick={(event: MouseEvent) => {
+											event.preventDefault()
 
-												setViewed(undefined)
-											}}
-										>
-											Bugs
-										</BreadcrumbLink>
-									</BreadcrumbItem>
-									<BreadcrumbSeparator />
-									<BreadcrumbItem>
-										<BreadcrumbLink current className="font-semibold">
-											{report.hash}
-										</BreadcrumbLink>
-									</BreadcrumbItem>
-								</BreadcrumbList>
-							</Breadcrumb>
-						</>
-					) : (
-						<SheetTitle className="me-auto p-0">Bugs</SheetTitle>
-					)}
-					{!report && (
-						<CheckboxField>
-							<Checkbox
-								checked={preserve}
-								onChange={(event) => {
-									bugs.preserve = event.target.checked
-								}}
-							/>
-							<Label>Preserve</Label>
-						</CheckboxField>
-					)}
-				</Flex>
-				<SheetBody className="min-h-0 flex-1 overflow-auto">
-					{report ? (
-						<Markdown headingOffset={1}>{markdownOf(report)}</Markdown>
-					) : reports.length > 0 ? (
-						<List
-							items={newest}
-							getKey={getKey}
-							variant="plain"
-							sortable={false}
-							aria-label="Reports"
+											setViewed(undefined)
+										}}
+									>
+										Bugs
+									</BreadcrumbLink>
+								</BreadcrumbItem>
+								<BreadcrumbSeparator />
+								<BreadcrumbItem>
+									<BreadcrumbLink current className="font-semibold">
+										{report.hash}
+									</BreadcrumbLink>
+								</BreadcrumbItem>
+							</BreadcrumbList>
+						</Breadcrumb>
+					</>
+				) : (
+					<SheetTitle className="me-auto p-0">Bugs</SheetTitle>
+				)
+			}
+			actions={
+				!report && (
+					<FlagField
+						label="Preserve"
+						checked={preserve}
+						onChange={(checked) => {
+							bugs.preserve = checked
+						}}
+					/>
+				)
+			}
+			footer={
+				report ? (
+					<>
+						<CopyTextButton text={markdownOf(report)} />
+						<Button
+							size="sm"
+							color="red"
+							onClick={() => {
+								// A new report can take the id of the report that goes out.
+								setViewed(undefined)
+
+								bugs.remove(report.id)
+							}}
 						>
-							{(item) => (
-								<ReportLine
-									report={item}
-									onView={() => setViewed(item.id)}
-									onDelete={() => bugs.remove(item.id)}
-								/>
-							)}
-						</List>
-					) : (
-						<Text tone="muted">No bugs</Text>
-					)}
-				</SheetBody>
-				<SheetFooter className="justify-between">
-					{report ? (
-						<Flex gap="sm">
-							<CopyTextButton text={markdownOf(report)} />
-							<Button
-								size="sm"
-								color="red"
-								onClick={() => {
-									// A new report can take the id of the report that goes out.
-									setViewed(undefined)
-
-									bugs.remove(report.id)
-								}}
-							>
-								Delete
+							Delete
+						</Button>
+					</>
+				) : (
+					<>
+						<Button size="sm" color="blue" onClick={() => bugs.capture()}>
+							Capture
+						</Button>
+						{reports.length > 0 && (
+							<Button size="sm" color="amber" onClick={() => bugs.clear()}>
+								Clear
 							</Button>
-						</Flex>
-					) : (
-						<Flex gap="sm">
-							<Button size="sm" color="blue" onClick={() => bugs.capture()}>
-								Capture
-							</Button>
-							{reports.length > 0 && (
-								<Button size="sm" color="amber" onClick={() => bugs.clear()}>
-									Clear
-								</Button>
-							)}
-						</Flex>
+						)}
+					</>
+				)
+			}
+		>
+			{report ? (
+				<Markdown headingOffset={1}>{markdownOf(report)}</Markdown>
+			) : reports.length > 0 ? (
+				<List items={newest} getKey={getKey} variant="plain" sortable={false} aria-label="Reports">
+					{(item) => (
+						<ReportLine
+							report={item}
+							onView={() => setViewed(item.id)}
+							onDelete={() => bugs.remove(item.id)}
+						/>
 					)}
-					<SheetClose />
-				</SheetFooter>
-			</SheetPanel>
-		</Sheet>
+				</List>
+			) : (
+				<Text tone="muted">No bugs</Text>
+			)}
+		</SheetFrame>
 	)
 }
