@@ -38,17 +38,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
-      # The cache and the install of Chromium that the `browser` job of ci.yml
-      # uses, for the same reasons.
-      - id: playwright
-        working-directory: packages/ui
-        run: |
-          echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
-      - uses: actions/cache@v6
-        with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ steps.playwright.outputs.version }}
-      - run: pnpm --filter ui exec playwright install chromium
+      - uses: ./.github/actions/playwright
       # One busy loop for each core, at the priority of the suite, so that the
       # suite gets about half of each core. A loop at a lower priority yields to
       # the suite and slows it by almost nothing. The loops run in the steps

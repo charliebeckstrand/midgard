@@ -1,0 +1,43 @@
+name: Playwright
+description: Restore the Playwright Chromium from the cache, and install it on a miss.
+
+# Each job that runs Chromium uses this action after `setup`: `browser` and
+# `docs` in ci.yml, visual.yml, and browser-stress.yml. One copy keeps the
+# cache key the same in each job, so the jobs share one cache entry.
+#
+# Chromium only: vitest.browser.config.ts declares no other browser. The
+# download is ~170MB, so the key is the one input that decides the browser
+# build: the resolved `playwright` version, which `pnpm install` has already
+# put on disk. A lockfile hash missed on every dependency bump, and
+# `rangeStrategy: update-lockfile` makes each bot pull request one. There is no
+# restore key: a prefix match would give back a superseded revision that
+# `install` then downloads beside it, so the cache would hold both. `install`
+# is idempotent. On a hit, it skips the download.
+outputs:
+  executable:
+    description: The path of the Playwright Chromium executable.
+    value: ${{ steps.playwright.outputs.executable }}
+
+runs:
+  using: composite
+  steps:
+    - id: playwright
+      working-directory: packages/ui
+      shell: bash
+      run: |
+        echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
+        echo "executable=$(node -p "require('playwright').chromium.executablePath()")" >> "$GITHUB_OUTPUT"
+    - uses: actions/cache@v6
+      with:
+        path: ~/.cache/ms-playwright
+        key: ${{ runner.os }}-playwright-${{ steps.playwright.outputs.version }}
+    # The browser alone, with no system packages. The runner image already
+    # holds each library that headless Chromium loads. `--with-deps` ran apt
+    # on each run, and apt fetched about 35 MB from the Ubuntu mirrors: newer
+    # builds of ten of those libraries, and the font packages. A slow mirror
+    # stalled the step. One run hung for 15 minutes, and one took 6m41s. The
+    # browser suite passes without those fonts. If a runner image drops a
+    # library, Chromium does not launch, and the error names the library.
+    # Put `--with-deps` back then.
+    - run: pnpm --filter ui exec playwright install chromium
+      shell: bash

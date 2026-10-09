@@ -7,6 +7,15 @@ fi
 
 cd "$CLAUDE_PROJECT_DIR"
 
+# A cloud session starts from a shallow clone. `test:changed` runs
+# `git merge-base HEAD origin/main`, which fails on a shallow history, and the
+# pre-push gate then stops before Vitest starts. The full history is about
+# 63 MB. A failed fetch does not stop the hook, because the session can work
+# without it.
+if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
+  git fetch --unshallow origin main || echo "session-start: git fetch --unshallow failed" >&2
+fi
+
 # The global pnpm switches to the `packageManager` version on its first run,
 # but it skips the `preinstall` of that version. The native binary then stays
 # a shebang-less placeholder, and turbo, which does not retry ENOEXEC under
