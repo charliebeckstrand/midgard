@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Description } from '../../components/fieldset'
 import { Form } from '../../components/form'
 import { Switch, SwitchField } from '../../components/switch'
-import { bySlot, fireEvent, getSlot, present, renderUI, setupUser } from '../helpers'
+import { act, bySlot, fireEvent, getSlot, present, renderUI, screen, setupUser } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
 describe('Switch', () => {
@@ -33,6 +33,31 @@ describe('Switch', () => {
 		expect(thumb).toBeInTheDocument()
 
 		expect(thumb).toHaveAttribute('aria-hidden', 'true')
+	})
+
+	it('mirrors a native form reset into aria-checked', async () => {
+		renderUI(
+			<form>
+				<Switch aria-label="Notify" />
+				<button type="reset">Reset</button>
+			</form>,
+		)
+
+		const input = screen.getByRole('switch', { name: 'Notify' })
+
+		fireEvent.click(input)
+
+		expect(input).toHaveAttribute('aria-checked', 'true')
+
+		fireEvent.click(screen.getByRole('button', { name: 'Reset' }))
+
+		// The browser reverts the input after the event, and the switch reads it
+		// on the next frame.
+		await act(() => new Promise(requestAnimationFrame))
+
+		expect(input).not.toBeChecked()
+
+		expect(input).toHaveAttribute('aria-checked', 'false')
 	})
 
 	it('forwards checked and onChange', () => {
