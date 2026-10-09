@@ -10,6 +10,8 @@
 | `pct` | Maps `value` to its percentage position within `[min, max]`; `0` when the range is empty. |
 | `parseAspectRatio` | Parses a chart or map `aspectRatio` to its numeric `width / height`; `null` when the ratio is off or unparseable, which leaves the frame free-form. Both terms must be positive, so a signed `'-4/3'` falls through the same way its numeric twin does. |
 | `digitsOnly` | Returns `value` with every non-digit character removed. |
+| `reduceNumbers` | Reduces a set of numbers that is not empty to its sum, mean, minimum, or maximum. The pivot table and the grid aggregate rows use it. Each caller keeps its own `count` and empty-set rules. |
+| `Aggregation` *(type)* | The built-in aggregation names. `PivotAggregation` and `GridAggFuncName` are aliases of it. |
 | `capitalizeFirst` | Returns `value` with its first letter uppercased and the rest unchanged. The select-family `capitalize` prop, the Avatar status label, the Timeline marker label, and the grid color menu use it. |
 | `toNumericCell` | Coerces a raw data cell to a number. Numbers pass through and non-blank numeric strings parse. A blank (`null`, `''`, whitespace) becomes `NaN`, not `0`; callers finite-filter. |
 | `formatInteger` | Locale-formats `value` with no fraction digits (cached formatter). An optional `locale` overrides the runtime locale. |

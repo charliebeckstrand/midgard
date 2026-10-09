@@ -1,11 +1,12 @@
 import type { ComponentProps, ReactNode } from 'react'
 import type { ContextMenuEntry } from '../../components/context-menu'
+import type { Aggregation } from '../../utilities/aggregate'
 import type { QueryField, QueryFieldType, QueryGroup } from '../query'
 import type { GridExportAction } from './engine/grid-export/types'
 import type { GridEditCell, GridRowActionsContext } from './grid-editing-types'
 
 /** The built-in per-column aggregation names. @see {@link GridColumn.aggFunc} */
-export type GridAggFuncName = 'sum' | 'avg' | 'min' | 'max' | 'count'
+export type GridAggFuncName = Aggregation
 
 /**
  * A column's aggregation: a built-in name reducing the column's numeric
