@@ -6,7 +6,7 @@ import {
 } from '@simplewebauthn/browser'
 import type { SignInProvider } from 'auth'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Suspense, useState } from 'react'
+import { Suspense } from 'react'
 import { Button } from 'ui/button'
 import { Field, Label, Message } from 'ui/fieldset'
 import { Form, type FormSubmitHandler } from 'ui/form'
@@ -22,6 +22,7 @@ import { bifrost } from './bifrost'
 import { ErrorAlert } from './error-alert'
 import { chain, email, required } from './form-validators'
 import { useLeaving } from './use-leaving'
+import { unexpectedError, useServerError } from './use-server-error'
 
 type LoginValues = { email: string; password: string }
 
@@ -99,7 +100,7 @@ type LoginPageProps = {
 export function LoginPage({ providers = [] }: LoginPageProps) {
 	const router = useRouter()
 
-	const [serverError, setServerError] = useState('')
+	const [errorAlert, setServerError] = useServerError()
 
 	const [leaving, leave] = useLeaving()
 
@@ -119,7 +120,7 @@ export function LoginPage({ providers = [] }: LoginPageProps) {
 		try {
 			finish(await bifrost.POST('/auth/login', { body: values }))
 		} catch {
-			setServerError('An unexpected error occurred. Please try again later.')
+			setServerError(unexpectedError)
 		}
 	}
 
@@ -160,9 +161,7 @@ export function LoginPage({ providers = [] }: LoginPageProps) {
 				<Stack gap="xl" className="w-full sm:max-w-sm p-6">
 					<Heading className="text-center">Sign in to your account</Heading>
 
-					{serverError && (
-						<ErrorAlert onDismiss={() => setServerError('')}>{serverError}</ErrorAlert>
-					)}
+					{errorAlert}
 
 					<Suspense>
 						<QueryNotice />
