@@ -940,3 +940,54 @@ describe('usePdfViewerMagnifier under a held finger', () => {
 		})
 	})
 })
+
+/**
+ * The frame takes its non-passive touch listeners through React's own ref. A page with no
+ * loupe has none, so a finger scroll on it never waits for the main thread.
+ */
+describe('usePdfViewerMagnifier frame listeners', () => {
+	const settings: ResolvedMagnifier = { zoom: 2.5, size: 'md', delay: 300 }
+
+	function Frame({ on }: { on: boolean }) {
+		const magnifier = usePdfViewerMagnifier(on ? settings : null)
+
+		return <div data-testid="frame" ref={magnifier.setReference} />
+	}
+
+	/** The touch types that a spy saw on the frame, in order. */
+	function touchTypes(spy: { mock: { calls: unknown[][]; contexts: unknown[] } }) {
+		return spy.mock.calls
+			.filter(
+				(_, index) =>
+					(spy.mock.contexts[index] as Element).getAttribute?.('data-testid') === 'frame',
+			)
+			.map(([type]) => type)
+			.filter((type) => type === 'touchmove' || type === 'touchend')
+	}
+
+	it('adds the listeners as the frame attaches, and removes them when the loupe turns off', () => {
+		const add = vi.spyOn(HTMLElement.prototype, 'addEventListener')
+
+		const remove = vi.spyOn(HTMLElement.prototype, 'removeEventListener')
+
+		const { rerender } = render(<Frame on />)
+
+		expect(touchTypes(add)).toEqual(['touchmove', 'touchend'])
+
+		rerender(<Frame on={false} />)
+
+		expect(touchTypes(remove)).toEqual(['touchmove', 'touchend'])
+
+		rerender(<Frame on />)
+
+		expect(touchTypes(add)).toEqual(['touchmove', 'touchend', 'touchmove', 'touchend'])
+	})
+
+	it('adds no listener to a page with no loupe', () => {
+		const add = vi.spyOn(HTMLElement.prototype, 'addEventListener')
+
+		render(<Frame on={false} />)
+
+		expect(touchTypes(add)).toEqual([])
+	})
+})
