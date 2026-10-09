@@ -1,7 +1,6 @@
 'use client'
 
 import { ArrowUpDown, CalendarDays, Copy, Globe, Heart, MapPin, Tag, X } from 'lucide-react'
-import Image from 'next/image'
 import { type ReactElement, type ReactNode, useEffect, useMemo, useState } from 'react'
 import { Badge } from 'ui/badge'
 import { CopyButton } from 'ui/copy-button'
@@ -11,6 +10,7 @@ import { Divider } from 'ui/divider'
 import { Drawer, DrawerBody, DrawerClose, DrawerPanel, DrawerTitle } from 'ui/drawer'
 import { Heading } from 'ui/heading'
 import { Icon } from 'ui/icon'
+import { Lightbox, LightboxTrigger } from 'ui/lightbox'
 import { Link } from 'ui/link'
 import { List, ListItem } from 'ui/list'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
@@ -147,53 +147,89 @@ function PlaceAddress({ address }: { address: string }) {
 	)
 }
 
+/** How the thumbnail of a photo ended: the natural size of the photo, or `'failed'`. */
+type PhotoLoad = { width: number; height: number } | 'failed'
+
 /**
- * One photo of a visit, in a square of 96 pixels. A placeholder fills the
- * square until the photo loads. When the photo does not load, the placeholder
- * stays and stops its pulse, so it does not look like a photo that loads.
+ * The photos of a visit, in squares of 96 pixels. A press on a square raises
+ * its photo into a `Lightbox`, which steps through the photos of the visit.
  *
- * `next/image` with `unoptimized`: the address is the one that the reader
- * typed, so the host is not known at build time. The optimizer serves only the
- * hosts that `images.remotePatterns` lists, so the browser gets the photo from
- * its own address. The name of the place is the alt text because it is the one
- * thing known about the picture.
+ * The address of a photo is the one that the reader typed, so its size is not
+ * known before it loads. Each square records the natural size of its photo
+ * when the thumbnail loads, and the viewer takes the size from that record. A
+ * square is disabled until its photo loads, so the viewer never opens on a
+ * photo with no size. The `load` and `error` events do not bubble, so the
+ * square takes them in the capture phase from the image of its trigger.
+ *
+ * A placeholder fills the square until the photo loads. When the photo does
+ * not load, the placeholder stays and stops its pulse, so it does not look
+ * like a photo that loads. The trigger then goes out of the tree, so the
+ * browser shows no broken image, and the viewer does not step to that photo.
+ * The name of the place is the alt text because it is the one thing known
+ * about the picture.
  *
  * Squares, stated on both axes, so every photo reads the same however it was
  * shot, and the row wraps them at any panel width. The fixed box also keeps
- * the text below in position while the photo loads. `object-cover` fills the
- * box and crops the overflow, which is what makes one size honest for any
- * aspect.
- *
- * The photo is on the placeholder and is transparent until it loads, so the
- * browser loads it while the placeholder shows. A photo that does not load
- * goes out of the tree, so the browser shows no broken image. The caller keys
- * each photo by its address, so a new address starts from the placeholder.
+ * the text below in position while the photo loads. The trigger fills the box
+ * with `object-fit: cover` and crops the overflow, which is what makes one size
+ * honest for any aspect.
  */
-function PlacePhoto({ src, alt }: { src: string; alt: string }) {
-	const [status, setStatus] = useState<'loading' | 'loaded' | 'failed'>('loading')
+function PlacePhotos({ photos, alt }: { photos: readonly string[]; alt: string }) {
+	const [loads, setLoads] = useState<ReadonlyMap<string, PhotoLoad>>(new Map())
+
+	const settle = (src: string, load: PhotoLoad) =>
+		setLoads((previous) => new Map(previous).set(src, load))
+
+	// The address alone is not unique: a reader can add one photo twice.
+	const squares = photos.map((src, at) => ({ key: `${at}:${src}`, src, load: loads.get(src) }))
+
+	const viewable = squares.filter((square) => square.load !== 'failed')
+
+	const gallery = viewable.map(({ src, load }) => ({
+		src,
+		alt,
+		// A photo that still loads has a disabled square, so the viewer never shows it.
+		width: typeof load === 'object' ? load.width : 1,
+		height: typeof load === 'object' ? load.height : 1,
+	}))
 
 	return (
-		<div className="relative size-24 shrink-0">
-			{status === 'loaded' ? null : (
-				<Placeholder pulse={status === 'loading'} className="absolute inset-0 size-full" />
-			)}
+		<Lightbox photos={gallery} aria-label={`Photos of ${alt}`}>
+			<Flex gap="sm" wrap>
+				{squares.map((square) => {
+					const loaded = typeof square.load === 'object'
 
-			{status === 'failed' ? null : (
-				<Image
-					src={src}
-					alt={alt}
-					width={96}
-					height={96}
-					unoptimized
-					onLoad={() => setStatus('loaded')}
-					onError={() => setStatus('failed')}
-					className={cn(
-						'relative size-full rounded-lg object-cover',
-						status === 'loading' && 'opacity-0',
-					)}
-				/>
-			)}
-		</div>
+					const failed = square.load === 'failed'
+
+					return (
+						<div
+							key={square.key}
+							className="relative size-24 shrink-0"
+							onLoadCapture={(event) => {
+								const image = event.target
+
+								if (image instanceof HTMLImageElement) {
+									settle(square.src, { width: image.naturalWidth, height: image.naturalHeight })
+								}
+							}}
+							onErrorCapture={() => settle(square.src, 'failed')}
+						>
+							{loaded ? null : (
+								<Placeholder pulse={!failed} className="absolute inset-0 size-full" />
+							)}
+
+							{failed ? null : (
+								<LightboxTrigger
+									index={viewable.indexOf(square)}
+									disabled={!loaded}
+									className={cn('relative size-full', !loaded && 'opacity-0')}
+								/>
+							)}
+						</div>
+					)
+				})}
+			</Flex>
+		</Lightbox>
 	)
 }
 
@@ -239,18 +275,7 @@ function PlaceVisit({
 				</div>
 			</Flex>
 
-			{visit.photos.length > 0 ? (
-				<Flex gap="sm" wrap>
-					{visit.photos.map((photo, at) => (
-						<PlacePhoto
-							// The address alone is not unique: a reader can add one photo twice.
-							key={`${at}:${photo}`}
-							src={photo}
-							alt={place.name}
-						/>
-					))}
-				</Flex>
-			) : null}
+			{visit.photos.length > 0 ? <PlacePhotos photos={visit.photos} alt={place.name} /> : null}
 
 			{/* The review is Markdown, so its paragraphs, lists, and emphasis show.
 			    `breaks` keeps each line break that the reader typed. The offset
