@@ -160,7 +160,7 @@ export const heat: string[] = [
 	'oklch(0.279 0.077 45.635)',
 ]
 
-// The resident population of each state in millions, from the 2020 census.
+// The estimated resident population of each state in millions.
 // The name of a state joins the row to its shape in the atlas.
 export const statePopulation: { state: string; people: number }[] = [
 	{ state: 'California', people: 39.4 },

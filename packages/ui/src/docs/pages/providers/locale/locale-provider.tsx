@@ -24,6 +24,7 @@ export default function LocaleProviderPresets() {
 					<Button
 						key={option.locale}
 						variant={option === preset ? undefined : 'soft'}
+						aria-pressed={option === preset}
 						onClick={() => setPreset(option)}
 					>
 						{option.label}

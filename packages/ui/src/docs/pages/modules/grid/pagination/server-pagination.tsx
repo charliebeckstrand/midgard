@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Grid, type GridPaginationState } from 'ui/grid'
-import { columns, manyPeople } from '../data.tsx'
+import { manyPeople, serverColumns } from '../data.tsx'
 
 export default function ServerPagination() {
 	const [pagination, setPagination] = useState<GridPaginationState>({ pageIndex: 0, pageSize: 10 })
@@ -12,7 +12,7 @@ export default function ServerPagination() {
 
 	return (
 		<Grid
-			columns={columns}
+			columns={serverColumns}
 			rows={page}
 			getKey={(row) => row.id}
 			tableProps={{ 'aria-label': 'People, server pages' }}

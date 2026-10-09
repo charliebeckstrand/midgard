@@ -18,14 +18,18 @@ export const initialPeople: Person[] = [
 ]
 
 /**
- * Applies the saved changes to the rows. Each change sets one field of the
- * row of its key.
+ * Applies the saved changes to the rows. Each change sets the field of its
+ * column on the row of its key.
  */
-export function applyChanges<T extends { id: number }>(rows: T[], changes: GridCellChange[]): T[] {
+export function applyChanges(rows: Person[], changes: GridCellChange[]): Person[] {
 	const patches = new Map<string | number, Record<string, unknown>>()
 
 	for (const change of changes) {
-		patches.set(change.rowKey, { ...patches.get(change.rowKey), [change.columnId]: change.value })
+		const field = personFields.get(change.columnId)
+
+		if (field === undefined) continue
+
+		patches.set(change.rowKey, { ...patches.get(change.rowKey), [field]: change.value })
 	}
 
 	return rows.map((row) => {
@@ -72,7 +76,7 @@ export function CellListbox({
 	return (
 		<Listbox<string>
 			aria-label={ariaLabel}
-			value={value || undefined}
+			value={value || null}
 			onValueChange={(next) => onValueUpdate(next ?? '')}
 			displayValue={(key) => options.find((option) => option.value === key)?.label ?? key}
 		>
@@ -118,3 +122,6 @@ export const personColumns: GridColumn<Person>[] = [
 		),
 	},
 ]
+
+// The row field that each column edits, by the id of the column.
+const personFields = new Map(personColumns.map((column) => [column.id, column.field]))

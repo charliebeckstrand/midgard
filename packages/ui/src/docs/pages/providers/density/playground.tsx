@@ -67,7 +67,11 @@ function OrdersFilters({
 			<FiltersBar>
 				<FiltersRow>
 					<FiltersField name="id">
-						<SearchInput placeholder="Search by order ID" autoComplete="off" />
+						<SearchInput
+							aria-label="Order ID"
+							placeholder="Search by order ID"
+							autoComplete="off"
+						/>
 					</FiltersField>
 					<FiltersField name="status">
 						<Select aria-label="Status" placeholder="All statuses" displayValue={(v: string) => v}>
