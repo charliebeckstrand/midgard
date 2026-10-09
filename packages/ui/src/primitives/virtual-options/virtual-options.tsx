@@ -4,6 +4,7 @@ import { type ReactNode, use, useCallback, useEffect, useMemo, useRef } from 're
 import { dataAttr } from '../../core'
 import { useVirtualWindow } from '../../hooks'
 import type { VirtualItemSource } from '../../hooks/a11y/use-a11y-roving'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { VirtualItemSourceContext } from './context'
 
 /**
@@ -157,17 +158,46 @@ export function VirtualOptions<T>({
 		getItemKey,
 	})
 
+	// The source runs these in events and effects, never in render, so each keeps
+	// one identity, and an inline callback of a consumer does not build a new
+	// source on each render. The source holds one only while its prop is there,
+	// so no fallback runs.
+	const getKey = useStableEvent((index: number) => getOptionId?.(items[index] as T, index) ?? '')
+
+	const isIndexDisabled = useStableEvent(
+		(index: number) => isDisabled?.(items[index] as T, index) ?? false,
+	)
+
+	const getIndexText = useStableEvent(
+		(index: number) => getTextValue?.(items[index] as T, index) ?? '',
+	)
+
+	const hasOptionId = getOptionId !== undefined
+
+	const hasIsDisabled = isDisabled !== undefined
+
+	const hasTextValue = getTextValue !== undefined
+
 	const source = useMemo<VirtualItemSource | null>(() => {
-		if (!getOptionId) return null
+		if (!hasOptionId) return null
 
 		return {
 			count: items.length,
-			getKey: (index) => getOptionId(items[index] as T, index),
-			isDisabled: isDisabled ? (index) => isDisabled(items[index] as T, index) : undefined,
-			getTextValue: getTextValue ? (index) => getTextValue(items[index] as T, index) : undefined,
+			getKey,
+			isDisabled: hasIsDisabled ? isIndexDisabled : undefined,
+			getTextValue: hasTextValue ? getIndexText : undefined,
 			scrollToIndex,
 		}
-	}, [items, getOptionId, isDisabled, getTextValue, scrollToIndex])
+	}, [
+		items,
+		hasOptionId,
+		getKey,
+		hasIsDisabled,
+		isIndexDisabled,
+		hasTextValue,
+		getIndexText,
+		scrollToIndex,
+	])
 
 	const registryRef = use(VirtualItemSourceContext)
 
