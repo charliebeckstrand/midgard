@@ -3,6 +3,7 @@
 import { type ComponentProps, useRef } from 'react'
 import { cn, composeEventHandlers, dataAttr } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
+import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { ActiveIndicator, useActiveIndicator } from '../../primitives/active-indicator'
 import { useCurrentItem } from '../../primitives/current/current'
@@ -10,6 +11,7 @@ import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/tabs'
 import { Button } from '../button'
 import { useTabsContext } from './context'
+import { useTabSelectScroll } from './use-tab-list-scroll'
 
 /** Props for {@link Tab}. Selects via `value` (uncontrolled, against the Tabs root) or `current` (controlled); forwards the remaining `<button>` surface. */
 export type TabProps = {
@@ -100,6 +102,7 @@ export function Tab({
 	onClick,
 	onPointerEnter,
 	onFocus,
+	ref: consumerRef,
 	...rest
 }: TabProps) {
 	// The tab reads its own value, so a switch renders only the tab that stops
@@ -170,6 +173,12 @@ export function Tab({
 
 	const handleFocus = composeEventHandlers(onFocus, preload)
 
+	// A selection that does not move focus scrolls the tab into the viewport of
+	// the list. The segment variant has no viewport.
+	const selectScrollRef = useTabSelectScroll(current, orientation, !isSegment)
+
+	const setTab = useComposedRef(selectScrollRef, consumerRef)
+
 	return (
 		<span className={k.wrapper({ stretch })} {...tapHandlers}>
 			<HeadlessProvider>
@@ -180,6 +189,7 @@ export function Tab({
 					// are composed (run first) rather than forwarded, so the preload
 					// intent can chain onto them.
 					{...rest}
+					ref={setTab}
 					data-slot="tab"
 					data-current={dataAttr(current)}
 					role="tab"

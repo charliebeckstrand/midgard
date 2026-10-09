@@ -33,13 +33,13 @@ function FirstPaint({
 	return <div ref={ref}>{children}</div>
 }
 
-/** A tab list in a small box. The current tab is past the end of the box. */
-function LongTabs({ orientation }: { orientation: TabsOrientation }) {
+/** A tab list in a small box. The current tab is past the end of the box by default. */
+function LongTabs({ orientation, value }: { orientation: TabsOrientation; value?: string }) {
 	const box = orientation === 'horizontal' ? { width: 240 } : { height: 120 }
 
 	return (
 		<div style={box}>
-			<Tabs defaultValue="Section 10" orientation={orientation} style={box}>
+			<Tabs value={value} defaultValue="Section 10" orientation={orientation} style={box}>
 				<TabList aria-label="Sections">
 					{TABS.map((tab) => (
 						<Tab key={tab} value={tab}>
@@ -96,6 +96,41 @@ function mountOnClient(orientation: TabsOrientation) {
 	return painted
 }
 
+/**
+ * Mounts the tabs on the client with the first tab current, then makes the far
+ * tab current without a move of focus, as the Back button of the browser does.
+ * The current tab changes in a second commit, after the store of the root
+ * publishes in a layout effect. Thus the check reads after `act` and before the
+ * test yields to the browser, so it gets the state of the next paint.
+ */
+function selectWithoutFocus(orientation: TabsOrientation) {
+	const container = attach(document.createElement('div'))
+
+	let root: Root | undefined
+
+	act(() => {
+		root = createRoot(container)
+
+		root.render(<LongTabs orientation={orientation} value="Section 0" />)
+	})
+
+	onTestFinished(() => act(() => root?.unmount()))
+
+	act(() => root?.render(<LongTabs orientation={orientation} value="Section 10" />))
+
+	const scroller = present(
+		container.querySelector('[data-slot="tab-list-scroll"]'),
+		'tab list scroller',
+	)
+
+	const tab = present(container.querySelector('[data-slot="tab"][data-current]'), 'current tab')
+
+	return {
+		scroll: orientation === 'horizontal' ? scroller.scrollLeft : scroller.scrollTop,
+		visible: inView(tab, scroller),
+	}
+}
+
 describe('TabList mount scroll (real browser)', () => {
 	it('paints a horizontal list with the current tab in view', () => {
 		const painted = mountOnClient('horizontal')
@@ -107,6 +142,24 @@ describe('TabList mount scroll (real browser)', () => {
 
 	it('paints a vertical list with the current tab in view', () => {
 		const painted = mountOnClient('vertical')
+
+		expect(painted.scroll).toBeGreaterThan(0)
+
+		expect(painted.visible).toBe(true)
+	})
+})
+
+describe('TabList selection scroll (real browser)', () => {
+	it('paints a horizontal list with a tab that becomes current in view', () => {
+		const painted = selectWithoutFocus('horizontal')
+
+		expect(painted.scroll).toBeGreaterThan(0)
+
+		expect(painted.visible).toBe(true)
+	})
+
+	it('paints a vertical list with a tab that becomes current in view', () => {
+		const painted = selectWithoutFocus('vertical')
 
 		expect(painted.scroll).toBeGreaterThan(0)
 

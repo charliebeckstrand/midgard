@@ -52,8 +52,9 @@ export type TabListProps = AccessibleName &
  * single Tab stop itself comes from each `<Tab>`'s roving `tabIndex`. The
  * underline variant sits in an overflow viewport, so an over-long tab row
  * scrolls in place rather than widening the page, and the edge with more tabs
- * behind it fades. The active tab is scrolled into view before the first paint
- * and as focus roves. A consumer `ref` reaches the `role="tablist"` element.
+ * behind it fades. The active tab is scrolled into view before the first paint,
+ * when the selection changes, and as focus roves. A consumer `ref` reaches the
+ * `role="tablist"` element.
  */
 export function TabList({
 	className,
