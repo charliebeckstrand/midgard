@@ -34,6 +34,13 @@ function stubGateway(status: number, body: unknown = null) {
 	return fetch
 }
 
+// Stubs the cookie store of the request with a `cookie` header, such as `a=1; b=2`.
+function cookieStore(header: string) {
+	const names = header ? header.split('; ').map((pair) => pair.split('=')[0]) : []
+
+	return { has: (name: string) => names.includes(name), toString: () => header }
+}
+
 // Next marks a redirect with the digest `NEXT_REDIRECT;<type>;<url>;<status>`.
 function redirectTarget(error: unknown): string | undefined {
 	const digest = (error as { digest?: string }).digest
@@ -43,7 +50,7 @@ function redirectTarget(error: unknown): string | undefined {
 
 describe('getSession', () => {
 	beforeEach(() => {
-		cookies.mockResolvedValue({ toString: () => '__Host-session=abc' })
+		cookies.mockResolvedValue(cookieStore('__Host-session=abc'))
 	})
 
 	it('returns the session with its user', async () => {
@@ -66,6 +73,18 @@ describe('getSession', () => {
 		await getSession()
 
 		expect(fetch.mock.calls[0]).toHaveLength(1)
+	})
+
+	// A guest page reads the session on each request. Without the cookie, the
+	// gateway can only answer `401`, so the read does not go to it.
+	it('returns undefined without the session cookie, and does not ask the gateway', async () => {
+		cookies.mockResolvedValue(cookieStore('theme=dark'))
+
+		const fetch = stubGateway(401)
+
+		await expect(getSession()).resolves.toBeUndefined()
+
+		expect(fetch).not.toHaveBeenCalled()
 	})
 
 	it('returns undefined for a 401, and does not log it', async () => {
@@ -110,7 +129,7 @@ describe('getSession', () => {
 
 describe('requireSession', () => {
 	beforeEach(() => {
-		cookies.mockResolvedValue({ toString: () => '__Host-session=abc' })
+		cookies.mockResolvedValue(cookieStore('__Host-session=abc'))
 	})
 
 	it('returns the session of a user', async () => {
@@ -130,7 +149,7 @@ describe('requireSession', () => {
 
 describe('requireAdmin', () => {
 	beforeEach(() => {
-		cookies.mockResolvedValue({ toString: () => '__Host-session=abc' })
+		cookies.mockResolvedValue(cookieStore('__Host-session=abc'))
 	})
 
 	it('returns the session of an admin that passed the second step', async () => {

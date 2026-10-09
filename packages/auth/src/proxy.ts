@@ -1,10 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { clientIpSecret } from './env'
 import { isApiRoute, isAuthRoute, isGuestRoute } from './routes'
-
-// The gateway sets the session with the `__Host-` prefix. The browser then sends
-// it only over HTTPS, and a sibling subdomain cannot set it.
-const sessionCookie = '__Host-session'
+import { sessionCookie } from './session-cookie'
 
 // Read when the proxy loads, so the first request after a start fails when the secret is lost.
 const secret = clientIpSecret()
