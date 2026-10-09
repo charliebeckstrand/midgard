@@ -22,7 +22,10 @@ describe('useA11yHasTabbable', () => {
 			false,
 		],
 	])('%s', (_name, html, expected) => {
-		const { result } = renderHook(() => useA11yHasTabbable(mountPanel(html)))
+		// The node is state in a caller, so it keeps its identity across renders.
+		const panel = mountPanel(html)
+
+		const { result } = renderHook(() => useA11yHasTabbable(panel))
 
 		expect(result.current).toBe(expected)
 	})

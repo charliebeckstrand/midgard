@@ -22,17 +22,17 @@ import { FOCUSABLE_SELECTOR } from '../../utilities'
  * would then re-run the query every frame.
  */
 export function useA11yHasTabbable(node: HTMLElement | null): boolean {
-	const [hasTabbable, setHasTabbable] = useState(false)
+	// The reading keeps its node, so a reading of an earlier node counts as
+	// `false` with no extra render.
+	const [reading, setReading] = useState<{ node: HTMLElement; has: boolean } | null>(null)
 
 	useEffect(() => {
-		if (!node) {
-			setHasTabbable(false)
-
-			return
-		}
+		if (!node) return
 
 		const update = () => {
-			setHasTabbable(node.querySelector(FOCUSABLE_SELECTOR) !== null)
+			const has = node.querySelector(FOCUSABLE_SELECTOR) !== null
+
+			setReading((held) => (held?.node === node && held.has === has ? held : { node, has }))
 		}
 
 		update()
@@ -49,5 +49,5 @@ export function useA11yHasTabbable(node: HTMLElement | null): boolean {
 		return () => observer.disconnect()
 	}, [node])
 
-	return hasTabbable
+	return reading?.node === node && reading.has
 }
