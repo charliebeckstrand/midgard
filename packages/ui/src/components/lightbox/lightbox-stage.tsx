@@ -17,7 +17,7 @@ import { k } from '../../recipes/kata/lightbox'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { useLightboxContext } from './context'
-import type { LightboxPhoto } from './types'
+import type { LightboxViewPhoto } from './types'
 import { useLightboxFlight } from './use-lightbox-flight'
 import { useLightboxTrack } from './use-lightbox-track'
 
@@ -31,9 +31,11 @@ export type LightboxLabels = {
 
 /** Props for {@link LightboxStage}. @internal */
 export type LightboxStageProps = {
-	/** The index of the photo in the center. */
+	/** The photos that the viewer can show. */
+	photos: readonly LightboxViewPhoto[]
+	/** The place of the photo in the center, in `photos`. */
 	index: number
-	/** Shows another photo, or closes the viewer with `null`. */
+	/** Shows the photo at another place in `photos`, or closes the viewer with `null`. */
 	onIndexChange: (index: number | null) => void
 	/** Called when the photo lands in its thumbnail after a close. */
 	onReturn: () => void
@@ -52,7 +54,7 @@ export type LightboxStageProps = {
  * `cqw` and `cqh` give the box of the slot. The edge is one gap past the photo,
  * from the center of the layer, and the end is the end of the photo.
  */
-function controlsFrame(photo: LightboxPhoto): CSSProperties {
+function controlsFrame(photo: LightboxViewPhoto): CSSProperties {
 	const ratio = `${photo.height} / ${photo.width}`
 
 	const height = `min(${photo.height}px, 100cqh, 100cqw * ${ratio})`
@@ -64,7 +66,7 @@ function controlsFrame(photo: LightboxPhoto): CSSProperties {
 }
 
 /** The slots of the track: the photo in the center and each photo next to it. */
-function slotsAround(index: number, photos: readonly LightboxPhoto[]) {
+function slotsAround(index: number, photos: readonly LightboxViewPhoto[]) {
 	return [-1, 0, 1].flatMap((offset) => {
 		const photo = photos[index + offset]
 
@@ -88,6 +90,7 @@ function slotsAround(index: number, photos: readonly LightboxPhoto[]) {
  * @internal
  */
 export function LightboxStage({
+	photos,
 	index,
 	onIndexChange,
 	onReturn,
@@ -95,7 +98,10 @@ export function LightboxStage({
 	closable,
 	controls,
 }: LightboxStageProps) {
-	const { photos, thumbnail } = useLightboxContext()
+	const { thumbnail } = useLightboxContext()
+
+	// The thumbnail of the photo in the center, where it rises from and goes back to.
+	const home = () => thumbnail(photos[index]?.index ?? -1)
 
 	const [isPresent, safeToRemove] = usePresence()
 
@@ -137,7 +143,7 @@ export function LightboxStage({
 	const followPresence = useEffectEvent((present: boolean) => {
 		// The viewer opens, or opens again during the return: the photo rises.
 		if (present) {
-			if (leaving.current) flight.raise(thumbnail(index))
+			if (leaving.current) flight.raise(home())
 
 			leaving.current = false
 
@@ -157,7 +163,7 @@ export function LightboxStage({
 		// The photo goes back to its thumbnail over the controls.
 		stageRef.current?.toggleAttribute('data-raised', true)
 
-		flight.lower(thumbnail(index)).then(() => {
+		flight.lower(home()).then(() => {
 			if (!leaving.current) return
 
 			onReturn()
@@ -279,7 +285,7 @@ export function LightboxStage({
 							<Button
 								type="button"
 								ref={previousRef}
-								variant={index === 0 ? 'soft' : 'solid'}
+								className={cn(index === 0 && k.ended)}
 								aria-label={labels.previous}
 								disabled={index === 0}
 								onClick={() => stepBy(-1)}
@@ -292,7 +298,7 @@ export function LightboxStage({
 							<Button
 								type="button"
 								ref={nextRef}
-								variant={index === count - 1 ? 'soft' : 'solid'}
+								className={cn(index === count - 1 && k.ended)}
 								aria-label={labels.next}
 								disabled={index === count - 1}
 								onClick={() => stepBy(1)}
