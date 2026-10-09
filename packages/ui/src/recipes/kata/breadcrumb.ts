@@ -4,7 +4,7 @@ import { dan } from '../kiso/dan'
 
 const { fg } = hannou
 const { text } = iro
-const { size, weight } = ji
+const { weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
 const { focus } = sen
@@ -18,7 +18,7 @@ const list = defineRecipe({
 		'flex-wrap',
 		dan.gap.scale.sm,
 		'wrap-break-word',
-		size.md,
+		ji.ramp,
 		'in-data-collapse:min-w-0 in-data-collapse:flex-nowrap',
 	],
 })
@@ -62,7 +62,7 @@ const link = defineRecipe({
 })
 
 const separator = defineRecipe({
-	base: [...text.muted, '[&>svg]:size-3.5', 'in-data-collapse:shrink-0'],
+	base: [...text.muted, dan.size.separator.svg, 'in-data-collapse:shrink-0'],
 })
 
 export const k = {

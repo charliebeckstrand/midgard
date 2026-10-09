@@ -92,8 +92,10 @@ const tab = defineRecipe({
 		'after:absolute after:rounded-full',
 		'after:bg-transparent',
 		'focus-visible:after:bg-blue-500',
-		// Padding and text follow the nearest density scope.
+		// Padding, text, the icon slot, and the gap follow the nearest density scope.
 		ji.ramp,
+		...narabi.item,
+		dan.gap.item,
 	],
 	orientation: {
 		horizontal: [

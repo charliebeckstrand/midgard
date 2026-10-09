@@ -87,7 +87,7 @@ function OptionImpl({
 			aria-hidden="true"
 			data-slot="icon"
 			className={cn(
-				'relative hidden shrink-0 self-center group-data-selected/option:inline',
+				'relative invisible shrink-0 self-center group-data-selected/option:visible',
 				k.check,
 			)}
 		/>

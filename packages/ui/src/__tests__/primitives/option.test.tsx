@@ -170,7 +170,7 @@ describe('Option', () => {
 		expect(held).toBe(false)
 	})
 
-	it('renders the default check icon hidden until the row is selected', () => {
+	it('renders the default check icon invisible until the row is selected', () => {
 		const { container } = renderUI(
 			<Option selected={false} onSelect={() => {}}>
 				Option
@@ -179,9 +179,9 @@ describe('Option', () => {
 
 		const cls = bySlot(container, 'icon')?.getAttribute('class') ?? ''
 
-		expect(cls).toContain('hidden')
+		expect(cls).toContain('invisible')
 
-		expect(cls).toContain('group-data-selected/option:inline')
+		expect(cls).toContain('group-data-selected/option:visible')
 	})
 
 	it('sizes the default check icon with a stepped class, which follows the nearest scope', () => {

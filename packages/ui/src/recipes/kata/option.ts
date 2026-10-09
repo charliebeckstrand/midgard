@@ -9,7 +9,10 @@ const { flex, description } = narabi
 const base = [
 	...hannou.item,
 	'group/option grid w-full items-baseline',
-	'grid-cols-[1fr_--spacing(5)] sm:grid-cols-[1fr_--spacing(4)]',
+	// The check column is as wide as the check, which takes the step of the nearest
+	// scope. The check of a row that is not selected is invisible, so it keeps the
+	// column.
+	'grid-cols-[1fr_auto]',
 	rounded.lg,
 	...hannou.active,
 	// Gap, padding, and text follow the nearest density scope.

@@ -29,6 +29,8 @@ export const size = {
 		base: glyph,
 		/** An icon in the icon slot of a host. */
 		slot: '*:data-[slot=icon]:density-size-[4,4.5,5,5.5,6]',
+		/** An icon in the icon slot of a host with small text, such as a segment item: the small text size plus 4 px. */
+		small: '*:data-[slot=icon]:density-size-[3.5,4,4.5,5,5.5]',
 		/** A loading spinner in a sidebar row, the same size as the icon of the row. */
 		spinner: '*:data-[slot=loading-spinner]:density-size-[4,4.5,5,5.5,6]',
 	},
@@ -46,7 +48,7 @@ export const size = {
 	},
 	swatch: {
 		/** A square or circle swatch, and a status dot. */
-		base: 'density-size-[1.5,2,2.5,3,4]',
+		base: 'density-size-[1.5,2,2.5,3,3.5]',
 		/** The width of a line swatch. */
 		line: 'density-w-[2,2.5,3,3.5,4]',
 	},
@@ -152,7 +154,7 @@ export const size = {
 	},
 	tab: {
 		/** The width of a tab skeleton. */
-		width: 'density-w-[14,16,20]',
+		width: 'density-w-[12,14,16,18,20]',
 	},
 	switch: {
 		/** The thumb of a switch: the line height less 8 px. */
@@ -172,13 +174,19 @@ export const size = {
 	},
 	calendar: {
 		/** The width of a calendar. */
-		width: 'density-w-[52,68,80]',
+		width: 'density-w-[44,56,68,80,92]',
 	},
 	/** The height of a chart skeleton with no ratio. */
 	chart: 'density-h-[20,40,60,80,100]',
 	tree: {
 		/** The width of a tree indent guide. */
 		indent: 'density-w-[4,4.5,5,5.5,6]',
+	},
+	separator: {
+		/** The separator glyph of a breadcrumb skeleton: the size of small text. */
+		base: 'density-size-[2.5,3,3.5,4,4.5]',
+		/** The separator glyph of a breadcrumb: the size of small text. The separator can be any `svg`. */
+		svg: '[&>svg]:density-size-[2.5,3,3.5,4,4.5]',
 	},
 	resize: {
 		/** The width of a grid column resize handle. */

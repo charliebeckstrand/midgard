@@ -7,7 +7,6 @@
  */
 import { mode } from '../../core/recipe'
 import { hannou, iro, ji, kara, narabi, shaku } from '../kiso'
-import { dan } from '../kiso/dan'
 import { panel } from '../kiso/panel'
 
 const { on, text } = iro
@@ -34,11 +33,12 @@ export const k = {
 		'w-full',
 		'px-2',
 		'py-2.5 sm:py-1.5',
-		dan.gap.scale.sm,
 		...hannou.item,
 		...narabi.item,
-		// The chrome of a row is fixed, so its icon is fixed at `md` too.
+		// The chrome of a row is fixed, so its icon and its gap are fixed at `md`
+		// too.
 		shaku.icon.slot.md,
+		'gap-2',
 		...hannou.active,
 		// Deepen the wash when the active row is also hovered, so the
 		// keyboard-roved item stays distinguishable under the pointer. The

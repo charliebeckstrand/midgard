@@ -408,7 +408,7 @@ describe('RatingSkeleton', () => {
 	// The glyph and the gap are stepped classes, so the browser picks the step of the nearest
 	// scope. The real row and its stars share them.
 	const row =
-		'inline-flex items-center w-fit disabled:opacity-50 data-disabled:opacity-50 group-disabled:opacity-50 motion-safe:transition-opacity motion-safe:duration-150 density-gap-[0.5,0.5,1]'
+		'inline-flex items-center w-fit disabled:opacity-50 data-disabled:opacity-50 group-disabled:opacity-50 motion-safe:transition-opacity motion-safe:duration-150 density-gap-[0.25,0.5,0.75,1,1.25]'
 
 	const hue = 'text-amber-600 dark:text-amber-500'
 

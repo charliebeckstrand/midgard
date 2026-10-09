@@ -18,7 +18,7 @@ import { present, renderUI, screen } from '../helpers'
  */
 beforeAll(() => page.viewport(1280, 800))
 
-const ROW_PADDING_PX = { compact: 4, snug: 6, loose: 10 } as const
+const ROW_PADDING_PX = { compact: 4, snug: 6, loose: 8 } as const
 
 const ICON_PX = { compact: 18, snug: 20, loose: 22 } as const
 

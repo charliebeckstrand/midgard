@@ -68,7 +68,7 @@ export const SIZE_AXES = {
 	PasswordConfirmRepeat: ['xs', 'sm', 'md', 'lg', 'xl'],
 	PasswordInput: ['xs', 'sm', 'md', 'lg', 'xl'],
 	PivotTable: ['xs', 'sm', 'md', 'lg', 'xl'],
-	PopoverContent: ['sm', 'md', 'lg'],
+	PopoverContent: ['xs', 'sm', 'md', 'lg', 'xl'],
 	ProgressBar: ['xs', 'sm', 'md', 'lg', 'xl'],
 	ProgressBarSkeleton: ['xs', 'sm', 'md', 'lg', 'xl'],
 	ProgressGauge: ['xs', 'sm', 'md', 'lg', 'xl'],

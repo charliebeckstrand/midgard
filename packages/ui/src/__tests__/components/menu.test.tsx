@@ -1328,9 +1328,9 @@ describe('MenuItem density', () => {
 		)
 
 		expect(bySlot(container, 'menu-item')).toHaveClass(
-			'density-gap-[2,3,3]',
+			'density-gap-[1,2,3,4,5]',
 			'density-px-[2,2.5,3,3.5,4]',
-			'density-py-[1,1.5,2.5]',
+			'density-py-[0.5,1,1.5,2,2.5]',
 			'density-text-[xs,sm,base,lg,xl]',
 		)
 	})

@@ -14,8 +14,9 @@ import {
 // size scale (`defineScale`) reads its steps from the ramps. Three rules hold
 // that design:
 //
-//   - Each ramp has three or five values. The utility writes no rule for a list
-//     of another length, so such a list fails with no sign.
+//   - Each ramp has five values, one for each step from `xs` to `xl`. The
+//     utility also reads a list of three values for a consumer, but a ramp of
+//     the package gives each step its own value.
 //   - A ramp lives in `recipes/kiso/dan/`. A kata, a skeleton dimension, or a
 //     component imports the ramp and writes no list of its own.
 //   - No file outside the density core picks or clamps steps by hand. A `size`
@@ -81,10 +82,10 @@ describe('size scale', () => {
 		expect(sources.length).toBeGreaterThan(500)
 	})
 
-	it('gives each ramp three or five values', () => {
+	it('gives each ramp five values', () => {
 		const broken = sources.flatMap(({ file, code }) =>
-			Array.from(code.matchAll(RAMP), ([ramp, list]) =>
-				valuesByStep(list ?? '') ? [] : [`${file}: ${ramp}`],
+			Array.from(code.matchAll(RAMP), ([ramp, list = '']) =>
+				valuesByStep(list) && list.split(',').length === 5 ? [] : [`${file}: ${ramp}`],
 			).flat(),
 		)
 
