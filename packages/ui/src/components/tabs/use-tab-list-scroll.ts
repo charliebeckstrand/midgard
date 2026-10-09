@@ -1,73 +1,17 @@
 'use client'
 
 import { type FocusEvent, type RefObject, useEffect } from 'react'
+import { type ScrollWithinOptions, scrollNodeWithin } from '../../hooks/use-scroll-within'
 import type { TabsOrientation } from './context'
 import { TAB_SELECTOR } from './tabs-constants'
 
 /** Matches the current (selected) tab; `Tab` stamps `data-current` on the active trigger. */
 const CURRENT_TAB_SELECTOR = '[data-slot="tab"][data-current]'
 
-/**
- * Least scroll offset that brings an item fully into a viewport along one axis.
- * It returns the current offset unchanged when the item already fits (the
- * `nearest` policy). Every input shares the axis. Those are the viewport size,
- * its current scroll position, the item's extent, and the item's leading edge
- * relative to the viewport's content start.
- *
- * @internal
- */
-export function scrollIntoViewOffset({
-	viewport,
-	current,
-	extent,
-	leading,
-}: {
-	viewport: number
-	current: number
-	extent: number
-	leading: number
-}): number {
-	if (leading < 0) return current + leading
-
-	if (leading + extent > viewport) return current + leading - (viewport - extent)
-
-	return current
-}
-
-/** Scrolls `tab` into view within `scroller` along `axis`, moving the least amount needed. @internal */
-function scrollTabIntoView(scroller: HTMLElement, tab: HTMLElement, axis: 'x' | 'y') {
-	const tabRect = tab.getBoundingClientRect()
-
-	const scrollerRect = scroller.getBoundingClientRect()
-
-	if (axis === 'x') {
-		// scrollLeft/clientWidth are padding-box metrics while the rect is
-		// border-box; subtract the left border so a bordered viewport doesn't
-		// overstate the offset.
-		const leading = tabRect.left - scrollerRect.left - scroller.clientLeft
-
-		const next = scrollIntoViewOffset({
-			viewport: scroller.clientWidth,
-			current: scroller.scrollLeft,
-			extent: tabRect.width,
-			leading,
-		})
-
-		if (next !== scroller.scrollLeft) scroller.scrollTo({ left: next })
-
-		return
-	}
-
-	const leading = tabRect.top - scrollerRect.top - scroller.clientTop
-
-	const next = scrollIntoViewOffset({
-		viewport: scroller.clientHeight,
-		current: scroller.scrollTop,
-		extent: tabRect.height,
-		leading,
-	})
-
-	if (next !== scroller.scrollTop) scroller.scrollTo({ top: next })
+/** The least move on the flow axis of the list. The cross axis keeps its position. */
+const FLOW_SCROLL: Record<TabsOrientation, ScrollWithinOptions> = {
+	horizontal: { inline: 'nearest' },
+	vertical: { block: 'nearest' },
 }
 
 /**
@@ -88,7 +32,7 @@ export function useTabListScroll(
 	orientation: TabsOrientation,
 	enabled: boolean,
 ) {
-	const axis = orientation === 'vertical' ? 'y' : 'x'
+	const options = FLOW_SCROLL[orientation]
 
 	useEffect(() => {
 		const scroller = scrollRef.current
@@ -97,8 +41,8 @@ export function useTabListScroll(
 
 		const current = scroller.querySelector<HTMLElement>(CURRENT_TAB_SELECTOR)
 
-		if (current) scrollTabIntoView(scroller, current, axis)
-	}, [scrollRef, axis, enabled])
+		if (current) scrollNodeWithin(scroller, current, options)
+	}, [scrollRef, options, enabled])
 
 	const onFocus = (event: FocusEvent<HTMLDivElement>) => {
 		const scroller = scrollRef.current
@@ -113,7 +57,7 @@ export function useTabListScroll(
 
 		// A React focus event also bubbles from a portal. Thus the handler
 		// scrolls only for a tab in the viewport.
-		if (tab && scroller.contains(tab)) scrollTabIntoView(scroller, tab, axis)
+		if (tab && scroller.contains(tab)) scrollNodeWithin(scroller, tab, options)
 	}
 
 	return onFocus

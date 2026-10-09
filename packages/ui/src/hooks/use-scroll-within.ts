@@ -96,20 +96,18 @@ function resolveScrollOffset(
 }
 
 /**
- * Scrolls `node` into view within its nearest overflowing ancestor per `block`/`inline`,
- * leaving outer scrollers untouched. The function that {@link useScrollWithin} gives, for a
- * caller that is not a component or a hook.
+ * Scrolls `node` into view within `scroller` per `block`/`inline`. An axis left out keeps its
+ * scroll position. Use it when the caller already owns the scroller. An ancestor walk could
+ * reach past it and scroll an outer container.
  *
  * @internal
  */
-export function scrollWithin(node: HTMLElement | null, options: ScrollWithinOptions = {}) {
-	if (!node) return
-
-	const { behavior = 'auto', block = 'nearest', inline } = options
-
-	const scroller = findScrollAncestor(node, inline !== undefined)
-
-	if (!scroller) return
+export function scrollNodeWithin(
+	scroller: HTMLElement,
+	node: HTMLElement,
+	options: ScrollWithinOptions,
+) {
+	const { behavior = 'auto', block, inline } = options
 
 	const nodeRect = node.getBoundingClientRect()
 
@@ -141,6 +139,23 @@ export function scrollWithin(node: HTMLElement | null, options: ScrollWithinOpti
 	// undefined value is treated as absent and the algorithm keeps the current offset for
 	// that axis. Verified in-browser — a horizontal reveal does not reset `scrollTop`.
 	scroller.scrollTo({ top, left, behavior })
+}
+
+/**
+ * Scrolls `node` into view within its nearest overflowing ancestor per `block`/`inline`,
+ * leaving outer scrollers untouched. The function that {@link useScrollWithin} gives, for a
+ * caller that is not a component or a hook.
+ *
+ * @internal
+ */
+export function scrollWithin(node: HTMLElement | null, options: ScrollWithinOptions = {}) {
+	if (!node) return
+
+	const { block = 'nearest', inline } = options
+
+	const scroller = findScrollAncestor(node, inline !== undefined)
+
+	if (scroller) scrollNodeWithin(scroller, node, { ...options, block })
 }
 
 /**

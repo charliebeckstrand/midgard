@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { useScrollWithin } from '../../hooks/use-scroll-within'
+import { scrollNodeWithin, useScrollWithin } from '../../hooks/use-scroll-within'
 import { attach, mockDomGeometry } from '../helpers'
 
 function buildScrollable() {
@@ -373,5 +373,67 @@ describe('useScrollWithin inline axis', () => {
 		result.current(node, { inline: 'start' })
 
 		expect(outer.scrollTo).not.toHaveBeenCalled()
+	})
+})
+
+/**
+ * The scroll without the ancestor walk, for a caller that owns its scroller (the tab list
+ * viewport). No axis has a default here: an axis left out keeps its position.
+ */
+describe('scrollNodeWithin', () => {
+	/** A horizontal strip that spans x 0 to 100, scrolled to `scrollLeft`, with one 40-wide node. */
+	function buildStrip(scrollLeft: number) {
+		const scroller = document.createElement('div')
+
+		const node = document.createElement('div')
+
+		scroller.appendChild(node)
+
+		attach(scroller)
+
+		mockDomGeometry(scroller, {
+			clientWidth: 100,
+			clientHeight: 20,
+			scrollWidth: 1000,
+			scrollHeight: 20,
+			scrollLeft,
+			scrollTop: 0,
+		})
+
+		scroller.scrollTo = vi.fn()
+
+		scroller.getBoundingClientRect = () => DOMRect.fromRect({ x: 0, y: 0, width: 100, height: 20 })
+
+		return { scroller, node }
+	}
+
+	it.each<[string, number, number, ScrollToOptions | null]>([
+		['scrolls back when the node starts before the viewport', 50, -15, { left: 35 }],
+		['scrolls forward the least to reveal a node past the trailing edge', 0, 80, { left: 20 }],
+		['is a no-op when the node is flush with the leading edge', 0, 0, null],
+		['is a no-op when the node is flush with the trailing edge', 0, 60, null],
+	])('%s', (_name, scrollLeft, nodeX, expected) => {
+		const { scroller, node } = buildStrip(scrollLeft)
+
+		// The node is taller than the strip. The block axis was not asked for, so it stays.
+		node.getBoundingClientRect = () => DOMRect.fromRect({ x: nodeX, y: 30, width: 40, height: 40 })
+
+		scrollNodeWithin(scroller, node, { inline: 'nearest' })
+
+		expect(vi.mocked(scroller.scrollTo).mock.calls).toEqual(
+			expected ? [[{ top: undefined, ...expected, behavior: 'auto' }]] : [],
+		)
+	})
+
+	it('scrolls the scroller it is given, with no ancestor walk', () => {
+		// The walk of scrollWithin skips this strip because it fits vertically. The caller
+		// names it, so it scrolls.
+		const { scroller, node } = buildStrip(0)
+
+		node.getBoundingClientRect = () => DOMRect.fromRect({ x: 0, y: 30, width: 40, height: 10 })
+
+		scrollNodeWithin(scroller, node, { block: 'nearest' })
+
+		expect(scroller.scrollTo).toHaveBeenCalledWith({ top: 20, left: undefined, behavior: 'auto' })
 	})
 })
