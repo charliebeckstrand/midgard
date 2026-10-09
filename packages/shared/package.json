@@ -34,6 +34,7 @@
 	"dependencies": {
 		"@simplewebauthn/browser": "catalog:",
 		"auth": "workspace:*",
+		"lucide-react": "catalog:",
 		"openapi-fetch": "catalog:",
 		"ui": "workspace:*"
 	},

@@ -18,4 +18,5 @@ export {
 	type SecondFactors,
 	secondFactorMethods,
 } from './second-step-request'
+export { SignOutMenuItem, VerifyEmailMenuItem } from './user-menu-items'
 export { VerifyEmailPage } from './verify-email-page'
