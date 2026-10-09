@@ -9,7 +9,7 @@ export default function WithDeltaAndDescription() {
 			<StatValue>$12,345</StatValue>
 			<StatDelta trend="up">
 				<Icon icon={<ArrowUp />} size="xs" />
-				12.5%
+				+12.5%
 			</StatDelta>
 			<StatDescription>vs. last month</StatDescription>
 		</Stat>

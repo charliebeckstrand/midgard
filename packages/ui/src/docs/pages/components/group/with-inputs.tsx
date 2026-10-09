@@ -6,16 +6,16 @@ export default function WithInputs() {
 	return (
 		<Stack gap="lg">
 			<Group>
-				<Input placeholder="First" />
-				<Input placeholder="Second" />
-				<Input placeholder="Third" />
+				<Input aria-label="First" placeholder="First" />
+				<Input aria-label="Second" placeholder="Second" />
+				<Input aria-label="Third" placeholder="Third" />
 			</Group>
 			<Group>
-				<Input placeholder="First" />
-				<Input placeholder="Last" />
+				<Input aria-label="First" placeholder="First" />
+				<Input aria-label="Last" placeholder="Last" />
 			</Group>
 			<Group>
-				<Input placeholder="Only one" />
+				<Input aria-label="Only one" placeholder="Only one" />
 			</Group>
 		</Stack>
 	)

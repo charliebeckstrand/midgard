@@ -5,9 +5,9 @@ import { Icon } from 'ui/icon'
 import { Stat, StatDelta, StatLabel, StatValue } from 'ui/stat'
 
 const metrics = [
-	{ label: 'Revenue', value: '$12,345', change: '12.5%', trend: 'up' },
-	{ label: 'Active users', value: '8,421', change: '3.1%', trend: 'up' },
-	{ label: 'Churn', value: '2.4%', change: '0.8%', trend: 'down' },
+	{ label: 'Revenue', value: '$12,345', change: '+12.5%', trend: 'up' },
+	{ label: 'Active users', value: '8,421', change: '+3.1%', trend: 'up' },
+	{ label: 'Churn', value: '2.4%', change: '−0.8%', trend: 'down' },
 ] as const
 
 export default function DashboardGrid() {
