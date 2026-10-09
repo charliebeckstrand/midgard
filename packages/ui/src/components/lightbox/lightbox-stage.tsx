@@ -17,9 +17,11 @@ import { k } from '../../recipes/kata/lightbox'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { useLightboxContext } from './context'
+import { PAN_KEY_STEP, ZOOM_KEY_STEP } from './lightbox-utilities'
 import type { LightboxViewPhoto } from './types'
 import { useLightboxFlight } from './use-lightbox-flight'
 import { useLightboxTrack } from './use-lightbox-track'
+import type { LightboxZoom } from './use-lightbox-zoom'
 
 /** The names of the viewer and of its controls. @internal */
 export type LightboxLabels = {
@@ -44,6 +46,52 @@ export type LightboxStageProps = {
 	closable: boolean
 	/** Whether the viewer shows the previous button, the count, and the next button. */
 	controls: boolean
+	/** Whether the page behind the scrim is blurred. */
+	blur: boolean
+}
+
+/** The keys that zoom the photo, by the factor of each. */
+const ZOOM_KEYS: Readonly<Record<string, number>> = {
+	'+': ZOOM_KEY_STEP,
+	'=': ZOOM_KEY_STEP,
+	'-': 1 / ZOOM_KEY_STEP,
+}
+
+/** The arrow keys that pan a zoomed photo, by the direction that each moves the photo. */
+const PAN_KEYS: Readonly<Record<string, readonly [number, number]>> = {
+	ArrowLeft: [1, 0],
+	ArrowRight: [-1, 0],
+	ArrowUp: [0, 1],
+	ArrowDown: [0, -1],
+}
+
+/**
+ * Zooms or pans the photo for a key press, and tells whether the key did. `+`
+ * and `-` zoom about the center of the stage, `0` takes the photo back to
+ * rest, and an arrow key pans a zoomed photo toward the part on its side.
+ */
+function zoomByKey(key: string, zoom: LightboxZoom, stage: HTMLElement | null): boolean {
+	const factor = ZOOM_KEYS[key]
+
+	if (factor) {
+		zoom.zoomBy(factor)
+
+		return true
+	}
+
+	if (key === '0') {
+		zoom.reset()
+
+		return true
+	}
+
+	const pan = PAN_KEYS[key]
+
+	if (!pan || !stage || !zoom.zoomed()) return false
+
+	zoom.move(pan[0] * PAN_KEY_STEP * stage.clientWidth, pan[1] * PAN_KEY_STEP * stage.clientHeight)
+
+	return true
 }
 
 /**
@@ -85,7 +133,8 @@ function slotsAround(index: number, photos: readonly LightboxViewPhoto[]) {
  *
  * A press on the stage outside the photo closes the viewer. `ArrowLeft` and
  * `ArrowRight` step through the photos in the reading order, and so does a
- * swipe.
+ * swipe. The keys also zoom the photo (see `zoomByKey`), and while the photo
+ * is zoomed, the arrow keys pan it and do not step.
  *
  * @internal
  */
@@ -97,6 +146,7 @@ export function LightboxStage({
 	labels,
 	closable,
 	controls,
+	blur,
 }: LightboxStageProps) {
 	const { thumbnail } = useLightboxContext()
 
@@ -149,6 +199,8 @@ export function LightboxStage({
 
 			stageRef.current?.toggleAttribute('data-raised', false)
 
+			backdropRef.current?.toggleAttribute('data-closing', false)
+
 			for (const element of [backdropRef.current, controlsRef.current]) {
 				if (element) element.style.opacity = ''
 			}
@@ -162,6 +214,8 @@ export function LightboxStage({
 
 		// The photo goes back to its thumbnail over the controls.
 		stageRef.current?.toggleAttribute('data-raised', true)
+
+		backdropRef.current?.toggleAttribute('data-closing', true)
 
 		flight.lower(home()).then(() => {
 			if (!leaving.current) return
@@ -177,6 +231,15 @@ export function LightboxStage({
 	}, [isPresent])
 
 	const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+		// A key with a modifier is for the browser, such as its own zoom.
+		if (event.metaKey || event.ctrlKey || event.altKey) return
+
+		if (zoomByKey(event.key, track.zoom, stageRef.current)) {
+			event.preventDefault()
+
+			return
+		}
+
 		const key = logicalArrowKey(event.key, event.currentTarget)
 
 		if (key !== 'ArrowLeft' && key !== 'ArrowRight') return
@@ -220,12 +283,15 @@ export function LightboxStage({
 			onKeyDown={handleKeyDown}
 			className="absolute inset-0"
 		>
-			<div ref={backdropRef} className={k.dim}>
+			<div
+				ref={backdropRef}
+				className={cn(k.dim, blur && k.blur.base, blur && !restore && k.blur.enter)}
+			>
 				<m.div
 					{...k.motion.scrim}
 					data-slot="lightbox-backdrop"
 					aria-hidden="true"
-					className={k.backdrop}
+					className={blur ? k.backdrop.blurred : k.backdrop.base}
 				/>
 			</div>
 			{/* The stage takes only the pointer. Escape, the close button, and the
@@ -282,29 +348,35 @@ export function LightboxStage({
 					</Button>
 					{bar && (
 						<div className={cn(k.bar)}>
-							<Button
-								type="button"
-								ref={previousRef}
-								className={cn(index === 0 && k.ended)}
-								aria-label={labels.previous}
-								disabled={index === 0}
-								onClick={() => stepBy(-1)}
-							>
-								<Icon icon={<ChevronLeft />} className="rtl:-scale-x-100" />
-							</Button>
-							<span aria-live="polite" className={k.count}>
-								{index + 1} / {count}
-							</span>
-							<Button
-								type="button"
-								ref={nextRef}
-								className={cn(index === count - 1 && k.ended)}
-								aria-label={labels.next}
-								disabled={index === count - 1}
-								onClick={() => stepBy(1)}
-							>
-								<Icon icon={<ChevronRight />} className="rtl:-scale-x-100" />
-							</Button>
+							<div className={k.pill}>
+								<Button
+									type="button"
+									ref={previousRef}
+									variant="plain"
+									color="inherit"
+									className={cn(k.step, index === 0 && k.ended)}
+									aria-label={labels.previous}
+									disabled={index === 0}
+									onClick={() => stepBy(-1)}
+								>
+									<Icon icon={<ChevronLeft />} className="rtl:-scale-x-100" />
+								</Button>
+								<span aria-live="polite" className={k.count}>
+									{index + 1} / {count}
+								</span>
+								<Button
+									type="button"
+									ref={nextRef}
+									variant="plain"
+									color="inherit"
+									className={cn(k.step, index === count - 1 && k.ended)}
+									aria-label={labels.next}
+									disabled={index === count - 1}
+									onClick={() => stepBy(1)}
+								>
+									<Icon icon={<ChevronRight />} className="rtl:-scale-x-100" />
+								</Button>
+							</div>
 						</div>
 					)}
 				</m.div>

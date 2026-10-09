@@ -20,7 +20,7 @@ import {
 	SWIPE_SLOP,
 	swipeStep,
 } from './lightbox-utilities'
-import { useLightboxZoom } from './use-lightbox-zoom'
+import { type LightboxZoom, useLightboxZoom } from './use-lightbox-zoom'
 
 /** Options for {@link useLightboxTrack}. @internal */
 export type LightboxTrackOptions = {
@@ -47,6 +47,8 @@ export type LightboxTrack = {
 	 * track and the photo where they are.
 	 */
 	halt: () => void
+	/** The zoom of the photo in the center. */
+	zoom: LightboxZoom
 	/** The pointer handlers of the stage. */
 	handlers: {
 		onPointerDown: (event: PointerEvent<HTMLElement>) => void
@@ -598,6 +600,7 @@ export function useLightboxTrack(
 	return {
 		step,
 		halt,
+		zoom,
 		handlers: {
 			onPointerDown: (event) => {
 				const held = press.current
