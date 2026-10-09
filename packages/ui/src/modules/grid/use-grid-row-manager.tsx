@@ -1,8 +1,7 @@
 'use client'
 
 import type { ExpandedState } from '@tanstack/react-table'
-import { Ban, ChevronsDownUp, ChevronsUpDown, ListTree } from 'lucide-react'
-import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { PaletteColor } from '../../core/recipe'
 import { useControllable } from '../../hooks'
 import { useStableEvent } from '../../hooks/use-stable-event'
@@ -14,6 +13,7 @@ import {
 } from './engine/grid-group/row-manager'
 import type { GridGroup } from './engine/grid-group/tree'
 import type { GridMenuResolution } from './engine/grid-menu-targeting'
+import { buildRowGroupMenu } from './grid-context-menu-utilities'
 import type { GridGroupBy } from './grid-data-types'
 import type {
 	GridRowGroup,
@@ -21,7 +21,6 @@ import type {
 	GridRowGroups,
 	GridRowManagerGroup,
 } from './grid-row-group-types'
-import type { GridMenuItem } from './types'
 
 /** Stable empty overlay; read-only, replaced wholesale on change. @internal */
 const EMPTY: GridRowGroup[] = []
@@ -128,69 +127,6 @@ export function useGridRowManager({ config, naturalGroups }: GridRowManagerOptio
 	)
 
 	return { managerGroups, presentation, recolor, reorderGroups }
-}
-
-/** Inputs shaping the group-header context menu. @internal */
-type GridRowGroupMenuArgs = {
-	/** Whether the right-clicked group is currently expanded. */
-	expanded: boolean
-	/** The group's overlay color, or `undefined` — gates the "Clear color" item. */
-	color: PaletteColor | undefined
-	/** Label for the "Manage rows" item — opens the row manager. */
-	manageLabel: ReactNode
-	/** Opens the row-manager dialog. */
-	onManage: () => void
-	/** Toggles the right-clicked group's expansion. */
-	onToggle: () => void
-	/** Expands every group. */
-	onExpandAll: () => void
-	/** Collapses every group. */
-	onCollapseAll: () => void
-	/** Clears the right-clicked group's color. */
-	onClearColor: () => void
-}
-
-/**
- * The group-header context menu: "Manage rows", which opens the row manager.
- * Under a separator come the group's expand controls: Collapse/Expand this
- * group, Expand all, Collapse all. Once the group is colored, a "Clear color"
- * shortcut spares a trip to the manager. Setting a color stays in the manager, where
- * the palette renders as swatches (the flat menu can't nest a submenu).
- *
- * @internal
- */
-function buildRowGroupMenu(args: GridRowGroupMenuArgs): GridMenuItem[] {
-	const items: GridMenuItem[] = [
-		{ key: 'manage-rows', label: args.manageLabel, icon: <ListTree />, onAction: args.onManage },
-		{ key: 'group-sep', separator: true },
-		{
-			key: 'toggle-group',
-			label: args.expanded ? 'Collapse group' : 'Expand group',
-			icon: args.expanded ? <ChevronsDownUp /> : <ChevronsUpDown />,
-			onAction: args.onToggle,
-		},
-		{
-			key: 'expand-all',
-			label: 'Expand all groups',
-			icon: <ChevronsUpDown />,
-			onAction: args.onExpandAll,
-		},
-		{
-			key: 'collapse-all',
-			label: 'Collapse all groups',
-			icon: <ChevronsDownUp />,
-			onAction: args.onCollapseAll,
-		},
-	]
-
-	if (args.color) {
-		items.push(
-			{ key: 'color-sep', separator: true },
-			{ key: 'clear-color', label: 'Clear color', icon: <Ban />, onAction: args.onClearColor },
-		)
-	}
-
-	return items
 }
 
 /** The row-manager wiring {@link useGridRowManagerRegion} hands {@link GridData}. @internal */
