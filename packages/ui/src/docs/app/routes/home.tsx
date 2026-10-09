@@ -1,4 +1,5 @@
 import pages from 'virtual:docs/pages'
+import { Flex } from 'ui/flex'
 import { Link } from 'ui/link'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
@@ -16,13 +17,16 @@ export default function Home() {
 					<Text tone="muted" className="text-sm uppercase tracking-wide">
 						{section}
 					</Text>
-					<ul className="flex flex-wrap gap-x-6 gap-y-2">
-						{links.map((page) => (
-							<li key={page.path}>
-								<Link href={page.path}>{page.name}</Link>
-							</li>
-						))}
-					</ul>
+					{/* The list is `contents`, so each link is an item of the row. */}
+					<Flex gap="lg" wrap>
+						<ul className="contents">
+							{links.map((page) => (
+								<li key={page.path}>
+									<Link href={page.path}>{page.name}</Link>
+								</li>
+							))}
+						</ul>
+					</Flex>
 				</Stack>
 			))}
 		</Stack>

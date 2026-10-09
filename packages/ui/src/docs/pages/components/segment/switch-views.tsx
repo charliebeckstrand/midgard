@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Card, CardBody, CardDescription, CardTitle } from 'ui/card'
+import { Columns } from 'ui/columns'
 import { List, ListItem, ListLabel } from 'ui/list'
 import { Segment, SegmentControl, SegmentItem } from 'ui/segment'
 import { Stack } from 'ui/stack'
@@ -30,7 +31,7 @@ export default function SwitchViews() {
 					)}
 				</List>
 			) : (
-				<div className="grid grid-cols-2 gap-3">
+				<Columns columns={2} gap="md">
 					{campaigns.map((campaign) => (
 						<Card key={campaign.name}>
 							<CardBody>
@@ -39,7 +40,7 @@ export default function SwitchViews() {
 							</CardBody>
 						</Card>
 					))}
-				</div>
+				</Columns>
 			)}
 		</Stack>
 	)

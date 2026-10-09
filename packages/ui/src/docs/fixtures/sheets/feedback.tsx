@@ -9,6 +9,8 @@ import { StatusDot } from '../../../components/status'
 import { scale as badgeScale } from '../../../recipes/kata/badge'
 import { scale as loadingScale } from '../../../recipes/kata/loading'
 import { scale as progressScale } from '../../../recipes/kata/progress'
+import { Flex } from '../../../structure/flex'
+import { Stack } from '../../../structure/stack'
 import { FixtureCase, FixtureGroup, FixtureSheet } from '../fixture'
 
 const SEVERITIES = ['info', 'success', 'warning', 'error'] as const
@@ -160,25 +162,25 @@ export function Sheet() {
 
 			<FixtureGroup title="Progress">
 				<FixtureCase label="bar value">
-					<div className="flex w-full flex-col gap-2">
+					<Stack gap="sm" full>
 						{VALUES.map((value) => (
 							<ProgressBar key={value} value={value} aria-label={`${value} percent`} />
 						))}
-					</div>
+					</Stack>
 				</FixtureCase>
 				<FixtureCase label="bar color">
-					<div className="flex w-full flex-col gap-2">
+					<Stack gap="sm" full>
 						{PROGRESS_COLORS.map((color) => (
 							<ProgressBar key={color} value={60} color={color} aria-label={color} />
 						))}
-					</div>
+					</Stack>
 				</FixtureCase>
 				<FixtureCase label="bar size">
-					<div className="flex w-full flex-col gap-2">
+					<Stack gap="sm" full>
 						{progressScale.bar.map((size) => (
 							<ProgressBar key={size} value={40} size={size} aria-label={size} />
 						))}
-					</div>
+					</Stack>
 				</FixtureCase>
 				<FixtureCase label="gauge value">
 					{VALUES.map((value) => (
@@ -202,18 +204,18 @@ export function Sheet() {
 
 			<FixtureGroup title="Placeholder">
 				<FixtureCase label="default">
-					<div className="flex w-full flex-col gap-2">
+					<Stack gap="sm" full>
 						<Placeholder />
-					</div>
+					</Stack>
 				</FixtureCase>
 				<FixtureCase label="shapes">
-					<div className="flex w-full items-center gap-3">
+					<Flex align="center" gap="md" full>
 						<Placeholder className="size-10 rounded-full" />
-						<div className="flex flex-1 flex-col gap-2">
+						<Stack gap="sm" flex="1">
 							<Placeholder />
 							<Placeholder className="w-2/3" />
-						</div>
-					</div>
+						</Stack>
+					</Flex>
 				</FixtureCase>
 				<FixtureCase label="full width" wide>
 					<Placeholder className="h-24 w-full" />

@@ -3,6 +3,7 @@ import { type ReactNode, useState, useSyncExternalStore } from 'react'
 import { Button } from 'ui/button'
 import { Collapse, CollapsePanel, CollapseTrigger } from 'ui/collapse'
 import { cn } from 'ui/core'
+import { Flex } from 'ui/flex'
 import { Icon } from 'ui/icon'
 import { JsonTree } from 'ui/json-tree'
 import { List, ListItem } from 'ui/list'
@@ -108,14 +109,16 @@ function EventLine({
 		<span className={cn('flex font-mono text-xs', color)}>
 			<span className="shrink-0 whitespace-pre">{columns(entry, width)}</span>
 			{panel === undefined ? (
-				<>
+				// The gap is the gap of the toggle, so the texts of the two kinds of line
+				// start in one column.
+				<Flex as="span" align="start" gap="sm" className="min-w-0">
 					{slot}
 					<span className="min-w-0 wrap-break-word">{text}</span>
-				</>
+				</Flex>
 			) : (
 				// The trigger gives its muted color to the chevron. The text keeps the
 				// color of the line.
-				<CollapseTrigger className="min-w-0 items-start gap-0 text-start text-xs aria-expanded:*:first:rotate-90">
+				<CollapseTrigger className="min-w-0 items-start text-start text-xs aria-expanded:*:first:rotate-90">
 					{slot}
 					<span className={cn('min-w-0 wrap-break-word', color ?? iro.text.default)}>{text}</span>
 				</CollapseTrigger>

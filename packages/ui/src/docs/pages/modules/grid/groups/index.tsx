@@ -1,3 +1,4 @@
+import { Stack } from 'ui/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from 'ui/tabs'
 import { Example } from '../../../../kit/index.ts'
 import AggregationAndTotals from './aggregation-and-totals.tsx'
@@ -19,17 +20,21 @@ export default function GroupsTab() {
 				<Tab value="row">Row</Tab>
 			</TabList>
 			<TabContents animate={false}>
-				<TabContent value="column" className="space-y-10">
-					<Example of={ColumnGroups} />
-					<Example of={CollapsibleGroups} />
-					<Example of={GroupEditor} />
+				<TabContent value="column">
+					<Stack gap="xl">
+						<Example of={ColumnGroups} />
+						<Example of={CollapsibleGroups} />
+						<Example of={GroupEditor} />
+					</Stack>
 				</TabContent>
-				<TabContent value="row" className="space-y-10">
-					<Example of={RowGroups} />
-					<Example of={CollapsedGroups} />
-					<Example of={AggregationAndTotals} />
-					<Example of={RowManager} />
-					<Example of={ServerSideGrouping} />
+				<TabContent value="row">
+					<Stack gap="xl">
+						<Example of={RowGroups} />
+						<Example of={CollapsedGroups} />
+						<Example of={AggregationAndTotals} />
+						<Example of={RowManager} />
+						<Example of={ServerSideGrouping} />
+					</Stack>
 				</TabContent>
 			</TabContents>
 		</Tabs>

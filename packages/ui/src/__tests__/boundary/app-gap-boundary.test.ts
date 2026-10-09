@@ -10,16 +10,19 @@ import { srcDir, stripSourceComments, walkSource } from '../helpers/walk-source'
 // shared spacing scale, and each stop of the scale steps with the nearest
 // density scope. A `gap-*` or `space-*` class has the same length at each
 // step, and a class on a ui component overrides the gap that the component
-// steps. So the apps and the shared package write no gap class. A layout with
-// a gap is a structure unit, and a component keeps its own gap.
+// steps. So the apps, the docs app of ui, and the shared package write no gap
+// class. A layout with a gap is a structure unit, and a component keeps its own
+// gap.
 
-/** The workspace root, so the scan reaches the apps and the shared package. */
+/** The workspace root, so the scan reaches the apps, the docs app, and the shared package. */
 const workspaceRoot = join(srcDir, '..', '..', '..')
 
-/** The trees to scan: the source of each app and of the shared package. */
-const SCAN_ROOTS = [join(workspaceRoot, 'apps'), join(workspaceRoot, 'packages', 'shared')].filter(
-	(root) => existsSync(root),
-)
+/** The trees to scan: the source of each app, of the docs app, and of the shared package. */
+const SCAN_ROOTS = [
+	join(workspaceRoot, 'apps'),
+	join(srcDir, 'docs'),
+	join(workspaceRoot, 'packages', 'shared'),
+].filter((root) => existsSync(root))
 
 /** A gap or a space class, with any variant prefix: `gap-4`, `sm:gap-x-2`, `space-y-6`, `-space-x-1`. */
 const GAP_CLASS = /(?<![\w[-])-?(?:gap|gap-x|gap-y|space-x|space-y)-(?:\d|px\b|\[|\()/
@@ -49,7 +52,7 @@ describe('app gap boundary', () => {
 		expect(files.size).toBeGreaterThan(100)
 	})
 
-	it('writes no gap class in the apps or the shared package', () => {
+	it('writes no gap class in the apps, the docs app, or the shared package', () => {
 		const violations = [...files].flatMap(([key, code]) =>
 			code
 				.split('\n')
