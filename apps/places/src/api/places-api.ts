@@ -1,6 +1,4 @@
-import createClient from 'openapi-fetch'
-import { unwrap } from 'shared/auth'
-import type { paths } from 'shared/mimir'
+import { createMimirClient, settle } from 'shared/mimir'
 import type { Place, PlaceDraft, VisitScope, Visits } from '../types'
 
 /**
@@ -9,25 +7,7 @@ import type { Place, PlaceDraft, VisitScope, Visits } from '../types'
  * gateway to Mimir, in asgard, whose spec types {@link mimir}.
  */
 
-/**
- * The typed client of Mimir. The `fetch` is a function and not `fetch` itself,
- * because `openapi-fetch` keeps the `fetch` it gets, and a test stubs the global.
- */
-const mimir = createClient<paths>({ fetch: (request) => fetch(request) })
-
-/**
- * The data of a result, or an error with the message of the service. A `401`
- * means that the session ended, so the page also goes to `/login`.
- */
-async function settle<Data>(
-	result: Promise<{ data?: Data; error?: { message?: string }; response: Response }>,
-): Promise<Data> {
-	const settled = await result
-
-	if (settled.response.status === 401) window.location.assign('/login')
-
-	return unwrap(Promise.resolve(settled))
-}
+const mimir = createMimirClient()
 
 /** Every stored place, newest visit first. */
 export function fetchPlaces(signal?: AbortSignal): Promise<Place[]> {
