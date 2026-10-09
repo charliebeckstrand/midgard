@@ -22,31 +22,29 @@ export default function WithHeaderAndFooter() {
 	const [active, setActive] = useState('home')
 
 	return (
-		<div className="h-108 overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800">
-			<Sidebar aria-label="Sidebar with header and footer">
-				<SidebarHeader>
-					<Heading level={3}>Acme Inc.</Heading>
-				</SidebarHeader>
-				<SidebarBody>
-					<SidebarList aria-label="Main">
-						{items.map((item) => (
-							<SidebarItem
-								key={item.value}
-								icon={item.icon}
-								current={active === item.value}
-								onClick={() => setActive(item.value)}
-							>
-								<SidebarLabel>{item.label}</SidebarLabel>
-							</SidebarItem>
-						))}
-					</SidebarList>
-				</SidebarBody>
-				<SidebarFooter>
-					<SidebarItem icon={<CircleUser />}>
-						<SidebarLabel>Wade Cooper</SidebarLabel>
-					</SidebarItem>
-				</SidebarFooter>
-			</Sidebar>
-		</div>
+		<Sidebar aria-label="Sidebar with header and footer">
+			<SidebarHeader>
+				<Heading level={3}>Acme Inc.</Heading>
+			</SidebarHeader>
+			<SidebarBody>
+				<SidebarList aria-label="Main">
+					{items.map((item) => (
+						<SidebarItem
+							key={item.value}
+							icon={item.icon}
+							current={active === item.value}
+							onClick={() => setActive(item.value)}
+						>
+							<SidebarLabel>{item.label}</SidebarLabel>
+						</SidebarItem>
+					))}
+				</SidebarList>
+			</SidebarBody>
+			<SidebarFooter>
+				<SidebarItem icon={<CircleUser />}>
+					<SidebarLabel>Wade Cooper</SidebarLabel>
+				</SidebarItem>
+			</SidebarFooter>
+		</Sidebar>
 	)
 }

@@ -1,16 +1,12 @@
 name: Visual
 
-# Percy snapshots of the fixture sheets of ui, each week and on demand. A
-# Percy build spends the screenshot quota of the plan, so no pull request or
-# push starts this workflow. A run of each sheet at the default density is
-# about 10 sheets, so about 80 screenshots in two browsers. The schedule skips
-# a week in which nothing in ui changed. Start other runs from the Actions tab,
-# or with `gh workflow run visual.yml`.
+# Percy snapshots of the fixture sheets of ui, on demand only. A Percy build
+# spends the screenshot quota of the plan, so no schedule, pull request, or push
+# starts this workflow. A run of each sheet at the default density is about 10
+# sheets, so about 80 screenshots in two browsers. Start a run from the Actions
+# tab, or with `gh workflow run visual.yml`.
 # packages/ui/scripts/visual.ts tells what it captures.
 on:
-  # Each Thursday at 06:17 UTC. The weekly Testing routine reads this run.
-  schedule:
-    - cron: '17 6 * * 4'
   workflow_dispatch:
     inputs:
       density:
@@ -22,37 +18,7 @@ permissions:
   contents: read
 
 jobs:
-  # A scheduled run compares main with the commit of the last scheduled run
-  # that passed. When packages/ui and the lockfile did not change, the run takes
-  # no snapshots, and the quota is not spent. The skip is safe from week to week:
-  # a skipped run passes, but only when its commit renders the same as the last
-  # one. A manual run never skips.
-  changes:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      actions: read
-    outputs:
-      skip: ${{ steps.diff.outputs.skip }}
-    steps:
-      - uses: actions/checkout@v7
-        if: github.event_name == 'schedule'
-        with:
-          fetch-depth: 0
-      - id: diff
-        if: github.event_name == 'schedule'
-        run: |
-          last=$(gh run list --workflow visual.yml --branch main --event schedule --status success --limit 1 --json headSha --jq '.[0].headSha // empty')
-          if [ -n "$last" ] && git cat-file -e "$last^{commit}" && git diff --quiet "$last" HEAD -- packages/ui pnpm-lock.yaml; then
-            echo "visual: packages/ui and pnpm-lock.yaml did not change since $last, so this run takes no snapshots." | tee -a "$GITHUB_STEP_SUMMARY"
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-          fi
-        env:
-          GH_TOKEN: ${{ github.token }}
-
   percy:
-    needs: changes
-    if: needs.changes.outputs.skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:

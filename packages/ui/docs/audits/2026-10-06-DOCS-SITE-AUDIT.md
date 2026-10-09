@@ -8,7 +8,7 @@
 
 **Severity:** **high** means a reader sees wrong output on a common path. **medium** means a defect on one path, or an example that teaches wrong use. **low** means drift, dead code, or a small a11y gap.
 
-**Status:** *Open*, *In review* (a pull request is open), or *Resolved* (merged). Resolve each row against the pull request that closes it (CONVENTIONS §12.4).
+**Status:** *Open*, *In review* (a pull request is open), *Resolved* (merged), or *Declined* (the owner chose to leave the row as it is). Resolve each row against the pull request that closes it (CONVENTIONS §12.4).
 
 ## Summary
 
@@ -26,9 +26,9 @@ The rows cluster in three places. The Grid examples that pose as a server (R1 to
 
 | ID | Legacy | Where | Finding | Proposed change | Sev | Check | Status |
 |---|---|---|---|---|---|---|---|
-| K1 | E13 | `kit/api-entry.tsx:79-87` | The deprecation reason lives only in a tooltip on the "deprecated" `Badge`. The badge is a `<span>`, so keyboard users cannot reach the reason, and a tooltip does not show on touch. No prop in `ui` carries `@deprecated` today, so the gap is latent. | Render the reason inline and muted, after the badge. | low | R | Open |
-| K2 | B4 | `plugin/index.ts:108, 121, 125`; `plugin/component-events.ts:33` | `pages` and `docs` are native paths, and Vite gives posix ids and files. On Windows the transform filter and the `hotUpdate` tests never match, so no example gets its meta. | Pass both paths through `normalizePath` once. | low | L | Open |
-| K3 | A14 | `plugin/api.ts:217` | The extractor reads the props of the first call signature only, so an overloaded component shows its first overload. `ui` has no overloaded component today. | Read the props of each call signature, or of the declaration with a body. | low | R | Open |
+| K1 | E13 | `kit/api-entry.tsx:79-87` | The deprecation reason lives only in a tooltip on the "deprecated" `Badge`. The badge is a `<span>`, so keyboard users cannot reach the reason, and a tooltip does not show on touch. No prop in `ui` carries `@deprecated` today, so the gap is latent. | Render the reason inline and muted, after the badge. | low | R | Declined: latent |
+| K2 | B4 | `plugin/index.ts:108, 121, 125`; `plugin/component-events.ts:33` | `pages` and `docs` are native paths, and Vite gives posix ids and files. On Windows the transform filter and the `hotUpdate` tests never match, so no example gets its meta. | Pass both paths through `normalizePath` once. | low | L | Declined: latent |
+| K3 | A14 | `plugin/api.ts:217` | The extractor reads the props of the first call signature only, so an overloaded component shows its first overload. `ui` has no overloaded component today. | Read the props of each call signature, or of the declaration with a body. | low | R | Declined: latent |
 
 ## 2. Behavior
 
@@ -57,8 +57,8 @@ The rows cluster in three places. The Grid examples that pose as a server (R1 to
 | I9 | D47 | `pages/modules/grid/groups/row-groups.tsx:10, 17`; `pages/modules/grid/state/error.tsx:12` | Row groups binds a `groupBy` handler, but no column can group, so the handler never runs. The error state uses `<Alert color="red">` in place of `severity="error"`, so it has no `role="alert"` and no icon. | `groupBy={{ value: 'role' }}`. `severity="error"`. | low | R | Open |
 | I10 | D48 | `pages/modules/grid/editable/editable.tsx:20`; `pages/modules/grid/editable/bulk-edit.tsx:75`; `pages/modules/grid/editable/editor-types.tsx:81` | Each example builds a new `columns` array on each render, so every cell renders again. | `useMemo` with the closed-over values as dependencies. | low | R | Open |
 | I11 | D49 | `pages/components/context-menu/actions.tsx:9-18` | The `items` array is built on each render, against ContextMenu's memo on `items`. The other ContextMenu examples hoist theirs. | Hoist the array, or `useMemo` it. | low | R | Resolved ([#2214](https://github.com/charliebeckstrand/midgard/pull/2214)) |
-| I12 | D18 | `pages/structure/flex/column.tsx:6`; `pages/structure/flex/responsive-direction.tsx:6` | The Flex "Column" example uses `direction="col"`, against Flex's own "Use Flex for rows and Stack for columns". The Stack page shows `align`, `justify`, and `full` only in its playground. | Drop the Flex "Column" example, or point it at Stack. | low | R | Open |
-| I13 | D24 | `pages/components/sidebar/item-size.tsx:6`; `with-header-and-footer.tsx:25`; `sections-divider-and-spacer.tsx:42`; `with-suffix-slot.tsx:7`; `with-actions.tsx:16` | Each Sidebar example wraps the sidebar in a docs-only frame (`h-108 overflow-hidden rounded-lg border …`), so a copy carries the frame. | Give the page a surface frame, and drop the wrapper from each example. | low | R | Open |
+| I12 | D18 | `pages/structure/flex/column.tsx:6`; `pages/structure/flex/responsive-direction.tsx:6` | The Flex "Column" example uses `direction="col"`, against Flex's own "Use Flex for rows and Stack for columns". The Stack page shows `align`, `justify`, and `full` only in its playground. | Drop the Flex "Column" example, or point it at Stack. | low | R | In review |
+| I13 | D24 | `pages/components/sidebar/item-size.tsx:6`; `with-header-and-footer.tsx:25`; `sections-divider-and-spacer.tsx:42`; `with-suffix-slot.tsx:7`; `with-actions.tsx:16` | Each Sidebar example wraps the sidebar in a docs-only frame (`h-108 overflow-hidden rounded-lg border …`), so a copy carries the frame. | Give the page a surface frame, and drop the wrapper from each example. | low | R | In review |
 
 ## 4. Accessibility and drift
 
