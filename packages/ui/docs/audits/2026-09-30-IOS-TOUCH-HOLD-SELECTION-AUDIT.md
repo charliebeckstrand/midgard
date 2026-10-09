@@ -2,7 +2,7 @@
 
 **Lens:** on an iPhone, a touch hold on a surface with its own hold behavior starts a native text selection. The surfaces are a HoldButton, a context Menu target, and (before #1713) a chart readout. This record keeps the bug, the fixes that failed on a device, and the device test plan that must settle it.
 
-**Status:** *Open* where no pull request closes the row. *Fixed in #N* where a pull request closes it (CONVENTIONS §12.4).
+**Status:** *Open* where no pull request closes the row. *Fixed in #N* where a pull request closes it. *Moot* where a fix made the row unnecessary (CONVENTIONS §12.4).
 
 ## 1. Symptom
 
@@ -46,9 +46,9 @@ No source that we found confirms a fix on iOS 17 to 26 that keeps page scroll.
 | ID | Finding | Status |
 |---|---|---|
 | S1 | A touch hold on HoldButton starts the loupe, and the lift shows the selection callout. | Open |
-| S2 | A touch hold on a context Menu target starts the loupe and selects text near the finger. | Open |
-| S3 | A selection can start before a 300 ms or 500 ms hold fires. | Open |
-| S4 | The source-level gate (`user-select: none` on the node under the finger) did not hold on the device in #1707 and #1710. The cause is not known. | Open |
+| S2 | A touch hold on a context Menu target starts the loupe and selects text near the finger. | Fixed in #2063 |
+| S3 | A selection can start before a 300 ms or 500 ms hold fires. | Fixed in #2063: the guard arms at `pointerdown` |
+| S4 | The source-level gate (`user-select: none` on the node under the finger) did not hold on the device in #1707 and #1710. The cause is not known. | Moot: the guard of #2063 holds on the device |
 
 ## 5. Hypotheses to test
 
