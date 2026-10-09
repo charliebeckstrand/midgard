@@ -1,3 +1,5 @@
+import { getOrCompute } from './get-or-compute'
+
 /** The media query that matches when the reader asks the platform for reduced motion. */
 export const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
 
@@ -29,15 +31,11 @@ const registries = new Map<string, Registry>()
  * client — `window.matchMedia` is absent during SSR.
  */
 export function subscribeMediaQuery(query: string, handler: () => void): () => void {
-	let registry = registries.get(query)
-
-	if (registry === undefined) {
-		registry = { mql: window.matchMedia(query), handlers: new Set(), listener: null }
-
-		registries.set(query, registry)
-	}
-
-	const reg = registry
+	const reg = getOrCompute(
+		registries,
+		query,
+		(): Registry => ({ mql: window.matchMedia(query), handlers: new Set(), listener: null }),
+	)
 
 	reg.handlers.add(handler)
 

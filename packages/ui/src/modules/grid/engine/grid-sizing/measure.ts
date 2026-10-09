@@ -1,4 +1,4 @@
-import { clamp, isDataColumn } from '../../../../utilities'
+import { clamp, getOrCompute, isDataColumn } from '../../../../utilities'
 import type { GridColumn } from '../../types'
 import { DEFAULT_MIN_COLUMN_SIZE, HEADER_TRUNCATE_ALLOWANCE } from '../grid-constants'
 
@@ -128,10 +128,7 @@ function collectCells(container: HTMLElement): {
 
 		cells++
 
-		const list = bodies.get(id)
-
-		if (list) list.push(td)
-		else bodies.set(id, [td])
+		getOrCompute(bodies, id, () => []).push(td)
 	}
 
 	return { headers, bodies, cells }

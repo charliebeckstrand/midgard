@@ -1,3 +1,4 @@
+import { getOrCompute } from '../../../../utilities'
 import { computeSortOrder, type SmartSortField } from '../grid-sort/utilities'
 import { type GridGroup, toRowLeaf } from './tree'
 
@@ -80,10 +81,7 @@ export function groupMembers<T>(
 	const visit = (index: number) => {
 		const key = `${read(rows[index] as T)}`
 
-		const list = members.get(key)
-
-		if (list) list.push(index)
-		else members.set(key, [index])
+		getOrCompute(members, key, () => []).push(index)
 	}
 
 	if (kept) for (const index of kept) visit(index)
