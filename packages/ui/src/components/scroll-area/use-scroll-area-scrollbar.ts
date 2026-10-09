@@ -7,6 +7,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
+import { observeScrollExtent } from '../../hooks/observe-scroll-extent'
 import { holdDragCursor } from '../../hooks/use-drag-cursor'
 import { useTimeout } from '../../hooks/use-timeout'
 import type { ScrollOrientation } from '../../types'
@@ -165,33 +166,7 @@ export function useScrollAreaScrollbar({ orientation, scrollbar }: ScrollbarOpti
 
 		updateThumbs()
 
-		const observer = new ResizeObserver(updateThumbs)
-
-		const observeChildren = () => {
-			observer.disconnect()
-
-			observer.observe(el)
-
-			for (const child of Array.from(el.children)) observer.observe(child)
-		}
-
-		observeChildren()
-
-		// Children added or removed after mount change the scroll extent without
-		// resizing any observed element; re-seat the observer and re-measure.
-		const mutations = new MutationObserver(() => {
-			observeChildren()
-
-			updateThumbs()
-		})
-
-		mutations.observe(el, { childList: true })
-
-		return () => {
-			mutations.disconnect()
-
-			observer.disconnect()
-		}
+		return observeScrollExtent(el, updateThumbs)
 	}, [updateThumbs])
 
 	useEffect(

@@ -10,7 +10,7 @@ import type {
 import { type RefObject, useCallback, useId, useMemo, useRef } from 'react'
 import { useSortableSensors } from '../../hooks'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { type DashboardCommit, endGesture, measureGesture } from './dashboard-gesture'
+import { type DashboardCommit, endGesture, measureGesture, startGesture } from './dashboard-gesture'
 import {
 	describeDragCancel,
 	describeDragEnd,
@@ -156,29 +156,11 @@ export function useDashboardDrag({
 
 			if (measure === null) return
 
-			const { snapshot, pitch, inline } = measure
-
 			targetRef.current = null
 
 			deltaRef.current = { x: 0, y: 0 }
 
-			const { width, layout } = store.getState()
-
-			store.setState({
-				gesture: {
-					kind: 'drag',
-					id,
-					snapshot,
-					preview: null,
-					change: null,
-					partner: null,
-					width,
-					pitch,
-					inline,
-				},
-			})
-
-			reportDragStart({ id, layout })
+			startGesture(store, 'drag', id, measure, reportDragStart)
 		},
 		[store, canvasRef, reportDragStart],
 	)

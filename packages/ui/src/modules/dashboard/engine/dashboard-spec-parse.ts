@@ -8,7 +8,7 @@
  * what to do with the report. The parse of a selection value works the same way.
  */
 
-import { isQueryGroup, MAX_DEPTH } from '../../query/engine/query-node'
+import { isFields, isQueryGroup, MAX_DEPTH } from '../../query/engine/query-node'
 import type { DashboardLayoutItem } from './dashboard-layout'
 import type { DashboardSelection } from './dashboard-scope'
 import type { DashboardSpec, DashboardSpecTile } from './dashboard-spec'
@@ -96,10 +96,6 @@ export type DashboardSelectionParse = {
 
 /** A plain object, which JSON gives for `{}`. */
 type Fields = Record<string, unknown>
-
-function isFields(value: unknown): value is Fields {
-	return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
 
 /**
  * Whether a value is a tile id: a string that is not empty. The scope reads the

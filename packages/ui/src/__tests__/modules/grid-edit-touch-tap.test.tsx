@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { TOUCH_TAP_SLOP } from '../../hooks/use-touch-tap'
+import { TOUCH_SLOP } from '../../hooks/use-touch-tap'
 import { Grid, type GridColumn, type GridEditableConfig } from '../../modules/grid'
 import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 
@@ -154,7 +154,7 @@ describe('Grid touch entry to edit', () => {
 		// A pan travels past the slop, and the browser then takes the gesture.
 		fireEvent.pointerDown(cell('name'), at)
 
-		fireEvent.pointerMove(cell('name'), { ...at, clientY: at.clientY + TOUCH_TAP_SLOP + 5 })
+		fireEvent.pointerMove(cell('name'), { ...at, clientY: at.clientY + TOUCH_SLOP + 5 })
 
 		fireEvent.pointerCancel(cell('name'), at)
 
@@ -163,9 +163,9 @@ describe('Grid touch entry to edit', () => {
 		// A pan that the browser does not cancel still travels.
 		fireEvent.pointerDown(cell('name'), at)
 
-		fireEvent.pointerMove(cell('name'), { ...at, clientX: at.clientX + TOUCH_TAP_SLOP + 5 })
+		fireEvent.pointerMove(cell('name'), { ...at, clientX: at.clientX + TOUCH_SLOP + 5 })
 
-		fireEvent.pointerUp(cell('name'), { ...at, clientX: at.clientX + TOUCH_TAP_SLOP + 5 })
+		fireEvent.pointerUp(cell('name'), { ...at, clientX: at.clientX + TOUCH_SLOP + 5 })
 
 		expect(editors()).toHaveLength(0)
 	})

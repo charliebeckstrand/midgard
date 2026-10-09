@@ -7,8 +7,13 @@ import { useTimeout } from './use-timeout'
 /** Time, in ms, in which a touch press must lift to be a tap. @internal */
 export const TOUCH_TAP_WINDOW = 300
 
-/** Travel, in CSS px, past which a touch press is a drag or a scroll and not a tap. @internal */
-export const TOUCH_TAP_SLOP = 10
+/**
+ * Travel, in CSS px, past which a touch press is a drag or a scroll. A tap and
+ * a touch hold both end at it.
+ *
+ * @internal
+ */
+export const TOUCH_SLOP = 10
 
 /** The press handlers {@link useTouchTap} gives. Spread them next to the hover handlers. @internal */
 export type TouchTap = {
@@ -36,7 +41,7 @@ type Press = { x: number; y: number; tap: boolean }
  * Finds a tap in the pointer events of a touch, and reports it from the lift.
  *
  * A tap is a touch press that lifts before {@link TOUCH_TAP_WINDOW} and
- * travels less than {@link TOUCH_TAP_SLOP}. A longer press is a hold, and a
+ * travels less than {@link TOUCH_SLOP}. A longer press is a hold, and a
  * press that travels is a drag or a scroll. A canceled press is a scroll that
  * the browser took. None of these is a tap, and none of them does anything.
  * The chart marks, the map, and the grid cells use it, and on each the tap is
@@ -97,7 +102,7 @@ export function useTouchTap(onTap: (clientX: number, clientY: number) => void): 
 
 			if (current === null || event.pointerType !== 'touch') return
 
-			if (Math.hypot(event.clientX - current.x, event.clientY - current.y) > TOUCH_TAP_SLOP) {
+			if (Math.hypot(event.clientX - current.x, event.clientY - current.y) > TOUCH_SLOP) {
 				current.tap = false
 			}
 		},

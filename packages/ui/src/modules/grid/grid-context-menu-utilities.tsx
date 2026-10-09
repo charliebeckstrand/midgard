@@ -8,11 +8,14 @@ import {
 	ArrowUp,
 	ArrowUpDown,
 	Ban,
+	ChevronsDownUp,
+	ChevronsUpDown,
 	Columns3,
 	Copy,
 	Download,
 	Group,
 	ListFilter,
+	ListTree,
 	MoveHorizontal,
 	Pin,
 	PinOff,
@@ -23,6 +26,7 @@ import {
 } from 'lucide-react'
 import type { ReactElement, ReactNode } from 'react'
 import { mergeContextMenuItems } from '../../components/context-menu'
+import type { PaletteColor } from '../../core/recipe'
 import { isDataColumn } from '../../utilities'
 import type { GridSortState } from './context'
 import { columnLabel } from './engine/grid-column/label'
@@ -519,8 +523,74 @@ export function buildColumnGroupMenu(args: {
 					},
 				]
 			: [],
-		args.group.color
-			? [{ key: 'clear-color', label: 'Clear color', icon: <Ban />, onAction: args.onClearColor }]
-			: [],
+		clearColorItems(args.group.color, args.onClearColor),
+	])
+}
+
+/**
+ * The "Clear color" item of a group menu, or no item when the group has no
+ * color. The row-group and the column-group menus share it.
+ *
+ * @internal
+ */
+function clearColorItems(color: PaletteColor | undefined, onClear: () => void): GridMenuItem[] {
+	return color
+		? [{ key: 'clear-color', label: 'Clear color', icon: <Ban />, onAction: onClear }]
+		: []
+}
+
+/** Inputs shaping the group-header context menu. @internal */
+type GridRowGroupMenuArgs = {
+	/** Whether the right-clicked group is currently expanded. */
+	expanded: boolean
+	/** The group's overlay color, or `undefined` — gates the "Clear color" item. */
+	color: PaletteColor | undefined
+	/** Label for the "Manage rows" item — opens the row manager. */
+	manageLabel: ReactNode
+	/** Opens the row-manager dialog. */
+	onManage: () => void
+	/** Toggles the right-clicked group's expansion. */
+	onToggle: () => void
+	/** Expands every group. */
+	onExpandAll: () => void
+	/** Collapses every group. */
+	onCollapseAll: () => void
+	/** Clears the right-clicked group's color. */
+	onClearColor: () => void
+}
+
+/**
+ * The group-header context menu: "Manage rows", which opens the row manager.
+ * Under a separator come the group's expand controls: Collapse/Expand this
+ * group, Expand all, Collapse all. Once the group is colored, a "Clear color"
+ * shortcut spares a trip to the manager. Setting a color stays in the manager, where
+ * the palette renders as swatches (the flat menu can't nest a submenu).
+ *
+ * @internal
+ */
+export function buildRowGroupMenu(args: GridRowGroupMenuArgs): GridMenuItem[] {
+	return mergeContextMenuItems([
+		[{ key: 'manage-rows', label: args.manageLabel, icon: <ListTree />, onAction: args.onManage }],
+		[
+			{
+				key: 'toggle-group',
+				label: args.expanded ? 'Collapse group' : 'Expand group',
+				icon: args.expanded ? <ChevronsDownUp /> : <ChevronsUpDown />,
+				onAction: args.onToggle,
+			},
+			{
+				key: 'expand-all',
+				label: 'Expand all groups',
+				icon: <ChevronsUpDown />,
+				onAction: args.onExpandAll,
+			},
+			{
+				key: 'collapse-all',
+				label: 'Collapse all groups',
+				icon: <ChevronsDownUp />,
+				onAction: args.onCollapseAll,
+			},
+		],
+		clearColorItems(args.color, args.onClearColor),
 	])
 }

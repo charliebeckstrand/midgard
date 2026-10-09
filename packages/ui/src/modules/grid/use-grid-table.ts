@@ -37,6 +37,7 @@ import type { DensityStep } from '../../core/density'
 import { useControllable } from '../../hooks'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useStableValue } from '../../hooks/use-stable-value'
+import { useLocale } from '../../providers/locale'
 import { isDataColumn, sameElements } from '../../utilities'
 import type { GridSortState } from './context'
 import { compileColumnFilters } from './engine/grid-filter/filter'
@@ -430,9 +431,13 @@ function useFilterView<T>(args: {
 	// affordance), or `null`. Lives here because a table instance holds no such state.
 	const [openColumn, setOpenColumn] = useState<string | number | null>(null)
 
+	// The facet values collate in the locale of the nearest `LocaleProvider`, as
+	// the string sort does.
+	const { locale } = useLocale()
+
 	const actions = useMemo(
-		() => columnFilterActions(table, manual, facetValues),
-		[table, manual, facetValues],
+		() => columnFilterActions(table, manual, facetValues, locale),
+		[table, manual, facetValues, locale],
 	)
 
 	return useMemo(

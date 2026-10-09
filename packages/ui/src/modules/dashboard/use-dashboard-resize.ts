@@ -4,7 +4,7 @@ import { type PointerEvent as ReactPointerEvent, type RefObject, useCallback, us
 import { type DragCursor, holdDragCursor } from '../../hooks/use-drag-cursor'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { isPrimaryPress } from '../../utilities/primary-press'
-import { type DashboardCommit, endGesture, measureGesture } from './dashboard-gesture'
+import { type DashboardCommit, endGesture, measureGesture, startGesture } from './dashboard-gesture'
 import { type DashboardCell, ROW_SUBDIVISION } from './engine/dashboard-layout'
 import {
 	type DashboardResizeEdge,
@@ -171,23 +171,7 @@ export function useDashboardResize({
 			// and the controls that the pointer crosses.
 			const releaseCursor = holdDragCursor(edgeCursor(edge, inline))
 
-			const { width, layout } = store.getState()
-
-			store.setState({
-				gesture: {
-					kind: 'resize',
-					id,
-					snapshot,
-					preview: null,
-					change: null,
-					partner: null,
-					width,
-					pitch,
-					inline,
-				},
-			})
-
-			reportResizeStart({ id, layout })
+			startGesture(store, 'resize', id, context, reportResizeStart)
 
 			const update = () => {
 				const gesture = store.getState().gesture

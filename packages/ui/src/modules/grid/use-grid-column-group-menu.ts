@@ -3,6 +3,7 @@
 import { type ReactNode, useCallback } from 'react'
 import { columnLabel } from './engine/grid-column/label'
 import type { GridMenuResolution } from './engine/grid-menu-targeting'
+import { recolorGroupIn } from './engine/grid-zone/map'
 import { buildColumnGroupMenu } from './grid-context-menu-utilities'
 import type { GridColumnGroup } from './grid-group-types'
 
@@ -37,8 +38,7 @@ export function useGridColumnGroupMenu(args: {
 
 			const items = buildColumnGroupMenu({
 				group,
-				onClearColor: () =>
-					setGroups(groups.map((g) => (g.id === group.id ? { ...g, color: undefined } : g))),
+				onClearColor: () => setGroups(recolorGroupIn(groups, group.id, undefined)),
 				chooseColumns,
 				manageLabel,
 			})

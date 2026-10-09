@@ -8,6 +8,15 @@ import { useHeatmapFocus } from './context'
 /** The neutral fill for a cell with no datum, one step off the surface. @internal */
 export const NO_DATA_FILL = 'fill-zinc-100 dark:fill-zinc-800'
 
+/**
+ * The no-data neutral on `currentColor`, for the HTML swatch that keys a
+ * readout to the cell. It is one step past {@link NO_DATA_FILL}, because the
+ * popover surface is `zinc-800` in dark mode and would hide the cell step.
+ *
+ * @internal
+ */
+export const NO_DATA_TEXT = 'text-zinc-200 dark:text-zinc-700'
+
 /** Props for {@link HeatmapChartCells}: the resolved cells, their fills, and their bins. @internal */
 type HeatmapChartCellsProps = {
 	cells: HeatmapCell[]
