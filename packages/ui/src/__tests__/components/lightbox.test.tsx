@@ -233,12 +233,13 @@ describe('Lightbox', () => {
 		}
 	})
 
-	it('shows no close button by default, and closes on Escape', async () => {
+	it('keeps a close button for the keyboard with no `closable`, and closes on Escape', async () => {
 		const onIndexChange = vi.fn()
 
 		renderUI(<Gallery defaultIndex={1} onIndexChange={onIndexChange} />)
 
-		expect(screen.queryByRole('button', { name: 'Close' })).toBeNull()
+		// It shows only when it has the keyboard focus.
+		expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument()
 
 		expect(screen.getByRole('button', { name: 'Next photo' })).toBeInTheDocument()
 
@@ -261,12 +262,6 @@ describe('Lightbox', () => {
 		fireEvent.keyDown(screen.getByRole('dialog'), { key: 'ArrowRight' })
 
 		expect(centerPhoto()).toHaveAttribute('alt', 'Snow on a ridge')
-	})
-
-	it('gives the focus to the viewer when it shows no button', () => {
-		renderUI(<Gallery defaultIndex={0} controls={false} />)
-
-		expect(screen.getByRole('dialog')).toHaveFocus()
 	})
 
 	it('paints the enabled step buttons solid and the disabled one soft', () => {

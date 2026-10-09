@@ -110,3 +110,58 @@ export function swipeStep(travel: number, speed: number, width: number, rtl: boo
 
 	return (rtl ? -forward : forward) as -1 | 1
 }
+
+/** The share of the stage height past which a swipe up or down closes the viewer. */
+const DISMISS_DISTANCE = 0.12
+
+/** The share of its size that the photo loses at the full travel of a swipe down. */
+const DISMISS_SHRINK = 0.25
+
+/**
+ * The frame of a photo that a swipe up or down holds, and the opacity of the
+ * scrim and the controls at that point. The photo follows the finger, and it
+ * shrinks around its center as it travels. At half the height of the stage,
+ * the photo is at its least size and the scrim is clear.
+ *
+ * The transform origin of the photo must be its top left corner.
+ *
+ * @param dx - The horizontal travel of the finger, in px.
+ * @param dy - The vertical travel of the finger, in px.
+ * @param photo - The size of the photo at rest.
+ * @param height - The height of the stage.
+ * @internal
+ */
+export function dismissFrame(
+	dx: number,
+	dy: number,
+	photo: { width: number; height: number },
+	height: number,
+): { transform: string; opacity: number } {
+	const progress = Math.min(Math.abs(dy) / (height / 2), 1)
+
+	const scale = 1 - DISMISS_SHRINK * progress
+
+	const x = dx + (photo.width * (1 - scale)) / 2
+
+	const y = dy + (photo.height * (1 - scale)) / 2
+
+	return { transform: `translate(${x}px, ${y}px) scale(${scale})`, opacity: 1 - progress }
+}
+
+/**
+ * Whether a swipe up or down closes the viewer: it travels past
+ * {@link DISMISS_DISTANCE} of the stage, or it moves faster than
+ * {@link SWIPE_SPEED} at its end, in the direction of its travel.
+ *
+ * @param travel - The vertical travel of the swipe, in px.
+ * @param speed - The vertical speed at the end of the swipe, in px per ms.
+ * @param height - The height of the stage.
+ * @internal
+ */
+export function dismisses(travel: number, speed: number, height: number): boolean {
+	const far = Math.abs(travel) > height * DISMISS_DISTANCE
+
+	const fast = Math.abs(speed) > SWIPE_SPEED && Math.sign(speed) === Math.sign(travel)
+
+	return travel !== 0 && (far || fast)
+}

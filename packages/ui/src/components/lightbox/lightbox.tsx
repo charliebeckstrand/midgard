@@ -21,8 +21,9 @@ export type LightboxProps = {
 	/** Fires with the index of the photo that the viewer shows, or `null` when it closes. */
 	onIndexChange?: (index: number | null) => void
 	/**
-	 * Shows a close button, one gap above the photo. Without it, Escape and a
-	 * press outside the photo close the viewer.
+	 * Shows a close button, one gap above the photo. Without it, Escape, a press
+	 * outside the photo, and a swipe up or down close the viewer, and the close
+	 * button shows only when it has the keyboard focus.
 	 * @defaultValue false
 	 */
 	closable?: boolean
@@ -106,11 +107,6 @@ export function Lightbox({
 
 	const thumbnails = useRef(new Map<number, HTMLImageElement>())
 
-	// With no button on the stage, the focus goes to the viewer, which takes the arrow keys.
-	const viewerRef = useRef<HTMLDivElement>(null)
-
-	const buttons = closable || (controls && photos.length > 1)
-
 	const context: LightboxContextValue = {
 		photos,
 		shown,
@@ -136,11 +132,9 @@ export function Lightbox({
 				backdrop={false}
 				dismissOnBackdrop={false}
 				coverChrome
-				initialFocus={buttons ? undefined : viewerRef}
 			>
 				{shown !== null && (
 					<LightboxStage
-						ref={viewerRef}
 						index={shown}
 						onIndexChange={setIndex}
 						onReturn={() => setShown(null)}

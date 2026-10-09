@@ -20,8 +20,11 @@ export const k = {
 		 */
 		raised: 'opacity-0',
 	},
-	/** The viewer. It takes the focus only when it shows no button, and it draws no ring. */
-	viewer: 'absolute inset-0 outline-none',
+	/**
+	 * A layer that a swipe up or down fades: one holds the scrim, and one holds
+	 * the controls. It has a layer of its own, so the fade paints nothing.
+	 */
+	dim: 'pointer-events-none absolute inset-0 will-change-[opacity]',
 	/** The dark scrim behind the photo. It does not follow the color scheme. */
 	backdrop: 'absolute inset-0 bg-zinc-950/90',
 	/** The stage takes each press, so a swipe can start on any part of it. */
@@ -51,21 +54,29 @@ export const k = {
 	 * shrinks to fit the slot. Its transform origin is the top left corner,
 	 * which the raise math expects.
 	 */
-	photo: 'block h-auto max-h-full w-auto max-w-full origin-top-left bg-cover bg-center',
+	photo:
+		'block h-auto max-h-full w-auto max-w-full origin-top-left bg-cover bg-center will-change-transform',
 	/**
 	 * The layer of the controls. It is a size container with the space of a slot,
 	 * so the controls can find the box of the photo from its size (see
 	 * `LightboxStage`). Only the controls take a press.
 	 */
 	controls: 'pointer-events-none absolute inset-0 @container-size *:pointer-events-auto',
-	/**
-	 * The close button, one gap above the photo, at its end. A step moves it to
-	 * the next photo.
-	 */
-	close: [
-		'absolute end-(--lightbox-end) bottom-(--lightbox-edge)',
-		'transition-[inset] duration-250 ease-out motion-reduce:transition-none',
-	],
+	close: {
+		/**
+		 * The close button with `closable`: one gap above the photo, at its end. A
+		 * step moves it to the next photo.
+		 */
+		shown: [
+			'absolute end-(--lightbox-end) bottom-(--lightbox-edge)',
+			'transition-[inset] duration-250 ease-out motion-reduce:transition-none',
+		],
+		/**
+		 * The close button with no `closable`: in the top corner at the end of the
+		 * line, and clear until it has the keyboard focus.
+		 */
+		hidden: 'absolute end-4 top-4 not-focus-visible:opacity-0',
+	},
 	/** The previous button, the count, and the next button, one gap below the photo. */
 	bar: [
 		'absolute inset-x-0 top-(--lightbox-edge) flex items-center justify-center gap-4',

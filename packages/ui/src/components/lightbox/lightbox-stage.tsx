@@ -5,7 +5,6 @@ import { PresenceContext, usePresence } from 'motion/react'
 import {
 	type CSSProperties,
 	type KeyboardEvent,
-	type Ref,
 	use,
 	useEffectEvent,
 	useLayoutEffect,
@@ -39,8 +38,6 @@ export type LightboxStageProps = {
 	/** Called when the photo lands in its thumbnail after a close. */
 	onReturn: () => void
 	labels: LightboxLabels
-	/** The viewer, which takes the focus when it shows no button. */
-	ref: Ref<HTMLDivElement>
 	/** Whether the viewer shows its close button. */
 	closable: boolean
 	/** Whether the viewer shows the previous button, the count, and the next button. */
@@ -95,7 +92,6 @@ export function LightboxStage({
 	onIndexChange,
 	onReturn,
 	labels,
-	ref,
 	closable,
 	controls,
 }: LightboxStageProps) {
@@ -115,6 +111,14 @@ export function LightboxStage({
 
 	const close = () => onIndexChange(null)
 
+	// The scrim and the controls, which a swipe up or down fades.
+	const backdropRef = useRef<HTMLDivElement>(null)
+
+	const controlsRef = useRef<HTMLDivElement>(null)
+
+	// The transform that a swipe up or down left the photo at, where the return starts.
+	const dismissedFrom = useRef<string | undefined>(undefined)
+
 	const track = useLightboxTrack(trackRef, {
 		index,
 		count: photos.length,
@@ -123,6 +127,12 @@ export function LightboxStage({
 		onTap: (event) => {
 			if (!(event.target instanceof HTMLImageElement)) close()
 		},
+		onDismiss: (transform) => {
+			dismissedFrom.current = transform
+
+			close()
+		},
+		dimmed: () => [backdropRef.current, controlsRef.current],
 	})
 
 	// Whether the photo is in its thumbnail, or on its way back to it. The photo
@@ -136,6 +146,12 @@ export function LightboxStage({
 
 			leaving.current = false
 
+			dismissedFrom.current = undefined
+
+			for (const element of [backdropRef.current, controlsRef.current]) {
+				if (element) element.style.opacity = ''
+			}
+
 			return
 		}
 
@@ -143,7 +159,7 @@ export function LightboxStage({
 
 		track.halt()
 
-		flight.lower(thumbnail(index)).then(() => {
+		flight.lower(thumbnail(index), dismissedFrom.current).then(() => {
 			if (!leaving.current) return
 
 			onReturn()
@@ -177,21 +193,21 @@ export function LightboxStage({
 
 	return (
 		<div
-			ref={ref}
 			data-slot="lightbox"
-			tabIndex={-1}
 			role="dialog"
 			aria-modal="true"
 			aria-label={labels.viewer}
 			onKeyDown={handleKeyDown}
-			className={k.viewer}
+			className="absolute inset-0"
 		>
-			<m.div
-				{...k.motion.scrim}
-				data-slot="lightbox-backdrop"
-				aria-hidden="true"
-				className={k.backdrop}
-			/>
+			<div ref={backdropRef} className={k.dim}>
+				<m.div
+					{...k.motion.scrim}
+					data-slot="lightbox-backdrop"
+					aria-hidden="true"
+					className={k.backdrop}
+				/>
+			</div>
 			{/* The stage takes only the pointer. Escape, the close button, and the
 			    arrow keys give each of its actions to the keyboard. */}
 			<div data-slot="lightbox-stage" {...track.handlers} className={k.stage}>
@@ -226,18 +242,24 @@ export function LightboxStage({
 					})}
 				</div>
 			</div>
-			{current && (closable || bar) && (
+			<div ref={controlsRef} className={k.dim}>
 				<m.div
 					{...k.motion.scrim}
 					data-slot="lightbox-controls"
 					className={cn(k.controls, frame)}
-					style={controlsFrame(current)}
+					style={current && controlsFrame(current)}
 				>
-					{closable && (
-						<Button type="button" aria-label={labels.close} onClick={close} className={cn(k.close)}>
-							<Icon icon={<X />} />
-						</Button>
-					)}
+					{/* With no `closable`, the button shows only when it has the
+					    keyboard focus, so a screen reader and a keyboard always have a
+					    way out. */}
+					<Button
+						type="button"
+						aria-label={labels.close}
+						onClick={close}
+						className={cn(closable ? k.close.shown : k.close.hidden)}
+					>
+						<Icon icon={<X />} />
+					</Button>
 					{bar && (
 						<div className={cn(k.bar)}>
 							<Button
@@ -264,7 +286,7 @@ export function LightboxStage({
 						</div>
 					)}
 				</m.div>
-			)}
+			</div>
 		</div>
 	)
 }
