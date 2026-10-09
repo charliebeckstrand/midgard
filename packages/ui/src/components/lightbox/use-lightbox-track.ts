@@ -12,11 +12,15 @@ import { isPrimaryPress } from '../../utilities/primary-press'
 import {
 	dismisses,
 	dismissFrame,
+	isDoubleTap,
+	type LightboxPoint,
+	type LightboxTap,
 	RESTING_FRAME,
 	SWIPE_EDGE_RESISTANCE,
 	SWIPE_SLOP,
 	swipeStep,
 } from './lightbox-utilities'
+import { useLightboxZoom } from './use-lightbox-zoom'
 
 /** Options for {@link useLightboxTrack}. @internal */
 export type LightboxTrackOptions = {
@@ -62,9 +66,14 @@ type Press = {
 	base: number
 	/**
 	 * What the press does once it travels past the slop: `'swipe'` along the line
-	 * steps, and `'dismiss'` closes.
+	 * steps, `'dismiss'` closes, and `'pan'` moves a zoomed photo. A second
+	 * finger makes the press a `'pinch'`.
 	 */
-	mode: 'wait' | 'swipe' | 'dismiss'
+	mode: 'wait' | 'swipe' | 'dismiss' | 'pan' | 'pinch'
+	/** The point of each finger on the stage now. */
+	points: Map<number, LightboxPoint>
+	/** The points of the two fingers when the pinch started. */
+	pinch: readonly [LightboxPoint, LightboxPoint] | null
 	/** Whether the line runs right to left. The swipe reads it once, when it starts. */
 	rtl: boolean
 	/** The stage, which a swipe to close raises above the controls. */
@@ -105,16 +114,24 @@ function travelTo(track: HTMLElement, offset: number): number {
 
 /**
  * What a press means once it travels: `'swipe'` along the line, `'dismiss'` up
- * or down, or `'wait'` while it stays inside the slop. With one photo, there
+ * or down, or `'wait'` while it stays inside the slop. A press on a zoomed
+ * photo is a `'pan'` in any direction. With one photo, there
  * is no photo to swipe to, so a press in any direction is `'dismiss'`. A press
  * that catches the track between two photos is a `'swipe'`.
  */
-function intentOf(press: Press, event: PointerEvent, count: number): Press['mode'] {
+function intentOf(
+	press: Press,
+	event: PointerEvent,
+	count: number,
+	zoomed: boolean,
+): Press['mode'] {
 	const dx = Math.abs(event.clientX - press.x)
 
 	const dy = Math.abs(event.clientY - press.y)
 
 	if (Math.max(dx, dy) < SWIPE_SLOP) return 'wait'
+
+	if (zoomed) return 'pan'
 
 	if (count < 2) return 'dismiss'
 
@@ -171,6 +188,10 @@ function paint(track: HTMLElement, travel: number) {
  * when it traveled far enough or fast enough (see `dismisses`), and the photo
  * goes back to rest otherwise. A click that ends a swipe is not a tap.
  *
+ * A press on a zoomed photo pans it, and a second finger makes a pinch (see
+ * `useLightboxZoom`). Two taps on the photo zoom it in or out. A step takes a
+ * zoomed photo back to rest.
+ *
  * A step or a press during a slide does not wait for it. The slide lands its
  * photo at once, and the track keeps the travel that it paints, so the next
  * step or the finger moves on from there.
@@ -202,6 +223,11 @@ export function useLightboxTrack(
 	const press = useRef<Press | null>(null)
 
 	const swipedRef = useRef(false)
+
+	const zoom = useLightboxZoom(trackRef)
+
+	// The last tap on the photo, which the next one can make a double tap.
+	const lastTap = useRef<LightboxTap | null>(null)
 
 	// The track follows a swipe of a mouse too, so the page holds the closed hand.
 	const cursor = useDragCursorHold()
@@ -318,8 +344,13 @@ export function useLightboxTrack(
 		slide(track, travelTo(track, direction), direction, () => land(direction))
 	})
 
+	// A step takes a zoomed photo back to rest as it slides away.
 	const step = (direction: -1 | 1) => {
-		if (interrupt()) advance(direction)
+		if (!interrupt()) return
+
+		zoom.reset()
+
+		advance(direction)
 	}
 
 	// A swipe to close that does not close puts the photo back at rest, brings
@@ -368,9 +399,11 @@ export function useLightboxTrack(
 	// A press that travels past the slop starts a swipe along the line or up and
 	// down. It reads the layout once, here, and never during the moves.
 	const begin = (current: Press, track: HTMLElement, event: PointerEvent<HTMLElement>) => {
-		current.mode = intentOf(current, event, count)
+		current.mode = intentOf(current, event, count, zoom.zoomed())
 
 		if (current.mode === 'wait') return false
+
+		if (current.mode === 'pan') zoom.hold()
 
 		current.rtl = isRtl(track)
 
@@ -390,11 +423,157 @@ export function useLightboxTrack(
 
 		swipedRef.current = true
 
+		lastTap.current = null
+
 		event.currentTarget.setPointerCapture(event.pointerId)
 
 		cursor.start()
 
 		return true
+	}
+
+	// A second finger on the stage turns a press that has not moved, or a pan,
+	// into a pinch. A press during a swipe or a slide keeps its one finger.
+	const pinch = (current: Press, event: PointerEvent<HTMLElement>) => {
+		const first = current.points.get(current.id)
+
+		if (!first || current.pinch || current.base !== 0) return
+
+		if (current.mode !== 'wait' && current.mode !== 'pan') return
+
+		const second = { x: event.clientX, y: event.clientY }
+
+		current.points.set(event.pointerId, second)
+
+		current.mode = 'pinch'
+
+		current.pinch = [first, second]
+
+		swipedRef.current = true
+
+		lastTap.current = null
+
+		event.currentTarget.setPointerCapture(current.id)
+
+		event.currentTarget.setPointerCapture(event.pointerId)
+
+		zoom.hold()
+	}
+
+	// The lift of one finger of a pinch: the finger that stays pans the photo
+	// from where it is.
+	const unpinch = (current: Press, pointerId: number) => {
+		current.points.delete(pointerId)
+
+		const [stays] = current.points
+
+		if (!stays) return
+
+		const [id, point] = stays
+
+		current.id = id
+
+		current.x = point.x
+
+		current.y = point.y
+
+		current.mode = 'pan'
+
+		current.pinch = null
+
+		zoom.hold()
+	}
+
+	// A lift that did not move is a tap. Two taps on the photo zoom it.
+	const tapAt = (current: Press, event: PointerEvent<HTMLElement>) => {
+		const onPhoto = event.target instanceof HTMLImageElement && current.base === 0
+
+		const tap = { x: event.clientX, y: event.clientY, at: event.timeStamp }
+
+		if (onPhoto && isDoubleTap(lastTap.current, tap)) {
+			lastTap.current = null
+
+			zoom.toggle(tap)
+
+			return
+		}
+
+		lastTap.current = onPhoto ? tap : null
+	}
+
+	// Moves what the press holds: a zoomed photo, the photo of a swipe to close,
+	// or the track.
+	const drag = (current: Press, track: HTMLElement, dx: number, dy: number) => {
+		if (current.mode === 'pan') {
+			zoom.pan(dx, dy)
+
+			return
+		}
+
+		if (current.mode === 'dismiss') {
+			current.frame = dismissFrame({ x: dx, y: dy }, current.size, track.clientHeight)
+
+			if (current.photo) current.photo.style.transform = current.frame.transform
+
+			dim(dimmed(), current.frame.opacity)
+
+			return
+		}
+
+		const moved = current.base + dx
+
+		// A swipe to the right shows the photo on the left, which is the photo
+		// before in a left-to-right line.
+		const toward = moved > 0 !== current.rtl ? -1 : 1
+
+		travel.current = canStep(toward) ? moved : moved * SWIPE_EDGE_RESISTANCE
+
+		paint(track, travel.current)
+	}
+
+	// Ends a press of one finger at its lift.
+	const drop = (current: Press, track: HTMLElement, event: PointerEvent<HTMLElement>) => {
+		if (current.mode === 'pan') {
+			zoom.release()
+
+			return
+		}
+
+		// A press that caught a slide and did not move puts the track at rest.
+		if (current.mode === 'wait') {
+			tapAt(current, event)
+
+			settle()
+
+			return
+		}
+
+		if (current.mode === 'dismiss') {
+			const travel = { x: event.clientX - current.x, y: event.clientY - current.y }
+
+			const speed = { x: current.speedX, y: current.speedY }
+
+			if (dismisses(travel, speed, track.clientHeight)) {
+				onDismiss()
+			} else {
+				restore(current)
+			}
+
+			return
+		}
+
+		const push = event.clientX - current.x
+
+		const direction = swipeStep(
+			current.base + push,
+			push,
+			current.speedX,
+			track.clientWidth,
+			current.rtl,
+		)
+
+		if (direction !== 0 && canStep(direction)) step(direction)
+		else settle()
 	}
 
 	const halt = () => {
@@ -421,6 +600,14 @@ export function useLightboxTrack(
 		halt,
 		handlers: {
 			onPointerDown: (event) => {
+				const held = press.current
+
+				if (held && event.pointerType === 'touch' && event.pointerId !== held.id) {
+					pinch(held, event)
+
+					return
+				}
+
 				swipedRef.current = false
 
 				if (!isPrimaryPress(event)) return
@@ -437,6 +624,8 @@ export function useLightboxTrack(
 					y: event.clientY,
 					base: travel.current,
 					mode: 'wait',
+					points: new Map([[event.pointerId, { x: event.clientX, y: event.clientY }]]),
+					pinch: null,
 					rtl: false,
 					stage: null,
 					photo: null,
@@ -454,7 +643,17 @@ export function useLightboxTrack(
 
 				const track = trackRef.current
 
-				if (!current || !track || event.pointerId !== current.id) return
+				if (!current || !track || !current.points.has(event.pointerId)) return
+
+				current.points.set(event.pointerId, { x: event.clientX, y: event.clientY })
+
+				if (current.mode === 'pinch') {
+					const [a, b] = current.points.values()
+
+					if (current.pinch && a && b) zoom.pinch(current.pinch, [a, b])
+
+					return
+				}
 
 				const dx = event.clientX - current.x
 
@@ -464,30 +663,21 @@ export function useLightboxTrack(
 
 				follow(current, event)
 
-				if (current.mode === 'dismiss') {
-					current.frame = dismissFrame({ x: dx, y: dy }, current.size, track.clientHeight)
-
-					if (current.photo) current.photo.style.transform = current.frame.transform
-
-					dim(dimmed(), current.frame.opacity)
-
-					return
-				}
-
-				const moved = current.base + dx
-
-				// A swipe to the right shows the photo on the left, which is the photo
-				// before in a left-to-right line.
-				const toward = moved > 0 !== current.rtl ? -1 : 1
-
-				travel.current = canStep(toward) ? moved : moved * SWIPE_EDGE_RESISTANCE
-
-				paint(track, travel.current)
+				drag(current, track, dx, dy)
 			},
 			onPointerUp: (event) => {
 				const current = press.current
 
 				const track = trackRef.current
+
+				// The lift of a finger that is not on the stage, such as a press on a control.
+				if (current && !current.points.has(event.pointerId)) return
+
+				if (current?.mode === 'pinch') {
+					unpinch(current, event.pointerId)
+
+					return
+				}
 
 				press.current = null
 
@@ -495,39 +685,7 @@ export function useLightboxTrack(
 
 				if (!current || !track) return
 
-				// A press that caught a slide and did not move puts the track at rest.
-				if (current.mode === 'wait') {
-					settle()
-
-					return
-				}
-
-				if (current.mode === 'dismiss') {
-					const travel = { x: event.clientX - current.x, y: event.clientY - current.y }
-
-					const speed = { x: current.speedX, y: current.speedY }
-
-					if (dismisses(travel, speed, track.clientHeight)) {
-						onDismiss()
-					} else {
-						restore(current)
-					}
-
-					return
-				}
-
-				const push = event.clientX - current.x
-
-				const direction = swipeStep(
-					current.base + push,
-					push,
-					current.speedX,
-					track.clientWidth,
-					current.rtl,
-				)
-
-				if (direction !== 0 && canStep(direction)) step(direction)
-				else settle()
+				drop(current, track, event)
 			},
 			onPointerCancel: () => {
 				const current = press.current
@@ -536,7 +694,8 @@ export function useLightboxTrack(
 
 				cursor.end()
 
-				if (current?.mode === 'dismiss') restore(current)
+				if (current?.mode === 'pan' || current?.mode === 'pinch') zoom.release()
+				else if (current?.mode === 'dismiss') restore(current)
 				else settle()
 			},
 			onClick: (event) => {

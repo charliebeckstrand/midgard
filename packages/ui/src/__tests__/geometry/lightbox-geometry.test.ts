@@ -1,9 +1,15 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import {
+	constrainView,
+	isDoubleTap,
 	type LightboxBox,
 	overlapOf,
+	panView,
+	REST_VIEW,
 	raisedFrame,
+	ZOOM_MAX,
+	zoomView,
 } from '../../components/lightbox/lightbox-utilities'
 import { FLOAT } from '../helpers/geometry/tolerance'
 
@@ -90,5 +96,60 @@ describe('overlapOf', () => {
 		expect(
 			overlapOf({ x: 0, y: 0, width: 0, height: 0 }, { x: 0, y: 0, width: 50, height: 50 }),
 		).toBeUndefined()
+	})
+})
+
+describe('zoom views', () => {
+	const stage = { width: 400, height: 800 }
+
+	// A landscape photo in the middle of a portrait stage.
+	const photo = { x: 50, y: 300, width: 300, height: 200 }
+
+	it('keeps a photo at rest at a scale of 1', () => {
+		expect(constrainView({ x: 40, y: -30, scale: 1 }, photo, stage)).toEqual(REST_VIEW)
+	})
+
+	it('holds the scale between 1 and the largest zoom', () => {
+		expect(constrainView({ x: 0, y: 0, scale: 0.5 }, photo, stage).scale).toBe(1)
+
+		expect(constrainView({ x: 0, y: 0, scale: 9 }, photo, stage).scale).toBe(ZOOM_MAX)
+	})
+
+	it('covers the stage on an axis where the photo is larger, and centers it on the other', () => {
+		// 900px wide, 600px tall: the edges stop at the stage on x, and y stays centered.
+		expect(constrainView({ x: 100, y: 0, scale: 3 }, photo, stage)).toEqual({
+			scale: 3,
+			x: -50,
+			y: -200,
+		})
+
+		expect(constrainView({ x: -900, y: 0, scale: 3 }, photo, stage).x).toBe(-550)
+	})
+
+	it('keeps the point under the focus where it moves to', () => {
+		const view = zoomView(REST_VIEW, { x: 200, y: 400 }, { x: 200, y: 400 }, 2, photo, stage)
+
+		// The point 150px into the photo stays at x = 200.
+		expect(photo.x + view.x + 150 * view.scale).toBe(200)
+	})
+
+	it('follows a pan past the edge at a fraction of its travel', () => {
+		const view = { x: -50, y: -150, scale: 2.5 }
+
+		expect(panView(view, 100, 0, photo, stage).x).toBeNear(-20, FLOAT)
+	})
+})
+
+describe('isDoubleTap', () => {
+	it('takes two taps close in time and place', () => {
+		expect(isDoubleTap({ x: 0, y: 0, at: 0 }, { x: 10, y: 10, at: 250 })).toBe(true)
+	})
+
+	it('refuses a first tap, a late tap, and a far tap', () => {
+		expect(isDoubleTap(null, { x: 0, y: 0, at: 0 })).toBe(false)
+
+		expect(isDoubleTap({ x: 0, y: 0, at: 0 }, { x: 0, y: 0, at: 400 })).toBe(false)
+
+		expect(isDoubleTap({ x: 0, y: 0, at: 0 }, { x: 80, y: 0, at: 100 })).toBe(false)
 	})
 })

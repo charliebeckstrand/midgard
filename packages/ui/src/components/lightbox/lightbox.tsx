@@ -59,6 +59,11 @@ export type LightboxProps = {
  * outside the photo close the viewer, and the focus goes back to the
  * thumbnail.
  *
+ * A pinch zooms the photo, up to four times its size, and a double tap or a
+ * double click zooms into the point that it taps. A double tap on a zoomed
+ * photo takes it back to rest. A swipe on a zoomed photo moves it and does
+ * not step or close. A step takes the photo back to rest.
+ *
  * The open photo is controlled (`index`/`onIndexChange`) or uncontrolled
  * (`defaultIndex`). Give each photo a `width` and a `height` when they are
  * known, so its box is correct before it loads. Without them, the root reads

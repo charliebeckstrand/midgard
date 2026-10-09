@@ -1,3 +1,4 @@
+import { clamp } from '../../utilities/clamp'
 import type { LightboxLoad, LightboxPhoto, LightboxViewPhoto } from './types'
 
 /** A box on the screen, in CSS px from the top left corner of the viewport. @internal */
@@ -242,4 +243,161 @@ export function viewablePhotos(
 
 		return size ? [{ ...photo, ...size, index }] : []
 	})
+}
+
+/**
+ * The zoom of the photo: a translation in px, then a scale about the top left
+ * corner of the photo at rest. It is the transform that the photo paints.
+ *
+ * @internal
+ */
+export type LightboxView = { x: number; y: number; scale: number }
+
+/** The photo at rest, with no zoom. @internal */
+export const REST_VIEW: LightboxView = { x: 0, y: 0, scale: 1 }
+
+/** The largest scale that a pinch reaches. @internal */
+export const ZOOM_MAX = 4
+
+/** The scale that a double tap zooms to. @internal */
+export const ZOOM_DOUBLE_TAP = 2.5
+
+/** Time, in ms, from the lift of one tap to the lift of the next, in which the two are a double tap. */
+const DOUBLE_TAP_WINDOW = 300
+
+/** Distance, in CSS px, between the two taps of a double tap. */
+const DOUBLE_TAP_SLOP = 40
+
+/** A point in px, from the top left corner of the stage. @internal */
+export type LightboxPoint = { x: number; y: number }
+
+/** A lift that can be one half of a double tap: where and when. @internal */
+export type LightboxTap = LightboxPoint & { at: number }
+
+/**
+ * Whether `tap` and the tap before it are a double tap: they lift in
+ * {@link DOUBLE_TAP_WINDOW} and land in {@link DOUBLE_TAP_SLOP} of each other.
+ *
+ * @internal
+ */
+export function isDoubleTap(previous: LightboxTap | null, tap: LightboxTap): boolean {
+	return (
+		previous !== null &&
+		tap.at - previous.at <= DOUBLE_TAP_WINDOW &&
+		Math.hypot(tap.x - previous.x, tap.y - previous.y) <= DOUBLE_TAP_SLOP
+	)
+}
+
+/** The transform that paints `view`. Its parts are the parts of {@link RESTING_FRAME}. @internal */
+export function viewTransform(view: LightboxView): string {
+	return `translate(${view.x}px, ${view.y}px) scale(${view.scale})`
+}
+
+/**
+ * The translation on one axis that the photo can take at `scale`.
+ *
+ * A photo larger than the stage on the axis covers the stage: its edges do not
+ * come inside the edges of the stage. A photo smaller than the stage scales
+ * about its own center, and it stays inside the stage. At a scale of 1, the
+ * photo stays at rest.
+ *
+ * @param offset - The start of the photo at rest, from the start of the stage.
+ * @param length - The size of the photo at rest.
+ * @param stage - The size of the stage.
+ */
+function axisTranslation(
+	value: number,
+	scale: number,
+	offset: number,
+	length: number,
+	stage: number,
+): number {
+	const scaled = length * scale
+
+	// The translation that puts each edge of the photo on that edge of the stage.
+	const start = -offset
+
+	const end = stage - offset - scaled
+
+	if (scaled <= stage) return clamp(((1 - scale) * length) / 2, start, end)
+
+	return clamp(value, end, start)
+}
+
+/**
+ * The view held inside the limits of the stage, with its scale between 1 and
+ * {@link ZOOM_MAX}.
+ *
+ * @param photo - The box of the photo at rest, from the top left corner of the stage.
+ * @param stage - The size of the stage.
+ * @internal
+ */
+export function constrainView(
+	view: LightboxView,
+	photo: LightboxBox,
+	stage: { width: number; height: number },
+): LightboxView {
+	const scale = clamp(view.scale, 1, ZOOM_MAX)
+
+	return {
+		scale,
+		x: axisTranslation(view.x, scale, photo.x, photo.width, stage.width),
+		y: axisTranslation(view.y, scale, photo.y, photo.height, stage.height),
+	}
+}
+
+/**
+ * The view that scales `view` to `scale` and moves the point of the photo
+ * under `from` to `to`. A pinch keeps the point between the fingers under
+ * them, and a double tap zooms into the point that it taps. The result is in
+ * the limits of {@link constrainView}.
+ *
+ * @internal
+ */
+export function zoomView(
+	view: LightboxView,
+	from: LightboxPoint,
+	to: LightboxPoint,
+	scale: number,
+	photo: LightboxBox,
+	stage: { width: number; height: number },
+): LightboxView {
+	const next = clamp(scale, 1, ZOOM_MAX)
+
+	// The point of the photo under `from`, in the px of the photo at rest.
+	const u = (from.x - photo.x - view.x) / view.scale
+
+	const v = (from.y - photo.y - view.y) / view.scale
+
+	return constrainView(
+		{ scale: next, x: to.x - photo.x - next * u, y: to.y - photo.y - next * v },
+		photo,
+		stage,
+	)
+}
+
+/**
+ * The view that a pan of `dx` and `dy` from `view` paints. Past the limits of
+ * {@link constrainView}, the photo follows the finger at
+ * {@link SWIPE_EDGE_RESISTANCE} of its travel, as the track does past the
+ * first or the last photo.
+ *
+ * @internal
+ */
+export function panView(
+	view: LightboxView,
+	dx: number,
+	dy: number,
+	photo: LightboxBox,
+	stage: { width: number; height: number },
+): LightboxView {
+	const moved = { ...view, x: view.x + dx, y: view.y + dy }
+
+	const held = constrainView(moved, photo, stage)
+
+	return {
+		scale: held.scale,
+		x: held.x + (moved.x - held.x) * SWIPE_EDGE_RESISTANCE,
+		y: held.y + (moved.y - held.y) * SWIPE_EDGE_RESISTANCE,
+	}
 }
