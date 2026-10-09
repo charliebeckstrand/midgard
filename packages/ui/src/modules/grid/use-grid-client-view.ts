@@ -6,15 +6,8 @@
 // `use-grid-table.ts`).
 
 import type { ExpandedState, PaginationState } from '@tanstack/react-table'
-import {
-	type Dispatch,
-	type SetStateAction,
-	useCallback,
-	useEffect,
-	useLayoutEffect,
-	useMemo,
-	useRef,
-} from 'react'
+import { type Dispatch, type SetStateAction, useCallback, useEffect, useMemo } from 'react'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { useLocale } from '../../providers/locale'
 import type { GridSortState } from './context'
 import { columnAccessor } from './engine/grid-column/accessor'
@@ -401,8 +394,9 @@ export function useFilterModeMismatchWarning(args: {
  * values that it hides. A filter sheet reads the values when it opens. The first read after a change of the rows, the filters, or the query
  * collects them.
  *
- * The function keeps one identity. It reads the source of the last commit, so
- * a search keystroke or a data change renders no filter button again.
+ * The function is a stable event. It keeps one identity and reads the newest
+ * source, so a search keystroke or a data change renders no filter button
+ * again. Do not call it during render.
  *
  * @returns A function that gives the values of a column.
  * @internal
@@ -421,11 +415,5 @@ export function useFacetSource<T>(args: {
 		[rows, columns, columnTests, query],
 	)
 
-	const latest = useRef(source)
-
-	useLayoutEffect(() => {
-		latest.current = source
-	}, [source])
-
-	return useCallback((id: string) => latest.current(id), [])
+	return useStableEvent((id: string) => source(id))
 }

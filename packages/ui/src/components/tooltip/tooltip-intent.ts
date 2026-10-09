@@ -1,6 +1,7 @@
 'use client'
 
-import { type RefObject, useCallback, useEffect, useLayoutEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { preloadTooltipBody } from './tooltip-body-loader'
 import { isReferenceDisabled, observeReferenceDisabled } from './tooltip-reference-disabled'
 
@@ -116,7 +117,7 @@ function focusOpens(event: FocusEvent): boolean {
 function listenForIntent(
 	node: HTMLElement,
 	intent: TooltipIntent,
-	options: RefObject<IntentOptions>,
+	readOptions: () => IntentOptions,
 ): () => void {
 	const doc = node.ownerDocument
 
@@ -133,7 +134,7 @@ function listenForIntent(
 	const onPointerEnter = (event: PointerEvent) => {
 		preloadTooltipBody()
 
-		const { enabled, trigger } = options.current
+		const { enabled, trigger } = readOptions()
 
 		if (!enabled || trigger !== 'hover' || !MOUSE_LIKE.has(event.pointerType)) return
 
@@ -152,7 +153,7 @@ function listenForIntent(
 	const onFocusIn = (event: FocusEvent) => {
 		preloadTooltipBody()
 
-		if (!options.current.enabled || blockFocus || !focusOpens(event)) return
+		if (!readOptions().enabled || blockFocus || !focusOpens(event)) return
 
 		intent.focus = event
 	}
@@ -174,7 +175,7 @@ function listenForIntent(
 	const onClick = (event: MouseEvent) => {
 		preloadTooltipBody()
 
-		const { enabled, trigger } = options.current
+		const { enabled, trigger } = readOptions()
 
 		if (!enabled || trigger !== 'click') return
 
@@ -232,25 +233,25 @@ function listenForIntent(
  * @internal
  */
 export function useTooltipIntent(options: IntentOptions) {
-	const optionsRef = useRef(options)
-
-	useLayoutEffect(() => {
-		optionsRef.current = options
-	})
+	// The listeners read the newest options when an event comes.
+	const readOptions = useStableEvent(() => options)
 
 	const intentRef = useRef<TooltipIntent>(createIntent())
 
 	const stopRef = useRef<(() => void) | null>(null)
 
-	const setReference = useCallback((node: HTMLElement | null) => {
-		stopRef.current?.()
+	const setReference = useCallback(
+		(node: HTMLElement | null) => {
+			stopRef.current?.()
 
-		stopRef.current = null
+			stopRef.current = null
 
-		clearIntent(intentRef.current)
+			clearIntent(intentRef.current)
 
-		if (node) stopRef.current = listenForIntent(node, intentRef.current, optionsRef)
-	}, [])
+			if (node) stopRef.current = listenForIntent(node, intentRef.current, readOptions)
+		},
+		[readOptions],
+	)
 
 	const takeIntent = useCallback((): TooltipIntent => {
 		stopRef.current?.()

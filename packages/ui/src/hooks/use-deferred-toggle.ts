@@ -1,8 +1,9 @@
 'use client'
 
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback } from 'react'
 import { toggleListItem } from '../utilities'
 import { useFrozenOnClose } from './use-frozen-on-close'
+import { useStableEvent } from './use-stable-event'
 
 /** Options for {@link useDeferredToggle}: the flag it mirrors and how long it holds the old value. */
 export type DeferredToggleOptions<T> = {
@@ -67,23 +68,15 @@ export function useDeferredToggle<T>({
 	// closed; released on exit-complete or reopen.
 	const { snapshot, freeze, flush: flushPending } = useFrozenOnClose<T | T[] | undefined>(open)
 
-	// The latest value, for `commit` to freeze without a dependency on it. With
-	// `value` in its deps, `commit` took a new identity on each selection, and so
-	// did the `select` of each host. Each memoized option then rendered again.
-	const valueRef = useRef(value)
+	// A stable event, so that `commit` keeps one identity when the value changes.
+	// With `value` in its deps, `commit` took a new identity on each selection,
+	// and so did the `select` of each host. Each memoized option then rendered
+	// again.
+	const commit = useStableEvent((newValue: T) => {
+		freeze(value)
 
-	useEffect(() => {
-		valueRef.current = value
+		toggle(newValue)
 	})
-
-	const commit = useCallback(
-		(newValue: T) => {
-			freeze(valueRef.current)
-
-			toggle(newValue)
-		},
-		[freeze, toggle],
-	)
 
 	const selectionValue = snapshot ? snapshot.value : value
 
