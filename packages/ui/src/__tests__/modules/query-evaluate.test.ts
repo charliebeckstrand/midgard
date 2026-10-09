@@ -11,6 +11,7 @@ import {
 import { createGroup, createRule } from '../../modules/query/engine/query-node'
 import { summarizeQuery } from '../../modules/query/engine/query-summary'
 import type { QueryField, QueryRule } from '../../modules/query/engine/types'
+import { parseNumeric } from '../../utilities'
 import { queryGroup, queryValue } from '../helpers/query-arbitrary'
 
 describe('matchQueryRule', () => {
@@ -452,7 +453,7 @@ describe('matchQueryRule · properties', () => {
 	test.prop([
 		fc.constantFrom('gt', 'gte', 'lt', 'lte'),
 		fieldValue(),
-		stated().filter((text) => !Number.isFinite(Number(text))),
+		stated().filter((text) => parseNumeric(text) === null),
 		fc.oneof(numeric(), fc.constant('')),
 	])(
 		'imposes no constraint when a numeric operator reads text that is not a number',
