@@ -1,7 +1,7 @@
 'use client'
 
 import { Trash } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Description, Field, Label } from 'ui/fieldset'
 import {
 	type FileRejection,
@@ -11,6 +11,7 @@ import {
 } from 'ui/file-upload'
 import { useFormValue } from 'ui/form'
 import { Icon } from 'ui/icon'
+import { Lightbox, LightboxTrigger } from 'ui/lightbox'
 import { List, ListItem } from 'ui/list'
 import { Text } from 'ui/text'
 import { ToggleIconButton } from 'ui/toggle-icon-button'
@@ -35,32 +36,68 @@ function rejectionMessage(rejected: readonly FileRejection[]): string {
 		.join(' ')
 }
 
-/** The thumbnail of a photo in the list: a stored photo, or a new file. */
-function PhotoThumbnail({ entry, alt }: { entry: PhotoEntry; alt: string }) {
-	// The address of a new file, which the page holds for as long as the
-	// thumbnail shows it, and lets go of after.
-	const [fileUrl, setFileUrl] = useState<string | null>(null)
+/**
+ * The address of each photo of the list, by its key: the URL of a stored photo,
+ * or an object URL for a new file. The hook makes the object URL of a file once,
+ * when the file joins the list, so a reorder does not load the image again. It
+ * lets go of the URL when the file leaves the list, and of each URL when the
+ * field unmounts. A new file has no address for the one commit before the
+ * effect makes it.
+ */
+function usePhotoSources(photos: readonly PhotoEntry[]): ReadonlyMap<string, string> {
+	// The object URLs that the field holds, by file. Only the effects change it.
+	const held = useRef(new Map<File, string>())
 
-	const file = isNewPhoto(entry) ? entry.file : null
+	const [fileUrls, setFileUrls] = useState<ReadonlyMap<File, string>>(() => new Map())
 
 	useEffect(() => {
-		if (file === null) return
+		const owned = held.current
 
-		const url = URL.createObjectURL(file)
+		const files = new Set(photos.filter(isNewPhoto).map((entry) => entry.file))
 
-		setFileUrl(url)
+		let changed = false
 
-		return () => URL.revokeObjectURL(url)
-	}, [file])
+		for (const [file, url] of owned) {
+			if (files.has(file)) continue
 
-	const src = isNewPhoto(entry) ? fileUrl : entry.url
+			URL.revokeObjectURL(url)
 
-	// Held at its size while the address of a new file is made, so the row does
-	// not move when it shows.
-	return src === null ? (
-		<span className="size-12" />
-	) : (
-		<img src={src} alt={alt} className="size-12 rounded-md object-cover" />
+			owned.delete(file)
+
+			changed = true
+		}
+
+		for (const file of files) {
+			if (owned.has(file)) continue
+
+			owned.set(file, URL.createObjectURL(file))
+
+			changed = true
+		}
+
+		if (changed) setFileUrls(new Map(owned))
+	}, [photos])
+
+	useEffect(() => {
+		const owned = held.current
+
+		return () => {
+			for (const url of owned.values()) URL.revokeObjectURL(url)
+
+			owned.clear()
+		}
+	}, [])
+
+	return useMemo(
+		() =>
+			new Map(
+				photos.flatMap((entry) => {
+					const src = isNewPhoto(entry) ? fileUrls.get(entry.file) : entry.url
+
+					return src === undefined ? [] : [[entry.key, src] as const]
+				}),
+			),
+		[photos, fileUrls],
 	)
 }
 
@@ -68,6 +105,11 @@ function PhotoThumbnail({ entry, alt }: { entry: PhotoEntry; alt: string }) {
  * The photos of a visit or of a trip, as one list in their order: the stored
  * photos and the new files, each with a remove button and a drag handle while
  * there is more than one. A save uploads the new files.
+ *
+ * All the photos of the list are one `Lightbox`. A press on a thumbnail shows
+ * that photo larger, and the viewer steps through the photos in the order of
+ * the list. Only the handle drags a row, so a press on a thumbnail does not
+ * start a reorder.
  *
  * With no photo, the field is a file field. With photos, it is a plain Add
  * photos button under the list, as the other add buttons of the forms are. A
@@ -91,6 +133,18 @@ export function PlacePhotosField() {
 	})
 
 	const room = MAX_PHOTOS - photos.length
+
+	const sources = usePhotoSources(photos)
+
+	// The photos that the viewer steps through, and the place of each in it. A new
+	// file joins when its address is made.
+	const viewer = photos.flatMap((photo) => {
+		const src = sources.get(photo.key)
+
+		return src === undefined ? [] : [{ key: photo.key, src }]
+	})
+
+	const viewerIndex = new Map(viewer.map((photo, at) => [photo.key, at]))
 
 	// The photo field takes no selection of its own: a pick goes into the list.
 	const picker = {
@@ -120,31 +174,47 @@ export function PlacePhotosField() {
 				<FileUploadInput {...picker} placeholder="Add photos" />
 			) : (
 				<>
-					<List
-						items={photos}
-						getKey={(photo) => photo.key}
-						onReorder={setValue}
-						variant="bare"
+					<Lightbox
+						photos={viewer.map(({ src }, at) => ({
+							src,
+							alt: `Photo ${at + 1} of ${viewer.length}`,
+						}))}
 						aria-label="Photos"
 					>
-						{(photo) => {
-							const n = photos.indexOf(photo) + 1
+						<List
+							items={photos}
+							getKey={(photo) => photo.key}
+							onReorder={setValue}
+							variant="bare"
+							aria-label="Photos"
+						>
+							{(photo) => {
+								const n = photos.indexOf(photo) + 1
 
-							return (
-								<ListItem
-									suffix={
-										<ToggleIconButton
-											icon={<Icon icon={<Trash />} />}
-											aria-label={`Remove photo ${n}`}
-											onClick={() => setValue(photos.filter((held) => held.key !== photo.key))}
-										/>
-									}
-								>
-									<PhotoThumbnail entry={photo} alt={`${n} of ${photos.length}`} />
-								</ListItem>
-							)
-						}}
-					</List>
+								const at = viewerIndex.get(photo.key)
+
+								// A new file holds its box while its address is made, so the row
+								// does not move when it shows.
+								return (
+									<ListItem
+										suffix={
+											<ToggleIconButton
+												icon={<Icon icon={<Trash />} />}
+												aria-label={`Remove photo ${n}`}
+												onClick={() => setValue(photos.filter((held) => held.key !== photo.key))}
+											/>
+										}
+									>
+										{at === undefined ? (
+											<span className="size-12" />
+										) : (
+											<LightboxTrigger index={at} className="size-12 rounded-md" />
+										)}
+									</ListItem>
+								)
+							}}
+						</List>
+					</Lightbox>
 
 					<FileUploadButton {...picker} variant="plain" className="w-fit max-w-full">
 						Add photos

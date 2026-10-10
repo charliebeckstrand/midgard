@@ -65,10 +65,6 @@ const item = defineRecipe({
 		solid: [...bg.tint, border.default, rounded.lg, pad],
 		bare: '',
 	},
-	active: {
-		true: ['z-10 relative', ...bg.surface, rounded.md],
-		false: '',
-	},
 	lifted: {
 		true: [...focus.lifted.raise, focus.lifted.ring],
 		false: '',
@@ -134,7 +130,6 @@ const item = defineRecipe({
 	],
 	defaults: {
 		variant: 'separated',
-		active: false,
 		lifted: false,
 		interactive: false,
 		stretched: false,
