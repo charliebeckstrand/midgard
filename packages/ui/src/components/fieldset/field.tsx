@@ -15,9 +15,13 @@ import { useControlFieldContext } from '../control/use-control-field-context'
 export type FieldProps = {
 	autoComplete?: string
 	className?: string
+	/** @defaultValue `false`, or `true` inside a disabled Control or Field. */
 	disabled?: boolean
 	htmlFor?: string
-	/** Validation / status severity broadcast to the nested control (driving its ring and, for `error`, `aria-invalid`) and used as the tone of a nested `<Message>` that sets no `severity` and has no form binding. */
+	/**
+	 * Validation / status severity broadcast to the nested control (driving its ring and, for `error`, `aria-invalid`) and used as the tone of a nested `<Message>` that sets no `severity` and has no form binding.
+	 * @defaultValue No severity: the field shows no validation ring. An enclosing Control or Field can set one.
+	 */
 	severity?: ControlSeverity
 } & Omit<ComponentProps<'div'>, 'className'>
 

@@ -38,7 +38,13 @@ export type AddressInputProps = Omit<
 	| 'children'
 	| 'placeholder'
 	| 'clearable'
+	| 'closeOnSelect'
 > & {
+	/**
+	 * Closes the menu on select.
+	 * @defaultValue true
+	 */
+	closeOnSelect?: boolean
 	/**
 	 * Binds the selection to the enclosing Form field of this name
 	 * (CONVENTIONS §7.2). Seed `Form.defaultValues` with an

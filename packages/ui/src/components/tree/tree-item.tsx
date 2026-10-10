@@ -13,7 +13,11 @@ export type TreeItemProps = {
 	icon?: ReactElement
 	/** Initially expanded (uncontrolled). Ignored when `open` is provided. @defaultValue false */
 	defaultOpen?: boolean
-	/** Controlled expanded state. When provided, the item operates in controlled mode. */
+	/**
+	 * Controlled expanded state. When provided, the item operates in controlled mode.
+	 *
+	 * @defaultValue Uncontrolled: the state starts from `defaultOpen`.
+	 */
 	open?: boolean
 	/** Called when the user toggles the item. Fires in both controlled and uncontrolled modes. */
 	onOpenChange?: (open: boolean) => void
@@ -50,9 +54,15 @@ export type TreeItemProps = {
 	 * Checkbox in `prefix`. Use `'mixed'` for a branch with only some children
 	 * checked. The tree does not compute it, because the caller holds the state
 	 * of each item.
+	 *
+	 * @defaultValue Uncontrolled: the state starts from `defaultChecked`.
 	 */
 	checked?: boolean | 'mixed'
-	/** The initial check state (uncontrolled). A value makes the row a checkable item. Ignored when `checked` is provided. */
+	/**
+	 * The initial check state (uncontrolled). A value makes the row a checkable item. Ignored when `checked` is provided.
+	 *
+	 * @defaultValue No check state: the row is not a checkable item.
+	 */
 	defaultChecked?: boolean | 'mixed'
 	/**
 	 * Called when the user toggles the check, by Space, by a click on the box, or

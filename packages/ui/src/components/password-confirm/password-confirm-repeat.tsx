@@ -7,7 +7,12 @@ import { usePasswordConfirm } from './context'
 import { usePasswordConfirmField } from './use-password-confirm-field'
 
 /** Props for {@link PasswordConfirmRepeat}: {@link PasswordInputProps} with an `onChange` that runs before the coordinator records the edit. Its `preventDefault()` does not skip the record. */
-export type PasswordConfirmRepeatProps = Omit<PasswordInputProps, 'onChange'> & {
+export type PasswordConfirmRepeatProps = Omit<PasswordInputProps, 'onChange' | 'invalid'> & {
+	/**
+	 * Forces the invalid state. When omitted, a mismatch, the bound form field, and the enclosing Control set it.
+	 * @defaultValue `false`, or `true` while the two fields do not agree. A form error or an `error` severity of the enclosing Control also sets it.
+	 */
+	invalid?: boolean
 	onChange?: (event: ChangeEvent<HTMLInputElement>) => void
 }
 

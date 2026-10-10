@@ -25,7 +25,10 @@ export { useDirectionScope }
 
 /** Props for {@link Direction}: the `dir` of the scope and its `children`. */
 export type DirectionProps = {
-	/** The direction of the scope. Omit it to render the children with no scope. */
+	/**
+	 * The direction of the scope. Omit it to render the children with no scope.
+	 * @defaultValue `'ltr'`, or the direction of the enclosing scope.
+	 */
 	dir?: TextDirection
 	children: ReactNode
 }

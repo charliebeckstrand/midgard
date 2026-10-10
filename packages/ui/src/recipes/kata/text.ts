@@ -55,7 +55,10 @@ export const scale = defineScale(dan.text.chip)
 export type TextVariants = Omit<VariantProps<typeof k>, 'tone' | 'color'> & {
 	/** The emphasis of the text, which sets a semantic text color. @defaultValue 'default' */
 	tone?: VariantProps<typeof k>['tone']
-	/** A literal hue for the text. Set it in place of `tone` for a custom tint. */
+	/**
+	 * A literal hue for the text. Set it in place of `tone` for a custom tint.
+	 * @defaultValue No color: the `tone` sets the text color.
+	 */
 	color?: VariantProps<typeof k>['color']
 	/**
 	 * The density step. Omit it to take the size of the parent. A step makes the

@@ -26,6 +26,7 @@ export type RadioGroupProps = AccessibleName & {
 	 * move the focus, and the checked radio submits its value. The group sets
 	 * `aria-readonly`. When omitted, it takes the value of an enclosing
 	 * `<Control>` or `<Field>`.
+	 * @defaultValue `false`, or the state of the enclosing Control.
 	 */
 	readOnly?: boolean
 } & Omit<ComponentProps<'div'>, 'aria-label' | 'aria-labelledby'>

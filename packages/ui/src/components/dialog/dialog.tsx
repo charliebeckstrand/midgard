@@ -54,6 +54,8 @@ export type DialogPanelProps = Omit<DialogPanelVariants, 'surface'> &
 		 *
 		 * @remarks Items inside — a command palette's results — take the deeper glass
 		 * wash on hover and focus.
+		 *
+		 * @defaultValue `false`, or the flag of the enclosing `<GlassProvider>`.
 		 */
 		glass?: boolean
 		className?: string

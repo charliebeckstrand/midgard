@@ -119,6 +119,8 @@ export type DrawerPanelProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
 		 * Opt the panel and backdrop into the translucent glass surface. Omit it to
 		 * follow the ambient `<GlassProvider>`. Set `false` to keep the flat surface
 		 * inside one.
+		 *
+		 * @defaultValue `false`, or the flag of the enclosing `<GlassProvider>`.
 		 */
 		glass?: boolean
 		className?: string

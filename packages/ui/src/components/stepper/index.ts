@@ -4,7 +4,7 @@ export type {
 	StepperTitleVariants,
 	StepperVariants,
 } from '../../recipes/kata/stepper'
-export type { StepperOrientation, StepState } from './context'
+export type { StepperLayout, StepperOrientation, StepState } from './context'
 export { Stepper, type StepperProps } from './stepper'
 export { StepperDescription, type StepperDescriptionProps } from './stepper-description'
 export { StepperIndicator, type StepperIndicatorProps } from './stepper-indicator'

@@ -175,6 +175,7 @@ export function OptionText({ className, ...props }: ComponentProps<'span'>) {
 /** Props for a select-like option produced by `createSelectOption`; `value` is matched against the host's selection. */
 export type SelectOptionProps<TValue = unknown> = {
 	value: TValue
+	/** @defaultValue false */
 	disabled?: boolean
 	className?: string
 	children?: ReactNode

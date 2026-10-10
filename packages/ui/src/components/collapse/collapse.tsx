@@ -16,7 +16,11 @@ export type CollapseProps = Omit<ComponentProps<'div'>, 'className' | 'children'
 	 * @defaultValue false
 	 */
 	defaultOpen?: boolean
-	/** The open state, for a controlled panel. Pair it with `onOpenChange`. */
+	/**
+	 * The open state, for a controlled panel. Pair it with `onOpenChange`.
+	 *
+	 * @defaultValue Uncontrolled: the state starts from `defaultOpen`.
+	 */
 	open?: boolean
 	onOpenChange?: (open: boolean) => void
 	/**

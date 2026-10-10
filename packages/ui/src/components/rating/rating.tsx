@@ -89,8 +89,10 @@ export type RatingProps = RatingVariants & {
 	 *
 	 * It also renders a fraction: a whole star for each point, a part star for the
 	 * remainder. A reader sets only the scores that {@link step} allows.
+	 * @defaultValue `false`, or the state of the enclosing Control.
 	 */
 	readOnly?: boolean
+	/** @defaultValue `false`, or the state of the enclosing Control or Field. */
 	disabled?: boolean
 	/**
 	 * Let a click on the current score clear it. A star rating has no other way

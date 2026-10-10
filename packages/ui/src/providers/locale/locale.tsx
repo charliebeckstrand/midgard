@@ -15,6 +15,8 @@ export type LocaleProviderProps = LocaleConfig & {
 	 * a menu, or a panel that the region opens lays out in that direction,
 	 * although it portals out of the region. Omit it to add no element and keep
 	 * the direction of the enclosing region.
+	 *
+	 * @defaultValue `'ltr'`, or the direction of the enclosing region.
 	 */
 	dir?: TextDirection
 	children: ReactNode

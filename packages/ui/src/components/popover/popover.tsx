@@ -15,7 +15,11 @@ export type PopoverProps = {
 	 * @defaultValue 'bottom'
 	 */
 	placement?: FloatingPlacement
-	/** Controlled open state. Pair with `onOpenChange`. */
+	/**
+	 * Controlled open state. Pair with `onOpenChange`.
+	 *
+	 * @defaultValue Uncontrolled: the state starts from `defaultOpen`.
+	 */
 	open?: boolean
 	/**
 	 * Initial open state when uncontrolled.

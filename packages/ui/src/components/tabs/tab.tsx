@@ -17,7 +17,11 @@ import { useTabSelectScroll } from './use-tab-list-scroll'
 export type TabProps = {
 	/** The key of the tab. The tab is current when it matches the `value` of the {@link Tabs} root, and a click selects it. */
 	value?: string
-	/** Marks the tab as current and overrides the match against the root `value`. */
+	/**
+	 * Marks the tab as current and overrides the match against the root `value`.
+	 *
+	 * @defaultValue `false`, or `true` when the `value` matches the `value` of the {@link Tabs} root.
+	 */
 	current?: boolean
 	/**
 	 * Links this tab to a panel the consumer renders itself, via `aria-controls`
