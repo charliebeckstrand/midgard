@@ -9,10 +9,12 @@ import {
 	FileUploadInput,
 	formatFileNames,
 } from 'ui/file-upload'
-import { useFormValue } from 'ui/form'
+import { useFormStatus, useFormValue } from 'ui/form'
 import { Icon } from 'ui/icon'
 import { Lightbox, LightboxTrigger } from 'ui/lightbox'
 import { List, ListItem } from 'ui/list'
+import { ProgressGauge } from 'ui/progress'
+import { Flex } from 'ui/structure/flex'
 import { Text } from 'ui/text'
 import { ToggleIconButton } from 'ui/toggle-icon-button'
 import { MAX_PHOTO_BYTES, MAX_PHOTO_MB, PHOTO_TYPE_NAMES, PHOTO_TYPES } from '../../api/places-api'
@@ -101,10 +103,20 @@ function usePhotoSources(photos: readonly PhotoEntry[]): ReadonlyMap<string, str
 	)
 }
 
+/** Props for {@link PlacePhotosField}. */
+export type PlacePhotosFieldProps = {
+	/** How far each new file has gone, by its key, from 0 to 1, while it uploads. */
+	progress: ReadonlyMap<string, number>
+}
+
 /**
  * The photos of a visit or of a trip, as one list in their order: the stored
  * photos and the new files, each with a remove button and a drag handle while
  * there is more than one. A save uploads the new files.
+ *
+ * While a save runs, the drag handles are disabled. A file that is uploading
+ * shows how much of it has gone, on a gauge in the center of its thumbnail,
+ * over a layer that dims the photo.
  *
  * All the photos of the list are one `Lightbox`. A press on a thumbnail shows
  * that photo larger, and the viewer steps through the photos in the order of
@@ -117,7 +129,7 @@ function usePhotoSources(photos: readonly PhotoEntry[]): ReadonlyMap<string, str
  * room for. The field names each file that a pick refuses and why, until a
  * later pick refuses none.
  */
-export function PlacePhotosField() {
+export function PlacePhotosField({ progress }: PlacePhotosFieldProps) {
 	const { value: photos = [], setValue } = useFormValue<PhotoEntry[]>('photos', {})
 
 	const [rejected, setRejected] = useState<FileRejection[]>([])
@@ -131,6 +143,10 @@ export function PlacePhotosField() {
 	useEffect(() => {
 		refusing.current = false
 	})
+
+	// A reorder while a save runs would not reach the save, which has read the
+	// order already.
+	const saving = useFormStatus()?.submitting ?? false
 
 	const room = MAX_PHOTOS - photos.length
 
@@ -185,6 +201,7 @@ export function PlacePhotosField() {
 							items={photos}
 							getKey={(photo) => photo.key}
 							onReorder={setValue}
+							disabled={saving}
 							variant="bare"
 							aria-label="Photos"
 						>
@@ -193,8 +210,10 @@ export function PlacePhotosField() {
 
 								const at = viewerIndex.get(photo.key)
 
+								const share = progress.get(photo.key)
+
 								// A new file holds its box while its address is made, so the row
-								// does not move when it shows.
+								// does not move when it shows. The upload layer covers the same box.
 								return (
 									<ListItem
 										suffix={
@@ -205,11 +224,27 @@ export function PlacePhotosField() {
 											/>
 										}
 									>
-										{at === undefined ? (
-											<span className="size-12" />
-										) : (
-											<LightboxTrigger index={at} className="size-12 rounded-md" />
-										)}
+										<div className="relative size-12">
+											{at === undefined ? null : (
+												<LightboxTrigger index={at} className="size-12 rounded-md" />
+											)}
+
+											{share === undefined ? null : (
+												<Flex
+													align="center"
+													justify="center"
+													className="absolute inset-0 rounded-md bg-zinc-950/40"
+												>
+													<ProgressGauge
+														size="xs"
+														color="blue"
+														value={share}
+														max={1}
+														aria-label={`Photo ${n} upload`}
+													/>
+												</Flex>
+											)}
+										</div>
 									</ListItem>
 								)
 							}}
