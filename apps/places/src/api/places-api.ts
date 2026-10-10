@@ -99,24 +99,53 @@ function isPhotoType(type: string): type is PhotoType {
 }
 
 /**
+ * Puts a file at an address that Mimir signs, and reports the share of it that
+ * has gone, from 0 to 1. The request is an `XMLHttpRequest`, because `fetch`
+ * does not report the progress of a body that it sends.
+ */
+function putFile(url: string, file: File, onProgress: (share: number) => void): Promise<boolean> {
+	return new Promise((resolve, reject) => {
+		const request = new XMLHttpRequest()
+
+		request.open('PUT', url)
+
+		request.setRequestHeader('Content-Type', file.type)
+
+		request.upload.addEventListener('progress', (event) => {
+			if (event.lengthComputable && event.total > 0) onProgress(event.loaded / event.total)
+		})
+
+		request.addEventListener('load', () => resolve(request.status >= 200 && request.status < 300))
+
+		// The request got no readable response: the connection dropped, or the CORS
+		// rule of the store refused the origin.
+		request.addEventListener('error', () =>
+			reject(new Error(`${file.name} did not reach the photo store. Try again.`)),
+		)
+
+		request.send(file)
+	})
+}
+
+/**
  * Uploads one photo and gives its object key. Mimir signs an address for the
  * file, and the file goes to that address in the photo store, not through the
  * gateway: a photo can be large, and the gateway has no part in what it holds.
+ * `onProgress` gets the share of the file that has gone, from 0 to 1.
  */
-export async function uploadPhoto(file: File): Promise<string> {
+export async function uploadPhoto(
+	file: File,
+	onProgress: (share: number) => void,
+): Promise<string> {
 	if (!isPhotoType(file.type)) throw new Error(`${file.name} is not a ${PHOTO_TYPE_NAMES}.`)
 
 	const { key, uploadUrl } = await unwrap(
 		mimir.POST('/api/photos/uploads', { body: { contentType: file.type, size: file.size } }),
 	)
 
-	const response = await fetch(uploadUrl, {
-		method: 'PUT',
-		body: file,
-		headers: { 'Content-Type': file.type },
-	})
-
-	if (!response.ok) throw new Error(`${file.name} did not upload. Try again.`)
+	if (!(await putFile(uploadUrl, file, onProgress))) {
+		throw new Error(`${file.name} did not upload. Try again.`)
+	}
 
 	return key
 }

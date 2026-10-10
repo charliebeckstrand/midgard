@@ -5,7 +5,7 @@ import { Field, Label, Message } from 'ui/fieldset'
 import { Input } from 'ui/input'
 import type { Place, TripDraft, TripStop } from '../../types'
 import { FormDrawer, useHeldTarget } from './form-drawer'
-import { photoKeys } from './photo-keys'
+import { usePhotoUploads } from './photo-keys'
 import { PlacePhotosField } from './place-photos-field'
 import {
 	type TripFormTarget,
@@ -50,6 +50,8 @@ export function TripFormDrawer({ target, onOpenChange, onSubmit, places }: TripF
 
 	const editing = seed.trip !== null
 
+	const uploads = usePhotoUploads()
+
 	return (
 		<FormDrawer<TripValues>
 			open={target !== null}
@@ -62,7 +64,7 @@ export function TripFormDrawer({ target, onOpenChange, onSubmit, places }: TripF
 			validate={tripValidators}
 			onSubmit={async (values) => {
 				await onSubmit(
-					toTripDraft(values, await photoKeys(values.photos), seed.trip),
+					toTripDraft(values, await uploads.upload(values.photos), seed.trip),
 					toTripStops(values.stops),
 				)
 
@@ -90,7 +92,7 @@ export function TripFormDrawer({ target, onOpenChange, onSubmit, places }: TripF
 			</Field>
 
 			<div className="sm:col-span-2">
-				<PlacePhotosField />
+				<PlacePhotosField progress={uploads.progress} />
 			</div>
 
 			{editing ? null : (

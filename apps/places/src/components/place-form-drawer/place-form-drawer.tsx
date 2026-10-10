@@ -6,7 +6,7 @@ import { Rating } from 'ui/rating'
 import type { PlaceDraft, Trip } from '../../types'
 import { FormDrawer, useHeldTarget } from './form-drawer'
 import { LOCATE_TIMEOUT_MS, locatePlace } from './location-form'
-import { photoKeys } from './photo-keys'
+import { usePhotoUploads } from './photo-keys'
 import { PlaceAddressField } from './place-address-field'
 import { PlaceCategoryField } from './place-category-field'
 import {
@@ -91,6 +91,8 @@ export function PlaceFormDrawer({ target, onOpenChange, onSubmit, trips }: Place
 
 	const today = useToday()
 
+	const uploads = usePhotoUploads()
+
 	const defaultValues = targetValues(seed, today)
 
 	const { title, submit, editing } = targetWords(seed)
@@ -119,7 +121,7 @@ export function PlaceFormDrawer({ target, onOpenChange, onSubmit, trips }: Place
 			onSubmit={async (values) => {
 				if (seed.kind === 'visit') {
 					await onSubmit(
-						toVisitPlaceDraft(values, seed.place, seed.visit, await photoKeys(values.photos)),
+						toVisitPlaceDraft(values, seed.place, seed.visit, await uploads.upload(values.photos)),
 					)
 
 					return undefined
@@ -140,7 +142,9 @@ export function PlaceFormDrawer({ target, onOpenChange, onSubmit, trips }: Place
 					}
 				}
 
-				await onSubmit(toPlaceDraft(values, located, await photoKeys(values.photos), seed.place))
+				await onSubmit(
+					toPlaceDraft(values, located, await uploads.upload(values.photos), seed.place),
+				)
 
 				return undefined
 			}}
@@ -190,7 +194,7 @@ export function PlaceFormDrawer({ target, onOpenChange, onSubmit, trips }: Place
 					) : null}
 
 					<div className="sm:col-span-2">
-						<PlacePhotosField />
+						<PlacePhotosField progress={uploads.progress} />
 					</div>
 
 					<Field className="sm:col-span-2">
