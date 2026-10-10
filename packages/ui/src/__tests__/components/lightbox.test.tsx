@@ -126,6 +126,12 @@ describe('Lightbox', () => {
 		expect(photo?.style.backgroundImage).toBe('url("/b-small.jpg")')
 
 		expect(screen.getByText('2 / 3')).toBeInTheDocument()
+
+		const previous = screen.getByRole('button', { name: 'Previous photo' })
+
+		expect(previous).toBeEnabled()
+
+		expect(previous).not.toHaveClass('invisible')
 	})
 
 	it('empties the thumbnail of the photo that is up', async () => {
@@ -463,7 +469,7 @@ describe('Lightbox', () => {
 		expect(screen.getByRole('button', { name: 'Next photo' })).not.toHaveClass('invisible')
 	})
 
-	it('moves the controls to the next photo as the slide starts', () => {
+	it('moves each control to the next photo as the slide starts', () => {
 		renderUI(<Gallery defaultIndex={0} />)
 
 		const controls = getSlot(document.body, 'lightbox-controls')
@@ -480,6 +486,14 @@ describe('Lightbox', () => {
 		expect(edge()).not.toBe(before)
 
 		expect(edge()).toContain('1500px')
+
+		expect(screen.getByText('2 / 3')).toBeInTheDocument()
+
+		const previous = screen.getByRole('button', { name: 'Previous photo' })
+
+		expect(previous).toBeEnabled()
+
+		expect(previous).not.toHaveClass('invisible')
 	})
 
 	it('holds the step buttons and the count in one pill', () => {

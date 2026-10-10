@@ -176,7 +176,7 @@ export function LightboxStage({
 	const stageRef = useRef<HTMLDivElement>(null)
 
 	// The photo that a slide ends on, while the slide runs from `from`. The
-	// controls take its box at the start of the slide, so they move with it.
+	// controls show it from the start of the slide (see `at`).
 	const [aim, setAim] = useState<{ from: number; to: number } | null>(null)
 
 	const track = useLightboxTrack(trackRef, {
@@ -262,9 +262,14 @@ export function LightboxStage({
 	// A tall photo leaves room above and below it for the controls that show.
 	const frame = cn(k.frame.base, closable || bar ? k.frame.controls : k.frame.bare)
 
-	// The photo whose box the controls take. A slide that lands changes `index`,
-	// and its aim then ends.
-	const aimed = photos[aim?.from === index ? aim.to : index]
+	// The place of the photo that the controls show. The photos follow `index`,
+	// the photo in the center slot, which changes when a slide lands. Each
+	// control follows the photo that the viewer goes to instead, so it changes
+	// when the slide starts and moves with it. A slide that lands changes
+	// `index`, and its aim then ends.
+	const at = aim?.from === index ? aim.to : index
+
+	const aimed = photos[at]
 
 	const previousRef = useRef<HTMLButtonElement>(null)
 
@@ -274,7 +279,7 @@ export function LightboxStage({
 	// pressed, and a disabled button drops the focus. The focus thus goes to the
 	// other step button first, so the keyboard keeps its place in the viewer.
 	const stepBy = (step: -1 | 1) => {
-		const to = index + step
+		const to = at + step
 
 		if (to === 0) nextRef.current?.focus()
 		else if (to === count - 1) previousRef.current?.focus()
@@ -362,24 +367,24 @@ export function LightboxStage({
 									ref={previousRef}
 									variant="plain"
 									color="inherit"
-									className={cn(k.step, index === 0 && k.ended)}
+									className={cn(k.step, at === 0 && k.ended)}
 									aria-label={labels.previous}
-									disabled={index === 0}
+									disabled={at === 0}
 									onClick={() => stepBy(-1)}
 								>
 									<Icon icon={<ChevronLeft />} className="rtl:-scale-x-100" />
 								</Button>
 								<span aria-live="polite" className={k.count}>
-									{index + 1} / {count}
+									{at + 1} / {count}
 								</span>
 								<Button
 									type="button"
 									ref={nextRef}
 									variant="plain"
 									color="inherit"
-									className={cn(k.step, index === count - 1 && k.ended)}
+									className={cn(k.step, at === count - 1 && k.ended)}
 									aria-label={labels.next}
-									disabled={index === count - 1}
+									disabled={at === count - 1}
 									onClick={() => stepBy(1)}
 								>
 									<Icon icon={<ChevronRight />} className="rtl:-scale-x-100" />
