@@ -162,6 +162,16 @@ describe('usePanelResize', () => {
 			expect(result.current.size).toBe(250)
 		})
 
+		it('turns off text selection on the page while a touch holds the grip', () => {
+			// On iOS, a finger that rests on the grip before it moves is a long press. The
+			// long press selects the nearest text and cancels the pointer.
+			const { result } = renderAttached()
+
+			press(result)
+
+			expect(document.documentElement.classList.contains('select-none')).toBe(true)
+		})
+
 		it('puts back the size of the press when the browser cancels the pointer', () => {
 			// The browser cancels the touch when it takes it for a scroll. Chromium gives
 			// the cancel the coordinates 0, 0.

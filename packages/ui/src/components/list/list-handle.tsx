@@ -4,6 +4,7 @@ import { GripVertical } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/list'
+import { holdTextSelection } from '../../utilities/hold-text-selection'
 import { Icon } from '../icon'
 import { useListContext, useListItemContext } from './context'
 
@@ -38,7 +39,15 @@ export function ListHandle({ children, className }: ListHandleProps) {
 			data-dragging={dataAttr(dragging)}
 			data-disabled={dataAttr(disabled)}
 			className={cn(k.handle, className)}
-			onPointerDown={interactive ? (event) => reorder?.controls.start(event) : undefined}
+			onPointerDown={
+				interactive
+					? (event) => {
+							holdTextSelection(event)
+
+							reorder?.controls.start(event)
+						}
+					: undefined
+			}
 		>
 			{children ?? <Icon icon={<GripVertical />} />}
 		</span>

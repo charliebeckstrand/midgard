@@ -8,6 +8,7 @@ import {
 	useRef,
 } from 'react'
 import { useDragCursorHold } from '../../hooks/use-drag-cursor'
+import { holdTextSelection } from '../../utilities/hold-text-selection'
 import { isPrimaryPress } from '../../utilities/primary-press'
 import { getCanvasPoint, resolveStrokeColor } from './signature-pad-utilities'
 
@@ -67,6 +68,8 @@ export function useSignaturePadDrawing({
 		if (disabled || readOnly) return
 
 		if (!isPrimaryPress(event)) return
+
+		holdTextSelection(event)
 
 		const point = getCanvasPoint(canvasRef.current, event)
 

@@ -9,6 +9,7 @@ import {
 } from 'react'
 import { type DragCursor, useDragCursorHold } from '../../hooks/use-drag-cursor'
 import { clamp } from '../../utilities'
+import { holdTextSelection } from '../../utilities/hold-text-selection'
 import { isPrimaryPress } from '../../utilities/primary-press'
 
 /** Pointer position within the tracked element, each axis normalized to `0-1`. */
@@ -109,6 +110,8 @@ export function useColorDrag(
 	const onPointerDown = useCallback(
 		(event: ReactPointerEvent<HTMLElement>) => {
 			if (disabled || !isPrimaryPress(event) || inDisabledFieldset(event.currentTarget)) return
+
+			holdTextSelection(event)
 
 			event.preventDefault()
 

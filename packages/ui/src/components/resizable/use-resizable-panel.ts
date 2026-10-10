@@ -12,6 +12,7 @@ import { useDragCursor } from '../../hooks'
 import { isRtl } from '../../hooks/a11y/logical-arrow'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { clamp } from '../../utilities'
+import { holdTextSelection } from '../../utilities/hold-text-selection'
 import { isPrimaryPress } from '../../utilities/primary-press'
 import type { PanelConfig, ResizableOrientation } from './types'
 
@@ -210,6 +211,8 @@ export function useResizablePanel({
 		const group = groupRef.current
 
 		if (!group || !isPrimaryPress(event)) return
+
+		holdTextSelection(event)
 
 		event.preventDefault()
 
