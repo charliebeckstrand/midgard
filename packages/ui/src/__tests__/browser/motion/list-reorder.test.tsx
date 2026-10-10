@@ -129,6 +129,36 @@ describe('List pointer reorder (real browser)', () => {
 		await expect.poll(() => first.hasAttribute('data-dragging')).toBe(false)
 	})
 
+	// A drag moves the row and changes nothing else about how it looks, in every
+	// variant. Before, the dragged row took an opaque fill that covered the row
+	// under it.
+	it.each(['separated', 'outline', 'plain', 'solid', 'bare'] as const)(
+		'keeps the classes and the fill of a dragged %s row',
+		async (variant) => {
+			const { container } = renderUI(
+				<List items={items} getKey={(i) => i.id} onReorder={() => {}} variant={variant}>
+					{(item) => <ListItem>{item.label}</ListItem>}
+				</List>,
+			)
+
+			const [first, second] = allBySlot(getSlot(container, 'list'), 'list-item')
+
+			if (!first || !second) throw new Error('expected rows')
+
+			const rest = { className: first.className, fill: getComputedStyle(first).backgroundColor }
+
+			const held = await dragDown(first, second)
+
+			await expect.poll(() => first.hasAttribute('data-dragging')).toBe(true)
+
+			expect(first.className).toBe(rest.className)
+
+			expect(getComputedStyle(first).backgroundColor).toBe(rest.fill)
+
+			await held.release()
+		},
+	)
+
 	// A glass panel is the containing block of a fixed descendant. The dragged row
 	// moves itself by a transform, not through a fixed picture, so it stays under
 	// the pointer inside such a panel.

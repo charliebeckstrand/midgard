@@ -210,7 +210,6 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 		className: cn(
 			k.item({
 				variant,
-				active: dragging,
 				lifted,
 				interactive,
 				stretched,
