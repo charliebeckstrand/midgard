@@ -110,7 +110,8 @@ export type ListProps<T> = BaseListProps<T> &
  * area activates and on the `<li>` otherwise. A focusable child, such as a
  * checkbox, keeps its own stop — see {@link ListItem}. Only the handle starts a
  * pointer drag. The rows move as the pointer passes them, and the list calls
- * `onReorder` once, on the drop. Escape cancels the drag. The list loads no
+ * `onReorder` once, on the drop. The box of the list holds the dragged row, so
+ * the row does not go over the content around the list. Escape cancels the drag. The list loads no
  * drag library of its own: Motion's `Reorder` runs the drag. `Reorder` loads in
  * a chunk of its own after a reorderable list mounts, so a page with only
  * read-only lists does not load it. Until the chunk arrives, the keyboard
