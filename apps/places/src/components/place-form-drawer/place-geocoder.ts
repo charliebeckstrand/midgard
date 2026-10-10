@@ -9,3 +9,13 @@ import { createPhotonProvider } from 'ui/address-input'
  * asks it for the position of an address that the reader typed.
  */
 export const placeGeocoder = createPhotonProvider({ limit: 8 })
+
+/**
+ * The geocoder of a trip's location: towns, cities, regions, and countries,
+ * and no street or business. A trip goes to an area, and often no address of
+ * it is known before the trip.
+ */
+export const areaGeocoder = createPhotonProvider({
+	limit: 8,
+	layers: ['locality', 'district', 'city', 'county', 'state', 'country'],
+})

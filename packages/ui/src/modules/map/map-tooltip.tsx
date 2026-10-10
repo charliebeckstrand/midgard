@@ -8,6 +8,7 @@ import {
 } from '../chart/engine/chart-readout-card'
 import { useMapHoverState } from './context'
 import type { MapHoverTarget } from './engine/map-hover/target'
+import { seriesSwatchClass } from './engine/map-legend/items'
 import type { MapStopRow } from './engine/map-overlay/entry'
 import { markReadout } from './engine/map-overlay/readout'
 import {
@@ -64,6 +65,24 @@ function nameOnly(name: string | undefined, asked: boolean | undefined): MapTool
 	return asked && name ? { title: name } : null
 }
 
+/**
+ * The swatch of one stop of an entry: the swatch of the entry, or the shape and
+ * the color of the stop's own dot where the stop has them.
+ *
+ * @internal
+ */
+function stopSwatch(
+	entry: MapTooltipEntry,
+	stop: number,
+): { swatch: MapSwatchShape; swatchClass: string } {
+	const own = entry.stopRows?.[stop]
+
+	return {
+		swatch: own?.swatch ?? entry.swatch,
+		swatchClass: own?.color === undefined ? entry.swatchClass : seriesSwatchClass(own.color),
+	}
+}
+
 /** Resolves the tooltip content for a hover target, or `null` to stay away. @internal */
 function resolve(
 	target: MapHoverTarget,
@@ -90,9 +109,7 @@ function resolve(
 
 		return {
 			title: readout.name,
-			row: readout.detail
-				? { swatch: entry.swatch, swatchClass: entry.swatchClass, text: readout.detail }
-				: undefined,
+			row: readout.detail ? { ...stopSwatch(entry, target.stop), text: readout.detail } : undefined,
 		}
 	}
 

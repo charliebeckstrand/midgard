@@ -15,8 +15,9 @@ import type { UserMenuPanel, UserMenuProps } from './user-menu-panel'
 const loadMenu = () => import('./user-menu-panel')
 
 /**
- * The menu of the signed-in user: add a place, open the list, and sign out. A
- * user whose email is not verified can also send a verification link.
+ * The menu of the signed-in user: add a place or a trip, open their lists, and
+ * sign out. A user whose email is not verified can also send a verification
+ * link.
  *
  * @remarks The menu loads in idle time after the hydration. A pointer on the
  * button or a focus on it starts the load sooner. Until the first press, this

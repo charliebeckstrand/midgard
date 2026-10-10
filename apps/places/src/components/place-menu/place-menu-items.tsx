@@ -1,6 +1,6 @@
-import { CalendarPlus, Pencil, Trash } from 'lucide-react'
+import { CalendarPlus, MapPinPlus, Pencil, Trash } from 'lucide-react'
 import type { ContextMenuEntry } from 'ui/context-menu'
-import type { Place, Visit } from '../../types'
+import type { Place, Trip, Visit } from '../../types'
 
 /** What the menu of a place does. The caller opens the panels and asks for the confirmations. */
 export type PlaceActions = {
@@ -56,6 +56,33 @@ export function visitMenuItems(
 			label: 'Delete visit',
 			icon: <Trash />,
 			onAction: () => actions.onDeleteVisit(place, visit),
+		},
+	]
+}
+
+/** What the menu of a trip does. */
+export type TripActions = {
+	/** Opens the place form with the trip picked and the date on the first day of the trip. */
+	onAddPlace: (trip: Trip) => void
+	onEditTrip: (trip: Trip) => void
+	onDeleteTrip: (trip: Trip) => void
+}
+
+/** The rows of the menu of a trip: Add place, Edit trip, and Delete trip. */
+export function tripMenuItems(trip: Trip, actions: TripActions): ContextMenuEntry[] {
+	return [
+		{
+			key: 'place',
+			label: 'Add place',
+			icon: <MapPinPlus />,
+			onAction: () => actions.onAddPlace(trip),
+		},
+		{ key: 'edit', label: 'Edit trip', icon: <Pencil />, onAction: () => actions.onEditTrip(trip) },
+		{
+			key: 'delete',
+			label: 'Delete trip',
+			icon: <Trash />,
+			onAction: () => actions.onDeleteTrip(trip),
 		},
 	]
 }

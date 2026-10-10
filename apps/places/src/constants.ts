@@ -1,4 +1,4 @@
-import type { PlaceCategory, PlaceCategoryMeta } from './types'
+import type { PlaceCategory, PlaceCategoryMeta, PlaceColor, RecordKind } from './types'
 
 /**
  * The categories, in the order the filter lists them and the map assigns their
@@ -35,3 +35,16 @@ export function categoryLabel(value: PlaceCategory): string {
 
 /** The highest score a place can carry, and the number of stars that shows it. */
 export const MAX_RATING = 5
+
+/**
+ * What each kind of record looks like: its name, the shape of its mark on the
+ * map, and the color of that mark. The map, the Show filter, and the palette
+ * read the shape and the color here, so the swatch of a kind is always the mark
+ * it names. Amber is for trips because no category uses it.
+ */
+export const RECORD_KIND_META: Readonly<
+	Record<RecordKind, { label: string; shape: 'circle' | 'square'; color: PlaceColor }>
+> = {
+	places: { label: 'Places', shape: 'circle', color: 'blue' },
+	trips: { label: 'Trips', shape: 'square', color: 'amber' },
+}

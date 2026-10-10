@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { MapPlat, MapPoint, MapPoints } from '../../modules/map'
-import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
+import { allBySlot, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 import { renderNavigable } from '../helpers/map-navigable'
 import { overlayPlat } from '../helpers/map-plat'
@@ -407,6 +407,79 @@ describe('a square point set', () => {
 	})
 })
 
+describe('a point with a shape of its own', () => {
+	it('draws in its own shape, and a mixed summary takes the shape of the mark', () => {
+		const { container } = renderUI(
+			overlayPlat(
+				<MapPoints
+					id="trips"
+					label="Records"
+					shape="square"
+					points={[
+						{ at: DEPOT, label: 'Depot', shape: 'circle' },
+						{ at: [5.3, 5], label: 'Annex', shape: 'square' },
+						{ at: SITE, label: 'Site', shape: 'circle' },
+					]}
+				/>,
+			),
+		)
+
+		expect(bySlot(container, 'map-points-dot')?.getAttribute('stroke-linecap')).toBe('round')
+
+		expect(bySlot(container, 'map-points-cluster')?.getAttribute('stroke-linecap')).toBe('square')
+	})
+
+	it('gives a summary the shape that its members share', () => {
+		const { container } = renderUI(
+			overlayPlat(
+				<MapPoints
+					id="fleet"
+					label="Stops"
+					shape="square"
+					points={BUNCHED.map((point) => ({ ...point, shape: 'circle' as const }))}
+				/>,
+			),
+		)
+
+		expect(bySlot(container, 'map-points-cluster')?.getAttribute('stroke-linecap')).toBe('round')
+	})
+})
+
+describe('the readout of a point with a paint of its own', () => {
+	it('keys the swatch of the tooltip to the dot under the pointer', () => {
+		const { container } = renderUI(
+			overlayPlat(
+				<MapPoints
+					id="records"
+					label="Records"
+					shape="square"
+					points={[
+						{ at: DEPOT, label: 'Depot', detail: 'Lisbon', shape: 'circle', color: 'green' },
+						{ at: SITE, label: 'Site', detail: 'Porto' },
+					]}
+				/>,
+			),
+		)
+
+		const hits = allBySlot(container, 'map-points-hit')
+
+		const swatch = () => bySlot(getSlot(container, 'tooltip-content'), 'swatch')
+
+		fireEvent.pointerEnter(hits[0] as Element, { clientX: 10, clientY: 10 })
+
+		expect(swatch()?.getAttribute('data-shape')).toBe('circle')
+
+		expect(swatch()?.getAttribute('class') ?? '').toContain('text-green')
+
+		// A dot that takes the paint of the mark keys the swatch of the mark.
+		fireEvent.pointerEnter(hits[1] as Element, { clientX: 30, clientY: 10 })
+
+		expect(swatch()?.getAttribute('data-shape')).toBe('square')
+
+		expect(swatch()?.getAttribute('class') ?? '').not.toContain('text-green')
+	})
+})
+
 describe('a square MapPoint', () => {
 	it('caps its dot and its halo square', () => {
 		const { container } = renderUI(
@@ -418,5 +491,18 @@ describe('a square MapPoint', () => {
 		expect(bySlot(container, 'map-point')?.getAttribute('stroke-linecap')).toBe('square')
 
 		expect(bySlot(container, 'map-point-selected')?.getAttribute('stroke-linecap')).toBe('square')
+	})
+
+	it('rounds its corners, as the square Swatch does', () => {
+		const { container } = renderUI(
+			overlayPlat(<MapPoint id="depot" label="Depot" shape="square" at={DEPOT} />),
+		)
+
+		const dot = bySlot(container, 'map-point')
+
+		// A closed square, whose round joins are the corners.
+		expect(dot?.getAttribute('d')).toMatch(/Z/)
+
+		expect(dot?.getAttribute('stroke-linejoin')).toBe('round')
 	})
 })

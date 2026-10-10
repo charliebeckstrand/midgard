@@ -5,4 +5,5 @@ export {
 	placeSource,
 	type RegionSourceInput,
 	regionSource,
+	tripSource,
 } from './place-palette-sources'

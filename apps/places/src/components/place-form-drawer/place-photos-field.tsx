@@ -1,94 +1,162 @@
 'use client'
 
-import { Plus, Trash } from 'lucide-react'
-import { useId } from 'react'
-import { Button } from 'ui/button'
-import { Field, Label, Message } from 'ui/fieldset'
+import { Trash } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Description, Field, Label } from 'ui/fieldset'
+import {
+	type FileRejection,
+	FileUploadButton,
+	FileUploadInput,
+	formatFileNames,
+} from 'ui/file-upload'
 import { useFormValue } from 'ui/form'
 import { Icon } from 'ui/icon'
-import { Input } from 'ui/input'
 import { List, ListItem } from 'ui/list'
+import { Text } from 'ui/text'
 import { ToggleIconButton } from 'ui/toggle-icon-button'
-import { isWebAddress } from '../../schemas/place'
-import { MAX_PHOTOS, type PhotoRow, photoRow } from './place-form'
+import { MAX_PHOTO_BYTES, MAX_PHOTO_MB, PHOTO_TYPE_NAMES, PHOTO_TYPES } from '../../api/places-api'
+import { isNewPhoto, MAX_PHOTOS, newPhoto, type PhotoEntry } from './place-form'
+
+/** What each reason of a refused file says. */
+const REJECTION: Readonly<Record<FileRejection['reason'], string>> = {
+	type: `is not a ${PHOTO_TYPE_NAMES}`,
+	size: `is larger than ${MAX_PHOTO_MB} MB`,
+	count: `goes past ${MAX_PHOTOS} photos`,
+}
+
+/** The message for the files that a pick refused: one sentence per reason. */
+function rejectionMessage(rejected: readonly FileRejection[]): string {
+	return (Object.keys(REJECTION) as FileRejection['reason'][])
+		.flatMap((reason) => {
+			const files = rejected.filter((held) => held.reason === reason).map((held) => held.file)
+
+			return files.length === 0 ? [] : [`${formatFileNames(files)} ${REJECTION[reason]}.`]
+		})
+		.join(' ')
+}
+
+/** The thumbnail of a photo in the list: a stored photo, or a new file. */
+function PhotoThumbnail({ entry, alt }: { entry: PhotoEntry; alt: string }) {
+	// The address of a new file, which the page holds for as long as the
+	// thumbnail shows it, and lets go of after.
+	const [fileUrl, setFileUrl] = useState<string | null>(null)
+
+	const file = isNewPhoto(entry) ? entry.file : null
+
+	useEffect(() => {
+		if (file === null) return
+
+		const url = URL.createObjectURL(file)
+
+		setFileUrl(url)
+
+		return () => URL.revokeObjectURL(url)
+	}, [file])
+
+	const src = isNewPhoto(entry) ? fileUrl : entry.url
+
+	// Held at its size while the address of a new file is made, so the row does
+	// not move when it shows.
+	return src === null ? (
+		<span className="size-12" />
+	) : (
+		<img src={src} alt={alt} className="size-12 rounded-md object-cover" />
+	)
+}
 
 /**
- * The photos of a visit: one address per row, and a button that adds a row.
+ * The photos of a visit or of a trip, as one list in their order: the stored
+ * photos and the new files, each with a remove button and a drag handle while
+ * there is more than one. A save uploads the new files.
  *
- * The field always holds one row at least, so a visit with no photo shows one
- * empty row, as the single field did before. Each input has a clear button
- * while it holds an address. The clear button empties the row and keeps it.
- * With more than one row, each row also has a remove button and a drag handle. The list shows the handle only while
- * it holds more than one row, because one row has no order to change.
- *
- * The field is a `Field` with a `Label`, as the other fields of the form are, so
- * the label sits as close to its rows as a label sits to its input. The label
- * names the list, as the label of a Rating names its row of stars. Each input
- * has an id of its own, because the inputs of a field take the id of the field
- * by default.
+ * With no photo, the field is a file field. With photos, it is a plain Add
+ * photos button under the list, as the other add buttons of the forms are. A
+ * pick adds its files to the end of the list, and takes as many as the list has
+ * room for. The field names each file that a pick refuses and why, until a
+ * later pick refuses none.
  */
 export function PlacePhotosField() {
-	const { value: rows = [], setValue, invalid } = useFormValue<PhotoRow[]>('photos', {})
+	const { value: photos = [], setValue } = useFormValue<PhotoEntry[]>('photos', {})
 
-	const id = useId()
+	const [rejected, setRejected] = useState<FileRejection[]>([])
 
-	const several = rows.length > 1
+	// Whether the pick that is running refused a file. A pick reports its
+	// refusals before its files, in one event, so its files clear the message
+	// only where it refused none. The flag ends with the render that the pick
+	// causes.
+	const refusing = useRef(false)
 
-	const write = (key: string, url: string) =>
-		setValue(rows.map((row) => (row.key === key ? { ...row, url } : row)))
+	useEffect(() => {
+		refusing.current = false
+	})
+
+	const room = MAX_PHOTOS - photos.length
+
+	// The photo field takes no selection of its own: a pick goes into the list.
+	const picker = {
+		value: null,
+		multiple: true,
+		accept: PHOTO_TYPES.join(','),
+		maxSize: MAX_PHOTO_BYTES,
+		maxCount: room,
+		disabled: room <= 0,
+		onReject: (refused: FileRejection[]) => {
+			refusing.current = true
+
+			setRejected(refused)
+		},
+		onAccept: (files: File[]) => {
+			if (!refusing.current) setRejected([])
+
+			setValue([...photos, ...files.map(newPhoto)])
+		},
+	}
 
 	return (
-		<Field htmlFor={`${id}list`}>
-			<Label as="span" id={`${id}label`}>
-				Photos
-			</Label>
+		<Field>
+			<Label>Photos</Label>
 
-			<List
-				id={`${id}list`}
-				items={rows}
-				getKey={(row) => row.key}
-				onReorder={setValue}
-				variant="bare"
-				aria-labelledby={`${id}label`}
-			>
-				{(row) => (
-					<ListItem
-						suffix={
-							several ? (
-								<ToggleIconButton
-									icon={<Icon icon={<Trash />} />}
-									aria-label={`Remove photo ${rows.indexOf(row) + 1}`}
-									onClick={() => setValue(rows.filter((held) => held.key !== row.key))}
-								/>
-							) : null
-						}
+			{photos.length === 0 ? (
+				<FileUploadInput {...picker} placeholder="Add photos" />
+			) : (
+				<>
+					<List
+						items={photos}
+						getKey={(photo) => photo.key}
+						onReorder={setValue}
+						variant="bare"
+						aria-label="Photos"
 					>
-						<Input
-							id={`${id}${row.key}`}
-							type="url"
-							clearable
-							placeholder="https://"
-							aria-label={`Photo ${rows.indexOf(row) + 1}`}
-							value={row.url}
-							// Only the row that is wrong, once the field has an error to show.
-							invalid={invalid && row.url.trim() !== '' && !isWebAddress(row.url.trim())}
-							onChange={(event) => write(row.key, event.target.value)}
-						/>
-					</ListItem>
-				)}
-			</List>
+						{(photo) => {
+							const n = photos.indexOf(photo) + 1
 
-			<Button
-				type="button"
-				variant="plain"
-				prefix={<Icon icon={<Plus />} />}
-				disabled={rows.length >= MAX_PHOTOS}
-				onClick={() => setValue([...rows, photoRow()])}
-			>
-				Add photo
-			</Button>
+							return (
+								<ListItem
+									suffix={
+										<ToggleIconButton
+											icon={<Icon icon={<Trash />} />}
+											aria-label={`Remove photo ${n}`}
+											onClick={() => setValue(photos.filter((held) => held.key !== photo.key))}
+										/>
+									}
+								>
+									<PhotoThumbnail entry={photo} alt={`${n} of ${photos.length}`} />
+								</ListItem>
+							)
+						}}
+					</List>
 
-			<Message name="photos" />
+					<FileUploadButton {...picker} variant="plain" className="w-fit max-w-full">
+						Add photos
+					</FileUploadButton>
+				</>
+			)}
+
+			{room > 0 ? null : (
+				<Description>{MAX_PHOTOS} photos is the most. Remove one to add another.</Description>
+			)}
+
+			{rejected.length === 0 ? null : <Text tone="warning">{rejectionMessage(rejected)}</Text>}
 		</Field>
 	)
 }

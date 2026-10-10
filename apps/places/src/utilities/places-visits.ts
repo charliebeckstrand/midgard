@@ -1,4 +1,4 @@
-import type { Place, PlaceDraft, Visit } from '../types'
+import type { Place, PlaceDraft, Visit, VisitDraft } from '../types'
 
 /**
  * The newest visit to a place. Mimir stores the visits newest first, and a
@@ -12,12 +12,25 @@ export function latestVisit(place: Place): Visit {
 }
 
 /**
+ * A stored visit as the draft that writes it back unchanged. A stored photo
+ * reads as its key and an address, and a draft names a photo by its key alone.
+ */
+function visitDraft(visit: Visit): VisitDraft {
+	return { ...visit, photos: visit.photos.map((photo) => photo.key) }
+}
+
+/**
  * A stored place as the draft that writes it back unchanged. A change to the
  * visits of a place sends the whole place, because Mimir replaces a place as
  * one record.
  */
-export function placeDraft({ id: _id, createdAt: _createdAt, ...draft }: Place): PlaceDraft {
-	return draft
+export function placeDraft({
+	id: _id,
+	createdAt: _createdAt,
+	visits,
+	...draft
+}: Place): PlaceDraft {
+	return { ...draft, visits: visits.map(visitDraft) }
 }
 
 /** The orders that a list of places can take. */

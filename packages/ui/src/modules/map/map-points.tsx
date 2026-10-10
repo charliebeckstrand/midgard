@@ -51,9 +51,20 @@ export type MapPointDatum = {
 	 * The mark still registers ONE legend entry in its own slot, because it is one
 	 * mark. A reader who needs the kinds named wants a key beside the map: a
 	 * filter listing them, or a legend of its own. These colors are what that key
-	 * points at.
+	 * points at. The swatch of the dot's tooltip takes the dot's color.
 	 */
 	color?: MapSeriesColor
+	/**
+	 * This dot's own shape, where the stops divide into kinds of a different
+	 * level, such as a trip beside the places it passes. Omitted, the dot takes
+	 * the mark's {@link MapPointsProps.shape}.
+	 *
+	 * A summary takes the shape that all of its members share. A summary of
+	 * mixed shapes takes the mark's shape, so the caller sets the mark's shape to
+	 * the one that a mixed summary must show. The swatch of a tooltip takes the
+	 * shape of the dot under the pointer.
+	 */
+	shape?: MapPointShape
 }
 
 /** Props for {@link MapPointsDots}: everything the drawn dots read, none of the emphasis. @internal */
@@ -67,8 +78,8 @@ type MapPointsDotsProps = {
 	paints: string[]
 	/** The ink a summary's count is written in. */
 	countInk: string
-	/** The shape of every dot, the summaries included. */
-	shape: MapPointShape
+	/** The shape of each drawn group. */
+	shapes: MapPointShape[]
 	animate: boolean
 	/** Frame units per device pixel, which the hit radii and the counts divide by. */
 	unitsPerPixel: number
@@ -97,7 +108,7 @@ const MapPointsDots = memo(function MapPointsDots({
 	targets,
 	paints,
 	countInk,
-	shape,
+	shapes,
 	animate,
 	unitsPerPixel,
 	hit,
@@ -152,7 +163,7 @@ const MapPointsDots = memo(function MapPointsDots({
 							slot={count === 1 ? 'map-points-dot' : 'map-points-cluster'}
 							at={position}
 							radius={radius}
-							shape={shape}
+							shape={shapes[index]}
 							scale={unitsPerPixel}
 							// `?? ''` for the indexed read alone: `paints` is built from the same
 							// `groups` this maps, so every rendered index has one.
@@ -240,9 +251,11 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
 	 */
 	cluster?: boolean | number
 	/**
-	 * The shape of every dot, the summaries, the halo, and the legend swatch. A
+	 * The shape of the dots, the summaries, the halo, and the legend swatch. A
 	 * `square` set beside a `circle` set lets the two read as different kinds of
-	 * stop by shape as well as by color.
+	 * stop by shape as well as by color. A point's own
+	 * {@link MapPointDatum.shape} overrides it for that point, and for a summary
+	 * whose members all share it.
 	 * @defaultValue 'circle'
 	 */
 	shape?: MapPointShape
@@ -351,28 +364,52 @@ export function MapPoints({
 		[positions, project, gap, unitsPerPixel],
 	)
 
-	// A lone dot reads out as itself, so an ungrouped set reads exactly as the
-	// points the caller passed. A summary reads as the mark, since it stands for
-	// the whole group and no one of its stops names it.
-	const rows = useMemo<MapStopRow[]>(
+	// Each drawn group's shape: a lone dot's own, the one that a summary's members
+	// share, else the mark's. Held for the same reason as `paints` below.
+	const shapes = useMemo(
 		() =>
 			groups.map(({ members }) => {
+				const [first, ...rest] = members.map((member) => points[member]?.shape ?? shape)
+
+				return first !== undefined && rest.every((held) => held === first) ? first : shape
+			}),
+		[groups, points, shape],
+	)
+
+	// A lone dot reads out as itself, so an ungrouped set reads exactly as the
+	// points the caller passed. A summary reads as the mark, since it stands for
+	// the whole group and no one of its stops names it. A row keys its swatch to
+	// its own dot where the dot does not take the shape or the color of the mark,
+	// so the tooltip shows the dot under the pointer.
+	const rows = useMemo<MapStopRow[]>(
+		() =>
+			groups.map(({ members }, index) => {
 				const count = members.length
 
 				const first = members[0]
 
 				const lone = first === undefined ? undefined : points[first]
 
+				const own = shapes[index] ?? shape
+
+				const swatch = own === shape ? undefined : POINT_SWATCH[own]
+
 				// Numbered by the caller's own index, never the group's: a click on this
 				// dot reports that index, and a readout counting in another space would
 				// name a row the caller cannot find — and would renumber itself as the
 				// frame regrouped around it.
 				if (count === 1 && first !== undefined && lone !== undefined) {
-					return { label: lone.label ?? stopName(shared.label, first), detail: lone.detail }
+					return {
+						label: lone.label ?? stopName(shared.label, first),
+						detail: lone.detail,
+						swatch,
+						color: lone.color,
+					}
 				}
 
 				return {
 					label: shared.label,
+					swatch,
 					// The spread costs a spherical pass per group, so only a caller that
 					// reads it pays for it.
 					detail:
@@ -387,7 +424,7 @@ export function MapPoints({
 								),
 				}
 			}),
-		[groups, points, positions, shared.label, clusterDetail],
+		[groups, points, positions, shapes, shape, shared.label, clusterDetail],
 	)
 
 	// Which drawn dot each point landed in, built on the first read and held from
@@ -498,7 +535,7 @@ export function MapPoints({
 					slot="map-points-selected"
 					at={picked.at}
 					radius={clusterRadius(picked.members.length)}
-					shape={shape}
+					shape={selected === null ? shape : (shapes[selected] ?? shape)}
 					scale={unitsPerPixel}
 				/>
 			)}
@@ -510,7 +547,7 @@ export function MapPoints({
 					targets={targets}
 					paints={paints}
 					countInk={countInk}
-					shape={shape}
+					shapes={shapes}
 					animate={animate}
 					unitsPerPixel={unitsPerPixel}
 					hit={hit}

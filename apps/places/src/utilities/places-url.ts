@@ -1,6 +1,7 @@
 import type { DatePickerRelativeValue } from 'ui/date-picker'
 import { flags } from '../flags'
 import { isCategory, isDay } from '../schemas/place'
+import { RECORD_KINDS, type RecordKind } from '../types'
 import { fromDay, type PlaceFilterValue, toDay } from './places-filter'
 import type { PlaceView } from './places-view'
 
@@ -18,10 +19,12 @@ import type { PlaceView } from './places-view'
  * - `category` — repeated, one per picked category.
  * - `paint` — which regions carry the visited fill.
  * - `when` — repeated, one `YYYY-MM-DD..YYYY-MM-DD` span per committed range.
- * - `place` — repeated, one per place the open panel stands for.
- * - `open` — the place of the panel's list that the reader went into.
- * - `list` — `all` while the panel lists every place of its region.
- * - `add` — `true` while the form for a new place is open.
+ * - `show` — repeated, one per kind of record the map draws, while it draws
+ *   one kind alone.
+ * - `place`, `trip` — repeated, one per record the open panel stands for.
+ * - `open` — the record of the panel's list that the reader went into.
+ * - `list` — `all` while the panel lists every record of its region.
+ * - `add` — `place` or `trip` while the form for a new one is open.
  */
 export type PlaceLocation = {
 	/**
@@ -33,20 +36,37 @@ export type PlaceLocation = {
 	 */
 	view: PlaceView | null
 	filter: PlaceFilterValue
-	/** The places the open panel stands for, by id. */
-	selected: readonly string[]
+	/** The records the open panel stands for. */
+	selected: PlaceSelection
 	/**
 	 * The step of the open panel that the reader is on. It is in the address so
 	 * that a reload or a shared link opens the panel on the same crumb.
 	 */
 	step: PlacePanelStep
 	/**
-	 * Whether the form for a new place is open. It is in the address so that a
-	 * reload or a shared link opens the form again. An edit and a visit are not:
-	 * each names a record that a link can outlive.
+	 * The kind of record whose form for a new one is open, or `null`. It is in
+	 * the address so that a reload or a shared link opens the form again. An
+	 * edit and a visit are not: each names a record that a link can outlive.
 	 */
-	adding: boolean
+	adding: RecordKind | null
 }
+
+/**
+ * The records the open panel stands for, by id, per kind. One point on the map
+ * can stand for places and trips together, so a panel can hold both kinds.
+ */
+export type PlaceSelection = Readonly<Record<RecordKind, readonly string[]>>
+
+/** The selection of a closed panel. */
+export const NOTHING_SELECTED: PlaceSelection = { places: [], trips: [] }
+
+/** The ids of every record of a selection, the places first. */
+export function selectedIds(selected: PlaceSelection): string[] {
+	return [...selected.places, ...selected.trips]
+}
+
+/** The key of the address that holds each kind of selection, and each kind's form. */
+const KIND_KEY: Readonly<Record<RecordKind, string>> = { places: 'place', trips: 'trip' }
 
 /**
  * The step of the open panel: the place that the reader went into from its
@@ -148,16 +168,21 @@ export function readFilter(params: URLSearchParams): PlaceFilterValue {
 
 	const spans = readSpans(params)
 
+	const show = list(params, 'show').filter((kind): kind is RecordKind =>
+		RECORD_KINDS.includes(kind as RecordKind),
+	)
+
 	return {
 		...(categories.length > 0 ? { categories } : {}),
+		...(show.length > 0 ? { show } : {}),
 		...(paint === 'visited' || paint === 'unvisited' ? { visitedRegions: paint } : {}),
 		...(spans.length > 0 ? { visited: spans } : {}),
 	}
 }
 
-/** The places the open panel stands for. */
-export function readSelected(params: URLSearchParams): readonly string[] {
-	return list(params, 'place')
+/** The records the open panel stands for, of both kinds. */
+export function readSelected(params: URLSearchParams): PlaceSelection {
+	return { places: list(params, KIND_KEY.places), trips: list(params, KIND_KEY.trips) }
 }
 
 /**
@@ -165,7 +190,7 @@ export function readSelected(params: URLSearchParams): readonly string[] {
  * a step with no `place` beside it is dropped.
  */
 export function readStep(params: URLSearchParams): PlacePanelStep {
-	if (readSelected(params).length === 0) return PANEL_START
+	if (selectedIds(readSelected(params)).length === 0) return PANEL_START
 
 	return {
 		opened: text(params, 'open') ?? null,
@@ -173,9 +198,11 @@ export function readStep(params: URLSearchParams): PlacePanelStep {
 	}
 }
 
-/** Whether the form for a new place is open. Only `true` opens it. */
-export function readAdding(params: URLSearchParams): boolean {
-	return text(params, 'add') === 'true'
+/** The kind of record whose form for a new one is open, or `null`. */
+export function readAdding(params: URLSearchParams): RecordKind | null {
+	const add = text(params, 'add')
+
+	return RECORD_KINDS.find((kind) => KIND_KEY[kind] === add) ?? null
 }
 
 /**
@@ -201,6 +228,16 @@ function writeStep(params: URLSearchParams, { opened, widened }: PlacePanelStep)
 	if (opened !== null) params.set('open', opened)
 
 	if (widened) params.set('list', WIDENED)
+}
+
+/** Writes the records of the open panel, each kind under its own key, and the step of the panel. */
+function writeSelected(params: URLSearchParams, selected: PlaceSelection, step: PlacePanelStep) {
+	for (const kind of RECORD_KINDS) {
+		for (const id of selected[kind]) params.append(KIND_KEY[kind], id)
+	}
+
+	// Only beside a record, because a step is a step of the panel that it opens.
+	if (selectedIds(selected).length > 0) writeStep(params, step)
 }
 
 /**
@@ -230,18 +267,17 @@ export function writeLocation({
 
 	for (const category of filter.categories ?? []) params.append('category', category)
 
+	for (const kind of filter.show ?? []) params.append('show', kind)
+
 	if (filter.visitedRegions !== undefined) params.set('paint', filter.visitedRegions)
 
 	for (const span of filter.visited ?? []) {
 		params.append('when', `${toDay(span.from)}..${toDay(span.to)}`)
 	}
 
-	for (const id of selected) params.append('place', id)
+	writeSelected(params, selected, step)
 
-	// Only beside a place, because a step is a step of the panel that it opens.
-	if (selected.length > 0) writeStep(params, step)
-
-	if (adding) params.set('add', 'true')
+	if (adding !== null) params.set('add', KIND_KEY[adding])
 
 	return params
 }

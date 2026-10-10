@@ -1,5 +1,5 @@
 import type { DatePickerRelativeValue } from 'ui/date-picker'
-import type { Place, PlaceCategory } from '../types'
+import type { Place, PlaceCategory, RecordKind, Trip } from '../types'
 
 /**
  * Which regions the map paints as visited, or neither of them.
@@ -13,6 +13,11 @@ export type PlaceVisitFilter = 'visited' | 'unvisited'
 /** What the filter bar holds. An absent field filters nothing, which is what an empty bar does. */
 export type PlaceFilterValue = {
 	categories?: PlaceCategory[]
+	/**
+	 * The kinds of record the map draws. Absent draws both, which is the default
+	 * the Show field opens on, so the default writes nothing to the address.
+	 */
+	show?: RecordKind[]
 	/** Which regions carry the visited paint. See {@link PlaceVisitFilter}. */
 	visitedRegions?: PlaceVisitFilter
 	/**
@@ -104,4 +109,30 @@ export function filterPlaces(places: readonly Place[], filter: PlaceFilterValue)
 
 		return true
 	})
+}
+
+/**
+ * Whether the bar draws one kind of record.
+ *
+ * The Show field exists only while the reader has a trip, so `hasTrips` is
+ * asked as well: while there is no trip, the field cannot be seen, and a kind
+ * it holds from an old link must not hide the places.
+ */
+export function showsKind(filter: PlaceFilterValue, kind: RecordKind, hasTrips: boolean): boolean {
+	return !hasTrips || filter.show === undefined || filter.show.includes(kind)
+}
+
+/**
+ * The trips a filter admits, in the order they were given. The categories
+ * belong to places, so they narrow no trip. A span admits a trip whose days
+ * overlap it.
+ */
+export function filterTrips(trips: readonly Trip[], filter: PlaceFilterValue): Trip[] {
+	const { visited } = filter
+
+	if (visited === undefined || visited.length === 0) return [...trips]
+
+	return trips.filter((trip) =>
+		visited.some((range) => trip.startsOn <= toDay(range.to) && trip.endsOn >= toDay(range.from)),
+	)
 }

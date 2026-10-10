@@ -70,7 +70,17 @@ export function overlaySwatchClass(
 	colors: ReadonlyMap<string, MapSeriesColor>,
 	id: string,
 ): string {
-	return cn(...k.series[colors.get(id) ?? 'blue'].text)
+	return seriesSwatchClass(colors.get(id) ?? 'blue')
+}
+
+/**
+ * The currentColor class of a swatch in one series color. The tooltip reads it
+ * for a stop that has a color of its own.
+ *
+ * @internal
+ */
+export function seriesSwatchClass(color: MapSeriesColor): string {
+	return cn(...k.series[color].text)
 }
 
 /**

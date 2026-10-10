@@ -24,7 +24,7 @@ import { triggerLabel } from './file-upload-utilities'
 export function FileUploadButton(props: FileUploadButtonProps) {
 	const state = useFileUploadState(props)
 
-	const { accept, multiple, className, children, size, color } = props
+	const { accept, multiple, className, children, size, color, variant } = props
 	const { control, disabled, invalid, inputRef, hasFiles, handleChange, openPicker, clearFiles } =
 		state
 
@@ -58,6 +58,7 @@ export function FileUploadButton(props: FileUploadButtonProps) {
 				type="button"
 				size={size}
 				color={color}
+				variant={variant}
 				disabled={disabled}
 				className={cn(k.cursor)}
 				onClick={openPicker}

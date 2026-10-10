@@ -156,8 +156,11 @@ export type SummaryDrawerProps<T extends Located> = {
 	 * drawer keys the list on its identity.
 	 */
 	narrow: (list: readonly T[]) => readonly T[]
-	/** What several of the records are called, for the count that names a list with no region. */
-	noun: string
+	/**
+	 * The count that names a list with no region, such as `3 places`. Held by
+	 * the caller, because the trail is keyed on its identity.
+	 */
+	count: (shown: readonly T[]) => string
 	/** The menu of the open record, beside the close. */
 	menu: (item: T) => ReactNode
 	/** The body of the drawer over one record. */
@@ -167,8 +170,17 @@ export type SummaryDrawerProps<T extends Located> = {
 }
 
 /**
- * The glass drawer that shows what a dot stands for: a list of records, or one
- * record. The caller gives the bodies; the drawer owns the trail, the step,
+ * The props that place the drawer: what it stands for, where, and on which
+ * step. The nearby drawer takes these and gives the bodies.
+ */
+export type SummaryFrame<T extends Located> = Pick<
+	SummaryDrawerProps<T>,
+	'items' | 'trail' | 'regionItems' | 'step' | 'onStepChange' | 'onOpenChange' | 'onNavigate'
+>
+
+/**
+ * The glass drawer that shows what a point stands for: a list of records, or
+ * one record. The caller gives the bodies; the drawer owns the trail, the step,
  * and the size.
  *
  * It is as tall as the step it is showing. One record leaves most of the map
@@ -199,7 +211,7 @@ export function SummaryDrawer<T extends Located>({
 	onOpenChange,
 	onNavigate,
 	narrow,
-	noun,
+	count,
 	menu,
 	details,
 	list,
@@ -240,10 +252,7 @@ export function SummaryDrawer<T extends Located>({
 	//
 	// Held, because the fallback is a fresh array every render and the steps below
 	// are keyed on this one: rebuilt each time, the memo under it never holds.
-	const where = useMemo(
-		() => (trail.length > 0 ? trail : [`${shown.length} ${noun}`]),
-		[trail, shown.length, noun],
-	)
+	const where = useMemo(() => (trail.length > 0 ? trail : [count(shown)]), [trail, shown, count])
 
 	const steps = useMemo(
 		() =>

@@ -26,6 +26,9 @@ export const instant = false
  * only hold a shape where the server already knows the answer. The set is small:
  * at most one name for each region the reader marked.
  *
+ * It reads the trips the same way, for the same reason: the Show filter, My
+ * trips, and the trip squares must be right on the first frame.
+ *
  * It reads the places of the user in the same way, the same list that
  * `/api/places` gives. The filter bar shows only when there are places, so the
  * app must know the list on the first frame. If not, the bar comes in when the
@@ -44,12 +47,13 @@ export default async function Page() {
 
 	// The visits only while the visited regions feature is on, because nothing
 	// else reads them.
-	const [places = [], visits = { states: [], countries: [] }] = await Promise.all([
+	const [places = [], trips = [], visits = { states: [], countries: [] }] = await Promise.all([
 		requireGateway('/api/places', () => mimir.GET('/api/places')),
+		requireGateway('/api/trips', () => mimir.GET('/api/trips')),
 		flags.visitedRegions
 			? requireGateway('/api/visits', () => mimir.GET('/api/visits'))
 			: undefined,
 	])
 
-	return <PlacesApp user={user} places={seed(places)} visits={seed(visits)} />
+	return <PlacesApp user={user} places={seed(places)} trips={seed(trips)} visits={seed(visits)} />
 }

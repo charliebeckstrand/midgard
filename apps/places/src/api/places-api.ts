@@ -1,11 +1,21 @@
 import { unwrap } from 'shared/auth'
 import { createMimirClient } from 'shared/mimir'
-import type { Place, PlaceDraft, VisitScope, Visits } from '../types'
+import type {
+	PhotoType,
+	Place,
+	PlaceDraft,
+	Trip,
+	TripDraft,
+	TripStop,
+	VisitScope,
+	Visits,
+} from '../types'
 
 /**
- * The client's whole reach: same-origin `/api/*` paths, per CONVENTIONS §6.3.
- * Nothing else in the app fetches. The places and the visits go through the
- * gateway to Mimir, in asgard, whose spec types {@link mimir}.
+ * The client's whole reach: same-origin `/api/*` paths, per CONVENTIONS §6.3,
+ * and the upload addresses that Mimir signs. Nothing else in the app fetches.
+ * The places and the visits go through the gateway to Mimir, in asgard, whose
+ * spec types {@link mimir}.
  */
 
 const mimir = createMimirClient()
@@ -30,6 +40,32 @@ export async function deletePlace(id: string): Promise<void> {
 	await unwrap(mimir.DELETE('/api/places/{id}', { params: { path: { id } } }))
 }
 
+/** Every stored trip, newest first. */
+export function fetchTrips(signal?: AbortSignal): Promise<Trip[]> {
+	return unwrap(mimir.GET('/api/trips', { signal }))
+}
+
+/**
+ * Adds one trip with its places, in one write, and hands back the stored trip
+ * and the places that its stops added or changed.
+ */
+export function createTrip(
+	draft: TripDraft,
+	stops: TripStop[],
+): Promise<{ trip: Trip; places: Place[] }> {
+	return unwrap(mimir.POST('/api/trips', { body: { ...draft, stops } }))
+}
+
+/** Replaces the fields of one trip and hands back the stored record. */
+export function saveTrip(id: string, draft: TripDraft): Promise<Trip> {
+	return unwrap(mimir.PUT('/api/trips/{id}', { params: { path: { id } }, body: draft }))
+}
+
+/** Removes one trip. Its places and their visits stay. */
+export async function deleteTrip(id: string): Promise<void> {
+	await unwrap(mimir.DELETE('/api/trips/{id}', { params: { path: { id } } }))
+}
+
 /** Every visited region, by the name its own atlas gives it. */
 export function fetchVisits(signal?: AbortSignal): Promise<Visits> {
 	return unwrap(mimir.GET('/api/visits', { signal }))
@@ -43,4 +79,44 @@ export function setVisit(scope: VisitScope, region: string, visited: boolean): P
 			body: { visited },
 		}),
 	)
+}
+
+/** The file types that a photo upload takes, as an `accept` list. */
+export const PHOTO_TYPES: readonly PhotoType[] = ['image/jpeg', 'image/png', 'image/webp']
+
+/** The file types that a photo upload takes, in words. */
+export const PHOTO_TYPE_NAMES = 'JPEG, PNG, or WebP image'
+
+/** The largest photo that an upload takes, in megabytes: the limit that Mimir sets. */
+export const MAX_PHOTO_MB = 15
+
+/** The largest photo that an upload takes, in bytes. */
+export const MAX_PHOTO_BYTES = MAX_PHOTO_MB * 1024 * 1024
+
+/** Whether a file is of a type that a photo upload takes. */
+function isPhotoType(type: string): type is PhotoType {
+	return (PHOTO_TYPES as readonly string[]).includes(type)
+}
+
+/**
+ * Uploads one photo and gives its object key. Mimir signs an address for the
+ * file, and the file goes to that address in the photo store, not through the
+ * gateway: a photo can be large, and the gateway has no part in what it holds.
+ */
+export async function uploadPhoto(file: File): Promise<string> {
+	if (!isPhotoType(file.type)) throw new Error(`${file.name} is not a ${PHOTO_TYPE_NAMES}.`)
+
+	const { key, uploadUrl } = await unwrap(
+		mimir.POST('/api/photos/uploads', { body: { contentType: file.type, size: file.size } }),
+	)
+
+	const response = await fetch(uploadUrl, {
+		method: 'PUT',
+		body: file,
+		headers: { 'Content-Type': file.type },
+	})
+
+	if (!response.ok) throw new Error(`${file.name} did not upload. Try again.`)
+
+	return key
 }

@@ -1,11 +1,11 @@
 'use client'
 
-import { useRef } from 'react'
 import { AddressInput, type AddressSuggestion } from 'ui/address-input'
 import { Field, Label, Message } from 'ui/fieldset'
 import { useFormActions } from 'ui/form'
-import { addressLine } from './place-form'
+import { addressLine } from './location-form'
 import { placeGeocoder } from './place-geocoder'
+import { useNameFill } from './use-name-fill'
 
 /**
  * The search field: one control that fills five of the form's fields.
@@ -17,20 +17,13 @@ import { placeGeocoder } from './place-geocoder'
  *
  * A pick always writes the address and the coordinates, because they and the
  * match must agree: the match is the position, and the address says where that
- * position is. The name is different. The name the reader searched for is the
- * name they mean, so a pick writes it, but it leaves a name the reader typed. It
- * replaces a name that an earlier pick wrote, so picking the wrong business and
- * then the right one ends with the right name. A plain address names nothing, so
- * a pick of one leaves the name alone.
+ * position is. The name is different: {@link useNameFill} writes it only over a
+ * name that the reader did not type.
  */
 export function PlaceSearchField() {
 	const actions = useFormActions()
 
-	// The last name this field wrote. It is what parts a name the reader typed —
-	// which a second pick must leave alone — from one an earlier pick wrote, which
-	// a second pick must replace. It cannot be derived from the selection: a clear
-	// drops the place and leaves the name behind.
-	const filled = useRef<string | null>(null)
+	const fillName = useNameFill()
 
 	function fill(place: AddressSuggestion | null) {
 		if (place === null) return
@@ -43,15 +36,7 @@ export function PlaceSearchField() {
 			actions?.setValue('longitude', String(place.longitude))
 		}
 
-		if (place.name === undefined) return
-
-		const named = String(actions?.getValue('name') ?? '').trim()
-
-		if (named !== '' && named !== filled.current) return
-
-		filled.current = place.name
-
-		actions?.setValue('name', place.name)
+		fillName(place)
 	}
 
 	return (

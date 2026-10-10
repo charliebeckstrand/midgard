@@ -8,7 +8,7 @@ import { Icon } from 'ui/icon'
 import { Input } from 'ui/input'
 import { Columns } from 'ui/structure/columns'
 import { Stack } from 'ui/structure/stack'
-import type { LocateBy } from './place-form'
+import type { LocateBy } from './location-form'
 
 /**
  * The address field. A pick in the search fills it, and the reader can type it

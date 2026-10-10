@@ -2,11 +2,14 @@
 
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useCallback, useMemo, useState } from 'react'
+import type { RecordKind } from '../../types'
 import type { PlaceFilterValue } from '../../utilities/places-filter'
 import {
+	NOTHING_SELECTED,
 	PANEL_START,
 	type PlaceLocation,
 	type PlacePanelStep,
+	type PlaceSelection,
 	readAdding,
 	readFilter,
 	readSelected,
@@ -34,10 +37,10 @@ export type PlaceLocationHandle = PlaceLocation & {
 	/** Narrows the bar, without a history entry of its own. */
 	setFilter: (filter: PlaceFilterValue) => void
 	/**
-	 * Opens the panel on some places, or closes it with an empty list. The panel
-	 * opens at its start, whatever step it was on before.
+	 * Opens the panel on some records, or closes it with an empty selection. The
+	 * panel opens at its start, whatever step it was on before.
 	 */
-	setSelected: (selected: readonly string[]) => void
+	setSelected: (selected: PlaceSelection) => void
 	/** Moves the open panel to a step of its trail, as a step the reader can walk back out of. */
 	setStep: (step: PlacePanelStep) => void
 	/**
@@ -47,7 +50,12 @@ export type PlaceLocationHandle = PlaceLocation & {
 	 * leave a history entry standing on a map the reader never saw, and the second
 	 * would be composed against the address the first had not yet landed.
 	 */
-	openAt: (view: PlaceView, selected: readonly string[]) => void
+	openAt: (view: PlaceView, selected: PlaceSelection) => void
+	/**
+	 * The address that {@link openAt} writes for the same view and selection,
+	 * for a link that opens it from a new tab.
+	 */
+	hrefOf: (view: PlaceView, selected: PlaceSelection) => string
 	/**
 	 * States the view the opening rule settled on, without a history entry.
 	 *
@@ -58,10 +66,11 @@ export type PlaceLocationHandle = PlaceLocation & {
 	 */
 	settleView: (view: PlaceView) => void
 	/**
-	 * Opens or closes the form for a new place, without a history entry. A step
-	 * would let Back open the form again after a submit.
+	 * Opens the form for a new record of one kind, or closes it with `null`,
+	 * without a history entry. A step would let Back open the form again after a
+	 * submit.
 	 */
-	setAdding: (adding: boolean) => void
+	setAdding: (adding: RecordKind | null) => void
 }
 
 /**
@@ -130,11 +139,18 @@ export function usePlaceLocation(): PlaceLocationHandle {
 
 	// Takes the parts that move and composes them over the parts that do not, so
 	// each setter below states its own change and nothing else.
-	const write = useCallback(
-		(next: Partial<PlaceLocation>, entry: PlaceStep) => {
+	const compose = useCallback(
+		(next: Partial<PlaceLocation>) => {
 			const query = writeLocation({ ...location, ...next }).toString()
 
-			const href = query === '' ? pathname : `${pathname}?${query}`
+			return query === '' ? pathname : `${pathname}?${query}`
+		},
+		[location, pathname],
+	)
+
+	const write = useCallback(
+		(next: Partial<PlaceLocation>, entry: PlaceStep) => {
+			const href = compose(next)
 
 			// The History API, not the router. The page reads the session and the
 			// places on the server, and a router step runs the page again: each
@@ -147,20 +163,25 @@ export function usePlaceLocation(): PlaceLocationHandle {
 			if (entry === 'walk') window.history.pushState(null, '', href)
 			else window.history.replaceState(null, '', href)
 		},
-		[location, pathname],
+		[compose],
 	)
 
 	const openAt = useCallback(
-		(view: PlaceView, selected: readonly string[]) =>
+		(view: PlaceView, selected: PlaceSelection) =>
 			write({ view, selected, step: PANEL_START }, 'walk'),
 		[write],
+	)
+
+	const hrefOf = useCallback(
+		(view: PlaceView, selected: PlaceSelection) => compose({ view, selected, step: PANEL_START }),
+		[compose],
 	)
 
 	const setView = useCallback(
 		// The open panel is left behind by design: a place picked in one region is
 		// not what the reader is looking at once they have gone somewhere else — so
 		// pointing the map is opening it on nothing.
-		(view: PlaceView) => openAt(view, []),
+		(view: PlaceView) => openAt(view, NOTHING_SELECTED),
 		[openAt],
 	)
 
@@ -168,10 +189,10 @@ export function usePlaceLocation(): PlaceLocationHandle {
 
 	const setFilter = useCallback((filter: PlaceFilterValue) => write({ filter }, 'stay'), [write])
 
-	const setAdding = useCallback((adding: boolean) => write({ adding }, 'stay'), [write])
+	const setAdding = useCallback((adding: RecordKind | null) => write({ adding }, 'stay'), [write])
 
 	const setSelected = useCallback(
-		(selected: readonly string[]) => write({ selected, step: PANEL_START }, 'walk'),
+		(selected: PlaceSelection) => write({ selected, step: PANEL_START }, 'walk'),
 		[write],
 	)
 
@@ -189,6 +210,7 @@ export function usePlaceLocation(): PlaceLocationHandle {
 		setStep,
 		settleView,
 		openAt,
+		hrefOf,
 		setAdding,
 	}
 }
