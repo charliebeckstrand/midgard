@@ -120,13 +120,13 @@ describe('regionSource', () => {
 	const source = regionSource({
 		countries: ['Georgia', 'Japan'],
 		states: ['Georgia', 'Oregon'],
-		countryPlaces: new Map([['Japan', [place('a'), place('b')]]]),
-		statePlaces: new Map([['Georgia', [place('c')]]]),
+		countryRecords: new Map([['Japan', [place('a'), place('b'), trip('t')]]]),
+		stateRecords: new Map([['Georgia', [place('c')]]]),
 		goTo,
 		preload,
 	})
 
-	it('lists a country and a state of the same name apart, with their counts', () => {
+	it('lists a country and a state of the same name apart, with their counts of places', () => {
 		const georgias = matchCommands(source, 'georgia').map((command) => command.description)
 
 		expect(georgias).toEqual(['Country', 'US state · 1 place'])

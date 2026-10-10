@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
+	drawnRecords,
 	isTrip,
 	placeCount,
 	placesByTrip,
-	placesOffTrips,
 	recordCount,
 	sortTrips,
 	withinTrip,
@@ -70,8 +70,8 @@ describe('withinTrip', () => {
 	})
 })
 
-describe('placesOffTrips', () => {
-	it('keeps the places that no visit puts on one of the trips', () => {
+describe('drawnRecords', () => {
+	it('draws the trips and the places on no drawn trip, and stands a place at its trip', () => {
 		const lisbon = trip('lisbon')
 
 		const onTrip = place('tower', {
@@ -87,9 +87,13 @@ describe('placesOffTrips', () => {
 
 		const offTrip = place('market')
 
-		expect(placesOffTrips([onTrip, onOtherTrip, offTrip], [lisbon])).toEqual([onOtherTrip, offTrip])
+		const drawn = drawnRecords([onTrip, onOtherTrip, offTrip], [lisbon])
 
-		expect(placesOffTrips([onTrip, offTrip], [])).toEqual([onTrip, offTrip])
+		expect(drawn.records).toEqual([lisbon, onOtherTrip, offTrip])
+
+		expect(Object.fromEntries(drawn.drawnAt)).toEqual({ lisbon: 0, tower: 0, cafe: 1, market: 2 })
+
+		expect(drawnRecords([onTrip, offTrip], []).records).toEqual([onTrip, offTrip])
 	})
 })
 

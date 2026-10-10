@@ -74,17 +74,22 @@ export function useTrips(initial: Seed<Trip[]>) {
 }
 
 /**
- * `written` merged into `places`: a stored place takes the place of its old
- * record, and a new one goes first, as a new place does on an add.
+ * `written` merged into a cached list: a stored record takes the position of
+ * its old copy, and a new one goes first, as a new record does on an add.
  */
-export function mergePlaces(places: readonly Place[], written: readonly Place[]): Place[] {
-	const byId = new Map(written.map((place) => [place.id, place]))
+export function mergeById<T extends { id: string }>(
+	held: readonly T[] | undefined,
+	written: readonly T[],
+): T[] {
+	const list = held ?? []
 
-	const kept = places.map((place) => byId.get(place.id) ?? place)
+	const byId = new Map(written.map((record) => [record.id, record]))
 
-	const known = new Set(places.map((place) => place.id))
+	const kept = list.map((record) => byId.get(record.id) ?? record)
 
-	return [...written.filter((place) => !known.has(place.id)), ...kept]
+	const known = new Set(list.map((record) => record.id))
+
+	return [...written.filter((record) => !known.has(record.id)), ...kept]
 }
 
 /**
@@ -101,9 +106,9 @@ export function useAddTrip() {
 		// The form shows the error.
 		meta: { inlineError: true },
 		onSuccess: ({ trip, places }) => {
-			client.setQueryData<Trip[]>(placesKeys.trips, (trips) => [trip, ...(trips ?? [])])
+			client.setQueryData<Trip[]>(placesKeys.trips, (trips) => mergeById(trips, [trip]))
 
-			client.setQueryData<Place[]>(placesKeys.all, (held) => mergePlaces(held ?? [], places))
+			client.setQueryData<Place[]>(placesKeys.all, (held) => mergeById(held, places))
 		},
 	})
 }
@@ -117,9 +122,7 @@ export function useSaveTrip() {
 		// The form shows the error.
 		meta: { inlineError: true },
 		onSuccess: (trip) => {
-			client.setQueryData<Trip[]>(placesKeys.trips, (trips) =>
-				(trips ?? []).map((held) => (held.id === trip.id ? trip : held)),
-			)
+			client.setQueryData<Trip[]>(placesKeys.trips, (trips) => mergeById(trips, [trip]))
 		},
 	})
 }
@@ -244,7 +247,7 @@ export function useAddPlace() {
 		// The form shows the error.
 		meta: { inlineError: true },
 		onSuccess: (place) => {
-			client.setQueryData<Place[]>(placesKeys.all, (places) => [place, ...(places ?? [])])
+			client.setQueryData<Place[]>(placesKeys.all, (places) => mergeById(places, [place]))
 		},
 	})
 }
@@ -261,9 +264,7 @@ export function useSavePlace() {
 		// The form shows the error.
 		meta: { inlineError: true },
 		onSuccess: (place) => {
-			client.setQueryData<Place[]>(placesKeys.all, (places) =>
-				(places ?? []).map((held) => (held.id === place.id ? place : held)),
-			)
+			client.setQueryData<Place[]>(placesKeys.all, (places) => mergeById(places, [place]))
 		},
 	})
 }
@@ -300,9 +301,7 @@ export function useDeleteVisit() {
 				placeDraft({ ...place, visits: place.visits.filter((held) => held.id !== visit.id) }),
 			),
 		onSuccess: (place) => {
-			client.setQueryData<Place[]>(placesKeys.all, (places) =>
-				(places ?? []).map((held) => (held.id === place.id ? place : held)),
-			)
+			client.setQueryData<Place[]>(placesKeys.all, (places) => mergeById(places, [place]))
 		},
 	})
 }

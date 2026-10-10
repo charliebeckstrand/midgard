@@ -48,19 +48,6 @@ export function newPhoto(file: File): PhotoEntry {
 }
 
 /**
- * The photos of a visit or of a trip in a form, in their order: the stored
- * photos that it keeps and the new files that a save uploads.
- */
-export type PhotoValues = {
-	photos: PhotoEntry[]
-}
-
-/** The photo field over stored photos. */
-export function photoValues(photos: readonly Photo[]): PhotoValues {
-	return { photos: [...photos] }
-}
-
-/**
  * What the place form holds while it is being filled, which is not what the store
  * takes. The form works in the shapes its controls emit — a suggestion
  * object, a `Date` — and `toPlaceDraft` turns those into the record.
@@ -71,17 +58,21 @@ export function photoValues(photos: readonly Photo[]): PhotoValues {
  * `undefined` on the way in, so a validator that tested only for `null` read a
  * cleared field as filled and then dereferenced it.
  */
-export type PlaceValues = LocationValues &
-	PhotoValues & {
-		name: string
-		category?: PlaceCategory
-		url: string
-		visitedAt?: Date
-		/** The id of the trip that the visit was on, or `undefined` for none. */
-		tripId?: string
-		rating: number
-		review: string
-	}
+export type PlaceValues = LocationValues & {
+	/**
+	 * The photos of the visit, in their order: the stored photos that it keeps
+	 * and the new files that a save uploads.
+	 */
+	photos: PhotoEntry[]
+	name: string
+	category?: PlaceCategory
+	url: string
+	visitedAt?: Date
+	/** The id of the trip that the visit was on, or `undefined` for none. */
+	tripId?: string
+	rating: number
+	review: string
+}
 
 /**
  * Per-field validators, in the shape `Form` takes, for a reader with `trips`.
@@ -195,7 +186,7 @@ export function toVisitPlaceDraft(
  *
  * @param trip - The trip of a new visit.
  */
-export function toVisitValues(
+function toVisitValues(
 	visit: Visit | null,
 	trip?: Trip,
 ): Pick<PlaceValues, 'visitedAt' | 'tripId' | 'rating' | 'photos' | 'review'> {
@@ -204,7 +195,7 @@ export function toVisitValues(
 			visitedAt: trip === undefined ? new Date() : fromDay(trip.startsOn),
 			tripId: trip?.id,
 			rating: 0,
-			...photoValues([]),
+			photos: [],
 			review: '',
 		}
 	}
@@ -213,7 +204,7 @@ export function toVisitValues(
 		visitedAt: fromDay(visit.visitedAt),
 		tripId: visit.tripId,
 		rating: visit.rating,
-		...photoValues(visit.photos),
+		photos: [...visit.photos],
 		review: visit.review ?? '',
 	}
 }

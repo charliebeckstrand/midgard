@@ -15,7 +15,7 @@ export function latestVisit(place: Place): Visit {
  * A stored visit as the draft that writes it back unchanged. A stored photo
  * reads as its key and an address, and a draft names a photo by its key alone.
  */
-export function visitDraft(visit: Visit): VisitDraft {
+function visitDraft(visit: Visit): VisitDraft {
 	return { ...visit, photos: visit.photos.map((photo) => photo.key) }
 }
 

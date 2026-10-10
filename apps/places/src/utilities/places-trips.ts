@@ -11,7 +11,7 @@ export function placesByTrip(places: readonly Place[]): Map<string, Place[]> {
 	const byTrip = new Map<string, Place[]>()
 
 	for (const place of places) {
-		const trips = new Set(place.visits.flatMap((visit) => visit.tripId ?? []))
+		const trips = new Set(tripIdsOf(place))
 
 		for (const id of trips) {
 			const list = byTrip.get(id)
@@ -54,19 +54,38 @@ export function isTrip(record: MapRecord): record is Trip {
 	return 'startsOn' in record
 }
 
+/** The ids of the trips that a place is on: the trips that its visits name. */
+export function tripIdsOf(place: Place): string[] {
+	return place.visits.flatMap((visit) => visit.tripId ?? [])
+}
+
 /**
- * The places that are on none of `trips`. While the map draws a trip, the trip
- * is the one point for its places, so the map draws only the places that are
- * not on a drawn trip.
+ * The records that the map draws, the trips first, and the index of the point
+ * that stands for each record. While the map draws a trip, the trip is the one
+ * point for its places: a place on a drawn trip is not drawn, and it stands at
+ * the point of its trip.
  */
-export function placesOffTrips(places: readonly Place[], trips: readonly Trip[]): Place[] {
-	if (trips.length === 0) return [...places]
+export function drawnRecords(
+	places: readonly Place[],
+	trips: readonly Trip[],
+): { records: MapRecord[]; drawnAt: ReadonlyMap<string, number> } {
+	const tripAt = new Map(trips.map((trip, index) => [trip.id, index]))
 
-	const drawn = new Set(trips.map((trip) => trip.id))
+	const drawnAt = new Map(tripAt)
 
-	return places.filter(
-		(place) => !place.visits.some((visit) => visit.tripId !== undefined && drawn.has(visit.tripId)),
-	)
+	const records: MapRecord[] = [...trips]
+
+	for (const place of places) {
+		const onTrip = tripIdsOf(place)
+			.map((id) => tripAt.get(id))
+			.find((index) => index !== undefined)
+
+		drawnAt.set(place.id, onTrip ?? records.length)
+
+		if (onTrip === undefined) records.push(place)
+	}
+
+	return { records, drawnAt }
 }
 
 /** A number of places, such as `1 place` or `3 places`. */

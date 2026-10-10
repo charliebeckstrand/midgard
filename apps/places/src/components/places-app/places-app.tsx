@@ -59,7 +59,14 @@ import {
 import { PlaceFilters } from '../place-filters'
 import type { PlaceFormTarget, TripFormTarget } from '../place-form-drawer'
 import type { PlaceActions, TripActions, VisitActions } from '../place-menu'
-import { actionSource, PlacePalette, placeSource, regionSource, tripSource } from '../place-palette'
+import {
+	type ActionSourceInput,
+	actionSource,
+	PlacePalette,
+	placeSource,
+	regionSource,
+	tripSource,
+} from '../place-palette'
 import type { TripLink } from '../place-summary'
 import { PlaceTrail, type PlaceTrailStep } from '../place-trail'
 import { PlacesMap } from '../places-map'
@@ -127,7 +134,7 @@ const REGION_LABEL = {
  */
 function inRegion<T extends Located>(
 	filtered: T[],
-	byRegion: ReadonlyMap<string, readonly T[]>,
+	byRegion: ReadonlyMap<string, readonly Located[]>,
 	cut: string | null,
 ): T[] {
 	if (cut === null) return filtered
@@ -281,58 +288,6 @@ function only(kind: RecordKind, record: Located): PlaceSelection {
 	return { ...NOTHING_SELECTED, [kind]: [record.id] }
 }
 
-/** Two maps of ids as one. The ids of places and trips are distinct, so neither hides the other. */
-function mergeIds(
-	left: ReadonlyMap<string, string>,
-	right: ReadonlyMap<string, string>,
-): Map<string, string> {
-	return new Map([...left, ...right])
-}
-
-/** Two maps of records by region as one. The places of a region come before its trips. */
-function mergeRegions(
-	left: ReadonlyMap<string, readonly Place[]>,
-	right: ReadonlyMap<string, readonly Trip[]>,
-): Map<string, MapRecord[]> {
-	const merged = new Map<string, MapRecord[]>(
-		[...left].map(([region, held]) => [region, [...held]]),
-	)
-
-	for (const [region, held] of right) merged.set(region, [...(merged.get(region) ?? []), ...held])
-
-	return merged
-}
-
-/**
- * The groupings of both kinds as one. A point of the map can stand for places
- * and trips together, so the panel over it reads its trail and its region
- * list from both kinds; the view the app opens on and the regions the picker
- * offers read where the reader has been at all.
- */
-function useRecordGroupings(
-	places: Groupings<Place>,
-	trips: Groupings<Trip>,
-): Groupings<MapRecord> {
-	const byState = useMemo(
-		() => mergeRegions(places.byState, trips.byState),
-		[places.byState, trips.byState],
-	)
-
-	const states = useMemo(() => mergeIds(places.states, trips.states), [places.states, trips.states])
-
-	const byCountry = useMemo(
-		() => mergeRegions(places.byCountry, trips.byCountry),
-		[places.byCountry, trips.byCountry],
-	)
-
-	const countries = useMemo(
-		() => mergeIds(places.countries, trips.countries),
-		[places.countries, trips.countries],
-	)
-
-	return { byState, states, byCountry, countries }
-}
-
 /**
  * The props of a map for `view`, from the same sources as the map that shows:
  * the atlas that the view draws, the filtered records in its cut, and the
@@ -342,8 +297,9 @@ function mapForView<Regions>(
 	view: PlaceView,
 	sources: {
 		atlases: (atlas: PlaceAtlas) => Regions
-		places: { groupings: Groupings<Place>; filtered: Place[] }
-		trips: { groupings: Groupings<Trip>; filtered: Trip[] }
+		groupings: Groupings<MapRecord>
+		places: Place[]
+		trips: Trip[]
 		visits: Visits
 	},
 ) {
@@ -351,13 +307,13 @@ function mapForView<Regions>(
 
 	const cut = viewRegion(view)
 
-	const { places, trips } = sources
+	const { byRegion } = drawnGrouping(sources.groupings, at)
 
 	return {
 		view,
 		regions: sources.atlases(at),
-		places: inRegion(places.filtered, drawnGrouping(places.groupings, at).byRegion, cut),
-		trips: inRegion(trips.filtered, drawnGrouping(trips.groupings, at).byRegion, cut),
+		places: inRegion(sources.places, byRegion, cut),
+		trips: inRegion(sources.trips, byRegion, cut),
 		visited: new Set(sources.visits[at]),
 	}
 }
@@ -462,24 +418,24 @@ function usePanelPrefetch(): boolean {
 }
 
 /**
- * The action commands of the palette: add a place or a trip, open the list of
- * each kind that has records, and mark the region of the view as visited.
+ * What the user menu and the palette each offer for the records: add a place
+ * or a trip, and open the list of each kind that has records.
+ */
+type RecordCommands = Pick<ActionSourceInput, 'onAdd' | 'onList' | 'onAddTrip' | 'onListTrips'>
+
+/**
+ * The action commands of the palette: the record commands, and a mark of the
+ * region of the view as visited.
  */
 function useActionCommands({
 	mark,
 	marked,
-	hasPlaces,
-	hasTrips,
-	setAdding,
-	setListing,
+	records,
 	onMark,
 }: {
 	mark: { scope: PlaceAtlas; region: string } | null
 	marked: boolean
-	hasPlaces: boolean
-	hasTrips: boolean
-	setAdding: (adding: RecordKind | null) => void
-	setListing: (listing: RecordKind | null) => void
+	records: RecordCommands
 	onMark: (mark: { scope: PlaceAtlas; region: string; visited: boolean }) => void
 }) {
 	// Keyed on the fields of the mark: `viewMark` gives a new object on each render.
@@ -490,10 +446,7 @@ function useActionCommands({
 	return useMemo(
 		() =>
 			actionSource({
-				onAdd: () => setAdding('places'),
-				onList: hasPlaces ? () => setListing('places') : undefined,
-				onAddTrip: () => setAdding('trips'),
-				onListTrips: hasTrips ? () => setListing('trips') : undefined,
+				...records,
 				mark: markRegion,
 				marked,
 				onMark: (visited) => {
@@ -502,7 +455,7 @@ function useActionCommands({
 					}
 				},
 			}),
-		[hasPlaces, hasTrips, markScope, markRegion, marked, setAdding, setListing, onMark],
+		[records, markScope, markRegion, marked, onMark],
 	)
 }
 
@@ -521,10 +474,7 @@ type PlacesHeaderProps = {
 	cut: string | null
 	/** The number of places and of trips that the bar admits in the cut. */
 	counts: Record<RecordKind, number>
-	/** Whether the store holds a record of each kind, so its list has rows to show. */
-	has: Record<RecordKind, boolean>
-	setAdding: (adding: RecordKind) => void
-	setListing: (listing: RecordKind) => void
+	records: RecordCommands
 }
 
 /** A count for the user menu: only where the view is cut to one region, and only above zero. */
@@ -545,9 +495,7 @@ function PlacesHeader({
 	paletteSources,
 	cut,
 	counts,
-	has,
-	setAdding,
-	setListing,
+	records,
 }: PlacesHeaderProps) {
 	return (
 		<Flex
@@ -599,19 +547,14 @@ function PlacesHeader({
 
 				<AppearanceSettings />
 
-				{/* A list item shows only once there is a list to read. Over an empty
-					    store it would open on an empty sheet.
-					    A count shows only where the view is cut to one region, because it
+				{/* A count shows only where the view is cut to one region, because it
 					    is the count of that region: the length of the list of the bar,
 					    narrowed to the cut. */}
 				<UserMenu
 					user={user}
 					count={cutCount(cut, counts.places)}
-					onAdd={() => setAdding('places')}
-					onList={has.places ? () => setListing('places') : undefined}
 					tripCount={cutCount(cut, counts.trips)}
-					onAddTrip={() => setAdding('trips')}
-					onListTrips={has.trips ? () => setListing('trips') : undefined}
+					{...records}
 				/>
 			</Flex>
 		</Flex>
@@ -821,31 +764,23 @@ export function PlacesApp({
 		[removeTrip, setForm, setTripForm],
 	)
 
-	// Where each record is, per kind. See `useGroupings`.
-	const placeGroups = useGroupings(places)
-
-	const tripGroups = useGroupings(trips)
-
 	// The places of each trip, read off every place, so a trip lists its places
 	// whatever the bar admits.
 	const tripPlaces = useMemo(() => placesByTrip(places), [places])
 
-	// Both kinds as one collection, for the open panel, which can stand for both,
-	// and for the two questions that are about where the reader has been at all:
-	// the view the app opens on, and the regions the picker offers.
+	// Both kinds as one collection, the places first. A point of the map and the
+	// panel over it can stand for both kinds, and the ids of places and trips are
+	// distinct, so one grouping says where each record is.
 	const located = useMemo<MapRecord[]>(() => [...places, ...trips], [places, trips])
 
-	const locatedGroups = useRecordGroupings(placeGroups, tripGroups)
-
-	const locatedStates = locatedGroups.states
-
-	const locatedCountries = locatedGroups.countries
+	// Where each record is. See `useGroupings`.
+	const groups = useGroupings(located)
 
 	// The view: the address's, or the smallest geography this app draws that holds
 	// every record until the address states one. The atlases are in the code and
 	// the records come from the server, so the opening rule reads the whole answer
 	// on the first render.
-	const opening = initialView(locatedStates, located)
+	const opening = initialView(groups.states, located)
 
 	const view = stated ?? opening
 
@@ -892,9 +827,7 @@ export function PlacesApp({
 		[regions],
 	)
 
-	const drawnPlaces = drawnGrouping(placeGroups, atlas)
-
-	const drawnTrips = drawnGrouping(tripGroups, atlas)
+	const drawn = drawnGrouping(groups, atlas)
 
 	// The regions the bar's picker offers. Among countries, only the ones that
 	// hold a record: the palette reaches every other one. Among states the
@@ -904,20 +837,15 @@ export function PlacesApp({
 		() =>
 			atlas === 'states'
 				? regionNames
-				: pickerRegions(regionsHolding(located, locatedCountries), cut),
-		[atlas, regionNames, located, locatedCountries, cut],
+				: pickerRegions(regionsHolding(located, groups.countries), cut),
+		[atlas, regionNames, located, groups.countries, cut],
 	)
 
 	// What the summary drawer stands for: the places and the trips of the picked
 	// point, as one list.
 	const selectedRecords = useMemo(() => selectedIds(selected), [selected])
 
-	const summary = useSummary(
-		selectedRecords,
-		located,
-		locatedGroups,
-		drawnGrouping(locatedGroups, atlas),
-	)
+	const summary = useSummary(selectedRecords, located, groups, drawn)
 
 	const hasTrips = trips.length > 0
 
@@ -934,13 +862,13 @@ export function PlacesApp({
 	)
 
 	const shown = useMemo(
-		() => inRegion(filtered, drawnPlaces.byRegion, cut),
-		[filtered, cut, drawnPlaces.byRegion],
+		() => inRegion(filtered, drawn.byRegion, cut),
+		[filtered, cut, drawn.byRegion],
 	)
 
 	const shownTrips = useMemo(
-		() => inRegion(filteredTrips, drawnTrips.byRegion, cut),
-		[filteredTrips, cut, drawnTrips.byRegion],
+		() => inRegion(filteredTrips, drawn.byRegion, cut),
+		[filteredTrips, cut, drawn.byRegion],
 	)
 
 	// The view that the reader is about to open, and the view that the reader was
@@ -972,11 +900,12 @@ export function PlacesApp({
 				? null
 				: mapForView(preloaded, {
 						atlases: atlasRegions,
-						places: { groupings: placeGroups, filtered },
-						trips: { groupings: tripGroups, filtered: filteredTrips },
+						groupings: groups,
+						places: filtered,
+						trips: filteredTrips,
 						visits,
 					}),
-		[preloaded, filtered, filteredTrips, placeGroups, tripGroups, visits],
+		[preloaded, filtered, filteredTrips, groups, visits],
 	)
 
 	// Held, because the drawer keys its own trail on this: a fresh arrow each
@@ -1002,24 +931,28 @@ export function PlacesApp({
 	// history entry standing on a map the reader never saw — and the second write
 	// would drop the first.
 	const openPlace = useCallback(
-		(place: Place) => openAt(viewFor(placeGroups.states, place), only('places', place)),
-		[openAt, placeGroups.states],
+		(place: Place) => openAt(viewFor(groups.states, place), only('places', place)),
+		[openAt, groups.states],
 	)
 
 	const openTrip = useCallback(
-		(trip: Trip) => openAt(viewFor(tripGroups.states, trip), only('trips', trip)),
-		[openAt, tripGroups.states],
+		(trip: Trip) => openAt(viewFor(groups.states, trip), only('trips', trip)),
+		[openAt, groups.states],
 	)
+
+	// The trips by id, held apart from the link below, which changes with the
+	// address while the trips do not.
+	const tripsById = useMemo(() => new Map(trips.map((trip) => [trip.id, trip])), [trips])
 
 	// The way from a visit to its trip, in the place drawer. The link's address
 	// is the one the open writes.
 	const tripLink = useMemo<TripLink>(
 		() => ({
-			trips: new Map(trips.map((trip) => [trip.id, trip])),
-			href: (trip) => hrefOf(viewFor(tripGroups.states, trip), only('trips', trip)),
+			trips: tripsById,
+			href: (trip) => hrefOf(viewFor(groups.states, trip), only('trips', trip)),
 			open: openTrip,
 		}),
-		[trips, hrefOf, tripGroups.states, openTrip],
+		[tripsById, hrefOf, groups.states, openTrip],
 	)
 
 	// The palette's sources. Each has its own memo, so a change to one does not
@@ -1041,21 +974,33 @@ export function PlacesApp({
 			regionSource({
 				countries: atlasNames('countries'),
 				states: atlasNames('states'),
-				countryPlaces: placeGroups.byCountry,
-				statePlaces: placeGroups.byState,
+				countryRecords: groups.byCountry,
+				stateRecords: groups.byState,
 				goTo: setView,
 				preload: preloadView,
 			}),
-		[placeGroups.byCountry, placeGroups.byState, setView, preloadView],
+		[groups.byCountry, groups.byState, setView, preloadView],
+	)
+
+	const hasPlaces = places.length > 0
+
+	// A list item shows only once there is a list to read. Over an empty store it
+	// would open on an empty sheet. Held, because the palette source is a memo
+	// keyed on it.
+	const recordCommands = useMemo<RecordCommands>(
+		() => ({
+			onAdd: () => setAdding('places'),
+			onList: hasPlaces ? () => setListing('places') : undefined,
+			onAddTrip: () => setAdding('trips'),
+			onListTrips: hasTrips ? () => setListing('trips') : undefined,
+		}),
+		[hasPlaces, hasTrips, setAdding],
 	)
 
 	const actionCommands = useActionCommands({
 		mark,
 		marked,
-		hasPlaces: places.length > 0,
-		hasTrips,
-		setAdding,
-		setListing,
+		records: recordCommands,
 		onMark: setVisit.mutate,
 	})
 
@@ -1116,12 +1061,12 @@ export function PlacesApp({
 					open={listing === 'places'}
 					onOpenChange={(open) => setListing(open ? 'places' : null)}
 					places={filtered}
-					regionByPlace={drawnPlaces.regions}
+					regionByPlace={drawn.regions}
 					// The region the view is cut to, which the sheet opens on where it holds
 					// anything. The reader came from that projection, so it is the narrowing
 					// they already made; clearing the filter widens it back to the bar's.
 					region={cut}
-					stateByPlace={drawnPlaces.states}
+					stateByPlace={drawn.states}
 					actions={actions}
 					onOpen={(place) => {
 						openPlace(place)
@@ -1136,9 +1081,9 @@ export function PlacesApp({
 					open={listing === 'trips'}
 					onOpenChange={(open) => setListing(open ? 'trips' : null)}
 					trips={filteredTrips}
-					regionByTrip={drawnTrips.regions}
+					regionByTrip={drawn.regions}
 					region={cut}
-					stateByTrip={drawnTrips.states}
+					stateByTrip={drawn.states}
 					placesByTrip={tripPlaces}
 					actions={tripActions}
 					onOpen={(trip) => {
@@ -1175,9 +1120,7 @@ export function PlacesApp({
 				paletteSources={paletteSources}
 				cut={cut}
 				counts={{ places: shown.length, trips: shownTrips.length }}
-				has={{ places: places.length > 0, trips: hasTrips }}
-				setAdding={setAdding}
-				setListing={setListing}
+				records={recordCommands}
 			/>
 
 			{/* The bar shows only when there are records to filter. They come from

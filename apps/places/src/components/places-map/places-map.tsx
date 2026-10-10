@@ -11,10 +11,10 @@ import {
 	type MapProjection,
 } from 'ui/modules/map'
 import { RECORD_KIND_META } from '../../constants'
-import type { MapRecord, Place, Trip } from '../../types'
+import type { Place, Trip } from '../../types'
 import type { PlaceVisitFilter } from '../../utilities/places-filter'
 import { centeredProjection, regionFrame, regionName } from '../../utilities/places-geography'
-import { isTrip, placesOffTrips } from '../../utilities/places-trips'
+import { drawnRecords, isTrip } from '../../utilities/places-trips'
 import { type PlaceSelection, selectedIds } from '../../utilities/places-url'
 import { type PlaceView, viewAtlas, viewFrame, viewRegion } from '../../utilities/places-view'
 import { recordStops } from './places-map-utilities'
@@ -216,11 +216,9 @@ export function PlacesMap({
 	// mark drawn per category left a dot of one category sitting on top of another
 	// category's summary badge, and a mark per kind left a trip square under the
 	// dots of the places near it. Both read as a bug and are unpickable besides.
-	// The trips go first, so a summary's readout names them first.
-	const records = useMemo<MapRecord[]>(
-		() => [...trips, ...placesOffTrips(places, trips)],
-		[places, trips],
-	)
+	// The trips go first, so a summary's readout names them first. A place on a
+	// drawn trip is in the point of the trip (`drawnRecords`).
+	const { records, drawnAt } = useMemo(() => drawnRecords(places, trips), [places, trips])
 
 	// A point keeps its own shape and color through it: the mark's slot is what a
 	// summary wears, since a merged point stands for several categories and any
@@ -233,25 +231,16 @@ export function PlacesMap({
 	// click, drawer, and filter change, to produce what it already had.
 	const stops = useMemo(() => recordStops(records), [records])
 
-	// The picked point, as the pair the map haloes by: the mark, and the index of
-	// the first record of the selection that the map draws. A place on a drawn
-	// trip is in the point of the trip, so the trip stands for it. A summary
-	// haloes wherever the pick merged into.
+	// The picked point, as the pair the map haloes by: the mark, and the point
+	// of the first record of the selection that the map shows. A summary haloes
+	// wherever the pick merged into.
 	const selectedOverlay = useMemo<MapOverlaySelection | null>(() => {
-		const drawnAt = new Map(records.map((record, index) => [record.id, index]))
+		const index = selectedIds(selected)
+			.map((id) => drawnAt.get(id))
+			.find((at) => at !== undefined)
 
-		const placeById = new Map(places.map((place) => [place.id, place]))
-
-		for (const id of selectedIds(selected)) {
-			const trips = placeById.get(id)?.visits.flatMap((visit) => visit.tripId ?? []) ?? []
-
-			const index = [id, ...trips].map((held) => drawnAt.get(held)).find((at) => at !== undefined)
-
-			if (index !== undefined) return { id: RECORDS_MARK, index }
-		}
-
-		return null
-	}, [selected, records, places])
+		return index === undefined ? null : { id: RECORDS_MARK, index }
+	}, [selected, drawnAt])
 
 	return (
 		// The fit takes every edge of the box it is handed, so without an inset

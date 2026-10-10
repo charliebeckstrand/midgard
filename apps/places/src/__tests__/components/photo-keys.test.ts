@@ -17,7 +17,7 @@ describe('photoKeys', () => {
 			newPhoto(new File(['b'], 'b.png', { type: 'image/png' })),
 		]
 
-		await expect(photoKeys({ photos })).resolves.toEqual([
+		await expect(photoKeys(photos)).resolves.toEqual([
 			'users/u1/a.jpg',
 			'users/u1/stored.jpg',
 			'users/u1/b.png',

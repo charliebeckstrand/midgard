@@ -10,9 +10,9 @@ import { addressQueries } from './place-address-query'
 export type LocateBy = 'address' | 'coordinates'
 
 /**
- * The fields of a form that say where a record is: the geocoded match, the
- * address line, and the coordinates. The place form and the trip form both
- * hold them, and the search field and the address field bind them by name.
+ * The fields of the place form that say where a place is: the geocoded match,
+ * the address line, and the coordinates. The search field and the address
+ * field bind them by name.
  */
 export type LocationValues = {
 	/**
@@ -42,7 +42,10 @@ export type LocationValues = {
 export const LOCATE_TIMEOUT_MS = 10_000
 
 /** A stored record with a location: a place or a trip. */
-export type LocatedRecord = LocationDraft & { id: string; name: string }
+type LocatedRecord = LocationDraft & { id: string; name: string }
+
+/** What a field says of a match that has no position. */
+export const NO_POSITION = 'That match has no position. Pick another.'
 
 /**
  * The validators of the location fields, in the shape `Form` takes.
@@ -56,15 +59,7 @@ export type LocatedRecord = LocationDraft & { id: string; name: string }
  * address is not.
  */
 export const locationValidators: NonNullable<FormProps<LocationValues>['validate']> = {
-	place: (value) => {
-		if (value === undefined) return undefined
-
-		if (value.latitude === undefined || value.longitude === undefined) {
-			return 'That match has no position. Pick another.'
-		}
-
-		return undefined
-	},
+	place: (value) => (value === undefined || hasPosition(value) ? undefined : NO_POSITION),
 	address: (value, values) =>
 		values.locateBy === 'address' && value.trim() === '' ? required('Address') : undefined,
 	latitude: (value, values) =>
@@ -101,14 +96,14 @@ export function toLocationValues(record: LocatedRecord): LocationValues {
 /**
  * A stored record dressed as a geocoded match, which a search field holds. It
  * wears the id of the record, so {@link toLocationDraft} can tell that the
- * match is still the record's own.
+ * match is still the record's own, and the record then answers for the parts
+ * of its address. The match therefore carries no parts of its own.
  */
 export function recordMatch(record: LocatedRecord): AddressSuggestion {
 	return {
 		id: record.id,
 		label: record.address,
 		name: record.name,
-		address: { city: record.city, state: record.state, country: record.country },
 		latitude: record.latitude,
 		longitude: record.longitude,
 	}
@@ -158,7 +153,7 @@ export function required(field: string): string {
  * A coordinate as a number, or `undefined` where the text is not a decimal
  * number. `Number` alone reads "" as 0 and "0x10" as 16.
  */
-export function parseCoordinate(text: string): number | undefined {
+function parseCoordinate(text: string): number | undefined {
 	const trimmed = text.trim()
 
 	return /^[+-]?(?:\d+\.?\d*|\.\d+)$/.test(trimmed) ? Number(trimmed) : undefined
@@ -206,7 +201,7 @@ export function locationLine(match: AddressSuggestion): string {
 }
 
 /** Whether a match has a position. */
-function hasPosition(match: AddressSuggestion): boolean {
+export function hasPosition(match: AddressSuggestion): boolean {
 	return match.latitude !== undefined && match.longitude !== undefined
 }
 
@@ -216,7 +211,7 @@ function isHouse(match: AddressSuggestion): boolean {
 }
 
 /** A position on one line, which is the address line of a place that has no address. */
-export function coordinateLine(latitude: number, longitude: number): string {
+function coordinateLine(latitude: number, longitude: number): string {
 	return `${latitude}, ${longitude}`
 }
 

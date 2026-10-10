@@ -18,22 +18,24 @@ import { ToggleIconButton } from 'ui/toggle-icon-button'
 import type { Place, PlaceCategory } from '../../types'
 import { foldText } from '../../utilities/places-palette'
 import { CategoryOptions, categoryDisplayValue } from '../category-picker'
+import { recordMatch } from './location-form'
 import { placeGeocoder } from './place-geocoder'
 import { type StopRow, stopRow } from './trip-form'
 
 /** How many places on record lead the matches of a row. */
 const SAVED_MATCHES = 5
 
-/** A place on record as a match of the search, so a row can visit it again. */
-function savedMatch(place: Place): AddressSuggestion {
+/** A place on record as a match of the search, with its name folded for the search. */
+type SavedMatch = { match: AddressSuggestion; folded: string }
+
+/**
+ * A place on record as a match of the search, so a row can visit it again. It
+ * shows the name of the place, and its address under the name.
+ */
+function savedMatch(place: Place): SavedMatch {
 	return {
-		id: place.id,
-		label: place.name,
-		description: place.address,
-		name: place.name,
-		address: { city: place.city, state: place.state, country: place.country },
-		latitude: place.latitude,
-		longitude: place.longitude,
+		match: { ...recordMatch(place), label: place.name, description: place.address },
+		folded: foldText(place.name),
 	}
 }
 
@@ -42,13 +44,19 @@ function savedMatch(place: Place): AddressSuggestion {
  * the geocoder. A place the reader has been to is the likely answer, and a
  * pick of one visits it again rather than adding it twice.
  */
-function stopProvider(saved: readonly AddressSuggestion[]): AddressProvider {
+function stopProvider(saved: readonly SavedMatch[]): AddressProvider {
 	return async (query, options) => {
 		const folded = foldText(query)
 
-		const mine = saved.filter((match) => foldText(match.label).includes(folded))
+		const mine: AddressSuggestion[] = []
 
-		return [...mine.slice(0, SAVED_MATCHES), ...(await placeGeocoder(query, options))]
+		for (const held of saved) {
+			if (mine.length === SAVED_MATCHES) break
+
+			if (held.folded.includes(folded)) mine.push(held.match)
+		}
+
+		return [...mine, ...(await placeGeocoder(query, options))]
 	}
 }
 
@@ -69,13 +77,12 @@ export function TripStopsField({ places }: { places: readonly Place[] }) {
 
 	const id = useId()
 
-	// Each match against the id of its place, read back on a pick. Held, so a
-	// match keeps its identity while the reader types.
-	const { saved, placeOf } = useMemo(() => {
-		const matches = places.map(savedMatch)
+	// The places on record as matches. Held, so a match keeps its identity while
+	// the reader types, and a pick is known as a place on record by that identity.
+	// A match of a place on record wears the id of the place.
+	const saved = useMemo(() => places.map(savedMatch), [places])
 
-		return { saved: matches, placeOf: new Map(matches.map((match, at) => [match, places[at]?.id])) }
-	}, [places])
+	const savedMatches = useMemo(() => new Set(saved.map((held) => held.match)), [saved])
 
 	const provider = useMemo(() => stopProvider(saved), [saved])
 
@@ -125,7 +132,8 @@ export function TripStopsField({ places }: { places: readonly Place[] }) {
 													onValueChange={(match) =>
 														write(row.key, {
 															match: match ?? undefined,
-															placeId: match === null ? undefined : placeOf.get(match),
+															placeId:
+																match !== null && savedMatches.has(match) ? match.id : undefined,
 														})
 													}
 												/>

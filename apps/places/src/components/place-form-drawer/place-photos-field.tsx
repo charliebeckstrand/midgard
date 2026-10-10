@@ -2,7 +2,7 @@
 
 import { Trash } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { Description, Field, Label, Message } from 'ui/fieldset'
+import { Description, Field, Label } from 'ui/fieldset'
 import {
 	type FileRejection,
 	FileUploadButton,
@@ -14,13 +14,13 @@ import { Icon } from 'ui/icon'
 import { List, ListItem } from 'ui/list'
 import { Text } from 'ui/text'
 import { ToggleIconButton } from 'ui/toggle-icon-button'
-import { MAX_PHOTO_BYTES, PHOTO_TYPES } from '../../api/places-api'
+import { MAX_PHOTO_BYTES, MAX_PHOTO_MB, PHOTO_TYPE_NAMES, PHOTO_TYPES } from '../../api/places-api'
 import { isNewPhoto, MAX_PHOTOS, newPhoto, type PhotoEntry } from './place-form'
 
 /** What each reason of a refused file says. */
 const REJECTION: Readonly<Record<FileRejection['reason'], string>> = {
-	type: 'is not a JPEG, PNG, or WebP image',
-	size: 'is larger than 15 MB',
+	type: `is not a ${PHOTO_TYPE_NAMES}`,
+	size: `is larger than ${MAX_PHOTO_MB} MB`,
 	count: `goes past ${MAX_PHOTOS} photos`,
 }
 
@@ -157,8 +157,6 @@ export function PlacePhotosField() {
 			)}
 
 			{rejected.length === 0 ? null : <Text tone="warning">{rejectionMessage(rejected)}</Text>}
-
-			<Message name="photos" />
 		</Field>
 	)
 }

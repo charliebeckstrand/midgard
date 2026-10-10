@@ -62,7 +62,7 @@ export function TripFormDrawer({ target, onOpenChange, onSubmit, places }: TripF
 			validate={tripValidators}
 			onSubmit={async (values) => {
 				await onSubmit(
-					toTripDraft(values, await photoKeys(values), seed.trip),
+					toTripDraft(values, await photoKeys(values.photos), seed.trip),
 					toTripStops(values.stops),
 				)
 

@@ -176,19 +176,16 @@ export function NearbyDrawer({
 			{...frame}
 			narrow={narrow}
 			count={countRecords}
-			menu={(record) =>
-				isTrip(record) ? (
-					<PlaceMenu
-						items={tripMenuItems(record, tripActions)}
-						aria-label={`Actions for ${record.name}`}
-					/>
-				) : (
-					<PlaceMenu
-						items={placeMenuItems(record, placeActions)}
-						aria-label={`Actions for ${record.name}`}
-					/>
-				)
-			}
+			menu={(record) => (
+				<PlaceMenu
+					items={
+						isTrip(record)
+							? tripMenuItems(record, tripActions)
+							: placeMenuItems(record, placeActions)
+					}
+					aria-label={`Actions for ${record.name}`}
+				/>
+			)}
 			details={(record) =>
 				isTrip(record) ? (
 					<TripDetails

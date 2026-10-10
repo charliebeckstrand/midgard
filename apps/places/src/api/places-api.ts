@@ -84,8 +84,14 @@ export function setVisit(scope: VisitScope, region: string, visited: boolean): P
 /** The file types that a photo upload takes, as an `accept` list. */
 export const PHOTO_TYPES: readonly PhotoType[] = ['image/jpeg', 'image/png', 'image/webp']
 
-/** The largest photo that an upload takes, in bytes: 15 MB, the limit that Mimir sets. */
-export const MAX_PHOTO_BYTES = 15 * 1024 * 1024
+/** The file types that a photo upload takes, in words. */
+export const PHOTO_TYPE_NAMES = 'JPEG, PNG, or WebP image'
+
+/** The largest photo that an upload takes, in megabytes: the limit that Mimir sets. */
+export const MAX_PHOTO_MB = 15
+
+/** The largest photo that an upload takes, in bytes. */
+export const MAX_PHOTO_BYTES = MAX_PHOTO_MB * 1024 * 1024
 
 /** Whether a file is of a type that a photo upload takes. */
 function isPhotoType(type: string): type is PhotoType {
@@ -95,10 +101,10 @@ function isPhotoType(type: string): type is PhotoType {
 /**
  * Uploads one photo and gives its object key. Mimir signs an address for the
  * file, and the file goes to that address in the photo store, not through the
- * gateway: a photo can be 15 MB, and the gateway has no part in what it holds.
+ * gateway: a photo can be large, and the gateway has no part in what it holds.
  */
 export async function uploadPhoto(file: File): Promise<string> {
-	if (!isPhotoType(file.type)) throw new Error(`${file.name} is not a JPEG, PNG, or WebP image.`)
+	if (!isPhotoType(file.type)) throw new Error(`${file.name} is not a ${PHOTO_TYPE_NAMES}.`)
 
 	const { key, uploadUrl } = await unwrap(
 		mimir.POST('/api/photos/uploads', { body: { contentType: file.type, size: file.size } }),

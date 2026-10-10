@@ -3,8 +3,16 @@ import type { FormProps } from 'ui/form'
 import type { PlaceCategory, Trip, TripDraft, TripStop, VisitDraft } from '../../types'
 import { fromDay, toDay } from '../../utilities/places-filter'
 import { withinTrip } from '../../utilities/places-trips'
-import { addressLine, locationLine, recordMatch, required, toLocationDraft } from './location-form'
-import { type PhotoValues, photoValues } from './place-form'
+import {
+	addressLine,
+	hasPosition,
+	locationLine,
+	NO_POSITION,
+	recordMatch,
+	required,
+	toLocationDraft,
+} from './location-form'
+import type { PhotoEntry } from './place-form'
 
 /** What the trip form writes: a new trip (`trip: null`), or an edit of one on record. */
 export type TripFormTarget = { trip: Trip | null }
@@ -30,7 +38,7 @@ export function stopRow(day?: Date): StopRow {
 }
 
 /** What the trip form holds while it is being filled. */
-export type TripValues = PhotoValues & {
+export type TripValues = {
 	/**
 	 * The town, the city, the region, or the country of the trip, as a match of
 	 * the location search. It is the position of the trip and the name of its
@@ -40,6 +48,8 @@ export type TripValues = PhotoValues & {
 	name: string
 	/** The first and the last day of the trip. */
 	days?: [Date, Date]
+	/** The photos of the trip, in their order, as the photos of a visit are. */
+	photos: PhotoEntry[]
 	/** The places of a new trip. An edit has no rows: a place joins a trip through its visit. */
 	stops: StopRow[]
 }
@@ -57,9 +67,7 @@ function stopIssue(rows: readonly StopRow[], days: [Date, Date] | undefined): st
 
 		if (row.match === undefined) return `${name} is empty. Search for it, or remove its row.`
 
-		if (row.match.latitude === undefined || row.match.longitude === undefined) {
-			return `${name} has no position. Pick another match.`
-		}
+		if (!hasPosition(row.match)) return `${name} has no position. Pick another match.`
 
 		if (row.placeId === undefined && row.category === undefined) return `${name} needs a category.`
 
@@ -78,9 +86,7 @@ export const tripValidators: NonNullable<FormProps<TripValues>['validate']> = {
 	location: (value) => {
 		if (value === undefined) return required('Location')
 
-		return value.latitude === undefined || value.longitude === undefined
-			? 'That match has no position. Pick another.'
-			: undefined
+		return hasPosition(value) ? undefined : NO_POSITION
 	},
 	name: (value) => (value.trim() === '' ? required('Name') : undefined),
 	days: (value) =>
@@ -96,20 +102,9 @@ export function tripValues({ trip }: TripFormTarget): TripValues {
 		location: trip === null ? undefined : recordMatch(trip),
 		name: trip?.name ?? '',
 		days: trip === null ? undefined : [fromDay(trip.startsOn), fromDay(trip.endsOn)],
-		...photoValues(trip?.photos ?? []),
+		photos: [...(trip?.photos ?? [])],
 		stops: [],
 	}
-}
-
-/**
- * The location of a trip on one line. A match that is still the record's own
- * keeps the line on record, for the same reason that {@link toLocationDraft}
- * keeps its parts: the record holds less than the geocoder gave.
- */
-function tripAddress(location: AddressSuggestion | undefined, base: Trip | null): string {
-	if (location === undefined) return ''
-
-	return base !== null && location.id === base.id ? base.address : locationLine(location)
 }
 
 /**
@@ -122,7 +117,11 @@ export function toTripDraft(values: TripValues, photos: string[], base: Trip | n
 	const [startsOn, endsOn] = values.days ?? [new Date(), new Date()]
 
 	return {
-		...toLocationDraft(tripAddress(values.location, base), values.location, base),
+		...toLocationDraft(
+			values.location === undefined ? '' : locationLine(values.location),
+			values.location,
+			base,
+		),
 		name: values.name.trim(),
 		startsOn: toDay(startsOn),
 		endsOn: toDay(endsOn),

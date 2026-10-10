@@ -7,11 +7,9 @@ import { Icon } from 'ui/icon'
 import type { GridColumn } from 'ui/modules/grid'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
-import { Text } from 'ui/text'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
 import type { Place, Trip } from '../../types'
-import { stateLabel } from '../../utilities/places-view'
-import { IndexSheet } from '../index-sheet'
+import { IndexSheet, locationColumns } from '../index-sheet'
 import { PlaceMenu, type TripActions, tripMenuItems } from '../place-menu'
 import { DaySpan } from '../summary-drawer'
 
@@ -59,28 +57,7 @@ export function TripsIndex({
 	const columns = useMemo<GridColumn<Trip>[]>(
 		() => [
 			{ id: 'name', title: 'Name', value: (trip) => trip.name, cell: (trip) => trip.name },
-			{
-				id: 'region',
-				title: 'Region',
-				value: (trip) => regionByTrip.get(trip.id) ?? '',
-				cell: (trip) => regionByTrip.get(trip.id) ?? <Text tone="warning">Unplaced</Text>,
-			},
-			...(stateByTrip === undefined
-				? []
-				: [
-						{
-							id: 'state',
-							title: 'State',
-							value: (trip) => stateLabel(stateByTrip, trip),
-							cell: (trip) => stateLabel(stateByTrip, trip),
-						} satisfies GridColumn<Trip>,
-					]),
-			{
-				id: 'city',
-				title: 'City',
-				value: (trip) => trip.city ?? '',
-				cell: (trip) => trip.city ?? '',
-			},
+			...locationColumns<Trip>(regionByTrip, stateByTrip),
 			{
 				id: 'dates',
 				title: 'Dates',

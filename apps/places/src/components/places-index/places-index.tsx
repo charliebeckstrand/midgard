@@ -10,14 +10,12 @@ import type { GridColumn } from 'ui/modules/grid'
 import { Rating } from 'ui/rating'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
-import { Text } from 'ui/text'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
 import { CATEGORY_BY_VALUE, categoryLabel } from '../../constants'
 import type { Place } from '../../types'
 import { DAY_FORMAT } from '../../utilities/places-filter'
-import { stateLabel } from '../../utilities/places-view'
 import { latestVisit } from '../../utilities/places-visits'
-import { IndexSheet } from '../index-sheet'
+import { IndexSheet, locationColumns } from '../index-sheet'
 import { type PlaceActions, PlaceMenu, placeMenuItems } from '../place-menu'
 
 /** Props for {@link PlacesIndex}. */
@@ -99,43 +97,7 @@ export function PlacesIndex({
 					return category ? <Badge color={category.color}>{category.label}</Badge> : null
 				},
 			},
-			{
-				id: 'region',
-				title: 'Region',
-				value: (place) => regionByPlace.get(place.id) ?? '',
-				cell: (place) => regionByPlace.get(place.id) ?? <Text tone="warning">Unplaced</Text>,
-			},
-			...(stateByPlace === undefined
-				? []
-				: [
-						{
-							id: 'state',
-							title: 'State',
-							// The state as the app settles it — see `stateLabel` — and not the
-							// stored field: the drawn geometry answers ahead of it there.
-							//
-							// Empty where nothing answers — a country that names no subdivision,
-							// or a place recorded before one was stored — rather than a warning.
-							// The region beside it already says where the place is; a state is
-							// the finer answer and not a missing one.
-							//
-							// Both accessors are stated, for two different reasons. A column with
-							// no `cell` renders an empty cell, and a column with no `value`
-							// resolves against the row's own field — which here is the geocoder's
-							// name alone, and would sort and search over the geometry's answer.
-							value: (place) => stateLabel(stateByPlace, place),
-							cell: (place) => stateLabel(stateByPlace, place),
-						} satisfies GridColumn<Place>,
-					]),
-			{
-				id: 'city',
-				title: 'City',
-				// The `cell` is stated for the reason the state column's is: a column
-				// without one renders an empty cell. The `value` restates the row's own
-				// field, which the column id would have resolved to by itself.
-				value: (place) => place.city ?? '',
-				cell: (place) => place.city ?? '',
-			},
+			...locationColumns<Place>(regionByPlace, stateByPlace),
 			{
 				id: 'visits',
 				title: 'Visits',

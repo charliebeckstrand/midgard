@@ -111,7 +111,9 @@ export function PlaceFormDrawer({ target, onOpenChange, onSubmit, trips }: Place
 			validate={placeValidators(trips)}
 			onSubmit={async (values) => {
 				if (seed.kind === 'visit') {
-					await onSubmit(toVisitPlaceDraft(values, seed.place, seed.visit, await photoKeys(values)))
+					await onSubmit(
+						toVisitPlaceDraft(values, seed.place, seed.visit, await photoKeys(values.photos)),
+					)
 
 					return undefined
 				}
@@ -131,7 +133,7 @@ export function PlaceFormDrawer({ target, onOpenChange, onSubmit, trips }: Place
 					}
 				}
 
-				await onSubmit(toPlaceDraft(values, located, await photoKeys(values), seed.place))
+				await onSubmit(toPlaceDraft(values, located, await photoKeys(values.photos), seed.place))
 
 				return undefined
 			}}

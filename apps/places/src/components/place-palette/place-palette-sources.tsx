@@ -2,9 +2,9 @@ import { Globe, Luggage, MapIcon, MapPin, MapPinCheck, MapPinned, Plus } from 'l
 import { Icon } from 'ui/icon'
 import { Swatch } from 'ui/swatch'
 import { CATEGORY_BY_VALUE, categoryLabel, RECORD_KIND_META } from '../../constants'
-import type { Place, Trip } from '../../types'
+import type { MapRecord, Place, Trip } from '../../types'
 import type { PaletteCommand, PaletteSource } from '../../utilities/places-palette'
-import { placeCount, sortTrips } from '../../utilities/places-trips'
+import { isTrip, placeCount, sortTrips } from '../../utilities/places-trips'
 import { type PlaceView, UNITED_STATES } from '../../utilities/places-view'
 // The rows alone, not the barrel: the barrel also holds `PlaceMenu`, and the
 // bundle then keeps the menu code of ui on the home page.
@@ -19,7 +19,9 @@ import {
 const RECENT_RECORDS = 5
 
 /** The text after a region name: its kind, and how many places it holds. */
-function regionDescription(kind: string, count: number): string {
+function regionDescription(kind: string, records: readonly MapRecord[] = []): string {
+	const count = records.filter((record) => !isTrip(record)).length
+
 	if (count === 0) return kind
 
 	return `${kind} · ${placeCount(count)}`
@@ -111,10 +113,10 @@ export type RegionSourceInput = {
 	countries: readonly string[]
 	/** The names of the states atlas. */
 	states: readonly string[]
-	/** The places of each country, by its atlas name. */
-	countryPlaces: ReadonlyMap<string, readonly Place[]>
-	/** The places of each state, by its atlas name. */
-	statePlaces: ReadonlyMap<string, readonly Place[]>
+	/** The records of each country, by its atlas name. Its row counts the places. */
+	countryRecords: ReadonlyMap<string, readonly MapRecord[]>
+	/** The records of each state, by its atlas name. Its row counts the places. */
+	stateRecords: ReadonlyMap<string, readonly MapRecord[]>
 	goTo: (view: PlaceView) => void
 	preload: (view: PlaceView) => void
 }
@@ -129,8 +131,8 @@ export type RegionSourceInput = {
 export function regionSource({
 	countries,
 	states,
-	countryPlaces,
-	statePlaces,
+	countryRecords,
+	stateRecords,
 	goTo,
 	preload,
 }: RegionSourceInput): PaletteSource {
@@ -154,7 +156,7 @@ export function regionSource({
 			region(
 				`country:${name}`,
 				name,
-				regionDescription('Country', countryPlaces.get(name)?.length ?? 0),
+				regionDescription('Country', countryRecords.get(name)),
 				<Icon icon={<Globe />} />,
 				{ country: name, state: null },
 			),
@@ -163,7 +165,7 @@ export function regionSource({
 			region(
 				`state:${name}`,
 				name,
-				regionDescription('US state', statePlaces.get(name)?.length ?? 0),
+				regionDescription('US state', stateRecords.get(name)),
 				<Icon icon={<MapIcon />} />,
 				{ country: UNITED_STATES, state: name },
 			),
