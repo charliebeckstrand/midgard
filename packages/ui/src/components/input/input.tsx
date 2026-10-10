@@ -40,7 +40,10 @@ export type InputProps = GroupStampProps &
 		 * @defaultValue 'Clear'
 		 */
 		clearLabel?: string
-		/** Forces the invalid state. When omitted, inherits from Control / Form context. */
+		/**
+		 * Forces the invalid state. When omitted, inherits from Control / Form context.
+		 * @defaultValue `false`, or `true` when the bound form field has an error or the enclosing Control has the `error` severity.
+		 */
 		invalid?: boolean
 		/** Controlled value. `undefined` leaves the input uncontrolled; `null` keeps it controlled with no current value (CONVENTIONS §7.3). */
 		value?: ComponentProps<'input'>['value'] | null

@@ -11,6 +11,9 @@ import {
 } from '../../components/place-form-drawer/place-form'
 import { photo, place, trip, visitWith } from '../fixtures'
 
+/** The day that a new visit of a form starts on. */
+const TODAY = new Date(2026, 9, 1)
+
 /** Filled values with no match, which is a place that the reader typed the address of. */
 function typed(fields: Partial<PlaceValues> = {}): PlaceValues {
 	return {
@@ -96,15 +99,22 @@ describe('placeValidators', () => {
 
 describe('targetValues', () => {
 	it('starts a new place from a trip on the trip and its first day', () => {
-		const values = targetValues({
-			kind: 'place',
-			place: null,
-			trip: trip('t1', { startsOn: '2026-09-25' }),
-		})
+		const values = targetValues(
+			{
+				kind: 'place',
+				place: null,
+				trip: trip('t1', { startsOn: '2026-09-25' }),
+			},
+			TODAY,
+		)
 
 		expect(values.tripId).toBe('t1')
 
 		expect(values.visitedAt).toEqual(new Date(2026, 8, 25))
+	})
+
+	it('starts a new place on today', () => {
+		expect(targetValues({ kind: 'place', place: null }, TODAY).visitedAt).toEqual(TODAY)
 	})
 
 	it('reads the trip of a stored visit', () => {
@@ -112,9 +122,9 @@ describe('targetValues', () => {
 			visits: [{ id: 'v1', visitedAt: '2026-09-26', rating: 0, photos: [], tripId: 't1' }],
 		})
 
-		expect(targetValues({ kind: 'visit', place: base, visit: base.visits[0] ?? null }).tripId).toBe(
-			't1',
-		)
+		const visit = base.visits[0] ?? null
+
+		expect(targetValues({ kind: 'visit', place: base, visit }, TODAY).tripId).toBe('t1')
 	})
 })
 
@@ -280,7 +290,7 @@ describe('toPlaceDraft', () => {
 	it('keeps the visits on record, with their photo keys, through an edit of the place', () => {
 		const base = place('p1', { visits: [visitWith('v1', [photo('users/u1/a.jpg')])] })
 
-		const values = targetValues({ kind: 'place', place: base })
+		const values = targetValues({ kind: 'place', place: base }, TODAY)
 
 		expect(toPlaceDraft({ ...values, rating: 1 }, values.place, [], base).visits).toEqual([
 			{ id: 'v1', visitedAt: '2026-08-15', rating: 4, photos: ['users/u1/a.jpg'] },
@@ -290,7 +300,7 @@ describe('toPlaceDraft', () => {
 	it('keeps the parts on record while an edit keeps its own match', () => {
 		const base = place('p1', { city: 'Portland', state: 'Oregon', country: 'United States' })
 
-		const values = targetValues({ kind: 'place', place: base })
+		const values = targetValues({ kind: 'place', place: base }, TODAY)
 
 		const draft = toPlaceDraft({ ...values, address: 'Edited line' }, values.place, [], base)
 
@@ -328,7 +338,7 @@ describe('toVisitPlaceDraft', () => {
 	it('replaces the stored visit it edits, and keeps its id', () => {
 		const visit = base.visits[1] ?? null
 
-		const values = targetValues({ kind: 'visit', place: base, visit })
+		const values = targetValues({ kind: 'visit', place: base, visit }, TODAY)
 
 		expect(values.photos).toEqual([photo('users/u1/b.jpg')])
 

@@ -17,6 +17,8 @@ import { useMenuTouchHold } from './use-menu-touch-hold'
 export type MenuProps = {
 	/**
 	 * Open state, controlled. Pair it with `onOpenChange`.
+	 *
+	 * @defaultValue Uncontrolled: the state starts from `defaultOpen`.
 	 */
 	open?: boolean
 	/**
@@ -36,6 +38,8 @@ export type MenuProps = {
 	 * A `<side>-auto` value, such as `'bottom-auto'`, aligns the panel to the
 	 * edge of the trigger that is nearer to the edge of the viewport. Use it when
 	 * a responsive layout moves the trigger from one side to the other.
+	 *
+	 * @defaultValue No placement: a right-click opens a context menu, or `defaultOpen` gives a static inline menu.
 	 */
 	placement?: FloatingPlacement
 	/**

@@ -23,6 +23,7 @@ import { PlaceReviewField } from './place-review-field'
 import { PlaceSearchField } from './place-search-field'
 import { PlaceTripField, PlaceVisitedField } from './place-trip-field'
 import { PlaceWebsiteField } from './place-website-field'
+import { useToday } from './use-today'
 
 /** Props for {@link PlaceFormDrawer}. */
 export type PlaceFormDrawerProps = {
@@ -88,6 +89,8 @@ function targetKey(target: PlaceFormTarget): string {
 export function PlaceFormDrawer({ target, onOpenChange, onSubmit, trips }: PlaceFormDrawerProps) {
 	const seed = useHeldTarget(target) ?? { kind: 'place', place: null }
 
+	const { today, zone } = useToday()
+
 	const { title, submit, editing } = targetWords(seed)
 
 	// A new place takes its first visit with it. An edit of a place leaves its
@@ -106,8 +109,10 @@ export function PlaceFormDrawer({ target, onOpenChange, onSubmit, trips }: Place
 			subtitle={seed.kind === 'visit' ? seed.place.name : undefined}
 			submit={submit}
 			editing={editing}
-			formKey={targetKey(seed)}
-			defaultValues={targetValues(seed)}
+			// The zone of `today` is in the key, so a form that the address opens
+			// takes the day of the reader after hydration (`useToday`).
+			formKey={`${targetKey(seed)}:${zone}`}
+			defaultValues={targetValues(seed, today)}
 			validate={placeValidators(trips)}
 			onSubmit={async (values) => {
 				if (seed.kind === 'visit') {

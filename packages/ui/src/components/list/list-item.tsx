@@ -35,6 +35,8 @@ export type ListItemProps<Fallback extends ElementType = 'div'> = {
 	 * `interactive` on a row whose handler sits on a child leaves that child the
 	 * target, rather than covering it. The Tab stop of a reorderable row also
 	 * follows the handler, not this prop.
+	 *
+	 * @defaultValue `false`, or `true` with an `href` or an `onClick`.
 	 */
 	interactive?: boolean
 	/**

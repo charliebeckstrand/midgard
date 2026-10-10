@@ -16,7 +16,11 @@ import { ToggleIconButtonIcons } from './toggle-icon-button-icons'
  * `color`, and the label attributes.
  */
 export type ToggleIconButtonProps = AccessibleName & {
-	/** Controlled pressed state, reflected as `aria-pressed`. Pair with `onPressedChange`. */
+	/**
+	 * Controlled pressed state, reflected as `aria-pressed`. Pair with `onPressedChange`.
+	 *
+	 * @defaultValue Uncontrolled: the state starts from `defaultPressed`.
+	 */
 	pressed?: boolean
 	/**
 	 * Initial pressed state when uncontrolled.

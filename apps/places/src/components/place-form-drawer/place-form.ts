@@ -180,7 +180,7 @@ export function toVisitPlaceDraft(
 
 /**
  * The visit fields of the form, seeded from a stored visit, or empty for a new
- * one. A new visit is usually recorded just after it, so today is the useful
+ * one. A new visit is usually recorded just after it, so `today` is the useful
  * default and the field stays editable. A new visit on a trip starts on the
  * first day of the trip instead.
  *
@@ -188,11 +188,12 @@ export function toVisitPlaceDraft(
  */
 function toVisitValues(
 	visit: Visit | null,
+	today: Date,
 	trip?: Trip,
 ): Pick<PlaceValues, 'visitedAt' | 'tripId' | 'rating' | 'photos' | 'review'> {
 	if (visit === null) {
 		return {
-			visitedAt: trip === undefined ? new Date() : fromDay(trip.startsOn),
+			visitedAt: trip === undefined ? today : fromDay(trip.startsOn),
 			tripId: trip?.id,
 			rating: 0,
 			photos: [],
@@ -210,11 +211,11 @@ function toVisitValues(
 }
 
 /**
- * The fields that the form opens with for a target. A stored place is read
- * back through {@link toLocationValues}, so a save does not find its position
- * again.
+ * The fields that the form opens with for a target, with `today` as the day of
+ * a new visit. A stored place is read back through {@link toLocationValues}, so
+ * a save does not find its position again.
  */
-export function targetValues(target: PlaceFormTarget): PlaceValues {
+export function targetValues(target: PlaceFormTarget, today: Date): PlaceValues {
 	const place = target.place
 
 	const visit = target.kind === 'visit' ? target.visit : null
@@ -226,6 +227,6 @@ export function targetValues(target: PlaceFormTarget): PlaceValues {
 		name: place?.name ?? '',
 		category: place?.category,
 		url: place?.url ?? '',
-		...toVisitValues(visit, trip),
+		...toVisitValues(visit, today, trip),
 	}
 }

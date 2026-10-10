@@ -1,9 +1,9 @@
 import { Fragment } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/stepper'
-import type { Orientation } from '../../types'
 import { rangeKeys } from '../../utilities'
 import { Placeholder } from '../placeholder'
+import type { StepperLayout } from './context'
 
 /** Props for {@link StepperSkeleton}: the placeholder step count and the `orientation` of the stepper. */
 export type StepperSkeletonProps = {
@@ -13,12 +13,11 @@ export type StepperSkeletonProps = {
 	 */
 	steps?: number
 	/**
-	 * The orientation of the stepper it stands in for. Omit it to get the
-	 * responsive layout that a stepper with no `orientation` has: vertical below
-	 * `sm`, and horizontal from it.
+	 * The orientation of the stepper it stands in for. `'responsive'` is
+	 * vertical below `sm`, and horizontal from it, as on Stepper.
 	 * @defaultValue 'responsive'
 	 */
-	orientation?: Orientation
+	orientation?: StepperLayout
 	className?: string
 }
 

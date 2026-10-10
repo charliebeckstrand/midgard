@@ -33,7 +33,10 @@ type FileUploadSharedProps = {
 	 * @defaultValue false
 	 */
 	multiple?: boolean
-	/** Disables the picker. Without the prop, the component takes the disabled state of the enclosing Control. */
+	/**
+	 * Disables the picker. Without the prop, the component takes the disabled state of the enclosing Control.
+	 * @defaultValue `false`, or the state of the enclosing Control or Field.
+	 */
 	disabled?: boolean
 	/** Maximum size per file, in bytes. Oversized files are routed to `onReject`. */
 	maxSize?: number

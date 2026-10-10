@@ -14,6 +14,8 @@ export type TimelineTitleProps = {
 	 * Heading level of the title. Set it when each item is a section of the page,
 	 * so that a screen reader can go from title to title. Omit it to render a
 	 * `<div>`. The look does not change with the level.
+	 *
+	 * @defaultValue No level: the title renders in a `<div>`.
 	 */
 	level?: HeadingLevel
 }

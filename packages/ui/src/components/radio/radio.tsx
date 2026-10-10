@@ -15,6 +15,7 @@ export type RadioProps = RadioVariants & {
 	 * because ARIA defines it on the group. When omitted, it takes the value of
 	 * an enclosing `<Control>` or `<Field>`. A radio in a read-only
 	 * {@link RadioGroup} is read-only too.
+	 * @defaultValue `false`, or the state of the enclosing Control, or `true` in a read-only RadioGroup.
 	 */
 	readOnly?: boolean
 	className?: string

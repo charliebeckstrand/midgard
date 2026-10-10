@@ -47,8 +47,7 @@ export type MapSkeletonProps = {
 	 *
 	 * A projection with no outline, such as a passed d3 instance, draws the
 	 * rectangle.
-	 * @defaultValue `true` for `'albers-usa'`, whose subject is fixed; `false`
-	 * for the world projections.
+	 * @defaultValue `false`, or `true` for `'albers-usa'`, whose subject is fixed.
 	 */
 	outline?: boolean
 	className?: string

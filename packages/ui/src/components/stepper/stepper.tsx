@@ -54,11 +54,11 @@ export type StepperProps = Omit<
 	 */
 	linear?: boolean
 	/**
-	 * The axis of the row. Omit it to get the responsive layout: vertical below
-	 * `sm`, and horizontal from it.
+	 * The axis of the row. `'responsive'` is vertical below `sm`, and
+	 * horizontal from it.
 	 * @defaultValue 'responsive'
 	 */
-	orientation?: StepperOrientation
+	orientation?: StepperLayout
 	/**
 	 * How {@link StepperPanel}s off the current step are held.
 	 *
@@ -137,12 +137,12 @@ export function Stepper({
 	// Without an explicit orientation, CSS picks the layout, so the server render
 	// and the first paint already match the viewport. Only the keyboard axis and
 	// `aria-orientation` read the viewport in JavaScript.
-	const layout: StepperLayout = orientation ?? 'responsive'
+	const layout = orientation ?? 'responsive'
 
 	const isDesktop = useMinBreakpoint('sm')
 
 	const resolvedOrientation: StepperOrientation =
-		orientation ?? (isDesktop ? 'horizontal' : 'vertical')
+		layout === 'responsive' ? (isDesktop ? 'horizontal' : 'vertical') : layout
 
 	const { rowChildren, panelsChildren } = useMemo(
 		() => partitionStepperChildren(children),

@@ -36,7 +36,11 @@ export type AvatarProps = AvatarVariants & {
 	alt?: string
 	/** The text that shows under the image, or alone with no image. It is hidden from assistive tech, so give `alt` too. */
 	initials?: string
-	/** The status of a StatusDot on the corner of the avatar. Omit it to show no dot. */
+	/**
+	 * The status of a StatusDot on the corner of the avatar. Omit it to show no dot.
+	 *
+	 * @defaultValue No status: the avatar shows no dot.
+	 */
 	status?: Status
 	/** Accessible text for the status dot. Defaults to the humanized `status`. */
 	statusLabel?: string

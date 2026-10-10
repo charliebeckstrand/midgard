@@ -24,7 +24,10 @@ export const [PanelStateContext, usePanelState] = createContext<PanelStateContex
 
 /** Props for {@link PanelRoot}: the open state, controlled or uncontrolled. */
 export type PanelRootProps = {
-	/** Controlled open state. Pair with `onOpenChange`. */
+	/**
+	 * Controlled open state. Pair with `onOpenChange`.
+	 * @defaultValue Uncontrolled: the state starts from `defaultOpen`.
+	 */
 	open?: boolean
 	/**
 	 * Initial open state when uncontrolled.

@@ -53,6 +53,7 @@ type ColorPickerBaseProps = GroupStampProps & {
 	 * density scopes.
 	 */
 	size?: ScaleStep<typeof scale>
+	/** @defaultValue `false`, or the state of the enclosing Control or Field. */
 	disabled?: boolean
 	/**
 	 * Blocks the open of the panel, so the color cannot change. An explicit value
@@ -61,6 +62,7 @@ type ColorPickerBaseProps = GroupStampProps & {
 	 * the color. A press, Enter, or Space does not open the panel. A button does
 	 * not take `aria-readonly`, so the trigger sets `aria-disabled` while the panel
 	 * is closed. A panel that is open when `readOnly` turns on can still close.
+	 * @defaultValue `false`, or the state of the enclosing Control.
 	 */
 	readOnly?: boolean
 	className?: string

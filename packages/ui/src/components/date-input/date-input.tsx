@@ -41,7 +41,13 @@ export type DateInputProps = Omit<
 	| 'max'
 	| 'clearable'
 	| 'clearLabel'
+	| 'invalid'
 > & {
+	/**
+	 * Forces the invalid state. When omitted, the typed entry, the bound form field, and the enclosing Control set it.
+	 * @defaultValue `false`, or `true` while the typed entry is not a valid date. A form error or an `error` severity of the enclosing Control also sets it.
+	 */
+	invalid?: boolean
 	/** Controlled date. `null` keeps the field controlled with no current value. */
 	value?: Date | null
 	defaultValue?: Date
@@ -67,9 +73,10 @@ export type DateInputProps = Omit<
 	/**
 	 * Pattern that masks and parses the typed text.
 	 *
-	 * @defaultValue The layout matching the ambient `<LocaleProvider>` locale —
-	 * `'DD/MM/YYYY'` for a day-first locale, `'YYYY-MM-DD'` for a year-first one,
-	 * else `'MM/DD/YYYY'`.
+	 * @defaultValue `'MM/DD/YYYY'` in an `en-US` locale. The locale of the
+	 * enclosing `<LocaleProvider>`, or else of the runtime, sets the layout:
+	 * `'DD/MM/YYYY'` for a day-first locale, and `'YYYY-MM-DD'` for a
+	 * year-first one.
 	 */
 	format?: DateInputFormat
 	/** Earliest accepted day; a complete date before it marks the input invalid and emits `null`. */

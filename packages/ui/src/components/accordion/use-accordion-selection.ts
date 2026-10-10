@@ -10,6 +10,7 @@ import { type KeyedStore, toggleListItem } from '../../utilities'
  * @internal
  */
 export type SingleProps = {
+	/** The open mode. Single mode keeps one section open at most. @defaultValue 'single' */
 	type?: 'single'
 	value?: string | null
 	defaultValue?: string | null

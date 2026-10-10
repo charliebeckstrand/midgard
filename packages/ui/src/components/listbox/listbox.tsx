@@ -41,14 +41,19 @@ type ListboxBaseProps = GroupStampProps & {
 	prefix?: ReactNode
 	suffix?: ReactNode
 	size?: ScaleStep<typeof scale>
+	/** @defaultValue `false`, or the state of the enclosing Control or Field. */
 	disabled?: boolean
 	/**
 	 * Keeps the trigger focusable and the value submitted, but blocks opening and
 	 * selection. A controlled `open` can show the panel, but an option click does
 	 * not commit, as with `disabled`.
+	 * @defaultValue `false`, or the state of the enclosing Control.
 	 */
 	readOnly?: boolean
-	/** Marks the field required; surfaces `aria-required` on the trigger. */
+	/**
+	 * Marks the field required; surfaces `aria-required` on the trigger.
+	 * @defaultValue `false`, or the state of the enclosing Control.
+	 */
 	required?: boolean
 	className?: string
 	/** Id for the trigger; matches the `id` prop on Combobox. Resolves through the explicit prop, then an enclosing `<Control>`/`<Field>`. */
@@ -62,7 +67,10 @@ type ListboxBaseProps = GroupStampProps & {
 	/** Consumer-supplied `aria-describedby`, merged ahead of the field's registered description/error ids. */
 	'aria-describedby'?: string
 	'aria-labelledby'?: string
-	/** Clicking the selected option clears it. */
+	/**
+	 * Clicking the selected option clears it.
+	 * @defaultValue `true` while neither `value` nor `defaultValue` holds a value, else `false`.
+	 */
 	nullable?: boolean
 	/**
 	 * Truncates the selected-value label when it overflows the trigger.
@@ -92,7 +100,10 @@ type ListboxBaseProps = GroupStampProps & {
 	 * @defaultValue true
 	 */
 	capitalize?: boolean
-	/** Controlled menu open state. */
+	/**
+	 * Controlled menu open state.
+	 * @defaultValue Uncontrolled: the menu starts closed.
+	 */
 	open?: boolean
 	/** Fires when the menu open state changes. */
 	onOpenChange?: (open: boolean) => void
