@@ -34,11 +34,11 @@ type ListReorderGroupProps = Omit<
  * `LazyMotion` is not strict. `Reorder` already loads each feature of `domMax`,
  * so the bundle adds no code.
  */
-function ListReorderGroup(props: ListReorderGroupProps) {
+function ListReorderGroup({ ref, ...props }: ListReorderGroupProps) {
 	return (
 		<LazyMotion features={domMax}>
-			<GroupBoxContext value={props.ref}>
-				<Reorder.Group {...props} as="ul" />
+			<GroupBoxContext value={ref}>
+				<Reorder.Group {...props} ref={ref} as="ul" />
 			</GroupBoxContext>
 		</LazyMotion>
 	)
