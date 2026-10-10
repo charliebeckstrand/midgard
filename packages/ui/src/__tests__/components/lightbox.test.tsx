@@ -463,7 +463,7 @@ describe('Lightbox', () => {
 		expect(screen.getByRole('button', { name: 'Next photo' })).not.toHaveClass('invisible')
 	})
 
-	it('moves the controls to the next photo as the slide starts', () => {
+	it('moves the controls and the count to the next photo as the slide starts', () => {
 		renderUI(<Gallery defaultIndex={0} />)
 
 		const controls = getSlot(document.body, 'lightbox-controls')
@@ -480,6 +480,8 @@ describe('Lightbox', () => {
 		expect(edge()).not.toBe(before)
 
 		expect(edge()).toContain('1500px')
+
+		expect(screen.getByText('2 / 3')).toBeInTheDocument()
 	})
 
 	it('holds the step buttons and the count in one pill', () => {

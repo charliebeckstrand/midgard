@@ -262,9 +262,11 @@ export function LightboxStage({
 	// A tall photo leaves room above and below it for the controls that show.
 	const frame = cn(k.frame.base, closable || bar ? k.frame.controls : k.frame.bare)
 
-	// The photo whose box the controls take. A slide that lands changes `index`,
-	// and its aim then ends.
-	const aimed = photos[aim?.from === index ? aim.to : index]
+	// The photo that the controls show: its box and its place in the count. A
+	// slide that lands changes `index`, and its aim then ends.
+	const aimedIndex = aim?.from === index ? aim.to : index
+
+	const aimed = photos[aimedIndex]
 
 	const previousRef = useRef<HTMLButtonElement>(null)
 
@@ -370,7 +372,7 @@ export function LightboxStage({
 									<Icon icon={<ChevronLeft />} className="rtl:-scale-x-100" />
 								</Button>
 								<span aria-live="polite" className={k.count}>
-									{index + 1} / {count}
+									{aimedIndex + 1} / {count}
 								</span>
 								<Button
 									type="button"
