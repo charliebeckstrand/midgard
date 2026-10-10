@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { MapPlat, MapPoint, MapPoints } from '../../modules/map'
-import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
+import { allBySlot, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 import { renderNavigable } from '../helpers/map-navigable'
 import { overlayPlat } from '../helpers/map-plat'
@@ -442,6 +442,41 @@ describe('a point with a shape of its own', () => {
 		)
 
 		expect(bySlot(container, 'map-points-cluster')?.getAttribute('stroke-linecap')).toBe('round')
+	})
+})
+
+describe('the readout of a point with a paint of its own', () => {
+	it('keys the swatch of the tooltip to the dot under the pointer', () => {
+		const { container } = renderUI(
+			overlayPlat(
+				<MapPoints
+					id="records"
+					label="Records"
+					shape="square"
+					points={[
+						{ at: DEPOT, label: 'Depot', detail: 'Lisbon', shape: 'circle', color: 'green' },
+						{ at: SITE, label: 'Site', detail: 'Porto' },
+					]}
+				/>,
+			),
+		)
+
+		const hits = allBySlot(container, 'map-points-hit')
+
+		const swatch = () => bySlot(getSlot(container, 'tooltip-content'), 'swatch')
+
+		fireEvent.pointerEnter(hits[0] as Element, { clientX: 10, clientY: 10 })
+
+		expect(swatch()?.getAttribute('data-shape')).toBe('circle')
+
+		expect(swatch()?.getAttribute('class') ?? '').toContain('text-green')
+
+		// A dot that takes the paint of the mark keys the swatch of the mark.
+		fireEvent.pointerEnter(hits[1] as Element, { clientX: 30, clientY: 10 })
+
+		expect(swatch()?.getAttribute('data-shape')).toBe('square')
+
+		expect(swatch()?.getAttribute('class') ?? '').not.toContain('text-green')
 	})
 })
 

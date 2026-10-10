@@ -253,7 +253,9 @@ function sameStopRows(previous: MapStopRow[] | undefined, next: MapStopRow[] | u
 		next.every(
 			(row, i) =>
 				(row.label ?? '') === (previous[i]?.label ?? '') &&
-				(row.detail ?? '') === (previous[i]?.detail ?? ''),
+				(row.detail ?? '') === (previous[i]?.detail ?? '') &&
+				row.swatch === previous[i]?.swatch &&
+				row.color === previous[i]?.color,
 		)
 	)
 }

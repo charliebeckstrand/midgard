@@ -13,7 +13,7 @@ import type { LngLat, MapPoint2D, MapSwatchShape } from '../types'
 export type MapOverlayKind = 'route' | 'point' | 'marker' | 'geofence'
 
 /**
- * One stop's own readout. Either field can stand alone. A dot that carries a
+ * One stop's own readout. Each field can stand alone. A dot that carries a
  * count but no name of its own is as ordinary as one that carries a name.
  *
  * @internal
@@ -21,6 +21,10 @@ export type MapOverlayKind = 'route' | 'point' | 'marker' | 'geofence'
 export type MapStopRow = {
 	label?: string
 	detail?: string
+	/** The swatch of the stop, where the shape of its dot is not the shape of the mark. */
+	swatch?: MapSwatchShape
+	/** The color of the stop, where its dot has a color of its own. */
+	color?: MapSeriesColor
 }
 
 /**
