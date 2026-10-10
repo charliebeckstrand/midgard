@@ -1,6 +1,7 @@
 'use client'
 
-import { type ReactNode, Suspense, useState } from 'react'
+import { type ReactNode, Suspense } from 'react'
+import { useMountHold } from 'ui/primitives/mount'
 
 /** Props for {@link LazyPanel}. */
 export type LazyPanelProps = {
@@ -38,17 +39,14 @@ export type LazyPanelProps = {
  * way, and keeps the HTML of the server until then.
  */
 export function LazyPanel({ open, loaded, children }: LazyPanelProps) {
-	const [opened, setOpened] = useState(open)
+	// `present` holds the panel from its first open on. `mountedActive` is whether
+	// it is open on the first render, and it does not change, so the boundary does
+	// not come or go, which would mount the panel again.
+	const { present, mountedActive } = useMountHold(open, 'lazy')
 
-	// Whether the panel is open on the first render. It does not change, so the
-	// boundary does not come or go, which would mount the panel again.
-	const [first] = useState(open)
+	if (!present && !loaded) return null
 
-	if (open && !opened) setOpened(true)
-
-	if (!opened && !open && !loaded) return null
-
-	if (first) return children
+	if (mountedActive) return children
 
 	return <Suspense fallback={null}>{children}</Suspense>
 }

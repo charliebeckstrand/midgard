@@ -78,7 +78,9 @@ const loadPanels = () => Promise.all([loadIndex(), loadForm(), loadDrawer()])
 
 /**
  * The three panels. {@link LazyPanel} renders them and tells where each gets a
- * Suspense boundary.
+ * Suspense boundary. They take no `loading` option: that gives each one a
+ * boundary of its own, and a panel that the address opens then paints a frame
+ * after the page.
  */
 const PlacesIndex = dynamic(() => loadIndex().then((module) => module.PlacesIndex))
 
@@ -813,9 +815,7 @@ export function PlacesApp({
 			    the order changes nothing on the screen. */}
 
 			{/* One drawer for both writes, opened on a place to edit it and on nothing
-			    to add one. Two would be the same seven fields twice. It renders from
-			    the idle load of its code or its first open on, so its code is not
-			    part of the first load. */}
+			    to add one. Two would be the same seven fields twice. */}
 			<LazyPanel open={formOpen} loaded={panelsLoaded}>
 				<PlaceFormDrawer
 					target={formTarget}
@@ -838,8 +838,7 @@ export function PlacesApp({
 
 			{/* The other index into the same set: the map answers what is near here,
 			    and this answers where that place was. It reads the filtered list, so
-			    the two never disagree about what is in play. It renders from the
-			    same point on as the form. */}
+			    the two never disagree about what is in play. */}
 			<LazyPanel open={listing} loaded={panelsLoaded}>
 				<PlacesIndex
 					open={listing}

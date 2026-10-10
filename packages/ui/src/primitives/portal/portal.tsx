@@ -31,6 +31,13 @@ export type PortalProps = {
 	 * Only a surface that needs no measurement to place itself can paint before
 	 * hydration. An overlay covers its frame, and a floating surface waits for its
 	 * anchor.
+	 *
+	 * Two things in the caller can still keep the surface out of the first paint.
+	 * A Suspense boundary above it that waits on the server sends it after the
+	 * shell, in a hidden segment, and React shows it in a later frame. A surface
+	 * after heavy content in the document can miss a paint of a document that the
+	 * browser has not parsed to the end. Thus put no boundary above a surface that
+	 * opens on the server, and put the surface before heavy content.
 	 * @defaultValue false
 	 */
 	ssr?: boolean
