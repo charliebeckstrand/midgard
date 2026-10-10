@@ -220,6 +220,8 @@ A resolution changes the status of the row and cites the pull request, and nothi
 
 Do not mark a step done in the plan. Do not add the result of a step. Edit the plan only when the decision changes. Before you delete a plan, move each fact of it that is still true to a document that lasts. Such a document is `REFERENCE.md`, a surface index, a module `ROADMAP.md`, or TSDoc.
 
+12.6 The quality ledger [`packages/ui/docs/LEDGER.md`](packages/ui/docs/LEDGER.md) records the state of each `ui` unit against the definition of done. A unit is a directory of `components`, `modules`, `primitives`, `structure`, or `providers`, or one layout. A change that adds, removes, or renames a unit updates its row in the same commit. `ledger-boundary.test.ts` fails on a unit with no row, a row with no unit, or a cell that breaks the rules of the ledger. A row cites pull requests only, and never names an audit or a plan (§12.4).
+
 ---
 
 **See also:** [CLAUDE.md](CLAUDE.md), [REFERENCE.md](REFERENCE.md), [STE.md](STE.md).

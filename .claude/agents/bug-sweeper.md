@@ -62,6 +62,8 @@ tools: Read, Grep
 
 - `contract` — the quoted TSDoc, section, or test.
 
+- `lens` — in a Clean pass, the lens id from §6.2, or `other`.
+
 - `evidence` — the trace, the line numbers, the suspected severity, the fix idea.
 
 4.2 One coverage line: the scope id, the count of files in the list, the count you read, and each file that did not open. The caller checks that echo against the list it sent.
@@ -76,9 +78,31 @@ tools: Read, Grep
 
 5.2 Never search for a consumer or a call site; reach is a question inside `bug-verifier`. A test you quote under §3.4 is not a consumer search: quote the test that sits beside the code you read, and never count it as reach.
 
-5.3 Never read a record of a prior judgment: an audit, a plan, a benchmark, or another scope's verdicts. A benchmark holds the answer key that scores you, so a run that opens one proves nothing. Scope every search to the file list, because a search from the repository root reaches a benchmark and prints its text before you can refuse it.
+5.3 Never read a record of a prior judgment: an audit, a plan, a benchmark, the quality ledger `packages/ui/docs/LEDGER.md`, or another scope's verdicts. A benchmark holds the answer key that scores you, so a run that opens one proves nothing. Scope every search to the file list, because a search from the repository root reaches a benchmark and prints its text before you can refuse it.
 
 5.4 Never raise a claim on a file outside the list; the sweep of the scope that holds it owns that file, and the `leads` line carries what you saw to the caller.
+
+## 6. Lenses
+
+6.1 A Clean pass ([`bug-audit.md`](../commands/bug-audit.md) §8) sweeps one unit with the fixed lens set of §6.2. The set does not change from one pass to the next, so two passes at one commit ask the same questions.
+
+6.2 The lens set:
+
+| Lens | The rule |
+| --- | --- |
+| `keyboard` | A keyboard can do each action that a pointer can do. The focus order, the focus return, and the keys follow the ARIA pattern of the role. |
+| `touch` | A press, a drag, a long press, and a pinch work with a finger on a phone. A touch does not leave a result that only a hover can clear. |
+| `rtl` | In a right-to-left direction, the layout, the arrow keys, and the gestures mirror. |
+| `density` | Each density step sets the size and the gap of the unit from the scale. No size is fixed outside the scale. |
+| `motion` | Under reduced motion, the unit does not animate a move or a scale, and it reaches the same end state. |
+| `forced-colors` | Under forced colors, each state that a color shows stays visible: selected, checked, focused, disabled, and invalid. |
+| `first-paint` | The server render and the first paint show the final layout. Hydration moves no layout and logs no mismatch. |
+| `controlled` | A controlled unit shows its `value` prop and reports each change. An uncontrolled unit keeps its own state from `defaultValue`. |
+| `form-reset` | A reset of a `Form` or of a native form puts the unit back to its default value and clears its own state. |
+
+6.3 The caller names the lenses that apply to the unit. Read the full file list once, and check each named lens. Give each claim the lens it breaks in its `lens` field.
+
+6.4 A lens is a checklist, not a limit. A defect that no named lens holds still gets a claim, with `lens: other`.
 
 ---
 
