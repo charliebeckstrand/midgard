@@ -21,6 +21,8 @@ already shipped.
   maps to them. Each one derives from the public API surface. When you add,
   remove, or rename an export, update the matching doc in the same change
   ([`CONVENTIONS.md`](../../../CONVENTIONS.md) §12).
+- **Quality ledger** — [`LEDGER.md`](LEDGER.md) holds one row for each unit, with
+  its state against the definition of done ([`CONVENTIONS.md`](../../../CONVENTIONS.md) §12.6).
 - **`audits/`** — dated, full-surface sweeps of the package against a single
   lens (accessibility, correctness, API surface, documentation, …). Each audit
   records what the sweep found and how each finding closed. Delete it once the

@@ -105,6 +105,24 @@ You are the caller. The three bug agents read and judge. You cut the scopes, mov
 
 7.4 Never write a verdict, a severity, or a reach that an agent did not return. The caller writes the record; the agents judge.
 
+## 8. Clean pass
+
+8.1 A Clean pass takes one unit, or one family of units that share a mechanism, from the ledger [`packages/ui/docs/LEDGER.md`](../../packages/ui/docs/LEDGER.md). It does not take a letter or a free area.
+
+8.2 Make each scope the full file list of one unit. Give the sweeper the lenses that apply to the unit, with the lens table of `bug-sweeper.md` §6. Do not add a lens, and do not drop one.
+
+8.3 Put the "Known, not chasing" cell of each unit in the prior-art digest (§1.6). Never give the ledger to a sweeper (§7.3).
+
+8.4 The floor is `medium` (`bug-verifier.md` §6). Write each confirmed finding at the floor or above as a row of the record. Write each `low` finding in the "Known, not chasing" cell of the unit, and not in the record.
+
+8.5 In the first pull request of the pass, set the unit to In pass, and write its lenses.
+
+8.6 After the fixes merge, run one confirmation sweep at the new head of `main`. When it returns no finding at the floor or above, and the other checks of the definition of done pass, set the unit to Clean. Put the pull request that sets it in the Clean in cell.
+
+8.7 When the confirmation sweep returns a finding at the floor or above, the test of the family is too narrow. Widen the test before the next fix.
+
+8.8 A bug report, a failed iPhone check, or a later fix that touches the files of a Clean unit sets the unit to Reopened.
+
 ---
 
 **See also:** [`bug-sweeper`](../agents/bug-sweeper.md) · [`bug-verifier`](../agents/bug-verifier.md) · [`bug-resolver`](../agents/bug-resolver.md) · [`CONVENTIONS.md` §12](../../CONVENTIONS.md).
