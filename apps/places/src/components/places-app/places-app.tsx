@@ -57,6 +57,7 @@ import { actionSource, PlacePalette, placeSource, regionSource } from '../place-
 import { PlaceTrail, type PlaceTrailStep } from '../place-trail'
 import { PlacesMap } from '../places-map'
 import { UserMenu } from '../user-menu'
+import { LazyPanel } from './lazy-panel'
 import { usePlaceLocation } from './use-place-location'
 
 /**
@@ -76,42 +77,16 @@ const loadDrawer = () => import('../place-drawer')
 const loadPanels = () => Promise.all([loadIndex(), loadForm(), loadDrawer()])
 
 /**
- * Each panel suspends in the render that first shows it, also when its code is
- * in the cache. A `loading` option gives the panel a Suspense boundary of its
- * own. Without one, the suspense reaches the boundary of the page. React then
- * hides the whole app for a frame and shows it again.
- *
- * That hide interrupts the exit of a closing surface. The user menu opens the
- * two panels, and it closes in the same render. A hidden menu showed its panel
- * again at full opacity, took no input, and did not unmount.
+ * The three panels. {@link LazyPanel} renders them and tells where each gets a
+ * Suspense boundary. They take no `loading` option: that gives each one a
+ * boundary of its own, and a panel that the address opens then paints a frame
+ * after the page.
  */
-const PlacesIndex = dynamic(() => loadIndex().then((module) => module.PlacesIndex), {
-	loading: () => null,
-})
+const PlacesIndex = dynamic(() => loadIndex().then((module) => module.PlacesIndex))
 
-const PlaceFormDrawer = dynamic(() => loadForm().then((module) => module.PlaceFormDrawer), {
-	loading: () => null,
-})
+const PlaceFormDrawer = dynamic(() => loadForm().then((module) => module.PlaceFormDrawer))
 
-const PlaceDrawer = dynamic(() => loadDrawer().then((module) => module.PlaceDrawer), {
-	loading: () => null,
-})
-
-/**
- * Whether a panel renders: from the load of its code or its first open on,
- * whichever comes first.
- *
- * Before that, the panel is not rendered, so its code does not load for it.
- * After that, it stays rendered, because a closing panel has an exit to play.
- * {@link usePanelPrefetch} tells why a loaded panel renders before it opens.
- */
-function usePanelRendered(open: boolean, loaded: boolean): boolean {
-	const [opened, setOpened] = useState(open)
-
-	if (open && !opened) setOpened(true)
-
-	return opened || open || loaded
-}
+const PlaceDrawer = dynamic(() => loadDrawer().then((module) => module.PlaceDrawer))
 
 /**
  * The target of the form for a new place. It is held so that its identity is
@@ -612,10 +587,6 @@ export function PlacesApp({
 
 	const formOpen = formTarget !== null
 
-	const formRendered = usePanelRendered(formOpen, panelsLoaded)
-
-	const indexRendered = usePanelRendered(listing, panelsLoaded)
-
 	const regions = atlasRegions(atlas)
 
 	// The one region the view is cut to, which the picker and the crumbs share.
@@ -677,8 +648,6 @@ export function PlacesApp({
 
 		return selectedIds.map((id) => byId.get(id)).filter((place) => place !== undefined)
 	}, [selectedIds, places])
-
-	const drawerRendered = usePanelRendered(selected.length > 0, panelsLoaded)
 
 	// The countries grouping inverted, held in its own slot for the reason the
 	// grouping is: one settled answer per atlas.
@@ -838,6 +807,74 @@ export function PlacesApp({
 
 	return (
 		<Flex direction="col" className="h-full">
+			{/* The panels come first in the document, ahead of the map. A panel that
+			    the address opens renders in place on the server, and the browser can
+			    paint a document that it has not parsed to the end. After the map, the
+			    panel could miss that paint, and the map showed for a frame with no
+			    panel over it. Each panel covers the page from a layer of its own, so
+			    the order changes nothing on the screen. */}
+
+			{/* One drawer for both writes, opened on a place to edit it and on nothing
+			    to add one. Two would be the same seven fields twice. */}
+			<LazyPanel open={formOpen} loaded={panelsLoaded}>
+				<PlaceFormDrawer
+					target={formTarget}
+					onOpenChange={(next) => {
+						if (next) return
+
+						setForm(null)
+
+						if (adding) setAdding(false)
+					}}
+					onSubmit={(draft) => {
+						const place = formTarget?.place ?? null
+
+						return place === null
+							? addPlace.mutateAsync(draft)
+							: savePlace.mutateAsync({ id: place.id, draft })
+					}}
+				/>
+			</LazyPanel>
+
+			{/* The other index into the same set: the map answers what is near here,
+			    and this answers where that place was. It reads the filtered list, so
+			    the two never disagree about what is in play. */}
+			<LazyPanel open={listing} loaded={panelsLoaded}>
+				<PlacesIndex
+					open={listing}
+					onOpenChange={setListing}
+					places={filtered}
+					regionByPlace={regionOfPlace}
+					// The region the view is cut to, which the sheet opens on where it holds
+					// anything. The reader came from that projection, so it is the narrowing
+					// they already made; clearing the filter widens it back to the bar's.
+					region={cut}
+					stateByPlace={stateByPlace}
+					actions={actions}
+					onOpen={(place) => {
+						// One step, not two: the view and the selection are both the address,
+						// so writing them apart would leave a history entry standing on a map
+						// the reader never saw — and the second write would drop the first.
+						openAt(viewFor(stateOfPlace, place), [place.id])
+
+						setListing(false)
+					}}
+				/>
+			</LazyPanel>
+
+			<LazyPanel open={selected.length > 0} loaded={panelsLoaded}>
+				<PlaceDrawer
+					places={selected}
+					trail={trail}
+					regionPlaces={openedRegionPlaces}
+					step={step}
+					onStepChange={setStep}
+					onNavigate={onNavigate}
+					onOpenChange={() => setSelected([])}
+					actions={actions}
+				/>
+			</LazyPanel>
+
 			<PlacesHeader
 				user={user}
 				steps={pageTrail}
@@ -907,70 +944,6 @@ export function PlacesApp({
 
 				<PlacesError error={error} />
 			</div>
-
-			{/* One drawer for both writes, opened on a place to edit it and on nothing
-			    to add one. Two would be the same seven fields twice. It renders from
-			    the idle load of its code or its first open on, so its code is not
-			    part of the first load. */}
-			{formRendered ? (
-				<PlaceFormDrawer
-					target={formTarget}
-					onOpenChange={(next) => {
-						if (next) return
-
-						setForm(null)
-
-						if (adding) setAdding(false)
-					}}
-					onSubmit={(draft) => {
-						const place = formTarget?.place ?? null
-
-						return place === null
-							? addPlace.mutateAsync(draft)
-							: savePlace.mutateAsync({ id: place.id, draft })
-					}}
-				/>
-			) : null}
-
-			{/* The other index into the same set: the map answers what is near here,
-			    and this answers where that place was. It reads the filtered list, so
-			    the two never disagree about what is in play. It renders from the
-			    same point on as the form. */}
-			{indexRendered ? (
-				<PlacesIndex
-					open={listing}
-					onOpenChange={setListing}
-					places={filtered}
-					regionByPlace={regionOfPlace}
-					// The region the view is cut to, which the sheet opens on where it holds
-					// anything. The reader came from that projection, so it is the narrowing
-					// they already made; clearing the filter widens it back to the bar's.
-					region={cut}
-					stateByPlace={stateByPlace}
-					actions={actions}
-					onOpen={(place) => {
-						// One step, not two: the view and the selection are both the address,
-						// so writing them apart would leave a history entry standing on a map
-						// the reader never saw — and the second write would drop the first.
-						openAt(viewFor(stateOfPlace, place), [place.id])
-
-						setListing(false)
-					}}
-				/>
-			) : null}
-
-			{drawerRendered ? (
-				<PlaceDrawer
-					places={selected}
-					trail={trail}
-					regionPlaces={openedRegionPlaces}
-					step={step}
-					onStepChange={setStep}
-					onNavigate={onNavigate}
-					onOpenChange={() => setSelected([])}
-					actions={actions}
-				/>
-			) : null}
 		</Flex>
 	)
 }
