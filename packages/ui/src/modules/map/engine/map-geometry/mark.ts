@@ -495,9 +495,10 @@ export function dotPath(at: MapPoint2D): string {
 }
 
 /**
- * The share of a square dot's width that each corner rounds over. It is the
- * corner of the square `Swatch` (2 px on a 10 px box), so a square dot
- * and its legend key have one shape at every size.
+ * The share of a square dot's width that each corner rounds over. The share
+ * matches the square `Swatch` at its base size, a 2 px corner on a 10 px box.
+ * The corner grows with the width of the dot, so a dot keeps its shape when
+ * its width changes.
  *
  * @internal
  */

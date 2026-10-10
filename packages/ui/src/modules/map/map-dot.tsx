@@ -116,12 +116,11 @@ export function MapDot({
 }: MapDotProps) {
 	const width = radius * 2 * scale
 
-	// The path and the stroke width at a drawn width. A circle keeps one path at
-	// every width; a square's path grows with it, so the pop grows both.
-	const stroke = (drawnWidth: number) =>
-		shape === 'square'
-			? squareDotStroke(at, drawnWidth)
-			: { d: dotPath(at), strokeWidth: drawnWidth }
+	// The path and the stroke width at the full width. The stroke width is a
+	// fixed share of the drawn width for both shapes. A circle keeps one path at
+	// every width, and a square's path grows with the width.
+	const full =
+		shape === 'square' ? squareDotStroke(at, width) : { d: dotPath(at), strokeWidth: width }
 
 	const shared = {
 		'data-slot': slot,
@@ -138,11 +137,13 @@ export function MapDot({
 	// mid-pop the dot grows toward the new width. Nothing renders at the pop's end.
 	const shown = useMotionValue(still ? 1 : 0)
 
-	const drawnPath = useTransform(shown, (share) => stroke(share * width).d)
+	const drawnPath = useTransform(shown, (share) =>
+		shape === 'square' ? squareDotStroke(at, share * width).d : full.d,
+	)
 
-	const drawnStroke = useTransform(shown, (share) => stroke(share * width).strokeWidth)
+	const drawnStroke = useTransform(shown, (share) => share * full.strokeWidth)
 
-	if (!animate) return <path {...shared} {...stroke(width)} />
+	if (!animate) return <path {...shared} {...full} />
 
 	return (
 		<m.path
