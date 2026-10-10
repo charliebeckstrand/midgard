@@ -170,7 +170,7 @@ function FieldPicker({
 					<Flex gap="sm">
 						<ListboxLabel>{option.label}</ListboxLabel>
 						{option.fallback && (
-							<Badge size="sm" variant="soft">
+							<Badge size="xs" variant="solid" color="blue">
 								Default
 							</Badge>
 						)}
