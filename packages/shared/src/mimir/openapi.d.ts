@@ -96,7 +96,7 @@ export interface paths {
 		post?: never
 		/**
 		 * Delete all of a user's data
-		 * @description Deletes every app's data of the user, when their account is deleted.
+		 * @description Deletes every app's data of the user and all their photos, when their account is deleted.
 		 */
 		delete: {
 			parameters: {
@@ -194,7 +194,7 @@ export interface paths {
 						'application/json': components['schemas']['Place']
 					}
 				}
-				/** @description Invalid place */
+				/** @description Invalid place, a visit outside its trip (`visit-outside-trip`), or another user’s photo (`photo-not-yours`) */
 				400: {
 					headers: {
 						[name: string]: unknown
@@ -275,7 +275,7 @@ export interface paths {
 						'application/json': components['schemas']['Place']
 					}
 				}
-				/** @description Invalid place */
+				/** @description Invalid place, a visit outside its trip (`visit-outside-trip`), or another user’s photo (`photo-not-yours`) */
 				400: {
 					headers: {
 						[name: string]: unknown
@@ -500,6 +500,329 @@ export interface paths {
 		patch?: never
 		trace?: never
 	}
+	'/api/trips': {
+		parameters: {
+			query?: never
+			header?: never
+			path?: never
+			cookie?: never
+		}
+		/**
+		 * List your trips
+		 * @description Newest `startsOn` first.
+		 */
+		get: {
+			parameters: {
+				query?: never
+				header?: never
+				path?: never
+				cookie?: never
+			}
+			requestBody?: never
+			responses: {
+				/** @description Trips */
+				200: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['TripList']
+					}
+				}
+				/** @description Not signed in */
+				401: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+			}
+		}
+		put?: never
+		/**
+		 * Add a trip
+		 * @description Adds the trip and records each stop on it, in one change. Every stop must fall in the trip’s days: 400 `visit-outside-trip` otherwise.
+		 */
+		post: {
+			parameters: {
+				query?: never
+				header?: never
+				path?: never
+				cookie?: never
+			}
+			requestBody: {
+				content: {
+					'application/json': components['schemas']['NewTrip']
+				}
+			}
+			responses: {
+				/** @description Trip added */
+				201: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['CreatedTrip']
+					}
+				}
+				/** @description Invalid trip, a stop outside its days (`visit-outside-trip`), a stop naming no place of yours, or another user’s photo (`photo-not-yours`) */
+				400: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+				/** @description Not signed in */
+				401: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+				/** @description No user role, or email not verified */
+				403: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+				/** @description Already keeping 1000 trips, or as many places or visits as allowed */
+				409: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+			}
+		}
+		delete?: never
+		options?: never
+		head?: never
+		patch?: never
+		trace?: never
+	}
+	'/api/trips/{id}': {
+		parameters: {
+			query?: never
+			header?: never
+			path?: never
+			cookie?: never
+		}
+		get?: never
+		/**
+		 * Replace a trip
+		 * @description Keeps its id, when it was added, and its visits.
+		 */
+		put: {
+			parameters: {
+				query?: never
+				header?: never
+				path: {
+					/** @description The id of the trip */
+					id: string
+				}
+				cookie?: never
+			}
+			requestBody: {
+				content: {
+					'application/json': components['schemas']['TripDraft']
+				}
+			}
+			responses: {
+				/** @description Trip replaced */
+				200: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Trip']
+					}
+				}
+				/** @description Invalid trip, or another user’s photo (`photo-not-yours`) */
+				400: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+				/** @description Not signed in */
+				401: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+				/** @description No user role, or email not verified */
+				403: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+				/** @description No trip with that id */
+				404: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+				/** @description The new days would leave out one of its visits (`trip-days-exclude-visits`) */
+				409: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+			}
+		}
+		post?: never
+		/**
+		 * Remove a trip
+		 * @description Its visits stay on their places, without the trip. Its photos are deleted.
+		 */
+		delete: {
+			parameters: {
+				query?: never
+				header?: never
+				path: {
+					/** @description The id of the trip */
+					id: string
+				}
+				cookie?: never
+			}
+			requestBody?: never
+			responses: {
+				/** @description Trip removed */
+				204: {
+					headers: {
+						[name: string]: unknown
+					}
+					content?: never
+				}
+				/** @description Not signed in */
+				401: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+				/** @description No user role, or email not verified */
+				403: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+				/** @description No trip with that id */
+				404: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+			}
+		}
+		options?: never
+		head?: never
+		patch?: never
+		trace?: never
+	}
+	'/api/photos/uploads': {
+		parameters: {
+			query?: never
+			header?: never
+			path?: never
+			cookie?: never
+		}
+		get?: never
+		put?: never
+		/**
+		 * Start a photo upload
+		 * @description Answers with a key and a URL to PUT the photo to. Once uploaded, a visit or trip draft sends the key. A photo no visit or trip keeps is deleted with the account.
+		 */
+		post: {
+			parameters: {
+				query?: never
+				header?: never
+				path?: never
+				cookie?: never
+			}
+			requestBody: {
+				content: {
+					'application/json': components['schemas']['PhotoUploadRequest']
+				}
+			}
+			responses: {
+				/** @description Upload ready */
+				200: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['PhotoUpload']
+					}
+				}
+				/** @description Not a JPEG, PNG or WebP, or larger than 15 MB */
+				400: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+				/** @description Not signed in */
+				401: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+				/** @description No user role, or email not verified */
+				403: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+			}
+		}
+		delete?: never
+		options?: never
+		head?: never
+		patch?: never
+		trace?: never
+	}
 	'/api/predictions/{season}': {
 		parameters: {
 			query?: never
@@ -714,19 +1037,47 @@ export interface components {
 		AccountData: {
 			places: components['schemas']['PlaceList']
 			visits: components['schemas']['Visits']
+			trips: components['schemas']['TripList']
 			/** @description The NFL picks, by season */
 			predictions: {
 				[key: string]: components['schemas']['SeasonPicks']
 			}
 		}
 		PlaceList: components['schemas']['Place'][]
-		Place: {
+		Place: components['schemas']['Location'] & {
 			id: string
-			/** @description When the place was added, ISO 8601 */
+			/** @description When it was added, ISO 8601 */
 			createdAt: string
 			/** @description The business or place name */
 			name: string
 			category: components['schemas']['PlaceCategory']
+			/** Format: uri */
+			url?: string
+			/** @description Newest visit first */
+			visits: components['schemas']['Visit'][]
+		}
+		/** @enum {string} */
+		PlaceCategory: 'food' | 'entertainment' | 'nature' | 'shopping' | 'other'
+		Visit: {
+			id: string
+			/**
+			 * @description The day of the visit
+			 * @example 2026-09-27
+			 */
+			visitedAt: string
+			/** @description 0.5 to 5 in half steps, or 0 for none */
+			rating: number
+			review?: string
+			/** @description The user's trip the visit was part of. `visitedAt` must fall in its days. */
+			tripId?: string
+			photos: components['schemas']['Photo'][]
+		}
+		Photo: {
+			key: string
+			/** @description Reads the photo for at least 45 minutes */
+			url: string
+		}
+		Location: {
 			/** @description The address on one line */
 			address: string
 			city?: string
@@ -736,33 +1087,30 @@ export interface components {
 			country?: string
 			latitude: number
 			longitude: number
-			/** Format: uri */
-			url?: string
-			/** @description Newest visit first */
-			visits: components['schemas']['Visit'][]
-		}
-		/** @enum {string} */
-		PlaceCategory: 'food' | 'entertainment' | 'nature' | 'shopping' | 'other'
-		Visit: components['schemas']['VisitDraft'] & {
-			id: string
-		}
-		VisitDraft: {
-			/** @description The id of a stored visit, kept on a write. Mimir gives a new visit its id. */
-			id?: string
-			/**
-			 * @description The day of the visit
-			 * @example 2026-09-27
-			 */
-			visitedAt: string
-			/** @description 0.5 to 5 in half steps, or 0 for none */
-			rating: number
-			review?: string
-			/** @description Pictures of the visit, in the order the user put them */
-			photos: string[]
 		}
 		Visits: {
 			states: string[]
 			countries: string[]
+		}
+		/** @description Newest `startsOn` first */
+		TripList: components['schemas']['Trip'][]
+		Trip: components['schemas']['Location'] & {
+			id: string
+			/** @description When it was added, ISO 8601 */
+			createdAt: string
+			/** @description What the user calls the trip */
+			name: string
+			/**
+			 * @description The first day of the trip
+			 * @example 2026-09-25
+			 */
+			startsOn: string
+			/**
+			 * @description The last day of the trip, on or after `startsOn`
+			 * @example 2026-09-28
+			 */
+			endsOn: string
+			photos: components['schemas']['Photo'][]
 		}
 		/** @description The picks of each week with any, by week number */
 		SeasonPicks: {
@@ -782,25 +1130,77 @@ export interface components {
 			/** @description A stable name for the error, when the service gives one */
 			code?: string
 		}
-		PlaceDraft: {
+		PlaceDraft: components['schemas']['Location'] & {
 			/** @description The business or place name */
 			name: string
 			category: components['schemas']['PlaceCategory']
-			/** @description The address on one line */
-			address: string
-			city?: string
-			/** @description The state the geocoder named, for places the map outline leaves out and for the state filter */
-			state?: string
-			/** @description The country the geocoder named, for the country filter */
-			country?: string
-			latitude: number
-			longitude: number
 			/** Format: uri */
 			url?: string
 			visits: components['schemas']['VisitDraft'][]
 		}
+		VisitDraft: {
+			/** @description The id of a stored visit, kept on a write. Mimir gives a new visit its id. */
+			id?: string
+			/**
+			 * @description The day of the visit
+			 * @example 2026-09-27
+			 */
+			visitedAt: string
+			/** @description 0.5 to 5 in half steps, or 0 for none */
+			rating: number
+			review?: string
+			/** @description The user's trip the visit was part of. `visitedAt` must fall in its days. */
+			tripId?: string
+			/** @description Pictures of the visit, in the order the user put them */
+			photos: string[]
+		}
 		SetVisit: {
 			visited: boolean
+		}
+		CreatedTrip: {
+			trip: components['schemas']['Trip']
+			places: components['schemas']['PlaceList'] & unknown
+		}
+		NewTrip: components['schemas']['TripDraft'] & {
+			stops?: components['schemas']['TripStop'][]
+		}
+		/** @description A visit to a stored place, or a new place with its one visit. Mimir sets the visit’s `tripId`. A visit with the `id` of one of the place’s visits replaces it. */
+		TripStop:
+			| {
+					/** @description A stored place the visit is added to */
+					placeId: string
+					visit: components['schemas']['VisitDraft']
+			  }
+			| {
+					place: components['schemas']['PlaceDraft']
+			  }
+		TripDraft: components['schemas']['Location'] & {
+			/** @description What the user calls the trip */
+			name: string
+			/**
+			 * @description The first day of the trip
+			 * @example 2026-09-25
+			 */
+			startsOn: string
+			/**
+			 * @description The last day of the trip, on or after `startsOn`
+			 * @example 2026-09-28
+			 */
+			endsOn: string
+			/** @description Pictures of the trip, in the order the user put them */
+			photos: string[]
+		}
+		PhotoUpload: {
+			/** @description What a draft sends for the photo once it is uploaded */
+			key: string
+			/** @description PUT the photo here within five minutes, with the same `content-type` and exactly `size` bytes */
+			uploadUrl: string
+		}
+		PhotoUploadRequest: {
+			/** @enum {string} */
+			contentType: 'image/jpeg' | 'image/png' | 'image/webp'
+			/** @description The size of the photo in bytes, at most 15 MB */
+			size: number
 		}
 		SavePicks: {
 			picks: components['schemas']['WeekPicks']
