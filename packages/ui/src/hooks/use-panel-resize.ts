@@ -10,6 +10,7 @@ import {
 } from 'react'
 import { dataAttr } from '../core'
 import { clamp, pct } from '../utilities'
+import { holdTextSelection } from '../utilities/hold-text-selection'
 import { isPrimaryPress } from '../utilities/primary-press'
 import { type DragCursor, useDragCursor } from './use-drag-cursor'
 
@@ -371,6 +372,11 @@ export function usePanelResize({
 		if (!isPrimaryPress(event)) return
 
 		if (panel === null || grab.current !== null) return
+
+		// A finger that rests on the bar before it moves is a long press. On iOS, the
+		// long press selects the nearest text, shows the loupe, and cancels the
+		// pointer, so the panel goes back to the size of the press.
+		holdTextSelection(event)
 
 		const measured = panel.getBoundingClientRect()[axis]
 
