@@ -89,7 +89,9 @@ function targetKey(target: PlaceFormTarget): string {
 export function PlaceFormDrawer({ target, onOpenChange, onSubmit, trips }: PlaceFormDrawerProps) {
 	const seed = useHeldTarget(target) ?? { kind: 'place', place: null }
 
-	const { today, zone } = useToday()
+	const today = useToday()
+
+	const defaultValues = targetValues(seed, today)
 
 	const { title, submit, editing } = targetWords(seed)
 
@@ -109,10 +111,10 @@ export function PlaceFormDrawer({ target, onOpenChange, onSubmit, trips }: Place
 			subtitle={seed.kind === 'visit' ? seed.place.name : undefined}
 			submit={submit}
 			editing={editing}
-			// The zone of `today` is in the key, so a form that the address opens
-			// takes the day of the reader after hydration (`useToday`).
-			formKey={`${targetKey(seed)}:${zone}`}
-			defaultValues={targetValues(seed, today)}
+			// Whether today is known is in the key. A form that the address opens
+			// thus takes the day of the reader after hydration (`useToday`).
+			formKey={`${targetKey(seed)}:${today === null ? 'pending' : 'known'}`}
+			defaultValues={defaultValues}
 			validate={placeValidators(trips)}
 			onSubmit={async (values) => {
 				if (seed.kind === 'visit') {
@@ -174,7 +176,11 @@ export function PlaceFormDrawer({ target, onOpenChange, onSubmit, trips }: Place
 			{visitFields ? (
 				<>
 					<div className="sm:col-span-2">
-						<PlaceVisitedField trips={trips} />
+						<PlaceVisitedField
+							trips={trips}
+							// A new visit has no day only while today is not known.
+							pending={defaultValues.visitedAt === undefined}
+						/>
 					</div>
 
 					{trips.length > 0 ? (
