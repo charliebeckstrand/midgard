@@ -10,6 +10,7 @@ import {
 } from '@dnd-kit/core'
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { type PointerEvent as ReactPointerEvent, useMemo } from 'react'
+import { holdTextSelection } from '../utilities/hold-text-selection'
 import { isPrimaryPress } from '../utilities/primary-press'
 import { usePrefersReducedMotion } from './use-prefers-reduced-motion'
 
@@ -35,6 +36,8 @@ class PrimaryPointerSensor extends PointerSensor {
 				{ onActivation }: PointerSensorOptions,
 			) => {
 				if (!isPrimaryPress(event)) return false
+
+				holdTextSelection(event)
 
 				onActivation?.({ event })
 

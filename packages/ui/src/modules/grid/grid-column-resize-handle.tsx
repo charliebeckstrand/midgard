@@ -8,6 +8,7 @@ import { useStableEvent } from '../../hooks/use-stable-event'
 import { useTimeout } from '../../hooks/use-timeout'
 import { PanelSplitter } from '../../primitives/panel/panel-splitter'
 import { k } from '../../recipes/kata/grid'
+import { holdTextSelection } from '../../utilities/hold-text-selection'
 import { isPrimaryPress } from '../../utilities/primary-press'
 import { describeResize } from './engine/grid-announcements'
 import {
@@ -148,6 +149,8 @@ export function GridColumnResizeHandle({
 				// this gate also refuses a pointer that is not the primary pointer, for
 				// example a second finger.
 				if (!isPrimaryPress(event)) return
+
+				holdTextSelection(event)
 
 				// Capture holds the handle as the pointer target for the whole drag, so
 				// the cells under the pointer show no hover. The engine's document-level

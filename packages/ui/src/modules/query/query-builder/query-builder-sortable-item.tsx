@@ -5,6 +5,7 @@ import { type KeyboardEvent, type PointerEvent, type ReactNode, useState } from 
 import { cn, dataAttr } from '../../../core'
 import { SortableGrip } from '../../../primitives/sortable-grip/sortable-grip'
 import { k } from '../../../recipes/kata/query-builder'
+import { holdTextSelection } from '../../../utilities/hold-text-selection'
 
 /** Props for {@link QueryBuilderSortableItem}. @internal */
 type QueryBuilderSortableItemProps = {
@@ -92,7 +93,11 @@ export function QueryBuilderSortableItem({
 						listeners: disabled
 							? undefined
 							: {
-									onPointerDown: (event: PointerEvent) => controls.start(event),
+									onPointerDown: (event: PointerEvent) => {
+										holdTextSelection(event)
+
+										controls.start(event)
+									},
 									onKeyDown: (event: KeyboardEvent) => onKeyDown(id, event),
 									onBlur,
 								},

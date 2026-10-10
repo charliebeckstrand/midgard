@@ -8,6 +8,7 @@ import { useDragCursorHold } from '../../hooks/use-drag-cursor'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { k } from '../../recipes/kata/lightbox'
+import { holdTextSelection } from '../../utilities/hold-text-selection'
 import { isPrimaryPress } from '../../utilities/primary-press'
 import {
 	dismisses,
@@ -625,6 +626,8 @@ export function useLightboxTrack(
 
 				// A press on a control is the control's own.
 				if (event.target instanceof Element && event.target.closest('button')) return
+
+				holdTextSelection(event)
 
 				// A press during a slide catches the track where it is.
 				if (!interrupt()) return

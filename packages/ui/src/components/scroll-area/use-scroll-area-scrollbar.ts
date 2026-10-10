@@ -11,6 +11,7 @@ import { observeScrollExtent } from '../../hooks/observe-scroll-extent'
 import { holdDragCursor } from '../../hooks/use-drag-cursor'
 import { useAnimationFrame, useTimeout } from '../../hooks/use-timeout'
 import type { ScrollOrientation } from '../../types'
+import { holdTextSelection } from '../../utilities/hold-text-selection'
 import { hiddenThumb, SCROLL_FADE_DELAY_MS, type ThumbState } from './scroll-area-constants'
 import { computeThumb, findScrollableAncestor } from './scroll-area-utilities'
 import type { ScrollbarMode } from './types'
@@ -50,6 +51,8 @@ function beginScrollbarDrag(
 
 	event.preventDefault()
 	event.stopPropagation()
+
+	holdTextSelection(event)
 
 	const startClient = axis === 'y' ? event.clientY : event.clientX
 	const startScroll = axis === 'y' ? el.scrollTop : el.scrollLeft
