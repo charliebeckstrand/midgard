@@ -1,12 +1,11 @@
 'use client'
 
-import { ArrowUpDown, CalendarDays, Copy, Globe, Heart, MapPin, Tag, X } from 'lucide-react'
-import { type ReactElement, type ReactNode, useEffect, useMemo, useState } from 'react'
+import { ArrowUpDown, CalendarDays, Copy, Globe, Heart, MapPin, Tag } from 'lucide-react'
+import { type ReactElement, type ReactNode, useCallback, useEffect, useState } from 'react'
 import { Badge } from 'ui/badge'
 import { CopyButton } from 'ui/copy-button'
 import { DateTime } from 'ui/date-time'
 import { Divider } from 'ui/divider'
-import { Drawer, DrawerBody, DrawerClose, DrawerPanel, DrawerTitle } from 'ui/drawer'
 import { Heading } from 'ui/heading'
 import { Icon } from 'ui/icon'
 import { Lightbox, LightboxTrigger } from 'ui/lightbox'
@@ -19,12 +18,10 @@ import { Rating } from 'ui/rating'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
 import { Text } from 'ui/text'
-import { ToggleIconButton } from 'ui/toggle-icon-button'
 import { CATEGORY_BY_VALUE } from '../../constants'
 import type { Place, PlaceCategory, Visit } from '../../types'
 import { DAY_FORMAT } from '../../utilities/places-filter'
 import type { PlacePanelStep } from '../../utilities/places-url'
-import { groupName } from '../../utilities/places-view'
 import {
 	latestVisit,
 	PLACE_ORDER_LABEL,
@@ -39,7 +36,7 @@ import {
 	type VisitActions,
 	visitMenuItems,
 } from '../place-menu'
-import { PlaceTrail, type PlaceTrailStep } from '../place-trail'
+import { SummaryDrawer } from '../summary-drawer'
 
 /** Props for {@link PlaceDrawer}. */
 export type PlaceDrawerProps = {
@@ -290,101 +287,6 @@ function PlaceDetails({ place, actions }: { place: Place; actions: VisitActions 
 	)
 }
 
-/**
- * The list the drawer shows, and the name of the group's own step over it.
- *
- * A picked group of two or more that is a part of its region — a summary dot
- * that merged some of the region's places — is a step of its own under the
- * region, so the drawer lists what the reader picked, and the region crumb is
- * one step back to the rest. Every other pick lists the region, and has no
- * group step. A place the map placed in no region has no region list, so the
- * group it was picked from stands in.
- */
-export function drawerList(
-	group: readonly Place[],
-	regionPlaces: readonly Place[],
-	widened: boolean,
-): { list: readonly Place[]; group: string | null } {
-	const region = regionPlaces.length > 0 ? regionPlaces : group
-
-	if (widened || group.length < 2) return { list: region, group: null }
-
-	const ids = new Set(region.map((item) => item.id))
-
-	const part = region.length !== group.length || group.some((item) => !ids.has(item.id))
-
-	return part ? { list: group, group: groupName(group) } : { list: region, group: null }
-}
-
-/**
- * The place the drawer shows, or `null` on a list.
- *
- * The opened place is read back through the live list, so an edit shows in the
- * open panel rather than at the next pick, and an id that the list does not hold
- * falls back to the list. A lone dot opens on its place until the reader widens
- * the list, because a lone dot has no group to list.
- */
-export function drawerPlace(
-	group: readonly Place[],
-	list: readonly Place[],
-	step: PlacePanelStep,
-): Place | null {
-	const opened = step.opened === null ? undefined : list.find((item) => item.id === step.opened)
-
-	if (opened !== undefined) return opened
-
-	return !step.widened && group.length === 1 ? (group[0] ?? null) : null
-}
-
-/**
- * The trail of the drawer as steps that act. Every region step but the last
- * leads out to the map. The last leads to the region's list, where the reader is
- * not already on it; the group's step leads back to the group's list; and the
- * place itself leads nowhere, because it is where the reader already is.
- */
-export function trailSteps({
-	where,
-	group,
-	place,
-	hasList,
-	onNavigate,
-	onStepChange,
-}: {
-	/** The regions, from the drawn one down. */
-	where: readonly string[]
-	/** The name of the group's own step, or `null` where the list is the region's. */
-	group: string | null
-	/** The open place, or `null` on a list. */
-	place: Place | null
-	/** Whether there is a list to go back to. */
-	hasList: boolean
-	onNavigate: (region: string) => void
-	onStepChange: (step: PlacePanelStep) => void
-}): PlaceTrailStep[] {
-	// The region crumb lists the whole region. It acts where the group is a step of
-	// its own under it, or where a place is open over a list to go back to.
-	const regionPick =
-		group !== null || (place !== null && hasList)
-			? () => onStepChange({ opened: null, widened: true })
-			: undefined
-
-	const steps: PlaceTrailStep[] = where.map((label, at) => ({
-		label,
-		onPick: at < where.length - 1 ? () => onNavigate(label) : regionPick,
-	}))
-
-	if (group !== null) {
-		steps.push({
-			label: group,
-			onPick: place === null ? undefined : () => onStepChange({ opened: null, widened: false }),
-		})
-	}
-
-	if (place !== null) steps.push({ label: place.name })
-
-	return steps
-}
-
 /** Props for {@link PlaceList}. */
 type PlaceListProps = {
 	/** The places that the category filter lets through. */
@@ -480,25 +382,9 @@ function PlaceList({
 }
 
 /**
- * The glass drawer that shows what a dot stands for.
- *
- * It is as tall as the step it is showing. One place leaves most of the map up,
- * including the dot that opened the panel; a region with places enough takes the
- * screen, because a step with that much to show is one the reader came to read.
- * The panel travels between the two rather than snapping, so the resize reads as
- * the crumb being followed instead of the panel moving under the reader's hand.
- *
- * A summary dot opens as the list of the places it merged, under a step named
- * for them — their shared city, or a count — beneath the region they stand in.
- * The region crumb widens the list to every place in the region. A summary that
- * merged the whole region opens as the region's list, with no step of its own. A
- * lone dot opens straight into its place.
- *
- * The title is the trail rather than a name, so it is also the way back: each
- * crumb returns to the list it names. There is no Back button, because the crumb
- * is one. The caller holds the step of the trail in the address, so a reload or
- * a shared link opens the panel on the same crumb, and the browser's Back button
- * walks back along the trail.
+ * The summary drawer over places: a place's details, and a list of places
+ * with a category picker and a sort picker. See {@link SummaryDrawer} for the
+ * trail, the steps, and the size.
  */
 export function PlaceDrawer({
 	places,
@@ -512,37 +398,20 @@ export function PlaceDrawer({
 }: PlaceDrawerProps) {
 	// Which categories the list is narrowed to; empty is unfiltered. Held here
 	// rather than lifted, because it narrows this panel's list and nothing else —
-	// the bar over the map already narrows the map.
+	// the bar over the map already narrows the map. Held here rather than in the
+	// list, because the list unmounts while a place is open, and the reader comes
+	// back to the list they narrowed.
 	const [categories, setCategories] = useState<PlaceCategory[]>([])
 
 	// The order of the list. Alphabetical by default, and back to it on a new
 	// pick, the same as the categories.
 	const [order, setOrder] = useState<PlaceOrder>('name')
 
-	// The last group the drawer was given, and its step. The panel stays mounted
-	// while it closes so the slide out plays, and a closing panel is handed an
-	// empty group and the start step — so the body reads the last open ones rather
-	// than the current ones, or it would blank or flip back to the list halfway
-	// through its own exit.
-	const [last, setLast] = useState({ places, step })
-
-	const open = places.length > 0
-
-	const { places: held, step: heldStep } = open ? { places, step } : last
-
 	// Which dots the group stands for, as one string. It is what a new pick
 	// changes and what a re-read of the same pick does not: an edit or a refetch
 	// hands back an equal group in a new array, and resetting on that identity
 	// would throw a reader out of the row they had opened.
 	const groupKey = places.map((place) => place.id).join('|')
-
-	// Keeps the group and the step that a close will need. Guarded on the close,
-	// which is what hands over the empty group the hold exists to survive.
-	useEffect(() => {
-		if (places.length === 0) return
-
-		setLast({ places, step })
-	}, [places, step])
 
 	// Returns the list's own pickers to their start. Keyed on the pick alone — the
 	// reset belongs to a new pick, not to every re-read — and skipped while
@@ -555,124 +424,49 @@ export function PlaceDrawer({
 		setOrder('name')
 	}, [groupKey])
 
-	// The list under the trail, and the group's own step over it where there is
-	// one. See `drawerList` for which list that is.
-	const { list, group } = useMemo(
-		() => drawerList(held, regionPlaces, heldStep.widened),
-		[held, regionPlaces, heldStep.widened],
-	)
-
 	// What the list narrows to. Empty admits everything: a reader who clears the
 	// last category means to stop filtering, not to empty the panel.
-	const shown = useMemo(
-		() =>
+	const narrow = useCallback(
+		(list: readonly Place[]) =>
 			sortPlaces(
 				categories.length === 0 ? list : list.filter((item) => categories.includes(item.category)),
 				order,
 			),
-		[list, categories, order],
+		[categories, order],
 	)
-
-	// How many categories the list spans. A picker over one of them offers the
-	// reader a choice between everything and everything, so it is not offered.
-	const spanned = useMemo(() => new Set(list.map((item) => item.category)).size, [list])
-
-	const place = drawerPlace(held, list, heldStep)
-
-	// A place the map placed in no region falls back to the count, which is the
-	// only other thing the group has to say about itself. Counted after the
-	// filter, so the heading agrees with the rows under it.
-	//
-	// Held, because the fallback is a fresh array every render and the steps below
-	// are keyed on this one: rebuilt each time, the memo under it never holds.
-	const where = useMemo(
-		() => (trail.length > 0 ? trail : [`${shown.length} places`]),
-		[trail, shown.length],
-	)
-
-	const steps = useMemo(
-		() =>
-			trailSteps({
-				where,
-				group,
-				place,
-				hasList: list.length > 0,
-				onNavigate,
-				onStepChange,
-			}),
-		[where, group, place, list.length, onNavigate, onStepChange],
-	)
-
-	const title = steps.map((step) => step.label).join(' › ')
 
 	return (
-		<Drawer open={open} onOpenChange={onOpenChange}>
-			<DrawerPanel
-				glass
-				// Grown to what each step holds, because this panel is navigated: the
-				// crumb walks between the region's list and one place, and the two are
-				// not the same size. A fixed height fits one of them — a list of twelve
-				// scrolls inside a box built for one place, and a place sits in a box
-				// built for the list with half of it empty under the review.
-				//
-				// The travel is what makes that work rather than the size: a container
-				// moving because its contents changed reads as the panel collapsing under
-				// the reader's hand, and the same move at the speed of the crumb reads as
-				// the panel following it. A region with places enough covers the map, which
-				// is the honest answer for a step with that much to show — the crumb above
-				// is how the reader gets back to it.
-				height="fit"
-				aria-label={title}
-			>
-				{/* The panel has no inset of its own, so the row takes the inset of a drawer title. */}
-				<Flex justify="between" align="center" gap="md" className="px-6 pt-6">
-					{/* `min-w-0` is what lets the trail inside give way. Without it this flex
-				    child holds its full width, so a long trail runs past the panel edge
-				    instead of truncating — the crumbs cannot shrink below a parent that
-				    will not. `flex-1` gives the trail the panel's full width, which is the room
-				    its fit measures. */}
-					<Stack gap="sm" className="flex-1 min-w-0">
-						{/* The title is the trail, so it doubles as the way back and the panel
-					    needs no Back button of its own. `DrawerTitle` names the panel; the
-					    crumbs are what the reader reads and act on. */}
-						<DrawerTitle className="sr-only p-0">{title}</DrawerTitle>
-
-						<PlaceTrail className="text-base/7" steps={steps} />
-					</Stack>
-
-					{/* The menu of the open place sits by the close, where a list row of My
-				    places has its own. A list row in this panel is a way into a place,
-				    not a place, so the list has no menu. */}
-					<Flex gap="xs" align="center" className="shrink-0">
-						{place ? (
-							<PlaceMenu
-								items={placeMenuItems(place, actions)}
-								aria-label={`Actions for ${place.name}`}
-							/>
-						) : null}
-
-						<DrawerClose>
-							<ToggleIconButton icon={<Icon icon={<X />} />} aria-label="Close" />
-						</DrawerClose>
-					</Flex>
-				</Flex>
-
-				<DrawerBody>
-					{place ? (
-						<PlaceDetails place={place} actions={actions} />
-					) : (
-						<PlaceList
-							shown={shown}
-							spanned={spanned}
-							categories={categories}
-							onCategoriesChange={setCategories}
-							order={order}
-							onOrderChange={setOrder}
-							onOpen={(id) => onStepChange({ opened: id, widened: heldStep.widened })}
-						/>
-					)}
-				</DrawerBody>
-			</DrawerPanel>
-		</Drawer>
+		<SummaryDrawer<Place>
+			items={places}
+			trail={trail}
+			regionItems={regionPlaces}
+			step={step}
+			onStepChange={onStepChange}
+			onOpenChange={onOpenChange}
+			onNavigate={onNavigate}
+			narrow={narrow}
+			noun="places"
+			menu={(place) => (
+				<PlaceMenu
+					items={placeMenuItems(place, actions)}
+					aria-label={`Actions for ${place.name}`}
+				/>
+			)}
+			details={(place) => <PlaceDetails place={place} actions={actions} />}
+			list={({ list, shown, open }) => (
+				<PlaceList
+					shown={shown}
+					// How many categories the list spans. A picker over one of them offers
+					// the reader a choice between everything and everything, so it is not
+					// offered.
+					spanned={new Set(list.map((item) => item.category)).size}
+					categories={categories}
+					onCategoriesChange={setCategories}
+					order={order}
+					onOrderChange={setOrder}
+					onOpen={open}
+				/>
+			)}
+		/>
 	)
 }

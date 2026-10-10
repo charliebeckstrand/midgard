@@ -1,7 +1,7 @@
 import { type GeoProjection, geoBounds, geoCentroid, geoContains, geoMercator } from 'd3-geo'
 import { feature } from 'topojson-client'
 import type { MapFeature, MapFeatureCollection, MapTopology } from 'ui/modules/map'
-import type { Place } from '../types'
+import type { Located } from '../types'
 
 /**
  * A region and the box that holds it: `[[west, south], [east, north]]`.
@@ -284,10 +284,10 @@ export function boundRegions(regions: MapFeatureCollection | null): BoundedRegio
 	)
 }
 
-/** The answers {@link groupPlacesByRegion} takes beyond the geometry and the name. */
-export type GroupPlacesOptions = {
+/** The answers {@link groupByRegion} takes beyond the geometry and the name. */
+export type GroupOptions = {
 	/** An answer settled off a finer atlas, trusted ahead of the drawn geometry. */
-	known?: (place: Place) => string | undefined
+	known?: (place: Located) => string | undefined
 	/**
 	 * How far a position may sit outside every region and still be rescued by the
 	 * nearest one, in kilometers. Omit for no rescue, which is what an atlas fine
@@ -339,13 +339,13 @@ export type GroupPlacesOptions = {
  * settles each place. A collection inside the United States thus groups by
  * country with no decode of the world.
  */
-export function groupPlacesByRegion(
+export function groupByRegion<T extends Located>(
 	regions: readonly BoundedRegion[] | (() => readonly BoundedRegion[]),
-	places: readonly Place[],
-	fallback: (place: Place) => string | undefined,
-	{ known, snapKm }: GroupPlacesOptions = {},
-): Map<string, Place[]> {
-	const grouped = new Map<string, Place[]>()
+	places: readonly T[],
+	fallback: (place: Located) => string | undefined,
+	{ known, snapKm }: GroupOptions = {},
+): Map<string, T[]> {
+	const grouped = new Map<string, T[]>()
 
 	let bounded: readonly BoundedRegion[] | undefined
 
@@ -359,7 +359,7 @@ export function groupPlacesByRegion(
 	}
 
 	/** Adds one place under a region, starting that region's list where it is the first. */
-	function hold(name: string, place: Place): void {
+	function hold(name: string, place: T): void {
 		const list = grouped.get(name)
 
 		if (list === undefined) grouped.set(name, [place])

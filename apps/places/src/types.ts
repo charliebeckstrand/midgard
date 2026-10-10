@@ -13,6 +13,17 @@ export type PlaceCategory = Schemas['PlaceCategory']
 /** One place, as Mimir stores it and as the map draws it. */
 export type Place = Schemas['Place']
 
+/**
+ * A record that the map can place: a name, a position, and the parts of the
+ * address that the region grouping reads when the geometry does not answer. A
+ * place is one. The region grouping, the drill, and the trail of the summary
+ * drawer read this shape, so each kind of record on the map uses the same code.
+ */
+export type Located = Pick<
+	Place,
+	'id' | 'name' | 'latitude' | 'longitude' | 'city' | 'state' | 'country'
+>
+
 /** A place as it arrives from the form, before Mimir gives it an identity. */
 export type PlaceDraft = Schemas['PlaceDraft']
 

@@ -20,7 +20,7 @@
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { MARK_SELECTED_HALO } from './engine/map-constants'
-import type { MapPoint2D } from './engine/types'
+import type { MapPoint2D, MapPointShape } from './engine/types'
 import { MapDot } from './map-dot'
 
 /** The selection ink, off the pointer — one treatment for both halo shapes. @internal */
@@ -61,6 +61,8 @@ type MapDotHaloProps = {
 	at: MapPoint2D
 	/** The dot's own radius in device pixels; the halo takes it plus the clear space. */
 	radius: number
+	/** The dot's own shape, which the halo takes too. */
+	shape?: MapPointShape | undefined
 	/** Frame units per device pixel under the plat's zoom, passed through to the dot. */
 	scale: number
 }
@@ -69,17 +71,18 @@ type MapDotHaloProps = {
  * A picked dot's halo — a point, a marker pin, one of a `MapPoints` set. It is
  * the dot itself, one clear space wider and in the selection ink. Drawing it
  * through {@link MapDot} keeps the dot's own spec in the one file that owns it.
- * That spec is the zero-length round-capped stroke, and the one multiply that
- * converts its radius.
+ * That spec is the zero-length capped stroke, and the one multiply that
+ * converts its radius. A square dot therefore gets a square halo.
  *
  * @internal
  */
-export function MapDotHalo({ slot, at, radius, scale }: MapDotHaloProps) {
+export function MapDotHalo({ slot, at, radius, shape, scale }: MapDotHaloProps) {
 	return (
 		<MapDot
 			slot={slot}
 			at={at}
 			radius={radius + MARK_SELECTED_HALO}
+			shape={shape}
 			scale={scale}
 			className={HALO}
 		/>

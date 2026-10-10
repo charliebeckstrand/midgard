@@ -46,9 +46,24 @@ export type DataKey<T> = keyof T & string
  * the tooltip each key a {@link Swatch} shape off it, and a new mark shape must
  * reach both or neither.
  *
+ * A point mark in the `square` shape keys a `rect`, the square swatch.
+ *
  * @internal
  */
 export type MapSwatchShape = 'rect' | 'line' | 'dot'
+
+/**
+ * The shape of a point mark. A `circle` is the default. A `square` lets two
+ * point sets on one map differ in shape as well as in color, so a reader with a
+ * color vision deficiency can still tell them apart.
+ */
+export type MapPointShape = 'circle' | 'square'
+
+/** The swatch of a point mark in each shape. @internal */
+export const POINT_SWATCH = {
+	circle: 'dot',
+	square: 'rect',
+} as const satisfies Record<MapPointShape, MapSwatchShape>
 
 /**
  * The identity fields a shape carries before it is decoded. A TopoJSON geometry

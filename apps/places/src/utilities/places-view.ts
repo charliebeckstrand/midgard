@@ -1,5 +1,5 @@
 import type { MapFeatureCollection } from 'ui/modules/map'
-import type { Place, VisitScope } from '../types'
+import type { Located, VisitScope } from '../types'
 import { regionName } from './places-geography'
 
 /**
@@ -9,7 +9,7 @@ import { regionName } from './places-geography'
  * The atlas's name and not the geocoder's. Natural Earth writes "United States
  * of America" where a geocoder commonly writes "United States", and this
  * constant is only ever compared against a name the atlas gave — never against
- * a name a place carries. Nothing here reads {@link Place.country}.
+ * a name a place carries. Nothing here reads {@link Located.country}.
  */
 export const UNITED_STATES = 'United States of America'
 
@@ -127,7 +127,7 @@ export function viewRegion(view: PlaceView): string | null {
  * @param regionByPlace Which region holds each place, by the place's id.
  */
 export function regionsHolding(
-	places: readonly Place[],
+	places: readonly Located[],
 	regionByPlace: ReadonlyMap<string, string>,
 ): string[] {
 	const names = new Set<string>()
@@ -179,12 +179,12 @@ export function openingRegion(region: string | null | undefined, regions: readon
 /**
  * The geocoder's state, which is what answers where the states atlas cannot: a
  * coastal place sits a little outside the generalized outline that plainly holds
- * it. Handed to `groupPlacesByRegion`, whose fallback this is.
+ * it. Handed to `groupByRegion`, whose fallback this is.
  *
  * The countries atlas has a better answer than any name — see
  * {@link knownCountry}, which the app hands the countries grouping instead.
  */
-export function stateOf(place: Place): string | undefined {
+export function stateOf(place: Located): string | undefined {
 	return place.state
 }
 
@@ -196,7 +196,7 @@ export function stateOf(place: Place): string | undefined {
  * already settled, and what a row's region column says. Each walked the grouping
  * its own way; one inversion answers all three in one pass.
  */
-export function regionOf(grouped: ReadonlyMap<string, readonly Place[]>): Map<string, string> {
+export function regionOf(grouped: ReadonlyMap<string, readonly Located[]>): Map<string, string> {
 	const held = new Map<string, string>()
 
 	for (const [region, list] of grouped) {
@@ -216,7 +216,7 @@ export function regionOf(grouped: ReadonlyMap<string, readonly Place[]>): Map<st
  * past the atlas's edge — the states are drawn for one country, and outside it
  * the subdivision the geocoder named is the nearest thing to a state there is.
  *
- * Unchecked, unlike the same fallback inside `groupPlacesByRegion`, which tests
+ * Unchecked, unlike the same fallback inside `groupByRegion`, which tests
  * its name against the drawn regions before trusting it. There is nothing to
  * test against here: a subdivision outside the drawn atlas is a name to print
  * and never a region to open.
@@ -224,21 +224,21 @@ export function regionOf(grouped: ReadonlyMap<string, readonly Place[]>): Map<st
  * `statesByPlace` is {@link regionOf} of the grouping against the states atlas.
  * Empty rather than `undefined`, because every reader of this is a cell.
  */
-export function stateLabel(statesByPlace: ReadonlyMap<string, string>, place: Place): string {
+export function stateLabel(statesByPlace: ReadonlyMap<string, string>, place: Located): string {
 	return statesByPlace.get(place.id) ?? stateOf(place) ?? ''
 }
 
 /**
  * The geocoder's country, which answers where the world outline cannot.
- * `groupPlacesByRegion`'s fallback for the countries atlas.
+ * `groupByRegion`'s fallback for the countries atlas.
  */
-export function countryOf(place: Place): string | undefined {
+export function countryOf(place: Located): string | undefined {
 	return place.country
 }
 
 /**
  * What the states atlas already settled, for the countries grouping to trust
- * ahead of its own geometry — `groupPlacesByRegion`'s `known`.
+ * ahead of its own geometry — `groupByRegion`'s `known`.
  *
  * A place the states atlas can put in a state is in the United States, whatever
  * the geocoder called its country. That matters because the world is drawn at
@@ -255,7 +255,7 @@ export function countryOf(place: Place): string | undefined {
  */
 export function knownCountry(
 	statesByPlace: ReadonlyMap<string, string>,
-): (place: Place) => string | undefined {
+): (place: Located) => string | undefined {
 	return (place) => (statesByPlace.has(place.id) ? UNITED_STATES : undefined)
 }
 
@@ -358,7 +358,7 @@ export function viewCrumbs(view: PlaceView): PlaceCrumb[] {
  */
 export function groupTrail(
 	drawn: string | null,
-	group: readonly Place[],
+	group: readonly Located[],
 	statesByPlace: ReadonlyMap<string, string>,
 ): string[] {
 	if (drawn === null) return []
@@ -379,7 +379,7 @@ export function groupTrail(
  * cities, or holds a place with no city, gets the count instead: a technical
  * term such as "cluster" names how the map drew the dots, and not where they are.
  */
-export function groupName(group: readonly Place[]): string {
+export function groupName(group: readonly Located[]): string {
 	const cities = new Set(group.map((place) => place.city))
 
 	const [only] = cities
@@ -397,7 +397,7 @@ export function groupName(group: readonly Place[]): string {
  * wrong string frames nothing; the world frames everything, and the reader is
  * one click from the country either way.
  */
-export function viewForPlace(states: ReadonlyMap<string, string>, place: Place): PlaceView {
+export function viewFor(states: ReadonlyMap<string, string>, place: Located): PlaceView {
 	const state = states.get(place.id)
 
 	return state === undefined ? WORLD : { country: UNITED_STATES, state }
@@ -439,7 +439,7 @@ export function viewUp(view: PlaceView): PlaceView | null {
  */
 export function initialView(
 	statesByPlace: ReadonlyMap<string, string>,
-	places: readonly Place[],
+	places: readonly Located[],
 ): PlaceView {
 	return statesByPlace.size === places.length ? UNITED_STATES_VIEW : WORLD
 }

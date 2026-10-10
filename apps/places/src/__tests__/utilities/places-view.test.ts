@@ -17,7 +17,7 @@ import {
 	UNITED_STATES_VIEW,
 	viewAtlas,
 	viewCrumbs,
-	viewForPlace,
+	viewFor,
 	viewFrame,
 	viewKey,
 	viewMark,
@@ -262,11 +262,11 @@ describe('groupTrail', () => {
 	})
 })
 
-describe('viewForPlace', () => {
+describe('viewFor', () => {
 	it('goes to the state the states atlas put a place in', () => {
 		const held = place('a')
 
-		expect(viewForPlace(new Map([['a', 'Oregon']]), held)).toEqual(OREGON)
+		expect(viewFor(new Map([['a', 'Oregon']]), held)).toEqual(OREGON)
 	})
 
 	// The world rather than the place's own country: a country is reachable only
@@ -274,7 +274,7 @@ describe('viewForPlace', () => {
 	it('goes to the world for a place the states atlas could not place', () => {
 		const abroad = place('louvre', { country: 'France' })
 
-		expect(viewForPlace(new Map(), abroad)).toEqual(WORLD)
+		expect(viewFor(new Map(), abroad)).toEqual(WORLD)
 	})
 
 	it('finds a place among several regions', () => {
@@ -283,7 +283,7 @@ describe('viewForPlace', () => {
 			['b', 'Nevada'],
 		])
 
-		expect(viewForPlace(states, place('b'))).toEqual({ country: UNITED_STATES, state: 'Nevada' })
+		expect(viewFor(states, place('b'))).toEqual({ country: UNITED_STATES, state: 'Nevada' })
 	})
 })
 

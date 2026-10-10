@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { drawerList, drawerPlace, trailSteps } from '../../components/place-drawer/place-drawer'
+import { drawerItem, drawerList, trailSteps } from '../../components/summary-drawer'
 import type { Place } from '../../types'
 import { PANEL_START, type PlacePanelStep } from '../../utilities/places-url'
 import { place } from '../fixtures'
@@ -17,7 +17,7 @@ const region: readonly Place[] = [a, b, c]
 function shows(group: readonly Place[], step: PlacePanelStep) {
 	const { list, group: name } = drawerList(group, region, step.widened)
 
-	return { list, name, place: drawerPlace(group, list, step) }
+	return { list, name, place: drawerItem(group, list, step) }
 }
 
 /** The steps that the crumbs of a panel move to, by label. */
@@ -29,7 +29,7 @@ function crumbs(group: readonly Place[], step: PlacePanelStep) {
 	const steps = trailSteps({
 		where: ['United States', 'Oregon'],
 		group: name,
-		place: open,
+		item: open,
 		hasList: list.length > 0,
 		onNavigate: vi.fn(),
 		onStepChange,

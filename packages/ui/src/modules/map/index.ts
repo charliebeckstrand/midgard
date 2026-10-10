@@ -18,6 +18,7 @@ export type {
 	MapLegendPlacement,
 	MapNamedProjection,
 	MapOverlaySelection,
+	MapPointShape,
 	MapPolygons,
 	MapProjection,
 	MapShape,

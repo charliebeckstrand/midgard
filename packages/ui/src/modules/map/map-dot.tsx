@@ -11,7 +11,7 @@ import { groundPoints, type MapGround } from './engine/map-cluster/ground'
 import { POINT_HIT_RADIUS } from './engine/map-constants'
 import { dotPath } from './engine/map-geometry/mark'
 import { transformAttribute } from './engine/map-zoom/transform'
-import type { MapPoint2D } from './engine/types'
+import type { MapPoint2D, MapPointShape } from './engine/types'
 import type { MapOverlayHit } from './use-map-overlay'
 
 /** What {@link dotHitProps} covers: one dot, at one size, under one view. @internal */
@@ -58,6 +58,12 @@ type MapDotProps = {
 	at: MapPoint2D
 	/** The dot's radius in device pixels; drawn as half the cap's stroke width. */
 	radius: number
+	/**
+	 * The cap of the stroke. A `square` cap draws a square with sides of the
+	 * dot's diameter, so both shapes take the same box.
+	 * @defaultValue 'circle'
+	 */
+	shape?: MapPointShape | undefined
 	/** Frame units per device pixel under the plat's zoom; the drawn width converts through it. */
 	scale: number
 	/** The slot's stroke paint class — the cap is stroke-painted, so `stroke-*` carries the color. */
@@ -74,7 +80,10 @@ type MapDotProps = {
 
 /**
  * A solid dot mark — a point, a marker pin — drawn as a zero-length
- * round-capped stroke, so the disc's radius is half the cap's width.
+ * capped stroke, so the disc's radius is half the cap's width. A round cap
+ * draws a disc, and a square cap draws a square of the same width. The
+ * shape therefore changes one attribute, and the size, the pop, and the zoom
+ * conversion stay the same for both.
  *
  * The width converts to frame units through {@link MapDotProps.scale}, the
  * conversion every other pixel spec on a mark already takes. That is the hit
@@ -98,6 +107,7 @@ export function MapDot({
 	slot,
 	at,
 	radius,
+	shape = 'circle',
 	scale,
 	className,
 	animate = false,
@@ -110,7 +120,7 @@ export function MapDot({
 		d: dotPath(at),
 		fill: 'none',
 		strokeWidth: width,
-		strokeLinecap: 'round' as const,
+		strokeLinecap: shape === 'square' ? ('square' as const) : ('round' as const),
 		className,
 	}
 

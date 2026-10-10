@@ -17,7 +17,7 @@ import { clusterRadius } from './engine/map-cluster/radius'
 import { POINT_REVEAL_SETTLE, pointPop } from './engine/map-motion'
 import type { MapStopRow } from './engine/map-overlay/entry'
 import { stopName } from './engine/map-overlay/readout'
-import type { LngLat } from './engine/types'
+import { type LngLat, type MapPointShape, POINT_SWATCH } from './engine/types'
 import { dotHitProps, MapDot, MapDotCount } from './map-dot'
 import { MapDotHalo } from './map-halo'
 import { type MapOverlay, type MapOverlayProps, useMapOverlay } from './use-map-overlay'
@@ -67,6 +67,8 @@ type MapPointsDotsProps = {
 	paints: string[]
 	/** The ink a summary's count is written in. */
 	countInk: string
+	/** The shape of every dot, the summaries included. */
+	shape: MapPointShape
 	animate: boolean
 	/** Frame units per device pixel, which the hit radii and the counts divide by. */
 	unitsPerPixel: number
@@ -95,6 +97,7 @@ const MapPointsDots = memo(function MapPointsDots({
 	targets,
 	paints,
 	countInk,
+	shape,
 	animate,
 	unitsPerPixel,
 	hit,
@@ -149,6 +152,7 @@ const MapPointsDots = memo(function MapPointsDots({
 							slot={count === 1 ? 'map-points-dot' : 'map-points-cluster'}
 							at={position}
 							radius={radius}
+							shape={shape}
 							scale={unitsPerPixel}
 							// `?? ''` for the indexed read alone: `paints` is built from the same
 							// `groups` this maps, so every rendered index has one.
@@ -236,6 +240,13 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
 	 */
 	cluster?: boolean | number
 	/**
+	 * The shape of every dot, the summaries, the halo, and the legend swatch. A
+	 * `square` set beside a `circle` set lets the two read as different kinds of
+	 * stop by shape as well as by color.
+	 * @defaultValue 'circle'
+	 */
+	shape?: MapPointShape
+	/**
 	 * The trailing readout a summary dot carries, from the stops it holds, how far
 	 * they spread, and what they are called. The spread is the diameter, in meters,
 	 * of the circle about the group that holds every one of them. The module
@@ -310,6 +321,7 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
 export function MapPoints({
 	points,
 	cluster = true,
+	shape = 'circle',
 	clusterDetail,
 	onClick,
 	onContextMenu,
@@ -412,7 +424,7 @@ export function MapPoints({
 	const { slot, hidden, spare, animate, dim, selected, onPointerLeave, hit } = useMapOverlay({
 		...shared,
 		kind: 'point',
-		swatch: 'dot',
+		swatch: POINT_SWATCH[shape],
 		stops,
 		stopRows: rows,
 		// The inverse of `report` above: a pick names the caller's own point, and
@@ -486,6 +498,7 @@ export function MapPoints({
 					slot="map-points-selected"
 					at={picked.at}
 					radius={clusterRadius(picked.members.length)}
+					shape={shape}
 					scale={unitsPerPixel}
 				/>
 			)}
@@ -497,6 +510,7 @@ export function MapPoints({
 					targets={targets}
 					paints={paints}
 					countInk={countInk}
+					shape={shape}
 					animate={animate}
 					unitsPerPixel={unitsPerPixel}
 					hit={hit}
