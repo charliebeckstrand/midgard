@@ -1,11 +1,16 @@
 'use client'
 
 import { domMax, LazyMotion, Reorder } from 'motion/react'
-import type { ComponentProps, ReactNode } from 'react'
+import type { ComponentProps, ReactNode, RefObject } from 'react'
+import { createContext } from '../../core'
 import type { ListItemContextValue } from './context'
 
 /** The move of a row under reduced motion: no animation. */
 const INSTANT = { duration: 0 }
+
+/** The `<ul>` of the group, which holds a dragged row inside its box. */
+const [GroupBoxContext, useGroupBox] =
+	createContext<RefObject<HTMLUListElement | null>>('ListReorderBox')
 
 type ListReorderGroupProps = Omit<
 	ComponentProps<'ul'>,
@@ -16,6 +21,8 @@ type ListReorderGroupProps = Omit<
 	values: string[]
 	/** Called with the new order of keys while a row moves under the pointer. */
 	onReorder: (order: string[]) => void
+	/** The `<ul>`, which also bounds the drag of each row. */
+	ref: RefObject<HTMLUListElement | null>
 	children: ReactNode
 }
 
@@ -27,10 +34,12 @@ type ListReorderGroupProps = Omit<
  * `LazyMotion` is not strict. `Reorder` already loads each feature of `domMax`,
  * so the bundle adds no code.
  */
-function ListReorderGroup(props: ListReorderGroupProps) {
+function ListReorderGroup({ ref, ...props }: ListReorderGroupProps) {
 	return (
 		<LazyMotion features={domMax}>
-			<Reorder.Group {...props} as="ul" />
+			<GroupBoxContext value={ref}>
+				<Reorder.Group {...props} ref={ref} as="ul" />
+			</GroupBoxContext>
 		</LazyMotion>
 	)
 }
@@ -47,8 +56,14 @@ type ListReorderRowProps = Omit<
  * The `<li>` of a reorderable row: a Motion `Reorder.Item`. Only the handle
  * starts its drag, through the controls. The content area stays free for a
  * press or a scroll.
+ *
+ * The box of the list bounds the drag, with no give at the edges. A row does
+ * not go over the content around the list, because it cannot move to a place
+ * outside the list.
  */
 function ListReorderRow({ id, reorder, ...row }: ListReorderRowProps) {
+	const box = useGroupBox()
+
 	return (
 		<Reorder.Item
 			{...row}
@@ -56,6 +71,8 @@ function ListReorderRow({ id, reorder, ...row }: ListReorderRowProps) {
 			value={id}
 			dragListener={false}
 			dragControls={reorder.controls}
+			dragConstraints={box}
+			dragElastic={0}
 			transition={reorder.instant ? INSTANT : undefined}
 			onDragStart={reorder.onDragStart}
 			onDragEnd={reorder.onDragEnd}

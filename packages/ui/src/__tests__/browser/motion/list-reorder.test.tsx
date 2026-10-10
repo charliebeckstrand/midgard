@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { List, ListItem } from '../../../components/list'
-import { allBySlot, getSlot, renderUI } from '../../helpers'
+import { allBySlot, frames, getSlot, renderUI } from '../../helpers'
 import { drag } from '../helpers/drag'
 
 /**
@@ -196,5 +196,59 @@ describe('List pointer reorder (real browser)', () => {
 		expect(first.getBoundingClientRect().left).toBeCloseTo(start.left, 0)
 
 		await held.release()
+	})
+
+	// The box of the list bounds the drag, so a row never goes over the content
+	// around the list.
+	it('holds a dragged row inside the list, past either end', async () => {
+		const { container } = renderUI(
+			<div style={{ paddingTop: 200, paddingBottom: 200 }}>
+				<List items={items} getKey={(i) => i.id} onReorder={() => {}}>
+					{(item) => <ListItem>{item.label}</ListItem>}
+				</List>
+			</div>,
+		)
+
+		const list = getSlot(container, 'list')
+
+		const [first, , last] = allBySlot(list, 'list-item')
+
+		if (!first || !last) throw new Error('expected rows')
+
+		const bounds = list.getBoundingClientRect()
+
+		const travel = async (row: HTMLElement, by: number) => {
+			const box = getSlot(row, 'list-handle').getBoundingClientRect()
+
+			const x = box.left + box.width / 2
+
+			const y = box.top + box.height / 2
+
+			const path = Array.from({ length: 12 }, (_, i) => ({ x, y: y + ((i + 1) * by) / 12 }))
+
+			return drag(getSlot(row, 'list-handle'), { x, y }, path)
+		}
+
+		const up = await travel(first, -150)
+
+		await expect.poll(() => first.hasAttribute('data-dragging')).toBe(true)
+
+		await frames()
+
+		expect(first.getBoundingClientRect().top).toBeGreaterThanOrEqual(bounds.top - 0.5)
+
+		await up.release()
+
+		await expect.poll(() => first.hasAttribute('data-dragging')).toBe(false)
+
+		const down = await travel(last, 150)
+
+		await expect.poll(() => last.hasAttribute('data-dragging')).toBe(true)
+
+		await frames()
+
+		expect(last.getBoundingClientRect().bottom).toBeLessThanOrEqual(bounds.bottom + 0.5)
+
+		await down.release()
 	})
 })

@@ -270,6 +270,8 @@ function ReorderItem({
 	value: _value,
 	dragListener: _dragListener,
 	dragControls: _dragControls,
+	dragConstraints: _dragConstraints,
+	dragElastic: _dragElastic,
 	onDragStart: _onDragStart,
 	onDragEnd: _onDragEnd,
 	...props
