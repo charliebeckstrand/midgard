@@ -20,13 +20,24 @@ import { FileUploadHiddenInput } from './file-upload-hidden-input'
 import { type FileUploadDropProps, useFileUploadState } from './file-upload-state'
 import { formatFileNames, selectionSummary, triggerLabel } from './file-upload-utilities'
 
-/** The empty dropzone's icon and prompt, or the caller's `children` in its place. */
+/**
+ * The empty dropzone's icon and prompt, or the caller's `children` in its place.
+ * The prompt names the gesture of the primary pointer: "click" for a fine
+ * pointer, and "tap" for a coarse pointer. The CSS `pointer` media feature picks
+ * the text, so the first paint shows the correct text. The hidden text is
+ * `display: none`, so assistive technology reads only the text that shows.
+ */
 function dropPrompt(children: ReactNode) {
 	return (
 		children ?? (
 			<>
 				<Icon icon={<Upload />} size="lg" className={k.icon} />
-				<span className={cn('block', k.label)}>Drop files here or click to browse</span>
+				<span className={cn('block pointer-coarse:hidden', k.label)}>
+					Drop files here or click to browse
+				</span>
+				<span className={cn('hidden pointer-coarse:block', k.label)}>
+					Drop files here or tap to browse
+				</span>
 			</>
 		)
 	)
@@ -138,6 +149,10 @@ function DropSelection({
  * different file". Accepted selections are announced to a live region (WCAG
  * 4.1.3). Selection state, drag highlighting, and `maxSize` / `maxCount`
  * filtering live in {@link useFileUploadHandlers}.
+ *
+ * The prompt of the empty zone names the gesture of the primary pointer. It
+ * says "click to browse" for a mouse or a pen, and "tap to browse" for a touch
+ * screen. CSS picks the text, so the first paint shows the correct text.
  *
  * Once a selection exists the zone shows the file name and a `Reset` button
  * under it. A `multiple` selection past one shows an "x files selected"

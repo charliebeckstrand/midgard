@@ -22,6 +22,7 @@ import { PlacePhotosField } from './place-photos-field'
 import { PlaceReviewField } from './place-review-field'
 import { PlaceSearchField } from './place-search-field'
 import { PlaceTripField, PlaceVisitedField } from './place-trip-field'
+import { PlaceWebsiteField } from './place-website-field'
 
 /** Props for {@link PlaceFormDrawer}. */
 export type PlaceFormDrawerProps = {
@@ -157,13 +158,9 @@ export function PlaceFormDrawer({ target, onOpenChange, onSubmit, trips }: Place
 						<PlaceAddressField />
 					</div>
 
-					<Field className="sm:col-span-2">
-						<Label>Website</Label>
-
-						<Input name="url" type="url" placeholder="https://" />
-
-						<Message name="url" />
-					</Field>
+					<div className="sm:col-span-2">
+						<PlaceWebsiteField />
+					</div>
 				</>
 			) : null}
 
