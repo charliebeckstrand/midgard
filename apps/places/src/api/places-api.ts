@@ -97,7 +97,7 @@ function isPhotoType(type: string): type is PhotoType {
  * file, and the file goes to that address in the photo store, not through the
  * gateway: a photo can be 15 MB, and the gateway has no part in what it holds.
  */
-async function uploadPhoto(file: File): Promise<string> {
+export async function uploadPhoto(file: File): Promise<string> {
 	if (!isPhotoType(file.type)) throw new Error(`${file.name} is not a JPEG, PNG, or WebP image.`)
 
 	const { key, uploadUrl } = await unwrap(
@@ -113,9 +113,4 @@ async function uploadPhoto(file: File): Promise<string> {
 	if (!response.ok) throw new Error(`${file.name} did not upload. Try again.`)
 
 	return key
-}
-
-/** Uploads the photos, all at once, and gives their object keys in their order. */
-export function uploadPhotos(files: readonly File[]): Promise<string[]> {
-	return Promise.all(files.map(uploadPhoto))
 }

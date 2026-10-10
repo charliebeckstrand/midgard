@@ -25,7 +25,6 @@ function typed(fields: Partial<PlaceValues> = {}): PlaceValues {
 		visitedAt: new Date(2026, 8, 27),
 		rating: 5,
 		photos: [],
-		uploads: [],
 		review: '',
 		...fields,
 	}
@@ -332,8 +331,6 @@ describe('toVisitPlaceDraft', () => {
 		const values = targetValues({ kind: 'visit', place: base, visit })
 
 		expect(values.photos).toEqual([photo('users/u1/b.jpg')])
-
-		expect(values.uploads).toEqual([])
 
 		const draft = toVisitPlaceDraft({ ...values, rating: 5 }, base, visit, [
 			'users/u1/b.jpg',

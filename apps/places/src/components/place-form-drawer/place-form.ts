@@ -32,17 +32,32 @@ export type PlaceFormTarget =
 export const MAX_PHOTOS = 12
 
 /**
- * The photos of a visit or of a trip in a form: the stored photos that it
- * keeps, in their order, and the new files that a save uploads after them.
+ * A photo in a form: a stored photo, or a new file that a save uploads. The
+ * key of a new file is the form's own, so that the list can hold it.
  */
-export type PhotoValues = {
-	photos: Photo[]
-	uploads: File[]
+export type PhotoEntry = Photo | { key: string; file: File }
+
+/** Whether a photo in a form is a new file. */
+export function isNewPhoto(entry: PhotoEntry): entry is { key: string; file: File } {
+	return 'file' in entry
 }
 
-/** The photo fields over stored photos, with no new file. */
+/** A new file as a photo in a form. */
+export function newPhoto(file: File): PhotoEntry {
+	return { key: crypto.randomUUID(), file }
+}
+
+/**
+ * The photos of a visit or of a trip in a form, in their order: the stored
+ * photos that it keeps and the new files that a save uploads.
+ */
+export type PhotoValues = {
+	photos: PhotoEntry[]
+}
+
+/** The photo field over stored photos. */
 export function photoValues(photos: readonly Photo[]): PhotoValues {
-	return { photos: [...photos], uploads: [] }
+	return { photos: [...photos] }
 }
 
 /**
@@ -105,7 +120,7 @@ export function placeValidators(
  *
  * @param values - The filled form values.
  * @param photos - The object keys of the photos of the visit, in their order:
- * the stored photos that the form kept, then the uploads.
+ * the stored photos that the form kept and the files that it uploaded.
  * @param id - The id of the stored visit that the values edit, or `undefined`
  * for a new visit.
  */
@@ -183,7 +198,7 @@ export function toVisitPlaceDraft(
 export function toVisitValues(
 	visit: Visit | null,
 	trip?: Trip,
-): Pick<PlaceValues, 'visitedAt' | 'tripId' | 'rating' | 'photos' | 'uploads' | 'review'> {
+): Pick<PlaceValues, 'visitedAt' | 'tripId' | 'rating' | 'photos' | 'review'> {
 	if (visit === null) {
 		return {
 			visitedAt: trip === undefined ? new Date() : fromDay(trip.startsOn),

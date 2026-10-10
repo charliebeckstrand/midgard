@@ -18,7 +18,7 @@ vi.mock('shared/mimir', () => ({
 	}),
 }))
 
-const { uploadPhotos } = await import('../../api/places-api')
+const { uploadPhoto } = await import('../../api/places-api')
 
 const put = vi.fn<typeof fetch>()
 
@@ -36,14 +36,17 @@ afterEach(() => {
 	vi.unstubAllGlobals()
 })
 
-describe('uploadPhotos', () => {
-	it('puts each file at the address that Mimir signs, and gives the keys in order', async () => {
+describe('uploadPhoto', () => {
+	it('puts each file at the address that Mimir signs, and gives its key', async () => {
 		const files = [
 			new File(['a'], 'a.jpg', { type: 'image/jpeg' }),
 			new File(['bb'], 'b.png', { type: 'image/png' }),
 		]
 
-		await expect(uploadPhotos(files)).resolves.toEqual(['users/u1/1.jpeg', 'users/u1/2.png'])
+		await expect(Promise.all(files.map(uploadPhoto))).resolves.toEqual([
+			'users/u1/1.jpeg',
+			'users/u1/2.png',
+		])
 
 		expect(starts).toEqual([
 			{ path: '/api/photos/uploads', body: { contentType: 'image/jpeg', size: 1 } },
@@ -58,7 +61,7 @@ describe('uploadPhotos', () => {
 	})
 
 	it('refuses a file of another type before it asks Mimir', async () => {
-		await expect(uploadPhotos([new File(['a'], 'a.gif', { type: 'image/gif' })])).rejects.toThrow(
+		await expect(uploadPhoto(new File(['a'], 'a.gif', { type: 'image/gif' }))).rejects.toThrow(
 			'a.gif is not a JPEG, PNG, or WebP image.',
 		)
 
@@ -68,7 +71,7 @@ describe('uploadPhotos', () => {
 	it('fails with the name of a file that the store refuses', async () => {
 		put.mockResolvedValue(new Response(null, { status: 403 }))
 
-		await expect(uploadPhotos([new File(['a'], 'a.jpg', { type: 'image/jpeg' })])).rejects.toThrow(
+		await expect(uploadPhoto(new File(['a'], 'a.jpg', { type: 'image/jpeg' }))).rejects.toThrow(
 			'a.jpg did not upload. Try again.',
 		)
 	})

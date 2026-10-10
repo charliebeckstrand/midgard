@@ -39,7 +39,6 @@ function filled(fields: Partial<TripValues> = {}): TripValues {
 		name: 'Lisbon',
 		days: [fromDay('2026-09-25'), fromDay('2026-09-28')],
 		photos: [],
-		uploads: [],
 		...fields,
 	}
 }
