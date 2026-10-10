@@ -61,6 +61,21 @@ describe('FileUpload drop variant selection', () => {
 		expect(screen.getByText('Drop files here or click to browse')).toBeInTheDocument()
 	})
 
+	it('names the gesture of the primary pointer in the drop prompt', () => {
+		renderUI(<FileUploadDrop />)
+
+		// jsdom resolves no media query, so the classes stand in for the text that
+		// shows. The browser suite reads the name that a fine pointer gets.
+		expect(screen.getByText('Drop files here or click to browse')).toHaveClass(
+			'pointer-coarse:hidden',
+		)
+
+		expect(screen.getByText('Drop files here or tap to browse')).toHaveClass(
+			'hidden',
+			'pointer-coarse:block',
+		)
+	})
+
 	it('keeps the drop prompt to phrasing content inside the button', () => {
 		const { container } = renderUI(<FileUploadDrop />)
 
@@ -416,7 +431,8 @@ describe('FileUpload + Control', () => {
 
 		const zone = dropzone(container)
 
-		expect(zone).toHaveAccessibleName('Resume Drop files here or click to browse')
+		// jsdom hides neither prompt, so only the start of the name is fixed here.
+		expect(zone).toHaveAccessibleName(/^Resume Drop files here or click to browse/)
 
 		expect(zone).toHaveAttribute('aria-invalid', 'true')
 
