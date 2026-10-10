@@ -32,6 +32,7 @@ import { PlacePhotosField } from './place-photos-field'
 import { PlaceReviewField } from './place-review-field'
 import { PlaceSearchField } from './place-search-field'
 import { PlaceWebsiteField } from './place-website-field'
+import { useToday } from './use-today'
 
 /**
  * How long a submit waits for the geocoder to find a typed address. The public
@@ -134,6 +135,8 @@ export function PlaceFormDrawer({ target, onOpenChange, onSubmit }: PlaceFormDra
 
 	const seed = target ?? held ?? { kind: 'place', place: null }
 
+	const { today, zone } = useToday()
+
 	const { title, submit, editing } = targetWords(seed)
 
 	// A new place takes its first visit with it. An edit of a place leaves its
@@ -182,9 +185,11 @@ export function PlaceFormDrawer({ target, onOpenChange, onSubmit }: PlaceFormDra
 					// back. Keyed on the open state as well, which covers the one case the
 					// unmount misses: a reopen while the close is still animating out. The
 					// edited place is in the key too, so opening a second one re-seeds
-					// instead of keeping the first one's entry.
-					key={`${String(open)}:${targetKey(seed)}`}
-					defaultValues={targetValues(seed)}
+					// instead of keeping the first one's entry. The zone of `today` is in
+					// the key, so a form that the address opens takes the day of the reader
+					// after hydration (`useToday`).
+					key={`${String(open)}:${targetKey(seed)}:${zone}`}
+					defaultValues={targetValues(seed, today)}
 					validate={placeValidators}
 					onSubmit={async (values): Promise<SubmitResult<PlaceValues> | undefined> => {
 						setFailure(null)
