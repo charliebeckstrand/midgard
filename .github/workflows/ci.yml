@@ -50,15 +50,28 @@ jobs:
       # .next/cache, and the turbo outputs of `build` leave that directory out.
       # A cold admin build took 89s. With the cache, a build of the same source
       # took 9s, and a build after an edit to a ui component took 21s. The cache
-      # holds entries of the installed Next, so the key stops at the lockfile
-      # hash, as the Next documentation gives it. The SHA makes each run save
-      # what it wrote for the next run to restore.
+      # holds entries of the installed packages of the apps, so the key stops at
+      # the hash of those packages, not at the source. The SHA makes each run
+      # save what it wrote for the next run to restore.
+      #
+      # The key was the hash of the whole lockfile. A pull request can restore
+      # only what main saved, and main saves the cache of an app only when it
+      # builds that app. Turbo replays an app that did not change, so after a
+      # lockfile change main had no entry for the new key, and every pull
+      # request built each app cold. Turbo hashes the packages that each app
+      # resolves (`hashOfExternalDependencies`), so a lockfile change for one
+      # package keeps the key of the others.
+      - id: next-deps
+        run: |
+          hash=$(pnpm turbo run build --filter=admin --filter=picks --filter=places --dry=json \
+            | jq -er '[.tasks[] | select(.taskId | test("^(admin|picks|places)#build$")) | .hashOfExternalDependencies] | if length == 3 then sort | join("-") else error("missing app") end')
+          echo "hash=$hash" >> "$GITHUB_OUTPUT"
       - uses: actions/cache@v6
         with:
           path: apps/*/.next/cache
-          key: ${{ runner.os }}-next-cache-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
+          key: ${{ runner.os }}-next-cache-${{ steps.next-deps.outputs.hash }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-next-cache-${{ hashFiles('pnpm-lock.yaml') }}-
+            ${{ runner.os }}-next-cache-${{ steps.next-deps.outputs.hash }}-
       - run: pnpm turbo run build --summarize
         env:
           # Placeholder: only used to construct rewrite/fetch URLs, not reached at build time.
@@ -96,7 +109,14 @@ jobs:
       # dependency tree is wrong for every other. A prefix restore key across
       # lockfiles handed a vitest 4.1.10 cache to a 4.1.11 run, and all 500
       # test files failed to import `vitest`. The restore key below therefore
-      # stops at the lockfile hash.
+      # stops at the hash of the packages that ui resolves, which turbo gives
+      # as `hashOfExternalDependencies`.
+      #
+      # The key was the hash of the whole lockfile. A pull request can restore
+      # only what main saved, and main saves only when it runs the ui suite.
+      # After a lockfile change for another package, turbo replayed the ui
+      # suite on main, so main saved nothing under the new key, and each pull
+      # request ran the suite cold.
       #
       # Vitest hashes the text of every file `vitest.config.ts` imports into
       # each entry's key, and the config imports the docs plugin. An edit to
@@ -108,12 +128,17 @@ jobs:
       # SHA makes each run save what it wrote for the next run to restore.
       # Each shard transforms a different half of the suite, so each shard
       # keeps its own cache.
+      - id: ui-deps
+        run: |
+          hash=$(pnpm turbo run test --filter=ui --dry=json \
+            | jq -er '.tasks[] | select(.taskId == "ui#test") | .hashOfExternalDependencies')
+          echo "hash=$hash" >> "$GITHUB_OUTPUT"
       - uses: actions/cache@v6
         with:
           path: node_modules/.experimental-vitest-cache
-          key: ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/plugin/**/*.ts') }}-${{ github.sha }}
+          key: ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ steps.ui-deps.outputs.hash }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/plugin/**/*.ts') }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/plugin/**/*.ts') }}-
+            ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ steps.ui-deps.outputs.hash }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/plugin/**/*.ts') }}-
       - run: pnpm turbo run test --filter=ui --summarize -- --shard=${{ matrix.shard }}/2
       # The other packages have few test files, and a shard of them can be
       # empty. The first shard runs them whole.
@@ -202,16 +227,21 @@ jobs:
         with:
           name: compiler-${{ matrix.shard }}
       # The compiled run's own module cache (vitest.compiler.config.ts), apart
-      # from the plain run's cache in `gate`. The keys follow the gate's cache,
-      # for the reasons given there, and add the compiler config. Each shard
-      # transforms a different half of the suite, so each shard keeps its own
-      # cache.
+      # from the plain run's cache in `test`. The keys follow the cache of
+      # `test`, for the reasons given there, and add the compiler config. Each
+      # shard transforms a different half of the suite, so each shard keeps its
+      # own cache.
+      - id: ui-deps
+        run: |
+          hash=$(pnpm turbo run test:compiler --filter=ui --dry=json \
+            | jq -er '.tasks[] | select(.taskId == "ui#test:compiler") | .hashOfExternalDependencies')
+          echo "hash=$hash" >> "$GITHUB_OUTPUT"
       - uses: actions/cache@v6
         with:
           path: node_modules/.experimental-vitest-cache-compiler-*
-          key: ${{ runner.os }}-vitest-compiler-cache-${{ matrix.shard }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.compiler.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/plugin/**/*.ts') }}-${{ github.sha }}
+          key: ${{ runner.os }}-vitest-compiler-cache-${{ matrix.shard }}-${{ steps.ui-deps.outputs.hash }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.compiler.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/plugin/**/*.ts') }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-vitest-compiler-cache-${{ matrix.shard }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.compiler.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/plugin/**/*.ts') }}-
+            ${{ runner.os }}-vitest-compiler-cache-${{ matrix.shard }}-${{ steps.ui-deps.outputs.hash }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.compiler.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/plugin/**/*.ts') }}-
       # Filtered to `ui`, the one package with the task. Unfiltered, turbo runs
       # the `^build` of each package without it, and builds for nothing.
       - run: pnpm turbo run test:compiler --filter=ui --summarize -- --shard=${{ matrix.shard }}/2
