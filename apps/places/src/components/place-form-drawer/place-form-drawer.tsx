@@ -256,7 +256,7 @@ export function PlaceFormDrawer({ target, onOpenChange, onSubmit }: PlaceFormDra
 
 							{visitFields ? (
 								<>
-									<Field>
+									<Field className="sm:col-span-2">
 										<Label>Visited</Label>
 
 										<DatePicker name="visitedAt" className="w-full" />
