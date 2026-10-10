@@ -166,9 +166,15 @@ export function PlaceFormDrawer({ target, onOpenChange, onSubmit, trips }: Place
 
 			{visitFields ? (
 				<>
-					<PlaceVisitedField trips={trips} />
+					<div className="sm:col-span-2">
+						<PlaceVisitedField trips={trips} />
+					</div>
 
-					{trips.length > 0 ? <PlaceTripField trips={trips} /> : null}
+					{trips.length > 0 ? (
+						<div className="sm:col-span-2">
+							<PlaceTripField trips={trips} />
+						</div>
+					) : null}
 
 					<div className="sm:col-span-2">
 						<PlacePhotosField />
