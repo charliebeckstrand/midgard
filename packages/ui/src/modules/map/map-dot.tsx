@@ -9,7 +9,7 @@ import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/map'
 import { groundPoints, type MapGround } from './engine/map-cluster/ground'
 import { POINT_HIT_RADIUS } from './engine/map-constants'
-import { dotPath } from './engine/map-geometry/mark'
+import { dotPath, squareDotStroke } from './engine/map-geometry/mark'
 import { transformAttribute } from './engine/map-zoom/transform'
 import type { MapPoint2D, MapPointShape } from './engine/types'
 import type { MapOverlayHit } from './use-map-overlay'
@@ -59,8 +59,9 @@ type MapDotProps = {
 	/** The dot's radius in device pixels; drawn as half the cap's stroke width. */
 	radius: number
 	/**
-	 * The cap of the stroke. A `square` cap draws a square with sides of the
-	 * dot's diameter, so both shapes take the same box.
+	 * The shape of the dot. A `square` is a box with rounded corners, the shape
+	 * of the square `Swatch`, as wide as the circle, so both shapes take the
+	 * same box.
 	 * @defaultValue 'circle'
 	 */
 	shape?: MapPointShape | undefined
@@ -79,11 +80,11 @@ type MapDotProps = {
 }
 
 /**
- * A solid dot mark — a point, a marker pin — drawn as a zero-length
- * capped stroke, so the disc's radius is half the cap's width. A round cap
- * draws a disc, and a square cap draws a square of the same width. The
- * shape therefore changes one attribute, and the size, the pop, and the zoom
- * conversion stay the same for both.
+ * A solid dot mark — a point, a marker pin — drawn as a stroke. A circle is a
+ * zero-length segment, so the disc's radius is half the round cap's width. A
+ * square is a closed square whose round joins are its rounded corners
+ * (`squareDotStroke`). Both take the same box, and the size, the pop, and the
+ * zoom conversion stay the same for both.
  *
  * The width converts to frame units through {@link MapDotProps.scale}, the
  * conversion every other pixel spec on a mark already takes. That is the hit
@@ -115,12 +116,18 @@ export function MapDot({
 }: MapDotProps) {
 	const width = radius * 2 * scale
 
+	// The path and the stroke width at a drawn width. A circle keeps one path at
+	// every width; a square's path grows with it, so the pop grows both.
+	const stroke = (drawnWidth: number) =>
+		shape === 'square'
+			? squareDotStroke(at, drawnWidth)
+			: { d: dotPath(at), strokeWidth: drawnWidth }
+
 	const shared = {
 		'data-slot': slot,
-		d: dotPath(at),
 		fill: 'none',
-		strokeWidth: width,
 		strokeLinecap: shape === 'square' ? ('square' as const) : ('round' as const),
+		strokeLinejoin: 'round' as const,
 		className,
 	}
 
@@ -131,14 +138,17 @@ export function MapDot({
 	// mid-pop the dot grows toward the new width. Nothing renders at the pop's end.
 	const shown = useMotionValue(still ? 1 : 0)
 
-	const drawn = useTransform(shown, (share) => share * width)
+	const drawnPath = useTransform(shown, (share) => stroke(share * width).d)
 
-	if (!animate) return <path {...shared} />
+	const drawnStroke = useTransform(shown, (share) => stroke(share * width).strokeWidth)
+
+	if (!animate) return <path {...shared} {...stroke(width)} />
 
 	return (
 		<m.path
 			{...shared}
-			style={{ opacity: shown, strokeWidth: drawn }}
+			d={drawnPath}
+			style={{ opacity: shown, strokeWidth: drawnStroke }}
 			animate={{ opacity: 1 }}
 			transition={still ? INSTANT : transition}
 		/>

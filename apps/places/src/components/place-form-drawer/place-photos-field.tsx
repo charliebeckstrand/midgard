@@ -1,94 +1,113 @@
 'use client'
 
-import { Plus, Trash } from 'lucide-react'
-import { useId } from 'react'
-import { Button } from 'ui/button'
-import { Field, Label, Message } from 'ui/fieldset'
+import { Trash } from 'lucide-react'
+import { useState } from 'react'
+import { Description, Field, Label, Message } from 'ui/fieldset'
+import { type FileRejection, FileUploadInput, formatFileNames } from 'ui/file-upload'
 import { useFormValue } from 'ui/form'
 import { Icon } from 'ui/icon'
-import { Input } from 'ui/input'
 import { List, ListItem } from 'ui/list'
+import { Text } from 'ui/text'
 import { ToggleIconButton } from 'ui/toggle-icon-button'
-import { isWebAddress } from '../../schemas/place'
-import { MAX_PHOTOS, type PhotoRow, photoRow } from './place-form'
+import { MAX_PHOTO_BYTES, PHOTO_TYPES } from '../../api/places-api'
+import type { Photo } from '../../types'
+import { MAX_PHOTOS } from './place-form'
+
+/** What each reason of a refused file says. */
+const REJECTION: Readonly<Record<FileRejection['reason'], string>> = {
+	type: 'is not a JPEG, PNG, or WebP image',
+	size: 'is larger than 15 MB',
+	count: `goes past ${MAX_PHOTOS} photos`,
+}
+
+/** The message for the files that a pick refused: one sentence per reason. */
+function rejectionMessage(rejected: readonly FileRejection[]): string {
+	return (Object.keys(REJECTION) as FileRejection['reason'][])
+		.flatMap((reason) => {
+			const files = rejected.filter((held) => held.reason === reason).map((held) => held.file)
+
+			return files.length === 0 ? [] : [`${formatFileNames(files)} ${REJECTION[reason]}.`]
+		})
+		.join(' ')
+}
 
 /**
- * The photos of a visit: one address per row, and a button that adds a row.
+ * The photos of a visit or of a trip: the stored photos, each with a remove
+ * button and a drag handle while there is more than one, and a file field for
+ * new ones. A save uploads the new files after the stored photos, in the order
+ * picked.
  *
- * The field always holds one row at least, so a visit with no photo shows one
- * empty row, as the single field did before. Each input has a clear button
- * while it holds an address. The clear button empties the row and keeps it.
- * With more than one row, each row also has a remove button and a drag handle. The list shows the handle only while
- * it holds more than one row, because one row has no order to change.
- *
- * The field is a `Field` with a `Label`, as the other fields of the form are, so
- * the label sits as close to its rows as a label sits to its input. The label
- * names the list, as the label of a Rating names its row of stars. Each input
- * has an id of its own, because the inputs of a field take the id of the field
- * by default.
+ * The stored photos are the `photos` value of the form and the new files are
+ * its `uploads` value, because a stored photo is a key that the store holds,
+ * and a new file is not anywhere yet. The file field takes as many files as the
+ * stored photos leave room for. It names each file that a pick refuses and
+ * why, until a later refusal replaces the message or a reset of the file field
+ * clears it.
  */
 export function PlacePhotosField() {
-	const { value: rows = [], setValue, invalid } = useFormValue<PhotoRow[]>('photos', {})
+	const { value: photos = [], setValue } = useFormValue<Photo[]>('photos', {})
 
-	const id = useId()
+	const [rejected, setRejected] = useState<FileRejection[]>([])
 
-	const several = rows.length > 1
-
-	const write = (key: string, url: string) =>
-		setValue(rows.map((row) => (row.key === key ? { ...row, url } : row)))
+	const room = MAX_PHOTOS - photos.length
 
 	return (
-		<Field htmlFor={`${id}list`}>
-			<Label as="span" id={`${id}label`}>
-				Photos
-			</Label>
+		<Field>
+			<Label>Photos</Label>
 
-			<List
-				id={`${id}list`}
-				items={rows}
-				getKey={(row) => row.key}
-				onReorder={setValue}
-				variant="bare"
-				aria-labelledby={`${id}label`}
-			>
-				{(row) => (
-					<ListItem
-						suffix={
-							several ? (
-								<ToggleIconButton
-									icon={<Icon icon={<Trash />} />}
-									aria-label={`Remove photo ${rows.indexOf(row) + 1}`}
-									onClick={() => setValue(rows.filter((held) => held.key !== row.key))}
+			{photos.length === 0 ? null : (
+				<List
+					items={photos}
+					getKey={(photo) => photo.key}
+					onReorder={setValue}
+					variant="bare"
+					aria-label="Saved photos"
+				>
+					{(photo) => {
+						const n = photos.indexOf(photo) + 1
+
+						return (
+							<ListItem
+								suffix={
+									<ToggleIconButton
+										icon={<Icon icon={<Trash />} />}
+										aria-label={`Remove photo ${n}`}
+										onClick={() => setValue(photos.filter((held) => held.key !== photo.key))}
+									/>
+								}
+							>
+								<img
+									src={photo.url}
+									alt={`${n} of ${photos.length}`}
+									className="size-12 rounded-md object-cover"
 								/>
-							) : null
-						}
-					>
-						<Input
-							id={`${id}${row.key}`}
-							type="url"
-							clearable
-							placeholder="https://"
-							aria-label={`Photo ${rows.indexOf(row) + 1}`}
-							value={row.url}
-							// Only the row that is wrong, once the field has an error to show.
-							invalid={invalid && row.url.trim() !== '' && !isWebAddress(row.url.trim())}
-							onChange={(event) => write(row.key, event.target.value)}
-						/>
-					</ListItem>
-				)}
-			</List>
+							</ListItem>
+						)
+					}}
+				</List>
+			)}
 
-			<Button
-				type="button"
-				variant="plain"
-				prefix={<Icon icon={<Plus />} />}
-				disabled={rows.length >= MAX_PHOTOS}
-				onClick={() => setValue([...rows, photoRow()])}
-			>
-				Add photo
-			</Button>
+			<FileUploadInput
+				name="uploads"
+				multiple
+				placeholder="Add photos"
+				accept={PHOTO_TYPES.join(',')}
+				maxSize={MAX_PHOTO_BYTES}
+				maxCount={room}
+				disabled={room <= 0}
+				onReject={setRejected}
+				onAccept={(files) => {
+					if (files.length === 0) setRejected([])
+				}}
+			/>
 
-			<Message name="photos" />
+			{room > 0 ? null : (
+				<Description>{MAX_PHOTOS} photos is the most. Remove one to add another.</Description>
+			)}
+
+			{rejected.length === 0 ? null : <Text tone="warning">{rejectionMessage(rejected)}</Text>}
+
+			<Message name="uploads" />
 		</Field>
 	)
 }

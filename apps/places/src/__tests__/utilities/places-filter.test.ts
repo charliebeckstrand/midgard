@@ -2,12 +2,14 @@ import { describe, expect, it } from 'vitest'
 import type { Place } from '../../types'
 import {
 	filterPlaces,
+	filterTrips,
 	fromDay,
 	hasActiveFilter,
 	type PlaceFilterValue,
+	showsKind,
 	toDay,
 } from '../../utilities/places-filter'
-import { place, placeOn } from '../fixtures'
+import { place, placeOn, trip } from '../fixtures'
 
 /** A committed span, in the shape the relative DatePicker writes. */
 function span(from: string, to: string) {
@@ -118,5 +120,42 @@ describe('filterPlaces', () => {
 		expect(
 			ids({ categories: ['food', 'nature'], visited: [span('2026-01-01', '2026-06-30')] }),
 		).toEqual(['nature'])
+	})
+})
+
+describe('filterTrips', () => {
+	const trips = [
+		trip('spring', { startsOn: '2026-04-01', endsOn: '2026-04-05' }),
+		trip('fall', { startsOn: '2026-09-25', endsOn: '2026-10-02' }),
+	]
+
+	it('admits every trip without a span, whatever the categories', () => {
+		expect(filterTrips(trips, { categories: ['food'] })).toEqual(trips)
+	})
+
+	it('admits a trip whose days overlap a span', () => {
+		expect(filterTrips(trips, { visited: [span('2026-10-01', '2026-10-31')] })).toEqual([trips[1]])
+
+		expect(filterTrips(trips, { visited: [span('2026-05-01', '2026-08-31')] })).toEqual([])
+	})
+})
+
+describe('showsKind', () => {
+	it('draws both kinds while the field is unset', () => {
+		expect(showsKind({}, 'places', true)).toBe(true)
+
+		expect(showsKind({}, 'trips', true)).toBe(true)
+	})
+
+	it('draws the picked kinds alone', () => {
+		expect(showsKind({ show: ['trips'] }, 'places', true)).toBe(false)
+
+		expect(showsKind({ show: ['trips'] }, 'trips', true)).toBe(true)
+	})
+
+	// The field shows only while the reader has a trip, so a link that hides the
+	// places must not hide them from a reader who cannot see the field.
+	it('draws the places while the reader has no trip', () => {
+		expect(showsKind({ show: ['trips'] }, 'places', false)).toBe(true)
 	})
 })

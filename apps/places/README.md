@@ -47,7 +47,7 @@ name.
 ## The address
 
 Where the reader is lives in the address bar, not in React state: the view, the
-filter, and the open place. `src/utilities/places-url.ts` is the codec and
+filter, and the open place or trip. `src/utilities/places-url.ts` is the codec and
 `src/components/places-app/use-place-location.ts` binds it to the address bar, so
 a reload keeps the map, the Back button walks the drills, and a place is a link.
 
@@ -67,21 +67,51 @@ soon as the opening rule settles, so the two are never the same empty address.
 
 ## The index
 
-`All places` opens the same set as rows, over the map. The map answers what is
-near here; the index answers where that place was, which is the question a
-hundred dots cannot. It lists what the filter bar admits, so the two surfaces
-never disagree, and its own search finds within that.
+`My places` opens the same set as rows, over the map, and `My trips` opens the
+trips. The map answers what is near here; the index answers where that place
+was, which is the question a hundred dots cannot. It lists what the filter bar
+admits, so the two surfaces never disagree, and its own search finds within
+that.
+
+## Trips
+
+A trip is a record with a location, as a place is: a name, its first and last
+days, and a location. The location is a town, a city, a region, or a country
+that a search finds, not a street address, because a trip often goes to a city
+before it has an address in it. A trip is one level above a place, so it holds
+the places on it. The map draws places and trips as one mark: a trip is a
+amber square with rounded corners, and a place is a dot. While the map draws a
+trip, the places on that trip are in its square, and they do not draw or count
+on their own. Points that land close together merge into one, whatever their
+kind, and the count of a merged point is the number of places and trips that
+it holds. A merged point that holds a trip is a square. One pick opens one panel, which lists the places and the
+trips of the point under their own headings. The region grouping, the drill,
+the panel, the index, and the palette are generic over `Located`, so one code
+path serves both kinds.
+
+A trip stores no list of places. A place is on a trip when one of its visits
+names the trip with `tripId`, and the Trip field of a visit is the one control
+that sets it. A delete of a trip keeps its places and their visits, and Mimir
+clears the link. The Show field of the bar picks the kinds that the map draws,
+and it shows only while the reader has a trip.
 
 ## Data
 
 Mimir, a private service in asgard, keeps the data of each user: the places,
-and the visited regions under a key per atlas. The gateway checks the session
-and forwards `/api/places/*` and `/api/visits/*` to it. Mimir decides who can
+the trips, and the visited regions under a key per atlas. The gateway checks the
+session and forwards `/api/places/*`, `/api/trips/*`, `/api/visits/*`, and `/api/photos/*`
+to it. Mimir decides who can
 change what and how many places a user keeps. `src/api/places-api.ts` calls it
 from the browser and `src/server/mimir.ts` from the page, both typed from
 `shared/mimir`. After a change to the Mimir API, run
 `pnpm --filter shared openapi`. The contract is in asgard's
 [`.claude/docs/midgard.md`](https://github.com/charliebeckstrand/asgard/blob/main/.claude/docs/midgard.md).
+
+Photos are in a private bucket on DigitalOcean Spaces. The form uploads each
+new file when it saves: Mimir signs an upload address through
+`/api/photos/uploads`, and the browser puts the file at that address. A visit or
+a trip stores the object key of each photo, and Mimir reads each photo back with
+an address that holds for an hour.
 
 The two scopes are kept apart because the names collide: Georgia is a state of
 the United States and Georgia is a country.

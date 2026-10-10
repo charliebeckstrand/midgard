@@ -1,29 +1,35 @@
-import { Globe, MapIcon, MapPin, MapPinCheck, MapPinned, Plus } from 'lucide-react'
+import { Globe, Luggage, MapIcon, MapPin, MapPinCheck, MapPinned, Plus } from 'lucide-react'
 import { Icon } from 'ui/icon'
 import { Swatch } from 'ui/swatch'
-import { CATEGORY_BY_VALUE, categoryLabel } from '../../constants'
-import type { Place } from '../../types'
+import { CATEGORY_BY_VALUE, categoryLabel, RECORD_KIND_META } from '../../constants'
+import type { Place, Trip } from '../../types'
 import type { PaletteCommand, PaletteSource } from '../../utilities/places-palette'
+import { placeCount, sortTrips } from '../../utilities/places-trips'
 import { type PlaceView, UNITED_STATES } from '../../utilities/places-view'
 // The rows alone, not the barrel: the barrel also holds `PlaceMenu`, and the
 // bundle then keeps the menu code of ui on the home page.
-import { type PlaceActions, placeMenuItems } from '../place-menu/place-menu-items'
+import {
+	type PlaceActions,
+	placeMenuItems,
+	type TripActions,
+	tripMenuItems,
+} from '../place-menu/place-menu-items'
 
-/** How many of the newest places show for an empty query. */
-const RECENT_PLACES = 5
+/** How many of the newest records of a kind show for an empty query. */
+const RECENT_RECORDS = 5
 
 /** The text after a region name: its kind, and how many places it holds. */
 function regionDescription(kind: string, count: number): string {
 	if (count === 0) return kind
 
-	return `${kind} · ${count} ${count === 1 ? 'place' : 'places'}`
+	return `${kind} · ${placeCount(count)}`
 }
 
-/** Where a place is, as its row shows it: the city and the state or the country. */
-function placeDescription(place: Place): string {
-	const where = [place.city, place.state ?? place.country].filter(Boolean).join(', ')
+/** Where a record is, as its row shows it: the city and the state or the country. */
+function locatedDescription(record: Place | Trip): string {
+	const where = [record.city, record.state ?? record.country].filter(Boolean).join(', ')
 
-	return where === '' ? place.address : where
+	return where === '' ? record.address : where
 }
 
 /**
@@ -43,12 +49,12 @@ export function placeSource(
 
 	return {
 		heading: 'Places',
-		idle: RECENT_PLACES,
+		idle: RECENT_RECORDS,
 		commands: newest.map(
 			(place): PaletteCommand => ({
 				id: place.id,
 				label: place.name,
-				description: placeDescription(place),
+				description: locatedDescription(place),
 				icon: (
 					<Swatch
 						shape="circle"
@@ -65,6 +71,35 @@ export function placeSource(
 				].join(' '),
 				run: () => openPlace(place),
 				menu: placeMenuItems(place, actions),
+			}),
+		),
+	}
+}
+
+/**
+ * The source of the stored trips, newest first by their first day. An empty
+ * query shows the newest trips. The row mark is the square of the trip mark on
+ * the map, and the menu of a row is the menu of the trip.
+ */
+export function tripSource(
+	trips: readonly Trip[],
+	openTrip: (trip: Trip) => void,
+	actions: TripActions,
+): PaletteSource {
+	const { shape, color } = RECORD_KIND_META.trips
+
+	return {
+		heading: 'Trips',
+		idle: RECENT_RECORDS,
+		commands: sortTrips(trips).map(
+			(trip): PaletteCommand => ({
+				id: trip.id,
+				label: trip.name,
+				description: locatedDescription(trip),
+				icon: <Swatch shape={shape} color={color} className="mx-1" />,
+				keywords: [trip.city, trip.state, trip.country, trip.address].join(' '),
+				run: () => openTrip(trip),
+				menu: tripMenuItems(trip, actions),
 			}),
 		),
 	}
@@ -141,8 +176,11 @@ export function regionSource({
 /** Props of {@link actionSource}. */
 export type ActionSourceInput = {
 	onAdd: () => void
-	/** Opens the list. Without it, the source has no list action. */
+	/** Opens My places. Without it, the source has no My places action. */
 	onList?: () => void
+	onAddTrip: () => void
+	/** Opens My trips. Without it, the source has no My trips action. */
+	onListTrips?: () => void
 	/** The region that the visited action marks, or `null` where there is none. */
 	mark: string | null
 	marked: boolean
@@ -156,6 +194,8 @@ export type ActionSourceInput = {
 export function actionSource({
 	onAdd,
 	onList,
+	onAddTrip,
+	onListTrips,
 	mark,
 	marked,
 	onMark,
@@ -177,6 +217,24 @@ export function actionSource({
 			icon: <Icon icon={<MapPinned />} />,
 			keywords: 'list index',
 			run: onList,
+		})
+	}
+
+	commands.push({
+		id: 'add-trip',
+		label: 'Add trip',
+		icon: <Icon icon={<Plus />} />,
+		keywords: 'new create',
+		run: onAddTrip,
+	})
+
+	if (onListTrips !== undefined) {
+		commands.push({
+			id: 'trips',
+			label: 'My trips',
+			icon: <Icon icon={<Luggage />} />,
+			keywords: 'list index',
+			run: onListTrips,
 		})
 	}
 

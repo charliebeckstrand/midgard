@@ -539,6 +539,26 @@ describe('photonProvider', () => {
 		})
 	})
 
+	it('names a city, a state, or a country as its own part of the address', async () => {
+		stubFeatures(
+			makeFeature({ type: 'city', name: 'Lisbon', state: 'Lisbon', country: 'Portugal' }),
+			makeFeature({ type: 'state', name: 'Algarve', country: 'Portugal' }),
+			makeFeature({ type: 'country', name: 'Portugal' }),
+		)
+
+		const results = await photonProvider('q', { signal: new AbortController().signal })
+
+		// Photon leaves out the part that the feature is, so the name fills it.
+		expect(results.map((result) => result.address)).toEqual([
+			{ city: 'Lisbon', state: 'Lisbon', country: 'Portugal' },
+			{ state: 'Algarve', country: 'Portugal' },
+			{ country: 'Portugal' },
+		])
+
+		// The description is still the feature's own lines, so a city reads once.
+		expect(results[0]?.description).toBe('Lisbon, Portugal')
+	})
+
 	it('parts two documents of one OSM object by their type', async () => {
 		stubFeatures(
 			makeFeature({ osm_id: 192205, osm_type: 'R', type: 'city', name: 'Clearwater' }),

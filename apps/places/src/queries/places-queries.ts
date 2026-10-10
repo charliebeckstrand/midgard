@@ -10,14 +10,27 @@ import {
 import { type Seed, seededQuery } from 'shared/queries'
 import {
 	createPlace,
+	createTrip,
 	deletePlace,
+	deleteTrip,
 	fetchPlaces,
+	fetchTrips,
 	fetchVisits,
 	savePlace,
+	saveTrip,
 	setVisit,
 } from '../api/places-api'
 import { flags } from '../flags'
-import type { Place, PlaceDraft, Visit, VisitScope, Visits } from '../types'
+import type {
+	Place,
+	PlaceDraft,
+	Trip,
+	TripDraft,
+	TripStop,
+	Visit,
+	VisitScope,
+	Visits,
+} from '../types'
 import { placeDraft } from '../utilities/places-visits'
 
 /**
@@ -27,6 +40,7 @@ import { placeDraft } from '../utilities/places-visits'
  */
 export const placesKeys = {
 	all: ['places'] as const,
+	trips: ['trips'] as const,
 	visits: ['visits'] as const,
 }
 
@@ -43,6 +57,105 @@ export function usePlaces(initial: Seed<Place[]>) {
 		queryKey: placesKeys.all,
 		queryFn: ({ signal }) => fetchPlaces(signal),
 		...seededQuery(initial),
+	})
+}
+
+/**
+ * Every stored trip. `initial` is the list that the page read on the server, for
+ * the same reason the places are: the Show filter, My trips, and the trip squares
+ * must be right on the first paint.
+ */
+export function useTrips(initial: Seed<Trip[]>) {
+	return useQuery({
+		queryKey: placesKeys.trips,
+		queryFn: ({ signal }) => fetchTrips(signal),
+		...seededQuery(initial),
+	})
+}
+
+/**
+ * `written` merged into `places`: a stored place takes the place of its old
+ * record, and a new one goes first, as a new place does on an add.
+ */
+export function mergePlaces(places: readonly Place[], written: readonly Place[]): Place[] {
+	const byId = new Map(written.map((place) => [place.id, place]))
+
+	const kept = places.map((place) => byId.get(place.id) ?? place)
+
+	const known = new Set(places.map((place) => place.id))
+
+	return [...written.filter((place) => !known.has(place.id)), ...kept]
+}
+
+/**
+ * Adds a trip with its stops. The route answers with the trip and every place
+ * its stops wrote, so both cached lists take the stored records without a
+ * refetch.
+ */
+export function useAddTrip() {
+	const client = useQueryClient()
+
+	return useMutation({
+		mutationFn: ({ draft, stops }: { draft: TripDraft; stops: TripStop[] }) =>
+			createTrip(draft, stops),
+		// The form shows the error.
+		meta: { inlineError: true },
+		onSuccess: ({ trip, places }) => {
+			client.setQueryData<Trip[]>(placesKeys.trips, (trips) => [trip, ...(trips ?? [])])
+
+			client.setQueryData<Place[]>(placesKeys.all, (held) => mergePlaces(held ?? [], places))
+		},
+	})
+}
+
+/** Replaces the fields of a trip from the form, and writes the stored record into the cached list. */
+export function useSaveTrip() {
+	const client = useQueryClient()
+
+	return useMutation({
+		mutationFn: ({ id, draft }: { id: string; draft: TripDraft }) => saveTrip(id, draft),
+		// The form shows the error.
+		meta: { inlineError: true },
+		onSuccess: (trip) => {
+			client.setQueryData<Trip[]>(placesKeys.trips, (trips) =>
+				(trips ?? []).map((held) => (held.id === trip.id ? trip : held)),
+			)
+		},
+	})
+}
+
+/** A visit with its link to a trip cleared. */
+function unlinked({ tripId: _tripId, ...visit }: Visit): Visit {
+	return visit
+}
+
+/**
+ * Removes a trip. Mimir keeps its places and their visits and clears the link,
+ * so the cache clears `tripId` on those visits the same way.
+ */
+export function useDeleteTrip() {
+	const client = useQueryClient()
+
+	return useMutation({
+		mutationFn: (id: string) => deleteTrip(id),
+		onSuccess: (_result, id) => {
+			client.setQueryData<Trip[]>(placesKeys.trips, (trips) =>
+				(trips ?? []).filter((trip) => trip.id !== id),
+			)
+
+			client.setQueryData<Place[]>(placesKeys.all, (places) =>
+				(places ?? []).map((place) =>
+					place.visits.some((visit) => visit.tripId === id)
+						? {
+								...place,
+								visits: place.visits.map((visit) =>
+									visit.tripId === id ? unlinked(visit) : visit,
+								),
+							}
+						: place,
+				),
+			)
+		},
 	})
 }
 
@@ -182,10 +295,10 @@ export function useDeleteVisit() {
 
 	return useMutation({
 		mutationFn: ({ place, visit }: { place: Place; visit: Visit }) =>
-			savePlace(place.id, {
-				...placeDraft(place),
-				visits: place.visits.filter((held) => held.id !== visit.id),
-			}),
+			savePlace(
+				place.id,
+				placeDraft({ ...place, visits: place.visits.filter((held) => held.id !== visit.id) }),
+			),
 		onSuccess: (place) => {
 			client.setQueryData<Place[]>(placesKeys.all, (places) =>
 				(places ?? []).map((held) => (held.id === place.id ? place : held)),

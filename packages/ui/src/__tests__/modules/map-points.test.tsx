@@ -407,6 +407,44 @@ describe('a square point set', () => {
 	})
 })
 
+describe('a point with a shape of its own', () => {
+	it('draws in its own shape, and a mixed summary takes the shape of the mark', () => {
+		const { container } = renderUI(
+			overlayPlat(
+				<MapPoints
+					id="trips"
+					label="Records"
+					shape="square"
+					points={[
+						{ at: DEPOT, label: 'Depot', shape: 'circle' },
+						{ at: [5.3, 5], label: 'Annex', shape: 'square' },
+						{ at: SITE, label: 'Site', shape: 'circle' },
+					]}
+				/>,
+			),
+		)
+
+		expect(bySlot(container, 'map-points-dot')?.getAttribute('stroke-linecap')).toBe('round')
+
+		expect(bySlot(container, 'map-points-cluster')?.getAttribute('stroke-linecap')).toBe('square')
+	})
+
+	it('gives a summary the shape that its members share', () => {
+		const { container } = renderUI(
+			overlayPlat(
+				<MapPoints
+					id="fleet"
+					label="Stops"
+					shape="square"
+					points={BUNCHED.map((point) => ({ ...point, shape: 'circle' as const }))}
+				/>,
+			),
+		)
+
+		expect(bySlot(container, 'map-points-cluster')?.getAttribute('stroke-linecap')).toBe('round')
+	})
+})
+
 describe('a square MapPoint', () => {
 	it('caps its dot and its halo square', () => {
 		const { container } = renderUI(
@@ -418,5 +456,18 @@ describe('a square MapPoint', () => {
 		expect(bySlot(container, 'map-point')?.getAttribute('stroke-linecap')).toBe('square')
 
 		expect(bySlot(container, 'map-point-selected')?.getAttribute('stroke-linecap')).toBe('square')
+	})
+
+	it('rounds its corners, as the square Swatch does', () => {
+		const { container } = renderUI(
+			overlayPlat(<MapPoint id="depot" label="Depot" shape="square" at={DEPOT} />),
+		)
+
+		const dot = bySlot(container, 'map-point')
+
+		// A closed square, whose round joins are the corners.
+		expect(dot?.getAttribute('d')).toMatch(/Z/)
+
+		expect(dot?.getAttribute('stroke-linejoin')).toBe('round')
 	})
 })

@@ -1,15 +1,15 @@
 import type { AddressProvider, AddressSuggestion } from 'ui/address-input'
 import { describe, expect, it, vi } from 'vitest'
+import { locatePlace } from '../../components/place-form-drawer/location-form'
 import {
-	locatePlace,
 	type PlaceValues,
-	photoRow,
 	placeValidators,
-	toFormValues,
+	targetValues,
 	toPlaceDraft,
+	toVisitDraft,
 	toVisitPlaceDraft,
 } from '../../components/place-form-drawer/place-form'
-import { place } from '../fixtures'
+import { photo, place, trip, visitWith } from '../fixtures'
 
 /** Filled values with no match, which is a place that the reader typed the address of. */
 function typed(fields: Partial<PlaceValues> = {}): PlaceValues {
@@ -24,7 +24,8 @@ function typed(fields: Partial<PlaceValues> = {}): PlaceValues {
 		url: '',
 		visitedAt: new Date(2026, 8, 27),
 		rating: 5,
-		photos: [photoRow()],
+		photos: [],
+		uploads: [],
 		review: '',
 		...fields,
 	}
@@ -41,54 +42,88 @@ const sherwood: AddressSuggestion = {
 const signal = new AbortController().signal
 
 describe('placeValidators', () => {
+	const validators = placeValidators([trip('t1', { startsOn: '2026-09-25', endsOn: '2026-09-28' })])
+
 	it('takes a place with no match, because the address locates it', () => {
-		expect(placeValidators.place?.(undefined, typed())).toBeUndefined()
+		expect(validators.place?.(undefined, typed())).toBeUndefined()
 	})
 
 	it('refuses a match with no position', () => {
-		expect(placeValidators.place?.({ id: 'a', label: 'A' }, typed())).toBe(
+		expect(validators.place?.({ id: 'a', label: 'A' }, typed())).toBe(
 			'That match has no position. Pick another.',
 		)
 	})
 
 	it('requires the address', () => {
-		expect(placeValidators.address?.('  ', typed())).toBe('Address is required.')
+		expect(validators.address?.('  ', typed())).toBe('Address is required.')
 	})
 
 	it('requires the coordinates and not the address where the coordinates give the position', () => {
 		const values = typed({ locateBy: 'coordinates', address: '' })
 
-		expect(placeValidators.address?.('', values)).toBeUndefined()
+		expect(validators.address?.('', values)).toBeUndefined()
 
-		expect(placeValidators.latitude?.(' ', values)).toBe('Latitude is required.')
+		expect(validators.latitude?.(' ', values)).toBe('Latitude is required.')
 
-		expect(placeValidators.longitude?.('', values)).toBe('Longitude is required.')
+		expect(validators.longitude?.('', values)).toBe('Longitude is required.')
 	})
 
 	it('refuses a coordinate that is not a number or is out of range', () => {
 		const values = typed({ locateBy: 'coordinates' })
 
-		expect(placeValidators.latitude?.('0x10', values)).toBe('Latitude is not a number.')
+		expect(validators.latitude?.('0x10', values)).toBe('Latitude is not a number.')
 
-		expect(placeValidators.latitude?.('-90.5', values)).toBe('Latitude is not between -90 and 90.')
+		expect(validators.latitude?.('-90.5', values)).toBe('Latitude is not between -90 and 90.')
 
-		expect(placeValidators.longitude?.('-122.84', values)).toBeUndefined()
+		expect(validators.longitude?.('-122.84', values)).toBeUndefined()
 
-		expect(placeValidators.longitude?.('181', values)).toBe(
-			'Longitude is not between -180 and 180.',
-		)
+		expect(validators.longitude?.('181', values)).toBe('Longitude is not between -180 and 180.')
 	})
 
 	it('does not check the coordinates where the address gives the position', () => {
-		expect(placeValidators.latitude?.('', typed())).toBeUndefined()
+		expect(validators.latitude?.('', typed())).toBeUndefined()
 	})
 
-	it('takes empty photo rows, and names the first row that is not a web address', () => {
-		const rows = [photoRow(''), photoRow('https://example.com/a.jpg'), photoRow('nope')]
+	it('takes a visit on a day of its trip, and refuses one outside', () => {
+		expect(validators.visitedAt?.(new Date(2026, 8, 27), typed({ tripId: 't1' }))).toBeUndefined()
 
-		expect(placeValidators.photos?.(rows.slice(0, 2), typed())).toBeUndefined()
+		expect(validators.visitedAt?.(new Date(2026, 8, 29), typed({ tripId: 't1' }))).toBe(
+			'Visited is not a day of the trip.',
+		)
 
-		expect(placeValidators.photos?.(rows, typed())).toBe('Photo 3 is not a web address.')
+		expect(validators.visitedAt?.(new Date(2026, 8, 29), typed())).toBeUndefined()
+	})
+})
+
+describe('targetValues', () => {
+	it('starts a new place from a trip on the trip and its first day', () => {
+		const values = targetValues({
+			kind: 'place',
+			place: null,
+			trip: trip('t1', { startsOn: '2026-09-25' }),
+		})
+
+		expect(values.tripId).toBe('t1')
+
+		expect(values.visitedAt).toEqual(new Date(2026, 8, 25))
+	})
+
+	it('reads the trip of a stored visit', () => {
+		const base = place('p1', {
+			visits: [{ id: 'v1', visitedAt: '2026-09-26', rating: 0, photos: [], tripId: 't1' }],
+		})
+
+		expect(targetValues({ kind: 'visit', place: base, visit: base.visits[0] ?? null }).tripId).toBe(
+			't1',
+		)
+	})
+})
+
+describe('toVisitDraft', () => {
+	it('writes the trip of the visit', () => {
+		expect(toVisitDraft(typed({ tripId: 't1' }), []).tripId).toBe('t1')
+
+		expect(toVisitDraft(typed(), []).tripId).toBeUndefined()
 	})
 })
 
@@ -192,7 +227,7 @@ describe('locatePlace', () => {
 
 describe('toPlaceDraft', () => {
 	it('stores the typed address line and the position and parts of the match', () => {
-		const draft = toPlaceDraft(typed(), sherwood)
+		const draft = toPlaceDraft(typed(), sherwood, [])
 
 		expect(draft).toMatchObject({
 			address: '16020 SW Tualatin-Sherwood Rd, Sherwood, OR',
@@ -213,25 +248,18 @@ describe('toPlaceDraft', () => {
 
 		const located = await locatePlace(values, vi.fn<AddressProvider>(), signal)
 
-		expect(toPlaceDraft(values, located ?? undefined)).toMatchObject({
+		expect(toPlaceDraft(values, located ?? undefined, [])).toMatchObject({
 			address: '45.5, -122.5',
 			latitude: 45.5,
 			longitude: -122.5,
 		})
 	})
 
-	it('takes the visit fields as the first visit of a new place', () => {
-		const draft = toPlaceDraft(
-			typed({
-				review: ' Great ',
-				photos: [
-					photoRow(' https://example.com/b.jpg '),
-					photoRow(''),
-					photoRow('https://example.com/a.jpg'),
-				],
-			}),
-			sherwood,
-		)
+	it('takes the visit fields, with the photo keys, as the first visit of a new place', () => {
+		const draft = toPlaceDraft(typed({ review: ' Great ' }), sherwood, [
+			'users/u1/b.jpg',
+			'users/u1/a.jpg',
+		])
 
 		expect(draft.visits).toEqual([
 			{
@@ -239,31 +267,33 @@ describe('toPlaceDraft', () => {
 				visitedAt: '2026-09-27',
 				rating: 5,
 				review: 'Great',
-				photos: ['https://example.com/b.jpg', 'https://example.com/a.jpg'],
+				photos: ['users/u1/b.jpg', 'users/u1/a.jpg'],
 			},
 		])
 	})
 
 	it('keeps a half-step rating, and rounds any other fraction to the nearest half', () => {
-		expect(toPlaceDraft(typed({ rating: 3.5 }), sherwood).visits[0]?.rating).toBe(3.5)
+		expect(toPlaceDraft(typed({ rating: 3.5 }), sherwood, []).visits[0]?.rating).toBe(3.5)
 
-		expect(toPlaceDraft(typed({ rating: 3.3 }), sherwood).visits[0]?.rating).toBe(3.5)
+		expect(toPlaceDraft(typed({ rating: 3.3 }), sherwood, []).visits[0]?.rating).toBe(3.5)
 	})
 
-	it('keeps the visits on record through an edit of the place', () => {
-		const base = place('p1')
+	it('keeps the visits on record, with their photo keys, through an edit of the place', () => {
+		const base = place('p1', { visits: [visitWith('v1', [photo('users/u1/a.jpg')])] })
 
-		const values = toFormValues(base)
+		const values = targetValues({ kind: 'place', place: base })
 
-		expect(toPlaceDraft({ ...values, rating: 1 }, values.place, base).visits).toBe(base.visits)
+		expect(toPlaceDraft({ ...values, rating: 1 }, values.place, [], base).visits).toEqual([
+			{ id: 'v1', visitedAt: '2026-08-15', rating: 4, photos: ['users/u1/a.jpg'] },
+		])
 	})
 
 	it('keeps the parts on record while an edit keeps its own match', () => {
 		const base = place('p1', { city: 'Portland', state: 'Oregon', country: 'United States' })
 
-		const values = toFormValues(base)
+		const values = targetValues({ kind: 'place', place: base })
 
-		const draft = toPlaceDraft({ ...values, address: 'Edited line' }, values.place, base)
+		const draft = toPlaceDraft({ ...values, address: 'Edited line' }, values.place, [], base)
 
 		expect(draft).toMatchObject({
 			address: 'Edited line',
@@ -277,13 +307,13 @@ describe('toPlaceDraft', () => {
 describe('toVisitPlaceDraft', () => {
 	const base = place('p1', {
 		visits: [
-			{ id: 'v2', visitedAt: '2026-08-15', rating: 4, photos: ['https://example.com/a.jpg'] },
-			{ id: 'v1', visitedAt: '2026-01-02', rating: 2, photos: [] },
+			{ id: 'v2', visitedAt: '2026-08-15', rating: 4, photos: [photo('users/u1/a.jpg')] },
+			{ id: 'v1', visitedAt: '2026-01-02', rating: 2, photos: [photo('users/u1/b.jpg')] },
 		],
 	})
 
 	it('adds a new visit, with no id, and keeps the place as it is', () => {
-		const draft = toVisitPlaceDraft(typed({ visitedAt: new Date(2026, 9, 1) }), base, null)
+		const draft = toVisitPlaceDraft(typed({ visitedAt: new Date(2026, 9, 1) }), base, null, [])
 
 		expect(draft).not.toHaveProperty('id')
 
@@ -292,20 +322,33 @@ describe('toVisitPlaceDraft', () => {
 		expect(draft.visits.map((visit) => visit.id)).toEqual(['v2', 'v1', undefined])
 
 		expect(draft.visits[2]?.visitedAt).toBe('2026-10-01')
+
+		expect(draft.visits[0]?.photos).toEqual(['users/u1/a.jpg'])
 	})
 
 	it('replaces the stored visit it edits, and keeps its id', () => {
 		const visit = base.visits[1] ?? null
 
-		const values = toFormValues(base, visit)
+		const values = targetValues({ kind: 'visit', place: base, visit })
 
-		expect(values.photos).toHaveLength(1)
+		expect(values.photos).toEqual([photo('users/u1/b.jpg')])
 
-		const draft = toVisitPlaceDraft({ ...values, rating: 5 }, base, visit)
+		expect(values.uploads).toEqual([])
+
+		const draft = toVisitPlaceDraft({ ...values, rating: 5 }, base, visit, [
+			'users/u1/b.jpg',
+			'users/u1/c.jpg',
+		])
 
 		expect(draft.visits).toEqual([
-			base.visits[0],
-			{ id: 'v1', visitedAt: '2026-01-02', rating: 5, review: undefined, photos: [] },
+			{ id: 'v2', visitedAt: '2026-08-15', rating: 4, photos: ['users/u1/a.jpg'] },
+			{
+				id: 'v1',
+				visitedAt: '2026-01-02',
+				rating: 5,
+				review: undefined,
+				photos: ['users/u1/b.jpg', 'users/u1/c.jpg'],
+			},
 		])
 	})
 })

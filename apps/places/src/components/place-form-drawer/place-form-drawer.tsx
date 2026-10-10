@@ -1,25 +1,15 @@
 'use client'
 
-import { X } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { Alert } from 'ui/alert'
-import { Button } from 'ui/button'
-import { DatePicker } from 'ui/date-picker'
-import { Drawer, DrawerBody, DrawerClose, DrawerFooter, DrawerPanel, DrawerTitle } from 'ui/drawer'
 import { Field, Label, Message } from 'ui/fieldset'
-import { Form, type SubmitResult } from 'ui/form'
-import { Icon } from 'ui/icon'
 import { Input } from 'ui/input'
 import { Rating } from 'ui/rating'
-import { Columns } from 'ui/structure/columns'
-import { Flex } from 'ui/structure/flex'
-import { Text } from 'ui/text'
-import { ToggleIconButton } from 'ui/toggle-icon-button'
-import type { PlaceDraft } from '../../types'
+import type { PlaceDraft, Trip } from '../../types'
+import { FormDrawer, useHeldTarget } from './form-drawer'
+import { LOCATE_TIMEOUT_MS, locatePlace } from './location-form'
+import { photoKeys } from './photo-keys'
 import { PlaceAddressField } from './place-address-field'
 import { PlaceCategoryField } from './place-category-field'
 import {
-	locatePlace,
 	type PlaceFormTarget,
 	type PlaceValues,
 	placeValidators,
@@ -31,13 +21,7 @@ import { placeGeocoder } from './place-geocoder'
 import { PlacePhotosField } from './place-photos-field'
 import { PlaceReviewField } from './place-review-field'
 import { PlaceSearchField } from './place-search-field'
-
-/**
- * How long a submit waits for the geocoder to find a typed address. The public
- * geocoder has no service level, and a submit that waits with no limit keeps
- * the button busy with no message.
- */
-const LOCATE_TIMEOUT_MS = 10_000
+import { PlaceTripField, PlaceVisitedField } from './place-trip-field'
 
 /** Props for {@link PlaceFormDrawer}. */
 export type PlaceFormDrawerProps = {
@@ -53,6 +37,8 @@ export type PlaceFormDrawerProps = {
 	 * drawer shows the message of the error.
 	 */
 	onSubmit: (draft: PlaceDraft) => Promise<unknown>
+	/** The trips of the reader, which the Trip field of a visit picks from. */
+	trips: readonly Trip[]
 }
 
 /**
@@ -75,25 +61,12 @@ function targetWords(target: PlaceFormTarget): { title: string; submit: string; 
 function targetKey(target: PlaceFormTarget): string {
 	return target.kind === 'visit'
 		? `visit:${target.place.id}:${target.visit?.id ?? 'new'}`
-		: `place:${target.place?.id ?? 'new'}`
+		: `place:${target.place?.id ?? 'new'}:${target.trip?.id ?? ''}`
 }
 
 /**
- * What the drawer says about a failed submit. A timed-out search for the typed
- * address gets its own words, because the platform's words for it name an
- * operation that the reader never started.
- */
-function failureMessage(error: unknown): string {
-	if (error instanceof DOMException && error.name === 'TimeoutError') {
-		return 'The address search did not answer. Try again.'
-	}
-
-	return error instanceof Error ? error.message : String(error)
-}
-
-/**
- * The half-height glass drawer that writes a place — a new one, or an edit of one
- * on record — or one visit to a place on record.
+ * The {@link FormDrawer} that writes a place — a new one, or an edit of one on
+ * record — or one visit to a place on record.
  *
  * One form for all of them, because each produces the same record: only what
  * the fields start as, which fields show, and what the panel calls itself
@@ -108,30 +81,11 @@ function failureMessage(error: unknown): string {
  * search does not find, the reader types the address, and a submit finds the
  * position from it. Where the geocoder does not find the address either, the
  * reader types the latitude and the longitude ({@link PlaceAddressField}).
+ *
+ * The Trip field shows among the visit fields while the reader has a trip.
  */
-export function PlaceFormDrawer({ target, onOpenChange, onSubmit }: PlaceFormDrawerProps) {
-	const open = target !== null
-
-	// The target the panel last opened on. A close clears the caller's, and the
-	// panel stays mounted while it slides out — reading the caller's directly, an
-	// edit would empty its own fields halfway through its exit. Only an open
-	// writes to it, so the next open still seeds from what it was handed.
-	const [held, setHeld] = useState(target)
-
-	// Why the last write failed. The route refuses a write for reasons that no
-	// field shows, such as an email that is not verified or a full list. Without
-	// this message, a refused write only left the drawer open.
-	const [failure, setFailure] = useState<string | null>(null)
-
-	useEffect(() => {
-		if (target === null) return
-
-		setHeld(target)
-
-		setFailure(null)
-	}, [target])
-
-	const seed = target ?? held ?? { kind: 'place', place: null }
+export function PlaceFormDrawer({ target, onOpenChange, onSubmit, trips }: PlaceFormDrawerProps) {
+	const seed = useHeldTarget(target) ?? { kind: 'place', place: null }
 
 	const { title, submit, editing } = targetWords(seed)
 
@@ -142,166 +96,96 @@ export function PlaceFormDrawer({ target, onOpenChange, onSubmit }: PlaceFormDra
 	const visitFields = seed.kind === 'visit' || seed.place === null
 
 	return (
-		<Drawer open={open} onOpenChange={onOpenChange}>
-			<DrawerPanel
-				glass
-				// Grown to the form, and stopping at the screen rather than short of it —
-				// the second case `DrawerProps.height` describes, measured here: at a 700px
-				// window `auto` held the panel at 595 while the fields came to 709, leaving
-				// the review below the fold.
-				//
-				// The travel matters to a form for its own reason. A validation message
-				// appearing under a field changes the panel's height, and a panel that
-				// jumped would move the fields under the reader's cursor at the moment they
-				// are being told to fix one.
-				height="fit"
-				aria-label={title}
-			>
-				<Flex justify="between" align="center" className="px-6 pt-6">
-					{/* A visit names its place under the title, because the form shows no
-				    field of the place. */}
-					<div className="min-w-0">
-						<DrawerTitle className="p-0">{title}</DrawerTitle>
+		<FormDrawer<PlaceValues>
+			open={target !== null}
+			onOpenChange={onOpenChange}
+			title={title}
+			// A visit names its place under the title, because the form shows no
+			// field of the place.
+			subtitle={seed.kind === 'visit' ? seed.place.name : undefined}
+			submit={submit}
+			editing={editing}
+			formKey={targetKey(seed)}
+			defaultValues={targetValues(seed)}
+			validate={placeValidators(trips)}
+			onSubmit={async (values) => {
+				if (seed.kind === 'visit') {
+					await onSubmit(toVisitPlaceDraft(values, seed.place, seed.visit, await photoKeys(values)))
 
-						{seed.kind === 'visit' ? (
-							<Text tone="muted" className="truncate">
-								{seed.place.name}
-							</Text>
-						) : null}
+					return undefined
+				}
+
+				const located = await locatePlace(
+					values,
+					placeGeocoder,
+					AbortSignal.timeout(LOCATE_TIMEOUT_MS),
+				)
+
+				if (located === null) {
+					return {
+						fieldErrors: {
+							address:
+								'That address was not found. Check it, search for the place, or input its coordinates.',
+						},
+					}
+				}
+
+				await onSubmit(toPlaceDraft(values, located, await photoKeys(values), seed.place))
+
+				return undefined
+			}}
+		>
+			{placeFields ? (
+				<>
+					{/* The search leads across both columns, because it is the field
+					    that fills the others. */}
+					<div className="sm:col-span-2">
+						<PlaceSearchField />
 					</div>
 
-					<DrawerClose>
-						<ToggleIconButton icon={<Icon icon={<X />} />} aria-label="Close" />
-					</DrawerClose>
-				</Flex>
+					<Field>
+						<Label>Name</Label>
 
-				<Form<PlaceValues>
-					// The drawer unmounts its children while closed, so the form re-seeds
-					// from `defaultValues` on each open and an abandoned entry never comes
-					// back. Keyed on the open state as well, which covers the one case the
-					// unmount misses: a reopen while the close is still animating out. The
-					// edited place is in the key too, so opening a second one re-seeds
-					// instead of keeping the first one's entry.
-					key={`${String(open)}:${targetKey(seed)}`}
-					defaultValues={targetValues(seed)}
-					validate={placeValidators}
-					onSubmit={async (values): Promise<SubmitResult<PlaceValues> | undefined> => {
-						setFailure(null)
+						<Input name="name" placeholder="What is it called?" />
 
-						try {
-							if (seed.kind === 'visit') {
-								await onSubmit(toVisitPlaceDraft(values, seed.place, seed.visit))
-							} else {
-								const located = await locatePlace(
-									values,
-									placeGeocoder,
-									AbortSignal.timeout(LOCATE_TIMEOUT_MS),
-								)
+						<Message name="name" />
+					</Field>
 
-								if (located === null) {
-									return {
-										fieldErrors: {
-											address:
-												'That address was not found. Check it, search for the place, or input its coordinates.',
-										},
-									}
-								}
+					<PlaceCategoryField />
 
-								await onSubmit(toPlaceDraft(values, located, seed.place))
-							}
-						} catch (error) {
-							setFailure(failureMessage(error))
+					<div className="sm:col-span-2">
+						<PlaceAddressField />
+					</div>
 
-							return undefined
-						}
+					<Field className="sm:col-span-2">
+						<Label>Website</Label>
 
-						onOpenChange(false)
+						<Input name="url" type="url" placeholder="https://" />
 
-						return undefined
-					}}
-				>
-					<DrawerBody>
-						{/* Two columns from `sm`, which is what keeps the form short enough for
-					    the panel to hold all of it: stacked, these fields run past any
-					    screen and the reader scrolls to reach the button they are aiming
-					    for. The search leads across both, because it is the field that
-					    fills the others. */}
-						<Columns columns={{ initial: 1, sm: 2 }} gap="xl" align="start" className="pb-6">
-							{placeFields ? (
-								<>
-									<div className="sm:col-span-2">
-										<PlaceSearchField />
-									</div>
+						<Message name="url" />
+					</Field>
+				</>
+			) : null}
 
-									<Field>
-										<Label>Name</Label>
+			{visitFields ? (
+				<>
+					<PlaceVisitedField trips={trips} />
 
-										<Input name="name" placeholder="What is it called?" />
+					{trips.length > 0 ? <PlaceTripField trips={trips} /> : null}
 
-										<Message name="name" />
-									</Field>
+					<div className="sm:col-span-2">
+						<PlacePhotosField />
+					</div>
 
-									<PlaceCategoryField />
+					<Field className="sm:col-span-2">
+						<Label as="span">Rating</Label>
 
-									<div className="sm:col-span-2">
-										<PlaceAddressField />
-									</div>
+						<Rating name="rating" size="lg" step={0.5} />
+					</Field>
 
-									<Field className="sm:col-span-2">
-										<Label>Website</Label>
-
-										<Input name="url" type="url" placeholder="https://" />
-
-										<Message name="url" />
-									</Field>
-								</>
-							) : null}
-
-							{visitFields ? (
-								<>
-									<Field>
-										<Label>Visited</Label>
-
-										<DatePicker name="visitedAt" className="w-full" />
-
-										<Message name="visitedAt" />
-									</Field>
-
-									<div className="sm:col-span-2">
-										<PlacePhotosField />
-									</div>
-
-									<Field className="sm:col-span-2">
-										<Label as="span">Rating</Label>
-
-										<Rating name="rating" size="lg" step={0.5} />
-									</Field>
-
-									<PlaceReviewField />
-								</>
-							) : null}
-
-							{failure === null ? null : (
-								<Alert severity="error" className="sm:col-span-2">
-									<Text>{failure}</Text>
-								</Alert>
-							)}
-						</Columns>
-					</DrawerBody>
-
-					<DrawerFooter>
-						<Flex gap="sm" justify="end" full>
-							<Button variant="plain" type="button" onClick={() => onOpenChange(false)}>
-								Cancel
-							</Button>
-
-							<Button type="submit" color={editing ? 'blue' : undefined}>
-								{submit}
-							</Button>
-						</Flex>
-					</DrawerFooter>
-				</Form>
-			</DrawerPanel>
-		</Drawer>
+					<PlaceReviewField />
+				</>
+			) : null}
+		</FormDrawer>
 	)
 }

@@ -16,6 +16,8 @@ import {
 	ringAnchor,
 	ringsNear,
 	ringsPath,
+	SQUARE_DOT_CORNER,
+	squareDotStroke,
 	unprojectPoint,
 } from '../../modules/map/engine/map-geometry/mark'
 import { regionPaths } from '../../modules/map/engine/map-geometry/region'
@@ -514,6 +516,21 @@ describe('dotPath', () => {
 	it('draws a zero-length segment at the rounded position', () => {
 		// The round linecap paints the dot; two decimals match linePath's rounding.
 		expect(dotPath({ x: 12.3456, y: 7.891 })).toBe('M12.35,7.89l0,0')
+	})
+})
+
+describe('squareDotStroke', () => {
+	it('draws a closed square and a center fill whose stroke spans the width', () => {
+		// A 10-unit box: the stroke is two corner radii (4), and the closed square
+		// has a side of 6, so its outer edges sit 10 apart.
+		expect(squareDotStroke({ x: 20, y: 10 }, 10)).toEqual({
+			d: 'M17,7H23V13H17ZM20,10l0,0',
+			strokeWidth: 4,
+		})
+	})
+
+	it('rounds each corner over the share of the square Swatch', () => {
+		expect(squareDotStroke({ x: 0, y: 0 }, 25).strokeWidth / 2 / 25).toBe(SQUARE_DOT_CORNER)
 	})
 })
 

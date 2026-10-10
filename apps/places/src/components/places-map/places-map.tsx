@@ -10,11 +10,14 @@ import {
 	MapPoints,
 	type MapProjection,
 } from 'ui/modules/map'
-import type { Place } from '../../types'
+import { RECORD_KIND_META } from '../../constants'
+import type { MapRecord, Place, Trip } from '../../types'
 import type { PlaceVisitFilter } from '../../utilities/places-filter'
 import { centeredProjection, regionFrame, regionName } from '../../utilities/places-geography'
+import { isTrip, placesOffTrips } from '../../utilities/places-trips'
+import { type PlaceSelection, selectedIds } from '../../utilities/places-url'
 import { type PlaceView, viewAtlas, viewFrame, viewRegion } from '../../utilities/places-view'
-import { placeStops } from './places-map-utilities'
+import { recordStops } from './places-map-utilities'
 
 /**
  * What a painted region is called, per filter. The paint means whichever the
@@ -42,17 +45,26 @@ const COVERED_CATEGORIES: MapCategory[] = [
 	{ value: PAINT_LABEL.unvisited, color: 'red' },
 ]
 
-/** The one dot mark's id, which every pick and halo is keyed by. */
-const MARK_ID = 'places'
+/** The most names that the readout of a summary gives before it counts the rest. */
+const SUMMARY_NAMES = 3
 
 /**
- * The readout a summary dot carries. Module-scope because `MapPoints` keys its
- * readout rows on this identity, and a summary's spread costs a spherical pass
- * per merged group — an inline arrow would pay it again on every render.
+ * The readout of a summary: the names of the records it stands for, up to
+ * {@link SUMMARY_NAMES}, then how many more. A summary can hold places and
+ * trips together, and its names say what it holds where a count of one kind
+ * would not. Module-scope because `MapPoints` keys its readout rows on this
+ * identity.
  */
-function clusterDetail(count: number): string {
-	return `${count} places`
+function summaryNames(_count: number, _span: number, labels: string[]): string {
+	const named = labels.slice(0, SUMMARY_NAMES).join(', ')
+
+	const more = labels.length - SUMMARY_NAMES
+
+	return more > 0 ? `${named} and ${more} more` : named
 }
+
+/** The id of the one mark that draws every record. */
+const RECORDS_MARK = 'records'
 
 /** The box the map fills, with the margin that keeps the geography off the chrome. */
 const FRAME_INSET = 'size-full p-6 sm:p-10'
@@ -80,20 +92,29 @@ export type PlacesMapProps = {
 	 * picks it, so the caller can render that view first.
 	 */
 	onPreload?: (region: string) => void
-	/** The place whose panel is open; the map haloes the dot it drew into. */
-	selected: Place | null
-	/** Fires when a dot is picked, with every place the one dot stands for. */
-	onSelect: (places: Place[]) => void
+	/** The trips to draw, filtered as the places are. */
+	trips: readonly Trip[]
+	/** The records whose panel is open; the map haloes the point that the first one drew into. */
+	selected: PlaceSelection
+	/** Fires when a point is picked, with every record it stands for, of both kinds. */
+	onSelect: (selection: PlaceSelection) => void
 }
 
 /**
- * The map: every place as a dot over the regions that hold them.
+ * The map: every trip as a square and every other place as a dot, over the
+ * regions that hold them.
  *
- * One mark for the whole set, so dots that land on the same pixels merge however
- * they are categorized — clustering is per-mark, and a mark per category left
- * one category's dot sitting on another's summary badge. Each dot still carries
- * its own category color; a summary keeps the mark's, because it stands for
- * several categories at once. The filter's swatches are the key to both.
+ * A trip is the one point for its places. While the map draws a trip, it does
+ * not draw the places on that trip, so they are neither a count on the square
+ * nor dots beside it. The trip panel lists them. With the trips not shown, the
+ * places of every trip draw as dots again.
+ *
+ * One mark for the whole set, so points that land on the same pixels merge
+ * whatever their kind or category. Each lone point keeps its own shape and
+ * color; a summary keeps the mark's color, because it stands for several. A
+ * summary of places alone is a circle, and a summary that holds a trip is a
+ * square, the shape of the mark. A pick opens every record of the point, of
+ * both kinds. The filter's swatches are the key to the shapes and the colors.
  *
  * A click on any region drills into it, and a drilled region stops answering
  * entirely: only its dots do.
@@ -101,6 +122,7 @@ export type PlacesMapProps = {
 export function PlacesMap({
 	regions,
 	places,
+	trips,
 	view,
 	visited,
 	visitedRegions,
@@ -189,31 +211,47 @@ export function PlacesMap({
 		return cut === null ? rows : rows.filter((row) => row.region === cut)
 	}, [regions, visited, visitedRegions, cut])
 
-	// Every place in one mark, so two dots that land on the same pixels merge into
-	// one summary whatever categories they belong to. Clustering is per-mark: a
+	// Every record in one mark, so two points that land on the same pixels merge
+	// into one summary whatever their kind or category. Clustering is per mark: a
 	// mark drawn per category left a dot of one category sitting on top of another
-	// category's summary badge, which reads as a bug and is unpickable besides.
-	//
-	// A dot keeps its category's color through it: the mark's slot is what a
-	// summary wears, since a merged dot stands for several categories and any one
-	// of theirs would name it wrongly.
+	// category's summary badge, and a mark per kind left a trip square under the
+	// dots of the places near it. Both read as a bug and are unpickable besides.
+	// The trips go first, so a summary's readout names them first.
+	const records = useMemo<MapRecord[]>(
+		() => [...trips, ...placesOffTrips(places, trips)],
+		[places, trips],
+	)
+
+	// A point keeps its own shape and color through it: the mark's slot is what a
+	// summary wears, since a merged point stands for several categories and any
+	// one of theirs would name it wrongly.
 	//
 	// Built here rather than in the JSX because `MapPoints` keys its whole
 	// pipeline on the identity of `points`: the clustering, the crowding, the
 	// readout rows, and the memoized dot layer that exists to stop hundreds of
 	// dots rebuilding. A fresh array per render would redo all of it on every
 	// click, drawer, and filter change, to produce what it already had.
-	const stops = useMemo(() => placeStops(places), [places])
+	const stops = useMemo(() => recordStops(records), [records])
 
-	// The picked dot, as the pair the map haloes by. One mark, so the id is fixed
-	// and only the index moves; a summary haloes wherever the pick merged into.
+	// The picked point, as the pair the map haloes by: the mark, and the index of
+	// the first record of the selection that the map draws. A place on a drawn
+	// trip is in the point of the trip, so the trip stands for it. A summary
+	// haloes wherever the pick merged into.
 	const selectedOverlay = useMemo<MapOverlaySelection | null>(() => {
-		if (selected === null) return null
+		const drawnAt = new Map(records.map((record, index) => [record.id, index]))
 
-		const index = places.findIndex((place) => place.id === selected.id)
+		const placeById = new Map(places.map((place) => [place.id, place]))
 
-		return index === -1 ? null : { id: MARK_ID, index }
-	}, [selected, places])
+		for (const id of selectedIds(selected)) {
+			const trips = placeById.get(id)?.visits.flatMap((visit) => visit.tripId ?? []) ?? []
+
+			const index = [id, ...trips].map((held) => drawnAt.get(held)).find((at) => at !== undefined)
+
+			if (index !== undefined) return { id: RECORDS_MARK, index }
+		}
+
+		return null
+	}, [selected, records, places])
 
 	return (
 		// The fit takes every edge of the box it is handed, so without an inset
@@ -301,16 +339,20 @@ export function PlacesMap({
 				animate
 			>
 				<MapPoints
-					id={MARK_ID}
-					label="Places"
-					color="blue"
-					detail={String(places.length)}
+					id={RECORDS_MARK}
+					label={trips.length > 0 ? 'Places and trips' : RECORD_KIND_META.places.label}
+					shape={RECORD_KIND_META.trips.shape}
+					color={RECORD_KIND_META.places.color}
+					detail={String(records.length)}
 					points={stops}
-					clusterDetail={clusterDetail}
-					// A summary is one dot to the reader, so a click on it opens every
-					// place under it rather than the first one the pick happened to name.
+					clusterDetail={summaryNames}
 					onClick={(_id, _index, merged) => {
-						onSelect(merged.flatMap((at) => places[at] ?? []))
+						const picked = merged.flatMap((at) => records[at] ?? [])
+
+						onSelect({
+							places: picked.filter((record) => !isTrip(record)).map((record) => record.id),
+							trips: picked.filter(isTrip).map((record) => record.id),
+						})
 					}}
 				/>
 			</MapPlat>

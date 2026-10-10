@@ -8,6 +8,7 @@ vi.mock('../../flags', () => ({ flags }))
 
 import { fromDay } from '../../utilities/places-filter'
 import {
+	NOTHING_SELECTED,
 	PANEL_START,
 	type PlaceLocation,
 	readLocation,
@@ -25,9 +26,9 @@ function write(location: Partial<PlaceLocation>): string {
 	return writeLocation({
 		view: null,
 		filter: {},
-		selected: [],
+		selected: NOTHING_SELECTED,
 		step: PANEL_START,
-		adding: false,
+		adding: null,
 		...location,
 	}).toString()
 }
@@ -36,9 +37,9 @@ function write(location: Partial<PlaceLocation>): string {
 const NOTHING: PlaceLocation = {
 	view: null,
 	filter: {},
-	selected: [],
+	selected: NOTHING_SELECTED,
 	step: PANEL_START,
-	adding: false,
+	adding: null,
 }
 
 describe('readLocation', () => {
@@ -120,7 +121,21 @@ describe('readLocation', () => {
 	})
 
 	it('reads the open places', () => {
-		expect(read('place=a1&place=b2').selected).toEqual(['a1', 'b2'])
+		expect(read('place=a1&place=b2').selected).toEqual({ places: ['a1', 'b2'], trips: [] })
+	})
+
+	it('reads the open trips, and both kinds where an address holds both', () => {
+		expect(read('trip=t1').selected).toEqual({ places: [], trips: ['t1'] })
+
+		expect(read('trip=t1&place=a1').selected).toEqual({ places: ['a1'], trips: ['t1'] })
+
+		expect(read('trip=t1&open=a1').step).toEqual({ opened: 'a1', widened: false })
+	})
+
+	it('reads the kinds the map draws, and drops a kind it does not know', () => {
+		expect(read('show=trips').filter.show).toEqual(['trips'])
+
+		expect(read('show=people').filter.show).toBeUndefined()
 	})
 
 	// The step is what a reload opens the panel on: a place that the reader went
@@ -137,16 +152,17 @@ describe('readLocation', () => {
 		expect(read('open=b2&list=all').step).toEqual(PANEL_START)
 	})
 
-	it('reads the open form for a new place, and only from a value of "true"', () => {
-		expect(read('add=true').adding).toBe(true)
+	it('reads the open form for a new place or trip, and drops any other value', () => {
+		expect(read('add=place').adding).toBe('places')
 
-		expect(read('add=false').adding).toBe(false)
+		expect(read('add=trip').adding).toBe('trips')
 
-		expect(read('add=1').adding).toBe(false)
+		// The value this app wrote before it had trips. It is a stale field now.
+		expect(read('add=true').adding).toBeNull()
 	})
 
 	it('drops empty fields rather than holding them', () => {
-		expect(read('state=&category=&place=&open=&list=&paint=&add=')).toEqual(NOTHING)
+		expect(read('state=&category=&show=&place=&trip=&open=&list=&paint=&add=')).toEqual(NOTHING)
 	})
 })
 
@@ -179,26 +195,33 @@ describe('writeLocation', () => {
 		).toBe('category=food&category=nature&paint=visited&when=2026-01-01..2026-06-30')
 	})
 
-	it('writes the open places', () => {
-		expect(write({ selected: ['a1', 'b2'] })).toBe('place=a1&place=b2')
+	it('writes the open places, then the open trips', () => {
+		expect(write({ selected: { places: ['a1', 'b2'], trips: [] } })).toBe('place=a1&place=b2')
+
+		expect(write({ selected: { places: ['a1'], trips: ['t1'] } })).toBe('place=a1&trip=t1')
 	})
 
-	it('writes the step of the open panel after its places', () => {
-		expect(write({ selected: ['a1', 'b2'], step: { opened: 'b2', widened: true } })).toBe(
-			'place=a1&place=b2&open=b2&list=all',
-		)
+	it('writes the step of the open panel after its records', () => {
+		expect(
+			write({
+				selected: { places: ['a1', 'b2'], trips: [] },
+				step: { opened: 'b2', widened: true },
+			}),
+		).toBe('place=a1&place=b2&open=b2&list=all')
 
-		expect(write({ selected: ['a1'] })).toBe('place=a1')
+		expect(write({ selected: { places: [], trips: ['t1'] } })).toBe('trip=t1')
 	})
 
 	it('writes no step without an open panel', () => {
 		expect(write({ step: { opened: 'b2', widened: true } })).toBe('')
 	})
 
-	it('writes the open form for a new place, and nothing while it is closed', () => {
-		expect(write({ adding: true })).toBe('add=true')
+	it('writes the open form for a new record, and nothing while it is closed', () => {
+		expect(write({ adding: 'places' })).toBe('add=place')
 
-		expect(write({ adding: false })).toBe('')
+		expect(write({ adding: 'trips' })).toBe('add=trip')
+
+		expect(write({ adding: null })).toBe('')
 	})
 })
 
@@ -210,15 +233,16 @@ describe('a location round trip', () => {
 			view: { country: UNITED_STATES, state: 'Oregon' },
 			filter: {
 				categories: ['food', 'shopping'],
+				show: ['trips'],
 				visitedRegions: 'unvisited',
 				visited: [
 					{ from: fromDay('2026-01-01'), to: fromDay('2026-06-30') },
 					{ from: fromDay('2026-08-01'), to: fromDay('2026-08-31') },
 				],
 			},
-			selected: ['a1', 'b2'],
+			selected: { places: ['a1'], trips: ['b2'] },
 			step: { opened: 'b2', widened: true },
-			adding: true,
+			adding: 'trips',
 		}
 
 		expect(readLocation(writeLocation(location))).toEqual(location)
@@ -228,9 +252,9 @@ describe('a location round trip', () => {
 		const location: PlaceLocation = {
 			view: WORLD,
 			filter: {},
-			selected: [],
+			selected: NOTHING_SELECTED,
 			step: PANEL_START,
-			adding: false,
+			adding: null,
 		}
 
 		expect(readLocation(writeLocation(location))).toEqual(location)
@@ -240,9 +264,9 @@ describe('a location round trip', () => {
 		const location: PlaceLocation = {
 			view: { country: "Côte d'Ivoire", state: null },
 			filter: {},
-			selected: [],
+			selected: NOTHING_SELECTED,
 			step: PANEL_START,
-			adding: false,
+			adding: null,
 		}
 
 		expect(readLocation(writeLocation(location))).toEqual(location)

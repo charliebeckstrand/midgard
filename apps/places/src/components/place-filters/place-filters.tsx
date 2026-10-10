@@ -5,8 +5,10 @@ import { ControlSkeleton } from 'ui/control'
 import type { DatePickerRelativeValue } from 'ui/date-picker'
 import { Filters, FiltersBar, FiltersClear, FiltersField, FiltersRow } from 'ui/filters'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
+import { Swatch } from 'ui/swatch'
+import { RECORD_KIND_META } from '../../constants'
 import { flags } from '../../flags'
-import type { PlaceCategory } from '../../types'
+import { type PlaceCategory, RECORD_KINDS, type RecordKind } from '../../types'
 import {
 	hasActiveFilter,
 	type PlaceFilterValue,
@@ -37,6 +39,55 @@ export type PlaceFiltersProps = {
 	drilled: string | null
 	/** Fires with the region to project, or `null` to go back out a level. */
 	onDrill: (region: string | null) => void
+	/** Whether the reader has a trip, which is when the Show field shows. */
+	hasTrips: boolean
+}
+
+/** The name of a kind, which is what the trigger of the Show field shows. */
+function kindLabel(kind: RecordKind): string {
+	return RECORD_KIND_META[kind].label
+}
+
+/**
+ * Which kinds of record the map draws. Each option carries a swatch in the
+ * shape and the color of the mark of its kind, which is the only key the map
+ * has for the two shapes.
+ *
+ * Both kinds are picked while the field is unset, so the reader sees the
+ * default they are on. An empty pick returns to both, the same rule the
+ * category picker keeps: a reader who clears the last kind means to stop
+ * filtering, not to empty the map.
+ */
+function ShowField() {
+	return (
+		<FiltersField<RecordKind[]> name="show" className="w-52">
+			{({ value: kinds, onValueChange: setKinds }) => (
+				<Listbox<RecordKind>
+					multiple
+					aria-label="Show"
+					placeholder="Places and trips"
+					displayValue={kindLabel}
+					value={kinds ?? [...RECORD_KINDS]}
+					onValueChange={(next) =>
+						setKinds(next.length === 0 || next.length === RECORD_KINDS.length ? undefined : next)
+					}
+				>
+					{RECORD_KINDS.map((kind) => (
+						<ListboxOption key={kind} value={kind}>
+							{/* The row puts its children flush, so the swatch carries the gap. */}
+							<Swatch
+								shape={RECORD_KIND_META[kind].shape}
+								color={RECORD_KIND_META[kind].color}
+								className="mr-2"
+							/>
+
+							<ListboxLabel>{kindLabel(kind)}</ListboxLabel>
+						</ListboxOption>
+					))}
+				</Listbox>
+			)}
+		</FiltersField>
+	)
 }
 
 /**
@@ -65,6 +116,7 @@ export function PlaceFilters({
 	regionLabel,
 	drilled,
 	onDrill,
+	hasTrips,
 }: PlaceFiltersProps) {
 	return (
 		// One row at every width, scrolling sideways where it does not fit. The map
@@ -107,6 +159,10 @@ export function PlaceFilters({
 							</ListboxOption>
 						))}
 					</Listbox>
+
+					{/* Only while the reader has a trip: with places alone there is
+					    nothing to choose between. */}
+					{hasTrips ? <ShowField /> : null}
 
 					{/* A paint filter, not a place filter: it decides which regions carry the
 					    visited fill and never which dots are drawn. Cleared, no region is

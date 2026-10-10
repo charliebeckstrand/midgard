@@ -419,12 +419,17 @@ function featureToSuggestion(feature: PhotonFeature): AddressSuggestion {
 
 	const street = [p.housenumber, p.street].filter(Boolean).join(' ')
 
+	// A city, a state, or a country is its own part of the address, but Photon
+	// leaves that part out of the feature that is the area itself: the city of
+	// Lisbon carries a state and a country, and no city. The name fills it.
+	const own = (kind: string) => (p.type === kind ? p.name : undefined)
+
 	const address: AddressParts = {
 		street: street || undefined,
-		city: p.city,
-		state: p.state,
+		city: p.city ?? own('city'),
+		state: p.state ?? own('state'),
 		postcode: p.postcode,
-		country: p.country,
+		country: p.country ?? own('country'),
 	}
 
 	const locality = [p.city, p.state, p.postcode, p.country].filter(Boolean).join(', ')

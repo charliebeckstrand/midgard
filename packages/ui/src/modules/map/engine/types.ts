@@ -53,9 +53,10 @@ export type DataKey<T> = keyof T & string
 export type MapSwatchShape = 'rect' | 'line' | 'dot'
 
 /**
- * The shape of a point mark. A `circle` is the default. A `square` lets two
- * point sets on one map differ in shape as well as in color, so a reader with a
- * color vision deficiency can still tell them apart.
+ * The shape of a point mark. A `circle` is the default. A `square` is a box
+ * with rounded corners, the shape of its square `Swatch` key. It lets two point
+ * sets on one map differ in shape as well as in color, so a reader with a color
+ * vision deficiency can still tell them apart.
  */
 export type MapPointShape = 'circle' | 'square'
 

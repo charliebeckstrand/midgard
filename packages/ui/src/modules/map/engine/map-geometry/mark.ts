@@ -495,6 +495,39 @@ export function dotPath(at: MapPoint2D): string {
 }
 
 /**
+ * The share of a square dot's width that each corner rounds over. It is the
+ * corner of the square `Swatch` (2 px on a 10 px box), so a square dot
+ * and its legend key have one shape at every size.
+ *
+ * @internal
+ */
+export const SQUARE_DOT_CORNER = 0.2
+
+/**
+ * A square dot with rounded corners, `width` frame units across, as a path and
+ * the stroke width that paints it. The path is a closed square, and its round
+ * joins are the corners. The stroke is as wide as two corner radii, so a
+ * square of side `width` less that stroke has outer edges `width` apart. A
+ * zero-length segment at the center fills the hole inside the stroke, with its
+ * square cap. The two subpaths therefore paint one solid box, through the same
+ * stroke-painted model as {@link dotPath}.
+ *
+ * @internal
+ */
+export function squareDotStroke(at: MapPoint2D, width: number): { d: string; strokeWidth: number } {
+	const strokeWidth = width * SQUARE_DOT_CORNER * 2
+
+	const half = (width - strokeWidth) / 2
+
+	const [left, top, right, bottom] = [at.x - half, at.y - half, at.x + half, at.y + half].map(round)
+
+	return {
+		d: `M${left},${top}H${right}V${bottom}H${left}Z${dotPath(at)}`,
+		strokeWidth,
+	}
+}
+
+/**
  * Two-decimal rounding keeping the attribute strings this module writes compact.
  *
  * Exported for the same reason `squared` sits with the grid. The `d` builders here and the `points`

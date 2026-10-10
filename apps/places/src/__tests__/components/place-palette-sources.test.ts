@@ -4,10 +4,11 @@ import {
 	actionSource,
 	placeSource,
 	regionSource,
+	tripSource,
 } from '../../components/place-palette/place-palette-sources'
 import { matchCommands } from '../../utilities/places-palette'
 import { UNITED_STATES } from '../../utilities/places-view'
-import { place } from '../fixtures'
+import { place, trip } from '../fixtures'
 
 /** Menu actions that do nothing, for the cases that are not about the menu. */
 const NO_ACTIONS = { onAddVisit: () => {}, onEdit: () => {}, onDelete: () => {} }
@@ -78,6 +79,39 @@ describe('placeSource', () => {
 	})
 })
 
+describe('tripSource', () => {
+	const trips = [
+		trip('spring', { name: 'Lisbon', city: 'Lisbon', startsOn: '2026-04-01' }),
+		trip('fall', { name: 'Kyoto', city: 'Kyoto', country: 'Japan', startsOn: '2026-10-01' }),
+	]
+
+	const actions = { onAddPlace: vi.fn(), onEditTrip: vi.fn(), onDeleteTrip: vi.fn() }
+
+	it('holds the trips newest first, and opens a trip on a pick', () => {
+		const openTrip = vi.fn()
+
+		const source = tripSource(trips, openTrip, actions)
+
+		expect(matchCommands(source, '').map((command) => command.id)).toEqual(['fall', 'spring'])
+
+		expect(matchCommands(source, 'kyoto')[0]?.description).toBe('Kyoto, Japan')
+
+		matchCommands(source, 'lisbon')[0]?.run()
+
+		expect(openTrip).toHaveBeenCalledWith(trips[0])
+	})
+
+	it('gives each trip the rows of the trip menu', () => {
+		const [kyoto] = tripSource(trips, () => {}, actions).commands
+
+		const items = (kyoto?.menu ?? []).filter(
+			(entry): entry is ContextMenuItem => 'onAction' in entry,
+		)
+
+		expect(items.map((item) => item.label)).toEqual(['Add place', 'Edit trip', 'Delete trip'])
+	})
+})
+
 describe('regionSource', () => {
 	const goTo = vi.fn()
 
@@ -114,20 +148,33 @@ describe('regionSource', () => {
 })
 
 describe('actionSource', () => {
-	const base = { onAdd: () => {}, mark: null, marked: false, onMark: () => {} }
+	const base = {
+		onAdd: () => {},
+		onAddTrip: () => {},
+		mark: null,
+		marked: false,
+		onMark: () => {},
+	}
 
 	it('shows every action for an empty query', () => {
-		const source = actionSource({ ...base, onList: () => {}, mark: 'Oregon' })
+		const source = actionSource({
+			...base,
+			onList: () => {},
+			onListTrips: () => {},
+			mark: 'Oregon',
+		})
 
 		expect(matchCommands(source, '').map((command) => command.label)).toEqual([
 			'Add place',
 			'My places',
+			'Add trip',
+			'My trips',
 			'Mark Oregon visited',
 		])
 	})
 
-	it('leaves out the list without places, and the mark without a region', () => {
-		expect(actionSource(base).commands.map((command) => command.id)).toEqual(['add'])
+	it('leaves out each list without its records, and the mark without a region', () => {
+		expect(actionSource(base).commands.map((command) => command.id)).toEqual(['add', 'add-trip'])
 	})
 
 	it('flips the visited state of the region', () => {

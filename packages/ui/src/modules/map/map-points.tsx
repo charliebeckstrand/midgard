@@ -54,6 +54,16 @@ export type MapPointDatum = {
 	 * points at.
 	 */
 	color?: MapSeriesColor
+	/**
+	 * This dot's own shape, where the stops divide into kinds of a different
+	 * level, such as a trip beside the places it passes. Omitted, the dot takes
+	 * the mark's {@link MapPointsProps.shape}.
+	 *
+	 * A summary takes the shape that all of its members share. A summary of
+	 * mixed shapes takes the mark's shape, so the caller sets the mark's shape to
+	 * the one that a mixed summary must show.
+	 */
+	shape?: MapPointShape
 }
 
 /** Props for {@link MapPointsDots}: everything the drawn dots read, none of the emphasis. @internal */
@@ -67,8 +77,8 @@ type MapPointsDotsProps = {
 	paints: string[]
 	/** The ink a summary's count is written in. */
 	countInk: string
-	/** The shape of every dot, the summaries included. */
-	shape: MapPointShape
+	/** The shape of each drawn group. */
+	shapes: MapPointShape[]
 	animate: boolean
 	/** Frame units per device pixel, which the hit radii and the counts divide by. */
 	unitsPerPixel: number
@@ -97,7 +107,7 @@ const MapPointsDots = memo(function MapPointsDots({
 	targets,
 	paints,
 	countInk,
-	shape,
+	shapes,
 	animate,
 	unitsPerPixel,
 	hit,
@@ -152,7 +162,7 @@ const MapPointsDots = memo(function MapPointsDots({
 							slot={count === 1 ? 'map-points-dot' : 'map-points-cluster'}
 							at={position}
 							radius={radius}
-							shape={shape}
+							shape={shapes[index]}
 							scale={unitsPerPixel}
 							// `?? ''` for the indexed read alone: `paints` is built from the same
 							// `groups` this maps, so every rendered index has one.
@@ -240,9 +250,11 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
 	 */
 	cluster?: boolean | number
 	/**
-	 * The shape of every dot, the summaries, the halo, and the legend swatch. A
+	 * The shape of the dots, the summaries, the halo, and the legend swatch. A
 	 * `square` set beside a `circle` set lets the two read as different kinds of
-	 * stop by shape as well as by color.
+	 * stop by shape as well as by color. A point's own
+	 * {@link MapPointDatum.shape} overrides it for that point, and for a summary
+	 * whose members all share it.
 	 * @defaultValue 'circle'
 	 */
 	shape?: MapPointShape
@@ -487,6 +499,18 @@ export function MapPoints({
 		})
 	}, [groups, points, slot])
 
+	// Each drawn group's shape: a lone dot's own, the one that a summary's members
+	// share, else the mark's. Held for the same reason as `paints`.
+	const shapes = useMemo(
+		() =>
+			groups.map(({ members }) => {
+				const [first, ...rest] = members.map((member) => points[member]?.shape ?? shape)
+
+				return first !== undefined && rest.every((held) => held === first) ? first : shape
+			}),
+		[groups, points, shape],
+	)
+
 	if (slot === undefined || hidden) return null
 
 	const countInk = cn('text-xs font-semibold tabular-nums', ...k.series[slot].label)
@@ -498,7 +522,7 @@ export function MapPoints({
 					slot="map-points-selected"
 					at={picked.at}
 					radius={clusterRadius(picked.members.length)}
-					shape={shape}
+					shape={selected === null ? shape : (shapes[selected] ?? shape)}
 					scale={unitsPerPixel}
 				/>
 			)}
@@ -510,7 +534,7 @@ export function MapPoints({
 					targets={targets}
 					paints={paints}
 					countInk={countInk}
-					shape={shape}
+					shapes={shapes}
 					animate={animate}
 					unitsPerPixel={unitsPerPixel}
 					hit={hit}

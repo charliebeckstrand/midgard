@@ -33,6 +33,33 @@ export type Visit = Schemas['Visit']
 /** A visit as the form sends it. A new visit has no id, and Mimir gives it one. */
 export type VisitDraft = Schemas['VisitDraft']
 
+/** A stored photo: its object key, and an address that reads it for an hour. */
+export type Photo = Schemas['Photo']
+
+/** The file types that a photo upload takes. */
+export type PhotoType = Schemas['PhotoUploadRequest']['contentType']
+
+/** Where a record is: the address on one line, its parts, and its position. A place and a trip share it. */
+export type LocationDraft = Schemas['Location']
+
+/** One trip: a destination, its days, and its photos. Its places are the visits that name it. */
+export type Trip = Schemas['Trip']
+
+/** A record that the map draws as a point: a place or a trip. */
+export type MapRecord = Place | Trip
+
+/** A trip as the form sends it, before Mimir gives it an identity. */
+export type TripDraft = Schemas['TripDraft']
+
+/** One place of a new trip: a visit to a place on record, or a new place with its one visit. */
+export type TripStop = Schemas['TripStop']
+
+/** The kinds of record the map draws, which the Show filter picks from. */
+export const RECORD_KINDS = ['places', 'trips'] as const
+
+/** One kind of record the map draws. */
+export type RecordKind = (typeof RECORD_KINDS)[number]
+
 /**
  * A hue both palettes carry, so one category color drives the map dot, the
  * filter swatch, and the badge alike.
