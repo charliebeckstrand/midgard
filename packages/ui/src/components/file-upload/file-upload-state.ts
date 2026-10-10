@@ -106,7 +106,8 @@ export type FileUploadButtonProps = FileUploadSharedProps & {
 	color?: ComponentProps<typeof Button>['color']
 	/**
 	 * The style of the button, such as `plain` for an add button among others.
-	 * Without it, the button takes the variant that {@link Button} takes.
+	 *
+	 * @defaultValue `'solid'`, or the variant of the surface around the button, as for {@link Button}.
 	 */
 	variant?: ComponentProps<typeof Button>['variant']
 	/**
