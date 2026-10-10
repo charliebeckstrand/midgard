@@ -7,7 +7,7 @@ import { markTargets } from './engine/map-cluster/crowd'
 import { ownGround } from './engine/map-cluster/ground'
 import { POINT_HIT_RADIUS, POINT_RADIUS } from './engine/map-constants'
 import { pointPop } from './engine/map-motion'
-import type { LngLat } from './engine/types'
+import { type LngLat, type MapPointShape, POINT_SWATCH } from './engine/types'
 import { dotHitProps, MapDot, MapDotClip } from './map-dot'
 import { MapDotHalo } from './map-halo'
 import { type MapOverlayProps, useMapOverlay } from './use-map-overlay'
@@ -16,10 +16,16 @@ import { type MapOverlayProps, useMapOverlay } from './use-map-overlay'
 export type MapPointProps = MapOverlayProps & {
 	/** The point's geographic position. */
 	at: LngLat
+	/**
+	 * The shape of the dot, its halo, and its legend swatch. A square sets one
+	 * kind of point apart from another on the same map.
+	 * @defaultValue 'circle'
+	 */
+	shape?: MapPointShape
 }
 
 /**
- * A solid circle marker at one coordinate: a warehouse, a stop, a geocoded
+ * A solid circle or square marker at one coordinate: a warehouse, a stop, a geocoded
  * address. It is filled in its slot color, and registered in the plat's legend
  * as its own toggleable, focusable entry. Hovering raises the tooltip with the
  * point's name and detail, and isolates the dot. Every other mark recedes, as
@@ -57,7 +63,7 @@ export type MapPointProps = MapOverlayProps & {
  * in, staggered by its registration order so a cluster of points reveals in
  * sequence.
  */
-export function MapPoint({ at, ...shared }: MapPointProps) {
+export function MapPoint({ at, shape = 'circle', ...shared }: MapPointProps) {
 	const [lng, lat] = at
 
 	// Keyed on the ordinates rather than on `at`, for the reason `position` below states. A new
@@ -80,7 +86,7 @@ export function MapPoint({ at, ...shared }: MapPointProps) {
 	} = useMapOverlay({
 		...shared,
 		kind: 'point',
-		swatch: 'dot',
+		swatch: POINT_SWATCH[shape],
 		stops,
 	})
 
@@ -142,6 +148,7 @@ export function MapPoint({ at, ...shared }: MapPointProps) {
 					slot="map-point-selected"
 					at={position}
 					radius={POINT_RADIUS}
+					shape={shape}
 					scale={unitsPerPixel}
 				/>
 			)}
@@ -151,6 +158,7 @@ export function MapPoint({ at, ...shared }: MapPointProps) {
 					slot="map-point"
 					at={position}
 					radius={POINT_RADIUS}
+					shape={shape}
 					scale={unitsPerPixel}
 					className={cn(...k.series[slot].stroke)}
 					animate={animate}

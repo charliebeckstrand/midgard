@@ -364,3 +364,59 @@ describe('a summary names the stops it merged', () => {
 		expect(seen.some((labels) => labels.join(', ') === 'Stops 1, Stops 2')).toBe(true)
 	})
 })
+
+describe('a square point set', () => {
+	it('caps its dots, its summaries, and its halo square, and keys a square swatch', () => {
+		const { container } = renderUI(
+			overlayPlat(<MapPoints id="depots" label="Depots" shape="square" points={BUNCHED} />, {
+				selectedOverlay: { id: 'depots', index: 2 },
+			}),
+		)
+
+		const drawn = [
+			...allBySlot(container, 'map-points-dot'),
+			...allBySlot(container, 'map-points-cluster'),
+			bySlot(container, 'map-points-selected'),
+		]
+
+		expect(drawn).toHaveLength(3)
+
+		for (const shape of drawn) expect(shape?.getAttribute('stroke-linecap')).toBe('square')
+
+		expect(
+			bySlot(container, 'map-legend-item')
+				?.querySelector('[data-shape]')
+				?.getAttribute('data-shape'),
+		).toBe('square')
+	})
+
+	it('keeps the round cap and the circle swatch by default', () => {
+		const { container } = renderUI(
+			overlayPlat(<MapPoints id="fleet" label="Stops" points={STOPS} />),
+		)
+
+		for (const dot of allBySlot(container, 'map-points-dot')) {
+			expect(dot.getAttribute('stroke-linecap')).toBe('round')
+		}
+
+		expect(
+			bySlot(container, 'map-legend-item')
+				?.querySelector('[data-shape]')
+				?.getAttribute('data-shape'),
+		).toBe('circle')
+	})
+})
+
+describe('a square MapPoint', () => {
+	it('caps its dot and its halo square', () => {
+		const { container } = renderUI(
+			overlayPlat(<MapPoint id="depot" label="Depot" shape="square" at={DEPOT} />, {
+				selectedOverlay: { id: 'depot', index: 0 },
+			}),
+		)
+
+		expect(bySlot(container, 'map-point')?.getAttribute('stroke-linecap')).toBe('square')
+
+		expect(bySlot(container, 'map-point-selected')?.getAttribute('stroke-linecap')).toBe('square')
+	})
+})
