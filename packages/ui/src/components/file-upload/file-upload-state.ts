@@ -102,6 +102,11 @@ export type FileUploadButtonProps = FileUploadSharedProps & {
 	/** The palette color of the button. @defaultValue 'zinc' */
 	color?: ComponentProps<typeof Button>['color']
 	/**
+	 * The style of the button, such as `plain` for an add button among others.
+	 * Without it, the button takes the variant that {@link Button} takes.
+	 */
+	variant?: ComponentProps<typeof Button>['variant']
+	/**
 	 * The trigger's label, and the hidden input's accessible name.
 	 *
 	 * @defaultValue 'Upload'

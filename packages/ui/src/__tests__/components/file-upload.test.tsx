@@ -274,6 +274,12 @@ describe('FileUpload button variant', () => {
 
 		expect(screen.getByRole('button', { name: 'Pick' })).toBeDisabled()
 	})
+
+	it('gives the button the variant it takes', () => {
+		renderUI(<FileUploadButton variant="plain">Pick</FileUploadButton>)
+
+		expect(screen.getByRole('button', { name: 'Pick' })).toHaveAttribute('data-variant', 'plain')
+	})
 })
 
 describe('FileUpload button variant selection', () => {
