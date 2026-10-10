@@ -14,16 +14,23 @@ import { useControlFieldContext } from './use-control-field-context'
 export type ControlProps = {
 	id?: string
 	autoComplete?: string
+	/** @defaultValue `false`, or `true` inside a disabled Control or Field. */
 	disabled?: boolean
+	/** @defaultValue `false`, or `true` inside a read-only Control. */
 	readOnly?: boolean
+	/** @defaultValue `false`, or the state of the enclosing Control. */
 	required?: boolean
-	/** Validation / status severity broadcast to control-aware descendants: `error` (also `aria-invalid`), `warning`, or `success`. Pass `severity="error"` to mark the field invalid. */
+	/**
+	 * Validation / status severity broadcast to control-aware descendants: `error` (also `aria-invalid`), `warning`, or `success`. Pass `severity="error"` to mark the field invalid.
+	 * @defaultValue No severity: the field shows no validation ring. An enclosing Control or Field can set one.
+	 */
 	severity?: ControlSeverity
 	/**
 	 * The density step. Omit it to take the step of the nearest density scope.
 	 * A step makes the field a density scope.
 	 */
 	size?: ScaleStep<typeof scale>
+	/** @defaultValue `'default'`, or the `variant` of the enclosing Control, or the glass surface in a GlassProvider. */
 	variant?: ControlVariant
 	className?: string
 	children: ReactNode

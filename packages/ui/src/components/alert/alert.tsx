@@ -45,7 +45,7 @@ export type AlertProps = Omit<AlertVariants, 'color'> & {
 	/**
 	 * The palette color of the alert. It replaces the color of the `severity`.
 	 *
-	 * @defaultValue The color of the `severity`: blue, green, amber, or red. With no `severity`, the color is zinc.
+	 * @defaultValue `'zinc'`, or the color of the `severity`: blue, green, amber, or red.
 	 */
 	color?: AlertVariants['color']
 	/**
@@ -54,6 +54,8 @@ export type AlertProps = Omit<AlertVariants, 'color'> & {
 	 * only when the alert has a `title`. An explicit `color` replaces the color
 	 * of the severity. Use `color` alone to render a colored alert with no
 	 * semantic meaning.
+	 *
+	 * @defaultValue No severity: the color is zinc, with no icon and no ARIA role.
 	 */
 	severity?: AlertSeverity
 	/** Icon at the start. It replaces the icon of `severity`, and shows with or without a `title`. */
@@ -64,6 +66,8 @@ export type AlertProps = Omit<AlertVariants, 'color'> & {
 	 * Heading level of the `title`. Set it when the alert heads a part of the page,
 	 * so that a screen reader can find the title in the heading list. Omit it to
 	 * render the title in a `<div>`. The look does not change with the level.
+	 *
+	 * @defaultValue No level: the title renders in a `<div>`.
 	 */
 	titleLevel?: HeadingLevel
 	/** The text under the title, in a tight line height. */
@@ -86,6 +90,8 @@ export type AlertProps = Omit<AlertVariants, 'color'> & {
 	/**
 	 * Controlled open state. A controlled alert stays open until `open` changes,
 	 * so pass `onOpenChange` with it to let the close button dismiss the alert.
+	 *
+	 * @defaultValue Uncontrolled: the state starts from `defaultOpen`.
 	 */
 	open?: boolean
 	/** Called when the open state changes. */

@@ -268,6 +268,15 @@ function defaultTags(checker: Checker, symbol: TsSymbol): string[] {
 		.map((tag) => tag.text?.trim() ?? '')
 }
 
+/**
+ * Whether a `@defaultValue` tag says that the omitted prop is no value: a
+ * sentence that does not start with code, such as "No color: the `tone` sets
+ * the text color.".
+ */
+function isNoValueTag(tag: string): boolean {
+	return tag.endsWith('.') && !tag.startsWith('`')
+}
+
 /** The name of the prop that a binding reads: `size` in `{ size = 'md' }` and in `{ size: step }`. */
 function propName(element: BindingElement): string | undefined {
 	const key = element.propertyName ?? element.name
@@ -445,6 +454,10 @@ function scanKataTypes(
 					const tags = defaultTags(checker, property)
 
 					if (tags.join('\n') === expected.join('\n')) continue
+
+					// With no recipe default, the omitted axis is no value, and the tag can
+					// say so in a sentence (CONVENTIONS.md §12.1).
+					if (expected.length === 0 && tags.length === 1 && isNoValueTag(tags[0] ?? '')) continue
 
 					violations.add(
 						`${label} → ${exported.name}.${property.name}: @defaultValue ${tags.join(', ') || '(none)'}, recipe default ${expected.join(', ') || '(none)'}`,

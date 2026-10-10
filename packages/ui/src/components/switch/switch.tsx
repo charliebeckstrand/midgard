@@ -21,6 +21,7 @@ export type SwitchProps = SwitchVariants & {
 	 * and `onChange` does not fire. The switch keeps the focus, submits its value,
 	 * and sets `aria-readonly`. When omitted, it takes the value of an enclosing
 	 * `<Control>` or `<Field>`.
+	 * @defaultValue `false`, or the state of the enclosing Control.
 	 */
 	readOnly?: boolean
 } & Omit<ComponentProps<'input'>, 'className' | 'type' | 'size' | 'defaultChecked' | 'readOnly'>

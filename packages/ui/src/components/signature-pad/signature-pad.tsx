@@ -33,7 +33,9 @@ export type SignaturePadProps = {
 	 * 2D context. All of them return before the stroke starts.
 	 */
 	onDrawStart?: () => void
+	/** @defaultValue `false`, or the state of the enclosing Control or Field. */
 	disabled?: boolean
+	/** @defaultValue `false`, or the state of the enclosing Control. */
 	readOnly?: boolean
 	/**
 	 * Placeholder rendered over an empty pad. A disabled or read-only pad

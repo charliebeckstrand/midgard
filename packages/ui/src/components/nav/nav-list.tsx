@@ -11,7 +11,7 @@ import { useNavBar } from './context'
 export type NavListProps = ComponentProps<'ul'> & {
 	/**
 	 * Layout axis for the items.
-	 * @defaultValue `'horizontal'` inside a {@link NavBar}, otherwise `'vertical'`.
+	 * @defaultValue `'vertical'`, or `'horizontal'` inside a {@link NavBar}.
 	 */
 	orientation?: Orientation
 }

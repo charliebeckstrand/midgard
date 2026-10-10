@@ -29,7 +29,8 @@ export type PropApi = {
 	/**
 	 * The code of the `@defaultValue` tag, such as `'md'` or `2000`. A tag that is
 	 * a sentence, such as "The step of the scope.", goes at the end of
-	 * `description` instead.
+	 * `description` instead. For a union of literals, the code at the start of
+	 * such a sentence is the default too.
 	 */
 	default?: string
 	/** Markdown. */
@@ -293,14 +294,11 @@ function readBarrel(ts: Ts, ast: Ast, program: Program, checker: Checker, file: 
 
 		const deprecated = tags.get('deprecated')
 
-		const fallback = plainText(tags.get('defaultValue') ?? '')
-
-		// A default that is a sentence, such as "The step of the scope.", is not code.
-		const sentence = fallback.endsWith('.')
+		const { code, sentence } = defaultOf(tags.get('defaultValue') ?? '', values !== undefined)
 
 		const description = [
 			checker.getDocumentationCommentOfSymbol(symbol),
-			sentence && `Default: ${fallback}`,
+			sentence && `Default: ${sentence}`,
 		]
 			.filter(Boolean)
 			.join('\n\n')
@@ -309,7 +307,7 @@ function readBarrel(ts: Ts, ast: Ast, program: Program, checker: Checker, file: 
 			name: symbol.name,
 			...(values ? { values } : { type: textOf(type, defined) }),
 			...(required && { required: true }),
-			...(fallback && !sentence && { default: fallback }),
+			...(code && { default: code }),
 			...(description && { description }),
 			...(deprecated !== undefined && { deprecated }),
 		}
@@ -594,6 +592,23 @@ function byName(a: { name: string }, b: { name: string }): number {
 /** Whether a declaration is in a package, such as a DOM attribute from `@types/react`. */
 function isPackage(declaration: { path: string }): boolean {
 	return declaration.path.includes('/node_modules/')
+}
+
+/**
+ * The default of a prop from its `@defaultValue` tag: the code, or the
+ * sentence. A sentence, such as "The step of the scope.", ends with a period.
+ * For a union of literals, a sentence that opens with code, such as "`false`,
+ * or the state of the enclosing Control.", gives that code too: the value
+ * when no context sets it.
+ */
+function defaultOf(tag: string, literal: boolean): { code?: string; sentence?: string } {
+	const text = plainText(tag)
+
+	if (!text.endsWith('.')) return text ? { code: text } : {}
+
+	const code = literal ? /^`([^`]+)`/.exec(tag.trim())?.[1] : undefined
+
+	return code ? { code, sentence: text } : { sentence: text }
 }
 
 /**

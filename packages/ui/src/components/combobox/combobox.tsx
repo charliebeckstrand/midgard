@@ -110,17 +110,20 @@ type ComboboxBaseProps<T> = GroupStampProps & {
 	prefix?: ReactNode
 	suffix?: ReactNode
 	size?: ScaleStep<typeof scale>
+	/** @defaultValue `false`, or the state of the enclosing Control or Field. */
 	disabled?: boolean
 	/**
 	 * Keeps the input focusable and the value submitted, but blocks typing and
 	 * opening. A controlled `open` can show the panel, but an option click does
 	 * not commit, as with `disabled`.
+	 * @defaultValue `false`, or the state of the enclosing Control.
 	 */
 	readOnly?: boolean
 	/**
 	 * Marks the field required; surfaces `required`/`aria-required` on the input.
 	 * A selection satisfies it, so the native `required` drops while a value is
 	 * selected, also when the input shows no text.
+	 * @defaultValue `false`, or the state of the enclosing Control.
 	 */
 	required?: boolean
 	className?: string
@@ -139,12 +142,15 @@ type ComboboxBaseProps<T> = GroupStampProps & {
 	'aria-labelledby'?: string
 	/** Consumer-supplied `aria-describedby`, merged ahead of the field's registered description/error ids. */
 	'aria-describedby'?: string
-	/** Clicking the selected option clears it. */
+	/**
+	 * Clicking the selected option clears it.
+	 * @defaultValue `true` while neither `value` nor `defaultValue` holds a value, else `false`.
+	 */
 	nullable?: boolean
 	/**
 	 * Closes the menu on select.
 	 *
-	 * @defaultValue `true` for single selection, `false` for `multiple`.
+	 * @defaultValue `true`, or `false` with `multiple`.
 	 */
 	closeOnSelect?: boolean
 	/**
@@ -198,7 +204,10 @@ type ComboboxBaseProps<T> = GroupStampProps & {
 	 * @defaultValue false
 	 */
 	truncateTooltip?: boolean
-	/** Controlled menu open state. */
+	/**
+	 * Controlled menu open state.
+	 * @defaultValue Uncontrolled: the menu starts closed.
+	 */
 	open?: boolean
 	/** Fires when the menu open state changes. */
 	onOpenChange?: (open: boolean) => void

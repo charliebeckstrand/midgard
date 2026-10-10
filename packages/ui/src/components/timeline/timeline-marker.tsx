@@ -25,12 +25,20 @@ export type TimelineMarkerConfig = {
 	lineAfter?: Color
 } & (
 	| {
-			/** The status of the dot. The dot is a named StatusDot in the color of the status. */
+			/**
+			 * The status of the dot. The dot is a named StatusDot in the color of the status.
+			 *
+			 * @defaultValue No status: the dot has no name and takes the color of `'inactive'`.
+			 */
 			status?: StatusDotProps['status']
 			color?: never
 	  }
 	| {
-			/** The color of a decorative dot with no name. Set it in place of `status`. */
+			/**
+			 * The color of a decorative dot with no name. Set it in place of `status`.
+			 *
+			 * @defaultValue No color: the dot is a StatusDot in the color of the `status`.
+			 */
 			color?: Color
 			status?: never
 	  }

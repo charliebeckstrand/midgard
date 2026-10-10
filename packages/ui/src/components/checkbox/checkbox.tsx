@@ -21,6 +21,7 @@ export type CheckboxProps = CheckboxVariants & {
 	 * and `onChange` does not fire. The box keeps the focus, submits its value,
 	 * and sets `aria-readonly`. When omitted, it takes the value of an enclosing
 	 * `<Control>` or `<Field>`.
+	 * @defaultValue `false`, or the state of the enclosing Control.
 	 */
 	readOnly?: boolean
 	className?: string

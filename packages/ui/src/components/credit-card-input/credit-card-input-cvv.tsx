@@ -26,7 +26,10 @@ export type CreditCardInputCvvProps = Omit<
 	defaultValue?: string
 	placeholder?: string
 	onValueChange?: (value: string) => void
-	/** Brand controls the CVV length (Amex accepts 4 digits; others accept 3). */
+	/**
+	 * Brand controls the CVV length (Amex accepts 4 digits; others accept 3).
+	 * @defaultValue No brand: the field takes up to 4 digits, and a code of 3 or 4 digits is valid.
+	 */
 	brand?: CreditCardBrand
 	/** Fires on every change with the CVV's length verdict (vs the brand-derived max). */
 	onValidityChange?: (validity: CardValidity) => void

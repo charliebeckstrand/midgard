@@ -17,7 +17,7 @@ export type MessageProps = {
 	 * The tone of the message. Only `error` renders the errors of a bound field.
 	 * When you do not set it, an unbound message takes the `severity` of the
 	 * enclosing `<Field>` or `<Control>`. A form-bound message stays `error`.
-	 * @defaultValue the severity of the enclosing control, else 'error'.
+	 * @defaultValue `'error'`, or the `severity` of the enclosing Field or Control when the message has no form binding.
 	 */
 	severity?: MessageSeverity
 	className?: string

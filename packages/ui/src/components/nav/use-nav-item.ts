@@ -30,6 +30,8 @@ export type NavItemProps = {
 	 * active indicator. Omit it to let an item with a `value` read the state from
 	 * the enclosing selection, or an item with an `href` read it from the
 	 * `pathname` of `UIProvider`.
+	 *
+	 * @defaultValue `false`, or `true` when an `href` matches the `pathname` of `UIProvider` or a `value` matches the enclosing selection.
 	 */
 	current?: boolean
 	/**

@@ -77,7 +77,11 @@ export type MapOverlayProps = {
 	 * a group. A reader pointing the zone still reads the zone.
 	 */
 	group?: string
-	/** Named mark color override; defaults to the next slot after the region categories. */
+	/**
+	 * Named mark color override; defaults to the next slot after the region categories.
+	 *
+	 * @defaultValue `'blue'`, or the next slot color in the fixed order after the region categories and the earlier marks.
+	 */
 	color?: MapSeriesColor
 	/** A trailing readout in the legend and tooltip — a count, a status, a mileage. */
 	detail?: string

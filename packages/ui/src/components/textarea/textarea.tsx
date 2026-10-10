@@ -30,7 +30,10 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 	autoResize?: boolean
 	/** Control slot rendered as a right-justified row below the field; its presence pins `resize: none`. `null` and `false` count as absent. */
 	actions?: ReactNode
-	/** Forces the invalid state. When omitted, inherits from Control / Form context. */
+	/**
+	 * Forces the invalid state. When omitted, inherits from Control / Form context.
+	 * @defaultValue `false`, or `true` when the bound form field has an error or the enclosing Control has the `error` severity.
+	 */
 	invalid?: boolean
 	/** Controlled value. `undefined` leaves the textarea uncontrolled; `null` keeps it controlled with no current value (CONVENTIONS §7.3). */
 	value?: ComponentProps<'textarea'>['value'] | null

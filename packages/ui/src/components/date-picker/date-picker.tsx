@@ -50,9 +50,9 @@ export type DatePickerSingleProps = {
 	/**
 	 * Pattern for the typed date while `input` is set.
 	 *
-	 * @defaultValue The layout matching the ambient `<LocaleProvider>` locale, as
-	 * on {@link DateInput}. The typed field then agrees with the Calendar and the
-	 * trigger label.
+	 * @defaultValue `'MM/DD/YYYY'` in an `en-US` locale. The locale sets the
+	 * layout, as on {@link DateInput}. The typed field then agrees with the
+	 * Calendar and the trigger label.
 	 */
 	format?: DateInputFormat
 }
@@ -185,15 +185,20 @@ export type DatePickerBaseProps = GroupStampProps & {
 	 */
 	footer?: DatePickerFooterConfig
 	className?: string
+	/** @defaultValue `false`, or the state of the enclosing Control or Field. */
 	disabled?: boolean
 	/**
 	 * Keeps the trigger focusable and the value submitted, but blocks opening the
 	 * calendar and changing the value. The trigger clear button does not show,
 	 * and the typed `input` field is read-only. A controlled `open` still shows
 	 * the calendar, but without the footer Clear and Today buttons.
+	 * @defaultValue `false`, or the state of the enclosing Control.
 	 */
 	readOnly?: boolean
-	/** Controlled calendar open state. Pair with `onOpenChange`. */
+	/**
+	 * Controlled calendar open state. Pair with `onOpenChange`.
+	 * @defaultValue Uncontrolled: the state starts from `defaultOpen`.
+	 */
 	open?: boolean
 	/**
 	 * Initial calendar open state when uncontrolled.

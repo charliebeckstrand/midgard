@@ -50,7 +50,7 @@ export type PanelOverlayProps = {
 	 * scrim stays non-interactive, so the page stays usable. A modal panel with
 	 * no backdrop still closes on a press outside it, unless `dismissOnBackdrop`
 	 * is `false`.
-	 * @defaultValue modal
+	 * @defaultValue `true`, or `false` when `modal` is `false`.
 	 */
 	backdrop?: boolean
 	/**

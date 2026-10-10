@@ -18,9 +18,15 @@ export type FiltersClearProps = {
 	 *
 	 * Ignored when `children` is a single element — that element carries its own
 	 * treatment, and this component only lends it the clear action.
+	 *
+	 * @defaultValue `'solid'`, or the button variant of the surface around it, such as an Alert.
 	 */
 	variant?: ButtonVariants['variant']
-	/** Button color for the fallback trigger. Defaults to {@link Button}'s own; ignored for an element child, as `variant` is. */
+	/**
+	 * Button color for the fallback trigger. Defaults to {@link Button}'s own; ignored for an element child, as `variant` is.
+	 *
+	 * @defaultValue `'zinc'`, or the button color of the surface around it, such as an Alert.
+	 */
 	color?: ButtonVariants['color']
 	className?: string
 }

@@ -61,11 +61,16 @@ function resolveExpiryEdit(event: ChangeEvent<HTMLInputElement>, held: string): 
 /** Props for {@link CreditCardInputExpiry}; extends Input minus the masked value and change slots. */
 export type CreditCardInputExpiryProps = Omit<
 	InputProps,
-	'type' | 'inputMode' | 'value' | 'defaultValue' | 'onChange'
+	'type' | 'inputMode' | 'value' | 'defaultValue' | 'onChange' | 'invalid'
 > & {
 	/** Controlled text. `undefined` leaves the field uncontrolled; `null` keeps it controlled and empty (CONVENTIONS §7.3). */
 	value?: string | null
 	defaultValue?: string
+	/**
+	 * Forces the invalid state. When omitted, the typed entry, the bound form field, and the enclosing Control set it.
+	 * @defaultValue `false`, or `true` while the typed entry is not a valid expiry. A form error or an `error` severity of the enclosing Control also sets it.
+	 */
+	invalid?: boolean
 	/**
 	 * The placeholder of the expiry field.
 	 * @defaultValue 'MM/YY'

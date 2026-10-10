@@ -16,7 +16,11 @@ export type TimelineItemProps = {
 	 * @defaultValue false
 	 */
 	current?: boolean
-	/** Overrides the marker treatment inherited from `<Timeline>` for this row only. */
+	/**
+	 * Overrides the marker treatment inherited from `<Timeline>` for this row only.
+	 *
+	 * @defaultValue `'solid'`, or the `variant` of the enclosing `<Timeline>`.
+	 */
 	variant?: TimelineVariant
 	className?: string
 	children?: ReactNode

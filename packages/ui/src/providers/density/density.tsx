@@ -7,6 +7,8 @@ export type DensityProviderProps = {
 	/**
 	 * The density level of the region. Omit it to open no scope: the region
 	 * then keeps the step of its nearest density scope.
+	 *
+	 * @defaultValue `'snug'`, or the level of the nearest density scope.
 	 */
 	density?: DensityLevel
 	children: ReactNode
