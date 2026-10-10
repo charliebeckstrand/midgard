@@ -463,6 +463,25 @@ describe('Lightbox', () => {
 		expect(screen.getByRole('button', { name: 'Next photo' })).not.toHaveClass('invisible')
 	})
 
+	it('moves the controls to the next photo as the slide starts', () => {
+		renderUI(<Gallery defaultIndex={0} />)
+
+		const controls = getSlot(document.body, 'lightbox-controls')
+
+		const edge = () => controls.style.getPropertyValue('--lightbox-edge')
+
+		const before = edge()
+
+		fireEvent.click(screen.getByRole('button', { name: 'Next photo' }))
+
+		// The slide runs, so the first photo is still in the center slot.
+		expect(centerPhoto()).toHaveAttribute('alt', 'Harbor at dawn')
+
+		expect(edge()).not.toBe(before)
+
+		expect(edge()).toContain('1500px')
+	})
+
 	it('holds the step buttons and the count in one pill', () => {
 		renderUI(<Gallery defaultIndex={1} />)
 

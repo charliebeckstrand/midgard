@@ -9,6 +9,7 @@ import {
 	useEffectEvent,
 	useLayoutEffect,
 	useRef,
+	useState,
 } from 'react'
 import { cn } from '../../core'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
@@ -174,10 +175,15 @@ export function LightboxStage({
 
 	const stageRef = useRef<HTMLDivElement>(null)
 
+	// The photo that a slide ends on, while the slide runs from `from`. The
+	// controls take its box at the start of the slide, so they move with it.
+	const [aim, setAim] = useState<{ from: number; to: number } | null>(null)
+
 	const track = useLightboxTrack(trackRef, {
 		index,
 		count: photos.length,
 		onIndexChange,
+		onAim: (to) => setAim({ from: index, to }),
 		// A tap on the stage outside the photo closes the viewer.
 		onTap: (event) => {
 			if (!(event.target instanceof HTMLImageElement)) close()
@@ -256,7 +262,9 @@ export function LightboxStage({
 	// A tall photo leaves room above and below it for the controls that show.
 	const frame = cn(k.frame.base, closable || bar ? k.frame.controls : k.frame.bare)
 
-	const current = photos[index]
+	// The photo whose box the controls take. A slide that lands changes `index`,
+	// and its aim then ends.
+	const aimed = photos[aim?.from === index ? aim.to : index]
 
 	const previousRef = useRef<HTMLButtonElement>(null)
 
@@ -333,7 +341,7 @@ export function LightboxStage({
 					{...k.motion.scrim}
 					data-slot="lightbox-controls"
 					className={cn(k.controls, frame)}
-					style={current && controlsFrame(current)}
+					style={aimed && controlsFrame(aimed)}
 				>
 					{/* With no `closable`, the button shows only when it has the
 					    keyboard focus, so a screen reader and a keyboard always have a
