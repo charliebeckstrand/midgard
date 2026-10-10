@@ -30,6 +30,12 @@ export type LightboxTrackOptions = {
 	count: number
 	/** Shows another photo. The track calls it when a step lands. */
 	onIndexChange: (index: number) => void
+	/**
+	 * Called when a slide starts, with the index of the photo that it ends on.
+	 * That is the photo that it steps to, or the photo in the center when it
+	 * slides back. The controls can thus move with the slide.
+	 */
+	onAim: (index: number) => void
 	/** A tap on the stage: a click that does not end a swipe. */
 	onTap: (event: MouseEvent<HTMLElement>) => void
 	/** A swipe that closes the viewer. */
@@ -206,7 +212,7 @@ function paint(track: HTMLElement, travel: number) {
  */
 export function useLightboxTrack(
 	trackRef: RefObject<HTMLElement | null>,
-	{ index, count, onIndexChange, onTap, onDismiss, dimmed }: LightboxTrackOptions,
+	{ index, count, onIndexChange, onAim, onTap, onDismiss, dimmed }: LightboxTrackOptions,
 ): LightboxTrack {
 	const reduceMotion = usePrefersReducedMotion()
 
@@ -266,6 +272,8 @@ export function useLightboxTrack(
 		running.current = controls
 
 		sliding.current = step
+
+		onAim(index + step)
 
 		controls.finished.then(() => {
 			if (running.current !== controls) return

@@ -95,11 +95,11 @@ export const k = {
 	close: {
 		/**
 		 * The close button with `closable`: one gap above the photo, at its end. A
-		 * step moves it to the next photo.
+		 * step moves it to the next photo, with the slide (see `bar`).
 		 */
 		shown: [
 			'absolute end-(--lightbox-end) bottom-(--lightbox-edge)',
-			'transition-[inset] duration-250 ease-out motion-reduce:transition-none',
+			'transition-[inset] duration-250 ease-[cubic-bezier(0,0,0.58,1)] motion-reduce:transition-none',
 		],
 		/**
 		 * The close button with no `closable`: in the top corner at the end of the
@@ -107,10 +107,14 @@ export const k = {
 		 */
 		hidden: 'absolute end-4 top-4 not-focus-visible:opacity-0',
 	},
-	/** The row of the step controls, one gap below the photo. */
+	/**
+	 * The row of the step controls, one gap below the photo. A step moves it to
+	 * the next photo with the slide: the move starts with the slide, and it has
+	 * the time and the curve of `motion.step` (Motion `easeOut`).
+	 */
 	bar: [
 		'absolute inset-x-0 top-(--lightbox-edge) flex justify-center',
-		'transition-[inset] duration-250 ease-out motion-reduce:transition-none',
+		'transition-[inset] duration-250 ease-[cubic-bezier(0,0,0.58,1)] motion-reduce:transition-none',
 	],
 	/**
 	 * The pill that holds the previous button, the count, and the next button.
