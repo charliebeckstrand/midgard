@@ -253,7 +253,7 @@ describe('toPlaceDraft', () => {
 	it('keeps the visits on record through an edit of the place', () => {
 		const base = place('p1')
 
-		const values = toFormValues(base)
+		const values = toFormValues(base, null, new Date(2026, 9, 1))
 
 		expect(toPlaceDraft({ ...values, rating: 1 }, values.place, base).visits).toBe(base.visits)
 	})
@@ -261,7 +261,7 @@ describe('toPlaceDraft', () => {
 	it('keeps the parts on record while an edit keeps its own match', () => {
 		const base = place('p1', { city: 'Portland', state: 'Oregon', country: 'United States' })
 
-		const values = toFormValues(base)
+		const values = toFormValues(base, null, new Date(2026, 9, 1))
 
 		const draft = toPlaceDraft({ ...values, address: 'Edited line' }, values.place, base)
 
@@ -297,7 +297,7 @@ describe('toVisitPlaceDraft', () => {
 	it('replaces the stored visit it edits, and keeps its id', () => {
 		const visit = base.visits[1] ?? null
 
-		const values = toFormValues(base, visit)
+		const values = toFormValues(base, visit, new Date(2026, 9, 1))
 
 		expect(values.photos).toHaveLength(1)
 

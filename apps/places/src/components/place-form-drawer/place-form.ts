@@ -328,16 +328,17 @@ export function toVisitPlaceDraft(
 
 /**
  * The visit fields of the form, seeded from a stored visit, or empty for a new
- * one. A new visit is usually recorded just after it, so today is the useful
+ * one. A new visit is usually recorded just after it, so `today` is the useful
  * default and the field stays editable.
  */
 export function toVisitValues(
 	visit: Visit | null,
+	today: Date,
 ): Pick<PlaceValues, 'visitedAt' | 'rating' | 'photos' | 'review'> {
 	const photos = visit?.photos ?? []
 
 	return {
-		visitedAt: visit === null ? new Date() : fromDay(visit.visitedAt),
+		visitedAt: visit === null ? today : fromDay(visit.visitedAt),
 		rating: visit?.rating ?? 0,
 		photos: photos.length === 0 ? [photoRow()] : photos.map((url) => photoRow(url)),
 		review: visit?.review ?? '',
@@ -345,7 +346,7 @@ export function toVisitValues(
 }
 
 /** The fields of an empty form, which add a place. */
-export function emptyValues(): PlaceValues {
+export function emptyValues(today: Date): PlaceValues {
 	return {
 		place: undefined,
 		name: '',
@@ -355,7 +356,7 @@ export function emptyValues(): PlaceValues {
 		longitude: '',
 		category: undefined,
 		url: '',
-		...toVisitValues(null),
+		...toVisitValues(null, today),
 	}
 }
 
@@ -368,9 +369,10 @@ export function emptyValues(): PlaceValues {
  * replaces the lot. Without it, a save would find the position from the stored
  * address again, and could move a place that is already in the correct position.
  *
- * `visit` seeds the visit fields: a stored visit, or `null` for empty ones.
+ * `visit` seeds the visit fields: a stored visit, or `null` for empty ones on
+ * `today`.
  */
-export function toFormValues(place: Place, visit: Visit | null = null): PlaceValues {
+export function toFormValues(place: Place, visit: Visit | null, today: Date): PlaceValues {
 	return {
 		place: {
 			id: place.id,
@@ -391,13 +393,13 @@ export function toFormValues(place: Place, visit: Visit | null = null): PlaceVal
 		longitude: String(place.longitude),
 		category: place.category,
 		url: place.url ?? '',
-		...toVisitValues(visit),
+		...toVisitValues(visit, today),
 	}
 }
 
-/** The fields that the form opens with for a target. */
-export function targetValues(target: PlaceFormTarget): PlaceValues {
-	if (target.kind === 'visit') return toFormValues(target.place, target.visit)
+/** The fields that the form opens with for a target, with `today` as the day of a new visit. */
+export function targetValues(target: PlaceFormTarget, today: Date): PlaceValues {
+	if (target.kind === 'visit') return toFormValues(target.place, target.visit, today)
 
-	return target.place === null ? emptyValues() : toFormValues(target.place)
+	return target.place === null ? emptyValues(today) : toFormValues(target.place, null, today)
 }
