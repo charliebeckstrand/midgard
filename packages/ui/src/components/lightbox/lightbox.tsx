@@ -29,12 +29,18 @@ export type LightboxProps = {
 	 */
 	closable?: boolean
 	/**
-	 * Shows the previous button, the count, and the next button, one gap below
-	 * the photo, when there is more than one photo. Without them, the arrow keys
+	 * Shows the previous button, the count, and the next button in one pill,
+	 * one gap below the photo, when there is more than one photo. Without them, the arrow keys
 	 * and a swipe still step.
 	 * @defaultValue true
 	 */
 	controls?: boolean
+	/**
+	 * Blurs the page behind the scrim. The blur grows as the scrim fades in, and
+	 * the scrim lets more of the page through.
+	 * @defaultValue true
+	 */
+	blur?: boolean
 	/** The accessible name of the viewer. @defaultValue 'Photos' */
 	'aria-label'?: string
 	/** The accessible name of the close button. @defaultValue 'Close' */
@@ -62,7 +68,9 @@ export type LightboxProps = {
  * A pinch zooms the photo, up to four times its size, and a double tap or a
  * double click zooms into the point that it taps. A double tap on a zoomed
  * photo takes it back to rest. A swipe on a zoomed photo moves it and does
- * not step or close. A step takes the photo back to rest.
+ * not step or close. A step takes the photo back to rest. On the keyboard,
+ * `+` and `-` zoom about the center of the stage, and `0` takes the photo back
+ * to rest. The arrow keys move a zoomed photo and do not step.
  *
  * The open photo is controlled (`index`/`onIndexChange`) or uncontrolled
  * (`defaultIndex`). Give each photo a `width` and a `height` when they are
@@ -94,6 +102,7 @@ export function Lightbox({
 	onIndexChange,
 	closable = false,
 	controls = true,
+	blur = true,
 	'aria-label': ariaLabel = 'Photos',
 	closeLabel = 'Close',
 	previousLabel = 'Previous photo',
@@ -167,6 +176,7 @@ export function Lightbox({
 						onReturn={() => setShown(null)}
 						closable={closable}
 						controls={controls}
+						blur={blur}
 						labels={{
 							viewer: ariaLabel,
 							close: closeLabel,

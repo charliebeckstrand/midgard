@@ -36,6 +36,13 @@ export type LightboxZoom = {
 	release: () => void
 	/** Zooms into `point` of the viewport, or back to rest when the photo is zoomed. */
 	toggle: (point: LightboxPoint) => void
+	/**
+	 * Zooms by `factor` about the center of the stage, from the view that the
+	 * last zoom ends at. The scale stays between 1 and the largest scale.
+	 */
+	zoomBy: (factor: number) => void
+	/** Moves a zoomed photo by `dx` and `dy`, inside the limits of the stage. */
+	move: (dx: number, dy: number) => void
 	/** Takes the photo back to rest. */
 	reset: () => void
 }
@@ -257,6 +264,28 @@ export function useLightboxZoom(trackRef: RefObject<HTMLElement | null>): Lightb
 			const at = { x: point.x - stage.x, y: point.y - stage.y }
 
 			tween(photo, zoomView(REST_VIEW, at, at, ZOOM_DOUBLE_TAP, box, stage))
+		},
+		zoomBy: (factor) => {
+			const current = measure()
+
+			if (!current) return
+
+			const { photo, box, stage } = current
+
+			const center = { x: stage.width / 2, y: stage.height / 2 }
+
+			tween(photo, zoomView(view.current, center, center, view.current.scale * factor, box, stage))
+		},
+		move: (dx, dy) => {
+			const current = measure()
+
+			if (!current || view.current.scale <= 1) return
+
+			const { photo, box, stage } = current
+
+			const { x, y, scale } = view.current
+
+			tween(photo, constrainView({ scale, x: x + dx, y: y + dy }, box, stage))
 		},
 		reset: () => {
 			const photo = measure()?.photo

@@ -41,6 +41,10 @@ function centerPhoto() {
 function layOut(stage: HTMLElement) {
 	const track = stage.firstElementChild as HTMLElement
 
+	Object.defineProperty(stage, 'clientWidth', { value: 400, configurable: true })
+
+	Object.defineProperty(stage, 'clientHeight', { value: 800, configurable: true })
+
 	track.getBoundingClientRect = () => DOMRect.fromRect({ x: 0, y: 0, width: 400, height: 800 })
 
 	const photo = present(centerPhoto(), 'photo')
@@ -459,6 +463,35 @@ describe('Lightbox', () => {
 		expect(screen.getByRole('button', { name: 'Next photo' })).not.toHaveClass('invisible')
 	})
 
+	it('holds the step buttons and the count in one pill', () => {
+		renderUI(<Gallery defaultIndex={1} />)
+
+		const pill = present(
+			screen.getByRole('button', { name: 'Previous photo' }).parentElement,
+			'pill',
+		)
+
+		expect(screen.getByRole('button', { name: 'Next photo' }).parentElement).toBe(pill)
+
+		expect(pill).toHaveTextContent('2 / 3')
+
+		expect(pill).toHaveClass('rounded-full')
+	})
+
+	it('blurs the page behind the scrim, unless `blur` is false', () => {
+		const { unmount } = renderUI(<Gallery defaultIndex={0} />)
+
+		const layer = () => getSlot(document.body, 'lightbox-backdrop').parentElement
+
+		expect(layer()).toHaveClass('backdrop-blur-lg')
+
+		unmount()
+
+		renderUI(<Gallery defaultIndex={0} blur={false} />)
+
+		expect(layer()).not.toHaveClass('backdrop-blur-lg')
+	})
+
 	describe('zoom', () => {
 		it('zooms into the point of a double tap on the photo, and back out on the next', () => {
 			stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
@@ -604,6 +637,54 @@ describe('Lightbox', () => {
 			press(stage, 'pointerUp', 600, 400, 1200)
 
 			expect(photo.style.transform).toBe('translate(-50px, -150px) scale(2.5)')
+		})
+
+		it('zooms with + and -, pans with the arrow keys while zoomed, and goes back to rest with 0', () => {
+			stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+
+			renderUI(<Gallery defaultIndex={1} />)
+
+			const stage = getSlot(document.body, 'lightbox-stage')
+
+			const photo = layOut(stage)
+
+			const dialog = screen.getByRole('dialog')
+
+			// The zoom keeps the center of the stage, (200, 400), in place.
+			fireEvent.keyDown(dialog, { key: '+' })
+
+			expect(photo.style.transform).toBe('translate(-75px, -50px) scale(1.5)')
+
+			expect(stage).toHaveAttribute('data-zoomed')
+
+			// A key with a modifier is for the browser.
+			fireEvent.keyDown(dialog, { key: '=', ctrlKey: true })
+
+			expect(photo.style.transform).toBe('translate(-75px, -50px) scale(1.5)')
+
+			// A pan stops where the right edge of the photo meets the right edge of the stage.
+			fireEvent.keyDown(dialog, { key: 'ArrowRight' })
+
+			expect(photo.style.transform).toBe('translate(-100px, -50px) scale(1.5)')
+
+			expect(centerPhoto()).toBe(photo)
+
+			fireEvent.keyDown(dialog, { key: '0' })
+
+			expect(photo.style.transform).toBe('none')
+
+			expect(stage).not.toHaveAttribute('data-zoomed')
+
+			fireEvent.keyDown(dialog, { key: '+' })
+
+			fireEvent.keyDown(dialog, { key: '-' })
+
+			expect(photo.style.transform).toBe('none')
+
+			// At rest, the arrow keys step.
+			fireEvent.keyDown(dialog, { key: 'ArrowRight' })
+
+			expect(centerPhoto()).toHaveAttribute('alt', 'Field of poppies')
 		})
 
 		it('takes a zoomed photo back to rest when it steps away', () => {

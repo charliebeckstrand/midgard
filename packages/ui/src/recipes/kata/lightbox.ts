@@ -30,8 +30,28 @@ export const k = {
 	 * the controls. It has a layer of its own, so the fade paints nothing.
 	 */
 	dim: 'pointer-events-none absolute inset-0 will-change-[opacity]',
-	/** The dark scrim behind the photo. It does not follow the color scheme. */
-	backdrop: 'absolute inset-0 bg-zinc-950/90',
+	/**
+	 * The dark scrim behind the photo. It does not follow the color scheme. On a
+	 * blurred page, it lets more of the page through.
+	 */
+	backdrop: {
+		base: 'absolute inset-0 bg-zinc-950/90',
+		blurred: 'absolute inset-0 bg-zinc-950/80',
+	},
+	/**
+	 * The blur of the page behind the scrim, on the layer of the scrim. A
+	 * `backdrop-filter` sees only the paint inside the nearest ancestor with an
+	 * opacity below 1 or a `will-change` on its opacity, so the blur cannot be on
+	 * the scrim, which fades inside this layer. The blur thus grows from 0 as the
+	 * scrim fades in (`enter`), and it goes back to 0 as the viewer closes.
+	 */
+	blur: {
+		base: [
+			'backdrop-blur-lg data-closing:backdrop-blur-[0px]',
+			'transition-[backdrop-filter] duration-300 ease-out motion-reduce:transition-none',
+		],
+		enter: 'starting:backdrop-blur-[0px]',
+	},
 	/**
 	 * The stage takes each press, so a swipe can start on any part of it. While
 	 * the photo leaves its place, in a swipe to close and in the return to its
@@ -87,17 +107,24 @@ export const k = {
 		 */
 		hidden: 'absolute end-4 top-4 not-focus-visible:opacity-0',
 	},
-	/** The previous button, the count, and the next button, one gap below the photo. */
+	/** The row of the step controls, one gap below the photo. */
 	bar: [
-		'absolute inset-x-0 top-(--lightbox-edge) flex items-center justify-center gap-4',
+		'absolute inset-x-0 top-(--lightbox-edge) flex justify-center',
 		'transition-[inset] duration-250 ease-out motion-reduce:transition-none',
 	],
+	/**
+	 * The pill that holds the previous button, the count, and the next button.
+	 * It does not follow the color scheme, and the buttons take its text color.
+	 */
+	pill: 'flex items-center rounded-full bg-zinc-800/80 p-1 text-zinc-100 ring-1 ring-white/10',
+	/** A step button in the pill. */
+	step: 'rounded-full',
 	/**
 	 * A step button at the first or the last photo. It keeps its place, so the
 	 * count stays in the center, and it does not show.
 	 */
 	ended: 'invisible',
-	count: 'min-w-16 text-center text-sm text-zinc-100 tabular-nums',
+	count: 'min-w-16 text-center text-sm tabular-nums',
 	motion: {
 		/** The flight of the photo from its thumbnail to the stage, and back. */
 		raise: { duration: duration[300], ease: ease.out },

@@ -262,6 +262,12 @@ export const ZOOM_MAX = 4
 /** The scale that a double tap zooms to. @internal */
 export const ZOOM_DOUBLE_TAP = 2.5
 
+/** The factor by which a key press zooms the photo in or out. @internal */
+export const ZOOM_KEY_STEP = 1.5
+
+/** The part of the stage that a key press pans a zoomed photo by. @internal */
+export const PAN_KEY_STEP = 0.1
+
 /** Time, in ms, from the lift of one tap to the lift of the next, in which the two are a double tap. */
 const DOUBLE_TAP_WINDOW = 300
 
