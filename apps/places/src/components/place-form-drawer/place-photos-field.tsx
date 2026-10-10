@@ -237,6 +237,7 @@ export function PlacePhotosField({ progress }: PlacePhotosFieldProps) {
 												>
 													<ProgressGauge
 														size="xs"
+														color="blue"
 														value={share}
 														max={1}
 														aria-label={`Photo ${n} upload`}
