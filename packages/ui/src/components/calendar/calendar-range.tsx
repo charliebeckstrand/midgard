@@ -17,14 +17,15 @@ import { isBeforeDay, isBetween, isSameDay } from './calendar-utilities'
 /** Props for {@link CalendarRange}: the controlled `rangeStart`/`rangeEnd` endpoints, hover-date tracking, bounds, locale/size, and `ref`. */
 export type CalendarRangeProps = {
 	/**
-	 * Fires with the day the reader clicked.
+	 * Fires with the day of each press, also a second press of the same day.
 	 *
 	 * @remarks
 	 * An event, not the `on<State>Change` echo the name suggests. The endpoint
-	 * state machine lives in DatePicker. This reports a raw click rather than a
-	 * settled range. Sibling `Calendar.onValueChange` does echo bound state, so
-	 * the two read alike and behave differently. Renaming it `onDayClick` waits
-	 * for the next breaking pass.
+	 * state machine lives in DatePicker. This reports a raw press rather than a
+	 * settled range, as `Calendar.onDayPress` does. Sibling
+	 * `Calendar.onValueChange` does echo bound state, so the two read alike and
+	 * behave differently. Renaming it `onDayPress` waits for the next breaking
+	 * pass.
 	 */
 	onValueChange?: (date: Date) => void
 	min?: Date
@@ -187,7 +188,7 @@ export function CalendarRange({
 			// The first endpoint anchors the view, so the grid follows a parent that
 			// moves the range to another month. `getDayProps` owns the selection.
 			value={rangeStart ?? rangeEnd ?? null}
-			onValueChange={(date) => date && onValueChange?.(date)}
+			onDayPress={onValueChange}
 			min={min}
 			max={max}
 			active={active}

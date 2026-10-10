@@ -1,4 +1,4 @@
-import { createRef, Profiler } from 'react'
+import { createRef, Profiler, useState } from 'react'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -317,6 +317,57 @@ describe('Calendar', () => {
 		)
 
 		expect(bySlot(container, 'calendar')).not.toHaveAttribute('data-density')
+	})
+})
+
+describe('Calendar day press', () => {
+	it('reports a press of the selected day through onDayPress, and no value change', async () => {
+		const user = setupUser()
+
+		const onDayPress = vi.fn()
+
+		const onValueChange = vi.fn()
+
+		const day = new Date(2025, 5, 12)
+
+		renderUI(<Calendar value={day} onValueChange={onValueChange} onDayPress={onDayPress} />)
+
+		await user.click(screen.getByRole('option', { name: /\b12\b/ }))
+
+		expect(onDayPress).toHaveBeenCalledTimes(1)
+
+		expect((onDayPress.mock.calls[0]?.[0] as Date | undefined)?.getDate()).toBe(12)
+
+		expect(onValueChange).not.toHaveBeenCalled()
+	})
+
+	it('reports a second press of the range start day in CalendarRange', async () => {
+		const user = setupUser()
+
+		const onValueChange = vi.fn()
+
+		function Harness() {
+			const [start, setStart] = useState<Date | null>(null)
+
+			return (
+				<CalendarRange
+					rangeStart={start}
+					onValueChange={(date) => {
+						onValueChange(date)
+
+						setStart(date)
+					}}
+				/>
+			)
+		}
+
+		renderUI(<Harness />)
+
+		await user.click(screen.getAllByRole('option', { name: /\b12\b/ })[0] as HTMLElement)
+
+		await user.click(screen.getAllByRole('option', { name: /\b12\b/ })[0] as HTMLElement)
+
+		expect(onValueChange).toHaveBeenCalledTimes(2)
 	})
 })
 

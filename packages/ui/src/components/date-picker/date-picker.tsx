@@ -367,7 +367,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 			<Calendar
 				ref={calendarRef}
 				value={calendar.value}
-				onValueChange={calendar.onValueChange}
+				onDayPress={calendar.onDayPress}
 				min={props.min}
 				max={props.max}
 				active={calendar.active}

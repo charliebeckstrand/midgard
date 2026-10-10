@@ -575,6 +575,22 @@ describe('DatePicker open state', () => {
 		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 	})
 
+	it('closes on a press of the day that is already selected', async () => {
+		const user = setupUser()
+
+		const { container } = renderUI(
+			<DatePicker defaultValue={new Date(2025, 5, 12)} aria-label="Due date" />,
+		)
+
+		const button = getSlot<HTMLButtonElement>(container, 'datepicker-button')
+
+		await user.click(button)
+
+		await user.click(screen.getByRole('option', { name: /\b12\b/ }))
+
+		expect(button).toHaveAttribute('aria-expanded', 'false')
+	})
+
 	it('readOnly blocks opening but keeps the trigger focusable', async () => {
 		const user = setupUser()
 
@@ -973,6 +989,28 @@ describe('DatePicker range', () => {
 		await user.click(button)
 
 		expect(button).toHaveAttribute('aria-expanded', 'false')
+	})
+
+	it('commits a one-day range on two presses of the same day', async () => {
+		const user = setupUser()
+
+		const onValueChange = vi.fn()
+
+		const defaultValue: [Date, Date] = [new Date(2025, 5, 1), new Date(2025, 5, 2)]
+
+		const { container } = renderUI(
+			<DatePicker range defaultValue={defaultValue} onValueChange={onValueChange} />,
+		)
+
+		await user.click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
+
+		await user.click(screen.getByRole('option', { name: /\b12\b/ }))
+
+		await user.click(screen.getByRole('option', { name: /\b12\b/ }))
+
+		const range = onValueChange.mock.lastCall?.[0] as [Date, Date] | undefined
+
+		expect(range?.map((day) => day.getDate())).toEqual([12, 12])
 	})
 
 	it('exposes the clear footer button when a range is set', async () => {
