@@ -27,7 +27,7 @@ import {
 import type { Place, Visit, Visits } from '../../types'
 import { atlasBounded, atlasNames, atlasRegions } from '../../utilities/places-atlas'
 import { DAY_FORMAT, filterPlaces } from '../../utilities/places-filter'
-import { groupPlacesByRegion, regionName } from '../../utilities/places-geography'
+import { groupByRegion, regionName } from '../../utilities/places-geography'
 import type { PaletteSource } from '../../utilities/places-palette'
 import {
 	COUNTRY_SNAP_KM,
@@ -44,7 +44,7 @@ import {
 	stateOf,
 	viewAtlas,
 	viewCrumbs,
-	viewForPlace,
+	viewFor,
 	viewKey,
 	viewMark,
 	viewRegion,
@@ -579,7 +579,7 @@ export function PlacesApp({
 	// the states atlas accounts for whole is a collection inside the United States
 	// — and it is the grouping the app uses whenever the view draws states.
 	const placesByState = useMemo(
-		() => groupPlacesByRegion(() => atlasBounded('states'), places, stateOf),
+		() => groupByRegion(() => atlasBounded('states'), places, stateOf),
 		[places],
 	)
 
@@ -663,7 +663,7 @@ export function PlacesApp({
 	// for a place that the states do not settle.
 	const placesByCountry = useMemo(
 		() =>
-			groupPlacesByRegion(() => atlasBounded('countries'), places, countryOf, {
+			groupByRegion(() => atlasBounded('countries'), places, countryOf, {
 				known: knownCountry(stateOfPlace),
 				snapKm: COUNTRY_SNAP_KM,
 			}),
@@ -803,12 +803,7 @@ export function PlacesApp({
 	// The palette's sources. Each has its own memo, so a change to one does not
 	// build the others again: the regions sort more than 200 names.
 	const placeCommands = useMemo(
-		() =>
-			placeSource(
-				places,
-				(place) => openAt(viewForPlace(stateOfPlace, place), [place.id]),
-				actions,
-			),
+		() => placeSource(places, (place) => openAt(viewFor(stateOfPlace, place), [place.id]), actions),
 		[places, openAt, stateOfPlace, actions],
 	)
 
@@ -957,7 +952,7 @@ export function PlacesApp({
 						// One step, not two: the view and the selection are both the address,
 						// so writing them apart would leave a history entry standing on a map
 						// the reader never saw — and the second write would drop the first.
-						openAt(viewForPlace(stateOfPlace, place), [place.id])
+						openAt(viewFor(stateOfPlace, place), [place.id])
 
 						setListing(false)
 					}}

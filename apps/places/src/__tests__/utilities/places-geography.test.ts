@@ -7,7 +7,7 @@ import {
 	boundRegions,
 	centeredProjection,
 	decodeRegions,
-	groupPlacesByRegion,
+	groupByRegion,
 	nearestRegion,
 	regionFrame,
 	regionName,
@@ -190,12 +190,12 @@ describe('nearestRegion', () => {
 	})
 })
 
-describe('groupPlacesByRegion', () => {
+describe('groupByRegion', () => {
 	const bounded = boundRegions(ATLAS)
 
 	/** The grouping under a states atlas, whose fallback field is the state. */
 	function group(places: Place[]): Map<string, Place[]> {
-		return groupPlacesByRegion(bounded, places, stateOf)
+		return groupByRegion(bounded, places, stateOf)
 	}
 
 	it('groups a place under the region whose shape holds it', () => {
@@ -241,11 +241,9 @@ describe('groupPlacesByRegion', () => {
 	it('reads the fallback field the caller names', () => {
 		const abroad = placeAt('louvre', [2.34, 48.86], { state: 'Île-de-France', country: 'Oregon' })
 
-		expect(groupPlacesByRegion(bounded, [abroad], (held) => held.state).size).toBe(0)
+		expect(groupByRegion(bounded, [abroad], (held) => held.state).size).toBe(0)
 
-		expect(
-			groupPlacesByRegion(bounded, [abroad], (held) => held.country).get('Oregon'),
-		).toHaveLength(1)
+		expect(groupByRegion(bounded, [abroad], (held) => held.country).get('Oregon')).toHaveLength(1)
 	})
 
 	// A box that crosses the antimeridian comes back wrapped — west 170, east
@@ -266,9 +264,7 @@ describe('groupPlacesByRegion', () => {
 	it('snaps a miss to the nearest region ahead of the fallback', () => {
 		const off = placeAt('pier', [-124.3, 44], { state: 'Alaska' })
 
-		expect(groupPlacesByRegion(bounded, [off], stateOf, { snapKm: 50 }).get('Oregon')).toHaveLength(
-			1,
-		)
+		expect(groupByRegion(bounded, [off], stateOf, { snapKm: 50 }).get('Oregon')).toHaveLength(1)
 	})
 
 	// Omitted, nothing is rescued — which is what an atlas fine enough to contain
@@ -276,16 +272,14 @@ describe('groupPlacesByRegion', () => {
 	it('rescues nothing without a tolerance', () => {
 		const off = placeAt('pier', [-124.3, 44])
 
-		expect(groupPlacesByRegion(bounded, [off], stateOf).size).toBe(0)
+		expect(groupByRegion(bounded, [off], stateOf).size).toBe(0)
 	})
 
 	// A name still answers for what the snap cannot reach.
 	it('falls back to the name beyond the tolerance', () => {
 		const far = placeAt('anchorage', [-140, 30], { state: 'Alaska' })
 
-		expect(groupPlacesByRegion(bounded, [far], stateOf, { snapKm: 50 }).get('Alaska')).toHaveLength(
-			1,
-		)
+		expect(groupByRegion(bounded, [far], stateOf, { snapKm: 50 }).get('Alaska')).toHaveLength(1)
 	})
 
 	// `known` is settled before this pass ran, off a finer atlas than the one
@@ -293,7 +287,7 @@ describe('groupPlacesByRegion', () => {
 	it('takes a known answer over the shape the point falls in', () => {
 		const inside = placeAt('corvallis', [-123.26, 44.56])
 
-		const grouped = groupPlacesByRegion(bounded, [inside], stateOf, { known: () => 'Alaska' })
+		const grouped = groupByRegion(bounded, [inside], stateOf, { known: () => 'Alaska' })
 
 		expect(grouped.get('Alaska')?.map((held) => held.id)).toEqual(['corvallis'])
 
@@ -303,7 +297,7 @@ describe('groupPlacesByRegion', () => {
 	// It is a name this app chose, not one a geocoder returned, so it is not
 	// checked against the drawn regions the way the fallback is.
 	it('holds a known name the atlas does not draw', () => {
-		const grouped = groupPlacesByRegion(bounded, [placeAt('a', [0, 0])], stateOf, {
+		const grouped = groupByRegion(bounded, [placeAt('a', [0, 0])], stateOf, {
 			known: () => 'Atlantis',
 		})
 
@@ -311,14 +305,9 @@ describe('groupPlacesByRegion', () => {
 	})
 
 	it('falls through to the geometry where the known answer declines', () => {
-		const grouped = groupPlacesByRegion(
-			bounded,
-			[placeAt('corvallis', [-123.26, 44.56])],
-			stateOf,
-			{
-				known: () => undefined,
-			},
-		)
+		const grouped = groupByRegion(bounded, [placeAt('corvallis', [-123.26, 44.56])], stateOf, {
+			known: () => undefined,
+		})
 
 		expect(grouped.get('Oregon')).toHaveLength(1)
 	})
@@ -328,7 +317,7 @@ describe('groupPlacesByRegion', () => {
 	it('reads no geometry where the known answer settles each place', () => {
 		const regions = vi.fn(() => bounded)
 
-		const grouped = groupPlacesByRegion(regions, [placeAt('a', [0, 0])], stateOf, {
+		const grouped = groupByRegion(regions, [placeAt('a', [0, 0])], stateOf, {
 			known: () => 'Oregon',
 		})
 
@@ -340,7 +329,7 @@ describe('groupPlacesByRegion', () => {
 	it('reads the geometry once where the known answer declines', () => {
 		const regions = vi.fn(() => bounded)
 
-		const grouped = groupPlacesByRegion(
+		const grouped = groupByRegion(
 			regions,
 			[placeAt('corvallis', [-123.26, 44.56]), placeAt('salem', [-123.03, 44.94])],
 			stateOf,
