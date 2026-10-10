@@ -184,16 +184,18 @@ export function toVisitPlaceDraft(
  * default and the field stays editable. A new visit on a trip starts on the
  * first day of the trip instead.
  *
+ * @param today - Today, or `null` while the day of the reader is not known
+ * (`useToday`). A new visit then has no day.
  * @param trip - The trip of a new visit.
  */
 function toVisitValues(
 	visit: Visit | null,
-	today: Date,
+	today: Date | null,
 	trip?: Trip,
 ): Pick<PlaceValues, 'visitedAt' | 'tripId' | 'rating' | 'photos' | 'review'> {
 	if (visit === null) {
 		return {
-			visitedAt: trip === undefined ? today : fromDay(trip.startsOn),
+			visitedAt: trip === undefined ? (today ?? undefined) : fromDay(trip.startsOn),
 			tripId: trip?.id,
 			rating: 0,
 			photos: [],
@@ -215,7 +217,7 @@ function toVisitValues(
  * a new visit. A stored place is read back through {@link toLocationValues}, so
  * a save does not find its position again.
  */
-export function targetValues(target: PlaceFormTarget, today: Date): PlaceValues {
+export function targetValues(target: PlaceFormTarget, today: Date | null): PlaceValues {
 	const place = target.place
 
 	const visit = target.kind === 'visit' ? target.visit : null

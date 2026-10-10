@@ -1,6 +1,6 @@
 'use client'
 
-import { DatePicker } from 'ui/date-picker'
+import { DatePicker, DatePickerSkeleton } from 'ui/date-picker'
 import { Field, Label, Message } from 'ui/fieldset'
 import { useFormValue } from 'ui/form'
 import { Listbox, ListboxDescription, ListboxLabel, ListboxOption } from 'ui/listbox'
@@ -43,12 +43,22 @@ export function PlaceTripField({ trips }: { trips: readonly Trip[] }) {
 	)
 }
 
+/** Props for {@link PlaceVisitedField}. */
+export type PlaceVisitedFieldProps = {
+	trips: readonly Trip[]
+	/**
+	 * Whether the day of a new visit waits for the day of the reader
+	 * (`useToday`). The field then shows a skeleton, not a day that can change.
+	 */
+	pending: boolean
+}
+
 /**
  * The day of a visit. While the Trip field names a trip, the calendar offers
  * the days of the trip alone. A day picked before the trip stays as it is, and
  * the validator says when it is not a day of the trip.
  */
-export function PlaceVisitedField({ trips }: { trips: readonly Trip[] }) {
+export function PlaceVisitedField({ trips, pending }: PlaceVisitedFieldProps) {
 	const { value: tripId } = useFormValue<string>('tripId', {})
 
 	const trip = trips.find((held) => held.id === tripId)
@@ -57,12 +67,16 @@ export function PlaceVisitedField({ trips }: { trips: readonly Trip[] }) {
 		<Field>
 			<Label>Visited</Label>
 
-			<DatePicker
-				name="visitedAt"
-				min={trip === undefined ? undefined : fromDay(trip.startsOn)}
-				max={trip === undefined ? undefined : fromDay(trip.endsOn)}
-				className="w-full"
-			/>
+			{pending ? (
+				<DatePickerSkeleton className="w-full" />
+			) : (
+				<DatePicker
+					name="visitedAt"
+					min={trip === undefined ? undefined : fromDay(trip.startsOn)}
+					max={trip === undefined ? undefined : fromDay(trip.endsOn)}
+					className="w-full"
+				/>
+			)}
 
 			<Message name="visitedAt" />
 		</Field>
