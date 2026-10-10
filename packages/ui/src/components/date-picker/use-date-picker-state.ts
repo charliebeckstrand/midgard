@@ -121,9 +121,7 @@ export function useDatePickerState({
 	)
 
 	const handleSelect = useCallback(
-		(date: Date | null) => {
-			if (date === null) return
-
+		(date: Date) => {
 			setValue(date)
 
 			closeCalendar()
@@ -239,7 +237,8 @@ export function useDatePickerState({
 		context,
 		calendar: {
 			value: value ?? null,
-			onValueChange: handleSelect,
+			// A press, not a change: a press of the selected day closes too.
+			onDayPress: handleSelect,
 			active: open ? active : null,
 			calendarRef,
 		},

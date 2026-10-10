@@ -13,6 +13,7 @@ import {
 import { cn } from '../../core'
 import { type ScaleStep, snapToScale } from '../../core/density'
 import { useA11yAnnouncements } from '../../hooks'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { useDensityStep } from '../../primitives/density'
 import { useLocale } from '../../providers/locale'
 import { k, scale } from '../../recipes/kata/calendar'
@@ -114,7 +115,14 @@ export type CalendarProps = {
 	 * renders on a server.
 	 */
 	defaultValue?: Date
+	/** Fires when the selected date changes. A press of the day that is already selected changes nothing, so it does not fire. */
 	onValueChange?: (value: Date | null) => void
+	/**
+	 * Fires with the day of each press, by pointer or by keyboard, also a press of
+	 * the day that is already selected. It is an event, not a change report. Use it
+	 * to act on a pick, as a parent that commits a range or closes a popover does.
+	 */
+	onDayPress?: (date: Date) => void
 	min?: Date
 	max?: Date
 	/**
@@ -242,6 +250,7 @@ export function Calendar({
 	value: valueProp,
 	defaultValue,
 	onValueChange,
+	onDayPress,
 	min,
 	max,
 	active,
@@ -369,15 +378,22 @@ export function Calendar({
 		],
 	)
 
+	// A stable event, so `handleSelect` keeps its identity for the memo of each
+	// day cell, though a parent passes an inline handler.
+	const pressDay = useStableEvent((date: Date) => onDayPress?.(date))
+
 	const handleSelect = useCallback(
 		(date: Date) => {
-			setValue(date)
+			// The selected day stays as it is: a new date of the same day is no change.
+			setValue((current) => (current != null && isSameDay(current, date) ? current : date))
+
+			pressDay(date)
 
 			// Selecting a day is the field's interaction point — mark it touched
 			// (no-op outside a Form) so validateOn="touched" rules can fire.
 			setTouched()
 		},
-		[setValue, setTouched],
+		[setValue, pressDay, setTouched],
 	)
 
 	const weekdays = useMemo(() => getWeekdayLabels(localeTag), [localeTag])

@@ -127,7 +127,7 @@ describe('useDatePickerState', () => {
 
 			act(() => result.current.onOpenChange(true))
 
-			act(() => result.current.calendar.onValueChange(Jan15))
+			act(() => result.current.calendar.onDayPress(Jan15))
 
 			expect(onChange).toHaveBeenCalledWith(Jan15)
 
@@ -197,7 +197,7 @@ describe('useDatePickerState', () => {
 
 			act(() => result.current.onOpenChange(true))
 
-			act(() => result.current.calendar.onValueChange(Jan15))
+			act(() => result.current.calendar.onDayPress(Jan15))
 
 			expect(onChange).toHaveBeenCalledWith(Jan15)
 
@@ -529,7 +529,7 @@ describe('useDatePickerState', () => {
 
 			act(() => result.current.onOpenChange(true))
 
-			act(() => result.current.calendar.onValueChange(Jan15))
+			act(() => result.current.calendar.onDayPress(Jan15))
 
 			expect(result.current.footer.footerButtons).toEqual(['clear', 'today'])
 		})
@@ -551,7 +551,7 @@ describe('useDatePickerState', () => {
 				useDatePickerState({ readOnly: true, open: true, value: Jan15, onValueChange: onChange }),
 			)
 
-			act(() => result.current.calendar.onValueChange(Feb1))
+			act(() => result.current.calendar.onDayPress(Feb1))
 
 			act(() => result.current.footer.onToday())
 
