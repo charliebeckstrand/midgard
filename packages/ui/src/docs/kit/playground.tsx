@@ -5,7 +5,7 @@ import { Flex } from 'ui/flex'
 import { useScrollRegion } from 'ui/hooks'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 import { useDensityStep } from 'ui/primitives/density'
-import { type DensityStep, isDensityStep } from '../../core/density/steps.ts'
+import { type DensityStep, isDensityStep, stepDown } from '../../core/density/steps.ts'
 import { omote } from '../../recipes/kiso/index.ts'
 import type { BarrelApi, Literal, PropApi } from '../plugin/api.ts'
 import type { ExampleCode } from '../plugin/examples.ts'
@@ -131,10 +131,13 @@ function propsOf(fields: readonly Field[], values: Values): Values {
 
 function FieldPicker({
 	field,
+	step,
 	value,
 	onValueChange,
 }: {
 	field: Field
+	/** The step of the page. The badge is one step below it. */
+	step: DensityStep
 	value: Literal | undefined
 	onValueChange: (value: Literal | undefined) => void
 }) {
@@ -170,7 +173,7 @@ function FieldPicker({
 					<Flex gap="sm">
 						<ListboxLabel>{option.label}</ListboxLabel>
 						{option.fallback && (
-							<Badge size="xs" variant="solid" color="blue">
+							<Badge size={stepDown(step)} variant="soft" color="blue">
 								Default
 							</Badge>
 						)}
@@ -230,7 +233,9 @@ export function Playground<P extends object>({
 		throw new Error(`docs: the barrel exports no component ${meta.component} for the playground`)
 	}
 
-	const fields = fieldsOf(component.props, omit, given, useDensityStep())
+	const step = useDensityStep()
+
+	const fields = fieldsOf(component.props, omit, given, step)
 
 	const [values, setValues] = useState<Values>(() =>
 		Object.fromEntries(fields.map((field) => [field.name, startOf(field)])),
@@ -247,6 +252,7 @@ export function Playground<P extends object>({
 						<FieldPicker
 							key={field.name}
 							field={field}
+							step={step}
 							value={values[field.name]}
 							onValueChange={(value) => setValues({ ...values, [field.name]: value })}
 						/>
