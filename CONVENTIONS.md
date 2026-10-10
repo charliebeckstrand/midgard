@@ -115,7 +115,7 @@ An arrow key on a physical axis, such as a slider track or a map cursor, stays p
 
 6.2 Server data is fetched in Server Components or `'use server'`. They attach the bearer token and resolve the gateway origin server-side.
 
-6.3 Client fetches hit same-origin `/api/*` or `/auth/*` paths. They never call the gateway or handle tokens directly. In an app wrapped in `withAuth`, both prefixes rewrite to the gateway. The rewrites are in the `fallback` phase, so a route handler of the app serves its own path first. The `proxy.ts` of the app gates `/api/*` by the session cookie and leaves `/auth/*` open, because sign-in and register run before a session exists. One exception: a file upload goes to an address that a service signs and returns through `/api/*`, because a file does not go through the gateway.
+6.3 Client fetches hit same-origin `/api/*` or `/auth/*` paths. They never call the gateway or handle tokens directly. In an app wrapped in `withAuth`, both prefixes rewrite to the gateway. The rewrites are in the `fallback` phase, so a route handler of the app serves its own path first. The `proxy.ts` of the app gates `/api/*` by the session cookie and leaves `/auth/*` open, because sign-in and register run before a session exists. A file upload is the one exception, because a file does not go through the gateway. The upload goes to an address that a service signs and returns through `/api/*`.
 
 The `no-client-gateway-access` Biome plugin gates the rule. It also keeps a runtime `auth` import out of a `'use client'` module.
 
