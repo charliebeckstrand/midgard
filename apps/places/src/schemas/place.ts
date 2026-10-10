@@ -40,3 +40,15 @@ export function isWebAddress(value: string): boolean {
 		return false
 	}
 }
+
+/**
+ * Whether a string is a web address that can open: an absolute http(s) address
+ * with a host that ends in a top-level domain. A host such as `localhost`, an
+ * IP address, or `example.` has no top-level domain, so the form does not
+ * offer to open it.
+ */
+export function isWebsite(value: string): boolean {
+	if (!isWebAddress(value)) return false
+
+	return /\.(?:[a-z]{2,}|xn--[a-z0-9-]+)$/i.test(new URL(value).hostname)
+}

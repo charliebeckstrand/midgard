@@ -31,6 +31,7 @@ import { placeGeocoder } from './place-geocoder'
 import { PlacePhotosField } from './place-photos-field'
 import { PlaceReviewField } from './place-review-field'
 import { PlaceSearchField } from './place-search-field'
+import { PlaceWebsiteField } from './place-website-field'
 
 /**
  * How long a submit waits for the geocoder to find a typed address. The public
@@ -247,13 +248,9 @@ export function PlaceFormDrawer({ target, onOpenChange, onSubmit }: PlaceFormDra
 										<PlaceAddressField />
 									</div>
 
-									<Field className="sm:col-span-2">
-										<Label>Website</Label>
-
-										<Input name="url" type="url" placeholder="https://" />
-
-										<Message name="url" />
-									</Field>
+									<div className="sm:col-span-2">
+										<PlaceWebsiteField />
+									</div>
 								</>
 							) : null}
 
