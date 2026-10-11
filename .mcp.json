@@ -3,6 +3,13 @@
 		"sequential-thinking": {
 			"command": "npx",
 			"args": ["-y", "@modelcontextprotocol/server-sequential-thinking@1.0.0"]
+		},
+		"playwright": {
+			"command": "sh",
+			"args": [
+				"-c",
+				"if [ -x \"$PLAYWRIGHT_BROWSERS_PATH/chromium\" ]; then set -- --headless --browser chromium --executable-path \"$PLAYWRIGHT_BROWSERS_PATH/chromium\"; fi; exec npx -y @playwright/mcp@0.0.83 --isolated \"$@\""
+			]
 		}
 	}
 }
