@@ -1,4 +1,5 @@
 {
+	"enabledMcpjsonServers": ["sequential-thinking"],
 	"permissions": {
 		"allow": ["Bash(mkdir:*)"]
 	},
