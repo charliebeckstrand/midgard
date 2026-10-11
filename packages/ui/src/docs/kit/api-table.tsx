@@ -5,15 +5,9 @@ import { Heading } from 'ui/heading'
 import { Link } from 'ui/link'
 import { Stack } from 'ui/stack'
 import type { BarrelApi } from '../plugin/api.ts'
-import {
-	API,
-	apiIdOf,
-	componentOfHash,
-	type PendingAnchor,
-	PendingAnchorContext,
-	scrollToPending,
-} from './anchors.ts'
+import { API, apiIdOf, componentOfHash } from './anchors.ts'
 import { useLoadThenOpen } from './load-then-open.ts'
+import { type PendingAnchor, PendingAnchorContext, scrollToPending } from './pending-anchor.ts'
 
 // The entry renders TSDoc as Markdown, so it carries `marked`. It is a chunk
 // of its own, so it does not delay the first paint. It loads in idle time

@@ -11,8 +11,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
 import { MARKDOWN_CACHE_SIZE } from '../../components/markdown/markdown.tsx'
 import { k } from '../../recipes/kata/json-tree.ts'
 import type { BarrelApi, ComponentApi, PropApi } from '../plugin/api.ts'
-import { apiIdOf, scrollToPending, usePendingAnchor } from './anchors.ts'
+import { apiIdOf } from './anchors.ts'
 import { runInSlices } from './idle.ts'
+import { scrollToPending, usePendingAnchor } from './pending-anchor.ts'
 
 const CHIP = 'rounded px-1.5 py-0.5 font-mono text-[0.8125rem]/5'
 
