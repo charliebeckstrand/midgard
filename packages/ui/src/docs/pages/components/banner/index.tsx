@@ -20,6 +20,7 @@ export default function BannerPage() {
 					'announceOnMount',
 					'color',
 				]}
+				free={{ title: 'New version available' }}
 			/>
 			<Example of={WithDescription} />
 			<Example of={Closable} />
