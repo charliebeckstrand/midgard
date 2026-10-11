@@ -171,7 +171,10 @@ export const k = {
 			frame: ['relative shrink-0'],
 			base: [centered, 'shadow-lg', 'bg-white'],
 			placeholder: ['w-full h-full', skeleton.base],
-			empty: [flex.row, 'justify-center', 'w-full h-full', 'py-2', text.muted],
+			// The message of a failed load or of a document with no pages sits on the gray
+			// of the viewport, not on the page surface. The muted text of the page is 4.39:1
+			// there, so the message takes the muted rung of the neutral wash, the same gray.
+			empty: [flex.row, 'justify-center', 'w-full h-full', 'py-2', iro.on.wash.muted],
 			/**
 			 * Hover loupe. The lens is a fixed-size circular window. The stage inside it is a
 			 * page-frame-sized box scaled about the pointer. The page copy it holds therefore

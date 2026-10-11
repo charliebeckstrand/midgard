@@ -1,7 +1,12 @@
 /**
  * Narabi item: icon-slot dimensioning for sibling items in a list.
- * Composes the stepped icon size with the inherit-color rule and the
- * forced-colors safety net for High Contrast Mode legibility.
+ * Composes the stepped icon size with the forced-colors safety net for High
+ * Contrast Mode legibility.
+ *
+ * It sets no text color. A row that spreads it keeps the color of its own
+ * recipe, such as the default text of a Menu row or the muted text of a Tab.
+ * A `text-inherit` here came after that color, so the merge dropped the color,
+ * and the row took the color of its container.
  *
  * The size is `shaku.icon.slot.base`. Thus an icon takes the step of the
  * nearest density scope, as the text and the padding of a Menu or an Option row
@@ -16,4 +21,4 @@ import { shaku } from '../shaku'
 
 const { forced } = sen
 
-export const item = [...shaku.icon.slot.base, 'text-inherit', forced.icon]
+export const item = [...shaku.icon.slot.base, forced.icon]

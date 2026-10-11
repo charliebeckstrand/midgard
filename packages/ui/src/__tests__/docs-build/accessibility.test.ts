@@ -44,12 +44,6 @@ const SETTLE_LIMIT = 10_000
  * case fails when the violation is gone, so the entry goes with the fix.
  */
 const KNOWN: readonly { path: string; rule: string; reason: string; theme?: Theme }[] = [
-	{
-		path: '/pdf-viewer',
-		rule: 'color-contrast',
-		reason: 'The message of PdfViewer is zinc-500 on its zinc-100 surface, 4.39:1.',
-		theme: 'light',
-	},
 	// WCAG 1.4.3 exempts the text of an inactive component. axe skips the text
 	// of a disabled control, but these spans sit beside the disabled input, not
 	// in it, so axe reads them. Dimmed on the dark surface they measure 2.46:1.
