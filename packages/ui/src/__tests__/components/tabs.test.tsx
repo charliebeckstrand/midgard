@@ -888,4 +888,30 @@ describe('Tabs selection value types', () => {
 	it('types defaultValue as a plain string', () => {
 		expectTypeOf<TabsProps['defaultValue']>().toEqualTypeOf<string | undefined>()
 	})
+
+	// The value names the tab and its panel in the ids of the pair. A value
+	// with a space made `aria-controls` and `aria-labelledby` name ids that do
+	// not exist.
+	it('pairs a tab and its panel when the value has a space', () => {
+		renderUI(
+			<Tabs defaultValue="Sign in">
+				<TabList aria-label="Account">
+					<Tab value="Sign in">Sign in</Tab>
+					<Tab value="Sign up">Sign up</Tab>
+				</TabList>
+				<TabContents>
+					<TabContent value="Sign in">Welcome back</TabContent>
+					<TabContent value="Sign up">Create an account</TabContent>
+				</TabContents>
+			</Tabs>,
+		)
+
+		const tab = screen.getByRole('tab', { name: 'Sign in' })
+
+		const panel = screen.getByRole('tabpanel')
+
+		expect(tab.getAttribute('aria-controls')).toBe(panel.id)
+
+		expect(panel).toHaveAccessibleName('Sign in')
+	})
 })
