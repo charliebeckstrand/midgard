@@ -1,4 +1,5 @@
 {
+	"enabledMcpjsonServers": ["playwright", "next-devtools", "chrome-devtools", "context7"],
 	"permissions": {
 		"allow": ["Bash(mkdir:*)"]
 	},

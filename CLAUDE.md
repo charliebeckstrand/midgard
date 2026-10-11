@@ -38,6 +38,14 @@
 
 3.8 [asgard `.claude/docs/midgard.md`](https://github.com/charliebeckstrand/asgard/blob/main/.claude/docs/midgard.md) is the one record of the contract between Midgard and asgard. Read it before you change a call to bifrost. When the contract changes, update that file in asgard.
 
+3.9 Use the Playwright tools to examine a UI change in a real browser before you report it as done.
+
+3.10 While a Next.js dev server runs, use the Next.js DevTools tools to read its build errors, runtime errors, and routes.
+
+3.11 Use the Chrome DevTools tools to record a performance trace, or to examine network requests and console messages.
+
+3.12 Before you use a library API that you do not know well, get its current documentation from Context7.
+
 ## 4. Version Control
 
 4.1 Commit messages follow Conventional Commits, with a scope from the `scope-enum` in [commitlint.config.mjs](commitlint.config.mjs). Use `midgard` for a change outside one package.

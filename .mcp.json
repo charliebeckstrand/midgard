@@ -1,0 +1,26 @@
+{
+	"mcpServers": {
+		"playwright": {
+			"command": "sh",
+			"args": [
+				"-c",
+				"if [ -x \"$PLAYWRIGHT_BROWSERS_PATH/chromium\" ]; then set -- --headless --browser chromium --executable-path \"$PLAYWRIGHT_BROWSERS_PATH/chromium\"; fi; exec npx -y @playwright/mcp@0.0.83 --isolated \"$@\""
+			]
+		},
+		"next-devtools": {
+			"command": "npx",
+			"args": ["-y", "next-devtools-mcp@0.4.0"]
+		},
+		"chrome-devtools": {
+			"command": "sh",
+			"args": [
+				"-c",
+				"if [ -x \"$PLAYWRIGHT_BROWSERS_PATH/chromium\" ]; then set -- --headless --executable-path \"$PLAYWRIGHT_BROWSERS_PATH/chromium\" --chrome-arg=--no-sandbox; fi; exec npx -y chrome-devtools-mcp@1.10.1 --isolated --no-usage-statistics --no-performance-crux \"$@\""
+			]
+		},
+		"context7": {
+			"command": "npx",
+			"args": ["-y", "@upstash/context7-mcp@4.3.0"]
+		}
+	}
+}
