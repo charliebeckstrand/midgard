@@ -27,6 +27,8 @@ export type ExampleCode = {
 export type ExampleMeta = {
 	/** The title of the example, from the file name: `with-icon.tsx` gives `With icon`. */
 	title: string
+	/** The id of the heading of the example, from the file name: `with-icon.tsx` gives `with-icon`. */
+	id: string
 	/** For a playground, the name of the component that takes the props. */
 	component?: string
 	/** Loads the code of the example, from the code module of its folder. */
@@ -147,6 +149,7 @@ export function attachMeta(
 
 	const meta = [
 		`title: ${JSON.stringify(humanize(codeKeyOf(file)))}`,
+		`id: ${JSON.stringify(codeKeyOf(file))}`,
 		...(spread ? [`component: ${JSON.stringify(spread.component)}`] : []),
 		`code: () => import(${JSON.stringify(codeIdOf(pages, file))}).then((module) => module.default[${JSON.stringify(codeKeyOf(file))}])`,
 	]

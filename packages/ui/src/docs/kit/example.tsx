@@ -3,6 +3,7 @@ import { CodeBlock, primeCodeBlock } from 'ui/code'
 import { Collapse, CollapsePanel, CollapseTrigger } from 'ui/collapse'
 import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
+import { Link } from 'ui/link'
 import { Stack } from 'ui/stack'
 import { useIsRtl } from '../../hooks/use-is-rtl.ts'
 import { usePanelResize } from '../../hooks/use-panel-resize.ts'
@@ -72,6 +73,9 @@ function frameCeiling(frame: HTMLElement): number {
 /**
  * The frame of an example: the title, the instance, and "Show code".
  *
+ * The title is a link to the frame. Its id is the file name of the example,
+ * such as `with-icon`, so a reader can share the address of one example.
+ *
  * The instance box is as wide as the instance, and at least 24rem, as a form
  * column on a page. When each child of the box is phrasing content, such as a
  * button or a badge, the children make a row that wraps. Otherwise they stack.
@@ -128,7 +132,9 @@ export function ExampleFrame({
 	return (
 		<Stack gap="sm" data-slot="example">
 			<Flex gap="md" direction="col" align="start">
-				<Heading level={2}>{meta.title}</Heading>
+				<Heading level={2} id={meta.id}>
+					<Link href={`#${meta.id}`}>{meta.title}</Link>
+				</Heading>
 				{actions}
 			</Flex>
 			<div

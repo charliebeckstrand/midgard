@@ -1,8 +1,10 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { Component, type ReactNode } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { MemoryRouter } from 'react-router'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { ApiTable } from '../kit/api-table.tsx'
 import { ExampleFrame } from '../kit/example.tsx'
+import type { BarrelApi } from '../plugin/api.ts'
 import type { ExampleCode, ExampleMeta } from '../plugin/examples.ts'
 
 // A panel that suspends opens empty, and React holds its content back for at
@@ -27,6 +29,7 @@ describe('ExampleFrame', () => {
 
 		const meta: ExampleMeta = {
 			title: 'Basic',
+			id: 'basic',
 			code: () =>
 				new Promise((resolve) => {
 					load = resolve
@@ -73,6 +76,7 @@ describe('ExampleFrame', () => {
 
 		const meta: ExampleMeta = {
 			title: 'Basic',
+			id: 'basic',
 			code: () =>
 				new Promise((_, fail) => {
 					reject = fail
@@ -109,19 +113,26 @@ describe('ExampleFrame', () => {
 	})
 })
 
+/** Renders the API reference of `api` on a page at `path`, which can hold a hash. */
+function renderTable(api: BarrelApi, path = '/thing') {
+	render(
+		<MemoryRouter initialEntries={[path]}>
+			<ApiTable api={api} />
+		</MemoryRouter>,
+	)
+}
+
+const THING: BarrelApi = {
+	Thing: {
+		name: 'Thing',
+		props: [{ name: 'size', type: 'string', description: 'The size.' }],
+		events: [],
+	},
+}
+
 describe('ApiTable', () => {
 	it('opens an entry with its props in it', async () => {
-		render(
-			<ApiTable
-				api={{
-					Thing: {
-						name: 'Thing',
-						props: [{ name: 'size', type: 'string', description: 'The size.' }],
-						events: [],
-					},
-				}}
-			/>,
-		)
+		renderTable(THING)
 
 		fireEvent.click(screen.getByRole('button', { name: '<Thing />' }))
 
@@ -134,14 +145,10 @@ describe('ApiTable', () => {
 	// Before the chunk loads, both clicks start from the same value, and each
 	// applies only the entry that it opened.
 	it('opens each entry that the reader clicks before the chunk loads', async () => {
-		render(
-			<ApiTable
-				api={{
-					First: { name: 'First', props: [], events: [] },
-					Second: { name: 'Second', props: [], events: [] },
-				}}
-			/>,
-		)
+		renderTable({
+			First: { name: 'First', props: [], events: [] },
+			Second: { name: 'Second', props: [], events: [] },
+		})
 
 		fireEvent.click(screen.getByRole('button', { name: '<First />' }))
 
@@ -152,5 +159,29 @@ describe('ApiTable', () => {
 		).not.toBeNull()
 
 		expect(screen.getByRole('region', { name: '<Second />' })).not.toBeNull()
+	})
+	// A link to a prop names an element in a closed entry, so the browser
+	// cannot scroll to it.
+	it('opens the entry that the hash names, and scrolls to the prop', async () => {
+		const scroll = vi.spyOn(Element.prototype, 'scrollIntoView')
+
+		onTestFinished(() => scroll.mockRestore())
+
+		renderTable(THING, '/thing#api-Thing-size')
+
+		await screen.findByRole('region', { name: '<Thing />' }, { timeout: 5000 })
+
+		await waitFor(() =>
+			expect(scroll.mock.contexts).toEqual([document.getElementById('api-Thing-size')]),
+		)
+	})
+
+	it('keeps each entry closed when the hash names no entry of the barrel', async () => {
+		renderTable(THING, '/thing#api-Other-size')
+
+		// The entry chunk loads in idle time, so wait past it.
+		await act(() => new Promise((resolve) => setTimeout(resolve, 100)))
+
+		expect(screen.queryByRole('region', { name: '<Thing />' })).toBeNull()
 	})
 })
