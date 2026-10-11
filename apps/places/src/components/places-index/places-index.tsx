@@ -7,16 +7,16 @@ import { Button } from 'ui/button'
 import { DateTime } from 'ui/date-time'
 import { Icon } from 'ui/icon'
 import type { GridColumn } from 'ui/modules/grid'
-import { Rating } from 'ui/rating'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
 import { CATEGORY_BY_VALUE, categoryLabel } from '../../constants'
 import type { Place } from '../../types'
 import { DAY_FORMAT } from '../../utilities/places-filter'
-import { latestVisit } from '../../utilities/places-visits'
+import { ratedVisit } from '../../utilities/places-visits'
 import { IndexSheet, locationColumns } from '../index-sheet'
 import { type PlaceActions, PlaceMenu, placeMenuItems } from '../place-menu'
+import { PlaceRating } from '../place-summary'
 
 /** Props for {@link PlacesIndex}. */
 export type PlacesIndexProps = {
@@ -136,13 +136,10 @@ export function PlacesIndex({
 			{
 				id: 'rating',
 				title: 'Rating',
-				// The score of the newest visit, which is what the place is like now.
-				value: (place) => latestVisit(place).rating,
-				cell: (place) => {
-					const { rating } = latestVisit(place)
-
-					return rating > 0 ? <Rating readOnly value={rating} size="sm" /> : null
-				},
+				// The score of the newest rated visit, which is what the place is like
+				// now. The tooltip of the stars gives the day of that visit.
+				value: (place) => ratedVisit(place)?.rating ?? 0,
+				cell: (place) => <PlaceRating place={place} />,
 			},
 			{
 				id: 'actions',

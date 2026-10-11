@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Place } from '../../types'
-import { sortPlaces } from '../../utilities/places-visits'
+import { ratedVisit, sortPlaces } from '../../utilities/places-visits'
 import { place, placeOn } from '../fixtures'
 
 /** A place whose newest visit has `rating`. */
@@ -44,6 +44,17 @@ describe('sortPlaces', () => {
 		expect(names(sortPlaces([rated('Bistro', 3), repeat], 'rating'))).toEqual(['Bistro', 'Antler'])
 	})
 
+	it('rates a place by its newest rated visit', () => {
+		const unrated = place('Antler', {
+			visits: [
+				{ id: 'new', visitedAt: '2026-10-01', rating: 0, photos: [] },
+				{ id: 'old', visitedAt: '2026-01-01', rating: 4, photos: [] },
+			],
+		})
+
+		expect(names(sortPlaces([rated('Bistro', 3), unrated], 'rating'))).toEqual(['Antler', 'Bistro'])
+	})
+
 	it('puts the highest rating first, and ties in name order', () => {
 		const places = [rated('Cafe', 3), rated('Bistro', 4.5), rated('Antler', 3)]
 
@@ -56,5 +67,23 @@ describe('sortPlaces', () => {
 		sortPlaces(places, 'name')
 
 		expect(names(places)).toEqual(['B', 'A'])
+	})
+})
+
+describe('ratedVisit', () => {
+	it('skips a newer visit with no rating', () => {
+		const repeat = place('Antler', {
+			visits: [
+				{ id: 'new', visitedAt: '2026-10-01', rating: 0, photos: [] },
+				{ id: 'mid', visitedAt: '2026-05-01', rating: 3.5, photos: [] },
+				{ id: 'old', visitedAt: '2026-01-01', rating: 5, photos: [] },
+			],
+		})
+
+		expect(ratedVisit(repeat)?.id).toBe('mid')
+	})
+
+	it('gives no visit where no visit has a rating', () => {
+		expect(ratedVisit(rated('Antler', 0))).toBeUndefined()
 	})
 })
