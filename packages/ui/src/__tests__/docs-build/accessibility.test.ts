@@ -10,8 +10,8 @@ import { CLIENT_DIR, HYDRATED } from '../../../scripts/docs-server'
 // no layout and no styles. This file runs each WCAG 2.2 A and AA rule of axe
 // on each prerendered page of the build in Chromium, so it also reads the
 // contrast of the text and the size of the targets. It reads the first state
-// of each page, in the light theme, at the width of a desktop, with reduced
-// motion.
+// of each page, in the light theme and in the dark theme, at the width of a
+// desktop, with reduced motion.
 //
 // A page loads nothing from another host, so the result does not depend on
 // the network. The PDF of the PdfViewer page is on another host, so that page
@@ -20,24 +20,51 @@ import { CLIENT_DIR, HYDRATED } from '../../../scripts/docs-server'
 /** The axe tags of the WCAG 2.0, 2.1, and 2.2 rules at level A and AA. */
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22a', 'wcag22aa']
 
+/** The themes that each page is read in. The theme of the docs follows the color scheme of the system. */
+const THEMES = ['light', 'dark'] as const
+
+type Theme = (typeof THEMES)[number]
+
 /**
- * The rules that the run skips. `target-size` reads the space between the
- * targets. A chart or a grid measures its layout after the hydration, and
- * with several pages side by side, axe can read a target before the layout
- * ends. The rule then failed on a different page in each run, and each page
- * passed alone.
+ * The time in ms in which no target of the page moves, before axe reads the
+ * page. A chart or a grid measures its layout after the hydration, and part of
+ * that work waits on a timer. With several pages side by side,
+ * `target-size`, which reads the space between the targets, read some targets
+ * before their layout ended. The rule then failed on a different page in each
+ * run, and each page passed alone. A time, not a count of frames, because a
+ * loaded machine gives fewer frames.
  */
-const SKIPPED = { 'target-size': { enabled: false } }
+const QUIET = 500
+
+/** The longest wait for the layout to settle, in ms. A page that is still moving then gets read as it is. */
+const SETTLE_LIMIT = 10_000
 
 /**
  * The violations that a known defect of `ui` causes, by path and rule. The
  * case fails when the violation is gone, so the entry goes with the fix.
  */
-const KNOWN: readonly { path: string; rule: string; reason: string }[] = [
+const KNOWN: readonly { path: string; rule: string; reason: string; theme?: Theme }[] = [
 	{
 		path: '/pdf-viewer',
 		rule: 'color-contrast',
 		reason: 'The message of PdfViewer is zinc-500 on its zinc-100 surface, 4.39:1.',
+		theme: 'light',
+	},
+	// WCAG 1.4.3 exempts the text of an inactive component. axe skips the text
+	// of a disabled control, but these spans sit beside the disabled input, not
+	// in it, so axe reads them. Dimmed on the dark surface they measure 2.46:1.
+	{
+		path: '/tag-input',
+		rule: 'color-contrast',
+		reason: 'The tags of the disabled TagInput example, which WCAG exempts as inactive.',
+		theme: 'dark',
+	},
+	{
+		path: '/credit-card-input',
+		rule: 'color-contrast',
+		reason:
+			'The card brand of the disabled CreditCardInput example, which WCAG exempts as inactive.',
+		theme: 'dark',
 	},
 ]
 
@@ -67,11 +94,12 @@ afterAll(async () => {
  * the build. The tab closes after the case. The cases run side by side, so
  * the hook comes from the context of the case.
  */
-async function openTab({ onTestFinished }: TestContext): Promise<Page> {
+async function openTab({ onTestFinished }: TestContext, theme: Theme): Promise<Page> {
 	// With reduced motion, no surface is in a transition when axe reads it.
 	const tab = await browser.newPage({
 		viewport: { width: 1280, height: 900 },
 		reducedMotion: 'reduce',
+		colorScheme: theme,
 	})
 
 	onTestFinished(() => tab.close())
@@ -84,9 +112,58 @@ async function openTab({ onTestFinished }: TestContext): Promise<Page> {
 	return tab
 }
 
-/** Runs the WCAG rules of axe on the page at `route`, after it hydrates and its loads end. */
-async function audit(route: string, context: TestContext): Promise<AxeResults['violations']> {
-	const tab = await openTab(context)
+/**
+ * Waits in the page until no target moves for `quiet` ms, or until `limit` ms
+ * pass. A target is an element that a reader can press or focus.
+ */
+function settle({ quiet, limit }: { quiet: number; limit: number }): Promise<void> {
+	const targets = 'a[href], button, input, select, textarea, [role], [tabindex]'
+
+	const layout = () =>
+		[...document.querySelectorAll(targets)]
+			.map((element) => {
+				const { x, y, width, height } = element.getBoundingClientRect()
+
+				return `${Math.round(x)},${Math.round(y)},${Math.round(width)},${Math.round(height)}`
+			})
+			.join(';')
+
+	return new Promise((resolve) => {
+		const end = performance.now() + limit
+
+		let last = layout()
+
+		let since = performance.now()
+
+		const frame = () => {
+			const now = performance.now()
+
+			const next = layout()
+
+			if (next !== last) {
+				last = next
+
+				since = now
+			}
+
+			if (now - since >= quiet || now > end) resolve()
+			else requestAnimationFrame(frame)
+		}
+
+		requestAnimationFrame(frame)
+	})
+}
+
+/**
+ * Runs the WCAG rules of axe on the page at `route` in `theme`, after it
+ * hydrates, its loads end, and its layout settles.
+ */
+async function audit(
+	route: string,
+	theme: Theme,
+	context: TestContext,
+): Promise<AxeResults['violations']> {
+	const tab = await openTab(context, theme)
 
 	await tab.goto(`${origin}${route}`)
 
@@ -94,16 +171,17 @@ async function audit(route: string, context: TestContext): Promise<AxeResults['v
 
 	await tab.waitForLoadState('networkidle')
 
+	await tab.evaluate(settle, { quiet: QUIET, limit: SETTLE_LIMIT })
+
 	await tab.addScriptTag({ path: AXE })
 
 	return tab
-		.evaluate(
-			({ tags, skipped }) =>
-				window.axe.run(document, { runOnly: { type: 'tag', values: tags }, rules: skipped }),
-			{ tags: TAGS, skipped: SKIPPED },
-		)
+		.evaluate((tags) => window.axe.run(document, { runOnly: { type: 'tag', values: tags } }), TAGS)
 		.then((results) => results.violations)
 }
+
+/** Each path in each theme. */
+const CASES = PATHS.flatMap((route) => THEMES.map((theme) => [route, theme] as const))
 
 declare global {
 	interface Window {
@@ -113,21 +191,26 @@ declare global {
 
 // Each case opens its own tab, so the pages load side by side.
 describe.concurrent('a prerendered page of the docs build, in Chromium', () => {
-	it.for(PATHS)('%s breaks no WCAG A or AA rule of axe', async (route, context) => {
-		const { expect } = context
+	it.for(CASES)(
+		'%s in the %s theme breaks no WCAG A or AA rule of axe',
+		async ([route, theme], context) => {
+			const { expect } = context
 
-		const violations = await audit(route, context)
+			const violations = await audit(route, theme, context)
 
-		const known = KNOWN.filter((entry) => entry.path === route).map((entry) => entry.rule)
+			const known = KNOWN.filter(
+				(entry) => entry.path === route && (entry.theme === undefined || entry.theme === theme),
+			).map((entry) => entry.rule)
 
-		const found = violations.flatMap(({ id, nodes }) =>
-			known.includes(id) ? [] : nodes.map((node) => `${id}: ${node.target.join(' ')}`),
-		)
+			const found = violations.flatMap(({ id, nodes }) =>
+				known.includes(id) ? [] : nodes.map((node) => `${id}: ${node.target.join(' ')}`),
+			)
 
-		expect(found).toEqual([])
+			expect(found).toEqual([])
 
-		const gone = known.filter((rule) => !violations.some((violation) => violation.id === rule))
+			const gone = known.filter((rule) => !violations.some((violation) => violation.id === rule))
 
-		expect(gone, 'these known violations are gone, so remove their entries').toEqual([])
-	})
+			expect(gone, 'these known violations are gone, so remove their entries').toEqual([])
+		},
+	)
 })
