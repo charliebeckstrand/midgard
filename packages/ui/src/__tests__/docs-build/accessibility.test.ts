@@ -35,12 +35,6 @@ const SKIPPED = { 'target-size': { enabled: false } }
  */
 const KNOWN: readonly { path: string; rule: string; reason: string }[] = [
 	{
-		path: '/tabs',
-		rule: 'aria-valid-attr-value',
-		reason:
-			'Tabs makes the ids of a tab and its panel from the value. The value `Sign in` has a space, and an id reference cannot.',
-	},
-	{
 		path: '/pdf-viewer',
 		rule: 'color-contrast',
 		reason: 'The message of PdfViewer is zinc-500 on its zinc-100 surface, 4.39:1.',
