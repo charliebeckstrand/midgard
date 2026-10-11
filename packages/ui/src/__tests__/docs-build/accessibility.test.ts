@@ -33,13 +33,7 @@ const SKIPPED = { 'target-size': { enabled: false } }
  * The violations that a known defect of `ui` causes, by path and rule. The
  * case fails when the violation is gone, so the entry goes with the fix.
  */
-const KNOWN: readonly { path: string; rule: string; reason: string }[] = [
-	{
-		path: '/pdf-viewer',
-		rule: 'color-contrast',
-		reason: 'The message of PdfViewer is zinc-500 on its zinc-100 surface, 4.39:1.',
-	},
-]
+const KNOWN: readonly { path: string; rule: string; reason: string }[] = []
 
 /** The script of axe, which each page loads. */
 const AXE = createRequire(import.meta.url).resolve('axe-core/axe.min.js')
