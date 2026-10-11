@@ -102,6 +102,15 @@ export const space = {
 		/** The inset under the last slot, on the panel or on the slot. */
 		bottom: 'density-pb-[4,5,6,7,8]',
 		/**
+		 * The padding around the 1.5 bar of a grip that lies over the inset at an
+		 * edge: `x` on a side, `y` across. The bar and the padding are as thick as the
+		 * inset, so the grip covers no slot.
+		 */
+		grip: {
+			x: 'density-px-[1.25,1.75,2.25,2.75,3.25]',
+			y: 'density-py-[1.25,1.75,2.25,2.75,3.25]',
+		},
+		/**
 		 * The inset of a body that is the first slot, for each panel that scrolls its
 		 * body. It is a margin, because a padding in a scrolling body moves out of view
 		 * with the content.

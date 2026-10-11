@@ -125,10 +125,10 @@ export const k = {
 	handle: {
 		base: [
 			flex.col,
-			// The same reach the drawer's grip has, turned on its side: `px-3` around
-			// a `w-1.5` bar is the `py-3` around its `h-1.5` one, so both panels are
-			// grabbed by a strip of the same thickness.
-			'absolute z-10 px-3 items-center justify-center',
+			// The strip is as thick as the inset of the panel at each density step, so
+			// it lies over the inset and covers no slot. A thicker strip covered the
+			// edge of the slot next to it, and a press there started a resize.
+			'absolute z-10 items-center justify-center',
 			...hannou.grab.default,
 			// The stroke goes on the bar, not here — see the archetype's grip. This
 			// suppresses the browser's own, which would draw around the whole reach.
@@ -138,10 +138,10 @@ export const k = {
 		side: {
 			// The full-height reach belongs to the two side arms only. In the base, it
 			// survives the `bottom-0` of a cross arm, and the strip covers the panel.
-			right: 'inset-y-0 left-0',
-			left: 'inset-y-0 right-0',
-			top: 'inset-x-0 bottom-0 py-3 w-full',
-			bottom: 'inset-x-0 top-0 py-3 w-full',
+			right: ['inset-y-0 left-0', inset.grip.x],
+			left: ['inset-y-0 right-0', inset.grip.x],
+			top: ['inset-x-0 bottom-0 w-full', inset.grip.y],
+			bottom: ['inset-x-0 top-0 w-full', inset.grip.y],
 		},
 		/** Keyed by the separator's own line: a sheet docked to a side is grabbed the other way from one docked across. */
 		bar: panel.grip.bar,
