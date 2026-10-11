@@ -16,7 +16,7 @@ import { loadShiki } from 'ui/code'
 import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
 import { Icon } from 'ui/icon'
-import { SidebarLayout, SidebarLayoutHeader } from 'ui/layouts'
+import { SidebarLayout, SidebarLayoutBody, SidebarLayoutHeader } from 'ui/layouts'
 import { CurrentScrollScript } from 'ui/primitives/current'
 import { AppearanceSettings, useAppearance } from 'ui/providers/appearance'
 import { LocaleProvider } from 'ui/providers/locale'
@@ -152,11 +152,13 @@ export default function App() {
 							<Heading>{title ?? 'Docs'}</Heading>
 						</Flex>
 					</SidebarLayoutHeader>
-					<Stack gap="xl">
-						<LocaleProvider locale="en-US">
-							<Outlet />
-						</LocaleProvider>
-					</Stack>
+					<SidebarLayoutBody>
+						<Stack gap="xl">
+							<LocaleProvider locale="en-US">
+								<Outlet />
+							</LocaleProvider>
+						</Stack>
+					</SidebarLayoutBody>
 				</SidebarLayout>
 			</UIProvider>
 		</NavigateContext>

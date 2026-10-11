@@ -106,10 +106,8 @@ export const DocsSidebar = memo(function DocsSidebar({ pages }: { pages: readonl
 			<SidebarBody className="[overflow-anchor:none]">
 				{sections.map(({ section, links }) => (
 					<SidebarSection key={section}>
-						<Text
-							tone="muted"
-							className="density-px-ring-[1.5,2,2.5] mb-2 text-sm uppercase tracking-wide"
-						>
+						{/* The muted tone is 4.4:1 on the gray of the sidebar, under the 4.5:1 of small text. */}
+						<Text className="density-px-ring-[1.5,2,2.5] mb-2 text-sm text-zinc-600 uppercase tracking-wide dark:text-zinc-400">
 							{section}
 						</Text>
 						<SidebarList aria-label={section}>
