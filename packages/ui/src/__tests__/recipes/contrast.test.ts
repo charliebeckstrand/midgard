@@ -8,6 +8,7 @@ import { k as list } from '../../recipes/kata/list'
 import { k as menu } from '../../recipes/kata/menu'
 import { k as nav } from '../../recipes/kata/nav'
 import { k as option } from '../../recipes/kata/option'
+import { k as pdfViewer } from '../../recipes/kata/pdf-viewer'
 import { hannou, iro, omote } from '../../recipes/kiso'
 import {
 	onSurface as extendedOnSurface,
@@ -370,5 +371,31 @@ describe('segment archetype contrast', () => {
 		expect(contrastOf(SELECTED[m], WASH[m])).toBeGreaterThanOrEqual(
 			SEPARATION * contrastOf(MUTED[m], WASH[m]),
 		)
+	})
+})
+
+/**
+ * The message of a PdfViewer that failed to load, or that has no pages, sits
+ * on the opaque gray of the viewport, not on the page surface. The ground and
+ * the ink come off the recipe, so a change to either is measured here.
+ */
+describe('PdfViewer viewport message', () => {
+	const classesOf = (fragment: unknown): string[] =>
+		[fragment].flat(Number.POSITIVE_INFINITY).join(' ').split(' ').filter(Boolean)
+
+	const ground = classesOf(pdfViewer.viewport.base).filter((cls) =>
+		/^(?:dark:)?bg-zinc-\d+$/.test(cls),
+	)
+
+	const ink = classesOf(pdfViewer.viewport.page.empty).filter((cls) => FOREGROUND.test(cls))
+
+	const GROUND = byMode(ground)
+
+	const INK = byMode(ink)
+
+	it.each(MODES)('clears text AA on the %s viewport', (m) => {
+		const surface = tinted(GROUND[m].replace('dark:', ''), SURFACE[m])
+
+		expect(contrastOf(INK[m], surface)).toBeGreaterThanOrEqual(TEXT_AA)
 	})
 })
