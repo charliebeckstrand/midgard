@@ -33,6 +33,7 @@ import {
 } from '../debug/index.tsx'
 import { useIdle } from '../kit/idle.ts'
 import appCss from './app.css?url'
+import { DirectionScript, DirectionSwitch } from './direction.tsx'
 import { PageError } from './page-error.tsx'
 import { NavigateContext, RouterLink } from './router-link.tsx'
 import { DocsSidebar } from './sidebar.tsx'
@@ -58,6 +59,7 @@ export function Layout({ children }: { children: ReactNode }) {
 					<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 					<StaleBuildScript />
 					<link rel="expect" href={`#${FIRST_PAINT}`} blocking="render" />
+					<DirectionScript />
 					<DebugScript />
 					<Meta />
 					<Links />
@@ -97,6 +99,7 @@ const ACTIONS = (
 		<EventLogButton />
 		<BugLogButton />
 		<AppearanceSettings>
+			<DirectionSwitch />
 			<DebugSwitch />
 		</AppearanceSettings>
 	</>
