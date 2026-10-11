@@ -48,6 +48,7 @@ function ThingPlayground(props: ThingProps) {
 
 const meta: ExampleMeta = {
 	title: 'Playground',
+	id: 'playground',
 	component: 'Thing',
 	code: () => Promise.resolve(CODE),
 }
