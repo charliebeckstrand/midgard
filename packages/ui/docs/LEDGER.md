@@ -110,7 +110,7 @@ A unit leaves Clean only on evidence. A pull request that touches the files of a
 | `sidebar` | Not started | — | — | — | — |
 | `signature-pad` | Not started | — | — | — | — |
 | `slider` | Not started | — | — | — | — |
-| `sparkline` | Not started | — | — | — | — |
+| `sparkline` | Not started | — | — | — | [#2330](https://github.com/charliebeckstrand/midgard/pull/2330) |
 | `stat` | Not started | — | — | — | — |
 | `status` | Not started | — | — | — | — |
 | `stepper` | Not started | — | — | — | — |
