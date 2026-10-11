@@ -24,7 +24,8 @@ type SparklineBar = { index: number; x: number; y: number; width: number; height
  * The resolved marks for one series: the polyline `points` and its `line`
  * path, and the closed `area` path under it. It also holds the `bars` for the
  * bar variant, and the `last` point for the end-of-series marker. The
- * `baseline` y is where the area and bars sit. Empty paths and an empty `bars` array signal there is
+ * `baseline` y is the zero line, clamped into the domain: the area closes on
+ * it, and the bars grow from it. Empty paths and an empty `bars` array signal there is
  * nothing to draw (no finite data).
  *
  * @internal
@@ -50,7 +51,7 @@ export type SparklineGeometryOptions = {
 	barGap: number
 	/** Floor for a bar's height so the minimum value still shows a sliver. @defaultValue 1 */
 	minBarHeight?: number
-	/** Domain floor; defaults to the series minimum. Values below it clamp to the baseline. */
+	/** Domain floor; defaults to the series minimum. Values below it clamp to the bottom. */
 	min?: number
 	/** Domain ceiling; defaults to the series maximum. Values above it clamp to the top. */
 	max?: number
@@ -66,6 +67,12 @@ export type SparklineGeometryOptions = {
  * to an edge. A flat series (or one point) maps to the vertical middle rather than
  * dividing by a zero span. A single point draws as a horizontal line across the
  * box, so it stays visible, and its `last` point sits at the end of that line.
+ *
+ * The area and the bars sit on zero, clamped into the domain. A domain that
+ * crosses zero puts the zero line inside the box, so a negative value hangs
+ * below it. A domain above zero sits on the bottom edge, and a domain below
+ * zero hangs from the top edge. A flat domain takes the edge on the side of
+ * zero.
  * @internal
  */
 export function sparklineGeometry(
@@ -76,7 +83,7 @@ export function sparklineGeometry(
 
 	const innerHeight = Math.max(0, height - padding * 2)
 
-	const baseline = padding + innerHeight
+	const floor = padding + innerHeight
 
 	const empty: SparklineGeometry = {
 		points: [],
@@ -84,7 +91,7 @@ export function sparklineGeometry(
 		area: '',
 		bars: [],
 		last: null,
-		baseline,
+		baseline: floor,
 	}
 
 	if (data.length === 0) return empty
@@ -101,6 +108,12 @@ export function sparklineGeometry(
 
 	// A flat series has no span to divide by; anchor every point to the middle.
 	const norm = (value: number) => (span === 0 ? 0.5 : clamp((value - low) / span, 0, 1))
+
+	// Zero, clamped into the domain. The edge tests come first, so a flat
+	// domain takes the edge on the side of zero and not its middle.
+	const origin = low >= 0 ? 0 : high <= 0 ? 1 : norm(0)
+
+	const baseline = padding + (1 - origin) * innerHeight
 
 	const xAt = (index: number) =>
 		data.length === 1
@@ -145,6 +158,57 @@ export function sparklineGeometry(
 			? `${line} L ${last.x} ${baseline} L ${first.x} ${baseline} Z`
 			: `${line} L ${width - padding} ${baseline} L ${padding} ${baseline} Z`
 
+	const bars = projectBars(data, {
+		norm,
+		origin,
+		baseline,
+		padding,
+		floor,
+		innerWidth,
+		innerHeight,
+		barGap,
+		minBarHeight,
+	})
+
+	return { points, line, area, bars, last, baseline }
+}
+
+/** The scale that {@link projectBars} reads, resolved by {@link sparklineGeometry}. @internal */
+type BarScale = {
+	/** Maps a finite value to its fraction of the inner height. */
+	norm: (value: number) => number
+	/** The zero line, clamped into the domain, as a fraction of the inner height. */
+	origin: number
+	/** The y of the zero line. */
+	baseline: number
+	padding: number
+	/** The y of the bottom edge of the inner box. */
+	floor: number
+	innerWidth: number
+	innerHeight: number
+	barGap: number
+	minBarHeight: number
+}
+
+/**
+ * Projects each finite datum onto a bar that grows from the zero line. A
+ * negative value hangs below the line, and zero or more stands on it.
+ * @internal
+ */
+function projectBars(
+	data: number[],
+	{
+		norm,
+		origin,
+		baseline,
+		padding,
+		floor,
+		innerWidth,
+		innerHeight,
+		barGap,
+		minBarHeight,
+	}: BarScale,
+): SparklineBar[] {
 	const slot = innerWidth / data.length
 
 	const barWidth = Math.max(1, slot - barGap)
@@ -158,16 +222,20 @@ export function sparklineGeometry(
 
 		if (value === undefined || !Number.isFinite(value)) continue
 
-		const barHeight = Math.max(minBarHeight, norm(value) * innerHeight)
+		const height = Math.max(minBarHeight, Math.abs(norm(value) - origin) * innerHeight)
+
+		// The clamp keeps the floored sliver of a value outside a pinned domain
+		// inside the box.
+		const top = value < 0 ? baseline : baseline - height
 
 		bars.push({
 			index,
 			x: padding + index * slot + (slot - barWidth) / 2,
-			y: baseline - barHeight,
+			y: clamp(top, padding, floor - height),
 			width: barWidth,
-			height: barHeight,
+			height,
 		})
 	}
 
-	return { points, line, area, bars, last, baseline }
+	return bars
 }
