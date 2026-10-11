@@ -46,6 +46,8 @@
 
 3.12 Before you use a library API that you do not know well, get its current documentation from Context7.
 
+3.13 Use the DigitalOcean tools to read the state and the logs of an App Platform deployment. The settings deny the tools that create, change, or delete an app. A deployment comes only from `deploy.yml`.
+
 ## 4. Version Control
 
 4.1 Commit messages follow Conventional Commits, with a scope from the `scope-enum` in [commitlint.config.mjs](commitlint.config.mjs). Use `midgard` for a change outside one package.

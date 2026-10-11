@@ -21,6 +21,10 @@
 		"context7": {
 			"command": "npx",
 			"args": ["-y", "@upstash/context7-mcp@4.3.0"]
+		},
+		"digitalocean": {
+			"command": "npx",
+			"args": ["-y", "@digitalocean/mcp@1.4.0", "--services", "apps"]
 		}
 	}
 }
