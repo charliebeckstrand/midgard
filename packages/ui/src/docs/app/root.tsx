@@ -35,6 +35,7 @@ import { useIdle } from '../kit/idle.ts'
 import appCss from './app.css?url'
 import { PageError } from './page-error.tsx'
 import { NavigateContext, RouterLink } from './router-link.tsx'
+import { DocsSearch, SearchPaletteHost } from './search.tsx'
 import { DocsSidebar } from './sidebar.tsx'
 import { StaleBuildScript } from './stale-build.tsx'
 
@@ -136,28 +137,31 @@ export default function App() {
 			<UIProvider link={RouterLink} pathname={page?.path ?? pathname}>
 				<title>{title ? `${title} · Docs` : 'Docs'}</title>
 				<Stylesheet />
-				<SidebarLayout stickyHeader actions={ACTIONS} sidebar={<DocsSidebar pages={pages} />}>
-					<SidebarLayoutHeader>
-						<Flex align="center" gap="md">
-							<Button
-								variant="bare"
-								className="max-lg:hidden"
-								aria-label="Toggle sidebar"
-								onClick={() => setSidebar(sidebar === 'offcanvas' ? 'locked' : 'offcanvas')}
-							>
-								{/* The class of the root selects the icon, so the first paint shows the stored mode. */}
-								<Icon icon={<PanelLeftDashed />} className="sidebar-offcanvas:hidden" />
-								<Icon icon={<PanelLeft />} className="hidden sidebar-offcanvas:block" />
-							</Button>
-							<Heading>{title ?? 'Docs'}</Heading>
-						</Flex>
-					</SidebarLayoutHeader>
-					<Stack gap="xl">
-						<LocaleProvider locale="en-US">
-							<Outlet />
-						</LocaleProvider>
-					</Stack>
-				</SidebarLayout>
+				<DocsSearch>
+					<SidebarLayout stickyHeader actions={ACTIONS} sidebar={<DocsSidebar pages={pages} />}>
+						<SidebarLayoutHeader>
+							<Flex align="center" gap="md">
+								<Button
+									variant="bare"
+									className="max-lg:hidden"
+									aria-label="Toggle sidebar"
+									onClick={() => setSidebar(sidebar === 'offcanvas' ? 'locked' : 'offcanvas')}
+								>
+									{/* The class of the root selects the icon, so the first paint shows the stored mode. */}
+									<Icon icon={<PanelLeftDashed />} className="sidebar-offcanvas:hidden" />
+									<Icon icon={<PanelLeft />} className="hidden sidebar-offcanvas:block" />
+								</Button>
+								<Heading>{title ?? 'Docs'}</Heading>
+							</Flex>
+						</SidebarLayoutHeader>
+						<SearchPaletteHost />
+						<Stack gap="xl">
+							<LocaleProvider locale="en-US">
+								<Outlet />
+							</LocaleProvider>
+						</Stack>
+					</SidebarLayout>
+				</DocsSearch>
 			</UIProvider>
 		</NavigateContext>
 	)
