@@ -6,7 +6,7 @@
 
 STE is a specification, not a preference. Part 1 gives the writing rules. Part 2 gives the Dictionary, which approves one word for each meaning and lists the words that it replaces. Issue 9 (January 2025) is current.
 
-STE governs the words and the grammar. [`CADENCE.md`](CADENCE.md) governs the spacing and the shape. Apply both.
+STE governs the words and the grammar. The cadence rules below govern the spacing and the shape. Apply both.
 
 This repository does not hold the Dictionary, and full conformance to Part 2 needs it. Apply Part 1 in full. Use the rules below as the working standard. Consult the Dictionary when you have access to it.
 
@@ -36,23 +36,35 @@ This document obeys the rules that it defines; read it as the reference.
 
 11. **Procedures.** Start an instruction with the verb, and write one instruction in each sentence. Put a warning or a caution before the step that it applies to. Put a complex set of conditions in a vertical list.
 
+## Cadence
+
+A *statement* is one unit of authored text: a numbered clause, a paragraph, a list item, or a logical block of code. The cadence rules govern the spacing and the shape of statements.
+
+1. **One blank line between statements.** Separate each statement from the next with exactly one blank line. In code, put the blank line between logical blocks.
+
+2. **One idea per statement.** Do not merge unrelated ideas, and do not split one idea across two statements.
+
+3. **Contiguous numbering.** Number the clauses of a rule document `N.M`, in order and with no gap.
+
+4. **Terminal punctuation.** End each statement with sentence punctuation. A colon can end a statement that introduces a table or a list.
+
+5. **Asides.** Put an aside in its own sentence or in parentheses, not between em-dashes.
+
+6. **Consistent links.** Write a cross-reference with descriptive link text, a relative path, and a `§` section marker. Match the link form of the document.
+
+7. **File hygiene.** End the file with one newline. Leave no trailing whitespace and no stacked blank lines.
+
 ## Scope in this repository
 
-Rules 3, 6, and 10 are gated. [`controlled-language-boundary.test.ts`](packages/ui/src/__tests__/boundary/controlled-language-boundary.test.ts) reads the comments of the `ui` source tree, the curated surface docs, and the rule documents at the repository root. The curated surface docs and the rule documents carry no debt in any of the three rules. In the comments, a rule 3 or a rule 10 break fails the run. Rule 6 in the comments is advisory: the test writes each break to the log, and review decides what to fix.
+STE rules 3, 6, and 10 are gated. [`controlled-language-boundary.test.ts`](packages/ui/src/__tests__/boundary/controlled-language-boundary.test.ts) reads the comments of the `ui` source tree, the curated surface docs, and the rule documents at the repository root. The surface docs and the rule documents carry no debt in the three rules. In the comments, a rule 3 or a rule 10 break fails the run, and a rule 6 break is advisory.
 
-The rule 3 gate reads spelling only. It finds a British form such as `colour`, `centre`, or `normalise`, and the fix is the American form. A second word for one thing needs a reader, so review holds the rest of rule 3.
+The rule 3 gate reads spelling only, so review holds the rest of rule 3. Rule 6 counts a semicolon-joined compound as one sentence.
 
-Rule 6 held a per-file ledger while the tree paid its debt down. The last of it closed, so the ledger is gone and the report lists each new break.
+Review holds STE rule 4, because no count of it is correct. Rule 5 stays out of scope until this repository holds Part 2. Do not rewrite an `-ing` form without the Dictionary.
 
-Rule 6 counts a semicolon-joined compound as one sentence. A cap on the sentence is the point of the rule, so a long run of joined clauses is a break.
+[`cadence-boundary.test.ts`](packages/ui/src/__tests__/boundary/cadence-boundary.test.ts) reports breaks of cadence rules 1, 3, 4, and 7 in the rule documents, and does not fail the run. Review holds the other cadence rules.
 
-Rule 4 is not reported, and a count of it misleads. The descriptive half is conditional, so no count of it has a correct value. The instruction half is empty by construction. An imperative starts with its main verb, which is active, so a passive inside one sits in a subordinate clause the rule permits. Read rule 4 in review.
-
-Rule 5 stays out of scope until this repository holds Part 2. The `-ing` category runs to about 7,000 sites in the `ui` comments alone. Most are participial adjectives — "the enclosing dialog", "the underlying seam" — and Part 2 approves a subset of them. A rewrite without the Dictionary degrades the prose it touches.
-
-An audit and a plan stay in their authored voice. An audit is a point-in-time record, which [`CONVENTIONS.md` §12.4](CONVENTIONS.md) deletes once its findings close. A plan is a permanent record of one decision ([`CONVENTIONS.md` §12.5](CONVENTIONS.md)). Neither is a living surface document, so neither is worth the churn.
-
-Chat is exempt. The repository does not keep it, so the cost of the rules buys nothing there ([`CLAUDE.md`](CLAUDE.md) §2.5).
+An audit and a plan stay in their authored voice, because each is a temporary record ([`CONVENTIONS.md` §12.4, §12.5](CONVENTIONS.md)). Chat is exempt ([`CLAUDE.md`](CLAUDE.md) §2.5).
 
 ## Project terms
 
@@ -86,4 +98,4 @@ When you change a public `ui` export, update its TSDoc. Update the related surfa
 
 ---
 
-**See also:** [`CADENCE.md`](CADENCE.md) · [`CLAUDE.md` §2](CLAUDE.md) · [`CONVENTIONS.md` §12](CONVENTIONS.md).
+**See also:** [`CLAUDE.md` §2](CLAUDE.md) · [`CONVENTIONS.md` §12](CONVENTIONS.md).
