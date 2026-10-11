@@ -24,6 +24,7 @@ import { chromeRegions } from '../chrome'
 import { Portal } from '../portal'
 import * as m from '../reduced-motion/reduced-motion-elements'
 import { notifyOverlaySignal } from './overlay-signal'
+import { nextOverlayRank, overlayNode, overlaysAbove, stackOverlay } from './overlay-stack'
 
 /**
  * Props for {@link Overlay}: the `open` / `onOpenChange` pair, the `modal` and
@@ -128,6 +129,11 @@ export type OverlayProps = {
  *
  * The portal carries the density scope and the direction of the place that
  * opened the overlay (see {@link Portal}), so the panel follows that place.
+ *
+ * The overlay that opened last paints on top of the others, and an overlay
+ * under a modal one is inert. This holds also after a Suspense boundary or an
+ * `<Activity>` hides and reveals open overlays, which appends their portal nodes
+ * again in the order of the React tree.
  */
 export function Overlay({
 	open,
@@ -183,6 +189,30 @@ export function Overlay({
 	useEffect(() => {
 		if (open) notifyOverlaySignal()
 	}, [open])
+
+	// The rank of this open in the order of the opens. A ref, because a reveal
+	// runs the effect below again, and the rank must not change then: the reveal
+	// is the case that the stack puts in order.
+	const rank = useRef<number | null>(null)
+
+	// The overlay that opened last paints on top, and the overlays under a modal
+	// one are inert. The effect runs again on each reveal, after the portal of
+	// the overlay attaches its node again. See `overlay-stack.ts`.
+	useLayoutEffect(() => {
+		if (!open) {
+			rank.current = null
+
+			return
+		}
+
+		rank.current ??= nextOverlayRank()
+
+		const node = overlayNode(floating)
+
+		if (node === null) return
+
+		return stackOverlay(rank, { node, rank: rank.current, modal })
+	}, [open, floating, modal])
 
 	const inert = props.inert === true
 
@@ -257,6 +287,7 @@ export function Overlay({
 			<OverlayFocus
 				modal={modal}
 				regions={coverChrome ? noRegions : chromeRegions}
+				above={() => overlaysAbove(rank.current)}
 				context={context}
 				initialFocus={initialFocus}
 			>
@@ -280,6 +311,7 @@ const noRegions = (): HTMLElement[] => []
 function OverlayFocus({
 	modal,
 	regions,
+	above,
 	context,
 	initialFocus,
 	children,
@@ -287,6 +319,11 @@ function OverlayFocus({
 	modal: boolean
 	/** The regions that the trap exempts: `chromeRegions`, or none. */
 	regions: () => HTMLElement[]
+	/**
+	 * The portal nodes of the overlays that opened after this one. The trap
+	 * exempts them too, but they do not change the mode of the trap.
+	 */
+	above: () => HTMLElement[]
 	context: FloatingRootContext
 	initialFocus: RefObject<HTMLElement | null> | undefined
 	children: ReactElement
@@ -315,7 +352,10 @@ function OverlayFocus({
 			initialFocus={initialFocus}
 			guards={chrome.length === 0}
 			outsideElementsInert={chrome.length > 0}
-			getInsideElements={regions}
+			// A reveal runs the focus managers again in the order of the React tree. An
+			// overlay that opened under another then marks the page again, and without
+			// this exemption it marked the overlay above it as outside.
+			getInsideElements={() => [...regions(), ...above()]}
 		>
 			{children}
 		</FloatingFocusManager>
