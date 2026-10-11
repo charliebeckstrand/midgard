@@ -56,7 +56,8 @@ export type PanelOverlayProps = {
 	/**
 	 * Element to portal into. The panel is then scoped to that element
 	 * (`absolute` positioning, no body scroll lock), which has to establish a
-	 * positioning context.
+	 * positioning context. The panel stays in the box of that element: the
+	 * overlay clips it, also during the slide.
 	 * @defaultValue `document.body`, with full-viewport `fixed` positioning.
 	 */
 	container?: HTMLElement | null

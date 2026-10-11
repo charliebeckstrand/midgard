@@ -53,7 +53,8 @@ export type OverlayProps = {
 	/**
 	 * Optional element to portal into. When provided, the overlay is scoped to this
 	 * element (rendered with `absolute` positioning, no body scroll lock). The container
-	 * must establish a positioning context (e.g. `position: relative`).
+	 * must establish a positioning context (e.g. `position: relative`). The overlay
+	 * clips its content to the box of the container.
 	 *
 	 * @defaultValue `document.body` with full-viewport `fixed` positioning.
 	 */
