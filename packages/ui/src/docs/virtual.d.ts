@@ -11,3 +11,9 @@ declare module 'virtual:docs/pages' {
 
 	export default pages
 }
+
+declare module 'virtual:docs/search' {
+	const entries: readonly import('./plugin/search.ts').SearchEntry[]
+
+	export default entries
+}
