@@ -63,6 +63,24 @@ describe('useA11yDisclosure', () => {
 		expect(first.current.panelId).not.toBe(second.current.panelId)
 	})
 
+	// An id reference is a list of ids split at white space, so a key with a
+	// space would make `aria-controls` name two ids that do not exist.
+	it('keeps each id one token for a key with white space', () => {
+		const { result } = renderHook(() => useA11yDisclosure({ id: 'tabs', key: 'Sign in' }))
+
+		expect(result.current.triggerId).not.toMatch(/\s/)
+
+		expect(result.current.panelId).not.toMatch(/\s/)
+	})
+
+	it('gives distinct ids to keys that differ only in their punctuation or white space', () => {
+		const ids = ['a b', 'a-b', 'a%20b', 'a\tb'].map(
+			(key) => renderHook(() => useA11yDisclosure({ id: 'tabs', key })).result.current.triggerId,
+		)
+
+		expect(new Set(ids).size).toBe(ids.length)
+	})
+
 	it('keeps the prop bags referentially stable across re-renders', () => {
 		const { result, rerender } = renderHook(() => useA11yDisclosure({ id: 'flow', expanded: true }))
 
