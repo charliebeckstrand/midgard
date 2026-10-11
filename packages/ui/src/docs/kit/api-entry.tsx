@@ -1,7 +1,9 @@
+import { useEffect } from 'react'
 import { Badge } from 'ui/badge'
 import { cn } from 'ui/core'
 import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
+import { Link } from 'ui/link'
 import { Markdown, primeMarkdown } from 'ui/markdown'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
@@ -9,7 +11,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
 import { MARKDOWN_CACHE_SIZE } from '../../components/markdown/markdown.tsx'
 import { k } from '../../recipes/kata/json-tree.ts'
 import type { BarrelApi, ComponentApi, PropApi } from '../plugin/api.ts'
+import { apiIdOf } from './anchors.ts'
 import { runInSlices } from './idle.ts'
+import { scrollToPending, usePendingAnchor } from './pending-anchor.ts'
 
 const CHIP = 'rounded px-1.5 py-0.5 font-mono text-[0.8125rem]/5'
 
@@ -62,11 +66,21 @@ function PropFacts({ prop }: { prop: PropApi }) {
 
 /**
  * One prop, as the React docs write one: the name, "required" when the prop
- * is required, what it takes, and the description.
+ * is required, what it takes, and the description. The name is a link to the
+ * row, whose id is {@link apiIdOf} the component and the prop. The row scrolls
+ * into view when it mounts as the pending anchor ({@link usePendingAnchor}).
  */
-function PropRow({ prop }: { prop: PropApi }) {
+function PropRow({ component, prop }: { component: string; prop: PropApi }) {
+	const id = apiIdOf(component, prop.name)
+
+	const pending = usePendingAnchor()
+
+	useEffect(() => {
+		if (pending?.current?.id === id) scrollToPending(pending)
+	}, [pending, id])
+
 	return (
-		<Stack gap="sm" className="py-5 first:pt-0 last:pb-0">
+		<Stack id={id} gap="sm" className="py-5 first:pt-0 last:pb-0">
 			<Flex as="span" align="baseline" gap="sm" wrap>
 				<span
 					className={cn(
@@ -74,7 +88,7 @@ function PropRow({ prop }: { prop: PropApi }) {
 						prop.deprecated !== undefined && 'line-through decoration-zinc-400',
 					)}
 				>
-					{prop.name}
+					<Link href={`#${id}`}>{prop.name}</Link>
 				</span>
 				{prop.required && <span className="text-red-600 text-sm dark:text-red-500">required</span>}
 				{prop.deprecated !== undefined && (
@@ -94,7 +108,15 @@ function PropRow({ prop }: { prop: PropApi }) {
 	)
 }
 
-function PropSection({ title, props }: { title: string; props: readonly PropApi[] }) {
+function PropSection({
+	title,
+	component,
+	props,
+}: {
+	title: string
+	component: string
+	props: readonly PropApi[]
+}) {
 	if (props.length === 0) return null
 
 	return (
@@ -102,7 +124,7 @@ function PropSection({ title, props }: { title: string; props: readonly PropApi[
 			<Heading level={4}>{title}</Heading>
 			<div className="divide-y divide-zinc-200 dark:divide-zinc-800">
 				{props.map((prop) => (
-					<PropRow key={prop.name} prop={prop} />
+					<PropRow key={prop.name} component={component} prop={prop} />
 				))}
 			</div>
 		</Stack>
@@ -138,8 +160,8 @@ export function ApiEntry({ component }: { component: ComponentApi }) {
 			{component.description && <Markdown>{component.description}</Markdown>}
 			{component.props.length + component.events.length > 0 ? (
 				<Stack gap="xl">
-					<PropSection title="Props" props={component.props} />
-					<PropSection title="Events" props={component.events} />
+					<PropSection title="Props" component={component.name} props={component.props} />
+					<PropSection title="Events" component={component.name} props={component.events} />
 				</Stack>
 			) : (
 				<Text tone="muted">This component accepts no explicit props.</Text>

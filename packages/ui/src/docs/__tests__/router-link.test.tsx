@@ -12,6 +12,7 @@ function Shell() {
 		<NavigateContext value={useNavigate()}>
 			<RouterLink href="/menu">Menu</RouterLink>
 			<RouterLink href="/button">Button</RouterLink>
+			<RouterLink href="#disabled">Disabled</RouterLink>
 			<RouterLink href="https://example.com">Example</RouterLink>
 			<RouterLink href="/menu" target="_blank">
 				Menu in a new tab
@@ -83,6 +84,18 @@ describe('RouterLink', () => {
 		expect(click('Button')).toBe(true)
 
 		expect(router.state.historyAction).toBe('REPLACE')
+	})
+
+	// The browser scrolls to the element of a hash and fires `popstate`. The
+	// router then restores the scroll position of the first entry of the tab.
+	it('goes to an element of the current page through the router', () => {
+		const router = renderShell('/button')
+
+		expect(click('Disabled')).toBe(true)
+
+		expect(router.state.location).toMatchObject({ pathname: '/button', hash: '#disabled' })
+
+		expect(router.state.historyAction).toBe('PUSH')
 	})
 
 	it('leaves a modified click, another target, and another host to the browser', () => {
