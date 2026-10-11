@@ -64,6 +64,17 @@ const KNOWN: readonly { path: string; rule: string; reason: string; theme?: Them
 	},
 ]
 
+/**
+ * A browser expression that is `true` when the full stylesheet of the page
+ * loaded. The app renders the link of the sheet after the hydration commits
+ * (`docs/app/root.tsx`). `HYDRATED` is `true` earlier: the hydration is a
+ * transition, so React renders it in slices, and the heading gets its fiber
+ * before the content does. On a loaded machine, the content stayed as the
+ * prerendered markup for seconds after that. Its effects did not run, so a
+ * tab panel still had the `tabindex` of the server, and `target-size` failed.
+ */
+const STYLED = `document.querySelector('link[rel="stylesheet"][data-precedence]')?.sheet != null`
+
 /** The script of axe, which each page loads. */
 const AXE = createRequire(import.meta.url).resolve('axe-core/axe.min.js')
 
@@ -161,7 +172,7 @@ async function audit(tab: Page): Promise<AxeResults['violations']> {
 
 /**
  * Runs the WCAG rules of axe on the page at `route` in each theme, after it
- * hydrates and its loads end. After the change to the dark theme, axe waits
+ * hydrates, its full stylesheet loads, and its loads end. After the change to the dark theme, axe waits
  * until the root has the `dark` class and no color is in a transition.
  */
 async function auditThemes(
@@ -173,6 +184,8 @@ async function auditThemes(
 	await tab.goto(`${origin}${route}`)
 
 	await tab.waitForFunction(HYDRATED)
+
+	await tab.waitForFunction(STYLED)
 
 	await tab.waitForLoadState('networkidle')
 
