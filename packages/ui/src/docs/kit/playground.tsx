@@ -3,7 +3,9 @@ import { Badge } from 'ui/badge'
 import { cn } from 'ui/core'
 import { Flex } from 'ui/flex'
 import { useScrollRegion } from 'ui/hooks'
+import { Input } from 'ui/input'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
+import { NumberInput } from 'ui/number-input'
 import { useDensityStep } from 'ui/primitives/density'
 import { type DensityStep, isDensityStep, stepDown } from '../../core/density/steps.ts'
 import { omote } from '../../recipes/kiso/index.ts'
@@ -12,7 +14,28 @@ import type { ExampleCode } from '../plugin/examples.ts'
 import { ExampleFrame, metaOf } from './example.tsx'
 import { humanize } from './humanize.ts'
 
-type Field = { name: string; values: readonly Literal[]; default?: Literal; required?: true }
+/** A field that picks one value of a union of literals. */
+type ChoiceField = {
+	kind: 'choice'
+	name: string
+	values: readonly Literal[]
+	default?: Literal
+	required?: true
+}
+
+/** A field that takes any text or any number. */
+type FreeField = {
+	kind: 'text' | 'number'
+	name: string
+	default?: string | number
+	/** The value that the field starts at. A field with none starts empty. */
+	start?: string | number
+}
+
+/** The props that get a free field, with the value that each field starts at. */
+type Free = { readonly [prop: string]: string | number | undefined }
+
+type Field = ChoiceField | FreeField
 
 type Values = { readonly [prop: string]: Literal | undefined }
 
@@ -49,22 +72,90 @@ function labelOf(value: Literal): string {
 	return typeof value === 'string' ? (SIZES[value] ?? humanize(value)) : String(value)
 }
 
+/** The default of a free field: the code of the tag, as a number or as the text in its quotes. */
+function freeDefaultOf(
+	kind: FreeField['kind'],
+	text: string | undefined,
+): string | number | undefined {
+	if (text === undefined) return undefined
+
+	if (kind === 'number') {
+		const value = Number(text)
+
+		return text.trim() !== '' && Number.isFinite(value) ? value : undefined
+	}
+
+	return /^(['"`])(.*)\1$/s.exec(text)?.[2]
+}
+
+/**
+ * The free field of a prop, or `undefined` when it gets none. A number prop
+ * with a number as its default is a setting of the component, such as `max`
+ * or `duration`, so it gets a number field. A prop that `free` names gets a
+ * text field or a number field by its type, and starts at the value that
+ * `free` gives. A prop whose name starts with `default` sets the first state
+ * of the component, so it gets a field only when `free` names it.
+ */
+function freeFieldOf(prop: PropApi, free: Free): FreeField | undefined {
+	const { name, type, default: text } = prop
+
+	if (Object.hasOwn(free, name)) {
+		if (type !== 'string' && type !== 'number' && type !== 'ReactNode') {
+			throw new Error(
+				`docs: the prop ${name} is a ${type}, and a free field takes a string or a number`,
+			)
+		}
+
+		const kind = type === 'number' ? 'number' : 'text'
+
+		const fallback = freeDefaultOf(kind, text)
+
+		// An empty string starts the field empty, which omits the prop.
+		const start = free[name] === '' ? undefined : free[name]
+
+		return {
+			kind,
+			name,
+			...(fallback !== undefined && { default: fallback }),
+			...(start !== undefined && { start }),
+		}
+	}
+
+	if (type !== 'number' || name.startsWith('default')) return undefined
+
+	const fallback = freeDefaultOf('number', text)
+
+	return fallback === undefined
+		? undefined
+		: { kind: 'number', name, default: fallback, start: fallback }
+}
+
 /**
  * A field for each prop whose type is a union of literals, and for each prop
  * that `given` gives values. The default of a field is the value that the
  * component renders when the prop is omitted. A density step with no tag
- * takes the step of the scope, which is `step`.
+ * takes the step of the scope, which is `step`. A prop of another type can
+ * get a free field ({@link freeFieldOf}).
  */
 function fieldsOf(
 	props: readonly PropApi[],
 	omit: readonly string[],
 	given: { readonly [prop: string]: readonly Literal[] | undefined },
+	free: Free,
 	step: DensityStep,
 ): Field[] {
-	return props.flatMap(({ name, default: text, deprecated, required, ...prop }) => {
+	return props.flatMap((prop): Field[] => {
+		const { name, default: text, deprecated, required } = prop
+
+		if (deprecated !== undefined || omit.includes(name)) return []
+
 		const values = given[name] ?? prop.values
 
-		if (!values || deprecated !== undefined || omit.includes(name)) return []
+		if (!values) {
+			const field = freeFieldOf(prop, free)
+
+			return field ? [field] : []
+		}
 
 		// The tag writes the default as code, such as `'md'` or `true`.
 		const tagged = values.find((value) => text === JSON.stringify(value) || text === `'${value}'`)
@@ -74,6 +165,7 @@ function fieldsOf(
 
 		return [
 			{
+				kind: 'choice',
 				name,
 				values,
 				...(fallback !== undefined && { default: fallback }),
@@ -86,17 +178,21 @@ function fieldsOf(
 /**
  * The first value of a field: its default, or the first value of a required
  * prop with no default. Any other field starts unset, as the component does
- * when the omitted prop is no value.
+ * when the omitted prop is no value. A free field starts at its start.
  */
-function startOf({ default: fallback, values, required }: Field): Literal | undefined {
-	return fallback ?? (required ? values[0] : undefined)
+function startOf(field: Field): Literal | undefined {
+	if (field.kind !== 'choice') return field.start
+
+	return field.default ?? (field.required ? field.values[0] : undefined)
 }
 
-/** A prop as a JSX attribute. */
+/** A prop as a JSX attribute. A string with a quote in it goes in braces. */
 function attribute(name: string, value: Literal): string {
 	if (value === true) return name
 
-	return typeof value === 'string' ? `${name}="${value}"` : `${name}={${value}}`
+	if (typeof value !== 'string') return `${name}={${value}}`
+
+	return value.includes('"') ? `${name}={${JSON.stringify(value)}}` : `${name}="${value}"`
 }
 
 /**
@@ -129,13 +225,62 @@ function propsOf(fields: readonly Field[], values: Values): Values {
 	)
 }
 
+/** The prefix of a field: the name of its prop. */
+function FieldLabel({ label }: { label: string }) {
+	return <span className="text-zinc-500 dark:text-zinc-400">{label}</span>
+}
+
+/**
+ * A text field or a number field. An empty field omits the prop, and its
+ * placeholder shows the default.
+ */
+function FreePicker({
+	field,
+	value,
+	onValueChange,
+}: {
+	field: FreeField
+	value: Literal | undefined
+	onValueChange: (value: Literal | undefined) => void
+}) {
+	const label = humanize(field.name)
+
+	const placeholder = field.default === undefined ? undefined : String(field.default)
+
+	if (field.kind === 'number') {
+		return (
+			<NumberInput
+				aria-label={label}
+				prefix={<FieldLabel label={label} />}
+				placeholder={placeholder}
+				className="w-44 shrink-0"
+				value={typeof value === 'number' ? value : null}
+				onValueChange={(next) => onValueChange(next ?? undefined)}
+			/>
+		)
+	}
+
+	return (
+		<Input
+			aria-label={label}
+			prefix={<FieldLabel label={label} />}
+			placeholder={placeholder}
+			className="w-56 shrink-0"
+			value={typeof value === 'string' ? value : ''}
+			onChange={(event) =>
+				onValueChange(event.target.value === '' ? undefined : event.target.value)
+			}
+		/>
+	)
+}
+
 function FieldPicker({
 	field,
 	step,
 	value,
 	onValueChange,
 }: {
-	field: Field
+	field: ChoiceField
 	/** The step of the page. The badge is one step below it. */
 	step: DensityStep
 	value: Literal | undefined
@@ -162,7 +307,7 @@ function FieldPicker({
 			aria-label={label}
 			value={value === undefined ? UNSET : JSON.stringify(value)}
 			displayValue={(key) => options.find((option) => option.key === key)?.label ?? key}
-			prefix={<span className="text-zinc-500 dark:text-zinc-400">{label}</span>}
+			prefix={<FieldLabel label={label} />}
 			placement="bottom-auto"
 			onValueChange={(key) => {
 				if (key) onValueChange(field.values.find((option) => JSON.stringify(option) === key))
@@ -187,8 +332,10 @@ function FieldPicker({
 /**
  * The playground of a page: the default export of its `playground.tsx`, with
  * a field for each prop of its component whose type is a union of literals.
- * The fields drive this one instance. "Show code" shows the file with the
- * values that are not the defaults as attributes.
+ * A number prop with a number as its default, such as `max`, gets a number
+ * field, and `free` names more props that get a text or a number field. The
+ * fields drive this one instance. "Show code" shows the file with the values
+ * that are not the defaults as attributes.
  *
  * @example
  * import api from 'virtual:docs/api/components/button'
@@ -201,6 +348,7 @@ export function Playground<P extends object>({
 	api,
 	omit = [],
 	values: given = {},
+	free = {},
 	surface,
 }: {
 	/**
@@ -218,6 +366,14 @@ export function Playground<P extends object>({
 	 * a preset or a number, gets a field from them.
 	 */
 	values?: { readonly [K in keyof P & string]?: readonly Literal[] }
+	/**
+	 * The props that get a text field or a number field, by their type: a
+	 * string, a number, or a node, which takes text. Use it for a prop that a
+	 * reader changes to see the result, such as a title or a `value`. Each
+	 * field starts at the value here, and an empty string starts it empty. Give
+	 * the start here and not in the playground file, so "Show code" shows it.
+	 */
+	free?: { readonly [K in keyof P & string]?: string | number }
 	/** Makes the instance box fill the frame, for a surface of a page. */
 	surface?: boolean
 }) {
@@ -235,7 +391,7 @@ export function Playground<P extends object>({
 
 	const step = useDensityStep()
 
-	const fields = fieldsOf(component.props, omit, given, step)
+	const fields = fieldsOf(component.props, omit, given, free, step)
 
 	const [values, setValues] = useState<Values>(() =>
 		Object.fromEntries(fields.map((field) => [field.name, startOf(field)])),
@@ -248,15 +404,27 @@ export function Playground<P extends object>({
 			surface={surface}
 			actions={
 				<Rail label="Props">
-					{fields.map((field) => (
-						<FieldPicker
-							key={field.name}
-							field={field}
-							step={step}
-							value={values[field.name]}
-							onValueChange={(value) => setValues({ ...values, [field.name]: value })}
-						/>
-					))}
+					{fields.map((field) => {
+						const onValueChange = (value: Literal | undefined) =>
+							setValues({ ...values, [field.name]: value })
+
+						return field.kind === 'choice' ? (
+							<FieldPicker
+								key={field.name}
+								field={field}
+								step={step}
+								value={values[field.name]}
+								onValueChange={onValueChange}
+							/>
+						) : (
+							<FreePicker
+								key={field.name}
+								field={field}
+								value={values[field.name]}
+								onValueChange={onValueChange}
+							/>
+						)
+					})}
 				</Rail>
 			}
 		>

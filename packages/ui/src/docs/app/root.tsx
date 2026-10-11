@@ -33,8 +33,10 @@ import {
 } from '../debug/index.tsx'
 import { useIdle } from '../kit/idle.ts'
 import appCss from './app.css?url'
+import { DirectionScript, DirectionSwitch } from './direction.tsx'
 import { PageError } from './page-error.tsx'
 import { NavigateContext, RouterLink } from './router-link.tsx'
+import { DocsSearch, SearchPaletteHost } from './search.tsx'
 import { DocsSidebar } from './sidebar.tsx'
 import { StaleBuildScript } from './stale-build.tsx'
 
@@ -58,6 +60,7 @@ export function Layout({ children }: { children: ReactNode }) {
 					<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 					<StaleBuildScript />
 					<link rel="expect" href={`#${FIRST_PAINT}`} blocking="render" />
+					<DirectionScript />
 					<DebugScript />
 					<Meta />
 					<Links />
@@ -97,6 +100,7 @@ const ACTIONS = (
 		<EventLogButton />
 		<BugLogButton />
 		<AppearanceSettings>
+			<DirectionSwitch />
 			<DebugSwitch />
 		</AppearanceSettings>
 	</>
@@ -136,30 +140,33 @@ export default function App() {
 			<UIProvider link={RouterLink} pathname={page?.path ?? pathname}>
 				<title>{title ? `${title} · Docs` : 'Docs'}</title>
 				<Stylesheet />
-				<SidebarLayout stickyHeader actions={ACTIONS} sidebar={<DocsSidebar pages={pages} />}>
-					<SidebarLayoutHeader>
-						<Flex align="center" gap="md">
-							<Button
-								variant="bare"
-								className="max-lg:hidden"
-								aria-label="Toggle sidebar"
-								onClick={() => setSidebar(sidebar === 'offcanvas' ? 'locked' : 'offcanvas')}
-							>
-								{/* The class of the root selects the icon, so the first paint shows the stored mode. */}
-								<Icon icon={<PanelLeftDashed />} className="sidebar-offcanvas:hidden" />
-								<Icon icon={<PanelLeft />} className="hidden sidebar-offcanvas:block" />
-							</Button>
-							<Heading>{title ?? 'Docs'}</Heading>
-						</Flex>
-					</SidebarLayoutHeader>
-					<SidebarLayoutBody>
-						<Stack gap="xl">
-							<LocaleProvider locale="en-US">
-								<Outlet />
-							</LocaleProvider>
-						</Stack>
-					</SidebarLayoutBody>
-				</SidebarLayout>
+				<DocsSearch>
+					<SidebarLayout stickyHeader actions={ACTIONS} sidebar={<DocsSidebar pages={pages} />}>
+						<SidebarLayoutHeader>
+							<Flex align="center" gap="md">
+								<Button
+									variant="bare"
+									className="max-lg:hidden"
+									aria-label="Toggle sidebar"
+									onClick={() => setSidebar(sidebar === 'offcanvas' ? 'locked' : 'offcanvas')}
+								>
+									{/* The class of the root selects the icon, so the first paint shows the stored mode. */}
+									<Icon icon={<PanelLeftDashed />} className="sidebar-offcanvas:hidden" />
+									<Icon icon={<PanelLeft />} className="hidden sidebar-offcanvas:block" />
+								</Button>
+								<Heading>{title ?? 'Docs'}</Heading>
+							</Flex>
+						</SidebarLayoutHeader>
+						<SearchPaletteHost />
+						<SidebarLayoutBody>
+							<Stack gap="xl">
+								<LocaleProvider locale="en-US">
+									<Outlet />
+								</LocaleProvider>
+							</Stack>
+						</SidebarLayoutBody>
+					</SidebarLayout>
+				</DocsSearch>
 			</UIProvider>
 		</NavigateContext>
 	)
