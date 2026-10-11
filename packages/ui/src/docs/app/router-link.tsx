@@ -28,6 +28,9 @@ function isNativeClick(event: MouseEvent<HTMLAnchorElement>, target: string | un
  * page when the reader points at it or focuses it for 100 ms, as the
  * `prefetch="intent"` of `Link` does.
  *
+ * A hash alone, such as `#disabled`, also goes through the router, to an
+ * element of the current page.
+ *
  * The `Link` of React Router reads the location and the route, so each of the
  * about 100 items of the sidebar renders again on each change of the router
  * state. A navigation then spends about 100 ms more at 4x CPU. This link reads
@@ -52,7 +55,13 @@ export function RouterLink({
 
 	// A path that starts with one slash is a page of the site. A URL, or a path
 	// that starts with two slashes, goes to another host.
-	const internal = href.startsWith('/') && !href.startsWith('//')
+	const page = href.startsWith('/') && !href.startsWith('//')
+
+	// A hash alone names an element of this page. The browser would scroll to it
+	// and then fire `popstate`, and the router would take that entry for the
+	// first entry of the tab and restore its scroll position. Through the
+	// router, the entry is new, and the router scrolls to the element.
+	const internal = page || href.startsWith('#')
 
 	// A second hover, focus, or touch does not start the 100 ms again.
 	const start = () => {
@@ -80,7 +89,9 @@ export function RouterLink({
 					// back button does not stay on the same page.
 					const { pathname, search, hash } = window.location
 
-					navigate(href, { replace: pathname + search + hash === href })
+					const current = href.startsWith('#') ? hash : pathname + search + hash
+
+					navigate(href, { replace: current === href })
 				})}
 				onMouseEnter={composeEventHandlers(onMouseEnter, start)}
 				onMouseLeave={composeEventHandlers(onMouseLeave, cancel)}
@@ -88,7 +99,7 @@ export function RouterLink({
 				onBlur={composeEventHandlers(onBlur, cancel)}
 				onTouchStart={composeEventHandlers(onTouchStart, start)}
 			/>
-			{internal && prefetch && <PrefetchPageLinks page={href} />}
+			{page && prefetch && <PrefetchPageLinks page={href} />}
 		</>
 	)
 }

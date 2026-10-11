@@ -1,9 +1,13 @@
-import { useCallback } from 'react'
+import { useCallback, useEffect, useEffectEvent, useRef } from 'react'
+import { useLocation } from 'react-router'
 import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger } from 'ui/accordion'
 import { Heading } from 'ui/heading'
+import { Link } from 'ui/link'
 import { Stack } from 'ui/stack'
 import type { BarrelApi } from '../plugin/api.ts'
+import { API, apiIdOf, componentOfHash } from './anchors.ts'
 import { useLoadThenOpen } from './load-then-open.ts'
+import { type PendingAnchor, PendingAnchorContext, scrollToPending } from './pending-anchor.ts'
 
 // The entry renders TSDoc as Markdown, so it carries `marked`. It is a chunk
 // of its own, so it does not delay the first paint. It loads in idle time
@@ -30,6 +34,11 @@ function loadEntry(): Promise<EntryModule> {
  * The API reference of a barrel: one entry for each component, in the name
  * order of the API data. The entry loads in idle time after the mount, or
  * when the reader points at the list or focuses it.
+ *
+ * Each entry and each prop has an id ({@link apiIdOf}). When the hash of the
+ * location names a closed entry, or a prop in it, the entry opens and the page
+ * scrolls to the element of the hash. The browser scrolls to an element that
+ * is on the page already, so an open entry does nothing.
  */
 export function ApiTable({ api }: { api: BarrelApi }) {
 	const components = Object.values(api)
@@ -63,26 +72,60 @@ export function ApiTable({ api }: { api: BarrelApi }) {
 			]
 		})
 
+	const { hash } = useLocation()
+
+	const named = componentOfHash(hash)
+
+	const target = named !== undefined && named in api ? named : undefined
+
+	// The anchor to scroll to when its row mounts and when its entry has opened.
+	const pending = useRef<PendingAnchor | null>(null)
+
+	const reveal = useEffectEvent((component: string, id: string) => {
+		if (open.includes(component)) return
+
+		pending.current = { id, component, opened: false }
+
+		change((current) => (current.includes(component) ? current : [...current, component]))
+	})
+
+	useEffect(() => {
+		if (target) reveal(target, hash.slice(1))
+	}, [target, hash])
+
 	if (components.length === 0) return null
 
 	return (
 		<Stack gap="sm">
-			<Heading level={2}>API reference</Heading>
-			<Accordion
-				type="multiple"
-				value={open}
-				onValueChange={toggle}
-				onPointerEnter={warm}
-				onPointerDown={warm}
-				onFocus={warm}
-			>
-				{components.map((component) => (
-					<AccordionItem key={component.name} value={component.name}>
-						<AccordionTrigger className="font-mono">{`<${component.name} />`}</AccordionTrigger>
-						<AccordionPanel>{ApiEntry && <ApiEntry component={component} />}</AccordionPanel>
-					</AccordionItem>
-				))}
-			</Accordion>
+			<Heading level={2} id={API}>
+				<Link href={`#${API}`}>API reference</Link>
+			</Heading>
+			<PendingAnchorContext value={pending}>
+				<Accordion
+					type="multiple"
+					value={open}
+					onValueChange={toggle}
+					onPointerEnter={warm}
+					onPointerDown={warm}
+					onFocus={warm}
+					onOpenComplete={(component) => {
+						if (pending.current?.component !== component) return
+
+						pending.current.opened = true
+
+						scrollToPending(pending)
+					}}
+				>
+					{components.map((component) => (
+						<AccordionItem key={component.name} value={component.name}>
+							<AccordionTrigger className="font-mono">
+								<span id={apiIdOf(component.name)}>{`<${component.name} />`}</span>
+							</AccordionTrigger>
+							<AccordionPanel>{ApiEntry && <ApiEntry component={component} />}</AccordionPanel>
+						</AccordionItem>
+					))}
+				</Accordion>
+			</PendingAnchorContext>
 		</Stack>
 	)
 }

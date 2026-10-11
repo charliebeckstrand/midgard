@@ -9,7 +9,7 @@ import WithLabel from './with-label.tsx'
 export default function ProgressPage() {
 	return (
 		<>
-			<Playground of={ProgressPlayground} api={api} />
+			<Playground of={ProgressPlayground} api={api} free={{ value: 60 }} />
 			<Example of={Value} />
 			<Example of={GaugeSize} />
 			<Example of={GaugeColor} />
