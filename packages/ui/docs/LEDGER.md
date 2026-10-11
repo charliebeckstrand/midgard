@@ -105,7 +105,7 @@ A unit leaves Clean only on evidence. A pull request that touches the files of a
 | `search-input` | Not started | — | — | — | — |
 | `segment` | Not started | — | — | — | — |
 | `select` | Not started | — | — | — | — |
-| `sheet` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | [#2324](https://github.com/charliebeckstrand/midgard/pull/2324), [#2326](https://github.com/charliebeckstrand/midgard/pull/2326) |
+| `sheet` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | [#2324](https://github.com/charliebeckstrand/midgard/pull/2324), [#2326](https://github.com/charliebeckstrand/midgard/pull/2326), [#2329](https://github.com/charliebeckstrand/midgard/pull/2329) |
 | `shiny-text` | Not started | — | — | — | — |
 | `sidebar` | Not started | — | — | — | — |
 | `signature-pad` | Not started | — | — | — | — |
@@ -166,7 +166,7 @@ A unit leaves Clean only on evidence. A pull request that touches the files of a
 | `mount` | Not started | — | — | — | — |
 | `offcanvas` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | — |
 | `option` | Not started | — | — | — | — |
-| `overlay` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | — |
+| `overlay` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | [#2329](https://github.com/charliebeckstrand/midgard/pull/2329) |
 | `panel` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | — |
 | `polymorphic` | Not started | — | — | — | — |
 | `popover` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | [#2324](https://github.com/charliebeckstrand/midgard/pull/2324) |
