@@ -307,12 +307,13 @@ describe('Sheet handle', () => {
 		expect(panel.style.width).toBe('')
 	})
 
-	// A grip on a sheet docked across is a strip on the edge. A full-height area
-	// there would put a `touch-none` separator over every control in the panel.
-	it.each(['top', 'bottom'] as const)('keeps the %s grip to a strip on its edge', (side) => {
+	// A grip on a sheet docked across is a row of the panel at its edge. A
+	// full-height area there would put a `touch-none` separator over every control
+	// in the panel, and a strip laid over the panel covered the slot next to it.
+	it.each(['top', 'bottom'] as const)('puts the %s grip in the flow at its edge', (side) => {
 		const { handle } = renderHandled(side)
 
-		expect(handle).toHaveClass('inset-x-0')
+		expect(handle).not.toHaveClass('absolute')
 
 		expect(handle).not.toHaveClass('inset-y-0')
 	})

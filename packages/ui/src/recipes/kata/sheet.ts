@@ -110,14 +110,12 @@ export const k = {
 	 * The drag handle: a grab area tall enough to aim at (`base`), and the bar
 	 * inside it the reader actually sees (`bar`).
 	 *
-	 * It rides the panel's inline edge rather than sitting in the flow, because a
-	 * sheet resizes across its own scrolling body. Laid out in the column with
-	 * the slots, the grip would scroll away from the edge it moves. On a sheet
-	 * docked to a side, the grab area is the full height, so the reach is the
-	 * panel's rather than the bar's. A sheet docked across gets a strip on its
-	 * edge, not a cover over the whole panel.
-	 * `hannou.grab.default` carries the rest, including the `touch-none` that
-	 * makes the gesture work at all under a finger.
+	 * On a sheet docked to a side, the grip rides the inline edge of the panel and
+	 * not the column of slots, because the slots run along it. The grab area is
+	 * the full height, so the reach is the panel's rather than the bar's. On a
+	 * sheet docked across, the grip is a row at the edge that faces the screen.
+	 * Neither covers a slot. `hannou.grab.default` carries the rest, including the
+	 * `touch-none` that makes the gesture work at all under a finger.
 	 *
 	 * `side` puts it on the edge that faces the screen: a right-hand sheet grows
 	 * leftward, so its grip is on the left.
@@ -125,10 +123,7 @@ export const k = {
 	handle: {
 		base: [
 			flex.col,
-			// The same reach the drawer's grip has, turned on its side: `px-3` around
-			// a `w-1.5` bar is the `py-3` around its `h-1.5` one, so both panels are
-			// grabbed by a strip of the same thickness.
-			'absolute z-10 px-3 items-center justify-center',
+			'z-10 items-center justify-center',
 			...hannou.grab.default,
 			// The stroke goes on the bar, not here — see the archetype's grip. This
 			// suppresses the browser's own, which would draw around the whole reach.
@@ -138,10 +133,16 @@ export const k = {
 		side: {
 			// The full-height reach belongs to the two side arms only. In the base, it
 			// survives the `bottom-0` of a cross arm, and the strip covers the panel.
-			right: 'inset-y-0 left-0',
-			left: 'inset-y-0 right-0',
-			top: 'inset-x-0 bottom-0 py-3 w-full',
-			bottom: 'inset-x-0 top-0 py-3 w-full',
+			// On a side, the strip lies over the inset and is as thick as the inset at
+			// each density step, so it covers no slot.
+			right: ['absolute inset-y-0 left-0', inset.grip.x],
+			left: ['absolute inset-y-0 right-0', inset.grip.x],
+			// Across, the strip is a row of the panel at its edge, as the grip of a
+			// drawer is. It lies over the inset of the slot next to it and keeps the
+			// reach of the drawer grip. `sticky` holds it at the edge when the panel
+			// scrolls.
+			top: ['sticky bottom-0 order-last w-full shrink-0 py-3', inset.grip.over.top],
+			bottom: ['sticky top-0 w-full shrink-0 py-3', inset.grip.over.bottom],
 		},
 		/** Keyed by the separator's own line: a sheet docked to a side is grabbed the other way from one docked across. */
 		bar: panel.grip.bar,
