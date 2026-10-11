@@ -12,6 +12,15 @@ export function latestVisit(place: Place): Visit {
 }
 
 /**
+ * The newest visit to a place that has a rating, or `undefined` where no visit
+ * has one. A visit with no rating says nothing about the place, so it does not
+ * hide the rating of an older visit.
+ */
+export function ratedVisit(place: Place): Visit | undefined {
+	return place.visits.find((visit) => visit.rating > 0)
+}
+
+/**
  * A stored visit as the draft that writes it back unchanged. A stored photo
  * reads as its key and an address, and a draft names a photo by its key alone.
  */
@@ -45,7 +54,8 @@ export const PLACE_ORDER_LABEL: Readonly<Record<PlaceOrder, string>> = {
 
 /**
  * The places in an order. The newest visit and the rating go highest first, and
- * places that tie stay in alphabetical order.
+ * places that tie stay in alphabetical order. The rating of a place is the
+ * rating of its newest rated visit ({@link ratedVisit}).
  */
 export function sortPlaces(places: readonly Place[], order: PlaceOrder): Place[] {
 	const byName = (a: Place, b: Place) => a.name.localeCompare(b.name)
@@ -55,7 +65,7 @@ export function sortPlaces(places: readonly Place[], order: PlaceOrder): Place[]
 	const key =
 		order === 'visited'
 			? (place: Place) => latestVisit(place).visitedAt
-			: (place: Place) => latestVisit(place).rating
+			: (place: Place) => ratedVisit(place)?.rating ?? 0
 
 	return [...places].sort((a, b) => {
 		const left = key(a)
