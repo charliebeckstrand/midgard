@@ -201,6 +201,41 @@ describe('SidebarLayout offcanvas mode', () => {
 		expect(document.body.querySelector('[class*="start-80"]')).not.toBeInTheDocument()
 	})
 
+	// A finger fires `pointerleave` as it lifts, so a leave that closed the peek
+	// would close it after each tap inside it. Touch closes it with a tap outside.
+	it.each(['sheet body', 'buffer'])(
+		'keeps the peek open when a touch leaves the %s, and closes it on a tap outside',
+		(from) => {
+			const { container } = renderUI(
+				<SidebarLayout sidebar={<div>floating-sidebar</div>}>body</SidebarLayout>,
+			)
+
+			const hotZone = present(
+				container.querySelector('[aria-hidden="true"]'),
+				'[aria-hidden="true"]',
+			)
+
+			fireEvent.pointerEnter(hotZone, { pointerType: 'touch' })
+
+			const target =
+				from === 'buffer'
+					? present(document.body.querySelector('[class*="start-80"]'), '[class*="start-80"]')
+					: (present(inSheet('floating-sidebar'), 'sheet sidebar').parentElement as HTMLElement)
+
+			fireEvent.pointerLeave(target, { pointerType: 'touch' })
+
+			expect(inSheet('floating-sidebar')).toBeInTheDocument()
+
+			fireEvent.pointerDown(container, { pointerType: 'touch' })
+
+			fireEvent.mouseDown(container)
+
+			fireEvent.click(container)
+
+			expect(inSheet('floating-sidebar')).toBeNull()
+		},
+	)
+
 	it('closes when the pointer leaves the start-edge buffer', () => {
 		const { container } = renderUI(
 			<SidebarLayout sidebar={<div>floating-sidebar</div>}>body</SidebarLayout>,

@@ -5,6 +5,7 @@
  */
 
 import { mode } from '../../../core/recipe'
+import { sen } from '../sen'
 
 /** The name the grab area carries, so the bar inside it can read the area's state. */
 const GROUP = 'group/grip'
@@ -28,7 +29,12 @@ const FOCUS = [
 ]
 
 /** The grip's own look, which is the same bar whichever way it lies. */
-const BAR = ['rounded-full', ...mode('bg-zinc-950/20', 'dark:bg-white/25'), ...FOCUS]
+const BAR = [
+	'rounded-full',
+	...mode('bg-zinc-950/20', 'dark:bg-white/25'),
+	sen.forced.shape,
+	...FOCUS,
+]
 
 export const grip = {
 	/** Goes on the grab area, so the bar can read the focus the area holds. */

@@ -50,7 +50,9 @@ export const k = {
 		base: content,
 		surface: {
 			default: popover,
-			glass: [glass, ring.default],
+			// The ring is a box-shadow, which forced colors remove, so an outline keeps
+			// the edge there, as it does for the flat surface (`omote.popover`).
+			glass: [glass, ring.default, sen.forced.outline],
 		},
 	},
 	motion: tooltip,

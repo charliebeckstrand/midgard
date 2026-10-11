@@ -1151,6 +1151,95 @@ describe('MenuSub', () => {
 		expect(onOpenChange).toHaveBeenCalledTimes(2)
 	})
 
+	// The keyboard closes a submenu back to its parent row in the model of the menu
+	// it hangs off: real focus on the row in a static menu, and focus on the trigger
+	// with the row as its active descendant in a dropdown, whose trigger keeps focus
+	// while it is open.
+	it.each<['static' | 'dropdown', string]>([
+		['static', 'Escape'],
+		['static', 'ArrowLeft'],
+		['dropdown', 'Escape'],
+		['dropdown', 'ArrowLeft'],
+	])('hands the cursor back in a %s menu on %s from the submenu', (model, key) => {
+		renderUI(
+			model === 'dropdown' ? (
+				<Menu placement="bottom-start">
+					<MenuTrigger>
+						<button type="button">Open</button>
+					</MenuTrigger>
+					<MenuContent>
+						<MenuSub label="More">
+							<MenuItem>Nested</MenuItem>
+						</MenuSub>
+					</MenuContent>
+				</Menu>
+			) : (
+				<Menu defaultOpen>
+					<MenuContent>
+						<MenuSub label="More">
+							<MenuItem>Nested</MenuItem>
+						</MenuSub>
+					</MenuContent>
+				</Menu>
+			),
+		)
+
+		if (model === 'dropdown') fireEvent.click(screen.getByText('Open'))
+
+		const row = screen.getByRole('menuitem', { name: /More/ })
+
+		fireEvent.keyDown(row, { key: 'Enter' })
+
+		const nested = screen.getByRole('menuitem', { name: 'Nested' })
+
+		expect(nested).toHaveFocus()
+
+		fireEvent.keyDown(nested, { key })
+
+		expect(row).toHaveAttribute('aria-expanded', 'false')
+
+		if (model === 'static') {
+			expect(row).toHaveFocus()
+		} else {
+			const trigger = screen.getByText('Open')
+
+			expect(trigger).toHaveFocus()
+
+			expect(trigger).toHaveAttribute('aria-activedescendant', row.id)
+		}
+	})
+
+	// Focus that leaves the parent row for anywhere in the open panel is the open
+	// completing. The panel takes focus itself from a press on its padding, a
+	// heading, a separator, or the gap between two rows.
+	it.each<[string, (panel: HTMLElement) => HTMLElement]>([
+		['a row of the panel', () => screen.getByRole('menuitem', { name: 'Nested' })],
+		['the panel itself', (panel) => panel],
+	])('keeps the submenu open when focus moves to %s', (_name, target) => {
+		renderUI(
+			<Menu defaultOpen>
+				<MenuContent>
+					<MenuSub label="More">
+						<MenuItem>Nested</MenuItem>
+					</MenuSub>
+				</MenuContent>
+			</Menu>,
+		)
+
+		const row = screen.getByRole('menuitem', { name: /More/ })
+
+		fireEvent.click(row)
+
+		const panel = present(
+			screen.getByRole('menuitem', { name: 'Nested' }).closest<HTMLElement>('[role="menu"]'),
+			'submenu panel',
+		)
+
+		fireEvent.blur(row, { relatedTarget: target(panel) })
+
+		expect(row).toHaveAttribute('aria-expanded', 'true')
+	})
+
 	/**
 	 * The teardown a real submenu panel owes on detach, end to end.
 	 *

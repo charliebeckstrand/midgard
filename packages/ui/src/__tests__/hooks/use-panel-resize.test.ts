@@ -14,9 +14,13 @@ function makePanel(height = 300): HTMLDivElement {
 	return panel
 }
 
-/** A window pointer event at `at` px on each axis, stamped at `t` ms. The constructor takes no time stamp. */
-function windowPointer(type: string, at: number, t: number): PointerEvent {
-	const event = new PointerEvent(type, { clientX: at, clientY: at })
+/**
+ * A window pointer event at `at` px on each axis, stamped at `t` ms, from pointer
+ * `pointerId`. Pointer 1 is the one that {@link press} puts down. The constructor
+ * takes no time stamp.
+ */
+function windowPointer(type: string, at: number, t: number, pointerId = 1): PointerEvent {
+	const event = new PointerEvent(type, { clientX: at, clientY: at, pointerId })
 
 	Object.defineProperty(event, 'timeStamp', { value: t })
 
@@ -112,6 +116,40 @@ describe('usePanelResize', () => {
 
 			expect(result.current.size).toBe(300)
 		})
+
+		it.each<[PanelSide, string]>([
+			['bottom', 'pointermove'],
+			['bottom', 'pointerup'],
+			['bottom', 'pointercancel'],
+			['right', 'pointermove'],
+			['right', 'pointerup'],
+			['right', 'pointercancel'],
+		])(
+			'follows only the pointer that pressed a %s grip, not a %s from a second finger',
+			(side, type) => {
+				const { result, panel } = renderAttached(side)
+
+				press(result)
+
+				act(() => {
+					window.dispatchEvent(windowPointer('pointermove', 350, 100))
+
+					window.dispatchEvent(windowPointer(type, 100, 200, 2))
+				})
+
+				expect(panel.style[panelAxis(side)]).toBe('350px')
+
+				expect(result.current.resizing).toBe(true)
+
+				act(() => {
+					window.dispatchEvent(windowPointer('pointerup', 350, 300))
+				})
+
+				expect(result.current.size).toBe(350)
+
+				expect(result.current.resizing).toBe(false)
+			},
+		)
 
 		it.each<[PanelSide, number]>([
 			// A bottom panel grows as the pointer goes up, and a right panel as it goes left.
@@ -227,6 +265,33 @@ describe('usePanelResize', () => {
 			expect(event.preventDefault).not.toHaveBeenCalled()
 
 			expect(result.current.size).toBeNull()
+		})
+
+		// A key step that eased would leave the next step measuring a box still on its
+		// way, and the drawer floor then fell below the chrome. A key step lands at once
+		// instead, until a press of the pointer or a close.
+		it('suspends the size transition after a key step, until the next press', () => {
+			const { result, rerender } = renderAttached('bottom')
+
+			act(() => result.current.handleProps.onKeyDown(makeKeyEvent<HTMLElement>('ArrowUp')))
+
+			expect(result.current.resizing).toBe(true)
+
+			expect(result.current.handleProps['data-dragging']).toBeUndefined()
+
+			press(result)
+
+			act(() => {
+				window.dispatchEvent(windowPointer('pointerup', 400, 1000))
+			})
+
+			expect(result.current.resizing).toBe(false)
+
+			act(() => result.current.handleProps.onKeyDown(makeKeyEvent<HTMLElement>('ArrowUp')))
+
+			rerender({ open: false })
+
+			expect(result.current.resizing).toBe(false)
 		})
 
 		it('takes the arrow but sizes nothing before the panel mounts', () => {

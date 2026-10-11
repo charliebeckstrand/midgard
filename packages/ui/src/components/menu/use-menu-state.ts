@@ -96,6 +96,20 @@ function isContextMenuKey(event: KeyboardEvent): boolean {
 }
 
 /**
+ * Whether `target` lies in a menu panel that `surface` does not hold in its DOM.
+ * That is a panel the menu of the surface portaled: its own panel, or the panel
+ * of a submenu. A press there belongs to the open menu, and never opens the
+ * menu again from the surface.
+ *
+ * @internal
+ */
+export function inPortaledPanel(target: EventTarget | null, surface: EventTarget | null): boolean {
+	const panel = target instanceof Element ? target.closest('[role="menu"]') : null
+
+	return panel !== null && surface instanceof Node && !surface.contains(panel)
+}
+
+/**
  * Disclosure, positioning, and density state for {@link Menu}, split into a
  * `state`/`actions` pair plus the handlers of the context surface and an
  * `isContextSurface` flag. The right-click `handleContextMenu` opens the menu. The
@@ -268,17 +282,17 @@ export function useMenuState({
 
 			event.preventDefault()
 
-			// The menu panel is portaled out of the DOM but stays a React child of
-			// this wrapper, so its own contextmenu events bubble back here. A
-			// right-click inside the open panel must not re-anchor or reposition it:
-			// anchoring to an element within the floating panel would make the menu
-			// chase its own moving rect, jittering it across the screen. Suppress
-			// the native menu (above) and leave the panel where it is.
-			if (refs.floating.current?.contains(event.target as Node)) return
+			// The menu panel and each submenu panel are portaled out of the DOM but
+			// stay React children of this wrapper, so their own contextmenu events
+			// bubble back here. A right-click inside an open panel must not re-anchor
+			// or reposition the menu: anchoring to an element within a floating panel
+			// would make the menu chase its own moving rect, jittering it across the
+			// screen. Suppress the native menu (above) and leave the panel where it is.
+			if (inPortaledPanel(event.target, event.currentTarget)) return
 
 			openAt(event.target instanceof Element ? event.target : null, event.clientX, event.clientY)
 		},
-		[openAt, refs],
+		[openAt],
 	)
 
 	// The surface takes the keydown in the capture phase, so a handler below it

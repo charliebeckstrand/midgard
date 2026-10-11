@@ -1,5 +1,6 @@
 import { type PointerEvent, useRef } from 'react'
 import { useTouchHold } from '../../hooks/use-touch-hold'
+import { inPortaledPanel } from './use-menu-state'
 
 /** Hold time, in ms, before a touch opens the context menu. Android opens its own at about 500. */
 export const TOUCH_CONTEXT_MENU_DELAY = 500
@@ -18,8 +19,9 @@ const claimed = new WeakSet<Event>()
  * {@link useTouchHold}. When the hold reaches {@link TOUCH_CONTEXT_MENU_DELAY}, it dispatches a `contextmenu` event at the point
  * of the touch, so each existing `onContextMenu` handler under the surface runs. A native
  * `contextmenu` event during the hold, as on Android, cancels the timer. When a handler takes the
- * event, the hook drops the click that ends the hold. While the touch holds, the page selects no
- * text. A hold inside a `data-touch-readout` element opens no
+ * event, the hook drops the click that ends the hold. A press inside an open panel of the menu
+ * starts no hold, so a slow tap on a row still activates it. While the touch holds, the page
+ * selects no text. A hold inside a `data-touch-readout` element opens no
  * menu. On a map the hold opens the readout, and on a chart it does nothing.
  *
  * @returns Handlers for the surface element.
@@ -57,6 +59,10 @@ export function useMenuTouchHold() {
 			dropClickUntil.current = 0
 
 			if (event.pointerType !== 'touch' || claimed.has(event.nativeEvent)) return
+
+			// A press on a row of the open menu is a press on that row, however long the
+			// finger rests. A hold there would open nothing and drop the click that ends it.
+			if (inPortaledPanel(event.target, event.currentTarget)) return
 
 			claimed.add(event.nativeEvent)
 

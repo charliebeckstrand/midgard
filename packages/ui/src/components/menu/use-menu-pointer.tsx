@@ -47,13 +47,18 @@ const SUBMENU_ENTRY: Record<string, 'first' | 'last' | undefined> = {
  *
  * Measured along the run between the two, since the base is vertical. At
  * `progress` of the way across, the corridor spans the base interpolated back
- * toward the apex. Progress outside `(0, 1]` is a pointer standing still,
- * heading away, or already past the edge. It is never travel toward the panel,
- * which is what keeps one parked mid-corridor from freezing the cursor there.
+ * toward the apex. Progress outside `(0, 1]` is a pointer already past the
+ * edge, or behind the apex.
+ *
+ * Travel is also a move toward the panel, measured from `previous`, the sample
+ * before `point`. A pointer that stands still, drifts up or down, or heads away
+ * inside the corridor is not traveling. Without that check, a pointer parked
+ * mid-corridor reads the same progress from the apex on each move, and the
+ * cursor freezes there.
  *
  * @internal
  */
-function inCorridor(point: Point, from: Point, rect: DOMRect): boolean {
+function inCorridor(point: Point, previous: Point, from: Point, rect: DOMRect): boolean {
 	const edge = rect.left >= from.x ? rect.left : rect.right
 
 	const run = edge - from.x
@@ -61,6 +66,8 @@ function inCorridor(point: Point, from: Point, rect: DOMRect): boolean {
 	const progress = run === 0 ? 0 : (point.x - from.x) / run
 
 	if (progress <= 0 || progress > 1) return false
+
+	if (Math.sign(run) * (point.x - previous.x) <= 0) return false
 
 	const top = from.y + progress * (rect.top - TRAVEL_SLACK - from.y)
 
@@ -102,6 +109,13 @@ type MenuPointerValue = {
 	enterSubmenu: (key: string) => boolean
 	/** Closes `subKey`, if it is the one open. */
 	closeSubmenu: (subKey: string) => void
+	/**
+	 * Seats the level's roving cursor on `row`, in whichever model the level roves
+	 * by. That is real focus on the row, or, for a dropdown, focus on the owner and
+	 * the owner's `aria-activedescendant` on the row. A submenu that the keyboard
+	 * closes hands the cursor back to its parent row through this.
+	 */
+	seatCursor: (row: HTMLElement) => void
 	/**
 	 * Registers `subKey`'s floating panel, whose rect is the corridor
 	 * ({@link inCorridor}) a traveling pointer is measured against. Called with
@@ -205,6 +219,10 @@ export function MenuPointerLevel({ virtual = false, owner, children }: MenuPoint
 	// this level accepted before the pointer set off toward the panel.
 	const anchor = useRef<Point | null>(null)
 
+	// The pointer sample before the one under judgment, so travel can be told
+	// from a pointer that stopped or turned back.
+	const previous = useRef<Point | null>(null)
+
 	const panels = useRef(new Map<string, HTMLElement>())
 
 	const setOpen = useCallback((next: string | null) => {
@@ -260,7 +278,7 @@ export function MenuPointerLevel({ virtual = false, owner, children }: MenuPoint
 	 * at. An unplaced panel — one opened a frame ago, still measuring 0×0 — has no
 	 * corridor to be in yet.
 	 */
-	const traveling = useCallback((point: Point): boolean => {
+	const traveling = useCallback((point: Point, last: Point | null): boolean => {
 		const from = anchor.current
 
 		const key = openKeyRef.current
@@ -273,16 +291,20 @@ export function MenuPointerLevel({ virtual = false, owner, children }: MenuPoint
 
 		if (rect.width === 0 || rect.height === 0) return false
 
-		return inCorridor(point, from, rect)
+		return inCorridor(point, last ?? from, from, rect)
 	}, [])
 
 	const hoverRow = useCallback(
 		(row: HTMLElement, point: Point, subKey?: string) => {
 			const open = openKeyRef.current
 
+			const last = previous.current
+
+			previous.current = point
+
 			// Mid-sweep into the open panel: this row is being crossed, not chosen.
 			// `traveling` reads the open key back itself, and says no when none is.
-			if (subKey !== open && traveling(point)) return
+			if (subKey !== open && traveling(point, last)) return
 
 			anchor.current = point
 
@@ -339,8 +361,15 @@ export function MenuPointerLevel({ virtual = false, owner, children }: MenuPoint
 	// Every member is stable, so this identity never changes: a sweep re-renders
 	// only the rows that read `openKey`.
 	const pointer = useMemo(
-		() => ({ hoverRow, openSubmenu: setOpen, enterSubmenu, closeSubmenu, registerPanel }),
-		[hoverRow, setOpen, enterSubmenu, closeSubmenu, registerPanel],
+		() => ({
+			hoverRow,
+			openSubmenu: setOpen,
+			enterSubmenu,
+			closeSubmenu,
+			seatCursor: moveCursor,
+			registerPanel,
+		}),
+		[hoverRow, setOpen, enterSubmenu, closeSubmenu, moveCursor, registerPanel],
 	)
 
 	return (

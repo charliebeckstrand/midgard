@@ -63,9 +63,9 @@ A unit leaves Clean only on evidence. A pull request that touches the files of a
 | `date-picker` | Not started | — | — | — | — |
 | `date-time` | Not started | — | — | — | — |
 | `description-list` | Not started | — | — | — | — |
-| `dialog` | Not started | — | — | — | — |
+| `dialog` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | — |
 | `divider` | Not started | — | — | — | — |
-| `drawer` | Not started | — | — | — | — |
+| `drawer` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | — |
 | `fieldset` | Not started | — | — | — | — |
 | `file-upload` | Not started | — | — | — | — |
 | `filters` | Not started | — | — | — | — |
@@ -85,7 +85,7 @@ A unit leaves Clean only on evidence. A pull request that touches the files of a
 | `loading` | Not started | — | — | — | — |
 | `markdown` | Not started | — | — | — | — |
 | `mask-input` | Not started | — | — | — | — |
-| `menu` | Not started | — | — | — | — |
+| `menu` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | — |
 | `nav` | Not started | — | — | — | — |
 | `number-input` | Not started | — | — | — | — |
 | `odometer` | Not started | — | — | — | — |
@@ -96,7 +96,7 @@ A unit leaves Clean only on evidence. A pull request that touches the files of a
 | `pdf-viewer` | Not started | — | — | — | — |
 | `pivot-table` | Not started | — | — | — | — |
 | `placeholder` | Not started | — | — | — | — |
-| `popover` | Not started | — | — | — | — |
+| `popover` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | — |
 | `progress` | Not started | — | — | — | — |
 | `radio` | Not started | — | — | — | — |
 | `rating` | Not started | — | — | — | — |
@@ -105,7 +105,7 @@ A unit leaves Clean only on evidence. A pull request that touches the files of a
 | `search-input` | Not started | — | — | — | — |
 | `segment` | Not started | — | — | — | — |
 | `select` | Not started | — | — | — | — |
-| `sheet` | Not started | — | — | — | — |
+| `sheet` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | — |
 | `shiny-text` | Not started | — | — | — | — |
 | `sidebar` | Not started | — | — | — | — |
 | `signature-pad` | Not started | — | — | — | — |
@@ -126,7 +126,7 @@ A unit leaves Clean only on evidence. A pull request that touches the files of a
 | `toast` | Not started | — | — | — | — |
 | `toggle-icon-button` | Not started | — | — | — | — |
 | `toolbar` | Not started | — | — | — | — |
-| `tooltip` | Not started | — | — | — | — |
+| `tooltip` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | — |
 | `tree` | Not started | — | — | — | — |
 
 ## Modules
@@ -146,7 +146,7 @@ A unit leaves Clean only on evidence. A pull request that touches the files of a
 | --- | --- | --- | --- | --- | --- |
 | `auth` | Not started | — | — | — | — |
 | `dashboard` | Not started | — | — | — | — |
-| `sidebar` | Not started | — | — | — | — |
+| `sidebar` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | — |
 | `stacked` | Not started | — | — | — | — |
 
 ## Primitives
@@ -160,16 +160,16 @@ A unit leaves Clean only on evidence. A pull request that touches the files of a
 | `current` | Not started | — | — | — | — |
 | `density` | Not started | — | — | — | — |
 | `direction` | Not started | — | — | — | — |
-| `floating-surface` | Not started | — | — | — | — |
+| `floating-surface` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | — |
 | `header-actions` | Not started | — | — | — | — |
 | `link` | Not started | — | — | — | — |
 | `mount` | Not started | — | — | — | — |
-| `offcanvas` | Not started | — | — | — | — |
+| `offcanvas` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | — |
 | `option` | Not started | — | — | — | — |
-| `overlay` | Not started | — | — | — | — |
-| `panel` | Not started | — | — | — | — |
+| `overlay` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | — |
+| `panel` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | — |
 | `polymorphic` | Not started | — | — | — | — |
-| `popover` | Not started | — | — | — | — |
+| `popover` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | — |
 | `portal` | Not started | — | — | — | — |
 | `query` | Not started | — | — | — | — |
 | `ready-reveal` | Not started | — | — | — | — |

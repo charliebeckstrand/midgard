@@ -162,7 +162,9 @@ describe('Drawer height and size', () => {
 
 		expect(drawerPanel()).toHaveClass('h-full')
 
-		expect(drawerPanel()).not.toHaveClass('rounded-t-xl')
+		expect(drawerPanel()).toHaveAttribute('data-full')
+
+		expect(drawerPanel()).toHaveClass('data-full:rounded-t-none')
 	})
 
 	// `fit` grows to its content like `auto` and stops at the screen rather than
@@ -360,6 +362,37 @@ describe('Drawer drag handle', () => {
 		fireEvent.pointerUp(window, { pointerType: 'mouse', clientY: 400 })
 
 		expect(handle).not.toHaveAttribute('data-dragging')
+	})
+
+	// One rule for both fixed steps: the top corners square exactly where the panel
+	// stands at the screen edge. jsdom lays nothing out, so the ceiling is the window
+	// and the press measures a panel of 0 px.
+	it.each<['half' | 'full', number | null, boolean]>([
+		['half', null, false],
+		['full', null, true],
+		['half', -2000, true],
+		['full', 300, false],
+	])('squares a %s panel dragged to %s only at the screen edge', (height, to, square) => {
+		const { container } = renderUI(
+			<Drawer open onOpenChange={() => {}}>
+				<DrawerPanel handle height={height} aria-label="Panel">
+					<p>Body</p>
+				</DrawerPanel>
+			</Drawer>,
+		)
+
+		const handle = getSlot(container, 'drawer-handle')
+
+		if (to !== null) {
+			fireEvent.pointerDown(handle, { isPrimary: true, pointerType: 'touch', clientY: 400 })
+
+			fireEvent.pointerUp(window, { pointerType: 'touch', clientY: to })
+		}
+
+		const panel = getSlot(container, 'drawer')
+
+		if (square) expect(panel).toHaveAttribute('data-full')
+		else expect(panel).not.toHaveAttribute('data-full')
 	})
 
 	it('resizes on the arrow keys and never closes on them', async () => {

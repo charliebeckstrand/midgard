@@ -49,7 +49,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `useA11yPanel` | Modal-panel labeling scope: `useA11yScope` for dialog roots, setting role + `aria-modal` and title/desc ids. |
 | `useA11yDisclosure` | Non-modal trigger↔panel pairing: reciprocal `aria-controls`/`aria-labelledby` (+ optional `aria-expanded`). |
 | `useA11yRoving` | Arrow/Home/End roving over container items: focus or virtual mode, single-Tab-stop ownership, row cross-axis, or an indexed `VirtualItemSource` for windowed lists in either mode. Horizontal arrows follow the reading order, so they swap in RTL. |
-| `useA11yAutoFocus` | Moves focus to `node` whenever `when` flips true, and again when the node attaches while `when` holds. Takes the node from a callback ref, not a `RefObject`. |
+| `useA11yAutoFocus` | Moves focus to `node` whenever `when` flips true, and again when the node attaches while `when` holds. The focus scrolls nothing. Takes the node from a callback ref, not a `RefObject`. |
 | `useA11yHasTabbable` | Whether a node holds a tab-order descendant, re-measured as its subtree changes; gates a tabpanel's tab stop and an interactive Tooltip's focus trap. |
 | `useA11yLiveRegion` | Props for a consumer-filled live region: status/alert landmark with matching `aria-live`/`aria-atomic`. |
 | `useA11yAnnouncements` | Declaratively narrates a changing status string to the live-region announcer, skipping initial and consecutive dupes; a status that clears and comes back speaks again. |

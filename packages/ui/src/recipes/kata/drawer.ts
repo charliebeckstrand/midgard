@@ -17,6 +17,9 @@ const { css } = ugoki
  * the attribute family this keys on.
  */
 const RESIZING = 'data-resizing:transition-none'
+
+/** Rounded top corners, square while the panel stands at the screen edge (`data-full`). */
+const SQUARE_AT_EDGE = 'rounded-t-xl data-full:rounded-t-none'
 const { surface, layout, grip } = panel
 
 export const k = {
@@ -49,8 +52,9 @@ export const k = {
 			//
 			// `full` and `fit` square the top corners against the screen edge, because
 			// a rounded corner there reads as a panel that failed to reach it — `full`
-			// always, `fit` on the steps that stand it there. `auto` never reaches the
-			// edge, so it never squares.
+			// at rest, `fit` on the steps that stand it there, and either fixed step once
+			// a drag leaves it at the ceiling. `auto` never reaches the edge, so it never
+			// squares.
 			//
 			// A panel handed a new fixed `height` grows or shrinks into it rather than
 			// jumping: the two fixed steps are lengths, which interpolate. A grown one
@@ -60,8 +64,8 @@ export const k = {
 			height: {
 				auto: 'max-h-[85%] rounded-t-xl',
 				fit: ['max-h-full rounded-t-xl', 'data-full:rounded-t-none', css.corner, css.duration],
-				half: ['h-1/2 rounded-t-xl', css.size, css.duration, RESIZING],
-				full: ['h-full rounded-t-none', css.size, css.duration, RESIZING],
+				half: ['h-1/2', SQUARE_AT_EDGE, css.size, css.duration, RESIZING],
+				full: ['h-full', SQUARE_AT_EDGE, css.size, css.duration, RESIZING],
 			},
 			defaults: { surface: 'flat', height: 'auto' },
 		}),

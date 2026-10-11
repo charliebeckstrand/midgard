@@ -8,6 +8,10 @@ import { useEffect } from 'react'
  * (e.g. `tabIndex={-1}`). A false `when` is a no-op, and a toggle from false to
  * true focuses again.
  *
+ * The focus scrolls nothing. A floating panel takes focus before it is placed,
+ * at the origin of its wrapper, so a focus that scrolled would take the page to
+ * the top.
+ *
  * @param node - The target, held as state from a callback ref
  * (`ref={setNode}`) rather than read from an object ref. A portaled panel
  * attaches a commit after `when` flips true. A `RefObject` reports that
@@ -16,6 +20,6 @@ import { useEffect } from 'react'
  */
 export function useA11yAutoFocus(node: HTMLElement | null, when: boolean) {
 	useEffect(() => {
-		if (when) node?.focus()
+		if (when) node?.focus({ preventScroll: true })
 	}, [when, node])
 }

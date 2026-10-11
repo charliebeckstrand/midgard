@@ -269,7 +269,7 @@ function MenuSubFloating({
 	// The enclosing level's cursor: it holds which of its submenus is open, so
 	// arbitration between siblings — and the travel geometry the pointer paths
 	// read — lives in one place rather than in each row's own timers.
-	const { openSubmenu, enterSubmenu, closeSubmenu, registerPanel } = useMenuPointer()
+	const { openSubmenu, enterSubmenu, closeSubmenu, seatCursor, registerPanel } = useMenuPointer()
 
 	const open = useMenuOpenSub() === subKey
 
@@ -366,12 +366,17 @@ function MenuSubFloating({
 		[refs, registerPanel, subKey],
 	)
 
-	/** Collapses the submenu and hands the cursor back to its parent row. */
+	/**
+	 * Collapses the submenu and hands the cursor back to its parent row, in the
+	 * model of the enclosing level. In a dropdown, focus goes back to the trigger,
+	 * which keeps it while the menu is open, and the row becomes its active
+	 * descendant.
+	 */
 	const collapse = useCallback(() => {
 		closeSubmenu(subKey)
 
-		triggerRef.current?.focus()
-	}, [closeSubmenu, subKey])
+		if (triggerRef.current) seatCursor(triggerRef.current)
+	}, [closeSubmenu, seatCursor, subKey])
 
 	// The trigger handlers reach the seat-focus and trigger refs, so each is a
 	// stable event and not a closure that render passes to a function.
@@ -441,11 +446,15 @@ function MenuSubFloating({
 	// Roving off the parent row collapses its submenu, so at most one hangs open
 	// and the arrow keys always act on the row the cursor is actually sitting on.
 	// Focus landing *inside* the panel is the open completing, not a rove away —
-	// tested against the row container, which is mounted by the time focus can
-	// reach a row (floating-ui's own floating ref settles a commit later).
+	// tested against the panel that holds the row container, which is mounted by
+	// the time focus can reach it (floating-ui's own floating ref settles a commit
+	// later). The panel and not only the rows: the panel takes focus itself, from a
+	// press on its padding, a heading, a separator, or the gap between two rows.
 	const handleBlur = useCallback(
 		(event: FocusEvent<HTMLButtonElement>) => {
-			if (event.relatedTarget && rows?.contains(event.relatedTarget)) return
+			const panel = rows?.closest('[role="menu"]')
+
+			if (event.relatedTarget && panel?.contains(event.relatedTarget)) return
 
 			closeSubmenu(subKey)
 		},
