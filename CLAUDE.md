@@ -46,6 +46,8 @@
 
 3.12 Before you use a library API that you do not know well, get its current documentation from Context7.
 
+3.13 Use the `sequentialthinking` tool for a bug that has many possible causes, or for a plan with dependent steps. Do not use it for a simple task.
+
 ## 4. Version Control
 
 4.1 Commit messages follow Conventional Commits, with a scope from the `scope-enum` in [commitlint.config.mjs](commitlint.config.mjs). Use `midgard` for a change outside one package.
