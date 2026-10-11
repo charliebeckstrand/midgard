@@ -11,7 +11,12 @@ import { UNITED_STATES } from '../../utilities/places-view'
 import { place, trip } from '../fixtures'
 
 /** Menu actions that do nothing, for the cases that are not about the menu. */
-const NO_ACTIONS = { onAddVisit: () => {}, onEdit: () => {}, onDelete: () => {} }
+const NO_ACTIONS = {
+	onAddVisit: () => {},
+	onEditVisit: () => {},
+	onEdit: () => {},
+	onDelete: () => {},
+}
 
 describe('placeSource', () => {
 	const places = [
@@ -59,7 +64,12 @@ describe('placeSource', () => {
 	})
 
 	it('gives each place the rows of the place menu', () => {
-		const actions = { onAddVisit: vi.fn(), onEdit: vi.fn(), onDelete: vi.fn() }
+		const actions = {
+			onAddVisit: vi.fn(),
+			onEditVisit: vi.fn(),
+			onEdit: vi.fn(),
+			onDelete: vi.fn(),
+		}
 
 		const [tokyo] = placeSource(places, () => {}, actions).commands
 
@@ -67,11 +77,18 @@ describe('placeSource', () => {
 			(entry): entry is ContextMenuItem => 'onAction' in entry,
 		)
 
-		expect(items.map((item) => item.label)).toEqual(['Add visit', 'Edit place', 'Delete place'])
+		expect(items.map((item) => item.label)).toEqual([
+			'Add visit',
+			'Edit visit',
+			'Edit place',
+			'Delete place',
+		])
 
 		for (const item of items) item.onAction?.()
 
 		expect(actions.onAddVisit).toHaveBeenCalledWith(places[1])
+
+		expect(actions.onEditVisit).toHaveBeenCalledWith(places[1], places[1]?.visits[0])
 
 		expect(actions.onEdit).toHaveBeenCalledWith(places[1])
 
