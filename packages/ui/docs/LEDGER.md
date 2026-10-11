@@ -65,7 +65,7 @@ A unit leaves Clean only on evidence. A pull request that touches the files of a
 | `description-list` | Not started | — | — | — | — |
 | `dialog` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | — |
 | `divider` | Not started | — | — | — | — |
-| `drawer` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | — |
+| `drawer` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | [#2324](https://github.com/charliebeckstrand/midgard/pull/2324) |
 | `fieldset` | Not started | — | — | — | — |
 | `file-upload` | Not started | — | — | — | — |
 | `filters` | Not started | — | — | — | — |
@@ -85,7 +85,7 @@ A unit leaves Clean only on evidence. A pull request that touches the files of a
 | `loading` | Not started | — | — | — | — |
 | `markdown` | Not started | — | — | — | — |
 | `mask-input` | Not started | — | — | — | — |
-| `menu` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | — |
+| `menu` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | [#2324](https://github.com/charliebeckstrand/midgard/pull/2324) |
 | `nav` | Not started | — | — | — | — |
 | `number-input` | Not started | — | — | — | — |
 | `odometer` | Not started | — | — | — | — |
@@ -96,7 +96,7 @@ A unit leaves Clean only on evidence. A pull request that touches the files of a
 | `pdf-viewer` | Not started | — | — | — | — |
 | `pivot-table` | Not started | — | — | — | — |
 | `placeholder` | Not started | — | — | — | — |
-| `popover` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | — |
+| `popover` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | [#2324](https://github.com/charliebeckstrand/midgard/pull/2324) |
 | `progress` | Not started | — | — | — | — |
 | `radio` | Not started | — | — | — | — |
 | `rating` | Not started | — | — | — | — |
@@ -105,7 +105,7 @@ A unit leaves Clean only on evidence. A pull request that touches the files of a
 | `search-input` | Not started | — | — | — | — |
 | `segment` | Not started | — | — | — | — |
 | `select` | Not started | — | — | — | — |
-| `sheet` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | — |
+| `sheet` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | [#2324](https://github.com/charliebeckstrand/midgard/pull/2324) |
 | `shiny-text` | Not started | — | — | — | — |
 | `sidebar` | Not started | — | — | — | — |
 | `signature-pad` | Not started | — | — | — | — |
@@ -126,7 +126,7 @@ A unit leaves Clean only on evidence. A pull request that touches the files of a
 | `toast` | Not started | — | — | — | — |
 | `toggle-icon-button` | Not started | — | — | — | — |
 | `toolbar` | Not started | — | — | — | — |
-| `tooltip` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | — |
+| `tooltip` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | [#2324](https://github.com/charliebeckstrand/midgard/pull/2324) |
 | `tree` | Not started | — | — | — | — |
 
 ## Modules
@@ -146,7 +146,7 @@ A unit leaves Clean only on evidence. A pull request that touches the files of a
 | --- | --- | --- | --- | --- | --- |
 | `auth` | Not started | — | — | — | — |
 | `dashboard` | Not started | — | — | — | — |
-| `sidebar` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | — |
+| `sidebar` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | [#2324](https://github.com/charliebeckstrand/midgard/pull/2324) |
 | `stacked` | Not started | — | — | — | — |
 
 ## Primitives
@@ -169,7 +169,7 @@ A unit leaves Clean only on evidence. A pull request that touches the files of a
 | `overlay` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | — |
 | `panel` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | — |
 | `polymorphic` | Not started | — | — | — | — |
-| `popover` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | — |
+| `popover` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | [#2324](https://github.com/charliebeckstrand/midgard/pull/2324) |
 | `portal` | Not started | — | — | — | — |
 | `query` | Not started | — | — | — | — |
 | `ready-reveal` | Not started | — | — | — | — |
