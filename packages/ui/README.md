@@ -42,18 +42,24 @@ No root barrel; the `exports` map exposes each component path.
 |---|---|
 | `src/components/<name>/` | Components, one directory per unit. |
 | `src/primitives/<name>/` | Composable building blocks. |
+| `src/modules/<name>/` | Multi-part compositions that own their sub-components, hooks, and docs. |
+| `src/structure/<name>/` | Static units that arrange other elements. |
 | `src/hooks/` | Shared hooks. |
 | `src/providers/<name>/` | Context providers. |
-| `src/core/` | Recipe engine, `cn()`, utilities. |
+| `src/core/` | Recipe engine, `cn()`, density, and the other `ui/core` exports. |
 | `src/recipes/` | Layered variant system. |
-| `src/layouts/` | Layout primitives. |
+| `src/layouts/` | Page scaffolds and app shells. |
+| `src/utilities/` | Package-internal pure helpers. |
+| `src/types/` | Package-internal shared types. |
+| `src/fonts/` | The generated font files and `fonts.css`. |
 | `src/__tests__/` | Component, primitive, and boundary tests. |
+| `src/__benchmarks__/` | Benchmarks. |
 | `src/docs/` | The docs site: a React Router app that prerenders each page. `pages/` holds the examples, and `plugin/` gives the API data, the page list, and the highlighted code. |
 
 ## 4. Further reading
 
 - [`REFERENCE.md`](REFERENCE.md) — the package hub: surface map, the server/client boundary, and how to compose a new component.
-- [`docs/`](docs) — curated, quick-glance surface indices (components, layouts, hooks, primitives, providers, recipes, core, utilities).
+- [`docs/`](docs) — curated, quick-glance surface indices (components, modules, structure, layouts, hooks, primitives, providers, recipes, core, utilities), the quality ledger, audits, and plans.
 - [`src/recipes/README.md`](src/recipes/README.md) — recipe-layer architecture.
 
 ---
