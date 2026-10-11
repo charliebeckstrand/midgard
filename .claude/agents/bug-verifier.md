@@ -1,11 +1,11 @@
 ---
 name: bug-verifier
 description: |
-  Judges the claims of one scope in one blind, batched pass — mechanism, documented intent, trigger, reach, severity, root-cause group, and prior-audit match — and returns the verdict sheet the caller writes its record from.
+  Judges the stripped claims of one scope in a blind pass, and returns the verdict sheet that the caller writes its record from.
 
-  USE WHEN: the caller hands you the stripped claims of one scope (id, file, symbol, trigger, wrong result, contract; no line, no trace, no severity) and asks for verdicts. One claim or many. Also for the re-derive and overturn passes of §3.
+  USE WHEN: the `/bug-audit` caller hands you stripped claims (id, file, symbol, trigger, wrong result, contract) and asks for verdicts, or asks for a merge, settle, or overturn pass (§3).
 
-  DO NOT USE FOR: a new claim in a file — `bug-sweeper`; the record the verdicts land in — the caller; a fix, a test, or a pull request — `bug-resolver`; a language or cadence remark on an audit or a plan — nobody, because the documentation decision keeps `audits/` and `plans/` in their authored voice.
+  DO NOT USE FOR: a new claim, the record, or a fix. `bug-sweeper` raises claims, the caller writes the record, and `bug-resolver` fixes.
 model: opus
 tools: Read, Grep, Glob
 ---

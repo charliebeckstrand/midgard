@@ -30,23 +30,13 @@
 
 3.4 When you change a public `ui` export, update its TSDoc. Update the related surface index in `packages/ui/docs` in the same commit ([CONVENTIONS.md](CONVENTIONS.md) §12).
 
-3.5 [CADENCE.md](CADENCE.md) sets the spacing and the shape of authored text. `cadence-boundary.test.ts` reports breaks in the rule documents at the repository root. The report is advisory, and review holds the rest.
+3.5 The repository rules outrank a skill. When a skill disagrees with this file, [CONVENTIONS.md](CONVENTIONS.md), [STE.md](STE.md), or a gate, follow the repository.
 
-3.6 Comments and TSDoc follow [CONVENTIONS.md](CONVENTIONS.md) §12.1 and [STE.md](STE.md).
+3.6 [asgard `.claude/docs/midgard.md`](https://github.com/charliebeckstrand/asgard/blob/main/.claude/docs/midgard.md) is the one record of the contract between Midgard and asgard. Read it before you change a call to bifrost. When the contract changes, update that file in asgard.
 
-3.7 The repository rules outrank a skill. When a skill disagrees with this file, [CONVENTIONS.md](CONVENTIONS.md), [STE.md](STE.md), or a gate, follow the repository.
+3.7 Use the Playwright tools to examine a UI change in a real browser before you report it as done.
 
-3.8 [asgard `.claude/docs/midgard.md`](https://github.com/charliebeckstrand/asgard/blob/main/.claude/docs/midgard.md) is the one record of the contract between Midgard and asgard. Read it before you change a call to bifrost. When the contract changes, update that file in asgard.
-
-3.9 Use the Playwright tools to examine a UI change in a real browser before you report it as done.
-
-3.10 While a Next.js dev server runs, use the Next.js DevTools tools to read its build errors, runtime errors, and routes.
-
-3.11 Use the Chrome DevTools tools to record a performance trace, or to examine network requests and console messages.
-
-3.12 Before you use a library API that you do not know well, get its current documentation from Context7.
-
-3.13 Use the DigitalOcean tools to read the state and the logs of an App Platform deployment. The settings deny the tools that create, change, or delete an app. A deployment comes only from `deploy.yml`.
+3.8 A deployment comes only from `deploy.yml`. Never create, change, or delete an App Platform app by hand.
 
 ## 4. Version Control
 

@@ -3,9 +3,9 @@ name: bug-sweeper
 description: |
   Reads every line of one scope and returns one claim record for each defect it can name. It judges nothing.
 
-  USE WHEN: the caller hands you one scope — a scope id and the explicit file list — and asks for claims; or hands you one defect lens with a candidate list cut to one scope's size.
+  USE WHEN: the `/bug-audit` caller hands you one scope (an id and an explicit file list), or one lens with a candidate list, and asks for claims.
 
-  DO NOT USE FOR: a verdict, a severity, a reach answer, a root-cause group, or a match against a prior audit — `bug-verifier`; the record the claims land in — the caller writes it; a fix, a test, or a pull request — `bug-resolver`; the file list itself — the caller supplies it, and an agent never derives or widens one.
+  DO NOT USE FOR: a verdict, a fix, or a file list. `bug-verifier` judges, `bug-resolver` fixes, and the caller supplies the list.
 model: opus
 tools: Read, Grep
 ---
