@@ -350,15 +350,9 @@ export const rootDir = join(packageDir, '..', '..')
 /**
  * The rule documents at the repository root. Every package follows them, so
  * they carry no debt in rules 6 and 10, and they keep the cadence (CLAUDE.md
- * §2.5, §3.6). Paths are relative to the repository root.
+ * §2.5). Paths are relative to the repository root.
  */
-export const RULE_DOCUMENTS = [
-	'CLAUDE.md',
-	'CONVENTIONS.md',
-	'CADENCE.md',
-	'STE.md',
-	'REFERENCE.md',
-]
+export const RULE_DOCUMENTS = ['CLAUDE.md', 'CONVENTIONS.md', 'STE.md']
 
 /**
  * Every rule 3, rule 6, and rule 10 break in one Markdown document.
