@@ -16,6 +16,13 @@ export const k = {
 	 * keeps a fixed box clear of its own toolbars.
 	 */
 	frame: 'fixed inset-0',
-	/** The box of an overlay scoped to a container: the full container. */
-	scoped: 'absolute inset-0',
+	/**
+	 * The box of an overlay scoped to a container: the full container.
+	 *
+	 * It clips what it holds, and it is not a scroll container. A panel waits
+	 * outside the box until it slides in. If its overflow reached the container,
+	 * the move of the focus into the panel would scroll the container to the
+	 * panel, and the slide would run against that scroll.
+	 */
+	scoped: 'absolute inset-0 overflow-clip',
 }
