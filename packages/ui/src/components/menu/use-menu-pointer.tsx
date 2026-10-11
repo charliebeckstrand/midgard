@@ -115,7 +115,7 @@ type MenuPointerValue = {
 	 * the owner's `aria-activedescendant` on the row. A submenu that the keyboard
 	 * closes hands the cursor back to its parent row through this.
 	 */
-	seatCursor: (row: HTMLElement) => void
+	moveCursor: (row: HTMLElement) => void
 	/**
 	 * Registers `subKey`'s floating panel, whose rect is the corridor
 	 * ({@link inCorridor}) a traveling pointer is measured against. Called with
@@ -366,7 +366,7 @@ export function MenuPointerLevel({ virtual = false, owner, children }: MenuPoint
 			openSubmenu: setOpen,
 			enterSubmenu,
 			closeSubmenu,
-			seatCursor: moveCursor,
+			moveCursor,
 			registerPanel,
 		}),
 		[hoverRow, setOpen, enterSubmenu, closeSubmenu, moveCursor, registerPanel],

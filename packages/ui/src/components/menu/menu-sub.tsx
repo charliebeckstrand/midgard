@@ -269,7 +269,7 @@ function MenuSubFloating({
 	// The enclosing level's cursor: it holds which of its submenus is open, so
 	// arbitration between siblings — and the travel geometry the pointer paths
 	// read — lives in one place rather than in each row's own timers.
-	const { openSubmenu, enterSubmenu, closeSubmenu, seatCursor, registerPanel } = useMenuPointer()
+	const { openSubmenu, enterSubmenu, closeSubmenu, moveCursor, registerPanel } = useMenuPointer()
 
 	const open = useMenuOpenSub() === subKey
 
@@ -325,7 +325,9 @@ function MenuSubFloating({
 
 		seatFocus.current = false
 
-		rows.querySelector<HTMLElement>(MENUITEM_SELECTOR)?.focus()
+		// The panel mounts before Floating UI places it, so a focus that scrolled would
+		// take the page to where the panel first stands.
+		rows.querySelector<HTMLElement>(MENUITEM_SELECTOR)?.focus({ preventScroll: true })
 	}, [open, rows])
 
 	const openWithFocus = useCallback(() => {
@@ -375,8 +377,8 @@ function MenuSubFloating({
 	const collapse = useCallback(() => {
 		closeSubmenu(subKey)
 
-		if (triggerRef.current) seatCursor(triggerRef.current)
-	}, [closeSubmenu, seatCursor, subKey])
+		if (triggerRef.current) moveCursor(triggerRef.current)
+	}, [closeSubmenu, moveCursor, subKey])
 
 	// The trigger handlers reach the seat-focus and trigger refs, so each is a
 	// stable event and not a closure that render passes to a function.

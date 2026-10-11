@@ -3,7 +3,7 @@ import { valuesByStep } from '../../core/density/steps'
 import { k as button } from '../../recipes/kata/button'
 
 /** The class strings of a recipe value, which can nest arrays. */
-function classNames(classes: readonly unknown[]): string[] {
+export function classNames(classes: readonly unknown[]): string[] {
 	return classes
 		.flat(Number.POSITIVE_INFINITY)
 		.filter((value): value is string => typeof value === 'string')

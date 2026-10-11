@@ -1162,26 +1162,18 @@ describe('MenuSub', () => {
 		['dropdown', 'ArrowLeft'],
 	])('hands the cursor back in a %s menu on %s from the submenu', (model, key) => {
 		renderUI(
-			model === 'dropdown' ? (
-				<Menu placement="bottom-start">
+			<Menu {...(model === 'dropdown' ? { placement: 'bottom-start' } : { defaultOpen: true })}>
+				{model === 'dropdown' && (
 					<MenuTrigger>
 						<button type="button">Open</button>
 					</MenuTrigger>
-					<MenuContent>
-						<MenuSub label="More">
-							<MenuItem>Nested</MenuItem>
-						</MenuSub>
-					</MenuContent>
-				</Menu>
-			) : (
-				<Menu defaultOpen>
-					<MenuContent>
-						<MenuSub label="More">
-							<MenuItem>Nested</MenuItem>
-						</MenuSub>
-					</MenuContent>
-				</Menu>
-			),
+				)}
+				<MenuContent>
+					<MenuSub label="More">
+						<MenuItem>Nested</MenuItem>
+					</MenuSub>
+				</MenuContent>
+			</Menu>,
 		)
 
 		if (model === 'dropdown') fireEvent.click(screen.getByText('Open'))

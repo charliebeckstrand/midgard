@@ -5,15 +5,7 @@ import { k as tooltip } from '../../recipes/kata/tooltip'
 import { omote } from '../../recipes/kiso/omote'
 import { panel } from '../../recipes/kiso/panel'
 import { popover } from '../../recipes/kiso/popover'
-
-/** Every class of a recipe part, nested arrays and all. */
-function classesOf(part: unknown): string[] {
-	if (typeof part === 'string') return part.split(/\s+/)
-
-	if (Array.isArray(part)) return part.flatMap(classesOf)
-
-	return []
-}
+import { classNames } from '../helpers/class-stops'
 
 /**
  * Under forced colors, each part of the overlay family that the reader sees only
@@ -40,7 +32,7 @@ describe('overlay family under forced colors', () => {
 	]
 
 	it.each(parts)('keeps a paint on %s', (_name, part) => {
-		const classes = classesOf(part)
+		const classes = classNames([part])
 
 		const restores = classes.some(
 			(cls) =>

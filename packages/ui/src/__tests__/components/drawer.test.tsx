@@ -391,8 +391,7 @@ describe('Drawer drag handle', () => {
 
 		const panel = getSlot(container, 'drawer')
 
-		if (square) expect(panel).toHaveAttribute('data-full')
-		else expect(panel).not.toHaveAttribute('data-full')
+		expect(panel.hasAttribute('data-full')).toBe(square)
 	})
 
 	it('resizes on the arrow keys and never closes on them', async () => {

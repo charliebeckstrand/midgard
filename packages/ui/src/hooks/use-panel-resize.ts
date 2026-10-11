@@ -271,15 +271,15 @@ export function usePanelResize({
 
 	const [atCeiling, setAtCeiling] = useState(false)
 
-	const [resizing, setResizing] = useState(false)
+	// The input that set the size last: a pointer while its gesture is in flight,
+	// or an arrow key until the next press. A release or a close clears it.
+	const [gesture, setGesture] = useState<'pointer' | 'key' | null>(null)
 
-	// Whether an arrow key set the size last. A press of the pointer or a close
-	// clears it.
-	const [keyed, setKeyed] = useState(false)
+	const dragging = gesture === 'pointer'
 
 	// The gesture listens on the window and captures nothing, so the element under
 	// the pointer would set the cursor. The rule holds the drag cursor instead.
-	useDragCursor(resizing, cursor)
+	useDragCursor(dragging, cursor)
 
 	// The share of the screen the panel covers. Measured rather than derived: at
 	// rest the size is whatever the panel's variant works out to on this screen,
@@ -302,9 +302,7 @@ export function usePanelResize({
 
 		grab.current = null
 
-		setResizing(false)
-
-		setKeyed(false)
+		setGesture(null)
 
 		setSize(null)
 
@@ -387,7 +385,7 @@ export function usePanelResize({
 
 		stop.current = null
 
-		setResizing(false)
+		setGesture(null)
 
 		return at
 	}
@@ -444,9 +442,7 @@ export function usePanelResize({
 		// there is never a frame that has one without the other.
 		setSize(measured)
 
-		setResizing(true)
-
-		setKeyed(false)
+		setGesture('pointer')
 
 		// The rest of the gesture is the window's, not the bar's. Pointer capture
 		// would be the shorter way to say it and it is not dependable enough: it can
@@ -497,15 +493,15 @@ export function usePanelResize({
 
 		// A step rather than a pretend pointer: the size moves by the step outright,
 		// so the side's own sign is already spent naming which key grows it.
-		setKeyed(true)
+		setGesture('key')
 
 		commit(resize(at, measured + (event.key === grow ? viewport * STEP : -viewport * STEP)), at)
 	}
 
 	return {
-		handleProps: { onPointerDown, onKeyDown, 'data-dragging': dataAttr(resizing) },
+		handleProps: { onPointerDown, onKeyDown, 'data-dragging': dataAttr(dragging) },
 		covers,
-		resizing: resizing || keyed,
+		resizing: gesture !== null,
 		size,
 		atCeiling,
 		ref,
