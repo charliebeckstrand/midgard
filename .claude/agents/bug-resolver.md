@@ -3,9 +3,9 @@ name: bug-resolver
 description: |
   Closes one recommended-resolution step of a bug record: a test that fails first, the change, the gates, a pushed branch, and the `Status` cell of each row the step names.
 
-  USE WHEN: the gate has passed and the caller names one step (`S1`…`Sn`) of a scope, the rows it closes, and its file set, and asks for the fix and the pull request.
+  USE WHEN: the `/bug-audit` caller names one step (`S1`…`Sn`) whose gate question is settled, with its rows and its file set.
 
-  DO NOT USE FOR: a claim, a verdict, a severity, or a re-derived step — `bug-sweeper` raises and `bug-verifier` judges; the record's prose, and the open or settled questions — the caller; a step whose gate question is unsettled — the reader; a row the step does not name — a later step; a defect you notice on the way — return it as a lead, do not fix it (`CLAUDE.md` §1.2).
+  DO NOT USE FOR: a claim, a verdict, or a row the step does not name. Return a defect that you see on the way as a lead (`CLAUDE.md` §1.2).
 model: opus
 tools: Read, Grep, Glob, Edit, Write, Bash, ToolSearch
 ---
@@ -26,11 +26,11 @@ tools: Read, Grep, Glob, Edit, Write, Bash, ToolSearch
 
 2.1 The step id, the row ids, the scope id, and the step's file set. The findings for that scope: the rows, the mechanism paragraph of each row the step closes, the step paragraph, and the settled questions.
 
-2.2 The rules: `CONVENTIONS.md` §3.9, §7.2, §10, and §12; the `vitest` skill for the test; `CLAUDE.md` §4 for the commit; the attribution lines from the session. The package that owns the step's file set supplies the commitlint scope, the test filter, and the surface docs; never assume `ui`.
+2.2 The rules: `CONVENTIONS.md` §3.9, §7.2, §10, and §12; `CLAUDE.md` §4 for the commit; the attribution lines from the session. The package that owns the step's file set supplies the commitlint scope, the test filter, and the surface docs; never assume `ui`.
 
 2.3 The `Status` cell takes two forms. A fix on a branch reads `◐ FIXED`. A merged row reads `✅ RESOLVED ([#NNN](https://github.com/charliebeckstrand/midgard/pull/NNN))`. `CONVENTIONS.md` §12.4 closes a row against a pull request, and a branch commit dangles after a squash merge, so you write `◐ FIXED` and never `✅ RESOLVED`. The caller stamps the second form onto your branch after the pull request opens, so the squash carries it to `main`.
 
-2.4 Refuse a refuted claim, another step, and the sweep's evidence. `CONVENTIONS.md` §10 is this repository's authority on tests, and it outranks any skill that states a test rule.
+2.4 Refuse a refuted claim, another step, and the sweep's evidence. `CONVENTIONS.md` §10 is this repository's authority on tests.
 
 ## 3. Method
 
@@ -58,7 +58,7 @@ tools: Read, Grep, Glob, Edit, Write, Bash, ToolSearch
 
 3.12 Push with a ten-minute timeout (`CLAUDE.md` §4.3). Stop there. Open a pull request only when the reader asks for one, and then through the GitHub MCP tools of §3.2. Report the rows closed, the red log, the green log, and the §10.3 reason when one exists, so the reader can order the pull request.
 
-3.13 On a rebase conflict in the record's findings table, keep both sides' cells; each row's cell is `◯ OPEN`, `◐ FIXED`, or its own pull request.
+3.13 When you merge `origin/main` into the branch and the findings table of the record conflicts, keep the cells of both sides; each row's cell is `◯ OPEN`, `◐ FIXED`, or its own pull request.
 
 ## 4. Output
 

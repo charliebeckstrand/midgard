@@ -4,11 +4,9 @@
 
 ## 1. Workspace
 
-1.1 Turborepo, using the [recommended layout](https://turborepo.dev/docs/crafting-your-repository/structuring-a-repository).
+1.1 Reach another workspace only through its public entry, never across package boundaries (§9).
 
-1.2 Reach another workspace only through its public entry, never across package boundaries (§9).
-
-1.3 Each Dockerfile at the repository root pins pnpm to the `packageManager` version of the root `package.json`. It pins `turbo` to the version in `pnpm-lock.yaml`. Renovate does not update the Dockerfiles. `dockerfile-pin-boundary.test.ts` fails when a pin is not equal to the version that the repository uses.
+1.2 Each Dockerfile at the repository root pins pnpm to the `packageManager` version of the root `package.json`. It pins `turbo` to the version in `pnpm-lock.yaml`. Renovate does not update the Dockerfiles. `dockerfile-pin-boundary.test.ts` fails when a pin is not equal to the version that the repository uses.
 
 ## 2. Routing
 
@@ -139,11 +137,9 @@ The `no-client-gateway-access` Biome plugin gates the rule. It also keeps a runt
 
 ## 9. Imports
 
-9.1 In apps, the `@/*` alias maps to the source root: `src` in `places`, and `app` in `admin`. Use the alias in place of a deep relative chain, that is, three or more `../` segments.
+9.1 In apps, the `@/*` alias maps to the source root: `src` in `places` and `picks`, and `app` in `admin`. Use the alias in place of a deep relative chain, that is, three or more `../` segments.
 
 From `packages/ui`, import per-component entries (`ui/button`, `ui/dialog`) plus `ui/core`, `ui/hooks`, `ui/layouts`, `ui/modules/*` (or the `ui/<module>` shorthand), `ui/structure/*`, `ui/primitives/*`, and `ui/providers/*`. A structure unit also has a `ui/<name>` shorthand, such as `ui/stack`. No root barrel. `src/types`, `src/recipes`, and `src/utilities` stay package-internal, reached by relative import; `internal-barrel-boundary.test.ts` holds `./types` off the `exports` map.
-
-9.2 Import order is handled by [Biome's organize-imports](https://biomejs.dev/assist/actions/organize-imports/).
 
 ## 10. Testing
 
