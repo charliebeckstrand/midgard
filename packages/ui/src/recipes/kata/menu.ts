@@ -94,7 +94,12 @@ export const k = {
 		// A `MenuSub` parent keeps its wash while the panel is open (`data-open`),
 		// so the row the pointer traveled from still reads as the live trail back —
 		// `hannou.item`'s hover tint alone drops the moment the pointer leaves it.
-		trigger: mode('data-open:bg-zinc-950/5', 'dark:data-open:bg-white/5'),
+		// Forced colors remove the wash, so the row draws an outline there instead:
+		// an edge rather than the `Highlight` fill of the roving cursor.
+		trigger: [
+			...mode('data-open:bg-zinc-950/5', 'dark:data-open:bg-white/5'),
+			'forced-colors:data-open:outline forced-colors:data-open:-outline-offset-1',
+		],
 		// The chevron of a `MenuSub` row in the bottom sheet, which turns over
 		// while the rows of the submenu show below the row.
 		chevron: 'ms-auto motion-safe:transition-transform',

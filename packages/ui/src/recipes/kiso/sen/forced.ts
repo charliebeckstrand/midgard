@@ -21,6 +21,13 @@ export const forced = {
 	 * in `Highlight`.
 	 */
 	mark: 'forced-colors:bg-[Highlight]',
+	/**
+	 * Shape: a control that the reader sees only as its background, such as the
+	 * grip bar of a panel. Forced colors remove that background, so the shape
+	 * paints in `CanvasText`. A shape is not a state, so it does not take the
+	 * `Highlight` of a {@link forced.mark}.
+	 */
+	shape: 'forced-colors:bg-[CanvasText]',
 	/** Icon slot: keeps data-slot=icon children on CanvasText. */
 	icon: 'forced-colors:*:data-[slot=icon]:text-[CanvasText]',
 } as const

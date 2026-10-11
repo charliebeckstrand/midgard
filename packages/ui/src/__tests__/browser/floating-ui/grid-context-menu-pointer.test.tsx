@@ -89,8 +89,18 @@ describe('grid context menu pointer travel (real browser)', () => {
 
 		expect(sort).toHaveFocus()
 
-		// Straight down the menu instead, away from the panel: Pin takes the cursor
-		// and its own submenu replaces the one open, both in the same frame.
+		// The pointer stops over Pin, still inside the corridor, and drifts there. A
+		// pointer that no longer heads into the panel is not traveling, so Pin takes
+		// the cursor and its own submenu replaces the one open.
+		settle(pin, crossing.x, crossing.y + 2)
+
+		expect(pin).toHaveFocus()
+
+		expect(item('Pin left')).toBeInTheDocument()
+
+		expect(screen.queryByRole('menuitem', { name: 'Sort ascending' })).toBeNull()
+
+		// Straight down the menu, away from the panel, keeps Pin and its submenu.
 		settle(pin, from.x, centerOf(pin).y)
 
 		expect(pin).toHaveFocus()

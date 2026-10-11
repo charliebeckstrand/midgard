@@ -3,6 +3,7 @@
 import { Menu } from 'lucide-react'
 import {
 	type ComponentProps,
+	type PointerEvent,
 	type PropsWithChildren,
 	type ReactNode,
 	type Ref,
@@ -11,7 +12,6 @@ import {
 	useMemo,
 	useState,
 } from 'react'
-import { createPortal } from 'react-dom'
 import { defaultKeybindingsHandlerIgnore, type KeybindingFilter } from 'tinykeys'
 import { Button } from '../../components/button'
 import { Drawer, DrawerPanel } from '../../components/drawer/drawer'
@@ -25,6 +25,7 @@ import { useIsRtl } from '../../hooks/use-is-rtl'
 import { useKeybindings } from '../../hooks/use-keybindings'
 import { useOffcanvas } from '../../hooks/use-offcanvas'
 import { OffcanvasContext } from '../../primitives/offcanvas'
+import { Portal } from '../../primitives/portal'
 import { readChoice, SIDEBAR, writeChoice } from '../../providers/appearance/appearance-storage'
 import { useAppearanceChoice } from '../../providers/appearance/use-appearance-choice'
 import { k } from '../../recipes/kata/sidebar-layout'
@@ -156,6 +157,13 @@ export function SidebarLayout({
 
 	useKeybindings({ '$mod+KeyB': toggleSidebar }, { ignore: IGNORE_TAKEN_OR_FIELD })
 
+	// The peek closes when a hovering pointer leaves it. A finger fires
+	// `pointerleave` as it lifts, so a touch peek stays open for the tap inside it,
+	// and a tap outside the non-modal sheet closes it.
+	const closeOnLeave = useCallback((event: PointerEvent) => {
+		if (event.pointerType !== 'touch') setFloatingOpen(false)
+	}, [])
+
 	const scrollWithin = useScrollWithin()
 
 	// Brings the current item into view when the drawer mounts its panel. A
@@ -204,7 +212,8 @@ export function SidebarLayout({
 						width="fit"
 						modal={false}
 						backdrop
-						// The peek closes when the pointer leaves, so it has no Close row.
+						// The peek closes when the pointer leaves, or on a tap outside it, so it has
+						// no Close row.
 						footer={null}
 						className={cn(
 							k.floating.sheet(),
@@ -214,25 +223,25 @@ export function SidebarLayout({
 						<div
 							className={k.floating.body()}
 							onPointerEnter={() => setFloatingOpen(true)}
-							onPointerLeave={() => setFloatingOpen(false)}
+							onPointerLeave={closeOnLeave}
 						>
 							{sidebar}
 						</div>
 					</SheetPanel>
 				</Sheet>
 
-				{/* Buffer beside the floating sidebar; keeps it open while the pointer lingers within 40px */}
-				{floatingOpen &&
-					typeof document !== 'undefined' &&
-					createPortal(
-						<div
-							aria-hidden
-							className={k.floating.buffer()}
-							onPointerEnter={() => setFloatingOpen(true)}
-							onPointerLeave={() => setFloatingOpen(false)}
-						/>,
-						document.body,
-					)}
+				{/* Buffer beside the floating sidebar; keeps it open while the pointer lingers
+				    within 40px. It goes through the same portal as the sheet, which carries the
+				    density scope that sets the width of the sheet, so it starts at the far edge
+				    of the sheet at each step. */}
+				<Portal open={floatingOpen}>
+					<div
+						aria-hidden
+						className={k.floating.buffer()}
+						onPointerEnter={() => setFloatingOpen(true)}
+						onPointerLeave={closeOnLeave}
+					/>
+				</Portal>
 
 				{/* Sidebar on mobile. The root holds the drawer and its trigger in the navbar. */}
 				<Drawer open={open} onOpenChange={setOpen}>

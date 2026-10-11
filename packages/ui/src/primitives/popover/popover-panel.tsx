@@ -150,12 +150,15 @@ export function PopoverPanel({
 			`:is(${itemSelector})[data-selected]`,
 		)
 
+		// The focus scrolls nothing. The panel mounts at the origin of its wrapper and
+		// Floating UI places it a microtask later, so a focus that scrolled would take
+		// the page to the top. The scroll to the selected item stays within the panel.
 		if (selected) {
-			selected.focus()
+			selected.focus({ preventScroll: true })
 
 			scrollWithin(selected, { block: 'nearest' })
 		} else {
-			panelRef.current.focus()
+			panelRef.current.focus({ preventScroll: true })
 		}
 	}, [autoFocus, itemSelector, scrollWithin])
 

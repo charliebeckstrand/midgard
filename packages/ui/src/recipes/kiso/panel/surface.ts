@@ -11,15 +11,15 @@ import { omote } from '../omote'
 import { sen } from '../sen'
 
 const { bg, glass } = omote
-const { ring, forced } = sen
+const { ring } = sen
 
 export const surface = {
 	/** Background fill only. */
 	bg: bg.surface,
 	/** Chrome only: ring + forced-color outline, no fill. */
-	chrome: [ring.default, forced.outline],
+	chrome: ring.default,
 	/** Fill + chrome, everything a floating panel needs. */
-	base: [ring.default, forced.outline, ...bg.surface],
+	base: [...ring.default, ...bg.surface],
 	/** The `surface` axis of a modal panel: `flat` is opaque, and `glass` is translucent and blurred. */
 	axis: { glass, flat: bg.surface },
 } as const

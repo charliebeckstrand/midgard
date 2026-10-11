@@ -3,6 +3,8 @@ import { page, userEvent } from 'vitest/browser'
 import { densitySteps, writeRootDensity } from '../../../core/density'
 import { rootOffcanvasSidebarClass } from '../../../core/sidebar/root'
 import { SidebarLayout, SidebarLayoutBody } from '../../../layouts'
+import type { DensityLevel } from '../../../providers/density/context'
+import { DensityProvider } from '../../../providers/density/density'
 import { frames, getSlot, present, renderUI } from '../../helpers'
 import { settledRect } from '../helpers/sample'
 
@@ -76,12 +78,49 @@ describe('sidebar layout width (real browser)', () => {
 			expect(sheet.getBoundingClientRect().width).toBe(railWidth)
 
 			// The buffer starts at the far edge of the sheet.
-			const buffer = present(
-				document.querySelector<HTMLElement>('body > [aria-hidden].fixed'),
-				'pointer buffer',
+			expect(pointerBuffer().getBoundingClientRect().left).toBe(railWidth)
+		},
+	)
+
+	// A region of the page can open its own density scope. The sheet follows that
+	// scope through its portal, so the buffer has to follow the same one. A buffer
+	// on the step of the root covered part of a wider sheet, and left a gap that
+	// closed a narrower one as the pointer crossed it.
+	it.for<DensityLevel>(['compact', 'loose'])(
+		'starts the pointer buffer at the far edge of the sheet in a %s region',
+		async (density) => {
+			document.documentElement.classList.add(rootOffcanvasSidebarClass)
+
+			const floating = renderUI(
+				<DensityProvider density={density}>
+					<SidebarLayout sidebar={<nav>Links</nav>}>
+						<SidebarLayoutBody>Content</SidebarLayoutBody>
+					</SidebarLayout>
+				</DensityProvider>,
 			)
 
-			expect(buffer.getBoundingClientRect().left).toBe(railWidth)
+			await frames()
+
+			const strip = present(
+				floating.container.querySelector<HTMLElement>(
+					'[data-slot="density"] > div > [aria-hidden]',
+				),
+				'hover strip',
+			)
+
+			await userEvent.hover(strip)
+
+			const sheet = await settledRect(getSlot(document.body, 'sheet'))
+
+			expect(pointerBuffer().getBoundingClientRect().left).toBe(sheet.getBoundingClientRect().right)
 		},
 	)
 })
+
+/** The pointer buffer beside the open floating sidebar. */
+function pointerBuffer(): HTMLElement {
+	return present(
+		document.querySelector<HTMLElement>('[data-slot="portal"] > [aria-hidden].fixed'),
+		'pointer buffer',
+	)
+}

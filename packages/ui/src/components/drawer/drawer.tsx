@@ -84,7 +84,9 @@ export type DrawerPanelProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
 		 *
 		 * `full` squares the top corners, because a rounded corner against the screen
 		 * edge reads as a panel that failed to reach it. `fit` squares them on the
-		 * steps that stand it there.
+		 * steps that stand it there. A drag of the `handle` squares them where it
+		 * leaves `half` or `full` at the top edge, and rounds them where it leaves the
+		 * panel below that edge.
 		 *
 		 * The body scrolls within the panel whichever is set, so no height ever
 		 * strands content; it decides where the panel stops, not what fits.
@@ -293,11 +295,21 @@ export function DrawerPanel({
 				// The panel eases between its `height` variants, which is right for a step
 				// and wrong for a finger: eased, each frame's height becomes an animation
 				// toward where the pointer already is, so the edge trails the drag and
-				// carries on after it ends. The recipe suspends it off this attribute.
+				// carries on after it ends. An arrow key that sets the size suspends it too,
+				// so a held key measures the size the reader sees rather than a box still
+				// easing. The recipe suspends it off this attribute.
 				data-resizing={dataAttr(resize.resizing)}
 				// Named so the slots below can key off it: a handle changes the panel's
 				// top inset, and the header that follows must not add its own on top.
 				data-handle={dataAttr(grip)}
+				// A fixed height squares its top corners where it meets the screen edge: `full`
+				// at rest, and either step once a drag commits a height at the ceiling. A `fit`
+				// panel stamps this attribute itself, so it is left alone here.
+				data-full={
+					height === 'half' || height === 'full'
+						? dataAttr(resize.size === null ? height === 'full' : resize.atCeiling)
+						: undefined
+				}
 				onClick={(event) => event.stopPropagation()}
 				// A dragged height beats the variant's — and a `fit` panel's, which stands
 				// down for as long as one is held. It is inline because it is a

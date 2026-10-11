@@ -122,6 +122,11 @@ function shareOf(size: number, viewport: number): number {
 
 /** Everything a gesture measured once, at the start. @internal */
 type Grab = {
+	/**
+	 * The pointer that pressed the bar. A second finger on the screen sends its own
+	 * moves and its own release, and the gesture follows only the first.
+	 */
+	pointer?: number
 	/** Where the pointer went down along the axis, and the size it went down on. */
 	at: number
 	size: number
@@ -144,10 +149,21 @@ export type PanelResize = {
 	}
 	/** The share of the screen the panel covers, for the splitter's value. */
 	covers: number
-	/** Whether a gesture is in flight, which suspends the size transition. */
+	/**
+	 * Whether a gesture is in flight, or an arrow key set the size last. Either
+	 * suspends the size transition. A key step lands at once, so the next step
+	 * measures the size the reader sees, and not a box still easing toward the
+	 * last one.
+	 */
 	resizing: boolean
 	/** The committed size, or `null` while the panel sits at its variant's. */
 	size: number | null
+	/**
+	 * Whether the committed size stands at the ceiling. A panel that meets the
+	 * screen edge there squares the corners it meets it with. `false` while the
+	 * panel sits at its variant's size.
+	 */
+	atCeiling: boolean
 	/** Goes on the panel. The gesture writes to whatever it catches. */
 	ref: (node: HTMLDivElement | null) => void
 }
@@ -253,11 +269,17 @@ export function usePanelResize({
 
 	const [size, setSize] = useState<number | null>(null)
 
-	const [resizing, setResizing] = useState(false)
+	const [atCeiling, setAtCeiling] = useState(false)
+
+	// The input that set the size last: a pointer while its gesture is in flight,
+	// or an arrow key until the next press. A release or a close clears it.
+	const [gesture, setGesture] = useState<'pointer' | 'key' | null>(null)
+
+	const dragging = gesture === 'pointer'
 
 	// The gesture listens on the window and captures nothing, so the element under
 	// the pointer would set the cursor. The rule holds the drag cursor instead.
-	useDragCursor(resizing, cursor)
+	useDragCursor(dragging, cursor)
 
 	// The share of the screen the panel covers. Measured rather than derived: at
 	// rest the size is whatever the panel's variant works out to on this screen,
@@ -280,9 +302,11 @@ export function usePanelResize({
 
 		grab.current = null
 
-		setResizing(false)
+		setGesture(null)
 
 		setSize(null)
+
+		setAtCeiling(false)
 	}, [open])
 
 	// Deliberately not a layout effect. Nothing paints from `covers` — it is the
@@ -325,21 +349,33 @@ export function usePanelResize({
 	}
 
 	/** Takes a settled size into state and reports the share it covers. */
-	function commit(next: number, viewport: number) {
+	function commit(next: number, at: Grab) {
 		setSize(next)
 
-		setCovers(shareOf(next, viewport))
+		setAtCeiling(next >= at.ceiling)
+
+		setCovers(shareOf(next, at.viewport))
+	}
+
+	/** The gesture in flight, when the event comes from the pointer that started it. */
+	function held(event: globalThis.PointerEvent): Grab | null {
+		const at = grab.current
+
+		return at !== null && at.pointer === event.pointerId ? at : null
 	}
 
 	function track(event: globalThis.PointerEvent) {
-		const at = grab.current
+		const at = held(event)
 
 		if (at !== null) draw(at, coordinateOf(event))
 	}
 
-	/** Ends the gesture in flight, and gives what it grabbed. Gives `null` when no gesture is in flight. */
-	function finish(): Grab | null {
-		const at = grab.current
+	/**
+	 * Ends the gesture in flight, and gives what it grabbed. Gives `null` when no
+	 * gesture is in flight, or when the event comes from another pointer.
+	 */
+	function finish(event: globalThis.PointerEvent): Grab | null {
+		const at = held(event)
 
 		if (at === null) return null
 
@@ -349,23 +385,23 @@ export function usePanelResize({
 
 		stop.current = null
 
-		setResizing(false)
+		setGesture(null)
 
 		return at
 	}
 
 	function release(event: globalThis.PointerEvent) {
-		const at = finish()
+		const at = finish(event)
 
-		if (at !== null) commit(draw(at, coordinateOf(event)), at.viewport)
+		if (at !== null) commit(draw(at, coordinateOf(event)), at)
 	}
 
 	// A canceled pointer does not tell where it stopped: Chromium gives 0, 0. The
 	// panel goes back to the size that it had at the press.
-	function cancel() {
-		const at = finish()
+	function cancel(event: globalThis.PointerEvent) {
+		const at = finish(event)
 
-		if (at !== null) commit(resize(at, at.size), at.viewport)
+		if (at !== null) commit(resize(at, at.size), at)
 	}
 
 	function onPointerDown(event: ReactPointerEvent<HTMLElement>) {
@@ -383,6 +419,7 @@ export function usePanelResize({
 		const viewport = dockExtent(panel, axis)
 
 		grab.current = {
+			pointer: event.pointerId,
 			at: coordinateOf(event),
 			size: measured,
 			floor: floorOf(panel, measured),
@@ -405,7 +442,7 @@ export function usePanelResize({
 		// there is never a frame that has one without the other.
 		setSize(measured)
 
-		setResizing(true)
+		setGesture('pointer')
 
 		// The rest of the gesture is the window's, not the bar's. Pointer capture
 		// would be the shorter way to say it and it is not dependable enough: it can
@@ -439,9 +476,9 @@ export function usePanelResize({
 
 		if (panel === null) return
 
-		// The committed size when there is one, so a held arrow does not re-measure
-		// a box still easing toward the last press — and reads no layout at all after
-		// the first.
+		// The committed size when there is one, so a held arrow reads no layout for
+		// the size after the first press. A key step suspends the size transition, so
+		// the box the floor measures already stands at that size.
 		const measured = size ?? panel.getBoundingClientRect()[axis]
 
 		const viewport = dockExtent(panel, axis)
@@ -456,17 +493,17 @@ export function usePanelResize({
 
 		// A step rather than a pretend pointer: the size moves by the step outright,
 		// so the side's own sign is already spent naming which key grows it.
-		commit(
-			resize(at, measured + (event.key === grow ? viewport * STEP : -viewport * STEP)),
-			viewport,
-		)
+		setGesture('key')
+
+		commit(resize(at, measured + (event.key === grow ? viewport * STEP : -viewport * STEP)), at)
 	}
 
 	return {
-		handleProps: { onPointerDown, onKeyDown, 'data-dragging': dataAttr(resizing) },
+		handleProps: { onPointerDown, onKeyDown, 'data-dragging': dataAttr(dragging) },
 		covers,
-		resizing,
+		resizing: gesture !== null,
 		size,
+		atCeiling,
 		ref,
 	}
 }

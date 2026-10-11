@@ -4,14 +4,18 @@
  * containers (popover, panel) where an outset ring would visually
  * crop against the surface chrome.
  *
+ * A ring is a box-shadow, which forced colors remove, so the default ring
+ * carries an outline that keeps the edge there.
+ *
  * Layer: kiso · Concern: rings
  */
 
+import { forced } from './forced'
 import { tone } from './tone'
 
 export const ring = {
-	/** Default ring: 1 px line, low-contrast palette. */
-	default: ['ring-1', ...tone.ring],
+	/** Default ring: 1 px line, low-contrast palette, and an outline under forced colors. */
+	default: ['ring-1', ...tone.ring, forced.outline],
 	/** Inset ring: sits inside the element, subtle in light / stronger in dark. */
 	inset: ['ring-1', ...tone.ring, 'ring-inset'],
 } as const
