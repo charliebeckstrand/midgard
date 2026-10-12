@@ -11,7 +11,9 @@ import { CLIENT_DIR, HYDRATED } from '../../../scripts/docs-server'
 // on each prerendered page of the build in Chromium, so it also reads the
 // contrast of the text and the size of the targets. It reads the first state
 // of each page, in the light theme and in the dark theme, at the width of a
-// desktop, with reduced motion.
+// desktop, with reduced motion. Each page loads one time in the light theme,
+// then the color scheme of the tab changes to dark. The theme follows the
+// color scheme live, so the second read costs no second load.
 //
 // A page loads nothing from another host, so the result does not depend on
 // the network. The PDF of the PdfViewer page is on another host, so that page
@@ -62,14 +64,32 @@ const KNOWN: readonly { path: string; rule: string; reason: string; theme?: Them
 	},
 ]
 
+/**
+ * A browser expression that is `true` when the full stylesheet of the page
+ * loaded. The app renders the link of the sheet after the hydration commits
+ * (`docs/app/root.tsx`). `HYDRATED` is `true` earlier: the hydration is a
+ * transition, so React renders it in slices, and the heading gets its fiber
+ * before the content does. On a loaded machine, the content stayed as the
+ * prerendered markup for seconds after that. Its effects did not run, so a
+ * tab panel still had the `tabindex` of the server, and `target-size` failed.
+ */
+const STYLED = `document.querySelector('link[rel="stylesheet"][data-precedence]')?.sheet != null`
+
 /** The script of axe, which each page loads. */
 const AXE = createRequire(import.meta.url).resolve('axe-core/axe.min.js')
 
-/** The path of each prerendered page: the home page, and each page and tab of the docs. */
+const shard = inject('docsShard')
+
+/**
+ * The path of each prerendered page of the shard: the home page, and each
+ * page and tab of the docs. The shards take the pages in turn, so the pages
+ * of a section, such as the charts, go to each shard.
+ */
 const PATHS = fs
 	.globSync('**/index.html', { cwd: CLIENT_DIR })
 	.map((file) => `/${path.dirname(file)}`.replace(/^\/\.$/, '/'))
 	.toSorted()
+	.filter((_, index) => index % shard.count === shard.index - 1)
 
 const origin = inject('docsOrigin')
 
@@ -84,16 +104,16 @@ afterAll(async () => {
 })
 
 /**
- * Opens a tab at the width of a desktop that loads only from the server of
- * the build. The tab closes after the case. The cases run side by side, so
- * the hook comes from the context of the case.
+ * Opens a tab at the width of a desktop, in the light theme, that loads only
+ * from the server of the build. The tab closes after the case. The cases run
+ * side by side, so the hook comes from the context of the case.
  */
-async function openTab({ onTestFinished }: TestContext, theme: Theme): Promise<Page> {
+async function openTab({ onTestFinished }: TestContext): Promise<Page> {
 	// With reduced motion, no surface is in a transition when axe reads it.
 	const tab = await browser.newPage({
 		viewport: { width: 1280, height: 900 },
 		reducedMotion: 'reduce',
-		colorScheme: theme,
+		colorScheme: 'light',
 	})
 
 	onTestFinished(() => tab.close())
@@ -148,34 +168,50 @@ function settle({ quiet, limit }: { quiet: number; limit: number }): Promise<voi
 	})
 }
 
-/**
- * Runs the WCAG rules of axe on the page at `route` in `theme`, after it
- * hydrates, its loads end, and its layout settles.
- */
-async function audit(
-	route: string,
-	theme: Theme,
-	context: TestContext,
-): Promise<AxeResults['violations']> {
-	const tab = await openTab(context, theme)
-
-	await tab.goto(`${origin}${route}`)
-
-	await tab.waitForFunction(HYDRATED)
-
-	await tab.waitForLoadState('networkidle')
-
+/** Runs the WCAG rules of axe on the page in the tab, after its layout settles. */
+async function audit(tab: Page): Promise<AxeResults['violations']> {
 	await tab.evaluate(settle, { quiet: QUIET, limit: SETTLE_LIMIT })
-
-	await tab.addScriptTag({ path: AXE })
 
 	return tab
 		.evaluate((tags) => window.axe.run(document, { runOnly: { type: 'tag', values: tags } }), TAGS)
 		.then((results) => results.violations)
 }
 
-/** Each path in each theme. */
-const CASES = PATHS.flatMap((route) => THEMES.map((theme) => [route, theme] as const))
+/**
+ * Runs the WCAG rules of axe on the page at `route` in each theme, after it
+ * hydrates, its full stylesheet loads, and its loads end. After the change to the dark theme, axe waits
+ * until the root has the `dark` class and no color is in a transition.
+ */
+async function auditThemes(
+	route: string,
+	context: TestContext,
+): Promise<Record<Theme, AxeResults['violations']>> {
+	const tab = await openTab(context)
+
+	await tab.goto(`${origin}${route}`)
+
+	await tab.waitForFunction(HYDRATED)
+
+	await tab.waitForFunction(STYLED)
+
+	await tab.waitForLoadState('networkidle')
+
+	await tab.addScriptTag({ path: AXE })
+
+	const light = await audit(tab)
+
+	await tab.emulateMedia({ colorScheme: 'dark' })
+
+	await tab.waitForFunction(
+		() =>
+			document.documentElement.classList.contains('dark') &&
+			document.getAnimations().every((animation) => !(animation instanceof CSSTransition)),
+	)
+
+	const dark = await audit(tab)
+
+	return { light, dark }
+}
 
 declare global {
 	interface Window {
@@ -185,12 +221,13 @@ declare global {
 
 // Each case opens its own tab, so the pages load side by side.
 describe.concurrent('a prerendered page of the docs build, in Chromium', () => {
-	it.for(CASES)(
-		'%s in the %s theme breaks no WCAG A or AA rule of axe',
-		async ([route, theme], context) => {
-			const { expect } = context
+	it.for(PATHS)('%s breaks no WCAG A or AA rule of axe in either theme', async (route, context) => {
+		const { expect } = context
 
-			const violations = await audit(route, theme, context)
+		const results = await auditThemes(route, context)
+
+		for (const theme of THEMES) {
+			const violations = results[theme]
 
 			const known = KNOWN.filter(
 				(entry) => entry.path === route && (entry.theme === undefined || entry.theme === theme),
@@ -200,11 +237,14 @@ describe.concurrent('a prerendered page of the docs build, in Chromium', () => {
 				known.includes(id) ? [] : nodes.map((node) => `${id}: ${node.target.join(' ')}`),
 			)
 
-			expect(found).toEqual([])
+			expect(found, `in the ${theme} theme`).toEqual([])
 
 			const gone = known.filter((rule) => !violations.some((violation) => violation.id === rule))
 
-			expect(gone, 'these known violations are gone, so remove their entries').toEqual([])
-		},
-	)
+			expect(
+				gone,
+				`in the ${theme} theme, these known violations are gone, so remove their entries`,
+			).toEqual([])
+		}
+	})
 })
