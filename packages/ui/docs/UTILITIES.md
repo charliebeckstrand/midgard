@@ -8,15 +8,15 @@
 |---|---|
 | `clamp` | Constrains `value` to the inclusive range `[lo, hi]`. |
 | `pct` | Maps `value` to its percentage position within `[min, max]`; `0` when the range is empty. |
-| `parseAspectRatio` | Parses a chart or map `aspectRatio` to its numeric `width / height`; `null` when the ratio is off or unparseable, which leaves the frame free-form. Both terms must be positive, so a signed `'-4/3'` falls through the same way its numeric twin does. |
+| `parseAspectRatio` | Parses a chart or map `aspectRatio` to its numeric `width / height`, or `null` for a free-form frame. |
 | `digitsOnly` | Returns `value` with every non-digit character removed. |
-| `reduceNumbers` | Reduces a set of numbers that is not empty to its sum, mean, minimum, or maximum. The pivot table and the grid aggregate rows use it. Each caller keeps its own `count` and empty-set rules. |
+| `reduceNumbers` | Reduces a set of numbers that is not empty to its sum, mean, minimum, or maximum. Each caller keeps its own `count` and empty-set rules. |
 | `Aggregation` *(type)* | The built-in aggregation names. `PivotAggregation` and `GridAggFuncName` are aliases of it. |
-| `capitalizeFirst` | Returns `value` with its first letter uppercased and the rest unchanged. The select-family `capitalize` prop, the Avatar status label, the Timeline marker label, and the grid color menu use it. |
-| `parseNumeric` | Parses a data cell to a number, or `null`. It is the one numeric rule for data cells: Grid, PivotTable, the query evaluator, the charts, and the map read values through it. It accepts grouping (`1,234`), a currency symbol (`$1,200`), a trailing percent, and an accounting negative (`(50)`). A blank, a boolean, text, and a non-finite number give `null`, not `0`. |
+| `capitalizeFirst` | Returns `value` with its first letter uppercased and the rest unchanged. |
+| `parseNumeric` | Parses a data cell to a number, or `null`. It is the one numeric rule for data cells, so a blank gives `null`, not `0`. |
 | `formatInteger` | Locale-formats `value` with no fraction digits (cached formatter). An optional `locale` overrides the runtime locale. |
 | `formatFraction` | Locale-formats `value` with up to two fraction digits (cached formatter). An optional `locale` overrides the runtime locale. |
-| `integerFormat` / `fractionFormat` | The formatter behind each helper above for a `locale`. The same locale gives the same function, so a component can pass the formatter to a memo as a stable input. |
+| `integerFormat` / `fractionFormat` | The cached formatter behind each helper above for a `locale`. Use it where a memo needs a stable input. |
 | `percentFormat` | A `0..1` share as a whole percent for a `locale`, as a stable formatter. |
 | `compactFormat` | Compact notation to one fraction digit (`48.2K`) for a `locale`, as a stable formatter. Chart ticks in a narrow frame take it. |
 | `resolveFormat` | Resolves a `FormatSpec` to a cached `(value) => string` formatter — number, integer, currency, percent, compact, or prefixed id. |
@@ -26,7 +26,7 @@
 
 | Export | Summary |
 |---|---|
-| `resolveLocale` | Coalesces an optional BCP 47 tag to a concrete one, with the runtime locale as the fallback. Resolved once, because `Intl.DateTimeFormat` construction has no cache and the process locale cannot change. |
+| `resolveLocale` | Coalesces an optional BCP 47 tag to a concrete one, with the runtime locale as the fallback. |
 
 ## Color & accessibility
 
@@ -34,7 +34,7 @@
 |---|---|
 | `contrastRatio` | WCAG contrast ratio (`1`–`21`) between two colors. |
 | `relativeLuminance` | WCAG relative luminance of a color, in `[0, 1]`. |
-| `readableInk` | The first candidate ink that clears a numeric floor on a background — lead with the preferred ink (e.g. white) to get it wherever it holds. Defaults to `4.5`, the AA floor for normal text. |
+| `readableInk` | The first candidate ink that clears a contrast floor on a background, `4.5` by default. Put the preferred ink first. |
 | `parseColor` | Resolves a CSS color (`#rgb` / `#rrggbb`, `rgb(…)`, `oklch(…)`, `white` / `black`) or an `Srgb` triple to gamma-encoded `Srgb`. |
 | `WCAG_AA_TEXT` | The WCAG 1.4.3 AA contrast floor for normal-size text: `4.5`. `readableInk` defaults to it. |
 | `WCAG_NON_TEXT` | The WCAG 1.4.11 contrast floor for a non-text component or graphical object: `3`. |
@@ -77,9 +77,9 @@ The sequential-scale primitives the data-driven color charts share — the choro
 | Export | Summary |
 |---|---|
 | `clearNativeInput` | Clears an input through the native value setter and a bubbling `input` event, so controlled and uncontrolled consumers both observe it. Returns focus to the input. |
-| `createEmitter` | A listener set with no payload: `subscribe` returns the unsubscribe, and `emit` calls a copy of the set. The chart and map hover stores, the grid and dashboard stores, the appearance choices, and the overlay signal use it. |
+| `createEmitter` | A listener set with no payload: `subscribe` returns the unsubscribe, and `emit` calls a copy of the set. |
 | `Emitter` *(type)* | The `{ subscribe, emit }` pair that `createEmitter` returns. |
-| `createListenerRegistry` | A set of handlers for each key behind one shared native listener, which attaches for the first subscriber and detaches when the last leaves. `subscribeDocumentEvent` and `subscribeMediaQuery` build on it. |
+| `createListenerRegistry` | Handlers for each key behind one shared native listener, which attaches for the first subscriber and detaches after the last. |
 | `ListenerRegistry` *(type)* | The `{ subscribe, source }` pair that `createListenerRegistry` returns. |
 | `ListenerRegistryOptions` *(type)* | How a registry makes the source of a key, attaches its listener, and whether it keeps an empty entry. |
 | `subscribeDocumentEvent` | Subscribes to a document event via one shared listener per type; returns an unsubscribe fn. |
@@ -88,8 +88,8 @@ The sequential-scale primitives the data-driven color charts share — the choro
 | `NO_HOVER_QUERY` | The `(hover: none)` query, which matches a device with no hover, such as a phone. |
 | `REDUCED_MOTION_QUERY` | The `(prefers-reduced-motion: reduce)` query, for a caller that reads it outside React. |
 | `isNativeContextMenuRequest` | Whether a `contextmenu` event asks for the browser's native menu (Ctrl + secondary-button click) instead of a custom one. |
-| `isScrollbarPress` | Whether a press landed on an element's own scrollbar gutter rather than on its content. A gutter press starts a pan, so a floating surface does not dismiss for it and no selection follows it. Tests an axis only where it can scroll, and reads the vertical gutter off the inline-start edge under `direction: rtl`. The border widths are not part of the gutter. |
-| `printInHiddenFrame` | Prints a document through an off-screen iframe and reclaims the frame on `afterprint`, with a window-`focus` backstop, and on either failure route. `prepare` points the frame at markup (`srcdoc`) or a URL (`src`). The optional `onFail` says what to do besides reclaiming, and its absence lets a blocked `print()` propagate. |
+| `isScrollbarPress` | Whether a press landed on the scrollbar gutter of an element, not on its content. A floating surface does not dismiss for a gutter press. |
+| `printInHiddenFrame` | Prints a document through a hidden iframe, and reclaims the frame after the print or on a failure. |
 | `requestIdle` | Calls a callback in idle time. A browser with no `requestIdleCallback`, such as Safari, calls it after a fallback delay, with no deadline. Import it from `utilities/idle`. |
 | `cancelIdle` | Cancels a callback that `requestIdle` scheduled. |
 
@@ -97,8 +97,8 @@ The sequential-scale primitives the data-driven color charts share — the choro
 
 | Export | Summary |
 |---|---|
-| `measureBox` | An element's border box, not `contentRect`, which excludes its own padding and border. It comes from a `ResizeObserver` entry where the caller has one, and from a measurement where the caller does not. The entry is already measured, where `getBoundingClientRect` forces a layout. |
-| `measureContentBox` | The content box of an element: the client size, which the browser rounds to a whole pixel, less the computed padding. Use it to size a drawing surface, such as a canvas, that fills a box with a border or padding. The client size ignores CSS transforms. |
+| `measureBox` | The border box of an element, from a `ResizeObserver` entry where the caller has one. |
+| `measureContentBox` | The content box of an element. Use it to size a drawing surface, such as a canvas, inside a border or padding. |
 | `BorderBox` *(type)* | An element's border box, on the two axes a resize is read along: `inline` and `block`. |
 | `ContentBox` *(type)* | An element's content box in CSS px: `width` and `height`. The return type of `measureContentBox`. |
 | `forceStyleFlush` | Makes the browser compute styles and layout now, so a CSS transition has a style to start from. It is a call, not a bare `offsetHeight` read, which the React Compiler removes. |
@@ -112,7 +112,7 @@ The sequential-scale primitives the data-driven color charts share — the choro
 | `crossAxisDelta` | Cross-axis arrow delta for an orientation: the pair the main axis doesn't use. |
 | `wrap` | Wraps an index into `[0, count)`, so a step past either end lands at the other. |
 | `NavigationConfig` *(type)* | Navigation mode for `nextIndexForKey`: 2D grid when `cols` set, else single-axis along `orientation`. |
-| `isComposing` | Whether an input method composes a key press: `isComposing`, or `keyCode` 229, which the first key of a composition and the Safari confirm Enter report. It accepts a React or a DOM keyboard event. |
+| `isComposing` | Whether an input method composes a key press. It accepts a React or a DOM keyboard event. |
 
 ## Collections & data
 
@@ -120,7 +120,7 @@ The sequential-scale primitives the data-driven color charts share — the choro
 |---|---|
 | `getOrCompute` | The value under a key in a `Map` or `WeakMap`, computed and stored on the first read — the one get-or-compute step every memo spells. |
 | `ComputeCache` *(type)* | The `get`/`has`/`set` interface `getOrCompute` reads; a `Map` and a `WeakMap` both satisfy it. |
-| `createKeyedStore` | A store that holds one value for each key and calls only the listeners of the keys whose value changed. A consumer reads its own key through `useSyncExternalStore`, so a change to one entry does not render the consumers of the others. The grid settle store builds on it. |
+| `createKeyedStore` | A store that holds one value for each key and calls only the listeners of the keys whose value changed. |
 | `KeyedStore` *(type)* | The store that `createKeyedStore` returns: `get`, `subscribe` for one key, and `publish` of a new reader. |
 | `toggleItem` | Returns a copy of `set` with `item` toggled (removed if present, added otherwise); no mutation. |
 | `moveItem` | Returns a copy of `items` with the item at `from` moved to index `to`. No mutation. |
@@ -131,7 +131,7 @@ The sequential-scale primitives the data-driven color charts share — the choro
 | `isDataColumn` | True for content columns; false for the selection-checkbox and row-actions columns. |
 | `noop` | No-op function. |
 | `noopSubscribe` | A `useSyncExternalStore` subscription that never fires. It serves a read with no store, and a snapshot that changes only at hydration. |
-| `once` | Wraps a thunk so it computes at most once; a later call returns the cached first result. A throw caches nothing, so the next call runs the thunk again. This is the lazy seam behind a deferred derivation like the charts' readout. |
+| `once` | Wraps a thunk so it computes at most once. A throw caches nothing, so the next call runs the thunk again. |
 
 ---
 
