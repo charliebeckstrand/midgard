@@ -7,6 +7,7 @@ import type {
 	Plugin,
 	ViteDevServer,
 } from 'vite'
+import type { ShikiHighlight, ShikiRequest } from '../../components/code/code-shiki-highlighter.ts'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
 import { type BarrelApi, createApiWorker } from './api.ts'
 import {
@@ -16,10 +17,12 @@ import {
 	EXAMPLE,
 	type ExampleCode,
 	exampleFiles,
+	type Highlight,
 	loadCodes,
 } from './examples.ts'
 import { findPages, type Page, type PageLink } from './pages.ts'
 import { type SearchEntry, searchEntries } from './search.ts'
+import { createThread } from './thread.ts'
 
 const VIRTUAL = 'virtual:docs/'
 
@@ -82,6 +85,15 @@ export function reactDocs(): Plugin {
 	const pages = path.join(docs, 'pages')
 
 	const extractor = createApiWorker(ui)
+
+	// Shiki highlights the examples in a thread (`highlight-worker.ts`). On the
+	// main thread, the highlights of the docs held the client build for about
+	// 1.5 s.
+	const highlighter = createThread<Omit<ShikiRequest, 'id'>, ShikiHighlight>(
+		new URL('./highlight-worker.ts', import.meta.url),
+	)
+
+	const highlight: Highlight = (code, lang, theme) => highlighter.request({ code, lang, theme })
 
 	// The API data of each barrel. The client build and the server build read
 	// the same barrels, so the TypeScript server runs once for both.
@@ -185,7 +197,9 @@ export function reactDocs(): Plugin {
 					for (const file of files) this.addWatchFile(file)
 
 					return data(
-						await getOrCompute(codes, folder, () => loadCodes(this.parse.bind(this), files)),
+						await getOrCompute(codes, folder, () =>
+							loadCodes(this.parse.bind(this), highlight, files),
+						),
 					)
 				}
 
@@ -238,6 +252,8 @@ export function reactDocs(): Plugin {
 		},
 		buildEnd() {
 			extractor.close()
+
+			highlighter.close()
 		},
 	}
 }
