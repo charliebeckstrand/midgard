@@ -78,11 +78,18 @@ const STYLED = `document.querySelector('link[rel="stylesheet"][data-precedence]'
 /** The script of axe, which each page loads. */
 const AXE = createRequire(import.meta.url).resolve('axe-core/axe.min.js')
 
-/** The path of each prerendered page: the home page, and each page and tab of the docs. */
+const shard = inject('docsShard')
+
+/**
+ * The path of each prerendered page of the shard: the home page, and each
+ * page and tab of the docs. The shards take the pages in turn, so the pages
+ * of a section, such as the charts, go to each shard.
+ */
 const PATHS = fs
 	.globSync('**/index.html', { cwd: CLIENT_DIR })
 	.map((file) => `/${path.dirname(file)}`.replace(/^\/\.$/, '/'))
 	.toSorted()
+	.filter((_, index) => index % shard.count === shard.index - 1)
 
 const origin = inject('docsOrigin')
 
