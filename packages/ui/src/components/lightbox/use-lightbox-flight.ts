@@ -64,6 +64,13 @@ function boxesOf(slot: HTMLElement, photo: HTMLElement) {
 	return { slot: box, rest }
 }
 
+/** Writes the transforms of a frame on the slot and on the photo. */
+function paint(slot: HTMLElement, photo: HTMLElement, transforms: { slot: string; photo: string }) {
+	slot.style.transform = transforms.slot
+
+	photo.style.transform = transforms.photo
+}
+
 /** A box inset by the scroll padding in `style`, the edges that sticky bars cover. */
 function paddedBox(box: LightboxBox, style: CSSStyleDeclaration): LightboxBox {
 	const top = Number.parseFloat(style.scrollPaddingTop) || 0
@@ -230,11 +237,7 @@ export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): Ligh
 		}
 
 		// The first paint shows the photo over its thumbnail, before Motion starts.
-		const first = frameTransforms(frame, boxes.slot, boxes.rest)
-
-		slot.style.transform = first.slot
-
-		photo.style.transform = first.photo
+		paint(slot, photo, frameTransforms(frame, boxes.slot, boxes.rest))
 
 		void fly(slot, photo, boxes, frame, restingFrame(boxes.rest), true)
 	}
