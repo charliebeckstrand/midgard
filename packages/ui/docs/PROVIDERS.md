@@ -14,9 +14,9 @@ The integration points an app mounts once at its root: `UIDocument` in the root 
 
 | Export | Summary |
 |---|---|
-| `UIProvider` | App-root integration point registering the framework link component, the default portal container, and the current `pathname`. A `SidebarItem` or a `NavItem` with an `href` that matches the `pathname` is current. It also mounts the dialog that `useConfirm` from `ui/confirm` asks in. The outermost provider mounts the toast queue and viewport that `useToast` from `ui/toast` uses, and its `toast` prop sets them. The dialog and the viewport load in idle time after the hydration, or on the first question or toast when that comes first. Put `LocaleProvider` above it. |
+| `UIProvider` | App-root integration point: the framework link, the default portal container, and the current `pathname`. It mounts the hosts of `useConfirm` and `useToast`. Put `LocaleProvider` above it. |
 | `UIProviderProps` *(type)* | Props for `UIProvider`. |
-| `UIDocument` | The document of an app: `<html>`, `<head>`, and `<body>`. The head holds `AppearanceScript`, and the body wraps its children in `AppearanceProvider`, so the pre-paint step and its provider are always together. The `<html>` element has `suppressHydrationWarning`, because the script changes its classes before hydration. It has no `'use client'`, so a server layout can render it. |
+| `UIDocument` | The `<html>`, `<head>`, and `<body>` of an app, with `AppearanceScript` and `AppearanceProvider` in place. A server layout can render it. |
 | `UIDocumentProps` *(type)* | Props for `UIDocument`: `lang`, the classes of `<html>` and `<body>`, and more `head` content. |
 | `PathMatch` *(type)* | How an item `href` matches the `pathname`: `exact`, or `prefix` to also match each path under the `href`. |
 | `useLink` | Reads the app-registered framework link component from `<UIProvider>`. |
@@ -25,15 +25,15 @@ The integration points an app mounts once at its root: `UIDocument` in the root 
 
 ## `ui/providers/appearance`
 
-Holds the persisted theme, density, motion, and sidebar of an app, and gives the settings button that edits them. An app mounts `AppearanceProvider` once at its root. The stylesheet of the app must key its `dark` variant on the `.dark` class.
+An app mounts `AppearanceProvider` once at its root. The stylesheet of the app must key its `dark` variant on the `.dark` class.
 
 | Export | Summary |
 |---|---|
-| `AppearanceProvider` | App-root owner of the theme, density, motion, and sidebar preferences. It keeps them in `localStorage` and toggles the root `.dark` class. While the motion is `reduced`, the root has the `reduced-motion` class. While the sidebar is `offcanvas`, the root has the `sidebar-offcanvas` class. The `sidebar-offcanvas` variant reads it, and `SidebarLayout` then shows its desktop sidebar as a floating sheet. The `motion-reduce` and `motion-safe` variants of `ui/tailwind.css` read the class, and `usePrefersReducedMotion` and `ReducedMotion` read the choice. It writes the step of the density as a class on the root element, the density scope of the app. At `md`, the default, the root has no density class. It renders the script that adds the latin subset of the font of ui before its children, so latin text never paints without the font. The other font faces come from `ui/tailwind.css`, which has no latin face. |
+| `AppearanceProvider` | App-root owner of the theme, density, motion, and sidebar preferences. It keeps them in `localStorage` and writes them as classes on the root element. It loads the latin face of the font, and `ui/tailwind.css` holds the other faces. |
 | `AppearanceProviderProps` *(type)* | Props for `AppearanceProvider`. |
-| `AppearanceSettings` | Settings icon button that opens a dialog with the appearance, density, and motion pickers. Inside a `SidebarLayout`, the dialog also has the Sidebar picker (Locked or Offcanvas) with its ⌘B or Ctrl+B key, from `lg` up. A selection applies immediately and persists. `children` adds more fields below the pickers. The dialog module loads in idle time after the hydration, or on the first pointer or focus on the button when that comes first. The dialog then renders closed, so the first press opens it at once. |
+| `AppearanceSettings` | Settings icon button that opens the appearance, density, motion, and sidebar pickers. ⌘B or Ctrl+B toggles the sidebar. `children` adds more fields. |
 | `AppearanceSettingsProps` *(type)* | Props for `AppearanceSettings`: more fields for the dialog. |
-| `AppearanceScript` | Inline head script that applies the stored theme, density, motion, and sidebar to the root element before the first paint. It has no `'use client'`, so a server layout can render it. `UIDocument` renders it. |
+| `AppearanceScript` | Inline head script that applies the stored preferences before the first paint. `UIDocument` renders it. |
 | `useAppearance` | Reads the theme, the density, the motion, the sidebar, and their setters from the nearest `AppearanceProvider`; throws outside one. |
 | `AppearanceContextValue` *(type)* | The value that `useAppearance` returns. |
 | `ThemeMode` *(type)* | Theme preference: `light`, `dark`, or `system`. |
@@ -49,7 +49,7 @@ Opens a density scope for a region, and maps the friendly density levels to dens
 
 | Export | Summary |
 |---|---|
-| `DensityProvider` | Opens a density scope for a region at a friendly level (`compact` / `snug` / `loose`). Its wrapper writes the step of the level to `data-density`, which the stepped classes read. The wrapper also opens the `Density` context at the same step for the portal roots and the JS readers. |
+| `DensityProvider` | Opens a density scope for a region at a friendly level (`compact` / `snug` / `loose`). |
 | `DensityProviderProps` *(type)* | Props for `DensityProvider`. |
 | `DensityLevel` *(type)* | Friendly density level: the stored density setting and the `density` prop of `DensityProvider`; `'snug'` is the baseline. |
 | `densityLevels` | Selectable density levels with display labels, ordered loose → compact, for density pickers. |
@@ -61,7 +61,7 @@ Sets the ambient glass flag so glass-aware chrome switches to its glass variant.
 
 | Export | Summary |
 |---|---|
-| `GlassProvider` | Sets the ambient glass flag for the subtree, switching every glass-aware descendant to its glass variant. It has no `'use client'`, so an RSC tree can host it; a client leaf writes the context. |
+| `GlassProvider` | Sets the ambient glass flag for the subtree. An RSC tree can host it. |
 | `GlassProviderProps` *(type)* | Props for `GlassProvider`. |
 | `useGlass` | Reads the ambient glass flag; `false` outside a `<GlassProvider>`. |
 | `useResolvedSurface` | Resolves a chrome panel's `surface` variant. A set `glass` prop wins, so `false` opts out inside a `<GlassProvider>`; with no prop, the ambient flag decides. |
@@ -78,16 +78,16 @@ Escape hatch that strips chrome from headless-aware descendants so they render t
 
 ## `ui/providers/locale`
 
-Broadcasts `Intl` formatting defaults; explicit component props still win. This is a formatting provider, not a translation layer. It holds no string catalog, so control strings stay hardcoded English. A catalog waits for a real second locale.
+A formatting provider, not a translation layer: it holds no string catalog.
 
 | Export | Summary |
 |---|---|
-| `LocaleProvider` | Broadcasts `Intl` formatting defaults (locale tag, currency, number and date options, time zone); explicit component props still win. The default number formats of charts, maps, PivotTable, grid aggregates, and Odometer take its `locale`. Its `dir` writes the direction of a region on a `contents` wrapper and opens a direction scope. Thus dialogs, menus, and panels that the region opens keep the direction across their portals. On a page that renders on a server, set its `locale`. Without a locale, the server markup and the hydration render can use different runtime defaults. |
+| `LocaleProvider` | Broadcasts `Intl` formatting defaults; explicit component props still win. Its `dir` opens a direction scope that crosses portals. On a page that renders on a server, set its `locale`. |
 | `LocaleProviderProps` *(type)* | Props for `LocaleProvider`: the `LocaleConfig` fields and an optional `dir`. |
-| `LocaleConfig` *(type)* | Ambient `Intl` defaults a `<LocaleProvider>` broadcasts: `locale`, `currency`, `numberFormat`, `dateFormat`, `timeZone`. Every field feeds an `Intl.*` formatter, and none holds strings. A nested provider folds over the enclosing config per field. |
+| `LocaleConfig` *(type)* | Ambient `Intl` defaults: `locale`, `currency`, `numberFormat`, `dateFormat`, and `timeZone`. |
 | `useLocale` | Reads the ambient `LocaleConfig` from the nearest `<LocaleProvider>`; returns `{}` outside one. |
 | `useFormat` | Resolves a `FormatSpec` to a memoized `(value) => string` formatter, folding in the ambient locale / currency / number-format defaults. |
-| `useDateFormat` | Resolves `Intl.DateTimeFormat` options to a memoized formatter in the locale of the provider. The server render and the hydration render use the `timeZone` of the provider, `UTC` by default. A format with a time then adds the name of the zone. The render after hydration uses the zone of the reader. A `timeZone` in the options fixes the zone for all renders. `DateTime` in `ui/date-time` renders the result in a `<time>`. |
+| `useDateFormat` | Resolves `Intl.DateTimeFormat` options to a memoized formatter in the locale of the provider. To render a date, use `DateTime` from `ui/date-time`. |
 | `FormatSpec` *(type)* | What `useFormat` formats a value as: a numeric `Intl` format (`number`/`integer`/`currency`/`percent`/`compact`) or a prefixed `id` (`INV-42`). |
 
 ---
