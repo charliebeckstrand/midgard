@@ -17,10 +17,12 @@ import { Link } from 'ui/link'
 import { PasswordInput } from 'ui/password-input'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
-import { oauthStartPath, signInProviderNames } from './account'
+import { oauthStartPath, signInProviderNames, signOut } from './account'
 import { bifrost } from './bifrost'
 import { ErrorAlert } from './error-alert'
 import { chain, email, required } from './form-validators'
+import { SecondStep } from './second-step'
+import type { SecondFactorMethod } from './second-step-request'
 import { useLeaving } from './use-leaving'
 import { unexpectedError, useServerError } from './use-server-error'
 
@@ -84,6 +86,24 @@ type LoginPageProps = {
 	 * no register page. @defaultValue `true`
 	 */
 	registration?: boolean
+	/**
+	 * Show the link to `/forgot-password` below the password. Set `false` in an
+	 * app that has no forgot-password page. @defaultValue `true`
+	 */
+	passwordReset?: boolean
+	/**
+	 * Ask for the second step on this page. A password sign-in then refreshes the
+	 * page and does not go to `/`, and a GitHub or Google sign-in comes back to
+	 * `/login`.
+	 * @defaultValue `false`
+	 */
+	secondStep?: boolean
+	/**
+	 * The second factors of a signed-in user that did not give the second step,
+	 * from `secondFactorMethods`. With `secondStep`, the page shows the form of
+	 * the second step in place of the sign-in.
+	 */
+	methods?: SecondFactorMethod[]
 }
 
 /**
@@ -92,28 +112,48 @@ type LoginPageProps = {
  *
  * @remarks
  * A GitHub or Google button leaves the app for the provider. The gateway sends
- * the browser back to `/`, or to `/login?error=<code>` when the sign-in fails.
+ * the browser back to `/` (to `/login` with `secondStep`), or to
+ * `/login?error=<code>` when the sign-in fails.
  *
- * A sign-in with a password, GitHub, or Google has one step. A page that needs
- * the second step asks for it later: the admin app at `/verify`, and another
- * app in the `SecondStepDialog`. A passkey sign-in gives the second step
- * at once.
+ * A sign-in with a password, GitHub, or Google has one step. A passkey sign-in
+ * gives the second step at once. Without `secondStep`, a page that needs the
+ * second step asks for it later, in the `SecondStepDialog`.
+ *
+ * With `secondStep`, the server page decides after a password, GitHub, or
+ * Google sign-in. The page must call `getSession` from `auth`, and send a
+ * session that needs no second step somewhere else. For a session that needs
+ * it, the page passes `methods`. The form of the second step then starts the
+ * passkey check at once, and the page goes to `/` when the gateway accepts
+ * the proof. After the fifth wrong
+ * try, the gateway ends the session, and the page loads
+ * `/login?expired=true`. "Sign out" ends the session.
  *
  * Next prerenders all of the page except the notices from the query, which
  * render only on the client.
  */
-export function LoginPage({ providers = [], registration = true }: LoginPageProps) {
+export function LoginPage({
+	providers = [],
+	registration = true,
+	passwordReset = true,
+	secondStep = false,
+	methods,
+}: LoginPageProps) {
 	const router = useRouter()
 
 	const [errorAlert, setServerError] = useServerError()
 
 	const [leaving, leave] = useLeaving()
 
-	// Goes to `/` on success, and shows the message of the gateway on a failure.
-	// The form stays disabled until the next page replaces it.
-	function finish({ response, error }: { response: Response; error?: { message: string } }) {
+	const home = () => router.push('/')
+
+	// Runs `next` after a success, and shows the message of the gateway on a failure.
+	// The form stays disabled until the next page or the second step replaces it.
+	function finish(
+		{ response, error }: { response: Response; error?: { message: string } },
+		next = home,
+	) {
 		if (response.ok) {
-			leave(() => router.push('/'))
+			leave(next)
 
 			return
 		}
@@ -123,7 +163,11 @@ export function LoginPage({ providers = [], registration = true }: LoginPageProp
 
 	const handleSubmit: FormSubmitHandler<LoginValues> = async (values) => {
 		try {
-			finish(await bifrost.POST('/auth/login', { body: values }))
+			// With `secondStep`, the refresh lets the server page select the second step or a redirect.
+			finish(
+				await bifrost.POST('/auth/login', { body: values }),
+				secondStep ? () => router.refresh() : home,
+			)
 		} catch {
 			setServerError(unexpectedError)
 		}
@@ -150,6 +194,26 @@ export function LoginPage({ providers = [], registration = true }: LoginPageProp
 		} catch {
 			setServerError(passkeyFailed)
 		}
+	}
+
+	if (secondStep && methods && methods.length > 0) {
+		return (
+			<AuthLayout>
+				<Stack gap="xl" className="w-full sm:max-w-sm p-6">
+					<Heading className="text-center">Confirm that it is you</Heading>
+
+					<SecondStep
+						methods={methods}
+						onVerified={home}
+						// A full page load, so that no state of the second step stays.
+						onExpired={() => window.location.assign('/login?expired=true')}
+						onCancel={signOut}
+						cancelLabel="Sign out"
+						startPasskey
+					/>
+				</Stack>
+			</AuthLayout>
+		)
 	}
 
 	return (
@@ -182,11 +246,13 @@ export function LoginPage({ providers = [], registration = true }: LoginPageProp
 						<Label>Password</Label>
 						<PasswordInput name="password" autoComplete="current-password" />
 						<Message name="password" />
-						<Text className="text-right">
-							<Link href="/forgot-password" underline>
-								Forgot password?
-							</Link>
-						</Text>
+						{passwordReset && (
+							<Text className="text-right">
+								<Link href="/forgot-password" underline>
+									Forgot password?
+								</Link>
+							</Text>
+						)}
 					</Field>
 
 					<Button type="submit" className="w-full">
@@ -204,7 +270,13 @@ export function LoginPage({ providers = [], registration = true }: LoginPageProp
 							variant="outline"
 							className="w-full"
 							// A full page load: the gateway answers with a redirect to the provider.
-							onClick={() => leave(() => window.location.assign(oauthStartPath(provider)))}
+							onClick={() =>
+								leave(() =>
+									window.location.assign(
+										oauthStartPath(provider, secondStep ? { returnTo: '/login' } : {}),
+									),
+								)
+							}
 						>
 							Continue with {signInProviderNames[provider]}
 						</Button>

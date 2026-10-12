@@ -22,10 +22,10 @@ pnpm --filter admin dev
 | Path | Role |
 |---|---|
 | `app/(signed-in)/` | Pages of each signed-in user. `requireSession` in its layout sends everyone else to `/login`. The layout picks the chrome by the role: an admin gets the sidebar, and each other user gets a header. The chrome stays mounted between the pages of the group, and when the second step passes. |
-| `app/(signed-in)/(dashboard)/*` | Admin-only product surface (dashboard, security, settings, users). `requireAdmin` in its layout sends a signed-in user that is not an admin to `/account`, and an admin without the second step to `/verify`. |
+| `app/(signed-in)/(dashboard)/*` | Admin-only product surface (dashboard, security, settings, users). `requireAdmin` in its layout sends a signed-in user that is not an admin to `/account`, and an admin without the second step to `/login`. |
 | `app/(signed-in)/account/` | Account page of each signed-in user: two-step sign-in (passkeys, an authenticator app, and recovery codes), the connected GitHub and Google accounts, and the recent activity. The account menu of the chrome holds sign-out. |
 | `app/components/page-header/` | The title row of each signed-in page: the title, the breadcrumb, the description, and the actions. |
-| `app/(guest)/login/` | Sign-in page. The page shows a button for each GitHub or Google sign-in that the gateway has set up. The admin app has no registration page. The layout of the group sends a signed-in admin to `/`, and another signed-in user to `/account`. |
+| `app/login/` | Page of the sign-in and of the second step. The sign-in shows a button for each GitHub or Google sign-in that the gateway has set up. After a sign-in, the page asks an admin for the second step and starts the passkey check at once, so no admin page renders before the second step. The page sends a signed-in user that is not an admin to `/account`, and an admin that passed the second step to `/`. The admin app has no register or forgot-password page. |
 | `app/<segment>/client.tsx` | Interactive client subtree split from the segment's server `page.tsx` ([CONVENTIONS](../../CONVENTIONS.md) §2.3). |
 | `app/providers.tsx` | Top-level React Context providers. |
 | `proxy.ts` | Session gate. It re-exports [`auth/proxy`](../../packages/auth/README.md). Its `matcher` skips only the static assets, and the proxy lets `/auth/*` continue without a session. |

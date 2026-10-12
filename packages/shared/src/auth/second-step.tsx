@@ -5,17 +5,13 @@ import {
 	startAuthentication,
 } from '@simplewebauthn/browser'
 import type { Schema } from 'auth'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import { Button } from 'ui/button'
 import { Dialog, DialogBody, DialogHeader, DialogPanel, DialogTitle } from 'ui/dialog'
 import { Field, Fieldset, Label, Message } from 'ui/fieldset'
 import { Form, type FormSubmitHandler } from 'ui/form'
-import { Heading } from 'ui/heading'
 import { Input } from 'ui/input'
-import { AuthLayout } from 'ui/layouts'
 import { Stack } from 'ui/stack'
-import { signOut } from './account'
 import { bifrost } from './bifrost'
 import { chain, required } from './form-validators'
 import type { SecondFactorMethod } from './second-step-request'
@@ -36,6 +32,8 @@ type SecondStepProps = {
 	onCancel: () => void
 	/** The label of the cancel button. */
 	cancelLabel: string
+	/** Start the passkey check when the form mounts, if the user has a passkey. */
+	startPasskey?: boolean
 }
 
 type CodeValues = { code: string }
@@ -51,8 +49,19 @@ const passkeyFailed = 'The passkey check did not complete. Please try again.'
  * @remarks
  * The form shows the authenticator app first when the user has one. A recovery
  * code is the fallback, and the user picks it with a link.
+ *
+ * With `startPasskey`, the browser asks for the passkey at once. A browser
+ * that refuses a passkey check without a click shows an error. The user then
+ * clicks "Use a passkey".
  */
-function SecondStep({ methods, onVerified, onExpired, onCancel, cancelLabel }: SecondStepProps) {
+export function SecondStep({
+	methods,
+	onVerified,
+	onExpired,
+	onCancel,
+	cancelLabel,
+	startPasskey = false,
+}: SecondStepProps) {
 	const hasTotp = methods.includes('totp')
 
 	const hasRecovery = methods.includes('recovery_code')
@@ -85,7 +94,7 @@ function SecondStep({ methods, onVerified, onExpired, onCancel, cancelLabel }: S
 	}
 
 	// The gateway names only the passkeys of this user. A cancel in the browser throws.
-	async function usePasskey() {
+	async function checkPasskey() {
 		try {
 			const { data: options, error } = await bifrost.POST('/auth/session/verify/options')
 
@@ -103,6 +112,19 @@ function SecondStep({ methods, onVerified, onExpired, onCancel, cancelLabel }: S
 			setError(passkeyFailed)
 		}
 	}
+
+	// The ref keeps the check to one start, also when Strict Mode runs the effect two times.
+	const started = useRef(false)
+
+	const startOnMount = useEffectEvent(() => {
+		if (!startPasskey || started.current || !methods.includes('passkey')) return
+
+		started.current = true
+
+		void checkPasskey()
+	})
+
+	useEffect(() => startOnMount(), [])
 
 	return (
 		<Fieldset disabled={leaving}>
@@ -139,7 +161,7 @@ function SecondStep({ methods, onVerified, onExpired, onCancel, cancelLabel }: S
 						type="button"
 						variant={showCode ? 'outline' : undefined}
 						className="w-full"
-						onClick={usePasskey}
+						onClick={checkPasskey}
 					>
 						Use a passkey
 					</Button>
@@ -174,41 +196,6 @@ function SecondStep({ methods, onVerified, onExpired, onCancel, cancelLabel }: S
 				</Button>
 			</Stack>
 		</Fieldset>
-	)
-}
-
-type VerifyPageProps = {
-	/** The methods that the user has, from `secondFactorMethods`. */
-	methods: SecondFactorMethod[]
-}
-
-/**
- * Page of the second step, at `/verify`. It goes to `/` on success.
- *
- * @remarks
- * The page itself must call `requireSession` from `auth` on the server, and
- * send a session that passed the second step, or a user without a second
- * factor, somewhere else. After the fifth wrong try, the gateway ends the
- * session, and the page goes to `/login?expired=true`. "Sign out" ends the
- * session.
- */
-export function VerifyPage({ methods }: VerifyPageProps) {
-	const router = useRouter()
-
-	return (
-		<AuthLayout>
-			<Stack gap="xl" className="w-full sm:max-w-sm p-6">
-				<Heading className="text-center">Confirm that it is you</Heading>
-
-				<SecondStep
-					methods={methods}
-					onVerified={() => router.replace('/')}
-					onExpired={() => router.replace('/login?expired=true')}
-					onCancel={signOut}
-					cancelLabel="Sign out"
-				/>
-			</Stack>
-		</AuthLayout>
 	)
 }
 
