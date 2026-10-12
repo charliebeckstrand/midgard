@@ -88,6 +88,30 @@ describe('Overlay exit guard (real Motion)', () => {
 		expect(node).not.toHaveAttribute('inert')
 	})
 
+	// A release at the start of the exit changes the overflow of the body, so the
+	// browser lays out and paints the page again under the exit animation. On a
+	// page with many large photos, that paint decodes them again, and the
+	// Lightbox close drops frames.
+	it('holds the scroll lock through the exit', async () => {
+		const overlay = (open: boolean) => (
+			<Overlay open={open} onOpenChange={() => {}}>
+				<button type="button">inside</button>
+			</Overlay>
+		)
+
+		const { rerender } = renderUI(overlay(true))
+
+		rerender(overlay(false))
+
+		expect(root()).toBeInTheDocument()
+
+		expect(document.body.style.overflow).toBe('hidden')
+
+		await gone()
+
+		expect(document.body.style.overflow).toBe('')
+	})
+
 	it('runs onConfirm once for a double click on the confirm button', async () => {
 		const onDelete = vi.fn()
 

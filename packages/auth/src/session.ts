@@ -66,15 +66,16 @@ export async function requireSession(): Promise<Session> {
  * only finds the cookie, so this call is the check of the session itself.
  * Without a session, the redirect goes to `/login`. A signed-in user that is
  * not an admin goes to `/account`, where the user manages the passkeys. An
- * admin session without the second step goes to `/verify`. Thus the admin
- * gives the second step one time, after the sign-in.
+ * admin session without the second step goes to `/login`, where the page of
+ * the app asks for the second step. Thus the admin gives the second step one
+ * time, after the sign-in.
  */
 export async function requireAdmin(): Promise<Session> {
 	const session = await requireSession()
 
 	if (!session.user.roles.includes('admin')) redirect('/account')
 
-	if (!session.two_step) redirect('/verify')
+	if (!session.two_step) redirect('/login')
 
 	return session
 }

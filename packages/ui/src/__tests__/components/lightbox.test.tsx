@@ -514,7 +514,7 @@ describe('Lightbox', () => {
 	it('blurs the page behind the scrim, unless `blur` is false', () => {
 		const { unmount } = renderUI(<Gallery defaultIndex={0} />)
 
-		const layer = () => getSlot(document.body, 'lightbox-backdrop').parentElement
+		const layer = () => document.body.querySelector('[data-slot="lightbox-blur"]')
 
 		expect(layer()).toHaveClass('backdrop-blur-lg')
 
@@ -522,7 +522,7 @@ describe('Lightbox', () => {
 
 		renderUI(<Gallery defaultIndex={0} blur={false} />)
 
-		expect(layer()).not.toHaveClass('backdrop-blur-lg')
+		expect(layer()).toBeNull()
 	})
 
 	describe('zoom', () => {

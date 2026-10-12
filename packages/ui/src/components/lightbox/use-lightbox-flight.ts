@@ -1,11 +1,20 @@
 'use client'
 
-import { type AnimationPlaybackControls, animate } from 'motion'
+import { animate, easeOut } from 'motion'
 import type { RefObject } from 'react'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { k } from '../../recipes/kata/lightbox'
 import { noop } from '../../utilities/noop'
-import { type LightboxBox, overlapOf, RESTING_FRAME, raisedFrame } from './lightbox-utilities'
+import {
+	frameTransforms,
+	type LightboxBox,
+	type LightboxFrame,
+	mixFrames,
+	overlapOf,
+	paintedFrame,
+	raisedFrame,
+	restingFrame,
+} from './lightbox-utilities'
 
 /** The raise and the return of the photo that a {@link useLightboxFlight} gives. @internal */
 export type LightboxFlight = {
@@ -19,19 +28,47 @@ export type LightboxFlight = {
 }
 
 /**
- * The box of the photo at rest. The offsets read the layout with no transform,
- * so the box is correct while a raise still moves the photo. The slot is the
- * offset parent, and its box includes the travel of the track.
+ * The number of steps in which a flight samples its curve. A frame of a flight
+ * is not a straight mix of the transforms of its ends. Thus the flight gives
+ * the transforms of each step, and the browser moves straight between them.
  */
-function restingBox(photo: HTMLElement): LightboxBox {
-	const slot = photo.offsetParent?.getBoundingClientRect()
+const FLIGHT_STEPS = 24
+
+/**
+ * The box of the slot of the photo, with no transform. The offsets read the
+ * layout with no transform, so the box is correct while a flight moves the
+ * slot. The track is the offset parent, and its box includes its travel.
+ */
+function slotBox(slot: HTMLElement): LightboxBox {
+	const track = slot.offsetParent?.getBoundingClientRect()
 
 	return {
-		x: (slot?.x ?? 0) + photo.offsetLeft,
-		y: (slot?.y ?? 0) + photo.offsetTop,
+		x: (track?.x ?? 0) + slot.offsetLeft,
+		y: (track?.y ?? 0) + slot.offsetTop,
+		width: slot.offsetWidth,
+		height: slot.offsetHeight,
+	}
+}
+
+/** The boxes of the slot and of the photo at rest, with no transform. The slot is the offset parent of the photo. */
+function boxesOf(slot: HTMLElement, photo: HTMLElement) {
+	const box = slotBox(slot)
+
+	const rest = {
+		x: box.x + photo.offsetLeft,
+		y: box.y + photo.offsetTop,
 		width: photo.offsetWidth,
 		height: photo.offsetHeight,
 	}
+
+	return { slot: box, rest }
+}
+
+/** Writes the transforms of a frame on the slot and on the photo. */
+function paint(slot: HTMLElement, photo: HTMLElement, transforms: { slot: string; photo: string }) {
+	slot.style.transform = transforms.slot
+
+	photo.style.transform = transforms.photo
 }
 
 /** A box inset by the scroll padding in `style`, the edges that sticky bars cover. */
@@ -114,72 +151,82 @@ function shownPart(thumbnail: HTMLElement, box: LightboxBox): LightboxBox | unde
 }
 
 /**
- * The frame that the photo paints now: in a raise, in a swipe, or at rest. The
- * computed style includes the tween that runs.
- */
-function paintedFrame(photo: HTMLElement): typeof RESTING_FRAME {
-	const { transform, clipPath } = getComputedStyle(photo)
-
-	return {
-		transform: transform === 'none' ? RESTING_FRAME.transform : transform,
-		clipPath: clipPath === 'none' ? RESTING_FRAME.clipPath : clipPath,
-	}
-}
-
-/** The corner radius of a thumbnail, in px. */
-function radiusOf(thumbnail: HTMLElement): number {
-	return Number.parseFloat(getComputedStyle(thumbnail).borderTopLeftRadius) || 0
-}
-
-/**
  * Moves the photo of a lightbox between its thumbnail and the stage.
  *
  * The raise paints the photo over its thumbnail in the first frame, with the
- * crop and the radius of the thumbnail, cut to the part of the thumbnail that
- * the reader sees (see `raisedFrame`). So a thumbnail that a sticky bar or a
+ * crop of the thumbnail. It cuts the photo to the part of the thumbnail that
+ * the reader sees (see `raisedFrame`). The corners of the photo are square in the flight. So a thumbnail that a sticky bar or a
  * scroll container hides in part does not paint its hidden part over the bar.
- * It then tweens
- * `transform` and `clip-path` to the photo at rest. The return plays the same
- * tween backward, from the frame that the photo paints at that time. So a close
- * during the raise, or while a finger holds the photo, turns the photo around
- * where it is. Both values run in the animation engine of the browser, off the
- * main thread.
+ * It then moves the photo and its clip to the photo at rest. The return plays
+ * the same flight backward, from the frame that the photo paints at that time.
+ * So a close during the raise, or while a finger holds the photo, turns the
+ * photo around where it is.
  *
- * The photo rests at `transform: none`, and its clip stays at a zero inset. A
- * clip of `none` cannot tween to an inset, and a clip makes no containing
- * block.
+ * The slot of the photo is the clip (see `frameTransforms`), so a flight writes
+ * only `transform`. The browser moves the painted photo
+ * off the main thread, and it does not paint the photo again in each frame.
+ * At rest, the slot and the photo have no transform.
  *
  * Under reduced motion, or when the reader sees no part of the thumbnail, the
  * photo fades in and out at its place on the stage. A page names the edges
  * that its sticky bars cover with `scroll-padding` on the scroller.
  *
- * @param photoRef - The image of the photo that the stage shows. Its transform
- * origin must be its top left corner.
+ * @param photoRef - The image of the photo that the stage shows. Its slot is
+ * its parent. The transform origin of the photo and of its slot must be the
+ * top left corner.
  * @internal
  */
 export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): LightboxFlight {
 	const reduceMotion = usePrefersReducedMotion()
 
-	const landed = (controls: AnimationPlaybackControls): Promise<void> =>
-		controls.finished.then(noop)
-
 	// The frame of the photo over its thumbnail, or `undefined` when the photo fades.
-	const frameAt = (photo: HTMLElement, thumbnail: HTMLElement | undefined) => {
+	const frameAt = (rest: LightboxBox, thumbnail: HTMLElement | undefined) => {
 		if (reduceMotion || !thumbnail) return undefined
 
 		const box = thumbnail.getBoundingClientRect()
 
 		const shown = shownPart(thumbnail, box)
 
-		return shown && raisedFrame(box, restingBox(photo), radiusOf(thumbnail), shown)
+		return shown && raisedFrame(box, rest, shown)
+	}
+
+	// Plays the flight from `from` to `to`, and resolves when it lands. A raise
+	// takes the transforms off when it lands at rest.
+	const fly = (
+		slot: HTMLElement,
+		photo: HTMLElement,
+		boxes: ReturnType<typeof boxesOf>,
+		from: LightboxFrame,
+		to: LightboxFrame,
+		rests: boolean,
+	) => {
+		const steps = Array.from({ length: FLIGHT_STEPS + 1 }, (_, step) =>
+			frameTransforms(mixFrames(from, to, easeOut(step / FLIGHT_STEPS)), boxes.slot, boxes.rest),
+		)
+
+		// The steps carry the curve of `motion.raise`, so the tween between them is straight.
+		const options = { duration: k.motion.raise.duration, ease: 'linear' } as const
+
+		const landing = rests ? { transitionEnd: { transform: 'none' } } : {}
+
+		const flights = [
+			animate(slot, { transform: steps.map((step) => step.slot), ...landing }, options),
+			animate(photo, { transform: steps.map((step) => step.photo), ...landing }, options),
+		]
+
+		return Promise.all(flights.map((flight) => flight.finished)).then(noop)
 	}
 
 	const raise = (thumbnail: HTMLElement | undefined) => {
 		const photo = photoRef.current
 
-		if (!photo) return
+		const slot = photo?.parentElement
 
-		const frame = frameAt(photo, thumbnail)
+		if (!photo || !slot) return
+
+		const boxes = boxesOf(slot, photo)
+
+		const frame = frameAt(boxes.rest, thumbnail)
 
 		if (!frame) {
 			photo.style.opacity = '0'
@@ -190,44 +237,34 @@ export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): Ligh
 		}
 
 		// The first paint shows the photo over its thumbnail, before Motion starts.
-		photo.style.transform = frame.transform
+		paint(slot, photo, frameTransforms(frame, boxes.slot, boxes.rest))
 
-		photo.style.clipPath = frame.clipPath
-
-		animate(
-			photo,
-			{
-				transform: [frame.transform, RESTING_FRAME.transform],
-				clipPath: [frame.clipPath, RESTING_FRAME.clipPath],
-				transitionEnd: { transform: 'none' },
-			},
-			k.motion.raise,
-		)
+		void fly(slot, photo, boxes, frame, restingFrame(boxes.rest), true)
 	}
 
 	const lower = (thumbnail: HTMLElement | undefined) => {
 		const photo = photoRef.current
 
-		if (!photo) return Promise.resolve()
+		const slot = photo?.parentElement
 
-		const frame = frameAt(photo, thumbnail)
+		if (!photo || !slot) return Promise.resolve()
 
-		if (!frame) return landed(animate(photo, { opacity: 0 }, k.motion.fade))
+		const boxes = boxesOf(slot, photo)
+
+		const frame = frameAt(boxes.rest, thumbnail)
+
+		if (!frame) return animate(photo, { opacity: 0 }, k.motion.fade).finished.then(noop)
 
 		// Motion stops the tween that runs on a value when a new tween starts on
 		// it, so the return reads the painted frame first and needs no stop.
-		const start = paintedFrame(photo)
-
-		return landed(
-			animate(
-				photo,
-				{
-					transform: [start.transform, frame.transform],
-					clipPath: [start.clipPath, frame.clipPath],
-				},
-				k.motion.raise,
-			),
+		const start = paintedFrame(
+			getComputedStyle(slot).transform,
+			getComputedStyle(photo).transform,
+			boxes.slot,
+			boxes.rest,
 		)
+
+		return fly(slot, photo, boxes, start, frame, false)
 	}
 
 	return { raise, lower }

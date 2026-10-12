@@ -4,7 +4,8 @@
 		"next-devtools",
 		"chrome-devtools",
 		"context7",
-		"digitalocean"
+		"digitalocean",
+		"sequential-thinking"
 	],
 	"permissions": {
 		"allow": ["Bash(mkdir:*)", "Bash(pnpm check)"],

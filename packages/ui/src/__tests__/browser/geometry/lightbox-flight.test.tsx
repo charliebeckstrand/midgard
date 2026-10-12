@@ -23,14 +23,12 @@ const photos: LightboxPhoto[] = [
 	},
 ]
 
-const NUMBER = /-?\d+(?:\.\d+)?(?:e-?\d+)?/g
-
-/** The clip and the top edge, in viewport px, that the photo paints in the first frame of its raise. */
-type FirstFrame = { clipPath: string; top: number }
+/** The top edge of the clip, in viewport px, in the first frame of the raise. */
+type FirstFrame = { top: number }
 
 /**
- * Reads the first frame of the raise when Motion starts its transform tween,
- * the first tween of the raise. At that time, no tween paints the photo, and
+ * Reads the first frame of the raise when Motion starts the tween of the slot,
+ * the first tween of the raise. At that time, no tween paints the slot, and
  * the inline style is the first frame. At the end of the raise, Motion writes
  * the last frame inline, and a loaded runner can get to that end before the
  * test reads the photo. A pause does not hold the raise, because Motion sets
@@ -47,14 +45,14 @@ function watchRaise(): FirstFrame[] {
 	) {
 		const [keyframes] = args
 
-		if (this instanceof HTMLImageElement && keyframes && 'transform' in keyframes) {
-			const { clipPath, transform } = this.style
-
-			const scale = Number(transform.match(NUMBER)?.[2] ?? 1)
-
-			const inset = Number(clipPath.match(NUMBER)?.[0] ?? 0)
-
-			frames.push({ clipPath, top: this.getBoundingClientRect().top + inset * scale })
+		// The slot of the photo is the clip, and its box on the screen is the clip.
+		if (
+			this instanceof HTMLElement &&
+			this.hasAttribute('data-offset') &&
+			keyframes &&
+			'transform' in keyframes
+		) {
+			frames.push({ top: this.getBoundingClientRect().top })
 		}
 
 		return native.apply(this, args)
@@ -103,8 +101,6 @@ describe('Lightbox flight from a hidden thumbnail (real browser)', () => {
 		await expect.poll(() => raise.length).toBe(1)
 
 		const [first] = raise
-
-		expect(first?.clipPath).toMatch(/ round 0px 0px [\d.]+px [\d.]+px\)$/)
 
 		expect(first?.top).toBeNear(top + 40, HALF_PIXEL)
 	})

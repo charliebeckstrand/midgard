@@ -36,8 +36,8 @@ export type LightboxProps = {
 	 */
 	controls?: boolean
 	/**
-	 * Blurs the page behind the scrim. The blur grows as the scrim fades in, and
-	 * the scrim lets more of the page through.
+	 * Blurs the page behind the scrim. The blur fades in and out with the scrim,
+	 * and the scrim lets more of the page through.
 	 * @defaultValue true
 	 */
 	blur?: boolean
@@ -88,8 +88,9 @@ export type LightboxProps = {
  * </Lightbox>
  * ```
  *
- * @remarks The raise and the return move `transform` and `clip-path` through
- * Motion, so they run off the main thread. Under reduced motion, or when the
+ * @remarks The raise and the return move only `transform` through Motion, so
+ * the browser does not paint the photo again in each frame. The corners of the
+ * photo are square in the flight. Under reduced motion, or when the
  * thumbnail is not on the screen, the photo fades in and out on the stage. The
  * viewer renders in the `Overlay` primitive, which traps the focus and locks
  * the scroll of the page. The viewer covers the `Chrome` regions of the app

@@ -401,10 +401,12 @@ export const space = {
 	},
 	lightbox: {
 		/**
-		 * The block space around a photo with controls: the edge, the height of a
-		 * button, and the gap between the button and the photo. The edge and the
-		 * gap are 16 px each.
+		 * The block space around a photo with controls. It holds the edge, the
+		 * pill of the step controls, and the gap between the pill and the photo.
+		 * The edge and the gap are 16 px each. The pill is the height of a button
+		 * and 4 px of padding above and below it. A tall photo thus shrinks, and the
+		 * space below the pill stays the same as the gap above it.
 		 */
-		frame: 'density-py-[14.5,16,17.5,19,20.5]',
+		frame: 'density-py-[16.5,18,19.5,21,22.5]',
 	},
 } as const

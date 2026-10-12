@@ -64,7 +64,7 @@ type ChartReadoutCardProps = {
 export function ChartReadoutCard({ title, children }: ChartReadoutCardProps) {
 	return (
 		<div aria-hidden="true">
-			<div className={cn(k.label, 'whitespace-nowrap', children && 'mb-1')}>{title}</div>
+			<div className={cn(k.label, children && 'mb-1')}>{title}</div>
 
 			{children}
 		</div>
@@ -81,7 +81,15 @@ type ChartReadoutRowProps = Omit<ComponentProps<'div'>, 'children'> & {
 	label?: ReactNode
 }
 
-/** One row of a {@link ChartReadoutCard}: the key, the value, and the name. @internal */
+/**
+ * One row of a {@link ChartReadoutCard}: the key, the value, and the name.
+ *
+ * @remarks
+ * The text wraps inside the width cap of the tooltip, and the key stays
+ * centered on the first line. A long value, such as the names of a map
+ * summary, then stays in the card.
+ * @internal
+ */
 export function ChartReadoutRow({
 	swatch,
 	value,
@@ -90,8 +98,8 @@ export function ChartReadoutRow({
 	...props
 }: ChartReadoutRowProps) {
 	return (
-		<div {...props} className={cn('flex items-center gap-1.5 whitespace-nowrap', className)}>
-			{swatch}
+		<div {...props} className={cn('flex items-start gap-1.5', className)}>
+			<span className="flex h-lh shrink-0 items-center">{swatch}</span>
 
 			<span className={cn(k.value)}>{value}</span>
 
