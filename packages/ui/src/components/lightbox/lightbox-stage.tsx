@@ -197,9 +197,14 @@ export function LightboxStage({
 	const leaving = useRef(!restore)
 
 	const followPresence = useEffectEvent((present: boolean) => {
-		// The viewer opens, or opens again during the return: the photo rises.
+		// The viewer opens, or opens again during the return: the photo rises. A
+		// reopen stops the return, and the controls show the photo in the center.
 		if (present) {
-			if (leaving.current) flight.raise(home())
+			if (leaving.current) {
+				setAim(null)
+
+				flight.raise(home())
+			}
 
 			leaving.current = false
 
