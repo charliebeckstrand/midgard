@@ -98,6 +98,7 @@ Enforced by boundary tests (`packages/ui/src/__tests__/boundary/`). Add a page u
 | Build | root | `turbo run build` |
 | Typecheck | root | `turbo run check-types` |
 | Lint | root | `biome check .` |
+| The pre-push gate: Biome, typecheck, the tests that the branch changes, and Knip | root | `pnpm check` |
 | Tests for the change you edit | `packages/ui` | `pnpm test:related <file>` / `pnpm test:changed` |
 | Layout, computed style, or color ([CONVENTIONS.md](../../CONVENTIONS.md) §10.5) | `packages/ui` | `pnpm test:browser` |
 | Geometry: layout boxes and pure calculations on coordinates, boxes, and shapes ([CONVENTIONS.md](../../CONVENTIONS.md) §10.5) | `packages/ui` | `pnpm test:geometry` |
