@@ -1,5 +1,7 @@
 import { globSync, readFileSync, writeFileSync } from 'node:fs'
+import { availableParallelism } from 'node:os'
 import path from 'node:path'
+import { Worker } from 'node:worker_threads'
 import { compile, optimize } from '@tailwindcss/node'
 import { Scanner } from '@tailwindcss/oxide'
 import { noop } from '../../utilities/noop.ts'
@@ -42,28 +44,32 @@ export function scanClasses(html: string): string[] {
 	return new Scanner({}).scanFiles([{ content: text, extension: 'html' }])
 }
 
-/**
- * Writes the critical CSS of each prerendered page into the head of its HTML.
- *
- * Tailwind's `Scanner` finds the classes in the HTML of the page, and
- * Tailwind compiles `stylesheet` for those classes only. The `dark:` and
- * density variants of a class come with it, so each appearance paints
- * correctly before the full stylesheet loads. The full stylesheet loads after
- * hydration (`app/root.tsx`).
- *
- * The `<style>` takes the `default` precedence of React, so React puts the
- * full stylesheet after it, and a rule of the full stylesheet wins over the
- * same rule here. Only Vite knows the hashed URL of a font file, so the
- * `@font-face` rules come from the built stylesheet.
- */
-export async function inlineCriticalCss(clientDir: string, stylesheet: string): Promise<void> {
-	const fontFaces = builtStylesheet(clientDir, stylesheet).match(FONT_FACE)?.join('') ?? ''
+/** The pages that one worker of {@link inlineCriticalCss} writes. */
+export type CriticalCssJob = {
+	clientDir: string
+	stylesheet: string
+	/** The `@font-face` rules of the built stylesheet. */
+	fontFaces: string
+	/** The paths of the HTML files, relative to `clientDir`. */
+	pages: string[]
+}
 
+/**
+ * Writes the critical CSS of each page of `job` into the head of its HTML.
+ * Each worker of {@link inlineCriticalCss} runs this function
+ * (`styles-worker.ts`).
+ */
+export async function inlinePages({
+	clientDir,
+	stylesheet,
+	fontFaces,
+	pages,
+}: CriticalCssJob): Promise<void> {
 	const source = readFileSync(stylesheet, 'utf8')
 
 	const base = path.dirname(stylesheet)
 
-	for (const page of globSync('**/*.html', { cwd: clientDir })) {
+	for (const page of pages) {
 		const file = path.join(clientDir, page)
 
 		const html = readFileSync(file, 'utf8')
@@ -82,4 +88,55 @@ export async function inlineCriticalCss(clientDir: string, stylesheet: string): 
 
 		writeFileSync(file, html.replace('</head>', `${style}</head>`))
 	}
+}
+
+/** Runs `job` in a worker thread. The promise rejects when the worker fails. */
+function runWorker(job: CriticalCssJob): Promise<void> {
+	return new Promise((resolve, reject) => {
+		const worker = new Worker(new URL('./styles-worker.ts', import.meta.url), { workerData: job })
+
+		worker.once('error', reject)
+
+		worker.once('exit', (code) => {
+			if (code === 0) resolve()
+			else reject(new Error(`docs: a critical CSS worker stopped with the code ${code}`))
+		})
+	})
+}
+
+/**
+ * Writes the critical CSS of each prerendered page into the head of its HTML.
+ *
+ * Tailwind's `Scanner` finds the classes in the HTML of the page, and
+ * Tailwind compiles `stylesheet` for those classes only. The `dark:` and
+ * density variants of a class come with it, so each appearance paints
+ * correctly before the full stylesheet loads. The full stylesheet loads after
+ * hydration (`app/root.tsx`).
+ *
+ * The `<style>` takes the `default` precedence of React, so React puts the
+ * full stylesheet after it, and a rule of the full stylesheet wins over the
+ * same rule here. Only Vite knows the hashed URL of a font file, so the
+ * `@font-face` rules come from the built stylesheet.
+ *
+ * The compile of one page takes about 0.3 s on one core, and the docs have
+ * about 150 pages. So one worker thread for each core writes a part of the
+ * pages. On a four-core container the step took 51 s on the main thread.
+ */
+export async function inlineCriticalCss(clientDir: string, stylesheet: string): Promise<void> {
+	const fontFaces = builtStylesheet(clientDir, stylesheet).match(FONT_FACE)?.join('') ?? ''
+
+	const pages = globSync('**/*.html', { cwd: clientDir })
+
+	const count = Math.min(availableParallelism(), pages.length)
+
+	await Promise.all(
+		Array.from({ length: count }, (_, index) =>
+			runWorker({
+				clientDir,
+				stylesheet,
+				fontFaces,
+				pages: pages.filter((_, page) => page % count === index),
+			}),
+		),
+	)
 }
