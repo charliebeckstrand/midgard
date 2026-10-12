@@ -141,9 +141,8 @@ jobs:
             ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ steps.ui-deps.outputs.hash }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/plugin/**/*.ts') }}-
       - run: pnpm turbo run test --filter=ui --summarize -- --shard=${{ matrix.shard }}/2
       # The other packages have few test files, and a shard of them can be
-      # empty. The second shard runs them whole, with `test:workspace` below:
-      # its half of the ui suite took 64s to 69s on main, and the half of the
-      # first shard took 86s. The two steps take about 13s.
+      # empty. The second shard runs them whole, with `test:workspace` below,
+      # because its half of the ui suite is the shorter half.
       - if: matrix.shard == 2
         run: pnpm turbo run test --filter='!ui' --summarize
       # The ui suites that read files outside ui, apart from `test` so that an
