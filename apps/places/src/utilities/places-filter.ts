@@ -123,16 +123,42 @@ export function showsKind(filter: PlaceFilterValue, kind: RecordKind, hasTrips: 
 }
 
 /**
- * The trips a filter admits, in the order they were given. The categories
- * belong to places, so they narrow no trip. A span admits a trip whose days
- * overlap it.
+ * The trips a filter admits, in the order they were given.
+ *
+ * Each field narrows on its own, as for {@link filterPlaces}. The categories
+ * belong to places, so they admit a trip that holds a place of a picked
+ * category. A trip with no places has nothing for them to judge, so the
+ * categories admit it always. A span admits a trip whose days overlap it.
+ *
+ * @param placesOf - The places of each trip, by the id of the trip, from every
+ * place and not only the ones that the filter admits.
  */
-export function filterTrips(trips: readonly Trip[], filter: PlaceFilterValue): Trip[] {
-	const { visited } = filter
+export function filterTrips(
+	trips: readonly Trip[],
+	filter: PlaceFilterValue,
+	placesOf: ReadonlyMap<string, readonly Place[]>,
+): Trip[] {
+	const { categories, visited } = filter
 
-	if (visited === undefined || visited.length === 0) return [...trips]
+	return trips.filter((trip) => {
+		const held = placesOf.get(trip.id) ?? []
 
-	return trips.filter((trip) =>
-		visited.some((range) => trip.startsOn <= toDay(range.to) && trip.endsOn >= toDay(range.from)),
-	)
+		if (
+			categories !== undefined &&
+			held.length > 0 &&
+			!held.some((place) => categories.includes(place.category))
+		) {
+			return false
+		}
+
+		if (
+			visited !== undefined &&
+			visited.length > 0 &&
+			!visited.some((range) => trip.startsOn <= toDay(range.to) && trip.endsOn >= toDay(range.from))
+		) {
+			return false
+		}
+
+		return true
+	})
 }
