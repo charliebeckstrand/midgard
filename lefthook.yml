@@ -7,16 +7,13 @@ pre-commit:
       run: pnpm biome check --staged --no-errors-on-unmatched
 
 pre-push:
-  parallel: true
   jobs:
-    - name: biome check
-      run: pnpm biome check .
-    # test:changed scopes Vitest to the merge-base diff, so this gate's cost
-    # tracks the push, not the suite; CI runs the full gate and gates merges.
-    - name: branch gate
-      run: pnpm turbo run check-types test:changed --affected
-    - name: knip
-      run: pnpm turbo run knip
+    # `pnpm gate` runs Biome, then check-types and test:changed on the
+    # affected packages, then knip. test:changed scopes Vitest to the
+    # merge-base diff, so the cost of the gate tracks the push, not the suite.
+    # CI runs the full gate and gates merges.
+    - name: gate
+      run: pnpm gate
 
 commit-msg:
   jobs:
