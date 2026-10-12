@@ -419,17 +419,23 @@ function readBarrel(ts: Ts, ast: Ast, program: Program, checker: Checker, file: 
 
 	/** The tags whose HTML attributes a component takes ({@link readComponent}). */
 	function elementsOf(component: TsSymbol, signature: Signature, members: TsSymbol[]): string[] {
-		// The elements of the inherited events, such as `HTMLButtonElement`.
+		const inherited = members.filter(
+			(member) => EVENT.test(member.name) && member.declarations.every(isPackage),
+		)
+
+		// The elements of the inherited events, such as `HTMLButtonElement`. A
+		// component inherits about 80 events, and most of them share a few
+		// handler types. One request gets the types of all of them, and each
+		// distinct type prints one time. With a request for each event, the
+		// extraction of the docs took about 3 s more.
+		const types = new Set(checker.getTypeOfSymbol(inherited))
+
 		const elements = new Set(
-			members
-				.filter((member) => EVENT.test(member.name) && member.declarations.every(isPackage))
-				.flatMap((member) => {
-					const type = checker.getTypeOfSymbol(member)
+			[...types].flatMap((type) => {
+				const text = type ? checker.typeToString(type, undefined, format) : ''
 
-					const text = type ? checker.typeToString(type, undefined, format) : ''
-
-					return Array.from(text.matchAll(/\bHTML\w*Element\b/g), ([name]) => name)
-				}),
+				return Array.from(text.matchAll(/\bHTML\w*Element\b/g), ([name]) => name)
+			}),
 		)
 
 		const walk: Walk = { ts, ast, checker, elements, tags: new Set(), bindings: new Map() }
