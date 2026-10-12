@@ -27,8 +27,8 @@ const photos: LightboxPhoto[] = [
 type FirstFrame = { top: number }
 
 /**
- * Reads the first frame of the raise when Motion starts its transform tween,
- * the first tween of the raise. At that time, no tween paints the photo, and
+ * Reads the first frame of the raise when Motion starts the tween of the slot,
+ * the first tween of the raise. At that time, no tween paints the slot, and
  * the inline style is the first frame. At the end of the raise, Motion writes
  * the last frame inline, and a loaded runner can get to that end before the
  * test reads the photo. A pause does not hold the raise, because Motion sets
@@ -46,8 +46,13 @@ function watchRaise(): FirstFrame[] {
 		const [keyframes] = args
 
 		// The slot of the photo is the clip, and its box on the screen is the clip.
-		if (this instanceof HTMLImageElement && keyframes && 'transform' in keyframes) {
-			frames.push({ top: this.parentElement?.getBoundingClientRect().top ?? Number.NaN })
+		if (
+			this instanceof HTMLElement &&
+			this.hasAttribute('data-offset') &&
+			keyframes &&
+			'transform' in keyframes
+		) {
+			frames.push({ top: this.getBoundingClientRect().top })
 		}
 
 		return native.apply(this, args)
