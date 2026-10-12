@@ -13,26 +13,26 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: pnpm/action-setup@v6
-    # .node-version at the repository root is the one statement of the Node
-    # version. Local version managers read the same file.
-    - uses: actions/setup-node@v7
+    # pnpm/setup installs the native pnpm of `packageManager` in package.json,
+    # and the Node of .node-version at the repository root. .node-version is
+    # the one statement of the Node version, and local version managers read
+    # the same file. pnpm/action-setup installed a pnpm v11 with npm and then
+    # changed it to the pinned version, which took about 6 s of each job.
+    #
+    # The action keeps the pnpm store in the cache of actions/cache, keyed on
+    # the lockfile. It also keeps the log of pnpm's supply-chain check of the
+    # lockfile, so pnpm checks a lockfile one time and not in each job. The
+    # install is the next step, because the action cannot take the arguments of
+    # the install.
+    #
+    # Only `gate` saves the store. A job saves a store that it changed, so after
+    # a change to the lockfile each job of the run saved its own copy, about
+    # 300 MB each. `gate` installs the whole workspace, so its copy serves each
+    # job.
+    - uses: pnpm/setup@v3
       with:
-        node-version-file: .node-version
-        cache: pnpm
-    # pnpm checks the lockfile against the supply-chain policies of
-    # pnpm-workspace.yaml before it installs. On CI the check took 5.6 s, and
-    # the install about 6 s. pnpm writes each lockfile that passes to this log,
-    # with the hash of the lockfile and the policies, and does not check that
-    # lockfile again. A change to the lockfile or to the policies gets a full
-    # check. The key follows the files that can change the check, so a new log
-    # starts when one of them changes. The log of an earlier key is restored
-    # first, and pnpm adds the new lockfile to it.
-    - uses: actions/cache@v6
-      with:
-        path: ~/.cache/pnpm/lockfile-verified.jsonl
-        key: ${{ runner.os }}-pnpm-verified-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', 'package.json') }}
-        restore-keys: |
-          ${{ runner.os }}-pnpm-verified-
+        cache: true
+        save-cache: ${{ github.job == 'gate' }}
+        install: false
     - run: pnpm install ${{ inputs.install-args }}
       shell: bash

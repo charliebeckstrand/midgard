@@ -1,6 +1,7 @@
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import { mergeConfig } from 'vitest/config'
+import { splitSequencer } from './src/__tests__/setup/split-sequencer'
 import { compileUiSource } from './vitest.compiler.preset'
 import base from './vitest.config'
 
@@ -27,6 +28,10 @@ export default mergeConfig(base, {
 	test: {
 		// `grid-compiler.test.ts` reads this to tell the two runs apart.
 		env: { REACT_COMPILER: '1' },
+		// The skip gate compiles each module of the source. It took 24 s to 34 s
+		// of the shard that held it, so each shard runs the gate, and the gate
+		// compiles the part of the modules for that shard.
+		sequence: { sequencer: splitSequencer(['react-compiler-skips.test.ts']) },
 		// Added to the projects of the base config.
 		projects: [
 			{
@@ -36,12 +41,14 @@ export default mergeConfig(base, {
 					environment: 'node',
 					pool: 'threads',
 					include: ['src/__tests__/compiler/*.test.ts'],
+					// Gives the skip gate the shard of the run.
+					globalSetup: ['./src/__tests__/setup/shard.ts'],
 					// The group of `unit`, so the one long file runs next to that project
 					// and not after the last group. Measured warm on four cores, it adds
 					// about 5 seconds here, and about 16 seconds as a last group.
 					sequence: { groupOrder: 0 },
 					// The file compiles about 800 modules, in about 20 seconds on four
-					// cores.
+					// cores. Each shard compiles its part of them.
 					testTimeout: 120_000,
 				},
 			},

@@ -1,6 +1,6 @@
 import { transformSync, traverse, types } from '@babel/core'
 import reactCompiler, { type LoggerEvent, OPT_OUT_DIRECTIVES } from 'babel-plugin-react-compiler'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, inject, it } from 'vitest'
 import { docsSites, srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
 // The React Compiler skip gate. The compiler skips a function that it cannot
@@ -15,7 +15,8 @@ import { docsSites, srcDir, srcRelative, walkSource } from '../helpers/walk-sour
 // Fix a new skip. If you cannot, opt the function out, and add it to that list.
 //
 // The pass compiles about 800 modules in about 20 seconds, so it runs only in
-// the compiled run (vitest.compiler.config.ts), in a project of its own.
+// the compiled run (vitest.compiler.config.ts), in a project of its own. Each
+// shard of the run compiles its part of the modules (`setup/shard.ts`).
 
 /** Each file with skips, and in it each skipped function with its cause. */
 type Skips = Record<string, Record<string, string>>
@@ -128,9 +129,15 @@ function moduleSkips(file: string, source: string): Record<string, string> {
 	return skips
 }
 
-/** The skips that the source gives now, with their files in path order. */
+const shard = inject('shard')
+
+/**
+ * The skips that the source gives now in the modules of the shard, with their
+ * files in path order. The shards take the modules in turn, in path order, so
+ * each machine divides them the same way.
+ */
 function currentSkips(): Skips {
-	const skips: Skips = {}
+	const modules: [file: string, source: string][] = []
 
 	walkSource(
 		srcDir,
@@ -139,14 +146,22 @@ function currentSkips(): Skips {
 
 			if (!file.endsWith('.tsx') && !HOOK_CALL.test(source)) return
 
-			const found = moduleSkips(file, source)
-
-			if (Object.keys(found).length > 0) skips[srcRelative(file)] = found
+			modules.push([file, source])
 		},
 		docsSites,
 	)
 
-	return Object.fromEntries(Object.entries(skips).sort(([a], [b]) => (a < b ? -1 : 1)))
+	const skips: Skips = {}
+
+	for (const [file, source] of modules
+		.toSorted(([a], [b]) => (a < b ? -1 : 1))
+		.filter((_, index) => index % shard.count === shard.index - 1)) {
+		const found = moduleSkips(file, source)
+
+		if (Object.keys(found).length > 0) skips[srcRelative(file)] = found
+	}
+
+	return skips
 }
 
 describe('React Compiler skips', () => {
