@@ -30,7 +30,8 @@ export type AppearanceSettingsProps = {
  * immediately and persists. Put it in the header or the navbar of the app.
  *
  * Inside a `SidebarLayout`, the dialog also has the Sidebar picker (Locked or
- * Offcanvas), with the key that toggles it. The picker shows from `lg` up,
+ * Offcanvas), with the key that toggles it: ⌘B on Apple platforms, and Ctrl+B
+ * on others. The picker shows from `lg` up,
  * where the layout shows its desktop sidebar.
  *
  * @remarks The dialog module loads in idle time after the hydration. The

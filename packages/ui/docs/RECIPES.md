@@ -61,13 +61,7 @@ Each bridge is a pure function `(<tokens>, overlay?) => k`, reached through the 
 
 ## Kata — shape
 
-Every kata exports its runtime surface as `k`, plus its `scale` when it has one, and `k` takes one of three shapes ([`src/recipes/kata/README.md`](../src/recipes/kata/README.md)). Its keys follow the key-name rules of [`src/recipes/README.md`](../src/recipes/README.md#4-key-names). Each key is one word, and a part with children is an object whose own classes are `base`.
-
-- **Archetype** — `k = bridge.<archetype>(tokens, { … })`. The kata reads its token bundle from `kiso/<archetype>` and hands it to the bridge, which builds the surface.
-- **Recipe-shaped** — `k = defineRecipe(…)`, called as `k({ variant, size, … })`; slots and sub-recipes attach as properties (`k.title`, `k.thumb`).
-- **Object-literal** — `k = { … }`, a curated bag of slot fragments, sub-recipes, motion configs, and skeleton data when there's no top-level variants axis.
-
-Variant types derive from the concrete result — `export type FooVariants = VariantProps<typeof k>`. When the recipe sets a default for an axis, the type declares that axis again with a description and a `@defaultValue` tag. The tag equals the default ([kata §2](../src/recipes/kata/README.md#2-shape)). A public component also tags each destructured default and each `??` fallback on the prop. The same holds for each recipe default that an unset prop gets. `default-value-boundary.test.ts` gates both.
+Every kata exports its runtime surface as `k`, plus its `scale` when it has one. [`src/recipes/kata/README.md`](../src/recipes/kata/README.md) gives the three shapes of `k`, the key-name rules, and the `@defaultValue` rule for variant types that `default-value-boundary.test.ts` gates.
 
 ## Recipe engine
 

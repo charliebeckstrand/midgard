@@ -70,8 +70,10 @@ export type UIProviderProps = {
  * Registers the link component, the default portal container, and the current
  * path. It also mounts the dialog that `useConfirm` from `ui/confirm` asks in,
  * and the toast queue and viewport that `useToast` from `ui/toast` uses. The
- * dialog loads on the first question, and the viewport on the first toast, so
- * neither loads before the app hydrates. It loads the Motion features of the
+ * dialog and the viewport load in idle time after the hydration, or on the
+ * first question or toast when that comes first. Put `LocaleProvider` above
+ * it, because the confirm dialog reads the contexts above the provider. It
+ * loads the Motion features of the
  * `ReducedMotion` roots at idle after hydration, so the first dialog, menu, or
  * popover that opens animates in its first frame.
  *
