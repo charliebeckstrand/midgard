@@ -24,9 +24,15 @@ runs:
     # lockfile, so pnpm checks a lockfile one time and not in each job. The
     # install is the next step, because the action cannot take the arguments of
     # the install.
+    #
+    # Only `gate` saves the store. A job saves a store that it changed, so after
+    # a change to the lockfile each job of the run saved its own copy, about
+    # 300 MB each. `gate` installs the whole workspace, so its copy serves each
+    # job.
     - uses: pnpm/setup@v3
       with:
         cache: true
+        save-cache: ${{ github.job == 'gate' }}
         install: false
     - run: pnpm install ${{ inputs.install-args }}
       shell: bash
