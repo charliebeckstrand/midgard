@@ -176,11 +176,11 @@ describe('requireAdmin', () => {
 		expect(redirectTarget(error)).toBe('/account')
 	})
 
-	it('redirects an admin session without the second step to /verify', async () => {
+	it('redirects an admin session without the second step to /login', async () => {
 		stubGateway(200, { ...session, user: { ...user, roles: ['user', 'admin'] } })
 
 		const error = await requireAdmin().catch((thrown: unknown) => thrown)
 
-		expect(redirectTarget(error)).toBe('/verify')
+		expect(redirectTarget(error)).toBe('/login')
 	})
 })

@@ -20,7 +20,7 @@ export const instant = false
  * page loses its state, for example the recovery codes that show only one time.
  * The role does not change while a page is open. The admin pages add their own
  * check in the layout of the `(dashboard)` group, and send an admin without the
- * second step to `/verify`. This layout only picks the chrome.
+ * second step to `/login`. This layout only picks the chrome.
  */
 export default async function SignedInLayout({ children }: { children: ReactNode }) {
 	const { user } = await requireSession()
