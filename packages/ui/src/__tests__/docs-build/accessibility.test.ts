@@ -10,10 +10,10 @@ import { CLIENT_DIR, HYDRATED } from '../../../scripts/docs-server'
 // no layout and no styles. This file runs each WCAG 2.2 A and AA rule of axe
 // on each prerendered page of the build in Chromium, so it also reads the
 // contrast of the text and the size of the targets. It reads the first state
-// of each page, in the light theme and in the dark theme, at the width of a
-// desktop, with reduced motion. Each page loads one time in the light theme,
-// then the color scheme of the tab changes to dark. The theme follows the
-// color scheme live, so the second read costs no second load.
+// of each page at the width of a desktop, with reduced motion. Each page loads
+// one time in the light theme, and axe runs each rule. Then the color scheme
+// of the tab changes to dark, and axe runs the color rules again. The theme
+// follows the color scheme live, so the second read costs no second load.
 //
 // A page loads nothing from another host, so the result does not depend on
 // the network. The PDF of the PdfViewer page is on another host, so that page
@@ -40,6 +40,21 @@ const QUIET = 500
 
 /** The longest wait for the layout to settle, in ms. A page that is still moving then gets read as it is. */
 const SETTLE_LIMIT = 10_000
+
+/**
+ * The rules that read the colors of the page. The dark theme changes the
+ * colors and not the markup or the layout, so the read in the dark theme runs
+ * only these rules. The read in the light theme runs each rule. On each page
+ * of the build, the two themes gave the same violations for each other rule.
+ */
+const COLOR_RULES = ['color-contrast', 'link-in-text-block']
+
+/**
+ * The time in ms in which no target moves, before axe reads the dark theme.
+ * The change of theme moves no target, and `target-size` does not run in the
+ * dark theme, so a short quiet time is sufficient.
+ */
+const DARK_QUIET = 100
 
 /**
  * The violations that a known defect of `ui` causes, by path and rule. The
@@ -168,12 +183,27 @@ function settle({ quiet, limit }: { quiet: number; limit: number }): Promise<voi
 	})
 }
 
-/** Runs the WCAG rules of axe on the page in the tab, after its layout settles. */
-async function audit(tab: Page): Promise<AxeResults['violations']> {
-	await tab.evaluate(settle, { quiet: QUIET, limit: SETTLE_LIMIT })
+/**
+ * Runs axe on the page in the tab, after its layout settles for `quiet` ms.
+ * With `rules`, axe runs those rules. Without `rules`, it runs the WCAG rules
+ * of `TAGS`. Axe collects the violations only, and not the passes, because
+ * the collection of the passes took about one fifth of each read.
+ */
+async function audit(
+	tab: Page,
+	{ quiet, rules }: { quiet: number; rules?: readonly string[] },
+): Promise<AxeResults['violations']> {
+	await tab.evaluate(settle, { quiet, limit: SETTLE_LIMIT })
+
+	const runOnly = rules
+		? { type: 'rule' as const, values: [...rules] }
+		: { type: 'tag' as const, values: TAGS }
 
 	return tab
-		.evaluate((tags) => window.axe.run(document, { runOnly: { type: 'tag', values: tags } }), TAGS)
+		.evaluate(
+			(runOnly) => window.axe.run(document, { runOnly, resultTypes: ['violations'] }),
+			runOnly,
+		)
 		.then((results) => results.violations)
 }
 
@@ -198,7 +228,7 @@ async function auditThemes(
 
 	await tab.addScriptTag({ path: AXE })
 
-	const light = await audit(tab)
+	const light = await audit(tab, { quiet: QUIET })
 
 	await tab.emulateMedia({ colorScheme: 'dark' })
 
@@ -208,7 +238,7 @@ async function auditThemes(
 			document.getAnimations().every((animation) => !(animation instanceof CSSTransition)),
 	)
 
-	const dark = await audit(tab)
+	const dark = await audit(tab, { quiet: DARK_QUIET, rules: COLOR_RULES })
 
 	return { light, dark }
 }
@@ -229,8 +259,12 @@ describe.concurrent('a prerendered page of the docs build, in Chromium', () => {
 		for (const theme of THEMES) {
 			const violations = results[theme]
 
+			// The dark read runs only the color rules, so it cannot find another rule.
 			const known = KNOWN.filter(
-				(entry) => entry.path === route && (entry.theme === undefined || entry.theme === theme),
+				(entry) =>
+					entry.path === route &&
+					(entry.theme === undefined || entry.theme === theme) &&
+					(theme === 'light' || COLOR_RULES.includes(entry.rule)),
 			).map((entry) => entry.rule)
 
 			const found = violations.flatMap(({ id, nodes }) =>
