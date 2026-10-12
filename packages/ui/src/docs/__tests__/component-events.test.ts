@@ -1,4 +1,5 @@
 // @vitest-environment node
+import path from 'node:path'
 import { parseAst } from 'vite'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import {
@@ -6,7 +7,7 @@ import {
 	componentEvent,
 	listenComponentEvents,
 } from '../debug/event-log/component-events.ts'
-import { labelProps } from '../plugin/component-events.ts'
+import { labelPage, labelProps } from '../plugin/component-events.ts'
 
 const label = (code: string, fromModules: string[] = []) =>
 	labelProps(parseAst(code, { lang: 'tsx' }), code, new Set(fromModules))
@@ -214,5 +215,36 @@ describe('componentEvent', () => {
 		componentEvent('component', 'Tree', 'node', loop).onPick()
 
 		expect(texts).toEqual(['component Tree node.onPick()'])
+	})
+})
+
+describe('labelPage', () => {
+	const grid = path.resolve(import.meta.dirname, '..', '..', 'modules', 'grid', 'index.ts')
+
+	it('resolves only an import that gives the first name of a tag, and labels a module tag', async () => {
+		const code = [
+			"import { Grid } from 'ui/grid'",
+			"import { useSort } from 'ui/hooks'",
+			"import { rows } from './data'",
+			'export const a = <Grid rows={rows} onSort={useSort()} />',
+		].join('\n')
+
+		const resolve = vi.fn(async (source: string) => (source === 'ui/grid' ? grid : undefined))
+
+		const labeled = await labelPage(parseAst(code, { lang: 'tsx' }), code, resolve)
+
+		expect(resolve.mock.calls).toEqual([['ui/grid']])
+
+		expect(labeled?.split('\n')[0]).toMatch(
+			/^import \{ componentEvent as __componentEvent \} from /,
+		)
+
+		expect(labeled).toContain('onSort={__componentEvent("module", "Grid", "onSort", useSort())}')
+	})
+
+	it('gives nothing for a page with no value to wrap', async () => {
+		const code = "import { Grid } from 'ui/grid'\nexport const a = <Grid />"
+
+		expect(await labelPage(parseAst(code, { lang: 'tsx' }), code, async () => grid)).toBeUndefined()
 	})
 })

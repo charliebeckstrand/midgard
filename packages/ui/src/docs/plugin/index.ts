@@ -11,6 +11,7 @@ import type {
 import type { ShikiHighlight } from '../../components/code/code-shiki-highlighter.ts'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
 import { type BarrelApi, createApiWorker, TASKS_AHEAD } from './api.ts'
+import { labelPage } from './component-events.ts'
 import {
 	attachMeta,
 	CODE,
@@ -68,9 +69,11 @@ function data(value: unknown): string {
  * - `virtual:docs/code/<folder>`: the code of each example in a folder of `pages/`, highlighted ({@link loadCodes}).
  * - `virtual:docs/search`: the entries of the search of the docs ({@link searchEntries}).
  *
- * It adds the title and the code module to the default export of each
- * example in `pages/` ({@link attachMeta}). In dev, an edit to a source file
- * of `ui` updates the API data of the open pages with no reload.
+ * It transforms each module of `pages/` with one parse. It adds the title and
+ * the code module to the default export of each example ({@link attachMeta}),
+ * and it sends each value that the JSX gives to a component through the
+ * Event log ({@link labelPage}). In dev, an edit to a source file of `ui`
+ * updates the API data of the open pages with no reload.
  *
  * In dev, a page or a tab that is added, removed or renamed in `pages/`
  * changes the routes. React Router reads the routes only when the server
@@ -165,7 +168,7 @@ export function reactDocs(): Plugin {
 
 	return {
 		name: 'vite-plugin-react-docs',
-		// The transform reads the JSX of an example, so it runs before the JSX transform.
+		// The transform reads the JSX of a page, so it runs before the JSX transform.
 		enforce: 'pre',
 		resolveId: {
 			filter: { id: prefixRegex(VIRTUAL) },
@@ -216,13 +219,19 @@ export function reactDocs(): Plugin {
 			},
 		},
 		transform: {
-			filter: {
-				id: { include: prefixRegex(`${pages}/`), exclude: /(?<!\.tsx)$|\/index\.tsx$/ },
-			},
-			handler(code, id) {
-				const meta = attachMeta(this.parse.bind(this), code, id, pages)
+			filter: { id: { include: prefixRegex(`${pages}/`), exclude: /(?<!\.tsx)$/ } },
+			async handler(code, id) {
+				const program = this.parse(code, { lang: 'tsx' })
 
-				return meta === undefined ? null : { code: meta, map: null }
+				const meta = EXAMPLE.test(id) ? attachMeta(program, code, id, pages) : undefined
+
+				const labeled = await labelPage(program, code, async (source) => {
+					return (await this.resolve(source, id))?.id
+				})
+
+				if (meta === undefined && labeled === undefined) return null
+
+				return { code: `${labeled ?? code}${meta ?? ''}`, map: null }
 			},
 		},
 		configureServer() {
