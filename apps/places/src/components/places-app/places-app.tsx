@@ -887,8 +887,9 @@ export function PlacesApp({
 	)
 
 	const filteredTrips = useMemo(
-		() => (showsKind(filter, 'trips', hasTrips) ? filterTrips(trips, filter) : NO_TRIPS),
-		[trips, filter, hasTrips],
+		() =>
+			showsKind(filter, 'trips', hasTrips) ? filterTrips(trips, filter, tripPlaces) : NO_TRIPS,
+		[trips, filter, hasTrips, tripPlaces],
 	)
 
 	const shown = useMemo(

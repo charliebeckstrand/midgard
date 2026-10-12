@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { Place } from '../../types'
+import type { Place, Trip } from '../../types'
 import {
 	filterPlaces,
 	filterTrips,
@@ -9,6 +9,7 @@ import {
 	showsKind,
 	toDay,
 } from '../../utilities/places-filter'
+import { placesByTrip } from '../../utilities/places-trips'
 import { place, placeOn, trip } from '../fixtures'
 
 /** A committed span, in the shape the relative DatePicker writes. */
@@ -124,19 +125,56 @@ describe('filterPlaces', () => {
 })
 
 describe('filterTrips', () => {
-	const trips = [
-		trip('spring', { startsOn: '2026-04-01', endsOn: '2026-04-05' }),
-		trip('fall', { startsOn: '2026-09-25', endsOn: '2026-10-02' }),
-	]
+	const spring = trip('spring', { startsOn: '2026-04-01', endsOn: '2026-04-05' })
 
-	it('admits every trip without a span, whatever the categories', () => {
-		expect(filterTrips(trips, { categories: ['food'] })).toEqual(trips)
+	const fall = trip('fall', { startsOn: '2026-09-25', endsOn: '2026-10-02' })
+
+	const trips = [spring, fall]
+
+	/** A place of `category`, with one visit on the first day of `held`. */
+	function onTrip(id: string, held: Trip, category: Place['category']): Place {
+		return place(id, {
+			category,
+			visits: [
+				{ id: `${id}-visit`, visitedAt: held.startsOn, tripId: held.id, rating: 4, photos: [] },
+			],
+		})
+	}
+
+	const byTrip = placesByTrip([onTrip('cafe', spring, 'food'), onTrip('park', fall, 'nature')])
+
+	it('admits every trip on an empty bar', () => {
+		expect(filterTrips(trips, {}, byTrip)).toEqual(trips)
+	})
+
+	it('admits a trip that holds a place of a picked category', () => {
+		expect(filterTrips(trips, { categories: ['food'] }, byTrip)).toEqual([spring])
+
+		expect(filterTrips(trips, { categories: ['food', 'nature'] }, byTrip)).toEqual(trips)
+	})
+
+	it('admits no trip with places when every category is off', () => {
+		expect(filterTrips(trips, { categories: [] }, byTrip)).toEqual([])
+	})
+
+	it('admits a trip with no places whatever the categories', () => {
+		expect(filterTrips(trips, { categories: ['food'] }, new Map())).toEqual(trips)
+
+		expect(filterTrips(trips, { categories: [] }, new Map())).toEqual(trips)
 	})
 
 	it('admits a trip whose days overlap a span', () => {
-		expect(filterTrips(trips, { visited: [span('2026-10-01', '2026-10-31')] })).toEqual([trips[1]])
+		expect(filterTrips(trips, { visited: [span('2026-10-01', '2026-10-31')] }, byTrip)).toEqual([
+			fall,
+		])
 
-		expect(filterTrips(trips, { visited: [span('2026-05-01', '2026-08-31')] })).toEqual([])
+		expect(filterTrips(trips, { visited: [span('2026-05-01', '2026-08-31')] }, byTrip)).toEqual([])
+	})
+
+	it('narrows by each field on its own', () => {
+		const filter = { categories: ['food' as const], visited: [span('2026-10-01', '2026-10-31')] }
+
+		expect(filterTrips(trips, filter, byTrip)).toEqual([])
 	})
 })
 
