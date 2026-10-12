@@ -24,9 +24,17 @@ import { fileURLToPath } from 'node:url'
 export const CLIENT_DIR = path.resolve(import.meta.dirname, '..', 'src', 'docs', 'dist', 'client')
 
 /**
- * A browser expression that is `true` when the page hydrated, for
- * `test:docs-build` and `docs:bench`. Hydration gives the heading a React
- * fiber. A prerendered heading has none.
+ * A browser expression that is `true` when the hydration render gets to the
+ * heading, for `test:docs-build` and `docs:bench`. Hydration gives the heading
+ * a React fiber. A prerendered heading has none.
+ *
+ * The expression is `true` before the hydration commits. The client hydrates
+ * in a transition, so React renders the page in slices, and the heading of
+ * the shell gets its fiber before the content does. Effects run only after the
+ * commit. On the bench page, the commit came 80 to 150 ms later, and no
+ * request or long task started between the two. A check that needs the effects
+ * of the page must wait for a later signal, such as the full stylesheet that
+ * the app links after the commit (`accessibility.test.ts`).
  */
 export const HYDRATED = `Object.keys(document.querySelector('h1') ?? {}).some((key) => key.startsWith('__reactFiber'))`
 
