@@ -23,7 +23,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 
 | Hook | Summary |
 |---|---|
-| `useFloatingPanel` | Base floating-panel hook: `useFloating` with autoUpdate and the standard offset, flip, shift, and size middleware. It keeps the panel in the viewport. |
+| `useFloatingPanel` | Base floating-panel hook: `useFloating` with autoUpdate and the standard offset, flip, shift, size, and hide middleware. It keeps the panel in the viewport. |
 | `useFloatingUI` | Floating panel with built-in dismiss + role prop-getters for listbox/combobox/menu/datepicker surfaces. |
 | `useFloatingDisclosure` | Disclosure wrapper over `useFloatingPanel`: controllable open state, trigger ref, focus restore, dismiss + role. |
 | `useDismissable` | Overlay dismiss behavior: Escape (via the dismiss-layer stack) plus pointer-down outside the boundary, sparing a floating surface opened from within it. |
@@ -103,6 +103,7 @@ Hooks export the option and return shapes consumers thread through their own pro
 | `A11yLiveRegionProps` / `A11yLiveRegionOptions` / `A11yLiveLevel` | Live-region props, options, and urgency (`'polite' \| 'assertive'`). |
 | `A11yAnnouncementsOptions` | Options for `useA11yAnnouncements` (`assertive`, `enabled`). |
 | `Timeout` | Return shape of `useTimeout`: `set`, `clear`, `pending`. |
+| `IntentLoad` | Return shape of `useIntentLoad`: `module`, `request`, `preload`. |
 | `SetValue` | Argument to `useControllable`'s setter: a next value, `null`/`undefined` to clear, or a functional updater. |
 | `InView` / `InViewOptions` | Return shape / options of `useInView` (`ref`, `inView`; `margin`, `once`). |
 | `MinBreakpoint` | The breakpoint names that `useMinBreakpoint` takes. |

@@ -28,7 +28,7 @@ pnpm --filter admin dev
 | `app/(guest)/login/`, `app/(guest)/register/` | Sign-in and registration pages. The sign-in page shows a button for each GitHub or Google sign-in that the gateway has set up. The layout of the group sends a signed-in admin to `/`, and another signed-in user to `/account`. |
 | `app/<segment>/client.tsx` | Interactive client subtree split from the segment's server `page.tsx` ([CONVENTIONS](../../CONVENTIONS.md) §2.3). |
 | `app/providers.tsx` | Top-level React Context providers. |
-| `proxy.ts` | Session gate. It re-exports [`auth/proxy`](../../packages/auth/README.md), and its `matcher` leaves `/auth/*` open. |
+| `proxy.ts` | Session gate. It re-exports [`auth/proxy`](../../packages/auth/README.md). Its `matcher` skips only the static assets, and the proxy lets `/auth/*` continue without a session. |
 
 ## 4. Environment
 

@@ -19,7 +19,7 @@ import { deferred, tick } from '../helpers'
  * The cache's loader seam, driven by hand.
  *
  * No pdf.js and no `fetch` anywhere in this file: the cache takes its rasterizer as an
- * argument, so every case here drives a promise it owns. That is what CONVENTIONS §11.3 asks
+ * argument, so every case here drives a promise it owns. That is what CONVENTIONS §10.3 asks
  * for — the synchronous seam rather than a third-party async lifecycle — and it is also the
  * whole reason the loader is injected rather than imported.
  */

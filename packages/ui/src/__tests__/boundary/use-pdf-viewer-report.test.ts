@@ -41,7 +41,7 @@ afterEach(() => {
  * Leaves `src` resident with `pageCount` finished pages, the way a completed load does.
  *
  * Seeded through the cache's own loader seam rather than by driving pdf.js, which
- * CONVENTIONS §11.3 rules out, and which the report does not need: the hook reads the
+ * CONVENTIONS §10.3 rules out, and which the report does not need: the hook reads the
  * committed snapshot either way.
  */
 async function seed(src: string, pageCount = 1) {

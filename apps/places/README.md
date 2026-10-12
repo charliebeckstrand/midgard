@@ -47,7 +47,8 @@ name.
 ## The address
 
 Where the reader is lives in the address bar, not in React state: the view, the
-filter, and the open place or trip. `src/utilities/places-url.ts` is the codec and
+filter, the open place or trip, and an open form for a new place or trip.
+`src/utilities/places-url.ts` is the codec and
 `src/components/places-app/use-place-location.ts` binds it to the address bar, so
 a reload keeps the map, the Back button walks the drills, and a place is a link.
 
