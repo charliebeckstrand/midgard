@@ -4,22 +4,18 @@ import type { LightboxLoad, LightboxPhoto, LightboxViewPhoto } from './types'
 /** A box on the screen, in CSS px from the top left corner of the viewport. @internal */
 export type LightboxBox = { x: number; y: number; width: number; height: number }
 
-/** The values of `transform` and `clip-path` that paint the photo at one point of its flight. @internal */
-export type LightboxFrame = { transform: string; clipPath: string }
-
 /**
- * The frame of the photo at rest on the stage. Its values have the same parts
- * as the frames of {@link raisedFrame}, so Motion can tween between the two.
- *
- * @internal
+ * The photo and its clip on the screen at one point of the flight. The photo
+ * shows only inside `clip`, and `photo` is the top left corner and the scale of
+ * the photo. All values are in CSS px on the screen. @internal
  */
-export const RESTING_FRAME: LightboxFrame = {
-	transform: 'translate(0px, 0px) scale(1)',
-	clipPath: 'inset(0px 0px 0px 0px round 0px 0px 0px 0px)',
+export type LightboxFrame = {
+	clip: LightboxBox
+	photo: { x: number; y: number; scale: number }
 }
 
-/** The distance, in CSS px, inside which two edges are the same edge. */
-const EDGE_TOLERANCE = 0.5
+/** The transform of the photo at rest, with the parts that a tween to and from rest needs. @internal */
+export const RESTING_TRANSFORM = 'translate(0px, 0px) scale(1)'
 
 /**
  * The frame that paints the photo at rest in `rest` exactly as its thumbnail
@@ -28,17 +24,12 @@ const EDGE_TOLERANCE = 0.5
  * The thumbnail shows the photo with `object-fit: cover`, so it shows the
  * center of the photo and crops the rest. The frame scales the photo until it
  * covers the thumbnail, and moves its center onto the center of the thumbnail.
- * The clip then cuts the photo to `shown`. A corner of the clip has the radius
- * of the thumbnail when its two edges are edges of the thumbnail. A corner on
- * an edge that a scroll container or a sticky bar hides is square. A tween from
- * this frame to {@link RESTING_FRAME} raises the photo, and the reverse tween
- * puts it back.
- *
- * The transform origin of the photo must be its top left corner.
+ * The clip is `shown`. The corners of the clip are square, because a change
+ * of radius paints the clip again in each frame. A tween from this frame to
+ * {@link restingFrame} raises the photo, and the reverse tween puts it back.
  *
  * @param thumbnail - The box of the thumbnail.
  * @param rest - The box of the photo at rest, with no transform.
- * @param radius - The corner radius of the thumbnail, in px.
  * @param shown - The part of the thumbnail that the reader sees. It is the
  * full thumbnail when the page hides none of it.
  * @internal
@@ -46,50 +37,131 @@ const EDGE_TOLERANCE = 0.5
 export function raisedFrame(
 	thumbnail: LightboxBox,
 	rest: LightboxBox,
-	radius: number,
 	shown: LightboxBox = thumbnail,
 ): LightboxFrame {
 	const scale = Math.max(thumbnail.width / rest.width, thumbnail.height / rest.height)
 
-	const x = thumbnail.x + thumbnail.width / 2 - rest.x - (rest.width * scale) / 2
-
-	const y = thumbnail.y + thumbnail.height / 2 - rest.y - (rest.height * scale) / 2
-
-	// The clip applies before the transform, so it is in the px of the photo at
-	// rest. The photo paints its top left corner at (left, top).
-	const left = rest.x + x
-
-	const top = rest.y + y
-
-	const same = (a: number, b: number) => Math.abs(a - b) < EDGE_TOLERANCE
-
-	const edges = {
-		top: same(shown.y, thumbnail.y),
-		right: same(shown.x + shown.width, thumbnail.x + thumbnail.width),
-		bottom: same(shown.y + shown.height, thumbnail.y + thumbnail.height),
-		left: same(shown.x, thumbnail.x),
+	return {
+		clip: shown,
+		photo: {
+			x: thumbnail.x + thumbnail.width / 2 - (rest.width * scale) / 2,
+			y: thumbnail.y + thumbnail.height / 2 - (rest.height * scale) / 2,
+			scale,
+		},
 	}
+}
 
-	const corner = (a: boolean, b: boolean) => `${a && b ? radius / scale : 0}px`
+/** The frame of the photo at rest in `rest`, where the clip is the photo. @internal */
+export function restingFrame(rest: LightboxBox): LightboxFrame {
+	return { clip: rest, photo: { x: rest.x, y: rest.y, scale: 1 } }
+}
 
-	const inset = [
-		(shown.y - top) / scale,
-		rest.width - (shown.x + shown.width - left) / scale,
-		rest.height - (shown.y + shown.height - top) / scale,
-		(shown.x - left) / scale,
-	]
-
-	const round = [
-		corner(edges.top, edges.left),
-		corner(edges.top, edges.right),
-		corner(edges.bottom, edges.right),
-		corner(edges.bottom, edges.left),
-	]
+/** The frame at `progress` from `from` to `to`, with each value on a straight line. @internal */
+export function mixFrames(from: LightboxFrame, to: LightboxFrame, progress: number): LightboxFrame {
+	const mix = (a: number, b: number) => a + (b - a) * progress
 
 	return {
-		transform: `translate(${x}px, ${y}px) scale(${scale})`,
-		clipPath: `inset(${inset.map((value) => `${value}px`).join(' ')} round ${round.join(' ')})`,
+		clip: {
+			x: mix(from.clip.x, to.clip.x),
+			y: mix(from.clip.y, to.clip.y),
+			width: mix(from.clip.width, to.clip.width),
+			height: mix(from.clip.height, to.clip.height),
+		},
+		photo: {
+			x: mix(from.photo.x, to.photo.x),
+			y: mix(from.photo.y, to.photo.y),
+			scale: mix(from.photo.scale, to.photo.scale),
+		},
 	}
+}
+
+/**
+ * The transforms that paint `frame`. The slot of the photo clips its content,
+ * so the slot is the clip: its transform moves and scales the slot onto the
+ * clip. The transform of the photo then cancels the scale of the slot, and puts
+ * the photo at its place. Thus a frame does not paint the photo again, and the browser moves
+ * the painted photo.
+ *
+ * The transform origin of the slot and of the photo must be the top left corner.
+ *
+ * @param frame - The frame to paint.
+ * @param slot - The box of the slot, with no transform.
+ * @param rest - The box of the photo at rest, with no transform.
+ * @internal
+ */
+export function frameTransforms(
+	frame: LightboxFrame,
+	slot: LightboxBox,
+	rest: LightboxBox,
+): { slot: string; photo: string } {
+	const scaleX = frame.clip.width / slot.width
+
+	const scaleY = frame.clip.height / slot.height
+
+	const x = (frame.photo.x - frame.clip.x) / scaleX - (rest.x - slot.x)
+
+	const y = (frame.photo.y - frame.clip.y) / scaleY - (rest.y - slot.y)
+
+	return {
+		slot: `translate(${frame.clip.x - slot.x}px, ${frame.clip.y - slot.y}px) scale(${scaleX}, ${scaleY})`,
+		photo: `translate(${x}px, ${y}px) scale(${frame.photo.scale / scaleX}, ${frame.photo.scale / scaleY})`,
+	}
+}
+
+/**
+ * The frame that the transforms from {@link frameTransforms} paint. A slot with no
+ * transform clips nothing that shows, so the clip is then the box that the
+ * photo paints.
+ *
+ * @param slotTransform - The computed transform of the slot.
+ * @param photoTransform - The computed transform of the photo.
+ * @param slot - The box of the slot, with no transform.
+ * @param rest - The box of the photo at rest, with no transform.
+ * @internal
+ */
+export function paintedFrame(
+	slotTransform: string,
+	photoTransform: string,
+	slot: LightboxBox,
+	rest: LightboxBox,
+): LightboxFrame {
+	const [photoX = 1, , , photoY = 1, photoLeft = 0, photoTop = 0] = matrixOf(photoTransform)
+
+	const [scaleX = 1, , , scaleY = 1, left = 0, top = 0] = matrixOf(slotTransform)
+
+	if (slotTransform === 'none') {
+		const x = rest.x + photoLeft
+
+		const y = rest.y + photoTop
+
+		return {
+			clip: { x, y, width: rest.width * photoX, height: rest.height * photoY },
+			photo: { x, y, scale: photoX },
+		}
+	}
+
+	const clip = {
+		x: slot.x + left,
+		y: slot.y + top,
+		width: slot.width * scaleX,
+		height: slot.height * scaleY,
+	}
+
+	return {
+		clip,
+		photo: {
+			x: clip.x + scaleX * (rest.x - slot.x + photoLeft),
+			y: clip.y + scaleY * (rest.y - slot.y + photoTop),
+			scale: photoX * scaleX,
+		},
+	}
+}
+
+/** The six values of a computed 2D transform, or none for `none` or a 3D transform. */
+function matrixOf(transform: string): number[] {
+	const matrix = /^matrix\(([^)]+)\)$/.exec(transform)
+
+	return matrix ? (matrix[1] ?? '').split(',').map(Number) : []
 }
 
 /**
@@ -294,7 +366,7 @@ export function isDoubleTap(previous: LightboxTap | null, tap: LightboxTap): boo
 	)
 }
 
-/** The transform that paints `view`. Its parts are the parts of {@link RESTING_FRAME}. @internal */
+/** The transform that paints `view`. Its parts are the parts of {@link RESTING_TRANSFORM}. @internal */
 export function viewTransform(view: LightboxView): string {
 	return `translate(${view.x}px, ${view.y}px) scale(${view.scale})`
 }

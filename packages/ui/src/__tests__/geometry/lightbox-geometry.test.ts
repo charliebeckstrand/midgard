@@ -2,12 +2,17 @@
 import { describe, expect, it } from 'vitest'
 import {
 	constrainView,
+	frameTransforms,
 	isDoubleTap,
 	type LightboxBox,
+	type LightboxFrame,
+	mixFrames,
 	overlapOf,
+	paintedFrame,
 	panView,
 	REST_VIEW,
 	raisedFrame,
+	restingFrame,
 	ZOOM_MAX,
 	zoomView,
 } from '../../components/lightbox/lightbox-utilities'
@@ -15,69 +20,157 @@ import { FLOAT } from '../helpers/geometry/tolerance'
 
 const NUMBER = /-?\d+(?:\.\d+)?(?:e-?\d+)?/g
 
-/** The edges that a frame paints: the clip of the photo at rest, after the transform. */
-function paintedEdges(frame: ReturnType<typeof raisedFrame>, rest: LightboxBox) {
-	const [x = 0, y = 0, scale = 1] = (frame.transform.match(NUMBER) ?? []).map(Number)
+/** The box of a slot that fills a 1000 by 800 stage, and a photo at rest in it. */
+const slot = { x: 0, y: 0, width: 1000, height: 800 }
 
-	const [top = 0, right = 0, bottom = 0, left = 0] = (frame.clipPath.match(NUMBER) ?? []).map(
-		Number,
-	)
+/** The values `[x, y, scaleX, scaleY]` of a `translate() scale()` transform. */
+function partsOf(transform: string) {
+	const [x = 0, y = 0, scaleX = 1, scaleY = scaleX] = (transform.match(NUMBER) ?? []).map(Number)
+
+	return { x, y, scaleX, scaleY }
+}
+
+/** The transform as a browser computes it. */
+function computed(transform: string) {
+	const { x, y, scaleX, scaleY } = partsOf(transform)
+
+	return `matrix(${scaleX}, 0, 0, ${scaleY}, ${x}, ${y})`
+}
+
+/**
+ * The boxes that the transforms of `frame` paint on the screen: the clip, which
+ * is the slot after its transform, and the photo after both transforms.
+ */
+function painted(frame: LightboxFrame, rest: LightboxBox) {
+	const transforms = frameTransforms(frame, slot, rest)
+
+	const outer = partsOf(transforms.slot)
+
+	const inner = partsOf(transforms.photo)
+
+	const x = slot.x + outer.x + outer.scaleX * (rest.x - slot.x + inner.x)
+
+	const y = slot.y + outer.y + outer.scaleY * (rest.y - slot.y + inner.y)
 
 	return {
-		left: rest.x + x + left * scale,
-		top: rest.y + y + top * scale,
-		right: rest.x + x + (rest.width - right) * scale,
-		bottom: rest.y + y + (rest.height - bottom) * scale,
+		clip: {
+			x: slot.x + outer.x,
+			y: slot.y + outer.y,
+			width: slot.width * outer.scaleX,
+			height: slot.height * outer.scaleY,
+		},
+		photo: {
+			x,
+			y,
+			width: rest.width * outer.scaleX * inner.scaleX,
+			height: rest.height * outer.scaleY * inner.scaleY,
+		},
 	}
 }
 
-function edgesOf(box: LightboxBox) {
-	return { left: box.x, top: box.y, right: box.x + box.width, bottom: box.y + box.height }
+function expectBox(actual: LightboxBox, expected: LightboxBox) {
+	expect(actual.x).toBeNear(expected.x, FLOAT)
+	expect(actual.y).toBeNear(expected.y, FLOAT)
+	expect(actual.width).toBeNear(expected.width, FLOAT)
+	expect(actual.height).toBeNear(expected.height, FLOAT)
 }
 
 describe('raisedFrame', () => {
-	const rest = { x: 400, y: 60, width: 450, height: 675 }
+	const rest = { x: 275, y: 60, width: 450, height: 675 }
 
 	it('paints a portrait photo over a square thumbnail, cropped as the cover fit crops it', () => {
 		const thumbnail = { x: 120, y: 500, width: 144, height: 144 }
 
-		const frame = raisedFrame(thumbnail, rest, 8)
+		const { clip, photo } = painted(raisedFrame(thumbnail, rest), rest)
 
-		expect(paintedEdges(frame, rest)).toMatchBox(edgesOf(thumbnail), { tolerance: FLOAT })
+		expectBox(clip, thumbnail)
 
-		// The width decides the scale, so only the top and the bottom are cut. The
-		// radius is in the px of the photo at rest: 8 / 0.32.
-		expect(frame.clipPath).toMatch(/^inset\([\d.]+px 0px [\d.]+px 0px round 25px 25px 25px 25px\)$/)
+		// The width decides the scale, so the photo spills past the top and the bottom.
+		expectBox(photo, { x: 120, y: 500 - (216 - 144) / 2, width: 144, height: 216 })
 	})
 
 	it('paints a landscape photo over a portrait thumbnail', () => {
-		const wide = { x: 100, y: 100, width: 800, height: 450 }
+		const wide = { x: 100, y: 175, width: 800, height: 450 }
 
 		const thumbnail = { x: 30, y: 640, width: 90, height: 160 }
 
-		expect(paintedEdges(raisedFrame(thumbnail, wide, 0), wide)).toMatchBox(edgesOf(thumbnail), {
-			tolerance: FLOAT,
-		})
+		const { clip, photo } = painted(raisedFrame(thumbnail, wide), wide)
+
+		expectBox(clip, thumbnail)
+
+		expect(photo.height).toBeNear(160, FLOAT)
+
+		expect(photo.x + photo.width / 2).toBeNear(75, FLOAT)
 	})
 
 	it('paints a photo of the same aspect ratio with no crop', () => {
-		expect(raisedFrame({ x: 0, y: 0, width: 90, height: 135 }, rest, 0)).toEqual({
-			transform: 'translate(-400px, -60px) scale(0.2)',
-			clipPath: 'inset(0px 0px 0px 0px round 0px 0px 0px 0px)',
-		})
+		const thumbnail = { x: 0, y: 0, width: 90, height: 135 }
+
+		const { clip, photo } = painted(raisedFrame(thumbnail, rest), rest)
+
+		expectBox(clip, thumbnail)
+
+		expectBox(photo, thumbnail)
 	})
 
-	it('cuts the photo to the shown part, with square corners on the hidden edge', () => {
+	it('cuts the photo to the shown part', () => {
 		const thumbnail = { x: 120, y: 40, width: 144, height: 144 }
 
 		// A sticky bar covers the top 78px of the viewport.
 		const shown = { x: 120, y: 78, width: 144, height: 106 }
 
-		const frame = raisedFrame(thumbnail, rest, 8, shown)
+		const { clip, photo } = painted(raisedFrame(thumbnail, rest, shown), rest)
 
-		expect(paintedEdges(frame, rest)).toMatchBox(edgesOf(shown), { tolerance: FLOAT })
+		expectBox(clip, shown)
 
-		expect(frame.clipPath).toMatch(/ round 0px 0px 25px 25px\)$/)
+		expect(photo.width).toBeNear(144, FLOAT)
+	})
+})
+
+describe('flight frames', () => {
+	const rest = { x: 275, y: 60, width: 450, height: 675 }
+
+	const raised = raisedFrame({ x: 120, y: 500, width: 144, height: 144 }, rest)
+
+	it('paints the photo at rest with the clip on the photo', () => {
+		const { clip, photo } = painted(restingFrame(rest), rest)
+
+		expectBox(clip, rest)
+
+		expectBox(photo, rest)
+	})
+
+	it('mixes two frames on a straight line', () => {
+		const half = mixFrames(raised, restingFrame(rest), 0.5)
+
+		expect(half.clip.width).toBeNear((144 + 450) / 2, FLOAT)
+
+		expect(half.photo.scale).toBeNear((raised.photo.scale + 1) / 2, FLOAT)
+	})
+
+	it('reads back the frame that its transforms paint', () => {
+		const frame = mixFrames(raised, restingFrame(rest), 0.3)
+
+		const transforms = frameTransforms(frame, slot, rest)
+
+		const back = paintedFrame(computed(transforms.slot), computed(transforms.photo), slot, rest)
+
+		expectBox(back.clip, frame.clip)
+
+		expect(back.photo.x).toBeNear(frame.photo.x, FLOAT)
+
+		expect(back.photo.y).toBeNear(frame.photo.y, FLOAT)
+
+		expect(back.photo.scale).toBeNear(frame.photo.scale, FLOAT)
+	})
+
+	it('reads the box that the photo paints as the clip when the slot has no transform', () => {
+		// A swipe to close moves the photo 40px down and shrinks it to 0.8.
+		const frame = paintedFrame('none', computed('translate(45px, 107.5px) scale(0.8)'), slot, rest)
+
+		expectBox(frame.clip, { x: 320, y: 167.5, width: 360, height: 540 })
+
+		expect(frame.photo).toEqual({ x: 320, y: 167.5, scale: 0.8 })
 	})
 })
 

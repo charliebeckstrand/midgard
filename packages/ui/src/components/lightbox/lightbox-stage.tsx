@@ -205,8 +205,6 @@ export function LightboxStage({
 
 			stageRef.current?.toggleAttribute('data-raised', false)
 
-			backdropRef.current?.toggleAttribute('data-closing', false)
-
 			for (const element of [backdropRef.current, controlsRef.current]) {
 				if (element) element.style.opacity = ''
 			}
@@ -220,8 +218,6 @@ export function LightboxStage({
 
 		// The photo goes back to its thumbnail over the controls.
 		stageRef.current?.toggleAttribute('data-raised', true)
-
-		backdropRef.current?.toggleAttribute('data-closing', true)
 
 		flight.lower(home()).then(() => {
 			if (!leaving.current) return
@@ -296,10 +292,15 @@ export function LightboxStage({
 			onKeyDown={handleKeyDown}
 			className="absolute inset-0"
 		>
-			<div
-				ref={backdropRef}
-				className={cn(k.dim, blur && k.blur.base, blur && !restore && k.blur.enter)}
-			>
+			{blur && (
+				<m.div
+					{...k.motion.scrim}
+					data-slot="lightbox-blur"
+					aria-hidden="true"
+					className={k.blur}
+				/>
+			)}
+			<div ref={backdropRef} className={k.dim}>
 				<m.div
 					{...k.motion.scrim}
 					data-slot="lightbox-backdrop"

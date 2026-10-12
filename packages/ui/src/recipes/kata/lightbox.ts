@@ -39,19 +39,13 @@ export const k = {
 		blurred: 'absolute inset-0 bg-zinc-950/80',
 	},
 	/**
-	 * The blur of the page behind the scrim, on the layer of the scrim. A
-	 * `backdrop-filter` sees only the paint inside the nearest ancestor with an
-	 * opacity below 1 or a `will-change` on its opacity, so the blur cannot be on
-	 * the scrim, which fades inside this layer. The blur thus grows from 0 as the
-	 * scrim fades in (`enter`), and it goes back to 0 as the viewer closes.
+	 * The blur of the page behind the scrim, on a layer of its own under the
+	 * scrim. A `backdrop-filter` sees only the paint inside the nearest ancestor
+	 * with an opacity below 1. Thus the layer is not in the layer that a swipe
+	 * fades. The layer fades in and out with the scrim. The blur radius does not
+	 * change, because a change of radius blurs the page again in each frame.
 	 */
-	blur: {
-		base: [
-			'backdrop-blur-lg data-closing:backdrop-blur-[0px]',
-			'transition-[backdrop-filter] duration-300 ease-out motion-reduce:transition-none',
-		],
-		enter: 'starting:backdrop-blur-[0px]',
-	},
+	blur: 'pointer-events-none absolute inset-0 backdrop-blur-lg',
 	/**
 	 * The stage takes each press, so a swipe can start on any part of it. While
 	 * the photo leaves its place, in a swipe to close and in the return to its
@@ -66,9 +60,10 @@ export const k = {
 	track: 'absolute inset-0 will-change-transform',
 	/**
 	 * The box of one photo. A slot is the size of the stage, and a slot next to
-	 * the current one sits one stage width and one gap to its side.
+	 * the current one sits one stage width and one gap to its side. The slot
+	 * clips the photo, so it is the clip of a flight (see `useLightboxFlight`).
 	 */
-	slot: 'absolute inset-y-0 flex w-full items-center justify-center',
+	slot: 'absolute inset-y-0 flex w-full origin-top-left items-center justify-center overflow-clip',
 	/**
 	 * The space around the photo, on the slots and on the layer of the controls.
 	 * With controls, the block space holds the edge, a button, and the gap
