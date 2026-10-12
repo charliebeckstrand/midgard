@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
+import { exactRegex } from '@rolldown/pluginutils'
 import type { Plugin } from 'vite'
 
 // `new URL('<file>', import.meta.url)` with a literal file, the form that the
@@ -49,6 +52,44 @@ export function serverAssetUrls(): Plugin {
 				const result = importAssetUrls(code)
 
 				return result === undefined ? null : { code: result, map: null }
+			},
+		},
+	}
+}
+
+/**
+ * Gives an import of `stylesheet` with `?url` in the server build the URL of
+ * the client build, from the manifest of the client build. Thus the server
+ * build does not compile the stylesheet again.
+ *
+ * The prerender renders no link to the full stylesheet (`app/root.tsx`), but
+ * the server build compiled it to get its URL, and then React Router removed
+ * the file. Without that compile, the server build of the docs takes about
+ * 2 s less. React Router builds the client first, so its manifest is on the
+ * disk.
+ */
+export function serverStylesheetUrl(stylesheet: string, clientDir: string): Plugin {
+	const id = `${stylesheet}?url`
+
+	return {
+		name: 'vite-plugin-docs-server-stylesheet-url',
+		apply: 'build',
+		applyToEnvironment: (environment) => environment.config.consumer === 'server',
+		enforce: 'pre',
+		load: {
+			filter: { id: exactRegex(id) },
+			handler() {
+				const manifest = path.join(clientDir, '.vite', 'manifest.json')
+
+				const entries: Record<string, { file: string }> = JSON.parse(readFileSync(manifest, 'utf8'))
+
+				const entry = Object.entries(entries).find(
+					([source]) => path.resolve(this.environment.config.root, source) === stylesheet,
+				)?.[1]
+
+				if (!entry) throw new Error(`docs: ${manifest} has no entry for ${stylesheet}`)
+
+				return `export default ${JSON.stringify(`${this.environment.config.base}${entry.file}`)}`
 			},
 		},
 	}
