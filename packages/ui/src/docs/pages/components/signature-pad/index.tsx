@@ -9,7 +9,7 @@ import StrokeStyle from './stroke-style.tsx'
 export default function SignaturePadPage() {
 	return (
 		<>
-			<Playground of={SignaturePadPlayground} api={api} />
+			<Playground of={SignaturePadPlayground} api={api} free={{ placeholder: '' }} />
 			<Example of={PreviewAndDownload} />
 			<Example of={InAForm} />
 			<Example of={ImperativeHandle} />

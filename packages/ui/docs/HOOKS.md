@@ -10,20 +10,20 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 
 | Hook | Summary |
 |---|---|
-| `useControllable` | Manages controlled / uncontrolled value state with a unified setter. It reports only a change, and it stays controlled after its first value. |
-| `useControllableFlag` | The boolean form of `useControllable` for `open`, `pressed`, or `checked`: the value is never `undefined`, and a cleared flag reports `false`. |
+| `useControllable` | Holds a controlled or uncontrolled value with one setter, and reports only a change. |
+| `useControllableFlag` | The boolean form of `useControllable` for `open`, `pressed`, or `checked`. The value is never `undefined`. |
 | `useDeferredToggle` | Listbox/Combobox toggle logic; freezes the rendered selection through the panel's close animation. |
 | `useSelectableValueChange` | Wraps `onValueChange` to drop the "cleared to undefined" event in multi-select mode. |
-| `useIdleLoad` | Loads a value, such as the module of a menu or a dialog, in idle time after the mount, and gives it when it resolves. The mounts of one loader share one idle callback and one load, and an unmount before the callback cancels it. A browser without `requestIdleCallback` loads after 1 s. |
-| `useIntentLoad` | `useIdleLoad` with a load on intent, for the trigger of a menu or a dialog that loads its code first. `preload` goes on the pointer and the focus. `request` loads on a press, puts the value into state, and then calls back. |
-| `useTimeout` | One restartable timer that clears on unmount: `set` (the last call wins), `clear`, and `pending`, each with a stable identity. For a debounce, a settle window, or a dwell delay. |
-| `useOffcanvas` | Offcanvas sidebar open state with auto-close when the viewport widens to the `lg` breakpoint; reports every transition to `onOpenChange`. |
+| `useIdleLoad` | Loads a value, such as the module of a menu, in idle time after the mount. The mounts of one loader share one load. |
+| `useIntentLoad` | `useIdleLoad` that also loads on a pointer, a focus, or a press, for a trigger that loads its code first. |
+| `useTimeout` | One restartable timer with stable `set`, `clear`, and `pending`, for a debounce or a dwell delay. It clears on unmount. |
+| `useOffcanvas` | Open state of an offcanvas sidebar, which closes when the viewport widens to `lg`. |
 
 ## Floating & overlays
 
 | Hook | Summary |
 |---|---|
-| `useFloatingPanel` | Base floating-panel hook: `useFloating` + autoUpdate and a standard offset/flip/shift/size middleware chain. A left or right panel that fits on neither side moves to the bottom or the top. A panel wider than the viewport caps its width 8px inside each edge. A panel hides while its reference is out of view. |
+| `useFloatingPanel` | Base floating-panel hook: `useFloating` with autoUpdate and the standard offset, flip, shift, size, and hide middleware. It keeps the panel in the viewport. |
 | `useFloatingUI` | Floating panel with built-in dismiss + role prop-getters for listbox/combobox/menu/datepicker surfaces. |
 | `useFloatingDisclosure` | Disclosure wrapper over `useFloatingPanel`: controllable open state, trigger ref, focus restore, dismiss + role. |
 | `useDismissable` | Overlay dismiss behavior: Escape (via the dismiss-layer stack) plus pointer-down outside the boundary, sparing a floating surface opened from within it. |
@@ -36,7 +36,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 |---|---|
 | `useKeybindings` | Subscribes to tinykeys keybindings for the component's lifetime, reading handlers fresh per event. |
 | `useHasHover` | True when the device has a hover-capable pointer; true during SSR. |
-| `useKeyboardLifted` | Lifted-item state for keyboard reordering. `toggleLift` and `drop` announce the pick-up and the drop, and blur drops. `readLifted` reads a lift before its commit, and `refocus` survives reorder re-renders. |
+| `useKeyboardLifted` | Lifted-item state for keyboard reordering, which announces the lift and the drop. |
 | `useKeyboardSettled` | Defers a callback until the virtual keyboard settles; fires immediately on desktop. |
 | `useHoverAcrossScroll` | Hides a chart/map tooltip while scrolling and recomputes hover at the pointer once the scroll settles. |
 
@@ -48,11 +48,11 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `useA11yControl` | Field a11y scaffolding: `useA11yScope` specialized for a labeled control (label/description/error slots). |
 | `useA11yPanel` | Modal-panel labeling scope: `useA11yScope` for dialog roots, setting role + `aria-modal` and title/desc ids. |
 | `useA11yDisclosure` | Non-modal trigger↔panel pairing: reciprocal `aria-controls`/`aria-labelledby` (+ optional `aria-expanded`). |
-| `useA11yRoving` | Arrow/Home/End roving over container items: focus or virtual mode, single-Tab-stop ownership, row cross-axis, or an indexed `VirtualItemSource` for windowed lists in either mode. Horizontal arrows follow the reading order, so they swap in RTL. |
-| `useA11yAutoFocus` | Moves focus to `node` whenever `when` flips true, and again when the node attaches while `when` holds. The focus scrolls nothing. Takes the node from a callback ref, not a `RefObject`. |
-| `useA11yHasTabbable` | Whether a node holds a tab-order descendant, re-measured as its subtree changes; gates a tabpanel's tab stop and an interactive Tooltip's focus trap. |
+| `useA11yRoving` | Arrow, Home, and End roving over container items, in focus or virtual mode, with one Tab stop. Horizontal arrows swap in RTL. |
+| `useA11yAutoFocus` | Moves focus to a node from a callback ref when `when` becomes true. The focus scrolls nothing. |
+| `useA11yHasTabbable` | Whether a node holds a tab-order descendant, measured again when its subtree changes. |
 | `useA11yLiveRegion` | Props for a consumer-filled live region: status/alert landmark with matching `aria-live`/`aria-atomic`. |
-| `useA11yAnnouncements` | Declaratively narrates a changing status string to the live-region announcer, skipping initial and consecutive dupes; a status that clears and comes back speaks again. |
+| `useA11yAnnouncements` | Sends a changing status string to the live-region announcer. It skips the initial value and consecutive duplicates. |
 | `useAriaIds` | Composes the space-separated id list for `aria-labelledby`/`describedby`; falsy tokens drop, undefined if empty. |
 | `useComposedRef` | Merges several refs into one callback ref; honors React 19 ref cleanup and identity swaps. |
 | `useIdScope` | Stable scoped id plus a `sub(suffix)` deriver for related ids; falls back to a `useId` base. |
@@ -61,33 +61,33 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 
 | Hook | Summary |
 |---|---|
-| `useResizeObserver` | Observes size changes on `ref.current` and calls `callback` per change, plus once on attach. The callback rides an effect event, so a fresh closure each render neither re-subscribes nor re-fires. |
-| `usePlotFrame` | Resolves a chart/map frame's drawing box from a `FrameSizing` policy — fixed, aspect-derived, container-fill, or content-fit — measuring only the axes that policy consumes. When a side legend shares a fixed width, the plot measures the width that remains. |
+| `useResizeObserver` | Calls `callback` on each size change of `ref.current`, and one time on attach. |
+| `usePlotFrame` | Resolves the drawing box of a chart or map frame from a `FrameSizing` policy, and measures only the axes that the policy uses. |
 | `useMediaQuery` | True when `query` matches the viewport; true during SSR. |
-| `usePrefersReducedMotion` | True when the reader asks for reduced motion through the platform or the Motion setting of `AppearanceProvider`, read live; true during SSR. Use it, not motion's `useReducedMotion`, which reads the setting only at mount. |
-| `useMinBreakpoint` | True when the viewport has reached a named breakpoint (`'lg'`), the same one the `lg:` prefix responds to; true during SSR. The name keeps JS and CSS on one scale. For a query off that scale, use `useMediaQuery`. |
-| `useIsTruncated` | True when text overflows the element, measured with a `Range` over its own contents (not `scrollWidth`, and injecting nothing). |
-| `useInView` | True when `ref.current` is in (or near) the viewport, over one `IntersectionObserver`. It disconnects on first sight by default, and reads true where nothing can observe, so a gate never hides content. |
-| `useScrollOverflow` | Callback ref stamping `data-overflow-above`/`-below` on a vertical scroll container while content extends past an edge, for CSS scroll affordances. Gate it off with `enabled: false` where the container cannot overflow. A box whose vertical overflow value does not scroll takes no attribute. An inline scroller takes `omote.rail`, which draws its edge fade in CSS. |
-| `useScrollRegion` | Callback ref that makes a scroll container a tab stop (`tabindex="0"`) while its content overflows on either axis. Thus a keyboard user can scroll it in every engine. With a `label` or a `labelledBy`, the container also takes `role="region"` and that name. A container that fits adds no tab stop. Table, CodeBlock, Kanban, the PdfViewer viewport, the `rail` Filters row, and the horizontal Timeline use it. |
-| `useScrollWithin` | Returns a scroll-into-view fn scoped to the nearest scrollable ancestor, stopping at clipping boundaries. `block` (default `'nearest'`) and opt-in `inline` align each axis. |
-| `useVirtualWindow` | Drives a vertical windowed list off a `@tanstack/virtual-core` virtualizer: visible items plus top/bottom spacer heights, over uniform rows or, with a `getItemKey`, over measured rows. It renders only when the rendered items, their positions, or the total size change, so a scroll step that keeps the rows renders nothing. A measured list keeps the rows in view still when a row above them measures, in each scroll direction. With the start anchor, the first row in view also holds still when rows above it are inserted or removed. At the offset zero the window keeps the top. It can also hold its end in view. While the window is empty, the bottom spacer holds the height of every row, so a scroller that only `maxHeight` bounds grows to its cap. `scrollToIndex` takes an `align` and a `behavior`. Content above the first row, such as a table head, gives its height as `scrollMargin`. A flex gap between rows goes in `gap`, because a measured row does not include it. Its sticky part gives its height as `scrollPaddingStart`. Sticky content over the bottom edge gives its height as `scrollPaddingEnd`. `scrollToIndex` then lands a row in full view between them. |
+| `usePrefersReducedMotion` | True when the reader asks for reduced motion through the platform or `AppearanceProvider`; true during SSR. Use it in place of the `useReducedMotion` of motion. |
+| `useMinBreakpoint` | True when the viewport reaches a named breakpoint, such as `'lg'`, on the scale of the CSS prefixes; true during SSR. |
+| `useIsTruncated` | True when text overflows the element, measured with a `Range` over its contents. |
+| `useInView` | True when `ref.current` is in or near the viewport. By default it disconnects on first sight. |
+| `useScrollOverflow` | Callback ref that sets `data-overflow-above` and `data-overflow-below` on a vertical scroll container while content extends past an edge. |
+| `useScrollRegion` | Callback ref that makes a scroll container a tab stop while its content overflows. A `label` also makes it a named `region`. |
+| `useScrollWithin` | Returns a function that scrolls a node into view in its nearest scrollable ancestor. |
+| `useVirtualWindow` | Drives a vertical windowed list from a `@tanstack/virtual-core` virtualizer, over uniform or measured rows. It gives the visible items and the spacer heights. |
 
 ## Drag & drop
 
 | Hook | Summary |
 |---|---|
 | `useSortableList` | Single-list reorder backed by @dnd-kit: owns the drag lifecycle and commits via `arrayMove`. |
-| `useSortableItem` | Wraps dnd-kit `useSortable` with standard translate/transition/drag-opacity style composition (no scale). Under reduced motion the style has no transition. |
-| `useSortableSensors` | Standard dnd-kit sensor config: low-threshold pointer sensor plus arrow-key keyboard sensor. A keyboard move scrolls smoothly, and at once under reduced motion. |
-| `useDragCursor` | Holds a drag cursor (`grabbing` by default, or a resize cursor) on the whole page while active, over elements that set their own cursor. Every drag in the library goes through it, and `drag-cursor-boundary.test.ts` keeps it that way. `useSortableList` calls it for each sortable list. |
+| `useSortableItem` | Wraps the `useSortable` of dnd-kit with the standard drag style. Under reduced motion the style has no transition. |
+| `useSortableSensors` | The standard dnd-kit sensors: a pointer sensor with a low threshold, and a keyboard sensor on the arrow keys. |
+| `useDragCursor` | Holds a drag cursor on the whole page while active. Each drag in the library uses it, and `drag-cursor-boundary.test.ts` holds that rule. |
 
 ## Formatting & input
 
 | Hook | Summary |
 |---|---|
 | `useFormattedInput` | Caret-preserving reformat engine for formatted inputs; core under `useMaskInput` / `CurrencyInput`. |
-| `usePendingCaret` | Caret-preserving plumbing: queues a caret restore against the formatted value while the input holds focus and its type has a text selection. |
+| `usePendingCaret` | Queues a caret restore against the formatted value while the input has focus. |
 
 ## Exported types
 
@@ -103,10 +103,11 @@ Hooks export the option and return shapes consumers thread through their own pro
 | `A11yLiveRegionProps` / `A11yLiveRegionOptions` / `A11yLiveLevel` | Live-region props, options, and urgency (`'polite' \| 'assertive'`). |
 | `A11yAnnouncementsOptions` | Options for `useA11yAnnouncements` (`assertive`, `enabled`). |
 | `Timeout` | Return shape of `useTimeout`: `set`, `clear`, `pending`. |
+| `IntentLoad` | Return shape of `useIntentLoad`: `module`, `request`, `preload`. |
 | `SetValue` | Argument to `useControllable`'s setter: a next value, `null`/`undefined` to clear, or a functional updater. |
 | `InView` / `InViewOptions` | Return shape / options of `useInView` (`ref`, `inView`; `margin`, `once`). |
-| `MinBreakpoint` | The argument `useMinBreakpoint` takes: every breakpoint name but the unprefixed base, which has no width of its own. |
-| `RovingOptions` | Options for `useA11yRoving`: the item selector, axis, Tab-stop ownership, `Escape` to drop focus, and the virtual-item source. |
+| `MinBreakpoint` | The breakpoint names that `useMinBreakpoint` takes. |
+| `RovingOptions` | Options for `useA11yRoving`. |
 | `ControllableOptions` | Options for `useControllable`: the controlled `value`, the uncontrolled `defaultValue`, and the change report. |
 | `ControllableFlagOptions` | Options for `useControllableFlag`: the controlled flag, the uncontrolled default (`false`), and the change report. |
 | `DeferredToggleOptions` | Options for `useDeferredToggle`. |
@@ -114,19 +115,19 @@ Hooks export the option and return shapes consumers thread through their own pro
 | `EscapeLayerOptions` | Options for `useEscapeLayer`: where the layer sits in the stack and what a press does. |
 | `FloatingDisclosureOptions` / `FloatingDisclosureResult` | Options and return shape of `useFloatingDisclosure`. |
 | `FloatingUIOptions` / `FloatingUIResult` | Options and return shape of `useFloatingUI`. |
-| `FloatingHeightSnap` | A function that lowers the `fitHeight` cap of `useFloatingPanel` to a height that suits the content, such as the middle of a menu row. |
+| `FloatingHeightSnap` | A function that lowers the `fitHeight` cap of `useFloatingPanel` to a height that suits the content. |
 | `FloatingPanelOptions` / `FloatingPanelResult` | Options and return shape of `useFloatingPanel`. |
 | `FloatingPlacement` | A floating-ui placement, or `<side>-auto`, which aligns the panel to the edge that is nearer to the reference. |
-| `FormattedInputOptions` | Options for `useFormattedInput`: the `format` pass, the meaningful-character test (it gets the character, its index, and the text), and the ref to compose. |
+| `FormattedInputOptions` | Options for `useFormattedInput`: the `format` pass, the meaningful-character test, and the ref to compose. |
 | `IdScopeOptions` | Options for `useIdScope`: the id to adopt in place of a generated one. |
-| `KeybindingsOptions` | Options for `useKeybindings`: the enable gate, the target, the capture phase, and the skip predicate. To fire in form fields, `ignore: (e) => e.repeat \|\| isComposing(e)` keeps the repeat and composition guards. |
+| `KeybindingsOptions` | Options for `useKeybindings`: the enable gate, the target, the capture phase, and the skip predicate. |
 | `OffcanvasOptions` | Options for `useOffcanvas`. |
 | `ScrollOverflowOptions` | Options for `useScrollOverflow`: the enable gate, for a container that cannot overflow in one of its states. |
 | `ScrollRegionOptions` | Options for `useScrollRegion`: the `label` or `labelledBy` that names the region while it scrolls. |
 | `ScrollWithinOptions` | Options for `useScrollWithin`. |
 | `SortableItemOptions` / `SortableListOptions` / `SortableSensorsOptions` | Options for the `@dnd-kit` wrappers. |
 | `DragCursor` | The cursors that `useDragCursor` can hold. |
-| `VirtualWindowOptions` / `MeasuredVirtualWindowOptions` | Options for `useVirtualWindow`: the item count, the size estimate, the overscan, and the offsets of the content above the list. The measured form adds the stable row key, the `anchorTo` edge, and `followOnAppend`. |
+| `VirtualWindowOptions` / `MeasuredVirtualWindowOptions` | Options for `useVirtualWindow`, over uniform rows or measured rows. |
 
 `usePlotFrame` exports the types its own signature names: the sizing policy it takes, the reserve it returns, and its measuring handle. The chart and map modules share them with their frame-sizing helpers. The resolver behind it (`resolveFrameSizing`) and that resolver's return shape stay module-private. Reach them at `hooks/use-plot-frame` from inside the package.
 
@@ -134,7 +135,7 @@ Hooks export the option and return shapes consumers thread through their own pro
 |---|---|
 | `FrameSizing` | The frame's height policy: `fixed` (pixel height), `aspect` (ratio of width), `fill` (container height), or `content` (width minus a pair of margins). |
 | `FrameReserve` | How a width-derived frame reserves its height through CSS: an `aspect` ratio, or a `content` ratio with a fixed pixel offset. |
-| `PlotFrameRef` | The hook's measuring handle: a callback ref that re-targets the observer when React swaps the plot node, still readable through `.current`. |
+| `PlotFrameRef` | The measuring handle of the hook: a callback ref that is also readable through `.current`. |
 
 ---
 

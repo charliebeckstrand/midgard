@@ -7,6 +7,7 @@
 @source '../../';
 @source not '../../__tests__';
 @source not '../../__benchmarks__';
+@source not '../__tests__';
 
 @custom-variant dark (&:where(.dark, .dark *));
 

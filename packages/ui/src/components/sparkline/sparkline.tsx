@@ -31,7 +31,10 @@ export type SparklineProps = AccessibleName & {
 	 */
 	data: number[]
 	/**
-	 * Draw the series as a connected line or as discrete bars.
+	 * Draw the series as a connected line or as discrete bars. The bars and
+	 * the area fill sit on zero, clamped into the domain. When the domain
+	 * crosses zero, a negative value hangs below the zero line, so a mixed
+	 * series reads as wins and losses.
 	 * @defaultValue 'line'
 	 */
 	shape?: 'line' | 'bar'
@@ -70,7 +73,7 @@ export type SparklineProps = AccessibleName & {
 	/**
 	 * Animate the marks in on mount with Framer Motion. The line draws itself
 	 * (`pathLength`), the area wash fades in behind it, the end-point pops, and
-	 * bars rise from the baseline in sequence. Honors `prefers-reduced-motion`
+	 * bars grow from the zero line in sequence. Honors `prefers-reduced-motion`
 	 * through {@link ReducedMotion}. Off by default — a static grid of many
 	 * sparklines stays a plain-SVG leaf with no motion runtime.
 	 * @defaultValue false

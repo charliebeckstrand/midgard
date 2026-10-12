@@ -4,10 +4,16 @@
 		"next-devtools",
 		"chrome-devtools",
 		"context7",
+		"digitalocean",
 		"sequential-thinking"
 	],
 	"permissions": {
-		"allow": ["Bash(mkdir:*)"]
+		"allow": ["Bash(mkdir:*)", "Bash(pnpm check)"],
+		"deny": [
+			"mcp__digitalocean__apps-create-app-from-spec",
+			"mcp__digitalocean__apps-delete",
+			"mcp__digitalocean__apps-update"
+		]
 	},
 	"hooks": {
 		"SessionStart": [

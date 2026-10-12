@@ -27,6 +27,8 @@ export type ExampleCode = {
 export type ExampleMeta = {
 	/** The title of the example, from the file name: `with-icon.tsx` gives `With icon`. */
 	title: string
+	/** The id of the heading of the example, from the file name: `with-icon.tsx` gives `with-icon`. */
+	id: string
 	/** For a playground, the name of the component that takes the props. */
 	component?: string
 	/** Loads the code of the example, from the code module of its folder. */
@@ -34,7 +36,7 @@ export type ExampleMeta = {
 }
 
 /** Parses TSX, as the `parse` of a plugin context does. */
-type Parse = (code: string, options: { lang: 'tsx' }) => ESTree.Program
+export type Parse = (code: string, options: { lang: 'tsx' }) => ESTree.Program
 
 /**
  * The public id of the code module of a folder in `pages`. The module holds
@@ -48,8 +50,11 @@ export function codeIdOf(pages: string, file: string): string {
 	return CODE + normalizePath(path.relative(pages, path.dirname(file)))
 }
 
-/** The key of the example at `file` in the code module of its folder: the name of the file. */
-function codeKeyOf(file: string): string {
+/**
+ * The key of the example at `file` in the code module of its folder: the name
+ * of the file. It is also the id of the heading of the example.
+ */
+export function codeKeyOf(file: string): string {
 	return path.basename(file, '.tsx')
 }
 
@@ -147,6 +152,7 @@ export function attachMeta(
 
 	const meta = [
 		`title: ${JSON.stringify(humanize(codeKeyOf(file)))}`,
+		`id: ${JSON.stringify(codeKeyOf(file))}`,
 		...(spread ? [`component: ${JSON.stringify(spread.component)}`] : []),
 		`code: () => import(${JSON.stringify(codeIdOf(pages, file))}).then((module) => module.default[${JSON.stringify(codeKeyOf(file))}])`,
 	]
@@ -179,6 +185,20 @@ async function readCode(parse: Parse, file: string): Promise<ExampleCode | undef
 		highlight,
 		...(spread && { spread: { index: spread.start, separator: spread.separator } }),
 	}
+}
+
+/**
+ * The files in `files` that are examples. A module with no default export,
+ * such as the data that examples share, is not one.
+ */
+export async function examplesIn(parse: Parse, files: readonly string[]): Promise<string[]> {
+	const read = await Promise.all(
+		files.map(
+			async (file) => [file, readExample(parse, await readFile(file, 'utf8'), file)] as const,
+		),
+	)
+
+	return read.flatMap(([file, example]) => (example ? [file] : []))
 }
 
 /** The {@link EXAMPLE} modules of `folder`. */

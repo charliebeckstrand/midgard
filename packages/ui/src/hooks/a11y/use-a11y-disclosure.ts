@@ -12,7 +12,11 @@ export type A11yDisclosureOptions = {
 	 * ids. Combine it with `key` to discriminate each pair.
 	 */
 	id?: string
-	/** Per-pair discriminator when many disclosures share one base id. */
+	/**
+	 * Per-pair discriminator when many disclosures share one base id. The ids
+	 * hold it URI-encoded, so a key with white space, such as a tab value
+	 * `'Sign in'`, still gives one id token.
+	 */
 	key?: string | number
 	/**
 	 * Drives `aria-expanded` on the trigger. Omit for triggers that express
@@ -65,7 +69,10 @@ export function useA11yDisclosure({
 }: A11yDisclosureOptions = {}): A11yDisclosure {
 	const scope = useIdScope({ id })
 
-	const keyPart = key === undefined ? '' : `-${key}`
+	// An id reference such as `aria-controls` is a list of ids split at white
+	// space, so the key goes in encoded. The encoding keeps distinct keys
+	// distinct, and it keeps letters, digits, `-`, and `_` as they are.
+	const keyPart = key === undefined ? '' : `-${encodeURIComponent(key)}`
 
 	const triggerId = scope.sub(`trigger${keyPart}`)
 

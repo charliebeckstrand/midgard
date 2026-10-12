@@ -25,8 +25,11 @@ import { restoreRootAfterCase } from './restore-root.ts'
 // throws, or when it writes to `console.error` or `console.warn`. It also fails
 // when a curated set of axe rules finds a violation in a state that it shows.
 // It fails too when a state nests more density scopes than the rungs rank
-// (`maxDepth`). `page-coverage.test.ts` asks whether a page exists, and this
-// test asks whether the page works.
+// (`maxDepth`), or when two elements of a state have the same id. It fails
+// too when a state shows no example, so each page and each tab shows its unit
+// in an example or a playground.
+// `page-coverage.test.ts` asks whether a page exists, and this test asks
+// whether the page works.
 //
 // The rules (`AXE_RULES`) are the structural ones that a page breaks most.
 // They find a button with no name, and a role that lacks its required
@@ -209,6 +212,25 @@ function deepestScopeChain(): Element[] {
 	return deepest
 }
 
+/**
+ * Each id that more than one element of the document has. An example heading
+ * and an entry of the API reference take their ids from names, so two of them
+ * can collide, and a link to the page then goes to the first.
+ */
+function duplicateIds(): string[] {
+	const seen = new Set<string>()
+
+	const twice = new Set<string>()
+
+	for (const { id } of document.body.querySelectorAll('[id]')) {
+		if (seen.has(id)) twice.add(id)
+
+		seen.add(id)
+	}
+
+	return [...twice]
+}
+
 /** What one walk of a page found. */
 type Walk = {
 	/** What `console.error` and `console.warn` wrote. */
@@ -217,6 +239,10 @@ type Walk = {
 	violations: readonly string[]
 	/** The longest chain of density scopes in a state, outermost first, as names. */
 	scopes: readonly string[]
+	/** Each id that two elements had in a state. */
+	duplicates: readonly string[]
+	/** The number of states that showed no example or playground. */
+	bare: number
 	/** Each path that the router showed. */
 	visited: ReadonlySet<string>
 }
@@ -269,12 +295,21 @@ async function walk(page: Page): Promise<Walk> {
 
 	const violations = new Set<string>()
 
+	const duplicates = new Set<string>()
+
+	let bare = 0
+
 	let deepest: Element[] = []
 
 	await visitTabs(container, async () => {
 		const chain = deepestScopeChain()
 
 		if (chain.length > deepest.length) deepest = chain
+
+		for (const id of duplicateIds()) duplicates.add(id)
+
+		// The frame of an example and of a playground (`kit/example.tsx`).
+		if (!document.body.querySelector('[data-slot="example"]')) bare++
 
 		// A page is live. Its timers and effects update it while axe runs, so the
 		// run goes inside `act`.
@@ -289,6 +324,8 @@ async function walk(page: Page): Promise<Walk> {
 		logged: [...logged],
 		violations: [...violations],
 		scopes: deepest.map(scopeName),
+		duplicates: [...duplicates],
+		bare,
 		visited,
 	}
 }
@@ -303,11 +340,15 @@ export function describePageSmoke(part: readonly Page[]): void {
 			// cores. The limit scales on CI by the factor of the suite `testTimeout`.
 			{ timeout: CI ? 180_000 : 60_000 },
 			async (_path, page) => {
-				const { logged, violations, scopes, visited } = await walk(page)
+				const { logged, violations, scopes, duplicates, bare, visited } = await walk(page)
 
 				expect(logged).toEqual([])
 
 				expect(violations).toEqual([])
+
+				expect(duplicates, 'two elements of a state have these ids').toEqual([])
+
+				expect(bare, 'states that show no example or playground').toBe(0)
 
 				expect(scopes.length, `${page.path} nests ${scopes.join(' > ')}`).toBeLessThanOrEqual(
 					maxDepth,

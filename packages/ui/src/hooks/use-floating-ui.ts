@@ -291,7 +291,7 @@ export type FloatingPanelOptions = {
 
 /**
  * Base hook for floating panels: wires `useFloating` with `autoUpdate` and a
- * standardized middleware chain (offset/flip/shift, optional size). A panel on
+ * standardized middleware chain: offset, flip, shift, size, and hide. A panel on
  * the left or the right side that fits on neither side moves to the bottom or
  * the top side. A panel that is wider than the viewport caps its width 8px
  * inside each edge. A panel whose reference is out of view, for example

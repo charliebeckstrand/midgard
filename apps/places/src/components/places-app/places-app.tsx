@@ -590,7 +590,37 @@ function livePreload(
 }
 
 /**
- * What the two form drawers write, each `null` while its drawer is closed.
+ * A target of a form drawer, and the number of the opens that set a target.
+ * The drawer takes the number as its key.
+ */
+type HeldForm<T> = { target: T | null; opens: number }
+
+/**
+ * A held form target and the function that sets it. Each target that the
+ * function sets is a new open, and adds one to the number of the opens. A
+ * close sets `null` and keeps the number.
+ *
+ * A new open must mount the drawer again. A drawer that is already open can be
+ * under a panel that opened after it, such as My places over the Add place
+ * form. An edit from that panel only changed the target of the open drawer, so
+ * the form stayed under the panel. A new mount opens a new overlay, and the
+ * overlay that opened last paints on top.
+ */
+function useHeldForm<T>() {
+	const [held, setHeld] = useState<HeldForm<T>>({ target: null, opens: 0 })
+
+	const set = useCallback(
+		(target: T | null) =>
+			setHeld((prev) => ({ target, opens: target === null ? prev.opens : prev.opens + 1 })),
+		[],
+	)
+
+	return [held, set] as const
+}
+
+/**
+ * What the two form drawers write, each `null` while its drawer is closed, and
+ * the key of each drawer ({@link useHeldForm}).
  *
  * An edit, or a new place from a trip, is held here. A plain new record is
  * not: the address holds it, so that a reload or a shared link opens the form
@@ -598,9 +628,9 @@ function livePreload(
  * time.
  */
 function useFormTargets(adding: RecordKind | null, setAdding: (adding: RecordKind | null) => void) {
-	const [form, setForm] = useState<PlaceFormTarget | null>(null)
+	const [{ target: form, opens: formOpens }, setForm] = useHeldForm<PlaceFormTarget>()
 
-	const [tripForm, setTripForm] = useState<TripFormTarget | null>(null)
+	const [{ target: tripForm, opens: tripOpens }, setTripForm] = useHeldForm<TripFormTarget>()
 
 	const closeForms = useCallback(
 		(open: boolean) => {
@@ -612,7 +642,7 @@ function useFormTargets(adding: RecordKind | null, setAdding: (adding: RecordKin
 
 			if (adding !== null) setAdding(null)
 		},
-		[adding, setAdding],
+		[adding, setAdding, setForm, setTripForm],
 	)
 
 	return {
@@ -620,6 +650,8 @@ function useFormTargets(adding: RecordKind | null, setAdding: (adding: RecordKin
 		tripTarget: tripForm ?? (adding === 'trips' ? NEW_TRIP : null),
 		setForm,
 		setTripForm,
+		formKey: formOpens,
+		tripKey: tripOpens,
 		closeForms,
 	}
 }
@@ -701,10 +733,8 @@ export function PlacesApp({
 		setAdding,
 	} = usePlaceLocation()
 
-	const { formTarget, tripTarget, setForm, setTripForm, closeForms } = useFormTargets(
-		adding,
-		setAdding,
-	)
+	const { formTarget, tripTarget, formKey, tripKey, setForm, setTripForm, closeForms } =
+		useFormTargets(adding, setAdding)
 
 	// Which index is up. Its own state rather than a mode of the drawers: it docks
 	// from the side and they dock from the bottom, so a reader can have a record
@@ -1025,6 +1055,7 @@ export function PlacesApp({
 			    and on nothing to add one. Two would be the same seven fields twice. */}
 			<LazyPanel open={formTarget !== null} loaded={panelsLoaded}>
 				<PlaceFormDrawer
+					key={formKey}
 					target={formTarget}
 					trips={trips}
 					onOpenChange={closeForms}
@@ -1040,6 +1071,7 @@ export function PlacesApp({
 
 			<LazyPanel open={tripTarget !== null} loaded={panelsLoaded}>
 				<TripFormDrawer
+					key={tripKey}
 					target={tripTarget}
 					places={places}
 					onOpenChange={closeForms}

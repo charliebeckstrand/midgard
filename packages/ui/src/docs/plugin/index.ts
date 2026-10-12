@@ -8,7 +8,7 @@ import type {
 	ViteDevServer,
 } from 'vite'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
-import { type BarrelApi, createApiExtractor } from './api.ts'
+import { type BarrelApi, createApiWorker } from './api.ts'
 import {
 	attachMeta,
 	CODE,
@@ -19,12 +19,15 @@ import {
 	loadCodes,
 } from './examples.ts'
 import { findPages, type Page, type PageLink } from './pages.ts'
+import { type SearchEntry, searchEntries } from './search.ts'
 
 const VIRTUAL = 'virtual:docs/'
 
 const API = `${VIRTUAL}api/`
 
 const PAGES = `${VIRTUAL}pages`
+
+const SEARCH = `${VIRTUAL}search`
 
 // A source file of `ui`: TypeScript, outside the docs and the tests.
 const SOURCE = /^(?!.*\/__tests__\/).*\.tsx?$/
@@ -53,12 +56,13 @@ function data(value: unknown): string {
 }
 
 /**
- * The Vite plugin of the docs. It gives three virtual modules, each of which
+ * The Vite plugin of the docs. It gives four virtual modules, each of which
  * exports data:
  *
- * - `virtual:docs/api/<barrel>`: the API data of a barrel, such as `components/button` ({@link createApiExtractor}).
+ * - `virtual:docs/api/<barrel>`: the API data of a barrel, such as `components/button` ({@link createApiWorker}).
  * - `virtual:docs/pages`: the link of each page ({@link findPages}).
  * - `virtual:docs/code/<folder>`: the code of each example in a folder of `pages/`, highlighted ({@link loadCodes}).
+ * - `virtual:docs/search`: the entries of the search of the docs ({@link searchEntries}).
  *
  * It adds the title and the code module to the default export of each
  * example in `pages/` ({@link attachMeta}). In dev, an edit to a source file
@@ -77,7 +81,7 @@ export function reactDocs(): Plugin {
 
 	const pages = path.join(docs, 'pages')
 
-	const extractor = createApiExtractor(ui)
+	const extractor = createApiWorker(ui)
 
 	// The API data of each barrel. The client build and the server build read
 	// the same barrels, so the TypeScript server runs once for both.
@@ -86,6 +90,10 @@ export function reactDocs(): Plugin {
 	// The code of the examples of each folder. The client build and the server
 	// build import the same examples, so each highlight runs once for both.
 	const codes = new Map<string, Promise<Record<string, ExampleCode>>>()
+
+	// The entries of the search. They read each page and the API data of each
+	// barrel that a page shows, so an edit to either makes them stale.
+	let search: Promise<SearchEntry[]> | undefined
 
 	// The routes that the server started with ({@link routesOf}).
 	let routes = ''
@@ -120,6 +128,20 @@ export function reactDocs(): Plugin {
 		return module && links.get(environment.name) !== linksOf(found) ? [module] : []
 	}
 
+	/**
+	 * The module of the search, when an edit to `file` makes it stale. An edit
+	 * to a page or to a source of `ui` can change the entries.
+	 */
+	function staleSearch(graph: EnvironmentModuleGraph, file: string): EnvironmentModuleNode[] {
+		if (!file.startsWith(pages) && !(SOURCE.test(file) && !file.startsWith(docs))) return []
+
+		search = undefined
+
+		const module = graph.getModuleById(virtualId(SEARCH))
+
+		return module ? [module] : []
+	}
+
 	return {
 		name: 'vite-plugin-react-docs',
 		// The transform reads the JSX of an example, so it runs before the JSX transform.
@@ -139,6 +161,14 @@ export function reactDocs(): Plugin {
 					links.set(this.environment.name, code)
 
 					return code
+				}
+
+				if (name === SEARCH) {
+					search ??= searchEntries(docs, this.parse.bind(this), (barrel) =>
+						getOrCompute(barrels, barrel, () => extractor.extract(barrel)),
+					)
+
+					return data(await search)
 				}
 
 				if (name.startsWith(API)) {
@@ -199,6 +229,8 @@ export function reactDocs(): Plugin {
 					module.id?.startsWith(`\0${API}`),
 				)
 			}
+
+			stale = [...stale, ...staleSearch(graph, file)]
 
 			for (const module of stale) graph.invalidateModule(module)
 

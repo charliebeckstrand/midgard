@@ -8,6 +8,7 @@
 		"lint:fix": "biome check --write packages/ apps/",
 		"check-types": "turbo run check-types",
 		"knip": "knip",
+		"check": "biome check . && TURBO_SCM_BASE=origin/main turbo run check-types test:changed knip --affected",
 		"test": "turbo run test",
 		"prepare": "lefthook install"
 	},

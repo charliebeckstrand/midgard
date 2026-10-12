@@ -28,8 +28,9 @@ logos. It needs no key. `src/server/scoreboard.ts` reads it on the server, and
 `src/server/espn-scoreboard.ts` reads each field of the answer. The feed has no
 contract, so a record that does not match the expected shape is skipped.
 
-The cache holds the calendar for days. A week in play refreshes each minute, a
-week that is over holds for days, and a week to come holds for hours. The
+The cache holds the calendar for days. A week in play, or a week with a kickoff
+within the hour, refreshes each minute. A week that is over holds for days, and
+another week to come holds for hours. The
 prediction form reads the games of its week through
 `app/api/scoreboard/[season]/[week]`.
 

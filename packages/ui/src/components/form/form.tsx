@@ -74,7 +74,9 @@ export type FormProps<T extends Record<string, unknown>> = {
  * subscribe to their own slice through an external store, so a keystroke
  * re-renders only the touched field, not the whole tree. Submit awaits
  * `onSubmit`, surfaces a returned `{ fieldErrors }` or thrown error, and
- * guards against superseding resets/unmounts via a monotonic token.
+ * guards against superseding resets/unmounts via a monotonic token. A native
+ * reset of the `<form>` does not change the inputs: the form cancels it and
+ * resets its bound fields.
  *
  * The `<form>` sets `noValidate`, so a native constraint such as `type="url"` or
  * `required` never stops a submit before the validators run. Otherwise the

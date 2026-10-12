@@ -102,6 +102,23 @@ export const space = {
 		/** The inset under the last slot, on the panel or on the slot. */
 		bottom: 'density-pb-[4,5,6,7,8]',
 		/**
+		 * The grip of a panel at an edge. `x` is the padding around the 1.5 bar of a
+		 * grip on a side, so the grip is as thick as the inset and covers no slot.
+		 */
+		grip: {
+			x: 'density-px-[1.25,1.75,2.25,2.75,3.25]',
+			/**
+			 * The negative margin of a grip in the flow toward the slot next to it: the
+			 * slot gap (`gap.scale.lg`) plus the inset. The grip lies over the inset of
+			 * that slot, so the content of the slot starts where the grip ends. If the
+			 * gap or the inset changes, this ramp changes with it.
+			 */
+			over: {
+				top: 'density-mt-[-6,-8,-10,-12,-14]',
+				bottom: 'density-mb-[-6,-8,-10,-12,-14]',
+			},
+		},
+		/**
 		 * The inset of a body that is the first slot, for each panel that scrolls its
 		 * body. It is a margin, because a padding in a scrolling body moves out of view
 		 * with the content.

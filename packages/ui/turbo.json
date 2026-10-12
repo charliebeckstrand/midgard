@@ -32,7 +32,7 @@
 				"vitest.config.ts",
 				"vitest.base.ts",
 				"package.json",
-				"$TURBO_ROOT$/{CLAUDE,CONVENTIONS,CADENCE,STE,REFERENCE}.md",
+				"$TURBO_ROOT$/{CLAUDE,CONVENTIONS,STE}.md",
 				"$TURBO_ROOT$/.claude/agents/*.md",
 				"scripts/quality-ledger.ts",
 				"$TURBO_ROOT$/{Dockerfile,Dockerfile.*,package.json,pnpm-lock.yaml}",

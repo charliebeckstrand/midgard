@@ -3,9 +3,9 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { advise, RULE_DOCUMENTS, rootDir } from '../helpers/controlled-language'
 
-// CADENCE.md sets the spacing and the shape of authored text. CLAUDE.md §3.5
-// once asked for a check by hand before each commit, but no tool made the
-// check, and Biome does not read Markdown. This test reports the breaks of the
+// The cadence rules of STE.md set the spacing and the shape of authored text.
+// CLAUDE.md once asked for a check by hand before each commit, but no tool made
+// the check, and Biome does not read Markdown. This test reports the breaks of the
 // parts of the cadence that a reader can measure in the rule documents. It is
 // advisory: it writes each break to the log and does not fail the run.
 //
@@ -14,9 +14,9 @@ import { advise, RULE_DOCUMENTS, rootDir } from '../helpers/controlled-language'
 //   - Rule 3: the numbered sections run 1, 2, 3 with no gap, and the clauses of
 //     section N run N.1, N.2, N.3 with no gap.
 //   - Rule 4: each numbered clause ends with sentence punctuation.
-//   - Rule 8: no trailing whitespace, and one newline at the end of the file.
+//   - Rule 7: no trailing whitespace, and one newline at the end of the file.
 //
-// Rules 2, 5, 6, and 7 need judgment, so review keeps them.
+// Rules 2, 5, and 6 need judgment, so review keeps them.
 
 const FENCE = /^\s*```/
 const SECTION = /^## (\d+)\. /
@@ -30,7 +30,7 @@ function cadenceBreaks(file: string, source: string): string[] {
 		breaks.push(`${file}:${line} rule ${rule} — ${text}`)
 
 	if (!source.endsWith('\n') || source.endsWith('\n\n')) {
-		report(source.split('\n').length, 8, 'the file must end with exactly one newline')
+		report(source.split('\n').length, 7, 'the file must end with exactly one newline')
 	}
 
 	const lines = source.replace(/\n$/, '').split('\n')
@@ -42,7 +42,7 @@ function cadenceBreaks(file: string, source: string): string[] {
 	lines.forEach((text, index) => {
 		const line = index + 1
 
-		if (/[ \t]$/.test(text)) report(line, 8, 'trailing whitespace')
+		if (/[ \t]$/.test(text)) report(line, 7, 'trailing whitespace')
 
 		if (text === '' && lines[index - 1] === '') report(line, 1, 'two blank lines in a row')
 
@@ -96,12 +96,12 @@ function cadenceBreaks(file: string, source: string): string[] {
 }
 
 describe('cadence boundary', () => {
-	it('reports cadence breaks in the rule documents (CADENCE.md rules 1, 3, 4, 8)', () => {
+	it('reports cadence breaks in the rule documents (STE.md cadence rules 1, 3, 4, 7)', () => {
 		const violations = RULE_DOCUMENTS.flatMap((file) =>
 			cadenceBreaks(file, readFileSync(join(rootDir, file), 'utf8')),
 		)
 
-		advise('cadence break in a rule document (CADENCE.md)', violations)
+		advise('cadence break in a rule document (STE.md cadence)', violations)
 	})
 })
 
@@ -137,8 +137,8 @@ describe('cadence reader', () => {
 
 	it('reports stacked blank lines, trailing whitespace, and the end of the file', () => {
 		expect(probe('# T \n\n\nText.')).toEqual([
-			'probe.md:4 rule 8 — the file must end with exactly one newline',
-			'probe.md:1 rule 8 — trailing whitespace',
+			'probe.md:4 rule 7 — the file must end with exactly one newline',
+			'probe.md:1 rule 7 — trailing whitespace',
 			'probe.md:3 rule 1 — two blank lines in a row',
 		])
 	})

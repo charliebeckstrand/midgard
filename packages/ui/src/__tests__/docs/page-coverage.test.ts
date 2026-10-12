@@ -20,15 +20,22 @@ function directoryNames(dir: string): string[] {
  * page at `src/docs/pages/<section>/<name>/index.tsx`. The docs app finds its
  * pages by glob (`findPages`), so a unit with no page is not in the docs, and
  * no other check tells you.
+ *
+ * The layouts and the primitives have no pages yet, so this test does not ask
+ * for them. The page smoke test (`docs/__tests__/page-smoke.tsx`) asks that
+ * each page shows an example.
  */
 describe('page coverage', () => {
-	it.each(['components', 'structure'])('every %s directory has a page', (section) => {
-		const units = directoryNames(join(SRC, section))
+	it.each(['components', 'structure', 'modules', 'providers'])(
+		'every %s directory has a page',
+		(section) => {
+			const units = directoryNames(join(SRC, section))
 
-		expect(units.length, `no directories found under src/${section}`).toBeGreaterThan(0)
+			expect(units.length, `no directories found under src/${section}`).toBeGreaterThan(0)
 
-		const missing = units.filter((name) => !existsSync(join(PAGES, section, name, 'index.tsx')))
+			const missing = units.filter((name) => !existsSync(join(PAGES, section, name, 'index.tsx')))
 
-		expect(missing, `units with no page (add one under src/docs/pages/${section}/)`).toEqual([])
-	})
+			expect(missing, `units with no page (add one under src/docs/pages/${section}/)`).toEqual([])
+		},
+	)
 })

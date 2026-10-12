@@ -26,27 +26,19 @@
 
 3.2 For research across many files or subsystems, delegate to subagents, one task each. Read a small, known set of files directly.
 
-3.3 Prove it works; flag anything unverified. Verify with `biome check .`, `turbo run check-types`, and scoped Vitest (`test:related` or `test:changed`). Lefthook runs Biome on staged files before a commit, and the branch gate before a push. CI runs the full gate and gates merges.
+3.3 Prove it works; flag anything unverified. Before you report a change as done, run `pnpm check` from the root. It is the pre-push gate: Biome, `check-types`, `test:changed`, and Knip. While you edit, run scoped Vitest (`test:related`). Lefthook runs Biome on staged files before a commit, and `pnpm check` before a push. CI runs the full gate and gates merges.
 
 3.4 When you change a public `ui` export, update its TSDoc. Update the related surface index in `packages/ui/docs` in the same commit ([CONVENTIONS.md](CONVENTIONS.md) §12).
 
-3.5 [CADENCE.md](CADENCE.md) sets the spacing and the shape of authored text. `cadence-boundary.test.ts` reports breaks in the rule documents at the repository root. The report is advisory, and review holds the rest.
+3.5 The repository rules outrank a skill. When a skill disagrees with this file, [CONVENTIONS.md](CONVENTIONS.md), [STE.md](STE.md), or a gate, follow the repository.
 
-3.6 Comments and TSDoc follow [CONVENTIONS.md](CONVENTIONS.md) §12.1 and [STE.md](STE.md).
+3.6 [asgard `.claude/docs/midgard.md`](https://github.com/charliebeckstrand/asgard/blob/main/.claude/docs/midgard.md) is the one record of the contract between Midgard and asgard. Read it before you change a call to bifrost. When the contract changes, update that file in asgard.
 
-3.7 The repository rules outrank a skill. When a skill disagrees with this file, [CONVENTIONS.md](CONVENTIONS.md), [STE.md](STE.md), or a gate, follow the repository.
+3.7 Use the Playwright tools to examine a UI change in a real browser before you report it as done.
 
-3.8 [asgard `.claude/docs/midgard.md`](https://github.com/charliebeckstrand/asgard/blob/main/.claude/docs/midgard.md) is the one record of the contract between Midgard and asgard. Read it before you change a call to bifrost. When the contract changes, update that file in asgard.
+3.8 A deployment comes only from `deploy.yml`. Never create, change, or delete an App Platform app by hand.
 
-3.9 Use the Playwright tools to examine a UI change in a real browser before you report it as done.
-
-3.10 While a Next.js dev server runs, use the Next.js DevTools tools to read its build errors, runtime errors, and routes.
-
-3.11 Use the Chrome DevTools tools to record a performance trace, or to examine network requests and console messages.
-
-3.12 Before you use a library API that you do not know well, get its current documentation from Context7.
-
-3.13 Use the `sequentialthinking` tool for a bug that has many possible causes, or for a plan with dependent steps. Do not use it for a simple task.
+3.9 Use the `sequentialthinking` tool for a bug that has many possible causes, or for a plan with dependent steps. Do not use it for a simple task.
 
 ## 4. Version Control
 
@@ -60,4 +52,4 @@
 
 ---
 
-**See also:** [CONVENTIONS.md](CONVENTIONS.md), [REFERENCE.md](REFERENCE.md), [STE.md](STE.md), [CADENCE.md](CADENCE.md).
+**See also:** [CONVENTIONS.md](CONVENTIONS.md), [STE.md](STE.md), [README.md](README.md).

@@ -24,6 +24,7 @@ An older global pnpm delegates to pnpm 12 through its tools cache. Turbo cannot 
 | Lint | `pnpm lint` |
 | Lint and fix | `pnpm lint:fix` |
 | Tests | `pnpm test` |
+| The pre-push gate: Biome, typecheck, the tests that the branch changes, and Knip | `pnpm check` |
 
 ## 3. Workspaces
 
@@ -36,7 +37,24 @@ An older global pnpm delegates to pnpm 12 through its tools cache. Turbo cannot 
 | [`packages/auth`](packages/auth/README.md) | Auth library: config, proxy, user. |
 | [`packages/shared`](packages/shared/README.md) | Shared auth UI and the global stylesheet. |
 
-## 4. Gateway
+## 4. Stack
+
+| Layer | Tool |
+|---|---|
+| Library | [React](https://react.dev) |
+| Framework | [Next.js](https://nextjs.org/docs/app) |
+| CSS | [Tailwind CSS](https://tailwindcss.com/docs) |
+| Design system | [UI](packages/ui) |
+| Testing | [Vitest](https://vitest.dev) |
+| Build | [Turborepo](https://turborepo.dev/docs) |
+| Formatter / linter | [Biome](https://biomejs.dev) |
+| Git hooks | [Lefthook](https://lefthook.dev) |
+| CI | [GitHub Actions](https://docs.github.com/actions) |
+| Package manager | [pnpm](https://pnpm.io) |
+
+The design system has its own hub, [`packages/ui/REFERENCE.md`](packages/ui/REFERENCE.md).
+
+## 5. Gateway
 
 Each app gets auth and API responses from the bifrost gateway. [`withAuth`](packages/auth/README.md) rewrites the same-origin `/auth/*` and `/api/*` paths to the gateway, and the typed `bifrost` client fetches from it. The types come from the OpenAPI spec that the gateway commits (`pnpm --filter auth openapi`). [`packages/auth/src/env.ts`](packages/auth/src/env.ts) reads the origin from `BIFROST_URL`, and no other file reads it.
 
@@ -49,7 +67,7 @@ Each app gets auth and API responses from the bifrost gateway. [`withAuth`](pack
 
 The gateway rate-limits sign-in and register by client address. On App Platform, each hop writes its own address into `do-connecting-ip`, so the gateway sees the address of the app. The proxy of each app sends the address of the browser in `x-client-ip`, with `CLIENT_IP_SECRET` in `x-client-ip-secret`. The gateway uses that address only when the secret agrees with its own `CLIENT_IP_SECRET`. Set the same value in the `CLIENT_IP_SECRET` repository secret of midgard and of asgard. In production, an app without the secret fails each request, and its health check stops the deploy.
 
-## 5. Deploy
+## 6. Deploy
 
 Each push to `main` runs [`deploy.yml`](.github/workflows/deploy.yml). It runs CI, then applies the App Platform spec in [`.do/app.yaml`](.do/app.yaml). The spec holds one app, `midgard`, with one component for each subdomain:
 
@@ -68,4 +86,4 @@ docker build --file Dockerfile.docs .
 
 ---
 
-**See also:** [CLAUDE.md](CLAUDE.md), [CONVENTIONS.md](CONVENTIONS.md), [REFERENCE.md](REFERENCE.md).
+**See also:** [CLAUDE.md](CLAUDE.md), [CONVENTIONS.md](CONVENTIONS.md), [STE.md](STE.md).

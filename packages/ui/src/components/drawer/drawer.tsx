@@ -94,10 +94,10 @@ export type DrawerPanelProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
 		 */
 		height?: DrawerPanelVariants['height']
 		/**
-		 * Give the panel a drag handle: a grip on its top edge that resizes the panel.
+		 * Give a panel with a fixed height (`half` or `full`) a drag handle: a grip on
+		 * its top edge that resizes the panel. On `auto` and `fit` it shows no grip.
 		 *
-		 * The grip only shows on a panel with a fixed height (`half` or `full`). The
-		 * drag sets the height directly, rather than stepping between the `height`
+		 * The drag sets the height directly, rather than stepping between the `height`
 		 * variants. The reader is deciding how much of the screen the panel gets, and
 		 * the answer is wherever they let go. `height` still states where it opens.
 		 * The drag stops at the chrome that does not scroll: the handle, a header,
