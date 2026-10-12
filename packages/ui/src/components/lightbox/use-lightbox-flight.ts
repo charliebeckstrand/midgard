@@ -1,10 +1,9 @@
 'use client'
 
-import { animate, easeOut } from 'motion'
-import type { RefObject } from 'react'
+import { type AnimationPlaybackControls, animate, easeOut } from 'motion'
+import { type RefObject, useRef } from 'react'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { k } from '../../recipes/kata/lightbox'
-import { noop } from '../../utilities/noop'
 import {
 	frameTransforms,
 	type LightboxBox,
@@ -18,7 +17,11 @@ import {
 
 /** The raise and the return of the photo that a {@link useLightboxFlight} gives. @internal */
 export type LightboxFlight = {
-	/** Raises the photo from `thumbnail` to its place on the stage. */
+	/**
+	 * Raises the photo from `thumbnail` to its place on the stage. During a
+	 * return, it stops the return first, and the same photo rises from the frame
+	 * that it paints.
+	 */
 	raise: (thumbnail: HTMLElement | undefined) => void
 	/**
 	 * Takes the photo back into `thumbnail`, from the frame that it paints now.
@@ -69,6 +72,26 @@ function paint(slot: HTMLElement, photo: HTMLElement, transforms: { slot: string
 	slot.style.transform = transforms.slot
 
 	photo.style.transform = transforms.photo
+}
+
+/** A return that runs: the tweens that it plays, and the slot and the photo that they move. */
+type LightboxReturn = {
+	slot: HTMLElement
+	photo: HTMLElement
+	tweens: readonly AnimationPlaybackControls[]
+}
+
+/**
+ * Stops a return and puts its slot and its photo at rest. A canceled tween
+ * writes nothing in a later frame, as a stopped tween does. Its promise does
+ * not resolve, so the return does not land.
+ */
+function stopReturn({ slot, photo, tweens }: LightboxReturn) {
+	for (const tween of tweens) tween.cancel()
+
+	paint(slot, photo, { slot: 'none', photo: 'none' })
+
+	photo.style.opacity = ''
 }
 
 /** A box inset by the scroll padding in `style`, the edges that sticky bars cover. */
@@ -160,7 +183,9 @@ function shownPart(thumbnail: HTMLElement, box: LightboxBox): LightboxBox | unde
  * It then moves the photo and its clip to the photo at rest. The return plays
  * the same flight backward, from the frame that the photo paints at that time.
  * So a close during the raise, or while a finger holds the photo, turns the
- * photo around where it is.
+ * photo around where it is. A raise during the return stops the return and
+ * puts its slot at rest. The same photo then rises from where it is, and
+ * another photo rises from its thumbnail.
  *
  * The slot of the photo is the clip (see `frameTransforms`), so a flight writes
  * only `transform`. The browser moves the painted photo
@@ -190,8 +215,11 @@ export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): Ligh
 		return shown && raisedFrame(box, rest, shown)
 	}
 
-	// Plays the flight from `from` to `to`, and resolves when it lands. A raise
-	// takes the transforms off when it lands at rest.
+	// The return that runs, which a raise stops.
+	const returning = useRef<LightboxReturn | null>(null)
+
+	// Plays the flight from `from` to `to`, and gives its tweens. A raise takes
+	// the transforms off when it lands at rest.
 	const fly = (
 		slot: HTMLElement,
 		photo: HTMLElement,
@@ -209,12 +237,10 @@ export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): Ligh
 
 		const landing = rests ? { transitionEnd: { transform: 'none' } } : {}
 
-		const flights = [
+		return [
 			animate(slot, { transform: steps.map((step) => step.slot), ...landing }, options),
 			animate(photo, { transform: steps.map((step) => step.photo), ...landing }, options),
 		]
-
-		return Promise.all(flights.map((flight) => flight.finished)).then(noop)
 	}
 
 	const raise = (thumbnail: HTMLElement | undefined) => {
@@ -224,22 +250,56 @@ export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): Ligh
 
 		if (!photo || !slot) return
 
+		const back = returning.current
+
+		returning.current = null
+
+		// The frame that the same photo paints on its way back, read before the
+		// stop puts it at rest.
+		const painted =
+			back?.photo === photo
+				? {
+						slot: getComputedStyle(slot).transform,
+						photo: getComputedStyle(photo).transform,
+						opacity: Number(getComputedStyle(photo).opacity),
+					}
+				: undefined
+
+		if (back) stopReturn(back)
+
 		const boxes = boxesOf(slot, photo)
 
 		const frame = frameAt(boxes.rest, thumbnail)
 
 		if (!frame) {
-			photo.style.opacity = '0'
+			const from = painted?.opacity ?? 0
 
-			animate(photo, { opacity: [0, 1] }, k.motion.fade)
+			photo.style.opacity = String(from)
+
+			animate(photo, { opacity: [from, 1] }, k.motion.fade)
 
 			return
 		}
 
-		// The first paint shows the photo over its thumbnail, before Motion starts.
-		paint(slot, photo, frameTransforms(frame, boxes.slot, boxes.rest))
+		const start = painted
+			? paintedFrame(painted.slot, painted.photo, boxes.slot, boxes.rest)
+			: frame
 
-		void fly(slot, photo, boxes, frame, restingFrame(boxes.rest), true)
+		// The first paint shows the photo at the start, before Motion starts.
+		paint(slot, photo, frameTransforms(start, boxes.slot, boxes.rest))
+
+		fly(slot, photo, boxes, start, restingFrame(boxes.rest), true)
+	}
+
+	// Holds the tweens of a return, which a raise can stop, and resolves when they land.
+	const land = (slot: HTMLElement, photo: HTMLElement, tweens: AnimationPlaybackControls[]) => {
+		const flight = { slot, photo, tweens }
+
+		returning.current = flight
+
+		return Promise.all(tweens.map((tween) => tween.finished)).then(() => {
+			if (returning.current === flight) returning.current = null
+		})
 	}
 
 	const lower = (thumbnail: HTMLElement | undefined) => {
@@ -253,7 +313,7 @@ export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): Ligh
 
 		const frame = frameAt(boxes.rest, thumbnail)
 
-		if (!frame) return animate(photo, { opacity: 0 }, k.motion.fade).finished.then(noop)
+		if (!frame) return land(slot, photo, [animate(photo, { opacity: 0 }, k.motion.fade)])
 
 		// Motion stops the tween that runs on a value when a new tween starts on
 		// it, so the return reads the painted frame first and needs no stop.
@@ -264,7 +324,7 @@ export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): Ligh
 			boxes.rest,
 		)
 
-		return fly(slot, photo, boxes, start, frame, false)
+		return land(slot, photo, fly(slot, photo, boxes, start, frame, false))
 	}
 
 	return { raise, lower }
