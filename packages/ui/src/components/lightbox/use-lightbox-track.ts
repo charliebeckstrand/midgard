@@ -47,7 +47,10 @@ export type LightboxTrackOptions = {
 
 /** The steps and the swipe that a {@link useLightboxTrack} gives. @internal */
 export type LightboxTrack = {
-	/** Steps to the photo after (`1`) or before (`-1`). It does nothing past the first or the last photo. */
+	/**
+	 * Steps to the photo after (`1`) or before (`-1`). It does nothing past the
+	 * first or the last photo. It first ends a live press.
+	 */
 	step: (step: -1 | 1) => void
 	/**
 	 * Stops a step that runs and a swipe that a finger holds, and holds the
@@ -61,7 +64,8 @@ export type LightboxTrack = {
 		onPointerDown: (event: PointerEvent<HTMLElement>) => void
 		onPointerMove: (event: PointerEvent<HTMLElement>) => void
 		onPointerUp: (event: PointerEvent<HTMLElement>) => void
-		onPointerCancel: () => void
+		onPointerCancel: (event: PointerEvent<HTMLElement>) => void
+		onLostPointerCapture: (event: PointerEvent<HTMLElement>) => void
 		onClick: (event: MouseEvent<HTMLElement>) => void
 	}
 }
@@ -203,7 +207,14 @@ function paint(track: HTMLElement, travel: number) {
  *
  * A step or a press during a slide does not wait for it. The slide lands its
  * photo at once, and the track keeps the travel that it paints, so the next
- * step or the finger moves on from there.
+ * step or the finger moves on from there. A step or a press during the restore
+ * of a swipe to close puts the photo at rest at once.
+ *
+ * A press ends at the lift of its pointer. It also ends, as a cancel does, at
+ * a move with no button down, which is a lift that went to a control and not
+ * to the stage. It ends when the stage loses the capture of its pointer, and
+ * at a cancel of its own pointer. A cancel of a finger that the press ignores
+ * does not end it. A step and a new press end the live press first.
  *
  * Each move writes only `transform` and `opacity` on elements with layers of
  * their own, so it paints nothing. Under reduced motion, a step lands at
@@ -228,6 +239,9 @@ export function useLightboxTrack(
 
 	// The fades of the scrim and the controls back in, after a swipe to close.
 	const fading = useRef<AnimationPlaybackControls[]>([])
+
+	// Puts the photo of a swipe to close at rest at once, while its restore runs.
+	const restoring = useRef<(() => void) | null>(null)
 
 	const press = useRef<Press | null>(null)
 
@@ -298,8 +312,8 @@ export function useLightboxTrack(
 
 	// Stops a slide where it paints. A slide to a photo lands that photo at once,
 	// and the track then paints the same place from the new center slot, so
-	// nothing moves on the screen. It returns `false` for any other tween, which
-	// the press or the step then waits for.
+	// nothing moves on the screen. The restore of a swipe to close puts the
+	// photo at rest at once. It returns `false` when the track is not there.
 	const interrupt = useStableEvent((): boolean => {
 		const controls = running.current
 
@@ -309,7 +323,17 @@ export function useLightboxTrack(
 
 		if (!controls) return true
 
-		if (step === null || !track) return false
+		if (step === null) {
+			running.current = null
+
+			controls.cancel()
+
+			restoring.current?.()
+
+			return true
+		}
+
+		if (!track) return false
 
 		const painted = paintedTravel(track)
 
@@ -355,8 +379,11 @@ export function useLightboxTrack(
 		slide(track, travelTo(track, direction), direction, () => land(direction))
 	})
 
-	// A step takes a zoomed photo back to rest as it slides away.
+	// A step takes a zoomed photo back to rest as it slides away. A press that
+	// is live ends first, so the finger and the step do not both move the track.
 	const step = (direction: -1 | 1) => {
+		abandon()
+
 		if (!interrupt()) return
 
 		zoom.reset()
@@ -373,15 +400,29 @@ export function useLightboxTrack(
 
 		const lower = () => stage?.toggleAttribute('data-raised', false)
 
-		if (reduceMotion) {
+		// The end of the restore, at once. `stop` writes the value that it stopped
+		// at in a later frame, and `cancel` does not, so the rest below stays.
+		const finish = () => {
+			restoring.current = null
+
+			for (const fade of fading.current) fade.cancel()
+
+			fading.current = []
+
 			photo.style.transform = 'none'
 
 			dim(dimmed(), 1)
 
 			lower()
+		}
+
+		if (reduceMotion) {
+			finish()
 
 			return
 		}
+
+		restoring.current = finish
 
 		fading.current = dimmed().flatMap((element) =>
 			element ? [animate(element, { opacity: [frame.opacity, 1] }, k.motion.step)] : [],
@@ -403,8 +444,31 @@ export function useLightboxTrack(
 
 			running.current = null
 
+			restoring.current = null
+
 			lower()
 		})
+	}
+
+	// Ends the live press with no lift, as a cancel does: what the press moved
+	// goes back to rest.
+	const abandon = () => {
+		const current = press.current
+
+		if (!current) return
+
+		press.current = null
+
+		cursor.end()
+
+		if (current.mode === 'pan' || current.mode === 'pinch') zoom.release()
+		else if (current.mode === 'dismiss') restore(current)
+		else settle()
+	}
+
+	// Ends the live press when it holds the pointer `pointerId`.
+	const abandonFor = (pointerId: number) => {
+		if (press.current?.points.has(pointerId)) abandon()
 	}
 
 	// A press that travels past the slop starts a swipe along the line or up and
@@ -600,6 +664,8 @@ export function useLightboxTrack(
 
 		fading.current = []
 
+		restoring.current = null
+
 		// A finger that still holds the photo lets go of it.
 		press.current = null
 
@@ -629,7 +695,11 @@ export function useLightboxTrack(
 
 				holdTextSelection(event)
 
-				// A press during a slide catches the track where it is.
+				// A press that is still live lost its lift.
+				abandon()
+
+				// A press during a slide catches the track where it is, and a press
+				// during a restore catches the photo at rest.
 				if (!interrupt()) return
 
 				press.current = {
@@ -658,6 +728,13 @@ export function useLightboxTrack(
 				const track = trackRef.current
 
 				if (!current || !track || !current.points.has(event.pointerId)) return
+
+				// The stage did not get the lift, such as a release over a control.
+				if (event.buttons === 0) {
+					abandon()
+
+					return
+				}
 
 				current.points.set(event.pointerId, { x: event.clientX, y: event.clientY })
 
@@ -701,16 +778,14 @@ export function useLightboxTrack(
 
 				drop(current, track, event)
 			},
-			onPointerCancel: () => {
-				const current = press.current
+			// A cancel from a finger that the press ignores leaves the press live.
+			onPointerCancel: (event) => abandonFor(event.pointerId),
+			onLostPointerCapture: (event) => {
+				// The capture of a touch moves from the element under the finger to the
+				// stage when the press travels. That loss is not the end of the press.
+				if (event.target !== event.currentTarget) return
 
-				press.current = null
-
-				cursor.end()
-
-				if (current?.mode === 'pan' || current?.mode === 'pinch') zoom.release()
-				else if (current?.mode === 'dismiss') restore(current)
-				else settle()
+				abandonFor(event.pointerId)
 			},
 			onClick: (event) => {
 				// The click that ends a swipe is not a tap.
