@@ -3,7 +3,7 @@ import { createHighlighterCore, isSpecialLang, isSpecialTheme } from 'shiki/core
 import { createJavaScriptRegexEngine } from 'shiki/engine/javascript'
 import { bundledLanguages } from 'shiki/langs'
 import { bundledThemes } from 'shiki/themes'
-import { getOrCompute } from '../../utilities/get-or-compute'
+import { getOrCompute } from '../../utilities/get-or-compute.ts'
 
 // The highlighter of the Shiki worker (`code-shiki-worker.ts`). Only the worker
 // imports this module, so the main thread never loads a grammar or a regex

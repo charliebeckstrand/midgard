@@ -25,8 +25,8 @@
  */
 
 import type { PluginCreator } from 'tailwindcss/plugin'
-import { rungs } from './rungs'
-import { densitySteps, stepsOfList } from './steps'
+import { rungs } from './rungs.ts'
+import { densitySteps, stepsOfList } from './steps.ts'
 
 /**
  * The plugin handler. Tailwind reads a named `handler` export as a plugin, so

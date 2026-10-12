@@ -32,9 +32,9 @@
  */
 
 import type { PluginCreator } from 'tailwindcss/plugin'
-import { type CssInJs, rungs } from './rungs'
-import { type DensityStep, densitySteps, valuesByStep } from './steps'
-import { type UtilityValue, utilityTable } from './utility-table'
+import { type CssInJs, rungs } from './rungs.ts'
+import { type DensityStep, densitySteps, valuesByStep } from './steps.ts'
+import { type UtilityValue, utilityTable } from './utility-table.ts'
 
 /** A stop of the spacing scale, such as `2` or `1.5`. */
 const isStop = (value: string) => /^\d+(\.\d+)?$/.test(value)
