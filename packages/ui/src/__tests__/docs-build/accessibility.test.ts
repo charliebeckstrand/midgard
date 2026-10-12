@@ -93,7 +93,7 @@ const STYLED = `document.querySelector('link[rel="stylesheet"][data-precedence]'
 /** The script of axe, which each page loads. */
 const AXE = createRequire(import.meta.url).resolve('axe-core/axe.min.js')
 
-const shard = inject('docsShard')
+const shard = inject('shard')
 
 /**
  * The path of each prerendered page of the shard: the home page, and each
