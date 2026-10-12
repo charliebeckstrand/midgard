@@ -25,7 +25,7 @@ export default defineConfig({
 	// Pre-bundle the bench dependency set so the optimizer doesn't discover it
 	// lazily and reload the page mid-run (see vitest.browser.config.ts).
 	optimizeDeps: {
-		esbuildOptions: { define: { 'process.env.NODE_ENV': '"production"' } },
+		rolldownOptions: { transform: { define: { 'process.env.NODE_ENV': '"production"' } } },
 		include: [
 			'@floating-ui/react',
 			'@internationalized/date',

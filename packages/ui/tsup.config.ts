@@ -1,25 +1,18 @@
-import { readdirSync, statSync } from 'node:fs'
-import { join } from 'node:path'
+import { globSync } from 'node:fs'
+import path from 'node:path'
 import { defineConfig } from 'tsup'
 
 /**
- * Discover build entries from the filesystem. Each component, provider, module,
- * or structure dir that has an `index.ts` becomes a named entry; plus hooks and
- * layouts.
+ * The build entries of the folders in `root` that have an `index.ts`, each by
+ * the name of its folder after `prefix`. Each component, provider, module, and
+ * structure unit is an entry, and so are the hooks and the layouts.
  */
 function discoverEntries(root: string, prefix = '') {
 	return Object.fromEntries(
-		readdirSync(root)
-			.filter((name) => {
-				const indexPath = join(root, name, 'index.ts')
-
-				try {
-					return statSync(indexPath).isFile()
-				} catch {
-					return false
-				}
-			})
-			.map((name) => [`${prefix}${name}`, `${root}/${name}/index.ts`]),
+		globSync(`${root}/*/index.ts`).map((file) => [
+			`${prefix}${path.basename(path.dirname(file))}`,
+			file,
+		]),
 	)
 }
 
