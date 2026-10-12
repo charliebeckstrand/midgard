@@ -1,7 +1,8 @@
+import path from 'node:path'
 import { reactRouter } from '@react-router/dev/vite'
 import tailwindcss from '@tailwindcss/vite'
 import { defineConfig } from 'vite'
-import { serverAssetUrls } from './plugin/asset-urls.ts'
+import { serverAssetUrls, serverStylesheetUrl } from './plugin/asset-urls.ts'
 import { componentEvents } from './plugin/component-events.ts'
 import { reactDocs } from './plugin/index.ts'
 
@@ -11,7 +12,17 @@ export default defineConfig({
 	// The root is this folder for each command, also for the preview server
 	// that the prerender starts from the package folder.
 	root: import.meta.dirname,
-	plugins: [reactDocs(), componentEvents(), serverAssetUrls(), tailwindcss(), reactRouter()],
+	plugins: [
+		reactDocs(),
+		componentEvents(),
+		serverAssetUrls(),
+		serverStylesheetUrl(
+			path.join(import.meta.dirname, 'app', 'app.css'),
+			path.join(import.meta.dirname, 'dist', 'client'),
+		),
+		tailwindcss(),
+		reactRouter(),
+	],
 	server: {
 		port: 3456,
 		// Transform the shell on server start, so the first page does not wait for it.
