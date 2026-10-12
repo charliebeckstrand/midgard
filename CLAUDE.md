@@ -26,7 +26,7 @@
 
 3.2 For research across many files or subsystems, delegate to subagents, one task each. Read a small, known set of files directly.
 
-3.3 Prove it works; flag anything unverified. Before you report a change as done, run `pnpm gate` from the root. It is the pre-push gate: Biome, `check-types`, `test:changed`, and Knip. While you edit, run scoped Vitest (`test:related`). Lefthook runs Biome on staged files before a commit, and `pnpm gate` before a push. CI runs the full gate and gates merges.
+3.3 Prove it works; flag anything unverified. Before you report a change as done, run `pnpm check` from the root. It is the pre-push gate: Biome, `check-types`, `test:changed`, and Knip. While you edit, run scoped Vitest (`test:related`). Lefthook runs Biome on staged files before a commit, and `pnpm check` before a push. CI runs the full gate and gates merges.
 
 3.4 When you change a public `ui` export, update its TSDoc. Update the related surface index in `packages/ui/docs` in the same commit ([CONVENTIONS.md](CONVENTIONS.md) §12).
 

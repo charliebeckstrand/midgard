@@ -24,7 +24,7 @@ An older global pnpm delegates to pnpm 12 through its tools cache. Turbo cannot 
 | Lint | `pnpm lint` |
 | Lint and fix | `pnpm lint:fix` |
 | Tests | `pnpm test` |
-| The pre-push gate: Biome, typecheck, the tests that the branch changes, and Knip | `pnpm gate` |
+| The pre-push gate: Biome, typecheck, the tests that the branch changes, and Knip | `pnpm check` |
 
 ## 3. Workspaces
 

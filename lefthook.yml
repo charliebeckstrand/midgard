@@ -8,12 +8,11 @@ pre-commit:
 
 pre-push:
   jobs:
-    # `pnpm gate` runs Biome, then check-types and test:changed on the
-    # affected packages, then knip. test:changed scopes Vitest to the
-    # merge-base diff, so the cost of the gate tracks the push, not the suite.
-    # CI runs the full gate and gates merges.
-    - name: gate
-      run: pnpm gate
+    # `pnpm check` runs Biome, then check-types, test:changed, and knip for
+    # the packages that the branch changes against origin/main. CI runs the
+    # full gate and gates merges.
+    - name: check
+      run: pnpm check
 
 commit-msg:
   jobs:
