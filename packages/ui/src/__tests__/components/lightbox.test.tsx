@@ -75,6 +75,8 @@ function press(
 		pointerType,
 		isPrimary: pointerId === 1,
 		button: 0,
+		// A press ends at a move with no button down, so the moves hold the button.
+		buttons: type === 'pointerUp' ? 0 : 1,
 		clientX,
 		clientY,
 	})
