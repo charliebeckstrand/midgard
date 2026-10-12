@@ -10,7 +10,7 @@ import type { ReactNode } from 'react'
 export const instant = false
 
 /**
- * Shell for the sign-in and register pages. A signed-in admin goes to the
+ * Shell for the sign-in and password pages. A signed-in admin goes to the
  * dashboard, and another signed-in user goes to the account page.
  *
  * @remarks

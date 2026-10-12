@@ -79,6 +79,11 @@ type LoginPageProps = {
 	 * `auth`. Each gets a button. @defaultValue `[]`
 	 */
 	providers?: SignInProvider[]
+	/**
+	 * Show the link to `/register` below the form. Set `false` in an app that has
+	 * no register page. @defaultValue `true`
+	 */
+	registration?: boolean
 }
 
 /**
@@ -97,7 +102,7 @@ type LoginPageProps = {
  * Next prerenders all of the page except the notices from the query, which
  * render only on the client.
  */
-export function LoginPage({ providers = [] }: LoginPageProps) {
+export function LoginPage({ providers = [], registration = true }: LoginPageProps) {
 	const router = useRouter()
 
 	const [errorAlert, setServerError] = useServerError()
@@ -205,14 +210,16 @@ export function LoginPage({ providers = [] }: LoginPageProps) {
 						</Button>
 					))}
 
-					<div className="text-center">
-						<Text>
-							Don't have an account?{' '}
-							<Link href="/register" underline>
-								Create one
-							</Link>
-						</Text>
-					</div>
+					{registration && (
+						<div className="text-center">
+							<Text>
+								Don't have an account?{' '}
+								<Link href="/register" underline>
+									Create one
+								</Link>
+							</Text>
+						</div>
+					)}
 				</Stack>
 			</Form>
 		</AuthLayout>

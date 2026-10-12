@@ -25,7 +25,7 @@ pnpm --filter admin dev
 | `app/(signed-in)/(dashboard)/*` | Admin-only product surface (dashboard, security, settings, users). `requireAdmin` in its layout sends a signed-in user that is not an admin to `/account`, and an admin without the second step to `/verify`. |
 | `app/(signed-in)/account/` | Account page of each signed-in user: two-step sign-in (passkeys, an authenticator app, and recovery codes), the connected GitHub and Google accounts, and the recent activity. The account menu of the chrome holds sign-out. |
 | `app/components/page-header/` | The title row of each signed-in page: the title, the breadcrumb, the description, and the actions. |
-| `app/(guest)/login/`, `app/(guest)/register/` | Sign-in and registration pages. The sign-in page shows a button for each GitHub or Google sign-in that the gateway has set up. The layout of the group sends a signed-in admin to `/`, and another signed-in user to `/account`. |
+| `app/(guest)/login/` | Sign-in page. The page shows a button for each GitHub or Google sign-in that the gateway has set up. The admin app has no registration page. The layout of the group sends a signed-in admin to `/`, and another signed-in user to `/account`. |
 | `app/<segment>/client.tsx` | Interactive client subtree split from the segment's server `page.tsx` ([CONVENTIONS](../../CONVENTIONS.md) §2.3). |
 | `app/providers.tsx` | Top-level React Context providers. |
 | `proxy.ts` | Session gate. It re-exports [`auth/proxy`](../../packages/auth/README.md). Its `matcher` skips only the static assets, and the proxy lets `/auth/*` continue without a session. |
