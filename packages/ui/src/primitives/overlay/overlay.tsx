@@ -124,7 +124,7 @@ export type OverlayProps = {
  * backdrop, so the React ancestors of the overlay do not receive it.
  *
  * A closed overlay is `inert` for its exit animation, so it takes no press and
- * no key. The focus goes to `<body>` when the overlay closes, and a modal
+ * no key. The body stays locked until the exit completes. The focus goes to `<body>` when the overlay closes, and a modal
  * overlay returns it to the trigger at unmount.
  *
  * The portal carries the density scope and the direction of the place that
@@ -175,7 +175,16 @@ export function Overlay({
 		containerRef,
 	})
 
-	useScrollLock(open && !scoped && modal)
+	// Whether the overlay is on screen: open, or closed and in its exit. The
+	// scroll lock holds until the exit completes. A release during the exit
+	// changes the overflow of the body, so the browser lays out and paints the
+	// page again under the exit animation. That paint can decode the images of
+	// the page again, and the animation then drops frames.
+	const [present, setPresent] = useState(open)
+
+	if (open && !present) setPresent(true)
+
+	useScrollLock(present && !scoped && modal)
 
 	// A modal press outside the panel lands on the backdrop. With no paint, the
 	// backdrop stays for that press alone.
@@ -254,7 +263,7 @@ export function Overlay({
 	)
 
 	return (
-		<Portal open={open} container={container} ssr>
+		<Portal open={open} container={container} ssr onExitComplete={() => setPresent(false)}>
 			<OverlayFocus
 				modal={modal}
 				regions={coverChrome ? noRegions : chromeRegions}
