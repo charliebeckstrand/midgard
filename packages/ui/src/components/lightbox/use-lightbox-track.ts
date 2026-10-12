@@ -16,7 +16,7 @@ import {
 	isDoubleTap,
 	type LightboxPoint,
 	type LightboxTap,
-	RESTING_FRAME,
+	RESTING_TRANSFORM,
 	SWIPE_EDGE_RESISTANCE,
 	SWIPE_SLOP,
 	swipeStep,
@@ -390,7 +390,7 @@ export function useLightboxTrack(
 		const controls = animate(
 			photo,
 			{
-				transform: [frame.transform, RESTING_FRAME.transform],
+				transform: [frame.transform, RESTING_TRANSFORM],
 				transitionEnd: { transform: 'none' },
 			},
 			k.motion.step,
@@ -644,7 +644,7 @@ export function useLightboxTrack(
 					stage: null,
 					photo: null,
 					size: { width: 0, height: 0 },
-					frame: { transform: RESTING_FRAME.transform, opacity: 1 },
+					frame: { transform: RESTING_TRANSFORM, opacity: 1 },
 					lastX: event.clientX,
 					lastY: event.clientY,
 					lastTime: event.timeStamp,
