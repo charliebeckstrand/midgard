@@ -8,7 +8,7 @@ import type {
 	ViteDevServer,
 } from 'vite'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
-import { type BarrelApi, createApiExtractor } from './api.ts'
+import { type BarrelApi, createApiWorker } from './api.ts'
 import {
 	attachMeta,
 	CODE,
@@ -59,7 +59,7 @@ function data(value: unknown): string {
  * The Vite plugin of the docs. It gives four virtual modules, each of which
  * exports data:
  *
- * - `virtual:docs/api/<barrel>`: the API data of a barrel, such as `components/button` ({@link createApiExtractor}).
+ * - `virtual:docs/api/<barrel>`: the API data of a barrel, such as `components/button` ({@link createApiWorker}).
  * - `virtual:docs/pages`: the link of each page ({@link findPages}).
  * - `virtual:docs/code/<folder>`: the code of each example in a folder of `pages/`, highlighted ({@link loadCodes}).
  * - `virtual:docs/search`: the entries of the search of the docs ({@link searchEntries}).
@@ -81,7 +81,7 @@ export function reactDocs(): Plugin {
 
 	const pages = path.join(docs, 'pages')
 
-	const extractor = createApiExtractor(ui)
+	const extractor = createApiWorker(ui)
 
 	// The API data of each barrel. The client build and the server build read
 	// the same barrels, so the TypeScript server runs once for both.

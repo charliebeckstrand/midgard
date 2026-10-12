@@ -1,4 +1,5 @@
 import path from 'node:path'
+import { Worker } from 'node:worker_threads'
 import type { __String, Node, TypeReferenceNode } from 'typescript/unstable/ast'
 import type {
 	Checker,
@@ -66,7 +67,7 @@ export type BarrelApi = { readonly [component: string]: ComponentApi }
 type SourceChange = { file: string; type: 'create' | 'update' | 'delete' }
 
 /** The extractor of the plugin. The TypeScript server starts on the first `extract`. */
-type ApiExtractor = {
+export type ApiExtractor = {
 	/** Returns the API data of a barrel, such as `components/button`. */
 	extract(barrel: string): Promise<BarrelApi>
 	/** Makes the next extract read a file that changed. */
@@ -74,6 +75,15 @@ type ApiExtractor = {
 	/** Stops the TypeScript server. A later extract starts it again. */
 	close(): void
 }
+
+/** A message from {@link createApiWorker} to its thread (`api-worker.ts`). */
+export type ApiMessage =
+	| { type: 'extract'; id: number; barrel: string }
+	| { type: 'refresh'; change: SourceChange }
+	| { type: 'close' }
+
+/** The reply of the thread to an `extract` message: the API data, or the stack of the error. */
+export type ApiReply = { id: number; api?: BarrelApi; error?: string }
 
 /**
  * The order of the values of a union: the steps of the size scale of `ui` in
@@ -189,6 +199,84 @@ export function createApiExtractor(root: string): ApiExtractor {
 			changes = undefined
 		},
 	}
+}
+
+/**
+ * Creates an extractor that runs {@link createApiExtractor} in a worker thread
+ * (`api-worker.ts`). The API of TypeScript is synchronous, and each call
+ * waits for a reply of the TypeScript server. The docs need about 80,000
+ * replies. In the thread, these waits do not stop the main thread, so Vite
+ * transforms the other modules in that time. On the main thread, the waits
+ * held the client build of the docs for about 7 s.
+ *
+ * The thread handles its messages in order, so a `refresh` or a `close`
+ * comes after each `extract` before it.
+ */
+export function createApiWorker(root: string): ApiExtractor {
+	let thread: ApiThread | undefined
+
+	let next = 0
+
+	return {
+		extract(barrel) {
+			thread ??= startApiThread(root)
+
+			const id = next++
+
+			const { worker, pending } = thread
+
+			return new Promise((resolve, reject) => {
+				pending.set(id, { resolve, reject })
+
+				worker.postMessage({ type: 'extract', id, barrel } satisfies ApiMessage)
+			})
+		},
+		refresh(change) {
+			thread?.worker.postMessage({ type: 'refresh', change } satisfies ApiMessage)
+		},
+		close() {
+			thread?.worker.postMessage({ type: 'close' } satisfies ApiMessage)
+
+			// A thread that does not stop does not keep the process open.
+			thread?.worker.unref()
+
+			thread = undefined
+		},
+	}
+}
+
+/** One thread of {@link createApiWorker}, with the requests that wait for its reply, by id. */
+type ApiThread = {
+	worker: Worker
+	pending: Map<number, { resolve: (api: BarrelApi) => void; reject: (error: Error) => void }>
+}
+
+/** Starts a thread of {@link createApiWorker}. When the thread fails or stops, each request that waits on it fails. */
+function startApiThread(root: string): ApiThread {
+	const worker = new Worker(new URL('./api-worker.ts', import.meta.url), { workerData: root })
+
+	const pending: ApiThread['pending'] = new Map()
+
+	const fail = (error: Error) => {
+		for (const request of pending.values()) request.reject(error)
+
+		pending.clear()
+	}
+
+	worker.on('message', ({ id, api, error }: ApiReply) => {
+		const request = pending.get(id)
+
+		pending.delete(id)
+
+		if (error === undefined && api) request?.resolve(api)
+		else request?.reject(new Error(error ?? `docs: no API data for the request ${id}`))
+	})
+
+	worker.on('error', fail)
+
+	worker.on('exit', (code) => fail(new Error(`docs: the API thread stopped with the code ${code}`)))
+
+	return { worker, pending }
 }
 
 /** Reads the components, the props, and the events of the barrel at `file`. */
