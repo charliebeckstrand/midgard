@@ -3,7 +3,6 @@ import { reactRouter } from '@react-router/dev/vite'
 import tailwindcss from '@tailwindcss/vite'
 import { defineConfig } from 'vite'
 import { serverAssetUrls, serverStylesheetUrl } from './plugin/asset-urls.ts'
-import { componentEvents } from './plugin/component-events.ts'
 import { reactDocs } from './plugin/index.ts'
 
 // The docs of ui: `pnpm --filter ui dev` serves them, and `docs:build`
@@ -14,7 +13,6 @@ export default defineConfig({
 	root: import.meta.dirname,
 	plugins: [
 		reactDocs(),
-		componentEvents(),
 		serverAssetUrls(),
 		serverStylesheetUrl(
 			path.join(import.meta.dirname, 'app', 'app.css'),

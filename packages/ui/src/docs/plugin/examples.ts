@@ -78,9 +78,7 @@ type Example = {
  * throws when the default export is not a named function, and when a
  * playground does not spread its props exactly once.
  */
-function readExample(parse: Parse, code: string, file: string): Example | undefined {
-	const program = parse(code, { lang: 'tsx' })
-
+function readExample(program: ESTree.Program, code: string, file: string): Example | undefined {
 	const exported = program.body.find((node) => node.type === 'ExportDefaultDeclaration')
 
 	if (!exported) return undefined
@@ -133,18 +131,18 @@ function readExample(parse: Parse, code: string, file: string): Example | undefi
 }
 
 /**
- * Adds the {@link ExampleMeta} of an example module to its default export.
- * The code goes at the end of the module and moves no other code, so the
- * transform keeps the source map as it is. It gives no code for a module that
- * is not an example.
+ * The code that adds the {@link ExampleMeta} of an example module to its
+ * default export. `program` is the parse of `code`. The code goes at the end
+ * of the module and moves no other code, so the transform keeps the source
+ * map as it is. It gives no code for a module that is not an example.
  */
 export function attachMeta(
-	parse: Parse,
+	program: ESTree.Program,
 	code: string,
 	file: string,
 	pages: string,
 ): string | undefined {
-	const example = readExample(parse, code, file)
+	const example = readExample(program, code, file)
 
 	if (!example) return undefined
 
@@ -157,7 +155,7 @@ export function attachMeta(
 		`code: () => import(${JSON.stringify(codeIdOf(pages, file))}).then((module) => module.default[${JSON.stringify(codeKeyOf(file))}])`,
 	]
 
-	return `${code}\nObject.assign(${name}, { ${meta.join(', ')} })\n`
+	return `\nObject.assign(${name}, { ${meta.join(', ')} })\n`
 }
 
 /**
@@ -174,7 +172,7 @@ async function readCode(
 ): Promise<ExampleCode | undefined> {
 	const source = await readFile(file, 'utf8')
 
-	const example = readExample(parse, source, file)
+	const example = readExample(parse(source, { lang: 'tsx' }), source, file)
 
 	if (!example) return undefined
 
@@ -195,9 +193,11 @@ async function readCode(
  */
 export async function examplesIn(parse: Parse, files: readonly string[]): Promise<string[]> {
 	const read = await Promise.all(
-		files.map(
-			async (file) => [file, readExample(parse, await readFile(file, 'utf8'), file)] as const,
-		),
+		files.map(async (file) => {
+			const source = await readFile(file, 'utf8')
+
+			return [file, readExample(parse(source, { lang: 'tsx' }), source, file)] as const
+		}),
 	)
 
 	return read.flatMap(([file, example]) => (example ? [file] : []))

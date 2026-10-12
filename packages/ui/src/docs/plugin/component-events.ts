@@ -1,6 +1,5 @@
 import path from 'node:path'
-import { prefixRegex } from '@rolldown/pluginutils'
-import { type ESTree, type Plugin, Visitor } from 'vite'
+import { type ESTree, Visitor } from 'vite'
 
 /** A prop that holds a callback: `on`, then a capital letter. */
 const CALLBACK = /^on[A-Z]/
@@ -17,55 +16,63 @@ const FUNCTION = new Set(['ArrowFunctionExpression', 'FunctionExpression'])
 /** The local name of `componentEvent` in a page module. */
 const WRAP = '__componentEvent'
 
+/** The module of `componentEvent`, which the Event log reads. */
+const EVENTS = JSON.stringify(
+	path.resolve(import.meta.dirname, '..', 'debug', 'event-log', 'component-events.ts'),
+)
+
+/** The folder of the modules of `ui`, such as `Grid`. */
+const MODULES = `${path.resolve(import.meta.dirname, '..', '..', 'modules')}/`
+
 /**
- * The Vite plugin that sends each value that the JSX of `pages/` gives to a
- * component through the Event log (`debug/event-log/component-events.ts`),
- * which records each call of an `on…` callback in the value.
- * The plugin reads the name of the component from the tag in the source, so a
- * line names the component in the minified build too. A tag that the page
- * imports from `src/modules` gives a module event, and any other tag gives a
- * component event.
+ * The code of a module of `pages/` with each value that its JSX gives to a
+ * component sent through the Event log (`debug/event-log/component-events.ts`),
+ * which records each call of an `on…` callback in the value ({@link labelProps}).
+ * `program` is the parse of `code`, and `resolve` gives the file of an import
+ * source. It gives nothing for code with no value to wrap.
+ *
+ * The name of the component comes from the tag in the source, so a line names
+ * the component in the minified build too. A tag that the page imports from
+ * `src/modules` gives a module event, and any other tag gives a component
+ * event. Only an import that gives the first name of a tag gets resolved,
+ * because a resolve runs the hooks of each plugin.
  */
-export function componentEvents(): Plugin {
-	const docs = path.resolve(import.meta.dirname, '..')
+export async function labelPage(
+	program: ESTree.Program,
+	code: string,
+	resolve: (source: string) => Promise<string | undefined>,
+): Promise<string | undefined> {
+	const roots = new Set<string>()
 
-	const pages = path.join(docs, 'pages')
-
-	const modules = `${path.resolve(docs, '..', 'modules')}/`
-
-	const module = JSON.stringify(path.join(docs, 'debug', 'event-log', 'component-events.ts'))
-
-	return {
-		name: 'vite-plugin-docs-component-events',
-		// The transform reads the JSX of a page, so it runs before the JSX transform.
-		enforce: 'pre',
-		transform: {
-			filter: { id: { include: prefixRegex(`${pages}/`), exclude: /(?<!\.tsx)$/ } },
-			async handler(code, id) {
-				const program = this.parse(code, { lang: 'tsx' })
-
-				// The local names that the page imports from a module of `ui`, such as `Grid`.
-				const fromModules = new Set<string>()
-
-				for (const node of program.body) {
-					if (node.type !== 'ImportDeclaration') continue
-
-					const resolved = await this.resolve(node.source.value, id)
-
-					if (!resolved?.id.startsWith(modules)) continue
-
-					for (const specifier of node.specifiers) fromModules.add(specifier.local.name)
-				}
-
-				const labeled = labelProps(program, code, fromModules)
-
-				// The import goes on the first line, so the lines keep their numbers.
-				return labeled === undefined
-					? null
-					: { code: `import { componentEvent as ${WRAP} } from ${module};${labeled}`, map: null }
-			},
+	new Visitor({
+		JSXOpeningElement({ name }) {
+			roots.add(rootOf(name))
 		},
-	}
+	}).visit(program)
+
+	// The local names that the page imports from a module of `ui` and gives to a tag.
+	const fromModules = new Set<string>()
+
+	await Promise.all(
+		program.body.map(async (node) => {
+			if (node.type !== 'ImportDeclaration') return
+
+			const names = node.specifiers.map(({ local }) => local.name).filter((name) => roots.has(name))
+
+			if (names.length === 0) return
+
+			if (!(await resolve(node.source.value))?.startsWith(MODULES)) return
+
+			for (const name of names) fromModules.add(name)
+		}),
+	)
+
+	const labeled = labelProps(program, code, fromModules)
+
+	// The import goes on the first line, so the lines keep their numbers.
+	return labeled === undefined
+		? undefined
+		: `import { componentEvent as ${WRAP} } from ${EVENTS};${labeled}`
 }
 
 /**
