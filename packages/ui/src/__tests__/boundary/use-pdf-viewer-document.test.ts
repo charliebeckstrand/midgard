@@ -118,7 +118,7 @@ describe('usePdfViewerDocument', () => {
  * mount again on the same `src`.
  *
  * The document is seeded through the cache's own loader seam rather than by letting the hook
- * rasterize one, because CONVENTIONS §11.3 rules out driving pdf.js in a test — and because it
+ * rasterize one, because CONVENTIONS §10.3 rules out driving pdf.js in a test — and because it
  * is unnecessary here. A cache hit never enters the pdf.js path at all, so the path under test
  * is reachable without it, which is the whole property being asserted.
  */

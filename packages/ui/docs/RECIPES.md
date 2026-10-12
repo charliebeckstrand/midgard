@@ -14,7 +14,7 @@ Dependencies point one way: `kata → kiso` (tokens) and `kata → katakana` (st
 
 ## Kiso — primitive tier
 
-Atomic concerns, one sub-folder each; `index.ts` assembles the named bundle. Full tables in [`src/recipes/kiso/README.md`](../src/recipes/kiso/README.md).
+Atomic concerns, one sub-folder each, except the flat files `kara.ts`, `sou.ts`, and `tsunagi.ts`; `index.ts` assembles the named bundle. Full tables in [`src/recipes/kiso/README.md`](../src/recipes/kiso/README.md).
 
 | Token | Concern |
 |---|---|
@@ -30,7 +30,7 @@ Atomic concerns, one sub-folder each; `index.ts` assembles the named bundle. Ful
 | `ugoki` 動き | Motion — tempo primitives, the spring vocabulary, the data-viz mark family, CSS transitions, and Framer Motion enter/exit configs. |
 | `kasane` 重ね | The signature 4-layer chrome stack plus the `rounded` scale. The ring utilities (`px-ring-2`, …) that subtract the ring are in `core/density/utilities.ts`. |
 | `kokkaku` 骨格 | Skeleton placeholder dimensions per component — chrome-, variant-, and color-stripped. |
-| `sou` 層 | App-level stacking order — the ordered rung ladder (`overlay` / `chrome` / `float` / `lens` / `toast`) every portaled surface lands on. |
+| `sou` 層 | App-level stacking order — the ordered rung ladder (`overlay` / `chrome` / `cover` / `float` / `lens` / `toast`) every portaled surface lands on. |
 | `tsunagi` 繋ぎ | Group-join class fragments — dormant until the parent stamps `data-group` at runtime. |
 | `kara` 空 | Virtualized emptiness — selectors that read `data-empty` on a `VirtualOptions` wrapper. |
 
@@ -40,10 +40,10 @@ Archetype bundles compose primitive atoms into the multi-fragment shape an arche
 
 | Bundle | Composes | Consumers |
 |---|---|---|
-| `control` | Field archetype: frame, surface, input, reset, density, radius, scale, affix, and check (composes `kasane`). | `bridge.control` / `bridge.check`; subset reach from combobox, listbox, date-picker, select, switch, color-picker, rating, signature-pad, control. |
-| `popover` | Floating overlay fragments, and the `picker` group that date-picker and color-picker share. *No bridge.* | `kata/popover`; subset reach from combobox, listbox, date-picker, color-picker. |
+| `control` | Field archetype: frame, surface, input, reset, density, radius, scale, affix, and check (composes `kasane`). | `bridge.control` / `bridge.check`; subset reach from combobox, listbox, date-picker, select, switch, color-picker, rating, signature-pad, toggle, control. |
+| `popover` | Floating overlay fragments, and the `picker` group that date-picker and color-picker share. *No bridge.* | `kata/popover`; subset reach from combobox, listbox, date-picker, color-picker, menu. |
 | `segment` | Segmented control — `control` / `item` fragments plus `indicator` color fragments. *No bridge.* | `kata/tabs`, which Segment and Tabs share. |
-| `panel` | Panel archetype: `surface`, `layout` (the slots and the `inset` at each edge), and the resize `grip`. | `bridge.panel`; subset reach from dialog, box, panel, grid, command-palette. |
+| `panel` | Panel archetype: `surface`, `layout` (the slots and the `inset` at each edge), and the resize `grip`. | `bridge.panel`; subset reach from dialog, panel, grid, command-palette. |
 | `slider` | Slider palette — the `--slider-fill` / `--slider-track` CSS-variable bundle per color, and the size `scale` that both sliders share. *No bridge.* | `kata/slider`, `kata/slider-range`. |
 | `zu` 図 | Data-viz substrate — the categorical series `palette`, the chrome and readout `ink`, and the reveal `motion`. *No bridge.* | `kata/chart`, `kata/map`. |
 
