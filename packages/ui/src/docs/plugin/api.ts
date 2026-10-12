@@ -1,4 +1,5 @@
 import path from 'node:path'
+import { Piscina } from 'piscina'
 import type { __String, Node, TypeReferenceNode } from 'typescript/unstable/ast'
 import type {
 	Checker,
@@ -9,7 +10,6 @@ import type {
 	Type,
 } from 'typescript/unstable/sync'
 import { densitySteps, isDensityStep } from '../../core/density/steps.ts'
-import { createThread } from './thread.ts'
 
 // The API data of the docs comes from the TypeScript 7 API, which is
 // `typescript/unstable/sync`. Its name says that a minor release can change
@@ -76,10 +76,11 @@ export type ApiExtractor = {
 	close(): void
 }
 
-/** A message from {@link createApiWorker} to its thread (`api-worker.ts`). */
-export type ApiMessage =
+/** A task of the thread of {@link createApiWorker} (`api-worker.ts`). */
+export type ApiTask =
 	| { type: 'extract'; barrel: string }
 	| { type: 'refresh'; change: SourceChange }
+	| { type: 'close' }
 
 /**
  * The order of the values of a union: the steps of the size scale of `ui` in
@@ -198,6 +199,15 @@ export function createApiExtractor(root: string): ApiExtractor {
 }
 
 /**
+ * The tasks that a pool of the docs plugin sends to its thread before the
+ * thread gives a result. The pool sends a task when the main thread gets a
+ * result, and the main thread is busy for most of the build. With one task
+ * at a time, the thread waited on the main thread between the tasks, and the
+ * client build took about 2 s more.
+ */
+export const TASKS_AHEAD = 64
+
+/**
  * Creates an extractor that runs {@link createApiExtractor} in a worker thread
  * (`api-worker.ts`). The API of TypeScript is synchronous, and each call
  * waits for a reply of the TypeScript server. The docs need about 80,000
@@ -205,28 +215,40 @@ export function createApiExtractor(root: string): ApiExtractor {
  * transforms the other modules in that time. On the main thread, the waits
  * held the client build of the docs for about 7 s.
  *
- * The thread handles its messages in order ({@link createThread}), so a
- * `refresh` or a `close` comes after each `extract` before it.
+ * The pool has one thread, and it sends up to {@link TASKS_AHEAD} tasks to
+ * the thread ahead. An `extract` is synchronous after the TypeScript server
+ * starts, so the extracts run in order. A `close` waits for each `extract`
+ * that runs (`api-worker.ts`).
  */
 export function createApiWorker(root: string): ApiExtractor {
-	const thread = createThread<ApiMessage, BarrelApi | undefined>(
-		new URL('./api-worker.ts', import.meta.url),
-		root,
-	)
+	let pool: Piscina<ApiTask, BarrelApi | undefined> | undefined
 
 	return {
 		async extract(barrel) {
-			const api = await thread.request({ type: 'extract', barrel })
+			pool ??= new Piscina({
+				filename: new URL('./api-worker.ts', import.meta.url).href,
+				workerData: root,
+				name: 'run',
+				minThreads: 1,
+				maxThreads: 1,
+				concurrentTasksPerWorker: TASKS_AHEAD,
+			})
+
+			const api = await pool.run({ type: 'extract', barrel })
 
 			if (!api) throw new Error(`docs: no API data for ${barrel}`)
 
 			return api
 		},
 		refresh(change) {
-			thread.post({ type: 'refresh', change })
+			void pool?.run({ type: 'refresh', change })
 		},
 		close() {
-			thread.close()
+			const closing = pool
+
+			pool = undefined
+
+			void closing?.run({ type: 'close' }).finally(() => closing.destroy())
 		},
 	}
 }

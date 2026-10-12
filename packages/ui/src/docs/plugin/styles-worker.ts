@@ -1,8 +1,11 @@
-import { workerData } from 'node:worker_threads'
-import { type CriticalCssJob, inlinePages } from './styles.ts'
+import { workerData } from 'piscina'
+import { type CriticalCssData, inlinePage } from './styles.ts'
 
-// One worker of `inlineCriticalCss` (`styles.ts`). Node runs this file with
-// the types removed, so the file and each file that it imports must use only
-// the TypeScript syntax that Node can remove.
+// A thread of the pool of `inlineCriticalCss` (`styles.ts`). Node runs this
+// file with the types removed, so the file and each file that it imports
+// must use only the TypeScript syntax that Node can remove.
 
-await inlinePages(workerData as CriticalCssJob)
+/** Writes the critical CSS of `page`. */
+export function run(page: string): Promise<void> {
+	return inlinePage(workerData as CriticalCssData, page)
+}

@@ -1,9 +1,9 @@
 import { globSync, readFileSync, writeFileSync } from 'node:fs'
 import { availableParallelism } from 'node:os'
 import path from 'node:path'
-import { Worker } from 'node:worker_threads'
 import { compile, optimize } from '@tailwindcss/node'
 import { Scanner } from '@tailwindcss/oxide'
+import { Piscina } from 'piscina'
 import { noop } from '../../utilities/noop.ts'
 
 // A `@font-face` rule of a minified stylesheet. The rule holds no nested block.
@@ -152,63 +152,43 @@ export async function compilePage(
 	return optimize(compiler.build(classes), { minify: true }).code
 }
 
-/** The pages that one worker of {@link inlineCriticalCss} writes. */
-export type CriticalCssJob = {
+/** What each worker of {@link inlineCriticalCss} needs for each page. */
+export type CriticalCssData = {
 	clientDir: string
 	stylesheet: string
 	/** The `@font-face` rules of the built stylesheet. */
 	fontFaces: string
 	/** The classes of the `@source inline(...)` rules of `stylesheet` ({@link inlineClasses}). */
 	inline: string[]
-	/** The paths of the HTML files, relative to `clientDir`. */
-	pages: string[]
 }
 
 /**
- * Writes the critical CSS of each page of `job` into the head of its HTML.
- * Each worker of {@link inlineCriticalCss} runs this function
- * (`styles-worker.ts`).
+ * Writes the critical CSS of `page`, a path of an HTML file relative to
+ * `clientDir`, into the head of its HTML. Each worker of
+ * {@link inlineCriticalCss} runs this function (`styles-worker.ts`).
  */
-export async function inlinePages({
-	clientDir,
-	stylesheet,
-	fontFaces,
-	inline,
-	pages,
-}: CriticalCssJob): Promise<void> {
+export async function inlinePage(
+	{ clientDir, stylesheet, fontFaces, inline }: CriticalCssData,
+	page: string,
+): Promise<void> {
+	const file = path.join(clientDir, page)
+
+	const html = readFileSync(file, 'utf8')
+
 	const source = readFileSync(stylesheet, 'utf8')
 
-	const base = path.dirname(stylesheet)
+	const css =
+		fontFaces +
+		(await compilePage(source, path.dirname(stylesheet), inline, scanClasses(html))).replace(
+			FONT_FACE,
+			'',
+		)
 
-	for (const page of pages) {
-		const file = path.join(clientDir, page)
+	if (css.includes('</')) throw new Error(`docs: ${page}: the CSS can close its <style>`)
 
-		const html = readFileSync(file, 'utf8')
+	const style = `<style data-precedence="default" data-href="critical">${css}</style>`
 
-		const css =
-			fontFaces +
-			(await compilePage(source, base, inline, scanClasses(html))).replace(FONT_FACE, '')
-
-		if (css.includes('</')) throw new Error(`docs: ${page}: the CSS can close its <style>`)
-
-		const style = `<style data-precedence="default" data-href="critical">${css}</style>`
-
-		writeFileSync(file, html.replace('</head>', `${style}</head>`))
-	}
-}
-
-/** Runs `job` in a worker thread. The promise rejects when the worker fails. */
-function runWorker(job: CriticalCssJob): Promise<void> {
-	return new Promise((resolve, reject) => {
-		const worker = new Worker(new URL('./styles-worker.ts', import.meta.url), { workerData: job })
-
-		worker.once('error', reject)
-
-		worker.once('exit', (code) => {
-			if (code === 0) resolve()
-			else reject(new Error(`docs: a critical CSS worker stopped with the code ${code}`))
-		})
-	})
+	writeFileSync(file, html.replace('</head>', `${style}</head>`))
 }
 
 /**
@@ -230,28 +210,31 @@ function runWorker(job: CriticalCssJob): Promise<void> {
  * but the CSS of a page needs only those in its HTML. With the others, the
  * CSS of the Button page was 497 KB, and without them it is 176 KB.
  *
- * The compile of one page takes about 0.3 s on one core, and the docs have
- * about 150 pages. So one worker thread for each core writes a part of the
- * pages. On a four-core container the step took 51 s on the main thread.
+ * The docs have about 150 pages, and a pool with one thread for each core
+ * writes them (`styles-worker.ts`). On a four-core container the step took
+ * 51 s on the main thread.
  */
 export async function inlineCriticalCss(clientDir: string, stylesheet: string): Promise<void> {
 	const fontFaces = builtStylesheet(clientDir, stylesheet).match(FONT_FACE)?.join('') ?? ''
 
-	const pages = globSync('**/*.html', { cwd: clientDir })
+	const threads = availableParallelism()
 
-	const inline = inlineClasses(stylesheet)
+	const pool = new Piscina<string, void>({
+		filename: new URL('./styles-worker.ts', import.meta.url).href,
+		name: 'run',
+		workerData: {
+			clientDir,
+			stylesheet,
+			fontFaces,
+			inline: inlineClasses(stylesheet),
+		} satisfies CriticalCssData,
+		minThreads: threads,
+		maxThreads: threads,
+	})
 
-	const count = Math.min(availableParallelism(), pages.length)
-
-	await Promise.all(
-		Array.from({ length: count }, (_, index) =>
-			runWorker({
-				clientDir,
-				stylesheet,
-				fontFaces,
-				inline,
-				pages: pages.filter((_, page) => page % count === index),
-			}),
-		),
-	)
+	try {
+		await Promise.all(globSync('**/*.html', { cwd: clientDir }).map((page) => pool.run(page)))
+	} finally {
+		await pool.destroy()
+	}
 }
