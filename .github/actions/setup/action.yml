@@ -20,5 +20,19 @@ runs:
       with:
         node-version-file: .node-version
         cache: pnpm
+    # pnpm checks the lockfile against the supply-chain policies of
+    # pnpm-workspace.yaml before it installs. On CI the check took 5.6 s, and
+    # the install about 6 s. pnpm writes each lockfile that passes to this log,
+    # with the hash of the lockfile and the policies, and does not check that
+    # lockfile again. A change to the lockfile or to the policies gets a full
+    # check. The key follows the files that can change the check, so a new log
+    # starts when one of them changes. The log of an earlier key is restored
+    # first, and pnpm adds the new lockfile to it.
+    - uses: actions/cache@v6
+      with:
+        path: ~/.cache/pnpm/lockfile-verified.jsonl
+        key: ${{ runner.os }}-pnpm-verified-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', 'package.json') }}
+        restore-keys: |
+          ${{ runner.os }}-pnpm-verified-
     - run: pnpm install ${{ inputs.install-args }}
       shell: bash
