@@ -1,5 +1,5 @@
-import { parentPort, workerData } from 'node:worker_threads'
-import { type ApiMessage, type ApiReply, createApiExtractor } from './api.ts'
+import { workerData } from 'piscina'
+import { type ApiTask, type BarrelApi, createApiExtractor } from './api.ts'
 
 // The thread of `createApiWorker` (`api.ts`). Node runs this file with the
 // types removed, so the file and each file that it imports must use only the
@@ -7,38 +7,33 @@ import { type ApiMessage, type ApiReply, createApiExtractor } from './api.ts'
 
 const extractor = createApiExtractor(workerData as string)
 
-// The messages run one at a time, in the order that they come.
-let queue = Promise.resolve()
+// The extracts that run. The pool sends tasks ahead, so a `close` can come
+// before an `extract` before it ends.
+const running = new Set<Promise<BarrelApi>>()
 
-parentPort?.on('message', (message: ApiMessage) => {
-	queue = queue.then(() => handle(message))
-})
+/** Runs a task of `createApiWorker`. Only `extract` gives a result. */
+export async function run(task: ApiTask): Promise<BarrelApi | undefined> {
+	if (task.type === 'extract') {
+		const extract = extractor.extract(task.barrel)
 
-async function handle(message: ApiMessage): Promise<void> {
-	if (message.type === 'refresh') {
-		extractor.refresh(message.change)
+		running.add(extract)
 
-		return
-	}
-
-	if (message.type === 'close') {
-		extractor.close()
-
-		parentPort?.close()
-
-		return
-	}
-
-	let reply: ApiReply
-
-	try {
-		reply = { id: message.id, api: await extractor.extract(message.barrel) }
-	} catch (error) {
-		reply = {
-			id: message.id,
-			error: error instanceof Error ? (error.stack ?? error.message) : String(error),
+		try {
+			return await extract
+		} finally {
+			running.delete(extract)
 		}
 	}
 
-	parentPort?.postMessage(reply)
+	if (task.type === 'refresh') {
+		extractor.refresh(task.change)
+
+		return undefined
+	}
+
+	await Promise.allSettled(running)
+
+	extractor.close()
+
+	return undefined
 }

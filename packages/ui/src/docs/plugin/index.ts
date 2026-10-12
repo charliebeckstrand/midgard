@@ -1,5 +1,6 @@
 import path from 'node:path'
 import { prefixRegex } from '@rolldown/pluginutils'
+import { Piscina } from 'piscina'
 import type {
 	DevEnvironment,
 	EnvironmentModuleGraph,
@@ -7,8 +8,9 @@ import type {
 	Plugin,
 	ViteDevServer,
 } from 'vite'
+import type { ShikiHighlight } from '../../components/code/code-shiki-highlighter.ts'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
-import { type BarrelApi, createApiWorker } from './api.ts'
+import { type BarrelApi, createApiWorker, TASKS_AHEAD } from './api.ts'
 import {
 	attachMeta,
 	CODE,
@@ -16,8 +18,10 @@ import {
 	EXAMPLE,
 	type ExampleCode,
 	exampleFiles,
+	type Highlight,
 	loadCodes,
 } from './examples.ts'
+import type { HighlightTask } from './highlight-worker.ts'
 import { findPages, type Page, type PageLink } from './pages.ts'
 import { type SearchEntry, searchEntries } from './search.ts'
 
@@ -82,6 +86,23 @@ export function reactDocs(): Plugin {
 	const pages = path.join(docs, 'pages')
 
 	const extractor = createApiWorker(ui)
+
+	// Shiki highlights the examples in a thread (`highlight-worker.ts`). On the
+	// main thread, the highlights of the docs held the client build for about
+	// 1.5 s. The pool starts on the first highlight.
+	let highlighter: Piscina<HighlightTask, ShikiHighlight> | undefined
+
+	const highlight: Highlight = (code, lang, theme) => {
+		highlighter ??= new Piscina({
+			filename: new URL('./highlight-worker.ts', import.meta.url).href,
+			name: 'run',
+			minThreads: 1,
+			maxThreads: 1,
+			concurrentTasksPerWorker: TASKS_AHEAD,
+		})
+
+		return highlighter.run({ code, lang, theme })
+	}
 
 	// The API data of each barrel. The client build and the server build read
 	// the same barrels, so the TypeScript server runs once for both.
@@ -185,7 +206,9 @@ export function reactDocs(): Plugin {
 					for (const file of files) this.addWatchFile(file)
 
 					return data(
-						await getOrCompute(codes, folder, () => loadCodes(this.parse.bind(this), files)),
+						await getOrCompute(codes, folder, () =>
+							loadCodes(this.parse.bind(this), highlight, files),
+						),
 					)
 				}
 
@@ -238,6 +261,10 @@ export function reactDocs(): Plugin {
 		},
 		buildEnd() {
 			extractor.close()
+
+			void highlighter?.destroy()
+
+			highlighter = undefined
 		},
 	}
 }

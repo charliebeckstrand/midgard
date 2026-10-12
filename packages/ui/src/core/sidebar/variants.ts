@@ -12,7 +12,7 @@
  */
 
 import type { PluginCreator } from 'tailwindcss/plugin'
-import { rootOffcanvasSidebarClass } from './root'
+import { rootOffcanvasSidebarClass } from './root.ts'
 
 /**
  * The plugin handler. Tailwind reads a named `handler` export as a plugin, so

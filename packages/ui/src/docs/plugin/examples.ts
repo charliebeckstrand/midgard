@@ -2,10 +2,7 @@ import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { type ESTree, normalizePath, Visitor } from 'vite'
 import { DEFAULT_LANG, DEFAULT_THEME, trimBlankLines } from '../../components/code/code-shiki.ts'
-import {
-	highlightShiki,
-	type ShikiHighlight,
-} from '../../components/code/code-shiki-highlighter.ts'
+import type { ShikiHighlight } from '../../components/code/code-shiki-highlighter.ts'
 import { humanize } from '../kit/humanize.ts'
 
 /** The code of an example: the source of its file, and the markup that `CodeBlock` paints. */
@@ -22,6 +19,9 @@ export type ExampleCode = {
 	 */
 	spread?: { index: number; separator: string }
 }
+
+/** Highlights `code` with Shiki, as `highlightShiki` does. */
+export type Highlight = (code: string, lang: string, theme: string) => Promise<ShikiHighlight>
 
 /** What the plugin adds to the default export of an example module. */
 export type ExampleMeta = {
@@ -167,7 +167,11 @@ export function attachMeta(
  * its code highlighted at once too. It gives nothing for a module that is not
  * an example.
  */
-async function readCode(parse: Parse, file: string): Promise<ExampleCode | undefined> {
+async function readCode(
+	parse: Parse,
+	highlight: Highlight,
+	file: string,
+): Promise<ExampleCode | undefined> {
 	const source = await readFile(file, 'utf8')
 
 	const example = readExample(parse, source, file)
@@ -178,11 +182,9 @@ async function readCode(parse: Parse, file: string): Promise<ExampleCode | undef
 
 	const code = spread ? source.slice(0, spread.start) + source.slice(spread.end) : source
 
-	const highlight = await highlightShiki(trimBlankLines(code), DEFAULT_LANG, DEFAULT_THEME)
-
 	return {
 		code,
-		highlight,
+		highlight: await highlight(trimBlankLines(code), DEFAULT_LANG, DEFAULT_THEME),
 		...(spread && { spread: { index: spread.start, separator: spread.separator } }),
 	}
 }
@@ -212,13 +214,17 @@ export async function exampleFiles(folder: string): Promise<string[]> {
 		.toSorted()
 }
 
-/** Loads the code module of a folder: the code of each example in `files`, by {@link codeKeyOf}. */
+/**
+ * Loads the code module of a folder: the code of each example in `files`, by
+ * {@link codeKeyOf}, highlighted with `highlight`.
+ */
 export async function loadCodes(
 	parse: Parse,
+	highlight: Highlight,
 	files: readonly string[],
 ): Promise<Record<string, ExampleCode>> {
 	const codes = await Promise.all(
-		files.map(async (file) => [file, await readCode(parse, file)] as const),
+		files.map(async (file) => [file, await readCode(parse, highlight, file)] as const),
 	)
 
 	return Object.fromEntries(

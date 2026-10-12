@@ -65,7 +65,7 @@ import {
 	type MarkedStep,
 	rootDensityClasses,
 	slotStep,
-} from './steps'
+} from './steps.ts'
 
 /** A CSS rule in the object form of the plugin API. */
 export type CssInJs = { [key: string]: string | CssInJs }

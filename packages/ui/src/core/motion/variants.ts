@@ -19,7 +19,7 @@
  */
 
 import type { PluginCreator } from 'tailwindcss/plugin'
-import { rootReducedMotionClass } from './root'
+import { rootReducedMotionClass } from './root.ts'
 
 const reduced = `:where(.${rootReducedMotionClass}, .${rootReducedMotionClass} *)`
 
