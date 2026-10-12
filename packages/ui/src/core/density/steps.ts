@@ -30,8 +30,8 @@ export type MarkedStep = keyof typeof rootDensityClasses
 export type DensityStep = (typeof densitySteps)[number]
 
 /**
- * An inner step: `sm`, `md`, or `lg`. A density level maps to one, and a JS
- * reader with three values, such as the chart tick cap, clamps to one.
+ * An inner step: `sm`, `md`, or `lg`. A density level maps to one, and a scale
+ * that has no outer step snaps that step to its inner neighbor.
  */
 export type InnerStep = Extract<DensityStep, 'sm' | 'md' | 'lg'>
 

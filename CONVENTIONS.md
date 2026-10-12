@@ -107,6 +107,10 @@ An arrow key on a physical axis, such as a slider track or a map cursor, stays p
 
 5.5 In `ui`, a ramp is the one place that writes a value for each density step, for example `density-p-[1,2,3,4,5]`. A ramp has five values, one for each step from `xs` to `xl`, and it lives in `recipes/kiso/dan/`. `src/core/density/geometry.ts` gives the formula of each ramp, and `density-geometry.test.ts` holds each ramp to its formula. A padding, a gap, a radius, or a width gets its values at `xs` and `xl` from `spacingSteps`. A kata makes the size scale of its component from its ramps with `defineScale`, and exports it. The component types its `size` prop with `ScaleStep`. A skeleton takes the scale of its component. Thus the prop offers only the steps that render with a look of their own. A JS reader resolves its step with `useDensityStep`, and snaps it to the scale with `snapToScale`. Do not pick or clamp a step by hand. `size-scale-boundary.test.ts` holds the ramps and finds a step picked by hand. `browser/geometry/size-steps.test.tsx` renders each step of each `size` axis, and fails when two neighbor steps render the same.
 
+5.6 An app, the docs app of `ui`, and `shared` write no `gap-*` or `space-*` class. A layout with a gap is a structure unit (Flex, Stack, Columns, or Split), and its `gap` prop steps with density. A class has the same length at each step. `app-gap-boundary.test.ts` holds the rule.
+
+5.7 In Places, an icon-only `Button` uses `variant="bare"`, so each icon button of the app has the same look. The [`require-bare-icon-button`](.biome/plugins/require-bare-icon-button.grit) Biome plugin holds the rule.
+
 ## 6. State & data
 
 6.1 No global state library. Cross-cutting state is React Context at `apps/<app>/app/providers.tsx`. Biome's `noRestrictedImports` keeps the common ones out of `apps`.
@@ -117,7 +121,7 @@ An arrow key on a physical axis, such as a slider track or a map cursor, stays p
 
 The `no-client-gateway-access` Biome plugin gates the rule. It also keeps a runtime `auth` import out of a `'use client'` module.
 
-6.4 A client request to `/api/*` goes through TanStack Query. A `<feature>-api.ts` file holds the requests, and a `<feature>-queries.ts` file holds the query keys and the `use<Thing>()` hooks. When a server page fetches the data first, give it to the query as `initialData`. A mutation writes its result into the cache with `setQueryData`.
+6.4 A client request to `/api/*` goes through TanStack Query. A `<feature>-api.ts` file holds the requests, and a `<feature>-queries.ts` file holds the query keys and the `use<Thing>()` hooks. When a server page fetches the data first, wrap its read in `seed`, and spread `seededQuery` of it into the query (`shared/queries`). Do not give it as a plain `initialData`, which fills only an empty entry. A mutation writes its result into the cache with `setQueryData`.
 
 ## 7. Forms
 
@@ -188,6 +192,8 @@ A `finally` in the case does not run after a timeout while the body waits. Thus 
 
 10.10 Each Biome plugin in `.biome/plugins/` has fixtures in `biome-plugin-boundary.test.ts`. A fixture line that ends in `// flag` must get a diagnostic from its plugin, and each other line must get none. A new plugin adds fixtures that it reports and fixtures that it does not report. The gate proves the pattern of a plugin, not its `includes` in `biome.json`.
 
+10.11 A browser test waits for a signal with a deadline, never for a fixed time. Machine speed can change when a test passes, but never whether it passes. A deadline goes through `budget()`, which scales on CI. A hold goes through `pause()` in `helpers/wall-clock.ts`, which gives its reason. A `budget()` wait stays below the time limit of its case. `browser-wait-boundary.test.ts` holds the rule. The `Browser stress` workflow (`browser-stress.yml`) runs the browser suite each week under CPU load, with fixed shuffle seeds. Replay a red run with `VITEST_SEED=<seed> CI=1 pnpm -F ui test:browser`.
+
 ## 11. Environment
 
 11.1 [`NEXT_PUBLIC_*`](https://nextjs.org/docs/pages/guides/environment-variables) is client, else server-only. Confine raw `process.env` reads to a config edge. Today the one reader is `env.ts` in the `auth` package (`BIFROST_URL`, `CLIENT_IP_SECRET`). Other code reaches env through them. Biome's `noProcessEnv` pins it in `apps`, `auth`, and `shared`; `ui` keeps its `NODE_ENV` checks for development warnings.
@@ -206,7 +212,7 @@ Do not restate the type or document a self-evident field. Mark a documented help
 
 A change that adds, removes, or renames an export updates the matching doc in the same commit. A new component goes in `COMPONENTS.md` under its domain bucket; any other new export gets a one-line summary in its doc. `surface-index.test.ts` checks every doc except `RECIPES` for a missing entry. [`packages/ui/REFERENCE.md`](packages/ui/REFERENCE.md) is the hub, so keep its surface map and its §2 boundary current.
 
-12.3 Audits under [`packages/ui/docs/audits/`](packages/ui/docs/audits) are point-in-time, single-lens sweeps named `{date}-{LENS}-AUDIT.md`; a documentation sweep is a `{date}-DOC-AUDIT.md`.
+12.3 Audits under [`packages/ui/docs/audits/`](packages/ui/docs/audits) are point-in-time sweeps of one area or one lens, named `{date}-{TOPIC}-AUDIT.md`; a documentation sweep is a `{date}-DOC-AUDIT.md`.
 
 12.4 An audit is a living record while it holds an open finding: resolve each row in place, against the pull request that closed it. Cite the pull request, not a branch commit, because a squash merge discards the branch. Delete the file once every finding is resolved, because the pull requests it names hold the history. Never name an audit from code, or from a document that outlives it; the reference dangles when the audit goes.
 
