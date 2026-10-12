@@ -18,8 +18,6 @@ describe('scanClasses', () => {
 	})
 })
 
-// The cases use names that are not Tailwind classes. The docs stylesheet
-// scans this folder, so a real class here gets into its CSS.
 describe('expandBraces', () => {
 	it.each([
 		['plain', ['plain']],
