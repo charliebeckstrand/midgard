@@ -50,7 +50,7 @@ index 5407c9bdb0d97660e9df6435f504f85b803aa209..6ccf42b7238c91fa1ea694b72a5ff0e2
  	};
  }
 +function preloadRouteImports(route) {
-+	for (let href of route.imports ?? []) {
++	for (let href of [route.module, ...route.imports ?? []]) {
 +		if (document.querySelector(`link[rel="modulepreload"][href="${href}"]`)) continue;
 +		let link = document.createElement("link");
 +		link.rel = "modulepreload";
@@ -115,7 +115,7 @@ index 5407c9bdb0d97660e9df6435f504f85b803aa209..6ccf42b7238c91fa1ea694b72a5ff0e2
  	};
  }
 +function preloadRouteImports(route) {
-+	for (let href of route.imports ?? []) {
++	for (let href of [route.module, ...route.imports ?? []]) {
 +		if (document.querySelector(`link[rel="modulepreload"][href="${href}"]`)) continue;
 +		let link = document.createElement("link");
 +		link.rel = "modulepreload";
