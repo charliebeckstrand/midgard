@@ -69,14 +69,11 @@ Side behavior, such as a preload or a pause on hover, keeps the default.
 | The grab cursors of a surface that the reader drags | `hannou.grab` in `recipes/kiso/hannou/cursor.ts` | `grab-cursor-boundary.test.ts` |
 | A box that scrolls on the inline axis, with the fade on the edge that has more content behind it | `omote.rail` in `recipes/kiso/omote/rail.ts`; the `scroll-fade-inline` utility in `core/scroll/fade.ts` draws the fade in CSS, with no script | `inline-scroll-boundary.test.ts` |
 | The reduced-motion setting of the reader | `usePrefersReducedMotion` in `ui/hooks` | `no-motion-reduced-motion-hook` |
-| An element that Motion animates | `m` from `primitives/reduced-motion/reduced-motion-elements`, under a `ReducedMotion` root from `primitives/reduced-motion`, which loads the features of Motion in a chunk after it mounts | `no-full-motion-component` |
+| An element that Motion animates | `m` from `primitives/reduced-motion/reduced-motion-elements`, under a `ReducedMotion` root from `primitives/reduced-motion`, which loads the features of Motion in a chunk after it mounts. An HTML `m` element is `inert` while it exits under `AnimatePresence`, and `useA11yRoving` skips each item under an `inert` ancestor | `no-full-motion-component` |
 | A boolean ARIA state or `data-*` attribute | `ariaAttr` and `dataAttr` in `ui/core` | `no-hand-written-bool-attr` |
 | A value held inside a range | `clamp` in `src/utilities` | `no-hand-written-clamp` |
-| An element that exits under `AnimatePresence`, which must not keep a row that roving reaches | `useMountExitInert` in `primitives/mount/use-mount-exit-inert.ts`; the exiting element gives it to `inert`, and `useA11yRoving` skips each item under an `inert` ancestor | `exit-inert-boundary.test.ts` |
 
 An arrow key on a physical axis, such as a slider track or a map cursor, stays physical. The logical-arrow gate lists each such file with its reason.
-
-An `AnimatePresence` site whose exiting child holds no row of a roving container outside it can skip the exit-inert rule. The exit-inert gate lists each such file with its reason.
 
 ## 4. TypeScript
 

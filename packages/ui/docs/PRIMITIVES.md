@@ -39,7 +39,7 @@ import { TouchTarget } from 'ui/primitives/touch-target'
 | `density` | The density context: one `DensityStep`, the same value as the `data-density` of the nearest scope. `Density` opens a scope, and `useDensityStep` resolves the step. A control slot is a scope one step below its host, in CSS only, and no step is below `xs`. A panel that the slot opens takes the step of the host. | `Density`, `useDensityStep`, `useDensityScope` |
 | `direction` | The direction context. `Direction` opens a scope in context only, and `LocaleProvider` `dir` also writes the attribute. A portal cannot see a raw `dir` attribute. | `Direction`, `useDirectionScope`, `TextDirection` |
 | `control` | Outer chrome wrapper with the shared focus ring, border, and disabled state for form inputs. | `ControlFrame` |
-| `mount` | The shared hold behind each inactive panel: `useMountHold` resolves a `Mount` policy, and `MountHold` applies it through `<Activity>`. A trigger asks `useMountsEveryPanel` whether `aria-controls` can name a closed panel. The deep-import module `mount/mount-held-motion` gives Accordion and Collapse the motion of a held panel. The deep-import module `mount/use-mount-exit-inert` makes a Tree or JsonTree group inert while it exits. | `useMountHold`, `MountHold`, `Mount`, `MountHoldState`, `useMountsEveryPanel` |
+| `mount` | The shared hold behind each inactive panel: `useMountHold` resolves a `Mount` policy, and `MountHold` applies it through `<Activity>`. A trigger asks `useMountsEveryPanel` whether `aria-controls` can name a closed panel. The deep-import module `mount/mount-held-motion` gives Accordion and Collapse the motion of a held panel. | `useMountHold`, `MountHold`, `Mount`, `MountHoldState`, `useMountsEveryPanel` |
 | `current` | Shared active-panel cascade for Tabs and Nav: the active value, the `mount` policy, and the `animate` style of a switch. `CurrentScrollScript` scrolls each current item into view before the first paint. | `CurrentContext`, `useCurrent`, `useCurrentState`, `CurrentContent`, `CurrentContents`, `CurrentScrollScript` |
 | `query` | Query context for type-ahead roots (Combobox, CommandPalette). A consumer that filters items reads the deferred query alone. | `QueryContext`, `useQuery`, `useQueryValue`, `QueryContextValue`, `DeferredQueryContext`, `useDeferredQuery` |
 | `active-indicator` | Motion shared-element marker that morphs between sibling nav/tab items via a scoped `layoutId`. | `ActiveIndicatorScope`, `useActiveIndicator`, `ActiveIndicator` |
@@ -51,7 +51,7 @@ import { TouchTarget } from 'ui/primitives/touch-target'
 
 | Primitive | Summary | Key exports |
 |---|---|---|
-| `reduced-motion` | The root of each library part that animates with Motion. It loads the Motion features in a chunk, and bridges reduced motion into `MotionConfig`. | `ReducedMotion` |
+| `reduced-motion` | The root of each library part that animates with Motion. It loads the Motion features in a chunk, and bridges reduced motion into `MotionConfig`. An HTML `m` element of `reduced-motion-elements` is `inert` while it exits under `AnimatePresence`. | `ReducedMotion` |
 | `touch-target` | Floors the hit target to WCAG pointer minimums (24px fine / 44px coarse) with no change to the layout. A container of small hosts sets `--touch-target-gap-x` or `--touch-target-gap-y` to its gap. | `TouchTarget` |
 
 ---

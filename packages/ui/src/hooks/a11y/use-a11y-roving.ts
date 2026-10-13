@@ -68,7 +68,8 @@ export function queryItems(container: HTMLElement | null, selector: string): HTM
 
 /**
  * The items that a key can reach: each `selector` match inside `container`
- * that is not `inert` and has no `inert` ancestor (`useMountExitInert`).
+ * that is not `inert` and has no `inert` ancestor, such as an `m` element
+ * while it exits.
  *
  * @remarks
  * The caller makes sure that `container` itself has no inert ancestor, so the
