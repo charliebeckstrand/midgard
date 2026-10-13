@@ -239,6 +239,43 @@ describe('Input defaultValue under a binding (§7.2)', () => {
 			expect(screen.getByRole('button', { name: 'Clear' })).toBeInTheDocument()
 		})
 
+		it('shows the clear button over text typed while clearable was off', async () => {
+			const user = setupUser()
+
+			const { container, rerender } = renderUI(<Input clearable={false} aria-label="Photo" />)
+
+			await user.type(getSlot(container, 'input'), 'abc')
+
+			rerender(<Input clearable aria-label="Photo" />)
+
+			expect(screen.getByRole('button', { name: 'Clear' })).toBeInTheDocument()
+		})
+
+		it('shows no clear button after a form reset that ran while clearable was off', async () => {
+			const user = setupUser()
+
+			const form = (clearable: boolean) => (
+				<form>
+					<Input clearable={clearable} aria-label="Photo" />
+					<button type="reset">Reset</button>
+				</form>
+			)
+
+			const { container, rerender } = renderUI(form(false))
+
+			await user.type(getSlot(container, 'input'), 'abc')
+
+			await user.click(screen.getByRole('button', { name: 'Reset' }))
+
+			await act(() => new Promise(requestAnimationFrame))
+
+			rerender(form(true))
+
+			expect(getSlot(container, 'input')).toHaveValue('')
+
+			expect(screen.queryByRole('button', { name: 'Clear' })).not.toBeInTheDocument()
+		})
+
 		it('puts the clear button before the suffix', () => {
 			const { container } = renderUI(
 				<Input clearable defaultValue="acme" suffix=".example.com" aria-label="Subdomain" />,
