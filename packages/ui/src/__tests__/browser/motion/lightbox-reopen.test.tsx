@@ -249,4 +249,33 @@ describe('Lightbox reopened during the return (real browser)', () => {
 			expect(getComputedStyle(photoIn(before)).opacity).toBe('1')
 		},
 	)
+
+	// A close during a step stops the slide where it paints. A reopen then
+	// slides the track back to rest, so the photo in the center is centered,
+	// and no neighbor shows at the edge.
+	it('puts the track at rest after a close during a step and a reopen', async () => {
+		renderUI(<Gallery />)
+
+		await open(0)
+
+		const track = present(slot(0).parentElement, 'the track')
+
+		const slide = hold(track, 0.5)
+
+		await userEvent.click(screen.getByRole('button', { name: 'Next photo' }))
+
+		await slide
+
+		await startReturn()
+
+		thumbnail(0).click()
+
+		await expect.poll(still).toBe(true)
+
+		expect(count()).toBe('1 / 5')
+
+		expect(getComputedStyle(track).transform).toBe('none')
+
+		expect(getComputedStyle(slot(0)).transform).toBe('none')
+	})
 })
