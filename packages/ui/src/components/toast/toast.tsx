@@ -60,7 +60,8 @@ export function Toast({ position = 'bottom-right' }: ToastProps) {
 	if (!hydrated) return null
 
 	return createPortal(
-		<ReducedMotion>
+		// `layout`: each toast FLIPs into the slot of a toast that leaves.
+		<ReducedMotion layout>
 			{/* Not itself a live region: each toast carries its own `role` (status /
 			    alert) mapping severity to politeness directly. */}
 			<div data-slot="toast-viewport" className={cn(k.viewport({ position }))}>

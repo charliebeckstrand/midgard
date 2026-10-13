@@ -4,8 +4,6 @@ import { type KeyboardEvent, type MouseEvent, type Ref, useRef } from 'react'
 import { cn, composeEventHandlers } from '../../core'
 import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { ReducedMotion } from '../../primitives/reduced-motion'
-import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
 import { isPrimaryPress } from '../../utilities/primary-press'
 import { Button, type ButtonProps } from '../button'
@@ -176,18 +174,14 @@ export function HoldButton({
 			onBlur={composeEventHandlers(onBlur, handleBlur, alwaysEnd)}
 			onClick={handleClick}
 		>
-			{/* A Motion element holds its rest scale as a transform string. For a plain span,
-			Motion reads the computed matrix. A matrix of scale 0 does not interpolate, so
-			the first hold would jump to full. The element holds the string only when the
-			features that a `ReducedMotion` root loads have arrived. */}
-			<ReducedMotion>
-				<m.span
-					ref={fillRef}
-					aria-hidden="true"
-					initial={{ transform: 'scaleX(0)' }}
-					className="pointer-events-none absolute inset-0 origin-left rtl:origin-right bg-current/20"
-				/>
-			</ReducedMotion>
+			<span
+				ref={fillRef}
+				aria-hidden="true"
+				// An inline transform, not a `scale-x-0` class: Tailwind sets `scale`,
+				// which the `transform` that Motion writes does not replace.
+				style={{ transform: 'scaleX(0)' }}
+				className="pointer-events-none absolute inset-0 origin-left rtl:origin-right bg-current/20"
+			/>
 			<span className="relative inline-flex items-center gap-[inherit]">{children}</span>
 		</Button>
 	)
