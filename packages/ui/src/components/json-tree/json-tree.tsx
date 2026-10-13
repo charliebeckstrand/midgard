@@ -8,7 +8,6 @@ import { useStableEvent } from '../../hooks/use-stable-event'
 import { k } from '../../recipes/kata/json-tree'
 import { treeMoveTarget } from '../tree/tree-keyboard'
 import { JsonTreeContext } from './context'
-import { ROVING_ITEM_SELECTOR } from './json-tree-constants'
 import { jsonTreeMoveForKey } from './json-tree-keyboard'
 import { JsonTreeNode } from './json-tree-node'
 import {
@@ -189,7 +188,8 @@ export function JsonTree({
 	useJsonTreeSearchSeed(controlled ? matchPaths : undefined, expandControlled)
 
 	const handleRovingKeyDown = useA11yRoving(ref, {
-		itemSelector: ROVING_ITEM_SELECTOR,
+		// An exiting group is inert, and roving skips its rows.
+		itemSelector: '[role="treeitem"]',
 		orientation: 'vertical',
 		// The recursive variant gives its one Tab stop to roving, which moves the
 		// stop to the row that takes focus. Then Tab re-enters on the row that the

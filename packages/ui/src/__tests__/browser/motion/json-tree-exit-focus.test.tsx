@@ -71,7 +71,7 @@ describe('JsonTree exiting group (real Motion)', () => {
 
 		expect(document.activeElement).toBe(last)
 
-		expect(group).toHaveAttribute('data-exiting')
+		expect(group).toHaveAttribute('inert')
 
 		await waitFor(() => expect(group).not.toBeInTheDocument())
 
@@ -89,14 +89,14 @@ describe('JsonTree exiting group (real Motion)', () => {
 
 		press('ArrowLeft')
 
-		expect(group).toHaveAttribute('data-exiting')
+		expect(group).toHaveAttribute('inert')
 
 		press('ArrowRight')
 
 		// The open keeps the same node, so the mark must go.
 		expect(groupOf(branch)).toBe(group)
 
-		expect(group).not.toHaveAttribute('data-exiting')
+		expect(group).not.toHaveAttribute('inert')
 
 		press('ArrowDown')
 

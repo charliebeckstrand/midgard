@@ -67,6 +67,28 @@ export function queryItems(container: HTMLElement | null, selector: string): HTM
 }
 
 /**
+ * The items that a key can reach: each `selector` match inside `container`
+ * with no `inert` ancestor. An exiting group keeps its rows in the DOM until
+ * its animation ends, and the group is inert for that time. A row in it then
+ * unmounts, so a key must not move to it.
+ *
+ * @remarks
+ * The caller makes sure that `container` itself has no inert ancestor. Thus
+ * `closest` finds only an ancestor inside `container`.
+ *
+ * @internal
+ */
+function reachableItems(container: HTMLElement | null, selector: string): HTMLElement[] {
+	const items = queryItems(container, selector)
+
+	// Most containers hold no inert subtree. One query then spares a walk up
+	// from each item.
+	if (!container?.querySelector('[inert]')) return items
+
+	return items.filter((el) => !el.closest('[inert]'))
+}
+
+/**
  * Move the virtual-mode active marker to `items[index]`: shifts `data-active`
  * and, when `activeDescendantRef` is given, points `aria-activedescendant` on
  * the owner at the active item. By default it also mirrors `aria-selected`
@@ -615,7 +637,9 @@ type RovingKeyContext = {
 /**
  * Resolves the per-keystroke {@link RovingKeyContext} plus the current active
  * element and index. It is null when there's nothing to navigate: `items` is
- * empty in DOM mode, `itemSource.count` is 0 in indexed mode. Indexed mode
+ * empty in DOM mode, or `itemSource.count` is 0 in indexed mode. It is also
+ * null when `container` has an `inert` ancestor. `items` leaves out each item
+ * under an inert ancestor ({@link reachableItems}). Indexed mode
  * (an `itemSource`, paired with `activeIndexRef` in virtual mode) reads the
  * current index off the source, instead of a DOM scan
  * ({@link resolveIndexedCurrentIndex}). A DOM scan cannot see an active row
@@ -637,6 +661,10 @@ function resolveRovingContext(
 ): { ctx: RovingKeyContext; active: HTMLElement | null; currentIndex: number } | null {
 	const isVirtual = mode === 'virtual'
 
+	// An inert container has nothing that a key can reach. In virtual mode, focus
+	// stays on an owner outside it, such as the trigger of a closing menu.
+	if (container?.closest('[inert]')) return null
+
 	// None of the keydown paths of indexed mode read `items`; skip the DOM query
 	// rather than run it (plus the array allocation) on every keystroke —
 	// including arrow-key auto-repeat — for a dead value. Virtual mode also needs
@@ -644,7 +672,7 @@ function resolveRovingContext(
 	const indexed =
 		config.itemSource && (!isVirtual || config.activeIndexRef) ? config.itemSource : null
 
-	const items = indexed ? [] : queryItems(container, itemSelector)
+	const items = indexed ? [] : reachableItems(container, itemSelector)
 
 	const itemCount = indexed ? indexed.count : items.length
 
@@ -902,8 +930,9 @@ function handleActivationKey(
 		const node = id ? document.getElementById(id) : null
 
 		// A jump landed on a not-yet-mounted row (the move's mount watcher
-		// hasn't caught up yet); nothing to click until it renders.
-		clickWithKeyModifiers(node, event)
+		// hasn't caught up yet); nothing to click until it renders. A row under an
+		// inert ancestor exits, so it takes no click either.
+		if (!node?.closest('[inert]')) clickWithKeyModifiers(node, event)
 
 		return true
 	}
@@ -1168,6 +1197,13 @@ export type RovingOptions = NavigationConfig & {
  * In a right-to-left container, `ArrowLeft` and `ArrowRight` swap, so each
  * one steps the same way through the reading order in both directions. The
  * hook reads the computed `direction` of the container on each press.
+ *
+ * A key skips each item under an `inert` ancestor: an arrow, Home, End,
+ * type-ahead, the Tab trap, and the activation key. An exiting group is inert
+ * until it unmounts, so focus does not move to a row that then goes. A
+ * container under an inert ancestor ignores each key. The `tabIndex` ownership
+ * still reads every item. A widget can mount inside an inert layer, and its
+ * Tab stop must be in place when the layer goes live.
  *
  * @returns A stable `onKeyDown` handler to attach to the container; it reads
  * items from `containerRef` on each press, so the item set can change between

@@ -1,9 +1,10 @@
 'use client'
 
-import { AnimatePresence, useIsPresent } from 'motion/react'
+import { AnimatePresence } from 'motion/react'
 import { memo, type ReactNode, useId, useMemo, useState } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useKeyedValue } from '../../hooks/use-keyed-store'
+import { useMountExitInert } from '../../primitives/mount/use-mount-exit-inert'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/json-tree'
@@ -243,24 +244,23 @@ type JsonTreeGroupProps = {
 /**
  * The child group of an open branch. It is the direct child of the
  * `AnimatePresence` of the branch, so it reads the presence of the group.
- * While the group exits, it has `data-exiting`, and `ROVING_ITEM_SELECTOR`
- * then skips its rows. `useIsPresent` does not hold the removal, unlike
- * `usePresence`.
+ * While the group exits, it is `inert` ({@link useMountExitInert}), and roving
+ * then skips its rows.
  *
  * @internal
  */
 function JsonTreeGroup({ id, isArray, children }: JsonTreeGroupProps) {
-	const present = useIsPresent()
+	const exiting = useMountExitInert()
 
 	return (
 		<m.div
 			id={id}
 			role="group"
 			data-slot="json-group"
-			data-exiting={dataAttr(!present)}
 			// No clip of its own: the motion clips the group only while its height
 			// moves.
 			{...k.motion}
+			inert={exiting}
 		>
 			{/* The children are one depth in, and the close bracket aligns with the header. */}
 			<div className={cn(k.indent)}>{children}</div>

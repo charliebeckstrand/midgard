@@ -4,6 +4,10 @@ export const ITEM_SELECTOR = '[role="treeitem"]'
  * The items that roving reaches: each treeitem that is not in a closed group.
  * Under `mount="lazy"` or `"always"`, a closed group holds its items at
  * `display: none`, and a hidden item cannot take focus.
+ *
+ * Under `mount="active"`, a closed group exits with the props of its last open
+ * render, so it keeps `data-open`. `TreeGroup` makes it `inert` for the exit,
+ * and `useA11yRoving` skips each item under an `inert` ancestor.
  */
 export const ROVING_ITEM_SELECTOR = `${ITEM_SELECTOR}:not([data-slot="tree-group"]:not([data-open]) *)`
 

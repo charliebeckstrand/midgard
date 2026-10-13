@@ -1264,9 +1264,9 @@ describe('JsonTreeNodeRow collapsible', () => {
 
 describe('JsonTree exiting group', () => {
 	// A closed group stays in the DOM for its exit, and the real `JsonTreeGroup`
-	// marks it with `data-exiting`. The mock `AnimatePresence` removes a group at
-	// once, so this test sets the mark by hand. The browser `motion` project
-	// covers the real exit.
+	// makes it `inert`. The mock `AnimatePresence` removes a group at once, so
+	// this test sets the mark by hand. The browser `motion` project covers the
+	// real exit.
 	it('moves roving focus over the rows of an exiting group', () => {
 		const { container } = renderUI(
 			<JsonTree data={{ a: { x: 1, y: 2 }, b: 3 }} defaultExpandDepth={2} />,
@@ -1283,7 +1283,7 @@ describe('JsonTree exiting group', () => {
 			'group of a',
 		)
 
-		group.setAttribute('data-exiting', '')
+		group.setAttribute('inert', '')
 
 		branch.focus()
 
