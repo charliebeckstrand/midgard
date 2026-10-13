@@ -21,9 +21,10 @@ type InputFrameProps = {
  * Density-scoped affix frame around the bare `<input>`. Each prefix and suffix
  * slot is a scope one step below the frame (`data-density="slot"`), so the slot
  * content renders one step smaller than the input. One definition of
- * "present" serves both the wrapper class and the render guards. A null or
- * false affix styles the frame while rendering nothing, and `0` would leak as a
- * bare text node through a plain `&&`.
+ * "present" serves both the wrapper class and the render guards. A null,
+ * false, or `''` affix is absent. Without this test, it styles the frame and
+ * renders an empty slot. A `0` affix is present, and a plain `&&` would leak it
+ * as a bare text node.
  *
  * @internal
  */
@@ -36,9 +37,9 @@ export function InputFrame({
 	dataGroup,
 	dataGroupOrientation,
 }: InputFrameProps) {
-	const hasPrefix = prefix != null && prefix !== false
+	const hasPrefix = prefix != null && prefix !== false && prefix !== ''
 
-	const hasSuffix = suffix != null && suffix !== false
+	const hasSuffix = suffix != null && suffix !== false && suffix !== ''
 
 	const hasAffix = hasPrefix || hasSuffix
 

@@ -31,6 +31,17 @@ describe('Input', () => {
 
 		expect(container.textContent).toBe('')
 
+		const bareFrame = getSlot(container, 'control-frame').className
+
+		rerender(<Input prefix="" suffix="" />)
+
+		// An empty string is absent too: a slot span would show only its padding.
+		expect(container.querySelector('[data-slot="prefix"]')).toBeNull()
+
+		expect(container.querySelector('[data-slot="suffix"]')).toBeNull()
+
+		expect(getSlot(container, 'control-frame').className).toBe(bareFrame)
+
 		rerender(<Input suffix={0} />)
 
 		// A 0 affix is real content and renders inside the suffix slot,
