@@ -58,7 +58,8 @@ const cancelEveryDrop = () => true
  * @remarks
  * Client component. The board is a named `role="region"` (`<section>`), so the
  * type requires one of `aria-label` / `aria-labelledby`. While the columns
- * overflow the board, the board is also a tab stop.
+ * overflow the board, the board is also a tab stop. A consumer `ref` reaches
+ * the `<section>` element.
  *
  * **The board takes its data and its structure apart, and the keys join them.**
  * `columns` carries the ordering the board reorders, and the children carry
@@ -79,6 +80,7 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 	disabled,
 	children,
 	className,
+	ref,
 	...labelProps
 }: KanbanProps<T, C>) {
 	const interactive = !disabled && !!onReorder
@@ -132,7 +134,7 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 	// also a tab stop, so a keyboard user can scroll it.
 	const scrollRegionRef = useScrollRegion()
 
-	const boardRef = useComposedRef(containerRef, scrollRegionRef)
+	const boardRef = useComposedRef(containerRef, scrollRegionRef, ref)
 
 	// Card-facing value: stays referentially stable through a pointer drag (which
 	// moves only activeId/columnItemIds), so cards don't re-render per drag move.
