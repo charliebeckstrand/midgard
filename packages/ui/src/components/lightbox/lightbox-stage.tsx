@@ -199,11 +199,15 @@ export function LightboxStage({
 	const followPresence = useEffectEvent((present: boolean) => {
 		// The viewer opens, or opens again during the return: the photo rises. A
 		// reopen stops the return, and the controls show the photo in the center.
+		// A close can stop a step or a swipe midway, so the track slides back to
+		// rest as the photo rises.
 		if (present) {
 			if (leaving.current) {
 				setAim(null)
 
 				flight.raise(home())
+
+				track.settle()
 			}
 
 			leaving.current = false

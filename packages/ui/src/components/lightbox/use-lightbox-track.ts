@@ -57,6 +57,11 @@ export type LightboxTrack = {
 	 * track and the photo where they are.
 	 */
 	halt: () => void
+	/**
+	 * Slides the track back to rest from where it paints, after a {@link halt}.
+	 * Under reduced motion it puts the track at rest at once.
+	 */
+	settle: () => void
 	/** The zoom of the photo in the center. */
 	zoom: LightboxZoom
 	/** The pointer handlers of the stage. */
@@ -654,11 +659,25 @@ export function useLightboxTrack(
 	const halt = () => {
 		const controls = running.current
 
+		const track = trackRef.current
+
 		running.current = null
 
-		sliding.current = null
+		// A slide stops where it paints, and the track keeps that travel, so that
+		// `settle` and the next press start from it. `stop` writes the value that
+		// it stopped at in a later frame, over a `settle` that starts before it,
+		// so the slide is canceled instead.
+		if (controls && track && sliding.current !== null) {
+			travel.current = paintedTravel(track)
 
-		controls?.stop()
+			controls.cancel()
+
+			paint(track, travel.current)
+		} else {
+			controls?.stop()
+		}
+
+		sliding.current = null
 
 		for (const fade of fading.current) fade.stop()
 
@@ -675,6 +694,7 @@ export function useLightboxTrack(
 	return {
 		step,
 		halt,
+		settle,
 		zoom,
 		handlers: {
 			onPointerDown: (event) => {
