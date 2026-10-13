@@ -10,7 +10,9 @@ import { present, renderUI } from '../helpers'
 describe('Code in a right-to-left paragraph (real browser)', () => {
 	/** The left edge of the character at `offset` in the text node of `node`. */
 	function leftOf(node: HTMLElement, offset: number): number {
-		const text = present(node.firstChild, 'text')
+		const text = node.firstChild
+
+		if (!text) throw new Error('expected a text node')
 
 		const range = document.createRange()
 
