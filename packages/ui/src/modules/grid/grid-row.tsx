@@ -382,18 +382,22 @@ export function GridRowImpl<T>({
 	// not change with the reduced-motion preference, so the element type holds.
 	const animate = animateSortRows && sortable == null
 
-	// One element, chosen per row. `layout` / `transition` stay `undefined` on the
-	// plain row — React drops undefined props, so nothing lands on a static `<tr>`.
+	// One element, chosen per row. Only a motion row gets the motion props: React
+	// rejects an unknown camelCase prop on a DOM element, even an undefined one.
 	const Row = (animate ? MotionTableRow : TableRow) as typeof MotionTableRow
+
+	// Under reduced motion the row moves with no glide. `layoutDependency` limits
+	// the measure to a render that moves the row: a selection or an edit
+	// re-renders the row in place, and needs no measure.
+	const motionProps = animate && {
+		layout: reduceMotion ? false : ('position' as const),
+		layoutDependency: dataRowIndex,
+		transition: k.motion.sort,
+	}
 
 	return (
 		<Row
-			// Under reduced motion the row moves with no glide. `layoutDependency`
-			// limits the measure to a render that moves the row: a selection or an
-			// edit re-renders the row in place, and needs no measure.
-			layout={animate ? (reduceMotion ? false : 'position') : undefined}
-			layoutDependency={animate ? dataRowIndex : undefined}
-			transition={animate ? k.motion.sort : undefined}
+			{...motionProps}
 			// The `<tr>` is the row's dnd-kit sortable node when reorderable; its
 			// transform/transition ride the inline style, and `data-dragging` lifts it.
 			// A windowed master-detail body measures the row. Row reorder, which
