@@ -31,12 +31,18 @@ export type KanbanProps<T, C extends KanbanColumnBase<T>> = AccessibleName &
 		/**
 		 * Disable all drag / keyboard reorder interaction. It has an effect only
 		 * when `onReorder` is set. A board with no `onReorder` is read-only.
+		 * When the board becomes disabled or read-only during a pointer drag, the
+		 * drop does not move the card. The board cancels the drag, and when
+		 * `onReorder` is set, it reports the columns from the drag start.
 		 * @defaultValue false
 		 */
 		disabled?: boolean
 		children?: ReactNode
 		className?: string
 	}
+
+// A drop on a board that is not interactive becomes a cancel.
+const cancelEveryDrop = () => true
 
 /**
  * Multi-column board over `@dnd-kit`. Reorders cards within and across columns
@@ -52,7 +58,8 @@ export type KanbanProps<T, C extends KanbanColumnBase<T>> = AccessibleName &
  * @remarks
  * Client component. The board is a named `role="region"` (`<section>`), so the
  * type requires one of `aria-label` / `aria-labelledby`. While the columns
- * overflow the board, the board is also a tab stop.
+ * overflow the board, the board is also a tab stop. A consumer `ref` reaches
+ * the `<section>` element.
  *
  * **The board takes its data and its structure apart, and the keys join them.**
  * `columns` carries the ordering the board reorders, and the children carry
@@ -73,6 +80,7 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 	disabled,
 	children,
 	className,
+	ref,
 	...labelProps
 }: KanbanProps<T, C>) {
 	const interactive = !disabled && !!onReorder
@@ -126,7 +134,7 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 	// also a tab stop, so a keyboard user can scroll it.
 	const scrollRegionRef = useScrollRegion()
 
-	const boardRef = useComposedRef(containerRef, scrollRegionRef)
+	const boardRef = useComposedRef(containerRef, scrollRegionRef, ref)
 
 	// Card-facing value: stays referentially stable through a pointer drag (which
 	// moves only activeId/columnItemIds), so cards don't re-render per drag move.
@@ -159,8 +167,13 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 					accessibility={accessibility}
 					onDragStart={interactive ? handleDragStart : undefined}
 					onDragOver={interactive ? handleDragOver : undefined}
-					onDragEnd={interactive ? handleDragEnd : undefined}
-					onDragCancel={interactive ? handleDragCancel : undefined}
+					// dnd-kit reads the handlers and `cancelDrop` at the drop, from the
+					// latest props. The end and the cancel stay wired, so a drag that
+					// continues after the board turns non-interactive still ends.
+					// `cancelDrop` then makes the drop a cancel, and the cancel reverts.
+					cancelDrop={interactive ? undefined : cancelEveryDrop}
+					onDragEnd={handleDragEnd}
+					onDragCancel={handleDragCancel}
 				>
 					<section
 						{...labelProps}

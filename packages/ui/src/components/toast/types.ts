@@ -3,8 +3,20 @@ import type { ReactNode } from 'react'
 /** Severity of a toast, mapped to the underlying `Alert` tone. */
 export type ToastSeverity = 'info' | 'neutral' | 'success' | 'warning' | 'error'
 
-/** Viewport corner the toast stack anchors to. */
-export type ToastPosition = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'
+/**
+ * Viewport corner the toast stack anchors to. A `start` or `end` corner follows
+ * the reading direction, so `bottom-end` is the bottom left corner in a
+ * right-to-left layout. A `left` or `right` corner stays physical.
+ */
+export type ToastPosition =
+	| 'top-right'
+	| 'top-left'
+	| 'bottom-right'
+	| 'bottom-left'
+	| 'top-start'
+	| 'top-end'
+	| 'bottom-start'
+	| 'bottom-end'
 
 /**
  * Why a toast left the queue, handed to {@link ToastData.onDismiss}.

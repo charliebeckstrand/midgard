@@ -64,10 +64,12 @@ export const k = defineRecipe(
 		 * the track to past its end, on a loop. A percentage in `translateX` is a
 		 * fraction of the width of the fill, so 300% is the width of the track.
 		 * The keyframes set `transform` directly, so Motion can give the loop to
-		 * the animation engine of the browser.
+		 * the animation engine of the browser. `rtl` is the same sweep in a
+		 * right-to-left track, where the fill starts at the right edge.
 		 */
 		sweep: {
 			animate: { transform: ['translateX(-100%)', 'translateX(300%)'] },
+			rtl: { transform: ['translateX(100%)', 'translateX(-300%)'] },
 			transition: { duration: 1.5, ease: ease.inOut, repeat: Number.POSITIVE_INFINITY },
 		},
 		gauge: {

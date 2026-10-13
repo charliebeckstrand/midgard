@@ -1,6 +1,6 @@
 'use client'
 
-import { LazyMotion, MotionConfig, MotionConfigContext } from 'motion/react'
+import { LazyMotion, MotionConfig } from 'motion/react'
 import { type ReactNode, use } from 'react'
 import { MotionFeaturesContext, ReducedMotionContext } from './context'
 import { motionFeatures } from './reduced-motion-features'
@@ -40,34 +40,31 @@ export type ReducedMotionProps = {
  * the platform.
  *
  * @remarks A root can render inside another root, for example a
- * `PopoverPanel` inside the `Portal` of a floating surface. When an ancestor
- * already loads the features that this root needs, this root adds no second
- * `LazyMotion`. When an ancestor already sets the same reduced-motion value,
- * this root adds no second `MotionConfig`. A `MotionConfig` merges its props
- * over the parent config, so the result is the same.
+ * `PopoverPanel` inside the `Portal` of a floating surface. Only the outermost
+ * root adds a `MotionConfig`, and the nested roots read its value. A nested root
+ * adds a `LazyMotion` only when it needs the layout features and the ancestor
+ * does not load them. Thus the shape of the tree depends only on the position
+ * of the root, and a change to the reduced-motion setting changes a prop, not
+ * the tree. React does not mount the subtree again.
  */
 export function ReducedMotion({ children, layout = false }: ReducedMotionProps) {
-	const reducedMotion = use(ReducedMotionContext) ? 'always' : 'user'
+	const reduced = use(ReducedMotionContext)
 
 	const outerFeatures = use(MotionFeaturesContext)
 
 	const features = layout ? 'layout' : 'animation'
 
-	let root = children
+	if (outerFeatures === 'layout' || outerFeatures === features) return children
 
-	if (outerFeatures === undefined || (layout && outerFeatures !== 'layout')) {
-		root = (
-			<MotionFeaturesContext value={features}>
-				<LazyMotion features={motionFeatures(features)} strict>
-					{root}
-				</LazyMotion>
-			</MotionFeaturesContext>
-		)
-	}
+	const root = (
+		<MotionFeaturesContext value={features}>
+			<LazyMotion features={motionFeatures(features)} strict>
+				{children}
+			</LazyMotion>
+		</MotionFeaturesContext>
+	)
 
-	if (use(MotionConfigContext).reducedMotion !== reducedMotion) {
-		root = <MotionConfig reducedMotion={reducedMotion}>{root}</MotionConfig>
-	}
+	if (outerFeatures !== undefined) return root
 
-	return root
+	return <MotionConfig reducedMotion={reduced ? 'always' : 'user'}>{root}</MotionConfig>
 }

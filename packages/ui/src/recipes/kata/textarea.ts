@@ -29,7 +29,7 @@ export const k = bridge.control(control, {
 		actions: [
 			'flex items-center justify-end mt-auto',
 			dan.gap.scale.sm,
-			'pr-2 pb-2',
+			'pe-2 pb-2',
 			...dan.gap.touch.x.sm,
 		],
 	},

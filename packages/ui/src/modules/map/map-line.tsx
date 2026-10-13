@@ -2,6 +2,7 @@
 
 import type { Transition } from 'motion/react'
 import { useMotionValue, useTransform } from 'motion/react'
+import type { SVGProps } from 'react'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { ROUTE_HIT_WIDTH, ROUTE_STROKE_WIDTH } from './engine/map-constants'
@@ -100,14 +101,28 @@ export function MapLine({
 		className,
 	}
 
+	if (!animate) return <path {...shape} />
+
+	return <MapLineDraw shape={shape} transition={transition} />
+}
+
+/** The drawing form of {@link MapLine}. A static line runs none of its hooks. @internal */
+function MapLineDraw({
+	shape,
+	transition,
+}: {
+	shape: Pick<
+		SVGProps<SVGPathElement>,
+		'd' | 'fill' | 'strokeWidth' | 'strokeLinecap' | 'strokeLinejoin' | 'className'
+	>
+	transition: Transition
+}) {
 	const still = usePrefersReducedMotion()
 
 	// The drawn share, and whether it paints. The two change on the same frame.
 	const drawn = useMotionValue(still ? 1 : 0)
 
 	const opacity = useTransform(drawn, (share) => (share > 0 ? 1 : 0))
-
-	if (!animate) return <path {...shape} />
 
 	return (
 		<m.path

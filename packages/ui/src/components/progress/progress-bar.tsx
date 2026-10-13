@@ -1,6 +1,7 @@
 'use client'
 
 import { cn } from '../../core'
+import { useIsRtl } from '../../hooks/use-is-rtl'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
@@ -67,11 +68,14 @@ export function ProgressBar({
 	const percent = determinate ? clamp(pct(value, 0, max), 0, 100) : 0
 
 	// The fill mounts at its value. A sweep up from zero on mount plays again
-	// each time a tab panel brings the bar back. The fill animates `width`,
-	// which is no transform, so the reduced-motion config of motion does not
-	// skip it. Under reduced motion the fill moves to each new value without a
+	// each time a tab panel brings the bar back. Motion reads the reduced-motion
+	// preference only when the fill mounts, so the fill reads the live preference
+	// itself. Under reduced motion the fill moves to each new value without a
 	// spring.
 	const still = usePrefersReducedMotion()
+
+	// The sweep runs from the inline start to the inline end.
+	const sweep = useIsRtl() ? k.sweep.rtl : k.sweep.animate
 
 	return (
 		<div
@@ -99,7 +103,7 @@ export function ProgressBar({
 					// from its mount, or where a change of the preference stops the sweep.
 					<m.div
 						className={cn(k.bar.fill({ color }), k.bar.indeterminate)}
-						animate={still ? undefined : k.sweep.animate}
+						animate={still ? undefined : sweep}
 						transition={k.sweep.transition}
 					/>
 				)}

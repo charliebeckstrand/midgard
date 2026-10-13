@@ -2,9 +2,18 @@
 
 import type { DragEndEvent, DragOverEvent, DragStartEvent } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
-import { type ReactNode, type RefObject, useCallback, useMemo, useRef, useState } from 'react'
+import {
+	type ReactNode,
+	type RefObject,
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { LIFT_INSTRUCTIONS } from '../../hooks/use-keyboard-lifted'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { useAnimationFrame } from '../../hooks/use-timeout'
 import { sameElements } from '../../utilities'
 import { kanbanAnnouncements, kanbanNames } from './kanban-announcements'
 import type { KanbanColumnBase } from './types'
@@ -133,6 +142,11 @@ function applyKanbanDragOver<T, C extends KanbanColumnBase<T>>(
  * slot where the card came into the column reports nothing more. A cancel after
  * a cross-column move reports the columns from the drag start, so the card goes
  * back.
+ *
+ * After a cross-column move, the hook ignores an over in the column that the
+ * card left. It does this until the frame after the moved columns commit. Until
+ * then, the collision check can read the column rects from before the move.
+ * Thus a drag near the edge of two columns does not flip the card between them.
  */
 export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 	columns,
@@ -202,8 +216,35 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 
 	const startColumns = useRef<C[]>(columns)
 
+	// The last cross-column move, until the frame after its columns commit.
+	// `from` is the column that the card left. `columns` are the columns before
+	// the move. `null` when no move waits for that frame.
+	const freshMove = useRef<{ from: string; columns: C[] } | null>(null)
+
+	const settleFrame = useAnimationFrame()
+
+	const clearFreshMove = () => {
+		settleFrame.clear()
+
+		freshMove.current = null
+	}
+
+	// The board measures the moved columns when they commit. An over in the
+	// column that the card left is the pointer again from the next frame.
+	useEffect(() => {
+		const fresh = freshMove.current
+
+		if (fresh === null || fresh.columns === columns) return
+
+		settleFrame.set(() => {
+			freshMove.current = null
+		})
+	}, [columns, settleFrame])
+
 	const handleDragStart = (event: DragStartEvent) => {
 		const cardId = String(event.active.id)
+
+		clearFreshMove()
 
 		startColumns.current = columns
 
@@ -215,14 +256,32 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 	}
 
 	const handleDragOver = (event: DragOverEvent) => {
+		const fresh = freshMove.current
+
+		const { over } = event
+
+		// The collision check can read the rects from before the last move. An
+		// over in the column that the card left then moves the card back.
+		if (fresh !== null && over && findColumn(String(over.id))?.id === fresh.from) return
+
+		const from = findColumnByCardId(String(event.active.id))?.id
+
 		const deps = { onReorder, columns, getKey, findColumnByCardId, findColumn }
 
-		if (applyKanbanDragOver(event, deps) && originColumns.current === null) {
-			originColumns.current = startColumns.current
-		}
+		if (!applyKanbanDragOver(event, deps)) return
+
+		if (originColumns.current === null) originColumns.current = startColumns.current
+
+		if (from === undefined) return
+
+		settleFrame.clear()
+
+		freshMove.current = { from, columns }
 	}
 
 	const handleDragEnd = (event: DragEndEvent) => {
+		clearFreshMove()
+
 		setActiveId(null)
 
 		setOriginColumnId(null)
@@ -267,6 +326,8 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 	}
 
 	const handleDragCancel = () => {
+		clearFreshMove()
+
 		setActiveId(null)
 
 		setOriginColumnId(null)

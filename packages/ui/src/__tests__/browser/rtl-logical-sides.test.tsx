@@ -1,14 +1,18 @@
 import { describe, expect, it } from 'vitest'
 import { HoldButton } from '../../components/hold-button'
+import { Slider } from '../../components/slider'
 import { Switch } from '../../components/switch'
 import { cn } from '../../core/cn'
 import { k as avatar } from '../../recipes/kata/avatar'
 import { k as chat } from '../../recipes/kata/chat-message'
 import { k as dl } from '../../recipes/kata/description-list'
 import { k as markdown } from '../../recipes/kata/markdown'
+import { k as signaturePad } from '../../recipes/kata/signature-pad'
 import { k as stepper } from '../../recipes/kata/stepper'
 import { k as tabs } from '../../recipes/kata/tabs'
+import { k as textarea } from '../../recipes/kata/textarea'
 import { k as timeline } from '../../recipes/kata/timeline'
+import { kokkaku } from '../../recipes/kiso/kokkaku'
 import { present, renderUI } from '../helpers'
 
 /**
@@ -110,5 +114,33 @@ describe('logical sides under dir=rtl', () => {
 			return thumb.getBoundingClientRect().left
 		}
 		expect(left(true)).toBeLessThan(left(false))
+	})
+
+	it('user chat skeleton squares the bottom inline-end corner (bottom-left)', () => {
+		const s = rtl(cn(kokkaku.chat.bubble, kokkaku.chat.tail.user))
+		expect(s.borderBottomLeftRadius).not.toBe(s.borderTopLeftRadius)
+		expect(s.borderBottomRightRadius).toBe(s.borderTopRightRadius)
+	})
+
+	it('textarea actions row pads the inline end (left)', () => {
+		const s = rtl(cn(textarea.actions))
+		expect([s.paddingLeft, s.paddingRight]).toEqual(['8px', '0px'])
+	})
+
+	it('signature pad actions sit at the inline end (left)', () => {
+		const s = rtl(cn(signaturePad.actions))
+		expect(s.left).toBe('8px')
+	})
+
+	it('slider track fills from the inline start (right)', () => {
+		const { container } = renderUI(
+			<div dir="rtl">
+				<Slider aria-label="Volume" defaultValue={20} />
+			</div>,
+		)
+		const input = present(container.querySelector('input[type=range]'), 'slider')
+		// A script cannot read the style of the track pseudo-element, so read the
+		// direction that its gradient takes.
+		expect(getComputedStyle(input).getPropertyValue('--slider-run').trim()).toBe('to left')
 	})
 })

@@ -527,7 +527,11 @@ export function ChartFrame({
 			// run each label from its anchor into the plot. The bidi of the text
 			// itself still reads a right-to-left label in its own order.
 			direction="ltr"
-			className={cn('absolute left-0 top-0 block', k.drawing(spark))}
+			className={cn(
+				// biome-ignore lint/plugin/no-physical-side: the drawing keeps its physical axis, so it sits at the left edge of the plot
+				'absolute left-0 top-0 block',
+				k.drawing(spark),
+			)}
 			width={width}
 			height={height}
 			viewBox={`0 0 ${width} ${height}`}

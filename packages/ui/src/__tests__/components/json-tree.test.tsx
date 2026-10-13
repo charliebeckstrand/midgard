@@ -226,6 +226,31 @@ describe('JsonTree', () => {
 		expect(screen.queryByText('"value"')).not.toBeInTheDocument()
 	})
 
+	// The filter keeps "tags" for its key and drops each of its entries, so the
+	// branch is empty and forced closed. A press on it records nothing.
+	it.each<[string, (toggle: HTMLElement) => void]>([
+		['a click', (toggle) => fireEvent.click(toggle)],
+		['ArrowRight', (toggle) => fireEvent.keyDown(toggle, { key: 'ArrowRight' })],
+	])('records no toggle from %s on a branch that the filter forces closed', (_name, press) => {
+		const data = { name: 'Ada', tags: ['engineer', 'mathematician'] }
+
+		const { rerender } = renderUI(<JsonTree data={data} search={{ value: 'tags', filter: true }} />)
+
+		const toggle = screen.getByText('"tags"').closest('button')
+
+		if (!toggle) throw new Error('toggle not found')
+
+		press(toggle)
+
+		expect(toggle).toHaveAttribute('aria-expanded', 'false')
+
+		rerender(<JsonTree data={data} search={{ value: '', filter: true }} />)
+
+		expect(screen.getByText('"tags"').closest('button')).toHaveAttribute('aria-expanded', 'false')
+
+		expect(screen.queryByText('"engineer"')).not.toBeInTheDocument()
+	})
+
 	it.each([
 		['string', 'Ada', '"Ada"'],
 		['number', 42, '42'],
@@ -1234,5 +1259,40 @@ describe('JsonTreeNodeRow collapsible', () => {
 		expect(container.querySelector('[data-slot="json-node-toggle"]')).toBeNull()
 
 		expect(container.querySelector('[role="treeitem"]')).not.toHaveAttribute('aria-expanded')
+	})
+})
+
+describe('JsonTree exiting group', () => {
+	// A closed group stays in the DOM for its exit, and the real `JsonTreeGroup`
+	// marks it with `data-exiting`. The mock `AnimatePresence` removes a group at
+	// once, so this test sets the mark by hand. The browser `motion` project
+	// covers the real exit.
+	it('moves roving focus over the rows of an exiting group', () => {
+		const { container } = renderUI(
+			<JsonTree data={{ a: { x: 1, y: 2 }, b: 3 }} defaultExpandDepth={2} />,
+		)
+
+		const [, branch, , , last] = Array.from(
+			container.querySelectorAll<HTMLElement>('[role="treeitem"]'),
+		).map((row, index) => present(row, `row ${index}`))
+
+		if (!branch || !last) throw new Error('expected five rows')
+
+		const group = present(
+			document.getElementById(branch.getAttribute('aria-owns') ?? ''),
+			'group of a',
+		)
+
+		group.setAttribute('data-exiting', '')
+
+		branch.focus()
+
+		fireEvent.keyDown(branch, { key: 'ArrowDown' })
+
+		expect(document.activeElement).toBe(last)
+
+		fireEvent.keyDown(present(document.activeElement, 'focused row'), { key: 'ArrowUp' })
+
+		expect(document.activeElement).toBe(branch)
 	})
 })

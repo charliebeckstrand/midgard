@@ -87,7 +87,7 @@ const MapLegendEntry = memo(function MapLegendEntry({
 						data-slot="map-legend-detail"
 						tone="muted"
 						className={cn(
-							'shrink-0 text-right leading-tight whitespace-nowrap tabular-nums font-normal opacity-80',
+							'shrink-0 text-end leading-tight whitespace-nowrap tabular-nums font-normal opacity-80',
 							off && 'opacity-60',
 						)}
 					>

@@ -14,10 +14,17 @@ const viewport = defineRecipe({
 		'pointer-events-none',
 	],
 	position: {
+		// biome-ignore-start lint/plugin/no-physical-side: each of these positions names a physical corner
 		'top-right': 'justify-start right-0',
 		'top-left': 'justify-start left-0',
 		'bottom-right': 'justify-end right-0',
 		'bottom-left': 'justify-end left-0',
+		// biome-ignore-end lint/plugin/no-physical-side: each of these positions names a physical corner
+		// A `start` or `end` position follows the reading direction.
+		'top-start': 'justify-start start-0',
+		'top-end': 'justify-start end-0',
+		'bottom-start': 'justify-end start-0',
+		'bottom-end': 'justify-end end-0',
 	},
 	defaults: { position: 'bottom-right' },
 })

@@ -4,6 +4,7 @@ import { Combobox, ComboboxOption } from '../../../components/combobox'
 import { Dialog, DialogPanel, DialogTitle } from '../../../components/dialog'
 import { Listbox, ListboxOption } from '../../../components/listbox'
 import { Menu, MenuContent, MenuItem, MenuSub, MenuTrigger } from '../../../components/menu'
+import { Sheet, SheetPanel } from '../../../components/sheet'
 import { LocaleProvider } from '../../../providers/locale'
 import { fireEvent, renderUI, screen, waitFor } from '../../helpers'
 
@@ -134,5 +135,33 @@ describe('direction scopes across portals (real browser)', () => {
 		const option = await screen.findByRole('option', { name: 'Pear' })
 
 		expect(directionOf(option)).toBe('rtl')
+	})
+})
+
+describe('the start edge of a sheet under a direction scope (real browser)', () => {
+	it.each([
+		['the left edge outside a scope', undefined, 'left'],
+		['the right edge under an rtl provider', 'rtl', 'right'],
+	] as const)('docks a start sheet on %s', async (_name, dir, edge) => {
+		renderUI(
+			<LocaleProvider dir={dir}>
+				<Sheet open onOpenChange={() => {}}>
+					<SheetPanel side="start" aria-label="Filters" className="w-40">
+						Filters
+					</SheetPanel>
+				</Sheet>
+			</LocaleProvider>,
+		)
+
+		const panel = await screen.findByRole('dialog', { name: 'Filters' })
+
+		await waitFor(() => {
+			const box = panel.getBoundingClientRect()
+			const gap = edge === 'left' ? box.left : window.innerWidth - box.right
+
+			const far = edge === 'left' ? window.innerWidth - box.right : box.left
+
+			expect(gap).toBeLessThan(far)
+		})
 	})
 })

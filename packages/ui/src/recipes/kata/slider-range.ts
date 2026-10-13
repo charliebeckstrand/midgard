@@ -26,7 +26,7 @@ const range = defineRecipe({
 
 const track = defineRecipe({
 	base: [
-		'absolute left-0 right-0',
+		'absolute inset-x-0',
 		rounded.full,
 		'bg-(--slider-track)',
 		forced.outline,

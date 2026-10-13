@@ -184,6 +184,9 @@ export function SidebarLayout({
 	// itself, but its flush offset is a physical class, so it keys on the same read.
 	const rtl = useIsRtl()
 
+	// biome-ignore lint/plugin/no-physical-side: these classes override the physical classes of the side that the sheet resolves
+	const flush = rtl ? 'sm:right-0 sm:rounded-r-none' : 'sm:left-0 sm:rounded-l-none'
+
 	const offcanvasValue = useMemo(() => ({ close }), [close])
 
 	const { root: setRoot, bar: setBar } = useStickyBars()
@@ -215,10 +218,7 @@ export function SidebarLayout({
 						// The peek closes when the pointer leaves, or on a tap outside it, so it has
 						// no Close row.
 						footer={null}
-						className={cn(
-							k.floating.sheet(),
-							rtl ? 'sm:right-0 sm:rounded-r-none' : 'sm:left-0 sm:rounded-l-none',
-						)}
+						className={cn(k.floating.sheet(), flush)}
 					>
 						<div
 							className={k.floating.body()}

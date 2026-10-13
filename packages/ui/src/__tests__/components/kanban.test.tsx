@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { createRef, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	Kanban,
@@ -132,6 +132,16 @@ describe('Kanban', () => {
 		expect(bySlot(container, 'kanban')).toHaveAttribute('aria-label', 'Board')
 
 		expect(allBySlot(container, 'kanban-column')).toHaveLength(2)
+	})
+
+	it('gives the board node to a consumer ref', () => {
+		const ref = createRef<HTMLElement>()
+
+		const { container } = renderUI(
+			<Kanban columns={columns} getKey={(item: Item) => item.id} aria-label="Board" ref={ref} />,
+		)
+
+		expect(ref.current).toBe(bySlot(container, 'kanban'))
 	})
 })
 

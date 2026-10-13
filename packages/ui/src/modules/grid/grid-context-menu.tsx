@@ -258,7 +258,7 @@ export function GridContextMenu<T>({
 	)
 
 	const resolveCellItems = useCallback(
-		(columnId: string, rowKey: string, text: string): GridMenuResolution | null => {
+		(columnId: string, rowKey: string, text: string, rtl: boolean): GridMenuResolution | null => {
 			if (!cellMenu) return null
 
 			const column = columnById.get(columnId)
@@ -273,7 +273,7 @@ export function GridContextMenu<T>({
 
 			const copy = () => copyText(cellText(value))
 
-			const defaults = cellMenuDefaults(copy, exportActions, fillItems(fill))
+			const defaults = cellMenuDefaults(copy, exportActions, fillItems(fill, rtl))
 
 			// As with columns: the context is built only for a builder function, not
 			// the boolean opt-in that takes the defaults as-is.
@@ -295,15 +295,20 @@ export function GridContextMenu<T>({
 	// `enabled` gates every resolver (a `null` resolution leaves the native menu
 	// alone), so a no-data grid stands its menus down without unmounting this
 	// wrapper — see the prop's remark.
-	// The pin items name the physical edge, so the column items read the direction
-	// of the header the menu opens on. The menu itself portals out of the grid.
+	// The pin items and the fill items name the physical edge, so the items read
+	// the direction of the cell the menu opens on. The menu itself portals out of
+	// the grid.
 	const resolveItems = useCallback(
 		(target: HTMLElement): GridMenuResolution | null => {
 			if (!enabled) return null
 
 			const rtl = isRtl(target)
 
-			return resolveTarget(target, (id) => resolveColumnItems(id, rtl), resolveCellItems)
+			return resolveTarget(
+				target,
+				(id) => resolveColumnItems(id, rtl),
+				(id, rowKey, text) => resolveCellItems(id, rowKey, text, rtl),
+			)
 		},
 		[enabled, resolveColumnItems, resolveCellItems],
 	)

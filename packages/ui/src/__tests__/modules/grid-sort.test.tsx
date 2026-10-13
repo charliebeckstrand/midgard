@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
+import { ReducedMotionContext } from '../../primitives/reduced-motion/context'
 import { renderUI, screen } from '../helpers'
 
 describe('Grid client sorting', () => {
@@ -462,5 +463,50 @@ describe('Grid animated sorting', () => {
 		expect(order()).toEqual(['Charlie', 'Bob', 'Alice'])
 
 		expect(screen.getByText('Alice').closest('[data-grid-row]')).toBe(aliceRow)
+	})
+
+	// Reduced motion stops the glide but keeps the element type, so a change to
+	// the preference (or its first client read after hydration) mounts no row again.
+	it('keeps each row element and stops the glide under reduced motion', () => {
+		const tree = (reduced: boolean) => (
+			<ReducedMotionContext value={reduced}>
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					sort={{ value: [{ column: 'name', direction: 'asc' }], animate: true }}
+				/>
+			</ReducedMotionContext>
+		)
+
+		const { rerender } = renderUI(tree(false))
+
+		const aliceRow = screen.getByText('Alice').closest('[data-grid-row]')
+
+		rerender(tree(true))
+
+		expect(screen.getByText('Alice').closest('[data-grid-row]')).toBe(aliceRow)
+
+		expect(dataRows().map((row) => row.getAttribute('data-layout'))).toEqual([
+			'false',
+			'false',
+			'false',
+		])
+	})
+
+	// An open panel row would jump while its row glides, so master-detail stands
+	// the glide down.
+	it('leaves rows unmarked in a master-detail grid', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				sort={{ value: [{ column: 'name', direction: 'asc' }], animate: true }}
+				expandable={{ render: (row) => <p>{row.name}</p> }}
+			/>,
+		)
+
+		expect(dataRows().some((row) => row.hasAttribute('data-layout'))).toBe(false)
 	})
 })

@@ -201,7 +201,7 @@ describe('useHoldButtonGesture', () => {
 
 		expect(animate).toHaveBeenLastCalledWith(
 			result.current.fill,
-			{ transform: 'scaleX(1)' },
+			{ scaleX: 1 },
 			{ duration: 0.5, ease: 'linear' },
 		)
 	})
@@ -215,7 +215,7 @@ describe('useHoldButtonGesture', () => {
 
 		expect(animate).toHaveBeenLastCalledWith(
 			result.current.fill,
-			{ transform: 'scaleX(0)' },
+			{ scaleX: 0 },
 			{ duration: 0.15, ease: 'linear' },
 		)
 	})

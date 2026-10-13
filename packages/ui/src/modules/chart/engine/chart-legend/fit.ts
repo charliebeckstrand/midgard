@@ -2,7 +2,7 @@
  * Pure fit math for the stacked legend's row cap: how many entries show before
  * the rest collapse into a `+N` overflow chip. Kept React-free so the packing
  * logic is unit-testable without a layout engine. The measurement that feeds it
- * (each entry's wrapped row and right edge) is the browser's job. Deciding the
+ * (each entry's wrapped row and far edge) is the browser's job. Deciding the
  * cut from those numbers is this file's.
  *
  * A stacked band is capped to a tier-resolved number of rows. It can therefore
@@ -11,11 +11,11 @@
  * switchboard, so the count is exact and every switch stays reachable.
  */
 
-/** One measured legend entry: its wrapped row (0-based) and its right edge in the container's content box. @internal */
+/** One measured legend entry: its wrapped row (0-based) and its far edge in the container's content box. @internal */
 export type LegendEntryRect = {
 	/** The row the entry wrapped onto, `0` the first — from its top offset over the row height. */
 	row: number
-	/** The entry's right edge, in px from the container's content-box left. */
+	/** The far edge of the entry, in px from the inline start of the content box: its right edge, or its left edge in RTL. */
 	right: number
 }
 
@@ -39,9 +39,9 @@ export const OVERFLOW_CHIP_RESERVE = 48
  * spilling to a new one. Entries wrap in order, so the first `n` rects are exactly the first
  * `n` entries — the return is a prefix length.
  *
- * @param rects Each entry's wrapped row and right edge, in DOM (wrap) order.
+ * @param rects Each entry's wrapped row and far edge, in DOM (wrap) order.
  * @param maxRows The tier's row cap; `0` shows nothing (the legend is gone).
- * @param containerWidth The wrap's content-box width, the right edge the chip
+ * @param containerWidth The wrap's content-box width, the far edge the chip
  * must fit inside.
  * @param chipReserve The room the chip needs beside the last entry ({@link
  * OVERFLOW_CHIP_RESERVE}).

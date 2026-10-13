@@ -296,9 +296,8 @@ export function GridData<T>({
 
 	const serverSortSettling = useServerSortSettle({ enabled: sortManual, sort, rows })
 
-	// Drives the opt-in row-sort FLIP down through `GridBody`; read here so the
-	// gate stands the animation down for a reduced-motion user (WCAG 2.3.3) — a
-	// `MotionConfig` alone would not, since it leaves `layout` animations running.
+	// Stops the opt-in row-sort FLIP for a reduced-motion user (WCAG 2.3.3). Motion
+	// reads the preference only when a row mounts, so the rows take the live value.
 	const reduceMotion = usePrefersReducedMotion()
 
 	// Selection state lives above the engine, so an export can read it; the
@@ -599,7 +598,6 @@ export function GridData<T>({
 		rowReorderActive,
 		sort,
 		animateSort: sortConfig?.animate ?? false,
-		reduceMotion,
 	})
 
 	// The truncating head and cells read the drag state of the settle store (see
@@ -690,6 +688,7 @@ export function GridData<T>({
 				reorderable: reorderActive,
 				rowReorderActive,
 				animateSortRows,
+				reduceMotion,
 				groups,
 				toggleGroup: toggleClientGroup,
 				manualRows,

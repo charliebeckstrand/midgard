@@ -1,8 +1,8 @@
 'use client'
 
 import { useMotionValue, useTransform } from 'motion/react'
-import type { CSSProperties } from 'react'
-import { memo } from 'react'
+import type { CSSProperties, SVGProps } from 'react'
+import { memo, useState } from 'react'
 import { cn } from '../../core'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
@@ -71,7 +71,9 @@ type MapDotProps = {
 	className: string
 	/**
 	 * Whether the dot pops in. Omitted, it paints at once — a dot that stands for a
-	 * state rather than a datum (a selection halo) has nothing to reveal.
+	 * state rather than a datum (a selection halo) has nothing to reveal. The dot
+	 * reads it when it mounts, so a reveal that ends keeps the element of each
+	 * dot that popped.
 	 * @defaultValue false
 	 */
 	animate?: boolean
@@ -114,6 +116,8 @@ export function MapDot({
 	animate = false,
 	transition,
 }: MapDotProps) {
+	const [pops] = useState(animate)
+
 	const width = radius * 2 * scale
 
 	// The path and the stroke width at the full width. The stroke width is a
@@ -130,6 +134,36 @@ export function MapDot({
 		className,
 	}
 
+	if (!pops) return <path {...shared} {...full} />
+
+	return (
+		<MapDotPop
+			shared={shared}
+			at={at}
+			shape={shape}
+			width={width}
+			full={full}
+			transition={transition}
+		/>
+	)
+}
+
+/** The popping form of {@link MapDot}. A static dot runs none of its hooks. @internal */
+function MapDotPop({
+	shared,
+	at,
+	shape,
+	width,
+	full,
+	transition,
+}: {
+	shared: Pick<SVGProps<SVGPathElement>, 'fill' | 'strokeLinecap' | 'strokeLinejoin' | 'className'>
+	at: MapPoint2D
+	shape: MapPointShape
+	width: number
+	full: { d: string; strokeWidth: number }
+	transition: MapDotProps['transition']
+}) {
 	const still = usePrefersReducedMotion()
 
 	// The share of the pop that has run, which is also the dot's opacity. The
@@ -142,8 +176,6 @@ export function MapDot({
 	)
 
 	const drawnStroke = useTransform(shown, (share) => share * full.strokeWidth)
-
-	if (!animate) return <path {...shared} {...full} />
 
 	return (
 		<m.path
@@ -217,6 +249,9 @@ export function MapDotCount({
 	animate,
 	transition,
 }: MapDotCountProps) {
+	// Read at mount, as the dot under it reads its own (see `MapDot`).
+	const [fades] = useState(animate)
+
 	const shared = {
 		'data-slot': 'map-points-count',
 		...countPlacement(at, scale),
@@ -226,7 +261,7 @@ export function MapDotCount({
 		className: cn('select-none', className),
 	}
 
-	if (!animate) return <text {...shared}>{count}</text>
+	if (!fades) return <text {...shared}>{count}</text>
 
 	return (
 		<m.text {...shared} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={transition}>

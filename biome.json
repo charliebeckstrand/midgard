@@ -514,7 +514,7 @@
 				"!**/__tests__/**",
 				"!**/__benchmarks__/**"
 			],
-			"plugins": ["./.biome/plugins/no-text-left.grit"]
+			"plugins": ["./.biome/plugins/no-physical-side.grit"]
 		},
 		{
 			"includes": [

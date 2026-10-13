@@ -1,7 +1,7 @@
 'use client'
 
-import { AnimatePresence } from 'motion/react'
-import { memo, useId, useMemo, useState } from 'react'
+import { AnimatePresence, useIsPresent } from 'motion/react'
+import { memo, type ReactNode, useId, useMemo, useState } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useKeyedValue } from '../../hooks/use-keyed-store'
 import { ReducedMotion } from '../../primitives/reduced-motion'
@@ -29,6 +29,20 @@ type JsonNodeProps = {
 }
 
 /**
+ * Whether the search filter forces a branch closed: the filter is on, and no
+ * entry of the branch stays. A controlled or fixed branch ignores it.
+ *
+ * @internal
+ */
+function filterForcesClosed(
+	search: string | undefined,
+	filter: boolean | undefined,
+	empty: boolean,
+): boolean {
+	return Boolean(search && filter && empty)
+}
+
+/**
  * Resolves a branch's open state by precedence. A branch that does not
  * collapse stays open. Then a filtered-out empty branch stays closed. Then comes the user's explicit toggle, then the search
  * auto-open, then the depth default. Controlled trees defer entirely to the expanded set.
@@ -51,7 +65,7 @@ function resolveNodeOpen(opts: {
 
 	if (opts.controlled) return opts.expandedHas
 
-	if (opts.search && opts.filter && opts.empty) return false
+	if (filterForcesClosed(opts.search, opts.filter, opts.empty)) return false
 
 	if (opts.userOpen !== undefined) return opts.userOpen
 
@@ -177,6 +191,10 @@ function JsonTreeNodeView({ keyName, value }: JsonNodeProps) {
 			// consumer later dropped `expanded`.
 			toggleExpanded(nodePath)
 		} else {
+			// While the filter forces the branch closed, a press records nothing. A
+			// write here would open the branch when the search clears.
+			if (collapsible && filterForcesClosed(search, filter, empty)) return
+
 			// Write through to the tree-level memory as well as local state: local
 			// state drives this render, the memory outlives an ancestor's collapse.
 			userOpenMemory.current.set(nodePath, !open)
@@ -201,27 +219,52 @@ function JsonTreeNodeView({ keyName, value }: JsonNodeProps) {
 			<ReducedMotion>
 				<AnimatePresence initial={false}>
 					{open && (
-						<m.div
-							id={groupId}
-							role="group"
-							data-slot="json-group"
-							// No clip of its own: the motion clips the group only while its height
-							// moves.
-							{...k.motion}
-						>
-							{/* The children are one depth in, and the close bracket aligns with the header. */}
-							<div className={cn(k.indent)}>
-								<JsonTreeContext value={childContextValue}>
-									{visibleEntries.map(([childKey, childValue]) => (
-										<JsonTreeNode key={String(childKey)} keyName={childKey} value={childValue} />
-									))}
-								</JsonTreeContext>
-							</div>
-							<JsonTreeBranchClose isArray={isArray} />
-						</m.div>
+						<JsonTreeGroup id={groupId} isArray={isArray}>
+							<JsonTreeContext value={childContextValue}>
+								{visibleEntries.map(([childKey, childValue]) => (
+									<JsonTreeNode key={String(childKey)} keyName={childKey} value={childValue} />
+								))}
+							</JsonTreeContext>
+						</JsonTreeGroup>
 					)}
 				</AnimatePresence>
 			</ReducedMotion>
 		</div>
+	)
+}
+
+/** Props for {@link JsonTreeGroup}. @internal */
+type JsonTreeGroupProps = {
+	id: string
+	isArray: boolean
+	children: ReactNode
+}
+
+/**
+ * The child group of an open branch. It is the direct child of the
+ * `AnimatePresence` of the branch, so it reads the presence of the group.
+ * While the group exits, it has `data-exiting`, and `ROVING_ITEM_SELECTOR`
+ * then skips its rows. `useIsPresent` does not hold the removal, unlike
+ * `usePresence`.
+ *
+ * @internal
+ */
+function JsonTreeGroup({ id, isArray, children }: JsonTreeGroupProps) {
+	const present = useIsPresent()
+
+	return (
+		<m.div
+			id={id}
+			role="group"
+			data-slot="json-group"
+			data-exiting={dataAttr(!present)}
+			// No clip of its own: the motion clips the group only while its height
+			// moves.
+			{...k.motion}
+		>
+			{/* The children are one depth in, and the close bracket aligns with the header. */}
+			<div className={cn(k.indent)}>{children}</div>
+			<JsonTreeBranchClose isArray={isArray} />
+		</m.div>
 	)
 }

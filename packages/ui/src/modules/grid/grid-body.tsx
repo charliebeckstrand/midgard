@@ -11,6 +11,7 @@ import {
 } from 'react'
 import { Alert } from '../../components/alert'
 import { TableBody, TableEmpty } from '../../components/table'
+import { ReducedMotion } from '../../primitives/reduced-motion'
 import { hasErrorSlot } from './engine/grid-data/guards'
 import { applyRowKeyOrder } from './engine/grid-group/row-manager'
 import {
@@ -459,7 +460,7 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 
 	// Global row indices only under grid semantics (a plain table conveys them
 	// natively); see `ariaRowIndex` for the offset math.
-	const body = rows.map((row, index) =>
+	const rowNodes = rows.map((row, index) =>
 		renderGridRow(
 			props,
 			row,
@@ -467,6 +468,10 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 			gridSemantics ? ariaRowIndex(rowIndexOffset, index) : undefined,
 		),
 	)
+
+	// Sort-animated rows load layout projection through one root for the body. The
+	// root renders no element, so it nests inside `<tbody>`.
+	const body = props.animateSortRows ? <ReducedMotion layout>{rowNodes}</ReducedMotion> : rowNodes
 
 	// When rows are drag-reorderable, the sortable context of the drag and drop
 	// module wraps them (its `<DndContext>` sits outside the `<table>`, provided
