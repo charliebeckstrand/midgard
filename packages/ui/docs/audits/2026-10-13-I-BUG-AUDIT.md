@@ -1,6 +1,6 @@
 # Bug audit — 2026-10-13
 
-Letter sweep I of the `packages/ui` components: `components/icon` and `components/input`. Two scopes, 8 files, 536 lines, 6 claims. 5 findings are rows below, all `low`; 1 claim was refuted. All 3 questions are settled; all 5 rows are open.
+Letter sweep I of the `packages/ui` components: `components/icon` and `components/input`. Two scopes, 8 files, 536 lines, 6 claims. 5 findings are rows below, all `low`; 1 claim was refuted. All 3 questions are settled; all 5 rows are resolved by #2379 to #2383.
 
 ## Scope
 
@@ -35,11 +35,11 @@ Two notes on the passes. The B01 overturn verifier ran one grep over all of `pac
 
 | Row | File | Symbol | Verdict | Severity | Reach | Group | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| R1 | `components/icon/icon.tsx` | `Icon` label branch | CONFIRMED | low | none | G1 | ◐ FIXED |
-| R2 | `components/icon/icon.tsx` | `Icon` numeric `size` | CONFIRMED | low | none | G1 | ◐ FIXED |
-| R3 | `components/input/input.tsx` | `Input` spread order | CONFIRMED | low | none | G2 | ◐ FIXED |
-| R4 | `components/input/input.tsx` | `Input` `ownFilled` | CONFIRMED | low | none | G2 | ◐ FIXED |
-| R5 | `components/input/input-frame.tsx` | `InputFrame` present test | CONFIRMED | low | none | — | ◐ FIXED |
+| R1 | `components/icon/icon.tsx` | `Icon` label branch | CONFIRMED | low | none | G1 | ✅ RESOLVED ([#2379](https://github.com/charliebeckstrand/midgard/pull/2379)) |
+| R2 | `components/icon/icon.tsx` | `Icon` numeric `size` | CONFIRMED | low | none | G1 | ✅ RESOLVED ([#2380](https://github.com/charliebeckstrand/midgard/pull/2380)) |
+| R3 | `components/input/input.tsx` | `Input` spread order | CONFIRMED | low | none | G2 | ✅ RESOLVED ([#2381](https://github.com/charliebeckstrand/midgard/pull/2381)) |
+| R4 | `components/input/input.tsx` | `Input` `ownFilled` | CONFIRMED | low | none | G2 | ✅ RESOLVED ([#2382](https://github.com/charliebeckstrand/midgard/pull/2382)) |
+| R5 | `components/input/input-frame.tsx` | `InputFrame` present test | CONFIRMED | low | none | — | ✅ RESOLVED ([#2383](https://github.com/charliebeckstrand/midgard/pull/2383)) |
 
 All paths are under `packages/ui/src/`.
 
