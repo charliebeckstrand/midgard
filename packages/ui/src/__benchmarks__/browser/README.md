@@ -742,7 +742,16 @@ Mean ms for one edit, in Chromium. Each figure is the median of three runs.
 
 **The AND/OR separators were most of the cost.** The group built the segment of each separator in its own render, so each segment rendered again on each keystroke. Each separator is now a memoized component ([`query-builder-group.tsx`](../../modules/query/query-builder/query-builder-group.tsx) `QueryBuilderSeparator`), and a plain edit is almost flat across the size of the group.
 
-**The cost that stays under `reorder` is Motion's `Reorder`.** `Reorder.Group` gives its items a new context value in each render, so each `Reorder.Item` renders again, and a memo cannot stop it. Each item can be dragged, so Motion also measures each item again in each render. The grip of each item adds about 2.4 ms at 128 rules. At 32 rules the edit costs 3.5 ms, well inside one frame. To remove this cost, the builder must move to dnd-kit, which the `modules/query` boundary keeps out, or each rule must read its node from a store, so that an edit does not render the group.
+**The cost that stays under `reorder` is Motion's `Reorder`.** `Reorder.Group` gives its items a new context value in each render, so each `Reorder.Item` renders again, and a memo cannot stop it. Each item can be dragged, so Motion also measures each item again in each render. The grip of each item adds about 2.4 ms at 128 rules. At 32 rules the edit costs 3.5 ms, well inside one frame. Motion 14.2.0, the newest release on 2026-10-13, has the same group.
+
+**A fix was measured and not kept (2026-10-13).** A prototype stopped the render of `Reorder.Group` on an edit. It memoized the group element on the order and the drag state, kept the identity of the ids while the order held, and memoized each item. Slots in each `Reorder.Item` read the node, the separator, and the name of the grip from a context that the group renders, and the grip was memoized on its name. Only the edited rule then rendered again.
+
+| Rules | Plain | Reorder | Reorder, prototype |
+| ---: | ---: | ---: | ---: |
+| 32 | 1.1 | 3.5 | 1.4 |
+| 128 | 1.9 | 10.2 | 2.7 |
+
+The prototype added about 120 lines to `query-builder-sortable.tsx` and `query-builder-sortable-item.tsx`. The memo of the group element held about a dozen dependencies, and a new prop that an item reads had to go into that list by hand. A miss shows a stale item, and no test finds it. The prototype also changed what a reader sees. A rule whose height changed no longer moved the rules below it with a spring. The plain builder moves them with no spring too. The edit costs 3.5 ms at 32 rules, so the fix was not worth its code. Use it again only for groups of many more rules. The better fix is in Motion: a `useMemo` on the context value of `Reorder.Group` lets a memoized item skip the render of its group.
 
 ## PDF viewer
 
