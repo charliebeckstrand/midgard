@@ -39,6 +39,16 @@ describe('Icon', () => {
 		expect(el).not.toHaveAttribute('aria-hidden')
 	})
 
+	it('removes an aria-hidden of the element when a label is set', () => {
+		const { container } = renderUI(<Icon icon={<svg aria-hidden="true" />} label="Search" />)
+
+		const el = bySlot(container, 'icon')
+
+		expect(el).toHaveAttribute('role', 'img')
+
+		expect(el).not.toHaveAttribute('aria-hidden')
+	})
+
 	it('applies numeric size as inline style', () => {
 		const { container } = renderUI(<Icon icon={<svg />} size={24} />)
 
