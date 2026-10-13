@@ -14,12 +14,17 @@ export type IconProps = {
 	icon: ReactElement
 	/**
 	 * A density step, or a size in pixels. Omit it to take the step of the
-	 * nearest density scope. A step makes the icon a density scope. A host can
-	 * project an icon size, as Button, Badge, Nav, and the menu and
+	 * nearest density scope. A step makes the icon a density scope.
+	 *
+	 * A host can project an icon size, as Button, Badge, Nav, and the menu and
 	 * option rows do. Inside such a host, the `data-slot=icon` projection sets
-	 * the size, and it can override this. A control affix slot projects no size:
-	 * it is a scope one step below its control, so an icon with no `size` takes
-	 * that step.
+	 * the size, and it can override a step. A control affix slot projects no
+	 * size: it is a scope one step below its control, so an icon with no `size`
+	 * takes that step.
+	 *
+	 * A pixel size is the exception. It is an explicit override from the
+	 * caller, and it goes on the icon as inline `width` and `height`. The inline
+	 * style wins over a host projection, so no host can override a pixel size.
 	 */
 	size?: ScaleStep<typeof scale> | number
 	className?: string
