@@ -102,6 +102,91 @@ describe('JsonTree under virtualize: keyboard reach past the window', () => {
 	})
 })
 
+/** The mounted row of leaf `index`, or undefined when the window keeps it out of the DOM. */
+const leafRow = (tree: HTMLElement, index: number) =>
+	rows(tree).find((row) => new RegExp(`v${index}\\b`).test(row.textContent ?? ''))
+
+/** A scroll offset that puts the first rows far past the overscan. */
+const FAR = 4000
+
+/**
+ * Mounts a button and the tree, focuses the row of leaf 3, and scrolls the tree by `FAR`. The
+ * focused row unmounts.
+ */
+async function focusLeafAndScrollAway() {
+	renderUI(
+		<>
+			<button type="button">Outside</button>
+			<JsonTree
+				data={DATA}
+				rootKey="root"
+				defaultExpandDepth={Number.POSITIVE_INFINITY}
+				virtualize={{ maxHeight: '240px', overscan: 2 }}
+			/>
+		</>,
+	)
+
+	const tree = present(screen.getByRole('tree'), 'the tree')
+
+	await waitFor(() => expect(leafRow(tree, 3)).toBeDefined())
+
+	present(leafRow(tree, 3), 'the row of leaf 3').focus()
+
+	expect(focusedLabel()).toMatch(/v3\b/)
+
+	tree.scrollTop = FAR
+
+	await waitFor(() => expect(leafRow(tree, 3)).toBeUndefined())
+
+	return tree
+}
+
+describe('JsonTree under virtualize: a focused row that scrolls out of the window', () => {
+	it('keeps focus in the tree, and ArrowDown focuses the next row', async () => {
+		const tree = await focusLeafAndScrollAway()
+
+		expect(document.activeElement).toBe(tree)
+
+		await userEvent.keyboard('{ArrowDown}')
+
+		await waitFor(() => expect(focusedLabel()).toMatch(/v4\b/))
+	})
+
+	it('moves Home from the parked focus to the root', async () => {
+		await focusLeafAndScrollAway()
+
+		await userEvent.keyboard('{Home}')
+
+		await waitFor(() => expect(focusedLabel()).toContain('root'))
+	})
+
+	it('focuses the row again when it scrolls back into the window', async () => {
+		const tree = await focusLeafAndScrollAway()
+
+		expect(document.activeElement).toBe(tree)
+
+		tree.scrollTop = 0
+
+		await waitFor(() => expect(focusedLabel()).toMatch(/v3\b/))
+	})
+
+	it('leaves focus on a control outside the tree', async () => {
+		const tree = await focusLeafAndScrollAway()
+
+		await waitFor(() => expect(document.activeElement).toBe(tree))
+
+		const outside = screen.getByRole('button', { name: 'Outside' })
+
+		outside.focus()
+
+		tree.scrollTop = 0
+
+		await waitFor(() => expect(leafRow(tree, 3)).toBeDefined())
+
+		expect(document.activeElement).toBe(outside)
+	})
+})
+
 describe('JsonTree under virtualize: the horizontal arrows', () => {
 	it('ArrowLeft on a leaf past the window focuses its parent branch', async () => {
 		const tree = await mountAndFocusRoot()
