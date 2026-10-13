@@ -3,6 +3,7 @@
 import { type ComponentProps, type ReactNode, useLayoutEffect, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useA11yRoving, useResizeObserver } from '../../hooks'
+import { useComposedRef } from '../../hooks/use-composed-ref'
 import { k, type ToolbarVariants } from '../../recipes/kata/toolbar'
 import type { AccessibleName } from '../../types'
 import { ToolbarContext, type ToolbarContextValue } from './context'
@@ -26,7 +27,8 @@ export type ToolbarProps = AccessibleName &
 /**
  * ARIA toolbar grouping related controls with roving-tabindex arrow-key
  * navigation along its `orientation`. Requires `aria-label`/`aria-labelledby`;
- * the group is never an unnamed `toolbar`.
+ * the group is never an unnamed `toolbar`. A consumer `ref` reaches the
+ * toolbar element.
  *
  * @remarks
  * A horizontal toolbar wraps onto more rows when it is narrow. A
@@ -40,9 +42,13 @@ export function Toolbar({
 	variant,
 	className,
 	children,
+	ref: consumerRef,
 	...labelProps
 }: ToolbarProps) {
 	const ref = useRef<HTMLDivElement>(null)
+
+	// Roving and the row marks read `ref`, so a consumer `ref` joins it.
+	const setRoot = useComposedRef(ref, consumerRef)
 
 	const handleKeyDown = useA11yRoving(ref, {
 		itemSelector: TOOLBAR_ITEM_SELECTOR,
@@ -63,7 +69,7 @@ export function Toolbar({
 		<ToolbarContext value={context}>
 			<div
 				{...labelProps}
-				ref={ref}
+				ref={setRoot}
 				data-slot="toolbar"
 				role="toolbar"
 				aria-orientation={orientation}
