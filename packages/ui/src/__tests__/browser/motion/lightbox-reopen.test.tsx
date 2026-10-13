@@ -266,9 +266,18 @@ describe('Lightbox reopened during the return (real browser)', () => {
 
 		await slide
 
-		await startReturn()
+		// The sampler starts before the key, and it holds the return. A slow round
+		// trip of the key then cannot let the return land before the reopen, which
+		// would mount a new track.
+		const back = hold(slot(0), 0.5)
+
+		await userEvent.keyboard('{Escape}')
+
+		const tweens = await back
 
 		thumbnail(0).click()
+
+		for (const tween of tweens) tween.play()
 
 		await expect.poll(still).toBe(true)
 
