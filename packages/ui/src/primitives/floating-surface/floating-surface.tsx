@@ -64,6 +64,11 @@ export type FloatingSurfaceProps = {
  * The portal carries the density scope and the direction of the trigger (see
  * {@link Portal}), so the surface follows the scope of its trigger.
  *
+ * A closed surface is `inert` for its exit animation, so it takes no press and
+ * no key. When the surface closes with the focus in it, the focus goes to
+ * `<body>`. The consuming panel hook or the focus manager then returns it to
+ * the trigger, as before.
+ *
  * @remarks Passing `trapFocusContext` wraps the open surface in a modal
  * `FloatingFocusManager` that traps Tab. It cedes initial focus and close-time
  * restore to the consuming panel hook, which `trapFocusProps` overrides
@@ -88,23 +93,40 @@ export function FloatingSurface({
 
 	const setWrapper = useComposedRef<HTMLDivElement>(wrapperRef, setFloating, ref)
 
-	// A closed surface is still on screen through its exit animation, and one that
-	// closed before the engine could place it — a menu panel the pointer swept
-	// past — sits at the wrapper's unpositioned origin, over the surface it came
-	// from. Either way it must stop taking input the moment it stops being real,
-	// or it swallows the hovers and presses meant for what lies under it.
+	const inert = rest.inert === true
+
+	// A closed surface stays on screen for its exit animation, and its subtree
+	// keeps the handlers of the last open render. A surface that closed before
+	// the engine placed it, such as a menu panel that the pointer swept past,
+	// sits at the origin of the wrapper, over the surface it came from. Thus the
+	// surface must take no input when it closes. If it does, it takes the hovers
+	// and presses for the page below, and a second Enter runs a row again.
+	// `inert` stops the pointer and the keyboard, as in `Overlay`.
 	//
-	// Written to the node rather than rendered as a class: `AnimatePresence` holds
-	// the exiting subtree at the props it had when it was last open, so a prop
-	// keyed on `open` never reaches it. This effect runs on the parent's render,
-	// where the node is still there to write to.
+	// The effect writes to the node, not to a prop. `AnimatePresence` holds the
+	// exiting subtree at the props of its last open render, so a prop keyed on
+	// `open` never gets to it. The effect runs in the render of the parent, and
+	// the node is still there.
+	//
+	// `inert` moves the focus out of the surface, but Chromium does this in a
+	// later task. Until then, a fast second Enter still clicks the focused row.
+	// Thus the effect moves the focus to `<body>` at once. A layout effect runs
+	// before the effect of `useFloatingPanel` that returns the focus to the
+	// trigger, and the focus manager returns the focus at unmount. Thus neither
+	// of them competes with the move.
 	useLayoutEffect(() => {
 		const node = wrapperRef.current
 
 		if (!node) return
 
-		node.style.pointerEvents = open ? (style?.pointerEvents ?? '') : 'none'
-	}, [open, style?.pointerEvents])
+		node.toggleAttribute('inert', inert || !open)
+
+		if (open) return
+
+		const active = node.ownerDocument.activeElement
+
+		if (active instanceof HTMLElement && node.contains(active)) active.blur()
+	}, [open, inert])
 
 	const surface = (
 		<div
