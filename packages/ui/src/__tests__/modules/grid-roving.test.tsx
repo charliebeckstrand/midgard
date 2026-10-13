@@ -324,3 +324,85 @@ describe('Grid roving interactive-content deference', () => {
 		expect(onCellClick).not.toHaveBeenCalled()
 	})
 })
+
+describe('Grid roving beside a nested grid in a detail panel', () => {
+	type Task = { id: number; title: string }
+
+	const tasksOf = (row: Row): Task[] =>
+		['A', 'B', 'C'].map((letter, i) => ({ id: i + 1, title: `${row.name} task ${letter}` }))
+
+	const taskColumns: GridColumn<Task>[] = [{ id: 'title', title: 'Title', cell: (t) => t.title }]
+
+	const masterColumns: GridColumn<Row>[] = [{ id: 'expand', expander: true }, ...columns]
+
+	const OPEN = new Set([1])
+
+	const CLOSED = new Set<number>()
+
+	const renderNested = (handler: 'onRowClick' | 'onCellClick', open: Set<number>) =>
+		renderUI(
+			<Grid
+				columns={masterColumns}
+				rows={rows}
+				getKey={getKey}
+				{...{ [handler]: vi.fn() }}
+				expandable={{
+					render: (row) => (
+						<Grid
+							columns={taskColumns}
+							rows={tasksOf(row)}
+							getKey={(t) => t.id}
+							{...{ [handler]: vi.fn() }}
+						/>
+					),
+					defaultValue: open,
+				}}
+			/>,
+		)
+
+	const rowOf = (text: string) => screen.getByText(text).closest('tr') as HTMLElement
+
+	const cellOf = (text: string) => screen.getByText(text).closest('td') as HTMLElement
+
+	it('seats the Tab stop of the outer grid on its own first row past an open panel', () => {
+		renderNested('onRowClick', OPEN)
+
+		expect(rowOf('Alice')).toHaveAttribute('tabindex', '0')
+	})
+
+	it.each([
+		['an open panel', OPEN],
+		['a closed panel', CLOSED],
+	])('moves ArrowDown from an outer row to the next outer row past %s', (_name, open) => {
+		renderNested('onRowClick', open)
+
+		rowOf('Alice').focus()
+
+		fireEvent.keyDown(rowOf('Alice'), { key: 'ArrowDown' })
+
+		expect(document.activeElement).toBe(rowOf('Bob'))
+	})
+
+	it.each([
+		['an open panel', OPEN],
+		['a closed panel', CLOSED],
+	])('moves ArrowDown from an outer cell to the cell below it past %s', (_name, open) => {
+		renderNested('onCellClick', open)
+
+		cellOf('Alice').focus()
+
+		fireEvent.keyDown(cellOf('Alice'), { key: 'ArrowDown' })
+
+		expect(document.activeElement).toBe(cellOf('Bob'))
+	})
+
+	it('moves ArrowDown in the nested grid by one row only', () => {
+		renderNested('onRowClick', OPEN)
+
+		rowOf('Alice task A').focus()
+
+		fireEvent.keyDown(rowOf('Alice task A'), { key: 'ArrowDown' })
+
+		expect(document.activeElement).toBe(rowOf('Alice task B'))
+	})
+})

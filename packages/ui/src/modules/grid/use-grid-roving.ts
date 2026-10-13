@@ -21,11 +21,22 @@ import { useA11yRoving } from '../../hooks'
  */
 export type GridRovingMode = 'none' | 'row' | 'cell'
 
-/** Roving items in row mode: clickable body rows, excluding a collapsed group's inert leaves. @internal */
-const ROW_ITEM_SELECTOR = 'tr[data-grid-row][data-roving]:not([inert])'
+/**
+ * Roving items in row mode: the clickable rows of the grid's own body. The
+ * inert leaves of a collapsed group are not items. `:scope` is the `<table>`
+ * that the roving hook queries from. A detail panel can hold a nested grid, so
+ * the selector reads only the rows of this table and not the rows of a table in
+ * a panel. @internal
+ */
+const ROW_ITEM_SELECTOR = ':scope > tbody > tr[data-grid-row][data-roving]:not([inert])'
 
-/** Roving items in cell mode: data cells of non-inert body rows (row-major, so `cols` grids them). @internal */
-const CELL_ITEM_SELECTOR = 'tr[data-grid-row]:not([inert]) td[data-roving]'
+/**
+ * Roving items in cell mode: the data cells of the rows of the grid's own body,
+ * when the row is not inert. They are in row-major order, so `cols` makes a
+ * grid of them. Like {@link ROW_ITEM_SELECTOR}, the selector reads no cell of a
+ * nested grid. @internal
+ */
+const CELL_ITEM_SELECTOR = ':scope > tbody > tr[data-grid-row]:not([inert]) > td[data-roving]'
 
 /**
  * Resolves and wires the grid's roving-tabindex keyboard navigation over its
