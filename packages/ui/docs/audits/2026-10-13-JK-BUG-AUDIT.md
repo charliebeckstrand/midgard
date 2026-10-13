@@ -1,6 +1,6 @@
 # Bug audit — 2026-10-13
 
-Letter sweep J and K of the `packages/ui` components: `components/json-tree`, `components/kanban`, and `components/kbd`. Two scopes, 30 files, 3,518 lines, 11 claims. 10 findings are rows below: 3 `medium` and 7 `low`. 1 claim was refuted. Kbd raised no claim. All 8 questions are settled. 1 row is fixed on a branch; 9 rows are open.
+Letter sweep J and K of the `packages/ui` components: `components/json-tree`, `components/kanban`, and `components/kbd`. Two scopes, 30 files, 3,518 lines, 11 claims. 10 findings are rows below: 3 `medium` and 7 `low`. 1 claim was refuted. Kbd raised no claim. All 8 questions are settled. 2 rows are fixed on a branch; 8 rows are open.
 
 ## Scope
 
@@ -43,7 +43,7 @@ Three notes on the passes. Each verifier was told to scope its greps to the cons
 | R6 | `components/json-tree/json-tree-virtualized.tsx` | `JsonTreeVirtualized` `firstFocusable` | RESTATED | low | test-only | — | ◯ OPEN |
 | R7 | `components/kanban/kanban.tsx` | `Kanban` `ref` | CONFIRMED | low | none | — | ◐ FIXED |
 | R8 | `components/kanban/kanban.tsx` | `Kanban` drag handler gating | CONFIRMED | low | shipped | — | ◯ OPEN |
-| R9 | `components/kanban/use-kanban-drag.ts` | `applyKanbanDragOver` | NARROWED | medium | shipped | — | ◯ OPEN |
+| R9 | `components/kanban/use-kanban-drag.ts` | `applyKanbanDragOver` | NARROWED | medium | shipped | — | ◐ FIXED |
 | R10 | `components/kanban/kanban-announcements.ts` | `columnName` | CONFIRMED | low | none | — | ◯ OPEN |
 
 All paths are under `packages/ui/src/`.
