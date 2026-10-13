@@ -1,6 +1,6 @@
 # Bug audit — 2026-10-13
 
-Letter sweep J and K of the `packages/ui` components: `components/json-tree`, `components/kanban`, and `components/kbd`. Two scopes, 30 files, 3,518 lines, 11 claims. 10 findings are rows below: 3 `medium` and 7 `low`. 1 claim was refuted. Kbd raised no claim. All 8 questions are settled. 2 rows are fixed on a branch; 8 rows are open.
+Letter sweep J and K of the `packages/ui` components: `components/json-tree`, `components/kanban`, and `components/kbd`. Two scopes, 30 files, 3,518 lines, 11 claims. 10 findings are rows below: 3 `medium` and 7 `low`. 1 claim was refuted. Kbd raised no claim. All 8 questions are settled. 4 rows are fixed on a branch; 6 rows are open.
 
 ## Scope
 
@@ -35,8 +35,8 @@ Three notes on the passes. Each verifier was told to scope its greps to the cons
 
 | Row | File | Symbol | Verdict | Severity | Reach | Group | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| R1 | `components/json-tree/json-tree.tsx` | `JsonTree` `handleKeyDown` (recursive) | CONFIRMED | medium | shipped | G1 | ◯ OPEN |
-| R2 | `components/json-tree/json-tree-virtualized.tsx` | `treeMoveIndex` | CONFIRMED | low | test-only | G1 | ◯ OPEN |
+| R1 | `components/json-tree/json-tree.tsx` | `JsonTree` `handleKeyDown` (recursive) | CONFIRMED | medium | shipped | G1 | ◐ FIXED |
+| R2 | `components/json-tree/json-tree-virtualized.tsx` | `treeMoveIndex` | CONFIRMED | low | test-only | G1 | ◐ FIXED |
 | R3 | `components/json-tree/json-tree.tsx` | `JsonTree` roving `itemSelector` (recursive) | CONFIRMED | medium | shipped | — | ◯ OPEN |
 | R4 | `components/json-tree/json-tree-node.tsx` | `JsonTreeNodeView` `toggle` / `resolveNodeOpen` | NARROWED | low | shipped | — | ◯ OPEN |
 | R5 | `components/json-tree/json-tree-virtualized.tsx` | `JsonTreeVirtualized` focused row | CONFIRMED | low | test-only | — | ◯ OPEN |
