@@ -15,7 +15,12 @@ import { useVirtualWindow } from '../../hooks'
 import { k } from '../../recipes/kata/json-tree'
 import { nextIndexForKey } from '../../utilities'
 import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT } from './json-tree-constants'
-import { flatTreeMoveTarget, jsonTreeMoveForKey, parkedTarget } from './json-tree-keyboard'
+import {
+	flatTreeMoveTarget,
+	jsonTreeMoveForKey,
+	parkedTarget,
+	windowTabStop,
+} from './json-tree-keyboard'
 import { JsonTreeNodeRow } from './json-tree-node-row'
 import {
 	type FlatNode,
@@ -286,13 +291,16 @@ export function JsonTreeVirtualized({
 		getItemKey,
 	})
 
-	// The Tab stop rides the first focusable rendered row; windowing can
-	// scroll the depth-0 root out of the DOM.
-	const firstFocusable = useMemo(
+	// The Tab stop rides a rendered row in view; windowing can scroll the depth-0 root out of
+	// the DOM, and a stop in the overscan above the viewport scrolls the tree when it takes focus.
+	const tabStop = useMemo(
 		() =>
-			virtualItems.find((vi) => flatNodes[vi.index] && flatNodes[vi.index]?.type !== 'branch-close')
-				?.index,
-		[virtualItems, flatNodes],
+			windowTabStop(
+				virtualItems.map((virtualItem) => virtualItem.index),
+				flatNodes,
+				overscan,
+			),
+		[virtualItems, flatNodes, overscan],
 	)
 
 	// The flat indices of the rows that take focus. A closing bracket is not a treeitem.
@@ -443,7 +451,7 @@ export function JsonTreeVirtualized({
 						index={virtualItem.index}
 						collapsible={collapsible}
 						onToggle={handleToggle}
-						tabbable={virtualItem.index === firstFocusable}
+						tabbable={virtualItem.index === tabStop}
 					/>
 				)
 			})}

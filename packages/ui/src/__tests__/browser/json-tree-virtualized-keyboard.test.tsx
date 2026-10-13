@@ -187,6 +187,59 @@ describe('JsonTree under virtualize: a focused row that scrolls out of the windo
 	})
 })
 
+describe('JsonTree under virtualize: the Tab stop', () => {
+	it('puts the Tab stop on a row in view after a scroll past the overscan', async () => {
+		renderUI(
+			<>
+				<button type="button">Before</button>
+				<JsonTree
+					data={DATA}
+					rootKey="root"
+					defaultExpandDepth={Number.POSITIVE_INFINITY}
+					virtualize={{ maxHeight: '240px', overscan: 2 }}
+				/>
+			</>,
+		)
+
+		const tree = present(screen.getByRole('tree'), 'the tree')
+
+		await waitFor(() => expect(rows(tree).length).toBeGreaterThan(1))
+
+		const [root, next] = rows(tree)
+
+		const rootTop = present(root, 'the root row').getBoundingClientRect().top
+
+		const pitch = present(next, 'the second row').getBoundingClientRect().top - rootTop
+
+		// Twenty rows down, far past the two rows of overscan. The top edge of a row meets the top
+		// of the viewport, so the first row in view shows in full. A row that the viewport cuts
+		// scrolls a small distance when it gets focus.
+		tree.scrollTop = rootTop - tree.getBoundingClientRect().top - tree.clientTop + 20 * pitch
+
+		await waitFor(() => expect(leafRow(tree, 3)).toBeUndefined())
+
+		const scrollTop = tree.scrollTop
+
+		screen.getByRole('button', { name: 'Before' }).focus()
+
+		await userEvent.keyboard('{Tab}')
+
+		const active = document.activeElement
+
+		expect(active instanceof HTMLElement && tree.contains(active)).toBe(true)
+
+		const view = tree.getBoundingClientRect()
+
+		const row = present(active, 'the focused row').getBoundingClientRect()
+
+		expect(row.top).toBeGreaterThanOrEqual(view.top)
+
+		expect(row.bottom).toBeLessThanOrEqual(view.bottom)
+
+		expect(tree.scrollTop).toBe(scrollTop)
+	})
+})
+
 describe('JsonTree under virtualize: the horizontal arrows', () => {
 	it('ArrowLeft on a leaf past the window focuses its parent branch', async () => {
 		const tree = await mountAndFocusRoot()

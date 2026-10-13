@@ -77,3 +77,34 @@ export function parkedTarget(
 
 	return next === null ? null : (focusable[next] ?? null)
 }
+
+/**
+ * The flat index of the Tab stop of a windowed tree. `indexes` are the flat indices of the
+ * rendered rows, in order. When the window does not start at the top row, its first `overscan`
+ * rows are above the viewport. The stop is the first row in the viewport, or after it, that is
+ * not a closing bracket. Thus Tab does not move focus to a row above the viewport. When no such
+ * row is rendered, the stop is the first rendered row that is not a closing bracket.
+ *
+ * @returns Undefined when no rendered row takes focus.
+ * @internal
+ */
+export function windowTabStop(
+	indexes: readonly number[],
+	nodes: readonly FlatNode[],
+	overscan: number,
+): number | undefined {
+	const focusable = (index: number) => {
+		const node = nodes[index]
+
+		return node !== undefined && node.type !== 'branch-close'
+	}
+
+	const first = indexes[0]
+
+	if (first === undefined) return undefined
+
+	// The window adds `overscan` rows above the first row in view, but none above the top row.
+	const inView = first === 0 ? 0 : first + overscan
+
+	return indexes.find((index) => index >= inView && focusable(index)) ?? indexes.find(focusable)
+}
