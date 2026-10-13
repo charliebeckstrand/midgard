@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+import { Control } from '../../components/control'
 import { Form } from '../../components/form'
 import { Input } from '../../components/input'
 import { act, bySlot, getSlot, renderUI, screen, setupUser } from '../helpers'
@@ -69,6 +70,26 @@ describe('Input', () => {
 		await user.type(input, 'a')
 
 		expect(onChange).toHaveBeenCalled()
+	})
+})
+
+describe('Input spread order (§3.9)', () => {
+	it('keeps the resolved aria-invalid over a stray prop', () => {
+		const { container } = renderUI(
+			<Control severity="error">
+				<Input aria-invalid={false} />
+			</Control>,
+		)
+
+		expect(bySlot(container, 'input')).toHaveAttribute('aria-invalid', 'true')
+	})
+
+	it('lets a wrapper set its own data-slot', () => {
+		const { container } = renderUI(<Input data-slot="combobox-input" />)
+
+		expect(bySlot(container, 'combobox-input')?.tagName).toBe('INPUT')
+
+		expect(bySlot(container, 'input')).toBeNull()
 	})
 })
 

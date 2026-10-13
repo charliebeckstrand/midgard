@@ -141,10 +141,10 @@ export function Input({
 			ref={setRefs}
 			data-slot="input"
 			type={type}
+			{...rest}
 			{...field.attrs}
 			onChange={handleChange}
 			className={cn(!field.headless && k({ variant: field.variant }), className)}
-			{...rest}
 		/>
 	)
 
