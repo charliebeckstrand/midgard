@@ -91,9 +91,8 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 	const childRef = child?.props.ref
 
 	// Registration waits for the first open, so a closed menu renders once
-	// rather than twice. That takes a closed menu from 0.064ms to 0.036ms,
-	// measured at a fan-out of fifty
-	// (`__benchmarks__/browser/menu-mount.bench.tsx`).
+	// rather than twice. That almost halves the cost of a closed menu, measured
+	// at a fan-out of fifty (`__benchmarks__/browser/menu-mount.bench.tsx`).
 	const mergeRefs = useDeferredFloatingReference<HTMLElement>(
 		setReference,
 		open,

@@ -17,7 +17,7 @@ runs:
     # and the Node of .node-version at the repository root. .node-version is
     # the one statement of the Node version, and local version managers read
     # the same file. pnpm/action-setup installed a pnpm v11 with npm and then
-    # changed it to the pinned version, which took about 6 s of each job.
+    # changed it to the pinned version, so each job installed pnpm two times.
     #
     # The action keeps the pnpm store in the cache of actions/cache, keyed on
     # the lockfile. It also keeps the log of pnpm's supply-chain check of the

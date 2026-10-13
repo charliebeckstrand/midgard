@@ -91,8 +91,8 @@ export function reactDocs(): Plugin {
 	const extractor = createApiWorker(ui)
 
 	// Shiki highlights the examples in a thread (`highlight-worker.ts`). On the
-	// main thread, the highlights of the docs held the client build for about
-	// 1.5 s. The pool starts on the first highlight.
+	// main thread, the highlights of the docs held the client build. The pool
+	// starts on the first highlight.
 	let highlighter: Piscina<HighlightTask, ShikiHighlight> | undefined
 
 	const highlight: Highlight = (code, lang, theme) => {

@@ -1,7 +1,7 @@
 /**
  * What one keystroke on an open dropdown costs in a real engine.
  *
- * The jsdom suite (`../menu.bench.tsx`) reads about 1.4 ms per arrow press. It
+ * The jsdom suite (`../menu.bench.tsx`) reads a high cost per arrow press. It
  * puts nearly all of that on the scroll-ancestor walk in `moveTo`, which calls
  * `getComputedStyle` at each level from the row up to `<html>`. The jsdom
  * engine resolves style in JavaScript, so it prices that walk far above what a

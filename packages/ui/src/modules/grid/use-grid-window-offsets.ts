@@ -30,7 +30,7 @@ const OFFSET_KEYS = Object.keys(NO_OFFSETS) as (keyof GridWindowOffsets)[]
  * grouped, and the master-detail windowed bodies each read it.
  *
  * @remarks The header position comes in as a flag, so a grid with no sticky
- * header reads no computed style. That read costs about 8 ms on a jsdom mount.
+ * header reads no computed style. That read is costly on a jsdom mount.
  *
  * @internal
  */

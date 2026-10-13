@@ -26,21 +26,10 @@
  * app. The samples run one after another, so the overlap that the shared
  * worker exists for never comes up.
  *
- * Baseline (Chromium 141, headless, device pixel ratio 1, so the raster scale is 1.5):
- *
- * | Pages | First page painted | Settled |
- * | ---: | ---: | ---: |
- * | 1 | 63 ms | 75 ms |
- * | 3 | 107 ms | 119 ms |
- * | 14 | 343 ms | 356 ms |
- * | 50 | 1,199 ms | 1,213 ms |
- *
- * In that baseline, the first page painted only when the whole document settled, because the
- * viewport showed a page only while `loading` was false. The viewport now shows a page as it
- * lands, and the first page paints in about 60 ms at each page count (README, optimization
- * log). Each page after the first still adds about 23 ms to the settle. At 2x, one page renders in about 17.5 ms and encodes to PNG in
- * about 12.7 ms (269 KiB). JPEG encodes in about 16 ms (315 KiB), and WebP in about 176 ms
- * (148 KiB), so no other encoder is a cheaper path. The decoded page is 7.4 MiB.
+ * The README (PDF viewer) holds the baseline and the optimization log. In the baseline, the first
+ * page painted only when the whole document settled, because the viewport showed a page only while
+ * `loading` was false. The viewport now shows a page as it lands, so the first paint no longer
+ * grows with the page count. Each page after the first still adds to the settle.
  */
 
 import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.mjs'
@@ -199,7 +188,7 @@ function rendered(src: string) {
  * Runs `body` with a `requestAnimationFrame` that calls back in a microtask.
  *
  * @remarks pdf.js paints a display render in slices of 15 ms, and it waits for an animation
- * frame before each slice. A frame costs about 17 ms in this container (README), so a timed
+ * frame before each slice. A frame costs about 17 ms at 60 Hz, so a timed
  * render reads the frames and not the work. The render here still runs every slice, and the
  * difference from the frame-paced row is the wait.
  */

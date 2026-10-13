@@ -24,9 +24,9 @@ const HEIGHT = 300
  * The suite budget is 1s on a dev machine, and a follow can take longer than
  * that. Each time a row measures, the follow target moves. While the target is
  * more than one viewport away, the virtualizer then starts a new smooth scroll,
- * and the browser starts its curve again. On an idle 4-core container, a follow
- * of 1,000px took 0.8s. With a busy main thread, it took 1.2s, and the wait
- * failed on the last few pixels of the travel.
+ * and the browser starts its curve again. On an idle machine, a long follow
+ * took most of the suite budget. With a busy main thread, it took longer, and
+ * the wait failed on the last few pixels of the travel.
  */
 const FOLLOW = budget(3_000)
 

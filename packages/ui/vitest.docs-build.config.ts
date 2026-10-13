@@ -23,9 +23,9 @@ export default defineConfig({
 		include: ['src/__tests__/docs-build/**/*.test.ts'],
 		globalSetup: ['./src/__tests__/setup/shard.ts', './src/__tests__/docs-build/setup/serve.ts'],
 		sequence: { sequencer: splitSequencer(['accessibility.test.ts']) },
-		// A page load in Chromium takes about one second. Each wait of Playwright
-		// has a limit of 30 s, so a page that does not hydrate fails with the
-		// error of Playwright, before the limit of the case.
+		// Each wait of Playwright has a limit of 30 s, far longer than a page load
+		// in Chromium, so a page that does not hydrate fails with the error of
+		// Playwright, before the limit of the case.
 		testTimeout: 60_000,
 		hookTimeout: 60_000,
 	},

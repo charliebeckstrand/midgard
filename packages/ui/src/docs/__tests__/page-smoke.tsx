@@ -76,9 +76,9 @@ const OTHER_PARTS = 4
 
 /**
  * The part of the pages that each smoke file runs, by the name of the file.
- * Each part takes about 10s on one worker of a 4-core machine. The pages
- * outside `modules/` go into {@link OTHER_PARTS} parts in turn. The grid page
- * takes about 12s alone, so it has a part of its own.
+ * The parts take about the same time on one worker. The pages outside
+ * `modules/` go into {@link OTHER_PARTS} parts in turn. The grid page alone
+ * takes as long as a part, so it has a part of its own.
  */
 export const smokeParts: Readonly<Record<string, readonly Page[]>> = {
 	...Object.fromEntries(
@@ -336,8 +336,8 @@ export function describePageSmoke(part: readonly Page[]): void {
 		it.each(part.map((page) => [page.path, page] as const))(
 			'%s renders each tab with no console output and no rule violation',
 			// The grid page is the slowest. It has 20 tabs, its examples show more
-			// tabs, and axe runs in each state. The case takes about 15s on four
-			// cores. The limit scales on CI by the factor of the suite `testTimeout`.
+			// tabs, and axe runs in each state, so the case is the longest of the
+			// suite. The limit scales on CI by the factor of the suite `testTimeout`.
 			{ timeout: CI ? 180_000 : 60_000 },
 			async (_path, page) => {
 				const { logged, violations, scopes, duplicates, bare, visited } = await walk(page)

@@ -3,7 +3,7 @@
  * sample presses ArrowDown or ArrowUp on the table, so the cursor steps between
  * two rows. The sample ends one rendered frame after the press, so the style
  * and layout work that the commit leaves to the browser is inside the sample.
- * A frame costs about 17 ms in the headless container (README), so a row reads
+ * A frame costs about 17 ms at 60 Hz, so a row reads
  * that much above the work.
  *
  * The `fill handle` row is an editable grid with a range, which shows the fill

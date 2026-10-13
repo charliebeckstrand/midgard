@@ -35,7 +35,7 @@ runs:
     # holds each library that headless Chromium loads. `--with-deps` ran apt
     # on each run, and apt fetched about 35 MB from the Ubuntu mirrors: newer
     # builds of ten of those libraries, and the font packages. A slow mirror
-    # stalled the step. One run hung for 15 minutes, and one took 6m41s. The
+    # stalled the step, and a run could hang until its time limit. The
     # browser suite passes without those fonts. If a runner image drops a
     # library, Chromium does not launch, and the error names the library.
     # Put `--with-deps` back then.

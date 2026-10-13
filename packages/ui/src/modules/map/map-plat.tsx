@@ -1099,8 +1099,8 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// ends and the marks drawn over it follow.
 	//
 	// Deliberately unresolved on the render path — the `geoCentroid` pass behind
-	// the region half measures every ring in the atlas (~30 ms across 3,000
-	// counties, against a ~70 ms mount), and neither the mount nor a resize can
+	// the region half measures every ring in the atlas (on counties, a large
+	// fraction of the cost of the mount), and neither the mount nor a resize can
 	// pay that for a cursor most maps never carry. The hook calls this on the
 	// first navigation key instead. A stop whose position the projection drops
 	// (the US composite discards points outside its insets) is left out, so the

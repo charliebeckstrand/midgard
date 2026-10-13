@@ -685,6 +685,18 @@ The panel-tree step — rung 3 over rung 2 — is 0.06 ms across fifty after the
 
 **Not transferred to the color picker.** `use-color-picker-state.ts` reaches `refs.setReference` through the same shared hook, but its interactions are not the menu's. It wires no `useClick`: the trigger owns its own toggle, and `useFloatingUI` gives it `useDismiss` with `outsidePress` and `escapeKey` both off. Its reference is also the `Control` wrapper, not the button. The deferral would therefore be a new shape rather than a copy, and no rung sizes it yet. The same holds for `DatePicker`, `Listbox`, and `Combobox`, which register their own references at mount.
 
+### Tooltip surface lifecycle (2026-07-11, this container)
+
+[`tooltip-lifecycle.bench.tsx`](tooltip-lifecycle.bench.tsx) prices a full rebuild of the tooltip surface against a reposition of a surface that stays mounted. Mean ms in Chromium.
+
+| Scenario | Mean |
+| --- | ---: |
+| baseline | ~0.11 |
+| mount + unmount | ~1.26 |
+| reposition (stays mounted) | ~0.31 |
+
+**A rebuild of the surface subtree costs about 1.15 ms, and that is all `keepMounted` could get back.** It gets it back only on a full cycle that the exit fade does not already absorb, and each tooltip then keeps a portal node. That is not worth building. The bench stays as the reference cost of the surface lifecycle, and as a regression guard on the mount path.
+
 ## Icons
 
 `Icon` wraps a lucide element, and every menu row, button affix, nav item, and badge can carry one. This rung says whose cost that is.
@@ -740,6 +752,18 @@ The container has a device pixel ratio of 1, so the viewer rasterizes at 1.5x.
 | WebP encode, 0.92 | 176 ms | 148 KiB |
 
 The first page paints only when the whole document settles, because the viewport shows a page only while `loading` is false. Each page after the first adds about 23 ms to that wait. The encode is about 40 % of the cost of a page, and no other encoder is cheaper than PNG.
+
+### Unpark of a resident document (2026-09-10, this container)
+
+[`pdf-viewer-lifecycle.bench.tsx`](pdf-viewer-lifecycle.bench.tsx) mounts the viewer on a document that the cache holds. Mean ms in Chromium 141, over three runs, at 14 pages.
+
+| Scenario | Mean |
+| --- | ---: |
+| baseline | ~0.1 to 0.17 |
+| resident document | ~9.0 to 10.2 |
+| pre-rendered pages | ~8.1 to 8.7 |
+
+**The rebuild of the React tree is the cost of an unpark, not the document.** That is the purpose of the cache. The path through the cache costs about 1 ms more for each mount than pages that the caller gives: the store subscription and the load-guard effect. It pays that one time for each mount, and it saves the fetch of the document and fourteen rasterizations.
 
 ### Optimization log
 

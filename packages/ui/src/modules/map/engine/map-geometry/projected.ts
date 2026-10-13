@@ -1,10 +1,10 @@
 /**
  * The atlas projected once, and the region paths emitted from it. A map draws
- * the same geography under two fits in one mount. One is canonical, on the first
- * commit; the other is measured, a beat later. It draws it again under a third
- * fit on every resize. `regionPaths` streams every coordinate through `d3-geo`
- * afresh for each. That walk is the mount's largest pass: 243 ms across 3,108 counties,
- * against 25 ms to build the strings it ends in.
+ * the same geography under two fits in one mount. One is canonical, on the
+ * first commit; the other is measured, a beat later. It draws it again under a
+ * third fit on every resize. `regionPaths` streams every coordinate through
+ * `d3-geo` afresh for each. That walk is the mount's largest pass, many times
+ * the cost of building the strings it ends in.
  *
  * So the walk happens once and its output is kept. {@link projectAtlas} streams
  * the geography through the fitted projection into a flat buffer of frame
@@ -365,7 +365,7 @@ function bufferBounds(points: Float64Array): [number, number, number, number] {
  * bounds, and keeps only the scale and translate it derives. The buffer then
  * streamed it again to record where every point landed. But bounds are a scan of
  * those same points, so the walk that fills the buffer can measure the frame on
- * its way. Across 3,108 counties, 163.2 ms and 202.9 ms become 167.7 ms. The
+ * its way. The two passes then cost about as much as the buffer alone did. The
  * frame comes out to the same bit.
  *
  * The buffer is therefore drawn at probe scale and read at every fit above it,
@@ -418,13 +418,12 @@ export function probeCanonicalFit(
  * One rounded coordinate, from the integer `Math.round` already produced rather
  * than from the fraction it divides back to.
  *
- * Formatting is the emit, not the arithmetic. Of 22.4 ms across 3,108 counties,
- * the affine multiply is 1.4 ms and the concatenation 0.8 ms. The remaining
- * 21.0 ms is turning doubles into strings. At one decimal every value divides to
- * a tenth, which no double holds exactly, so each one takes V8's shortest-repr
- * search. Dividing in the string instead keeps the whole pass on integers, and
- * halves it. That is 22.4 ms to 12.6 ms on counties, and 4.4 ms to 2.2 ms on 49
- * states.
+ * Formatting is the emit, not the arithmetic. The affine multiply and the
+ * concatenation are a small part of it; nearly all of it is turning doubles into
+ * strings. At one decimal every value divides to a tenth, which no double holds
+ * exactly, so each one takes V8's shortest-repr search. Dividing in the string
+ * instead keeps the whole pass on integers, and about halves it on counties and
+ * on states.
  *
  * Byte for byte
  * `${Math.round(v * REGION_PATH_ROUNDING) / REGION_PATH_ROUNDING}`, which is
@@ -485,11 +484,12 @@ function frameAffine(
  *
  * The region layer draws the canonical paths once and moves this one attribute
  * per refit. It used to take every path back through the projection and rewrite
- * every `d`. That was 47.1 ms of writes and forced layout across 3,107 counties,
- * against 0.15 ms. It is the module's own {@link MapTransform}, so the layer
- * renders it through `transformAttribute` (`map-zoom/transform`). The two
- * transforms this module puts on nested groups are therefore written by one
- * hand, and cannot drift on the attribute's format.
+ * every `d`. Across the counties, those writes and the forced layout cost many
+ * times more than the one attribute does. It is the module's own
+ * {@link MapTransform}, so the layer renders it through `transformAttribute`
+ * (`map-zoom/transform`). The two transforms this module puts on nested groups
+ * are therefore written by one hand, and cannot drift on the attribute's
+ * format.
  *
  * Neither affine off the buffer is the one the layer needs, because the buffer
  * is held at the probe scale the frame was measured from. This composes them. A

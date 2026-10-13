@@ -64,8 +64,8 @@ export function serverAssetUrls(): Plugin {
  *
  * The prerender renders no link to the full stylesheet (`app/root.tsx`), but
  * the server build compiled it to get its URL, and then React Router removed
- * the file. Without that compile, the server build of the docs takes about
- * 2 s less. React Router builds the client first, so its manifest is on the
+ * the file. Without that compile, the server build of the docs is shorter.
+ * React Router builds the client first, so its manifest is on the
  * disk.
  */
 export function serverStylesheetUrl(stylesheet: string, clientDir: string): Plugin {

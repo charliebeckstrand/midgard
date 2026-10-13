@@ -26,12 +26,11 @@
  * implement. The viewer now loads the legacy build, and `pdf-viewer-open.bench.tsx` measures
  * the cold open, which is the saving that the cache gives.
  *
- * Finding (Chromium 141, three runs): baseline ~0.1–0.17ms, `resident document` ~9.0–10.2ms at
- * 14 pages, `pre-rendered pages` ~8.1–8.7ms. Two things to read off that. The subtree rebuild
- * dominates at ~8–10ms, so the expensive half of an unpark is now the React tree rather than the
- * document — which is the whole point of the cache. And the cache-backed path costs a consistent
- * ~1ms more per mount than pre-supplied pages: the store subscription plus the load-guard effect,
- * paid once per mount, against the document fetch and fourteen rasterizations it replaces.
+ * The finding is in the README (PDF viewer, Unpark of a resident document). The subtree rebuild
+ * dominates, so the expensive half of an unpark is now the React tree rather than the document —
+ * which is the whole point of the cache. And the cache-backed path costs a little more per mount
+ * than pre-supplied pages: the store subscription plus the load-guard effect, paid once per mount,
+ * against the document fetch and fourteen rasterizations it replaces.
  *
  * So this bench is the regression guard on the mount path, and the floor any future
  * `keepMounted`-style change to the parking panel would be trying to reclaim.

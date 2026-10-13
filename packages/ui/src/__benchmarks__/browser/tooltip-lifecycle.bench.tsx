@@ -14,12 +14,11 @@
  * off the marks past the fade, then returns — so read `mount + unmount` as the
  * per-*full-cycle* ceiling, not a per-move cost.
  *
- * Finding (Chromium): baseline ~0.11ms, `mount + unmount` ~1.26ms, `reposition`
- * ~0.31ms — so the surface subtree costs ~1.15ms to rebuild, and that is all
- * `keepMounted` could reclaim, only on the rare full cycle the exit fade does
- * not already absorb, in exchange for a resident portal node per tooltip. Not
- * worth building; this bench stays as the surface-lifecycle cost reference and a
- * regression guard on the mount path.
+ * The finding is in the README (Popovers, Tooltip surface lifecycle): the
+ * rebuild of the surface subtree is all that `keepMounted` could reclaim, only
+ * on the rare full cycle the exit fade does not already absorb, in exchange for
+ * a resident portal node per tooltip. Not worth building; this bench stays as
+ * the surface-lifecycle cost reference and a regression guard on the mount path.
  */
 
 import { bench, describe } from 'vitest'

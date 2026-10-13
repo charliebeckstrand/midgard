@@ -39,8 +39,8 @@ export function budget(ms: number): number {
  *
  * Deliberately unscaled, unlike {@link budget}. The delay a hold outlasts is a
  * `setTimeout` in the component, which fires on wall clock and does not stretch
- * with CPU load, so a factor would buy no headroom. It would cost 4.1s of sleep
- * on every green CI run at a factor of 2.
+ * with CPU load, so a factor would buy no headroom. At a factor of 2, it would
+ * double the sleep of each hold on every green CI run.
  *
  * @param ms - The hold.
  * @returns A promise that settles after the hold and the two frames.

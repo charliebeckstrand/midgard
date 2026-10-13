@@ -269,9 +269,9 @@ export function regionFrame(
  * Each region beside the box that holds it.
  *
  * Split from the grouping because it depends on the atlas alone, and an atlas
- * never changes for the life of the tab. Measured over the 56 states and their
- * 14,456 coordinate pairs it is ~2.7 ms, which is most of a grouping pass at any
- * realistic number of places — so it is resolved once and handed in rather than
+ * never changes for the life of the tab. Over the 56 states and their 14,456
+ * coordinate pairs it is most of a grouping pass at any realistic number of
+ * places — so it is resolved once and handed in rather than
  * rebuilt every time a place is added.
  */
 export function boundRegions(regions: MapFeatureCollection | null): BoundedRegion[] {
@@ -305,8 +305,8 @@ export type GroupOptions = {
  * read off a finer atlas than the one drawn here — a place a 10m atlas put in a
  * state is in that country whatever a 110m outline of it says. It is also the
  * cheap answer: a place it names pays no bounds test and no ring walk at all.
- * Measured over 200 places inside the United States, grouping them against the
- * world costs 15.9 ms of `geoContains` without it and 0.11 ms with it.
+ * Measured over 200 places inside the United States, it takes nearly all of the
+ * `geoContains` work out of grouping them against the world.
  *
  * The drawn geometry answers next, so the map and the drill agree about where a
  * point is: a place is in the region whose shape contains it, and that is the
@@ -331,8 +331,8 @@ export type GroupOptions = {
  * polygon pass for the handful of regions whose box it falls in. `geoContains`
  * walks every ring of the region it is asked about — the states atlas is 14,456
  * coordinate pairs — and a place outside every region paid all of it before
- * reaching the fallback. Measured over 200 places: 110 ms to 2.4 ms, for the
- * same grouping. The boxes come from {@link boundRegions}.
+ * reaching the fallback. Measured over 200 places, the boxes take nearly all of
+ * that work out of the same grouping. The boxes come from {@link boundRegions}.
  *
  * `regions` can be a function that gives the boxes. The grouping then calls it
  * on the first place that `known` does not settle, and never where `known`

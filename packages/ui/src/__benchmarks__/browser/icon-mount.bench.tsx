@@ -2,10 +2,9 @@
  * Whose cost an icon is.
  *
  * The jsdom menu suite (`../menu.bench.tsx`) reads a row with an icon at twice
- * the cost of a row without one. Over 24 rows that is 6.8 ms against 14.3 ms.
- * The ratio asks whether `Icon` is expensive. The rungs below answer it by
- * building the same 24 glyphs five ways, each one step further from the bare
- * element.
+ * the cost of a row without one. The ratio asks whether `Icon` is expensive.
+ * The rungs below answer it by building the same 24 glyphs five ways, each one
+ * step further from the bare element.
  *
  * `empty spans` carries the host, the React root, and 24 trivial elements, so
  * every later rung reads against it. `plain svg` swaps in the markup lucide

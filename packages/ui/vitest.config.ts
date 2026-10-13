@@ -70,8 +70,9 @@ const workspaceScans = [
 // `test:changed` through `turbo` at once, so a `tsc` pass competes with these
 // for the same cores. `tsdoc-coverage-boundary` builds a TypeScript program and
 // crossed the 5s default there on contention alone, which the note below says a
-// budget must never encode. Flat and wide, then: the project's median is 72ms,
-// so a budget this size fails only work that has genuinely stopped moving.
+// budget must never encode. Flat and wide, then: a typical file of the project
+// takes a small part of it, so a budget this size fails only work that has
+// genuinely stopped moving.
 const nodeScan = {
 	environment: 'node',
 	pool: 'threads',
@@ -120,12 +121,11 @@ export default defineConfig({
 		// flat. Re-measure before you trust this on a much larger machine.
 		...(CI ? {} : { maxWorkers: '100%' }),
 		globals: true,
-		// Keep the transformed module graph on disk between runs. Measured on a
-		// 4-core container over the `unit` project: 60.0s cold, 50.7s warm;
-		// transform fell from 40.0s to 8.9s and import from 57.1s to 24.2s. The
-		// cache lives under the workspace root's node_modules and is about
-		// 40 MB. CI keys it on the turbo hash of the packages that ui resolves
-		// (ci.yml), so a change to those packages starts a cold cache. The
+		// Keep the transformed module graph on disk between runs. A warm cache cuts
+		// most of the transform time of the `unit` project, and much of its import
+		// time. The cache lives under the workspace root's node_modules and is
+		// about 40 MB. CI keys it on the turbo hash of the packages that ui
+		// resolves (ci.yml), so a change to those packages starts a cold cache. The
 		// option is experimental — re-read its release note on each Vitest bump,
 		// and drop it if the invalidation contract changes.
 		experimental: { fsModuleCache: true },
@@ -301,8 +301,8 @@ export default defineConfig({
 				// fresh jsdom, which the pool above pays once per worker. The
 				// virtualizer, canvas, and PDF suites that declare no mock ran
 				// here once, and they pass on the shared window: the residue
-				// guard holds them to its terms. Moving those 21 files took the
-				// jsdom run from about 62s to 54s warm on four cores.
+				// guard holds them to its terms. Moving those 21 files shortened the
+				// jsdom run.
 				test: {
 					name: 'integration',
 					setupFiles,

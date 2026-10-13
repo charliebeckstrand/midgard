@@ -8,9 +8,9 @@ import { act, fireEvent, getSlot, renderUI } from '../helpers'
  *
  * Each pointer move sets the pointed mark, so the frame renders again. The
  * table holds one cell for each category and series, and it rendered with the
- * frame. On a 10,000-row line that cost about 440ms of jsdom time for each
- * move. The table is now memoized on the readout thunk, which the pointer does
- * not change.
+ * frame. On a long line, that was most of the jsdom time of each move. The
+ * table is now memoized on the readout thunk, which the pointer does not
+ * change.
  *
  * The count reads the `rangeKeys` call that keys the table rows. No other chart
  * render asks for the `category` prefix. The count needs a module mock, so this

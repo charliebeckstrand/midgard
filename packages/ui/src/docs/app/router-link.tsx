@@ -33,8 +33,9 @@ function isNativeClick(event: MouseEvent<HTMLAnchorElement>, target: string | un
  *
  * The `Link` of React Router reads the location and the route, so each of the
  * about 100 items of the sidebar renders again on each change of the router
- * state. A navigation then spends about 100 ms more at 4x CPU. This link reads
- * only the `navigate` of the shell, and it reads the location at the click.
+ * state, and a navigation then spends a long time on those renders at 4x CPU.
+ * This link reads only the `navigate` of the shell, and it reads the location
+ * at the click.
  */
 export function RouterLink({
 	href,

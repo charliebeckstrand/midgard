@@ -89,11 +89,10 @@ export type PdfViewerHighlightsResult = {
  * memo keyed on it would never hit. Its output identity would then flow onward as
  * though it were stable.
  *
- * The pass is O(every highlight in the document), not O(on-screen regions): filtering by
- * page has to visit them all. Measured, that is ~7 µs at 420 highlights and ~125 µs at
- * 15,000. That is well under a memo's own overhead for any realistic document. Past roughly
- * 5,000 it stops being free per frame under a continuous resize or zoom drag.
- * `'fraction'` (the default) is a pass-through.
+ * The pass is O(every highlight in the document), not O(on-screen regions): filtering by page has
+ * to visit them all. Measured, that is well under a memo's own overhead for any realistic document.
+ * Past roughly 5,000 highlights it stops being free per frame under a continuous resize or zoom
+ * drag. `'fraction'` (the default) is a pass-through.
  * @internal
  */
 export function usePdfViewerHighlights({

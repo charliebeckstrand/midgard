@@ -18,7 +18,7 @@ import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
  * `map-hover.bench` cannot show this. Its sweep settles an animation frame per
  * step, so the whole cascade sits inside one frame at this size and the wall
  * clock reads the frame rather than the work — before and after measure the
- * same 17.1 ms at p75. Only a render count shows it, which needs a module mock,
+ * same frame time at p75. Only a render count shows it, which needs a module mock,
  * so this suite sits in `boundary/` beside the two deferral gates for the
  * reason those state.
  */

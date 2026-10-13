@@ -39,7 +39,7 @@ import { srcDir, srcRelative } from '../helpers/walk-source'
 // doccomment at any hop, which is what a consumer's editor resolves.
 //
 // Building that program makes this the slowest test in its project by a wide
-// margin — ~1.4s against a 72ms median — so it reads no more than it resolves
+// margin, so it reads no more than it resolves
 // (see `withheld`), and the project's own `testTimeout` in `vitest.config.ts`
 // is sized for it. It stays in the boundary project because it pins a
 // convention, not a behavior.
@@ -110,9 +110,9 @@ const PROGRAM_OPTIONS = {
  * @remarks The barrels reach the whole dependency graph. The server withholds
  * the text of each dependency, and `PROGRAM_OPTIONS` drops the library. The
  * program then has 1,602 files and 6.3MB of text, in place of 2,031 files and
- * 11.3MB. The server parses in parallel, so the program builds in
- * approximately 1.0s, in place of 1.2s. The walk takes approximately 0.7s,
- * because each hop of an alias chain is a call to the server.
+ * 11.3MB. The server parses in parallel, so the smaller program builds faster.
+ * The walk takes most of the rest, because each hop of an alias chain is a
+ * call to the server.
  *
  * None of it is read. The walk reports only on declarations this package wrote,
  * and across all 1,532 barrel exports no hop of any alias chain lands in a

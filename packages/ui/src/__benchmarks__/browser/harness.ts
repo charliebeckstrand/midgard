@@ -47,7 +47,7 @@ const FRAME_DRAIN = 8
 /**
  * Runs `body` with a manual frame clock in place of the browser's. The table
  * engine throttles each resize move onto an animation frame. A real frame costs
- * about 17 ms in the headless container (README), so a sample that waits out
+ * about 17 ms at 60 Hz, so a sample that waits out
  * frames reads the frame and not the work.
  *
  * The clock replaces `requestAnimationFrame` and `cancelAnimationFrame` with a

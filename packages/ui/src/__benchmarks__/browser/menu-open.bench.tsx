@@ -8,7 +8,7 @@
  *
  * The timed region is the commit the click drives, from the event to the panel
  * in the DOM. It stops there. The engine places the panel a frame later, and a
- * frame costs 17.4 ms in this container, so a sample that waited for the
+ * frame costs about 17 ms at 60 Hz, so a sample that waited for the
  * placement would report the frame rather than the work. What this bench reads
  * is the work the frame must hold.
  *
