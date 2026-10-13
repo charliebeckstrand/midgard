@@ -1,6 +1,6 @@
 import type { DragEndEvent, DragOverEvent, DragStartEvent } from '@dnd-kit/core'
 import { act, renderHook } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { KanbanColumnBase } from '../../components/kanban/types'
 import { useKanbanDrag } from '../../components/kanban/use-kanban-drag'
 
@@ -183,7 +183,8 @@ describe('useKanbanDrag: handleDragEnd same-column reorder', () => {
 /**
  * Drives one cross-column drag the way the shipped board does: a drag start, a
  * drag-over onto a card in another column, then the consumer re-render that the
- * emitted columns cause. The caller makes the drop.
+ * emitted columns cause. The caller makes the drop. `commit` renders the last
+ * emitted columns again, as the consumer does after each report.
  */
 function startCrossColumnDrag() {
 	let board = baseColumns.map((c) => ({ ...c, items: [...c.items] }))
@@ -206,11 +207,14 @@ function startCrossColumnDrag() {
 		result.current.handleDragOver(makeDragEvent('a', 'c'))
 	})
 
-	rerender({ columns: board })
+	const commit = () => rerender({ columns: board })
+
+	commit()
 
 	return {
 		result,
 		onReorder,
+		commit,
 		ids: (index: number) => board[index]?.items.map((i) => i.id),
 	}
 }
@@ -305,5 +309,74 @@ describe('useKanbanDrag: cancel', () => {
 		})
 
 		expect(onReorder).not.toHaveBeenCalled()
+	})
+})
+
+describe('useKanbanDrag: reverse over after a cross-column move', () => {
+	beforeEach(() => {
+		vi.useFakeTimers({ toFake: ['requestAnimationFrame', 'cancelAnimationFrame'] })
+	})
+
+	afterEach(() => {
+		vi.useRealTimers()
+	})
+
+	it('ignores an over in the column that the card left until the frame after the commit', () => {
+		const { result, onReorder, ids } = startCrossColumnDrag()
+
+		expect(onReorder).toHaveBeenCalledTimes(1)
+
+		expect(ids(1)).toEqual(['a', 'c'])
+
+		// The collision check reads the column rects from before the move, so it
+		// can report a card of the column that the card left.
+		act(() => {
+			result.current.handleDragOver(makeDragEvent('a', 'b'))
+		})
+
+		expect(onReorder).toHaveBeenCalledTimes(1)
+
+		expect(ids(1)).toEqual(['a', 'c'])
+
+		vi.advanceTimersToNextFrame()
+
+		// The board measured the moved columns, so the over is the pointer.
+		act(() => {
+			result.current.handleDragOver(makeDragEvent('a', 'b'))
+		})
+
+		expect(onReorder).toHaveBeenCalledTimes(2)
+
+		expect(ids(0)).toEqual(['a', 'b'])
+
+		expect(ids(1)).toEqual(['c'])
+	})
+
+	it.each<[string, (api: ReturnType<typeof useKanbanDrag<Card, Column>>) => void]>([
+		['drag cancel', (api) => api.handleDragCancel()],
+		['drag end', (api) => api.handleDragEnd(makeDragEvent('a', 'a'))],
+	])('does not block the next drag after a %s', (_name, finish) => {
+		const { result, onReorder, commit, ids } = startCrossColumnDrag()
+
+		act(() => {
+			finish(result.current)
+		})
+
+		commit()
+
+		const calls = onReorder.mock.calls.length
+
+		// No frame runs. The next drag moves `c` into the column that `a` left.
+		act(() => {
+			result.current.handleDragStart(makeDragStart('c'))
+		})
+
+		act(() => {
+			result.current.handleDragOver(makeDragEvent('c', 'todo'))
+		})
+
+		expect(onReorder).toHaveBeenCalledTimes(calls + 1)
+
+		expect(ids(0)).toContain('c')
 	})
 })
