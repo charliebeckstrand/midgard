@@ -23,8 +23,8 @@ export const chat = {
 		'rounded-2xl',
 	],
 	tail: {
-		user: 'rounded-br-md',
-		assistant: 'rounded-bl-md',
+		user: 'rounded-ee-md',
+		assistant: 'rounded-es-md',
 	},
 	line: 'my-1 h-4 max-w-full',
 	lines: {

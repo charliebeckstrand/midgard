@@ -2,6 +2,7 @@
 
 import {
 	type Announcements,
+	type ClientRect,
 	closestCenter,
 	type DragEndEvent,
 	type DragStartEvent,
@@ -11,12 +12,14 @@ import {
 import {
 	arrayMove,
 	horizontalListSortingStrategy,
+	type SortingStrategy,
 	verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { useCallback, useId, useMemo, useRef, useState } from 'react'
 import type { Orientation } from '../types'
 import { sameElements } from '../utilities'
 import { useDragCursor } from './use-drag-cursor'
+import { useIsRtl } from './use-is-rtl'
 import { useSortableSensors } from './use-sortable-sensors'
 import { useStableEvent } from './use-stable-event'
 
@@ -97,6 +100,29 @@ export type SortableListOptions<T> = {
 	describe?: (item: T) => string
 }
 
+/** A rect seen in a mirror: its left and right edges swap sides of zero. */
+function mirror(rect: ClientRect): ClientRect {
+	return { ...rect, left: -rect.right, right: -rect.left }
+}
+
+/**
+ * `horizontalListSortingStrategy` for a row that runs right to left. The
+ * strategy of dnd-kit takes the next item to be on the right. This one sorts
+ * the mirrored rects and mirrors the shift back, so items of different widths
+ * move by the right distance.
+ *
+ * @internal
+ */
+export const horizontalRtlSortingStrategy: SortingStrategy = (args) => {
+	const shift = horizontalListSortingStrategy({
+		...args,
+		rects: args.rects.map(mirror),
+		activeNodeRect: args.activeNodeRect && mirror(args.activeNodeRect),
+	})
+
+	return shift && { ...shift, x: -shift.x }
+}
+
 /**
  * Single-list reorder hook backed by @dnd-kit. Owns the drag lifecycle and
  * commits reorders via `arrayMove`, leaving rendering of `<DndContext>` and
@@ -149,8 +175,14 @@ export function useSortableList<T>({
 
 	if (!sameElements(itemIds, keys)) setItemIds(keys)
 
+	const rtl = useIsRtl()
+
 	const strategy =
-		orientation === 'horizontal' ? horizontalListSortingStrategy : verticalListSortingStrategy
+		orientation === 'vertical'
+			? verticalListSortingStrategy
+			: rtl
+				? horizontalRtlSortingStrategy
+				: horizontalListSortingStrategy
 
 	const handleDragStart = useCallback(
 		(event: DragStartEvent) => {

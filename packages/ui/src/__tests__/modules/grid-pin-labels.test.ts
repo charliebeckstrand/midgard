@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest'
 import { describePin } from '../../modules/grid/engine/grid-announcements'
 import { pinMenuChoices } from '../../modules/grid/engine/grid-pin/overrides'
+import { fillItems } from '../../modules/grid/grid-context-menu-utilities'
 
 /**
  * The pin menu and its announcement name the physical edge a column goes to.
@@ -39,5 +40,23 @@ describe('pin labels', () => {
 		expect(describePin('Name', 'right', true)).toBe('Pinned Name to the left')
 
 		expect(describePin('Name', false, true)).toBe('Unpinned Name')
+	})
+
+	// The across fill goes to the inline end, so it names the left edge in RTL.
+	it('names the physical edge of the across fill', () => {
+		const fill = () => () => {}
+
+		const labels = (rtl: boolean) =>
+			fillItems(fill, rtl).map((item) => [item.key, 'label' in item ? item.label : null])
+
+		expect(labels(false)).toEqual([
+			['fill-down', 'Fill down'],
+			['fill-right', 'Fill right'],
+		])
+
+		expect(labels(true)).toEqual([
+			['fill-down', 'Fill down'],
+			['fill-right', 'Fill left'],
+		])
 	})
 })
