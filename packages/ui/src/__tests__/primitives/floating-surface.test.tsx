@@ -92,10 +92,11 @@ describe('FloatingSurface', () => {
 			</FloatingSurface>,
 		)
 
-		// The inert write that makes a *closing* surface stop swallowing hovers is
-		// a browser case: jsdom's mocked `AnimatePresence` drops the node in the
-		// same commit, so there is never an exiting surface to observe.
-		expect(document.querySelector<HTMLElement>('[data-slot="live"]')?.style.pointerEvents).toBe('')
+		// The `inert` write on a closing surface is a browser case
+		// (`browser/floating-motion/floating-surface-exit.test.tsx`). The mocked
+		// `AnimatePresence` of jsdom removes the node in the commit that closes it,
+		// so no exit occurs here.
+		expect(document.querySelector('[data-slot="live"]')).not.toHaveAttribute('inert')
 	})
 
 	it('merges caller style over floatingStyles on the positioned wrapper', () => {

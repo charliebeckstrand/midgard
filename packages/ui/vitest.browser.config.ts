@@ -168,7 +168,14 @@ const releasePointer: BrowserCommand<[selector?: string]> = async (context, sele
  *   short. This instance drops the flag, so its scrollers have real scrollbars.
  *   Its mocks are the ones `browser` uses.
  *
- * `pnpm test:browser` runs all five; `--project <name>` scopes to one.
+ * - `floating-motion` (browser/floating-motion/): the cases that read the exit
+ *   of a floating surface, such as the focus and the input of a menu panel
+ *   while it animates out. This instance leaves `@floating-ui/react` and
+ *   `motion/react` real. The `floating-ui` project mocks Motion, and the
+ *   `motion` project mocks floating-ui, so neither of them has such an exit.
+ *   It keeps the tooltip body loader mock of `floating-ui`.
+ *
+ * `pnpm test:browser` runs all six; `--project <name>` scopes to one.
  *
  * Instance-level `setupFiles` merge additively onto project-level ones
  * (project's run first), so `index.ts`/`act-environment.ts` — shared by both
@@ -227,7 +234,7 @@ export default defineConfig({
 		],
 	},
 	test: {
-		// The files of the five instances, and each instance sets its own
+		// The files of the six instances, and each instance sets its own
 		// `include`. Vitest starts the dependency scan of the browser server from
 		// the test files of this level, and the default is each test file of the
 		// package. The node suites then enter the scan too, and a module that the
@@ -332,6 +339,7 @@ export default defineConfig({
 					include: ['src/__tests__/browser/**/*.test.{ts,tsx}'],
 					exclude: [
 						...configDefaults.exclude,
+						'src/__tests__/browser/floating-motion/**',
 						'src/__tests__/browser/floating-ui/**',
 						'src/__tests__/browser/geometry/**',
 						'src/__tests__/browser/motion/**',
@@ -366,6 +374,17 @@ export default defineConfig({
 						resolve(import.meta.dirname, 'src/__tests__/browser/motion/setup/module-mocks.ts'),
 					],
 					include: ['src/__tests__/browser/motion/**/*.test.{ts,tsx}'],
+				},
+				{
+					browser: 'chromium',
+					name: 'floating-motion',
+					setupFiles: [
+						resolve(
+							import.meta.dirname,
+							'src/__tests__/browser/floating-motion/setup/module-mocks.ts',
+						),
+					],
+					include: ['src/__tests__/browser/floating-motion/**/*.test.{ts,tsx}'],
 				},
 			],
 		},

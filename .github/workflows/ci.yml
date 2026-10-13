@@ -157,7 +157,7 @@ jobs:
   #
   # Two shards, each with half of the test files, as in `compiler`. Before, one
   # job ran the whole suite beside `docs:build` (the `docs` job now). Each half
-  # pays the start of the browser and of its five instances again, and that
+  # pays the start of the browser and of its six instances again, and that
   # start is a large part of a half. So a third shard gives less back than the
   # second.
   browser:
