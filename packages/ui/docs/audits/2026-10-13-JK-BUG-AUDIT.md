@@ -1,6 +1,6 @@
 # Bug audit — 2026-10-13
 
-Letter sweep J and K of the `packages/ui` components: `components/json-tree`, `components/kanban`, and `components/kbd`. Two scopes, 30 files, 3,518 lines, 11 claims. 10 findings are rows below: 3 `medium` and 7 `low`. 1 claim was refuted. Kbd raised no claim. All 8 questions are settled. All 10 rows are fixed on branches.
+Letter sweep J and K of the `packages/ui` components: `components/json-tree`, `components/kanban`, and `components/kbd`. Two scopes, 30 files, 3,518 lines, 11 claims. 10 findings are rows below: 3 `medium` and 7 `low`. 1 claim was refuted. Kbd raised no claim. All 8 questions are settled. All 10 rows are resolved by #2389 to #2397.
 
 ## Scope
 
@@ -35,16 +35,16 @@ Three notes on the passes. Each verifier was told to scope its greps to the cons
 
 | Row | File | Symbol | Verdict | Severity | Reach | Group | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| R1 | `components/json-tree/json-tree.tsx` | `JsonTree` `handleKeyDown` (recursive) | CONFIRMED | medium | shipped | G1 | ◐ FIXED |
-| R2 | `components/json-tree/json-tree-virtualized.tsx` | `treeMoveIndex` | CONFIRMED | low | test-only | G1 | ◐ FIXED |
-| R3 | `components/json-tree/json-tree.tsx` | `JsonTree` roving `itemSelector` (recursive) | CONFIRMED | medium | shipped | — | ◐ FIXED |
-| R4 | `components/json-tree/json-tree-node.tsx` | `JsonTreeNodeView` `toggle` / `resolveNodeOpen` | NARROWED | low | shipped | — | ◐ FIXED |
-| R5 | `components/json-tree/json-tree-virtualized.tsx` | `JsonTreeVirtualized` focused row | CONFIRMED | low | test-only | — | ◐ FIXED |
-| R6 | `components/json-tree/json-tree-virtualized.tsx` | `JsonTreeVirtualized` `firstFocusable` | RESTATED | low | test-only | — | ◐ FIXED |
-| R7 | `components/kanban/kanban.tsx` | `Kanban` `ref` | CONFIRMED | low | none | — | ◐ FIXED |
-| R8 | `components/kanban/kanban.tsx` | `Kanban` drag handler gating | CONFIRMED | low | shipped | — | ◐ FIXED |
-| R9 | `components/kanban/use-kanban-drag.ts` | `applyKanbanDragOver` | NARROWED | medium | shipped | — | ◐ FIXED |
-| R10 | `components/kanban/kanban-announcements.ts` | `columnName` | CONFIRMED | low | none | — | ◐ FIXED |
+| R1 | `components/json-tree/json-tree.tsx` | `JsonTree` `handleKeyDown` (recursive) | CONFIRMED | medium | shipped | G1 | ✅ RESOLVED ([#2389](https://github.com/charliebeckstrand/midgard/pull/2389)) |
+| R2 | `components/json-tree/json-tree-virtualized.tsx` | `treeMoveIndex` | CONFIRMED | low | test-only | G1 | ✅ RESOLVED ([#2389](https://github.com/charliebeckstrand/midgard/pull/2389)) |
+| R3 | `components/json-tree/json-tree.tsx` | `JsonTree` roving `itemSelector` (recursive) | CONFIRMED | medium | shipped | — | ✅ RESOLVED ([#2390](https://github.com/charliebeckstrand/midgard/pull/2390)) |
+| R4 | `components/json-tree/json-tree-node.tsx` | `JsonTreeNodeView` `toggle` / `resolveNodeOpen` | NARROWED | low | shipped | — | ✅ RESOLVED ([#2391](https://github.com/charliebeckstrand/midgard/pull/2391)) |
+| R5 | `components/json-tree/json-tree-virtualized.tsx` | `JsonTreeVirtualized` focused row | CONFIRMED | low | test-only | — | ✅ RESOLVED ([#2392](https://github.com/charliebeckstrand/midgard/pull/2392)) |
+| R6 | `components/json-tree/json-tree-virtualized.tsx` | `JsonTreeVirtualized` `firstFocusable` | RESTATED | low | test-only | — | ✅ RESOLVED ([#2393](https://github.com/charliebeckstrand/midgard/pull/2393)) |
+| R7 | `components/kanban/kanban.tsx` | `Kanban` `ref` | CONFIRMED | low | none | — | ✅ RESOLVED ([#2394](https://github.com/charliebeckstrand/midgard/pull/2394)) |
+| R8 | `components/kanban/kanban.tsx` | `Kanban` drag handler gating | CONFIRMED | low | shipped | — | ✅ RESOLVED ([#2395](https://github.com/charliebeckstrand/midgard/pull/2395)) |
+| R9 | `components/kanban/use-kanban-drag.ts` | `applyKanbanDragOver` | NARROWED | medium | shipped | — | ✅ RESOLVED ([#2396](https://github.com/charliebeckstrand/midgard/pull/2396)) |
+| R10 | `components/kanban/kanban-announcements.ts` | `columnName` | CONFIRMED | low | none | — | ✅ RESOLVED ([#2397](https://github.com/charliebeckstrand/midgard/pull/2397)) |
 
 All paths are under `packages/ui/src/`.
 
