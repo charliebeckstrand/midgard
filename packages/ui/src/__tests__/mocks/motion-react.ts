@@ -213,8 +213,7 @@ const domMax = {}
 type MotionConfigValue = { reducedMotion: 'always' | 'never' | 'user' }
 
 // Real motion defaults `reducedMotion` to `never`, and `MotionConfig` merges its
-// props over the parent config. `ReducedMotion` reads the context to skip a
-// nested provider.
+// props over the parent config.
 const MotionConfigContext = createContext<MotionConfigValue>({ reducedMotion: 'never' })
 
 function MotionConfig({
