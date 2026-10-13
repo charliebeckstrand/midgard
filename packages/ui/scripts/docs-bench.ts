@@ -17,6 +17,10 @@
  * - Page switch (tap): from the touchstart of a tap on the Alert link to the
  *   frame that shows the heading. The finger stays down for {@link HOLD} ms,
  *   as a real tap does.
+ * - Page switch (search): from the Enter key that picks the first result of
+ *   the search `spinner` to the frame that shows the heading. The bench types
+ *   one key each {@link KEY_GAP} ms. It moves to the first result with the
+ *   down arrow {@link READ} ms after the last key, and then presses Enter.
  *
  * ```sh
  * pnpm turbo run docs:bench --filter=ui                    # 9 runs
@@ -57,6 +61,12 @@ const SLOW_4G = {
 /** How long the finger stays down in a tap. A real tap lasts about this long. */
 const HOLD = 100
 
+/** The time between two keys of the search, as a fast reader types. */
+const KEY_GAP = 120
+
+/** The time that the reader takes to read a short list of results before a pick. */
+const READ = 600
+
 /** The kinds of file that the server sends with brotli. */
 const COMPRESSED = new Set(['.css', '.html', '.js', '.json', '.svg'])
 
@@ -68,6 +78,7 @@ type Sample = {
 	requests: number
 	switch: number
 	tap: number
+	search: number
 }
 
 type Metric = keyof Sample
@@ -263,7 +274,7 @@ function watchSwitch(trigger: string, heading: string): string {
 }
 
 /** Reads the load values of the page. */
-function readLoad(): Omit<Sample, 'switch' | 'tap'> {
+function readLoad(): Omit<Sample, 'switch' | 'tap' | 'search'> {
 	const { lcp, longTasks, hydrated = 0 } = window.__bench
 
 	const fcp = performance.getEntriesByName('first-contentful-paint')[0]?.startTime ?? 0
@@ -315,7 +326,10 @@ async function tap(page: Page, cdp: CDPSession, target: Locator): Promise<void> 
 	await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
 }
 
-/** One cold run: the load of the page, a page switch with a click, and then one with a tap. */
+/**
+ * One cold run: the load of the page, and then a page switch with a click,
+ * one with a tap, and one with a pick in the search.
+ */
 async function run(browser: Browser, origin: string): Promise<Sample> {
 	const context = await browser.newContext({
 		viewport: { width: 390, height: 844 },
@@ -372,7 +386,25 @@ async function run(browser: Browser, origin: string): Promise<Sample> {
 
 		await tap(page, cdp, alert)
 
-		return { ...load, switch: click, tap: await switchTime(page) }
+		const touch = await switchTime(page)
+
+		await tap(page, cdp, page.getByRole('button', { name: 'Open navigation' }))
+
+		await tap(page, cdp, page.getByRole('button', { name: 'Search docs' }))
+
+		await page.getByRole('combobox').waitFor()
+
+		await page.keyboard.type('spinner', { delay: KEY_GAP })
+
+		await page.waitForTimeout(READ)
+
+		await page.keyboard.press('ArrowDown')
+
+		await page.evaluate(watchSwitch('keydown', 'Loading'))
+
+		await page.keyboard.press('Enter')
+
+		return { ...load, switch: click, tap: touch, search: await switchTime(page) }
 	} finally {
 		await context.close()
 	}
@@ -398,6 +430,7 @@ function table(samples: readonly Sample[]): string {
 		['Requests to hydration', 'requests', '', `< ${BUDGET.requests}`],
 		['Page switch', 'switch', 'ms', ''],
 		['Page switch (tap)', 'tap', 'ms', ''],
+		['Page switch (search)', 'search', 'ms', ''],
 	]
 
 	const lines = rows.map(([label, metric, unit, budget]) => {
