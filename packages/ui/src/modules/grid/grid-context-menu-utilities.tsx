@@ -446,9 +446,12 @@ export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuI
  * that the range can make when the menu opens. They are the single-pointer
  * route to a fill (WCAG 2.5.7). Empty while the grid cannot fill.
  *
+ * The across fill goes to the inline end. As the pin items do, its label names
+ * the physical edge, so in RTL it reads "Fill left". Its key stays `fill-right`.
+ *
  * @internal
  */
-export function fillItems(fill: GridRangeFill | undefined): GridMenuItem[] {
+export function fillItems(fill: GridRangeFill | undefined, rtl = false): GridMenuItem[] {
 	const down = fill?.('down')
 
 	const right = fill?.('right')
@@ -461,8 +464,8 @@ export function fillItems(fill: GridRangeFill | undefined): GridMenuItem[] {
 	if (right) {
 		items.push({
 			key: 'fill-right',
-			label: 'Fill right',
-			icon: <ArrowRightToLine />,
+			label: rtl ? 'Fill left' : 'Fill right',
+			icon: rtl ? <ArrowLeftToLine /> : <ArrowRightToLine />,
 			onAction: right,
 		})
 	}

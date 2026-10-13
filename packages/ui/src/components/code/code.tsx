@@ -19,12 +19,17 @@ export type CodeProps = ComponentProps<'code'> & {
  * utility. The scope of an explicit `size` also opens the density context
  * around the children, so a client descendant, such as a portal, takes the
  * same step.
+ *
+ * The mark is left-to-right text with `dir="ltr"`, which also isolates it from
+ * the text around it. Thus `foo()` in a right-to-left paragraph does not show
+ * as `()foo`. Pass `dir` to change it.
  */
 export function Code({ className, size, children, ...props }: CodeProps) {
 	return (
 		<PolymorphicStatic
 			as="code"
 			data-slot="code"
+			dir="ltr"
 			density={size}
 			className={cn(k(), className)}
 			{...props}

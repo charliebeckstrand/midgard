@@ -59,7 +59,7 @@ const viewport = defineRecipe({
 const scrollbar = defineRecipe({
 	base: ['absolute touch-none select-none', css.opacity, css.duration],
 	orientation: {
-		vertical: 'right-0 w-1.5',
+		vertical: 'end-0 w-1.5',
 		horizontal: 'bottom-0 h-1.5',
 	},
 	rounded: {
@@ -73,8 +73,8 @@ const scrollbar = defineRecipe({
 	compound: [
 		{ orientation: 'vertical', rounded: 'true', class: 'top-2 bottom-2' },
 		{ orientation: 'vertical', rounded: 'false', class: 'top-0 bottom-0' },
-		{ orientation: 'horizontal', rounded: 'true', class: 'right-2 left-2' },
-		{ orientation: 'horizontal', rounded: 'false', class: 'right-0 left-0' },
+		{ orientation: 'horizontal', rounded: 'true', class: 'inset-x-2' },
+		{ orientation: 'horizontal', rounded: 'false', class: 'inset-x-0' },
 	],
 	defaults: { rounded: false },
 })
@@ -89,10 +89,11 @@ const thumb = defineRecipe({
 		),
 	],
 	orientation: {
-		// Anchored at the track origin; the live offset rides `transform` (inline)
-		// so thumb movement stays on the compositor instead of triggering layout.
+		// Anchored at the track origin, which is the inline start for the
+		// horizontal thumb. The live offset rides `transform` (inline), so thumb
+		// movement stays on the compositor instead of triggering layout.
 		vertical: 'w-full top-0',
-		horizontal: 'h-full left-0',
+		horizontal: 'h-full start-0',
 	},
 })
 

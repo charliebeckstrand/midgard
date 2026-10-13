@@ -9,6 +9,7 @@ import { Swatch } from '../../../../components/swatch'
 import { Text } from '../../../../components/text'
 import { ariaAttr, cn, dataAttr } from '../../../../core'
 import { useA11yRoving } from '../../../../hooks/a11y'
+import { isRtl } from '../../../../hooks/a11y/logical-arrow'
 import type { ChartColorSlot } from '../../../../recipes/kata/chart'
 import { ChartSwatch } from '../chart-pattern-defs'
 import { useChartReferencePoint, useChartSeriesFocus } from '../context'
@@ -70,9 +71,16 @@ function useLegendFit(
 
 			const buckets = [...new Set(controls.map(bucketOf))].sort((a, b) => a - b)
 
+			// The row packs from its inline start, which is the right edge in RTL.
+			// The offset parent of each control is the wrapper of the ghost, which
+			// has the width of the ghost.
+			const rtl = isRtl(ghost)
+
 			const rects = controls.map((control) => ({
 				row: buckets.indexOf(bucketOf(control)),
-				right: control.offsetLeft + control.offsetWidth,
+				right: rtl
+					? ghost.clientWidth - control.offsetLeft
+					: control.offsetLeft + control.offsetWidth,
 			}))
 
 			setVisible(visibleLegendCount(rects, maxRows, ghost.clientWidth, OVERFLOW_CHIP_RESERVE))
@@ -862,8 +870,9 @@ export function ChartLegend({
 	// for measurement. A hidden box still takes its space, and the ghost holds many
 	// rows. A box of zero height clips it, so it adds no scroll range below the
 	// chart. The row inside keeps its full height, which the fit observes. It packs
-	// left (`justify-start`) so each control's right edge reads as the width
-	// consumed on its row — what the fit math needs — rather than a centered offset.
+	// to the inline start (`justify-start`) so the far edge of each control reads
+	// as the width consumed on its row — what the fit math needs — rather than a
+	// centered offset.
 	return (
 		<div className="relative w-full">
 			<div

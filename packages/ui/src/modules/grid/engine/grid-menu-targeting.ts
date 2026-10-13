@@ -1,4 +1,5 @@
 import type { MouseEvent, RefObject } from 'react'
+import { isRtl } from '../../../hooks/a11y/logical-arrow'
 import type { GridMenuItem } from '../types'
 import { GRID_ROLE } from './grid-constants'
 
@@ -143,7 +144,9 @@ export function openKeyboardMenu(
 
 	const rect = active.getBoundingClientRect()
 
-	commit(menu, active, rect.left, rect.bottom)
+	// The menu opens at the inline start of the cell, which is its right edge in
+	// RTL.
+	commit(menu, active, isRtl(active) ? rect.right : rect.left, rect.bottom)
 }
 
 /**

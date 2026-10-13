@@ -7,6 +7,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
+import { isRtl } from '../../hooks/a11y/logical-arrow'
 import { observeScrollExtent } from '../../hooks/observe-scroll-extent'
 import { holdDragCursor } from '../../hooks/use-drag-cursor'
 import { useAnimationFrame, useTimeout } from '../../hooks/use-timeout'
@@ -146,7 +147,19 @@ export function useScrollAreaScrollbar({ orientation, scrollbar }: ScrollbarOpti
 		if (hasHorizontal) {
 			const trackWidth = horizontalTrackRef.current?.clientWidth ?? 0
 
-			setHorizontalThumb(computeThumb(el.scrollLeft, el.clientWidth, el.scrollWidth, trackWidth))
+			// In RTL, `scrollLeft` is zero at the start and goes negative toward the
+			// end. The thumb sits at the inline start, so it moves left by the same
+			// distance.
+			const rtl = isRtl(el)
+
+			const thumb = computeThumb(
+				rtl ? -el.scrollLeft : el.scrollLeft,
+				el.clientWidth,
+				el.scrollWidth,
+				trackWidth,
+			)
+
+			setHorizontalThumb(rtl ? { ...thumb, offset: -thumb.offset } : thumb)
 		}
 	}, [hasVertical, hasHorizontal])
 

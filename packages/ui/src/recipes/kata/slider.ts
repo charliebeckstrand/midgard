@@ -23,9 +23,11 @@ export const k = defineRecipe({
 		forced.control,
 
 		// --slider-value is set inline (0-100%); --slider-fill / --slider-track come from the color variant.
+		// A native range runs from the inline start, so the fill does too.
+		'[--slider-run:to_right] rtl:[--slider-run:to_left]',
 		'[&::-webkit-slider-runnable-track]:w-full',
 		'[&::-webkit-slider-runnable-track]:rounded-full',
-		'[&::-webkit-slider-runnable-track]:bg-[linear-gradient(to_right,var(--slider-fill)_0,var(--slider-fill)_var(--slider-value,0%),var(--slider-track)_var(--slider-value,0%),var(--slider-track)_100%)]',
+		'[&::-webkit-slider-runnable-track]:bg-[linear-gradient(var(--slider-run),var(--slider-fill)_0,var(--slider-fill)_var(--slider-value,0%),var(--slider-track)_var(--slider-value,0%),var(--slider-track)_100%)]',
 
 		'[&::-webkit-slider-thumb]:appearance-none',
 		'[&::-webkit-slider-thumb]:rounded-full',
@@ -45,7 +47,7 @@ export const k = defineRecipe({
 
 		'[&::-moz-range-track]:w-full',
 		'[&::-moz-range-track]:rounded-full',
-		'[&::-moz-range-track]:bg-[linear-gradient(to_right,var(--slider-fill)_0,var(--slider-fill)_var(--slider-value,0%),var(--slider-track)_var(--slider-value,0%),var(--slider-track)_100%)]',
+		'[&::-moz-range-track]:bg-[linear-gradient(var(--slider-run),var(--slider-fill)_0,var(--slider-fill)_var(--slider-value,0%),var(--slider-track)_var(--slider-value,0%),var(--slider-track)_100%)]',
 
 		'[&::-moz-range-thumb]:rounded-full',
 		'[&::-moz-range-thumb]:bg-white',

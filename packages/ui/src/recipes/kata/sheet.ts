@@ -1,3 +1,5 @@
+// biome-ignore-all lint/plugin/no-physical-side: each side of a sheet is a physical edge, and `SheetPanel` resolves `start` and `end` to one
+
 /**
  * Sheet kata: object-literal surface for the `<Sheet>` edge drawer, built by
  * bridging the shared `panel` recipe. The `panel` sub-recipe axes on `side`,

@@ -31,5 +31,5 @@ export const k = {
 		'text-zinc-500',
 		'pointer-events-none',
 	],
-	actions: ['absolute right-2 bottom-2', flex.row, dan.gap.scale.xs],
+	actions: ['absolute end-2 bottom-2', flex.row, dan.gap.scale.xs],
 } as const

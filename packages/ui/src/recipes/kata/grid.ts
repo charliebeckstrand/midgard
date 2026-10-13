@@ -842,6 +842,8 @@ export const k = {
 			// The box of the overlay, which the grid places on the active cell. It
 			// lets the pointer through to the cell. A pinned cell sits over the
 			// scrolled cells, and the box sits over the pinned cell.
+			// The box moves by a physical `translate` from the left edge of the anchor.
+			// biome-ignore lint/plugin/no-physical-side: `placeBox` measures from the left edge
 			box: 'pointer-events-none absolute top-0 left-0 z-0 data-pinned:z-[1]',
 			// The fill handle on the bottom end corner of the active cell (`range` in
 			// a managed editable grid). A drag from it fills. The square sits inside

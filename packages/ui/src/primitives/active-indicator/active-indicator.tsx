@@ -29,9 +29,10 @@ const [ActiveIndicatorScopeContext, useActiveIndicatorScope] = createContext<str
  * Motion `LayoutGroup`. Descendant {@link ActiveIndicator}s then morph against
  * each other rather than against indicators in sibling groups.
  *
- * @remarks Wraps the group in {@link ReducedMotion} so the morph degrades to a
- * fade under `prefers-reduced-motion`. The root loads layout projection, which
- * the morph needs. Until it arrives, the indicator moves with no morph.
+ * @remarks Wraps the group in {@link ReducedMotion}, so under reduced motion the
+ * indicator moves to the new item with no morph. The root loads layout
+ * projection, which the morph needs. Until it arrives, the indicator moves with
+ * no morph.
  * @see {@link useActiveIndicatorScope}
  */
 export function ActiveIndicatorScope({ children }: { children: ReactNode }) {

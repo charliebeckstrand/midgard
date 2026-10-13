@@ -73,7 +73,14 @@ export function PdfViewerToolbar() {
 							{isDesktop && (
 								<PdfViewerToolbarButton
 									label={sidebarToggleLabel}
-									icon={sidebarOpen ? <PanelLeftDashed /> : <PanelLeft />}
+									icon={
+										// The rail sits at the inline start, so the glyph mirrors in RTL.
+										sidebarOpen ? (
+											<PanelLeftDashed className="rtl:-scale-x-100" />
+										) : (
+											<PanelLeft className="rtl:-scale-x-100" />
+										)
+									}
 									aria-expanded={sidebarOpen}
 									disabled={controlsDisabled}
 									onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -88,7 +95,7 @@ export function PdfViewerToolbar() {
 								<SheetTrigger>
 									<PdfViewerToolbarButton
 										label="Show thumbnails"
-										icon={<PanelLeft />}
+										icon={<PanelLeft className="rtl:-scale-x-100" />}
 										disabled={controlsDisabled}
 									/>
 								</SheetTrigger>

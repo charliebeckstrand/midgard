@@ -63,6 +63,7 @@ export const k = {
 	 * the current one sits one stage width and one gap to its side. The slot
 	 * clips the photo, so it is the clip of a flight (see `useLightboxFlight`).
 	 */
+	// biome-ignore lint/plugin/no-physical-side: the flight math scales the slot from its top left corner
 	slot: 'absolute inset-y-0 flex w-full origin-top-left items-center justify-center overflow-clip',
 	/**
 	 * The space around the photo, on the slots and on the layer of the controls.
@@ -80,6 +81,7 @@ export const k = {
 	 * which the raise math expects.
 	 */
 	photo:
+		// biome-ignore lint/plugin/no-physical-side: the raise math scales the photo from its top left corner
 		'block h-auto max-h-full w-auto max-w-full origin-top-left bg-cover bg-center will-change-transform',
 	/**
 	 * The layer of the controls. It is a size container with the space of a slot,
