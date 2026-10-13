@@ -13,9 +13,8 @@ import { cn } from '../../core'
 import { useVirtualWindow } from '../../hooks'
 import { k } from '../../recipes/kata/json-tree'
 import { nextIndexForKey } from '../../utilities'
-import { treeMoveForKey } from '../tree/tree-keyboard'
 import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT } from './json-tree-constants'
-import { flatTreeMoveTarget } from './json-tree-keyboard'
+import { flatTreeMoveTarget, jsonTreeMoveForKey } from './json-tree-keyboard'
 import { JsonTreeNodeRow } from './json-tree-node-row'
 import {
 	type FlatNode,
@@ -73,7 +72,8 @@ function offWindowTarget(
 
 /**
  * The flat index that a horizontal arrow reaches in the tree model: the first child of
- * an open branch, or the parent of a closed branch or a leaf.
+ * an open branch, or the parent of a closed branch or a leaf. A fixed branch row takes
+ * the two moves.
  *
  * @returns Null when focus is not on a row, when the key makes no tree move, or when
  * the move has no target. A branch row that opens or closes itself cancels the event
@@ -92,7 +92,7 @@ function treeMoveIndex(
 
 	if (!row || !container.contains(row)) return null
 
-	const move = treeMoveForKey(event, item.getAttribute('aria-expanded') === 'true')
+	const move = jsonTreeMoveForKey(event, item)
 
 	return move === null ? null : flatTreeMoveTarget(nodes, Number(row.dataset.index), move)
 }

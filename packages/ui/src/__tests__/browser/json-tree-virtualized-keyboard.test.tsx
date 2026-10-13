@@ -191,4 +191,30 @@ describe('JsonTree under virtualize: collapsible', () => {
 
 		await waitFor(() => expect(document.activeElement).toBe(rows(tree)[0]))
 	})
+
+	it('moves ArrowRight from a fixed branch to its first child', async () => {
+		renderUI(
+			<JsonTree
+				data={{ outer: { inner: 1 } }}
+				collapsible={false}
+				virtualize={{ maxHeight: '240px' }}
+			/>,
+		)
+
+		const tree = present(screen.getByRole('tree'), 'the tree')
+
+		await waitFor(() =>
+			expect(rows(tree).some((row) => /"inner"/.test(row.textContent ?? ''))).toBe(true),
+		)
+
+		present(rows(tree)[0], 'the root row').focus()
+
+		await userEvent.keyboard('{ArrowRight}')
+
+		await waitFor(() => expect(focusedLabel()).toMatch(/"outer"/))
+
+		await userEvent.keyboard('{ArrowRight}')
+
+		await waitFor(() => expect(focusedLabel()).toMatch(/"inner"/))
+	})
 })

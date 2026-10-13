@@ -6,8 +6,9 @@ import { useA11yRoving } from '../../hooks'
 import { useKeyedStore } from '../../hooks/use-keyed-store'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { k } from '../../recipes/kata/json-tree'
-import { treeMoveForKey, treeMoveTarget } from '../tree/tree-keyboard'
+import { treeMoveTarget } from '../tree/tree-keyboard'
 import { JsonTreeContext } from './context'
+import { jsonTreeMoveForKey } from './json-tree-keyboard'
 import { JsonTreeNode } from './json-tree-node'
 import {
 	buildSearchIndex,
@@ -106,7 +107,9 @@ function expansionReader(expanded: ReadonlySet<string> | undefined): (path: stri
  * hides non-matches in filter mode). Roving-focus keyboard navigation moves
  * between tree items. `ArrowRight` opens a closed branch or moves to the first
  * child of an open one. `ArrowLeft` closes an open branch or moves to the
- * parent. The two keys swap in a right-to-left layout. Under `virtualize`,
+ * parent. On a branch that does not collapse, `ArrowRight` moves to the first
+ * child and `ArrowLeft` moves to the parent. The two keys swap in a
+ * right-to-left layout. Under `virtualize`,
  * flattens the visible tree to a linear list and renders only the viewport
  * slice plus overscan. There, Home, End and the arrows also reach rows outside
  * the window: the tree scrolls the row in and focuses it when it mounts.
@@ -194,8 +197,9 @@ export function JsonTree({
 	})
 
 	// The horizontal arrows of the tree model: to the first child of an open
-	// branch, or to the parent of a closed branch or a leaf. A branch row opens
-	// and closes itself first and cancels the event. The windowed variant moves
+	// branch, or to the parent of a closed branch or a leaf. A fixed branch row
+	// takes the two moves. A branch row opens and closes itself first and
+	// cancels the event. The windowed variant moves
 	// over its flat rows, because the target row can be outside the window.
 	const handleKeyDown = useCallback(
 		(event: KeyboardEvent<HTMLDivElement>) => {
@@ -205,7 +209,7 @@ export function JsonTree({
 
 			if (event.defaultPrevented || !container || !(item instanceof HTMLElement)) return
 
-			const move = treeMoveForKey(event, item.getAttribute('aria-expanded') === 'true')
+			const move = jsonTreeMoveForKey(event, item)
 
 			if (move === null) {
 				handleRovingKeyDown(event)

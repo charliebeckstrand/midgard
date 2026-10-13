@@ -20,7 +20,8 @@ type JsonTreeBranchHeaderProps = {
 	/**
 	 * Whether the row opens and closes its branch. A row that does not is a
 	 * plain treeitem: it has no chevron and no `aria-expanded`, and the branch
-	 * stays open.
+	 * stays open. That row has `data-fixed`, so the tree moves `ArrowRight` to
+	 * the first child and `ArrowLeft` to the parent.
 	 *
 	 * @defaultValue true
 	 */
@@ -100,6 +101,7 @@ export function JsonTreeBranchHeader({
 					aria-setsize={setSize}
 					aria-posinset={posInSet}
 					tabIndex={tabIndex}
+					data-fixed=""
 					className={cn(k.leaf)}
 				>
 					<span className={k.chevron.spacer} aria-hidden="true" />
