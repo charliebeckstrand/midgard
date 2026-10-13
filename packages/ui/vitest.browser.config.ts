@@ -27,8 +27,8 @@ const PACKAGE_CSS = /^(?!.*[\\/]node_modules[\\/]).*\.css(?:\?(?!.*\b(?:raw|url)
  * `.x { :is(& *) { &[data-slot=label] { … } } }`. Chromium matches that form
  * much more slowly than the flat selector that a build ships. Each grid cell
  * carries `data-slot`, so each style recalculation paid for these rules. A
- * restyle of 1,000 plain cells took 46ms with the nested CSS and 17.5ms with
- * the flat CSS.
+ * restyle of plain cells took more than twice as long with the nested CSS as
+ * with the flat CSS.
  *
  * The last plugin runs the same `optimize` step on the CSS of this package
  * after Tailwind generates it. The suites therefore read the CSS that an app
@@ -243,9 +243,10 @@ export default defineConfig({
 		// declared at those values, which pins what a bump would take away.
 		//
 		// They scale on CI by `BUDGET_FACTOR`, as `budget()` does. Under load, one
-		// `userEvent` call took 1.5s, and the first case of `radio-read-only` ran
-		// past a flat 15s. A case that is slow but still moves then fails on a slow
-		// machine only, which the rule above forbids.
+		// `userEvent` call took many times longer than on a dev machine, and the
+		// first case of `radio-read-only` ran past a flat 15s. A case that is slow
+		// but still moves then fails on a slow machine only, which the rule above
+		// forbids.
 		//
 		// `asyncUtilTimeout` is RTL's waitFor/findBy budget, injected by
 		// `browser/setup/index.ts`. The browser suite had none, so it ran at RTL's
@@ -268,15 +269,15 @@ export default defineConfig({
 		// The cleanup of `vitest.base.ts`, for the shared registry that `isolate`
 		// declares below.
 		...cleanup,
-		// One page per instance, and one module graph across the files it runs.
-		// The default re-imports the graph for every file: measured on a
-		// 4-core container, the 100-file suite spent 566s summed in import and
-		// took 190s of wall clock; with the graph shared it takes 44s, and every
-		// test still passes. The price is the one the jsdom `unit` project has
-		// paid since August: a shared window across a page's files. The same
-		// residue rules apply — remove appended nodes in `onTestFinished`, and
-		// declare no per-file `vi.mock` (the two `module-mocks` setup files are
-		// the only doubles, and they toggle per instance).
+		// One page per instance, and one module graph across the files it runs. The
+		// default re-imports the graph for every file, and import then held most of
+		// the wall clock of the suite. With the graph shared, the suite takes a
+		// fraction of that time, and every test still passes. The price is the one
+		// the jsdom `unit` project has paid since August: a shared window across a
+		// page's files. The same residue rules apply — remove appended nodes in
+		// `onTestFinished`, and declare no per-file `vi.mock` (the two
+		// `module-mocks` setup files are the only doubles, and they toggle per
+		// instance).
 		isolate: false,
 		// The shuffle `vitest.config.ts` runs, and for the same reason: an order
 		// dependency between files that share a page fails early rather than once

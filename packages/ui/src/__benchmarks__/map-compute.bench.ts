@@ -130,7 +130,7 @@ describe('map-projection · canonicalFit (the uncached fit)', () => {
 })
 
 // Each atlas fitted once for every describe below that draws from a fit. The
-// counties fit runs to ~100 ms, and three bars want it — measuring it is
+// counties fit is the slowest, and three bars want it — measuring it is
 // `canonicalFit`'s own bar above, so paying it again per describe would only
 // slow collection.
 const FITTED = ATLASES.map(({ label, atlas }) => {

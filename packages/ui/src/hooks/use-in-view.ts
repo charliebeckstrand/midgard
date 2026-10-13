@@ -47,8 +47,8 @@ export type InView = {
  * is worth porting here if a caller ever observes thousands: it is the same
  * twenty lines, with `unobserve` in place of `disconnect`. It is not worth it
  * yet. The heaviest caller today defers a few hundred embeds. The whole
- * per-embed mount there measured about 0.2 ms including the observer, one time,
- * off the streaming path.
+ * per-embed mount there, the observer included, is cheap, runs one time, and
+ * is off the streaming path.
  *
  * @param options - See {@link InViewOptions}.
  * @returns The `ref` to attach to the observed element, and `inView`.

@@ -46,7 +46,7 @@ export type MapKeyboardOptions = {
 	 * Every place the cursor can stand — the regions at their centroids, then the
 	 * overlay marks at theirs — resolved on demand. A closure, not an array. The
 	 * `geoCentroid` pass behind the region half measures every ring in the atlas
-	 * (~30 ms across 3,000 counties, against a ~70 ms mount). It must never run
+	 * (on counties, a large fraction of the cost of the mount). It must never run
 	 * on the mount or the resize path for a cursor most maps never carry. This is
 	 * called on the first navigation key and not again until a refit, a resize, or
 	 * an overlay registration replaces it.

@@ -22,9 +22,9 @@
  *
  * Read the rove and typeahead rungs as jsdom figures, not as what a reader
  * pays. Both call `getComputedStyle` while they look for a scroll container,
- * and jsdom resolves style in JavaScript. The same press costs about 0.12 ms
- * in Chromium and 1.4 ms here. Capping the panel gives that walk a scroller to
- * find, and moves the browser number by under 0.02 ms.
+ * and jsdom resolves style in JavaScript. The same press costs many times more
+ * here than in Chromium. Capping the panel gives that walk a scroller to find,
+ * and barely moves the browser number.
  * `browser/menu-keyboard.bench.tsx` holds those figures. These rungs still
  * localize a regression; they do not size one.
  *

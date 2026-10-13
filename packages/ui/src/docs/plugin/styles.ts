@@ -211,8 +211,8 @@ export async function inlinePage(
  * CSS of the Button page was 497 KB, and without them it is 176 KB.
  *
  * The docs have about 150 pages, and a pool with one thread for each core
- * writes them (`styles-worker.ts`). On a four-core container the step took
- * 51 s on the main thread.
+ * writes them (`styles-worker.ts`). On the main thread, the step was the
+ * longest part of the build.
  */
 export async function inlineCriticalCss(clientDir: string, stylesheet: string): Promise<void> {
 	const fontFaces = builtStylesheet(clientDir, stylesheet).match(FONT_FACE)?.join('') ?? ''

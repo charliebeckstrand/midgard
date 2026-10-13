@@ -182,9 +182,9 @@ function renderPage(page: PDFPageProxy, raster: PdfPageRaster, scale: number): P
  * Reads the size of each page of `doc` and publishes one slot for each, before any page renders.
  *
  * @returns The parsed pages, in order, for the render loop to reuse.
- * @remarks A parse, not a render: 50 pages take about 6 ms (the PDF viewer bench). Each slot
- * carries the size of its page at `scale` and in points. The viewport, the page count and the
- * highlight geometry are therefore whole when the document opens.
+ * @remarks A parse, not a render, so it costs a small part of a page render (the PDF viewer bench).
+ * Each slot carries the size of its page at `scale` and in points. The viewport, the page count and
+ * the highlight geometry are therefore whole when the document opens.
  *
  * Each slot also carries the page label that the document prints, such as "Page iv" for a
  * preface. A document with no page labels, or a page whose label is empty, gets its page number.

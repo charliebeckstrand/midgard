@@ -1,10 +1,11 @@
 /**
  * Where the open goes when there is nothing in the panel.
  *
- * `menu-open.bench.tsx` reads an empty panel at 2.65 ms above its floor, and a
- * row at 0.09 ms. The shell is therefore the open at every size a reader meets,
- * and it is the largest figure this suite holds for the component. Nothing
- * said which layer of it spends the time. This bench ablates the shell.
+ * `menu-open.bench.tsx` reads an empty panel far above its floor, and a row at
+ * a small part of that (README, Menus). The shell is therefore the open at
+ * every size a reader meets, and it is the largest figure this suite holds for
+ * the component. Nothing said which layer of it spends the time. This bench
+ * ablates the shell.
  *
  * Every rung mounts one empty open surface and tears it down, so a step is what
  * that layer costs on one open. Each rung contains the one above it. The panel

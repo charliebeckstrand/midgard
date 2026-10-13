@@ -23,12 +23,11 @@ const regionClasses = new Map<string, string>()
  * The region's classes for one `(color, active)` pair, computed once.
  *
  * @remarks `cn` memoizes only when every argument is a string, and these arguments are
- * arrays (`shades()` returns `string[]`). Each call would otherwise run the full
- * clsx + tailwind-merge over ~14 tokens. There are five colors and two states, so ten
- * results cover every document. Measured, this cuts ~142 µs per layer render at 40 regions
- * to ~4.5 µs. The layer re-renders on every zoom step and every resize frame. The
- * `dimmed` axis doubles the table to twenty entries, which is still every combination a
- * document can produce.
+ * arrays (`shades()` returns `string[]`). Each call would otherwise run the full clsx +
+ * tailwind-merge over ~14 tokens. There are five colors and two states, so ten results cover every
+ * document. Measured at 40 regions, this cuts nearly all of the class work of a layer render. The
+ * layer re-renders on every zoom step and every resize frame. The `dimmed` axis doubles the table
+ * to twenty entries, which is still every combination a document can produce.
  * @internal
  */
 function regionClass(color: Color, active: boolean, dimmed: boolean) {

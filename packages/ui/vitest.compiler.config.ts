@@ -28,8 +28,8 @@ export default mergeConfig(base, {
 	test: {
 		// `grid-compiler.test.ts` reads this to tell the two runs apart.
 		env: { REACT_COMPILER: '1' },
-		// The skip gate compiles each module of the source. It took 24 s to 34 s
-		// of the shard that held it, so each shard runs the gate, and the gate
+		// The skip gate compiles each module of the source, and it held a large
+		// part of the shard that ran it. So each shard runs the gate, and the gate
 		// compiles the part of the modules for that shard.
 		sequence: { sequencer: splitSequencer(['react-compiler-skips.test.ts']) },
 		// Added to the projects of the base config.
@@ -44,11 +44,11 @@ export default mergeConfig(base, {
 					// Gives the skip gate the shard of the run.
 					globalSetup: ['./src/__tests__/setup/shard.ts'],
 					// The group of `unit`, so the one long file runs next to that project
-					// and not after the last group. Measured warm on four cores, it adds
-					// about 5 seconds here, and about 16 seconds as a last group.
+					// and not after the last group. As a last group, it ran alone while the
+					// other workers waited.
 					sequence: { groupOrder: 0 },
-					// The file compiles about 800 modules, in about 20 seconds on four
-					// cores. Each shard compiles its part of them.
+					// The file compiles about 800 modules, which takes longer than the
+					// default limit. Each shard compiles its part of them.
 					testTimeout: 120_000,
 				},
 			},

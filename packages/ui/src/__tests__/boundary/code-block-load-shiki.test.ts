@@ -32,7 +32,7 @@ const PORT = '../../components/code/code-shiki-port'
  * Import `code-shiki`, not `code-block`. The reset makes the case import the
  * module again, and the time limit of the case includes that import.
  * `code-block` imports the component graph, and a cold transform cache under
- * the React Compiler made that import take more than 5 seconds. The case then
+ * the React Compiler made that import take longer than the time limit. The case then
  * stopped at its time limit, but its body continued and registered a failing
  * double while the next case ran. `code-shiki` imports only the port.
  */

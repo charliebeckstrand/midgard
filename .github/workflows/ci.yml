@@ -35,8 +35,8 @@ jobs:
         run: .github/actions/turbo-cache/prune.sh
 
   # A separate job, not a step in `gate`. The two Next builds shared the four
-  # cores of `gate` with the type-check and the docs build, and the turbo step
-  # took 112s. `docs:build` took 9s alone and 75s in `gate`.
+  # cores of `gate` with the type-check and the docs build, and each slowed the
+  # others. `docs:build` took many times longer in `gate` than alone.
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -48,9 +48,9 @@ jobs:
           name: build
       # The Turbopack build cache of each app. `next build` writes it under
       # .next/cache, and the turbo outputs of `build` leave that directory out.
-      # A cold admin build took 89s. With the cache, a build of the same source
-      # took 9s, and a build after an edit to a ui component took 21s. The cache
-      # holds entries of the installed packages of the apps, so the key stops at
+      # With the cache, a build of the same source, or of a source with an edit
+      # to a ui component, takes a fraction of the time of a cold build. The
+      # cache holds entries of the installed packages of the apps, so the key stops at
       # the hash of those packages, not at the source. The SHA makes each run
       # save what it wrote for the next run to restore.
       #
@@ -80,10 +80,9 @@ jobs:
         run: .github/actions/turbo-cache/prune.sh
 
   # A separate job, not a step in `gate`. In `gate` the ui suite shared four
-  # cores with the type-check and the Next builds, and it took 158s. Alone on a
-  # four-core container it took 71s, and each half of it took about 36s. Each
-  # shard runs half of the ui test files, so each pull request still runs each
-  # test.
+  # cores with the type-check and the Next builds, and it took more than twice
+  # as long as alone. Each shard runs half of the ui test files, so each pull
+  # request still runs each test.
   test:
     name: test (${{ matrix.shard }}/2)
     runs-on: ubuntu-latest
@@ -157,11 +156,10 @@ jobs:
   # is CONVENTIONS.md §10.5.
   #
   # Two shards, each with half of the test files, as in `compiler`. Before, one
-  # job ran the whole suite beside `docs:build` (the `docs` job now), and the
-  # turbo step took about 2m20s. On a four-core container the suite took about
-  # 104s whole, and its halves took about 70s each. Each half pays the start of
-  # the browser and of its five instances again, about 35s, so a third shard
-  # gives less back than the second.
+  # job ran the whole suite beside `docs:build` (the `docs` job now). Each half
+  # pays the start of the browser and of its five instances again, and that
+  # start is a large part of a half. So a third shard gives less back than the
+  # second.
   browser:
     name: browser (${{ matrix.shard }}/2)
     runs-on: ubuntu-latest
@@ -183,21 +181,18 @@ jobs:
       - name: Prune the Turbo cache to this run's tasks
         run: .github/actions/turbo-cache/prune.sh
 
-  # A separate job, not a step in `browser`. On a four-core container
-  # `docs:build` took 36s to 78s alone. In `browser` it took 105s to 130s beside
-  # the browser suite, and it slowed the suite too.
+  # A separate job, not a step in `browser`. In `browser`, `docs:build` took
+  # about twice as long beside the browser suite as alone, and it slowed the
+  # suite too.
   # `test:docs-build` loads prerendered pages of the docs app in Chromium, and
   # measures the bundle of the docs build (packages/ui/src/__tests__/docs-build/).
   # It depends on `docs:build`, so each shard builds the app one time.
   #
-  # Three shards. In one job the suite took about 220s, and the job took about
-  # 5m. The axe file reads each page in Chromium and holds most of that time,
-  # so each shard reads a third of the pages, and the shards divide the other
-  # files (vitest.docs-build.config.ts). Each shard pays the setup and the
-  # build again, about 30s. With two shards, the turbo step took 95s to 107s
-  # on the slower shard, and the docs job was the longest job of the run. On a
-  # four-core container the suite took 53s to 58s for each of two shards, and
-  # 36s to 40s for each of three.
+  # Three shards. The axe file reads each page in Chromium and holds most of
+  # the time of the suite, so each shard reads a third of the pages, and the
+  # shards divide the other files (vitest.docs-build.config.ts). Each shard
+  # pays the setup and the build again. With two shards, the docs job was the
+  # longest job of the run.
   docs:
     name: docs (${{ matrix.shard }}/3)
     runs-on: ubuntu-latest
@@ -224,11 +219,10 @@ jobs:
   # the React Compiler on; see packages/ui/vitest.compiler.config.ts and
   # CONVENTIONS.md §10.7.
   #
-  # Two shards, each with half of the test files. The step took about 2m20s
-  # whole on warm caches. On a four-core container the run took 67s whole, and
-  # its halves took 46s and 34s. Each shard runs the skip gate, which compiles
-  # the part of the source for that shard (vitest.compiler.config.ts). In one
-  # shard, the gate took 24s to 34s.
+  # Two shards, each with half of the test files. Each shard runs the skip
+  # gate, which compiles the part of the source for that shard
+  # (vitest.compiler.config.ts). In one shard, the gate held a large part of
+  # that shard.
   compiler:
     name: compiler (${{ matrix.shard }}/2)
     runs-on: ubuntu-latest

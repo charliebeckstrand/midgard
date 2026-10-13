@@ -7,7 +7,7 @@
  *
  * Each sample ends one rendered frame after the paint probe, so the style and
  * layout work that the commit leaves to the browser is inside the sample. A
- * frame costs about 17 ms in the headless container (README), so a row reads
+ * frame costs about 17 ms at 60 Hz, so a row reads
  * that much above the work.
  *
  * The `navigable` rows mount the keyboard cell cursor, which adds its own node

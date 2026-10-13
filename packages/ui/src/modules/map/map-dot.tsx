@@ -257,10 +257,10 @@ export function MapDotCount({
  * comparison below.
  *
  * A props factory rather than a component, because a `MapPoints` draws one of
- * these per dot. A component's own fiber priced 200 of them at ~1 µs each, +14%
- * on every re-render of the set. The set re-renders on each pointed-mark
- * crossing, each legend emphasis, and each refit. The rule stays in one place
- * either way; only the fiber goes.
+ * these per dot. A component's own fiber for each of 200 dots added a
+ * measurable part to every re-render of the set. The set re-renders on each
+ * pointed-mark crossing, each legend emphasis, and each refit. The rule stays
+ * in one place either way; only the fiber goes.
  *
  * Both reaches are pixel measures, and the shape draws in frame units. `scale` —
  * what one device pixel spans under the plat's zoom — therefore divides both

@@ -12,8 +12,8 @@
  * whatever the plane reports. What now couples them is
  * {@link DEGENERATE_SAFETY_FACTOR}: a ring the plane cannot tell from
  * degenerate is handed to the measure that can. The pass runs once per atlas on
- * the cached decode stage (`cache.ts`). It costs 1.6 ms across the 3,231
- * features of `counties-10m`, where the spherical pass cost 21.4 ms.
+ * the cached decode stage (`cache.ts`). Across the features of `counties-10m`,
+ * it costs a small fraction of the spherical pass.
  */
 
 import { geoArea } from 'd3-geo'

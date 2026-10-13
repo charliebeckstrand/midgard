@@ -29,12 +29,11 @@ const TOGGLES = 5
 
 describe('Grid · initial render (un-windowed)', () => {
 	// Stops at a thousand rows on purpose. An un-windowed grid mounts every row,
-	// so the 5,000- and 10,000-row rungs this describe used to carry ran ~2.7s
-	// and ~5.2s per iteration — 118 seconds of the suite between them — to
-	// measure a configuration nothing ships: past a screenful the module
-	// virtualizes, and the virtualized describe below covers exactly those two
-	// sizes for 1.5 seconds. What is left here is the range a grid genuinely
-	// renders un-windowed.
+	// so the 5,000- and 10,000-row rungs this describe used to carry held most of
+	// the time of the suite to measure a configuration nothing ships: past a
+	// screenful the module virtualizes, and the virtualized describe below covers
+	// exactly those two sizes in a fraction of that time. What is left here is
+	// the range a grid genuinely renders un-windowed.
 	mountBenches(
 		[shipments(100), shipments(1_000)],
 		(rows) => `${rows.length.toLocaleString()} rows × 8 cols`,

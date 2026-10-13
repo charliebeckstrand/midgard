@@ -306,8 +306,8 @@ function projectedPaths(geometry: StaticMapGeometry, fitted: GeoProjection): (st
  *
  * {@link emitRegionPaths} emits these from the shared buffer, which is what
  * takes a resize off the projection entirely. The slot above holds one box, so
- * a drag re-drew the whole atlas at every size it committed. That was 248 ms
- * per step across 3,108 counties, against 24 ms to emit them.
+ * a drag re-drew the whole atlas at every size it committed, at many times the
+ * cost of emitting the paths.
  *
  * @internal
  */

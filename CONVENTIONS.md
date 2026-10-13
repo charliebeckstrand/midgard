@@ -224,6 +224,8 @@ Do not mark a step done in the plan. Do not add the result of a step. Edit the p
 
 12.6 The quality ledger [`packages/ui/docs/LEDGER.md`](packages/ui/docs/LEDGER.md) records the state of each `ui` unit against the definition of done. A unit is a directory of `components`, `modules`, `primitives`, `structure`, or `providers`, or one layout. A change that adds, removes, or renames a unit updates its row in the same commit. `ledger-boundary.test.ts` fails on a unit with no row, a row with no unit, or a cell that breaks the rules of the ledger. A row cites pull requests only, and never names an audit or a plan (§12.4).
 
+12.7 A comment gives the reason for the code. It does not record a measured time, such as the time that a build, a test, or a render took. A measured time changes with the machine and with later code, so a comment that keeps it becomes wrong. Write the reason in words that stay true, such as "most of the time of the suite". Put the measurement in the commit message or the pull request, which keep its date. The rule does not apply to a fixed value. Examples are a configured timeout or delay, the 50 ms limit of a long task, and the length of a frame at 60 Hz. A benchmark records its findings in a dated section of [`packages/ui/src/__benchmarks__/browser/README.md`](packages/ui/src/__benchmarks__/browser/README.md), and the file names that section.
+
 ---
 
 **See also:** [CLAUDE.md](CLAUDE.md), [STE.md](STE.md), [`packages/ui/REFERENCE.md`](packages/ui/REFERENCE.md).

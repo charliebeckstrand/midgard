@@ -6,7 +6,7 @@
  * and each of the 8,000 cells flips its `data-in-range` flag. The sample ends
  * one rendered frame after the press, so the style and layout work that the
  * commit leaves to the browser is inside the sample. A frame costs about 17 ms
- * in the headless container (README), so a row reads that much above the work.
+ * at 60 Hz, so a row reads that much above the work.
  *
  * The `fill handle` row is an editable grid, which also places the fill handle
  * on the active cell. The `read-only` row has no handle.

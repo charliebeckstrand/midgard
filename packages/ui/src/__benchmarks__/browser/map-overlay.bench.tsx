@@ -17,9 +17,9 @@
  * zone's own measure sat inside the per-dot answer, so two hundred dots walked a
  * territory's ~9,900 vertices two hundred times for one figure that never varied.
  *
- * Both zone scenarios detect that, measured by putting it back: the mount runs
- * 23.7ms against 12.9, and the zoom cycle 60.2 against 48.0 — the same ~13ms of
- * one wasted rebuild, read against two different baselines. The mount is the
+ * Both zone scenarios detect that, measured by putting it back (README, Maps):
+ * the mount and the zoom cycle each pay the same one wasted rebuild, read
+ * against two different baselines. The mount is the
  * sharper alarm because its baseline is smaller; the zoom is the one that says
  * how often the rebuild happens, and would catch a memo whose dependencies
  * started churning where the mount could not.
