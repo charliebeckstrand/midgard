@@ -1,6 +1,6 @@
 # Bug audit — 2026-10-13
 
-Letter sweep J and K of the `packages/ui` components: `components/json-tree`, `components/kanban`, and `components/kbd`. Two scopes, 30 files, 3,518 lines, 11 claims. 10 findings are rows below: 3 `medium` and 7 `low`. 1 claim was refuted. Kbd raised no claim. All 8 questions are settled. 8 rows are fixed on a branch; 2 rows are open.
+Letter sweep J and K of the `packages/ui` components: `components/json-tree`, `components/kanban`, and `components/kbd`. Two scopes, 30 files, 3,518 lines, 11 claims. 10 findings are rows below: 3 `medium` and 7 `low`. 1 claim was refuted. Kbd raised no claim. All 8 questions are settled. 9 rows are fixed on a branch; 1 row is open.
 
 ## Scope
 
@@ -44,7 +44,7 @@ Three notes on the passes. Each verifier was told to scope its greps to the cons
 | R7 | `components/kanban/kanban.tsx` | `Kanban` `ref` | CONFIRMED | low | none | — | ◐ FIXED |
 | R8 | `components/kanban/kanban.tsx` | `Kanban` drag handler gating | CONFIRMED | low | shipped | — | ◐ FIXED |
 | R9 | `components/kanban/use-kanban-drag.ts` | `applyKanbanDragOver` | NARROWED | medium | shipped | — | ◐ FIXED |
-| R10 | `components/kanban/kanban-announcements.ts` | `columnName` | CONFIRMED | low | none | — | ◯ OPEN |
+| R10 | `components/kanban/kanban-announcements.ts` | `columnName` | CONFIRMED | low | none | — | ◐ FIXED |
 
 All paths are under `packages/ui/src/`.
 
@@ -140,3 +140,5 @@ The settle pass derived S1 and S3 to S9 again from the answers; S2 is unchanged.
 - Resolver S7: the `JsonTree` TSDoc (`json-tree.tsx:111-112`) does not state that focus stays in a windowed tree when the focused row scrolls out.
 - Resolver S5: the A, B, A test drives the hook alone; no browser case proves that one frame is enough for `closestCorners` to see the new rects.
 - Resolver S3: a branch that merges second of S1 and S3 meets a small conflict in the import block of `json-tree.tsx`; keep both lines in the order `./context`, `./json-tree-constants`, `./json-tree-keyboard`, `./json-tree-node`.
+- Resolver S9: `accessibleName(header)` returns all the text of the header, so a header with a control (for example a button "Add") announces "Todo Add".
+- Resolver S9: the column TSDoc (`kanban-column.tsx:21`, `:29-30`) does not name the header-text fallback that the announcements now use.
