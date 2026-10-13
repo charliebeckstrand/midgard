@@ -27,8 +27,9 @@ export type KanbanColumnProps = {
  * provides column context to its cards and title. It is a named group, a
  * `<fieldset>`, and not a landmark: the board is the one region of the board.
  * It takes its name from a mounted {@link KanbanColumnTitle}, or from an
- * explicit `aria-label`. Compose {@link KanbanColumnHeader} and
- * {@link KanbanColumnBody} within.
+ * explicit `aria-label`. With neither, the group has no name, and the move
+ * announcements name the column by the text of its {@link KanbanColumnHeader}.
+ * Compose {@link KanbanColumnHeader} and {@link KanbanColumnBody} within.
  *
  * The column highlights while a dragged card from another column is in it,
  * after the live move on drag-over. The column that the drag started in does
