@@ -1,6 +1,6 @@
 # Bug audit — 2026-10-13
 
-Letter sweep J and K of the `packages/ui` components: `components/json-tree`, `components/kanban`, and `components/kbd`. Two scopes, 30 files, 3,518 lines, 11 claims. 10 findings are rows below: 3 `medium` and 7 `low`. 1 claim was refuted. Kbd raised no claim. All 8 questions are settled. 9 rows are fixed on a branch; 1 row is open.
+Letter sweep J and K of the `packages/ui` components: `components/json-tree`, `components/kanban`, and `components/kbd`. Two scopes, 30 files, 3,518 lines, 11 claims. 10 findings are rows below: 3 `medium` and 7 `low`. 1 claim was refuted. Kbd raised no claim. All 8 questions are settled. All 10 rows are fixed on branches.
 
 ## Scope
 
@@ -40,7 +40,7 @@ Three notes on the passes. Each verifier was told to scope its greps to the cons
 | R3 | `components/json-tree/json-tree.tsx` | `JsonTree` roving `itemSelector` (recursive) | CONFIRMED | medium | shipped | — | ◐ FIXED |
 | R4 | `components/json-tree/json-tree-node.tsx` | `JsonTreeNodeView` `toggle` / `resolveNodeOpen` | NARROWED | low | shipped | — | ◐ FIXED |
 | R5 | `components/json-tree/json-tree-virtualized.tsx` | `JsonTreeVirtualized` focused row | CONFIRMED | low | test-only | — | ◐ FIXED |
-| R6 | `components/json-tree/json-tree-virtualized.tsx` | `JsonTreeVirtualized` `firstFocusable` | RESTATED | low | test-only | — | ◯ OPEN |
+| R6 | `components/json-tree/json-tree-virtualized.tsx` | `JsonTreeVirtualized` `firstFocusable` | RESTATED | low | test-only | — | ◐ FIXED |
 | R7 | `components/kanban/kanban.tsx` | `Kanban` `ref` | CONFIRMED | low | none | — | ◐ FIXED |
 | R8 | `components/kanban/kanban.tsx` | `Kanban` drag handler gating | CONFIRMED | low | shipped | — | ◐ FIXED |
 | R9 | `components/kanban/use-kanban-drag.ts` | `applyKanbanDragOver` | NARROWED | medium | shipped | — | ◐ FIXED |
@@ -142,3 +142,6 @@ The settle pass derived S1 and S3 to S9 again from the answers; S2 is unchanged.
 - Resolver S3: a branch that merges second of S1 and S3 meets a small conflict in the import block of `json-tree.tsx`; keep both lines in the order `./context`, `./json-tree-constants`, `./json-tree-keyboard`, `./json-tree-node`.
 - Resolver S9: `accessibleName(header)` returns all the text of the header, so a header with a control (for example a button "Add") announces "Todo Add".
 - Resolver S9: the column TSDoc (`kanban-column.tsx:21`, `:29-30`) does not name the header-text fallback that the announcements now use.
+- Resolver S8: the in-view start takes the first row that touches the viewport, so a row cut off at the top still scrolls the tree by less than one row on Tab (500 to 482 in the test). A fix needs the item edges against the viewport, which the step kept out of render.
+- Resolver S8: Tab from parked focus goes to the row in view, not to the row the reader left; no settled question covers it.
+- Resolver S8: the R6 note "With a smaller offset the root row holds the stop and nothing moves" holds only while the root is in view; below `overscan` rows of offset with the root scrolled out, the root keeps the stop and Tab scrolls.
