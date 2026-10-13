@@ -70,19 +70,29 @@ const SLOW_4G = {
 /** How often the downlink sends the bytes of its rate, in ms. */
 const DOWNLINK_TICK = 5
 
+/**
+ * The bytes that a CDN has in flight on the network: one round trip at
+ * {@link DOWNLOAD_RATE}. The CDN commits them before it reads the priority of
+ * a later request.
+ */
+const IN_FLIGHT = (DOWNLOAD_RATE * SLOW_4G.latency) / 1000
+
+/** The largest data frame of HTTP/2 with the default settings, in bytes. */
+const FRAME_SIZE = 16_384
+
 /** The urgency of a request with no `priority` header (RFC 9218). */
 const DEFAULT_URGENCY = 3
 
-/** A response body that the downlink sends. */
+/** A response body that waits for the downlink. */
 type Transfer = {
-	/** The stream id. A lower id is an earlier request. */
-	id: number
 	urgency: number
 	incremental: boolean
 	response: Http2ServerResponse
 	body: Buffer
-	sent: number
 }
+
+/** A part of a body that the downlink committed, and the flag of the last part. */
+type Frame = { response: Http2ServerResponse; data: Buffer; last: boolean }
 
 /**
  * Reads the urgency and the incremental flag of a `priority` header, such as
@@ -92,7 +102,6 @@ function priorityOf(header: string | string[] | undefined): {
 	urgency: number
 	incremental: boolean
 } {
-	// An array joins with commas, as the fields of one header do.
 	const fields = String(header ?? '')
 		.split(',')
 		.map((field) => field.trim())
@@ -101,7 +110,7 @@ function priorityOf(header: string | string[] | undefined): {
 
 	return {
 		urgency: Number.isInteger(urgency) ? urgency : DEFAULT_URGENCY,
-		incremental: fields.includes('i') || fields.includes('i=?1'),
+		incremental: fields.includes('i'),
 	}
 }
 
@@ -109,21 +118,81 @@ function priorityOf(header: string | string[] | undefined): {
  * Sends response bodies at {@link DOWNLOAD_RATE}, in the order of their
  * priority, as a CDN does (RFC 9218). The lowest urgency goes first. Of one
  * urgency, a body that is not incremental goes whole, in the order of the
- * requests, and incremental bodies share the rate.
+ * requests, and incremental bodies take frames in turns. The downlink keeps
+ * {@link IN_FLIGHT} bytes committed, so a later request waits for them,
+ * whatever its priority.
  *
  * The download limit of Chromium shares the rate among the requests, and it
  * ignores their priority. Thus a change to the priority of a request does not
  * change the measurements of that limit.
  */
 function createDownlink(rate: number): {
-	send: (transfer: Omit<Transfer, 'sent'>) => void
+	send: (transfer: Transfer) => void
 	close: () => void
 } {
-	let transfers: Transfer[] = []
+	let waiting: Transfer[] = []
+
+	const frames: Frame[] = []
+
+	let committed = 0
 
 	let credit = 0
 
 	let last = performance.now()
+
+	// Commits the next frame of the body with the highest priority.
+	const commit = () => {
+		const urgency = Math.min(...waiting.map((transfer) => transfer.urgency))
+
+		const top = waiting.filter((transfer) => transfer.urgency === urgency)
+
+		const whole = top.filter((transfer) => !transfer.incremental)
+
+		const transfer =
+			whole.length > 0
+				? whole.reduce((a, b) =>
+						(a.response.stream.id ?? 0) < (b.response.stream.id ?? 0) ? a : b,
+					)
+				: (top[0] as Transfer)
+
+		const data = transfer.body.subarray(0, FRAME_SIZE)
+
+		transfer.body = transfer.body.subarray(data.length)
+
+		frames.push({ response: transfer.response, data, last: transfer.body.length === 0 })
+
+		committed += data.length
+
+		// A body with more frames goes to the end, so incremental bodies take frames in turns.
+		waiting = waiting.filter((other) => other !== transfer)
+
+		if (transfer.body.length > 0) waiting.push(transfer)
+	}
+
+	// Sends the committed frames, in order, for as many bytes as the credit holds.
+	const transmit = () => {
+		while (credit >= 1 && frames.length > 0) {
+			const frame = frames[0] as Frame
+
+			const data = frame.data.subarray(0, Math.floor(credit))
+
+			const open = !frame.response.stream.closed
+
+			if (open) frame.response.write(data)
+
+			frame.data = frame.data.subarray(data.length)
+
+			credit -= data.length
+
+			committed -= data.length
+
+			if (frame.data.length > 0) continue
+
+			frames.shift()
+
+			if (open && frame.last) frame.response.end()
+		}
+	}
 
 	const tick = () => {
 		const now = performance.now()
@@ -132,45 +201,21 @@ function createDownlink(rate: number): {
 
 		last = now
 
-		transfers = transfers.filter((transfer) => !transfer.response.stream.closed)
+		waiting = waiting.filter((transfer) => !transfer.response.stream.closed)
+
+		while (committed < IN_FLIGHT && waiting.length > 0) commit()
 
 		// A link with nothing to send does not keep its rate for later.
-		if (transfers.length === 0) credit = 0
+		if (frames.length === 0) credit = 0
 
-		while (credit >= 1 && transfers.length > 0) {
-			const urgency = Math.min(...transfers.map((transfer) => transfer.urgency))
-
-			const top = transfers.filter((transfer) => transfer.urgency === urgency)
-
-			const whole = top.filter((transfer) => !transfer.incremental)
-
-			const next = whole.length > 0 ? [whole.reduce((a, b) => (a.id < b.id ? a : b))] : top
-
-			const share = Math.max(1, Math.floor(credit / next.length))
-
-			for (const transfer of next) {
-				const end = Math.min(transfer.sent + share, transfer.body.length)
-
-				transfer.response.write(transfer.body.subarray(transfer.sent, end))
-
-				credit -= end - transfer.sent
-
-				transfer.sent = end
-
-				if (end === transfer.body.length) {
-					transfer.response.end()
-
-					transfers = transfers.filter((other) => other !== transfer)
-				}
-			}
-		}
+		transmit()
 	}
 
 	const timer = setInterval(tick, DOWNLINK_TICK)
 
 	return {
 		send: (transfer) => {
-			transfers.push({ ...transfer, sent: 0 })
+			waiting.push(transfer)
 		},
 		close: () => clearInterval(timer),
 	}
@@ -332,7 +377,6 @@ async function serve(tls: SecureServerOptions): Promise<{ origin: string; close:
 		})
 
 		downlink.send({
-			id: response.stream.id ?? 0,
 			...priorityOf(request.headers.priority),
 			response,
 			body,

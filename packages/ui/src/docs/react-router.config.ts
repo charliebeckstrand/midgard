@@ -1,13 +1,10 @@
 import path from 'node:path'
 import type { Config } from '@react-router/dev/config'
-import { lowerPreloadPriority } from './plugin/preloads.ts'
 import { inlineCriticalCss } from './plugin/styles.ts'
 
 // A static site: no server at run time. The build renders each page to its
 // own HTML file, and the browser hydrates it. Each file holds the critical
 // CSS of its page, so the first paint does not wait for the full stylesheet.
-// The modules of each file load at the low priority, so the first paint does
-// not wait for them (`plugin/preloads.ts`).
 const config: Config = {
 	appDirectory: 'app',
 	buildDirectory: 'dist',
@@ -21,8 +18,6 @@ const config: Config = {
 		const stylesheet = path.join(import.meta.dirname, 'app', 'app.css')
 
 		await inlineCriticalCss(clientDir, stylesheet)
-
-		lowerPreloadPriority(clientDir)
 	},
 }
 
