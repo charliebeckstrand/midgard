@@ -3,9 +3,10 @@
  * app first.
  *
  * The script serves the build over HTTP/2 with TLS and brotli, as a CDN does,
- * with the paths of `docs-server.ts`. Chromium opens `/button` cold at 390 px,
- * with the CPU four times slower and the network of Lighthouse "Slow 4G". The
- * table gives the median of each value:
+ * with the paths of `docs-server.ts`. It also sends the responses in the
+ * order of their priority, as a CDN does ({@link createDownlink}). Chromium
+ * opens `/button` cold at 390 px, with the CPU four times slower and the
+ * network of Lighthouse "Slow 4G". The table gives the median of each value:
  *
  * - FCP and LCP, from the paint entries of the page.
  * - TBT: the time over 50 ms of each long task, from the start of the
@@ -34,7 +35,7 @@
 import { generateKeyPairSync, sign } from 'node:crypto'
 import { writeFileSync } from 'node:fs'
 import { readFile, stat } from 'node:fs/promises'
-import { createSecureServer, type Http2SecureServer, type SecureServerOptions } from 'node:http2'
+import { createSecureServer, type Http2ServerResponse, type SecureServerOptions } from 'node:http2'
 import type { AddressInfo } from 'node:net'
 import path from 'node:path'
 import { parseArgs, promisify } from 'node:util'
@@ -50,12 +51,129 @@ const PAGE = '/button'
 /** The budget of the docs app on `/button`, from its first pull request. */
 const BUDGET = { fcp: 700, requests: 16 }
 
-/** The "Slow 4G" network of Lighthouse, as the measurements of the plan use it. */
+/** The download rate of the "Slow 4G" network of Lighthouse, in bytes per second. */
+const DOWNLOAD_RATE = (1.6 * 1024 * 1024) / 8
+
+/**
+ * The "Slow 4G" network of Lighthouse, as the measurements of the plan use it.
+ * Chromium adds the latency and limits the upload. The server limits the
+ * download ({@link createDownlink}), so `-1` turns off the download limit of
+ * Chromium.
+ */
 const SLOW_4G = {
 	offline: false,
 	latency: 150,
-	downloadThroughput: (1.6 * 1024 * 1024) / 8,
+	downloadThroughput: -1,
 	uploadThroughput: (750 * 1024) / 8,
+}
+
+/** How often the downlink sends the bytes of its rate, in ms. */
+const DOWNLINK_TICK = 5
+
+/** The urgency of a request with no `priority` header (RFC 9218). */
+const DEFAULT_URGENCY = 3
+
+/** A response body that the downlink sends. */
+type Transfer = {
+	/** The stream id. A lower id is an earlier request. */
+	id: number
+	urgency: number
+	incremental: boolean
+	response: Http2ServerResponse
+	body: Buffer
+	sent: number
+}
+
+/**
+ * Reads the urgency and the incremental flag of a `priority` header, such as
+ * `u=1` or `u=0, i` (RFC 9218).
+ */
+function priorityOf(header: string | string[] | undefined): {
+	urgency: number
+	incremental: boolean
+} {
+	// An array joins with commas, as the fields of one header do.
+	const fields = String(header ?? '')
+		.split(',')
+		.map((field) => field.trim())
+
+	const urgency = Number(fields.find((field) => field.startsWith('u='))?.slice(2))
+
+	return {
+		urgency: Number.isInteger(urgency) ? urgency : DEFAULT_URGENCY,
+		incremental: fields.includes('i') || fields.includes('i=?1'),
+	}
+}
+
+/**
+ * Sends response bodies at {@link DOWNLOAD_RATE}, in the order of their
+ * priority, as a CDN does (RFC 9218). The lowest urgency goes first. Of one
+ * urgency, a body that is not incremental goes whole, in the order of the
+ * requests, and incremental bodies share the rate.
+ *
+ * The download limit of Chromium shares the rate among the requests, and it
+ * ignores their priority. Thus a change to the priority of a request does not
+ * change the measurements of that limit.
+ */
+function createDownlink(rate: number): {
+	send: (transfer: Omit<Transfer, 'sent'>) => void
+	close: () => void
+} {
+	let transfers: Transfer[] = []
+
+	let credit = 0
+
+	let last = performance.now()
+
+	const tick = () => {
+		const now = performance.now()
+
+		credit += ((now - last) / 1000) * rate
+
+		last = now
+
+		transfers = transfers.filter((transfer) => !transfer.response.stream.closed)
+
+		// A link with nothing to send does not keep its rate for later.
+		if (transfers.length === 0) credit = 0
+
+		while (credit >= 1 && transfers.length > 0) {
+			const urgency = Math.min(...transfers.map((transfer) => transfer.urgency))
+
+			const top = transfers.filter((transfer) => transfer.urgency === urgency)
+
+			const whole = top.filter((transfer) => !transfer.incremental)
+
+			const next = whole.length > 0 ? [whole.reduce((a, b) => (a.id < b.id ? a : b))] : top
+
+			const share = Math.max(1, Math.floor(credit / next.length))
+
+			for (const transfer of next) {
+				const end = Math.min(transfer.sent + share, transfer.body.length)
+
+				transfer.response.write(transfer.body.subarray(transfer.sent, end))
+
+				credit -= end - transfer.sent
+
+				transfer.sent = end
+
+				if (end === transfer.body.length) {
+					transfer.response.end()
+
+					transfers = transfers.filter((other) => other !== transfer)
+				}
+			}
+		}
+	}
+
+	const timer = setInterval(tick, DOWNLINK_TICK)
+
+	return {
+		send: (transfer) => {
+			transfers.push({ ...transfer, sent: 0 })
+		},
+		close: () => clearInterval(timer),
+	}
 }
 
 /** How long the finger stays down in a tap. A real tap lasts about this long. */
@@ -162,10 +280,8 @@ function createCertificate(): SecureServerOptions {
 	}
 }
 
-/** Serves the docs build over HTTP/2, and gives its origin. */
-async function serve(
-	tls: SecureServerOptions,
-): Promise<{ origin: string; server: Http2SecureServer }> {
+/** Serves the docs build over HTTP/2 through a downlink of "Slow 4G", and gives its origin. */
+async function serve(tls: SecureServerOptions): Promise<{ origin: string; close: () => void }> {
 	await stat(CLIENT_DIR).catch(() => {
 		throw new Error(`Build the docs app first: no build is at ${CLIENT_DIR}.`)
 	})
@@ -182,6 +298,8 @@ async function serve(
 			),
 		)
 	}
+
+	const downlink = createDownlink(DOWNLOAD_RATE)
 
 	const server = createSecureServer(tls, async (request, response) => {
 		const { pathname } = new URL(request.url, 'https://localhost')
@@ -204,21 +322,33 @@ async function serve(
 		// The browser closes the streams of a run that ends.
 		if (response.stream.closed) return
 
-		response
-			.writeHead(200, {
-				'content-type': TYPES[extension] ?? 'application/octet-stream',
-				// The name of each file in `assets/` holds the hash of its content.
-				'cache-control': pathname.startsWith('/assets/')
-					? 'public, max-age=31536000, immutable'
-					: 'no-cache',
-				...(compress ? { 'content-encoding': 'br' } : {}),
-			})
-			.end(body)
+		response.writeHead(200, {
+			'content-type': TYPES[extension] ?? 'application/octet-stream',
+			// The name of each file in `assets/` holds the hash of its content.
+			'cache-control': pathname.startsWith('/assets/')
+				? 'public, max-age=31536000, immutable'
+				: 'no-cache',
+			...(compress ? { 'content-encoding': 'br' } : {}),
+		})
+
+		downlink.send({
+			id: response.stream.id ?? 0,
+			...priorityOf(request.headers.priority),
+			response,
+			body,
+		})
 	})
 
 	await new Promise<void>((done) => server.listen(0, 'localhost', done))
 
-	return { origin: `https://localhost:${(server.address() as AddressInfo).port}`, server }
+	return {
+		origin: `https://localhost:${(server.address() as AddressInfo).port}`,
+		close: () => {
+			downlink.close()
+
+			server.close()
+		},
+	}
 }
 
 // The code below runs in the page, and it is text: the TypeScript runner of
@@ -456,7 +586,7 @@ if (!Number.isInteger(runs) || runs < 1 || extra.length > 0) {
 
 const tls = createCertificate()
 
-const { origin, server } = await serve(tls)
+const { origin, close } = await serve(tls)
 
 const browser = await chromium.launch()
 
@@ -473,7 +603,7 @@ try {
 } finally {
 	await browser.close()
 
-	server.close()
+	close()
 }
 
 console.log(`\n${table(samples)}\n\n${runs} cold runs, medians.`)
