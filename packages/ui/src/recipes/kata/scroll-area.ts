@@ -73,8 +73,8 @@ const scrollbar = defineRecipe({
 	compound: [
 		{ orientation: 'vertical', rounded: 'true', class: 'top-2 bottom-2' },
 		{ orientation: 'vertical', rounded: 'false', class: 'top-0 bottom-0' },
-		{ orientation: 'horizontal', rounded: 'true', class: 'right-2 left-2' },
-		{ orientation: 'horizontal', rounded: 'false', class: 'right-0 left-0' },
+		{ orientation: 'horizontal', rounded: 'true', class: 'inset-x-2' },
+		{ orientation: 'horizontal', rounded: 'false', class: 'inset-x-0' },
 	],
 	defaults: { rounded: false },
 })

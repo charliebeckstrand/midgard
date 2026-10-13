@@ -139,8 +139,8 @@ export default function DensityPlayground(props: DensityProviderProps) {
 											<TableHeader>Order</TableHeader>
 											<TableHeader>Customer</TableHeader>
 											<TableHeader>Status</TableHeader>
-											<TableHeader className="text-right">Amount</TableHeader>
-											<TableHeader className="text-right">Actions</TableHeader>
+											<TableHeader className="text-end">Amount</TableHeader>
+											<TableHeader className="text-end">Actions</TableHeader>
 										</TableRow>
 									</TableHead>
 									<TableBody>
@@ -149,7 +149,7 @@ export default function DensityPlayground(props: DensityProviderProps) {
 												<TableCell className="font-medium">{order.id}</TableCell>
 												<TableCell>{order.customer}</TableCell>
 												<TableCell>{order.status}</TableCell>
-												<TableCell className="text-right">{order.amount}</TableCell>
+												<TableCell className="text-end">{order.amount}</TableCell>
 												<TableCell>
 													<Flex justify="end">
 														<Button

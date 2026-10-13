@@ -98,6 +98,7 @@ export function RangeArrow({
 			aria-hidden="true"
 			viewBox="0 0 6 10"
 			className={cn(
+				// biome-ignore lint/plugin/no-physical-side: the range legend lays out left to right (`dir="ltr"`), so the arrow points from the left
 				'absolute right-full mr-1 h-2.5 w-1.5 -translate-y-1/2 motion-safe:transition-[top] duration-150 ease-out',
 				k.arrow,
 			)}
@@ -293,7 +294,10 @@ function RangeScaleLabels({
 					data-slot={`${slot}-value`}
 					className={cn(
 						'absolute tabular-nums leading-none whitespace-nowrap',
-						horizontal ? 'top-0 -translate-x-1/2' : 'left-0 -translate-y-1/2',
+						horizontal
+							? 'top-0 -translate-x-1/2'
+							: // biome-ignore lint/plugin/no-physical-side: the range legend lays out left to right (`dir="ltr"`)
+								'left-0 -translate-y-1/2',
 					)}
 					style={horizontal ? { left: `${probeOffset}%` } : { top: `${probeOffset}%` }}
 				>

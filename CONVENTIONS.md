@@ -111,6 +111,8 @@ An arrow key on a physical axis, such as a slider track or a map cursor, stays p
 
 5.7 In Places, an icon-only `Button` uses `variant="bare"`, so each icon button of the app has the same look. The [`require-bare-icon-button`](.biome/plugins/require-bare-icon-button.grit) Biome plugin holds the rule.
 
+5.8 In `ui`, a class on the inline axis uses a logical side: `ms-`, `pe-`, `start-`, `end-`, `border-s`, `rounded-e`, or `text-start`. A physical side (`ml-`, `pr-`, `left-`, `border-r`, `rounded-bl`, `text-left`) does not mirror in a right-to-left layout. A class string with an `rtl:` sibling states each direction itself. A site that is physical on purpose, such as a plot that keeps its physical axis, carries a suppression with its reason. The [`no-physical-side`](.biome/plugins/no-physical-side.grit) Biome plugin holds the rule.
+
 ## 6. State & data
 
 6.1 No global state library. Cross-cutting state is React Context at `apps/<app>/app/providers.tsx`. Biome's `noRestrictedImports` keeps the common ones out of `apps`.

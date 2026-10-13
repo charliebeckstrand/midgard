@@ -1,3 +1,5 @@
+// biome-ignore-all lint/plugin/no-physical-side: each position of the region names a physical corner
+
 import { defineRecipe } from '../../core/recipe'
 import { sou, ugoki } from '../kiso'
 
