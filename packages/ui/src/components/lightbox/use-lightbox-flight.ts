@@ -1,6 +1,6 @@
 'use client'
 
-import { type AnimationPlaybackControls, animate, easeOut } from 'motion'
+import { type AnimationPlaybackControls, animate, easeOut, frame } from 'motion'
 import { type RefObject, useRef } from 'react'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { k } from '../../recipes/kata/lightbox'
@@ -20,7 +20,8 @@ export type LightboxFlight = {
 	/**
 	 * Raises the photo from `thumbnail` to its place on the stage. During a
 	 * return, it stops the return first, and the same photo rises from the frame
-	 * that it paints.
+	 * that it paints. A return that landed while the viewer stays is stopped
+	 * too, so no photo keeps its last frame.
 	 */
 	raise: (thumbnail: HTMLElement | undefined) => void
 	/**
@@ -81,17 +82,30 @@ type LightboxReturn = {
 	tweens: readonly AnimationPlaybackControls[]
 }
 
+/** Puts a slot and its photo at rest: no transform and no fade. */
+function putAtRest(slot: HTMLElement, photo: HTMLElement) {
+	paint(slot, photo, { slot: 'none', photo: 'none' })
+
+	photo.style.opacity = ''
+}
+
 /**
  * Stops a return and puts its slot and its photo at rest. A canceled tween
  * writes nothing in a later frame, as a stopped tween does. Its promise does
  * not resolve, so the return does not land.
+ *
+ * A tween that landed is different. Motion keeps its last frame in a motion
+ * value, and writes that value in its next render step. A reopen can come
+ * before that step, for example from a frame callback. Thus, when `keep` is
+ * not the photo of the return, the photo is put at rest again after that step.
+ * The photo `keep` rises, and the tweens of its raise write over it.
  */
-function stopReturn({ slot, photo, tweens }: LightboxReturn) {
+function stopReturn({ slot, photo, tweens }: LightboxReturn, keep: HTMLElement) {
 	for (const tween of tweens) tween.cancel()
 
-	paint(slot, photo, { slot: 'none', photo: 'none' })
+	putAtRest(slot, photo)
 
-	photo.style.opacity = ''
+	if (photo !== keep) frame.postRender(() => putAtRest(slot, photo))
 }
 
 /** A box inset by the scroll padding in `style`, the edges that sticky bars cover. */
@@ -215,7 +229,7 @@ export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): Ligh
 		return shown && raisedFrame(box, rest, shown)
 	}
 
-	// The return that runs, which a raise stops.
+	// The last return, which the next raise stops. It can have landed.
 	const returning = useRef<LightboxReturn | null>(null)
 
 	// Plays the flight from `from` to `to`, and gives its tweens. A raise takes
@@ -265,7 +279,7 @@ export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): Ligh
 					}
 				: undefined
 
-		if (back) stopReturn(back)
+		if (back) stopReturn(back, photo)
 
 		const boxes = boxesOf(slot, photo)
 
@@ -291,15 +305,14 @@ export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): Ligh
 		fly(slot, photo, boxes, start, restingFrame(boxes.rest), true)
 	}
 
-	// Holds the tweens of a return, which a raise can stop, and resolves when they land.
+	// Holds the tweens of a return, which a raise can stop, and resolves when they
+	// land. The return stays held after it lands. The viewer is removed only after
+	// the stage gets the landing, so a reopen can come first. The photo then still
+	// paints the last frame of the return, and the raise must take that frame off.
 	const land = (slot: HTMLElement, photo: HTMLElement, tweens: AnimationPlaybackControls[]) => {
-		const flight = { slot, photo, tweens }
+		returning.current = { slot, photo, tweens }
 
-		returning.current = flight
-
-		return Promise.all(tweens.map((tween) => tween.finished)).then(() => {
-			if (returning.current === flight) returning.current = null
-		})
+		return Promise.all(tweens.map((tween) => tween.finished)).then(() => undefined)
 	}
 
 	const lower = (thumbnail: HTMLElement | undefined) => {
