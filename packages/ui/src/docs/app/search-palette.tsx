@@ -1,5 +1,6 @@
 import entries from 'virtual:docs/search'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { PrefetchPageLinks } from 'react-router'
 import {
 	CommandPalette,
 	CommandPaletteDescription,
@@ -8,6 +9,7 @@ import {
 	CommandPaletteText,
 	useCommandPaletteDeferredQuery,
 } from 'ui/command-palette'
+import { useTimeout } from 'ui/hooks'
 import { VirtualOptions } from 'ui/primitives/virtual-options'
 import type { SearchEntry, SearchKind } from '../plugin/search.ts'
 import { matchEntries } from './search-match.ts'
@@ -32,33 +34,70 @@ const options: readonly Option[] = entries.map((entry, index) => ({
 	id: `search-${index}`,
 }))
 
+/**
+ * The most results for which the palette loads the code of the page of each
+ * result. A list this short usually holds the pick of the reader, and it names
+ * few pages, so the load is small.
+ */
+const PREFETCH_LIMIT = 5
+
+/**
+ * The time in ms that the query must stay the same before the load starts, so
+ * that each keystroke does not start a load.
+ */
+const PREFETCH_SETTLE = 300
+
+/**
+ * Loads the code of the page of each result when the list is short, as a
+ * `RouterLink` does on a hover. A pick then does not wait for the network.
+ */
+function PrefetchResults({ matches }: { matches: readonly Option[] }) {
+	const [pages, setPages] = useState<readonly string[]>([])
+
+	const timeout = useTimeout()
+
+	useEffect(() => {
+		const next =
+			matches.length <= PREFETCH_LIMIT
+				? [...new Set(matches.map((option) => option.href.split('#')[0] ?? option.href))]
+				: []
+
+		timeout.set(() => setPages(next), PREFETCH_SETTLE)
+	}, [matches, timeout])
+
+	return pages.map((page) => <PrefetchPageLinks key={page} page={page} />)
+}
+
 function Results({ onPick }: { onPick: () => void }) {
 	const query = useCommandPaletteDeferredQuery()
 
 	const matches = useMemo(() => matchEntries(options, query), [query])
 
 	return (
-		// The dialog body grows with its content. The list has a fixed height, so that it scrolls.
-		<div className="h-80 overflow-y-auto">
-			<VirtualOptions items={matches} getOptionId={(option) => option.id}>
-				{(option, _index, meta) => (
-					<CommandPaletteItem
-						key={option.id}
-						id={option.id}
-						href={option.href}
-						onAction={onPick}
-						{...meta}
-					>
-						<CommandPaletteText>
-							<CommandPaletteLabel>{option.label}</CommandPaletteLabel>
-							<CommandPaletteDescription>
-								{`${KIND_LABELS[option.kind]} · ${option.context}`}
-							</CommandPaletteDescription>
-						</CommandPaletteText>
-					</CommandPaletteItem>
-				)}
-			</VirtualOptions>
-		</div>
+		<>
+			<PrefetchResults matches={matches} />
+			{/* The dialog body grows with its content. The list has a fixed height, so that it scrolls. */}
+			<div className="h-80 overflow-y-auto">
+				<VirtualOptions items={matches} getOptionId={(option) => option.id}>
+					{(option, _index, meta) => (
+						<CommandPaletteItem
+							key={option.id}
+							id={option.id}
+							href={option.href}
+							onAction={onPick}
+							{...meta}
+						>
+							<CommandPaletteText>
+								<CommandPaletteLabel>{option.label}</CommandPaletteLabel>
+								<CommandPaletteDescription>
+									{`${KIND_LABELS[option.kind]} · ${option.context}`}
+								</CommandPaletteDescription>
+							</CommandPaletteText>
+						</CommandPaletteItem>
+					)}
+				</VirtualOptions>
+			</div>
+		</>
 	)
 }
 
