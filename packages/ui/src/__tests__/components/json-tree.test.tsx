@@ -226,6 +226,31 @@ describe('JsonTree', () => {
 		expect(screen.queryByText('"value"')).not.toBeInTheDocument()
 	})
 
+	// The filter keeps "tags" for its key and drops each of its entries, so the
+	// branch is empty and forced closed. A press on it records nothing.
+	it.each<[string, (toggle: HTMLElement) => void]>([
+		['a click', (toggle) => fireEvent.click(toggle)],
+		['ArrowRight', (toggle) => fireEvent.keyDown(toggle, { key: 'ArrowRight' })],
+	])('records no toggle from %s on a branch that the filter forces closed', (_name, press) => {
+		const data = { name: 'Ada', tags: ['engineer', 'mathematician'] }
+
+		const { rerender } = renderUI(<JsonTree data={data} search={{ value: 'tags', filter: true }} />)
+
+		const toggle = screen.getByText('"tags"').closest('button')
+
+		if (!toggle) throw new Error('toggle not found')
+
+		press(toggle)
+
+		expect(toggle).toHaveAttribute('aria-expanded', 'false')
+
+		rerender(<JsonTree data={data} search={{ value: '', filter: true }} />)
+
+		expect(screen.getByText('"tags"').closest('button')).toHaveAttribute('aria-expanded', 'false')
+
+		expect(screen.queryByText('"engineer"')).not.toBeInTheDocument()
+	})
+
 	it.each([
 		['string', 'Ada', '"Ada"'],
 		['number', 42, '42'],
