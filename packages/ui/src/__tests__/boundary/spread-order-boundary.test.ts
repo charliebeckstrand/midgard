@@ -10,9 +10,14 @@ import {
 	isParenthesizedExpression,
 	isSatisfiesExpression,
 	isStringLiteral,
+	isTypeAliasDeclaration,
+	isTypeReferenceNode,
+	isVariableDeclaration,
 	type Node,
+	type ObjectBindingPattern,
 	type ParameterDeclaration,
 	type SourceFile,
+	type TypeNode,
 } from 'typescript/unstable/ast'
 import { afterAll, describe, expect, it } from 'vitest'
 import { isFunctionLike } from '../helpers/ts-ast'
@@ -41,9 +46,25 @@ import { docsSites, isSourceFile, srcDir, srcRelative, walkSource } from '../hel
 
 const SCAN_ROOTS = ['components', 'primitives', 'layouts', 'structure', 'modules']
 
-// The spread a consumer's props arrive through. An internal bag under another
-// name (`{...triggerProps}`) is resolved wiring, not consumer input.
+// The spread a consumer's props arrive through: `props`, `rest`, or a rest
+// binding of the props under another name (`{ value, ...labelProps }`). An
+// internal bag (`{...triggerProps}`) is resolved wiring, not consumer input.
 const CONSUMER_SPREAD = /^(?:props|rest)$/
+
+// §4.3 makes `ComponentProps<'tag'>` the only native-prop base, so a props type
+// that names it admits native attributes, and one that omits `'ref'` from it
+// carries no ref.
+const NATIVE_BASE = /\bComponentProps</
+
+const REF_OMITTED = /Omit<\s*ComponentProps<[^>]*>\s*,[^>]*'ref'/
+
+/**
+ * A rest binding of the props of an enclosing function. `native` is true when
+ * the props type admits native attributes, so the rest can carry a consumer
+ * `role`, `data-slot`, or `ref`. `refTaken` is true when the same pattern binds
+ * `ref`, or when the props type omits it.
+ */
+type RestBinding = { name: string; native: boolean; refTaken: boolean }
 
 /**
  * The expression under its parentheses and casts. A cast changes the type of a
@@ -96,11 +117,18 @@ const WAIVERS = new Map<string, Waiver>([
 type Attribute = { name: string; value?: string }
 
 /**
- * One JSX element that takes a consumer spread, and the attributes above it.
- * `refTaken` is true when an enclosing function destructures `ref` from its
- * props, so the spread cannot carry one.
+ * One JSX element that takes a consumer spread, and the attributes on each side
+ * of it. `refTaken` is true when an enclosing function destructures `ref` from
+ * its props, so the spread cannot carry one.
  */
-type Site = { file: string; line: number; tag: string; before: Attribute[]; refTaken: boolean }
+type Site = {
+	file: string
+	line: number
+	tag: string
+	before: Attribute[]
+	after: Attribute[]
+	refTaken: boolean
+}
 
 /** The rules this suite holds, and the keys a waiver pins a count against. */
 const RULES = ['order', 'anchor', 'ref'] as const
@@ -127,17 +155,63 @@ function sitesIn(file: string, parsed: SourceFile): Site[] {
 	// How many enclosing functions destructure `ref` from their first parameter.
 	let refTakers = 0
 
+	// The rest bindings of the props of the enclosing functions, innermost last.
+	const rests: RestBinding[] = []
+
+	// The props parameter of each enclosing function, innermost last, so a rest
+	// that the body destructures from it reads the type of the parameter.
+	const propsParams: (ParameterDeclaration | undefined)[] = []
+
 	const visit = (node: Node): void => {
 		const takesRef = isFunctionLike(node) && destructuresRef(node.parameters[0])
 
 		if (takesRef) refTakers += 1
 
+		const scope = isFunctionLike(node)
+
+		if (scope) propsParams.push(node.parameters[0])
+
+		const pushed = rests.length
+
+		if (scope && node.parameters[0]) {
+			const parameter = node.parameters[0]
+
+			if (isObjectBindingPattern(parameter.name)) {
+				const rest = restOf(parameter.name, parameter.type, parsed)
+
+				if (rest) rests.push(rest)
+			}
+		}
+
+		// `const { ref, ...rest } = props` in the body reads the type of `props`.
+		if (isVariableDeclaration(node) && isObjectBindingPattern(node.name) && node.initializer) {
+			const parameter = propsParams.at(-1)
+
+			const source = text(node.initializer)
+
+			if (parameter && isIdentifier(parameter.name) && parameter.name.text === source) {
+				const rest = restOf(node.name, parameter.type, parsed)
+
+				if (rest) rests.push(rest)
+			}
+		}
+
+		/** The binding of a spread name, innermost first. */
+		const bindingOf = (name: string) => rests.findLast((rest) => rest.name === name)
+
 		if (isJsxOpeningElement(node) || isJsxSelfClosingElement(node)) {
 			const before: Attribute[] = []
 
+			const after: Attribute[] = []
+
+			// The first consumer spread splits the attributes; a later spread does not.
+			let split = false
+
+			let spreadRefTaken = false
+
 			for (const property of node.attributes.properties) {
 				if (!isJsxSpreadAttribute(property)) {
-					before.push({
+					;(split ? after : before).push({
 						name: text(property.name),
 						value:
 							property.initializer && isStringLiteral(property.initializer)
@@ -148,24 +222,40 @@ function sitesIn(file: string, parsed: SourceFile): Site[] {
 					continue
 				}
 
-				// The consumer spread closes the run; a later internal bag does not.
-				if (CONSUMER_SPREAD.test(text(uncast(property.expression)))) {
-					sites.push({
-						file,
-						line: parsed.getLineAndCharacterOfPosition(node.tagName.getStart()).line + 1,
-						tag: text(node.tagName),
-						before,
-						refTaken: refTakers > 0,
-					})
+				if (split) continue
 
-					break
+				const name = text(uncast(property.expression))
+
+				const binding = bindingOf(name)
+
+				// `props` and `rest` stay consumer spreads under any type, as before.
+				if (CONSUMER_SPREAD.test(name) || binding?.native) {
+					split = true
+
+					spreadRefTaken = refTakers > 0 || Boolean(binding?.refTaken)
 				}
+			}
+
+			if (split) {
+				sites.push({
+					file,
+					line: parsed.getLineAndCharacterOfPosition(node.tagName.getStart()).line + 1,
+					tag: text(node.tagName),
+					before,
+					after,
+					refTaken: spreadRefTaken,
+				})
 			}
 		}
 
 		node.forEachChild(visit)
 
 		if (takesRef) refTakers -= 1
+
+		if (scope) propsParams.pop()
+
+		// A function scope drops the rests of its parameter and of its body.
+		if (scope) rests.length = pushed
 	}
 
 	visit(parsed)
@@ -173,11 +263,56 @@ function sitesIn(file: string, parsed: SourceFile): Site[] {
 	return sites
 }
 
+/**
+ * The rest binding of an object pattern over props of `type`, if the pattern
+ * has one. A type reference reads the alias of that name in the same file, so
+ * `{ ...labelProps }: KanbanProps<T>` reads `type KanbanProps<T> = …`.
+ */
+function restOf(
+	pattern: ObjectBindingPattern,
+	type: TypeNode | undefined,
+	parsed: SourceFile,
+): RestBinding | undefined {
+	const rest = pattern.elements.find((element) => element.dotDotDotToken)
+
+	if (rest?.name === undefined || !isIdentifier(rest.name)) return undefined
+
+	const shape = typeText(type, parsed)
+
+	return {
+		name: rest.name.text,
+		native: NATIVE_BASE.test(shape),
+		refTaken: bindsRef(pattern) || REF_OMITTED.test(shape),
+	}
+}
+
+/** The text of a props type, through one alias declared in the same file. */
+function typeText(type: TypeNode | undefined, parsed: SourceFile): string {
+	if (!type) return ''
+
+	if (isTypeReferenceNode(type) && isIdentifier(type.typeName)) {
+		const name = type.typeName.text
+
+		for (const statement of parsed.statements) {
+			if (isTypeAliasDeclaration(statement) && statement.name.text === name) {
+				return parsed.text.slice(statement.type.getStart(), statement.type.end)
+			}
+		}
+	}
+
+	return parsed.text.slice(type.getStart(), type.end)
+}
+
 /** Whether a parameter is an object pattern that binds `ref`, under its own name or an alias. */
 function destructuresRef(parameter: ParameterDeclaration | undefined): boolean {
-	if (!parameter || !isObjectBindingPattern(parameter.name)) return false
+	return (
+		parameter !== undefined && isObjectBindingPattern(parameter.name) && bindsRef(parameter.name)
+	)
+}
 
-	return parameter.name.elements.some((element) => {
+/** Whether an object pattern binds `ref`, under its own name or an alias. */
+function bindsRef(pattern: ObjectBindingPattern): boolean {
+	return pattern.elements.some((element) => {
 		const key = element.propertyName ?? element.name
 
 		return key !== undefined && isIdentifier(key) && key.text === 'ref'
@@ -265,8 +400,14 @@ describe('spread order boundary', () => {
 			: undefined,
 	)
 
-	const refs = collect(sites, 'ref', (site, attribute) =>
-		attribute.name === 'ref' && !site.refTaken ? `<${site.tag}> ref` : undefined,
+	// A ref on either side of a spread that still carries a consumer ref loses
+	// one of the two: before the spread the consumer ref replaces it, after the
+	// spread it replaces the consumer ref.
+	const refs = collect(
+		sites.map((site) => ({ ...site, before: [...site.before, ...site.after] })),
+		'ref',
+		(site, attribute) =>
+			attribute.name === 'ref' && !site.refTaken ? `<${site.tag}> ref` : undefined,
 	)
 
 	it('no element outside the waivers writes a load-bearing attribute before its spread', () => {
@@ -316,6 +457,46 @@ describe('spread order boundary', () => {
 		const [site] = fixture('cast.tsx', `export const a = <div role="row" {...(props as object)} />`)
 
 		expect(site?.before).toEqual([{ name: 'role', value: 'row' }])
+	})
+
+	it('reads a rest of native props under another name, and the ref after it', () => {
+		const [site] = fixture(
+			'rest.tsx',
+			`type BoardProps = Omit<ComponentProps<'section'>, 'className'> & { size?: string }
+			function Board({ size, ...labelProps }: BoardProps) { return <section {...labelProps} ref={inner} /> }`,
+		)
+
+		expect(site?.after).toEqual([{ name: 'ref', value: undefined }])
+
+		expect(site?.refTaken).toBe(false)
+	})
+
+	it('reads no consumer spread in a rest of props with no native base', () => {
+		const sites = fixture(
+			'label.tsx',
+			`type GaugeProps = AccessibleName & { value: number }
+			function Gauge({ value, ...labelProps }: GaugeProps) { return <div role="meter" {...labelProps} /> }`,
+		)
+
+		expect(sites).toEqual([])
+	})
+
+	it('reads a ref taken out of the props in the body, or omitted from the props type', () => {
+		const [body] = fixture(
+			'body.tsx',
+			`type AProps = ComponentProps<'div'>
+			function A(props: AProps) { const { ref: outer, ...rest } = props; return <div {...rest} ref={inner} /> }`,
+		)
+
+		const [omitted] = fixture(
+			'omitted.tsx',
+			`type BProps = Omit<ComponentProps<'button'>, 'ref' | 'type'>
+			function B({ ...props }: BProps) { return <button {...props} ref={inner} /> }`,
+		)
+
+		expect(body?.refTaken).toBe(true)
+
+		expect(omitted?.refTaken).toBe(true)
 	})
 
 	it('pins every waiver to the violation count it still covers', () => {

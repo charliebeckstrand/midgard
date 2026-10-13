@@ -11,6 +11,7 @@ import {
 import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { useA11yRoving } from '../../hooks'
+import { useComposedRef } from '../../hooks/use-composed-ref'
 import type { Mount } from '../../primitives/mount'
 import { k, type scale } from '../../recipes/kata/tree'
 import { Box } from '../../structure/box'
@@ -54,16 +55,20 @@ export type TreeProps = AccessibleName &
 		className?: string
 	}
 
-/** Root of a `role="tree"` with roving-tabindex keyboard navigation and the APG arrow moves to a first child and to a parent. It keeps the first item tabbable across open/close and filtering, and shares depth and `indent` to nested items via context. Requires `aria-label`/`aria-labelledby`. */
+/** Root of a `role="tree"` with roving-tabindex keyboard navigation and the APG arrow moves to a first child and to a parent. It keeps the first item tabbable across open/close and filtering, and shares depth and `indent` to nested items via context. Requires `aria-label`/`aria-labelledby`. A consumer `ref` reaches the tree element. */
 export function Tree({
 	size,
 	indent = true,
 	mount = 'active',
 	children,
 	className,
+	ref: consumerRef,
 	...labelProps
 }: TreeProps) {
 	const ref = useRef<HTMLDivElement>(null)
+
+	// Roving reads `ref`, so a consumer `ref` joins it.
+	const setRoot = useComposedRef(ref, consumerRef)
 
 	const rovingKeyDown = useA11yRoving(ref, {
 		itemSelector: ROVING_ITEM_SELECTOR,
@@ -108,7 +113,7 @@ export function Tree({
 		<TreeContext value={rootContextValue}>
 			<Box
 				{...labelProps}
-				ref={ref}
+				ref={setRoot}
 				role="tree"
 				data-slot="tree"
 				density={size}

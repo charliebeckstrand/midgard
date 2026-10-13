@@ -1,4 +1,5 @@
 import { fireEvent } from '@testing-library/react'
+import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Tree, TreeItem, TreeSkeleton } from '../../components/tree'
 import { bySlot, getSlot, present, renderUI, screen } from '../helpers'
@@ -33,6 +34,18 @@ describe('Tree', () => {
 
 	// A Fragment adds no level: its items are rendered siblings of the items
 	// around it, at the root and inside a branch.
+	it('gives the tree node to a consumer ref', () => {
+		const ref = createRef<HTMLDivElement>()
+
+		renderUI(
+			<Tree aria-label="Files" ref={ref}>
+				<TreeItem label="README" />
+			</Tree>,
+		)
+
+		expect(ref.current).toBe(screen.getByRole('tree'))
+	})
+
 	it('counts the items inside a Fragment as siblings', () => {
 		const sources = (
 			<>

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { createRef, useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../../components/toolbar'
 import { TOOLBAR_ITEM_SELECTOR } from '../../components/toolbar/toolbar-constants'
@@ -15,6 +15,18 @@ describe('Toolbar', () => {
 		expect(bySlot(container, 'toolbar')).toHaveAttribute('role', 'toolbar')
 
 		expect(screen.getByRole('button', { name: 'Action' })).toBeInTheDocument()
+	})
+
+	it('gives the toolbar node to a consumer ref', () => {
+		const ref = createRef<HTMLDivElement>()
+
+		const { container } = renderUI(
+			<Toolbar aria-label="Editor" ref={ref}>
+				<button type="button">Action</button>
+			</Toolbar>,
+		)
+
+		expect(ref.current).toBe(bySlot(container, 'toolbar'))
 	})
 
 	it('defaults to horizontal aria-orientation', () => {
