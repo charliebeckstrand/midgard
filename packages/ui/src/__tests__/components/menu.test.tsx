@@ -1,4 +1,4 @@
-import type { Ref } from 'react'
+import { createRef, type Ref } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import {
@@ -14,13 +14,19 @@ import {
 	MenuText,
 	MenuTrigger,
 } from '../../components/menu'
-import { MenuCappedContext } from '../../components/menu/context'
+import {
+	MenuActionsContext,
+	MenuCappedContext,
+	MenuStateContext,
+} from '../../components/menu/context'
 import { MenuViewport } from '../../components/menu/menu-viewport'
+import { MenuPointerLevel } from '../../components/menu/use-menu-pointer'
 import {
 	bySlot,
 	fireEvent,
 	getSlot,
 	mockDomGeometry,
+	noop,
 	present,
 	renderUI,
 	screen,
@@ -616,6 +622,85 @@ describe('MenuContent', () => {
 			expect(fireEvent.keyDown(trigger, { key: 'Enter', repeat: true })).toBe(false)
 			expect(fireEvent.keyDown(trigger, { key: 'Enter', repeat: true })).toBe(false)
 		})
+	})
+
+	// A closed panel stays mounted for its 150 ms exit, and its last row keeps
+	// `data-active`. In that time the roving handler finds the rows, so it does
+	// not no-op. A second Enter then runs the row again and does not open the
+	// menu. The jsdom mocks remove the panel at once, so this harness gives the
+	// trigger the contexts of a menu and a spy for the handler. No browser
+	// project has the real Motion exit and the real floating engine together.
+	describe('roves only while the menu is open', () => {
+		function harness(open: boolean) {
+			const rovingKeyDown = vi.fn()
+
+			const dismissToTab = vi.fn()
+
+			const triggerRef = createRef<HTMLElement>()
+
+			renderUI(
+				<MenuStateContext
+					value={{
+						open,
+						menuId: 'menu',
+						isDropdown: true,
+						isSheet: false,
+						floatingStyles: {},
+						getReferenceProps: (props = {}) => props,
+						getFloatingProps: () => ({}),
+					}}
+				>
+					<MenuActionsContext
+						value={{
+							setOpen: noop,
+							close: noop,
+							dismissToTab,
+							rovingKeyDown,
+							static: false,
+							triggerRef,
+							setReference: noop,
+							setFloating: noop,
+							openAt: noop,
+						}}
+					>
+						<MenuPointerLevel virtual owner={triggerRef}>
+							<MenuTrigger>
+								<button type="button">Open</button>
+							</MenuTrigger>
+						</MenuPointerLevel>
+					</MenuActionsContext>
+				</MenuStateContext>,
+			)
+
+			return { trigger: screen.getByRole('button', { name: 'Open' }), rovingKeyDown, dismissToTab }
+		}
+
+		it.each(['Enter', ' ', 'ArrowDown', 'End', 'e', 'Tab'])(
+			'leaves %j to the trigger of a closed menu',
+			(key) => {
+				const { trigger, rovingKeyDown, dismissToTab } = harness(false)
+
+				// The default action stays: Enter and Space click the trigger, which opens the menu.
+				expect(fireEvent.keyDown(trigger, { key })).toBe(true)
+
+				expect(rovingKeyDown).not.toHaveBeenCalled()
+
+				expect(dismissToTab).not.toHaveBeenCalled()
+			},
+		)
+
+		it.each(['Enter', ' ', 'ArrowDown', 'End', 'e', 'Tab'])(
+			'gives %j to the rows of an open menu',
+			(key) => {
+				const { trigger, rovingKeyDown, dismissToTab } = harness(true)
+
+				fireEvent.keyDown(trigger, { key })
+
+				expect(rovingKeyDown).toHaveBeenCalledOnce()
+
+				expect(dismissToTab).toHaveBeenCalledTimes(key === 'Tab' ? 1 : 0)
+			},
+		)
 	})
 
 	it('pulls focus into the panel when a right-click context menu opens', () => {

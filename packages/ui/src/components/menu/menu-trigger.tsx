@@ -112,9 +112,14 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 	// Focus rests on the trigger while the menu is open, so every navigation key
 	// arrives here rather than in the panel. `rovingKeyDown` moves the
 	// `aria-activedescendant` cursor over the items (arrow / Home / End /
-	// type-ahead) and activates the active row on Enter/Space — no-op while closed.
+	// type-ahead) and activates the active row on Enter/Space.
 	// Tab closes without `preventDefault`, letting the browser carry focus onward;
 	// `dismissToTab` marks the close `'focus-out'` so focus is not yanked back.
+	//
+	// A closed menu gets none of this. The panel stays mounted for its exit
+	// animation, and the row that ran keeps `data-active`, so the roving handler
+	// still finds the rows. An Enter in that time would run the row again and
+	// cancel the click that opens the menu.
 	const handleTriggerKeyDown = useStableEvent((event: KeyboardEvent) => {
 		if (event.key === 'Enter' || event.key === ' ') {
 			// Swallow every auto-repeat's native click; only a fresh press arms and
@@ -127,10 +132,12 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 			}
 		}
 
+		if (!open) return
+
 		// A submenu hovered open under this dropdown owns the arrows while it is up,
 		// the same as in a right-click menu — the difference being that focus rests
 		// here, so the press arrives on the trigger rather than on the parent row.
-		if (open && enterSubmenu(event.key)) {
+		if (enterSubmenu(event.key)) {
 			event.preventDefault()
 
 			return
@@ -138,7 +145,7 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 
 		rovingKeyDown(event)
 
-		if (open && event.key === 'Tab') dismissToTab(event.nativeEvent)
+		if (event.key === 'Tab') dismissToTab(event.nativeEvent)
 	})
 
 	// Space activates a button on keyup; suppress that release when no fresh press

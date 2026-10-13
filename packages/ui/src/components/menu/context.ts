@@ -44,7 +44,8 @@ type MenuActionsValue = {
 	 * Virtual-roving key handler for the trigger. Arrow / Home / End / type-ahead
 	 * move the dropdown's `aria-activedescendant` cursor over the menu items,
 	 * while focus stays on the trigger. Enter activates the active row. No-ops while
-	 * the panel is unmounted (a closed menu). {@link MenuTrigger} spreads it.
+	 * the panel is unmounted. The panel stays mounted through its exit, so
+	 * {@link MenuTrigger} calls it only while the menu is open.
 	 */
 	rovingKeyDown: (event: KeyboardEvent) => void
 	static: boolean
