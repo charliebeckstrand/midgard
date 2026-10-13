@@ -246,7 +246,7 @@ overrides:
 
 patchedDependencies:
   '@floating-ui/react@0.27.20': 7bd33aaf7f770afcaadb2f5e7a7d6986aa6a648cb5f32b43f540e4c9762c6443
-  react-router@8.4.0: 30e07834979ca2299265100016262c836b6329092942dc435123fb4bcfe52e8c
+  react-router@8.4.0: 6e57121dbb55ad07389f2fe58af1bac7545613e9b9461291d7226700a6015f6d
 
 importers:
 
@@ -747,7 +747,7 @@ importers:
         version: 19.3.0(react@19.3.0)
       react-router:
         specifier: ^8.4.0
-        version: 8.4.0(patch_hash=30e07834979ca2299265100016262c836b6329092942dc435123fb4bcfe52e8c)(react-dom@19.3.0)(react@19.3.0)
+        version: 8.4.0(patch_hash=6e57121dbb55ad07389f2fe58af1bac7545613e9b9461291d7226700a6015f6d)(react-dom@19.3.0)(react@19.3.0)
       subset-font:
         specifier: ^2.9.0
         version: 2.9.0
@@ -6636,7 +6636,7 @@ snapshots:
       picocolors: 1.1.1
       pkg-types: 2.3.3
       react-refresh: 0.18.0
-      react-router: 8.4.0(patch_hash=30e07834979ca2299265100016262c836b6329092942dc435123fb4bcfe52e8c)(react-dom@19.3.0)(react@19.3.0)
+      react-router: 8.4.0(patch_hash=6e57121dbb55ad07389f2fe58af1bac7545613e9b9461291d7226700a6015f6d)(react-dom@19.3.0)(react@19.3.0)
       semver: 7.8.5
       tinyglobby: 0.2.17
       valibot: 1.5.0(typescript@7.0.2)
@@ -6650,7 +6650,7 @@ snapshots:
   '@react-router/node@8.4.0(react-router@8.4.0)(typescript@7.0.2)':
     dependencies:
       '@remix-run/node-fetch-server': 0.14.2
-      react-router: 8.4.0(patch_hash=30e07834979ca2299265100016262c836b6329092942dc435123fb4bcfe52e8c)(react-dom@19.3.0)(react@19.3.0)
+      react-router: 8.4.0(patch_hash=6e57121dbb55ad07389f2fe58af1bac7545613e9b9461291d7226700a6015f6d)(react-dom@19.3.0)(react@19.3.0)
     optionalDependencies:
       typescript: 7.0.2
 
@@ -8982,7 +8982,7 @@ snapshots:
 
   react-refresh@0.18.0: {}
 
-  react-router@8.4.0(patch_hash=30e07834979ca2299265100016262c836b6329092942dc435123fb4bcfe52e8c)(react-dom@19.3.0)(react@19.3.0):
+  react-router@8.4.0(patch_hash=6e57121dbb55ad07389f2fe58af1bac7545613e9b9461291d7226700a6015f6d)(react-dom@19.3.0)(react@19.3.0):
     dependencies:
       '@remix-run/route-pattern': 0.22.1
       cookie-es: 3.1.1
