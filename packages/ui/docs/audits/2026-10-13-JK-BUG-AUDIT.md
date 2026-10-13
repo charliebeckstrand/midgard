@@ -1,6 +1,6 @@
 # Bug audit — 2026-10-13
 
-Letter sweep J and K of the `packages/ui` components: `components/json-tree`, `components/kanban`, and `components/kbd`. Two scopes, 30 files, 3,518 lines, 11 claims. 10 findings are rows below: 3 `medium` and 7 `low`. 1 claim was refuted. Kbd raised no claim. All 8 questions are settled. 7 rows are fixed on a branch; 3 rows are open.
+Letter sweep J and K of the `packages/ui` components: `components/json-tree`, `components/kanban`, and `components/kbd`. Two scopes, 30 files, 3,518 lines, 11 claims. 10 findings are rows below: 3 `medium` and 7 `low`. 1 claim was refuted. Kbd raised no claim. All 8 questions are settled. 8 rows are fixed on a branch; 2 rows are open.
 
 ## Scope
 
@@ -39,7 +39,7 @@ Three notes on the passes. Each verifier was told to scope its greps to the cons
 | R2 | `components/json-tree/json-tree-virtualized.tsx` | `treeMoveIndex` | CONFIRMED | low | test-only | G1 | ◐ FIXED |
 | R3 | `components/json-tree/json-tree.tsx` | `JsonTree` roving `itemSelector` (recursive) | CONFIRMED | medium | shipped | — | ◐ FIXED |
 | R4 | `components/json-tree/json-tree-node.tsx` | `JsonTreeNodeView` `toggle` / `resolveNodeOpen` | NARROWED | low | shipped | — | ◐ FIXED |
-| R5 | `components/json-tree/json-tree-virtualized.tsx` | `JsonTreeVirtualized` focused row | CONFIRMED | low | test-only | — | ◯ OPEN |
+| R5 | `components/json-tree/json-tree-virtualized.tsx` | `JsonTreeVirtualized` focused row | CONFIRMED | low | test-only | — | ◐ FIXED |
 | R6 | `components/json-tree/json-tree-virtualized.tsx` | `JsonTreeVirtualized` `firstFocusable` | RESTATED | low | test-only | — | ◯ OPEN |
 | R7 | `components/kanban/kanban.tsx` | `Kanban` `ref` | CONFIRMED | low | none | — | ◐ FIXED |
 | R8 | `components/kanban/kanban.tsx` | `Kanban` drag handler gating | CONFIRMED | low | shipped | — | ◐ FIXED |
@@ -134,3 +134,9 @@ The settle pass derived S1 and S3 to S9 again from the answers; S2 is unchanged.
 - Settle pass: under S4, when `onReorder` goes away mid-drag (read-only, not disabled), the cancel cannot revert (`onReorder?.(origin)` is a no-op), yet the cancel announcement says the card returned.
 - Settle pass: under S9, a nameless column with no header gives `''`, and the strings read "… in ." (`kanban-announcements.ts:109`, `use-kanban-keyboard.ts:238`).
 - Resolver S2: the same spread-order gate gap as above; a rest object under another name than `props` or `rest` can drop a consumer `ref` with no flag.
+- Resolver S7: the parked container needed a focus ring, so S7 adds `windowed: focus.inset` to `recipes/kata/json-tree.ts`, after the `chat-transcript.ts` pattern for focusable scrollers.
+- Resolver S7: with `tabIndex={-1}` on the windowed container, a click on empty tree space focuses the container; the stored index stays, and the next scroll commit moves focus back to the last row.
+- Resolver S7: when the flat list changes while focus is parked (new `data`, a search, a controlled `expanded`), the index clears, and keys go to a roving handler with no current item.
+- Resolver S7: the `JsonTree` TSDoc (`json-tree.tsx:111-112`) does not state that focus stays in a windowed tree when the focused row scrolls out.
+- Resolver S5: the A, B, A test drives the hook alone; no browser case proves that one frame is enough for `closestCorners` to see the new rects.
+- Resolver S3: a branch that merges second of S1 and S3 meets a small conflict in the import block of `json-tree.tsx`; keep both lines in the order `./context`, `./json-tree-constants`, `./json-tree-keyboard`, `./json-tree-node`.
