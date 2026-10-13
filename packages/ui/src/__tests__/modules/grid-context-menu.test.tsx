@@ -350,6 +350,44 @@ describe('Grid context menus', () => {
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
 	})
 
+	// A detail panel can hold a nested grid that turns its menu off. Its header
+	// and its cells carry column ids too, and an id can be the same as an id of
+	// the outer grid. A right-click on them is not a right-click on the outer grid.
+	it.each([
+		['header', 'Note'],
+		['cell', 'First note'],
+	])('keeps the native menu on a %s of a grid nested in a detail row', (_kind, text) => {
+		type Note = { id: number; text: string }
+
+		const noteColumns: GridColumn<Note>[] = [
+			{ id: 'name', title: 'Note', cell: (note) => note.text, value: (note) => note.text },
+		]
+
+		renderUI(
+			<Grid
+				columns={[{ id: 'expand', expander: true }, ...columns]}
+				rows={rows}
+				getKey={getKey}
+				contextMenu={{ column: true, cell: true }}
+				expandable={{
+					defaultValue: new Set([1]),
+					render: () => (
+						<Grid
+							columns={noteColumns}
+							rows={[{ id: 1, text: 'First note' }]}
+							getKey={(note) => note.id}
+							contextMenu={false}
+						/>
+					),
+				}}
+			/>,
+		)
+
+		expect(fireEvent.contextMenu(present(screen.getAllByText(text)[0], text))).toBe(true)
+
+		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+	})
+
 	it('passes the row and value to a cell-menu builder and runs a custom item', () => {
 		const onFlag = vi.fn()
 

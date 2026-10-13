@@ -6055,3 +6055,61 @@ describe('Grid undo and redo (history)', () => {
 		])
 	})
 })
+
+/**
+ * A grid-owned session beside a grid nested in a detail row. The session keys
+ * read the row and the cell of a press from the DOM. A row or a cell of the
+ * nested grid is not a row or a cell of the outer grid, though its row index
+ * and its column id can match one.
+ */
+describe('Grid-owned session beside a grid nested in a detail row', () => {
+	type Note = { id: number; name: string }
+
+	const notes: Note[] = [
+		{ id: 1, name: 'First' },
+		{ id: 2, name: 'Second' },
+	]
+
+	// The nested grid holds no session. Its `name` cell holds an input of its own.
+	const noteColumns: GridColumn<Note>[] = [
+		{ id: 'name', title: 'Note', cell: (note) => <input aria-label={`Note ${note.name}`} /> },
+	]
+
+	function renderNested() {
+		const onCommit = vi.fn()
+
+		const view = renderUI(
+			<Grid
+				columns={[{ id: 'expand', expander: true }, ...sessionColumns]}
+				rows={sessionRows}
+				getKey={(row) => row.id}
+				editable={{ session: 'managed', onCommit }}
+				expandable={{
+					defaultValue: new Set([1]),
+					render: () => <Grid columns={noteColumns} rows={notes} getKey={(note) => note.id} />,
+				}}
+			/>,
+		)
+
+		// The second outer row is Bob, at row index 1.
+		fireEvent.doubleClick(present(view.getByText('Bob').closest('td'), 'the name cell of Bob'))
+
+		fireEvent.change(view.getByRole('textbox', { name: 'Edit Name, row 2' }), {
+			target: { value: 'Bobby' },
+		})
+
+		return { ...view, onCommit }
+	}
+
+	it('keeps the session open on Enter in a cell of the nested grid', () => {
+		const view = renderNested()
+
+		// The nested row of this input also has row index 1, and its column id
+		// is `name`.
+		fireEvent.keyDown(view.getByRole('textbox', { name: 'Note Second' }), { key: 'Enter' })
+
+		expect(view.onCommit).not.toHaveBeenCalled()
+
+		expect(view.getByRole('textbox', { name: 'Edit Name, row 2' })).toHaveValue('Bobby')
+	})
+})

@@ -15,6 +15,7 @@ import {
 	toColumnPinningState,
 } from '../../modules/grid/engine/grid-table/pinning-view'
 import { useGridTable } from '../../modules/grid/use-grid-table'
+import { present } from '../helpers'
 import { layoutOf } from '../helpers/grid-frozen-layout'
 
 /**
@@ -230,6 +231,37 @@ describe('frozen offsets apart from the structure', () => {
 		expect(email.style.getPropertyValue('inset-inline-start')).toBe('240px')
 
 		expect(name.style.getPropertyValue('inset-inline-start')).toBe('0px')
+	})
+
+	// A detail panel can hold a nested grid. Its frozen cells have the offsets of
+	// the nested grid, and a column id can be the same in the two grids.
+	it('writes no offset to a frozen cell of a grid nested in a detail row', () => {
+		const container = document.createElement('div')
+
+		const email = frozenCell('email', 'inset-inline-start', '160px')
+
+		const nested = frozenCell('email', 'inset-inline-start', '40px')
+
+		container.innerHTML =
+			'<table><tbody><tr></tr><tr data-detail-row="1"><td><table><tbody><tr></tr></tbody></table></td></tr></tbody></table>'
+
+		container.querySelector('tr')?.append(email)
+
+		container.querySelector('[data-detail-row] tr')?.append(nested)
+
+		writeFrozenOffsets(container, before, after)
+
+		expect(email.style.getPropertyValue('inset-inline-start')).toBe('240px')
+
+		expect(nested.style.getPropertyValue('inset-inline-start')).toBe('40px')
+
+		// The nested grid writes its own cells. The detail row is above its
+		// container, so the rule does not exclude them.
+		const inner = present(container.querySelector<HTMLElement>('[data-detail-row] td'), 'the panel')
+
+		writeFrozenOffsets(inner, before, after)
+
+		expect(nested.style.getPropertyValue('inset-inline-start')).toBe('240px')
 	})
 
 	it('writes the inline-end offset of a right-frozen column', () => {

@@ -402,6 +402,14 @@ function GridContextMenuSurface({
 
 			const target = event.target as HTMLElement
 
+			// A right-click in a detail panel of this grid belongs to the content of
+			// the panel. A grid nested there has its own headers and cells, and their
+			// column ids and row keys name nothing in this grid. Such a grid with a
+			// menu of its own stops the event before it gets here.
+			const panel = target.closest('[data-detail-row]')
+
+			if (panel && event.currentTarget.contains(panel)) return
+
 			// Opens the menu at a point with the resolved items, suppressing the native
 			// menu; an empty/absent set leaves the browser's own menu alone.
 			const commit = (

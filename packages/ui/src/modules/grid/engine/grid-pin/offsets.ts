@@ -9,6 +9,15 @@ import type { FrozenColumn, FrozenLayout } from './layout'
 const FROZEN_CELL_ATTRIBUTE = 'data-grid-pin'
 
 /**
+ * The frozen cells of the grid itself. A detail panel can hold a nested grid,
+ * whose frozen cells have their own offsets. A column id can be the same in
+ * the two grids, so the selector reads no cell in a detail row below `:scope`.
+ *
+ * @internal
+ */
+const FROZEN_CELL_SELECTOR = `[${FROZEN_CELL_ATTRIBUTE}]:not(:scope [data-detail-row] *)`
+
+/**
  * The committed frozen layout, as a store that the pinned chrome reads its
  * sticky offsets from.
  *
@@ -82,7 +91,7 @@ export function writeFrozenOffsets(
 
 	if (moved.size === 0) return
 
-	for (const cell of container.querySelectorAll<HTMLElement>(`[${FROZEN_CELL_ATTRIBUTE}]`)) {
+	for (const cell of container.querySelectorAll<HTMLElement>(FROZEN_CELL_SELECTOR)) {
 		const entry = moved.get(cell.getAttribute(FROZEN_CELL_ATTRIBUTE) ?? '')
 
 		if (!entry) continue
