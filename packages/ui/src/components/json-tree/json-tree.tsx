@@ -110,10 +110,15 @@ function expansionReader(expanded: ReadonlySet<string> | undefined): (path: stri
  * child of an open one. `ArrowLeft` closes an open branch or moves to the
  * parent. On a branch that does not collapse, `ArrowRight` moves to the first
  * child and `ArrowLeft` moves to the parent. The two keys swap in a
- * right-to-left layout. Under `virtualize`,
- * flattens the visible tree to a linear list and renders only the viewport
- * slice plus overscan. There, Home, End and the arrows also reach rows outside
- * the window: the tree scrolls the row in and focuses it when it mounts.
+ * right-to-left layout.
+ *
+ * Under `virtualize`, the tree flattens the visible rows to a linear list and
+ * renders only the viewport slice plus overscan. There, Home, End and the
+ * arrows also reach rows outside the window: the tree scrolls the row in and
+ * focuses it when it mounts. When the focused row scrolls out of the window,
+ * the focus stays in the tree, and the next key moves on from that row. The row
+ * takes the focus again when it scrolls back in. Tab enters the tree on the
+ * first row in view.
  *
  * @remarks
  * Client component. `virtualize` carries its own `maxHeight` and
