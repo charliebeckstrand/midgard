@@ -39,8 +39,8 @@ Three notes on the passes. Each verifier was told to scope its greps to the cons
 | R2 | `components/json-tree/json-tree-virtualized.tsx` | `treeMoveIndex` | CONFIRMED | low | test-only | G1 | ✅ RESOLVED ([#2389](https://github.com/charliebeckstrand/midgard/pull/2389)) |
 | R3 | `components/json-tree/json-tree.tsx` | `JsonTree` roving `itemSelector` (recursive) | CONFIRMED | medium | shipped | — | ✅ RESOLVED ([#2390](https://github.com/charliebeckstrand/midgard/pull/2390)) |
 | R4 | `components/json-tree/json-tree-node.tsx` | `JsonTreeNodeView` `toggle` / `resolveNodeOpen` | NARROWED | low | shipped | — | ✅ RESOLVED ([#2391](https://github.com/charliebeckstrand/midgard/pull/2391)) |
-| R5 | `components/json-tree/json-tree-virtualized.tsx` | `JsonTreeVirtualized` focused row | CONFIRMED | low | test-only | — | ✅ RESOLVED ([#2392](https://github.com/charliebeckstrand/midgard/pull/2392)) |
-| R6 | `components/json-tree/json-tree-virtualized.tsx` | `JsonTreeVirtualized` `firstFocusable` | RESTATED | low | test-only | — | ✅ RESOLVED ([#2393](https://github.com/charliebeckstrand/midgard/pull/2393)) |
+| R5 | `components/json-tree/json-tree-virtualized.tsx` | `JsonTreeVirtualized` focused row | CONFIRMED | low | test-only | — | ✅ RESOLVED ([#2389](https://github.com/charliebeckstrand/midgard/pull/2389)) |
+| R6 | `components/json-tree/json-tree-virtualized.tsx` | `JsonTreeVirtualized` `firstFocusable` | RESTATED | low | test-only | — | ✅ RESOLVED ([#2389](https://github.com/charliebeckstrand/midgard/pull/2389)) |
 | R7 | `components/kanban/kanban.tsx` | `Kanban` `ref` | CONFIRMED | low | none | — | ✅ RESOLVED ([#2394](https://github.com/charliebeckstrand/midgard/pull/2394)) |
 | R8 | `components/kanban/kanban.tsx` | `Kanban` drag handler gating | CONFIRMED | low | shipped | — | ✅ RESOLVED ([#2395](https://github.com/charliebeckstrand/midgard/pull/2395)) |
 | R9 | `components/kanban/use-kanban-drag.ts` | `applyKanbanDragOver` | NARROWED | medium | shipped | — | ✅ RESOLVED ([#2396](https://github.com/charliebeckstrand/midgard/pull/2396)) |
