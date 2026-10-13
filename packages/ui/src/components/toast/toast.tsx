@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom'
 import { cn } from '../../core'
 import { useHydrated } from '../../hooks/use-hydrated'
 import { useMinBreakpoint } from '../../hooks/use-min-breakpoint'
+import { useDirectionScope } from '../../primitives/direction'
 import { usePortalContainer } from '../../primitives/portal'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k } from '../../recipes/kata/toast'
@@ -15,8 +16,9 @@ import type { ToastPosition } from './types'
 /** Props for {@link Toast}. */
 export type ToastProps = {
 	/**
-	 * The viewport corner that the toast stack anchors to. Below the `sm`
-	 * breakpoint, the stack is on the bottom edge.
+	 * The viewport corner that the toast stack anchors to. A `start` or `end`
+	 * corner follows the reading direction. Below the `sm` breakpoint, the stack
+	 * is on the bottom edge.
 	 * @defaultValue 'bottom-right'
 	 */
 	position?: ToastPosition
@@ -46,6 +48,11 @@ export function Toast({ position = 'bottom-right' }: ToastProps) {
 
 	const portalContainer = usePortalContainer()
 
+	// The viewport portals out of the region that renders it, so it writes the
+	// direction of the scope, as `Portal` does. A `start` or `end` position and
+	// the text of each toast then follow that direction.
+	const dir = useDirectionScope()
+
 	// Below `sm`, the viewport pins every position to the bottom edge. The order,
 	// the motion, and the gap of the stack follow the edge that the stack is on.
 	const isDesktop = useMinBreakpoint('sm')
@@ -63,7 +70,11 @@ export function Toast({ position = 'bottom-right' }: ToastProps) {
 		<ReducedMotion>
 			{/* Not itself a live region: each toast carries its own `role` (status /
 			    alert) mapping severity to politeness directly. */}
-			<div data-slot="toast-viewport" className={cn(k.viewport({ position }))}>
+			<div
+				data-slot="toast-viewport"
+				dir={dir ?? undefined}
+				className={cn(k.viewport({ position }))}
+			>
 				{/* A list, so AT gives the count of the toasts and the position of each. */}
 				<ol className={cn(k.scroll, !isTop && 'flex-col-reverse')}>
 					<AnimatePresence onExitComplete={handleExitComplete}>
