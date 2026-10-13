@@ -1,6 +1,6 @@
-import { fireEvent, render, screen } from '@testing-library/react'
-import { createMemoryRouter, RouterProvider, useNavigate } from 'react-router'
-import { describe, expect, it, onTestFinished } from 'vitest'
+import { act, fireEvent, render, screen } from '@testing-library/react'
+import { createMemoryRouter, createRoutesStub, RouterProvider, useNavigate } from 'react-router'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { NavigateContext, RouterLink } from '../app/router-link.tsx'
 
 // The docs link reads only the `navigate` of the shell, so a page switch does
@@ -110,5 +110,70 @@ describe('RouterLink', () => {
 		expect(click('Example')).toBe(false)
 
 		expect(router.state.location.pathname).toBe('/button')
+	})
+})
+
+// The prefetch of React Router needs the context of the framework, which the
+// routes stub gives. The stub names one module for each route.
+describe('RouterLink prefetch', () => {
+	function renderStub() {
+		// The stub gives no handle to dispose its router, so the test removes the
+		// window "pagehide" listener of the router itself.
+		const listen = vi.spyOn(window, 'addEventListener')
+
+		onTestFinished(() => {
+			for (const [type, listener] of listen.mock.calls) {
+				if (type === 'pagehide') window.removeEventListener(type, listener)
+			}
+
+			listen.mockRestore()
+		})
+
+		const Stub = createRoutesStub([
+			{ path: '/button', Component: Shell },
+			{ path: '/menu', Component: Shell },
+		])
+
+		render(<Stub initialEntries={['/button']} />)
+	}
+
+	/** The count of the module preloads in the document. */
+	function preloads(): number {
+		return document.querySelectorAll('link[rel="modulepreload"]').length
+	}
+
+	it('loads the code of a page 100 ms after a hover', async () => {
+		vi.useFakeTimers()
+
+		onTestFinished(() => {
+			vi.useRealTimers()
+		})
+
+		renderStub()
+
+		fireEvent.mouseEnter(screen.getByRole('link', { name: 'Menu' }))
+
+		expect(preloads()).toBe(0)
+
+		await act(async () => vi.advanceTimersByTime(100))
+
+		expect(preloads()).toBe(1)
+	})
+
+	// A tap usually ends before the delay of a hover.
+	it('loads the code of a page at once on a touch', async () => {
+		vi.useFakeTimers()
+
+		onTestFinished(() => {
+			vi.useRealTimers()
+		})
+
+		renderStub()
+
+		fireEvent.touchStart(screen.getByRole('link', { name: 'Menu' }))
+
+		await act(async () => {})
+
+		expect(preloads()).toBe(1)
 	})
 })
