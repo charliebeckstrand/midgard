@@ -348,7 +348,7 @@ export function TagInput({
 					onMouseDown={(event) => event.preventDefault()}
 					onClick={handleSubmit}
 				>
-					<Icon icon={<CornerLeftDown />} />
+					<Icon icon={<CornerLeftDown />} className="rtl:-scale-x-100" />
 				</Button>
 			}
 			className={cn(k.input, className, atMax && 'cursor-not-allowed')}

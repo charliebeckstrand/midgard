@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { BarChart } from '../../../modules/chart/bar-chart'
 import { PieChart } from '../../../modules/chart/pie-chart'
+import { LocaleProvider } from '../../../providers/locale'
 import { allBySlot, bySlot, getSlot, present, renderUI, waitFor } from '../../helpers'
 import { subpathCount } from '../../helpers/geometry/svg-path'
 
@@ -80,6 +81,29 @@ describe('chart stacked legend row cap (real browser)', () => {
 
 		expect(legend.getBoundingClientRect().height).toBeLessThan(rowHeight * 1.6)
 		expect(wrapper.getBoundingClientRect().height).toBeLessThan(rowHeight * 1.6)
+	})
+
+	// The rows wrap at the same entries in each direction, so the cap keeps the
+	// same count. In RTL the row packs from the right, and the fit measures the
+	// width that it uses from that edge.
+	it('keeps the same entries in a right-to-left region', async () => {
+		const count = async (dir: 'ltr' | 'rtl') => {
+			const { container, unmount } = renderUI(
+				<LocaleProvider dir={dir}>
+					<BarChart aria-label="Ten series" data={data} series={series} width={360} legend="top" />
+				</LocaleProvider>,
+			)
+
+			await waitFor(() => expect(overflowChip(container)).not.toBeNull())
+
+			const visible = allBySlot(container, 'chart-legend-item').length
+
+			unmount()
+
+			return visible
+		}
+
+		expect(await count('rtl')).toBe(await count('ltr'))
 	})
 
 	it('opens the overflow as a switchboard whose switches toggle the same series', async () => {

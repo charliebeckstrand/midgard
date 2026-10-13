@@ -9,7 +9,7 @@ export const k = defineRecipe({
 		horizontal: 'w-full border-t',
 		// `h-auto` resets Preflight's `hr { height: 0 }`; without it `self-stretch`
 		// has a definite cross-size to stretch from and the rule collapses to 0px.
-		vertical: 'h-auto self-stretch border-l',
+		vertical: 'h-auto self-stretch border-s',
 	},
 	soft: {
 		true: [...border.color.subtle],
