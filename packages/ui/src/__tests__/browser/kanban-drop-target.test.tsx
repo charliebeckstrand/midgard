@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
 	Kanban,
 	KanbanCard,
@@ -28,15 +28,29 @@ describe('Kanban drop target (real browser)', () => {
 		return { x: box.left + box.width / 2, y: box.top + box.height / 2 }
 	}
 
+	type BoardProps = {
+		initial: Column[]
+		disabled?: boolean
+		/** Sees each reorder before the board takes it. */
+		onReorder?: (next: Column[]) => void
+	}
+
 	/** A board that takes each reorder, as an app does, so a live move lands. */
-	function Board({ initial }: { initial: Column[] }) {
+	function Board({ initial, disabled, onReorder }: BoardProps) {
 		const [columns, setColumns] = useState(initial)
+
+		const reorder = (next: Column[]) => {
+			onReorder?.(next)
+
+			setColumns(next)
+		}
 
 		return (
 			<Kanban
 				columns={columns}
 				getKey={(item: Item) => item.id}
-				onReorder={setColumns}
+				onReorder={reorder}
+				disabled={disabled}
 				aria-label="Board"
 			>
 				{columns.map((column) => (
@@ -55,8 +69,11 @@ describe('Kanban drop target (real browser)', () => {
 		)
 	}
 
-	function board(initial: Column[]) {
-		const { container } = renderUI(<Board initial={initial} />)
+	function board(initial: Column[], onReorder?: (next: Column[]) => void) {
+		const { container, rerender } = renderUI(<Board initial={initial} onReorder={onReorder} />)
+
+		// The same component type keeps the board state through the rerender.
+		const disable = () => rerender(<Board initial={initial} onReorder={onReorder} disabled />)
 
 		const column = (id: string) => {
 			const el = container.querySelector<HTMLElement>(`[data-column-id="${id}"]`)
@@ -83,7 +100,7 @@ describe('Kanban drop target (real browser)', () => {
 			return el
 		}
 
-		return { column, card, handle }
+		return { column, card, handle, disable }
 	}
 
 	it('steps up the fill of an empty column while a card is over it', async () => {
@@ -164,5 +181,42 @@ describe('Kanban drop target (real browser)', () => {
 		await held.release()
 
 		expect(source).not.toHaveAttribute('data-over')
+	})
+
+	it('cancels the drop and reverts the move when the board turns disabled during the drag', async () => {
+		const initial: Column[] = [
+			{ id: 'todo', items: [{ id: 'a', label: 'Alpha' }] },
+			{ id: 'done', items: [{ id: 'b', label: 'Bravo' }] },
+		]
+
+		const onReorder = vi.fn<(next: Column[]) => void>()
+
+		const { column, card, handle, disable } = board(initial, onReorder)
+
+		const target = column('done')
+
+		const from = centerOf(handle('a'))
+
+		const held = await drag(handle('a'), from, [{ x: from.x, y: from.y + 20 }, centerOf(card('b'))])
+
+		// The live move puts the card in the other column.
+		await expect.poll(() => target.hasAttribute('data-over')).toBe(true)
+
+		expect(target).toContainElement(card('a'))
+
+		disable()
+
+		await held.release()
+
+		// The drop is a cancel, so the board reports the columns from the drag start.
+		await expect.poll(() => onReorder.mock.lastCall?.[0]).toEqual(initial)
+
+		expect(column('todo')).toContainElement(card('a'))
+
+		expect(target).not.toHaveAttribute('data-over')
+
+		expect(column('todo')).not.toHaveAttribute('data-over')
+
+		expect(document.head.querySelector('style[data-drag-cursor]')).toBeNull()
 	})
 })
