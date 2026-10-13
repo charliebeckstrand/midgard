@@ -14,6 +14,13 @@
  *   requests, the document included, that start before hydration.
  * - Page switch: from a click on the Accordion link in the navigation to the
  *   frame that shows the heading of the new page.
+ * - Page switch (tap): from the touchstart of a tap on the Alert link to the
+ *   frame that shows the heading. The finger stays down for {@link HOLD} ms,
+ *   as a real tap does.
+ * - Page switch (search): from the Enter key that picks the first result of
+ *   the search `spinner` to the frame that shows the heading. The bench types
+ *   one key each {@link KEY_GAP} ms. It moves to the first result with the
+ *   down arrow {@link READ} ms after the last key, and then presses Enter.
  *
  * ```sh
  * pnpm turbo run docs:bench --filter=ui                    # 9 runs
@@ -32,7 +39,7 @@ import type { AddressInfo } from 'node:net'
 import path from 'node:path'
 import { parseArgs, promisify } from 'node:util'
 import { brotliCompress, constants } from 'node:zlib'
-import { type Browser, chromium } from 'playwright'
+import { type Browser, type CDPSession, chromium, type Locator, type Page } from 'playwright'
 import { getOrCompute } from '../src/utilities/get-or-compute'
 import { CLIENT_DIR, fileOf, HYDRATED, TYPES } from './docs-server'
 
@@ -51,6 +58,15 @@ const SLOW_4G = {
 	uploadThroughput: (750 * 1024) / 8,
 }
 
+/** How long the finger stays down in a tap. A real tap lasts about this long. */
+const HOLD = 100
+
+/** The time between two keys of the search, as a fast reader types. */
+const KEY_GAP = 120
+
+/** The time that the reader takes to read a short list of results before a pick. */
+const READ = 600
+
 /** The kinds of file that the server sends with brotli. */
 const COMPRESSED = new Set(['.css', '.html', '.js', '.json', '.svg'])
 
@@ -61,6 +77,8 @@ type Sample = {
 	js: number
 	requests: number
 	switch: number
+	tap: number
+	search: number
 }
 
 type Metric = keyof Sample
@@ -228,17 +246,23 @@ const OBSERVE = `{
 	requestAnimationFrame(watch)
 }`
 
-/** Marks the next click, and the frame after it that shows the heading of the Accordion page. */
-const WATCH_SWITCH = `{
+/**
+ * Marks the next event of the type `trigger`, and the frame after it that
+ * shows the heading `heading`.
+ */
+function watchSwitch(trigger: string, heading: string): string {
+	return `{
 	const readings = window.__bench
 
+	readings.switchEnd = undefined
+
 	const watch = (time) => {
-		if (document.querySelector('h1')?.textContent?.trim() === 'Accordion') readings.switchEnd = time
+		if (document.querySelector('h1')?.textContent?.trim() === ${JSON.stringify(heading)}) readings.switchEnd = time
 		else requestAnimationFrame(watch)
 	}
 
 	document.addEventListener(
-		'click',
+		${JSON.stringify(trigger)},
 		() => {
 			readings.switchStart = performance.now()
 
@@ -247,9 +271,10 @@ const WATCH_SWITCH = `{
 		{ capture: true, once: true },
 	)
 }`
+}
 
 /** Reads the load values of the page. */
-function readLoad(): Omit<Sample, 'switch'> {
+function readLoad(): Omit<Sample, 'switch' | 'tap' | 'search'> {
 	const { lcp, longTasks, hydrated = 0 } = window.__bench
 
 	const fcp = performance.getEntriesByName('first-contentful-paint')[0]?.startTime ?? 0
@@ -269,7 +294,42 @@ function readLoad(): Omit<Sample, 'switch'> {
 	return { fcp, lcp, tbt, js: js / 1024, requests: early.length + 1 }
 }
 
-/** One cold run: the load of the page, and then a page switch. */
+/** Waits for the page switch that {@link watchSwitch} marks, and gives its time. */
+async function switchTime(page: Page): Promise<number> {
+	await page.waitForFunction(() => window.__bench.switchEnd !== undefined, null, {
+		timeout: 60_000,
+	})
+
+	const { switchStart = 0, switchEnd = 0 } = await page.evaluate(() => window.__bench)
+
+	return switchEnd - switchStart
+}
+
+/**
+ * Taps the center of `target` with one finger through CDP. The finger stays
+ * down for {@link HOLD} ms, so the touch events have the timing of a real tap.
+ */
+async function tap(page: Page, cdp: CDPSession, target: Locator): Promise<void> {
+	// The checks of a tap, with no tap: the target is visible, stable, and gets the events.
+	await target.tap({ trial: true })
+
+	const box = await target.boundingBox()
+
+	if (!box) throw new Error('docs:bench: the tap target has no box.')
+
+	const point = { x: box.x + box.width / 2, y: box.y + box.height / 2 }
+
+	await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [point] })
+
+	await page.waitForTimeout(HOLD)
+
+	await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
+}
+
+/**
+ * One cold run: the load of the page, and then a page switch with a click,
+ * one with a tap, and one with a pick in the search.
+ */
 async function run(browser: Browser, origin: string): Promise<Sample> {
 	const context = await browser.newContext({
 		viewport: { width: 390, height: 844 },
@@ -310,17 +370,41 @@ async function run(browser: Browser, origin: string): Promise<Sample> {
 
 		await link.waitFor()
 
-		await page.evaluate(WATCH_SWITCH)
+		await page.evaluate(watchSwitch('click', 'Accordion'))
 
 		await link.click()
 
-		await page.waitForFunction(() => window.__bench.switchEnd !== undefined, null, {
-			timeout: 60_000,
-		})
+		const click = await switchTime(page)
 
-		const { switchStart = 0, switchEnd = 0 } = await page.evaluate(() => window.__bench)
+		await tap(page, cdp, page.getByRole('button', { name: 'Open navigation' }))
 
-		return { ...load, switch: switchEnd - switchStart }
+		const alert = page.getByRole('link', { name: 'Alert', exact: true })
+
+		await alert.waitFor()
+
+		await page.evaluate(watchSwitch('touchstart', 'Alert'))
+
+		await tap(page, cdp, alert)
+
+		const touch = await switchTime(page)
+
+		await tap(page, cdp, page.getByRole('button', { name: 'Open navigation' }))
+
+		await tap(page, cdp, page.getByRole('button', { name: 'Search docs' }))
+
+		await page.getByRole('combobox').waitFor()
+
+		await page.keyboard.type('spinner', { delay: KEY_GAP })
+
+		await page.waitForTimeout(READ)
+
+		await page.keyboard.press('ArrowDown')
+
+		await page.evaluate(watchSwitch('keydown', 'Loading'))
+
+		await page.keyboard.press('Enter')
+
+		return { ...load, switch: click, tap: touch, search: await switchTime(page) }
 	} finally {
 		await context.close()
 	}
@@ -345,6 +429,8 @@ function table(samples: readonly Sample[]): string {
 		['JS to hydration (brotli)', 'js', 'KB', ''],
 		['Requests to hydration', 'requests', '', `< ${BUDGET.requests}`],
 		['Page switch', 'switch', 'ms', ''],
+		['Page switch (tap)', 'tap', 'ms', ''],
+		['Page switch (search)', 'search', 'ms', ''],
 	]
 
 	const lines = rows.map(([label, metric, unit, budget]) => {
