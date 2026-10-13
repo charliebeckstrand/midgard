@@ -35,11 +35,11 @@ const options: readonly Option[] = entries.map((entry, index) => ({
 }))
 
 /**
- * The most results for which the palette loads the code of the page of each
- * result. A list this short usually holds the pick of the reader, and it names
- * few pages, so the load is small.
+ * The count of the first results whose pages the palette loads. The results
+ * go best first, so the pick of the reader is usually among them. Several of
+ * them often name the same page, so the load is small.
  */
-const PREFETCH_LIMIT = 5
+const PREFETCH_COUNT = 3
 
 /**
  * The time in ms that the query must stay the same before the load starts, so
@@ -48,22 +48,30 @@ const PREFETCH_LIMIT = 5
 const PREFETCH_SETTLE = 300
 
 /**
- * Loads the code of the page of each result when the list is short, as a
- * `RouterLink` does on a hover. A pick then does not wait for the network.
+ * Loads the code of the pages of the first results, as a `RouterLink` does on
+ * a hover. A pick then does not wait for the network. An empty query lists
+ * each page in the order of the sidebar, not by relevance, so it loads nothing.
  */
-function PrefetchResults({ matches }: { matches: readonly Option[] }) {
+function PrefetchResults({ query, matches }: { query: string; matches: readonly Option[] }) {
 	const [pages, setPages] = useState<readonly string[]>([])
 
 	const timeout = useTimeout()
 
 	useEffect(() => {
 		const next =
-			matches.length <= PREFETCH_LIMIT
-				? [...new Set(matches.map((option) => option.href.split('#')[0] ?? option.href))]
-				: []
+			// `matchEntries` reads only letters and digits, so a query with none is empty.
+			!/[\p{L}\p{N}]/u.test(query)
+				? []
+				: [
+						...new Set(
+							matches
+								.slice(0, PREFETCH_COUNT)
+								.map((option) => option.href.split('#')[0] ?? option.href),
+						),
+					]
 
 		timeout.set(() => setPages(next), PREFETCH_SETTLE)
-	}, [matches, timeout])
+	}, [query, matches, timeout])
 
 	return pages.map((page) => <PrefetchPageLinks key={page} page={page} />)
 }
@@ -75,7 +83,7 @@ function Results({ onPick }: { onPick: () => void }) {
 
 	return (
 		<>
-			<PrefetchResults matches={matches} />
+			<PrefetchResults query={query} matches={matches} />
 			{/* The dialog body grows with its content. The list has a fixed height, so that it scrolls. */}
 			<div className="h-80 overflow-y-auto">
 				<VirtualOptions items={matches} getOptionId={(option) => option.id}>
