@@ -86,4 +86,14 @@ describe('the bundle of the docs app', () => {
 			).toBeLessThanOrEqual(budgetKb * 1024)
 		})
 	}
+
+	// The first paint waits for the script of the latin face, so the modules
+	// load after it (the React Router patch in `pnpm-workspace.yaml`).
+	it('preloads each chunk at the low priority', () => {
+		const links = fs.readFileSync(SHELL_PAGE, 'utf8').match(/<link rel="modulepreload"[^>]*>/g)
+
+		expect(links?.length).toBeGreaterThan(0)
+
+		for (const link of links ?? []) expect(link).toMatch(/ fetchpriority="low"/i)
+	})
 })

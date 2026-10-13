@@ -1,10 +1,7 @@
 'use client'
 
-import { useTransform } from 'motion/react'
-import type { ComponentProps } from 'react'
+import { type ComponentProps, useLayoutEffect, useRef, useState } from 'react'
 import { cn } from '../../core'
-import { ReducedMotion } from '../../primitives/reduced-motion'
-import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { useLocale } from '../../providers/locale'
 import { integerFormat } from '../../utilities'
 import { useOdometerAnimatedValue } from './use-odometer-animated-value'
@@ -59,20 +56,30 @@ export function Odometer({
 	// `|| 0` turns a negative zero into zero, so a value such as -0.3 prints `0`, not `-0`.
 	const resolvedFormat = format ?? ((next: number) => integer(Math.round(next) || 0))
 
-	// The tween writes this text to the element itself, so a frame causes no render.
-	const text = useTransform(display, resolvedFormat)
+	const displayRef = useRef<HTMLSpanElement>(null)
+
+	// React renders the first text only, and never changes it. The effect writes
+	// each later text, so a frame of the tween causes no render. It runs after
+	// each render, so a new `format` or locale shows at once.
+	const [firstText] = useState(() => resolvedFormat(display.get()))
+
+	useLayoutEffect(() => {
+		const write = (latest: number) => {
+			if (displayRef.current) displayRef.current.textContent = resolvedFormat(latest)
+		}
+
+		write(display.get())
+
+		return display.on('change', write)
+	})
 
 	return (
 		// The settled target is text in a visually hidden copy, not a live region;
 		// a live region announces each intermediate tween value.
 		<span data-slot="odometer" className={cn('tabular-nums', className)} {...props}>
-			{/* The `m` element writes each tween value to the DOM, so it needs the
-			features that a `ReducedMotion` root loads. */}
-			<ReducedMotion>
-				<m.span data-slot="odometer-display" aria-hidden="true">
-					{text}
-				</m.span>
-			</ReducedMotion>
+			<span ref={displayRef} data-slot="odometer-display" aria-hidden="true">
+				{firstText}
+			</span>
 			<span data-slot="odometer-value" className="sr-only">
 				{resolvedFormat(value)}
 			</span>

@@ -198,8 +198,9 @@ export function List<T>({
 	// `Reorder` loads in a chunk of its own, so a read-only list does not load it.
 	const reorderParts = useListReorder(interactive)
 
-	// Motion's `MotionConfig` leaves `layout` animations running, so the rows
-	// read the preference themselves (WCAG 2.3.3).
+	// Motion reads the reduced-motion preference only when an element mounts, and
+	// a list can render outside a `ReducedMotion` root. So the rows read the
+	// live preference themselves (WCAG 2.3.3).
 	const instant = usePrefersReducedMotion()
 
 	const contextValue = useMemo(

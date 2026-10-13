@@ -54,13 +54,14 @@ export function useHoldButtonGesture({
 	const reset = reduceMotion ? { duration: 0 } : k.motion.reset
 
 	// A new animation of the fill takes over from the one that runs, from the
-	// scale that the fill paints now.
+	// scale that the fill paints now. Motion reads the first scale from the
+	// computed transform of the fill, so the first hold starts from 0.
 	const setFill = (target: number, transition: ValueAnimationTransition) => {
 		const fill = fillRef.current
 
 		if (!fill) return
 
-		animate(fill, { transform: `scaleX(${target})` }, transition)
+		animate(fill, { scaleX: target }, transition)
 	}
 
 	const clearTimer = () => {
