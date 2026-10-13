@@ -3,7 +3,6 @@
 import { Fragment, memo, type ReactElement, use } from 'react'
 import { TableCell, TableRow } from '../../components/table'
 import { cn, dataAttr } from '../../core'
-import { ReducedMotion } from '../../primitives/reduced-motion'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/grid'
 import type { GridDetailExpansion } from './engine/grid-group/resolve'
@@ -97,10 +96,15 @@ export type GridRowsProps<T> = {
 	 * Animate rows sliding to their sorted places — a Framer `layout` (FLIP) glide
 	 * over each row's position change when a sort reorders the plain body. Resolved
 	 * by {@link GridData}: opted in through {@link GridSort.animate} and already
-	 * stood down under virtualization, grouping, and reduced motion, so a row
+	 * stood down under virtualization, grouping, and master-detail, so a row
 	 * honors it directly. @defaultValue false
 	 */
 	animateSortRows?: boolean
+	/**
+	 * The live reduced-motion preference. A sort-animated row keeps its element
+	 * and moves to its new place with no glide. @defaultValue false
+	 */
+	reduceMotion?: boolean
 	/** Truncate overflowing cell content with an ellipsis and an on-hover tooltip. */
 	truncate: boolean
 	/** Frozen-column controls; pinned cells stick to an edge. `null` when none. */
@@ -171,6 +175,7 @@ export function renderGridRow<T>(
 		truncate: props.truncate,
 		pinning: props.pinning,
 		animateSortRows: props.animateSortRows,
+		reduceMotion: props.reduceMotion,
 		dataRowIndex,
 		rowIndex,
 		expanded,
@@ -302,6 +307,8 @@ export type GridRowProps<T> = {
 	 * @defaultValue false
 	 */
 	animateSortRows?: boolean
+	/** The live reduced-motion preference; see {@link GridRowsProps.reduceMotion}. @defaultValue false */
+	reduceMotion?: boolean
 	/**
 	 * This row's master-detail open state, read by an {@link GridColumn.expander}
 	 * cell's chevron. @defaultValue false
@@ -360,6 +367,7 @@ export function GridRowImpl<T>({
 	pinning,
 	sortable,
 	animateSortRows = false,
+	reduceMotion = false,
 	expanded = false,
 	rowExpandable = false,
 	toggleExpand,
@@ -370,17 +378,21 @@ export function GridRowImpl<T>({
 	// A sort-animated row renders through `MotionTableRow`, so Framer's `layout`
 	// FLIPs it from its old slot to its new one when a sort reorders the rows. A
 	// drag-reorder node (`sortable`) never animates: it drives its own dnd-kit
-	// transform, and row reorder is gated to unsorted grids anyway. Reduced motion
-	// is resolved out upstream (see `GridData`), so the flag alone decides here.
+	// transform, and row reorder is gated to unsorted grids anyway. The flag does
+	// not change with the reduced-motion preference, so the element type holds.
 	const animate = animateSortRows && sortable == null
 
 	// One element, chosen per row. `layout` / `transition` stay `undefined` on the
 	// plain row — React drops undefined props, so nothing lands on a static `<tr>`.
 	const Row = (animate ? MotionTableRow : TableRow) as typeof MotionTableRow
 
-	const element = (
+	return (
 		<Row
-			layout={animate ? 'position' : undefined}
+			// Under reduced motion the row moves with no glide. `layoutDependency`
+			// limits the measure to a render that moves the row: a selection or an
+			// edit re-renders the row in place, and needs no measure.
+			layout={animate ? (reduceMotion ? false : 'position') : undefined}
+			layoutDependency={animate ? dataRowIndex : undefined}
 			transition={animate ? k.motion.sort : undefined}
 			// The `<tr>` is the row's dnd-kit sortable node when reorderable; its
 			// transform/transition ride the inline style, and `data-dragging` lifts it.
@@ -491,10 +503,6 @@ export function GridRowImpl<T>({
 			})}
 		</Row>
 	)
-
-	// A sort-animated row loads layout projection through its own root. A root
-	// above the grid that already loads it makes this root add nothing.
-	return animate ? <ReducedMotion layout>{element}</ReducedMotion> : element
 }
 
 /** Memoized {@link GridRowImpl}; re-renders a row only when its own props change. @internal */

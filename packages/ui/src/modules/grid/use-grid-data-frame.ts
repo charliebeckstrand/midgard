@@ -163,7 +163,6 @@ export function useGridDataFrame<T>({
 	rowReorderActive,
 	sort,
 	animateSort,
-	reduceMotion,
 }: Pick<
 	GridDataProps<T>,
 	| 'rows'
@@ -229,7 +228,6 @@ export function useGridDataFrame<T>({
 	sort: GridSortState[]
 	/** The `sort.animate` flag. */
 	animateSort: boolean
-	reduceMotion: boolean | null
 }) {
 	// Whether the table can paint yet; holds its first frame until the widths are
 	// settled (see `useTableRevealed`, and the width gate on the `<table>`).
@@ -345,10 +343,13 @@ export function useGridDataFrame<T>({
 	// Opt-in row-sort FLIP (see `GridSort.animate`), resolved to the plain body: it
 	// stands down under virtualization (windowed rows unmount on scroll, leaving no
 	// stable element to glide), under either grouping mode (whose group and leaf
-	// rows run their own reveals), and for a reduced-motion user. Row reorder is
-	// already mutually exclusive with an active sort, and each row re-checks its own
-	// `sortable` besides, so no extra guard is needed here.
-	const animateSortRows = animateSort && !virtualized && !grouped && !reduceMotion
+	// rows run their own reveals), and under master-detail (an open panel row would
+	// jump while its row glides). Row reorder is already mutually exclusive with an
+	// active sort, and each row re-checks its own `sortable` besides, so no extra
+	// guard is needed here. Reduced motion does not stand it down: the rows keep
+	// their element and stop the glide (see `GridRow`), so a change to the
+	// preference, or the first client read of it, mounts no row again.
+	const animateSortRows = animateSort && !virtualized && !grouped && !expansion
 
 	// Manual-grouping body wiring for `GridBody`, or `null` outside manual mode.
 	const manualGroupBody = useMemo(
