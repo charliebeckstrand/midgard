@@ -196,6 +196,10 @@ function usePresence(): [true, null] {
 	return present
 }
 
+function useIsPresent(): true {
+	return true
+}
+
 function LayoutGroup({ children }: { children: ReactNode }) {
 	return children
 }
@@ -294,6 +298,7 @@ export default {
 	AnimatePresence,
 	PresenceContext,
 	usePresence,
+	useIsPresent,
 	LayoutGroup,
 	LazyMotion,
 	domAnimation,

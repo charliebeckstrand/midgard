@@ -1209,3 +1209,38 @@ describe('JsonTreeNodeRow collapsible', () => {
 		expect(container.querySelector('[role="treeitem"]')).not.toHaveAttribute('aria-expanded')
 	})
 })
+
+describe('JsonTree exiting group', () => {
+	// A closed group stays in the DOM for its exit, and the real `JsonTreeGroup`
+	// marks it with `data-exiting`. The mock `AnimatePresence` removes a group at
+	// once, so this test sets the mark by hand. The browser `motion` project
+	// covers the real exit.
+	it('moves roving focus over the rows of an exiting group', () => {
+		const { container } = renderUI(
+			<JsonTree data={{ a: { x: 1, y: 2 }, b: 3 }} defaultExpandDepth={2} />,
+		)
+
+		const [, branch, , , last] = Array.from(
+			container.querySelectorAll<HTMLElement>('[role="treeitem"]'),
+		).map((row, index) => present(row, `row ${index}`))
+
+		if (!branch || !last) throw new Error('expected five rows')
+
+		const group = present(
+			document.getElementById(branch.getAttribute('aria-owns') ?? ''),
+			'group of a',
+		)
+
+		group.setAttribute('data-exiting', '')
+
+		branch.focus()
+
+		fireEvent.keyDown(branch, { key: 'ArrowDown' })
+
+		expect(document.activeElement).toBe(last)
+
+		fireEvent.keyDown(present(document.activeElement, 'focused row'), { key: 'ArrowUp' })
+
+		expect(document.activeElement).toBe(branch)
+	})
+})
