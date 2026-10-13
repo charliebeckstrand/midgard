@@ -1,6 +1,6 @@
 # Bug audit — 2026-10-13
 
-Letter sweep I of the `packages/ui` components: `components/icon` and `components/input`. Two scopes, 8 files, 536 lines, 6 claims. 5 findings are rows below, all `low`; 1 claim was refuted. All 5 rows are open.
+Letter sweep I of the `packages/ui` components: `components/icon` and `components/input`. Two scopes, 8 files, 536 lines, 6 claims. 5 findings are rows below, all `low`; 1 claim was refuted. All 3 questions are settled; all 5 rows are open.
 
 ## Scope
 
@@ -25,6 +25,7 @@ Two notes on the passes. The B01 overturn verifier ran one grep over all of `pac
 | Verify | 6 stripped claims | 5 confirmed (all low), 1 refuted (B02-C01) |
 | Overturn | 2 sheets plus evidence | no verdict, severity, or reach changed; S3 gained a constraint on the `data-slot` order |
 | Merge | 2 sheets | 2 groups, 5 steps, 3 questions |
+| Settle | 3 answers | S2 becomes a TSDoc change; S4 drops `clearable &&` from the reset gate; S5 stays in `input-frame.tsx` |
 
 ## Findings
 
@@ -62,18 +63,21 @@ All paths are under `packages/ui/src/`.
 ## Recommended resolution
 
 - **S1.** Change: the label branch also writes `'aria-hidden': undefined`. Rows closed: R1. Files: `components/icon/icon.tsx`, `__tests__/components/icon.test.tsx`. Order: 1. Depends on: none. Gate: none. Test seam: a synchronous render of `icon={<svg aria-hidden="true" />}` with a `label`.
-- **S2.** Change: under Q1 (a), put the numeric size in a form a host `*:data-[slot=icon]` projection outranks, such as a custom property that a low-precedence class reads. Under Q1 (b), no code change. Rows closed: R2. Files: `components/icon/icon.tsx`, possibly `recipes/kata/icon.ts`, `__tests__/components/icon.test.tsx`, a browser geometry test. Order: after S1. Depends on: S1 (shared files). Gate: Q1. Test seam: jsdom can show only that no inline `width` or `height` is present; the rendered size inside a host needs a browser test.
+- **S2.** Change: rewrite the `size` TSDoc of `Icon` so it names the exception: a pixel size is an explicit caller override, written as inline `width` and `height`, and it wins over a host projection; only a step `size` stays overridable by the host. No code change; `__tests__/components/icon.test.tsx:42-47` "applies numeric size as inline style" already pins the behavior. The surface index entry (`packages/ui/docs/COMPONENTS.md` `` `icon` ``) holds the bare unit name, so it needs no edit (§12.2 asks for one only when an export is added, removed, or renamed). Rows closed: R2, against the pull request that carries the TSDoc. Files: `components/icon/icon.tsx`. Order: after S1. Depends on: S1 (shared file). Gate: none (Q1 settled). Test seam: none needed.
 - **S3.** Change: move `{...rest}` after `data-slot="input"` and before `{...field.attrs}`; keep `className` merged through `cn`. `rest` must stay after `data-slot`, because the wrappers set their own slot through it (`combobox-input.tsx:167` `data-slot="combobox-input"`, and `password-input`, `search-input`, `number-input`, `mask-input`, `currency-input`, `date-input`, the credit-card inputs, the color inputs, `command-palette`). Rows closed: R3. Files: `components/input/input.tsx`, `__tests__/components/input.test.tsx`. Order: 1 in the input chain. Depends on: none. Gate: none. Test seam: `<Control severity="error"><Input aria-invalid={false} /></Control>` keeps `aria-invalid="true"`; a wrapper's `data-slot` still wins.
-- **S4.** Change: make `ownFilled` follow an uncontrolled value while `clearable` is off, by the method Q2 picks, and settle whether `clearable &&` stays in the `useFormResetSync` gate. Rows closed: R4. Files: `components/input/input.tsx`, `__tests__/components/input.test.tsx`. Order: after S3. Depends on: S3 (same JSX element). Gate: Q2. Test seam: `user.type`, then `rerender` with `clearable`.
-- **S5.** Change: the present test of `InputFrame` stops counting `''`, or the wider set Q3 picks. Rows closed: R5. Files: `components/input/input-frame.tsx`, `__tests__/components/input.test.tsx`; more if Q3 widens it to other `ControlFrame` consumers. Order: after S4. Depends on: none in code; shares `input.test.tsx`. Gate: Q3. Test seam: extend the affix test at `input.test.tsx:26`.
+- **S4.** Change: the change handler tracks `ownFilled` whenever the input is uncontrolled (`uncontrolled ? (event) => { field.attrs.onChange?.(event); setOwnFilled(event.target.value !== '') } : field.attrs.onChange`), and the reset sync gate drops `clearable &&` to `useFormResetSync(inputRef, uncontrolled, ...)`. The gate change is needed: with `clearable` off, type, reset the form, then turn `clearable` on, and the old gate leaves the button over an empty input. Reword the two comments that tie tracking to `clearable`. Side effect: a controlled `clearable` Input with no `onChange` and no `readOnly` no longer hides React's read-only warning. Rows closed: R4. Files: `components/input/input.tsx`, `__tests__/components/input.test.tsx`. Order: after S3. Depends on: S3 (same JSX element). Gate: none (Q2 settled). Test seam: `user.type` with `clearable={false}`, then `rerender` with `clearable`; and the reset path, after the pattern of the reset test with `await act(() => new Promise(requestAnimationFrame))`.
+- **S5.** Change: the present test of `InputFrame` adds `&& prefix !== ''` and `&& suffix !== ''`, and its `@internal` TSDoc names `''` beside null and false. `input.tsx` needs no edit: its own merge test hands `''` to the frame when there is no clear button, and a fragment renders `''` as nothing when there is one. Rows closed: R5. Files: `components/input/input-frame.tsx`, `__tests__/components/input.test.tsx`. Order: after S4. Depends on: none in code; shares `input.test.tsx`. Gate: none (Q3 settled). Test seam: extend "treats a null/false affix as absent, and renders a 0 affix" with `suffix=""`.
 
 The icon chain (S1, S2) and the input chain (S3, S4, S5) share no file and can run in parallel.
 
 ## Open questions
 
 - **Q1 (S2).** Should a host `data-slot=icon` projection override a numeric `size`? (a) Yes: S2 changes the code, and the TSDoc at `icon.tsx:19-20` stays true. (b) No, a numeric size is an escape hatch: the code stays, S2 drops, and the TSDoc must name the exception.
+  Answer (Charlie, 2026-10-13): no, escape hatch. "A pixel size is an explicit caller override and wins over the host. The code stays. S2 becomes a TSDoc fix that names the exception."
 - **Q2 (S4).** How does `ownFilled` follow edits while `clearable` is off? (A) Call `setOwnFilled` on every change of an uncontrolled input: one batched state update per keystroke on every uncontrolled Input. (B) Read `inputRef.current.value` in a layout effect when `clearable` turns on: no work per keystroke, covers only the toggle. Either answer also decides the `clearable && uncontrolled` gate of `useFormResetSync`.
+  Answer (Charlie, 2026-10-13): track every change. "Call setOwnFilled on each change of an uncontrolled Input. … the useFormResetSync gate can drop its `clearable &&` term."
 - **Q3 (S5).** What is an absent affix? Axis 1: `''` only, or also empty arrays and empty fragments. Axis 2: must the other `ControlFrame` consumers share the definition? Yes on axis 2 widens S5 past `input-frame.tsx`.
+  Answer (Charlie, 2026-10-13): `''` only, InputFrame. "Add '' to the present test in input-frame.tsx only."
 
 ## Ruled out
 
@@ -91,3 +95,5 @@ The icon chain (S1, S2) and the input chain (S3, S4, S5) share no file and can r
 - Verifier B01: lucide-react's own `aria-hidden` default is unverified, because `node_modules` was absent.
 - Verifier B01 overturn: Icon drops undeclared props without notice. `components/breadcrumb/breadcrumb-separator.tsx:17` passes `aria-hidden="true"` (dead, as the decorative branch writes it), and `__tests__/browser/geometry/nav-density.test.tsx:29` passes `aria-label="Add"`, which leaves that test icon hidden and unnamed.
 - Merge pass: `input-clear-button.tsx:39` `<Icon icon={<X />} />` puts Icon's decorative branch inside Input; no step changes that branch.
+- Settle pass: after S5, the merge test at `input.tsx:168` (`clear && suffix != null && suffix !== false`) still counts `''` as present, against "One definition of 'present'" at `input-frame.tsx:23-24`; no visible result.
+- Settle pass: `ownFilled` keeps a stale value if an Input switches from controlled to uncontrolled; React warns on that switch already.
