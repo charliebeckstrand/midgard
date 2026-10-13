@@ -37,7 +37,7 @@ Two notes on the passes. The B01 overturn verifier ran one grep over all of `pac
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | R1 | `components/icon/icon.tsx` | `Icon` label branch | CONFIRMED | low | none | G1 | ◐ FIXED |
 | R2 | `components/icon/icon.tsx` | `Icon` numeric `size` | CONFIRMED | low | none | G1 | ◯ OPEN |
-| R3 | `components/input/input.tsx` | `Input` spread order | CONFIRMED | low | none | G2 | ◯ OPEN |
+| R3 | `components/input/input.tsx` | `Input` spread order | CONFIRMED | low | none | G2 | ◐ FIXED |
 | R4 | `components/input/input.tsx` | `Input` `ownFilled` | CONFIRMED | low | none | G2 | ◯ OPEN |
 | R5 | `components/input/input-frame.tsx` | `InputFrame` present test | CONFIRMED | low | none | — | ◯ OPEN |
 
