@@ -205,6 +205,7 @@ export const k = {
 				 * The copy of the page. Its top-left corner is at the center of the lens, so the
 				 * rendered size of the lens sets the center, and the offset math needs no diameter.
 				 */
+				// biome-ignore lint/plugin/no-physical-side: the offset math moves the copy from its top left corner
 				stage: ['absolute top-1/2 left-1/2 origin-top-left'],
 			},
 			// Region overlay. The layer is the page image's twin — same box, same

@@ -1,0 +1,32 @@
+language js
+
+// A side on the inline axis is logical: `ms-`, `pe-`, `start-`, `end-`,
+// `border-s`, `rounded-e`, `text-start`. A physical side (`ml-`, `pr-`,
+// `left-`, `border-r`, `rounded-bl`, `text-left`) does not mirror in a
+// right-to-left layout, so the spacing, the rule, or the corner stays on the
+// wrong edge.
+//
+// These classes are not violations:
+//
+// - A class string that also holds an `rtl:` or `ltr:` variant. It states each
+//   direction itself.
+// - A half offset (`left-1/2`), which centers with `-translate-x-1/2` and is
+//   the same in each direction.
+// - A Floating UI placement such as `'right-start'`, which is not a class.
+//
+// A site that is physical on purpose, such as a JS branch on the direction or
+// a plot that keeps its physical axis, carries a suppression with its reason.
+//
+// The plugin matches the class in a string, a JSX string, or a template
+// chunk. A mention in a comment is not a violation.
+//
+// Reach is the `includes` beside this plugin in `biome.json`: each `ui` layer
+// that spells Tailwind classes, minus tests and benchmarks.
+or { JsStringLiteralExpression(), JsxString(), JsTemplateChunkElement() } as $class where {
+	$class <: r"[\s\S]*(?:^|[\s\x22\x27\x60:])-?(?:(?:m[lr]|p[lr]|scroll-[mp][lr]|left|right)-(?:[0-9]+(?:\.[0-9]+)?|px|full|auto|\[[^\]\s]*\]|\([^)\s]*\)|1/[013-9][0-9]*|[2-9][0-9]*/[0-9]+|1[0-9]+/[0-9]+)|border-[lr](?:-[^\s\x22\x27\x60]*)?|rounded-(?:[lr]|[tb][lr])(?:-[^\s\x22\x27\x60]*)?|(?:text|float|clear)-(?:left|right)|origin-(?:top-|bottom-)?(?:left|right)|bg-(?:linear|gradient)-to-[lr])(?:$|[\s\x22\x27\x60])[\s\S]*",
+	not $class <: r"[\s\S]*(?:^|[\s\x22\x27\x60:])(?:rtl|ltr):[\s\S]*",
+	register_diagnostic(
+		span = $class,
+		message = "use a logical side (`ms-`, `pe-`, `start-`, `end-`, `border-s`, `rounded-e`, `text-start`): a physical side does not mirror in a right-to-left layout"
+	)
+}

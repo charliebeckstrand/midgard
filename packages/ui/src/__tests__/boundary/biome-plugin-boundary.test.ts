@@ -155,6 +155,26 @@ export { useReducedMotion, AnimatePresence, motion, useReduced, useFramerReduced
 `,
 		},
 	],
+	'no-physical-side': [
+		{
+			file: 'side.tsx',
+			source: `export const a = 'flex text-left' // flag
+export const b = <div className="md:text-right" /> // flag
+export const c = 'ml-2 p-4' // flag
+export const d = 'hover:-mr-px' // flag
+export const e = \`absolute \${'x'} right-0\` // flag
+export const f = 'border-l border-zinc-950/5' // flag
+export const g = 'rounded-br-md' // flag
+export const h = 'origin-top-left' // flag
+export const i = 'left-[3px]' // flag
+export const j = 'text-start ms-2 pe-4 start-0 border-s rounded-ee-md'
+export const k = 'origin-left rtl:origin-right'
+export const l = 'absolute left-1/2 -translate-x-1/2'
+export const m = 'right-start'
+export const n = 'inset-x-0 text-leftward'
+`,
+		},
+	],
 	'no-react-create-context': [
 		{
 			file: 'context.ts',
@@ -180,15 +200,6 @@ export const b = 'p-3 text-sm step-md'
 export type B = 'horizontal' | 'both' | 'vertical' // flag
 export type C = { dir: 'horizontal'; w: number } | { dir: 'vertical'; h: number }
 export type D = 'horizontal' | 'diagonal'
-`,
-		},
-	],
-	'no-text-left': [
-		{
-			file: 'align.tsx',
-			source: `export const a = 'flex text-left' // flag
-export const b = <div className="md:text-left" /> // flag
-export const c = 'text-start text-leftward'
 `,
 		},
 	],
