@@ -6,7 +6,7 @@
  * toggle, chevron, and the collapse motion config round out the surface.
  */
 import { mode } from '../../core/recipe'
-import { hannou, iro, ji, kasane, narabi, ugoki } from '../kiso'
+import { hannou, iro, ji, kasane, narabi, sen, ugoki } from '../kiso'
 import { dan } from '../kiso/dan'
 
 const { cursor, fg } = hannou
@@ -15,6 +15,7 @@ const { family, size } = ji
 const { rounded } = kasane
 const { flex } = narabi
 const { collapse, css } = ugoki
+const { focus } = sen
 
 /** The syntax-highlight classes a {@link JsonTree} node can take — one per primitive value kind plus `key` for object property names. */
 export type JsonValueType = 'string' | 'number' | 'boolean' | 'null' | 'key'
@@ -47,6 +48,12 @@ export const k = {
 	 * first window. `shrink-0` keeps its size.
 	 */
 	spacer: 'shrink-0',
+	/**
+	 * The scroller of the windowed tree. Focus parks on it while the focused row is outside
+	 * the window. `focus.inset` removes the browser outline and draws the inset ring of the
+	 * library. The scroll clips an outset ring.
+	 */
+	windowed: focus.inset,
 	row,
 	leaf: [flex.row, flex.fill, 'min-w-0 outline-none', dan.gap.scale.xs],
 	toggle: [

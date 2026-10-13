@@ -6,6 +6,7 @@ import {
 	type RefObject,
 	useCallback,
 	useEffect,
+	useLayoutEffect,
 	useMemo,
 	useRef,
 } from 'react'
@@ -13,9 +14,13 @@ import { cn } from '../../core'
 import { useVirtualWindow } from '../../hooks'
 import { k } from '../../recipes/kata/json-tree'
 import { nextIndexForKey } from '../../utilities'
-import { treeMoveForKey } from '../tree/tree-keyboard'
 import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT } from './json-tree-constants'
-import { flatTreeMoveTarget } from './json-tree-keyboard'
+import {
+	flatTreeMoveTarget,
+	jsonTreeMoveForKey,
+	parkedTarget,
+	windowTabStop,
+} from './json-tree-keyboard'
 import { JsonTreeNodeRow } from './json-tree-node-row'
 import {
 	type FlatNode,
@@ -37,6 +42,17 @@ function rowKey(node: FlatNode): string {
 /** The mounted treeitem of the row at flat `index`, or null when windowing keeps the row out of the DOM. */
 function rowAt(container: HTMLElement, index: number): HTMLElement | null {
 	return container.querySelector<HTMLElement>(`[data-index="${index}"] ${TREE_ITEM_SELECTOR}`)
+}
+
+/** The flat index of the row whose treeitem has focus, or null when focus is not on a row. */
+function focusedRowIndex(container: HTMLElement): number | null {
+	const active = document.activeElement
+
+	if (!(active instanceof HTMLElement) || !active.matches(TREE_ITEM_SELECTOR)) return null
+
+	const row = active.closest<HTMLElement>('[data-index]')
+
+	return row && container.contains(row) ? Number(row.dataset.index) : null
 }
 
 /**
@@ -73,7 +89,8 @@ function offWindowTarget(
 
 /**
  * The flat index that a horizontal arrow reaches in the tree model: the first child of
- * an open branch, or the parent of a closed branch or a leaf.
+ * an open branch, or the parent of a closed branch or a leaf. A fixed branch row takes
+ * the two moves.
  *
  * @returns Null when focus is not on a row, when the key makes no tree move, or when
  * the move has no target. A branch row that opens or closes itself cancels the event
@@ -92,9 +109,59 @@ function treeMoveIndex(
 
 	if (!row || !container.contains(row)) return null
 
-	const move = treeMoveForKey(event, item.getAttribute('aria-expanded') === 'true')
+	const move = jsonTreeMoveForKey(event, item)
 
 	return move === null ? null : flatTreeMoveTarget(nodes, Number(row.dataset.index), move)
+}
+
+/**
+ * The flat index that a key reaches from focus parked on the container, see {@link parkedTarget}.
+ *
+ * @returns Null when focus is not parked, or when the key does not navigate.
+ */
+function parkedKeyTarget(
+	container: HTMLElement,
+	key: string,
+	stored: number | null,
+	focusable: readonly number[],
+): number | null {
+	if (stored === null || document.activeElement !== container) return null
+
+	return parkedTarget(key, stored, focusable)
+}
+
+/**
+ * Keeps focus in the tree while the focused row is outside the window. When the row at
+ * flat index `stored` unmounts and focus goes to the body, focus parks on the container.
+ * When the row mounts again, parked focus goes back to it.
+ *
+ * @returns The flat index to store: the focused row, or `stored`. Null clears the index
+ * when the flat list is new (`nodesChanged`).
+ */
+function settleFocus(
+	container: HTMLElement,
+	stored: number | null,
+	nodesChanged: boolean,
+): number | null {
+	// A row that keeps focus can get a new flat index when the rows above it change.
+	const focused = focusedRowIndex(container)
+
+	if (focused !== null) return focused
+
+	// A new flat list can put another row at the stored index.
+	if (stored === null || nodesChanged) return null
+
+	const active = document.activeElement
+
+	const row = rowAt(container, stored)
+
+	if (row) {
+		if (active === container) row.focus({ preventScroll: true })
+	} else if (!active || active === document.body) {
+		container.focus({ preventScroll: true })
+	}
+
+	return stored
 }
 
 /**
@@ -224,13 +291,16 @@ export function JsonTreeVirtualized({
 		getItemKey,
 	})
 
-	// The Tab stop rides the first focusable rendered row; windowing can
-	// scroll the depth-0 root out of the DOM.
-	const firstFocusable = useMemo(
+	// The Tab stop rides a rendered row in view; windowing can scroll the depth-0 root out of
+	// the DOM, and a stop in the overscan above the viewport scrolls the tree when it takes focus.
+	const tabStop = useMemo(
 		() =>
-			virtualItems.find((vi) => flatNodes[vi.index] && flatNodes[vi.index]?.type !== 'branch-close')
-				?.index,
-		[virtualItems, flatNodes],
+			windowTabStop(
+				virtualItems.map((virtualItem) => virtualItem.index),
+				flatNodes,
+				overscan,
+			),
+		[virtualItems, flatNodes, overscan],
 	)
 
 	// The flat indices of the rows that take focus. A closing bracket is not a treeitem.
@@ -243,6 +313,60 @@ export function JsonTreeVirtualized({
 	const pendingFocusRef = useRef<MutationObserver | null>(null)
 
 	useEffect(() => () => pendingFocusRef.current?.disconnect(), [])
+
+	// The flat index of the row that has focus. A row that scrolls past the overscan unmounts,
+	// and focus then parks on the container until the row mounts again.
+	const focusedIndexRef = useRef<number | null>(null)
+
+	useEffect(() => {
+		const container = ref.current
+
+		if (!container) return
+
+		const onFocusIn = () => {
+			const index = focusedRowIndex(container)
+
+			if (index !== null) focusedIndexRef.current = index
+		}
+
+		// A row that unmounts also loses focus. Only focus that leaves the tree clears the index.
+		const onFocusOut = (event: FocusEvent) => {
+			const { relatedTarget, target } = event
+
+			if (relatedTarget instanceof Node && container.contains(relatedTarget)) return
+
+			queueMicrotask(() => {
+				if (target instanceof Node && target.isConnected) focusedIndexRef.current = null
+			})
+		}
+
+		container.addEventListener('focusin', onFocusIn)
+
+		container.addEventListener('focusout', onFocusOut)
+
+		return () => {
+			container.removeEventListener('focusin', onFocusIn)
+
+			container.removeEventListener('focusout', onFocusOut)
+		}
+	}, [ref])
+
+	// The flat list of the last commit.
+	const committedNodesRef = useRef(flatNodes)
+
+	// After each commit, park focus on the container when the focused row unmounted, and give
+	// focus back to the row when it mounts again.
+	useLayoutEffect(() => {
+		const nodesChanged = committedNodesRef.current !== flatNodes
+
+		committedNodesRef.current = flatNodes
+
+		const container = ref.current
+
+		if (container) {
+			focusedIndexRef.current = settleFocus(container, focusedIndexRef.current, nodesChanged)
+		}
+	})
 
 	// The roving handler sees only the mounted rows. Home, End and the arrows that leave the
 	// window take their target from the flat index, scroll it in, and focus it when it mounts.
@@ -259,8 +383,10 @@ export function JsonTreeVirtualized({
 			// A branch row that opened or closed itself has handled the key.
 			if (event.defaultPrevented) return
 
+			// Focus parked on the container moves from the stored row.
 			const target = container
-				? (treeMoveIndex(container, event, flatNodes) ??
+				? (parkedKeyTarget(container, event.key, focusedIndexRef.current, focusable) ??
+					treeMoveIndex(container, event, flatNodes) ??
 					offWindowTarget(container, event.key, focusable))
 				: null
 
@@ -271,6 +397,9 @@ export function JsonTreeVirtualized({
 			}
 
 			event.preventDefault()
+
+			// While focus is parked, the stored index moves to the target row.
+			if (document.activeElement === container) focusedIndexRef.current = target
 
 			// A tree move can land on a mounted row, which takes focus at once.
 			const mounted = rowAt(container, target)
@@ -295,8 +424,10 @@ export function JsonTreeVirtualized({
 			aria-label={ariaLabel}
 			aria-labelledby={ariaLabelledby}
 			data-slot="json-tree"
-			className={cn(k.base, className)}
+			className={cn(k.base, k.windowed, className)}
 			style={{ maxHeight, overflow: 'auto' }}
+			// Focus parks here while the focused row is outside the window.
+			tabIndex={-1}
 			onKeyDown={handleKeyDown}
 		>
 			{topSpacer > 0 && (
@@ -320,7 +451,7 @@ export function JsonTreeVirtualized({
 						index={virtualItem.index}
 						collapsible={collapsible}
 						onToggle={handleToggle}
-						tabbable={virtualItem.index === firstFocusable}
+						tabbable={virtualItem.index === tabStop}
 					/>
 				)
 			})}

@@ -1180,6 +1180,58 @@ describe('JsonTree collapsible', () => {
 
 		expect(items[0]).toHaveFocus()
 	})
+
+	it('moves ArrowRight from a fixed branch to its first child', () => {
+		const { container } = renderUI(<JsonTree data={data} collapsible={false} />)
+
+		const [root, outer, inner] = container.querySelectorAll<HTMLElement>('[role="treeitem"]')
+
+		present(root, 'root row').focus()
+
+		fireEvent.keyDown(present(root, 'root row'), { key: 'ArrowRight' })
+
+		expect(outer).toHaveFocus()
+
+		fireEvent.keyDown(present(outer, 'outer row'), { key: 'ArrowRight' })
+
+		expect(inner).toHaveFocus()
+	})
+
+	it('moves ArrowRight from the fixed root Tab stop to its first child when "children"', () => {
+		const { container } = renderUI(
+			<JsonTree data={data} collapsible="children" defaultExpandDepth={1} />,
+		)
+
+		const [root, outer] = container.querySelectorAll<HTMLElement>('[role="treeitem"]')
+
+		expect(root).toHaveAttribute('tabindex', '0')
+
+		present(root, 'root row').focus()
+
+		fireEvent.keyDown(present(root, 'root row'), { key: 'ArrowRight' })
+
+		expect(outer).toHaveFocus()
+	})
+
+	it('swaps the arrows of a fixed branch in a right-to-left layout', () => {
+		const { container } = renderUI(
+			<div dir="rtl" style={{ direction: 'rtl' }}>
+				<JsonTree data={data} collapsible={false} />
+			</div>,
+		)
+
+		const [root, outer] = container.querySelectorAll<HTMLElement>('[role="treeitem"]')
+
+		present(root, 'root row').focus()
+
+		fireEvent.keyDown(present(root, 'root row'), { key: 'ArrowLeft' })
+
+		expect(outer).toHaveFocus()
+
+		fireEvent.keyDown(present(outer, 'outer row'), { key: 'ArrowRight' })
+
+		expect(root).toHaveFocus()
+	})
 })
 
 describe('JsonTreeNodeRow collapsible', () => {
