@@ -184,12 +184,16 @@ describe('Lightbox reopened during the return (real browser)', () => {
 
 		await open(0)
 
-		await userEvent.keyboard('{Escape}')
-
 		const center = slot(0)
 
+		// The sampler starts before the key. A slow round trip of the key then
+		// cannot let the return run on before the first sample.
+		const back = hold(center, 0.25)
+
+		await userEvent.keyboard('{Escape}')
+
 		// The photo is a quarter of the way back, and is not at its thumbnail yet.
-		await hold(center, 0.25)
+		await back
 
 		const painted = center.getBoundingClientRect()
 
@@ -224,9 +228,13 @@ describe('Lightbox reopened during the return (real browser)', () => {
 
 			await open(0)
 
+			// The sampler starts before the key. A slow round trip of the key then
+			// cannot let the return land before the first sample.
+			const back = hold(slot(0), 0.5)
+
 			await userEvent.keyboard('{Escape}')
 
-			await reopenAtLanding(await hold(slot(0), 0.5), 1)
+			await reopenAtLanding(await back, 1)
 
 			await expect.poll(still).toBe(true)
 
