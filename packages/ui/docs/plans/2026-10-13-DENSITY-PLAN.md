@@ -80,7 +80,7 @@ A slot never writes the host copy, so a slot in a slot reads the same host. `:wh
 **What one-hot cannot express.** A weighted sum takes numbers and lengths only.
 - `infinity * 0` is NaN, so `full` is not a radius name in a ramp; it writes no CSS. Main already breaks here: its `md` rung reads the undefined `var(--radius-full)` and paints 0 px.
 - One unknown name (`density-w-[auto,xs,sm]`) invalidates the whole sum, so the property is unset at each step. The plugin checks each name against the theme keys and writes no CSS for an unknown one.
-- A keyword (`display`, `box-shadow`, `flex-direction`) cannot be stepped. See Open questions.
+- A keyword (`display`, `box-shadow`, `flex-direction`) cannot be stepped. See Keyword steps.
 
 ## Measured evidence
 
