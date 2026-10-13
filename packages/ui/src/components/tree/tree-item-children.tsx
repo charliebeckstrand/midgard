@@ -10,7 +10,7 @@ import { ReducedMotion } from '../../primitives/reduced-motion'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/tree'
 import { flattenChildren } from '../../utilities/flatten-children'
-import { TreeContext, type TreeContextValue, TreePositionContext, useTreeContext } from './context'
+import { TreeContext, TreePositionContext, useTreeContext } from './context'
 
 /**
  * Stamps each element child with its 1-based sibling position via
@@ -69,15 +69,18 @@ export function TreeItemChildren({ id, open, label, children }: TreeItemChildren
 		[depth, indent, mount],
 	)
 
+	// The positions are stamped here, not in `TreeGroup`. A presence change then
+	// renders the group again with the same children, so the rows do not render.
 	const group = (motionProps: object) => (
-		<TreeGroup id={id} open={open} label={label} context={childContextValue} motion={motionProps}>
-			{children}
-		</TreeGroup>
+		<TreeContext value={childContextValue}>
+			<TreeGroup id={id} open={open} label={label} indent={indent} motion={motionProps}>
+				{stampTreePositions(children)}
+			</TreeGroup>
+		</TreeContext>
 	)
 
 	// `active` unmounts the closed group, so its exit rides `AnimatePresence` and
-	// the recipe's enter/exit pair applies as written. The group is the direct
-	// child of `AnimatePresence`, so it reads its own presence.
+	// the recipe's enter/exit pair applies as written.
 	if (!hold.held) {
 		return (
 			<ReducedMotion>
@@ -102,42 +105,35 @@ type TreeGroupProps = {
 	id: string
 	open: boolean
 	label: ReactNode
-	/** The context of the items one level in. */
-	context: TreeContextValue
+	indent: boolean
 	/** The motion props of the group: the recipe preset, or the held bag. */
 	motion: object
 	children: ReactNode
 }
 
 /**
- * The `role="group"` element of a branch. While it exits under
- * `AnimatePresence`, it is `inert` ({@link useMountExitInert}). The exit keeps
- * the props of the last open render, so `data-open` stays on it, and roving
- * skips its items for the `inert` mark instead. A held group does not exit, so
- * it is inert only while a group around it exits.
+ * The `role="group"` element of a branch. It is `inert` while it exits
+ * ({@link useMountExitInert}). A held group does not exit, so it is inert only
+ * while a group around it exits.
  *
  * @internal
  */
-function TreeGroup({ id, open, label, context, motion, children }: TreeGroupProps) {
+function TreeGroup({ id, open, label, indent, motion, children }: TreeGroupProps) {
 	const exiting = useMountExitInert()
 
-	const { indent } = context
-
 	return (
-		<TreeContext value={context}>
-			<m.div
-				id={id}
-				role="group"
-				aria-label={typeof label === 'string' ? label : undefined}
-				data-slot="tree-group"
-				// Roving skips the items of a group without this mark. See `ROVING_ITEM_SELECTOR`.
-				data-open={dataAttr(open)}
-				{...motion}
-				inert={exiting}
-				className={cn(indent && k.group.indent)}
-			>
-				{stampTreePositions(children)}
-			</m.div>
-		</TreeContext>
+		<m.div
+			id={id}
+			role="group"
+			aria-label={typeof label === 'string' ? label : undefined}
+			data-slot="tree-group"
+			// Roving skips the items of a held group without this mark. See `ROVING_ITEM_SELECTOR`.
+			data-open={dataAttr(open)}
+			{...motion}
+			inert={exiting}
+			className={cn(indent && k.group.indent)}
+		>
+			{children}
+		</m.div>
 	)
 }

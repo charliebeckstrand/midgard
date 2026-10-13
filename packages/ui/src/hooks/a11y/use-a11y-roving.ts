@@ -68,24 +68,16 @@ export function queryItems(container: HTMLElement | null, selector: string): HTM
 
 /**
  * The items that a key can reach: each `selector` match inside `container`
- * with no `inert` ancestor. An exiting group keeps its rows in the DOM until
- * its animation ends, and the group is inert for that time. A row in it then
- * unmounts, so a key must not move to it.
+ * that is not `inert` and has no `inert` ancestor (`useMountExitInert`).
  *
  * @remarks
- * The caller makes sure that `container` itself has no inert ancestor. Thus
- * `closest` finds only an ancestor inside `container`.
+ * The caller makes sure that `container` itself has no inert ancestor, so the
+ * `[inert] *` clause reads only the subtree.
  *
  * @internal
  */
 function reachableItems(container: HTMLElement | null, selector: string): HTMLElement[] {
-	const items = queryItems(container, selector)
-
-	// Most containers hold no inert subtree. One query then spares a walk up
-	// from each item.
-	if (!container?.querySelector('[inert]')) return items
-
-	return items.filter((el) => !el.closest('[inert]'))
+	return queryItems(container, `:is(${selector}):not([inert], [inert] *)`)
 }
 
 /**

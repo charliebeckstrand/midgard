@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
 	docsSites,
+	isSourceFile,
 	srcDir,
 	srcRelative,
 	stripSourceComments,
@@ -56,14 +57,20 @@ const CALLS_HOME = /\buseMountExitInert\(/
 /** A read of the presence of an exit. */
 const READS_PRESENCE = /\buseIsPresent\b/
 
-/** Each shipped source file outside the home, keyed, with its code and no comments. */
+/**
+ * Each shipped source file outside the home that names `AnimatePresence` or
+ * `useIsPresent`, keyed, with its code and no comments.
+ */
 function sourceFiles(): Map<string, string> {
 	const files = new Map<string, string>()
 
 	walkSource(
 		srcDir,
 		(path, source) => {
-			if (!/\.(?:tsx?|mts|cts)$/.test(path)) return
+			if (!isSourceFile(path)) return
+
+			// Only these files can break a rule, so only they pay for the strip.
+			if (!source.includes('AnimatePresence') && !source.includes('useIsPresent')) return
 
 			const key = srcRelative(path)
 

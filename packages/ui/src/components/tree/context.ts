@@ -3,7 +3,7 @@
 import { createContext } from '../../core'
 import type { Mount } from '../../primitives/mount'
 
-export type TreeContextValue = {
+type TreeContextValue = {
 	depth: number
 	indent: boolean
 	mount: Mount
