@@ -167,22 +167,18 @@ Each step is one pull request on the step before it. Each runs `pnpm check`, the
 - Rewrite the tests that read the old classes: `core/density-geometry.test.ts` (touch gaps); `core/cn.test.ts` (the new groups); `layouts/sidebar.test.tsx` (select by `data-slot`); `recipes/safe-area-edges.test.ts`; `browser/geometry/query-density.test.tsx` (resolve the custom property through a probe width, because an unregistered property reads back as its `calc()` text). Add the tests of the two deliberate changes under the contract table.
 - Gate: parity 0 diffs; contract suite green.
 
-**3. Retire the rungs.** It removes public variants of `ui/tailwind.css` and settles the keyword question (Open questions), so it needs its own assent.
+**3. Retire the rungs.** It removes public variants of `ui/tailwind.css`. No variant replaces them for a keyword (Keyword steps).
 - Delete `rungs.ts`, the step variants, the list variant and `stepsOfList`, `maxDepth`, the page-smoke depth gate, and `core/density-rungs.test.ts`. Rename `density-0` to `density`.
-- Update `REFERENCE.md` (Density), `docs/CORE.md`, `docs/RECIPES.md`, `docs/LAYOUTS.md`, the TSDoc of `steps.ts`, `variants.ts`, and `utilities.ts`, and `__tests__/helpers/density-step.ts` (CLAUDE.md §3.4).
+- Update `REFERENCE.md` (Density, and drop the `density-sm:shadow-sm` example), `docs/CORE.md`, `docs/RECIPES.md`, `docs/LAYOUTS.md`, the TSDoc of `steps.ts`, `variants.ts`, and `utilities.ts`, and `__tests__/helpers/density-step.ts` (CLAUDE.md §3.4).
 - Gate: parity 0 diffs; the restyle bench and `docs:bench` recorded in the pull request.
 
 **4. Drop the index form.** Delete the index form and the `DENSITY_EMIT` flag. Reopen B only if the step 0 restyle bench shows a root switch past the frame budget under A. If B is kept, its `@property` rules move to the top level of `tailwind.css`, `DENSITY_EMIT` enters the env of `test:browser` and each app build, and a boundary test forbids `--d` in a `transition-property`.
 
-## Open questions
+## Keyword steps
 
-What replaces `density-sm:shadow-sm` for a keyword once the variants go? `REFERENCE.md` documents it as the way to step a class with no stepped utility. No source in the repository uses a step variant for a keyword.
+Once the variants go, nothing steps a keyword (`density-sm:shadow-sm` in `REFERENCE.md` today). No source in the repository uses a step variant for a keyword. A consumer adds a stepped entry to `utility-table.ts` for a numeric value, or reads the step in JS with `useDensityStep`, which paints `md` before hydration. `if()` in each floor engine makes keywords stepped values with no variant (Future).
 
-1. **Nothing.** A consumer adds a stepped entry to `utility-table.ts` for a numeric value, or reads the step in JS with `useDensityStep`, which paints `md` before hydration. `REFERENCE.md` drops the example.
-2. **Keep the rung variants as an opt-in escape hatch.** An unused variant writes 0 bytes, but `rungs.ts`, `maxDepth`, and the layer-order rules stay, and a used variant brings back the rung cost.
-3. **Keep the rung variants until the floor ships style queries** (Firefox 151, Safari 18), then rewrite them as `@container style(--d: N)` for descendants and pseudo-elements. A self scope still needs another form.
-
-This plan recommends option 1. `if()` in each floor engine makes keywords stepped values with no variant (Future).
+Rejected: keeping the rung variants as an opt-in escape hatch (it keeps `rungs.ts`, `maxDepth`, and the layer-order rules, and a used variant brings back the rung cost), and keeping them until the floor ships style queries (a query reads an ancestor, so a self scope still needs another form).
 
 ## Future
 
