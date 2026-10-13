@@ -30,6 +30,46 @@ export type QueryBuilderGroupProps = {
 	className?: string
 }
 
+/** Props for {@link QueryBuilderSeparator}. @internal */
+type QueryBuilderSeparatorProps = {
+	/** The id of the node after the separator, which holds the combinator. */
+	id: string
+	combinator: QueryCombinator
+}
+
+/**
+ * The AND/OR segment before a child of a group. The segment is a density scope
+ * one step below the scope around it, so it stays one step below the controls
+ * of the rules.
+ *
+ * @remarks It is memoized on primitive props. An edit renders the group of the
+ * edited node, and without the memo each separator of the group rendered its
+ * segment again. In a group of 128 rules, that was most of the cost of a
+ * keystroke.
+ *
+ * @internal
+ */
+const QueryBuilderSeparator = memo(function QueryBuilderSeparator({
+	id,
+	combinator,
+}: QueryBuilderSeparatorProps) {
+	const { updateCombinator } = useQueryBuilderActions()
+
+	return (
+		<div data-density="slot">
+			<Segment
+				value={combinator}
+				onValueChange={(v) => v && updateCombinator(id, v as QueryCombinator)}
+			>
+				<SegmentControl aria-label="Combinator">
+					<SegmentItem value="and">AND</SegmentItem>
+					<SegmentItem value="or">OR</SegmentItem>
+				</SegmentControl>
+			</Segment>
+		</div>
+	)
+})
+
 /**
  * Renders one query group: its child rules and nested groups, each joined by an
  * AND/OR combinator segment, plus "add rule"/"add group" actions. The root
@@ -40,7 +80,7 @@ export type QueryBuilderGroupProps = {
 function QueryBuilderGroupImpl({ group, root, className }: QueryBuilderGroupProps) {
 	const { disabled, allowGroups, requireRule, reorderable } = useQueryBuilderState()
 
-	const { updateCombinator, addRule, addGroup, remove } = useQueryBuilderActions()
+	const { addRule, addGroup, remove } = useQueryBuilderActions()
 
 	// With `requireRule`, a group keeps its last rule: the sole remaining rule
 	// hides its remove control so the query can't be emptied.
@@ -66,27 +106,13 @@ function QueryBuilderGroupImpl({ group, root, className }: QueryBuilderGroupProp
 			<QueryBuilderRule rule={child} removable={rulesRemovable} />
 		)
 
-	// The AND/OR before the child at the index. The segment is a density scope
-	// one step below the scope around it, so it stays one step below the
-	// controls of the rules.
+	// The AND/OR before the child at the index.
 	const separator = (index: number) => {
 		const child = group.children[index]
 
 		if (index === 0 || child === undefined) return null
 
-		return (
-			<div data-density="slot">
-				<Segment
-					value={child.combinator ?? 'and'}
-					onValueChange={(v) => v && updateCombinator(child.id, v as QueryCombinator)}
-				>
-					<SegmentControl aria-label="Combinator">
-						<SegmentItem value="and">AND</SegmentItem>
-						<SegmentItem value="or">OR</SegmentItem>
-					</SegmentControl>
-				</Segment>
-			</div>
-		)
+		return <QueryBuilderSeparator id={child.id} combinator={child.combinator ?? 'and'} />
 	}
 
 	return (

@@ -1,6 +1,6 @@
 # Browser benchmarks
 
-> **The chart, grid, and map modules of `ui`, and its menu, popover, icon, tooltip, and PDF-viewer components, measured in real Chromium.** `pnpm bench:browser` runs the suite. The suite runs no other library, so a change reads against the earlier builds of each module. The jsdom benches one directory up localize a regression, and this suite sizes it.
+> **The chart, grid, and map modules of `ui`, and its menu, popover, icon, tooltip, and PDF-viewer components, and its query builder, measured in real Chromium.** `pnpm bench:browser` runs the suite. The suite runs no other library, so a change reads against the earlier builds of each module. The jsdom benches one directory up localize a regression, and this suite sizes it.
 
 ## Why a browser suite
 
@@ -722,6 +722,27 @@ Mean ms for 24 glyphs, in Chromium. Each figure is the median of four runs, beca
 **This package's wrapper does not separate from the noise.** The `Icon` step is 0.034 ms over 24 glyphs, and `lucide bare` alone swings 0.411 to 0.470 across the four runs. The step is smaller than the spread of the rung it is measured against, so read it as an upper bound, not as a figure. The numeric-size branch, which also builds a `style` object, sits the same way.
 
 **The jsdom ratio is the engine again.** The jsdom menu suite reads a row with an icon at twice the cost of a row without one. The same tree costs 2.90 ms in jsdom and 0.37 ms here — 7.9× — because jsdom builds DOM and resolves style in JavaScript. No change is warranted. `Icon` is a `cloneElement` and a memoized `cn` call, and the numbers say so.
+
+## Query builder
+
+A keystroke in a rule value gives the builder a new tree. The tree copies the path to the edited rule, and the memo of each rule and group keeps the rest of the tree still. This section says what the edit still costs.
+
+### Methodology
+
+[`query-edit.bench.tsx`](query-edit.bench.tsx) mounts one group of 32 or 128 number rules, controlled, and each sample gives it a new value for the first rule. The `plain` rows render the children in place, and the `reorder` rows render them through Motion's `Reorder`. The edit renders the group of the edited rule, so the work that grows with the size of the group is the work that each child does again in that render.
+
+### Findings (2026-10-13, this container)
+
+Mean ms for one edit, in Chromium. Each figure is the median of three runs.
+
+| Rules | Plain, before | Plain, after | Reorder, before | Reorder, after |
+| ---: | ---: | ---: | ---: | ---: |
+| 32 | 3.09 | 1.06 | 4.85 | 3.48 |
+| 128 | 10.57 | 1.84 | 20.43 | 10.16 |
+
+**The AND/OR separators were most of the cost.** The group built the segment of each separator in its own render, so each segment rendered again on each keystroke. Each separator is now a memoized component ([`query-builder-group.tsx`](../../modules/query/query-builder/query-builder-group.tsx) `QueryBuilderSeparator`), and a plain edit is almost flat across the size of the group.
+
+**The cost that stays under `reorder` is Motion's `Reorder`.** `Reorder.Group` gives its items a new context value in each render, so each `Reorder.Item` renders again, and a memo cannot stop it. Each item can be dragged, so Motion also measures each item again in each render. The grip of each item adds about 2.4 ms at 128 rules. At 32 rules the edit costs 3.5 ms, well inside one frame. To remove this cost, the builder must move to dnd-kit, which the `modules/query` boundary keeps out, or each rule must read its node from a store, so that an edit does not render the group.
 
 ## PDF viewer
 
