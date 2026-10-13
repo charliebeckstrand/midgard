@@ -1,4 +1,5 @@
 import type { KeyboardEvent } from 'react'
+import { crossAxisDelta, nextIndexForKey } from '../../utilities/keyboard-navigation'
 import { treeMoveForKey } from '../tree/tree-keyboard'
 import type { FlatNode } from './json-tree-utilities'
 
@@ -51,4 +52,28 @@ export function flatTreeMoveTarget(
 	}
 
 	return null
+}
+
+/**
+ * The flat index that a key reaches when focus is parked on the container of a windowed
+ * tree. Focus parks there when the focused row scrolls out of the window, and `stored`
+ * is the flat index of that row. A vertical arrow, Home and End move from the stored row
+ * over the `focusable` rows. A horizontal arrow returns to the stored row.
+ *
+ * @returns Null for a key that does not navigate, or for a tree with no focusable row.
+ * @internal
+ */
+export function parkedTarget(
+	key: string,
+	stored: number,
+	focusable: readonly number[],
+): number | null {
+	// Both horizontal arrows return to the stored row, so the reading direction has no effect.
+	if (crossAxisDelta(key, 'vertical') !== null) return stored
+
+	const next = nextIndexForKey(key, focusable.indexOf(stored), focusable.length, {
+		orientation: 'vertical',
+	})
+
+	return next === null ? null : (focusable[next] ?? null)
 }
