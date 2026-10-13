@@ -14,7 +14,7 @@ import { cn } from '../../core'
 import { useVirtualWindow } from '../../hooks'
 import { k } from '../../recipes/kata/json-tree'
 import { nextIndexForKey } from '../../utilities'
-import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT } from './json-tree-constants'
+import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT, TREE_ITEM_SELECTOR } from './json-tree-constants'
 import {
 	flatTreeMoveTarget,
 	jsonTreeMoveForKey,
@@ -31,8 +31,6 @@ import {
 } from './json-tree-utilities'
 import type { JsonValue } from './types'
 import { useJsonTreeExpansion } from './use-json-tree-expansion'
-
-const TREE_ITEM_SELECTOR = '[role="treeitem"]'
 
 /** The stable key of a flat row. A branch has an open row and a close row on one path. */
 function rowKey(node: FlatNode): string {

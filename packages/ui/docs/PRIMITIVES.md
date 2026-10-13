@@ -51,7 +51,7 @@ import { TouchTarget } from 'ui/primitives/touch-target'
 
 | Primitive | Summary | Key exports |
 |---|---|---|
-| `reduced-motion` | The root of each library part that animates with Motion. It loads the Motion features in a chunk, and bridges reduced motion into `MotionConfig`. | `ReducedMotion` |
+| `reduced-motion` | The root of each library part that animates with Motion. It loads the Motion features in a chunk, and bridges reduced motion into `MotionConfig`. An HTML `m` element of `reduced-motion-elements` is `inert` while it exits under `AnimatePresence`. | `ReducedMotion` |
 | `touch-target` | Floors the hit target to WCAG pointer minimums (24px fine / 44px coarse) with no change to the layout. A container of small hosts sets `--touch-target-gap-x` or `--touch-target-gap-y` to its gap. | `TouchTarget` |
 
 ---

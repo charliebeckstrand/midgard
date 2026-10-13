@@ -563,6 +563,169 @@ describe('useA11yRoving: manageTabIndex', () => {
 	})
 })
 
+describe('useA11yRoving: inert items', () => {
+	// An exiting group stays in the DOM until its animation ends, with `inert`
+	// on it. A key must not move to a row in it, because the row then unmounts.
+	// jsdom does not apply `inert`, so these cases read the attribute only.
+	/** Options labeled `labels`, each index in `inert` inside an inert group of its own. */
+	function makeOptions(labels: string[], inert: readonly number[] = []) {
+		const container = makeLabeledContainer(labels)
+
+		const options = Array.from(container.querySelectorAll('button'))
+
+		for (const index of inert) {
+			const option = options[index]
+
+			if (!option) continue
+
+			const group = document.createElement('div')
+
+			group.setAttribute('inert', '')
+
+			option.replaceWith(group)
+
+			group.append(option)
+		}
+
+		return { container, options }
+	}
+
+	/** Moves `container` into an inert layer, as a closing popup or a not-ready reveal holds it. */
+	function underInertLayer(container: HTMLElement) {
+		const layer = attach(document.createElement('div'))
+
+		layer.setAttribute('inert', '')
+
+		layer.append(container)
+	}
+
+	it('moves ArrowDown past the items under an inert ancestor', () => {
+		const { container, options } = makeOptions(['0', '1', '2', '3'], [1, 2])
+
+		options[0]?.focus()
+
+		renderRoving(container).current(makeKeyEvent('ArrowDown'))
+
+		expect(document.activeElement).toBe(options[3])
+	})
+
+	it('moves End to the last item that is not under an inert ancestor', () => {
+		const { container, options } = makeOptions(['0', '1', '2', '3'], [2, 3])
+
+		options[0]?.focus()
+
+		renderRoving(container).current(makeKeyEvent('End'))
+
+		expect(document.activeElement).toBe(options[1])
+	})
+
+	it('matches type-ahead past the items under an inert ancestor', () => {
+		const { container, options } = makeOptions(['Apple', 'Banana', 'Blueberry'], [1])
+
+		options[0]?.focus()
+
+		renderRoving(container, { typeahead: true }).current(makeKeyEvent('b'))
+
+		expect(document.activeElement).toBe(options[2])
+	})
+
+	it('steps Tab past the items under an inert ancestor', () => {
+		const { container, options } = makeOptions(['0', '1', '2'], [1])
+
+		options[0]?.focus()
+
+		renderRoving(container, { trapTab: true }).current(makeKeyEvent('Tab'))
+
+		expect(document.activeElement).toBe(options[2])
+	})
+
+	it('does not click an active item under an inert ancestor in virtual mode', () => {
+		const { container, options } = makeOptions(['0', '1', '2'], [1])
+
+		options[1]?.setAttribute('data-active', '')
+
+		const clickSpy = vi.fn()
+
+		options[1]?.addEventListener('click', clickSpy)
+
+		const event = makeKeyEvent('Enter')
+
+		renderRoving(container, { mode: 'virtual' }).current(event)
+
+		expect(clickSpy).not.toHaveBeenCalled()
+	})
+
+	it('makes each key a no-op in virtual mode when the container is under an inert ancestor', () => {
+		// A closing popup keeps its rows for the exit, while focus stays on the
+		// owner outside the popup.
+		const { container, options } = makeOptions(['0', '1', '2'])
+
+		underInertLayer(container)
+
+		options[1]?.setAttribute('data-active', '')
+
+		const clickSpy = vi.fn()
+
+		options[1]?.addEventListener('click', clickSpy)
+
+		const result = renderRoving(container, { mode: 'virtual' })
+
+		const enter = makeKeyEvent('Enter')
+
+		result.current(enter)
+
+		expect(clickSpy).not.toHaveBeenCalled()
+
+		expect(enter.preventDefault).not.toHaveBeenCalled()
+
+		result.current(makeKeyEvent('ArrowDown'))
+
+		expect(options[1]).toHaveAttribute('data-active')
+
+		expect(options[2]).not.toHaveAttribute('data-active')
+	})
+
+	it('makes Enter a no-op for an indexed source when the container is under an inert ancestor', () => {
+		const { container, options } = makeOptions(['0', '1'])
+
+		options.forEach((option, index) => {
+			option.id = `inert-opt-${index}`
+		})
+
+		underInertLayer(container)
+
+		const clickSpy = vi.fn()
+
+		options[1]?.addEventListener('click', clickSpy)
+
+		const source: VirtualItemSource = {
+			count: 2,
+			getKey: (index) => `inert-opt-${index}`,
+			scrollToIndex: vi.fn(),
+		}
+
+		renderRoving(container, {
+			mode: 'virtual',
+			itemSource: { current: source },
+			activeIndexRef: { current: 1 },
+		}).current(makeKeyEvent('Enter'))
+
+		expect(clickSpy).not.toHaveBeenCalled()
+	})
+
+	it('seats the resting stop when the container mounts under an inert ancestor', () => {
+		// A widget can mount inside an inert layer, such as a ReadyReveal that is
+		// not ready. Its Tab stop must be in place when the layer goes live.
+		const { container, options } = makeOptions(['0', '1', '2'])
+
+		underInertLayer(container)
+
+		renderRoving(container, { manageTabIndex: true })
+
+		expect(options.map((option) => option.tabIndex)).toEqual([0, -1, -1])
+	})
+})
+
 describe('useA11yRoving: row actions', () => {
 	const ROW = {
 		rowSelector: '[data-slot="row"]',

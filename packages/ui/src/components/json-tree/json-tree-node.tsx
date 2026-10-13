@@ -1,7 +1,7 @@
 'use client'
 
-import { AnimatePresence, useIsPresent } from 'motion/react'
-import { memo, type ReactNode, useId, useMemo, useState } from 'react'
+import { AnimatePresence } from 'motion/react'
+import { memo, useId, useMemo, useState } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useKeyedValue } from '../../hooks/use-keyed-store'
 import { ReducedMotion } from '../../primitives/reduced-motion'
@@ -219,52 +219,27 @@ function JsonTreeNodeView({ keyName, value }: JsonNodeProps) {
 			<ReducedMotion>
 				<AnimatePresence initial={false}>
 					{open && (
-						<JsonTreeGroup id={groupId} isArray={isArray}>
-							<JsonTreeContext value={childContextValue}>
-								{visibleEntries.map(([childKey, childValue]) => (
-									<JsonTreeNode key={String(childKey)} keyName={childKey} value={childValue} />
-								))}
-							</JsonTreeContext>
-						</JsonTreeGroup>
+						<m.div
+							id={groupId}
+							role="group"
+							data-slot="json-group"
+							// No clip of its own: the motion clips the group only while its height
+							// moves.
+							{...k.motion}
+						>
+							{/* The children are one depth in, and the close bracket aligns with the header. */}
+							<div className={cn(k.indent)}>
+								<JsonTreeContext value={childContextValue}>
+									{visibleEntries.map(([childKey, childValue]) => (
+										<JsonTreeNode key={String(childKey)} keyName={childKey} value={childValue} />
+									))}
+								</JsonTreeContext>
+							</div>
+							<JsonTreeBranchClose isArray={isArray} />
+						</m.div>
 					)}
 				</AnimatePresence>
 			</ReducedMotion>
 		</div>
-	)
-}
-
-/** Props for {@link JsonTreeGroup}. @internal */
-type JsonTreeGroupProps = {
-	id: string
-	isArray: boolean
-	children: ReactNode
-}
-
-/**
- * The child group of an open branch. It is the direct child of the
- * `AnimatePresence` of the branch, so it reads the presence of the group.
- * While the group exits, it has `data-exiting`, and `ROVING_ITEM_SELECTOR`
- * then skips its rows. `useIsPresent` does not hold the removal, unlike
- * `usePresence`.
- *
- * @internal
- */
-function JsonTreeGroup({ id, isArray, children }: JsonTreeGroupProps) {
-	const present = useIsPresent()
-
-	return (
-		<m.div
-			id={id}
-			role="group"
-			data-slot="json-group"
-			data-exiting={dataAttr(!present)}
-			// No clip of its own: the motion clips the group only while its height
-			// moves.
-			{...k.motion}
-		>
-			{/* The children are one depth in, and the close bracket aligns with the header. */}
-			<div className={cn(k.indent)}>{children}</div>
-			<JsonTreeBranchClose isArray={isArray} />
-		</m.div>
 	)
 }
