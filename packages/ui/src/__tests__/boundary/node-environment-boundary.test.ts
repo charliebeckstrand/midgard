@@ -71,8 +71,8 @@ describe('node environment boundary', () => {
 
 	it('no file that declares the node environment reads the DOM', () => {
 		const violations = all
-			.filter((v) => v.environment === 'node' && v.domTokens.length)
-			.map((v) => `${v.file} → ${v.domTokens.join(', ')}`)
+			.filter((verdict) => verdict.environment === 'node' && verdict.domTokens.length)
+			.map((verdict) => `${verdict.file} → ${verdict.domTokens.join(', ')}`)
 
 		expect(
 			violations,
@@ -82,8 +82,8 @@ describe('node environment boundary', () => {
 
 	it('every file that reads no DOM declares its environment', () => {
 		const violations = all
-			.filter((v) => v.domTokens.length === 0 && v.environment === undefined)
-			.map((v) => v.file)
+			.filter((verdict) => verdict.domTokens.length === 0 && verdict.environment === undefined)
+			.map((verdict) => verdict.file)
 
 		expect(
 			violations,

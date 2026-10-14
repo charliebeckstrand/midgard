@@ -330,21 +330,22 @@ describe('resolveLayout', () => {
 
 		expect(byId(resolveLayout([a, c, b], demands, 12))).toEqual(expected)
 
-		// The clamp puts d and e on columns 18 to 23. The entry that reads first keeps that place.
-		const d = { id: 'd', x: 30, y: 0, w: 6, h: 10 }
+		// The clamp puts both tiles on columns 18 to 23. The west tile reads first and keeps that
+		// place, although its id sorts after the id of the east tile.
+		const west = { id: 'west', x: 28, y: 0, w: 6, h: 10 }
 
-		const e = { id: 'e', x: 28, y: 0, w: 6, h: 10 }
+		const east = { id: 'east', x: 30, y: 0, w: 6, h: 10 }
 
 		const edges = new Map([
-			['d', {}],
-			['e', {}],
+			['west', {}],
+			['east', {}],
 		])
 
-		const clamped = [cell('d', 0, 10, 6, 10), cell('e', 18, 0, 6, 10)]
+		const clamped = [cell('east', 0, 10, 6, 10), cell('west', 18, 0, 6, 10)]
 
-		expect(byId(resolveLayout([d, e], edges, 24))).toEqual(clamped)
+		expect(byId(resolveLayout([west, east], edges, 24))).toEqual(clamped)
 
-		expect(byId(resolveLayout([e, d], edges, 24))).toEqual(clamped)
+		expect(byId(resolveLayout([east, west], edges, 24))).toEqual(clamped)
 	})
 
 	it('compares geometry id by id', () => {

@@ -27,7 +27,7 @@ const cases: Case[] = [
 			<Combobox
 				aria-label="Stage"
 				defaultValue={value}
-				displayValue={(v: string) => v}
+				displayValue={(selected: string) => selected}
 				truncateTooltip={truncateTooltip}
 			>
 				<ComboboxOption value={value}>
@@ -43,7 +43,7 @@ const cases: Case[] = [
 			<Listbox
 				aria-label="Stage"
 				defaultValue={value}
-				displayValue={(v: string) => v}
+				displayValue={(selected: string) => selected}
 				truncateTooltip={truncateTooltip}
 			>
 				<ListboxOption value={value}>
@@ -59,7 +59,7 @@ const cases: Case[] = [
 			<Select
 				aria-label="Stage"
 				defaultValue={value}
-				displayValue={(v: string) => v}
+				displayValue={(selected: string) => selected}
 				truncateTooltip={truncateTooltip}
 			>
 				<SelectOption value={value}>

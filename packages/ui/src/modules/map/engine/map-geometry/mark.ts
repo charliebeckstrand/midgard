@@ -408,10 +408,10 @@ export function areaReach(rings: readonly MapAreaRing[]): number {
 
 		let perimeter = 0
 
-		for (let index = 0, previous = points.length - 1; index < points.length; previous = index++) {
+		for (let index = 0, prev = points.length - 1; index < points.length; prev = index++) {
 			const to = points[index]
 
-			const from = points[previous]
+			const from = points[prev]
 
 			if (to === undefined || from === undefined) continue
 

@@ -1,6 +1,6 @@
 # Density off the Hot Path — Design Plan — 2026-10-13
 
-**Decision.** Each density scope sets inherited custom properties that hold its step, and each stepped class becomes one rule whose value is a `calc()` of them. The rungs, the depth layers, and `maxDepth` go. The syntax of a stepped class (`density-p-[1,2,3,4,5]`) does not change. The step variants (`density-sm:`, `density-[xs,sm]:`) go in step 3. The emitted form sits behind one seam in the plugin, so a later move to `if()` changes the plugin alone.
+**Decision.** Each density scope sets inherited custom properties that hold its step, and each stepped class becomes one rule whose value is a `calc()` of them. The rungs, the depth layers, and `MAX_DEPTH` go. The syntax of a stepped class (`density-p-[1,2,3,4,5]`) does not change. The step variants (`density-sm:`, `density-[xs,sm]:`) go in step 3. The emitted form sits behind one seam in the plugin, so a later move to `if()` changes the plugin alone.
 
 The plan crosses `ui`, the docs, and the three apps, and step 3 removes public variants of `ui/tailwind.css`. Under CLAUDE.md §3.1 it needs assent before any step lands.
 
@@ -52,7 +52,7 @@ Five designs were judged on correctness, performance, and migration. A and B wer
 | **B. Registered index.** `@property --d { syntax: '<integer>'; inherits: true }` and a host copy. Each value is a hinge `a + b·d + Σ c·max(0, d − k)`. | Runner-up. Load numbers tie with A. It is 9 KB smaller raw (0.2 KB br), and it restyles a root density switch 2.4× faster on a synthetic page. A registered `--d` interpolates when a transition names it. The seam keeps it possible. |
 | **E. Token toggles** (space toggles: the held step is `initial`, the others empty, and values select by `var()` fallback). | Third, though the judges scored it highest on average. The same bytes as A, and keyword values too. Its slot rule depends on what an invalid custom property computes to, and an older reading of the spec inherits the parent's value there, which breaks the slot. A failure leaves a property unset, not `md`. |
 | **C. Modern CSS**: `@scope` with proximity, container style queries, `if()`, `@function`, `inherit()`. | The end state, not now. Above the floor: `@scope` Firefox 146 and Safari 26.4 (17.4 ships it; 26.0–26.3 drop rules on `input` and `textarea`); style queries Firefox 151 and Safari 18; `if()` Chrome 137 only; `inherit()` unshipped. Under the floor the fallback keeps all its cost, so progressive enhancement saves nothing. A style query reads an ancestor, so it is wrong for a self scope. |
-| **D. Render time**: React context writes the stepped class. Hybrids of root rules and per-scope classes. A build step that rewrites the rungs. | Rejected. The prerendered shell serves each user, and the root step lives in `localStorage`, so a JS step paints `md` and jumps after hydration (the contract of #1539: no number in JS picks what the shell paints). About 28 server components write `data-density` with no context. The hybrid kept the rungs and `maxDepth` and measured 537 KB. |
+| **D. Render time**: React context writes the stepped class. Hybrids of root rules and per-scope classes. A build step that rewrites the rungs. | Rejected. The prerendered shell serves each user, and the root step lives in `localStorage`, so a JS step paints `md` and jumps after hydration (the contract of #1539: no number in JS picks what the shell paints). About 28 server components write `data-density` with no context. The hybrid kept the rungs and `MAX_DEPTH` and measured 537 KB. |
 
 ### The rungs.ts objection
 
@@ -124,7 +124,7 @@ A matches the stripped build on recalc, and A and B match it on matching. B's re
 ### Correctness
 
 - **Whole docs app, computed style.** Each element and its `::before` and `::after`, each property but custom properties and animations, on each of 152 pages, in light `md` at 390 px, dark root `sm` at 390 px, and light root `lg` at 1280 px: about 129,000 element states for each config, for A and for B. Result: 0 unexplained diffs. Each flagged row reran clean or came from main's own noise: a late toast region, running chart animations, React `useId` in `url(#…)`, and `/modules/grid/virtualization`, where main against main differs.
-- **Contract probes.** 274 synthetic cases against a copy of `scopeStepOf`: root swaps at run time, depth 3 to 5, slot in slot under each host, `xs` and `xl` slots, explicit size in a slot, consumer override of each converted form, `::before` and `::-webkit-slider-thumb` at each step and in slots, capture semantics, 3-value lists, R12, `density-any`, hover, focus, autofill, the `2xl` safelist at 1536 px, bad values, and transitions. A and B match the oracle or main on all 274; B's 4 rows with an explicit `transition: --d` interpolate. Main fails beyond `maxDepth` and on `full` in a radius ramp.
+- **Contract probes.** 274 synthetic cases against a copy of `scopeStepOf`: root swaps at run time, depth 3 to 5, slot in slot under each host, `xs` and `xl` slots, explicit size in a slot, consumer override of each converted form, `::before` and `::-webkit-slider-thumb` at each step and in slots, capture semantics, 3-value lists, R12, `density-any`, hover, focus, autofill, the `2xl` safelist at 1536 px, bad values, and transitions. A and B match the oracle or main on all 274; B's 4 rows with an explicit `transition: --d` interpolate. Main fails beyond `MAX_DEPTH` and on `full` in a radius ramp.
 - **Refutation pass.** 59,925 class × scope states against main within depth 2, again at a 13.37 px root font size, and B with its `@property` rules stripped: 0 diffs each time.
 - **Repo gates on the prototype.** Biome, `check-types`, `test:workspace`, and `test:docs-build` (166 tests: bundle budget, axe, hydration) pass. 23 unit tests in 7 files fail, `density-utilities.test.ts` fails at import, the browser project fails 3 tests in `query-density.test.tsx`, and Knip flags `stepsOfList`, so `pnpm check` is red. Each failure asserts the old shape or the old syntax; step 2 lists the rewrites. No regression in behavior.
 - **Not verified.** Only Chromium ran. Firefox and WebKit (`::-moz-range-*`, `calc(var() * n)` in `border-radius`, `gap`, and `font-size`) run in step 1 on current engines. The floor engines (Chrome 111, Firefox 128, Safari 16.4) stay asserted from the specs: no step runs them. The parity harness opens no overlay and forces no state, so the contract suite covers those cases.
@@ -168,7 +168,7 @@ Each step is one pull request on the step before it. Each runs `pnpm check`, the
 - Gate: parity 0 diffs; contract suite green.
 
 **3. Retire the rungs.** It removes public variants of `ui/tailwind.css`. No variant replaces them for a keyword (Keyword steps).
-- Delete `rungs.ts`, the step variants, the list variant and `stepsOfList`, `maxDepth`, the page-smoke depth gate, and `core/density-rungs.test.ts`. Rename `density-0` to `density`.
+- Delete `rungs.ts`, the step variants, the list variant and `stepsOfList`, `MAX_DEPTH`, the page-smoke depth gate, and `core/density-rungs.test.ts`. Rename `density-0` to `density`.
 - Update `REFERENCE.md` (Density, and drop the `density-sm:shadow-sm` example), `docs/CORE.md`, `docs/RECIPES.md`, `docs/LAYOUTS.md`, the TSDoc of `steps.ts`, `variants.ts`, and `utilities.ts`, and `__tests__/helpers/density-step.ts` (CLAUDE.md §3.4).
 - Gate: parity 0 diffs; the restyle bench and `docs:bench` recorded in the pull request.
 
@@ -178,7 +178,7 @@ Each step is one pull request on the step before it. Each runs `pnpm check`, the
 
 Once the variants go, nothing steps a keyword (`density-sm:shadow-sm` in `REFERENCE.md` today). No source in the repository uses a step variant for a keyword. A consumer adds a stepped entry to `utility-table.ts` for a numeric value, or reads the step in JS with `useDensityStep`, which paints `md` before hydration. `if()` in each floor engine makes keywords stepped values with no variant (Future).
 
-Rejected: keeping the rung variants as an opt-in escape hatch (it keeps `rungs.ts`, `maxDepth`, and the layer-order rules, and a used variant brings back the rung cost), and keeping them until the floor ships style queries (a query reads an ancestor, so a self scope still needs another form).
+Rejected: keeping the rung variants as an opt-in escape hatch (it keeps `rungs.ts`, `MAX_DEPTH`, and the layer-order rules, and a used variant brings back the rung cost), and keeping them until the floor ships style queries (a query reads an ancestor, so a self scope still needs another form).
 
 ## Future
 
@@ -199,7 +199,7 @@ The seam is the migration path. Each trigger is a floor change in `.browserslist
 ## Rejected
 
 - **A build step that expands a leading `:is()`.** An earlier experiment expanded 241 selectors, with gains within noise, because the hot forms put the `:is()` outside the leftmost compound, where expansion is not equivalent.
-- **Lowering `maxDepth` again.** The bytes grow with the square of depth, but the docs nest two deep, and the matching cost stays.
+- **Lowering `MAX_DEPTH` again.** The bytes grow with the square of depth, but the docs nest two deep, and the matching cost stays.
 - **Space toggles (E) as the default.** The same bytes as A, a floor risk in how an invalid custom property computes, and an unset fail mode.
 - **Render-time resolution and its hybrids (D).** See Candidates.
 - **Progressive enhancement with `@scope` or style queries now.** The fallback carries the full cost under the floor.

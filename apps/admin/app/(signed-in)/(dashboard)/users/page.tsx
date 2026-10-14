@@ -14,9 +14,9 @@ import { UsersClient, UsersLoading } from './client'
  * @internal
  */
 async function Users() {
-	const data = await requireGateway('/api/users', () => bifrost.GET('/api/users'))
+	const body = await requireGateway('/api/users', () => bifrost.GET('/api/users'))
 
-	return <UsersClient users={seed(data?.data ?? [])} />
+	return <UsersClient users={seed(body?.data ?? [])} />
 }
 
 /**

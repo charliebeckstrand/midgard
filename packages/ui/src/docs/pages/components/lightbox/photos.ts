@@ -17,10 +17,10 @@ function ridge(width: number, height: number, crest: number, phase: number) {
 
 	const step = width / 4
 
-	const points = [0, 1, 2, 3, 4].map((i) => {
-		const lift = Math.sin(i * 1.7 + phase) * height * 0.06
+	const points = [0, 1, 2, 3, 4].map((index) => {
+		const lift = Math.sin(index * 1.7 + phase) * height * 0.06
 
-		return `${i * step},${(y + lift).toFixed(1)}`
+		return `${index * step},${(y + lift).toFixed(1)}`
 	})
 
 	return `M0,${height} L${points.join(' L')} L${width},${height} Z`

@@ -28,7 +28,7 @@ type GridDataCellProps<T> = {
 	rowIndex: number
 	/** The owning row's key, carried so cell roving can build the {@link GridCellClickContext}. */
 	rowKey: string | number
-	colIndex: number | undefined
+	ariaColIndex: number | undefined
 	/** 0-based visible column index, matching the header's, so a reorder drag keys the body shift the same way. */
 	columnIndex: number
 	reorderable: boolean
@@ -54,7 +54,7 @@ function GridDataCellImpl<T>({
 	row,
 	rowIndex,
 	rowKey,
-	colIndex,
+	ariaColIndex,
 	columnIndex,
 	reorderable,
 	truncate,
@@ -62,7 +62,7 @@ function GridDataCellImpl<T>({
 	cellRoving = false,
 	cellActivate,
 }: GridDataCellProps<T>) {
-	const cellExtra = cellPropsAt(col, row, rowIndex)
+	const cellProps = cellPropsAt(col, row, rowIndex)
 
 	// Cell-mode roving: the focus ring plus the marker/activation attributes,
 	// applied to whichever `<td>` this cell renders (reorder-aware or plain).
@@ -72,7 +72,7 @@ function GridDataCellImpl<T>({
 		col,
 		row,
 		rowKey,
-		keyDown: cellExtra?.onKeyDown,
+		keyDown: cellProps?.onKeyDown,
 	})
 
 	const rovingClass = cellRoving ? k.cell.rovable : undefined
@@ -84,9 +84,9 @@ function GridDataCellImpl<T>({
 			<GridReorderableCell
 				id={col.id}
 				columnIndex={columnIndex}
-				colIndex={colIndex}
+				ariaColIndex={ariaColIndex}
 				className={cn(rovingClass, col.className)}
-				cellProps={roving ? { ...cellExtra, ...roving } : cellExtra}
+				cellProps={roving ? { ...cellProps, ...roving } : cellProps}
 			>
 				{content}
 			</GridReorderableCell>
@@ -99,12 +99,12 @@ function GridDataCellImpl<T>({
 
 	return (
 		<TableCell
-			aria-colindex={colIndex}
-			{...cellExtra}
+			aria-colindex={ariaColIndex}
+			{...cellProps}
 			{...roving}
 			data-grid-col={col.id}
-			className={cn(rovingClass, pinned.className, cellExtra?.className)}
-			style={{ ...cellExtra?.style, ...pinned.style }}
+			className={cn(rovingClass, pinned.className, cellProps?.className)}
+			style={{ ...cellProps?.style, ...pinned.style }}
 			data-grid-pin={pinned.pin}
 		>
 			{content}
@@ -125,7 +125,7 @@ type GridReorderableCellProps = {
 	id: string | number
 	/** 0-based visible column index keying the CSS-variable shift its header writes. */
 	columnIndex: number
-	colIndex: number | undefined
+	ariaColIndex: number | undefined
 	className: string | undefined
 	cellProps: Omit<ComponentProps<'td'>, 'children'> | undefined
 	children: ReactNode
@@ -147,7 +147,7 @@ type GridReorderableCellProps = {
 function GridReorderableCell({
 	id,
 	columnIndex,
-	colIndex,
+	ariaColIndex,
 	className,
 	cellProps,
 	children,
@@ -156,7 +156,7 @@ function GridReorderableCell({
 
 	return (
 		<TableCell
-			aria-colindex={colIndex}
+			aria-colindex={ariaColIndex}
 			{...cellProps}
 			data-dragging={dataAttr(dragging)}
 			data-grid-col={id}

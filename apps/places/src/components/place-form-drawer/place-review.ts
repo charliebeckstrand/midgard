@@ -102,12 +102,12 @@ export function toggleList(edit: ReviewEdit, kind: ReviewList): ReviewEdit {
 
 	const lines = value.slice(from, to).split('\n')
 
-	const remove = lines.every((line) => PREFIX[kind].test(line))
+	const shouldRemove = lines.every((line) => PREFIX[kind].test(line))
 
 	const changed = lines.map((line, index) => {
 		const text = line.replace(LIST_PREFIX, '')
 
-		if (remove) return text
+		if (shouldRemove) return text
 
 		return `${kind === 'bulleted' ? '- ' : `${index + 1}. `}${text}`
 	})

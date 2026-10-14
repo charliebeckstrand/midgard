@@ -69,7 +69,7 @@ export function RegisterPage({ turnstileSiteKey }: RegisterPageProps) {
 
 			setTurnstileToken(null)
 
-			setAttempt((n) => n + 1)
+			setAttempt((prev) => prev + 1)
 
 			setServerError(
 				error?.message || 'Registration failed. Please check your details and try again.',
@@ -77,7 +77,7 @@ export function RegisterPage({ turnstileSiteKey }: RegisterPageProps) {
 		} catch {
 			setTurnstileToken(null)
 
-			setAttempt((n) => n + 1)
+			setAttempt((prev) => prev + 1)
 
 			setServerError(unexpectedError)
 		}

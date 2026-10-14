@@ -134,7 +134,7 @@ export function FileUploadInput(props: FileUploadInputProps) {
 				</>
 			) : (
 				<InputFrame
-					inputEl={field}
+					input={field}
 					prefix={undefined}
 					suffix={
 						hasFiles ? (

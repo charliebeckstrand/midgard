@@ -34,7 +34,7 @@
  *
  * A scope element with a step is its own nearest scope, so its rung reads no
  * depth. It is in the layer of the deepest depth. When the element is not
- * deeper than `maxDepth`, no rung of a scope above it is in that layer.
+ * deeper than `MAX_DEPTH`, no rung of a scope above it is in that layer.
  *
  * Each rung of a depth names the class once, and the scopes that it reads
  * are in `:where()`. So each rung of a depth has the specificity of its class
@@ -79,7 +79,7 @@ export type CssInJs = { [key: string]: string | CssInJs }
  * one scope deep and the docs site two. The smoke test of the docs pages
  * (`page-smoke.test.tsx`) fails when a page nests deeper.
  */
-export const maxDepth = 2
+export const MAX_DEPTH = 2
 
 /** A density scope under the root: an explicit scope or a control slot. */
 const scope = '[data-density]'
@@ -171,12 +171,12 @@ export function rungs(steps: readonly DensityStep[], body: CssInJs): CssInJs {
 
 	const layers: CssInJs = { '@layer density-0': rootRungs(steps, body) }
 
-	for (let depth = 1; depth <= maxDepth; depth++) {
+	for (let depth = 1; depth <= MAX_DEPTH; depth++) {
 		const selectors = [`${scope}:where(${scopesAt(depth, steps, hosts).join(', ')}) &`]
 
 		if (hosts.length > 0) selectors.push(`:where(${hostAt(depth, hosts)}) &${slot}`)
 
-		if (depth === maxDepth) selectors.push(`&${stepIn(steps)}`)
+		if (depth === MAX_DEPTH) selectors.push(`&${stepIn(steps)}`)
 
 		layers[`@layer density-${depth}`] = { [selectors.join(', ')]: body }
 	}

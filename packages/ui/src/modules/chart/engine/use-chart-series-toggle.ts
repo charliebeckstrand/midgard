@@ -51,7 +51,7 @@ function useKeyedToggle(keys: readonly string[]): ChartToggleSet {
 		(index: number) => {
 			const key = occurrences[index]
 
-			if (key !== undefined) setHiddenKeys((current) => toggleItem(current, key))
+			if (key !== undefined) setHiddenKeys((prev) => toggleItem(prev, key))
 		},
 		[occurrences],
 	)

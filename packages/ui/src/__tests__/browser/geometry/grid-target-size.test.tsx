@@ -28,18 +28,18 @@ describe('grid target size (real browser)', () => {
 	const getKey = (row: Row) => row.id
 
 	/** Whether the control's hit area reaches 2px past its glyph box on the three open sides. */
-	const expandsHitArea = (el: HTMLElement) => {
-		const r = el.getBoundingClientRect()
+	const expandsHitArea = (control: HTMLElement) => {
+		const box = control.getBoundingClientRect()
 
-		const { x: cx, y: cy } = centerOf(r)
+		const { x: cx, y: cy } = centerOf(box)
 
 		const hits = (x: number, y: number) => {
 			const at = document.elementFromPoint(x, y)
 
-			return at === el || el.contains(at)
+			return at === control || control.contains(at)
 		}
 
-		return hits(cx, r.top - 2) && hits(cx, r.bottom + 2) && hits(r.right + 2, cy)
+		return hits(cx, box.top - 2) && hits(cx, box.bottom + 2) && hits(box.right + 2, cy)
 	}
 
 	it('expands the pinned unpin button hit area beyond its glyph', async () => {

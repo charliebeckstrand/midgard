@@ -50,12 +50,12 @@ export type CurrentContentProps = Omit<
  * in the same pass that would otherwise have unmounted the panel.
  */
 function useExitHold(current: boolean, hold: boolean): [boolean, () => void] {
-	const [previousCurrent, setPreviousCurrent] = useState(current)
+	const [prevCurrent, setPrevCurrent] = useState(current)
 
 	const [exiting, setExiting] = useState(false)
 
-	if (previousCurrent !== current) {
-		setPreviousCurrent(current)
+	if (prevCurrent !== current) {
+		setPrevCurrent(current)
 
 		setExiting(!current && hold)
 	}

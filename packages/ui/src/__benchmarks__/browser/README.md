@@ -227,7 +227,7 @@ Three rows are the regression sentinels. The script-only drag leaves out the lay
 
 This is the first record of [`grid-density.bench.tsx`](grid-density.bench.tsx), on `main` with the density rungs of `core/density/rungs.ts`. It is the baseline of step 0 of the density plan of 2026-10-13, and the later steps of that plan compare with it. The nearest scope is `md`, as the bare root is. Two scopes put `lg` outside `md`.
 
-The badge is a slot only where its depth is not more than `maxDepth` on `main`: in the rows of 0 and 1 scope. The root counts as no depth and the slot as one, so a slot under 2 scopes is 3 deep, and on `main` it takes the wrong step. Without the slot, the 2-scope row has one geometry at each step of the plan. The start-up check of the file logs the badge padding of each row: 5 px under 0 and 1 scope (the slot takes `sm`), and 7 px under 2 scopes (the badge takes `md`). So the rows of one scenario do not have the same geometry. Compare one row across the steps of the plan, not one row with another.
+The badge is a slot only where its depth is not more than `MAX_DEPTH` on `main`: in the rows of 0 and 1 scope. The root counts as no depth and the slot as one, so a slot under 2 scopes is 3 deep, and on `main` it takes the wrong step. Without the slot, the 2-scope row has one geometry at each step of the plan. The start-up check of the file logs the badge padding of each row: 5 px under 0 and 1 scope (the slot takes `sm`), and 7 px under 2 scopes (the badge takes `md`). So the rows of one scenario do not have the same geometry. Compare one row across the steps of the plan, not one row with another.
 
 Mean ms per iteration, in Chromium. Each value is the median of three runs. The wall column is the Vitest sample. The `Performance` columns are the means of ten runs that the file logs before the benches register.
 
@@ -832,7 +832,7 @@ A grid puts a filter menu on every column and an action menu on every row. The c
 | Rung | Before | After | Step after | Per menu |
 | --- | ---: | ---: | ---: | ---: |
 | 1 · bare buttons | 0.151 | 0.152 | — | — |
-| 2 · useMenuState only | 0.939 | 0.937 | 0.785 | 0.0157 |
+| 2 · useMenuRoot only | 0.939 | 0.937 | 0.785 | 0.0157 |
 | 3 · trigger only (no panel to build) | 3.127 | 1.768 | 0.831 | 0.0166 |
 | 4 · closed menus (the real thing) | 3.347 | 1.953 | 0.185 | 0.0037 |
 

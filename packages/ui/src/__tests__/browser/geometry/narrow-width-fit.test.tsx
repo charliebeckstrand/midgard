@@ -30,12 +30,12 @@ describe('narrow-width fit (real browser)', () => {
 				<Pagination>
 					<PaginationPrevious />
 					<PaginationList>
-						{pages.map((p) =>
-							p === 'gap' ? (
-								<PaginationGap key={p} />
+						{pages.map((page) =>
+							page === 'gap' ? (
+								<PaginationGap key={page} />
 							) : (
-								<PaginationPage key={p} current={p === 2}>
-									{p}
+								<PaginationPage key={page} current={page === 2}>
+									{page}
 								</PaginationPage>
 							),
 						)}
@@ -108,7 +108,7 @@ describe('narrow-width fit (real browser)', () => {
 
 		const { container } = renderUI(
 			<div style={{ width: 300 }}>
-				<List items={items} getKey={(i) => i.id} orientation="horizontal">
+				<List items={items} getKey={(item) => item.id} orientation="horizontal">
 					{(item) => <ListItem>{item.label}</ListItem>}
 				</List>
 			</div>,

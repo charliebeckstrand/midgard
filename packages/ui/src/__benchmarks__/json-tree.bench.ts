@@ -78,15 +78,15 @@ describe('json-tree · collectPaths', () => {
 })
 
 describe('json-tree · getEntries', () => {
-	const obj = large as { [key: string]: JsonValue }
+	const object = large as { [key: string]: JsonValue }
 
-	const arr: JsonValue[] = Object.values(obj)
+	const array: JsonValue[] = Object.values(object)
 
 	bench('object', () => {
-		getEntries(obj)
+		getEntries(object)
 	})
 
 	bench('array (same cardinality)', () => {
-		getEntries(arr)
+		getEntries(array)
 	})
 })

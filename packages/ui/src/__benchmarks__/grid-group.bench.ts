@@ -57,14 +57,14 @@ describe('grid-aggregate · aggregateColumn (per group, per column, per render)'
 	// first, so they should all land together and well above it. The gap between
 	// `count` and the rest is what parsing costs — and it is paid again for every
 	// aggregated column, since each decodes its own values.
-	for (const rows of [100, 1_000, 10_000]) {
-		const data = shipments(rows)
+	for (const count of [100, 1_000, 10_000]) {
+		const rows = shipments(count)
 
 		for (const aggFunc of AGG_FUNCS) {
 			const column = numeric(aggFunc)
 
-			bench(`${rows.toLocaleString()} rows · ${aggFunc}`, () => {
-				aggregateColumn(column, data)
+			bench(`${count.toLocaleString()} rows · ${aggFunc}`, () => {
+				aggregateColumn(column, rows)
 			})
 		}
 	}
@@ -136,7 +136,11 @@ describe('grid-row · cellValue (per cell, per render)', () => {
 
 	const field: GridColumn<Shipment> = { id: 'weight', title: 'Weight' }
 
-	const explicit: GridColumn<Shipment> = { id: 'w', title: 'Weight', value: (r) => r.weight }
+	const explicit: GridColumn<Shipment> = {
+		id: 'w',
+		title: 'Weight',
+		value: (shipment) => shipment.weight,
+	}
 
 	const hoisted = columnAccessor(field)
 
@@ -154,10 +158,10 @@ describe('grid-row · cellValue (per cell, per render)', () => {
 
 	// The whole visible window of a virtualized grid: ~20 rows × 8 columns, the
 	// per-render cell resolution a scroll frame repeats.
-	const window = shipments(20)
+	const windowRows = shipments(20)
 
 	bench('20 rows × 8 cols · one window', () => {
-		for (const windowRow of window) for (const column of COLUMNS) cellValue(column, windowRow)
+		for (const windowRow of windowRows) for (const column of COLUMNS) cellValue(column, windowRow)
 	})
 })
 
@@ -175,7 +179,7 @@ describe('grid-group · column-group compute (every render of a grouped grid)', 
 			columns: ids.slice(index * 4, index * 4 + 4),
 		}))
 
-		const collapsed = new Set(groups.filter((_, index) => index % 2 === 0).map((g) => g.id))
+		const collapsed = new Set(groups.filter((_, index) => index % 2 === 0).map((group) => group.id))
 
 		const colToGroup = groupByColumn(groups)
 

@@ -119,10 +119,10 @@ export function ExampleFrame({
 	})
 
 	// The frame stays at its start edge, and the drag moves its end edge.
-	const rtl = useIsRtl()
+	const isRtl = useIsRtl()
 
 	const resize = usePanelResize({
-		side: rtl ? 'right' : 'left',
+		side: isRtl ? 'right' : 'left',
 		open: true,
 		floorOf: frameFloor,
 		ceilingOf: frameCeiling,

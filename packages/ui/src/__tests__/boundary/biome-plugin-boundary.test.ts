@@ -33,6 +33,24 @@ type Fixture = { file: string; source: string }
 
 /** One entry for each plugin: files whose `// flag` lines it must flag, and no other line. */
 const FIXTURES: Record<string, Fixture[]> = {
+	'no-abbreviated-binding': [
+		{
+			file: 'binding.tsx',
+			source: `declare const items: string[]
+declare function use(value: unknown): void
+export const a = (e: Event) => use(e) // flag
+export const b = items.map((item, idx) => item + idx) // flag
+export function c(cb: () => void) { use(cb) } // flag
+export const d = () => { try { use(1) } catch (err) { use(err) } } // flag
+export const { res } = { res: 1 } // flag
+export type F = { onChange: (evt: Event) => void } // flag
+export const g = { e: 1, idx: 2, cb: 3 }
+export const h = (event: Event, index: number, el: Element) => use([event, index, el])
+export const { err: error } = { err: 1 }
+export const evts = [error]
+`,
+		},
+	],
 	'no-api-above-browser-floor': [
 		{
 			file: 'floor.ts',

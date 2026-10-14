@@ -45,24 +45,24 @@ type MapHoverProviderProps = {
 function createPointedStore(): MapPointedStore & {
 	publish: (next: MapHoverTarget | null, emphasis: string | null) => void
 } {
-	let current: MapHoverTarget | null = null
+	let pointed: MapHoverTarget | null = null
 
 	let focus: string | null = null
 
 	const { subscribe, emit } = createEmitter()
 
 	return {
-		get: () => current,
+		get: () => pointed,
 		emphasis: () => focus,
 		subscribe,
 		publish: (next, emphasis) => {
 			// Pinned at mark granularity: a move to another stop of the same mark
 			// keeps the held target, so it publishes nothing.
-			const mark = sameMark(current, next) ? current : next
+			const mark = sameMark(pointed, next) ? pointed : next
 
-			if (mark === current && emphasis === focus) return
+			if (mark === pointed && emphasis === focus) return
 
-			current = mark
+			pointed = mark
 
 			focus = emphasis
 

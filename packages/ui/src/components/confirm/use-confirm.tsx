@@ -118,14 +118,14 @@ export function ConfirmHost({ children }: { children: ReactNode }) {
 
 	const pending = question?.pending ?? false
 
-	const onOpenChange = useCallback(
+	const handleOpenChange = useCallback(
 		(open: boolean) => {
 			if (!open && !pending) settle()?.resolve(false)
 		},
 		[pending, settle],
 	)
 
-	const onConfirm = useCallback(() => {
+	const handleConfirm = useCallback(() => {
 		const action = question?.options.action
 
 		if (!action) {
@@ -164,8 +164,8 @@ export function ConfirmHost({ children }: { children: ReactNode }) {
 			{dialog && (
 				<dialog.Confirm
 					open={asked}
-					onOpenChange={onOpenChange}
-					onConfirm={onConfirm}
+					onOpenChange={handleOpenChange}
+					onConfirm={handleConfirm}
 					title={options?.title}
 					description={options?.description}
 					confirm={{ ...options?.confirm, pending }}

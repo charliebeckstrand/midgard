@@ -250,8 +250,9 @@ export function useDatePickerRelativeState({
 	// committed span. Either way Clear runs the same `handleClear`, so one footer
 	// bundle covers both. `footer.clear` (default on) suppresses it outright.
 	// readOnly drops it too, because the button cannot write a value.
-	const showFooterClear =
-		!field.readOnly && footer?.clear !== false && (mode === 'custom' ? customComplete : hasValue)
+	const canClear = mode === 'custom' ? customComplete : hasValue
+
+	const showFooterClear = !field.readOnly && footer?.clear !== false && canClear
 
 	const footerButtons = useMemo<FooterButton[]>(
 		() => (showFooterClear ? ['clear'] : []),
@@ -313,12 +314,12 @@ export function useDatePickerRelativeState({
 
 		event.preventDefault()
 
-		const currentIndex = cells.indexOf(event.target as HTMLElement)
+		const index = cells.indexOf(event.target as HTMLElement)
 
 		// The cells follow the reading order, so the arrows swap in RTL.
 		const key = logicalArrowKey(event.key, event.currentTarget)
 
-		cells[rovingTargetIndex(key, currentIndex, cells.length)]?.focus()
+		cells[rovingTargetIndex(key, index, cells.length)]?.focus()
 	}, [])
 
 	// Custom mode runs no virtual-highlight model: the Start/End inputs, the back
@@ -388,30 +389,29 @@ export function useDatePickerRelativeState({
 // fill two columns column-major. ArrowUp/Down step through the order and wrap.
 // ArrowLeft/Right move to the other column (see `columnTargetIndex`). Home/PageUp
 // jump to the first cell, End/PageDown to the last.
-function rovingTargetIndex(key: string, currentIndex: number, count: number): number {
+function rovingTargetIndex(key: string, index: number, count: number): number {
 	if (key === 'Home' || key === 'PageUp') return 0
 
 	if (key === 'End' || key === 'PageDown') return count - 1
 
 	const forward = key === 'ArrowRight' || key === 'ArrowDown'
 
-	if (currentIndex === -1) return forward ? 0 : count - 1
+	if (index === -1) return forward ? 0 : count - 1
 
-	if (key === 'ArrowUp' || key === 'ArrowDown')
-		return wrap(currentIndex + (forward ? 1 : -1), count)
+	if (key === 'ArrowUp' || key === 'ArrowDown') return wrap(index + (forward ? 1 : -1), count)
 
-	return columnTargetIndex(forward, currentIndex, count)
+	return columnTargetIndex(forward, index, count)
 }
 
 // Index that ArrowLeft/Right (after the RTL swap) move to: the cell on the same
 // row in the other column. When that row has no second cell, the move goes to
 // the last cell. A move toward the outer edge keeps the index.
-function columnTargetIndex(forward: boolean, currentIndex: number, count: number): number {
+function columnTargetIndex(forward: boolean, index: number, count: number): number {
 	const rows = relativeListRows(count)
 
-	const inFirstColumn = currentIndex < rows
+	const inFirstColumn = index < rows
 
-	if (forward) return inFirstColumn ? Math.min(currentIndex + rows, count - 1) : currentIndex
+	if (forward) return inFirstColumn ? Math.min(index + rows, count - 1) : index
 
-	return inFirstColumn ? currentIndex : currentIndex - rows
+	return inFirstColumn ? index : index - rows
 }

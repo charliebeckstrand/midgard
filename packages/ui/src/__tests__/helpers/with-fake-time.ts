@@ -50,7 +50,7 @@ export async function withFakeTime(run: (clock: FakeClock) => Promise<void> | vo
 	// `clock.user` interaction deadlocks against the fake clock.
 	const globalWithJest = globalThis as { jest?: { advanceTimersByTime: (ms: number) => void } }
 
-	const priorJest = globalWithJest.jest
+	const prevJest = globalWithJest.jest
 
 	globalWithJest.jest = { advanceTimersByTime: (ms) => vi.advanceTimersByTime(ms) }
 
@@ -63,10 +63,10 @@ export async function withFakeTime(run: (clock: FakeClock) => Promise<void> | vo
 
 		restored = true
 
-		if (priorJest === undefined) {
+		if (prevJest === undefined) {
 			delete globalWithJest.jest
 		} else {
-			globalWithJest.jest = priorJest
+			globalWithJest.jest = prevJest
 		}
 
 		vi.useRealTimers()

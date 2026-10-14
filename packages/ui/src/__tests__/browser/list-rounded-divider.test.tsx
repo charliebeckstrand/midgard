@@ -47,7 +47,7 @@ describe('List rounded dividers (real browser)', () => {
 	/** The first row of a rounded, interactive list: the one a divider closes. */
 	function dividedRow(variant: 'plain' | 'outline'): HTMLElement {
 		const { container } = renderUI(
-			<List items={items} variant={variant} getKey={(i) => i.id}>
+			<List items={items} variant={variant} getKey={(item) => item.id}>
 				{(item) => (
 					<ListItem rounded as="button" onClick={noop}>
 						{item.label}
@@ -95,7 +95,7 @@ describe('List rounded dividers (real browser)', () => {
 	it('paints the focus wash on the layer of a row that holds the Tab stop', () => {
 		// A reorderable row with no handler of its own takes focus on the `<li>`.
 		const { container } = renderUI(
-			<List items={items} variant="plain" getKey={(i) => i.id} sortable onReorder={noop}>
+			<List items={items} variant="plain" getKey={(item) => item.id} sortable onReorder={noop}>
 				{(item) => (
 					<ListItem rounded interactive>
 						{item.label}

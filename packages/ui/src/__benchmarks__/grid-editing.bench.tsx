@@ -108,7 +108,7 @@ describe('Grid · editable new row', () => {
  */
 function openSession(container: HTMLElement): HTMLElement[] {
 	const cells = ['reference', 'origin'].map(
-		(col) => container.querySelector(`td[data-grid-col="${col}"]`) as HTMLElement,
+		(id) => container.querySelector(`td[data-grid-col="${id}"]`) as HTMLElement,
 	)
 
 	fireEvent.doubleClick(cells[0] as HTMLElement)

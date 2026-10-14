@@ -141,6 +141,16 @@ The `no-client-gateway-access` Biome plugin gates the rule. It also keeps a runt
 
 8.3 A provider takes its name from what it holds. `<Unit>Provider` holds the full state of one unit, as `ToastProvider` does. `<Unit><Thing>Provider` registers one kind of thing for a unit, as `ChatEmbedProvider` and `DashboardWidgetProvider` do. A registry takes its props from a `<Unit><Thing>Registry` type in the `types.ts` of the unit. A provider that serves one unit stays in the directory of that unit. `ui/providers/*` holds only the providers that many unrelated components read.
 
+8.4 A binding takes a full word, as short as its meaning allows. The repository has one form for each common binding. Use `event` for an event, `error` for a caught error, and `index` for a position in a list. Use `prev` and `next` for the values before and after a change. Use `el` for an element with no more specific role, and the role name where one exists (`trigger`, `row`). Use `i` and `j` only for a plain `for` counter, and `ctx` only for a canvas or test context.
+
+A name does not repeat what its scope already says. In `use-scroll-lock.ts`, write `prevOverflow`, not `scrollLockPreviousOverflow`. Drop `resolved`, `current`, and `internal` unless a sibling binding needs the word to tell two values apart. Name a binding for what it holds: a response envelope is `body`, not the name of a field in it.
+
+A handler that fills an `onX` key by shorthand keeps the name `onX`. A handler that a prop takes by name is `handleX`, unless a name that says what it does is clearer, such as `closeOnLeave`.
+
+Split a declaration that does more than one thing into named steps. A nested ternary is one such declaration, and a condition of three or more mixed clauses is another. Keep the order of evaluation.
+
+The [`no-abbreviated-binding`](.biome/plugins/no-abbreviated-binding.grit) Biome plugin holds the clipped forms (`e`, `err`, `idx`, `cb`, and the rest of its list). Where a name follows a series or a payload key that the code does not own, suppress the diagnostic and give the reason.
+
 ## 9. Imports
 
 9.1 In apps, the `@/*` alias maps to the source root: `src` in `places` and `picks`, and `app` in `admin`. Use the alias in place of a deep relative chain, that is, three or more `../` segments.

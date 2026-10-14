@@ -28,14 +28,14 @@ export function useMapLegendRegistry(): {
 
 		if (!order.has(entry.id)) order.set(entry.id, nextOrderRef.current++)
 
-		setEntries((current) => {
-			const next = [...current.filter((existing) => existing.id !== entry.id), entry]
+		setEntries((prev) => {
+			const next = [...prev.filter((existing) => existing.id !== entry.id), entry]
 
 			return next.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0))
 		})
 
 		return () => {
-			setEntries((current) => current.filter((existing) => existing.id !== entry.id))
+			setEntries((prev) => prev.filter((existing) => existing.id !== entry.id))
 		}
 	}, [])
 

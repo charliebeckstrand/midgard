@@ -19,30 +19,28 @@ export const EMPTY_SORT: GridSortState[] = []
  * @internal
  */
 export function nextSort(
-	current: GridSortState[],
+	sort: GridSortState[],
 	column: string | number,
 	additive: boolean,
 	cycle: 'tri-state' | 'toggle' = 'tri-state',
 ): GridSortState[] {
-	const existing = current.find((entry) => entry.column === column)
+	const existing = sort.find((entry) => entry.column === column)
 
 	if (additive) {
-		if (!existing) return [...current, { column, direction: 'asc' }]
+		if (!existing) return [...sort, { column, direction: 'asc' }]
 
 		if (existing.direction === 'asc') {
-			return current.map((entry) =>
-				entry.column === column ? { column, direction: 'desc' } : entry,
-			)
+			return sort.map((entry) => (entry.column === column ? { column, direction: 'desc' } : entry))
 		}
 
-		return current.filter((entry) => entry.column !== column)
+		return sort.filter((entry) => entry.column !== column)
 	}
 
 	// Cycling applies only when this column is already the sole sort; otherwise a
 	// plain click on any other (or additional) column resets to just this one,
 	// ascending. Under 'toggle' the descending click wraps back to ascending
 	// instead of clearing to unsorted.
-	if (current.length === 1 && existing) {
+	if (sort.length === 1 && existing) {
 		if (existing.direction === 'asc') return [{ column, direction: 'desc' }]
 
 		// Descending: tri-state clears, toggle falls through to the ascending reset.
@@ -56,7 +54,7 @@ export function nextSort(
  * Value equality for two sort lists: the same columns in the same priority
  * order, each at the same direction. Compares by value, not identity. The grid
  * clears a sort to a shared `EMPTY_SORT` constant. A caller therefore can't lean
- * on reference to tell "returned to the current order" from "a fresh sort". The
+ * on reference to tell "returned to the sort order" from "a fresh sort". The
  * unsorted `[]` a cleared sort resolves to is the most visible case.
  *
  * @internal

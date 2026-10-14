@@ -53,18 +53,18 @@ export function GridGroupHead({
 	// reassignment inside a callback.
 	const startIndices: number[] = []
 
-	let colIndex = 1
+	let ariaColIndex = 1
 
 	for (const span of header.spans) {
-		startIndices.push(colIndex)
+		startIndices.push(ariaColIndex)
 
-		colIndex += span.colSpan
+		ariaColIndex += span.colSpan
 	}
 
 	return (
 		<TableRow aria-rowindex={ariaRowIndex}>
-			{header.spans.map((span, i) => {
-				const cellColIndex = gridSemantics ? startIndices[i] : undefined
+			{header.spans.map((span, index) => {
+				const cellColIndex = gridSemantics ? startIndices[index] : undefined
 
 				return (
 					<GridGroupHeadCell
@@ -73,7 +73,7 @@ export function GridGroupHead({
 						header={header}
 						pinning={pinning}
 						stickyHeader={stickyHeader}
-						colIndex={cellColIndex}
+						ariaColIndex={cellColIndex}
 					/>
 				)
 			})}
@@ -87,7 +87,7 @@ type GridGroupHeadCellProps = {
 	header: GridGroupHeader
 	pinning: GridColumnPinning | null
 	stickyHeader: boolean
-	colIndex: number | undefined
+	ariaColIndex: number | undefined
 }
 
 /** One band cell: a group band, or an empty spacer that sticks to a pinned edge. @internal */
@@ -96,7 +96,7 @@ function GridGroupHeadCell({
 	header,
 	pinning,
 	stickyHeader,
-	colIndex,
+	ariaColIndex,
 }: GridGroupHeadCellProps) {
 	// A plain filler over a pinned column sticks to its edge like the column below,
 	// so the band doesn't scroll away from a frozen column; a group band never
@@ -108,12 +108,11 @@ function GridGroupHeadCell({
 	// from the neighboring group. Colored in the group's hue, or a neutral gray
 	// when it has none (matching a colorless row group's rail), so clearing a color
 	// leaves the underline in place rather than dropping it.
-	const ruleColor =
-		span.kind === 'group'
-			? span.group.color
-				? k.rule.color[span.group.color]
-				: k.rule.neutral
-			: null
+	const group = span.kind === 'group' ? span.group : null
+
+	const hue = group?.color ? k.rule.color[group.color] : k.rule.neutral
+
+	const ruleColor = group ? hue : null
 
 	// The description of a group reaches the keyboard and a screen reader as
 	// hidden text that the band describes itself by. The tooltip over the badge
@@ -126,7 +125,7 @@ function GridGroupHeadCell({
 		<TableHeader
 			scope={span.kind === 'group' ? 'colgroup' : 'col'}
 			colSpan={span.colSpan}
-			aria-colindex={colIndex}
+			aria-colindex={ariaColIndex}
 			// A group band carries its id so a right-click on its badge resolves to the
 			// column-group context menu (Clear color / Manage columns).
 			data-group-band={dataAttr(span.kind === 'group')}

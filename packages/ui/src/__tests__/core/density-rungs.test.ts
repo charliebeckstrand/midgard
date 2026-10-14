@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { type CssInJs, maxDepth, rungs } from '../../core/density/rungs'
+import { type CssInJs, MAX_DEPTH, rungs } from '../../core/density/rungs'
 
 const body: CssInJs = { padding: '1rem' }
 
@@ -35,11 +35,11 @@ function selectorsAt(layers: CssInJs, depth: number): string[] {
 }
 
 describe('rungs', () => {
-	it('writes the root layer first, then one layer for each depth up to maxDepth', () => {
+	it('writes the root layer first, then one layer for each depth up to MAX_DEPTH', () => {
 		const layers = rungs(['md'], body)
 
 		expect(Object.keys(layers)).toEqual(
-			Array.from({ length: maxDepth + 1 }, (_, depth) => `@layer density-${depth}`),
+			Array.from({ length: MAX_DEPTH + 1 }, (_, depth) => `@layer density-${depth}`),
 		)
 	})
 
@@ -88,13 +88,13 @@ describe('rungs', () => {
 	it('writes the rung of the scope element once, in the layer of the deepest depth', () => {
 		const layers = rungs(['xl'], body)
 
-		for (let depth = 1; depth < maxDepth; depth++) {
+		for (let depth = 1; depth < MAX_DEPTH; depth++) {
 			expect(selectorsAt(layers, depth)).not.toContain("&[data-density='xl']")
 		}
 
-		expect(selectorsAt(layers, maxDepth).at(-1)).toBe("&[data-density='xl']")
+		expect(selectorsAt(layers, MAX_DEPTH).at(-1)).toBe("&[data-density='xl']")
 
-		expect(selectorsAt(rungs(['xs', 'sm'], body), maxDepth).at(-1)).toBe(
+		expect(selectorsAt(rungs(['xs', 'sm'], body), MAX_DEPTH).at(-1)).toBe(
 			"&:is([data-density='xs'], [data-density='sm'])",
 		)
 	})
@@ -103,7 +103,7 @@ describe('rungs', () => {
 	it('writes no slot rung for xl, a step that no slot takes', () => {
 		const layers = rungs(['xl'], body)
 
-		for (let depth = 1; depth <= maxDepth; depth++) {
+		for (let depth = 1; depth <= MAX_DEPTH; depth++) {
 			for (const selector of selectorsAt(layers, depth)) expect(selector).not.toContain('slot')
 		}
 	})
@@ -157,7 +157,7 @@ describe('rungs', () => {
 	it('holds the body in each rung', () => {
 		const layers = rungs(['md'], body)
 
-		for (let depth = 1; depth <= maxDepth; depth++) {
+		for (let depth = 1; depth <= MAX_DEPTH; depth++) {
 			expect(Object.values(layers[`@layer density-${depth}`] as CssInJs)).toEqual([body])
 		}
 	})

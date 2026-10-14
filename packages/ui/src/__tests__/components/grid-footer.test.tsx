@@ -19,8 +19,8 @@ describe('Grid footer', () => {
 	const getKey = (row: Row) => row.id
 
 	const columns: GridColumn<Row>[] = [
-		{ id: 'name', title: 'Name', cell: (r) => r.name, value: (r) => r.name },
-		{ id: 'role', title: 'Role', cell: (r) => r.role, value: (r) => r.role },
+		{ id: 'name', title: 'Name', cell: (row) => row.name, value: (row) => row.name },
+		{ id: 'role', title: 'Role', cell: (row) => row.role, value: (row) => row.role },
 	]
 
 	const selectColumns: GridColumn<Row>[] = [{ id: 'select', selectable: true }, ...columns]

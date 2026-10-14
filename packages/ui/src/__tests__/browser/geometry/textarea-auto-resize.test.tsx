@@ -19,7 +19,12 @@ function Controlled({ initial }: { initial: string }) {
 
 	return (
 		<>
-			<Textarea autoResize rows={3} value={value} onChange={(e) => setValue(e.target.value)} />
+			<Textarea
+				autoResize
+				rows={3}
+				value={value}
+				onChange={(event) => setValue(event.target.value)}
+			/>
 			<button type="button" onClick={() => setValue('')}>
 				Clear
 			</button>
@@ -38,46 +43,46 @@ describe('Textarea autoResize (real browser)', () => {
 	it('grows as the user types past the rows height, with no scroll', async () => {
 		const { container } = renderUI(<Textarea autoResize rows={1} />)
 
-		const el = getSlot<HTMLTextAreaElement>(container, 'textarea')
+		const textarea = getSlot<HTMLTextAreaElement>(container, 'textarea')
 
-		const start = height(el)
+		const start = height(textarea)
 
 		const user = setupUser()
 
-		await user.type(el, 'one{Enter}two{Enter}three{Enter}four')
+		await user.type(textarea, 'one{Enter}two{Enter}three{Enter}four')
 
-		expect(height(el)).toBeGreaterThan(start)
+		expect(height(textarea)).toBeGreaterThan(start)
 
-		expect(el.scrollHeight).toBe(el.clientHeight)
+		expect(textarea.scrollHeight).toBe(textarea.clientHeight)
 	})
 
 	it('shrinks back to the rows height when a controlled value clears', async () => {
 		const { container, getByRole } = renderUI(<Controlled initial={'a\nb\nc\nd\ne\nf'} />)
 
-		const el = getSlot<HTMLTextAreaElement>(container, 'textarea')
+		const textarea = getSlot<HTMLTextAreaElement>(container, 'textarea')
 
 		const { container: fixed } = renderUI(<Textarea rows={3} />)
 
 		const floor = height(getSlot(fixed, 'textarea'))
 
-		expect(height(el)).toBeGreaterThan(floor)
+		expect(height(textarea)).toBeGreaterThan(floor)
 
 		await setupUser().click(getByRole('button', { name: 'Clear' }))
 
-		expect(height(el)).toBe(floor)
+		expect(height(textarea)).toBe(floor)
 	})
 
 	it('stops at a max-height class and scrolls', async () => {
 		const { container } = renderUI(<Textarea autoResize rows={1} className="max-h-20" />)
 
-		const el = getSlot<HTMLTextAreaElement>(container, 'textarea')
+		const textarea = getSlot<HTMLTextAreaElement>(container, 'textarea')
 
 		await userEvent
 			.setup({ delay: null })
-			.type(el, 'a{Enter}b{Enter}c{Enter}d{Enter}e{Enter}f{Enter}g')
+			.type(textarea, 'a{Enter}b{Enter}c{Enter}d{Enter}e{Enter}f{Enter}g')
 
-		expect(height(el)).toBe(80)
+		expect(height(textarea)).toBe(80)
 
-		expect(el.scrollHeight).toBeGreaterThan(el.clientHeight)
+		expect(textarea.scrollHeight).toBeGreaterThan(textarea.clientHeight)
 	})
 })

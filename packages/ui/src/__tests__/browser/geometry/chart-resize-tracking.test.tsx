@@ -176,10 +176,10 @@ describe('chart resize tracking (real browser)', () => {
 		// container box instead, so it settles. Many series force the bottom legend to
 		// WRAP — the case a fixed one-row chrome estimate got wrong (it reappeared as
 		// the same loop), which measuring the container rather than estimating fixes.
-		const series = Array.from({ length: 8 }, (_, i) => ({
+		const series = Array.from({ length: 8 }, (_, index) => ({
 			xKey: 'x' as const,
 			yKey: 'y' as const,
-			yName: `Series number ${i + 1}`,
+			yName: `Series number ${index + 1}`,
 		}))
 
 		const { container } = renderUI(
@@ -197,11 +197,11 @@ describe('chart resize tracking (real browser)', () => {
 		const host = hostOf(container)
 
 		const tier = () => {
-			const el = container.querySelector<HTMLElement>('[data-slot="chart"]')
+			const root = container.querySelector<HTMLElement>('[data-slot="chart"]')
 
-			if (!el) throw new Error('no chart root')
+			if (!root) throw new Error('no chart root')
 
-			return el.getAttribute('data-tier')
+			return root.getAttribute('data-tier')
 		}
 
 		await waitFor(() => expect(tier()).not.toBeNull())
@@ -229,8 +229,8 @@ describe('chart resize tracking (real browser)', () => {
 		// the figure tree that can recreate the plot node. An observer left on the
 		// detached node would freeze the drawing at its last committed size while
 		// the box resizes on — the defect this pins out.
-		const GRID = ['a', 'b', 'c', 'd'].flatMap((col, ci) =>
-			['x', 'y', 'z'].map((row, ri) => ({ col, row, value: ci + ri })),
+		const GRID = ['a', 'b', 'c', 'd'].flatMap((col, columnIndex) =>
+			['x', 'y', 'z'].map((row, rowIndex) => ({ col, row, value: columnIndex + rowIndex })),
 		)
 
 		const { container } = renderUI(

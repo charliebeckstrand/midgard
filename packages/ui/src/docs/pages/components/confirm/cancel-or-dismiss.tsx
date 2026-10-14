@@ -26,7 +26,7 @@ export default function CancelOrDismiss() {
 				onOpenChange={(next) => {
 					setOpen(next)
 					// The Cancel button also closes the dialog. Keep its outcome.
-					if (!next) setOutcome((current) => (current === 'Canceled' ? current : 'Dismissed'))
+					if (!next) setOutcome((prev) => (prev === 'Canceled' ? prev : 'Dismissed'))
 				}}
 				onCancel={() => setOutcome('Canceled')}
 				onConfirm={() => {

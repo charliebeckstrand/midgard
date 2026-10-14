@@ -81,10 +81,10 @@ describe('grid editor width (real browser)', () => {
 		return node
 	}
 
-	const cellOf = (container: HTMLElement, col: string) =>
+	const cellOf = (container: HTMLElement, column: string) =>
 		present<HTMLElement>(
-			container.querySelector(`td[data-grid-col="${col}"]`),
-			`td[data-grid-col="${col}"]`,
+			container.querySelector(`td[data-grid-col="${column}"]`),
+			`td[data-grid-col="${column}"]`,
 		)
 
 	it('stretches an inferred editor and each editCell control to the width of the cell', async () => {
@@ -97,8 +97,8 @@ describe('grid editor width (real browser)', () => {
 			/>,
 		)
 
-		for (const col of ['name', 'role', 'due', 'budget']) {
-			const slot = await waitFor(() => getSlot(cellOf(container, col), 'grid-edit-slot'))
+		for (const column of ['name', 'role', 'due', 'budget']) {
+			const slot = await waitFor(() => getSlot(cellOf(container, column), 'grid-edit-slot'))
 
 			const host = present<HTMLElement>(slot.parentElement, 'the editor host')
 
@@ -107,10 +107,10 @@ describe('grid editor width (real browser)', () => {
 			// Row scope shows no settle pair, so the slot fills the host.
 			expect(slot.getBoundingClientRect().width).toBeCloseTo(host.getBoundingClientRect().width, 0)
 
-			expect(editor, col).toBeCloseTo(slot.getBoundingClientRect().width, 0)
+			expect(editor, column).toBeCloseTo(slot.getBoundingClientRect().width, 0)
 
 			// The cell is 320px wide, which is wider than the content of each editor.
-			expect(editor, col).toBeGreaterThan(250)
+			expect(editor, column).toBeGreaterThan(250)
 		}
 	})
 

@@ -31,7 +31,7 @@ export function useLoadThenOpen<T, M>({
 	loaded: () => boolean
 	/** More work in idle time after the load. It must keep its identity. */
 	prime?: (module: M, signal: AbortSignal) => unknown
-}): { open: T; change: (update: (current: T) => T) => void; warm: () => void } {
+}): { open: T; change: (update: (prev: T) => T) => void; warm: () => void } {
 	const [open, setOpen] = useState(initial)
 
 	const prepare = useCallback(
@@ -46,7 +46,7 @@ export function useLoadThenOpen<T, M>({
 
 	const fail = useFail()
 
-	const change = (update: (current: T) => T) => {
+	const change = (update: (prev: T) => T) => {
 		if (loaded()) setOpen(update)
 		else load().then(() => setOpen(update), fail)
 	}

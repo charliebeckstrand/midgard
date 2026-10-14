@@ -156,9 +156,9 @@ export function DialogPanel({
 	// The root holds the state. One setter drives the Overlay and the close parts.
 	const { open, setOpen, panelId } = usePanelState()
 
-	const resolvedSurface = useResolvedSurface(glass)
+	const surface = useResolvedSurface(glass)
 
-	const isGlass = resolvedSurface === 'glass'
+	const isGlass = surface === 'glass'
 
 	const isDesktop = useMinBreakpoint('sm')
 
@@ -183,7 +183,7 @@ export function DialogPanel({
 			modal={modal}
 			backdrop={backdrop}
 			container={container}
-			backdropClassName={k.backdrop({ surface: resolvedSurface })}
+			backdropClassName={k.backdrop({ surface })}
 			initialFocus={initialFocus}
 		>
 			<div
@@ -211,7 +211,7 @@ export function DialogPanel({
 					className={cn(
 						'pointer-events-auto',
 						isGlass && 'group/glass',
-						k.panel({ surface: resolvedSurface, width }),
+						k.panel({ surface, width }),
 						className,
 					)}
 				>

@@ -59,7 +59,7 @@ const QueryBuilderSeparator = memo(function QueryBuilderSeparator({
 		<div data-density="slot">
 			<Segment
 				value={combinator}
-				onValueChange={(v) => v && updateCombinator(id, v as QueryCombinator)}
+				onValueChange={(next) => next && updateCombinator(id, next as QueryCombinator)}
 			>
 				<SegmentControl aria-label="Combinator">
 					<SegmentItem value="and">AND</SegmentItem>

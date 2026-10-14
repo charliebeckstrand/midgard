@@ -99,7 +99,9 @@ export function Message({
 
 	// An unbound message takes the tone of its Field (FieldProps.severity). A
 	// form-bound message shows the errors of its field, so it stays `error`.
-	const severity = severityProp ?? (field === undefined ? control?.severity : undefined) ?? 'error'
+	const inheritedSeverity = field === undefined ? control?.severity : undefined
+
+	const severity = severityProp ?? inheritedSeverity ?? 'error'
 
 	// When form-bound, only the error severity auto-renders from the field's errors.
 	// Other severities render their children verbatim.

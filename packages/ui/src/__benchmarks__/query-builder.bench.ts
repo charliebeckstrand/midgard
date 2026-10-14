@@ -22,33 +22,33 @@ const shallowWideFirstId = shallowWide.children[0]?.id ?? ''
 
 describe('query-builder · mapNode (update root-level rule)', () => {
 	bench('shallow-wide · first child', () => {
-		mapNode(shallowWide, shallowWideFirstId, (n) => ({ ...n }))
+		mapNode(shallowWide, shallowWideFirstId, (node) => ({ ...node }))
 	})
 
 	bench('balanced · first leaf', () => {
-		mapNode(balanced, balancedIds[0] as string, (n) => ({ ...n }))
+		mapNode(balanced, balancedIds[0] as string, (node) => ({ ...node }))
 	})
 
 	bench('balanced · last leaf', () => {
-		mapNode(balanced, balancedIds[balancedIds.length - 1] as string, (n) => ({ ...n }))
+		mapNode(balanced, balancedIds[balancedIds.length - 1] as string, (node) => ({ ...node }))
 	})
 
 	bench('deep-wide · first leaf', () => {
-		mapNode(deepWide, deepWideIds[0] as string, (n) => ({ ...n }))
+		mapNode(deepWide, deepWideIds[0] as string, (node) => ({ ...node }))
 	})
 
 	bench('deep-wide · last leaf', () => {
-		mapNode(deepWide, deepWideIds[deepWideIds.length - 1] as string, (n) => ({ ...n }))
+		mapNode(deepWide, deepWideIds[deepWideIds.length - 1] as string, (node) => ({ ...node }))
 	})
 })
 
 describe('query-builder · mapNode (miss — walks entire tree)', () => {
 	bench('balanced · miss', () => {
-		mapNode(balanced, '__absent__', (n) => ({ ...n }))
+		mapNode(balanced, '__absent__', (node) => ({ ...node }))
 	})
 
 	bench('deep-wide · miss', () => {
-		mapNode(deepWide, '__absent__', (n) => ({ ...n }))
+		mapNode(deepWide, '__absent__', (node) => ({ ...node }))
 	})
 })
 
@@ -82,6 +82,6 @@ describe('query-builder · mapNode · 100 sequential updates (realistic flow)', 
 	bench('balanced', () => {
 		let tree: QueryGroup = balanced
 
-		for (const id of ids) tree = mapNode(tree, id, (n) => ({ ...n }))
+		for (const id of ids) tree = mapNode(tree, id, (node) => ({ ...node }))
 	})
 })

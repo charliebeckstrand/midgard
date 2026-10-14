@@ -22,7 +22,7 @@ export default function BatchActions() {
 							color="red"
 							variant="soft"
 							onHoldComplete={() => {
-								setRows((current) => current.filter((row) => !selection.has(row.id)))
+								setRows((prev) => prev.filter((row) => !selection.has(row.id)))
 
 								setSelection(new Set())
 							}}

@@ -43,7 +43,7 @@ export function setSecondStepDialog(open: OpenDialog | undefined): void {
 }
 
 // The check in progress, which calls at the same time share.
-let current: Promise<boolean> | undefined
+let pending: Promise<boolean> | undefined
 
 // The check does not use `fetchWithSecondStep`, because that function waits on the check.
 // The client reads the global `fetch` at each call.
@@ -80,11 +80,11 @@ async function checkSecondStep(): Promise<boolean> {
  * mounted.
  */
 export function ensureSecondStep(): Promise<boolean> {
-	current ??= checkSecondStep().finally(() => {
-		current = undefined
+	pending ??= checkSecondStep().finally(() => {
+		pending = undefined
 	})
 
-	return current
+	return pending
 }
 
 /**
@@ -97,16 +97,16 @@ export function ensureSecondStep(): Promise<boolean> {
  * step, the first response comes back.
  */
 export async function fetchWithSecondStep(request: Request): Promise<Response> {
-	const res = await fetch(request.clone())
+	const response = await fetch(request.clone())
 
-	if (res.status !== 403) return res
+	if (response.status !== 403) return response
 
-	const body = (await res
+	const body = (await response
 		.clone()
 		.json()
 		.catch(() => null)) as { code?: string } | null
 
-	if (body?.code !== 'second_step_required' || !(await ensureSecondStep())) return res
+	if (body?.code !== 'second_step_required' || !(await ensureSecondStep())) return response
 
 	return fetch(request)
 }

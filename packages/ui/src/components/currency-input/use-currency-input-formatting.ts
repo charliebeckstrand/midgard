@@ -75,21 +75,21 @@ export function useCurrencyInputFormatting({
 		// make parseEditing strip the user's decimal comma as a group separator.
 		const parts = sampler.formatToParts(1234567.8)
 
-		const currencyIdx = parts.findIndex((p) => p.type === 'currency')
+		const currencyIndex = parts.findIndex((part) => part.type === 'currency')
 
-		const currencyPart = parts[currencyIdx]
+		const currencyPart = parts[currencyIndex]
 
-		const groupPart = parts.find((p) => p.type === 'group')
+		const groupPart = parts.find((part) => part.type === 'group')
 
-		const decimalPart = parts.find((p) => p.type === 'decimal')
+		const decimalPart = parts.find((part) => part.type === 'decimal')
 
-		const integerIdx = parts.findIndex((p) => p.type === 'integer')
+		const integerIndex = parts.findIndex((part) => part.type === 'integer')
 
 		const options = formatter.resolvedOptions()
 
 		return {
 			symbol: currencyPart?.value ?? '',
-			symbolIsPrefix: currencyIdx < integerIdx,
+			symbolIsPrefix: currencyIndex < integerIndex,
 			// If a locale emits no group part, never fall back to the decimal
 			// char: parseEditing strips group chars before decimal substitution.
 			group: groupPart?.value ?? (decimalPart?.value === ',' ? '.' : ','),

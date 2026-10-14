@@ -6,8 +6,8 @@ describe('Spacer', () => {
 	it('is hidden from assistive technology', () => {
 		const { container } = renderUI(<Spacer />)
 
-		const el = bySlot(container, 'spacer')
+		const spacer = bySlot(container, 'spacer')
 
-		expect(el).toHaveAttribute('aria-hidden', 'true')
+		expect(spacer).toHaveAttribute('aria-hidden', 'true')
 	})
 })

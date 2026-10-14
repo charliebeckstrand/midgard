@@ -521,7 +521,7 @@ export function Combobox<T>({
 		autoComplete: resolvedAutoComplete,
 	} = useControlProps({ autoComplete, disabled, readOnly, required, invalid: boundInvalid })
 
-	const comboboxId = useId()
+	const listboxId = useId()
 
 	const inputRef = useRef<HTMLInputElement>(null)
 
@@ -928,7 +928,7 @@ export function Combobox<T>({
 							// merge, so resolving it here would join the field's ids twice.
 							aria-describedby={ariaDescribedBy}
 							open={open}
-							controlsId={comboboxId}
+							controlsId={listboxId}
 							disabled={resolvedDisabled}
 							readOnly={resolvedReadOnly}
 							required={resolvedRequired}
@@ -945,7 +945,7 @@ export function Combobox<T>({
 					</SelectTrigger>
 
 					<ComboboxPanel
-						id={comboboxId}
+						id={listboxId}
 						open={open}
 						editing={editing}
 						multiple={multiple}

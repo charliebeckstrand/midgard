@@ -155,10 +155,10 @@ function heatmapData(data: TrendData): HeatmapCell[] {
 	if (hit) return hit
 
 	const cells = data.rows.flatMap((row) =>
-		HEATMAP_ROWS.slice(0, data.values.length).map((name, series) => ({
+		HEATMAP_ROWS.slice(0, data.values.length).map((name, index) => ({
 			col: String(row.label),
 			row: name,
-			value: Number(row[`s${series + 1}`] ?? 0),
+			value: Number(row[`s${index + 1}`] ?? 0),
 		})),
 	)
 

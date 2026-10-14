@@ -18,8 +18,8 @@ describe('grid commit-and-move keys (real browser)', () => {
 	]
 
 	const columns: GridColumn<Row>[] = [
-		{ id: 'name', title: 'Name', field: 'name', cell: (r) => r.name },
-		{ id: 'count', title: 'Count', field: 'count', cell: (r) => String(r.count) },
+		{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+		{ id: 'count', title: 'Count', field: 'count', cell: (row) => String(row.count) },
 	]
 
 	function renderGrid() {
@@ -29,15 +29,15 @@ describe('grid commit-and-move keys (real browser)', () => {
 			<Grid
 				columns={columns}
 				rows={rows}
-				getKey={(r) => r.id}
+				getKey={(row) => row.id}
 				editable={{ session: 'managed', scope: 'cell', onCommit }}
 			/>,
 		)
 
-		const cell = (col: string, row = 0) =>
+		const cell = (column: string, row = 0) =>
 			present(
-				view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${col}"]`)[row],
-				`td[data-grid-col="${col}"]`,
+				view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${column}"]`)[row],
+				`td[data-grid-col="${column}"]`,
 			)
 
 		return { ...view, onCommit, cell }
@@ -108,7 +108,7 @@ describe('grid commit-and-move keys (real browser)', () => {
 				id: 'name',
 				title: 'Name',
 				field: 'name',
-				cell: (r) => r.name,
+				cell: (row) => row.name,
 				editCell: ({ value, onValueUpdate }) => (
 					// Narrow controls, so that the slot fits its cell and does not truncate.
 					<span>
@@ -130,7 +130,7 @@ describe('grid commit-and-move keys (real browser)', () => {
 			<Grid
 				columns={slotColumns}
 				rows={rows}
-				getKey={(r) => r.id}
+				getKey={(row) => row.id}
 				editable={{ session: 'managed', scope: 'cell', onCommit }}
 			/>,
 		)

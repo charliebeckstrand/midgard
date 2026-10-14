@@ -244,23 +244,23 @@ export function decimateRun(run: LinePoint[]): LinePoint[] {
 function runs(values: (number | null)[], xs: number[], map: (value: number) => number) {
 	const out: LinePoint[][] = []
 
-	let current: LinePoint[] = []
+	let run: LinePoint[] = []
 
 	values.forEach((value, index) => {
 		const x = xs[index]
 
 		if (value === null || x === undefined) {
-			if (current.length > 0) out.push(current)
+			if (run.length > 0) out.push(run)
 
-			current = []
+			run = []
 
 			return
 		}
 
-		current.push({ x, y: map(value) })
+		run.push({ x, y: map(value) })
 	})
 
-	if (current.length > 0) out.push(current)
+	if (run.length > 0) out.push(run)
 
 	return out
 }

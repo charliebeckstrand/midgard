@@ -166,7 +166,7 @@ export function GridContextMenu<T>({
 
 		setName(next.name)
 
-		setGeneration((value) => value + 1)
+		setGeneration((prev) => prev + 1)
 	}, [])
 
 	// The grid to restore focus to when a keyboard-opened menu closes; set only on

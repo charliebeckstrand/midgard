@@ -145,7 +145,7 @@ type GridGroupLeafCellProps<T> = {
 	/** Stable focused-cell activation for cell roving. */
 	cellActivate?: GridCellRovingActivate<T>
 	/** The 1-based `aria-colindex`, set when the row carries an `aria-rowindex`. */
-	colIndex?: number
+	ariaColIndex?: number
 }
 
 /**
@@ -174,7 +174,7 @@ function GridGroupLeafCell<T>({
 	pad,
 	cellRoving = false,
 	cellActivate,
-	colIndex,
+	ariaColIndex,
 }: GridGroupLeafCellProps<T>) {
 	// Only data cells rove; the non-data columns (selection, actions, drag handle,
 	// expander) stay plain. `cellRovingAttrs` returns the marker + Enter/Space activation.
@@ -183,7 +183,7 @@ function GridGroupLeafCell<T>({
 	const pinned = pinnedCellProps(pinning, col)
 
 	// The column's own cell props, such as the cursor's id and role, as on a flat row.
-	const extra = cellPropsAt(col, row, rowIndex)
+	const cellProps = cellPropsAt(col, row, rowIndex)
 
 	const roving = cellRovingAttrs({
 		cellRoving: cellRoving && dataCell,
@@ -191,16 +191,16 @@ function GridGroupLeafCell<T>({
 		col,
 		row,
 		rowKey,
-		keyDown: extra?.onKeyDown,
+		keyDown: cellProps?.onKeyDown,
 	})
 
 	return (
 		<td
-			{...extra}
+			{...cellProps}
 			// Marks a data cell, as on a flat row. The cell menu, the cell click, and
 			// the autosizer read it, so a non-data cell carries none.
 			data-grid-col={dataCell ? col.id : undefined}
-			aria-colindex={colIndex}
+			aria-colindex={ariaColIndex}
 			{...roving}
 			// The first cell carries the group's rail, so it runs unbroken down the
 			// group's leaf rows and joins the header's segment above — in the group's
@@ -211,9 +211,9 @@ function GridGroupLeafCell<T>({
 				leading && color && k.row.group.rail.color[color],
 				leafCellClass(col),
 				pinned.className,
-				extra?.className,
+				cellProps?.className,
 			)}
-			style={{ ...extra?.style, ...NO_PADDING, ...pinned.style }}
+			style={{ ...cellProps?.style, ...NO_PADDING, ...pinned.style }}
 			data-grid-pin={pinned.pin}
 		>
 			<div className={cn(k.row.group.reveal.track)} data-open={dataAttr(open)}>
@@ -283,6 +283,10 @@ function GridGroupLeafRowImpl<T>({
 	// at the closed track and opens over the transition.
 	const reveal = useGridRevealHold(expanded, enter)
 
+	// Row roving hands the `tabIndex` to the roving hook; without it a clickable
+	// expanded leaf stays a static stop, and cell roving leaves the row unfocusable.
+	const staticStop = !rowRoving && onRowClick && !cellRoving && expanded
+
 	return (
 		<MountHold hold={reveal.hold} name="grid-group-leaf-row">
 			<tr
@@ -311,14 +315,12 @@ function GridGroupLeafRowImpl<T>({
 				aria-level={tree ? level : undefined}
 				inert={!expanded}
 				onTransitionEnd={reveal.onTransitionEnd}
-				// Row roving hands the `tabIndex` to the roving hook; without it a clickable
-				// expanded leaf stays a static stop, and cell roving leaves the row unfocusable.
-				tabIndex={rowRoving ? undefined : onRowClick && !cellRoving && expanded ? 0 : undefined}
+				tabIndex={staticStop ? 0 : undefined}
 				className={cn(
 					rowClickableClass({ onRowClick, onCellClick, onRowDoubleClick, onCellDoubleClick }),
 				)}
 			>
-				{columns.map((col, colIdx) => {
+				{columns.map((col, index) => {
 					return (
 						<GridGroupLeafCell<T>
 							key={col.id}
@@ -331,13 +333,13 @@ function GridGroupLeafRowImpl<T>({
 							rowLabel={rowLabel}
 							truncate={truncate}
 							pinning={pinning}
-							leading={colIdx === 0}
+							leading={index === 0}
 							color={color}
 							open={reveal.open}
 							pad={pad}
 							cellRoving={cellRoving}
 							cellActivate={cellActivate}
-							colIndex={windowRow['aria-rowindex'] !== undefined ? colIdx + 1 : undefined}
+							ariaColIndex={windowRow['aria-rowindex'] !== undefined ? index + 1 : undefined}
 						/>
 					)
 				})}

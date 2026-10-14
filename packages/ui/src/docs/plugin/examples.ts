@@ -192,7 +192,7 @@ async function readCode(
  * such as the data that examples share, is not one.
  */
 export async function examplesIn(parse: Parse, files: readonly string[]): Promise<string[]> {
-	const read = await Promise.all(
+	const examples = await Promise.all(
 		files.map(async (file) => {
 			const source = await readFile(file, 'utf8')
 
@@ -200,7 +200,7 @@ export async function examplesIn(parse: Parse, files: readonly string[]): Promis
 		}),
 	)
 
-	return read.flatMap(([file, example]) => (example ? [file] : []))
+	return examples.flatMap(([file, example]) => (example ? [file] : []))
 }
 
 /** The {@link EXAMPLE} modules of `folder`. */

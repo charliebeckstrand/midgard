@@ -23,7 +23,7 @@ const classesOf = (surface: ClassTree): string[] =>
 
 /** The one class in `surface` that matches `pattern`. */
 function only(surface: ClassTree, pattern: RegExp): string {
-	const found = classesOf(surface).filter((cls) => pattern.test(cls))
+	const found = classesOf(surface).filter((className) => pattern.test(className))
 
 	expect(found).toHaveLength(1)
 

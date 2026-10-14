@@ -16,7 +16,7 @@ export function useClickInspector<T extends JsonValue>() {
 	const pick = (value: T) => {
 		setPicked(value)
 
-		setExpanded((current) => (current.has(ROOT) ? current : new Set(current).add(ROOT)))
+		setExpanded((prev) => (prev.has(ROOT) ? prev : new Set(prev).add(ROOT)))
 	}
 
 	return { pick, tree: { data: picked ?? {}, expanded, onExpandedChange: setExpanded } }

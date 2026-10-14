@@ -28,11 +28,11 @@ export const [PendingAnchorContext, usePendingAnchor] = createContext<{
 export function scrollToPending(pending: { current: PendingAnchor | null }): void {
 	const anchor = pending.current
 
-	const element = anchor && document.getElementById(anchor.id)
+	const el = anchor && document.getElementById(anchor.id)
 
-	if (!anchor || !element) return
+	if (!anchor || !el) return
 
-	element.scrollIntoView()
+	el.scrollIntoView()
 
 	if (anchor.opened) pending.current = null
 }

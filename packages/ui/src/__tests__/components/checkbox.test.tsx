@@ -59,11 +59,11 @@ describe('Checkbox', () => {
 	})
 
 	it('forwards a callback ref to the input element', () => {
-		const refFn = vi.fn()
+		const ref = vi.fn()
 
-		renderUI(<Checkbox ref={refFn} />)
+		renderUI(<Checkbox ref={ref} />)
 
-		expect(refFn).toHaveBeenCalledWith(expect.any(HTMLInputElement))
+		expect(ref).toHaveBeenCalledWith(expect.any(HTMLInputElement))
 	})
 
 	it('sets the indeterminate flag on the input element when indeterminate is true', () => {

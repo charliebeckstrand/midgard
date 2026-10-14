@@ -17,7 +17,7 @@ import { attach, frames, present, renderUI, screen, waitFor } from '../helpers'
 
 /** A fixed-height scroller whose content height the case controls. */
 function Probe({ initial }: { initial: number }) {
-	const attach = useScrollOverflow()
+	const ref = useScrollOverflow()
 
 	const [extra, setExtra] = useState(0)
 
@@ -31,7 +31,7 @@ function Probe({ initial }: { initial: number }) {
 				shrink
 			</button>
 
-			<div ref={attach} data-testid="scroller" style={{ height: 200, overflowY: 'auto' }}>
+			<div ref={ref} data-testid="scroller" style={{ height: 200, overflowY: 'auto' }}>
 				<div style={{ height: initial + extra }} />
 			</div>
 		</div>
@@ -40,7 +40,7 @@ function Probe({ initial }: { initial: number }) {
 
 /** A fixed-height scroller whose second child mounts on demand. */
 function AppendProbe() {
-	const attach = useScrollOverflow()
+	const ref = useScrollOverflow()
 
 	const [second, setSecond] = useState(false)
 
@@ -50,7 +50,7 @@ function AppendProbe() {
 				append
 			</button>
 
-			<div ref={attach} data-testid="scroller" style={{ height: 200, overflowY: 'auto' }}>
+			<div ref={ref} data-testid="scroller" style={{ height: 200, overflowY: 'auto' }}>
 				<div style={{ height: 150 }} />
 
 				{second && <div style={{ height: 400 }} />}
@@ -192,10 +192,10 @@ describe('useScrollOverflow against a real scroller', () => {
 
 /** A scroller 600 wide and 400 tall in a 200 by 200 box. */
 function WideProbe({ overflow = 'auto' }: { overflow?: 'auto' | 'visible' }) {
-	const attach = useScrollOverflow()
+	const ref = useScrollOverflow()
 
 	return (
-		<div ref={attach} data-testid="scroller" style={{ width: 200, height: 200, overflow }}>
+		<div ref={ref} data-testid="scroller" style={{ width: 200, height: 200, overflow }}>
 			<div style={{ width: 600, height: 400 }} />
 		</div>
 	)

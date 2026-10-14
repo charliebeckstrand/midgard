@@ -15,10 +15,10 @@ export type { PasswordRule, PasswordStrengthChange, StrengthLevel } from './use-
 
 /** Default rule set: at least 8 characters and at least one uppercase letter, digit, and symbol. */
 export const defaultPasswordRules: readonly PasswordRule[] = [
-	{ id: 'length', label: 'At least 8 characters', test: (v) => v.length >= 8 },
-	{ id: 'uppercase', label: 'One uppercase letter', test: (v) => /[A-Z]/.test(v) },
-	{ id: 'number', label: 'One number', test: (v) => /\d/.test(v) },
-	{ id: 'symbol', label: 'One symbol', test: (v) => /[^A-Za-z0-9]/.test(v) },
+	{ id: 'length', label: 'At least 8 characters', test: (value) => value.length >= 8 },
+	{ id: 'uppercase', label: 'One uppercase letter', test: (value) => /[A-Z]/.test(value) },
+	{ id: 'number', label: 'One number', test: (value) => /\d/.test(value) },
+	{ id: 'symbol', label: 'One symbol', test: (value) => /[^A-Za-z0-9]/.test(value) },
 ]
 
 const strengthLevels = [
@@ -66,7 +66,7 @@ export function PasswordStrength({
 
 	const liveLabel = useA11yLiveRegion({ className: k.label({ level }) })
 
-	const activeCount = level === 'empty' ? 0 : strengthLevels.findIndex((l) => l.id === level) + 1
+	const activeCount = level === 'empty' ? 0 : strengthLevels.findIndex(({ id }) => id === level) + 1
 
 	const label = activeCount === 0 ? 'Empty' : (strengthLevels[activeCount - 1]?.label ?? '')
 
@@ -82,13 +82,13 @@ export function PasswordStrength({
 				className="sr-only"
 			/>
 			<div aria-hidden="true" className={cn(k.meter)}>
-				{strengthLevels.map((strengthLevel, i) => (
+				{strengthLevels.map((strengthLevel, index) => (
 					<div
 						key={strengthLevel.id}
 						data-slot="password-strength-segment"
-						data-active={dataAttr(i < activeCount)}
+						data-active={dataAttr(index < activeCount)}
 						className={k.segment({
-							level: i < activeCount ? level : 'empty',
+							level: index < activeCount ? level : 'empty',
 						})}
 					/>
 				))}

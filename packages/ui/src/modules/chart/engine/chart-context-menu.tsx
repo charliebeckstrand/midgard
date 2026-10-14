@@ -176,10 +176,10 @@ const FULLSCREEN_CHART_CLASS = 'w-full max-h-[calc(100dvh-9rem)]'
  *
  * @internal
  */
-function exportCsv(readout: ChartReadoutSource): string {
-	const data = readout()
+function exportCsv(source: ChartReadoutSource): string {
+	const readout = source()
 
-	return data === null ? '' : readoutToCsv(data)
+	return readout === null ? '' : readoutToCsv(readout)
 }
 
 /**

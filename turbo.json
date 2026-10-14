@@ -13,7 +13,7 @@
 				"$TURBO_ROOT$/postcss.config.mjs",
 				"$TURBO_ROOT$/tsconfig.base.json",
 				"$TURBO_ROOT$/tsconfig.nextjs.json",
-				"$TURBO_ROOT$/vitest.shared.ts"
+				"$TURBO_ROOT$/vitest.shared.mts"
 			],
 			"outputs": [".next/**", "!.next/cache/**", "dist/**"]
 		},
@@ -79,7 +79,7 @@
 				"src/**",
 				"app/**",
 				"vitest.config.ts",
-				"$TURBO_ROOT$/vitest.shared.ts",
+				"$TURBO_ROOT$/vitest.shared.mts",
 				"tsconfig.json",
 				"$TURBO_ROOT$/tsconfig.base.json",
 				"docs/*.md",
@@ -119,7 +119,7 @@
 				"pnpm-lock.yaml",
 				"pnpm-workspace.yaml",
 				"postcss.config.mjs",
-				"vitest.shared.ts",
+				"vitest.shared.mts",
 				"apps/**",
 				"packages/**"
 			]

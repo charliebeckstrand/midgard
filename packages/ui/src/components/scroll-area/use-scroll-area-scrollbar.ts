@@ -42,13 +42,13 @@ type ScrollbarDragContext = {
 function beginScrollbarDrag(
 	axis: 'x' | 'y',
 	event: ReactPointerEvent<HTMLDivElement>,
-	ctx: ScrollbarDragContext,
+	context: ScrollbarDragContext,
 ): void {
-	const el = ctx.viewportRef.current
+	const viewport = context.viewportRef.current
 
-	const track = axis === 'y' ? ctx.verticalTrackRef.current : ctx.horizontalTrackRef.current
+	const track = axis === 'y' ? context.verticalTrackRef.current : context.horizontalTrackRef.current
 
-	if (!el || !track) return
+	if (!viewport || !track) return
 
 	event.preventDefault()
 	event.stopPropagation()
@@ -56,11 +56,11 @@ function beginScrollbarDrag(
 	holdTextSelection(event)
 
 	const startClient = axis === 'y' ? event.clientY : event.clientX
-	const startScroll = axis === 'y' ? el.scrollTop : el.scrollLeft
+	const startScroll = axis === 'y' ? viewport.scrollTop : viewport.scrollLeft
 	const trackSize = axis === 'y' ? track.clientHeight : track.clientWidth
-	const viewportSize = axis === 'y' ? el.clientHeight : el.clientWidth
-	const contentSize = axis === 'y' ? el.scrollHeight : el.scrollWidth
-	const thumbSize = axis === 'y' ? ctx.verticalThumb.size : ctx.horizontalThumb.size
+	const viewportSize = axis === 'y' ? viewport.clientHeight : viewport.clientWidth
+	const contentSize = axis === 'y' ? viewport.scrollHeight : viewport.scrollWidth
+	const thumbSize = axis === 'y' ? context.verticalThumb.size : context.horizontalThumb.size
 
 	const maxOffset = trackSize - thumbSize
 	const maxScroll = contentSize - viewportSize
@@ -68,15 +68,15 @@ function beginScrollbarDrag(
 	const scale = maxOffset > 0 ? maxScroll / maxOffset : 0
 
 	// Cleans up any prior drag (defensive; pointerup handles the usual path).
-	ctx.dragCleanupRef.current?.()
+	context.dragCleanupRef.current?.()
 
-	const onMove = (ev: PointerEvent) => {
-		const delta = (axis === 'y' ? ev.clientY : ev.clientX) - startClient
+	const onMove = (moveEvent: PointerEvent) => {
+		const delta = (axis === 'y' ? moveEvent.clientY : moveEvent.clientX) - startClient
 
 		const next = startScroll + delta * scale
 
-		if (axis === 'y') el.scrollTop = next
-		else el.scrollLeft = next
+		if (axis === 'y') viewport.scrollTop = next
+		else viewport.scrollLeft = next
 	}
 
 	// One controller for the drag's listener set, so the teardown cannot drift
@@ -94,7 +94,7 @@ function beginScrollbarDrag(
 
 		releaseCursor()
 
-		ctx.dragCleanupRef.current = null
+		context.dragCleanupRef.current = null
 	}
 
 	window.addEventListener('pointermove', onMove, { signal })
@@ -103,7 +103,7 @@ function beginScrollbarDrag(
 	// without this the drag keeps scrolling on buttonless moves.
 	window.addEventListener('pointercancel', cleanup, { signal })
 
-	ctx.dragCleanupRef.current = cleanup
+	context.dragCleanupRef.current = cleanup
 }
 
 /**
@@ -134,14 +134,16 @@ export function useScrollAreaScrollbar({ orientation, scrollbar }: ScrollbarOpti
 	const hasHorizontal = orientation === 'horizontal' || orientation === 'both'
 
 	const updateThumbs = useCallback(() => {
-		const el = viewportRef.current
+		const viewport = viewportRef.current
 
-		if (!el) return
+		if (!viewport) return
 
 		if (hasVertical) {
 			const trackHeight = verticalTrackRef.current?.clientHeight ?? 0
 
-			setVerticalThumb(computeThumb(el.scrollTop, el.clientHeight, el.scrollHeight, trackHeight))
+			setVerticalThumb(
+				computeThumb(viewport.scrollTop, viewport.clientHeight, viewport.scrollHeight, trackHeight),
+			)
 		}
 
 		if (hasHorizontal) {
@@ -150,12 +152,12 @@ export function useScrollAreaScrollbar({ orientation, scrollbar }: ScrollbarOpti
 			// In RTL, `scrollLeft` is zero at the start and goes negative toward the
 			// end. The thumb sits at the inline start, so it moves left by the same
 			// distance.
-			const rtl = isRtl(el)
+			const rtl = isRtl(viewport)
 
 			const thumb = computeThumb(
-				rtl ? -el.scrollLeft : el.scrollLeft,
-				el.clientWidth,
-				el.scrollWidth,
+				rtl ? -viewport.scrollLeft : viewport.scrollLeft,
+				viewport.clientWidth,
+				viewport.scrollWidth,
 				trackWidth,
 			)
 
@@ -195,28 +197,28 @@ export function useScrollAreaScrollbar({ orientation, scrollbar }: ScrollbarOpti
 
 	// The tracks measure first, so the watch reports only later changes.
 	useEffect(() => {
-		const el = viewportRef.current
+		const viewport = viewportRef.current
 
-		if (!el) return
+		if (!viewport) return
 
-		return observeScrollExtent(el, updateThumbs)
+		return observeScrollExtent(viewport, updateThumbs)
 	}, [updateThumbs])
 
 	useEffect(() => {
-		const el = viewportRef.current
+		const viewport = viewportRef.current
 
-		if (!el) return
+		if (!viewport) return
 
 		const handleWheel = (event: WheelEvent) => {
 			if (!event.shiftKey) return
 
 			// A horizontally scrollable viewport owns shift+wheel natively;
 			// forwarding hijacks the gesture from its own content.
-			if (el.scrollWidth > el.clientWidth) return
+			if (viewport.scrollWidth > viewport.clientWidth) return
 
 			event.preventDefault()
 
-			const target = findScrollableAncestor(el.parentElement)
+			const target = findScrollableAncestor(viewport.parentElement)
 
 			const options: ScrollToOptions = { top: event.deltaY, left: event.deltaX, behavior: 'auto' }
 
@@ -224,10 +226,10 @@ export function useScrollAreaScrollbar({ orientation, scrollbar }: ScrollbarOpti
 			else window.scrollBy(options)
 		}
 
-		el.addEventListener('wheel', handleWheel, { passive: false })
+		viewport.addEventListener('wheel', handleWheel, { passive: false })
 
 		return () => {
-			el.removeEventListener('wheel', handleWheel)
+			viewport.removeEventListener('wheel', handleWheel)
 		}
 	}, [])
 

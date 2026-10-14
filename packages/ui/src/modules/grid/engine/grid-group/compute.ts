@@ -9,15 +9,15 @@ import { applyColumnReorder } from '../grid-reorder-compute'
  * @internal
  */
 export function groupByColumn(groups: GridColumnGroup[]): Map<string | number, GridColumnGroup> {
-	const map = new Map<string | number, GridColumnGroup>()
+	const byColumn = new Map<string | number, GridColumnGroup>()
 
 	for (const group of groups) {
 		for (const id of group.columns) {
-			if (!map.has(id)) map.set(id, group)
+			if (!byColumn.has(id)) byColumn.set(id, group)
 		}
 	}
 
-	return map
+	return byColumn
 }
 
 /**

@@ -56,7 +56,7 @@ describe('list item hit area (real browser)', () => {
 
 		// One item, so no handle renders and the left padding is the row's own.
 		const { container } = renderUI(
-			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
+			<List items={items.slice(0, 1)} getKey={(item) => item.id}>
 				{(item) => (
 					<ListItem as="button" onClick={onClick}>
 						<ListLabel>{item.label}</ListLabel>
@@ -110,7 +110,7 @@ describe('list item hit area (real browser)', () => {
 
 	it('leaves an inert row’s padding inert', async () => {
 		const { container } = renderUI(
-			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
+			<List items={items.slice(0, 1)} getKey={(item) => item.id}>
 				{(item) => (
 					<ListItem>
 						<ListLabel>{item.label}</ListLabel>
@@ -128,7 +128,7 @@ describe('list item hit area (real browser)', () => {
 
 	it('keeps the drag handle over the overlay', async () => {
 		const { container } = renderUI(
-			<List items={items} getKey={(i) => i.id} onReorder={() => {}}>
+			<List items={items} getKey={(item) => item.id} onReorder={() => {}}>
 				{(item) => (
 					<ListItem href={`/${item.id}`}>
 						<ListLabel>{item.label}</ListLabel>
@@ -158,7 +158,7 @@ describe('list item hit area (real browser)', () => {
 		const onSuffixClick = vi.fn()
 
 		const { container } = renderUI(
-			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
+			<List items={items.slice(0, 1)} getKey={(item) => item.id}>
 				{(item) => (
 					<ListItem
 						as="button"

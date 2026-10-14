@@ -46,34 +46,34 @@ export function useMapTouchTap(activate: (target: MapHoverTarget) => void): Touc
 	const plot = useRef<Element | null>(null)
 
 	// The last tap, which the next one can make a double tap.
-	const last = useRef<Tap | null>(null)
+	const prevTap = useRef<Tap | null>(null)
 
 	const pick = useStableEvent(activate)
 
 	const touch = useTouchTap((x, y) => {
-		const previous = last.current
+		const prev = prevTap.current
 
 		const at = performance.now()
 
 		if (pinched.current) {
-			last.current = null
+			prevTap.current = null
 
 			return
 		}
 
 		const double =
-			previous !== null &&
-			at - previous.at <= MAP_DOUBLE_TAP_WINDOW &&
-			Math.hypot(x - previous.x, y - previous.y) <= MAP_DOUBLE_TAP_SLOP
+			prev !== null &&
+			at - prev.at <= MAP_DOUBLE_TAP_WINDOW &&
+			Math.hypot(x - prev.x, y - prev.y) <= MAP_DOUBLE_TAP_SLOP
 
 		if (!double) {
-			last.current = { x, y, at }
+			prevTap.current = { x, y, at }
 
 			return
 		}
 
 		// A third tap starts a new pair.
-		last.current = null
+		prevTap.current = null
 
 		const surface = plot.current
 
@@ -121,7 +121,7 @@ export function useMapTouchTap(activate: (target: MapHoverTarget) => void): Touc
 
 			pinched.current = false
 
-			last.current = null
+			prevTap.current = null
 		},
 	}
 }

@@ -34,26 +34,26 @@ export function segmentManualGroupRows<T>(
 ): GridManualGroupSegment<T>[] {
 	const segments: GridManualGroupSegment<T>[] = []
 
-	let current: GridManualGroupSegment<T> | null = null
+	let segment: GridManualGroupSegment<T> | null = null
 
-	for (const row of rows) {
-		const info = groupRow(row.row)
+	for (const leaf of rows) {
+		const info = groupRow(leaf.row)
 
 		if (info) {
-			current = { header: row, info, leaves: [] }
+			segment = { header: leaf, info, leaves: [] }
 
-			segments.push(current)
+			segments.push(segment)
 
 			continue
 		}
 
-		if (!current) {
-			current = { header: null, info: null, leaves: [] }
+		if (!segment) {
+			segment = { header: null, info: null, leaves: [] }
 
-			segments.push(current)
+			segments.push(segment)
 		}
 
-		current.leaves.push(row)
+		segment.leaves.push(leaf)
 	}
 
 	return segments

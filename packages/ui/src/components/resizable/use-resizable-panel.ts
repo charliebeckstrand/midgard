@@ -56,29 +56,29 @@ function dragDeltaPercent(
  */
 export function pairRange(
 	sizes: number[],
-	leftIdx: number,
+	leftIndex: number,
 	constraints: PanelConfig[],
 ): { min: number; max: number; total: number } {
-	const rightIdx = leftIdx + 1
+	const rightIndex = leftIndex + 1
 
-	const total = (sizes[leftIdx] ?? 0) + (sizes[rightIdx] ?? 0)
+	const total = (sizes[leftIndex] ?? 0) + (sizes[rightIndex] ?? 0)
 
-	const lc = constraints[leftIdx]
-	const rc = constraints[rightIdx]
+	const left = constraints[leftIndex]
+	const right = constraints[rightIndex]
 
 	// The left panel's own bounds, intersected with the complement of the
 	// bounds of the right panel.
-	const lcMin = lc?.minSize ?? 0
-	const lcMax = lc?.maxSize ?? Number.POSITIVE_INFINITY
-	const rcMin = rc?.minSize ?? 0
-	const rcMax = rc?.maxSize ?? Number.POSITIVE_INFINITY
+	const leftMin = left?.minSize ?? 0
+	const leftMax = left?.maxSize ?? Number.POSITIVE_INFINITY
+	const rightMin = right?.minSize ?? 0
+	const rightMax = right?.maxSize ?? Number.POSITIVE_INFINITY
 
-	const feasibleMin = Math.max(lcMin, total - rcMax)
-	const feasibleMax = Math.min(lcMax, total - rcMin)
+	const feasibleMin = Math.max(leftMin, total - rightMax)
+	const feasibleMax = Math.min(leftMax, total - rightMin)
 
 	return feasibleMin <= feasibleMax
 		? { min: feasibleMin, max: feasibleMax, total }
-		: { min: lcMin, max: lcMax, total }
+		: { min: leftMin, max: leftMax, total }
 }
 
 /**
@@ -88,15 +88,15 @@ export function pairRange(
  *
  * @internal
  */
-function clampPair(sizes: number[], leftIdx: number, constraints: PanelConfig[]): number[] {
-	const { min, max, total } = pairRange(sizes, leftIdx, constraints)
+function clampPair(sizes: number[], leftIndex: number, constraints: PanelConfig[]): number[] {
+	const { min, max, total } = pairRange(sizes, leftIndex, constraints)
 
-	const left = clamp(sizes[leftIdx] ?? 0, min, max)
+	const left = clamp(sizes[leftIndex] ?? 0, min, max)
 
 	const result = [...sizes]
 
-	result[leftIdx] = left
-	result[leftIdx + 1] = total - left
+	result[leftIndex] = left
+	result[leftIndex + 1] = total - left
 
 	return result
 }
@@ -111,14 +111,14 @@ function clampPair(sizes: number[], leftIdx: number, constraints: PanelConfig[])
  * @internal
  */
 function seedSizes(configs: PanelConfig[]): number[] {
-	const raw = configs.map((c) => c.defaultSize)
+	const weights = configs.map((config) => config.defaultSize)
 
-	const total = raw.reduce((sum, s) => sum + s, 0)
+	const total = weights.reduce((sum, weight) => sum + weight, 0)
 
-	let sizes = total > 0 ? raw.map((s) => (s / total) * 100) : raw
+	let sizes = total > 0 ? weights.map((weight) => (weight / total) * 100) : weights
 
-	for (let leftIdx = 0; leftIdx < sizes.length - 1; leftIdx++) {
-		sizes = clampPair(sizes, leftIdx, configs)
+	for (let leftIndex = 0; leftIndex < sizes.length - 1; leftIndex++) {
+		sizes = clampPair(sizes, leftIndex, configs)
 	}
 
 	return sizes
@@ -186,19 +186,19 @@ export function useResizablePanel({
 	// A discrete event commits before the next one, so each step reads the sizes
 	// that the last step committed.
 	const resize = useStableEvent((handleIndex: number, delta: number) => {
-		const leftIdx = handleIndex
-		const rightIdx = handleIndex + 1
+		const leftIndex = handleIndex
+		const rightIndex = handleIndex + 1
 
 		const prev = sizes
 
-		if (prev[leftIdx] === undefined || prev[rightIdx] === undefined) return
+		if (prev[leftIndex] === undefined || prev[rightIndex] === undefined) return
 
 		const next = [...prev]
 
-		next[leftIdx] = prev[leftIdx] + delta
-		next[rightIdx] = prev[rightIdx] - delta
+		next[leftIndex] = prev[leftIndex] + delta
+		next[rightIndex] = prev[rightIndex] - delta
 
-		const clamped = clampPair(next, leftIdx, panelConfigs)
+		const clamped = clampPair(next, leftIndex, panelConfigs)
 
 		// Side effects run here, not inside the setSizes updater: StrictMode
 		// double-invokes the updater, firing onSizesChange twice per keypress.
@@ -216,11 +216,9 @@ export function useResizablePanel({
 
 		event.preventDefault()
 
-		const orient = orientation
-
 		const rect = group.getBoundingClientRect()
 
-		const totalSize = orient === 'horizontal' ? rect.width : rect.height
+		const totalSize = orientation === 'horizontal' ? rect.width : rect.height
 
 		// Handle widths don't count toward the draggable size.
 		let handleWidth = 0
@@ -228,7 +226,7 @@ export function useResizablePanel({
 		for (const handle of group.querySelectorAll<HTMLElement>('[data-slot="resizable-handle"]')) {
 			const box = handle.getBoundingClientRect()
 
-			handleWidth += orient === 'horizontal' ? box.width : box.height
+			handleWidth += orientation === 'horizontal' ? box.width : box.height
 		}
 
 		const availableSize = totalSize - handleWidth
@@ -249,7 +247,7 @@ export function useResizablePanel({
 		// and pointercancel.
 		event.currentTarget.setPointerCapture(event.pointerId)
 
-		const startPos = orient === 'horizontal' ? event.clientX : event.clientY
+		const startPos = orientation === 'horizontal' ? event.clientX : event.clientY
 
 		dragRef.current = {
 			handleIndex,
@@ -289,19 +287,19 @@ export function useResizablePanel({
 
 			if (!drag) return
 
-			const { orientation: currentOrient, constraints } = readLayout()
+			const { orientation: currentOrientation, constraints } = readLayout()
 
-			const deltaPercent = dragDeltaPercent(drag, event, currentOrient)
+			const deltaPercent = dragDeltaPercent(drag, event, currentOrientation)
 
-			const leftIdx = drag.handleIndex
-			const rightIdx = drag.handleIndex + 1
+			const leftIndex = drag.handleIndex
+			const rightIndex = drag.handleIndex + 1
 
 			const next = [...drag.startSizes]
 
-			next[leftIdx] = (drag.startSizes[leftIdx] ?? 0) + deltaPercent
-			next[rightIdx] = (drag.startSizes[rightIdx] ?? 0) - deltaPercent
+			next[leftIndex] = (drag.startSizes[leftIndex] ?? 0) + deltaPercent
+			next[rightIndex] = (drag.startSizes[rightIndex] ?? 0) - deltaPercent
 
-			pending = clampPair(next, leftIdx, constraints)
+			pending = clampPair(next, leftIndex, constraints)
 
 			if (frame === null) frame = requestAnimationFrame(commitPending)
 		}

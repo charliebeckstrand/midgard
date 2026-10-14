@@ -169,8 +169,8 @@ function OpenPickerGrid({ year, month }: { year: number; month: number }) {
 	})
 
 	return createElement(CalendarPickerGrid, {
-		headerRef: picker.pickerHeaderRef,
-		gridRef: picker.pickerGridRef,
+		headerRef: picker.headerRef,
+		gridRef: picker.gridRef,
 		onHeaderKeyDown: picker.handleHeaderKeyDown,
 		onGridKeyDown: picker.handleGridKeyDown,
 		...picker.viewConfig,
@@ -243,8 +243,8 @@ function PickerGrid({ open, mounted }: { open: boolean; mounted: boolean }) {
 	if (!mounted) return null
 
 	return createElement(CalendarPickerGrid, {
-		headerRef: picker.pickerHeaderRef,
-		gridRef: picker.pickerGridRef,
+		headerRef: picker.headerRef,
+		gridRef: picker.gridRef,
 		onHeaderKeyDown: picker.handleHeaderKeyDown,
 		onGridKeyDown: picker.handleGridKeyDown,
 		...picker.viewConfig,

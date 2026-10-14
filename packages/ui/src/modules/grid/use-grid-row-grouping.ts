@@ -86,8 +86,8 @@ export function useGridRowGrouping<T>(
 	const toggleGroup = useStableEvent((key: string | number) => {
 		let expanding = false
 
-		setManualExpanded((previous) => {
-			const open = previous ?? EMPTY_EXPANDED
+		setManualExpanded((prev) => {
+			const open = prev ?? EMPTY_EXPANDED
 
 			expanding = !open.has(key)
 

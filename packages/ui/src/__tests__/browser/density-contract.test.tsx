@@ -257,7 +257,7 @@ describe('the slot scope (real browser)', () => {
 
 /**
  * A stepped class takes the step of the nearest scope at each depth. A slot counts as one depth.
- * The rungs of a step variant rank only two depths (`maxDepth`), so these chains hold the stepped
+ * The rungs of a step variant rank only two depths (`MAX_DEPTH`), so these chains hold the stepped
  * classes only.
  */
 describe('scopes deeper than two (real browser)', () => {

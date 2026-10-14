@@ -24,7 +24,7 @@ function Probe({ label }: { label?: string }) {
 
 	return (
 		<div>
-			<button type="button" data-testid="toggle" onClick={() => setWide((value) => !value)}>
+			<button type="button" data-testid="toggle" onClick={() => setWide((prev) => !prev)}>
 				toggle
 			</button>
 

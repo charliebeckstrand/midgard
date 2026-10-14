@@ -10,6 +10,7 @@ export function tabbables(surface: HTMLElement): HTMLElement[] {
 	)
 
 	return [...candidates].filter(
-		(el) => el.tabIndex >= 0 && !el.matches(':disabled') && el.checkVisibility(),
+		(candidate) =>
+			candidate.tabIndex >= 0 && !candidate.matches(':disabled') && candidate.checkVisibility(),
 	)
 }

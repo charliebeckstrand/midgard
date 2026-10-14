@@ -57,9 +57,12 @@ describe('FloatingSurface', () => {
 		// clobbered by its return.
 		expect(getFloatingProps).toHaveBeenCalledWith(expect.objectContaining({ onKeyDown }))
 
-		const el = present(document.querySelector('[data-slot="composed"]'), '[data-slot="composed"]')
+		const surface = present(
+			document.querySelector('[data-slot="composed"]'),
+			'[data-slot="composed"]',
+		)
 
-		fireEvent.keyDown(el, { key: 'a' })
+		fireEvent.keyDown(surface, { key: 'a' })
 
 		expect(onKeyDown).toHaveBeenCalled()
 	})
@@ -113,10 +116,10 @@ describe('FloatingSurface', () => {
 			</FloatingSurface>,
 		)
 
-		const el = document.querySelector<HTMLElement>('[data-slot="merged-style"]')
+		const surface = document.querySelector<HTMLElement>('[data-slot="merged-style"]')
 
-		expect(el?.style.position).toBe('absolute')
+		expect(surface?.style.position).toBe('absolute')
 
-		expect(el?.style.pointerEvents).toBe('auto')
+		expect(surface?.style.pointerEvents).toBe('auto')
 	})
 })

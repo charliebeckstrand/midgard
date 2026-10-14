@@ -21,7 +21,7 @@ import { useState } from 'react'
  * @returns The held value while the content is the same, else the candidate.
  * @internal
  */
-export function useStableValue<T>(candidate: T, same: (previous: T, next: T) => boolean): T {
+export function useStableValue<T>(candidate: T, same: (prev: T, next: T) => boolean): T {
 	const [stable, setStable] = useState(() => candidate)
 
 	if (stable !== candidate && !same(stable, candidate)) {

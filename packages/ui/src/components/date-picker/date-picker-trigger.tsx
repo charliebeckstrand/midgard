@@ -107,7 +107,7 @@ export function DatePickerTrigger({
 
 	const valueRef = useRef<HTMLSpanElement>(null)
 
-	const triggerButtonRef = useRef<HTMLButtonElement>(null)
+	const buttonRef = useRef<HTMLButtonElement>(null)
 
 	const isTruncated = useIsTruncated(valueRef, displayValue)
 
@@ -148,7 +148,7 @@ export function DatePickerTrigger({
 
 							onClear?.()
 
-							triggerButtonRef.current?.focus()
+							buttonRef.current?.focus()
 						}}
 					/>
 				) : undefined
@@ -156,7 +156,7 @@ export function DatePickerTrigger({
 		>
 			<HeadlessProvider>
 				<Button
-					ref={triggerButtonRef}
+					ref={buttonRef}
 					type="button"
 					id={triggerId}
 					role="combobox"

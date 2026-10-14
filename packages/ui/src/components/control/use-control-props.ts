@@ -94,9 +94,9 @@ export function useControlProps(input: ControlPropsOptions = {}): ControlPropsRe
 
 	// Invalid wins the validation chrome; otherwise reflect a warning / success
 	// severity. The three states are mutually exclusive.
-	const validation = validationAttrs(
-		invalid ? 'error' : severity === 'warning' || severity === 'success' ? severity : undefined,
-	)
+	const reflectedSeverity = severity === 'warning' || severity === 'success' ? severity : undefined
+
+	const validation = validationAttrs(invalid ? 'error' : reflectedSeverity)
 
 	// The explicit id wins on the control, but a Label takes its `for` from the
 	// wrapper id. When the two ids differ, the Label points at no element.

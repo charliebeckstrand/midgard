@@ -3,17 +3,17 @@
 import { useLayoutEffect } from 'react'
 
 // Reference count shared by nested overlays.
-let scrollLockCount = 0
+let lockCount = 0
 
-let scrollLockPreviousOverflow = ''
+let prevOverflow = ''
 
-let scrollLockPaddingSide: 'paddingLeft' | 'paddingRight' = 'paddingRight'
+let paddingSide: 'paddingLeft' | 'paddingRight' = 'paddingRight'
 
-let scrollLockPreviousPadding = ''
+let prevPadding = ''
 
 /** Takes a lock: on the first holder hides body overflow and compensates the scrollbar gap, saving the prior inline styles to restore. @internal */
 function acquireScrollLock() {
-	if (scrollLockCount === 0) {
+	if (lockCount === 0) {
 		const { body, documentElement } = document
 
 		// A scrollbar on the left (RTL in WebKit and Gecko) moves the root box
@@ -22,11 +22,11 @@ function acquireScrollLock() {
 		const scrollbarLeft =
 			Math.round(documentElement.getBoundingClientRect().left) + documentElement.scrollLeft !== 0
 
-		scrollLockPaddingSide = scrollbarLeft ? 'paddingLeft' : 'paddingRight'
+		paddingSide = scrollbarLeft ? 'paddingLeft' : 'paddingRight'
 
-		scrollLockPreviousOverflow = body.style.overflow
+		prevOverflow = body.style.overflow
 
-		scrollLockPreviousPadding = body.style[scrollLockPaddingSide]
+		prevPadding = body.style[paddingSide]
 
 		// Pads the body by the scrollbar's width before hiding overflow,
 		// replacing the space the scrollbar occupied. Applies only when a
@@ -38,23 +38,23 @@ function acquireScrollLock() {
 		body.style.overflow = 'hidden'
 
 		if (hasScrollbar && scrollbarWidth > 0) {
-			const current = Number.parseFloat(window.getComputedStyle(body)[scrollLockPaddingSide]) || 0
+			const padding = Number.parseFloat(window.getComputedStyle(body)[paddingSide]) || 0
 
-			body.style[scrollLockPaddingSide] = `${current + scrollbarWidth}px`
+			body.style[paddingSide] = `${padding + scrollbarWidth}px`
 		}
 	}
 
-	scrollLockCount++
+	lockCount++
 }
 
 /** Releases a lock; when the last holder drops, restores the saved overflow / padding. @internal */
 function releaseScrollLock() {
-	scrollLockCount--
+	lockCount--
 
-	if (scrollLockCount === 0) {
-		document.body.style.overflow = scrollLockPreviousOverflow
+	if (lockCount === 0) {
+		document.body.style.overflow = prevOverflow
 
-		document.body.style[scrollLockPaddingSide] = scrollLockPreviousPadding
+		document.body.style[paddingSide] = prevPadding
 	}
 }
 

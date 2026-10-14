@@ -20,9 +20,9 @@ describe('grid infinite scroll (real browser)', () => {
 
 	const columns: GridColumn<Row>[] = [{ id: 'name', title: 'Name', cell: (row) => row.name }]
 
-	const allRows: Row[] = Array.from({ length: 200 }, (_, i) => ({
-		id: i + 1,
-		name: `Name ${i + 1}`,
+	const allRows: Row[] = Array.from({ length: 200 }, (_, index) => ({
+		id: index + 1,
+		name: `Name ${index + 1}`,
 	}))
 
 	const getKey = (row: Row) => row.id
@@ -57,7 +57,7 @@ describe('grid infinite scroll (real browser)', () => {
 						onLoadMore: () => {
 							onLoadMore()
 
-							setCount((c) => Math.min(c + 50, allRows.length))
+							setCount((prev) => Math.min(prev + 50, allRows.length))
 						},
 						hasMore: count < allRows.length,
 					}}
@@ -174,7 +174,7 @@ describe('grid infinite scroll (real browser)', () => {
 							onLoadMore: () => {
 								onLoadMore()
 
-								setCount((c) => Math.min(c + 10, allRows.length))
+								setCount((prev) => Math.min(prev + 10, allRows.length))
 							},
 							hasMore: count < allRows.length,
 							threshold: 30,
@@ -476,7 +476,7 @@ describe('grid infinite scroll (real browser)', () => {
 							onLoadMore: () => {
 								onLoadMore()
 
-								setCount((c) => Math.min(c + 50, allRows.length))
+								setCount((prev) => Math.min(prev + 50, allRows.length))
 							},
 							totalRows: allRows.length,
 						}}
@@ -527,9 +527,9 @@ describe('grid infinite scroll — stable column widths (real browser)', () => {
 
 	// The first 50 rows are short; every row past them carries a very long label, so
 	// the batch that appends them would widen the label column unless it's frozen.
-	const wideRows: WideRow[] = Array.from({ length: 200 }, (_, i) => ({
-		id: i + 1,
-		label: i < 50 ? `Row ${i + 1}` : `Row ${i + 1} ${'wide '.repeat(30)}`,
+	const wideRows: WideRow[] = Array.from({ length: 200 }, (_, index) => ({
+		id: index + 1,
+		label: index < 50 ? `Row ${index + 1}` : `Row ${index + 1} ${'wide '.repeat(30)}`,
 	}))
 
 	const getKey = (row: WideRow) => row.id
@@ -548,7 +548,7 @@ describe('grid infinite scroll — stable column widths (real browser)', () => {
 					virtualize={{ estimateSize: 36 }}
 					maxHeight="180px"
 					infiniteScroll={{
-						onLoadMore: () => setCount((c) => Math.min(c + 50, wideRows.length)),
+						onLoadMore: () => setCount((prev) => Math.min(prev + 50, wideRows.length)),
 						hasMore: count < wideRows.length,
 						stableColumnWidths: stable,
 					}}

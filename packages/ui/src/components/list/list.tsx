@@ -320,6 +320,15 @@ export function List<T>({
 		listWindow.measureRef,
 	])
 
+	const style =
+		listWindow.indexes === null
+			? props.style
+			: {
+					...props.style,
+					paddingTop: listWindow.paddingTop,
+					paddingBottom: listWindow.paddingBottom,
+				}
+
 	const ulProps = {
 		...props,
 		ref: containerRef,
@@ -327,14 +336,7 @@ export function List<T>({
 		'data-slot': 'list',
 		'data-orientation': orientation,
 		className: cn(k.base({ variant, orientation }), className),
-		style:
-			listWindow.indexes === null
-				? props.style
-				: {
-						...props.style,
-						paddingTop: listWindow.paddingTop,
-						paddingBottom: listWindow.paddingBottom,
-					},
+		style,
 	}
 
 	return (

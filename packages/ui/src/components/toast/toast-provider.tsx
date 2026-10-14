@@ -71,12 +71,12 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 
 	const dismiss = useCallback(
 		(id: string, reason: ToastDismissReason = 'dismissed') => {
-			const toast = toastsRef.current.find((t) => t.id === id)
+			const toast = toastsRef.current.find((item) => item.id === id)
 
 			if (!toast) return
 
 			const remove = () => {
-				toastsRef.current = toastsRef.current.filter((t) => t.id !== id)
+				toastsRef.current = toastsRef.current.filter((item) => item.id !== id)
 
 				sync()
 
@@ -85,8 +85,8 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 
 			if (toast.dismissed) return remove()
 
-			toastsRef.current = toastsRef.current.map((t) =>
-				t.id === id ? { ...t, dismissed: true } : t,
+			toastsRef.current = toastsRef.current.map((item) =>
+				item.id === id ? { ...item, dismissed: true } : item,
 			)
 
 			sync()
@@ -111,10 +111,10 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 			]
 
 			if (maxToasts > 0) {
-				const active = toastsRef.current.filter((t) => !t.dismissed)
+				const active = toastsRef.current.filter((item) => !item.dismissed)
 
-				for (const t of active.slice(0, Math.max(0, active.length - maxToasts))) {
-					dismiss(t.id, 'evicted')
+				for (const evicted of active.slice(0, Math.max(0, active.length - maxToasts))) {
+					dismiss(evicted.id, 'evicted')
 				}
 			}
 
@@ -129,7 +129,7 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 
 	const resetToast = useCallback(
 		(id: string) => {
-			const target = toastsRef.current.find((t) => t.id === id)
+			const target = toastsRef.current.find((item) => item.id === id)
 
 			if (!target || target.dismissed || target.persist) return
 

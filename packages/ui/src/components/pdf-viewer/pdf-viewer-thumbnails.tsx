@@ -58,16 +58,16 @@ export function PdfViewerThumbnails() {
 		orientation: 'vertical',
 	})
 
-	const thumbnailList = useMemo(
+	const thumbnails = useMemo(
 		() =>
-			pages.map((p, index) => {
+			pages.map((page, index) => {
 				const pageNumber = index + 1
 
 				return {
-					key: p.id ?? index,
+					key: page.id ?? index,
 					pageNumber,
-					label: p.label ?? `Page ${pageNumber}`,
-					thumbnail: p.thumbnail ?? p.src,
+					label: page.label ?? `Page ${pageNumber}`,
+					thumbnail: page.thumbnail ?? page.src,
 				}
 			}),
 		[pages],
@@ -110,7 +110,7 @@ export function PdfViewerThumbnails() {
 							Pages
 						</div>
 						<PdfViewerThumbnailList
-							items={thumbnailList}
+							items={thumbnails}
 							loading={loading}
 							safePage={safePage}
 							goToPage={goToPage}
@@ -145,7 +145,7 @@ export function PdfViewerThumbnails() {
 					</Flex>
 					<SheetBody>
 						<PdfViewerThumbnailList
-							items={thumbnailList}
+							items={thumbnails}
 							loading={loading}
 							safePage={safePage}
 							goToPage={goToPage}

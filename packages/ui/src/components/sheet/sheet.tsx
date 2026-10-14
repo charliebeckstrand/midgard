@@ -192,7 +192,7 @@ export function SheetPanel({
 	// The root holds the state. One setter drives the Overlay and the close parts.
 	const { open, setOpen, panelId } = usePanelState()
 
-	const resolvedSurface = useResolvedSurface(glass)
+	const surface = useResolvedSurface(glass)
 
 	const rtl = useIsRtl(container)
 
@@ -230,7 +230,7 @@ export function SheetPanel({
 			dismissOnBackdrop={dismissOnBackdrop}
 			modal={modal}
 			backdrop={backdrop}
-			backdropClassName={k.backdrop({ surface: resolvedSurface })}
+			backdropClassName={k.backdrop({ surface })}
 		>
 			<m.div
 				{...preset}
@@ -258,7 +258,7 @@ export function SheetPanel({
 						: undefined
 				}
 				className={cn(
-					k.panel({ side: edge, width, surface: resolvedSurface }),
+					k.panel({ side: edge, width, surface }),
 					// Non-modal overlays disable pointer events on the full-viewport
 					// wrapper so the page stays interactive; the panel re-enables its own.
 					modal === false && 'pointer-events-auto',

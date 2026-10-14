@@ -21,8 +21,8 @@ describe('input affix padding in right-to-left (real browser)', () => {
 
 			const suffix = present(container.querySelector('[data-slot="suffix"]'), 'the suffix slot')
 
-			const edge = (el: HTMLElement, side: 'start' | 'end') => {
-				const { paddingLeft, paddingRight } = getComputedStyle(el)
+			const edge = (affix: HTMLElement, side: 'start' | 'end') => {
+				const { paddingLeft, paddingRight } = getComputedStyle(affix)
 
 				const left = dir === 'ltr' ? side === 'start' : side === 'end'
 

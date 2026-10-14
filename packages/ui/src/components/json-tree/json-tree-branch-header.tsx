@@ -59,7 +59,8 @@ export function JsonTreeBranchHeader({
 	const openBracket = isArray ? '[' : '{'
 	const closeBracket = isArray ? ']' : '}'
 
-	const summary = count === 0 ? '' : count === 1 ? '1 item' : `${count} items`
+	// The summary shows only for a branch with items.
+	const summary = `${count} ${count === 1 ? 'item' : 'items'}`
 
 	// The row opens on the arrow toward its children and closes on the arrow
 	// back. The tree moves focus on the other two cases.

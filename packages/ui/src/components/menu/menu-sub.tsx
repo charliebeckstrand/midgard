@@ -35,7 +35,7 @@ import {
 	useMenuPointer,
 	useMenuRowPointer,
 } from './use-menu-pointer'
-import { MENUITEM_SELECTOR } from './use-menu-state'
+import { MENUITEM_SELECTOR } from './use-menu-root'
 
 /**
  * Keys that open a submenu from its roved parent row. Direction keys are
@@ -167,7 +167,7 @@ function MenuSubSheet({
 	const handlePointerMove = useMenuRowPointer(disabled)
 
 	const handleClick = useStableEvent(() => {
-		if (!disabled) setOpen((current) => !current)
+		if (!disabled) setOpen((prev) => !prev)
 	})
 
 	const handleTriggerKeyDown = useStableEvent((event: KeyboardEvent<HTMLButtonElement>) => {
@@ -178,7 +178,7 @@ function MenuSubSheet({
 		if (OPEN_KEYS.includes(event.key)) {
 			event.preventDefault()
 
-			setOpen((current) => !current)
+			setOpen((prev) => !prev)
 
 			return
 		}

@@ -11,10 +11,10 @@ describe('useKeyboardLifted', () => {
 
 		let next = 0
 
-		vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => {
+		vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
 			next += 1
 
-			frames.set(next, cb)
+			frames.set(next, callback)
 
 			return next
 		})
@@ -29,10 +29,10 @@ describe('useKeyboardLifted', () => {
 	})
 
 	function runFrames() {
-		for (const [id, cb] of [...frames]) {
+		for (const [id, callback] of [...frames]) {
 			frames.delete(id)
 
-			cb(0)
+			callback(0)
 		}
 	}
 

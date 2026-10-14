@@ -14,20 +14,20 @@ const pristine: Array<[object, string, PropertyDescriptor]> = []
 
 for (const proto of [HTMLElement.prototype]) {
 	for (const name of ['focus', 'blur'] as const) {
-		const desc = Object.getOwnPropertyDescriptor(proto, name)
+		const descriptor = Object.getOwnPropertyDescriptor(proto, name)
 
-		if (desc && typeof desc.value === 'function') {
-			pristine.push([proto, name, desc])
+		if (descriptor && typeof descriptor.value === 'function') {
+			pristine.push([proto, name, descriptor])
 		}
 	}
 }
 
 afterEach(() => {
-	for (const [proto, name, desc] of pristine) {
+	for (const [proto, name, descriptor] of pristine) {
 		const current = Object.getOwnPropertyDescriptor(proto, name)
 
 		if (current?.get && typeof current.value !== 'function') {
-			Object.defineProperty(proto, name, desc)
+			Object.defineProperty(proto, name, descriptor)
 		}
 	}
 })

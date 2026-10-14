@@ -30,7 +30,7 @@ describe('Grid row roving', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} onRowClick={vi.fn()} />)
 
 		// Exactly one resting stop (the first row); the rest are -1.
-		expect(bodyRows(screen.getByRole('table')).map((r) => r.tabIndex)).toEqual([0, -1, -1])
+		expect(bodyRows(screen.getByRole('table')).map((row) => row.tabIndex)).toEqual([0, -1, -1])
 	})
 
 	it('moves focus with ArrowDown / ArrowUp, carrying the resting stop', () => {
@@ -47,7 +47,7 @@ describe('Grid row roving', () => {
 		expect(document.activeElement).toBe(rowEls[1])
 
 		// The roving hook carries the resting `tabIndex=0` to the focused row.
-		expect(rowEls.map((r) => r.tabIndex)).toEqual([-1, 0, -1])
+		expect(rowEls.map((row) => row.tabIndex)).toEqual([-1, 0, -1])
 
 		fireEvent.keyDown(table, { key: 'ArrowUp' })
 
@@ -86,9 +86,9 @@ describe('Grid row roving', () => {
 
 		expect(rowEls).toHaveLength(3)
 
-		expect(rowEls.every((r) => !r.hasAttribute('data-roving'))).toBe(true)
+		expect(rowEls.every((row) => !row.hasAttribute('data-roving'))).toBe(true)
 
-		expect(rowEls.every((r) => r.tabIndex === -1)).toBe(true)
+		expect(rowEls.every((row) => row.tabIndex === -1)).toBe(true)
 	})
 })
 
@@ -180,7 +180,7 @@ describe('Grid cell roving', () => {
 
 		expect(rowEls).toHaveLength(3)
 
-		expect(rowEls.every((r) => !r.hasAttribute('data-roving'))).toBe(true)
+		expect(rowEls.every((row) => !row.hasAttribute('data-roving'))).toBe(true)
 	})
 
 	it('rings a rovable cell with an inset focus ring', () => {

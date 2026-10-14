@@ -4,7 +4,7 @@
  * a `Badge`. Under 0 and 1 scope, the badge is a control slot
  * (`data-density="slot"`), because the grid has no slot of its own. Under 2
  * scopes, the badge is not a slot: a slot there is 3 deep, which is past
- * `maxDepth` on main, so it takes the wrong step. Thus each row has the same
+ * `MAX_DEPTH` on main, so it takes the wrong step. Thus each row has the same
  * geometry at each step of the density plan. The columns have fixed widths, so
  * no autosizer fit is in a sample. The stylesheet of the suite (`setup.ts`)
  * imports `ui/tailwind.css`, so the density rules that the apps ship apply.
@@ -81,7 +81,7 @@ type Shape = { steps: DensityStep[]; slot: boolean }
  * `sm` and `lg`, so a scope holds the grid at `md` through the switch.
  *
  * A slot counts as one depth, and the root counts as none. So the slot is in
- * the rows of 0 and 1 scope only, where its depth is not more than `maxDepth`
+ * the rows of 0 and 1 scope only, where its depth is not more than `MAX_DEPTH`
  * on main. The badge of the 2-scope row takes the `md` step of its scope, and
  * the slots of the other rows take `sm`.
  */

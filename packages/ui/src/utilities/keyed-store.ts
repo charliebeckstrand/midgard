@@ -51,12 +51,12 @@ export function createKeyedStore<K, V>(read: (key: K) => V): KeyedStore<K, V> {
 			}
 		},
 		publish: (next) => {
-			const previous = current
+			const prev = current
 
 			current = next
 
 			for (const [key, set] of listeners) {
-				if (Object.is(previous(key), next(key))) continue
+				if (Object.is(prev(key), next(key))) continue
 
 				for (const listener of [...set]) listener()
 			}

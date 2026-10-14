@@ -28,27 +28,27 @@ const pool10k = shipments(10_000)
 // locale-aware string fallback (the meaningful stress), `weight` is the cheap
 // numeric subtract (the floor), `createdAt` is an ISO string that never parses
 // as a number (worst case — full decorate, then string compare).
-const strings = (n: number) => pool10k.slice(0, n).map((r) => r.origin)
+const strings = (count: number) => pool10k.slice(0, count).map((row) => row.origin)
 
-const numbers = (n: number) => pool10k.slice(0, n).map((r) => r.weight)
+const numbers = (count: number) => pool10k.slice(0, count).map((row) => row.weight)
 
-const dates = (n: number) => pool10k.slice(0, n).map((r) => r.createdAt)
+const dates = (count: number) => pool10k.slice(0, count).map((row) => row.createdAt)
 
 describe('grid-sort · compareSmart (raw, un-decorated)', () => {
 	// The full decorate-and-compare cost per pair: compareSmart re-decorates both
 	// arguments on every call (the render path caches keys — see compareSortKeys
 	// below — this is the uncached ceiling).
-	for (const n of [50, 1_000, 10_000]) {
-		const strs = strings(n)
+	for (const count of [50, 1_000, 10_000]) {
+		const stringValues = strings(count)
 
-		const nums = numbers(n)
+		const numberValues = numbers(count)
 
-		bench(`${n.toLocaleString()} · string column`, () => {
-			strs.slice().sort(compareSmart)
+		bench(`${count.toLocaleString()} · string column`, () => {
+			stringValues.slice().sort(compareSmart)
 		})
 
-		bench(`${n.toLocaleString()} · numeric column`, () => {
-			nums.slice().sort(compareSmart)
+		bench(`${count.toLocaleString()} · numeric column`, () => {
+			numberValues.slice().sort(compareSmart)
 		})
 	}
 })
@@ -57,17 +57,17 @@ describe('grid-sort · compareSortKeys (pre-decorated, render path)', () => {
 	// What the engine actually runs: values are decorated once (toSortKey), then
 	// the keys sort with no reparsing. Split by leaf — all-string keys are
 	// localeCompare-bound, all-numeric keys are a plain subtract.
-	for (const n of [50, 1_000, 10_000]) {
-		const strKeys: SortKey[] = strings(n).map(toSortKey)
+	for (const count of [50, 1_000, 10_000]) {
+		const stringKeys: SortKey[] = strings(count).map(toSortKey)
 
-		const numKeys: SortKey[] = numbers(n).map(toSortKey)
+		const numberKeys: SortKey[] = numbers(count).map(toSortKey)
 
-		bench(`${n.toLocaleString()} · string keys`, () => {
-			strKeys.slice().sort(compareSortKeys)
+		bench(`${count.toLocaleString()} · string keys`, () => {
+			stringKeys.slice().sort(compareSortKeys)
 		})
 
-		bench(`${n.toLocaleString()} · numeric keys`, () => {
-			numKeys.slice().sort(compareSortKeys)
+		bench(`${count.toLocaleString()} · numeric keys`, () => {
+			numberKeys.slice().sort(compareSortKeys)
 		})
 	}
 })
@@ -77,23 +77,23 @@ describe('grid-sort · toSortKey (decorate step)', () => {
 	// regex-heavy (parseNumeric strips currency/grouping/percent, then a decimal
 	// test). Date-shaped strings are the worst case: the regex runs to a failed
 	// match every time.
-	for (const n of [1_000, 10_000]) {
-		const strs = strings(n)
+	for (const count of [1_000, 10_000]) {
+		const stringValues = strings(count)
 
-		const nums = numbers(n)
+		const numberValues = numbers(count)
 
-		const dts = dates(n)
+		const dateValues = dates(count)
 
-		bench(`${n.toLocaleString()} · strings`, () => {
-			for (const v of strs) toSortKey(v)
+		bench(`${count.toLocaleString()} · strings`, () => {
+			for (const value of stringValues) toSortKey(value)
 		})
 
-		bench(`${n.toLocaleString()} · numbers`, () => {
-			for (const v of nums) toSortKey(v)
+		bench(`${count.toLocaleString()} · numbers`, () => {
+			for (const value of numberValues) toSortKey(value)
 		})
 
-		bench(`${n.toLocaleString()} · date strings`, () => {
-			for (const v of dts) toSortKey(v)
+		bench(`${count.toLocaleString()} · date strings`, () => {
+			for (const value of dateValues) toSortKey(value)
 		})
 	}
 })
@@ -105,7 +105,7 @@ describe('grid-sort · parseNumeric (per-value)', () => {
 	const samples: unknown[] = [1234.5, '$1,234.50', '(1,234)', '45%', 'Item 10', '2024-01-05']
 
 	bench('mixed value shapes · 6 per iter', () => {
-		for (const v of samples) parseNumeric(v)
+		for (const value of samples) parseNumeric(value)
 	})
 })
 
@@ -118,51 +118,54 @@ describe('grid-sort · parseNumeric (per-value)', () => {
 // regression in the cache's value, caught here before the browser suite feels it.
 const stringField: SmartSortField<Shipment> = {
 	descending: false,
-	accessor: (r) => r.origin,
+	accessor: (row) => row.origin,
 	sortFn: null,
 }
 
 const numberField: SmartSortField<Shipment> = {
 	descending: false,
-	accessor: (r) => r.weight,
+	accessor: (row) => row.weight,
 	sortFn: null,
 }
 
 describe('grid-sort · sortRowsSmart split (compute vs materialize)', () => {
-	for (const n of [10_000, 100_000]) {
-		const rows = shipments(n)
+	for (const count of [10_000, 100_000]) {
+		const rows = shipments(count)
 
 		// The permutation of a pre-sorted set, so `materializeSort` is benched over a
 		// real order rather than the identity — the exact array the cache hands it.
 		const order = computeSortOrder(rows, [stringField])
 
-		bench(`${n.toLocaleString()} · computeSortOrder · string column (the cached half)`, () => {
+		bench(`${count.toLocaleString()} · computeSortOrder · string column (the cached half)`, () => {
 			computeSortOrder(rows, [stringField])
 		})
 
-		bench(`${n.toLocaleString()} · computeSortOrder · numeric column (the cached half)`, () => {
+		bench(`${count.toLocaleString()} · computeSortOrder · numeric column (the cached half)`, () => {
 			computeSortOrder(rows, [numberField])
 		})
 
-		bench(`${n.toLocaleString()} · materializeSort (paid every flip)`, () => {
+		bench(`${count.toLocaleString()} · materializeSort (paid every flip)`, () => {
 			materializeSort(rows, order, shipmentKey)
 		})
 
-		bench(`${n.toLocaleString()} · sortRowsSmart · string column (compute + materialize)`, () => {
-			sortRowsSmart(rows, shipmentKey, [stringField])
-		})
+		bench(
+			`${count.toLocaleString()} · sortRowsSmart · string column (compute + materialize)`,
+			() => {
+				sortRowsSmart(rows, shipmentKey, [stringField])
+			},
+		)
 	}
 })
 
 describe('grid-sort · first flip (the other direction of a cached order)', () => {
-	for (const n of [10_000, 100_000]) {
-		const rows = shipments(n)
+	for (const count of [10_000, 100_000]) {
+		const rows = shipments(count)
 
 		const descending = { ...stringField, descending: true }
 
 		// Each run takes a new column set, so the cache holds only the ascending
 		// order and the flip is always a first flip.
-		bench(`${n.toLocaleString()} · string column · turn the cached order around`, () => {
+		bench(`${count.toLocaleString()} · string column · turn the cached order around`, () => {
 			const columns = {}
 
 			cachedSortOrder(rows, columns, 'origin:asc', [stringField])
@@ -170,7 +173,7 @@ describe('grid-sort · first flip (the other direction of a cached order)', () =
 			cachedSortOrder(rows, columns, 'origin:desc', [descending], 'origin:asc')
 		})
 
-		bench(`${n.toLocaleString()} · string column · sort both directions (no mirror)`, () => {
+		bench(`${count.toLocaleString()} · string column · sort both directions (no mirror)`, () => {
 			const columns = {}
 
 			cachedSortOrder(rows, columns, 'origin:asc', [stringField])

@@ -144,7 +144,7 @@ export function useGridClientView<T>(args: {
 
 		if (!sorting) return kept
 
-		const sig = sortSignature(sort)
+		const signature = sortSignature(sort)
 
 		const mirror = mirrorSignature(sort)
 
@@ -154,16 +154,23 @@ export function useGridClientView<T>(args: {
 		// search, so a search filters it and sorts nothing. A custom `sortFn` can
 		// break that rule, so its fields sort the kept rows.
 		if (!kept || fields.every((field) => field.sortFn === null)) {
-			const full = cachedSortOrder(rows, columns, sig, fields, mirror, locale)
+			const full = cachedSortOrder(rows, columns, signature, fields, mirror, locale)
 
 			return kept ? keepInOrder(full, kept, rows.length) : full
 		}
 
-		const local = cachedSortOrder(rowsAt(rows, kept), columns, sig, fields, undefined, locale)
+		const positions = cachedSortOrder(
+			rowsAt(rows, kept),
+			columns,
+			signature,
+			fields,
+			undefined,
+			locale,
+		)
 
 		// A sort of the kept rows gives positions among them. Each maps back to
 		// the original index of its row.
-		return local.map((position) => kept[position] as number)
+		return positions.map((position) => kept[position] as number)
 	}, [fields, kept, rows, sort, columns, locale])
 
 	const pageIndex = page?.pageIndex
@@ -251,14 +258,16 @@ export function useGroupTree<T>(args: {
 
 		const fields = clientView?.fields ?? null
 
+		const groupSort =
+			fields && sort
+				? { fields, grouped: sort.map((entry) => String(entry.column) === columnId) }
+				: null
+
 		return orderGroups({
 			rows,
 			members,
 			order: clientView?.order ?? null,
-			sort:
-				fields && sort
-					? { fields, grouped: sort.map((entry) => String(entry.column) === columnId) }
-					: null,
+			sort: groupSort,
 			columnId,
 			read,
 			getKey,
@@ -268,7 +277,7 @@ export function useGroupTree<T>(args: {
 	const groups = useMemo(() => (closed ? expandGroups(closed, expanded) : null), [closed, expanded])
 
 	const toggleGroup = useCallback(
-		(id: string) => onExpandedChange?.((previous) => toggleGroupExpanded(previous, id)),
+		(id: string) => onExpandedChange?.((prev) => toggleGroupExpanded(prev, id)),
 		[onExpandedChange],
 	)
 

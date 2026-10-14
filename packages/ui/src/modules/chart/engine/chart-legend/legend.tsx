@@ -595,7 +595,7 @@ export function ChartLegend({
 
 	// The frame owns the series emphasis, so a hover renders the frame and not the
 	// chart body. The setter keeps its identity.
-	const onFocus = useChartSeriesFocus()
+	const setSeriesFocus = useChartSeriesFocus()
 
 	// The pointed entry wins, else the keyboard-focused one. Buttons render in
 	// `pageItems` order, so a focused button's position names its entry there. The
@@ -605,7 +605,7 @@ export function ChartLegend({
 		ref,
 		'button[data-slot="chart-legend-item"]',
 		(position) => pageItems[position]?.index ?? null,
-		onFocus,
+		setSeriesFocus,
 	)
 
 	// The reference chips share the recede with the reference rules: a chip's hover

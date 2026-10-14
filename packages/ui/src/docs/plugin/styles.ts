@@ -177,12 +177,9 @@ export async function inlinePage(
 
 	const source = readFileSync(stylesheet, 'utf8')
 
-	const css =
-		fontFaces +
-		(await compilePage(source, path.dirname(stylesheet), inline, scanClasses(html))).replace(
-			FONT_FACE,
-			'',
-		)
+	const compiled = await compilePage(source, path.dirname(stylesheet), inline, scanClasses(html))
+
+	const css = fontFaces + compiled.replace(FONT_FACE, '')
 
 	if (css.includes('</')) throw new Error(`docs: ${page}: the CSS can close its <style>`)
 

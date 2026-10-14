@@ -13,12 +13,12 @@ import { FLOAT } from '../helpers/geometry/tolerance'
 // and keeps the labels of one side at least `CALLOUT_LINE` apart. The chart
 // gives a band that holds the leader circle, so the cases here do the same.
 
-/** The callout ys of one side, `dir`, from the top down. */
-function sideYs(values: number[], options: Parameters<typeof pieCallouts>[1], dir: 1 | -1) {
+/** The callout ys of one side, `direction`, from the top down. */
+function sideYs(values: number[], options: Parameters<typeof pieCallouts>[1], direction: 1 | -1) {
 	const slices = pieSlices(values, options)
 
 	return pieCallouts(slices, options)
-		.filter((callout) => (callout.anchor === 'start' ? 1 : -1) === dir)
+		.filter((callout) => (callout.anchor === 'start' ? 1 : -1) === direction)
 		.map((callout) => callout.y)
 		.sort((a, b) => a - b)
 }
@@ -60,8 +60,8 @@ describe('pieCallouts · the frame band', () => {
 			bottom: 100 + radius + CALLOUT_LEADER,
 		}
 
-		for (const dir of [1, -1] as const) {
-			expectInBand(sideYs([1, 196, 1, 1, 1, 200], options, dir), options.top, options.bottom)
+		for (const direction of [1, -1] as const) {
+			expectInBand(sideYs([1, 196, 1, 1, 1, 200], options, direction), options.top, options.bottom)
 		}
 	})
 
@@ -92,8 +92,8 @@ describe('pieCallouts · the frame band', () => {
 
 			const options = { cx: 300, cy, radius, top: cy - circle - above, bottom: cy + circle + below }
 
-			for (const dir of [1, -1] as const) {
-				expectInBand(sideYs(values, options, dir), options.top, options.bottom)
+			for (const direction of [1, -1] as const) {
+				expectInBand(sideYs(values, options, direction), options.top, options.bottom)
 			}
 		},
 	)

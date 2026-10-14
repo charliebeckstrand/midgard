@@ -99,7 +99,7 @@ export function PasswordInput({
 				showToggle ? (
 					<VisibilityToggle
 						visible={revealed}
-						onToggle={() => setVisible((v) => !v)}
+						onToggle={() => setVisible((prev) => !prev)}
 						showLabel="Show password"
 						hideLabel="Hide password"
 						disabled={disabled}

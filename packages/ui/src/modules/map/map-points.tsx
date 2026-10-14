@@ -407,22 +407,21 @@ export function MapPoints({
 					}
 				}
 
-				return {
-					label: shared.label,
-					swatch,
-					// The spread costs a spherical pass per group, so only a caller that
-					// reads it pays for it.
-					detail:
-						clusterDetail === undefined
-							? String(count)
-							: clusterDetail(
-									count,
-									clusterSpan(members, positions),
-									// Resolved through the same fallback a lone dot's own readout takes, so a stop
-									// is named identically whether or not it ended up merged.
-									members.map((member) => points[member]?.label ?? stopName(shared.label, member)),
-								),
+				// The spread costs a spherical pass per group, so only a caller that
+				// reads it pays for it.
+				if (clusterDetail === undefined) {
+					return { label: shared.label, swatch, detail: String(count) }
 				}
+
+				const span = clusterSpan(members, positions)
+
+				// Resolved through the same fallback a lone dot's own readout takes, so a stop
+				// is named identically whether or not it ended up merged.
+				const labels = members.map(
+					(member) => points[member]?.label ?? stopName(shared.label, member),
+				)
+
+				return { label: shared.label, swatch, detail: clusterDetail(count, span, labels) }
 			}),
 		[groups, points, positions, shapes, shape, shared.label, clusterDetail],
 	)

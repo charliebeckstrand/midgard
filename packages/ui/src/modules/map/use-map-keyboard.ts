@@ -234,21 +234,21 @@ export function useMapKeyboard({
 	// both causes reach it through one comparison.
 	const index = at()
 
-	const current = index === null ? null : (stops()[index] ?? null)
+	const cursorStop = index === null ? null : (stops()[index] ?? null)
 
-	const drawn = current === null ? null : applyTransform(current.at, transform)
+	const drawn = cursorStop === null ? null : applyTransform(cursorStop.at, transform)
 
 	// A keypress anchors the stop itself, so the effect stops at a point that is
 	// already anchored and reads no box for it.
 	useEffect(() => {
-		if (current === null || drawn === null) return
+		if (cursorStop === null || drawn === null) return
 
-		const last = anchored.current
+		const prev = anchored.current
 
-		if (last !== null && last.x === drawn.x && last.y === drawn.y) return
+		if (prev !== null && prev.x === drawn.x && prev.y === drawn.y) return
 
-		anchor(current, transform)
-	}, [current, drawn, transform, anchor])
+		anchor(cursorStop, transform)
+	}, [cursorStop, drawn, transform, anchor])
 
 	const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
 		// The zoom keys, read first because they claim keys the cursor does not: a

@@ -14,7 +14,7 @@ function flushFrames(): void {
 
 	frameQueue = []
 
-	for (const cb of pending) cb(0)
+	for (const callback of pending) callback(0)
 }
 
 function makeGroup(
@@ -96,8 +96,8 @@ describe('useResizablePanel', () => {
 	beforeEach(() => {
 		frameQueue = []
 
-		vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => {
-			frameQueue.push(cb)
+		vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+			frameQueue.push(callback)
 
 			return frameQueue.length
 		})

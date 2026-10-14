@@ -163,10 +163,10 @@ describe('Grid master-detail', () => {
 			<Grid<Order>
 				columns={[
 					{ id: 'expand', expander: true },
-					{ id: 'id', title: 'Id', cell: (r) => r.id },
+					{ id: 'id', title: 'Id', cell: (order) => order.id },
 				]}
 				rows={orders}
-				getKey={(r) => r.id}
+				getKey={(order) => order.id}
 				expandable={{ render, rowExpandable: (order) => order.lines != null }}
 			/>,
 		)

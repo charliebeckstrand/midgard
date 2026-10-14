@@ -9,7 +9,7 @@ import { AppearanceProvider } from 'ui/providers/appearance'
 import { UIProvider } from 'ui/providers/ui'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { CI } from '../../../vitest.base.ts'
-import { maxDepth } from '../../core/density/rungs.ts'
+import { MAX_DEPTH } from '../../core/density/rungs.ts'
 import { findPages, type Page } from '../plugin/pages.ts'
 import { restoreRootAfterCase } from './restore-root.ts'
 
@@ -25,7 +25,7 @@ import { restoreRootAfterCase } from './restore-root.ts'
 // throws, or when it writes to `console.error` or `console.warn`. It also fails
 // when a curated set of axe rules finds a violation in a state that it shows.
 // It fails too when a state nests more density scopes than the rungs rank
-// (`maxDepth`), or when two elements of a state have the same id. It fails
+// (`MAX_DEPTH`), or when two elements of a state have the same id. It fails
 // too when a state shows no example, so each page and each tab shows its unit
 // in an example or a playground.
 // `page-coverage.test.ts` asks whether a page exists, and this test asks
@@ -129,7 +129,9 @@ function VisitedPaths({ visited }: { visited: Set<string> }) {
 function tabKey(tab: Element): string {
 	const list = tab.closest('[role="tablist"]')
 
-	const siblings = [...(list?.querySelectorAll('[role="tab"]') ?? [])].map((t) => t.textContent)
+	const siblings = [...(list?.querySelectorAll('[role="tab"]') ?? [])].map(
+		(sibling) => sibling.textContent,
+	)
 
 	return `${siblings.join('|')}::${tab.textContent}`
 }
@@ -182,10 +184,10 @@ function captureConsole(): string[] {
 }
 
 /** The name of a scope in a chain: its tag, its step, and its `data-slot`. */
-function scopeName(element: Element): string {
-	const slot = element.getAttribute('data-slot')
+function scopeName(scope: Element): string {
+	const slot = scope.getAttribute('data-slot')
 
-	return `${element.localName}[${element.getAttribute('data-density')}]${slot ? `{${slot}}` : ''}`
+	return `${scope.localName}[${scope.getAttribute('data-density')}]${slot ? `{${slot}}` : ''}`
 }
 
 /**
@@ -195,11 +197,11 @@ function scopeName(element: Element): string {
 function deepestScopeChain(): Element[] {
 	let deepest: Element[] = []
 
-	for (const element of document.body.querySelectorAll('[data-density]')) {
+	for (const scope of document.body.querySelectorAll('[data-density]')) {
 		const chain: Element[] = []
 
 		for (
-			let node: Element | null = element;
+			let node: Element | null = scope;
 			node && node !== document.documentElement;
 			node = node.parentElement
 		) {
@@ -351,7 +353,7 @@ export function describePageSmoke(part: readonly Page[]): void {
 				expect(bare, 'states that show no example or playground').toBe(0)
 
 				expect(scopes.length, `${page.path} nests ${scopes.join(' > ')}`).toBeLessThanOrEqual(
-					maxDepth,
+					MAX_DEPTH,
 				)
 
 				const closed = page.tabs

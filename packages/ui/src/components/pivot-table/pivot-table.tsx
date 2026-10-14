@@ -86,7 +86,7 @@ export function PivotTable<T>({
 	className,
 	'aria-label': ariaLabel,
 }: PivotTableProps<T>) {
-	const { rowKeys, columnKeys, cellValue, rowTotal, colTotals, grandTotal } = usePivotTable(
+	const { rowKeys, columnKeys, cellValue, rowTotal, columnTotals, grandTotal } = usePivotTable(
 		rows,
 		keys,
 		{
@@ -97,7 +97,7 @@ export function PivotTable<T>({
 	)
 
 	const showRowTotals = totals === 'row' || totals === 'both'
-	const showColTotals = totals === 'col' || totals === 'both'
+	const showColumnTotals = totals === 'col' || totals === 'both'
 
 	const { locale } = useLocale()
 
@@ -118,9 +118,9 @@ export function PivotTable<T>({
 					{/* An empty `<th>` is a header with no text (axe empty-table-header), so
 					    the corner without a `rowHeader` is a `<td>`. */}
 					{rowHeader == null ? <TableCell /> : <TableHeader scope="col">{rowHeader}</TableHeader>}
-					{columnKeys.map((col) => (
-						<TableHeader key={col} scope="col" className="text-end">
-							{col}
+					{columnKeys.map((column) => (
+						<TableHeader key={column} scope="col" className="text-end">
+							{column}
 						</TableHeader>
 					))}
 					{showRowTotals && (
@@ -139,11 +139,11 @@ export function PivotTable<T>({
 							<TableHeader scope="row" className="font-medium whitespace-nowrap">
 								{rowKey}
 							</TableHeader>
-							{columnKeys.map((col) => {
-								const value = cellValue(rowKey, col)
+							{columnKeys.map((column) => {
+								const value = cellValue(rowKey, column)
 
 								return (
-									<TableCell key={col} className="text-end tabular-nums">
+									<TableCell key={column} className="text-end tabular-nums">
 										{value != null ? formatValue(value) : emptyCell}
 									</TableCell>
 								)
@@ -157,17 +157,17 @@ export function PivotTable<T>({
 					)
 				})}
 			</TableBody>
-			{showColTotals && (
+			{showColumnTotals && (
 				<TableFoot>
 					<TableRow className="font-semibold">
 						<TableHeader scope="row" className="font-semibold whitespace-nowrap">
 							Total
 						</TableHeader>
-						{columnKeys.map((col, i) => {
-							const total = colTotals[i]
+						{columnKeys.map((column, index) => {
+							const total = columnTotals[index]
 
 							return (
-								<TableCell key={col} className="text-end font-semibold tabular-nums">
+								<TableCell key={column} className="text-end font-semibold tabular-nums">
 									{total != null ? formatValue(total) : emptyCell}
 								</TableCell>
 							)

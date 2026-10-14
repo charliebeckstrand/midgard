@@ -39,12 +39,12 @@ beforeEach(() => {
 
 /** Sends one entry to the newest observer, as a scroll would. */
 function report(isIntersecting: boolean) {
-	const current = observers.at(-1)
+	const observer = observers.at(-1)
 
-	if (!current) throw new Error('no observer')
+	if (!observer) throw new Error('no observer')
 
 	act(() => {
-		current.callback([{ isIntersecting } as IntersectionObserverEntry], {} as IntersectionObserver)
+		observer.callback([{ isIntersecting } as IntersectionObserverEntry], {} as IntersectionObserver)
 	})
 }
 

@@ -38,14 +38,14 @@ function classifyEntries(
 	for (const entry of entries) {
 		const next = measureBox(entry.target, entry.borderBoxSize?.[0])
 
-		const previous = boxes.get(entry.target)
+		const prev = boxes.get(entry.target)
 
 		boxes.set(entry.target, next)
 
-		if (!previous) continue
+		if (!prev) continue
 
-		if (next.inline !== previous.inline) reflow = true
-		else if (next.block !== previous.block) discrete = true
+		if (next.inline !== prev.inline) reflow = true
+		else if (next.block !== prev.block) discrete = true
 	}
 
 	return { discrete, reflow }
@@ -101,7 +101,7 @@ export function useCurrentContentsMorph(
 		// tracked height in that case; mid-morph the container holds an explicit
 		// tweening height (`live !== to`), so the live box is still the true visual
 		// origin and an interrupted morph continues from where it visually is.
-		let previousHeight = element.getBoundingClientRect().height
+		let prevHeight = element.getBoundingClientRect().height
 
 		let tween: AnimationPlaybackControls | null = null
 
@@ -124,13 +124,13 @@ export function useCurrentContentsMorph(
 			// A tween in flight already goes to this height. A new tween would start
 			// the ease again, and the box would stall partway. A switch reaches this
 			// when the outgoing panel leaves the DOM before the tween ends.
-			if (tween && to === previousHeight) return
+			if (tween && to === prevHeight) return
 
 			const live = element.getBoundingClientRect().height
 
-			const from = live === to ? previousHeight : live
+			const from = live === to ? prevHeight : live
 
-			previousHeight = to
+			prevHeight = to
 
 			if (from === to) return
 
@@ -151,7 +151,7 @@ export function useCurrentContentsMorph(
 			else if (reflow) {
 				// Record the reflowed height so a following discrete morph animates
 				// from it, and stop steering any in-flight morph.
-				previousHeight = element.getBoundingClientRect().height
+				prevHeight = element.getBoundingClientRect().height
 
 				settle()
 			}

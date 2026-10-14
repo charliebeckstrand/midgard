@@ -12,23 +12,23 @@ import type { OverlapMode, ThumbIndex } from './types'
  * value that this setter writes.
  * @internal
  */
-export function useRangeUpdate(opts: {
+export function useRangeUpdate(options: {
 	min: number
 	max: number
 	step: number
 	setRange: (fn: (prev: [number, number] | undefined) => [number, number]) => void
 	overlap?: OverlapMode
 }) {
-	const { min, max, step, setRange, overlap = 'clamp' } = opts
+	const { min, max, step, setRange, overlap = 'clamp' } = options
 
 	return useCallback(
 		(index: ThumbIndex, raw: number) => {
-			const rounded = snapValue(raw, min, max, step)
+			const snapped = snapValue(raw, min, max, step)
 
 			setRange((prev) => {
 				const next = [...(prev ?? [min, max])] as [number, number]
 
-				next[index] = rounded
+				next[index] = snapped
 
 				if (next[0] > next[1]) {
 					if (overlap === 'swap') return [next[1], next[0]] as [number, number]

@@ -35,10 +35,10 @@ describe('overlay family under forced colors', () => {
 		const classes = classNames([part])
 
 		const restores = classes.some(
-			(cls) =>
-				/^forced-colors:(?:[\w-]+:)*(?:outline|bg-\[)/.test(cls) ||
+			(className) =>
+				/^forced-colors:(?:[\w-]+:)*(?:outline|bg-\[)/.test(className) ||
 				// An outline drawn in every mode, which forced colors keep and recolor.
-				cls === 'outline',
+				className === 'outline',
 		)
 
 		expect(restores).toBe(true)

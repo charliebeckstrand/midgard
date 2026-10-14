@@ -19,8 +19,8 @@ describe('grid commit on leave (real browser)', () => {
 	]
 
 	const columns: GridColumn<Row>[] = [
-		{ id: 'name', title: 'Name', field: 'name', cell: (r) => r.name },
-		{ id: 'note', title: 'Note', field: 'note', cell: (r) => r.note, readOnly: true },
+		{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+		{ id: 'note', title: 'Note', field: 'note', cell: (row) => row.note, readOnly: true },
 	]
 
 	function renderGrid(editable: Partial<GridEditableConfig>) {
@@ -32,17 +32,17 @@ describe('grid commit on leave (real browser)', () => {
 				<Grid
 					columns={columns}
 					rows={rows}
-					getKey={(r) => r.id}
+					getKey={(row) => row.id}
 					editable={{ session: 'managed', scope: 'cell', onCommit, ...editable }}
 				/>
 				<p data-slot="outside-text">Text outside the grid</p>
 			</>,
 		)
 
-		const cell = (col: string, row = 0) =>
+		const cell = (column: string, row = 0) =>
 			present(
-				view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${col}"]`)[row],
-				`td[data-grid-col="${col}"]`,
+				view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${column}"]`)[row],
+				`td[data-grid-col="${column}"]`,
 			)
 
 		return { ...view, onCommit, cell }

@@ -37,7 +37,7 @@ const wrapper = defineRecipe({
 		horizontal: '',
 		both: '',
 	},
-	extent: Object.fromEntries(extents.map((key) => [key, ''])) as Record<Extent, string>,
+	extent: Object.fromEntries(extents.map((extent) => [extent, ''])) as Record<Extent, string>,
 	compound,
 	defaults: { rounded: false, bare: false, orientation: 'vertical', extent: 'md' },
 })

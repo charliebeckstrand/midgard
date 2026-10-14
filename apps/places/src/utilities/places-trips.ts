@@ -11,9 +11,9 @@ export function placesByTrip(places: readonly Place[]): Map<string, Place[]> {
 	const byTrip = new Map<string, Place[]>()
 
 	for (const place of places) {
-		const trips = new Set(tripIdsOf(place))
+		const tripIds = new Set(tripIdsOf(place))
 
-		for (const id of trips) {
+		for (const id of tripIds) {
 			const list = byTrip.get(id)
 
 			if (list === undefined) byTrip.set(id, [place])
@@ -27,7 +27,9 @@ export function placesByTrip(places: readonly Place[]): Map<string, Place[]> {
 
 			const right = tripVisit(b, id)?.visitedAt ?? ''
 
-			return left === right ? a.name.localeCompare(b.name) : left < right ? 1 : -1
+			if (left === right) return a.name.localeCompare(b.name)
+
+			return left < right ? 1 : -1
 		})
 	}
 
@@ -44,9 +46,11 @@ function tripVisit(place: Place, tripId: string): Visit | undefined {
 
 /** Trips newest first, by their first day, and by name where two start on one day. */
 export function sortTrips(trips: readonly Trip[]): Trip[] {
-	return [...trips].sort((a, b) =>
-		a.startsOn === b.startsOn ? a.name.localeCompare(b.name) : a.startsOn < b.startsOn ? 1 : -1,
-	)
+	return [...trips].sort((a, b) => {
+		if (a.startsOn === b.startsOn) return a.name.localeCompare(b.name)
+
+		return a.startsOn < b.startsOn ? 1 : -1
+	})
 }
 
 /** Whether a record of the map is a trip. Only a trip has days. */

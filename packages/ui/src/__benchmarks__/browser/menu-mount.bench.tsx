@@ -6,7 +6,7 @@
  * portal mounts nothing until the menu opens. The cost is the shell around it.
  *
  * The rungs ladder that shell apart, each one a layer further from a bare
- * button. `useMenuState only` is the hook tree: floating-ui's own, the
+ * button. `useMenuRoot only` is the hook tree: floating-ui's own, the
  * disclosure over it, and the roving handler. `trigger only` adds `MenuTrigger`
  * — its component body, the merged reference ref, and the reference-props
  * pass — with no `MenuContent` to build a panel tree. `closed menus` adds that
@@ -25,7 +25,7 @@
 import type { ReactNode } from 'react'
 import { bench, describe } from 'vitest'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuSub, MenuTrigger } from '../../components/menu'
-import { useMenuState } from '../../components/menu/use-menu-state'
+import { useMenuRoot } from '../../components/menu/use-menu-root'
 import { comboboxOptions } from '../fixtures'
 import { reactHost, WINDOW } from './harness'
 
@@ -54,7 +54,7 @@ function Rows() {
 
 /** The hook tree a menu installs, with none of the elements around it. */
 function StateOnly() {
-	useMenuState({ placement: 'bottom-start' })
+	useMenuRoot({ placement: 'bottom-start' })
 
 	return <button type="button">Options</button>
 }
@@ -69,7 +69,7 @@ const RUNGS: [string, (key: string) => ReactNode][] = [
 			</button>
 		),
 	],
-	['2 · useMenuState only', (key) => <StateOnly key={key} />],
+	['2 · useMenuRoot only', (key) => <StateOnly key={key} />],
 	[
 		'3 · trigger only (no panel to build)',
 		(key) => (

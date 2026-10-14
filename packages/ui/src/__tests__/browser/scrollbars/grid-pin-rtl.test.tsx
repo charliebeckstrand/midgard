@@ -34,7 +34,7 @@ describe('grid pinned column in a right-to-left grid (real browser, real scrollb
 		return side === 'left' ? [pin, ...data] : [...data, pin]
 	}
 
-	const rows: Row[] = Array.from({ length: 10 }, (_, i) => ({ id: i + 1 }))
+	const rows: Row[] = Array.from({ length: 10 }, (_, index) => ({ id: index + 1 }))
 
 	function renderGrid(side: 'left' | 'right') {
 		renderUI(

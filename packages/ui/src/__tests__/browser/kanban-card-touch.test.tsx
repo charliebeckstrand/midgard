@@ -20,7 +20,7 @@ describe('kanban card touch-action (real browser)', () => {
 		const { container } = renderUI(
 			<Kanban
 				columns={columns}
-				getKey={(i: { id: string }) => i.id}
+				getKey={(item: { id: string }) => item.id}
 				onReorder={() => {}}
 				aria-label="Board"
 			>

@@ -68,10 +68,12 @@ export function useKeybindings(bindings: KeybindingsMap, options: KeybindingsOpt
 		if (keys.length === 0) return
 
 		const wrapped: KeybindingsMap = Object.fromEntries(
-			keys.map((key) => [key, (e: KeyboardEvent) => handle(key, e)]),
+			keys.map((key) => [key, (event: KeyboardEvent) => handle(key, event)]),
 		)
 
-		const resolvedIgnore: KeybindingFilter | undefined = hasIgnore ? (e) => skip(e) : undefined
+		const resolvedIgnore: KeybindingFilter | undefined = hasIgnore
+			? (event) => skip(event)
+			: undefined
 
 		return tinykeys(resolvedTarget, wrapped, { capture, ignore: resolvedIgnore })
 	}, [enabled, target, capture, hasIgnore, keySignature])

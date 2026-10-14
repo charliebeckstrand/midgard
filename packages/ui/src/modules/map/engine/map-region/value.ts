@@ -78,9 +78,9 @@ export function resolveValueBins<T>(
 
 	// `domain` applies to linear binning. Quantile bins cut the data, so the
 	// scale spans the data extent, where the bins sit.
-	const resolved = valueExtent(values, binning === 'quantile' ? undefined : domain)
+	const extent = valueExtent(values, binning === 'quantile' ? undefined : domain)
 
-	if (resolved === null) return { metas: [], domain: null, assign: () => null }
+	if (extent === null) return { metas: [], domain: null, assign: () => null }
 
 	// One resolution yields both the painted bins and the assignment the regions
 	// read, so the fills and the legend can't disagree on where the buckets fall.
@@ -88,7 +88,7 @@ export function resolveValueBins<T>(
 		bins: colorBins,
 		assign,
 		thresholds,
-	} = resolveBinScale(values, resolved, colorRange, bins, binning)
+	} = resolveBinScale(values, extent, colorRange, bins, binning)
 
 	const metas = colorBins.map((bin, index): MapCategoryMeta => {
 		const label = bin.hi > bin.lo ? `${format(bin.lo)}–${format(bin.hi)}` : format(bin.lo)
@@ -96,7 +96,7 @@ export function resolveValueBins<T>(
 		return { value: String(index), label, paint: { kind: 'value', color: bin.color } }
 	})
 
-	return { metas, domain: resolved, assign, thresholds }
+	return { metas, domain: extent, assign, thresholds }
 }
 
 /** The per-region readout {@link regionValueJoin} resolves, index-aligned with the region ids. @internal */

@@ -56,7 +56,7 @@ export function findSteps(
  * Reads the icon-only pad of a bare button at `size`, from the stepped `bare`
  * variant of the button kata.
  */
-export function findBareCompoundP(size: DensityStep): number {
+export function findBarePad(size: DensityStep): number {
 	const bare = button.config.variants.variant?.bare as readonly unknown[]
 
 	return Number(findSteps(bare, 'not-data-has-label:density-p-')[size])

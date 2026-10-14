@@ -116,14 +116,18 @@ export function Trend() {
 
 export type KpiProps = { value: 'revenue' | 'units' }
 
+const arrows = { up: '↑', down: '↓', neutral: '→' } as const
+
 export function Kpi({ value }: KpiProps) {
 	const data = sumBy(useDashboardRows(sales), 'month', value)
 
 	const latest = data.at(-1)
 
-	const previous = data.at(-2)
+	const prev = data.at(-2)
 
-	const change = latest && previous?.total ? (latest.total - previous.total) / previous.total : 0
+	const change = latest && prev?.total ? (latest.total - prev.total) / prev.total : 0
+
+	const trend = change > 0 ? 'up' : change < 0 ? 'down' : 'neutral'
 
 	const name = value === 'units' ? 'Units' : 'Revenue'
 
@@ -134,9 +138,8 @@ export function Kpi({ value }: KpiProps) {
 			<Stat className="h-auto">
 				<Flex align="baseline" gap="sm" wrap>
 					<StatValue size="sm">{latest?.total.toLocaleString('en-US') ?? '–'}</StatValue>
-					<StatDelta trend={change > 0 ? 'up' : change < 0 ? 'down' : 'neutral'}>
-						{change > 0 ? '↑' : change < 0 ? '↓' : '→'} {Math.abs(change * 100).toFixed(1)}% vs{' '}
-						{previous?.key ?? 'last month'}
+					<StatDelta trend={trend}>
+						{arrows[trend]} {Math.abs(change * 100).toFixed(1)}% vs {prev?.key ?? 'last month'}
 					</StatDelta>
 				</Flex>
 			</Stat>

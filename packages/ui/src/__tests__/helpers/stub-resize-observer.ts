@@ -48,8 +48,8 @@ export function stubResizeObserver(): ResizeObserverStub[] {
 
 		callback: ResizeObserverCallback
 
-		constructor(cb: ResizeObserverCallback) {
-			this.callback = cb
+		constructor(callback: ResizeObserverCallback) {
+			this.callback = callback
 
 			instances.push(this)
 		}

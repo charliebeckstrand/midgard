@@ -333,9 +333,9 @@ describe('pdf viewer · cold open · zoom 2', () => {
 })
 
 describe('pdf viewer · stage · one invoice page at 2x', async () => {
-	const doc = await pdfjs.getDocument({ data: makeInvoicePdf(1) }).promise
+	const pdf = await pdfjs.getDocument({ data: makeInvoicePdf(1) }).promise
 
-	const page = await doc.getPage(1)
+	const page = await pdf.getPage(1)
 
 	const viewport = page.getViewport({ scale: 2 })
 

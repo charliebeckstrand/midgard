@@ -59,8 +59,8 @@ export function breadcrumbFit(nav: HTMLElement): number {
 	let need =
 		getComputedStyle(nav).direction === 'rtl' ? box.right - edge.left : edge.right - box.left
 
-	for (let at = 0; at <= last; at++) {
-		need += text(labels.item(at)) - width(labels.item(at)) - width(marks.item(at))
+	for (let i = 0; i <= last; i++) {
+		need += text(labels.item(i)) - width(labels.item(i)) - width(marks.item(i))
 	}
 
 	let collapsed = 0

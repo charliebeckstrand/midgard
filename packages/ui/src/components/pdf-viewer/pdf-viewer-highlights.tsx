@@ -15,7 +15,7 @@ import { HIGHLIGHT_ID_ATTR, HIGHLIGHT_SELECTOR } from './use-pdf-viewer-highligh
 
 const layer = k.viewport.page.highlights
 
-const region = layer.region
+const regionKata = layer.region
 
 const regionClasses = new Map<string, string>()
 
@@ -37,13 +37,13 @@ function regionClass(color: Color, active: boolean, dimmed: boolean) {
 
 	if (classes === undefined) {
 		classes = cn(
-			region.base,
-			active ? region.active.fill[color] : region.fill[color],
-			region.ring[color],
+			regionKata.base,
+			active ? regionKata.active.fill[color] : regionKata.fill[color],
+			regionKata.ring[color],
 			// Selected or hoverable, never both: see the kata's `hover` note — a hover step on
 			// the selected region outranks its own `ring-4` and flattens the selection.
-			active ? region.active.base : region.hover,
-			dimmed && region.dimmed,
+			active ? regionKata.active.base : regionKata.hover,
+			dimmed && regionKata.dimmed,
 		)
 
 		regionClasses.set(key, classes)
@@ -236,7 +236,7 @@ function PdfViewerHighlightLayer() {
 	 * so hovering it says nothing new — and would say it twice, in two panels a few pixels
 	 * apart.
 	 */
-	const previewed = hovered && regions.find((r) => r.id === hovered.id)
+	const previewed = hovered && regions.find((region) => region.id === hovered.id)
 
 	const previewOpen = highlightsVisible && previewing && !!previewed && !previewed.active
 
@@ -259,7 +259,7 @@ function PdfViewerHighlightLayer() {
 		setHovered({
 			id: hit.id,
 			element: hit.element,
-			label: regions.find((r) => r.id === hit.id)?.label ?? '',
+			label: regions.find((region) => region.id === hit.id)?.label ?? '',
 		})
 	}
 
@@ -291,7 +291,7 @@ function PdfViewerHighlightLayer() {
 		// Selection, though, is a no-op when it would not change: activation is selection
 		// among siblings, not a toggle. It also keeps a keyboard activation that arrives as
 		// both a roving key and a native click from reporting the same change twice.
-		if (regions.some((r) => r.id === id && r.active)) return
+		if (regions.some((region) => region.id === id && region.active)) return
 
 		activate(id)
 	}
@@ -439,18 +439,18 @@ function PdfViewerHighlightLayer() {
 					}
 				: { 'aria-hidden': true })}
 		>
-			{regions.map((r) => (
+			{regions.map((region) => (
 				<Region
-					key={r.id}
-					{...{ [HIGHLIGHT_ID_ATTR]: r.id }}
+					key={region.id}
+					{...{ [HIGHLIGHT_ID_ATTR]: region.id }}
 					{...(interactive && {
 						type: 'button' as const,
-						'aria-label': r.label,
-						'aria-current': r.active || undefined,
+						'aria-label': region.label,
+						'aria-current': region.active || undefined,
 					})}
-					ref={r.active ? activeRegionRef : undefined}
-					className={regionClass(r.color, r.active, anyActive && !r.active)}
-					style={regionStyle(r.rect)}
+					ref={region.active ? activeRegionRef : undefined}
+					className={regionClass(region.color, region.active, anyActive && !region.active)}
+					style={regionStyle(region.rect)}
 				/>
 			))}
 			{/*

@@ -93,7 +93,7 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 	// Registration waits for the first open, so a closed menu renders once
 	// rather than twice. That almost halves the cost of a closed menu, measured
 	// at a fan-out of fifty (`__benchmarks__/browser/menu-mount.bench.tsx`).
-	const mergeRefs = useDeferredFloatingReference<HTMLElement>(
+	const setTrigger = useDeferredFloatingReference<HTMLElement>(
 		setReference,
 		open,
 		triggerRef,
@@ -191,7 +191,7 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 					'aria-expanded': open,
 					'aria-controls': open ? menuId : undefined,
 				}}
-				ref={mergeRefs}
+				ref={setTrigger}
 				slot="menu-trigger"
 				className={className}
 			/>
@@ -206,7 +206,7 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 
 	return (
 		<button
-			ref={mergeRefs}
+			ref={setTrigger}
 			data-slot="menu-trigger"
 			className={cn(className)}
 			// Consumer props spread first; the type and the menu wiring below take

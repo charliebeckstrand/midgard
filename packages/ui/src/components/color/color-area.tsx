@@ -31,7 +31,7 @@ export function ColorArea() {
 
 	const drag = useColorDrag(ref, onPosition, disabled, 'crosshair')
 
-	const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+	const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
 		if (disabled) return
 
 		const step = event.shiftKey ? 10 : 1
@@ -98,7 +98,7 @@ export function ColorArea() {
 			onPointerUp={drag.onPointerUp}
 			onPointerCancel={drag.onPointerCancel}
 			onLostPointerCapture={drag.onLostPointerCapture}
-			onKeyDown={onKeyDown}
+			onKeyDown={handleKeyDown}
 		>
 			<div aria-hidden="true" className={k.area.saturation} />
 			<div aria-hidden="true" className={k.area.value} />

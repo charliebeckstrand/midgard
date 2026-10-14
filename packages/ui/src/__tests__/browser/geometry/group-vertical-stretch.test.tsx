@@ -37,7 +37,9 @@ describe('vertical Group', () => {
 			</Group>,
 		)
 
-		const [cut, paste] = getAllSlots(container, 'button').map((b) => b.getBoundingClientRect())
+		const [cut, paste] = getAllSlots(container, 'button').map((button) =>
+			button.getBoundingClientRect(),
+		)
 
 		expect(cut?.width).toBeLessThan(paste?.width ?? 0)
 	})

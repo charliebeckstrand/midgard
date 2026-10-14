@@ -40,10 +40,10 @@ describe('grid cursor keys in a right-to-left grid (real browser)', () => {
 
 		const grid = screen.getByRole('grid')
 
-		const press = async (key: string, col: string) => {
+		const press = async (key: string, column: string) => {
 			fireEvent.keyDown(grid, { key })
 
-			await waitFor(() => expect(activeCell(grid).dataset.gridCol).toBe(col))
+			await waitFor(() => expect(activeCell(grid).dataset.gridCol).toBe(column))
 		}
 
 		grid.focus()

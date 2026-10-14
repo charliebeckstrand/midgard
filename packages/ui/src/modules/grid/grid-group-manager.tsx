@@ -166,7 +166,7 @@ export function groupManagerAnnouncements(
 	columnsById: ReadonlyMap<string, GridColumnManagerItem>,
 	zoneMap: ZoneMap,
 ): Announcements {
-	const groupIndex = (id: string) => groups.findIndex((g) => String(g.id) === id)
+	const groupIndex = (id: string) => groups.findIndex((group) => String(group.id) === id)
 
 	const groupName = (id: string) => {
 		const group = groups[groupIndex(id)]
@@ -233,7 +233,7 @@ export function GridGroupManager({
 	order,
 	onOrderChange,
 }: GridGroupManagerProps) {
-	const mgr = useGridGroupManager({ groups, onGroupsChange, columns, order, onOrderChange })
+	const manager = useGridGroupManager({ groups, onGroupsChange, columns, order, onOrderChange })
 
 	const sensors = useSortableSensors({ keyboardCoordinateGetter: groupAwareKeyboardCoordinates })
 
@@ -243,26 +243,29 @@ export function GridGroupManager({
 
 	// dnd-kit sets no cursor, so the element under the pointer sets it. The rule
 	// holds the closed hand on the whole page until the drop or the cancel.
-	useDragCursor(mgr.activeId != null)
+	useDragCursor(manager.activeId != null)
 
 	// String-keyed lookup so a zone (whose live ids are stringified) and the drag
 	// overlay can resolve a column id back to its manager item.
-	const byId = useMemo(() => new Map(columns.map((c) => [String(c.id), c])), [columns])
+	const byId = useMemo(
+		() => new Map(columns.map((column) => [String(column.id), column])),
+		[columns],
+	)
 
 	// The filter resolved once, to the ids that pass it — so each zone selects its
 	// rows by lookup rather than re-running the predicate over its own members, and
 	// only this level knows a filter is in play.
 	const visibleColumnIds = useMemo(
-		() => new Set(columns.filter(matches).map((c) => String(c.id))),
+		() => new Set(columns.filter(matches).map((column) => String(column.id))),
 		[columns, matches],
 	)
 
-	const activeItem = mgr.activeId ? byId.get(mgr.activeId) : undefined
+	const activeItem = manager.activeId ? byId.get(manager.activeId) : undefined
 
 	// The group zones (sortable) and the fixed ungrouped pool that leads them.
-	const groupZones = mgr.zones.filter((zone) => zone.group)
+	const groupZones = manager.zones.filter((zone) => zone.group)
 
-	const ungroupedZone = mgr.zones.find((zone) => !zone.group)
+	const ungroupedZone = manager.zones.find((zone) => !zone.group)
 
 	// A rename gives a new list of the same group ids. The held list keeps the
 	// value of the group sortable, so the rows under it do not render.
@@ -277,15 +280,15 @@ export function GridGroupManager({
 		groups,
 		hidden,
 		onToggle,
-		renameGroup: mgr.renameGroup,
-		recolorGroup: mgr.recolorGroup,
-		removeGroup: mgr.removeGroup,
-		assign: mgr.assign,
+		renameGroup: manager.renameGroup,
+		recolorGroup: manager.recolorGroup,
+		removeGroup: manager.removeGroup,
+		assign: manager.assign,
 	}
 
 	const announcements = useMemo(
-		() => groupManagerAnnouncements(groups, byId, mgr.zoneMap),
-		[groups, byId, mgr.zoneMap],
+		() => groupManagerAnnouncements(groups, byId, manager.zoneMap),
+		[groups, byId, manager.zoneMap],
 	)
 
 	return (
@@ -296,16 +299,16 @@ export function GridGroupManager({
 				sensors={sensors}
 				collisionDetection={groupAwareCollision}
 				measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
-				onDragStart={mgr.handleDragStart}
-				onDragOver={mgr.handleDragOver}
-				onDragEnd={mgr.handleDragEnd}
-				onDragCancel={mgr.handleDragCancel}
+				onDragStart={manager.handleDragStart}
+				onDragOver={manager.handleDragOver}
+				onDragEnd={manager.handleDragEnd}
+				onDragCancel={manager.handleDragCancel}
 			>
 				<div className={cn(k.manager.base)}>
 					{ungroupedZone && (
 						<GridGroupManagerZoneView
 							zone={ungroupedZone}
-							columnIds={mgr.zoneMap[UNGROUPED] ?? []}
+							columnIds={manager.zoneMap[UNGROUPED] ?? []}
 							{...shared}
 						/>
 					)}
@@ -321,7 +324,7 @@ export function GridGroupManager({
 									<GridGroupManagerGroupZone
 										key={zone.id}
 										zone={zone}
-										columnIds={mgr.zoneMap[String(zone.id)] ?? []}
+										columnIds={manager.zoneMap[String(zone.id)] ?? []}
 										{...shared}
 									/>
 								))}
@@ -329,7 +332,7 @@ export function GridGroupManager({
 						)}
 					</SortableContext>
 
-					<Button type="button" variant="soft" onClick={mgr.addGroup} className="self-start">
+					<Button type="button" variant="soft" onClick={manager.addGroup} className="self-start">
 						<Icon icon={<Plus />} />
 						New group
 					</Button>
@@ -429,9 +432,12 @@ function GridGroupManagerZoneView({
 	// at most one group. Memoized so a drag/hover re-render doesn't rescan every
 	// group in every zone.
 	const usedColors = useMemo(
-		() => new Set(groups.flatMap((g) => (g.id === zone.group?.id ? [] : (g.color ?? [])))),
+		() =>
+			new Set(groups.flatMap((group) => (group.id === zone.group?.id ? [] : (group.color ?? [])))),
 		[groups, zone.group?.id],
 	)
+
+	const emptyLabel = zone.group ? 'No columns in this group' : 'No ungrouped columns'
 
 	return (
 		<Card
@@ -462,11 +468,7 @@ function GridGroupManagerZoneView({
 					// (implicit `role="status"`) so emptying one zone is announced even while
 					// the rest of the editor still has matches.
 					<output className={cn(k.manager.zone.empty)}>
-						{columnIds.length > 0
-							? 'No results'
-							: zone.group
-								? 'No columns in this group'
-								: 'No ungrouped columns'}
+						{columnIds.length > 0 ? 'No results' : emptyLabel}
 					</output>
 				) : (
 					<SortableContext items={visibleIds} strategy={verticalListSortingStrategy}>

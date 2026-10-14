@@ -1,5 +1,5 @@
 import { TimeAgo } from 'ui/time-ago'
-import { SEC, useNow } from './now.ts'
+import { SECOND, useNow } from './now.ts'
 
 export default function CustomFormat() {
 	const now = useNow()
@@ -8,8 +8,8 @@ export default function CustomFormat() {
 
 	return (
 		<TimeAgo
-			date={now - 90 * SEC}
-			format={(diffMs) => `${Math.round(Math.abs(diffMs) / SEC)}s ago`}
+			date={now - 90 * SECOND}
+			format={(diffMs) => `${Math.round(Math.abs(diffMs) / SECOND)}s ago`}
 		/>
 	)
 }

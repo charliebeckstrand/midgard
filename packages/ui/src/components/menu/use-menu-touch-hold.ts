@@ -1,6 +1,6 @@
 import { type PointerEvent, useRef } from 'react'
 import { useTouchHold } from '../../hooks/use-touch-hold'
-import { inPortaledPanel } from './use-menu-state'
+import { inPortaledPanel } from './use-menu-root'
 
 /** Hold time, in ms, before a touch opens the context menu. Android opens its own at about 500. */
 export const TOUCH_CONTEXT_MENU_DELAY = 500
@@ -35,7 +35,7 @@ export function useMenuTouchHold() {
 		// A chart or a map keeps the hold: a map opens its readout, and a chart does nothing.
 		if (!(target instanceof Element) || target.closest('[data-touch-readout]')) return
 
-		const menu = new MouseEvent('contextmenu', {
+		const menuEvent = new MouseEvent('contextmenu', {
 			bubbles: true,
 			cancelable: true,
 			composed: true,
@@ -45,7 +45,7 @@ export function useMenuTouchHold() {
 		})
 
 		// A handler that opens a menu calls `preventDefault`, so `dispatchEvent` returns false.
-		if (!target.dispatchEvent(menu)) dropClickUntil.current = Date.now() + CLICK_WINDOW
+		if (!target.dispatchEvent(menuEvent)) dropClickUntil.current = Date.now() + CLICK_WINDOW
 	})
 
 	const cancel = hold.cancel

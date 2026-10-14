@@ -36,7 +36,7 @@ describe('layout stability (real browser): portal pickers in a space-y container
 		{
 			name: 'Listbox',
 			element: (
-				<Listbox aria-label="pick" defaultValue="b" displayValue={(v: string) => v}>
+				<Listbox aria-label="pick" defaultValue="b" displayValue={(value: string) => value}>
 					<ListboxOption value="a">A</ListboxOption>
 					<ListboxOption value="b">B</ListboxOption>
 				</Listbox>
@@ -48,7 +48,7 @@ describe('layout stability (real browser): portal pickers in a space-y container
 		{
 			name: 'Select',
 			element: (
-				<Select aria-label="choose" defaultValue="b" displayValue={(v: string) => v}>
+				<Select aria-label="choose" defaultValue="b" displayValue={(value: string) => value}>
 					<SelectOption value="a">A</SelectOption>
 					<SelectOption value="b">B</SelectOption>
 				</Select>

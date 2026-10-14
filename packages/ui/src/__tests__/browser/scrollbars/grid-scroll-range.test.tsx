@@ -24,7 +24,7 @@ describe('grid horizontal scroll range (real browser, real scrollbars)', () => {
 		cell: (row: Row) => `${id}-${row.id}`,
 	}))
 
-	const rows: Row[] = Array.from({ length: 10 }, (_, i) => ({ id: i + 1 }))
+	const rows: Row[] = Array.from({ length: 10 }, (_, index) => ({ id: index + 1 }))
 
 	function renderGrid(dir: 'ltr' | 'rtl') {
 		renderUI(

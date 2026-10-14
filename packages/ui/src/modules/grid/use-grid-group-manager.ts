@@ -73,7 +73,7 @@ export function useGridGroupManager({
 
 	const [override, setOverride] = useState<ZoneMap | null>(null)
 
-	const orderableIds = useMemo(() => columns.map((c) => c.id), [columns])
+	const orderableIds = useMemo(() => columns.map((column) => column.id), [columns])
 
 	const zones = useMemo(() => buildManagerZones(groups, orderableIds), [groups, orderableIds])
 
@@ -81,7 +81,7 @@ export function useGridGroupManager({
 	// drag override starts from. Recomputed from the committed props after a drop,
 	// so it equals the just-settled override (no flicker).
 	const baseZoneMap = useMemo<ZoneMap>(
-		() => Object.fromEntries(zones.map((z) => [String(z.id), z.columnIds.map(String)])),
+		() => Object.fromEntries(zones.map((zone) => [String(zone.id), zone.columnIds.map(String)])),
 		[zones],
 	)
 
@@ -161,17 +161,17 @@ export function useGridGroupManager({
 		(event: DragEndEvent) => {
 			const { active, over } = event
 
-			const activeStr = String(active.id)
+			const draggedId = String(active.id)
 
-			if (isGroupDragId(activeStr)) {
+			if (isGroupDragId(draggedId)) {
 				// Reorder the whole group to the group it was dropped on.
 				if (over) {
 					onGroupsChange(
-						reorderGroups(groups, groupIdFromDragId(activeStr), groupIdFromDragId(String(over.id))),
+						reorderGroups(groups, groupIdFromDragId(draggedId), groupIdFromDragId(String(over.id))),
 					)
 				}
 			} else if (over && override) {
-				commit(settleDragEnd(override, activeStr, String(over.id)))
+				commit(settleDragEnd(override, draggedId, String(over.id)))
 			}
 
 			setOverride(null)

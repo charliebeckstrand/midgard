@@ -19,9 +19,9 @@ describe('Split', () => {
 	it('applies the align class when provided', () => {
 		const { container } = renderUI(<Split align="center">a</Split>)
 
-		const el = bySlot(container, 'split')
+		const split = bySlot(container, 'split')
 
-		expect(el?.className).toContain('items-center')
+		expect(split?.className).toContain('items-center')
 	})
 
 	it('honors an explicit ratio', () => {
@@ -33,9 +33,9 @@ describe('Split', () => {
 	it('passes a caller style through to the root', () => {
 		const { container } = renderUI(<Split style={{ background: 'red' }}>a</Split>)
 
-		const el = getSlot(container, 'split')
+		const split = getSlot(container, 'split')
 
-		expect(el.style.background).toBe('red')
+		expect(split.style.background).toBe('red')
 	})
 })
 
@@ -111,11 +111,11 @@ describe('Split gap resolution', () => {
 			</DensityProvider>,
 		)
 
-		const el = getSlot(container, 'split')
+		const split = getSlot(container, 'split')
 
-		expect(el.className).toContain('density-gap-[4,5,6,7,8]')
+		expect(split.className).toContain('density-gap-[4,5,6,7,8]')
 
-		expect(el.className).not.toContain('density-gap-[0.5,1,2,3,4.5]')
+		expect(split.className).not.toContain('density-gap-[0.5,1,2,3,4.5]')
 	})
 
 	it('falls back to the lg gap with no explicit prop and no ambient Density', () => {

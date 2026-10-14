@@ -22,10 +22,10 @@ describe('grid new row (real browser)', () => {
 		{ id: 'count', title: 'Count', field: 'count', cell: (row) => String(row.count) },
 	]
 
-	const rows: Row[] = Array.from({ length: 200 }, (_, i) => ({
-		id: i + 1,
-		name: `Name ${i + 1}`,
-		count: i,
+	const rows: Row[] = Array.from({ length: 200 }, (_, index) => ({
+		id: index + 1,
+		name: `Name ${index + 1}`,
+		count: index,
 	}))
 
 	function renderGrid(
@@ -34,7 +34,7 @@ describe('grid new row (real browser)', () => {
 			sticky = false,
 			virtualize = true,
 			columnGroups,
-			columns: cols = columns,
+			columns: gridColumns = columns,
 		}: {
 			sticky?: boolean
 			virtualize?: boolean
@@ -52,7 +52,7 @@ describe('grid new row (real browser)', () => {
 					virtualize={virtualize ? { estimateSize: 40 } : undefined}
 					maxHeight="220px"
 					header={sticky ? { position: 'sticky' } : undefined}
-					columns={cols}
+					columns={gridColumns}
 					rows={rows}
 					getKey={(row) => row.id}
 					columnGroups={columnGroups}
@@ -360,8 +360,8 @@ describe('grid new row (real browser)', () => {
 
 			const onRowAdd = vi.fn(
 				() =>
-					new Promise<void>((res) => {
-						resolve = res
+					new Promise<void>((done) => {
+						resolve = done
 					}),
 			)
 
@@ -441,8 +441,8 @@ describe('grid new row (real browser)', () => {
 
 		const onRowAdd = vi.fn(
 			() =>
-				new Promise<void>((res) => {
-					resolve = res
+				new Promise<void>((done) => {
+					resolve = done
 				}),
 		)
 

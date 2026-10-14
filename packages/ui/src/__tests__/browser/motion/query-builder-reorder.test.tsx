@@ -83,9 +83,9 @@ describe('QueryBuilder pointer reorder (real browser)', () => {
 
 		const from = { x: box.left + box.width / 2, y: box.top + box.height / 2 }
 
-		const path = Array.from({ length: 12 }, (_, i) => ({
+		const path = Array.from({ length: 12 }, (_, index) => ({
 			x: from.x,
-			y: from.y + ((i + 1) * distance) / 12,
+			y: from.y + ((index + 1) * distance) / 12,
 		}))
 
 		return drag(grip, from, path)

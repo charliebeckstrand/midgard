@@ -19,20 +19,20 @@ const HANDLE_HEIGHT_SLACK = 2
 describe('grid resize handle geometry (real browser)', () => {
 	type Employee = { id: number; name: string; role: string; status: 'active' | 'inactive' }
 
-	const employees: Employee[] = Array.from({ length: 6 }, (_, i) => ({
-		id: i + 1,
-		name: `Wade Cooper ${i}`,
+	const employees: Employee[] = Array.from({ length: 6 }, (_, index) => ({
+		id: index + 1,
+		name: `Wade Cooper ${index}`,
 		role: 'Developer',
-		status: i % 2 === 0 ? 'active' : 'inactive',
+		status: index % 2 === 0 ? 'active' : 'inactive',
 	}))
 
 	const columns: GridColumn<Employee>[] = [
-		{ id: 'name', title: 'Name', cell: (r) => r.name, width: '220px', pinned: 'left' },
-		{ id: 'role', title: 'Role', cell: (r) => r.role, width: '220px' },
+		{ id: 'name', title: 'Name', cell: (row) => row.name, width: '220px', pinned: 'left' },
+		{ id: 'role', title: 'Role', cell: (row) => row.role, width: '220px' },
 		{
 			id: 'status',
 			title: 'Status',
-			cell: (r) => <Badge color={r.status === 'active' ? 'green' : 'zinc'}>{r.status}</Badge>,
+			cell: (row) => <Badge color={row.status === 'active' ? 'green' : 'zinc'}>{row.status}</Badge>,
 			width: '220px',
 			pinned: 'right',
 		},
@@ -47,7 +47,7 @@ describe('grid resize handle geometry (real browser)', () => {
 					maxHeight="200px"
 					columns={columns}
 					rows={employees}
-					getKey={(r) => r.id}
+					getKey={(row) => row.id}
 				/>
 			</div>,
 		)
@@ -90,7 +90,7 @@ describe('grid resize handle geometry (real browser)', () => {
 		// making the y-axis scrollable too — raised a spurious vertical scrollbar.
 		const { container } = renderUI(
 			<div style={{ width: '900px' }}>
-				<Grid resizable outline columns={columns} rows={employees} getKey={(r) => r.id} />
+				<Grid resizable outline columns={columns} rows={employees} getKey={(row) => row.id} />
 			</div>,
 		)
 
@@ -175,8 +175,8 @@ describe('grid resize grip alignment (real browser)', () => {
 	]
 
 	const readOnlyColumns: GridColumn<Row>[] = [
-		{ id: 'name', title: 'Name', cell: (r) => r.name, width: '200px' },
-		{ id: 'role', title: 'Role', cell: (r) => r.role },
+		{ id: 'name', title: 'Name', cell: (row) => row.name, width: '200px' },
+		{ id: 'role', title: 'Role', cell: (row) => row.role },
 	]
 
 	// Distance from the 'name' column's trailing border to its grip's right edge:
@@ -215,7 +215,7 @@ describe('grid resize grip alignment (real browser)', () => {
 						truncate={truncate}
 						columns={readOnlyColumns}
 						rows={rows}
-						getKey={(r) => r.id}
+						getKey={(row) => row.id}
 					/>
 				</div>,
 			)

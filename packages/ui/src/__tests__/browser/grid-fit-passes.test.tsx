@@ -12,15 +12,27 @@ import { frames, present, renderUI, screen, waitFor } from '../helpers'
 describe('grid fit passes (real browser)', () => {
 	type Row = { id: number; name: string; role: string }
 
-	const rows: Row[] = Array.from({ length: 30 }, (_, i) => ({
-		id: i + 1,
-		name: `Person ${String(i + 1).padStart(2, '0')}`,
-		role: i === 7 ? 'A considerably longer role title' : 'Developer',
+	const rows: Row[] = Array.from({ length: 30 }, (_, index) => ({
+		id: index + 1,
+		name: `Person ${String(index + 1).padStart(2, '0')}`,
+		role: index === 7 ? 'A considerably longer role title' : 'Developer',
 	}))
 
 	const columns: GridColumn<Row>[] = [
-		{ id: 'name', title: 'Name', sortable: true, cell: (r) => r.name, value: (r) => r.name },
-		{ id: 'role', title: 'Role', sortable: true, cell: (r) => r.role, value: (r) => r.role },
+		{
+			id: 'name',
+			title: 'Name',
+			sortable: true,
+			cell: (row) => row.name,
+			value: (row) => row.name,
+		},
+		{
+			id: 'role',
+			title: 'Role',
+			sortable: true,
+			cell: (row) => row.role,
+			value: (row) => row.role,
+		},
 	]
 
 	const getKey = (row: Row) => row.id

@@ -47,7 +47,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 
 	const operators = useMemo(() => (field ? getOperators(field) : []), [field])
 
-	const selectedOperator = operators.find((o) => o.value === rule.operator)
+	const selectedOperator = operators.find((option) => option.value === rule.operator)
 
 	const onFieldChange = useCallback(
 		(nextFieldName: string | null) => {
@@ -55,11 +55,11 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 
 			const nextField = getField(nextFieldName)
 
-			const nextOps = nextField ? getOperators(nextField) : []
+			const nextOperators = nextField ? getOperators(nextField) : []
 
 			updateRule(rule.id, {
 				field: nextFieldName,
-				operator: nextOps[0]?.value ?? '',
+				operator: nextOperators[0]?.value ?? '',
 				value: '',
 			})
 		},
@@ -67,18 +67,18 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 	)
 
 	const onOperatorChange = useCallback(
-		(v: string | null) => {
-			if (!v) return
+		(operator: string | null) => {
+			if (!operator) return
 
 			// Switching between a scalar and a range operator changes the value's
 			// shape, so reset to the matching empty value; staying on the same arity
 			// keeps the current value.
-			const nextRange = operators.find((o) => o.value === v)?.range ?? false
+			const nextRange = operators.find((option) => option.value === operator)?.range ?? false
 
 			const patch =
 				nextRange !== (selectedOperator?.range ?? false)
-					? { operator: v, value: nextRange ? ['', ''] : '' }
-					: { operator: v }
+					? { operator, value: nextRange ? ['', ''] : '' }
+					: { operator }
 
 			updateRule(rule.id, patch)
 		},
@@ -86,7 +86,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 	)
 
 	const onValueChange = useCallback(
-		(v: JsonValue) => updateRule(rule.id, { value: v }),
+		(value: JsonValue) => updateRule(rule.id, { value }),
 		[rule.id, updateRule],
 	)
 
@@ -94,10 +94,13 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 
 	const removeRef = useFocusableRef(focusKeys.node(rule.id))
 
-	const displayField = useCallback((v: string) => getField(v)?.label ?? '', [getField])
+	const displayField = useCallback(
+		(fieldName: string) => getField(fieldName)?.label ?? '',
+		[getField],
+	)
 
 	const displayOperator = useCallback(
-		(v: string) => operators.find((o) => o.value === v)?.label ?? '',
+		(operator: string) => operators.find((option) => option.value === operator)?.label ?? '',
 		[operators],
 	)
 
@@ -122,9 +125,9 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 						aria-label="Field"
 						className={cn(k.parts.item)}
 					>
-						{fields.map((f) => (
-							<ListboxOption key={f.name} value={f.name}>
-								{f.label}
+						{fields.map((entry) => (
+							<ListboxOption key={entry.name} value={entry.name}>
+								{entry.label}
 							</ListboxOption>
 						))}
 					</Select>
@@ -138,9 +141,9 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 					aria-label="Operator"
 					className={cn(k.parts.item)}
 				>
-					{operators.map((op) => (
-						<ListboxOption key={op.value} value={op.value}>
-							{op.label}
+					{operators.map((operator) => (
+						<ListboxOption key={operator.value} value={operator.value}>
+							{operator.label}
 						</ListboxOption>
 					))}
 				</Select>

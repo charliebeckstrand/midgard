@@ -293,7 +293,7 @@ describe('ContextMenu across a toggle', () => {
 		const [count, setCount] = useState(0)
 
 		return (
-			<button type="button" onClick={() => setCount((value) => value + 1)}>
+			<button type="button" onClick={() => setCount((prev) => prev + 1)}>
 				{`Count ${count}`}
 			</button>
 		)

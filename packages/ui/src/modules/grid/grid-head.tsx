@@ -105,6 +105,9 @@ export function GridHead<T>({
 
 	useGridStickyHead(headRef, stacked ? stackStickyHead : null)
 
+	// The column-header row is row 2 below a band row.
+	const columnRowIndex = band ? 2 : 1
+
 	return (
 		<TableHead ref={headRef}>
 			{band && (
@@ -117,16 +120,16 @@ export function GridHead<T>({
 			)}
 
 			<TableRow
-				aria-rowindex={gridSemantics ? (band ? 2 : 1) : undefined}
+				aria-rowindex={gridSemantics ? columnRowIndex : undefined}
 				className={cn(stacked && k.sticky.stack)}
 			>
-				{columns.map((col, colIdx) => (
+				{columns.map((col, index) => (
 					<GridHeaderCell
 						key={col.id}
 						column={col}
 						// Header column indices accompany the global row-index scheme.
-						colIndex={gridSemantics ? colIdx + 1 : undefined}
-						columnIndex={colIdx}
+						ariaColIndex={gridSemantics ? index + 1 : undefined}
+						columnIndex={index}
 						hasRows={hasRows}
 						interactive={interactive}
 						selectAllLabel={selectAllLabel}
@@ -145,7 +148,7 @@ export function GridHead<T>({
 /** Props for {@link GridHeaderCell}. @internal */
 type GridHeaderCellProps<T> = {
 	column: GridColumn<T>
-	colIndex: number | undefined
+	ariaColIndex: number | undefined
 	/** 0-based visible column index, shared with the row cells so a reorder drag keys its CSS-variable shift the same way. */
 	columnIndex: number
 	/** Visible-rows flag for the select-all checkbox. */
@@ -199,7 +202,7 @@ function headerSizing<T>(resize: GridColumnResize | null, column: GridColumn<T>)
  */
 function GridHeaderCell<T>({
 	column,
-	colIndex,
+	ariaColIndex,
 	columnIndex,
 	hasRows,
 	interactive,
@@ -216,7 +219,7 @@ function GridHeaderCell<T>({
 		return (
 			<GridStaticHeaderCell
 				column={column}
-				colIndex={colIndex}
+				ariaColIndex={ariaColIndex}
 				stickyHeader={stickyHeader}
 				pinning={pinning}
 				showCheckbox={hasRows}
@@ -229,7 +232,7 @@ function GridHeaderCell<T>({
 
 	const shared = {
 		column,
-		colIndex,
+		ariaColIndex,
 		columnIndex,
 		sorted,
 		direction,

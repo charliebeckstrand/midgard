@@ -78,11 +78,11 @@ export function useGridPinningView<T>(args: {
 	const { containerRef } = args
 
 	useLayoutEffect(() => {
-		const previous = offsets.commit(layout)
+		const prev = offsets.commit(layout)
 
 		const container = containerRef?.current
 
-		if (container && previous !== layout) writeFrozenOffsets(container, previous, layout)
+		if (container && prev !== layout) writeFrozenOffsets(container, prev, layout)
 	}, [offsets, layout, containerRef])
 
 	return useMemo(

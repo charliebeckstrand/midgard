@@ -38,7 +38,7 @@ import type { GridColumn } from './types'
  * callbacks. The row key of the new-row slot is {@link NEW_ROW_KEY}. @internal
  */
 type GridCellEditorProps<T> = {
-	rowIdx: number
+	rowIndex: number
 	rowKey: GridDraftKey
 	row: T
 	column: GridColumn<T>
@@ -159,7 +159,9 @@ function GridSettleControls({
 	if (controls === 'none') return null
 
 	const actions =
-		controls === 'both' ? SETTLE_ACTIONS : SETTLE_ACTIONS.filter((a) => a.outcome === 'discard')
+		controls === 'both'
+			? SETTLE_ACTIONS
+			: SETTLE_ACTIONS.filter((action) => action.outcome === 'discard')
 
 	return (
 		<span className={cn(k.edit.settle)}>
@@ -200,7 +202,7 @@ function GridSettleControls({
  * @internal
  */
 export function GridCellEditor<T>({
-	rowIdx,
+	rowIndex,
 	rowKey,
 	row,
 	column,
@@ -344,7 +346,7 @@ export function GridCellEditor<T>({
 	// read as one thing to a screen reader rather than unrelated widgets.
 	// `columnLabel` is the module's one column-naming rule, and it degrades to the
 	// column id rather than to a position that shifts as columns move.
-	const label = `${columnLabel(column)}, ${newRow ? 'new row' : `row ${rowIdx + 1}`}`
+	const label = `${columnLabel(column)}, ${newRow ? 'new row' : `row ${rowIndex + 1}`}`
 
 	const ariaLabel = `Edit ${label}`
 
@@ -352,8 +354,9 @@ export function GridCellEditor<T>({
 	// for `validate` to refuse yet.
 	const checked = column.validate && !(newRow && isBlankDraft(draft))
 
-	const error =
-		(checked ? column.validate?.(draft, readRow ? readRow() : row) : null) ?? refusal ?? null
+	const invalid = checked ? column.validate?.(draft, readRow ? readRow() : row) : null
+
+	const error = invalid ?? refusal ?? null
 
 	// Links the editor to its message (aria-describedby) so the error reaches AT,
 	// not just sighted users (WCAG 1.3.1 / 3.3.1).

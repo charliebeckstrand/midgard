@@ -93,7 +93,7 @@ export function ActiveIndicator({
 }) {
 	const scopedLayoutId = useActiveIndicatorScope()
 
-	const resolvedLayoutId = scopedLayoutId ?? 'current-indicator'
+	const layoutId = scopedLayoutId ?? 'current-indicator'
 
 	// Unique per instance, stable across renders. With `layoutDependency`
 	// constant, external reflow does not animate the indicator.
@@ -104,7 +104,7 @@ export function ActiveIndicator({
 			<m.span
 				ref={ref}
 				data-slot="active-indicator"
-				layoutId={resolvedLayoutId}
+				layoutId={layoutId}
 				layoutDependency={instanceId}
 				className={cn('pointer-events-none absolute inset-0', k.fill, className)}
 				// Motion's layout projection applies inverse-scale correction to inline

@@ -639,7 +639,7 @@ describe('Grid export', () => {
 	// supplies the full list the engine can't reach on its own.
 	const pageRow: Row[] = [{ id: 1, name: 'Alice', role: 'Developer' }]
 
-	const fullList: Row[] = [
+	const allRows: Row[] = [
 		{ id: 1, name: 'Alice', role: 'Developer' },
 		{ id: 2, name: 'Bob', role: 'Designer' },
 		{ id: 3, name: 'Carol', role: 'Manager' },
@@ -654,8 +654,8 @@ describe('Grid export', () => {
 				columns={columns}
 				rows={pageRow}
 				getKey={getKey}
-				pagination={{ manual: true, rowCount: fullList.length }}
-				exportRows={() => fullList}
+				pagination={{ manual: true, rowCount: allRows.length }}
+				exportRows={() => allRows}
 			/>,
 		)
 
@@ -678,7 +678,7 @@ describe('Grid export', () => {
 	it('awaits an async exportRows server function before downloading', async () => {
 		const download = captureDownload()
 
-		const fetchAll = vi.fn().mockResolvedValue(fullList)
+		const fetchAll = vi.fn().mockResolvedValue(allRows)
 
 		renderUI(
 			<Grid
@@ -686,7 +686,7 @@ describe('Grid export', () => {
 				columns={columns}
 				rows={pageRow}
 				getKey={getKey}
-				pagination={{ manual: true, rowCount: fullList.length }}
+				pagination={{ manual: true, rowCount: allRows.length }}
 				exportRows={fetchAll}
 			/>,
 		)
@@ -751,7 +751,7 @@ describe('Grid export', () => {
 
 		expect(trigger).toHaveAttribute('aria-expanded', 'false')
 
-		server.resolve(fullList)
+		server.resolve(allRows)
 
 		// Settling restores the icon, drops the spinner, and ends the gate.
 		await waitFor(() => expect(trigger.querySelector('[data-slot="loading-spinner"]')).toBeNull())
@@ -777,7 +777,7 @@ describe('Grid export', () => {
 				rows={pageRow}
 				getKey={getKey}
 				selection={{ defaultValue: new Set([1]) }}
-				exportRows={() => fullList}
+				exportRows={() => allRows}
 			/>,
 		)
 
@@ -806,7 +806,7 @@ describe('Grid export', () => {
 				columns={columns}
 				rows={pageRow}
 				getKey={getKey}
-				exportRows={() => fullList}
+				exportRows={() => allRows}
 			/>,
 		)
 
@@ -816,7 +816,7 @@ describe('Grid export', () => {
 
 		expect(onExport).toHaveBeenCalledTimes(1)
 
-		expect(onExport.mock.calls[0]?.[0].rows).toEqual(fullList)
+		expect(onExport.mock.calls[0]?.[0].rows).toEqual(allRows)
 	})
 
 	it('swallows a rejected exportRows with a dev-only warning, downloading nothing', async () => {
@@ -880,7 +880,7 @@ describe('Grid export', () => {
 
 		expect(overlay()?.textContent).toContain('Exporting')
 
-		server.resolve(fullList)
+		server.resolve(allRows)
 
 		await waitFor(() => expect(overlay()).toBeNull())
 
@@ -960,7 +960,7 @@ describe('Grid export', () => {
 
 		expect(overlay()).not.toBeNull()
 
-		server.resolve(fullList)
+		server.resolve(allRows)
 
 		await waitFor(() => expect(overlay()).toBeNull())
 

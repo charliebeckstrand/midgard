@@ -141,8 +141,10 @@ export function Stepper({
 
 	const isDesktop = useMinBreakpoint('sm')
 
+	const viewportOrientation: StepperOrientation = isDesktop ? 'horizontal' : 'vertical'
+
 	const resolvedOrientation: StepperOrientation =
-		layout === 'responsive' ? (isDesktop ? 'horizontal' : 'vertical') : layout
+		layout === 'responsive' ? viewportOrientation : layout
 
 	const { rowChildren, panelsChildren } = useMemo(
 		() => partitionStepperChildren(children),

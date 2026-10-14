@@ -199,7 +199,7 @@ type JsonTreeVirtualizedProps = {
 	rootKey: string | undefined
 	defaultExpandDepth: number
 	collapsible: JsonTreeCollapsible
-	expandedProp: Set<string> | undefined
+	expanded: Set<string> | undefined
 	onExpandedChange: ((expanded: Set<string>) => void) | undefined
 	searchValue: string
 	filter: boolean
@@ -220,7 +220,7 @@ export function JsonTreeVirtualized({
 	rootKey,
 	defaultExpandDepth,
 	collapsible,
-	expandedProp,
+	expanded,
 	onExpandedChange,
 	searchValue,
 	filter,
@@ -236,7 +236,7 @@ export function JsonTreeVirtualized({
 	// Uncontrolled, the open state resolves per render, as the recursive
 	// variant does. A match opens its branch, and a user toggle wins over both.
 	const { isOpen, toggle } = useJsonTreeExpansion({
-		expanded: expandedProp,
+		expanded,
 		onExpandedChange,
 		defaultExpandDepth,
 		autoOpen: matchPaths,

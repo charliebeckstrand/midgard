@@ -20,54 +20,62 @@ describe('useA11yAnnouncements', () => {
 	})
 
 	it('stays silent on the initial message', () => {
-		renderHook(({ m }) => useA11yAnnouncements(m), { initialProps: { m: '5 results' } })
+		renderHook(({ message }) => useA11yAnnouncements(message), {
+			initialProps: { message: '5 results' },
+		})
 
 		expect(announce).not.toHaveBeenCalled()
 	})
 
 	it('announces when the message changes', () => {
-		const { rerender } = renderHook(({ m }) => useA11yAnnouncements(m), {
-			initialProps: { m: '5 results' },
+		const { rerender } = renderHook(({ message }) => useA11yAnnouncements(message), {
+			initialProps: { message: '5 results' },
 		})
 
-		rerender({ m: '3 results' })
+		rerender({ message: '3 results' })
 
 		expect(announce).toHaveBeenCalledWith('3 results', { assertive: false })
 	})
 
 	it('skips consecutive duplicate messages', () => {
-		const { rerender } = renderHook(({ m }) => useA11yAnnouncements(m), {
-			initialProps: { m: 'a' },
+		const { rerender } = renderHook(({ message }) => useA11yAnnouncements(message), {
+			initialProps: { message: 'a' },
 		})
 
-		rerender({ m: 'b' })
+		rerender({ message: 'b' })
 
-		rerender({ m: 'b' })
+		rerender({ message: 'b' })
 
 		expect(announce).toHaveBeenCalledTimes(1)
 	})
 
 	it('ignores empty messages', () => {
-		const { rerender } = renderHook(({ m }: { m: string | null }) => useA11yAnnouncements(m), {
-			initialProps: { m: 'a' as string | null },
-		})
+		const { rerender } = renderHook(
+			({ message }: { message: string | null }) => useA11yAnnouncements(message),
+			{
+				initialProps: { message: 'a' as string | null },
+			},
+		)
 
-		rerender({ m: null })
+		rerender({ message: null })
 
 		expect(announce).not.toHaveBeenCalled()
 	})
 
 	// A string, then a clear, then the same string is not a consecutive duplicate.
 	it('announces a message again after a clear', () => {
-		const { rerender } = renderHook(({ m }: { m: string | null }) => useA11yAnnouncements(m), {
-			initialProps: { m: 'a' as string | null },
-		})
+		const { rerender } = renderHook(
+			({ message }: { message: string | null }) => useA11yAnnouncements(message),
+			{
+				initialProps: { message: 'a' as string | null },
+			},
+		)
 
-		rerender({ m: 'b' })
+		rerender({ message: 'b' })
 
-		rerender({ m: null })
+		rerender({ message: null })
 
-		rerender({ m: 'b' })
+		rerender({ message: 'b' })
 
 		expect(announce).toHaveBeenCalledTimes(2)
 
@@ -75,33 +83,42 @@ describe('useA11yAnnouncements', () => {
 	})
 
 	it('announces the first message again after a clear', () => {
-		const { rerender } = renderHook(({ m }: { m: string | null }) => useA11yAnnouncements(m), {
-			initialProps: { m: 'a' as string | null },
-		})
+		const { rerender } = renderHook(
+			({ message }: { message: string | null }) => useA11yAnnouncements(message),
+			{
+				initialProps: { message: 'a' as string | null },
+			},
+		)
 
-		rerender({ m: null })
+		rerender({ message: null })
 
-		rerender({ m: 'a' })
+		rerender({ message: 'a' })
 
 		expect(announce).toHaveBeenCalledWith('a', { assertive: false })
 	})
 
 	it('forwards the assertive option', () => {
-		const { rerender } = renderHook(({ m }) => useA11yAnnouncements(m, { assertive: true }), {
-			initialProps: { m: 'a' },
-		})
+		const { rerender } = renderHook(
+			({ message }) => useA11yAnnouncements(message, { assertive: true }),
+			{
+				initialProps: { message: 'a' },
+			},
+		)
 
-		rerender({ m: 'b' })
+		rerender({ message: 'b' })
 
 		expect(announce).toHaveBeenCalledWith('b', { assertive: true })
 	})
 
 	it('does not announce while disabled', () => {
-		const { rerender } = renderHook(({ m, e }) => useA11yAnnouncements(m, { enabled: e }), {
-			initialProps: { m: 'a', e: false },
-		})
+		const { rerender } = renderHook(
+			({ message, enabled }) => useA11yAnnouncements(message, { enabled }),
+			{
+				initialProps: { message: 'a', enabled: false },
+			},
+		)
 
-		rerender({ m: 'b', e: false })
+		rerender({ message: 'b', enabled: false })
 
 		expect(announce).not.toHaveBeenCalled()
 	})

@@ -18,7 +18,11 @@ import { installDocsFont } from '../helpers/docs-font'
 const SOURCES = ['Organic search', 'Direct', 'Referral', 'Social']
 
 const DATA = SOURCES.flatMap((source, row) =>
-	['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map((day, col) => ({ source, day, visits: row * 5 + col })),
+	['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map((day, column) => ({
+		source,
+		day,
+		visits: row * 5 + column,
+	})),
 )
 
 const SERIES: [HeatmapChartSeries<(typeof DATA)[number]>] = [

@@ -39,14 +39,14 @@ describe('Toolbar separator on a wrapped row (real browser)', () => {
 	/** The visibility of each separator, in document order. */
 	function visibility(container: HTMLElement): string[] {
 		return Array.from(container.querySelectorAll('[data-slot="toolbar-separator"]')).map(
-			(el) => getComputedStyle(el).visibility,
+			(separator) => getComputedStyle(separator).visibility,
 		)
 	}
 
 	/** The top of each group, rounded, in document order. */
 	function groupTops(container: HTMLElement): number[] {
-		return Array.from(container.querySelectorAll('[data-slot="toolbar-group"]')).map((el) =>
-			Math.round(el.getBoundingClientRect().top),
+		return Array.from(container.querySelectorAll('[data-slot="toolbar-group"]')).map((group) =>
+			Math.round(group.getBoundingClientRect().top),
 		)
 	}
 

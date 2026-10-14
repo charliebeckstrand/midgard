@@ -249,17 +249,17 @@ export type MapOverlay = {
 }
 
 /** Whether two lists of stop rows read the same: each label and detail, in order. @internal */
-function sameStopRows(previous: MapStopRow[] | undefined, next: MapStopRow[] | undefined): boolean {
-	if (previous === undefined || next === undefined) return previous === next
+function sameStopRows(prev: MapStopRow[] | undefined, next: MapStopRow[] | undefined): boolean {
+	if (prev === undefined || next === undefined) return prev === next
 
 	return (
-		previous.length === next.length &&
+		prev.length === next.length &&
 		next.every(
-			(row, i) =>
-				(row.label ?? '') === (previous[i]?.label ?? '') &&
-				(row.detail ?? '') === (previous[i]?.detail ?? '') &&
-				row.swatch === previous[i]?.swatch &&
-				row.color === previous[i]?.color,
+			(row, index) =>
+				(row.label ?? '') === (prev[index]?.label ?? '') &&
+				(row.detail ?? '') === (prev[index]?.detail ?? '') &&
+				row.swatch === prev[index]?.swatch &&
+				row.color === prev[index]?.color,
 		)
 	)
 }
@@ -504,7 +504,7 @@ export function useMapOverlay({
 		hidden: hidden.has(id),
 		project,
 		spare: spareHere,
-		// The resolver, left uncalled — see {@link MapOverlay.neighbours} for why it stays lazy.
+		// The resolver, left uncalled — see {@link MapOverlay.neighbors} for why it stays lazy.
 		neighbors: neighborsOf,
 		unitsPerPixel,
 		animate,

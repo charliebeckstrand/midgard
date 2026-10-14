@@ -1,27 +1,12 @@
 'use client'
 
-import type { User } from 'auth'
 import { CircleUserRound, Luggage, MapPinned, Plus } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import { SignOutMenuItem, VerifyEmailMenuItem } from 'shared/auth'
 import { Button } from 'ui/button'
 import { Icon } from 'ui/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from 'ui/menu'
-
-/** Props for {@link UserMenuPanel}. */
-export type UserMenuProps = {
-	user: User
-	/** The number of places that My places opens on, or `undefined` to show no count. */
-	count?: number
-	onAdd: () => void
-	/** Opens My places. Without it, the menu has no My places item. */
-	onList?: () => void
-	/** The number of trips that My trips opens on, or `undefined` to show no count. */
-	tripCount?: number
-	onAddTrip: () => void
-	/** Opens My trips. Without it, the menu has no My trips item. */
-	onListTrips?: () => void
-}
+import type { UserMenuProps } from './user-menu'
 
 /** The words of a list item, with its count where there is one. */
 function counted(label: string, count: number | undefined): string {

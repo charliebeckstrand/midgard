@@ -30,7 +30,7 @@ export type DashboardActions = DashboardResizeHandlers & {
 	/** Replaces the filter. */
 	setFilter: (filter: QueryGroup) => void
 	/** Replaces the selections through an update function. */
-	updateSelections: (update: (current: DashboardSelection[]) => DashboardSelection[]) => void
+	updateSelections: (update: (prev: DashboardSelection[]) => DashboardSelection[]) => void
 	/** Reports an error that a tile caught. */
 	reportError: (id: string, error: unknown) => void
 }

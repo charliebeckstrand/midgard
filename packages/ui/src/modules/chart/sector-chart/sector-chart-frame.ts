@@ -175,7 +175,7 @@ export function sectorReadout(
 				swatchClass: '',
 				swatchClasses: paints.map((paint) => cn(paint.text)),
 				swatch: 'rect',
-				values: values.map((entry) => readoutCell(entry, format)),
+				values: values.map((value) => readoutCell(value, format)),
 			},
 		],
 	}
@@ -197,18 +197,18 @@ export function sectorLegendItems(
 	percent: (share: number) => string,
 ): ChartLegendItem[] {
 	const total = sliceValues.reduce<number>(
-		(sum, entry) => sum + (entry != null && entry > 0 ? entry : 0),
+		(sum, value) => sum + (value != null && value > 0 ? value : 0),
 		0,
 	)
 
-	return labels.map((entry, index) => {
+	return labels.map((label, index) => {
 		const value = sliceValues[index]
 
 		const share = value != null && value > 0 && total > 0 ? percent(value / total) : '—'
 
 		return {
 			index,
-			label: entry,
+			label,
 			swatchClass: cn(paints[index]?.text),
 			swatch: 'rect' as const,
 			color: colors[index],

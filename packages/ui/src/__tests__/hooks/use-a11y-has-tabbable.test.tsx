@@ -4,11 +4,11 @@ import { useA11yHasTabbable } from '../../hooks/a11y/use-a11y-has-tabbable'
 import { attach } from '../helpers'
 
 function mountPanel(html: string) {
-	const el = document.createElement('div')
+	const panel = document.createElement('div')
 
-	el.innerHTML = html
+	panel.innerHTML = html
 
-	return attach(el)
+	return attach(panel)
 }
 
 describe('useA11yHasTabbable', () => {

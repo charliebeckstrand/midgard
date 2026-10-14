@@ -215,13 +215,13 @@ export function useFormReducer<T extends Record<string, unknown>>({
 	const { values, defaults, errors, touched } = state
 
 	const dirtyFields = useMemo(() => {
-		const d: Record<string, boolean> = {}
+		const flags: Record<string, boolean> = {}
 
 		for (const key in values) {
-			d[key] = !valuesEqual(values[key], defaults[key])
+			flags[key] = !valuesEqual(values[key], defaults[key])
 		}
 
-		return d
+		return flags
 	}, [values, defaults])
 
 	const dirty = useMemo(() => Object.values(dirtyFields).some(Boolean), [dirtyFields])
@@ -265,13 +265,16 @@ export function useFormReducer<T extends Record<string, unknown>>({
 		[validateOn],
 	)
 
-	const setErrorsExternal = useCallback((errs: Record<string, string | string[] | undefined>) => {
-		const normalized: Errors = {}
+	const setErrorsExternal = useCallback(
+		(fieldErrors: Record<string, string | string[] | undefined>) => {
+			const normalized: Errors = {}
 
-		for (const key in errs) normalized[key] = normalizeIssues(errs[key])
+			for (const key in fieldErrors) normalized[key] = normalizeIssues(fieldErrors[key])
 
-		dispatch({ type: 'set-errors-external', errors: normalized })
-	}, [])
+			dispatch({ type: 'set-errors-external', errors: normalized })
+		},
+		[],
+	)
 
 	// Resets the store only, and leaves an in-flight submit live.
 	const resetForm = useCallback(
@@ -319,16 +322,16 @@ export function useFormReducer<T extends Record<string, unknown>>({
 		async (event: SyntheticEvent<HTMLFormElement>) => {
 			event.preventDefault()
 
-			const current = store.getState().values as T
+			const submitValues = store.getState().values as T
 
 			const allTouched: Touched = {}
 
-			for (const key in current) allTouched[key] = true
+			for (const key in submitValues) allTouched[key] = true
 
-			const v = validateRef.current
+			const validators = validateRef.current
 
-			const submitErrors = v
-				? runValidators(v, current, allTouched, validateOn, Object.keys(v))
+			const submitErrors = validators
+				? runValidators(validators, submitValues, allTouched, validateOn, Object.keys(validators))
 				: {}
 
 			const refused = Object.values(submitErrors).some(hasIssues)
@@ -388,15 +391,15 @@ export function useFormReducer<T extends Record<string, unknown>>({
 
 				// The outcome carries the values that `onSubmit` got, not the values
 				// after a reset or a write while the handler waited.
-				reportSettled({ ok: true, values: current })
+				reportSettled({ ok: true, values: submitValues })
 			}
 
-			const applyError = (err: unknown) => {
+			const applyError = (error: unknown) => {
 				if (submitTokenRef.current !== token) return
 
 				reportSettled({
 					ok: false,
-					error: err instanceof Error ? err : new Error(String(err)),
+					error: error instanceof Error ? error : new Error(String(error)),
 				})
 			}
 
@@ -405,9 +408,9 @@ export function useFormReducer<T extends Record<string, unknown>>({
 					let raw: unknown
 
 					try {
-						raw = await onSubmit(current, helpers)
-					} catch (err) {
-						applyError(err)
+						raw = await onSubmit(submitValues, helpers)
+					} catch (error) {
+						applyError(error)
 
 						return
 					}

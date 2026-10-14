@@ -180,7 +180,7 @@ const FIXTURES: { [N in SizedComponent]: (size: (typeof SIZE_AXES)[N][number]) =
 	),
 	ColorPickerSkeleton: (size) => <ColorPickerSkeleton size={size as never} />,
 	Combobox: (size) => (
-		<Combobox size={size as never} aria-label="Stage" displayValue={(v: string) => v}>
+		<Combobox size={size as never} aria-label="Stage" displayValue={(value: string) => value}>
 			{options(ComboboxOption as never, ComboboxLabel as never)}
 		</Combobox>
 	),
@@ -245,7 +245,7 @@ const FIXTURES: { [N in SizedComponent]: (size: (typeof SIZE_AXES)[N][number]) =
 			size={size as never}
 			aria-label="Stage"
 			defaultValue="Draft"
-			displayValue={(v: string) => v}
+			displayValue={(value: string) => value}
 		>
 			{options(ListboxOption, ListboxLabel)}
 		</Listbox>
@@ -327,7 +327,7 @@ const FIXTURES: { [N in SizedComponent]: (size: (typeof SIZE_AXES)[N][number]) =
 			size={size as never}
 			aria-label="Stage"
 			defaultValue="Draft"
-			displayValue={(v: string) => v}
+			displayValue={(value: string) => value}
 		>
 			{options(SelectOption as never, SelectLabel as never)}
 		</Select>

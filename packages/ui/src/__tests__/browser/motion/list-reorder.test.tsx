@@ -27,9 +27,9 @@ describe('List pointer reorder (real browser)', () => {
 
 		const step = next.getBoundingClientRect().height
 
-		const path = Array.from({ length: 12 }, (_, i) => ({
+		const path = Array.from({ length: 12 }, (_, index) => ({
 			x: from.x,
-			y: from.y + ((i + 1) * step * 1.3) / 12,
+			y: from.y + ((index + 1) * step * 1.3) / 12,
 		}))
 
 		return drag(handle, from, path)
@@ -39,7 +39,7 @@ describe('List pointer reorder (real browser)', () => {
 		const onReorder = vi.fn()
 
 		const { container } = renderUI(
-			<List items={items} getKey={(i) => i.id} onReorder={onReorder}>
+			<List items={items} getKey={(item) => item.id} onReorder={onReorder}>
 				{(item) => <ListItem>{item.label}</ListItem>}
 			</List>,
 		)
@@ -72,7 +72,7 @@ describe('List pointer reorder (real browser)', () => {
 		const onReorder = vi.fn()
 
 		const { container } = renderUI(
-			<List items={items} getKey={(i) => i.id} onReorder={onReorder}>
+			<List items={items} getKey={(item) => item.id} onReorder={onReorder}>
 				{(item) => <ListItem>{item.label}</ListItem>}
 			</List>,
 		)
@@ -103,7 +103,7 @@ describe('List pointer reorder (real browser)', () => {
 	})
 	it('marks the dragged row and its handle with data-dragging, and sets no aria-pressed', async () => {
 		const { container } = renderUI(
-			<List items={items} getKey={(i) => i.id} onReorder={() => {}}>
+			<List items={items} getKey={(item) => item.id} onReorder={() => {}}>
 				{(item) => <ListItem href={`#${item.id}`}>{item.label}</ListItem>}
 			</List>,
 		)
@@ -136,7 +136,7 @@ describe('List pointer reorder (real browser)', () => {
 		'keeps the classes and the fill of a dragged %s row',
 		async (variant) => {
 			const { container } = renderUI(
-				<List items={items} getKey={(i) => i.id} onReorder={() => {}} variant={variant}>
+				<List items={items} getKey={(item) => item.id} onReorder={() => {}} variant={variant}>
 					{(item) => <ListItem>{item.label}</ListItem>}
 				</List>,
 			)
@@ -165,7 +165,7 @@ describe('List pointer reorder (real browser)', () => {
 	it('keeps the dragged row under the pointer inside a glass panel', async () => {
 		const { container } = renderUI(
 			<div style={{ backdropFilter: 'blur(4px)', transform: 'translateY(40px)', paddingTop: 200 }}>
-				<List items={items} getKey={(i) => i.id} onReorder={() => {}}>
+				<List items={items} getKey={(item) => item.id} onReorder={() => {}}>
 					{(item) => <ListItem>{item.label}</ListItem>}
 				</List>
 			</div>,
@@ -203,7 +203,7 @@ describe('List pointer reorder (real browser)', () => {
 	it('holds a dragged row inside the list, past either end', async () => {
 		const { container } = renderUI(
 			<div style={{ paddingTop: 200, paddingBottom: 200 }}>
-				<List items={items} getKey={(i) => i.id} onReorder={() => {}}>
+				<List items={items} getKey={(item) => item.id} onReorder={() => {}}>
 					{(item) => <ListItem>{item.label}</ListItem>}
 				</List>
 			</div>,
@@ -224,7 +224,7 @@ describe('List pointer reorder (real browser)', () => {
 
 			const y = box.top + box.height / 2
 
-			const path = Array.from({ length: 12 }, (_, i) => ({ x, y: y + ((i + 1) * by) / 12 }))
+			const path = Array.from({ length: 12 }, (_, index) => ({ x, y: y + ((index + 1) * by) / 12 }))
 
 			return drag(getSlot(row, 'list-handle'), { x, y }, path)
 		}

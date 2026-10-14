@@ -14,21 +14,21 @@ function clampToBoundingRect(
 	rect: ClientRect,
 	bounding: ClientRect,
 ): Transform {
-	const value = { ...transform }
+	const clamped = { ...transform }
 
 	if (rect.top + transform.y <= bounding.top) {
-		value.y = bounding.top - rect.top
+		clamped.y = bounding.top - rect.top
 	} else if (rect.bottom + transform.y >= bounding.top + bounding.height) {
-		value.y = bounding.top + bounding.height - rect.bottom
+		clamped.y = bounding.top + bounding.height - rect.bottom
 	}
 
 	if (rect.left + transform.x <= bounding.left) {
-		value.x = bounding.left - rect.left
+		clamped.x = bounding.left - rect.left
 	} else if (rect.right + transform.x >= bounding.left + bounding.width) {
-		value.x = bounding.left + bounding.width - rect.right
+		clamped.x = bounding.left + bounding.width - rect.right
 	}
 
-	return value
+	return clamped
 }
 
 /**
@@ -134,15 +134,15 @@ export function applyColumnReorder(
 ): (string | number)[] {
 	const next: (string | number)[] = []
 
-	let idx = 0
+	let index = 0
 
 	for (const id of order) {
 		if (isReorderable(id)) {
 			// A slot with no id left to draw keeps its own, so the order never holds
 			// `undefined` when the two lengths disagree.
-			next.push(reorderedIds[idx] ?? id)
+			next.push(reorderedIds[index] ?? id)
 
-			idx++
+			index++
 		} else {
 			next.push(id)
 		}

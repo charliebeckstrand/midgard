@@ -131,12 +131,16 @@ describe('grid header truncation tooltip (real browser)', () => {
 		// Step finely (the device sub-pixel is ~1/64px) across the fit boundary — the
 		// integer-rounded chrome estimate can sit a fraction off — to land a clip
 		// under a tenth of a pixel, what the old slack let slip.
-		for (let w = boundary + 0.6; w >= boundary - 1.5 && deadZone === undefined; w -= 0.02) {
+		for (
+			let width = boundary + 0.6;
+			width >= boundary - 1.5 && deadZone === undefined;
+			width -= 0.02
+		) {
 			const { container, unmount } = renderUI(
 				<Grid
 					resizable
 					columns={[column]}
-					columnSizing={{ value: { name: w } }}
+					columnSizing={{ value: { name: width } }}
 					rows={rows}
 					getKey={getKey}
 				/>,
@@ -147,7 +151,7 @@ describe('grid header truncation tooltip (real browser)', () => {
 			if (span.scrollWidth === span.clientWidth) {
 				const overflow = textOverflow(span)
 
-				if (overflow > 0.02 && overflow < 0.1) deadZone = w
+				if (overflow > 0.02 && overflow < 0.1) deadZone = width
 			}
 
 			unmount()

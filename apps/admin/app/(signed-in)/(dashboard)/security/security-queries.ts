@@ -20,20 +20,20 @@ export const securityKeys = {
 }
 
 /** The newest threats. The server page seeds the first list (see `seededQuery`). */
-export function useThreats(initialThreats: Seed<Threat[]>) {
+export function useThreats(initial: Seed<Threat[]>) {
 	return useQuery({
 		queryKey: securityKeys.threats,
 		queryFn: ({ signal }) => fetchThreats(signal),
-		...seededQuery(initialThreats),
+		...seededQuery(initial),
 	})
 }
 
 /** The bans in force. The server page seeds the first list (see `seededQuery`). */
-export function useBans(initialBans: Seed<Ban[]>) {
+export function useBans(initial: Seed<Ban[]>) {
 	return useQuery({
 		queryKey: securityKeys.bans,
 		queryFn: ({ signal }) => fetchBans(signal),
-		...seededQuery(initialBans),
+		...seededQuery(initial),
 	})
 }
 

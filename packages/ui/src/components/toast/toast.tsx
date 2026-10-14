@@ -79,13 +79,13 @@ export function Toast({ position = 'bottom-right' }: ToastProps) {
 				{/* A list, so AT gives the count of the toasts and the position of each. */}
 				<ol className={cn(k.scroll, !isTop && 'flex-col-reverse')}>
 					<AnimatePresence onExitComplete={handleExitComplete}>
-						{toasts.map((t, i) => (
+						{toasts.map((toast, index) => (
 							<ToastAlert
-								key={t.id}
-								toast={t}
+								key={toast.id}
+								toast={toast}
 								edge={isTop ? 'top' : 'bottom'}
-								zIndex={toasts.length - i}
-								closable={t.closable}
+								zIndex={toasts.length - index}
+								closable={toast.closable}
 								onOpenChange={(open, id) => {
 									// The only dismissal a reader drives directly, so it names itself.
 									if (!open) dismiss(id, 'close')

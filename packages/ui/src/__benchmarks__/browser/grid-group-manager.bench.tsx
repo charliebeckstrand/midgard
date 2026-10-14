@@ -35,11 +35,11 @@ const columns: GridColumnManagerItem[] = Array.from(
 	(_, index) => ({ id: `c${index}`, title: `Column ${index}` }),
 )
 
-const initialGroups: GridColumnGroup[] = Array.from({ length: GROUPS }, (_, group) => ({
-	id: `g${group}`,
-	title: `Group ${group}`,
+const initialGroups: GridColumnGroup[] = Array.from({ length: GROUPS }, (_, index) => ({
+	id: `g${index}`,
+	title: `Group ${index}`,
 	columns: columns
-		.slice(group * COLUMNS_PER_GROUP, (group + 1) * COLUMNS_PER_GROUP)
+		.slice(index * COLUMNS_PER_GROUP, (index + 1) * COLUMNS_PER_GROUP)
 		.map((column) => column.id),
 }))
 

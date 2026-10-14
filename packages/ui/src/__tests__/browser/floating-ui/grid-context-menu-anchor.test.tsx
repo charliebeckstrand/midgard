@@ -22,7 +22,10 @@ describe('grid context menu anchoring (real browser)', () => {
 
 	// Enough rows to overflow a short scroll container so the body scrolls under
 	// an open menu; no virtualization, so the right-clicked cell stays mounted.
-	const rows: Row[] = Array.from({ length: 40 }, (_, i) => ({ id: i, name: `Person ${i}` }))
+	const rows: Row[] = Array.from({ length: 40 }, (_, index) => ({
+		id: index,
+		name: `Person ${index}`,
+	}))
 
 	const getKey = (row: Row) => row.id
 

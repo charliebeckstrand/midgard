@@ -17,13 +17,16 @@ import { frames, getSlot, present, renderUI } from '../../helpers'
 
 type Row = { id: string; name: string }
 
-const ROWS: Row[] = Array.from({ length: 8 }, (_, at) => ({ id: `r-${at}`, name: `Row ${at}` }))
+const ROWS: Row[] = Array.from({ length: 8 }, (_, index) => ({
+	id: `r-${index}`,
+	name: `Row ${index}`,
+}))
 
 /** `count` columns, all reading the same short field, so their width is the headers'. */
 function columnsOf(count: number): GridColumn<Row>[] {
-	return Array.from({ length: count }, (_, at) => ({
-		id: `c-${at}`,
-		title: `Column ${at}`,
+	return Array.from({ length: count }, (_, index) => ({
+		id: `c-${index}`,
+		title: `Column ${index}`,
 		value: (row: Row) => row.name,
 		cell: (row: Row) => row.name,
 	}))

@@ -32,15 +32,17 @@ export type ZipcodeMaskCountry = 'US' | 'CA' | 'GB' | 'international'
 function formatNANP(raw: string) {
 	const digits = digitsOnly(raw)
 
-	const d = (digits.length === 11 && digits.startsWith('1') ? digits.slice(1) : digits).slice(0, 10)
+	const national = (
+		digits.length === 11 && digits.startsWith('1') ? digits.slice(1) : digits
+	).slice(0, 10)
 
-	if (d.length === 0) return ''
+	if (national.length === 0) return ''
 
-	if (d.length <= 3) return d
+	if (national.length <= 3) return national
 
-	if (d.length <= 7) return `${d.slice(0, 3)}-${d.slice(3)}`
+	if (national.length <= 7) return `${national.slice(0, 3)}-${national.slice(3)}`
 
-	return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`
+	return `(${national.slice(0, 3)}) ${national.slice(3, 6)}-${national.slice(6)}`
 }
 
 function formatInternationalPhone(raw: string) {
@@ -61,11 +63,11 @@ const phoneFormats = {
 } satisfies Record<PhoneMaskCountry, MaskInputFormat>
 
 function formatZipUS(raw: string) {
-	const d = digitsOnly(raw).slice(0, 9)
+	const digits = digitsOnly(raw).slice(0, 9)
 
-	if (d.length <= 5) return d
+	if (digits.length <= 5) return digits
 
-	return `${d.slice(0, 5)}-${d.slice(5)}`
+	return `${digits.slice(0, 5)}-${digits.slice(5)}`
 }
 
 function formatZipCA(raw: string) {

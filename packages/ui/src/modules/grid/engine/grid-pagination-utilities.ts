@@ -22,7 +22,7 @@ export type GridPageItem = number | 'start-gap' | 'end-gap'
 export function getVisiblePages(current: number, total: number): GridPageItem[] {
 	if (total < 1) return []
 
-	if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+	if (total <= 7) return Array.from({ length: total }, (_, index) => index + 1)
 
 	if (current <= 3) return [1, 2, 3, 4, 'end-gap', total - 1, total]
 

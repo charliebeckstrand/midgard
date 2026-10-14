@@ -18,9 +18,9 @@ let unsubscribeVisibility: (() => void) | null = null
 
 function tick(bucket: Bucket): void {
 	// Dispatch over a snapshot so a mid-tick unsubscribe skips no subscriber.
-	for (const cb of [...bucket.subscribers]) {
+	for (const subscriber of [...bucket.subscribers]) {
 		try {
-			cb()
+			subscriber()
 		} catch (error) {
 			// A throw in one subscriber must not stop the rest; surface it out of band.
 			queueMicrotask(() => {
@@ -62,28 +62,28 @@ function handleVisibility(): void {
 }
 
 /**
- * Subscribe `cb` to a refresh tick every `intervalMs`, sharing one timer per
+ * Subscribe `subscriber` to a refresh tick every `intervalMs`, sharing one timer per
  * distinct cadence across all subscribers. The timer pauses while the document
  * is hidden and fires an immediate catch-up tick on return. Returns an
  * unsubscribe fn; the timer stops when its last subscriber leaves. Call only on
  * the client — it touches `window`/`document`.
  */
-export function subscribeTimeAgoTick(intervalMs: number, cb: Subscriber): () => void {
+export function subscribeTimeAgoTick(intervalMs: number, subscriber: Subscriber): () => void {
 	unsubscribeVisibility ??= subscribeDocumentEvent('visibilitychange', handleVisibility)
 
-	const b: Bucket = buckets.get(intervalMs) ?? { subscribers: new Set(), timer: null }
+	const bucket: Bucket = buckets.get(intervalMs) ?? { subscribers: new Set(), timer: null }
 
-	buckets.set(intervalMs, b)
+	buckets.set(intervalMs, bucket)
 
-	b.subscribers.add(cb)
+	bucket.subscribers.add(subscriber)
 
-	startTimer(intervalMs, b)
+	startTimer(intervalMs, bucket)
 
 	return () => {
-		b.subscribers.delete(cb)
+		bucket.subscribers.delete(subscriber)
 
-		if (b.subscribers.size === 0) {
-			stopTimer(b)
+		if (bucket.subscribers.size === 0) {
+			stopTimer(bucket)
 
 			buckets.delete(intervalMs)
 		}

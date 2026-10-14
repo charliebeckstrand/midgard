@@ -23,10 +23,10 @@ describe('grid sticky fill (real browser)', () => {
 		{ id: 'email', title: 'Email', cell: (row) => row.email },
 	]
 
-	const rows: Row[] = Array.from({ length: 20 }, (_, i) => ({
-		id: i + 1,
-		name: `Person ${i + 1}`,
-		email: `person${i + 1}@example.com`,
+	const rows: Row[] = Array.from({ length: 20 }, (_, index) => ({
+		id: index + 1,
+		name: `Person ${index + 1}`,
+		email: `person${index + 1}@example.com`,
 	}))
 
 	/** A color that no recipe paints, set as the fill of an outer element. */

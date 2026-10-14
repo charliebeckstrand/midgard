@@ -40,8 +40,8 @@ RUN pnpm install --frozen-lockfile
 COPY --from=prune /app/out/full/ ./
 # `turbo prune` copies the workspaces, not the shared configs at the root.
 # `next build` type-checks the Vitest config of the app, which imports
-# `vitest.shared.ts`.
-COPY tsconfig.base.json tsconfig.nextjs.json postcss.config.mjs .browserslistrc vitest.shared.ts ./
+# `vitest.shared.mts`.
+COPY tsconfig.base.json tsconfig.nextjs.json postcss.config.mjs .browserslistrc vitest.shared.mts ./
 RUN pnpm turbo run build --filter=${APP}
 # An app without a `public/` directory gets an empty one, for the copy below.
 RUN mkdir -p apps/${APP}/public

@@ -19,14 +19,14 @@ type Segment = {
 	cap?: number
 }
 
-const month: Segment = { part: 'month', length: 2, cap: 12 }
-const day: Segment = { part: 'day', length: 2, cap: 31 }
-const year: Segment = { part: 'year', length: 4 }
+const monthSegment: Segment = { part: 'month', length: 2, cap: 12 }
+const daySegment: Segment = { part: 'day', length: 2, cap: 31 }
+const yearSegment: Segment = { part: 'year', length: 4 }
 
 const layouts: Record<DateInputFormat, { separator: string; segments: Segment[] }> = {
-	'MM/DD/YYYY': { separator: '/', segments: [month, day, year] },
-	'DD/MM/YYYY': { separator: '/', segments: [day, month, year] },
-	'YYYY-MM-DD': { separator: '-', segments: [year, month, day] },
+	'MM/DD/YYYY': { separator: '/', segments: [monthSegment, daySegment, yearSegment] },
+	'DD/MM/YYYY': { separator: '/', segments: [daySegment, monthSegment, yearSegment] },
+	'YYYY-MM-DD': { separator: '-', segments: [yearSegment, monthSegment, daySegment] },
 }
 
 /** Segment separator for a format (`/` or `-`). @internal */

@@ -405,7 +405,7 @@ export function Playground<P extends object>({
 			actions={
 				<Rail label="Props">
 					{fields.map((field) => {
-						const onValueChange = (value: Literal | undefined) =>
+						const handleValueChange = (value: Literal | undefined) =>
 							setValues({ ...values, [field.name]: value })
 
 						return field.kind === 'choice' ? (
@@ -414,14 +414,14 @@ export function Playground<P extends object>({
 								field={field}
 								step={step}
 								value={values[field.name]}
-								onValueChange={onValueChange}
+								onValueChange={handleValueChange}
 							/>
 						) : (
 							<FreePicker
 								key={field.name}
 								field={field}
 								value={values[field.name]}
-								onValueChange={onValueChange}
+								onValueChange={handleValueChange}
 							/>
 						)
 					})}

@@ -367,15 +367,15 @@ export function useMapZoom({
 
 		const focus = pairFocus(first, second)
 
-		const before = spread.current
+		const prevGap = spread.current
 
-		const previous = midpoint.current
+		const prevFocus = midpoint.current
 
 		spread.current = gap
 
 		midpoint.current = focus
 
-		if (before === null || before === 0 || previous === null || focus === null) return
+		if (prevGap === null || prevGap === 0 || prevFocus === null || focus === null) return
 
 		panned.current = true
 
@@ -383,9 +383,9 @@ export function useMapZoom({
 
 		// Panned first, then scaled about where the midpoint now sits, so the ground
 		// under the fingers stays under them however the pair moves and spreads.
-		const traveled = panTransform(from, focus.x - previous.x, focus.y - previous.y, frame)
+		const traveled = panTransform(from, focus.x - prevFocus.x, focus.y - prevFocus.y, frame)
 
-		commit(zoomTransform(traveled, focus, gap / before, frame, limit))
+		commit(zoomTransform(traveled, focus, gap / prevGap, frame, limit))
 	}
 
 	/** Where the midpoint of two pointers lands in the frame, or `null` with no box to read. */
@@ -604,7 +604,7 @@ export function useMapZoom({
 	}
 
 	/** Moves the view by one pointer's travel, once the press has become a pan. */
-	function drag(previous: MapPoint2D, at: MapPoint2D) {
+	function drag(prev: MapPoint2D, at: MapPoint2D) {
 		const gesture = press.current
 
 		if (gesture === null) return
@@ -633,15 +633,15 @@ export function useMapZoom({
 		// The drag is measured in viewport pixels and the view moves in frame
 		// units, so the offset converts through the same letterboxing the readout
 		// anchors by.
-		commit(panTransform(from, (at.x - previous.x) / scale, (at.y - previous.y) / scale, frame))
+		commit(panTransform(from, (at.x - prev.x) / scale, (at.y - prev.y) / scale, frame))
 	}
 
 	function onPointerMove(event: PointerEvent<HTMLElement>) {
 		if (fromTouch(event)) return
 
-		const previous = pointers.current.get(event.pointerId)
+		const prev = pointers.current.get(event.pointerId)
 
-		if (previous === undefined) return
+		if (prev === undefined) return
 
 		const at = { x: event.clientX, y: event.clientY }
 
@@ -651,7 +651,7 @@ export function useMapZoom({
 		// materializes its values; two pinch, and a second finger landing mid-drag
 		// takes the gesture over rather than the two fighting for the view.
 		if (pointers.current.size < 2) {
-			drag(previous, at)
+			drag(prev, at)
 
 			// Only once the travel has crossed the threshold, which is what turns the
 			// press from a pick into a pan — see {@link hold}.
@@ -863,12 +863,12 @@ function useMapTouchPinch(
 
 		// An event on a node still in the tree reaches the node's listener and
 		// then the SVG's. It applies once.
-		let last: TouchEvent | null = null
+		let prevEvent: TouchEvent | null = null
 
 		function listener(event: TouchEvent) {
-			if (event === last) return
+			if (event === prevEvent) return
 
-			last = event
+			prevEvent = event
 
 			if (!onTouch(event)) {
 				unfollow()

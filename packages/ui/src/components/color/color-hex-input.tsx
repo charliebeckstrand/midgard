@@ -39,7 +39,7 @@ export function ColorHexInput() {
 
 	// A 3 or 4 digit draft is also the start of a 6 or 8 digit hex, so only a
 	// full hex commits while the reader types. A shorthand commits on blur.
-	const onChange = (event: ChangeEvent<HTMLInputElement>) => {
+	const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
 		const raw = event.target.value
 
 		setDraft('hex', raw)
@@ -51,7 +51,7 @@ export function ColorHexInput() {
 		if (parsed) setHsva(parsed)
 	}
 
-	const onBlur = (event: FocusEvent<HTMLInputElement>) => {
+	const handleBlur = (event: FocusEvent<HTMLInputElement>) => {
 		const raw = event.target.value
 
 		const parsed = SHORT_HEX.test(raw.trim()) ? hexToHsva(raw) : null
@@ -73,8 +73,8 @@ export function ColorHexInput() {
 				<Input
 					{...draft}
 					id={id}
-					onChange={onChange}
-					onBlur={onBlur}
+					onChange={handleChange}
+					onBlur={handleBlur}
 					disabled={disabled}
 					variant={control?.variant}
 					data-slot="color-hex-input"

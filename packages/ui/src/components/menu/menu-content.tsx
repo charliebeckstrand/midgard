@@ -9,7 +9,7 @@ import { k } from '../../recipes/kata/menu'
 import { useMenuActions, useMenuState } from './context'
 import { MenuSheet } from './menu-sheet'
 import { MenuViewport } from './menu-viewport'
-import { MENUITEM_SELECTOR } from './use-menu-state'
+import { MENUITEM_SELECTOR } from './use-menu-root'
 
 /** Props for {@link MenuContent}: an optional accessible name for the menu. */
 export type MenuContentProps = {

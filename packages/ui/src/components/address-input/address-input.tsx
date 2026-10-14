@@ -176,11 +176,11 @@ export function AddressInput({
 
 	const readOnly = props.readOnly ?? control?.readOnly
 
-	const suffix = loading ? (
-		<LoadingSpinner />
-	) : selected === undefined || disabled || readOnly || !clearable ? (
-		<Icon icon={<MapPin />} />
-	) : undefined
+	const showPin = selected === undefined || disabled || readOnly || !clearable
+
+	const pin = showPin ? <Icon icon={<MapPin />} /> : undefined
+
+	const suffix = loading ? <LoadingSpinner /> : pin
 
 	return (
 		<Combobox<AddressSuggestion>
@@ -189,7 +189,7 @@ export function AddressInput({
 			name={name}
 			value={value}
 			defaultValue={defaultValue}
-			displayValue={(s) => s.label}
+			displayValue={(suggestion) => suggestion.label}
 			onValueChange={setHeld}
 			className={cn(loading && 'motion-safe:animate-pulse', className)}
 			placeholder={placeholder}

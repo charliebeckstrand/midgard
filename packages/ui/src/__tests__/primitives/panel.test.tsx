@@ -48,9 +48,9 @@ describe('createPanel', () => {
 	it('Title applies custom className', () => {
 		const { container } = renderUI(<Title className="custom">Title</Title>)
 
-		const el = bySlot(container, 'dialog-title')
+		const title = bySlot(container, 'dialog-title')
 
-		expect(el?.className).toContain('custom')
+		expect(title?.className).toContain('custom')
 	})
 
 	it('Title uses titleId from context', () => {
@@ -60,9 +60,9 @@ describe('createPanel', () => {
 			</PanelA11yContext>,
 		)
 
-		const el = bySlot(container, 'dialog-title')
+		const title = bySlot(container, 'dialog-title')
 
-		expect(el).toHaveAttribute('id', 'my-title')
+		expect(title).toHaveAttribute('id', 'my-title')
 	})
 
 	it.each<[string, () => ReactElement, string]>([

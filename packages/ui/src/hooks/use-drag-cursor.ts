@@ -28,9 +28,9 @@ let rule: HTMLStyleElement | null = null
 
 /** Writes the rule for the newest hold, or removes it when no hold is live. @internal */
 function paint() {
-	const top = holds.at(-1)
+	const newest = holds.at(-1)
 
-	if (top === undefined) {
+	if (newest === undefined) {
 		rule?.remove()
 
 		rule = null
@@ -48,7 +48,7 @@ function paint() {
 
 	// A universal `!important` rule wins over the cursor of each element that the
 	// pointer crosses: a `text` input, a `pointer` link, a sibling handle.
-	rule.textContent = `*{cursor:${top.cursor} !important}`
+	rule.textContent = `*{cursor:${newest.cursor} !important}`
 }
 
 /**

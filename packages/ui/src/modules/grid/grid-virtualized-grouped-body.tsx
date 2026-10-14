@@ -106,10 +106,10 @@ function groupMotionSource<T>(
 
 			return true
 		},
-		flips: (previous, groups) => {
+		flips: (prev, groups) => {
 			const flips: GridMotionFlips<GridGroup<T>> = { opened: [], closed: [] }
 
-			const was = new Map(previous.ids.map((id, index) => [id, previous.open[index]]))
+			const was = new Map(prev.ids.map((id, index) => [id, prev.open[index]]))
 
 			for (const group of groups) {
 				const before = was.get(group.id)
@@ -149,7 +149,7 @@ type GridVirtualizedGroupedBodyProps<T> = {
 	totaled: boolean
 	/** The row-manager overlay presentation (per-group color), or `null` when off. */
 	presentation: GridRowGroupPresentation | null
-	window: GridItemWindowOptions
+	rowWindow: GridItemWindowOptions
 }
 
 /**
@@ -181,7 +181,7 @@ export function GridVirtualizedGroupedBody<T>({
 	renderHeader,
 	totaled,
 	presentation,
-	window,
+	rowWindow,
 }: GridVirtualizedGroupedBodyProps<T>) {
 	const { visibleColumns: columns, pinning, gridSemantics, rowIndexOffset } = rowsProps
 
@@ -189,8 +189,8 @@ export function GridVirtualizedGroupedBody<T>({
 	const record = useRef(NO_WINDOW_RECORD)
 
 	const source = useMemo(
-		() => groupMotionSource<T>(totaled, window.estimateSize),
-		[totaled, window.estimateSize],
+		() => groupMotionSource<T>(totaled, rowWindow.estimateSize),
+		[totaled, rowWindow.estimateSize],
 	)
 
 	// The rows render from the applied groups, which trail a toggle by one
@@ -199,7 +199,7 @@ export function GridVirtualizedGroupedBody<T>({
 		applied: shown,
 		motions,
 		release,
-	} = useGridWindowMotion(groups, source, record, window.scrollRef)
+	} = useGridWindowMotion(groups, source, record, rowWindow.scrollRef)
 
 	// A toggle gives a new list of groups, so the item list rebuilds with it.
 	const items = useMemo(
@@ -208,7 +208,7 @@ export function GridVirtualizedGroupedBody<T>({
 	)
 
 	const { bodyRef, closingEndItem, virtualItems, topSpacer, bottomSpacer, measureRef } =
-		useGridItemWindow(items, window, record)
+		useGridItemWindow(items, rowWindow, record)
 
 	// The cursor walks the open rows. A scroll frame keeps the same order.
 	const cursorOrder = useMemo(

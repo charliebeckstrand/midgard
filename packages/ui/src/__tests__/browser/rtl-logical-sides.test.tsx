@@ -32,39 +32,39 @@ function rtl(className: string, tag: 'div' | 'ul' | 'blockquote' | 'dl' = 'div')
 
 describe('logical sides under dir=rtl', () => {
 	it('markdown ul pads the inline start (right)', () => {
-		const s = rtl(cn(markdown.ul), 'ul')
-		expect([s.paddingRight, s.paddingLeft]).toEqual(['20px', '0px'])
+		const style = rtl(cn(markdown.ul), 'ul')
+		expect([style.paddingRight, style.paddingLeft]).toEqual(['20px', '0px'])
 	})
 
 	it('markdown blockquote rules the inline start (right)', () => {
-		const s = rtl(cn(markdown.blockquote), 'blockquote')
-		expect([s.borderRightWidth, s.borderLeftWidth]).toEqual(['2px', '0px'])
+		const style = rtl(cn(markdown.blockquote), 'blockquote')
+		expect([style.borderRightWidth, style.borderLeftWidth]).toEqual(['2px', '0px'])
 	})
 
 	it('markdown task checkbox spaces the inline end (left)', () => {
-		const s = rtl(cn(markdown.checkbox))
-		expect([s.marginLeft, s.marginRight]).toEqual(['8px', '0px'])
+		const style = rtl(cn(markdown.checkbox))
+		expect([style.marginLeft, style.marginRight]).toEqual(['8px', '0px'])
 	})
 
 	it('user chat bubble squares the bottom inline-end corner (bottom-left)', () => {
-		const s = rtl(chat.bubble({ sender: 'user' }))
-		expect(s.borderBottomLeftRadius).not.toBe(s.borderTopLeftRadius)
-		expect(s.borderBottomRightRadius).toBe(s.borderTopRightRadius)
+		const style = rtl(chat.bubble({ sender: 'user' }))
+		expect(style.borderBottomLeftRadius).not.toBe(style.borderTopLeftRadius)
+		expect(style.borderBottomRightRadius).toBe(style.borderTopRightRadius)
 	})
 
 	it('vertical tab list rules the inline start (right)', () => {
-		const s = rtl(tabs.list({ orientation: 'vertical' }))
-		expect([s.borderRightWidth, s.borderLeftWidth]).toEqual(['1px', '0px'])
+		const style = rtl(tabs.list({ orientation: 'vertical' }))
+		expect([style.borderRightWidth, style.borderLeftWidth]).toEqual(['1px', '0px'])
 	})
 
 	it('vertical tab indicator sits on the inline start (right)', () => {
-		const s = rtl(`absolute ${tabs.indicator({ orientation: 'vertical' })}`)
-		expect(s.right).toBe('-1px')
+		const style = rtl(`absolute ${tabs.indicator({ orientation: 'vertical' })}`)
+		expect(style.right).toBe('-1px')
 	})
 
 	it('avatar status dot sits on the top inline-end corner (left)', () => {
-		const s = rtl(cn(avatar.status.dot))
-		expect(s.left).toBe('0px')
+		const style = rtl(cn(avatar.status.dot))
+		expect(style.left).toBe('0px')
 	})
 
 	it('description-list term gutter is on the inline end (left)', () => {
@@ -76,18 +76,18 @@ describe('logical sides under dir=rtl', () => {
 				</dl>
 			</div>,
 		)
-		const s = getComputedStyle(present(container.querySelector('dt'), 'dt'))
-		expect([s.paddingLeft, s.paddingRight]).toEqual(['8px', '0px'])
+		const style = getComputedStyle(present(container.querySelector('dt'), 'dt'))
+		expect([style.paddingLeft, style.paddingRight]).toEqual(['8px', '0px'])
 	})
 
 	it('vertical stepper pads the inline end (left)', () => {
-		const s = rtl(stepper.base({ orientation: 'vertical' }))
-		expect([s.paddingLeft, s.paddingRight]).toEqual(['16px', '0px'])
+		const style = rtl(stepper.base({ orientation: 'vertical' }))
+		expect([style.paddingLeft, style.paddingRight]).toEqual(['16px', '0px'])
 	})
 
 	it('horizontal timeline marker sits at the inline start (right)', () => {
-		const s = rtl(cn(timeline.marker.base, timeline.marker.horizontal))
-		expect(s.right).toBe('6.5px')
+		const style = rtl(cn(timeline.marker.base, timeline.marker.horizontal))
+		expect(style.right).toBe('6.5px')
 	})
 
 	it('hold-button fill grows from the inline start (right)', () => {
@@ -117,19 +117,19 @@ describe('logical sides under dir=rtl', () => {
 	})
 
 	it('user chat skeleton squares the bottom inline-end corner (bottom-left)', () => {
-		const s = rtl(cn(kokkaku.chat.bubble, kokkaku.chat.tail.user))
-		expect(s.borderBottomLeftRadius).not.toBe(s.borderTopLeftRadius)
-		expect(s.borderBottomRightRadius).toBe(s.borderTopRightRadius)
+		const style = rtl(cn(kokkaku.chat.bubble, kokkaku.chat.tail.user))
+		expect(style.borderBottomLeftRadius).not.toBe(style.borderTopLeftRadius)
+		expect(style.borderBottomRightRadius).toBe(style.borderTopRightRadius)
 	})
 
 	it('textarea actions row pads the inline end (left)', () => {
-		const s = rtl(cn(textarea.actions))
-		expect([s.paddingLeft, s.paddingRight]).toEqual(['8px', '0px'])
+		const style = rtl(cn(textarea.actions))
+		expect([style.paddingLeft, style.paddingRight]).toEqual(['8px', '0px'])
 	})
 
 	it('signature pad actions sit at the inline end (left)', () => {
-		const s = rtl(cn(signaturePad.actions))
-		expect(s.left).toBe('8px')
+		const style = rtl(cn(signaturePad.actions))
+		expect(style.left).toBe('8px')
 	})
 
 	it('slider track fills from the inline start (right)', () => {

@@ -138,14 +138,14 @@ describe('RangeSlider', () => {
 			'from $25',
 			'to $75',
 		],
-	])('%s', (_name, ui, attr, lo, hi) => {
+	])('%s', (_name, ui, attribute, lo, hi) => {
 		const { container } = renderUI(ui())
 
 		const [loThumb, hiThumb] = allBySlot(container, 'slider-range-thumb')
 
-		expect(loThumb).toHaveAttribute(attr, lo)
+		expect(loThumb).toHaveAttribute(attribute, lo)
 
-		expect(hiThumb).toHaveAttribute(attr, hi)
+		expect(hiThumb).toHaveAttribute(attribute, hi)
 	})
 
 	// Each row drives one key on one thumb (0 = low, 1 = high) and asserts the

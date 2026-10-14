@@ -105,7 +105,7 @@ export function TripStopsField({ places }: { places: readonly Place[] }) {
 					aria-labelledby={`${id}label`}
 				>
 					{(row) => {
-						const n = rows.indexOf(row) + 1
+						const position = rows.indexOf(row) + 1
 
 						return (
 							<ListItem>
@@ -125,7 +125,7 @@ export function TripStopsField({ places }: { places: readonly Place[] }) {
 										>
 											<Control className="sm:col-span-2">
 												<AddressInput
-													aria-label={`Place ${n}`}
+													aria-label={`Place ${position}`}
 													placeholder="Search for a place"
 													provider={provider}
 													value={row.match ?? null}
@@ -142,7 +142,7 @@ export function TripStopsField({ places }: { places: readonly Place[] }) {
 											{row.match !== undefined && row.placeId === undefined ? (
 												<Control>
 													<Listbox<PlaceCategory>
-														aria-label={`Category of place ${n}`}
+														aria-label={`Category of place ${position}`}
 														placeholder="Pick a category"
 														displayValue={categoryDisplayValue}
 														value={row.category ?? null}
@@ -157,7 +157,7 @@ export function TripStopsField({ places }: { places: readonly Place[] }) {
 
 											<Control>
 												<DatePicker
-													aria-label={`Day of place ${n}`}
+													aria-label={`Day of place ${position}`}
 													min={days?.[0]}
 													max={days?.[1]}
 													className="w-full"
@@ -171,7 +171,7 @@ export function TripStopsField({ places }: { places: readonly Place[] }) {
 
 										<ToggleIconButton
 											icon={<Icon icon={<Trash />} />}
-											aria-label={`Remove place ${n}`}
+											aria-label={`Remove place ${position}`}
 											onClick={() => setValue(rows.filter((held) => held.key !== row.key))}
 										/>
 									</Flex>

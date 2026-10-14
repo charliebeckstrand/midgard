@@ -53,7 +53,7 @@ function documentSettle(
 }
 
 /**
- * The report that a settle owes, or `undefined` when `previous` already made it.
+ * The report that a settle owes, or `undefined` when `prev` already made it.
  *
  * @remarks A load that the viewer already reported keeps its report. A failure after the open
  * does not also call `onError`.
@@ -62,13 +62,13 @@ function documentSettle(
 function nextReport(
 	settled: Error | null,
 	src: string | undefined,
-	previous: string | undefined,
+	prev: string | undefined,
 ): string | undefined {
-	if (settled && previous === `load:${src}`) return undefined
+	if (settled && prev === `load:${src}`) return undefined
 
 	const reported = `${settled === null ? 'load' : 'error'}:${src}`
 
-	return reported === previous ? undefined : reported
+	return reported === prev ? undefined : reported
 }
 
 /**
@@ -77,12 +77,12 @@ function nextReport(
  *
  * @internal
  */
-function samePages(previous: PdfViewerPage[] | undefined, next: PdfViewerPage[] | undefined) {
-	if (previous === next) return true
+function samePages(prev: PdfViewerPage[] | undefined, next: PdfViewerPage[] | undefined) {
+	if (prev === next) return true
 
-	if (!previous || !next || previous.length !== next.length) return false
+	if (!prev || !next || prev.length !== next.length) return false
 
-	return previous.every((entry, index) => {
+	return prev.every((entry, index) => {
 		const other = next[index]
 
 		return entry.id === other?.id && entry.src === other?.src

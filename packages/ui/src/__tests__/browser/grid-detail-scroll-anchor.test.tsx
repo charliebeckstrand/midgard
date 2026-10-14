@@ -22,7 +22,10 @@ import { frames, getSlot, present, renderUI, sampleDrift, waitFor, windowBody } 
 describe('grid master-detail body under native scroll anchoring (real browser)', () => {
 	type Item = { id: number; name: string }
 
-	const rows: Item[] = Array.from({ length: 60 }, (_, i) => ({ id: i + 1, name: `Row ${i + 1}` }))
+	const rows: Item[] = Array.from({ length: 60 }, (_, index) => ({
+		id: index + 1,
+		name: `Row ${index + 1}`,
+	}))
 
 	const columns: GridColumn<Item>[] = [
 		{ id: 'expand', expander: true },

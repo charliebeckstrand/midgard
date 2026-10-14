@@ -10,7 +10,7 @@ import { bySlot, renderUI } from '../helpers'
 // slot. Correct windowing behavior is covered by the benchmarks.
 
 describe('VirtualOptions', () => {
-	const items = Array.from({ length: 1_000 }, (_, i) => ({ id: i, label: `Item ${i}` }))
+	const items = Array.from({ length: 1_000 }, (_, index) => ({ id: index, label: `Item ${index}` }))
 
 	function TestPanel({ items: itemList }: { items: { id: number; label: string }[] }) {
 		return (
@@ -57,10 +57,10 @@ describe('VirtualOptions', () => {
 // windowing + keyboard-reachability across the window edge is covered by the
 // browser suite (`test:browser`) and `__tests__/hooks/use-a11y-roving.test.tsx`.
 describe('VirtualOptions: indexed item source registration', () => {
-	const items = Array.from({ length: 50 }, (_, i) => ({
-		id: i,
-		label: `Item ${i}`,
-		disabled: i === 3,
+	const items = Array.from({ length: 50 }, (_, index) => ({
+		id: index,
+		label: `Item ${index}`,
+		disabled: index === 3,
 	}))
 
 	function Panel({

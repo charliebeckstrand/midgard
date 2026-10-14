@@ -76,14 +76,14 @@ export function ResizableGroup({
 			Children.toArray(children).flatMap((child) => {
 				if (!isValidElement(child) || child.type !== ResizablePanel) return []
 
-				const p = child.props as ResizablePanelProps
+				const props = child.props as ResizablePanelProps
 
 				return [
 					{
 						key: String(child.key),
-						defaultSize: p.defaultSize ?? 50,
-						minSize: p.minSize ?? 0,
-						maxSize: p.maxSize ?? 100,
+						defaultSize: props.defaultSize ?? 50,
+						minSize: props.minSize ?? 0,
+						maxSize: props.maxSize ?? 100,
 					},
 				]
 			}),
@@ -112,19 +112,19 @@ export function ResizableGroup({
 			if (!isValidElement(child)) return child
 
 			if (child.type === ResizablePanel) {
-				const idx = next.panel
+				const index = next.panel
 
 				next.panel += 1
 
-				return <ResizableIndexContext value={{ panelIndex: idx }}>{child}</ResizableIndexContext>
+				return <ResizableIndexContext value={{ panelIndex: index }}>{child}</ResizableIndexContext>
 			}
 
 			if (child.type === ResizableHandle) {
-				const idx = next.handle
+				const index = next.handle
 
 				next.handle += 1
 
-				return <ResizableIndexContext value={{ handleIndex: idx }}>{child}</ResizableIndexContext>
+				return <ResizableIndexContext value={{ handleIndex: index }}>{child}</ResizableIndexContext>
 			}
 
 			return child

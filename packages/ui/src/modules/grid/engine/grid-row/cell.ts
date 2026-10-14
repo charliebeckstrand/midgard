@@ -123,7 +123,7 @@ export function resolveCellContext<T>(
 
 	if (id == null) return null
 
-	const col = columns.find((c) => String(c.id) === id && isDataColumn(c))
+	const col = columns.find((column) => String(column.id) === id && isDataColumn(column))
 
 	return col ? cellContext(col, row, rowKey) : null
 }

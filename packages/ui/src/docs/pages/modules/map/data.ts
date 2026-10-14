@@ -29,9 +29,10 @@ export function stateName(state: MapFeature): string {
  * frame.
  */
 export function stateFrame(name: string | null): MapFeatureCollection {
-	const held = name === null ? undefined : states.features.find((s) => stateName(s) === name)
+	const state =
+		name === null ? undefined : states.features.find((candidate) => stateName(candidate) === name)
 
-	return held === undefined ? states : { type: 'FeatureCollection', features: [held] }
+	return state === undefined ? states : { type: 'FeatureCollection', features: [state] }
 }
 
 /** One row for each state, keyed by the name of the state. */

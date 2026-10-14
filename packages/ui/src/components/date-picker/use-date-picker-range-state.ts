@@ -195,6 +195,10 @@ export function useDatePickerRangeState({
 		onFooterActivate,
 	})
 
+	const committedStart = value ? value[0] : null
+
+	const committedEnd = value ? value[1] : null
+
 	return {
 		...field,
 		dialogId,
@@ -212,8 +216,8 @@ export function useDatePickerRangeState({
 		getFloatingProps,
 		context,
 		calendar: {
-			rangeStart: rangeStart ?? (value ? value[0] : null),
-			rangeEnd: rangeStart === null ? (value ? value[1] : null) : null,
+			rangeStart: rangeStart ?? committedStart,
+			rangeEnd: rangeStart === null ? committedEnd : null,
 			hoverDate: rangeStart !== null ? hoverDate : null,
 			onHoverDate,
 			onValueChange: handleSelect,

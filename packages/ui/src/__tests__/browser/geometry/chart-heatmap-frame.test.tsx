@@ -14,12 +14,12 @@ import { frames, getSlot, renderUI, waitFor } from '../../helpers'
  */
 type Cell = { row: string; col: string; value: number }
 
-function grid(rows: number, cols: number): Cell[] {
+function grid(rows: number, columns: number): Cell[] {
 	return Array.from({ length: rows }, (_, row) =>
-		Array.from({ length: cols }, (_, col) => ({
+		Array.from({ length: columns }, (_, column) => ({
 			row: `R${row}`,
-			col: `C${col}`,
-			value: row * cols + col,
+			col: `C${column}`,
+			value: row * columns + column,
 		})),
 	).flat()
 }

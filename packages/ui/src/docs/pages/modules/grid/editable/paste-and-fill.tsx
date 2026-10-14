@@ -27,7 +27,7 @@ export default function PasteAndFill() {
 					session: 'managed',
 					scope: 'cell',
 					history: true,
-					onCommit: (changes) => setPeople((current) => applyChanges(current, changes)),
+					onCommit: (changes) => setPeople((prev) => applyChanges(prev, changes)),
 				}}
 			/>
 		</>

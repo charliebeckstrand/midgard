@@ -29,9 +29,9 @@ describe('grid grouped virtualized body after a search clears (real browser)', (
 	const carriers = ['Acme', 'Globex', 'Initech']
 
 	// Three groups of 300 rows.
-	const rows: Item[] = Array.from({ length: 900 }, (_, i) => ({
-		id: `S${String(i).padStart(4, '0')}`,
-		carrier: carriers[i % 3] as string,
+	const rows: Item[] = Array.from({ length: 900 }, (_, index) => ({
+		id: `S${String(index).padStart(4, '0')}`,
+		carrier: carriers[index % 3] as string,
 	}))
 
 	const columns: GridColumn<Item>[] = [

@@ -24,8 +24,8 @@ export function PdfViewerZoomControls({ zoom, disabled }: PdfViewerZoomControlsP
 	const minZoom = sortedLevels[0] ?? 1
 	const maxZoom = sortedLevels.at(-1) ?? 1
 
-	const nextLevelUp = sortedLevels.find((l) => l > zoom.value + 1e-6) ?? maxZoom
-	const nextLevelDown = sortedLevels.findLast((l) => l < zoom.value - 1e-6) ?? minZoom
+	const nextLevelUp = sortedLevels.find((level) => level > zoom.value + 1e-6) ?? maxZoom
+	const nextLevelDown = sortedLevels.findLast((level) => level < zoom.value - 1e-6) ?? minZoom
 
 	const zoomIn = () => zoom.setValue(nextLevelUp)
 	const zoomOut = () => zoom.setValue(nextLevelDown)

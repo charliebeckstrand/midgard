@@ -8,7 +8,7 @@
  * what to do with the report. The parse of a selection value works the same way.
  */
 
-import { isFields, isQueryGroup, MAX_DEPTH } from '../../query/engine/query-node'
+import { isQueryGroup, isRecord, MAX_DEPTH } from '../../query/engine/query-node'
 import type { DashboardLayoutItem } from './dashboard-layout'
 import type { DashboardSelection } from './dashboard-scope'
 import type { DashboardSpec, DashboardSpecTile } from './dashboard-spec'
@@ -116,7 +116,7 @@ function isNumber(value: unknown): value is number {
  * layout entry holds its span in the same two fields.
  */
 function isSize(value: unknown): boolean {
-	return isFields(value) && isNumber(value.w) && (value.h === undefined || isNumber(value.h))
+	return isRecord(value) && isNumber(value.w) && (value.h === undefined || isNumber(value.h))
 }
 
 /** The optional fields of a tile, and the test that each value must pass. */
@@ -129,7 +129,7 @@ const TILE_FIELDS: readonly [key: keyof DashboardSpecTile, test: (value: unknown
 /** Whether a value is a layout entry that the board can resolve. */
 function isEntry(value: unknown): value is DashboardLayoutItem {
 	return (
-		isFields(value) &&
+		isRecord(value) &&
 		isId(value.id) &&
 		isNumber(value.x) &&
 		isNumber(value.y) &&
@@ -141,7 +141,7 @@ function isEntry(value: unknown): value is DashboardLayoutItem {
 /** Whether a value is a selection that the scope can apply. */
 function isSelection(value: unknown): value is DashboardSelection {
 	return (
-		isFields(value) &&
+		isRecord(value) &&
 		typeof value.source === 'string' &&
 		typeof value.field === 'string' &&
 		Array.isArray(value.values) &&
@@ -195,7 +195,7 @@ function parseTiles(list: readonly unknown[], issues: DashboardSpecIssue[]): Das
 	list.forEach((tile, index) => {
 		const path = `tiles[${index}]`
 
-		if (!isFields(tile) || !isId(tile.id) || !isId(tile.widget)) {
+		if (!isRecord(tile) || !isId(tile.id) || !isId(tile.widget)) {
 			issues.push({
 				kind: 'invalid-tile',
 				path,
@@ -225,7 +225,7 @@ function parseTiles(list: readonly unknown[], issues: DashboardSpecIssue[]): Das
 
 function parseLayout(
 	list: readonly unknown[],
-	tiles: ReadonlySet<string>,
+	tileIds: ReadonlySet<string>,
 	issues: DashboardSpecIssue[],
 ): DashboardLayoutItem[] {
 	const layout: DashboardLayoutItem[] = []
@@ -258,7 +258,7 @@ function parseLayout(
 
 		ids.add(entry.id)
 
-		if (!tiles.has(entry.id)) {
+		if (!tileIds.has(entry.id)) {
 			issues.push({
 				kind: 'orphan-entry',
 				path,
@@ -310,7 +310,7 @@ export function parseDashboardSpec(
 ): DashboardSpecParse {
 	const issues: DashboardSpecIssue[] = []
 
-	if (!isFields(input)) {
+	if (!isRecord(input)) {
 		issues.push({
 			kind: 'invalid-spec',
 			path: '',

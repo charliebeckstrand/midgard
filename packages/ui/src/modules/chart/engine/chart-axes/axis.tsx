@@ -114,6 +114,8 @@ export function ChartAxis({ axis, plot, ticks, position, baseline, line = true }
 
 	const lineY = baseline ?? floor
 
+	const flatBaseline = top ? 'auto' : 'hanging'
+
 	return (
 		<g data-slot={top ? 'chart-axis-x-top' : 'chart-axis-x'}>
 			{line && !top && (
@@ -137,7 +139,7 @@ export function ChartAxis({ axis, plot, ticks, position, baseline, line = true }
 						x={tick.at}
 						y={y}
 						textAnchor={tick.rotate ? 'end' : (tick.anchor ?? 'middle')}
-						dominantBaseline={tick.rotate ? 'middle' : top ? 'auto' : 'hanging'}
+						dominantBaseline={tick.rotate ? 'middle' : flatBaseline}
 						transform={tick.rotate ? `rotate(${tick.rotate} ${tick.at} ${y})` : undefined}
 						className={cn(k.tick)}
 					>

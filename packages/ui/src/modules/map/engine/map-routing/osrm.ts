@@ -5,7 +5,7 @@
 
 import type { LngLat } from '../types'
 import { routeFailure } from './failure'
-import { type Profile, requestSignal, routeFetch } from './request'
+import { type MapRouteProfile, requestSignal, routeFetch } from './request'
 import type { MapRouteAnswer } from './result'
 
 const DEFAULT_OSRM_URL = 'https://router.project-osrm.org'
@@ -21,7 +21,7 @@ export type FetchOsrmRouteOptions = {
 	 * self-hosted OSRM instance for production.
 	 */
 	baseUrl?: string
-	profile?: Profile
+	profile?: MapRouteProfile
 	/**
 	 * Geometry detail. `'simplified'` returns a Douglas-Peucker line at display
 	 * resolution: a fraction of the coordinates, visually identical at map
@@ -76,9 +76,9 @@ export async function fetchOsrmRoute(
 		signal,
 	} = options
 
-	const coords = waypoints.map((p) => `${p[0]},${p[1]}`).join(';')
+	const coordinates = waypoints.map((waypoint) => `${waypoint[0]},${waypoint[1]}`).join(';')
 
-	const url = `${baseUrl}/route/v1/${profile}/${coords}?overview=${overview}&geometries=geojson`
+	const url = `${baseUrl}/route/v1/${profile}/${coordinates}?overview=${overview}&geometries=geojson`
 
 	return routeFetch(url, { signal: requestSignal(signal, timeoutMs) })
 }

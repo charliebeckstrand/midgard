@@ -276,19 +276,19 @@ type GridTableResult<T> = {
  * @internal
  */
 function useEagerSizingInfo(): [columnResizingState, OnChangeFn<columnResizingState>] {
-	const [info, setInfo] = useState(IDLE_SIZING_INFO)
+	const [drag, setDrag] = useState(IDLE_SIZING_INFO)
 
-	const infoRef = useRef(info)
+	const dragRef = useRef(drag)
 
 	const onChange = useCallback<OnChangeFn<columnResizingState>>((updater) => {
-		const next = functionalUpdate(updater, infoRef.current)
+		const next = functionalUpdate(updater, dragRef.current)
 
-		infoRef.current = next
+		dragRef.current = next
 
-		setInfo(next)
+		setDrag(next)
 	}, [])
 
-	return [info, onChange]
+	return [drag, onChange]
 }
 
 /**
@@ -819,16 +819,18 @@ export function useGridTable<T>({
 		groups: closed,
 	})
 
+	// A client view holds a page past the end to the last page.
+	const shownPagination =
+		clientView?.pageIndex === undefined
+			? resolvedPagination
+			: { ...resolvedPagination, pageIndex: clientView.pageIndex }
+
 	// Built on each render, so the totals follow the client filters. A new value
 	// each render is correct, and the footer is cheap.
 	const pagination = paginationConfig
 		? buildPaginationView({
 				table: engine,
-				// A client view holds a page past the end to the last page.
-				pagination:
-					clientView?.pageIndex === undefined
-						? resolvedPagination
-						: { ...resolvedPagination, pageIndex: clientView.pageIndex },
+				pagination: shownPagination,
 				manual,
 				config: paginationConfig,
 				rows: clientView?.total ?? rows.length,

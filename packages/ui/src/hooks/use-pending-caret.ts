@@ -19,16 +19,16 @@ import { useComposedRef } from './use-composed-ref'
 export function usePendingCaret(externalRef?: Ref<HTMLInputElement>) {
 	const inputRef = useRef<HTMLInputElement | null>(null)
 
-	const pendingCaretRef = useRef<number | null>(null)
+	const pendingRef = useRef<number | null>(null)
 
 	const ref = useComposedRef(inputRef, externalRef)
 
 	const flush = () => {
-		const target = pendingCaretRef.current
+		const target = pendingRef.current
 
 		if (target === null) return
 
-		pendingCaretRef.current = null
+		pendingRef.current = null
 
 		const el = inputRef.current
 
@@ -43,7 +43,7 @@ export function usePendingCaret(externalRef?: Ref<HTMLInputElement>) {
 	useLayoutEffect(flush)
 
 	const setCaret = (position: number | null) => {
-		pendingCaretRef.current = position
+		pendingRef.current = position
 
 		// A commit isn't guaranteed: a controlled consumer can reject the value,
 		// or formatting can collapse to the unchanged string (React then restores

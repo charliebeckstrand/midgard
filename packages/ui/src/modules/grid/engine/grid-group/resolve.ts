@@ -251,19 +251,15 @@ export function resolveGroupingGates(args: {
 	// Client grouping and master-detail window only on an explicit request.
 	const requested = args.virtualizeProp != null && args.virtualizeProp !== false
 
-	const virtualize = args.manualGroupingActive
-		? false
-		: ownBody
-			? args.virtualize && requested
-			: args.virtualize
+	const windowed = ownBody ? args.virtualize && requested : args.virtualize
 
-	const pagination = args.manualGroupingActive
+	const virtualize = !args.manualGroupingActive && windowed
+
+	const keepsPagination = args.manualGroupingActive
 		? isManualPagination(args.pagination)
-			? args.pagination
-			: undefined
-		: args.groupingActive
-			? undefined
-			: args.pagination
+		: !args.groupingActive
+
+	const pagination = keepsPagination ? args.pagination : undefined
 
 	return {
 		navigable: args.manualGroupingActive ? false : args.navigable,
@@ -330,7 +326,7 @@ export function resolveGroupHeaderRow<T>(
 	if (!group.hasGroups) return { header: null, hasGroupRow: false }
 
 	const header = group.resolveHeader(
-		visibleColumns.map((c) => c.id),
+		visibleColumns.map((column) => column.id),
 		(id) => pinning?.column(id)?.side,
 	)
 

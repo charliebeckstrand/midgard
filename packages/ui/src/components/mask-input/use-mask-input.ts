@@ -63,7 +63,7 @@ export function useMaskInput({
 		// value that the parent holds. A set that formats that value then reports.
 		value,
 		defaultValue: defaultValue !== undefined ? format(defaultValue) : '',
-		onValueChange: onChange ? (v) => onChange(v ?? '') : undefined,
+		onValueChange: onChange ? (next) => onChange(next ?? '') : undefined,
 	})
 
 	const { ref, reformat } = useFormattedInput({ format, meaningful, ref: externalRef })

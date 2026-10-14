@@ -37,7 +37,7 @@ function setup<T>(overrides: Partial<Parameters<typeof useComboboxInput<T>>[0]> 
 
 	const rovingKeyDown = vi.fn()
 
-	const keyboardSettled = vi.fn((cb: () => void) => cb())
+	const keyboardSettled = vi.fn((callback: () => void) => callback())
 
 	const floatingRef = { current: null as HTMLElement | null }
 
@@ -142,8 +142,8 @@ describe('useComboboxInput onFocus', () => {
 	function deferredSettle() {
 		let pending: (() => void) | undefined
 
-		const keyboardSettled = vi.fn((cb: () => void) => {
-			pending = cb
+		const keyboardSettled = vi.fn((callback: () => void) => {
+			pending = callback
 		})
 
 		return { keyboardSettled, settle: () => pending?.() }

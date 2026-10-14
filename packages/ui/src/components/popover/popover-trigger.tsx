@@ -41,7 +41,7 @@ export function PopoverTrigger({ children, className }: PopoverTriggerProps) {
 	// does read a typeable node on Space, so the hook registers that node at
 	// mount. The fan-out is measured in
 	// `__benchmarks__/browser/popover-mount.bench.tsx`.
-	const mergeRefs = useDeferredFloatingReference<HTMLElement>(
+	const setTrigger = useDeferredFloatingReference<HTMLElement>(
 		setReference,
 		open,
 		triggerRef,
@@ -77,7 +77,7 @@ export function PopoverTrigger({ children, className }: PopoverTriggerProps) {
 					'aria-expanded': open,
 					'aria-controls': open ? panelId : undefined,
 				}}
-				ref={mergeRefs}
+				ref={setTrigger}
 				slot="popover-trigger"
 				className={cn(k.trigger, className)}
 			/>
@@ -89,7 +89,7 @@ export function PopoverTrigger({ children, className }: PopoverTriggerProps) {
 	return (
 		<button
 			{...referenceProps}
-			ref={mergeRefs}
+			ref={setTrigger}
 			type="button"
 			aria-haspopup={dialog ? 'dialog' : undefined}
 			aria-expanded={open}

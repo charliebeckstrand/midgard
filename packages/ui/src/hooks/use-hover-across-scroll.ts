@@ -73,10 +73,10 @@ export function useHoverAcrossScroll(
 			clearTimeout(settle)
 
 			settle = setTimeout(() => {
-				const p = pointer.current
+				const point = pointer.current
 
 				// A finger that panned the surface has lifted: nothing rests under it.
-				if (p !== null && !touch.current) resolveHover(p.x, p.y)
+				if (point !== null && !touch.current) resolveHover(point.x, point.y)
 			}, SETTLE_MS)
 		}
 

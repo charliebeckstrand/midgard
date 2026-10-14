@@ -16,9 +16,9 @@ import { AccountClient } from './client'
  * @returns The passkey list. A failed read throws.
  */
 async function getPasskeys(): Promise<Passkey[]> {
-	const data = await requireGateway('/auth/passkeys', () => bifrost.GET('/auth/passkeys'))
+	const body = await requireGateway('/auth/passkeys', () => bifrost.GET('/auth/passkeys'))
 
-	return data?.data ?? []
+	return body?.data ?? []
 }
 
 const noFactors: Factors = { enabled: false, passkeys: 0, totp: false, recovery_codes: 0 }
@@ -30,9 +30,9 @@ const noFactors: Factors = { enabled: false, passkeys: 0, totp: false, recovery_
  * @returns The factors. A failed read throws, so an outage does not show "no second factor".
  */
 async function getFactors(): Promise<Factors> {
-	const data = await requireGateway('/auth/mfa', () => bifrost.GET('/auth/mfa'))
+	const factors = await requireGateway('/auth/mfa', () => bifrost.GET('/auth/mfa'))
 
-	return data ?? noFactors
+	return factors ?? noFactors
 }
 
 /**
@@ -43,11 +43,11 @@ async function getFactors(): Promise<Factors> {
  * @returns The accounts. A failed read throws.
  */
 async function getIdentities(): Promise<Identity[]> {
-	const data = await requireGateway('/auth/oauth/identities', () =>
+	const body = await requireGateway('/auth/oauth/identities', () =>
 		bifrost.GET('/auth/oauth/identities'),
 	)
 
-	return data?.identities ?? []
+	return body?.identities ?? []
 }
 
 /**
@@ -57,9 +57,9 @@ async function getIdentities(): Promise<Identity[]> {
  * @returns The events, newest first. A failed read throws.
  */
 async function getActivity(): Promise<Activity[]> {
-	const data = await requireGateway('/auth/activity', () => bifrost.GET('/auth/activity'))
+	const body = await requireGateway('/auth/activity', () => bifrost.GET('/auth/activity'))
 
-	return data?.data ?? []
+	return body?.data ?? []
 }
 
 type SearchParams = Promise<{ error?: string | string[] }>

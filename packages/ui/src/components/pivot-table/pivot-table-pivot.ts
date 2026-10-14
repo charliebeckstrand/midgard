@@ -29,20 +29,20 @@ export function groupValues<T>(
 	const groups = new Map<string, Map<string, number[]>>()
 
 	for (const entry of rows) {
-		const r = String(entry[rowKey])
-		const c = String(entry[columnKey])
+		const rowName = String(entry[rowKey])
+		const columnName = String(entry[columnKey])
 
 		const value = parseNumeric(entry[valueKey])
 
 		if (value === null) continue
 
-		const row = groups.get(r) ?? new Map<string, number[]>()
+		const row = groups.get(rowName) ?? new Map<string, number[]>()
 
-		groups.set(r, row)
+		groups.set(rowName, row)
 
-		const bucket = row.get(c) ?? []
+		const bucket = row.get(columnName) ?? []
 
-		row.set(c, bucket)
+		row.set(columnName, bucket)
 
 		bucket.push(value)
 	}
@@ -75,7 +75,7 @@ export function aggregateRow(
 	columnKeys: readonly string[],
 	op: PivotAggregation,
 ): number | undefined {
-	const values = columnKeys.flatMap((col) => groups.get(row)?.get(col) ?? [])
+	const values = columnKeys.flatMap((column) => groups.get(row)?.get(column) ?? [])
 
 	return values.length > 0 ? aggregate(values, op) : undefined
 }
@@ -84,10 +84,10 @@ export function aggregateRow(
 export function aggregateColumn(
 	groups: Map<string, Map<string, number[]>>,
 	rowKeys: readonly string[],
-	col: string,
+	column: string,
 	op: PivotAggregation,
 ): number | undefined {
-	const values = rowKeys.flatMap((row) => groups.get(row)?.get(col) ?? [])
+	const values = rowKeys.flatMap((row) => groups.get(row)?.get(column) ?? [])
 
 	return values.length > 0 ? aggregate(values, op) : undefined
 }

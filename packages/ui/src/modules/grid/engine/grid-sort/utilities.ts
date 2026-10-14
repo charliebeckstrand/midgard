@@ -92,7 +92,7 @@ export function toSortKey(value: unknown): SortKey {
 		isDate,
 		time,
 		isBoolean,
-		boolean: isBoolean ? (value ? 1 : 0) : 0,
+		boolean: isBoolean && value ? 1 : 0,
 		numeric,
 		text,
 	}
@@ -321,7 +321,7 @@ function mirrorOrder<T>(
 		filled++
 	}
 
-	for (let k = filled; k < order.length; k++) next[k] = order[k] as number
+	for (let i = filled; i < order.length; i++) next[i] = order[i] as number
 
 	let write = 0
 
@@ -337,7 +337,7 @@ function mirrorOrder<T>(
 			start--
 		}
 
-		for (let k = start; k < end; k++) next[write++] = order[k] as number
+		for (let i = start; i < end; i++) next[write++] = order[i] as number
 
 		end = start
 	}

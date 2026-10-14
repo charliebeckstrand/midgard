@@ -58,9 +58,9 @@ function contests(at: MapPoint2D, other: MapPoint2D, reach: number): boolean {
 	return apart > 0 && apart < 4 * reach * reach
 }
 
-/** Whether `p` is on `at`'s side of the bisector — ties fall inside, so a boundary point is owned. @internal */
-function nearer(p: MapPoint2D, mid: MapPoint2D, nx: number, ny: number): boolean {
-	return (p.x - mid.x) * nx + (p.y - mid.y) * ny <= 0
+/** Whether `point` is on `at`'s side of the bisector — ties fall inside, so a boundary point is owned. @internal */
+function nearer(point: MapPoint2D, mid: MapPoint2D, nx: number, ny: number): boolean {
+	return (point.x - mid.x) * nx + (point.y - mid.y) * ny <= 0
 }
 
 /** Where segment `a`→`b` meets the bisector. Only called for a pair that straddles it. @internal */
@@ -168,5 +168,5 @@ export function ownGround(
  * @internal
  */
 export function groundPoints(ring: MapGround): string {
-	return ring.map((p) => `${round(p.x)},${round(p.y)}`).join(' ')
+	return ring.map((point) => `${round(point.x)},${round(point.y)}`).join(' ')
 }

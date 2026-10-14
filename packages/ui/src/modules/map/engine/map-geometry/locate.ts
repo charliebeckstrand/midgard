@@ -140,7 +140,7 @@ function rowAt(lat: number): number {
  *
  * @internal
  */
-export function regionIndex(features: MapFeature[]): MapRegionIndex {
+export function buildRegionIndex(features: MapFeature[]): MapRegionIndex {
 	const cells = new Map<number, number[]>()
 
 	const oversized: number[] = []
@@ -196,7 +196,7 @@ const indexes = new WeakMap<MapFeature[], MapRegionIndex>()
  * @internal
  */
 export function cachedRegionIndex(features: MapFeature[]): MapRegionIndex {
-	return getOrCompute(indexes, features, regionIndex)
+	return getOrCompute(indexes, features, buildRegionIndex)
 }
 
 /** Whether a box holds a position — the cheap test before the exact one. @internal */
@@ -240,9 +240,9 @@ export function regionAt(index: MapRegionIndex, features: MapFeature[], at: LngL
 		return -1
 	}
 
-	const cell = holder(index.cells.get(cellKey(columnAt(at[0]), rowAt(at[1]))) ?? [])
+	const found = holder(index.cells.get(cellKey(columnAt(at[0]), rowAt(at[1]))) ?? [])
 
-	return cell === -1 ? holder(index.oversized) : cell
+	return found === -1 ? holder(index.oversized) : found
 }
 
 /**

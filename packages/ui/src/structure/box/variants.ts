@@ -22,15 +22,15 @@ export type BoxRadius = keyof typeof k.radius
 
 /** The all-sides padding classes for a responsive `p`. @internal */
 export function resolvePadding(value: ResponsiveBoxPadding | undefined): string[] {
-	return resolveResponsive(value, (v, bp) => atBreakpoint(k.padding[v], bp))
+	return resolveResponsive(value, (step, bp) => atBreakpoint(k.padding[step], bp))
 }
 
 /** The horizontal padding classes for a responsive `px`. @internal */
 export function resolvePx(value: ResponsiveBoxPadding | undefined): string[] {
-	return resolveResponsive(value, (v, bp) => atBreakpoint(k.px[v], bp))
+	return resolveResponsive(value, (step, bp) => atBreakpoint(k.px[step], bp))
 }
 
 /** The vertical padding classes for a responsive `py`. @internal */
 export function resolvePy(value: ResponsiveBoxPadding | undefined): string[] {
-	return resolveResponsive(value, (v, bp) => atBreakpoint(k.py[v], bp))
+	return resolveResponsive(value, (step, bp) => atBreakpoint(k.py[step], bp))
 }

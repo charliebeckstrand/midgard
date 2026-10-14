@@ -73,7 +73,7 @@ export function isOwn(target: unknown): boolean {
 }
 
 /** A short name of an event target: the tag, the anchor, and the value of an input. */
-export function describe(target: unknown): string {
+export function describeTarget(target: unknown): string {
 	if (!(target instanceof Element) || target === document.documentElement) return 'page'
 
 	const slot = target.getAttribute('data-slot')
@@ -92,16 +92,16 @@ function resourceOf(target: unknown): string {
 
 /** Adds a passive capture listener for each type, and returns a function that removes them. */
 export function on(
-	where: EventTarget | null | undefined,
+	target: EventTarget | null | undefined,
 	types: readonly string[],
 	listener: (event: Event) => void,
 ): () => void {
 	const options = { capture: true, passive: true }
 
-	for (const type of types) where?.addEventListener(type, listener, options)
+	for (const type of types) target?.addEventListener(type, listener, options)
 
 	return () => {
-		for (const type of types) where?.removeEventListener(type, listener, options)
+		for (const type of types) target?.removeEventListener(type, listener, options)
 	}
 }
 
@@ -198,12 +198,16 @@ const input: Source = (note) => {
 
 		if (GESTURE_ENDS.has(event.type)) gesture = undefined
 
-		const keys = event instanceof KeyboardEvent
+		const isKeyboard = event instanceof KeyboardEvent
+
+		const keyText = isKeyboard ? ` ${chord(event)}` : ''
+
+		const synthetic = event.isTrusted ? '' : ' synthetic'
 
 		note({
 			kind: 'input',
-			text: `${event.type}${keys ? ` ${chord(event)}` : ''} ${describe(event.target)}${event.isTrusted ? '' : ' synthetic'}`,
-			detail: keys ? { key: event.key, code: event.code, repeat: event.repeat } : undefined,
+			text: `${event.type}${keyText} ${describeTarget(event.target)}${synthetic}`,
+			detail: isKeyboard ? { key: event.key, code: event.code, repeat: event.repeat } : undefined,
 			batch,
 		})
 
@@ -227,7 +231,7 @@ const scroll: Source = (note) => {
 		if (!scrolling) {
 			batch = nextBatch()
 
-			note({ kind: 'scroll', text: `scroll starts ${describe(event.target)}`, batch })
+			note({ kind: 'scroll', text: `scroll starts ${describeTarget(event.target)}`, batch })
 		}
 
 		clearTimeout(scrolling)
@@ -278,14 +282,14 @@ const resize: Source = (note) => {
 
 /** Each change of the height of the page. */
 const height: Source = (note) => {
-	let last = 0
+	let prev = 0
 
 	const observer = new ResizeObserver(() => {
-		if (document.documentElement.scrollHeight === last) return
+		if (document.documentElement.scrollHeight === prev) return
 
-		last = document.documentElement.scrollHeight
+		prev = document.documentElement.scrollHeight
 
-		note({ kind: 'viewport', text: `page height ${last}` })
+		note({ kind: 'viewport', text: `page height ${prev}` })
 	})
 
 	observer.observe(document.documentElement)
@@ -303,7 +307,7 @@ const errors: Source = (note) => {
 			else
 				note({
 					kind: 'error',
-					text: `load fails ${describe(event.target)} ${resourceOf(event.target)}`,
+					text: `load fails ${describeTarget(event.target)} ${resourceOf(event.target)}`,
 				})
 		}),
 		on(window, ['unhandledrejection'], (event) => {
@@ -405,9 +409,11 @@ const network: Source = (note) => {
 		// Not each browser gives the status.
 		const failed = resource.responseStatus >= 400 ? ` failed ${resource.responseStatus}` : ''
 
+		const file = new URL(resource.name).pathname.split('/').at(-1)
+
 		note({
 			kind: 'network',
-			text: `${new URL(resource.name).pathname.split('/').at(-1)} ${Math.round(resource.duration)} ms${cache}${failed}`,
+			text: `${file} ${Math.round(resource.duration)} ms${cache}${failed}`,
 			detail: timingOf(resource),
 			time: resource.startTime,
 			batch: pass,
@@ -477,7 +483,7 @@ const calls: Source = (note) => {
 
 				note({
 					kind: 'call',
-					text: `${name} ${describe(this)} ${JSON.stringify(args)} from ${stack.slice(0, 2).join(' < ')}`,
+					text: `${name} ${describeTarget(this)} ${JSON.stringify(args)} from ${stack.slice(0, 2).join(' < ')}`,
 					detail: { stack },
 				})
 			}

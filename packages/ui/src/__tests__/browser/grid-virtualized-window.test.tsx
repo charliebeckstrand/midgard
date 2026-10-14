@@ -11,7 +11,10 @@ describe('grid virtualized window (real browser)', () => {
 
 	const columns: GridColumn<Row>[] = [{ id: 'name', title: 'Name', cell: (row) => row.name }]
 
-	const rows: Row[] = Array.from({ length: 500 }, (_, i) => ({ id: i + 1, name: `Name ${i + 1}` }))
+	const rows: Row[] = Array.from({ length: 500 }, (_, index) => ({
+		id: index + 1,
+		name: `Name ${index + 1}`,
+	}))
 
 	it('renders only a subset of rows when virtualized', async () => {
 		const { container } = renderUI(

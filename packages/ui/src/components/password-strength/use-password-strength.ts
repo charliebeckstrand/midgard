@@ -83,8 +83,8 @@ export function usePasswordStrength({
 	const passedKey = useMemo(
 		() =>
 			results
-				.filter((r) => r.passed)
-				.map((r) => r.rule.id)
+				.filter((result) => result.passed)
+				.map((result) => result.rule.id)
 				.join('\u0000'),
 		[results],
 	)

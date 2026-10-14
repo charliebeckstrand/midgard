@@ -160,7 +160,7 @@ function settle({ quiet, limit }: { quiet: number; limit: number }): Promise<voi
 	return new Promise((resolve) => {
 		const end = performance.now() + limit
 
-		let last = layout()
+		let prev = layout()
 
 		let since = performance.now()
 
@@ -169,8 +169,8 @@ function settle({ quiet, limit }: { quiet: number; limit: number }): Promise<voi
 
 			const next = layout()
 
-			if (next !== last) {
-				last = next
+			if (next !== prev) {
+				prev = next
 
 				since = now
 			}

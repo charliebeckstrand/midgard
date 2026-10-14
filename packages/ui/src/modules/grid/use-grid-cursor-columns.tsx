@@ -94,27 +94,27 @@ export function useGridCursorColumns<T>({
 			// A cell that cannot edit holds no draft and no editor, so it renders as
 			// a navigable cell does, and the edit store does not reach it.
 			const cellAt = editable
-				? (row: T, rowIdx: number): ReactNode => (
+				? (row: T, rowIndex: number): ReactNode => (
 						<GridEditingCell
-							rowIdx={rowIdx}
-							colIdx={colOf(col.id)}
-							rowKey={rowKeysRef.current[rowIdx] ?? rowIdx}
+							rowIndex={rowIndex}
+							colIndex={colOf(col.id)}
+							rowKey={rowKeysRef.current[rowIndex] ?? rowIndex}
 							row={row}
 							column={col}
 							render={renderCell}
 						/>
 					)
-				: (row: T, rowIdx: number): ReactNode => (
-						<GridNavCell row={rowIdx} col={colOf(col.id)}>
+				: (row: T, rowIndex: number): ReactNode => (
+						<GridNavCell row={rowIndex} col={colOf(col.id)}>
 							{renderCell?.(row)}
 						</GridNavCell>
 					)
 
-			const cellPropsAt = (row: T, rowIdx: number): ComponentProps<'td'> =>
+			const cellPropsAt = (row: T, rowIndex: number): ComponentProps<'td'> =>
 				seatingCellProps({
 					col,
 					row,
-					rowIdx,
+					rowIndex,
 					colIndexMapRef,
 					cellId,
 					seat,

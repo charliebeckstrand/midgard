@@ -216,7 +216,7 @@ export function DrawerPanel({
 	// The root holds the state. One setter drives the Overlay and the close parts.
 	const { open, setOpen, panelId } = usePanelState()
 
-	const resolvedSurface = useResolvedSurface(glass)
+	const surface = useResolvedSurface(glass)
 
 	// The slide moves `transform`, which `MotionConfig` does not hold still, so the
 	// panel reads the setting itself (WCAG 2.3.3).
@@ -226,9 +226,11 @@ export function DrawerPanel({
 
 	// The grip only resizes, so only a panel with a fixed height shows it. A panel grown to
 	// its content (`auto` or `fit`) has no height for the grip to set.
-	const grip = handle === true && (height === 'half' || height === 'full')
+	const hasFixedHeight = height === 'half' || height === 'full'
 
-	const isGlass = resolvedSurface === 'glass'
+	const grip = handle === true && hasFixedHeight
+
+	const isGlass = surface === 'glass'
 
 	// The gesture is held here, by the component that owns the panel it writes to.
 	// A pixel height means nothing off the screen it was set on, so it stays in
@@ -257,6 +259,8 @@ export function DrawerPanel({
 
 	const { ariaProps, a11y } = useA11yPanel('dialog', modal)
 
+	const full = resize.size === null ? height === 'full' : resize.atCeiling
+
 	return (
 		<Overlay
 			open={open}
@@ -266,7 +270,7 @@ export function DrawerPanel({
 			modal={modal}
 			backdrop={backdrop}
 			container={container}
-			backdropClassName={k.backdrop({ surface: resolvedSurface })}
+			backdropClassName={k.backdrop({ surface })}
 		>
 			<m.div
 				{...preset}
@@ -286,7 +290,7 @@ export function DrawerPanel({
 				className={cn(
 					'group/drawer',
 					isGlass && 'group/glass',
-					k.panel({ surface: resolvedSurface, height }),
+					k.panel({ surface, height }),
 					// A non-modal overlay turns off pointer events on its full-viewport
 					// root, so the page stays live. The panel turns them on again for itself.
 					!modal && 'pointer-events-auto',
@@ -305,11 +309,7 @@ export function DrawerPanel({
 				// A fixed height squares its top corners where it meets the screen edge: `full`
 				// at rest, and either step once a drag commits a height at the ceiling. A `fit`
 				// panel stamps this attribute itself, so it is left alone here.
-				data-full={
-					height === 'half' || height === 'full'
-						? dataAttr(resize.size === null ? height === 'full' : resize.atCeiling)
-						: undefined
-				}
+				data-full={hasFixedHeight ? dataAttr(full) : undefined}
 				onClick={(event) => event.stopPropagation()}
 				// A dragged height beats the variant's — and a `fit` panel's, which stands
 				// down for as long as one is held. It is inline because it is a

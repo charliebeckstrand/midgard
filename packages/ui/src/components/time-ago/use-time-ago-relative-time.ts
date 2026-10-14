@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { getOrCompute } from '../../utilities'
-import { DAY, HOUR, MIN, MONTH, SEC, WEEK, YEAR } from './time-ago-constants'
+import { DAY, HOUR, MINUTE, MONTH, SECOND, WEEK, YEAR } from './time-ago-constants'
 import { subscribeTimeAgoTick } from './time-ago-ticker'
 
 type Unit = 'second' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'
@@ -22,8 +22,8 @@ function getRelativeTimeFormat(locale: string | undefined) {
 // unit up. Bucketing on the *rounded* value (not the raw lower edge) keeps a
 // value that rounds up from announcing "60 seconds"/"24 hours"/"7 days" ago.
 const UNIT_STEPS: readonly { unit: Unit; ms: number; rollover: number }[] = [
-	{ unit: 'second', ms: SEC, rollover: 60 },
-	{ unit: 'minute', ms: MIN, rollover: 60 },
+	{ unit: 'second', ms: SECOND, rollover: 60 },
+	{ unit: 'minute', ms: MINUTE, rollover: 60 },
 	{ unit: 'hour', ms: HOUR, rollover: 24 },
 	{ unit: 'day', ms: DAY, rollover: 7 },
 	{ unit: 'week', ms: WEEK, rollover: Math.round(MONTH / WEEK) },
@@ -51,11 +51,11 @@ function formatDefault(locale: string | undefined, diffMs: number): string {
 }
 
 function adaptiveInterval(absMs: number) {
-	if (absMs < MIN) return 5 * SEC
+	if (absMs < MINUTE) return 5 * SECOND
 
-	if (absMs < HOUR) return 30 * SEC
+	if (absMs < HOUR) return 30 * SECOND
 
-	if (absMs < DAY) return MIN
+	if (absMs < DAY) return MINUTE
 
 	if (absMs < WEEK) return HOUR
 
@@ -117,7 +117,7 @@ export function useTimeAgoRelativeTime({
 
 	const absMs = Math.abs(diffMs)
 
-	const adaptiveMs =
+	const intervalMs =
 		interval === 'auto' ? adaptiveInterval(absMs) : Math.max(interval, MIN_REFRESH_MS)
 
 	useEffect(() => {
@@ -128,8 +128,8 @@ export function useTimeAgoRelativeTime({
 		// TimeAgo on the page, paused while the tab is hidden).
 		setNow(new Date())
 
-		return subscribeTimeAgoTick(adaptiveMs, () => setNow(new Date()))
-	}, [adaptiveMs, valid])
+		return subscribeTimeAgoTick(intervalMs, () => setNow(new Date()))
+	}, [intervalMs, valid])
 
 	if (!valid || now === null) return { then, valid, text: '' }
 

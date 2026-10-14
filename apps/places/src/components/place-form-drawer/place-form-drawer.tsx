@@ -99,9 +99,9 @@ export function PlaceFormDrawer({ target, onOpenChange, onSubmit, trips }: Place
 
 	// A new place takes its first visit with it. An edit of a place leaves its
 	// visits to their own menu, and a visit has no fields of the place.
-	const placeFields = seed.kind === 'place'
+	const showsPlaceFields = seed.kind === 'place'
 
-	const visitFields = seed.kind === 'visit' || seed.place === null
+	const showsVisitFields = seed.kind === 'visit' || seed.place === null
 
 	return (
 		<FormDrawer<PlaceValues>
@@ -149,7 +149,7 @@ export function PlaceFormDrawer({ target, onOpenChange, onSubmit, trips }: Place
 				return undefined
 			}}
 		>
-			{placeFields ? (
+			{showsPlaceFields ? (
 				<>
 					{/* The search leads across both columns, because it is the field
 					    that fills the others. */}
@@ -177,7 +177,7 @@ export function PlaceFormDrawer({ target, onOpenChange, onSubmit, trips }: Place
 				</>
 			) : null}
 
-			{visitFields ? (
+			{showsVisitFields ? (
 				<>
 					<div className="sm:col-span-2">
 						<PlaceVisitedField

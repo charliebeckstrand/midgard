@@ -40,20 +40,20 @@ export type FrozenOffsetStore = {
 
 /** A new {@link FrozenOffsetStore} that holds `initial`. @internal */
 export function createFrozenOffsetStore(initial: FrozenLayout): FrozenOffsetStore {
-	let current = initial
+	let committed = initial
 
 	return {
 		get: (columnId, side) => {
-			const entry = current.get(columnId)
+			const entry = committed.get(columnId)
 
 			return entry?.side === side ? entry.offset : undefined
 		},
 		commit: (layout) => {
-			const previous = current
+			const prev = committed
 
-			current = layout
+			committed = layout
 
-			return previous
+			return prev
 		},
 	}
 }
@@ -64,7 +64,7 @@ function insetProperty(side: FrozenColumn['side']): string {
 }
 
 /**
- * Writes the sticky offset of each column that moved from `previous` to `next`
+ * Writes the sticky offset of each column that moved from `prev` to `next`
  * to the frozen cells of that column inside `container`. A cell that already
  * holds the offset gets no write, so a commit that moved nothing restyles no
  * cell.
@@ -78,13 +78,13 @@ function insetProperty(side: FrozenColumn['side']): string {
  */
 export function writeFrozenOffsets(
 	container: ParentNode,
-	previous: FrozenLayout,
+	prev: FrozenLayout,
 	next: FrozenLayout,
 ): void {
 	const moved = new Map<string, FrozenColumn>()
 
 	for (const [id, entry] of next) {
-		const before = previous.get(id)
+		const before = prev.get(id)
 
 		if (before?.side !== entry.side || before.offset !== entry.offset) moved.set(id, entry)
 	}

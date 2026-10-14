@@ -9,7 +9,7 @@ import {
 	type PaginationProps,
 } from 'ui/pagination'
 
-const totalPages = 10
+const TOTAL_PAGES = 10
 
 function getVisiblePages(current: number, total: number): (number | 'gap')[] {
 	if (total <= 7) return Array.from({ length: total }, (_, index) => index + 1)
@@ -24,7 +24,7 @@ function getVisiblePages(current: number, total: number): (number | 'gap')[] {
 export default function PaginationPlayground(props: PaginationProps) {
 	const [page, setPage] = useState(1)
 
-	const visible = getVisiblePages(page, totalPages)
+	const visible = getVisiblePages(page, TOTAL_PAGES)
 
 	return (
 		<Pagination {...props}>
@@ -40,7 +40,7 @@ export default function PaginationPlayground(props: PaginationProps) {
 					),
 				)}
 			</PaginationList>
-			<PaginationNext onClick={() => setPage(page + 1)} disabled={page === totalPages} />
+			<PaginationNext onClick={() => setPage(page + 1)} disabled={page === TOTAL_PAGES} />
 		</Pagination>
 	)
 }

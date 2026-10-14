@@ -69,14 +69,14 @@ export default function SectionsDividerAndSpacer() {
 						</Button>
 					</Flex>
 					<SidebarList aria-label="Projects">
-						{projects.map((item) => (
+						{projects.map((project) => (
 							<SidebarItem
-								key={item.value}
+								key={project.value}
 								icon={<Folder />}
-								current={active === item.value}
-								onClick={() => setActive(item.value)}
+								current={active === project.value}
+								onClick={() => setActive(project.value)}
 							>
-								<SidebarLabel>{item.label}</SidebarLabel>
+								<SidebarLabel>{project.label}</SidebarLabel>
 							</SidebarItem>
 						))}
 					</SidebarList>
@@ -92,14 +92,14 @@ export default function SectionsDividerAndSpacer() {
 						</Button>
 					</Flex>
 					<SidebarList aria-label="Chats">
-						{chats.map((item) => (
+						{chats.map((chat) => (
 							<SidebarItem
-								key={item.value}
+								key={chat.value}
 								icon={<MessageCircle />}
-								current={active === item.value}
-								onClick={() => setActive(item.value)}
+								current={active === chat.value}
+								onClick={() => setActive(chat.value)}
 							>
-								<SidebarLabel>{item.label}</SidebarLabel>
+								<SidebarLabel>{chat.label}</SidebarLabel>
 							</SidebarItem>
 						))}
 					</SidebarList>
