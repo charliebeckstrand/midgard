@@ -26,6 +26,11 @@ const [DensityContext, useDensityScope] = createContext<DensityStep | null>('Den
  * A component with a size scale snaps the result to its scale with
  * `snapToScale`.
  *
+ * In a control slot (`data-density="slot"`), the result is the step of the
+ * host, and not the step that the CSS paints, which is one step lower. A slot
+ * opens no context, so a panel that it opens keeps the step of the host. A
+ * reader that must paint at the step of the slot needs its own scope.
+ *
  * @param explicit - The `size` prop of the component, if it has one.
  * @returns The resolved step.
  */
