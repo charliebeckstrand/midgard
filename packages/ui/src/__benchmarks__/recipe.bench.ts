@@ -98,11 +98,11 @@ describe('recipe · compose (twMerge ∘ clsx, what a miss runs)', () => {
 	// base + variant resolves to. `tailwind-merge` scans every class for
 	// conflicts, so this scales with the payload — which is why the memo above
 	// matters more for a heavy kata than for a light one.
-	const resolved = button.config
+	const config = button.config
 
 	const light = ['inline-flex', 'p-2', 'rounded-md']
 
-	const heavy = [resolved.base, resolved.variants.variant?.outline]
+	const heavy = [config.base, config.variants.variant?.outline]
 
 	bench('3 classes', () => {
 		twMerge(clsx(light))

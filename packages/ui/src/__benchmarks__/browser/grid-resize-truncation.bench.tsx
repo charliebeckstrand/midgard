@@ -39,8 +39,8 @@ const COLUMNS: GridColumn<Shipment>[] = SHIPMENT_FIELDS.map(([id, title]) => ({
 const FROZEN = new Set<string>(['origin', 'destination'])
 
 /** {@link COLUMNS} with the {@link FROZEN} columns pinned left. */
-const FROZEN_COLUMNS: GridColumn<Shipment>[] = COLUMNS.map((col) =>
-	FROZEN.has(String(col.id)) ? { ...col, pinned: 'left' } : col,
+const FROZEN_COLUMNS: GridColumn<Shipment>[] = COLUMNS.map((column) =>
+	FROZEN.has(String(column.id)) ? { ...column, pinned: 'left' } : column,
 )
 
 /** The narrow width truncates the origin city names; the wide one fits them. */

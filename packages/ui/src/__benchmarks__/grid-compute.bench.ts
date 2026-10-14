@@ -24,10 +24,10 @@ describe('grid-layout · allocateColumnWidths', () => {
 	// The one non-trivial numeric algorithm outside sort: a 50-iteration bisection
 	// (surplus regime) or a largest-remainder rounding sort (deficit regime), run
 	// once per measurement pass. Cost scales with columns, not rows.
-	for (const cols of [4, 8, 20, 50, 200]) {
-		const profiles = makeColumnSizeProfiles(cols)
+	for (const columnCount of [4, 8, 20, 50, 200]) {
+		const profiles = makeColumnSizeProfiles(columnCount)
 
-		const totalContent = profiles.reduce((sum, p) => sum + p.content, 0)
+		const totalContent = profiles.reduce((sum, profile) => sum + profile.content, 0)
 
 		// Surplus: available exceeds desired → the bisection level-up path.
 		const surplus = Math.round(totalContent * 2)
@@ -35,11 +35,11 @@ describe('grid-layout · allocateColumnWidths', () => {
 		// Deficit: available below desired → hold at content, sort-only rounding.
 		const deficit = Math.round(totalContent * 0.5)
 
-		bench(`${cols} cols · surplus (level-up)`, () => {
+		bench(`${columnCount} cols · surplus (level-up)`, () => {
 			allocateColumnWidths(profiles, surplus)
 		})
 
-		bench(`${cols} cols · deficit (hold + round)`, () => {
+		bench(`${columnCount} cols · deficit (hold + round)`, () => {
 			allocateColumnWidths(profiles, deficit)
 		})
 	}
@@ -55,16 +55,16 @@ describe('grid-export · rowsToCsv', () => {
 	// The heaviest O(rows × cols) pure string builder. `plain` never trips the
 	// RFC-4180 escape branch; `escape-heavy` forces it on every cell (a comma,
 	// quote, and newline in each), the worst case.
-	for (const n of [10, 50, 1_000]) {
-		const plain = shipments(n)
+	for (const count of [10, 50, 1_000]) {
+		const plain = shipments(count)
 
-		const noisy = makeEscapeHeavyRows(n)
+		const noisy = makeEscapeHeavyRows(count)
 
-		bench(`${n.toLocaleString()} rows × 8 cols · plain`, () => {
+		bench(`${count.toLocaleString()} rows × 8 cols · plain`, () => {
 			rowsToCsv(CSV_COLUMNS, plain)
 		})
 
-		bench(`${n.toLocaleString()} rows × 8 cols · escape-heavy`, () => {
+		bench(`${count.toLocaleString()} rows × 8 cols · escape-heavy`, () => {
 			rowsToCsv(NOISY_COLUMNS, noisy)
 		})
 	}
@@ -73,16 +73,16 @@ describe('grid-export · rowsToCsv', () => {
 describe('grid-export · rowsToHtmlTable', () => {
 	// Same shape as rowsToCsv (backs the Excel and print exporters); `escape-heavy`
 	// forces `&<>` entity encoding on every cell.
-	for (const n of [10, 50, 1_000]) {
-		const plain = shipments(n)
+	for (const count of [10, 50, 1_000]) {
+		const plain = shipments(count)
 
-		const noisy = makeEscapeHeavyRows(n)
+		const noisy = makeEscapeHeavyRows(count)
 
-		bench(`${n.toLocaleString()} rows × 8 cols · plain`, () => {
+		bench(`${count.toLocaleString()} rows × 8 cols · plain`, () => {
 			rowsToHtmlTable(CSV_COLUMNS, plain)
 		})
 
-		bench(`${n.toLocaleString()} rows × 8 cols · escape-heavy`, () => {
+		bench(`${count.toLocaleString()} rows × 8 cols · escape-heavy`, () => {
 			rowsToHtmlTable(NOISY_COLUMNS, noisy)
 		})
 	}
@@ -92,8 +92,8 @@ describe('grid-columns · applyPinOverrides', () => {
 	// Overlays runtime pin changes onto static column flags each render. The
 	// empty-overrides path returns the input by reference (the common case); a
 	// full-override map clones every touched column (the worst case).
-	for (const cols of [8, 50, 200]) {
-		const columns: GridColumn<Shipment>[] = Array.from({ length: cols }, (_, i) => ({
+	for (const columnCount of [8, 50, 200]) {
+		const columns: GridColumn<Shipment>[] = Array.from({ length: columnCount }, (_, i) => ({
 			id: `col-${i}`,
 			title: `Col ${i}`,
 		}))
@@ -101,14 +101,14 @@ describe('grid-columns · applyPinOverrides', () => {
 		const empty: PinOverrides = new Map()
 
 		const full: PinOverrides = new Map(
-			columns.map((col, i) => [String(col.id), i % 2 === 0 ? 'left' : 'right'] as const),
+			columns.map((column, i) => [String(column.id), i % 2 === 0 ? 'left' : 'right'] as const),
 		)
 
-		bench(`${cols} cols · no overrides (identity)`, () => {
+		bench(`${columnCount} cols · no overrides (identity)`, () => {
 			applyPinOverrides(columns, empty)
 		})
 
-		bench(`${cols} cols · all overridden (clone)`, () => {
+		bench(`${columnCount} cols · all overridden (clone)`, () => {
 			applyPinOverrides(columns, full)
 		})
 	}

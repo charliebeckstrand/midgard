@@ -107,19 +107,35 @@ const UI_COLUMNS: GridColumn<Shipment>[] = SHIPMENT_FIELDS.map(([id, title]) => 
 const TOTALED = new Set(['loads', 'weight'])
 
 /** {@link UI_COLUMNS} with a sum on the loads and the weight. */
-const UI_TOTAL_COLUMNS: GridColumn<Shipment>[] = UI_COLUMNS.map((col) =>
-	TOTALED.has(String(col.id)) ? { ...col, aggFunc: 'sum' } : col,
+const UI_TOTAL_COLUMNS: GridColumn<Shipment>[] = UI_COLUMNS.map((column) =>
+	TOTALED.has(String(column.id)) ? { ...column, aggFunc: 'sum' } : column,
 )
 
 /** {@link UI_COLUMNS} with a carrier filter that lists the carriers of the rows. */
-const UI_FACET_COLUMNS: GridColumn<Shipment>[] = UI_COLUMNS.map((col) =>
-	col.id === 'carrier' ? { ...col, filterable: true, filterType: 'select' } : col,
+const UI_FACET_COLUMNS: GridColumn<Shipment>[] = UI_COLUMNS.map((column) =>
+	column.id === 'carrier' ? { ...column, filterable: true, filterType: 'select' } : column,
 )
 
 /** {@link UI_COLUMNS} with a filterable carrier column. */
-const UI_FILTER_COLUMNS: GridColumn<Shipment>[] = UI_COLUMNS.map((col) =>
-	col.id === 'carrier' ? { ...col, filterable: true } : col,
+const UI_FILTER_COLUMNS: GridColumn<Shipment>[] = UI_COLUMNS.map((column) =>
+	column.id === 'carrier' ? { ...column, filterable: true } : column,
 )
+
+/**
+ * The columns that the mount options select. If the options select more than
+ * one set, the facet set has priority, then the filter set, then the total set.
+ */
+function columnsFor(
+	facets: boolean,
+	filterable: boolean,
+	grandTotal: boolean,
+): GridColumn<Shipment>[] {
+	if (facets) return UI_FACET_COLUMNS
+
+	if (filterable) return UI_FILTER_COLUMNS
+
+	return grandTotal ? UI_TOTAL_COLUMNS : UI_COLUMNS
+}
 
 /** The applied filters of a `contains` rule on the carrier column, or none for `''`. */
 function carrierFilter(text: string): GridColumnFilterState[] {
@@ -177,13 +193,7 @@ function uiGrid(): GridSubject {
 
 			const facets = options?.facets ?? false
 
-			const columns = facets
-				? UI_FACET_COLUMNS
-				: filterable
-					? UI_FILTER_COLUMNS
-					: grandTotal
-						? UI_TOTAL_COLUMNS
-						: UI_COLUMNS
+			const columns = columnsFor(facets, filterable, grandTotal)
 
 			const draw = () =>
 				flushSync(() =>

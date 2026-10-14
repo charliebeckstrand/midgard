@@ -48,18 +48,18 @@ function cartesian(values: number[][]) {
 }
 
 describe('chart-geometry · lineGeometry', () => {
-	for (const n of [1_000, 10_000]) {
-		const { values } = makeTrend(n, 1)
+	for (const count of [1_000, 10_000]) {
+		const { values } = makeTrend(count, 1)
 
 		const series = values[0] as number[]
 
 		const { scale, xs, baseline } = cartesian(values)
 
-		bench(`${n.toLocaleString()} pts · linear`, () => {
+		bench(`${count.toLocaleString()} pts · linear`, () => {
 			lineGeometry(series, xs, scale.map, baseline, 'linear')
 		})
 
-		bench(`${n.toLocaleString()} pts · smooth`, () => {
+		bench(`${count.toLocaleString()} pts · smooth`, () => {
 			lineGeometry(series, xs, scale.map, baseline, 'smooth')
 		})
 
@@ -67,62 +67,66 @@ describe('chart-geometry · lineGeometry', () => {
 		// dense as the whole line, so it decimates the same way.
 		const gappy = series.map((value, index) => (index % 100 === 99 ? null : value))
 
-		bench(`${n.toLocaleString()} pts · linear · gaps`, () => {
+		bench(`${count.toLocaleString()} pts · linear · gaps`, () => {
 			lineGeometry(gappy, xs, scale.map, baseline, 'linear')
 		})
 	}
 })
 
 describe('chart-geometry · stackedAreas', () => {
-	for (const n of [1_000, 10_000]) {
-		const { values } = makeTrend(n, 3)
+	for (const count of [1_000, 10_000]) {
+		const { values } = makeTrend(count, 3)
 
 		const { scale, xs } = cartesian([
-			values.reduce((sum, row) => sum.map((v, i) => v + (row[i] ?? 0))),
+			values.reduce((sum, row) => sum.map((value, i) => value + (row[i] ?? 0))),
 		])
 
-		bench(`${n.toLocaleString()} × 3 series`, () => {
+		bench(`${count.toLocaleString()} × 3 series`, () => {
 			stackedAreas(values, xs, scale.map)
 		})
 	}
 })
 
 describe('chart-motion · seriesDataKey', () => {
-	for (const n of [1_000, 10_000]) {
-		const { values } = makeTrend(n, 3)
+	for (const count of [1_000, 10_000]) {
+		const { values } = makeTrend(count, 3)
 
-		bench(`${n.toLocaleString()} × 3 series`, () => {
+		bench(`${count.toLocaleString()} × 3 series`, () => {
 			seriesDataKey(values)
 		})
 	}
 })
 
 describe('chart-geometry · barMarks', () => {
-	for (const n of [500, 1_000]) {
-		const { values } = makeTrend(n, 2)
+	for (const count of [500, 1_000]) {
+		const { values } = makeTrend(count, 2)
 
 		const { scale, band, baseline } = cartesian(values)
 
-		bench(`${n.toLocaleString()} × 2 series · grouped`, () => {
+		bench(`${count.toLocaleString()} × 2 series · grouped`, () => {
 			barMarks(values, band, (value) => scale.map(value), baseline, 'vertical')
 		})
 
-		bench(`${n.toLocaleString()} × 2 series · stacked`, () => {
+		bench(`${count.toLocaleString()} × 2 series · stacked`, () => {
 			stackedBarMarks(values, band, scale.map, 'vertical')
 		})
 	}
 })
 
 describe('chart-geometry · scatter project + disc path', () => {
-	for (const n of [1_000, 10_000]) {
-		const { rows } = makePoints(n)
+	for (const count of [1_000, 10_000]) {
+		const { rows } = makePoints(count)
 
 		const points = scatterData(rows, { xKey: 'x', yKey: 'y' })
 
-		const xScale = linearScale({ values: points.map((p) => p.x), range: [0, WIDTH], tickTarget: 6 })
+		const xScale = linearScale({
+			values: points.map((point) => point.x),
+			range: [0, WIDTH],
+			tickTarget: 6,
+		})
 
 		const yScale = linearScale({
-			values: points.map((p) => p.y),
+			values: points.map((point) => point.y),
 			range: [HEIGHT, 0],
 			tickTarget: 5,
 		})
@@ -133,11 +137,11 @@ describe('chart-geometry · scatter project + disc path', () => {
 
 		const marks = [scatterMarks(points, xScale.map, yScale.map, radius)]
 
-		bench(`${n.toLocaleString()} pts · project marks`, () => {
+		bench(`${count.toLocaleString()} pts · project marks`, () => {
 			scatterMarks(points, xScale.map, yScale.map, radius)
 		})
 
-		bench(`${n.toLocaleString()} pts · disc path`, () => {
+		bench(`${count.toLocaleString()} pts · disc path`, () => {
 			scatterDiscsPath(marks[0] as ReturnType<typeof scatterMarks>)
 		})
 	}

@@ -22,34 +22,34 @@ import { geographyFeatures } from '../modules/map/engine/map-geometry/topology'
 import { defaultRegionId } from '../modules/map/engine/map-region/identity'
 import { mountBench, persistentTree } from './harness'
 
-const statesTopo = states as unknown as MapTopology
+const statesTopology = states as unknown as MapTopology
 
-const countiesTopo = counties as unknown as MapTopology
+const countiesTopology = counties as unknown as MapTopology
 
 const ZONES = ['Pacific', 'Mountain', 'Central', 'Eastern'] as const
 
 // Round-robins every region through the zones, so each category paints regions.
-const stateRows = geographyFeatures(statesTopo).map((feature, index) => ({
+const stateRows = geographyFeatures(statesTopology).map((feature, index) => ({
 	state: defaultRegionId(feature),
 	zone: ZONES[index % ZONES.length] as string,
 }))
 
 // Decoded once: `geographyFeatures` re-walks every arc of the atlas per call,
 // and both the rows and the pre-decoded collection below want the same features.
-const countyFeatures = geographyFeatures(countiesTopo)
+const countyFeatures = geographyFeatures(countiesTopology)
 
 const countyRows = countyFeatures.map((feature, index) => ({
 	county: defaultRegionId(feature),
 	zone: ZONES[index % ZONES.length] as string,
 }))
 
-const countiesGeo: MapGeography = { type: 'FeatureCollection', features: countyFeatures }
+const countiesGeoJson: MapGeography = { type: 'FeatureCollection', features: countyFeatures }
 
 function statesPlat() {
 	return (
 		<MapPlat
 			aria-label="States"
-			geography={statesTopo}
+			geography={statesTopology}
 			data={stateRows}
 			regionKey="state"
 			categoryKey="zone"
@@ -59,7 +59,7 @@ function statesPlat() {
 }
 
 function countiesPlat() {
-	return <MapPlat aria-label="Counties" geography={countiesGeo} width={800} />
+	return <MapPlat aria-label="Counties" geography={countiesGeoJson} width={800} />
 }
 
 describe('MapPlat · mount', () => {
@@ -68,13 +68,13 @@ describe('MapPlat · mount', () => {
 	mountBench('counties-10m pre-decoded GeoJSON (3143 regions)', countiesPlat)
 
 	mountBench('counties-10m topology (3143 regions, incl. decode)', () => (
-		<MapPlat aria-label="Counties" geography={countiesTopo} width={800} />
+		<MapPlat aria-label="Counties" geography={countiesTopology} width={800} />
 	))
 })
 
 describe('static geometry · cold vs warm (states-10m)', () => {
 	// Warm the shared cache once, so the warm case measures a pure cache hit.
-	staticMapGeometry(statesTopo, undefined, 'albers-usa')
+	staticMapGeometry(statesTopology, undefined, 'albers-usa')
 
 	bench('cold: decode + canonical fit + paths (every mount, uncached)', () => {
 		// The paths are a call of their own, so the bar has to make it or it
@@ -82,14 +82,14 @@ describe('static geometry · cold vs warm (states-10m)', () => {
 		// by construction: the geometry is a fresh object each iteration, so it
 		// misses the paths memo.
 		const paths = cachedCanonicalPaths(
-			computeStaticMapGeometry(statesTopo, undefined, 'albers-usa'),
+			computeStaticMapGeometry(statesTopology, undefined, 'albers-usa'),
 		)
 
 		if (paths.length === 0) throw new Error('fixture drew no paths')
 	})
 
 	bench('warm: cache hit (a remount / second plat on the same atlas)', () => {
-		staticMapGeometry(statesTopo, undefined, 'albers-usa')
+		staticMapGeometry(statesTopology, undefined, 'albers-usa')
 	})
 })
 
@@ -142,7 +142,7 @@ describe('MapPlat · legend cascade (counties, 3143 regions + legend)', () => {
 	const plat = cascade(
 		<MapPlat
 			aria-label="Counties"
-			geography={countiesGeo}
+			geography={countiesGeoJson}
 			data={countyRows}
 			regionKey="county"
 			categoryKey="zone"

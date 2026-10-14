@@ -24,16 +24,16 @@ function withHoles(values: number[]): number[] {
 }
 
 describe('chart-scale · linearScale', () => {
-	for (const n of [1_000, 10_000]) {
-		const values = pool(n, 1)
+	for (const count of [1_000, 10_000]) {
+		const values = pool(count, 1)
 
 		const holed = withHoles(values)
 
-		bench(`${n.toLocaleString()} values · clean`, () => {
+		bench(`${count.toLocaleString()} values · clean`, () => {
 			linearScale({ values, range: [450, 0], tickTarget: 5, zeroBaseline: true })
 		})
 
-		bench(`${n.toLocaleString()} values · one-eighth NaN`, () => {
+		bench(`${count.toLocaleString()} values · one-eighth NaN`, () => {
 			linearScale({ values: holed, range: [450, 0], tickTarget: 5, zeroBaseline: true })
 		})
 	}
@@ -51,11 +51,11 @@ describe('chart-scale · bandScale', () => {
 	// The band scale is closures over a step; construction is O(1), but the x
 	// positions the cartesian charts read from it are one `center` call per
 	// category, so bench the pass the mark builders actually drive.
-	for (const n of [1_000, 10_000]) {
-		bench(`${n.toLocaleString()} category centers`, () => {
-			const band = bandScale({ count: n, range: [0, 800] })
+	for (const count of [1_000, 10_000]) {
+		bench(`${count.toLocaleString()} category centers`, () => {
+			const band = bandScale({ count, range: [0, 800] })
 
-			for (let index = 0; index < n; index++) band.center(index)
+			for (let index = 0; index < count; index++) band.center(index)
 		})
 	}
 })
