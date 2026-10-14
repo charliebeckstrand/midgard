@@ -4,11 +4,11 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/toolti
 import { LocaleProvider } from '../../providers/locale'
 import { act, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
 
-const SEC = 1000
+const SECOND = 1000
 
-const MIN = 60 * SEC
+const MINUTE = 60 * SECOND
 
-const HOUR = 60 * MIN
+const HOUR = 60 * MINUTE
 
 const DAY = 24 * HOUR
 
@@ -49,7 +49,7 @@ describe('TimeAgo', () => {
 	})
 
 	it('renders a relative string for past timestamps', () => {
-		const past = new Date(Date.now() - 5 * MIN)
+		const past = new Date(Date.now() - 5 * MINUTE)
 
 		const { container } = renderUI(<TimeAgo date={past} locale="en-US" />)
 
@@ -130,7 +130,7 @@ describe('TimeAgo', () => {
 	})
 
 	it('applies a custom format function', () => {
-		const past = new Date(Date.now() - 90 * SEC)
+		const past = new Date(Date.now() - 90 * SECOND)
 
 		const { container } = renderUI(<TimeAgo date={past} format={(ms) => `${Math.round(ms)}ms`} />)
 
@@ -138,21 +138,21 @@ describe('TimeAgo', () => {
 	})
 
 	it('updates as time passes', () => {
-		const past = new Date(Date.now() - 1 * MIN)
+		const past = new Date(Date.now() - 1 * MINUTE)
 
 		const { container } = renderUI(<TimeAgo date={past} locale="en-US" />)
 
 		expect(bySlot(container, 'time-ago')?.textContent).toBe('1 minute ago')
 
 		act(() => {
-			vi.advanceTimersByTime(60 * SEC)
+			vi.advanceTimersByTime(60 * SECOND)
 		})
 
 		expect(bySlot(container, 'time-ago')?.textContent).toBe('2 minutes ago')
 	})
 
 	it('honors an explicit interval', () => {
-		const past = new Date(Date.now() - 1 * MIN)
+		const past = new Date(Date.now() - 1 * MINUTE)
 
 		const setInterval = vi.spyOn(window, 'setInterval')
 
