@@ -119,7 +119,7 @@ function slotsAround(index: number, photos: readonly LightboxViewPhoto[]) {
 	return [-1, 0, 1].flatMap((offset) => {
 		const photo = photos[index + offset]
 
-		return photo ? [{ slot: index + offset, offset, photo }] : []
+		return photo ? [{ offset, photo }] : []
 	})
 }
 
@@ -176,13 +176,19 @@ export function LightboxStage({
 	const stageRef = useRef<HTMLDivElement>(null)
 
 	// The photo that a slide ends on, while the slide runs from `from`. The
-	// controls show it from the start of the slide (see `at`).
+	// controls show it from the start of the slide (see `at`). The aim ends when
+	// the slide lands. A load or a failure of a thumbnail can move the photos,
+	// and then an aim that stays can agree with `index` again.
 	const [aim, setAim] = useState<{ from: number; to: number } | null>(null)
 
 	const track = useLightboxTrack(trackRef, {
 		index,
 		count: photos.length,
-		onIndexChange,
+		onIndexChange: (to) => {
+			setAim(null)
+
+			onIndexChange(to)
+		},
 		onAim: (to) => setAim({ from: index, to }),
 		// A tap on the stage outside the photo closes the viewer.
 		onTap: (event) => {
@@ -271,7 +277,7 @@ export function LightboxStage({
 	// the photo in the center slot, which changes when a slide lands. Each
 	// control follows the photo that the viewer goes to instead, so it changes
 	// when the slide starts and moves with it. A slide that lands changes
-	// `index`, and its aim then ends.
+	// `index` and ends its aim in the same commit.
 	const at = aim?.from === index ? aim.to : index
 
 	const aimed = photos[at]
@@ -321,12 +327,15 @@ export function LightboxStage({
 			    arrow keys give each of its actions to the keyboard. */}
 			<div ref={stageRef} data-slot="lightbox-stage" {...track.handlers} className={k.stage}>
 				<div ref={trackRef} className={k.track}>
-					{slotsAround(index, photos).map(({ slot, offset, photo }) => {
+					{slotsAround(index, photos).map(({ offset, photo }) => {
 						const placeholder = photo.thumbnail && photo.thumbnail !== photo.src
 
 						return (
+							// The key is the photo, not its place. A load or a failure of a
+							// thumbnail moves the places, and the photo in the center must
+							// keep its element.
 							<div
-								key={slot}
+								key={photo.index}
 								data-offset={offset}
 								aria-hidden={offset === 0 ? undefined : true}
 								inert={offset !== 0}
