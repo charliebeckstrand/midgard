@@ -44,7 +44,7 @@ Disclosure: in the B01 blind pass and in the merge pass, a search over `packages
 | R3 | `components/menu/use-menu-root.ts` | `handleContextMenu` (nested surfaces) | CONFIRMED | low | none | G1 | ◯ OPEN |
 | R4 | `components/markdown/markdown-renderer.tsx` | `renderToken` `image` `alt` / `plainText` | CONFIRMED | medium | shipped | G3 | ◯ OPEN |
 | R5 | `components/markdown/markdown-renderer.tsx` | `renderToken` `link` / `image` `href` | CONFIRMED | medium | shipped | G3 | ◯ OPEN |
-| R6 | `components/mask-input/mask-input-utilities.tsx` | `phoneMask` (`meaningful`) | CONFIRMED | medium | shipped | — | ◯ OPEN |
+| R6 | `components/mask-input/mask-input-utilities.tsx` | `phoneMask` (`meaningful`) | CONFIRMED | medium | shipped | — | ✅ RESOLVED ([#2447](https://github.com/charliebeckstrand/midgard/pull/2447)) |
 | R7 | `components/mask-input/mask-input-utilities.tsx` | `formatNANP` | NARROWED | medium | shipped | — | ◯ OPEN |
 | R8 | `components/mask-input/use-mask-input.ts` | `useMaskInput` (native form reset) | CONFIRMED | low | none | — | ◯ OPEN |
 
