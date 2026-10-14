@@ -1,85 +1,24 @@
 'use client'
 
-import { useCallback, useSyncExternalStore } from 'react'
-import { cancelIdle, requestIdle } from '../utilities/idle'
+import { getOrCompute } from '../utilities/get-or-compute'
+import { createLazyModule, type LazyModule } from '../utilities/lazy-module'
 import { noop } from '../utilities/noop'
+import { useIdlePreload, useLazyModule } from './use-lazy-module'
+
+/** The {@link LazyModule} of each loader, so the mounts of a loader share one load. */
+const modules = new WeakMap<() => Promise<unknown>, LazyModule<unknown>>()
+
+/** The module of a `null` loader, which never loads. */
+const nothing = createLazyModule<never>(() => new Promise(noop))
 
 /**
- * How long a browser without `requestIdleCallback` waits after the mount before
- * it loads. Safari does not have the call. The delay keeps the load after the
- * hydration and the first paint.
+ * The {@link LazyModule} of `load`. Each call with the same loader gets the same
+ * module.
+ * @internal
  */
-const IDLE_FALLBACK_MS = 1000
-
-/** A function that loads a value, such as the dynamic import of a module. */
-type Load = () => Promise<unknown>
-
-/**
- * The scheduled load of one loader: the idle callback, or `null` when the
- * load runs, and the mounts that wait for the value.
- */
-type Waiters = { handle: number | null; listeners: Set<() => void> }
-
-/** The value of each loader that resolved, in a box, so that a value of `undefined` counts. */
-const loaded = new WeakMap<Load, { value: unknown }>()
-
-/** The scheduled load of each loader that did not resolve. */
-const waiting = new Map<Load, Waiters>()
-
-/** The server and the hydration render have no value, so they agree. */
-const serverSnapshot = () => undefined
-
-/**
- * Adds `listener` to the scheduled load of `load`. The first listener
- * schedules the load in idle time. A loader that resolved schedules nothing.
- * A failed load leaves the map, so the next mount schedules it again.
- *
- * @returns The removal of the listener. The removal of the last listener
- *   before the idle callback runs cancels the callback.
- */
-function schedule(load: Load, listener: () => void): () => void {
-	if (loaded.has(load)) return noop
-
-	let entry = waiting.get(load)
-
-	if (entry === undefined) {
-		const created: Waiters = { handle: null, listeners: new Set() }
-
-		created.handle = requestIdle(() => {
-			created.handle = null
-
-			load().then(
-				(value) => {
-					loaded.set(load, { value })
-
-					waiting.delete(load)
-
-					for (const notify of created.listeners) notify()
-				},
-				() => {
-					if (waiting.get(load) === created) waiting.delete(load)
-				},
-			)
-		}, IDLE_FALLBACK_MS)
-
-		waiting.set(load, created)
-
-		entry = created
-	}
-
-	const held = entry
-
-	held.listeners.add(listener)
-
-	return () => {
-		held.listeners.delete(listener)
-
-		if (held.listeners.size > 0 || held.handle === null) return
-
-		cancelIdle(held.handle)
-
-		waiting.delete(load)
-	}
+export function lazyModuleOf<T>(load: () => Promise<T>): LazyModule<T> {
+	// The map holds the module that `load` makes, which loads a `T`.
+	return getOrCompute(modules, load, createLazyModule) as LazyModule<T>
 }
 
 /**
@@ -98,9 +37,8 @@ function schedule(load: Load, listener: () => void): () => void {
  * value and no error. The next mount tries again, and a load on intent, such as
  * a press, reports the error.
  *
- * A preload on a pointer or a focus can still start the load before the idle
- * callback. The two loads must resolve to the same value, as a dynamic import
- * does.
+ * {@link useIntentLoad} shares the load of the same loader, so a preload on a
+ * pointer or a focus gives the value to each mount.
  * @param load - The load, such as `() => import('./panel')`. It must keep its
  *   identity: declare it at module scope. `null` schedules nothing, for a
  *   caller that has the value from another source.
@@ -117,15 +55,9 @@ function schedule(load: Load, listener: () => void): () => void {
  * ```
  */
 export function useIdleLoad<T>(load: (() => Promise<T>) | null): T | undefined {
-	const subscribe = useCallback(
-		(listener: () => void) => (load === null ? noop : schedule(load, listener)),
-		[load],
-	)
+	const lazy = load === null ? null : lazyModuleOf(load)
 
-	const snapshot = useCallback(() => (load === null ? undefined : loaded.get(load)), [load])
+	useIdlePreload(lazy)
 
-	const box = useSyncExternalStore(subscribe, snapshot, serverSnapshot)
-
-	// The map holds the value that `load` resolved to, which is a `T`.
-	return box?.value as T | undefined
+	return useLazyModule(lazy ?? nothing, false) ?? undefined
 }

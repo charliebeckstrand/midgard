@@ -1,6 +1,9 @@
+import type { LazyModule } from '../../utilities/lazy-module'
+import { noop } from '../../utilities/noop'
+
 type Loader = typeof import('../../components/tooltip/tooltip-body-loader')
 
-type Body = Awaited<ReturnType<Loader['loadTooltipBody']>>
+type Body = typeof import('../../components/tooltip/tooltip-body')
 
 /**
  * The tooltip body loader for the `floating-ui` browser project. It loads the
@@ -19,7 +22,7 @@ let open = () => {}
 
 const listeners = new Set<() => void>()
 
-function loadTooltipBody(): Promise<Body> {
+function load(): Promise<Body> {
 	pending ??= gate
 		.then(() => import('../../components/tooltip/tooltip-body'))
 		.then((module) => {
@@ -31,6 +34,24 @@ function loadTooltipBody(): Promise<Body> {
 		})
 
 	return pending
+}
+
+/** The mocked module of the body. Its idle load starts at once. */
+const tooltipBody: LazyModule<Body> = {
+	load,
+	read: () => body,
+	subscribe(listener) {
+		listeners.add(listener)
+
+		return () => {
+			listeners.delete(listener)
+		}
+	},
+	idle() {
+		void load()
+
+		return noop
+	},
 }
 
 /**
@@ -59,17 +80,5 @@ export default async function mockTooltipBodyLoader(
 ): Promise<Loader> {
 	const real = await importOriginal()
 
-	return {
-		...real,
-		loadTooltipBody,
-		preloadTooltipBody: () => void loadTooltipBody(),
-		subscribeTooltipBody: (listener) => {
-			listeners.add(listener)
-
-			return () => {
-				listeners.delete(listener)
-			}
-		},
-		readTooltipBody: () => body,
-	}
+	return { ...real, tooltipBody }
 }

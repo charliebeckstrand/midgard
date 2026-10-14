@@ -1,19 +1,20 @@
 'use client'
 
-import { type ReactNode, use, useEffect, useState } from 'react'
+import { type ReactNode, use } from 'react'
 import { createContext } from '../../core'
-import { useIdleLoad } from '../../hooks/use-idle-load'
+import { useIdlePreload, useLazyModule } from '../../hooks/use-lazy-module'
+import { createLazyModule } from '../../utilities/lazy-module'
 import { useToastViewport } from './context'
-import type { Toast, ToastProps } from './toast'
+import type { ToastProps } from './toast'
 import { ToastProvider, type ToastProviderProps } from './toast-provider'
 
 /**
- * Loads the module of the viewport. The host loads it in idle time after the
+ * The module of the viewport. The host loads it in idle time after the
  * hydration. Thus the app does not load the viewport before it hydrates, and
  * the first toast does not wait for it.
  * @internal
  */
-const loadToast = () => import('./toast')
+const toastModule = createLazyModule(() => import('./toast'))
 
 /**
  * The toast setup that `UIProvider` takes in its `toast` prop: the
@@ -39,14 +40,9 @@ export type ToastHostOptions = Pick<ToastProviderProps, 'duration' | 'maxToasts'
 function ToastViewport({ position }: Pick<ToastProps, 'position'>) {
 	const queued = useToastViewport().toasts.length > 0
 
-	// The module of the viewport, from a toast before the idle load on.
-	const [queuedModule, setQueuedModule] = useState<{ Toast: typeof Toast } | null>(null)
+	useIdlePreload(toastModule)
 
-	const viewport = useIdleLoad(loadToast) ?? queuedModule
-
-	useEffect(() => {
-		if (queued && !viewport) void loadToast().then(setQueuedModule)
-	}, [queued, viewport])
+	const viewport = useLazyModule(toastModule, queued)
 
 	return viewport && <viewport.Toast position={position} />
 }

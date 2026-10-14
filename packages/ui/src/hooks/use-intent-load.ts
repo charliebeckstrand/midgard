@@ -1,7 +1,7 @@
 'use client'
 
-import { useCallback, useState } from 'react'
-import { useIdleLoad } from './use-idle-load'
+import { useCallback } from 'react'
+import { lazyModuleOf, useIdleLoad } from './use-idle-load'
 
 /** The result of {@link useIntentLoad}. */
 export type IntentLoad<T> = {
@@ -10,9 +10,9 @@ export type IntentLoad<T> = {
 	/**
 	 * Gives the value to `then`. When the value is there, `then` runs in the
 	 * same call, so a state change in it goes into the render of the press.
-	 * Before that, the call starts the load, puts the value into state, and then
-	 * runs `then`. A failed load does not call `then`, and the rejection is
-	 * not caught.
+	 * Before that, the call starts the load, and runs `then` when the value
+	 * arrives, in the render that gets the value. A failed load does not call
+	 * `then`, and the rejection is not caught.
 	 */
 	request: (then: (module: T) => void) => void
 	/**
@@ -29,10 +29,10 @@ export type IntentLoad<T> = {
  *
  * @remarks
  * `preload` starts the load on a pointer or a focus, before the idle callback.
- * `request` loads on a press. It keeps one order: the value goes into state,
- * and then `then` runs, so the surface renders before it opens. A value that a
- * request loads stays in the state of this mount. The idle load and the
- * request must resolve to the same value, as a dynamic import does.
+ * `request` loads on a press. It keeps one order: the value arrives, and
+ * then `then` runs, so the surface renders before it opens. The idle load, the
+ * preload, and the request share one load of the loader, and each mount of the
+ * loader gets the value.
  * @param load - The load, such as `() => import('./panel')`. It must keep its
  *   identity: declare it at module scope.
  * @returns The value, `request`, and `preload`.
@@ -57,10 +57,9 @@ export type IntentLoad<T> = {
  * ```
  */
 export function useIntentLoad<T>(load: () => Promise<T>): IntentLoad<T> {
-	// The value from a request before the idle load resolved. A box, because the state setter calls a function value as an updater.
-	const [requested, setRequested] = useState<{ value: T } | null>(null)
+	const lazy = lazyModuleOf(load)
 
-	const module = useIdleLoad(load) ?? requested?.value
+	const module = useIdleLoad(load)
 
 	const request = (then: (module: T) => void) => {
 		if (module !== undefined) {
@@ -69,14 +68,10 @@ export function useIntentLoad<T>(load: () => Promise<T>): IntentLoad<T> {
 			return
 		}
 
-		void load().then((value) => {
-			setRequested({ value })
-
-			then(value)
-		})
+		void lazy.load().then(then)
 	}
 
-	const preload = useCallback(() => void load(), [load])
+	const preload = useCallback(() => void lazy.load(), [lazy])
 
 	return { module, request, preload }
 }

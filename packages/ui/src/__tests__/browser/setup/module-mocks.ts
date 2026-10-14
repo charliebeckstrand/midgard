@@ -1,5 +1,5 @@
 import { beforeAll, vi } from 'vitest'
-import { loadTooltipBody } from '../../../components/tooltip/tooltip-body-loader'
+import { tooltipBody } from '../../../components/tooltip/tooltip-body-loader'
 
 /**
  * Browser-suite module mocks. `@floating-ui/react` is mocked: overlay panels
@@ -19,4 +19,4 @@ vi.mock('motion/react-m', async () => (await import('../../mocks/motion-react-m'
 // moment that the order of the files decides, and a case that counts commits
 // can see it. The load before each file gives each case the state of a page
 // that already loaded the module, as the jsdom setup does.
-beforeAll(() => loadTooltipBody())
+beforeAll(() => tooltipBody.load())
