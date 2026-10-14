@@ -1,13 +1,13 @@
 import { Search } from 'lucide-react'
-import { type ReactNode, use, useMemo, useRef, useState } from 'react'
+import { type ReactNode, use, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { Button } from 'ui/button'
 import { createContext } from 'ui/core'
 import { useIntentLoad } from 'ui/hooks'
 import { Icon } from 'ui/icon'
 import { Kbd } from 'ui/kbd'
 import { OffcanvasContext } from 'ui/primitives/offcanvas'
-import { useHydrated } from '../../hooks/use-hydrated.ts'
 import { useStableEvent } from '../../hooks/use-stable-event.ts'
+import { noopSubscribe } from '../../utilities/noop.ts'
 
 // The part of the search that the shell loads with each page: the state, the
 // button in the sidebar, and the place of the palette. The palette and the
@@ -66,17 +66,21 @@ function shortcut() {
 	return /Mac|iPod|iPhone|iPad/.test(navigator.platform) ? '⌘K' : 'Ctrl+K'
 }
 
+// The build cannot know the platform of the reader, so each page holds ⌘K.
+// The client changes it to Ctrl+K after the hydration on other platforms.
+const serverShortcut = () => '⌘K'
+
 /**
- * The button that opens the search. The key shows after the hydration, as
- * the server cannot know the platform. A pick closes the mobile sidebar, as a
- * pick of an item of the sidebar does.
+ * The button that opens the search. The key is in the first paint: the build
+ * writes ⌘K, and the client corrects it after the hydration. A pick closes the
+ * mobile sidebar, as a pick of an item of the sidebar does.
  */
 export function SearchButton() {
 	const { request, preload } = useSearch()
 
 	const offcanvas = use(OffcanvasContext)
 
-	const hydrated = useHydrated()
+	const key = useSyncExternalStore(noopSubscribe, shortcut, serverShortcut)
 
 	return (
 		<Button
@@ -88,7 +92,7 @@ export function SearchButton() {
 		>
 			<Icon icon={<Search />} />
 			<span className="flex-1 text-start">Search docs</span>
-			{hydrated && <Kbd className="max-lg:hidden">{shortcut()}</Kbd>}
+			<Kbd className="max-lg:hidden">{key}</Kbd>
 		</Button>
 	)
 }
