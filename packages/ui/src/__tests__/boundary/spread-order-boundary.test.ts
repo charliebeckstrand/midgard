@@ -374,7 +374,8 @@ function collect(
 
 const waived = (violation: Violation) => Boolean(WAIVERS.get(violation.file)?.[violation.rule])
 
-const lines = (violations: Violation[]) => violations.map((v) => v.text).join('\n  ')
+const lines = (violations: Violation[]) =>
+	violations.map((violation) => violation.text).join('\n  ')
 
 describe('spread order boundary', () => {
 	// The TypeScript server parses each source that this file reads, and stops
@@ -411,7 +412,7 @@ describe('spread order boundary', () => {
 	)
 
 	it('no element outside the waivers writes a load-bearing attribute before its spread', () => {
-		const violations = ordered.filter((v) => !waived(v))
+		const violations = ordered.filter((violation) => !waived(violation))
 
 		expect(
 			violations,
@@ -420,7 +421,7 @@ describe('spread order boundary', () => {
 	})
 
 	it('no element outside the waivers writes a library-read data-slot before its spread', () => {
-		const violations = anchored.filter((v) => !waived(v))
+		const violations = anchored.filter((violation) => !waived(violation))
 
 		expect(
 			violations,
@@ -429,7 +430,7 @@ describe('spread order boundary', () => {
 	})
 
 	it('no element outside the waivers writes a ref that a consumer ref replaces', () => {
-		const violations = refs.filter((v) => !waived(v))
+		const violations = refs.filter((violation) => !waived(violation))
 
 		expect(
 			violations,

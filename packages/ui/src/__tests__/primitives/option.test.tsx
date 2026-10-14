@@ -11,9 +11,9 @@ describe('Option', () => {
 			</Option>,
 		)
 
-		const el = screen.getByRole('option')
+		const option = screen.getByRole('option')
 
-		expect(el).toHaveAttribute('aria-selected', 'true')
+		expect(option).toHaveAttribute('aria-selected', 'true')
 	})
 
 	it('sets aria-disabled when disabled', () => {
@@ -23,9 +23,9 @@ describe('Option', () => {
 			</Option>,
 		)
 
-		const el = screen.getByRole('option')
+		const option = screen.getByRole('option')
 
-		expect(el).toHaveAttribute('aria-disabled', 'true')
+		expect(option).toHaveAttribute('aria-disabled', 'true')
 	})
 
 	it('calls onSelect on click', () => {
@@ -177,11 +177,11 @@ describe('Option', () => {
 			</Option>,
 		)
 
-		const cls = bySlot(container, 'icon')?.getAttribute('class') ?? ''
+		const className = bySlot(container, 'icon')?.getAttribute('class') ?? ''
 
-		expect(cls).toContain('invisible')
+		expect(className).toContain('invisible')
 
-		expect(cls).toContain('group-data-selected/option:visible')
+		expect(className).toContain('group-data-selected/option:visible')
 	})
 
 	it('sizes the default check icon with a stepped class, which follows the nearest scope', () => {
@@ -245,9 +245,9 @@ describe('createSelectOption', () => {
 			</TestContext>,
 		)
 
-		const el = bySlot(container, 'test-option')
+		const option = bySlot(container, 'test-option')
 
-		expect(el).toBeInTheDocument()
+		expect(option).toBeInTheDocument()
 	})
 
 	it('Label renders with its data-slot', () => {
@@ -257,9 +257,9 @@ describe('createSelectOption', () => {
 			</TestContext>,
 		)
 
-		const el = bySlot(container, 'test-label')
+		const label = bySlot(container, 'test-label')
 
-		expect(el).toBeInTheDocument()
+		expect(label).toBeInTheDocument()
 
 		expect(screen.getByText('My Label')).toBeInTheDocument()
 	})
@@ -271,9 +271,9 @@ describe('createSelectOption', () => {
 			</TestContext>,
 		)
 
-		const el = bySlot(container, 'test-description')
+		const description = bySlot(container, 'test-description')
 
-		expect(el).toBeInTheDocument()
+		expect(description).toBeInTheDocument()
 
 		expect(screen.getByText('My Desc')).toBeInTheDocument()
 	})
@@ -289,13 +289,13 @@ describe('createSelectOption', () => {
 			</TestContext>,
 		)
 
-		const el = bySlot(container, 'test-text')
+		const text = bySlot(container, 'test-text')
 
-		expect(el).toContainElement(bySlot(container, 'test-label'))
+		expect(text).toContainElement(bySlot(container, 'test-label'))
 
-		expect(el).toContainElement(bySlot(container, 'test-description'))
+		expect(text).toContainElement(bySlot(container, 'test-description'))
 
-		expect(el).toHaveClass('flex-col')
+		expect(text).toHaveClass('flex-col')
 	})
 
 	it('Label capitalizes a string label when the host asks for it', () => {

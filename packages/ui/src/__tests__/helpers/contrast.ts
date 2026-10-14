@@ -70,16 +70,16 @@ function srgbOf(token: string): Srgb {
  * both appear, so a joined `[light, dark]` pair resolves to its shade rather
  * than to whichever token sits leftmost.
  */
-function tokenOf(cls: string): { token: string; alpha: number } {
-	const shade = SHADE.exec(cls)
+function tokenOf(className: string): { token: string; alpha: number } {
+	const shade = SHADE.exec(className)
 
 	if (shade) return { token: `${shade[1]}-${shade[2]}`, alpha: alphaOf(shade[3]) }
 
-	const neutral = NEUTRAL.exec(cls)
+	const neutral = NEUTRAL.exec(className)
 
 	if (neutral?.[1]) return { token: neutral[1], alpha: alphaOf(neutral[2]) }
 
-	throw new Error(`no color in class: ${cls}`)
+	throw new Error(`no color in class: ${className}`)
 }
 
 /** The page / card surfaces a foreground sits on. */

@@ -156,12 +156,12 @@ const floatingUIMock = {
 			: { reference: { onFocus: () => context?.onOpenChange?.(true) } },
 	useHover: (): MockInteraction => ({}),
 	useMergeRefs,
-	useFloatingRootContext: (opts: MockContext): MockContext => ({
-		open: opts?.open,
-		onOpenChange: opts?.onOpenChange,
+	useFloatingRootContext: (options: MockContext): MockContext => ({
+		open: options?.open,
+		onOpenChange: options?.onOpenChange,
 		elements: { reference: null, floating: null },
 	}),
-	useFloating: (opts: MockContext) => ({
+	useFloating: (options: MockContext) => ({
 		refs: {
 			setReference: noop,
 			setPositionReference: noop,
@@ -172,8 +172,8 @@ const floatingUIMock = {
 		},
 		floatingStyles: {},
 		context: {
-			open: opts?.open,
-			onOpenChange: opts?.onOpenChange,
+			open: options?.open,
+			onOpenChange: options?.onOpenChange,
 			elements: { reference: null, floating: null },
 		} as MockContext,
 		x: 0,
@@ -186,9 +186,9 @@ const floatingUIMock = {
 	}),
 	useInteractions: (interactions: MockInteraction[] = []) => ({
 		getReferenceProps: (userProps: MockProps = {}) =>
-			mergeProps([userProps, ...interactions.map((i) => i?.reference)]),
+			mergeProps([userProps, ...interactions.map((interaction) => interaction?.reference)]),
 		getFloatingProps: (userProps: MockProps = {}) =>
-			mergeProps([userProps, ...interactions.map((i) => i?.floating)]),
+			mergeProps([userProps, ...interactions.map((interaction) => interaction?.floating)]),
 		getItemProps: identity,
 	}),
 	useRole: (context: MockContext, options?: MockRoleOptions): MockInteraction =>

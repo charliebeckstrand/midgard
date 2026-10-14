@@ -6,11 +6,11 @@ describe('Stack', () => {
 	it('leaves gap unset outside any Density provider, matching Flex', () => {
 		const { container } = renderUI(<Stack>content</Stack>)
 
-		const el = getSlot(container, 'stack')
+		const stack = getSlot(container, 'stack')
 
 		// No 'md' fallback: gap stays unset, matching Flex and the documented
 		// contract.
-		expect(el.className).not.toMatch(/gap-/)
+		expect(stack.className).not.toMatch(/gap-/)
 	})
 
 	it('stretches children across the inline axis by default so blocks span full width', () => {

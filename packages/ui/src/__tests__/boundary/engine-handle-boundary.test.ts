@@ -135,12 +135,12 @@ function calleeName(call: CallExpression): string | undefined {
  * deferring call, makes the node deferred.
  */
 function isDeferred(node: Node, fn: Node): boolean {
-	for (let current = node.parent; current && current !== fn; current = current.parent) {
-		if (!isFunctionLike(current)) continue
+	for (let ancestor = node.parent; ancestor && ancestor !== fn; ancestor = ancestor.parent) {
+		if (!isFunctionLike(ancestor)) continue
 
-		const parent = current.parent
+		const parent = ancestor.parent
 
-		if (isCallExpression(parent) && parent.arguments.includes(current as Expression)) {
+		if (isCallExpression(parent) && parent.arguments.includes(ancestor as Expression)) {
 			if (DEFERRING_CALLS.has(calleeName(parent) ?? '')) return true
 
 			// A function handed to any other call runs at once, in the render.
@@ -394,7 +394,10 @@ function scanSource(server: TypeScriptServer): Scan {
 
 /** One line for each violation, for a readable failure. */
 function lines(violations: Violation[]): string[] {
-	return violations.map((v) => `${v.file}:${v.line} ${v.fn}: ${v.reason} — ${v.text}`)
+	return violations.map(
+		(violation) =>
+			`${violation.file}:${violation.line} ${violation.fn}: ${violation.reason} — ${violation.text}`,
+	)
 }
 
 describe('engine-handle boundary', () => {
@@ -449,7 +452,7 @@ describe('engine-handle boundary', () => {
 
 		const { violations } = scanHandle(sourceProject(server, [fixture]), receivers, () => fixture)
 
-		expect(violations.map((v) => `${v.fn}: ${v.reason}`)).toEqual([
+		expect(violations.map((violation) => `${violation.fn}: ${violation.reason}`)).toEqual([
 			'useGrid: the render reads the handle',
 			'useGrid: the render reads the handle',
 			'useGrid: the handle leaks',

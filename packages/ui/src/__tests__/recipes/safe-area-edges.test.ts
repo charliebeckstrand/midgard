@@ -33,13 +33,13 @@ describe('safe-area insets on edge surfaces', () => {
 	})
 
 	it('pads the dialog where it docks to the bottom edge, at each density step', () => {
-		const cls = dialog.panel({})
+		const className = dialog.panel({})
 
-		expect(cls).toContain(`max-sm:density-xs:pb-[calc(1rem+${bottom})]`)
-		expect(cls).toContain(`max-sm:density-sm:pb-[calc(1.25rem+${bottom})]`)
-		expect(cls).toContain(`max-sm:density-md:pb-[calc(1.5rem+${bottom})]`)
-		expect(cls).toContain(`max-sm:density-lg:pb-[calc(1.75rem+${bottom})]`)
-		expect(cls).toContain(`max-sm:density-xl:pb-[calc(2rem+${bottom})]`)
+		expect(className).toContain(`max-sm:density-xs:pb-[calc(1rem+${bottom})]`)
+		expect(className).toContain(`max-sm:density-sm:pb-[calc(1.25rem+${bottom})]`)
+		expect(className).toContain(`max-sm:density-md:pb-[calc(1.5rem+${bottom})]`)
+		expect(className).toContain(`max-sm:density-lg:pb-[calc(1.75rem+${bottom})]`)
+		expect(className).toContain(`max-sm:density-xl:pb-[calc(2rem+${bottom})]`)
 	})
 
 	it('pads each drawer height by the inset alone', () => {
@@ -52,11 +52,11 @@ describe('safe-area insets on edge surfaces', () => {
 
 	it('pads the toast stack at both ends', () => {
 		for (const position of ['top-right', 'bottom-left'] as const) {
-			const cls = toast.viewport({ position })
+			const className = toast.viewport({ position })
 
-			expect(cls).toContain('env(safe-area-inset-top)')
+			expect(className).toContain('env(safe-area-inset-top)')
 
-			expect(cls).toContain(bottom)
+			expect(className).toContain(bottom)
 		}
 	})
 })

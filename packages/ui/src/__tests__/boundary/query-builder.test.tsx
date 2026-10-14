@@ -145,8 +145,9 @@ describe('QueryBuilder', () => {
 
 		const { container } = renderUI(<QueryBuilder fields={fields} value={tree} />)
 
-		const labels = Array.from(container.querySelectorAll('[data-slot="listbox-button"]'), (el) =>
-			el.getAttribute('aria-label'),
+		const labels = Array.from(
+			container.querySelectorAll('[data-slot="listbox-button"]'),
+			(button) => button.getAttribute('aria-label'),
 		)
 
 		expect(labels).toContain('Field')
@@ -159,8 +160,9 @@ describe('QueryBuilder', () => {
 
 		const { container } = renderUI(<QueryBuilder fields={fields} value={tree} hideFieldSelector />)
 
-		const labels = Array.from(container.querySelectorAll('[data-slot="listbox-button"]'), (el) =>
-			el.getAttribute('aria-label'),
+		const labels = Array.from(
+			container.querySelectorAll('[data-slot="listbox-button"]'),
+			(button) => button.getAttribute('aria-label'),
 		)
 
 		expect(labels).not.toContain('Field')

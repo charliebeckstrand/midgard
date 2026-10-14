@@ -218,7 +218,7 @@ describe('static component boundary', () => {
 		expect(
 			violations,
 			`skeleton variants must stay static (CONVENTIONS §3.7):\n${violations
-				.map((v) => `  ${v}`)
+				.map((line) => `  ${line}`)
 				.join('\n')}`,
 		).toEqual([])
 	})

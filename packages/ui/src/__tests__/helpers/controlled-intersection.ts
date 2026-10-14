@@ -65,12 +65,12 @@ export function installControlledObserver(): ControlledObserver {
 		}
 	}
 
-	const previous = window.IntersectionObserver
+	const prev = window.IntersectionObserver
 
 	vi.stubGlobal('IntersectionObserver', Observer)
 
 	onTestFinished(() => {
-		window.IntersectionObserver = previous
+		window.IntersectionObserver = prev
 	})
 
 	const send = (entries: typeof targets, isIntersecting: boolean) => {

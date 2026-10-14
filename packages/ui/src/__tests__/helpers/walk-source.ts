@@ -139,13 +139,13 @@ export function collectPatternViolations(options: {
 		(file, content) => {
 			if (!(fileFilter ? fileFilter.test(file) : isSourceFile(file))) return
 
-			const rel = srcRelative(file)
+			const path = srcRelative(file)
 
 			const text = stripComments ? stripSourceComments(content) : content
 
 			for (const { label, regex } of patterns) {
 				for (const match of text.matchAll(regex)) {
-					violations.push(`${rel} → ${label} (${match[0]})`)
+					violations.push(`${path} → ${label} (${match[0]})`)
 				}
 			}
 		},

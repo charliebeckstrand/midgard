@@ -165,7 +165,7 @@ function becomesLink({ render, slot }: LinkSubject) {
  * Renders `element` and reads the step of its slot. The stepped classes of a
  * subject take the step of its nearest scope, and `densityStepOf` reads it.
  */
-function resolvedStep(element: ReactElement, slot: string) {
+function stepOf(element: ReactElement, slot: string) {
 	// `baseElement` is the document body, so a portaled overlay is in reach.
 	const { baseElement } = renderUI(element)
 
@@ -183,17 +183,17 @@ function Ambient({ children }: { children: ReactElement }) {
 
 /** The density sweep, ambient leg: with no size, the subject takes the enclosing scope. */
 function inheritsDensity({ render, slot }: DensitySubject) {
-	expect(resolvedStep(<Ambient>{render()}</Ambient>, slot)).toBe(AMBIENT)
+	expect(stepOf(<Ambient>{render()}</Ambient>, slot)).toBe(AMBIENT)
 }
 
 /** The density sweep, explicit leg: a size prop wins over the enclosing scope. */
 function explicitSizeWins({ render, slot }: DensitySubject) {
-	expect(resolvedStep(<Ambient>{render(EXPLICIT)}</Ambient>, slot)).toBe(EXPLICIT)
+	expect(stepOf(<Ambient>{render(EXPLICIT)}</Ambient>, slot)).toBe(EXPLICIT)
 }
 
 /** The density sweep, fallback leg: with no scope and no size, the subject is `md`. */
 function fallsBackToMd({ render, slot }: DensitySubject) {
-	expect(resolvedStep(render(), slot)).toBe(FALLBACK)
+	expect(stepOf(render(), slot)).toBe(FALLBACK)
 }
 
 /** The text-input sweep, ref leg: the ref reaches the editable element. */

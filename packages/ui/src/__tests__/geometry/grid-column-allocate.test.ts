@@ -219,7 +219,7 @@ describe('allocateColumnWidths', () => {
 		it('sums to exactly the available width across a pathological split', () => {
 			// Seven equal columns in a prime width: floats won't divide evenly, so the
 			// carried remainder must still land the integer widths on 701 exactly.
-			const profiles = Array.from({ length: 7 }, (_, i) => profile(`c${i}`, 100))
+			const profiles = Array.from({ length: 7 }, (_, index) => profile(`c${index}`, 100))
 
 			const sizing = allocateColumnWidths(profiles, 701)
 

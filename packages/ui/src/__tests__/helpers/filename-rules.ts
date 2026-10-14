@@ -35,7 +35,7 @@ function expectedSymbol(file: string): string {
 
 	const parts = (isHook ? base.slice(4) : base).split('-').filter(Boolean)
 
-	const pascal = parts.map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join('')
+	const pascal = parts.map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join('')
 
 	return isHook ? `use${pascal}` : pascal
 }
@@ -106,7 +106,7 @@ export function listLeafFolders(root: string): string[] {
 	const walk = (dir: string) => {
 		const entries = readdirSync(dir, { withFileTypes: true })
 
-		if (entries.some((e) => e.isFile())) out.push(dir)
+		if (entries.some((entry) => entry.isFile())) out.push(dir)
 
 		for (const entry of entries) {
 			if (entry.isDirectory()) walk(join(dir, entry.name))

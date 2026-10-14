@@ -95,19 +95,19 @@ describe('Box', () => {
 			</DensityProvider>,
 		)
 
-		const el = getSlot(container, 'box')
+		const box = getSlot(container, 'box')
 
-		expect(el.className).toContain('density-p-[2,3,4,5,6]')
+		expect(box.className).toContain('density-p-[2,3,4,5,6]')
 
-		expect(el.className).not.toContain('density-p-[0.5,1,2,3,4.5]')
+		expect(box.className).not.toContain('density-p-[0.5,1,2,3,4.5]')
 	})
 
 	it('does not apply any padding class when no p and no ambient Density are present', () => {
 		const { container } = renderUI(<Box>content</Box>)
 
-		const el = getSlot(container, 'box')
+		const box = getSlot(container, 'box')
 
-		expect(el.className).not.toMatch(/(^|\s)p-\d/)
+		expect(box.className).not.toMatch(/(^|\s)p-\d/)
 	})
 })
 

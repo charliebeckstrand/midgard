@@ -53,11 +53,11 @@ describe('bandIndexAt · properties', () => {
 
 			const index = pick % count
 
-			const pos = from + (index + part) * scale.step
+			const position = from + (index + part) * scale.step
 
-			expect(bandIndexAt(pos, scale, count)).toBe(index)
+			expect(bandIndexAt(position, scale, count)).toBe(index)
 
-			expect(nearestBandIndex(pos, scale, count)).toBe(index)
+			expect(nearestBandIndex(position, scale, count)).toBe(index)
 		},
 	)
 
@@ -66,11 +66,11 @@ describe('bandIndexAt · properties', () => {
 		({ count, from, width, padding }, beyond, before) => {
 			const scale = bandScale({ count, range: [from, from + width], padding })
 
-			const pos = before ? from - beyond : from + width + beyond
+			const position = before ? from - beyond : from + width + beyond
 
-			expect(bandIndexAt(pos, scale, count)).toBeNull()
+			expect(bandIndexAt(position, scale, count)).toBeNull()
 
-			expect(nearestBandIndex(pos, scale, count)).toBe(before ? 0 : count - 1)
+			expect(nearestBandIndex(position, scale, count)).toBe(before ? 0 : count - 1)
 		},
 	)
 })

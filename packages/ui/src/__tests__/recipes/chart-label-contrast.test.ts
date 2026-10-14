@@ -31,11 +31,11 @@ const HUES = Object.keys(k.series) as (keyof typeof k.series)[]
 
 /** The color token behind a chart `fill-*` / `dark:fill-*` class, at `index` of its `[light, dark]` pair. */
 function tokenAt(classes: readonly string[], index: number): string {
-	const cls = classes[index]
+	const className = classes[index]
 
-	if (cls === undefined) throw new Error(`no class at index ${index}`)
+	if (className === undefined) throw new Error(`no class at index ${index}`)
 
-	return cls.replace(/^dark:/, '').replace(/^fill-/, '')
+	return className.replace(/^dark:/, '').replace(/^fill-/, '')
 }
 
 /** A token → the value the contrast utility measures: the `white` keyword, else its theme oklch. */

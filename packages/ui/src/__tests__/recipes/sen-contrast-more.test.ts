@@ -17,9 +17,9 @@ describe('sen tone under prefers-contrast: more', () => {
 	const visible = Object.entries(tone).filter(([name]) => name !== 'borderTransparent')
 
 	it.each(visible)('gives the %s tone a step in each mode', (_, classes) => {
-		expect(classes.some((cls) => cls.startsWith('contrast-more:'))).toBe(true)
+		expect(classes.some((className) => className.startsWith('contrast-more:'))).toBe(true)
 
-		expect(classes.some((cls) => cls.startsWith('dark:contrast-more:'))).toBe(true)
+		expect(classes.some((className) => className.startsWith('dark:contrast-more:'))).toBe(true)
 	})
 
 	for (const mode of ['light', 'dark'] as const) {

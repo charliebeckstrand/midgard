@@ -28,7 +28,9 @@ import { noop } from '../../utilities/noop'
 
 const UI = join(import.meta.dirname, '../../..')
 
-const MIN_BREAKPOINTS = BREAKPOINTS.filter((bp): bp is MinBreakpoint => bp !== 'initial')
+const MIN_BREAKPOINTS = BREAKPOINTS.filter(
+	(breakpoint): breakpoint is MinBreakpoint => breakpoint !== 'initial',
+)
 
 /** The keys of `record`. The type of `record` makes sure that each key is there. */
 function keysOf<K extends string>(record: Record<K, true>): K[] {
@@ -77,8 +79,8 @@ const RATIOS = keysOf<SplitRatio>({
 function prefixedClasses(): string[] {
 	const classes = new Set<string>()
 
-	for (const bp of MIN_BREAKPOINTS) {
-		const at = <T>(value: T) => ({ [bp]: value })
+	for (const breakpoint of MIN_BREAKPOINTS) {
+		const at = <T>(value: T) => ({ [breakpoint]: value })
 
 		const resolved = [
 			...STEPS.flatMap((step) => [
@@ -91,16 +93,18 @@ function prefixedClasses(): string[] {
 			...ALIGNS.flatMap((align) => resolveAlign(at(align))),
 			...JUSTIFIES.flatMap((justify) => resolveJustify(at(justify))),
 			...COUNTS.flatMap((count) => resolveColumns(at(count))),
-			// The change of axis at `bp` also gives the reset of the old axis.
+			// The change of axis at `breakpoint` also gives the reset of the old axis.
 			...ORIENTATIONS.flatMap((from) =>
 				ORIENTATIONS.flatMap((to) =>
-					RATIOS.flatMap((ratio) => resolveTemplate({ initial: from, [bp]: to }, at(ratio))),
+					RATIOS.flatMap((ratio) =>
+						resolveTemplate({ initial: from, [breakpoint]: to }, at(ratio)),
+					),
 				),
 			),
 		]
 
 		for (const name of resolved.flatMap((value) => value.split(' '))) {
-			if (name.startsWith(`${bp}:`)) classes.add(name)
+			if (name.startsWith(`${breakpoint}:`)) classes.add(name)
 		}
 	}
 

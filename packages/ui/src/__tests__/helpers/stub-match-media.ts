@@ -48,9 +48,9 @@ export function stubMatchMedia(
 	matches: (query: string) => boolean,
 	overrides: StubMatchMediaOverrides = {},
 ): ReturnType<typeof vi.fn> {
-	const impl = vi.fn((query: string) => makeMediaQueryList(query, matches(query), overrides))
+	const spy = vi.fn((query: string) => makeMediaQueryList(query, matches(query), overrides))
 
-	vi.stubGlobal('matchMedia', impl)
+	vi.stubGlobal('matchMedia', spy)
 
-	return impl
+	return spy
 }

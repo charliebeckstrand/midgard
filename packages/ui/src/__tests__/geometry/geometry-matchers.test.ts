@@ -17,7 +17,8 @@ const frame: Box = { left: 0, top: 0, right: 100, bottom: 50 }
  * A length in whole layout units, as Chromium keeps one. The sums of such
  * lengths are exact in floating point, so a property can state an exact bound.
  */
-const units = (min: number, max: number) => fc.integer({ min, max }).map((n) => n * LAYOUT_UNIT)
+const units = (min: number, max: number) =>
+	fc.integer({ min, max }).map((count) => count * LAYOUT_UNIT)
 
 /** A box whose edges are whole layout units. */
 const box = fc
@@ -103,7 +104,7 @@ describe('toContainBox', () => {
 	test.prop([box, box])(
 		'holds exactly when no edge of the overhang is positive',
 		(inner, outer) => {
-			const holds = Object.values(overhang(inner, outer)).every((n) => n <= 0)
+			const holds = Object.values(overhang(inner, outer)).every((distance) => distance <= 0)
 
 			if (holds) expect(outer).toContainBox(inner)
 			else expect(outer).not.toContainBox(inner)

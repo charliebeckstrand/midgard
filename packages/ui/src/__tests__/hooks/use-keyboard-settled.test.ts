@@ -76,16 +76,16 @@ describe('useKeyboardSettled', () => {
 	})
 
 	it('polls via rAF and fires once the viewport has settled', () => {
-		const vv = { height: window.innerHeight }
+		const viewport = { height: window.innerHeight }
 
-		stubVisualViewport(vv)
+		stubVisualViewport(viewport)
 
 		window.ontouchstart = null
 
-		let rafCb: FrameRequestCallback | null = null
+		let frameCallback: FrameRequestCallback | null = null
 
-		vi.spyOn(window, 'requestAnimationFrame').mockImplementation((fn) => {
-			rafCb = fn
+		vi.spyOn(window, 'requestAnimationFrame').mockImplementation((next) => {
+			frameCallback = next
 
 			return 1
 		})
@@ -101,9 +101,9 @@ describe('useKeyboardSettled', () => {
 		expect(callback).not.toHaveBeenCalled()
 
 		// Keyboard appears, then six stable frames satisfy the 5-frame threshold.
-		vv.height = Math.floor(window.innerHeight * 0.5)
+		viewport.height = Math.floor(window.innerHeight * 0.5)
 
-		for (let i = 0; i < 6; i++) (rafCb as FrameRequestCallback | null)?.(0)
+		for (let i = 0; i < 6; i++) (frameCallback as FrameRequestCallback | null)?.(0)
 
 		expect(callback).toHaveBeenCalledOnce()
 	})
@@ -113,10 +113,10 @@ describe('useKeyboardSettled', () => {
 
 		window.ontouchstart = null
 
-		let rafCb: FrameRequestCallback | null = null
+		let frameCallback: FrameRequestCallback | null = null
 
-		vi.spyOn(window, 'requestAnimationFrame').mockImplementation((fn) => {
-			rafCb = fn
+		vi.spyOn(window, 'requestAnimationFrame').mockImplementation((next) => {
+			frameCallback = next
 
 			return 1
 		})
@@ -129,7 +129,7 @@ describe('useKeyboardSettled', () => {
 
 		result.current(callback)
 
-		for (let i = 0; i < 60; i++) (rafCb as FrameRequestCallback | null)?.(0)
+		for (let i = 0; i < 60; i++) (frameCallback as FrameRequestCallback | null)?.(0)
 
 		expect(callback).toHaveBeenCalledOnce()
 	})

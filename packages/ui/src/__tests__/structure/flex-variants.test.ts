@@ -23,7 +23,7 @@ describe('resolveDirection', () => {
 
 		expect(result).toEqual(['flex-row', 'md:flex-col'])
 
-		expect(result.some((c) => c.startsWith('max-'))).toBe(false)
+		expect(result.some((className) => className.startsWith('max-'))).toBe(false)
 	})
 })
 
@@ -41,7 +41,7 @@ describe('resolveAlign', () => {
 
 		expect(result).toEqual(['items-start', 'sm:items-center'])
 
-		expect(result.some((c) => c.startsWith('max-'))).toBe(false)
+		expect(result.some((className) => className.startsWith('max-'))).toBe(false)
 	})
 })
 
@@ -74,8 +74,8 @@ describe('resolveGap', () => {
 		['md', 'density-gap-[1,2,3,4,5]'],
 		['lg', 'density-gap-[2,3,4,5,6]'],
 		['xl', 'density-gap-[4,5,6,7,8]'],
-	] as const)('maps the %s gap step to %s', (value, cls) => {
-		expect(resolveGap(value)).toEqual([cls])
+	] as const)('maps the %s gap step to %s', (value, className) => {
+		expect(resolveGap(value)).toEqual([className])
 	})
 
 	it('emits breakpoint-prefixed classes for a responsive value', () => {
