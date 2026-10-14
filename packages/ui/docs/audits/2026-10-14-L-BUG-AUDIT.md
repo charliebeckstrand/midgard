@@ -44,7 +44,7 @@ The digest held two sources. The open record `2026-10-11-BUG-AUDIT.md` gave one 
 | R7 | `components/list/use-list-window.ts` | `useListWindow` | CONFIRMED | medium | shipped | — | ◯ OPEN |
 | R8 | `components/list/list-item.tsx` | `ListItem` `data-slot` anchor | CONFIRMED | low | none | G3 | ✅ RESOLVED ([#2424](https://github.com/charliebeckstrand/midgard/pull/2424)) |
 | R9 | `components/list/list-item.tsx` | `ListItem` `aria-describedby` | CONFIRMED | low | none | G3 | ✅ RESOLVED ([#2424](https://github.com/charliebeckstrand/midgard/pull/2424)) |
-| R10 | `components/list/use-list-reorder.ts` | `useListReorder` | NARROWED | low | shipped | — | ◯ OPEN |
+| R10 | `components/list/use-list-reorder.ts` | `useListReorder` | NARROWED | low | shipped | — | ✅ RESOLVED ([#2427](https://github.com/charliebeckstrand/midgard/pull/2427)) |
 
 All paths are under `packages/ui/src/`.
 
