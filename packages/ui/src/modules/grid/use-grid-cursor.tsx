@@ -116,8 +116,8 @@ function rangeText<T>(
 	return cells.rows.map((index) => {
 		const row = rows[index]
 
-		return cells.cols.map((colIdx) => {
-			const col = columns[colIdx]
+		return cells.cols.map((colIndex) => {
+			const col = columns[colIndex]
 
 			return col && row !== undefined ? cellText(columnAccessor(col)(row)) : ''
 		})
@@ -167,7 +167,7 @@ function fillValue<T>(row: T | undefined, col: GridColumn<T> | undefined): unkno
 
 /** The whole numbers from `from` to `to`, inclusive. @internal */
 function span(from: number, to: number): number[] {
-	return Array.from({ length: to - from + 1 }, (_, i) => from + i)
+	return Array.from({ length: to - from + 1 }, (_, index) => from + index)
 }
 
 /**
@@ -242,7 +242,7 @@ export function useGridCursor<T>({
 	/** Whether the grid has a selection column; gates the cursor's Space-to-select. */
 	selectableRef: RefObject<boolean>
 	/** Toggles the active row's selection by display index, for the cursor's Space key. */
-	toggleActiveRow: ((rowIdx: number) => void) | undefined
+	toggleActiveRow: ((rowIndex: number) => void) | undefined
 	/** Scrolls a row into the virtualized window before the cursor lands on it; null when unwindowed. */
 	scrollRowIntoViewRef: RefObject<GridScrollRowIntoView | null>
 	/** The grid's scroll container, measured for the cursor's viewport-relative PageUp/Down step. */
@@ -318,12 +318,12 @@ export function useGridCursor<T>({
 	// `enterEditAt` before its declaration below. The cursor calls the wrapper as
 	// an effect event, at key time, when this render's resolver is in place.
 	const onCellActivateWithEdit: GridCellActivate | undefined = managed
-		? (rowIdx, colIdx, event) => {
+		? (rowIndex, colIndex, event) => {
 				// The consumer's cell click fires first — the same order the pointer path
 				// fires the single-click handlers ahead of the double-click.
-				onCellActivate?.(rowIdx, colIdx, event)
+				onCellActivate?.(rowIndex, colIndex, event)
 
-				if (event.key === 'Enter') enterEditAt(rowIdx, colIdx)
+				if (event.key === 'Enter') enterEditAt(rowIndex, colIndex)
 			}
 		: onCellActivate
 
@@ -505,16 +505,16 @@ export function useGridCursor<T>({
 	// cell's identity first — the one place that conversion belongs.
 	// The new-row slot has no row key, so its cells open through the slot.
 	const enterEditAt = useCallback(
-		(rowIdx: number, colIdx: number, seed?: string | number) => {
-			const col = dataColumnsRef.current[colIdx]
+		(rowIndex: number, colIndex: number, seed?: string | number) => {
+			const col = dataColumnsRef.current[colIndex]
 
-			if (col && rowIdx === NEW_ROW_INDEX) {
+			if (col && rowIndex === NEW_ROW_INDEX) {
 				enterNewRow(col.id, seed)
 
 				return
 			}
 
-			const rowKey = rowKeysRef.current[rowIdx]
+			const rowKey = rowKeysRef.current[rowIndex]
 
 			if (rowKey === undefined || !col) return
 

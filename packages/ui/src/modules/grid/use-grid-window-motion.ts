@@ -49,7 +49,7 @@ export type GridMotionFlips<G> = { opened: G[]; closed: G[] }
 export type GridMotionSource<L, S, G, K> = {
 	capture: (live: L) => S
 	same: (captured: S, live: L) => boolean
-	flips: (previous: S, live: L) => GridMotionFlips<G>
+	flips: (prev: S, live: L) => GridMotionFlips<G>
 	resolve: (flips: GridMotionFlips<G>, view: GridWindowView | null) => GridMotionChange<K>
 }
 
@@ -191,15 +191,15 @@ export function useGridWindowMotion<L, S, G, K>(
 			gridWindowView(recordRef.current, scrollRef.current),
 		)
 
-		setState((current) =>
-			current.pending === pending
+		setState((prev) =>
+			prev.pending === pending
 				? {
 						applied: pending.live,
 						captured: pending.captured,
 						pending: null,
-						motions: applyChange(current.motions, change),
+						motions: applyChange(prev.motions, change),
 					}
-				: current,
+				: prev,
 		)
 	}, [pending, source, recordRef, scrollRef])
 
@@ -210,7 +210,7 @@ export function useGridWindowMotion<L, S, G, K>(
 	// The entering rows mounted in the commit that the toggle started.
 	useEffect(() => {
 		if (entering) {
-			setState((current) => ({ ...current, motions: withoutPhase(current.motions, 'entering') }))
+			setState((prev) => ({ ...prev, motions: withoutPhase(prev.motions, 'entering') }))
 		}
 	}, [entering])
 
@@ -221,8 +221,7 @@ export function useGridWindowMotion<L, S, G, K>(
 		if (!hasPhase(motions, 'closing')) return
 
 		const timer = setTimeout(
-			() =>
-				setState((current) => ({ ...current, motions: withoutPhase(current.motions, 'closing') })),
+			() => setState((prev) => ({ ...prev, motions: withoutPhase(prev.motions, 'closing') })),
 			RELEASE_FALLBACK_MS,
 		)
 
@@ -231,14 +230,14 @@ export function useGridWindowMotion<L, S, G, K>(
 
 	const release = useCallback(
 		(key: K) =>
-			setState((current) => {
-				if (current.motions.get(key)?.phase !== 'closing') return current
+			setState((prev) => {
+				if (prev.motions.get(key)?.phase !== 'closing') return prev
 
-				const next = new Map(current.motions)
+				const next = new Map(prev.motions)
 
 				next.delete(key)
 
-				return { ...current, motions: next }
+				return { ...prev, motions: next }
 			}),
 		[],
 	)

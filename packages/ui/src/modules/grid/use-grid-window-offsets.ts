@@ -68,8 +68,8 @@ export function useGridWindowOffsets(
 			}
 
 			// A change under one pixel moves no row, so it does not render again.
-			setOffsets((current) =>
-				OFFSET_KEYS.every((key) => Math.abs(current[key] - next[key]) < 1) ? current : next,
+			setOffsets((prev) =>
+				OFFSET_KEYS.every((key) => Math.abs(prev[key] - next[key]) < 1) ? prev : next,
 			)
 		}
 

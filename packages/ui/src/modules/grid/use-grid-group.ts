@@ -56,7 +56,9 @@ export function useGridGroup(
 	const [collapsed, setCollapsed] = useState<ReadonlySet<string | number>>(
 		() =>
 			new Set(
-				(binding.value ?? binding.defaultValue).filter((g) => g.defaultCollapsed).map((g) => g.id),
+				(binding.value ?? binding.defaultValue)
+					.filter((group) => group.defaultCollapsed)
+					.map((group) => group.id),
 			),
 	)
 

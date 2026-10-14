@@ -105,6 +105,9 @@ export function GridHead<T>({
 
 	useGridStickyHead(headRef, stacked ? stackStickyHead : null)
 
+	// The column-header row is row 2 below a band row.
+	const columnRowIndex = band ? 2 : 1
+
 	return (
 		<TableHead ref={headRef}>
 			{band && (
@@ -117,16 +120,16 @@ export function GridHead<T>({
 			)}
 
 			<TableRow
-				aria-rowindex={gridSemantics ? (band ? 2 : 1) : undefined}
+				aria-rowindex={gridSemantics ? columnRowIndex : undefined}
 				className={cn(stacked && k.sticky.stack)}
 			>
-				{columns.map((col, colIdx) => (
+				{columns.map((col, index) => (
 					<GridHeaderCell
 						key={col.id}
 						column={col}
 						// Header column indices accompany the global row-index scheme.
-						colIndex={gridSemantics ? colIdx + 1 : undefined}
-						columnIndex={colIdx}
+						colIndex={gridSemantics ? index + 1 : undefined}
+						columnIndex={index}
 						hasRows={hasRows}
 						interactive={interactive}
 						selectAllLabel={selectAllLabel}

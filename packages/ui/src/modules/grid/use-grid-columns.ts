@@ -123,15 +123,15 @@ export function useGridColumns<T>({
 
 	const managerItems = useMemo<GridColumnManagerItem[]>(
 		() =>
-			columns.filter(isDataColumn).map((c) => ({
-				id: c.id,
-				title: c.title ?? String(c.id),
+			columns.filter(isDataColumn).map((column) => ({
+				id: column.id,
+				title: column.title ?? String(column.id),
 				// The current pin edge (after any runtime override) and the immutable
 				// lock edge, each normalized to a side or omitted when absent. The
 				// manager places by `locked ?? pinned` and disables the control when locked.
-				pinned: normalizeFreeze(c.pinned),
-				locked: normalizeFreeze(c.locked),
-				hideable: c.hideable,
+				pinned: normalizeFreeze(column.pinned),
+				locked: normalizeFreeze(column.locked),
+				hideable: column.hideable,
 			})),
 		[columns],
 	)

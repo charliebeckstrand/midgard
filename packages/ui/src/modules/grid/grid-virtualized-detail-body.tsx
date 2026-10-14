@@ -45,12 +45,12 @@ const renderNothing = (): ReactNode => null
 const detailMotionSource: GridMotionSource<Keys, Keys, string | number, string | number> = {
 	capture: (expanded) => expanded,
 	same: (captured, expanded) => captured === expanded,
-	flips: (previous, expanded) => {
+	flips: (prev, expanded) => {
 		const flips: GridMotionFlips<string | number> = { opened: [], closed: [] }
 
-		for (const key of previous) if (!expanded.has(key)) flips.closed.push(key)
+		for (const key of prev) if (!expanded.has(key)) flips.closed.push(key)
 
-		for (const key of expanded) if (!previous.has(key)) flips.opened.push(key)
+		for (const key of expanded) if (!prev.has(key)) flips.opened.push(key)
 
 		return flips
 	},

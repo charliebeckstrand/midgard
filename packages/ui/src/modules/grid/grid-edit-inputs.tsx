@@ -75,7 +75,7 @@ function GridTextEditInput({
 	required,
 	managed,
 }: GridEditInputProps) {
-	const value = typeof draft === 'string' ? draft : draft == null ? '' : String(draft)
+	const value = draft == null ? '' : String(draft)
 
 	return (
 		<Input
@@ -145,7 +145,11 @@ function GridBooleanEditInput({
 }: GridEditInputProps) {
 	// `null` keeps the listbox controlled with no selection, so it shows its
 	// placeholder (CONVENTIONS §7.3).
-	const value = draft === true ? 'true' : unset && draft !== false ? null : 'false'
+	const blank = unset && typeof draft !== 'boolean'
+
+	const picked = draft === true ? 'true' : 'false'
+
+	const value = blank ? null : picked
 
 	return (
 		<Listbox<string>
@@ -155,7 +159,9 @@ function GridBooleanEditInput({
 			className={k.edit.input}
 			value={value}
 			onValueChange={(next) => onValueUpdate(next === null ? undefined : next === 'true')}
-			displayValue={(option) => BOOLEAN_OPTIONS.find((o) => o.value === option)?.label ?? ''}
+			displayValue={(option) =>
+				BOOLEAN_OPTIONS.find((candidate) => candidate.value === option)?.label ?? ''
+			}
 		>
 			{BOOLEAN_OPTIONS.map((option) => (
 				<ListboxOption key={option.value} value={option.value}>

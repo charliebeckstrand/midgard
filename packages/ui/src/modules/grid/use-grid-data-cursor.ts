@@ -227,8 +227,8 @@ export function useGridDataCursor<T>({
 	// Space on the active row toggles its selection. The toggle comes from the
 	// view phase, after the engine resolves the row keys, so the cursor reads it
 	// through a ref at key time.
-	const toggleActiveRow = (rowIdx: number) => {
-		const key = refs.rowKeysRef.current[rowIdx]
+	const toggleActiveRow = (rowIndex: number) => {
+		const key = refs.rowKeysRef.current[rowIndex]
 
 		if (key !== undefined) refs.toggleRowRef.current?.(key)
 	}

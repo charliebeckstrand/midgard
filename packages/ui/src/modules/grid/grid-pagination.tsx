@@ -103,11 +103,11 @@ export function GridPagination({ pagination, label, labelledBy }: GridPagination
 	// The id of the word that follows the name of the grid in a composed name.
 	const wordId = useId()
 
+	const labelName = label ? { 'aria-label': `${label} pagination` } : {}
+
 	const navName = labelledBy
 		? { 'aria-label': undefined, 'aria-labelledby': `${labelledBy} ${wordId}` }
-		: label
-			? { 'aria-label': `${label} pagination` }
-			: {}
+		: labelName
 
 	// When a page change disables the control the user activated (reaching an
 	// extent), or scrolls its number out of the window, the browser drops focus to

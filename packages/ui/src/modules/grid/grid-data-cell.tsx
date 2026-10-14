@@ -62,7 +62,7 @@ function GridDataCellImpl<T>({
 	cellRoving = false,
 	cellActivate,
 }: GridDataCellProps<T>) {
-	const cellExtra = cellPropsAt(col, row, rowIndex)
+	const cellProps = cellPropsAt(col, row, rowIndex)
 
 	// Cell-mode roving: the focus ring plus the marker/activation attributes,
 	// applied to whichever `<td>` this cell renders (reorder-aware or plain).
@@ -72,7 +72,7 @@ function GridDataCellImpl<T>({
 		col,
 		row,
 		rowKey,
-		keyDown: cellExtra?.onKeyDown,
+		keyDown: cellProps?.onKeyDown,
 	})
 
 	const rovingClass = cellRoving ? k.cell.rovable : undefined
@@ -86,7 +86,7 @@ function GridDataCellImpl<T>({
 				columnIndex={columnIndex}
 				colIndex={colIndex}
 				className={cn(rovingClass, col.className)}
-				cellProps={roving ? { ...cellExtra, ...roving } : cellExtra}
+				cellProps={roving ? { ...cellProps, ...roving } : cellProps}
 			>
 				{content}
 			</GridReorderableCell>
@@ -100,11 +100,11 @@ function GridDataCellImpl<T>({
 	return (
 		<TableCell
 			aria-colindex={colIndex}
-			{...cellExtra}
+			{...cellProps}
 			{...roving}
 			data-grid-col={col.id}
-			className={cn(rovingClass, pinned.className, cellExtra?.className)}
-			style={{ ...cellExtra?.style, ...pinned.style }}
+			className={cn(rovingClass, pinned.className, cellProps?.className)}
+			style={{ ...cellProps?.style, ...pinned.style }}
 			data-grid-pin={pinned.pin}
 		>
 			{content}

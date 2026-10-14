@@ -437,7 +437,9 @@ function useActiveCell<T>({
 	// input, and it beats an effect that resynchronizes a render late.
 	if (stranded && !controlled && !declined) setMaskedCell(candidate)
 
-	const activeEdit = declined ? entry.from : stranded || masked ? null : candidate
+	const live = stranded || masked ? null : candidate
+
+	const activeEdit = declined ? entry.from : live
 
 	return { raw, setValue, settled, setSettled, activeEdit }
 }
@@ -840,10 +842,10 @@ export function useGridEditing<T>({
 			next: GridActiveEdit | null,
 			exit?: { rowKey: string | number; discard: boolean; reseat: boolean },
 		) => {
-			const current = activeEditRef.current
+			const prev = activeEditRef.current
 
 			const request = requestRef.current ?? {
-				to: current,
+				to: prev,
 				endRows: new Set(),
 				discard: null,
 				blur: false,
@@ -857,7 +859,7 @@ export function useGridEditing<T>({
 
 			if (exit?.reseat) request.blur = true
 
-			if (exit?.discard) request.discard = current
+			if (exit?.discard) request.discard = prev
 
 			requestRef.current = request
 
@@ -1499,7 +1501,7 @@ export function useGridEditing<T>({
 
 		if (awaiting.size === 0) return
 
-		const declined = new Set([...awaiting].filter((row) => !editableRows.has(row)))
+		const declined = new Set([...awaiting].filter((rowKey) => !editableRows.has(rowKey)))
 
 		awaiting.clear()
 

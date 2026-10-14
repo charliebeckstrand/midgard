@@ -130,12 +130,12 @@ export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {
 		>
 			{/* Global row indices for the windowed rows; see `ariaRowIndex` for the
 			    offset math (a paginated, virtualized window starts past prior pages). */}
-			{virtualItems.map((vr) =>
+			{virtualItems.map((virtualItem) =>
 				renderGridRow(
 					props,
-					rows[vr.index] as T,
-					vr.index,
-					ariaRowIndex(props.rowIndexOffset, vr.index),
+					rows[virtualItem.index] as T,
+					virtualItem.index,
+					ariaRowIndex(props.rowIndexOffset, virtualItem.index),
 				),
 			)}
 		</GridWindowBody>

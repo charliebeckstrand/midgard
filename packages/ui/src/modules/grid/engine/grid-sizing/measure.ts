@@ -254,7 +254,7 @@ function resolvePendingLeaves(scans: readonly ColumnScan[]): void {
 		}
 	}
 
-	for (const [i, { leaf }] of pending.entries()) leaf.style.width = prior[i] ?? ''
+	for (const [index, { leaf }] of pending.entries()) leaf.style.width = prior[index] ?? ''
 }
 
 /**

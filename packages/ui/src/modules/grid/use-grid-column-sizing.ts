@@ -117,11 +117,11 @@ type GridColumnSizingResult = {
  * reserves it. @internal
  */
 function tableChrome(container: HTMLElement, totalSize: number): number {
-	const element = container.querySelector('table')
+	const table = container.querySelector('table')
 
-	if (!element) return 0
+	if (!table) return 0
 
-	return Math.max(0, Math.round(element.getBoundingClientRect().width - totalSize))
+	return Math.max(0, Math.round(table.getBoundingClientRect().width - totalSize))
 }
 
 /**
@@ -256,17 +256,11 @@ export function useGridColumnSizing<T>({
 		[columnFloors],
 	)
 
-	// Rendered rows' fingerprint — the count and the set of keys — so a page turn
-	// or filter that changes the visible rows re-measures (new content can be
-	// wider). Supplied by the caller (see the option), because the engine
-	// builds no row model to read it from.
-	const rowsSig = rowsSignature
-
 	// A non-data column holds the width it declares, and the fit shares the rest.
 	// That width is part of the structure, so a new one (the new-row slot's Add
 	// column, as it measures its control) re-fits the other columns, even under
 	// frozen widths.
-	const structSig = useMemo(
+	const structSignature = useMemo(
 		() =>
 			`${columns.map((col) => (isDataColumn(col) ? String(col.id) : `${col.id}:${col.width ?? ''}`)).join('')}|${density ?? ''}`,
 		[columns, density],
@@ -274,7 +268,7 @@ export function useGridColumnSizing<T>({
 
 	// The struct signature the sizer's cached content belongs to. A change drops
 	// that cache, because the columns or their padding changed under it.
-	const cacheSigRef = useRef('')
+	const cacheSignatureRef = useRef('')
 
 	// What the sizer reads for one command, or `null` with no layout (jsdom,
 	// display:none, a collapsed panel), where a DOM read measures nothing.
@@ -285,10 +279,10 @@ export function useGridColumnSizing<T>({
 
 		if (!container || !width) return null
 
-		if (cacheSigRef.current !== structSig) {
+		if (cacheSignatureRef.current !== structSignature) {
 			sizer.forget()
 
-			cacheSigRef.current = structSig
+			cacheSignatureRef.current = structSignature
 		}
 
 		return {
@@ -298,7 +292,7 @@ export function useGridColumnSizing<T>({
 			sizeOf: (id) => table.getColumn(id)?.getSize() ?? DEFAULT_COLUMN_SIZE,
 			measure: (scan) => measureColumns({ columns, container, scan }),
 		}
-	}, [containerRef, columns, fitContent, table, structSig, sizer])
+	}, [containerRef, columns, fitContent, table, structSignature, sizer])
 
 	// Writes what the sizer returns. An automatic fit writes flagged, off the
 	// consumer's binding. A user choice writes unflagged, so it persists like a
@@ -418,7 +412,7 @@ export function useGridColumnSizing<T>({
 	const refitLatest = useStableEvent(refit)
 
 	// Re-measure when the columns or the density change, when `fitContent` changes
-	// the space the fit shares, or when the visible rows change (`rowsSig` — a
+	// the space the fit shares, or when the visible rows change (`rowsSignature` — a
 	// page turn or filter can bring wider content into view). Keyed on those values
 	// and not on the identity of `refit`, which also moves with callbacks that change
 	// no width, so a render that changes none of them measures nothing. The values at
@@ -438,16 +432,18 @@ export function useGridColumnSizing<T>({
 
 		const fitted = fittedRef.current
 
-		fittedRef.current = { columns, struct: structSig, rows: rowsSig, fitContent }
+		fittedRef.current = { columns, struct: structSignature, rows: rowsSignature, fitContent }
 
 		if (fitted === null) return
 
 		// A new `columns` can carry new width rules (a `minWidth`, a `maxWidth`) under the
 		// same ids, so it counts as a change of the structure.
 		const structChanged =
-			fitted.columns !== columns || fitted.struct !== structSig || fitted.fitContent !== fitContent
+			fitted.columns !== columns ||
+			fitted.struct !== structSignature ||
+			fitted.fitContent !== fitContent
 
-		const rowsChanged = fitted.rows !== rowsSig
+		const rowsChanged = fitted.rows !== rowsSignature
 
 		if (!structChanged && !rowsChanged) return
 
@@ -460,7 +456,16 @@ export function useGridColumnSizing<T>({
 		if (freezeOnRowChange && !structChanged && sizer.measured()) return
 
 		refitLatest(true)
-	}, [automatic, refitLatest, columns, rowsSig, structSig, fitContent, freezeOnRowChange, sizer])
+	}, [
+		automatic,
+		refitLatest,
+		columns,
+		rowsSignature,
+		structSignature,
+		fitContent,
+		freezeOnRowChange,
+		sizer,
+	])
 
 	// Fit when the body's rendered rows change and the last pass had none to measure.
 	// A windowed body renders its rows in a later commit than the one that supplied
@@ -484,12 +489,12 @@ export function useGridColumnSizing<T>({
 	// frame carries real widths instead of flashing the engine's default colgroup.
 	// The observer below holds that guarantee for every *later* resize; see it.
 	useLayoutEffect(() => {
-		const element = containerRef?.current
+		const container = containerRef?.current
 
 		// Nothing here will ever size these columns — not resizable, sizing controlled by
 		// the consumer, or no `ResizeObserver` (SSR, jsdom). There is nothing to wait for,
 		// so let the table paint immediately.
-		if (!automatic || !element || typeof ResizeObserver === 'undefined') {
+		if (!automatic || !container || typeof ResizeObserver === 'undefined') {
 			setSettled(true)
 
 			return
@@ -544,7 +549,7 @@ export function useGridColumnSizing<T>({
 		 */
 		const observer = new ResizeObserver(() => flushSync(() => refitLatest(false)))
 
-		observer.observe(element)
+		observer.observe(container)
 
 		return () => {
 			canceled = true

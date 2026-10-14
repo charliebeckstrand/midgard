@@ -63,8 +63,8 @@ export function GridGroupHead({
 
 	return (
 		<TableRow aria-rowindex={ariaRowIndex}>
-			{header.spans.map((span, i) => {
-				const cellColIndex = gridSemantics ? startIndices[i] : undefined
+			{header.spans.map((span, index) => {
+				const cellColIndex = gridSemantics ? startIndices[index] : undefined
 
 				return (
 					<GridGroupHeadCell
@@ -108,12 +108,11 @@ function GridGroupHeadCell({
 	// from the neighboring group. Colored in the group's hue, or a neutral gray
 	// when it has none (matching a colorless row group's rail), so clearing a color
 	// leaves the underline in place rather than dropping it.
-	const ruleColor =
-		span.kind === 'group'
-			? span.group.color
-				? k.rule.color[span.group.color]
-				: k.rule.neutral
-			: null
+	const group = span.kind === 'group' ? span.group : null
+
+	const hue = group?.color ? k.rule.color[group.color] : k.rule.neutral
+
+	const ruleColor = group ? hue : null
 
 	// The description of a group reaches the keyboard and a screen reader as
 	// hidden text that the band describes itself by. The tooltip over the badge

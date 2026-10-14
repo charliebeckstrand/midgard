@@ -145,10 +145,10 @@ const NO_FACETS: GridColumnFacets = { values: [], span: undefined }
 export function toColumnFacets(values: Iterable<unknown>, locale?: string): GridColumnFacets {
 	const all = [...values]
 
-	const text = all.filter((value) => value != null && value !== '').map((value) => String(value))
+	const texts = all.filter((value) => value != null && value !== '').map((value) => String(value))
 
 	return {
-		values: [...new Set(text)].sort(naturalCollator(locale).compare),
+		values: [...new Set(texts)].sort(naturalCollator(locale).compare),
 		span: facetSpan(all),
 	}
 }

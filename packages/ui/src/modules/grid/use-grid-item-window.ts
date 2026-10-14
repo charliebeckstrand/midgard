@@ -171,7 +171,7 @@ export function useGridItemWindow<I extends WindowItem>(
 		[items, estimateSize],
 	)
 
-	const win = useVirtualWindow({
+	const virtualWindow = useVirtualWindow({
 		count: items.length,
 		getScrollElement,
 		estimateSize: estimate,
@@ -181,13 +181,13 @@ export function useGridItemWindow<I extends WindowItem>(
 	})
 
 	// The autosizer fits the columns again once the window's rows render.
-	useGridFitRenderedRows(win.virtualItems.length, fitRenderedRows)
+	useGridFitRenderedRows(virtualWindow.virtualItems.length, fitRenderedRows)
 
 	// Each commit records its window by reference. A toggle reads it later
 	// through `gridWindowView`, so a commit with no toggle reads nothing.
 	useLayoutEffect(() => {
 		recordRef.current = {
-			virtualItems: win.virtualItems,
+			virtualItems: virtualWindow.virtualItems,
 			items,
 			paddingStart: offsets.scrollPaddingStart,
 		}
@@ -216,7 +216,7 @@ export function useGridItemWindow<I extends WindowItem>(
 	// the item with that key into the window before the cursor points at it.
 	const { scrollIntoViewRef } = options
 
-	const { scrollToIndex } = win
+	const { scrollToIndex } = virtualWindow
 
 	useEffect(() => {
 		if (!scrollIntoViewRef) return
@@ -232,5 +232,5 @@ export function useGridItemWindow<I extends WindowItem>(
 		}
 	}, [scrollIntoViewRef, scrollToIndex, recordRef])
 
-	return { bodyRef, closingEndItem, ...win }
+	return { bodyRef, closingEndItem, ...virtualWindow }
 }

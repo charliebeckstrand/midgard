@@ -53,9 +53,9 @@ export function reorderGroups(
 	activeGroupId: string,
 	overGroupId: string,
 ): GridColumnGroup[] {
-	const from = groups.findIndex((g) => String(g.id) === activeGroupId)
+	const from = groups.findIndex((group) => String(group.id) === activeGroupId)
 
-	const to = groups.findIndex((g) => String(g.id) === overGroupId)
+	const to = groups.findIndex((group) => String(group.id) === overGroupId)
 
 	if (from === -1 || to === -1 || from === to) return groups
 
@@ -78,7 +78,7 @@ export function addGroupTo(groups: GridColumnGroup[], group: GridColumnGroup): G
 
 /** Drops a group by id; its columns fall back to ungrouped. @internal */
 export function removeGroupFrom(groups: GridColumnGroup[], id: string | number): GridColumnGroup[] {
-	return groups.filter((g) => g.id !== id)
+	return groups.filter((group) => group.id !== id)
 }
 
 /** Sets a group's title. @internal */
@@ -87,7 +87,7 @@ export function renameGroupIn(
 	id: string | number,
 	title: string,
 ): GridColumnGroup[] {
-	return groups.map((g) => (g.id === id ? { ...g, title } : g))
+	return groups.map((group) => (group.id === id ? { ...group, title } : group))
 }
 
 /** Sets (or clears) a group's color. @internal */
@@ -96,7 +96,7 @@ export function recolorGroupIn(
 	id: string | number,
 	color: PaletteColor | undefined,
 ): GridColumnGroup[] {
-	return groups.map((g) => (g.id === id ? { ...g, color } : g))
+	return groups.map((group) => (group.id === id ? { ...group, color } : group))
 }
 
 /**
@@ -115,14 +115,14 @@ export function assignColumn(
 	columnId: string | number,
 	groupId: string | number | null,
 ): GridColumnGroup[] {
-	return groups.map((g) => {
-		const without = g.columns.filter((id) => id !== columnId)
+	return groups.map((group) => {
+		const without = group.columns.filter((id) => id !== columnId)
 
-		if (g.id === groupId) return { ...g, columns: [...without, columnId] }
+		if (group.id === groupId) return { ...group, columns: [...without, columnId] }
 
-		if (without.length === g.columns.length) return g
+		if (without.length === group.columns.length) return group
 
-		return { ...g, columns: without }
+		return { ...group, columns: without }
 	})
 }
 
@@ -185,7 +185,7 @@ export function findZoneId(map: ZoneMap, id: string): string | undefined {
 }
 
 /**
- * Moves `activeStr` out of its zone and into `overStr`'s zone, at the insertion
+ * Moves `activeId` out of its zone and into `overId`'s zone, at the insertion
  * point. That point is the end when dropping on the zone itself, else the
  * over-item's slot. It is nudged past that slot when the pointer is below the
  * over-item's midpoint (`below`). Returns the map unchanged (same reference) for a within-zone or invalid move,
@@ -196,13 +196,13 @@ export function findZoneId(map: ZoneMap, id: string): string | undefined {
  */
 export function moveBetweenZones(
 	map: ZoneMap,
-	activeStr: string,
-	overStr: string,
+	activeId: string,
+	overId: string,
 	below: boolean,
 ): ZoneMap {
-	const from = findZoneId(map, activeStr)
+	const from = findZoneId(map, activeId)
 
-	const to = findZoneId(map, overStr)
+	const to = findZoneId(map, overId)
 
 	if (!from || !to || from === to) return map
 
@@ -210,42 +210,42 @@ export function moveBetweenZones(
 
 	const toIds = map[to] ?? []
 
-	if (!fromIds.includes(activeStr)) return map
+	if (!fromIds.includes(activeId)) return map
 
 	// Dropping on the zone itself appends; over a column inserts at its slot,
 	// one past it when the pointer has crossed the column's midpoint.
-	const overIndex = toIds.indexOf(overStr)
+	const overIndex = toIds.indexOf(overId)
 
 	const insertIndex =
-		overStr === zoneDropId(to) || overIndex === -1 ? toIds.length : overIndex + (below ? 1 : 0)
+		overId === zoneDropId(to) || overIndex === -1 ? toIds.length : overIndex + (below ? 1 : 0)
 
 	return {
 		...map,
-		[from]: fromIds.filter((id) => id !== activeStr),
-		[to]: [...toIds.slice(0, insertIndex), activeStr, ...toIds.slice(insertIndex)],
+		[from]: fromIds.filter((id) => id !== activeId),
+		[to]: [...toIds.slice(0, insertIndex), activeId, ...toIds.slice(insertIndex)],
 	}
 }
 
 /**
  * Settles a same-zone reorder on drop (a cross-zone move already landed live in
- * `onDragOver`). Moves `activeStr` to `overStr`'s slot within their shared zone,
+ * `onDragOver`). Moves `activeId` to `overId`'s slot within their shared zone,
  * or to the end when dropped on the zone's droppable. It returns the map unchanged
  * for a cross-zone drop, or a no-op.
  *
  * @internal
  */
-export function settleDragEnd(map: ZoneMap, activeStr: string, overStr: string): ZoneMap {
-	const from = findZoneId(map, activeStr)
+export function settleDragEnd(map: ZoneMap, activeId: string, overId: string): ZoneMap {
+	const from = findZoneId(map, activeId)
 
-	const to = findZoneId(map, overStr)
+	const to = findZoneId(map, overId)
 
 	if (!from || !to || from !== to) return map
 
 	const ids = map[from] ?? []
 
-	const oldIndex = ids.indexOf(activeStr)
+	const oldIndex = ids.indexOf(activeId)
 
-	const newIndex = overStr === zoneDropId(from) ? ids.length - 1 : ids.indexOf(overStr)
+	const newIndex = overId === zoneDropId(from) ? ids.length - 1 : ids.indexOf(overId)
 
 	if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return map
 
@@ -258,7 +258,7 @@ export function settleDragEnd(map: ZoneMap, activeStr: string, overStr: string):
  * left over append at the end.
  */
 function mergeHeldMembers(
-	previous: (string | number)[],
+	prev: (string | number)[],
 	zoneIds: (string | number)[],
 	isOrderable: (id: string | number) => boolean,
 ): (string | number)[] {
@@ -266,7 +266,7 @@ function mergeHeldMembers(
 
 	let index = 0
 
-	for (const id of previous) {
+	for (const id of prev) {
 		if (!isOrderable(id)) next.push(id)
 		else if (index < zoneIds.length) next.push(zoneIds[index++] as string | number)
 	}
@@ -292,7 +292,7 @@ export function zoneMapToStores(
 ): { groups: GridColumnGroup[]; order: (string | number)[] } {
 	// The map carries stringified ids; resolve each back to its real column id
 	// through a lookup built once, not a linear scan per id.
-	const byString = new Map(orderableIds.map((c) => [String(c), c] as const))
+	const byString = new Map(orderableIds.map((id) => [String(id), id] as const))
 
 	const realId = (id: string): string | number => byString.get(id) ?? id
 
@@ -300,9 +300,13 @@ export function zoneMapToStores(
 	// column) keeps its slot in the group, as the "Move to" path keeps it.
 	const isOrderable = (id: string | number) => byString.has(String(id))
 
-	const nextGroups = groups.map((g) => ({
-		...g,
-		columns: mergeHeldMembers(g.columns, (map[String(g.id)] ?? []).map(realId), isOrderable),
+	const nextGroups = groups.map((group) => ({
+		...group,
+		columns: mergeHeldMembers(
+			group.columns,
+			(map[String(group.id)] ?? []).map(realId),
+			isOrderable,
+		),
 	}))
 
 	const ungroupedIds = (map[UNGROUPED] ?? []).map(realId)

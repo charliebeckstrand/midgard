@@ -102,12 +102,13 @@ export function useGridDataView<T>({
 	// Only the cursor reads the row indices, so a grid with no cursor skips the
 	// map, which is one entry for each row.
 	const rowIndexMap = useMemo(
-		() => new Map(cursorEnabled ? renderRows.map((row, i) => [row, i] as const) : undefined),
+		() =>
+			new Map(cursorEnabled ? renderRows.map((row, index) => [row, index] as const) : undefined),
 		[cursorEnabled, renderRows],
 	)
 
 	const colIndexMap = useMemo(
-		() => new Map(dataColumns.map((col, i) => [col.id, i] as const)),
+		() => new Map(dataColumns.map((col, index) => [col.id, index] as const)),
 		[dataColumns],
 	)
 
