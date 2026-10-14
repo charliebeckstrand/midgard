@@ -441,7 +441,7 @@ export function GridRowImpl<T>({
 			{columns.map((col, index) => {
 				// Cell column indices accompany `aria-rowindex`, which grid semantics
 				// set (rowIndex is only set then).
-				const colIndex = rowIndex !== undefined ? index + 1 : undefined
+				const ariaColIndex = rowIndex !== undefined ? index + 1 : undefined
 
 				const specialClass = specialCellClass(col)
 
@@ -451,7 +451,7 @@ export function GridRowImpl<T>({
 					return (
 						<TableCell
 							key={col.id}
-							aria-colindex={colIndex}
+							aria-colindex={ariaColIndex}
 							className={cn(specialClass, pinned.className)}
 							style={pinned.style}
 							data-grid-pin={pinned.pin}
@@ -485,7 +485,9 @@ export function GridRowImpl<T>({
 				// The Add column of the new-row slot is empty in a data row, so its
 				// cell reads no editing session.
 				if (isNewRowAddColumn(col.id)) {
-					return <TableCell key={col.id} aria-colindex={colIndex} className={cn(k.cell.actions)} />
+					return (
+						<TableCell key={col.id} aria-colindex={ariaColIndex} className={cn(k.cell.actions)} />
+					)
 				}
 
 				return (
@@ -495,7 +497,7 @@ export function GridRowImpl<T>({
 						row={row}
 						rowIndex={cellRowIndex(col, dataRowIndex)}
 						rowKey={rowKey}
-						colIndex={colIndex}
+						ariaColIndex={ariaColIndex}
 						columnIndex={index}
 						reorderable={reorderable}
 						truncate={truncate}

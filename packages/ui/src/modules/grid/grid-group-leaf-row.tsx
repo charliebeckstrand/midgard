@@ -145,7 +145,7 @@ type GridGroupLeafCellProps<T> = {
 	/** Stable focused-cell activation for cell roving. */
 	cellActivate?: GridCellRovingActivate<T>
 	/** The 1-based `aria-colindex`, set when the row carries an `aria-rowindex`. */
-	colIndex?: number
+	ariaColIndex?: number
 }
 
 /**
@@ -174,7 +174,7 @@ function GridGroupLeafCell<T>({
 	pad,
 	cellRoving = false,
 	cellActivate,
-	colIndex,
+	ariaColIndex,
 }: GridGroupLeafCellProps<T>) {
 	// Only data cells rove; the non-data columns (selection, actions, drag handle,
 	// expander) stay plain. `cellRovingAttrs` returns the marker + Enter/Space activation.
@@ -200,7 +200,7 @@ function GridGroupLeafCell<T>({
 			// Marks a data cell, as on a flat row. The cell menu, the cell click, and
 			// the autosizer read it, so a non-data cell carries none.
 			data-grid-col={dataCell ? col.id : undefined}
-			aria-colindex={colIndex}
+			aria-colindex={ariaColIndex}
 			{...roving}
 			// The first cell carries the group's rail, so it runs unbroken down the
 			// group's leaf rows and joins the header's segment above — in the group's
@@ -339,7 +339,7 @@ function GridGroupLeafRowImpl<T>({
 							pad={pad}
 							cellRoving={cellRoving}
 							cellActivate={cellActivate}
-							colIndex={windowRow['aria-rowindex'] !== undefined ? index + 1 : undefined}
+							ariaColIndex={windowRow['aria-rowindex'] !== undefined ? index + 1 : undefined}
 						/>
 					)
 				})}

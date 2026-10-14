@@ -28,7 +28,7 @@ type GridDataCellProps<T> = {
 	rowIndex: number
 	/** The owning row's key, carried so cell roving can build the {@link GridCellClickContext}. */
 	rowKey: string | number
-	colIndex: number | undefined
+	ariaColIndex: number | undefined
 	/** 0-based visible column index, matching the header's, so a reorder drag keys the body shift the same way. */
 	columnIndex: number
 	reorderable: boolean
@@ -54,7 +54,7 @@ function GridDataCellImpl<T>({
 	row,
 	rowIndex,
 	rowKey,
-	colIndex,
+	ariaColIndex,
 	columnIndex,
 	reorderable,
 	truncate,
@@ -84,7 +84,7 @@ function GridDataCellImpl<T>({
 			<GridReorderableCell
 				id={col.id}
 				columnIndex={columnIndex}
-				colIndex={colIndex}
+				ariaColIndex={ariaColIndex}
 				className={cn(rovingClass, col.className)}
 				cellProps={roving ? { ...cellProps, ...roving } : cellProps}
 			>
@@ -99,7 +99,7 @@ function GridDataCellImpl<T>({
 
 	return (
 		<TableCell
-			aria-colindex={colIndex}
+			aria-colindex={ariaColIndex}
 			{...cellProps}
 			{...roving}
 			data-grid-col={col.id}
@@ -125,7 +125,7 @@ type GridReorderableCellProps = {
 	id: string | number
 	/** 0-based visible column index keying the CSS-variable shift its header writes. */
 	columnIndex: number
-	colIndex: number | undefined
+	ariaColIndex: number | undefined
 	className: string | undefined
 	cellProps: Omit<ComponentProps<'td'>, 'children'> | undefined
 	children: ReactNode
@@ -147,7 +147,7 @@ type GridReorderableCellProps = {
 function GridReorderableCell({
 	id,
 	columnIndex,
-	colIndex,
+	ariaColIndex,
 	className,
 	cellProps,
 	children,
@@ -156,7 +156,7 @@ function GridReorderableCell({
 
 	return (
 		<TableCell
-			aria-colindex={colIndex}
+			aria-colindex={ariaColIndex}
 			{...cellProps}
 			data-dragging={dataAttr(dragging)}
 			data-grid-col={id}

@@ -15,8 +15,8 @@ import type { GridColumn } from './types'
 
 /** Props for the editing-aware data cell. @internal */
 type GridEditingCellProps<T> = {
-	rowIdx: number
-	colIdx: number
+	rowIndex: number
+	colIndex: number
 	rowKey: string | number
 	row: T
 	column: GridColumn<T>
@@ -104,8 +104,8 @@ const CELL_HELD = 'held'
  * @internal
  */
 export function GridEditingCell<T>({
-	rowIdx,
-	colIdx,
+	rowIndex,
+	colIndex,
 	rowKey,
 	row,
 	column,
@@ -156,7 +156,7 @@ export function GridEditingCell<T>({
 		const value = readDraft(rowKey, columnId)?.value
 
 		return (
-			<GridNavCell row={rowIdx} col={colIdx}>
+			<GridNavCell row={rowIndex} col={colIndex}>
 				<GridPendingCell>{render?.(pendingRow(row, column, value))}</GridPendingCell>
 			</GridNavCell>
 		)
@@ -167,9 +167,9 @@ export function GridEditingCell<T>({
 	// seat on this cell, and the ring is then the only mark of it (WCAG 2.4.7).
 	if (flag !== CELL_READING && isColumnEditable(column)) {
 		return (
-			<GridNavCell row={rowIdx} col={colIdx}>
+			<GridNavCell row={rowIndex} col={colIndex}>
 				<GridCellEditor
-					rowIdx={rowIdx}
+					rowIndex={rowIndex}
 					rowKey={rowKey}
 					row={row}
 					column={column}
@@ -189,7 +189,7 @@ export function GridEditingCell<T>({
 	}
 
 	return (
-		<GridNavCell row={rowIdx} col={colIdx}>
+		<GridNavCell row={rowIndex} col={colIndex}>
 			{searchedContent(column, render?.(row))}
 		</GridNavCell>
 	)

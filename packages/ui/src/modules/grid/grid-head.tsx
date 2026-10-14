@@ -128,7 +128,7 @@ export function GridHead<T>({
 						key={col.id}
 						column={col}
 						// Header column indices accompany the global row-index scheme.
-						colIndex={gridSemantics ? index + 1 : undefined}
+						ariaColIndex={gridSemantics ? index + 1 : undefined}
 						columnIndex={index}
 						hasRows={hasRows}
 						interactive={interactive}
@@ -148,7 +148,7 @@ export function GridHead<T>({
 /** Props for {@link GridHeaderCell}. @internal */
 type GridHeaderCellProps<T> = {
 	column: GridColumn<T>
-	colIndex: number | undefined
+	ariaColIndex: number | undefined
 	/** 0-based visible column index, shared with the row cells so a reorder drag keys its CSS-variable shift the same way. */
 	columnIndex: number
 	/** Visible-rows flag for the select-all checkbox. */
@@ -202,7 +202,7 @@ function headerSizing<T>(resize: GridColumnResize | null, column: GridColumn<T>)
  */
 function GridHeaderCell<T>({
 	column,
-	colIndex,
+	ariaColIndex,
 	columnIndex,
 	hasRows,
 	interactive,
@@ -219,7 +219,7 @@ function GridHeaderCell<T>({
 		return (
 			<GridStaticHeaderCell
 				column={column}
-				colIndex={colIndex}
+				ariaColIndex={ariaColIndex}
 				stickyHeader={stickyHeader}
 				pinning={pinning}
 				showCheckbox={hasRows}
@@ -232,7 +232,7 @@ function GridHeaderCell<T>({
 
 	const shared = {
 		column,
-		colIndex,
+		ariaColIndex,
 		columnIndex,
 		sorted,
 		direction,

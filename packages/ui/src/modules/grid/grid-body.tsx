@@ -329,7 +329,7 @@ function renderGroupedBody<T>(
 				renderHeader={groupRenderHeader}
 				totaled={totaled}
 				presentation={rowGroupPresentation}
-				window={rowWindow}
+				rowWindow={rowWindow}
 			/>
 		)
 	}
