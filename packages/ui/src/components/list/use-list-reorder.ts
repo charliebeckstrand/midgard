@@ -35,6 +35,12 @@ const getServerSnapshot = () => null
  * the rows again. When the module has arrived before the list mounts, the list
  * renders the group in its first render, except in a hydration render.
  *
+ * The hook starts the load one time for each mount. If that load fails, the
+ * hook does not try again. The list stays a plain `<ul>`, the keyboard reorder
+ * works, and a pointer drag does not start. A later load that is successful
+ * heals the list: for example, when a different reorderable list mounts, or
+ * when this list mounts again.
+ *
  * @internal
  */
 export function useListReorder(enabled: boolean): ListReorderParts | undefined {
