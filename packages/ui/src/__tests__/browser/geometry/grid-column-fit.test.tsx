@@ -556,12 +556,12 @@ describe('grid column auto-sizing at device pixel ratio 2 (real browser)', () =>
 		clickMenuItem(label)
 	}
 
-	for (const frame of [200, 1400]) {
-		it(`clips no header and no cell in a ${frame}px frame`, async () => {
+	for (const width of [200, 1400]) {
+		it(`clips no header and no cell in a ${width}px frame`, async () => {
 			expect(window.devicePixelRatio).toBe(2)
 
 			const { container } = renderUI(
-				<div style={{ width: `${frame}px` }}>
+				<div style={{ width: `${width}px` }}>
 					<Grid columns={columns} rows={rows} getKey={(row) => row.id} />
 				</div>,
 			)

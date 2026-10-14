@@ -120,15 +120,15 @@ describe('verticalLayout value-label room', () => {
 		// that boundary; reading the floor under the tallest band instead makes
 		// the verdict band-independent, so it can only move one way in a shrink.
 		for (let frameHeight = 60; frameHeight <= 400; frameHeight += 1) {
-			const thinned = verticalLayout({ ...input(frameHeight, 25), bandAxis: 'thinned' })
+			const thin = verticalLayout({ ...input(frameHeight, 25), bandAxis: 'thinned' })
 
 			const ends = verticalLayout({ ...input(frameHeight, 25), bandAxis: 'ends' })
 
 			const off = verticalLayout({ ...input(frameHeight, 25), bandAxis: 'off' })
 
-			expect(ends.valueLabelRoom).toBe(thinned.valueLabelRoom)
+			expect(ends.valueLabelRoom).toBe(thin.valueLabelRoom)
 
-			expect(off.valueLabelRoom).toBe(thinned.valueLabelRoom)
+			expect(off.valueLabelRoom).toBe(thin.valueLabelRoom)
 		}
 	})
 
