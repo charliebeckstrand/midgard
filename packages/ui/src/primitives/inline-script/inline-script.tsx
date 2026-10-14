@@ -2,7 +2,8 @@
 export type InlineScriptProps = {
 	/**
 	 * The source of the script. Build it from constants and from values that
-	 * `JSON.stringify` encodes. Never put a value from a user in it.
+	 * `JSON.stringify` encodes. Never put a value from a user in it, because the
+	 * script runs with the full rights of the page.
 	 */
 	source: string
 	/** The `id` of the script element. */
@@ -11,8 +12,12 @@ export type InlineScriptProps = {
 
 /**
  * A `<script>` element that runs where the parser meets it, before React
- * hydrates. React escapes a text child, so the source goes in as raw HTML.
- * This is the one place in the package that writes a script as raw HTML.
+ * hydrates. This is the one place in the package that writes a script with
+ * inline source.
+ *
+ * The source is the text child of the element. The server renderer of React
+ * writes the text of a script as it is, and it escapes only `<script` and
+ * `</script`, so the source cannot close the element.
  *
  * It has no `'use client'` and reads no context, so a server component and a
  * client component can each render it.
@@ -20,6 +25,5 @@ export type InlineScriptProps = {
  * @internal
  */
 export function InlineScript({ source, id }: InlineScriptProps) {
-	// biome-ignore lint/security/noDangerouslySetInnerHtml: each caller builds the source from constants and JSON-encoded values that it owns (see `source`).
-	return <script id={id} dangerouslySetInnerHTML={{ __html: source }} />
+	return <script id={id}>{source}</script>
 }
