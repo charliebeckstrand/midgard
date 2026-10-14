@@ -166,7 +166,7 @@ export function LightboxStage({
 
 	const flight = useLightboxFlight(photoRef)
 
-	const close = () => onIndexChange(null)
+	const handleClose = () => onIndexChange(null)
 
 	// The scrim and the controls, which a swipe to close fades.
 	const backdropRef = useRef<HTMLDivElement>(null)
@@ -186,9 +186,9 @@ export function LightboxStage({
 		onAim: (to) => setAim({ from: index, to }),
 		// A tap on the stage outside the photo closes the viewer.
 		onTap: (event) => {
-			if (!(event.target instanceof HTMLImageElement)) close()
+			if (!(event.target instanceof HTMLImageElement)) handleClose()
 		},
-		onDismiss: close,
+		onDismiss: handleClose,
 		dimmed: () => [backdropRef.current, controlsRef.current],
 	})
 
@@ -364,7 +364,7 @@ export function LightboxStage({
 					<Button
 						type="button"
 						aria-label={labels.close}
-						onClick={close}
+						onClick={handleClose}
 						className={cn(closable ? k.close.shown : k.close.hidden)}
 					>
 						<Icon icon={<X />} />

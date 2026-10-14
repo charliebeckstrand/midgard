@@ -125,7 +125,8 @@ export function paintedFrame(
 	slot: LightboxBox,
 	rest: LightboxBox,
 ): LightboxFrame {
-	const [photoX = 1, , , photoY = 1, photoLeft = 0, photoTop = 0] = matrixOf(photoTransform)
+	const [photoScaleX = 1, , , photoScaleY = 1, photoLeft = 0, photoTop = 0] =
+		matrixOf(photoTransform)
 
 	const [scaleX = 1, , , scaleY = 1, left = 0, top = 0] = matrixOf(slotTransform)
 
@@ -135,8 +136,8 @@ export function paintedFrame(
 		const y = rest.y + photoTop
 
 		return {
-			clip: { x, y, width: rest.width * photoX, height: rest.height * photoY },
-			photo: { x, y, scale: photoX },
+			clip: { x, y, width: rest.width * photoScaleX, height: rest.height * photoScaleY },
+			photo: { x, y, scale: photoScaleX },
 		}
 	}
 
@@ -152,7 +153,7 @@ export function paintedFrame(
 		photo: {
 			x: clip.x + scaleX * (rest.x - slot.x + photoLeft),
 			y: clip.y + scaleY * (rest.y - slot.y + photoTop),
-			scale: photoX * scaleX,
+			scale: photoScaleX * scaleX,
 		},
 	}
 }
@@ -358,11 +359,11 @@ export type LightboxTap = LightboxPoint & { at: number }
  *
  * @internal
  */
-export function isDoubleTap(previous: LightboxTap | null, tap: LightboxTap): boolean {
+export function isDoubleTap(prev: LightboxTap | null, tap: LightboxTap): boolean {
 	return (
-		previous !== null &&
-		tap.at - previous.at <= DOUBLE_TAP_WINDOW &&
-		Math.hypot(tap.x - previous.x, tap.y - previous.y) <= DOUBLE_TAP_SLOP
+		prev !== null &&
+		tap.at - prev.at <= DOUBLE_TAP_WINDOW &&
+		Math.hypot(tap.x - prev.x, tap.y - prev.y) <= DOUBLE_TAP_SLOP
 	)
 }
 

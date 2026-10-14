@@ -18,7 +18,7 @@ export type ZodLike = { safeParse: (input: unknown) => ZodParseResult }
  * @internal
  */
 function bucketZodIssues(issues: ReadonlyArray<ZodIssue>): Record<string, string[] | undefined> {
-	const next: Record<string, string[] | undefined> = {}
+	const buckets: Record<string, string[] | undefined> = {}
 
 	for (const issue of issues) {
 		const head = issue.path[0]
@@ -27,14 +27,14 @@ function bucketZodIssues(issues: ReadonlyArray<ZodIssue>): Record<string, string
 
 		const key = String(head)
 
-		const bucket = next[key]
+		const bucket = buckets[key]
 
 		if (bucket) {
 			if (!bucket.includes(issue.message)) bucket.push(issue.message)
-		} else next[key] = [issue.message]
+		} else buckets[key] = [issue.message]
 	}
 
-	return next
+	return buckets
 }
 
 /**
@@ -68,12 +68,12 @@ export function zodResolver<T extends Record<string, unknown>>(
 
 		const result = schema.safeParse(values)
 
-		const next = result.success ? {} : bucketZodIssues(result.error.issues)
+		const errors = result.success ? {} : bucketZodIssues(result.error.issues)
 
 		cachedValues = values
-		cachedErrors = next
+		cachedErrors = errors
 
-		return next
+		return errors
 	}
 
 	const validators = {} as Validators<T>

@@ -62,12 +62,12 @@ export function useFormValue<T>(
 		value: bound ? ((field.value as T | undefined) ?? null) : value,
 		defaultValue,
 		onValueChange: bound
-			? (v) => {
+			? (next) => {
 					// The store's "no value" is `undefined`; §7.3's `null` is a
 					// prop/callback contract, and writing it through would change
 					// submit payloads and reject `optional()` schema validators.
-					field.setValue(v ?? undefined)
-					onValueChange?.(v)
+					field.setValue(next ?? undefined)
+					onValueChange?.(next)
 				}
 			: onValueChange,
 	})

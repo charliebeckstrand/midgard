@@ -29,10 +29,10 @@ type FilterValue = Record<string, unknown>
  *
  * @internal
  */
-function isActive(v: unknown): boolean {
-	if (v === undefined || v === null || v === '') return false
+function isActive(value: unknown): boolean {
+	if (value === undefined || value === null || value === '') return false
 
-	if (Array.isArray(v) && v.length === 0) return false
+	if (Array.isArray(value) && value.length === 0) return false
 
 	return true
 }
@@ -111,7 +111,7 @@ export function Filters<T extends FilterValue = FilterValue>({
 	const [state, setState] = useControllable<T>({
 		value: valueProp,
 		defaultValue,
-		onValueChange: onValueChange && ((v) => v != null && onValueChange(v)),
+		onValueChange: onValueChange && ((next) => next != null && onValueChange(next)),
 	})
 
 	const filterValue = (state ?? NO_FILTERS) as T
@@ -141,7 +141,7 @@ export function Filters<T extends FilterValue = FilterValue>({
 	const handleClear = useCallback(() => {
 		setState(defaultValue ?? ({} as T))
 
-		setResets((n) => n + 1)
+		setResets((prev) => prev + 1)
 
 		onClear?.()
 	}, [defaultValue, setState, onClear])

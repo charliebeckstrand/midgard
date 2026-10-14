@@ -26,22 +26,22 @@ type NeighborKey = 'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight' | 'Home'
  */
 function resolveCrossColumn<T, C extends KanbanColumnBase<T>>(
 	columns: C[],
-	colIdx: number,
-	itemIdx: number,
+	columnIndex: number,
+	itemIndex: number,
 	key: 'ArrowLeft' | 'ArrowRight',
 ): { col: C; idx: number } | null {
-	const dir = key === 'ArrowLeft' ? -1 : 1
+	const direction = key === 'ArrowLeft' ? -1 : 1
 
-	let nextColIdx = colIdx + dir
+	let nextColumnIndex = columnIndex + direction
 
-	while (nextColIdx >= 0 && nextColIdx < columns.length) {
-		const nextCol = columns[nextColIdx]
+	while (nextColumnIndex >= 0 && nextColumnIndex < columns.length) {
+		const nextColumn = columns[nextColumnIndex]
 
-		if (nextCol && nextCol.items.length > 0) {
-			return { col: nextCol, idx: Math.min(itemIdx, nextCol.items.length - 1) }
+		if (nextColumn && nextColumn.items.length > 0) {
+			return { col: nextColumn, idx: Math.min(itemIndex, nextColumn.items.length - 1) }
 		}
 
-		nextColIdx += dir
+		nextColumnIndex += direction
 	}
 
 	return null
@@ -55,22 +55,22 @@ function resolveCrossColumn<T, C extends KanbanColumnBase<T>>(
  */
 function resolveNeighborTarget<T, C extends KanbanColumnBase<T>>(
 	columns: C[],
-	colIdx: number,
+	columnIndex: number,
 	col: C,
-	itemIdx: number,
+	itemIndex: number,
 	key: NeighborKey,
 ): { col: C; idx: number } | null {
 	switch (key) {
 		case 'ArrowUp':
-			return { col, idx: itemIdx - 1 }
+			return { col, idx: itemIndex - 1 }
 		case 'ArrowDown':
-			return { col, idx: itemIdx + 1 }
+			return { col, idx: itemIndex + 1 }
 		case 'Home':
 			return { col, idx: 0 }
 		case 'End':
 			return { col, idx: col.items.length - 1 }
 		default:
-			return resolveCrossColumn<T, C>(columns, colIdx, itemIdx, key)
+			return resolveCrossColumn<T, C>(columns, columnIndex, itemIndex, key)
 	}
 }
 
@@ -177,7 +177,7 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 	} = useKeyboardLifted(focusCard)
 
 	const findColumnByCardId = useCallback(
-		(id: string) => columns.find((c) => c.items.some((i) => getKey(i) === id)),
+		(id: string) => columns.find((column) => column.items.some((item) => getKey(item) === id)),
 		[columns, getKey],
 	)
 
@@ -191,17 +191,19 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 
 	const focusNeighbor = useCallback(
 		(cardId: string, key: NeighborKey) => {
-			const colIdx = columns.findIndex((c) => c.items.some((i) => getKey(i) === cardId))
+			const columnIndex = columns.findIndex((column) =>
+				column.items.some((item) => getKey(item) === cardId),
+			)
 
-			if (colIdx === -1) return false
+			if (columnIndex === -1) return false
 
-			const col = columns[colIdx]
+			const column = columns[columnIndex]
 
-			if (!col) return false
+			if (!column) return false
 
-			const itemIdx = col.items.findIndex((i) => getKey(i) === cardId)
+			const itemIndex = column.items.findIndex((item) => getKey(item) === cardId)
 
-			const target = resolveNeighborTarget(columns, colIdx, col, itemIdx, key)
+			const target = resolveNeighborTarget(columns, columnIndex, column, itemIndex, key)
 
 			if (!target) return false
 
@@ -220,22 +222,26 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 		(cardId: string, direction: -1 | 1) => {
 			if (!onReorder) return
 
-			const col = findColumnByCardId(cardId)
+			const column = findColumnByCardId(cardId)
 
-			if (!col) return
+			if (!column) return
 
-			const idx = col.items.findIndex((i) => getKey(i) === cardId)
+			const index = column.items.findIndex((item) => getKey(item) === cardId)
 
-			const newIdx = idx + direction
+			const targetIndex = index + direction
 
-			if (newIdx < 0 || newIdx >= col.items.length) return
+			if (targetIndex < 0 || targetIndex >= column.items.length) return
 
-			const nextItems = arrayMove(col.items, idx, newIdx)
+			const nextItems = arrayMove(column.items, index, targetIndex)
 
-			onReorder(columns.map((c) => (c.id === col.id ? { ...c, items: nextItems } : c)) as C[])
+			onReorder(
+				columns.map((entry) =>
+					entry.id === column.id ? { ...entry, items: nextItems } : entry,
+				) as C[],
+			)
 
 			announce(
-				`${cardName(containerRef.current, cardId)} moved to position ${newIdx + 1} of ${col.items.length} in ${columnName(containerRef.current, col.id)}.`,
+				`${cardName(containerRef.current, cardId)} moved to position ${targetIndex + 1} of ${column.items.length} in ${columnName(containerRef.current, column.id)}.`,
 				{ assertive: true },
 			)
 
@@ -248,43 +254,45 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 		(cardId: string, direction: -1 | 1) => {
 			if (!onReorder) return
 
-			const col = findColumnByCardId(cardId)
+			const column = findColumnByCardId(cardId)
 
-			if (!col) return
+			if (!column) return
 
-			const colIdx = columns.findIndex((c) => c.id === col.id)
+			const columnIndex = columns.findIndex((entry) => entry.id === column.id)
 
-			const targetIdx = colIdx + direction
+			const targetIndex = columnIndex + direction
 
-			if (targetIdx < 0 || targetIdx >= columns.length) return
+			if (targetIndex < 0 || targetIndex >= columns.length) return
 
-			const targetCol = columns[targetIdx]
+			const targetColumn = columns[targetIndex]
 
-			if (!targetCol) return
+			if (!targetColumn) return
 
-			const itemIdx = col.items.findIndex((i) => getKey(i) === cardId)
+			const itemIndex = column.items.findIndex((card) => getKey(card) === cardId)
 
-			if (itemIdx === -1) return
+			if (itemIndex === -1) return
 
-			const item = col.items[itemIdx]
+			const item = column.items[itemIndex]
 
 			if (item === undefined) return
 
-			const next = columns.map((c) => {
-				if (c.id === col.id) return { ...c, items: c.items.filter((_, i) => i !== itemIdx) }
+			const next = columns.map((entry) => {
+				if (entry.id === column.id) {
+					return { ...entry, items: entry.items.filter((_, index) => index !== itemIndex) }
+				}
 
-				if (c.id === targetCol.id) return { ...c, items: [...c.items, item] }
+				if (entry.id === targetColumn.id) return { ...entry, items: [...entry.items, item] }
 
-				return c
+				return entry
 			}) as C[]
 
 			onReorder(next)
 
 			// The move appends the card to the end of the target column.
-			const position = targetCol.items.length + 1
+			const position = targetColumn.items.length + 1
 
 			announce(
-				`${cardName(containerRef.current, cardId)} moved to ${columnName(containerRef.current, targetCol.id)}, position ${position} of ${position}.`,
+				`${cardName(containerRef.current, cardId)} moved to ${columnName(containerRef.current, targetColumn.id)}, position ${position} of ${position}.`,
 				{ assertive: true },
 			)
 

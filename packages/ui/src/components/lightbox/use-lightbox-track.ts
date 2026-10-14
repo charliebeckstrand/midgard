@@ -255,7 +255,7 @@ export function useLightboxTrack(
 	const zoom = useLightboxZoom(trackRef)
 
 	// The last tap on the photo, which the next one can make a double tap.
-	const lastTap = useRef<LightboxTap | null>(null)
+	const prevTap = useRef<LightboxTap | null>(null)
 
 	// The track follows a swipe of a mouse too, so the page holds the closed hand.
 	const cursor = useDragCursorHold()
@@ -503,7 +503,7 @@ export function useLightboxTrack(
 
 		swipedRef.current = true
 
-		lastTap.current = null
+		prevTap.current = null
 
 		event.currentTarget.setPointerCapture(event.pointerId)
 
@@ -531,7 +531,7 @@ export function useLightboxTrack(
 
 		swipedRef.current = true
 
-		lastTap.current = null
+		prevTap.current = null
 
 		event.currentTarget.setPointerCapture(current.id)
 
@@ -570,15 +570,15 @@ export function useLightboxTrack(
 
 		const tap = { x: event.clientX, y: event.clientY, at: event.timeStamp }
 
-		if (onPhoto && isDoubleTap(lastTap.current, tap)) {
-			lastTap.current = null
+		if (onPhoto && isDoubleTap(prevTap.current, tap)) {
+			prevTap.current = null
 
 			zoom.toggle(tap)
 
 			return
 		}
 
-		lastTap.current = onPhoto ? tap : null
+		prevTap.current = onPhoto ? tap : null
 	}
 
 	// Moves what the press holds: a zoomed photo, the photo of a swipe to close,
@@ -629,11 +629,11 @@ export function useLightboxTrack(
 		}
 
 		if (current.mode === 'dismiss') {
-			const travel = { x: event.clientX - current.x, y: event.clientY - current.y }
+			const traveled = { x: event.clientX - current.x, y: event.clientY - current.y }
 
 			const speed = { x: current.speedX, y: current.speedY }
 
-			if (dismisses(travel, speed, track.clientHeight)) {
+			if (dismisses(traveled, speed, track.clientHeight)) {
 				onDismiss()
 			} else {
 				restore(current)

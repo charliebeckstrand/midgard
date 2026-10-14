@@ -119,12 +119,12 @@ function arraysEqual(a: unknown[], b: unknown[]): boolean {
 
 /** Key-wise {@link valuesEqual} over two plain objects. @internal */
 function plainObjectsEqual(a: Record<string, unknown>, b: Record<string, unknown>): boolean {
-	const ak = Object.keys(a)
-	const bk = Object.keys(b)
+	const aKeys = Object.keys(a)
+	const bKeys = Object.keys(b)
 
 	return (
-		ak.length === bk.length &&
-		ak.every((key) => Object.hasOwn(b, key) && valuesEqual(a[key], b[key]))
+		aKeys.length === bKeys.length &&
+		aKeys.every((key) => Object.hasOwn(b, key) && valuesEqual(a[key], b[key]))
 	)
 }
 
@@ -166,13 +166,13 @@ function touchField<T extends Record<string, unknown>>(
 		return { ...state, touched: nextTouched }
 	}
 
-	const newErrors = runValidators(action.validate, state.values, nextTouched, action.validateOn, [
+	const errors = runValidators(action.validate, state.values, nextTouched, action.validateOn, [
 		action.name,
 	])
 
 	return {
 		...state,
-		errors: { ...state.errors, ...newErrors },
+		errors: { ...state.errors, ...errors },
 		touched: nextTouched,
 	}
 }
@@ -234,7 +234,7 @@ function setFieldValue<T extends Record<string, unknown>>(
 			? changeValidationFields(action.validate, action.name, state)
 			: undefined
 
-	const newErrors = runValidators(
+	const errors = runValidators(
 		action.validate,
 		nextValues,
 		state.touched,
@@ -244,12 +244,12 @@ function setFieldValue<T extends Record<string, unknown>>(
 
 	// Keep each issue from `set-errors-external`. Here, only a change of its own
 	// field replaces it.
-	for (const key in external) delete newErrors[key]
+	for (const key in external) delete errors[key]
 
 	return {
 		...state,
 		values: nextValues,
-		errors: Object.keys(newErrors).length > 0 ? { ...state.errors, ...newErrors } : state.errors,
+		errors: Object.keys(errors).length > 0 ? { ...state.errors, ...errors } : state.errors,
 		external,
 	}
 }

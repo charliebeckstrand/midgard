@@ -178,7 +178,7 @@ export function useFileUploadHandlers({
 
 			event.stopPropagation()
 
-			setDragDepth((d) => d + 1)
+			setDragDepth((prev) => prev + 1)
 		},
 		[disabled],
 	)
@@ -205,7 +205,7 @@ export function useFileUploadHandlers({
 
 		event.stopPropagation()
 
-		setDragDepth((d) => Math.max(0, d - 1))
+		setDragDepth((prev) => Math.max(0, prev - 1))
 	}, [])
 
 	const handleDrop = useCallback(
