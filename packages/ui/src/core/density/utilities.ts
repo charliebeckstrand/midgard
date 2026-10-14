@@ -31,8 +31,15 @@
  * text, and the icon of each step move by the same 2 px (`geometry.ts`). A
  * `leading-*` class still wins. `density-rounded` takes the names of the
  * radius scale, or stops of the spacing scale as `rounded-[--spacing(n)]` does.
- * A name must be a key of the theme, for example `--text-sm`, or the class
- * writes no CSS.
+ * `density-w` takes the names of the container scale, or stops of the spacing
+ * scale. A name must be a key of the theme, for example `--text-sm`, or the
+ * class writes no CSS.
+ *
+ * Four utilities have a special form. `density-pb-safe` adds the bottom inset
+ * of the safe area to its padding. `density-touch-gap-x` and
+ * `density-touch-gap-y` set the gap that a hit area (`TouchTarget`) can fill.
+ * `density-space-x` keeps its value in a custom property of the group, and
+ * each child takes its margins from it (`captured`).
  *
  * A kasane surface draws a 1 px ring inside its box. A ring utility takes a
  * stop of the spacing scale and subtracts the ring, so the content lines up
@@ -214,23 +221,29 @@ function pick(kind: 'number' | 'length', values: ByStep<number> | ByStep<string>
 
 /**
  * The CSS of a list of stops of the spacing scale, less the 1 px ring for a
- * ring utility.
+ * ring utility, plus the term `add`.
  */
-function stops(values: ByStep<string>, ring = false): string {
-	const rest = ring ? ' - 1px' : ''
+function stops(values: ByStep<string>, ring = false, add = ''): string {
+	const rest = `${ring ? ' - 1px' : ''}${add}`
 
 	if (isFlat(values)) return `calc(var(--spacing) * ${values.md}${rest})`
 
 	return `calc(var(--spacing) * (${pick('number', mapSteps(values, Number))})${rest})`
 }
 
-/** The CSS of a list of lengths. */
-const lengths = (values: ByStep<string>) =>
-	isFlat(values) ? values.md : `calc(${pick('length', values)})`
+/** The CSS of a list of lengths, plus the term `add`. */
+function lengths(values: ByStep<string>, add = ''): string {
+	if (isFlat(values)) return add ? `calc(${values.md}${add})` : values.md
+
+	return `calc(${pick('length', values)}${add})`
+}
+
+/** The theme scale of the names that each kind of stepped utility takes. */
+const scaleOf: Partial<Record<UtilityValue, string>> = { radius: 'radius', size: 'container' }
 
 /** The declarations of a stepped utility of `entry` with `values`. */
 function declare(entry: UtilityEntry, values: ByStep<string>): CssInJs {
-	const { properties, value: kind } = entry
+	const { properties, value: kind, add = '' } = entry
 
 	if (kind === 'text') {
 		const size = isFlat(values)
@@ -247,13 +260,43 @@ function declare(entry: UtilityEntry, values: ByStep<string>): CssInJs {
 	}
 
 	if (densitySteps.every((step) => isMargin(values[step]))) {
-		return each(properties, stops(values))
+		return each(properties, stops(values, false, add))
 	}
 
-	const radius = (value: string) =>
-		isStop(value) ? `calc(var(--spacing) * ${value})` : `var(--radius-${value})`
+	const named = (value: string) =>
+		isStop(value) ? `calc(var(--spacing) * ${value})` : `var(--${scaleOf[kind]}-${value})`
 
-	return each(properties, lengths(mapSteps(values, radius)))
+	return each(properties, lengths(mapSteps(values, named), add))
+}
+
+/**
+ * The private custom property of a utility that captures its value (`capture`
+ * in the table), such as `--ui-space-x`. It has the prefix of the weights for
+ * the reason that `weightOf` gives.
+ */
+const capturedOf = (name: string) => `--ui-${name}`
+
+/**
+ * The rule of `space-x`, which captures its value: the element keeps the
+ * value in a custom property, and each child but the last takes its margins
+ * from it, as `space-x-*` of Tailwind gives them. A child that is a density
+ * scope thus takes the step of the group, and not its own step. A group in a
+ * group sets its own custom property, so its own margin in the outer group
+ * also takes its own value.
+ */
+function captured(name: string, declarations: CssInJs): CssInJs {
+	const property = capturedOf(name)
+
+	const length = Object.values(declarations)[0] as string
+
+	return {
+		[property]: length,
+		':where(& > :not(:last-child))': {
+			'--tw-space-x-reverse': '0',
+			'margin-inline-start': `calc(var(${property}) * var(--tw-space-x-reverse))`,
+			'margin-inline-end': `calc(var(${property}) * calc(1 - var(--tw-space-x-reverse)))`,
+		},
+	}
 }
 
 /**
@@ -270,11 +313,14 @@ function checks(theme: PluginAPI['theme']): Record<UtilityValue, (value: string)
 
 	const isRadius = inTheme('radius')
 
+	const isContainer = inTheme('container')
+
 	return {
 		spacing: isStop,
 		margin: isMargin,
 		text: isText,
 		radius: (value) => isStop(value) || (value !== 'full' && isRadius(value)),
+		size: (value) => isStop(value) || isContainer(value),
 	}
 }
 
@@ -362,7 +408,9 @@ export const handler: PluginCreator = ({ addBase, matchUtilities, theme }) => {
 		const { properties, value } = entry
 
 		matchUtilities({
-			[`density-${name}`]: stepped(valid[value], (values) => declare(entry, values)),
+			[`density-${name}`]: stepped(valid[value], (values) =>
+				entry.capture ? captured(name, declare(entry, values)) : declare(entry, values),
+			),
 		})
 
 		if (!entry.ring) continue

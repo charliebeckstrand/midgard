@@ -1,5 +1,5 @@
 import { type ClassValidator, extendTailwindMerge, validators } from 'tailwind-merge'
-import { utilityTable } from './density/utility-table'
+import { type UtilityEntry, utilityTable } from './density/utility-table'
 
 /** A stepped utility, such as `density-px`. */
 type SteppedGroup = `density-${keyof typeof utilityTable}`
@@ -10,17 +10,40 @@ const ringStop: ClassValidator[] = [validators.isNumber]
 /** The value of a stepped utility: a list in brackets, such as `[2,3,4]`. */
 const stepList: ClassValidator[] = [validators.isArbitraryValue]
 
-const utilities = Object.entries(utilityTable).map(([name, entry]) => ({
-	name,
-	stepped: `density-${name}` as SteppedGroup,
-	plain: 'group' in entry ? entry.group : name,
-	ring: 'ring' in entry,
-}))
+/**
+ * The plain group of a utility: its `group`, or the arbitrary property class
+ * of a utility that sets one custom property, such as
+ * `[--touch-target-gap-x:0px]`, or the name of the utility. `tailwind-merge`
+ * gives an arbitrary property class the group `arbitrary..<property>`.
+ */
+function plainOf(name: string, entry: UtilityEntry): string {
+	if (entry.group) return entry.group
 
-/** The stepped group of each plain group, such as `density-px` for `px`. */
-const steppedOf: Record<string, SteppedGroup | undefined> = Object.fromEntries(
-	utilities.map(({ plain, stepped }) => [plain, stepped]),
+	const [property] = entry.properties
+
+	return entry.properties.length === 1 && property?.startsWith('--')
+		? `arbitrary..${property}`
+		: name
+}
+
+const utilities = (Object.entries(utilityTable) as [string, UtilityEntry][]).map(
+	([name, entry]) => ({
+		name,
+		stepped: `density-${name}` as SteppedGroup,
+		plain: plainOf(name, entry),
+		ring: entry.ring === true,
+	}),
 )
+
+/**
+ * The stepped groups of each plain group, such as `density-px` for `px`. A
+ * plain group can have more than one, such as `density-pb` and
+ * `density-pb-safe` for `pb`.
+ */
+const steppedOf: Record<string, SteppedGroup[] | undefined> = {}
+
+for (const { plain, stepped } of utilities)
+	steppedOf[plain] = [...(steppedOf[plain] ?? []), stepped]
 
 /**
  * The class groups of the density utilities. Each stepped utility has a group
@@ -59,13 +82,13 @@ function steppedConflicts(
 
 		if (stepped.length > 0) add(group, stepped)
 
-		const own = steppedOf[group]
-
-		if (own) add(own, [...contained, ...stepped])
+		for (const own of steppedOf[group] ?? []) add(own, [...contained, ...stepped])
 	}
 
 	for (const { plain, stepped } of utilities) {
-		add(stepped, [plain])
+		const siblings = (steppedOf[plain] ?? []).filter((other) => other !== stepped)
+
+		add(stepped, [plain, ...siblings])
 
 		add(plain, [stepped])
 	}

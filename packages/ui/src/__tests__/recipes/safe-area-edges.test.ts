@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-
+import { utilityTable } from '../../core/density/utility-table'
 import { k as dialog } from '../../recipes/kata/dialog'
 import { k as drawer } from '../../recipes/kata/drawer'
 import { k as sheet } from '../../recipes/kata/sheet'
@@ -32,14 +32,15 @@ describe('safe-area insets on edge surfaces', () => {
 		expect(sheet.panel({ side: 'left' })).toContain(bottom)
 	})
 
+	// `browser/density-contract.test.tsx` holds the length of this inset at each step.
 	it('pads the dialog where it docks to the bottom edge, at each density step', () => {
-		const className = dialog.panel({})
+		const classes = dialog.panel({}).split(' ')
 
-		expect(className).toContain(`max-sm:density-xs:pb-[calc(1rem+${bottom})]`)
-		expect(className).toContain(`max-sm:density-sm:pb-[calc(1.25rem+${bottom})]`)
-		expect(className).toContain(`max-sm:density-md:pb-[calc(1.5rem+${bottom})]`)
-		expect(className).toContain(`max-sm:density-lg:pb-[calc(1.75rem+${bottom})]`)
-		expect(className).toContain(`max-sm:density-xl:pb-[calc(2rem+${bottom})]`)
+		expect(classes).toContain('density-pb-[4,5,6,7,8]')
+
+		expect(classes).toContain('max-sm:density-pb-safe-[4,5,6,7,8]')
+
+		expect(utilityTable['pb-safe'].add).toContain(bottom)
 	})
 
 	it('pads each drawer height by the inset alone', () => {

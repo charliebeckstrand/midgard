@@ -1,12 +1,13 @@
 /**
  * The kind of value that a stepped utility takes: a stop of the spacing scale,
  * a margin (a stop of the spacing scale, or a negative stop), a name of the
- * text scale, or a radius (a name of the radius scale or a stop of the spacing
+ * text scale, a radius (a name of the radius scale or a stop of the spacing
+ * scale), or a size (a name of the container scale or a stop of the spacing
  * scale).
  *
  * @internal
  */
-export type UtilityValue = 'spacing' | 'margin' | 'text' | 'radius'
+export type UtilityValue = 'spacing' | 'margin' | 'text' | 'radius' | 'size'
 
 /**
  * One utility of {@link utilityTable}.
@@ -20,7 +21,8 @@ export type UtilityEntry = {
 	value: UtilityValue
 	/**
 	 * The class group of the same properties in `tailwind-merge`, when it is not
-	 * the name of the utility.
+	 * the name of the utility. A utility that sets one custom property has the
+	 * group of its arbitrary property class, such as `[--touch-target-gap-x:0px]`.
 	 */
 	group?: string
 	/**
@@ -28,6 +30,18 @@ export type UtilityEntry = {
 	 * a kasane surface.
 	 */
 	ring?: true
+	/**
+	 * A CSS term that the utility adds to its value, such as
+	 * ` + env(safe-area-inset-bottom)`.
+	 */
+	add?: string
+	/**
+	 * Whether the element keeps the value in a custom property, and each child
+	 * of the element takes its properties from that custom property. Thus the
+	 * step of the element, and not the step of each child, gives the value.
+	 * Only `space-x` uses it.
+	 */
+	capture?: true
 }
 
 /**
@@ -48,10 +62,17 @@ export const utilityTable = {
 	py: { properties: ['padding-block'], value: 'spacing', ring: true },
 	pt: { properties: ['padding-top'], value: 'spacing' },
 	pb: { properties: ['padding-bottom'], value: 'spacing' },
+	'pb-safe': {
+		properties: ['padding-bottom'],
+		value: 'spacing',
+		group: 'pb',
+		add: ' + env(safe-area-inset-bottom)',
+	},
 	ps: { properties: ['padding-inline-start'], value: 'spacing', ring: true },
 	pe: { properties: ['padding-inline-end'], value: 'spacing', ring: true },
-	ms: { properties: ['margin-inline-start'], value: 'spacing', ring: true },
-	me: { properties: ['margin-inline-end'], value: 'spacing', ring: true },
+	ms: { properties: ['margin-inline-start'], value: 'margin', ring: true },
+	me: { properties: ['margin-inline-end'], value: 'margin', ring: true },
+	mx: { properties: ['margin-inline'], value: 'margin' },
 	my: { properties: ['margin-block'], value: 'margin' },
 	mt: { properties: ['margin-top'], value: 'margin' },
 	mb: { properties: ['margin-bottom'], value: 'margin' },
@@ -61,9 +82,16 @@ export const utilityTable = {
 	size: { properties: ['width', 'height'], value: 'spacing' },
 	h: { properties: ['height'], value: 'spacing' },
 	'max-h': { properties: ['max-height'], value: 'spacing' },
-	w: { properties: ['width'], value: 'spacing' },
+	w: { properties: ['width'], value: 'size' },
 	'min-w': { properties: ['min-width'], value: 'spacing' },
 	'inset-s': { properties: ['inset-inline-start'], value: 'spacing', group: 'start' },
+	'touch-gap-x': { properties: ['--touch-target-gap-x'], value: 'spacing' },
+	'touch-gap-y': { properties: ['--touch-target-gap-y'], value: 'spacing' },
+	'space-x': {
+		properties: ['margin-inline-start', 'margin-inline-end'],
+		value: 'margin',
+		capture: true,
+	},
 	text: { properties: ['font-size', 'line-height'], value: 'text', group: 'font-size' },
 	rounded: { properties: ['border-radius'], value: 'radius', ring: true },
 } as const satisfies Record<string, UtilityEntry>

@@ -219,12 +219,52 @@ describe('cn', () => {
 			)
 		})
 
+		it('merges the safe-area bottom padding with each class of the bottom padding', () => {
+			expect(cn('density-pb-safe-[4,5,6]', 'p-4')).toBe('p-4')
+
+			expect(cn('density-pb-safe-[4,5,6]', 'py-2')).toBe('py-2')
+
+			expect(cn('density-pb-safe-[4,5,6]', 'density-py-[1,2,3]')).toBe('density-py-[1,2,3]')
+
+			expect(cn('density-pb-[4,5,6]', 'density-pb-safe-[4,5,6]')).toBe('density-pb-safe-[4,5,6]')
+
+			expect(cn('density-pb-safe-[4,5,6]', 'density-pb-[4,5,6]')).toBe('density-pb-[4,5,6]')
+
+			expect(cn('p-4', 'density-pb-safe-[4,5,6]')).toBe('p-4 density-pb-safe-[4,5,6]')
+		})
+
+		it('keeps the merges of the stepped bottom padding', () => {
+			expect(cn('density-pb-[4,5,6]', 'p-4')).toBe('p-4')
+
+			expect(cn('pb-2', 'density-pb-[4,5,6]')).toBe('density-pb-[4,5,6]')
+
+			expect(cn('density-p-[1,2,3]', 'density-pb-[4,5,6]')).toBe(
+				'density-p-[1,2,3] density-pb-[4,5,6]',
+			)
+		})
+
+		it('keeps a touch gap beside the touch gap of the other axis', () => {
+			expect(cn('density-touch-gap-y-[1,2,3]', '[--touch-target-gap-x:0px]')).toBe(
+				'density-touch-gap-y-[1,2,3] [--touch-target-gap-x:0px]',
+			)
+		})
+
+		it('merges a stepped width of container names and of stops', () => {
+			expect(cn('density-w-[2,3,4]', 'density-w-[2xs,xs,sm]')).toBe('density-w-[2xs,xs,sm]')
+
+			expect(cn('density-w-[2xs,xs,sm]', 'w-64')).toBe('w-64')
+		})
+
 		// Each utility of the table merges with its plain class in each order, so a
 		// new entry merges with no other change.
 		it.each(Object.keys(utilityTable))('merges density-%s with its plain class', (name) => {
 			const named = new Map<string, [string, string]>([
 				['text', ['text-sm', 'density-text-[sm,base,lg]']],
 				['rounded', ['rounded-sm', 'density-rounded-[sm,md,lg]']],
+				['w', ['w-xs', 'density-w-[2xs,xs,sm]']],
+				['pb-safe', ['pb-1', 'density-pb-safe-[1,2,3]']],
+				['touch-gap-x', ['[--touch-target-gap-x:0px]', 'density-touch-gap-x-[1,2,3]']],
+				['touch-gap-y', ['[--touch-target-gap-y:0px]', 'density-touch-gap-y-[1,2,3]']],
 			])
 
 			const [plain, stepped] = named.get(name) ?? [`${name}-1`, `density-${name}-[1,2,3]`]

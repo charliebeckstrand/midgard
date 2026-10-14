@@ -63,7 +63,7 @@ export const k = defineRecipe(
 			flex.row,
 			'list-none',
 			dan.gap.scale.xs,
-			...dan.gap.touch.x.xs,
+			dan.gap.touch.x.xs,
 		],
 		skeleton: kokkaku.pagination,
 	},

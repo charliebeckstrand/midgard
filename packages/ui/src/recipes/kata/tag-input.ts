@@ -25,15 +25,7 @@ export const k = {
 	// pad, and the inner gap of its `xs` chip between two buttons, 14px or more at
 	// `md`. The gap steps with the scope, so each cap is 2px less or more for
 	// each step below or above.
-	tags: [
-		dan.space.tags.y,
-		'density-[xs,sm]:[--touch-target-gap-x:--spacing(3)]',
-		'density-md:[--touch-target-gap-x:--spacing(3.5)]',
-		'density-[lg,xl]:[--touch-target-gap-x:--spacing(4)]',
-		'density-[xs,sm]:[--touch-target-gap-y:--spacing(2)]',
-		'density-md:[--touch-target-gap-y:--spacing(2.5)]',
-		'density-[lg,xl]:[--touch-target-gap-y:--spacing(3)]',
-	],
+	tags: [dan.space.tags.y, dan.gap.touch.tags.x, dan.gap.touch.tags.y],
 	// The text input keeps a usable width. When the tag row leaves less, the input
 	// moves to the next row of the wrapping frame, and the add button goes with
 	// it. Without the floor, the input took the last sliver of the tag row and the

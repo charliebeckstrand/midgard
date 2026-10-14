@@ -65,32 +65,14 @@ export const k = defineRecipe({
 		'dark:focus-visible:[&::-moz-range-thumb]:ring-blue-500',
 
 		// Each size takes the step of the nearest density scope. The vertical
-		// padding extends the native hit area beyond the visible thumb. A class
-		// of a pseudo-element names its steps before the pseudo-element, so an
-		// explicit `size` on the input also sizes the track and the thumb. The
-		// negative margin centers the WebKit thumb on its track: half of the
-		// track height less the thumb height.
+		// padding extends the native hit area beyond the visible thumb. A
+		// pseudo-element takes the step of the input, so an explicit `size` on
+		// the input also sizes the track and the thumb. The negative margin
+		// centers the WebKit thumb on its track.
 		dan.space.slider.y,
-		'density-xs:[&::-webkit-slider-runnable-track]:h-0.5',
-		'density-sm:[&::-webkit-slider-runnable-track]:h-1',
-		'density-md:[&::-webkit-slider-runnable-track]:h-1.5',
-		'density-lg:[&::-webkit-slider-runnable-track]:h-2',
-		'density-xl:[&::-webkit-slider-runnable-track]:h-2.5',
-		'density-xs:[&::-webkit-slider-thumb]:size-2 density-xs:[&::-webkit-slider-thumb]:-mt-[3px]',
-		'density-sm:[&::-webkit-slider-thumb]:size-3 density-sm:[&::-webkit-slider-thumb]:-mt-1',
-		'density-md:[&::-webkit-slider-thumb]:size-4 density-md:[&::-webkit-slider-thumb]:-mt-[5px]',
-		'density-lg:[&::-webkit-slider-thumb]:size-5 density-lg:[&::-webkit-slider-thumb]:-mt-[6px]',
-		'density-xl:[&::-webkit-slider-thumb]:size-6 density-xl:[&::-webkit-slider-thumb]:-mt-[7px]',
-		'density-xs:[&::-moz-range-track]:h-0.5',
-		'density-sm:[&::-moz-range-track]:h-1',
-		'density-md:[&::-moz-range-track]:h-1.5',
-		'density-lg:[&::-moz-range-track]:h-2',
-		'density-xl:[&::-moz-range-track]:h-2.5',
-		'density-xs:[&::-moz-range-thumb]:size-2',
-		'density-sm:[&::-moz-range-thumb]:size-3',
-		'density-md:[&::-moz-range-thumb]:size-4',
-		'density-lg:[&::-moz-range-thumb]:size-5',
-		'density-xl:[&::-moz-range-thumb]:size-6',
+		dan.size.slider.input.track,
+		dan.size.slider.input.thumb,
+		dan.space.slider.thumb,
 	],
 	color,
 	defaults: { color: 'blue' },

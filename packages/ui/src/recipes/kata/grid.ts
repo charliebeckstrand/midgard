@@ -461,7 +461,7 @@ export const k = {
 		// flex (not inline) fills the header width so the title between the grip and
 		// the filter button can shrink to an ellipsis instead of overrunning the cell.
 		// The gap caps the hit areas of the header buttons, as in `filter.slot`.
-		layout: [flex.row, 'min-w-0', dan.gap.scale.xs, ...dan.gap.touch.x.xs],
+		layout: [flex.row, 'min-w-0', dan.gap.scale.xs, dan.gap.touch.x.xs],
 		// The grabbing cursor follows the live drag (`data-[dragging]`), not the
 		// pointer's `:active` state: a right-click presses the grip `<button>` into
 		// `:active` too, and the context menu swallowing the matching pointerup
@@ -689,7 +689,7 @@ export const k = {
 		// Header row: title on the left, filter button across from it on the right.
 		// In a narrow column the group-by and filter buttons close to the gap, so
 		// the gap also caps their hit areas (`TouchTarget`).
-		slot: [flex.row, 'justify-between', dan.gap.scale.xs, ...dan.gap.touch.x.xs],
+		slot: [flex.row, 'justify-between', dan.gap.scale.xs, dan.gap.touch.x.xs],
 		// The filter icon button in a column header.
 		...headerButton,
 	},

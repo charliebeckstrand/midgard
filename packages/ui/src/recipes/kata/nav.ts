@@ -106,7 +106,7 @@ export const k = {
 		// list, so two adjacent items split the gap and do not overlap.
 		orientation: {
 			vertical: ['flex-col', 'gap-0.5', '[--touch-target-gap-y:--spacing(0.5)]'],
-			horizontal: ['flex-row', dan.gap.scale.xs, ...dan.gap.touch.x.xs],
+			horizontal: ['flex-row', dan.gap.scale.xs, dan.gap.touch.x.xs],
 		},
 	},
 	bar: {

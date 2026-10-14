@@ -24,6 +24,9 @@ const themeKeys: Record<string, string> = {
 	'--radius-md': '0.375rem',
 	'--radius-lg': '0.5rem',
 	'--radius-full': 'calc(infinity * 1px)',
+	'--container-2xs': '18rem',
+	'--container-xs': '20rem',
+	'--container-sm': '24rem',
 }
 
 /**
@@ -290,6 +293,68 @@ describe('density utilities', () => {
 		expect(atEachStep(margin)).toEqual([-3, -3, -4, -5, -5])
 	})
 
+	it.each(['density-ms', 'density-me', 'density-mx', 'density-space-x'])(
+		'takes negative stops for %s',
+		(name) => {
+			expect(call(name, '-1,-2,-3')).toHaveLength(1)
+		},
+	)
+
+	it('takes the names of the container scale and spacing stops for density-w', () => {
+		const width = declaration('density-w', '2xs,xs,sm', 'width')
+
+		expect(width).toBe(
+			'calc(var(--container-2xs) * (var(--ui-dxs) + var(--ui-dsm)) + var(--container-xs) * var(--ui-dmd) + var(--container-sm) * (var(--ui-dlg) + var(--ui-dxl)))',
+		)
+
+		expect(atEachStep(width)).toEqual([18, 18, 20, 24, 24])
+
+		expect(atEachStep(declaration('density-w', '64,72,80', 'width'))).toEqual([64, 64, 72, 80, 80])
+	})
+
+	it('adds the bottom inset of the safe area to density-pb-safe', () => {
+		const padding = declaration('density-pb-safe', '4,5,6,7,8', 'padding-bottom')
+
+		expect(padding).toBe(
+			'calc(var(--spacing) * (6 - 2 * var(--ui-dxs) - var(--ui-dsm) + var(--ui-dlg) + 2 * var(--ui-dxl)) + env(safe-area-inset-bottom))',
+		)
+
+		expect(atEachStep(padding.replace(' + env(safe-area-inset-bottom)', ''))).toEqual([
+			4, 5, 6, 7, 8,
+		])
+
+		expect(rule('density-pb-safe', '4,4,4')).toEqual({
+			'padding-bottom': 'calc(var(--spacing) * 4 + env(safe-area-inset-bottom))',
+		})
+	})
+
+	it.each(['x', 'y'])(
+		'sets the custom property of the touch gap for density-touch-gap-%s',
+		(axis) => {
+			const gap = declaration(
+				`density-touch-gap-${axis}`,
+				'1,2,3,4,5',
+				`--touch-target-gap-${axis}`,
+			)
+
+			expect(atEachStep(gap)).toEqual([1, 2, 3, 4, 5])
+		},
+	)
+
+	it('keeps the value of density-space-x on the group, and sets the margins of each child from it', () => {
+		const declarations = rule('density-space-x', '-0.5,-0.5,-1,-1,-1')
+
+		expect(Object.keys(declarations)).toEqual(['--ui-space-x', ':where(& > :not(:last-child))'])
+
+		expect(atEachStep(declarations['--ui-space-x'] as string)).toEqual([-0.5, -0.5, -1, -1, -1])
+
+		expect(declarations[':where(& > :not(:last-child))']).toEqual({
+			'--tw-space-x-reverse': '0',
+			'margin-inline-start': 'calc(var(--ui-space-x) * var(--tw-space-x-reverse))',
+			'margin-inline-end': 'calc(var(--ui-space-x) * calc(1 - var(--tw-space-x-reverse)))',
+		})
+	})
+
 	it('writes the size and leading of the text scale for density-text', () => {
 		const declarations = rule('density-text', 'xs,sm,base')
 
@@ -337,6 +402,9 @@ describe('density utilities', () => {
 		['a value that is no name or stop', 'density-rounded', '2,3,full-x'],
 		['a radius name that is not in the theme', 'density-rounded', 'sm,md,none'],
 		['the full radius', 'density-rounded', 'md,lg,full'],
+		['a container name that is not in the theme', 'density-w', 'auto,xs,sm'],
+		['a negative width', 'density-w', '-1,2,3'],
+		['a negative touch gap', 'density-touch-gap-x', '-1,2,3'],
 		['a ring stop out of range', 'density-p-ring', '2,3,9'],
 		['a ring stop off the quarter grid', 'density-p-ring', '2,3,1.3'],
 	])('writes no CSS for %s', (_, name, value) => {

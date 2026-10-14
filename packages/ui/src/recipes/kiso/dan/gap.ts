@@ -38,84 +38,23 @@ const scaleY = {
 /**
  * The gap that a hit area (`TouchTarget`) can fill between two hosts in a row,
  * at each stop of the gap scale. A row of hosts writes it beside the gap of the
- * same stop, so the hit areas meet and do not overlap at each step. A custom
- * property has no stepped utility, so each step has its own variant class.
+ * same stop, so the hit areas meet and do not overlap at each step.
  */
 const touchX = {
-	xs: [
-		'density-xs:[--touch-target-gap-x:--spacing(0.25)]',
-		'density-sm:[--touch-target-gap-x:--spacing(0.5)]',
-		'density-md:[--touch-target-gap-x:--spacing(1)]',
-		'density-lg:[--touch-target-gap-x:--spacing(1.5)]',
-		'density-xl:[--touch-target-gap-x:--spacing(2.5)]',
-	],
-	sm: [
-		'density-xs:[--touch-target-gap-x:--spacing(0.5)]',
-		'density-sm:[--touch-target-gap-x:--spacing(1)]',
-		'density-md:[--touch-target-gap-x:--spacing(2)]',
-		'density-lg:[--touch-target-gap-x:--spacing(3)]',
-		'density-xl:[--touch-target-gap-x:--spacing(4.5)]',
-	],
-	md: [
-		'density-xs:[--touch-target-gap-x:--spacing(1)]',
-		'density-sm:[--touch-target-gap-x:--spacing(2)]',
-		'density-md:[--touch-target-gap-x:--spacing(3)]',
-		'density-lg:[--touch-target-gap-x:--spacing(4)]',
-		'density-xl:[--touch-target-gap-x:--spacing(5)]',
-	],
-	lg: [
-		'density-xs:[--touch-target-gap-x:--spacing(2)]',
-		'density-sm:[--touch-target-gap-x:--spacing(3)]',
-		'density-md:[--touch-target-gap-x:--spacing(4)]',
-		'density-lg:[--touch-target-gap-x:--spacing(5)]',
-		'density-xl:[--touch-target-gap-x:--spacing(6)]',
-	],
-	xl: [
-		'density-xs:[--touch-target-gap-x:--spacing(4)]',
-		'density-sm:[--touch-target-gap-x:--spacing(5)]',
-		'density-md:[--touch-target-gap-x:--spacing(6)]',
-		'density-lg:[--touch-target-gap-x:--spacing(7)]',
-		'density-xl:[--touch-target-gap-x:--spacing(8)]',
-	],
+	xs: 'density-touch-gap-x-[0.25,0.5,1,1.5,2.5]',
+	sm: 'density-touch-gap-x-[0.5,1,2,3,4.5]',
+	md: 'density-touch-gap-x-[1,2,3,4,5]',
+	lg: 'density-touch-gap-x-[2,3,4,5,6]',
+	xl: 'density-touch-gap-x-[4,5,6,7,8]',
 } as const
 
 /** The gap that a hit area can fill between two hosts in a stack, as `touchX` gives in a row. */
 const touchY = {
-	xs: [
-		'density-xs:[--touch-target-gap-y:--spacing(0.25)]',
-		'density-sm:[--touch-target-gap-y:--spacing(0.5)]',
-		'density-md:[--touch-target-gap-y:--spacing(1)]',
-		'density-lg:[--touch-target-gap-y:--spacing(1.5)]',
-		'density-xl:[--touch-target-gap-y:--spacing(2.5)]',
-	],
-	sm: [
-		'density-xs:[--touch-target-gap-y:--spacing(0.5)]',
-		'density-sm:[--touch-target-gap-y:--spacing(1)]',
-		'density-md:[--touch-target-gap-y:--spacing(2)]',
-		'density-lg:[--touch-target-gap-y:--spacing(3)]',
-		'density-xl:[--touch-target-gap-y:--spacing(4.5)]',
-	],
-	md: [
-		'density-xs:[--touch-target-gap-y:--spacing(1)]',
-		'density-sm:[--touch-target-gap-y:--spacing(2)]',
-		'density-md:[--touch-target-gap-y:--spacing(3)]',
-		'density-lg:[--touch-target-gap-y:--spacing(4)]',
-		'density-xl:[--touch-target-gap-y:--spacing(5)]',
-	],
-	lg: [
-		'density-xs:[--touch-target-gap-y:--spacing(2)]',
-		'density-sm:[--touch-target-gap-y:--spacing(3)]',
-		'density-md:[--touch-target-gap-y:--spacing(4)]',
-		'density-lg:[--touch-target-gap-y:--spacing(5)]',
-		'density-xl:[--touch-target-gap-y:--spacing(6)]',
-	],
-	xl: [
-		'density-xs:[--touch-target-gap-y:--spacing(4)]',
-		'density-sm:[--touch-target-gap-y:--spacing(5)]',
-		'density-md:[--touch-target-gap-y:--spacing(6)]',
-		'density-lg:[--touch-target-gap-y:--spacing(7)]',
-		'density-xl:[--touch-target-gap-y:--spacing(8)]',
-	],
+	xs: 'density-touch-gap-y-[0.25,0.5,1,1.5,2.5]',
+	sm: 'density-touch-gap-y-[0.5,1,2,3,4.5]',
+	md: 'density-touch-gap-y-[1,2,3,4,5]',
+	lg: 'density-touch-gap-y-[2,3,4,5,6]',
+	xl: 'density-touch-gap-y-[4,5,6,7,8]',
 } as const
 
 /** The gap of a control and of a badge: half of the block padding of a control. */
@@ -127,8 +66,25 @@ export const gap = {
 	x: scaleX,
 	/** The block gap at each stop of `scale`. */
 	y: scaleY,
-	/** The touch gaps at each stop of `scale`. */
-	touch: { x: touchX, y: touchY },
+	touch: {
+		/** The touch gap in a row at each stop of `scale`. */
+		x: touchX,
+		/** The touch gap in a stack at each stop of `scale`. */
+		y: touchY,
+		/**
+		 * The touch gaps of the tag row of a tag input. The row is in the prefix
+		 * slot, one step below the host, and `kata/tag-input.ts` gives the lengths.
+		 */
+		tags: {
+			x: 'density-touch-gap-x-[3,3,3.5,4,4]',
+			y: 'density-touch-gap-y-[2,2,2.5,3,3]',
+		},
+		/**
+		 * The touch gap along the row of query chips. The row is a slot, one step
+		 * below the scope around it, and `kata/query-chips.ts` gives the lengths.
+		 */
+		chips: 'density-touch-gap-x-[2.75,3.25,3.75,4.25,4.25]',
+	},
 	/** The default gap: a card footer, the calendar footer, and the segment control. */
 	default: scale.sm,
 	/** The gap of a nav item and a sidebar item. */

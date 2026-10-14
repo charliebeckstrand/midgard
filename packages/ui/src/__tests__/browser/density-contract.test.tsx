@@ -5,6 +5,7 @@ import { Dialog, DialogBody, DialogPanel } from '../../components/dialog'
 import { Input } from '../../components/input'
 import { type DensityStep, densitySteps, writeRootDensity } from '../../core/density'
 import { DensityProvider } from '../../providers/density'
+import { dan } from '../../recipes/kiso/dan'
 import { attach, densityStepOf, getSlot, present, renderUI } from '../helpers'
 
 /**
@@ -17,7 +18,8 @@ import { attach, densityStepOf, getSlot, present, renderUI } from '../helpers'
  * The cases cover the parts of the contract that `density-scope.test.tsx` does not hold: a root
  * change on a mounted tree, a slot in a slot, the `xs`, `sm`, and `md` hosts of a slot, a scope
  * deeper than two, a pseudo-element, two stepped classes on one property, the lists of three values
- * that the docs and `apps/places` use, and the inset of an open dialog. A case that
+ * that the docs and `apps/places` use, the inset of an open dialog, and the two changes of the
+ * stepped forms from the step variants (a group of `density-space-x`, and a rem stop). A case that
  * `density-scope.test.tsx` holds is not repeated here.
  *
  * A stepped class takes its value from inherited custom properties that each scope sets, so it
@@ -287,9 +289,9 @@ describe('scopes deeper than two (real browser)', () => {
 })
 
 /**
- * A pseudo-element takes the step of its element. A step variant before the pseudo-element works,
- * as the control frame writes it (`density-md:before:…`). A stepped class after the pseudo-element
- * also works, because the pseudo-element inherits the custom properties of its element.
+ * A pseudo-element takes the step of its element. A stepped class after the pseudo-element works,
+ * as the control frame writes it (`before:density-rounded-ring-[…]`), because the pseudo-element
+ * inherits the custom properties of its element.
  */
 describe('a pseudo-element (real browser)', () => {
 	/** The step of the oracle and the radius of the inset fill of the frame of an Input. */
@@ -441,9 +443,9 @@ describe('a list of three values (real browser)', () => {
 
 /**
  * Below `sm`, the panel of a dialog sits on the bottom edge. Its element holds the stepped inset
- * (`density-pb-[4,5,6,7,8]`) and the `max-sm` step variants that add the safe-area inset of the
- * home indicator (`env(safe-area-inset-bottom)`). The variant must win, so the panel inset is the
- * step inset plus the safe-area inset.
+ * (`density-pb-[4,5,6,7,8]`) and the `max-sm` stepped class that adds the safe-area inset of the
+ * home indicator (`max-sm:density-pb-safe-[4,5,6,7,8]`). The second class must win, so the panel
+ * inset is the step inset plus the safe-area inset.
  *
  * In Chromium, the file sets a safe-area inset through CDP, so the two forms give different lengths
  * and the case sees which form wins. Firefox and WebKit have no such override. There the safe-area
@@ -499,5 +501,125 @@ describe('the bottom inset of an open dialog at 390px (real browser)', () => {
 		renderUI(<DensityProvider density={density}>{dialog}</DensityProvider>)
 
 		expect(inset()).toEqual({ step, inset: INSET_PX[step] + SAFE_AREA_PX })
+	})
+})
+
+/**
+ * `density-space-x` keeps the overlap of its step on the group, and each child takes its margin
+ * from it. A child that is its own scope thus takes the overlap of the group. A group in a group
+ * sets its own overlap, so its margin in the outer group is its own overlap, not the overlap of the
+ * outer group. The step variants gave the outer overlap there. This change is deliberate.
+ */
+describe('a group of density-space-x (real browser)', () => {
+	/** The overlap of `dan.space.avatar.overlap` at each step, in pixels. */
+	const OVERLAP_PX = { xs: -2, sm: -2, md: -4, lg: -4, xl: -4 } as const satisfies Record<
+		DensityStep,
+		number
+	>
+
+	/** A group with the overlap and two children, in a scope at `step`. It returns the group. */
+	const group = (parent: HTMLElement, step?: DensityStep) => {
+		const element = document.createElement('div')
+
+		element.className = `flex ${dan.space.avatar.overlap}`
+
+		if (step) element.dataset.density = step
+
+		element.append(document.createElement('span'), document.createElement('span'))
+
+		parent.append(element)
+
+		return element
+	}
+
+	/** The end margin of `element`, in pixels. */
+	const end = (element: Element) => Number.parseFloat(getComputedStyle(element).marginInlineEnd)
+
+	it.each(densitySteps)('gives each child but the last the overlap of a group at %s', (step) => {
+		const element = group(nest([]), step)
+
+		const [first, last] = [...element.children]
+
+		expect(end(present(first, 'first'))).toBe(OVERLAP_PX[step])
+
+		expect(end(present(last, 'last'))).toBe(0)
+	})
+
+	it('gives a child that is its own scope the overlap of the group', () => {
+		const element = group(nest([]), 'lg')
+
+		const child = present(element.firstElementChild, 'child') as HTMLElement
+
+		child.dataset.density = 'xs'
+
+		expect({ step: densityStepOf(child), overlap: end(child) }).toEqual({
+			step: 'xs',
+			overlap: OVERLAP_PX.lg,
+		})
+	})
+
+	it('gives a group in a group at xs its own overlap in the outer group at lg', () => {
+		const outer = group(nest([]), 'lg')
+
+		const inner = group(outer, 'xs')
+
+		outer.prepend(inner)
+
+		expect(end(inner)).toBe(OVERLAP_PX.xs)
+
+		expect(end(present(inner.firstElementChild, 'inner child'))).toBe(OVERLAP_PX.xs)
+
+		expect(end(present(inner.nextElementSibling, 'outer child'))).toBe(OVERLAP_PX.lg)
+	})
+})
+
+/**
+ * The thumb of the WebKit slider sits on its track by a negative top margin in stops of the spacing
+ * scale (`dan.space.slider.thumb`), so it scales with the font size of the root. The step variants
+ * gave it in px (-3 px to -7 px), which matched the stops only at a 16 px root. This change is
+ * deliberate.
+ *
+ * `getComputedStyle` does not read the thumb (see the top of this file), so a probe takes the same
+ * stepped class with no pseudo-element.
+ */
+describe('the thumb offset of a slider (real browser)', () => {
+	const THUMB = 'density-mt-[-0.75,-1,-1.25,-1.5,-1.75]'
+
+	/** The offset at each step, in stops of the spacing scale. */
+	const STOPS = { xs: -0.75, sm: -1, md: -1.25, lg: -1.5, xl: -1.75 } as const satisfies Record<
+		DensityStep,
+		number
+	>
+
+	/** Sets the font size of the root for the current test. */
+	const holdFontSize = (size: string) => {
+		const root = document.documentElement
+
+		const before = root.style.fontSize
+
+		root.style.fontSize = size
+
+		onTestFinished(() => {
+			root.style.fontSize = before
+		})
+	}
+
+	const offset = (step: DensityStep) =>
+		Number.parseFloat(getComputedStyle(probe([step], THUMB)).marginTop)
+
+	it('gives the thumb the stepped class of the probe', () => {
+		expect(dan.space.slider.thumb).toBe(`[&::-webkit-slider-thumb]:${THUMB}`)
+	})
+
+	it.each(densitySteps)('gives the px of the step variants at %s at a 16px root', (step) => {
+		holdFontSize('16px')
+
+		expect(offset(step)).toBe(STOPS[step] * 4)
+	})
+
+	it.each(densitySteps)('scales the offset at %s with a 20px root', (step) => {
+		holdFontSize('20px')
+
+		expect(offset(step)).toBe(STOPS[step] * 5)
 	})
 })

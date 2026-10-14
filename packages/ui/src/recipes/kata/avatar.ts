@@ -66,10 +66,10 @@ export const k = defineRecipe(
 			 * Overlap of each avatar onto the one before it, at the step of the
 			 * nearest density scope. The overlap and the ring together stay
 			 * narrower than the space at the side of two initials, so the next
-			 * avatar does not cover the initials. The stepped utilities take no
-			 * negative value, so the overlap is a density variant.
+			 * avatar does not cover the initials. The group keeps the value of its
+			 * step, so an avatar with its own `size` takes the overlap of the group.
 			 */
-			spacing: 'density-[xs,sm]:-space-x-0.5 density-[md,lg,xl]:-space-x-1',
+			spacing: dan.space.avatar.overlap,
 		},
 		/** An avatar with a status. */
 		status: {
