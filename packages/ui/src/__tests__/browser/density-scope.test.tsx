@@ -1,6 +1,7 @@
 import type { ReactElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it } from 'vitest'
+import { server } from 'vitest/browser'
 import { Badge, BadgeSkeleton } from '../../components/badge'
 import { Button, ButtonSkeleton } from '../../components/button'
 import { Card, CardBody, CardHeader, CardTitle } from '../../components/card'
@@ -370,12 +371,18 @@ describe('controls at the first paint (real browser)', () => {
 
 		const { paddingTop, paddingBottom } = getComputedStyle(slider)
 
+		expect(paddingTop).toBe('20px')
+
+		// Gecko draws the track as `::-moz-range-track`, and the box of the input holds the thumb,
+		// so the content box is not the track there.
+		if (server.browser === 'firefox') return
+
 		const track =
 			slider.getBoundingClientRect().height -
 			Number.parseFloat(paddingTop) -
 			Number.parseFloat(paddingBottom)
 
-		expect([paddingTop, track]).toEqual(['20px', 8])
+		expect(track).toBe(8)
 	})
 
 	it('sizes the rating and the progress indicators at the step of the root', () => {
