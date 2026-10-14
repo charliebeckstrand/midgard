@@ -29,16 +29,16 @@ export const email =
 		/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? null : message
 
 /**
- * Validator factory: fails when the value is shorter than `n` characters.
+ * Validator factory: fails when the value is shorter than `min` characters.
  *
  * @internal
- * @param n - Minimum length, inclusive.
- * @param message - Error message on failure. Defaults to `` `Must be at least ${n} characters` ``.
+ * @param min - Minimum length, inclusive.
+ * @param message - Error message on failure. Defaults to `` `Must be at least ${min} characters` ``.
  */
 export const minLength =
-	(n: number, message?: string): Validator =>
+	(min: number, message?: string): Validator =>
 	(value) =>
-		value.length >= n ? null : (message ?? `Must be at least ${n} characters`)
+		value.length >= min ? null : (message ?? `Must be at least ${min} characters`)
 
 /**
  * Validator factory: fails when the value differs from another field's value.
@@ -59,15 +59,15 @@ export const matches =
  * @remarks
  * Adapts the {@link Validator} contract (`string | null`) to the form library's
  * field-validator shape (`string | undefined`).
- * @param fns - Validators run in order; evaluation stops at the first failure.
+ * @param validators - Validators run in order; evaluation stops at the first failure.
  * @returns A validator that yields the first error message, or `undefined` when all pass.
  */
-export function chain<T extends Record<string, unknown>>(...fns: Validator[]) {
+export function chain<T extends Record<string, unknown>>(...validators: Validator[]) {
 	return (value: string, values: T): string | undefined => {
-		for (const fn of fns) {
-			const err = fn(value, values as Record<string, string>)
+		for (const validator of validators) {
+			const error = validator(value, values as Record<string, string>)
 
-			if (err) return err
+			if (error) return error
 		}
 
 		return undefined
