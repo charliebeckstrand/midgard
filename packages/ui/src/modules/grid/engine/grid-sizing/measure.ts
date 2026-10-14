@@ -102,6 +102,15 @@ function isSingleWordTitle(title: GridColumn<unknown>['title']): boolean {
 	return typeof title === 'string' && title.trim().length > 0 && !/\s/.test(title.trim())
 }
 
+/**
+ * A cell of the grid itself. A detail panel can hold a nested grid, and a
+ * column id can be the same in the two grids. The selector therefore reads no
+ * cell in a detail row below `:scope`.
+ *
+ * @internal
+ */
+const OWN_CELL = ':not(:scope [data-detail-row] *)'
+
 /** The rendered `<th>`/`<td>` cells grouped by their `data-grid-col` id, read once per measurement pass. @internal */
 function collectCells(container: HTMLElement): {
 	headers: Map<string, HTMLElement>
@@ -111,7 +120,7 @@ function collectCells(container: HTMLElement): {
 } {
 	const headers = new Map<string, HTMLElement>()
 
-	for (const th of container.querySelectorAll<HTMLElement>('th[data-grid-col]')) {
+	for (const th of container.querySelectorAll<HTMLElement>(`th[data-grid-col]${OWN_CELL}`)) {
 		const id = th.getAttribute('data-grid-col')
 
 		if (id != null) headers.set(id, th)
@@ -121,7 +130,7 @@ function collectCells(container: HTMLElement): {
 
 	let cells = 0
 
-	for (const td of container.querySelectorAll<HTMLElement>('td[data-grid-col]')) {
+	for (const td of container.querySelectorAll<HTMLElement>(`td[data-grid-col]${OWN_CELL}`)) {
 		const id = td.getAttribute('data-grid-col')
 
 		if (id == null) continue

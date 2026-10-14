@@ -230,6 +230,19 @@ function reseatFlagged(flag: { current: boolean }, grid: HTMLElement | null): vo
 }
 
 /**
+ * `node` when its nearest `<table>` is `table`, else `null`. A detail panel can
+ * hold a nested grid. The row index or the column id of a row or a cell of
+ * that grid can match one of this grid, so the session must not read it.
+ * {@link isInGrid} does not tell the two apart when the nested grid has no
+ * `role="grid"`.
+ *
+ * @internal
+ */
+function ownNode(node: Element | null, table: HTMLTableElement | null): Element | null {
+	return node?.closest('table') === table ? node : null
+}
+
+/**
  * Whether `node` is in a floating surface that an editor opened. That is a
  * portaled panel, such as an open listbox's options or the date picker's
  * calendar. It is also an open disclosure's own trigger or input
@@ -1172,10 +1185,15 @@ export function useGridEditing<T>({
 	// Elsewhere in the grid — the tab stop after a Tab back, a header control —
 	// it names none, and the session the grid opened is the one it means. The
 	// column comes from the press's cell, and only an open editor's cell names
-	// one. Escape reads the row alone; Enter needs the editor.
+	// one. Escape reads the row alone; Enter needs the editor. A row or a cell of
+	// a grid nested in a detail row names nothing (see `ownNode`).
 	const sessionTarget = useCallback(
 		(target: Element): { rowKey: string | number; columnId: string | number | null } | null => {
-			const rowIndex = target.closest('tr[data-row-index]')?.getAttribute('data-row-index')
+			const table = tableRef.current
+
+			const rowIndex = ownNode(target.closest('tr[data-row-index]'), table)?.getAttribute(
+				'data-row-index',
+			)
 
 			const rowKey =
 				rowIndex === null || rowIndex === undefined
@@ -1184,7 +1202,9 @@ export function useGridEditing<T>({
 
 			if (rowKey == null || !editableRowsRef.current.has(rowKey)) return null
 
-			const colAttr = target.closest('td[data-grid-col]')?.getAttribute('data-grid-col')
+			const colAttr = ownNode(target.closest('td[data-grid-col]'), table)?.getAttribute(
+				'data-grid-col',
+			)
 
 			const col = dataColumnsRef.current.find((candidate) => String(candidate.id) === colAttr)
 
@@ -1200,7 +1220,7 @@ export function useGridEditing<T>({
 
 			return { rowKey, columnId: open ? col.id : null }
 		},
-		[rowKeysRef, dataColumnsRef],
+		[rowKeysRef, dataColumnsRef, tableRef],
 	)
 
 	// Enter commits the session and moves the cursor down one row. Under cell

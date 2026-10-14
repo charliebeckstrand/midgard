@@ -304,7 +304,8 @@ function seedCoord(
  * by what's visible rather than a fixed count. Returns {@link NAV_PAGE_STEP}
  * for any non-page key (no layout read). The same constant is the fallback when
  * there is no scroll container (a fully-visible grid) or the rows can't be
- * measured (jsdom).
+ * measured (jsdom). The row is a row of this table, and not a row of a grid in
+ * a detail panel, which can have a different height.
  *
  * @internal
  */
@@ -313,7 +314,8 @@ function resolvePageStep(key: string, container: HTMLElement | null, table: HTML
 
 	const viewport = container?.clientHeight ?? 0
 
-	const rowHeight = table.querySelector<HTMLElement>('tbody tr[data-grid-row]')?.offsetHeight ?? 0
+	const rowHeight =
+		table.querySelector<HTMLElement>(':scope > tbody > tr[data-grid-row]')?.offsetHeight ?? 0
 
 	if (viewport > 0 && rowHeight > 0) return Math.max(1, Math.floor(viewport / rowHeight) - 1)
 

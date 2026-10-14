@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { fireEvent, frames, renderUI, screen, waitFor } from '../helpers'
+import { fireEvent, frames, present, renderUI, screen, waitFor } from '../helpers'
 
 /**
  * The keyboard cursor over a virtualized grid (real browser; jsdom renders zero
@@ -268,5 +268,107 @@ describe('grid virtualized cursor over item bodies (real browser)', () => {
 		expect(cell.closest('tr')).toHaveAttribute('data-detail-row', '200')
 
 		expect(cell).toHaveTextContent('Detail 200')
+	})
+})
+
+/**
+ * PageDown over a windowed master-detail body whose panels hold a nested grid.
+ * The page step reads the height of a row of the outer grid. A row of a nested
+ * grid can have a different height, so the step must not read it.
+ */
+describe('grid virtualized page step past a nested grid (real browser)', () => {
+	type Row = { id: number; name: string }
+
+	type Task = { id: number; title: string }
+
+	const rows: Row[] = Array.from({ length: 50 }, (_, i) => ({ id: i + 1, name: `Name ${i + 1}` }))
+
+	const columns: GridColumn<Row>[] = [
+		{ id: 'expand', expander: true },
+		{ id: 'name', title: 'Name', cell: (row) => row.name },
+	]
+
+	// The one row of each nested grid is much taller than a row of the outer grid.
+	const taskColumns: GridColumn<Task>[] = [
+		{ id: 'title', title: 'Title', cell: (t) => <div style={{ height: 120 }}>{t.title}</div> },
+	]
+
+	/** The place of `cell` in the cursor order: a data row, then its open panel. */
+	const cursorRowOf = (cell: Element): number => {
+		const row = cell.closest('tr')
+
+		const panel = row?.getAttribute('data-detail-row')
+
+		if (panel) return (Number(panel) - 1) * 2 + 1
+
+		return (Number(row?.getAttribute('data-grid-row')) - 1) * 2
+	}
+
+	it('pages PageDown by the height of an outer row when a panel starts the window', async () => {
+		const view = renderUI(
+			<div style={{ width: '480px' }}>
+				<Grid
+					navigable
+					virtualize={{ estimateSize: 36, overscan: 0 }}
+					maxHeight="300px"
+					columns={columns}
+					rows={rows}
+					getKey={(row) => row.id}
+					expandable={{
+						defaultValue: new Set(rows.map((row) => row.id)),
+						render: (row) => (
+							<Grid
+								columns={taskColumns}
+								rows={[{ id: 1, title: `Task of ${row.name}` }]}
+								getKey={(t) => t.id}
+							/>
+						),
+					}}
+				/>
+			</div>,
+		)
+
+		const grid = screen.getByRole('grid')
+
+		const scroll = present(
+			view.container.querySelector<HTMLElement>('[data-slot="grid-scroll"]'),
+			'the scroller',
+		)
+
+		await waitFor(() => expect(screen.queryByText('Task of Name 1')).not.toBeNull())
+
+		// Focus seats the cursor on the first cell of the first row.
+		grid.focus()
+
+		await waitFor(() => expect(grid.getAttribute('aria-activedescendant')).toBeTruthy())
+
+		const outerRow = present(
+			grid.querySelector<HTMLElement>(':scope > tbody > tr[data-grid-row]'),
+			'the first outer row',
+		)
+
+		const step = Math.max(1, Math.floor(scroll.clientHeight / outerRow.offsetHeight) - 1)
+
+		// The top of the viewport goes into the panel of the first row. With no
+		// overscan, that panel is the first item of the window.
+		scroll.scrollTop =
+			outerRow.getBoundingClientRect().bottom - scroll.getBoundingClientRect().top + 20
+
+		await waitFor(() =>
+			expect(
+				grid.querySelector(':scope > tbody > tr:is([data-grid-row], [data-detail-row])'),
+			).toHaveAttribute('data-detail-row', '1'),
+		)
+
+		fireEvent.keyDown(grid, { key: 'PageDown' })
+
+		await waitFor(() => {
+			const cell = present(
+				document.getElementById(grid.getAttribute('aria-activedescendant') ?? ''),
+				'the active cell',
+			)
+
+			expect(cursorRowOf(cell)).toBe(step)
+		})
 	})
 })
