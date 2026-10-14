@@ -1,15 +1,8 @@
 'use client'
 
-import {
-	Activity,
-	type FocusEvent,
-	type ReactNode,
-	useEffect,
-	useLayoutEffect,
-	useRef,
-	useState,
-} from 'react'
+import { Activity, type FocusEvent, type ReactNode, useLayoutEffect, useRef, useState } from 'react'
 import { cn } from '../../core'
+import { useAnnounceOnAppear } from '../../hooks/a11y/use-announce-on-appear'
 import { k } from '../../recipes/kata/ready-reveal'
 import { FOCUSABLE_SELECTOR } from '../../utilities'
 import { ReducedMotion } from '../reduced-motion'
@@ -39,9 +32,10 @@ export type ReadyRevealProps = {
 	 */
 	onReadyComplete?: () => void
 	/**
-	 * Text that a polite live region announces when the reveal goes unready, for
-	 * example `'Loading orders'`. Omit it when a parent owns the announcement. The
-	 * root is `aria-busy` while not ready with or without it.
+	 * Text that the shared polite announcer speaks when the reveal goes unready,
+	 * and at mount when the reveal mounts unready, for example
+	 * `'Loading orders'`. Omit it when a parent owns the announcement. The root
+	 * is `aria-busy` while not ready with or without it.
 	 */
 	loadingLabel?: string
 	/** Outer container class. */
@@ -95,8 +89,8 @@ const PLACEHOLDER_CELL = { position: 'absolute', inset: 0 } as const
  * Wraps its layers in {@link ReducedMotion}, so the crossfade honors
  * `prefers-reduced-motion`. While not ready, the root is `aria-busy`. Then the
  * hidden content does not read as empty to assistive technology. With
- * `loadingLabel`, a polite live region also announces the load. The inactive layer is `inert` and `aria-hidden`,
- * which keeps it out of the tab order and accessibility tree. If it held focus
+ * `loadingLabel`, the shared polite announcer also speaks the load. The
+ * inactive layer is `inert` and `aria-hidden`, which keeps it out of the tab order and accessibility tree. If it held focus
  * when it deactivates, focus moves to the revealed layer, so keyboard users
  * aren't dropped to the document root.
  *
@@ -120,7 +114,7 @@ const PLACEHOLDER_CELL = { position: 'absolute', inset: 0 } as const
  * box of its own leaf, and the leaves reveal together. Give the skeleton the
  * same `size`, `level`, or `orientation` as its leaf. Put `loadingLabel` on one
  * reveal only, or on none when a parent announces the load, so that the
- * region announces the load one time.
+ * announcer speaks the load one time.
  */
 export function ReadyReveal({
 	ready,
@@ -194,13 +188,9 @@ export function ReadyReveal({
 		activating?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR)?.focus()
 	}, [ready])
 
-	// The live region mounts empty and takes its text in an effect. A screen
-	// reader announces a change to a live region, not the text it mounts with.
-	const [status, setStatus] = useState('')
-
-	useEffect(() => {
-		setStatus(ready ? '' : (loadingLabel ?? ''))
-	}, [ready, loadingLabel])
+	// The shared announcer speaks the label. A live region that mounts with the
+	// reveal can be missed (WCAG 4.1.3).
+	useAnnounceOnAppear(loadingLabel, !ready, { onMount: true })
 
 	return (
 		<ReducedMotion>
@@ -210,11 +200,6 @@ export function ReadyReveal({
 				className={cn('relative grid', className)}
 				style={ROOT_GRID}
 			>
-				{loadingLabel === undefined ? null : (
-					<span role="status" className={k.status}>
-						{status}
-					</span>
-				)}
 				<Activity mode={ready && settled ? 'hidden' : 'visible'}>
 					<m.div
 						ref={placeholderRef}
