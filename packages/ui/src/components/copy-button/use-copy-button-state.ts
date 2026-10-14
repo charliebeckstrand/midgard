@@ -12,8 +12,11 @@ import { useTimeout } from '../../hooks/use-timeout'
 const MAX_TIMEOUT = 2 ** 31 - 1
 
 type CopyStateOptions = {
-	/** Text written to the clipboard by `copy`. */
-	text: string
+	/**
+	 * Text written to the clipboard by `copy`. A function builds the text at
+	 * each copy, for a long text that changes often.
+	 */
+	text: string | (() => string)
 	/**
 	 * Milliseconds before the "copied" flag resets.
 	 *
@@ -100,10 +103,13 @@ export function useCopyButtonState({
 	const copy = useCallback(async () => {
 		if (busyRef.current) return
 
+		// The React Compiler does not compile a conditional in a `try` block.
+		const value = typeof text === 'function' ? text() : text
+
 		busyRef.current = true
 
 		try {
-			await navigator.clipboard.writeText(text)
+			await navigator.clipboard.writeText(value)
 
 			if (!mountedRef.current) return
 

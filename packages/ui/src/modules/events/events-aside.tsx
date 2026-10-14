@@ -1,20 +1,16 @@
 'use client'
 
 import { useEffect, useSyncExternalStore } from 'react'
-import { cn } from '../../core'
+import { useLazyModule } from '../../hooks/use-lazy-module'
 import { createLazyModule } from '../../utilities/lazy-module'
-import { getEventSink } from './engine/events-sink'
-import { useEventsPinned } from './use-events-pinned'
+import { noop } from '../../utilities/noop'
+import { isEventsPinned, subscribePinned } from './engine/events-setting'
+import { loadTools } from './events-load'
 
 const panel = createLazyModule(() => import('./events-panel'))
 
-const readNothing = () => null
-
-/** Props of {@link EventsAside}. */
-export type EventsAsideProps = {
-	/** The class of the panel box, such as a width. @defaultValue 'w-96' */
-	className?: string
-}
+// The server does not know the setting, so the first render after hydration reads it.
+const pinnedOnServer = () => false
 
 /**
  * The pinned panel of the events, for the `aside` of `SidebarLayout`. From
@@ -28,26 +24,15 @@ export type EventsAsideProps = {
  * sources skip the events in the panel, so the store does not record its own
  * rows, and the panel does not pause the store.
  */
-export function EventsAside({ className = 'w-96' }: EventsAsideProps) {
-	const pinned = useEventsPinned()
+export function EventsAside() {
+	const pinned = useSyncExternalStore(subscribePinned, isEventsPinned, pinnedOnServer)
 
-	const Panel = useSyncExternalStore(panel.subscribe, panel.read, readNothing)?.EventsPanel
+	const Panel = useLazyModule(panel, false)?.EventsPanel
 
 	// The store pauses while the panel loads, so it does not record the load of
 	// its own module. A load that fails leaves the box empty.
 	useEffect(() => {
-		if (!pinned || panel.read()) return
-
-		const store = getEventSink()?.store
-
-		if (store) store.setPaused(true)
-
-		void panel
-			.load()
-			.catch(() => undefined)
-			.finally(() => {
-				if (store) store.setPaused(false)
-			})
+		if (pinned && !panel.read()) loadTools(panel, false).catch(noop)
 	}, [pinned])
 
 	// The attribute marks the panel as a part of the tools (`OWN`).
@@ -55,10 +40,7 @@ export function EventsAside({ className = 'w-96' }: EventsAsideProps) {
 		<aside
 			data-events-tool=""
 			aria-label="Events"
-			className={cn(
-				'hidden h-full min-h-0 flex-col py-2 pe-2 lg:[:root[data-events][data-events-pinned]_&]:flex',
-				className,
-			)}
+			className="hidden h-full min-h-0 w-96 flex-col py-2 pe-2 lg:[:root[data-events][data-events-pinned]_&]:flex"
 		>
 			{pinned && Panel && <Panel />}
 		</aside>

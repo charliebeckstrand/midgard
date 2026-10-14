@@ -1,6 +1,8 @@
 import { createEmitter } from '../../../utilities/emitter'
+import { getOrCompute } from '../../../utilities/get-or-compute'
 import { framesOf, stackOf } from './events-probes'
 import { createReport, type ReportInput } from './events-report'
+import { CAPTURE_KEY, readStorage as read, writeStorage as write } from './events-storage'
 import { kindWidth, lineOf } from './events-text'
 import type { EventBug, EventEntry, EventReport, EventStorage } from './types'
 
@@ -60,8 +62,18 @@ export class EventStore {
 	/** The element of the last `focusin` outside the tools. */
 	private focus: WeakRef<Element> | undefined
 
+	/** The flags of the tab, read from the storage one time. */
+	private readonly flags = new Map<string, boolean>()
+
+	/** The start of the capture that runs, read from the storage one time. */
+	private capture: CaptureStart | undefined
+
 	constructor(storage: EventStorage) {
 		this.storage = storage
+
+		try {
+			this.capture = JSON.parse(read(storage, CAPTURE_KEY) ?? 'null') ?? undefined
+		} catch {}
 
 		// Only `save` writes the events, so the kept value is an array of events.
 		try {
@@ -112,7 +124,7 @@ export class EventStore {
 
 	/** Whether a capture runs. */
 	get capturing(): boolean {
-		return this.captureStart() !== undefined
+		return this.capture !== undefined
 	}
 
 	/**
@@ -200,7 +212,9 @@ export class EventStore {
 			page: location.pathname,
 		}
 
-		write(this.storage, key('capture'), JSON.stringify(start))
+		this.capture = start
+
+		write(this.storage, CAPTURE_KEY, JSON.stringify(start))
 
 		this.insert(entry)
 
@@ -213,7 +227,7 @@ export class EventStore {
 	 * the event that holds the report, or `undefined` when no capture runs.
 	 */
 	stopCapture(): number | undefined {
-		const start = this.captureStart()
+		const start = this.capture
 
 		if (!start) return undefined
 
@@ -224,7 +238,9 @@ export class EventStore {
 			y: Math.round(scrollY),
 		})
 
-		write(this.storage, key('capture'), null)
+		this.capture = undefined
+
+		write(this.storage, CAPTURE_KEY, null)
 
 		this.insert(entry, (entries) => {
 			const index = entries.indexOf(entry)
@@ -342,7 +358,7 @@ export class EventStore {
 	 * capture that runs, else the last {@link TRAIL} events.
 	 */
 	private trailOf(before: readonly EventEntry[]): readonly EventEntry[] {
-		const start = this.captureStart()
+		const start = this.capture
 
 		return start
 			? before.filter(({ id }) => id >= start.id).slice(-CAPTURE_CAPACITY)
@@ -379,25 +395,14 @@ export class EventStore {
 		this.changes.emit()
 	}
 
-	/** The start of the capture that runs. */
-	private captureStart(): CaptureStart | undefined {
-		try {
-			const value = read(this.storage, key('capture'))
-
-			return value === null ? undefined : JSON.parse(value)
-		} catch {
-			return undefined
-		}
-	}
-
 	/** A flag of the tab, such as "Preserve". It stays in `sessionStorage` while "Preserve" is off too. */
 	private flag(field: string): boolean {
-		return read(this.storage, key(field)) === '1'
+		return getOrCompute(this.flags, field, () => read(this.storage, key(field)) === '1')
 	}
 
-	/** Sets a flag of the tab, and tells the listeners. */
+	/** Sets a flag of the tab, and tells the listeners. A flag that the storage does not keep does not change. */
 	private setFlag(field: string, on: boolean): void {
-		write(this.storage, key(field), on ? '1' : null)
+		if (write(this.storage, key(field), on ? '1' : null)) this.flags.set(field, on)
 
 		this.changes.emit()
 	}
@@ -436,26 +441,4 @@ function trim(entries: readonly EventEntry[], capacity: number): readonly EventE
 /** The storage key of a field of the store. */
 function key(field: string): string {
 	return `${PREFIX}:${field}`
-}
-
-// Storage access can throw, such as with site data off, and the store then
-// lives for the page only.
-function read(storage: EventStorage, name: string): string | null {
-	try {
-		return storage.getItem(name)
-	} catch {
-		return null
-	}
-}
-
-/** Writes a value, or removes it for `null`, and returns whether the write ends. */
-function write(storage: EventStorage, name: string, value: string | null): boolean {
-	try {
-		if (value === null) storage.removeItem(name)
-		else storage.setItem(name, value)
-
-		return true
-	} catch {
-		return false
-	}
 }

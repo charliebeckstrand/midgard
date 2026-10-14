@@ -1,5 +1,6 @@
 import { createEmitter } from '../../../utilities/emitter'
 import { noop } from '../../../utilities/noop'
+import { CAPTURE_KEY, readStorage, storageOf, writeStorage } from './events-storage'
 import type { EventSource } from './types'
 
 // The settings of the events: whether they run, and whether the panel is
@@ -25,9 +26,6 @@ export const CAPTURE_ATTRIBUTE = 'data-events-capture'
 
 /** The attribute of the root element while the store holds a report. CSS shows the dot of the header button by it. */
 export const REPORTS_ATTRIBUTE = 'data-events-reports'
-
-/** The `sessionStorage` key of the capture that runs (`EventStore`). */
-const CAPTURE = 'events:capture'
 
 /** What an app gives to `startEvents`. */
 export type StartEventsOptions = {
@@ -123,21 +121,15 @@ function syncAttributes(): void {
  * The pre-paint script: it copies the settings to the attributes of the root
  * element, and marks a capture that runs in this tab.
  */
-export const SCRIPT = `(function(){try{var l=localStorage,r=document.documentElement;if(l.getItem(${JSON.stringify(ON)})!=='1')return;r.setAttribute(${JSON.stringify(ON_ATTRIBUTE)},'');if(l.getItem(${JSON.stringify(PINNED)})==='1')r.setAttribute(${JSON.stringify(PINNED_ATTRIBUTE)},'');if(sessionStorage.getItem(${JSON.stringify(CAPTURE)})!==null)r.setAttribute(${JSON.stringify(CAPTURE_ATTRIBUTE)},'')}catch(e){}})()`
+export const SCRIPT = `(function(){try{var l=localStorage,r=document.documentElement;if(l.getItem(${JSON.stringify(ON)})!=='1')return;r.setAttribute(${JSON.stringify(ON_ATTRIBUTE)},'');if(l.getItem(${JSON.stringify(PINNED)})==='1')r.setAttribute(${JSON.stringify(PINNED_ATTRIBUTE)},'');if(sessionStorage.getItem(${JSON.stringify(CAPTURE_KEY)})!==null)r.setAttribute(${JSON.stringify(CAPTURE_ATTRIBUTE)},'')}catch(e){}})()`
 
-// Storage access can throw, such as with site data off. The settings are
-// then off.
+/** The `localStorage` of the page. The settings are off where the storage throws, such as with site data off. */
+const local = () => storageOf(() => localStorage)
+
 function readLocal(key: string): string | null {
-	try {
-		return localStorage.getItem(key)
-	} catch {
-		return null
-	}
+	return readStorage(local(), key)
 }
 
 function writeLocal(key: string, on: boolean): void {
-	try {
-		if (on) localStorage.setItem(key, '1')
-		else localStorage.removeItem(key)
-	} catch {}
+	writeStorage(local(), key, on ? '1' : null)
 }

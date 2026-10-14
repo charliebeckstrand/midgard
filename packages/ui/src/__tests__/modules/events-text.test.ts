@@ -8,7 +8,8 @@ import {
 	rowText,
 	summaryOf,
 } from '../../modules/events/engine/events-text'
-import type { EventEntry, EventStorage } from '../../modules/events/engine/types'
+import type { EventEntry } from '../../modules/events/engine/types'
+import { noStorage } from '../helpers/event-storage'
 
 function entry(id: number, time: number, text: string, batch?: string): EventEntry {
 	return { id, time, kind: 'input', text, y: 0, ...(batch === undefined ? {} : { batch }) }
@@ -26,13 +27,6 @@ const entries = [
 	entry(4, 13, 'click', 'a'),
 	entry(5, 300, 'scroll ends', 'b'),
 ]
-
-/** A storage that keeps nothing. */
-const none: EventStorage = {
-	getItem: () => null,
-	setItem: () => undefined,
-	removeItem: () => undefined,
-}
 
 describe('rowsOf', () => {
 	it('gives one row for each event with "Batch" off', () => {
@@ -87,7 +81,7 @@ describe('rowText', () => {
 
 describe('markdownOf', () => {
 	it('writes a report as a heading, a table, and fenced blocks', () => {
-		const store = new EventStore(none)
+		const store = new EventStore(noStorage)
 
 		const error = (message: string) =>
 			Object.assign(new Error(message), { stack: `Error: ${message}\n    at rows (grid.js:1:2)` })

@@ -7,6 +7,7 @@ import { Icon } from '../../components/icon'
 import { List, ListItem } from '../../components/list'
 import { Text } from '../../components/text'
 import { cn } from '../../core'
+import { k } from '../../recipes/kata/events'
 import { Flex } from '../../structure/flex'
 import { markdownOf, titleOf } from './engine/events-report'
 import type { EventEntry, EventReport } from './engine/types'
@@ -43,7 +44,7 @@ function ReportLine({
 					<Button variant="bare" size="sm" aria-label="View" onClick={onView}>
 						<Icon icon={<ListX />} />
 					</Button>
-					<CopyButton size="sm" icon={<Copy />} text={markdownOf(entry)} />
+					<CopyButton size="sm" icon={<Copy />} text={() => markdownOf(entry)} />
 					<Button variant="bare" size="sm" aria-label="Delete" onClick={onDelete}>
 						<Icon icon={<Trash2 />} />
 					</Button>
@@ -54,9 +55,7 @@ function ReportLine({
 				<Text
 					className={cn(
 						'truncate font-mono text-xs',
-						report.origin === 'capture'
-							? 'text-blue-600 dark:text-blue-400'
-							: 'text-red-600 dark:text-red-400',
+						report.origin === 'capture' ? k.kind.capture : k.kind.error,
 					)}
 				>
 					{titleOf(entry)}
@@ -64,9 +63,7 @@ function ReportLine({
 				<Text tone="muted" className="truncate text-xs">
 					{report.page} · {new Date(report.at).toLocaleTimeString()} · {report.origin}
 				</Text>
-				<Text className="truncate font-mono text-xs text-rose-600 dark:text-rose-400">
-					{report.hash}
-				</Text>
+				<Text className={cn('truncate font-mono text-xs', k.hash)}>{report.hash}</Text>
 			</span>
 		</ListItem>
 	)

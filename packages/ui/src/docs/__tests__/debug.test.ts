@@ -1,21 +1,14 @@
 import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest'
+import { noStorage } from '../../__tests__/helpers/event-storage.ts'
 import { listen } from '../../modules/events/engine/events-recorder.ts'
 import { EventStore } from '../../modules/events/engine/events-store.ts'
-import type { EventStorage } from '../../modules/events/engine/types.ts'
 import { componentEvent } from '../debug/component-events.ts'
 import { routerEvents } from '../debug/router.ts'
 import { DOCS_SOURCES } from '../debug/sources.ts'
 
-/** A storage that keeps nothing. */
-const none: EventStorage = {
-	getItem: () => null,
-	setItem: () => undefined,
-	removeItem: () => undefined,
-}
-
 /** Runs the sources of the module and of the docs into a new store, which the test stops when it ends. */
 function listenTo(): EventStore {
-	const store = new EventStore(none)
+	const store = new EventStore(noStorage)
 
 	onTestFinished(listen(store, { sources: DOCS_SOURCES }))
 
@@ -68,7 +61,7 @@ describe('the sources of the docs', () => {
 	})
 
 	it('records the callbacks that a page gives to a component or a module, and stops with the store', () => {
-		const store = new EventStore(none)
+		const store = new EventStore(noStorage)
 
 		const stop = listen(store, { sources: DOCS_SOURCES })
 

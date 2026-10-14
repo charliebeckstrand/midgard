@@ -8,24 +8,9 @@ import {
 } from '../../modules/events/engine/events-sink'
 import { EventStore, type NewEntry } from '../../modules/events/engine/events-store'
 import { OWN } from '../../modules/events/engine/events-target'
-import type { EventStorage } from '../../modules/events/engine/types'
 import { notifyOverlaySignal } from '../../primitives/overlay/overlay-signal'
 import { attach } from '../helpers/attach'
-
-/** A `sessionStorage` in memory. A new store on the same storage is a reload of the tab. */
-function createStorage(): EventStorage {
-	const items = new Map<string, string>()
-
-	return {
-		getItem: (key) => items.get(key) ?? null,
-		setItem: (key, value) => {
-			items.set(key, value)
-		},
-		removeItem: (key) => {
-			items.delete(key)
-		},
-	}
-}
+import { createStorage } from '../helpers/event-storage'
 
 function entry(time: number): NewEntry {
 	return { time, kind: 'input', text: `input at ${time}`, y: 0 }

@@ -1,4 +1,3 @@
-import { noop } from '../../../utilities/noop'
 import { framesOf, stackOf, viewport } from './events-probes'
 import { CAPTURE_ATTRIBUTE, REPORTS_ATTRIBUTE, type StartEventsOptions } from './events-setting'
 import { setEventSink } from './events-sink'
@@ -13,9 +12,10 @@ import { overlay } from './events-sources/overlay'
 import { paint } from './events-sources/paint'
 import { scroll } from './events-sources/scroll'
 import { height, resize } from './events-sources/viewport'
+import { storageOf } from './events-storage'
 import { EventStore, type NewEntry } from './events-store'
 import { isOwn } from './events-target'
-import type { EventLine, EventSource, EventStorage } from './types'
+import type { EventLine, EventSource } from './types'
 
 // The recorder of the events: it starts the store of the tab, writes the
 // lines of each page load, and runs the sources. It loads only while the
@@ -40,22 +40,13 @@ let store: EventStore | undefined
 
 let stop: (() => void) | undefined
 
-/** The `sessionStorage` of the tab, or a storage that keeps nothing where the read of the property throws. */
-function sessionStorageOrNone(): EventStorage {
-	try {
-		return sessionStorage
-	} catch {
-		return { getItem: () => null, setItem: noop, removeItem: noop }
-	}
-}
-
 /**
  * The store of a tab, kept in `sessionStorage`. CSS shows the dot and the
  * ring of the header button by the attributes of the root element, which
  * follow the reports and the capture of the store.
  */
 function create(): EventStore {
-	const next = new EventStore(sessionStorageOrNone())
+	const next = new EventStore(storageOf(() => sessionStorage))
 
 	const mark = () => {
 		const root = document.documentElement

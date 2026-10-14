@@ -1,5 +1,6 @@
 import type { EventSource } from 'ui/events'
 import { bursts, on } from '../../modules/events/engine/events-sources/dom.ts'
+import { noop } from '../../utilities/noop.ts'
 import { listenComponentEvents } from './component-events.ts'
 
 // The sources of the docs, which run after the sources of the module: the
@@ -72,7 +73,7 @@ const components: EventSource = (note) => {
 const hmr: EventSource = (note) => {
 	const hot = import.meta.hot
 
-	if (!hot?.off) return () => undefined
+	if (!hot?.off) return noop
 
 	const update = ({ updates }: { updates: { path: string }[] }) =>
 		note({ kind: 'hmr', text: `update ${updates.map((item) => item.path).join(' ')}` })

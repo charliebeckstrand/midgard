@@ -51,17 +51,10 @@ export type EventsViewParts = {
  * and Delete of that report. Capture is a switch: "Stop capture" ends the
  * capture and shows its report.
  *
- * @param live - Whether the view renders for each new event.
- * @param reset - A value whose change returns the view to the list, such as the open state of a sheet.
+ * @param live - Whether the view renders for each new event, such as the open state of a sheet.
  * @internal
  */
-export function useEventsView({
-	live,
-	reset,
-}: {
-	live: boolean
-	reset?: unknown
-}): EventsViewParts {
+export function useEventsView(live: boolean): EventsViewParts {
 	const { store, entries, preserve, batched, capturing } = useEvents(live)
 
 	const [tab, setTab] = useState<Tab>('events')
@@ -69,10 +62,11 @@ export function useEventsView({
 	// The id of the report on view. A report that goes out returns the view to the list.
 	const [viewed, setViewed] = useState<number>()
 
-	const [prevReset, setPrevReset] = useState(reset)
+	// A sheet that opens or closes returns the view to the list.
+	const [prevLive, setPrevLive] = useState(live)
 
-	if (reset !== prevReset) {
-		setPrevReset(reset)
+	if (live !== prevLive) {
+		setPrevLive(live)
 
 		setViewed(undefined)
 	}
@@ -145,7 +139,9 @@ export function useEventsView({
 		/>
 	)
 
-	if (report)
+	if (report) {
+		const markdown = markdownOf(report)
+
 		return {
 			store,
 			label: 'Bugs',
@@ -176,10 +172,10 @@ export function useEventsView({
 				</Breadcrumb>
 			),
 			actions: null,
-			body: <Markdown headingOffset={1}>{markdownOf(report)}</Markdown>,
+			body: <Markdown headingOffset={1}>{markdown}</Markdown>,
 			footer: (
 				<>
-					<EventsCopyButton text={markdownOf(report)} />
+					<EventsCopyButton text={() => markdown} />
 					<Button
 						size="sm"
 						color="red"
@@ -194,6 +190,7 @@ export function useEventsView({
 				</>
 			),
 		}
+	}
 
 	const tabs = (
 		<Segment
@@ -262,7 +259,7 @@ export function useEventsView({
 			),
 		footer: (
 			<>
-				<EventsCopyButton text={rows.map((row) => rowText(row, width)).join('\n')} />
+				<EventsCopyButton text={() => rows.map((row) => rowText(row, width)).join('\n')} />
 				{capture}
 				{clear}
 			</>

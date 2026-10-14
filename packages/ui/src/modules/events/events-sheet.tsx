@@ -1,6 +1,7 @@
 'use client'
 
 import { Pin } from 'lucide-react'
+import { useLayoutEffect } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import {
@@ -15,7 +16,6 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/events'
 import { Flex } from '../../structure/flex'
 import { setEventsPinned } from './engine/events-setting'
-import { useEventsPause } from './use-events-pause'
 import { useEventsView } from './use-events-view'
 
 /** Props of {@link EventsSheet}. @internal */
@@ -33,9 +33,18 @@ export type EventsSheetProps = { open: boolean; onOpenChange: (open: boolean) =>
 export function EventsSheet({ open, onOpenChange }: EventsSheetProps) {
 	// The closed sheet stays mounted, and it does not render for each new event.
 	// Each open starts on the list.
-	const { store, label, title, actions, body, footer } = useEventsView({ live: open, reset: open })
+	const { store, label, title, actions, body, footer } = useEventsView(open)
 
-	useEventsPause(store, open)
+	// A layout effect runs before the effect of the overlay that reports the
+	// open, so the store does not record the open of the sheet. A sheet that
+	// unmounts while it is open does not leave the store paused.
+	useLayoutEffect(() => {
+		store.setPaused(open)
+
+		return () => {
+			store.setPaused(false)
+		}
+	}, [store, open])
 
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>

@@ -3,12 +3,15 @@
  * and the pinned panel share the title `row`. The panel adds its card, its
  * `body`, and its `footer`. `kind` colors the kinds that stand apart from the
  * DOM events: the callbacks of the components and of the modules, the
- * captures, and the bugs.
+ * captures, and the bugs. `hash` colors the hash of a report. The colors are
+ * the `onSurface` shades of the ramp, which clear AA on the surface.
  */
 import { iro, omote } from '../kiso'
 import { dan } from '../kiso/dan'
 
 const { x, top, bottom } = dan.space.panel
+
+const onSurface = iro.extended.bare.text
 
 export const k = {
 	row: [x, top],
@@ -19,9 +22,10 @@ export const k = {
 	},
 	text: [...iro.text.default],
 	kind: {
-		component: 'text-sky-600 dark:text-sky-400',
-		module: 'text-violet-600 dark:text-violet-400',
-		capture: 'text-blue-600 dark:text-blue-400',
-		error: 'text-red-600 dark:text-red-400',
+		component: onSurface.sky,
+		module: onSurface.violet,
+		capture: iro.text.primary,
+		error: iro.text.error,
 	},
+	hash: onSurface.rose,
 } as const

@@ -1,15 +1,14 @@
 'use client'
 
 import { Activity } from 'lucide-react'
-import { useState, useSyncExternalStore } from 'react'
+import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
+import { useLazyModule } from '../../hooks/use-lazy-module'
 import { createLazyModule } from '../../utilities/lazy-module'
-import { getEventSink } from './engine/events-sink'
+import { loadTools } from './events-load'
 
 const sheet = createLazyModule(() => import('./events-sheet'))
-
-const readNothing = () => null
 
 /**
  * The header button of the events. The server renders it, and CSS shows it
@@ -30,7 +29,7 @@ export function EventsButton() {
 
 	if (failure) throw failure.error
 
-	const Sheet = useSyncExternalStore(sheet.subscribe, sheet.read, readNothing)?.EventsSheet
+	const Sheet = useLazyModule(sheet, false)?.EventsSheet
 
 	const show = () => {
 		if (Sheet) {
@@ -39,17 +38,9 @@ export function EventsButton() {
 			return
 		}
 
-		const store = getEventSink()?.store
-
-		if (store) store.setPaused(true)
-
-		sheet.load().then(
+		loadTools(sheet, true).then(
 			() => setOpen(true),
-			(error: unknown) => {
-				if (store) store.setPaused(false)
-
-				setFailure({ error })
-			},
+			(error: unknown) => setFailure({ error }),
 		)
 	}
 

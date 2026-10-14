@@ -20,7 +20,7 @@ import { useEventsView } from './use-events-view'
  * @internal
  */
 export function EventsPanel() {
-	const { label, title, actions, body, footer } = useEventsView({ live: true })
+	const { label, title, actions, body, footer } = useEventsView(true)
 
 	return (
 		<div className={cn(k.panel.base)}>

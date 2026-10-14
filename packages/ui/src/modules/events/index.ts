@@ -21,6 +21,6 @@ export type {
 	EventSource,
 	EventViewport,
 } from './engine/types'
-export { EventsAside, type EventsAsideProps } from './events-aside'
+export { EventsAside } from './events-aside'
 export { EventsButton } from './events-button'
 export { EventsScript } from './events-script'

@@ -8,21 +8,7 @@ import {
 	TRAIL,
 } from '../../modules/events/engine/events-store'
 import type { EventStorage } from '../../modules/events/engine/types'
-
-/** A `sessionStorage` in memory. A new store on the same storage is a reload of the tab. */
-function createStorage(): EventStorage {
-	const items = new Map<string, string>()
-
-	return {
-		getItem: (key) => items.get(key) ?? null,
-		setItem: (key, value) => {
-			items.set(key, value)
-		},
-		removeItem: (key) => {
-			items.delete(key)
-		},
-	}
-}
+import { createStorage } from '../helpers/event-storage'
 
 /** A storage whose each access throws, as with site data off. */
 const blocked: EventStorage = {
