@@ -14,11 +14,11 @@ export default function WithAttachments() {
 				setValue('')
 				setFiles([])
 			}}
-			onAttach={(picked) => setFiles((previous) => [...previous, ...picked])}
+			onAttach={(picked) => setFiles((prev) => [...prev, ...picked])}
 			accept=".pdf,.csv,.txt"
 			attachments={files}
 			onRemoveAttachment={(index) =>
-				setFiles((previous) => previous.filter((_, position) => position !== index))
+				setFiles((prev) => prev.filter((_, position) => position !== index))
 			}
 		/>
 	)

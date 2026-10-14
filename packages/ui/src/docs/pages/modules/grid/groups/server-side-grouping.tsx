@@ -16,14 +16,14 @@ const countries = ['Norway', 'Japan', 'Brazil', 'Canada']
 
 // The data of the mock server, by country.
 const customersByCountry: Record<string, Order[]> = Object.fromEntries(
-	countries.map((country, c) => [
+	countries.map((country, countryIndex) => [
 		country,
-		Array.from({ length: 4 + (c % 2) }, (_, i) => ({
+		Array.from({ length: 4 + (countryIndex % 2) }, (_, i) => ({
 			id: `${country}:${i + 1}`,
 			country,
-			customer: `Customer ${c * 10 + i + 1}`,
-			orders: ((c + 2) * (i + 3)) % 17,
-			revenue: 480 * (c + 1) + 315 * i,
+			customer: `Customer ${countryIndex * 10 + i + 1}`,
+			orders: ((countryIndex + 2) * (i + 3)) % 17,
+			revenue: 480 * (countryIndex + 1) + 315 * i,
 		})),
 	]),
 )
@@ -163,10 +163,10 @@ export default function ServerSideGrouping() {
 		fetchChildren(String(key)).then((children) => {
 			if (request !== epoch.current) return
 
-			setRows((current) => {
-				const at = current.findIndex((row) => row.group?.key === key) + 1
+			setRows((prev) => {
+				const index = prev.findIndex((row) => row.group?.key === key) + 1
 
-				return at === 0 ? current : [...current.slice(0, at), ...children, ...current.slice(at)]
+				return index === 0 ? prev : [...prev.slice(0, index), ...children, ...prev.slice(index)]
 			})
 		})
 	}

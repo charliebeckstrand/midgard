@@ -10,7 +10,7 @@ import { applyChanges, EditHelp, initialPeople, personColumns } from './people.t
 export default function UndoAndRedo() {
 	const [people, setPeople] = useState(initialPeople)
 
-	const grid = useRef<GridHandle>(null)
+	const gridRef = useRef<GridHandle>(null)
 
 	const [steps, setSteps] = useState<GridHistoryState>({ canUndo: false, canRedo: false })
 
@@ -20,11 +20,11 @@ export default function UndoAndRedo() {
 		<>
 			<Flex justify="between" align="center">
 				<Flex gap="sm">
-					<Button variant="soft" disabled={!steps.canUndo} onClick={() => grid.current?.undo()}>
+					<Button variant="soft" disabled={!steps.canUndo} onClick={() => gridRef.current?.undo()}>
 						<Icon icon={<Undo2 />} />
 						Undo
 					</Button>
-					<Button variant="soft" disabled={!steps.canRedo} onClick={() => grid.current?.redo()}>
+					<Button variant="soft" disabled={!steps.canRedo} onClick={() => gridRef.current?.redo()}>
 						<Icon icon={<Redo2 />} />
 						Redo
 					</Button>
@@ -37,7 +37,7 @@ export default function UndoAndRedo() {
 				</EditHelp>
 			</Flex>
 			<Grid
-				ref={grid}
+				ref={gridRef}
 				columns={personColumns}
 				rows={people}
 				getKey={(row) => row.id}
@@ -47,7 +47,7 @@ export default function UndoAndRedo() {
 					scope: 'cell',
 					history: true,
 					onHistoryChange: setSteps,
-					onCommit: (changes) => setPeople((current) => applyChanges(current, changes)),
+					onCommit: (changes) => setPeople((prev) => applyChanges(prev, changes)),
 				}}
 			/>
 		</>

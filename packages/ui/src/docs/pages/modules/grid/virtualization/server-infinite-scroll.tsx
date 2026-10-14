@@ -24,7 +24,7 @@ export default function ServerInfiniteScroll() {
 		setLoadingMore(true)
 
 		fetchPage(rows.length).then((page) => {
-			setRows((current) => [...current, ...page])
+			setRows((prev) => [...prev, ...page])
 
 			setLoadingMore(false)
 		})

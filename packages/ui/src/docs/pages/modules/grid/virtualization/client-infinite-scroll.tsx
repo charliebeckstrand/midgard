@@ -15,7 +15,7 @@ export default function ClientInfiniteScroll() {
 			virtualize
 			maxHeight="320px"
 			infiniteScroll={{
-				onLoadMore: () => setCount((current) => Math.min(current + 20, manyPeople.length)),
+				onLoadMore: () => setCount((prev) => Math.min(prev + 20, manyPeople.length)),
 				hasMore: count < manyPeople.length,
 			}}
 		/>

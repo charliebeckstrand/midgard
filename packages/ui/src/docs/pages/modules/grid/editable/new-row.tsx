@@ -63,10 +63,10 @@ export default function NewRow() {
 
 		if (refused.length > 0) return refused
 
-		setPeople((current) => [
-			...current,
+		setPeople((prev) => [
+			...prev,
 			{
-				id: Math.max(0, ...current.map((person) => person.id)) + 1,
+				id: Math.max(0, ...prev.map((person) => person.id)) + 1,
 				name: String(values.name).trim(),
 				email: String(values.email ?? ''),
 				role: String(values.role ?? 'Developer'),
@@ -128,7 +128,7 @@ export default function NewRow() {
 					newRow: position,
 					newRowAdd: addControlOf(addControl),
 					onRowAdd,
-					onCommit: (changes) => setPeople((current) => applyChanges(current, changes)),
+					onCommit: (changes) => setPeople((prev) => applyChanges(prev, changes)),
 				}}
 			/>
 		</>
