@@ -56,6 +56,8 @@ export type AppearanceProviderProps = {
  *
  * It renders the script of the latin face of the font before its children
  * ({@link FontScript}), so latin text paints in the font from the first paint.
+ * In the server render, it also puts a `preload` link for that script in the
+ * head.
  * Render it above all text of the page, as the root layout of an app does.
  *
  * @remarks The server render and the hydration render use the defaults

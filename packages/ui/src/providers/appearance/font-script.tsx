@@ -1,5 +1,6 @@
 'use client'
 
+import { preload } from 'react-dom'
 import { useHydrated } from '../../hooks/use-hydrated'
 
 // The bundler of the app resolves the URL. It copies the script of
@@ -28,6 +29,12 @@ const FONT_SCRIPT_PATH = new URL('../../fonts/google-sans-flex-latin.js', import
  * a later load does not download it again. The browser downloads another
  * subset only when a page has text in it.
  *
+ * The first paint waits for the script, and not for the modules of the page.
+ * The element is in the body, after the `modulepreload` links in the head.
+ * Thus the script also has a `preload` link at the high priority. React puts
+ * that link at the start of the head, before the module links, so the browser
+ * requests the script first. A CDN then sends the script before the modules.
+ *
  * Only the parse of the server HTML runs the script: React does not run a
  * script that it adds in the browser. The element is thus in the server
  * render and in the hydration render only ({@link useHydrated}). After
@@ -37,5 +44,9 @@ const FONT_SCRIPT_PATH = new URL('../../fonts/google-sans-flex-latin.js', import
 export function FontScript() {
 	const hydrated = useHydrated()
 
-	return hydrated ? null : <script src={FONT_SCRIPT_PATH} />
+	if (hydrated) return null
+
+	preload(FONT_SCRIPT_PATH, { as: 'script', fetchPriority: 'high' })
+
+	return <script src={FONT_SCRIPT_PATH} />
 }
