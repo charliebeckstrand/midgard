@@ -1,5 +1,6 @@
 'use client'
 
+import { Play, Square } from 'lucide-react'
 import { type MouseEvent, type ReactNode, useState } from 'react'
 import {
 	Breadcrumb,
@@ -9,6 +10,7 @@ import {
 	BreadcrumbSeparator,
 } from '../../components/breadcrumb'
 import { Button } from '../../components/button'
+import { Icon } from '../../components/icon'
 import { Markdown } from '../../components/markdown'
 import { Segment, SegmentControl, SegmentItem } from '../../components/segment'
 import { Text } from '../../components/text'
@@ -46,8 +48,8 @@ export type EventsViewParts = {
  * event, newest first, with "Preserve" and "Batch", then Copy, Capture, and
  * Clear. The Bugs tab shows the events with a report: the bugs and the
  * captures. A report shows in place of the list, with its crumbs, and Copy
- * and Delete of that report. Capture is a switch: Stop ends the capture and
- * shows its report.
+ * and Delete of that report. Capture is a switch: "Stop capture" ends the
+ * capture and shows its report.
  *
  * @param live - Whether the view renders for each new event.
  * @param reset - A value whose change returns the view to the list, such as the open state of a sheet.
@@ -106,6 +108,9 @@ export function useEventsView({
 		<Button
 			size="sm"
 			color={capturing ? 'red' : 'blue'}
+			prefix={
+				<Icon icon={capturing ? <Square fill="currentColor" /> : <Play fill="currentColor" />} />
+			}
 			onClick={() => {
 				if (!capturing) {
 					store.startCapture()
@@ -118,7 +123,7 @@ export function useEventsView({
 				if (id !== undefined) view(id)
 			}}
 		>
-			{capturing ? 'Stop' : 'Capture'}
+			{capturing ? 'Stop capture' : 'Capture'}
 		</Button>
 	)
 

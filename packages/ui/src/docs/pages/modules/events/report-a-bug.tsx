@@ -34,7 +34,7 @@ function Thrower(): ReactNode {
 export default function ReportABug() {
 	const [broken, setBroken] = useState(false)
 
-	// Turn on Settings, Debug, Events. Each button makes a bug that React or the
+	// Turn on Debug in the settings. Each button makes a bug that React or the
 	// browser reports, and the bug shows in the Bugs tab of the Events sheet.
 	return (
 		<Stack gap="md">

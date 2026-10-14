@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { EventsScript, isEventsOn, setEventsOn, startEvents } from 'ui/events'
-import { Fieldset, Label, Legend } from 'ui/fieldset'
+import { Description, Label } from 'ui/fieldset'
 import { Switch, SwitchField } from 'ui/switch'
 import { DOCS_SOURCES } from './sources.ts'
 
@@ -38,26 +38,26 @@ export function startDebug(): Promise<void> {
 }
 
 /**
- * The Debug section of the settings: the switch of the events. The settings
+ * The Debug switch of the settings, which runs the events. The settings
  * render on the client only, so the switch reads the setting.
  */
 export function DebugSwitch() {
 	const [on, setOn] = useState(isEventsOn)
 
 	return (
-		<Fieldset>
-			<Legend>Debug</Legend>
-			<SwitchField>
-				<Label>Events</Label>
-				<Switch
-					checked={on}
-					onChange={(event) => {
-						setEventsOn(event.target.checked)
+		<SwitchField>
+			<Label>Debug</Label>
+			<Description>
+				Shows the Events button in the header, with the events and the bugs of the page.
+			</Description>
+			<Switch
+				checked={on}
+				onChange={(event) => {
+					setEventsOn(event.target.checked)
 
-						setOn(event.target.checked)
-					}}
-				/>
-			</SwitchField>
-		</Fieldset>
+					setOn(event.target.checked)
+				}}
+			/>
+		</SwitchField>
 	)
 }

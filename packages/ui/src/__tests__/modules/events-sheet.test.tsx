@@ -361,7 +361,7 @@ describe('EventsSheet Bugs', () => {
 		sheet.open()
 
 		act(() => {
-			fireEvent.click(screen.getByRole('button', { name: 'Stop' }))
+			fireEvent.click(screen.getByRole('button', { name: 'Stop capture' }))
 		})
 
 		expect(store.capturing).toBe(false)
