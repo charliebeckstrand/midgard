@@ -154,19 +154,6 @@ export const [ChartMarkEmphasisContext, useChartMarkEmphasis] = createContext<Ch
 )
 
 /**
- * The frame's setter of the pointed mark (`null` clears it). The hit layer
- * writes it while the pointer sits on a mark. It has its own context and keeps
- * its identity, so a crossing from mark to mark renders the readers of
- * {@link ChartMarkEmphasis}, not the hit layer that writes it. A no-op outside a
- * frame.
- *
- * @internal
- */
-export const [ChartMarkPointContext, useChartMarkPoint] = createContext<
-	(mark: ChartMarkRef | null) => void
->('ChartMarkPoint', { default: () => {} })
-
-/**
  * Whether a datum sits in the held category selection. A group-level query
  * passes no `datum`, and a selection by category never dims a whole series. An
  * empty selection holds nothing, so each datum reads lit. @internal
@@ -246,29 +233,38 @@ export const [ChartEmphasisContext, useChartEmphasis] =
 	createContext<ChartEmphasis>('ChartEmphasis')
 
 /**
- * The frame's setter of the pointed reference: the index of the rule that the
- * pointer, or the legend chip of the rule, points at (`null` clears it). It has
- * its own context and keeps its identity, so a writer such as the legend does
- * not render again when the emphasis changes. A no-op outside a frame.
+ * The stable setters of the frame. Each keeps its identity, so a writer does
+ * not render again when the state it writes changes. A reader of the state
+ * renders, not the writer. Each is a no-op outside a frame.
  *
  * @internal
  */
-export const [ChartReferencePointContext, useChartReferencePoint] = createContext<
-	(index: number | null) => void
->('ChartReferencePoint', { default: () => {} })
+export type ChartActions = {
+	/**
+	 * Sets the pointed mark (`null` clears it). The hit layer writes it while
+	 * the pointer sits on a mark, so a crossing from mark to mark renders the
+	 * readers of {@link ChartMarkEmphasis}, not the hit layer.
+	 */
+	pointMark: (mark: ChartMarkRef | null) => void
+	/**
+	 * Sets the pointed reference: the index of the rule that the pointer, or
+	 * the legend chip of the rule, points at (`null` clears it).
+	 */
+	pointReference: (index: number | null) => void
+	/**
+	 * Sets the series emphasis: the series that a legend entry, a keyboard
+	 * cursor, or a pie slice points at (`null` clears it). The frame owns the
+	 * emphasis, so a legend hover renders the frame and the readers of the
+	 * emphasis, not the chart body.
+	 */
+	focusSeries: (index: number | null) => void
+}
 
-/**
- * The frame's setter of the series emphasis: the series that a legend entry, a
- * keyboard cursor, or a pie slice points at (`null` clears it). The frame owns
- * the emphasis, so a legend hover renders the frame and the readers of the
- * emphasis, not the chart body. The setter keeps its identity. A no-op outside
- * a frame.
- *
- * @internal
- */
-export const [ChartSeriesFocusContext, useChartSeriesFocus] = createContext<
-	(index: number | null) => void
->('ChartSeriesFocus', { default: () => {} })
+function ignore(): void {}
+
+export const [ChartActionsContext, useChartActions] = createContext<ChartActions>('ChartActions', {
+	default: { pointMark: ignore, pointReference: ignore, focusSeries: ignore },
+})
 
 /**
  * The series emphasis that the frame resolves: the pointed series while the

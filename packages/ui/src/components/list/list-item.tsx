@@ -2,6 +2,7 @@
 
 import type { ComponentProps, ElementType, FocusEvent, KeyboardEvent, ReactNode } from 'react'
 import { cn, dataAttr } from '../../core'
+import { useAriaIds } from '../../hooks/use-aria-ids'
 import { useKeyedValue } from '../../hooks/use-keyed-store'
 import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic'
 import { k } from '../../recipes/kata/list'
@@ -170,16 +171,27 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 	// composed rather than left to fight the spread: whichever order they went in, one side would
 	// silently win, and a consumer passing `onKeyDown` quietly turning off reordering for that row
 	// is a bug nothing points at. Theirs runs first, then the gesture.
-	const { onKeyDown: consumerKeyDown, onBlur: consumerBlur } = props as {
+	const {
+		onKeyDown: consumerKeyDown,
+		onBlur: consumerBlur,
+		'aria-describedby': consumerDescribedBy,
+	} = props as {
 		onKeyDown?: (event: KeyboardEvent) => void
 		onBlur?: (event: FocusEvent) => void
+		'aria-describedby'?: string
 	}
+
+	// The reorder props come after the spread, so they must keep the consumer description. The
+	// consumer ids come first, then the id of the reorder instructions. When the `<li>` is the
+	// stop, the consumer description stays on the content area, and the `<li>` gets only the
+	// instructions.
+	const reorderDescribedBy = useAriaIds(stopOnContent && consumerDescribedBy, describedBy)
 
 	const reorderProps = {
 		// The library's stop wins over a consumer `tabIndex`: a reorderable row has to be reachable,
 		// and a row that is silently unreachable reads as the feature being broken.
 		tabIndex: 0,
-		'aria-describedby': describedBy,
+		'aria-describedby': reorderDescribedBy,
 		onKeyDown: (event: KeyboardEvent) => {
 			if (stopOnContent) consumerKeyDown?.(event)
 
@@ -225,10 +237,12 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 			<Polymorphic
 				as={as}
 				href={href}
-				data-slot="list-item-content"
 				className={k.content({ interactive, lifted, stretched })}
 				{...props}
 				{...(stopOnContent ? reorderProps : {})}
+				// The keyboard model and a kata rule select this anchor, so it comes after
+				// the consumer spread (CONVENTIONS.md §3.9).
+				data-slot="list-item-content"
 			>
 				{children}
 			</Polymorphic>

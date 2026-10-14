@@ -21,7 +21,11 @@ export type ResizeObserverStub = {
  * Returns the live array, which fills as the subject renders. `unstubGlobals`
  * puts the suite-wide stub back before the next test, so no caller restores it.
  *
- * Kept off `helpers/index.ts`: that barrel reaches ~360 test files and seven
+ * Motion's `resize` builds one observer from the global at its first call, and
+ * keeps it for the life of the module. A subject that observes through
+ * `resize`, such as `useTruncation`, therefore does not reach this stub.
+ *
+ * Kept off `helpers/index.ts`: that barrel reaches ~360 test files and six
  * need this one.
  */
 export function stubResizeObserver(): ResizeObserverStub[] {

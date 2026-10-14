@@ -65,9 +65,12 @@ export type ListWindow = {
  * as the body of a drawer, a sheet, or a dialog. The list does not own it,
  * because the content above the list scrolls with it. So the hook measures
  * where the list starts in the scroll content, and the flex gap between the
- * rows, which a measured row does not include. A resize of the parent of the
- * list measures again, which covers content above the list that grows or
- * shrinks.
+ * rows, which a measured row does not include. A resize of each ancestor of
+ * the list, from its parent up to the child of the scroller that holds it,
+ * measures again. This covers content above the list that grows or shrinks.
+ * A move with no resize of an ancestor is not covered: for example, a sibling
+ * above the list grows while a sibling below it shrinks by the same distance,
+ * or an ancestor has a fixed height.
  *
  * The padding of the list stands in for the rows outside the window, so the
  * list keeps its full height and a scroller that only a maximum height bounds
@@ -126,7 +129,18 @@ export function useListWindow({
 
 		const observer = new ResizeObserver(measure)
 
-		observer.observe(list.parentElement ?? list)
+		// A ResizeObserver reports a size, not a position. A box above the parent
+		// can grow and move the list, so the hook observes each ancestor from the
+		// parent up to the child of the scroller that holds the list.
+		for (
+			let node: HTMLElement | null = list.parentElement ?? list;
+			node;
+			node = node.parentElement
+		) {
+			observer.observe(node)
+
+			if (node === scroller || node.parentElement === scroller) break
+		}
 
 		return () => observer.disconnect()
 	}, [enabled, listRef])

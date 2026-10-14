@@ -1,17 +1,21 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { ProgressBar } from '../../../components/progress'
-import { REDUCED_MOTION_QUERY } from '../../../utilities/media-query'
-import { bySlot, renderUI, stubMatchMedia } from '../../helpers'
+import { rootReducedMotionClass } from '../../../core/motion/root'
+import { bySlot, renderUI } from '../../helpers'
 import { frames, nextPaint } from '../../helpers/frames'
 
 /**
- * Real-Motion check of the indeterminate ProgressBar. The other suites mock
- * `motion/react`, and the mock animates nothing.
+ * Real-browser check of the indeterminate ProgressBar. A CSS animation of
+ * `ui/tailwind.css` runs the sweep, behind `motion-safe:`.
  *
- * Before the fix, the fill named a keyframe that no stylesheet defined, so the
+ * An earlier fill named a keyframe that no stylesheet defined, so the
  * indeterminate bar was a static block at the start of the track.
  */
-describe('Indeterminate ProgressBar (real Motion)', () => {
+describe('Indeterminate ProgressBar (real browser)', () => {
+	afterEach(() => {
+		document.documentElement.classList.remove(rootReducedMotionClass)
+	})
+
 	function fillOf(container: HTMLElement) {
 		const fill = bySlot(container, 'progress-bar')?.firstElementChild
 
@@ -36,8 +40,10 @@ describe('Indeterminate ProgressBar (real Motion)', () => {
 		await expect.poll(() => fill.getBoundingClientRect().left).not.toBe(start)
 	})
 
+	// The browser of the suite asks for no reduction, so the Motion setting of
+	// the root reduces motion here.
 	it('holds the fill still under reduced motion', async () => {
-		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+		document.documentElement.classList.add(rootReducedMotionClass)
 
 		const { container } = renderUI(
 			<div style={{ width: 300 }}>

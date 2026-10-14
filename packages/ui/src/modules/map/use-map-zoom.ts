@@ -15,7 +15,7 @@ import { useDragCursorHold } from '../../hooks/use-drag-cursor'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { useAnimationFrame, useTimeout } from '../../hooks/use-timeout'
 import { isPrimaryPress } from '../../utilities/primary-press'
-import { useMapHoverHold } from './context'
+import { useMapHoverActions } from './context'
 import { MAP_PAN_THRESHOLD, MAP_WHEEL_SETTLE_MS } from './engine/map-constants'
 import { clientToFrame, frameScale, type MapClientBox } from './engine/map-projection/frame'
 import {
@@ -233,8 +233,8 @@ export function useMapZoom({
 	// from the touch events instead — see {@link useMapTouchPinch}.
 	const pointers = useRef(new Map<number, MapPoint2D>())
 
-	// A pinch holds the readout until the gesture settles. See {@link MapHoverHold}.
-	const holdReadout = useMapHoverHold()
+	// A pinch holds the readout until the gesture settles. See {@link MapHoverActions.hold}.
+	const { hold: holdReadout } = useMapHoverActions()
 
 	// Whether a modifier map holds the touch sequence in flight. Two fingers set
 	// it, and it stays set until every finger lifts. A finger left down after a

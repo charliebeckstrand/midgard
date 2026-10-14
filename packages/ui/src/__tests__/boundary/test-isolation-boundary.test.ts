@@ -391,7 +391,6 @@ function constValue(declaration: Node | undefined, name: string): Expression | u
 const SOURCE_WRITERS: Readonly<Record<string, readonly string[]>> = {
 	'components/pdf-viewer/pdf-viewer-document-cache.ts': ['resetDocumentCache'],
 	'core/announcer.ts': ['__resetAnnouncer'],
-	'hooks/use-truncation.ts': ['__resetTruncationObserver'],
 }
 
 /** Each name in `SOURCE_WRITERS`. */

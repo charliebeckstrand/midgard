@@ -2,23 +2,28 @@
 
 import { useSyncExternalStore } from 'react'
 import { useDirectionScope } from '../primitives/direction'
+import { createListenerRegistry } from '../utilities/listener-registry'
 import { isRtl } from './a11y/logical-arrow'
 
 /**
- * Calls `onChange` when a `dir` attribute changes anywhere in the document.
- * A `dir` change is the only markup change that can move the computed
- * direction.
+ * One `MutationObserver` on the root element for every caller. It watches the
+ * `dir` attribute in the whole document, because a `dir` change is the only
+ * markup change that can move the computed direction. The registry has one key.
  */
+const registry = createListenerRegistry<Element, MutationRecord[]>({
+	source: () => document.documentElement,
+	attach: (root, _key, listener) => {
+		const observer = new MutationObserver(listener)
+
+		observer.observe(root, { attributes: true, attributeFilter: ['dir'], subtree: true })
+
+		return () => observer.disconnect()
+	},
+})
+
+/** Calls `onChange` when a `dir` attribute changes anywhere in the document. */
 function subscribe(onChange: () => void) {
-	const observer = new MutationObserver(onChange)
-
-	observer.observe(document.documentElement, {
-		attributes: true,
-		attributeFilter: ['dir'],
-		subtree: true,
-	})
-
-	return () => observer.disconnect()
+	return registry.subscribe('dir', onChange)
 }
 
 /**

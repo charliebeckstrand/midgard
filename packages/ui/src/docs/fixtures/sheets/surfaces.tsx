@@ -24,6 +24,7 @@ import { Icon } from '../../../components/icon'
 import { Input } from '../../../components/input'
 import { Markdown } from '../../../components/markdown'
 import { ScrollArea } from '../../../components/scroll-area'
+import { ShinyText } from '../../../components/shiny-text'
 import { Text } from '../../../components/text'
 import { Box } from '../../../structure/box'
 import { Container } from '../../../structure/container'
@@ -352,6 +353,13 @@ export function Sheet() {
 						A paragraph that is long enough to wrap onto more than one line in a narrow container
 						and to fill the row in a wide one. The quick brown fox jumps over the lazy dog.
 					</Text>
+				</FixtureCase>
+			</FixtureGroup>
+
+			<FixtureGroup title="ShinyText">
+				<FixtureCase label="default, disabled">
+					<ShinyText>Shine on the text</ShinyText>
+					<ShinyText disabled>Shine on the text</ShinyText>
 				</FixtureCase>
 			</FixtureGroup>
 

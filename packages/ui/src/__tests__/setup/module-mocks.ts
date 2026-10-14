@@ -9,7 +9,7 @@ import { vi } from 'vitest'
  * which those are. No file in that project declares one, and none can —
  * `test-isolation-boundary.test.ts` enforces it. A suite that needs a different
  * double drives the global mock instead, with a spy or through a stub the mock
- * already reads (see `components/shiny-text` and
+ * already reads (see `components/use-hold-button-gesture` and
  * `components/use-hold-button-gesture-reduced-motion`).
  *
  * The `integration` project keeps `forks`, so the suites that genuinely need a
