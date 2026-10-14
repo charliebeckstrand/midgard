@@ -61,7 +61,7 @@ A control slot is a scope one step below its host. No step is below `xs`, so the
 
 ### Density in JS
 
-A scope also opens the density context, one `DensityStep`. A client reader that needs the step as a JS value reads it: `Portal`, Calendar, and Grid. The context does not hold the root. Outside each other scope, `useDensityStep` reads the root element, which the server cannot read. So a JS value takes the stored step one render after hydration. A stepped class is correct at the first paint. In a control slot, `useDensityStep` gives the step of the host, but the CSS paints the slot one step below it. The base rules of the scopes are in the critical CSS of each docs page, with no class of the page.
+A scope also opens the density context, one `DensityStep`. A client reader that needs the step as a JS value reads it: `Portal` and Grid. The context does not hold the root. Outside each other scope, `useDensityStep` reads the root element, which the server cannot read. So a JS value takes the stored step one render after hydration. A stepped class is correct at the first paint. In a control slot, `useDensityStep` gives the step of the host, but the CSS paints the slot one step below it. The base rules of the scopes are in the critical CSS of each docs page, with no class of the page.
 
 A scope is the `density` prop of the host primitive: PolymorphicStatic, Box, ControlFrame, PopoverPanel, or FloatingSurface. The prop writes the attribute and opens the context in one place, so the two channels agree. Button and Drawer write both channels by hand, because their elements are a link and a `motion.div`. `density-native-boundary.test.ts` lists the files that are permitted to do this.
 
