@@ -1,6 +1,7 @@
 /**
- * The rungs of density: the rules that the Tailwind plugins of density write.
- * The `density-*` variants of `variants.ts` and each stepped utility use them.
+ * The rungs of density: the rules of the step variants. The `density-*`
+ * variants of `variants.ts` use them. A stepped utility does not: it reads the
+ * custom properties of its scope (`utilities.ts`).
  *
  * A density scope is an element with `data-density`. The depth of a match is
  * the number of scopes on the path to the element, the element itself
@@ -10,23 +11,25 @@
  * utility is in `utilities` itself, and it outranks each nested layer. So a
  * consumer `className` always wins over a density class.
  *
- * Other forms do not work. An ancestor selector alone does not follow nesting,
- * because the source order wins and the nearest scope does not. `@scope` and
- * container style queries ship in Firefox after the browser floor. Custom
- * properties move the styles out of the Tailwind classes.
+ * Other forms do not work for a variant. An ancestor selector alone does not
+ * follow nesting, because the source order wins and the nearest scope does
+ * not. `@scope` and container style queries ship in Firefox after the browser
+ * floor. A variant wraps any class, and a class such as `shadow-sm` sets a
+ * value that is not a number. So a variant cannot read its value from a
+ * custom property as a stepped utility does.
  *
- * The root element is the scope of the app. `md` is the base of each stepped
- * class: its rung is in the layer `density-0` and reads no ancestor. For each
+ * The root element is the scope of the app. `md` is the base of each step
+ * variant: its rung is in the layer `density-0` and reads no ancestor. For each
  * other step, `AppearanceScript` writes a class on the root before the first
  * paint ({@link rootDensityClasses}), and the rung of that class is in the
  * same layer. The class gives the rung one more class of specificity, so it
  * wins over the base. At `md` the root has no mark. The root does not count as
  * a depth: `density-0` is below the layer of each depth, so each other scope
  * wins over it, and the trees keep each ranked depth. The rungs write
- * `density-0` first, so it is the first layer in the output. Tailwind writes
- * nested layers in the order of first use, and it moves a `@layer` order
- * statement after the utilities, so only the order of the rules sets the
- * order of the layers. `density-any` is
+ * `density-0` first, and a stepped utility writes only `density-0`, so it is
+ * the first layer in the output. Tailwind writes nested layers in the order of
+ * first use, and it moves a `@layer` order statement after the utilities, so
+ * only the order of the rules sets the order of the layers. `density-any` is
  * in the same layer with no specificity, so the base wins over it.
  *
  * A scope element with a step is its own nearest scope, so its rung reads no
@@ -156,7 +159,7 @@ function scopesAt(
 
 /**
  * The rungs of a set of steps, keyed by layer. Each rung holds `body`: the
- * `@slot` of a variant, or the declarations of a utility.
+ * `@slot` of a variant.
  *
  * The layer of each depth holds the rung of an element under a scope at that
  * depth, and the rung of a slot element. The layer of the deepest depth also

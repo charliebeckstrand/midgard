@@ -1,7 +1,8 @@
 // @vitest-environment node
 import { readdirSync } from 'node:fs'
-import { join } from 'node:path'
+import { join, sep } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { utilityTable } from '../../core/density/utility-table'
 import {
 	isSourceFile,
 	srcDir,
@@ -146,11 +147,15 @@ describe('density selectors', () => {
 	})
 })
 
-// A pseudo-element ends a selector. A density class after a pseudo-element
-// variant, such as `before:density-p-[2,3,4]`, therefore writes rules that no
+// A pseudo-element ends a selector. A step variant after a pseudo-element
+// variant, such as `before:density-md:p-3`, therefore writes rules that no
 // browser can match: the rung of the element itself puts an attribute after the
-// pseudo-element. The density variant comes first, as in
-// `density-md:before:p-3` or `density-[xs,sm]:before:p-2`.
+// pseudo-element. The step variant comes first, as in `density-md:before:p-3`
+// or `density-[xs,sm]:before:p-2`. A stepped class after a pseudo-element, such
+// as `before:density-p-[2,3,4]`, takes the custom properties that the
+// pseudo-element inherits, so it works. Until the recipes stop using the step
+// variants, this check also holds the stepped classes, so the source keeps one
+// form.
 
 const PSEUDO_THEN_DENSITY =
 	/(?<![\w-])(?:before|after|placeholder|file|marker|selection|backdrop|first-line|first-letter|\[&::[^\]\s]+\]):[^\s'"`]*?density-/
@@ -158,6 +163,280 @@ const PSEUDO_THEN_DENSITY =
 describe('density after a pseudo-element', () => {
 	it('no source file puts a density class after a pseudo-element variant', () => {
 		expect(filesMatching(PSEUDO_THEN_DENSITY)).toEqual([])
+	})
+})
+
+// A stepped class reads the custom properties that its element inherits.
+// Before Chrome 122, `::backdrop` does not inherit from its element, so a
+// density class after `backdrop:` takes no step there.
+
+const BACKDROP_DENSITY = /(?<![\w-])backdrop:[^\s'"`]*?density-/
+
+describe('density after backdrop', () => {
+	it('no source file puts a density class after the backdrop variant', () => {
+		expect(filesMatching(BACKDROP_DENSITY)).toEqual([])
+	})
+})
+
+// A stepped class writes one rule in the layer `density-0`. A step variant
+// writes its rungs in `density-0`, `density-1`, and `density-2`. When both set
+// one property of one element, the two rules have the same rank at a root at
+// `md`, and the order of the rules in the sheet decides. In each other case,
+// the rung of the step variant wins. So a class
+// list must not hold both on one property. The panel of a dialog is the one
+// exception: its stepped bottom inset (`density-pb-[4,5,6,7,8]`) and its
+// `max-sm:density-<step>:pb-[…]` safe-area inset are on one element. The
+// variant is later in the sheet, so it wins at `md` too, and
+// `browser/density-contract.test.tsx` holds the inset at each step. The check
+// reads one class list at a time, so it does not see a step variant on an
+// ancestor (`*:` or `**:`) that meets a stepped class on a child.
+
+/** The overlaps that the check permits: the recipe, the variant target, and the property. */
+const STEPPED_AND_VARIANT = ['dialog:k.panel padding-bottom']
+
+/** Splits a class at each `:` that is not in brackets or parentheses. */
+function segments(token: string): string[] {
+	const parts: string[] = []
+
+	let depth = 0
+
+	let start = 0
+
+	for (let index = 0; index < token.length; index++) {
+		const char = token[index]
+
+		if (char === '[' || char === '(') depth++
+		else if (char === ']' || char === ')') depth--
+		else if (char === ':' && depth === 0) {
+			parts.push(token.slice(start, index))
+
+			start = index + 1
+		}
+	}
+
+	return [...parts, token.slice(start)]
+}
+
+/** A step variant: `density-<step>` or `density-[<steps>]`. */
+const STEP_VARIANT = /^density-(?:xs|sm|md|lg|xl|\[[a-z,]+\])$/
+
+/**
+ * A variant that changes the element that a class styles: a pseudo-element, a
+ * child variant, or an arbitrary variant with a pseudo-element or a
+ * combinator. Each other variant, such as `max-sm` or `hover`, is a condition
+ * on the same element.
+ */
+const TARGET_VARIANT =
+	/^(?:before|after|placeholder|file|marker|selection|backdrop|first-line|first-letter|\*|\*\*|\[&.*(?:::|[_>+~]).*\])$/
+
+/** The longhands of each property that a density class can write. */
+function longhands(property: string): string[] {
+	const sides = (prefix: string) => ({
+		[prefix]: ['top', 'bottom', 'inline-start', 'inline-end'].map((side) => `${prefix}-${side}`),
+		[`${prefix}-inline`]: [`${prefix}-inline-start`, `${prefix}-inline-end`],
+		[`${prefix}-block`]: [`${prefix}-top`, `${prefix}-bottom`],
+	})
+
+	const groups: Record<string, string[]> = {
+		...sides('padding'),
+		...sides('margin'),
+		inset: ['top', 'bottom', 'inset-inline-start', 'inset-inline-end'],
+		gap: ['column-gap', 'row-gap'],
+	}
+
+	return groups[property] ?? [property]
+}
+
+/** The properties of each plain utility that a step variant wraps, by its name. */
+const plainUtilities: Record<string, readonly string[]> = {
+	...Object.fromEntries(
+		Object.entries(utilityTable).map(([name, entry]) => [name, entry.properties]),
+	),
+	start: utilityTable['inset-s'].properties,
+	m: ['margin'],
+	mx: ['margin-inline'],
+	inset: ['inset'],
+	leading: ['line-height'],
+}
+
+/** The properties of a plain utility, such as `-mx-1` or `[--gap:0]`, or none. */
+function plainProperties(utility: string): readonly string[] {
+	const arbitrary = /^\[(--?[\w-]+):/.exec(utility)
+
+	if (arbitrary) return [arbitrary[1] as string]
+
+	const bare = utility.replace(/^!?-?/, '')
+
+	const name = Object.keys(plainUtilities)
+		.filter((key) => bare === key || bare.startsWith(`${key}-`))
+		.sort((a, b) => b.length - a.length)[0]
+
+	return name ? (plainUtilities[name] ?? []) : []
+}
+
+/** A stepped class, such as `density-p-[2,3,4]` or `density-px-ring-[1,2,3]`, by its utility. */
+const STEPPED = /^density-([a-z-]+?)(?:-ring)?-\[[^\]]+\]$/
+
+/**
+ * The properties that each class of `classes` sets, by the variant target and
+ * the form of the class: `stepped` or `variant`.
+ */
+function writes(classes: readonly string[]) {
+	const found = { stepped: new Set<string>(), variant: new Set<string>() }
+
+	for (const token of classes) {
+		const parts = segments(token)
+
+		const utility = parts.at(-1) ?? ''
+
+		const variants = parts.slice(0, -1)
+
+		const target = variants.filter((variant) => TARGET_VARIANT.test(variant)).join(':')
+
+		const stepped = STEPPED.exec(utility)?.[1]
+
+		const entry = stepped
+			? (utilityTable as Record<string, { properties: readonly string[] }>)[stepped]
+			: undefined
+
+		const [form, properties] = variants.some((variant) => STEP_VARIANT.test(variant))
+			? (['variant', plainProperties(utility)] as const)
+			: entry
+				? (['stepped', entry.properties] as const)
+				: (['none', []] as const)
+
+		if (form === 'none') continue
+
+		for (const property of properties.flatMap(longhands))
+			found[form].add(`${target} ${property}`.trim())
+	}
+
+	return [...found.stepped].filter((key) => found.variant.has(key))
+}
+
+/** The class tokens of a class value: a string, or a nested list of them. */
+function tokensOf(value: unknown): string[] {
+	if (typeof value === 'string') return value.split(/\s+/).filter(Boolean)
+
+	if (Array.isArray(value)) return value.flatMap(tokensOf)
+
+	if (value && typeof value === 'object') return Object.values(value).flatMap(tokensOf)
+
+	return []
+}
+
+/** The fields of a recipe config that are not a variant axis. */
+const RESERVED = new Set(['base', 'palette', 'compound', 'slots', 'defaults', 'skeleton'])
+
+/**
+ * The class lists of a recipe: the base, the base with each option of each
+ * axis, the base with each compound rule, and each slot.
+ */
+function classListsOf(config: Record<string, unknown>): string[][] {
+	const base = tokensOf(config.base)
+
+	const lists = [base]
+
+	for (const [field, axis] of Object.entries(config)) {
+		if (RESERVED.has(field) || !axis || typeof axis !== 'object') continue
+
+		for (const option of Object.values(axis)) lists.push([...base, ...tokensOf(option)])
+	}
+
+	for (const rule of (config.compound as { class: unknown }[] | undefined) ?? []) {
+		lists.push([...base, ...tokensOf(rule.class)])
+	}
+
+	for (const slot of Object.values((config.slots as Record<string, unknown> | undefined) ?? {})) {
+		lists.push(tokensOf(slot))
+	}
+
+	return lists
+}
+
+/** The overlaps in each recipe and each class list under `value`, keyed by `path`. */
+function overlapsIn(value: unknown, path: string, seen: Set<unknown>, found: Set<string>) {
+	if (value === null || (typeof value !== 'object' && typeof value !== 'function')) return
+
+	if (seen.has(value)) return
+
+	seen.add(value)
+
+	const lists = isRecipe(value)
+		? classListsOf(value.config as Record<string, unknown>)
+		: Array.isArray(value)
+			? [tokensOf(value)]
+			: []
+
+	for (const list of lists) for (const key of writes(list)) found.add(`${path} ${key}`)
+
+	for (const [key, child] of Object.entries(value)) {
+		if (key !== 'config') overlapsIn(child, `${path}.${key}`, seen, found)
+	}
+}
+
+/** A string literal of the source. */
+const LITERAL = /(['"`])((?:\\.|(?!\1)[^\\])*?)\1/g
+
+describe('a stepped class and a step variant', () => {
+	it('no recipe sets one property with a stepped class and a step variant', async () => {
+		const files = readdirSync(join(srcDir, 'recipes'), { recursive: true, encoding: 'utf8' })
+			.map((file) => `recipes/${file.split(sep).join('/')}`)
+			.filter((file) => file.endsWith('.ts') && !file.endsWith('/index.ts'))
+			.sort()
+
+		const found = new Set<string>()
+
+		const modules: Record<string, unknown>[] = await Promise.all(
+			files.map((file) => import(join(srcDir, file))),
+		)
+
+		const seen = new Set<unknown>()
+
+		for (const [index, file] of files.entries()) {
+			const name = file.replace(/^recipes\/(?:kata\/)?/, '').replace(/\.ts$/, '')
+
+			for (const [key, value] of Object.entries(modules[index] ?? {})) {
+				overlapsIn(value, `${name}:${key}`, seen, found)
+			}
+		}
+
+		expect([...found].sort()).toEqual(STEPPED_AND_VARIANT)
+	})
+
+	it('no class string of a source file sets one property with both', () => {
+		const strings = sources.flatMap(({ file, code }) =>
+			[...code.matchAll(LITERAL)]
+				.map(([, , text]) => text ?? '')
+				.filter((text) => text.includes('density-'))
+				.map((text) => ({ file, text })),
+		)
+
+		// A scan that read no class string would pass with an empty list.
+		expect(strings.length).toBeGreaterThan(100)
+
+		const found = strings.flatMap(({ file, text }) =>
+			writes(tokensOf(text)).map((key) => `${file} ${key}`),
+		)
+
+		expect(found).toEqual([])
+	})
+
+	it('finds the overlap of a stepped class and a step variant', () => {
+		expect(writes(['density-px-[2,3,4]', 'density-md:px-2'])).toEqual([
+			'padding-inline-start',
+			'padding-inline-end',
+		])
+
+		expect(writes(['density-p-[2,3,4]', 'max-sm:density-[lg,xl]:-mb-1'])).toEqual([])
+
+		expect(writes(['density-p-[2,3,4]', 'hover:density-sm:pb-2'])).toEqual(['padding-bottom'])
+
+		expect(writes(['before:density-rounded-ring-[1,2,3]', 'density-md:rounded-2'])).toEqual([])
+
+		expect(writes(['before:density-rounded-ring-[1,2,3]', 'density-md:before:rounded-2'])).toEqual([
+			'before border-radius',
+		])
 	})
 })
 

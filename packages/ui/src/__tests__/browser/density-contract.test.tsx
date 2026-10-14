@@ -20,11 +20,12 @@ import { attach, densityStepOf, getSlot, present, renderUI } from '../helpers'
  * that the docs and `apps/places` use, and the inset of an open dialog. A case that
  * `density-scope.test.tsx` holds is not repeated here.
  *
- * A case that main cannot hold is an `it.fails`. Step 1 of the density plan moves the stepped
- * classes to inherited custom properties, and then each such case passes. At that step, change
- * each `it.fails` to `it`. An `it.fails` holds only the computed value. A normal `it` holds the
- * step of the oracle for the same row, so a wrong step or chain in the table cannot make an
- * `it.fails` pass.
+ * A stepped class takes its value from inherited custom properties that each scope sets, so it
+ * gives the step of the nearest scope at each depth, and on a pseudo-element. The rungs of the
+ * step variants ranked only two depths, and a stepped class after a pseudo-element matched only at
+ * `md`. Thus the cases of a deeper scope and of a stepped `::before` hold the change. A case of a
+ * computed value has a case of the oracle step for the same row, so a wrong step or chain in a
+ * table shows in the oracle case.
  *
  * No case holds the thumb of the native slider. `getComputedStyle(input, '::-webkit-slider-thumb')`
  * gives the values of the input, not of the thumb. The thumb also does not change the layout of
@@ -255,9 +256,9 @@ describe('the slot scope (real browser)', () => {
 })
 
 /**
- * Each depth of scopes has its own layer of rungs on main, up to `MAX_DEPTH`, which is 2. A slot
- * counts as one depth. A chain that holds on main stays an `it`, as do the slot chains above. A
- * chain that main ranks wrongly is an `it.fails`: an outer scope wins there.
+ * A stepped class takes the step of the nearest scope at each depth. A slot counts as one depth.
+ * The rungs of a step variant rank only two depths (`MAX_DEPTH`), so these chains hold the stepped
+ * classes only.
  */
 describe('scopes deeper than two (real browser)', () => {
 	it('gives lg › sm › xl the step of the nearest scope', () => {
@@ -280,15 +281,15 @@ describe('scopes deeper than two (real browser)', () => {
 		expect(densityStepOf(probe(chain, PROBE, self))).toBe(step)
 	})
 
-	// Step 1 of the density plan makes each case pass.
-	it.fails.each(deep)('gives %s the padding of the nearest scope', (_, chain, step, self) => {
+	it.each(deep)('gives %s the padding of the nearest scope', (_, chain, step, self) => {
 		expect(px(probe(chain, PROBE, self), 'paddingLeft')).toBe(PROBE_PX[step])
 	})
 })
 
 /**
- * A pseudo-element takes the step of its element. On main, only a step variant before the
- * pseudo-element works, as the control frame writes it (`density-md:before:…`).
+ * A pseudo-element takes the step of its element. A step variant before the pseudo-element works,
+ * as the control frame writes it (`density-md:before:…`). A stepped class after the pseudo-element
+ * also works, because the pseudo-element inherits the custom properties of its element.
  */
 describe('a pseudo-element (real browser)', () => {
 	/** The step of the oracle and the radius of the inset fill of the frame of an Input. */
@@ -331,7 +332,6 @@ describe('a pseudo-element (real browser)', () => {
 		}
 	}
 
-	// On main, only the `md` rung of such a class matches, because it has no scope in its selector.
 	it.each<[string, Scope[]]>([
 		['md', ['md']],
 		['a slot under lg', ['lg', 'slot']],
@@ -345,9 +345,7 @@ describe('a pseudo-element (real browser)', () => {
 		expect(densityStepOf(after([step]))).toBe(step)
 	})
 
-	// The rung of each other step nests the pseudo-element under a scope selector, and that rule
-	// matches no element on main. Step 1 of the density plan makes each case pass.
-	it.fails.each(otherSteps)(
+	it.each(otherSteps)(
 		'rounds a ::before with a stepped class after the pseudo-element at %s',
 		(step) => {
 			const radius = getComputedStyle(after([step]), '::before').borderTopLeftRadius

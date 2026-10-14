@@ -11,10 +11,11 @@ export const densitySteps = ['xs', 'sm', 'md', 'lg', 'xl'] as const
 /**
  * The class that marks each step of the root element, the scope of the app.
  * `md` is the base of each stepped class, so the root has no mark for it. A
- * scope under the root uses `data-density`. A class for each step lets
- * Chromium reject each rung of the root through its ancestor filter, except
- * the rung of the step that the root holds. The filter reads the name of a
- * class, but not the value of an attribute.
+ * scope under the root uses `data-density`. The base rules of `utilities.ts`
+ * set the weights of the root step from this class. A class for each step
+ * also lets Chromium reject each rung of the root through its ancestor filter,
+ * except the rung of the step that the root holds. The filter reads the name
+ * of a class, but not the value of an attribute.
  */
 export const rootDensityClasses = {
 	xs: 'density-root-xs',
@@ -66,8 +67,9 @@ export function stepDown<S extends DensityStep>(step: S): (typeof below)[S] {
 /**
  * The step of a control slot in a scope at `step`: the step below the step of
  * the host, and `xs` for an `xs` host, because no step is below `xs`. The
- * rungs give a slot this step in CSS. A `2xs` step for the slot would add a
- * step to the scale for one case.
+ * base rules of `utilities.ts` and the rungs of `rungs.ts` give a slot this
+ * step in CSS. A `2xs` step for the slot would add a step to the scale for one
+ * case.
  *
  * @internal
  */
@@ -123,7 +125,7 @@ export function stepsOfList(list: string): DensityStep[] | null {
 
 /**
  * Reads the step that the stepped classes give `element`, from its
- * `data-density` scopes, as the rungs of `rungs.ts` do. The nearest scope with
+ * `data-density` scopes, as the CSS does. The nearest scope with
  * a step wins, the element itself included. A control slot between the
  * element and that scope takes the slot step of it ({@link slotStep}), and a
  * slot in a slot counts once.
