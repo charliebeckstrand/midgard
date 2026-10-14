@@ -46,12 +46,12 @@ type RovingRowConfig = {
 
 /** Visible, enabled controls of a row in DOM order: its item plus its actions. */
 function rowControls(
-	rowEl: HTMLElement,
+	row: HTMLElement,
 	itemSelector: string,
 	actionSelector: string,
 ): HTMLElement[] {
 	return (
-		queryItems(rowEl, `${itemSelector}, ${actionSelector}`)
+		queryItems(row, `${itemSelector}, ${actionSelector}`)
 			.filter((el) => !el.matches(':disabled') && (el.checkVisibility?.() ?? true))
 			// Spec orders selector-list matches by document position, but jsdom
 			// (nwsapi) groups them by selector; sort so arrow order is the DOM order.
@@ -557,10 +557,10 @@ export function isVirtualActiveRowGone(
  * `tabindex` and fires on every edit. Pass `undefined` to demote all.
  */
 function seatTabStop(items: HTMLElement[], active: HTMLElement | undefined): void {
-	for (const it of items) {
-		const desired = it === active ? 0 : -1
+	for (const item of items) {
+		const desired = item === active ? 0 : -1
 
-		if (it.tabIndex !== desired) it.tabIndex = desired
+		if (item.tabIndex !== desired) item.tabIndex = desired
 	}
 }
 
@@ -579,7 +579,7 @@ function pinRowActions(container: HTMLElement, actionSelector: string): void {
  * @internal
  */
 export function rovedStop(items: HTMLElement[]): HTMLElement | undefined {
-	const tabbable = items.filter((it) => it.tabIndex === 0)
+	const tabbable = items.filter((item) => item.tabIndex === 0)
 
 	return tabbable.length === 1 ? tabbable[0] : undefined
 }
@@ -598,7 +598,7 @@ function resolveRestingStop(
 	items: HTMLElement[],
 	activeSelector: string | undefined,
 ): HTMLElement | undefined {
-	const focused = items.find((it) => it === document.activeElement)
+	const focused = items.find((item) => item === document.activeElement)
 
 	if (focused) return focused
 
@@ -606,7 +606,7 @@ function resolveRestingStop(
 
 	if (roved) return roved
 
-	const bySelector = activeSelector ? items.find((it) => it.matches(activeSelector)) : undefined
+	const bySelector = activeSelector ? items.find((item) => item.matches(activeSelector)) : undefined
 
 	return bySelector ?? items[0]
 }
@@ -651,7 +651,7 @@ function resolveRovingContext(
 		activeDescendantRef: RefObject<HTMLElement | null> | undefined
 		manageAriaSelected: boolean
 	},
-): { ctx: RovingKeyContext; active: HTMLElement | null; currentIndex: number } | null {
+): { context: RovingKeyContext; active: HTMLElement | null; currentIndex: number } | null {
 	const isVirtual = mode === 'virtual'
 
 	// An inert container has nothing that a key can reach. In virtual mode, focus
@@ -678,7 +678,7 @@ function resolveRovingContext(
 		: resolveDomCurrentIndex(items, isVirtual, active)
 
 	return {
-		ctx: {
+		context: {
 			items,
 			isVirtual,
 			manageTabIndex: config.manageTabIndex,
@@ -781,45 +781,45 @@ type RowContextOptions = {
  *
  * @internal
  */
-function moveTo(index: number, ctx: RovingKeyContext): void {
-	if (!ctx.isVirtual && ctx.itemSource) {
-		focusVirtualIndexed(ctx.containerEl, ctx.itemSource, index)
+function moveTo(index: number, context: RovingKeyContext): void {
+	if (!context.isVirtual && context.itemSource) {
+		focusVirtualIndexed(context.containerEl, context.itemSource, index)
 
 		return
 	}
 
-	if (!ctx.isVirtual) {
-		const next = ctx.items[index]
+	if (!context.isVirtual) {
+		const next = context.items[index]
 
 		if (!next) return
 
 		// Carry the resting stop to the newly focused item; leaving and
 		// re-Tabbing into the widget returns to this item.
-		if (ctx.manageTabIndex) seatTabStop(ctx.items, next)
+		if (context.manageTabIndex) seatTabStop(context.items, next)
 
 		next.focus()
 
 		return
 	}
 
-	if (ctx.itemSource && ctx.activeIndexRef) {
+	if (context.itemSource && context.activeIndexRef) {
 		setVirtualActiveIndexed(
-			ctx.containerEl,
-			ctx.itemSource,
+			context.containerEl,
+			context.itemSource,
 			index,
-			ctx.activeIndexRef,
-			ctx.activeDescendantRef,
-			{ ariaSelected: ctx.manageAriaSelected },
+			context.activeIndexRef,
+			context.activeDescendantRef,
+			{ ariaSelected: context.manageAriaSelected },
 		)
 
 		return
 	}
 
-	setVirtualActive(ctx.items, index, ctx.activeDescendantRef, {
-		ariaSelected: ctx.manageAriaSelected,
+	setVirtualActive(context.items, index, context.activeDescendantRef, {
+		ariaSelected: context.manageAriaSelected,
 	})
 
-	const next = ctx.items[index]
+	const next = context.items[index]
 
 	if (next) scrollWithin(next, { block: 'nearest' })
 }
@@ -839,24 +839,24 @@ function processRowContext(
 	container: HTMLElement | null,
 	active: HTMLElement | null,
 	currentIndex: number,
-	opts: RowContextOptions,
+	options: RowContextOptions,
 ): { handled: boolean; currentIndex: number } {
-	const { items, itemSelector, actionSelector, rowSelector, orientation, cols, isVirtual } = opts
+	const { items, itemSelector, actionSelector, rowSelector, orientation, cols, isVirtual } = options
 
-	const rowEl =
+	const row =
 		!isVirtual && rowSelector && actionSelector && cols === undefined
 			? active?.closest<HTMLElement>(rowSelector)
 			: undefined
 
-	if (!rowEl || !container?.contains(rowEl)) return { handled: false, currentIndex }
+	if (!row || !container?.contains(row)) return { handled: false, currentIndex }
 
-	const index = currentIndex === -1 ? items.findIndex((it) => rowEl.contains(it)) : currentIndex
+	const index = currentIndex === -1 ? items.findIndex((item) => row.contains(item)) : currentIndex
 
 	const crossDelta = crossAxisDelta(key, orientation ?? 'vertical')
 
 	if (crossDelta === null || !actionSelector) return { handled: false, currentIndex: index }
 
-	const controls = rowControls(rowEl, itemSelector, actionSelector)
+	const controls = rowControls(row, itemSelector, actionSelector)
 
 	const controlIndex = controls.indexOf(active as HTMLElement)
 
@@ -903,11 +903,11 @@ function clickWithKeyModifiers(item: HTMLElement | null | undefined, event: Keyb
  */
 function handleActivationKey(
 	event: KeyboardEvent,
-	ctx: RovingKeyContext,
+	context: RovingKeyContext,
 	currentIndex: number,
 	activationKey: string | readonly string[] | null,
 ): boolean {
-	if (!ctx.isVirtual || !activationKey) return false
+	if (!context.isVirtual || !activationKey) return false
 
 	const keys = Array.isArray(activationKey) ? activationKey : [activationKey]
 
@@ -917,8 +917,8 @@ function handleActivationKey(
 
 	event.preventDefault()
 
-	if (ctx.itemSource) {
-		const id = resolveVirtualItemId(ctx.itemSource, currentIndex)
+	if (context.itemSource) {
+		const id = resolveVirtualItemId(context.itemSource, currentIndex)
 
 		const node = id ? document.getElementById(id) : null
 
@@ -930,7 +930,7 @@ function handleActivationKey(
 		return true
 	}
 
-	clickWithKeyModifiers(ctx.items[currentIndex], event)
+	clickWithKeyModifiers(context.items[currentIndex], event)
 
 	return true
 }
@@ -944,14 +944,14 @@ function handleActivationKey(
  */
 function handleTypeahead(
 	event: KeyboardEvent,
-	ctx: RovingKeyContext,
+	context: RovingKeyContext,
 	currentIndex: number,
 	matchers: ReturnType<typeof useTypeahead>,
 	typeahead: boolean,
 ): boolean {
 	if (!typeahead || !isTypeaheadKey(event)) return false
 
-	const source = ctx.itemSource
+	const source = context.itemSource
 
 	// No text values to match against; consume the key rather than fall
 	// through to main-axis nav, mirroring the DOM path's "no match" no-op.
@@ -965,12 +965,12 @@ function handleTypeahead(
 				event.key,
 				currentIndex,
 			)
-		: matchers.match(ctx.items, event.key, currentIndex)
+		: matchers.match(context.items, event.key, currentIndex)
 
 	if (index !== null) {
 		event.preventDefault()
 
-		moveTo(index, ctx)
+		moveTo(index, context)
 	}
 
 	return true
@@ -1010,25 +1010,25 @@ function handleEscapeBlur(
  */
 function handleTabTrap(
 	event: KeyboardEvent,
-	ctx: RovingKeyContext,
+	context: RovingKeyContext,
 	currentIndex: number,
 	trapTab: boolean,
 ): boolean {
-	if (!trapTab || ctx.isVirtual || event.key !== 'Tab') return false
+	if (!trapTab || context.isVirtual || event.key !== 'Tab') return false
 
 	event.preventDefault()
 
-	if (ctx.items.length === 0) return true
+	if (context.items.length === 0) return true
 
 	// From nothing focused (the container holds it), Tab enters at the head and
 	// Shift+Tab at the tail.
 	if (currentIndex === -1) {
-		moveTo(event.shiftKey ? ctx.items.length - 1 : 0, ctx)
+		moveTo(event.shiftKey ? context.items.length - 1 : 0, context)
 
 		return true
 	}
 
-	moveTo(wrap(currentIndex + (event.shiftKey ? -1 : 1), ctx.items.length), ctx)
+	moveTo(wrap(currentIndex + (event.shiftKey ? -1 : 1), context.items.length), context)
 
 	return true
 }
@@ -1038,24 +1038,30 @@ function handleMainAxisNav(
 	event: KeyboardEvent,
 	key: string,
 	currentIndex: number,
-	ctx: RovingKeyContext,
-	opts: {
+	context: RovingKeyContext,
+	options: {
 		cols: NavigationConfig['cols']
 		orientation: NavigationConfig['orientation']
 		focusOnEmpty: boolean
 	},
 ): void {
-	if (!ctx.isVirtual && currentIndex === -1 && !opts.focusOnEmpty) return
+	if (!context.isVirtual && currentIndex === -1 && !options.focusOnEmpty) return
 
-	const nextIndex = ctx.itemSource
-		? nextIndexedKey(key, currentIndex, ctx.itemSource.count, opts, ctx.itemSource.isDisabled)
-		: nextIndexForKey(key, currentIndex, ctx.items.length, opts)
+	const nextIndex = context.itemSource
+		? nextIndexedKey(
+				key,
+				currentIndex,
+				context.itemSource.count,
+				options,
+				context.itemSource.isDisabled,
+			)
+		: nextIndexForKey(key, currentIndex, context.items.length, options)
 
 	if (nextIndex === null) return
 
 	event.preventDefault()
 
-	moveTo(nextIndex, ctx)
+	moveTo(nextIndex, context)
 }
 
 /** Options for {@link useA11yRoving}: the item selector, the navigation axis, Tab-stop ownership, and the virtual-item source a windowed list supplies. */
@@ -1245,14 +1251,14 @@ export function useA11yRoving(
 	useEffect(() => {
 		if (!enabled || mode !== 'focus' || !manageTabIndex) return
 
-		const el = containerRef.current
+		const container = containerRef.current
 
-		if (!el) return
+		if (!container) return
 
 		const normalize = () => {
-			const items = queryItems(el, itemSelector)
+			const items = queryItems(container, itemSelector)
 
-			if (actionSelector) pinRowActions(el, actionSelector)
+			if (actionSelector) pinRowActions(container, actionSelector)
 
 			if (!items.length) return
 
@@ -1265,9 +1271,9 @@ export function useA11yRoving(
 		// arrow roving already seats it in `moveTo`. `focusin` bubbles where `focus`
 		// doesn't; one container listener covers every item.
 		const onFocusIn = (event: FocusEvent) => {
-			const items = queryItems(el, itemSelector)
+			const items = queryItems(container, itemSelector)
 
-			const target = items.find((it) => it === event.target)
+			const target = items.find((item) => item === event.target)
 
 			if (target) {
 				seatTabStop(items, target)
@@ -1281,17 +1287,17 @@ export function useA11yRoving(
 			if (rowSelector && event.target instanceof HTMLElement) {
 				const rowEl = event.target.closest(rowSelector)
 
-				const anchor = rowEl ? items.find((it) => rowEl.contains(it)) : undefined
+				const anchor = rowEl ? items.find((item) => rowEl.contains(item)) : undefined
 
 				if (anchor) seatTabStop(items, anchor)
 			}
 		}
 
-		el.addEventListener('focusin', onFocusIn)
+		container.addEventListener('focusin', onFocusIn)
 
 		const observer = new MutationObserver(normalize)
 
-		observer.observe(el, {
+		observer.observe(container, {
 			childList: true,
 			subtree: true,
 			attributes: true,
@@ -1299,7 +1305,7 @@ export function useA11yRoving(
 		})
 
 		return () => {
-			el.removeEventListener('focusin', onFocusIn)
+			container.removeEventListener('focusin', onFocusIn)
 
 			observer.disconnect()
 		}
@@ -1330,31 +1336,32 @@ export function useA11yRoving(
 
 			if (!resolved) return
 
-			const { ctx, active, currentIndex } = resolved
+			const { context, active, currentIndex } = resolved
 
 			// A horizontal arrow steps in the reading order of the container, so it
 			// mirrors in a right-to-left layout. Every arrow path below reads `key`.
-			const key = logicalArrowKey(event.key, ctx.containerEl)
+			const key = logicalArrowKey(event.key, context.containerEl)
 
-			const rowResult = processRowContext(event, key, ctx.containerEl, active, currentIndex, {
-				items: ctx.items,
+			const rowResult = processRowContext(event, key, context.containerEl, active, currentIndex, {
+				items: context.items,
 				itemSelector,
 				actionSelector,
 				rowSelector,
 				orientation,
 				cols,
-				isVirtual: ctx.isVirtual,
+				isVirtual: context.isVirtual,
 			})
 
 			if (rowResult.handled) return
 
-			if (handleTabTrap(event, ctx, rowResult.currentIndex, trapTab)) return
+			if (handleTabTrap(event, context, rowResult.currentIndex, trapTab)) return
 
-			if (handleActivationKey(event, ctx, rowResult.currentIndex, activationKey)) return
+			if (handleActivationKey(event, context, rowResult.currentIndex, activationKey)) return
 
-			if (handleTypeahead(event, ctx, rowResult.currentIndex, typeaheadMatchers, typeahead)) return
+			if (handleTypeahead(event, context, rowResult.currentIndex, typeaheadMatchers, typeahead))
+				return
 
-			handleMainAxisNav(event, key, rowResult.currentIndex, ctx, {
+			handleMainAxisNav(event, key, rowResult.currentIndex, context, {
 				cols,
 				orientation,
 				focusOnEmpty,

@@ -14,12 +14,12 @@ import { useCallback } from 'react'
 export function useSelectableValueChange<T>(
 	onValueChange: ((value: T | T[] | null) => void) | undefined,
 	multiple: boolean,
-): (nextValue: T | T[] | null) => void {
+): (next: T | T[] | null) => void {
 	return useCallback(
-		(nextValue: T | T[] | null) => {
-			if (nextValue == null && multiple) return
+		(next: T | T[] | null) => {
+			if (next == null && multiple) return
 
-			onValueChange?.(nextValue)
+			onValueChange?.(next)
 		},
 		[onValueChange, multiple],
 	)

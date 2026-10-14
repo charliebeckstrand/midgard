@@ -138,7 +138,7 @@ function createDownlink(rate: number): {
 
 	let credit = 0
 
-	let last = performance.now()
+	let prevTick = performance.now()
 
 	// Commits the next frame of the body with the highest priority.
 	const commit = () => {
@@ -197,9 +197,9 @@ function createDownlink(rate: number): {
 	const tick = () => {
 		const now = performance.now()
 
-		credit += ((now - last) / 1000) * rate
+		credit += ((now - prevTick) / 1000) * rate
 
-		last = now
+		prevTick = now
 
 		waiting = waiting.filter((transfer) => !transfer.response.stream.closed)
 

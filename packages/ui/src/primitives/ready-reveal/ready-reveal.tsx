@@ -142,10 +142,10 @@ export function ReadyReveal({
 	// reveal mounts already ready. The mount effect below then rests it.
 	const [settled, setSettled] = useState(false)
 
-	const [previousReady, setPreviousReady] = useState(ready)
+	const [prevReady, setPrevReady] = useState(ready)
 
-	if (previousReady !== ready) {
-		setPreviousReady(ready)
+	if (prevReady !== ready) {
+		setPrevReady(ready)
 
 		setSettled(false)
 	}

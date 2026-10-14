@@ -34,7 +34,7 @@ function ChoiceListbox<T extends string>({
 	onValueChange,
 	suffix,
 }: ChoiceListboxProps<T>) {
-	const labelFor = (v: T) => options.find((option) => option.value === v)?.label ?? v
+	const labelFor = (choice: T) => options.find((option) => option.value === choice)?.label ?? choice
 
 	return (
 		<Listbox<T>
@@ -42,7 +42,7 @@ function ChoiceListbox<T extends string>({
 			displayValue={labelFor}
 			placement="bottom-start"
 			suffix={suffix}
-			onValueChange={(v) => v && onValueChange(v)}
+			onValueChange={(next) => next && onValueChange(next)}
 		>
 			{options.map((option) => (
 				<ListboxOption key={option.value} value={option.value}>

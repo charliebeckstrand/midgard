@@ -22,7 +22,7 @@ export const [GlassContext, useGlass] = createContext<boolean>('Glass', { defaul
  * @see {@link useGlass}
  */
 export function useResolvedSurface(glass: boolean | undefined): 'glass' | undefined {
-	const glassContext = useGlass()
+	const ambient = useGlass()
 
-	return (glass ?? glassContext) ? 'glass' : undefined
+	return (glass ?? ambient) ? 'glass' : undefined
 }

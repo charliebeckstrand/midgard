@@ -69,20 +69,19 @@ export function servedTailwind(): Plugin[] {
 const parkPointer: BrowserCommand<[]> = async (context) => {
 	const box = await (await context.frame()).frameElement().then((frame) => frame.boundingBox())
 
-	const page = context.page.viewportSize()
+	const viewport = context.page.viewportSize()
 
-	if (!box || !page) throw new Error('parkPointer: the tester iframe has no box on the page')
+	if (!box || !viewport) throw new Error('parkPointer: the tester iframe has no box on the page')
 
-	const spot =
-		box.x + box.width + 1 < page.width
-			? { x: page.width - 1, y: 1 }
-			: box.y + box.height + 1 < page.height
-				? { x: 1, y: page.height - 1 }
-				: null
+	const right = box.x + box.width + 1 < viewport.width ? { x: viewport.width - 1, y: 1 } : null
+
+	const below = box.y + box.height + 1 < viewport.height ? { x: 1, y: viewport.height - 1 } : null
+
+	const spot = right ?? below
 
 	if (!spot) {
 		throw new Error(
-			`parkPointer: the tester iframe fills the ${page.width}x${page.height} page, so no point lies outside it`,
+			`parkPointer: the tester iframe fills the ${viewport.width}x${viewport.height} page, so no point lies outside it`,
 		)
 	}
 

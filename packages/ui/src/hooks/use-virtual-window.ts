@@ -237,7 +237,7 @@ function recordStartAnchor(
 	instance: Virtualizer<HTMLElement, Element>,
 	count: number,
 	getItemKey: (index: number) => VirtualItem['key'],
-	window: readonly VirtualItem[],
+	renderedItems: readonly VirtualItem[],
 ): StartAnchorRecord {
 	const measurements = freshMeasurements(instance)
 
@@ -249,7 +249,7 @@ function recordStartAnchor(
 
 	if (offset < 1) return { count, getItemKey, rows }
 
-	for (const { index, key } of window) {
+	for (const { index, key } of renderedItems) {
 		const item = measurements[index]
 
 		if (item && item.end > top) rows.push({ index, key, offset: item.start - offset })
@@ -267,12 +267,12 @@ function indexOfKey(
 	oldIndex: number,
 	count: number,
 	getItemKey: (index: number) => VirtualItem['key'],
-	window: readonly VirtualItem[],
+	renderedItems: readonly VirtualItem[],
 	listIndex: () => ReadonlyMap<VirtualItem['key'], number>,
 ): number {
 	if (oldIndex < count && getItemKey(oldIndex) === key) return oldIndex
 
-	const rendered = window.find((item) => item.key === key)
+	const rendered = renderedItems.find((item) => item.key === key)
 
 	if (rendered) return rendered.index
 
@@ -302,7 +302,7 @@ function keyIndexOf(
  * places its window at the new offset, before the paint. The positions include
  * each row that measured in this commit.
  *
- * @param window - The rendered items of the render.
+ * @param renderedItems - The rendered items of the render.
  * @returns The record of the new list, or `null` when the list did not change.
  * @internal
  */
@@ -311,7 +311,7 @@ function holdStartAnchor(
 	record: StartAnchorRecord,
 	count: number,
 	getItemKey: (index: number) => VirtualItem['key'],
-	window: readonly VirtualItem[],
+	renderedItems: readonly VirtualItem[],
 ): StartAnchorRecord | null {
 	if (record.count === count && record.getItemKey === getItemKey) return null
 
@@ -331,7 +331,7 @@ function holdStartAnchor(
 	}
 
 	for (const row of record.rows) {
-		const index = indexOfKey(row.key, row.index, count, getItemKey, window, listIndex)
+		const index = indexOfKey(row.key, row.index, count, getItemKey, renderedItems, listIndex)
 
 		const start = index < 0 ? undefined : measurements[index]?.start
 
@@ -449,9 +449,9 @@ function useWindowVirtualizer(options: WindowVirtualizerOptions, adjustAbove: bo
 		measureElement: measureLive,
 		...options,
 		onChange: (instance, sync) => {
-			const last = shown.current
+			const prev = shown.current
 
-			if (last && sameWindowState(last, windowState(instance))) return
+			if (prev && sameWindowState(prev, windowState(instance))) return
 
 			if (sync) flushSync(rerender)
 			else rerender()
@@ -727,9 +727,9 @@ export function useVirtualWindow({
 		// so that render holds nothing, and the move does not start another one.
 		const before = effectiveOffset(virtualizer)
 
-		const previous = anchorRecord.current
+		const prev = anchorRecord.current
 
-		const held = previous && holdStartAnchor(virtualizer, previous, count, getItemKey, virtualItems)
+		const held = prev && holdStartAnchor(virtualizer, prev, count, getItemKey, virtualItems)
 
 		if (held && Math.abs(effectiveOffset(virtualizer) - before) >= 1) {
 			anchorRecord.current = held

@@ -281,9 +281,9 @@ async function main() {
 
 	const ledger = parseLedger(readFileSync(LEDGER, 'utf-8'))
 
-	const fixList = await fixes(since)
+	const fixCommits = await fixes(since)
 
-	const classes = await mapLimited(fixList, classify)
+	const classes = await mapLimited(fixCommits, classify)
 
 	const reopenedWeeks = await reopened(since)
 
@@ -324,10 +324,10 @@ async function main() {
 	}).reverse()
 
 	for (const week of weekKeys) {
-		const inWeek = classes.filter((_, index) => isoWeek(fixList[index]?.date ?? '') === week)
+		const inWeek = classes.filter((_, index) => isoWeek(fixCommits[index]?.date ?? '') === week)
 
 		const count = (name: FixClass) =>
-			percent(inWeek.filter((c) => c === name).length, inWeek.length)
+			percent(inWeek.filter((fixClass) => fixClass === name).length, inWeek.length)
 
 		out.push(
 			`| ${week} | ${inWeek.length} | ${count('older')} | ${count('additive')} | ${count('recentOther')} | ${count('recentFix')} |`,
