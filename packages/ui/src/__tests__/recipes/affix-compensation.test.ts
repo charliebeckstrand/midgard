@@ -4,7 +4,7 @@ import { type DensityStep, stepDown } from '../../core/density'
 import { k as badge } from '../../recipes/kata/badge'
 import { k as button } from '../../recipes/kata/button'
 import { control } from '../../recipes/kiso/control'
-import { findBareCompoundP, findSteps, findStop } from '../helpers/class-stops'
+import { findBarePad, findSteps, findStop } from '../helpers/class-stops'
 
 // Affix `data-slot` compensation invariant.
 //
@@ -167,7 +167,7 @@ describe('control affix has-bare-button compensation', () => {
 
 		const hostPx = hostPxAt(step)
 
-		const bareP = findBareCompoundP(buttonSize)
+		const bareP = findBarePad(buttonSize)
 
 		const expected = hostPx - bareP
 
@@ -193,7 +193,7 @@ describe('control affix has-bare-button compensation', () => {
 	}
 
 	it('the bare compensation drifts a uniform 0.25 per step (the non-bare lockstep does not apply)', () => {
-		const values = STEPS.map((step) => hostPxAt(step) - findBareCompoundP(stepDown(step)))
+		const values = STEPS.map((step) => hostPxAt(step) - findBarePad(stepDown(step)))
 
 		const drift = new Set<number>()
 

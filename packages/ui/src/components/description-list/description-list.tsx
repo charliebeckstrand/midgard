@@ -3,8 +3,6 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/description-list'
 import type { Orientation } from '../../types'
 
-type DlOrientation = Orientation
-
 /** Variant axis for {@link DescriptionList}: term/details `orientation`. */
 export type DescriptionListVariants = {
 	/**
@@ -12,7 +10,7 @@ export type DescriptionListVariants = {
 	 * its details, and `vertical` puts the term above them.
 	 * @defaultValue 'horizontal'
 	 */
-	orientation?: DlOrientation
+	orientation?: Orientation
 }
 
 /** Props for {@link DescriptionList}: `orientation` variant plus native `<dl>` attributes. */

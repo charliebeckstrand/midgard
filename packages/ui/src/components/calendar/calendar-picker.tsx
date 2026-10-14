@@ -42,7 +42,7 @@ export function CalendarPicker({
 	triggerClassName,
 	triggerIndex,
 }: CalendarPickerProps) {
-	const { pickerHeaderRef, pickerGridRef, handleHeaderKeyDown, handleGridKeyDown, viewConfig } =
+	const { headerRef, gridRef, handleHeaderKeyDown, handleGridKeyDown, viewConfig } =
 		useCalendarPicker({
 			year,
 			month,
@@ -68,8 +68,8 @@ export function CalendarPicker({
 			</PopoverTrigger>
 			<PopoverContent modal aria-label="Choose month and year">
 				<CalendarPickerGrid
-					headerRef={pickerHeaderRef}
-					gridRef={pickerGridRef}
+					headerRef={headerRef}
+					gridRef={gridRef}
 					onHeaderKeyDown={handleHeaderKeyDown}
 					onGridKeyDown={handleGridKeyDown}
 					{...viewConfig}

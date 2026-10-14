@@ -621,7 +621,7 @@ type RovingKeyContext = {
 	manageTabIndex: boolean
 	activeDescendantRef: RefObject<HTMLElement | null> | undefined
 	manageAriaSelected: boolean
-	containerEl: HTMLElement | null
+	container: HTMLElement | null
 	/** Set when navigating an indexed source instead of `items`. Virtual mode also sets `activeIndexRef`. */
 	itemSource: VirtualItemSource | null
 	activeIndexRef: RefObject<number> | undefined
@@ -684,7 +684,7 @@ function resolveRovingContext(
 			manageTabIndex: config.manageTabIndex,
 			activeDescendantRef: config.activeDescendantRef,
 			manageAriaSelected: config.manageAriaSelected,
-			containerEl: container,
+			container,
 			itemSource: indexed,
 			activeIndexRef: config.activeIndexRef,
 		},
@@ -783,7 +783,7 @@ type RowContextOptions = {
  */
 function moveTo(index: number, context: RovingKeyContext): void {
 	if (!context.isVirtual && context.itemSource) {
-		focusVirtualIndexed(context.containerEl, context.itemSource, index)
+		focusVirtualIndexed(context.container, context.itemSource, index)
 
 		return
 	}
@@ -804,7 +804,7 @@ function moveTo(index: number, context: RovingKeyContext): void {
 
 	if (context.itemSource && context.activeIndexRef) {
 		setVirtualActiveIndexed(
-			context.containerEl,
+			context.container,
 			context.itemSource,
 			index,
 			context.activeIndexRef,
@@ -1340,9 +1340,9 @@ export function useA11yRoving(
 
 			// A horizontal arrow steps in the reading order of the container, so it
 			// mirrors in a right-to-left layout. Every arrow path below reads `key`.
-			const key = logicalArrowKey(event.key, context.containerEl)
+			const key = logicalArrowKey(event.key, context.container)
 
-			const rowResult = processRowContext(event, key, context.containerEl, active, currentIndex, {
+			const rowResult = processRowContext(event, key, context.container, active, currentIndex, {
 				items: context.items,
 				itemSelector,
 				actionSelector,

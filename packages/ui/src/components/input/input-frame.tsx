@@ -7,7 +7,7 @@ import { ControlFrame } from '../../primitives/control'
 import { type InputVariants, k } from '../../recipes/kata/input'
 
 type InputFrameProps = {
-	inputEl: ReactNode
+	input: ReactNode
 	prefix: ReactNode
 	suffix: ReactNode
 	variant: InputVariants['variant']
@@ -29,7 +29,7 @@ type InputFrameProps = {
  * @internal
  */
 export function InputFrame({
-	inputEl,
+	input,
 	prefix,
 	suffix,
 	variant,
@@ -56,7 +56,7 @@ export function InputFrame({
 				</span>
 			)}
 
-			{inputEl}
+			{input}
 
 			{hasSuffix && (
 				<span data-slot="suffix" data-density="slot" className={cn(k.affix.base, k.affix.suffix)}>

@@ -175,7 +175,7 @@ export function Input({
 
 	return (
 		<InputFrame
-			inputEl={inputEl}
+			input={inputEl}
 			prefix={prefix}
 			suffix={frameSuffix}
 			variant={field.variant}

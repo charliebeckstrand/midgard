@@ -73,7 +73,7 @@ export function isOwn(target: unknown): boolean {
 }
 
 /** A short name of an event target: the tag, the anchor, and the value of an input. */
-export function describe(target: unknown): string {
+export function describeTarget(target: unknown): string {
 	if (!(target instanceof Element) || target === document.documentElement) return 'page'
 
 	const slot = target.getAttribute('data-slot')
@@ -206,7 +206,7 @@ const input: Source = (note) => {
 
 		note({
 			kind: 'input',
-			text: `${event.type}${keyText} ${describe(event.target)}${synthetic}`,
+			text: `${event.type}${keyText} ${describeTarget(event.target)}${synthetic}`,
 			detail: isKeyboard ? { key: event.key, code: event.code, repeat: event.repeat } : undefined,
 			batch,
 		})
@@ -231,7 +231,7 @@ const scroll: Source = (note) => {
 		if (!scrolling) {
 			batch = nextBatch()
 
-			note({ kind: 'scroll', text: `scroll starts ${describe(event.target)}`, batch })
+			note({ kind: 'scroll', text: `scroll starts ${describeTarget(event.target)}`, batch })
 		}
 
 		clearTimeout(scrolling)
@@ -307,7 +307,7 @@ const errors: Source = (note) => {
 			else
 				note({
 					kind: 'error',
-					text: `load fails ${describe(event.target)} ${resourceOf(event.target)}`,
+					text: `load fails ${describeTarget(event.target)} ${resourceOf(event.target)}`,
 				})
 		}),
 		on(window, ['unhandledrejection'], (event) => {
@@ -483,7 +483,7 @@ const calls: Source = (note) => {
 
 				note({
 					kind: 'call',
-					text: `${name} ${describe(this)} ${JSON.stringify(args)} from ${stack.slice(0, 2).join(' < ')}`,
+					text: `${name} ${describeTarget(this)} ${JSON.stringify(args)} from ${stack.slice(0, 2).join(' < ')}`,
 					detail: { stack },
 				})
 			}

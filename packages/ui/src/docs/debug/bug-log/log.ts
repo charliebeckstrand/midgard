@@ -1,7 +1,7 @@
 import { findScrollableAncestor } from '../../../components/scroll-area/scroll-area-utilities.ts'
 import type { EventLog } from '../event-log/log.ts'
 import { type ErrorDetail, type Viewport, viewport } from '../event-log/probes.ts'
-import { describe, isOwn, type Line, on } from '../event-log/sources.ts'
+import { describeTarget, isOwn, type Line, on } from '../event-log/sources.ts'
 import { kindWidth, lineOf } from '../event-log/text.ts'
 import { Journal, type Store } from '../journal.ts'
 
@@ -168,10 +168,10 @@ function hashOf(text: string): string {
  * its box, and the scroll position of its scroll container.
  */
 function place(el: Element): string {
-	const names = [describe(el)]
+	const names = [describeTarget(el)]
 
 	for (let ancestor = el.parentElement; ancestor; ancestor = ancestor.parentElement)
-		if (ancestor.hasAttribute('data-slot')) names.unshift(describe(ancestor))
+		if (ancestor.hasAttribute('data-slot')) names.unshift(describeTarget(ancestor))
 
 	const { x, y, width, height } = el.getBoundingClientRect()
 
@@ -180,7 +180,7 @@ function place(el: Element): string {
 	const scroller = findScrollableAncestor(el.parentElement)
 
 	const scroll = scroller
-		? `, in ${describe(scroller)} scrolled ${Math.round(scroller.scrollLeft)},${Math.round(scroller.scrollTop)}`
+		? `, in ${describeTarget(scroller)} scrolled ${Math.round(scroller.scrollLeft)},${Math.round(scroller.scrollTop)}`
 		: ''
 
 	return `${names.join(' > ')} at ${box[0]},${box[1]} ${box[2]}×${box[3]}${scroll}`
