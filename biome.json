@@ -609,6 +609,10 @@
 		{
 			"includes": ["apps/places/app/**/*.tsx", "apps/places/src/**/*.tsx", "!**/__tests__/**"],
 			"plugins": ["./.biome/plugins/require-bare-icon-button.grit"]
+		},
+		{
+			"includes": ["apps/**", "packages/**"],
+			"plugins": ["./.biome/plugins/no-abbreviated-binding.grit"]
 		}
 	],
 	"files": {

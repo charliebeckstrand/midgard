@@ -333,6 +333,7 @@ describe('resolveLayout', () => {
 		// The clamp puts d and e on columns 18 to 23. The entry that reads first keeps that place.
 		const d = { id: 'd', x: 30, y: 0, w: 6, h: 10 }
 
+		// biome-ignore lint/plugin/no-abbreviated-binding: the fifth tile of the a to e series
 		const e = { id: 'e', x: 28, y: 0, w: 6, h: 10 }
 
 		const edges = new Map([

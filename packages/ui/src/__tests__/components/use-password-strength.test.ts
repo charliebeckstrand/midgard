@@ -111,14 +111,14 @@ describe('usePasswordStrength', () => {
 		const second = vi.fn()
 
 		const { rerender } = renderHook(
-			({ cb }: { cb: typeof first }) =>
-				usePasswordStrength({ value: 'Ab1!', rules, onStrengthChange: cb }),
-			{ initialProps: { cb: first } },
+			({ onStrengthChange }: { onStrengthChange: typeof first }) =>
+				usePasswordStrength({ value: 'Ab1!', rules, onStrengthChange }),
+			{ initialProps: { onStrengthChange: first } },
 		)
 
 		first.mockClear()
 
-		rerender({ cb: second })
+		rerender({ onStrengthChange: second })
 
 		// Effect dependencies (score/level/passedIds) didn't change, so neither callback fires.
 		expect(first).not.toHaveBeenCalled()
@@ -132,14 +132,14 @@ describe('usePasswordStrength', () => {
 		const second = vi.fn()
 
 		const { rerender } = renderHook(
-			({ value, cb }: { value: string; cb: typeof first }) =>
-				usePasswordStrength({ value, rules, onStrengthChange: cb }),
-			{ initialProps: { value: 'a', cb: first } },
+			({ value, onStrengthChange }: { value: string; onStrengthChange: typeof first }) =>
+				usePasswordStrength({ value, rules, onStrengthChange }),
+			{ initialProps: { value: 'a', onStrengthChange: first } },
 		)
 
 		first.mockClear()
 
-		rerender({ value: 'Ab1!', cb: second })
+		rerender({ value: 'Ab1!', onStrengthChange: second })
 
 		expect(first).not.toHaveBeenCalled()
 

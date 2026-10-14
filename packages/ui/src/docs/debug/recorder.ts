@@ -175,7 +175,7 @@ if (import.meta.hot) {
 		record('hmr', `update ${updates.map((update) => update.path).join(' ')}`),
 	)
 
-	import.meta.hot.on('vite:error', ({ err }) => record('hmr', `error ${err.message}`))
+	import.meta.hot.on('vite:error', ({ err: error }) => record('hmr', `error ${error.message}`))
 
 	// The new module takes the entries, so the old one stops its listeners and
 	// keeps the entries and the kept copy.

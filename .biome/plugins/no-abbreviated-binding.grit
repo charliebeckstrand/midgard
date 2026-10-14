@@ -1,0 +1,25 @@
+language js
+
+// A binding takes a full word, not a clipped one: `event`, not `e`; `error`,
+// not `err`; `index`, not `idx` (CONVENTIONS §8.4). A clipped name makes the
+// reader decode it, and the repository has one full form for each of these.
+//
+// The plugin matches the name of each binding: a variable, a parameter, a catch
+// binding, a destructured name, and an import. A name must equal a listed word
+// in full, so `evts` and `result` pass. An object key is not a binding, so
+// `{ err: error }` passes. Where a name follows a series or a payload key that
+// the code does not own, suppress the diagnostic with the reason.
+//
+// The short forms that the repository uses on purpose are not on the list:
+// `el`, `prev`, `next`, `fn`, `id`, `ref`, `ctx` (a canvas or test context),
+// and `i` / `j` for a plain loop counter.
+//
+// Reach is the `includes` beside this plugin in `biome.json`: the apps and the
+// packages, with their tests.
+JsIdentifierBinding() as $binding where {
+	$binding <: r"(?:e|ev|evt|err|idx|btn|val|tmp|arr|obj|str|cnt|res|req|msg|cfg|opts|cb)",
+	register_diagnostic(
+		span = $binding,
+		message = "write the full word for this binding: `event`, `error`, `index`, `button`, `value`, `options`, `callback`, `response`, and so on (CONVENTIONS §8.4)"
+	)
+}
