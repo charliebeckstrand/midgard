@@ -182,6 +182,14 @@ export function Sheet() {
 						))}
 					</Stack>
 				</FixtureCase>
+				<FixtureCase label="bar indeterminate, left to right and right to left">
+					<Stack gap="sm" full>
+						<ProgressBar aria-label="Loading" />
+						<div dir="rtl">
+							<ProgressBar aria-label="Loading" />
+						</div>
+					</Stack>
+				</FixtureCase>
 				<FixtureCase label="gauge value">
 					{VALUES.map((value) => (
 						<ProgressGauge key={value} value={value} aria-label={`${value} percent`} />
