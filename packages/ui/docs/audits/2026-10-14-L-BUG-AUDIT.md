@@ -39,7 +39,7 @@ The digest held two sources. The open record `2026-10-11-BUG-AUDIT.md` gave one 
 | R2 | `components/lightbox/use-lightbox-zoom.ts` | `useLightboxZoom` `view` | RESTATED | medium | shipped | G1 | ✅ RESOLVED ([#2433](https://github.com/charliebeckstrand/midgard/pull/2433)) |
 | R3 | `components/lightbox/lightbox-stage.tsx` | `slotsAround` / slot `key` | NARROWED | low | shipped | G2 | ✅ RESOLVED ([#2425](https://github.com/charliebeckstrand/midgard/pull/2425)) |
 | R4 | `components/lightbox/lightbox-stage.tsx` | `LightboxStage` `aim` / `at` | RESTATED | medium | shipped | G2 | ✅ RESOLVED ([#2425](https://github.com/charliebeckstrand/midgard/pull/2425)) |
-| R5 | `components/lightbox/lightbox.tsx` | `Lightbox` focus return | CONFIRMED | medium | shipped | — | ◯ OPEN |
+| R5 | `components/lightbox/lightbox.tsx` | `Lightbox` focus return | CONFIRMED | medium | shipped | — | ✅ RESOLVED ([#2443](https://github.com/charliebeckstrand/midgard/pull/2443)) |
 | R6 | `components/listbox/listbox.tsx` | `Listbox` `handleTriggerBlur` / `onBlur` | CONFIRMED | medium | shipped | — | ✅ RESOLVED ([#2431](https://github.com/charliebeckstrand/midgard/pull/2431)) |
 | R7 | `components/list/use-list-window.ts` | `useListWindow` | CONFIRMED | medium | shipped | — | ✅ RESOLVED ([#2430](https://github.com/charliebeckstrand/midgard/pull/2430)) |
 | R8 | `components/list/list-item.tsx` | `ListItem` `data-slot` anchor | CONFIRMED | low | none | G3 | ✅ RESOLVED ([#2424](https://github.com/charliebeckstrand/midgard/pull/2424)) |
