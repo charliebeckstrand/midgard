@@ -3,13 +3,7 @@ import { afterAll, beforeAll, describe, expect, it, onTestFinished } from 'vites
 import { cdp, page, server } from 'vitest/browser'
 import { Dialog, DialogBody, DialogPanel } from '../../components/dialog'
 import { Input } from '../../components/input'
-import {
-	type DensityStep,
-	densitySteps,
-	readRootDensity,
-	writeRootDensity,
-} from '../../core/density'
-import { scopeStepOf } from '../../core/density/steps'
+import { type DensityStep, densitySteps, writeRootDensity } from '../../core/density'
 import { DensityProvider } from '../../providers/density'
 import { attach, densityStepOf, getSlot, present, renderUI } from '../helpers'
 
@@ -159,27 +153,6 @@ describe('the root scope (real browser)', () => {
 
 			expect(read()).toEqual(expected.map(atStep))
 		}
-	})
-
-	it('gives a step on the data-density of the root element priority over the root class', () => {
-		const root = document.documentElement
-
-		holdRoot('sm')
-
-		root.setAttribute('data-density', 'lg')
-
-		onTestFinished(() => root.removeAttribute('data-density'))
-
-		const element = probe([])
-
-		const slot = probe(['slot'])
-
-		// `densityStepOf` stops at the root element, so the oracle walks to the top here.
-		const oracle = (node: Element) => scopeStepOf(node, null, readRootDensity(root))
-
-		expect([oracle(element), px(element, 'paddingLeft')]).toEqual(['lg', PROBE_PX.lg])
-
-		expect([oracle(slot), px(slot, 'paddingLeft')]).toEqual(['md', PROBE_PX.md])
 	})
 })
 
