@@ -79,9 +79,9 @@ function rule(name: string, value: string, modifier: string | null = null): CssI
 
 	const [only] = rules as CssInJs[]
 
-	expect(Object.keys(only ?? {})).toEqual(['@layer density-0'])
+	expect(Object.keys(only ?? {})).toEqual(['@layer density'])
 
-	return only?.['@layer density-0'] as CssInJs
+	return only?.['@layer density'] as CssInJs
 }
 
 /** The value of the one property that the stepped utility `name` writes for `value`. */
@@ -228,10 +228,10 @@ describe('density utilities', () => {
 		}
 	})
 
-	it('writes one rule in the layer density-0 for three values', () => {
+	it('writes one rule in the layer density for three values', () => {
 		expect(call('density-p', '2,3,4')).toEqual([
 			{
-				'@layer density-0': {
+				'@layer density': {
 					padding:
 						'calc(var(--spacing) * (2 + var(--ui-dmd) + 2 * (var(--ui-dlg) + var(--ui-dxl))))',
 				},

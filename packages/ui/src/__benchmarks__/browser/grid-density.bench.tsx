@@ -3,11 +3,11 @@
  * window, under 0, 1, and 2 density scopes. The status cell of each row renders
  * a `Badge`. Under 0 and 1 scope, the badge is a control slot
  * (`data-density="slot"`), because the grid has no slot of its own. Under 2
- * scopes, the badge is not a slot: a slot there is 3 deep, which is past
- * `MAX_DEPTH` on main, so it takes the wrong step. Thus each row has the same
- * geometry at each step of the density plan. The columns have fixed widths, so
- * no autosizer fit is in a sample. The stylesheet of the suite (`setup.ts`)
- * imports `ui/tailwind.css`, so the density rules that the apps ship apply.
+ * scopes, the badge is not a slot, so each row keeps the shape of the first
+ * records in the README, where a slot 3 deep took the wrong step. The columns
+ * have fixed widths, so no autosizer fit is in a sample. The stylesheet of
+ * the suite (`setup.ts`) imports `ui/tailwind.css`, so the density rules that
+ * the apps ship apply.
  *
  * Three scenarios run for each count of scopes:
  *
@@ -30,7 +30,7 @@
  * one grid the span of each row is `md`, and in the other the rows alternate
  * `md` and `lg`. The scope is on the span and not on the row, because the
  * padding of a grid cell is stepped too. So the two grids have the same
- * geometry, and the spans match different rungs. Only the sharing of the cache
+ * geometry, and the spans read different weights. Only the sharing of the cache
  * is different. A sample hides the grid, and then shows it and forces the
  * style and the layout. Chromium computes the style of each element of the
  * shown subtree again, so the show matches each rule again.
@@ -80,10 +80,9 @@ type Shape = { steps: DensityStep[]; slot: boolean }
  * two is `lg`, so the nearest scope decides the step. The root switch writes
  * `sm` and `lg`, so a scope holds the grid at `md` through the switch.
  *
- * A slot counts as one depth, and the root counts as none. So the slot is in
- * the rows of 0 and 1 scope only, where its depth is not more than `MAX_DEPTH`
- * on main. The badge of the 2-scope row takes the `md` step of its scope, and
- * the slots of the other rows take `sm`.
+ * The slot is in the rows of 0 and 1 scope only, as in the first records of
+ * the README. The badge of the 2-scope row takes the `md` step of its scope,
+ * and the slots of the other rows take `sm`.
  */
 const SHAPES: Record<string, Shape> = {
 	'0 scopes · slot': { steps: [], slot: true },

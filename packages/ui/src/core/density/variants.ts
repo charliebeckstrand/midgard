@@ -1,52 +1,25 @@
 /**
- * The `density-*` Tailwind variants. `ui/tailwind.css` loads this plugin with
+ * The `density-any` Tailwind variant. `ui/tailwind.css` loads this plugin with
  * `@plugin`.
  *
- * A density scope is an element with `data-density`, one value for each of
- * {@link densitySteps}. The root element is the scope of the app, and
- * DensityProvider writes a nested one. A component with an explicit `size`
- * writes one on its own element. That element is then its own
- * nearest scope, and its subtree follows it. A kata writes the classes of each
- * step under the matching variant, for example
- * `density-sm:px-1.5 density-md:px-2 density-lg:px-2.5`. The element takes the
- * step of the nearest scope, itself included, and reads no context. `rungs.ts`
- * gives the rank of each match.
+ * `density-any` applies at each step. It is in the nested layer `density` of
+ * `utilities`, with the stepped rules of `utilities.ts`, and it has no
+ * specificity (`:where()`). So the one class of a stepped rule wins over it,
+ * and a plain utility, which is in `utilities` itself, also wins over it. A
+ * default that a stepped class can replace, such as the height of the line of
+ * a text skeleton, uses it.
  *
- * `density-[xs,sm]` matches each step of the list, as the triad of its steps
- * does. It serves a class of a pseudo-element, such as
- * `density-[xs,sm]:before:rounded-ring-1.5`. A pseudo-element ends a selector,
- * so the density variant comes before it. A stepped utility of `utilities.ts`
- * has no rungs, and it also works after a pseudo-element.
- *
- * `density-any` is the rank below each step: it applies at each density. It is
- * in the layer of the root rungs (`density-0`) with no specificity, so each step
- * and each plain utility wins over it. A default that a step must replace, such
- * as the height of a Placeholder, uses it.
+ * No variant selects one step. A stepped utility of `utilities.ts` gives the
+ * value of each step, and it takes the step of the nearest scope at each depth.
+ * A keyword, such as a value of `box-shadow` or `display`, cannot be stepped.
  */
 
 import type { PluginCreator } from 'tailwindcss/plugin'
-import { rungs } from './rungs.ts'
-import { densitySteps, stepsOfList } from './steps.ts'
 
 /**
  * The plugin handler. Tailwind reads a named `handler` export as a plugin, so
  * the module needs no default export.
  */
-export const handler: PluginCreator = ({ addVariant, matchVariant }) => {
-	addVariant('density-any', { '@layer density-0': { ':where(&)': { '@slot': {} } } })
-
-	for (const step of densitySteps) addVariant(`density-${step}`, rungs([step], { '@slot': {} }))
-
-	matchVariant('density', (list) => {
-		const steps = stepsOfList(list)
-
-		if (!steps) return []
-
-		// `matchVariant` takes each rule as a string: an at-rule that holds the
-		// selector, with no body. Tailwind writes the `@slot` into it. A layer
-		// can hold more than one rule, such as the rungs of the root.
-		return Object.entries(rungs(steps, {})).flatMap(([layer, rules]) =>
-			Object.keys(rules).map((selector) => `${layer} { ${selector} }`),
-		)
-	})
+export const handler: PluginCreator = ({ addVariant }) => {
+	addVariant('density-any', { '@layer density': { ':where(&)': { '@slot': {} } } })
 }

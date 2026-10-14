@@ -59,10 +59,10 @@ export type AppearanceProviderProps = {
  * Render it above all text of the page, as the root layout of an app does.
  *
  * @remarks The server render and the hydration render use the defaults
- * (`'system'`, `'snug'`, `'system'`, and `'locked'`) for the values of the context. The root element
- * carries the stored choices from the first paint, so each class that selects
- * its step through the `density-*` variants is correct at once. A component
- * that reads the step as a JS value takes it one render after hydration.
+ * (`'system'`, `'snug'`, `'system'`, and `'locked'`) for the values of the
+ * context. The root element carries the stored choices from the first paint,
+ * so each stepped `density-*` class is correct at once. A component that reads
+ * the step as a JS value takes it one render after hydration.
  */
 export function AppearanceProvider({ children }: AppearanceProviderProps) {
 	const [theme, setTheme] = useAppearanceChoice(THEME)

@@ -27,7 +27,6 @@ import { Tab, TabList, Tabs } from '../../components/tabs'
 import { Tree, TreeItem } from '../../components/tree'
 import { densitySteps, writeRootDensity } from '../../core/density'
 import { boxHeight, iconSize } from '../../core/density/geometry'
-import { MAX_DEPTH } from '../../core/density/rungs'
 import { SidebarLayout } from '../../layouts/sidebar'
 import { ChatListItem } from '../../modules/chat'
 import { Grid } from '../../modules/grid'
@@ -73,8 +72,7 @@ const mountMarkup = (element: ReactElement) => {
 
 /**
  * The root element is the scope of the app: `AppearanceScript` writes the stored step on
- * `<html>` before the first paint. It ranks below each other scope and does not use one of the
- * ranked depths, so the trees keep each depth.
+ * `<html>` before the first paint. Each scope under it wins over it.
  */
 describe('the root scope (real browser)', () => {
 	afterEach(() => {
@@ -100,32 +98,12 @@ describe('the root scope (real browser)', () => {
 
 		expect(badgeFont(container, 'x')).toBe(BADGE_FONT_PX.lg)
 	})
-
-	it('keeps each ranked depth for the scopes under it', () => {
-		writeRootDensity(document.documentElement, 'lg')
-
-		// The ranked maximum of scopes under the root: `lg` cards around one `sm` card. If the root
-		// took a depth, the last `lg` card would tie with the `sm` card at the last depth, and the
-		// later `lg` rule would win.
-		const nest = (depth: number): ReactElement =>
-			depth === 1 ? (
-				<Card size="sm">
-					<Badge>x</Badge>
-				</Card>
-			) : (
-				<Card size="lg">{nest(depth - 1)}</Card>
-			)
-
-		const { container } = renderUI(nest(MAX_DEPTH))
-
-		expect(badgeFont(container, 'x')).toBe(BADGE_FONT_PX.sm)
-	})
 })
 
 /**
  * A control slot writes `data-density="slot"` and no step. It is a scope one step below the scope
  * above it, so the slot contents step down with no step in JS. A scope inside the slot wins over
- * it, and the slot counts as one depth.
+ * it.
  */
 describe('the relative slot scope (real browser)', () => {
 	afterEach(() => {
@@ -363,8 +341,8 @@ describe('controls at the first paint (real browser)', () => {
 	it('sizes the native slider track at an explicit size of the slider', () => {
 		writeRootDensity(document.documentElement, 'sm')
 
-		// The track is a pseudo-element, so its classes name the steps before it and keep the rung
-		// of the input itself. The content box of the input is the height of its track.
+		// The track is a pseudo-element, and it takes the step of the input itself. The content box
+		// of the input is the height of its track.
 		const container = mountMarkup(<Slider aria-label="Volume" size="lg" defaultValue={50} />)
 
 		const slider = present(container.querySelector('[data-slot="slider"]'), 'slider')

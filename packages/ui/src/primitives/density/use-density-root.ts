@@ -55,9 +55,9 @@ function serverRootStep(): DensityStep {
  *
  * @remarks
  * `AppearanceScript` writes the stored step on the root before the first
- * paint, so each class that selects its step through the `density-*` variants
- * is correct at once. A JS value cannot be correct on the server, which has no
- * root element to read. The server and the hydration render thus take `md`,
+ * paint, so each stepped `density-*` class is correct at once. A JS value
+ * cannot be correct on the server, which has no root element to read. The
+ * server and the hydration render thus take `md`,
  * and the stored step applies in the render after hydration.
  *
  * @internal

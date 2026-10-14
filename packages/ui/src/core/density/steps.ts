@@ -1,6 +1,6 @@
 /**
- * The steps of density. A density scope, the `density-*` Tailwind variants,
- * and the density context all use these values.
+ * The steps of density. A density scope, the stepped Tailwind utilities, and
+ * the density context all use these values.
  *
  * `sm`, `md`, and `lg` are the inner steps: a density level, and so the root
  * element and `DensityProvider`, takes one of them. `xs` and `xl` are the
@@ -12,10 +12,7 @@ export const densitySteps = ['xs', 'sm', 'md', 'lg', 'xl'] as const
  * The class that marks each step of the root element, the scope of the app.
  * `md` is the base of each stepped class, so the root has no mark for it. A
  * scope under the root uses `data-density`. The base rules of `utilities.ts`
- * set the weights of the root step from this class. A class for each step
- * also lets Chromium reject each rung of the root through its ancestor filter,
- * except the rung of the step that the root holds. The filter reads the name
- * of a class, but not the value of an attribute.
+ * set the weights of the root step from this class.
  */
 export const rootDensityClasses = {
 	xs: 'density-root-xs',
@@ -43,8 +40,7 @@ const inner = { xs: 'sm', sm: 'sm', md: 'md', lg: 'lg', xl: 'lg' } as const sati
 
 /**
  * Clamps a step to the inner steps: `xs` becomes `sm`, and `xl` becomes
- * `lg`. A client reader with three values for each step, such as the chart
- * tick cap, clamps the step that it reads through this function.
+ * `lg`. A scale with no outer step snaps a step to it (`snapToScale`).
  */
 export function toInnerStep(step: DensityStep): InnerStep {
 	return inner[step]
@@ -67,9 +63,8 @@ export function stepDown<S extends DensityStep>(step: S): (typeof below)[S] {
 /**
  * The step of a control slot in a scope at `step`: the step below the step of
  * the host, and `xs` for an `xs` host, because no step is below `xs`. The
- * base rules of `utilities.ts` and the rungs of `rungs.ts` give a slot this
- * step in CSS. A `2xs` step for the slot would add a step to the scale for one
- * case.
+ * base rules of `utilities.ts` give a slot this step in CSS. A `2xs` step for
+ * the slot would add a step to the scale for one case.
  *
  * @internal
  */
@@ -109,18 +104,6 @@ export function valuesByStep(list: string): Record<DensityStep, string> | null {
  */
 export function isDensityStep(value: unknown): value is DensityStep {
 	return (densitySteps as readonly unknown[]).includes(value)
-}
-
-/**
- * Reads the steps of a `density-[…]` variant, such as the `xs,sm` of
- * `density-[xs,sm]`. It returns `null` when an item is not a step.
- *
- * @internal
- */
-export function stepsOfList(list: string): DensityStep[] | null {
-	const steps = list.split(',').map((step) => step.trim())
-
-	return steps.every(isDensityStep) ? steps : null
 }
 
 /**
