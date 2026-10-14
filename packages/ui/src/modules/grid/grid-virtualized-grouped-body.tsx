@@ -149,7 +149,7 @@ type GridVirtualizedGroupedBodyProps<T> = {
 	totaled: boolean
 	/** The row-manager overlay presentation (per-group color), or `null` when off. */
 	presentation: GridRowGroupPresentation | null
-	window: GridItemWindowOptions
+	rowWindow: GridItemWindowOptions
 }
 
 /**
@@ -181,7 +181,7 @@ export function GridVirtualizedGroupedBody<T>({
 	renderHeader,
 	totaled,
 	presentation,
-	window: rowWindow,
+	rowWindow,
 }: GridVirtualizedGroupedBodyProps<T>) {
 	const { visibleColumns: columns, pinning, gridSemantics, rowIndexOffset } = rowsProps
 

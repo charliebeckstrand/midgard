@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest'
 import type { DensityStep } from '../../core/density'
 import { k as badge } from '../../recipes/kata/badge'
-import { findBareCompoundP, findSteps } from '../helpers/class-stops'
+import { findBarePad, findSteps } from '../helpers/class-stops'
 
 // Removable-chip leading-pad symmetry invariant.
 //
@@ -32,7 +32,7 @@ describe('removable chip leading-pad symmetry', () => {
 	for (const size of CHIP_SIZES) {
 		const pillPx = findPillPx(size)
 
-		const bareP = findBareCompoundP(size)
+		const bareP = findBarePad(size)
 
 		const expected = pillPx + bareP
 

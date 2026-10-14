@@ -154,7 +154,7 @@ export function seatingCellProps<T>(args: {
 	col: GridColumn<T>
 	row: T
 	/** The row's 0-based place in the view. */
-	rowIdx: number
+	rowIndex: number
 	colIndexMapRef: RefObject<Map<string | number, number>>
 	cellId: (row: number, col: number) => string
 	/** Seats the cursor on a pressed cell (see `useGridNavigation`). */
@@ -163,7 +163,7 @@ export function seatingCellProps<T>(args: {
 	/** The touch entry of an editable cell under a grid-owned session, else `undefined`. */
 	touch?: GridTouchEntry | undefined
 }): ComponentProps<'td'> {
-	const { col, row, rowIdx, colIndexMapRef, cellId, seat, extra, touch } = args
+	const { col, row, rowIndex, colIndexMapRef, cellId, seat, extra, touch } = args
 
 	const colIndex = colIndexMapRef.current.get(col.id) ?? -1
 
@@ -172,7 +172,7 @@ export function seatingCellProps<T>(args: {
 	return {
 		...columnProps,
 		...extra,
-		id: cellId(rowIdx, colIndex),
+		id: cellId(rowIndex, colIndex),
 		role: 'gridcell',
 		onMouseDown: composeEventHandlers(
 			columnProps?.onMouseDown,
@@ -185,12 +185,12 @@ export function seatingCellProps<T>(args: {
 				if (inCell && !fromInteractiveContent(event.target)) {
 					event.currentTarget.closest<HTMLElement>(GRID_ROLE)?.focus()
 
-					seat({ row: rowIdx, col: colIndex }, event)
+					seat({ row: rowIndex, col: colIndex }, event)
 				}
 			},
 			{ checkForDefaultPrevented: false },
 		),
-		...(touch ? touchEntryProps(touch, { row: rowIdx, col: colIndex }, columnProps) : undefined),
+		...(touch ? touchEntryProps(touch, { row: rowIndex, col: colIndex }, columnProps) : undefined),
 	}
 }
 

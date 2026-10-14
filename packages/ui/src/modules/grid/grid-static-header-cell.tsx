@@ -13,7 +13,7 @@ import type { GridColumnPinning } from './use-grid-table'
 /** The place of a static header cell: its column, index, and frozen edge. @internal */
 type GridStaticHeaderPlace<T> = {
 	column: GridColumn<T>
-	colIndex: number | undefined
+	ariaColIndex: number | undefined
 	stickyHeader: boolean
 	pinning: GridColumnPinning | null
 }
@@ -27,7 +27,7 @@ function pinnedHeaderCellProps<T>(place: GridStaticHeaderPlace<T>, className: st
 	const pinned = pinnedHeaderProps(place.pinning, place.column, place.column.width || undefined)
 
 	return {
-		'aria-colindex': place.colIndex,
+		'aria-colindex': place.ariaColIndex,
 		className: cn(className, place.stickyHeader && k.sticky.head, pinned.className),
 		style: pinned.style,
 		'data-grid-pin': pinned.pin,
@@ -75,18 +75,21 @@ function GridSelectHeaderCell<T>({
  */
 function GridDragHandleHeaderCell<T>({
 	column,
-	colIndex,
+	ariaColIndex,
 	stickyHeader,
 	pinning,
 }: {
 	column: GridColumn<T>
-	colIndex: number | undefined
+	ariaColIndex: number | undefined
 	stickyHeader: boolean
 	pinning: GridColumnPinning | null
 }) {
 	return (
 		<TableHeader
-			{...pinnedHeaderCellProps({ column, colIndex, stickyHeader, pinning }, k.row.reorder.cell)}
+			{...pinnedHeaderCellProps(
+				{ column, ariaColIndex, stickyHeader, pinning },
+				k.row.reorder.cell,
+			)}
 		>
 			<span className="sr-only">Reorder rows</span>
 		</TableHeader>
@@ -103,16 +106,16 @@ function GridDragHandleHeaderCell<T>({
  */
 function GridNewRowAddHeaderCell<T>({
 	column,
-	colIndex,
+	ariaColIndex,
 	stickyHeader,
 }: {
 	column: GridColumn<T>
-	colIndex: number | undefined
+	ariaColIndex: number | undefined
 	stickyHeader: boolean
 }) {
 	return (
 		<TableHeader
-			aria-colindex={colIndex}
+			aria-colindex={ariaColIndex}
 			className={cn(k.cell.actions, stickyHeader && k.sticky.head)}
 			style={{ width: column.width }}
 		>
@@ -154,7 +157,7 @@ export function GridStaticHeaderCell<T>({
 	return (
 		<GridNewRowAddHeaderCell
 			column={column}
-			colIndex={place.colIndex}
+			ariaColIndex={place.ariaColIndex}
 			stickyHeader={place.stickyHeader}
 		/>
 	)

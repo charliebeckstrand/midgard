@@ -27,7 +27,7 @@ import { Tab, TabList, Tabs } from '../../components/tabs'
 import { Tree, TreeItem } from '../../components/tree'
 import { densitySteps, writeRootDensity } from '../../core/density'
 import { boxHeight, iconSize } from '../../core/density/geometry'
-import { maxDepth } from '../../core/density/rungs'
+import { MAX_DEPTH } from '../../core/density/rungs'
 import { SidebarLayout } from '../../layouts/sidebar'
 import { ChatListItem } from '../../modules/chat'
 import { Grid } from '../../modules/grid'
@@ -116,7 +116,7 @@ describe('the root scope (real browser)', () => {
 				<Card size="lg">{nest(depth - 1)}</Card>
 			)
 
-		const { container } = renderUI(nest(maxDepth))
+		const { container } = renderUI(nest(MAX_DEPTH))
 
 		expect(badgeFont(container, 'x')).toBe(BADGE_FONT_PX.sm)
 	})

@@ -267,7 +267,7 @@ export function JsonTree({
 				rootKey={rootKey}
 				defaultExpandDepth={defaultExpandDepth}
 				collapsible={collapsible}
-				expandedProp={expanded}
+				expanded={expanded}
 				onExpandedChange={onExpandedChange}
 				searchValue={searchValue}
 				filter={filter}

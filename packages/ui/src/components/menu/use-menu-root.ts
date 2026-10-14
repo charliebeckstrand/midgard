@@ -123,7 +123,7 @@ export function inPortaledPanel(target: EventTarget | null, surface: EventTarget
  * @internal
  * @see {@link useFloatingDisclosure}
  */
-export function useMenuState({
+export function useMenuRoot({
 	open: openProp,
 	defaultOpen = false,
 	onOpenChange,

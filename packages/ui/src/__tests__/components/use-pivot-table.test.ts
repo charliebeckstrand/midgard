@@ -51,7 +51,7 @@ describe('usePivotTable', () => {
 
 		expect(result.current.rowTotal('NA')).toBe(150)
 
-		expect(result.current.colTotals).toEqual(expect.arrayContaining([175, 175]))
+		expect(result.current.columnTotals).toEqual(expect.arrayContaining([175, 175]))
 
 		expect(result.current.grandTotal).toBe(350)
 	})

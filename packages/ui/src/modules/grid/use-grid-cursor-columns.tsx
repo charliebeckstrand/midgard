@@ -96,8 +96,8 @@ export function useGridCursorColumns<T>({
 			const cellAt = editable
 				? (row: T, rowIndex: number): ReactNode => (
 						<GridEditingCell
-							rowIdx={rowIndex}
-							colIdx={colOf(col.id)}
+							rowIndex={rowIndex}
+							colIndex={colOf(col.id)}
 							rowKey={rowKeysRef.current[rowIndex] ?? rowIndex}
 							row={row}
 							column={col}
@@ -114,7 +114,7 @@ export function useGridCursorColumns<T>({
 				seatingCellProps({
 					col,
 					row,
-					rowIdx: rowIndex,
+					rowIndex,
 					colIndexMapRef,
 					cellId,
 					seat,

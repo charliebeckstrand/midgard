@@ -93,7 +93,7 @@ function GridNewRowCell<T>({
 	session,
 	column,
 	col,
-	colIndex,
+	ariaColIndex,
 	draftRow,
 	readDraftRow,
 	className,
@@ -104,7 +104,7 @@ function GridNewRowCell<T>({
 	column: GridColumn<T>
 	/** The cursor's column index, among the visible data columns. */
 	col: number
-	colIndex: number | undefined
+	ariaColIndex: number | undefined
 	draftRow: T
 	/** Reads the draft row again, for the `validate` of the editor. */
 	readDraftRow: () => T
@@ -134,7 +134,7 @@ function GridNewRowCell<T>({
 		<span inert={pending} className={cn(k.edit.host, pending && k.edit.pending)}>
 			<GridCellEditor<T>
 				key={session.generation}
-				rowIdx={NEW_ROW_INDEX}
+				rowIndex={NEW_ROW_INDEX}
 				rowKey={NEW_ROW_KEY}
 				row={draftRow}
 				column={column}
@@ -160,7 +160,7 @@ function GridNewRowCell<T>({
 			id={session.cellId(NEW_ROW_INDEX, col)}
 			role="gridcell"
 			data-grid-new-col={String(column.id)}
-			aria-colindex={colIndex}
+			aria-colindex={ariaColIndex}
 			aria-readonly={ariaAttr(!editable)}
 			aria-busy={ariaAttr(pending)}
 			className={className}
@@ -197,14 +197,14 @@ function GridNewRowAddCell({
 	session,
 	render,
 	onMeasure,
-	colIndex,
+	ariaColIndex,
 	className,
 }: {
 	session: GridNewRowSession
 	render: ((context: GridNewRowAddContext) => ReactNode) | undefined
 	/** Takes the width that the cell needs, or is `undefined` under a fixed width. */
 	onMeasure: ((width: number) => void) | undefined
-	colIndex: number | undefined
+	ariaColIndex: number | undefined
 	className: string
 }) {
 	const pending = session.inFlight
@@ -241,7 +241,7 @@ function GridNewRowAddCell({
 		<TableCell
 			ref={cellRef}
 			data-grid-new-col={NEW_ROW_ADD_COLUMN_ID}
-			aria-colindex={colIndex}
+			aria-colindex={ariaColIndex}
 			aria-busy={ariaAttr(pending)}
 			className={cn(className, k.row.new.add)}
 		>
@@ -327,7 +327,7 @@ export function GridNewRow<T>({
 						pinned.style !== undefined && k.row.new.pinned,
 					)
 
-					const colIndex = ariaRowIndex !== undefined ? index + 1 : undefined
+					const ariaColIndex = ariaRowIndex !== undefined ? index + 1 : undefined
 
 					if (isNewRowAddColumn(column.id))
 						return (
@@ -336,7 +336,7 @@ export function GridNewRow<T>({
 								session={session}
 								render={add?.render}
 								onMeasure={add?.width === undefined ? onMeasureAdd : undefined}
-								colIndex={colIndex}
+								ariaColIndex={ariaColIndex}
 								className={className}
 							/>
 						)
@@ -345,7 +345,7 @@ export function GridNewRow<T>({
 						return (
 							<TableCell
 								key={column.id}
-								aria-colindex={colIndex}
+								aria-colindex={ariaColIndex}
 								className={className}
 								style={pinned.style}
 								data-grid-pin={pinned.pin}
@@ -358,7 +358,7 @@ export function GridNewRow<T>({
 							session={session}
 							column={column}
 							col={dataColumns.indexOf(column)}
-							colIndex={colIndex}
+							ariaColIndex={ariaColIndex}
 							draftRow={draftRow}
 							readDraftRow={readDraftRow}
 							className={className}

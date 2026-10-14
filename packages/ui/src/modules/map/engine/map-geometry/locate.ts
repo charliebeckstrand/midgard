@@ -140,7 +140,7 @@ function rowAt(lat: number): number {
  *
  * @internal
  */
-export function regionIndex(features: MapFeature[]): MapRegionIndex {
+export function buildRegionIndex(features: MapFeature[]): MapRegionIndex {
 	const cells = new Map<number, number[]>()
 
 	const oversized: number[] = []
@@ -196,7 +196,7 @@ const indexes = new WeakMap<MapFeature[], MapRegionIndex>()
  * @internal
  */
 export function cachedRegionIndex(features: MapFeature[]): MapRegionIndex {
-	return getOrCompute(indexes, features, regionIndex)
+	return getOrCompute(indexes, features, buildRegionIndex)
 }
 
 /** Whether a box holds a position — the cheap test before the exact one. @internal */

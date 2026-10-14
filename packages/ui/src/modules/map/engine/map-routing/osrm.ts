@@ -5,7 +5,7 @@
 
 import type { LngLat } from '../types'
 import { routeFailure } from './failure'
-import { type Profile, requestSignal, routeFetch } from './request'
+import { type MapRouteProfile, requestSignal, routeFetch } from './request'
 import type { MapRouteAnswer } from './result'
 
 const DEFAULT_OSRM_URL = 'https://router.project-osrm.org'
@@ -21,7 +21,7 @@ export type FetchOsrmRouteOptions = {
 	 * self-hosted OSRM instance for production.
 	 */
 	baseUrl?: string
-	profile?: Profile
+	profile?: MapRouteProfile
 	/**
 	 * Geometry detail. `'simplified'` returns a Douglas-Peucker line at display
 	 * resolution: a fraction of the coordinates, visually identical at map

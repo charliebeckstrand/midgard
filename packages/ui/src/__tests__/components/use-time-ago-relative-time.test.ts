@@ -3,9 +3,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	DAY,
 	HOUR,
-	MIN,
+	MINUTE,
 	MONTH,
-	SEC,
+	SECOND,
 	WEEK,
 	YEAR,
 } from '../../components/time-ago/time-ago-constants'
@@ -42,15 +42,15 @@ describe('useTimeAgoRelativeTime', () => {
 	})
 
 	it.each<[string, number, RegExp]>([
-		['seconds for differences below one minute', -30 * SEC, /second|now/i],
-		['minutes for differences below one hour', -5 * MIN, /minute/i],
+		['seconds for differences below one minute', -30 * SECOND, /second|now/i],
+		['minutes for differences below one hour', -5 * MINUTE, /minute/i],
 		['hours for differences below one day', -2 * HOUR, /hour/i],
 		['days for differences below one week', -3 * DAY, /day/i],
 		['weeks for differences below one month', -2 * WEEK, /week/i],
 		['months for differences below one year', -4 * MONTH, /month/i],
 		['years for differences past one year', -2 * YEAR, /year/i],
 		// A future date takes the same unit as a past one: only the sign differs.
-		['a future date symmetrically by sign', 30 * MIN, /minute/i],
+		['a future date symmetrically by sign', 30 * MINUTE, /minute/i],
 	])('formats %s', (_name, offset, expected) => {
 		const then = new Date(NOW.getTime() + offset)
 
@@ -62,7 +62,7 @@ describe('useTimeAgoRelativeTime', () => {
 	it('uses the supplied custom formatter when provided', () => {
 		const format = vi.fn(() => 'just now')
 
-		const then = new Date(NOW.getTime() - 10 * SEC)
+		const then = new Date(NOW.getTime() - 10 * SECOND)
 
 		const { result } = renderHook(() => useTimeAgoRelativeTime({ date: then, format }))
 
@@ -72,8 +72,8 @@ describe('useTimeAgoRelativeTime', () => {
 	})
 
 	it.each([
-		['a numeric timestamp', NOW.getTime() - 30 * SEC],
-		['an ISO string', new Date(NOW.getTime() - 60 * SEC).toISOString()],
+		['a numeric timestamp', NOW.getTime() - 30 * SECOND],
+		['an ISO string', new Date(NOW.getTime() - 60 * SECOND).toISOString()],
 	])('accepts %s', (_name, date) => {
 		const { result } = renderHook(() => useTimeAgoRelativeTime({ date }))
 
@@ -81,7 +81,7 @@ describe('useTimeAgoRelativeTime', () => {
 	})
 
 	it('honors an explicit numeric interval over the adaptive default', () => {
-		const then = new Date(NOW.getTime() - 30 * SEC)
+		const then = new Date(NOW.getTime() - 30 * SECOND)
 
 		const setIntervalSpy = vi.spyOn(window, 'setInterval')
 

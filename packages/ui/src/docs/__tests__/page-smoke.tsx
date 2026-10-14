@@ -9,7 +9,7 @@ import { AppearanceProvider } from 'ui/providers/appearance'
 import { UIProvider } from 'ui/providers/ui'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { CI } from '../../../vitest.base.ts'
-import { maxDepth } from '../../core/density/rungs.ts'
+import { MAX_DEPTH } from '../../core/density/rungs.ts'
 import { findPages, type Page } from '../plugin/pages.ts'
 import { restoreRootAfterCase } from './restore-root.ts'
 
@@ -25,7 +25,7 @@ import { restoreRootAfterCase } from './restore-root.ts'
 // throws, or when it writes to `console.error` or `console.warn`. It also fails
 // when a curated set of axe rules finds a violation in a state that it shows.
 // It fails too when a state nests more density scopes than the rungs rank
-// (`maxDepth`), or when two elements of a state have the same id. It fails
+// (`MAX_DEPTH`), or when two elements of a state have the same id. It fails
 // too when a state shows no example, so each page and each tab shows its unit
 // in an example or a playground.
 // `page-coverage.test.ts` asks whether a page exists, and this test asks
@@ -353,7 +353,7 @@ export function describePageSmoke(part: readonly Page[]): void {
 				expect(bare, 'states that show no example or playground').toBe(0)
 
 				expect(scopes.length, `${page.path} nests ${scopes.join(' > ')}`).toBeLessThanOrEqual(
-					maxDepth,
+					MAX_DEPTH,
 				)
 
 				const closed = page.tabs

@@ -50,8 +50,8 @@ type CalendarPickerViewConfig = {
 
 /** Return shape of {@link useCalendarPicker}. It holds the header/grid refs, their roving-focus keydown handlers, and the active view's render config. @internal */
 type CalendarPickerResult = {
-	pickerHeaderRef: RefObject<HTMLDivElement | null>
-	pickerGridRef: Ref<HTMLDivElement>
+	headerRef: RefObject<HTMLDivElement | null>
+	gridRef: Ref<HTMLDivElement>
 	handleHeaderKeyDown: (event: KeyboardEvent<HTMLElement>) => void
 	handleGridKeyDown: (event: KeyboardEvent<HTMLElement>) => void
 	viewConfig: CalendarPickerViewConfig
@@ -62,7 +62,7 @@ type CalendarPickerResult = {
  * month/decade view reducer and the sealed roving-focus wiring. It derives the
  * cell list and toolbar config of the view on screen.
  *
- * @returns A {@link CalendarPickerResult}: the `pickerHeaderRef`/`pickerGridRef`
+ * @returns A {@link CalendarPickerResult}: the `headerRef`/`gridRef`
  * zone refs, their `handleHeaderKeyDown`/`handleGridKeyDown` handlers, and the
  * active-view `viewConfig`.
  * @remarks Each open reseeds the view to the current year during render, so the
@@ -113,11 +113,11 @@ export function useCalendarPicker({
 		[localeTag],
 	)
 
-	const pickerHeaderRef = useRef<HTMLDivElement>(null)
+	const headerRef = useRef<HTMLDivElement>(null)
 	const gridRef = useRef<HTMLDivElement>(null)
 
 	const { handleHeaderKeyDown, handleGridKeyDown } = useCalendarFocus({
-		headerRef: pickerHeaderRef,
+		headerRef,
 		gridRef,
 		cols: 3,
 		activeSelector: SELECTED_CELL,
@@ -153,7 +153,7 @@ export function useCalendarPicker({
 		return () => cancelAnimationFrame(frame)
 	}, [open, focusGrid])
 
-	const pickerGridRef = useComposedRef(gridRef, attachGrid)
+	const composedGridRef = useComposedRef(gridRef, attachGrid)
 
 	let viewConfig: CalendarPickerViewConfig
 
@@ -225,8 +225,8 @@ export function useCalendarPicker({
 	}
 
 	return {
-		pickerHeaderRef,
-		pickerGridRef,
+		headerRef,
+		gridRef: composedGridRef,
 		handleHeaderKeyDown,
 		handleGridKeyDown,
 		viewConfig,

@@ -38,7 +38,7 @@ import type { GridColumn } from './types'
  * callbacks. The row key of the new-row slot is {@link NEW_ROW_KEY}. @internal
  */
 type GridCellEditorProps<T> = {
-	rowIdx: number
+	rowIndex: number
 	rowKey: GridDraftKey
 	row: T
 	column: GridColumn<T>
@@ -202,7 +202,7 @@ function GridSettleControls({
  * @internal
  */
 export function GridCellEditor<T>({
-	rowIdx,
+	rowIndex,
 	rowKey,
 	row,
 	column,
@@ -346,7 +346,7 @@ export function GridCellEditor<T>({
 	// read as one thing to a screen reader rather than unrelated widgets.
 	// `columnLabel` is the module's one column-naming rule, and it degrades to the
 	// column id rather than to a position that shifts as columns move.
-	const label = `${columnLabel(column)}, ${newRow ? 'new row' : `row ${rowIdx + 1}`}`
+	const label = `${columnLabel(column)}, ${newRow ? 'new row' : `row ${rowIndex + 1}`}`
 
 	const ariaLabel = `Edit ${label}`
 

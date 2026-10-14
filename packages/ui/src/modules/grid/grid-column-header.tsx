@@ -74,7 +74,7 @@ export type GridColumnHeaderProps = {
 		GridColumn<unknown>,
 		'id' | 'title' | 'sortable' | 'headerClassName' | 'filterType' | 'filterOptions' | 'groupable'
 	>
-	colIndex: number | undefined
+	ariaColIndex: number | undefined
 	/** 0-based visible column index; a reorderable header writes its drag shift to the CSS variable keyed by it. */
 	columnIndex: number
 	sorted: boolean
@@ -174,7 +174,7 @@ function headerResizeHandle(
 /** Single column header cell; renders a sort-toggle button and, when resizable, a resize separator. @internal */
 export const GridColumnHeader = memo(function GridColumnHeader({
 	column,
-	colIndex,
+	ariaColIndex,
 	sorted,
 	direction,
 	sortPriority,
@@ -215,7 +215,7 @@ export const GridColumnHeader = memo(function GridColumnHeader({
 
 	return (
 		<TableHeader
-			aria-colindex={colIndex}
+			aria-colindex={ariaColIndex}
 			aria-sort={ariaSortValue(column.sortable && interactive, sorted, direction)}
 			data-resizable={dataAttr(canResize)}
 			data-grid-col={gridCol}
@@ -314,7 +314,7 @@ export const GridReorderableColumnHeader = memo(function GridReorderableColumnHe
  */
 export function GridReorderableColumnHeaderView({
 	column,
-	colIndex,
+	ariaColIndex,
 	columnIndex,
 	sorted,
 	direction,
@@ -380,7 +380,7 @@ export function GridReorderableColumnHeaderView({
 	return (
 		<TableHeader
 			ref={setHeaderNodeRef}
-			aria-colindex={colIndex}
+			aria-colindex={ariaColIndex}
 			aria-sort={ariaSortValue(column.sortable && interactive, sorted, direction)}
 			data-dragging={dataAttr(isDragging)}
 			data-resizable={dataAttr(canResize)}
