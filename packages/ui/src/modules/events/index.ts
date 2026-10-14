@@ -24,3 +24,4 @@ export type {
 export { EventsAside } from './events-aside'
 export { EventsButton } from './events-button'
 export { EventsScript } from './events-script'
+export { EventsSwitch } from './events-switch'

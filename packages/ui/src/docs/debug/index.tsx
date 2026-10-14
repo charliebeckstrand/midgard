@@ -1,12 +1,9 @@
-import { useState } from 'react'
-import { EventsScript, isEventsOn, setEventsOn, startEvents } from 'ui/events'
-import { Description, Label } from 'ui/fieldset'
-import { Switch, SwitchField } from 'ui/switch'
+import { EventsScript, startEvents } from 'ui/events'
 import { DOCS_SOURCES } from './sources.ts'
 
-// The part of the events that the docs shell holds: the head scripts, the
-// start of the store, and the switch of the settings. The module `ui/events`
-// holds the store, the header button, the sheet, and the pinned panel.
+// The part of the events that the docs shell holds: the head scripts and the
+// start of the store. The module `ui/events` holds the store, the header
+// button, the sheet, the pinned panel, and the switch of the settings.
 
 // The head script of the docs: while the events run, it keeps the scroll and
 // viewport readings before hydration until the store takes them (`sources.ts`).
@@ -35,29 +32,4 @@ const OPTIONS = { sources: DOCS_SOURCES, calls: true }
  */
 export function startDebug(): Promise<void> {
 	return startEvents(OPTIONS)
-}
-
-/**
- * The Debug switch of the settings, which runs the events. The settings
- * render on the client only, so the switch reads the setting.
- */
-export function DebugSwitch() {
-	const [on, setOn] = useState(isEventsOn)
-
-	return (
-		<SwitchField>
-			<Label>Debug</Label>
-			<Description>
-				Shows the Events button in the header, with the events and the bugs of the page.
-			</Description>
-			<Switch
-				checked={on}
-				onChange={(event) => {
-					setEventsOn(event.target.checked)
-
-					setOn(event.target.checked)
-				}}
-			/>
-		</SwitchField>
-	)
 }

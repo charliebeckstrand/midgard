@@ -7,8 +7,10 @@ import {
 	BreadcrumbList,
 	BreadcrumbSeparator,
 } from 'ui/breadcrumb'
+import { EventsButton, EventsSwitch } from 'ui/events'
 import { Link } from 'ui/link'
 import { Placeholder } from 'ui/placeholder'
+import { AppearanceSettings } from 'ui/providers/appearance'
 import { Flex } from 'ui/structure/flex'
 import { UserMenu } from '../user-menu'
 
@@ -63,7 +65,15 @@ export function PicksHeader({ user, week }: PicksHeaderProps) {
 					)}
 				</>
 			}
-			menu={<UserMenu user={user} />}
+			menu={
+				<Flex align="center" gap="sm">
+					<EventsButton />
+					<AppearanceSettings>
+						<EventsSwitch />
+					</AppearanceSettings>
+					<UserMenu user={user} />
+				</Flex>
+			}
 		/>
 	)
 }

@@ -106,6 +106,32 @@ export function setEventsPinned(on: boolean): void {
 /** Calls `listener` on each change of the pin. @internal */
 export const subscribePinned = pinnedChanges.subscribe
 
+/** The number of pinned panels that are mounted. An app with no `EventsAside` has none. */
+let docks = 0
+
+const dockChanges = createEmitter()
+
+/** Marks a pinned panel as mounted, and returns the function that removes the mark. @internal */
+export function addEventsDock(): () => void {
+	docks++
+
+	dockChanges.emit()
+
+	return () => {
+		docks--
+
+		dockChanges.emit()
+	}
+}
+
+/** Whether a pinned panel is mounted, so a pin has a place to show the view. @internal */
+export function hasEventsDock(): boolean {
+	return docks > 0
+}
+
+/** Calls `listener` when a pinned panel mounts or unmounts. @internal */
+export const subscribeDocks = dockChanges.subscribe
+
 /** Copies the settings to the attributes of the root element. */
 function syncAttributes(): void {
 	const root = document.documentElement

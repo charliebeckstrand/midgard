@@ -4,9 +4,11 @@ import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { halt, start } from '../../modules/events/engine/events-recorder'
 import { isEventsPinned, setEventsPinned } from '../../modules/events/engine/events-setting'
 import { recordEvent, reportBug } from '../../modules/events/engine/events-sink'
+import { EventsAside } from '../../modules/events/events-aside'
 import { EventsButton } from '../../modules/events/events-button'
 import { EventsPanel } from '../../modules/events/events-panel'
 import { EventsSheet } from '../../modules/events/events-sheet'
+import { EventsSwitch } from '../../modules/events/events-switch'
 
 // The sheet starts the recorder, which listens on the document. The halt
 // drops the events and ends a capture.
@@ -392,7 +394,13 @@ describe('pin', () => {
 
 		const onOpenChange = vi.fn()
 
-		render(<EventsSheet open onOpenChange={onOpenChange} />)
+		// The aside is the place of the pinned view, so the sheet shows Pin while one is mounted.
+		render(
+			<>
+				<EventsAside />
+				<EventsSheet open onOpenChange={onOpenChange} />
+			</>,
+		)
 
 		fireEvent.click(screen.getByRole('button', { name: 'Pin' }))
 
@@ -411,6 +419,20 @@ describe('pin', () => {
 		expect(document.documentElement.hasAttribute('data-events-pinned')).toBe(false)
 	})
 
+	it('does not show Pin on a page with no pinned panel, and shows it when a panel mounts', () => {
+		render(<EventsSheet open onOpenChange={() => undefined} />)
+
+		expect(screen.queryByRole('button', { name: 'Pin' })).toBeNull()
+
+		const aside = render(<EventsAside />)
+
+		expect(screen.getByRole('button', { name: 'Pin' })).toBeDefined()
+
+		aside.unmount()
+
+		expect(screen.queryByRole('button', { name: 'Pin' })).toBeNull()
+	})
+
 	it('shows each new event in the panel, and does not pause the store', async () => {
 		const store = start()
 
@@ -421,5 +443,35 @@ describe('pin', () => {
 		act(() => recordEvent('route', '/live'))
 
 		expect(await screen.findByText('/live')).toBeDefined()
+	})
+})
+
+describe('EventsSwitch', () => {
+	it('turns the events on and off, and the root attribute follows it', () => {
+		onTestFinished(() => {
+			localStorage.removeItem('events:on')
+
+			document.documentElement.removeAttribute('data-events')
+		})
+
+		render(<EventsSwitch />)
+
+		const toggle = screen.getByRole('switch', { name: 'Debug' })
+
+		expect(toggle).not.toBeChecked()
+
+		fireEvent.click(toggle)
+
+		expect(toggle).toBeChecked()
+
+		expect(localStorage.getItem('events:on')).toBe('1')
+
+		expect(document.documentElement.hasAttribute('data-events')).toBe(true)
+
+		fireEvent.click(toggle)
+
+		expect(localStorage.getItem('events:on')).toBeNull()
+
+		expect(document.documentElement.hasAttribute('data-events')).toBe(false)
 	})
 })
