@@ -28,18 +28,18 @@ export function useA11yAnnouncements(
 	{ assertive = false, enabled = true }: A11yAnnouncementsOptions = {},
 ): void {
 	// Baselined at the first message; only subsequent changes announce.
-	const previous = useRef(message)
+	const prevRef = useRef(message)
 
 	useEffect(() => {
 		if (!enabled) return
 
 		// The baseline records an empty message too, so a status that clears and comes back is
 		// spoken again.
-		const last = previous.current
+		const prev = prevRef.current
 
-		previous.current = message
+		prevRef.current = message
 
-		if (!message || message === last) return
+		if (!message || message === prev) return
 
 		announce(message, { assertive })
 	}, [message, enabled, assertive])

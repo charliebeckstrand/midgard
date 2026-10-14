@@ -17,10 +17,10 @@ describe('grid range pointer and clipboard (real browser)', () => {
 		{ id: 'role', title: 'Role', cell: (row) => row.role },
 	]
 
-	const rows: Row[] = Array.from({ length: 200 }, (_, i) => ({
-		id: i + 1,
-		name: `Name ${i + 1}`,
-		role: i % 2 === 0 ? 'Admin' : 'User',
+	const rows: Row[] = Array.from({ length: 200 }, (_, index) => ({
+		id: index + 1,
+		name: `Name ${index + 1}`,
+		role: index % 2 === 0 ? 'Admin' : 'User',
 	}))
 
 	const getKey = (row: Row) => row.id
@@ -239,12 +239,12 @@ describe('grid range copy and paste round trip (real browser)', () => {
 
 		await userEvent.click(cell(3, 'name'))
 
-		const data = new DataTransfer()
+		const transfer = new DataTransfer()
 
-		data.setData('text/plain', copied)
+		transfer.setData('text/plain', copied)
 
 		document.body.dispatchEvent(
-			new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true }),
+			new ClipboardEvent('paste', { clipboardData: transfer, bubbles: true, cancelable: true }),
 		)
 
 		expect(onCommit).toHaveBeenCalledExactlyOnceWith([
@@ -321,10 +321,10 @@ describe('grid fill handle (real browser)', () => {
 	]
 
 	// The first two counts make a series, and the rest differ from it.
-	const rows: Row[] = Array.from({ length: 5 }, (_, i) => ({
-		id: i + 1,
-		count: i < 2 ? i + 1 : 0,
-		name: `Name ${i + 1}`,
+	const rows: Row[] = Array.from({ length: 5 }, (_, index) => ({
+		id: index + 1,
+		count: index < 2 ? index + 1 : 0,
+		name: `Name ${index + 1}`,
 	}))
 
 	const cellSelector = (key: number, column: string) =>

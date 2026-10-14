@@ -104,14 +104,13 @@ export const MapTable = memo(function MapTable({
 			keys.map((key, index) => {
 				const category = regionCategory[index]
 
+				const categoryLabel = category == null ? undefined : categories[category]?.label
+
 				return (
 					<MapTableRow
 						key={key}
 						name={regionNames[index]}
-						value={
-							regionValues[index] ??
-							(category == null ? READOUT_GAP : (categories[category]?.label ?? READOUT_GAP))
-						}
+						value={regionValues[index] ?? categoryLabel ?? READOUT_GAP}
 						current={index === selected}
 					/>
 				)

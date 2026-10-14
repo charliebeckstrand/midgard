@@ -44,8 +44,8 @@ const MOTION_PROPS = new Set([
 function stripMotionProps(props: Record<string, unknown>) {
 	const clean: Record<string, unknown> = {}
 
-	for (const [k, v] of Object.entries(props)) {
-		if (!MOTION_PROPS.has(k)) clean[k] = v
+	for (const [key, value] of Object.entries(props)) {
+		if (!MOTION_PROPS.has(key)) clean[key] = value
 	}
 
 	// Surfaces the `layout` prop as `data-layout`, making the FLIP opt-in observable
@@ -124,12 +124,12 @@ const handler: ProxyHandler<object> = {
 				// as animations; only a genuinely different target completes.
 				const target = JSON.stringify(props.animate)
 
-				const previousTarget = useRef(target)
+				const prevTarget = useRef(target)
 
 				useEffect(() => {
-					if (previousTarget.current === target) return
+					if (prevTarget.current === target) return
 
-					previousTarget.current = target
+					prevTarget.current = target
 
 					onAnimationComplete?.(props.animate)
 				})

@@ -28,10 +28,10 @@ function firstRowOffset(orientation: 'horizontal' | 'vertical') {
 	const top = list.getBoundingClientRect().top
 
 	// The text, not the box: the padding of a cell sits inside its box.
-	const [term, details] = [list.querySelector('dt'), list.querySelector('dd')].map((el) => {
+	const [term, details] = [list.querySelector('dt'), list.querySelector('dd')].map((cell) => {
 		const range = document.createRange()
 
-		range.selectNodeContents(present(el, 'a cell'))
+		range.selectNodeContents(present(cell, 'a cell'))
 
 		return range.getBoundingClientRect().top - top
 	})

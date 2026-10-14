@@ -69,7 +69,7 @@ function focusSwappedThumb(
  *
  * @returns A factory `(index) => onKeyDown` for the thumb at `index`.
  */
-export function useRangeKeyboard(opts: {
+export function useRangeKeyboard(options: {
 	min: number
 	max: number
 	step: number
@@ -78,7 +78,7 @@ export function useRangeKeyboard(opts: {
 	overlap: OverlapMode
 	thumbRefs: ThumbButtonRefs
 }) {
-	const { min, max, step, current, setRange, overlap, thumbRefs } = opts
+	const { min, max, step, current, setRange, overlap, thumbRefs } = options
 
 	const update = useRangeUpdate({ min, max, step, setRange, overlap })
 

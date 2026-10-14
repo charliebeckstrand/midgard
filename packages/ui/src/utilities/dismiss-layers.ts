@@ -50,9 +50,9 @@ export function registerDismissLayer(layer: object, order?: number): () => void 
 	layers.splice(at, 0, entry)
 
 	return () => {
-		const idx = layers.indexOf(entry)
+		const index = layers.indexOf(entry)
 
-		if (idx !== -1) layers.splice(idx, 1)
+		if (index !== -1) layers.splice(index, 1)
 	}
 }
 

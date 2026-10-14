@@ -42,7 +42,7 @@ function Counter() {
 	const [count, setCount] = useState(0)
 
 	return (
-		<button type="button" onClick={() => setCount((value) => value + 1)}>
+		<button type="button" onClick={() => setCount((prev) => prev + 1)}>
 			count {count}
 		</button>
 	)

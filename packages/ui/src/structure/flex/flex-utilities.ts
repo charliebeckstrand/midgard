@@ -7,8 +7,8 @@ import type { FlexAlign, FlexDirection, ResponsiveAlign, ResponsiveDirection } f
  *
  * @internal
  */
-function alignForDirection(dir: FlexDirection): FlexAlign {
-	return dir === 'col' || dir === 'col-reverse' ? 'stretch' : 'center'
+function alignForDirection(direction: FlexDirection): FlexAlign {
+	return direction === 'col' || direction === 'col-reverse' ? 'stretch' : 'center'
 }
 
 /**
@@ -23,8 +23,8 @@ export function defaultAlignFromDirection(direction: ResponsiveDirection): Respo
 
 	const align: Record<string, FlexAlign> = {}
 
-	for (const [bp, dir] of Object.entries(direction)) {
-		if (dir !== undefined) align[bp] = alignForDirection(dir)
+	for (const [bp, value] of Object.entries(direction)) {
+		if (value !== undefined) align[bp] = alignForDirection(value)
 	}
 
 	return align

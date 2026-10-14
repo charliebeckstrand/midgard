@@ -129,7 +129,9 @@ function VisitedPaths({ visited }: { visited: Set<string> }) {
 function tabKey(tab: Element): string {
 	const list = tab.closest('[role="tablist"]')
 
-	const siblings = [...(list?.querySelectorAll('[role="tab"]') ?? [])].map((t) => t.textContent)
+	const siblings = [...(list?.querySelectorAll('[role="tab"]') ?? [])].map(
+		(sibling) => sibling.textContent,
+	)
 
 	return `${siblings.join('|')}::${tab.textContent}`
 }
@@ -182,10 +184,10 @@ function captureConsole(): string[] {
 }
 
 /** The name of a scope in a chain: its tag, its step, and its `data-slot`. */
-function scopeName(element: Element): string {
-	const slot = element.getAttribute('data-slot')
+function scopeName(scope: Element): string {
+	const slot = scope.getAttribute('data-slot')
 
-	return `${element.localName}[${element.getAttribute('data-density')}]${slot ? `{${slot}}` : ''}`
+	return `${scope.localName}[${scope.getAttribute('data-density')}]${slot ? `{${slot}}` : ''}`
 }
 
 /**
@@ -195,11 +197,11 @@ function scopeName(element: Element): string {
 function deepestScopeChain(): Element[] {
 	let deepest: Element[] = []
 
-	for (const element of document.body.querySelectorAll('[data-density]')) {
+	for (const scope of document.body.querySelectorAll('[data-density]')) {
 		const chain: Element[] = []
 
 		for (
-			let node: Element | null = element;
+			let node: Element | null = scope;
 			node && node !== document.documentElement;
 			node = node.parentElement
 		) {

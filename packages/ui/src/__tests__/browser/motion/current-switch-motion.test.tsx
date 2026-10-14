@@ -112,19 +112,26 @@ describe('CurrentContents switch (real Motion)', () => {
 
 		// Before the fix, the outgoing panel went at once and the incoming panel
 		// waited a frame at opacity 0, so the box showed nothing.
-		expect(frames.filter((f) => f.shown === 0)).toEqual([])
+		expect(frames.filter((sample) => sample.shown === 0)).toEqual([])
 
 		// The two panels never show over each other, so no double image shows.
 		expect(
 			frames.filter(
-				(f) => f.both && f.incoming && f.outgoing && f.incoming.left < f.outgoing.right,
+				(sample) =>
+					sample.both &&
+					sample.incoming &&
+					sample.outgoing &&
+					sample.incoming.left < sample.outgoing.right,
 			),
 		).toEqual([])
 
 		// The incoming panel comes from the trailing side, toward which tab B lies.
-		expect(frames.some((f) => f.incoming && f.outgoing && f.incoming.left > f.outgoing.left)).toBe(
-			true,
-		)
+		expect(
+			frames.some(
+				(sample) =>
+					sample.incoming && sample.outgoing && sample.incoming.left > sample.outgoing.left,
+			),
+		).toBe(true)
 	})
 
 	it('slides back from the leading side', async () => {
@@ -136,10 +143,13 @@ describe('CurrentContents switch (real Motion)', () => {
 
 		const frames = await switchTo(0, 'a', 'b')
 
-		expect(frames.filter((f) => f.shown === 0)).toEqual([])
+		expect(frames.filter((sample) => sample.shown === 0)).toEqual([])
 
 		expect(
-			frames.some((f) => f.incoming && f.outgoing && f.incoming.right < f.outgoing.left + 0.5),
+			frames.some(
+				(sample) =>
+					sample.incoming && sample.outgoing && sample.incoming.right < sample.outgoing.left + 0.5,
+			),
 		).toBe(true)
 
 		// At rest the panel takes no transform, so it is no containing block.

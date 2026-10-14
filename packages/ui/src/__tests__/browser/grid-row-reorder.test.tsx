@@ -22,7 +22,7 @@ describe('grid row reorder: a drag commits the new order (real browser)', () => 
 
 	const columns: GridColumn<Row>[] = [
 		{ id: 'drag', dragHandle: true },
-		{ id: 'name', title: 'Name', cell: (r) => r.name, width: '160px' },
+		{ id: 'name', title: 'Name', cell: (row) => row.name, width: '160px' },
 	]
 
 	const initial: Row[] = [
@@ -41,8 +41,8 @@ describe('grid row reorder: a drag commits the new order (real browser)', () => 
 				<Grid
 					columns={columns}
 					rows={rows}
-					getKey={(r) => r.id}
-					rowLabel={(r) => r.name}
+					getKey={(row) => row.id}
+					rowLabel={(row) => row.name}
 					rowReorder={{
 						onReorder: (next) => {
 							onReorder(next)
@@ -79,6 +79,10 @@ describe('grid row reorder: a drag commits the new order (real browser)', () => 
 		expect(onReorder).toHaveBeenCalledTimes(1)
 
 		// Alice moved below Bob; Carol holds last.
-		expect(onReorder.mock.calls[0]?.[0].map((r: Row) => r.name)).toEqual(['Bob', 'Alice', 'Carol'])
+		expect(onReorder.mock.calls[0]?.[0].map((row: Row) => row.name)).toEqual([
+			'Bob',
+			'Alice',
+			'Carol',
+		])
 	})
 })

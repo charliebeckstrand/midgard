@@ -23,9 +23,9 @@ describe('grid column reorder: header/body shift stay in phase (real browser)', 
 	type Row = { id: number; a: string; b: string; c: string }
 
 	const columns: GridColumn<Row>[] = [
-		{ id: 'a', title: 'A', cell: (r) => r.a, width: '120px' },
-		{ id: 'b', title: 'B', cell: (r) => r.b, width: '120px' },
-		{ id: 'c', title: 'C', cell: (r) => r.c, width: '120px' },
+		{ id: 'a', title: 'A', cell: (row) => row.a, width: '120px' },
+		{ id: 'b', title: 'B', cell: (row) => row.b, width: '120px' },
+		{ id: 'c', title: 'C', cell: (row) => row.c, width: '120px' },
 	]
 
 	const rows: Row[] = [
@@ -44,7 +44,7 @@ describe('grid column reorder: header/body shift stay in phase (real browser)', 
 	}
 
 	it('keeps each column header and its body cells on the same transform mid-drag', async () => {
-		renderUI(<Grid columns={columns} rows={rows} getKey={(r) => r.id} reorder />)
+		renderUI(<Grid columns={columns} rows={rows} getKey={(row) => row.id} reorder />)
 
 		const grip = screen.getByRole('button', { name: 'Reorder A' })
 

@@ -90,6 +90,17 @@ function longestLength(labels: string[]): number {
 }
 
 /**
+ * The gutter that a run of labels needs: the drawn width of each label where
+ * `width` is set ({@link labelGutter}), else the estimate for tabular ticks
+ * ({@link tickGutter}).
+ *
+ * @internal
+ */
+function gutterOf(labels: string[], width: TextWidth | undefined): number {
+	return width ? labelGutter(labels, width) : tickGutter(labels)
+}
+
+/**
  * Reserves the y gutter and x-axis band inside a `width` × `height` frame and
  * returns the remaining plot rectangle.
  *
@@ -107,11 +118,7 @@ export function plotRect(
 	tickLabels: string[],
 	labelWidth?: TextWidth,
 ): PlotRect {
-	const gutter = !axes
-		? 0
-		: labelWidth
-			? labelGutter(tickLabels, labelWidth)
-			: tickGutter(tickLabels)
+	const gutter = axes ? gutterOf(tickLabels, labelWidth) : 0
 
 	const axisBand = axes ? X_AXIS_HEIGHT : 0
 
@@ -821,7 +828,9 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 
 	const titleBand = bandTitle ? AXIS_TITLE_BAND : 0
 
-	const flatHeight = drawBand ? X_AXIS_HEIGHT + titleBand : axes ? FLOOR_LABEL_PAD : 0
+	const floorPad = axes ? FLOOR_LABEL_PAD : 0
+
+	const flatHeight = drawBand ? X_AXIS_HEIGHT + titleBand : floorPad
 
 	// Without the axis chrome the marks border the frame directly, so each edge
 	// reserves the widest mark's painted reach instead — the floor takes it whole
@@ -869,13 +878,9 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 	// tilting would reserve the taller band for nothing — gate it out there too.
 	// A tilted label takes a fixed room along the axis, so a tilt keeps more
 	// labels only where a flat label takes more.
-	const tilt =
-		drawBand &&
-		bandMode === 'thinned' &&
-		Boolean(input.tickRotation) &&
-		!input.times &&
-		slot > TILTED_LABEL_SLOT &&
-		willThin(count, plotWidth, slot)
+	const canTilt = drawBand && bandMode === 'thinned' && Boolean(input.tickRotation) && !input.times
+
+	const tilt = canTilt && slot > TILTED_LABEL_SLOT && willThin(count, plotWidth, slot)
 
 	const axisBandHeight = tilt ? TICK_ROTATION_HEIGHT + titleBand : flatHeight
 
@@ -1041,11 +1046,7 @@ function horizontalBandGutter(
 
 	const shown = drawBand ? shownBandLabels(categories, bandMode) : []
 
-	const labels = !drawBand
-		? 0
-		: input.bandLabel
-			? labelGutter(shown, input.bandLabel.width)
-			: tickGutter(shown)
+	const labels = drawBand ? gutterOf(shown, input.bandLabel?.width) : 0
 
 	return { gutter: labels + (bandTitle ? AXIS_TITLE_BAND + AXIS_TITLE_GAP : 0), bandTitle }
 }

@@ -113,7 +113,7 @@ describe('module filename boundary', () => {
 		expect(
 			violations,
 			`filename violation(s) in packages/ui/src/modules — see CONVENTIONS.md §3.3:\n${violations
-				.map((v) => `  ${v.path}\n    ${v.reason}`)
+				.map((violation) => `  ${violation.path}\n    ${violation.reason}`)
 				.join('\n')}`,
 		).toEqual([])
 	})

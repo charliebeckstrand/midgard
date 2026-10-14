@@ -89,7 +89,7 @@ export function SearchInput({
 }: SearchInputProps) {
 	const {
 		value: current,
-		setValue: setCurrentValue,
+		setValue,
 		setTouched,
 	} = useFormValue<string>(name, {
 		value,
@@ -107,13 +107,13 @@ export function SearchInput({
 			composeEventHandlers(
 				onChange,
 				(event: ChangeEvent<HTMLInputElement>) => {
-					setCurrentValue(event.target.value)
+					setValue(event.target.value)
 
 					if (event.target.value === '') onClear?.()
 				},
 				{ checkForDefaultPrevented: false },
 			),
-		[onChange, onClear, setCurrentValue],
+		[onChange, onClear, setValue],
 	)
 
 	return (

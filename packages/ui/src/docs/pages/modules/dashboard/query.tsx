@@ -72,7 +72,7 @@ export default function Query() {
 				<Button
 					color={editing ? 'zinc' : 'blue'}
 					hidden={projected}
-					onClick={() => setEditing((live) => !live)}
+					onClick={() => setEditing((prev) => !prev)}
 				>
 					{editing ? 'Done' : 'Edit layout'}
 				</Button>

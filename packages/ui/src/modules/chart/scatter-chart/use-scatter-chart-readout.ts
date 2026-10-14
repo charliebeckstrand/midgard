@@ -95,7 +95,7 @@ export function useScatterChartReadout<T>(
 
 	const held = useStableValue(
 		{ data, key, visible, uniqueXs },
-		(previous, next) => previous.data === next.data && previous.key === next.key,
+		(prev, next) => prev.data === next.data && prev.key === next.key,
 	)
 
 	return useMemo(

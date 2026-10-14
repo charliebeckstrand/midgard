@@ -16,18 +16,18 @@ const regions = ['North', 'South', 'East', 'West']
 /** Each product, in palette order, so a filter never moves the color of a product. */
 export const products = ['Tea', 'Coffee', 'Cocoa']
 
-export const sales: Sale[] = months.flatMap((month, m) =>
-	regions.flatMap((region, r) =>
-		products.map((product, p) => {
-			const units = 20 + ((m * 7 + r * 11 + p * 5) % 23)
+export const sales: Sale[] = months.flatMap((month, monthIndex) =>
+	regions.flatMap((region, regionIndex) =>
+		products.map((product, productIndex) => {
+			const units = 20 + ((monthIndex * 7 + regionIndex * 11 + productIndex * 5) % 23)
 
 			return {
-				id: m * 100 + r * 10 + p,
+				id: monthIndex * 100 + regionIndex * 10 + productIndex,
 				month,
 				region,
 				product,
 				units,
-				revenue: units * (8 + p * 3 + r),
+				revenue: units * (8 + productIndex * 3 + regionIndex),
 			}
 		}),
 	),

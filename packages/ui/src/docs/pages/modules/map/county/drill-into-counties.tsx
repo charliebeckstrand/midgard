@@ -36,7 +36,7 @@ export default function DrillIntoCounties() {
 	const counties = drilled === null ? null : (byState?.get(drilled.fips) ?? null)
 
 	// The state shows until its counties load.
-	const held = useMemo(() => stateFrame(drilled?.name ?? null), [drilled])
+	const frame = useMemo(() => stateFrame(drilled?.name ?? null), [drilled])
 
 	// Each county gets a row, so the map names the county under the pointer. The
 	// atlas has no measure, so the category of each county is its state.
@@ -62,7 +62,7 @@ export default function DrillIntoCounties() {
 			{drilled !== null ? (
 				<MapPlat
 					aria-label={`Counties of ${drilled.name}`}
-					geography={counties ?? held}
+					geography={counties ?? frame}
 					projection="albers-usa"
 					data={rows}
 					regionKey="id"

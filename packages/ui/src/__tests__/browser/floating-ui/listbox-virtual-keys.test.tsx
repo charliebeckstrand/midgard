@@ -13,7 +13,7 @@ import { budget } from '../helpers/wall-clock'
  */
 const COUNT = 5_000
 
-const ITEMS = Array.from({ length: COUNT }, (_, i) => ({ id: i, label: `item-${i}` }))
+const ITEMS = Array.from({ length: COUNT }, (_, index) => ({ id: index, label: `item-${index}` }))
 
 function LargeListbox() {
 	return (

@@ -9,11 +9,11 @@ describe('matchTypeahead', () => {
 
 	function makeItems(labels: string[]) {
 		return labels.map((label) => {
-			const el = document.createElement('div')
+			const item = document.createElement('div')
 
-			el.textContent = label
+			item.textContent = label
 
-			return el
+			return item
 		})
 	}
 

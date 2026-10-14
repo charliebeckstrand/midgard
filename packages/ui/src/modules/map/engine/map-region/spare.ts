@@ -201,9 +201,9 @@ export function regionSpare(
 
 		if (hit !== undefined) return hit
 
-		const shape = features[region]
+		const feature = features[region]
 
-		const rings = shape === undefined ? [] : projectArea(featureRings(shape), project)
+		const rings = feature === undefined ? [] : projectArea(featureRings(feature), project)
 
 		const boxes = rings.map(({ box }) => ({ box }))
 

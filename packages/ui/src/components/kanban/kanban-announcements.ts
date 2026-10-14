@@ -156,34 +156,45 @@ export function kanbanAnnouncements<T>(
 	const id = (value: UniqueIdentifier) => String(value)
 
 	return {
-		onDragStart: ({ active }) =>
-			`Picked up ${describeCard(names, id(active.id), currentSlot(columns(), getKey, id(active.id)))}.`,
+		onDragStart: ({ active }) => {
+			const cardId = id(active.id)
+
+			const slot = currentSlot(columns(), getKey, cardId)
+
+			return `Picked up ${describeCard(names, cardId, slot)}.`
+		},
 		onDragOver: ({ active, over }) => {
 			if (!over) return undefined
 
-			const slot = overSlot(columns(), getKey, id(active.id), id(over.id))
+			const cardId = id(active.id)
+
+			const slot = overSlot(columns(), getKey, cardId, id(over.id))
 
 			if (!slot) return undefined
 
-			return `${names.card(id(active.id))} moved to position ${slot.position} of ${slot.count} in ${names.column(slot.columnId)}.`
+			return `${names.card(cardId)} moved to position ${slot.position} of ${slot.count} in ${names.column(slot.columnId)}.`
 		},
 		onDragEnd: ({ active, over }) => {
-			const from = currentSlot(columns(), getKey, id(active.id))
+			const cardId = id(active.id)
+
+			const from = currentSlot(columns(), getKey, cardId)
 
 			// A drop commits the slot under the pointer only in the column that holds
 			// the card. The drag-over before it moved the card into that column.
-			const to = over ? overSlot(columns(), getKey, id(active.id), id(over.id)) : from
+			const to = over ? overSlot(columns(), getKey, cardId, id(over.id)) : from
 
 			const slot = to?.columnId === from?.columnId ? to : from
 
-			return `Dropped ${describeCard(names, id(active.id), slot)}.`
+			return `Dropped ${describeCard(names, cardId, slot)}.`
 		},
 		onDragCancel: ({ active }) => {
-			const slot = currentSlot(startColumns(), getKey, id(active.id))
+			const cardId = id(active.id)
 
-			if (!slot) return `Returned ${names.card(id(active.id))}.`
+			const slot = currentSlot(startColumns(), getKey, cardId)
 
-			return `Returned ${names.card(id(active.id))} to position ${slot.position} of ${slot.count} in ${names.column(slot.columnId)}.`
+			if (!slot) return `Returned ${names.card(cardId)}.`
+
+			return `Returned ${names.card(cardId)} to position ${slot.position} of ${slot.count} in ${names.column(slot.columnId)}.`
 		},
 	}
 }

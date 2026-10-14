@@ -25,7 +25,7 @@ export type ResponsiveSplitRatio = Responsive<SplitRatio>
 // The grid template of each axis and ratio. A breakpoint puts its prefix on
 // the class (`atBreakpoint`). The tracks were an inline `gridTemplate*` style
 // before this, and a style attribute has no breakpoint.
-const templateMap = {
+const templateClasses = {
 	horizontal: {
 		'1/4': 'grid-cols-[1fr_3fr]',
 		'1/3': 'grid-cols-[1fr_2fr]',
@@ -45,7 +45,7 @@ const templateMap = {
 // The axis that a breakpoint turns off. A breakpoint that changes the axis sets
 // the template of the new axis only, so the template of the old axis stays in
 // force from the smaller breakpoint. The reset clears it.
-const axisResetMap = {
+const axisResetClasses = {
 	horizontal: 'grid-rows-none',
 	vertical: 'grid-cols-none',
 } satisfies Record<SplitOrientation, string>
@@ -86,11 +86,11 @@ export function resolveTemplate(
 ): string[] {
 	const axis = orientation ?? 'horizontal'
 
-	const steps = ratio ?? '1/2'
+	const ratios = ratio ?? '1/2'
 
 	const named = new Set<Breakpoint>(['initial'])
 
-	for (const value of [axis, steps]) {
+	for (const value of [axis, ratios]) {
 		if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
 			for (const bp of Object.keys(value) as Breakpoint[]) named.add(bp)
 		}
@@ -98,20 +98,22 @@ export function resolveTemplate(
 
 	const classes: string[] = []
 
-	let previous: SplitOrientation | undefined
+	let prev: SplitOrientation | undefined
 
 	for (const bp of BREAKPOINTS) {
 		if (!named.has(bp)) continue
 
 		const current = valueAt(axis, bp, 'horizontal')
 
-		if (bp !== 'initial' && previous !== undefined && current !== previous) {
-			classes.push(atBreakpoint(axisResetMap[current], bp))
+		if (bp !== 'initial' && prev !== undefined && current !== prev) {
+			classes.push(atBreakpoint(axisResetClasses[current], bp))
 		}
 
-		classes.push(atBreakpoint(templateMap[current][valueAt(steps, bp, '1/2')], bp))
+		const template = templateClasses[current][valueAt(ratios, bp, '1/2')]
 
-		previous = current
+		classes.push(atBreakpoint(template, bp))
+
+		prev = current
 	}
 
 	return classes

@@ -24,7 +24,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 
 	const getKey = (row: Row) => row.id
 
-	const nameCol: GridColumn<Row> = { id: 'name', title: 'Name', cell: (row) => row.name }
+	const nameColumn: GridColumn<Row> = { id: 'name', title: 'Name', cell: (row) => row.name }
 
 	const narrow = { value: { name: 80 } }
 
@@ -45,7 +45,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 
 	it('shows a tooltip with the full content when the cell is truncated', async () => {
 		renderUI(
-			<Grid resizable columns={[nameCol]} columnSizing={narrow} rows={rows} getKey={getKey} />,
+			<Grid resizable columns={[nameColumn]} columnSizing={narrow} rows={rows} getKey={getKey} />,
 		)
 
 		await userEvent.hover(screen.getByText(longName))
@@ -59,7 +59,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 		renderUI(
 			<Grid
 				resizable
-				columns={[{ ...nameCol, cellTooltip: () => 'Full name on file' }]}
+				columns={[{ ...nameColumn, cellTooltip: () => 'Full name on file' }]}
 				columnSizing={narrow}
 				rows={rows}
 				getKey={getKey}
@@ -77,7 +77,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 		const { container } = renderUI(
 			<Grid
 				resizable
-				columns={[{ ...nameCol, cellTooltip: () => null }]}
+				columns={[{ ...nameColumn, cellTooltip: () => null }]}
 				columnSizing={narrow}
 				rows={rows}
 				getKey={getKey}
@@ -97,7 +97,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 		const { container } = renderUI(
 			<Grid
 				resizable
-				columns={[nameCol]}
+				columns={[nameColumn]}
 				columnSizing={{ value: { name: 360 } }}
 				rows={[{ id: 1, name: 'Ada' }]}
 				getKey={getKey}
@@ -125,7 +125,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 
 					<Grid
 						resizable
-						columns={[nameCol]}
+						columns={[nameColumn]}
 						columnSizing={{ value: { name } }}
 						rows={rows}
 						getKey={getKey}
@@ -158,7 +158,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 			<Grid
 				resizable
 				truncate={false}
-				columns={[nameCol]}
+				columns={[nameColumn]}
 				columnSizing={narrow}
 				rows={rows}
 				getKey={getKey}
@@ -173,14 +173,17 @@ describe('grid cell truncation tooltip (real browser)', () => {
 	})
 
 	it('mounts no floating-ui portal while every cell tooltip is closed', async () => {
-		const many = Array.from({ length: 20 }, (_, i) => ({ id: i, name: `${longName} ${i}` }))
+		const many = Array.from({ length: 20 }, (_, index) => ({
+			id: index,
+			name: `${longName} ${index}`,
+		}))
 
 		// Context menu off so its portal can't mask the per-cell count.
 		renderUI(
 			<Grid
 				resizable
 				contextMenu={false}
-				columns={[nameCol]}
+				columns={[nameColumn]}
 				columnSizing={narrow}
 				rows={many}
 				getKey={getKey}
@@ -200,12 +203,12 @@ describe('grid cell truncation tooltip (real browser)', () => {
 		// column settles at the cap rather than growing to fit — and every row clips.
 		const huge = `${longName} ${longName} ${longName}`
 
-		const many = Array.from({ length: 5 }, (_, i) => ({ id: i, name: `${huge} ${i}` }))
+		const many = Array.from({ length: 5 }, (_, index) => ({ id: index, name: `${huge} ${index}` }))
 
 		// Resizable + uncontrolled sizing exercises auto-fit (as the demo does).
 		const { container } = renderUI(
 			<div style={{ maxWidth: '240px' }}>
-				<Grid resizable columns={[nameCol]} rows={many} getKey={getKey} />
+				<Grid resizable columns={[nameColumn]} rows={many} getKey={getKey} />
 			</div>,
 		)
 
@@ -237,7 +240,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 			renderUI(
 				<Grid
 					resizable
-					columns={[nameCol]}
+					columns={[nameColumn]}
 					columnSizing={{ value: { name: width } }}
 					rows={[{ id: 1, name: 'Wade Cooper' }]}
 					getKey={getKey}
@@ -270,8 +273,12 @@ describe('grid cell truncation tooltip (real browser)', () => {
 
 		let deadZone: number | undefined
 
-		for (let w = boundary + 0.5; w >= boundary - 1.5 && deadZone === undefined; w -= 0.05) {
-			const { container, unmount } = renderAt(w)
+		for (
+			let width = boundary + 0.5;
+			width >= boundary - 1.5 && deadZone === undefined;
+			width -= 0.05
+		) {
+			const { container, unmount } = renderAt(width)
 
 			const span = await settledSpan(container)
 
@@ -280,7 +287,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 			if (span.scrollWidth === span.clientWidth) {
 				const overflow = textOverflow(span)
 
-				if (overflow > 0.05 && overflow < 0.45) deadZone = w
+				if (overflow > 0.05 && overflow < 0.45) deadZone = width
 			}
 
 			unmount()
@@ -320,7 +327,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 
 	it('suppresses the tooltip while a column drag-resize is in flight', async () => {
 		const { container } = renderUI(
-			<Grid resizable columns={[nameCol]} columnSizing={narrow} rows={rows} getKey={getKey} />,
+			<Grid resizable columns={[nameColumn]} columnSizing={narrow} rows={rows} getKey={getKey} />,
 		)
 
 		// Baseline: the clipped cell arms its tooltip on hover.
@@ -366,7 +373,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 		const { container } = renderUI(
 			<Grid
 				resizable
-				columns={[nameCol]}
+				columns={[nameColumn]}
 				columnSizing={{ value: { name: 90 } }}
 				rows={named}
 				getKey={getKey}

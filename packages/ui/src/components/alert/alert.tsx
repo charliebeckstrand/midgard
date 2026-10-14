@@ -16,14 +16,14 @@ export type AlertSeverity = 'info' | 'success' | 'warning' | 'error'
 
 type AlertColor = NonNullable<AlertVariants['color']>
 
-const severityColorMap = {
+const severityColors = {
 	info: 'blue',
 	success: 'green',
 	warning: 'amber',
 	error: 'red',
 } satisfies Record<AlertSeverity, AlertColor>
 
-const severityIconMap = {
+const severityIcons = {
 	info: <Info />,
 	success: <CheckCircle />,
 	warning: <AlertTriangle />,
@@ -142,11 +142,13 @@ function resolveAlertPresentation(
 	resolvedIcon: ReactElement | undefined
 	role: 'status' | 'alert' | undefined
 } {
-	const resolvedColor = color ?? (severity ? severityColorMap[severity] : 'zinc')
+	const resolvedColor = color ?? (severity ? severityColors[severity] : 'zinc')
 
-	const resolvedIcon = icon ?? (severity && hasTitle ? severityIconMap[severity] : undefined)
+	const resolvedIcon = icon ?? (severity && hasTitle ? severityIcons[severity] : undefined)
 
-	const role = severity ? (politeSeverity ? 'status' : 'alert') : undefined
+	const liveRole = politeSeverity ? 'status' : 'alert'
+
+	const role = severity ? liveRole : undefined
 
 	return { resolvedColor, resolvedIcon, role }
 }
@@ -240,7 +242,7 @@ export function Alert({
 		onValueChange: onOpenChange,
 	})
 
-	const alertRef = useRef<HTMLDivElement>(null)
+	const ref = useRef<HTMLDivElement>(null)
 
 	// An alert that mounts open counts as one that opened, when the caller asks for it.
 	const wasOpen = useRef(open && !announceOnMount)
@@ -258,7 +260,7 @@ export function Alert({
 
 		if (!appeared || !politeSeverity) return
 
-		const message = alertRef.current?.textContent?.trim()
+		const message = ref.current?.textContent?.trim()
 
 		if (message) announce(message)
 	}, [open, politeSeverity])
@@ -279,7 +281,7 @@ export function Alert({
 
 	return (
 		<div
-			ref={alertRef}
+			ref={ref}
 			data-slot={slot}
 			role={role}
 			className={cn(k({ variant, color: resolvedColor }), className)}

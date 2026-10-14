@@ -16,11 +16,11 @@ import { settledValue } from './helpers/sample'
 
 /** Whether the rect of `row` is inside the visible rect of `scroller`, to one pixel. */
 function inView(row: HTMLElement, scroller: HTMLElement): boolean {
-	const r = row.getBoundingClientRect()
+	const rowBox = row.getBoundingClientRect()
 
-	const s = scroller.getBoundingClientRect()
+	const scrollerBox = scroller.getBoundingClientRect()
 
-	return r.top >= s.top - 1 && r.bottom <= s.bottom + 1
+	return rowBox.top >= scrollerBox.top - 1 && rowBox.bottom <= scrollerBox.bottom + 1
 }
 
 /** The nearest ancestor of `node` that scrolls on the y axis. */
@@ -34,7 +34,7 @@ function scrollerOf(node: HTMLElement): HTMLElement {
 
 const COUNT = 200
 
-const ITEMS = Array.from({ length: COUNT }, (_, i) => ({ id: i, label: `item-${i}` }))
+const ITEMS = Array.from({ length: COUNT }, (_, index) => ({ id: index, label: `item-${index}` }))
 
 describe('VirtualOptions measures each row', () => {
 	for (const size of densitySteps) {
@@ -43,9 +43,9 @@ describe('VirtualOptions measures each row', () => {
 		// a wrong height scrolls the list away from the active option.
 		it(`each arrow keeps the active option in view at size ${size}`, async () => {
 			renderUI(
-				<Combobox<number> aria-label="Pick" size={size} displayValue={(v) => `item-${v}`}>
+				<Combobox<number> aria-label="Pick" size={size} displayValue={(value) => `item-${value}`}>
 					<VirtualOptions items={ITEMS} getOptionId={(item) => `opt-${item.id}`}>
-						{(item, _i, meta) => (
+						{(item, _index, meta) => (
 							<ComboboxOption key={item.id} id={`opt-${item.id}`} value={item.id} {...meta}>
 								<ComboboxLabel>{item.label}</ComboboxLabel>
 							</ComboboxOption>
@@ -87,7 +87,7 @@ describe('VirtualOptions measures each row', () => {
 // A value that wraps to a few lines: taller than the guess, shorter than the scroller.
 const LONG = 'lorem ipsum dolor sit amet '.repeat(4)
 
-const DATA = { list: Array.from({ length: COUNT }, (_, i) => `${i} ${LONG}`) }
+const DATA = { list: Array.from({ length: COUNT }, (_, index) => `${index} ${LONG}`) }
 
 /** Waits for two frames, so a scroll event and the render that it starts both land. */
 const frames = () =>
@@ -127,12 +127,12 @@ describe('JsonTree measures each row', () => {
 		await settledValue(
 			() =>
 				`${tree.scrollTop}:${rows()
-					.map((r) => r.dataset.index)
+					.map((row) => row.dataset.index)
 					.join()}`,
 		)
 
 		const row = present(
-			rows().find((r) => inView(r, tree)),
+			rows().find((candidate) => inView(candidate, tree)),
 			'a row in view',
 		)
 

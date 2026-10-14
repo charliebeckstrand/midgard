@@ -34,8 +34,11 @@ function buildClippedTree(clip: { overflowX: string; overflowY: string }) {
 	const overflow = new Map<Element, { overflowX: string; overflowY: string }>()
 
 	vi.spyOn(window, 'getComputedStyle').mockImplementation(
-		(el: Element) =>
-			(overflow.get(el) ?? { overflowX: 'visible', overflowY: 'visible' }) as CSSStyleDeclaration,
+		(element: Element) =>
+			(overflow.get(element) ?? {
+				overflowX: 'visible',
+				overflowY: 'visible',
+			}) as CSSStyleDeclaration,
 	)
 
 	const outer = document.createElement('div')

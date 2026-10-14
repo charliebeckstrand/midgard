@@ -21,10 +21,10 @@ import {
 describe('grid virtualized master-detail body (real browser)', () => {
 	type Item = { id: number; name: string; height: number }
 
-	const rows: Item[] = Array.from({ length: 300 }, (_, i) => ({
-		id: i + 1,
-		name: `Row ${i + 1}`,
-		height: 60 + ((i * 37) % 240),
+	const rows: Item[] = Array.from({ length: 300 }, (_, index) => ({
+		id: index + 1,
+		name: `Row ${index + 1}`,
+		height: 60 + ((index * 37) % 240),
 	}))
 
 	const columns: GridColumn<Item>[] = [

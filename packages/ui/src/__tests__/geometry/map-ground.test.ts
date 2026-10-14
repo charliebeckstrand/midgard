@@ -13,8 +13,8 @@ import type { MapPoint2D } from '../../modules/map/engine/types'
 
 const REACH = 22
 
-/** Whether `p` is inside a convex ring — every edge's left side, for a counter-clockwise winding. */
-function inside(ring: MapPoint2D[], p: MapPoint2D): boolean {
+/** Whether `point` is inside a convex ring — every edge's left side, for a counter-clockwise winding. */
+function inside(ring: MapPoint2D[], point: MapPoint2D): boolean {
 	let sign = 0
 
 	for (const [index, a] of ring.entries()) {
@@ -22,7 +22,7 @@ function inside(ring: MapPoint2D[], p: MapPoint2D): boolean {
 
 		if (b === undefined) continue
 
-		const cross = (b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x)
+		const cross = (b.x - a.x) * (point.y - a.y) - (b.y - a.y) * (point.x - a.x)
 
 		if (Math.abs(cross) < 1e-9) continue
 
@@ -87,11 +87,11 @@ describe('ownGround', () => {
 		// both. Before this the overlap belonged to whichever drew last.
 		for (let x = -REACH; x <= 30 + REACH; x += 1.5) {
 			for (let y = -REACH; y <= REACH; y += 1.5) {
-				const p = { x, y }
+				const point = { x, y }
 
-				const inA = inside(groundA, p) && (x - a.x) ** 2 + (y - a.y) ** 2 <= REACH * REACH
+				const inA = inside(groundA, point) && (x - a.x) ** 2 + (y - a.y) ** 2 <= REACH * REACH
 
-				const inB = inside(groundB, p) && (x - b.x) ** 2 + (y - b.y) ** 2 <= REACH * REACH
+				const inB = inside(groundB, point) && (x - b.x) ** 2 + (y - b.y) ** 2 <= REACH * REACH
 
 				expect(inA && inB).toBe(false)
 			}
@@ -140,9 +140,9 @@ describe('ownGround', () => {
 	})
 
 	it('never returns a degenerate ring, however crowded', () => {
-		const crowd = Array.from({ length: 12 }, (_, i) => ({
-			x: Math.cos((i / 12) * Math.PI * 2) * 2,
-			y: Math.sin((i / 12) * Math.PI * 2) * 2,
+		const crowd = Array.from({ length: 12 }, (_, index) => ({
+			x: Math.cos((index / 12) * Math.PI * 2) * 2,
+			y: Math.sin((index / 12) * Math.PI * 2) * 2,
 		}))
 
 		const ring = ownGround({ x: 0, y: 0 }, crowd, REACH)

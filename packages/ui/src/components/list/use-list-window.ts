@@ -112,11 +112,12 @@ export function useListWindow({
 			const gap = Number.parseFloat(getComputedStyle(list).rowGap) || 0
 
 			// A change under one pixel moves no row, so it does not render again.
-			setFrame((current) =>
-				current !== null && Math.abs(current.scrollMargin - scrollMargin) < 1 && current.gap === gap
-					? current
-					: { scrollMargin, gap },
-			)
+			setFrame((prev) => {
+				const same =
+					prev !== null && Math.abs(prev.scrollMargin - scrollMargin) < 1 && prev.gap === gap
+
+				return same ? prev : { scrollMargin, gap }
+			})
 		}
 
 		measure()

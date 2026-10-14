@@ -112,10 +112,10 @@ function stepped(declareValue: (value: string) => CssInJs, isValid: (value: stri
  */
 export const handler: PluginCreator = ({ matchUtilities }) => {
 	for (const [name, entry] of Object.entries(utilityTable)) {
-		const { properties, value } = entry
+		const { properties, value: kind } = entry
 
 		matchUtilities({
-			[`density-${name}`]: stepped((v) => declare[value](properties, v), valid[value]),
+			[`density-${name}`]: stepped((value) => declare[kind](properties, value), valid[kind]),
 		})
 
 		if (!('ring' in entry)) continue

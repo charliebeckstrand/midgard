@@ -163,12 +163,12 @@ function sortLeaves<T>(
 	}
 
 	return lists.map((list) => {
-		const local = computeSortOrder(
+		const positions = computeSortOrder(
 			list.map((index) => rows[index] as T),
 			sort.fields,
 		)
 
-		return local.map((position) => list[position] as number)
+		return positions.map((position) => list[position] as number)
 	})
 }
 

@@ -46,20 +46,20 @@ export function ColorChannelInputs() {
 	const commit = (channel: Channel, raw: string) => {
 		if (raw.trim() === '') return
 
-		const n = Number(raw)
+		const parsed = Number(raw)
 
-		if (Number.isNaN(n)) return
+		if (Number.isNaN(parsed)) return
 
 		if (channel === 'a') {
-			setHsva((prev) => ({ ...prev, a: clamp(Math.round(n), 0, 100) / 100 }))
+			setHsva((prev) => ({ ...prev, a: clamp(Math.round(parsed), 0, 100) / 100 }))
 
 			return
 		}
 
-		setHsva(rgbaToHsva({ ...rgba, [channel]: clamp(Math.round(n), 0, 255) }))
+		setHsva(rgbaToHsva({ ...rgba, [channel]: clamp(Math.round(parsed), 0, 255) }))
 	}
 
-	const onChange = (channel: Channel) => (event: ChangeEvent<HTMLInputElement>) => {
+	const handleChange = (channel: Channel) => (event: ChangeEvent<HTMLInputElement>) => {
 		const raw = event.target.value
 
 		setDraft(channel, raw)
@@ -80,7 +80,7 @@ export function ColorChannelInputs() {
 			<Input
 				{...draftProps(channel)}
 				id={scope.sub(channel)}
-				onChange={onChange(channel)}
+				onChange={handleChange(channel)}
 				disabled={disabled}
 				variant={control?.variant}
 				data-slot="color-channel-input"

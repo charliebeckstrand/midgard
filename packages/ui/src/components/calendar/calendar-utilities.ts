@@ -213,7 +213,9 @@ export function getCalendarDays(year: number, month: number): Date[] {
 
 	const daysInMonth = endOfMonth(first).day
 
-	return Array.from({ length: daysInMonth }, (_, i) => fromCalendarDate(first.set({ day: i + 1 })))
+	return Array.from({ length: daysInMonth }, (_, index) =>
+		fromCalendarDate(first.set({ day: index + 1 })),
+	)
 }
 
 /**

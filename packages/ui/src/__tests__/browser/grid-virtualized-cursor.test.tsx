@@ -14,7 +14,10 @@ describe('grid virtualized cursor (real browser)', () => {
 
 	const columns: GridColumn<Row>[] = [{ id: 'name', title: 'Name', cell: (row) => row.name }]
 
-	const rows: Row[] = Array.from({ length: 200 }, (_, i) => ({ id: i + 1, name: `Name ${i + 1}` }))
+	const rows: Row[] = Array.from({ length: 200 }, (_, index) => ({
+		id: index + 1,
+		name: `Name ${index + 1}`,
+	}))
 
 	const getKey = (row: Row) => row.id
 
@@ -173,11 +176,11 @@ describe('grid virtualized cursor (real browser)', () => {
 describe('grid virtualized cursor over item bodies (real browser)', () => {
 	type Row = { id: number; name: string; team: string; n: number }
 
-	const rows: Row[] = Array.from({ length: 200 }, (_, i) => ({
-		id: i + 1,
-		name: `Name ${i + 1}`,
-		team: `Team ${String(Math.floor(i / 20)).padStart(2, '0')}`,
-		n: i,
+	const rows: Row[] = Array.from({ length: 200 }, (_, index) => ({
+		id: index + 1,
+		name: `Name ${index + 1}`,
+		team: `Team ${String(Math.floor(index / 20)).padStart(2, '0')}`,
+		n: index,
 	}))
 
 	const columns: GridColumn<Row>[] = [
@@ -281,7 +284,10 @@ describe('grid virtualized page step past a nested grid (real browser)', () => {
 
 	type Task = { id: number; title: string }
 
-	const rows: Row[] = Array.from({ length: 50 }, (_, i) => ({ id: i + 1, name: `Name ${i + 1}` }))
+	const rows: Row[] = Array.from({ length: 50 }, (_, index) => ({
+		id: index + 1,
+		name: `Name ${index + 1}`,
+	}))
 
 	const columns: GridColumn<Row>[] = [
 		{ id: 'expand', expander: true },
@@ -290,7 +296,11 @@ describe('grid virtualized page step past a nested grid (real browser)', () => {
 
 	// The one row of each nested grid is much taller than a row of the outer grid.
 	const taskColumns: GridColumn<Task>[] = [
-		{ id: 'title', title: 'Title', cell: (t) => <div style={{ height: 120 }}>{t.title}</div> },
+		{
+			id: 'title',
+			title: 'Title',
+			cell: (task) => <div style={{ height: 120 }}>{task.title}</div>,
+		},
 	]
 
 	/** The place of `cell` in the cursor order: a data row, then its open panel. */
@@ -320,7 +330,7 @@ describe('grid virtualized page step past a nested grid (real browser)', () => {
 							<Grid
 								columns={taskColumns}
 								rows={[{ id: 1, title: `Task of ${row.name}` }]}
-								getKey={(t) => t.id}
+								getKey={(task) => task.id}
 							/>
 						),
 					}}

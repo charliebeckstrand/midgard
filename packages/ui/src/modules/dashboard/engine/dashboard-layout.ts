@@ -737,9 +737,9 @@ export function mergeLayout(
 	})
 
 	for (const cell of cells) {
-		const tile = demands.get(cell.id)
+		const demand = demands.get(cell.id)
 
-		if (tile !== undefined && !written.has(cell.id)) merged.push(toLayoutItem(cell, tile))
+		if (demand !== undefined && !written.has(cell.id)) merged.push(toLayoutItem(cell, demand))
 	}
 
 	return merged

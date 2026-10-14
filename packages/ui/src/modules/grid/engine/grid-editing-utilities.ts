@@ -482,11 +482,11 @@ export function tabStaysInCell(target: Element, backward: boolean): boolean {
 
 	const tabbables = tabbablesIn(cell)
 
-	const at = tabbables.findIndex((el) => el.contains(target))
+	const index = tabbables.findIndex((el) => el.contains(target))
 
-	if (at < 0) return false
+	if (index < 0) return false
 
-	return backward ? at > 0 : at < tabbables.length - 1
+	return backward ? index > 0 : index < tabbables.length - 1
 }
 
 /** Whether a coord names this cell; a null coord names none. @internal */
@@ -620,10 +620,10 @@ export function readRefusals(
 		return refused
 	}
 
-	const list: { rowKey?: string | number; columnId: string | number; error?: string }[] =
+	const refusals: { rowKey?: string | number; columnId: string | number; error?: string }[] =
 		Array.isArray(outcome.value) ? outcome.value : []
 
-	for (const refusal of list) {
+	for (const refusal of refusals) {
 		if (takes(refusal)) refused.set(refusal.columnId, refusal.error || COMMIT_REFUSED)
 	}
 

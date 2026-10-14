@@ -359,11 +359,11 @@ describe('Grid', () => {
 			// row with ID".
 			type Dup = { id: number; label: string }
 
-			const dupColumns = [
+			const duplicateColumns = [
 				{ id: 'label', title: 'Label', cell: (row: Dup) => row.label, sortable: true },
 			]
 
-			const dupRows: Dup[] = [
+			const duplicateRows: Dup[] = [
 				{ id: 1, label: 'Charlie' },
 				{ id: 2, label: 'Alice' },
 				{ id: 1, label: 'Charlie' },
@@ -371,7 +371,11 @@ describe('Grid', () => {
 			]
 
 			const { container } = renderUI(
-				<Grid columns={dupColumns} rows={dupRows} getKey={(row, i) => `${row.id}-${i}`} />,
+				<Grid
+					columns={duplicateColumns}
+					rows={duplicateRows}
+					getKey={(row, i) => `${row.id}-${i}`}
+				/>,
 			)
 
 			const labels = () =>
@@ -806,13 +810,13 @@ describe('Grid', () => {
 		})
 
 		it('skips pinned columns', () => {
-			const pinnedCols = [
-				{ id: 'name', title: 'Name', cell: (r: Row) => r.name, pinned: true },
-				{ id: 'age', title: 'Age', cell: (r: Row) => r.age },
+			const pinnedColumns = [
+				{ id: 'name', title: 'Name', cell: (row: Row) => row.name, pinned: true },
+				{ id: 'age', title: 'Age', cell: (row: Row) => row.age },
 				{ id: 'role', title: 'Role', cell: () => 'Member' },
 			]
 
-			renderUI(<Grid columns={pinnedCols} rows={rows} getKey={getKey} reorder />)
+			renderUI(<Grid columns={pinnedColumns} rows={rows} getKey={getKey} reorder />)
 
 			// Two non-pinned data columns remain draggable; the pinned one is held.
 			expect(screen.queryByRole('button', { name: 'Reorder Name' })).not.toBeInTheDocument()
@@ -823,7 +827,7 @@ describe('Grid', () => {
 		})
 
 		it('renders no handles when fewer than two columns are reorderable', () => {
-			const single = [{ id: 'name', title: 'Name', cell: (r: Row) => r.name }]
+			const single = [{ id: 'name', title: 'Name', cell: (row: Row) => row.name }]
 
 			renderUI(<Grid columns={single} rows={rows} getKey={getKey} reorder />)
 
@@ -845,8 +849,8 @@ describe('Grid', () => {
 
 		it('keeps the sort button alongside the reorder handle on a sortable column', () => {
 			const sortable = [
-				{ id: 'name', title: 'Name', cell: (r: Row) => r.name, sortable: true },
-				{ id: 'age', title: 'Age', cell: (r: Row) => r.age },
+				{ id: 'name', title: 'Name', cell: (row: Row) => row.name, sortable: true },
+				{ id: 'age', title: 'Age', cell: (row: Row) => row.age },
 			]
 
 			renderUI(<Grid columns={sortable} rows={rows} getKey={getKey} reorder />)

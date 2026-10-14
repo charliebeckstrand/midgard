@@ -139,7 +139,7 @@ export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: M
 	// there and horizontally under the map — the axis matches the layout.
 	const orientation = panel ? 'vertical' : 'horizontal'
 
-	const onKeyDown = useA11yRoving(ref, {
+	const handleKeyDown = useA11yRoving(ref, {
 		itemSelector: '[data-slot="map-legend-item"]',
 		orientation,
 		manageTabIndex: true,
@@ -162,7 +162,7 @@ export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: M
 			role="toolbar"
 			aria-label="Legend"
 			aria-orientation={orientation}
-			onKeyDown={onKeyDown}
+			onKeyDown={handleKeyDown}
 			className={cn(
 				// Under the map, the entries wrap in a centered row, like the chart
 				// legend. A single column put each entry on its own line, which made the

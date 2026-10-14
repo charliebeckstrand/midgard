@@ -24,19 +24,19 @@ describe('grid virtualized grouped body (real browser)', () => {
 
 	const ROLES = ['Alpha', 'Bravo', 'Charlie', 'Delta', 'Echo', 'Foxtrot', 'Golf', 'Hotel']
 
-	const people: Person[] = Array.from({ length: 400 }, (_, i) => ({
-		id: i + 1,
-		name: `Person ${i + 1}`,
-		role: ROLES[i % ROLES.length] as string,
-		note: 'lorem ipsum '.repeat(1 + ((i * 7) % 13)).trim(),
-		n: i,
+	const people: Person[] = Array.from({ length: 400 }, (_, index) => ({
+		id: index + 1,
+		name: `Person ${index + 1}`,
+		role: ROLES[index % ROLES.length] as string,
+		note: 'lorem ipsum '.repeat(1 + ((index * 7) % 13)).trim(),
+		n: index,
 	}))
 
 	const columns: GridColumn<Person>[] = [
-		{ id: 'name', title: 'Name', width: 120, cell: (r) => r.name, value: (r) => r.name },
-		{ id: 'role', title: 'Role', width: 100, cell: (r) => r.role, value: (r) => r.role },
-		{ id: 'note', title: 'Note', width: 200, cell: (r) => r.note, value: (r) => r.note },
-		{ id: 'n', title: 'N', width: 80, cell: (r) => r.n, value: (r) => r.n, aggFunc: 'sum' },
+		{ id: 'name', title: 'Name', width: 120, cell: (row) => row.name, value: (row) => row.name },
+		{ id: 'role', title: 'Role', width: 100, cell: (row) => row.role, value: (row) => row.role },
+		{ id: 'note', title: 'Note', width: 200, cell: (row) => row.note, value: (row) => row.note },
+		{ id: 'n', title: 'N', width: 80, cell: (row) => row.n, value: (row) => row.n, aggFunc: 'sum' },
 	]
 
 	/** The count of items with every group open: 8 headers, 400 leaves, 8 totals. */
@@ -47,9 +47,9 @@ describe('grid virtualized grouped body (real browser)', () => {
 	 * still overflow the viewport, so a collapse of every group can keep the
 	 * view where it is.
 	 */
-	const manyGroups: Person[] = people.map((person, i) => ({
+	const manyGroups: Person[] = people.map((person, index) => ({
 		...person,
-		role: `Team ${String(Math.floor(i / 10) % 40).padStart(2, '0')}`,
+		role: `Team ${String(Math.floor(index / 10) % 40).padStart(2, '0')}`,
 	}))
 
 	function renderGrid({ virtualize = true, overscan = 4, rows = people, expanded = true } = {}) {
@@ -58,7 +58,7 @@ describe('grid virtualized grouped body (real browser)', () => {
 				<Grid<Person>
 					columns={columns}
 					rows={rows}
-					getKey={(r) => r.id}
+					getKey={(row) => row.id}
 					groupBy={{ value: 'role', defaultExpanded: expanded }}
 					groupTotalRow
 					truncate={false}
@@ -418,7 +418,7 @@ describe('grid virtualized grouped body (real browser)', () => {
 				<Grid<Person>
 					columns={columns}
 					rows={rows}
-					getKey={(r) => r.id}
+					getKey={(row) => row.id}
 					groupBy={{ value: 'role', defaultExpanded: true }}
 					groupTotalRow
 					truncate={false}

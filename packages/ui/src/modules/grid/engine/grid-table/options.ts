@@ -38,13 +38,13 @@ import { parsePxWidth } from './resize-view'
  *
  * @internal
  */
-const queryFilterFn: FilterFn<GridFeatures, RowData> = (
+const queryFilter: FilterFn<GridFeatures, RowData> = (
 	row: Row<GridFeatures, RowData>,
 	columnId,
 	filterValue,
 ) => !isQueryGroup(filterValue) || evaluateQuery(filterValue, () => row.getValue(columnId))
 
-queryFilterFn.autoRemove = (value) => !isQueryGroup(value) || value.children.length === 0
+queryFilter.autoRemove = (value) => !isQueryGroup(value) || value.children.length === 0
 
 /**
  * Resolves a column's engine behaviors from its declaration:
@@ -67,7 +67,7 @@ function deriveColumnBehavior<T>(col: GridColumn<T>) {
 	const accessorFn = isDataColumn(col) ? columnAccessor(col) : value
 
 	const filterFn: FilterFn<GridFeatures, EngineData<T>> | undefined =
-		col.filterable && value ? (queryFilterFn as FilterFn<GridFeatures, EngineData<T>>) : undefined
+		col.filterable && value ? (queryFilter as FilterFn<GridFeatures, EngineData<T>>) : undefined
 
 	return { accessorFn, filterFn }
 }

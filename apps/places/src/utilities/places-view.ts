@@ -197,13 +197,13 @@ export function stateOf(place: Located): string | undefined {
  * its own way; one inversion answers all three in one pass.
  */
 export function regionOf(grouped: ReadonlyMap<string, readonly Located[]>): Map<string, string> {
-	const held = new Map<string, string>()
+	const regionByPlace = new Map<string, string>()
 
 	for (const [region, list] of grouped) {
-		for (const place of list) held.set(place.id, region)
+		for (const place of list) regionByPlace.set(place.id, region)
 	}
 
-	return held
+	return regionByPlace
 }
 
 /**

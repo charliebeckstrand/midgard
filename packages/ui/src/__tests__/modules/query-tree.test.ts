@@ -110,9 +110,9 @@ describe('addChild', () => {
 
 		const tree = createGroup('and', [leafA, inner])
 
-		const newRule = createRule(textField)
+		const rule = createRule(textField)
 
-		const next = addChild(tree, inner.id, newRule)
+		const next = addChild(tree, inner.id, rule)
 
 		expect(next.children[0]).toBe(leafA)
 
@@ -120,7 +120,7 @@ describe('addChild', () => {
 
 		expect(innerNext.children).toHaveLength(2)
 
-		expect(innerNext.children[1]).toBe(newRule)
+		expect(innerNext.children[1]).toBe(rule)
 	})
 })
 

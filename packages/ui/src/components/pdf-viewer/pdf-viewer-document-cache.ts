@@ -774,11 +774,11 @@ function trimDocument(src: string, held: Held, excess: number): number {
  */
 function land(src: string, held: Held, running: RunningJob, result: PdfRasterResult | Error) {
 	// A free clears the job, so a render that it stopped is no longer the job of the entry.
-	const current = documents.get(src) === held && held.job === running && held.renderer !== null
+	const isCurrent = documents.get(src) === held && held.job === running && held.renderer !== null
 
 	if (held.job === running) held.job = null
 
-	if (!current) {
+	if (!isCurrent) {
 		if (!(result instanceof Error)) discard(result)
 
 		return
@@ -912,7 +912,7 @@ function pump(src: string, held: Held) {
 	held.job = running
 
 	running.job.promise.then(
-		(url) => land(src, held, running, url),
+		(result) => land(src, held, running, result),
 		(reason: unknown) =>
 			land(src, held, running, reason instanceof Error ? reason : new Error(String(reason))),
 	)

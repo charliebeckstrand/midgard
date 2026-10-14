@@ -80,7 +80,7 @@ export function usePivotTable<T>(
 	)
 
 	const colTotals = useMemo(
-		() => columnKeys.map((col) => aggregateColumn(groups, rowKeys, col, aggregation)),
+		() => columnKeys.map((column) => aggregateColumn(groups, rowKeys, column, aggregation)),
 		[columnKeys, groups, rowKeys, aggregation],
 	)
 
@@ -96,8 +96,8 @@ export function usePivotTable<T>(
 
 			// Every bucket `groupValues` creates holds at least one value (it is
 			// created only when a value is pushed), so no empty-bucket guard is needed.
-			for (const [col, values] of columns) {
-				rowCells.set(col, aggregate(values, aggregation))
+			for (const [column, values] of columns) {
+				rowCells.set(column, aggregate(values, aggregation))
 			}
 
 			matrix.set(row, rowCells)

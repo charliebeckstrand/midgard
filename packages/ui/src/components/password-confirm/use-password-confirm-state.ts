@@ -56,12 +56,12 @@ export function usePasswordConfirmState({
 	// The last value given to `onMatchChange`, or `null` before the first report.
 	const lastReported = useRef<boolean | null>(null)
 
-	const matchState =
-		status === 'warning'
-			? 'mismatch'
-			: !disabled && password && confirm && password === confirm
-				? 'match'
-				: null
+	const isMatch = !disabled && password !== '' && password === confirm
+
+	let matchState: 'match' | 'mismatch' | null = null
+
+	if (status === 'warning') matchState = 'mismatch'
+	else if (isMatch) matchState = 'match'
 
 	useEffect(() => {
 		// `disabled` suppresses each report, and the tracker keeps its value. A

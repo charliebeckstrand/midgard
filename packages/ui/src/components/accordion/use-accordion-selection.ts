@@ -112,32 +112,32 @@ export function useAccordionSelection(props: SingleProps | MultipleProps): Accor
 	// A plain closure: `useControllable` reads its own `onValueChange` off a ref
 	// behind a stable `setValue`, so an inline callback needs no ref or memo here.
 	const onControllableChange = (next: string[] | null) => {
-		const resolved = next ?? []
+		const values = next ?? []
 
 		const onValueChange = props.onValueChange
 
 		if (isMultiple) {
-			;(onValueChange as MultipleProps['onValueChange'])?.(resolved)
+			;(onValueChange as MultipleProps['onValueChange'])?.(values)
 		} else {
-			;(onValueChange as SingleProps['onValueChange'])?.(resolved[0] ?? null)
+			;(onValueChange as SingleProps['onValueChange'])?.(values[0] ?? null)
 		}
 	}
 
-	const [current = [], setCurrent] = useControllable<string[]>({
+	const [open = [], setOpen] = useControllable<string[]>({
 		value: controlledValue,
 		defaultValue,
 		onValueChange: onControllableChange,
 	})
 
-	const openStore = useKeyedStore(current, openReader)
+	const openStore = useKeyedStore(open, openReader)
 
 	// The updater starts from the set of the last toggle in the batch, so a
 	// second toggle in the same batch starts from the first. A toggle that
 	// changes nothing gives the same set back, which reports no change.
 	const toggle = useCallback(
 		(value: string) =>
-			setCurrent((prev = []) => nextOpenSet(prev, value, isMultiple, collapsible) ?? prev),
-		[collapsible, setCurrent, isMultiple],
+			setOpen((prev = []) => nextOpenSet(prev, value, isMultiple, collapsible) ?? prev),
+		[collapsible, setOpen, isMultiple],
 	)
 
 	return { openStore, toggle, collapsible }

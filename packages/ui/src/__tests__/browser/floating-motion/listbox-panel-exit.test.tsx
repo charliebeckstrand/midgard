@@ -57,7 +57,7 @@ describe('Listbox panel exit (real engine, real Motion)', () => {
 	it.each(motionCases)('is inert and holds no focus under $name', async ({ reduced }) => {
 		renderUI(
 			<Motion reduced={reduced}>
-				<Listbox aria-label="Fruit" value="b" displayValue={(v: string) => v}>
+				<Listbox aria-label="Fruit" value="b" displayValue={(value: string) => value}>
 					<ListboxOption value="a">Apple</ListboxOption>
 					<ListboxOption value="b">Banana</ListboxOption>
 					<ListboxOption value="c">Cherry</ListboxOption>
@@ -85,7 +85,7 @@ describe('Combobox panel exit (real engine, real Motion)', () => {
 	it.each(motionCases)('is inert under $name', async ({ reduced }) => {
 		renderUI(
 			<Motion reduced={reduced}>
-				<Combobox<string> displayValue={(v) => v} placeholder="Search">
+				<Combobox<string> displayValue={(value) => value} placeholder="Search">
 					<ComboboxOption value="apple">
 						<ComboboxLabel>Apple</ComboboxLabel>
 					</ComboboxOption>

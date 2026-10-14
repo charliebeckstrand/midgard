@@ -27,8 +27,8 @@ export type GridRowActivate = (row: unknown, event: KeyboardEvent<HTMLTableEleme
  * @internal
  */
 export type GridCellActivate = (
-	rowIdx: number,
-	colIdx: number,
+	rowIndex: number,
+	colIndex: number,
 	event: KeyboardEvent<HTMLTableElement>,
 ) => void
 
@@ -66,8 +66,8 @@ export function bridgeCellActivate<T>(
 ): GridCellActivate | undefined {
 	if (!handleCellClick) return undefined
 
-	return (rowIdx, colIdx, event) => {
-		const cell = resolveCellAt(refs, rowIdx, colIdx)
+	return (rowIndex, colIndex, event) => {
+		const cell = resolveCellAt(refs, rowIndex, colIndex)
 
 		if (cell) handleCellClick(cell, event)
 	}
@@ -90,14 +90,14 @@ export function resolveCellAt<T>(
 		rowKeysRef: RefObject<(string | number)[]>
 		dataColumnsRef: RefObject<GridColumn<T>[]>
 	},
-	rowIdx: number,
-	colIdx: number,
+	rowIndex: number,
+	colIndex: number,
 ): GridCellClickContext<T> | null {
-	const row = refs.rowsRef.current[rowIdx]
+	const row = refs.rowsRef.current[rowIndex]
 
-	const rowKey = refs.rowKeysRef.current[rowIdx]
+	const rowKey = refs.rowKeysRef.current[rowIndex]
 
-	const col = refs.dataColumnsRef.current[colIdx]
+	const col = refs.dataColumnsRef.current[colIndex]
 
 	if (row === undefined || rowKey === undefined || !col) return null
 

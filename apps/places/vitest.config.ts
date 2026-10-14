@@ -1,5 +1,5 @@
 import { defineConfig } from 'vitest/config'
-import { sharedTest } from '../../vitest.shared'
+import { sharedTest } from '../../vitest.shared.mts'
 
 /**
  * The app's test harness.

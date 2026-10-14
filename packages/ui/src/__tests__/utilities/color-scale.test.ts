@@ -65,7 +65,7 @@ describe('valueExtent', () => {
 	it('scans an array past the spread argument limit', () => {
 		// Guards the loop-based extent: `Math.min(...values)` overflows the
 		// engine's argument limit around 1e5 elements.
-		const values = Array.from({ length: 300_000 }, (_, i) => i % 1000)
+		const values = Array.from({ length: 300_000 }, (_, index) => index % 1000)
 
 		expect(valueExtent(values)).toEqual([0, 999])
 	})
@@ -187,7 +187,7 @@ describe('resolveQuantileBins', () => {
 	it('bins an array past the spread argument limit', () => {
 		// Guards the sorted-ends extent: `Math.min(...values)` overflows the
 		// engine's argument limit around 1e5 elements.
-		const values = Array.from({ length: 300_000 }, (_, i) => i % 1000)
+		const values = Array.from({ length: 300_000 }, (_, index) => index % 1000)
 
 		const { bins } = resolveQuantileBins(values, ['#000000', '#ffffff'], 4)
 

@@ -43,13 +43,13 @@ function roundToTarget(
 	widths: { id: string; width: number }[],
 	target: number,
 ): Record<string, number> {
-	const floored = widths.map((w) => ({
-		id: w.id,
-		width: Math.floor(w.width),
-		frac: w.width - Math.floor(w.width),
+	const floored = widths.map((entry) => ({
+		id: entry.id,
+		width: Math.floor(entry.width),
+		frac: entry.width - Math.floor(entry.width),
 	}))
 
-	let leftover = target - floored.reduce((sum, w) => sum + w.width, 0)
+	let leftover = target - floored.reduce((sum, entry) => sum + entry.width, 0)
 
 	// Give the leftover (or take back, when negative) one pixel at a time, largest
 	// fractional part first, so the rounding lands on the columns that were closest
@@ -70,7 +70,7 @@ function roundToTarget(
 		if (entry && entry.width > 0) entry.width -= 1
 	}
 
-	return Object.fromEntries(floored.map((e) => [e.id, e.width]))
+	return Object.fromEntries(floored.map((entry) => [entry.id, entry.width]))
 }
 
 /**
@@ -88,19 +88,19 @@ function levelUp(
 	cols: { id: string; desired: number; max: number }[],
 	available: number,
 ): Record<string, number> {
-	const totalMax = cols.reduce((sum, c) => sum + c.max, 0)
+	const totalMax = cols.reduce((sum, col) => sum + col.max, 0)
 
 	// Every column would cap out before filling the width: hold them at their max
 	// and leave the remainder as trailing space.
 	if (totalMax <= available) {
 		return roundToTarget(
-			cols.map((c) => ({ id: c.id, width: c.max })),
+			cols.map((col) => ({ id: col.id, width: col.max })),
 			Math.round(totalMax),
 		)
 	}
 
 	const widthAt = (level: number) =>
-		cols.reduce((sum, c) => sum + clamp(level, c.desired, c.max), 0)
+		cols.reduce((sum, col) => sum + clamp(level, col.desired, col.max), 0)
 
 	let lo = 0
 
@@ -119,7 +119,7 @@ function levelUp(
 	}
 
 	return roundToTarget(
-		cols.map((c) => ({ id: c.id, width: clamp(lo, c.desired, c.max) })),
+		cols.map((col) => ({ id: col.id, width: clamp(lo, col.desired, col.max) })),
 		available,
 	)
 }
@@ -151,20 +151,20 @@ export function allocateColumnWidths(
 ): Record<string, number> {
 	if (profiles.length === 0) return {}
 
-	const cols = profiles.map((p) => {
-		const desired = clamp(p.content, p.min, p.max)
+	const cols = profiles.map((profile) => {
+		const desired = clamp(profile.content, profile.min, profile.max)
 
 		// A frozen column holds at its content: capping its ceiling at `desired` keeps
 		// the level-up from lifting it, so the surplus flows to the scrolling columns.
-		return { id: p.id, desired, max: p.frozen ? desired : p.max }
+		return { id: profile.id, desired, max: profile.frozen ? desired : profile.max }
 	})
 
-	const totalDesired = cols.reduce((sum, c) => sum + c.desired, 0)
+	const totalDesired = cols.reduce((sum, col) => sum + col.desired, 0)
 
 	// Deficit (or no space): hold at the desired widths and let the table overflow.
 	if (available <= 0 || totalDesired >= available) {
 		return roundToTarget(
-			cols.map((c) => ({ id: c.id, width: c.desired })),
+			cols.map((col) => ({ id: col.id, width: col.desired })),
 			Math.round(totalDesired),
 		)
 	}

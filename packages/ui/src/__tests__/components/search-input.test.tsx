@@ -45,7 +45,7 @@ describe('SearchInput', () => {
 	})
 
 	it('clears a controlled field when the clear button is clicked', async () => {
-		// Clearing notifies the parent through onChange; setCurrentValue is a
+		// Clearing notifies the parent through onChange; setValue is a
 		// no-op while controlled.
 		function Controlled() {
 			const [value, setValue] = useState('query')

@@ -34,12 +34,14 @@ describe('grid virtualized fill with async rows', () => {
 		const [loading, setLoading] = useState(true)
 
 		useEffect(() => {
-			const t = setTimeout(() => {
-				setRows(Array.from({ length: 30 }, (_, i) => ({ id: i + 1, name: `Row ${i + 1}` })))
+			const timer = setTimeout(() => {
+				setRows(
+					Array.from({ length: 30 }, (_, index) => ({ id: index + 1, name: `Row ${index + 1}` })),
+				)
 				setLoading(false)
 			}, 50)
 
-			return () => clearTimeout(t)
+			return () => clearTimeout(timer)
 		}, [])
 
 		return (
@@ -104,7 +106,10 @@ describe('grid virtualized fill with async rows', () => {
 				<Grid<Row>
 					maxHeight="fill"
 					columns={columns}
-					rows={Array.from({ length: 30 }, (_, i) => ({ id: i + 1, name: `Row ${i + 1}` }))}
+					rows={Array.from({ length: 30 }, (_, index) => ({
+						id: index + 1,
+						name: `Row ${index + 1}`,
+					}))}
 					getKey={(row) => row.id}
 					virtualize
 				/>

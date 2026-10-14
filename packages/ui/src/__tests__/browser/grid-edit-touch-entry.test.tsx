@@ -18,8 +18,8 @@ describe('grid touch entry (real browser)', () => {
 	]
 
 	const columns: GridColumn<Row>[] = [
-		{ id: 'name', title: 'Name', field: 'name', cell: (r) => r.name },
-		{ id: 'done', title: 'Done', field: 'done', cell: (r) => (r.done ? 'Yes' : 'No') },
+		{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+		{ id: 'done', title: 'Done', field: 'done', cell: (row) => (row.done ? 'Yes' : 'No') },
 	]
 
 	const touch = { bubbles: true, cancelable: true, pointerType: 'touch', isPrimary: true }
@@ -54,13 +54,13 @@ describe('grid touch entry (real browser)', () => {
 			<Grid
 				columns={columns}
 				rows={rows}
-				getKey={(r) => r.id}
+				getKey={(row) => row.id}
 				editable={{ session: 'managed', scope: 'cell', onCommit: () => {} }}
 			/>,
 		)
 
-		const cell = (col: string) =>
-			present(view.container.querySelector(`td[data-grid-col="${col}"]`), `the ${col} cell`)
+		const cell = (column: string) =>
+			present(view.container.querySelector(`td[data-grid-col="${column}"]`), `the ${column} cell`)
 
 		return { ...view, cell }
 	}
@@ -68,23 +68,23 @@ describe('grid touch entry (real browser)', () => {
 	it.each([
 		['a text editor', 'name', 'grid-edit-input'],
 		['a listbox editor', 'done', 'listbox-button'],
-	])('focuses %s inside the handler of the lift', async (_, col, slot) => {
+	])('focuses %s inside the handler of the lift', async (_, column, slot) => {
 		const { container, cell } = renderGrid()
 
-		pressAndLift(cell(col))
+		pressAndLift(cell(column))
 
-		endTap(cell(col))
+		endTap(cell(column))
 
 		await frames()
 
-		expect(cell(col)).toHaveAttribute('data-active')
+		expect(cell(column)).toHaveAttribute('data-active')
 
-		pressAndLift(cell(col))
+		pressAndLift(cell(column))
 
 		// No await: the focus must already be in place.
 		const focused = document.activeElement
 
-		endTap(cell(col))
+		endTap(cell(column))
 
 		expect(focused).toBe(bySlot(container, slot))
 

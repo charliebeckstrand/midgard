@@ -18,9 +18,9 @@ describe('Grid column groups', () => {
 	const getKey = (row: Row) => row.id
 
 	const columns: GridColumn<Row>[] = [
-		{ id: 'first', title: 'First', cell: (r) => r.first },
-		{ id: 'last', title: 'Last', cell: (r) => r.last },
-		{ id: 'email', title: 'Email', cell: (r) => r.email },
+		{ id: 'first', title: 'First', cell: (row) => row.first },
+		{ id: 'last', title: 'Last', cell: (row) => row.last },
+		{ id: 'email', title: 'Email', cell: (row) => row.email },
 	]
 
 	const groups: GridColumnGroup[] = [{ id: 'name', title: 'Name', columns: ['first', 'last'] }]
@@ -100,9 +100,9 @@ describe('Grid column groups', () => {
 
 	it('keeps grouped columns contiguous despite declaration order', () => {
 		const split: GridColumn<Row>[] = [
-			{ id: 'first', title: 'First', cell: (r) => r.first },
-			{ id: 'email', title: 'Email', cell: (r) => r.email },
-			{ id: 'last', title: 'Last', cell: (r) => r.last },
+			{ id: 'first', title: 'First', cell: (row) => row.first },
+			{ id: 'email', title: 'Email', cell: (row) => row.email },
+			{ id: 'last', title: 'Last', cell: (row) => row.last },
 		]
 
 		const { container } = renderUI(
@@ -238,9 +238,9 @@ describe('Grid column-group onCollapsedChange', () => {
 	const getKey = (row: Row) => row.id
 
 	const columns: GridColumn<Row>[] = [
-		{ id: 'first', title: 'First', cell: (r) => r.first },
-		{ id: 'last', title: 'Last', cell: (r) => r.last },
-		{ id: 'email', title: 'Email', cell: (r) => r.email },
+		{ id: 'first', title: 'First', cell: (row) => row.first },
+		{ id: 'last', title: 'Last', cell: (row) => row.last },
+		{ id: 'email', title: 'Email', cell: (row) => row.email },
 	]
 
 	const collapsible: GridColumnGroup[] = [

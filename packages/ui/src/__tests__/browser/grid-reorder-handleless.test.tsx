@@ -20,8 +20,8 @@ describe('grid column reorder: whole-header handle (real browser)', () => {
 	type Row = { id: number; a: string; b: string }
 
 	const columns: GridColumn<Row>[] = [
-		{ id: 'a', title: 'A', sortable: true, cell: (r) => r.a, width: '120px' },
-		{ id: 'b', title: 'B', sortable: true, cell: (r) => r.b, width: '120px' },
+		{ id: 'a', title: 'A', sortable: true, cell: (row) => row.a, width: '120px' },
+		{ id: 'b', title: 'B', sortable: true, cell: (row) => row.b, width: '120px' },
 	]
 
 	const rows: Row[] = [
@@ -39,7 +39,7 @@ describe('grid column reorder: whole-header handle (real browser)', () => {
 
 	it('drops the grip and makes the header the grab handle, sort control aside', async () => {
 		renderUI(
-			<Grid columns={columns} rows={rows} getKey={(r) => r.id} reorder={{ handle: false }} />,
+			<Grid columns={columns} rows={rows} getKey={(row) => row.id} reorder={{ handle: false }} />,
 		)
 
 		// No grip button — the header itself is the handle.
@@ -81,7 +81,7 @@ describe('grid column reorder: whole-header handle (real browser)', () => {
 	})
 
 	it('keeps the grip when handle defaults to true', () => {
-		renderUI(<Grid columns={columns} rows={rows} getKey={(r) => r.id} reorder={{}} />)
+		renderUI(<Grid columns={columns} rows={rows} getKey={(row) => row.id} reorder={{}} />)
 
 		// The object form with the default `handle` still renders the grip button.
 		const grip = screen.getByRole('button', { name: 'Reorder A' })

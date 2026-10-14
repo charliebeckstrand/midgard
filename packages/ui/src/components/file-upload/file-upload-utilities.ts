@@ -29,7 +29,7 @@ export function fileListToArray(fileList: FileList | null): File[] {
 export function formatFileNames(files: File[]): string | undefined {
 	if (files.length === 0) return undefined
 
-	return files.map((f) => f.name).join(', ')
+	return files.map((file) => file.name).join(', ')
 }
 
 /**

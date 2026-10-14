@@ -159,7 +159,9 @@ function GridSettleControls({
 	if (controls === 'none') return null
 
 	const actions =
-		controls === 'both' ? SETTLE_ACTIONS : SETTLE_ACTIONS.filter((a) => a.outcome === 'discard')
+		controls === 'both'
+			? SETTLE_ACTIONS
+			: SETTLE_ACTIONS.filter((action) => action.outcome === 'discard')
 
 	return (
 		<span className={cn(k.edit.settle)}>
@@ -352,8 +354,9 @@ export function GridCellEditor<T>({
 	// for `validate` to refuse yet.
 	const checked = column.validate && !(newRow && isBlankDraft(draft))
 
-	const error =
-		(checked ? column.validate?.(draft, readRow ? readRow() : row) : null) ?? refusal ?? null
+	const invalid = checked ? column.validate?.(draft, readRow ? readRow() : row) : null
+
+	const error = invalid ?? refusal ?? null
 
 	// Links the editor to its message (aria-describedby) so the error reaches AT,
 	// not just sighted users (WCAG 1.3.1 / 3.3.1).

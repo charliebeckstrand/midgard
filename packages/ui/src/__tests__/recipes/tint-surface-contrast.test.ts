@@ -20,9 +20,9 @@ const SURFACE = { light: 'white', dark: 'zinc-900' } as const
 /** The color token of the `hover:bg-*` class for one mode. */
 function hoverToken(mode: 'light' | 'dark'): string {
 	const hover = tintSurface
-		.flatMap((cls) => cls.split(' '))
-		.filter((cls) => cls.startsWith('dark:') === (mode === 'dark'))
-		.map((cls) => /hover:bg-([a-z]+(?:-\d{2,3})?)$/.exec(cls)?.[1])
+		.flatMap((className) => className.split(' '))
+		.filter((className) => className.startsWith('dark:') === (mode === 'dark'))
+		.map((className) => /hover:bg-([a-z]+(?:-\d{2,3})?)$/.exec(className)?.[1])
 		.find((token) => token !== undefined)
 
 	if (!hover) throw new Error(`no ${mode} hover fill`)

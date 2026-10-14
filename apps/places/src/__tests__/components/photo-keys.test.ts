@@ -95,7 +95,7 @@ describe('photoKeys', () => {
 	it('uploads three files at a time', async () => {
 		reset()
 
-		const photos = ['1', '2', '3', '4', '5', '6', '7'].map((n) => file(`${n}.jpg`))
+		const photos = ['1', '2', '3', '4', '5', '6', '7'].map((id) => file(`${id}.jpg`))
 
 		await expect(photoKeys(photos, ignore, new WeakMap())).resolves.toHaveLength(7)
 

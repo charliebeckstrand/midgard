@@ -43,17 +43,17 @@ describe('grid virtualized body under native scroll anchoring (real browser)', (
 
 		// 40 groups of 10 rows. Each note has a different length, so the rows do
 		// not share one height.
-		const people: Person[] = Array.from({ length: 400 }, (_, i) => ({
-			id: i + 1,
-			name: `Person ${i + 1}`,
-			team: `Team ${String(Math.floor(i / 10)).padStart(2, '0')}`,
-			note: 'lorem ipsum '.repeat(1 + ((i * 7) % 13)).trim(),
+		const people: Person[] = Array.from({ length: 400 }, (_, index) => ({
+			id: index + 1,
+			name: `Person ${index + 1}`,
+			team: `Team ${String(Math.floor(index / 10)).padStart(2, '0')}`,
+			note: 'lorem ipsum '.repeat(1 + ((index * 7) % 13)).trim(),
 		}))
 
 		const columns: GridColumn<Person>[] = [
-			{ id: 'name', title: 'Name', width: 120, cell: (r) => r.name, value: (r) => r.name },
-			{ id: 'team', title: 'Team', width: 100, cell: (r) => r.team, value: (r) => r.team },
-			{ id: 'note', title: 'Note', width: 200, cell: (r) => r.note, value: (r) => r.note },
+			{ id: 'name', title: 'Name', width: 120, cell: (row) => row.name, value: (row) => row.name },
+			{ id: 'team', title: 'Team', width: 100, cell: (row) => row.team, value: (row) => row.team },
+			{ id: 'note', title: 'Note', width: 200, cell: (row) => row.note, value: (row) => row.note },
 		]
 
 		for (const resizable of [true, false]) {
@@ -63,7 +63,7 @@ describe('grid virtualized body under native scroll anchoring (real browser)', (
 						<Grid<Person>
 							columns={columns}
 							rows={people}
-							getKey={(r) => r.id}
+							getKey={(row) => row.id}
 							groupBy={{ value: 'team' }}
 							groupTotalRow
 							truncate={false}
@@ -110,15 +110,15 @@ describe('grid virtualized body under native scroll anchoring (real browser)', (
 
 				const anchorKey = anchorRow.dataset.gridRow
 
-				const anchorTeam = people.find((p) => String(p.id) === anchorKey)?.team
+				const anchorTeam = people.find((person) => String(person.id) === anchorKey)?.team
 
-				const scrollTop = scroll.getBoundingClientRect().top
+				const viewportTop = scroll.getBoundingClientRect().top
 
 				const header = present(
 					Array.from(body.querySelectorAll<HTMLElement>(':scope > tr[data-group-row]'))
 						.filter(
 							(row) =>
-								row.getBoundingClientRect().bottom < scrollTop &&
+								row.getBoundingClientRect().bottom < viewportTop &&
 								row.dataset.groupKey !== anchorTeam,
 						)
 						.at(-1),
@@ -152,10 +152,10 @@ describe('grid virtualized body under native scroll anchoring (real browser)', (
 	describe('master-detail body', () => {
 		type Item = { id: number; name: string; height: number }
 
-		const rows: Item[] = Array.from({ length: 300 }, (_, i) => ({
-			id: i + 1,
-			name: `Row ${i + 1}`,
-			height: 60 + ((i * 37) % 240),
+		const rows: Item[] = Array.from({ length: 300 }, (_, index) => ({
+			id: index + 1,
+			name: `Row ${index + 1}`,
+			height: 60 + ((index * 37) % 240),
 		}))
 
 		const columns: GridColumn<Item>[] = [

@@ -8,9 +8,9 @@ import { vi } from 'vitest'
  * spy for call-list assertions. Returns the spy.
  */
 export function stubWindowScrollBy(): ReturnType<typeof vi.fn> {
-	const impl = vi.fn()
+	const spy = vi.fn()
 
-	Object.defineProperty(window, 'scrollBy', { writable: true, configurable: true, value: impl })
+	Object.defineProperty(window, 'scrollBy', { writable: true, configurable: true, value: spy })
 
-	return impl
+	return spy
 }

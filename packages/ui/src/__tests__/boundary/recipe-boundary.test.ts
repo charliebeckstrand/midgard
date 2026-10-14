@@ -61,9 +61,9 @@ describe('recipes internal-boundary contract', () => {
 
 				const allTyped = inner
 					.split(',')
-					.map((s) => s.trim())
+					.map((part) => part.trim())
 					.filter(Boolean)
-					.every((s) => s.startsWith('type '))
+					.every((part) => part.startsWith('type '))
 
 				if (allTyped) continue
 			}

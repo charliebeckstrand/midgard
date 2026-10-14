@@ -101,7 +101,7 @@ function rowSortKey(row: Row<ReferenceFeatures, RowData>, columnId: string): Sor
  * comparator reads the live direction and inverts the result for an empty
  * value, so empty values go last in the two directions.
  */
-const smartSortFn: SortFn<ReferenceFeatures, RowData> = (rowA, rowB, columnId) => {
+const smartSort: SortFn<ReferenceFeatures, RowData> = (rowA, rowB, columnId) => {
 	const a = rowSortKey(rowA, columnId)
 
 	const b = rowSortKey(rowB, columnId)
@@ -121,24 +121,24 @@ const smartSortFn: SortFn<ReferenceFeatures, RowData> = (rowA, rowB, columnId) =
  * The column definition of the reference table: the definition that the grid
  * gives the engine, with the sort and group options of the column added.
  */
-function referenceColumnDef<T>(col: GridColumn<T>): ColumnDef<ReferenceFeatures, EngineData<T>> {
-	const { sortFn } = col
+function referenceColumnDef<T>(column: GridColumn<T>): ColumnDef<ReferenceFeatures, EngineData<T>> {
+	const { sortFn } = column
 
-	const engineSortFn: SortFn<ReferenceFeatures, EngineData<T>> | undefined = !isDataColumn(col)
-		? undefined
-		: sortFn
-			? (rowA, rowB) => sortFn(rowA.original, rowB.original)
-			: (smartSortFn as SortFn<ReferenceFeatures, EngineData<T>>)
+	const dataSort: SortFn<ReferenceFeatures, EngineData<T>> = sortFn
+		? (rowA, rowB) => sortFn(rowA.original, rowB.original)
+		: (smartSort as SortFn<ReferenceFeatures, EngineData<T>>)
+
+	const engineSort = isDataColumn(column) ? dataSort : undefined
 
 	return {
-		...(toColumnDef(col) as ColumnDef<ReferenceFeatures, EngineData<T>>),
-		enableSorting: Boolean(col.sortable),
+		...(toColumnDef(column) as ColumnDef<ReferenceFeatures, EngineData<T>>),
+		enableSorting: Boolean(column.sortable),
 		// Only a data column groups.
-		enableGrouping: isDataColumn(col),
+		enableGrouping: isDataColumn(column),
 		// The engine sorts a literal `undefined` itself, before the sort function,
 		// and its desc negation then puts it first. With this option off, the sort
 		// function orders it, as the grid does.
-		...(engineSortFn ? { sortFn: engineSortFn, sortUndefined: false as const } : {}),
+		...(engineSort ? { sortFn: engineSort, sortUndefined: false as const } : {}),
 	}
 }
 
@@ -182,7 +182,7 @@ export function engineTable<T>(
 	return constructTable<ReferenceFeatures, EngineData<T>>({
 		features: referenceFeatures,
 		data: rows as EngineData<T>[],
-		columns: columns.map((col) => referenceColumnDef(col)),
+		columns: columns.map((column) => referenceColumnDef(column)),
 		getRowId: (row, index) => String(getKey(row, index)),
 		autoResetPageIndex: false,
 		state: {

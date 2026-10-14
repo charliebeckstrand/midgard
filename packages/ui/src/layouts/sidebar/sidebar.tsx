@@ -143,14 +143,14 @@ export function SidebarLayout({
 
 	const [floatingOpen, setFloatingOpen] = useState(false)
 
-	const [sidebarMode] = useAppearanceChoice(SIDEBAR)
+	const [mode] = useAppearanceChoice(SIDEBAR)
 
-	const [renderedMode, setRenderedMode] = useState(sidebarMode)
+	const [prevMode, setPrevMode] = useState(mode)
 
 	// Resets the floating sheet to closed when the sidebar mode changes. The
 	// sheet opens only from the hot zone, which shows only while offcanvas.
-	if (renderedMode !== sidebarMode) {
-		setRenderedMode(sidebarMode)
+	if (prevMode !== mode) {
+		setPrevMode(mode)
 
 		setFloatingOpen(false)
 	}

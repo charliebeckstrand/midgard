@@ -117,7 +117,7 @@ export function useTimeAgoRelativeTime({
 
 	const absMs = Math.abs(diffMs)
 
-	const adaptiveMs =
+	const intervalMs =
 		interval === 'auto' ? adaptiveInterval(absMs) : Math.max(interval, MIN_REFRESH_MS)
 
 	useEffect(() => {
@@ -128,8 +128,8 @@ export function useTimeAgoRelativeTime({
 		// TimeAgo on the page, paused while the tab is hidden).
 		setNow(new Date())
 
-		return subscribeTimeAgoTick(adaptiveMs, () => setNow(new Date()))
-	}, [adaptiveMs, valid])
+		return subscribeTimeAgoTick(intervalMs, () => setNow(new Date()))
+	}, [intervalMs, valid])
 
 	if (!valid || now === null) return { then, valid, text: '' }
 

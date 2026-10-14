@@ -106,12 +106,14 @@ function readTeam(competitor: Json, state: GameState): Team | null {
 
 	const points = Number(text(competitor.score) ?? Number.NaN)
 
+	const scored = (state === 'live' || state === 'final') && Number.isFinite(points)
+
 	return {
 		id,
 		abbreviation,
 		name,
 		logo: text(team?.logo),
-		score: (state === 'live' || state === 'final') && Number.isFinite(points) ? points : null,
+		score: scored ? points : null,
 		winner: state === 'final' && competitor.winner === true,
 	}
 }

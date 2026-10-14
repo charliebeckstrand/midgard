@@ -55,7 +55,7 @@ export function useDateInputOverride({
 	const [known, setKnown] = useState<DateInputKnown>({ date, resets, commit: undefined })
 
 	const recordCommit = (committed: Date | undefined) => {
-		setKnown((current) => ({ ...current, commit: { date: committed } }))
+		setKnown((prev) => ({ ...prev, commit: { date: committed } }))
 	}
 
 	const reset = known.resets !== resets

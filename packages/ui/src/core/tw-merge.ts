@@ -28,10 +28,13 @@ const steppedOf: Record<string, SteppedGroup | undefined> = Object.fromEntries(
  * property, so a later `px-4` replaces a `px-ring-2`.
  */
 const classGroups = Object.fromEntries(
-	utilities.flatMap(({ name, stepped, plain, ring }) => [
-		[stepped, [{ [stepped]: stepList, ...(ring ? { [`${stepped}-ring`]: stepList } : {}) }]],
-		...(ring ? [[plain, [{ [`${name}-ring`]: ringStop }]]] : []),
-	]),
+	utilities.flatMap(({ name, stepped, plain, ring }) => {
+		const steppedGroup = { [stepped]: stepList, ...(ring ? { [`${stepped}-ring`]: stepList } : {}) }
+
+		const ringGroups = ring ? [[plain, [{ [`${name}-ring`]: ringStop }]]] : []
+
+		return [[stepped, [steppedGroup]], ...ringGroups]
+	}),
 )
 
 /**

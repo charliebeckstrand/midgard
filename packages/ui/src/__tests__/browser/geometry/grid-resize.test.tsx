@@ -14,7 +14,7 @@ const SEEDED_WIDTH_SLACK = 5
 /** Opens the header menu's Auto-size parent, which holds both fits. */
 const openAutoSizeMenu = () => {
 	const parent = Array.from(document.querySelectorAll('[role="menuitem"]')).find(
-		(el) => el.textContent?.trim() === 'Auto-size',
+		(item) => item.textContent?.trim() === 'Auto-size',
 	)
 
 	if (!parent) throw new Error('no Auto-size menu')
@@ -37,10 +37,10 @@ describe('grid column resizing (real browser)', () => {
 		{ id: 'age', title: 'Age', cell: (row) => row.age, width: '120px' },
 	]
 
-	const rows: Row[] = Array.from({ length: 6 }, (_, i) => ({
-		id: i + 1,
-		name: `Person ${i + 1}`,
-		age: 20 + i,
+	const rows: Row[] = Array.from({ length: 6 }, (_, index) => ({
+		id: index + 1,
+		name: `Person ${index + 1}`,
+		age: 20 + index,
 	}))
 
 	const getKey = (row: Row) => row.id
@@ -172,8 +172,8 @@ describe('grid column resizing (real browser)', () => {
 
 		openAutoSizeMenu()
 
-		const item = Array.from(document.querySelectorAll('[role="menuitem"]')).find((el) =>
-			el.textContent?.includes('Auto-size all columns'),
+		const item = Array.from(document.querySelectorAll('[role="menuitem"]')).find((candidate) =>
+			candidate.textContent?.includes('Auto-size all columns'),
 		)
 
 		if (!item) throw new Error('no Auto-size all columns item')
@@ -274,10 +274,10 @@ describe('grid resize handle with reorder active (real browser)', () => {
 		{ id: 'age', title: 'Age', cell: (row) => row.age, width: '120px' },
 	]
 
-	const rows: Row[] = Array.from({ length: 6 }, (_, i) => ({
-		id: i + 1,
-		name: `Person ${i + 1}`,
-		age: 20 + i,
+	const rows: Row[] = Array.from({ length: 6 }, (_, index) => ({
+		id: index + 1,
+		name: `Person ${index + 1}`,
+		age: 20 + index,
 	}))
 
 	function setup() {
@@ -345,7 +345,7 @@ describe('grid column resize holds the other columns (real browser)', () => {
 	]
 
 	const makeRows = (count: number): Row[] =>
-		Array.from({ length: count }, (_, i) => ({ id: i + 1, a: 'a', b: 'b', c: 'c' }))
+		Array.from({ length: count }, (_, index) => ({ id: index + 1, a: 'a', b: 'b', c: 'c' }))
 
 	const header = (root: HTMLElement, id: string) =>
 		present(root.querySelector(`th[data-grid-col="${id}"]`), `th[data-grid-col="${id}"]`)

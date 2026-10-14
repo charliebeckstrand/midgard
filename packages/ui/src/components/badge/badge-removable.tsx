@@ -69,7 +69,7 @@ export function BadgeRemovable({
 	removeRef,
 	removeProps,
 }: BadgeRemovableProps) {
-	const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+	const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
 		if (event.key !== 'Delete' && event.key !== 'Backspace') return
 
 		event.preventDefault()
@@ -98,7 +98,7 @@ export function BadgeRemovable({
 
 							onRemove()
 						}}
-						onKeyDown={onKeyDown}
+						onKeyDown={handleKeyDown}
 					>
 						<Icon icon={<X />} />
 					</Button>

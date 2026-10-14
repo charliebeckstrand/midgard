@@ -16,9 +16,9 @@ import { frame, present, renderUI, waitFor } from '../../helpers'
 describe('grid refit on container resize (real browser)', () => {
 	type Row = { id: number; name: string; role: string }
 
-	const rows: Row[] = Array.from({ length: 4 }, (_, i) => ({
-		id: i + 1,
-		name: `Name ${i + 1}`,
+	const rows: Row[] = Array.from({ length: 4 }, (_, index) => ({
+		id: index + 1,
+		name: `Name ${index + 1}`,
 		role: 'Role',
 	}))
 
@@ -28,15 +28,15 @@ describe('grid refit on container resize (real browser)', () => {
 	]
 
 	it('carries the matching widths in the frame that resized the container', async () => {
-		const frameEl = document.createElement('div')
+		const host = document.createElement('div')
 
-		frameEl.style.width = '800px'
+		host.style.width = '800px'
 
-		document.body.append(frameEl)
+		document.body.append(host)
 
 		const { container } = renderUI(
 			<Grid columns={columns} rows={rows} getKey={(row) => row.id} />,
-			{ container: frameEl },
+			{ container: host },
 		)
 
 		const table = present(container.querySelector('table'), 'table')
@@ -53,12 +53,12 @@ describe('grid refit on container resize (real browser)', () => {
 
 		const probe = new ResizeObserver(() => {
 			painted.push({
-				container: frameEl.clientWidth,
+				container: host.clientWidth,
 				table: Math.round(table.getBoundingClientRect().width),
 			})
 		})
 
-		probe.observe(frameEl)
+		probe.observe(host)
 
 		// Drop the observation `observe()` itself schedules; only the resize below is under test.
 		await frame()
@@ -66,7 +66,7 @@ describe('grid refit on container resize (real browser)', () => {
 
 		painted.length = 0
 
-		frameEl.style.width = '500px'
+		host.style.width = '500px'
 
 		await frame()
 		await frame()
@@ -88,6 +88,6 @@ describe('grid refit on container resize (real browser)', () => {
 		// inside a 500px box — the flash.
 		for (const entry of atNewWidth) expect(entry.table).toBe(settled)
 
-		frameEl.remove()
+		host.remove()
 	})
 })

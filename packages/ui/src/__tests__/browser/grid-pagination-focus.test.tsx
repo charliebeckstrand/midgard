@@ -14,7 +14,10 @@ describe('grid pagination focus (real browser)', () => {
 
 	const columns: GridColumn<Row>[] = [{ id: 'name', title: 'Name', cell: (row) => row.name }]
 
-	const rows: Row[] = Array.from({ length: 12 }, (_, i) => ({ id: i + 1, name: `Name ${i + 1}` }))
+	const rows: Row[] = Array.from({ length: 12 }, (_, index) => ({
+		id: index + 1,
+		name: `Name ${index + 1}`,
+	}))
 
 	const getKey = (row: Row) => row.id
 

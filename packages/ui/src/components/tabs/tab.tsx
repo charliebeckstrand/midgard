@@ -66,7 +66,7 @@ export type TabProps = {
  *
  * @internal
  */
-function resolveTabState(opts: {
+function resolveTabState(options: {
 	id: string | undefined
 	value: string | undefined
 	currentProp: boolean | undefined
@@ -74,13 +74,16 @@ function resolveTabState(opts: {
 	baseId: string | undefined
 	disclosure: { triggerId: string; panelId: string }
 }): { current: boolean; tabId: string | undefined; controlsId: string | undefined } {
-	const current = opts.currentProp ?? opts.contextCurrent
+	const current = options.currentProp ?? options.contextCurrent
 
-	const auto = opts.id === undefined && opts.value !== undefined && opts.baseId !== undefined
+	const auto =
+		options.id === undefined && options.value !== undefined && options.baseId !== undefined
 
-	const tabId = opts.id ?? (auto ? opts.disclosure.triggerId : undefined)
+	const autoIds = auto ? options.disclosure : undefined
 
-	const controlsId = opts.id ? `${opts.id}-panel` : auto ? opts.disclosure.panelId : undefined
+	const tabId = options.id ?? autoIds?.triggerId
+
+	const controlsId = options.id ? `${options.id}-panel` : autoIds?.panelId
 
 	return { current, tabId, controlsId }
 }
@@ -107,7 +110,7 @@ export function Tab({
 	onPointerEnter,
 	onFocus,
 	ref: consumerRef,
-	...rest
+	...props
 }: TabProps) {
 	// The tab reads its own value, so a switch renders only the tab that stops
 	// being current and the tab that becomes current.
@@ -141,9 +144,11 @@ export function Tab({
 	// unmount when inactive unless an all-mounted TabContents keeps them mounted
 	// (registered via context); then every tab references its panel. A segmented
 	// control often has no panels, so a segment tab also waits for a TabContents.
-	const panelInDom =
-		id !== undefined ||
-		((current || tabsContext?.panelsMounted) && (!isSegment || tabsContext?.panelsPresent))
+	const panelMounted = current || tabsContext?.panelsMounted
+
+	const panelsExpected = !isSegment || tabsContext?.panelsPresent
+
+	const panelInDom = id !== undefined || (panelMounted && panelsExpected)
 
 	// Selection is the activation a tab exists to perform, so a consumer's
 	// preventDefault() does not cancel it (CONVENTIONS.md §3.9).
@@ -192,7 +197,7 @@ export function Tab({
 					// colliding consumer prop. A caller's onPointerEnter / onFocus
 					// are composed (run first) rather than forwarded, so the preload
 					// intent can chain onto them.
-					{...rest}
+					{...props}
 					ref={setTab}
 					data-slot="tab"
 					data-current={dataAttr(current)}

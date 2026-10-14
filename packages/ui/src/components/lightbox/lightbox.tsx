@@ -147,9 +147,7 @@ export function Lightbox({
 		thumbnail: (slot) => thumbnails.current.get(slot),
 		loadOf,
 		record: (source, load) =>
-			setLoads((previous) =>
-				previous.has(source) ? previous : new Map(previous).set(source, load),
-			),
+			setLoads((prev) => (prev.has(source) ? prev : new Map(prev).set(source, load))),
 	}
 
 	// The place of the shown photo among the photos that the viewer can show.

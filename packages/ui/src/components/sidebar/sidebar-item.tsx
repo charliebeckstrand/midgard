@@ -83,6 +83,9 @@ export function SidebarItem({
 	// so the mobile drawer keeps plain items.
 	const mini = useSidebarMini()
 
+	// A link marks the current page, and a button marks the current view.
+	const currentToken = props.href ? 'page' : 'true'
+
 	const inner = (
 		<Button
 			data-current={dataAttr(isCurrent)}
@@ -99,7 +102,7 @@ export function SidebarItem({
 			{...props}
 			type="button"
 			data-slot="sidebar-item-inner"
-			aria-current={isCurrent ? (props.href ? 'page' : 'true') : undefined}
+			aria-current={isCurrent ? currentToken : undefined}
 		>
 			<TouchTarget>
 				{icon && <Icon icon={icon} />}

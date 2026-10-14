@@ -26,8 +26,8 @@ describe('grid column sizing rules (real browser)', () => {
 		{ id: 'c', title: 'C', cell: (row) => row.c },
 	]
 
-	const rows: Row[] = Array.from({ length: 4 }, (_, i) => ({
-		id: i + 1,
+	const rows: Row[] = Array.from({ length: 4 }, (_, index) => ({
+		id: index + 1,
 		a: 'a',
 		b: 'A value of middle length',
 		c: 'c',
@@ -52,15 +52,15 @@ describe('grid column sizing rules (real browser)', () => {
 		fireEvent.contextMenu(header(root, id))
 
 		const parent = Array.from(document.querySelectorAll('[role="menuitem"]')).find(
-			(el) => el.textContent?.trim() === 'Auto-size',
+			(item) => item.textContent?.trim() === 'Auto-size',
 		)
 
 		if (!parent) throw new Error('no Auto-size menu')
 
 		fireEvent.click(parent)
 
-		const item = Array.from(document.querySelectorAll('[role="menuitem"]')).find((el) =>
-			el.textContent?.includes(label),
+		const item = Array.from(document.querySelectorAll('[role="menuitem"]')).find((candidate) =>
+			candidate.textContent?.includes(label),
 		)
 
 		if (!item) throw new Error(`no ${label} item`)

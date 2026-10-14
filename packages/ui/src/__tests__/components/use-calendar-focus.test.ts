@@ -7,13 +7,13 @@ function makeContainer(buttonCount: number) {
 	const el = document.createElement('div')
 
 	for (let i = 0; i < buttonCount; i++) {
-		const btn = document.createElement('button')
+		const button = document.createElement('button')
 
-		btn.textContent = String(i)
+		button.textContent = String(i)
 
-		btn.setAttribute('tabindex', '0')
+		button.setAttribute('tabindex', '0')
 
-		el.appendChild(btn)
+		el.appendChild(button)
 	}
 
 	return attach(el)
@@ -542,19 +542,19 @@ function makeGrid(cells: CellState[]) {
 	const el = document.createElement('div')
 
 	for (const [index, cell] of cells.entries()) {
-		const btn = document.createElement('button')
+		const button = document.createElement('button')
 
-		btn.textContent = String(index)
+		button.textContent = String(index)
 
-		btn.setAttribute('aria-selected', String(cell.selected === true))
+		button.setAttribute('aria-selected', String(cell.selected === true))
 
-		if (cell.today) btn.setAttribute('aria-current', 'date')
+		if (cell.today) button.setAttribute('aria-current', 'date')
 
-		if (cell.dataSelected) btn.setAttribute('data-selected', '')
+		if (cell.dataSelected) button.setAttribute('data-selected', '')
 
-		btn.disabled = cell.disabled === true
+		button.disabled = cell.disabled === true
 
-		el.appendChild(btn)
+		el.appendChild(button)
 	}
 
 	return attach(el)
@@ -563,8 +563,8 @@ function makeGrid(cells: CellState[]) {
 /** The text of each enabled button in `container` that is a Tab stop. */
 function tabStops(container: HTMLElement) {
 	return Array.from(container.querySelectorAll('button'))
-		.filter((btn) => !btn.disabled && btn.tabIndex === 0)
-		.map((btn) => btn.textContent)
+		.filter((button) => !button.disabled && button.tabIndex === 0)
+		.map((button) => button.textContent)
 }
 
 /**

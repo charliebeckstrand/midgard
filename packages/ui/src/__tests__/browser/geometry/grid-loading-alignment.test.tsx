@@ -28,11 +28,11 @@ describe('grid loading row alignment (real browser)', () => {
 	// something to stick over.
 	const sizing = { value: { id: 120, customer: 320, origin: 280, destination: 240, actions: 120 } }
 
-	const rows: Row[] = Array.from({ length: 3 }, (_, i) => ({
-		id: 1000 + i,
-		customer: `Customer ${i}`,
-		origin: `Origin ${i}`,
-		destination: `Destination ${i}`,
+	const rows: Row[] = Array.from({ length: 3 }, (_, index) => ({
+		id: 1000 + index,
+		customer: `Customer ${index}`,
+		origin: `Origin ${index}`,
+		destination: `Destination ${index}`,
 	}))
 
 	const getKey = (row: Row) => row.id

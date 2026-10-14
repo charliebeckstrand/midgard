@@ -398,7 +398,7 @@ describe('DashboardTiles reading order', () => {
 			const [current, setCurrent] = useState(initial)
 
 			const duplicate = useCallback(
-				(tile: DashboardSpecTile) => setCurrent((value) => duplicateSpecTile(value, tile.id)),
+				(tile: DashboardSpecTile) => setCurrent((prev) => duplicateSpecTile(prev, tile.id)),
 				[],
 			)
 
@@ -520,7 +520,7 @@ describe('DashboardTiles reading order', () => {
 			})
 
 			const duplicate = useCallback(
-				(tile: DashboardSpecTile) => setCurrent((value) => duplicateSpecTile(value, tile.id)),
+				(tile: DashboardSpecTile) => setCurrent((prev) => duplicateSpecTile(prev, tile.id)),
 				[],
 			)
 
@@ -582,7 +582,7 @@ describe('DashboardTiles reading order', () => {
 			const [current, setCurrent] = useState(initial)
 
 			const duplicate = useCallback(
-				(tile: DashboardSpecTile) => setCurrent((value) => duplicateSpecTile(value, tile.id)),
+				(tile: DashboardSpecTile) => setCurrent((prev) => duplicateSpecTile(prev, tile.id)),
 				[],
 			)
 

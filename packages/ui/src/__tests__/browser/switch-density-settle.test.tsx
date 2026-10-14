@@ -32,11 +32,11 @@ describe('the thumb of a checked switch under a change of density (real browser)
 
 	/** The gap from each inline edge of the track to the thumb. */
 	function gaps(track: HTMLElement, thumb: HTMLElement) {
-		const t = track.getBoundingClientRect()
+		const trackBox = track.getBoundingClientRect()
 
-		const h = thumb.getBoundingClientRect()
+		const thumbBox = thumb.getBoundingClientRect()
 
-		return { start: h.left - t.left, end: t.right - h.right }
+		return { start: thumbBox.left - trackBox.left, end: trackBox.right - thumbBox.right }
 	}
 
 	it('keeps the thumb at the end of the track on the frame of the change', () => {

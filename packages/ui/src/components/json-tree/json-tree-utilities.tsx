@@ -51,7 +51,7 @@ export function isBranch(value: JsonValue) {
 
 /** Branch entries as `[key, value]` pairs (array indices or object keys); leaves yield none. @internal */
 export function getEntries(value: JsonValue): [string | number, JsonValue][] {
-	if (Array.isArray(value)) return value.map((v, i) => [i, v])
+	if (Array.isArray(value)) return value.map((item, index) => [index, item])
 
 	if (typeof value === 'object' && value !== null) return Object.entries(value)
 
@@ -203,11 +203,11 @@ export function collectPaths(
 export function valueType(value: JsonValue): JsonValueType {
 	if (value === null) return 'null'
 
-	const t = typeof value
+	const type = typeof value
 
-	if (t === 'string') return 'string'
+	if (type === 'string') return 'string'
 
-	if (t === 'number') return 'number'
+	if (type === 'number') return 'number'
 
 	return 'boolean'
 }
@@ -290,7 +290,7 @@ export function flattenTree({
 	filter,
 	searchIndex,
 }: FlattenTreeOptions): FlatNode[] {
-	const out: FlatNode[] = []
+	const rows: FlatNode[] = []
 
 	function walk(
 		value: JsonValue,
@@ -304,7 +304,7 @@ export function flattenTree({
 		if (!isBranch(value)) {
 			if (filter && search && !highlighted) return
 
-			out.push({ type: 'leaf', path, keyName, value, depth, highlighted, ...position })
+			rows.push({ type: 'leaf', path, keyName, value, depth, highlighted, ...position })
 
 			return
 		}
@@ -316,7 +316,7 @@ export function flattenTree({
 
 		const count = entries.length
 
-		out.push({
+		rows.push({
 			type: 'branch-open',
 			path,
 			keyName,
@@ -338,12 +338,12 @@ export function flattenTree({
 			walk(childValue, childKey, childPath, depth + 1, { setSize: count, posInSet: index + 1 })
 		}
 
-		out.push({ type: 'branch-close', path, depth, value })
+		rows.push({ type: 'branch-close', path, depth, value })
 	}
 
 	walk(data, rootKey, encodePathSegment(rootKey ?? '$'), 0, { setSize: 1, posInSet: 1 })
 
-	return out
+	return rows
 }
 
 /**

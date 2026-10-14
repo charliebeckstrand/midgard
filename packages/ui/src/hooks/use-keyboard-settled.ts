@@ -17,7 +17,7 @@ function startSettlePoll(
 ): void {
 	const initialHeight = viewport.height
 
-	let lastHeight = initialHeight
+	let prevHeight = initialHeight
 
 	let heightChanged = false
 
@@ -28,17 +28,17 @@ function startSettlePoll(
 	const check = () => {
 		totalFrames++
 
-		const currentHeight = viewport.height
+		const height = viewport.height
 
-		if (!heightChanged && currentHeight !== initialHeight) heightChanged = true
+		if (!heightChanged && height !== initialHeight) heightChanged = true
 
-		if (currentHeight === lastHeight) {
+		if (height === prevHeight) {
 			// Only count stable frames after the keyboard has started moving.
 			if (heightChanged) stableFrames++
 		} else {
 			stableFrames = 0
 
-			lastHeight = currentHeight
+			prevHeight = height
 		}
 
 		if ((heightChanged && stableFrames >= 5) || totalFrames >= 60) {

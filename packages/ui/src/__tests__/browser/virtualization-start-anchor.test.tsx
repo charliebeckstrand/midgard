@@ -34,15 +34,15 @@ describe('useVirtualWindow start anchor (real browser)', () => {
 
 		const scrollRef = useRef<HTMLDivElement>(null)
 
-		const [ids, setIds] = useState(() => Array.from({ length: 200 }, (_, i) => i))
+		const [ids, setIds] = useState(() => Array.from({ length: 200 }, (_, index) => index))
 
-		handle.prepend = (next) => setIds((current) => [...next, ...current])
+		handle.prepend = (next) => setIds((prev) => [...next, ...prev])
 
 		handle.insertBefore = (id, next) =>
-			setIds((current) => {
-				const at = current.indexOf(id)
+			setIds((prev) => {
+				const at = prev.indexOf(id)
 
-				return [...current.slice(0, at), ...next, ...current.slice(at)]
+				return [...prev.slice(0, at), ...next, ...prev.slice(at)]
 			})
 
 		const getItemKey = useCallback((index: number) => ids[index] ?? index, [ids])
@@ -232,7 +232,7 @@ describe('useVirtualWindow start anchor (real browser)', () => {
 
 		// A hundred rows above the anchor. None of them has measured, and most
 		// differ from the estimate.
-		act(() => handle.prepend(Array.from({ length: 100 }, (_, i) => 1000 + i)))
+		act(() => handle.prepend(Array.from({ length: 100 }, (_, index) => 1000 + index)))
 
 		// The move sends its `scroll` event at the next frame. Under load, the timer
 		// can fire first, and it must not put the offset before the move back into

@@ -4,7 +4,7 @@ import { countMeaningful, cursorForCount, isDecimalDigit } from '../../utilities
 
 // Stand-in for a formatted-input predicate: digits, minus, and the decimal
 // separator count; grouping separators don't.
-const keep = (c: string) => /[\d.-]/.test(c)
+const keep = (char: string) => /[\d.-]/.test(char)
 
 describe('countMeaningful', () => {
 	it('counts meaningful characters up to a cursor', () => {
@@ -58,7 +58,8 @@ describe('cursorForCount', () => {
 describe('a position-aware keep', () => {
 	// A format that keeps a sign only at the start: a sign at index 0 counts,
 	// and a sign at a different index does not.
-	const leadingSign = (c: string, index: number) => /\d/.test(c) || (c === '-' && index === 0)
+	const leadingSign = (char: string, index: number) =>
+		/\d/.test(char) || (char === '-' && index === 0)
 
 	it.each([
 		[

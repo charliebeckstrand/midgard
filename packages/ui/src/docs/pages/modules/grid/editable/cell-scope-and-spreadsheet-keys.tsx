@@ -70,7 +70,7 @@ export default function CellScopeAndSpreadsheetKeys() {
 					scope: 'cell',
 					commitOn,
 					onCellChange: setEditingCell,
-					onCommit: (changes) => setPeople((current) => applyChanges(current, changes)),
+					onCommit: (changes) => setPeople((prev) => applyChanges(prev, changes)),
 				}}
 			/>
 		</>

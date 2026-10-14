@@ -194,12 +194,12 @@ describe('pieSlices', () => {
 })
 
 describe('pieCallouts', () => {
-	const OPTS = { cx: 100, cy: 100, radius: 60, top: 10, bottom: 190 }
+	const OPTIONS = { cx: 100, cy: 100, radius: 60, top: 10, bottom: 190 }
 
 	it('reads right-half labels from the start, left-half from the end', () => {
 		const two = pieSlices([50, 50], { cx: 100, cy: 100, radius: 60 })
 
-		const placed = new Map(pieCallouts(two, OPTS).map((callout) => [callout.index, callout]))
+		const placed = new Map(pieCallouts(two, OPTIONS).map((callout) => [callout.index, callout]))
 
 		expect(placed.get(0)?.anchor).toBe('start')
 
@@ -209,7 +209,7 @@ describe('pieCallouts', () => {
 	it('stacks crowded labels at least a line apart', () => {
 		const many = pieSlices([10, 9, 8, 7, 6, 5], { cx: 100, cy: 100, radius: 60 })
 
-		const ys = pieCallouts(many, OPTS)
+		const ys = pieCallouts(many, OPTIONS)
 			.filter((callout) => callout.anchor === 'start')
 			.map((callout) => callout.y)
 			.sort((a, b) => a - b)
@@ -287,7 +287,7 @@ describe('pieCallouts', () => {
 	})
 
 	it('routes a three-point leader with the label a constant gap past its nub', () => {
-		const [first] = pieCallouts(pieSlices([60, 40], { cx: 100, cy: 100, radius: 60 }), OPTS)
+		const [first] = pieCallouts(pieSlices([60, 40], { cx: 100, cy: 100, radius: 60 }), OPTIONS)
 
 		const points = first?.leader.split(' ') ?? []
 

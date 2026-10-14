@@ -136,7 +136,7 @@ const shard = inject('shard')
  * files in path order. The shards take the modules in turn, in path order, so
  * each machine divides them the same way.
  */
-function currentSkips(): Skips {
+function shardSkips(): Skips {
 	const modules: [file: string, source: string][] = []
 
 	walkSource(
@@ -167,7 +167,7 @@ function currentSkips(): Skips {
 describe('React Compiler skips', () => {
 	it('the compiler compiles each function that does not opt out', () => {
 		expect(
-			currentSkips(),
+			shardSkips(),
 			'Fix the skip. If you cannot, add a function-level `use no memo` with its reason, and list it in the opt-out boundary test',
 		).toEqual({})
 	})

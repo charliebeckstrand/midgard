@@ -48,17 +48,17 @@ describe('component filename boundary', () => {
 		listLeafFolders(root).flatMap((folder) => checkFolder(folder, basename(folder), root)),
 	)
 
-	const newViolations = violations.filter((v) => !ALLOWLIST.has(v.path))
+	const newViolations = violations.filter((violation) => !ALLOWLIST.has(violation.path))
 
-	const violationPaths = new Set(violations.map((v) => v.path))
+	const violationPaths = new Set(violations.map((violation) => violation.path))
 
-	const staleEntries = [...ALLOWLIST].filter((p) => !violationPaths.has(p))
+	const staleEntries = [...ALLOWLIST].filter((path) => !violationPaths.has(path))
 
 	it('every component file matches the filename convention', () => {
 		expect(
 			newViolations,
 			`filename violation(s) in packages/ui/src/{components,structure,primitives} — see CONVENTIONS.md §3.3:\n${newViolations
-				.map((v) => `  ${v.path}\n    ${v.reason}`)
+				.map((violation) => `  ${violation.path}\n    ${violation.reason}`)
 				.join('\n')}`,
 		).toEqual([])
 	})
@@ -67,7 +67,7 @@ describe('component filename boundary', () => {
 		expect(
 			staleEntries,
 			`stale allowlist entry/ies (file no longer exists or no longer violates) — remove them from ALLOWLIST:\n${staleEntries
-				.map((p) => `  ${p}`)
+				.map((path) => `  ${path}`)
 				.join('\n')}`,
 		).toEqual([])
 	})

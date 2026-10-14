@@ -172,6 +172,6 @@ describe('engine purity boundary · self-check', () => {
 			"import {\n\tuseMemo,\n} from 'react'\nimport { cn } from '../../core'\n",
 		)
 
-		expect(refs.map((r) => r.specifier)).toEqual(['react', '../../core'])
+		expect(refs.map((ref) => ref.specifier)).toEqual(['react', '../../core'])
 	})
 })

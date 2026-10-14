@@ -19,13 +19,13 @@ describe('createSlot', () => {
 
 		const { container } = renderUI(<Body className="bg-red">x</Body>)
 
-		const el = bySlot(container, 'card-body')
+		const body = bySlot(container, 'card-body')
 
-		expect(el?.className).toContain('p-4')
+		expect(body?.className).toContain('p-4')
 
-		expect(el?.className).toContain('rounded-md')
+		expect(body?.className).toContain('rounded-md')
 
-		expect(el?.className).toContain('bg-red')
+		expect(body?.className).toContain('bg-red')
 	})
 
 	it('lets caller className win tailwind conflicts (appended last)', () => {
@@ -33,11 +33,11 @@ describe('createSlot', () => {
 
 		const { container } = renderUI(<Body className="p-8">x</Body>)
 
-		const el = bySlot(container, 'card-body')
+		const body = bySlot(container, 'card-body')
 
-		expect(el?.className).toContain('p-8')
+		expect(body?.className).toContain('p-8')
 
-		expect(el?.className).not.toContain('p-4')
+		expect(body?.className).not.toContain('p-4')
 	})
 
 	it('renders children', () => {
@@ -57,13 +57,13 @@ describe('createSlot', () => {
 			</Body>,
 		)
 
-		const el = bySlot(container, 'card-body')
+		const body = bySlot(container, 'card-body')
 
-		expect(el).toHaveAttribute('id', 'my-body')
+		expect(body).toHaveAttribute('id', 'my-body')
 
-		expect(el).toHaveAttribute('aria-label', 'region')
+		expect(body).toHaveAttribute('aria-label', 'region')
 
-		expect(el).toHaveAttribute('data-testid', 'x')
+		expect(body).toHaveAttribute('data-testid', 'x')
 	})
 
 	it('sets displayName from the slot name', () => {
@@ -77,8 +77,8 @@ describe('createSlot', () => {
 
 		const { container } = renderUI(<Empty className="custom">x</Empty>)
 
-		const el = bySlot(container, 'tab-panels')
+		const panels = bySlot(container, 'tab-panels')
 
-		expect(el?.className).toContain('custom')
+		expect(panels?.className).toContain('custom')
 	})
 })

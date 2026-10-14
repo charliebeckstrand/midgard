@@ -242,8 +242,9 @@ export function DateInput({
 
 	// The rule of Input for its clear button. Any text counts, also a partial
 	// entry that has no complete `Date` yet.
-	const clearShown =
-		clearable && text !== '' && !(disabled ?? control?.disabled) && !(readOnly ?? control?.readOnly)
+	const locked = (disabled ?? control?.disabled) || (readOnly ?? control?.readOnly)
+
+	const clearShown = clearable && text !== '' && !locked
 
 	const commit = (next: string): Date | undefined => {
 		const parsed = parse(next)

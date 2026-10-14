@@ -22,7 +22,7 @@ describe('useVirtualWindow spanning row (real browser)', () => {
 
 		const [extra, setExtra] = useState<Record<number, number>>({})
 
-		handle.grow = (id, by) => setExtra((c) => ({ ...c, [id]: (c[id] ?? 0) + by }))
+		handle.grow = (id, by) => setExtra((prev) => ({ ...prev, [id]: (prev[id] ?? 0) + by }))
 
 		const getItemKey = useCallback((index: number) => index, [])
 
@@ -41,16 +41,16 @@ describe('useVirtualWindow spanning row (real browser)', () => {
 				style={{ height: 300, overflow: 'auto', overflowAnchor: 'none' }}
 			>
 				<div style={{ height: topSpacer }} />
-				{virtualItems.map((v) => (
+				{virtualItems.map((item) => (
 					<div
-						key={v.key}
+						key={item.key}
 						ref={measureRef}
-						data-index={v.index}
-						data-row={v.index}
-						style={{ height: ROW + (extra[v.index] ?? 0), position: 'relative' }}
+						data-index={item.index}
+						data-row={item.index}
+						style={{ height: ROW + (extra[item.index] ?? 0), position: 'relative' }}
 					>
-						<span data-mark={v.index} style={{ position: 'absolute', top: 150 }}>
-							mark {v.index}
+						<span data-mark={item.index} style={{ position: 'absolute', top: 150 }}>
+							mark {item.index}
 						</span>
 					</div>
 				))}

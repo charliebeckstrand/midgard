@@ -57,7 +57,7 @@ describe('useStableEvent', () => {
 		function Parent() {
 			const [tick, setTick] = useState(0)
 
-			bump = () => setTick((n) => n + 1)
+			bump = () => setTick((prev) => prev + 1)
 
 			const report = useStableEvent(() => {
 				seen.push(tick)
@@ -85,7 +85,7 @@ describe('useStableEvent', () => {
 		function Parent() {
 			const [tick, setTick] = useState(0)
 
-			bump = () => setTick((n) => n + 1)
+			bump = () => setTick((prev) => prev + 1)
 
 			const event = useStableEvent(() => {
 				seen.push(tick)

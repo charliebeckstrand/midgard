@@ -6,9 +6,9 @@ import { useGridColumns } from '../../modules/grid/use-grid-columns'
 type Row = { name: string; age: number; status: string }
 
 const columns: GridColumn<Row>[] = [
-	{ id: 'name', title: 'Name', cell: (r) => r.name },
-	{ id: 'age', title: 'Age', cell: (r) => r.age },
-	{ id: 'status', title: 'Status', cell: (r) => r.status },
+	{ id: 'name', title: 'Name', cell: (row) => row.name },
+	{ id: 'age', title: 'Age', cell: (row) => row.age },
+	{ id: 'status', title: 'Status', cell: (row) => row.status },
 ]
 
 describe('useGridColumns', () => {
@@ -104,9 +104,9 @@ describe('useGridColumns', () => {
 
 		const cols: GridColumn<Row>[] = [
 			{ id: 'select', selectable: true },
-			{ id: 'name', title: 'Name', cell: (r) => r.name },
-			{ id: 'age', title: 'Age', cell: (r) => r.age },
-			{ id: 'status', title: 'Status', cell: (r) => r.status },
+			{ id: 'name', title: 'Name', cell: (row) => row.name },
+			{ id: 'age', title: 'Age', cell: (row) => row.age },
+			{ id: 'status', title: 'Status', cell: (row) => row.status },
 		]
 
 		const { result } = renderHook(() =>
@@ -160,11 +160,11 @@ describe('useGridColumns', () => {
 	it('keeps selectable, actions, and pinned columns out of the hidden map even when listed as hidden', () => {
 		const cols: GridColumn<Row>[] = [
 			{ id: 'select', selectable: true },
-			{ id: 'name', title: 'Name', cell: (r) => r.name },
-			{ id: 'pinned-status', title: 'Status', cell: (r) => r.status, pinned: true },
+			{ id: 'name', title: 'Name', cell: (row) => row.name },
+			{ id: 'pinned-status', title: 'Status', cell: (row) => row.status, pinned: true },
 			{
 				id: 'actions',
-				actions: (r) => r.name,
+				actions: (row) => row.name,
 			},
 		]
 
@@ -185,10 +185,10 @@ describe('useGridColumns', () => {
 	it('excludes selectable and actions columns from managerItems', () => {
 		const cols: GridColumn<Row>[] = [
 			{ id: 'select', selectable: true },
-			{ id: 'name', title: 'Name', cell: (r) => r.name },
+			{ id: 'name', title: 'Name', cell: (row) => row.name },
 			{
 				id: 'actions',
-				actions: (r) => r.name,
+				actions: (row) => row.name,
 			},
 		]
 
@@ -202,7 +202,7 @@ describe('useGridColumns', () => {
 	})
 
 	it('defaults managerItems title to the id when no title is set', () => {
-		const cols: GridColumn<Row>[] = [{ id: 'name', cell: (r) => r.name }]
+		const cols: GridColumn<Row>[] = [{ id: 'name', cell: (row) => row.name }]
 
 		const { result } = renderHook(() =>
 			useGridColumns<Row>({ columns: cols, columnManagerConfig: {} }),
@@ -213,9 +213,9 @@ describe('useGridColumns', () => {
 
 	it('propagates the pin side, lock side, and hideable=false metadata onto managerItems', () => {
 		const cols: GridColumn<Row>[] = [
-			{ id: 'name', title: 'Name', cell: (r) => r.name, pinned: true },
-			{ id: 'age', title: 'Age', cell: (r) => r.age, hideable: false },
-			{ id: 'status', title: 'Status', cell: (r) => r.status, locked: 'right' },
+			{ id: 'name', title: 'Name', cell: (row) => row.name, pinned: true },
+			{ id: 'age', title: 'Age', cell: (row) => row.age, hideable: false },
+			{ id: 'status', title: 'Status', cell: (row) => row.status, locked: 'right' },
 		]
 
 		const { result } = renderHook(() =>
@@ -243,9 +243,9 @@ describe('useGridColumns', () => {
 
 	it('keeps a locked column out of the hidden map and holds it in place on reorder', () => {
 		const cols: GridColumn<Row>[] = [
-			{ id: 'name', title: 'Name', cell: (r) => r.name, locked: 'left' },
-			{ id: 'age', title: 'Age', cell: (r) => r.age },
-			{ id: 'status', title: 'Status', cell: (r) => r.status },
+			{ id: 'name', title: 'Name', cell: (row) => row.name, locked: 'left' },
+			{ id: 'age', title: 'Age', cell: (row) => row.age },
+			{ id: 'status', title: 'Status', cell: (row) => row.status },
 		]
 
 		const onValueChange = vi.fn()

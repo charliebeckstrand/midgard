@@ -59,14 +59,14 @@ function useEmptyResults(list: HTMLElement | null, onChange: () => void): boolea
 
 		// A write of the same value still costs a render of the palette while a
 		// deferred render is pending, so the probe writes only a change.
-		let last: boolean | undefined
+		let prev: boolean | undefined
 
 		const measure = () => {
 			const next = list.querySelector(RESULT_SELECTOR) === null
 
-			if (next === last) return
+			if (next === prev) return
 
-			last = next
+			prev = next
 
 			setEmpty(next)
 		}

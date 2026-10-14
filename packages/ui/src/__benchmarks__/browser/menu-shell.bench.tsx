@@ -258,7 +258,7 @@ const WATCH_ROWS = [24, 64] as const
 function Rows({ count, watched }: { count: number; watched: boolean }) {
 	const scrollOverflowRef = useScrollOverflow()
 
-	const children = Array.from({ length: count }, (_, row) => `Option ${row}`).map((label) => (
+	const children = Array.from({ length: count }, (_, index) => `Option ${index}`).map((label) => (
 		<div key={label} className="px-3 py-1.5">
 			{label}
 		</div>

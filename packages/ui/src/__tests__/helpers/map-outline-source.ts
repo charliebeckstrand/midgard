@@ -126,16 +126,16 @@ function area(ring: Point[]): number {
 function ringPath(ring: Point[]): string {
 	const [first, ...rest] = ring as [Point, ...Point[]]
 
-	let previous = first
+	let prev = first
 
 	let steps = ''
 
 	for (const point of rest) {
-		for (const delta of [point[0] - previous[0], point[1] - previous[1]]) {
+		for (const delta of [point[0] - prev[0], point[1] - prev[1]]) {
 			steps += `${steps === '' || delta < 0 ? '' : ' '}${delta}`
 		}
 
-		previous = point
+		prev = point
 	}
 
 	return `M${first[0]} ${first[1]}l${steps}z`

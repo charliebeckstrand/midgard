@@ -15,7 +15,10 @@ describe('grid virtualized row height (real browser)', () => {
 
 	const columns: GridColumn<Row>[] = [{ id: 'name', title: 'Name', cell: (row) => row.name }]
 
-	const rows: Row[] = Array.from({ length: 300 }, (_, i) => ({ id: i + 1, name: `Name ${i + 1}` }))
+	const rows: Row[] = Array.from({ length: 300 }, (_, index) => ({
+		id: index + 1,
+		name: `Name ${index + 1}`,
+	}))
 
 	/** Renders a windowed grid at `size`, and returns its body once rows render. */
 	async function windowAt(size: ScaleStep<typeof scale>) {

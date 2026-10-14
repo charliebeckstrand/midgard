@@ -60,10 +60,10 @@ describe('useScrollLock', () => {
 
 	it('compensates for the scrollbar width and restores it on release', () => {
 		// Patch dimensions to simulate a 15px vertical scrollbar (jsdom has no layout).
-		const docEl = document.documentElement
+		const root = document.documentElement
 
 		const patch = (key: 'scrollHeight' | 'clientHeight' | 'clientWidth', value: number) =>
-			Object.defineProperty(docEl, key, { configurable: true, value })
+			Object.defineProperty(root, key, { configurable: true, value })
 
 		patch('scrollHeight', 2000)
 

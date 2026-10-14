@@ -62,7 +62,7 @@ export function useTagInput({
 		value,
 		defaultValue: defaultValue ?? [],
 		// A tag list's empty state is `[]`, so a cleared value reports as one.
-		onValueChange: onValueChange && ((v) => onValueChange(v ?? [])),
+		onValueChange: onValueChange && ((next) => onValueChange(next ?? [])),
 	})
 
 	const tags = current ?? []

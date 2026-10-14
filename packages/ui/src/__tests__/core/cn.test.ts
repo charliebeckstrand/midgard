@@ -222,12 +222,12 @@ describe('cn', () => {
 		// Each utility of the table merges with its plain class in each order, so a
 		// new entry merges with no other change.
 		it.each(Object.keys(utilityTable))('merges density-%s with its plain class', (name) => {
-			const [plain, stepped] =
-				name === 'text'
-					? ['text-sm', 'density-text-[sm,base,lg]']
-					: name === 'rounded'
-						? ['rounded-sm', 'density-rounded-[sm,md,lg]']
-						: [`${name}-1`, `density-${name}-[1,2,3]`]
+			const named = new Map<string, [string, string]>([
+				['text', ['text-sm', 'density-text-[sm,base,lg]']],
+				['rounded', ['rounded-sm', 'density-rounded-[sm,md,lg]']],
+			])
+
+			const [plain, stepped] = named.get(name) ?? [`${name}-1`, `density-${name}-[1,2,3]`]
 
 			expect(cn(plain, stepped)).toBe(stepped)
 

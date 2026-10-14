@@ -70,9 +70,9 @@ describe('readSchedule', () => {
 
 describe('readGames', () => {
 	it('reads a final game with its winner', () => {
-		const [read] = readGames({ events: [event('post', 'home')] })
+		const [game] = readGames({ events: [event('post', 'home')] })
 
-		expect(read).toMatchObject({
+		expect(game).toMatchObject({
 			id: '401',
 			state: 'final',
 			home: { id: '12', score: 24, winner: true, logo: 'https://logo/12.png' },
@@ -81,10 +81,10 @@ describe('readGames', () => {
 	})
 
 	it('gives no winner before the game is over', () => {
-		const [read] = readGames({ events: [event('in', 'home')] })
+		const [game] = readGames({ events: [event('in', 'home')] })
 
-		expect(read?.state).toBe('live')
-		expect(read?.home.winner).toBe(false)
+		expect(game?.state).toBe('live')
+		expect(game?.home.winner).toBe(false)
 	})
 
 	it('gives no score before kickoff, where the feed gives 0', () => {
@@ -94,18 +94,18 @@ describe('readGames', () => {
 			entry.score = '0'
 		})
 
-		const [read] = readGames(body)
+		const [game] = readGames(body)
 
-		expect(read?.state).toBe('scheduled')
-		expect(read?.home.score).toBeNull()
-		expect(read?.away.score).toBeNull()
+		expect(game?.state).toBe('scheduled')
+		expect(game?.home.score).toBeNull()
+		expect(game?.away.score).toBeNull()
 	})
 
 	it('reads a postponed or a canceled game, which the feed gives as over, without a score', () => {
 		const states = ['STATUS_POSTPONED', 'STATUS_CANCELED'].map((name) => {
-			const [read] = readGames({ events: [event('post', 'home', name)] })
+			const [game] = readGames({ events: [event('post', 'home', name)] })
 
-			return [read?.state, read?.home.score, read?.home.winner]
+			return [game?.state, game?.home.score, game?.home.winner]
 		})
 
 		expect(states).toEqual([

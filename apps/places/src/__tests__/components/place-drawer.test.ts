@@ -46,7 +46,7 @@ function crumbs(group: readonly Place[], step: PlacePanelStep) {
 	)
 }
 
-describe('drawerPlace', () => {
+describe('drawerItem', () => {
 	// A reload reads the step back from the address, so the panel paints on the
 	// place the reader went into and not on the list it was opened from.
 	it('shows the place of a group that the step opened', () => {

@@ -33,7 +33,7 @@ export function ColorEyedropper({ className }: { className?: string }) {
 
 	if (!EyeDropper) return null
 
-	const onPick = async () => {
+	const handlePick = async () => {
 		try {
 			const { sRGBHex } = await new EyeDropper().open()
 
@@ -51,7 +51,7 @@ export function ColorEyedropper({ className }: { className?: string }) {
 			variant="bare"
 			data-slot="color-eyedropper"
 			aria-label="Pick color from screen"
-			onClick={onPick}
+			onClick={handlePick}
 			className={className}
 		>
 			<Icon icon={<Pipette />} />

@@ -43,9 +43,7 @@ export default function BulkEdit() {
 	const [open, setOpen] = useState(false)
 
 	const apply = (patch: Rates) => {
-		setRates((current) =>
-			current.map((row) => (selection.has(row.id) ? { ...row, ...patch } : row)),
-		)
+		setRates((prev) => prev.map((row) => (selection.has(row.id) ? { ...row, ...patch } : row)))
 
 		setOpen(false)
 	}

@@ -66,8 +66,8 @@ function bucketAriaIds(
 
 		const target = slots?.[key] === 'labelledby' ? labelledby : describedby
 
-		for (const [idValue, count] of Object.entries(slotCounts)) {
-			if (count > 0) target.push(idValue)
+		for (const [id, count] of Object.entries(slotCounts)) {
+			if (count > 0) target.push(id)
 		}
 	}
 

@@ -4,7 +4,7 @@ import { present, renderUI, screen } from '../helpers'
 
 type Row = { lane: string; carrier: string; cost: number }
 
-const data: Row[] = [
+const rows: Row[] = [
 	{ lane: 'LAX → DFW', carrier: 'Acme', cost: 1200 },
 	{ lane: 'LAX → DFW', carrier: 'Swift', cost: 900 },
 	{ lane: 'ORD → ATL', carrier: 'Acme', cost: 400 },
@@ -25,7 +25,7 @@ describe('PivotTable cells (real browser)', () => {
 		renderUI(
 			<div dir="rtl">
 				<PivotTable
-					rows={data}
+					rows={rows}
 					keys={{ row: 'lane', column: 'carrier', value: 'cost' }}
 					rowHeader="Lane"
 					totals="both"
@@ -41,7 +41,7 @@ describe('PivotTable cells (real browser)', () => {
 	it('keeps each row header on one line', () => {
 		renderUI(
 			<PivotTable
-				rows={data}
+				rows={rows}
 				keys={{ row: 'lane', column: 'carrier', value: 'cost' }}
 				rowHeader="Lane"
 				totals="both"

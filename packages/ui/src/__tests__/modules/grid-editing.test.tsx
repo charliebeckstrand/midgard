@@ -575,15 +575,15 @@ describe('Grid per-row editing', () => {
 						...sessionColumns,
 						{
 							id: 'actions',
-							actions: (_row, ctx) => (
+							actions: (_row, context) => (
 								<>
-									<button type="button" onClick={ctx.save}>
+									<button type="button" onClick={context.save}>
 										save-row
 									</button>
-									<button type="button" onClick={ctx.discard}>
+									<button type="button" onClick={context.discard}>
 										discard-row
 									</button>
-									<span data-slot="editing-flag">{String(ctx.editing)}</span>
+									<span data-slot="editing-flag">{String(context.editing)}</span>
 								</>
 							),
 						},
@@ -625,8 +625,8 @@ describe('Grid per-row editing', () => {
 						...sessionColumns,
 						{
 							id: 'actions',
-							actions: (_row, ctx) => (
-								<button type="button" onClick={ctx.save}>
+							actions: (_row, context) => (
+								<button type="button" onClick={context.save}>
 									save-row
 								</button>
 							),
@@ -662,8 +662,8 @@ describe('Grid per-row editing', () => {
 						...sessionColumns,
 						{
 							id: 'actions',
-							actions: (_row, ctx) => (
-								<button type="button" onClick={ctx.save}>
+							actions: (_row, context) => (
+								<button type="button" onClick={context.save}>
 									save-a
 								</button>
 							),
@@ -732,7 +732,9 @@ describe('Grid per-row editing', () => {
 					...sessionColumns,
 					{
 						id: 'actions',
-						actions: (_row, ctx) => <span data-slot="editing-flag">{String(ctx.editing)}</span>,
+						actions: (_row, context) => (
+							<span data-slot="editing-flag">{String(context.editing)}</span>
+						),
 					},
 				]}
 				rows={sessionRows}
@@ -3627,8 +3629,8 @@ describe('Grid session-owned drafts', () => {
 							...sessionColumns,
 							{
 								id: 'actions',
-								actions: (_row, ctx) => (
-									<button type="button" onClick={ctx.discard}>
+								actions: (_row, context) => (
+									<button type="button" onClick={context.discard}>
 										discard-row
 									</button>
 								),
@@ -3761,15 +3763,17 @@ describe('Grid async commit', () => {
 
 			let fail: (reason: unknown) => void = () => {}
 
-			const promise = new Promise<GridCellRefusal[] | undefined>((res, rej) => {
-				resolve = res
+			const promise = new Promise<GridCellRefusal[] | undefined>((fulfill, reject) => {
+				resolve = fulfill
 
-				fail = rej
+				fail = reject
 			})
 
 			const refuse = async (refusals: GridCellRefusal[]) => {
 				const refused = (change: GridCellChange) =>
-					refusals.some((r) => r.rowKey === change.rowKey && r.columnId === change.columnId)
+					refusals.some(
+						(refusal) => refusal.rowKey === change.rowKey && refusal.columnId === change.columnId,
+					)
 
 				await act(async () => {
 					setRows((rows) =>
@@ -4873,8 +4877,8 @@ describe('Grid new row', () => {
 
 			const onRowAdd = vi.fn(
 				() =>
-					new Promise<void>((res) => {
-						resolve = res
+					new Promise<void>((fulfill) => {
+						resolve = fulfill
 					}),
 			)
 
@@ -5075,10 +5079,10 @@ describe('Grid new row', () => {
 
 			const onRowAdd = vi.fn(
 				(_values: Record<string, unknown>) =>
-					new Promise<GridCellRefusal[] | undefined>((res, rej) => {
-						resolve = res
+					new Promise<GridCellRefusal[] | undefined>((fulfill, fail) => {
+						resolve = fulfill
 
-						reject = rej
+						reject = fail
 					}),
 			)
 
@@ -5918,14 +5922,14 @@ describe('Grid undo and redo (history)', () => {
 				fireEvent.keyDown(input, { key: 'F2' })
 			},
 			step: (step: 'undo' | 'redo') => {
-				const current = handle.current
+				const grid = handle.current
 
-				if (!current) throw new Error('The grid handle is not set.')
+				if (!grid) throw new Error('The grid handle is not set.')
 
 				let wrote = false
 
 				act(() => {
-					wrote = current[step]()
+					wrote = grid[step]()
 				})
 
 				return wrote

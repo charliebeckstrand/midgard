@@ -51,10 +51,10 @@ describe('grid group rail in a right-to-left grid (real browser)', () => {
 })
 
 describe('grid toolbar and footer layout in a right-to-left grid (real browser)', () => {
-	const rows: Sale[] = Array.from({ length: 30 }, (_, i) => ({
-		id: i + 1,
-		region: i % 2 ? 'West' : 'East',
-		units: i,
+	const rows: Sale[] = Array.from({ length: 30 }, (_, index) => ({
+		id: index + 1,
+		region: index % 2 ? 'West' : 'East',
+		units: index,
 	}))
 
 	/** The distance from the inline end of `box` to the inline end of `row`: the physical left. */

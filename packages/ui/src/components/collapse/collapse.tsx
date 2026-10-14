@@ -74,19 +74,19 @@ export function Collapse({
 	open: openProp,
 	onOpenChange,
 	onOpenComplete,
-	animate: animateProp = 'fade',
+	animate = 'fade',
 	mount = 'active',
 	children,
 	className,
 	...props
 }: CollapseProps) {
-	const [open, setCurrentOpen] = useControllableFlag({
+	const [open, setOpen] = useControllableFlag({
 		value: openProp,
 		defaultValue: defaultOpen,
 		onValueChange: onOpenChange,
 	})
 
-	const toggle = useCallback(() => setCurrentOpen(!open), [open, setCurrentOpen])
+	const toggle = useCallback(() => setOpen(!open), [open, setOpen])
 
 	const { triggerProps, panelProps } = useA11yDisclosure({ expanded: open })
 
@@ -101,13 +101,13 @@ export function Collapse({
 		() => ({
 			open,
 			toggle,
-			animate: animateProp,
+			animate,
 			mount,
 			onOpenComplete: reportOpenComplete,
 			triggerProps,
 			panelProps,
 		}),
-		[open, toggle, animateProp, mount, reportOpenComplete, triggerProps, panelProps],
+		[open, toggle, animate, mount, reportOpenComplete, triggerProps, panelProps],
 	)
 
 	return (

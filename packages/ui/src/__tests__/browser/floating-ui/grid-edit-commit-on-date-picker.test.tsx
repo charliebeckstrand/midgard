@@ -21,7 +21,7 @@ describe('grid commit on leave vs a date picker slot (real floating engine)', ()
 			id: 'due',
 			title: 'Due',
 			field: 'due',
-			cell: (r) => r.due,
+			cell: (row) => row.due,
 			editCell: ({ value, onValueUpdate, ariaLabel }) => (
 				<DatePicker
 					input
@@ -49,7 +49,7 @@ describe('grid commit on leave vs a date picker slot (real floating engine)', ()
 				<Grid
 					columns={columns}
 					rows={rows}
-					getKey={(r) => r.id}
+					getKey={(row) => row.id}
 					editable={{ session: 'managed', scope: 'cell', commitOn: 'leaveEditor', onCommit }}
 				/>
 			</>,

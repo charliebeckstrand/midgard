@@ -49,7 +49,7 @@ function filterForcesClosed(
  *
  * @internal
  */
-function resolveNodeOpen(opts: {
+function resolveNodeOpen(options: {
 	collapsible: boolean
 	controlled: boolean
 	expandedHas: boolean
@@ -61,17 +61,17 @@ function resolveNodeOpen(opts: {
 	depth: number
 	defaultExpandDepth: number
 }): boolean {
-	if (!opts.collapsible) return true
+	if (!options.collapsible) return true
 
-	if (opts.controlled) return opts.expandedHas
+	if (options.controlled) return options.expandedHas
 
-	if (filterForcesClosed(opts.search, opts.filter, opts.empty)) return false
+	if (filterForcesClosed(options.search, options.filter, options.empty)) return false
 
-	if (opts.userOpen !== undefined) return opts.userOpen
+	if (options.userOpen !== undefined) return options.userOpen
 
-	if (opts.search && opts.hasMatch && !opts.empty) return true
+	if (options.search && options.hasMatch && !options.empty) return true
 
-	return opts.depth < opts.defaultExpandDepth
+	return options.depth < options.defaultExpandDepth
 }
 
 /**
@@ -185,7 +185,7 @@ function JsonTreeNodeView({ keyName, value }: JsonNodeProps) {
 		)
 	}
 
-	const toggle = () => {
+	const handleToggle = () => {
 		if (controlled) {
 			// No local state here: it would surface as a surprise jump if the
 			// consumer later dropped `expanded`.
@@ -214,7 +214,7 @@ function JsonTreeNodeView({ keyName, value }: JsonNodeProps) {
 				highlighted={highlighted}
 				groupId={groupId}
 				collapsible={collapsible}
-				onToggle={toggle}
+				onToggle={handleToggle}
 			/>
 			<ReducedMotion>
 				<AnimatePresence initial={false}>

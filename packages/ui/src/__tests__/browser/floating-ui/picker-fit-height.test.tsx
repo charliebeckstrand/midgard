@@ -74,9 +74,9 @@ describe('a picker panel in a short viewport (real floating engine)', () => {
 		renderUI(
 			<Centered>
 				<Listbox aria-label="pick">
-					{values.map((v) => (
-						<ListboxOption key={v} value={v}>
-							{v}
+					{values.map((value) => (
+						<ListboxOption key={value} value={value}>
+							{value}
 						</ListboxOption>
 					))}
 				</Listbox>
@@ -97,10 +97,10 @@ describe('a picker panel in a short viewport (real floating engine)', () => {
 	it('keeps a Combobox panel on screen', async () => {
 		renderUI(
 			<Centered>
-				<Combobox<string> displayValue={(v) => v} placeholder="Search">
-					{values.map((v) => (
-						<ComboboxOption key={v} value={v}>
-							<ComboboxLabel>{v}</ComboboxLabel>
+				<Combobox<string> displayValue={(value) => value} placeholder="Search">
+					{values.map((value) => (
+						<ComboboxOption key={value} value={value}>
+							<ComboboxLabel>{value}</ComboboxLabel>
 						</ComboboxOption>
 					))}
 				</Combobox>

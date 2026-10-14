@@ -177,14 +177,14 @@ export function rowLookup<T>(
 		if (!scanned) {
 			scanned = true
 
-			return source.rows.find((row, at) => source.getKey(row, at) === rowKey)
+			return source.rows.find((row, index) => source.getKey(row, index) === rowKey)
 		}
 
 		if (index === undefined) {
 			const built = new Map<string | number, T>()
 
-			source.rows.forEach((row, at) => {
-				const key = source.getKey(row, at)
+			source.rows.forEach((row, index) => {
+				const key = source.getKey(row, index)
 
 				if (!built.has(key)) built.set(key, row)
 			})

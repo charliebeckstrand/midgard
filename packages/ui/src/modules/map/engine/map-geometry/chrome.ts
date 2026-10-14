@@ -53,7 +53,6 @@ export const EMPTY_CHROME: MapChromePaths = { graticule: null, frame: null }
 /** The globe itself: the shape a projection outlines its own edge from. @internal */
 const SPHERE: GeoGeometryObjects = { type: 'Sphere' }
 
-/** A drawn `d`, or `null` where the projection drew none of the shape. */
 /** The projection, with its output carried through `frame`. */
 function framed(projection: GeoProjection, { x, y, k }: MapTransform): GeoStreamWrapper {
 	const carry = geoTransform({
@@ -65,6 +64,7 @@ function framed(projection: GeoProjection, { x, y, k }: MapTransform): GeoStream
 	return { stream: (sink) => projection.stream(carry.stream(sink)) }
 }
 
+/** A drawn `d`, or `null` where the projection drew none of the shape. */
 function drawn(d: string | null): string | null {
 	return d || null
 }

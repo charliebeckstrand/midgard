@@ -59,12 +59,12 @@ export function resolveVirtualization(virtualize: GridVirtualize | undefined): {
 } {
 	const enabled = virtualize != null && virtualize !== false
 
-	const opts = typeof virtualize === 'object' ? virtualize : null
+	const options = typeof virtualize === 'object' ? virtualize : null
 
 	return {
 		enabled,
-		estimateSize: opts?.estimateSize,
-		overscan: opts?.overscan ?? DEFAULT_OVERSCAN,
+		estimateSize: options?.estimateSize,
+		overscan: options?.overscan ?? DEFAULT_OVERSCAN,
 	}
 }
 
@@ -219,6 +219,11 @@ export function resolveTableProps(args: {
 
 	const gridRole = role === 'grid' || role === 'treegrid'
 
+	const unnamed =
+		gridRole &&
+		args.tableProps?.['aria-label'] == null &&
+		args.tableProps?.['aria-labelledby'] == null
+
 	return {
 		...args.tableProps,
 		...args.navTableProps,
@@ -236,11 +241,7 @@ export function resolveTableProps(args: {
 		...(role ? { role } : {}),
 		// A `role="grid"` needs an accessible name (WCAG 1.3.1 / 4.1.2); default one
 		// when the caller named the grid through neither `tableProps` escape hatch.
-		...(gridRole &&
-		args.tableProps?.['aria-label'] == null &&
-		args.tableProps?.['aria-labelledby'] == null
-			? { 'aria-label': 'Data grid' }
-			: {}),
+		...(unnamed ? { 'aria-label': 'Data grid' } : {}),
 		// `aria-multiselectable` is a grid-only state; a windowed `role="table"` or a
 		// native table conveys selection through each row's `aria-selected` alone.
 		...(args.multiSelectable && gridRole ? { 'aria-multiselectable': true } : {}),

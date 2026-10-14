@@ -6,8 +6,8 @@ describe('AuthLayout', () => {
 	it('renders a main element', () => {
 		const { container } = renderUI(<AuthLayout>content</AuthLayout>)
 
-		const el = container.querySelector('main')
+		const main = container.querySelector('main')
 
-		expect(el).toBeInTheDocument()
+		expect(main).toBeInTheDocument()
 	})
 })

@@ -372,9 +372,9 @@ describe('DashboardTiles actions', () => {
 		const [spec, setSpec] = useState(SPEC)
 
 		const update = useCallback(
-			(change: (current: DashboardSpec) => DashboardSpec) =>
-				setSpec((current) => {
-					const next = change(current)
+			(change: (prev: DashboardSpec) => DashboardSpec) =>
+				setSpec((prev) => {
+					const next = change(prev)
 
 					onSpec(next)
 
@@ -384,12 +384,12 @@ describe('DashboardTiles actions', () => {
 		)
 
 		const remove = useCallback(
-			(tile: DashboardSpecTile) => update((current) => removeSpecTile(current, tile.id)),
+			(tile: DashboardSpecTile) => update((prev) => removeSpecTile(prev, tile.id)),
 			[update],
 		)
 
 		const duplicate = useCallback(
-			(tile: DashboardSpecTile) => update((current) => duplicateSpecTile(current, tile.id)),
+			(tile: DashboardSpecTile) => update((prev) => duplicateSpecTile(prev, tile.id)),
 			[update],
 		)
 

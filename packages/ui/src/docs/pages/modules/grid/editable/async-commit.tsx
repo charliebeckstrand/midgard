@@ -35,7 +35,7 @@ export default function AsyncCommit() {
 				!refused.some((cell) => cell.rowKey === change.rowKey && cell.columnId === change.columnId),
 		)
 
-		setPeople((current) => applyChanges(current, accepted))
+		setPeople((prev) => applyChanges(prev, accepted))
 
 		return refused
 	}

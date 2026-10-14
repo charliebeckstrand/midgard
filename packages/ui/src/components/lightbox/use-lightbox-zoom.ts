@@ -193,13 +193,13 @@ export function useLightboxZoom(trackRef: RefObject<HTMLElement | null>): Lightb
 	return {
 		zoomed: () => view.current.scale > 1,
 		hold: () => {
-			const current = measure()
+			const measured = measure()
 
-			if (!current) return
+			if (!measured) return
 
-			stop(current.photo)
+			stop(measured.photo)
 
-			base.current = { view: view.current, measure: current }
+			base.current = { view: view.current, measure: measured }
 		},
 		pinch: (from, to) => {
 			const held = base.current
@@ -216,17 +216,9 @@ export function useLightboxZoom(trackRef: RefObject<HTMLElement | null>): Lightb
 
 			const local = (point: LightboxPoint) => ({ x: point.x - stage.x, y: point.y - stage.y })
 
-			paint(
-				photo,
-				zoomView(
-					held.view,
-					local(start.center),
-					local(now.center),
-					(held.view.scale * now.gap) / start.gap,
-					box,
-					stage,
-				),
-			)
+			const scale = (held.view.scale * now.gap) / start.gap
+
+			paint(photo, zoomView(held.view, local(start.center), local(now.center), scale, box, stage))
 		},
 		pan: (dx, dy) => {
 			const held = base.current
@@ -249,11 +241,11 @@ export function useLightboxZoom(trackRef: RefObject<HTMLElement | null>): Lightb
 			tween(photo, constrainView(view.current, box, stage))
 		},
 		toggle: (point) => {
-			const current = measure()
+			const measured = measure()
 
-			if (!current) return
+			if (!measured) return
 
-			const { photo, box, stage } = current
+			const { photo, box, stage } = measured
 
 			if (view.current.scale > 1) {
 				tween(photo, REST_VIEW)
@@ -266,22 +258,22 @@ export function useLightboxZoom(trackRef: RefObject<HTMLElement | null>): Lightb
 			tween(photo, zoomView(REST_VIEW, at, at, ZOOM_DOUBLE_TAP, box, stage))
 		},
 		zoomBy: (factor) => {
-			const current = measure()
+			const measured = measure()
 
-			if (!current) return
+			if (!measured) return
 
-			const { photo, box, stage } = current
+			const { photo, box, stage } = measured
 
 			const center = { x: stage.width / 2, y: stage.height / 2 }
 
 			tween(photo, zoomView(view.current, center, center, view.current.scale * factor, box, stage))
 		},
 		move: (dx, dy) => {
-			const current = measure()
+			const measured = measure()
 
-			if (!current || view.current.scale <= 1) return
+			if (!measured || view.current.scale <= 1) return
 
-			const { photo, box, stage } = current
+			const { photo, box, stage } = measured
 
 			const { x, y, scale } = view.current
 

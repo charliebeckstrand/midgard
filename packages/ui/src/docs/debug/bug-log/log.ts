@@ -126,6 +126,10 @@ export class BugLog extends Journal<Report> {
 
 		const focus = this.focus?.deref()
 
+		const pointerKind = matchMedia('(pointer: coarse)').matches ? 'coarse' : 'fine'
+
+		const offline = navigator.onLine ? '' : ', offline'
+
 		return {
 			// The reports are in the order of their ids.
 			id: (this.entries.at(-1)?.id ?? 0) + 1,
@@ -137,7 +141,7 @@ export class BugLog extends Journal<Report> {
 			at: new Date().toISOString(),
 			page: location.pathname + location.search + location.hash,
 			build: BUILD,
-			device: `${navigator.userAgent}, dpr ${devicePixelRatio}, ${matchMedia('(pointer: coarse)').matches ? 'coarse' : 'fine'} pointer${navigator.onLine ? '' : ', offline'}`,
+			device: `${navigator.userAgent}, dpr ${devicePixelRatio}, ${pointerKind} pointer${offline}`,
 			root: Array.from(document.documentElement.attributes, ({ name, value }) =>
 				value ? `${name}="${value}"` : name,
 			).join(' '),
@@ -163,17 +167,17 @@ function hashOf(text: string): string {
  * Where an element is: its name and the name of each ancestor with a slot,
  * its box, and the scroll position of its scroll container.
  */
-function place(element: Element): string {
-	const names = [describe(element)]
+function place(el: Element): string {
+	const names = [describe(el)]
 
-	for (let parent = element.parentElement; parent; parent = parent.parentElement)
-		if (parent.hasAttribute('data-slot')) names.unshift(describe(parent))
+	for (let ancestor = el.parentElement; ancestor; ancestor = ancestor.parentElement)
+		if (ancestor.hasAttribute('data-slot')) names.unshift(describe(ancestor))
 
-	const { x, y, width, height } = element.getBoundingClientRect()
+	const { x, y, width, height } = el.getBoundingClientRect()
 
 	const box = [x, y, width, height].map(Math.round)
 
-	const scroller = findScrollableAncestor(element.parentElement)
+	const scroller = findScrollableAncestor(el.parentElement)
 
 	const scroll = scroller
 		? `, in ${describe(scroller)} scrolled ${Math.round(scroller.scrollLeft)},${Math.round(scroller.scrollTop)}`

@@ -12,7 +12,7 @@ export default function UploadProgress() {
 	useEffect(() => {
 		if (!file || progress >= 100) return
 
-		const timer = setTimeout(() => setProgress((value) => Math.min(value + 10, 100)), 300)
+		const timer = setTimeout(() => setProgress((prev) => Math.min(prev + 10, 100)), 300)
 
 		return () => clearTimeout(timer)
 	}, [file, progress])

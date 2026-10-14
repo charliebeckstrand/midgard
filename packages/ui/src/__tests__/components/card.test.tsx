@@ -205,12 +205,12 @@ describe('Card size system', () => {
 			</Card>,
 		)
 
-		const cls = bySlot(container, 'card')?.className ?? ''
+		const className = bySlot(container, 'card')?.className ?? ''
 
 		// Frame padding survives — no `:has` collapse zeroes it.
-		expect(cls).toContain('density-p-[1,2,3,4,5]')
+		expect(className).toContain('density-p-[1,2,3,4,5]')
 
-		expect(cls).not.toContain(':p-0')
+		expect(className).not.toContain(':p-0')
 
 		// The body leans on the frame; it brings no padding of its own.
 		expect(bySlot(container, 'card-body')?.className ?? '').not.toMatch(/\bp-\d/)

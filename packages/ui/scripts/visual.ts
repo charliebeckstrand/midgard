@@ -104,9 +104,9 @@ try {
 
 	if (unknown.length) throw new Error(`visual: no fixture sheet has the id ${unknown.join(', ')}.`)
 
-	for (const { density, theme } of densities.flatMap((density) =>
-		THEMES.map((theme) => ({ density, theme })),
-	)) {
+	const passes = densities.flatMap((density) => THEMES.map((theme) => ({ density, theme })))
+
+	for (const { density, theme } of passes) {
 		// The sheets follow the color scheme of the system, so the scheme of the
 		// context sets the theme. Reduced motion lets each animation end before the
 		// capture.

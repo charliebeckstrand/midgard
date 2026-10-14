@@ -23,9 +23,9 @@ type Dimensions = {
 
 /** Pins the container and text widths the hook compares, and returns the undo. */
 function mockLayout({ containerWidth, textWidth }: Dimensions) {
-	const originalGetBCR = Element.prototype.getBoundingClientRect
+	const prevGetElementRect = Element.prototype.getBoundingClientRect
 
-	const originalRangeGetBCR = Range.prototype.getBoundingClientRect
+	const prevGetRangeRect = Range.prototype.getBoundingClientRect
 
 	const rect = (width: number): DOMRect =>
 		({
@@ -47,13 +47,13 @@ function mockLayout({ containerWidth, textWidth }: Dimensions) {
 	Range.prototype.getBoundingClientRect = () => rect(textWidth)
 
 	return () => {
-		Element.prototype.getBoundingClientRect = originalGetBCR
+		Element.prototype.getBoundingClientRect = prevGetElementRect
 
-		Range.prototype.getBoundingClientRect = originalRangeGetBCR
+		Range.prototype.getBoundingClientRect = prevGetRangeRect
 	}
 }
 
-function Probe({ text, onResult }: { text: string; onResult: (v: boolean) => void }) {
+function Probe({ text, onResult }: { text: string; onResult: (truncated: boolean) => void }) {
 	const ref = useRef<HTMLDivElement>(null)
 
 	const truncated = useIsTruncated(ref as RefObject<HTMLElement | null>, text)
@@ -77,7 +77,7 @@ describe('useIsTruncated at the comparison boundary', () => {
 
 		const results: boolean[] = []
 
-		render(<Probe text="exact" onResult={(v) => results.push(v)} />)
+		render(<Probe text="exact" onResult={(truncated) => results.push(truncated)} />)
 
 		expect(results.at(-1)).toBe(false)
 	})
@@ -88,7 +88,7 @@ describe('useIsTruncated at the comparison boundary', () => {
 
 		const results: boolean[] = []
 
-		render(<Probe text="subpixel" onResult={(v) => results.push(v)} />)
+		render(<Probe text="subpixel" onResult={(truncated) => results.push(truncated)} />)
 
 		expect(results.at(-1)).toBe(false)
 	})

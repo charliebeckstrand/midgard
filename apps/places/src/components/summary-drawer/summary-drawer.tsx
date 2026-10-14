@@ -33,9 +33,9 @@ export function drawerList<T extends Located>(
 
 	const ids = new Set(region.map((item) => item.id))
 
-	const part = region.length !== group.length || group.some((item) => !ids.has(item.id))
+	const isPart = region.length !== group.length || group.some((item) => !ids.has(item.id))
 
-	return part ? { list: group, group: groupName(group) } : { list: region, group: null }
+	return isPart ? { list: group, group: groupName(group) } : { list: region, group: null }
 }
 
 /**
@@ -90,9 +90,9 @@ export function trailSteps({
 			? () => onStepChange({ opened: null, widened: true })
 			: undefined
 
-	const steps: PlaceTrailStep[] = where.map((label, at) => ({
+	const steps: PlaceTrailStep[] = where.map((label, index) => ({
 		label,
-		onPick: at < where.length - 1 ? () => onNavigate(label) : regionPick,
+		onPick: index < where.length - 1 ? () => onNavigate(label) : regionPick,
 	}))
 
 	if (group !== null) {

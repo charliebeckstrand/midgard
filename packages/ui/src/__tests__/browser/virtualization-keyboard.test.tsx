@@ -30,13 +30,16 @@ import { renderUI, screen, stubMatchMedia, waitFor } from '../helpers'
 
 const LARGE_COUNT = 5_000
 
-const ITEMS = Array.from({ length: LARGE_COUNT }, (_, i) => ({ id: i, label: `Item ${i}` }))
+const ITEMS = Array.from({ length: LARGE_COUNT }, (_, index) => ({
+	id: index,
+	label: `Item ${index}`,
+}))
 
 describe('Combobox + VirtualOptions: arrow reaches an option outside the window', () => {
 	function LargeCombobox({ onValueChange }: { onValueChange: (value: number | null) => void }) {
 		return (
 			<Combobox<number>
-				displayValue={(v) => `Item ${v}`}
+				displayValue={(value) => `Item ${value}`}
 				placeholder="Search"
 				onValueChange={onValueChange}
 			>

@@ -55,15 +55,15 @@ describe('useOpenChange', () => {
 
 		const second = vi.fn()
 
-		const { rerender } = renderHook(({ open, cb }) => useOpenChange(open, cb), {
-			initialProps: { open: false, cb: first },
+		const { rerender } = renderHook(({ open, onOpenChange }) => useOpenChange(open, onOpenChange), {
+			initialProps: { open: false, onOpenChange: first },
 		})
 
-		rerender({ open: false, cb: second })
+		rerender({ open: false, onOpenChange: second })
 
 		expect(first).not.toHaveBeenCalled()
 
-		rerender({ open: true, cb: second })
+		rerender({ open: true, onOpenChange: second })
 
 		expect(first).not.toHaveBeenCalled()
 

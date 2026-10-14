@@ -31,11 +31,11 @@ describe('grid column reorder: pressing a header affordance (real browser)', () 
 			title: 'A',
 			sortable: true,
 			filterable: true,
-			cell: (r) => r.a,
-			value: (r) => r.a,
+			cell: (row) => row.a,
+			value: (row) => row.a,
 			width: '140px',
 		},
-		{ id: 'b', title: 'B', sortable: true, cell: (r) => r.b, width: '140px' },
+		{ id: 'b', title: 'B', sortable: true, cell: (row) => row.b, width: '140px' },
 	]
 
 	const rows: Row[] = [
@@ -65,7 +65,7 @@ describe('grid column reorder: pressing a header affordance (real browser)', () 
 
 	it('does not lift the column when the filter button is pressed and drifts', async () => {
 		renderUI(
-			<Grid columns={columns} rows={rows} getKey={(r) => r.id} reorder={{ handle: false }} />,
+			<Grid columns={columns} rows={rows} getKey={(row) => row.id} reorder={{ handle: false }} />,
 		)
 
 		const trigger = screen.getByRole('button', { name: 'Filter A' })
@@ -81,7 +81,7 @@ describe('grid column reorder: pressing a header affordance (real browser)', () 
 	// no surface, so it stays the grab handle the whole-header policy relies on.
 	it('still lifts the column when the header cell itself is pressed and drifts', async () => {
 		renderUI(
-			<Grid columns={columns} rows={rows} getKey={(r) => r.id} reorder={{ handle: false }} />,
+			<Grid columns={columns} rows={rows} getKey={(row) => row.id} reorder={{ handle: false }} />,
 		)
 
 		const cell = header('a')

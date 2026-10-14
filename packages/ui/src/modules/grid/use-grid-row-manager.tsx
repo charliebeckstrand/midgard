@@ -27,7 +27,7 @@ import type {
 } from './grid-row-group-types'
 
 /** Stable empty overlay; read-only, replaced wholesale on change. @internal */
-const EMPTY: GridRowGroup[] = []
+const EMPTY_OVERLAY: GridRowGroup[] = []
 
 /** Options for {@link useGridRowManager}. @internal */
 type GridRowManagerOptions = {
@@ -59,10 +59,10 @@ type GridRowManagerOptions = {
 export function useGridRowManager({ config, naturalGroups }: GridRowManagerOptions) {
 	const binding = useMemo(() => normalizeRowGroups(config), [config])
 
-	const [overlay = EMPTY, setOverlay] = useControllable<GridRowGroup[]>({
+	const [overlay = EMPTY_OVERLAY, setOverlay] = useControllable<GridRowGroup[]>({
 		value: binding.value,
-		defaultValue: binding.defaultValue ?? EMPTY,
-		onValueChange: (next) => binding.onValueChange?.(next ?? EMPTY),
+		defaultValue: binding.defaultValue ?? EMPTY_OVERLAY,
+		onValueChange: (next) => binding.onValueChange?.(next ?? EMPTY_OVERLAY),
 	})
 
 	const overlayByKey = useMemo(
@@ -72,13 +72,13 @@ export function useGridRowManager({ config, naturalGroups }: GridRowManagerOptio
 
 	// The overlay's group order, kept only where it still names a current group;
 	// `complete` when it covers every one, the gate for applying the manual order.
-	const currentKeys = useMemo(() => naturalGroups.map((group) => group.key), [naturalGroups])
+	const naturalKeys = useMemo(() => naturalGroups.map((group) => group.key), [naturalGroups])
 
 	const complete = useMemo(() => {
 		const overlaid = new Set(overlay.map((group) => String(group.key)))
 
-		return currentKeys.length > 0 && currentKeys.every((key) => overlaid.has(String(key)))
-	}, [overlay, currentKeys])
+		return naturalKeys.length > 0 && naturalKeys.every((key) => overlaid.has(String(key)))
+	}, [overlay, naturalKeys])
 
 	const groupOrder = useMemo(
 		() => (complete ? overlay.map((group) => group.key) : null),

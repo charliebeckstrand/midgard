@@ -57,13 +57,13 @@ const PERIODS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 
 function buildShipments(count: number, seed = 1): Shipment[] {
 	const rand = rng(seed)
 
-	const out: Shipment[] = new Array(count)
+	const rows: Shipment[] = new Array(count)
 
 	for (let i = 0; i < count; i++) {
 		const origin = CITIES[Math.floor(rand() * CITIES.length)] as string
 		const destination = CITIES[Math.floor(rand() * CITIES.length)] as string
 
-		out[i] = {
+		rows[i] = {
 			id: `S${i.toString().padStart(6, '0')}`,
 			reference: `REF-${Math.floor(rand() * 1_000_000)}`,
 			origin,
@@ -78,7 +78,7 @@ function buildShipments(count: number, seed = 1): Shipment[] {
 		}
 	}
 
-	return out
+	return rows
 }
 
 const shipmentCache = new Map<string, Shipment[]>()
@@ -144,24 +144,24 @@ export function makeJsonTree(depth: number, branching: number, seed = 1): Json {
 
 	function build(remaining: number, path: string): Json {
 		if (remaining === 0) {
-			const r = rand()
+			const roll = rand()
 
-			if (r < 0.3) return Math.floor(r * 10_000)
+			if (roll < 0.3) return Math.floor(roll * 10_000)
 
-			if (r < 0.6) return `value-${path}`
+			if (roll < 0.6) return `value-${path}`
 
-			if (r < 0.8) return r > 0.7
+			if (roll < 0.8) return roll > 0.7
 
 			return null
 		}
 
-		const obj: { [k: string]: Json } = {}
+		const branch: { [k: string]: Json } = {}
 
 		for (let i = 0; i < branching; i++) {
-			obj[`key_${i}`] = build(remaining - 1, `${path}.${i}`)
+			branch[`key_${i}`] = build(remaining - 1, `${path}.${i}`)
 		}
 
-		return obj
+		return branch
 	}
 
 	return build(depth, 'root')
@@ -177,7 +177,7 @@ export const QUERY_FIELDS: QueryField[] = [
 
 let queryIdCounter = 0
 
-function qid(): string {
+function nextQueryId(): string {
 	queryIdCounter++
 
 	return `q_${queryIdCounter}`
@@ -196,7 +196,7 @@ export function makeQueryTree(depth: number, branching: number): QueryGroup {
 		for (let i = 0; i < branching; i++) {
 			if (remaining === 0) {
 				children.push({
-					id: qid(),
+					id: nextQueryId(),
 					type: 'rule',
 					combinator: 'and',
 					field: 'status',
@@ -208,7 +208,7 @@ export function makeQueryTree(depth: number, branching: number): QueryGroup {
 			}
 		}
 
-		return { id: qid(), type: 'group', combinator: 'and', children }
+		return { id: nextQueryId(), type: 'group', combinator: 'and', children }
 	}
 
 	return build(depth)
@@ -353,19 +353,19 @@ export function makeInlineColumns(): GridColumn<Shipment>[] {
 export function makeColumnSizeProfiles(count: number, seed = 1): ColumnSizeProfile[] {
 	const rand = rng(seed)
 
-	const out: ColumnSizeProfile[] = new Array(count)
+	const profiles: ColumnSizeProfile[] = new Array(count)
 
 	for (let i = 0; i < count; i++) {
 		const content = 80 + Math.floor(rand() * 220)
 
 		const pinned = i % 5 === 4
 
-		out[i] = pinned
+		profiles[i] = pinned
 			? { id: `col-${i}`, min: content, content, max: content }
 			: { id: `col-${i}`, min: 48, content, max: Number.MAX_SAFE_INTEGER }
 	}
 
-	return out
+	return profiles
 }
 
 /**
@@ -376,15 +376,15 @@ export function makeColumnSizeProfiles(count: number, seed = 1): ColumnSizeProfi
  * {@link shipments}, which never triggers the escape path.
  */
 export function makeEscapeHeavyRows(count: number): Record<string, string>[] {
-	const out: Record<string, string>[] = new Array(count)
+	const rows: Record<string, string>[] = new Array(count)
 
 	for (let i = 0; i < count; i++) {
 		const noisy = `a,"b"\n<c>&${i}`
 
-		out[i] = { a: noisy, b: noisy, c: noisy, d: noisy, e: noisy, f: noisy, g: noisy, h: noisy }
+		rows[i] = { a: noisy, b: noisy, c: noisy, d: noisy, e: noisy, f: noisy, g: noisy, h: noisy }
 	}
 
-	return out
+	return rows
 }
 
 /** Prose blocks a generated reply draws from, at the lengths a real one runs to. */
@@ -415,19 +415,19 @@ const READER_PROSE = [
 export function makeTranscript(count: number, seed = 7): ChatMessageData[] {
 	const rand = rng(seed)
 
-	const out: ChatMessageData[] = new Array(count)
+	const messages: ChatMessageData[] = new Array(count)
 
 	for (let i = 0; i < count; i++) {
 		const reader = i % 2 === 0
 
 		const pool = reader ? READER_PROSE : REPLY_PROSE
 
-		out[i] = {
+		messages[i] = {
 			id: `m-${i}`,
 			sender: reader ? 'user' : 'assistant',
 			content: pool[Math.floor(rand() * pool.length)] ?? '',
 		}
 	}
 
-	return out
+	return messages
 }

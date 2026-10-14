@@ -151,8 +151,10 @@ export function Input({
 
 	if (field.headless) return inputEl
 
-	const clear =
-		clearable && filled && !field.attrs.disabled && !field.attrs.readOnly ? (
+	const editable = !field.attrs.disabled && !field.attrs.readOnly
+
+	const clearButton =
+		clearable && filled && editable ? (
 			<InputClearButton
 				label={clearLabel}
 				// Keep the focus in the input, so that no blur runs before the clear.
@@ -161,20 +163,21 @@ export function Input({
 			/>
 		) : undefined
 
+	const frameSuffix =
+		clearButton && suffix != null && suffix !== false ? (
+			<>
+				{clearButton}
+				{suffix}
+			</>
+		) : (
+			(clearButton ?? suffix)
+		)
+
 	return (
 		<InputFrame
 			inputEl={inputEl}
 			prefix={prefix}
-			suffix={
-				clear && suffix != null && suffix !== false ? (
-					<>
-						{clear}
-						{suffix}
-					</>
-				) : (
-					(clear ?? suffix)
-				)
-			}
+			suffix={frameSuffix}
 			variant={field.variant}
 			density={size}
 			dataGroup={dataGroup}

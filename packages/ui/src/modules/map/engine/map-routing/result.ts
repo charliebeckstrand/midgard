@@ -56,17 +56,17 @@ export type OsrmPayload = {
  *
  * @internal
  */
-function emptyPayloadFailure(json: OsrmPayload): MapRouteFailure {
-	if (json.code !== undefined && json.code !== 'Ok') return noRouteFailure(json.code)
+function emptyPayloadFailure(payload: OsrmPayload): MapRouteFailure {
+	if (payload.code !== undefined && payload.code !== 'Ok') return noRouteFailure(payload.code)
 
-	return json.routes === undefined ? routeFailure('payload') : noRouteFailure()
+	return payload.routes === undefined ? routeFailure('payload') : noRouteFailure()
 }
 
 /** The first route's geometry and totals, or why the payload holds none. @internal */
-export function routeAnswer(json: OsrmPayload): MapRouteAnswer {
-	const route = json.routes?.[0]
+export function routeAnswer(payload: OsrmPayload): MapRouteAnswer {
+	const route = payload.routes?.[0]
 
-	if (route === undefined) return { ok: false, failure: emptyPayloadFailure(json) }
+	if (route === undefined) return { ok: false, failure: emptyPayloadFailure(payload) }
 
 	const path = route.geometry?.coordinates ?? []
 

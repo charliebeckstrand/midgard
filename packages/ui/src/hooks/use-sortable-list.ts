@@ -177,12 +177,9 @@ export function useSortableList<T>({
 
 	const rtl = useIsRtl()
 
-	const strategy =
-		orientation === 'vertical'
-			? verticalListSortingStrategy
-			: rtl
-				? horizontalRtlSortingStrategy
-				: horizontalListSortingStrategy
+	const horizontalStrategy = rtl ? horizontalRtlSortingStrategy : horizontalListSortingStrategy
+
+	const strategy = orientation === 'vertical' ? verticalListSortingStrategy : horizontalStrategy
 
 	const handleDragStart = useCallback(
 		(event: DragStartEvent) => {
@@ -228,11 +225,11 @@ export function useSortableList<T>({
 			const { active, over } = event
 
 			if (onReorder && over && active.id !== over.id) {
-				const oldIdx = itemIds.indexOf(String(active.id))
+				const from = itemIds.indexOf(String(active.id))
 
-				const newIdx = itemIds.indexOf(String(over.id))
+				const to = itemIds.indexOf(String(over.id))
 
-				if (oldIdx !== -1 && newIdx !== -1) onReorder(arrayMove(items, oldIdx, newIdx))
+				if (from !== -1 && to !== -1) onReorder(arrayMove(items, from, to))
 			}
 
 			if (dragged != null) onDragEnd?.(dragged)

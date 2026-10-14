@@ -17,7 +17,7 @@ describe('grid async commit (real browser)', () => {
 	]
 
 	const columns: GridColumn<Row>[] = [
-		{ id: 'name', title: 'Name', field: 'name', cell: (r) => r.name },
+		{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
 	]
 
 	it('pulses a pending cell and shows the committed value until the promise settles', async () => {
@@ -34,7 +34,7 @@ describe('grid async commit (real browser)', () => {
 			<Grid
 				columns={columns}
 				rows={rows}
-				getKey={(r) => r.id}
+				getKey={(row) => row.id}
 				editable={{ session: 'managed', scope: 'cell', onCommit }}
 			/>,
 		)

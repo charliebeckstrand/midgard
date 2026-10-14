@@ -53,7 +53,7 @@ export type ControlProps = {
  * `variant` explicitly.
  */
 export function Control({
-	id: idProp,
+	id,
 	autoComplete,
 	disabled,
 	readOnly,
@@ -64,7 +64,7 @@ export function Control({
 	className,
 	children,
 }: ControlProps) {
-	const scope = useIdScope({ id: idProp })
+	const scope = useIdScope({ id })
 
 	// disabled/readOnly OR-merge with parent; the other props inherit unless set.
 	const value = useControlFieldContext(scope.id, {

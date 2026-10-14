@@ -145,12 +145,12 @@ export function resolveCategories<T>(
 ): MapCategoryMeta[] {
 	const listed = explicit ?? deriveCategories(data, categoryKey)
 
-	return listed.map((entry, index) => {
-		const color = entry.color ?? slotColor(index)
+	return listed.map((category, index) => {
+		const color = category.color ?? slotColor(index)
 
 		return {
-			value: entry.value,
-			label: entry.label ?? entry.value,
+			value: category.value,
+			label: category.label ?? category.value,
 			paint: { kind: 'class', fill: k.series[color].fill, text: k.series[color].text },
 		}
 	})
@@ -202,7 +202,7 @@ export function regionCategoryIndexes<T>(
 	// A value → index lookup built once, so matching a region is a Map hit
 	// rather than a scan of the categories — linear in the regions, not
 	// O(regions × categories), on the mount critical path.
-	const indexByValue = new Map(categories.map((entry, index) => [entry.value, index]))
+	const indexByValue = new Map(categories.map((meta, index) => [meta.value, index]))
 
 	return regionIds.map((id) => {
 		const datum = byRegion.get(id)

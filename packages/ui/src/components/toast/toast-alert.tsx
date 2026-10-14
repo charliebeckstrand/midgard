@@ -40,7 +40,7 @@ const layoutTransition = { layout: k.spring }
  * the Alert recipe unions so a palette change there propagates here.
  * @internal
  */
-const severityAlertMap = {
+const alertBySeverity = {
 	info: { variant: 'solid', color: 'blue' },
 	neutral: { variant: 'solid', color: 'zinc' },
 	success: { variant: 'solid', color: 'green' },
@@ -84,7 +84,7 @@ type ToastAlertProps = {
  * @internal
  */
 export function ToastAlert({
-	toast: t,
+	toast,
 	edge,
 	zIndex,
 	closable = true,
@@ -101,10 +101,10 @@ export function ToastAlert({
 
 	const motionConfig = positionTop ? presets.top : presets.bottom
 
-	const { variant, color } = severityAlertMap[t.severity ?? 'info']
+	const { variant, color } = alertBySeverity[toast.severity ?? 'info']
 
 	// Warning/error interrupt (assertive); everything else queues politely.
-	const assertive = t.severity === 'warning' || t.severity === 'error'
+	const assertive = toast.severity === 'warning' || toast.severity === 'error'
 
 	const autoDismiss = positionTop ? autoDismissTop : autoDismissBottom
 
@@ -176,7 +176,7 @@ export function ToastAlert({
 				...(positionTop ? { paddingBottom: k.gap } : { paddingTop: k.gap }),
 				zIndex,
 			}}
-			exit={t.dismissed ? manualDismiss : autoDismiss}
+			exit={toast.dismissed ? manualDismiss : autoDismiss}
 			transition={layoutTransition}
 		>
 			<m.div
@@ -199,17 +199,17 @@ export function ToastAlert({
 
 					release(focusHeldRef)
 				}}
-				onClick={() => onReset(t.id)}
+				onClick={() => onReset(toast.id)}
 			>
 				<Alert
 					open={true}
 					variant={variant}
 					color={color}
-					title={t.title}
-					description={t.description}
-					actions={t.actions}
+					title={toast.title}
+					description={toast.description}
+					actions={toast.actions}
 					closable={closable}
-					onOpenChange={(open) => onOpenChange(open, t.id)}
+					onOpenChange={(open) => onOpenChange(open, toast.id)}
 					className={cn(k.card)}
 				/>
 			</m.div>

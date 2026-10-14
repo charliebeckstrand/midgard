@@ -57,17 +57,21 @@ export function withAuth(
 	return {
 		...config,
 		async headers() {
-			return [{ source: '/:path*', headers: securityHeaders }, ...((await userHeaders?.()) ?? [])]
+			const existing = (await userHeaders?.()) ?? []
+
+			return [{ source: '/:path*', headers: securityHeaders }, ...existing]
 		},
 		async rewrites() {
+			const apiRewrites = gatewayApi
+				? [{ source: '/api/:path*', destination: `${BIFROST_URL}/api/:path*` }]
+				: []
+
 			const authRewrites = [
 				{
 					source: '/auth/:path*',
 					destination: `${BIFROST_URL}/auth/:path*`,
 				},
-				...(gatewayApi
-					? [{ source: '/api/:path*', destination: `${BIFROST_URL}/api/:path*` }]
-					: []),
+				...apiRewrites,
 			]
 
 			if (!userRewrites) return { fallback: authRewrites }

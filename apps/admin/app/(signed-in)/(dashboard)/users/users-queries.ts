@@ -17,11 +17,11 @@ export const usersKeys = {
  * Every user. The server page reads the list first and seeds the query with it
  * (see `seededQuery`), so the first render has no fetch.
  */
-export function useUsers(initialUsers: Seed<User[]>) {
+export function useUsers(initial: Seed<User[]>) {
 	return useQuery({
 		queryKey: usersKeys.all,
 		queryFn: ({ signal }) => fetchUsers(signal),
-		...seededQuery(initialUsers),
+		...seededQuery(initial),
 	})
 }
 

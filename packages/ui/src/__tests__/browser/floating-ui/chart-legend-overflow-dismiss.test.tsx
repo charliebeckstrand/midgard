@@ -31,11 +31,11 @@ describe('chart legend overflow dismiss (real browser)', () => {
 	]
 
 	const data: Record<string, string | number>[] = [
-		{ q: 'Q1', ...Object.fromEntries(names.map((n, i) => [n, 10 + i])) },
-		{ q: 'Q2', ...Object.fromEntries(names.map((n, i) => [n, 20 + i])) },
+		{ q: 'Q1', ...Object.fromEntries(names.map((name, index) => [name, 10 + index])) },
+		{ q: 'Q2', ...Object.fromEntries(names.map((name, index) => [name, 20 + index])) },
 	]
 
-	const series = names.map((n) => ({ xKey: 'q', yKey: n, yName: n }))
+	const series = names.map((name) => ({ xKey: 'q', yKey: name, yName: name }))
 
 	const overflowChip = (root: ParentNode) =>
 		root.querySelector('[aria-label^="Show "]') as HTMLButtonElement | null

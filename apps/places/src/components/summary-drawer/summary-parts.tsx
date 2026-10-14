@@ -100,8 +100,8 @@ export function SummaryPhotos({ photos, alt }: { photos: readonly Photo[]; alt: 
 			aria-label={`Photos of ${alt}`}
 		>
 			<Flex gap="sm" wrap>
-				{photos.map((photo, at) => (
-					<LightboxTrigger key={photo.key} index={at} className="size-24 shrink-0" />
+				{photos.map((photo, index) => (
+					<LightboxTrigger key={photo.key} index={index} className="size-24 shrink-0" />
 				))}
 			</Flex>
 		</Lightbox>

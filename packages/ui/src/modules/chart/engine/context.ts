@@ -66,18 +66,18 @@ export function samePoint(a: ChartPoint | null, b: ChartPoint | null): boolean {
  * @internal
  */
 export function createChartHoverStore(): ChartHoverStore {
-	let current: ChartHoverState = { index: null, point: null, onData: false }
+	let state: ChartHoverState = { index: null, point: null, onData: false }
 
 	const { subscribe, emit } = createEmitter()
 
 	return {
-		get: () => current,
+		get: () => state,
 		set: (index, point, onData = true) => {
-			if (current.index === index && current.onData === onData && samePoint(current.point, point)) {
+			if (state.index === index && state.onData === onData && samePoint(state.point, point)) {
 				return
 			}
 
-			current = { index, point, onData }
+			state = { index, point, onData }
 
 			emit()
 		},

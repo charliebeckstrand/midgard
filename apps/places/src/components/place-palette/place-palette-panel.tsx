@@ -164,12 +164,12 @@ export function PlacePalettePanel({ sources, open, onOpenChange }: PlacePaletteP
 
 	// The pointer. The palette is in a portal, and React sends the events of a
 	// portal to its React parents, so this wrapper gets them.
-	const onPointerOver = (event: PointerEvent) => activate(optionOf(event.target))
+	const handlePointerOver = (event: PointerEvent) => activate(optionOf(event.target))
 
-	const onPointerOut = (event: PointerEvent) => activate(optionOf(event.relatedTarget))
+	const handlePointerOut = (event: PointerEvent) => activate(optionOf(event.relatedTarget))
 
 	return (
-		<div className="contents" onPointerOver={onPointerOver} onPointerOut={onPointerOut}>
+		<div className="contents" onPointerOver={handlePointerOver} onPointerOut={handlePointerOut}>
 			<CommandPalette
 				open={open}
 				onOpenChange={onOpenChange}

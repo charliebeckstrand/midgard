@@ -277,10 +277,10 @@ export function regionFrame(
 export function boundRegions(regions: MapFeatureCollection | null): BoundedRegion[] {
 	if (regions === null) return []
 
-	return regions.features.flatMap((held) =>
-		held.geometry === null
+	return regions.features.flatMap((region) =>
+		region.geometry === null
 			? []
-			: [{ name: regionName(held), feature: held, bounds: geoBounds(held.geometry) }],
+			: [{ name: regionName(region), feature: region, bounds: geoBounds(region.geometry) }],
 	)
 }
 

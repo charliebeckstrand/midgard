@@ -42,7 +42,7 @@ export function useGridColumnVisibility<T extends ColumnLike>({
 	defaultHidden,
 	onHiddenChange,
 }: GridColumnVisibilityOptions<T>) {
-	const fallbackOrder = useMemo(() => columns.map((c) => c.id), [columns])
+	const fallbackOrder = useMemo(() => columns.map((column) => column.id), [columns])
 
 	const [resolvedOrder = fallbackOrder, setOrder] = useControllable<(string | number)[]>({
 		value: order,

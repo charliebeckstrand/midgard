@@ -64,10 +64,10 @@ describe('spark scatter fits and centers in its box (real browser)', () => {
 
 		const d = bySlot(container, 'chart-scatter-discs')?.getAttribute('d') ?? ''
 
-		const marks = [...d.matchAll(/M (-?[\d.]+) (-?[\d.]+) a (-?[\d.]+)/g)].map((m) => {
-			const r = Number(m[3])
+		const marks = [...d.matchAll(/M (-?[\d.]+) (-?[\d.]+) a (-?[\d.]+)/g)].map((match) => {
+			const r = Number(match[3])
 
-			return { cx: Number(m[1]) + r, cy: Number(m[2]), r }
+			return { cx: Number(match[1]) + r, cy: Number(match[2]), r }
 		})
 
 		return { box, marks }

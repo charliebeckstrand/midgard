@@ -31,10 +31,10 @@ describe('grid grouped body under native scroll anchoring (real browser)', () =>
 	type Item = { id: number; name: string; team: string; header?: boolean }
 
 	// 12 groups of 5 rows.
-	const rows: Item[] = Array.from({ length: 60 }, (_, i) => ({
-		id: i + 1,
-		name: `Row ${i + 1}`,
-		team: `Team ${String(Math.floor(i / 5)).padStart(2, '0')}`,
+	const rows: Item[] = Array.from({ length: 60 }, (_, index) => ({
+		id: index + 1,
+		name: `Row ${index + 1}`,
+		team: `Team ${String(Math.floor(index / 5)).padStart(2, '0')}`,
 	}))
 
 	const teams = Array.from(new Set(rows.map((row) => row.team)))
@@ -114,7 +114,7 @@ describe('grid grouped body under native scroll anchoring (real browser)', () =>
 		const leaves = (team: string) => {
 			const first = teams.indexOf(team) * 5 + 1
 
-			return Array.from({ length: 5 }, (_, i) => leaf(first + i))
+			return Array.from({ length: 5 }, (_, index) => leaf(first + index))
 		}
 
 		return { scroll, toggle, header, leaf, leaves }
@@ -168,7 +168,10 @@ describe('grid grouped body under native scroll anchoring (real browser)', () =>
 					// The last group whose leaves all end above the viewport.
 					const [team] = nonEmpty(
 						teams
-							.filter((t) => (leaves(t).at(-1)?.()?.getBoundingClientRect().bottom ?? 0) < top)
+							.filter(
+								(candidate) =>
+									(leaves(candidate).at(-1)?.()?.getBoundingClientRect().bottom ?? 0) < top,
+							)
 							.toReversed(),
 						'group above the viewport',
 					)

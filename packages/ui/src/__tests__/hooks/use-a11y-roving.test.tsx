@@ -34,14 +34,14 @@ describe('queryItems', () => {
 
 describe('setVirtualActive', () => {
 	function makeItems(count: number) {
-		const items = Array.from({ length: count }, (_, i) => {
-			const el = document.createElement('div')
+		const items = Array.from({ length: count }, (_, index) => {
+			const option = document.createElement('div')
 
-			el.setAttribute('role', 'option')
+			option.setAttribute('role', 'option')
 
-			el.id = `opt-${i}`
+			option.id = `opt-${index}`
 
-			return el
+			return option
 		})
 
 		const owner = document.createElement('input')
@@ -78,7 +78,7 @@ describe('setVirtualActive', () => {
 
 		setVirtualActive(items, -1, { current: owner })
 
-		expect(items.some((el) => el.hasAttribute('data-active'))).toBe(false)
+		expect(items.some((item) => item.hasAttribute('data-active'))).toBe(false)
 
 		expect(items[1]?.getAttribute('aria-selected')).toBe('false')
 
@@ -231,15 +231,15 @@ function makeLabeledContainer(labels: string[]) {
 	const container = document.createElement('div')
 
 	for (const label of labels) {
-		const btn = document.createElement('button')
+		const button = document.createElement('button')
 
-		btn.setAttribute('role', 'option')
+		button.setAttribute('role', 'option')
 
-		btn.setAttribute('tabindex', '-1')
+		button.setAttribute('tabindex', '-1')
 
-		btn.textContent = label
+		button.textContent = label
 
-		container.appendChild(btn)
+		container.appendChild(button)
 	}
 
 	attach(container)
@@ -249,7 +249,7 @@ function makeLabeledContainer(labels: string[]) {
 
 /** A container of `count` option buttons, labeled by index. */
 function makeContainer(count: number) {
-	return makeLabeledContainer(Array.from({ length: count }, (_, i) => String(i)))
+	return makeLabeledContainer(Array.from({ length: count }, (_, index) => String(index)))
 }
 
 type RovingOptions = Parameters<typeof useA11yRoving>[1]
@@ -383,8 +383,8 @@ describe('useA11yRoving', () => {
 
 		const items = Array.from(container.querySelectorAll('button'))
 
-		items.forEach((el, i) => {
-			el.id = `opt-${i}`
+		items.forEach((item, index) => {
+			item.id = `opt-${index}`
 		})
 
 		const controller = attach(document.createElement('input'))
@@ -468,15 +468,15 @@ describe('useA11yRoving: manageTabIndex', () => {
 		const container = document.createElement('div')
 
 		for (let i = 0; i < count; i++) {
-			const btn = document.createElement('button')
+			const button = document.createElement('button')
 
-			btn.setAttribute('data-slot', 'item')
+			button.setAttribute('data-slot', 'item')
 
-			if (i === currentIndex) btn.setAttribute('aria-current', 'page')
+			if (i === currentIndex) button.setAttribute('aria-current', 'page')
 
-			btn.textContent = String(i)
+			button.textContent = String(i)
 
-			container.appendChild(btn)
+			container.appendChild(button)
 		}
 
 		attach(container)
@@ -485,7 +485,7 @@ describe('useA11yRoving: manageTabIndex', () => {
 	}
 
 	const tabIndices = (container: HTMLElement) =>
-		Array.from(container.querySelectorAll('button')).map((b) => b.tabIndex)
+		Array.from(container.querySelectorAll('button')).map((button) => button.tabIndex)
 
 	it.each<[string, number | undefined, Parameters<typeof useA11yRoving>[1], number[]]>([
 		[
@@ -733,33 +733,34 @@ describe('useA11yRoving: row actions', () => {
 	}
 
 	function makeControl(slot: string, label: string, disabled = false) {
-		const btn = document.createElement('button')
+		const button = document.createElement('button')
 
-		btn.setAttribute('data-slot', slot)
+		button.setAttribute('data-slot', slot)
 
-		btn.textContent = label
+		button.textContent = label
 
-		btn.disabled = disabled
+		button.disabled = disabled
 
-		return btn
+		return button
 	}
 
 	// Each row wraps an item with optional prefix/suffix action controls.
 	function makeRows(rows: Array<{ prefix?: boolean; suffix?: boolean; suffixDisabled?: boolean }>) {
 		const container = document.createElement('div')
 
-		rows.forEach((spec, i) => {
-			const rowEl = document.createElement('div')
+		rows.forEach((spec, index) => {
+			const row = document.createElement('div')
 
-			rowEl.setAttribute('data-slot', 'row')
+			row.setAttribute('data-slot', 'row')
 
-			if (spec.prefix) rowEl.appendChild(makeControl('action', `prefix-${i}`))
+			if (spec.prefix) row.appendChild(makeControl('action', `prefix-${index}`))
 
-			rowEl.appendChild(makeControl('item', `item-${i}`))
+			row.appendChild(makeControl('item', `item-${index}`))
 
-			if (spec.suffix) rowEl.appendChild(makeControl('action', `suffix-${i}`, spec.suffixDisabled))
+			if (spec.suffix)
+				row.appendChild(makeControl('action', `suffix-${index}`, spec.suffixDisabled))
 
-			container.appendChild(rowEl)
+			container.appendChild(row)
 		})
 
 		attach(container)
@@ -778,7 +779,7 @@ describe('useA11yRoving: row actions', () => {
 	}
 
 	const byText = (container: HTMLElement, label: string) =>
-		Array.from(container.querySelectorAll('button')).find((b) => b.textContent === label)
+		Array.from(container.querySelectorAll('button')).find((button) => button.textContent === label)
 
 	it('roves from the item into its suffix action on the cross-axis forward arrow', () => {
 		const container = makeRows([{ suffix: true }, { suffix: true }])
@@ -1266,7 +1267,7 @@ describe('setVirtualActiveIndexed', () => {
 
 		const source: VirtualItemSource = {
 			count: 5,
-			getKey: (i) => `opt-${i}`,
+			getKey: (index) => `opt-${index}`,
 			scrollToIndex: vi.fn(),
 		}
 
@@ -1294,7 +1295,7 @@ describe('setVirtualActiveIndexed', () => {
 
 		const source: VirtualItemSource = {
 			count: 5,
-			getKey: (i) => `opt-${i}`,
+			getKey: (index) => `opt-${index}`,
 			scrollToIndex: vi.fn(),
 		}
 
@@ -1366,7 +1367,7 @@ describe('seedVirtualTopMatch', () => {
 
 	const source: VirtualItemSource = {
 		count: 2,
-		getKey: (i) => `opt-${i}`,
+		getKey: (index) => `opt-${index}`,
 		scrollToIndex: vi.fn(),
 	}
 
@@ -1595,7 +1596,7 @@ describe('setVirtualActiveIndexed: mount-catch-up watcher', () => {
 
 		const source: VirtualItemSource = {
 			count: 5,
-			getKey: (i) => `watch-opt-${i}`,
+			getKey: (index) => `watch-opt-${index}`,
 			scrollToIndex: vi.fn(),
 		}
 
@@ -1624,7 +1625,7 @@ describe('setVirtualActiveIndexed: mount-catch-up watcher', () => {
 
 		const source: VirtualItemSource = {
 			count: 5,
-			getKey: (i) => `stale-opt-${i}`,
+			getKey: (index) => `stale-opt-${index}`,
 			scrollToIndex: vi.fn(),
 		}
 

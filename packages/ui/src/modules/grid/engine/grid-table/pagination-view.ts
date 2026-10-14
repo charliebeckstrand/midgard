@@ -84,8 +84,8 @@ export function buildPaginationView<T>(args: {
 		pageSizeOptions: args.config.pageSizeOptions,
 		// `-1` (unknown) leaves the top open. The engine still clamps the floor at 0.
 		setPageIndex: (index) =>
-			table.setPageIndex((current) => {
-				const next = functionalUpdate(index, current)
+			table.setPageIndex((prev) => {
+				const next = functionalUpdate(index, prev)
 
 				const last = pageCount - 1
 

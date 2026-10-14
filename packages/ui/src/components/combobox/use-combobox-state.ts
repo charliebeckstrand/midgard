@@ -205,11 +205,11 @@ export function useComboboxState<T>({
 	}, [shouldClose, close, setQuery, inputRef])
 
 	const select = useCallback(
-		(newValue: T) => {
+		(next: T) => {
 			// A pick that closes freezes the selection that the menu shows, for the
 			// exit animation. A pick that keeps the panel open updates it live.
-			if (shouldClose) commit(newValue)
-			else toggle(newValue)
+			if (shouldClose) commit(next)
+			else toggle(next)
 
 			keep()
 		},

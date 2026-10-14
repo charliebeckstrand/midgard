@@ -49,15 +49,15 @@ function nameOf(fiber: Fiber): string | undefined {
 /** Counts each component in `first` and its siblings that ran in the commit. */
 function walk(first: Fiber | null) {
 	for (let fiber = first; fiber; fiber = fiber.sibling) {
-		const previous = fiber.alternate
+		const prev = fiber.alternate
 
 		const name = nameOf(fiber)
 
-		if (name && (previous === null || (fiber.flags & PERFORMED_WORK) !== 0)) {
+		if (name && (prev === null || (fiber.flags & PERFORMED_WORK) !== 0)) {
 			renders.set(name, (renders.get(name) ?? 0) + 1)
 		}
 
-		if (previous === null || fiber.child !== previous.child) walk(fiber.child)
+		if (prev === null || fiber.child !== prev.child) walk(fiber.child)
 	}
 }
 

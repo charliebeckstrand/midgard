@@ -510,9 +510,9 @@ export function useChartCartesian<T>(
 		categories,
 	)
 
-	const layout: CartesianLayout = (
-		orientation === 'horizontal' ? horizontalLayout : verticalLayout
-	)({
+	const layoutOf = orientation === 'horizontal' ? horizontalLayout : verticalLayout
+
+	const layout: CartesianLayout = layoutOf({
 		frameWidth,
 		frameHeight,
 		axes: drawAxes,
@@ -559,12 +559,12 @@ export function useChartCartesian<T>(
 			visible,
 			formatAxisValue,
 		},
-		(previous, next) =>
-			previous.data === next.data &&
-			previous.key === next.key &&
-			previous.yFormat === next.yFormat &&
-			previous.y2Format === next.y2Format &&
-			previous.locale === next.locale,
+		(prev, next) =>
+			prev.data === next.data &&
+			prev.key === next.key &&
+			prev.yFormat === next.yFormat &&
+			prev.y2Format === next.y2Format &&
+			prev.locale === next.locale,
 	)
 
 	const readout = useMemo(

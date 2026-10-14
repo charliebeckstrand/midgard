@@ -36,7 +36,7 @@ export default function Editable() {
 								variant="bare"
 								color="blue"
 								aria-label="Edit row"
-								onClick={() => setEditing((current) => new Set(current).add(row.id))}
+								onClick={() => setEditing((prev) => new Set(prev).add(row.id))}
 							>
 								<Icon icon={<Pencil />} />
 							</Button>
@@ -44,9 +44,7 @@ export default function Editable() {
 								variant="bare"
 								color="red"
 								aria-label="Delete row"
-								onClick={() =>
-									setPeople((current) => current.filter((person) => person.id !== row.id))
-								}
+								onClick={() => setPeople((prev) => prev.filter((person) => person.id !== row.id))}
 							>
 								<Icon icon={<Trash2 />} />
 							</Button>
@@ -73,7 +71,7 @@ export default function Editable() {
 					rows: editing,
 					onRowsChange: setEditing,
 					session: 'managed',
-					onCommit: (changes) => setPeople((current) => applyChanges(current, changes)),
+					onCommit: (changes) => setPeople((prev) => applyChanges(prev, changes)),
 				}}
 			/>
 		</>

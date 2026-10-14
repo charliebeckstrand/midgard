@@ -43,13 +43,13 @@ function virtualId(name: string): string {
 }
 
 /** The data of `virtual:docs/pages`: the link of each page. */
-function linksOf(found: readonly Page[]): string {
-	return data(found.map(({ folder, ...link }): PageLink => link))
+function linksOf(pages: readonly Page[]): string {
+	return data(pages.map(({ folder, ...link }): PageLink => link))
 }
 
 /** The routes that the pages give (`app/routes.ts`): the path, the folder and the tabs of each page. */
-function routesOf(found: readonly Page[]): string {
-	return JSON.stringify(found.map(({ path, folder, tabs }) => [path, folder, tabs]))
+function routesOf(pages: readonly Page[]): string {
+	return JSON.stringify(pages.map(({ path, folder, tabs }) => [path, folder, tabs]))
 }
 
 /**
@@ -157,7 +157,11 @@ export function reactDocs(): Plugin {
 	 * to a page or to a source of `ui` can change the entries.
 	 */
 	function staleSearch(graph: EnvironmentModuleGraph, file: string): EnvironmentModuleNode[] {
-		if (!file.startsWith(pages) && !(SOURCE.test(file) && !file.startsWith(docs))) return []
+		const isPage = file.startsWith(pages)
+
+		const isSource = SOURCE.test(file) && !file.startsWith(docs)
+
+		if (!isPage && !isSource) return []
 
 		search = undefined
 

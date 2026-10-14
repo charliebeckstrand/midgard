@@ -142,9 +142,9 @@ describe('useAddressInputSuggestions', () => {
 			() =>
 				new Promise((_, reject) => {
 					setTimeout(() => {
-						const err = new DOMException('aborted', 'AbortError')
+						const error = new DOMException('aborted', 'AbortError')
 
-						reject(err)
+						reject(error)
 					}, 10)
 				}),
 		)

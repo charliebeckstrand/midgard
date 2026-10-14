@@ -21,14 +21,14 @@ describe('grid keyboard entry focus (real browser)', () => {
 
 	function renderGrid({ range, width }: { range: boolean; width?: number }) {
 		const columns: GridColumn<Row>[] = [
-			{ id: 'name', title: 'Name', field: 'name', width, cell: (r) => r.name },
+			{ id: 'name', title: 'Name', field: 'name', width, cell: (row) => row.name },
 		]
 
 		const view = renderUI(
 			<Grid
 				columns={columns}
 				rows={rows}
-				getKey={(r) => r.id}
+				getKey={(row) => row.id}
 				range={range}
 				editable={{ session: 'managed', scope: 'cell', onCommit: () => {} }}
 			/>,

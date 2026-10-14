@@ -197,10 +197,10 @@ describe('control affix has-bare-button compensation', () => {
 
 		const drift = new Set<number>()
 
-		values.reduce((prev, curr) => {
-			drift.add(curr - prev)
+		values.reduce((prev, next) => {
+			drift.add(next - prev)
 
-			return curr
+			return next
 		})
 
 		expect(drift.size).toBe(1)

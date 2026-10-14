@@ -46,13 +46,15 @@ export function ColorSlider({ channel }: ColorSliderProps) {
 
 	// The native keys step by `step` only, and the Page keys of a range input
 	// differ by browser. This handler keeps the Shift step and the Page step.
-	const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+	const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
 		if (disabled) return
-
-		const step = isHue ? (event.shiftKey ? 10 : 1) : event.shiftKey ? 0.1 : 0.01
 
 		// APG slider pattern: Page keys take the large step regardless of Shift.
 		const pageStep = isHue ? 10 : 0.1
+
+		const arrowStep = isHue ? 1 : 0.01
+
+		const step = event.shiftKey ? pageStep : arrowStep
 
 		let next = value
 
@@ -87,7 +89,8 @@ export function ColorSlider({ channel }: ColorSliderProps) {
 	}
 
 	// An assistive-technology increment changes the value with no key event.
-	const onChange = (event: ChangeEvent<HTMLInputElement>) => setValue(Number(event.target.value))
+	const handleChange = (event: ChangeEvent<HTMLInputElement>) =>
+		setValue(Number(event.target.value))
 
 	// Transparent-to-opaque gradient for the alpha track ends on the current
 	// color at full opacity.
@@ -129,8 +132,8 @@ export function ColorSlider({ channel }: ColorSliderProps) {
 				aria-label={isHue ? 'Hue' : 'Alpha'}
 				aria-valuetext={isHue ? `${Math.round(value)}°` : `${Math.round(value * 100)}%`}
 				className={k.track.input}
-				onKeyDown={onKeyDown}
-				onChange={onChange}
+				onKeyDown={handleKeyDown}
+				onChange={handleChange}
 			/>
 			<div
 				data-slot="color-slider-thumb"

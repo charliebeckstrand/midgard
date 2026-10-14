@@ -427,7 +427,7 @@ export function GridRowImpl<T>({
 			// own it (one row at `0`, the rest `-1`); the virtualized body keeps the
 			// legacy static per-row stop; cell roving and the navigable cursor leave
 			// the row unfocusable (the cells / the table hold focus).
-			tabIndex={rowRoving ? undefined : rowStaticStop ? 0 : undefined}
+			tabIndex={!rowRoving && rowStaticStop ? 0 : undefined}
 			// A clickable row carries the pointer cursor and a keyboard focus ring (see
 			// `k.row.clickable`); its hover wash is the shared `<Table hover>` variant
 			// that `GridData` enables for any row- or cell-level click handler.
@@ -438,10 +438,10 @@ export function GridRowImpl<T>({
 				className,
 			)}
 		>
-			{columns.map((col, colIdx) => {
+			{columns.map((col, index) => {
 				// Cell column indices accompany `aria-rowindex`, which grid semantics
 				// set (rowIndex is only set then).
-				const colIndex = rowIndex !== undefined ? colIdx + 1 : undefined
+				const colIndex = rowIndex !== undefined ? index + 1 : undefined
 
 				const specialClass = specialCellClass(col)
 
@@ -496,7 +496,7 @@ export function GridRowImpl<T>({
 						rowIndex={cellRowIndex(col, dataRowIndex)}
 						rowKey={rowKey}
 						colIndex={colIndex}
-						columnIndex={colIdx}
+						columnIndex={index}
 						reorderable={reorderable}
 						truncate={truncate}
 						pinning={pinning}

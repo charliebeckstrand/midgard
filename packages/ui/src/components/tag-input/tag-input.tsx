@@ -174,7 +174,7 @@ export function TagInput({
 		setRefused(false)
 	}
 
-	const resolvedColor = tagColor ?? 'zinc'
+	const color = tagColor ?? 'zinc'
 
 	/**
 	 * The one commit path: tokenize, add what is addable, keep what was refused.
@@ -252,11 +252,11 @@ export function TagInput({
 
 		// Spliced at the caret rather than appended, so pasting into a non-empty draft commits what
 		// the field would have read rather than a re-ordered concatenation.
-		const element = event.currentTarget
+		const input = event.currentTarget
 
-		const start = element.selectionStart ?? inputValue.length
+		const start = input.selectionStart ?? inputValue.length
 
-		const end = element.selectionEnd ?? inputValue.length
+		const end = input.selectionEnd ?? inputValue.length
 
 		commit(inputValue.slice(0, start) + pasted + inputValue.slice(end))
 	})
@@ -279,7 +279,7 @@ export function TagInput({
 				wrap
 				className={cn(k.tags)}
 			>
-				{keyedTags.map(({ value: t, key }, i) => (
+				{keyedTags.map(({ value: tag, key }, index) => (
 					// The chip sits in the prefix scope of the host Input, one step below
 					// the control, so it takes that step with no `size`. A locked chip has
 					// no remove button and no Tab stop. A press on the button keeps the
@@ -287,8 +287,8 @@ export function TagInput({
 					<BadgeRemovable
 						key={key}
 						role="listitem"
-						label={t}
-						color={resolvedColor}
+						label={tag}
+						color={color}
 						className={cn(k.badge)}
 						removeProps={{
 							onMouseDown: (event) => event.preventDefault(),
@@ -298,7 +298,7 @@ export function TagInput({
 							locked
 								? undefined
 								: () => {
-										removeTag(i)
+										removeTag(index)
 
 										// Returns focus to the input after badge removal (WCAG 2.4.3).
 										// The field stays focusable at the cap (read-only, not disabled),

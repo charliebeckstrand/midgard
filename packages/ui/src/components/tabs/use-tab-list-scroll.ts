@@ -20,9 +20,9 @@ const FLOW_SCROLL: Record<TabsOrientation, ScrollWithinOptions> = {
 
 /** Scrolls the current tab into view in `scroller`, if a tab is current. React gives `null` on detach. */
 function revealCurrentTab(scroller: HTMLDivElement | null, options: ScrollWithinOptions) {
-	const current = scroller?.querySelector<HTMLElement>(CURRENT_TAB_SELECTOR)
+	const tab = scroller?.querySelector<HTMLElement>(CURRENT_TAB_SELECTOR)
 
-	if (scroller && current) scrollNodeWithin(scroller, current, options)
+	if (scroller && tab) scrollNodeWithin(scroller, tab, options)
 }
 
 /**

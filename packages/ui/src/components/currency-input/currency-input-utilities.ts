@@ -1,7 +1,7 @@
 import { getOrCompute } from '../../utilities'
 
-export function escapeRegExp(s: string) {
-	return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+export function escapeRegExp(text: string) {
+	return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
 // Editing regexes cache by separator (separators vary by locale).
@@ -88,13 +88,13 @@ function fieldDecimalIndex(
 }
 
 // Gives the index in `text` of the other mark that the user typed when it is
-// the decimal, else -1. `previous` is the text before the edit, which the field
+// the decimal, else -1. `prev` is the text before the edit, which the field
 // wrote. Its typed mark stays typed unless the edit removes it. A mark that the
 // edit inserts is typed, and a paste counts. Thus a group mark that the field
 // wrote does not become typed after a deletion or a regroup.
 function decimalIndexAfterEdit(
 	text: string,
-	previous: string,
+	prev: string,
 	group: string | undefined,
 	decimal: string,
 	maxFractionDigits: number,
@@ -103,27 +103,24 @@ function decimalIndexAfterEdit(
 
 	if (other === undefined) return -1
 
-	const shorter = Math.min(text.length, previous.length)
+	const shorter = Math.min(text.length, prev.length)
 
 	let start = 0
 
-	while (start < shorter && text[start] === previous[start]) start++
+	while (start < shorter && text[start] === prev[start]) start++
 
 	let end = 0
 
-	while (
-		end < shorter - start &&
-		text[text.length - 1 - end] === previous[previous.length - 1 - end]
-	) {
+	while (end < shorter - start && text[text.length - 1 - end] === prev[prev.length - 1 - end]) {
 		end++
 	}
 
-	const kept = fieldDecimalIndex(previous, group, decimal, maxFractionDigits)
+	const kept = fieldDecimalIndex(prev, group, decimal, maxFractionDigits)
 
 	let typed = -1
 
 	if (kept >= 0 && kept < start) typed = kept
-	else if (kept >= 0 && kept >= previous.length - end) typed = kept + text.length - previous.length
+	else if (kept >= 0 && kept >= prev.length - end) typed = kept + text.length - prev.length
 
 	const inserted = text.slice(start, text.length - end).lastIndexOf(other)
 
@@ -140,22 +137,22 @@ function withDecimalAt(text: string, index: number, decimal: string) {
 
 // `formatEditing` keeps a sign only at the start, so the caret counts a sign
 // only at index 0. It keeps the other mark only where the typed mark is the
-// decimal, so the caret counts the other mark only there. `previous` is the
+// decimal, so the caret counts the other mark only there. `prev` is the
 // text before the edit.
 export function isMeaningful(
-	c: string,
+	char: string,
 	index: number,
 	text: string,
 	group: string,
 	decimal: string,
 	maxFractionDigits: number,
-	previous: string,
+	prev: string,
 ) {
-	if (c === '-' || c === MINUS_SIGN) return index === 0
+	if (char === '-' || char === MINUS_SIGN) return index === 0
 
-	if ((c >= '0' && c <= '9') || c === decimal) return true
+	if ((char >= '0' && char <= '9') || char === decimal) return true
 
-	return index === decimalIndexAfterEdit(text, previous, group, decimal, maxFractionDigits)
+	return index === decimalIndexAfterEdit(text, prev, group, decimal, maxFractionDigits)
 }
 
 // Collapses every decimal separator after the first, keeping a single split
@@ -204,8 +201,8 @@ function grouping(locale: string | undefined) {
 // integer part renders as '0' only when a fraction follows, else stays empty.
 // `disallowedRe` leaves only ASCII digits here, so `BigInt` cannot throw. It
 // groups every digit as typed: a `Number` loses digits past 2^53.
-function groupIntegerPart(intPart: string, hasFraction: boolean, locale: string | undefined) {
-	const trimmed = intPart.replace(/^0+(?=\d)/, '')
+function groupIntegerPart(integerPart: string, hasFraction: boolean, locale: string | undefined) {
+	const trimmed = integerPart.replace(/^0+(?=\d)/, '')
 
 	if (trimmed === '') return hasFraction ? '0' : ''
 
@@ -216,14 +213,14 @@ function groupIntegerPart(intPart: string, hasFraction: boolean, locale: string 
 		.join('')
 }
 
-// `previous` is the text before the edit, which the field wrote. The format
+// `prev` is the text before the edit, which the field wrote. The format
 // compares `raw` with it to find the other mark that the user typed.
 export function formatEditing(
 	raw: string,
 	locale: string | undefined,
 	decimal: string,
 	maxFractionDigits: number,
-	previous: string,
+	prev: string,
 ) {
 	// The display can hold the locale minus sign U+2212. It becomes "-" before
 	// the filter, which keeps only the ASCII sign.
@@ -232,7 +229,7 @@ export function formatEditing(
 	// The minus sign and "-" have the same length, so the index holds in `signed`.
 	const otherIndex = decimalIndexAfterEdit(
 		raw,
-		previous,
+		prev,
 		grouping(locale).group,
 		decimal,
 		maxFractionDigits,
@@ -251,12 +248,13 @@ export function formatEditing(
 
 	const cleaned = collapseExtraDecimals(withoutDisallowed.replace(/-/g, ''), decimal)
 
-	const [intPart = '', fracPart] = cleaned.split(decimal)
+	const [integerPart = '', fractionPart] = cleaned.split(decimal)
 
-	let result = (negative ? '-' : '') + groupIntegerPart(intPart, fracPart !== undefined, locale)
+	let result =
+		(negative ? '-' : '') + groupIntegerPart(integerPart, fractionPart !== undefined, locale)
 
-	if (fracPart !== undefined && maxFractionDigits > 0) {
-		result += mark + fracPart.slice(0, maxFractionDigits)
+	if (fractionPart !== undefined && maxFractionDigits > 0) {
+		result += mark + fractionPart.slice(0, maxFractionDigits)
 	}
 
 	return result
@@ -289,11 +287,11 @@ export function parseEditing(
 		return undefined
 	}
 
-	const n = Number(normalized)
+	const parsed = Number(normalized)
 
-	if (Number.isNaN(n)) return undefined
+	if (Number.isNaN(parsed)) return undefined
 
 	// "-0" gives -0, and Intl writes its sign ("-0.00"). Zero has no sign, so
 	// the value is 0.
-	return n === 0 ? 0 : n
+	return parsed === 0 ? 0 : parsed
 }

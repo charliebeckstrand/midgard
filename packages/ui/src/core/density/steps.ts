@@ -138,16 +138,16 @@ export function scopeStepOf<O extends DensityStep | null>(
 	boundary: Element | null,
 	outer: O,
 ): DensityStep | O {
-	let slot = false
+	let inSlot = false
 
 	for (let node: Element | null = element; node && node !== boundary; node = node.parentElement) {
 		const value = node.getAttribute('data-density')
 
-		if (value === 'slot') slot = true
-		else if (isDensityStep(value)) return slot ? slotStep(value) : value
+		if (value === 'slot') inSlot = true
+		else if (isDensityStep(value)) return inSlot ? slotStep(value) : value
 	}
 
-	return slot && outer !== null ? slotStep(outer) : outer
+	return inSlot && outer !== null ? slotStep(outer) : outer
 }
 
 /** The steps that the root marks with a class. */

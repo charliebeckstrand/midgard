@@ -149,8 +149,8 @@ export function CurrencyInput({
 	const resolvedLocale = locale ?? ambient.locale
 
 	const {
-		value: num,
-		setValue: setNum,
+		value: amount,
+		setValue: setAmount,
 		setTouched,
 	} = useFormValue<number>(name, { value, defaultValue, onValueChange })
 
@@ -169,17 +169,17 @@ export function CurrencyInput({
 	// parent, a form reset), so the buffer ends and the field shows that value.
 	// The field keeps focus. The check runs only when the value changes: a bound
 	// form field can take one render longer than the buffer to change.
-	const [heldNum, setHeldNum] = useState(num)
+	const [heldAmount, setHeldAmount] = useState(amount)
 
-	if (heldNum !== num) {
-		setHeldNum(num)
+	if (heldAmount !== amount) {
+		setHeldAmount(amount)
 
-		if (editingText !== null && parse(editingText) !== (num ?? undefined)) {
+		if (editingText !== null && parse(editingText) !== (amount ?? undefined)) {
 			setEditingText(null)
 		}
 	}
 
-	const text = editingText ?? (num === undefined ? '' : displayFormatter.format(num))
+	const text = editingText ?? (amount === undefined ? '' : displayFormatter.format(amount))
 
 	const affix = useSymbolAffix({ symbol, symbolIsPrefix, prefix, suffix, ariaDescribedBy })
 
@@ -189,8 +189,8 @@ export function CurrencyInput({
 	// mark that the user typed.
 	const { ref: setRefs, reformat } = useFormattedInput({
 		format: (raw) => formatEditing(raw, resolvedLocale, decimal, maxFractionDigits, text),
-		meaningful: (c, index, edited) =>
-			isMeaningful(c, index, edited, group, decimal, maxFractionDigits, text),
+		meaningful: (char, index, edited) =>
+			isMeaningful(char, index, edited, group, decimal, maxFractionDigits, text),
 		atEnd: 'jump',
 		ref,
 	})
@@ -220,7 +220,7 @@ export function CurrencyInput({
 					if (editingText !== null) {
 						const parsed = parse(editingText)
 
-						if (parsed !== num) setNum(parsed)
+						if (parsed !== amount) setAmount(parsed)
 
 						setEditingText(null)
 					}
@@ -242,7 +242,7 @@ export function CurrencyInput({
 				// Guard like the blur path: a keystroke that changes the text but
 				// not the number — a trailing separator, a digit past `precision` —
 				// must not re-emit the value it already holds.
-				if (parsed !== num) setNum(parsed)
+				if (parsed !== amount) setAmount(parsed)
 			}}
 		/>
 	)

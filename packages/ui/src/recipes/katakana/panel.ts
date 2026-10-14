@@ -46,7 +46,7 @@ type PanelInput<P, B = undefined> = {
 	footer?: Slot
 }
 
-const toArray = (v?: string | string[]): string[] => (v == null ? [] : [v].flat())
+const toArray = (value?: string | string[]): string[] => (value == null ? [] : [value].flat())
 
 /**
  * Build the panel slot bundle from the `panel` tokens and the caller input.

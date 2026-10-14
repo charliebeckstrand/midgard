@@ -27,12 +27,12 @@ describe('grid sticky header rows with column groups (real browser)', () => {
 
 	const groups: GridColumnGroup[] = [{ id: 'mid', title: 'Middle', columns: ['a', 'b'] }]
 
-	const rows: Row[] = Array.from({ length: 200 }, (_, i) => ({
-		id: i + 1,
-		name: `Name ${i + 1}`,
-		a: `A${i}`,
-		b: `B${i}`,
-		c: `C${i}`,
+	const rows: Row[] = Array.from({ length: 200 }, (_, index) => ({
+		id: index + 1,
+		name: `Name ${index + 1}`,
+		a: `A${index}`,
+		b: `B${index}`,
+		c: `C${index}`,
 		status: 'active',
 	}))
 

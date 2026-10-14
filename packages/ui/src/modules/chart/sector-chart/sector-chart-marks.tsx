@@ -33,12 +33,12 @@ export function sliceGroupClass(
 	index: number,
 	selected: ReadonlySet<number> | null = null,
 ): string {
-	const dim =
+	const dimmed =
 		selected !== null && selected.size > 0
 			? !selected.has(index)
 			: emphasis !== null && emphasis !== index
 
-	return seriesGroupClass(dim)
+	return seriesGroupClass(dimmed)
 }
 
 /**
@@ -251,7 +251,7 @@ export function SectorChartMarks({
 	// hovered slice isolates itself and recedes the rest, as its legend chip does.
 	const emphasis = useChartSeriesEmphasis()
 
-	const onEmphasis = useChartSeriesFocus()
+	const setSeriesFocus = useChartSeriesFocus()
 
 	const sweepId = useId()
 
@@ -291,7 +291,7 @@ export function SectorChartMarks({
 
 			set(null, null)
 
-			onEmphasis(null)
+			setSeriesFocus(null)
 		},
 		(clientX, clientY) => {
 			if (!inside.current) return
@@ -304,7 +304,7 @@ export function SectorChartMarks({
 
 			set(slice.index, drawingPoint(svg, clientX, clientY))
 
-			onEmphasis(slice.index)
+			setSeriesFocus(slice.index)
 		},
 	)
 
@@ -319,7 +319,7 @@ export function SectorChartMarks({
 
 				inside.current = false
 
-				onEmphasis(null)
+				setSeriesFocus(null)
 
 				if (!click) set(null, null)
 			}}
@@ -364,7 +364,7 @@ export function SectorChartMarks({
 
 					// A mouse or a pen that points a slice isolates it either way the tooltip
 					// opens; the hover trigger also tracks the readout onto it.
-					const emphasize = () => onEmphasis(slice.index)
+					const emphasize = () => setSeriesFocus(slice.index)
 
 					// The slice that a touch press lands on, which its tap reports.
 					const press = (event: PointerEvent<SVGPathElement>) => {

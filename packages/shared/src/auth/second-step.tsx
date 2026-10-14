@@ -66,13 +66,13 @@ export function SecondStep({
 
 	const hasRecovery = methods.includes('recovery_code')
 
-	const [useRecovery, setUseRecovery] = useState(!hasTotp && !methods.includes('passkey'))
+	const [usingRecovery, setUsingRecovery] = useState(!hasTotp && !methods.includes('passkey'))
 
-	const [errorAlert, setError] = useServerError()
+	const [errorAlert, setServerError] = useServerError()
 
 	const [leaving, leave] = useLeaving()
 
-	const showCode = useRecovery || hasTotp
+	const showCode = usingRecovery || hasTotp
 
 	async function submit(proof: SecondFactorProof) {
 		try {
@@ -83,14 +83,14 @@ export function SecondStep({
 
 			if (response.status === 410) return leave(onExpired)
 
-			setError(error?.message || 'That code was not accepted. Please try again.')
+			setServerError(error?.message || 'That code was not accepted. Please try again.')
 		} catch {
-			setError(unexpectedError)
+			setServerError(unexpectedError)
 		}
 	}
 
 	const handleSubmit: FormSubmitHandler<CodeValues> = async ({ code }) => {
-		await submit(useRecovery ? { recovery_code: code.trim() } : { totp: code.replace(/\s/g, '') })
+		await submit(usingRecovery ? { recovery_code: code.trim() } : { totp: code.replace(/\s/g, '') })
 	}
 
 	// The gateway names only the passkeys of this user. A cancel in the browser throws.
@@ -99,7 +99,7 @@ export function SecondStep({
 			const { data: options, error } = await bifrost.POST('/auth/session/verify/options')
 
 			if (!options) {
-				setError(error?.message || passkeyFailed)
+				setServerError(error?.message || passkeyFailed)
 
 				return
 			}
@@ -109,7 +109,7 @@ export function SecondStep({
 
 			await submit({ passkey: await startAuthentication({ optionsJSON }) })
 		} catch {
-			setError(passkeyFailed)
+			setServerError(passkeyFailed)
 		}
 	}
 
@@ -133,15 +133,17 @@ export function SecondStep({
 
 				{showCode && (
 					<Form<CodeValues>
-						key={useRecovery ? 'recovery' : 'totp'}
+						key={usingRecovery ? 'recovery' : 'totp'}
 						defaultValues={{ code: '' }}
 						validate={{ code: chain(required()) }}
 						onSubmit={handleSubmit}
 					>
 						<Stack gap="xl">
 							<Field>
-								<Label>{useRecovery ? 'Recovery code' : 'Code from your authenticator app'}</Label>
-								{useRecovery ? (
+								<Label>
+									{usingRecovery ? 'Recovery code' : 'Code from your authenticator app'}
+								</Label>
+								{usingRecovery ? (
 									<Input name="code" autoComplete="off" autoCapitalize="none" spellCheck={false} />
 								) : (
 									<Input name="code" inputMode="numeric" autoComplete="one-time-code" />
@@ -167,25 +169,25 @@ export function SecondStep({
 					</Button>
 				)}
 
-				{hasRecovery && !useRecovery && (
+				{hasRecovery && !usingRecovery && (
 					<Button
 						type="button"
 						variant="plain"
 						color="blue"
 						className="self-center"
-						onClick={() => setUseRecovery(true)}
+						onClick={() => setUsingRecovery(true)}
 					>
 						Use a recovery code
 					</Button>
 				)}
 
-				{useRecovery && hasTotp && (
+				{usingRecovery && hasTotp && (
 					<Button
 						type="button"
 						variant="plain"
 						color="blue"
 						className="self-center"
-						onClick={() => setUseRecovery(false)}
+						onClick={() => setUsingRecovery(false)}
 					>
 						Use your authenticator app
 					</Button>

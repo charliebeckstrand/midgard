@@ -1019,7 +1019,7 @@ describe('Dashboard', () => {
 						onTileError={(_id, error) => {
 							onReport()
 
-							setReports((current) => [...current, error])
+							setReports((prev) => [...prev, error])
 						}}
 					>
 						<DashboardTile id="a" title={`Revenue ${reports.length}`}>
@@ -1056,7 +1056,7 @@ describe('Dashboard', () => {
 			<Dashboard
 				aria-label="Sales"
 				layout={{ defaultValue: LAYOUT }}
-				onTileError={() => setReports((current) => current + 1)}
+				onTileError={() => setReports((prev) => prev + 1)}
 			>
 				<DashboardTile id="a" title={`Revenue ${reports}`}>
 					<Shown fail={fail} value={make(reports)} />

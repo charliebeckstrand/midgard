@@ -184,10 +184,10 @@ describe('the transcript window', () => {
 		const start = transcript.scrollTop
 
 		// Five rows, each far taller than the estimate, so the target moves as they measure.
-		const appended: ChatMessageData[] = Array.from({ length: 5 }, (_, i) => ({
-			id: `new-${i}`,
+		const appended: ChatMessageData[] = Array.from({ length: 5 }, (_, index) => ({
+			id: `new-${index}`,
 			sender: 'assistant' as const,
-			content: `New ${i}. ${filler(4).repeat(3)}`,
+			content: `New ${index}. ${filler(4).repeat(3)}`,
 		}))
 
 		const offsets: number[] = []

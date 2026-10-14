@@ -27,21 +27,21 @@ function bar(texture?: boolean) {
 
 describe('texture fill helpers', () => {
 	it('applies the tile fill in every mode when active', () => {
-		const cls = textureClass(true, 'url(#tile)') || ''
+		const className = textureClass(true, 'url(#tile)') || ''
 
-		expect(cls).toContain('fill-(--chart-fill)!')
+		expect(className).toContain('fill-(--chart-fill)!')
 
-		expect(cls).not.toContain('forced-colors:fill-(--chart-fill)')
+		expect(className).not.toContain('forced-colors:fill-(--chart-fill)')
 
-		expect(cls).toContain('forced-color-adjust-none')
+		expect(className).toContain('forced-color-adjust-none')
 	})
 
 	it('confines the tile fill to forced-colors and print when inactive', () => {
-		const cls = textureClass(false, 'url(#tile)') || ''
+		const className = textureClass(false, 'url(#tile)') || ''
 
-		expect(cls).toContain('forced-colors:fill-(--chart-fill)!')
+		expect(className).toContain('forced-colors:fill-(--chart-fill)!')
 
-		expect(cls).toContain('print:fill-(--chart-fill)!')
+		expect(className).toContain('print:fill-(--chart-fill)!')
 	})
 
 	it('adds nothing without a tile fill', () => {
@@ -80,12 +80,13 @@ describe('chart textures', () => {
 		// Tiles are always present, so a chart survives High Contrast without opting in.
 		expect(bySlot(container, 'chart-patterns')).not.toBeNull()
 
-		const cls = (allBySlot(container, 'chart-bar')[0] as HTMLElement).getAttribute('class') ?? ''
+		const className =
+			(allBySlot(container, 'chart-bar')[0] as HTMLElement).getAttribute('class') ?? ''
 
 		// The color fill is not overridden on screen; the tile waits for forced-colors / print.
-		expect(cls).toContain('forced-colors:fill-(--chart-fill)!')
+		expect(className).toContain('forced-colors:fill-(--chart-fill)!')
 
-		expect(cls).not.toContain(' fill-(--chart-fill)!')
+		expect(className).not.toContain(' fill-(--chart-fill)!')
 	})
 
 	it('mirrors the tile on the legend swatch, gated like the marks', () => {

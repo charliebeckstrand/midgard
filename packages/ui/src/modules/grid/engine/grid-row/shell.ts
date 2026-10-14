@@ -151,7 +151,7 @@ export function rowShellProps<T>(args: GridRowShellArgs<T>): {
 		// A clickable row activates on Enter / Space, gated to the row itself so
 		// inner controls keep their own key behavior.
 		onKeyDown: onRowClick
-			? (event) => activateOnEnterSpace(event, (e) => onRowClick(row, e))
+			? (event) => activateOnEnterSpace(event, () => onRowClick(row, event))
 			: undefined,
 	}
 }
@@ -229,7 +229,7 @@ export function cellRovingAttrs<T>(args: {
 
 			if (event.defaultPrevented) return
 
-			activateOnEnterSpace(event, (e) => cellActivate?.(cellContext(col, row, rowKey), e))
+			activateOnEnterSpace(event, () => cellActivate?.(cellContext(col, row, rowKey), event))
 		},
 	}
 }

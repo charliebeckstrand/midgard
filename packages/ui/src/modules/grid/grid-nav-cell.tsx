@@ -165,17 +165,17 @@ export function seatingCellProps<T>(args: {
 }): ComponentProps<'td'> {
 	const { col, row, rowIdx, colIndexMapRef, cellId, seat, extra, touch } = args
 
-	const colIdx = colIndexMapRef.current.get(col.id) ?? -1
+	const colIndex = colIndexMapRef.current.get(col.id) ?? -1
 
-	const prev = col.cellProps?.(row)
+	const columnProps = col.cellProps?.(row)
 
 	return {
-		...prev,
+		...columnProps,
 		...extra,
-		id: cellId(rowIdx, colIdx),
+		id: cellId(rowIdx, colIndex),
 		role: 'gridcell',
 		onMouseDown: composeEventHandlers(
-			prev?.onMouseDown,
+			columnProps?.onMouseDown,
 			(event: MouseEvent<HTMLTableCellElement>) => {
 				// A press in a portal that the cell renders, such as an editor's open
 				// listbox, reaches the cell through the React tree. It is not a press
@@ -185,12 +185,12 @@ export function seatingCellProps<T>(args: {
 				if (inCell && !fromInteractiveContent(event.target)) {
 					event.currentTarget.closest<HTMLElement>(GRID_ROLE)?.focus()
 
-					seat({ row: rowIdx, col: colIdx }, event)
+					seat({ row: rowIdx, col: colIndex }, event)
 				}
 			},
 			{ checkForDefaultPrevented: false },
 		),
-		...(touch ? touchEntryProps(touch, { row: rowIdx, col: colIdx }, prev) : undefined),
+		...(touch ? touchEntryProps(touch, { row: rowIdx, col: colIndex }, columnProps) : undefined),
 	}
 }
 
@@ -209,25 +209,25 @@ export function seatingCellProps<T>(args: {
 function touchEntryProps(
 	touch: GridTouchEntry,
 	coord: Coord,
-	prev: ComponentProps<'td'> | undefined,
+	columnProps: ComponentProps<'td'> | undefined,
 ): ComponentProps<'td'> {
 	return {
 		onPointerDown: composeEventHandlers(
-			prev?.onPointerDown,
+			columnProps?.onPointerDown,
 			(event: PointerEvent<HTMLTableCellElement>) => {
 				const inCell = event.target instanceof Node && event.currentTarget.contains(event.target)
 
 				touch.onPointerDown(inCell && !fromInteractiveContent(event.target) ? coord : null, event)
 			},
 		),
-		onPointerMove: composeEventHandlers(prev?.onPointerMove, touch.onPointerMove, {
+		onPointerMove: composeEventHandlers(columnProps?.onPointerMove, touch.onPointerMove, {
 			checkForDefaultPrevented: false,
 		}),
-		onPointerUp: composeEventHandlers(prev?.onPointerUp, touch.onPointerUp),
-		onPointerCancel: composeEventHandlers(prev?.onPointerCancel, touch.onPointerCancel, {
+		onPointerUp: composeEventHandlers(columnProps?.onPointerUp, touch.onPointerUp),
+		onPointerCancel: composeEventHandlers(columnProps?.onPointerCancel, touch.onPointerCancel, {
 			checkForDefaultPrevented: false,
 		}),
-		onTouchEnd: composeEventHandlers(prev?.onTouchEnd, touch.onTouchEnd, {
+		onTouchEnd: composeEventHandlers(columnProps?.onTouchEnd, touch.onTouchEnd, {
 			checkForDefaultPrevented: false,
 		}),
 	}

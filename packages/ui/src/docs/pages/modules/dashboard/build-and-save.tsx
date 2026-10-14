@@ -256,24 +256,24 @@ export default function BuildAndSave() {
 	}
 
 	const setSpec = useCallback(
-		(update: (current: DashboardSpec) => DashboardSpec) =>
-			setBoard((current) => ({ ...current, spec: update(current.spec) })),
+		(update: (prev: DashboardSpec) => DashboardSpec) =>
+			setBoard((prev) => ({ ...prev, spec: update(prev.spec) })),
 		[],
 	)
 
 	// A remove leaves a gap, because the board never packs itself. Tidy closes the gaps.
-	const handle = useRef<DashboardHandle>(null)
+	const dashboardRef = useRef<DashboardHandle>(null)
 
 	const add = (tile: Omit<DashboardSpecTile, 'id'>) =>
-		setSpec((current) => addSpecTile(current, { ...tile, id: nextSpecTileId(current) }))
+		setSpec((prev) => addSpecTile(prev, { ...tile, id: nextSpecTileId(prev) }))
 
 	const remove = useCallback(
-		(tile: DashboardSpecTile) => setSpec((current) => removeSpecTile(current, tile.id)),
+		(tile: DashboardSpecTile) => setSpec((prev) => removeSpecTile(prev, tile.id)),
 		[setSpec],
 	)
 
 	const duplicate = useCallback(
-		(tile: DashboardSpecTile) => setSpec((current) => duplicateSpecTile(current, tile.id)),
+		(tile: DashboardSpecTile) => setSpec((prev) => duplicateSpecTile(prev, tile.id)),
 		[setSpec],
 	)
 
@@ -330,7 +330,7 @@ export default function BuildAndSave() {
 					<Spacer />
 					{!pristine && <ResetButton onClick={() => restart(fresh(initial))} />}
 					{editing && !empty && (
-						<Button variant="outline" onClick={() => handle.current?.tidy()}>
+						<Button variant="outline" onClick={() => dashboardRef.current?.tidy()}>
 							Tidy
 						</Button>
 					)}
@@ -338,7 +338,7 @@ export default function BuildAndSave() {
 						<Button
 							color={editing ? 'zinc' : 'blue'}
 							hidden={projected}
-							onClick={() => setEditing((live) => !live)}
+							onClick={() => setEditing((prev) => !prev)}
 						>
 							{editing ? 'Done' : 'Edit layout'}
 						</Button>
@@ -359,13 +359,13 @@ export default function BuildAndSave() {
 			<DashboardWidgetProvider widgets={widgets}>
 				<Dashboard
 					key={starts}
-					ref={handle}
+					ref={dashboardRef}
 					aria-label="Custom dashboard"
 					editing={editing}
 					onProjectedChange={project}
 					layout={{
 						value: spec.layout,
-						onValueChange: (layout) => setSpec((current) => ({ ...current, layout })),
+						onValueChange: (layout) => setSpec((prev) => ({ ...prev, layout })),
 					}}
 				>
 					<DashboardTiles tiles={spec.tiles} onRemove={remove} onDuplicate={duplicate} expandable />

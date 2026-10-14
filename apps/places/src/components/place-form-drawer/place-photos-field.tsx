@@ -31,7 +31,9 @@ const REJECTION: Readonly<Record<FileRejection['reason'], string>> = {
 function rejectionMessage(rejected: readonly FileRejection[]): string {
 	return (Object.keys(REJECTION) as FileRejection['reason'][])
 		.flatMap((reason) => {
-			const files = rejected.filter((held) => held.reason === reason).map((held) => held.file)
+			const files = rejected
+				.filter((rejection) => rejection.reason === reason)
+				.map((rejection) => rejection.file)
 
 			return files.length === 0 ? [] : [`${formatFileNames(files)} ${REJECTION[reason]}.`]
 		})
@@ -160,7 +162,7 @@ export function PlacePhotosField({ progress }: PlacePhotosFieldProps) {
 		return src === undefined ? [] : [{ key: photo.key, src }]
 	})
 
-	const viewerIndex = new Map(viewer.map((photo, at) => [photo.key, at]))
+	const viewerIndex = new Map(viewer.map((photo, index) => [photo.key, index]))
 
 	// The photo field takes no selection of its own: a pick goes into the list.
 	const picker = {
@@ -191,9 +193,9 @@ export function PlacePhotosField({ progress }: PlacePhotosFieldProps) {
 			) : (
 				<>
 					<Lightbox
-						photos={viewer.map(({ src }, at) => ({
+						photos={viewer.map(({ src }, index) => ({
 							src,
-							alt: `Photo ${at + 1} of ${viewer.length}`,
+							alt: `Photo ${index + 1} of ${viewer.length}`,
 						}))}
 						aria-label="Photos"
 					>
@@ -206,9 +208,9 @@ export function PlacePhotosField({ progress }: PlacePhotosFieldProps) {
 							aria-label="Photos"
 						>
 							{(photo) => {
-								const n = photos.indexOf(photo) + 1
+								const position = photos.indexOf(photo) + 1
 
-								const at = viewerIndex.get(photo.key)
+								const index = viewerIndex.get(photo.key)
 
 								const share = progress.get(photo.key)
 
@@ -219,14 +221,14 @@ export function PlacePhotosField({ progress }: PlacePhotosFieldProps) {
 										suffix={
 											<ToggleIconButton
 												icon={<Icon icon={<Trash />} />}
-												aria-label={`Remove photo ${n}`}
+												aria-label={`Remove photo ${position}`}
 												onClick={() => setValue(photos.filter((held) => held.key !== photo.key))}
 											/>
 										}
 									>
 										<div className="relative size-12">
-											{at === undefined ? null : (
-												<LightboxTrigger index={at} className="size-12 rounded-md" />
+											{index === undefined ? null : (
+												<LightboxTrigger index={index} className="size-12 rounded-md" />
 											)}
 
 											{share === undefined ? null : (
@@ -240,7 +242,7 @@ export function PlacePhotosField({ progress }: PlacePhotosFieldProps) {
 														color="blue"
 														value={share}
 														max={1}
-														aria-label={`Photo ${n} upload`}
+														aria-label={`Photo ${position} upload`}
 													/>
 												</Flex>
 											)}

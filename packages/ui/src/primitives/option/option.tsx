@@ -219,18 +219,18 @@ export type OptionSelectionContext<TValue = unknown> = {
 	capitalize?: boolean
 }
 
-// Membership sets keyed by the selected-values array. Every option in one render
-// reads the same array reference off the host context, so the first option to
-// look up builds the set (O(k)) and the rest reuse it (O(1)) — a multi-select
-// toggle costs O(n + k), not the O(n·k) of an `includes` scan per option. The
-// host swaps in a new array on change, so a WeakMap keys cleanly and old sets
-// are collected with their arrays.
 // The host's `capitalize` flag, which each `Option` hands to its own `Label`.
 // A `Label` that reads the whole selection context re-renders on each selection
 // change. This boolean does not change with the selection, so a `Label` skips
 // that work.
 const [CapitalizeContext] = createContext('OptionCapitalize', { default: false })
 
+// Membership sets keyed by the selected-values array. Every option in one render
+// reads the same array reference off the host context, so the first option to
+// look up builds the set (O(k)) and the rest reuse it (O(1)) — a multi-select
+// toggle costs O(n + k), not the O(n·k) of an `includes` scan per option. The
+// host swaps in a new array on change, so a WeakMap keys cleanly and old sets
+// are collected with their arrays.
 const membershipCache = new WeakMap<readonly unknown[], Set<unknown>>()
 
 function isOptionSelected(

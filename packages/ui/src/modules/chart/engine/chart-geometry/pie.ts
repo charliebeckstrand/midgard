@@ -133,9 +133,9 @@ function edgePoint(
 	return { x: cx + along * cos - perp * sin, y: cy + along * sin + perp * cos }
 }
 
-/** The SVG large-arc flag for a `sweep`-degree slice once the gap narrows it at radius `r`. @internal */
-function spanLarge(sweep: number, half: number, r: number): 0 | 1 {
-	const inset = (Math.asin(Math.min(1, half / r)) * 180) / Math.PI
+/** The SVG large-arc flag for a `sweep`-degree slice once the gap narrows it at `radius`. @internal */
+function spanLarge(sweep: number, half: number, radius: number): 0 | 1 {
+	const inset = (Math.asin(Math.min(1, half / radius)) * 180) / Math.PI
 
 	return sweep - 2 * inset > 180 ? 1 : 0
 }
@@ -318,13 +318,13 @@ export function pieSlices(
 				? innerRadius * Math.sin((sweep * 0.35 * Math.PI) / 180)
 				: radius * 0.5 * Math.sin((sweep * Math.PI) / 360)
 
-		const h = Math.min(half, pinch)
+		const offset = Math.min(half, pinch)
 
 		// The gapless wedge (offset 0) runs its edges to the boundary each channel
 		// is centered on — the slice's half of it.
 		return {
 			index,
-			d: slicePath(cx, cy, radius, innerRadius, start, start + sweep, h),
+			d: slicePath(cx, cy, radius, innerRadius, start, start + sweep, offset),
 			hit: slicePath(cx, cy, radius, innerRadius, start, start + sweep, 0),
 			share,
 			mid,
@@ -454,8 +454,8 @@ function declumpLabels(ys: number[], top: number, bottom: number, gap: number): 
 
 	let ceiling = bottom
 
-	for (let k = order.length - 1; k >= 0; k--) {
-		const item = order[k]
+	for (let i = order.length - 1; i >= 0; i--) {
+		const item = order[i]
 
 		if (!item) continue
 

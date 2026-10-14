@@ -61,14 +61,14 @@ export function ApiTable({ api }: { api: BarrelApi }) {
 	// the chunk loads, two clicks start from the same value, so each change
 	// applies only the entries that it opened or closed.
 	const toggle = (next: string[]) =>
-		change((current) => {
+		change((prev) => {
 			const opened = next.filter((name) => !open.includes(name))
 
 			const closed = open.filter((name) => !next.includes(name))
 
 			return [
-				...current.filter((name) => !closed.includes(name)),
-				...opened.filter((name) => !current.includes(name)),
+				...prev.filter((name) => !closed.includes(name)),
+				...opened.filter((name) => !prev.includes(name)),
 			]
 		})
 
@@ -86,7 +86,7 @@ export function ApiTable({ api }: { api: BarrelApi }) {
 
 		pending.current = { id, component, opened: false }
 
-		change((current) => (current.includes(component) ? current : [...current, component]))
+		change((prev) => (prev.includes(component) ? prev : [...prev, component]))
 	})
 
 	useEffect(() => {

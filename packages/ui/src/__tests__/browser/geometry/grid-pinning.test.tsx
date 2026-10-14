@@ -35,13 +35,13 @@ describe('grid column pinning (real browser)', () => {
 	// otherwise shrink the columns to fit the viewport and remove the overflow).
 	const sizing = { value: { name: 160, a: 200, b: 200, c: 200, d: 200, status: 140 } }
 
-	const rows: Row[] = Array.from({ length: 4 }, (_, i) => ({
-		id: i + 1,
-		name: `Name ${i + 1}`,
-		a: `A${i}`,
-		b: `B${i}`,
-		c: `C${i}`,
-		d: `D${i}`,
+	const rows: Row[] = Array.from({ length: 4 }, (_, index) => ({
+		id: index + 1,
+		name: `Name ${index + 1}`,
+		a: `A${index}`,
+		b: `B${index}`,
+		c: `C${index}`,
+		d: `D${index}`,
 		status: 'active',
 	}))
 
@@ -150,14 +150,14 @@ describe('grid column pinning (real browser)', () => {
 describe('stacked frozen columns under auto layout (real browser)', () => {
 	type Row = { id: number; name: string; code: string; a: string; b: string; c: string; d: string }
 
-	const rows: Row[] = Array.from({ length: 4 }, (_, i) => ({
-		id: i + 1,
-		name: `A much wider name ${i + 1}`,
-		code: `C-${i + 1}`,
-		a: `A${i}`,
-		b: `B${i}`,
-		c: `C${i}`,
-		d: `D${i}`,
+	const rows: Row[] = Array.from({ length: 4 }, (_, index) => ({
+		id: index + 1,
+		name: `A much wider name ${index + 1}`,
+		code: `C-${index + 1}`,
+		a: `A${index}`,
+		b: `B${index}`,
+		c: `C${index}`,
+		d: `D${index}`,
 	}))
 
 	// Two frozen columns per edge, one pinned and one locked, behind the selection
@@ -247,13 +247,13 @@ describe('stacked frozen columns under auto layout (real browser)', () => {
 describe('frozen chrome tracks live pin and size changes (real browser)', () => {
 	type Row = { id: number; name: string; email: string; a: string; b: string; c: string }
 
-	const rows: Row[] = Array.from({ length: 4 }, (_, i) => ({
-		id: i + 1,
-		name: `Name ${i + 1}`,
-		email: `person${i + 1}@example.com`,
-		a: `A${i}`,
-		b: `B${i}`,
-		c: `C${i}`,
+	const rows: Row[] = Array.from({ length: 4 }, (_, index) => ({
+		id: index + 1,
+		name: `Name ${index + 1}`,
+		email: `person${index + 1}@example.com`,
+		a: `A${index}`,
+		b: `B${index}`,
+		c: `C${index}`,
 	}))
 
 	const columns: GridColumn<Row>[] = [

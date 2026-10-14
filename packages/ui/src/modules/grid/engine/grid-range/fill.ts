@@ -43,10 +43,10 @@ export function fillLine(line: readonly unknown[], count: number): unknown[] {
 
 	const last = line[line.length - 1] as number
 
-	return Array.from({ length: count }, (_, k) =>
+	return Array.from({ length: count }, (_, index) =>
 		step === null
-			? line[k % line.length]
-			: Number((last + step * (k + 1)).toPrecision(SERIES_PRECISION)),
+			? line[index % line.length]
+			: Number((last + step * (index + 1)).toPrecision(SERIES_PRECISION)),
 	)
 }
 
@@ -92,8 +92,8 @@ export function fillPlan(
 			count,
 		)
 
-		values.forEach((value, k) => {
-			const at = back ? first - k - 1 : last + k + 1
+		values.forEach((value, index) => {
+			const at = back ? first - index - 1 : last + index + 1
 
 			targets.push(vertical ? { row: at, col: line, value } : { row: line, col: at, value })
 		})

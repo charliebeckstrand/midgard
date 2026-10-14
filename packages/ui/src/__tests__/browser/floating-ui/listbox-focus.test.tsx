@@ -14,23 +14,23 @@ import { renderUI, screen, waitFor } from '../../helpers'
  * engage under jsdom (mocked).
  */
 
-const panelSel = '[data-slot="popover-panel"]'
+const panelSelector = '[data-slot="popover-panel"]'
 
 const findPanel = () =>
 	waitFor(() => {
-		const el = document.querySelector<HTMLElement>(panelSel)
+		const panel = document.querySelector<HTMLElement>(panelSelector)
 
-		if (!el) throw new Error('panel not mounted')
+		if (!panel) throw new Error('panel not mounted')
 
-		return el
+		return panel
 	})
 
-const isOpen = () => !!document.querySelector(panelSel)
+const isOpen = () => !!document.querySelector(panelSelector)
 
 describe('Listbox focus (real browser)', () => {
 	it('moves focus to the selected option on open', async () => {
 		renderUI(
-			<Listbox aria-label="pick" value="b" displayValue={(v: string) => v}>
+			<Listbox aria-label="pick" value="b" displayValue={(value: string) => value}>
 				<ListboxOption value="a">A</ListboxOption>
 				<ListboxOption value="b">B</ListboxOption>
 			</Listbox>,
@@ -108,7 +108,7 @@ describe('Listbox focus (real browser)', () => {
 				    `B` — indistinguishable from the option's own label. Verbatim, the
 				    lowercase text can only have come from `displayValue(value)`, so the
 				    assertion still proves the commit rather than the label. */}
-				<Listbox aria-label="pick" capitalize={false} displayValue={(v: string) => v}>
+				<Listbox aria-label="pick" capitalize={false} displayValue={(value: string) => value}>
 					<ListboxOption value="a">A</ListboxOption>
 					<ListboxOption value="b">B</ListboxOption>
 				</Listbox>
@@ -146,7 +146,7 @@ describe('Listbox focus (real browser)', () => {
 					nullable
 					defaultValue="b"
 					capitalize={false}
-					displayValue={(v: string) => v}
+					displayValue={(value: string) => value}
 				>
 					<ListboxOption value="a">A</ListboxOption>
 					<ListboxOption value="b">B</ListboxOption>
@@ -181,7 +181,7 @@ describe('Listbox focus (real browser)', () => {
 					multiple
 					defaultValue={['a']}
 					onValueChange={onValueChange}
-					displayValue={(v: string) => v}
+					displayValue={(value: string) => value}
 				>
 					<ListboxOption value="a">A</ListboxOption>
 					<ListboxOption value="b">B</ListboxOption>
@@ -230,7 +230,7 @@ describe('Listbox focus (real browser)', () => {
 
 	it('returns focus to the trigger after selecting an option', async () => {
 		renderUI(
-			<Listbox aria-label="pick" displayValue={(v: string) => v}>
+			<Listbox aria-label="pick" displayValue={(value: string) => value}>
 				<ListboxOption value="a">A</ListboxOption>
 				<ListboxOption value="b">B</ListboxOption>
 			</Listbox>,

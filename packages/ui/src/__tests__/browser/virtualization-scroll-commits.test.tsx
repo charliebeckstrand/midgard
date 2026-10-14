@@ -42,9 +42,9 @@ describe('useVirtualWindow commits around a scroll (real browser)', () => {
 	it('commits nothing for a scroll step that keeps the rendered rows', async () => {
 		type Row = { id: number; name: string }
 
-		const rows: Row[] = Array.from({ length: 1000 }, (_, i) => ({
-			id: i + 1,
-			name: `Row ${i + 1}`,
+		const rows: Row[] = Array.from({ length: 1000 }, (_, index) => ({
+			id: index + 1,
+			name: `Row ${index + 1}`,
 		}))
 
 		const columns: GridColumn<Row>[] = [{ id: 'name', title: 'Name', cell: (row) => row.name }]
@@ -128,9 +128,9 @@ describe('useVirtualWindow commits around a scroll (real browser)', () => {
 		function List() {
 			const scrollRef = useRef<HTMLDivElement>(null)
 
-			const [ids, setIds] = useState(() => Array.from({ length: 200 }, (_, i) => i))
+			const [ids, setIds] = useState(() => Array.from({ length: 200 }, (_, index) => index))
 
-			handle.prepend = (next) => setIds((current) => [...next, ...current])
+			handle.prepend = (next) => setIds((prev) => [...next, ...prev])
 
 			const getItemKey = useCallback((index: number) => ids[index] ?? index, [ids])
 

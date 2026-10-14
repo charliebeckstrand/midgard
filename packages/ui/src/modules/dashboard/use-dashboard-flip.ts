@@ -18,8 +18,8 @@ export type DashboardFlipOptions = {
 }
 
 /** The translate that an element paints now, which a running animation can hold. */
-function paintedOffset(element: HTMLElement): DashboardOffset {
-	const transform = getComputedStyle(element).transform
+function paintedOffset(el: HTMLElement): DashboardOffset {
+	const transform = getComputedStyle(el).transform
 
 	if (!transform || transform === 'none') return { x: 0, y: 0 }
 
@@ -38,27 +38,27 @@ type Painted = { cell: DashboardCell; carried: DashboardOffset | null; snap: boo
  * width and the direction of the tile.
  */
 function glideFrom(
-	previous: Painted,
+	prev: Painted,
 	cell: DashboardCell,
 	snap: boolean,
-	element: HTMLElement,
+	el: HTMLElement,
 ): DashboardOffset | null {
-	if (snap || previous.snap) return null
+	if (snap || prev.snap) return null
 
-	if (previous.cell.w !== cell.w || previous.cell.h !== cell.h) return null
+	if (prev.cell.w !== cell.w || prev.cell.h !== cell.h) return null
 
-	const { carried } = previous
+	const { carried } = prev
 
-	if (previous.cell.x === cell.x && previous.cell.y === cell.y && carried === null) return null
+	if (prev.cell.x === cell.x && prev.cell.y === cell.y && carried === null) return null
 
-	const pitch = element.offsetWidth / cell.w
+	const pitch = el.offsetWidth / cell.w
 
 	// The columns turn into px on the screen, which run the other way in a right-to-left board.
-	const inline = inlineSign(getComputedStyle(element).direction)
+	const inline = inlineSign(getComputedStyle(el).direction)
 
-	const x = inline * (previous.cell.x - cell.x) * pitch + (carried?.x ?? 0)
+	const x = inline * (prev.cell.x - cell.x) * pitch + (carried?.x ?? 0)
 
-	const y = ((previous.cell.y - cell.y) * pitch) / ROW_SUBDIVISION + (carried?.y ?? 0)
+	const y = ((prev.cell.y - cell.y) * pitch) / ROW_SUBDIVISION + (carried?.y ?? 0)
 
 	return x === 0 && y === 0 ? null : { x, y }
 }
@@ -70,26 +70,26 @@ type Running = RefObject<AnimationPlaybackControls | null>
  * Ends the glide that runs on the tile. The cancel commits no frame of the glide,
  * so the transform of a carry that started in the same commit stays.
  */
-function endGlide(element: HTMLElement, running: Running): void {
+function endGlide(el: HTMLElement, running: Running): void {
 	running.current?.cancel()
 
 	running.current = null
 
-	delete element.dataset.gliding
+	delete el.dataset.gliding
 }
 
 /** Plays one glide from `offset` to rest, from the painted position of any glide that runs. */
-function glide(element: HTMLElement, offset: DashboardOffset, running: Running): void {
-	const painted = paintedOffset(element)
+function glide(el: HTMLElement, offset: DashboardOffset, running: Running): void {
+	const painted = paintedOffset(el)
 
-	endGlide(element, running)
+	endGlide(el, running)
 
-	element.dataset.gliding = ''
+	el.dataset.gliding = ''
 
 	// The tile rests at `transform: none`. A transform of zero still makes the tile
 	// a containing block and a stacking context.
 	const controls = animate(
-		element,
+		el,
 		{
 			transform: [
 				`translate(${offset.x + painted.x}px, ${offset.y + painted.y}px)`,
@@ -104,7 +104,7 @@ function glide(element: HTMLElement, offset: DashboardOffset, running: Running):
 
 	// A glide that ends early never finishes, and the next glide or the pickup owns the tile.
 	controls.finished.then(() => {
-		if (running.current === controls) endGlide(element, running)
+		if (running.current === controls) endGlide(el, running)
 	})
 }
 
@@ -132,31 +132,31 @@ export function useDashboardFlip(
 	ref: RefObject<HTMLElement | null>,
 	{ cell, carried, snap }: DashboardFlipOptions,
 ): void {
-	const last = useRef<Painted | null>(null)
+	const prevRef = useRef<Painted | null>(null)
 
 	const running = useRef<AnimationPlaybackControls | null>(null)
 
 	const reduceMotion = usePrefersReducedMotion()
 
 	useLayoutEffect(() => {
-		const element = ref.current
+		const el = ref.current
 
-		const previous = last.current
+		const prev = prevRef.current
 
-		if (cell !== undefined) last.current = { cell, carried, snap }
+		if (cell !== undefined) prevRef.current = { cell, carried, snap }
 
-		if (element === null || previous === null || cell === undefined) return
+		if (el === null || prev === null || cell === undefined) return
 
 		// A carried tile follows the pointer, and it glides only once the pointer lets
 		// go. A glide overrides the transform of the carry, so a pickup ends it.
 		if (carried !== null) {
-			if (previous.carried === null) endGlide(element, running)
+			if (prev.carried === null) endGlide(el, running)
 
 			return
 		}
 
-		const offset = reduceMotion ? null : glideFrom(previous, cell, snap, element)
+		const offset = reduceMotion ? null : glideFrom(prev, cell, snap, el)
 
-		if (offset !== null) glide(element, offset, running)
+		if (offset !== null) glide(el, offset, running)
 	}, [ref, cell, carried, snap, reduceMotion])
 }

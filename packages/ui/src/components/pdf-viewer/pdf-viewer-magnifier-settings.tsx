@@ -162,12 +162,12 @@ function PdfViewerMagnifierChoice<T extends string>({
 	value,
 	onChange,
 }: PdfViewerMagnifierChoiceProps<T>) {
-	const legend = useId()
+	const legendId = useId()
 
 	return (
 		<Fieldset className={cn(k.settings.group)}>
-			<Legend id={legend}>{label}</Legend>
-			<RadioGroup aria-labelledby={legend} className={cn(k.settings.options)}>
+			<Legend id={legendId}>{label}</Legend>
+			<RadioGroup aria-labelledby={legendId} className={cn(k.settings.options)}>
 				{options.map((option) => (
 					<RadioField key={option.value}>
 						<Radio

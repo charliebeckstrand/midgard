@@ -44,16 +44,16 @@ export function PlaceTrail({ steps, className, children }: PlaceTrailProps) {
 	return (
 		<Breadcrumb collapse>
 			<BreadcrumbList className={className}>
-				{steps.map((step, at) => {
+				{steps.map((step, index) => {
 					const picks = step.onPick !== undefined
 
 					return (
 						<Fragment key={step.label}>
-							{at > 0 ? <BreadcrumbSeparator /> : null}
+							{index > 0 ? <BreadcrumbSeparator /> : null}
 
 							<BreadcrumbItem>
 								<BreadcrumbLink
-									current={at === steps.length - 1}
+									current={index === steps.length - 1}
 									href={picks ? '#' : undefined}
 									// `font-semibold` beats the current crumb's `font-normal`, so the
 									// trail reads as one title.

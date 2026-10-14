@@ -76,12 +76,12 @@ function calloutLabelText({ labels, percent }: CalloutText, index: number, share
 /** Every row's callout text, indexed like `values`; a row with no slice reads `''`. @internal */
 function textsOf(spec: CalloutText, values: (number | null)[]): string[] {
 	const total = values.reduce<number>(
-		(sum, entry) => sum + (entry != null && entry > 0 ? entry : 0),
+		(sum, value) => sum + (value != null && value > 0 ? value : 0),
 		0,
 	)
 
-	return values.map((entry, index) =>
-		entry != null && entry > 0 && total > 0 ? calloutLabelText(spec, index, entry / total) : '',
+	return values.map((value, index) =>
+		value != null && value > 0 && total > 0 ? calloutLabelText(spec, index, value / total) : '',
 	)
 }
 
@@ -141,7 +141,7 @@ export function calloutRoom(show: boolean, spec: CalloutSpec): number {
 	if (!show) return MARK_GAP * 2
 
 	const widest = spec.full.reduce<number>(
-		(widest, text) => (text === '' ? widest : Math.max(widest, spec.textWidth(text))),
+		(max, text) => (text === '' ? max : Math.max(max, spec.textWidth(text))),
 		0,
 	)
 

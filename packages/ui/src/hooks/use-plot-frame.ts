@@ -306,7 +306,7 @@ export function usePlotFrame(
 
 				const measured = next && measures ? readSize(next) : null
 
-				if (measured) setSize((current) => (sameFrameSize(current, measured) ? current : measured))
+				if (measured) setSize((prev) => (sameFrameSize(prev, measured) ? prev : measured))
 			},
 			{ current: null as HTMLDivElement | null },
 		)
@@ -354,7 +354,7 @@ export function usePlotFrame(
 			startTransition(() => {
 				const next = readSize(node)
 
-				if (next !== null) setSize((current) => (sameFrameSize(current, next) ? current : next))
+				if (next !== null) setSize((prev) => (sameFrameSize(prev, next) ? prev : next))
 			})
 		})
 

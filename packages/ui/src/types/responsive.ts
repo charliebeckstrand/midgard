@@ -42,17 +42,17 @@ export type Responsive<T> = T | Partial<Record<Breakpoint, T>>
  */
 export function resolveResponsive<T>(
 	value: Responsive<T> | undefined,
-	resolver: (v: T, bp?: Breakpoint) => string,
+	resolver: (value: T, bp?: Breakpoint) => string,
 ): string[] {
 	if (value === undefined) return []
 
 	if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-		const obj: Partial<Record<Breakpoint, T>> = value
+		const byBreakpoint: Partial<Record<Breakpoint, T>> = value
 
 		return BREAKPOINTS.flatMap((bp) => {
-			const v = obj[bp]
+			const entry = byBreakpoint[bp]
 
-			return v === undefined ? [] : [resolver(v, bp === 'initial' ? undefined : bp)]
+			return entry === undefined ? [] : [resolver(entry, bp === 'initial' ? undefined : bp)]
 		})
 	}
 

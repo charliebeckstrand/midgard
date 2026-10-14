@@ -39,7 +39,11 @@ function Rail({
 
 	return (
 		<div dir={dir}>
-			<button type="button" data-testid="toggle" onClick={() => setCount((n) => (n > 1 ? 1 : 5))}>
+			<button
+				type="button"
+				data-testid="toggle"
+				onClick={() => setCount((prev) => (prev > 1 ? 1 : 5))}
+			>
 				toggle
 			</button>
 
@@ -65,7 +69,11 @@ function Line({ dir, initial = TITLES.length }: { dir?: 'rtl'; initial?: number 
 
 	return (
 		<div dir={dir}>
-			<button type="button" data-testid="toggle" onClick={() => setCount((n) => (n > 1 ? 1 : 4))}>
+			<button
+				type="button"
+				data-testid="toggle"
+				onClick={() => setCount((prev) => (prev > 1 ? 1 : 4))}
+			>
 				toggle
 			</button>
 

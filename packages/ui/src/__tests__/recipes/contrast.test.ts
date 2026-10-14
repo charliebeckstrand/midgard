@@ -189,11 +189,11 @@ const classesOf = (surface: ClassTree): string[] =>
 
 /** The foreground classes of a set of recipe surfaces, split by the mode each paints in. */
 function inksByMode(surfaces: readonly ClassTree[]): Record<Mode, string[]> {
-	const inks = surfaces.flatMap(classesOf).filter((cls) => FOREGROUND.test(cls))
+	const inks = surfaces.flatMap(classesOf).filter((className) => FOREGROUND.test(className))
 
 	return {
-		light: inks.filter((cls) => !cls.startsWith('dark:')),
-		dark: inks.filter((cls) => cls.startsWith('dark:')),
+		light: inks.filter((className) => !className.startsWith('dark:')),
+		dark: inks.filter((className) => className.startsWith('dark:')),
 	}
 }
 
@@ -285,10 +285,10 @@ describe('tint wash foreground contrast', () => {
 	// One rung across every `kata/list` row variant rather than a `variant` ×
 	// `interactive` compound, so it lands on the wash (`solid`) and on the page
 	// surface (`separated` / `outline` / `plain`) and must clear AA on both.
-	it.each(MODES)('the shared muted rung clears text AA in %s mode', (m) => {
-		expect(contrastOf(MUTED[m], WASH[m])).toBeGreaterThanOrEqual(TEXT_AA)
+	it.each(MODES)('the shared muted rung clears text AA in %s mode', (mode) => {
+		expect(contrastOf(MUTED[mode], WASH[mode])).toBeGreaterThanOrEqual(TEXT_AA)
 
-		expect(contrastOf(MUTED[m], SURFACE[m])).toBeGreaterThanOrEqual(TEXT_AA)
+		expect(contrastOf(MUTED[mode], SURFACE[mode])).toBeGreaterThanOrEqual(TEXT_AA)
 	})
 
 	/**
@@ -321,11 +321,11 @@ describe('tint wash foreground contrast', () => {
 		({ surfaces, ground = WASH, regrounded = [] }) => {
 			const inks = inksByMode(surfaces)
 
-			it.each(MODES)('grounds no ink below text AA on the wash in %s mode', (m) => {
-				const failing = inks[m]
+			it.each(MODES)('grounds no ink below text AA on the wash in %s mode', (mode) => {
+				const failing = inks[mode]
 					.filter((ink) => !regrounded.includes(ink))
 					.flatMap((ink) => {
-						const ratio = contrastOf(ink, ground[m])
+						const ratio = contrastOf(ink, ground[mode])
 
 						return ratio < TEXT_AA ? [`${ink} @ ${ratio.toFixed(2)}:1`] : []
 					})
@@ -356,20 +356,20 @@ describe('segment archetype contrast', () => {
 
 	const SEPARATION = 2
 
-	it.each(MODES)('selected item clears text AA on the %s pill', (m) => {
-		expect(segment.item.base).toContain(SELECTED[m])
+	it.each(MODES)('selected item clears text AA on the %s pill', (mode) => {
+		expect(segment.item.base).toContain(SELECTED[mode])
 
-		expect(contrastOf(SELECTED[m], PILL[m])).toBeGreaterThanOrEqual(TEXT_AA)
+		expect(contrastOf(SELECTED[mode], PILL[mode])).toBeGreaterThanOrEqual(TEXT_AA)
 	})
 
 	// Both inks read off the same ground, so the comparison is like-for-like:
 	// clearing AA by darkening the resting item the rest of the way to the
 	// selected ink would satisfy 1.4.3 and erase the distinction.
-	it.each(MODES)('resting stays subordinate to selected in %s mode', (m) => {
-		expect(segment.item.base).toContain(MUTED[m])
+	it.each(MODES)('resting stays subordinate to selected in %s mode', (mode) => {
+		expect(segment.item.base).toContain(MUTED[mode])
 
-		expect(contrastOf(SELECTED[m], WASH[m])).toBeGreaterThanOrEqual(
-			SEPARATION * contrastOf(MUTED[m], WASH[m]),
+		expect(contrastOf(SELECTED[mode], WASH[mode])).toBeGreaterThanOrEqual(
+			SEPARATION * contrastOf(MUTED[mode], WASH[mode]),
 		)
 	})
 })
@@ -383,19 +383,21 @@ describe('PdfViewer viewport message', () => {
 	const classesOf = (fragment: unknown): string[] =>
 		[fragment].flat(Number.POSITIVE_INFINITY).join(' ').split(' ').filter(Boolean)
 
-	const ground = classesOf(pdfViewer.viewport.base).filter((cls) =>
-		/^(?:dark:)?bg-zinc-\d+$/.test(cls),
+	const ground = classesOf(pdfViewer.viewport.base).filter((className) =>
+		/^(?:dark:)?bg-zinc-\d+$/.test(className),
 	)
 
-	const ink = classesOf(pdfViewer.viewport.page.empty).filter((cls) => FOREGROUND.test(cls))
+	const ink = classesOf(pdfViewer.viewport.page.empty).filter((className) =>
+		FOREGROUND.test(className),
+	)
 
 	const GROUND = byMode(ground)
 
 	const INK = byMode(ink)
 
-	it.each(MODES)('clears text AA on the %s viewport', (m) => {
-		const surface = tinted(GROUND[m].replace('dark:', ''), SURFACE[m])
+	it.each(MODES)('clears text AA on the %s viewport', (mode) => {
+		const surface = tinted(GROUND[mode].replace('dark:', ''), SURFACE[mode])
 
-		expect(contrastOf(INK[m], surface)).toBeGreaterThanOrEqual(TEXT_AA)
+		expect(contrastOf(INK[mode], surface)).toBeGreaterThanOrEqual(TEXT_AA)
 	})
 })

@@ -60,11 +60,11 @@ describe('ExampleFrame', () => {
 		})
 
 		const panel = await waitFor(() => {
-			const element = container.querySelector('[data-slot="collapse-panel"]')
+			const el = container.querySelector('[data-slot="collapse-panel"]')
 
-			expect(element).not.toBeNull()
+			expect(el).not.toBeNull()
 
-			return element
+			return el
 		})
 
 		expect(panel?.textContent).toContain('const answer = 42')

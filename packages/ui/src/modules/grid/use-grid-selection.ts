@@ -61,12 +61,12 @@ export function useGridSelectionActions({
 	// change — not on every unrelated GridData render (keystrokes, resize frames).
 	// The `selection.size` guard skips the scan in the common empty-selection state.
 	const allSelected = useMemo(
-		() => rowKeys.length > 0 && rowKeys.every((rk) => selection.has(rk)),
+		() => rowKeys.length > 0 && rowKeys.every((key) => selection.has(key)),
 		[rowKeys, selection],
 	)
 
 	const someSelected = useMemo(
-		() => selection.size > 0 && rowKeys.some((rk) => selection.has(rk)),
+		() => selection.size > 0 && rowKeys.some((key) => selection.has(key)),
 		[rowKeys, selection],
 	)
 
@@ -83,11 +83,11 @@ export function useGridSelectionActions({
 	// identity holds for the mount.
 	const toggleAll = useStableEvent(() => {
 		setSelection((prev) => {
-			const current = prev ?? EMPTY_SELECTION
+			const selected = prev ?? EMPTY_SELECTION
 
-			const every = rowKeys.length > 0 && rowKeys.every((k) => current.has(k))
+			const every = rowKeys.length > 0 && rowKeys.every((key) => selected.has(key))
 
-			const next = new Set(current)
+			const next = new Set(selected)
 
 			for (const key of rowKeys) {
 				if (every) next.delete(key)

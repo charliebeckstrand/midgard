@@ -106,8 +106,11 @@ export function spacingSteps(sm: number, md: number, lg: number): number[] {
  * and the row gap, which is the `sm` stop of the gap scale (4/8/12 at `sm`,
  * `md`, and `lg`). 18 px to 42 px.
  */
-export const treeIndent = (step: DensityStep) =>
-	iconSize(step) + (spacingSteps(4, 8, 12)[stepIndex[step] + 2] ?? Number.NaN)
+export const treeIndent = (step: DensityStep) => {
+	const gap = spacingSteps(4, 8, 12)[stepIndex[step] + 2] ?? Number.NaN
+
+	return iconSize(step) + gap
+}
 
 /**
  * The ramps of `recipes/kiso/dan` that the formulas give, keyed by their path

@@ -62,7 +62,7 @@ export function wheelPush(deltaY: number, deltaX: number): number {
 }
 
 /**
- * Whether a wheel event continues the stream the map already holds. `last` is
+ * Whether a wheel event continues the stream the map already holds. `prev` is
  * what that stream last pushed, and `coasting` says the stream has already been
  * seen running down.
  *
@@ -81,8 +81,8 @@ export function wheelPush(deltaY: number, deltaX: number): number {
  *
  * @internal
  */
-export function wheelDecays(push: number, last: number, coasting: boolean): boolean {
-	return coasting ? push <= last : push < last
+export function wheelDecays(push: number, prev: number, coasting: boolean): boolean {
+	return coasting ? push <= prev : push < prev
 }
 
 /** The distance between two pointers — a pinch's own measure. @internal */

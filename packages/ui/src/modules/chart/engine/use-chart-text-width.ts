@@ -170,7 +170,7 @@ export function useChartTextWidth(
 
 		if (!fonts) return
 
-		const forget = () => setMeasured((current) => ({ ...current, fits: NONE }))
+		const forget = () => setMeasured((prev) => ({ ...prev, fits: NONE }))
 
 		fonts.addEventListener('loadingdone', forget)
 

@@ -207,9 +207,9 @@ function candidatesFor(
 	endpoints: boolean,
 	extremes: boolean,
 ): Candidate[] {
-	const pts = series.points
+	const points = series.points
 
-	if (pts.length === 0) return []
+	if (points.length === 0) return []
 
 	const byIndex = new Map<number, Candidate>()
 
@@ -219,7 +219,7 @@ function candidatesFor(
 		if (existing && priority <= existing.priority) return
 
 		byIndex.set(index, {
-			...(pts[index] as ValueLabelPoint),
+			...(points[index] as ValueLabelPoint),
 			key: `${order}:${index}`,
 			above,
 			priority,
@@ -228,23 +228,25 @@ function candidatesFor(
 	}
 
 	if (extremes) {
-		let maxI = 0
+		let maxIndex = 0
 
-		let minI = 0
+		let minIndex = 0
 
-		for (let i = 1; i < pts.length; i++) {
-			if ((pts[i] as ValueLabelPoint).value > (pts[maxI] as ValueLabelPoint).value) maxI = i
+		for (let i = 1; i < points.length; i++) {
+			const value = (points[i] as ValueLabelPoint).value
 
-			if ((pts[i] as ValueLabelPoint).value < (pts[minI] as ValueLabelPoint).value) minI = i
+			if (value > (points[maxIndex] as ValueLabelPoint).value) maxIndex = i
+
+			if (value < (points[minIndex] as ValueLabelPoint).value) minIndex = i
 		}
 
-		add(maxI, 4, true)
+		add(maxIndex, 4, true)
 
-		add(minI, 3, false)
+		add(minIndex, 3, false)
 	}
 
 	if (endpoints) {
-		add(pts.length - 1, 2, true)
+		add(points.length - 1, 2, true)
 
 		add(0, 1, true)
 	}

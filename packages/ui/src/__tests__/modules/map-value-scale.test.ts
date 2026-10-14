@@ -136,11 +136,11 @@ describe('resolveValueBins — quantile binning', () => {
 })
 
 describe('regionValueJoin', () => {
-	const assignFor = (opts?: { bins?: number; domain?: [number, number] }) =>
+	const assignFor = (options?: { bins?: number; domain?: [number, number] }) =>
 		resolveValueBins(ROWS, 'v', {
 			colorRange: ['#000000', '#888888', '#ffffff'],
-			bins: opts?.bins,
-			domain: opts?.domain,
+			bins: options?.bins,
+			domain: options?.domain,
 			format: round,
 		}).assign
 

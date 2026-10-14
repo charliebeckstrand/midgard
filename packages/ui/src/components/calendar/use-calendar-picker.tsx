@@ -126,7 +126,7 @@ export function useCalendarPicker({
 	})
 
 	// Returns the frame, so the grid ref callback can cancel it on detach.
-	const focusPickerGrid = useCallback(
+	const focusGrid = useCallback(
 		() =>
 			requestAnimationFrame(() => {
 				const grid = gridRef.current
@@ -148,10 +148,10 @@ export function useCalendarPicker({
 
 		setGridMounted(true)
 
-		const frame = focusPickerGrid()
+		const frame = focusGrid()
 
 		return () => cancelAnimationFrame(frame)
-	}, [open, focusPickerGrid])
+	}, [open, focusGrid])
 
 	const pickerGridRef = useComposedRef(gridRef, attachGrid)
 
@@ -168,15 +168,15 @@ export function useCalendarPicker({
 			onCenter: () => {
 				dispatch({ type: 'showYears' })
 
-				focusPickerGrid()
+				focusGrid()
 			},
-			cells: monthLabels.map((label, i) => ({
+			cells: monthLabels.map((label, index) => ({
 				key: label,
 				label,
-				selected: i === month && pickerYear === year,
-				current: today != null && i === today.getMonth() && pickerYear === today.getFullYear(),
+				selected: index === month && pickerYear === year,
+				current: today != null && index === today.getMonth() && pickerYear === today.getFullYear(),
 				onSelect: () => {
-					onNavigate(pickerYear, i)
+					onNavigate(pickerYear, index)
 
 					onOpenChange(false)
 				},
@@ -199,24 +199,24 @@ export function useCalendarPicker({
 			onCenter: () => {
 				dispatch({ type: 'showMonths' })
 
-				focusPickerGrid()
+				focusGrid()
 			},
 			// The decade and one year on each side. A year outside 1 to 9999 stays in
 			// the grid as a disabled cell. The grid then keeps its three columns and
 			// four rows, and the arrow keys skip the cell.
-			cells: Array.from({ length: 12 }, (_, i) => {
-				const y = decadeStart - 1 + i
+			cells: Array.from({ length: 12 }, (_, index) => {
+				const cellYear = decadeStart - 1 + index
 
 				return {
-					key: y,
-					label: formatYear(y),
-					selected: y === pickerYear,
-					current: today != null && y === today.getFullYear(),
-					disabled: !isYearInRange(y),
+					key: cellYear,
+					label: formatYear(cellYear),
+					selected: cellYear === pickerYear,
+					current: today != null && cellYear === today.getFullYear(),
+					disabled: !isYearInRange(cellYear),
 					onSelect: () => {
-						dispatch({ type: 'selectYear', year: y })
+						dispatch({ type: 'selectYear', year: cellYear })
 
-						focusPickerGrid()
+						focusGrid()
 					},
 				}
 			}),

@@ -390,7 +390,11 @@ export function Sheet() {
 								</FiltersField>
 								<FiltersField name="status">
 									<Label>Status</Label>
-									<Select nullable placeholder="All statuses" displayValue={(v: string) => v}>
+									<Select
+										nullable
+										placeholder="All statuses"
+										displayValue={(value: string) => value}
+									>
 										<SelectOption value="active">
 											<SelectLabel>Active</SelectLabel>
 										</SelectOption>

@@ -73,36 +73,36 @@ describe('PopoverPanel', () => {
 	it('sets tabIndex to -1', () => {
 		renderUI(<PopoverPanel>items</PopoverPanel>)
 
-		const el = screen.getByRole('listbox')
+		const panel = screen.getByRole('listbox')
 
-		expect(el).toHaveAttribute('tabindex', '-1')
+		expect(panel).toHaveAttribute('tabindex', '-1')
 	})
 
 	it('applies custom id', () => {
 		renderUI(<PopoverPanel id="my-panel">items</PopoverPanel>)
 
-		const el = screen.getByRole('listbox')
+		const panel = screen.getByRole('listbox')
 
-		expect(el).toHaveAttribute('id', 'my-panel')
+		expect(panel).toHaveAttribute('id', 'my-panel')
 	})
 
 	it('marks the glass panel as the group the item wash keys on', () => {
 		renderUI(<PopoverPanel glass>items</PopoverPanel>)
 
-		const el = screen.getByRole('listbox')
+		const panel = screen.getByRole('listbox')
 
-		expect(el.className).toContain('group/glass')
+		expect(panel.className).toContain('group/glass')
 
-		expect(el).toHaveAttribute('data-glass', '')
+		expect(panel).toHaveAttribute('data-glass', '')
 	})
 
 	it('leaves the group marker off the default surface', () => {
 		renderUI(<PopoverPanel>items</PopoverPanel>)
 
-		const el = screen.getByRole('listbox')
+		const panel = screen.getByRole('listbox')
 
-		expect(el.className).not.toContain('group/glass')
+		expect(panel.className).not.toContain('group/glass')
 
-		expect(el).not.toHaveAttribute('data-glass')
+		expect(panel).not.toHaveAttribute('data-glass')
 	})
 })

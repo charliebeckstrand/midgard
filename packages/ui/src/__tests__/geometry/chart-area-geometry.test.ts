@@ -18,10 +18,10 @@ describe('stackedAreas', () => {
 		)
 
 		// First band's top edge sits at its own values.
-		expect(first?.points.map((p) => p.y)).toEqual([80, 70, 75])
+		expect(first?.points.map((point) => point.y)).toEqual([80, 70, 75])
 
 		// Second band's top edge sits at the cumulative total (value + first).
-		expect(second?.points.map((p) => p.y)).toEqual([70, 60, 65])
+		expect(second?.points.map((point) => point.y)).toEqual([70, 60, 65])
 	})
 
 	it('counts a missing value as zero so the stack stays continuous', () => {
@@ -54,22 +54,22 @@ describe('stackedAreas', () => {
 	})
 
 	it('decimates a dense stack for drawing, with exact seams and full-resolution points', () => {
-		const n = 8_000
+		const count = 8_000
 
-		const dense = Array.from({ length: n }, (_, i) => (i / (n - 1)) * 800)
+		const dense = Array.from({ length: count }, (_, index) => (index / (count - 1)) * 800)
 
-		const lower = Array.from({ length: n }, (_, i) => Math.sin(i / 20) * 40 + 50)
+		const lower = Array.from({ length: count }, (_, index) => Math.sin(index / 20) * 40 + 50)
 
-		const upper = Array.from({ length: n }, (_, i) => Math.cos(i / 30) * 20 + 30)
+		const upper = Array.from({ length: count }, (_, index) => Math.cos(index / 30) * 20 + 30)
 
 		const [first, second] = stackedAreas([lower, upper], dense, map)
 
-		const pairs = (d: string) => [...d.matchAll(/(-?[\d.]+) (-?[\d.]+)/g)].map((m) => m[0])
+		const pairs = (d: string) => [...d.matchAll(/(-?[\d.]+) (-?[\d.]+)/g)].map((match) => match[0])
 
 		// The drawn edge is a fraction of the data, and the points keep every datum.
-		expect(pairs(first?.line ?? '').length).toBeLessThan(n / 2)
+		expect(pairs(first?.line ?? '').length).toBeLessThan(count / 2)
 
-		expect(first?.points).toHaveLength(n)
+		expect(first?.points).toHaveLength(count)
 
 		// The lower edge of the second ribbon is the drawn top edge of the first,
 		// point for point, so the two ribbons meet with no gap.

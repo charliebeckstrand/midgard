@@ -448,12 +448,12 @@ export function GridColumnManager({
 	// columns from the render — pinned rows are inert here, so filtering them is
 	// display and nothing else.
 	const leftColumns = useMemo(
-		() => columns.filter((c) => effectivePinSide(c) === 'left' && matches(c)),
+		() => columns.filter((column) => effectivePinSide(column) === 'left' && matches(column)),
 		[columns, matches],
 	)
 
 	const rightColumns = useMemo(
-		() => columns.filter((c) => effectivePinSide(c) === 'right' && matches(c)),
+		() => columns.filter((column) => effectivePinSide(column) === 'right' && matches(column)),
 		[columns, matches],
 	)
 
@@ -464,7 +464,10 @@ export function GridColumnManager({
 		() =>
 			order
 				.map((id) => byId.get(id))
-				.filter((c): c is GridColumnManagerItem => !!c && effectivePinSide(c) === undefined),
+				.filter(
+					(column): column is GridColumnManagerItem =>
+						!!column && effectivePinSide(column) === undefined,
+				),
 		[order, byId],
 	)
 
@@ -488,7 +491,7 @@ export function GridColumnManager({
 
 	const handleReorder = useCallback(
 		(items: GridColumnManagerItem[]) => {
-			const reorderedIds = items.map((i) => i.id)
+			const reorderedIds = items.map((item) => item.id)
 
 			// Ids outside the manager's set (select/actions) and frozen columns keep
 			// their position; only the orderable data columns are repermuted. Under a

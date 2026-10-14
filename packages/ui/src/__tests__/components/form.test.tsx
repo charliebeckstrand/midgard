@@ -266,7 +266,7 @@ describe('Form', () => {
 
 	it('exposes helpers to onSubmit and allows setting external errors', async () => {
 		const onSubmit = vi.fn(
-			(_values, helpers: { setErrors: (e: Record<string, string | string[]>) => void }) => {
+			(_values, helpers: { setErrors: (errors: Record<string, string | string[]>) => void }) => {
 				helpers.setErrors({ name: 'taken' })
 			},
 		)
@@ -584,8 +584,8 @@ describe('Form', () => {
 		let thrown: unknown
 
 		await act(async () => {
-			await result.current.handleSubmit(submitEvent()).catch((err: unknown) => {
-				thrown = err
+			await result.current.handleSubmit(submitEvent()).catch((error: unknown) => {
+				thrown = error
 			})
 		})
 
@@ -883,7 +883,7 @@ describe('Form', () => {
 
 			return (
 				<>
-					<button type="button" onClick={() => setTick((t) => t + 1)}>
+					<button type="button" onClick={() => setTick((prev) => prev + 1)}>
 						bump · {tick}
 					</button>
 					<Form defaultValues={{ name: '' }} values={stableValues}>

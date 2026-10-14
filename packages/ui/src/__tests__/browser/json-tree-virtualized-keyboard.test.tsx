@@ -11,7 +11,7 @@ import { present, renderUI, screen, waitFor } from '../helpers'
 
 const LEAF_COUNT = 500
 
-const DATA = { list: Array.from({ length: LEAF_COUNT }, (_, i) => `v${i}`) }
+const DATA = { list: Array.from({ length: LEAF_COUNT }, (_, index) => `v${index}`) }
 
 /**
  * A tree whose scroller holds about ten rows, with every branch open. Only `maxHeight` bounds

@@ -86,7 +86,7 @@ export function Textarea({
 	rows = 3,
 	ref,
 	'aria-describedby': ariaDescribedBy,
-	...rest
+	...props
 }: TextareaProps) {
 	const field = useInputControl<HTMLTextAreaElement>({
 		id,
@@ -114,7 +114,7 @@ export function Textarea({
 	// An absent slot (`undefined`, `null`, or `false`) renders no row either.
 	const hasActions = !field.headless && actions != null && actions !== false
 
-	const textareaEl = (
+	const textarea = (
 		<textarea
 			data-slot="textarea"
 			ref={composedRef}
@@ -129,18 +129,18 @@ export function Textarea({
 				hasActions && k.bare,
 				className,
 			)}
-			{...rest}
+			{...props}
 		/>
 	)
 
-	if (field.headless) return textareaEl
+	if (field.headless) return textarea
 
 	return (
 		<ControlFrame
 			density={size}
 			className={cn(hasActions && k.frame, k.surface({ variant: field.variant }))}
 		>
-			{textareaEl}
+			{textarea}
 			{/* The ControlFrame is a `<span>`, so the actions row is a `<span>` too. */}
 			{hasActions && (
 				<span data-slot="textarea-actions" data-density="slot" className={cn(k.actions)}>

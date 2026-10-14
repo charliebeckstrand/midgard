@@ -200,9 +200,9 @@ export function PlacesMap({
 	const rows = useMemo(() => {
 		if (visitedRegions === undefined) return NO_ROWS
 
-		const named = regions.features.map(regionName)
+		const names = regions.features.map(regionName)
 
-		const painted = named.filter((name) =>
+		const painted = names.filter((name) =>
 			visitedRegions === 'visited' ? visited.has(name) : !visited.has(name),
 		)
 
@@ -336,7 +336,7 @@ export function PlacesMap({
 					points={stops}
 					clusterDetail={summaryNames}
 					onClick={(_id, _index, merged) => {
-						const picked = merged.flatMap((at) => records[at] ?? [])
+						const picked = merged.flatMap((index) => records[index] ?? [])
 
 						onSelect({
 							places: picked.filter((record) => !isTrip(record)).map((record) => record.id),

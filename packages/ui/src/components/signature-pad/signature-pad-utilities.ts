@@ -35,15 +35,15 @@ export function drawSnapshot(canvas: HTMLCanvasElement, src: string, onDraw?: ()
 
 	const { width, height } = canvas.getBoundingClientRect()
 
-	const img = new Image()
+	const image = new Image()
 
-	img.onload = () => {
-		context.drawImage(img, 0, 0, width, height)
+	image.onload = () => {
+		context.drawImage(image, 0, 0, width, height)
 
 		onDraw?.()
 	}
 
-	img.src = src
+	image.src = src
 }
 
 /**

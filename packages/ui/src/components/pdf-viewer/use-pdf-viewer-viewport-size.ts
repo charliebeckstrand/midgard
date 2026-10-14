@@ -19,7 +19,7 @@ export function usePdfViewerViewportSize(
 ): ViewportSize | null {
 	const [size, setSize] = useState<ViewportSize | null>(null)
 
-	const lastInvalidationKeyRef = useRef(invalidationKey)
+	const prevInvalidationKeyRef = useRef(invalidationKey)
 
 	// `measure` is the same operation whether triggered by ResizeObserver or by
 	// an invalidation-key change.
@@ -54,11 +54,11 @@ export function usePdfViewerViewportSize(
 
 	// Caller-driven invalidation: re-measure after commit, before paint, since
 	// `measure` reads layout via getComputedStyle / clientWidth. The
-	// lastInvalidationKey ref skips the redundant remeasure on mount.
+	// prevInvalidationKey ref skips the redundant remeasure on mount.
 	useLayoutEffect(() => {
-		if (lastInvalidationKeyRef.current === invalidationKey) return
+		if (prevInvalidationKeyRef.current === invalidationKey) return
 
-		lastInvalidationKeyRef.current = invalidationKey
+		prevInvalidationKeyRef.current = invalidationKey
 
 		measure()
 	}, [invalidationKey, measure])

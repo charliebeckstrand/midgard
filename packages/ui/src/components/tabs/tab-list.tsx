@@ -24,7 +24,7 @@ function observeTabbableFloor(list: HTMLDivElement) {
 
 		if (!first) return
 
-		if (!tabs.some((t) => t.tabIndex === 0)) first.tabIndex = 0
+		if (!tabs.some((tab) => tab.tabIndex === 0)) first.tabIndex = 0
 	}
 
 	ensureTabbable()

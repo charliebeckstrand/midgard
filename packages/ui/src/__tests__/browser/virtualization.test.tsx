@@ -131,9 +131,9 @@ function MeasuredList({
 }) {
 	const scrollRef = useRef<HTMLDivElement>(null)
 
-	const [ids, setIds] = useState(() => Array.from({ length: count }, (_, i) => i))
+	const [ids, setIds] = useState(() => Array.from({ length: count }, (_, index) => index))
 
-	if (handle) handle.prepend = (next) => setIds((current) => [...next, ...current])
+	if (handle) handle.prepend = (next) => setIds((prev) => [...next, ...prev])
 
 	const getItemKey = useCallback((index: number) => ids[index] ?? index, [ids])
 
@@ -382,7 +382,7 @@ describe('useVirtualWindow under a max-height cap alone', () => {
 })
 
 describe('VirtualOptions windowing', () => {
-	const items = Array.from({ length: 1_000 }, (_, i) => ({ id: i, label: `Item ${i}` }))
+	const items = Array.from({ length: 1_000 }, (_, index) => ({ id: index, label: `Item ${index}` }))
 
 	function Panel() {
 		return (

@@ -17,7 +17,7 @@ describe('grid commit on leave vs the listbox editor (real floating engine)', ()
 	const rows: Row[] = [{ id: 1, done: false }]
 
 	const columns: GridColumn<Row>[] = [
-		{ id: 'done', title: 'Done', field: 'done', cell: (r) => (r.done ? 'Yes' : 'No') },
+		{ id: 'done', title: 'Done', field: 'done', cell: (row) => (row.done ? 'Yes' : 'No') },
 	]
 
 	it('keeps the session through the options, and commits on a move to an unrelated portal', async () => {
@@ -28,7 +28,7 @@ describe('grid commit on leave vs the listbox editor (real floating engine)', ()
 				<Grid
 					columns={columns}
 					rows={rows}
-					getKey={(r) => r.id}
+					getKey={(row) => row.id}
 					editable={{ session: 'managed', scope: 'cell', commitOn: 'leaveEditor', onCommit }}
 				/>
 				<div data-floating-ui-portal="">

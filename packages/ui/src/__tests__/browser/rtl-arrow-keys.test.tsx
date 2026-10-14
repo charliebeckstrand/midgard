@@ -85,8 +85,8 @@ describe('horizontal arrow keys in RTL (real browser)', () => {
 
 				renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
 
-				const day = (n: string) =>
-					screen.getAllByRole('option').find((option) => option.textContent === n) as HTMLElement
+				const day = (text: string) =>
+					screen.getAllByRole('option').find((option) => option.textContent === text) as HTMLElement
 
 				day('10').focus()
 

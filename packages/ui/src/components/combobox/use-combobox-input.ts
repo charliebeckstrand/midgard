@@ -43,7 +43,7 @@ type ComboboxInputParams<T> = {
 	keep: () => void
 	/** Fires when focus leaves the combobox entirely; binds Form touched state. */
 	onTouched?: () => void
-	keyboardSettled: (cb: () => void) => void
+	keyboardSettled: (callback: () => void) => void
 	rovingKeyDown: KeyboardEventHandler<HTMLInputElement>
 	/** The consumer's paste handler — see {@link ComboboxBaseProps.onPaste}. */
 	onPaste?: ClipboardEventHandler<HTMLInputElement>
@@ -297,7 +297,7 @@ export function useComboboxInput<T>({
 	 * A read-only input still takes a paste event, so a locked combobox skips the handler. Otherwise
 	 * the handler commits the pasted values, which the lock forbids.
 	 */
-	const onPasteHandler = useCallback(
+	const handlePaste = useCallback(
 		(event: ClipboardEvent<HTMLInputElement>) => {
 			if (locked) return
 
@@ -335,7 +335,7 @@ export function useComboboxInput<T>({
 		onMouseDown,
 		onBlur,
 		onKeyDown,
-		onPaste: onPasteHandler,
+		onPaste: handlePaste,
 		onScroll,
 	}
 }

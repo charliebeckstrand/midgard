@@ -254,12 +254,13 @@ export function scatterScales(args: {
 
 	const inset = spark ? sparkMarkInset(visible) : 0
 
+	const yFloor = frameHeight - (drawAxes ? X_AXIS_HEIGHT + xTitleBand : inset)
+
+	const yCeiling = spark ? inset : PLOT_TOP_PAD
+
 	const yScale = linearScale({
 		values: visible.flatMap((meta) => meta.points.map((point) => point.y)),
-		range: [
-			frameHeight - (drawAxes ? X_AXIS_HEIGHT + xTitleBand : inset),
-			spark ? inset : PLOT_TOP_PAD,
-		],
+		range: [yFloor, yCeiling],
 		tickTarget: scaleTicks,
 		min: pins.min,
 		max: pins.max,

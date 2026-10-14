@@ -56,9 +56,9 @@ export function ConnectedAccounts({
 
 	if (shown.length === 0) return null
 
-	const error =
-		unlink.error?.message ??
-		(connectError && (connectErrors[connectError] ?? connectErrors.oauth_failed))
+	const connectMessage = connectError && (connectErrors[connectError] ?? connectErrors.oauth_failed)
+
+	const error = unlink.error?.message ?? connectMessage
 
 	return (
 		<Card>

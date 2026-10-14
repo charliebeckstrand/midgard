@@ -56,13 +56,13 @@ export function RouterLink({
 
 	// A path that starts with one slash is a page of the site. A URL, or a path
 	// that starts with two slashes, goes to another host.
-	const page = href.startsWith('/') && !href.startsWith('//')
+	const isPage = href.startsWith('/') && !href.startsWith('//')
 
 	// A hash alone names an element of this page. The browser would scroll to it
 	// and then fire `popstate`, and the router would take that entry for the
 	// first entry of the tab and restore its scroll position. Through the
 	// router, the entry is new, and the router scrolls to the element.
-	const internal = page || href.startsWith('#')
+	const internal = isPage || href.startsWith('#')
 
 	// A second hover or focus does not start the 100 ms again.
 	const start = () => {
@@ -109,7 +109,7 @@ export function RouterLink({
 				onBlur={composeEventHandlers(onBlur, cancel)}
 				onTouchStart={composeEventHandlers(onTouchStart, touch)}
 			/>
-			{page && prefetch && <PrefetchPageLinks page={href} />}
+			{isPage && prefetch && <PrefetchPageLinks page={href} />}
 		</>
 	)
 }

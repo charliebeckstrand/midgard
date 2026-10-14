@@ -120,9 +120,9 @@ describe('fetchWithSecondStep', () => {
 
 		setSecondStepDialog(async () => true)
 
-		const res = await fetchWithSecondStep(new Request('/auth/passkeys', { method: 'DELETE' }))
+		const response = await fetchWithSecondStep(new Request('/auth/passkeys', { method: 'DELETE' }))
 
-		expect(res.status).toBe(204)
+		expect(response.status).toBe(204)
 
 		const [request] = fetch.mock.lastCall ?? []
 
@@ -140,11 +140,11 @@ describe('fetchWithSecondStep', () => {
 
 		setSecondStepDialog(async () => false)
 
-		const res = await fetchWithSecondStep(new Request('/auth/passkeys', { method: 'DELETE' }))
+		const response = await fetchWithSecondStep(new Request('/auth/passkeys', { method: 'DELETE' }))
 
-		expect(res.status).toBe(403)
+		expect(response.status).toBe(403)
 
-		expect(await res.json()).toEqual({ code: 'second_step_required' })
+		expect(await response.json()).toEqual({ code: 'second_step_required' })
 	})
 
 	it('returns another 403 as it is', async () => {
@@ -152,9 +152,9 @@ describe('fetchWithSecondStep', () => {
 			'/auth/passkeys': () => Response.json({ message: 'Sign in again' }, { status: 403 }),
 		})
 
-		const res = await fetchWithSecondStep(new Request('/auth/passkeys', { method: 'DELETE' }))
+		const response = await fetchWithSecondStep(new Request('/auth/passkeys', { method: 'DELETE' }))
 
-		expect(res.status).toBe(403)
+		expect(response.status).toBe(403)
 
 		expect(fetch).toHaveBeenCalledTimes(1)
 	})
