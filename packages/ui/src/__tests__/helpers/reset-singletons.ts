@@ -1,6 +1,5 @@
-import { afterEach, beforeEach } from 'vitest'
+import { afterEach } from 'vitest'
 import { __resetAnnouncer } from '../../core/announcer'
-import { __resetTruncationObserver } from '../../hooks/use-truncation'
 import { __resetTextSelectionHold } from '../../utilities/hold-text-selection'
 
 /**
@@ -19,7 +18,7 @@ import { __resetTextSelectionHold } from '../../utilities/hold-text-selection'
  * needs a measurement before it gains a seam. A proposed seam for the
  * media-query registries turned out to guard nothing: a registry drops itself
  * when its last subscriber unsubscribes, and cleanup unmounts every subscriber.
- * The four below are the ones with a mechanism rather than a suspicion. The
+ * The three below are the ones with a mechanism rather than a suspicion. The
  * counter in `use-scroll-lock` and the holds in `use-drag-cursor` balance on unmount,
  * the `document-listener` registries drop themselves like the media-query ones,
  * and the time-ago ticker's `visibilityBound` flag and the PDF viewer's
@@ -55,11 +54,4 @@ export function installSingletonResets(): void {
 
 		resetDocumentCache()
 	})
-
-	// The shared ResizeObserver is built from whichever global existed at first
-	// use, and several jsdom files stub that global. Vitest restores a stubbed
-	// global before each test, after every `afterEach`, so only a `beforeEach`
-	// sees the restored one. It drops the cache only when the global has moved,
-	// so the suites that stub nothing keep their observer.
-	beforeEach(__resetTruncationObserver)
 }
