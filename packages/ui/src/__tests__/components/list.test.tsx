@@ -707,6 +707,50 @@ describe('List keyboard reordering', () => {
 		expect(onKeyDown).toHaveBeenCalledTimes(2)
 	})
 
+	it('keeps the content anchor when a consumer passes its own data-slot', () => {
+		const { container } = renderUI(
+			<List items={items} getKey={(i) => i.id} sortable onReorder={() => {}}>
+				{(item) => (
+					<ListItem href={`/${item.id}`} data-slot="my-row">
+						{item.label}
+					</ListItem>
+				)}
+			</List>,
+		)
+
+		const links = Array.from(container.querySelectorAll('a'))
+
+		links[0]?.focus()
+
+		fireEvent.keyDown(links[0] as HTMLElement, { key: 'ArrowDown' })
+
+		// The arrow keys find the next stop through the content anchor, so the
+		// library writes it after the consumer spread (CONVENTIONS.md §3.9).
+		expect(links[1]).toHaveFocus()
+		expect(links[1]).toHaveAttribute('data-slot', 'list-item-content')
+	})
+
+	it('joins a consumer aria-describedby with the reorder instructions', () => {
+		const { container } = renderUI(
+			<List items={items} getKey={(i) => i.id} sortable onReorder={() => {}}>
+				{(item) => (
+					<ListItem href={`/${item.id}`} aria-describedby="hint">
+						{item.label}
+					</ListItem>
+				)}
+			</List>,
+		)
+
+		const content = allBySlot(container, 'list-item-content')[0] as HTMLElement
+
+		const ids = content.getAttribute('aria-describedby')?.split(' ') ?? []
+
+		// The consumer id comes first, then the id of the reorder instructions.
+		expect(ids).toHaveLength(2)
+		expect(ids[0]).toBe('hint')
+		expect(document.getElementById(ids[1] ?? '')).toHaveTextContent(LIFT_INSTRUCTIONS.draggable)
+	})
+
 	it('leaves keys from focusable descendants alone', () => {
 		const onReorder = vi.fn()
 
