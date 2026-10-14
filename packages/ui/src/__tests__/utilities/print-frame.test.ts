@@ -71,27 +71,22 @@ describe('printInHiddenFrame', () => {
 		expect(iframe.parentNode).not.toBeNull()
 	})
 
-	it('reclaims the frame when the window regains focus and afterprint never fires', () => {
-		const iframe = frameWith(stubWindow(), { prepare })
+	it('reclaims the frame on afterprint, and runs the cleanup once', () => {
+		const win = stubWindow()
 
-		iframe.dispatchEvent(new Event('load'))
-
-		expect(iframe.parentNode).not.toBeNull()
-
-		window.dispatchEvent(new Event('focus'))
-
-		expect(iframe.parentNode).toBeNull()
-	})
-
-	it('runs the cleanup once, however many routes fire', () => {
-		const iframe = frameWith(stubWindow(), { prepare })
+		const iframe = frameWith(win, { prepare })
 
 		iframe.dispatchEvent(new Event('load'))
 
 		const remove = vi.spyOn(iframe, 'remove')
 
-		window.dispatchEvent(new Event('focus'))
-		window.dispatchEvent(new Event('focus'))
+		const [, afterprint] =
+			win.addEventListener.mock.calls.find(([type]) => type === 'afterprint') ?? []
+
+		afterprint?.()
+		afterprint?.()
+
+		expect(iframe.parentNode).toBeNull()
 
 		expect(remove).toHaveBeenCalledTimes(1)
 	})
@@ -110,8 +105,7 @@ describe('printInHiddenFrame', () => {
 		})
 
 		// Reclaiming is the helper's own invariant, not something `onFail` buys: a
-		// frame that never loads arms neither `afterprint` nor the focus backstop,
-		// so without this the caller with no fallback would leak it.
+		// frame that never loads arms no `afterprint`, so without this the caller with no fallback would leak it.
 		it('reclaims the frame on a load error with no onFail', () => {
 			const iframe = frameWith(null, { prepare })
 

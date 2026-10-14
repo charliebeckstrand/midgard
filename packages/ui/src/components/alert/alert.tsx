@@ -1,9 +1,10 @@
 'use client'
 
 import { AlertTriangle, CheckCircle, Info, X, XCircle } from 'lucide-react'
-import { type ReactElement, type ReactNode, type RefObject, useEffect, useRef } from 'react'
-import { announce, cn } from '../../core'
+import { type ReactElement, type ReactNode, type RefObject, useRef } from 'react'
+import { cn } from '../../core'
 import { useControllableFlag } from '../../hooks'
+import { useAnnounceOnAppear } from '../../hooks/a11y/use-announce-on-appear'
 import { type AlertVariants, k } from '../../recipes/kata/alert'
 import { Button } from '../button'
 import { type ButtonDefaults, ButtonDefaultsProvider } from '../button/context'
@@ -244,26 +245,13 @@ export function Alert({
 
 	const ref = useRef<HTMLDivElement>(null)
 
-	// An alert that mounts open counts as one that opened, when the caller asks for it.
-	const wasOpen = useRef(open && !announceOnMount)
-
 	// Screen readers can miss `role="status"` (info/success) when the live
-	// region and its text are inserted together. On closed→open, mirrors
-	// rendered text through the persistent announcer (WCAG 4.1.3).
-	// `role="alert"` (warning/error) announces on insertion.
+	// region and its text are inserted together, so an alert that opens mirrors
+	// its text through the announcer (WCAG 4.1.3). `role="alert"`
+	// (warning/error) announces on insertion.
 	const politeSeverity = severity === 'info' || severity === 'success'
 
-	useEffect(() => {
-		const appeared = open && !wasOpen.current
-
-		wasOpen.current = open
-
-		if (!appeared || !politeSeverity) return
-
-		const message = ref.current?.textContent?.trim()
-
-		if (message) announce(message)
-	}, [open, politeSeverity])
+	useAnnounceOnAppear(ref, open, { onMount: announceOnMount, enabled: politeSeverity })
 
 	if (!open) return null
 

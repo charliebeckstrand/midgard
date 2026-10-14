@@ -19,10 +19,10 @@ type PrintFrameOptions = {
 /**
  * Prints a document through a hidden iframe, then reclaims the frame.
  *
- * @remarks Reclaims on `afterprint`, with a window-`focus` backstop for browsers
- * that never fire it (e.g. older Safari) or when the user dismisses the dialog.
- * Both failure routes reclaim it too: a frame that cannot load, and a `print()`
- * the browser blocks. Every route runs the cleanup at most once.
+ * @remarks Reclaims on `afterprint`, which the frame fires also when the user
+ * cancels the dialog. Both failure routes reclaim it too: a frame that cannot
+ * load, and a `print()` the browser blocks. Every route runs the cleanup at
+ * most once.
  */
 export function printInHiddenFrame({ prepare, onFail }: PrintFrameOptions) {
 	const iframe = document.createElement('iframe')
@@ -38,20 +38,12 @@ export function printInHiddenFrame({ prepare, onFail }: PrintFrameOptions) {
 
 	iframe.setAttribute('aria-hidden', 'true')
 
-	// Annotated because the body names `cleanup` itself, which `once` cannot infer.
-	const cleanup: () => void = once(() => {
-		window.removeEventListener('focus', cleanup)
-
+	const cleanup = once(() => {
 		iframe.remove()
 	})
 
 	const printThrough = (win: Window) => {
 		win.addEventListener('afterprint', cleanup)
-
-		// Backstop for browsers that never fire `afterprint` (e.g. older Safari) or
-		// where the user dismisses the dialog: reclaims the iframe when focus
-		// returns to the main window after the print dialog closes.
-		window.addEventListener('focus', cleanup, { once: true })
 
 		win.focus()
 		win.print()

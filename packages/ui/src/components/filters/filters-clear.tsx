@@ -1,7 +1,8 @@
 'use client'
 
-import { cloneElement, isValidElement, type MouseEvent, type ReactNode } from 'react'
+import { isValidElement, type MouseEventHandler, type ReactNode } from 'react'
 import { cn } from '../../core'
+import { cloneWithAction } from '../../primitives/trigger-child/trigger-child'
 import { Button, type ButtonVariants } from '../button'
 import { useFilters } from './context'
 
@@ -45,21 +46,12 @@ export function FiltersClear({ children, variant, color, className }: FiltersCle
 	// A single element child is cloned with the clear handler; anything else (a
 	// bare string, several children) renders the default Button. `Children.only`
 	// would throw on those instead of falling back as documented.
-	if (isValidElement<Record<string, unknown>>(children)) {
-		const childOnClick = children.props.onClick as
-			| ((event: MouseEvent<HTMLElement>) => void)
-			| undefined
-
-		return cloneElement(children, {
-			onClick: (event: MouseEvent<HTMLElement>) => {
-				childOnClick?.(event)
-
-				handleClear()
-			},
-			className: className
-				? cn(children.props.className as string, className)
-				: children.props.className,
-		})
+	if (isValidElement<{ onClick?: MouseEventHandler; className?: string }>(children)) {
+		return cloneWithAction(
+			children,
+			handleClear,
+			className ? { className: cn(children.props.className, className) } : undefined,
+		)
 	}
 
 	return (
