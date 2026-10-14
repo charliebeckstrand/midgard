@@ -145,3 +145,23 @@ The settle pass derived S1 and S3 to S9 again from the answers; S2 is unchanged.
 - Resolver S8: the in-view start takes the first row that touches the viewport, so a row cut off at the top still scrolls the tree by less than one row on Tab (500 to 482 in the test). A fix needs the item edges against the viewport, which the step kept out of render.
 - Resolver S8: Tab from parked focus goes to the row in view, not to the row the reader left; no settled question covers it.
 - Resolver S8: the R6 note "With a smaller offset the root row holds the stop and nothing moves" holds only while the root is in view; below `overscan` rows of offset with the root scrolled out, the root keeps the stop and Tab scrolls.
+
+## Lead routing
+
+The work after the audit routed these leads. Each other lead above stays open and has no route.
+
+| Lead | Route |
+| --- | --- |
+| Tree under `mount='active'`: roving reaches the rows of an exiting group | Fixed by #2404. An HTML `m` element is `inert` while it exits, and `useA11yRoving` skips each item under an `inert` ancestor. |
+| A pointer click on a row of a closing group | Fixed by #2404: `inert` also stops a pointer. |
+| `useA11yRoving` collects items with no inert filter | Fixed by #2404 in the keydown path. The Tab stop, `onFocusIn`, and the exported `queryItems` stay unfiltered, so that a widget under an inert layer keeps its stop. |
+| `rowControls` does not skip `inert` | Closed with no change. It runs only after the keydown path finds no inert ancestor of the container. Its two users, Sidebar and ChatList, have no inert or exiting control in a row. |
+| `seedVirtualTopMatch` reads all items | Closed with no change. A filter clears the highlight of a Combobox under an inert layer, such as ReadyReveal before it is ready, and no seed puts it back when the layer goes live. |
+| `treeMoveTarget` uses the plain item selector | Closed with no change. A move to a child starts only from an open branch, and a move to a parent goes up. |
+| An exiting `m` element is `inert` but does not move the focus out | Closed with no change. Focus is seldom in an exiting element. Overlay and FloatingSurface move it themselves. |
+| The rows of a pointer-opened context menu keep focus during the exit | Fixed by #2406. |
+| The menu trigger roves while the menu is closed | Fixed by #2403. |
+| `ListboxPanel` has no inert step on exit | Fixed by #2404. #2408 adds a browser test for Listbox and Combobox. |
+| Grid queries reach into a nested grid | Roving fixed by #2405. The page step, the column measure, the frozen offsets, the edit session, and the context menu are fixed by #2410. |
+| The spread-order gate checks only `props` and `rest` | Fixed by #2401. |
+| Textarea spreads `{...field.attrs}` before `{...rest}` | Routed to the T sweep. |
