@@ -232,15 +232,13 @@ export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): Ligh
 	// The last return, which the next raise stops. It can have landed.
 	const returning = useRef<LightboxReturn | null>(null)
 
-	// Plays the flight from `from` to `to`, and gives its tweens. A raise takes
-	// the transforms off when it lands at rest.
+	// Plays the flight from `from` to `to`, and gives its tweens.
 	const fly = (
 		slot: HTMLElement,
 		photo: HTMLElement,
 		boxes: ReturnType<typeof boxesOf>,
 		from: LightboxFrame,
 		to: LightboxFrame,
-		rests: boolean,
 	) => {
 		const steps = Array.from({ length: FLIGHT_STEPS + 1 }, (_, step) =>
 			frameTransforms(mixFrames(from, to, easeOut(step / FLIGHT_STEPS)), boxes.slot, boxes.rest),
@@ -249,11 +247,9 @@ export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): Ligh
 		// The steps carry the curve of `motion.raise`, so the tween between them is straight.
 		const options = { duration: k.motion.raise.duration, ease: 'linear' } as const
 
-		const landing = rests ? { transitionEnd: { transform: 'none' } } : {}
-
 		return [
-			animate(slot, { transform: steps.map((step) => step.slot), ...landing }, options),
-			animate(photo, { transform: steps.map((step) => step.photo), ...landing }, options),
+			animate(slot, { transform: steps.map((step) => step.slot) }, options),
+			animate(photo, { transform: steps.map((step) => step.photo) }, options),
 		]
 	}
 
@@ -283,9 +279,9 @@ export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): Ligh
 
 		const boxes = boxesOf(slot, photo)
 
-		const frame = frameAt(boxes.rest, thumbnail)
+		const raised = frameAt(boxes.rest, thumbnail)
 
-		if (!frame) {
+		if (!raised) {
 			const from = painted?.opacity ?? 0
 
 			photo.style.opacity = String(from)
@@ -297,12 +293,23 @@ export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): Ligh
 
 		const start = painted
 			? paintedFrame(painted.slot, painted.photo, boxes.slot, boxes.rest)
-			: frame
+			: raised
 
 		// The first paint shows the photo at the start, before Motion starts.
 		paint(slot, photo, frameTransforms(start, boxes.slot, boxes.rest))
 
-		fly(slot, photo, boxes, start, restingFrame(boxes.rest), true)
+		const tweens = fly(slot, photo, boxes, start, restingFrame(boxes.rest))
+
+		// The slot and the photo land at rest together, after both tweens. Motion
+		// ends a tween at once when all of its steps are the same, as for the
+		// photo when its thumbnail has the size of the photo at rest. A landing
+		// for each tween would then take the transform off the photo while the
+		// slot still scales it. Motion writes the last step of each tween in its
+		// render step, so the landing comes after that step (see `stopReturn`).
+		// A return stops the tweens, and their promises do not resolve.
+		Promise.all(tweens.map((tween) => tween.finished)).then(() =>
+			frame.postRender(() => putAtRest(slot, photo)),
+		)
 	}
 
 	// Holds the tweens of a return, which a raise can stop, and resolves when they
@@ -337,7 +344,7 @@ export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): Ligh
 			boxes.rest,
 		)
 
-		return land(slot, photo, fly(slot, photo, boxes, start, frame, false))
+		return land(slot, photo, fly(slot, photo, boxes, start, frame))
 	}
 
 	return { raise, lower }
