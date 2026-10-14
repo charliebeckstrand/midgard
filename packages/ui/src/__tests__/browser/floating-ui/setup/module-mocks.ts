@@ -1,5 +1,5 @@
 import { beforeAll, vi } from 'vitest'
-import { loadTooltipBody } from '../../../../components/tooltip/tooltip-body-loader'
+import { tooltipBody } from '../../../../components/tooltip/tooltip-body-loader'
 
 /**
  * floating-ui-project module mocks. `@floating-ui/react` is deliberately left
@@ -23,4 +23,4 @@ vi.mock('../../../../components/tooltip/tooltip-body-loader', async (importOrigi
 // state of a page that already loaded the module, as the other setups do.
 // `tooltip-first-intent.test.tsx` holds the load in each case, and thus tests
 // the state before the load.
-beforeAll(() => loadTooltipBody())
+beforeAll(() => tooltipBody.load())

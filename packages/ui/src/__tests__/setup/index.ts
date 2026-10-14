@@ -2,7 +2,7 @@ import '@testing-library/jest-dom/vitest'
 import { cleanup, configure } from '@testing-library/react'
 import { afterEach, beforeAll, inject, vi } from 'vitest'
 import { loadListReorder } from '../../components/list/use-list-reorder'
-import { loadTooltipBody } from '../../components/tooltip/tooltip-body-loader'
+import { tooltipBody } from '../../components/tooltip/tooltip-body-loader'
 import { defaultFooterSelector } from '../../core/panel/base'
 import { installSingletonResets } from '../helpers/reset-singletons'
 import { installResidueGuard } from '../helpers/residue'
@@ -44,7 +44,7 @@ beforeAll(() => {
 // tooltip. The load before each file gives each case the state of a page that
 // already loaded the panel, so a case that reads an open panel at once does not
 // depend on the order. The browser setups load the panel in the same way.
-beforeAll(() => loadTooltipBody())
+beforeAll(() => tooltipBody.load())
 
 // A reorderable `List` loads its `Reorder` parts after it mounts, and the rows
 // mount again when they arrive. A case that drags or lifts a row at once would

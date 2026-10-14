@@ -1,7 +1,7 @@
 import { afterAll, beforeEach, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
-import { loadTooltipBody, readTooltipBody } from '../../../components/tooltip/tooltip-body-loader'
+import { tooltipBody } from '../../../components/tooltip/tooltip-body-loader'
 import { getSlot, renderUI, screen, waitFor } from '../../helpers'
 import { tooltipLoad } from '../../mocks/tooltip-body-loader'
 import { pause } from '../helpers/wall-clock'
@@ -20,7 +20,7 @@ beforeEach(() => tooltipLoad.hold())
 afterAll(async () => {
 	tooltipLoad.release()
 
-	await loadTooltipBody()
+	await tooltipBody.load()
 })
 
 /** Waits until the tooltip text is present. @internal */
@@ -30,7 +30,7 @@ async function expectOpen() {
 
 /** Waits for the load, the replay, and two frames, then expects no tooltip text. @internal */
 async function expectClosed() {
-	await waitFor(() => expect(readTooltipBody()).not.toBeNull())
+	await waitFor(() => expect(tooltipBody.read()).not.toBeNull())
 
 	await pause(50)
 
