@@ -36,11 +36,11 @@ export const accountKeys = {
  * The passkeys of the signed-in user. The server page reads the list first and
  * seeds the query with it (see `seededQuery`), so the first render has no fetch.
  */
-export function usePasskeys(initialPasskeys: Seed<Passkey[]>) {
+export function usePasskeys(initial: Seed<Passkey[]>) {
 	return useQuery({
 		queryKey: accountKeys.passkeys,
 		queryFn: ({ signal }) => fetchPasskeys(signal),
-		...seededQuery(initialPasskeys),
+		...seededQuery(initial),
 	})
 }
 
@@ -48,11 +48,11 @@ export function usePasskeys(initialPasskeys: Seed<Passkey[]>) {
  * The second factors of the signed-in user. The server page seeds it, like
  * {@link usePasskeys}.
  */
-export function useFactors(initialFactors: Seed<Factors>) {
+export function useFactors(initial: Seed<Factors>) {
 	return useQuery({
 		queryKey: accountKeys.factors,
 		queryFn: ({ signal }) => fetchFactors(signal),
-		...seededQuery(initialFactors),
+		...seededQuery(initial),
 	})
 }
 
@@ -138,11 +138,11 @@ export function useGenerateRecoveryCodes() {
  * The GitHub and Google accounts of the signed-in user. The server page seeds
  * it, like {@link usePasskeys}.
  */
-export function useIdentities(initialIdentities: Seed<Identity[]>) {
+export function useIdentities(initial: Seed<Identity[]>) {
 	return useQuery({
 		queryKey: accountKeys.identities,
 		queryFn: ({ signal }) => fetchIdentities(signal),
-		...seededQuery(initialIdentities),
+		...seededQuery(initial),
 	})
 }
 

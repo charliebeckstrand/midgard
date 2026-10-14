@@ -121,11 +121,11 @@ export type AccountExport = Schema<'AccountExport'>
  * JSON file.
  */
 export async function downloadAccount(): Promise<void> {
-	const data: AccountExport = await unwrap(bifrost.GET('/auth/account/export'))
+	const account: AccountExport = await unwrap(bifrost.GET('/auth/account/export'))
 
 	downloadBlob(
-		new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }),
-		`account-${data.exported_at.slice(0, 10)}.json`,
+		new Blob([JSON.stringify(account, null, 2)], { type: 'application/json' }),
+		`account-${account.exported_at.slice(0, 10)}.json`,
 	)
 }
 
