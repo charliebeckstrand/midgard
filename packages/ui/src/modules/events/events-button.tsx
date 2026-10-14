@@ -41,12 +41,12 @@ export function EventsButton() {
 
 		const store = getEventSink()?.store
 
-		if (store) store.paused = true
+		if (store) store.setPaused(true)
 
 		sheet.load().then(
 			() => setOpen(true),
 			(error: unknown) => {
-				if (store) store.paused = false
+				if (store) store.setPaused(false)
 
 				setFailure({ error })
 			},

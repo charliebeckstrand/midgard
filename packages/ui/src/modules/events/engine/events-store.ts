@@ -38,8 +38,7 @@ type CaptureStart = { id: number; at: string; page: string }
 export class EventStore {
 	entries: readonly EventEntry[] = []
 
-	/** Whether the store skips each new event with no bug. A sheet of the tools pauses the store while it is on screen. */
-	paused = false
+	private isPaused = false
 
 	private readonly changes = createEmitter()
 
@@ -78,7 +77,7 @@ export class EventStore {
 	}
 
 	/** Turns "Preserve" on or off. Off deletes the kept events at once, unless a capture runs, and the events on screen stay. */
-	set preserve(on: boolean) {
+	setPreserve(on: boolean): void {
 		this.setFlag('preserve', on)
 
 		if (this.preserve) this.save()
@@ -93,8 +92,22 @@ export class EventStore {
 		return !this.flag('unbatched')
 	}
 
-	set batched(on: boolean) {
+	/** Turns "Batch" on or off. */
+	setBatched(on: boolean): void {
 		this.setFlag('unbatched', !on)
+	}
+
+	/** Whether the store skips each new event with no bug. A sheet of the tools pauses the store while it is on screen. */
+	get paused(): boolean {
+		return this.isPaused
+	}
+
+	/**
+	 * Pauses the store or ends the pause. The views call a method, not a
+	 * setter, so the React Compiler reads the change as a call on the store.
+	 */
+	setPaused(on: boolean): void {
+		this.isPaused = on
 	}
 
 	/** Whether a capture runs. */
@@ -115,7 +128,7 @@ export class EventStore {
 	 * The separator of the page load is at time 0, so no event goes before it.
 	 */
 	add(entry: NewEntry): void {
-		if (!this.paused) this.insert(this.create(entry))
+		if (!this.isPaused) this.insert(this.create(entry))
 	}
 
 	/**

@@ -84,7 +84,7 @@ describe('EventStore', () => {
 
 		const store = new EventStore(storage)
 
-		store.preserve = true
+		store.setPreserve(true)
 
 		store.add(entry(10))
 
@@ -108,7 +108,7 @@ describe('EventStore', () => {
 
 		const store = new EventStore(storage)
 
-		store.preserve = true
+		store.setPreserve(true)
 
 		store.add(entry(10))
 
@@ -126,13 +126,13 @@ describe('EventStore', () => {
 
 		const store = new EventStore(storage)
 
-		store.preserve = true
+		store.setPreserve(true)
 
 		store.add(entry(10))
 
 		store.save()
 
-		store.preserve = false
+		store.setPreserve(false)
 
 		expect(texts(store)).toEqual(['input at 10'])
 
@@ -189,7 +189,7 @@ describe('EventStore', () => {
 
 		const store = new EventStore(storage)
 
-		store.preserve = true
+		store.setPreserve(true)
 
 		store.add(entry(10))
 
@@ -207,13 +207,13 @@ describe('EventStore', () => {
 
 		store.add(entry(10))
 
-		store.paused = true
+		store.setPaused(true)
 
 		store.add(entry(20))
 
 		store.file(entry(25, 'error'), { origin: 'window', error: errorWith('boom') })
 
-		store.paused = false
+		store.setPaused(false)
 
 		store.add(entry(30))
 
@@ -229,7 +229,7 @@ describe('EventStore', () => {
 
 		store.add(entry(10))
 
-		store.preserve = true
+		store.setPreserve(true)
 
 		store.clear()
 
@@ -245,7 +245,7 @@ describe('EventStore', () => {
 
 		const store = new EventStore(storage)
 
-		store.preserve = true
+		store.setPreserve(true)
 
 		for (let time = 0; time < 8; time++) store.add(entry(time))
 
@@ -275,7 +275,7 @@ describe('EventStore', () => {
 	it('lives for the page when the storage throws', () => {
 		const store = new EventStore(blocked)
 
-		store.preserve = true
+		store.setPreserve(true)
 
 		store.add(entry(10))
 

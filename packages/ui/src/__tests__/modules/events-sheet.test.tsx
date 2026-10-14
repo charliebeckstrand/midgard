@@ -200,7 +200,7 @@ describe('EventsSheet', () => {
 		const store = start()
 
 		onTestFinished(() => {
-			store.batched = true
+			store.setBatched(true)
 		})
 
 		const sheet = renderSheet()

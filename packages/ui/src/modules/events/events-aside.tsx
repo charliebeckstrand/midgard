@@ -40,13 +40,13 @@ export function EventsAside({ className = 'w-96' }: EventsAsideProps) {
 
 		const store = getEventSink()?.store
 
-		if (store) store.paused = true
+		if (store) store.setPaused(true)
 
 		void panel
 			.load()
 			.catch(() => undefined)
 			.finally(() => {
-				if (store) store.paused = false
+				if (store) store.setPaused(false)
 			})
 	}, [pinned])
 

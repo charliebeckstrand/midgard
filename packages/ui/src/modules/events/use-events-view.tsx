@@ -135,7 +135,7 @@ export function useEventsView({
 			// A capture keeps its events through a reload, so "Preserve" is on while it runs.
 			disabled={capturing}
 			onChange={(checked) => {
-				store.preserve = checked
+				store.setPreserve(checked)
 			}}
 		/>
 	)
@@ -244,7 +244,7 @@ export function useEventsView({
 					label="Batch"
 					checked={batched}
 					onChange={(checked) => {
-						store.batched = checked
+						store.setBatched(checked)
 					}}
 				/>
 			</>

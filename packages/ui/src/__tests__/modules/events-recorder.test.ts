@@ -196,7 +196,7 @@ describe('listen', () => {
 	it('files a bug for an error, an unhandled rejection, and a resource that fails to load, also while it is paused', () => {
 		const store = listenTo()
 
-		store.paused = true
+		store.setPaused(true)
 
 		window.dispatchEvent(new ErrorEvent('error', { message: 'boom', error: new Error('boom') }))
 
@@ -324,7 +324,7 @@ describe('listen', () => {
 		// A tap on a tool, and a tap while a sheet of the tools is open, do not count.
 		tool.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))
 
-		store.paused = true
+		store.setPaused(true)
 
 		document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))
 
@@ -342,7 +342,7 @@ describe('listen', () => {
 
 		const store = new EventStore(storage)
 
-		store.preserve = true
+		store.setPreserve(true)
 
 		onTestFinished(listen(store))
 

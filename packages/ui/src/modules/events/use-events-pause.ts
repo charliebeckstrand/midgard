@@ -14,10 +14,10 @@ export function useEventsPause(store: EventStore, open: boolean): void {
 	// open, so the store does not record the open of the sheet. A sheet that
 	// unmounts while it is open does not leave the store paused.
 	useLayoutEffect(() => {
-		store.paused = open
+		store.setPaused(open)
 
 		return () => {
-			store.paused = false
+			store.setPaused(false)
 		}
 	}, [store, open])
 }
