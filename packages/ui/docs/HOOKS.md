@@ -68,7 +68,6 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `useMinBreakpoint` | True when the viewport reaches a named breakpoint, such as `'lg'`, on the scale of the CSS prefixes; true during SSR. |
 | `useIsTruncated` | True when text overflows the element, measured with a `Range` over its contents. |
 | `useInView` | True when `ref.current` is in or near the viewport. By default it disconnects on first sight. |
-| `useScrollOverflow` | Callback ref that sets `data-overflow-above` and `data-overflow-below` on a vertical scroll container while content extends past an edge. |
 | `useScrollRegion` | Callback ref that makes a scroll container a tab stop while its content overflows. A `label` also makes it a named `region`. |
 | `useScrollWithin` | Returns a function that scrolls a node into view in its nearest scrollable ancestor. |
 | `useVirtualWindow` | Drives a vertical windowed list from a `@tanstack/virtual-core` virtualizer, over uniform or measured rows. It gives the visible items and the spacer heights. |
@@ -122,7 +121,6 @@ Hooks export the option and return shapes consumers thread through their own pro
 | `IdScopeOptions` | Options for `useIdScope`: the id to adopt in place of a generated one. |
 | `KeybindingsOptions` | Options for `useKeybindings`: the enable gate, the target, the capture phase, and the skip predicate. |
 | `OffcanvasOptions` | Options for `useOffcanvas`. |
-| `ScrollOverflowOptions` | Options for `useScrollOverflow`: the enable gate, for a container that cannot overflow in one of its states. |
 | `ScrollRegionOptions` | Options for `useScrollRegion`: the `label` or `labelledBy` that names the region while it scrolls. |
 | `ScrollWithinOptions` | Options for `useScrollWithin`. |
 | `SortableItemOptions` / `SortableListOptions` / `SortableSensorsOptions` | Options for the `@dnd-kit` wrappers. |

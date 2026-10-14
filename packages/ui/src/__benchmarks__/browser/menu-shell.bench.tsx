@@ -37,8 +37,6 @@ import { AnimatePresence, motion } from 'motion/react'
 import { bench, describe } from 'vitest'
 import { Menu, MenuContent, MenuTrigger } from '../../components/menu'
 import { cn } from '../../core'
-import { useScrollOverflow } from '../../hooks'
-import { Density } from '../../primitives/density'
 import { PopoverPanel } from '../../primitives/popover'
 import { k } from '../../recipes/kata/popover'
 import { reactHost, WINDOW } from './harness'
@@ -79,9 +77,8 @@ const RUNGS: [string, () => React.ReactNode][] = [
 			</PopoverPanel>
 		),
 	],
-	// Adds the `Menu` root, the `Density`, and the viewport. The menu is
-	// uncapped, so its overflow watch is gated off. No portal and no positioning:
-	// the panel renders in place.
+	// Adds the `Menu` root, the `Density`, and the viewport. No portal and no
+	// positioning: the panel renders in place.
 	[
 		'5 · static menu (no portal, no positioning)',
 		() => (
@@ -183,8 +180,7 @@ describe('floating-ui · the layer split, vendor only', () => {
  * dropdown, so this rung already carries that hook — it carries no positioning
  * pass, because neither element is registered. The step to the static panel is
  * therefore what `MenuContent` builds: the `Density`, the `PopoverPanel`, and
- * the viewport. The menu is uncapped, so the viewport's overflow watch is
- * gated off.
+ * the viewport.
  */
 const STATIC_RUNGS: [string, () => React.ReactNode][] = [
 	['1 · Menu root only (no panel to build)', () => <Menu defaultOpen>{null}</Menu>],
@@ -207,91 +203,5 @@ describe('menu · the static panel, split', () => {
 			},
 			WINDOW.slow,
 		)
-	}
-})
-
-/** One viewport div carrying the overflow watch `MenuViewport` puts on a capped panel. */
-function Watched() {
-	const scrollOverflowRef = useScrollOverflow()
-
-	return <div ref={scrollOverflowRef} className={PANEL} />
-}
-
-/**
- * What a capped panel's viewport pays around its rows, measured on a bare `div`.
- *
- * `useScrollOverflow` reads `scrollTop`, `clientHeight`, and `scrollHeight` as
- * soon as the ref attaches. Those reads force style and layout on a node the
- * browser has just inserted, inside the commit. The hook then starts a
- * `ResizeObserver` over the node and each of its children, a
- * `MutationObserver`, and a scroll listener.
- */
-const VIEWPORT_RUNGS: [string, () => React.ReactNode][] = [
-	['1 · plain div', () => <div className={PANEL} />],
-	['2 · + useScrollOverflow', () => <Watched />],
-	[
-		'3 · + Density around it',
-		() => (
-			<Density step="md">
-				<Watched />
-			</Density>
-		),
-	],
-]
-
-describe('menu · the viewport around the panel', () => {
-	for (const [name, render] of VIEWPORT_RUNGS) {
-		bench(
-			name,
-			() => {
-				mount(render)
-			},
-			WINDOW.slow,
-		)
-	}
-})
-
-/** Rows the overflow watch is measured over, matching the open bench's ladder. */
-const WATCH_ROWS = [24, 64] as const
-
-/** One viewport holding `count` rows, with the overflow watch or without it. */
-function Rows({ count, watched }: { count: number; watched: boolean }) {
-	const scrollOverflowRef = useScrollOverflow()
-
-	const children = Array.from({ length: count }, (_, index) => `Option ${index}`).map((label) => (
-		<div key={label} className="px-3 py-1.5">
-			{label}
-		</div>
-	))
-
-	return watched ? (
-		<div ref={scrollOverflowRef} className={PANEL}>
-			{children}
-		</div>
-	) : (
-		<div className={PANEL}>{children}</div>
-	)
-}
-
-/**
- * What the overflow watch costs per row.
- *
- * `useScrollOverflow` observes the node and every one of its children, so its
- * `ResizeObserver` takes one `observe` call per row. A panel therefore pays it
- * again for each row it holds, on top of the row itself. Held beside the plain
- * viewport of the same size, the pair says how much of the open bench's
- * per-row figure is the row and how much is the watch.
- */
-describe('menu · the overflow watch, per row', () => {
-	for (const count of WATCH_ROWS) {
-		for (const watched of [false, true]) {
-			bench(
-				`${count} rows · ${watched ? 'watched' : 'plain'}`,
-				() => {
-					mount(() => <Rows count={count} watched={watched} />)
-				},
-				WINDOW.slow,
-			)
-		}
 	}
 })

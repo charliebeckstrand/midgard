@@ -1,11 +1,12 @@
 /**
- * The `scroll-fade-inline` utility: the edge fade of a horizontal scroll
- * container. `ui/tailwind.css` loads this plugin with `@plugin`.
+ * The `scroll-fade-inline` and `scroll-fade-block` utilities: the edge fade of
+ * a scroll container, on the inline axis and on the block axis.
+ * `ui/tailwind.css` loads this plugin with `@plugin`.
  *
  * A mask fades the scrolled content itself, so the fade needs no solid color
  * behind the container. The width of the fade at each edge is a custom
- * property, `--scroll-fade-start` at the start of the reading direction and
- * `--scroll-fade-end` at the end.
+ * property, `--scroll-fade-start` at the start edge of the axis and
+ * `--scroll-fade-end` at the end edge.
  *
  * Scroll-driven animations draw the fade, and no script runs. Thus the first
  * paint, also the paint of the server markup, shows the final fade. The scroll
@@ -17,16 +18,18 @@
  * A third animation sets the mask image. When the content fits, the scroll
  * timeline is inactive, so no animation applies and the box has no mask. A
  * mask makes the browser paint the box apart from the page, so a box that fits,
- * such as a short table, paints as before.
+ * such as a short table, paints as before. A box that is not a scroll
+ * container also has an inactive timeline, so it shows no fade.
  *
  * The mask image has a full fade at each end. The mask extends past each side
  * by the part of that fade that does not show. At a width of zero, the full
- * fade is outside the box. The edges are logical, and the sides are physical, so
- * a right-to-left container swaps the two widths.
+ * fade is outside the box. The edges are logical, and the sides are physical.
+ * Thus a right-to-left container swaps the two inline widths. The block axis
+ * has no swap, because `ui` sets no vertical writing mode.
  *
- * The scroll padding at each inline edge is the width of the fade. Thus an
- * item that the browser scrolls into view, such as a focused item, stops clear
- * of the fade.
+ * The scroll padding at each edge of the axis is the width of the fade. Thus
+ * an item that the browser scrolls into view, such as a focused item, stops
+ * clear of the fade.
  *
  * A browser without scroll-driven animations shows no fade and no scroll
  * padding. A fade that comes from script state arrives after the first paint,
@@ -39,21 +42,61 @@ import type { PluginCreator } from 'tailwindcss/plugin'
 const WIDTH = '1.5rem'
 
 /**
- * The mask image: one gradient with a full fade at each end. The gradient
- * holds no `var()`, because a keyframe resolves a `var()` once, and the widths
- * change in each frame.
+ * The mask image toward `side`: one gradient with a full fade at each end. The
+ * gradient holds no `var()`, because a keyframe resolves a `var()` once, and
+ * the widths change in each frame.
  */
-const MASK = `linear-gradient(to right, transparent, #000 ${WIDTH}, #000 calc(100% - ${WIDTH}), transparent)`
+function mask(side: 'right' | 'bottom') {
+	return `linear-gradient(to ${side}, transparent, #000 ${WIDTH}, #000 calc(100% - ${WIDTH}), transparent)`
+}
 
 /**
- * The size and the position of the mask for the fade widths at the left and
- * the right. The mask extends past each side by the part of the full fade that
- * does not show.
+ * The length of the mask along the axis, for the fade widths at the two sides.
+ * The mask extends past each side by the part of the full fade that does not
+ * show.
  */
-function maskBox(left: string, right: string) {
+function maskLength(near: string, far: string) {
+	return `calc(100% + 2 * ${WIDTH} - var(${near}) - var(${far}))`
+}
+
+/** The offset of the mask along the axis, for the fade width at the near side. */
+function maskOffset(near: string) {
+	return `calc(var(${near}) - ${WIDTH})`
+}
+
+/** The size and the position of the inline mask for the widths at the left and the right. */
+function inlineBox(left: string, right: string) {
 	return {
-		'mask-size': `calc(100% + 2 * ${WIDTH} - var(${left}) - var(${right})) 100%`,
-		'mask-position': `calc(var(${left}) - ${WIDTH}) 0`,
+		'mask-size': `${maskLength(left, right)} 100%`,
+		'mask-position': `${maskOffset(left)} 0`,
+	}
+}
+
+/** The size and the position of the block mask for the widths at the top and the bottom. */
+function blockBox(top: string, bottom: string) {
+	return {
+		'mask-size': `100% ${maskLength(top, bottom)}`,
+		'mask-position': `0 ${maskOffset(top)}`,
+	}
+}
+
+/**
+ * The scroll-driven animations of one axis. Longhands, because Lightning CSS
+ * expands the `animation` shorthand with a duration of `0s`. A scroll timeline
+ * needs `auto`, the length of its range
+ * (https://github.com/parcel-bundler/lightningcss/issues/1012).
+ */
+function animate(axis: 'inline' | 'block') {
+	return {
+		'animation-name': `scroll-fade-start, scroll-fade-end, scroll-fade-mask-${axis}`,
+		'animation-duration': 'auto',
+		'animation-timing-function': 'linear',
+		'animation-fill-mode': 'both',
+		'animation-timeline': `scroll(self ${axis})`,
+		'animation-range': `0 ${WIDTH}, calc(100% - ${WIDTH}) 100%, normal`,
+		// A focused item that the browser scrolls into view stops clear of the
+		// fade at each edge.
+		[`scroll-padding-${axis}`]: WIDTH,
 	}
 }
 
@@ -91,30 +134,25 @@ export const handler: PluginCreator = ({ addBase, addUtilities }) => {
 		},
 		// The image of the mask is the same at each point of the scroll. The size
 		// and the position of the mask read the two widths.
-		'@keyframes scroll-fade-mask': {
-			'from, to': { 'mask-image': MASK },
+		'@keyframes scroll-fade-mask-inline': {
+			'from, to': { 'mask-image': mask('right') },
+		},
+		'@keyframes scroll-fade-mask-block': {
+			'from, to': { 'mask-image': mask('bottom') },
 		},
 	})
 
 	addUtilities({
 		'.scroll-fade-inline': {
 			'mask-repeat': 'no-repeat',
-			...maskBox('--scroll-fade-start', '--scroll-fade-end'),
-			[RTL]: maskBox('--scroll-fade-end', '--scroll-fade-start'),
-			// Longhands, because Lightning CSS expands the `animation` shorthand
-			// with a duration of `0s`. A scroll timeline needs `auto`, the length of
-			// its range (https://github.com/parcel-bundler/lightningcss/issues/1012).
-			[SCROLL_TIMELINE]: {
-				'animation-name': 'scroll-fade-start, scroll-fade-end, scroll-fade-mask',
-				'animation-duration': 'auto',
-				'animation-timing-function': 'linear',
-				'animation-fill-mode': 'both',
-				'animation-timeline': 'scroll(self inline)',
-				'animation-range': `0 ${WIDTH}, calc(100% - ${WIDTH}) 100%, normal`,
-				// A focused item that the browser scrolls into view stops clear of
-				// the fade at each edge.
-				'scroll-padding-inline': WIDTH,
-			},
+			...inlineBox('--scroll-fade-start', '--scroll-fade-end'),
+			[RTL]: inlineBox('--scroll-fade-end', '--scroll-fade-start'),
+			[SCROLL_TIMELINE]: animate('inline'),
+		},
+		'.scroll-fade-block': {
+			'mask-repeat': 'no-repeat',
+			...blockBox('--scroll-fade-start', '--scroll-fade-end'),
+			[SCROLL_TIMELINE]: animate('block'),
 		},
 	})
 }

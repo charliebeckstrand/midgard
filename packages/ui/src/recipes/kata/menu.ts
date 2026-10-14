@@ -20,6 +20,7 @@ import { defineScale } from '../../core/density'
 import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, ji, narabi, sen } from '../kiso'
 import { dan } from '../kiso/dan'
+import { fade } from '../kiso/omote/fade'
 import { popover } from '../kiso/popover'
 
 const { on, text } = iro
@@ -52,10 +53,9 @@ const viewport = defineRecipe({
 		fit.scroll,
 		// The panel surface is translucent glass, so an overlay gradient has no
 		// solid color to fade into; a mask fades the scrolled content itself.
-		// Each edge fades over 1.5rem only while `useScrollOverflow` stamps the
-		// matching overflow attribute. When no edge overflows, no mask applies.
-		'data-overflow-above:mask-t-from-[calc(100%-1.5rem)]',
-		'data-overflow-below:mask-b-from-[calc(100%-1.5rem)]',
+		// The edge with content behind it fades, in CSS with no script. When the
+		// rows fit, no mask applies.
+		...fade.block,
 	],
 	// Off by default: a menu is normally a short, fixed item set, where a cap
 	// clips the last row and reads as truncation rather than as more content

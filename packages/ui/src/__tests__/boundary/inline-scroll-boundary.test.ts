@@ -21,9 +21,12 @@ import { srcDir, srcRelative, stripSourceComments, walkSource } from '../helpers
 //
 //   2. No file but the home reads `fade.inline`.
 //
-//   3. No file reads or writes `data-overflow-start` or `data-overflow-end`.
-//      A script stamps such an attribute after the first paint, so a style
-//      that keys off it arrives late, and the reader sees it appear.
+//   3. No file reads or writes a scroll edge attribute: `data-overflow-start`
+//      or `data-overflow-end` on the inline axis, `data-overflow-above` or
+//      `data-overflow-below` on the block axis. A script stamps such an
+//      attribute after the first paint, so a style that keys off it arrives
+//      late, and the reader sees it appear. A block scroller takes
+//      `fade.block`, which draws its fade in CSS as the rail does.
 
 /** The one file that owns the rule. */
 const HOME = 'recipes/kiso/omote/rail.ts'
@@ -40,8 +43,8 @@ const INLINE_SCROLL = /\boverflow-x-(?:auto|scroll)\b|\boverflowX:\s*['"](?:auto
 /** A read of the edge fade. */
 const READS_FADE = /\bfade\.inline\b|\{[^}]*\binline\b[^}]*\}\s*=\s*fade\b/
 
-/** An inline edge attribute, as an attribute or as a Tailwind variant. */
-const INLINE_EDGE_ATTRIBUTE = /\bdata-overflow-(?:start|end)\b/
+/** A scroll edge attribute, as an attribute or as a Tailwind variant. */
+const EDGE_ATTRIBUTE = /\bdata-overflow-(?:start|end|above|below)\b/
 
 /** The key of a file: relative to `src/` in ui, to the workspace root elsewhere. */
 function keyOf(path: string): string {
@@ -95,14 +98,14 @@ describe('inline-scroll boundary', () => {
 		).toEqual([])
 	})
 
-	it('keys no style off a script-stamped inline edge', () => {
+	it('keys no style off a script-stamped scroll edge', () => {
 		const violations = [...files]
-			.filter(([, code]) => INLINE_EDGE_ATTRIBUTE.test(code))
+			.filter(([, code]) => EDGE_ATTRIBUTE.test(code))
 			.map(([key]) => key)
 
 		expect(
 			violations,
-			`files that read or write \`data-overflow-start\` or \`data-overflow-end\` (the rail draws the edge fade in CSS, with no attribute):\n  ${violations.join('\n  ')}`,
+			`files that read or write a \`data-overflow-*\` scroll edge attribute (\`omote.rail\` and \`fade.block\` draw the edge fade in CSS, with no attribute):\n  ${violations.join('\n  ')}`,
 		).toEqual([])
 	})
 })

@@ -4,7 +4,7 @@
  * the `density-any` variant, the `motion-reduce` and `motion-safe` variants
  * that follow the Motion setting, the `sidebar-offcanvas` variant that follows
  * the Sidebar setting, the stepped and ring utilities
- * (`density-p-[2,3,4]`, `px-ring-2`, …), the `scroll-fade-inline` edge fade,
+ * (`density-p-[2,3,4]`, `px-ring-2`, …), the `scroll-fade-inline` and `scroll-fade-block` edge fades,
  * the 10 px `2xs` step of the text scale, two base styles on the root
  * element: `touch-action: manipulation`, and
  * the `color-scheme` that follows the `dark` class, the rule that hides the
