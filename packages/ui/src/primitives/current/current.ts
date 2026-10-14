@@ -149,30 +149,34 @@ export function useCurrentItem(value: string | undefined): {
 export type CurrentAnimation = 'fade' | 'slide' | false
 
 /**
- * Signals to `CurrentContent` how its `CurrentContents` parent animates a
- * switch. An animating panel stays mounted through its exit instead of
- * unmounting at once. `false` outside an animating container.
+ * What an animating `CurrentContents` tells its `CurrentContent` children.
  *
  * @internal
  */
-export const [CurrentAnimationContext, useCurrentAnimation] = createContext<CurrentAnimation>(
-	'CurrentAnimation',
-	{ default: false },
-)
-
-/**
- * Post-mount latch broadcast by an animating `CurrentContents`: a ref that flips
- * true once the container commits its initial render. A panel mounting later
- * reads it to enter from transparent, such as a `lazy` first visit or a fresh
- * `active` mount. Panels present in the container's first render skip the
- * entrance, so nothing fades on load. A ref rather than state so the flip
- * re-renders nothing. `undefined` outside an animating container.
- *
- * @internal
- */
-export const [CurrentSettledContext, useCurrentSettled] = createContext<
-	RefObject<boolean> | undefined
->('CurrentSettled', { default: undefined })
+export type CurrentContentsState = {
+	/**
+	 * How the container animates a switch. An animating panel stays mounted
+	 * through its exit instead of unmounting at once.
+	 */
+	animation: CurrentAnimation
+	/** The mount policy of the container. */
+	mount: Mount
+	/**
+	 * Post-mount latch: a ref that flips true once the container commits its
+	 * initial render. A panel mounting later reads it to enter from
+	 * transparent, such as a `lazy` first visit or a fresh `active` mount.
+	 * Panels present in the first render of the container skip the entrance, so
+	 * nothing fades on load. A ref rather than state so the flip re-renders
+	 * nothing. `undefined` outside an animating container.
+	 */
+	settled: RefObject<boolean> | undefined
+	/**
+	 * The direction of the last panel switch. The incoming panel slides in from
+	 * that side, and the outgoing panel slides out to the other side. `1`
+	 * outside an animating container.
+	 */
+	direction: CurrentDirection
+}
 
 /**
  * The side a switch travels to: `1` when the incoming panel comes after the
@@ -183,16 +187,28 @@ export const [CurrentSettledContext, useCurrentSettled] = createContext<
 export type CurrentDirection = 1 | -1
 
 /**
- * The direction of the last panel switch, broadcast by an animating
- * `CurrentContents`. The incoming panel slides in from that side, and the
- * outgoing panel slides out to the other side. `1` outside an animating
- * container.
+ * The {@link CurrentContentsState} of a still container. It is also the value
+ * outside a container: no animation, and the `always` mount policy, so an
+ * ungrouped panel is never unmounted.
  *
  * @internal
  */
-export const [CurrentDirectionContext, useCurrentDirection] = createContext<CurrentDirection>(
-	'CurrentDirection',
-	{ default: 1 },
+export const STILL_CONTENTS: CurrentContentsState = {
+	animation: false,
+	mount: 'always',
+	settled: undefined,
+	direction: 1,
+}
+
+/**
+ * Carries the {@link CurrentContentsState} from {@link CurrentContents} to its
+ * {@link CurrentContent} children. {@link STILL_CONTENTS} outside a container.
+ *
+ * @internal
+ */
+export const [CurrentContentsContext, useCurrentContents] = createContext<CurrentContentsState>(
+	'CurrentContents',
+	{ default: STILL_CONTENTS },
 )
 
 /**
@@ -208,14 +224,3 @@ export const [CurrentPanelActiveContext, useCurrentPanelActive] = createContext<
 	'CurrentPanelActive',
 	{ default: true },
 )
-
-/**
- * Mount policy broadcast from {@link CurrentContents} to its {@link CurrentContent}
- * children. Defaults to `always` outside a container, so an ungrouped panel is
- * never unmounted.
- *
- * @internal
- */
-export const [CurrentMountContext, useCurrentMount] = createContext<Mount>('CurrentMount', {
-	default: 'always',
-})

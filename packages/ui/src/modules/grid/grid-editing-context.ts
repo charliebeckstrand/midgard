@@ -117,29 +117,23 @@ export type GridEditingSession = {
 	managed: boolean
 }
 
-const [GridEditingSessionContext, useSession] = createContext<GridEditingSession | null>(
-	'GridEditingSession',
-	{ default: null },
-)
-
-export { GridEditingSessionContext }
+/**
+ * The editing session, or `null` when the grid is not editable. For the surfaces
+ * every grid renders — the row actions column — which must ask rather than
+ * assume. @internal
+ */
+export const [GridEditingSessionContext, useGridEditingSessionOrNull] =
+	createContext<GridEditingSession | null>('GridEditingSession', { default: null })
 
 /** The editing session. Throws outside an editable grid, where there is none. @internal */
 export function useGridEditingSession(): GridEditingSession {
-	const session = useSession()
+	const session = useGridEditingSessionOrNull()
 
 	if (session === null)
 		throw new Error('useGridEditingSession must be used within an editable Grid')
 
 	return session
 }
-
-/**
- * The editing session, or `null` when the grid is not editable. For the surfaces
- * every grid renders — the row actions column — which must ask rather than
- * assume. @internal
- */
-export const useGridEditingSessionOrNull = useSession
 
 /**
  * The new-row slot of an editable grid ({@link GridEditableConfig.newRow}), as
@@ -184,11 +178,8 @@ export type GridNewRowSession = {
 	moveTo: (coord: { row: number; col: number }) => void
 }
 
-const [GridNewRowContext, useNewRow] = createContext<GridNewRowSession | null>('GridNewRow', {
-	default: null,
-})
-
-export { GridNewRowContext }
-
 /** The new-row slot, or `null` when the grid shows none. @internal */
-export const useGridNewRowSession = useNewRow
+export const [GridNewRowContext, useGridNewRowSession] = createContext<GridNewRowSession | null>(
+	'GridNewRow',
+	{ default: null },
+)

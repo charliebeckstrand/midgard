@@ -30,16 +30,15 @@ import { ChartTable } from '../chart-table'
 import type { ChartTier } from '../chart-tier'
 import { ChartTooltip, describeReadout } from '../chart-tooltip'
 import {
+	type ChartActions,
+	ChartActionsContext,
 	type ChartEmphasis,
 	ChartEmphasisContext,
 	ChartHoverContext,
 	type ChartHoverState,
 	ChartMarkEmphasisContext,
-	ChartMarkPointContext,
 	type ChartMarkRef,
-	ChartReferencePointContext,
 	ChartSeriesEmphasisContext,
-	ChartSeriesFocusContext,
 	ChartTierContext,
 	chartMarkEmphasis,
 	createChartHoverStore,
@@ -360,7 +359,7 @@ export type ChartFrameProps = AccessibleName & {
  * the tooltip overlay. Owns the hover store and provides it through
  * `ChartHoverContext`. A pointer move renders only the readers that subscribe
  * to it: the overlays and hit layers, not the frame or the marks. Owns the series emphasis too, and provides it through
- * `ChartSeriesFocusContext` and `ChartSeriesEmphasisContext`. A legend hover
+ * `ChartActionsContext` and `ChartSeriesEmphasisContext`. A legend hover
  * therefore renders the frame and the readers of the emphasis, not the chart
  * body. The readout thunk and the data table keep their identity.
  *
@@ -444,6 +443,12 @@ export function ChartFrame({
 		// once already clear — costs no mark re-render, the same guard the hover store keeps.
 		setPointedMark((prev) => (sameMark(prev, mark) ? prev : mark))
 	}, [])
+
+	// The setters keep their identity, so the value does too.
+	const actions = useMemo<ChartActions>(
+		() => ({ pointMark, pointReference: setPointerReference, focusSeries: setSeriesFocus }),
+		[pointMark, setSeriesFocus],
+	)
 
 	// The frame owns the spark posture end to end: it stands the tooltip and
 	// keyboard down here, veils the header and drops the legend (chartChrome), lays
@@ -638,29 +643,25 @@ export function ChartFrame({
 		>
 			<ChartTierContext value={tier ?? 'standard'}>
 				<ChartEmphasisContext value={emphasis}>
-					<ChartReferencePointContext value={setPointerReference}>
-						<ChartMarkEmphasisContext value={markEmphasis}>
-							<ChartMarkPointContext value={pointMark}>
-								<ChartSeriesFocusContext value={setSeriesFocus}>
-									<ChartSeriesEmphasisContext value={seriesEmphasis}>
-										<ChartHoverContext value={hoverStore}>
-											<ChartFigure
-												plot={plotRegion}
-												header={header}
-												labelledBy={labelledBy}
-												legend={legendFrame}
-												legendPlacement={legendPlacement}
-												rail={rail}
-												aside={aside}
-												containerFill={containerFill}
-												aspect={aspect}
-											/>
-										</ChartHoverContext>
-									</ChartSeriesEmphasisContext>
-								</ChartSeriesFocusContext>
-							</ChartMarkPointContext>
-						</ChartMarkEmphasisContext>
-					</ChartReferencePointContext>
+					<ChartMarkEmphasisContext value={markEmphasis}>
+						<ChartActionsContext value={actions}>
+							<ChartSeriesEmphasisContext value={seriesEmphasis}>
+								<ChartHoverContext value={hoverStore}>
+									<ChartFigure
+										plot={plotRegion}
+										header={header}
+										labelledBy={labelledBy}
+										legend={legendFrame}
+										legendPlacement={legendPlacement}
+										rail={rail}
+										aside={aside}
+										containerFill={containerFill}
+										aspect={aspect}
+									/>
+								</ChartHoverContext>
+							</ChartSeriesEmphasisContext>
+						</ChartActionsContext>
+					</ChartMarkEmphasisContext>
 				</ChartEmphasisContext>
 			</ChartTierContext>
 

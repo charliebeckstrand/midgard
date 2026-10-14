@@ -5,7 +5,7 @@ import { announce } from '../../core'
 import { type PlotTabStopProps, usePlotTabStop } from '../../hooks/use-plot-tab-stop'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { once } from '../../utilities'
-import { useMapHoverGet, useMapHoverSet } from './context'
+import { useMapHoverActions } from './context'
 import { MAP_CURSOR_INSET, MAP_ZOOM_FIT } from './engine/map-constants'
 import { type MapHoverTarget, sameTarget } from './engine/map-hover/target'
 import { isMapActivateKey, moveMapCursor } from './engine/map-keyboard/cursor'
@@ -123,9 +123,7 @@ export function useMapKeyboard({
 	describe,
 	zoom,
 }: MapKeyboardOptions): PlotTabStopProps | null {
-	const set = useMapHoverSet()
-
-	const hovered = useMapHoverGet()
+	const { set, get: hovered } = useMapHoverActions()
 
 	// The cursor holds the mark it sits on, not its position in the stop list: an
 	// overlay that registers or unmounts re-orders that list, and an index would
