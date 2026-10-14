@@ -6,7 +6,7 @@ import {
 	ARGUMENT_LENGTH,
 	componentEvent,
 	listenComponentEvents,
-} from '../debug/event-log/component-events.ts'
+} from '../debug/component-events.ts'
 import { labelPage, labelProps } from '../plugin/component-events.ts'
 
 const label = (code: string, fromModules: string[] = []) =>

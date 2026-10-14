@@ -61,7 +61,7 @@ export default defineConfig({
 								},
 								{
 									name: 'shell',
-									test: /[\\/]src[\\/]docs[\\/](?:app[\\/]root\.tsx|debug[\\/]event-log[\\/]component-events\.ts)$/,
+									test: /[\\/]src[\\/]docs[\\/](?:app[\\/]root\.tsx|debug[\\/]component-events\.ts)$/,
 									priority: 1,
 								},
 								{

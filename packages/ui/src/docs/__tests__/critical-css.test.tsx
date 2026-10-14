@@ -7,7 +7,7 @@ import { compilePage, expandBraces, inlineClasses, scanClasses } from '../plugin
 
 describe('scanClasses', () => {
 	it.each([
-		'[:root[data-debug]_&]:contents',
+		'[:root[data-events]_&]:contents',
 		'has-[>:disabled]:opacity-50',
 		"after:content-['']",
 		'[&>[data-slot=field]+[data-slot]]:mt-2',

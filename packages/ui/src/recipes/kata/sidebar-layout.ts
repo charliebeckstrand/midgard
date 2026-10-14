@@ -72,6 +72,19 @@ const panel = defineRecipe({
 	],
 })
 
+// The aside on the end edge shows from `lg` up. It sticks to the top of the
+// page and is as tall as the layout at its minimum, as the panel is. Its
+// content takes its own width. A scroll that reaches the end of the aside
+// stops there and does not move on to the page.
+const aside = defineRecipe({
+	base: [
+		'shrink-0 min-w-0',
+		'max-lg:hidden',
+		'lg:sticky lg:top-0 lg:h-[100cqh] lg:overscroll-contain',
+		'overflow-x-hidden overflow-y-auto',
+	],
+})
+
 // The hot zone shows from `lg` up while the sidebar is offcanvas.
 const floatingHotZone = defineRecipe({
 	base: ['absolute inset-y-0 start-0 z-30 w-2', 'hidden lg:sidebar-offcanvas:block'],
@@ -144,6 +157,7 @@ export const k = {
 	base: layout,
 	navbar,
 	panel,
+	aside,
 	actions,
 	// The parts of the floating sidebar: the `peek` hot zone at the start edge,
 	// the `sheet`, its `body`, and the `buffer` at the far edge of the sheet.

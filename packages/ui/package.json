@@ -74,6 +74,10 @@
 			"types": "./src/modules/dashboard/index.ts",
 			"default": "./src/modules/dashboard/index.ts"
 		},
+		"./events": {
+			"types": "./src/modules/events/index.ts",
+			"default": "./src/modules/events/index.ts"
+		},
 		"./grid": {
 			"types": "./src/modules/grid/index.ts",
 			"default": "./src/modules/grid/index.ts"

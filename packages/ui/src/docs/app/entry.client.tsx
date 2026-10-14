@@ -1,8 +1,9 @@
 import { StrictMode, startTransition } from 'react'
 import { hydrateRoot } from 'react-dom/client'
 import { HydratedRouter } from 'react-router/dom'
-import { onCaughtError } from '../debug/event-log/caught-errors.ts'
+import { eventsRootOptions } from 'ui/events'
 import { startDebug } from '../debug/index.tsx'
+import { routerEvents } from '../debug/router.ts'
 import { endStaleBuildWatch } from './stale-build.tsx'
 
 // A deploy replaces the hashed file names under an open tab, so the load of a
@@ -14,16 +15,16 @@ import { endStaleBuildWatch } from './stale-build.tsx'
 // the page fails to load.
 endStaleBuildWatch()
 
-// While the Event log is on, it records from before hydration.
+// While the events run, the store records from before hydration.
 await startDebug()
 
 startTransition(() => {
 	hydrateRoot(
 		document,
 		<StrictMode>
-			<HydratedRouter />
+			<HydratedRouter {...routerEvents} />
 		</StrictMode>,
-		// An error that an error boundary catches reaches the Event log only through this option.
-		{ onCaughtError },
+		// The bugs of React reach the events through the error callbacks of the root.
+		eventsRootOptions,
 	)
 })
