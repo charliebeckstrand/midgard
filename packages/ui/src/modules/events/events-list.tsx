@@ -67,7 +67,9 @@ function EventLine({
 
 	// Each line keeps the slot of the chevron, so the texts start in one column.
 	// The slot is one line high, so the chevron sits on the first line. A long
-	// text wraps in its own column, under the start of the text.
+	// text wraps between its words, in its own column, under the start of the
+	// text. A word that is wider than the column does not break, and the body
+	// scrolls on the inline axis.
 	const slot = (
 		<span className="flex size-4 shrink-0 items-center">
 			{(panel !== undefined || entry.report) && <Icon icon={<ChevronRight />} size={12} />}
@@ -82,14 +84,14 @@ function EventLine({
 				// start in one column.
 				<Flex as="span" align="start" gap="sm" className="min-w-0">
 					{slot}
-					<span className="min-w-0 wrap-break-word">{text}</span>
+					<span className="min-w-0">{text}</span>
 				</Flex>
 			) : (
 				// The trigger gives its muted color to the chevron. The text keeps the
 				// color of the line.
 				<CollapseTrigger className="min-w-0 items-start text-start text-xs aria-expanded:*:first:rotate-90">
 					{slot}
-					<span className={cn('min-w-0 wrap-break-word', color ?? k.text)}>{text}</span>
+					<span className={cn('min-w-0', color ?? k.text)}>{text}</span>
 				</CollapseTrigger>
 			)}
 		</span>

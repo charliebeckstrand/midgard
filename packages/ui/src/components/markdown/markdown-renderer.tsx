@@ -7,6 +7,7 @@ import { k } from '../../recipes/kata/markdown'
 import { clamp } from '../../utilities'
 import { Code, CodeBlock } from '../code'
 import { decodeEntities } from './markdown-entities'
+import { MarkdownTableScroll } from './markdown-table-scroll'
 
 const HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const
 
@@ -57,10 +58,11 @@ function safeUrl(url: string, allowData = false): string | undefined {
  *
  * @remarks
  * Pure and hook-free itself, so the {@link Markdown} leaf that mounts it stays
- * static and server-renderable. A fenced code token is the one exception,
- * rendered through {@link CodeBlock} (a `'use client'` leaf that lazily
- * syntax-highlights). A code-bearing tree therefore picks up one client boundary
- * there, while the rest stays static. Raw HTML tokens render nothing: the tree
+ * static and server-renderable. A fenced code token renders through
+ * {@link CodeBlock} (a `'use client'` leaf that lazily syntax-highlights), and
+ * a table renders in {@link MarkdownTableScroll} (a `'use client'` scroll box).
+ * A tree with code or a table therefore gets a client boundary there, and the
+ * rest stays static. Raw HTML tokens render nothing: the tree
  * is built only from elements this renderer controls, so source markup never
  * reaches the DOM.
  *
@@ -295,12 +297,14 @@ function plainText(tokens: Token[]): string {
 
 function renderTable(token: Tokens.Table, key: number, offset: number): ReactNode {
 	return (
-		<table key={key} className={cn(k.table)}>
-			<thead>
-				<tr>{token.header.map((cell, index) => renderCell('th', k.th, cell, index, offset))}</tr>
-			</thead>
-			<tbody>{token.rows.map((row, index) => renderRow(row, index, offset))}</tbody>
-		</table>
+		<MarkdownTableScroll key={key}>
+			<table className={cn(k.table)}>
+				<thead>
+					<tr>{token.header.map((cell, index) => renderCell('th', k.th, cell, index, offset))}</tr>
+				</thead>
+				<tbody>{token.rows.map((row, index) => renderRow(row, index, offset))}</tbody>
+			</table>
+		</MarkdownTableScroll>
 	)
 }
 
