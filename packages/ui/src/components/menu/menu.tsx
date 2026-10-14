@@ -7,7 +7,7 @@ import type { FloatingPlacement } from '../../hooks'
 import type { scale } from '../../recipes/kata/menu'
 import { MenuActionsContext, MenuCappedContext, MenuStateContext } from './context'
 import { MenuPointerLevel } from './use-menu-pointer'
-import { useMenuState } from './use-menu-state'
+import { useMenuRoot } from './use-menu-root'
 import { useMenuTouchHold } from './use-menu-touch-hold'
 
 /**
@@ -123,7 +123,7 @@ export function Menu({
 		handleContextKeyDown,
 		handleContextPointerDown,
 		isContextSurface,
-	} = useMenuState({
+	} = useMenuRoot({
 		open,
 		defaultOpen,
 		onOpenChange,

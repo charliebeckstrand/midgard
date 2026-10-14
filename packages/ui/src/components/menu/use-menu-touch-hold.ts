@@ -1,6 +1,6 @@
 import { type PointerEvent, useRef } from 'react'
 import { useTouchHold } from '../../hooks/use-touch-hold'
-import { inPortaledPanel } from './use-menu-state'
+import { inPortaledPanel } from './use-menu-root'
 
 /** Hold time, in ms, before a touch opens the context menu. Android opens its own at about 500. */
 export const TOUCH_CONTEXT_MENU_DELAY = 500

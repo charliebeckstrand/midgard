@@ -832,7 +832,7 @@ A grid puts a filter menu on every column and an action menu on every row. The c
 | Rung | Before | After | Step after | Per menu |
 | --- | ---: | ---: | ---: | ---: |
 | 1 · bare buttons | 0.151 | 0.152 | — | — |
-| 2 · useMenuState only | 0.939 | 0.937 | 0.785 | 0.0157 |
+| 2 · useMenuRoot only | 0.939 | 0.937 | 0.785 | 0.0157 |
 | 3 · trigger only (no panel to build) | 3.127 | 1.768 | 0.831 | 0.0166 |
 | 4 · closed menus (the real thing) | 3.347 | 1.953 | 0.185 | 0.0037 |
 

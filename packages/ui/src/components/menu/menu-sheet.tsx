@@ -13,7 +13,7 @@ import {
 	DrawerTitle,
 } from '../drawer'
 import { useMenuActions, useMenuState } from './context'
-import { MENUITEM_SELECTOR } from './use-menu-state'
+import { MENUITEM_SELECTOR } from './use-menu-root'
 
 /** Props for {@link MenuSheet}. */
 type MenuSheetProps = {

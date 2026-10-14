@@ -11,7 +11,7 @@ import {
 } from 'react'
 import { createContext } from '../../core'
 import { queryItems, setVirtualActiveElement } from '../../hooks/a11y/use-a11y-roving'
-import { MENUITEM_SELECTOR } from './use-menu-state'
+import { MENUITEM_SELECTOR } from './use-menu-root'
 
 /**
  * Slack (px) added to each end of the open panel's near edge when it forms the

@@ -35,7 +35,7 @@ import {
 	useMenuPointer,
 	useMenuRowPointer,
 } from './use-menu-pointer'
-import { MENUITEM_SELECTOR } from './use-menu-state'
+import { MENUITEM_SELECTOR } from './use-menu-root'
 
 /**
  * Keys that open a submenu from its roved parent row. Direction keys are
