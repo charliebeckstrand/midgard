@@ -56,14 +56,14 @@ export function selectValue(
 
 	const index = selections.findIndex((item) => item.source === source && item.field === field)
 
-	const current = index === -1 ? [] : (selections[index]?.values ?? [])
+	const prev = index === -1 ? [] : (selections[index]?.values ?? [])
 
 	let values: readonly string[]
 
 	if (additive) {
-		values = toggleListItem(current, text)
+		values = toggleListItem(prev, text)
 	} else {
-		values = current.length === 1 && current[0] === text ? [] : [text]
+		values = prev.length === 1 && prev[0] === text ? [] : [text]
 	}
 
 	const rest = selections.filter((_, position) => position !== index)

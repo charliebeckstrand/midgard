@@ -210,9 +210,9 @@ function memo<A extends readonly unknown[], R>(compute: (...args: A) => R): Memo
 	}
 }
 
-/** Returns `next`, or `previous` when the two cells have the same geometry. */
-function intern(previous: DashboardCell | null | undefined, next: DashboardCell): DashboardCell {
-	return previous != null && sameCell(previous, next) ? previous : next
+/** Returns `next`, or `prev` when the two cells have the same geometry. */
+function intern(prev: DashboardCell | null | undefined, next: DashboardCell): DashboardCell {
+	return prev != null && sameCell(prev, next) ? prev : next
 }
 
 /** The id of the dragged tile, or `null` when no drag is live. */
@@ -227,7 +227,7 @@ function draggedId(gesture: DashboardGesture | null): string | null {
 function paintedCells(
 	gesture: DashboardGesture | null,
 	projected: readonly DashboardCell[],
-	previous: ReadonlyMap<string, DashboardCell> | undefined,
+	prev: ReadonlyMap<string, DashboardCell> | undefined,
 ): Map<string, DashboardCell> {
 	const painted = gesture === null ? projected : (gesture.preview ?? gesture.snapshot)
 
@@ -240,7 +240,7 @@ function paintedCells(
 	for (const cell of painted) {
 		const source = cell.id === dragged && start !== undefined ? start : cell
 
-		cells.set(cell.id, intern(previous?.get(cell.id), source))
+		cells.set(cell.id, intern(prev?.get(cell.id), source))
 	}
 
 	return cells
@@ -253,7 +253,7 @@ function paintedCells(
  */
 function landingCell(
 	gesture: DashboardGesture | null,
-	previous: DashboardCell | null | undefined,
+	prev: DashboardCell | null | undefined,
 ): DashboardCell | null {
 	const dragged = draggedId(gesture)
 
@@ -261,14 +261,14 @@ function landingCell(
 
 	const landing = (gesture?.preview ?? gesture?.snapshot)?.find((cell) => cell.id === dragged)
 
-	return landing === undefined ? null : intern(previous, landing)
+	return landing === undefined ? null : intern(prev, landing)
 }
 
 /** The travel range of the dragged tile, or `null`. It keeps the previous object when equal. */
 function travelOf(
 	gesture: DashboardGesture | null,
 	columns: number,
-	previous: DashboardDragTravel | null | undefined,
+	prev: DashboardDragTravel | null | undefined,
 ): DashboardDragTravel | null {
 	const dragged = draggedId(gesture)
 
@@ -276,17 +276,14 @@ function travelOf(
 
 	const travel = dragTravel(gesture.snapshot, dragged, columns)
 
-	const same = previous != null && previous.maxX === travel.maxX && previous.maxY === travel.maxY
+	const same = prev != null && prev.maxX === travel.maxX && prev.maxY === travel.maxY
 
-	return same ? previous : travel
+	return same ? prev : travel
 }
 
-/** Returns `next`, or `previous` when the two lists hold the same items in the same order. */
-export function internList<T>(
-	previous: readonly T[] | undefined,
-	next: readonly T[],
-): readonly T[] {
-	return previous && sameElements(previous, next) ? previous : next
+/** Returns `next`, or `prev` when the two lists hold the same items in the same order. */
+export function internList<T>(prev: readonly T[] | undefined, next: readonly T[]): readonly T[] {
+	return prev && sameElements(prev, next) ? prev : next
 }
 
 /** Creates a store with the given initial state. */
@@ -341,7 +338,7 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 
 	const heldOf = memo(project)
 
-	const derive = (previous: DashboardView | null, from: DashboardState | null): DashboardView => {
+	const derive = (prev: DashboardView | null, from: DashboardState | null): DashboardView => {
 		const {
 			columns,
 			gap,
@@ -367,15 +364,15 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 		// new array on each render.
 		const sameBoard =
 			from !== null &&
-			previous !== null &&
-			(previous.canonical === canonical || sameGeometry(previous.canonical, canonical)) &&
+			prev !== null &&
+			(prev.canonical === canonical || sameGeometry(prev.canonical, canonical)) &&
 			from.demands === demands &&
 			from.columns === columns &&
 			from.gap === gap
 
 		// A projection on screen reads the held width. The first projected frame reads it
 		// too, so a later change of a selection or of edit mode moves no tile.
-		const held = measured > 0 && ((sameBoard && previous?.projected === true) || !full.identity)
+		const held = measured > 0 && ((sameBoard && prev?.projected === true) || !full.identity)
 
 		const projection = held
 			? heldOf(
@@ -402,18 +399,18 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 
 		return {
 			canonical,
-			cells: paintedCells(gesture, projection.cells, previous?.cells),
+			cells: paintedCells(gesture, projection.cells, prev?.cells),
 			entries,
-			placeholder: landingCell(gesture, previous?.placeholder),
-			travel: travelOf(gesture, columns, previous?.travel),
+			placeholder: landingCell(gesture, prev?.placeholder),
+			travel: travelOf(gesture, columns, prev?.travel),
 			projected: !projection.identity,
 			editable: editing && projection.identity,
 			// Interned, so a mount that leaves the live selections as they were wakes no reader.
-			selections: internList(previous?.selections, liveSelections(selections, mounted)),
+			selections: internList(prev?.selections, liveSelections(selections, mounted)),
 			order:
-				editing && previous !== null
-					? previous.order
-					: internList(previous?.order, orderOf(canonical, placed, demands)),
+				editing && prev !== null
+					? prev.order
+					: internList(prev?.order, orderOf(canonical, placed, demands)),
 		}
 	}
 

@@ -141,7 +141,7 @@ export function useMapRegionReadout<T>(
 
 			const {
 				metas,
-				domain: resolved,
+				domain,
 				assign,
 				thresholds: edges,
 			} = resolveValueBins(joinedRows(data, regionKey, regionIds), valueKey, {
@@ -158,7 +158,7 @@ export function useMapRegionReadout<T>(
 			return {
 				categoryMetas: metas,
 				...regionValueJoin(regionIds, data, regionKey, valueKey, assign, format),
-				domain: resolved,
+				domain,
 				thresholds: edges,
 			}
 		}

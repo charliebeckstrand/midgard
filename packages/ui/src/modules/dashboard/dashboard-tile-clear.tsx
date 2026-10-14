@@ -34,8 +34,8 @@ export function DashboardTileClear({ id, label }: DashboardTileClearProps) {
 
 	const { updateSelections } = useDashboardActions()
 
-	const clear = useCallback(
-		() => updateSelections((current) => clearSelection(current, id)),
+	const handleClear = useCallback(
+		() => updateSelections((prev) => clearSelection(prev, id)),
 		[updateSelections, id],
 	)
 
@@ -47,7 +47,7 @@ export function DashboardTileClear({ id, label }: DashboardTileClearProps) {
 			// `Button` sets no `type`, and a `submit` would send an enclosing form.
 			type="button"
 			variant="plain"
-			onClick={clear}
+			onClick={handleClear}
 			aria-label={`Clear the selection in ${label}`}
 		>
 			Clear

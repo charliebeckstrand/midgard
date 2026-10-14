@@ -190,9 +190,9 @@ export function useDashboardDrag({
 
 			const y = Math.round(origin.y + (offset.y * ROW_SUBDIVISION) / pitch)
 
-			const last = targetRef.current
+			const prev = targetRef.current
 
-			if (last !== null && last.x === x && last.y === y) return
+			if (prev !== null && prev.x === x && prev.y === y) return
 
 			targetRef.current = { x, y }
 

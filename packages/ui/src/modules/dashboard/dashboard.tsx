@@ -175,16 +175,16 @@ function inReadingOrder(children: ReactNode, order: readonly string[]): ReactNod
 
 		if (!isValidElement(child)) return child
 
-		const tile = isTileElement(child)
+		const isTile = isTileElement(child)
 
-		const key = tile ? `tile:${child.props.id}` : child.key
+		const key = isTile ? `tile:${child.props.id}` : child.key
 
 		return (
 			<DashboardTileRankContext
 				key={key}
-				value={{ rank: [slot, 0, 0], grouped: !tile && !isSpecTilesElement(child) }}
+				value={{ rank: [slot, 0, 0], grouped: !isTile && !isSpecTilesElement(child) }}
 			>
-				{tile ? cloneElement(child, { key }) : child}
+				{isTile ? cloneElement(child, { key }) : child}
 			</DashboardTileRankContext>
 		)
 	})
@@ -480,7 +480,7 @@ export function Dashboard({
 			resizeBy,
 			cancelResize,
 			setFilter: (next) => setFilterValue(next),
-			updateSelections: (update) => setSelectionValue((current) => update(current ?? [])),
+			updateSelections: (update) => setSelectionValue((prev) => update(prev ?? [])),
 			reportError,
 		}),
 		[beginResize, resizeBy, cancelResize, setFilterValue, setSelectionValue, reportError],

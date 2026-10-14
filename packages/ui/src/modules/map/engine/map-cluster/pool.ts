@@ -163,13 +163,13 @@ function entryDots(
 
 /** Whether two lists of dots stand at the same positions, in order. @internal */
 function sameDots(
-	previous: readonly MapPoint2D[] | undefined,
+	prev: readonly MapPoint2D[] | undefined,
 	next: readonly MapPoint2D[] | undefined,
 ): boolean {
-	if (previous === undefined || next === undefined) return previous === next
+	if (prev === undefined || next === undefined) return prev === next
 
 	return (
-		previous.length === next.length &&
-		next.every((at, i) => at.x === previous[i]?.x && at.y === previous[i]?.y)
+		prev.length === next.length &&
+		next.every((at, index) => at.x === prev[index]?.x && at.y === prev[index]?.y)
 	)
 }

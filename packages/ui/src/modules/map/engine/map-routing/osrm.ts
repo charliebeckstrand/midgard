@@ -76,9 +76,9 @@ export async function fetchOsrmRoute(
 		signal,
 	} = options
 
-	const coords = waypoints.map((p) => `${p[0]},${p[1]}`).join(';')
+	const coordinates = waypoints.map((waypoint) => `${waypoint[0]},${waypoint[1]}`).join(';')
 
-	const url = `${baseUrl}/route/v1/${profile}/${coords}?overview=${overview}&geometries=geojson`
+	const url = `${baseUrl}/route/v1/${profile}/${coordinates}?overview=${overview}&geometries=geojson`
 
 	return routeFetch(url, { signal: requestSignal(signal, timeoutMs) })
 }

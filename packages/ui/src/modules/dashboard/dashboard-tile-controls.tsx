@@ -31,13 +31,13 @@ function handOffFocus(shell: HTMLElement | null): void {
 
 	const tiles = [...canvas.querySelectorAll<HTMLElement>(':scope > [data-slot="dashboard-tile"]')]
 
-	const at = tiles.indexOf(shell)
+	const index = tiles.indexOf(shell)
 
-	const order = [...tiles.slice(at + 1), ...tiles.slice(0, Math.max(0, at)).reverse()]
+	const order = [...tiles.slice(index + 1), ...tiles.slice(0, Math.max(0, index)).reverse()]
 
 	const grip = order
 		.map((tile) => tile.querySelector<HTMLElement>('[data-slot="dashboard-handle"]'))
-		.find((element) => element !== null)
+		.find((el) => el !== null)
 
 	;(grip ?? canvas.closest<HTMLElement>('[data-slot="dashboard"]'))?.focus()
 }

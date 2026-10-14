@@ -24,7 +24,7 @@ import type { LngLat, MapFeature } from '../types'
 export function regionPaths(features: MapFeature[], projection: GeoProjection): (string | null)[] {
 	const path = geoPath(projection).digits(REGION_PATH_DIGITS)
 
-	return features.map((entry) => (entry.geometry === null ? null : path(entry.geometry)))
+	return features.map((feature) => (feature.geometry === null ? null : path(feature.geometry)))
 }
 
 /**
@@ -42,10 +42,10 @@ export function regionPaths(features: MapFeature[], projection: GeoProjection): 
  * @internal
  */
 export function regionCentroids(features: MapFeature[]): (LngLat | null)[] {
-	return features.map((entry) => {
-		if (entry.geometry === null) return null
+	return features.map((feature) => {
+		if (feature.geometry === null) return null
 
-		const [lon, lat] = geoCentroid(entry.geometry)
+		const [lon, lat] = geoCentroid(feature.geometry)
 
 		// A degenerate feature — empty rings, or rings that cancel — centers on
 		// NaN; drop it rather than let the cursor step onto a point that projects

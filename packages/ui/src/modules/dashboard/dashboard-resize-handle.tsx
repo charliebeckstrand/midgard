@@ -78,11 +78,11 @@ export function DashboardResizeHandle({
 
 		checkedSpan.current = span
 
-		const node = ref.current
+		const el = ref.current
 
-		if (resizing || node === null || node !== document.activeElement) return
+		if (resizing || el === null || el !== document.activeElement) return
 
-		node.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+		el.scrollIntoView({ block: 'nearest', inline: 'nearest' })
 	}, [span, resizing])
 
 	const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {

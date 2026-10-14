@@ -95,7 +95,7 @@ function appliedTo(viewer: string | null): (view: DashboardView) => readonly Das
  * ```
  */
 export function useDashboardScope(): DashboardScope {
-	const tile = useDashboardTileId()
+	const tileId = useDashboardTileId()
 
 	const { setFilter, updateSelections } = useDashboardActions()
 
@@ -103,12 +103,12 @@ export function useDashboardScope(): DashboardScope {
 
 	const selections = useDashboardStore((view) => view.selections)
 
-	const applied = useDashboardStore(useMemo(() => appliedTo(tile), [tile]))
+	const applied = useDashboardStore(useMemo(() => appliedTo(tileId), [tileId]))
 
-	const query = useMemo(() => scopeQuery(filter, applied, tile), [filter, applied, tile])
+	const query = useMemo(() => scopeQuery(filter, applied, tileId), [filter, applied, tileId])
 
 	return useMemo<DashboardScope>(() => {
-		const source = tile ?? ''
+		const source = tileId ?? ''
 
 		return {
 			filter,
@@ -118,8 +118,8 @@ export function useDashboardScope(): DashboardScope {
 			setFilter,
 			selected: (field) => selectedValues(selections, source, field),
 			select: (field, value, options) =>
-				updateSelections((current) => selectValue(current, source, field, value, options)),
-			clear: (field) => updateSelections((current) => clearSelection(current, source, field)),
+				updateSelections((prev) => selectValue(prev, source, field, value, options)),
+			clear: (field) => updateSelections((prev) => clearSelection(prev, source, field)),
 		}
-	}, [tile, filter, selections, query, setFilter, updateSelections])
+	}, [tileId, filter, selections, query, setFilter, updateSelections])
 }

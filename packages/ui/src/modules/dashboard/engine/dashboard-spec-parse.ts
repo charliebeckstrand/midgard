@@ -225,7 +225,7 @@ function parseTiles(list: readonly unknown[], issues: DashboardSpecIssue[]): Das
 
 function parseLayout(
 	list: readonly unknown[],
-	tiles: ReadonlySet<string>,
+	tileIds: ReadonlySet<string>,
 	issues: DashboardSpecIssue[],
 ): DashboardLayoutItem[] {
 	const layout: DashboardLayoutItem[] = []
@@ -258,7 +258,7 @@ function parseLayout(
 
 		ids.add(entry.id)
 
-		if (!tiles.has(entry.id)) {
+		if (!tileIds.has(entry.id)) {
 			issues.push({
 				kind: 'orphan-entry',
 				path,

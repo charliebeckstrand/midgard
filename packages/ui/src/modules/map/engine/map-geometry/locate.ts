@@ -240,9 +240,9 @@ export function regionAt(index: MapRegionIndex, features: MapFeature[], at: LngL
 		return -1
 	}
 
-	const cell = holder(index.cells.get(cellKey(columnAt(at[0]), rowAt(at[1]))) ?? [])
+	const found = holder(index.cells.get(cellKey(columnAt(at[0]), rowAt(at[1]))) ?? [])
 
-	return cell === -1 ? holder(index.oversized) : cell
+	return found === -1 ? holder(index.oversized) : found
 }
 
 /**

@@ -250,7 +250,7 @@ const MapRegionsBase = memo(function MapRegionsBase({
 	)
 
 	// Fixed across the pass, so it is resolved once rather than per region.
-	const onTrack = interactive ? track : undefined
+	const handleTrack = interactive ? track : undefined
 
 	const drawn = useMemo(() => drawnRegions(paths), [paths])
 
@@ -267,7 +267,7 @@ const MapRegionsBase = memo(function MapRegionsBase({
 						className={paint.className}
 						fillColor={paint.fillColor}
 						style={washStyle(index, wash)}
-						onTrack={onTrack}
+						onTrack={handleTrack}
 					/>
 				)
 			})}
@@ -369,7 +369,9 @@ export const MapRegions = memo(function MapRegions({
 		return () => clearTimeout(timer)
 	}, [animate, revealed])
 
-	const wash: MapWash = animate ? (settled ? 'settled' : 'reveal') : 'none'
+	const animatedWash: MapWash = settled ? 'settled' : 'reveal'
+
+	const wash: MapWash = animate ? animatedWash : 'none'
 
 	const clickable = onRegionClick !== undefined
 

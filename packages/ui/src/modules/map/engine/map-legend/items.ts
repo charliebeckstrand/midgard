@@ -122,14 +122,15 @@ export function legendItems(
 	for (const entry of entries) {
 		const swatch = { shape: entry.swatch, className: overlaySwatchClass(colors, entry.id) }
 
-		const open = entry.group === undefined ? undefined : opened.get(entry.group)
+		const existing = entry.group === undefined ? undefined : opened.get(entry.group)
 
-		if (open !== undefined) {
+		if (existing !== undefined) {
 			// One key per distinct shape, not per member: the swatches state what KINDS
 			// of mark the group holds, so a catchment with five depots on it still reads
 			// as an area and a point rather than six keys wide. Shape alone decides it,
 			// because a group's members share one color by construction (`slots.ts`).
-			if (!open.swatches.some((held) => held.shape === swatch.shape)) open.swatches.push(swatch)
+			if (!existing.swatches.some((held) => held.shape === swatch.shape))
+				existing.swatches.push(swatch)
 
 			continue
 		}

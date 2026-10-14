@@ -82,7 +82,7 @@ export function useMapToggle(
 			// that ends it for a beat no one can see.
 			const restoring = hidden.has(id)
 
-			setHidden((current) => toggleItem(current, id))
+			setHidden((prev) => toggleItem(prev, id))
 
 			if (!washes || !restoring) return
 
@@ -97,10 +97,12 @@ export function useMapToggle(
 	// written through an updater. A map with every entry shown says nothing.
 	useReportedChange(hidden, onHiddenChange)
 
+	const shown = focus !== null && !hidden.has(focus)
+
 	return {
 		hidden,
 		toggle,
 		setFocus,
-		emphasis: focus !== null && !hidden.has(focus) && !washing ? focus : null,
+		emphasis: shown && !washing ? focus : null,
 	}
 }

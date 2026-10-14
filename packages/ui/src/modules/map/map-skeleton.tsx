@@ -85,17 +85,17 @@ export function MapSkeleton({ aspectRatio, projection, outline, className }: Map
 	// An aspect frame is the placeholder itself: full width, and an inline
 	// `aspect-ratio` for the height. One element holds the box, so the skeleton
 	// has one `data-slot`.
-	const aspect = sizing.mode === 'aspect'
+	const isAspect = sizing.mode === 'aspect'
 
-	const style = aspect ? { aspectRatio: sizing.ratio } : undefined
+	const style = isAspect ? { aspectRatio: sizing.ratio } : undefined
 
 	return shape === null ? (
 		<Placeholder
-			className={cn(...(aspect ? k.skeleton.aspect : k.skeleton.base), className)}
+			className={cn(...(isAspect ? k.skeleton.aspect : k.skeleton.base), className)}
 			style={style}
 		/>
 	) : (
-		<MapSkeletonOutline outline={shape} aspect={aspect} style={style} className={className} />
+		<MapSkeletonOutline outline={shape} aspect={isAspect} style={style} className={className} />
 	)
 }
 

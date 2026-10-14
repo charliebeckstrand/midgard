@@ -293,7 +293,7 @@ export function DashboardTile(props: DashboardTileProps) {
 
 	const { reportError } = useDashboardActions()
 
-	const onError = useCallback((error: unknown) => reportError(id, error), [reportError, id])
+	const handleError = useCallback((error: unknown) => reportError(id, error), [reportError, id])
 
 	const titleId = useId()
 
@@ -330,7 +330,7 @@ export function DashboardTile(props: DashboardTileProps) {
 				grip={drag.grip}
 				mount={mount}
 				fallback={placeholder}
-				onError={onError}
+				onError={handleError}
 				onRemove={onRemove}
 				onDuplicate={onDuplicate}
 				expandable={expandable}
