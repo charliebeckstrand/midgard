@@ -13,6 +13,27 @@ import { CI, cleanup, coverageScope, sequence } from './vitest.base'
  */
 const BUDGET_FACTOR = CI ? 2 : 1
 
+/**
+ * Whether the browser suite adds the `density-firefox` and `density-webkit`
+ * instances. Playwright must have Firefox and WebKit installed.
+ */
+const DENSITY_ENGINES = Boolean(process.env.DENSITY_ENGINES)
+
+/**
+ * The files whose subject is the density mechanism: the step of a scope, a
+ * slot, and the root, and the boxes that each step gives. The density
+ * instances run these files in Firefox and in WebKit. Each file uses the mocks
+ * of the `browser` instance.
+ */
+const DENSITY_FILES = [
+	'src/__tests__/browser/density-contract.test.tsx',
+	'src/__tests__/browser/density-scope.test.tsx',
+	'src/__tests__/browser/item-row-density.test.tsx',
+	'src/__tests__/browser/switch-density-settle.test.tsx',
+	'src/__tests__/browser/geometry/*-density.test.tsx',
+	'src/__tests__/browser/geometry/size-steps.test.tsx',
+]
+
 /** The CSS of this package, and not the CSS of a dependency. */
 const PACKAGE_CSS = /^(?!.*[\\/]node_modules[\\/]).*\.css(?:\?(?!.*\b(?:raw|url)\b).*)?$/
 
@@ -132,7 +153,8 @@ const releasePointer: BrowserCommand<[selector?: string]> = async (context, sele
 }
 
 /**
- * Real-browser test suite (Vitest browser mode, Playwright/Chromium), split
+ * Real-browser test suite (Vitest browser mode, Playwright: Chromium, and
+ * Firefox and WebKit for the density files), split
  * into instances along the `@floating-ui/react` mock boundary — the mock is a
  * setup-file `vi.mock`, so it can only toggle per instance, not per file —
  * along the scrollbar mode of the browser, and along the geometry category:
@@ -175,7 +197,18 @@ const releasePointer: BrowserCommand<[selector?: string]> = async (context, sele
  *   `motion` project mocks floating-ui, so neither of them has such an exit.
  *   It keeps the tooltip body loader mock of `floating-ui`.
  *
- * `pnpm test:browser` runs all six; `--project <name>` scopes to one.
+ * - `density-firefox` and `density-webkit`: the files whose subject is the
+ *   density mechanism (`DENSITY_FILES`), in Firefox and in WebKit. A stepped
+ *   value is a computed `calc()` of custom properties, and each engine can
+ *   resolve it differently. These instances exist only when `DENSITY_ENGINES`
+ *   is set, because a dev machine often holds only Chromium. The `density` job
+ *   of `ci.yml` sets it. A case that does not apply to an engine, such as a
+ *   case that reads a WebKit-only pseudo-element, calls `ctx.skip` with the
+ *   reason when `server.browser` names that engine. Their mocks are the ones
+ *   `browser` uses.
+ *
+ * `pnpm test:browser` runs the six Chromium instances, and all eight with
+ * `DENSITY_ENGINES=1`. `--project <name>` scopes to one.
  *
  * Instance-level `setupFiles` merge additively onto project-level ones
  * (project's run first), so `index.ts`/`act-environment.ts` — shared by both
@@ -234,7 +267,7 @@ export default defineConfig({
 		],
 	},
 	test: {
-		// The files of the six instances, and each instance sets its own
+		// The files of the instances, and each instance sets its own
 		// `include`. Vitest starts the dependency scan of the browser server from
 		// the test files of this level, and the default is each test file of the
 		// package. The node suites then enter the scan too, and a module that the
@@ -386,6 +419,16 @@ export default defineConfig({
 					],
 					include: ['src/__tests__/browser/floating-motion/**/*.test.{ts,tsx}'],
 				},
+				...(DENSITY_ENGINES
+					? (['firefox', 'webkit'] as const).map((browser) => ({
+							browser,
+							name: `density-${browser}`,
+							setupFiles: [
+								resolve(import.meta.dirname, 'src/__tests__/browser/setup/module-mocks.ts'),
+							],
+							include: DENSITY_FILES,
+						}))
+					: []),
 			],
 		},
 	},
