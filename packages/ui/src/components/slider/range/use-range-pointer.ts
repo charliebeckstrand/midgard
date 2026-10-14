@@ -93,7 +93,7 @@ function focusThumb(thumbRefs: ThumbButtonRefs, thumb: ThumbIndex): void {
  * `onDragStart` and `onDragEnd` bracket the gesture on the thumb that the
  * press grabbed.
  */
-export function useRangePointer(opts: {
+export function useRangePointer(options: {
 	min: number
 	max: number
 	step: number
@@ -118,7 +118,7 @@ export function useRangePointer(opts: {
 		thumbRefs,
 		onDragStart,
 		onDragEnd,
-	} = opts
+	} = options
 
 	const update = useRangeUpdate({ min, max, step, setRange, overlap })
 
@@ -181,12 +181,12 @@ export function useRangePointer(opts: {
 
 	const closestThumb = useCallback(
 		(raw: number): ThumbIndex => {
-			const d0 = Math.abs(raw - current[0])
+			const startDistance = Math.abs(raw - current[0])
 
-			const d1 = Math.abs(raw - current[1])
+			const endDistance = Math.abs(raw - current[1])
 
 			// Prefers the higher thumb when equidistant.
-			return d0 < d1 ? 0 : 1
+			return startDistance < endDistance ? 0 : 1
 		},
 		[current],
 	)

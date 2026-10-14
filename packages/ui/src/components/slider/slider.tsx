@@ -65,8 +65,8 @@ export function Slider({
 	...props
 }: SliderProps) {
 	const {
-		value: internal,
-		setValue: setInternal,
+		value: bound,
+		setValue,
 		setTouched,
 		invalid,
 	} = useFormValue<number>(name, {
@@ -77,7 +77,7 @@ export function Slider({
 		},
 	})
 
-	const current = internal ?? min
+	const current = bound ?? min
 
 	const percent = pct(current, min, max)
 
@@ -112,7 +112,7 @@ export function Slider({
 			name={name}
 			aria-valuetext={getValueText?.(current)}
 			value={current}
-			onChange={(event) => setInternal(Number(event.target.value))}
+			onChange={(event) => setValue(Number(event.target.value))}
 			// The touched mark runs whatever the caller does (CONVENTIONS.md §3.9).
 			onBlur={composeEventHandlers(onBlur, setTouched, { checkForDefaultPrevented: false })}
 			className={cn(k({ color }), className)}

@@ -60,7 +60,7 @@ export function TooltipTrigger({ children }: TooltipTriggerProps) {
 
 	// No trigger ref of its own: the tooltip reads its reference through
 	// floating-ui alone.
-	const mergeRefs = useFloatingReference<HTMLElement>(setReference, undefined, childRef)
+	const setTrigger = useFloatingReference<HTMLElement>(setReference, undefined, childRef)
 
 	const triggerClassName = cn(k.trigger.base, enabled && k.trigger.cursor)
 
@@ -69,7 +69,7 @@ export function TooltipTrigger({ children }: TooltipTriggerProps) {
 			<TriggerChild
 				child={child}
 				props={{ ...getReferenceProps(child.props), id: child.props.id ?? triggerId }}
-				ref={mergeRefs}
+				ref={setTrigger}
 				slot="tooltip-trigger"
 				className={triggerClassName}
 			/>
@@ -78,7 +78,7 @@ export function TooltipTrigger({ children }: TooltipTriggerProps) {
 
 	return (
 		<span
-			ref={mergeRefs}
+			ref={setTrigger}
 			id={triggerId}
 			data-slot="tooltip-trigger"
 			className={triggerClassName}

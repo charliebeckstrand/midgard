@@ -12,19 +12,19 @@ import { type RefObject, useLayoutEffect, useRef } from 'react'
  *
  * @internal
  */
-function fitTextarea(el: HTMLTextAreaElement): void {
-	if (el.clientWidth === 0) return
+function fitTextarea(textarea: HTMLTextAreaElement): void {
+	if (textarea.clientWidth === 0) return
 
-	el.style.height = 'auto'
+	textarea.style.height = 'auto'
 
-	const computed = getComputedStyle(el)
+	const style = getComputedStyle(textarea)
 
 	const edge =
-		computed.boxSizing === 'border-box'
-			? Number.parseFloat(computed.borderTopWidth) + Number.parseFloat(computed.borderBottomWidth)
-			: -(Number.parseFloat(computed.paddingTop) + Number.parseFloat(computed.paddingBottom))
+		style.boxSizing === 'border-box'
+			? Number.parseFloat(style.borderTopWidth) + Number.parseFloat(style.borderBottomWidth)
+			: -(Number.parseFloat(style.paddingTop) + Number.parseFloat(style.paddingBottom))
 
-	el.style.height = `${el.scrollHeight + edge}px`
+	textarea.style.height = `${textarea.scrollHeight + edge}px`
 }
 
 /**
@@ -53,51 +53,51 @@ export function useTextareaAutoResize(
 
 	// After each render, fit when the text differs from the text of the last fit.
 	useLayoutEffect(() => {
-		const el = ref.current
+		const textarea = ref.current
 
-		if (!enabled || !el || el.value === fitted.current) return
+		if (!enabled || !textarea || textarea.value === fitted.current) return
 
-		fitted.current = el.value
+		fitted.current = textarea.value
 
-		fitTextarea(el)
+		fitTextarea(textarea)
 	})
 
 	useLayoutEffect(() => {
-		const el = ref.current
+		const textarea = ref.current
 
-		if (!enabled || !el) return
+		if (!enabled || !textarea) return
 
 		const onInput = () => {
-			fitted.current = el.value
+			fitted.current = textarea.value
 
-			fitTextarea(el)
+			fitTextarea(textarea)
 		}
 
-		let width = el.clientWidth
+		let width = textarea.clientWidth
 		let frame = 0
 
 		const observer = new ResizeObserver(() => {
-			if (el.clientWidth === width) return
+			if (textarea.clientWidth === width) return
 
-			width = el.clientWidth
+			width = textarea.clientWidth
 
 			cancelAnimationFrame(frame)
 
-			frame = requestAnimationFrame(() => fitTextarea(el))
+			frame = requestAnimationFrame(() => fitTextarea(textarea))
 		})
 
-		el.addEventListener('input', onInput)
+		textarea.addEventListener('input', onInput)
 
-		observer.observe(el)
+		observer.observe(textarea)
 
 		return () => {
-			el.removeEventListener('input', onInput)
+			textarea.removeEventListener('input', onInput)
 
 			observer.disconnect()
 
 			cancelAnimationFrame(frame)
 
-			el.style.height = ''
+			textarea.style.height = ''
 
 			fitted.current = null
 		}

@@ -85,7 +85,7 @@ export function Switch({
 		required: resolvedRequired,
 		readOnly: resolvedReadOnly,
 		validation,
-		'aria-describedby': resolvedDescribedBy,
+		'aria-describedby': describedBy,
 	} = useControlProps({
 		id,
 		disabled,
@@ -136,7 +136,7 @@ export function Switch({
 				aria-checked={on}
 				aria-readonly={ariaAttr(resolvedReadOnly)}
 				onChange={handleChange}
-				aria-describedby={resolvedDescribedBy}
+				aria-describedby={describedBy}
 				{...validation}
 				className={k.input()}
 			/>

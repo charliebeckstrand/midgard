@@ -79,10 +79,10 @@ function rowEdges(toolbar: HTMLElement): Set<Element> {
 	let rowBottom = Number.NEGATIVE_INFINITY
 
 	items.forEach((item, index) => {
-		const previous = items[index - 1]
+		const prev = items[index - 1]
 
-		if (previous && item.top >= rowBottom) {
-			if (previous.separator) edges.add(previous.el)
+		if (prev && item.top >= rowBottom) {
+			if (prev.separator) edges.add(prev.el)
 
 			if (item.separator) edges.add(item.el)
 

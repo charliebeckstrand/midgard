@@ -53,7 +53,9 @@ export function useToastTimer(
 
 		sinceRef.current = now
 
-		const live = new Set(toastsRef.current.filter((t) => !t.dismissed).map((t) => t.id))
+		const live = new Set(
+			toastsRef.current.filter((toast) => !toast.dismissed).map((toast) => toast.id),
+		)
 
 		for (const [id, left] of remainingRef.current) {
 			if (live.has(id)) remainingRef.current.set(id, Math.max(left - elapsed, 0))
@@ -79,7 +81,7 @@ export function useToastTimer(
 				settle()
 
 				const expired = toastsRef.current
-					.map((t) => t.id)
+					.map((toast) => toast.id)
 					.filter((id) => remainingRef.current.get(id) === 0)
 
 				for (const id of expired) remainingRef.current.delete(id)
@@ -120,9 +122,9 @@ export function useToastTimer(
 
 		// `stop` empties the staggered queue. A live toast with no countdown is in
 		// that queue, with its time up, so it counts again from zero.
-		for (const t of toastsRef.current) {
-			if (!(t.persist || t.dismissed || remainingRef.current.has(t.id))) {
-				remainingRef.current.set(t.id, 0)
+		for (const toast of toastsRef.current) {
+			if (!(toast.persist || toast.dismissed || remainingRef.current.has(toast.id))) {
+				remainingRef.current.set(toast.id, 0)
 			}
 		}
 

@@ -43,12 +43,12 @@ export function useToastQueue(
 				return
 			}
 
-			removed = toastsRef.current.find((t) => t.id === id)
+			removed = toastsRef.current.find((toast) => toast.id === id)
 		}
 
 		const { id } = removed
 
-		toastsRef.current = toastsRef.current.filter((t) => t.id !== id)
+		toastsRef.current = toastsRef.current.filter((toast) => toast.id !== id)
 		sync()
 
 		onRemove(removed)

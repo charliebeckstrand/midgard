@@ -98,7 +98,7 @@ export function ShinyText({
 
 	const position = useMotionValue(OFF_RIGHT)
 
-	const backgroundPosition = useTransform(position, (p) => `${p}% center`)
+	const backgroundPosition = useTransform(position, (percent) => `${percent}% center`)
 
 	useEffect(() => {
 		// Always re-park first: a mid-sweep `disabled` flip otherwise leaves the
