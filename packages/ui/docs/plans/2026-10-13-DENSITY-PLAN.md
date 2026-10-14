@@ -148,7 +148,7 @@ Each step is one pull request on the step before it. Each runs `pnpm check`, the
 - A boundary test forbids `backdrop:density-*`: `::backdrop` does not inherit from its element before Chrome 122.
 - Rewrite `core/density-utilities.test.ts` to the one-rule shape, and give its fake plugin API `addBase`.
 - No recipe changes. Expected docs sheet about 363 KB (about 31 KB br): A's coexistence build in a new layer measured 363,533 B, and E's in `density-0` measured 362,196 B; A in `density-0` is not measured yet.
-- Gate: parity 0 diffs; contract suite green, and depth beyond 2 flips from `it.fails` to pass; Firefox and WebKit green; density layer bytes, cold `/button` recalc (median of 15), and page-switch selector matching each at or under main. TBT is recorded, not gated: its spread is wider than the effect.
+- Gate: parity 0 diffs; contract suite green, and the `it.fails` cases of depth beyond 2 and of a stepped class after a pseudo-element flip to pass; Firefox and WebKit green; density layer bytes, cold `/button` recalc (median of 15), and page-switch selector matching each at or under main. TBT is recorded, not gated: its spread is wider than the effect.
 
 **2. Fold the variants.** The repository stops using `density-<step>:` and `density-[list]:`.
 - `utility-table.ts`: `ms` and `me` take negatives; add `mx`, `touch-gap-x`, `touch-gap-y`, `pb-safe` (adds `env(safe-area-inset-bottom)`), and `space-x` (captures the group's step in a private property and applies it to the children); `w` also takes container names. Wire the `cn` conflicts: `pb-safe` against `pb`, `p`, and `py`; `touch-gap-*` against the arbitrary `[--touch-target-gap-*:…]`. Until then, a plain arbitrary `--touch-target-gap-*` class wins over a later stepped class.
