@@ -19,10 +19,11 @@ type MaskedInputOptions = {
 	/**
 	 * Predicate identifying characters preserved across `format`. Keeps the
 	 * caret aligned with the typed character when `format` inserts or removes
-	 * separators.
+	 * separators. It gets each character, its index, and the full text, so it
+	 * can count a character only at the position where `format` keeps it.
 	 * @defaultValue ASCII alphanumerics and `+`.
 	 */
-	meaningful?: (char: string) => boolean
+	meaningful?: (char: string, index: number, text: string) => boolean
 }
 
 /**
