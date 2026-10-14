@@ -83,20 +83,20 @@ function CoordinateFields() {
 export function PlaceAddressField() {
 	const { value: locateBy = 'address', setValue } = useFormValue<LocateBy>('locateBy', {})
 
-	const coordinates = locateBy === 'coordinates'
+	const byCoordinates = locateBy === 'coordinates'
 
 	return (
 		<Stack gap="sm">
-			{coordinates ? <CoordinateFields /> : <AddressInputField />}
+			{byCoordinates ? <CoordinateFields /> : <AddressInputField />}
 
 			<div>
 				<Button
 					type="button"
 					variant="plain"
-					prefix={<Icon icon={coordinates ? <MapPin /> : <Crosshair />} />}
-					onClick={() => setValue(coordinates ? 'address' : 'coordinates')}
+					prefix={<Icon icon={byCoordinates ? <MapPin /> : <Crosshair />} />}
+					onClick={() => setValue(byCoordinates ? 'address' : 'coordinates')}
 				>
-					{coordinates ? 'Input address' : 'Input coordinates'}
+					{byCoordinates ? 'Input address' : 'Input coordinates'}
 				</Button>
 			</div>
 		</Stack>

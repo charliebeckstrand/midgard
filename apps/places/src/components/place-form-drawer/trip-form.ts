@@ -62,8 +62,8 @@ export type TripValues = {
 function stopIssue(rows: readonly StopRow[], days: [Date, Date] | undefined): string | undefined {
 	const span = days === undefined ? undefined : { startsOn: toDay(days[0]), endsOn: toDay(days[1]) }
 
-	for (const [at, row] of rows.entries()) {
-		const name = `Place ${at + 1}`
+	for (const [index, row] of rows.entries()) {
+		const name = `Place ${index + 1}`
 
 		if (row.match === undefined) return `${name} is empty. Search for it, or remove its row.`
 

@@ -190,9 +190,9 @@ export function PlaceDetails({
 				</>
 			) : null}
 
-			{place.visits.map((visit, at) => (
+			{place.visits.map((visit, index) => (
 				<Stack key={visit.id} gap="md">
-					{at > 0 ? <Divider className="my-2" /> : null}
+					{index > 0 ? <Divider className="my-2" /> : null}
 
 					<PlaceVisit place={place} visit={visit} actions={actions} tripLink={tripLink} />
 				</Stack>
@@ -266,8 +266,8 @@ export function PlaceList({
 					No places match the selected {categories.length > 1 ? 'categories' : 'category'}.
 				</Text>
 			) : (
-				<List items={[...shown]} sortable={false} virtual getKey={(item) => item.id}>
-					{(item) => <PlaceRow place={item} onOpen={onOpen} />}
+				<List items={[...shown]} sortable={false} virtual getKey={(place) => place.id}>
+					{(place) => <PlaceRow place={place} onOpen={onOpen} />}
 				</List>
 			)}
 		</Stack>

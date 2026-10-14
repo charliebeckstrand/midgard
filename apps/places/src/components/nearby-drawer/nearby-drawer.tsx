@@ -45,9 +45,9 @@ function placesOf(records: readonly MapRecord[]): Place[] {
 
 /** The count that names a list with no region. Module-scope, because the trail is keyed on it. */
 function countRecords(shown: readonly MapRecord[]): string {
-	const trips = shown.filter(isTrip).length
+	const tripCount = shown.filter(isTrip).length
 
-	return recordCount(shown.length - trips, trips)
+	return recordCount(shown.length - tripCount, tripCount)
 }
 
 /** One kind of a list, under its heading where the list holds both kinds. */
@@ -84,12 +84,12 @@ function NearbyList({ list, shown, placesByTrip, onOpen, ...pickers }: NearbyLis
 
 	const trips = shown.filter(isTrip)
 
-	const both = listedPlaces.length > 0 && trips.length > 0
+	const hasBoth = listedPlaces.length > 0 && trips.length > 0
 
 	return (
 		<Stack gap="xl">
 			{listedPlaces.length === 0 ? null : (
-				<NearbySection heading={both ? 'Places' : null}>
+				<NearbySection heading={hasBoth ? 'Places' : null}>
 					<PlaceList
 						{...pickers}
 						shown={placesOf(shown)}
@@ -103,7 +103,7 @@ function NearbyList({ list, shown, placesByTrip, onOpen, ...pickers }: NearbyLis
 			)}
 
 			{trips.length === 0 ? null : (
-				<NearbySection heading={both ? 'Trips' : null}>
+				<NearbySection heading={hasBoth ? 'Trips' : null}>
 					<TripList shown={trips} placesByTrip={placesByTrip} onOpen={onOpen} />
 				</NearbySection>
 			)}

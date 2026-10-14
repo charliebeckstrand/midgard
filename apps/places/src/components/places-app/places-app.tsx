@@ -139,9 +139,9 @@ function inRegion<T extends Located>(
 ): T[] {
 	if (cut === null) return filtered
 
-	const held = new Set(byRegion.get(cut)?.map((record) => record.id) ?? [])
+	const ids = new Set(byRegion.get(cut)?.map((record) => record.id) ?? [])
 
-	return filtered.filter((record) => held.has(record.id))
+	return filtered.filter((record) => ids.has(record.id))
 }
 
 /**
@@ -303,18 +303,18 @@ function mapForView<Regions>(
 		visits: Visits
 	},
 ) {
-	const at = viewAtlas(view)
+	const atlas = viewAtlas(view)
 
 	const cut = viewRegion(view)
 
-	const { byRegion } = drawnGrouping(sources.groupings, at)
+	const { byRegion } = drawnGrouping(sources.groupings, atlas)
 
 	return {
 		view,
-		regions: sources.atlases(at),
+		regions: sources.atlases(atlas),
 		places: inRegion(sources.places, byRegion, cut),
 		trips: inRegion(sources.trips, byRegion, cut),
-		visited: new Set(sources.visits[at]),
+		visited: new Set(sources.visits[atlas]),
 	}
 }
 
@@ -804,13 +804,13 @@ export function PlacesApp({
 	const located = useMemo<MapRecord[]>(() => [...places, ...trips], [places, trips])
 
 	// Where each record is. See `useGroupings`.
-	const groups = useGroupings(located)
+	const groupings = useGroupings(located)
 
 	// The view: the address's, or the smallest geography this app draws that holds
 	// every record until the address states one. The atlases are in the code and
 	// the records come from the server, so the opening rule reads the whole answer
 	// on the first render.
-	const opening = initialView(groups.states, located)
+	const opening = initialView(groupings.states, located)
 
 	const view = stated ?? opening
 
@@ -857,7 +857,7 @@ export function PlacesApp({
 		[regions],
 	)
 
-	const drawn = drawnGrouping(groups, atlas)
+	const drawn = drawnGrouping(groupings, atlas)
 
 	// The regions the bar's picker offers. Among countries, only the ones that
 	// hold a record: the palette reaches every other one. Among states the
@@ -867,15 +867,15 @@ export function PlacesApp({
 		() =>
 			atlas === 'states'
 				? regionNames
-				: pickerRegions(regionsHolding(located, groups.countries), cut),
-		[atlas, regionNames, located, groups.countries, cut],
+				: pickerRegions(regionsHolding(located, groupings.countries), cut),
+		[atlas, regionNames, located, groupings.countries, cut],
 	)
 
 	// What the summary drawer stands for: the places and the trips of the picked
 	// point, as one list.
-	const selectedRecords = useMemo(() => selectedIds(selected), [selected])
+	const summaryIds = useMemo(() => selectedIds(selected), [selected])
 
-	const summary = useSummary(selectedRecords, located, groups, drawn)
+	const summary = useSummary(summaryIds, located, groupings, drawn)
 
 	const hasTrips = trips.length > 0
 
@@ -919,7 +919,7 @@ export function PlacesApp({
 		[here],
 	)
 
-	const onPreload = useCallback(
+	const handlePreload = useCallback(
 		(region: string) => preloadView(drillInto(view, region)),
 		[preloadView, view],
 	)
@@ -931,17 +931,17 @@ export function PlacesApp({
 				? null
 				: mapForView(preloaded, {
 						atlases: atlasRegions,
-						groupings: groups,
+						groupings,
 						places: filtered,
 						trips: filteredTrips,
 						visits,
 					}),
-		[preloaded, filtered, filteredTrips, groups, visits],
+		[preloaded, filtered, filteredTrips, groupings, visits],
 	)
 
 	// Held, because the drawer keys its own trail on this: a fresh arrow each
 	// render would rebuild those steps whatever else stayed still.
-	const onNavigate = useCallback(
+	const handleNavigate = useCallback(
 		(region: string) => setView(drillInto(view, region)),
 		[view, setView],
 	)
@@ -950,9 +950,9 @@ export function PlacesApp({
 	// back to the view it names; the last is where the reader is and leads nowhere.
 	const pageTrail = useMemo(
 		() =>
-			viewCrumbs(view).map((crumb, at, all) => ({
+			viewCrumbs(view).map((crumb, index, crumbs) => ({
 				label: crumb.label,
-				onPick: at === all.length - 1 ? undefined : () => setView(crumb.view),
+				onPick: index === crumbs.length - 1 ? undefined : () => setView(crumb.view),
 			})),
 		[view, setView],
 	)
@@ -962,13 +962,13 @@ export function PlacesApp({
 	// history entry standing on a map the reader never saw — and the second write
 	// would drop the first.
 	const openPlace = useCallback(
-		(place: Place) => openAt(viewFor(groups.states, place), only('places', place)),
-		[openAt, groups.states],
+		(place: Place) => openAt(viewFor(groupings.states, place), only('places', place)),
+		[openAt, groupings.states],
 	)
 
 	const openTrip = useCallback(
-		(trip: Trip) => openAt(viewFor(groups.states, trip), only('trips', trip)),
-		[openAt, groups.states],
+		(trip: Trip) => openAt(viewFor(groupings.states, trip), only('trips', trip)),
+		[openAt, groupings.states],
 	)
 
 	// The trips by id, held apart from the link below, which changes with the
@@ -980,10 +980,10 @@ export function PlacesApp({
 	const tripLink = useMemo<TripLink>(
 		() => ({
 			trips: tripsById,
-			href: (trip) => hrefOf(viewFor(groups.states, trip), only('trips', trip)),
+			href: (trip) => hrefOf(viewFor(groupings.states, trip), only('trips', trip)),
 			open: openTrip,
 		}),
-		[tripsById, hrefOf, groups.states, openTrip],
+		[tripsById, hrefOf, groupings.states, openTrip],
 	)
 
 	// The palette's sources. Each has its own memo, so a change to one does not
@@ -1005,12 +1005,12 @@ export function PlacesApp({
 			regionSource({
 				countries: atlasNames('countries'),
 				states: atlasNames('states'),
-				countryRecords: groups.byCountry,
-				stateRecords: groups.byState,
+				countryRecords: groupings.byCountry,
+				stateRecords: groupings.byState,
 				goTo: setView,
 				preload: preloadView,
 			}),
-		[groups.byCountry, groups.byState, setView, preloadView],
+		[groupings.byCountry, groupings.byState, setView, preloadView],
 	)
 
 	const hasPlaces = places.length > 0
@@ -1134,7 +1134,7 @@ export function PlacesApp({
 					regionItems={summary.regionItems}
 					step={step}
 					onStepChange={setStep}
-					onNavigate={onNavigate}
+					onNavigate={handleNavigate}
 					onOpenChange={() => setSelected(NOTHING_SELECTED)}
 					placeActions={actions}
 					tripActions={tripActions}
@@ -1190,7 +1190,7 @@ export function PlacesApp({
 						visited={visited}
 						visitedRegions={filter.visitedRegions}
 						onDrill={(region) => setView(drillInto(view, region))}
-						onPreload={onPreload}
+						onPreload={handlePreload}
 						selected={selected}
 						onSelect={setSelected}
 					/>

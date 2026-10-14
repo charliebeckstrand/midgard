@@ -41,7 +41,7 @@ export function UserMenu(props: UserMenuProps) {
 
 	if (menu !== null) return <menu.module.UserMenuPanel {...props} focus={menu.focus} />
 
-	const press = (event: MouseEvent<HTMLButtonElement>) => {
+	const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
 		const focus = event.currentTarget === document.activeElement
 
 		request((module) => setMenu({ module, focus }))
@@ -56,7 +56,7 @@ export function UserMenu(props: UserMenuProps) {
 			onPointerEnter={preload}
 			onPointerDown={preload}
 			onFocus={preload}
-			onClick={press}
+			onClick={handleClick}
 		>
 			<Icon icon={<CircleUserRound />} />
 		</Button>

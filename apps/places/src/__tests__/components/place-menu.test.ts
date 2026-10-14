@@ -72,9 +72,9 @@ describe('visitMenuItems', () => {
 
 		expect(keys(entries)).toEqual(['edit', 'delete'])
 
-		const remove = entries[1]
+		const deleteRow = entries[1]
 
-		if (remove !== undefined && 'onAction' in remove) remove.onAction?.()
+		if (deleteRow !== undefined && 'onAction' in deleteRow) deleteRow.onAction?.()
 
 		expect(actions.onDeleteVisit).toHaveBeenCalledWith(only, visit)
 	})
