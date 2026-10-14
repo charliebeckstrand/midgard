@@ -74,6 +74,14 @@ export type SidebarLayoutProps = PropsWithChildren<{
 	 * that follows the nearest density scope separates them.
 	 */
 	actions?: ReactNode
+	/**
+	 * A panel on the end edge, from `lg` up, such as the pinned panel of the
+	 * events (`EventsAside`). It sticks to the top of the page, has the height of
+	 * the viewport, and its content scrolls on its own, as the desktop sidebar
+	 * does. The content column narrows to give it room. Below `lg` it does not
+	 * show.
+	 */
+	aside?: ReactNode
 	/** From `lg` up, keeps the header at the top of the content region. @defaultValue false */
 	stickyHeader?: boolean
 	/**
@@ -129,11 +137,12 @@ export type SidebarLayoutProps = PropsWithChildren<{
  *
  * The sidebar sits on the start edge of the reading direction. In a
  * right-to-left page, the panel, the floating sheet, and its hover strip are
- * on the right.
+ * on the right. The `aside` sits on the end edge.
  */
 export function SidebarLayout({
 	navbar,
 	sidebar,
+	aside,
 	actions,
 	stickyHeader,
 	onOpenChange,
@@ -279,6 +288,13 @@ export function SidebarLayout({
 				<div className={k.content.wrapper()}>
 					<div className={k.content.base({ stickyHeader })}>{children}</div>
 				</div>
+
+				{/* Aside on desktop: on the end edge, after the content. */}
+				{aside && (
+					<div data-slot="sidebar-aside" className={k.aside()}>
+						{aside}
+					</div>
+				)}
 			</div>
 		</SidebarLayoutContext>
 	)

@@ -12,7 +12,7 @@ import { MapPlat } from 'ui/modules/map' // or the 'ui/map' shorthand
 
 ## Modules
 
-`chart` · `chat` · `dashboard` · `grid` · `map` · `query`
+`chart` · `chat` · `dashboard` · `events` · `grid` · `map` · `query`
 
 ---
 

@@ -16,9 +16,9 @@ const FUNCTION = new Set(['ArrowFunctionExpression', 'FunctionExpression'])
 /** The local name of `componentEvent` in a page module. */
 const WRAP = '__componentEvent'
 
-/** The module of `componentEvent`, which the Event log reads. */
+/** The module of `componentEvent`, which the events read. */
 const EVENTS = JSON.stringify(
-	path.resolve(import.meta.dirname, '..', 'debug', 'event-log', 'component-events.ts'),
+	path.resolve(import.meta.dirname, '..', 'debug', 'component-events.ts'),
 )
 
 /** The folder of the modules of `ui`, such as `Grid`. */
@@ -26,7 +26,7 @@ const MODULES = `${path.resolve(import.meta.dirname, '..', '..', 'modules')}/`
 
 /**
  * The code of a module of `pages/` with each value that its JSX gives to a
- * component sent through the Event log (`debug/event-log/component-events.ts`),
+ * component sent through the events (`debug/component-events.ts`),
  * which records each call of an `on…` callback in the value ({@link labelProps}).
  * `program` is the parse of `code`, and `resolve` gives the file of an import
  * source. It gives nothing for code with no value to wrap.
@@ -85,7 +85,7 @@ export async function labelPage(
  * `onValueChange` of `sort={{ value, onValueChange }}`, or of a list of menu
  * items. The source is `module` when `fromModules` holds the first name of
  * the tag. A host element, such as `<div>`, stays as it is, because the input
- * listeners of the log record the DOM events. These values also stay as they
+ * sources of the events record the DOM events. These values also stay as they
  * are, because they cannot hold a callback: `key` and `ref`, a literal, a
  * template, an element, and a function under a prop that is not `on…`, such
  * as a render prop. It gives nothing for code with no value to wrap.

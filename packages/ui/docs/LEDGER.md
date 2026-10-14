@@ -136,6 +136,7 @@ A unit leaves Clean only on evidence. A pull request that touches the files of a
 | `chart` | Not started | — | — | — | — |
 | `chat` | Not started | — | — | — | — |
 | `dashboard` | Not started | — | — | — | — |
+| `events` | Not started | — | — | — | — |
 | `grid` | Not started | — | — | — | — |
 | `map` | Not started | — | — | — | — |
 | `query` | Not started | — | — | — | — |
