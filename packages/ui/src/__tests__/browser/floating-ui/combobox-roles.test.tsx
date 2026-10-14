@@ -13,7 +13,7 @@ import { renderUI, screen, waitFor } from '../../helpers'
 describe('Combobox ARIA roles (real browser)', () => {
 	it('exposes exactly one combobox and one listbox when open', async () => {
 		renderUI(
-			<Combobox<string> displayValue={(v) => v} placeholder="Search">
+			<Combobox<string> displayValue={(value) => value} placeholder="Search">
 				<ComboboxOption value="apple">
 					<ComboboxLabel>Apple</ComboboxLabel>
 				</ComboboxOption>

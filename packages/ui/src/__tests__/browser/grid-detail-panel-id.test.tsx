@@ -4,7 +4,10 @@ import { renderUI, waitFor } from '../helpers'
 
 type Row = { id: string; name: string }
 
-const rows: Row[] = Array.from({ length: 20 }, (_, i) => ({ id: `r ${i}`, name: `Name ${i}` }))
+const rows: Row[] = Array.from({ length: 20 }, (_, index) => ({
+	id: `r ${index}`,
+	name: `Name ${index}`,
+}))
 
 const columns: GridColumn<Row>[] = [
 	{ id: 'expand', expander: true },

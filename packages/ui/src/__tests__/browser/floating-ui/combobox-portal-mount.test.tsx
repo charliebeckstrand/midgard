@@ -27,7 +27,7 @@ const portalNodes = () => document.body.querySelectorAll('[data-floating-ui-port
 
 function Fruit() {
 	return (
-		<Combobox<string> displayValue={(v) => v} placeholder="Search">
+		<Combobox<string> displayValue={(value) => value} placeholder="Search">
 			<ComboboxOption value="apple">
 				<ComboboxLabel>Apple</ComboboxLabel>
 			</ComboboxOption>
@@ -131,7 +131,7 @@ describe('Combobox portal node (real browser)', () => {
 
 	it('re-anchors the highlight when the options swap on the first open', async () => {
 		const tree = (value: string) => (
-			<Combobox<string> displayValue={(v) => v} placeholder="Search">
+			<Combobox<string> displayValue={(selected) => selected} placeholder="Search">
 				<ComboboxOption key={value} value={value}>
 					<ComboboxLabel>{value}</ComboboxLabel>
 				</ComboboxOption>

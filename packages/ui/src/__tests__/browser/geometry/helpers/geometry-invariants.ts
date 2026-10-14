@@ -186,7 +186,7 @@ export function overlappingHitAreas(root: HTMLElement): string[] {
  * viewport instead of wrapping or scrolling internally.
  */
 export function horizontalPageOverflow(): number {
-	const doc = document.documentElement
+	const root = document.documentElement
 
-	return Math.max(0, doc.scrollWidth - doc.clientWidth)
+	return Math.max(0, root.scrollWidth - root.clientWidth)
 }

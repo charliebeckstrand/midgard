@@ -67,8 +67,8 @@ describe('panel grip cover (real browser)', () => {
 	afterEach(() => writeRootDensity(document.documentElement, 'md'))
 
 	it.for(
-		cases.flatMap((c) =>
-			densitySteps.map((step) => [c.name, step, c] as [string, DensityStep, Case]),
+		cases.flatMap((entry) =>
+			densitySteps.map((step) => [entry.name, step, entry] as [string, DensityStep, Case]),
 		),
 	)('covers no control with the grip of %s at %s', async ([, step, { slot, edge, render }]) => {
 		writeRootDensity(document.documentElement, step)

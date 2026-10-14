@@ -23,11 +23,11 @@ describe('useGridItemWindow (real browser)', () => {
 		const snapshot = useRef(NO_WINDOW_RECORD)
 
 		const items = useMemo(
-			() => Array.from({ length: 300 }, (_, i) => ({ key: `leaf:${i}`, kind: 'leaf' })),
+			() => Array.from({ length: 300 }, (_, index) => ({ key: `leaf:${index}`, kind: 'leaf' })),
 			[],
 		)
 
-		const win = useGridItemWindow(
+		const itemWindow = useGridItemWindow(
 			items,
 			{
 				scrollRef,
@@ -39,7 +39,7 @@ describe('useGridItemWindow (real browser)', () => {
 			snapshot,
 		)
 
-		handle.scrollToIndex = win.scrollToIndex
+		handle.scrollToIndex = itemWindow.scrollToIndex
 
 		return (
 			<div ref={scrollRef} data-slot="grid-scroll" style={{ height: 400, overflow: 'auto' }}>
@@ -49,20 +49,20 @@ describe('useGridItemWindow (real browser)', () => {
 							<th style={{ position: 'sticky', top: 0, height: 40, background: 'white' }}>Head</th>
 						</tr>
 					</thead>
-					<tbody ref={win.bodyRef}>
-						{win.topSpacer > 0 && (
+					<tbody ref={itemWindow.bodyRef}>
+						{itemWindow.topSpacer > 0 && (
 							<tr>
-								<td style={{ height: win.topSpacer, padding: 0 }} />
+								<td style={{ height: itemWindow.topSpacer, padding: 0 }} />
 							</tr>
 						)}
-						{win.virtualItems.map((item) => (
-							<tr key={item.key} ref={win.measureRef} data-index={item.index}>
+						{itemWindow.virtualItems.map((item) => (
+							<tr key={item.key} ref={itemWindow.measureRef} data-index={item.index}>
 								<td style={{ height: heightOf(item.index), padding: 0 }}>{item.index}</td>
 							</tr>
 						))}
-						{win.bottomSpacer > 0 && (
+						{itemWindow.bottomSpacer > 0 && (
 							<tr>
-								<td style={{ height: win.bottomSpacer, padding: 0 }} />
+								<td style={{ height: itemWindow.bottomSpacer, padding: 0 }} />
 							</tr>
 						)}
 					</tbody>

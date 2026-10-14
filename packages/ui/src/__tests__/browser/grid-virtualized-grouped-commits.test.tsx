@@ -27,10 +27,10 @@ import { budget } from './helpers/wall-clock'
 describe('grid virtualized grouped body commits (real browser)', () => {
 	type Person = { id: number; name: string; team: string }
 
-	const people: Person[] = Array.from({ length: 1000 }, (_, i) => ({
-		id: i + 1,
-		name: `Person ${i + 1}`,
-		team: `Team ${String(Math.floor(i / 100)).padStart(2, '0')}`,
+	const people: Person[] = Array.from({ length: 1000 }, (_, index) => ({
+		id: index + 1,
+		name: `Person ${index + 1}`,
+		team: `Team ${String(Math.floor(index / 100)).padStart(2, '0')}`,
 	}))
 
 	it('applies a toggle in view in one nested commit before the next frame', async () => {
@@ -45,14 +45,14 @@ describe('grid virtualized grouped body commits (real browser)', () => {
 			{
 				id: 'name',
 				title: 'Name',
-				cell: (r) => {
+				cell: (row) => {
 					rendered++
 
-					return r.name
+					return row.name
 				},
-				value: (r) => r.name,
+				value: (row) => row.name,
 			},
-			{ id: 'team', title: 'Team', cell: (r) => r.team, value: (r) => r.team },
+			{ id: 'team', title: 'Team', cell: (row) => row.team, value: (row) => row.team },
 		]
 
 		const view = renderUI(
@@ -68,7 +68,7 @@ describe('grid virtualized grouped body commits (real browser)', () => {
 					<Grid<Person>
 						columns={columns}
 						rows={people}
-						getKey={(r) => r.id}
+						getKey={(row) => row.id}
 						groupBy={{ value: 'team' }}
 						maxHeight="600px"
 						virtualize

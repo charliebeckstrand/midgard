@@ -12,7 +12,7 @@ import { sampleUntil } from '../helpers/sample'
 /** Opens the header menu's Auto-size parent, which holds both fits. */
 const openAutoSizeMenu = () => {
 	const parent = Array.from(document.querySelectorAll('[role="menuitem"]')).find(
-		(el) => el.textContent?.trim() === 'Auto-size',
+		(item) => item.textContent?.trim() === 'Auto-size',
 	)
 
 	if (!parent) throw new Error('no Auto-size menu')
@@ -22,8 +22,8 @@ const openAutoSizeMenu = () => {
 
 /** Clicks the open menu item whose text holds `label`. */
 const clickMenuItem = (label: string) => {
-	const item = Array.from(document.querySelectorAll('[role="menuitem"]')).find((el) =>
-		el.textContent?.includes(label),
+	const item = Array.from(document.querySelectorAll('[role="menuitem"]')).find((candidate) =>
+		candidate.textContent?.includes(label),
 	)
 
 	if (!item) throw new Error(`no ${label} item`)
@@ -42,8 +42,8 @@ const clickMenuItem = (label: string) => {
 describe('grid column auto-sizing (real browser)', () => {
 	type Row = { id: number; tiny: string; big: string }
 
-	const tinyRows: Row[] = Array.from({ length: 3 }, (_, i) => ({
-		id: i + 1,
+	const tinyRows: Row[] = Array.from({ length: 3 }, (_, index) => ({
+		id: index + 1,
 		tiny: 'x',
 		big: 'A very long cell value that is wider than the whole frame on its own',
 	}))
@@ -383,9 +383,9 @@ describe('grid column auto-sizing (real browser)', () => {
 describe('grid column auto-sizing with async rows (real browser)', () => {
 	type Row = { id: number; loadId: string; customer: string }
 
-	const rows: Row[] = Array.from({ length: 40 }, (_, i) => ({
-		id: i + 1,
-		loadId: `${5026910 + i}`,
+	const rows: Row[] = Array.from({ length: 40 }, (_, index) => ({
+		id: index + 1,
+		loadId: `${5026910 + index}`,
 		customer: 'ICP Group',
 	}))
 
@@ -523,7 +523,7 @@ describe('grid column auto-sizing at device pixel ratio 2 (real browser)', () =>
 		],
 	]
 
-	const rows: Row[] = values.map((text, i) => ({ id: i + 1, text }))
+	const rows: Row[] = values.map((text, index) => ({ id: index + 1, text }))
 
 	const columns: GridColumn<Row>[] = [
 		{ id: 'a', title: 'Identifier', cell: (row) => row.text[0] },

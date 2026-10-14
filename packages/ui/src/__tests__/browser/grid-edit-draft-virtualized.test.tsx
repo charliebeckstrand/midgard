@@ -16,7 +16,10 @@ describe('grid draft of a virtualized-out row (real browser)', () => {
 		{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
 	]
 
-	const rows: Row[] = Array.from({ length: 200 }, (_, i) => ({ id: i + 1, name: `Name ${i + 1}` }))
+	const rows: Row[] = Array.from({ length: 200 }, (_, index) => ({
+		id: index + 1,
+		name: `Name ${index + 1}`,
+	}))
 
 	/** Renders row 1 open for editing, with a save button that empties the set. */
 	function renderGrid() {

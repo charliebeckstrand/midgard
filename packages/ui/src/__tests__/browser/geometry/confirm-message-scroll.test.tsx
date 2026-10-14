@@ -25,7 +25,7 @@ const LAST = 'The last paragraph of the message.'
 
 /** Paragraphs that are together much taller than the viewport. */
 const PARAGRAPHS = [
-	...Array.from({ length: 40 }, (_, at) => `Paragraph ${at + 1} of the message.`),
+	...Array.from({ length: 40 }, (_, index) => `Paragraph ${index + 1} of the message.`),
 	LAST,
 ]
 

@@ -31,7 +31,7 @@ function Loupe() {
 			/>
 			<button
 				type="button"
-				onClick={() => setOn((value) => !value)}
+				onClick={() => setOn((prev) => !prev)}
 				style={{ position: 'fixed', left: 600, top: 40 }}
 			>
 				Loupe

@@ -23,7 +23,10 @@ describe('grid virtualized cursor under a sticky header (real browser)', () => {
 		{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
 	]
 
-	const rows: Row[] = Array.from({ length: 200 }, (_, i) => ({ id: i + 1, name: `Name ${i + 1}` }))
+	const rows: Row[] = Array.from({ length: 200 }, (_, index) => ({
+		id: index + 1,
+		name: `Name ${index + 1}`,
+	}))
 
 	// The uniform window needs the real row height, which is 40 pixels at the
 	// default density.

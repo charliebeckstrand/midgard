@@ -31,9 +31,9 @@ function boardCard(title: React.ReactNode, level?: CardTitleProps['level']) {
 }
 
 function headerHeight(container: HTMLElement): number {
-	const el = container.querySelector('[data-slot="card-header"]')
+	const header = container.querySelector('[data-slot="card-header"]')
 
-	return el ? Math.round(el.getBoundingClientRect().height) : -1
+	return header ? Math.round(header.getBoundingClientRect().height) : -1
 }
 
 describe('CardTitle skeleton height parity', () => {

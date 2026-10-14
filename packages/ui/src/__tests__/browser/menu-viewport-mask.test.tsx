@@ -48,11 +48,11 @@ async function shot(className: string, above: boolean, below: boolean) {
 		/>,
 	)
 
-	const el = present(container.firstElementChild as HTMLElement | null, 'box')
+	const box = present(container.firstElementChild as HTMLElement | null, 'box')
 
-	const mask = getComputedStyle(el).maskImage
+	const mask = getComputedStyle(box).maskImage
 
-	const png = await page.screenshot({ element: el, save: false })
+	const png = await page.screenshot({ element: box, save: false })
 
 	unmount()
 
@@ -82,9 +82,9 @@ describe('Menu viewport mask (real browser)', () => {
 
 			for (let y = 1; y < height - 1; y++) {
 				for (let x = 1; x < reference.width - 1; x++) {
-					const i = (y * reference.width + x) * 4
+					const offset = (y * reference.width + x) * 4
 
-					const [a, b] = [reference.data[i] ?? 0, viewport.data[i] ?? 0]
+					const [a, b] = [reference.data[offset] ?? 0, viewport.data[offset] ?? 0]
 
 					if (Math.abs(a - b) > 2) mismatches.push(`${x},${y}:${a}/${b}`)
 				}

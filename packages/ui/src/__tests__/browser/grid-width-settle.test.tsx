@@ -16,8 +16,8 @@ describe('grid width settling (real browser)', () => {
 	type Row = { id: number; name: string; role: string }
 
 	const columns: GridColumn<Row>[] = [
-		{ id: 'name', title: 'Name', cell: (r) => r.name, value: (r) => r.name, minWidth: 90 },
-		{ id: 'role', title: 'Role', cell: (r) => r.role, value: (r) => r.role, minWidth: 90 },
+		{ id: 'name', title: 'Name', cell: (row) => row.name, value: (row) => row.name, minWidth: 90 },
+		{ id: 'role', title: 'Role', cell: (row) => row.role, value: (row) => row.role, minWidth: 90 },
 	]
 
 	const rows: Row[] = [

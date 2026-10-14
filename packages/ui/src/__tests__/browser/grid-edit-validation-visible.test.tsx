@@ -22,7 +22,10 @@ describe('grid edit validation visibility (real browser)', () => {
 		},
 	]
 
-	const rows: Row[] = Array.from({ length: 12 }, (_, i) => ({ id: i + 1, name: `Name ${i + 1}` }))
+	const rows: Row[] = Array.from({ length: 12 }, (_, index) => ({
+		id: index + 1,
+		name: `Name ${index + 1}`,
+	}))
 
 	/** The nearest scrollable ancestor — the grid's overflow wrapper. */
 	const scrollParent = (el: HTMLElement): HTMLElement | null => {
@@ -50,13 +53,13 @@ describe('grid edit validation visibility (real browser)', () => {
 
 		expect(scroller).not.toBeNull()
 
-		const m = message.getBoundingClientRect()
+		const messageBox = message.getBoundingClientRect()
 
-		const c = (scroller as HTMLElement).getBoundingClientRect()
+		const scrollerBox = (scroller as HTMLElement).getBoundingClientRect()
 
-		expect(m.bottom).toBeLessThanOrEqual(c.bottom + 1)
+		expect(messageBox.bottom).toBeLessThanOrEqual(scrollerBox.bottom + 1)
 
-		expect(m.top).toBeGreaterThanOrEqual(c.top - 1)
+		expect(messageBox.top).toBeGreaterThanOrEqual(scrollerBox.top - 1)
 	}
 
 	function Harness({ rows }: { rows: Row[] }) {

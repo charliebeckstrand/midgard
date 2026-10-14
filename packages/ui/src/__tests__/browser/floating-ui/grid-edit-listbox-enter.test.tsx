@@ -17,7 +17,7 @@ describe('listbox editor and Enter (real floating engine)', () => {
 	const rows: Row[] = [{ id: 1, done: false }]
 
 	const columns: GridColumn<Row>[] = [
-		{ id: 'done', title: 'Done', field: 'done', cell: (r) => (r.done ? 'Yes' : 'No') },
+		{ id: 'done', title: 'Done', field: 'done', cell: (row) => (row.done ? 'Yes' : 'No') },
 	]
 
 	it('gives Enter to the listbox, leaving no key to commit with', async () => {
@@ -27,7 +27,7 @@ describe('listbox editor and Enter (real floating engine)', () => {
 			<Grid
 				columns={columns}
 				rows={rows}
-				getKey={(r) => r.id}
+				getKey={(row) => row.id}
 				editable={{ session: 'managed', scope: 'cell', onCommit }}
 			/>,
 		)
@@ -58,7 +58,7 @@ describe('listbox editor and Enter (real floating engine)', () => {
 			<Grid
 				columns={columns}
 				rows={rows}
-				getKey={(r) => r.id}
+				getKey={(row) => row.id}
 				editable={{ session: 'managed', scope: 'cell', onCommit }}
 			/>,
 		)

@@ -19,10 +19,10 @@ describe('grid cursor focus not obscured (real browser)', () => {
 		{ id: 'role', title: 'Role', cell: (row) => row.role },
 	]
 
-	const rows: Row[] = Array.from({ length: 30 }, (_, i) => ({
-		id: i + 1,
-		name: `Name ${i + 1}`,
-		role: i % 2 === 0 ? 'Admin' : 'User',
+	const rows: Row[] = Array.from({ length: 30 }, (_, index) => ({
+		id: index + 1,
+		name: `Name ${index + 1}`,
+		role: index % 2 === 0 ? 'Admin' : 'User',
 	}))
 
 	const getKey = (row: Row) => row.id
@@ -251,7 +251,7 @@ describe('grid cursor clear of a pinned column after a horizontal scroll (real b
 		...(side === 'right' ? [pin('right')] : []),
 	]
 
-	const rows: Row[] = Array.from({ length: 10 }, (_, i) => ({ id: i + 1 }))
+	const rows: Row[] = Array.from({ length: 10 }, (_, index) => ({ id: index + 1 }))
 
 	function renderGrid(side: 'left' | 'right', dir: 'ltr' | 'rtl') {
 		renderUI(

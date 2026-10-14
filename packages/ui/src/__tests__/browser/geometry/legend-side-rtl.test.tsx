@@ -18,12 +18,12 @@ const CASES = [
 
 /** Asserts that the legend box sits on the physical `side` of the plot box. */
 function expectSide(plot: Element, legend: Element, side: Side) {
-	const p = plot.getBoundingClientRect()
+	const plotRect = plot.getBoundingClientRect()
 
-	const l = legend.getBoundingClientRect()
+	const legendRect = legend.getBoundingClientRect()
 
-	if (side === 'left') expect(l.right).toBeLessThanOrEqual(p.left)
-	else expect(l.left).toBeGreaterThanOrEqual(p.right)
+	if (side === 'left') expect(legendRect.right).toBeLessThanOrEqual(plotRect.left)
+	else expect(legendRect.left).toBeGreaterThanOrEqual(plotRect.right)
 }
 
 /**

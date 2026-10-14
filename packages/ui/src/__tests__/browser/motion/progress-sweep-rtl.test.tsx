@@ -42,7 +42,9 @@ describe('ProgressBar sweep direction (real browser)', () => {
 			await pause(100)
 		}
 
-		const steps = samples.slice(1).map((x, i) => Math.sign(x - (samples[i] ?? x)))
+		const steps = samples
+			.slice(1)
+			.map((sample, index) => Math.sign(sample - (samples[index] ?? sample)))
 
 		expect(steps.filter((step) => step === sign).length).toBeGreaterThan(steps.length / 2)
 	})

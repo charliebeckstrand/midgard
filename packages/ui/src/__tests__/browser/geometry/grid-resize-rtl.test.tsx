@@ -19,10 +19,10 @@ describe('grid column resizing in a right-to-left grid (real browser)', () => {
 		{ id: 'age', title: 'Age', cell: (row) => row.age, width: '120px' },
 	]
 
-	const rows: Row[] = Array.from({ length: 6 }, (_, i) => ({
-		id: i + 1,
-		name: `Person ${i + 1}`,
-		age: 20 + i,
+	const rows: Row[] = Array.from({ length: 6 }, (_, index) => ({
+		id: index + 1,
+		name: `Person ${index + 1}`,
+		age: 20 + index,
 	}))
 
 	function setup() {

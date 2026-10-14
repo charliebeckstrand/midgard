@@ -17,8 +17,8 @@ describe('grid edit session Escape vs an open listbox (real floating engine)', (
 	const rows: Row[] = [{ id: 1, name: 'Alice', done: false }]
 
 	const columns: GridColumn<Row>[] = [
-		{ id: 'name', title: 'Name', field: 'name', cell: (r) => r.name },
-		{ id: 'done', title: 'Done', field: 'done', cell: (r) => (r.done ? 'Yes' : 'No') },
+		{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+		{ id: 'done', title: 'Done', field: 'done', cell: (row) => (row.done ? 'Yes' : 'No') },
 	]
 
 	it('closes the open panel and keeps the session alive', async () => {
@@ -28,7 +28,7 @@ describe('grid edit session Escape vs an open listbox (real floating engine)', (
 			<Grid
 				columns={columns}
 				rows={rows}
-				getKey={(r) => r.id}
+				getKey={(row) => row.id}
 				editable={{ session: 'managed', scope: 'cell', onCommit }}
 			/>,
 		)

@@ -25,7 +25,10 @@ describe('grid edit validation overflow (real browser)', () => {
 		},
 	]
 
-	const rows: Row[] = Array.from({ length: 3 }, (_, i) => ({ id: i + 1, name: `Name ${i + 1}` }))
+	const rows: Row[] = Array.from({ length: 3 }, (_, index) => ({
+		id: index + 1,
+		name: `Name ${index + 1}`,
+	}))
 
 	function Harness() {
 		const [editing, setEditing] = useState<Set<string | number>>(new Set())

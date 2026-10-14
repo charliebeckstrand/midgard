@@ -22,12 +22,12 @@ describe('grid fill handle place (real browser)', () => {
 		{ id: 'c', title: 'C', field: 'c', cell: (row) => row.c },
 	]
 
-	const rows: Row[] = Array.from({ length: 30 }, (_, i) => ({
-		id: i + 1,
-		name: `Name ${i + 1}`,
-		a: `A${i}`,
-		b: `B${i}`,
-		c: `C${i}`,
+	const rows: Row[] = Array.from({ length: 30 }, (_, index) => ({
+		id: index + 1,
+		name: `Name ${index + 1}`,
+		a: `A${index}`,
+		b: `B${index}`,
+		c: `C${index}`,
 	}))
 
 	const cellSelector = (key: number, column: string) =>
@@ -75,7 +75,9 @@ describe('grid fill handle place (real browser)', () => {
 				columns={
 					dir
 						? columns
-						: columns.map((col) => (col.id === 'name' ? { ...col, pinned: 'left' } : col))
+						: columns.map((column) =>
+								column.id === 'name' ? { ...column, pinned: 'left' } : column,
+							)
 				}
 				columnSizing={sizing(a)}
 				rows={rows}
