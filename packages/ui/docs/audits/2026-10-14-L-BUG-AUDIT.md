@@ -40,7 +40,7 @@ The digest held two sources. The open record `2026-10-11-BUG-AUDIT.md` gave one 
 | R3 | `components/lightbox/lightbox-stage.tsx` | `slotsAround` / slot `key` | NARROWED | low | shipped | G2 | ✅ RESOLVED ([#2425](https://github.com/charliebeckstrand/midgard/pull/2425)) |
 | R4 | `components/lightbox/lightbox-stage.tsx` | `LightboxStage` `aim` / `at` | RESTATED | medium | shipped | G2 | ✅ RESOLVED ([#2425](https://github.com/charliebeckstrand/midgard/pull/2425)) |
 | R5 | `components/lightbox/lightbox.tsx` | `Lightbox` focus return | CONFIRMED | medium | shipped | — | ◯ OPEN |
-| R6 | `components/listbox/listbox.tsx` | `Listbox` `handleTriggerBlur` / `onBlur` | CONFIRMED | medium | shipped | — | ◯ OPEN |
+| R6 | `components/listbox/listbox.tsx` | `Listbox` `handleTriggerBlur` / `onBlur` | CONFIRMED | medium | shipped | — | ✅ RESOLVED ([#2431](https://github.com/charliebeckstrand/midgard/pull/2431)) |
 | R7 | `components/list/use-list-window.ts` | `useListWindow` | CONFIRMED | medium | shipped | — | ✅ RESOLVED ([#2430](https://github.com/charliebeckstrand/midgard/pull/2430)) |
 | R8 | `components/list/list-item.tsx` | `ListItem` `data-slot` anchor | CONFIRMED | low | none | G3 | ✅ RESOLVED ([#2424](https://github.com/charliebeckstrand/midgard/pull/2424)) |
 | R9 | `components/list/list-item.tsx` | `ListItem` `aria-describedby` | CONFIRMED | low | none | G3 | ✅ RESOLVED ([#2424](https://github.com/charliebeckstrand/midgard/pull/2424)) |
@@ -120,3 +120,4 @@ The settle pass derived S2, S3, S5, S6, and S7 again from the answers; S1 and S4
 - Verifier B02: Combobox may have the same `onBlur` gap when the focus leaves through its panel (`listbox.tsx:329` "Mirrors the combobox input's onBlur.").
 - Verifier B02: the other "lead S1" anchor waivers in `spread-order-boundary.test.ts:104-113` (fieldset, control-frame, toggle, flex).
 - Verifier B02 overturn: the same load-on-mount `.catch(noop)` with no retry at `primitives/reduced-motion/reduced-motion-features.ts:98`.
+- Resolver S6: a focus move out of the Listbox panel by script or assistive technology does not close it. In `@floating-ui/react@0.27.20`, a portalled, non-modal `FloatingFocusManager` with no `FloatingTree` treats each focusout from the panel as inside the React tree. Other components with the same shape may share it.
