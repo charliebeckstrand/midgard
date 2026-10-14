@@ -5,16 +5,16 @@ import { atBreakpoint, type Responsive, resolveResponsive } from '../../types'
 /** Spacing scale for the gap between flex children; a `Ma` step, `0` included. */
 export type FlexGap = Ma
 
-const gapMap = k.gap
+const gapClasses = k.gap
 
-const directionMap = {
+const directionClasses = {
 	row: 'flex-row',
 	col: 'flex-col',
 	'row-reverse': 'flex-row-reverse',
 	'col-reverse': 'flex-col-reverse',
 } as const
 
-const alignMap = {
+const alignClasses = {
 	start: 'items-start',
 	center: 'items-center',
 	end: 'items-end',
@@ -22,7 +22,7 @@ const alignMap = {
 	baseline: 'items-baseline',
 } as const
 
-const justifyMap = {
+const justifyClasses = {
 	start: 'justify-start',
 	center: 'justify-center',
 	end: 'justify-end',
@@ -32,11 +32,11 @@ const justifyMap = {
 } as const
 
 /** Main-axis orientation: `row`, `col`, or their reversed variants. */
-export type FlexDirection = keyof typeof directionMap
+export type FlexDirection = keyof typeof directionClasses
 /** Cross-axis alignment (`align-items`): start, center, end, stretch, baseline. */
-export type FlexAlign = keyof typeof alignMap
+export type FlexAlign = keyof typeof alignClasses
 /** Main-axis distribution (`justify-content`): start, center, end, between, around, evenly. */
-export type FlexJustify = keyof typeof justifyMap
+export type FlexJustify = keyof typeof justifyClasses
 
 /** {@link FlexDirection} per breakpoint, or a single value applied at all sizes. */
 export type ResponsiveDirection = Responsive<FlexDirection>
@@ -48,17 +48,17 @@ export type ResponsiveGap = Responsive<FlexGap>
 export type ResponsiveJustify = Responsive<FlexJustify>
 
 export function resolveDirection(value: ResponsiveDirection | undefined): string[] {
-	return resolveResponsive(value, (v, bp) => atBreakpoint(directionMap[v], bp))
+	return resolveResponsive(value, (direction, bp) => atBreakpoint(directionClasses[direction], bp))
 }
 
 export function resolveAlign(value: ResponsiveAlign | undefined): string[] {
-	return resolveResponsive(value, (v, bp) => atBreakpoint(alignMap[v], bp))
+	return resolveResponsive(value, (align, bp) => atBreakpoint(alignClasses[align], bp))
 }
 
 export function resolveGap(value: ResponsiveGap | undefined): string[] {
-	return resolveResponsive(value, (v, bp) => atBreakpoint(gapMap[v], bp))
+	return resolveResponsive(value, (gap, bp) => atBreakpoint(gapClasses[gap], bp))
 }
 
 export function resolveJustify(value: ResponsiveJustify | undefined): string[] {
-	return resolveResponsive(value, (v, bp) => atBreakpoint(justifyMap[v], bp))
+	return resolveResponsive(value, (justify, bp) => atBreakpoint(justifyClasses[justify], bp))
 }

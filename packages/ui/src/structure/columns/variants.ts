@@ -18,7 +18,7 @@ export type ResponsiveColumnsGap = ResponsiveGap
 /** The alignment of each cell in its row per breakpoint, or a single value at all sizes; the Flex axis. */
 export type ResponsiveColumnsAlign = ResponsiveAlign
 
-const countMap = {
+const countClasses = {
 	1: 'grid-cols-1',
 	2: 'grid-cols-2',
 	3: 'grid-cols-3',
@@ -32,7 +32,7 @@ const countMap = {
  * @internal
  */
 export function resolveColumns(value: ResponsiveColumnCount | undefined): string[] {
-	return resolveResponsive(value, (v, bp) => atBreakpoint(countMap[v], bp))
+	return resolveResponsive(value, (count, bp) => atBreakpoint(countClasses[count], bp))
 }
 
 export { resolveAlign, resolveGap }

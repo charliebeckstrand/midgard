@@ -139,7 +139,9 @@ export function defineRecipe<C extends RecipeConfig, X extends Record<string, un
 
 		if (hit !== undefined) return hit
 
-		const result = twMerge(clsx(collectRecipeClasses(plan, buildRecipeValues(plan, raw))))
+		const values = buildRecipeValues(plan, raw)
+
+		const result = twMerge(clsx(collectRecipeClasses(plan, values)))
 
 		if (memo.size >= MEMO_CAP) memo.clear()
 
@@ -148,7 +150,7 @@ export function defineRecipe<C extends RecipeConfig, X extends Record<string, un
 		return result
 	}
 
-	const slotCache: Record<string, unknown> = {}
+	const slots: Record<string, unknown> = {}
 
 	for (const [slot, value] of Object.entries(resolved.slots)) {
 		// `in` sees the function built-ins (`name`, `length`, `call`, …) through
@@ -158,10 +160,10 @@ export function defineRecipe<C extends RecipeConfig, X extends Record<string, un
 			throw new Error(`defineRecipe: slot name "${slot}" collides with a recipe property`)
 		}
 
-		slotCache[slot] = mergeSlot(value)
+		slots[slot] = mergeSlot(value)
 	}
 
-	Object.assign(recipe, slotCache)
+	Object.assign(recipe, slots)
 
 	if (config.skeleton !== undefined) Object.assign(recipe, { skeleton: config.skeleton })
 
@@ -252,8 +254,8 @@ function resolveValue(
 function memoKey(plan: Plan, props: Record<string, unknown> | undefined): string {
 	let key = ''
 
-	for (const k of plan.relevantKeys) {
-		const value = resolveValue(plan, props, k)
+	for (const prop of plan.relevantKeys) {
+		const value = resolveValue(plan, props, prop)
 
 		key += value === undefined ? '\u0001\u0000' : `${value}\u0000`
 	}
@@ -289,25 +291,25 @@ function collectRecipeClasses(
 	plan: Plan,
 	values: Record<string, string | undefined>,
 ): ClassValue[] {
-	const acc: ClassValue[] = [plan.base]
+	const classes: ClassValue[] = [plan.base]
 
 	for (const [axis, axisMap] of plan.variantEntries) {
 		const value = values[axis]
 
-		if (value !== undefined && value in axisMap) acc.push(axisMap[value])
+		if (value !== undefined && value in axisMap) classes.push(axisMap[value])
 	}
 
 	if (values.variant !== undefined && values.color !== undefined) {
 		const paletteClasses = plan.palette.get(values.variant)?.get(values.color)
 
-		if (paletteClasses !== undefined) acc.push(paletteClasses)
+		if (paletteClasses !== undefined) classes.push(paletteClasses)
 	}
 
 	for (const rule of plan.rules) {
-		if (matches(rule, values)) acc.push(rule.class)
+		if (matches(rule, values)) classes.push(rule.class)
 	}
 
-	return acc
+	return classes
 }
 
 /**
@@ -372,19 +374,19 @@ function applyPaletteToVariants(
 	variants: Record<string, Record<string, ClassValue>>,
 	palette: NonNullable<RecipeConfig['palette']>,
 ): { compound: CompoundRule[]; pairs: PalettePairs } {
-	const ex = expandPalette(palette)
+	const expansion = expandPalette(palette)
 
 	const variantAxis = variants.variant ?? {}
 
-	for (const variantValue of Object.keys(palette.matrix)) {
-		if (!(variantValue in variantAxis)) variantAxis[variantValue] = ''
+	for (const variant of Object.keys(palette.matrix)) {
+		if (!(variant in variantAxis)) variantAxis[variant] = ''
 	}
 
 	variants.variant = variantAxis
 
-	variants.color = ex.colorScaffold
+	variants.color = expansion.colorScaffold
 
-	return { compound: ex.compound, pairs: ex.pairs }
+	return { compound: expansion.compound, pairs: expansion.pairs }
 }
 
 /**
