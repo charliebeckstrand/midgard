@@ -162,6 +162,7 @@ A unit leaves Clean only on evidence. A pull request that touches the files of a
 | `direction` | Not started | — | — | — | — |
 | `floating-surface` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | — |
 | `header-actions` | Not started | — | — | — | — |
+| `inline-script` | Not started | — | — | — | — |
 | `link` | Not started | — | — | — | — |
 | `mount` | Not started | — | — | — | — |
 | `offcanvas` | In pass | — | `keyboard`, `touch`, `rtl`, `density`, `motion`, `forced-colors`, `first-paint`, `controlled` | — | — |
