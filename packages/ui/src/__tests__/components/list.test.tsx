@@ -209,17 +209,17 @@ describe('ListItem', () => {
 			</List>,
 		)
 
-		const cls = bySlot(container, 'list-item-content')?.className ?? ''
+		const className = bySlot(container, 'list-item-content')?.className ?? ''
 
 		// `iro.on.wash.muted`, not the page-surface `muted` — see `iro/ramp.ts`.
 		// `__tests__/recipes/contrast.test.ts` owns the ratio; this owns the step.
-		expect(cls).toMatch(/(^|\s)text-zinc-600(\s|$)/)
+		expect(className).toMatch(/(^|\s)text-zinc-600(\s|$)/)
 
-		expect(cls).toMatch(/(^|\s)dark:text-zinc-400(\s|$)/)
+		expect(className).toMatch(/(^|\s)dark:text-zinc-400(\s|$)/)
 
-		expect(cls).toContain('hover:not-disabled:text-zinc-950')
+		expect(className).toContain('hover:not-disabled:text-zinc-950')
 
-		expect(cls).toContain('dark:hover:not-disabled:text-white')
+		expect(className).toContain('dark:hover:not-disabled:text-white')
 	})
 
 	it('gives clickable content the same treatment as a link, plus the pointer', () => {
@@ -233,15 +233,15 @@ describe('ListItem', () => {
 			</List>,
 		)
 
-		const cls = bySlot(container, 'list-item-content')?.className ?? ''
+		const className = bySlot(container, 'list-item-content')?.className ?? ''
 
-		expect(cls).toMatch(/(^|\s)text-zinc-600(\s|$)/)
+		expect(className).toMatch(/(^|\s)text-zinc-600(\s|$)/)
 
-		expect(cls).toContain('hover:not-disabled:text-zinc-950')
+		expect(className).toContain('hover:not-disabled:text-zinc-950')
 
-		expect(cls).toContain('dark:hover:not-disabled:text-white')
+		expect(className).toContain('dark:hover:not-disabled:text-white')
 
-		expect(cls).toContain('cursor-pointer')
+		expect(className).toContain('cursor-pointer')
 	})
 
 	it('renders a button content area for a row with onClick and no as', () => {
@@ -288,11 +288,11 @@ describe('ListItem', () => {
 			</List>,
 		)
 
-		const cls = bySlot(container, 'list-item-content')?.className ?? ''
+		const className = bySlot(container, 'list-item-content')?.className ?? ''
 
-		expect(cls).not.toContain('text-zinc-500')
+		expect(className).not.toContain('text-zinc-500')
 
-		expect(cls).not.toContain('cursor-pointer')
+		expect(className).not.toContain('cursor-pointer')
 	})
 
 	it('keeps inert content on the inherited item color', () => {
@@ -302,11 +302,11 @@ describe('ListItem', () => {
 			</List>,
 		)
 
-		const cls = bySlot(container, 'list-item-content')?.className ?? ''
+		const className = bySlot(container, 'list-item-content')?.className ?? ''
 
-		expect(cls).not.toContain('text-zinc-500')
+		expect(className).not.toContain('text-zinc-500')
 
-		expect(cls).not.toContain('hover:not-disabled:text-zinc-950')
+		expect(className).not.toContain('hover:not-disabled:text-zinc-950')
 	})
 
 	it('forwards HTML attributes to the content element', () => {
@@ -336,11 +336,11 @@ describe('ListItem', () => {
 
 	it('washes a row on bare ground with the standard tint, doubled inside a glass parent', () => {
 		for (const variant of ['plain', 'outline'] as const) {
-			const cls = washOf(variant)
+			const className = washOf(variant)
 
-			expect(cls).toContain('not-disabled:not-data-disabled:hover:bg-zinc-950/5')
+			expect(className).toContain('not-disabled:not-data-disabled:hover:bg-zinc-950/5')
 
-			expect(cls).toContain(
+			expect(className).toContain(
 				'dark:group-data-glass/glass:not-disabled:not-data-disabled:hover:bg-white/10',
 			)
 		}
@@ -358,42 +358,42 @@ describe('ListItem', () => {
 				</List>,
 			)
 
-			const cls = bySlot(container, 'list-item')?.className ?? ''
+			const className = bySlot(container, 'list-item')?.className ?? ''
 
-			expect(cls).toContain('not-disabled:not-data-disabled:hover:before:bg-zinc-950/5')
+			expect(className).toContain('not-disabled:not-data-disabled:hover:before:bg-zinc-950/5')
 
-			expect(cls).toContain(
+			expect(className).toContain(
 				'dark:group-data-glass/glass:not-disabled:not-data-disabled:hover:before:bg-white/10',
 			)
 
-			expect(cls).not.toContain('hover:bg-')
+			expect(className).not.toContain('hover:bg-')
 		}
 	})
 
 	it('steps a card to the neighboring shade rather than washing its surface away', () => {
-		const cls = washOf('separated')
+		const className = washOf('separated')
 
 		// An alpha wash replaces `omote.bg.surface` instead of darkening it, so the
 		// card would go see-through to whatever it covers while the pointer rests on
 		// it. The hover has to stay opaque.
-		expect(cls).toContain('not-disabled:not-data-disabled:hover:bg-zinc-100')
+		expect(className).toContain('not-disabled:not-data-disabled:hover:bg-zinc-100')
 
-		expect(cls).toContain('dark:not-disabled:not-data-disabled:hover:bg-zinc-800')
+		expect(className).toContain('dark:not-disabled:not-data-disabled:hover:bg-zinc-800')
 
-		expect(cls).not.toContain('hover:bg-white/5')
+		expect(className).not.toContain('hover:bg-white/5')
 
-		expect(cls).not.toContain('hover:bg-zinc-950/5')
+		expect(className).not.toContain('hover:bg-zinc-950/5')
 	})
 
 	it('steps the solid row’s wash past the fill it already rests on', () => {
-		const cls = washOf('solid')
+		const className = washOf('solid')
 
 		// Double the `omote.bg.tint` the row rests on, in each mode.
-		expect(cls).toContain('not-disabled:not-data-disabled:hover:bg-zinc-950/10')
+		expect(className).toContain('not-disabled:not-data-disabled:hover:bg-zinc-950/10')
 
-		expect(cls).toContain('dark:not-disabled:not-data-disabled:hover:bg-white/20')
+		expect(className).toContain('dark:not-disabled:not-data-disabled:hover:bg-white/20')
 
-		expect(cls).not.toContain('hover:bg-white/5')
+		expect(className).not.toContain('hover:bg-white/5')
 	})
 
 	it('keeps the glass allowance off the variants that carry their own fill', () => {

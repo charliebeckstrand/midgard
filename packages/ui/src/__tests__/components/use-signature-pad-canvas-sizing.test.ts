@@ -8,7 +8,7 @@ type ContainerRef = RefObject<HTMLDivElement | null>
 
 type CanvasRef = RefObject<HTMLCanvasElement | null>
 
-function setup(opts: {
+function setup(options: {
 	containerSize?: { width: number; height: number } | null
 	canvasNull?: boolean
 	contextNull?: boolean
@@ -16,15 +16,15 @@ function setup(opts: {
 	padding?: number
 }) {
 	const containerSize =
-		opts.containerSize === undefined ? { width: 320, height: 80 } : opts.containerSize
+		options.containerSize === undefined ? { width: 320, height: 80 } : options.containerSize
 
 	const context = makeCanvasContext({ scale: vi.fn() })
 
-	const canvas = opts.canvasNull ? null : document.createElement('canvas')
+	const canvas = options.canvasNull ? null : document.createElement('canvas')
 
 	if (canvas) {
 		canvas.getContext = (() =>
-			opts.contextNull ? null : context) as HTMLCanvasElement['getContext']
+			options.contextNull ? null : context) as HTMLCanvasElement['getContext']
 
 		canvas.toDataURL = () => 'data:,snapshot'
 
@@ -43,7 +43,7 @@ function setup(opts: {
 		container.getBoundingClientRect = () =>
 			DOMRect.fromRect({ width: containerSize.width + 2, height: containerSize.height + 2 })
 
-		if (opts.padding) container.style.padding = `${opts.padding}px`
+		if (options.padding) container.style.padding = `${options.padding}px`
 	}
 
 	const { result, unmount } = renderHook(() => {
@@ -54,7 +54,7 @@ function setup(opts: {
 		useSignaturePadCanvasSizing({
 			containerRef: containerRef as ContainerRef,
 			canvasRef: canvasRef as CanvasRef,
-			empty: opts.empty ?? true,
+			empty: options.empty ?? true,
 			strokeColor: '#000',
 			strokeWidth: 2,
 		})

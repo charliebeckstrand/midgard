@@ -30,7 +30,7 @@ function flushFrames(): void {
 
 	frameQueue = []
 
-	for (const cb of pending) cb(0)
+	for (const callback of pending) callback(0)
 }
 
 /** Runs handleScroll and flushes the pending thumb frame in one act. */
@@ -47,8 +47,8 @@ function useFrameQueue(): void {
 	beforeEach(() => {
 		frameQueue = []
 
-		vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => {
-			frameQueue.push(cb)
+		vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+			frameQueue.push(callback)
 
 			return frameQueue.length
 		})

@@ -216,13 +216,13 @@ describe('Table variants', () => {
 	})
 
 	it('forwards a ref via tableProps onto the underlying <table>', () => {
-		let tableEl: HTMLTableElement | null = null
+		let table: HTMLTableElement | null = null
 
 		renderUI(
 			<Table
 				tableProps={{
 					ref: (el) => {
-						tableEl = el
+						table = el
 					},
 				}}
 			>
@@ -234,7 +234,7 @@ describe('Table variants', () => {
 			</Table>,
 		)
 
-		expect(tableEl).toBeInstanceOf(HTMLTableElement)
+		expect(table).toBeInstanceOf(HTMLTableElement)
 	})
 
 	it('merges tableProps.className with the variant className', () => {

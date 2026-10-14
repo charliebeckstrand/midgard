@@ -96,13 +96,13 @@ describe('useDatePickerKeyboard: closed calendar', () => {
 	it('opens the calendar on ArrowDown', () => {
 		const { handler, openCalendar } = setup({ open: false })
 
-		const e = makeKeyEvent<HTMLElement>('ArrowDown')
+		const event = makeKeyEvent<HTMLElement>('ArrowDown')
 
-		handler(e)
+		handler(event)
 
 		expect(openCalendar).toHaveBeenCalled()
 
-		expect(e.preventDefault).toHaveBeenCalled()
+		expect(event.preventDefault).toHaveBeenCalled()
 	})
 
 	it.each([

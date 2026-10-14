@@ -111,13 +111,13 @@ describe('useListKeyboard', () => {
 
 			const { press } = setup({ orientation })
 
-			const ev = makeKeyEvent(key)
+			const event = makeKeyEvent(key)
 
-			press(from, ev)
+			press(from, event)
 
 			expect(document.activeElement).toBe(nodes[expected])
 
-			expect(ev.preventDefault).toHaveBeenCalled()
+			expect(event.preventDefault).toHaveBeenCalled()
 		})
 
 		it('does not preventDefault when there is no neighbor in the requested direction', () => {
@@ -125,11 +125,11 @@ describe('useListKeyboard', () => {
 
 			const { press } = setup()
 
-			const ev = makeKeyEvent('ArrowUp')
+			const event = makeKeyEvent('ArrowUp')
 
-			press('a', ev)
+			press('a', event)
 
-			expect(ev.preventDefault).not.toHaveBeenCalled()
+			expect(event.preventDefault).not.toHaveBeenCalled()
 		})
 	})
 
@@ -211,11 +211,11 @@ describe('useListKeyboard', () => {
 
 			const { press } = setup()
 
-			const ev = makeKeyEvent('ArrowDown', { ctrlKey: true })
+			const event = makeKeyEvent('ArrowDown', { ctrlKey: true })
 
-			press('a', ev)
+			press('a', event)
 
-			expect(ev.preventDefault).not.toHaveBeenCalled()
+			expect(event.preventDefault).not.toHaveBeenCalled()
 		})
 	})
 
@@ -223,11 +223,11 @@ describe('useListKeyboard', () => {
 		it('does not preventDefault when ArrowDown targets an unknown id', () => {
 			const { press } = setup({ ids: ['a', 'b'] })
 
-			const ev = makeKeyEvent('ArrowDown')
+			const event = makeKeyEvent('ArrowDown')
 
-			press('ghost', ev)
+			press('ghost', event)
 
-			expect(ev.preventDefault).not.toHaveBeenCalled()
+			expect(event.preventDefault).not.toHaveBeenCalled()
 		})
 
 		it('skips reorder when the lifted id is unknown', () => {

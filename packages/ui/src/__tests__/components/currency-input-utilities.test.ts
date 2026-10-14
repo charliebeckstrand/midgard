@@ -64,8 +64,8 @@ describe('isMeaningful', () => {
 		['a trailing other mark', ',', 2, '12,', ',', '.', 2, ''],
 		['the last other mark after a group mark', ',', 5, '1,234,5', ',', '.', 2, ''],
 		['a typed mark after a digit typed before it', ',', 3, '132,5', ',', '.', 2, '12,5'],
-	] as const)('counts %s', (_name, char, index, text, group, decimal, max, previous) => {
-		expect(isMeaningful(char, index, text, group, decimal, max, previous)).toBe(true)
+	] as const)('counts %s', (_name, char, index, text, group, decimal, max, prev) => {
+		expect(isMeaningful(char, index, text, group, decimal, max, prev)).toBe(true)
 	})
 
 	it.each([
@@ -74,8 +74,8 @@ describe('isMeaningful', () => {
 		['the other mark in a text with a locale decimal', ',', 2, '12,5.', ',', '.', 2, ''],
 		['the other mark at maxFractionDigits 0', ',', 2, '12,5', ',', '.', 0, ''],
 		['a group mark that a deletion leaves before two digits', ',', 1, '1,23', ',', '.', 2, '1,234'],
-	] as const)('does not count %s', (_name, char, index, text, group, decimal, max, previous) => {
-		expect(isMeaningful(char, index, text, group, decimal, max, previous)).toBe(false)
+	] as const)('does not count %s', (_name, char, index, text, group, decimal, max, prev) => {
+		expect(isMeaningful(char, index, text, group, decimal, max, prev)).toBe(false)
 	})
 })
 
@@ -229,8 +229,8 @@ describe('formatEditing', () => {
 		],
 		['a deletion before the typed mark', '1,5', '12,5', 'en-US', ',', '.', 2, '1,5', 1.5],
 		['a digit before the typed mark', '1234,5', '123,5', 'en-US', ',', '.', 2, '1,234,5', 1234.5],
-	] as const)('reads %s', (_name, raw, previous, locale, group, decimal, max, text, value) => {
-		const formatted = formatEditing(raw, locale, decimal, max, previous)
+	] as const)('reads %s', (_name, raw, prev, locale, group, decimal, max, text, value) => {
+		const formatted = formatEditing(raw, locale, decimal, max, prev)
 
 		expect(formatted).toBe(text)
 

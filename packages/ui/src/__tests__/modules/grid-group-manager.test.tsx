@@ -263,12 +263,12 @@ describe('groupAwareKeyboardCoordinates', () => {
 
 		const containers = new FakeContainers()
 
-		const add = (id: string, r: ClientRect) => {
+		const add = (id: string, rect: ClientRect) => {
 			const node = document.createElement('div')
 
 			nodes.set(id, node)
 
-			rects.set(id, r)
+			rects.set(id, rect)
 
 			containers.set(id, container(id, node))
 		}
@@ -313,9 +313,9 @@ describe('Grid column-group editor', () => {
 	const rows: Row[] = [{ id: 1, first: 'Ada', last: 'Byron', email: 'ada@example.com' }]
 
 	const columns: GridColumn<Row>[] = [
-		{ id: 'first', title: 'First', cell: (r) => r.first },
-		{ id: 'last', title: 'Last', cell: (r) => r.last },
-		{ id: 'email', title: 'Email', cell: (r) => r.email },
+		{ id: 'first', title: 'First', cell: (row) => row.first },
+		{ id: 'last', title: 'Last', cell: (row) => row.last },
+		{ id: 'email', title: 'Email', cell: (row) => row.email },
 	]
 
 	function Harness() {

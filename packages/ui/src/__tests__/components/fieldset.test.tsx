@@ -11,7 +11,7 @@ import { Rating } from '../../components/rating'
 import { Select } from '../../components/select'
 import { bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
 
-type SetErrors = { setErrors: (e: Record<string, string | string[]>) => void }
+type SetErrors = { setErrors: (errors: Record<string, string | string[]>) => void }
 
 /**
  * Renders `message` in a Form whose submit sets `errors` on the `name` field, then submits it.

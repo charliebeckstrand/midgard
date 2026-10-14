@@ -462,8 +462,8 @@ describe('CurrencyInput', () => {
 	})
 
 	it('does not blur the input when the consumer prevents default on Enter', async () => {
-		const onKeyDown = vi.fn((e: React.KeyboardEvent<HTMLInputElement>) => {
-			if (e.key === 'Enter') e.preventDefault()
+		const onKeyDown = vi.fn((event: React.KeyboardEvent<HTMLInputElement>) => {
+			if (event.key === 'Enter') event.preventDefault()
 		})
 
 		const { container } = renderUI(<CurrencyInput defaultValue={10} onKeyDown={onKeyDown} />)
@@ -563,11 +563,11 @@ describe('CurrencyInput', () => {
 	})
 
 	it('accepts a callback ref alongside the controlled value', () => {
-		const refCb = vi.fn()
+		const ref = vi.fn()
 
-		renderUI(<CurrencyInput ref={refCb} value={5} onValueChange={() => {}} />)
+		renderUI(<CurrencyInput ref={ref} value={5} onValueChange={() => {}} />)
 
-		expect(refCb).toHaveBeenCalledWith(expect.any(HTMLInputElement))
+		expect(ref).toHaveBeenCalledWith(expect.any(HTMLInputElement))
 	})
 
 	it('binds to a Form field by name, storing the parsed number', async () => {

@@ -122,7 +122,9 @@ function engineView(rows: Row[], transforms: EngineTransforms) {
 
 	const last = unheld.getPageCount() - 1
 
-	const table = page && !manual && last >= 0 && page.state.pageIndex > last ? build(last) : unheld
+	const pastEnd = page && !manual && last >= 0 && page.state.pageIndex > last
+
+	const table = pastEnd ? build(last) : unheld
 
 	const shown = table.getRowModel().rows
 

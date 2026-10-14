@@ -101,10 +101,10 @@ describe('collapsedHiddenIds', () => {
 describe('buildGroupSpans', () => {
 	const groups: GridColumnGroup[] = [{ id: 'g', title: 'Group', columns: ['b', 'c'] }]
 
-	const colToGroup = groupByColumn(groups)
+	const columnToGroup = groupByColumn(groups)
 
 	it('bands a contiguous run and fills ungrouped columns singly', () => {
-		const spans = buildGroupSpans(['a', 'b', 'c', 'd'], colToGroup, noPin)
+		const spans = buildGroupSpans(['a', 'b', 'c', 'd'], columnToGroup, noPin)
 
 		expect(spans).toEqual([
 			{ kind: 'plain', colSpan: 1, leadColumnId: 'a' },
@@ -114,7 +114,7 @@ describe('buildGroupSpans', () => {
 	})
 
 	it('splits a group when a member is not contiguous', () => {
-		const spans = buildGroupSpans(['b', 'x', 'c'], colToGroup, noPin)
+		const spans = buildGroupSpans(['b', 'x', 'c'], columnToGroup, noPin)
 
 		expect(spans.map((s) => s.kind)).toEqual(['group', 'plain', 'group'])
 
@@ -126,7 +126,7 @@ describe('buildGroupSpans', () => {
 	it('keeps a pinned member out of the band as a plain filler', () => {
 		const pinLeft = (id: string | number) => (id === 'b' ? ('left' as const) : undefined)
 
-		const spans = buildGroupSpans(['b', 'c'], colToGroup, pinLeft)
+		const spans = buildGroupSpans(['b', 'c'], columnToGroup, pinLeft)
 
 		expect(spans[0]).toEqual({ kind: 'plain', colSpan: 1, leadColumnId: 'b' })
 
@@ -189,18 +189,18 @@ describe('buildGroupSpans · properties', () => {
 	test.prop([columnIds(), groupList(), pinning()])(
 		'bands only unpinned columns of the band’s own group',
 		(visible, groups, pinnedSide) => {
-			const colToGroup = groupByColumn(groups)
+			const columnToGroup = groupByColumn(groups)
 
 			let offset = 0
 
-			for (const span of buildGroupSpans(visible, colToGroup, pinnedSide)) {
+			for (const span of buildGroupSpans(visible, columnToGroup, pinnedSide)) {
 				if (span.kind === 'group') {
 					for (let step = 0; step < span.colSpan; step++) {
 						const id = visible[offset + step] as string | number
 
 						expect(pinnedSide(id)).toBeUndefined()
 
-						expect(colToGroup.get(id)?.id).toBe(span.group.id)
+						expect(columnToGroup.get(id)?.id).toBe(span.group.id)
 					}
 				}
 

@@ -681,26 +681,26 @@ describe('BarChart', () => {
 		// A free vertical rule follows the pointer's x.
 		const free = renderUI(chart({ crosshair: { x: false, y: true } }))
 
-		const fh = getSlot(free.container, 'chart-hit')
+		const freeHit = getSlot(free.container, 'chart-hit')
 
-		fireEvent.pointerMove(fh, { clientX: 300, clientY: 70 })
+		fireEvent.pointerMove(freeHit, { clientX: 300, clientY: 70 })
 
 		const freeX = bySlot(free.container, 'chart-crosshair-y')?.getAttribute('x1')
 
-		fireEvent.pointerMove(fh, { clientX: 312, clientY: 70 })
+		fireEvent.pointerMove(freeHit, { clientX: 312, clientY: 70 })
 
 		expect(bySlot(free.container, 'chart-crosshair-y')?.getAttribute('x1')).not.toBe(freeX)
 
 		// A snapped rule holds its band center across small moves.
 		const snapped = renderUI(chart({ crosshair: { x: false, y: true, snap: true } }))
 
-		const sh = getSlot(snapped.container, 'chart-hit')
+		const snappedHit = getSlot(snapped.container, 'chart-hit')
 
-		fireEvent.pointerMove(sh, { clientX: 300, clientY: 70 })
+		fireEvent.pointerMove(snappedHit, { clientX: 300, clientY: 70 })
 
 		const snapX = bySlot(snapped.container, 'chart-crosshair-y')?.getAttribute('x1')
 
-		fireEvent.pointerMove(sh, { clientX: 308, clientY: 70 })
+		fireEvent.pointerMove(snappedHit, { clientX: 308, clientY: 70 })
 
 		expect(bySlot(snapped.container, 'chart-crosshair-y')?.getAttribute('x1')).toBe(snapX)
 	})

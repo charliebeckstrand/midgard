@@ -65,10 +65,10 @@ describe('DateInput', () => {
 			'aria-label',
 			'Date',
 		],
-	])('%s', (_name, ui, attr, value) => {
+	])('%s', (_name, ui, attribute, value) => {
 		const { container } = renderUI(ui())
 
-		expect(bySlot(container, 'date-input')).toHaveAttribute(attr, value)
+		expect(bySlot(container, 'date-input')).toHaveAttribute(attribute, value)
 	})
 
 	it('yields the aria-label default to a registered Field Label', () => {
