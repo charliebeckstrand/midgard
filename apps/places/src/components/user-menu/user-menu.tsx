@@ -1,11 +1,12 @@
 'use client'
 
+import type { User } from 'auth'
 import { CircleUserRound } from 'lucide-react'
 import { type MouseEvent, useState } from 'react'
 import { Button } from 'ui/button'
 import { useIntentLoad } from 'ui/hooks'
 import { Icon } from 'ui/icon'
-import type { UserMenuPanel, UserMenuProps } from './user-menu-panel'
+import type { UserMenuPanel } from './user-menu-panel'
 
 /**
  * Loads the module of the menu, which carries the menu code of ui. The page
@@ -13,6 +14,21 @@ import type { UserMenuPanel, UserMenuProps } from './user-menu-panel'
  * the menu code before it hydrates, and the first press does not wait for it.
  */
 const loadMenu = () => import('./user-menu-panel')
+
+/** Props for {@link UserMenu}. */
+export type UserMenuProps = {
+	user: User
+	/** The number of places that My places opens on, or `undefined` to show no count. */
+	count?: number
+	onAdd: () => void
+	/** Opens My places. Without it, the menu has no My places item. */
+	onList?: () => void
+	/** The number of trips that My trips opens on, or `undefined` to show no count. */
+	tripCount?: number
+	onAddTrip: () => void
+	/** Opens My trips. Without it, the menu has no My trips item. */
+	onListTrips?: () => void
+}
 
 /**
  * The menu of the signed-in user: add a place or a trip, open their lists, and
