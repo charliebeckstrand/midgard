@@ -45,6 +45,15 @@ export type LightboxZoom = {
 	move: (dx: number, dy: number) => void
 	/** Takes the photo back to rest. */
 	reset: () => void
+	/**
+	 * Puts the zoom at rest at once, with no tween: it stops a zoom that runs,
+	 * ends a pinch or a pan, and removes `data-zoomed` from the stage. Use it when
+	 * the photo in the center changes outside a step. With `paint`, it also
+	 * writes `transform: none` on the photo that the zoom last moved, which can
+	 * now be in a slot beside the center. Without `paint`, another tween owns the
+	 * transform of the photo.
+	 */
+	clear: (paint: boolean) => void
 }
 
 /** The photo in the center, its box at rest, and the box of the stage, from one read of the layout. */
@@ -100,6 +109,10 @@ export function useLightboxZoom(trackRef: RefObject<HTMLElement | null>): Lightb
 
 	const running = useRef<AnimationPlaybackControls | null>(null)
 
+	// The photo that the zoom last moved. After the center changes, `measure`
+	// finds the new photo, and this one can keep a transform.
+	const marked = useRef<HTMLElement | null>(null)
+
 	const measure = (): Measure | null => {
 		const track = trackRef.current
 
@@ -125,6 +138,8 @@ export function useLightboxZoom(trackRef: RefObject<HTMLElement | null>): Lightb
 
 	const mark = (photo: HTMLElement, next: LightboxView) => {
 		view.current = next
+
+		marked.current = photo
 
 		trackRef.current?.parentElement?.toggleAttribute('data-zoomed', next.scale > 1)
 
@@ -285,6 +300,21 @@ export function useLightboxZoom(trackRef: RefObject<HTMLElement | null>): Lightb
 			base.current = null
 
 			if (photo && view.current.scale > 1) tween(photo, REST_VIEW)
+		},
+		clear: (paint) => {
+			running.current?.cancel()
+
+			running.current = null
+
+			base.current = null
+
+			view.current = REST_VIEW
+
+			trackRef.current?.parentElement?.toggleAttribute('data-zoomed', false)
+
+			if (paint && marked.current) marked.current.style.transform = 'none'
+
+			marked.current = null
 		},
 	}
 }
