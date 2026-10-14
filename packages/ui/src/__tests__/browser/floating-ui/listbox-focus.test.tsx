@@ -1,9 +1,12 @@
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Button } from '../../../components/button'
+import { Form } from '../../../components/form'
+import { Input } from '../../../components/input'
 import { Listbox } from '../../../components/listbox'
 import { ListboxOption } from '../../../components/listbox/listbox-option'
 import { renderUI, screen, waitFor } from '../../helpers'
+import { FieldProbe, getFieldProbe } from '../../helpers/field-probe'
 
 /**
  * Listbox focus containment (real floating engine). Asserts that opening the
@@ -247,5 +250,47 @@ describe('Listbox focus (real browser)', () => {
 		await waitFor(() => expect(isOpen()).toBe(false))
 
 		await waitFor(() => expect(trigger).toHaveFocus())
+	})
+})
+
+/**
+ * The touched mark after a close that does not come back to the trigger. The
+ * focus is in the panel, so the trigger does not blur again, and the close
+ * itself must mark the bound field touched. `onBlur` stays the blur of the
+ * trigger, so it does not fire on this path. The outside press needs a real
+ * floating ref, which the jsdom mock does not attach, so the case needs the
+ * real engine. The input is before the listbox, so the panel does not cover
+ * it.
+ */
+describe('Listbox touched on a close away from the trigger (real browser)', () => {
+	it('marks the bound field touched when a press outside closes the menu', async () => {
+		const onBlur = vi.fn()
+
+		renderUI(
+			<Form defaultValues={{ plan: undefined }}>
+				<Input aria-label="Name" />
+				<Listbox<string> name="plan" aria-label="pick" onBlur={onBlur}>
+					<ListboxOption value="a">A</ListboxOption>
+					<ListboxOption value="b">B</ListboxOption>
+				</Listbox>
+				<FieldProbe name="plan" />
+			</Form>,
+		)
+
+		await userEvent.click(screen.getByRole('combobox', { name: 'pick' }))
+
+		const panel = await findPanel()
+
+		await waitFor(() => expect(panel.contains(document.activeElement)).toBe(true))
+
+		expect(getFieldProbe('plan')).toHaveAttribute('data-touched', 'false')
+
+		await userEvent.click(screen.getByRole('textbox', { name: 'Name' }))
+
+		await waitFor(() => expect(isOpen()).toBe(false))
+
+		await waitFor(() => expect(getFieldProbe('plan')).toHaveAttribute('data-touched', 'true'))
+
+		expect(onBlur).not.toHaveBeenCalled()
 	})
 })
