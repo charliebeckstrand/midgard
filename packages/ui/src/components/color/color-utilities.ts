@@ -113,7 +113,7 @@ export function hexToRgba(input: string): Rgba | null {
 	if (/^[0-9a-f]{3,4}$/i.test(hex)) {
 		hex = hex
 			.split('')
-			.map((c) => c + c)
+			.map((digit) => digit + digit)
 			.join('')
 	}
 

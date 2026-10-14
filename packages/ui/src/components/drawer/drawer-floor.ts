@@ -49,13 +49,13 @@ export function drawerFloor(panel: HTMLElement, height: number): number {
  * @internal
  */
 export function drawerCeiling(panel: HTMLElement, viewport: number): number {
-	const value = getComputedStyle(panel).maxHeight
+	const maxHeight = getComputedStyle(panel).maxHeight
 
 	// A cap is a share of the box the panel docks in, and a browser can give it
 	// back as that share and not as pixels.
-	const cap = value.endsWith('%')
-		? (Number.parseFloat(value) / 100) * viewport
-		: Number.parseFloat(value)
+	const cap = maxHeight.endsWith('%')
+		? (Number.parseFloat(maxHeight) / 100) * viewport
+		: Number.parseFloat(maxHeight)
 
 	return Number.isFinite(cap) ? Math.min(cap, viewport) : viewport
 }

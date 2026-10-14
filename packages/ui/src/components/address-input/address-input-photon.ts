@@ -35,28 +35,28 @@ type PhotonResponse = { features: PhotonFeature[] }
 function isPhotonFeature(value: unknown): value is PhotonFeature {
 	if (typeof value !== 'object' || value === null) return false
 
-	const f = value as { geometry?: unknown; properties?: unknown }
+	const feature = value as { geometry?: unknown; properties?: unknown }
 
-	if (typeof f.geometry !== 'object' || f.geometry === null) return false
+	if (typeof feature.geometry !== 'object' || feature.geometry === null) return false
 
-	const coords = (f.geometry as { coordinates?: unknown }).coordinates
+	const coordinates = (feature.geometry as { coordinates?: unknown }).coordinates
 
 	if (
-		!Array.isArray(coords) ||
-		coords.length !== 2 ||
-		typeof coords[0] !== 'number' ||
-		typeof coords[1] !== 'number'
+		!Array.isArray(coordinates) ||
+		coordinates.length !== 2 ||
+		typeof coordinates[0] !== 'number' ||
+		typeof coordinates[1] !== 'number'
 	) {
 		return false
 	}
 
-	if (typeof f.properties !== 'object' || f.properties === null) return false
+	if (typeof feature.properties !== 'object' || feature.properties === null) return false
 
-	const p = f.properties as { osm_id?: unknown; osm_type?: unknown }
+	const properties = feature.properties as { osm_id?: unknown; osm_type?: unknown }
 
 	return (
-		(p.osm_id === undefined || typeof p.osm_id === 'number') &&
-		(p.osm_type === undefined || typeof p.osm_type === 'string')
+		(properties.osm_id === undefined || typeof properties.osm_id === 'number') &&
+		(properties.osm_type === undefined || typeof properties.osm_type === 'string')
 	)
 }
 
@@ -404,48 +404,52 @@ export const photonProvider: AddressProvider = createPhotonProvider()
  *
  * A postal code has no object, so its country and its code identify it.
  */
-function featureId(p: PhotonFeature['properties']): string {
-	if (p.osm_type === undefined || p.osm_id === undefined) {
-		return `${p.osm_key ?? 'place'}:${p.osm_value ?? p.type ?? 'other'}:${p.countrycode ?? ''}:${p.name ?? ''}`
+function featureId(properties: PhotonFeature['properties']): string {
+	if (properties.osm_type === undefined || properties.osm_id === undefined) {
+		return `${properties.osm_key ?? 'place'}:${properties.osm_value ?? properties.type ?? 'other'}:${properties.countrycode ?? ''}:${properties.name ?? ''}`
 	}
 
-	return p.type === undefined ? `${p.osm_type}${p.osm_id}` : `${p.osm_type}${p.osm_id}:${p.type}`
+	return properties.type === undefined
+		? `${properties.osm_type}${properties.osm_id}`
+		: `${properties.osm_type}${properties.osm_id}:${properties.type}`
 }
 
 function featureToSuggestion(feature: PhotonFeature): AddressSuggestion {
-	const p = feature.properties
+	const properties = feature.properties
 
 	const [longitude, latitude] = feature.geometry.coordinates
 
-	const street = [p.housenumber, p.street].filter(Boolean).join(' ')
+	const street = [properties.housenumber, properties.street].filter(Boolean).join(' ')
 
 	// A city, a state, or a country is its own part of the address, but Photon
 	// leaves that part out of the feature that is the area itself: the city of
 	// Lisbon carries a state and a country, and no city. The name fills it.
-	const own = (kind: string) => (p.type === kind ? p.name : undefined)
+	const own = (kind: string) => (properties.type === kind ? properties.name : undefined)
 
 	const address: AddressParts = {
 		street: street || undefined,
-		city: p.city ?? own('city'),
-		state: p.state ?? own('state'),
-		postcode: p.postcode,
-		country: p.country ?? own('country'),
+		city: properties.city ?? own('city'),
+		state: properties.state ?? own('state'),
+		postcode: properties.postcode,
+		country: properties.country ?? own('country'),
 	}
 
-	const locality = [p.city, p.state, p.postcode, p.country].filter(Boolean).join(', ')
+	const locality = [properties.city, properties.state, properties.postcode, properties.country]
+		.filter(Boolean)
+		.join(', ')
 
 	// The label is the first line the match has, and the description is the rest.
 	// A business leads with its name and is located by the street line beneath;
 	// an unnamed match has only where it is, so the street line leads and the
 	// region locates it. One rule covers both, and a fourth line would be a
 	// fourth entry rather than a third branch.
-	const [primary = '', ...rest] = [p.name, street, locality].filter(Boolean)
+	const [primary = '', ...rest] = [properties.name, street, locality].filter(Boolean)
 
 	return {
-		id: featureId(p),
+		id: featureId(properties),
 		label: primary,
 		description: rest.join(', ') || undefined,
-		name: p.name,
+		name: properties.name,
 		address,
 		latitude,
 		longitude,

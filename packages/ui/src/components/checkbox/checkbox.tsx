@@ -77,15 +77,15 @@ export function Checkbox({
 		invalid,
 	})
 
-	const internalRef = useRef<HTMLInputElement>(null)
+	const inputRef = useRef<HTMLInputElement>(null)
 
-	const setRef = useComposedRef(internalRef, ref)
+	const setRef = useComposedRef(inputRef, ref)
 
 	// `indeterminate` is a DOM property with no attribute; sync it before paint.
 	// A server render runs no effect, so the input also carries
 	// `data-indeterminate`. The kata keys the fill and the mark on that attribute.
 	useLayoutEffect(() => {
-		if (internalRef.current) internalRef.current.indeterminate = !!indeterminate
+		if (inputRef.current) inputRef.current.indeterminate = !!indeterminate
 	}, [indeterminate])
 
 	// An activation clears the property. The prop does not change, so the effect

@@ -93,7 +93,7 @@ export function detectCardBrand(digits: string): CreditCardBrandInfo | undefined
 
 	if (!card) return undefined
 
-	const entry = brands.find((b) => b.type === card.type)
+	const entry = brands.find((known) => known.type === card.type)
 
 	if (!entry) return undefined
 
@@ -128,7 +128,10 @@ export function formatCardNumber(raw: string): {
 
 	const gaps = brand?.gaps ?? [4, 8, 12, 16]
 
-	const formatted = Array.from(digits, (d, i) => (gaps.includes(i) ? ' ' : '') + d).join('')
+	const formatted = Array.from(
+		digits,
+		(digit, index) => (gaps.includes(index) ? ' ' : '') + digit,
+	).join('')
 
 	return { formatted, digits, brand }
 }
@@ -154,15 +157,15 @@ const FOUR_DIGIT_YEAR = /^(\D*\d{2}\D+)\d{2}(\d{2})\D*$/
 export function formatExpiry(raw: string): string {
 	const text = toAsciiDigits(raw).replace(ONE_DIGIT_MONTH, '0$1').replace(FOUR_DIGIT_YEAR, '$1$2')
 
-	const d = digitsOnly(text).slice(0, 4)
+	const digits = digitsOnly(text).slice(0, 4)
 
-	if (d.length < 2) return d
+	if (digits.length < 2) return digits
 
-	const month = d.slice(0, 2)
+	const month = digits.slice(0, 2)
 
-	if (d.length === 2) return `${month}/`
+	if (digits.length === 2) return `${month}/`
 
-	return `${month}/${d.slice(2)}`
+	return `${month}/${digits.slice(2)}`
 }
 
 /**

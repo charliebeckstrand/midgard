@@ -339,9 +339,11 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 
 	// With `input`, the dialog's Tab edges hand focus back to the reference
 	// group before the virtual model sees the key.
-	const onContentKeyDown = input
+	const handleContentKeyDown = input
 		? composeEventHandlers(onDialogKeyDown, onTriggerKeyDown)
 		: onTriggerKeyDown
+
+	const getTriggerElements = () => (triggerRef.current ? [triggerRef.current] : [])
 
 	const content = (
 		<DatePickerContent
@@ -352,7 +354,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 			getFloatingProps={getFloatingProps}
 			context={context}
 			size={size}
-			onKeyDown={onContentKeyDown}
+			onKeyDown={handleContentKeyDown}
 			// `input` mode seeds open-focus on the editable DateInput (not the dialog
 			// container) so the user can type and the same keydown stream roves the
 			// grid via the input's `aria-activedescendant`. The button-trigger variant
@@ -362,7 +364,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 			// useDatePickerInputTab) while open, so it must stay out of the modal
 			// trap's aria-hidden marking. Non-input mode keeps the standard
 			// dialog semantics: the closed trigger is hidden with the page.
-			getInsideElements={input ? () => (triggerRef.current ? [triggerRef.current] : []) : undefined}
+			getInsideElements={input ? getTriggerElements : undefined}
 		>
 			<Calendar
 				ref={calendarRef}

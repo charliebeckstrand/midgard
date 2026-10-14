@@ -148,12 +148,12 @@ function handleClosedKey(
  */
 function handleOpenGlobalKey(
 	event: KeyboardEvent<HTMLElement>,
-	ctx: DatePickerKeyContext,
+	context: DatePickerKeyContext,
 ): boolean {
 	if (event.key === 'Escape') {
 		event.preventDefault()
 
-		ctx.closeCalendar()
+		context.closeCalendar()
 
 		return true
 	}
@@ -162,7 +162,7 @@ function handleOpenGlobalKey(
 	if (event.shiftKey && event.key === 'ArrowUp') {
 		event.preventDefault()
 
-		ctx.setActive({ zone: 'header', index: 1 })
+		context.setActive({ zone: 'header', index: 1 })
 
 		return true
 	}
@@ -170,7 +170,7 @@ function handleOpenGlobalKey(
 	if (event.shiftKey && event.key === 'ArrowDown') {
 		event.preventDefault()
 
-		if (ctx.footerButtons.length > 0) ctx.setActive({ zone: 'footer', index: 0 })
+		if (context.footerButtons.length > 0) context.setActive({ zone: 'footer', index: 0 })
 
 		return true
 	}
@@ -191,7 +191,7 @@ function handleOpenGlobalKey(
 function handlePageKey(
 	event: KeyboardEvent<HTMLElement>,
 	current: CalendarActive | null,
-	ctx: DatePickerKeyContext,
+	context: DatePickerKeyContext,
 ): boolean {
 	const step =
 		event.key === 'PageUp' || event.key === 'PageDown' ? gridStep(event, event.currentTarget) : null
@@ -200,11 +200,11 @@ function handlePageKey(
 
 	event.preventDefault()
 
-	const from = current?.zone === 'grid' ? current.date : ctx.getInitialActiveDate()
+	const from = current?.zone === 'grid' ? current.date : context.getInitialActiveDate()
 
-	const next = ctx.moveGrid(step, from)
+	const next = context.moveGrid(step, from)
 
-	ctx.setActive({ zone: 'grid', date: next })
+	context.setActive({ zone: 'grid', date: next })
 
 	return true
 }
@@ -224,13 +224,16 @@ function handlePageKey(
  */
 function handleNoActiveKey(
 	event: KeyboardEvent<HTMLElement>,
-	ctx: DatePickerKeyContext,
+	context: DatePickerKeyContext,
 	input: boolean,
 ) {
 	if (isArrowKey(event.key)) {
 		event.preventDefault()
 
-		ctx.setActive({ zone: 'grid', date: ctx.getViewEntryDate() ?? ctx.getInitialActiveDate() })
+		context.setActive({
+			zone: 'grid',
+			date: context.getViewEntryDate() ?? context.getInitialActiveDate(),
+		})
 
 		return
 	}
@@ -239,14 +242,14 @@ function handleNoActiveKey(
 		if (input) {
 			// Do not `preventDefault`: the DateInput's own Enter handler must still
 			// run to commit/blur (`composeEventHandlers` skips it once defaulted).
-			if (event.key === 'Enter') ctx.closeCalendar()
+			if (event.key === 'Enter') context.closeCalendar()
 
 			return
 		}
 
 		event.preventDefault()
 
-		ctx.handleSelect(ctx.getInitialActiveDate())
+		context.handleSelect(context.getInitialActiveDate())
 	}
 }
 
@@ -261,14 +264,14 @@ function handleGridKey(
 	event: KeyboardEvent<HTMLElement>,
 	key: string,
 	active: GridActive,
-	ctx: DatePickerKeyContext,
+	context: DatePickerKeyContext,
 ) {
 	const step = isArrowKey(key) ? gridStep(event, event.currentTarget) : null
 
 	if (step) {
 		event.preventDefault()
 
-		ctx.setActive({ zone: 'grid', date: ctx.moveGrid(step, active.date) })
+		context.setActive({ zone: 'grid', date: context.moveGrid(step, active.date) })
 
 		return
 	}
@@ -276,7 +279,7 @@ function handleGridKey(
 	if (key === 'Enter' || key === ' ') {
 		event.preventDefault()
 
-		ctx.handleSelect(active.date)
+		context.handleSelect(active.date)
 	}
 }
 
@@ -291,7 +294,7 @@ function handleHeaderKey(
 	event: KeyboardEvent<HTMLElement>,
 	key: string,
 	active: HeaderActive,
-	ctx: DatePickerKeyContext,
+	context: DatePickerKeyContext,
 ) {
 	// Left/Right wrap across the three controls.
 	if (key === 'ArrowLeft' || key === 'ArrowRight') {
@@ -299,7 +302,7 @@ function handleHeaderKey(
 
 		const delta = key === 'ArrowLeft' ? -1 : 1
 
-		ctx.setActive({ zone: 'header', index: wrap(active.index + delta, 3) as 0 | 1 | 2 })
+		context.setActive({ zone: 'header', index: wrap(active.index + delta, 3) as 0 | 1 | 2 })
 
 		return
 	}
@@ -307,9 +310,9 @@ function handleHeaderKey(
 	if (key === 'ArrowDown') {
 		event.preventDefault()
 
-		const date = ctx.getViewEntryDate()
+		const date = context.getViewEntryDate()
 
-		if (date) ctx.setActive({ zone: 'grid', date })
+		if (date) context.setActive({ zone: 'grid', date })
 
 		return
 	}
@@ -323,9 +326,9 @@ function handleHeaderKey(
 	if (key === 'Enter' || key === ' ') {
 		event.preventDefault()
 
-		if (active.index === 0) ctx.calendarRef.current?.prevMonth()
-		else if (active.index === 1) ctx.calendarRef.current?.openPicker()
-		else ctx.calendarRef.current?.nextMonth()
+		if (active.index === 0) context.calendarRef.current?.prevMonth()
+		else if (active.index === 1) context.calendarRef.current?.openPicker()
+		else context.calendarRef.current?.nextMonth()
 	}
 }
 
@@ -340,9 +343,9 @@ function handleFooterKey(
 	event: KeyboardEvent<HTMLElement>,
 	key: string,
 	active: FooterActive,
-	ctx: DatePickerKeyContext,
+	context: DatePickerKeyContext,
 ) {
-	const count = ctx.footerButtons.length
+	const count = context.footerButtons.length
 
 	// Left/Right wrap at both edges: 0 goes to count-1, and count-1 goes to 0.
 	if (key === 'ArrowLeft' || key === 'ArrowRight') {
@@ -352,7 +355,7 @@ function handleFooterKey(
 
 		const delta = key === 'ArrowLeft' ? -1 : 1
 
-		ctx.setActive({ zone: 'footer', index: wrap(active.index + delta, count) })
+		context.setActive({ zone: 'footer', index: wrap(active.index + delta, count) })
 
 		return
 	}
@@ -360,9 +363,9 @@ function handleFooterKey(
 	if (key === 'ArrowUp') {
 		event.preventDefault()
 
-		const date = ctx.getViewEntryDate()
+		const date = context.getViewEntryDate()
 
-		if (date) ctx.setActive({ zone: 'grid', date })
+		if (date) context.setActive({ zone: 'grid', date })
 
 		return
 	}
@@ -376,9 +379,9 @@ function handleFooterKey(
 	if (key === 'Enter' || key === ' ') {
 		event.preventDefault()
 
-		const kind = ctx.footerButtons[active.index]
+		const kind = context.footerButtons[active.index]
 
-		if (kind) ctx.onFooterActivate(kind)
+		if (kind) context.onFooterActivate(kind)
 	}
 }
 
@@ -465,25 +468,25 @@ function isNewControl(
 function handleZoneKey(
 	event: KeyboardEvent<HTMLElement>,
 	current: CalendarActive,
-	ctx: DatePickerKeyContext,
+	context: DatePickerKeyContext,
 ) {
 	// The day grid and the header and footer rows follow the reading order,
 	// so the arrows swap in RTL.
 	const key = logicalArrowKey(event.key, event.currentTarget)
 
 	if (current.zone === 'grid') {
-		handleGridKey(event, key, current, ctx)
+		handleGridKey(event, key, current, context)
 
 		return
 	}
 
 	if (current.zone === 'header') {
-		handleHeaderKey(event, key, current, ctx)
+		handleHeaderKey(event, key, current, context)
 
 		return
 	}
 
-	handleFooterKey(event, key, current, ctx)
+	handleFooterKey(event, key, current, context)
 }
 
 /**
@@ -521,7 +524,7 @@ export function useDatePickerKeyboard({
 				return
 			}
 
-			const ctx: DatePickerKeyContext = {
+			const context: DatePickerKeyContext = {
 				setActive,
 				closeCalendar,
 				moveGrid,
@@ -533,7 +536,7 @@ export function useDatePickerKeyboard({
 				onFooterActivate,
 			}
 
-			if (handleOpenGlobalKey(event, ctx)) return
+			if (handleOpenGlobalKey(event, context)) return
 
 			// On an arrow or a Page key, a toolbar button or a day button with DOM
 			// focus sets the zone of the model. Only a different zone, index, or day
@@ -544,15 +547,15 @@ export function useDatePickerKeyboard({
 
 			const current = mapped ?? active
 
-			if (handlePageKey(event, current, ctx)) return
+			if (handlePageKey(event, current, context)) return
 
 			if (current === null) {
-				handleNoActiveKey(event, ctx, input)
+				handleNoActiveKey(event, context, input)
 
 				return
 			}
 
-			handleZoneKey(event, current, ctx)
+			handleZoneKey(event, current, context)
 		},
 		[
 			disabled,

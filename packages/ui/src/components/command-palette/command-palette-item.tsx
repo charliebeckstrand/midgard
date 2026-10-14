@@ -57,7 +57,7 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 	// An explicit `id` wins — set it when rendering inside a `VirtualOptions`
 	// with `getOptionId`, which needs a data-driven, predictable id to point
 	// `aria-activedescendant` at before the row mounts.
-	const itemId = props.id ?? autoId
+	const id = props.id ?? autoId
 
 	const { disabled, className, children, onAction, closeOnAction = true } = props
 
@@ -96,7 +96,7 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 	// branch via `forwardedProps`, keeping the polymorphic union narrowed. They
 	// come first; the option wiring below wins on collision.
 	const optionProps = {
-		id: itemId,
+		id,
 		role: 'option' as const,
 		tabIndex: -1,
 		'data-slot': 'command-palette-item',
