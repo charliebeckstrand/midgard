@@ -22,8 +22,10 @@ const DENSITY_ENGINES = Boolean(process.env.DENSITY_ENGINES)
 /**
  * The files whose subject is the density mechanism: the step of a scope, a
  * slot, and the root, and the boxes that each step gives. The density
- * instances run these files in Firefox and in WebKit. Each file uses the mocks
- * of the `browser` instance.
+ * instances run these files in Firefox and in WebKit, with no module mock.
+ * In CI, the factories of `setup/module-mocks.ts` failed in those engines
+ * before the first test ran. No density file needs a mock: each one passes in
+ * Chromium with no mock.
  */
 const DENSITY_FILES = [
 	'src/__tests__/browser/density-contract.test.tsx',
@@ -204,8 +206,7 @@ const releasePointer: BrowserCommand<[selector?: string]> = async (context, sele
  *   is set, because a dev machine often holds only Chromium. The `density` job
  *   of `ci.yml` sets it. A case that does not apply to an engine, such as a
  *   case that reads a WebKit-only pseudo-element, calls `ctx.skip` with the
- *   reason when `server.browser` names that engine. Their mocks are the ones
- *   `browser` uses.
+ *   reason when `server.browser` names that engine. They load no module mock.
  *
  * `pnpm test:browser` runs the six Chromium instances, and all eight with
  * `DENSITY_ENGINES=1`. `--project <name>` scopes to one.
@@ -423,9 +424,6 @@ export default defineConfig({
 					? (['firefox', 'webkit'] as const).map((browser) => ({
 							browser,
 							name: `density-${browser}`,
-							setupFiles: [
-								resolve(import.meta.dirname, 'src/__tests__/browser/setup/module-mocks.ts'),
-							],
 							include: DENSITY_FILES,
 						}))
 					: []),
