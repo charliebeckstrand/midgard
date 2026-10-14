@@ -30,13 +30,13 @@ export function resolveLabel<T>({
 			: displayValue
 
 	if (multiple) {
-		const arr = Array.isArray(value) ? value : []
+		const values = Array.isArray(value) ? value : []
 
-		if (arr.length === 0) return undefined
+		if (values.length === 0) return undefined
 
-		if (display && arr.length <= 3) return joinLabels(arr.map(display))
+		if (display && values.length <= 3) return joinLabels(values.map(display))
 
-		return `${arr.length} selected`
+		return `${values.length} selected`
 	}
 
 	if (value !== undefined && !Array.isArray(value) && display) return display(value)

@@ -110,20 +110,20 @@ export function NumberInput({
 	const increase = () => change(step)
 
 	const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-		const v = event.target.value
+		const raw = event.target.value
 
-		if (v === '') {
+		if (raw === '') {
 			setCurrent(undefined)
 
 			return
 		}
 
-		const n = Number(v)
+		const parsed = Number(raw)
 
-		if (Number.isNaN(n)) return
+		if (Number.isNaN(parsed)) return
 
 		// Stores the raw value while typing; clamps on blur instead.
-		setCurrent(n)
+		setCurrent(parsed)
 	}
 
 	// The consumer's onBlur runs first. Clamp, round, and the touched mark run
@@ -207,9 +207,9 @@ export function NumberInput({
  * @internal
  */
 function stepPrecision(step: number): number {
-	const s = step.toString()
+	const text = step.toString()
 
-	const match = s.match(/^(\d+)?(?:\.(\d+))?[eE]([+-]?\d+)$/)
+	const match = text.match(/^(\d+)?(?:\.(\d+))?[eE]([+-]?\d+)$/)
 
 	if (match) {
 		const mantissaDecimals = match[2]?.length ?? 0
@@ -217,5 +217,5 @@ function stepPrecision(step: number): number {
 		return Math.max(0, mantissaDecimals - Number(match[3]))
 	}
 
-	return s.split('.')[1]?.length ?? 0
+	return text.split('.')[1]?.length ?? 0
 }

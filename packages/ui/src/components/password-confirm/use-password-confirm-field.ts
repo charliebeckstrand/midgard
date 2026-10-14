@@ -47,7 +47,10 @@ export function usePasswordConfirmField(
 
 	const tracked = value === undefined && field === undefined
 
-	const resolved = value !== undefined ? toFieldText(value) : field ? toFieldText(field.value) : own
+	let resolved = own
+
+	if (value !== undefined) resolved = toFieldText(value)
+	else if (field) resolved = toFieldText(field.value)
 
 	// Each cleanup clears its report, so an unmounted field stops reporting a
 	// stale mismatch. A re-run writes the new report in the same commit.

@@ -85,7 +85,7 @@ export function ProgressGauge({
 
 	const offset = circumference - (percent / 100) * circumference
 
-	const resolvedLabel = centerLabel === true ? Math.round(percent) : centerLabel
+	const label = centerLabel === true ? Math.round(percent) : centerLabel
 
 	// The ring mounts at its value. A sweep up from zero on mount plays again
 	// each time a tab panel brings the gauge back. The fill animates
@@ -147,9 +147,7 @@ export function ProgressGauge({
 				</ReducedMotion>
 			</svg>
 
-			{resolvedLabel != null && resolvedLabel !== false && (
-				<span className={k.gauge.label()}>{resolvedLabel}</span>
-			)}
+			{label != null && label !== false && <span className={k.gauge.label()}>{label}</span>}
 		</div>
 	)
 }

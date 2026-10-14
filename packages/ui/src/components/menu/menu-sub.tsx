@@ -167,7 +167,7 @@ function MenuSubSheet({
 	const handlePointerMove = useMenuRowPointer(disabled)
 
 	const handleClick = useStableEvent(() => {
-		if (!disabled) setOpen((current) => !current)
+		if (!disabled) setOpen((prev) => !prev)
 	})
 
 	const handleTriggerKeyDown = useStableEvent((event: KeyboardEvent<HTMLButtonElement>) => {
@@ -178,7 +178,7 @@ function MenuSubSheet({
 		if (OPEN_KEYS.includes(event.key)) {
 			event.preventDefault()
 
-			setOpen((current) => !current)
+			setOpen((prev) => !prev)
 
 			return
 		}

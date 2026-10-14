@@ -50,7 +50,7 @@ const SUBMENU_ENTRY: Record<string, 'first' | 'last' | undefined> = {
  * toward the apex. Progress outside `(0, 1]` is a pointer already past the
  * edge, or behind the apex.
  *
- * Travel is also a move toward the panel, measured from `previous`, the sample
+ * Travel is also a move toward the panel, measured from `prev`, the sample
  * before `point`. A pointer that stands still, drifts up or down, or heads away
  * inside the corridor is not traveling. Without that check, a pointer parked
  * mid-corridor reads the same progress from the apex on each move, and the
@@ -58,7 +58,7 @@ const SUBMENU_ENTRY: Record<string, 'first' | 'last' | undefined> = {
  *
  * @internal
  */
-function inCorridor(point: Point, previous: Point, from: Point, rect: DOMRect): boolean {
+function inCorridor(point: Point, prev: Point, from: Point, rect: DOMRect): boolean {
 	const edge = rect.left >= from.x ? rect.left : rect.right
 
 	const run = edge - from.x
@@ -67,7 +67,7 @@ function inCorridor(point: Point, previous: Point, from: Point, rect: DOMRect): 
 
 	if (progress <= 0 || progress > 1) return false
 
-	if (Math.sign(run) * (point.x - previous.x) <= 0) return false
+	if (Math.sign(run) * (point.x - prev.x) <= 0) return false
 
 	const top = from.y + progress * (rect.top - TRAVEL_SLACK - from.y)
 
@@ -221,7 +221,7 @@ export function MenuPointerLevel({ virtual = false, owner, children }: MenuPoint
 
 	// The pointer sample before the one under judgment, so travel can be told
 	// from a pointer that stopped or turned back.
-	const previous = useRef<Point | null>(null)
+	const prevPoint = useRef<Point | null>(null)
 
 	const panels = useRef(new Map<string, HTMLElement>())
 
@@ -278,7 +278,7 @@ export function MenuPointerLevel({ virtual = false, owner, children }: MenuPoint
 	 * at. An unplaced panel — one opened a frame ago, still measuring 0×0 — has no
 	 * corridor to be in yet.
 	 */
-	const traveling = useCallback((point: Point, last: Point | null): boolean => {
+	const traveling = useCallback((point: Point, prev: Point | null): boolean => {
 		const from = anchor.current
 
 		const key = openKeyRef.current
@@ -291,20 +291,20 @@ export function MenuPointerLevel({ virtual = false, owner, children }: MenuPoint
 
 		if (rect.width === 0 || rect.height === 0) return false
 
-		return inCorridor(point, last ?? from, from, rect)
+		return inCorridor(point, prev ?? from, from, rect)
 	}, [])
 
 	const hoverRow = useCallback(
 		(row: HTMLElement, point: Point, subKey?: string) => {
 			const open = openKeyRef.current
 
-			const last = previous.current
+			const prev = prevPoint.current
 
-			previous.current = point
+			prevPoint.current = point
 
 			// Mid-sweep into the open panel: this row is being crossed, not chosen.
 			// `traveling` reads the open key back itself, and says no when none is.
-			if (subKey !== open && traveling(point, last)) return
+			if (subKey !== open && traveling(point, prev)) return
 
 			anchor.current = point
 

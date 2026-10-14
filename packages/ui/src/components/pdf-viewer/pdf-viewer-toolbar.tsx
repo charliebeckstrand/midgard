@@ -108,16 +108,16 @@ export function PdfViewerToolbar() {
 									onValueChange={(next) => {
 										if (next !== null) goToPage(next)
 									}}
-									displayValue={(v) => String(v)}
+									displayValue={(pageNumber) => String(pageNumber)}
 									disabled={controlsDisabled}
 									className="tabular-nums"
 								>
-									{pages.map((p, index) => {
+									{pages.map((page, index) => {
 										const pageNumber = index + 1
 
 										return (
-											<ListboxOption key={p.id ?? index} value={pageNumber}>
-												<ListboxLabel>{p.label ?? `Page ${pageNumber}`}</ListboxLabel>
+											<ListboxOption key={page.id ?? index} value={pageNumber}>
+												<ListboxLabel>{page.label ?? `Page ${pageNumber}`}</ListboxLabel>
 											</ListboxOption>
 										)
 									})}

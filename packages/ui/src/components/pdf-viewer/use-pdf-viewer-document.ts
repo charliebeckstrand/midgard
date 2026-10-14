@@ -201,17 +201,17 @@ async function openSlots(
 
 	const labels = await doc.getPageLabels()
 
-	for (let pageNum = 1; pageNum <= doc.numPages; pageNum++) {
-		const page = await doc.getPage(pageNum)
+	for (let pageNumber = 1; pageNumber <= doc.numPages; pageNumber++) {
+		const page = await doc.getPage(pageNumber)
 
 		const viewport = page.getViewport({ scale })
 
 		parsed.push(page)
 
 		slots.push({
-			id: pageNum,
+			id: pageNumber,
 			src: '',
-			label: `Page ${labels?.[pageNum - 1] || pageNum}`,
+			label: `Page ${labels?.[pageNumber - 1] || pageNumber}`,
 			width: viewport.width,
 			height: viewport.height,
 			pointWidth: viewport.width / scale,
