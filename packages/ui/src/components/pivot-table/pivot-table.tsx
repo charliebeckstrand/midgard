@@ -86,7 +86,7 @@ export function PivotTable<T>({
 	className,
 	'aria-label': ariaLabel,
 }: PivotTableProps<T>) {
-	const { rowKeys, columnKeys, cellValue, rowTotal, colTotals, grandTotal } = usePivotTable(
+	const { rowKeys, columnKeys, cellValue, rowTotal, columnTotals, grandTotal } = usePivotTable(
 		rows,
 		keys,
 		{
@@ -164,7 +164,7 @@ export function PivotTable<T>({
 							Total
 						</TableHeader>
 						{columnKeys.map((column, index) => {
-							const total = colTotals[index]
+							const total = columnTotals[index]
 
 							return (
 								<TableCell key={column} className="text-end font-semibold tabular-nums">

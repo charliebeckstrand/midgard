@@ -44,7 +44,7 @@ export type PivotTableResult = {
 	/** Aggregate across a row's columns; `undefined` when the row holds no values. */
 	rowTotal: (row: string) => number | undefined
 	/** Per-column aggregate, aligned to {@link PivotTableResult.columnKeys}; entries are `undefined` for empty columns. */
-	colTotals: (number | undefined)[]
+	columnTotals: (number | undefined)[]
 	/** Aggregate over every value in the grid; `undefined` when it holds none. */
 	grandTotal: number | undefined
 }
@@ -79,7 +79,7 @@ export function usePivotTable<T>(
 		[rows, keys.row, keys.column, keys.value],
 	)
 
-	const colTotals = useMemo(
+	const columnTotals = useMemo(
 		() => columnKeys.map((column) => aggregateColumn(groups, rowKeys, column, aggregation)),
 		[columnKeys, groups, rowKeys, aggregation],
 	)
@@ -123,5 +123,5 @@ export function usePivotTable<T>(
 
 	const rowTotal = useCallback((row: string): number | undefined => rowTotals.get(row), [rowTotals])
 
-	return { rowKeys, columnKeys, cellValue, rowTotal, colTotals, grandTotal }
+	return { rowKeys, columnKeys, cellValue, rowTotal, columnTotals, grandTotal }
 }
