@@ -27,7 +27,7 @@ import {
 } from './chart-reference'
 import type { LinearScale } from './chart-scale'
 import { seriesGroupClass } from './chart-series'
-import { useChartEmphasis, useChartReferencePoint, useChartTier } from './context'
+import { useChartActions, useChartEmphasis, useChartTier } from './context'
 
 /**
  * The part of a cartesian chart that its reference rules read: the plot, the
@@ -293,7 +293,7 @@ function HoverReferenceRule({
 }: ReferenceRuleProps) {
 	const { activeReference, emphasizedReference } = useChartEmphasis()
 
-	const setReferenceActive = useChartReferencePoint()
+	const { pointReference: setReferenceActive } = useChartActions()
 
 	// Whether the pointer rests on this rule. A rule that unmounts under the
 	// pointer (a live `reference` update, a spark resize) gets no `pointerleave`,

@@ -13,7 +13,7 @@ import { useHoverAcrossScroll } from '../../../hooks'
 import { useTouchTap } from '../../../hooks/use-touch-tap'
 import type { PlotRect } from './chart-orientation'
 import type { ChartTooltipTrigger } from './chart-tooltip'
-import { type ChartMarkRef, useChartHoverStore, useChartMarkPoint } from './context'
+import { type ChartMarkRef, useChartActions, useChartHoverStore } from './context'
 
 /** The handlers {@link useChartPointer} spreads onto the hit layer's rect. @internal */
 export type ChartPointerHandlers = {
@@ -145,7 +145,7 @@ export function useChartPointer({
 
 	// The setter alone, which keeps its identity: a crossing from mark to mark
 	// renders the marks, not this hit layer.
-	const setPointed = useChartMarkPoint()
+	const { pointMark: setPointed } = useChartActions()
 
 	const ref = useRef<SVGRectElement>(null)
 

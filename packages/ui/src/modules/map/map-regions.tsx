@@ -13,7 +13,12 @@ import {
 } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
-import { MapZoomScaleContext, useMapHoverSet, useMapPointedMark, useMapZoomScale } from './context'
+import {
+	MapZoomScaleContext,
+	useMapHoverActions,
+	useMapPointedMark,
+	useMapZoomScale,
+} from './context'
 import { REGION_SELECTED_STROKE_WIDTH, REGION_STROKE_WIDTH } from './engine/map-constants'
 import { regionIndexAt } from './engine/map-hover/anchor'
 import { REGION_WASH_SETTLE } from './engine/map-motion'
@@ -231,7 +236,7 @@ const MapRegionsBase = memo(function MapRegionsBase({
 	wash,
 	interactive,
 }: MapRegionsBaseProps) {
-	const set = useMapHoverSet()
+	const { set } = useMapHoverActions()
 
 	// One stable handler for every region, reading the pointed index off the
 	// path's own anchor attribute: a layer re-render allocates no per-region
@@ -324,7 +329,7 @@ export const MapRegions = memo(function MapRegions({
 	selected,
 	pending,
 }: MapRegionsProps) {
-	const set = useMapHoverSet()
+	const { set } = useMapHoverActions()
 
 	const pointed = useMapPointedMark()
 

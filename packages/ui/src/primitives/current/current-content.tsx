@@ -10,11 +10,8 @@ import {
 	type CurrentDirection,
 	CurrentPanelActiveContext,
 	useCurrent,
-	useCurrentAnimation,
-	useCurrentDirection,
-	useCurrentMount,
+	useCurrentContents,
 	useCurrentPanelActive,
-	useCurrentSettled,
 } from './current'
 
 /**
@@ -227,13 +224,7 @@ export function CurrentContent({
 
 	const context = useCurrent()
 
-	const animation = useCurrentAnimation()
-
-	const mount = useCurrentMount()
-
-	const settled = useCurrentSettled()
-
-	const direction = useCurrentDirection()
+	const { animation, mount, settled, direction } = useCurrentContents()
 
 	const reducedMotion = usePrefersReducedMotion()
 

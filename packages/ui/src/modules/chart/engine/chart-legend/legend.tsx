@@ -8,11 +8,11 @@ import { Popover, PopoverContent, PopoverTrigger } from '../../../../components/
 import { Swatch } from '../../../../components/swatch'
 import { Text } from '../../../../components/text'
 import { ariaAttr, cn, dataAttr } from '../../../../core'
-import { useA11yRoving } from '../../../../hooks/a11y'
+import { useA11yRoving } from '../../../../hooks'
 import { isRtl } from '../../../../hooks/a11y/logical-arrow'
 import type { ChartColorSlot } from '../../../../recipes/kata/chart'
 import { ChartSwatch } from '../chart-pattern-defs'
-import { useChartReferencePoint, useChartSeriesFocus } from '../context'
+import { useChartActions } from '../context'
 import { OVERFLOW_CHIP_RESERVE, visibleLegendCount } from './fit'
 import { type LegendEmphasis, LegendSwitch, useLegendEmphasis } from './legend-switch'
 
@@ -594,8 +594,10 @@ export function ChartLegend({
 	const overflowCount = overflowItems.length + overflowReferences.length
 
 	// The frame owns the series emphasis, so a hover renders the frame and not the
-	// chart body. The setter keeps its identity.
-	const setSeriesFocus = useChartSeriesFocus()
+	// chart body. The reference chips share the recede with the reference rules: a
+	// chip's hover or keyboard focus recedes the data marks and the rule's siblings
+	// to it, the same emphasis as pointing the rule. The setters keep their identity.
+	const { focusSeries: setSeriesFocus, pointReference: setReferenceActive } = useChartActions()
 
 	// The pointed entry wins, else the keyboard-focused one. Buttons render in
 	// `pageItems` order, so a focused button's position names its entry there. The
@@ -607,12 +609,6 @@ export function ChartLegend({
 		(position) => pageItems[position]?.index ?? null,
 		setSeriesFocus,
 	)
-
-	// The reference chips share the recede with the reference rules: a chip's hover
-	// or keyboard focus recedes the data marks and the rule's siblings to it, the
-	// same emphasis as pointing the rule. Present whenever the legend is inside a
-	// chart.
-	const setReferenceActive = useChartReferencePoint()
 
 	// The chips take the same pointer and focus rule as the series switches. Chips
 	// render in `references` order, so a focused chip's position names its entry.
