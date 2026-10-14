@@ -63,13 +63,13 @@ Five designs were judged on correctness, performance, and migration. A and B wer
 **Scopes**, in `@layer base`, written by `addBase` from `steps.ts`, so they cannot drift from `densitySteps`, `rootDensityClasses`, and `slotStep`:
 
 ```css
-:where(:root) { --dxs:0; --dsm:0; --dmd:1; --dlg:0; --dxl:0; --hxs:0; --hsm:0; --hmd:1; --hlg:0; --hxl:0 }
-:where(:root.density-root-sm), [data-density=sm] { --dxs:0; --dsm:1; --dmd:0; --dlg:0; --dxl:0; --hxs:0; --hsm:1; … }
+:root { --dxs:0; --dsm:0; --dmd:1; --dlg:0; --dxl:0; --hxs:0; --hsm:0; --hmd:1; --hlg:0; --hxl:0 }
+:root.density-root-sm, [data-density=sm] { --dxs:0; --dsm:1; --dmd:0; --dlg:0; --dxl:0; --hxs:0; --hsm:1; … }
 /* xs, lg, xl likewise; [data-density=md] resets to md */
 [data-density=slot] { --dxs:calc(var(--hxs) + var(--hsm)); --dsm:var(--hmd); --dmd:var(--hlg); --dlg:var(--hxl); --dxl:0 }
 ```
 
-A slot never writes the host copy, so a slot in a slot reads the same host. `:where()` on the root lets `<html data-density>` win over the root class, as it does today; `:root.density-root-*` at (0,2,0) would invert that. The `:where(:root)` default must come before each root-class rule, because both have zero specificity. Step 1 fixes the names with a prefix (`--ui-d<step>` and `--ui-h<step>`, or a `--_d…` form to match `--_density-space-x`), because the weights inherit into each consumer element, and a consumer `--dmd` would change density silently.
+A slot never writes the host copy, so a slot in a slot reads the same host. The root step is only ever the root class: nothing writes `data-density` on `<html>`, and the root class at (0,2,0) wins over the `:root` default at (0,1,0). Step 1 fixes the names with a prefix (`--ui-d<step>` and `--ui-h<step>`, or a `--_d…` form to match `--_density-space-x`), because the weights inherit into each consumer element, and a consumer `--dmd` would change density silently.
 
 **Stepped utilities**: one rule per class in a nested layer of `utilities`. The emitter writes the most frequent value as a base and adds a term for each step that differs, grouped by equal delta. It falls back to the exact `Σ v·w` when the base form is not exact in double precision. Text keeps `line-height: var(--tw-leading, calc(<size sum> + .5rem))`. Ring forms subtract one `- 1px`. Names (`--text-*`, `--radius-*`, `--container-*`) weight their `var()`.
 
@@ -84,7 +84,7 @@ A slot never writes the host copy, so a slot in a slot reads the same host. `:wh
 
 ## Measured evidence
 
-The prototype was one commit over `main` (13 files), kept out of the repository because its old-shape tests were not rewritten. It implemented A and B behind `DENSITY_EMIT`, converts each step variant in the repository to a stepped class, and keeps `density-any`. It does not have the hardening of the mechanism above (prefix, `:where()` root, theme-key check); the figures below are for the prototype form. All runs: Chromium 141, docs built with `pnpm turbo run docs:build --filter=ui`.
+The prototype was one commit over `main` (13 files), kept out of the repository because its old-shape tests were not rewritten. It implemented A and B behind `DENSITY_EMIT`, converts each step variant in the repository to a stepped class, and keeps `density-any`. It does not have the hardening of the mechanism above (prefix, theme-key check); the figures below are for the prototype form. All runs: Chromium 141, docs built with `pnpm turbo run docs:build --filter=ui`.
 
 ### Bytes (brotli q11)
 
@@ -135,13 +135,13 @@ Each step is one pull request on the step before it. Each runs `pnpm check`, the
 
 **0. Harness.** Land the measurement before the change.
 - `scripts/density-parity.ts`: the computed-style dump and diff of this plan. It compares two built `dist/client` directories in three configs with real levels, with a detail mode, noise filters for animations and `useId`, one automatic rerun of each flagged page, and a written exclusion list (`/modules/grid/virtualization`, the late toast region).
-- `browser/density-contract.test.tsx`, against the `scopeStepOf` oracle: each case of R3, R5, R8, R11, and R12 that no test holds today; slot in slot; `<html class="density-root-sm" data-density="lg">` resolves `lg`; the 3-value lists of the docs sidebar (`density-px-ring-[1.5,2,2.5]`) and of `category-options.tsx` (`density-w-[3,4,5]`, `density-me-ring-[2.5,3,3.5]`); the open dialog panel at 390 px at each root step and in a scope (`density-pb-[4,5,6,7,8]` with the `max-sm:` safe-area inset on one element). Depth beyond 2 and a stepped class after a pseudo-element are `it.fails` on main.
+- `browser/density-contract.test.tsx`, against the `scopeStepOf` oracle: each case of R3, R5, R8, R11, and R12 that no test holds today; slot in slot; the 3-value lists of the docs sidebar (`density-px-ring-[1.5,2,2.5]`) and of `category-options.tsx` (`density-w-[3,4,5]`, `density-me-ring-[2.5,3,3.5]`); the open dialog panel at 390 px at each root step and in a scope (`density-pb-[4,5,6,7,8]` with the `max-sm:` safe-area inset on one element). Depth beyond 2 and a stepped class after a pseudo-element are `it.fails` on main.
 - A restyle bench under `__benchmarks__/browser/`: a Grid of 1,000 rows under 0, 1, and 2 scopes and a slot, with mount, sort, and root switch, and `RecalcStyleDuration`. It records its first numbers in the bench README (CONVENTIONS §12.7). It also measures the matched-properties-cache effect asserted under Costs.
 - Firefox and WebKit: `.github/actions/playwright` installs and caches them, and `vitest.browser.config.ts` gets an instance of each for the density files. A file that does not apply to an engine (a WebKit-only pseudo-element) skips it with the reason.
 - Gate: all green on main, in each engine.
 
 **1. Emitter.** Stepped utilities move to the weights. The step variants stay.
-- `utilities.ts` writes the base rules and one rule per class through `pick`, with the hardening: the prefixed names, `:where()` on the root, theme-key validation, and `full` rejected. A unit test asserts that the `:where(:root)` default comes before each root-class rule.
+- `utilities.ts` writes the base rules and one rule per class through `pick`, with the hardening: the prefixed names, theme-key validation, and `full` rejected.
 - Only the one-hot form ships. The index form waits for step 4.
 - Coexistence order: the variants still write `density-0`, `-1`, and `-2`, and Tailwind orders layers by first use. A new layer would come first and lose to the old `density-0`, which holds `density-any`. So in this step the stepped rules go into `density-0`, where one class beats the `:where()` of `density-any`, and the variant rungs keep their depth layers. Design E verified this order; this step builds it for A and runs the contract suite on it.
 - One overlap exists while both systems live: the panel inset of the dialog, drawer, and sheet holds `density-pb-[4,5,6,7,8]` and the `max-sm:density-<step>:pb-[…]` safe-area variants on one element. In `density-0` the `md` rung of the variant and the stepped class have equal specificity, so sheet order decides. The step 0 dialog test holds it. A boundary test forbids any other class string with a stepped class and a step variant on one property until step 2.
