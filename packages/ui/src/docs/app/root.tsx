@@ -13,7 +13,7 @@ import {
 } from 'react-router'
 import { Button } from 'ui/button'
 import { loadShiki } from 'ui/code'
-import { EventsAside, EventsButton } from 'ui/events'
+import { EventsAside, EventsButton, EventsSwitch } from 'ui/events'
 import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
 import { Icon } from 'ui/icon'
@@ -25,7 +25,7 @@ import { UIDocument, UIProvider } from 'ui/providers/ui'
 import { Stack } from 'ui/stack'
 import { useHydrated } from '../../hooks/use-hydrated.ts'
 import { noop } from '../../utilities/noop.ts'
-import { DebugScript, DebugSwitch } from '../debug/index.tsx'
+import { DebugScript } from '../debug/index.tsx'
 import { useIdle } from '../kit/idle.ts'
 import appCss from './app.css?url'
 import { DirectionScript, DirectionSwitch } from './direction.tsx'
@@ -95,7 +95,7 @@ const ACTIONS = (
 		<EventsButton />
 		<AppearanceSettings>
 			<DirectionSwitch />
-			<DebugSwitch />
+			<EventsSwitch />
 		</AppearanceSettings>
 	</>
 )

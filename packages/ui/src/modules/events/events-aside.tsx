@@ -4,7 +4,7 @@ import { useEffect, useSyncExternalStore } from 'react'
 import { useLazyModule } from '../../hooks/use-lazy-module'
 import { createLazyModule } from '../../utilities/lazy-module'
 import { noop } from '../../utilities/noop'
-import { isEventsPinned, subscribePinned } from './engine/events-setting'
+import { addEventsDock, isEventsPinned, subscribePinned } from './engine/events-setting'
 import { loadTools } from './events-load'
 
 const panel = createLazyModule(() => import('./events-panel'))
@@ -28,6 +28,9 @@ export function EventsAside() {
 	const pinned = useSyncExternalStore(subscribePinned, isEventsPinned, pinnedOnServer)
 
 	const Panel = useLazyModule(panel, false)?.EventsPanel
+
+	// The mounted panel lets the sheet show Pin.
+	useEffect(addEventsDock, [])
 
 	// The store pauses while the panel loads, so it does not record the load of
 	// its own module. A load that fails leaves the box empty.
