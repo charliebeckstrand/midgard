@@ -142,11 +142,13 @@ export const space = {
 			sheet: 'last:not-in-[[data-slot=sheet]_:not(:last-child)]:density-mb-[4,5,6,7,8]',
 		},
 		/**
-		 * The bottom inset of a panel on the bottom edge below `sm`, plus the home
-		 * indicator inset of a page with `viewport-fit=cover`. Elsewhere the inset of
-		 * the home indicator is zero. Each stop is the stop of `bottom` at that step.
+		 * The bottom padding of a panel that sits on the bottom edge below `sm`.
+		 * `--ui-panel-bottom` holds the stop of `bottom` at the step of the panel.
+		 * Below `sm`, `--ui-panel-safe` holds the inset of the home indicator of a
+		 * page with `viewport-fit=cover`, and elsewhere it is zero. One plain padding
+		 * adds the two, so `cn` merges it with the padding of a consumer `className`.
 		 */
-		safe: 'max-sm:density-pb-safe-[4,5,6,7,8]',
+		safe: 'density-set-[4,5,6,7,8]/[--ui-panel-bottom] max-sm:[--ui-panel-safe:env(safe-area-inset-bottom)] pb-[calc(var(--ui-panel-bottom)+var(--ui-panel-safe,0px))]',
 	},
 	shell: {
 		/** The padding of the sidebar layout regions. */
@@ -172,10 +174,12 @@ export const space = {
 	},
 	avatar: {
 		/**
-		 * The overlap of each avatar of a group onto the one before it. The group
-		 * keeps the value of its step, and each avatar takes it.
+		 * The overlap of each avatar of a group onto the one before it.
+		 * `--ui-avatar-overlap` holds the negative length of the step of the group,
+		 * and each avatar takes it as its margin (`space-x`). Thus an avatar with
+		 * its own density scope takes the overlap of the group.
 		 */
-		overlap: 'density-space-x-[-0.5,-0.5,-1,-1,-1]',
+		overlap: 'density-set-[-0.5,-0.5,-1,-1,-1]/[--ui-avatar-overlap] space-x-(--ui-avatar-overlap)',
 	},
 	dashboard: {
 		/**

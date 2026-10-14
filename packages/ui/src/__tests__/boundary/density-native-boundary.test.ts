@@ -211,7 +211,7 @@ describe('density step variants', () => {
 
 		expect(STEP_VARIANT.test('before:density-rounded-ring-[1,1.5,2,2.5,3]')).toBe(false)
 
-		expect(STEP_VARIANT.test('max-sm:density-pb-safe-[4,5,6,7,8]')).toBe(false)
+		expect(STEP_VARIANT.test('max-sm:density-set-[4,5,6,7,8]/[--ui-panel-bottom]')).toBe(false)
 
 		expect(STEP_VARIANT.test('density-any:h-4')).toBe(false)
 	})

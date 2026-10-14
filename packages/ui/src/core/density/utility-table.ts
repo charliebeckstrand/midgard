@@ -21,8 +21,7 @@ export type UtilityEntry = {
 	value: UtilityValue
 	/**
 	 * The class group of the same properties in `tailwind-merge`, when it is not
-	 * the name of the utility. A utility that sets one custom property has the
-	 * group of its arbitrary property class, such as `[--touch-target-gap-x:0px]`.
+	 * the name of the utility.
 	 */
 	group?: string
 	/**
@@ -30,18 +29,6 @@ export type UtilityEntry = {
 	 * a kasane surface.
 	 */
 	ring?: true
-	/**
-	 * A CSS term that the utility adds to its value, such as
-	 * ` + env(safe-area-inset-bottom)`.
-	 */
-	add?: string
-	/**
-	 * Whether the element keeps the value in a custom property, and each child
-	 * of the element takes its properties from that custom property. Thus the
-	 * step of the element, and not the step of each child, gives the value.
-	 * Only `space-x` uses it.
-	 */
-	capture?: true
 }
 
 /**
@@ -52,7 +39,9 @@ export type UtilityEntry = {
  * The plugin of `utilities.ts` registers each utility from this table, and
  * `core/tw-merge.ts` builds its class groups and conflicts from it. So a new
  * utility is one entry, and `cn` merges it with no other change. The table
- * holds data only, so `cn` reads it with no plugin code.
+ * holds data only, so `cn` reads it with no plugin code. `density-set` is not
+ * in the table, because its modifier gives the property that it writes
+ * (`utilities.ts`).
  *
  * @internal
  */
@@ -62,12 +51,6 @@ export const utilityTable = {
 	py: { properties: ['padding-block'], value: 'spacing', ring: true },
 	pt: { properties: ['padding-top'], value: 'spacing' },
 	pb: { properties: ['padding-bottom'], value: 'spacing' },
-	'pb-safe': {
-		properties: ['padding-bottom'],
-		value: 'spacing',
-		group: 'pb',
-		add: ' + env(safe-area-inset-bottom)',
-	},
 	ps: { properties: ['padding-inline-start'], value: 'spacing', ring: true },
 	pe: { properties: ['padding-inline-end'], value: 'spacing', ring: true },
 	ms: { properties: ['margin-inline-start'], value: 'margin', ring: true },
@@ -85,13 +68,6 @@ export const utilityTable = {
 	w: { properties: ['width'], value: 'size' },
 	'min-w': { properties: ['min-width'], value: 'spacing' },
 	'inset-s': { properties: ['inset-inline-start'], value: 'spacing', group: 'start' },
-	'touch-gap-x': { properties: ['--touch-target-gap-x'], value: 'spacing' },
-	'touch-gap-y': { properties: ['--touch-target-gap-y'], value: 'spacing' },
-	'space-x': {
-		properties: ['margin-inline-start', 'margin-inline-end'],
-		value: 'margin',
-		capture: true,
-	},
 	text: { properties: ['font-size', 'line-height'], value: 'text', group: 'font-size' },
 	rounded: { properties: ['border-radius'], value: 'radius', ring: true },
 } as const satisfies Record<string, UtilityEntry>

@@ -41,20 +41,20 @@ const scaleY = {
  * same stop, so the hit areas meet and do not overlap at each step.
  */
 const touchX = {
-	xs: 'density-touch-gap-x-[0.25,0.5,1,1.5,2.5]',
-	sm: 'density-touch-gap-x-[0.5,1,2,3,4.5]',
-	md: 'density-touch-gap-x-[1,2,3,4,5]',
-	lg: 'density-touch-gap-x-[2,3,4,5,6]',
-	xl: 'density-touch-gap-x-[4,5,6,7,8]',
+	xs: 'density-set-[0.25,0.5,1,1.5,2.5]/[--touch-target-gap-x]',
+	sm: 'density-set-[0.5,1,2,3,4.5]/[--touch-target-gap-x]',
+	md: 'density-set-[1,2,3,4,5]/[--touch-target-gap-x]',
+	lg: 'density-set-[2,3,4,5,6]/[--touch-target-gap-x]',
+	xl: 'density-set-[4,5,6,7,8]/[--touch-target-gap-x]',
 } as const
 
 /** The gap that a hit area can fill between two hosts in a stack, as `touchX` gives in a row. */
 const touchY = {
-	xs: 'density-touch-gap-y-[0.25,0.5,1,1.5,2.5]',
-	sm: 'density-touch-gap-y-[0.5,1,2,3,4.5]',
-	md: 'density-touch-gap-y-[1,2,3,4,5]',
-	lg: 'density-touch-gap-y-[2,3,4,5,6]',
-	xl: 'density-touch-gap-y-[4,5,6,7,8]',
+	xs: 'density-set-[0.25,0.5,1,1.5,2.5]/[--touch-target-gap-y]',
+	sm: 'density-set-[0.5,1,2,3,4.5]/[--touch-target-gap-y]',
+	md: 'density-set-[1,2,3,4,5]/[--touch-target-gap-y]',
+	lg: 'density-set-[2,3,4,5,6]/[--touch-target-gap-y]',
+	xl: 'density-set-[4,5,6,7,8]/[--touch-target-gap-y]',
 } as const
 
 /** The gap of a control and of a badge: half of the block padding of a control. */
@@ -76,14 +76,14 @@ export const gap = {
 		 * slot, one step below the host, and `kata/tag-input.ts` gives the lengths.
 		 */
 		tags: {
-			x: 'density-touch-gap-x-[3,3,3.5,4,4]',
-			y: 'density-touch-gap-y-[2,2,2.5,3,3]',
+			x: 'density-set-[3,3,3.5,4,4]/[--touch-target-gap-x]',
+			y: 'density-set-[2,2,2.5,3,3]/[--touch-target-gap-y]',
 		},
 		/**
 		 * The touch gap along the row of query chips. The row is a slot, one step
 		 * below the scope around it, and `kata/query-chips.ts` gives the lengths.
 		 */
-		chips: 'density-touch-gap-x-[2.75,3.25,3.75,4.25,4.25]',
+		chips: 'density-set-[2.75,3.25,3.75,4.25,4.25]/[--touch-target-gap-x]',
 	},
 	/** The default gap: a card footer, the calendar footer, and the segment control. */
 	default: scale.sm,

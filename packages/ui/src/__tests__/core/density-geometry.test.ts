@@ -42,7 +42,7 @@ function rampAt(path: string): string {
  * utility subtracts its 1 px ring. Each other ramp gives its spacing stop.
  */
 function pxOf(ramp: string): Record<DensityStep, number> {
-	const match = /density-([a-z-]+)-\[([^\]]+)\]$/.exec(ramp)
+	const match = /density-([a-z-]+)-\[([^\]]+)\](?:\/\[--[a-z0-9-]+\])?$/.exec(ramp)
 
 	if (!match) throw new Error(`Not a ramp: ${ramp}`)
 
@@ -167,7 +167,9 @@ describe('spacing steps', () => {
 
 				const ramp = dan.gap.touch[axis][stop]
 
-				expect(ramp).toMatch(new RegExp(`^density-touch-gap-${axis}-\\[`))
+				expect(ramp).toMatch(
+					new RegExp(`^density-set-\\[[^\\]]+\\]/\\[--touch-target-gap-${axis}\\]$`),
+				)
 
 				expect(pxOf(ramp)).toStrictEqual(gap)
 			},
@@ -182,7 +184,9 @@ describe('spacing steps', () => {
  */
 function rampsOf(node: unknown, path: string[] = []): [string, string][] {
 	if (typeof node === 'string') {
-		const classes = node.split(/\s+/).filter((token) => /density-[a-z-]+-\[[^\]]+\]$/.test(token))
+		const classes = node
+			.split(/\s+/)
+			.filter((token) => /density-[a-z-]+-\[[^\]]+\](?:\/\[--[a-z0-9-]+\])?$/.test(token))
 
 		return classes.map((token, index) => [
 			classes.length > 1 ? `${path.join('.')}#${index}` : path.join('.'),
@@ -198,7 +202,8 @@ function rampsOf(node: unknown, path: string[] = []): [string, string][] {
 }
 
 /** The values of `ramp` at each step, as written. */
-const valuesOf = (ramp: string) => (/\[([^\]]+)\]$/.exec(ramp)?.[1] ?? '').split(',')
+const valuesOf = (ramp: string) =>
+	(/\[([^\]]+)\](?:\/\[--[a-z0-9-]+\])?$/.exec(ramp)?.[1] ?? '').split(',')
 
 /**
  * The ramps of the combinator between query chips. The combinator sits one step

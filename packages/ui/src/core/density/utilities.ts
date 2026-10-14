@@ -35,11 +35,20 @@
  * scale. A name must be a key of the theme, for example `--text-sm`, or the
  * class writes no CSS.
  *
- * Four utilities have a special form. `density-pb-safe` adds the bottom inset
- * of the safe area to its padding. `density-touch-gap-x` and
- * `density-touch-gap-y` set the gap that a hit area (`TouchTarget`) can fill.
- * `density-space-x` keeps its value in a custom property of the group, and
- * each child takes its margins from it (`captured`).
+ * `density-set` writes a custom property, and a plain utility reads it. The
+ * modifier gives the name of the property in brackets, and the list gives
+ * stops of the spacing scale, for example
+ * `density-set-[4,5,6,7,8]/[--ui-panel-bottom]`. A stop can be negative.
+ * A modifier that is not the name of a custom property, or no modifier, writes
+ * no CSS. So does a name that the stepped classes read: a weight
+ * (`--ui-d<step>` or `--ui-h<step>`), `--spacing`, or a name of Tailwind
+ * (`--tw-*`). Such a property would read itself, and each stepped class below
+ * it would write no value. The element that declares the property computes the `var()` of each
+ * weight, so the property holds the length of the step of that element. Each
+ * descendant reads that length, and not the length of its own step. Thus a
+ * plain reader gives a value that the stepped utilities cannot give, for
+ * example `pb-[calc(var(--ui-panel-bottom)+var(--ui-panel-safe,0px))]` or
+ * `space-x-(--ui-avatar-overlap)`.
  *
  * A kasane surface draws a 1 px ring inside its box. A ring utility takes a
  * stop of the spacing scale and subtracts the ring, so the content lines up
@@ -219,23 +228,18 @@ function pick(kind: 'number' | 'length', values: ByStep<number> | ByStep<string>
 		: lengthSum(values as ByStep<string>)
 }
 
-/**
- * The CSS of a list of stops of the spacing scale, less the 1 px ring for a
- * ring utility, plus the term `add`.
- */
-function stops(values: ByStep<string>, ring = false, add = ''): string {
-	const rest = `${ring ? ' - 1px' : ''}${add}`
+/** The CSS of a list of stops of the spacing scale, less the 1 px ring for a ring utility. */
+function stops(values: ByStep<string>, ring = false): string {
+	const rest = ring ? ' - 1px' : ''
 
 	if (isFlat(values)) return `calc(var(--spacing) * ${values.md}${rest})`
 
 	return `calc(var(--spacing) * (${pick('number', mapSteps(values, Number))})${rest})`
 }
 
-/** The CSS of a list of lengths, plus the term `add`. */
-function lengths(values: ByStep<string>, add = ''): string {
-	if (isFlat(values)) return add ? `calc(${values.md}${add})` : values.md
-
-	return `calc(${pick('length', values)}${add})`
+/** The CSS of a list of lengths. */
+function lengths(values: ByStep<string>): string {
+	return isFlat(values) ? values.md : `calc(${pick('length', values)})`
 }
 
 /** The theme scale of the names that each kind of stepped utility takes. */
@@ -243,7 +247,7 @@ const scaleOf: Partial<Record<UtilityValue, string>> = { radius: 'radius', size:
 
 /** The declarations of a stepped utility of `entry` with `values`. */
 function declare(entry: UtilityEntry, values: ByStep<string>): CssInJs {
-	const { properties, value: kind, add = '' } = entry
+	const { properties, value: kind } = entry
 
 	if (kind === 'text') {
 		const size = isFlat(values)
@@ -260,43 +264,13 @@ function declare(entry: UtilityEntry, values: ByStep<string>): CssInJs {
 	}
 
 	if (densitySteps.every((step) => isMargin(values[step]))) {
-		return each(properties, stops(values, false, add))
+		return each(properties, stops(values))
 	}
 
 	const named = (value: string) =>
 		isStop(value) ? `calc(var(--spacing) * ${value})` : `var(--${scaleOf[kind]}-${value})`
 
-	return each(properties, lengths(mapSteps(values, named), add))
-}
-
-/**
- * The private custom property of a utility that captures its value (`capture`
- * in the table), such as `--ui-space-x`. It has the prefix of the weights for
- * the reason that `weightOf` gives.
- */
-const capturedOf = (name: string) => `--ui-${name}`
-
-/**
- * The rule of `space-x`, which captures its value: the element keeps the
- * value in a custom property, and each child but the last takes its margins
- * from it, as `space-x-*` of Tailwind gives them. A child that is a density
- * scope thus takes the step of the group, and not its own step. A group in a
- * group sets its own custom property, so its own margin in the outer group
- * also takes its own value.
- */
-function captured(name: string, declarations: CssInJs): CssInJs {
-	const property = capturedOf(name)
-
-	const length = Object.values(declarations)[0] as string
-
-	return {
-		[property]: length,
-		':where(& > :not(:last-child))': {
-			'--tw-space-x-reverse': '0',
-			'margin-inline-start': `calc(var(${property}) * var(--tw-space-x-reverse))`,
-			'margin-inline-end': `calc(var(${property}) * calc(1 - var(--tw-space-x-reverse)))`,
-		},
-	}
+	return each(properties, lengths(mapSteps(values, named)))
 }
 
 /**
@@ -328,17 +302,39 @@ function checks(theme: PluginAPI['theme']): Record<UtilityValue, (value: string)
  * Makes the callback of a stepped utility for `matchUtilities`. The utility
  * takes one arbitrary value with the value of each step, for example
  * `density-p-[2,3,4]`, and writes one rule in the layer `density-0`. A value
- * that `isValid` rejects, or a list of the wrong length, writes no CSS.
+ * that `isValid` rejects, or a list of the wrong length, writes no CSS. Tailwind
+ * gives the modifier of the class to `toRule`, and a rule of `null` writes no
+ * CSS.
  */
-function stepped(isValid: (value: string) => boolean, toRule: (values: ByStep<string>) => CssInJs) {
-	return (list: string): CssInJs[] => {
+function stepped(
+	isValid: (value: string) => boolean,
+	toRule: (values: ByStep<string>, modifier: string | null) => CssInJs | null,
+) {
+	return (list: string, extra?: { modifier: string | null }): CssInJs[] => {
 		const values = valuesByStep(list)
 
 		if (!values || !densitySteps.every((step) => isValid(values[step]))) return []
 
-		return [{ [layer]: toRule(values) }]
+		const rule = toRule(values, extra?.modifier ?? null)
+
+		return rule ? [{ [layer]: rule }] : []
 	}
 }
+
+/**
+ * The custom property that the modifier of `density-set` gives, such as
+ * `--ui-panel-bottom` for `/[--ui-panel-bottom]`, or `null` for each other
+ * modifier and for a name that the stepped classes read. Tailwind removes the brackets of an arbitrary modifier, and
+ * the function also removes them if they are there.
+ */
+function propertyOf(modifier: string | null): string | null {
+	const name = modifier?.replace(/^\[(.*)\]$/, '$1')
+
+	return name && /^--[a-z0-9-]+$/i.test(name) && !RESERVED.test(name) ? name : null
+}
+
+/** The custom properties that the stepped classes read: the weights, `--spacing`, and the names of Tailwind. */
+const RESERVED = /^--(?:ui-[dh](?:xs|sm|md|lg|xl)|spacing|tw-[a-z0-9-]*)$/i
 
 /** The selectors of the scopes of `step`: a root class, if the step has one, and `data-density`. */
 function scopeOf(step: DensityStep): string {
@@ -404,13 +400,19 @@ export const handler: PluginCreator = ({ addBase, matchUtilities, theme }) => {
 
 	const valid = checks(theme)
 
+	matchUtilities({
+		'density-set': stepped(valid.margin, (values, modifier) => {
+			const property = propertyOf(modifier)
+
+			return property ? { [property]: stops(values) } : null
+		}),
+	})
+
 	for (const [name, entry] of Object.entries(utilityTable) as [string, UtilityEntry][]) {
 		const { properties, value } = entry
 
 		matchUtilities({
-			[`density-${name}`]: stepped(valid[value], (values) =>
-				entry.capture ? captured(name, declare(entry, values)) : declare(entry, values),
-			),
+			[`density-${name}`]: stepped(valid[value], (values) => declare(entry, values)),
 		})
 
 		if (!entry.ring) continue

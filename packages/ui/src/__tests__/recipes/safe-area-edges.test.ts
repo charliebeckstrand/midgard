@@ -1,6 +1,5 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { utilityTable } from '../../core/density/utility-table'
 import { k as dialog } from '../../recipes/kata/dialog'
 import { k as drawer } from '../../recipes/kata/drawer'
 import { k as sheet } from '../../recipes/kata/sheet'
@@ -36,11 +35,13 @@ describe('safe-area insets on edge surfaces', () => {
 	it('pads the dialog where it docks to the bottom edge, at each density step', () => {
 		const classes = dialog.panel({}).split(' ')
 
-		expect(classes).toContain('density-pb-[4,5,6,7,8]')
+		expect(classes).not.toContain('density-pb-[4,5,6,7,8]')
 
-		expect(classes).toContain('max-sm:density-pb-safe-[4,5,6,7,8]')
+		expect(classes).toContain('density-set-[4,5,6,7,8]/[--ui-panel-bottom]')
 
-		expect(utilityTable['pb-safe'].add).toContain(bottom)
+		expect(classes).toContain(`max-sm:[--ui-panel-safe:${bottom}]`)
+
+		expect(classes).toContain('pb-[calc(var(--ui-panel-bottom)+var(--ui-panel-safe,0px))]')
 	})
 
 	it('pads each drawer height by the inset alone', () => {
