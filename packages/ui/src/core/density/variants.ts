@@ -15,8 +15,8 @@
  * `density-[xs,sm]` matches each step of the list, as the triad of its steps
  * does. It serves a class of a pseudo-element, such as
  * `density-[xs,sm]:before:rounded-ring-1.5`. A pseudo-element ends a selector,
- * so the density variant comes before it. A stepped utility after a
- * pseudo-element writes no rule that a browser can match.
+ * so the density variant comes before it. A stepped utility of `utilities.ts`
+ * has no rungs, and it also works after a pseudo-element.
  *
  * `density-any` is the rank below each step: it applies at each density. It is
  * in the layer of the root rungs (`density-0`) with no specificity, so each step
