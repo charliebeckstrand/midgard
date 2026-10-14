@@ -1,7 +1,7 @@
 'use client'
 
-import { cloneElement, type MouseEventHandler, type ReactElement } from 'react'
-import { composeEventHandlers } from '../../core'
+import type { MouseEventHandler, ReactElement } from 'react'
+import { cloneWithAction } from '../trigger-child/trigger-child'
 import { usePanelCloseContext } from './panel-close-context'
 
 /** Props for {@link PanelClose}: a single clickable child whose `onClick` also dismisses the panel. */
@@ -16,9 +16,5 @@ export type PanelCloseProps = {
 export function PanelClose({ children }: PanelCloseProps) {
 	const { close } = usePanelCloseContext()
 
-	return cloneElement(children, {
-		onClick: composeEventHandlers(children.props.onClick, close, {
-			checkForDefaultPrevented: false,
-		}),
-	})
+	return cloneWithAction(children, close)
 }

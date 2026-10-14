@@ -1,5 +1,12 @@
-import { isValidElement, type ReactElement, type ReactNode, type Ref } from 'react'
-import { cn } from '../../core'
+import {
+	cloneElement,
+	isValidElement,
+	type MouseEventHandler,
+	type ReactElement,
+	type ReactNode,
+	type Ref,
+} from 'react'
+import { cn, composeEventHandlers } from '../../core'
 
 /**
  * A single element child that a trigger clones. Its own `ref` (React 19 ref as
@@ -72,4 +79,27 @@ export function TriggerChild({ child, props, ref, slot, className }: TriggerChil
 			{...(mergedClassName !== '' && { className: mergedClassName })}
 		/>
 	)
+}
+
+/**
+ * Clones a single child, so that a click on it also runs `action`. The
+ * `onClick` of the child runs first, and `action` runs also when the child
+ * calls `preventDefault()`. `props` go on the clone after the merged `onClick`.
+ *
+ * A close or clear part, such as `PopoverClose`, lends its action to the child
+ * with this, and leaves the rest of the child as it is.
+ *
+ * @internal
+ */
+export function cloneWithAction(
+	child: ReactElement<{ onClick?: MouseEventHandler }>,
+	action: () => void,
+	props?: Record<string, unknown>,
+): ReactElement {
+	return cloneElement(child, {
+		onClick: composeEventHandlers(child.props.onClick, action, {
+			checkForDefaultPrevented: false,
+		}),
+		...props,
+	})
 }
