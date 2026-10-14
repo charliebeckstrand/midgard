@@ -79,8 +79,13 @@ export const space = {
 		/** The padding of a nav item. */
 		item: navItem,
 	},
-	/** The padding of an alert and a code block. */
+	/** The padding of an alert and of the scroll box of a code block. */
 	alert: scale.p.lg,
+	/**
+	 * The inset of the copy button of a code block: the top and the end padding
+	 * of the block, which the scroll box beside it does not cover.
+	 */
+	codeCopy: 'density-pt-[2,3,4,5,6] density-pe-[2,3,4,5,6]',
 	/** The padding of a popover panel. */
 	popover: scale.p.lg,
 	/**

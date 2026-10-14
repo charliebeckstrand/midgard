@@ -235,8 +235,10 @@ export function primeCodeBlock({
  * selects them: a dark theme gets light colors, and a light theme gets dark
  * colors.
  *
- * At `md` the block is `p-4` with `text-sm` code. The CopyButton keeps the
- * `sm` size at each step, and it centers on the first code line.
+ * At `md` the block is `p-4` with `text-sm` code. The padding is part of the
+ * scroll container, so a swipe or a wheel on the padding scrolls the code
+ * too. The CopyButton keeps the `sm` size at each step, and it centers on the
+ * first code line.
  */
 export function CodeBlock({
 	code: rawCode,
