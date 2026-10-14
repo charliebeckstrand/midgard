@@ -26,7 +26,7 @@ function isNativeClick(event: MouseEvent<HTMLAnchorElement>, target: string | un
  * The link of ui in the docs. A click on a path of the site goes through the
  * router, so a page switch keeps the shell. The link loads the code of its
  * page when the reader points at it or focuses it for 100 ms, as the
- * `prefetch="intent"` of `Link` does. A touch loads the code at once.
+ * `prefetch="intent"` of `Link` does.
  *
  * A hash alone, such as `#disabled`, also goes through the router, to an
  * element of the current page.
@@ -45,7 +45,6 @@ export function RouterLink({
 	onMouseLeave,
 	onFocus,
 	onBlur,
-	onTouchStart,
 	...props
 }: LinkProps) {
 	const navigate = useShellNavigate()
@@ -67,15 +66,6 @@ export function RouterLink({
 	// A second hover or focus does not start the 100 ms again.
 	const start = () => {
 		if (!timeout.pending()) timeout.set(() => setPrefetch(true), 100)
-	}
-
-	// A tap usually ends before the 100 ms, so the prefetch would start after
-	// the click. A scroll that starts on the link then loads the code of one
-	// page, which costs little.
-	const touch = () => {
-		timeout.clear()
-
-		setPrefetch(true)
 	}
 
 	const cancel = () => {
@@ -107,7 +97,6 @@ export function RouterLink({
 				onMouseLeave={composeEventHandlers(onMouseLeave, cancel)}
 				onFocus={composeEventHandlers(onFocus, start)}
 				onBlur={composeEventHandlers(onBlur, cancel)}
-				onTouchStart={composeEventHandlers(onTouchStart, touch)}
 			/>
 			{isPage && prefetch && <PrefetchPageLinks page={href} />}
 		</>
