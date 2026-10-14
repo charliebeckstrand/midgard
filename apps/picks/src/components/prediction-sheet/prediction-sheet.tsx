@@ -101,13 +101,12 @@ function PredictionForm({
 	onSubmit: (values: PickValues) => Promise<SubmitResult<PickValues> | undefined>
 	onCancel: () => void
 }) {
+	const defaultValues = Object.fromEntries(
+		Object.entries(picks ?? {}).map(([id, pick]) => [id, pick.team]),
+	)
+
 	return (
-		<Form<PickValues>
-			defaultValues={Object.fromEntries(
-				Object.entries(picks ?? {}).map(([id, pick]) => [id, pick.team]),
-			)}
-			onSubmit={onSubmit}
-		>
+		<Form<PickValues> defaultValues={defaultValues} onSubmit={onSubmit}>
 			<SheetBody>
 				<Stack gap="lg" className="pb-6">
 					<Text tone="muted" size="sm">
@@ -170,10 +169,10 @@ export function PredictionSheet({
 	// so the words stay those of the open.
 	const [held, setHeld] = useState<{ week: Week; editing: boolean } | null>(null)
 
-	const [last, setLast] = useState<Week | null>(null)
+	const [prevWeek, setPrevWeek] = useState<Week | null>(null)
 
-	if (week !== last) {
-		setLast(week)
+	if (week !== prevWeek) {
+		setPrevWeek(week)
 
 		if (week !== null) {
 			setHeld({ week, editing: picks[week.number] !== undefined })

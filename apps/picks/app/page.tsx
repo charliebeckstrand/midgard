@@ -114,7 +114,7 @@ export default async function Page() {
 		closingWeek(schedule, started, now),
 	])
 
-	const season = Object.values(tallies).reduce(addTally, EMPTY_TALLY)
+	const seasonTally = Object.values(tallies).reduce(addTally, EMPTY_TALLY)
 
 	return (
 		<>
@@ -123,7 +123,7 @@ export default async function Page() {
 			<Container size="full" padding="lg" className="py-6">
 				<Suspense>
 					<ScheduleList
-						header={<TallyTotal tally={season} />}
+						header={<TallyTotal tally={seasonTally} />}
 						season={schedule.season}
 						weeks={schedule.weeks}
 						picks={seed(picks)}
