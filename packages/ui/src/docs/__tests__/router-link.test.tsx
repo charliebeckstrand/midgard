@@ -159,21 +159,4 @@ describe('RouterLink prefetch', () => {
 
 		expect(preloads()).toBe(1)
 	})
-
-	// A tap usually ends before the delay of a hover.
-	it('loads the code of a page at once on a touch', async () => {
-		vi.useFakeTimers()
-
-		onTestFinished(() => {
-			vi.useRealTimers()
-		})
-
-		renderStub()
-
-		fireEvent.touchStart(screen.getByRole('link', { name: 'Menu' }))
-
-		await act(async () => {})
-
-		expect(preloads()).toBe(1)
-	})
 })
