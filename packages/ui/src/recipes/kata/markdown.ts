@@ -16,7 +16,7 @@
  * markers, and the structural rule/border colors are the kata's concern;
  * foreground color is the container's.
  */
-import { ji, sen } from '../kiso'
+import { ji, omote, sen } from '../kiso'
 
 const { size, weight } = ji
 
@@ -57,8 +57,10 @@ export const k = {
 	blockquote: ['my-4 border-s-2 border-zinc-300 ps-4 italic dark:border-zinc-700'],
 	hr: ['border-0 border-t', ...sen.border.color.default, 'my-6'],
 
-	// Emphasis rule under the header, default rule under cells.
-	table: 'my-4 w-full text-start',
+	// A wide table scrolls in its own box (`omote.rail`), so the container of
+	// the prose does not scroll. Emphasis rule under the header, default rule under cells.
+	tableScroll: ['my-4', ...omote.rail],
+	table: 'w-full text-start',
 	th: [weight.semibold, 'border-b px-3 py-2', ...sen.border.color.emphasis],
 	td: ['border-b px-3 py-2', ...sen.border.color.default],
 	// biome-ignore lint/plugin/no-physical-side: a table column that `:---` marks is left-aligned by name, and the map renders that name as the author wrote it

@@ -143,6 +143,17 @@ describe('Markdown', () => {
 		expect(el?.querySelector('tbody td')?.textContent).toBe('1')
 	})
 
+	it('scrolls a wide table in its own box, so the container of the prose does not scroll', () => {
+		const { container } = renderUI(<Markdown>{'| a | b |\n|---|---|\n| 1 | 2 |'}</Markdown>)
+
+		// The hook of the box makes it a named tab stop while the table overflows (use-scroll-region.test).
+		const box = bySlot(container, 'markdown')?.querySelector('table')?.parentElement
+
+		expect(box?.className).toContain('overflow-x-auto')
+
+		expect(box?.parentElement).toBe(bySlot(container, 'markdown'))
+	})
+
 	it('drops raw HTML in the source instead of injecting it', () => {
 		const { container } = renderUI(
 			<Markdown>{'<script>alert(1)</script>\n\nSafe **text**.'}</Markdown>,

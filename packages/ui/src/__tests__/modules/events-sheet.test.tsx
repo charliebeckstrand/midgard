@@ -231,9 +231,11 @@ describe('EventsSheet', () => {
 
 		expect(store.batched).toBe(false)
 
-		expect(await screen.findByText('scroll starts page')).toBeDefined()
+		// The view renders the change in the next frame. The open batch already
+		// shows its lines, so the test waits for the summary to go.
+		await vi.waitFor(() => expect(screen.queryByText(/\(2 lines,/)).toBeNull())
 
-		expect(screen.queryByText(/\(2 lines,/)).toBeNull()
+		expect(screen.getByText('scroll starts page')).toBeDefined()
 	})
 })
 

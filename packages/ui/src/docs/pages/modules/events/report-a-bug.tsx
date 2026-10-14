@@ -6,7 +6,7 @@ import { Text } from 'ui/text'
 import { ResetButton } from '../../../kit/reset-button.tsx'
 
 /** An error boundary that shows the message of the error, with a reset. */
-class Boundary extends Component<{ children: ReactNode }, { error?: Error }> {
+class Boundary extends Component<{ children: ReactNode; onReset: () => void }, { error?: Error }> {
 	override state: { error?: Error } = {}
 
 	static getDerivedStateFromError(error: Error) {
@@ -21,7 +21,7 @@ class Boundary extends Component<{ children: ReactNode }, { error?: Error }> {
 		return (
 			<Flex align="center" gap="sm">
 				<Text tone="muted">Caught: {error.message}</Text>
-				<ResetButton size="sm" onClick={() => this.setState({ error: undefined })} />
+				<ResetButton size="sm" onClick={this.props.onReset} />
 			</Flex>
 		)
 	}
@@ -38,11 +38,12 @@ export default function ReportABug() {
 	// browser reports, and the bug shows in the Bugs tab of the Events sheet.
 	return (
 		<Stack gap="md">
-			<Boundary key={String(broken)}>
+			{/* The reset removes the component that throws. The new key then mounts a new boundary with no error. */}
+			<Boundary key={String(broken)} onReset={() => setBroken(false)}>
 				{broken ? <Thrower /> : <Text tone="muted">The boundary holds no error.</Text>}
 			</Boundary>
 			<Flex wrap gap="sm">
-				<Button onClick={() => setBroken((prev) => !prev)}>Throw in render</Button>
+				<Button onClick={() => setBroken(true)}>Throw in render</Button>
 				<Button
 					onClick={() => {
 						throw new Error('handler fails')

@@ -94,7 +94,9 @@ export type MarkdownProps = {
  * [marked](https://marked.js.org) and styled as prose, in a block `<div>`.
  * GitHub-flavored Markdown is enabled, so tables, task lists,
  * `~~strikethrough~~`, and autolinks all parse. With `breaks`, each line break
- * in a paragraph renders as a `<br>`.
+ * in a paragraph renders as a `<br>`. A table that is wider than the prose
+ * scrolls on the inline axis in its own box, as a fenced code block does, so
+ * the container of the prose does not scroll.
  *
  * @remarks
  * Static, server-renderable leaf: lexing and rendering are synchronous and
