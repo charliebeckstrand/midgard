@@ -192,10 +192,11 @@ export async function inlinePage(
  * Writes the critical CSS of each prerendered page into the head of its HTML.
  *
  * Tailwind's `Scanner` finds the classes in the HTML of the page, and
- * Tailwind compiles `stylesheet` for those classes only. The `dark:` and
- * density variants of a class come with it, so each appearance paints
- * correctly before the full stylesheet loads. The full stylesheet loads after
- * hydration (`app/root.tsx`).
+ * Tailwind compiles `stylesheet` for those classes only. The `dark:` variant
+ * of a class comes with it, and each page gets the base rules of the density
+ * scopes. So each appearance and each density step paints correctly before
+ * the full stylesheet loads. The full stylesheet loads after hydration
+ * (`app/root.tsx`).
  *
  * The `<style>` takes the `default` precedence of React, so React puts the
  * full stylesheet after it, and a rule of the full stylesheet wins over the

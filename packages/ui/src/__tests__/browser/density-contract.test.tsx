@@ -18,16 +18,15 @@ import { attach, densityStepOf, getSlot, present, renderUI } from '../helpers'
  * The cases cover the parts of the contract that `density-scope.test.tsx` does not hold: a root
  * change on a mounted tree, a slot in a slot, the `xs`, `sm`, and `md` hosts of a slot, a scope
  * deeper than two, a pseudo-element, two stepped classes on one property, the lists of three values
- * that the docs and `apps/places` use, the inset of an open dialog, and the two changes of the
- * stepped forms from the step variants (a group of `space-x` that reads `density-set`, and a rem
- * stop). A case that `density-scope.test.tsx` holds is not repeated here.
+ * that the docs and `apps/places` use, the inset of an open dialog, and two deliberate forms (a
+ * group of `space-x` that reads `density-set`, and a rem stop). A case that
+ * `density-scope.test.tsx` holds is not repeated here.
  *
  * A stepped class takes its value from inherited custom properties that each scope sets, so it
- * gives the step of the nearest scope at each depth, and on a pseudo-element. The rungs of the
- * step variants ranked only two depths, and a stepped class after a pseudo-element matched only at
- * `md`. Thus the cases of a deeper scope and of a stepped `::before` hold the change. A case of a
- * computed value has a case of the oracle step for the same row, so a wrong step or chain in a
- * table shows in the oracle case.
+ * gives the step of the nearest scope at each depth, and on a pseudo-element. The cases of a
+ * deeper scope and of a stepped `::before` hold that no limit of depth applies, and that a
+ * pseudo-element inherits the step of its element. A case of a computed value has a case of the
+ * oracle step for the same row, so a wrong step or chain in a table shows in the oracle case.
  *
  * No case holds the thumb of the native slider. `getComputedStyle(input, '::-webkit-slider-thumb')`
  * gives the values of the input, not of the thumb. The thumb also does not change the layout of
@@ -262,9 +261,7 @@ describe('the slot scope (real browser)', () => {
 })
 
 /**
- * A stepped class takes the step of the nearest scope at each depth. A slot counts as one depth.
- * The rungs of a step variant rank only two depths (`MAX_DEPTH`), so these chains hold the stepped
- * classes only.
+ * A stepped class takes the step of the nearest scope at each depth.
  */
 describe('scopes deeper than two (real browser)', () => {
 	beforeAll(() => page.viewport(390, 844))
@@ -363,6 +360,36 @@ describe('a pseudo-element (real browser)', () => {
 			expect(Number.parseFloat(radius)).toBe(RING_RADIUS_PX[step])
 		},
 	)
+})
+
+/**
+ * `density-any` is in the layer of the stepped classes with no specificity, so a stepped class on
+ * the same property wins over it at each step, and a plain class wins over both.
+ */
+describe('density-any (real browser)', () => {
+	beforeAll(() => page.viewport(390, 844))
+
+	/** The height of `density-h-[1,2,3,4,5]` at each step, in pixels. */
+	const HEIGHT_PX = { xs: 4, sm: 8, md: 12, lg: 16, xl: 20 } as const satisfies Record<
+		DensityStep,
+		number
+	>
+
+	const height = (element: Element) => Number.parseFloat(getComputedStyle(element).height)
+
+	it.each(densitySteps)('loses to a stepped class in a %s scope', (step) => {
+		expect(height(probe([step], 'block density-any:h-4 density-h-[1,2,3,4,5]'))).toBe(
+			HEIGHT_PX[step],
+		)
+	})
+
+	it('gives its value when no stepped class sets the property', () => {
+		expect(height(probe(['lg'], 'block density-any:h-4'))).toBe(16)
+	})
+
+	it('loses to a plain class', () => {
+		expect(height(probe(['lg'], 'block density-any:h-4 density-h-[1,2,3,4,5] h-8'))).toBe(32)
+	})
 })
 
 /**
@@ -572,7 +599,7 @@ describe('the bottom inset of an open dialog from sm up (real browser)', () => {
  * `density-set` keeps the overlap of its step on the group in `--ui-avatar-overlap`, and each child
  * takes its margin from it (`space-x-(--ui-avatar-overlap)`). A child that is its own scope thus takes the overlap of the group. A group in a group
  * sets its own overlap, so its margin in the outer group is its own overlap, not the overlap of the
- * outer group. The step variants gave the outer overlap there. This change is deliberate.
+ * outer group. This is deliberate.
  */
 describe('a group of space-x from density-set (real browser)', () => {
 	beforeAll(() => page.viewport(390, 844))
@@ -641,9 +668,8 @@ describe('a group of space-x from density-set (real browser)', () => {
 
 /**
  * The thumb of the WebKit slider sits on its track by a negative top margin in stops of the spacing
- * scale (`dan.space.slider.thumb`), so it scales with the font size of the root. The step variants
- * gave it in px (-3 px to -7 px), which matched the stops only at a 16 px root. This change is
- * deliberate.
+ * scale (`dan.space.slider.thumb`), so it scales with the font size of the root. At a 16 px root,
+ * it is -3 px to -7 px. This is deliberate.
  *
  * `getComputedStyle` does not read the thumb (see the top of this file), so a probe takes the same
  * stepped class with no pseudo-element.
@@ -679,7 +705,7 @@ describe('the thumb offset of a slider (real browser)', () => {
 		expect(dan.space.slider.thumb).toBe(`[&::-webkit-slider-thumb]:${THUMB}`)
 	})
 
-	it.each(densitySteps)('gives the px of the step variants at %s at a 16px root', (step) => {
+	it.each(densitySteps)('gives the px of the stops at %s at a 16px root', (step) => {
 		holdFontSize('16px')
 
 		expect(offset(step)).toBe(STOPS[step] * 4)

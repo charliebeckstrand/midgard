@@ -10,8 +10,8 @@
  *     (none / sm / md / lg / xl / full); `rounded.lg` → `rounded-lg`.
  *
  * A radius that follows density is a stepped `density-rounded-*` class, and
- * its inset fill is a `rounded-ring` class under a `density-*` variant, as
- * `kata/control.ts` writes them.
+ * its inset fill is a stepped `density-rounded-ring-*` class after `before:`,
+ * as `kata/control.ts` writes them.
  */
 
 import { layers } from './layers'

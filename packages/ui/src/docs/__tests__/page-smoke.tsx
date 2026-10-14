@@ -9,7 +9,6 @@ import { AppearanceProvider } from 'ui/providers/appearance'
 import { UIProvider } from 'ui/providers/ui'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { CI } from '../../../vitest.base.ts'
-import { MAX_DEPTH } from '../../core/density/rungs.ts'
 import { findPages, type Page } from '../plugin/pages.ts'
 import { restoreRootAfterCase } from './restore-root.ts'
 
@@ -24,10 +23,9 @@ import { restoreRootAfterCase } from './restore-root.ts'
 // route of its own, and each tab that an example shows. A page fails when it
 // throws, or when it writes to `console.error` or `console.warn`. It also fails
 // when a curated set of axe rules finds a violation in a state that it shows.
-// It fails too when a state nests more density scopes than the rungs rank
-// (`MAX_DEPTH`), or when two elements of a state have the same id. It fails
-// too when a state shows no example, so each page and each tab shows its unit
-// in an example or a playground.
+// It fails too when two elements of a state have the same id, or when a state
+// shows no example, so each page and each tab shows its unit in an example or
+// a playground.
 // `page-coverage.test.ts` asks whether a page exists, and this test asks
 // whether the page works.
 //
@@ -183,37 +181,6 @@ function captureConsole(): string[] {
 	return logged
 }
 
-/** The name of a scope in a chain: its tag, its step, and its `data-slot`. */
-function scopeName(scope: Element): string {
-	const slot = scope.getAttribute('data-slot')
-
-	return `${scope.localName}[${scope.getAttribute('data-density')}]${slot ? `{${slot}}` : ''}`
-}
-
-/**
- * The longest chain of density scopes in the document, outermost first. The
- * root element is the scope of the app, and it does not count as a depth.
- */
-function deepestScopeChain(): Element[] {
-	let deepest: Element[] = []
-
-	for (const scope of document.body.querySelectorAll('[data-density]')) {
-		const chain: Element[] = []
-
-		for (
-			let node: Element | null = scope;
-			node && node !== document.documentElement;
-			node = node.parentElement
-		) {
-			if (node.hasAttribute('data-density')) chain.unshift(node)
-		}
-
-		if (chain.length > deepest.length) deepest = chain
-	}
-
-	return deepest
-}
-
 /**
  * Each id that more than one element of the document has. An example heading
  * and an entry of the API reference take their ids from names, so two of them
@@ -239,8 +206,6 @@ type Walk = {
 	logged: readonly string[]
 	/** Each node that breaks an axe rule, as `rule: selector`. */
 	violations: readonly string[]
-	/** The longest chain of density scopes in a state, outermost first, as names. */
-	scopes: readonly string[]
 	/** Each id that two elements had in a state. */
 	duplicates: readonly string[]
 	/** The number of states that showed no example or playground. */
@@ -262,8 +227,8 @@ function load(folder: string): Promise<ComponentType> {
  * Renders a page at its path, with a child route for each tab, as the routes
  * of the docs app give it. The providers are the providers of the shell of the
  * docs app, and the `h1` of the page is the heading of the header of the
- * shell. It then opens each tab. In each state, it reads the depth of the
- * density scopes and runs axe.
+ * shell. It then opens each tab. In each state, it reads the ids, finds the
+ * examples, and runs axe.
  */
 async function walk(page: Page): Promise<Walk> {
 	restoreRootAfterCase()
@@ -301,13 +266,7 @@ async function walk(page: Page): Promise<Walk> {
 
 	let bare = 0
 
-	let deepest: Element[] = []
-
 	await visitTabs(container, async () => {
-		const chain = deepestScopeChain()
-
-		if (chain.length > deepest.length) deepest = chain
-
 		for (const id of duplicateIds()) duplicates.add(id)
 
 		// The frame of an example and of a playground (`kit/example.tsx`).
@@ -325,7 +284,6 @@ async function walk(page: Page): Promise<Walk> {
 	return {
 		logged: [...logged],
 		violations: [...violations],
-		scopes: deepest.map(scopeName),
 		duplicates: [...duplicates],
 		bare,
 		visited,
@@ -342,7 +300,7 @@ export function describePageSmoke(part: readonly Page[]): void {
 			// suite. The limit scales on CI by the factor of the suite `testTimeout`.
 			{ timeout: CI ? 180_000 : 60_000 },
 			async (_path, page) => {
-				const { logged, violations, scopes, duplicates, bare, visited } = await walk(page)
+				const { logged, violations, duplicates, bare, visited } = await walk(page)
 
 				expect(logged).toEqual([])
 
@@ -351,10 +309,6 @@ export function describePageSmoke(part: readonly Page[]): void {
 				expect(duplicates, 'two elements of a state have these ids').toEqual([])
 
 				expect(bare, 'states that show no example or playground').toBe(0)
-
-				expect(scopes.length, `${page.path} nests ${scopes.join(' > ')}`).toBeLessThanOrEqual(
-					MAX_DEPTH,
-				)
 
 				const closed = page.tabs
 					.map((tab) => `${page.path}/${tab}`)

@@ -133,10 +133,10 @@ describe('density scopes', () => {
 	})
 })
 
-// A class selects a density step through the `density-*` variants and the
-// stepped utilities. Those rank each match by the depth of its scope. A
-// `data-[density=…]` selector has no rank, so an outer scope can win over the
-// nearest one. The source therefore writes no such selector.
+// A class selects a density step through the stepped utilities, which read
+// the weights of the nearest scope. A `data-[density=…]` selector has no
+// proximity, so an outer scope can win over the nearest one. The source
+// therefore writes no such selector.
 
 const DENSITY_SELECTOR = /data-\[density=/
 
@@ -146,13 +146,13 @@ describe('density selectors', () => {
 	})
 })
 
-// A step variant, such as `density-md:p-3` or `density-[xs,sm]:p-2`, writes
-// rungs, which rank two depths of scopes. The source writes each step in a
-// stepped class, which takes the step of its nearest scope at each depth. A
-// stepped class after a pseudo-element, such as
-// `before:density-rounded-ring-[1,1.5,2,2.5,3]`, takes the custom properties
-// that the pseudo-element inherits, so a pseudo-element also needs no step
-// variant. `density-any` is not a step variant, and the source can use it.
+// A step variant, such as `density-md:p-3` or `density-[xs,sm]:p-2`, has no
+// plugin, so Tailwind writes no CSS for it and gives no error. This test is the
+// guard. The source writes each step in a stepped class, which takes the step
+// of its nearest scope at each depth. A stepped class after a pseudo-element,
+// such as `before:density-rounded-ring-[1,1.5,2,2.5,3]`, takes the custom
+// properties that the pseudo-element inherits. `density-any` is not a step
+// variant, and the source can use it.
 
 const STEP_VARIANT = /(?<![\w-])density-(?:xs|sm|md|lg|xl|\[[a-z,]+\]):/
 

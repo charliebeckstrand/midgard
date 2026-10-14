@@ -24,7 +24,7 @@ import { cn, createContext, createSlot, announce } from 'ui/core'
 | `downloadBlob` | Downloads a `Blob` under a file name through a transient object-URL anchor. The revoke of the URL waits for the next macrotask. A revoke in the same tick can stop the download in Firefox and Safari. |
 | `AnnounceOptions` *(type)* | Options for `announce` (politeness level). |
 | `ComposeEventHandlersOptions` *(type)* | Options for `composeEventHandlers` (`checkForDefaultPrevented`). |
-| `densitySteps` | The steps of density (`xs` / `sm` / `md` / `lg` / `xl`). The `density-*` Tailwind variants and utilities, `data-density`, and the density context all use them. |
+| `densitySteps` | The steps of density (`xs` / `sm` / `md` / `lg` / `xl`). The stepped `density-*` Tailwind utilities, `data-density`, and the density context all use them. |
 | `DensityStep` *(type)* | A step of density: a value of `data-density` and of the density context. |
 | `InnerStep` *(type)* | The three inner steps (`sm` / `md` / `lg`): a density level maps to one, and a JS reader with three values clamps to one. |
 | `defineScale` | Makes the size scale of a component from the ramps that its `size` drives. The scale holds each step at which one ramp at least has a value of its own. |

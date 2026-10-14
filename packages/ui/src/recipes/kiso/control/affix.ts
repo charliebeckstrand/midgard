@@ -39,7 +39,7 @@
  * `data-variant` of `<Swatch>` sits on a `<span>`. The arms match the
  * button whether it renders as `<button>` or, with `href`, as `<a>`.
  *
- * Each slot writes `data-density="slot"`. The rungs read it as a scope one
+ * Each slot writes `data-density="slot"`. The CSS reads it as a scope one
  * step below the scope above it (`slotStep` in `core/density`): sm → xs,
  * md → sm, lg → md, xl → lg. No step is below `xs`, so xs → xs. An `<Icon>`,
  * a `<LoadingSpinner>`, or a `<Badge>` in the slot takes that step through its

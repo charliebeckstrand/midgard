@@ -10,8 +10,8 @@ import { useDensityRoot } from './use-density-root'
  * or `null` outside each such scope. It carries the same value as the
  * `data-density` attribute of that scope. The root element is the scope of the
  * app, and the context does not hold it. A client component reads the context
- * only when it needs the step as a JS value. A class reads the attribute
- * through the `density-*` variants.
+ * only when it needs the step as a JS value. A stepped `density-*` class reads
+ * the step in CSS.
  */
 const [DensityContext, useDensityScope] = createContext<DensityStep | null>('Density', {
 	default: null,

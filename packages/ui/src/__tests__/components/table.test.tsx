@@ -282,7 +282,7 @@ describe('Table variants', () => {
 })
 
 describe('Table density resolution', () => {
-	// Cell padding steps are density variants: sm px-1, md px-2, lg px-3.
+	// Cell padding is a stepped class: sm px-1, md px-2, lg px-3.
 	// jsdom loads no stylesheet, so these cases check the scope and the classes.
 	// density-scope.test.tsx checks the computed padding in a real browser.
 	const body = (

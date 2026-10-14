@@ -1,7 +1,8 @@
 /**
  * The density utilities for Tailwind: the stepped utilities, the ring
  * utilities, and the base rules of the density scopes. `ui/tailwind.css` loads
- * this plugin with `@plugin`, and `utility-table.ts` lists each utility.
+ * this plugin with `@plugin`, and `utility-table.ts` lists each utility. The
+ * `density-any` variant of `variants.ts` writes the same layer.
  *
  * A stepped utility writes one property at each step in one class. The class
  * takes the value of each step as a list, for example `density-p-[2,3,4]`.
@@ -11,18 +12,30 @@
  * Each density scope sets inherited custom properties that give its step (the
  * base rules below). Each stepped class is one rule, and its value is one
  * `calc()` of those custom properties. Thus the element takes the value of its
- * nearest scope at each depth, and a pseudo-element takes the step of its
- * element. A stepped utility takes each variant, as a core utility does, for
- * example `*:data-[slot=icon]:density-size-[3,4,5,6,6]` or
- * `before:density-rounded-ring-[1,1.5,2,2.5,3]`.
+ * nearest scope at each depth, with no limit of depth. A pseudo-element
+ * inherits the step of its element. A stepped utility takes each variant, as a
+ * core utility does, for example `*:data-[slot=icon]:density-size-[3,4,5,6,6]`
+ * or `before:density-rounded-ring-[1,1.5,2,2.5,3]`. The rule of a stepped class
+ * has no selector of a scope, so it has the specificity of one class. Of two
+ * stepped classes on one property, the later rule in the sheet wins.
  *
- * Each stepped rule is in the nested layer `density-0` of `utilities`. A plain
+ * Each stepped rule is in the nested layer `density` of `utilities`. A plain
  * utility is in `utilities` itself, and it outranks each nested layer, so a
- * consumer `className` wins. The step variants of `variants.ts` also write
- * `density-0`, and Tailwind writes nested layers in the order of first use. A
- * new layer would thus come first, and it would lose to `density-0`, which
- * holds `density-any`. In `density-0`, the one class of a stepped rule wins
- * over the `:where()` of `density-any`.
+ * consumer `className` wins. `density-any` is in the same layer with no
+ * specificity, so the one class of a stepped rule wins over it.
+ *
+ * A weighted sum takes only finite numbers and lengths. So these values
+ * cannot be stepped:
+ *
+ * - A value that is not finite, such as the radius `full`. A weight of 0 times
+ *   infinity is not a number, so the class writes no CSS.
+ * - A name that is not a key of the theme. One unknown `var()` makes the sum
+ *   invalid at each step, so the plugin checks each name, and the class writes
+ *   no CSS.
+ * - A keyword, such as a value of `display`, `box-shadow`, or
+ *   `flex-direction`. No variant selects one step. A consumer adds a stepped
+ *   entry to `utility-table.ts` for a numeric value, or reads the step in JS
+ *   with `useDensityStep`, which paints `md` before hydration.
  *
  * A spacing utility takes stops of the spacing scale. A margin utility also
  * takes negative stops, for example `density-mb-[-3,-4,-5]`. `density-text`
@@ -75,7 +88,7 @@ type CssInJs = { [key: string]: string | CssInJs }
 type ByStep<T> = Record<DensityStep, T>
 
 /** The nested layer of each stepped rule. */
-const layer = '@layer density-0'
+const layer = '@layer density'
 
 /**
  * The custom property that holds the weight of `step` in a scope: 1 for the
@@ -217,8 +230,21 @@ function lengthSum(values: ByStep<string>): string {
  *
  * Each scope sets a weight of 1 for its step and 0 for each other step, so the
  * value is a weighted sum. A weighted sum takes only finite numbers and
- * lengths. When each browser of the floor ships `if()`, a form of
- * `if(style(…))` can replace this function, and it can then take keywords.
+ * lengths.
+ *
+ * Each change below starts when the floor of `.browserslistrc` moves, not at a
+ * date:
+ *
+ * - When each browser of the floor ships `if()`, this function can write
+ *   `if(style(…))`. It can then take keywords and values that are not finite.
+ * - A container style query reads the nearest ancestor container, not the
+ *   element. So it can give a variant for a descendant or a pseudo-element,
+ *   but not for a scope element itself. It does not replace the weights.
+ * - `@scope` with proximity gives the nearest scope for each rule. But each
+ *   rule needs its own `@scope` block, which Tailwind does not write from a
+ *   variant. The weights already give the nearest scope for each stepped value.
+ * - `inherit()` would let a control slot read the step of its parent with no
+ *   host weights. No browser ships it.
  */
 function pick(kind: 'number', values: ByStep<number>): string
 function pick(kind: 'length', values: ByStep<string>): string
@@ -301,7 +327,7 @@ function checks(theme: PluginAPI['theme']): Record<UtilityValue, (value: string)
 /**
  * Makes the callback of a stepped utility for `matchUtilities`. The utility
  * takes one arbitrary value with the value of each step, for example
- * `density-p-[2,3,4]`, and writes one rule in the layer `density-0`. A value
+ * `density-p-[2,3,4]`, and writes one rule in the layer `density`. A value
  * that `isValid` rejects, or a list of the wrong length, writes no CSS. Tailwind
  * gives the modifier of the class to `toRule`, and a rule of `null` writes no
  * CSS.
