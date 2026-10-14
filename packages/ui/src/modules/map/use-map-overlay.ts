@@ -504,7 +504,7 @@ export function useMapOverlay({
 		hidden: hidden.has(id),
 		project,
 		spare: spareHere,
-		// The resolver, left uncalled — see {@link MapOverlay.neighbours} for why it stays lazy.
+		// The resolver, left uncalled — see {@link MapOverlay.neighbors} for why it stays lazy.
 		neighbors: neighborsOf,
 		unitsPerPixel,
 		animate,
