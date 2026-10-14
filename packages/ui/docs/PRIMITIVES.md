@@ -28,6 +28,7 @@ import { TouchTarget } from 'ui/primitives/touch-target'
 | `link` | Link context exposing the framework link component an app registers (e.g. `next/link`), or the `'a'` fallback. | `LinkContext`, `useLink`, `LinkComponent`, `LinkContextValue` |
 | `option` | Selectable list-item primitive for select-like widgets. `createSelectOption` makes the option row and its slots. | `createSelectOption`, `OptionSelectionContext` |
 | `select-trigger` | Trigger chrome for the select family (Listbox, Combobox) over `ControlFrame`. | `SelectTrigger`, `SelectTriggerProps` |
+| `inline-script` | Internal, with no entry point. A `<script>` that runs before React hydrates. `AppearanceScript`, `CurrentScrollScript`, and the fit of a collapsing `Breadcrumb` render it. | `InlineScript` (`@internal`) |
 | `sortable-grip` | Internal, with no entry point. The drag grip of a sortable item, and the only part of the item that starts a drag. The Kanban, Dashboard, Grid, and QueryBuilder grips render it. | `SortableGrip` (`@internal`) |
 | `trigger-child` | Internal, with no entry point. Clones the single element child of a trigger. `PopoverTrigger`, `MenuTrigger`, `TooltipTrigger`, and `PanelTrigger` use it. | `TriggerChild`, `triggerChild` (`@internal`) |
 | `virtual-options` | Windowed option list (TanStack virtualizer) for `PopoverPanel` listboxes and the `CommandPalette` list. | `VirtualOptions`, `VirtualOptionMeta` |

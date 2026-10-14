@@ -1,3 +1,5 @@
+import { InlineScript } from '../inline-script/inline-script'
+
 // Scrolls each current item into view in its own scroller, as `useNavItem` and
 // `useTabListScroll` do at hydration, with the same 'nearest' rule: the least
 // scroll that shows the whole item. A nav item scrolls
@@ -38,6 +40,5 @@ export type CurrentScrollScriptProps = {
  * ```
  */
 export function CurrentScrollScript({ id }: CurrentScrollScriptProps) {
-	// biome-ignore lint/security/noDangerouslySetInnerHtml: a constant script with no user input.
-	return <script id={id} dangerouslySetInnerHTML={{ __html: SCRIPT }} />
+	return <InlineScript id={id} source={SCRIPT} />
 }

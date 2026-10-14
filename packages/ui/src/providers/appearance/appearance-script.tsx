@@ -1,6 +1,7 @@
 import { rootDensityClasses } from '../../core/density'
 import { rootReducedMotionClass } from '../../core/motion/root'
 import { rootOffcanvasSidebarClass } from '../../core/sidebar/root'
+import { InlineScript } from '../../primitives/inline-script/inline-script'
 import { levelToStep } from '../density/context'
 import { DARK_SCHEME, DENSITY, MOTION, SIDEBAR, THEME } from './appearance-storage'
 
@@ -33,6 +34,5 @@ const SCRIPT = `(function(){var r=document.documentElement,t=null,d=null,m=null,
  * an app that renders `UIDocument` does not render it.
  */
 export function AppearanceScript() {
-	// biome-ignore lint/security/noDangerouslySetInnerHtml: a constant script with no user input.
-	return <script dangerouslySetInnerHTML={{ __html: SCRIPT }} />
+	return <InlineScript source={SCRIPT} />
 }

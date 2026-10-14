@@ -99,6 +99,7 @@ const STATIC_PRIMITIVE_FILES = [
 	'polymorphic/types.ts',
 	'polymorphic/polymorphic-render-props.ts',
 	'link/link-rel.ts',
+	'inline-script/inline-script.tsx',
 ] as const
 
 const componentsDir = join(srcDir, 'components')

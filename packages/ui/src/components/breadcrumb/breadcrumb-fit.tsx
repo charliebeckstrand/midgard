@@ -13,6 +13,7 @@ import { cn } from '../../core'
 import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useHydrated } from '../../hooks/use-hydrated'
 import { useResizeObserver } from '../../hooks/use-resize-observer'
+import { InlineScript } from '../../primitives/inline-script/inline-script'
 import { breadcrumbFit, breadcrumbFitRule } from './breadcrumb-fit-rule'
 
 /**
@@ -119,10 +120,7 @@ export function BreadcrumbFit({ ref, className, children, ...props }: ComponentP
 				{children}
 			</nav>
 
-			{hydrated ? null : (
-				// biome-ignore lint/security/noDangerouslySetInnerHtml: a constant script with no user input.
-				<script dangerouslySetInnerHTML={{ __html: fitScript(id) }} />
-			)}
+			{hydrated ? null : <InlineScript source={fitScript(id)} />}
 		</>
 	)
 }
