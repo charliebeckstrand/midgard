@@ -250,6 +250,45 @@ describe('Lightbox reopened during the return (real browser)', () => {
 		},
 	)
 
+	it('opens again at rest after a close of a zoomed photo, and steps on the arrow keys', async () => {
+		renderUI(<Gallery />)
+
+		await open(0)
+
+		const stage = present(
+			document.querySelector<HTMLElement>('[data-slot="lightbox-stage"]'),
+			'the stage',
+		)
+
+		// The keys go to the viewer. The focus manager is not real in this project.
+		const focusViewer = () => screen.getByRole('button', { name: 'Next photo' }).focus()
+
+		focusViewer()
+
+		await userEvent.keyboard('+')
+
+		await expect.poll(still).toBe(true)
+
+		expect(stage).toHaveAttribute('data-zoomed')
+
+		await startReturn()
+
+		thumbnail(0).click()
+
+		await expect.poll(still).toBe(true)
+
+		// The reopen keeps the viewer that went back, so this is not a new mount.
+		expect(document.querySelector('[data-slot="lightbox-stage"]')).toBe(stage)
+
+		expect(stage).not.toHaveAttribute('data-zoomed')
+
+		focusViewer()
+
+		await userEvent.keyboard('{ArrowRight}')
+
+		await expect.poll(count).toBe('2 / 5')
+	})
+
 	// A close during a step stops the slide where it paints. A reopen then
 	// slides the track back to rest, so the photo in the center is centered,
 	// and no neighbor shows at the edge.

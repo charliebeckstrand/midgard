@@ -808,5 +808,37 @@ describe('Lightbox', () => {
 
 			expect(centerPhoto()).toHaveAttribute('alt', 'Field of poppies')
 		})
+
+		it('takes a zoomed photo back to rest when a controlled index changes the photo', () => {
+			stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+
+			const onIndexChange = vi.fn()
+
+			const { rerender } = renderUI(<Gallery index={1} onIndexChange={onIndexChange} />)
+
+			const stage = getSlot(document.body, 'lightbox-stage')
+
+			const photo = layOut(stage)
+
+			const dialog = screen.getByRole('dialog')
+
+			fireEvent.keyDown(dialog, { key: '+' })
+
+			expect(stage).toHaveAttribute('data-zoomed')
+
+			rerender(<Gallery index={0} onIndexChange={onIndexChange} />)
+
+			expect(centerPhoto()).toHaveAttribute('alt', 'Harbor at dawn')
+
+			// The photo that was zoomed is now beside the center, at rest.
+			expect(photo.style.transform).toBe('none')
+
+			expect(stage).not.toHaveAttribute('data-zoomed')
+
+			// At rest, the arrow keys step and do not pan.
+			fireEvent.keyDown(dialog, { key: 'ArrowRight' })
+
+			expect(onIndexChange).toHaveBeenLastCalledWith(1)
+		})
 	})
 })

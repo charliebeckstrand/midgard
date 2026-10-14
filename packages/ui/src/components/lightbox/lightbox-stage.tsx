@@ -219,6 +219,9 @@ export function LightboxStage({
 			if (leaving.current) {
 				setAim(null)
 
+				// The raise takes the photo to rest, so the zoom only drops its state.
+				track.zoom.clear(false)
+
 				flight.raise(home())
 
 				track.settle()
@@ -254,6 +257,24 @@ export function LightboxStage({
 	useLayoutEffect(() => {
 		followPresence(isPresent)
 	}, [isPresent])
+
+	// A zoom is for one photo. When another photo comes to the center outside a
+	// step, as a slide lands or a controlled index changes, the zoom goes back
+	// to rest. A shift of the places in `photos` keeps `photo.index`, and so
+	// keeps the zoom.
+	const center = photos[index]?.index
+
+	const shownCenter = useRef(center)
+
+	const clearZoom = useEffectEvent(() => track.zoom.clear(true))
+
+	useLayoutEffect(() => {
+		if (shownCenter.current === center) return
+
+		shownCenter.current = center
+
+		clearZoom()
+	}, [center])
 
 	const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
 		// A key with a modifier is for the browser, such as its own zoom.
