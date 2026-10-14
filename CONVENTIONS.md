@@ -68,6 +68,7 @@ Side behavior, such as a preload or a pause on hover, keeps the default.
 | The cursor for the span of a drag | `hooks/use-drag-cursor.ts` (`useDragCursor`, `useDragCursorHold`, `holdDragCursor`) | `drag-cursor-boundary.test.ts` |
 | The grab cursors of a surface that the reader drags | `hannou.grab` in `recipes/kiso/hannou/cursor.ts` | `grab-cursor-boundary.test.ts` |
 | A box that scrolls on the inline axis, with the fade on the edge that has more content behind it | `omote.rail` in `recipes/kiso/omote/rail.ts`; the `scroll-fade-inline` utility in `core/scroll/fade.ts` draws the fade in CSS, with no script | `inline-scroll-boundary.test.ts` |
+| A script with inline source, which runs before React hydrates | `InlineScript` in `primitives/inline-script/inline-script.tsx` | `inline-script-boundary.test.ts` |
 | The reduced-motion setting of the reader | `usePrefersReducedMotion` in `ui/hooks` | `no-motion-reduced-motion-hook` |
 | An element that Motion animates | `m` from `primitives/reduced-motion/reduced-motion-elements`, under a `ReducedMotion` root from `primitives/reduced-motion`, which loads the features of Motion in a chunk after it mounts. An HTML `m` element is `inert` while it exits under `AnimatePresence`, and `useA11yRoving` skips each item under an `inert` ancestor | `no-full-motion-component` |
 | A boolean ARIA state or `data-*` attribute | `ariaAttr` and `dataAttr` in `ui/core` | `no-hand-written-bool-attr` |
