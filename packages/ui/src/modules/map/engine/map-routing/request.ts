@@ -8,7 +8,7 @@ import { httpFailure, thrownFailure } from './failure'
 import { type MapRouteAnswer, type OsrmPayload, routeAnswer } from './result'
 
 /** The travel profile a routing request asks for. @internal */
-export type Profile = 'driving' | 'walking' | 'cycling'
+export type MapRouteProfile = 'driving' | 'walking' | 'cycling'
 
 /**
  * The signal to hand `fetch`: the caller's, a fresh timeout, or both combined

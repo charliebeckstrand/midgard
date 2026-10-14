@@ -255,7 +255,7 @@ describe('the slot scope (real browser)', () => {
 })
 
 /**
- * Each depth of scopes has its own layer of rungs on main, up to `maxDepth`, which is 2. A slot
+ * Each depth of scopes has its own layer of rungs on main, up to `MAX_DEPTH`, which is 2. A slot
  * counts as one depth. A chain that holds on main stays an `it`, as do the slot chains above. A
  * chain that main ranks wrongly is an `it.fails`: an outer scope wins there.
  */

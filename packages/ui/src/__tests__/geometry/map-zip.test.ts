@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { regionAt, regionIndex } from '../../modules/map/engine/map-geometry/locate'
+import { buildRegionIndex, regionAt } from '../../modules/map/engine/map-geometry/locate'
 import { rewindFeatures } from '../../modules/map/engine/map-geometry/winding'
 import { defaultRegionGroup } from '../../modules/map/engine/map-region/identity'
 import { defaultZipId, zipArea } from '../../modules/map/engine/map-zip/dissolve'
@@ -329,7 +329,7 @@ describe('defaultZipId', () => {
 describe('regionAt', () => {
 	const regions = rewindFeatures([square('17031', 0, 0, 2), square('18000', 4, 0, 2)])
 
-	const index = regionIndex(regions)
+	const index = buildRegionIndex(regions)
 
 	it('finds the region a position lands in', () => {
 		expect(regionAt(index, regions, [1, 1])).toBe(0)
@@ -347,7 +347,7 @@ describe('regionAt', () => {
 		// go missing from the other half of its own ground.
 		const straddling = rewindFeatures([square('17031', 0.6, 0.6, 0.8)])
 
-		const grid = regionIndex(straddling)
+		const grid = buildRegionIndex(straddling)
 
 		expect(regionAt(grid, straddling, [0.8, 0.8])).toBe(0)
 
@@ -360,9 +360,9 @@ describe('regionAt', () => {
 		// list, which every lookup tests after its own cell misses.
 		const wide = rewindFeatures([square('02000', -180, 50, 100)])
 
-		expect(regionAt(regionIndex(wide), wide, [-150, 60])).toBe(0)
+		expect(regionAt(buildRegionIndex(wide), wide, [-150, 60])).toBe(0)
 
-		expect(regionAt(regionIndex(wide), wide, [-150, 20])).toBe(-1)
+		expect(regionAt(buildRegionIndex(wide), wide, [-150, 20])).toBe(-1)
 	})
 })
 
@@ -377,7 +377,7 @@ describe('coverage framing', () => {
 		square('18001', 4, 0, 2),
 	])
 
-	const index = regionIndex(regions)
+	const index = buildRegionIndex(regions)
 
 	it('reads the state off a county id', () => {
 		expect(defaultRegionGroup(square('17031', 0, 0, 1))).toBe('17')
@@ -455,7 +455,9 @@ describe('coverage framing', () => {
 
 		const spanning = rewindFeatures([square('60699', 1.5, 0.5, 3)])
 
-		expect([...coverageGroups(apart, regionIndex(apart), spanning, defaultRegionGroup)]).toEqual([])
+		expect([
+			...coverageGroups(apart, buildRegionIndex(apart), spanning, defaultRegionGroup),
+		]).toEqual([])
 	})
 
 	it('places nothing for a code with no centroid', () => {

@@ -63,13 +63,13 @@ function defaultValueFor(field?: QueryField): JsonValue {
 export const MAX_DEPTH = 32
 
 /** Whether a value is a plain object, which JSON gives for `{}`. The dashboard spec parse reads it too. @internal */
-export function isFields(value: unknown): value is Record<string, unknown> {
+export function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
 /** {@link isQueryNode} for a node that sits `depth` groups below the root. @internal */
 function isNodeAt(value: unknown, depth: number): boolean {
-	if (!isFields(value) || typeof value.id !== 'string') return false
+	if (!isRecord(value) || typeof value.id !== 'string') return false
 
 	if (value.combinator !== undefined && value.combinator !== 'and' && value.combinator !== 'or') {
 		return false
