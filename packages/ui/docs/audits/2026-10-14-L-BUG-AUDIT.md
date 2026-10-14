@@ -35,8 +35,8 @@ The digest held two sources. The open record `2026-10-11-BUG-AUDIT.md` gave one 
 
 | Row | File | Symbol | Verdict | Severity | Reach | Group | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| R1 | `components/lightbox/lightbox-stage.tsx` | `LightboxStage` `followPresence` (reopen during the return) | CONFIRMED | medium | shipped | G1 | ◯ OPEN |
-| R2 | `components/lightbox/use-lightbox-zoom.ts` | `useLightboxZoom` `view` | RESTATED | medium | shipped | G1 | ◯ OPEN |
+| R1 | `components/lightbox/lightbox-stage.tsx` | `LightboxStage` `followPresence` (reopen during the return) | CONFIRMED | medium | shipped | G1 | ✅ RESOLVED ([#2433](https://github.com/charliebeckstrand/midgard/pull/2433)) |
+| R2 | `components/lightbox/use-lightbox-zoom.ts` | `useLightboxZoom` `view` | RESTATED | medium | shipped | G1 | ✅ RESOLVED ([#2433](https://github.com/charliebeckstrand/midgard/pull/2433)) |
 | R3 | `components/lightbox/lightbox-stage.tsx` | `slotsAround` / slot `key` | NARROWED | low | shipped | G2 | ✅ RESOLVED ([#2425](https://github.com/charliebeckstrand/midgard/pull/2425)) |
 | R4 | `components/lightbox/lightbox-stage.tsx` | `LightboxStage` `aim` / `at` | RESTATED | medium | shipped | G2 | ✅ RESOLVED ([#2425](https://github.com/charliebeckstrand/midgard/pull/2425)) |
 | R5 | `components/lightbox/lightbox.tsx` | `Lightbox` focus return | CONFIRMED | medium | shipped | — | ◯ OPEN |
