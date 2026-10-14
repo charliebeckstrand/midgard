@@ -5,8 +5,8 @@ import { vi } from 'vitest'
  *
  * Wraps only the imperative `animate` in a spy that calls through to the real
  * implementation; everything else passes through untouched. Call-through keeps
- * Odometer's RAF tween genuine; ShinyText stubs the return via
- * `vi.mocked(animate)` to observe the sweep without running it.
+ * Odometer's RAF tween genuine. A suite stubs the return via
+ * `vi.mocked(animate)` to observe an animation without running it.
  *
  * Global, not per-file (see setup/module-mocks.ts): a per-file
  * `vi.mock('motion')` would reach whichever files `sequence.shuffle` schedules

@@ -1,7 +1,6 @@
 'use client'
 
 import { cn } from '../../core'
-import { useIsRtl } from '../../hooks/use-is-rtl'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
@@ -44,8 +43,8 @@ export type ProgressBarProps = AccessibleName & {
  * when `value` is a usable number, with the fill width at its clamped
  * percentage; otherwise indeterminate, with a fill that sweeps along the
  * track. The fill mounts at its value and
- * animates each change of value. The track takes the step of the nearest
- * density scope, and an explicit `size` opens a scope on it. It respects
+ * animates each change of value. The sweep is a CSS animation. The track takes
+ * the step of the nearest density scope, and an explicit `size` opens a scope on it. It respects
  * reduced-motion.
  *
  * @remarks
@@ -74,9 +73,6 @@ export function ProgressBar({
 	// spring.
 	const still = usePrefersReducedMotion()
 
-	// The sweep runs from the inline start to the inline end.
-	const sweep = useIsRtl() ? k.sweep.rtl : k.sweep.animate
-
 	return (
 		<div
 			data-slot="progress-bar"
@@ -88,26 +84,20 @@ export function ProgressBar({
 			aria-valuemax={max}
 			className={cn(k(), className)}
 		>
-			{/* The `m` fill animates with the features that a `ReducedMotion` root loads. */}
-			<ReducedMotion>
-				{determinate ? (
+			{determinate ? (
+				// The `m` fill animates with the features that a `ReducedMotion` root loads.
+				<ReducedMotion>
 					<m.div
 						className={k.bar.fill({ color })}
 						initial={false}
 						animate={{ width: `${percent}%` }}
 						transition={still ? k.still : k.spring}
 					/>
-				) : (
-					// The sweep moves a transform, so it needs no keyframe in a stylesheet.
-					// Under reduced motion the fill holds still: at the start of the track
-					// from its mount, or where a change of the preference stops the sweep.
-					<m.div
-						className={cn(k.bar.fill({ color }), k.bar.indeterminate)}
-						animate={still ? undefined : sweep}
-						transition={k.sweep.transition}
-					/>
-				)}
-			</ReducedMotion>
+				</ReducedMotion>
+			) : (
+				// A CSS animation runs the sweep, from the inline start to the inline end.
+				<div className={cn(k.bar.fill({ color }), k.bar.indeterminate)} />
+			)}
 		</div>
 	)
 }
