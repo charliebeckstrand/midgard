@@ -92,13 +92,7 @@ minimumReleaseAgeExclude:
 # navigation. Vite wraps the import of React Router in its preload helper, which starts the import
 # one microtask later. A render that the click queued first, such as the close of the mobile
 # sidebar, then ran before the request started.
-# `<Scripts>` gives each `modulepreload` link of the page the low fetch priority. The first paint
-# of a docs page waits for the script of the latin face (`FontScript`), not for the modules. The
-# parser finds that script in the body, after the links in the head. A CDN sends the responses of
-# one priority in the order of the requests, so at the same priority the first paint waited for
-# each module. Hydration needs the script and each module, so it does not start later.
-# Remove once upstream stops reloading on a prefetch, preloads the chunks of a navigation, and
-# lets an app set the priority of the module links.
+# Remove once upstream stops reloading on a prefetch and preloads the chunks of a navigation.
 patchedDependencies:
   '@floating-ui/react@0.27.20': patches/@floating-ui__react@0.27.20.patch
   react-router@8.4.0: patches/react-router@8.4.0.patch

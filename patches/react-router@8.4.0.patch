@@ -1,31 +1,3 @@
-diff --git a/dist/development/lib/dom/ssr/components.js b/dist/development/lib/dom/ssr/components.js
-index efce91657305e46b4332c0fa24332e5b43a7881b..29d60eade630d0278b1d31575c9134b4ee010fb3 100644
---- a/dist/development/lib/dom/ssr/components.js
-+++ b/dist/development/lib/dom/ssr/components.js
-@@ -548,6 +548,7 @@ import(${JSON.stringify(manifest.entry.module)});`;
- 	}) : null, !enableFogOfWar ? /* @__PURE__ */ React$1.createElement("link", {
- 		rel: "modulepreload",
- 		href: manifest.url,
-+		fetchPriority: "low",
- 		crossOrigin: scriptProps.crossOrigin,
- 		integrity: sri[manifest.url],
- 		nonce: scriptProps.nonce,
-@@ -555,6 +556,7 @@ import(${JSON.stringify(manifest.entry.module)});`;
- 	}) : null, /* @__PURE__ */ React$1.createElement("link", {
- 		rel: "modulepreload",
- 		href: manifest.entry.module,
-+		fetchPriority: "low",
- 		crossOrigin: scriptProps.crossOrigin,
- 		integrity: sri[manifest.entry.module],
- 		nonce: scriptProps.nonce,
-@@ -563,6 +565,7 @@ import(${JSON.stringify(manifest.entry.module)});`;
- 		key: path,
- 		rel: "modulepreload",
- 		href: path,
-+		fetchPriority: "low",
- 		crossOrigin: scriptProps.crossOrigin,
- 		integrity: sri[path],
- 		nonce: scriptProps.nonce,
 diff --git a/dist/development/lib/dom/ssr/links.js b/dist/development/lib/dom/ssr/links.js
 index 9723b094b364459ec9de4e1ad003f54603fb35fe..8d013618f45af50cbfca777227f93cc56826b0fa 100644
 --- a/dist/development/lib/dom/ssr/links.js
@@ -91,34 +63,6 @@ index 5407c9bdb0d97660e9df6435f504f85b803aa209..7f4065ba2d19a538501ba8b9bf5149c0
  	let routeModulePromise = loadRouteModule(route, routeModules);
  	let prefetchRouteCssPromise = prefetchRouteCss(route);
  	let routeModule = await routeModulePromise;
-diff --git a/dist/production/lib/dom/ssr/components.js b/dist/production/lib/dom/ssr/components.js
-index efce91657305e46b4332c0fa24332e5b43a7881b..29d60eade630d0278b1d31575c9134b4ee010fb3 100644
---- a/dist/production/lib/dom/ssr/components.js
-+++ b/dist/production/lib/dom/ssr/components.js
-@@ -548,6 +548,7 @@ import(${JSON.stringify(manifest.entry.module)});`;
- 	}) : null, !enableFogOfWar ? /* @__PURE__ */ React$1.createElement("link", {
- 		rel: "modulepreload",
- 		href: manifest.url,
-+		fetchPriority: "low",
- 		crossOrigin: scriptProps.crossOrigin,
- 		integrity: sri[manifest.url],
- 		nonce: scriptProps.nonce,
-@@ -555,6 +556,7 @@ import(${JSON.stringify(manifest.entry.module)});`;
- 	}) : null, /* @__PURE__ */ React$1.createElement("link", {
- 		rel: "modulepreload",
- 		href: manifest.entry.module,
-+		fetchPriority: "low",
- 		crossOrigin: scriptProps.crossOrigin,
- 		integrity: sri[manifest.entry.module],
- 		nonce: scriptProps.nonce,
-@@ -563,6 +565,7 @@ import(${JSON.stringify(manifest.entry.module)});`;
- 		key: path,
- 		rel: "modulepreload",
- 		href: path,
-+		fetchPriority: "low",
- 		crossOrigin: scriptProps.crossOrigin,
- 		integrity: sri[path],
- 		nonce: scriptProps.nonce,
 diff --git a/dist/production/lib/dom/ssr/links.js b/dist/production/lib/dom/ssr/links.js
 index 9723b094b364459ec9de4e1ad003f54603fb35fe..8d013618f45af50cbfca777227f93cc56826b0fa 100644
 --- a/dist/production/lib/dom/ssr/links.js

@@ -43,13 +43,13 @@ describe('UIDocument', () => {
 			),
 		)
 
-		const [first, second] = Array.from(doc.head.children)
+		const [first, ...rest] = Array.from(doc.head.children)
+
+		const script = rest.find((element) => element.tagName === 'SCRIPT')
 
 		expect(first?.getAttribute('name')).toBe('viewport')
 
-		expect(second?.tagName).toBe('SCRIPT')
-
-		expect(second?.textContent).toContain('localStorage')
+		expect(script?.textContent).toContain('localStorage')
 	})
 
 	it('gives the body the appearance provider and its font script', () => {
@@ -63,6 +63,15 @@ describe('UIDocument', () => {
 
 		expect(doc.body.querySelector('[data-testid="theme"]')?.textContent).toBe('system')
 
-		expect(doc.body.firstElementChild?.tagName).toBe('SCRIPT')
+		const script = doc.body.firstElementChild
+
+		expect(script?.tagName).toBe('SCRIPT')
+
+		// The browser requests the font script from the head, before the modules of the page.
+		const preload = doc.head.querySelector('link[rel="preload"][as="script"]')
+
+		expect(preload?.getAttribute('href')).toBe(script?.getAttribute('src'))
+
+		expect(preload?.getAttribute('fetchpriority')).toBe('high')
 	})
 })

@@ -87,13 +87,16 @@ describe('the bundle of the docs app', () => {
 		})
 	}
 
-	// The first paint waits for the script of the latin face, so the modules
-	// load after it (the React Router patch in `pnpm-workspace.yaml`).
-	it('preloads each chunk at the low priority', () => {
-		const links = fs.readFileSync(SHELL_PAGE, 'utf8').match(/<link rel="modulepreload"[^>]*>/g)
+	// The first paint waits for the script of the latin face, so the browser
+	// requests it before the modules (`FontScript`).
+	it('preloads the font script before the chunks', () => {
+		const html = fs.readFileSync(SHELL_PAGE, 'utf8')
 
-		expect(links?.length).toBeGreaterThan(0)
+		const font = html.search(
+			/<link rel="preload" href="\/assets\/google-sans-flex-latin-[^"]+" as="script" fetchPriority="high"/,
+		)
 
-		for (const link of links ?? []) expect(link).toMatch(/ fetchpriority="low"/i)
+		expect(font).toBeGreaterThan(-1)
+		expect(font).toBeLessThan(html.indexOf('<link rel="modulepreload"'))
 	})
 })
