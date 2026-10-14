@@ -101,11 +101,11 @@ export function labelProps(
 
 	new Visitor({
 		JSXOpeningElement({ name, attributes }) {
-			const component =
+			const isComponent =
 				name.type === 'JSXMemberExpression' ||
 				(name.type === 'JSXIdentifier' && /^[A-Z]/.test(name.name))
 
-			if (!component) return
+			if (!isComponent) return
 
 			const tag = JSON.stringify(code.slice(name.start, name.end))
 

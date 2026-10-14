@@ -153,13 +153,11 @@ export function createApiExtractor(root: string): ApiExtractor {
 			const { ts, ast, api } = await server
 
 			if (!snapshot || changes) {
-				const previous = snapshot
+				const prev = snapshot
 
-				snapshot = api.updateSnapshot(
-					previous ? { fileChanges: changes } : { openProjects: [config] },
-				)
+				snapshot = api.updateSnapshot(prev ? { fileChanges: changes } : { openProjects: [config] })
 
-				previous?.dispose()
+				prev?.dispose()
 
 				changes = undefined
 			}
@@ -506,13 +504,13 @@ function bindCall(walk: Walk, symbol: TsSymbol): void {
 
 	const call = variable && ast.isVariableDeclaration(variable) ? variable.initializer : undefined
 
-	const resolved = call && ast.isCallExpression(call) && checker.getResolvedSignature(call)
+	const signature = call && ast.isCallExpression(call) && checker.getResolvedSignature(call)
 
-	const callee = resolved ? sourceOf(resolved.getTarget()?.declaration) : undefined
+	const callee = signature ? sourceOf(signature.getTarget()?.declaration) : undefined
 
-	if (!resolved || !callee || !ast.isFunctionLikeDeclaration(callee)) return
+	if (!signature || !callee || !ast.isFunctionLikeDeclaration(callee)) return
 
-	const types = checker.getTypeOfSymbol(resolved.getParameters())
+	const types = checker.getTypeOfSymbol(signature.getParameters())
 
 	callee.parameters.forEach((parameter, index) => {
 		const bound = typeParameterOf(walk, parameter.type)
@@ -567,9 +565,9 @@ function readComponentProps(walk: Walk, symbol: TsSymbol, argument: Node | undef
 		?.getExports()
 		.get('JSX' as __String)
 
-	const map = jsx?.getExports().get('IntrinsicElements' as __String)
+	const intrinsicElements = jsx?.getExports().get('IntrinsicElements' as __String)
 
-	walk.intrinsic ??= map && walk.checker.getDeclaredTypeOfSymbol(map)
+	walk.intrinsic ??= intrinsicElements && walk.checker.getDeclaredTypeOfSymbol(intrinsicElements)
 
 	readElement(walk, argument)
 }

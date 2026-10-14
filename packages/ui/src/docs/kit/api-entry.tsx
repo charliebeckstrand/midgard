@@ -185,10 +185,10 @@ export function primeApi(api: BarrelApi, signal: AbortSignal): void {
 		}
 	}
 
-	const next = [...sources].slice(0, MARKDOWN_CACHE_SIZE).values()
+	const queue = [...sources].slice(0, MARKDOWN_CACHE_SIZE).values()
 
 	runInSlices(() => {
-		const source = next.next()
+		const source = queue.next()
 
 		if (source.done) return false
 

@@ -102,16 +102,16 @@ export function record(kind: Kind, text: string, detail?: JsonValue): void {
  * of the head script. The separator names the type of the navigation, or
  * `cause` when it is given.
  */
-export function begin(target: EventLog, cause?: string): void {
+export function begin(log: EventLog, cause?: string): void {
 	const [navigation] = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[]
 
-	target.separate(`──── ${cause ?? navigation?.type ?? 'load'} ${location.pathname}`)
+	log.separate(`──── ${cause ?? navigation?.type ?? 'load'} ${location.pathname}`)
 
-	target.add(entryOf({ kind: 'load', text: scrollReading(), detail: viewport() }))
+	log.add(entryOf({ kind: 'load', text: scrollReading(), detail: viewport() }))
 
 	window.__eventLog?.stop()
 
-	for (const entry of window.__eventLog?.entries ?? []) target.add(entry)
+	for (const entry of window.__eventLog?.entries ?? []) log.add(entry)
 
 	delete window.__eventLog
 }

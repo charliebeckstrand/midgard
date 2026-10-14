@@ -518,9 +518,9 @@ describe('listen', () => {
 
 		listenTo(log)
 
-		const console = vi.spyOn(globalThis.console, 'error').mockImplementation(() => {})
+		const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-		onTestFinished(() => console.mockRestore())
+		onTestFinished(() => consoleError.mockRestore())
 
 		const error = new Error('boom')
 
@@ -538,7 +538,7 @@ describe('listen', () => {
 		})
 
 		// The error goes to the console, as the default of React does.
-		expect(console).toHaveBeenCalledWith(error)
+		expect(consoleError).toHaveBeenCalledWith(error)
 	})
 
 	it('records the page lifecycle, and a restore from the back-forward cache as a new page load', () => {

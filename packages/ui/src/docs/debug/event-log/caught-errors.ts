@@ -22,8 +22,11 @@ export function listenCaughtErrors(next: Listener): () => void {
  * The `onCaughtError` of the root. It gives the error to the listener, then
  * writes the error to the console, as the production default of React does.
  */
-export function onCaughtError(error: unknown, info: { componentStack?: string }): void {
-	listener?.(error, info.componentStack)
+export function onCaughtError(
+	error: unknown,
+	{ componentStack }: { componentStack?: string },
+): void {
+	listener?.(error, componentStack)
 
 	console.error(error)
 }

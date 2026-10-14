@@ -10,13 +10,13 @@ import { Stack } from 'ui/stack'
 const people = ['Wade Cooper', 'Arlene McCoy', 'Devon Webb', 'Tom Cook']
 
 function FilteredPeople() {
-	const deferredQuery = useComboboxDeferredQuery()
+	const query = useComboboxDeferredQuery()
 
 	return people
-		.filter((p) => !deferredQuery || p.toLowerCase().includes(deferredQuery.toLowerCase()))
-		.map((p) => (
-			<ComboboxOption key={p} value={p}>
-				<ComboboxLabel>{p}</ComboboxLabel>
+		.filter((name) => !query || name.toLowerCase().includes(query.toLowerCase()))
+		.map((name) => (
+			<ComboboxOption key={name} value={name}>
+				<ComboboxLabel>{name}</ComboboxLabel>
 			</ComboboxOption>
 		))
 }
@@ -31,10 +31,10 @@ export default function FormControls() {
 			<GlassProvider>
 				<Field>
 					<Label>Select</Label>
-					<Select placeholder="Select a person" displayValue={(v: string) => v}>
-						{people.map((p) => (
-							<SelectOption key={p} value={p}>
-								<SelectLabel>{p}</SelectLabel>
+					<Select placeholder="Select a person" displayValue={(value: string) => value}>
+						{people.map((name) => (
+							<SelectOption key={name} value={name}>
+								<SelectLabel>{name}</SelectLabel>
 							</SelectOption>
 						))}
 					</Select>
@@ -44,7 +44,7 @@ export default function FormControls() {
 					<Combobox
 						value={person}
 						onValueChange={setPerson}
-						displayValue={(v: string) => v}
+						displayValue={(value: string) => value}
 						placeholder="Search people"
 					>
 						<FilteredPeople />

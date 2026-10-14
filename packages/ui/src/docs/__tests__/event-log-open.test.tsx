@@ -185,11 +185,11 @@ describe('EventLogSheet', () => {
 
 		const lines = text.split('\n')
 
-		const at = lines.findIndex((line) => line.endsWith('boom'))
+		const index = lines.findIndex((line) => line.endsWith('boom'))
 
-		const indent = ' '.repeat(lines[at]?.indexOf('boom') ?? 0)
+		const indent = ' '.repeat(lines[index]?.indexOf('boom') ?? 0)
 
-		expect(lines.slice(at + 1, at + 6)).toEqual([
+		expect(lines.slice(index + 1, index + 6)).toEqual([
 			`${indent}{`,
 			`${indent}  "stack": [`,
 			`${indent}    "at f (a.js:1:2)"`,
@@ -197,10 +197,10 @@ describe('EventLogSheet', () => {
 			`${indent}}`,
 		])
 
-		expect(lines[at + 6]).toMatch(/\/plain$/)
+		expect(lines[index + 6]).toMatch(/\/plain$/)
 
 		// A component line shows the component in the kind column, and the prop and the arguments as its text.
-		expect(lines[at + 7]).toMatch(/ y\d+\s+Tabs\s+onValueChange\("Payment"\)$/)
+		expect(lines[index + 7]).toMatch(/ y\d+\s+Tabs\s+onValueChange\("Payment"\)$/)
 	})
 })
 
@@ -253,9 +253,9 @@ describe('EventLogSheet Batch', () => {
 
 		const lines = (writeText.mock.calls[0]?.[0] ?? '').split('\n')
 
-		const at = lines.findIndex((line) => line.includes('(2 lines,'))
+		const index = lines.findIndex((line) => line.includes('(2 lines,'))
 
-		expect(lines[at + 1]).toMatch(/^ {2}\s*\d+ y\d+\s+Tabs\s+onValueChange\("Payment"\)$/)
+		expect(lines[index + 1]).toMatch(/^ {2}\s*\d+ y\d+\s+Tabs\s+onValueChange\("Payment"\)$/)
 
 		// With "Batch" off, each entry is its own line.
 		fireEvent.click(screen.getByRole('checkbox', { name: 'Batch' }))

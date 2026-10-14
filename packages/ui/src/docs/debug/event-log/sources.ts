@@ -92,16 +92,16 @@ function resourceOf(target: unknown): string {
 
 /** Adds a passive capture listener for each type, and returns a function that removes them. */
 export function on(
-	where: EventTarget | null | undefined,
+	target: EventTarget | null | undefined,
 	types: readonly string[],
 	listener: (event: Event) => void,
 ): () => void {
 	const options = { capture: true, passive: true }
 
-	for (const type of types) where?.addEventListener(type, listener, options)
+	for (const type of types) target?.addEventListener(type, listener, options)
 
 	return () => {
-		for (const type of types) where?.removeEventListener(type, listener, options)
+		for (const type of types) target?.removeEventListener(type, listener, options)
 	}
 }
 
@@ -198,12 +198,16 @@ const input: Source = (note) => {
 
 		if (GESTURE_ENDS.has(event.type)) gesture = undefined
 
-		const keys = event instanceof KeyboardEvent
+		const isKeyboard = event instanceof KeyboardEvent
+
+		const keyText = isKeyboard ? ` ${chord(event)}` : ''
+
+		const synthetic = event.isTrusted ? '' : ' synthetic'
 
 		note({
 			kind: 'input',
-			text: `${event.type}${keys ? ` ${chord(event)}` : ''} ${describe(event.target)}${event.isTrusted ? '' : ' synthetic'}`,
-			detail: keys ? { key: event.key, code: event.code, repeat: event.repeat } : undefined,
+			text: `${event.type}${keyText} ${describe(event.target)}${synthetic}`,
+			detail: isKeyboard ? { key: event.key, code: event.code, repeat: event.repeat } : undefined,
 			batch,
 		})
 
@@ -278,14 +282,14 @@ const resize: Source = (note) => {
 
 /** Each change of the height of the page. */
 const height: Source = (note) => {
-	let last = 0
+	let prev = 0
 
 	const observer = new ResizeObserver(() => {
-		if (document.documentElement.scrollHeight === last) return
+		if (document.documentElement.scrollHeight === prev) return
 
-		last = document.documentElement.scrollHeight
+		prev = document.documentElement.scrollHeight
 
-		note({ kind: 'viewport', text: `page height ${last}` })
+		note({ kind: 'viewport', text: `page height ${prev}` })
 	})
 
 	observer.observe(document.documentElement)
@@ -405,9 +409,11 @@ const network: Source = (note) => {
 		// Not each browser gives the status.
 		const failed = resource.responseStatus >= 400 ? ` failed ${resource.responseStatus}` : ''
 
+		const file = new URL(resource.name).pathname.split('/').at(-1)
+
 		note({
 			kind: 'network',
-			text: `${new URL(resource.name).pathname.split('/').at(-1)} ${Math.round(resource.duration)} ms${cache}${failed}`,
+			text: `${file} ${Math.round(resource.duration)} ms${cache}${failed}`,
 			detail: timingOf(resource),
 			time: resource.startTime,
 			batch: pass,

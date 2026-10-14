@@ -42,15 +42,15 @@ export function DocsSearch({ children }: { children: ReactNode }) {
 
 	const { module: palette, request: load, preload } = useIntentLoad(loadPalette)
 
-	const onPick = useRef<(() => void) | undefined>(undefined)
+	const onPickRef = useRef<(() => void) | undefined>(undefined)
 
-	const request = useStableEvent((then?: () => void) => {
-		onPick.current = then
+	const request = useStableEvent((onPick?: () => void) => {
+		onPickRef.current = onPick
 
 		load(() => setOpen(true))
 	})
 
-	const pick = useStableEvent(() => onPick.current?.())
+	const pick = useStableEvent(() => onPickRef.current?.())
 
 	const state = useMemo(
 		() => ({ open, setOpen, palette, request, preload, pick }),

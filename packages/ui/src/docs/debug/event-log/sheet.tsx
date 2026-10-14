@@ -219,8 +219,8 @@ export function EventLogSheet({
 	const state: OpenState = {
 		isOpen: (key) => openKeys.has(key),
 		setOpen: (key, next) =>
-			setOpenKeys((current) => {
-				const keys = new Set(current)
+			setOpenKeys((prev) => {
+				const keys = new Set(prev)
 
 				if (next) keys.add(key)
 				else keys.delete(key)

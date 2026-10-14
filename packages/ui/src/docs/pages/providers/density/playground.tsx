@@ -74,7 +74,11 @@ function OrdersFilters({
 						/>
 					</FiltersField>
 					<FiltersField name="status">
-						<Select aria-label="Status" placeholder="All statuses" displayValue={(v: string) => v}>
+						<Select
+							aria-label="Status"
+							placeholder="All statuses"
+							displayValue={(value: string) => value}
+						>
 							<SelectOption value="Completed">
 								<SelectLabel>Completed</SelectLabel>
 							</SelectOption>
@@ -114,9 +118,9 @@ export default function DensityPlayground(props: DensityProviderProps) {
 	const [filters, setFilters] = useState<OrderFilters>({ id: undefined, status: undefined })
 
 	const filteredOrders = orders.filter(
-		(o) =>
-			(!filters.id || o.id.toLowerCase().includes(filters.id.toLowerCase())) &&
-			(!filters.status || o.status === filters.status),
+		(order) =>
+			(!filters.id || order.id.toLowerCase().includes(filters.id.toLowerCase())) &&
+			(!filters.status || order.status === filters.status),
 	)
 
 	return (
