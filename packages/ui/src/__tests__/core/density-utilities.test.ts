@@ -6,7 +6,7 @@ import { utilityTable } from '../../core/density/utility-table'
 
 type CssInJs = { [key: string]: string | CssInJs }
 
-type Callback = (value: string) => CssInJs | CssInJs[]
+type Callback = (value: string, extra?: { modifier: string | null }) => CssInJs | CssInJs[]
 
 type Registered = { callback: Callback; values?: Record<string, string> }
 
@@ -24,6 +24,9 @@ const themeKeys: Record<string, string> = {
 	'--radius-md': '0.375rem',
 	'--radius-lg': '0.5rem',
 	'--radius-full': 'calc(infinity * 1px)',
+	'--container-2xs': '18rem',
+	'--container-xs': '20rem',
+	'--container-sm': '24rem',
 }
 
 /**
@@ -56,18 +59,21 @@ function register() {
 
 const { utilities, base } = register()
 
-/** Calls the utility `name` with `value`. */
-function call(name: string, value: string): CssInJs | CssInJs[] {
+/**
+ * Calls the utility `name` with `value` and `modifier`, as Tailwind gives them:
+ * with no brackets on an arbitrary modifier, and `null` for no modifier.
+ */
+function call(name: string, value: string, modifier: string | null = null): CssInJs | CssInJs[] {
 	const utility = utilities.get(name)
 
 	if (!utility) throw new Error(`no utility ${name}`)
 
-	return utility.callback(value)
+	return utility.callback(value, { modifier })
 }
 
 /** The declarations of the one rule that the stepped utility `name` writes for `value`. */
-function rule(name: string, value: string): CssInJs {
-	const rules = call(name, value)
+function rule(name: string, value: string, modifier: string | null = null): CssInJs {
+	const rules = call(name, value, modifier)
 
 	expect(rules).toHaveLength(1)
 
@@ -290,6 +296,77 @@ describe('density utilities', () => {
 		expect(atEachStep(margin)).toEqual([-3, -3, -4, -5, -5])
 	})
 
+	it.each(['density-ms', 'density-me', 'density-mx'])('takes negative stops for %s', (name) => {
+		expect(call(name, '-1,-2,-3')).toHaveLength(1)
+	})
+
+	it('takes the names of the container scale and spacing stops for density-w', () => {
+		const width = declaration('density-w', '2xs,xs,sm', 'width')
+
+		expect(width).toBe(
+			'calc(var(--container-2xs) * (var(--ui-dxs) + var(--ui-dsm)) + var(--container-xs) * var(--ui-dmd) + var(--container-sm) * (var(--ui-dlg) + var(--ui-dxl)))',
+		)
+
+		expect(atEachStep(width)).toEqual([18, 18, 20, 24, 24])
+
+		expect(atEachStep(declaration('density-w', '64,72,80', 'width'))).toEqual([64, 64, 72, 80, 80])
+	})
+
+	it('sets the custom property of its modifier for density-set', () => {
+		const declarations = rule('density-set', '4,5,6,7,8', '--ui-panel-bottom')
+
+		expect(Object.keys(declarations)).toEqual(['--ui-panel-bottom'])
+
+		const length = declarations['--ui-panel-bottom'] as string
+
+		expect(length).toBe(
+			'calc(var(--spacing) * (6 - 2 * var(--ui-dxs) - var(--ui-dsm) + var(--ui-dlg) + 2 * var(--ui-dxl)))',
+		)
+
+		expect(atEachStep(length)).toEqual([4, 5, 6, 7, 8])
+	})
+
+	it('takes three values and negative stops for density-set', () => {
+		expect(atEachStep(rule('density-set', '1,2,3', '--gap')['--gap'] as string)).toEqual([
+			1, 1, 2, 3, 3,
+		])
+
+		expect(rule('density-set', '-0.5,-0.5,-1,-1,-1', '--ui-avatar-overlap')).toEqual({
+			'--ui-avatar-overlap': 'calc(var(--spacing) * (-1 + 0.5 * (var(--ui-dxs) + var(--ui-dsm))))',
+		})
+
+		expect(rule('density-set', '2,2,2', '--gap')).toEqual({ '--gap': 'calc(var(--spacing) * 2)' })
+	})
+
+	it('takes a modifier in brackets for density-set', () => {
+		expect(rule('density-set', '1,2,3', '[--gap]')).toEqual(rule('density-set', '1,2,3', '--gap'))
+	})
+
+	it.each([
+		['no modifier', null],
+		['an empty modifier', ''],
+		['a named modifier', 'gap'],
+		['a CSS property', 'padding'],
+		['a var() of a custom property', 'var(--gap)'],
+		['a custom property with no name', '--'],
+		['a custom property with a space', '--a b'],
+		['a declaration', '--gap:1px'],
+		['a weight', '--ui-dmd'],
+		['a host weight', '--ui-hxs'],
+		['the spacing unit', '--spacing'],
+		['a property of Tailwind', '--tw-space-x-reverse'],
+	])('writes no CSS for density-set with %s', (_, modifier) => {
+		expect(call('density-set', '1,2,3', modifier)).toEqual([])
+	})
+
+	it.each([
+		['a name', 'sm,md,lg'],
+		['a list of four values', '1,2,3,4'],
+		['a list of two values', '1,2'],
+	])('writes no CSS for density-set with %s and a custom property', (_, value) => {
+		expect(call('density-set', value, '--gap')).toEqual([])
+	})
+
 	it('writes the size and leading of the text scale for density-text', () => {
 		const declarations = rule('density-text', 'xs,sm,base')
 
@@ -337,6 +414,8 @@ describe('density utilities', () => {
 		['a value that is no name or stop', 'density-rounded', '2,3,full-x'],
 		['a radius name that is not in the theme', 'density-rounded', 'sm,md,none'],
 		['the full radius', 'density-rounded', 'md,lg,full'],
+		['a container name that is not in the theme', 'density-w', 'auto,xs,sm'],
+		['a negative width', 'density-w', '-1,2,3'],
 		['a ring stop out of range', 'density-p-ring', '2,3,9'],
 		['a ring stop off the quarter grid', 'density-p-ring', '2,3,1.3'],
 	])('writes no CSS for %s', (_, name, value) => {

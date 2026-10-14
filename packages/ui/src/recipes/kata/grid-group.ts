@@ -103,7 +103,7 @@ export const k = {
 		zone: {
 			// The gap also caps the hit areas (`TouchTarget`), so the move buttons of
 			// two adjacent rows do not overlap.
-			base: [flex.col, dan.gap.scale.xs, ...dan.gap.touch.y.xs],
+			base: [flex.col, dan.gap.scale.xs, dan.gap.touch.y.xs],
 			// A group zone's header row: the reorder handle, the name Input, the color
 			// Menu, and the remove button, on one row.
 			header: [flex.row, dan.gap.scale.sm],

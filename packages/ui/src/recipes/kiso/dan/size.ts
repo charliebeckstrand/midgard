@@ -165,6 +165,22 @@ export const size = {
 	slider: {
 		/** The height of a slider skeleton track. */
 		track: 'density-h-[0.5,1,1.5,2,2.5]',
+		/** The track and the thumb of a range input, in WebKit and in Firefox. */
+		input: {
+			track:
+				'[&::-webkit-slider-runnable-track]:density-h-[0.5,1,1.5,2,2.5] [&::-moz-range-track]:density-h-[0.5,1,1.5,2,2.5]',
+			thumb:
+				'[&::-webkit-slider-thumb]:density-size-[2,3,4,5,6] [&::-moz-range-thumb]:density-size-[2,3,4,5,6]',
+		},
+	},
+	sidebar: {
+		/**
+		 * The width of the sidebar panel, a container width at each step. It holds
+		 * text, so it follows the nearest density scope, as the text does.
+		 */
+		width: 'density-w-[2xs,2xs,xs,sm,sm]',
+		/** The start inset of an element at the far edge of the floating sidebar: the width of the sidebar. */
+		edge: 'density-inset-s-[72,72,80,96,96]',
 	},
 	sparkline: {
 		/** The height of a sparkline. */

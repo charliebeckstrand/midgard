@@ -55,8 +55,11 @@ function countsOf(pattern: RegExp, files = sources): Record<string, number> {
 /** A stepped utility with its list, such as `density-p-[2,3,4]`. */
 const RAMP = /\bdensity-[a-z]+(?:-[a-z]+)*-\[([^\]\s'"`]*)\]/g
 
-/** A ramp with its variant prefix, such as `lg:density-pt-[4,6,8]`. */
-const RAMP_CLASS = /[^\s'"`]*density-[a-z]+(?:-[a-z]+)*-\[[^\]\s'"`]*\]/g
+/**
+ * A ramp with its variant prefix and its modifier, such as
+ * `lg:density-pt-[4,6,8]` or `density-set-[1,2,3,4,5]/[--touch-target-gap-x]`.
+ */
+const RAMP_CLASS = /[^\s'"`]*density-[a-z]+(?:-[a-z]+)*-\[[^\]\s'"`]*\](?:\/\[[^\]\s'"`]*\])?/g
 
 /** The home of the ramps. */
 const RAMP_HOME = 'recipes/kiso/dan/'

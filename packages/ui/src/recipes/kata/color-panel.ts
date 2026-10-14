@@ -69,7 +69,7 @@ export const k = defineRecipe(
 			 * also caps the hit areas (`TouchTarget`), so the copy button of the hex
 			 * field and the eyedropper after it do not overlap.
 			 */
-			row: ['flex items-center', dan.gap.scale.sm, ...dan.gap.touch.x.sm],
+			row: ['flex items-center', dan.gap.scale.sm, dan.gap.touch.x.sm],
 		},
 		handle,
 		/** Full hue wheel laid left to right for the hue track. */

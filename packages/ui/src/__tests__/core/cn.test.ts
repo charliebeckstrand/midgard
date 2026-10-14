@@ -219,12 +219,59 @@ describe('cn', () => {
 			)
 		})
 
+		it('keeps the merges of the stepped bottom padding', () => {
+			expect(cn('density-pb-[4,5,6]', 'p-4')).toBe('p-4')
+
+			expect(cn('pb-2', 'density-pb-[4,5,6]')).toBe('density-pb-[4,5,6]')
+
+			expect(cn('density-p-[1,2,3]', 'density-pb-[4,5,6]')).toBe(
+				'density-p-[1,2,3] density-pb-[4,5,6]',
+			)
+		})
+
+		it('keeps two density-set classes of different custom properties', () => {
+			expect(cn('density-set-[1,2,3]/[--a]', 'density-set-[2,3,4]/[--b]')).toBe(
+				'density-set-[1,2,3]/[--a] density-set-[2,3,4]/[--b]',
+			)
+
+			expect(cn('density-set-[1,2,3]/[--touch-target-gap-y]', '[--touch-target-gap-x:0px]')).toBe(
+				'density-set-[1,2,3]/[--touch-target-gap-y] [--touch-target-gap-x:0px]',
+			)
+		})
+
+		it('replaces a density-set class with a later class of the same custom property', () => {
+			expect(cn('density-set-[1,2,3]/[--a]', 'density-set-[2,3,4]/[--a]')).toBe(
+				'density-set-[2,3,4]/[--a]',
+			)
+
+			expect(cn('density-set-[1,2,3]/[--a]', '[--a:0px]')).toBe('[--a:0px]')
+
+			expect(cn('[--a:0px]', 'density-set-[1,2,3]/[--a]')).toBe('density-set-[1,2,3]/[--a]')
+
+			expect(cn('density-set-[1,2,3]/[--a]', 'max-sm:density-set-[2,3,4]/[--a]')).toBe(
+				'density-set-[1,2,3]/[--a] max-sm:density-set-[2,3,4]/[--a]',
+			)
+		})
+
+		it('keeps a density-set class beside each other class', () => {
+			expect(cn('density-set-[1,2,3]/[--a]', 'p-2', 'density-p-[1,2,3]', 'space-x-(--a)')).toBe(
+				'density-set-[1,2,3]/[--a] density-p-[1,2,3] space-x-(--a)',
+			)
+		})
+
+		it('merges a stepped width of container names and of stops', () => {
+			expect(cn('density-w-[2,3,4]', 'density-w-[2xs,xs,sm]')).toBe('density-w-[2xs,xs,sm]')
+
+			expect(cn('density-w-[2xs,xs,sm]', 'w-64')).toBe('w-64')
+		})
+
 		// Each utility of the table merges with its plain class in each order, so a
 		// new entry merges with no other change.
 		it.each(Object.keys(utilityTable))('merges density-%s with its plain class', (name) => {
 			const named = new Map<string, [string, string]>([
 				['text', ['text-sm', 'density-text-[sm,base,lg]']],
 				['rounded', ['rounded-sm', 'density-rounded-[sm,md,lg]']],
+				['w', ['w-xs', 'density-w-[2xs,xs,sm]']],
 			])
 
 			const [plain, stepped] = named.get(name) ?? [`${name}-1`, `density-${name}-[1,2,3]`]

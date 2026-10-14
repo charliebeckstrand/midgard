@@ -30,7 +30,7 @@ export const k = bridge.control(control, {
 			'flex items-center justify-end mt-auto',
 			dan.gap.scale.sm,
 			'pe-2 pb-2',
-			...dan.gap.touch.x.sm,
+			dan.gap.touch.x.sm,
 		],
 	},
 	defaults: { resize: 'none' },

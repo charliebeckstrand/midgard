@@ -42,7 +42,7 @@ function rampAt(path: string): string {
  * utility subtracts its 1 px ring. Each other ramp gives its spacing stop.
  */
 function pxOf(ramp: string): Record<DensityStep, number> {
-	const match = /density-([a-z-]+)-\[([^\]]+)\]$/.exec(ramp)
+	const match = /density-([a-z-]+)-\[([^\]]+)\](?:\/\[--[a-z0-9-]+\])?$/.exec(ramp)
 
 	if (!match) throw new Error(`Not a ramp: ${ramp}`)
 
@@ -165,24 +165,33 @@ describe('spacing steps', () => {
 			(stop) => {
 				const gap = pxOf(dan.gap.scale[stop])
 
-				const fills = Object.fromEntries(
-					dan.gap.touch[axis][stop].map((name) => {
-						const [, step, value] = /^density-([a-z]+):.+--spacing\(([\d.]+)\)\]$/.exec(name) ?? []
+				const ramp = dan.gap.touch[axis][stop]
 
-						return [step, Number(value) * 4]
-					}),
+				expect(ramp).toMatch(
+					new RegExp(`^density-set-\\[[^\\]]+\\]/\\[--touch-target-gap-${axis}\\]$`),
 				)
 
-				expect(fills).toStrictEqual(gap)
+				expect(pxOf(ramp)).toStrictEqual(gap)
 			},
 		)
 	})
 })
 
-/** Each ramp of `dan` and its path, such as `size.icon.base`. */
+/**
+ * Each ramp of `dan` and its path, such as `size.icon.base`. A string with more
+ * than one stepped class, such as the track of the slider, gives each class, and
+ * each path takes the number of its class, such as `size.slider.input.track#1`.
+ */
 function rampsOf(node: unknown, path: string[] = []): [string, string][] {
 	if (typeof node === 'string') {
-		return /density-[a-z-]+-\[[^\]]+\]$/.test(node) ? [[path.join('.'), node]] : []
+		const classes = node
+			.split(/\s+/)
+			.filter((token) => /density-[a-z-]+-\[[^\]]+\](?:\/\[--[a-z0-9-]+\])?$/.test(token))
+
+		return classes.map((token, index) => [
+			classes.length > 1 ? `${path.join('.')}#${index}` : path.join('.'),
+			token,
+		])
 	}
 
 	if (node && typeof node === 'object' && !Array.isArray(node)) {
@@ -193,7 +202,8 @@ function rampsOf(node: unknown, path: string[] = []): [string, string][] {
 }
 
 /** The values of `ramp` at each step, as written. */
-const valuesOf = (ramp: string) => (/\[([^\]]+)\]$/.exec(ramp)?.[1] ?? '').split(',')
+const valuesOf = (ramp: string) =>
+	(/\[([^\]]+)\](?:\/\[--[a-z0-9-]+\])?$/.exec(ramp)?.[1] ?? '').split(',')
 
 /**
  * The ramps of the combinator between query chips. The combinator sits one step
@@ -208,6 +218,26 @@ const slotRamps = {
 	'radius.combinator': dan.radius.button,
 } as const
 
+/**
+ * The ramps that give one value to two or more steps:
+ *
+ *   - The sidebar width and its edge take the three container widths `2xs`,
+ *     `xs`, and `sm`.
+ *   - The avatar overlap takes two stops, so the overlap and the ring stay
+ *     narrower than the space beside two initials.
+ *   - The touch gaps of the tag row and of the query chips are for a row in a
+ *     slot, so `xl` keeps the value of `lg`. The tag row also gives `xs` the
+ *     value of `sm`.
+ */
+const sharedRamps = new Set([
+	'size.sidebar.width',
+	'size.sidebar.edge',
+	'space.avatar.overlap',
+	'gap.touch.tags.x',
+	'gap.touch.tags.y',
+	'gap.touch.chips',
+])
+
 describe('every ramp of dan', () => {
 	const ramps = rampsOf(dan)
 
@@ -215,7 +245,7 @@ describe('every ramp of dan', () => {
 		expect(ramps.length).toBeGreaterThan(100)
 	})
 
-	const own = ramps.filter(([path]) => !(path in slotRamps))
+	const own = ramps.filter(([path]) => !(path in slotRamps) && !sharedRamps.has(path))
 
 	it.each(own)('gives dan.%s a distinct value at each step', (_, ramp) => {
 		const values = valuesOf(ramp)

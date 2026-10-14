@@ -20,14 +20,13 @@ export const k = {
 			'w-full',
 			layout.inset.x,
 			layout.inset.top,
-			layout.inset.bottom,
 			// Each cap is a share of the overlay root. Above `sm`, the root has an
 			// inset of 1rem on each edge, so the full share stops 1rem short of each.
 			'max-sm:rounded-t-2xl max-sm:rounded-b-none max-sm:max-h-[85%] max-sm:overflow-y-auto max-sm:overscroll-contain',
-			// Below `sm`, the panel sits on the bottom edge. In a page with
-			// `viewport-fit=cover`, this keeps its content clear of the home
-			// indicator.
-			...layout.inset.safe,
+			// The bottom padding. Below `sm`, the panel sits on the bottom edge, so in
+			// a page with `viewport-fit=cover` the padding also keeps its content clear
+			// of the home indicator.
+			layout.inset.safe,
 			'sm:rounded-2xl sm:max-h-full',
 		],
 		surface: surface.axis,

@@ -148,13 +148,15 @@ describe('Query density', () => {
 		},
 	)
 
+	// The gap is an unregistered custom property, so it reads back as its
+	// `calc()` text. A probe in the row resolves it through its width.
 	it.each([
-		['compact', '2.75'],
-		['snug', '3.25'],
-		['loose', '3.75'],
+		['compact', 11],
+		['snug', 13],
+		['loose', 15],
 	] as const)(
 		'caps the hit areas at the space between the chips at a %s provider',
-		(density, stop) => {
+		(density, gap) => {
 			const { container } = renderUI(
 				<DensityProvider density={density}>
 					<QueryChips fields={fields} defaultValue={query()} />
@@ -163,7 +165,13 @@ describe('Query density', () => {
 
 			const row = present(container.querySelector('[data-slot="query-chips"]'), 'the row')
 
-			expect(getComputedStyle(row).getPropertyValue('--touch-target-gap-x')).toContain(stop)
+			const probe = document.createElement('div')
+
+			probe.style.cssText = 'position: absolute; width: var(--touch-target-gap-x)'
+
+			row.append(probe)
+
+			expect(px(getComputedStyle(probe).width)).toBe(gap)
 		},
 	)
 

@@ -21,13 +21,8 @@ const { border } = sen
 const toolbar = defineRecipe({
 	base: flex.row,
 	orientation: {
-		horizontal: [
-			'flex-row flex-wrap',
-			dan.gap.scale.xs,
-			...dan.gap.touch.x.xs,
-			...dan.gap.touch.y.xs,
-		],
-		vertical: ['flex-col w-fit', dan.gap.scale.xs, ...dan.gap.touch.y.xs],
+		horizontal: ['flex-row flex-wrap', dan.gap.scale.xs, dan.gap.touch.x.xs, dan.gap.touch.y.xs],
+		vertical: ['flex-col w-fit', dan.gap.scale.xs, dan.gap.touch.y.xs],
 	},
 	variant: {
 		plain: '',

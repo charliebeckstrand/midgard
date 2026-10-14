@@ -6,10 +6,14 @@ import {
 	SidebarLayoutHeader,
 } from '../../layouts/sidebar/sidebar'
 import { readChoice, SIDEBAR, writeChoice } from '../../providers/appearance/appearance-storage'
+import { dan } from '../../recipes/kiso/dan'
 import { act, bySlot, densityStepOf, fireEvent, present, renderUI, screen } from '../helpers'
 
-/** The inline desktop panel: the one element with the `md` width of the rail. */
-const DESKTOP_PANEL = '.density-md\\:w-xs'
+/** The inline desktop panel (`data-slot="sidebar-panel"`), which takes the width of the sidebar. */
+const DESKTOP_PANEL = '[data-slot="sidebar-panel"]'
+
+/** The start-edge buffer of the floating sheet. */
+const BUFFER = `[class~="${dan.size.sidebar.edge}"]`
 
 /** The copy of the sidebar in the floating sheet. The inline panel holds the other copy. */
 const inSheet = (text: string) =>
@@ -112,10 +116,7 @@ describe('SidebarLayout', () => {
 	it('gives the desktop panel a width for each density step', () => {
 		const { container } = renderUI(<SidebarLayout sidebar={<div>sidebar</div>}>body</SidebarLayout>)
 
-		expect(container.querySelector(DESKTOP_PANEL)).toHaveClass(
-			'density-[xs,sm]:w-2xs',
-			'density-[lg,xl]:w-sm',
-		)
+		expect(container.querySelector(DESKTOP_PANEL)).toHaveClass(dan.size.sidebar.width)
 	})
 
 	it('sizes the desktop panel at the step of the nearest scope', () => {
@@ -184,10 +185,7 @@ describe('SidebarLayout offcanvas mode', () => {
 		// Hovering the sheet body itself keeps it open.
 		fireEvent.pointerEnter(inner)
 
-		const buffer = present(
-			document.body.querySelector('[class*="start-80"]'),
-			'[class*="start-80"]',
-		)
+		const buffer = present(document.body.querySelector(BUFFER), BUFFER)
 
 		expect(buffer).toBeInTheDocument()
 
@@ -198,7 +196,7 @@ describe('SidebarLayout offcanvas mode', () => {
 
 		expect(inSheet('floating-sidebar')).toBeNull()
 
-		expect(document.body.querySelector('[class*="start-80"]')).not.toBeInTheDocument()
+		expect(document.body.querySelector(BUFFER)).not.toBeInTheDocument()
 	})
 
 	// A finger fires `pointerleave` as it lifts, so a leave that closed the peek
@@ -219,7 +217,7 @@ describe('SidebarLayout offcanvas mode', () => {
 
 			const target =
 				from === 'buffer'
-					? present(document.body.querySelector('[class*="start-80"]'), '[class*="start-80"]')
+					? present(document.body.querySelector(BUFFER), BUFFER)
 					: (present(inSheet('floating-sidebar'), 'sheet sidebar').parentElement as HTMLElement)
 
 			fireEvent.pointerLeave(target, { pointerType: 'touch' })
@@ -245,16 +243,13 @@ describe('SidebarLayout offcanvas mode', () => {
 
 		fireEvent.pointerEnter(hotZone)
 
-		const buffer = present(
-			document.body.querySelector('[class*="start-80"]'),
-			'[class*="start-80"]',
-		)
+		const buffer = present(document.body.querySelector(BUFFER), BUFFER)
 
 		expect(buffer).toBeInTheDocument()
 
 		fireEvent.pointerLeave(buffer)
 
-		expect(document.body.querySelector('[class*="start-80"]')).not.toBeInTheDocument()
+		expect(document.body.querySelector(BUFFER)).not.toBeInTheDocument()
 	})
 
 	it('blurs the page behind the floating peek once it opens', () => {
@@ -328,7 +323,7 @@ describe('SidebarLayout offcanvas mode', () => {
 		fireEvent.pointerEnter(hotZone)
 
 		// Opening paints the start-edge buffer — the open-state signal.
-		expect(document.body.querySelector('[class*="start-80"]')).toBeInTheDocument()
+		expect(document.body.querySelector(BUFFER)).toBeInTheDocument()
 
 		// Locking the sidebar closes the sheet; going back to offcanvas keeps it
 		// closed, so the buffer stays absent.
@@ -336,7 +331,7 @@ describe('SidebarLayout offcanvas mode', () => {
 
 		act(() => writeChoice(SIDEBAR.key, 'offcanvas'))
 
-		expect(document.body.querySelector('[class*="start-80"]')).not.toBeInTheDocument()
+		expect(document.body.querySelector(BUFFER)).not.toBeInTheDocument()
 	})
 
 	it('looks for the current item once while the drawer stays open', () => {

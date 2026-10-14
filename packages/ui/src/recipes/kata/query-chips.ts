@@ -30,10 +30,7 @@ export const k = {
 	base: [
 		flex.row,
 		'flex-wrap gap-1.5',
-		'density-xs:[--touch-target-gap-x:--spacing(2.75)]',
-		'density-sm:[--touch-target-gap-x:--spacing(3.25)]',
-		'density-md:[--touch-target-gap-x:--spacing(3.75)]',
-		'density-[lg,xl]:[--touch-target-gap-x:--spacing(4.25)]',
+		dan.gap.touch.chips,
 		'[--touch-target-gap-y:--spacing(3)]',
 		dan.text.chip,
 	],

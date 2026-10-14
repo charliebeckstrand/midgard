@@ -204,7 +204,9 @@ export function SidebarLayout({
 				/>
 
 				{/* Sidebar on desktop: inline when locked. It hides while offcanvas. */}
-				<div className={k.panel()}>{sidebar}</div>
+				<div data-slot="sidebar-panel" className={k.panel()}>
+					{sidebar}
+				</div>
 
 				{/* Sidebar on desktop: sheet when offcanvas. Non-modal so the hover-revealed
 				    peek doesn't steal focus or lock body scroll, but `backdrop` still

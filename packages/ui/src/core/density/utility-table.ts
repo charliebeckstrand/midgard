@@ -1,12 +1,13 @@
 /**
  * The kind of value that a stepped utility takes: a stop of the spacing scale,
  * a margin (a stop of the spacing scale, or a negative stop), a name of the
- * text scale, or a radius (a name of the radius scale or a stop of the spacing
+ * text scale, a radius (a name of the radius scale or a stop of the spacing
+ * scale), or a size (a name of the container scale or a stop of the spacing
  * scale).
  *
  * @internal
  */
-export type UtilityValue = 'spacing' | 'margin' | 'text' | 'radius'
+export type UtilityValue = 'spacing' | 'margin' | 'text' | 'radius' | 'size'
 
 /**
  * One utility of {@link utilityTable}.
@@ -38,7 +39,9 @@ export type UtilityEntry = {
  * The plugin of `utilities.ts` registers each utility from this table, and
  * `core/tw-merge.ts` builds its class groups and conflicts from it. So a new
  * utility is one entry, and `cn` merges it with no other change. The table
- * holds data only, so `cn` reads it with no plugin code.
+ * holds data only, so `cn` reads it with no plugin code. `density-set` is not
+ * in the table, because its modifier gives the property that it writes
+ * (`utilities.ts`).
  *
  * @internal
  */
@@ -50,8 +53,9 @@ export const utilityTable = {
 	pb: { properties: ['padding-bottom'], value: 'spacing' },
 	ps: { properties: ['padding-inline-start'], value: 'spacing', ring: true },
 	pe: { properties: ['padding-inline-end'], value: 'spacing', ring: true },
-	ms: { properties: ['margin-inline-start'], value: 'spacing', ring: true },
-	me: { properties: ['margin-inline-end'], value: 'spacing', ring: true },
+	ms: { properties: ['margin-inline-start'], value: 'margin', ring: true },
+	me: { properties: ['margin-inline-end'], value: 'margin', ring: true },
+	mx: { properties: ['margin-inline'], value: 'margin' },
 	my: { properties: ['margin-block'], value: 'margin' },
 	mt: { properties: ['margin-top'], value: 'margin' },
 	mb: { properties: ['margin-bottom'], value: 'margin' },
@@ -61,7 +65,7 @@ export const utilityTable = {
 	size: { properties: ['width', 'height'], value: 'spacing' },
 	h: { properties: ['height'], value: 'spacing' },
 	'max-h': { properties: ['max-height'], value: 'spacing' },
-	w: { properties: ['width'], value: 'spacing' },
+	w: { properties: ['width'], value: 'size' },
 	'min-w': { properties: ['min-width'], value: 'spacing' },
 	'inset-s': { properties: ['inset-inline-start'], value: 'spacing', group: 'start' },
 	text: { properties: ['font-size', 'line-height'], value: 'text', group: 'font-size' },

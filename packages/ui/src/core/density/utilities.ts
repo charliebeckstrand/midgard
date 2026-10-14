@@ -31,8 +31,24 @@
  * text, and the icon of each step move by the same 2 px (`geometry.ts`). A
  * `leading-*` class still wins. `density-rounded` takes the names of the
  * radius scale, or stops of the spacing scale as `rounded-[--spacing(n)]` does.
- * A name must be a key of the theme, for example `--text-sm`, or the class
- * writes no CSS.
+ * `density-w` takes the names of the container scale, or stops of the spacing
+ * scale. A name must be a key of the theme, for example `--text-sm`, or the
+ * class writes no CSS.
+ *
+ * `density-set` writes a custom property, and a plain utility reads it. The
+ * modifier gives the name of the property in brackets, and the list gives
+ * stops of the spacing scale, for example
+ * `density-set-[4,5,6,7,8]/[--ui-panel-bottom]`. A stop can be negative.
+ * A modifier that is not the name of a custom property, or no modifier, writes
+ * no CSS. So does a name that the stepped classes read: a weight
+ * (`--ui-d<step>` or `--ui-h<step>`), `--spacing`, or a name of Tailwind
+ * (`--tw-*`). Such a property would read itself, and each stepped class below
+ * it would write no value. The element that declares the property computes the `var()` of each
+ * weight, so the property holds the length of the step of that element. Each
+ * descendant reads that length, and not the length of its own step. Thus a
+ * plain reader gives a value that the stepped utilities cannot give, for
+ * example `pb-[calc(var(--ui-panel-bottom)+var(--ui-panel-safe,0px))]` or
+ * `space-x-(--ui-avatar-overlap)`.
  *
  * A kasane surface draws a 1 px ring inside its box. A ring utility takes a
  * stop of the spacing scale and subtracts the ring, so the content lines up
@@ -212,10 +228,7 @@ function pick(kind: 'number' | 'length', values: ByStep<number> | ByStep<string>
 		: lengthSum(values as ByStep<string>)
 }
 
-/**
- * The CSS of a list of stops of the spacing scale, less the 1 px ring for a
- * ring utility.
- */
+/** The CSS of a list of stops of the spacing scale, less the 1 px ring for a ring utility. */
 function stops(values: ByStep<string>, ring = false): string {
 	const rest = ring ? ' - 1px' : ''
 
@@ -225,8 +238,12 @@ function stops(values: ByStep<string>, ring = false): string {
 }
 
 /** The CSS of a list of lengths. */
-const lengths = (values: ByStep<string>) =>
-	isFlat(values) ? values.md : `calc(${pick('length', values)})`
+function lengths(values: ByStep<string>): string {
+	return isFlat(values) ? values.md : `calc(${pick('length', values)})`
+}
+
+/** The theme scale of the names that each kind of stepped utility takes. */
+const scaleOf: Partial<Record<UtilityValue, string>> = { radius: 'radius', size: 'container' }
 
 /** The declarations of a stepped utility of `entry` with `values`. */
 function declare(entry: UtilityEntry, values: ByStep<string>): CssInJs {
@@ -250,10 +267,10 @@ function declare(entry: UtilityEntry, values: ByStep<string>): CssInJs {
 		return each(properties, stops(values))
 	}
 
-	const radius = (value: string) =>
-		isStop(value) ? `calc(var(--spacing) * ${value})` : `var(--radius-${value})`
+	const named = (value: string) =>
+		isStop(value) ? `calc(var(--spacing) * ${value})` : `var(--${scaleOf[kind]}-${value})`
 
-	return each(properties, lengths(mapSteps(values, radius)))
+	return each(properties, lengths(mapSteps(values, named)))
 }
 
 /**
@@ -270,11 +287,14 @@ function checks(theme: PluginAPI['theme']): Record<UtilityValue, (value: string)
 
 	const isRadius = inTheme('radius')
 
+	const isContainer = inTheme('container')
+
 	return {
 		spacing: isStop,
 		margin: isMargin,
 		text: isText,
 		radius: (value) => isStop(value) || (value !== 'full' && isRadius(value)),
+		size: (value) => isStop(value) || isContainer(value),
 	}
 }
 
@@ -282,17 +302,39 @@ function checks(theme: PluginAPI['theme']): Record<UtilityValue, (value: string)
  * Makes the callback of a stepped utility for `matchUtilities`. The utility
  * takes one arbitrary value with the value of each step, for example
  * `density-p-[2,3,4]`, and writes one rule in the layer `density-0`. A value
- * that `isValid` rejects, or a list of the wrong length, writes no CSS.
+ * that `isValid` rejects, or a list of the wrong length, writes no CSS. Tailwind
+ * gives the modifier of the class to `toRule`, and a rule of `null` writes no
+ * CSS.
  */
-function stepped(isValid: (value: string) => boolean, toRule: (values: ByStep<string>) => CssInJs) {
-	return (list: string): CssInJs[] => {
+function stepped(
+	isValid: (value: string) => boolean,
+	toRule: (values: ByStep<string>, modifier: string | null) => CssInJs | null,
+) {
+	return (list: string, extra?: { modifier: string | null }): CssInJs[] => {
 		const values = valuesByStep(list)
 
 		if (!values || !densitySteps.every((step) => isValid(values[step]))) return []
 
-		return [{ [layer]: toRule(values) }]
+		const rule = toRule(values, extra?.modifier ?? null)
+
+		return rule ? [{ [layer]: rule }] : []
 	}
 }
+
+/**
+ * The custom property that the modifier of `density-set` gives, such as
+ * `--ui-panel-bottom` for `/[--ui-panel-bottom]`, or `null` for each other
+ * modifier and for a name that the stepped classes read. Tailwind removes the brackets of an arbitrary modifier, and
+ * the function also removes them if they are there.
+ */
+function propertyOf(modifier: string | null): string | null {
+	const name = modifier?.replace(/^\[(.*)\]$/, '$1')
+
+	return name && /^--[a-z0-9-]+$/i.test(name) && !RESERVED.test(name) ? name : null
+}
+
+/** The custom properties that the stepped classes read: the weights, `--spacing`, and the names of Tailwind. */
+const RESERVED = /^--(?:ui-[dh](?:xs|sm|md|lg|xl)|spacing|tw-[a-z0-9-]*)$/i
 
 /** The selectors of the scopes of `step`: a root class, if the step has one, and `data-density`. */
 function scopeOf(step: DensityStep): string {
@@ -357,6 +399,14 @@ export const handler: PluginCreator = ({ addBase, matchUtilities, theme }) => {
 	addBase(scopes())
 
 	const valid = checks(theme)
+
+	matchUtilities({
+		'density-set': stepped(valid.margin, (values, modifier) => {
+			const property = propertyOf(modifier)
+
+			return property ? { [property]: stops(values) } : null
+		}),
+	})
 
 	for (const [name, entry] of Object.entries(utilityTable) as [string, UtilityEntry][]) {
 		const { properties, value } = entry

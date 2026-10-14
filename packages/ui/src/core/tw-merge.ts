@@ -1,5 +1,11 @@
-import { type ClassValidator, extendTailwindMerge, validators } from 'tailwind-merge'
-import { utilityTable } from './density/utility-table'
+import {
+	type ClassValidator,
+	type ExperimentalParseClassNameParam,
+	type ExperimentalParsedClassName,
+	extendTailwindMerge,
+	validators,
+} from 'tailwind-merge'
+import { type UtilityEntry, utilityTable } from './density/utility-table'
 
 /** A stepped utility, such as `density-px`. */
 type SteppedGroup = `density-${keyof typeof utilityTable}`
@@ -10,12 +16,14 @@ const ringStop: ClassValidator[] = [validators.isNumber]
 /** The value of a stepped utility: a list in brackets, such as `[2,3,4]`. */
 const stepList: ClassValidator[] = [validators.isArbitraryValue]
 
-const utilities = Object.entries(utilityTable).map(([name, entry]) => ({
-	name,
-	stepped: `density-${name}` as SteppedGroup,
-	plain: 'group' in entry ? entry.group : name,
-	ring: 'ring' in entry,
-}))
+const utilities = (Object.entries(utilityTable) as [string, UtilityEntry][]).map(
+	([name, entry]) => ({
+		name,
+		stepped: `density-${name}` as SteppedGroup,
+		plain: entry.group ?? name,
+		ring: entry.ring === true,
+	}),
+)
 
 /** The stepped group of each plain group, such as `density-px` for `px`. */
 const steppedOf: Record<string, SteppedGroup | undefined> = Object.fromEntries(
@@ -79,18 +87,52 @@ function steppedConflicts(
 	return conflicts
 }
 
+/** A class of `density-set` with the name of a custom property in its modifier. */
+const densitySet = /^density-set-(\[[^\]]*\])\/\[(--[a-z0-9-]+)\]$/i
+
+/**
+ * Parses a class as `tailwind-merge` does, but gives a class of `density-set`
+ * the base class of an arbitrary property: the custom property of its modifier,
+ * with the list as the value. Thus its group is the group of that custom
+ * property, for example `arbitrary..--gap`. Without it, `tailwind-merge` reads
+ * the modifier as a postfix modifier, which is not part of the group. Then a
+ * later class of a different property replaces the class. With it, a later
+ * class of the same property replaces the class, and a class of a different
+ * property does not. `tailwind-merge` marks this hook as experimental, so a
+ * minor release can change it. The `density-set` cases of `cn.test.ts` then
+ * fail.
+ */
+function parseClassName({
+	className,
+	parseClassName: parse,
+}: ExperimentalParseClassNameParam): ExperimentalParsedClassName {
+	const parsed = parse(className)
+
+	const match = densitySet.exec(parsed.baseClassName)
+
+	if (!match) return parsed
+
+	return {
+		...parsed,
+		baseClassName: `[${match[2]}:${match[1]}]`,
+		maybePostfixModifierPosition: undefined,
+	}
+}
+
 /**
  * `tailwind-merge` extended with the density utilities of
  * `core/density/utility-table.ts`: the stepped utilities and the ring
  * utilities. A later class replaces an earlier class of each property that it covers,
- * whether each class is stepped, plain, or a ring form. Shared by `cn` and the
- * recipe engine.
+ * whether each class is stepped, plain, or a ring form. A class of
+ * `density-set` has the group of its custom property (`parseClassName`).
+ * Shared by `cn` and the recipe engine.
  *
  * The stepped conflicts join the config that `tailwind-merge` builds on the
  * first merge, so the default config is built once, and not at module load.
  */
 export const twMerge = extendTailwindMerge<SteppedGroup>(
 	{
+		experimentalParseClassName: parseClassName,
 		extend: { classGroups },
 	},
 	(config) => {

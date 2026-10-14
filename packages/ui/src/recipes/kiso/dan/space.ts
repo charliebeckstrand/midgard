@@ -142,20 +142,13 @@ export const space = {
 			sheet: 'last:not-in-[[data-slot=sheet]_:not(:last-child)]:density-mb-[4,5,6,7,8]',
 		},
 		/**
-		 * The bottom inset of a panel on the bottom edge below `sm`, plus the home
-		 * indicator inset of a page with `viewport-fit=cover`. Elsewhere the inset of
-		 * the home indicator is zero. A `calc` with `env` is not a stop of the
-		 * spacing scale, so each step of `bottom` has its own class. Each length is
-		 * the stop of `bottom` at that step: `1rem` is 4, `1.25rem` is 5, `1.5rem`
-		 * is 6, `1.75rem` is 7, and `2rem` is 8.
+		 * The bottom padding of a panel that sits on the bottom edge below `sm`.
+		 * `--ui-panel-bottom` holds the stop of `bottom` at the step of the panel.
+		 * Below `sm`, `--ui-panel-safe` holds the inset of the home indicator of a
+		 * page with `viewport-fit=cover`, and elsewhere it is zero. One plain padding
+		 * adds the two, so `cn` merges it with the padding of a consumer `className`.
 		 */
-		safe: [
-			'max-sm:density-xs:pb-[calc(1rem+env(safe-area-inset-bottom))]',
-			'max-sm:density-sm:pb-[calc(1.25rem+env(safe-area-inset-bottom))]',
-			'max-sm:density-md:pb-[calc(1.5rem+env(safe-area-inset-bottom))]',
-			'max-sm:density-lg:pb-[calc(1.75rem+env(safe-area-inset-bottom))]',
-			'max-sm:density-xl:pb-[calc(2rem+env(safe-area-inset-bottom))]',
-		],
+		safe: 'density-set-[4,5,6,7,8]/[--ui-panel-bottom] max-sm:[--ui-panel-safe:env(safe-area-inset-bottom)] pb-[calc(var(--ui-panel-bottom)+var(--ui-panel-safe,0px))]',
 	},
 	shell: {
 		/** The padding of the sidebar layout regions. */
@@ -178,6 +171,22 @@ export const space = {
 		base: 'density-p-ring-[1.5,1.5,2,2.5,3]',
 		/** The block padding of the combinator button with a label. */
 		label: 'data-has-label:density-py-ring-[1,1,1.5,2,2.5]',
+	},
+	avatar: {
+		/**
+		 * The overlap of each avatar of a group onto the one before it.
+		 * `--ui-avatar-overlap` holds the negative length of the step of the group,
+		 * and each avatar takes it as its margin (`space-x`). Thus an avatar with
+		 * its own density scope takes the overlap of the group.
+		 */
+		overlap: 'density-set-[-0.5,-0.5,-1,-1,-1]/[--ui-avatar-overlap] space-x-(--ui-avatar-overlap)',
+	},
+	dashboard: {
+		/**
+		 * The negative inline margin of a bare icon button in a dashboard tile
+		 * header. It cancels the padding of the button (`button.bare`).
+		 */
+		bare: '**:data-[variant=bare]:not-data-has-label:density-mx-[-0.75,-1,-1.25,-1.5,-1.75]',
 	},
 	button: {
 		/** The padding of a button, inside its ring. */
@@ -302,6 +311,12 @@ export const space = {
 	slider: {
 		/** The block padding of a slider, which holds the thumb. */
 		y: scale.py.lg,
+		/**
+		 * The negative top margin that centers the WebKit thumb of a range input
+		 * on its track: half of the difference between the track height and the
+		 * thumb height.
+		 */
+		thumb: '[&::-webkit-slider-thumb]:density-mt-[-0.75,-1,-1.25,-1.5,-1.75]',
 		track: {
 			/** The block margin of a slider skeleton track. */
 			y: 'density-my-[2,3,4,5,6]',

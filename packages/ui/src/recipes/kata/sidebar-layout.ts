@@ -36,10 +36,9 @@ const layout = defineRecipe({
 })
 
 // The width of the sidebar. It holds text, so its width follows the nearest
-// density scope, as the text does. A container width has no stepped utility, so
-// the steps are variants, and equal steps share one. The inline panel and the
-// body of the floating sheet both take it, so the text wraps the same in each.
-const sidebarWidth = 'density-[xs,sm]:w-2xs density-md:w-xs density-[lg,xl]:w-sm'
+// density scope, as the text does. The inline panel and the body of the
+// floating sheet both take it, so the text wraps the same in each.
+const sidebarWidth = dan.size.sidebar.width
 
 // Sticks to the top of the page below `lg`, over the content that scrolls under it.
 // Keep the background opaque and the bar full width. Safari on iOS 26 then paints
@@ -90,11 +89,7 @@ const floatingBody = defineRecipe({ base: [flex.col, 'h-full', sidebarWidth] })
 // rung's other inhabitant. It starts at the far edge of the floating sheet at
 // each step.
 const floatingBuffer = defineRecipe({
-	base: [
-		sou.chrome,
-		'fixed top-0 bottom-0 w-10 max-lg:hidden',
-		'density-[xs,sm]:start-72 density-md:start-80 density-[lg,xl]:start-96',
-	],
+	base: [sou.chrome, 'fixed top-0 bottom-0 w-10 max-lg:hidden', dan.size.sidebar.edge],
 })
 
 // The content flows in the page. Do not give the content or this wrapper an
