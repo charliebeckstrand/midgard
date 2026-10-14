@@ -62,7 +62,7 @@ export function QueryBuilderSortable({ group, separator, node }: QueryBuilderSor
 
 	const name = useCallback(
 		(id: string) => {
-			const child = children.find((node) => node.id === id)
+			const child = children.find((candidate) => candidate.id === id)
 
 			return child === undefined ? '' : describeNode(child, fields)
 		},

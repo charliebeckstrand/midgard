@@ -2,7 +2,13 @@
 
 import { type RefObject, useMemo } from 'react'
 import { TooltipPointer } from '../../../components/tooltip/tooltip-pointer'
-import { bandCoord, type ChartOrientation, project, valueCoord } from './chart-orientation'
+import {
+	bandCoord,
+	type ChartOrientation,
+	project,
+	type Vec,
+	valueCoord,
+} from './chart-orientation'
 import { ChartReadoutCard, ChartReadoutRow, ReadoutSwatch } from './chart-readout-card'
 import { seriesGroupClass } from './chart-series'
 import { type ChartSnap, nearestValue } from './chart-snap'
@@ -147,6 +153,30 @@ export function describeReadout(
 	return [readout.categories[index], ...values].filter(Boolean).join(', ')
 }
 
+/**
+ * Where the readout anchors for the hover at `index`. Snapped, it is the band
+ * center crossed with the value nearest `point`, projected onto the screen
+ * through the orientation. Else it is `point`.
+ *
+ * @internal
+ */
+function tooltipAnchor(
+	point: Vec,
+	index: number,
+	snap: ChartSnap | undefined,
+	orientation: ChartOrientation,
+): Vec {
+	if (!snap) return point
+
+	const value = valueCoord(orientation, point)
+
+	return project(
+		orientation,
+		nearestValue(snap.valuePoints[index], value) ?? value,
+		snap.bandPositions[index] ?? bandCoord(orientation, point),
+	)
+}
+
 /** The gap in px floating-ui keeps between the anchor point and the readout. @internal */
 const TRACK_OFFSET = 12
 
@@ -233,16 +263,7 @@ export function ChartTooltip({
 	// value nearest the pointer, projected onto the screen through the orientation;
 	// otherwise it is the pointer itself.
 	const anchor =
-		index !== null && point !== null
-			? snap
-				? project(
-						orientation,
-						nearestValue(snap.valuePoints[index], valueCoord(orientation, point)) ??
-							valueCoord(orientation, point),
-						snap.bandPositions[index] ?? bandCoord(orientation, point),
-					)
-				: point
-			: null
+		index !== null && point !== null ? tooltipAnchor(point, index, snap, orientation) : null
 
 	// A snapping crosshair carries the tooltip to the nearest point, so it reads
 	// anywhere in the plot; otherwise it waits for the pointer to sit on a mark.

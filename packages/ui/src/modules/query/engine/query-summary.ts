@@ -216,10 +216,10 @@ export function summarizeQuery(group: QueryGroup, fields: QueryField[]): QuerySu
  * @internal
  */
 export function spacedBefore(
-	previous: QuerySummaryToken | undefined,
+	prev: QuerySummaryToken | undefined,
 	token: QuerySummaryToken,
 ): boolean {
-	return previous != null && previous.kind !== 'group-open' && token.kind !== 'group-close'
+	return prev != null && prev.kind !== 'group-open' && token.kind !== 'group-close'
 }
 
 /** Renders one token as its sentence fragment. @internal */

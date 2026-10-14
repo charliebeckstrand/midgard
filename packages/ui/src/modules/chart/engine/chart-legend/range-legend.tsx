@@ -203,8 +203,8 @@ type RangeKeyContext = {
  *
  * @internal
  */
-function rangeKeyValue(key: string, probe: number | null, ctx: RangeKeyContext): number | null {
-	const { min, max, bins, binOf, edgesOf } = ctx
+function rangeKeyValue(key: string, probe: number | null, context: RangeKeyContext): number | null {
+	const { min, max, bins, binOf, edgesOf } = context
 
 	const center = (bin: number) => {
 		const [low, high] = edgesOf(clamp(bin, 0, bins - 1))

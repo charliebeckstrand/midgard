@@ -5,10 +5,8 @@ import { useStableValue } from '../../hooks/use-stable-value'
 import type { ChatMessageData } from './engine/types'
 
 /** Whether two message lists hold the same ids in the same order. @internal */
-function sameIds(previous: readonly ChatMessageData[], next: readonly ChatMessageData[]): boolean {
-	return (
-		previous.length === next.length && next.every((message, i) => message.id === previous[i]?.id)
-	)
+function sameIds(prev: readonly ChatMessageData[], next: readonly ChatMessageData[]): boolean {
+	return prev.length === next.length && next.every((message, i) => message.id === prev[i]?.id)
 }
 
 /**

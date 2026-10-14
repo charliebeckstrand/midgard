@@ -188,7 +188,7 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 	const { hidden, toggle } = useChartSeriesToggle(sliceLabels, onHiddenChange)
 
 	// A toggled-off row leaves the sweep entirely, so the survivors re-share the whole.
-	const sliceValues = values.map((entry, index) => (hidden.has(index) ? null : entry))
+	const sliceValues = values.map((value, index) => (hidden.has(index) ? null : value))
 
 	// Callouts sit outside the pie, so reserve room for the widest one and shrink
 	// the pie to fit — its label never spills past the frame's clip. The frame
@@ -311,13 +311,13 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 	// data actions.
 	const readoutInput = useStableValue(
 		{ data, entry, categories, format, labels: sliceLabels, paints, values },
-		(previous, next) =>
-			previous.data === next.data &&
-			previous.entry.xKey === next.entry.xKey &&
-			previous.entry.yKey === next.entry.yKey &&
-			previous.entry.yName === next.entry.yName &&
-			previous.categories === next.categories &&
-			previous.format === next.format,
+		(prev, next) =>
+			prev.data === next.data &&
+			prev.entry.xKey === next.entry.xKey &&
+			prev.entry.yKey === next.entry.yKey &&
+			prev.entry.yName === next.entry.yName &&
+			prev.categories === next.categories &&
+			prev.format === next.format,
 	)
 
 	const readout = useMemo(

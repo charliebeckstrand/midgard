@@ -79,7 +79,10 @@ export function QueryBuilder({
 		onValueChange,
 	})
 
-	const getField = useCallback((name: string) => fields.find((f) => f.name === name), [fields])
+	const getField = useCallback(
+		(name: string) => fields.find((field) => field.name === name),
+		[fields],
+	)
 
 	const state = useMemo<QueryBuilderStateValue>(
 		() => ({

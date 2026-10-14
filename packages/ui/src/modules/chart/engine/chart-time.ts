@@ -100,8 +100,10 @@ function dottedInstant(parts: RegExpExecArray): number | null {
 
 	const year = Number(yearText)
 
+	const century = year < 50 ? 2000 : 1900
+
 	return localInstant(
-		yearText.length > 2 ? year : year < 50 ? 2000 + year : 1900 + year,
+		yearText.length > 2 ? year : century + year,
 		Number(month),
 		Number(yearFirst ? last : first),
 		Number(hour ?? 0),
@@ -268,6 +270,15 @@ function localDate(at: CalendarDateTime): Date {
 /** Formats one tick from its local wall-clock boundary and its instant. @internal */
 type TickLabel = (at: CalendarDateTime, date: Date) => string
 
+/** The time fields of a tick under a day at `approx` spacing. @internal */
+function timeFields(approx: number): Intl.DateTimeFormatOptions {
+	if (approx >= HOUR) return { hour: 'numeric' }
+
+	if (approx >= MINUTE) return { hour: 'numeric', minute: '2-digit' }
+
+	return { minute: '2-digit', second: '2-digit' }
+}
+
 /**
  * The label of each tick at `approx` spacing: the multi-format of a time axis.
  * Each tick reads the coarsest calendar unit whose boundary it sits on. An
@@ -306,13 +317,7 @@ function tickLabel(approx: number, locale: string): TickLabel {
 
 	if (approx >= DAY) return (at, date) => (at.day === 1 ? calendar(at, date) : day(date))
 
-	const time = formatter(
-		approx >= HOUR
-			? { hour: 'numeric' }
-			: approx >= MINUTE
-				? { hour: 'numeric', minute: '2-digit' }
-				: { minute: '2-digit', second: '2-digit' },
-	)
+	const time = formatter(timeFields(approx))
 
 	return (at, date) =>
 		at.hour === 0 && at.minute === 0 && at.second === 0 ? day(date) : time(date)
@@ -366,16 +371,16 @@ function anchorsOf(times: (number | null)[]): Anchor[] {
 
 	let ascending = true
 
-	let previous = Number.NEGATIVE_INFINITY
+	let prev = Number.NEGATIVE_INFINITY
 
 	for (let index = 0; index < times.length; index++) {
 		const time = times[index]
 
 		if (time == null || !Number.isFinite(time)) continue
 
-		if (time < previous) ascending = false
+		if (time < prev) ascending = false
 
-		previous = time
+		prev = time
 
 		anchors.push({ index, time })
 	}
@@ -448,7 +453,7 @@ export function timeTicks(options: TimeTicksOptions): ChartAxisTick[] | null {
 	// The first row as a local wall-clock datetime, so the floor reads calendar days.
 	let cursor = interval.floor(wallClock(first.time), locale)
 
-	let lastTime = Number.NEGATIVE_INFINITY
+	let prevTime = Number.NEGATIVE_INFINITY
 
 	for (let guard = 0; guard < MAX_TICKS; guard++) {
 		const date = localDate(cursor)
@@ -462,10 +467,10 @@ export function timeTicks(options: TimeTicksOptions): ChartAxisTick[] | null {
 		// A wall time in a daylight-saving gap resolves forward past the gap, to
 		// an instant that the walk reaches again. Thus a time at or before the
 		// last tick is skipped.
-		if (time >= first.time && time > lastTime) {
+		if (time >= first.time && time > prevTime) {
 			ticks.push({ at: place(time), label: label(cursor, date), key: time })
 
-			lastTime = time
+			prevTime = time
 		}
 
 		cursor = interval.next(cursor)

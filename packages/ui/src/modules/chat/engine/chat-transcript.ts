@@ -225,9 +225,9 @@ export function truncateToEditedMessage(
 
 	// An id no message carries reads as -1, and `messages[-1]` is undefined, so
 	// one check answers both.
-	const current = messages[index]
+	const target = messages[index]
 
-	if (!current) return messages
+	if (!target) return messages
 
-	return [...messages.slice(0, index), { ...current, content }]
+	return [...messages.slice(0, index), { ...target, content }]
 }

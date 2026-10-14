@@ -167,11 +167,11 @@ export function clampCursor(
 ): ChartCursor | null {
 	if (!cursor) return null
 
-	const n = targets.points.length
+	const count = targets.points.length
 
-	if (n === 0) return null
+	if (count === 0) return null
 
-	const bounded = clamp(cursor.category, 0, n - 1)
+	const bounded = clamp(cursor.category, 0, count - 1)
 
 	const category = pointCount(targets, bounded) > 0 ? bounded : edgeCategory(targets, -1)
 
@@ -422,14 +422,14 @@ export function moveCursor(
 type ResolvedStop = { live: ChartCursor; anchor: Vec | null; series: number | null }
 
 /** Whether two resolved stops sit on one point or rule, in one category, on one series. @internal */
-function sameStop(previous: ResolvedStop | null, next: ResolvedStop | null): boolean {
-	if (previous === null || next === null) return previous === next
+function sameStop(prev: ResolvedStop | null, next: ResolvedStop | null): boolean {
+	if (prev === null || next === null) return prev === next
 
 	return (
-		samePoint(previous.anchor, next.anchor) &&
-		previous.live.category === next.live.category &&
-		previous.live.reference === next.live.reference &&
-		previous.series === next.series
+		samePoint(prev.anchor, next.anchor) &&
+		prev.live.category === next.live.category &&
+		prev.live.reference === next.live.reference &&
+		prev.series === next.series
 	)
 }
 

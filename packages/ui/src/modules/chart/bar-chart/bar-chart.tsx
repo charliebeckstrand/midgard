@@ -1,12 +1,18 @@
 'use client'
 
-import { barProjection } from '../engine/chart-cartesian/series'
+import { barProjection, type DrawnSeries } from '../engine/chart-cartesian/series'
 import { MARK_GAP } from '../engine/chart-constants'
 import { ChartCartesianFrame } from '../engine/chart-frame/cartesian'
-import { barMarks, stackedBarMarks, stackedBarSnaps } from '../engine/chart-geometry/bar'
+import {
+	type BarMark,
+	barMarks,
+	stackedBarMarks,
+	stackedBarSnaps,
+} from '../engine/chart-geometry/bar'
 import { barMarkAt } from '../engine/chart-hit-test'
 import { AnimatedChartBarMarks, ChartBarMarks } from '../engine/chart-marks/bar'
 import type { ChartOrientation } from '../engine/chart-orientation'
+import type { BandScale } from '../engine/chart-scale'
 import type { CartesianChartProps } from '../engine/types'
 import { useChartCartesian } from '../engine/use-chart-cartesian'
 
@@ -42,6 +48,24 @@ export type BarChartProps<T = never> = CartesianChartProps<T> & {
 	 * @defaultValue false
 	 */
 	thick?: boolean
+}
+
+/**
+ * The stacked columns through the one scale of the stack. It is empty before that
+ * scale resolves.
+ *
+ * @internal
+ */
+function stackedColumns(
+	drawn: DrawnSeries[],
+	seriesValues: (number | null)[][],
+	band: BandScale,
+	orientation: ChartOrientation,
+	thick: boolean,
+): (BarMark | null)[][] {
+	const scale = drawn[0]?.scale
+
+	return scale ? stackedBarMarks(seriesValues, band, scale.map, orientation, thick) : []
 }
 
 /**
@@ -94,12 +118,8 @@ export function BarChart<T>(props: BarChartProps<T>) {
 
 	const projection = barProjection(drawn, chart.baseline)
 
-	const stackScale = drawn[0]?.scale
-
 	const marks = stacked
-		? stackScale
-			? stackedBarMarks(seriesValues, chart.band, stackScale.map, chart.orientation, thick)
-			: []
+		? stackedColumns(drawn, seriesValues, chart.band, chart.orientation, thick)
 		: barMarks(
 				seriesValues,
 				chart.band,

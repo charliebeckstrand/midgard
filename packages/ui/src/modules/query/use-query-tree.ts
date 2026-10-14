@@ -60,7 +60,7 @@ export function useQueryTree({
 	const [tree, setTree] = useControllable<QueryGroup>({
 		value,
 		defaultValue: initial,
-		onValueChange: onValueChange && ((v) => v != null && onValueChange(v)),
+		onValueChange: onValueChange && ((next) => next != null && onValueChange(next)),
 	})
 
 	const root = tree ?? initial

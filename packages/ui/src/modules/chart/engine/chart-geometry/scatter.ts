@@ -148,20 +148,20 @@ export function sizeRadius(
 ): number {
 	if (domain === null) return MARKER_RADIUS
 
-	const [minD, maxD] = diameters
+	const [minDiameter, maxDiameter] = diameters
 
-	if (size === null || size === 0) return minD / 2
+	if (size === null || size === 0) return minDiameter / 2
 
 	if (size < 0) return 0
 
 	const [low, high] = [Math.sqrt(Math.max(0, domain[0])), Math.sqrt(Math.max(0, domain[1]))]
 
 	// Half the mid diameter: equal sizes read equal, not minimal.
-	if (high === low) return (minD + maxD) / 4
+	if (high === low) return (minDiameter + maxDiameter) / 4
 
 	const t = (Math.sqrt(Math.max(0, size)) - low) / (high - low)
 
-	return (minD + t * (maxD - minD)) / 2
+	return (minDiameter + t * (maxDiameter - minDiameter)) / 2
 }
 
 /** Whether a point draws a disc: every point does, except one with a negative size. @internal */

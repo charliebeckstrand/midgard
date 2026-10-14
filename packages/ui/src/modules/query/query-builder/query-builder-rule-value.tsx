@@ -158,15 +158,17 @@ export function QueryBuilderRuleValue({
 		return (
 			<Select
 				value={(value as string | undefined) ?? ''}
-				displayValue={(v: string) => field.options?.find((o) => o.value === v)?.label ?? ''}
-				onValueChange={(v: string | null) => onValueChange(v ?? '')}
+				displayValue={(selected: string) =>
+					field.options?.find((option) => option.value === selected)?.label ?? ''
+				}
+				onValueChange={(next: string | null) => onValueChange(next ?? '')}
 				placeholder="Value"
 				aria-label={label}
 				className={className}
 			>
-				{field.options?.map((o) => (
-					<ListboxOption key={o.value} value={o.value}>
-						{o.label}
+				{field.options?.map((option) => (
+					<ListboxOption key={option.value} value={option.value}>
+						{option.label}
 					</ListboxOption>
 				))}
 			</Select>
@@ -186,15 +188,15 @@ export function QueryBuilderRuleValue({
 	}
 
 	if (field.type === 'date') {
-		const dateValue = value ? fromIsoDate(value as string) : undefined
+		const date = value ? fromIsoDate(value as string) : undefined
 
 		return (
 			<DatePicker
-				value={dateValue}
+				value={date}
 				placeholder="Value"
 				aria-label={label}
 				className={className}
-				onValueChange={(d) => onValueChange(d ? toIsoDate(d) : '')}
+				onValueChange={(next) => onValueChange(next ? toIsoDate(next) : '')}
 			/>
 		)
 	}

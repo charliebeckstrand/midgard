@@ -450,14 +450,14 @@ export function ChartReferenceLines({
 		(line, index): (ReferenceRuleProps & { key: string | undefined })[] => {
 			const axis = line.axis ?? 'y'
 
-			const ruleScale = axis === 'y2' ? chart.y2Scale : chart.yScale
+			const scale = axis === 'y2' ? chart.y2Scale : chart.yScale
 
 			// The chart projected each rule once. A rule it holds `null` for draws
 			// nothing, but keeps its slot, so a shown rule's emphasis still keys off
 			// its own `reference` index.
 			const at = referencePositions[index] ?? null
 
-			if (!ruleScale || at === null) return []
+			if (!scale || at === null) return []
 
 			const { from, to } = valueRule(orientation, plot, at)
 
@@ -465,7 +465,7 @@ export function ChartReferenceLines({
 			// on the rule's own axis. `map` clamps into the scale's range, so zero
 			// lands on the plot even off-domain. Revealing from here points every
 			// rule the way its value does, as the bar that would reach it grows.
-			const rise = animate ? referenceRise(orientation, ruleScale.map(0) - at) : null
+			const rise = animate ? referenceRise(orientation, scale.map(0) - at) : null
 
 			return [
 				{
