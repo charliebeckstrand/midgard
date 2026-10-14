@@ -127,7 +127,7 @@ export function MenuContent({
 		</div>
 	) : null
 
-	const viewport = <MenuViewport fitted={!isStatic}>{children}</MenuViewport>
+	const viewport = <MenuViewport>{children}</MenuViewport>
 
 	if (isStatic) {
 		return (

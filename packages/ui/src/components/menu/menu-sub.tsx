@@ -287,9 +287,6 @@ function MenuSubFloating({
 	// renders its children a commit *after* `open` flips, so the focus-seating
 	// effect below needs a re-render to fire on — an `open`-keyed effect alone
 	// would run against an empty panel.
-	//
-	// `MenuViewport` composes this with its own overflow watch, so the setter
-	// still runs on attach and on detach.
 	const [rows, setRows] = useState<HTMLElement | null>(null)
 
 	const triggerId = useId()
@@ -540,9 +537,7 @@ function MenuSubFloating({
 						className={cn(k.floating, k.content)}
 						onKeyDown={handlePanelKeyDown}
 					>
-						<MenuViewport ref={setRows} fitted>
-							{children}
-						</MenuViewport>
+						<MenuViewport ref={setRows}>{children}</MenuViewport>
 					</PopoverPanel>
 				</FloatingSurface>
 			</MenuPointerLevel>

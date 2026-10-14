@@ -25,7 +25,6 @@ import {
 	bySlot,
 	fireEvent,
 	getSlot,
-	mockDomGeometry,
 	noop,
 	present,
 	renderUI,
@@ -720,7 +719,7 @@ describe('MenuContent', () => {
 		expect(screen.getByRole('menu')).toHaveFocus()
 	})
 
-	it('wraps items in a scroll viewport carrying the overflow affordance', () => {
+	it('wraps items in a scroll viewport carrying the edge fade', () => {
 		const { container } = renderUI(
 			<Menu defaultOpen>
 				<MenuContent>
@@ -735,9 +734,9 @@ describe('MenuContent', () => {
 
 		expect(viewport).toContainElement(screen.getByText('Item'))
 
-		// jsdom reports zero scroll extent, so the content never overflows and
-		// neither edge attribute may be stamped.
-		expect(viewport).not.toHaveAttribute('data-overflow-below')
+		// The fade is CSS, so the class is the whole wiring. Real pixels are in
+		// `browser/menu-scroll-overflow.test.tsx`.
+		expect(viewport).toHaveClass('scroll-fade-block')
 	})
 
 	describe('capped', () => {
@@ -768,28 +767,6 @@ describe('MenuContent', () => {
 			for (const viewport of [viewportFor(), viewportFor(true)]) {
 				expect(viewport).toHaveClass('overflow-y-auto')
 			}
-		})
-
-		/**
-		 * The panel delegates its viewport to `MenuViewport`, which is what carries
-		 * the watch. One arm, and an attribute rather than a class: the surviving
-		 * class cases pass against a hand-written div, so only a stamped edge
-		 * proves the panel still renders the component that watches.
-		 *
-		 * `MenuViewport`'s own case pins the gate both ways. This pins the link.
-		 */
-		it('scrolls its rows through a watched viewport', () => {
-			const viewport = viewportFor(true)
-
-			// jsdom reads no class, so the overflow value that lets the viewport
-			// scroll is written inline.
-			viewport.style.overflowY = 'auto'
-
-			mockDomGeometry(viewport, { scrollTop: 0, clientHeight: 100, scrollHeight: 400 })
-
-			fireEvent.scroll(viewport)
-
-			expect(viewport).toHaveAttribute('data-overflow-below')
 		})
 
 		it('carries the policy into a submenu panel, which portals out of the viewport', () => {
@@ -1133,58 +1110,34 @@ describe('MenuItem', () => {
 
 /**
  * The viewport both menu panels render. It owns the height policy, the stepped
- * height cap, the edge fade, and the overflow watch, so the gate is pinned here once
- * rather than at each call site.
- *
- * Written geometry, because real layout cannot read the gate: an uncapped
- * viewport never overflows, so it stamps nothing whether or not a watch runs.
- * `browser/menu-scroll-overflow.test.tsx` pins that premise in a real browser.
+ * height cap, and the edge fade, so each is pinned here once rather than at
+ * each call site.
  */
 describe('MenuViewport', () => {
 	/**
-	 * The viewport on its own, with an overflowing extent written onto it.
-	 * `useMenuCapped` reads `false` outside a `Menu`, so the capped arm supplies
-	 * the context the flag travels on.
+	 * The viewport on its own. `useMenuCapped` reads `false` outside a `Menu`, so
+	 * the capped arm supplies the context the flag travels on.
 	 */
-	const viewportFor = (capped: boolean, ref?: Ref<HTMLElement>, fitted?: boolean) => {
+	const viewportFor = (capped: boolean, ref?: Ref<HTMLDivElement>) => {
 		const { container, unmount } = renderUI(
 			<MenuCappedContext value={capped}>
-				<MenuViewport ref={ref} fitted={fitted}>
+				<MenuViewport ref={ref}>
 					<span>Item</span>
 				</MenuViewport>
 			</MenuCappedContext>,
 		)
 
-		const viewport = getSlot(container, 'menu-viewport')
-
-		// jsdom reads no class, so the overflow value that lets the viewport
-		// scroll is written inline.
-		viewport.style.overflowY = 'auto'
-
-		mockDomGeometry(viewport, { scrollTop: 0, clientHeight: 100, scrollHeight: 400 })
-
-		return { viewport, unmount }
+		return { viewport: getSlot(container, 'menu-viewport'), unmount }
 	}
 
-	it('wires the overflow watch of a static panel only while capped', () => {
+	it('fades its edges in CSS whether or not it is capped', () => {
+		// A viewport whose rows fit has no mask, so the fade needs no gate.
 		for (const capped of [false, true]) {
-			const { viewport } = viewportFor(capped)
-
-			fireEvent.scroll(viewport)
-
-			expect(viewport.hasAttribute('data-overflow-below')).toBe(capped)
+			expect(viewportFor(capped).viewport).toHaveClass('scroll-fade-block')
 		}
 	})
 
-	it('wires the overflow watch for a floating panel, which the layer caps to the viewport', () => {
-		const { viewport } = viewportFor(false, undefined, true)
-
-		fireEvent.scroll(viewport)
-
-		expect(viewport).toHaveAttribute('data-overflow-below')
-	})
-
-	it('composes an incoming ref with the watch and tears both down together', () => {
+	it('passes an incoming ref to its node and clears it on detach', () => {
 		const seen: (HTMLElement | null)[] = []
 
 		const { viewport, unmount } = viewportFor(true, (node) => {
@@ -1193,17 +1146,9 @@ describe('MenuViewport', () => {
 
 		expect(seen).toEqual([viewport])
 
-		fireEvent.scroll(viewport)
-
-		expect(viewport).toHaveAttribute('data-overflow-below')
-
 		unmount()
 
-		// One detach runs both refs: the caller's nulls, and the watch's cleanup
-		// drops the attribute it had stamped.
 		expect(seen).toEqual([viewport, null])
-
-		expect(viewport).not.toHaveAttribute('data-overflow-below')
 	})
 })
 
@@ -1315,63 +1260,6 @@ describe('MenuSub', () => {
 		fireEvent.blur(row, { relatedTarget: target(panel) })
 
 		expect(row).toHaveAttribute('aria-expanded', 'true')
-	})
-
-	/**
-	 * The teardown a real submenu panel owes on detach, end to end.
-	 *
-	 * `MenuViewport` composes this row's `setRows` with its own overflow watch,
-	 * and its own case covers that composition in isolation. This one proves the
-	 * panel's unmount reaches it: the portal, the exit, and the row's state
-	 * setter all sit between the detach and the watch's cleanup.
-	 *
-	 * `capped` is what wires the watch at all, so the case passes it. Without the
-	 * flag there is no watch to tear down, and the assertions below would read a
-	 * node that never carried an attribute.
-	 */
-	it('tears the viewport overflow watch down when the panel detaches', () => {
-		const { unmount } = renderUI(
-			<Menu defaultOpen capped>
-				<MenuContent>
-					<MenuSub label="More">
-						<MenuItem>Nested</MenuItem>
-					</MenuSub>
-				</MenuContent>
-			</Menu>,
-		)
-
-		fireEvent.click(screen.getByRole('menuitem', { name: /More/ }))
-
-		const viewport = present(
-			screen
-				.getByRole('menuitem', { name: 'Nested' })
-				.closest<HTMLElement>('[data-slot="menu-viewport"]'),
-			'submenu [data-slot="menu-viewport"]',
-		)
-
-		// jsdom reports a zero scroll extent and reads no class, so write an
-		// extent and an overflow value, and scroll. The watch then stamps an edge,
-		// which gives the teardown something to remove.
-		viewport.style.overflowY = 'auto'
-
-		mockDomGeometry(viewport, { scrollTop: 0, clientHeight: 100, scrollHeight: 400 })
-
-		fireEvent.scroll(viewport)
-
-		expect(viewport).toHaveAttribute('data-overflow-below')
-
-		unmount()
-
-		// One cleanup block drops the attributes, the scroll listener, and both
-		// observers. The attributes are the half a detached node still shows.
-		expect(viewport).not.toHaveAttribute('data-overflow-below')
-
-		expect(viewport).not.toHaveAttribute('data-overflow-above')
-
-		// And the listener is gone with them: a later scroll stamps nothing.
-		fireEvent.scroll(viewport)
-
-		expect(viewport).not.toHaveAttribute('data-overflow-below')
 	})
 })
 
