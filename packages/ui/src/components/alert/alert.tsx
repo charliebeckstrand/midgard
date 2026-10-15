@@ -6,6 +6,7 @@ import { cn } from '../../core'
 import { useControllableFlag } from '../../hooks'
 import { useAnnounceOnAppear } from '../../hooks/a11y/use-announce-on-appear'
 import { type AlertVariants, k } from '../../recipes/kata/alert'
+import { flattenChildren } from '../../utilities/flatten-children'
 import { Button } from '../button'
 import { type ButtonDefaults, ButtonDefaultsProvider } from '../button/context'
 import type { HeadingLevel } from '../heading'
@@ -31,14 +32,21 @@ const severityIcons = {
 	error: <XCircle />,
 } satisfies Record<AlertSeverity, ReactElement>
 
-/** Whether `children` holds body content. `undefined`, `null`, and `false` are empty. @internal */
-function hasBody(children: ReactNode): boolean {
-	return children != null && children !== false
+/**
+ * Whether a slot holds content. `0` is content and renders in its slot.
+ * `undefined`, `null`, `true`, `false`, `''`, an empty array, and an array or a
+ * Fragment that holds only these are empty.
+ *
+ * @internal
+ */
+function hasContent(node: ReactNode): boolean {
+	// `Children.forEach` gives `null` for each boolean.
+	return flattenChildren(node).some((child) => child.node != null && child.node !== '')
 }
 
 /** Wraps loose children in {@link AlertBody}; renders nothing for an empty child. @internal */
 function renderChildren(children: ReactNode): ReactNode {
-	return hasBody(children) ? <AlertBody>{children}</AlertBody> : null
+	return hasContent(children) ? <AlertBody>{children}</AlertBody> : null
 }
 
 /** Props for {@link Alert}; merges recipe variants with severity, content slots, and controlled/uncontrolled open state. */
@@ -184,13 +192,15 @@ function AlertContent({
 		<div className={cn(k.content, resolvedIcon ? k.columns : 'flex flex-col')}>
 			{resolvedIcon && <Icon icon={resolvedIcon} className={cn(k.icon)} />}
 
-			{title && <Title className={cn(k.title, resolvedIcon && 'self-center')}>{title}</Title>}
+			{hasContent(title) && (
+				<Title className={cn(k.title, resolvedIcon && 'self-center')}>{title}</Title>
+			)}
 
-			{description && <div className={cn(k.description)}>{description}</div>}
+			{hasContent(description) && <div className={cn(k.description)}>{description}</div>}
 
 			{renderChildren(children)}
 
-			{actions && (
+			{hasContent(actions) && (
 				<div className={cn(k.actions, resolvedIcon && 'col-start-2')}>
 					<ButtonDefaultsProvider value={actionDefaults}>{actions}</ButtonDefaultsProvider>
 				</div>
@@ -277,12 +287,13 @@ export function Alert({
 		politeSeverity,
 		color,
 		icon,
-		Boolean(title),
+		hasContent(title),
 	)
 
 	// A title over more rows holds the close button on the title row. A lone
 	// row centers it, so the button keeps the height of the alert.
-	const multiRow = Boolean(title && (description || actions || hasBody(children)))
+	const multiRow =
+		hasContent(title) && (hasContent(description) || hasContent(actions) || hasContent(children))
 
 	return (
 		<div

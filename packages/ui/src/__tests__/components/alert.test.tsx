@@ -3,7 +3,15 @@ import { describe, expect, it, vi } from 'vitest'
 import { Alert } from '../../components/alert'
 import { Button } from '../../components/button'
 import { Dialog, DialogPanel } from '../../components/dialog'
-import { bySlot, expectAnnouncement, fireEvent, liveRegion, renderUI, screen } from '../helpers'
+import {
+	bySlot,
+	expectAnnouncement,
+	fireEvent,
+	liveRegion,
+	renderUI,
+	screen,
+	within,
+} from '../helpers'
 
 describe('Alert', () => {
 	it('renders the title in a div with no titleLevel, and as a heading with one', () => {
@@ -167,6 +175,53 @@ describe('Alert', () => {
 		const { container } = renderUI(<Alert title="Title">{null}</Alert>)
 
 		expect(bySlot(container, 'alert-body')).not.toBeInTheDocument()
+	})
+
+	it('renders a 0 title and a 0 description in their slots, with the severity icon', () => {
+		// `{title && …}` rendered a bare 0 outside the slot, and `Boolean(0)` dropped the icon.
+		const { container } = renderUI(
+			<>
+				<Alert severity="error" title={0} />
+				<Alert severity="error" title="Title reference" />
+				<Alert description={0} />
+				<Alert description="Description reference" />
+			</>,
+		)
+
+		const [zeroTitle, , zeroDescription] = Array.from(
+			container.querySelectorAll<HTMLElement>('[data-slot="alert"]'),
+		)
+
+		expect(zeroTitle && within(zeroTitle).getByText('0').className).toBe(
+			screen.getByText('Title reference').className,
+		)
+
+		expect(zeroTitle && bySlot(zeroTitle, 'icon')).toBeInTheDocument()
+
+		expect(zeroDescription && within(zeroDescription).getByText('0').className).toBe(
+			screen.getByText('Description reference').className,
+		)
+	})
+
+	it.each([
+		['an empty string', ''],
+		['an empty array', []],
+		['an array of only empty children', [false, '', [null, true]]],
+	])('renders no body for %s, and keeps the close button centered', (_, empty) => {
+		const { container } = renderUI(
+			<>
+				<Alert title="Saved" closable>
+					{empty}
+				</Alert>
+				<Alert title="Reference" closable />
+			</>,
+		)
+
+		const [subject, reference] = screen.getAllByRole('button', { name: 'Dismiss' })
+
+		expect(bySlot(container, 'alert-body')).not.toBeInTheDocument()
+
+		expect(subject?.parentElement?.className).toBe(reference?.parentElement?.className)
 	})
 
 	it('shows the severity icon only with a title', () => {
