@@ -1,6 +1,6 @@
 # Bug audit — 2026-10-15
 
-Letter sweep N of the `packages/ui` components: `components/nav` and `components/number-input`. One scope, 11 files, 757 lines, 3 claims. 2 findings are rows below, both `low`, reach `none`. 1 claim was refuted. 1 question is open.
+Letter sweep N of the `packages/ui` components: `components/nav` and `components/number-input`. One scope, 11 files, 757 lines, 3 claims. 2 findings are rows below, both `low`, reach `none`. 1 claim was refuted. The 1 question is settled.
 
 ## Scope
 
@@ -26,6 +26,7 @@ The digest held one source: the project record `2026-10-02-component-bug-sweep.m
 | Verify | 3 stripped claims | 1 confirmed (C02), 1 narrowed (C01, the offcanvas close only), 1 refuted (C03); 2 questions |
 | Overturn | 1 sheet plus evidence | no verdict changed; Q2 closed from the code (the docs drawer does not depend on the close); the C02 DOM part verified in `react-dom` |
 | Merge | 1 sheet plus the overturn | no groups, 2 independent steps, 1 question (Q1) |
+| Settle | 1 answer | Q1 (a): S2 nests `composeEventHandlers` (selection without the default check, close with it); no verdict changes |
 
 ## Findings
 
@@ -54,7 +55,7 @@ None. R1 (`useNavItem`, a hand-built click handler that runs the close whatever 
 
 **S1.** Change: in `NumberInput`, read `controlled` from `useFormValue`. Join a local input ref to the consumer `ref` through `useComposedRef` (`CONVENTIONS.md` §3.9). Add `useFormResetSync(inputRef, !controlled, () => setCurrent(defaultValue ?? null))`. Add one TSDoc sentence on reset, in the words of the Rating sentence. Rows closed: R2. Files: `components/number-input/number-input.tsx`, `__tests__/components/number-input.test.tsx`. Order: first. Depends on: nothing. Gate: none. Test seam: synchronous; a native `<form>` with a `<button type="reset">`, `fireEvent.click`, then `await act(() => new Promise(requestAnimationFrame))`, as in `__tests__/components/mask-input.test.tsx:160-176`.
 
-**S2.** Change: in `useNavItem`, build `handleClick` with `composeEventHandlers`. The selection change keeps `checkForDefaultPrevented: false`, as the activation (§3.9 case one). The offcanvas close keeps the default check. Update the TSDoc of `useNavItem` and of `preventClose` to state the split. Rows closed: R1. Files: `components/nav/use-nav-item.ts`, `__tests__/components/nav.test.tsx`, `__tests__/components/sidebar.test.tsx`. Order: second, for convenience only. Depends on: nothing. Gate: Q1. Test seam: synchronous; render an item under `<OffcanvasContext value={{ close }}>` with a `vi.fn()` close, as in `__tests__/components/sidebar.test.tsx:441`, `fireEvent.click` an item whose `onClick` calls `preventDefault()`, and assert that `close` is not called and `onValueChange` is. A regression case: an `href` item with no consumer `onClick` still closes.
+**S2.** Change: in `useNavItem`, build `handleClick` with `composeEventHandlers`, nested because the helper takes two handlers (`core/compose-event-handlers.ts:33-36`). The inner composition is `composeEventHandlers(onClick, select, { checkForDefaultPrevented: false })`, where `select` calls `item.onValueChange?.(value)` when `value !== undefined`: the activation (§3.9 case one). The outer composition is `composeEventHandlers(inner, close)` with the default check, where `close` calls `offcanvas?.close()` when `!preventClose`. `select` never calls `preventDefault()`, so the outer check reads only the consumer's cancel. Update the TSDoc of `useNavItem` (`use-nav-item.ts:77-78`): a consumer `preventDefault()` cancels the offcanvas close and not the selection change. Update the TSDoc of `preventClose` (`:46-49`) to name `preventDefault()` in `onClick` as the per-click way to keep the drawer open. `nav-item.tsx:94` and `components/sidebar/sidebar-item.tsx:99` keep `onClick={handleClick}`; the signature does not change. Rows closed: R1. Files: `components/nav/use-nav-item.ts`, `__tests__/components/nav.test.tsx`, `__tests__/components/sidebar.test.tsx`. Order: second, for convenience only. Depends on: nothing. Gate: none (Q1 settled). Test seam: synchronous; the `<OffcanvasContext value={{ close }}>` wrapper with a `vi.fn()` close, as in `__tests__/components/sidebar.test.tsx:438-445`. In `nav.test.tsx`, a `<Nav onValueChange={onChange}>` around `<NavItem value="home" onClick={(e) => e.preventDefault()}>`: `close` is not called and `onChange` is called with `'home'`. In `sidebar.test.tsx`, a `SidebarItem` with the same `onClick`: `close` is not called (`SidebarItem` passes no `value`). A regression case: an `href` item with no consumer `onClick` still calls `close` once.
 
 ## Open questions
 
@@ -64,6 +65,8 @@ None. R1 (`useNavItem`, a hand-built click handler that runs the close whatever 
 - (b) Activation, as the menu item treats its close (`menu-item-utilities.ts:5-6`). R1 becomes deliberate and moves to Ruled out in a settle pass. S2 shrinks to a TSDoc sentence in `use-nav-item.ts` that names `preventClose` as the only opt-out, and the test files leave its file set.
 
 Recommendation: (a). A nav item exists to navigate or select; closing the drawer follows from that, as a preload follows from a hover, and `preventClose` stays the static opt-out.
+
+Answer (2026-10-15, Charlie): "Okay proceed as recommended." Settled (a), side behavior. A consumer `preventDefault()` keeps the drawer open, and the selection still changes. `preventClose` stays the static opt-out. S2 runs; no verdict changes.
 
 ## Ruled out
 
