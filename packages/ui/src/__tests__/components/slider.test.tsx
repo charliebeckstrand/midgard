@@ -68,6 +68,33 @@ describe('Slider', () => {
 		expect(el.value).toBe('42')
 	})
 
+	// The native input snaps the value to the step grid in [min, max]. The fill and the
+	// value text must show the value of the thumb, and not the raw prop.
+	it.each([
+		{ value: 33, step: 10, max: 100, shown: 30 },
+		{ value: 150, step: 1, max: 100, shown: 100 },
+		{ value: -5, step: 1, max: 100, shown: 0 },
+		{ value: 10, step: 3, max: 10, shown: 9 },
+		{ value: 0.3, step: 0.1, max: 0.3, shown: 0.3 },
+		{ value: 42.4, step: 0, max: 100, shown: 42 },
+	])('shows the value $value at the native value $shown', ({ value, step, max, shown }) => {
+		const { container } = renderUI(
+			<Slider
+				value={value}
+				step={step}
+				max={max}
+				onValueChange={() => {}}
+				getValueText={(v) => `${v} units`}
+			/>,
+		)
+
+		const el = getSlot<HTMLInputElement>(container, 'slider')
+
+		expect(el).toHaveAttribute('aria-valuetext', `${shown} units`)
+
+		expect(el.style.getPropertyValue('--slider-value')).toBe(`${(shown / max) * 100}%`)
+	})
+
 	it('merges caller-supplied inline style with the slider --slider-value var', () => {
 		const { container } = renderUI(<Slider defaultValue={25} style={{ width: '300px' }} />)
 
