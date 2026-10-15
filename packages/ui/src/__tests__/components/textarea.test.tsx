@@ -217,6 +217,28 @@ describe('Textarea invalid', () => {
 
 		expect(getSlot(container, 'textarea')).toHaveAttribute('aria-invalid', 'true')
 	})
+
+	it('keeps the bound invalid state over a stray aria-invalid rest prop (§3.9)', () => {
+		const { container } = renderUI(
+			<Control severity="error">
+				<Textarea aria-label="Notes" aria-invalid={false} />
+			</Control>,
+		)
+
+		const el = getSlot<HTMLTextAreaElement>(container, 'textarea')
+
+		expect(el).toHaveAttribute('aria-invalid', 'true')
+
+		expect(el).toHaveAttribute('data-invalid')
+	})
+
+	it('lets a wrapper re-anchor the data-slot of the textarea (§3.9)', () => {
+		const { container } = renderUI(<Textarea aria-label="Notes" data-slot="chat-prompt" />)
+
+		expect(getSlot(container, 'chat-prompt').tagName).toBe('TEXTAREA')
+
+		expect(bySlot(container, 'textarea')).toBeNull()
+	})
 })
 
 describe('TextareaSkeleton', () => {
@@ -233,6 +255,6 @@ describe('TextareaSkeleton', () => {
 	it('reserves one line for each row', () => {
 		const { container } = renderUI(<TextareaSkeleton rows={5} />)
 
-		expect(bySlot(container, 'placeholder')).toHaveStyle({ height: '5lh' })
+		expect(getSlot(container, 'placeholder').firstElementChild).toHaveStyle({ height: '5lh' })
 	})
 })

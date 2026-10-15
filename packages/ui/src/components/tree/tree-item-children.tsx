@@ -1,7 +1,7 @@
 'use client'
 
 import { AnimatePresence } from 'motion/react'
-import { createElement, isValidElement, type ReactNode, useMemo } from 'react'
+import { createElement, isValidElement, type ReactNode, useLayoutEffect, useMemo } from 'react'
 import { cn, dataAttr } from '../../core'
 import { MountHold, useMountHold } from '../../primitives/mount'
 import { heldMotionProps } from '../../primitives/mount/mount-held-motion'
@@ -10,6 +10,7 @@ import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/tree'
 import { flattenChildren } from '../../utilities/flatten-children'
 import { TreeContext, TreePositionContext, useTreeContext } from './context'
+import { ITEM_SELECTOR } from './tree-constants'
 
 /**
  * Stamps each element child with its 1-based sibling position via
@@ -31,6 +32,24 @@ export function stampTreePositions(children: ReactNode): ReactNode {
 
 		return createElement(TreePositionContext, { key, value: { posinset: index, setsize } }, node)
 	})
+}
+
+/**
+ * When an item of a closed group holds the Tab stop, demotes each item of the
+ * group and gives the stop to the branch row that owns the group.
+ */
+function seatStopOnBranch(group: HTMLElement | null): void {
+	const items = group ? Array.from(group.querySelectorAll<HTMLElement>(ITEM_SELECTOR)) : []
+
+	if (!items.some((item) => item.tabIndex === 0)) return
+
+	for (const item of items) item.tabIndex = -1
+
+	const branch = group
+		?.closest('[data-slot="tree-item"]')
+		?.querySelector<HTMLElement>(ITEM_SELECTOR)
+
+	if (branch) branch.tabIndex = 0
 }
 
 /** Hoisted: `TreeItemChildren` renders once per branch, and this never varies. */
@@ -67,6 +86,14 @@ export function TreeItemChildren({ id, open, label, children }: TreeItemChildren
 		() => ({ depth: depth + 1, indent, mount }),
 		[depth, indent, mount],
 	)
+
+	// A held group that closes stays mounted, and roving does not see its
+	// `data-open` change. When a caller closes it while one of its items holds
+	// the Tab stop, that item keeps the stop in a hidden group, and Tab skips the
+	// tree. Move the stop to the branch row that closed.
+	useLayoutEffect(() => {
+		if (!open) seatStopOnBranch(document.getElementById(id))
+	}, [open, id])
 
 	const group = (motionProps: object) => (
 		<TreeContext value={childContextValue}>

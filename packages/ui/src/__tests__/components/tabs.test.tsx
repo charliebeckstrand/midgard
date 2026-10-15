@@ -414,6 +414,81 @@ describe('Tab', () => {
 		}
 	})
 
+	it('wires a segment tab to a TabContent that has no TabContents', () => {
+		// A panel outside a container is always mounted, so it is in the DOM.
+		renderUI(
+			<Tabs variant="segment" defaultValue="a">
+				<TabList aria-label="Tabs">
+					<Tab value="a">A</Tab>
+					<Tab value="b">B</Tab>
+				</TabList>
+				<TabContent value="a">Panel A</TabContent>
+				<TabContent value="b">Panel B</TabContent>
+			</Tabs>,
+		)
+
+		const [tabA, tabB] = screen.getAllByRole('tab')
+
+		const panels = screen.getAllByRole('tabpanel', { hidden: true })
+
+		expect(tabA).toHaveAttribute('aria-controls', panels[0]?.id)
+
+		expect(tabB).toHaveAttribute('aria-controls', panels[1]?.id)
+	})
+
+	it('wires every tab to its TabContent when the panels have no TabContents', () => {
+		function Group({ withPanels }: { withPanels: boolean }) {
+			return (
+				<Tabs defaultValue="a">
+					<TabList aria-label="Tabs">
+						<Tab value="a">A</Tab>
+						<Tab value="b">B</Tab>
+					</TabList>
+					{withPanels && <TabContent value="a">Panel A</TabContent>}
+					{withPanels && <TabContent value="b">Panel B</TabContent>}
+				</Tabs>
+			)
+		}
+
+		const { rerender } = renderUI(<Group withPanels />)
+
+		const tabB = screen.getAllByRole('tab')[1]
+
+		const panelB = screen.getByText('Panel B')
+
+		// The inactive tab points at its panel, which is in the DOM.
+		expect(tabB).toHaveAttribute('aria-controls', panelB.id)
+
+		rerender(<Group withPanels={false} />)
+
+		// With no panel in the DOM, the inactive tab drops the reference.
+		expect(screen.getAllByRole('tab')[1]).not.toHaveAttribute('aria-controls')
+	})
+
+	it('drops aria-controls from a segment tab when its bare TabContent unmounts', () => {
+		function Group({ withPanel }: { withPanel: boolean }) {
+			return (
+				<Tabs variant="segment" defaultValue="a">
+					<TabList aria-label="Tabs">
+						<Tab value="a">A</Tab>
+						<Tab value="b">B</Tab>
+					</TabList>
+					{withPanel && <TabContent value="a">Panel A</TabContent>}
+				</Tabs>
+			)
+		}
+
+		const { rerender } = renderUI(<Group withPanel />)
+
+		expect(screen.getAllByRole('tab')[0]).toHaveAttribute('aria-controls')
+
+		rerender(<Group withPanel={false} />)
+
+		for (const tab of screen.getAllByRole('tab')) {
+			expect(tab).not.toHaveAttribute('aria-controls')
+		}
+	})
+
 	it('applies a custom className on Tab', () => {
 		const { container } = renderUI(
 			<TabList aria-label="Tabs">
@@ -757,6 +832,35 @@ describe('TabList tabbable floor', () => {
 		rerender(<FloorTabs mode="visible" disabled />)
 
 		expect(b).toHaveAttribute('tabindex', '0')
+	})
+
+	// The floor raises the first tab. When a different tab becomes current, the
+	// floor must give its stop back, so that the list keeps one Tab stop.
+	it('gives back its stop when a tab other than the first becomes current', async () => {
+		function NullTabs({ value }: { value: string | null }) {
+			return (
+				<Tabs value={value} onValueChange={() => {}}>
+					<TabList aria-label="Sections">
+						<Tab value="a">A</Tab>
+						<Tab value="b">B</Tab>
+					</TabList>
+				</Tabs>
+			)
+		}
+
+		const { rerender } = renderUI(<NullTabs value={null} />)
+
+		const [a, b] = screen.getAllByRole('tab')
+
+		expect(a).toHaveAttribute('tabindex', '0')
+
+		rerender(<NullTabs value="b" />)
+
+		await waitFor(() => expect(a).toHaveAttribute('tabindex', '-1'))
+
+		const stops = screen.getAllByRole('tab').filter((tab) => tab.tabIndex === 0)
+
+		expect(stops).toEqual([b])
 	})
 })
 

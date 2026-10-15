@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useRef } from 'react'
 import { useControllable } from '../../hooks'
 import { useKeyedStore } from '../../hooks/use-keyed-store'
 import { type KeyedStore, toggleListItem } from '../../utilities'
@@ -107,11 +107,18 @@ export function useAccordionSelection(props: SingleProps | MultipleProps): Accor
 		[props.type, props.value],
 	)
 
+	// Set while a toggle that changes nothing runs. `useControllable` compares
+	// by identity, and the array that the owner passes back is not the array of
+	// the last report, so such a toggle would report the open set again.
+	const unchangedRef = useRef(false)
+
 	const defaultValue = isMultiple ? (props.defaultValue ?? []) : toArray(props.defaultValue)
 
 	// A plain closure: `useControllable` reads its own `onValueChange` off a ref
 	// behind a stable `setValue`, so an inline callback needs no ref or memo here.
 	const onControllableChange = (next: string[] | null) => {
+		if (unchangedRef.current) return
+
 		const values = next ?? []
 
 		const onValueChange = props.onValueChange
@@ -135,8 +142,17 @@ export function useAccordionSelection(props: SingleProps | MultipleProps): Accor
 	// second toggle in the same batch starts from the first. A toggle that
 	// changes nothing gives the same set back, which reports no change.
 	const toggle = useCallback(
-		(value: string) =>
-			setOpen((prev = []) => nextOpenSet(prev, value, isMultiple, collapsible) ?? prev),
+		(value: string) => {
+			setOpen((prev = []) => {
+				const next = nextOpenSet(prev, value, isMultiple, collapsible)
+
+				unchangedRef.current = next === null
+
+				return next ?? prev
+			})
+
+			unchangedRef.current = false
+		},
 		[collapsible, setOpen, isMultiple],
 	)
 

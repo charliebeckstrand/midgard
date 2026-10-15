@@ -98,6 +98,12 @@ export const gap = {
 	 * the toolbar gap at each step, so a group reads as one cluster.
 	 */
 	toolbarGroup: 'density-gap-[0,0.25,0.5,1,1.5]',
+	/**
+	 * The gap between two stacked toasts, at the `sm` stop of `scale`. It is a
+	 * custom property and not a `gap`, because a toast pads its own item with it,
+	 * and the exit animates that padding to 0.
+	 */
+	toast: 'density-set-[0.5,1,2,3,4.5]/[--toast-gap]',
 	/** The gap of a nav item and a sidebar item. */
 	item: 'density-gap-[1,1.5,2,2.5,3]',
 	/** The gap of an option row and a menu item. */

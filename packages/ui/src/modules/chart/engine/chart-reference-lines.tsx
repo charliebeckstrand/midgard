@@ -3,6 +3,7 @@
 import { type ReactNode, useEffect, useRef } from 'react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { cn, dataAttr } from '../../../core'
+import { usePrefersReducedMotion } from '../../../hooks/use-prefers-reduced-motion'
 import { ReducedMotion } from '../../../primitives/reduced-motion'
 import * as m from '../../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../../recipes/kata/chart'
@@ -191,8 +192,11 @@ function ReferenceRuleStroke({
  * its label ride it as one. @internal
  */
 function RuleRise({ rise, children }: { rise: ReferenceRuleProps['rise']; children: ReactNode }) {
+	// The server cannot read the preference, so it renders the rule at its value.
+	const still = usePrefersReducedMotion()
+
 	return rise ? (
-		<m.g {...rise} transition={REFERENCE_RISE}>
+		<m.g {...rise} initial={still ? false : rise.initial} transition={REFERENCE_RISE}>
 			{children}
 		</m.g>
 	) : (

@@ -32,11 +32,16 @@ function fitTextarea(textarea: HTMLTextAreaElement): void {
  * `enabled` is true.
  *
  * @remarks The hook fits the field on each `input` event, and before paint after
- * a render that changed its text, such as a controlled write, which sends no
- * `input` event. It also fits the field when its width changes, because a new
- * width changes the line wraps. The resize observer defers the fit by one
- * frame, so the height write does not start a resize-observer loop. When
- * `enabled` becomes false, the hook removes the inline height.
+ * a render that changed its text or its `rows`, such as a controlled write,
+ * which sends no `input` event. It also fits the field when its content box
+ * changes and the hook did not cause the change: a new width changes the line
+ * wraps, and a new `size` or density scope changes the padding and the text
+ * size. The resize observer ignores a change that comes from a height write of
+ * the hook, and it defers the fit by one frame, so the fit does not start a
+ * resize-observer loop. After a native reset of the form, the hook fits the
+ * field in the next frame, because the browser restores the value after the
+ * `reset` event. When `enabled` becomes false, the hook removes the inline
+ * height.
  *
  * The hook sets the height in script and does not use `field-sizing: content`,
  * because Safari below 26.2 and Firefox do not support that property. The
@@ -48,16 +53,21 @@ export function useTextareaAutoResize(
 	ref: RefObject<HTMLTextAreaElement | null>,
 	enabled: boolean,
 ): void {
-	// The text of the last fit, or `null` when no fit holds.
-	const fitted = useRef<string | null>(null)
+	// The text and the rows of the last fit, or `null` when no fit holds.
+	const fitted = useRef<{ value: string; rows: number } | null>(null)
 
-	// After each render, fit when the text differs from the text of the last fit.
+	// After each render, fit when the text or the rows differ from the last fit.
 	useLayoutEffect(() => {
 		const textarea = ref.current
 
-		if (!enabled || !textarea || textarea.value === fitted.current) return
+		if (
+			!enabled ||
+			!textarea ||
+			(textarea.value === fitted.current?.value && textarea.rows === fitted.current.rows)
+		)
+			return
 
-		fitted.current = textarea.value
+		fitted.current = { value: textarea.value, rows: textarea.rows }
 
 		fitTextarea(textarea)
 	})
@@ -67,31 +77,58 @@ export function useTextareaAutoResize(
 
 		if (!enabled || !textarea) return
 
-		const onInput = () => {
-			fitted.current = textarea.value
+		const fit = () => {
+			fitted.current = { value: textarea.value, rows: textarea.rows }
 
 			fitTextarea(textarea)
 		}
 
-		let width = textarea.clientWidth
 		let frame = 0
 
-		const observer = new ResizeObserver(() => {
-			if (textarea.clientWidth === width) return
-
-			width = textarea.clientWidth
-
+		const deferFit = () => {
 			cancelAnimationFrame(frame)
 
-			frame = requestAnimationFrame(() => fitTextarea(textarea))
+			frame = requestAnimationFrame(fit)
+		}
+
+		// The content box and the inline height at the last observation. A new
+		// inline height is a write of the hook (or a drag of the resize handle), so
+		// the change it causes needs no fit. A change with the same inline height
+		// comes from the layout or the styles.
+		const style = getComputedStyle(textarea)
+
+		let width = textarea.clientWidth
+		let box =
+			textarea.clientHeight -
+			Number.parseFloat(style.paddingTop) -
+			Number.parseFloat(style.paddingBottom)
+		let inline = textarea.style.height
+
+		const observer = new ResizeObserver(([entry]) => {
+			const next = entry?.contentRect.height ?? 0
+
+			const resized =
+				textarea.clientWidth !== width || (next !== box && textarea.style.height === inline)
+
+			width = textarea.clientWidth
+			box = next
+			inline = textarea.style.height
+
+			if (resized) deferFit()
 		})
 
-		textarea.addEventListener('input', onInput)
+		const form = textarea.form
+
+		textarea.addEventListener('input', fit)
+
+		form?.addEventListener('reset', deferFit)
 
 		observer.observe(textarea)
 
 		return () => {
-			textarea.removeEventListener('input', onInput)
+			textarea.removeEventListener('input', fit)
+
+			form?.removeEventListener('reset', deferFit)
 
 			observer.disconnect()
 

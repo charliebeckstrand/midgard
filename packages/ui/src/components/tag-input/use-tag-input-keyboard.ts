@@ -2,6 +2,7 @@
 
 import type { KeyboardEvent } from 'react'
 import { isComposing } from '../../utilities'
+import { splitTokens } from './tag-input-utilities'
 
 /**
  * Options for {@link useTagInputKeyboard}.
@@ -34,6 +35,10 @@ type KeyboardOptions = {
  * @returns A `keydown` handler for the inner text input.
  *
  * @remarks
+ * Enter commits only a draft that has a token. On an empty or whitespace-only
+ * draft, Enter keeps its default, so it submits the form as in every other text
+ * field. Comma never submits, so it always cancels the default.
+ *
  * Every key is ignored mid-IME-composition (a single early return), so a
  * candidate-selection keystroke never commits a partial tag or deletes one.
  * Backspace removes only when the draft is empty and at least one tag exists, so
@@ -45,7 +50,9 @@ export function useTagInputKeyboard({ inputValue, commit, removeTag, tagCount }:
 	return (event: KeyboardEvent<HTMLInputElement>) => {
 		if (isComposing(event)) return
 
-		if (event.key === 'Enter' || event.key === ',') {
+		const committable = event.key === ',' || (event.key === 'Enter' && hasToken(inputValue))
+
+		if (committable) {
 			event.preventDefault()
 
 			commit(inputValue)
@@ -55,4 +62,9 @@ export function useTagInputKeyboard({ inputValue, commit, removeTag, tagCount }:
 			removeTag(tagCount - 1)
 		}
 	}
+}
+
+/** Whether the draft has a token to commit. It uses the same tokenizer as the commit. */
+function hasToken(inputValue: string) {
+	return splitTokens(inputValue).length > 0
 }
