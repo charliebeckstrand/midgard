@@ -89,4 +89,20 @@ describe('a read-only uncontrolled RadioGroup (real browser)', () => {
 
 		expect(onChange).toHaveBeenCalledOnce()
 	})
+
+	it('fires no onChange on a click on the checked radio after readOnly turns off', async () => {
+		const onChange = vi.fn()
+
+		const { rerender } = renderUI(renderPlans(true, onChange))
+
+		await userEvent.click(radio('business'))
+
+		rerender(renderPlans(false, onChange))
+
+		await userEvent.click(radio('starter'))
+
+		expect(checked()).toEqual(['starter'])
+
+		expect(onChange).not.toHaveBeenCalled()
+	})
 })
