@@ -228,8 +228,11 @@ function browserRegion(): string | undefined {
  * @param options - Endpoint, result count, language, proximity bias, postal
  * code region, and the layer / tag filters; see {@link PhotonProviderOptions}.
  * @returns A provider to hand `AddressInput`.
- * @remarks Throws on a non-OK status or an unexpected response shape. A query
- * that ends in a postal code costs one more request, and a state two more.
+ * @remarks Throws on a non-OK status or an unexpected response shape. The
+ * provider sends one more request for each end of the query that can be a
+ * postal code: the last two words, then the last word. Thus it sends up to two,
+ * and it stops at the first code that the geocoder knows. A query that ends in
+ * a state costs two more requests.
  * @example
  * ```tsx
  * const nearby = createPhotonProvider({ bias: { latitude: 44.6, longitude: -124.05 } })
@@ -362,8 +365,9 @@ export function createPhotonProvider(options: PhotonProviderOptions = {}): Addre
 			const [longitude, latitude] = code.geometry.coordinates
 
 			// A query that is only a code asks for the code, and the code in the
-			// region is the one the reader means.
-			if (rest === '' && layers === undefined && osmTag === undefined) return [code]
+			// region is the one the reader means. An empty filter keeps every match,
+			// so it is not a filter.
+			if (rest === '' && !layers?.length && !osmTag?.length) return [code]
 
 			// The code stays in the query, as the geocoder holds it. Photon does not
 			// need each word to match, and an address with an abbreviated street
