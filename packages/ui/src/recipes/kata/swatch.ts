@@ -19,7 +19,7 @@
  */
 import { defineScale, type ScaleStep } from '../../core/density'
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { omote } from '../kiso'
+import { omote, sen } from '../kiso'
 import { dan } from '../kiso/dan'
 
 const { bg } = omote
@@ -38,7 +38,9 @@ export const k = defineRecipe({
 	// which is shape-specific and so lives in the compounds below to mirror a
 	// dashed reference rule on a line and a dashed stroke around a box or dot.
 	variant: {
-		solid: 'bg-current',
+		// Forced colors replace the fill with Canvas, so the mark paints in
+		// CanvasText instead. Without it, a solid swatch disappears.
+		solid: ['bg-current', sen.forced.shape],
 		// The 15% tint alone is about 1.2:1 against the page, so a 1px edge in the
 		// hue keeps the mark visible (WCAG 1.4.11).
 		soft: 'border border-current bg-current/15',
@@ -60,8 +62,12 @@ export const k = defineRecipe({
 		{
 			shape: 'line',
 			variant: 'dashed',
-			class:
+			// Forced colors drop a gradient, so the run opts out of them and inks in
+			// CanvasText. Without it, a dashed line disappears.
+			class: [
 				'bg-[repeating-linear-gradient(to_right,currentColor_0,currentColor_3px,transparent_3px,transparent_5px)]',
+				sen.forced.text,
+			],
 		},
 		{
 			shape: 'square',
