@@ -6,6 +6,7 @@ import { Segment, SegmentItem } from '../../components/segment'
 import { RangeSlider, Slider } from '../../components/slider'
 import { Switch } from '../../components/switch'
 import { Tab, TabList, Tabs } from '../../components/tabs'
+import { Tree, TreeItem } from '../../components/tree'
 import { frames, present, renderUI } from '../helpers'
 
 /**
@@ -138,3 +139,52 @@ describe('controls show their state under forced colors (real browser)', () => {
 		expect(slider[1]).not.toBe(slider[0])
 	})
 })
+
+/**
+ * The Tree check box and the current row show their state with a fill, a white
+ * mark, and a text color. Forced colors remove the fill and map the text to
+ * `CanvasText`, and a white mark is lost on a light palette. Each case runs on
+ * the light and the dark forced palette.
+ */
+describe.each(['light', 'dark'])(
+	'tree rows show their state on a %s forced palette (real browser)',
+	(scheme) => {
+		beforeAll(() =>
+			cdp().send('Emulation.setEmulatedMedia', {
+				features: [
+					{ name: 'forced-colors', value: 'active' },
+					{ name: 'prefers-color-scheme', value: scheme },
+				],
+			}),
+		)
+		afterAll(() =>
+			cdp().send('Emulation.setEmulatedMedia', {
+				features: [
+					{ name: 'forced-colors', value: '' },
+					{ name: 'prefers-color-scheme', value: '' },
+				],
+			}),
+		)
+
+		const row = (props: { checked?: boolean | 'mixed'; current?: boolean }) => (
+			<Tree aria-label="Files">
+				<TreeItem label="a.ts" onCheckedChange={() => {}} {...props} />
+			</Tree>
+		)
+
+		it('check box: checked, mixed, and unchecked paint differently', async () => {
+			const off = await pixels(row({ checked: false }))
+			const on = await pixels(row({ checked: true }))
+			const mixed = await pixels(row({ checked: 'mixed' }))
+			expect(on).not.toBe(off)
+			expect(mixed).not.toBe(off)
+			expect(mixed).not.toBe(on)
+		})
+
+		it('current row: paints differently from another row', async () => {
+			const other = await pixels(row({}))
+			const current = await pixels(row({ current: true }))
+			expect(current).not.toBe(other)
+		})
+	},
+)
