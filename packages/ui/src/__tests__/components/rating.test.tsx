@@ -630,6 +630,42 @@ describe('Rating native form reset', () => {
 		expect(onValueChange).toHaveBeenLastCalledWith(2)
 	})
 
+	it.each([
+		['readOnly', { readOnly: true }],
+		['disabled', { disabled: true }],
+	])('returns an uncontrolled rating to defaultValue while %s', async (_, dead) => {
+		const onValueChange = vi.fn()
+
+		const row = (props: { readOnly?: boolean; disabled?: boolean }) => (
+			<form>
+				<Rating aria-label="Score" defaultValue={2} onValueChange={onValueChange} {...props} />
+				<button type="reset">Reset</button>
+			</form>
+		)
+
+		const { container, rerender } = renderUI(row({}))
+
+		fireEvent.click(stars(container)[3] as HTMLInputElement)
+
+		rerender(row(dead))
+
+		expect(screen.getByRole('img')).toHaveAccessibleName('Score 4 out of 5 stars')
+
+		fireEvent.click(screen.getByRole('button', { name: 'Reset' }))
+
+		await act(() => new Promise(requestAnimationFrame))
+
+		expect(screen.getByRole('img')).toHaveAccessibleName('Score 2 out of 5 stars')
+
+		expect(onValueChange).toHaveBeenLastCalledWith(2)
+	})
+
+	it('adds no input to a controlled display row', () => {
+		const { container } = renderUI(<Rating readOnly value={4} />)
+
+		expect(container.querySelector('input')).toBeNull()
+	})
+
 	it('keeps the score when a Form cancels the native reset', async () => {
 		const { container } = renderUI(
 			<Form defaultValues={{}}>
