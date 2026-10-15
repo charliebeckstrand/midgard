@@ -213,26 +213,32 @@ export function TagInput({
 	// The touched mark and the commit keep the state of the field true, so a
 	// consumer `preventDefault()` does not skip them. A blur to the Add button
 	// keeps the draft: a commit clears the draft, and the empty draft disables
-	// the button as the Tab key moves the focus to it.
-	const handleBlur = composeEventHandlers(
-		onBlur,
-		(event) => {
+	// the button as the Tab key moves the focus to it. The handler composes the
+	// consumer `onBlur` itself, because the React Compiler skips a component
+	// that gives a function that reads a ref to `composeEventHandlers`.
+	const handleBlur = useCallback(
+		(event: FocusEvent<HTMLInputElement>) => {
+			onBlur?.(event)
+
 			setTouched()
 
 			if (event.relatedTarget === addRef.current) return
 
 			commit(inputValue)
 		},
-		{ checkForDefaultPrevented: false },
+		[commit, inputValue, onBlur, setTouched],
 	)
 
 	// The draft that the input kept for the Add button commits when the focus
 	// goes from the button to a different element.
-	const handleAddBlur = (event: FocusEvent<HTMLButtonElement>) => {
-		if (event.relatedTarget === inputRef.current) return
+	const handleAddBlur = useCallback(
+		(event: FocusEvent<HTMLButtonElement>) => {
+			if (event.relatedTarget === inputRef.current) return
 
-		commit(inputValue)
-	}
+			commit(inputValue)
+		},
+		[commit, inputValue],
+	)
 
 	const handleSubmit = useCallback(() => {
 		commit(inputValue)
