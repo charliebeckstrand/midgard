@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Form } from '../../components/form'
 import { MaskInput } from '../../components/mask-input'
-import { bySlot, getSlot, renderUI, screen, setupUser } from '../helpers'
+import { act, bySlot, fireEvent, getSlot, renderUI, screen, setupUser } from '../helpers'
 
 const formatGroups = (raw: string) => {
 	const d = raw.replace(/\D/g, '').slice(0, 6)
@@ -151,5 +151,49 @@ describe('MaskInput', () => {
 			expect.objectContaining({ code: '123-456' }),
 			expect.anything(),
 		)
+	})
+
+	it('goes back to the formatted defaultValue on a native form reset when uncontrolled', async () => {
+		const { container } = renderUI(
+			<form>
+				<MaskInput mask={formatGroups} defaultValue="123" />
+				<button type="reset">Reset form</button>
+			</form>,
+		)
+
+		const input = getSlot<HTMLInputElement>(container, 'mask-input')
+
+		const user = setupUser()
+
+		await user.type(input, '456')
+
+		expect(input.value).toBe('123-456')
+
+		fireEvent.click(screen.getByRole('button', { name: 'Reset form' }))
+
+		await act(() => new Promise(requestAnimationFrame))
+
+		expect(input.value).toBe('123')
+
+		await user.type(input, '9')
+
+		expect(input.value).toBe('123-9')
+	})
+
+	it('keeps a controlled value on a native form reset', async () => {
+		const { container } = renderUI(
+			<form>
+				<MaskInput mask={formatGroups} value="123456" defaultValue="111" />
+				<button type="reset">Reset form</button>
+			</form>,
+		)
+
+		const input = getSlot<HTMLInputElement>(container, 'mask-input')
+
+		fireEvent.click(screen.getByRole('button', { name: 'Reset form' }))
+
+		await act(() => new Promise(requestAnimationFrame))
+
+		expect(input.value).toBe('123-456')
 	})
 })
