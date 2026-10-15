@@ -1,6 +1,8 @@
 'use client'
 
-import type { ChangeEvent, Ref } from 'react'
+import { type ChangeEvent, type Ref, useRef } from 'react'
+import { useComposedRef } from '../../hooks/use-composed-ref'
+import { useFormResetSync } from '../../hooks/use-form-reset-sync'
 import { useFormattedInput } from '../../hooks/use-formatted-input'
 import { useFormValue } from '../form/use-form-value'
 
@@ -31,7 +33,10 @@ type MaskedInputOptions = {
  * to the seed, to a controlled `value` on each render, and to every subsequent
  * change. It returns props ready to spread onto an `Input`. Restores the caret
  * to its pre-format position when the returned `ref` is attached. It also binds to an enclosing Form field by
- * `name` (value, touched on blur, and error state via `invalid`).
+ * `name` (value, touched on blur, and error state via `invalid`). When the
+ * value is uncontrolled and not bound, a native reset of the enclosing `<form>`
+ * sets the value back to the formatted `defaultValue`. The returned `ref` must
+ * be attached for this.
  *
  * @remarks A controlled `value` shows formatted before the consumer's state
  * holds the formatted text. The next change sends the formatted text back. A
@@ -56,6 +61,7 @@ export function useMaskInput({
 }: MaskedInputOptions) {
 	const {
 		value: current,
+		controlled,
 		setValue,
 		setTouched,
 		invalid,
@@ -67,7 +73,15 @@ export function useMaskInput({
 		onValueChange: onChange ? (next) => onChange(next ?? '') : undefined,
 	})
 
-	const { ref, reformat } = useFormattedInput({ format, meaningful, ref: externalRef })
+	const inputRef = useRef<HTMLInputElement | null>(null)
+
+	const composedRef = useComposedRef(inputRef, externalRef)
+
+	const { ref, reformat } = useFormattedInput({ format, meaningful, ref: composedRef })
+
+	// The returned value always controls the input, so the browser reverts it to
+	// the current text. The uncontrolled value then goes back to its seed.
+	useFormResetSync(inputRef, !controlled, () => setValue(format(defaultValue ?? '')))
 
 	return {
 		// Format the controlled arm on read. The bound arm stays raw, because the Form submits it.
