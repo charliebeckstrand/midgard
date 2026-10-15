@@ -168,7 +168,7 @@ function renderToken(token: Token, index: number, offset: number, taskLabel?: st
 				<img
 					key={index}
 					src={safeUrl(token.href, true)}
-					alt={decodeEntities(token.text)}
+					alt={imageAlt(token)}
 					title={decodeTitle(token.title)}
 					className={cn(k.img)}
 				/>
@@ -224,6 +224,17 @@ function renderToken(token: Token, index: number, offset: number, taskLabel?: st
  */
 function decodeTitle(title: string | null | undefined): string | undefined {
 	return title ? decodeEntities(title) : undefined
+}
+
+/**
+ * The `alt` of an image: the plain text of its parsed description, so that
+ * emphasis and escapes do not go into the accessible name. A token with no
+ * children gives its raw `text`, with its entity references decoded.
+ *
+ * @internal
+ */
+function imageAlt(token: Tokens.Image | Tokens.Generic): string {
+	return token.tokens ? plainText(token.tokens) : decodeEntities(token.text)
 }
 
 function renderList(token: Tokens.List, key: number, offset: number): ReactNode {
@@ -283,7 +294,7 @@ function plainText(tokens: Token[]): string {
 				case 'escape':
 					return token.text
 				case 'image':
-					return decodeEntities(token.text)
+					return imageAlt(token)
 				case 'br':
 					return ' '
 				default:

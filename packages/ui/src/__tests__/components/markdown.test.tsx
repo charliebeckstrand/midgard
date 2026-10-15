@@ -221,6 +221,18 @@ describe('Markdown', () => {
 		expect(el?.querySelector('img')).toHaveAttribute('title', '"t"')
 	})
 
+	it('gives an image the plain text of its description as alt, with no markup', () => {
+		const { container } = renderUI(<Markdown>{'![**Logo** \\_v2\\_](logo.png)'}</Markdown>)
+
+		expect(bySlot(container, 'markdown')?.querySelector('img')).toHaveAttribute('alt', 'Logo _v2_')
+	})
+
+	it('names a task item from the plain alt of an image', () => {
+		renderUI(<Markdown>{'- [ ] ![**Logo** \\_v2\\_](logo.png)'}</Markdown>)
+
+		expect(screen.getByRole('checkbox', { name: 'Logo _v2_' })).not.toBeChecked()
+	})
+
 	it('decodes a reference to code point zero to U+FFFD, and keeps a name outside the known set', () => {
 		const { container } = renderUI(<Markdown>{'a&#0;b &Aacute; &amp'}</Markdown>)
 
