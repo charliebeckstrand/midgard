@@ -33,7 +33,11 @@ export type ToastDismissReason = 'timeout' | 'close' | 'evicted' | 'dismissed'
 export type ToastData = {
 	/** The id of the toast. `dismiss(id)` removes the toast. */
 	id: string
-	/** The time in milliseconds that the toast stays before it leaves with `timeout`. */
+	/**
+	 * The time in milliseconds that the toast stays before it leaves with `timeout`.
+	 * Use `persist` to keep a toast. `Infinity` keeps the toast too, and the timer
+	 * arms again one time in each 2^31−1 ms.
+	 */
 	duration: number
 	/** The main text of the toast. */
 	title: string
@@ -82,6 +86,8 @@ export type ToastData = {
 export type ToastInput = Omit<ToastData, 'id' | 'duration' | 'dismissed'> & {
 	/**
 	 * The time in milliseconds that the toast stays before it leaves with `timeout`.
+	 * Use `persist` to keep a toast. `Infinity` keeps the toast too, and the timer
+	 * arms again one time in each 2^31−1 ms.
 	 * @defaultValue the `duration` of the `ToastProvider`, 5000 when it sets none.
 	 */
 	duration?: number

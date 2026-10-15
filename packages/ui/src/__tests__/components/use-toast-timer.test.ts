@@ -253,6 +253,58 @@ describe('useToastTimer', () => {
 		expect(start).toHaveBeenCalledOnce()
 	})
 
+	it.each([Infinity, 2 ** 31 + 1000])(
+		'does not loop the timer when a toast holds a duration of %d',
+		(ms) => {
+			const { result, start, toastsRef } = setup(['long', 'short'])
+
+			const toasts = toastsRef.current
+
+			// Each timer callback reads the list. A spy on the global timer would
+			// outlive the fake timers under `restoreMocks`.
+			let reads = 0
+
+			Object.defineProperty(toastsRef, 'current', {
+				get: () => {
+					reads += 1
+
+					return toasts
+				},
+			})
+
+			act(() => result.current.arm('long', ms))
+
+			reads = 0
+
+			vi.advanceTimersByTime(500)
+
+			// The platform timer holds a delay up to 2^31−1. A longer delay must not
+			// fire at once and arm again in a loop.
+			expect(reads).toBe(0)
+
+			// A short toast beside the long one still leaves at its time.
+			act(() => result.current.arm('short', 1000))
+
+			vi.advanceTimersByTime(1000)
+
+			expect(start).toHaveBeenCalledExactlyOnceWith(['short'])
+		},
+	)
+
+	it('ends a finite duration above the timer range at its time', () => {
+		const { result, start } = setup()
+
+		act(() => result.current.arm('a', 2 ** 31 + 1000))
+
+		vi.advanceTimersByTime(2 ** 31 + 999)
+
+		expect(start).not.toHaveBeenCalled()
+
+		vi.advanceTimersByTime(1)
+
+		expect(start).toHaveBeenCalledExactlyOnceWith(['a'])
+	})
+
 	it('does not fire when no toast counts down', () => {
 		const { result, start } = setup([])
 
