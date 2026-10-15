@@ -246,7 +246,11 @@ describe('StepperIndicator', () => {
 		// glyph only (WCAG 1.4.1); each step's name must carry its state.
 		expect(steps[0]).toHaveAccessibleName(expect.stringContaining('completed'))
 
-		expect(steps[1]).toHaveAccessibleName(expect.stringContaining('current step'))
+		// The current step takes its state from aria-current="step", which AT
+		// reads as "current step". A suffix in the name would read it twice.
+		expect(steps[1]).toHaveAttribute('aria-current', 'step')
+
+		expect(steps[1]).toHaveAccessibleName(expect.not.stringContaining('current'))
 
 		expect(steps[2]).toHaveAccessibleName(expect.stringContaining('not started'))
 	})
@@ -292,15 +296,15 @@ describe('StepperIndicator', () => {
 
 	it('renders its children ahead of the state suffix', () => {
 		const { container } = renderUI(
-			<Stepper value={1}>
+			<Stepper value={0}>
 				<StepperStep value={1}>
-					<StepperIndicator>1</StepperIndicator>
-					<StepperTitle>One</StepperTitle>
+					<StepperIndicator>2</StepperIndicator>
+					<StepperTitle>Two</StepperTitle>
 				</StepperStep>
 			</Stepper>,
 		)
 
-		expect(bySlot(container, 'stepper-indicator')).toHaveTextContent(/^1, current step$/)
+		expect(bySlot(container, 'stepper-indicator')).toHaveTextContent(/^2, not started$/)
 	})
 })
 
