@@ -1501,6 +1501,48 @@ describe('Menu on a phone', () => {
 		expect(screen.getByRole('menu', { name })).toBeInTheDocument()
 	})
 
+	// The name of the trigger comes from its aria-labelledby, else from an
+	// aria-label that is not empty, else from its text. An icon has no text.
+	it.each([
+		[
+			'an aria-labelledby',
+			<button key="labelledby" type="button" aria-labelledby="add-tile-name">
+				<svg aria-hidden="true" />
+			</button>,
+		],
+		[
+			'an empty aria-label and text',
+			// biome-ignore lint/a11y/useValidAriaValues: the empty aria-label is the case under test
+			<button key="empty" type="button" aria-label="">
+				Add tile
+			</button>,
+		],
+	])('names the sheet and the menu by a trigger with %s', async (_name, trigger) => {
+		stubMatchMedia((query) => query.startsWith('(hover: none)'))
+
+		const user = setupUser()
+
+		renderUI(
+			<>
+				<span id="add-tile-name">Add tile</span>
+
+				<Menu placement="bottom-start">
+					<MenuTrigger>{trigger}</MenuTrigger>
+
+					<MenuContent>
+						<MenuItem>Orders</MenuItem>
+					</MenuContent>
+				</Menu>
+			</>,
+		)
+
+		await user.click(screen.getByRole('button'))
+
+		expect(screen.getByRole('dialog', { name: 'Add tile' })).toBeInTheDocument()
+
+		expect(screen.getByRole('menu', { name: 'Add tile' })).toBeInTheDocument()
+	})
+
 	// A name from the consumer names the menu, as in the popover. The heading
 	// and the name of the sheet stay the title or the trigger.
 	it.each([
