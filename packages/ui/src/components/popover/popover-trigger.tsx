@@ -1,7 +1,7 @@
 'use client'
 
 import { type ReactNode, type SyntheticEvent, useCallback } from 'react'
-import { cn } from '../../core'
+import { cn, composeEventHandlers } from '../../core'
 import { useDeferredFloatingReference } from '../../hooks/use-deferred-floating-reference'
 import { TriggerChild, triggerChild } from '../../primitives/trigger-child/trigger-child'
 import { k } from '../../recipes/kata/popover'
@@ -18,7 +18,11 @@ export type PopoverTriggerProps = {
  * adopt the floating reference ref and toggle interactions, or renders its own
  * `<button>` otherwise, stamping `aria-haspopup="dialog"`, `aria-expanded`, and
  * `aria-controls`. A {@link PopoverContent} with no accessible name is not a
- * dialog, so the trigger then omits `aria-haspopup`. Clicks within a `[data-popover-ignore]` subtree are ignored.
+ * dialog, so the trigger then omits `aria-haspopup`.
+ *
+ * A press within a `[data-popover-ignore]` subtree inside the trigger does not
+ * toggle the popover. The handlers of the child still run. An ignored element
+ * on the trigger itself, or around it, has no effect.
  *
  * The trigger writes `data-slot="popover-trigger"` only on a host element child,
  * such as a `<button>`, that has no `data-slot` of its own. A component child,
@@ -48,21 +52,47 @@ export function PopoverTrigger({ children, className }: PopoverTriggerProps) {
 		childRef,
 	)
 
+	// A match counts only below the trigger. The trigger itself and its
+	// ancestors do not count, so an ignored ancestor does not block the toggle.
 	const shouldIgnore = useCallback((event: SyntheticEvent<HTMLElement>): boolean => {
-		return event.target instanceof Element && event.target.closest('[data-popover-ignore]') !== null
+		const { target, currentTarget } = event
+
+		if (!(target instanceof Element)) return false
+
+		const match = target.closest('[data-popover-ignore]')
+
+		return match !== null && match !== currentTarget && currentTarget.contains(match)
 	}, [])
 
-	// Every `on*` handler from the reference props gains the ignore guard.
+	// Only the `on*` handlers of the popover gain the ignore guard. Each handler
+	// of the child with the same key runs first, outside the guard. The toggle is
+	// the activation of the trigger, so `preventDefault()` in the child does not
+	// cancel it (CONVENTIONS.md §3.9).
 	const wrapReferenceProps = useCallback(
-		(props?: Record<string, unknown>): Record<string, unknown> =>
+		(childProps?: Record<string, unknown>): Record<string, unknown> =>
 			Object.fromEntries(
-				Object.entries(getReferenceProps(props)).map(([key, value]) => [
-					key,
-					/^on[A-Z]/.test(key) && typeof value === 'function'
-						? (event: SyntheticEvent<HTMLElement>) =>
-								shouldIgnore(event) ? undefined : value(event)
-						: value,
-				]),
+				Object.entries(getReferenceProps()).map(([key, value]) => {
+					if (!/^on[A-Z]/.test(key) || typeof value !== 'function') return [key, value]
+
+					const guarded = (event: SyntheticEvent<HTMLElement>) => {
+						if (!shouldIgnore(event)) value(event)
+					}
+
+					const theirs = childProps?.[key]
+
+					return [
+						key,
+						typeof theirs === 'function'
+							? composeEventHandlers(
+									theirs as (event: SyntheticEvent<HTMLElement>) => void,
+									guarded,
+									{
+										checkForDefaultPrevented: false,
+									},
+								)
+							: guarded,
+					]
+				}),
 			),
 		[getReferenceProps, shouldIgnore],
 	)
