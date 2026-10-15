@@ -32,13 +32,17 @@ export type PhoneMaskCountry = 'US' | 'international'
 /** Postal-code locale for {@link zipcodeMask}. */
 export type ZipcodeMaskCountry = 'US' | 'CA' | 'GB' | 'international'
 
-/** @internal North American Numbering Plan mask: strips a leading country `1`, caps at 10 digits, and formats as `(NXX) NXX-XXXX` as they arrive. */
+/**
+ * @internal North American Numbering Plan mask: strips a leading country `1`
+ * when there are more than 10 digits, caps at 10 digits, and formats as
+ * `(NXX) NXX-XXXX` as they arrive.
+ */
 function formatNANP(raw: string) {
 	const digits = digitsOnly(raw)
 
-	const national = (
-		digits.length === 11 && digits.startsWith('1') ? digits.slice(1) : digits
-	).slice(0, 10)
+	const withoutCountry = digits.length > 10 && digits.startsWith('1') ? digits.slice(1) : digits
+
+	const national = withoutCountry.slice(0, 10)
 
 	if (national.length === 0) return ''
 
