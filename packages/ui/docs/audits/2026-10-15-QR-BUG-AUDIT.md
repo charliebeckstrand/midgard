@@ -1,6 +1,6 @@
 # Bug audit — 2026-10-15
 
-Letter sweep Q and R of the `packages/ui` components: Radio, Rating, and Resizable. One scope, 16 files, 1,478 lines, 10 claims. Nine are rows below: 2 `medium`, 7 `low`. One claim was refuted (C04). The overturn pass settled four of the eight questions from code, so four questions (Q1 to Q4) wait on the reader; they gate S1 (the C03 half), S2, S5, and S6.
+Letter sweep Q and R of the `packages/ui` components: Radio, Rating, and Resizable. One scope, 16 files, 1,478 lines, 10 claims. Nine are rows below: 2 `medium`, 7 `low`. One claim was refuted (C04). The overturn pass settled four of the eight questions from code; the reader settled Q1 to Q4 as recommended. The settle pass found that Q2's answer does not close R3, so Q2b waits on the reader and gates S2.
 
 ## Scope
 
@@ -26,6 +26,7 @@ The digest held the Q/R entries of the project record `2026-10-02-component-bug-
 | Verify | 10 stripped claims | 8 confirmed, 2 refuted; 8 questions; 5 leads |
 | Overturn | 1 sheet plus evidence | C10 refuted → confirmed (Q7, §7.3); no other verdict or severity changed; Q1, Q4, Q7, Q8 settled from code or the standing rule; 2 more leads |
 | Merge | 1 sheet plus the overturn | 1 group, 8 steps, 4 questions |
+| Settle | the reader's answers to Q1 to Q4 | S1, S2, S5, S6 derived again; Q2b raised (R3 not closed by Q2 (a)) |
 
 ## Findings
 
@@ -38,8 +39,8 @@ The digest held the Q/R entries of the project record `2026-10-02-component-bug-
 | R1 | `components/resizable/use-resizable-panel.ts` | `useResizablePanel` (drag ignores `pointerId`) | CONFIRMED | medium | shipped | G1 | ◯ OPEN |
 | R2 | `components/resizable/use-resizable-panel.ts` | `useResizablePanel` (orientation flip mid-drag) | CONFIRMED | low | none | G1 | ◯ OPEN |
 | R3 | `components/resizable/use-resizable-panel.ts` | `seedSizes` (one forward pass) | CONFIRMED | low | none | — | ◯ OPEN |
-| R4 | `components/resizable/resizable-panel.tsx` | `ResizablePanel` (throws outside a group) | CONFIRMED | low | none | — | ◯ OPEN |
-| R5 | `components/rating/rating.tsx` | `Rating` (`id` on no element) | CONFIRMED | low | shipped | — | ◯ OPEN |
+| R4 | `components/resizable/resizable-panel.tsx` | `ResizablePanel` (throws outside a group) | CONFIRMED | low | none | — | ✅ RESOLVED ([#2512](https://github.com/charliebeckstrand/midgard/pull/2512)) |
+| R5 | `components/rating/rating.tsx` | `Rating` (`id` on no element) | CONFIRMED | low | shipped | — | ✅ RESOLVED ([#2513](https://github.com/charliebeckstrand/midgard/pull/2513)) |
 | R6 | `components/rating/rating.tsx` | `Rating` (preview over a keyboard commit) | CONFIRMED | medium | shipped | — | ◯ OPEN |
 | R7 | `components/rating/rating.tsx` | `Rating` (native reset while dead) | CONFIRMED | low | none | — | ◯ OPEN |
 | R8 | `components/radio/radio.tsx` | `Radio` (Field id inside a RadioGroup) | CONFIRMED | low | none | — | ◯ OPEN |
@@ -74,17 +75,17 @@ All paths are under `packages/ui/src/`.
 
 ## Recommended resolution
 
-**S1.** Change: add `pointerId` and `orientation` to `DragState`. `onMove`, `onUp`, and `pointercancel` ignore another `pointerId` (`contextmenu` unchanged). On an orientation mismatch, do what Q1 decides. Rows closed: R1, R2. Files: `components/resizable/use-resizable-panel.ts`, `__tests__/components/use-resizable-panel.test.ts`. Order: first; S2 edits the same file. Depends on: nothing. Gate: Q1 (the R2 half only). Test seam: synchronous; `result.current.startDrag(...)` and `document.dispatchEvent(new PointerEvent('pointermove', { pointerId, … }))`, as at `use-resizable-panel.test.ts:520`, with the rAF stub at `:99-105`.
+**S1.** Change: add `pointerId` and `orientation` to `DragState`, both set in `startDrag`. `pointermove`, `pointerup`, and `pointercancel` from another `pointerId` do nothing; `contextmenu` still ends the drag. In `onMove`, compare `readLayout().orientation` with `drag.orientation` before the delta; on a mismatch, end the drag through the `onUp` path (flush the last sizes, abort the listeners, fire `onResizeEnd(handleIndex)` once) and compute no delta. The pointer filter sits in the listener wrapper, so `onUp` can run with no event. Rows closed: R1, R2. Files: `components/resizable/use-resizable-panel.ts`, `__tests__/components/use-resizable-panel.test.ts` (the dispatches at `:520` and similar carry no `pointerId`; they need `pointerId: 1`, which `makePointerEvent` already defaults, `__tests__/helpers/make-event.ts:40`). Order: first; S2 edits the same file. Depends on: nothing. Gate: none (Q1 settled). Test seam: synchronous; `renderHook` with `orientation` as a prop, the rAF stub at `:99-105`, and `document.dispatchEvent(new PointerEvent(…, { pointerId }))`. R1: a move and an up from `pointerId: 2` leave the sizes and `dragging` unchanged, with no `onResizeEnd`. R2: rerender with `'vertical'` mid-drag, send one move; `onResizeEnd` fires once, `dragging` is `null`, and the sizes equal the last horizontal commit.
 
-**S2.** Change: make `seedSizes` reach a feasible layout when one exists, per Q2. Keep `use-resizable-panel.test.ts:117-141`. Rows closed: R3. Files: as S1. Order: after S1. Depends on: S1 (file order). Gate: Q2. Test seam: synchronous; `renderPanel` → `result.current.sizes`.
+**S2.** Change: in `seedSizes`, after normalization, repeat a forward pass (`leftIndex` 0 → n−2) and a backward pass (n−2 → 0) of `clampPair` until no size changes (a small tolerance, at most n rounds). When the stable result still breaks a bound, do what Q2b decides. Keep `use-resizable-panel.test.ts:117-141`, including `[25, 35, 40]`. Rows closed: R3. Files: as S1. Order: after S1. Depends on: S1 (file order). Gate: Q2b. Test seam: synchronous; `renderPanel({ panelConfigs })` → `result.current.sizes`; add the R3 row (equal weights, `maxSize: 20` on panel 1, `minSize: 60` on panel 2), which expects [20, 20, 60] under Q2b (a).
 
 **S3.** Change: let `ResizablePanel` read the group context without a throw (a context default or an optional reader), and use `defaultSize` outside a group. Rows closed: R4. Files: `components/resizable/resizable-panel.tsx`, `components/resizable/context.ts`, `__tests__/components/resizable.test.tsx`. Order: any. Depends on: nothing. Gate: none (settled). Test seam: synchronous render.
 
 **S4.** Change: put the resolved id on the row element in both forms, and derive the display-form self-reference from it. Rows closed: R5. Files: `components/rating/rating.tsx`, `__tests__/components/rating.test.tsx`. Order: first of the Rating steps. Depends on: nothing. Gate: none. Test seam: synchronous render.
 
-**S5.** Change: clear `previewed` on a commit that is not a pointer action (a keyboard `change`, or `keydown` in the row). Rows closed: R6. Files: as S4. Order: after S4. Depends on: S4 (file order). Gate: Q3. Test seam: synchronous; `fireEvent.pointerEnter` with `pointerType: 'mouse'`, a keyboard change on a radio, then the `rating-fill` widths.
+**S5.** Change: hold a press flag in a ref; the row's `onPointerDown` sets it, and the radio's `onClick` clears it at its end. `commit` clears `previewed` when the flag is not set, which covers an arrow-key change, a Space activation, and a keyboard clear through `handleClick`. A pointer commit keeps the preview, so the clearing recede (`:235`) still behaves as `rating.test.tsx:100-160` pins it, and the next `pointerenter` sets the preview again. Rows closed: R6. Files: `components/rating/rating.tsx`, `__tests__/components/rating.test.tsx`, optionally `__tests__/browser/geometry/rating-half-step.test.tsx`. Order: after S4. Depends on: S4 (file order). Gate: none (Q3 settled). Test seam: synchronous; `fireEvent.pointerEnter(label2, { pointerType: 'mouse' })`, then `fireEvent.click(radio3)` with no `pointerDown`; expect three full `rating-fill` widths and no clearing class. In the browser, hover star 2 and press `{ArrowRight}`, as `rating-half-step.test.tsx:61-79`.
 
-**S6.** Change: keep the native-reset listener while the row is dead, with an element the display form renders or a form-level listener. Rows closed: R7. Files: `components/rating/rating.tsx`, possibly `hooks/use-form-reset-sync.ts`, `__tests__/components/rating.test.tsx`. Order: after S5. Depends on: S5 (file order). Gate: Q4. Test seam: the rAF reset path that `rating.test.tsx:463-489` already drives.
+**S6.** Change: in the display (dead) branch, render `<input type="hidden" ref={resetRef} />` with no `name` (it submits nothing), only while the rating is uncontrolled (`controlled` from `useFormValue`), so the controlled display rows that lists draw (`apps/places/.../place-summary.tsx:117`, `place-rating.tsx:31`, `docs/.../review-averages.tsx:22`) gain no element. At a live/dead switch the ref callback moves the form listener (`use-form-reset-sync.ts:33-56`). L6 stays a lead. Rows closed: R7. Files: `components/rating/rating.tsx`, `__tests__/components/rating.test.tsx`. Order: after S5. Depends on: S5 (file order). Gate: none (Q4 settled). Test seam: the rAF reset path that `rating.test.tsx:463-489` drives; uncontrolled `defaultValue={2}` in a native `<form>`, set 4, rerender `readOnly`, reset, flush; the readout is 2 and `onValueChange(2)` fires. A controlled display row renders no `input`.
 
 **S7.** Change: stop a Radio in a RadioGroup from adopting the Field id, required state, and description; RadioGroup withholds the wrapper id from its radios, or Radio skips it inside a group. Rows closed: R8. Files: `components/radio/radio-group.tsx`, `components/radio/radio.tsx`, `components/radio/context.ts`, `__tests__/components/radio.test.tsx`. Order: before S8. Depends on: nothing. Gate: none (settled). Test seam: synchronous render.
 
@@ -99,20 +100,33 @@ All paths are under `packages/ui/src/`.
 
 Either way, `DragState.rtl` (`:257`) has the same stale capture (lead L3); the answer can cover it too. No precedent in the package.
 
+Answer (2026-10-15, the reader): "Proceed as recommended." (a): end the drag. The settle pass keeps L3 a lead, because the answer names only the orientation.
+
 **Q2 (R3, S2).** How does the seed reach a feasible layout, and what does it return when none exists?
 
 - (a) Forward then backward passes of `clampPair`, repeated until the sizes stop changing; an infeasible chain keeps the last result. Keeps every pinned row of `use-resizable-panel.test.ts:117-141`, because the neighbor pair satisfies them on the first pass. Recommended.
 - (b) A global fill against min/max (water-fill). Exact, but replaces the neighbor-first rule that B08-Q3 settled, so the pinned rows need a check.
+
+Answer (2026-10-15, the reader): "Proceed as recommended." (a). The settle pass traced (a) on the R3 input: the backward pass finds pair (1,2) infeasible (`feasibleMax` −6.7 < `feasibleMin` 0), falls back to [0, 20], and moves nothing, so 46.7/20/33.3 is already stable. A pairwise clamp cannot move slack from panel 0 to panel 2 past a middle panel pinned at its max. (a) alone does not close R3; see Q2b.
+
+**Q2b (R3, S2), from the settle pass.** The stable pairwise result still breaks a bound. What then?
+
+- (a) A global fallback that runs only then: clamp each panel into its own min/max, and share the remainder among the panels with slack, in proportion to their weights. Gives 20/20/60 for R3. It cannot touch the pinned rows, because they meet every bound after the first pass. Recommended.
+- (b) Accept the pairwise result, and record R3 as known.
 
 **Q3 (R6, S5).** Does the pointer preview stay over a keyboard commit?
 
 - (a) No: clear the preview on a commit that is not a pointer action. `rating.tsx:100-101` scopes the preview to a click ("so that click previews its result like every other one does"). Recommended.
 - (b) Yes: the preview "stands in for the value while the pointer is over the row" (`:198-199`); R6 is refuted.
 
+Answer (2026-10-15, the reader): "Proceed as recommended." (a).
+
 **Q4 (R7, S6).** Does a `readOnly` or `disabled` uncontrolled Rating follow a native reset?
 
 - (a) Yes, as the TSDoc says (`:153-154`) and as Slider and Switch do while disabled. Recommended.
 - (b) No: add Rating to the `COMPONENTS.md:22` exemption with a "while dead" note, and fix the TSDoc; R7 is refuted.
+
+Answer (2026-10-15, the reader): "Proceed as recommended." (a).
 
 **Settled from code in the overturn (no reader answer needed).**
 
