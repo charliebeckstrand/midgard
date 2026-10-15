@@ -272,6 +272,35 @@ describe('TreeItem', () => {
 		expect(row).toHaveAttribute('aria-expanded', 'true')
 	})
 
+	// A Fragment adds no level, so its contents decide leaf or branch.
+	it.each([
+		['reads an empty Fragment as a leaf', [], null],
+		['reads a Fragment with an item as a branch', ['a.ts'], 'false'],
+	])('%s', (_name, files, expanded) => {
+		const { container } = renderUI(
+			<Tree aria-label="Files">
+				<TreeItem label="Folder">
+					{/* biome-ignore lint/complexity/noUselessFragments: the Fragment is the case under test. */}
+					<>
+						{files.map((file) => (
+							<TreeItem key={file} label={file} />
+						))}
+					</>
+				</TreeItem>
+			</Tree>,
+		)
+
+		const row = getSlot(container, 'tree-item-content')
+
+		if (expanded == null) {
+			expect(row).not.toHaveAttribute('aria-expanded')
+		} else {
+			expect(row).toHaveAttribute('aria-expanded', expanded)
+		}
+
+		expect(row.querySelector('svg') != null).toBe(expanded != null)
+	})
+
 	// Each row presses one key on a parent row that starts open or closed and
 	// reads where aria-expanded lands.
 	it.each([
