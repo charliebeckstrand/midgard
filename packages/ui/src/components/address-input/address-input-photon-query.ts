@@ -7,15 +7,24 @@
 type QuerySplit = { rest: string; qualifier: string }
 
 /**
+ * A UK code (outward code, then a digit and two letters) or a Canadian code
+ * (letter, digit, letter, digit, letter, digit), written without its space.
+ */
+const UNSPACED_CODE = /^(?:[A-Z]{1,2}\d[A-Z\d]?\d[A-Z]{2}|[A-Z]\d[A-Z]\d[A-Z]\d)$/i
+
+/**
  * The trailing parts of a query that can be a postal code, each with the text
  * before it. The list is empty where the query does not end in one. The text is
  * empty where the query is only a code.
  *
  * A candidate is the last word or the last two words, because a code such as
- * `SW1A 1AA` or `M5V 3L9` is two words. It must hold two digits or more and
- * three characters or more. Each word must hold a digit. Thus "5th Ave" and
- * "Pier 39" stay text. A US ZIP+4
- * reads as its first five digits, which is the code the geocoder holds.
+ * `SW1A 1AA` or `M5V 3L9` is two words. A word holds two to five characters. A
+ * word of six or seven characters is a candidate only when it has the form of a
+ * UK or Canadian code without its space, such as `SW1A1AA` or `M5V3L9`. A
+ * candidate must hold two digits or more and three characters or more. Each
+ * word must hold a digit. Thus "5th Ave" and "Pier 39" stay text. A US ZIP+4,
+ * such as `97140-1234` or `97140 1234`, reads as its first five digits, which
+ * is the code the geocoder holds.
  */
 export function splitPostcode(query: string): QuerySplit[] {
 	const words = query.trim().replace(/,/g, ' ').split(/\s+/)
@@ -27,14 +36,17 @@ export function splitPostcode(query: string): QuerySplit[] {
 
 		const tail = words.slice(-count).join(' ')
 
-		if (!/^[A-Za-z0-9]{2,5}(?:[ -][A-Za-z0-9]{2,4})?$/.test(tail)) continue
+		const shaped =
+			/^[A-Za-z0-9]{2,5}(?:[ -][A-Za-z0-9]{2,4})?$/.test(tail) || UNSPACED_CODE.test(tail)
+
+		if (!shaped) continue
 
 		if ((tail.match(/\d/g) ?? []).length < 2 || tail.length < 3) continue
 
 		// Every word of a code holds a digit, so "Pier 39" is not a code.
 		if (!tail.split(/[ -]/).every((part) => /\d/.test(part))) continue
 
-		const zipPlusFour = /^(\d{5})-\d{4}$/.exec(tail)
+		const zipPlusFour = /^(\d{5})[ -]\d{4}$/.exec(tail)
 
 		candidates.push({
 			rest: words.slice(0, -count).join(' '),
