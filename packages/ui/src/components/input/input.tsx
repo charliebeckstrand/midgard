@@ -1,6 +1,13 @@
 'use client'
 
-import { type ChangeEvent, type ComponentProps, type ReactNode, useRef, useState } from 'react'
+import {
+	type ChangeEvent,
+	type ComponentProps,
+	type ReactNode,
+	useCallback,
+	useRef,
+	useState,
+} from 'react'
 import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { useComposedRef } from '../../hooks'
@@ -66,8 +73,9 @@ export type InputProps = GroupStampProps &
  * `invalid` OR's the prop, the bound field, and any ambient Control error.
  * Under headless context the affix frame and recipe classes are all skipped.
  * The clear button of `clearable` comes before the `suffix`. It keeps the focus
- * in the input, and it does not show under headless context. On an uncontrolled
- * input, it follows a native form reset.
+ * in the input. When the button goes away while it has the focus, the focus
+ * goes to the input. The button does not show under headless context. On an
+ * uncontrolled input, it follows a native form reset.
  * @see {@link InputFrame}
  */
 export function Input({
@@ -129,6 +137,16 @@ export function Input({
 
 	const setRefs = useComposedRef(inputRef, resetRef, ref)
 
+	// The clear button can go away while it holds the focus, for example when
+	// the value empties or the caller turns clearable off. The focus then goes
+	// to the input and not to <body> (WCAG 2.4.3). The cleanup runs before React
+	// removes the button, so the button is still the active element.
+	const clearButtonRef = useCallback((button: HTMLButtonElement) => {
+		return () => {
+			if (button.ownerDocument.activeElement === button) inputRef.current?.focus()
+		}
+	}, [])
+
 	const handleChange = uncontrolled
 		? (event: ChangeEvent<HTMLInputElement>) => {
 				field.attrs.onChange?.(event)
@@ -156,6 +174,7 @@ export function Input({
 	const clearButton =
 		clearable && filled && editable ? (
 			<InputClearButton
+				ref={clearButtonRef}
 				label={clearLabel}
 				// Keep the focus in the input, so that no blur runs before the clear.
 				onMouseDown={(event) => event.preventDefault()}

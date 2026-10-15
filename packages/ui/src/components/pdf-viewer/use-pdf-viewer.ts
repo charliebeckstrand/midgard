@@ -38,6 +38,10 @@ const EMPTY_DOCUMENT = new Error('The document has no pages.')
  * A src nothing is resident for publishes the frozen empty snapshot, which is
  * shape-identical to a load that rasterized nothing. `started` is what parts them.
  *
+ * Pages come before the error. A snapshot with pages is a document that opened, and the
+ * open is the load. An error beside them is a failure after the open, which the viewer
+ * shows and which does not call `onError`.
+ *
  * @internal
  */
 function documentSettle(
@@ -45,9 +49,9 @@ function documentSettle(
 	pageCount: number,
 	started: boolean,
 ): Error | null | 'pending' {
-	if (error) return error
-
 	if (pageCount > 0) return null
+
+	if (error) return error
 
 	return started ? EMPTY_DOCUMENT : 'pending'
 }

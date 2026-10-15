@@ -131,6 +131,25 @@ describe('SearchInput', () => {
 		expect(consumed).toBe(false)
 	})
 
+	it('moves the focus to the input when loading swaps out the focused clear button', async () => {
+		const { rerender } = renderUI(<SearchInput defaultValue="query" />)
+
+		const input = screen.getByRole('searchbox')
+
+		const user = setupUser()
+
+		await user.click(input)
+
+		// Tab from the field lands on the clear button, and a search then starts.
+		await user.tab()
+
+		expect(screen.getByRole('button', { name: 'Clear search' })).toHaveFocus()
+
+		rerender(<SearchInput defaultValue="query" loading />)
+
+		expect(input).toHaveFocus()
+	})
+
 	it('shows spinner when loading', () => {
 		const { container } = renderUI(<SearchInput loading />)
 

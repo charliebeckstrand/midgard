@@ -8,14 +8,15 @@ import { renderUI, stubMatchMedia } from '../helpers'
 
 /**
  * A reduced-motion reader gets the line, scatter, pie and sparkline marks at
- * rest on mount.
+ * rest on mount, and the sparkline bars too.
  *
  * The reduced-motion config of motion skips a transform, but the line draw
- * (`pathLength`) and the point pop (`r`) are no transform. The marks therefore
- * must skip their `initial` state themselves. Motion writes the SVG values
- * after the render, so jsdom cannot read them. The suite reads the `initial`
- * prop that each `motion` element takes instead, keyed by its slot. It needs a
- * module mock, so it sits in `boundary/`.
+ * (`pathLength`), the point pop (`r`), and the bar grow of a sparkline
+ * (`height`) are no transform. The marks therefore must skip their `initial`
+ * state themselves. Motion writes the SVG values after the render, so jsdom
+ * cannot read them. The suite reads the `initial` prop that each `motion`
+ * element takes instead, keyed by its slot. It needs a module mock, so it sits
+ * in `boundary/`.
  */
 const initials = vi.hoisted(() => new Map<string, unknown[]>())
 
@@ -100,13 +101,18 @@ const SLICES = [
 	{ source: 'Search', visits: 25 },
 ]
 
-/** The `r` and `pathLength` keys of every `initial` the marks took. */
+/**
+ * The `r`, `pathLength`, and `height` keys of every `initial` the marks took.
+ * None of them is a transform, so the reduced-motion config does not skip them.
+ */
 function revealKeys() {
 	return [...initials.values()]
 		.flat()
 		.flatMap((initial) =>
 			initial && typeof initial === 'object'
-				? Object.keys(initial).filter((key) => key === 'r' || key === 'pathLength')
+				? Object.keys(initial).filter(
+						(key) => key === 'r' || key === 'pathLength' || key === 'height',
+					)
 				: [],
 		)
 }
@@ -139,6 +145,10 @@ describe('other animated marks under reduced motion', () => {
 			),
 		],
 		['sparkline', () => <Sparkline data={[1, 4, 2, 8, 5]} aria-label="Trend" animate endPoint />],
+		[
+			'sparkline bars',
+			() => <Sparkline data={[1, 4, 2, 8, 5]} shape="bar" aria-label="Trend" animate />,
+		],
 	])('mounts the %s at rest', (_name, chart) => {
 		initials.clear()
 
