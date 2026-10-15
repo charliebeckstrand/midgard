@@ -75,6 +75,11 @@ export type StepperProps = Omit<
 	 * @defaultValue 'active'
 	 */
 	mount?: Mount
+	/**
+	 * Classes for the flex `<ol>` of the steps, in an interactive and in a
+	 * display-only stepper. They merge over the classes of the list, so a class
+	 * such as `px-0` replaces the padding of the list.
+	 */
 	className?: string
 	children?: ReactNode
 }
@@ -198,9 +203,9 @@ export function Stepper({
 			aria-label={ariaLabel}
 			aria-orientation={resolvedOrientation}
 			onKeyDown={handleKeyDown}
-			className={cn('w-full', className)}
+			className="w-full"
 		>
-			<ol data-slot="stepper-list" className={k.base({ orientation: layout })}>
+			<ol data-slot="stepper-list" className={rowClassName}>
 				{rowChildren}
 			</ol>
 		</div>
