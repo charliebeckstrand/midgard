@@ -8,7 +8,7 @@ import { heldMotionProps } from '../../primitives/mount/mount-held-motion'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/tree'
-import { flattenChildren } from '../../utilities/flatten-children'
+import { flattenFragments } from '../../utilities/children'
 import { TreeContext, TreePositionContext, useTreeContext } from './context'
 import { ITEM_SELECTOR } from './tree-constants'
 
@@ -19,7 +19,7 @@ import { ITEM_SELECTOR } from './tree-constants'
  * Fragment adds no tree level.
  */
 export function stampTreePositions(children: ReactNode): ReactNode {
-	const items = flattenChildren(children)
+	const items = flattenFragments(children)
 
 	const setsize = items.filter(({ node }) => isValidElement(node)).length
 

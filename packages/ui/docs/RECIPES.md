@@ -31,7 +31,7 @@ Atomic concerns, one sub-folder each, except the flat files `kara.ts`, `sou.ts`,
 | `kasane` 重ね | The signature 4-layer chrome stack plus the `rounded` scale. The ring utilities (`px-ring-2`, …) that subtract the ring are in `core/density/utilities.ts`. |
 | `kokkaku` 骨格 | Skeleton placeholder dimensions per component — chrome-, variant-, and color-stripped. |
 | `sou` 層 | App-level stacking order — the ordered rung ladder (`overlay` / `chrome` / `cover` / `float` / `lens` / `toast`) every portaled surface lands on. |
-| `tsunagi` 繋ぎ | Group-join class fragments — dormant until the parent stamps `data-group` at runtime. |
+| `tsunagi` 繋ぎ | Group-join class fragments, keyed on the DOM position of each child of the group. |
 | `kara` 空 | Virtualized emptiness — selectors that read `data-empty` on a `VirtualOptions` wrapper. |
 
 ## Kiso — semantic tier
@@ -86,7 +86,6 @@ The barrel re-exports the substrate types, so a consumer derives a prop union wi
 | Type | Summary |
 |---|---|
 | `Ma` | Name of a spacing stop in the `ma` scale. |
-| `GroupPosition` | Where a member sits in a joined group, which selects the corners it rounds. |
 | `GroupOrientation` | Axis a joined group runs along. |
 
 ## Boundary

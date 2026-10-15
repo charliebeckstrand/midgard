@@ -5,7 +5,7 @@ import { cn, dataAttr } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { useMountsEveryPanel } from '../../primitives/mount'
 import { k } from '../../recipes/kata/stepper'
-import { hasChildOfType, partitionByType } from '../../utilities/flatten-children'
+import { hasChildOfType, partitionByType } from '../../utilities/children'
 import { type StepperLayout, StepperStepContext, type StepState, useStepper } from './context'
 import { StepperIndicator } from './stepper-indicator'
 

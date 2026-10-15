@@ -2,11 +2,10 @@ import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import type { scale } from '../../recipes/kata/control'
 import { k } from '../../recipes/kata/control'
-import type { GroupStampProps } from '../../types/group-stamp'
 import { Placeholder } from '../placeholder'
 
 /** Props for {@link ControlSkeleton}: the control `size` plus `className`. */
-export type ControlSkeletonProps = GroupStampProps & {
+export type ControlSkeletonProps = {
 	/**
 	 * The density step. Omit it to take the step of the nearest density scope,
 	 * as the control does. A step makes the silhouette a density scope.
@@ -21,26 +20,13 @@ export type ControlSkeletonProps = GroupStampProps & {
  * density scope.
  *
  * @remarks
- * The joined silhouette is derived, not asked for. A `<Group>` stamps
- * `data-group` onto every child, this one included. A skeleton inside a group
- * therefore draws the joined shape, and one outside draws the full one. It
- * used to take a `joined` boolean that echoed the stamp it was handed and
- * dropped.
+ * The joined silhouette comes from CSS alone. In a `<Group>`, the join
+ * classes of the group flatten the inner corners of the skeleton, and the
+ * group sets how it shares the length of the group. Outside a group, it fills
+ * its parent.
  */
-export function ControlSkeleton({
-	size,
-	className,
-	'data-group': dataGroup,
-	'data-group-orientation': dataGroupOrientation,
-}: ControlSkeletonProps) {
-	const joined = dataGroup !== undefined
-
+export function ControlSkeleton({ size, className }: ControlSkeletonProps) {
 	return (
-		<Placeholder
-			data-density={size}
-			data-group={dataGroup}
-			data-group-orientation={dataGroupOrientation}
-			className={cn(k.skeleton.base, joined ? k.skeleton.group : k.skeleton.full, className)}
-		/>
+		<Placeholder data-density={size} className={cn(k.skeleton.base, k.skeleton.fill, className)} />
 	)
 }

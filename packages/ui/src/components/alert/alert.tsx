@@ -6,7 +6,7 @@ import { cn } from '../../core'
 import { useControllableFlag } from '../../hooks'
 import { useAnnounceOnAppear } from '../../hooks/a11y/use-announce-on-appear'
 import { type AlertVariants, k } from '../../recipes/kata/alert'
-import { flattenChildren } from '../../utilities/flatten-children'
+import { flattenFragments } from '../../utilities/children'
 import { Button } from '../button'
 import { type ButtonDefaults, ButtonDefaultsProvider } from '../button/context'
 import type { HeadingLevel } from '../heading'
@@ -41,7 +41,7 @@ const severityIcons = {
  */
 function hasContent(node: ReactNode): boolean {
 	// `Children.forEach` gives `null` for each boolean.
-	return flattenChildren(node).some((child) => child.node != null && child.node !== '')
+	return flattenFragments(node).some((child) => child.node != null && child.node !== '')
 }
 
 /** Wraps loose children in {@link AlertBody}; renders nothing for an empty child. @internal */

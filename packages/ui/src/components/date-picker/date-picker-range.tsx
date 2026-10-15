@@ -22,8 +22,6 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 		clearable = false,
 		className,
 		'aria-label': ariaLabel,
-		'data-group': dataGroup,
-		'data-group-orientation': dataGroupOrientation,
 	} = props
 
 	const {
@@ -56,8 +54,6 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 				hasValue={state.hasValue}
 				onClear={state.onClear}
 				className={className}
-				data-group={dataGroup}
-				data-group-orientation={dataGroupOrientation}
 			/>
 			<DatePickerContent
 				id={state.dialogId}

@@ -13,8 +13,6 @@ type InputFrameProps = {
 	variant: InputVariants['variant']
 	/** The `size` of the input. A step makes the frame a density scope. */
 	density?: DensityStep
-	dataGroup?: string
-	dataGroupOrientation?: string
 }
 
 /**
@@ -28,15 +26,7 @@ type InputFrameProps = {
  *
  * @internal
  */
-export function InputFrame({
-	input,
-	prefix,
-	suffix,
-	variant,
-	density,
-	dataGroup,
-	dataGroupOrientation,
-}: InputFrameProps) {
+export function InputFrame({ input, prefix, suffix, variant, density }: InputFrameProps) {
 	const hasPrefix = prefix != null && prefix !== false && prefix !== ''
 
 	const hasSuffix = suffix != null && suffix !== false && suffix !== ''
@@ -44,12 +34,7 @@ export function InputFrame({
 	const hasAffix = hasPrefix || hasSuffix
 
 	return (
-		<ControlFrame
-			density={density}
-			data-group={dataGroup}
-			data-group-orientation={dataGroupOrientation}
-			className={cn(k.surface({ variant }), hasAffix && k.frame)}
-		>
+		<ControlFrame density={density} className={cn(k.surface({ variant }), hasAffix && k.frame)}>
 			{hasPrefix && (
 				<span data-slot="prefix" data-density="slot" className={cn(k.affix.base, k.affix.prefix)}>
 					{prefix}

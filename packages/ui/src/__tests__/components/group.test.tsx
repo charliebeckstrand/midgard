@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Group } from '../../components/group'
 import { Density, useDensityStep } from '../../primitives/density'
-import { allBySlot, bySlot, renderUI, screen } from '../helpers'
+import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Group', () => {
 	it('defaults to horizontal orientation and inline-flex layout', () => {
@@ -54,85 +54,6 @@ describe('Group', () => {
 		expect(root?.className).not.toContain('flex-row')
 
 		expect(root).toHaveAttribute('data-orientation', 'vertical')
-	})
-
-	it('stamps "only" on a single child', () => {
-		const { container } = renderUI(
-			<Group>
-				<button type="button" data-slot="child">
-					Lone
-				</button>
-			</Group>,
-		)
-
-		const children = allBySlot(container, 'child')
-
-		expect(children).toHaveLength(1)
-
-		expect(children[0]).toHaveAttribute('data-group', 'only')
-	})
-
-	it('stamps start/end on two children', () => {
-		const { container } = renderUI(
-			<Group>
-				<button type="button" data-slot="child">
-					First
-				</button>
-				<button type="button" data-slot="child">
-					Second
-				</button>
-			</Group>,
-		)
-
-		const [first, second] = allBySlot(container, 'child')
-
-		expect(first).toHaveAttribute('data-group', 'start')
-
-		expect(second).toHaveAttribute('data-group', 'end')
-	})
-
-	it('stamps start/middle/end across three or more children', () => {
-		const { container } = renderUI(
-			<Group>
-				<button type="button" data-slot="child">
-					A
-				</button>
-				<button type="button" data-slot="child">
-					B
-				</button>
-				<button type="button" data-slot="child">
-					C
-				</button>
-				<button type="button" data-slot="child">
-					D
-				</button>
-			</Group>,
-		)
-
-		const positions = allBySlot(container, 'child').map((el) => el.getAttribute('data-group'))
-
-		expect(positions).toEqual(['start', 'middle', 'middle', 'end'])
-	})
-
-	it('propagates orientation to every child', () => {
-		const { container } = renderUI(
-			<Group orientation="vertical">
-				<button type="button" data-slot="child">
-					A
-				</button>
-				<button type="button" data-slot="child">
-					B
-				</button>
-			</Group>,
-		)
-
-		const children = allBySlot(container, 'child')
-
-		expect(children).toHaveLength(2)
-
-		for (const child of children) {
-			expect(child).toHaveAttribute('data-group-orientation', 'vertical')
-		}
 	})
 
 	it('provides a Density context to descendants', () => {

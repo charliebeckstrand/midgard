@@ -119,8 +119,8 @@ export const size = {
 		 * so a textarea of one row has the height of an Input at each step.
 		 */
 		floor: 'density-min-h-[6.5,8,9.5,11,12.5]',
-		/** The minimum width of a control skeleton. */
-		min: 'density-min-w-[8,16,24,32,40]',
+		/** The minimum width of a control skeleton that is a direct child of a group. */
+		min: '[[data-slot=group]>&]:density-min-w-[8,16,24,32,40]',
 	},
 	line: {
 		/** A line of small text in a skeleton: the line height of the small text. */

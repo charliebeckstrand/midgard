@@ -3,16 +3,15 @@
  * consumer (Input, Textarea, Select, Listbox, Combobox, DatePicker,
  * ColorPicker).
  *
- * `full` is the standalone-skeleton default; fills its parent. `group`
- * is the in-group default: grows to share the row with sibling
- * placeholders, with a size-aware minimum width. Override via `className`
- * (e.g. `w-44 flex-none`) to pin a fixed slot.
- *
- * Only a horizontal group shares its length between the members. In a
- * vertical group, the member does not grow. It keeps the control height, and
- * the group stretches it to the group width. In a column of auto height,
- * `flex-1` gives the empty placeholder a basis of zero, and thus a height of
- * zero.
+ * `fill` fills the parent. In a `<Group>`, the `flex` of the skeleton comes
+ * from the `--group-member-flex` of the group. A horizontal group gives `1`,
+ * so the skeleton shares the row with its siblings. A vertical group gives
+ * `none`: the member keeps the control height, and the group stretches it to
+ * the group width. In a column of auto height, `flex-1` gives the empty
+ * placeholder a basis of zero, and thus a height of zero. Outside a group, the
+ * variable is not set, and `flex` keeps its initial value. A direct child of a
+ * group also takes a size-aware minimum width. Override via `className` (e.g.
+ * `w-44 flex-none`) to pin a fixed slot.
  *
  * Layer: kiso · Concern: skeleton form · Unit: control
  */
@@ -28,6 +27,5 @@ export const control = {
 	// control. Each step is a stepped class, so the silhouette takes the step of
 	// its nearest density scope, as the control does.
 	base: [rounded.lg, dan.size.control.base],
-	full: 'w-full',
-	group: `flex-1 data-[group-orientation=vertical]:flex-none ${dan.size.control.min}`,
+	fill: ['w-full flex-(--group-member-flex)', dan.size.control.min],
 } as const

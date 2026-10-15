@@ -2,22 +2,20 @@
  * Tsunagi (繋ぎ): group joins.
  *
  * Container-scoped classes that flatten the join-side radii and overlap
- * adjacent borders for the children of a `<Group>`. `useGroup()` stamps
- * `data-group` (`start` | `middle` | `end` | `only`) and
- * `data-group-orientation` (`horizontal` | `vertical`) onto each child.
- * `<Group>` carries the matching orientation bundle on its container, and
- * the descendant selectors apply only once a child reports a position.
+ * adjacent borders for the children of a `<Group>`. The DOM order of the
+ * children gives each one its position: a child that is not the first joins
+ * its start side, and a child that is not the last joins its end side. A child
+ * that renders nothing takes no position, and a Fragment adds no level.
+ * `<Group>` carries the bundle of its orientation on its container.
  *
- * Authored as container classes on the group; the cost lands on the
- * single container, and an ungrouped element carries no join utilities.
+ * Each radius class reaches two elements: the child itself, and each
+ * `ControlFrame` in it. A control such as Input or Listbox wraps its bordered
+ * frame, so a child combinator alone does not reach the border. The border
+ * overlap (`-ms-px` / `-mt-px`) moves the child, which is the flex item.
  *
- * Keyed on both orientation and position: depth-tolerant and nest-safe.
- * Depth-tolerant: the bordered element is `ControlFrame`, nested below a
- * control wrapper in Select / DatePicker; a direct-child combinator
- * wouldn't reach it. Nest-safe: the orientation match keeps an inner
- * vertical group clear of an outer horizontal one. Same-orientation
- * nesting reapplies identical position-keyed declarations, staying
- * idempotent on the cascade.
+ * A group in a group joins as one child of the outer group. The outer classes
+ * also flatten the frames of the inner group on the shared side, so the inner
+ * run meets the next outer child with flat corners.
  *
  * `::before` / `::after` mirror the outer radius drop; kasane consumers
  * show no rounded inset-fill or focus-overlay corners on a flat side.
@@ -33,48 +31,45 @@
 
 import type { Orientation } from '../../types'
 
-/** Where a member sits in a joined group, which selects the corners it rounds. */
-export type GroupPosition = 'start' | 'middle' | 'end' | 'only'
-
 /** Axis a joined group runs along. */
 export type GroupOrientation = Orientation
 
 // Literal class strings: Tailwind's source scanner can't see selectors built
 // from templates; each variant is spelled out in full.
 const horizontal = [
-	'[&_[data-group-orientation=horizontal][data-group=start]]:rounded-e-none',
-	'[&_[data-group-orientation=horizontal][data-group=start]]:before:rounded-e-none',
-	'[&_[data-group-orientation=horizontal][data-group=start]]:after:rounded-e-none',
-	'[&_[data-group-orientation=horizontal][data-group=middle]]:rounded-none',
-	'[&_[data-group-orientation=horizontal][data-group=middle]]:before:rounded-none',
-	'[&_[data-group-orientation=horizontal][data-group=middle]]:after:rounded-none',
-	'[&_[data-group-orientation=horizontal][data-group=end]]:rounded-s-none',
-	'[&_[data-group-orientation=horizontal][data-group=end]]:before:rounded-s-none',
-	'[&_[data-group-orientation=horizontal][data-group=end]]:after:rounded-s-none',
-	'[&_[data-group-orientation=horizontal][data-group=middle]]:-ms-px',
-	'[&_[data-group-orientation=horizontal][data-group=end]]:-ms-px',
+	'[&>:not(:last-child)]:rounded-e-none',
+	'[&>:not(:last-child)]:before:rounded-e-none',
+	'[&>:not(:last-child)]:after:rounded-e-none',
+	'[&>:not(:last-child)_[data-slot=control-frame]]:rounded-e-none',
+	'[&>:not(:last-child)_[data-slot=control-frame]]:before:rounded-e-none',
+	'[&>:not(:last-child)_[data-slot=control-frame]]:after:rounded-e-none',
+	'[&>:not(:first-child)]:rounded-s-none',
+	'[&>:not(:first-child)]:before:rounded-s-none',
+	'[&>:not(:first-child)]:after:rounded-s-none',
+	'[&>:not(:first-child)_[data-slot=control-frame]]:rounded-s-none',
+	'[&>:not(:first-child)_[data-slot=control-frame]]:before:rounded-s-none',
+	'[&>:not(:first-child)_[data-slot=control-frame]]:after:rounded-s-none',
+	'[&>:not(:first-child)]:-ms-px',
 ] as const
 
 const vertical = [
-	'[&_[data-group-orientation=vertical][data-group=start]]:rounded-b-none',
-	'[&_[data-group-orientation=vertical][data-group=start]]:before:rounded-b-none',
-	'[&_[data-group-orientation=vertical][data-group=start]]:after:rounded-b-none',
-	'[&_[data-group-orientation=vertical][data-group=middle]]:rounded-none',
-	'[&_[data-group-orientation=vertical][data-group=middle]]:before:rounded-none',
-	'[&_[data-group-orientation=vertical][data-group=middle]]:after:rounded-none',
-	'[&_[data-group-orientation=vertical][data-group=end]]:rounded-t-none',
-	'[&_[data-group-orientation=vertical][data-group=end]]:before:rounded-t-none',
-	'[&_[data-group-orientation=vertical][data-group=end]]:after:rounded-t-none',
-	'[&_[data-group-orientation=vertical][data-group=middle]]:-mt-px',
-	'[&_[data-group-orientation=vertical][data-group=end]]:-mt-px',
-	// A vertical group stretches each member to its width, so the outer edges
-	// line up. `w-auto` overrides the `w-fit` of a member such as Button. The
-	// child combinator keeps it on the members, and away from other children.
-	'[&>[data-group-orientation=vertical]]:w-auto',
+	'[&>:not(:last-child)]:rounded-b-none',
+	'[&>:not(:last-child)]:before:rounded-b-none',
+	'[&>:not(:last-child)]:after:rounded-b-none',
+	'[&>:not(:last-child)_[data-slot=control-frame]]:rounded-b-none',
+	'[&>:not(:last-child)_[data-slot=control-frame]]:before:rounded-b-none',
+	'[&>:not(:last-child)_[data-slot=control-frame]]:after:rounded-b-none',
+	'[&>:not(:first-child)]:rounded-t-none',
+	'[&>:not(:first-child)]:before:rounded-t-none',
+	'[&>:not(:first-child)]:after:rounded-t-none',
+	'[&>:not(:first-child)_[data-slot=control-frame]]:rounded-t-none',
+	'[&>:not(:first-child)_[data-slot=control-frame]]:before:rounded-t-none',
+	'[&>:not(:first-child)_[data-slot=control-frame]]:after:rounded-t-none',
+	'[&>:not(:first-child)]:-mt-px',
+	// A vertical group stretches each child to its width, so the outer edges
+	// line up. `w-auto` overrides the `w-fit` of a child such as Button.
+	'[&>*]:w-auto',
 ] as const
 
-/**
- * Join classes for a group container, keyed by orientation. Spread onto the
- * `<Group>` root; inert until `useGroup` stamps positions on the children.
- */
+/** Join classes for a group container, keyed by orientation. Spread onto the `<Group>` root. */
 export const tsunagi = { horizontal, vertical } as const
