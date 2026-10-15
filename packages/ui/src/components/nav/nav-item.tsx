@@ -94,8 +94,9 @@ export function NavItem({
 					onClick={handleClick}
 					// Consumer props spread first; the type, the anchor a kata
 					// `has-[]` rule reads, and the current marker below take precedence.
+					// A link takes no type, because the type of an anchor names a MIME type.
 					{...props}
-					type="button"
+					type={props.href === undefined ? 'button' : undefined}
 					data-slot="nav-item-inner"
 					aria-current={isCurrent ? (props.href ? 'page' : 'true') : undefined}
 				>
