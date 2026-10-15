@@ -4,13 +4,12 @@ import { k } from '../../recipes/kata/table'
 
 /** Props for {@link TableHeader}: native `<th>` attributes, including a `ref` to the cell. */
 export type TableHeaderProps = {
-	className?: string
 	/**
 	 * The cells that the header names.
 	 * @defaultValue 'col'
 	 */
 	scope?: ComponentProps<'th'>['scope']
-} & Omit<ComponentProps<'th'>, 'className' | 'scope'>
+} & Omit<ComponentProps<'th'>, 'scope'>
 
 /**
  * A header cell (`<th>`) within a {@link Table}, defaulting `scope="col"`.

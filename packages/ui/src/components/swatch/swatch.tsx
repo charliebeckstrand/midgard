@@ -52,7 +52,6 @@ export type SwatchProps = SwatchVariants & {
 	 * a 1px edge, `dashed` strokes it. Omitted, the swatch inherits the ambient text color.
 	 */
 	color?: ChartColorSlot | (string & {})
-	className?: string
 	/**
 	 * Accessible name. Color alone conveys meaning, so a *standalone* swatch
 	 * needs a text alternative: when set, the swatch renders as `role="img"`
@@ -67,7 +66,7 @@ export type SwatchProps = SwatchVariants & {
 	 * @defaultValue 'swatch'
 	 */
 	'data-slot'?: string
-} & Omit<ComponentProps<'span'>, 'className' | 'color'>
+} & Omit<ComponentProps<'span'>, 'color'>
 
 /**
  * The color key that stands in for a mark: a `square` box, a `circle` dot, or

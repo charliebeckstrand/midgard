@@ -5,7 +5,6 @@ import { Swatch } from '../swatch'
 
 /** Props for {@link StatusDot}: recipe variants (`variant`, `status`, `size`, `pulse`) plus an optional accessible `label` and `<span>` attributes. */
 export type StatusDotProps = StatusDotVariants & {
-	className?: string
 	/**
 	 * Accessible name for the dot. Color alone conveys status; a standalone
 	 * dot needs a text alternative. When set, the dot renders as `role="img"`
@@ -14,7 +13,7 @@ export type StatusDotProps = StatusDotVariants & {
 	 * sr-only status label, and its dot stays silent).
 	 */
 	label?: string
-} & Omit<ComponentProps<'span'>, 'className' | 'color'>
+} & Omit<ComponentProps<'span'>, 'color'>
 
 /**
  * Colored status indicator dot: a `currentColor`-filled (`solid`) or

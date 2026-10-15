@@ -53,8 +53,7 @@ export type FlexProps = {
 	 * @defaultValue false
 	 */
 	full?: boolean
-	className?: string
-} & Omit<ComponentProps<'div'>, 'className'>
+} & ComponentProps<'div'>
 
 /**
  * Flex container with responsive `direction`, `gap`, `align`, and `justify`,

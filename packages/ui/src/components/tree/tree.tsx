@@ -23,10 +23,7 @@ import { treeMoveForKey, treeMoveTarget } from './tree-keyboard'
 
 /** Props for {@link Tree}. Requires `aria-label` or `aria-labelledby`. */
 export type TreeProps = AccessibleName &
-	Omit<
-		ComponentProps<'div'>,
-		'className' | 'onKeyDown' | 'onFocus' | 'aria-label' | 'aria-labelledby'
-	> & {
+	Omit<ComponentProps<'div'>, 'onKeyDown' | 'onFocus' | 'aria-label' | 'aria-labelledby'> & {
 		/**
 		 * The density step of the icons, the text, and the indent of all items.
 		 * Omit it to take the step of the nearest density scope. A step makes the
@@ -52,7 +49,6 @@ export type TreeProps = AccessibleName &
 		 */
 		mount?: Mount
 		children: ReactNode
-		className?: string
 	}
 
 /** Root of a `role="tree"` with roving-tabindex keyboard navigation and the APG arrow moves to a first child and to a parent. Type-ahead moves to the next visible, enabled row whose label starts with the typed text. It keeps the first item tabbable across open/close and filtering, and shares depth and `indent` to nested items via context. Requires `aria-label`/`aria-labelledby`. A consumer `ref` reaches the tree element. */

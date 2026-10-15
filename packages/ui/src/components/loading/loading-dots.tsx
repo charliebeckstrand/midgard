@@ -9,8 +9,7 @@ export type LoadingDotsProps = LoadingDotsVariants & {
 	 * @defaultValue 'Loading'
 	 */
 	label?: string
-	className?: string
-} & Omit<ComponentProps<'output'>, 'className' | 'color'>
+} & Omit<ComponentProps<'output'>, 'color'>
 
 // Negative delays seat each dot at a different point in the pulse cycle;
 // the wave staggers from first paint. Keyed by the (unique) delay class.

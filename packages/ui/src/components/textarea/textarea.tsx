@@ -21,7 +21,6 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 	 * @defaultValue 'default'
 	 */
 	variant?: ControlVariant
-	className?: string
 	/**
 	 * Grow and shrink the field with its content. `rows` sets the minimum
 	 * height, and a `max-height` class sets the maximum height.
@@ -42,7 +41,7 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 	 * @defaultValue 3
 	 */
 	rows?: ComponentProps<'textarea'>['rows']
-} & Omit<ComponentProps<'textarea'>, 'className' | 'size' | 'value' | 'rows'>
+} & Omit<ComponentProps<'textarea'>, 'size' | 'value' | 'rows'>
 
 /**
  * Multi-line text control with optional `autoResize` and an `actions` slot.

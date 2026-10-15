@@ -8,8 +8,7 @@ import { useStepper } from './context'
 /** Props for {@link StepperPanel}: the step `value` it belongs to, plus `<div>` attributes. */
 export type StepperPanelProps = {
 	value: number
-	className?: string
-} & Omit<ComponentProps<'div'>, 'className'>
+} & ComponentProps<'div'>
 
 /**
  * Content region for a single step, shown while its `value` matches the

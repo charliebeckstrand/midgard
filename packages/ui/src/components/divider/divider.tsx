@@ -3,9 +3,7 @@ import { cn } from '../../core'
 import { type DividerVariants, k } from '../../recipes/kata/divider'
 
 /** Props for {@link Divider}: `orientation`/`soft` variants plus native `<hr>` attributes. */
-export type DividerProps = DividerVariants & {
-	className?: string
-} & Omit<ComponentProps<'hr'>, 'className'>
+export type DividerProps = DividerVariants & {} & ComponentProps<'hr'>
 
 /**
  * Thin rule that separates content, rendered as a styled `<hr>`. Draws a top

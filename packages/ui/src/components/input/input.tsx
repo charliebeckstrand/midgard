@@ -54,8 +54,7 @@ export type InputProps = GroupStampProps &
 		invalid?: boolean
 		/** Controlled value. `undefined` leaves the input uncontrolled; `null` keeps it controlled with no current value (CONVENTIONS §7.3). */
 		value?: ComponentProps<'input'>['value'] | null
-		className?: string
-	} & Omit<ComponentProps<'input'>, 'className' | 'size' | 'prefix' | 'value'>
+	} & Omit<ComponentProps<'input'>, 'size' | 'prefix' | 'value'>
 
 /**
  * Text input with optional `prefix`/`suffix` affixes and an optional clear

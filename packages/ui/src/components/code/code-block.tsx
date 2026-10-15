@@ -111,7 +111,7 @@ function announceCopyError() {
  * attributes, such as `id`, `data-*`, and `aria-*`. `lang` names the grammar,
  * so the block does not take the HTML `lang` attribute.
  */
-export type CodeBlockProps = Omit<ComponentProps<'div'>, 'className' | 'children' | 'lang'> & {
+export type CodeBlockProps = Omit<ComponentProps<'div'>, 'children' | 'lang'> & {
 	/**
 	 * Source to highlight. The block removes the blank lines before the code
 	 * and the whitespace after it. The first line keeps its indentation.
@@ -147,7 +147,6 @@ export type CodeBlockProps = Omit<ComponentProps<'div'>, 'className' | 'children
 	 * @defaultValue the language of `lang` and "code", such as `'TypeScript code'`, else `'Code'`.
 	 */
 	label?: string
-	className?: string
 }
 
 /**

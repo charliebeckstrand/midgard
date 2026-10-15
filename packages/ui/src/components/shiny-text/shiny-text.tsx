@@ -34,8 +34,7 @@ export type ShinyTextProps = {
 	 * @defaultValue 120
 	 */
 	spread?: number
-	className?: string
-} & Omit<ComponentProps<'span'>, 'className' | 'color'>
+} & Omit<ComponentProps<'span'>, 'color'>
 
 /**
  * Text masked by a gradient whose highlight sweeps across it on a loop.

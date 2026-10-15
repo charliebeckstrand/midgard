@@ -56,9 +56,8 @@ export type FormProps<T extends Record<string, unknown>> = {
 	 * @defaultValue false
 	 */
 	disabled?: boolean
-	className?: string
 	children: ReactNode
-} & Omit<ComponentProps<'form'>, 'onSubmit' | 'onReset' | 'children' | 'className' | 'values'>
+} & Omit<ComponentProps<'form'>, 'onSubmit' | 'onReset' | 'children' | 'values'>
 
 /**
  * Reducer-backed form scope over typed `defaultValues`: tracks dirty, touched,

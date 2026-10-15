@@ -10,7 +10,6 @@ import { useFormToggle } from '../form/use-form-toggle'
 
 /** Props for {@link Switch}: the recipe `color` and the `size` step, an input `ref`, and native `<input>` attributes minus `type`/`size`. */
 export type SwitchProps = SwitchVariants & {
-	className?: string
 	/**
 	 * The initial state when uncontrolled.
 	 * @defaultValue false
@@ -24,7 +23,7 @@ export type SwitchProps = SwitchVariants & {
 	 * @defaultValue `false`, or the state of the enclosing Control.
 	 */
 	readOnly?: boolean
-} & Omit<ComponentProps<'input'>, 'className' | 'type' | 'size' | 'defaultChecked' | 'readOnly'>
+} & Omit<ComponentProps<'input'>, 'type' | 'size' | 'defaultChecked' | 'readOnly'>
 
 /**
  * Toggle control backed by a native `role="switch"` checkbox; controlled via

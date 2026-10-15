@@ -6,7 +6,6 @@ import { Heading, type HeadingLevel } from '../heading'
 
 /** Props for {@link CardTitle}: the density `size` step, heading `level`, and the underlying `<h3>` attributes. */
 export type CardTitleProps = {
-	className?: string
 	/**
 	 * The density step. Omit it to take the step of the nearest density scope,
 	 * such as a `<Card size>`. A step makes the title a density scope.
@@ -17,7 +16,7 @@ export type CardTitleProps = {
 	 * @defaultValue 3
 	 */
 	level?: HeadingLevel
-} & Omit<ComponentProps<'h3'>, 'className'>
+} & ComponentProps<'h3'>
 
 /**
  * Heading for a card, rendered through `<Heading>` at `level` (default 3) on

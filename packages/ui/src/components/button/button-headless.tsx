@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentProps, ReactNode, Ref } from 'react'
+import type { ComponentProps, Ref } from 'react'
 import { Link } from '../link'
 import { loadingProps } from './button-constants'
 
@@ -11,10 +11,8 @@ type ButtonHeadlessProps = {
 	href?: string
 	ref?: Ref<HTMLButtonElement> | Ref<HTMLAnchorElement>
 	'data-slot'?: string
-	className?: string
 	loading?: boolean
-	children?: ReactNode
-} & Omit<ComponentProps<'button'>, 'href' | 'ref' | 'className' | 'children'>
+} & Omit<ComponentProps<'button'>, 'href' | 'ref'>
 
 /**
  * Unstyled `Button` fallback rendered under the headless provider: a bare

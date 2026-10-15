@@ -22,8 +22,7 @@ export type OdometerProps = {
 	 * @defaultValue Rounds to an integer and applies the grouping of the `<LocaleProvider>` locale.
 	 */
 	format?: (value: number) => string
-	className?: string
-} & Omit<ComponentProps<'span'>, 'className' | 'children'>
+} & Omit<ComponentProps<'span'>, 'children'>
 
 /**
  * Numeric readout that tweens between values over `duration`; assistive tech

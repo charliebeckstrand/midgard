@@ -14,9 +14,7 @@ export type DescriptionListVariants = {
 }
 
 /** Props for {@link DescriptionList}: `orientation` variant plus native `<dl>` attributes. */
-export type DescriptionListProps = DescriptionListVariants & {
-	className?: string
-} & Omit<ComponentProps<'dl'>, 'className'>
+export type DescriptionListProps = DescriptionListVariants & {} & ComponentProps<'dl'>
 
 /**
  * Semantic description list (`<dl>`) pairing `<DescriptionTerm>` with `<DescriptionDetails>`.

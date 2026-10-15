@@ -33,7 +33,6 @@ export type CopyButtonProps = {
 	 * @defaultValue 2000
 	 */
 	timeout?: number
-	className?: string
 	/**
 	 * Fires on every copied-state transition, with the new state: `true` after a
 	 * copy, and `false` when the state reverts.

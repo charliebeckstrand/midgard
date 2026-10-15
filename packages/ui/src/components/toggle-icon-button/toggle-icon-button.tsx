@@ -44,7 +44,6 @@ export type ToggleIconButtonProps = AccessibleName & {
 	color?: ButtonVariants['color']
 	/** The density step of the button. Omit it to take the step of the nearest density scope. */
 	size?: ButtonVariants['size']
-	className?: string
 } & Omit<ComponentProps<'button'>, 'children' | 'type' | 'color' | 'aria-label' | 'aria-labelledby'>
 
 /**

@@ -4,7 +4,6 @@ import { k } from '../../recipes/kata/placeholder'
 
 /** Props for {@link Placeholder}: native `<div>` attributes, including `data-*` keys, plus the element to render. */
 export type PlaceholderProps = {
-	className?: string
 	/**
 	 * The element to render. A `span` stands in for inline content — a badge inside a line of
 	 * text, say — where a `div` would be invalid HTML: inside a `<p>`, the parser closes the
@@ -19,7 +18,7 @@ export type PlaceholderProps = {
 	 */
 	pulse?: boolean
 	[key: `data-${string}`]: string | number | boolean | undefined
-} & Omit<ComponentProps<'div'>, 'className'>
+} & ComponentProps<'div'>
 
 /**
  * Skeleton shape that pulses while content loads. Renders a line by default;

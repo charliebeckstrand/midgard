@@ -19,8 +19,7 @@ export type RadioProps = RadioVariants & {
 	 * @defaultValue `false`, or the state of the enclosing Control, or `true` in a read-only RadioGroup.
 	 */
 	readOnly?: boolean
-	className?: string
-} & Omit<ComponentProps<'input'>, 'className' | 'type' | 'size' | 'readOnly'>
+} & Omit<ComponentProps<'input'>, 'type' | 'size' | 'readOnly'>
 
 /**
  * Single radio control wrapped in its label; id, disabled, required, readOnly,
