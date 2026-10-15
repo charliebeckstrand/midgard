@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react'
 import { afterAll, beforeAll, describe, expect, it, onTestFinished } from 'vitest'
-import { cdp, page } from 'vitest/browser'
+import { cdp, page, userEvent } from 'vitest/browser'
 import { ProgressBar } from '../../components/progress'
 import { Segment, SegmentItem } from '../../components/segment'
 import { RangeSlider, Slider } from '../../components/slider'
@@ -88,6 +88,26 @@ describe('controls show their state under forced colors (real browser)', () => {
 		probe.remove()
 		const style = getComputedStyle(indicator)
 		expect(style.backgroundColor === canvas && style.borderTopWidth === '0px').toBe(false)
+	})
+
+	// The focus marker of an underline tab is a background on `::after`, which
+	// forced colors remove, and the tab sets `outline-none`. The focused tab must
+	// still draw an outline.
+	it('tabs: a keyboard-focused tab draws an outline', async () => {
+		const { container } = renderUI(
+			<Tabs value="a" onValueChange={() => {}}>
+				<TabList aria-label="Sections">
+					<Tab value="a">Alpha</Tab>
+					<Tab value="b">Bravo</Tab>
+				</TabList>
+			</Tabs>,
+		)
+		await userEvent.keyboard('{Tab}')
+		const tab = present(container.querySelector('[data-slot=tab][aria-selected=true]'), 'tab')
+		expect(document.activeElement).toBe(tab)
+		const style = getComputedStyle(tab)
+		expect(style.outlineStyle).not.toBe('none')
+		expect(style.outlineWidth).not.toBe('0px')
 	})
 
 	// The active indicator marks the current item of a segment, a sidebar, a nav,
