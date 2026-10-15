@@ -51,6 +51,51 @@ describe('Listbox focus (real browser)', () => {
 		await waitFor(() => expect(document.activeElement?.hasAttribute('data-selected')).toBe(true))
 	})
 
+	// APG select-only combobox: a printable key on the closed trigger opens the
+	// list and moves to the first option that matches. The keys that follow
+	// extend the same type-ahead buffer, so `ch` reaches Cherry past Cantaloupe.
+	it('opens on a printable key and moves to the matching option', async () => {
+		renderUI(
+			<Listbox aria-label="pick">
+				<ListboxOption value="apple">Apple</ListboxOption>
+				<ListboxOption value="cantaloupe">Cantaloupe</ListboxOption>
+				<ListboxOption value="cherry">Cherry</ListboxOption>
+			</Listbox>,
+		)
+
+		const trigger = screen.getByRole('combobox', { name: 'pick' })
+
+		trigger.focus()
+
+		await userEvent.keyboard('c')
+
+		await waitFor(() => expect(trigger).toHaveAttribute('aria-expanded', 'true'))
+
+		await waitFor(() => expect(document.activeElement).toHaveTextContent('Cantaloupe'))
+
+		await userEvent.keyboard('h')
+
+		await waitFor(() => expect(document.activeElement).toHaveTextContent('Cherry'))
+	})
+
+	it('does not open on a printable key while read-only', async () => {
+		renderUI(
+			<Listbox aria-label="pick" readOnly>
+				<ListboxOption value="apple">Apple</ListboxOption>
+			</Listbox>,
+		)
+
+		const trigger = screen.getByRole('combobox', { name: 'pick' })
+
+		trigger.focus()
+
+		await userEvent.keyboard('a')
+
+		expect(trigger).toHaveAttribute('aria-expanded', 'false')
+
+		expect(trigger).toHaveFocus()
+	})
+
 	// Guards the APG select pattern: Tab dismisses the listbox and the keystroke
 	// proceeds, landing focus on the next tabbable after the trigger: not
 	// snapped back to the trigger, not stranded on `<body>`.
