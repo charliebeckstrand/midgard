@@ -36,8 +36,8 @@ The digest held the Q/R entries of the project record `2026-10-02-component-bug-
 
 | Row | File | Symbol | Verdict | Severity | Reach | Group | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| R1 | `components/resizable/use-resizable-panel.ts` | `useResizablePanel` (drag ignores `pointerId`) | CONFIRMED | medium | shipped | G1 | ◯ OPEN |
-| R2 | `components/resizable/use-resizable-panel.ts` | `useResizablePanel` (orientation flip mid-drag) | CONFIRMED | low | none | G1 | ◯ OPEN |
+| R1 | `components/resizable/use-resizable-panel.ts` | `useResizablePanel` (drag ignores `pointerId`) | CONFIRMED | medium | shipped | G1 | ✅ RESOLVED ([#2516](https://github.com/charliebeckstrand/midgard/pull/2516)) |
+| R2 | `components/resizable/use-resizable-panel.ts` | `useResizablePanel` (orientation flip mid-drag) | CONFIRMED | low | none | G1 | ✅ RESOLVED ([#2516](https://github.com/charliebeckstrand/midgard/pull/2516)) |
 | R3 | `components/resizable/use-resizable-panel.ts` | `seedSizes` (one forward pass) | CONFIRMED | low | none | — | ◯ OPEN |
 | R4 | `components/resizable/resizable-panel.tsx` | `ResizablePanel` (throws outside a group) | CONFIRMED | low | none | — | ✅ RESOLVED ([#2512](https://github.com/charliebeckstrand/midgard/pull/2512)) |
 | R5 | `components/rating/rating.tsx` | `Rating` (`id` on no element) | CONFIRMED | low | shipped | — | ✅ RESOLVED ([#2513](https://github.com/charliebeckstrand/midgard/pull/2513)) |
