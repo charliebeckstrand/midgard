@@ -1,7 +1,7 @@
 'use client'
 
 import { type ReactNode, useId, useLayoutEffect, useRef, useState } from 'react'
-import { cn } from '../../core'
+import { accessibleName, cn } from '../../core'
 import { useA11yRoving } from '../../hooks'
 import { k } from '../../recipes/kata/menu'
 import {
@@ -32,25 +32,14 @@ type MenuSheetProps = {
 }
 
 /**
- * The accessible name of a trigger: the text of the elements that its
- * `aria-labelledby` points to, else its `aria-label`, else its text. An empty
- * value goes to the next source.
+ * The accessible name of a trigger, from {@link accessibleName}: its non-empty
+ * `aria-label`, else the text of the elements that its `aria-labelledby`
+ * points to, else its text.
  *
  * @internal
  */
 function triggerName(trigger: HTMLElement | null): string | undefined {
-	if (!trigger) return undefined
-
-	const labelledby = (trigger.getAttribute('aria-labelledby') ?? '')
-		.split(/\s+/)
-		.filter(Boolean)
-		.map((id) => trigger.ownerDocument.getElementById(id)?.textContent ?? '')
-		.join(' ')
-
-	const name =
-		labelledby.trim() || trigger.getAttribute('aria-label')?.trim() || trigger.textContent?.trim()
-
-	return name || undefined
+	return accessibleName(trigger) || undefined
 }
 
 /**
@@ -102,9 +91,8 @@ export function MenuSheet({
 	const heading = title ?? triggerTitle
 
 	// A name from the consumer replaces the name from the heading.
-	const named = ariaLabel !== undefined || ariaLabelledby !== undefined
-
-	const labelledby = named || heading === undefined ? ariaLabelledby : titleId
+	const labelledby =
+		ariaLabelledby ?? (ariaLabel === undefined && heading !== undefined ? titleId : undefined)
 
 	const handleKeyDown = useA11yRoving(panelRef, {
 		itemSelector: MENUITEM_SELECTOR,

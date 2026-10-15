@@ -21,12 +21,11 @@ export type MaskInputProps = Omit<InputProps, 'value' | 'defaultValue' | 'onChan
 	mask: MaskInputFormat | MaskInputPreset
 	/**
 	 * Predicate marking characters that count toward caret restoration, letting
-	 * the caret skip inserted mask literals (separators, fixed punctuation). It
-	 * gets each character, its index, and the full text, so it can count a
-	 * character only at the position where `format` keeps it.
+	 * the caret skip inserted mask literals (separators, fixed punctuation). See
+	 * {@link MaskInputPreset}.
 	 * @defaultValue The preset's predicate, else ASCII alphanumerics and `+`.
 	 */
-	meaningful?: (char: string, index: number, text: string) => boolean
+	meaningful?: MaskInputPreset['meaningful']
 }
 
 /**

@@ -1,9 +1,8 @@
 'use client'
 
-import { type ChangeEvent, type Ref, useRef } from 'react'
-import { useComposedRef } from '../../hooks/use-composed-ref'
+import type { ChangeEvent, Ref } from 'react'
 import { useFormResetSync } from '../../hooks/use-form-reset-sync'
-import { useFormattedInput } from '../../hooks/use-formatted-input'
+import { type FormattedInputOptions, useFormattedInput } from '../../hooks/use-formatted-input'
 import { useFormValue } from '../form/use-form-value'
 
 type MaskedInputOptions = {
@@ -18,14 +17,8 @@ type MaskedInputOptions = {
 	format: (raw: string) => string
 	/** External ref to compose with the hook's internal input ref. */
 	ref?: Ref<HTMLInputElement>
-	/**
-	 * Predicate identifying characters preserved across `format`. Keeps the
-	 * caret aligned with the typed character when `format` inserts or removes
-	 * separators. It gets each character, its index, and the full text, so it
-	 * can count a character only at the position where `format` keeps it.
-	 * @defaultValue ASCII alphanumerics and `+`.
-	 */
-	meaningful?: (char: string, index: number, text: string) => boolean
+	/** The caret predicate of {@link useFormattedInput}. */
+	meaningful?: FormattedInputOptions['meaningful']
 }
 
 /**
@@ -35,8 +28,7 @@ type MaskedInputOptions = {
  * to its pre-format position when the returned `ref` is attached. It also binds to an enclosing Form field by
  * `name` (value, touched on blur, and error state via `invalid`). When the
  * value is uncontrolled and not bound, a native reset of the enclosing `<form>`
- * sets the value back to the formatted `defaultValue`. The returned `ref` must
- * be attached for this.
+ * sets the value back to the formatted `defaultValue`.
  *
  * @remarks A controlled `value` shows formatted before the consumer's state
  * holds the formatted text. The next change sends the formatted text back. A
@@ -73,11 +65,7 @@ export function useMaskInput({
 		onValueChange: onChange ? (next) => onChange(next ?? '') : undefined,
 	})
 
-	const inputRef = useRef<HTMLInputElement | null>(null)
-
-	const composedRef = useComposedRef(inputRef, externalRef)
-
-	const { ref, reformat } = useFormattedInput({ format, meaningful, ref: composedRef })
+	const { ref, reformat, inputRef } = useFormattedInput({ format, meaningful, ref: externalRef })
 
 	// The returned value always controls the input, so the browser reverts it to
 	// the current text. The uncontrolled value then goes back to its seed.

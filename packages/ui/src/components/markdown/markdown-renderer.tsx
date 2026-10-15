@@ -22,11 +22,15 @@ const SAFE_URL_SCHEMES = /^(?:https?|mailto|tel)$/i
  * on a known-safe scheme — http/https/mailto/tel, plus `data:` for images.
  * Untrusted Markdown can carry `javascript:`, `data:text/html`, or `vbscript:`
  * URLs that run script when the link is clicked. Those resolve to `undefined`,
- * and no `href`/`src` renders.
+ * and no `href`/`src` renders. Entity references in the URL decode first.
  *
  * @internal
  */
-function safeUrl(url: string, allowData = false): string | undefined {
+function safeUrl(source: string, allowData = false): string | undefined {
+	// The scheme check reads the decoded URL, so `&#106;avascript:` is blocked
+	// as `javascript:`. The decoded URL is also what renders.
+	const url = decodeEntities(source)
+
 	// The URL parser strips every leading C0 control and space (code point
 	// <= 0x20), plus tab/newline anywhere, when resolving a scheme — so
 	// `javascript:` and `java\tscript:` both become `javascript:` at click
@@ -157,7 +161,7 @@ function renderToken(token: Token, index: number, offset: number, taskLabel?: st
 			return (
 				<a
 					key={index}
-					href={safeUrl(decodeEntities(token.href))}
+					href={safeUrl(token.href)}
 					title={decodeTitle(token.title)}
 					className={cn(k.link)}
 				>
@@ -168,7 +172,7 @@ function renderToken(token: Token, index: number, offset: number, taskLabel?: st
 			return (
 				<img
 					key={index}
-					src={safeUrl(decodeEntities(token.href), true)}
+					src={safeUrl(token.href, true)}
 					alt={imageAlt(token)}
 					title={decodeTitle(token.title)}
 					className={cn(k.img)}
