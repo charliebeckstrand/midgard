@@ -253,6 +253,46 @@ describe('useToastTimer', () => {
 		expect(start).toHaveBeenCalledOnce()
 	})
 
+	it.each([Infinity, 2 ** 31 + 1000])(
+		'does not loop the timer when a toast holds a duration of %d',
+		(ms) => {
+			const { result, start } = setup(['long', 'short'])
+
+			const setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout')
+
+			act(() => result.current.arm('long', ms))
+
+			vi.advanceTimersByTime(500)
+
+			// The platform timer holds a delay up to 2^31−1. A longer delay must not
+			// fire at once and arm again in a loop.
+			expect(setTimeoutSpy.mock.calls.length).toBeLessThanOrEqual(1)
+
+			// A short toast beside the long one still leaves at its time.
+			act(() => result.current.arm('short', 1000))
+
+			vi.advanceTimersByTime(1000)
+
+			expect(start).toHaveBeenCalledExactlyOnceWith(['short'])
+
+			setTimeoutSpy.mockRestore()
+		},
+	)
+
+	it('ends a finite duration above the timer range at its time', () => {
+		const { result, start } = setup()
+
+		act(() => result.current.arm('a', 2 ** 31 + 1000))
+
+		vi.advanceTimersByTime(2 ** 31 + 999)
+
+		expect(start).not.toHaveBeenCalled()
+
+		vi.advanceTimersByTime(1)
+
+		expect(start).toHaveBeenCalledExactlyOnceWith(['a'])
+	})
+
 	it('does not fire when no toast counts down', () => {
 		const { result, start } = setup([])
 
