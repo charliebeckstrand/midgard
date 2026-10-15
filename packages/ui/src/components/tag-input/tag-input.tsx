@@ -1,8 +1,8 @@
 'use client'
 
 import { CornerLeftDown } from 'lucide-react'
-import { type FocusEvent, useCallback, useRef, useState } from 'react'
-import { cn, composeEventHandlers } from '../../core'
+import { type FocusEvent, useCallback, useEffect, useRef, useState } from 'react'
+import { ariaAttr, cn, composeEventHandlers } from '../../core'
 import { useComposedRef } from '../../hooks'
 import type { Color } from '../../recipes'
 import { k } from '../../recipes/kata/tag-input'
@@ -73,6 +73,12 @@ export type TagInputProps = Omit<
 	 * both.
 	 */
 	onReject?: (rejected: TokenRejection) => void
+	/**
+	 * Requires at least one tag. The typed draft does not count.
+	 *
+	 * @defaultValue `false`, or the state of the enclosing Control.
+	 */
+	required?: boolean
 }
 
 /**
@@ -104,6 +110,12 @@ export type TagInputProps = Omit<
  * commit channel routes through one tokenizer, so all of them accept the same
  * input.
  *
+ * **`required` asks for a tag, not for a draft.** The draft `<input>` takes
+ * `aria-required` and no native `required`. A native `required` on it stops the
+ * submit of a field that has tags but an empty draft. A custom validity on the
+ * draft stops a native submit only while the list is empty. A `<Form>` sets
+ * `noValidate`, so its validators decide there.
+ *
  * Tokens `validate` refuses stay in the draft and mark the field invalid. A
  * mistyped code in a list of forty is thus visible and directly editable, not
  * announced once and lost.
@@ -117,6 +129,7 @@ export function TagInput({
 	onValueChange,
 	placeholder,
 	disabled,
+	required,
 	max,
 	validate,
 	onReject,
@@ -132,9 +145,10 @@ export function TagInput({
 
 	const addRef = useRef<HTMLButtonElement>(null)
 
-	// The Control cascade: an explicit `disabled` wins over the enclosing
-	// Control. A disabled or read-only field keeps its tags and adds none.
-	const ambient = useControlProps({ disabled })
+	// The Control cascade: an explicit `disabled` or `required` wins over the
+	// enclosing Control. A disabled or read-only field keeps its tags and adds
+	// none.
+	const ambient = useControlProps({ disabled, required })
 
 	const locked = ambient.disabled === true || ambient.readOnly === true
 
@@ -168,6 +182,15 @@ export function TagInput({
 	})
 
 	const setRefs = useComposedRef(inputRef, resetRef, ref)
+
+	const missing = ambient.required === true && tags.length === 0
+
+	// A required field needs at least one tag. The draft holds no value of the
+	// field, so a native `required` on it blocks a submit that has tags. A custom
+	// validity on the draft blocks the submit only while the list is empty.
+	useEffect(() => {
+		inputRef.current?.setCustomValidity(missing ? 'Add at least one tag' : '')
+	}, [missing])
 
 	const color = tagColor ?? 'zinc'
 
@@ -330,6 +353,10 @@ export function TagInput({
 			ref={setRefs}
 			size={size}
 			disabled={disabled}
+			// `false` keeps an ambient `required` off the draft too. The custom
+			// validity above enforces it on the tag list.
+			required={false}
+			aria-required={ariaAttr(ambient.required)}
 			// At the cap the field is read-only, not disabled: a disabled child trips
 			// the frame's has-[>:disabled] chrome and grays the whole control, so
 			// read-only blocks new entries while existing tags stay removable.

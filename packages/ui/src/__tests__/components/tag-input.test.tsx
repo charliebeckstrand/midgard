@@ -799,3 +799,81 @@ describe('TagInput ambient state', () => {
 		expect(screen.getByRole('button', { name: 'Add tag' })).toBeDisabled()
 	})
 })
+
+// `required` asks for at least one tag. The nameless draft holds no value of the
+// field, so it never takes the native `required`.
+describe('TagInput required', () => {
+	function renderRequired(field: ReactElement) {
+		const { container } = renderUI(<form>{field}</form>)
+
+		return {
+			form: present<HTMLFormElement>(container.querySelector('form'), 'form'),
+			input: getInput(container),
+		}
+	}
+
+	it.each([
+		['its own prop', (tags: string[]) => <TagInput required defaultValue={tags} />],
+		[
+			'a required Control',
+			(tags: string[]) => (
+				<Control required>
+					<TagInput defaultValue={tags} />
+				</Control>
+			),
+		],
+	])('accepts tags with an empty draft and refuses no tags, from %s', (_, field) => {
+		const filled = renderRequired(field(['a']))
+
+		expect(filled.input).not.toHaveAttribute('required')
+
+		expect(filled.input).toHaveAttribute('aria-required', 'true')
+
+		expect(filled.form.checkValidity()).toBe(true)
+
+		const empty = renderRequired(field([]))
+
+		expect(empty.form.checkValidity()).toBe(false)
+
+		// The custom validity does not mark the field invalid before a submit.
+		expect(empty.input).not.toHaveAttribute('aria-invalid')
+	})
+
+	it('follows the tag count as tags are added and removed', () => {
+		const { container } = renderUI(
+			<form>
+				<TagInput required aria-label="Tags" />
+			</form>,
+		)
+
+		const form = present<HTMLFormElement>(container.querySelector('form'), 'form')
+
+		const input = getInput(container)
+
+		expect(form.checkValidity()).toBe(false)
+
+		fireEvent.change(input, { target: { value: 'a' } })
+
+		fireEvent.keyDown(input, { key: 'Enter' })
+
+		expect(form.checkValidity()).toBe(true)
+
+		fireEvent.click(present(getRemoveButtons(container)[0], 'remove button'))
+
+		expect(form.checkValidity()).toBe(false)
+	})
+
+	it('stays valid at the cap', () => {
+		const { form } = renderRequired(<TagInput required max={1} defaultValue={['a']} />)
+
+		expect(form.checkValidity()).toBe(true)
+	})
+
+	it('is not required without the prop or a required Control', () => {
+		const { form, input } = renderRequired(<TagInput aria-label="Tags" />)
+
+		expect(input).not.toHaveAttribute('aria-required')
+
+		expect(form.checkValidity()).toBe(true)
+	})
+})
