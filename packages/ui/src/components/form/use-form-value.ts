@@ -1,9 +1,10 @@
 'use client'
 
-import { type RefCallback, useCallback } from 'react'
+import { type RefCallback, useCallback, useLayoutEffect, useRef } from 'react'
 import { type SetValue, useControllable } from '../../hooks/use-controllable'
 import { useFormResetSync } from '../../hooks/use-form-reset-sync'
-import { useFormField } from './context'
+import { useStableEvent } from '../../hooks/use-stable-event'
+import { useFormField, useFormResets } from './context'
 import { hasIssues } from './form-reducer'
 
 type FormValueOptions<T> = {
@@ -14,9 +15,10 @@ type FormValueOptions<T> = {
 	/** Fires with the committed value, or `null` once it is cleared (CONVENTIONS §7.3). */
 	onValueChange?: (value: T | null) => void
 	/**
-	 * Runs after a native form reset sets the uncontrolled value back to
+	 * Runs after a reset of the value: a reset of the Form that binds `name`, or
+	 * a native form reset that sets the uncontrolled value back to
 	 * `defaultValue`. It clears the state that the control keeps beside the
-	 * value, such as a typed draft.
+	 * value, such as a typed draft. It runs before the paint.
 	 */
 	onReset?: () => void
 }
@@ -97,11 +99,31 @@ export function useFormValue<T>(
 	// React controls the value of the element, so a native reset restores the
 	// last value that React wrote. Set the state back to the seed instead. A lazy
 	// seed is a valid updater, because an updater can ignore the last value.
+	const handleReset = useStableEvent(() => onReset?.())
+
 	const resetRef = useFormResetSync(!controlled, () => {
 		setCurrent(defaultValue)
 
-		onReset?.()
+		handleReset()
 	})
+
+	// A Form reset can leave the value as it was, so the reset count, and not the
+	// value, tells the control to drop its partial entry. Only a bound field
+	// follows the resets of the Form. The setters of the control can come after
+	// this hook, so the call waits for the commit.
+	const formResets = useFormResets()
+
+	const resets = name === undefined ? 0 : formResets
+
+	const seenResets = useRef(resets)
+
+	useLayoutEffect(() => {
+		if (seenResets.current === resets) return
+
+		seenResets.current = resets
+
+		handleReset()
+	}, [resets, handleReset])
 
 	return {
 		value: current,
