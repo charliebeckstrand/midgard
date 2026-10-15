@@ -4,8 +4,8 @@ import { type KeyboardEvent, useCallback, useMemo, useRef } from 'react'
 import { accessibleName } from '../../core'
 import { type Timeout, useTimeout } from '../use-timeout'
 
-/** Idle window after which the type-ahead buffer resets. */
-const TYPEAHEAD_TIMEOUT_MS = 500
+/** Idle window after which the type-ahead buffer resets. @internal */
+export const TYPEAHEAD_TIMEOUT_MS = 500
 
 /** Whether a key event must drive type-ahead: a lone printable character. @internal */
 export function isTypeaheadKey(event: KeyboardEvent): boolean {

@@ -1,10 +1,11 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Button } from '../../../components/button'
 import { Form } from '../../../components/form'
 import { Input } from '../../../components/input'
 import { Listbox } from '../../../components/listbox'
 import { ListboxOption } from '../../../components/listbox/listbox-option'
+import { TYPEAHEAD_TIMEOUT_MS } from '../../../hooks/a11y/use-typeahead'
 import { renderUI, screen, waitFor } from '../../helpers'
 import { FieldProbe, getFieldProbe } from '../../helpers/field-probe'
 
@@ -54,7 +55,18 @@ describe('Listbox focus (real browser)', () => {
 	// APG select-only combobox: a printable key on the closed trigger opens the
 	// list and moves to the first option that matches. The keys that follow
 	// extend the same type-ahead buffer, so `ch` reaches Cherry past Cantaloupe.
+	// The buffer resets after an idle window. A slow runner can take longer than
+	// that window between the two keys, so the case holds the reset timer.
 	it('opens on a printable key and moves to the matching option', async () => {
+		const setTimer = globalThis.setTimeout
+
+		const timers = vi
+			.spyOn(globalThis, 'setTimeout')
+			.mockImplementation(((callback: () => void, ms?: number, ...args: unknown[]) =>
+				ms === TYPEAHEAD_TIMEOUT_MS ? 0 : setTimer(callback, ms, ...args)) as typeof setTimeout)
+
+		onTestFinished(() => timers.mockRestore())
+
 		renderUI(
 			<Listbox aria-label="pick">
 				<ListboxOption value="apple">Apple</ListboxOption>
@@ -76,6 +88,9 @@ describe('Listbox focus (real browser)', () => {
 		await userEvent.keyboard('h')
 
 		await waitFor(() => expect(document.activeElement).toHaveTextContent('Cherry'))
+
+		// Each key restarted the held reset timer of the buffer.
+		expect(timers.mock.calls.filter(([, ms]) => ms === TYPEAHEAD_TIMEOUT_MS)).toHaveLength(2)
 	})
 
 	it('does not open on a printable key while read-only', async () => {
