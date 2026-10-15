@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef } from 'react'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { isComposing } from '../../utilities/is-composing'
 import { tooltipBody } from './tooltip-body-loader'
 import { isReferenceDisabled, observeReferenceDisabled } from './tooltip-reference-disabled'
 
@@ -185,6 +186,16 @@ function listenForIntent(
 		else intent.click = event
 	}
 
+	// As the Escape of `useFloatingDismissal`: the key dismisses the tooltip
+	// that focus or a click opens, and focus that stays does not open it again.
+	const onKeyDown = (event: KeyboardEvent) => {
+		if (event.key !== 'Escape' || event.defaultPrevented || isComposing(event)) return
+
+		intent.focus = null
+
+		intent.click = null
+	}
+
 	const onWindowBlur = () => {
 		if (!pending() && node === doc.activeElement) blockFocus = true
 	}
@@ -208,6 +219,7 @@ function listenForIntent(
 	node.addEventListener('focusin', onFocusIn)
 	node.addEventListener('focusout', onFocusOut)
 	node.addEventListener('click', onClick)
+	node.addEventListener('keydown', onKeyDown)
 	win.addEventListener('blur', onWindowBlur)
 
 	return () => {
@@ -218,6 +230,7 @@ function listenForIntent(
 		node.removeEventListener('focusin', onFocusIn)
 		node.removeEventListener('focusout', onFocusOut)
 		node.removeEventListener('click', onClick)
+		node.removeEventListener('keydown', onKeyDown)
 		win.removeEventListener('blur', onWindowBlur)
 	}
 }
