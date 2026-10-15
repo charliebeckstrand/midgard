@@ -19,8 +19,8 @@
  *                 swapped to an inset border inside scrollable ancestors,
  *                 which clip an outset outline
  *   - `indicator` background-paint marker on `::after`, in the focus-ring
- *                 color, for a focused tab or segment item that does not
- *                 carry `data-current`
+ *                 color, for a focused tab that does not carry
+ *                 `data-current`
  *   - `lifted`    z-shift + shadow for a picked-up element, plus the violet
  *                 accent that reads against the panel backdrop. Split into
  *                 `raise` and one entry per indicator shape, because the host
