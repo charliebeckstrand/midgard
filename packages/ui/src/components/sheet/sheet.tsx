@@ -252,9 +252,14 @@ export function SheetPanel({
 				// clamp the panel at its opening width while the drag went on reporting
 				// numbers past it. Cleared before the first move, because `resizing` is
 				// set on the press and the pointer moves after the render.
+				//
+				// The inset across from the docked edge goes too. A `full` sheet floats on
+				// both its insets, and a size on top of both over-constrains the box. The
+				// browser then drops the inset at the end of the line, which can be the
+				// docked one, and the sheet comes away from its edge.
 				style={
 					handle && (resize.resizing || resize.size !== null)
-						? { [axis]: resize.size ?? undefined, maxWidth: 'none' }
+						? { [axis]: resize.size ?? undefined, maxWidth: 'none', [FAR[edge]]: 'auto' }
 						: undefined
 				}
 				className={cn(
@@ -282,6 +287,14 @@ export function SheetPanel({
 		</Overlay>
 	)
 }
+
+/** The edge across from each docked edge, which a dragged size frees. */
+const FAR = {
+	right: 'left',
+	left: 'right',
+	top: 'bottom',
+	bottom: 'top',
+} as const satisfies Record<NonNullable<SheetPanelVariants['side']>, string>
 
 /** The physical edge of a {@link SheetPanelProps.side}: `start` and `end` resolve against `rtl`. */
 function physicalSide(
