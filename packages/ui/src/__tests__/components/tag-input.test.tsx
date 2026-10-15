@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react'
+import type { FormEvent, ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
 import { Form } from '../../components/form'
@@ -592,6 +592,23 @@ describe('TagInput + Form', () => {
 			expect.objectContaining({ topics: ['react', 'vue'] }),
 			expect.anything(),
 		)
+	})
+
+	it('submits the form on Enter in an empty draft', async () => {
+		const onSubmit = vi.fn((event: FormEvent) => event.preventDefault())
+
+		const { container } = renderUI(
+			<form onSubmit={onSubmit}>
+				<TagInput name="topics" />
+				<button type="submit">Submit</button>
+			</form>,
+		)
+
+		const user = setupUser()
+
+		await user.type(getInput(container), '{Enter}')
+
+		expect(onSubmit).toHaveBeenCalledTimes(1)
 	})
 
 	it('lets an explicit value prop override the bound field', () => {
