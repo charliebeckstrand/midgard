@@ -429,4 +429,12 @@ export const space = {
 		 */
 		frame: 'density-py-[16.5,18,19.5,21,22.5]',
 	},
+	toolbar: {
+		separator: {
+			/** The inline margin of a toolbar separator: the toolbar gap (`gap.scale.xs`). */
+			x: 'density-mx-[0.25,0.5,1,1.5,2.5]',
+			/** The block margin of a toolbar separator: the toolbar gap (`gap.scale.xs`). */
+			y: 'density-my-[0.25,0.5,1,1.5,2.5]',
+		},
+	},
 } as const

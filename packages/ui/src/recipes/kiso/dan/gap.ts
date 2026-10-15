@@ -84,9 +84,20 @@ export const gap = {
 		 * below the scope around it, and `kata/query-chips.ts` gives the lengths.
 		 */
 		chips: 'density-set-[2.75,3.25,3.75,4.25,4.25]/[--touch-target-gap-x]',
+		/** The touch gaps in a toolbar group, as `toolbarGroup` gives them. */
+		toolbarGroup: {
+			x: 'density-set-[0,0.25,0.5,1,1.5]/[--touch-target-gap-x]',
+			y: 'density-set-[0,0.25,0.5,1,1.5]/[--touch-target-gap-y]',
+		},
 	},
 	/** The default gap: a card footer, the calendar footer, and the segment control. */
 	default: scale.sm,
+	/**
+	 * The gap in a toolbar group: at each density step, the toolbar gap
+	 * (`scale.xs`) of the step below, and 0 at `xs`. It is thus smaller than
+	 * the toolbar gap at each step, so a group reads as one cluster.
+	 */
+	toolbarGroup: 'density-gap-[0,0.25,0.5,1,1.5]',
 	/** The gap of a nav item and a sidebar item. */
 	item: 'density-gap-[1,1.5,2,2.5,3]',
 	/** The gap of an option row and a menu item. */
