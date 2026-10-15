@@ -3,8 +3,9 @@
 import type { ChangeEventHandler, ComponentProps } from 'react'
 import { cn } from '../../core'
 import { k, type RadioVariants } from '../../recipes/kata/radio'
+import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
-import { useRadioGroupReadOnly } from './context'
+import { useRadioGroup } from './context'
 
 /** Props for {@link Radio}: the recipe `color` and the `size` step, plus native `<input>` attributes (less `type`/`size`). */
 export type RadioProps = RadioVariants & {
@@ -24,9 +25,11 @@ export type RadioProps = RadioVariants & {
 /**
  * Single radio control wrapped in its label; id, disabled, required, readOnly,
  * and invalid state resolve from the enclosing Control. A read-only
- * {@link RadioGroup} also makes the radio read-only. The circle takes the step
- * of the nearest density scope, and an explicit `size` opens a scope on the
- * label.
+ * {@link RadioGroup} also makes the radio read-only. In a RadioGroup, the radio
+ * does not adopt the id or the description of a `<Field>` or `<Control>` that
+ * holds the group; wrap it in a {@link RadioField} to give it an id. The
+ * circle takes the step of the nearest density scope, and an explicit `size`
+ * opens a scope on the label.
  *
  * @remarks Unlike {@link Checkbox} and {@link Switch}, this binds no Form
  * field. It has no internal checked state, and stays a native input controlled
@@ -52,16 +55,38 @@ export function Radio({
 	'aria-describedby': ariaDescribedBy,
 	...props
 }: RadioProps) {
-	const groupReadOnly = useRadioGroupReadOnly()
+	const group = useRadioGroup()
+
+	const groupReadOnly = group.readOnly
+
+	// A bare radio of a group in a `<Field>` sees the Control of the Field. The
+	// id and the description of that Control are for the group, so the radio
+	// keeps only its own. Two radios with the Field id would share one id. It
+	// still takes `disabled`, `required`, `readOnly`, and the validation state,
+	// because those apply to each radio of the group. A `<RadioField>` in the
+	// group gives a different id, so its radio takes all of its Control.
+	const controlId = useControl()?.id
+
+	const groupField = controlId !== undefined && controlId === group.fieldId
 
 	const {
-		id: resolvedId,
+		id: controlledId,
 		disabled: resolvedDisabled,
 		required: resolvedRequired,
 		readOnly: resolvedReadOnly,
 		validation,
-		'aria-describedby': resolvedDescribedBy,
-	} = useControlProps({ id, disabled, required, readOnly, 'aria-describedby': ariaDescribedBy })
+		'aria-describedby': controlledDescribedBy,
+	} = useControlProps({
+		id: groupField ? undefined : id,
+		disabled,
+		required,
+		readOnly,
+		'aria-describedby': ariaDescribedBy,
+	})
+
+	const resolvedId = groupField ? id : controlledId
+
+	const resolvedDescribedBy = groupField ? ariaDescribedBy : controlledDescribedBy
 
 	// A read-only radio undoes the check and does not call the consumer handler.
 	// The write goes through the setter, so the change tracker of React keeps the
