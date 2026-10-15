@@ -1,7 +1,7 @@
 'use client'
 
 import { CornerLeftDown } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { type FocusEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { ariaAttr, cn, composeEventHandlers } from '../../core'
 import { useComposedRef } from '../../hooks'
 import type { Color } from '../../recipes'
@@ -94,9 +94,11 @@ export type TagInputProps = Omit<
  * `<Control>`. Then the tags stay, and no tag is added or removed. A consumer
  * `onKeyDown`, `onPaste`, or `onBlur` runs before the handler of the field.
  * At the cap the field switches to read-only rather than disabled,
- * so the tags stay removable and the control isn't grayed. Announces each
- * add/remove/duplicate/limit outcome to the live region and returns focus to
- * the input after a removal (WCAG 4.1.3, 2.4.3).
+ * so the tags stay removable and the control isn't grayed. A blur to the Add
+ * button keeps the draft, so the Tab key can reach the button. The draft
+ * commits when the focus leaves the button for a different element. Announces
+ * each add/remove/duplicate/limit outcome to the live region and returns focus
+ * to the input after a removal (WCAG 4.1.3, 2.4.3).
  *
  * **A paste commits every token in it.** Pasting a list is the commonest way to
  * fill a token field, and it used to commit nothing. The draft only tokenized on
@@ -140,6 +142,8 @@ export function TagInput({
 	...props
 }: TagInputProps) {
 	const inputRef = useRef<HTMLInputElement>(null)
+
+	const addRef = useRef<HTMLButtonElement>(null)
 
 	// The Control cascade: an explicit `disabled` or `required` wins over the
 	// enclosing Control. A disabled or read-only field keeps its tags and adds
@@ -230,15 +234,33 @@ export function TagInput({
 	})
 
 	// The touched mark and the commit keep the state of the field true, so a
-	// consumer `preventDefault()` does not skip them.
-	const handleBlur = composeEventHandlers(
-		onBlur,
-		() => {
+	// consumer `preventDefault()` does not skip them. A blur to the Add button
+	// keeps the draft: a commit clears the draft, and the empty draft disables
+	// the button as the Tab key moves the focus to it. The handler composes the
+	// consumer `onBlur` itself, because the React Compiler skips a component
+	// that gives a function that reads a ref to `composeEventHandlers`.
+	const handleBlur = useCallback(
+		(event: FocusEvent<HTMLInputElement>) => {
+			onBlur?.(event)
+
 			setTouched()
+
+			if (event.relatedTarget === addRef.current) return
 
 			commit(inputValue)
 		},
-		{ checkForDefaultPrevented: false },
+		[commit, inputValue, onBlur, setTouched],
+	)
+
+	// The draft that the input kept for the Add button commits when the focus
+	// goes from the button to a different element.
+	const handleAddBlur = useCallback(
+		(event: FocusEvent<HTMLButtonElement>) => {
+			if (event.relatedTarget === inputRef.current) return
+
+			commit(inputValue)
+		},
+		[commit, inputValue],
 	)
 
 	const handleSubmit = useCallback(() => {
@@ -360,11 +382,13 @@ export function TagInput({
 			suffix={
 				<Button
 					type="button"
+					ref={addRef}
 					aria-label="Add tag"
 					variant="bare"
 					disabled={locked || atMax || inputValue.trim() === ''}
 					onMouseDown={(event) => event.preventDefault()}
 					onClick={handleSubmit}
+					onBlur={handleAddBlur}
 				>
 					<Icon icon={<CornerLeftDown />} className="rtl:-scale-x-100" />
 				</Button>
