@@ -211,6 +211,23 @@ describe('Rating', () => {
 		expect(group).not.toHaveAttribute('aria-label')
 	})
 
+	it('puts the resolved id on the row', () => {
+		const { container } = renderUI(<Rating id="score" aria-label="Score" />)
+
+		expect(bySlot(container, 'rating')).toHaveAttribute('id', 'score')
+	})
+
+	it('puts the id of an enclosing Field on the row', () => {
+		const { container } = renderUI(
+			<Field htmlFor="score">
+				<Label as="span">How was it?</Label>
+				<Rating />
+			</Field>,
+		)
+
+		expect(container.querySelector('#score')).toBe(bySlot(container, 'rating'))
+	})
+
 	describe('half step', () => {
 		it('renders two radios per star, the half score first', () => {
 			const { container } = renderUI(<Rating aria-label="Score" step={0.5} count={2} />)
@@ -344,6 +361,33 @@ describe('Rating', () => {
 			)
 
 			expect(screen.getByRole('img')).toHaveAccessibleDescription('From your last visit')
+		})
+
+		it('puts the resolved id on the row', () => {
+			const { container } = renderUI(<Rating readOnly id="score" value={4} />)
+
+			expect(bySlot(container, 'rating')).toHaveAttribute('id', 'score')
+		})
+
+		it('keeps its name through the resolved id', () => {
+			renderUI(<Rating readOnly id="score" aria-label="Quality" value={4} />)
+
+			const image = screen.getByRole('img')
+
+			expect(image).toHaveAttribute('id', 'score')
+
+			expect(image).toHaveAccessibleName('Quality 4 out of 5 stars')
+		})
+
+		it('puts the id of an enclosing Field on the row', () => {
+			const { container } = renderUI(
+				<Field htmlFor="score">
+					<Label as="span">How was it?</Label>
+					<Rating readOnly value={3} />
+				</Field>,
+			)
+
+			expect(container.querySelector('#score')).toBe(bySlot(container, 'rating'))
 		})
 
 		it('draws a fractional score as a part star', () => {
