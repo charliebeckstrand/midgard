@@ -170,6 +170,8 @@ describe('cn', () => {
 
 			expect(cn('density-min-w-[16,24,32]', 'min-w-0')).toBe('min-w-0')
 
+			expect(cn('density-min-h-[8,9.5,11]', 'min-h-20')).toBe('min-h-20')
+
 			expect(cn('density-my-[3,4,5]', 'my-0')).toBe('my-0')
 		})
 
