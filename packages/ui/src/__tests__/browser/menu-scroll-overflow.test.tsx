@@ -1,26 +1,26 @@
 import { describe, expect, it } from 'vitest'
 import { Menu, MenuContent, MenuItem } from '../../components/menu'
 import { getSlot, renderUI, waitFor } from '../helpers'
+import { nextPaint } from '../helpers/frames'
+import { fadedEdges } from '../helpers/scroll-fade'
 
 /**
- * Menu scroll-overflow affordance (real layout). The viewport's max-height,
- * the `useScrollOverflow` edge attributes, and the mask fade they open are all
- * invisible to jsdom: it reports zero scroll extent and compiles no Tailwind,
- * so only a real browser proves an overflowing menu stamps the attributes,
- * flips them across a scroll, and resolves the arbitrary-property mask
- * classes to actual CSS. It hides the flip side too: only real layout proves
- * that an uncapped panel grows to all its rows and stamps neither edge.
+ * Menu scroll edge fade (real layout). The viewport's max-height and the
+ * `scroll-fade-block` mask are invisible to jsdom: it reports zero scroll
+ * extent, runs no scroll-driven animation, and compiles no Tailwind. Only a
+ * real browser proves that an overflowing menu fades the edge with rows behind
+ * it, that a scroll moves the fade, and that a panel whose rows fit has no
+ * mask.
  *
  * `MenuViewport` is the one component both menu panels render for this, so the
- * premise holds for a submenu panel too. `components/menu.test.tsx` pins the
- * gate that rests on it, and the policy's reach through the submenu portal.
+ * fade holds for a submenu panel too.
  */
-describe('Menu scroll overflow (real browser)', () => {
+describe('Menu scroll edge fade (real browser)', () => {
 	/**
 	 * The scroll viewport of a `count`-row menu, opened `static` so no pointer
-	 * work is needed. The cap is opt-in, so an affordance case passes `capped`:
-	 * the rows only run past an edge while a cap holds the viewport shorter
-	 * than them. Omit the flag to render the default menu.
+	 * work is needed. The cap is opt-in, so a fade case passes `capped`: the rows
+	 * only run past an edge while a cap holds the viewport shorter than them.
+	 * Omit the flag to render the default menu.
 	 */
 	function viewportFor(capped?: boolean, count = 12) {
 		const { container } = renderUI(
@@ -36,73 +36,54 @@ describe('Menu scroll overflow (real browser)', () => {
 		return getSlot(container, 'menu-viewport')
 	}
 
-	it('flips the edge attributes as the viewport scrolls to the bottom', async () => {
+	it('fades the bottom edge only in the first paint', async () => {
+		const viewport = viewportFor(true)
+
+		// The scroll timeline resolves in the update of the frame, so a read in the
+		// commit task is too early. The first paint is what the reader sees.
+		await nextPaint()
+
+		expect(fadedEdges(viewport)).toEqual({ top: false, bottom: true })
+	})
+
+	it('moves the fade to the top edge as the viewport scrolls to the bottom', async () => {
 		const viewport = viewportFor(true)
 
 		viewport.scrollTop = viewport.scrollHeight
 
-		await waitFor(() => expect(viewport).toHaveAttribute('data-overflow-above'))
-
-		expect(viewport).not.toHaveAttribute('data-overflow-below')
+		await waitFor(() => expect(fadedEdges(viewport)).toEqual({ top: true, bottom: false }))
 	})
 
-	it('opens the mask fade on the overflowing edge only', async () => {
+	it('fades both edges in the middle of the scroll', async () => {
 		const viewport = viewportFor(true)
 
-		await waitFor(() => expect(viewport).toHaveAttribute('data-overflow-below'))
+		viewport.scrollTop = (viewport.scrollHeight - viewport.clientHeight) / 2
 
-		const styles = getComputedStyle(viewport)
-
-		// The edge-mask utilities must have compiled: the overflowing edge moves
-		// the start of the bottom fade, and the reached edge keeps the initial
-		// position of the registered property, so it does not fade.
-		expect(styles.maskImage).toContain('linear-gradient')
-
-		expect(styles.getPropertyValue('--tw-mask-bottom-from-position').trim()).toBe(
-			'calc(100% - 1.5rem)',
-		)
-
-		expect(styles.getPropertyValue('--tw-mask-top-from-position').trim()).toBe('0%')
+		await waitFor(() => expect(fadedEdges(viewport)).toEqual({ top: true, bottom: true }))
 	})
 
-	it('grows to its rows on the default menu, leaving no edge to stamp', async () => {
-		// The flag is omitted, not passed `false`, so this is the tree a consumer
-		// gets by default. That default is what the gate keys off.
-		const viewport = viewportFor()
-
-		// Settle on the geometry rather than on an attribute: the panel fitting
-		// its own scroll extent is what leaves nothing to stamp, and the hook
-		// clears both edges from that same measurement.
-		await waitFor(() => expect(viewport.scrollHeight).toBeLessThanOrEqual(viewport.clientHeight))
-
-		expect(viewport).not.toHaveAttribute('data-overflow-below')
-
-		expect(viewport).not.toHaveAttribute('data-overflow-above')
-	})
-
-	// The gate `MenuViewport` puts on the watch rests on one invariant: an
-	// uncapped viewport never overflows. The row counts match the open bench's
-	// ladder, so the test pins the range the finding measured over. See
-	// `__benchmarks__/browser/README.md` §Menus.
+	// The row counts match the open bench's ladder.
 	for (const count of [8, 24, 64]) {
-		it(`fits all ${count} rows uncapped and stamps neither edge`, async () => {
-			const viewport = viewportFor(false, count)
+		it(`grows to all ${count} rows uncapped, with no mask`, async () => {
+			// The flag is omitted, not passed `false`, so this is the tree a consumer
+			// gets by default.
+			const viewport = viewportFor(undefined, count)
 
 			await waitFor(() => expect(viewport.scrollHeight).toBeLessThanOrEqual(viewport.clientHeight))
 
-			expect(viewport).not.toHaveAttribute('data-overflow-above')
-
-			expect(viewport).not.toHaveAttribute('data-overflow-below')
+			// The scroll timeline of a box that fits is inactive, so no animation
+			// sets the mask image.
+			expect(getComputedStyle(viewport).maskImage).toBe('none')
 		})
 
-		it(`overflows ${count} rows capped and stamps the below edge`, async () => {
+		it(`overflows ${count} rows capped and fades the bottom edge`, async () => {
 			const viewport = viewportFor(true, count)
 
 			expect(viewport.scrollHeight).toBeGreaterThan(viewport.clientHeight)
 
-			await waitFor(() => expect(viewport).toHaveAttribute('data-overflow-below'))
+			await nextPaint()
 
-			expect(viewport).not.toHaveAttribute('data-overflow-above')
+			expect(fadedEdges(viewport)).toEqual({ top: false, bottom: true })
 		})
 	}
 })

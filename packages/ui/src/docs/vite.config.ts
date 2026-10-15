@@ -23,8 +23,6 @@ export default defineConfig({
 	],
 	server: {
 		port: 3456,
-		// Transform the shell on server start, so the first page does not wait for it.
-		warmup: { clientFiles: ['./app/root.tsx', './app/sidebar.tsx', './kit/index.ts'] },
 	},
 	// The dependency scan starts from each module of the app and from the Shiki
 	// worker of `CodeBlock`, which no import reaches. Left to discovery, Vite
@@ -63,7 +61,7 @@ export default defineConfig({
 								},
 								{
 									name: 'shell',
-									test: /[\\/]src[\\/]docs[\\/](?:app[\\/]root\.tsx|debug[\\/]event-log[\\/]component-events\.ts)$/,
+									test: /[\\/]src[\\/]docs[\\/](?:app[\\/]root\.tsx|debug[\\/]component-events\.ts)$/,
 									priority: 1,
 								},
 								{

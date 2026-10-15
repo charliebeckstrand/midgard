@@ -172,7 +172,16 @@ export function Lightbox({
 						onIndexChange={(next) =>
 							setIndex(next === null ? null : (viewable[next]?.index ?? null))
 						}
-						onReturn={() => setShown(null)}
+						onReturn={() => {
+							// The focus goes to the thumbnail that the photo lands in. The
+							// focus manager of the overlay unmounts after this, and it does
+							// not move a focus that is outside the overlay.
+							if (shown !== null) {
+								thumbnails.current.get(shown)?.closest('button')?.focus({ preventScroll: true })
+							}
+
+							setShown(null)
+						}}
 						closable={closable}
 						controls={controls}
 						blur={blur}

@@ -1,7 +1,7 @@
 'use client'
 
 import { X } from 'lucide-react'
-import type { MouseEventHandler } from 'react'
+import type { MouseEventHandler, Ref } from 'react'
 import { Button } from '../button'
 import { Icon } from '../icon'
 
@@ -16,6 +16,7 @@ type InputClearButtonProps = {
 	 */
 	onMouseDown?: MouseEventHandler<HTMLButtonElement>
 	disabled?: boolean
+	ref?: Ref<HTMLButtonElement>
 }
 
 /**
@@ -25,9 +26,16 @@ type InputClearButtonProps = {
  *
  * @internal
  */
-export function InputClearButton({ label, onClick, onMouseDown, disabled }: InputClearButtonProps) {
+export function InputClearButton({
+	label,
+	onClick,
+	onMouseDown,
+	disabled,
+	ref,
+}: InputClearButtonProps) {
 	return (
 		<Button
+			ref={ref}
 			type="button"
 			variant="bare"
 			className="pointer-events-auto"

@@ -492,6 +492,22 @@ describe('SidebarItem', () => {
 		expect(inner).toHaveAttribute('aria-current', 'true')
 	})
 
+	it('gives a link item no type, as a type on an anchor names a MIME type', () => {
+		const { container } = renderUI(
+			<Sidebar>
+				<SidebarItem href="/home" type="submit">
+					Home
+				</SidebarItem>
+			</Sidebar>,
+		)
+
+		const inner = bySlot(container, 'sidebar-item-inner')
+
+		expect(inner?.tagName).toBe('A')
+
+		expect(inner).not.toHaveAttribute('type')
+	})
+
 	it('renders an icon prop through the SidebarItem icon slot', () => {
 		const { container } = renderUI(
 			<Sidebar>
@@ -620,6 +636,42 @@ describe('SidebarItem', () => {
 		expect(bySlot(container, 'sidebar-item-prefix')).toBeNull()
 
 		expect(bySlot(container, 'sidebar-item-suffix')).toBeNull()
+	})
+
+	it('keeps an enclosing drawer open when onClick calls preventDefault', () => {
+		const close = vi.fn()
+
+		renderUI(
+			<OffcanvasContext value={{ close }}>
+				<Sidebar>
+					<SidebarItem onClick={(event) => event.preventDefault()}>
+						<SidebarLabel>Home</SidebarLabel>
+					</SidebarItem>
+				</Sidebar>
+			</OffcanvasContext>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Home' }))
+
+		expect(close).not.toHaveBeenCalled()
+	})
+
+	it('closes an enclosing drawer once when an href item has no onClick', () => {
+		const close = vi.fn()
+
+		renderUI(
+			<OffcanvasContext value={{ close }}>
+				<Sidebar>
+					<SidebarItem href="#home">
+						<SidebarLabel>Home</SidebarLabel>
+					</SidebarItem>
+				</Sidebar>
+			</OffcanvasContext>,
+		)
+
+		fireEvent.click(screen.getByRole('link', { name: 'Home' }))
+
+		expect(close).toHaveBeenCalledOnce()
 	})
 
 	it('renders a suffix control beside the button, not inside it', () => {

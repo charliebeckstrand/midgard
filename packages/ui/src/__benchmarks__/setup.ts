@@ -1,23 +1,20 @@
-import type { ReactNode } from 'react'
 import { vi } from 'vitest'
 
-// motion/react shim: strips animation props; components mount without a full
-// animation runtime.
+// motion/react shim: the test mock of `motion/react`, with elements that only
+// strip the animation props.
 //
-// Deliberately not `__tests__/mocks/motion-react.ts`, which the three test
-// setups share. That one models animations as instant so lifecycle gated on
-// completion resolves — a `useRef` + `useEffect` + an `animate` comparison per
-// motion element per render — and surfaces `data-layout` / `data-initial-*` for
-// tests to assert. Both are per-element work the shipped path never does, so a
-// bench mounting them would time the mock. This shim keeps only the stripping.
-//
-// The cost of the split is that it must track the same API surface: every
-// export the package imports from `motion/react` needs an entry here *and*
-// there, and a missing one fails at import of whichever bench renders it. Keep
-// the two in step. The `motion/react-m` shim below reuses the elements of this
-// one.
+// The elements of the test mock (`__tests__/mocks/motion-react.ts`) model
+// animations as instant so lifecycle gated on completion resolves — a `useRef`
+// + `useEffect` + an `animate` comparison per motion element per render — and
+// surface `data-layout` / `data-initial-*` for tests to assert. Both are
+// per-element work the shipped path never does, so a bench mounting them would
+// time the mock. The shim replaces only `motion`, and takes every other export
+// from the test mock, so the two mocks have the same API surface. The
+// `motion/react-m` shim below reuses the elements of this one.
 vi.mock('motion/react', async () => {
 	const { createElement, forwardRef } = await import('react')
+
+	const { default: mock } = await import('../__tests__/mocks/motion-react')
 
 	const MOTION_PROPS = new Set([
 		'animate',
@@ -32,6 +29,7 @@ vi.mock('motion/react', async () => {
 		'whileInView',
 		'layout',
 		'layoutId',
+		'layoutDependency',
 		'onAnimationComplete',
 		'onAnimationStart',
 	])
@@ -71,64 +69,7 @@ vi.mock('motion/react', async () => {
 		get: (_, key: string) => (key === 'create' ? wrap : wrap(key)),
 	}
 
-	const motion = new Proxy({}, handler)
-
-	function AnimatePresence({ children }: { children: ReactNode }) {
-		return children
-	}
-
-	function MotionConfig({ children }: { children: ReactNode }) {
-		return children
-	}
-
-	function LayoutGroup({ children }: { children: ReactNode }) {
-		return children
-	}
-
-	function LazyMotion({ children }: { children: ReactNode }) {
-		return children
-	}
-
-	function useAnimate() {
-		return [{ current: null }, vi.fn()]
-	}
-
-	function useMotionValue<T>(initial: T) {
-		let value = initial
-		return {
-			get: () => value,
-			set: (next: T) => {
-				value = next
-			},
-			on: () => () => {},
-		}
-	}
-
-	/** A derived value that reads through the source on demand, as the real one does. */
-	function useTransform<T, R>(source: { get: () => T }, map: (value: T) => R) {
-		return { get: () => map(source.get()), set: () => {}, on: () => () => {} }
-	}
-
-	// The benches measure the shipped animated path, so the shim answers as a
-	// machine with motion enabled — reporting a reduced-motion preference would
-	// let components take their static branch and score work they don't do.
-	function useReducedMotion() {
-		return false
-	}
-
-	return {
-		motion,
-		AnimatePresence,
-		LayoutGroup,
-		LazyMotion,
-		domAnimation: {},
-		domMax: {},
-		MotionConfig,
-		useAnimate,
-		useMotionValue,
-		useReducedMotion,
-		useTransform,
-	}
+	return { ...mock, motion: new Proxy({}, handler) }
 })
 
 // The `m` elements of `motion/react-m` are the shim elements of `motion/react`

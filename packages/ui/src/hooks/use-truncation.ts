@@ -1,5 +1,6 @@
 'use client'
 
+import { resize } from 'motion'
 import {
 	type RefCallback,
 	type RefObject,
@@ -68,78 +69,6 @@ function horizontalPadding(el: HTMLElement): number {
 	const styles = getComputedStyle(el)
 
 	return parseFloat(styles.paddingLeft) + parseFloat(styles.paddingRight)
-}
-
-/**
- * A single {@link ResizeObserver} shared by every truncation element, fanning
- * each width change out to the affected element's `measure`. One observer for the
- * document beats one per element. A wide, virtualized grid mounts hundreds of
- * truncation cells, and an observer apiece multiplies the registration and
- * per-frame dispatch cost a shared instance pays once.
- *
- * @internal
- */
-let sharedResizeObserver: ResizeObserver | null = null
-
-/** The `ResizeObserver` the shared observer was built from. @internal */
-let sharedResizeObserverSource: typeof ResizeObserver | null = null
-
-/** Per-element `measure` callbacks the {@link sharedResizeObserver} dispatches to. @internal */
-const measureCallbacks = new WeakMap<Element, () => void>()
-
-/**
- * Registers `el` with the shared {@link ResizeObserver}, routing its width
- * changes to `measure`; returns an unobserve cleanup. A no-op where
- * `ResizeObserver` is unavailable (SSR / jsdom), matching the integer-only
- * overflow path there.
- *
- * @internal
- */
-function observeTruncation(el: Element, measure: () => void): () => void {
-	if (typeof ResizeObserver === 'undefined') return () => {}
-
-	if (!sharedResizeObserver) {
-		sharedResizeObserver = new ResizeObserver((entries) => {
-			for (const entry of entries) measureCallbacks.get(entry.target)?.()
-		})
-
-		sharedResizeObserverSource = ResizeObserver
-	}
-
-	measureCallbacks.set(el, measure)
-
-	sharedResizeObserver.observe(el)
-
-	return () => {
-		sharedResizeObserver?.unobserve(el)
-
-		measureCallbacks.delete(el)
-	}
-}
-
-/**
- * Test-only: drops the shared observer.
- *
- * `observeTruncation` builds the observer from whichever `ResizeObserver` is
- * global at first use, and keeps it for the life of the module. A suite that
- * stubs that global leaves the stub cached here after it restores the real one.
- * A project that runs `isolate: false` shares this module across files, so the
- * next file measures through it. Call it from a `beforeEach`: Vitest restores a
- * stubbed global before each test, after every `afterEach`.
- */
-export function __resetTruncationObserver(): void {
-	// Only when the global has moved under the cache. A suite that stubs
-	// `ResizeObserver` leaves the stub here after restoring the real one, and that
-	// is the leak. Dropping a correctly built observer instead would cost every
-	// later test a rebuild and a re-observe, which is the economy this module
-	// documents above.
-	if (!sharedResizeObserver || sharedResizeObserverSource === ResizeObserver) return
-
-	sharedResizeObserver.disconnect()
-
-	sharedResizeObserver = null
-
-	sharedResizeObserverSource = null
 }
 
 /**
@@ -283,7 +212,7 @@ export function useTruncation<E extends HTMLElement>(options?: {
 		let unobserve: (() => void) | null = null
 
 		const watch = () => {
-			unobserve = observeTruncation(el, measure)
+			unobserve = resize(el, measure)
 
 			if (document.fonts?.ready) document.fonts.ready.then(measure).catch(() => {})
 		}

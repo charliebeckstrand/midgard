@@ -14,7 +14,7 @@ import { cn } from '../../core'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useStableValue } from '../../hooks/use-stable-value'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
-import { useMapHoverSet, useMapPlat, useMapPointed, useMapZoomScale } from './context'
+import { useMapHoverActions, useMapPlat, useMapPointed, useMapZoomScale } from './context'
 import { markAnchorAt } from './engine/map-hover/anchor'
 import { mapMarkDimmed } from './engine/map-hover/target'
 import { groupLegendId } from './engine/map-legend/items'
@@ -315,7 +315,7 @@ export function useMapOverlay({
 	const { project, register, colors, order, hidden, spare, pool, animate, selectedOverlay } =
 		useMapPlat()
 
-	const set = useMapHoverSet()
+	const { set } = useMapHoverActions()
 
 	// Only whether this mark dims. A crossing or a legend hover that leaves the
 	// answer as it was, such as one between two regions, renders no overlay mark.

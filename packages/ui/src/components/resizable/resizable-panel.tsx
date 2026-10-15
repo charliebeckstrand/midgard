@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/resizable'
-import { useResizable, useResizableIndex } from './context'
+import { useOptionalResizable, useResizableIndex } from './context'
 
 /** Props for {@link ResizablePanel}: an initial size weight, and min/max bounds as percentages of the group. */
 export type ResizablePanelProps = {
@@ -11,7 +11,11 @@ export type ResizablePanelProps = {
 	 * Initial size as a weight. The group divides 100% in the ratio of the
 	 * weights of its panels, so `30` and `50` give 37.5% and 62.5%. Weights that
 	 * sum to 100 are percentages. Then each panel goes into its `minSize` and
-	 * `maxSize`, and a neighbor panel takes the difference.
+	 * `maxSize`, and a neighbor panel takes the difference. When a panel at a
+	 * bound stops the neighbor from taking the difference, the panels with
+	 * slack share it in proportion to their weights. When no layout meets every
+	 * bound, the sizes still sum to 100%, and one or more panels are not in
+	 * their bounds.
 	 * @defaultValue 50
 	 */
 	defaultSize?: number
@@ -37,16 +41,17 @@ export type ResizablePanelProps = {
 export function ResizablePanel(props: ResizablePanelProps) {
 	const { defaultSize = 50, className, children } = props
 
-	const { sizes, panelId } = useResizable()
+	const group = useOptionalResizable()
 
 	const { panelIndex } = useResizableIndex()
 
-	const size = panelIndex !== undefined ? (sizes[panelIndex] ?? defaultSize) : defaultSize
+	const size =
+		group && panelIndex !== undefined ? (group.sizes[panelIndex] ?? defaultSize) : defaultSize
 
 	return (
 		<div
 			data-slot="resizable-panel"
-			id={panelIndex !== undefined ? panelId(panelIndex) : undefined}
+			id={group && panelIndex !== undefined ? group.panelId(panelIndex) : undefined}
 			className={cn(k.panel, className)}
 			style={{ flex: `${size} 0 0px` }}
 		>

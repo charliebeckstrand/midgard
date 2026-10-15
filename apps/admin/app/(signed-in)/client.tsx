@@ -15,6 +15,7 @@ import type { ReactNode } from 'react'
 import { signOut } from 'shared/auth'
 import { Avatar } from 'ui/avatar'
 import { Button } from 'ui/button'
+import { EventsAside, EventsButton, EventsSwitch } from 'ui/events'
 import { SidebarLayout, StackedLayout, StackedLayoutBody, StackedLayoutHeader } from 'ui/layouts'
 import { Link } from 'ui/link'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from 'ui/menu'
@@ -77,6 +78,8 @@ function SidebarShell({ user, children }: { user: User; children: ReactNode }) {
 	return (
 		<UIProvider pathname={pathname}>
 			<SidebarLayout
+				actions={<EventsButton />}
+				aside={<EventsAside />}
 				navbar={
 					<NavBar variant="plain" className="px-0 py-0">
 						<Link href="/" className="flex">
@@ -119,7 +122,9 @@ function SidebarShell({ user, children }: { user: User; children: ReactNode }) {
 										</SidebarItem>
 									</UserMenu>
 								</div>
-								<AppearanceSettings />
+								<AppearanceSettings>
+									<EventsSwitch />
+								</AppearanceSettings>
 							</Flex>
 						</SidebarFooter>
 					</Sidebar>
@@ -147,7 +152,10 @@ function HeaderShell({ user, children }: { user: User; children: ReactNode }) {
 							<Brand />
 						</Link>
 						<Spacer />
-						<AppearanceSettings />
+						<EventsButton />
+						<AppearanceSettings>
+							<EventsSwitch />
+						</AppearanceSettings>
 						<UserMenu placement="bottom-end">
 							<Button variant="plain" aria-label="Account menu">
 								<UserAvatar user={user} />

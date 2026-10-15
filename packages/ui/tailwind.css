@@ -4,12 +4,12 @@
  * the `density-any` variant, the `motion-reduce` and `motion-safe` variants
  * that follow the Motion setting, the `sidebar-offcanvas` variant that follows
  * the Sidebar setting, the stepped and ring utilities
- * (`density-p-[2,3,4]`, `px-ring-2`, …), the `scroll-fade-inline` edge fade,
+ * (`density-p-[2,3,4]`, `px-ring-2`, …), the `scroll-fade-inline` and `scroll-fade-block` edge fades,
  * the 10 px `2xs` step of the text scale, two base styles on the root
  * element: `touch-action: manipulation`, and
  * the `color-scheme` that follows the `dark` class, the rule that hides the
- * default footer of a panel that has its own, and the breakpoint classes of
- * the structure units. Import this file in each Tailwind entry that scans
+ * default footer of a panel that has its own, the keyframes of the two endless
+ * loops, and the breakpoint classes of the structure units. Import this file in each Tailwind entry that scans
  * ui. Each plugin explains its classes or its style.
  */
 @import './src/fonts/fonts.css';
@@ -31,6 +31,56 @@
 @theme {
 	--text-2xs: 0.625rem;
 	--text-2xs--line-height: calc(1.125 / 0.625);
+}
+
+/*
+ * The two endless loops of ui. Each runs in CSS, so no script runs in each
+ * frame. A component puts the class behind `motion-safe:`, so the loop stops
+ * under reduced motion, as `animate-spin` of LoadingSpinner does.
+ *
+ * `animate-progress-sweep` moves the indeterminate fill of ProgressBar from
+ * before the start of the track to past its end. The fill is a third of the
+ * track, and a percentage in `translateX` is a fraction of the width of the
+ * fill, so 300% is the width of the track. A transform runs off the main
+ * thread. `animate-progress-sweep-rtl` is the same sweep in a right-to-left
+ * track.
+ *
+ * `animate-shiny-text` moves the gradient of ShinyText. The gradient is twice
+ * the width of the text, so a higher percentage moves the shine to the left.
+ * The shine starts past the right edge and stops past the left edge.
+ * ShinyText sets the duration from its `speed` prop.
+ */
+@theme {
+	--animate-progress-sweep: progress-sweep 1.5s ease-in-out infinite;
+	--animate-progress-sweep-rtl: progress-sweep-rtl 1.5s ease-in-out infinite;
+	--animate-shiny-text: shiny-text 2s linear infinite;
+
+	@keyframes progress-sweep {
+		from {
+			transform: translateX(-100%);
+		}
+		to {
+			transform: translateX(300%);
+		}
+	}
+
+	@keyframes progress-sweep-rtl {
+		from {
+			transform: translateX(100%);
+		}
+		to {
+			transform: translateX(-300%);
+		}
+	}
+
+	@keyframes shiny-text {
+		from {
+			background-position: -50% center;
+		}
+		to {
+			background-position: 150% center;
+		}
+	}
 }
 
 /*

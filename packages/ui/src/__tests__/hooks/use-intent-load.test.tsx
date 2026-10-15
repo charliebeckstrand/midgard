@@ -131,4 +131,27 @@ describe('useIntentLoad', () => {
 
 		expect(screen.getByText('loaded')).toBeInTheDocument()
 	})
+
+	it('gives a value that one mount requested to each mount of the loader', async () => {
+		holdIdle()
+
+		const load = vi.fn(() => Promise.resolve('loaded'))
+
+		function Reader() {
+			return <output>{useIntentLoad(load).module ?? 'idle'}</output>
+		}
+
+		renderUI(
+			<>
+				<Probe load={load} seen={vi.fn()} />
+				<Reader />
+			</>,
+		)
+
+		await act(async () => fireEvent.click(screen.getByRole('button')))
+
+		expect(screen.getByRole('status')).toHaveTextContent('loaded')
+
+		expect(load).toHaveBeenCalledTimes(1)
+	})
 })

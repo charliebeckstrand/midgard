@@ -1,13 +1,14 @@
 'use client'
 
-import { type CSSProperties, type FocusEvent, type Ref, useRef } from 'react'
-import { cn, dataAttr, invalidAttrs } from '../../../core'
+import { type CSSProperties, type FocusEvent, type Ref, useMemo, useRef } from 'react'
+import { ariaAttr, cn, dataAttr, invalidAttrs } from '../../../core'
 import { useIdScope } from '../../../hooks/use-id-scope'
 import { k, type RangeSliderVariants } from '../../../recipes/kata/slider-range'
 import { pct } from '../../../utilities'
 import { useControl } from '../../control/context'
 import { useControlProps } from '../../control/use-control-props'
 import { useFormValue } from '../../form/use-form-value'
+import { boundRange } from './range-utilities'
 import type { ThumbButtonRefs, ThumbIndex } from './types'
 import { useRangeKeyboard } from './use-range-keyboard'
 import { useRangePointer } from './use-range-pointer'
@@ -35,6 +36,14 @@ export type RangeSliderProps = {
 	 * @defaultValue `false`, or the state of the enclosing Control or Field.
 	 */
 	disabled?: boolean
+	/**
+	 * Keeps both values. A key, a press, or a drag does not change them, and
+	 * `onValueChange` and the drag callbacks do not fire. A press focuses the
+	 * nearest thumb. Each thumb keeps the focus and sets `aria-readonly`. When
+	 * omitted, it takes the value of an enclosing `<Control>` or `<Field>`.
+	 * @defaultValue `false`, or the state of the enclosing Control.
+	 */
+	readOnly?: boolean
 	/**
 	 * Whether moving a thumb past the other swaps their roles. When `false`,
 	 * each thumb is clamped at the other's value. On a swap, from a key or a
@@ -98,7 +107,8 @@ export type RangeSliderProps = {
  * @remarks Bound to a Form field through `name`, the slider marks the field touched when
  * focus leaves the widget. A move from one thumb to the other does not mark it. An error
  * on the field, or an `error` severity on an enclosing Control, marks each thumb invalid.
- * Each thumb also takes the `disabled` state and the `aria-describedby` of the Control.
+ * Each thumb also takes the `disabled` and `readOnly` states and the `aria-describedby` of the
+ * Control.
  *
  * The start thumb takes `id`, else the id of the enclosing Control, so a `<label>` for that id
  * is valid HTML. In a Field with a Label, each thumb takes `aria-labelledby`. It points at the
@@ -107,6 +117,10 @@ export type RangeSliderProps = {
  *
  * A click on a label for the slider focuses the start thumb and keeps both values. The Field
  * Label is such a label. A disabled slider takes no focus from the click.
+ *
+ * A value out of `[min, max]` shows at the nearest bound, and a pair out of order shows in
+ * order. The thumbs and the ARIA values take that range, and a key or a drag moves a value
+ * of it. The slider does not report the bounded range through `onValueChange`.
  */
 export function RangeSlider({
 	id,
@@ -120,6 +134,7 @@ export function RangeSlider({
 	size,
 	color,
 	disabled,
+	readOnly,
 	allowCross = true,
 	labels = ['Range start', 'Range end'],
 	getValueText,
@@ -144,11 +159,14 @@ export function RangeSlider({
 			: undefined,
 	})
 
-	const current = range ?? [min, max]
+	// A value out of `[min, max]` or a pair out of order puts a thumb off the
+	// track and breaks the ARIA bounds, so the slider shows the bounded range.
+	// The memo keeps the identity of the pair for the callbacks that read it.
+	const current = useMemo(() => boundRange(range ?? [min, max], min, max), [range, min, max])
 
 	// The root has no role, so the validation state and the description go on
 	// each `role="slider"` thumb.
-	const controlProps = useControlProps({ id, disabled, invalid })
+	const controlProps = useControlProps({ id, disabled, readOnly, invalid })
 
 	const scope = useIdScope({ id: controlProps.id })
 
@@ -162,6 +180,8 @@ export function RangeSlider({
 			: { 'aria-label': labels[thumb] }
 
 	const resolvedDisabled = controlProps.disabled === true
+
+	const resolvedReadOnly = controlProps.readOnly === true
 
 	const describedBy = controlProps['aria-describedby']
 
@@ -199,6 +219,7 @@ export function RangeSlider({
 			max,
 			step,
 			disabled: resolvedDisabled,
+			readOnly: resolvedReadOnly,
 			current,
 			trackRef,
 			setRange,
@@ -237,11 +258,13 @@ export function RangeSlider({
 			aria-valuetext={getValueText?.(current[thumb], thumb)}
 			{...thumbName(thumb)}
 			aria-describedby={describedBy}
+			aria-readonly={ariaAttr(resolvedReadOnly)}
 			{...validation}
 			data-slot="slider-range-thumb"
 			className={cn(k.thumb(), 'top-1/2 -translate-y-1/2')}
 			style={{ insetInlineStart: `${thumb === 0 ? lo : hi}%` }}
-			onKeyDown={handleKeyDown(thumb)}
+			// A read-only thumb takes no value key, so the key does what it does on the page.
+			onKeyDown={resolvedReadOnly ? undefined : handleKeyDown(thumb)}
 			onBlur={handleThumbBlur}
 			onClick={thumb === 0 ? focusStartThumb : undefined}
 		/>

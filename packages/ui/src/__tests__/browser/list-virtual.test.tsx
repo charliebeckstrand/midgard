@@ -159,6 +159,71 @@ describe('a virtual list', () => {
 		expect(focused).toHaveAttribute('aria-posinset', String(initial + 6))
 	})
 
+	it('measures again when a box above the parent of the list grows', async () => {
+		// The parent of the list keeps its size. Only the outer box, an ancestor
+		// above the parent, grows, as a drawer body holds a section above it.
+		const { container } = renderUI(
+			<div data-scroll-region style={{ height: 300, width: 360, overflowY: 'auto' }}>
+				<div style={{ display: 'flex', flexDirection: 'column' }}>
+					<div data-testid="sibling" style={{ height: 120 }}>
+						Content above
+					</div>
+
+					<div>
+						<h2>Heading</h2>
+
+						<Rows virtual />
+					</div>
+				</div>
+			</div>,
+		)
+
+		const region = regionOf(container)
+
+		const sibling = present(
+			container.querySelector<HTMLElement>('[data-testid="sibling"]'),
+			'the sibling',
+		)
+
+		await waitFor(() => expect(rowsOf(container).length).toBeGreaterThan(0))
+
+		// Walk down the whole list first, so each row measures. Then the height of
+		// the list does not change, and a resize of its parent does not measure
+		// the list again and hide the defect.
+		for (let before = -1; region.scrollTop !== before; ) {
+			before = region.scrollTop
+
+			await scrollTo(region, before + 250)
+		}
+
+		await scrollTo(region, 0)
+
+		sibling.style.height = '3120px'
+
+		await frames()
+
+		const list = present(container.querySelector<HTMLElement>('[data-slot="list"]'), 'the list')
+
+		const listTop =
+			list.getBoundingClientRect().top - region.getBoundingClientRect().top + region.scrollTop
+
+		await scrollTo(region, listTop + 600)
+
+		await waitFor(() => {
+			const box = region.getBoundingClientRect()
+
+			const middle = box.top + box.height / 2
+
+			const inView = rowsOf(container).find((row) => {
+				const rect = row.getBoundingClientRect()
+
+				return rect.top <= middle && rect.bottom >= middle
+			})
+
+			expect(inView).toBeDefined()
+		})
+	})
+
 	it('renders every row where no scroll region holds it', async () => {
 		const { container } = renderUI(
 			<div style={{ height: 300, overflowY: 'auto' }}>

@@ -1,6 +1,6 @@
 import pages from 'virtual:docs/pages'
 import { PanelLeft, PanelLeftDashed } from 'lucide-react'
-import { type ReactNode, useEffect } from 'react'
+import type { ReactNode } from 'react'
 import {
 	Links,
 	Meta,
@@ -13,6 +13,7 @@ import {
 } from 'react-router'
 import { Button } from 'ui/button'
 import { loadShiki } from 'ui/code'
+import { EventsAside, EventsButton, EventsSwitch } from 'ui/events'
 import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
 import { Icon } from 'ui/icon'
@@ -24,13 +25,7 @@ import { UIDocument, UIProvider } from 'ui/providers/ui'
 import { Stack } from 'ui/stack'
 import { useHydrated } from '../../hooks/use-hydrated.ts'
 import { noop } from '../../utilities/noop.ts'
-import {
-	BugLogButton,
-	DebugScript,
-	DebugSwitch,
-	EventLogButton,
-	recordRoute,
-} from '../debug/index.tsx'
+import { DebugScript } from '../debug/index.tsx'
 import { useIdle } from '../kit/idle.ts'
 import appCss from './app.css?url'
 import { DirectionScript, DirectionSwitch } from './direction.tsx'
@@ -97,14 +92,16 @@ function warmShiki() {
 // element at each render, and React does not render them again.
 const ACTIONS = (
 	<>
-		<EventLogButton />
-		<BugLogButton />
+		<EventsButton />
 		<AppearanceSettings>
 			<DirectionSwitch />
-			<DebugSwitch />
+			<EventsSwitch />
 		</AppearanceSettings>
 	</>
 )
+
+// The pinned panel of the events. It takes no props, for the same reason.
+const ASIDE = <EventsAside />
 
 /**
  * The shell of the docs: the sidebar, the header with the name of the page, and the page.
@@ -129,8 +126,6 @@ export default function App() {
 	// The root path lists the pages, and has no title of its own.
 	const title = page?.name ?? (pathname === '/' ? undefined : 'Not found')
 
-	useEffect(() => recordRoute(pathname), [pathname])
-
 	useIdle(warmShiki)
 
 	return (
@@ -141,7 +136,12 @@ export default function App() {
 				<title>{title ? `${title} · Docs` : 'Docs'}</title>
 				<Stylesheet />
 				<DocsSearch>
-					<SidebarLayout stickyHeader actions={ACTIONS} sidebar={<DocsSidebar pages={pages} />}>
+					<SidebarLayout
+						stickyHeader
+						actions={ACTIONS}
+						sidebar={<DocsSidebar pages={pages} />}
+						aside={ASIDE}
+					>
 						<SidebarLayoutHeader>
 							<Flex align="center" gap="md">
 								<Button

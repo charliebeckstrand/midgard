@@ -65,8 +65,10 @@ export type SparklineGeometryOptions = {
  * the domain and when drawing the marks. The line bridges across a dropped sample
  * and its bar is omitted. That beats emitting an invalid path or a vertex clamped
  * to an edge. A flat series (or one point) maps to the vertical middle rather than
- * dividing by a zero span. A single point draws as a horizontal line across the
- * box, so it stays visible, and its `last` point sits at the end of that line.
+ * dividing by a zero span. A series wholly below a pinned `min`, or above a
+ * pinned `max`, clamps to the edge on its side. A single point draws as a
+ * horizontal line across the box, so it stays visible, and its `last` point
+ * sits at the end of that line.
  *
  * The area and the bars sit on zero, clamped into the domain. A domain that
  * crosses zero puts the zero line inside the box, so a negative value hangs
@@ -100,14 +102,18 @@ export function sparklineGeometry(
 
 	if (finite.length === 0) return empty
 
-	const low = min ?? Math.min(...finite)
+	// A pinned bound also bounds the derived one. Thus a series wholly past a
+	// pinned bound gives a flat domain at that bound, not an inverted one.
+	const low = min ?? Math.min(...finite, max ?? Number.POSITIVE_INFINITY)
 
-	const high = max ?? Math.max(...finite)
+	const high = max ?? Math.max(...finite, min ?? Number.NEGATIVE_INFINITY)
 
 	const span = high - low
 
-	// A flat series has no span to divide by; anchor every point to the middle.
-	const norm = (value: number) => (span === 0 ? 0.5 : clamp((value - low) / span, 0, 1))
+	// A flat domain has no span to divide by. A value on it goes to the middle,
+	// and a value past it clamps to the edge on its side.
+	const norm = (value: number) =>
+		span === 0 ? (value < low ? 0 : value > high ? 1 : 0.5) : clamp((value - low) / span, 0, 1)
 
 	// Zero, clamped into the domain. The edge tests come first, so a flat
 	// domain takes the edge on the side of zero and not its middle.

@@ -13,8 +13,11 @@ import { useCopyButtonState } from './use-copy-button-state'
  * `children`, `type`, and `color`.
  */
 export type CopyButtonProps = {
-	/** Text written to the clipboard on activation. */
-	text: string
+	/**
+	 * Text written to the clipboard on activation. A function builds the text
+	 * at each activation, for a long text that changes often.
+	 */
+	text: string | (() => string)
 	/**
 	 * Rest-state glyph.
 	 * @defaultValue a Clipboard icon.

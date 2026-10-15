@@ -1,6 +1,6 @@
 'use client'
 
-import { type ChangeEvent, type Ref, useEffect, useRef, useState } from 'react'
+import { type ChangeEvent, type Ref, useEffect, useState } from 'react'
 import { composeEventHandlers } from '../../core'
 import { useComposedRef } from '../../hooks'
 import { useFormResetSync } from '../../hooks/use-form-reset-sync'
@@ -50,7 +50,8 @@ export function usePasswordConfirmField(
 	let resolved = own
 
 	if (value !== undefined) resolved = toFieldText(value)
-	else if (field) resolved = toFieldText(field.value)
+	// A bound field shows `''` for a value that is not a string, as `useInputValue` does.
+	else if (field) resolved = typeof field.value === 'string' ? field.value : ''
 
 	// Each cleanup clears its report, so an unmounted field stops reporting a
 	// stale mismatch. A re-run writes the new report in the same commit.
@@ -66,12 +67,10 @@ export function usePasswordConfirmField(
 		return () => setName(role, undefined)
 	}, [role, name, setName])
 
-	const inputRef = useRef<HTMLInputElement>(null)
-
-	useFormResetSync(inputRef, tracked, (input) => setOwn(input.value))
+	const resetRef = useFormResetSync(tracked, (input) => setOwn(input.value))
 
 	return {
-		ref: useComposedRef(inputRef, ref),
+		ref: useComposedRef(resetRef, ref),
 		// The coordinator records the edit whatever the caller does
 		// (CONVENTIONS.md §3.9).
 		onChange: composeEventHandlers(

@@ -36,7 +36,7 @@ const REFERENCE = /&(?:amp|lt|gt|quot|#x27);/g
  * `>`, `"`, and `'` in an attribute as a character reference, and the scanner
  * reads the reference as text. The scanner thus reads the HTML with each
  * reference changed back to its character. Otherwise it does not find a class
- * such as `[:root[data-debug]_&]:contents` or `has-[>:disabled]:opacity-50`.
+ * such as `[:root[data-events]_&]:contents` or `has-[>:disabled]:opacity-50`.
  */
 export function scanClasses(html: string): string[] {
 	const text = html.replace(REFERENCE, (reference) => REFERENCES[reference] ?? reference)

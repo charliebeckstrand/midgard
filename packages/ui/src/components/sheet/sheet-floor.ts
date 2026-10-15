@@ -19,6 +19,8 @@ const MIN_WIDTH = 280
  * and the axis it resizes on.
  *
  * On the width axis, the floor is {@link MIN_WIDTH}, whatever the sheet holds.
+ * A sheet that is narrower than that, such as a `fit` sheet around narrow
+ * content, has its own size as the floor, so a drag never makes it jump.
  *
  * On the height axis, the floor is everything in the sheet that does not scroll.
  * A `top` or `bottom` sheet's body scrolls on the same axis as a drawer's body.
@@ -31,7 +33,9 @@ const MIN_WIDTH = 280
  * @internal
  */
 export function sheetFloor(panel: HTMLElement, size: number, axis: PanelAxis): number {
-	if (axis === 'width') return MIN_WIDTH
+	// A `fit` sheet can open narrower than the floor. A floor above its size would
+	// make it jump wider on the first move of a drag.
+	if (axis === 'width') return Math.min(size, MIN_WIDTH)
 
 	const body = panel.querySelector('[data-slot="sheet-body"]')
 
@@ -45,6 +49,9 @@ export function sheetFloor(panel: HTMLElement, size: number, axis: PanelAxis): n
 /**
  * The widest a sheet is drawn at: the screen, less the inset it floats on.
  *
+ * The screen is the box the panel docks in: the viewport, or the `container`
+ * of a scoped sheet.
+ *
  * The inset is measured off the panel rather than stated, because it is a
  * breakpoint's decision and not this function's. The panel sits flush on a
  * phone and a step in from every edge above `sm`, and a consumer can move it
@@ -57,10 +64,25 @@ export function sheetFloor(panel: HTMLElement, size: number, axis: PanelAxis): n
 export function sheetCeiling(panel: HTMLElement, viewport: number, axis: PanelAxis): number {
 	const box = panel.getBoundingClientRect()
 
+	// The edges are measured from the start of the box the panel docks in, which
+	// is where `viewport` starts too. A container away from the corner of the
+	// screen moves both edges, and a measure from the screen would get the inset
+	// wrong.
+	const dock = panel.offsetParent
+
+	const origin =
+		dock instanceof HTMLElement
+			? axis === 'width'
+				? dock.getBoundingClientRect().left + dock.clientLeft
+				: dock.getBoundingClientRect().top + dock.clientTop
+			: 0
+
 	// The two edges across the axis the panel is docked on. Whichever sits nearer
-	// the screen's is the inset the reader can see.
+	// the edge of the box is the inset the reader can see.
 	const [near, far] =
-		axis === 'width' ? [box.left, viewport - box.right] : [box.top, viewport - box.bottom]
+		axis === 'width'
+			? [box.left - origin, viewport - (box.right - origin)]
+			: [box.top - origin, viewport - (box.bottom - origin)]
 
 	const inset = Math.max(0, Math.min(near, far))
 

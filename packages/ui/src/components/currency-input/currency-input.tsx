@@ -2,7 +2,7 @@
 
 import { type ReactNode, useId, useState } from 'react'
 import { cn, composeEventHandlers } from '../../core'
-import { useAriaIds } from '../../hooks'
+import { useAriaIds, useComposedRef } from '../../hooks'
 import { useFormattedInput } from '../../hooks/use-formatted-input'
 import { useHeadless } from '../../providers/headless/context'
 import { useLocale } from '../../providers/locale'
@@ -148,11 +148,20 @@ export function CurrencyInput({
 
 	const resolvedLocale = locale ?? ambient.locale
 
+	const [editingText, setEditingText] = useState<string | null>(null)
+
 	const {
 		value: amount,
+		resetRef,
 		setValue: setAmount,
 		setTouched,
-	} = useFormValue<number>(name, { value, defaultValue, onValueChange })
+	} = useFormValue<number>(name, {
+		value,
+		defaultValue,
+		onValueChange,
+		// A reset to the same amount does not end the buffer below, so end it here.
+		onReset: () => setEditingText(null),
+	})
 
 	const { displayFormatter, symbol, symbolIsPrefix, group, decimal, maxFractionDigits } =
 		useCurrencyInputFormatting({
@@ -162,8 +171,6 @@ export function CurrencyInput({
 		})
 
 	const parse = (editing: string) => parseEditing(editing, group, decimal, maxFractionDigits)
-
-	const [editingText, setEditingText] = useState<string | null>(null)
 
 	// A new value that the buffer does not hold came from outside (a controlled
 	// parent, a form reset), so the buffer ends and the field shows that value.
@@ -183,6 +190,8 @@ export function CurrencyInput({
 
 	const affix = useSymbolAffix({ symbol, symbolIsPrefix, prefix, suffix, ariaDescribedBy })
 
+	const joinedRef = useComposedRef(resetRef, ref)
+
 	// `atEnd: 'jump'`: the formatter pads `.` to `0.`, so a restore at the end would
 	// put the next digit in the integer part (`.5` to `5.`). `text` is the text
 	// before the edit. The format compares the edit with it to find the other
@@ -192,7 +201,7 @@ export function CurrencyInput({
 		meaningful: (char, index, edited) =>
 			isMeaningful(char, index, edited, group, decimal, maxFractionDigits, text),
 		atEnd: 'jump',
-		ref,
+		ref: joinedRef,
 	})
 
 	return (

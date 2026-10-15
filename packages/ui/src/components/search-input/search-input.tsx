@@ -1,8 +1,10 @@
 'use client'
 
 import { Search } from 'lucide-react'
-import { type ChangeEvent, type ReactNode, useMemo } from 'react'
+import { type ChangeEvent, type KeyboardEvent, type ReactNode, useMemo } from 'react'
 import { cn, composeEventHandlers } from '../../core'
+import { useComposedRef } from '../../hooks'
+import { clearNativeInput, isComposing } from '../../utilities'
 import { useFormValue } from '../form/use-form-value'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
@@ -66,9 +68,11 @@ const SEARCH_PREFIX = <Icon icon={<Search />} />
  * @remarks
  * Clearing drives a native `input` event, so controlled and uncontrolled
  * consumers see the same change. It then returns focus to the field as the
- * clear button unmounts (WCAG 2.4.3). `loading` suppresses the clear button: a spinner
- * occupies the suffix while a query is in flight. `clearable={false}` suppresses it
- * outright.
+ * clear button unmounts (WCAG 2.4.3). Escape in a field that holds a query
+ * clears it the same way and consumes the key, so an enclosing Dialog or
+ * popover closes only on an Escape in the empty field. `loading` suppresses
+ * the clear button: a spinner occupies the suffix while a query is in flight.
+ * `clearable={false}` suppresses it outright.
  *
  * @see {@link SearchInputProps}
  */
@@ -82,13 +86,16 @@ export function SearchInput({
 	onValueChange,
 	onClear,
 	onBlur,
+	onKeyDown,
 	name,
 	className,
 	suffix: extraSuffix,
+	ref,
 	...props
 }: SearchInputProps) {
 	const {
 		value: current,
+		resetRef,
 		setValue,
 		setTouched,
 	} = useFormValue<string>(name, {
@@ -98,6 +105,27 @@ export function SearchInput({
 		// reaches the consumer.
 		onValueChange: onValueChange && ((next) => onValueChange(next ?? '')),
 	})
+
+	const setRef = useComposedRef(resetRef, ref)
+
+	// Escape clears a query, as a native search field does in some browsers.
+	// The clear here makes it the same in each browser. `preventDefault` stops
+	// the native clear and tells the escape layer of an enclosing overlay that
+	// the key is consumed, so one Escape does not also close the overlay.
+	const handleKeyDown = composeEventHandlers(
+		onKeyDown,
+		(event: KeyboardEvent<HTMLInputElement>) => {
+			const input = event.currentTarget
+
+			if (event.key !== 'Escape' || isComposing(event)) return
+
+			if (input.value === '' || input.readOnly || input.disabled) return
+
+			event.preventDefault()
+
+			clearNativeInput(input)
+		},
+	)
 
 	// The value write runs whatever the caller does (CONVENTIONS.md §3.9). The
 	// clear button of Input empties the field through a native input event, so
@@ -118,11 +146,13 @@ export function SearchInput({
 
 	return (
 		<Input
+			ref={setRef}
 			data-slot="search-input"
 			type="search"
 			name={name}
 			value={current ?? ''}
 			onChange={handleChange}
+			onKeyDown={handleKeyDown}
 			// The touched mark runs whatever the caller does (CONVENTIONS.md §3.9).
 			onBlur={composeEventHandlers(onBlur, setTouched, { checkForDefaultPrevented: false })}
 			prefix={SEARCH_PREFIX}

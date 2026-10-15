@@ -94,7 +94,9 @@ export type MarkdownProps = {
  * [marked](https://marked.js.org) and styled as prose, in a block `<div>`.
  * GitHub-flavored Markdown is enabled, so tables, task lists,
  * `~~strikethrough~~`, and autolinks all parse. With `breaks`, each line break
- * in a paragraph renders as a `<br>`.
+ * in a paragraph renders as a `<br>`. A table that is wider than the prose
+ * scrolls on the inline axis in its own box, as a fenced code block does, so
+ * the container of the prose does not scroll.
  *
  * @remarks
  * Static, server-renderable leaf: lexing and rendering are synchronous and
@@ -114,7 +116,8 @@ export type MarkdownProps = {
  * Images additionally allow `data:` URIs, which are inert as an image source.
  *
  * Entity references such as `&amp;` and `&#169;` decode to their characters in
- * text, image `alt`, and titles. Each numeric reference decodes, and so do the
+ * text, image `alt`, titles, and link and image URLs. A URL decodes before its
+ * scheme check. Each numeric reference decodes, and so do the
  * named references that prose uses (the five XML names, `&nbsp;`, and common
  * typography and symbols). A rare name stays as text. Code keeps references
  * literal, as CommonMark specifies.

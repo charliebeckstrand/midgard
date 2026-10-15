@@ -1,7 +1,8 @@
 'use client'
 
 import { type RefObject, useEffect, useEffectEvent, useRef } from 'react'
-import { announce, cn } from '../../core'
+import { cn } from '../../core'
+import { useAnnounceOnAppear } from '../../hooks/a11y/use-announce-on-appear'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/toast'
@@ -114,14 +115,7 @@ export function ToastAlert({
 	// insertion.
 	const contentRef = useRef<HTMLDivElement>(null)
 
-	useEffect(() => {
-		if (assertive) return
-
-		const message = contentRef.current?.textContent?.trim()
-
-		if (message) announce(message)
-		// Mount-only: each toast id mounts exactly once.
-	}, [assertive])
+	useAnnounceOnAppear(contentRef, true, { onMount: true, enabled: !assertive })
 
 	// Hover and focus each hold the timer's source-counted pause at most once;
 	// the flags keep every hold/release paired so the count balances.

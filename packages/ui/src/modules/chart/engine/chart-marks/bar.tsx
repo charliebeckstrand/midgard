@@ -2,6 +2,7 @@
 
 import { memo, useMemo } from 'react'
 import { cn } from '../../../../core'
+import { usePrefersReducedMotion } from '../../../../hooks/use-prefers-reduced-motion'
 import * as m from '../../../../primitives/reduced-motion/reduced-motion-elements'
 import { rangeKeys } from '../../../../utilities'
 import { type ChartPaint, fillClass, rawColor } from '../chart-color/paint'
@@ -157,6 +158,11 @@ type AnimatedBarProps = {
 	/** The texture tile fill URL, if any. */
 	tile: string | undefined
 	className: string
+	/**
+	 * Mount the bar at rest: the reader asks for reduced motion, or the render
+	 * is on the server or is the hydration render.
+	 */
+	still: boolean
 }
 
 /**
@@ -173,6 +179,7 @@ const AnimatedBar = memo(function AnimatedBar({
 	fill,
 	tile,
 	className,
+	still,
 }: AnimatedBarProps) {
 	const grow = barGrow(orientation, positive)
 
@@ -182,7 +189,9 @@ const AnimatedBar = memo(function AnimatedBar({
 			d={d}
 			fill={fill}
 			className={className}
-			initial={grow.initial}
+			// The server cannot read the preference, so it renders the bar at rest.
+			// A bar at its zero scale is invisible until the motion features load.
+			initial={still ? false : grow.initial}
 			animate={grow.animate}
 			// The bar shrinks back to the same baseline end it grew from — the
 			// reveal in reverse — when a data change swaps the marks generation.
@@ -203,6 +212,8 @@ export function AnimatedChartBarMarks({
 	orientation = 'vertical',
 }: ChartBarMarksProps) {
 	const { lit } = useChartMarkEmphasis()
+
+	const still = usePrefersReducedMotion()
 
 	return marks.flatMap((row, seriesIndex) => {
 		const paint = paints[seriesIndex]
@@ -226,6 +237,7 @@ export function AnimatedChartBarMarks({
 					fill={paint && rawColor(paint)}
 					tile={fills?.[seriesIndex]}
 					className={barClass(paint, !lit(series, index), textureActive, fills?.[seriesIndex])}
+					still={still}
 				/>
 			)
 		})

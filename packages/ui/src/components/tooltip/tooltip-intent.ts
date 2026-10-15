@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef } from 'react'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { preloadTooltipBody } from './tooltip-body-loader'
+import { tooltipBody } from './tooltip-body-loader'
 import { isReferenceDisabled, observeReferenceDisabled } from './tooltip-reference-disabled'
 
 /**
@@ -132,7 +132,7 @@ function listenForIntent(
 	const pending = () => intent.hover !== null || intent.focus !== null || intent.click !== null
 
 	const onPointerEnter = (event: PointerEvent) => {
-		preloadTooltipBody()
+		void tooltipBody.load()
 
 		const { enabled, trigger } = readOptions()
 
@@ -151,7 +151,7 @@ function listenForIntent(
 	}
 
 	const onFocusIn = (event: FocusEvent) => {
-		preloadTooltipBody()
+		void tooltipBody.load()
 
 		if (!readOptions().enabled || blockFocus || !focusOpens(event)) return
 
@@ -173,7 +173,7 @@ function listenForIntent(
 	}
 
 	const onClick = (event: MouseEvent) => {
-		preloadTooltipBody()
+		void tooltipBody.load()
 
 		const { enabled, trigger } = readOptions()
 
@@ -195,7 +195,7 @@ function listenForIntent(
 		if (disabled && !next && node.matches(':hover')) {
 			intent.reenabled = true
 
-			preloadTooltipBody()
+			void tooltipBody.load()
 		}
 
 		disabled = next

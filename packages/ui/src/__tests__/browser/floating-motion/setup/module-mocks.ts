@@ -1,5 +1,5 @@
 import { beforeAll, vi } from 'vitest'
-import { loadTooltipBody } from '../../../../components/tooltip/tooltip-body-loader'
+import { tooltipBody } from '../../../../components/tooltip/tooltip-body-loader'
 import { loadMotionFeatures } from '../../../../primitives/reduced-motion/reduced-motion-features'
 
 /**
@@ -20,4 +20,4 @@ await Promise.all([loadMotionFeatures('animation'), loadMotionFeatures('layout')
 
 // The `floating-ui` project loads the tooltip body before each file for the
 // reason that its setup gives.
-beforeAll(() => loadTooltipBody())
+beforeAll(() => tooltipBody.load())

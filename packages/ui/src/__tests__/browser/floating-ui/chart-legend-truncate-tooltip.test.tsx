@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { PieChart } from '../../../modules/chart/pie-chart'
-import { allBySlot, renderUI, screen } from '../../helpers'
+import { allBySlot, present, renderUI, screen } from '../../helpers'
 import { pause } from '../helpers/wall-clock'
 
 /**
@@ -32,6 +32,42 @@ describe('chart legend truncation tooltip (real browser)', () => {
 		expect(tip).toHaveTextContent(longLabel)
 	})
 
+	// The tooltip echoes the label, and the label is in the accessible name of
+	// the switch. A description that points at the tooltip makes a screen reader
+	// say the label two times when the keyboard focuses the switch.
+	it('does not describe a clipped entry by the label that names it', async () => {
+		const { container } = renderUI(
+			<>
+				{pie()}
+
+				<button type="button">after</button>
+			</>,
+		)
+
+		const after = present<HTMLButtonElement>(
+			container.querySelector('button:not([data-slot])'),
+			'button',
+		)
+
+		const entry = allBySlot(container, 'chart-legend-item')[0] as HTMLElement
+
+		// A real Shift+Tab back into the legend, not `entry.focus()`. The tooltip
+		// opens on a focus that matches `:focus-visible`. A script focus matches it
+		// only when the last input of the page was not a pointer, and an earlier
+		// file can leave a pointer input.
+		after.focus()
+
+		await userEvent.tab({ shift: true })
+
+		expect(document.activeElement).toBe(entry)
+
+		expect(await screen.findByRole('tooltip')).toHaveTextContent(longLabel)
+
+		expect(entry).toHaveAccessibleName(expect.stringContaining(longLabel))
+
+		expect(entry).not.toHaveAttribute('aria-describedby')
+	})
+
 	it('opens no tooltip on an entry whose label fits the column', async () => {
 		const { container } = renderPie()
 
@@ -48,7 +84,11 @@ describe('chart legend truncation tooltip (real browser)', () => {
 	})
 
 	function renderPie() {
-		return renderUI(
+		return renderUI(pie())
+	}
+
+	function pie() {
+		return (
 			<PieChart
 				aria-label="Traffic by source"
 				data={[
@@ -59,7 +99,7 @@ describe('chart legend truncation tooltip (real browser)', () => {
 				width={640}
 				height={320}
 				legend="right"
-			/>,
+			/>
 		)
 	}
 })

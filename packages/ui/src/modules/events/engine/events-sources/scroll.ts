@@ -1,0 +1,34 @@
+import { describeTarget, isOwn } from '../events-target'
+import type { EventSource } from '../types'
+import { nextBatch, on, QUIET } from './dom'
+
+/** The start and the end of each scroll, as one batch. */
+export const scroll: EventSource = (note) => {
+	let scrolling: ReturnType<typeof setTimeout> | undefined
+
+	let batch = ''
+
+	const stop = on(document, ['scroll'], (event) => {
+		if (isOwn(event.target)) return
+
+		if (!scrolling) {
+			batch = nextBatch()
+
+			note({ kind: 'scroll', text: `scroll starts ${describeTarget(event.target)}`, batch })
+		}
+
+		clearTimeout(scrolling)
+
+		scrolling = setTimeout(() => {
+			scrolling = undefined
+
+			note({ kind: 'scroll', text: 'scroll ends', batch })
+		}, QUIET)
+	})
+
+	return () => {
+		stop()
+
+		clearTimeout(scrolling)
+	}
+}

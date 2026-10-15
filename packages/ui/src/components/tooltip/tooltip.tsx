@@ -1,9 +1,10 @@
 'use client'
 
-import { type ReactNode, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import { type ReactNode, useMemo, useState } from 'react'
 import type { FloatingPlacement } from '../../hooks'
+import { useLazyModule } from '../../hooks/use-lazy-module'
 import { TooltipContext, type TooltipContextValue } from './context'
-import { preloadTooltipBody, readTooltipBody, subscribeTooltipBody } from './tooltip-body-loader'
+import { tooltipBody } from './tooltip-body-loader'
 import { useTooltipIntent } from './tooltip-intent'
 
 /** Props for {@link Tooltip}. */
@@ -79,9 +80,6 @@ export type TooltipProps = {
 	children: ReactNode
 }
 
-/** The server renders no tooltip state: the state loads on the client. */
-const serverTooltipBody = () => null
-
 /** A closed tooltip sets no styles on a panel, and no props on the trigger or the panel. */
 const NO_STYLES = {}
 
@@ -118,7 +116,7 @@ export function Tooltip({ disabled, children, ...props }: TooltipProps) {
 	// runs the full state from its first render, so only a tooltip that mounts
 	// before the load takes the light state and the handover. The choice holds
 	// for the life of the tooltip, so the tree keeps its shape.
-	const [module] = useState(readTooltipBody)
+	const [module] = useState(tooltipBody.read)
 
 	// The public polarity is `disabled`; the state hook and floating-ui's own
 	// hooks under it read `enabled`, so the inversion happens once, here.
@@ -147,17 +145,13 @@ type LightTooltipProps = Omit<TooltipProps, 'disabled'> & { enabled: boolean }
 function LightTooltip({ enabled, children, ...props }: LightTooltipProps) {
 	const { trigger = 'hover', interactive = false, open: held = false } = props
 
-	const module = useSyncExternalStore(subscribeTooltipBody, readTooltipBody, serverTooltipBody)
+	// A tooltip that `open` holds open needs its state now.
+	const module = useLazyModule(tooltipBody, enabled && held)
 
 	// The value of the loaded state, which `TooltipStateHost` gives back.
 	const [state, setState] = useState<TooltipContextValue | null>(null)
 
 	const { setReference, takeIntent } = useTooltipIntent({ enabled, trigger })
-
-	// A tooltip that `open` holds open needs its state now.
-	useEffect(() => {
-		if (enabled && held) preloadTooltipBody()
-	}, [enabled, held])
 
 	// Until the state loads, the tooltip is closed. The trigger gives its node to
 	// the intent listeners.

@@ -10,6 +10,7 @@ import {
 	type NavMenuItemProps,
 	type NavProps,
 } from '../../components/nav'
+import { OffcanvasContext } from '../../primitives/offcanvas'
 import { bySlot, densityStepOf, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Nav', () => {
@@ -95,6 +96,24 @@ describe('NavItem', () => {
 		expect(inner).toHaveAttribute('type', 'button')
 
 		expect(inner).toHaveAttribute('aria-current', 'true')
+	})
+
+	it('gives a link item no type, as a type on an anchor names a MIME type', () => {
+		const { container } = renderUI(
+			<Nav>
+				<NavList>
+					<NavItem href="/home" type="submit">
+						Home
+					</NavItem>
+				</NavList>
+			</Nav>,
+		)
+
+		const inner = bySlot(container, 'nav-item-inner')
+
+		expect(inner?.tagName).toBe('A')
+
+		expect(inner).not.toHaveAttribute('type')
 	})
 
 	it('renders as a button by default', () => {
@@ -188,6 +207,32 @@ describe('NavItem', () => {
 		fireEvent.click(screen.getByText('Home'))
 
 		expect(onClick).toHaveBeenCalled()
+	})
+
+	it('keeps an enclosing drawer open and still selects when onClick calls preventDefault', () => {
+		const close = vi.fn()
+
+		const onChange = vi.fn()
+
+		renderUI(
+			<OffcanvasContext value={{ close }}>
+				<Nav onValueChange={onChange}>
+					<NavList>
+						<NavItem value="home" onClick={(event) => event.preventDefault()}>
+							Home
+						</NavItem>
+					</NavList>
+				</Nav>
+			</OffcanvasContext>,
+		)
+
+		fireEvent.click(screen.getByText('Home'))
+
+		// The selection is the activation of the item, so the cancel does not stop
+		// it. The close is side behavior, so the cancel stops it.
+		expect(onChange).toHaveBeenCalledWith('home')
+
+		expect(close).not.toHaveBeenCalled()
 	})
 
 	it('renders the icon prop through the NavItem icon slot', () => {

@@ -212,6 +212,31 @@ describe('PasswordConfirm values', () => {
 		expect(onMatchChange).toHaveBeenCalledWith(false)
 	})
 
+	it('compares the text that a bound field shows when the form value is not a string', () => {
+		// The bound field shows `''` for a non-string value (CONVENTIONS.md §7.2),
+		// so the coordinator compares `''`, not `'1234'`.
+		const onMatchChange = vi.fn()
+
+		renderUI(
+			<Form defaultValues={{ password: 1234, confirm: '1234' }}>
+				<PasswordConfirm warning="Passwords do not match" onMatchChange={onMatchChange}>
+					<PasswordConfirmNew name="password" />
+					<PasswordConfirmRepeat name="confirm" />
+				</PasswordConfirm>
+			</Form>,
+		)
+
+		const { password } = passwordInputs()
+
+		expect(password).toHaveValue('')
+
+		expect(onMatchChange).not.toHaveBeenCalled()
+
+		fireEvent.input(password, { target: { value: '1234' } })
+
+		expect(onMatchChange).toHaveBeenLastCalledWith(true)
+	})
+
 	it('compares controlled values and their updates', () => {
 		const { rerender } = renderUI(
 			<PasswordConfirm warning="Passwords do not match">

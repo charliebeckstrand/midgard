@@ -8,6 +8,11 @@ export type StickyBars = {
 	root: (node: HTMLElement | null) => (() => void) | undefined
 	/** The ref of a bar that sticks at some widths. */
 	bar: (node: HTMLElement | null) => (() => void) | undefined
+	/**
+	 * Measures the bars again. Call it when a bar starts or stops to stick and
+	 * keeps its size, because no resize then tells the layout about the change.
+	 */
+	measure: () => void
 }
 
 /**
@@ -98,6 +103,7 @@ function createStickyBars(): StickyBars {
 				measure()
 			}
 		},
+		measure,
 	}
 }
 

@@ -15,7 +15,7 @@ const { meter, text } = iro
 const { weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
-const { ease, spring } = ugoki
+const { spring } = ugoki
 const { forced } = sen
 
 const fill = defineRecipe({
@@ -57,20 +57,17 @@ export const k = defineRecipe(
 		still: { duration: 0 },
 		bar: {
 			fill,
-			indeterminate: 'w-1/3',
-		},
-		/**
-		 * Indeterminate sweep: the third-width fill moves from before the start of
-		 * the track to past its end, on a loop. A percentage in `translateX` is a
-		 * fraction of the width of the fill, so 300% is the width of the track.
-		 * The keyframes set `transform` directly, so Motion can give the loop to
-		 * the animation engine of the browser. `rtl` is the same sweep in a
-		 * right-to-left track, where the fill starts at the right edge.
-		 */
-		sweep: {
-			animate: { transform: ['translateX(-100%)', 'translateX(300%)'] },
-			rtl: { transform: ['translateX(100%)', 'translateX(-300%)'] },
-			transition: { duration: 1.5, ease: ease.inOut, repeat: Number.POSITIVE_INFINITY },
+			/**
+			 * Indeterminate fill: a third of the track that sweeps from the start of
+			 * the track to past its end, on a loop. The keyframes are in
+			 * `ui/tailwind.css`. Under reduced motion the fill holds still at the
+			 * start of the track.
+			 */
+			indeterminate: [
+				'w-1/3',
+				'motion-safe:animate-progress-sweep',
+				'rtl:motion-safe:animate-progress-sweep-rtl',
+			],
 		},
 		gauge: {
 			base: gauge,

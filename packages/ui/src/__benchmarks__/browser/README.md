@@ -259,191 +259,6 @@ The rows are noisy. The relative margin of error of a run was up to ±31%, and t
 
 ### Optimization log
 
-Each entry names the change and the scenarios it moved; the levers are ordered as they landed.
-
-1. **Production React in the bench** (methodology). Measuring the shipped build instead of the dev one cut every ui number ~2.6× — the largest single move, and the honest baseline the rest build on.
-
-2. **Deferred data table** ([`frame.tsx`](../../modules/chart/engine/chart-frame/frame.tsx), `useDeferredValue`). The visually-hidden table holds one row per datum; taking its build off the urgent render dropped the line mounts most (1k line mount 235 → ~12 under dev React at the time), since a line's marks are one path and the table was the whole linear term. Parity is unchanged — the table converges one low-priority commit behind.
-
-3. **Single-path plain scatter** ([`scatter-chart-marks.tsx`](../../modules/chart/scatter-chart/scatter-chart-marks.tsx)). A plain series draws as one `<path>` of every disc rather than a circle apiece, and isolation dims the group then re-draws the one lit disc over it, so a pointer crossing rebuilds nothing. Scatter 1k mount 66 → 16 (beats both); 10k mount 711 → 137, update 616 → 63, hover 30 → 25 (all now past Highcharts, closing on AG's canvas). Bubbles keep a circle each — their translucent fills must composite disc over disc.
-
-4. **Single-path bars** ([`bar.tsx`](../../modules/chart/engine/chart-marks/bar.tsx)). Each series' bars concatenate into one `<path>` — bars are opaque and never overlap, so it reads identically — with the same group-dim-plus-overlay isolation the scatter path uses. Bar 500 mount 138 → 24 and update 67 → 8, both now past AG and Highcharts; the combo and dual-axis bars ride the same renderer.
-
-5. **Constant-radius disc path** ([`scatter.ts`](../../modules/chart/engine/chart-geometry/scatter.ts)). A plain scatter series shares one radius across every disc, so the two arc commands are identical for all of them; the builder caches that suffix and formats only the one moving coordinate per disc. Scatter 10k update 67 → 60, past AG.
-
-6. **Sub-pixel path coordinates** ([`chart-coords.ts`](../../modules/chart/engine/chart-coords.ts)). Path `d` strings round to two decimals, a fraction of the full-float size; a structural cleanup that shrinks the DOM payload the large-N paths ship.
-
-7. **Lazy readout** ([`types.ts`](../../modules/chart/engine/types.ts) `ChartReadoutSource`, every chart body). Building the readout formats every category × series cell through `Intl` — at 10,000 rows that outweighed drawing the marks, and it ran on the mount-critical render even after the table's render was deferred. Charts now hand the frame a cached thunk (`once`): the mount render only decides a readout exists, the hover tooltip materializes it on the first pointed frame, the deferred table a low-priority beat after mount, CSV export on selection. Line 10k mount 92 → ~66, scatter 10k mount 127 → ~81 — both past AG's canvas. Parity unchanged; the cache is shared by every consumer.
-
-8. **Squared-distance hit test** ([`scatter.ts`](../../modules/chart/engine/chart-geometry/scatter.ts) `scatterMarkAt`). The per-move scan stays in squared distances end to end — the held-disc hysteresis already compared squares — and rejects on each axis before multiplying, so the far discs cost two compares and no arithmetic; `Math.hypot`, which the scan called ten thousand times per move, is gone. Scatter 10k hover 23.5 → ~18, from ~3.5ms of scan to well under one.
-
-9. **Early-exit date detection** ([`chart-time.ts`](../../modules/chart/engine/chart-time.ts) `dateCategoryFormat`). The band axis's are-these-all-dates probe parsed every category (`Date.parse` per row) before answering; a non-date axis now fails on its first value, one parse instead of ten thousand. Worth ~11ms of the line 10k mount.
-
-Open: the scatter hover sweep still trails AG by a whisker (~18 vs ~17) — the residual is a React commit per pointer move against AG's vanilla redraw, closable only by moving the shared crosshair/tooltip tracking to imperative DOM writes. The ten-thousand-row date axis trails both rivals; see below. Every other scenario stands beaten or tied.
-
-#### Date-axis mounts (2026-08-02, this container)
-
-Added with the pure-core suite, so these carry no earlier baseline. Mean ms per iteration, each rung the median of three runs, beside the plain-label scenario of the same size.
-
-| Scenario | ui | AG Charts | Highcharts |
-| --- | ---: | ---: | ---: |
-| mount · line · 1,000 × 1 | **8.6** | 30.2 | 22.0 |
-| mount · line · dated · 1,000 × 1 | **10.2** | 27.5 | 22.7 |
-| mount · line · 10,000 × 1 | **39.7** | 53.8 | 60.5 |
-| mount · line · dated · 10,000 × 1 | 60.3 | 55.4 | **55.0** |
-
-A date axis costs the module ~1.6ms at a thousand rows and ~20ms at ten thousand, where it gives up a 1.35× lead and lands ~1.1× behind both rivals. Neither rival pays a comparable surcharge. The pure cores account for the whole 20ms: the are-these-dates probe parses every category (3.8ms at ten thousand, against ~0.0004ms for a non-date axis, which exits on its first value), and `resolveCategories` then labels every row through the resolved formatter — a second parse plus an `Intl` format apiece, 15.6ms at ten thousand.
-
-Open: the axis draws about a dozen labels whatever the row count, so most of that labeling is discarded. Formatting on demand does not reach it alone, because `verticalLayout` sizes the band gutter from the longest label and so measures every one; the whole array has to exist before the layout can run. Closing it means giving the gutter estimate a width it can reach without the labels — the two rungs above put ~20ms behind that change.
-
-## Grids
-
-### Methodology
-
-Each scenario drives the deterministic shipment rows (`shipments` in [`../fixtures.ts`](../fixtures.ts), LCG-seeded, 8 columns) into a fixed 960×600 box, with the animations off and fixed 120px columns ([`grids.tsx`](grids.tsx)). The ui grid renders through React (`createRoot` + `flushSync`). Each operation is timed until a paint probe sees the expected cell text in the live DOM. A row that the grid defers onto an animation frame therefore costs the frames it defers, and the suite trusts no "ready" signal.
-
-- [`grid-mount.bench.tsx`](grid-mount.bench.tsx) — full mount-to-painted-rows plus teardown per iteration, at 1k / 10k / 100k rows.
-
-- [`grid-update.bench.tsx`](grid-update.bench.tsx) — whole-dataset refresh on a live grid (same row ids, new values), alternating two same-shape datasets so no iteration bails on an equality guard, at 10k / 100k.
-
-- [`grid-sort.bench.tsx`](grid-sort.bench.tsx) — an asc/desc sort flip on `id` through the controlled `sort` binding, so the grid re-sorts the full dataset and repaints the window, at 10k / 100k.
-
-- [`grid-scroll.bench.tsx`](grid-scroll.bench.tsx) — a top-to-bottom-and-back sweep in 12 even jumps, one settled frame per step plus a fully-painted probe at each end — the virtualization stress, at 10k / 100k.
-
-- [`grid-filter.bench.tsx`](grid-filter.bench.tsx) — a quick-filter term applied and then cleared, settled on painted survivors at each end, so one sample covers the narrowing a keystroke produces and the widening a backspace does, at 10k / 100k. The ui grid takes the term through its `search` binding and searches the columns that declare a `value` accessor, so every bench column declares one. A second pair of scenarios runs the same cycle on a grid that sorts on `id` in descending order, so the search and the sort work together.
-
-- [`grid-column-filter.bench.tsx`](grid-column-filter.bench.tsx) — a `contains` filter on the carrier column, applied and then cleared, at 10k / 100k. It settles on painted survivors at each end, as the quick-filter scenario does. The ui grid takes the filter through its `columnFilters` binding. Only this scenario mounts the carrier column as filterable, so no filter affordance adds to the cost of the others.
-
-- [`grid-paginate.bench.tsx`](grid-paginate.bench.tsx) — client pagination with 100 rows on each page, at 10k / 100k. Three scenarios run: a mount, a flip to the second page and back, and an asc/desc sort flip on `id`. The ui grid pages through its `pagination` binding. Only this scenario mounts the grid paginated.
-
-- [`grid-total.bench.tsx`](grid-total.bench.tsx) — a grand total that sums the loads and the weight, at 10k / 100k. Three scenarios run: a mount, an asc/desc sort flip on `id`, and a quick filter applied and cleared.
-
-- [`grid-facets.bench.tsx`](grid-facets.bench.tsx) — a mount, then the first open of a `select` filter on the carrier column, which lists the carriers of the rows, at 10k / 100k. A reopen on the same data reads a cached list, so the scenario times the first open.
-
-- [`grid-group.bench.tsx`](grid-group.bench.tsx) — client grouping by carrier, with every group open, at 10k / 100k. Three scenarios run: a mount, an asc/desc sort flip on `id`, and a quick filter applied and cleared. The clear settles on the row count of the toolbar, because a grouped window that grows back keeps its scroll offset.
-
-- [`grid-resize-drag.bench.tsx`](grid-resize-drag.bench.tsx) — a drag on the resize handle of the origin column: a press, ten moves of 8px, and a release, at 10k rows with a window. Each move gets one frame from a fake frame clock (`withFrameClock` in [`harness.ts`](harness.ts)), and a read of the header rect after each frame forces layout. Three rows run: `truncate`, `truncate={false}`, and `truncate` with no layout read.
-
-- [`grid-edit.bench.tsx`](grid-edit.bench.tsx) — a row edit that opens and closes, at 1k rows without a window and 10k rows with a window, and a move of the open cell under `scope: 'cell'`, at 1k rows without a window. Each sample commits through `flushSync`, reads the rect of the host, and counts the editors.
-
-- [`grid-fit.bench.tsx`](grid-fit.bench.tsx) — the column fit of a grid that the autosizer sizes, at 1k rows with no window and no declared width, as the admin users grid mounts. Two scenarios run: a mount, and an asc/desc sort flip on `id`. Each sample ends one rendered frame after the paint probe, so the style and layout work that the commit leaves to the browser is in the sample. The `navigable` rows mount the cell cursor.
-
-- [`grid-cursor.bench.tsx`](grid-cursor.bench.tsx) — one arrow move of the cell cursor, down one row and back up, at 1k rows without a window. Each sample ends one rendered frame after the key press. The `fill handle` row is an editable grid with a range, which shows the fill handle on the active cell. The `navigable` row shows no handle, and is the floor.
-
-- [`grid-range.bench.tsx`](grid-range.bench.tsx) — one extend of the cell range by key, with Shift and Ctrl+End, across 1k rows without a window, and the shrink back with Shift and Ctrl+Home. Each of the 8,000 cells flips its range flag in each sample, so the row measures the fanout of the cursor store. Each sample ends one rendered frame after the key press. The `fill handle` row is an editable grid, and the `read-only` row is a navigable grid.
-
-- [`grid-group-expand.bench.tsx`](grid-group-expand.bench.tsx) — the expand and the collapse of one group, at 10k rows grouped by carrier with every group closed at mount. Each sample clicks the disclosure under `flushSync` and then waits one task, so the render that drops the entering rows is in the sample. The sample settles on no frame. Before the bench registers, the file logs the time, the commits, and the renders of the grouped body for the click and for the task after it.
-
-- [`grid-group-manager.bench.tsx`](grid-group-manager.bench.tsx) — one rename keystroke in the group editor of the column manager, at 8 groups of 40 columns and 40 ungrouped columns. The editor mounts on its own, and each sample commits the keystroke under `flushSync`. The `layout` row also reads the rect of the editor. Before the benches register, the file logs the zones, the rows, and the menus that one keystroke renders.
-
-- [`grid-density.bench.tsx`](grid-density.bench.tsx) — the restyle cost of the density classes, at 1k rows with no window and fixed 120px columns, under 0, 1, and 2 density scopes. The status cell of each row renders a `Badge`. Under 0 and 1 scope the badge is a slot (`data-density="slot"`), because the grid has no slot of its own. Under 2 scopes it is not a slot, so each row keeps the shape of the first record, where a slot 3 deep took the wrong step. Three scenarios run: a mount, an asc/desc sort flip on `id`, and a switch of the root density between `sm` and `lg` through `writeRootDensity`. Each sample forces the style and the layout with a read of the height of the grid, and waits for no rendered frame. The switch also waits one task, in which the root observer renders the grid again. A fourth scenario measures the matched-properties cache: two grids of 1k rows, where each cell holds a span that is its own scope, with stepped classes that have equal stops at `md` and `lg`. In one grid each span is `md`, and in the other the rows alternate `md` and `lg`. A sample hides the grid, then shows it and forces the style and the layout. Before the benches register, the file logs the badge padding of each row, the geometry of the two cache grids, and the `RecalcStyleDuration` and the `LayoutDuration` of each scenario from the Chromium `Performance` domain, through `cdp()`.
-
-The two group files count renders with [`render-count.ts`](render-count.ts). It installs a minimal React DevTools hook before `react-dom` loads, and counts each component that did work in a commit. A component that runs and then bails out does not count, as in React DevTools.
-
-The ui grid keeps its built-in chrome (the toolbar with export, and the accessible announcements) in each scenario. React runs in production mode, for the reason that the intro gives.
-
-### Standings (2026-07-10, this workstation)
-
-Absolute numbers move with hardware — this table was re-measured on a faster machine than the round-one/two figures the optimization log's relative deltas cite, so read the deltas there, the ratios here. Mean ms per iteration, ui (before this suite's off-engine work → after) / AG Grid / MUI X — **bold** marks a scenario where the ui number beats both rivals. The `before` column benches the pre-off-engine grid source through the same harness on the same machine, so the before/after is a true same-machine delta.
-
-| Scenario | ui before | ui | AG Grid | MUI X |
-| --- | ---: | ---: | ---: | ---: |
-| mount · 1,000 × 8 | 7.3 | **4.9** | 11.0 | 9.7 |
-| mount · 10,000 × 8 | 17.5 | **5.5** | 15.6 | 10.6 |
-| mount · 100,000 × 8 | 157 | **16.0** | 50.1 | 25.4 |
-| update · 10,000 × 8 | 15.8 | **3.0** | 5.3 | 19.8 |
-| update · 100,000 × 8 | 155 | **12.2** | 54.2 | 24.5 |
-| sort · 10,000 · flip | 24.8 | 9.5 | 9.8 | 6.5 |
-| sort · 100,000 · flip | 162 | 40.2 | 23.1 | 31.3 |
-| scroll · 10,000 · round trip | 235 | **206.7** | 217.0 | — |
-| scroll · 100,000 · round trip | 218 | **206.7** | 246.3 | — |
-
-The structural row-model lever landed, and the board turned over: the ui grid now beats **both** competitors on every mount and every update — the 100k mount ~3× under AG (16 vs 50) and the 100k update over 4× under it (12 vs 54). The whole linear term is gone from the untransformed paths, so mount and update barely move from 1k to 100k (5 → 16ms, 3 → 12ms) where the competitors climb. Scroll is unchanged here — that win landed earlier (#954's lazy truncation) and still beats AG; this PR left it flat, as the before/after shows.
-
-#### Quick filter (2026-08-02, this container)
-
-Added with the pure-core suite, so it carries no earlier baseline. Mean ms per iteration for one apply-and-clear cycle.
-
-| Scenario | ui | AG Grid | MUI X |
-| --- | ---: | ---: | ---: |
-| filter · 10,000 · apply + clear | 51.1 | 65.6 | 46.9 |
-| filter · 100,000 · apply + clear | 211.9 | 204.9 | 173.5 |
-
-The suite's second open scenario, and the only one besides sort where the module does not lead: MUI takes both sizes (1.09× at 10k, 1.22× at 100k) and AG draws level at 100k. Filtering is the one path that still forces the engine's row model — `resolveActiveEngineTransform` counts a non-empty query as an active transform, so a filtered grid materializes a `Row` per datum, exactly the linear term levers 5–8 took off mount, update, and sort. The same off-engine treatment applies: a sole-filter grid can scan `rows` directly through the shared `columnAccessor`, as `sortRowsSmart` does. Below that sits the decode — a quick filter reads every searchable cell of every row on every keystroke — which is the same cached-`SortKey` lever sort is waiting on, over the same values.
-
-Sort took the off-engine path too and closed most of its gap — 100k sort fell from 162 to 40ms (from 7× behind AG to 1.7×, from 5× behind MUI to 1.3×), and 10k from 25 to 9.5ms (now edging AG, still behind MUI's 6.5). A sort that is the grid's only transform now orders `rows` directly, off the engine, like mount and update — but it still trails both rivals at 100k, the suite's one open scenario. The 40-vs-23 residual is the decode: an asc↔desc flip re-derives every row's `SortKey` (the `parseNumeric` regex work) even though only the direction changed. The next lever is caching the decoded keys per (rows, column) so a flip re-sorts without re-decoding — a `WeakMap` keyed on the `rows` array, no manual invalidation — which should close the AG gap. Below that, the per-cell render is the last rung — a cell-tree diet (`GridDataCell` → `TableCell` → span) for the residual per-row constant.
-
-#### React Compiler (2026-09-25, this container)
-
-`pnpm bench:browser:compiler` runs the suite with the React Compiler on the `ui` source. This entry compares it with the plain run, after the engine boundary compiled in full. The table gives the ui grid only, in ms per iteration. Each value is the median over interleaved pairs of runs: four pairs for the grouped body and resize, and two pairs for the rest.
-
-The contenders stay plain in both runs, so their change measures the noise. It reached ±43% between runs, so read only a change that each pair shows.
-
-| Scenario | plain | compiled | change | each pair |
-| --- | ---: | ---: | ---: | --- |
-| mount · 1,000 × 8 | 24.3 | 24.0 | −1% | same sign |
-| mount · 100,000 × 8 | 58.6 | 56.2 | −4% | mixed |
-| update · 10,000 × 8 | 10.7 | 11.2 | +5% | same sign |
-| update · 100,000 × 8 | 37.6 | 36.7 | −2% | mixed |
-| sort · 10,000 · flip | 26.4 | 22.5 | −15% | same sign |
-| sort · 100,000 · flip | 50.3 | 51.0 | +1% | mixed |
-| filter · 100,000 · apply + clear | 226 | 228 | +1% | mixed |
-| grouped body · collapsed rows live | 6.06 | 6.38 | +5% | mixed |
-| grouped body · all expanded · rested | 6.39 | 6.64 | +4% | mixed |
-| resize · 1,000 · `truncate` | 109 | 118 | +8% | same sign |
-| resize · 3,000 · `truncate` | 219 | 228 | +4% | mixed |
-
-The compiler is about neutral for the grid in this suite. Two changes held in each pair. The 10,000-row sort flip was 15% faster, over two pairs only. The 1,000-row resize with truncation was 8% slower, over four pairs. The first two pairs showed the grouped body slower, but the next two pairs reversed it.
-
-A CPU profile of that resize took 20 toggles in each build. It put the script work at 765ms plain and 785ms compiled, about 1ms a toggle. The rest of the gap was in the frames that the sample waits out. Each resize then rendered the cells of all rows again in both builds. The compiled row kept its cells in a memo block that each resize made stale, so the block added its cache work. Entry 10 of the grid log removes that cost: a resize now renders no row, and the compiled resize is level with the plain one.
-
-#### Drag and edit (2026-09-25, this container)
-
-These scenarios came with the fake frame clock, so they have no earlier baseline. The table gives the ui grid only, in mean ms per iteration. Each value is the median over three runs.
-
-| Scenario | ui |
-| --- | ---: |
-| resize drag · 10,000 · `truncate` | 53.6 |
-| resize drag · 10,000 · `truncate={false}` | 39.8 |
-| resize drag · 10,000 · script only | 26.7 |
-| edit · row open + close · 1,000 · un-windowed | 12.2 |
-| edit · row open + close · 10,000 · windowed | 3.6 |
-| edit · cell move · 1,000 · un-windowed | 9.5 |
-
-The drag runs under `withFrameClock`, which puts a manual queue in place of `requestAnimationFrame` for the sample. The table engine throttles each move onto a frame, and a real frame costs about 17 ms here. Without the clock, a drag of ten moves waits out ten frames. With the clock, each move gets one frame and no wait. Paint is outside the sample in each scenario. A drag row gives the script work and the layout that the rect reads force.
-
-Three rows are the regression sentinels. The script-only drag leaves out the layout reads, so it moves only when the script work moves. The two edit rows at 1,000 rows have no window, so each row stays mounted, and a cost that reaches each row shows there first. A scratch run against `81c2c35`, the commit before #1347 and #1348, proved the three rows. There the two edit rows were 4 to 10 times slower, and the script-only drag was 19% to 25% slower, in two interleaved rounds.
-
-#### Density restyle (2026-10-14, this container)
-
-This is the first record of [`grid-density.bench.tsx`](grid-density.bench.tsx), on `main` with the density rungs, before each stepped class read the weights of its scope. It is the baseline of that change, and a later record compares with it. The nearest scope is `md`, as the bare root is, so each grid has the same geometry in a mount and in a sort. Two scopes put `lg` outside `md`.
-
-Mean ms per iteration, in Chromium. Each value is the median of three runs. The wall column is the Vitest sample. The `Performance` columns are the means of ten runs that the file logs before the benches register.
-
-| Scenario | Scopes | Wall | `RecalcStyleDuration` | `LayoutDuration` |
-| --- | ---: | ---: | ---: | ---: |
-| mount · 1,000 × 8 | 0 | 516.7 | 256.0 | 97.1 |
-| mount · 1,000 × 8 | 1 | 728.1 | 412.1 | 119.2 |
-| mount · 1,000 × 8 | 2 | 758.0 | 441.0 | 91.3 |
-| sort · 1,000 · flip | 0 | 352.2 | 207.6 | 81.9 |
-| sort · 1,000 · flip | 1 | 556.0 | 433.9 | 98.1 |
-| sort · 1,000 · flip | 2 | 579.1 | 452.4 | 92.9 |
-| root switch · `sm`/`lg` | 0 | 377.3 | 238.5 | 81.5 |
-| root switch · `sm`/`lg` | 1 | 458.7 | 420.1 | 0.0 |
-| root switch · `sm`/`lg` | 2 | 469.0 | 444.3 | 0.0 |
-
-**Style recalc is the largest part of each sample.** It is about half of the wall time or more in each row, and layout is less than a quarter.
-
-**One scope adds about 60% to the style recalc of a mount, and doubles that of a sort.** The geometry is the same in each row of a scenario, so the difference is the cost of the rungs that a scope adds. A second scope adds little more.
-
-**A root switch restyles a grid that a scope holds at one step.** Under a scope, no computed value changes, and the switch runs no layout. The switch still costs more style recalc than under no scope. The cause is not measured. A cell in a scope matches the rungs of more depths, which is a possible cause.
-
-**The switch is far past the frame budget at each count of scopes.** Main is already past it on this grid, so compare a later build with this baseline, not with the frame budget.
-
-The rows are noisy. The relative margin of error of a run was up to ±21%, and the load average of the container was above 6 on 4 cores. The bench does not isolate the matched-properties cache. Its figures give the cost for each count of scopes, and not the part of the cost that the cache saves.
-
-### Optimization log
-
 Each entry names the change and the scenarios it moved.
 
 1. **Cached natural collator** ([`grid-sorting-utilities.ts`](../../modules/grid/engine/grid-sort/utilities.ts)). The smart comparator's string fallback ran `localeCompare(…, { numeric: true })`, which re-resolves collation machinery on every call — O(N log N) times per sort; a shared `Intl.Collator` answers the same ordering. Sort 100k 1,562 → ~750, sort 10k 183 → ~104.
@@ -819,7 +634,7 @@ A tighter ablation toggles the ref in one process, so no cross-run drift enters 
 
 **The mount bench projected 0.88 ms, or 18% of a 24-row open, and that figure does not survive the reflow control.** The projection counted deferred layout as removed work. The real open-commit win is small. The change lands on two counts even so. The first is the measured saving. The second is a dead watch struck from the default root panel, with the lifetime `ResizeObserver` callbacks this suite never priced.
 
-`MenuSub` now takes the same gate, and the gate itself moved into the hook as an `enabled` option ([`use-scroll-overflow.ts`](../../hooks/use-scroll-overflow.ts)). **That half is unmeasured, and no figure above stands in for it.** No bench in this suite opens a submenu: [`menu-mount.bench.tsx`](menu-mount.bench.tsx) prices a *closed* submenu row, and [`menu-pointer.bench.tsx`](menu-pointer.bench.tsx) sweeps with one *already* open. The mount bench is the wrong instrument besides. The reflow control above collapsed its 24-row gap from 0.749 ms to 0.028, so a figure quoted from it here would repeat the error this section corrects.
+`MenuSub` now takes the same gate, and the gate itself moved into the hook as an `enabled` option (`use-scroll-overflow.ts`, since deleted). **That half is unmeasured, and no figure above stands in for it.** No bench in this suite opens a submenu: [`menu-mount.bench.tsx`](menu-mount.bench.tsx) prices a *closed* submenu row, and [`menu-pointer.bench.tsx`](menu-pointer.bench.tsx) sweeps with one *already* open. The mount bench is the wrong instrument besides. The reflow control above collapsed its 24-row gap from 0.749 ms to 0.028, so a figure quoted from it here would repeat the error this section corrects.
 
 The submenu gate therefore lands on the dead work alone. The invariant holds verbatim: `MenuSub` renders the same `MenuViewport`, which reads the same `capped`. `FloatingSurface` mounts the panel per open through `Portal`, so the watch was set up on every submenu open, to hold two attributes that cannot change.
 
@@ -868,9 +683,11 @@ What is left is a whole `useFloatingUI`, a `MenuPointerLevel`, three `useId` cal
 
 4. **The overflow watch gated on `capped`** ([`menu-content.tsx`](../../components/menu/menu-content.tsx)). The watch attached to the viewport on every open, and observed the node and each row, to hold two edge attributes. On the uncapped default it can never fire: the viewport carries no `max-h`, so it never overflows. It now attaches only while `capped`, and [`menu-scroll-overflow.test.tsx`](../../__tests__/browser/menu-scroll-overflow.test.tsx) pins that invariant. One open commit: 0.22 ms saved at 24 rows, measured wired against gated in one process. That is the modest end of a change made for its correctness — see `Gating the overflow watch` above for why the earlier projection was larger. `MenuSub` kept the same dead watch until lever 5. Its teardown closed separately, in [#1171](https://github.com/charliebeckstrand/midgard/pull/1171).
 
-5. **The gate moved into the hook, and `MenuSub` took it** ([`use-scroll-overflow.ts`](../../hooks/use-scroll-overflow.ts), [`menu-sub.tsx`](../../components/menu/menu-sub.tsx)). Lever 4 gated `MenuContent` with a ternary at the ref. `useScrollOverflow` now takes an `enabled` option, and both menu call sites state the gate once, where the hook is called. `MenuSub` read the same `capped` and rendered the same capped viewport, so it wired the same dead watch on every submenu open. **Unmeasured.** No bench in this suite opens a submenu, and the mount bench overprices this class of change — see `Gating the overflow watch` above.
+5. **The gate moved into the hook, and `MenuSub` took it** (`use-scroll-overflow.ts`, since deleted, [`menu-sub.tsx`](../../components/menu/menu-sub.tsx)). Lever 4 gated `MenuContent` with a ternary at the ref. `useScrollOverflow` now takes an `enabled` option, and both menu call sites state the gate once, where the hook is called. `MenuSub` read the same `capped` and rendered the same capped viewport, so it wired the same dead watch on every submenu open. **Unmeasured.** No bench in this suite opens a submenu, and the mount bench overprices this class of change — see `Gating the overflow watch` above.
 
 6. **The viewport extracted, and the gate with it** ([`menu-viewport.tsx`](../../components/menu/menu-viewport.tsx)). Levers 4 and 5 left both panels stating the same three decisions: the `data-slot` anchor, `k.viewport({ density, capped })`, and the gated watch. `MenuViewport` now owns all three, and `MenuContent` and `MenuSub` render it. **No perf claim for an open.** The work per open is unchanged. A closed `MenuSub` row no longer calls `useScrollOverflow`, because the hook moved into a component that the shut panel never renders; that saving is unmeasured. What changes otherwise is that one place states the gate, where two did.
+
+7. **The overflow watch deleted** ([`menu-viewport.tsx`](../../components/menu/menu-viewport.tsx), [`fade.ts`](../../core/scroll/fade.ts)). The viewport now takes the `scroll-fade-block` utility, which scroll-driven animations draw with no script, as the rail does on the inline axis. `useScrollOverflow`, its gate, and its two edge attributes are gone. A capped or floating panel opened one scroll listener, one `ResizeObserver` with one `observe` call for the node and for each row, one `MutationObserver`, and a forced layout read. Now it opens none of them. The viewport and per-row scenarios of [`menu-shell.bench.tsx`](menu-shell.bench.tsx) priced that watch, so they went with it. The tables above that name the watch are the record of that time. Firefox, and Safari before 26, show no menu fade.
 
 ## Popovers
 

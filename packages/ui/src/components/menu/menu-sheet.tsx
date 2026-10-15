@@ -1,7 +1,7 @@
 'use client'
 
 import { type ReactNode, useId, useLayoutEffect, useRef, useState } from 'react'
-import { cn } from '../../core'
+import { accessibleName, cn } from '../../core'
 import { useA11yRoving } from '../../hooks'
 import { k } from '../../recipes/kata/menu'
 import {
@@ -23,19 +23,23 @@ type MenuSheetProps = {
 	description?: ReactNode
 	/** Opt the sheet into the glass surface, as the `glass` of {@link MenuContent} does for the popover. */
 	glass?: boolean
+	/** The accessible name of the menu from the consumer. It does not change the heading. */
+	'aria-label'?: string
+	/** The id of an element that names the menu. It does not change the heading. */
+	'aria-labelledby'?: string
 	className?: string
 	children: ReactNode
 }
 
 /**
- * The accessible name of a trigger: its `aria-label`, else its text.
+ * The accessible name of a trigger, from {@link accessibleName}: its non-empty
+ * `aria-label`, else the text of the elements that its `aria-labelledby`
+ * points to, else its text.
  *
  * @internal
  */
 function triggerName(trigger: HTMLElement | null): string | undefined {
-	const name = trigger?.getAttribute('aria-label') ?? trigger?.textContent
-
-	return name?.trim() || undefined
+	return accessibleName(trigger) || undefined
 }
 
 /**
@@ -53,12 +57,22 @@ function triggerName(trigger: HTMLElement | null): string | undefined {
  *
  * The heading names the sheet and the menu in it. It is the `title` of
  * {@link MenuContent}, or the name of the trigger, which is read when the sheet
- * opens. The `description` of {@link MenuContent} shows below the heading and
- * describes the sheet.
+ * opens. An `aria-label` or an `aria-labelledby` from {@link MenuContent} names
+ * the menu in place of the heading, as in the popover. The heading and the name
+ * of the sheet do not change. The `description` of {@link MenuContent} shows
+ * below the heading and describes the sheet.
  *
  * @internal
  */
-export function MenuSheet({ title, description, glass, className, children }: MenuSheetProps) {
+export function MenuSheet({
+	title,
+	description,
+	glass,
+	'aria-label': ariaLabel,
+	'aria-labelledby': ariaLabelledby,
+	className,
+	children,
+}: MenuSheetProps) {
 	const { open, menuId, size } = useMenuState()
 	const { setOpen, triggerRef } = useMenuActions()
 
@@ -75,6 +89,10 @@ export function MenuSheet({ title, description, glass, className, children }: Me
 	}, [open, triggerRef])
 
 	const heading = title ?? triggerTitle
+
+	// A name from the consumer replaces the name from the heading.
+	const labelledby =
+		ariaLabelledby ?? (ariaLabel === undefined && heading !== undefined ? titleId : undefined)
 
 	const handleKeyDown = useA11yRoving(panelRef, {
 		itemSelector: MENUITEM_SELECTOR,
@@ -105,7 +123,8 @@ export function MenuSheet({ title, description, glass, className, children }: Me
 						ref={panelRef}
 						id={menuId}
 						role="menu"
-						aria-labelledby={heading === undefined ? undefined : titleId}
+						aria-label={ariaLabel}
+						aria-labelledby={labelledby}
 						tabIndex={-1}
 						data-slot="menu-sheet"
 						className={cn(k.sheet.base, className)}

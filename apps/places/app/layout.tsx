@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
+import { EventsScript } from 'ui/events'
 import { UIDocument } from 'ui/providers/ui'
 
 import './globals.css'
@@ -15,6 +16,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 		// The map fills the screen, so the page never scrolls: the body is the
 		// frame every panel docks against.
 		<UIDocument
+			head={<EventsScript />}
 			className="h-full"
 			bodyClassName="h-full overflow-hidden bg-white dark:bg-zinc-900 antialiased"
 		>

@@ -3,6 +3,7 @@
 import { Calendar as CalendarIcon } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
 import { composeEventHandlers } from '../../core'
+import { useComposedRef } from '../../hooks'
 import { useFormattedInput } from '../../hooks/use-formatted-input'
 import { useLocale } from '../../providers/locale'
 import { isComposing } from '../../utilities'
@@ -170,14 +171,26 @@ export function DateInput({
 		invalidMessageProp,
 	)
 
-	const {
-		value: date,
-		setValue: setDate,
-		setTouched,
-	} = useFormValue<Date>(name, { value, defaultValue, onValueChange })
-
 	// Text being edited; null means "derive the display from the value".
 	const [editingText, setEditingText] = useState<string | null>(null)
+
+	const {
+		value: date,
+		resetRef,
+		setValue: setDate,
+		setTouched,
+	} = useFormValue<Date>(name, {
+		value,
+		defaultValue,
+		onValueChange,
+		// A reset to the same day is no external change for the override below, so
+		// the reset ends the typed entry and its verdict here.
+		onReset: () => {
+			setEditingText(null)
+
+			verdict.clear()
+		},
+	})
 
 	const separator = dateInputSeparator(format)
 
@@ -232,12 +245,14 @@ export function DateInput({
 		onValidityChange?.({ isValid: Boolean(parsed), isPotentiallyValid: !refused })
 	}
 
+	const joinedRef = useComposedRef(resetRef, labelled.ref)
+
 	// `atEnd: 'jump'`: the mask pads `1/` to `01/`, so a restore at the end would pin
 	// the caret before the padded digit.
 	const { ref: setRefs, reformat } = useFormattedInput({
 		format: (raw) => maskDateText(raw, format),
 		atEnd: 'jump',
-		ref: labelled.ref,
+		ref: joinedRef,
 	})
 
 	// The rule of Input for its clear button. Any text counts, also a partial

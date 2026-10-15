@@ -1,29 +1,34 @@
 export {
 	type A11yAnnouncementsOptions,
-	type A11yControl,
+	useA11yAnnouncements,
+} from './a11y/use-a11y-announcements'
+export { useA11yAutoFocus } from './a11y/use-a11y-auto-focus'
+export { type A11yControl, useA11yControl } from './a11y/use-a11y-control'
+export {
 	type A11yDisclosure,
 	type A11yDisclosureOptions,
+	useA11yDisclosure,
+} from './a11y/use-a11y-disclosure'
+export { useA11yHasTabbable } from './a11y/use-a11y-has-tabbable'
+export {
 	type A11yLiveLevel,
 	type A11yLiveRegionOptions,
 	type A11yLiveRegionProps,
+	useA11yLiveRegion,
+} from './a11y/use-a11y-live-region'
+export {
 	type A11yPanel,
 	type A11yPanelProviderValue,
 	type A11yPanelRole,
+	useA11yPanel,
+} from './a11y/use-a11y-panel'
+export { type RovingOptions, useA11yRoving, type VirtualItemSource } from './a11y/use-a11y-roving'
+export {
 	type A11yRelation,
 	type A11yScope,
 	type A11yScopeOptions,
-	type RovingOptions,
-	useA11yAnnouncements,
-	useA11yAutoFocus,
-	useA11yControl,
-	useA11yDisclosure,
-	useA11yHasTabbable,
-	useA11yLiveRegion,
-	useA11yPanel,
-	useA11yRoving,
 	useA11yScope,
-	type VirtualItemSource,
-} from './a11y'
+} from './a11y/use-a11y-scope'
 export { useAriaIds } from './use-aria-ids'
 export { useComposedRef } from './use-composed-ref'
 export {
@@ -77,7 +82,6 @@ export {
 export { usePrefersReducedMotion } from './use-prefers-reduced-motion'
 export { useResizeObserver } from './use-resize-observer'
 export { useScrollLock } from './use-scroll-lock'
-export { type ScrollOverflowOptions, useScrollOverflow } from './use-scroll-overflow'
 export { type ScrollRegionOptions, useScrollRegion } from './use-scroll-region'
 export { type ScrollWithinOptions, useScrollWithin } from './use-scroll-within'
 export { useSelectableValueChange } from './use-selectable-value-change'

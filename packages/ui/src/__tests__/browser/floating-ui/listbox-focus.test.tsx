@@ -1,9 +1,12 @@
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Button } from '../../../components/button'
+import { Form } from '../../../components/form'
+import { Input } from '../../../components/input'
 import { Listbox } from '../../../components/listbox'
 import { ListboxOption } from '../../../components/listbox/listbox-option'
 import { renderUI, screen, waitFor } from '../../helpers'
+import { FieldProbe, getFieldProbe } from '../../helpers/field-probe'
 
 /**
  * Listbox focus containment (real floating engine). Asserts that opening the
@@ -46,6 +49,51 @@ describe('Listbox focus (real browser)', () => {
 		// `data-selected` (`dataAttr` renders it value-less, not `"true"`); poll
 		// for it rather than assert synchronously (CONVENTIONS §10.3).
 		await waitFor(() => expect(document.activeElement?.hasAttribute('data-selected')).toBe(true))
+	})
+
+	// APG select-only combobox: a printable key on the closed trigger opens the
+	// list and moves to the first option that matches. The keys that follow
+	// extend the same type-ahead buffer, so `ch` reaches Cherry past Cantaloupe.
+	it('opens on a printable key and moves to the matching option', async () => {
+		renderUI(
+			<Listbox aria-label="pick">
+				<ListboxOption value="apple">Apple</ListboxOption>
+				<ListboxOption value="cantaloupe">Cantaloupe</ListboxOption>
+				<ListboxOption value="cherry">Cherry</ListboxOption>
+			</Listbox>,
+		)
+
+		const trigger = screen.getByRole('combobox', { name: 'pick' })
+
+		trigger.focus()
+
+		await userEvent.keyboard('c')
+
+		await waitFor(() => expect(trigger).toHaveAttribute('aria-expanded', 'true'))
+
+		await waitFor(() => expect(document.activeElement).toHaveTextContent('Cantaloupe'))
+
+		await userEvent.keyboard('h')
+
+		await waitFor(() => expect(document.activeElement).toHaveTextContent('Cherry'))
+	})
+
+	it('does not open on a printable key while read-only', async () => {
+		renderUI(
+			<Listbox aria-label="pick" readOnly>
+				<ListboxOption value="apple">Apple</ListboxOption>
+			</Listbox>,
+		)
+
+		const trigger = screen.getByRole('combobox', { name: 'pick' })
+
+		trigger.focus()
+
+		await userEvent.keyboard('a')
+
+		expect(trigger).toHaveAttribute('aria-expanded', 'false')
+
+		expect(trigger).toHaveFocus()
 	})
 
 	// Guards the APG select pattern: Tab dismisses the listbox and the keystroke
@@ -247,5 +295,47 @@ describe('Listbox focus (real browser)', () => {
 		await waitFor(() => expect(isOpen()).toBe(false))
 
 		await waitFor(() => expect(trigger).toHaveFocus())
+	})
+})
+
+/**
+ * The touched mark after a close that does not come back to the trigger. The
+ * focus is in the panel, so the trigger does not blur again, and the close
+ * itself must mark the bound field touched. `onBlur` stays the blur of the
+ * trigger, so it does not fire on this path. The outside press needs a real
+ * floating ref, which the jsdom mock does not attach, so the case needs the
+ * real engine. The input is before the listbox, so the panel does not cover
+ * it.
+ */
+describe('Listbox touched on a close away from the trigger (real browser)', () => {
+	it('marks the bound field touched when a press outside closes the menu', async () => {
+		const onBlur = vi.fn()
+
+		renderUI(
+			<Form defaultValues={{ plan: undefined }}>
+				<Input aria-label="Name" />
+				<Listbox<string> name="plan" aria-label="pick" onBlur={onBlur}>
+					<ListboxOption value="a">A</ListboxOption>
+					<ListboxOption value="b">B</ListboxOption>
+				</Listbox>
+				<FieldProbe name="plan" />
+			</Form>,
+		)
+
+		await userEvent.click(screen.getByRole('combobox', { name: 'pick' }))
+
+		const panel = await findPanel()
+
+		await waitFor(() => expect(panel.contains(document.activeElement)).toBe(true))
+
+		expect(getFieldProbe('plan')).toHaveAttribute('data-touched', 'false')
+
+		await userEvent.click(screen.getByRole('textbox', { name: 'Name' }))
+
+		await waitFor(() => expect(isOpen()).toBe(false))
+
+		await waitFor(() => expect(getFieldProbe('plan')).toHaveAttribute('data-touched', 'true'))
+
+		expect(onBlur).not.toHaveBeenCalled()
 	})
 })

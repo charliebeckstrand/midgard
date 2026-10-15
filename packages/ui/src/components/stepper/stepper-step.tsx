@@ -21,6 +21,16 @@ export type StepperStepProps = {
 	children?: ReactNode
 }
 
+// Completed/current/upcoming differ visually by color and the checkmark glyph
+// only (WCAG 1.4.1); the sr-only suffix names the state for AT. It comes last
+// in the step, so AT reads the title first. The current step has no suffix:
+// its aria-current="step" already reads as "current step".
+const STATE_TEXT = {
+	completed: 'completed',
+	current: undefined,
+	upcoming: 'not started',
+} as const
+
 /**
  * Derives a step's display state by comparing its index to the stepper's current value.
  *
@@ -75,6 +85,11 @@ function ensureStepperIndicator(children: ReactNode): ReactNode {
  * Injects a default `<StepperIndicator>` when none is supplied.
  *
  * @remarks
+ * Color and the checkmark glyph alone show the state, so an `sr-only` suffix
+ * after the title and description ("completed"/"not started") names it for
+ * assistive tech (WCAG 1.4.1). The current step has no suffix, because its
+ * `aria-current="step"` already gives "current step".
+ *
  * Renders as a `<button>` in an `<li>` (with `aria-current`, and `aria-controls`
  * wiring to the matching `<StepperPanel>`) when the stepper has an
  * `onValueChange` handler, otherwise a display-only `<li>` (with `aria-current`).
@@ -114,7 +129,14 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 
 	const providerValue = useMemo(() => ({ value, state }), [value, state])
 
-	const inner = <StepperStepContext value={providerValue}>{layoutChildren}</StepperStepContext>
+	const stateText = STATE_TEXT[state]
+
+	const inner = (
+		<StepperStepContext value={providerValue}>
+			{layoutChildren}
+			{stateText && <span className="sr-only">, {stateText}</span>}
+		</StepperStepContext>
+	)
 
 	// Renders as a <button> when onValueChange is set. Linear mode disables upcoming steps.
 	if (onValueChange !== undefined) {

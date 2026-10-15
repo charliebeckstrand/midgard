@@ -68,6 +68,94 @@ describe('Slider', () => {
 		expect(el.value).toBe('42')
 	})
 
+	// The native input snaps the value to the step grid in [min, max]. The fill and the
+	// value text must show the value of the thumb, and not the raw prop.
+	it.each([
+		{ value: 33, step: 10, max: 100, shown: 30 },
+		{ value: 150, step: 1, max: 100, shown: 100 },
+		{ value: -5, step: 1, max: 100, shown: 0 },
+		{ value: 10, step: 3, max: 10, shown: 9 },
+		{ value: 0.3, step: 0.1, max: 0.3, shown: 0.3 },
+		{ value: 42.4, step: 0, max: 100, shown: 42 },
+	])('shows the value $value at the native value $shown', ({ value, step, max, shown }) => {
+		const { container } = renderUI(
+			<Slider
+				value={value}
+				step={step}
+				max={max}
+				onValueChange={() => {}}
+				getValueText={(v) => `${v} units`}
+			/>,
+		)
+
+		const el = getSlot<HTMLInputElement>(container, 'slider')
+
+		expect(el).toHaveAttribute('aria-valuetext', `${shown} units`)
+
+		expect(el.style.getPropertyValue('--slider-value')).toBe(`${(shown / max) * 100}%`)
+	})
+
+	// A native range input ignores `readonly`, so the Slider keeps the value itself.
+	it('keeps the value of a read-only slider and marks it aria-readonly', async () => {
+		const user = setupUser()
+
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(
+			<Slider readOnly defaultValue={20} onValueChange={onValueChange} />,
+		)
+
+		const el = getSlot<HTMLInputElement>(container, 'slider')
+
+		fireEvent.change(el, { target: { value: '50' } })
+
+		el.focus()
+
+		await user.keyboard('{ArrowRight}')
+
+		expect(onValueChange).not.toHaveBeenCalled()
+
+		expect(el.value).toBe('20')
+
+		expect(el).toHaveAttribute('aria-readonly', 'true')
+
+		expect(el).not.toHaveAttribute('readonly')
+	})
+
+	it('takes the read-only state of an enclosing Control', () => {
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(
+			<Control readOnly>
+				<Slider defaultValue={20} onValueChange={onValueChange} />
+			</Control>,
+		)
+
+		const el = getSlot<HTMLInputElement>(container, 'slider')
+
+		fireEvent.change(el, { target: { value: '50' } })
+
+		expect(onValueChange).not.toHaveBeenCalled()
+
+		expect(el.value).toBe('20')
+
+		expect(el).toHaveAttribute('aria-readonly', 'true')
+	})
+
+	it('keeps an explicit readOnly={false} over a read-only Control', () => {
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(
+			<Control readOnly>
+				<Slider readOnly={false} defaultValue={20} onValueChange={onValueChange} />
+			</Control>,
+		)
+
+		fireEvent.change(getSlot<HTMLInputElement>(container, 'slider'), { target: { value: '50' } })
+
+		expect(onValueChange).toHaveBeenCalledWith(50)
+	})
+
 	it('merges caller-supplied inline style with the slider --slider-value var', () => {
 		const { container } = renderUI(<Slider defaultValue={25} style={{ width: '300px' }} />)
 
@@ -82,6 +170,53 @@ describe('RangeSlider', () => {
 		const { container } = renderUI(<RangeSlider />)
 
 		expect(allBySlot(container, 'slider-range-thumb')).toHaveLength(2)
+	})
+
+	// The thumbs, the fill, and the ARIA values show the range in [min, max], in order.
+	it.each([
+		{ value: [-10, 150], shown: [0, 100] },
+		{ value: [80, 20], shown: [20, 80] },
+		{ value: [120, -5], shown: [0, 100] },
+	] as const)('shows the range $value as $shown', ({ value, shown }) => {
+		const { container } = renderUI(
+			<RangeSlider
+				value={[value[0], value[1]]}
+				onValueChange={() => {}}
+				getValueText={(v) => `${v} units`}
+			/>,
+		)
+
+		const [lo, hi] = allBySlot(container, 'slider-range-thumb')
+
+		expect(lo).toHaveAttribute('aria-valuenow', String(shown[0]))
+		expect(lo).toHaveAttribute('aria-valuemax', String(shown[1]))
+		expect(lo).toHaveAttribute('aria-valuetext', `${shown[0]} units`)
+		expect(lo?.style.insetInlineStart).toBe(`${shown[0]}%`)
+
+		expect(hi).toHaveAttribute('aria-valuenow', String(shown[1]))
+		expect(hi).toHaveAttribute('aria-valuemin', String(shown[0]))
+		expect(hi?.style.insetInlineStart).toBe(`${shown[1]}%`)
+
+		const fill = getSlot(container, 'slider-range-fill')
+
+		expect(fill.style.insetInlineStart).toBe(`${shown[0]}%`)
+		expect(fill.style.insetInlineEnd).toBe(`${100 - shown[1]}%`)
+	})
+
+	it('steps the value that a thumb shows from a range out of order', async () => {
+		const user = setupUser()
+
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(
+			<RangeSlider defaultValue={[80, 20]} onValueChange={onValueChange} />,
+		)
+
+		allBySlot(container, 'slider-range-thumb')[0]?.focus()
+
+		await user.keyboard('{ArrowRight}')
+
+		expect(onValueChange).toHaveBeenLastCalledWith([21, 80])
 	})
 
 	it('puts the field id on the start thumb, so the Field Label targets a labelable element', () => {
@@ -251,6 +386,78 @@ describe('RangeSlider', () => {
 		expect(lo).toBeDisabled()
 
 		expect(hi).toBeDisabled()
+	})
+
+	it('keeps both values of a read-only slider on a key and marks each thumb aria-readonly', async () => {
+		const user = setupUser()
+
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(
+			<RangeSlider readOnly defaultValue={[20, 80]} onValueChange={onValueChange} />,
+		)
+
+		const [lo, hi] = allBySlot(container, 'slider-range-thumb')
+
+		lo?.focus()
+
+		await user.keyboard('{ArrowRight}{End}{PageUp}')
+
+		expect(onValueChange).not.toHaveBeenCalled()
+
+		expect(lo).toHaveAttribute('aria-valuenow', '20')
+
+		expect(hi).toHaveAttribute('aria-valuenow', '80')
+
+		for (const thumb of [lo, hi]) {
+			expect(thumb).toHaveAttribute('aria-readonly', 'true')
+
+			expect(thumb).not.toBeDisabled()
+
+			expect(thumb).toHaveAttribute('tabindex', '0')
+		}
+
+		expect(lo).toHaveFocus()
+	})
+
+	it('takes the read-only state of an enclosing Control', async () => {
+		const user = setupUser()
+
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(
+			<Control readOnly>
+				<RangeSlider defaultValue={[20, 80]} onValueChange={onValueChange} />
+			</Control>,
+		)
+
+		const [lo] = allBySlot(container, 'slider-range-thumb')
+
+		lo?.focus()
+
+		await user.keyboard('{ArrowRight}')
+
+		expect(onValueChange).not.toHaveBeenCalled()
+
+		expect(lo).toHaveAttribute('aria-readonly', 'true')
+	})
+
+	it('keeps an explicit readOnly={false} over a read-only Control', async () => {
+		const user = setupUser()
+
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(
+			<Control readOnly>
+				<RangeSlider readOnly={false} defaultValue={[20, 80]} onValueChange={onValueChange} />
+			</Control>,
+		)
+
+		allBySlot(container, 'slider-range-thumb')[0]?.focus()
+
+		await user.keyboard('{ArrowRight}')
+
+		expect(onValueChange).toHaveBeenCalledWith([21, 80])
 	})
 })
 

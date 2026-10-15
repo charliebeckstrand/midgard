@@ -27,6 +27,10 @@
 			"types": "./src/pages/index.ts",
 			"default": "./src/pages/index.ts"
 		},
+		"./events": {
+			"types": "./src/events/index.ts",
+			"default": "./src/events/index.ts"
+		},
 		"./globals.css": "./src/globals.css"
 	},
 	"scripts": {

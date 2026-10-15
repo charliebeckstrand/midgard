@@ -1,6 +1,6 @@
 'use client'
 
-import { type ChangeEvent, type ComponentProps, useRef } from 'react'
+import type { ChangeEvent, ComponentProps } from 'react'
 import { ariaAttr, cn } from '../../core'
 import { useComposedRef, useControllableFlag } from '../../hooks'
 import { useFormResetSync } from '../../hooks/use-form-reset-sync'
@@ -71,13 +71,11 @@ export function Switch({
 	// controlled and a native `<button type="reset">` cannot revert it.
 	const isControlled = resolvedChecked !== undefined
 
-	const inputRef = useRef<HTMLInputElement>(null)
-
-	const setRef = useComposedRef(inputRef, ref)
-
 	// A native form reset reverts the uncontrolled input without firing onChange;
 	// mirror the reverted value into the owned aria state.
-	useFormResetSync(inputRef, !isControlled, (input) => setOn(input.checked))
+	const resetRef = useFormResetSync(!isControlled, (input) => setOn(input.checked))
+
+	const setRef = useComposedRef(resetRef, ref)
 
 	const {
 		id: resolvedId,
@@ -98,8 +96,14 @@ export function Switch({
 	// A read-only switch undoes the toggle and does not call the resolved handler.
 	// The write goes through the setter, so the change tracker of React keeps the
 	// correct value, as on Checkbox.
+	//
+	// A canceled click gets the same undo. React reads the toggle before the
+	// browser restores the value, so it sends a change that does not occur. The
+	// `onClick` handlers run before this handler, so the click event shows the
+	// cancel. Without the undo, the tracker keeps the toggled value and React
+	// then misses the next change.
 	const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-		if (resolvedReadOnly) {
+		if (resolvedReadOnly || event.nativeEvent.defaultPrevented) {
 			event.currentTarget.checked = !event.currentTarget.checked
 
 			return

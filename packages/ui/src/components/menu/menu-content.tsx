@@ -98,7 +98,14 @@ export function MenuContent({
 
 	if (isSheet) {
 		return (
-			<MenuSheet title={title} description={description} glass={glass} className={className}>
+			<MenuSheet
+				title={title}
+				description={description}
+				glass={glass}
+				aria-label={ariaLabel}
+				aria-labelledby={ariaLabelledby}
+				className={className}
+			>
 				{children}
 			</MenuSheet>
 		)
@@ -127,7 +134,7 @@ export function MenuContent({
 		</div>
 	) : null
 
-	const viewport = <MenuViewport fitted={!isStatic}>{children}</MenuViewport>
+	const viewport = <MenuViewport>{children}</MenuViewport>
 
 	if (isStatic) {
 		return (

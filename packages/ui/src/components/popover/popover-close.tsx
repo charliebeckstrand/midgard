@@ -1,7 +1,7 @@
 'use client'
 
-import { cloneElement, type MouseEventHandler, type ReactElement } from 'react'
-import { composeEventHandlers } from '../../core'
+import type { MouseEventHandler, ReactElement } from 'react'
+import { cloneWithAction } from '../../primitives/trigger-child/trigger-child'
 import { Button } from '../button'
 import { usePopoverContext } from './context'
 
@@ -25,9 +25,5 @@ export function PopoverClose({ children }: PopoverCloseProps) {
 		</Button>
 	)
 
-	return cloneElement(child, {
-		onClick: composeEventHandlers(child.props.onClick, close, {
-			checkForDefaultPrevented: false,
-		}),
-	})
+	return cloneWithAction(child, close)
 }

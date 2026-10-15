@@ -72,7 +72,18 @@ jobs:
           key: ${{ runner.os }}-next-cache-${{ steps.next-deps.outputs.hash }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-next-cache-${{ steps.next-deps.outputs.hash }}-
-      - run: pnpm turbo run build --summarize
+      # A restored Turbopack cache can hold a bad entry. Then each build that
+      # restores it fails with the same error, for example "Module not found"
+      # for a file that exists. Each run restores the cache of an earlier run,
+      # so the bad entry does not go. Thus a failed build runs one more time
+      # with no cache before the step fails. When that build passes, the run
+      # saves a clean cache for the next runs.
+      - run: |
+          pnpm turbo run build --summarize || {
+            echo "::warning::The build failed with the restored Next cache. It runs again with no cache."
+            rm -rf apps/*/.next/cache
+            pnpm turbo run build --summarize
+          }
         env:
           # Placeholder: only used to construct rewrite/fetch URLs, not reached at build time.
           BIFROST_URL: https://bifrost.invalid

@@ -8,6 +8,7 @@ import type { Seed } from 'shared/queries'
 import { Alert } from 'ui/alert'
 import { type ConfirmOptions, useConfirm } from 'ui/confirm'
 import { DateTime } from 'ui/date-time'
+import { EventsButton, EventsSwitch } from 'ui/events'
 import { useIdleLoad } from 'ui/hooks'
 import { AppearanceSettings } from 'ui/providers/appearance'
 import { Flex } from 'ui/structure/flex'
@@ -545,7 +546,11 @@ function PlacesHeader({
 			<Flex gap="sm" align="center" className="shrink-0">
 				<PlacePalette sources={paletteSources} />
 
-				<AppearanceSettings />
+				<EventsButton />
+
+				<AppearanceSettings>
+					<EventsSwitch />
+				</AppearanceSettings>
 
 				{/* A count shows only where the view is cut to one region, because it
 					    is the count of that region: the length of the list of the bar,

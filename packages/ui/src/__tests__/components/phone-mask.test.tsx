@@ -77,6 +77,50 @@ describe('phoneMask', () => {
 		expect(input.selectionStart).toBe(4)
 	})
 
+	it.each<[string, ReturnType<typeof phoneMask>, string, number, string]>([
+		['a letter in the US mask', phoneMask(), '5551234567', 7, 'a'],
+		['a non-ASCII digit in the US mask', phoneMask(), '5551234567', 7, '\u0663'],
+		['a second + in the international mask', phoneMask('international'), '+14155551234', 3, '+'],
+		['a letter in the international mask', phoneMask('international'), '+14155551234', 3, 'a'],
+	])(
+		'keeps the caret in place when the format drops %s',
+		async (_name, mask, defaultValue, caret, key) => {
+			const { container } = renderUI(<MaskInput mask={mask} defaultValue={defaultValue} />)
+
+			const input = getSlot<HTMLInputElement>(container, 'mask-input')
+
+			const before = input.value
+
+			input.focus()
+
+			input.setSelectionRange(caret, caret)
+
+			await setupUser().keyboard(key)
+
+			await Promise.resolve()
+
+			expect(input.value).toBe(before)
+
+			expect(input.selectionStart).toBe(caret)
+		},
+	)
+
+	it('counts a + that follows dropped characters in the international mask', async () => {
+		const { container } = renderUI(<MaskInput mask={phoneMask('international')} />)
+
+		const input = getSlot<HTMLInputElement>(container, 'mask-input')
+
+		input.focus()
+
+		await setupUser().paste(' +44')
+
+		await Promise.resolve()
+
+		expect(input.value).toBe('+44')
+
+		expect(input.selectionStart).toBe(3)
+	})
+
 	it('renders a custom prefix in place of the default phone icon', () => {
 		const { container } = renderUI(
 			<MaskInput mask={phoneMask()} prefix={<span data-testid="custom-prefix">PHN</span>} />,
@@ -116,6 +160,18 @@ describe('phoneMask', () => {
 		const { container } = renderUI(<MaskInput mask={mask} defaultValue={defaultValue} />)
 
 		expect(getSlot<HTMLInputElement>(container, 'mask-input').value).toBe(expected)
+	})
+
+	it.each([
+		['strips a leading 1 from a 12-digit US paste', '155512345678', '(555) 123-4567'],
+		[
+			'strips a leading 1 from a US number with an extension',
+			'1-555-123-4567 x8',
+			'(555) 123-4567',
+		],
+		['keeps a leading 1 at 10 digits while the reader types', '1555123456', '(155) 512-3456'],
+	])('%s', (_name, raw, expected) => {
+		expect(phoneMask().format(raw)).toBe(expected)
 	})
 
 	it('binds to a Form field by name, storing the formatted text', async () => {

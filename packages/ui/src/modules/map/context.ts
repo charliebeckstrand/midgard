@@ -12,7 +12,7 @@ import type { MapZoom } from './use-map-zoom'
 
 /**
  * The live hover readout the tooltip anchors to: the pointed target and the
- * pointer's viewport coordinates. Split from the {@link MapHoverSet} mover into
+ * pointer's viewport coordinates. Split from the {@link MapHoverActions} mover into
  * its own context so pointer movement — which churns this value every frame —
  * re-renders only the tooltip that reads it. The marks read the stable mover
  * instead, so they never repaint as the pointer travels.
@@ -26,45 +26,40 @@ export type MapHoverState = {
 	point: MapPoint2D | null
 }
 
-/**
- * Moves the hover, or clears it with `null`s. A stable identity held apart from
- * {@link MapHoverState}, so a mark reading it to report its own hover never
- * re-renders when the pointer moves elsewhere.
- *
- * @internal
- */
-export type MapHoverSet = (target: MapHoverTarget | null, point: MapPoint2D | null) => void
-
 export const [MapHoverStateContext, useMapHoverState] =
 	createContext<MapHoverState>('MapHoverState')
 
-export const [MapHoverSetContext, useMapHoverSet] = createContext<MapHoverSet>('MapHoverSet')
-
 /**
- * Reads the hover target that the provider holds now, with no subscription.
- * The keyboard cursor reads it on Escape to find whether a pointer readout is
- * live. A pointer move therefore renders nothing that reads it.
+ * The stable functions of the hover provider, held apart from
+ * {@link MapHoverState}. Each keeps its identity, so a mark or a hook that
+ * reads them never renders again when the pointer moves.
  *
  * @internal
  */
-export type MapHoverGet = () => MapHoverTarget | null
+export type MapHoverActions = {
+	/** Moves the hover, or clears it with `null`s. */
+	set: (target: MapHoverTarget | null, point: MapPoint2D | null) => void
+	/**
+	 * Reads the hover target that the provider holds now, with no
+	 * subscription. The keyboard cursor reads it on Escape to find whether a
+	 * pointer readout is live.
+	 */
+	get: () => MapHoverTarget | null
+	/**
+	 * Holds the readout through a pinch, or lets it go. A held readout takes a
+	 * clear and no new target, and holding it clears it.
+	 *
+	 * A touch pointer is captured on contact by the region or the mark under it.
+	 * That element gets each move of the finger, whatever the layer's
+	 * `pointer-events`. So each move of a pinch would raise the readout again,
+	 * and the map would recede behind a tooltip. The hold stops every writer at
+	 * once.
+	 */
+	hold: (held: boolean) => void
+}
 
-export const [MapHoverGetContext, useMapHoverGet] = createContext<MapHoverGet>('MapHoverGet')
-
-/**
- * Holds the readout through a pinch, or lets it go. A held readout takes a clear
- * and no new target, and holding it clears it.
- *
- * A touch pointer is captured on contact by the region or the mark under it.
- * That element gets each move of the finger, whatever the layer's
- * `pointer-events`. So each move of a pinch would raise the readout again, and
- * the map would recede behind a tooltip. The hold stops every writer at once.
- *
- * @internal
- */
-export type MapHoverHold = (held: boolean) => void
-
-export const [MapHoverHoldContext, useMapHoverHold] = createContext<MapHoverHold>('MapHoverHold')
+export const [MapHoverActionsContext, useMapHoverActions] =
+	createContext<MapHoverActions>('MapHoverActions')
 
 /**
  * The mark the pointer sits on — a region or an overlay entry — taking the

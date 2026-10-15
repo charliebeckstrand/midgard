@@ -277,6 +277,26 @@ function evict() {
 }
 
 /**
+ * Drops a failed record with no page once no viewer holds it.
+ *
+ * @remarks A failure is not remembered. While a viewer holds the record, the error stays for
+ * that viewer to show. When the last holder leaves, the record goes, so a new mount reads the
+ * document as not loaded: it paints no stale error on its first frame, and its hook reports
+ * only what its own retry settles. A record with pages stays, because the cache keeps an open
+ * document.
+ * @internal
+ */
+function forgetFailure(src: string, held: Held) {
+	if (documents.get(src) !== held || held.loading || held.listeners.size > 0) return
+
+	if (!held.snapshot.error || held.snapshot.pages.length > 0) return
+
+	documents.delete(src)
+
+	free(held)
+}
+
+/**
  * Marks `src` most recently used.
  *
  * @remarks Delete-then-set, which is how a `Map` re-orders: insertion order is the only order
@@ -372,6 +392,8 @@ export function subscribeDocument(src: string | undefined, listener: () => void)
 
 	return () => {
 		held.listeners.delete(listener)
+
+		forgetFailure(src, held)
 
 		evict()
 	}

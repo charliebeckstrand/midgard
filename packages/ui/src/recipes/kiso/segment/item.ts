@@ -43,7 +43,8 @@ export const item = {
 		// which `muted` is not legal over. See `iro/ramp.ts`.
 		...on.wash.muted,
 		...fg.current,
-		focus.indicator,
+		// The ring alone marks focus. The `::after` marker of a tab has no position
+		// here, so it becomes a flex item, and the gap widens the focused item.
 		focus.ring,
 		...disabled,
 		...cursor,

@@ -5,7 +5,7 @@
  * chrome of the block: its `base` frame, the `content` and the `fallback` inside
  * it, and the `copy` group: the line box of the button and its palettes for a
  * dark or a light canvas. The chrome takes the step of the nearest density
- * scope. At `md` the frame is `p-4` with `gap-4`, and the code is `text-sm`.
+ * scope. At `md` the scroll box is `p-4`, and the code is `text-sm`.
  */
 import { defineScale, type ScaleStep } from '../../core/density'
 import { defineRecipe } from '../../core/recipe'
@@ -35,19 +35,14 @@ export const k = defineRecipe(
 	{
 		/** The classes of {@link CodeBlock}. */
 		block: {
-			// The padding and the gap have the same value at each step, as `p-4` and
-			// `gap-4` do at `md`. The ramps are the padding of an alert and the inline
-			// gap of a timeline item, because a ramp has one name for one list.
-			base: [
-				'overflow-hidden flex items-start',
-				dan.space.alert,
-				dan.gap.timeline.x,
-				rounded.lg,
-				bg,
-			],
-			// While a line overflows, the edge with more code behind it fades, and the
-			// content is a tab stop with an inset ring.
-			content: ['flex-1', ...rail, text],
+			// The frame has no padding. The padding is in the scroll box, so a swipe
+			// on the padding scrolls the code too.
+			base: ['overflow-hidden flex items-start', rounded.lg, bg],
+			// The padding of an alert, `p-4` at `md`, on the four sides. The padding on
+			// the side of the copy button is also the gap to it. While a line
+			// overflows, the edge with more code behind it fades, and the content is a
+			// tab stop with an inset ring.
+			content: ['flex-1', dan.space.alert, ...rail, text],
 			fallback: 'text-zinc-400',
 			copy: {
 				// The copy button sits in the flex row, not in an absolute position. Its
@@ -58,7 +53,7 @@ export const k = defineRecipe(
 				// tall, the glyph centers on the first code line, and a block of one line
 				// is vertically centered. The close button of an alert uses the same
 				// line box.
-				line: [flex.row, 'h-lh', text],
+				line: [flex.row, 'h-lh box-content', dan.space.codeCopy, text],
 				// The colors of the button, for the canvas of the theme. The block picks
 				// `dark` or `light` from the background of its theme. The canvas does not
 				// change with the color mode, but the bare button takes the colors of the

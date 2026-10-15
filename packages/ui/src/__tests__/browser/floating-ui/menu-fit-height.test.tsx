@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { Button } from '../../../components/button'
 import { Menu, MenuContent, MenuItem, MenuSub, MenuTrigger } from '../../../components/menu'
 import { frames, getSlot, renderUI, screen, userEvent, waitFor } from '../../helpers'
+import { fadedEdges } from '../../helpers/scroll-fade'
 
 /** Labels for more rows than any test viewport holds. */
 const rows = Array.from({ length: 60 }, (_, index) => `Item ${index + 1}`)
@@ -51,7 +52,9 @@ describe('a Menu taller than the viewport (real floating engine)', () => {
 
 		const viewport = getSlot(panel, 'menu-viewport')
 
-		await waitFor(() => expect(viewport).toHaveAttribute('data-overflow-below'))
+		// The portaled panel overflows its cap, so its viewport fades the edge with
+		// rows behind it.
+		await waitFor(() => expect(fadedEdges(viewport)).toEqual({ top: false, bottom: true }))
 
 		// The visible edge of the viewport cuts the last visible row at its middle.
 		const edge = viewport.getBoundingClientRect().bottom

@@ -1,17 +1,20 @@
 'use client'
 
+import type { OpenChangeReason } from '@floating-ui/react'
 import { ChevronsUpDown } from 'lucide-react'
 import {
 	type FocusEvent,
 	type KeyboardEvent,
 	type ReactNode,
 	useCallback,
+	useEffect,
 	useId,
 	useMemo,
 	useRef,
 } from 'react'
 import type { ScaleStep } from '../../core/density'
 import { type FloatingPlacement, useFloatingUI, useSelectableValueChange } from '../../hooks'
+import { isTypeaheadKey } from '../../hooks/a11y/use-typeahead'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { useGlass } from '../../providers/glass/context'
 import type { scale } from '../../recipes/kata/listbox'
@@ -108,14 +111,19 @@ type ListboxBaseProps = GroupStampProps & {
 	/** Fires when the menu open state changes. */
 	onOpenChange?: (open: boolean) => void
 	/**
-	 * Fires when focus leaves the whole widget, with the trigger's blur event.
+	 * Fires when the focus leaves the widget from the trigger, with the blur
+	 * event of the trigger.
 	 *
-	 * The widget already computes this — it is what marks a bound field touched —
-	 * and kept it. The prop bag is closed, with no rest spread and no `ref`, so a
-	 * caller had no other way to hear it. A blur into the portaled panel is not a
-	 * departure and never fires. That is the part a native `onBlur` on the trigger
-	 * would get wrong. The panel is portaled, so focus moving into it reads as
-	 * leaving the trigger.
+	 * The prop bag is closed, with no rest spread and no `ref`, so a caller has
+	 * no other way to hear this blur. A blur into the portaled panel is not a
+	 * departure and does not fire. That is the part a native `onBlur` on the
+	 * trigger gets wrong: the panel is portaled, so a focus move into it reads as
+	 * a departure from the trigger.
+	 *
+	 * The prop fires only for a blur of the trigger. A close by an outside press
+	 * or a focus-out from the panel does not move the focus back to the trigger,
+	 * so the trigger does not blur. That close marks a bound field touched, but
+	 * `onBlur` does not fire.
 	 */
 	onBlur?: (event: FocusEvent<HTMLButtonElement>) => void
 	/** Root slot identifier. Wrappers override it to stamp their own name. */
@@ -172,7 +180,9 @@ function hasListboxValue<T>(value: T | T[] | undefined, multiple: boolean): bool
  * control and a portaled panel. Binds to an enclosing Form field by `name`;
  * an explicit `value` wins over the bound field. The trigger and the panel
  * take the step of the nearest density scope, and an explicit `size` opens a
- * scope on each.
+ * scope on each. Enter, Space, ArrowDown, or ArrowUp on the closed trigger
+ * opens the panel. A printable key opens it and moves to the first option that
+ * matches.
  */
 export function Listbox<T>({
 	name,
@@ -275,13 +285,22 @@ export function Listbox<T>({
 	// every open path (frame click, floating-ui keyboard/typeahead). disabled
 	// blocks the same paths. The frame takes the click, not the disabled button.
 	// Closing stays allowed, so an externally-opened menu can still dismiss.
+	//
+	// A close by an outside press or a focus-out from the panel does not move the
+	// focus back to the trigger, so the trigger does not blur and
+	// `handleTriggerBlur` does not run. Such a close is the blur of the field, so
+	// it marks the field touched here, as the date and color pickers do. A Tab
+	// out also closes with `'focus-out'` and then blurs the trigger. The second
+	// mark has no effect. The frame click gives no reason and marks nothing.
 	const setOpenGuarded = useCallback(
-		(next: boolean) => {
+		(next: boolean, _event?: Event, reason?: OpenChangeReason) => {
 			if (locked && next) return
 
 			setOpen(next)
+
+			if (!next && (reason === 'outside-press' || reason === 'focus-out')) setTouched()
 		},
-		[locked, setOpen],
+		[locked, setOpen, setTouched],
 	)
 
 	const { refs, floatingStyles, context, getReferenceProps, getFloatingProps } = useFloatingUI({
@@ -324,9 +343,12 @@ export function Listbox<T>({
 		[onFloatingOpenChange],
 	)
 
-	// Marks the bound field touched when focus leaves the widget; a blur into the
-	// portaled panel (opening the menu) doesn't count. Mirrors the combobox
-	// input's onBlur.
+	// Marks the bound field touched and fires `onBlur` when the focus leaves the
+	// widget from the trigger. A blur into the portaled panel (the menu opens)
+	// does not count. Mirrors the onBlur of the combobox input. A close by an
+	// outside press or a focus-out from the panel does not blur the trigger, so
+	// `setOpenGuarded` marks the field touched for it, and `onBlur` does not
+	// fire.
 	//
 	// The panel is found by its id as well as through the floating ref, because
 	// the ref is not reliably attached at the moment this fires: a press opens the
@@ -349,6 +371,57 @@ export function Listbox<T>({
 		// fact the caller could not reach.
 		onBlur?.(event)
 	}
+
+	// A printable key that opened the menu. The panel takes it after the open,
+	// through its own type-ahead.
+	const pendingTypeaheadRef = useRef<string | null>(null)
+
+	// ArrowDown and ArrowUp open the closed menu (APG select-only combobox), as
+	// on Combobox. Enter and Space open it through the click of the button. A
+	// printable key opens it too, and the panel then moves to the first option
+	// that matches. The guard keeps a read-only listbox closed. An open menu holds
+	// the focus, so the key reaches the trigger only while the menu is closed.
+	const handleTriggerKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+		if (open || locked) return
+
+		const typeahead = isTypeaheadKey(event)
+
+		if (!typeahead && event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return
+
+		event.preventDefault()
+
+		if (typeahead) pendingTypeaheadRef.current = event.key
+
+		setOpenGuarded(true)
+	}
+
+	// The floating element is state, so the effect below runs again when the
+	// portal mounts the panel, which can come one commit after the open.
+	const floatingElement = context.elements.floating
+
+	// The mount of the panel moves the focus into it. The key then goes to the
+	// focused element of the panel, so its type-ahead takes the key into the same
+	// buffer as the keys that follow. A close drops a key that the panel did not
+	// take.
+	useEffect(() => {
+		const key = pendingTypeaheadRef.current
+
+		if (key === null) return
+
+		if (!open) {
+			pendingTypeaheadRef.current = null
+
+			return
+		}
+
+		const target = document.activeElement
+
+		if (!floatingElement || !target || !floatingElement.contains(target)) return
+
+		pendingTypeaheadRef.current = null
+
+		target.dispatchEvent(new globalThis.KeyboardEvent('keydown', { key, bubbles: true }))
+	}, [open, floatingElement])
 
 	// The trigger button renders the label verbatim (`undefined` skips the placeholder).
 	const label = resolveLabel({ value, displayValue, multiple, capitalize })
@@ -451,6 +524,7 @@ export function Listbox<T>({
 						validation={validation}
 						label={label}
 						onBlur={handleTriggerBlur}
+						onKeyDown={handleTriggerKeyDown}
 						placeholder={placeholder}
 						truncate={truncate}
 						truncateTooltip={truncateTooltip}

@@ -1,16 +1,11 @@
 'use client'
 
-import { type ReactNode, useEffect, useSyncExternalStore } from 'react'
+import type { ReactNode } from 'react'
 import type { ScaleStep } from '../../core/density'
-import { useIdleLoad } from '../../hooks/use-idle-load'
+import { useIdlePreload, useLazyModule } from '../../hooks/use-lazy-module'
 import type { scale } from '../../recipes/kata/tooltip'
 import { useTooltipContext } from './context'
-import {
-	loadTooltipBody,
-	preloadTooltipBody,
-	readTooltipBody,
-	subscribeTooltipBody,
-} from './tooltip-body-loader'
+import { tooltipBody } from './tooltip-body-loader'
 
 /** Props for {@link TooltipContent}. */
 export type TooltipContentProps = {
@@ -43,9 +38,6 @@ export type TooltipContentProps = {
 	children: ReactNode
 }
 
-/** The server renders no panel: a tooltip is closed until a reader opens it. */
-const serverTooltipBody = () => null
-
 /**
  * Floating panel rendered when the enclosing `<Tooltip>` is open. Positions
  * via `<FloatingSurface>`, animates in, and adopts the glass surface from
@@ -76,14 +68,9 @@ const serverTooltipBody = () => null
 export function TooltipContent(props: TooltipContentProps) {
 	const { open } = useTooltipContext()
 
-	const body = useSyncExternalStore(subscribeTooltipBody, readTooltipBody, serverTooltipBody)
+	useIdlePreload(tooltipBody)
 
-	// A body that a hover or a focus loaded needs no idle load.
-	useIdleLoad(body ? null : loadTooltipBody)
-
-	useEffect(() => {
-		if (open && !body) preloadTooltipBody()
-	}, [open, body])
+	const body = useLazyModule(tooltipBody, open)
 
 	return body && <body.TooltipBody {...props} />
 }

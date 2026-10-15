@@ -1,6 +1,7 @@
 'use client'
 
 import type { FeatureBundle, LazyFeatureBundle } from 'motion/react'
+import { createLazyModule, type LazyModule } from '../../utilities/lazy-module'
 import { noop } from '../../utilities/noop'
 
 /**
@@ -15,17 +16,15 @@ import { noop } from '../../utilities/noop'
  */
 export type MotionFeatureSet = 'animation' | 'layout'
 
-const importers: Record<MotionFeatureSet, () => Promise<FeatureBundle>> = {
-	animation: () =>
+/** The chunk of each set, which loads one time. */
+const chunks: Record<MotionFeatureSet, LazyModule<FeatureBundle>> = {
+	animation: createLazyModule(() =>
 		import('./reduced-motion-features-animation').then((module) => module.domAnimation),
-	layout: () => import('./reduced-motion-features-layout').then((module) => module.domMax),
+	),
+	layout: createLazyModule(() =>
+		import('./reduced-motion-features-layout').then((module) => module.domMax),
+	),
 }
-
-/** The bundle of each set that has arrived. */
-const loaded: Partial<Record<MotionFeatureSet, FeatureBundle>> = {}
-
-/** The load of each set that is in progress or done. */
-const pending: Partial<Record<MotionFeatureSet, Promise<FeatureBundle>>> = {}
 
 /**
  * Loads the chunk of a feature set one time. Each later call gets the same
@@ -34,34 +33,13 @@ const pending: Partial<Record<MotionFeatureSet, Promise<FeatureBundle>>> = {}
  * @internal
  */
 export function loadMotionFeatures(set: MotionFeatureSet): Promise<FeatureBundle> {
-	let load = pending[set]
-
-	if (!load) {
-		load = importers[set]().then(
-			(bundle) => {
-				loaded[set] = bundle
-
-				// `domMax` holds each feature of `domAnimation`, so it serves both sets.
-				if (set === 'layout') loaded.animation ??= bundle
-
-				return bundle
-			},
-			(error: unknown) => {
-				pending[set] = undefined
-
-				throw error
-			},
-		)
-
-		pending[set] = load
-	}
-
-	return load
+	return chunks[set].load()
 }
 
-const lazyBundles: Record<MotionFeatureSet, LazyFeatureBundle> = {
-	animation: () => loadMotionFeatures('animation'),
-	layout: () => loadMotionFeatures('layout'),
+/** The bundle that serves a set, or `null` before it arrives. */
+function readMotionFeatures(set: MotionFeatureSet): FeatureBundle | null {
+	// `domMax` holds each feature of `domAnimation`, so it serves both sets.
+	return chunks[set].read() ?? chunks.layout.read()
 }
 
 /**
@@ -74,29 +52,20 @@ const lazyBundles: Record<MotionFeatureSet, LazyFeatureBundle> = {
  * @internal
  */
 export function motionFeatures(set: MotionFeatureSet): FeatureBundle | LazyFeatureBundle {
-	return loaded[set] ?? lazyBundles[set]
+	return readMotionFeatures(set) ?? chunks[set].load
 }
 
 /**
  * Loads the animation features when the browser is idle. A surface that opens
  * on the first press, such as a menu or a dialog, then finds them ready. Its
- * enter animation starts in its first frame.
+ * enter animation starts in its first frame. Safari has no
+ * `requestIdleCallback`. There, the load starts after a timeout of 1 ms.
  *
  * @returns A function that cancels the load if it has not started.
  * @internal
  */
 export function prefetchMotionFeatures(): () => void {
-	if (loaded.animation) return noop
+	if (readMotionFeatures('animation')) return noop
 
-	// Safari has no `requestIdleCallback`. There, the load starts after a
-	// timeout of 1 ms.
-	const idle = window.requestIdleCallback ?? ((call: () => void) => window.setTimeout(call, 1))
-
-	const cancel = window.cancelIdleCallback ?? window.clearTimeout
-
-	const handle = idle(() => {
-		loadMotionFeatures('animation').catch(noop)
-	})
-
-	return () => cancel(handle)
+	return chunks.animation.idle(1)
 }

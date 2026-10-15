@@ -77,19 +77,17 @@ export function usePasswordStrength({
 		[rules, value],
 	)
 
-	// Keyed on the joined ids, not `results`: results change identity on every
+	// Keyed on the serialized ids, not `results`: results change identity on every
 	// keystroke, and a fresh `passed` array per keystroke re-fires
-	// onStrengthChange even when the strength is unchanged.
+	// onStrengthChange even when the strength is unchanged. JSON keeps each id
+	// whole, so no passing rule (`[]`) and one passing rule with the id `''`
+	// (`[""]`) give different keys.
 	const passedKey = useMemo(
-		() =>
-			results
-				.filter((result) => result.passed)
-				.map((result) => result.rule.id)
-				.join('\u0000'),
+		() => JSON.stringify(results.filter((result) => result.passed).map((result) => result.rule.id)),
 		[results],
 	)
 
-	const passedIds = useMemo(() => (passedKey === '' ? [] : passedKey.split('\u0000')), [passedKey])
+	const passedIds = useMemo((): string[] => JSON.parse(passedKey), [passedKey])
 
 	const passedCount = passedIds.length
 

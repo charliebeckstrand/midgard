@@ -5,6 +5,7 @@ import {
 	type RefObject,
 	useCallback,
 	useLayoutEffect,
+	useMemo,
 	useRef,
 	useState,
 } from 'react'
@@ -12,12 +13,8 @@ import { useHoverAcrossScroll } from '../../hooks'
 import { createEmitter } from '../../utilities'
 import { samePoint } from '../chart/engine/context'
 import {
-	type MapHoverGet,
-	MapHoverGetContext,
-	type MapHoverHold,
-	MapHoverHoldContext,
-	type MapHoverSet,
-	MapHoverSetContext,
+	type MapHoverActions,
+	MapHoverActionsContext,
 	type MapHoverState,
 	MapHoverStateContext,
 	MapPointedMarkContext,
@@ -74,7 +71,7 @@ function createPointedStore(): MapPointedStore & {
 /**
  * Owns the pointer readout and hands it down split three ways:
  *
- * - the stable mover through {@link MapHoverSetContext} — the marks read it, so
+ * - the stable mover through {@link MapHoverActionsContext} — the marks read it, so
  *   they never repaint as the pointer travels
  * - the live {@link MapHoverState} through its own context, which only the
  *   tooltip reads
@@ -99,13 +96,13 @@ export function MapHoverProvider({
 }: MapHoverProviderProps) {
 	const [state, setState] = useState<MapHoverState>({ target: null, point: null })
 
-	// Whether a pinch holds the readout. See {@link MapHoverHold}.
+	// Whether a pinch holds the readout. See {@link MapHoverActions.hold}.
 	const held = useRef(false)
 
-	// The target of the last write that `set` took. See {@link MapHoverGet}.
+	// The target of the last write that `set` took. See {@link MapHoverActions.get}.
 	const hovered = useRef<MapHoverTarget | null>(null)
 
-	const set = useCallback<MapHoverSet>((target, point) => {
+	const set = useCallback<MapHoverActions['set']>((target, point) => {
 		if (held.current && target !== null) return
 
 		hovered.current = target
@@ -124,7 +121,7 @@ export function MapHoverProvider({
 		})
 	}, [])
 
-	const hold = useCallback<MapHoverHold>(
+	const hold = useCallback<MapHoverActions['hold']>(
 		(on) => {
 			held.current = on
 
@@ -158,7 +155,10 @@ export function MapHoverProvider({
 
 	useLayoutEffect(() => pointedStore.publish(pointed, emphasis), [pointedStore, pointed, emphasis])
 
-	const get = useCallback<MapHoverGet>(() => hovered.current, [])
+	const get = useCallback(() => hovered.current, [])
+
+	// The functions keep their identity, so the value does too.
+	const actions = useMemo<MapHoverActions>(() => ({ set, get, hold }), [set, get, hold])
 
 	const clear = useCallback(() => set(null, null), [set])
 
@@ -189,14 +189,10 @@ export function MapHoverProvider({
 	useHoverAcrossScroll(enabled, clear, resolveAt)
 
 	return (
-		<MapHoverSetContext value={set}>
-			<MapHoverGetContext value={get}>
-				<MapHoverHoldContext value={hold}>
-					<MapPointedMarkContext value={pointedStore}>
-						<MapHoverStateContext value={state}>{children}</MapHoverStateContext>
-					</MapPointedMarkContext>
-				</MapHoverHoldContext>
-			</MapHoverGetContext>
-		</MapHoverSetContext>
+		<MapHoverActionsContext value={actions}>
+			<MapPointedMarkContext value={pointedStore}>
+				<MapHoverStateContext value={state}>{children}</MapHoverStateContext>
+			</MapPointedMarkContext>
+		</MapHoverActionsContext>
 	)
 }

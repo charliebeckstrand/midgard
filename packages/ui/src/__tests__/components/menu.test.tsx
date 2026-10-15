@@ -1,4 +1,4 @@
-import { createRef, type Ref } from 'react'
+import { createRef, type ReactNode, type Ref } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import {
@@ -25,7 +25,6 @@ import {
 	bySlot,
 	fireEvent,
 	getSlot,
-	mockDomGeometry,
 	noop,
 	present,
 	renderUI,
@@ -720,7 +719,7 @@ describe('MenuContent', () => {
 		expect(screen.getByRole('menu')).toHaveFocus()
 	})
 
-	it('wraps items in a scroll viewport carrying the overflow affordance', () => {
+	it('wraps items in a scroll viewport carrying the edge fade', () => {
 		const { container } = renderUI(
 			<Menu defaultOpen>
 				<MenuContent>
@@ -735,9 +734,9 @@ describe('MenuContent', () => {
 
 		expect(viewport).toContainElement(screen.getByText('Item'))
 
-		// jsdom reports zero scroll extent, so the content never overflows and
-		// neither edge attribute may be stamped.
-		expect(viewport).not.toHaveAttribute('data-overflow-below')
+		// The fade is CSS, so the class is the whole wiring. Real pixels are in
+		// `browser/menu-scroll-overflow.test.tsx`.
+		expect(viewport).toHaveClass('scroll-fade-block')
 	})
 
 	describe('capped', () => {
@@ -768,28 +767,6 @@ describe('MenuContent', () => {
 			for (const viewport of [viewportFor(), viewportFor(true)]) {
 				expect(viewport).toHaveClass('overflow-y-auto')
 			}
-		})
-
-		/**
-		 * The panel delegates its viewport to `MenuViewport`, which is what carries
-		 * the watch. One arm, and an attribute rather than a class: the surviving
-		 * class cases pass against a hand-written div, so only a stamped edge
-		 * proves the panel still renders the component that watches.
-		 *
-		 * `MenuViewport`'s own case pins the gate both ways. This pins the link.
-		 */
-		it('scrolls its rows through a watched viewport', () => {
-			const viewport = viewportFor(true)
-
-			// jsdom reads no class, so the overflow value that lets the viewport
-			// scroll is written inline.
-			viewport.style.overflowY = 'auto'
-
-			mockDomGeometry(viewport, { scrollTop: 0, clientHeight: 100, scrollHeight: 400 })
-
-			fireEvent.scroll(viewport)
-
-			expect(viewport).toHaveAttribute('data-overflow-below')
 		})
 
 		it('carries the policy into a submenu panel, which portals out of the viewport', () => {
@@ -1133,58 +1110,34 @@ describe('MenuItem', () => {
 
 /**
  * The viewport both menu panels render. It owns the height policy, the stepped
- * height cap, the edge fade, and the overflow watch, so the gate is pinned here once
- * rather than at each call site.
- *
- * Written geometry, because real layout cannot read the gate: an uncapped
- * viewport never overflows, so it stamps nothing whether or not a watch runs.
- * `browser/menu-scroll-overflow.test.tsx` pins that premise in a real browser.
+ * height cap, and the edge fade, so each is pinned here once rather than at
+ * each call site.
  */
 describe('MenuViewport', () => {
 	/**
-	 * The viewport on its own, with an overflowing extent written onto it.
-	 * `useMenuCapped` reads `false` outside a `Menu`, so the capped arm supplies
-	 * the context the flag travels on.
+	 * The viewport on its own. `useMenuCapped` reads `false` outside a `Menu`, so
+	 * the capped arm supplies the context the flag travels on.
 	 */
-	const viewportFor = (capped: boolean, ref?: Ref<HTMLElement>, fitted?: boolean) => {
+	const viewportFor = (capped: boolean, ref?: Ref<HTMLDivElement>) => {
 		const { container, unmount } = renderUI(
 			<MenuCappedContext value={capped}>
-				<MenuViewport ref={ref} fitted={fitted}>
+				<MenuViewport ref={ref}>
 					<span>Item</span>
 				</MenuViewport>
 			</MenuCappedContext>,
 		)
 
-		const viewport = getSlot(container, 'menu-viewport')
-
-		// jsdom reads no class, so the overflow value that lets the viewport
-		// scroll is written inline.
-		viewport.style.overflowY = 'auto'
-
-		mockDomGeometry(viewport, { scrollTop: 0, clientHeight: 100, scrollHeight: 400 })
-
-		return { viewport, unmount }
+		return { viewport: getSlot(container, 'menu-viewport'), unmount }
 	}
 
-	it('wires the overflow watch of a static panel only while capped', () => {
+	it('fades its edges in CSS whether or not it is capped', () => {
+		// A viewport whose rows fit has no mask, so the fade needs no gate.
 		for (const capped of [false, true]) {
-			const { viewport } = viewportFor(capped)
-
-			fireEvent.scroll(viewport)
-
-			expect(viewport.hasAttribute('data-overflow-below')).toBe(capped)
+			expect(viewportFor(capped).viewport).toHaveClass('scroll-fade-block')
 		}
 	})
 
-	it('wires the overflow watch for a floating panel, which the layer caps to the viewport', () => {
-		const { viewport } = viewportFor(false, undefined, true)
-
-		fireEvent.scroll(viewport)
-
-		expect(viewport).toHaveAttribute('data-overflow-below')
-	})
-
-	it('composes an incoming ref with the watch and tears both down together', () => {
+	it('passes an incoming ref to its node and clears it on detach', () => {
 		const seen: (HTMLElement | null)[] = []
 
 		const { viewport, unmount } = viewportFor(true, (node) => {
@@ -1193,17 +1146,9 @@ describe('MenuViewport', () => {
 
 		expect(seen).toEqual([viewport])
 
-		fireEvent.scroll(viewport)
-
-		expect(viewport).toHaveAttribute('data-overflow-below')
-
 		unmount()
 
-		// One detach runs both refs: the caller's nulls, and the watch's cleanup
-		// drops the attribute it had stamped.
 		expect(seen).toEqual([viewport, null])
-
-		expect(viewport).not.toHaveAttribute('data-overflow-below')
 	})
 })
 
@@ -1315,63 +1260,6 @@ describe('MenuSub', () => {
 		fireEvent.blur(row, { relatedTarget: target(panel) })
 
 		expect(row).toHaveAttribute('aria-expanded', 'true')
-	})
-
-	/**
-	 * The teardown a real submenu panel owes on detach, end to end.
-	 *
-	 * `MenuViewport` composes this row's `setRows` with its own overflow watch,
-	 * and its own case covers that composition in isolation. This one proves the
-	 * panel's unmount reaches it: the portal, the exit, and the row's state
-	 * setter all sit between the detach and the watch's cleanup.
-	 *
-	 * `capped` is what wires the watch at all, so the case passes it. Without the
-	 * flag there is no watch to tear down, and the assertions below would read a
-	 * node that never carried an attribute.
-	 */
-	it('tears the viewport overflow watch down when the panel detaches', () => {
-		const { unmount } = renderUI(
-			<Menu defaultOpen capped>
-				<MenuContent>
-					<MenuSub label="More">
-						<MenuItem>Nested</MenuItem>
-					</MenuSub>
-				</MenuContent>
-			</Menu>,
-		)
-
-		fireEvent.click(screen.getByRole('menuitem', { name: /More/ }))
-
-		const viewport = present(
-			screen
-				.getByRole('menuitem', { name: 'Nested' })
-				.closest<HTMLElement>('[data-slot="menu-viewport"]'),
-			'submenu [data-slot="menu-viewport"]',
-		)
-
-		// jsdom reports a zero scroll extent and reads no class, so write an
-		// extent and an overflow value, and scroll. The watch then stamps an edge,
-		// which gives the teardown something to remove.
-		viewport.style.overflowY = 'auto'
-
-		mockDomGeometry(viewport, { scrollTop: 0, clientHeight: 100, scrollHeight: 400 })
-
-		fireEvent.scroll(viewport)
-
-		expect(viewport).toHaveAttribute('data-overflow-below')
-
-		unmount()
-
-		// One cleanup block drops the attributes, the scroll listener, and both
-		// observers. The attributes are the half a detached node still shows.
-		expect(viewport).not.toHaveAttribute('data-overflow-below')
-
-		expect(viewport).not.toHaveAttribute('data-overflow-above')
-
-		// And the listener is gone with them: a later scroll stamps nothing.
-		fireEvent.scroll(viewport)
-
-		expect(viewport).not.toHaveAttribute('data-overflow-below')
 	})
 })
 
@@ -1493,6 +1381,53 @@ describe('Menu context-menu mode', () => {
 	})
 })
 
+describe('Menu nested context surfaces', () => {
+	function renderNested(onAncestorContextMenu = vi.fn()) {
+		renderUI(
+			// biome-ignore lint/a11y/noStaticElementInteractions: the test listens for the bubble only.
+			<div onContextMenu={onAncestorContextMenu}>
+				<Menu>
+					<div data-testid="outer-surface">
+						<Menu>
+							<div data-testid="inner-surface">inner content</div>
+							<MenuContent aria-label="Inner actions">
+								<MenuItem>Inner item</MenuItem>
+							</MenuContent>
+						</Menu>
+					</div>
+					<MenuContent aria-label="Outer actions">
+						<MenuItem>Outer item</MenuItem>
+					</MenuContent>
+				</Menu>
+			</div>,
+		)
+
+		return onAncestorContextMenu
+	}
+
+	// The inner surface handles the right-click, so the event must not reach
+	// the outer surface and open a second menu at the same cursor.
+	it('opens only the inner menu on a right-click of inner content', () => {
+		renderNested()
+
+		fireEvent.contextMenu(screen.getByTestId('inner-surface'), { clientX: 50, clientY: 80 })
+
+		expect(screen.getAllByRole('menu')).toHaveLength(1)
+		expect(screen.getByRole('menu', { name: 'Inner actions' })).toBeInTheDocument()
+	})
+
+	// Ctrl + secondary click yields to the native menu of the browser; the
+	// surface leaves that event free.
+	it('leaves a Ctrl + secondary-button contextmenu free for an ancestor', () => {
+		const onAncestorContextMenu = renderNested()
+
+		fireEvent.contextMenu(screen.getByTestId('inner-surface'), { ctrlKey: true, button: 2 })
+
+		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+		expect(onAncestorContextMenu).toHaveBeenCalledTimes(1)
+	})
+})
+
 describe('MenuItem density', () => {
 	// The row reads no context. Its padding, gap, and text are stepped classes,
 	// and the nearest `data-density` scope selects the step in CSS.
@@ -1525,11 +1460,17 @@ describe('Menu on a phone', () => {
 		title,
 		description,
 		glass,
+		label,
+		labelledby,
+		trigger = <button type="button">Add tile</button>,
 	}: {
 		sheet?: boolean
 		title?: string
 		description?: string
 		glass?: boolean
+		label?: string
+		labelledby?: string
+		trigger?: ReactNode
 	} = {}) {
 		stubMatchMedia((query) => query.startsWith('(hover: none)'))
 
@@ -1538,16 +1479,26 @@ describe('Menu on a phone', () => {
 		const user = setupUser()
 
 		renderUI(
-			<Menu placement="bottom-start" sheet={sheet}>
-				<MenuTrigger>
-					<button type="button">Add tile</button>
-				</MenuTrigger>
+			<>
+				<h2 id="tile-menu-name">Dashboard tiles</h2>
 
-				<MenuContent title={title} description={description} glass={glass}>
-					<MenuItem onAction={onAction}>Orders</MenuItem>
-					<MenuItem>Revenue</MenuItem>
-				</MenuContent>
-			</Menu>,
+				<span id="add-tile-name">Add tile</span>
+
+				<Menu placement="bottom-start" sheet={sheet}>
+					<MenuTrigger>{trigger}</MenuTrigger>
+
+					<MenuContent
+						title={title}
+						description={description}
+						glass={glass}
+						aria-label={label}
+						aria-labelledby={labelledby}
+					>
+						<MenuItem onAction={onAction}>Orders</MenuItem>
+						<MenuItem>Revenue</MenuItem>
+					</MenuContent>
+				</Menu>
+			</>,
 		)
 
 		return { onAction, user }
@@ -1597,6 +1548,47 @@ describe('Menu on a phone', () => {
 		await user.click(screen.getByRole('button', { name: 'Add tile' }))
 
 		expect(screen.getByRole('menu', { name })).toBeInTheDocument()
+	})
+
+	// The name of the trigger comes from an aria-label that is not empty, else
+	// from its aria-labelledby, else from its text. An icon has no text.
+	it.each([
+		[
+			'an aria-labelledby',
+			<button key="labelledby" type="button" aria-labelledby="add-tile-name">
+				<svg aria-hidden="true" />
+			</button>,
+		],
+		[
+			'an empty aria-label and text',
+			// biome-ignore lint/a11y/useValidAriaValues: the empty aria-label is the case under test
+			<button key="empty" type="button" aria-label="">
+				Add tile
+			</button>,
+		],
+	])('names the sheet and the menu by a trigger with %s', async (_name, trigger) => {
+		const { user } = renderPhoneMenu({ trigger })
+
+		await user.click(screen.getByRole('button'))
+
+		expect(screen.getByRole('dialog', { name: 'Add tile' })).toBeInTheDocument()
+
+		expect(screen.getByRole('menu', { name: 'Add tile' })).toBeInTheDocument()
+	})
+
+	// A name from the consumer names the menu, as in the popover. The heading
+	// and the name of the sheet stay the title or the trigger.
+	it.each([
+		['the aria-label of the content', { label: 'Tile types' }, 'Tile types'],
+		['the aria-labelledby of the content', { labelledby: 'tile-menu-name' }, 'Dashboard tiles'],
+	])('names the menu in the sheet by %s', async (_name, props, name) => {
+		const { user } = renderPhoneMenu({ title: 'New tile', ...props })
+
+		await user.click(screen.getByRole('button', { name: 'Add tile' }))
+
+		expect(screen.getByRole('menu', { name })).toBeInTheDocument()
+
+		expect(screen.getByRole('dialog', { name: 'New tile' })).toBeInTheDocument()
 	})
 
 	// The per-surface opt-in reaches the sheet, as it reaches the popover, with

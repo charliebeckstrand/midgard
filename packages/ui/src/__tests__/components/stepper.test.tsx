@@ -141,6 +141,28 @@ describe('Stepper', () => {
 		)
 	})
 
+	it('gives className to the step row in an interactive and in a display-only stepper', () => {
+		for (const props of [{ value: 0 }, { value: 0, onValueChange: () => {} }]) {
+			const { container, unmount } = renderUI(
+				<Stepper {...props} orientation="horizontal" className="justify-center px-0">
+					<StepperStep value={0}>
+						<StepperTitle>Account</StepperTitle>
+					</StepperStep>
+				</Stepper>,
+			)
+
+			// The row is the flex list of the steps. A class such as px-0 must
+			// replace the padding of the row, not land on a wrapper around it.
+			const row = present(container.querySelector('ol'), 'row')
+
+			expect(row).toHaveClass('justify-center', 'px-0')
+
+			expect(row).not.toHaveClass('px-4')
+
+			unmount()
+		}
+	})
+
 	it('roves the arrow keys across the step buttons inside the list', async () => {
 		renderUI(
 			<Stepper defaultValue={0} orientation="horizontal">
@@ -223,32 +245,53 @@ describe('StepperDescription', () => {
 })
 
 describe('StepperIndicator', () => {
-	it('names each step state for assistive tech', () => {
+	it.each(['horizontal', 'vertical'] as const)(
+		'names each step state for assistive tech after its title (%s)',
+		(orientation) => {
+			const { container } = renderUI(
+				<Stepper value={2} onValueChange={() => {}} orientation={orientation}>
+					<StepperStep value={1}>
+						<StepperTitle>One</StepperTitle>
+					</StepperStep>
+					<StepperStep value={2}>
+						<StepperTitle>Two</StepperTitle>
+					</StepperStep>
+					<StepperStep value={3}>
+						<StepperTitle>Three</StepperTitle>
+					</StepperStep>
+				</Stepper>,
+			)
+
+			const steps = Array.from(
+				container.querySelectorAll<HTMLButtonElement>('button[data-slot="stepper-step"]'),
+			)
+
+			// Completed/current/upcoming differ visually by color and the checkmark
+			// glyph only (WCAG 1.4.1); each step's name must carry its state. The
+			// state follows the title, so the name does not start with a comma.
+			expect(steps[0]).toHaveAccessibleName('One, completed')
+
+			// The current step takes its state from aria-current="step", which AT
+			// reads as "current step". A suffix in the name would read it twice.
+			expect(steps[1]).toHaveAttribute('aria-current', 'step')
+
+			expect(steps[1]).toHaveAccessibleName('Two')
+
+			expect(steps[2]).toHaveAccessibleName('Three, not started')
+		},
+	)
+
+	it('reads the state after the title and description of a display-only step', () => {
 		const { container } = renderUI(
-			<Stepper value={2} onValueChange={() => {}}>
+			<Stepper value={2}>
 				<StepperStep value={1}>
 					<StepperTitle>One</StepperTitle>
-				</StepperStep>
-				<StepperStep value={2}>
-					<StepperTitle>Two</StepperTitle>
-				</StepperStep>
-				<StepperStep value={3}>
-					<StepperTitle>Three</StepperTitle>
+					<StepperDescription>First</StepperDescription>
 				</StepperStep>
 			</Stepper>,
 		)
 
-		const steps = Array.from(
-			container.querySelectorAll<HTMLButtonElement>('button[data-slot="stepper-step"]'),
-		)
-
-		// Completed/current/upcoming differ visually by color and the checkmark
-		// glyph only (WCAG 1.4.1); each step's name must carry its state.
-		expect(steps[0]).toHaveAccessibleName(expect.stringContaining('completed'))
-
-		expect(steps[1]).toHaveAccessibleName(expect.stringContaining('current step'))
-
-		expect(steps[2]).toHaveAccessibleName(expect.stringContaining('not started'))
+		expect(bySlot(container, 'stepper-step')).toHaveTextContent(/^OneFirst, completed$/)
 	})
 
 	it('draws a checkmark on a completed step, and none on the others', () => {
@@ -287,20 +330,20 @@ describe('StepperIndicator', () => {
 
 		expect(indicator?.querySelector('svg')).toBeNull()
 
-		expect(indicator).toHaveTextContent(/^1, completed$/)
+		expect(indicator).toHaveTextContent(/^1$/)
 	})
 
-	it('renders its children ahead of the state suffix', () => {
+	it('names a numbered step with its number, its title, and then its state', () => {
 		const { container } = renderUI(
-			<Stepper value={1}>
+			<Stepper value={0} onValueChange={() => {}}>
 				<StepperStep value={1}>
-					<StepperIndicator>1</StepperIndicator>
-					<StepperTitle>One</StepperTitle>
+					<StepperIndicator>2</StepperIndicator>
+					<StepperTitle>Two</StepperTitle>
 				</StepperStep>
 			</Stepper>,
 		)
 
-		expect(bySlot(container, 'stepper-indicator')).toHaveTextContent(/^1, current step$/)
+		expect(container.querySelector('button')).toHaveAccessibleName(/^2\s?Two, not started$/)
 	})
 })
 

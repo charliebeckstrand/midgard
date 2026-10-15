@@ -278,6 +278,44 @@ describe('sidebar layout scroll padding from lg up (real browser)', () => {
 
 		expect(root.style.scrollPaddingTop).toBe('')
 	})
+
+	// The header keeps its size when it starts or stops to stick, so no resize
+	// tells the layout about the change.
+	it('follows a change of stickyHeader', async () => {
+		function Layout({ stickyHeader }: { stickyHeader: boolean }) {
+			return (
+				<SidebarLayout stickyHeader={stickyHeader} sidebar={<nav>Links</nav>}>
+					<SidebarLayoutHeader>Title</SidebarLayoutHeader>
+					<div className="h-[3000px]">Content</div>
+				</SidebarLayout>
+			)
+		}
+
+		const { rerender } = renderUI(<Layout stickyHeader={false} />)
+
+		await frames()
+
+		const root = document.documentElement
+
+		expect(root.style.scrollPaddingTop).toBe('')
+
+		rerender(<Layout stickyHeader />)
+
+		await frames()
+
+		const header = getSlot(document.body, 'header')
+
+		expect(Number.parseFloat(root.style.scrollPaddingTop)).toBeNear(
+			header.getBoundingClientRect().height,
+			HALF_PIXEL,
+		)
+
+		rerender(<Layout stickyHeader={false} />)
+
+		await frames()
+
+		expect(root.style.scrollPaddingTop).toBe('')
+	})
 })
 
 describe('sidebar layout in a size container (real browser)', () => {

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { userEvent } from 'vitest/browser'
 import {
 	PdfViewer,
 	type PdfViewerHighlight,
@@ -322,5 +323,116 @@ describe('a name that stands over another region (real browser)', () => {
 		await waitFor(() => expect(above).toHaveAttribute('aria-current', 'true'))
 
 		expect(screen.getByLabelText('Below')).not.toHaveAttribute('aria-current')
+	})
+})
+
+/**
+ * The name of the region under the pointer, against real layout and the real floating engine.
+ *
+ * The preview anchors to the region's node, and a region is keyed on its id. A page turn
+ * unmounts the node, and a return mounts a new one under the same id. The jsdom suite measures
+ * every rect as zero, so it cannot see a panel that the `hide` middleware hides against a
+ * detached box. This project can.
+ */
+describe('the name of a hovered region (real browser)', () => {
+	const src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
+
+	/*
+	 * Each page states its size, as the docs pages do. The viewer then stays measured through a
+	 * page turn, and the layer stays mounted. Without a size, the turn unmounts the layer and
+	 * clears the preview.
+	 */
+	const size = { width: 612, height: 792, pointWidth: 612, pointHeight: 792 }
+
+	const pages: PdfViewerPage[] = [
+		{ id: 'a', src, label: 'Page 1', ...size },
+		{ id: 'b', src, label: 'Page 2', ...size },
+	]
+
+	function highlightsNamed(invoice: string): PdfViewerHighlight[] {
+		return [
+			{
+				id: 'invoice',
+				page: 1,
+				rect: { x: 0.2, y: 0.45, width: 0.35, height: 0.05 },
+				label: invoice,
+			},
+			// The next page carries a region, so the layer stays mounted through the turn.
+			{
+				id: 'remit',
+				page: 2,
+				rect: { x: 0.2, y: 0.45, width: 0.35, height: 0.05 },
+				label: 'Remit to',
+			},
+		]
+	}
+
+	function Viewer({ invoice }: { invoice: string }) {
+		return (
+			<div style={{ width: '520px', height: '620px' }}>
+				<PdfViewer
+					pages={pages}
+					highlights={highlightsNamed(invoice)}
+					onActiveHighlightChange={noop}
+				/>
+			</div>
+		)
+	}
+
+	async function turnTo(page: string) {
+		await userEvent.click(screen.getByRole('combobox', { name: 'Current page' }))
+
+		await userEvent.click(await screen.findByRole('option', { name: page }))
+	}
+
+	it('names the region again after the page turns away and back', async () => {
+		const { container } = renderUI(<Viewer invoice="Invoice number" />)
+
+		fireEvent.mouseOver(await screen.findByLabelText('Invoice number'))
+
+		await waitFor(() => expect(label()).toHaveTextContent('Invoice number'))
+
+		fireEvent.mouseLeave(present(bySlot(container, 'pdf-viewer-highlights'), 'the layer'))
+
+		await turnTo('Page 2')
+
+		await screen.findByLabelText('Remit to')
+
+		await turnTo('Page 1')
+
+		const region = await screen.findByLabelText('Invoice number')
+
+		fireEvent.mouseOver(region)
+
+		await waitFor(() => expect(label()).toHaveTextContent('Invoice number'))
+
+		const panel = present(
+			label()?.closest<HTMLElement>('[data-slot="tooltip-content"]'),
+			'the preview panel',
+		)
+
+		// The engine hides a panel against a detached node. Against the mounted node, the panel
+		// shows, and it stands above that node.
+		await waitFor(() => expect(getComputedStyle(panel).visibility).toBe('visible'))
+
+		await waitFor(() =>
+			expect(panel.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+				region.getBoundingClientRect().top + 1,
+			),
+		)
+	})
+
+	it('shows the new name when the consumer renames the region while its preview is open', async () => {
+		const { rerender } = renderUI(<Viewer invoice="Invoice number" />)
+
+		fireEvent.mouseOver(await screen.findByLabelText('Invoice number'))
+
+		await waitFor(() => expect(label()).toHaveTextContent('Invoice number'))
+
+		rerender(<Viewer invoice="Invoice no." />)
+
+		await screen.findByLabelText('Invoice no.')
+
+		await waitFor(() => expect(label()).toHaveTextContent('Invoice no.'))
 	})
 })

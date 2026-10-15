@@ -1,7 +1,8 @@
 'use client'
 
 import type { ChangeEvent, Ref } from 'react'
-import { useFormattedInput } from '../../hooks/use-formatted-input'
+import { useComposedRef } from '../../hooks'
+import { type FormattedInputOptions, useFormattedInput } from '../../hooks/use-formatted-input'
 import { useFormValue } from '../form/use-form-value'
 
 type MaskedInputOptions = {
@@ -16,13 +17,8 @@ type MaskedInputOptions = {
 	format: (raw: string) => string
 	/** External ref to compose with the hook's internal input ref. */
 	ref?: Ref<HTMLInputElement>
-	/**
-	 * Predicate identifying characters preserved across `format`. Keeps the
-	 * caret aligned with the typed character when `format` inserts or removes
-	 * separators.
-	 * @defaultValue ASCII alphanumerics and `+`.
-	 */
-	meaningful?: (char: string) => boolean
+	/** The caret predicate of {@link useFormattedInput}. */
+	meaningful?: FormattedInputOptions['meaningful']
 }
 
 /**
@@ -30,7 +26,9 @@ type MaskedInputOptions = {
  * to the seed, to a controlled `value` on each render, and to every subsequent
  * change. It returns props ready to spread onto an `Input`. Restores the caret
  * to its pre-format position when the returned `ref` is attached. It also binds to an enclosing Form field by
- * `name` (value, touched on blur, and error state via `invalid`).
+ * `name` (value, touched on blur, and error state via `invalid`). When the
+ * value is uncontrolled and not bound, a native reset of the enclosing `<form>`
+ * sets the value back to the formatted `defaultValue`.
  *
  * @remarks A controlled `value` shows formatted before the consumer's state
  * holds the formatted text. The next change sends the formatted text back. A
@@ -55,6 +53,7 @@ export function useMaskInput({
 }: MaskedInputOptions) {
 	const {
 		value: current,
+		resetRef,
 		setValue,
 		setTouched,
 		invalid,
@@ -66,7 +65,13 @@ export function useMaskInput({
 		onValueChange: onChange ? (next) => onChange(next ?? '') : undefined,
 	})
 
-	const { ref, reformat } = useFormattedInput({ format, meaningful, ref: externalRef })
+	const joinedRef = useComposedRef(resetRef, externalRef)
+
+	const { ref, reformat } = useFormattedInput({
+		format,
+		meaningful,
+		ref: joinedRef,
+	})
 
 	return {
 		// Format the controlled arm on read. The bound arm stays raw, because the Form submits it.

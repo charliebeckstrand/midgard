@@ -119,7 +119,7 @@ function slotsAround(index: number, photos: readonly LightboxViewPhoto[]) {
 	return [-1, 0, 1].flatMap((offset) => {
 		const photo = photos[index + offset]
 
-		return photo ? [{ slot: index + offset, offset, photo }] : []
+		return photo ? [{ offset, photo }] : []
 	})
 }
 
@@ -175,15 +175,29 @@ export function LightboxStage({
 
 	const stageRef = useRef<HTMLDivElement>(null)
 
-	// The photo that a slide ends on, while the slide runs from `from`. The
-	// controls show it from the start of the slide (see `at`).
+	// The photo that a slide ends on, while the slide runs from the photo
+	// `from`. Each is a `photo.index`, not a place in `photos`: a load or a
+	// failure of a thumbnail moves the places during a slide. The controls show
+	// the photo `to` from the start of the slide (see `at`). The aim ends when
+	// the slide lands, so a later change of `index` back to the photo `from`
+	// does not show the photo `to` again.
 	const [aim, setAim] = useState<{ from: number; to: number } | null>(null)
 
 	const track = useLightboxTrack(trackRef, {
 		index,
 		count: photos.length,
-		onIndexChange,
-		onAim: (to) => setAim({ from: index, to }),
+		onIndexChange: (to) => {
+			setAim(null)
+
+			onIndexChange(to)
+		},
+		onAim: (to) => {
+			const from = photos[index]?.index
+
+			const target = photos[to]?.index
+
+			setAim(from === undefined || target === undefined ? null : { from, to: target })
+		},
 		// A tap on the stage outside the photo closes the viewer.
 		onTap: (event) => {
 			if (!(event.target instanceof HTMLImageElement)) handleClose()
@@ -204,6 +218,9 @@ export function LightboxStage({
 		if (present) {
 			if (leaving.current) {
 				setAim(null)
+
+				// The raise takes the photo to rest, so the zoom only drops its state.
+				track.zoom.clear(false)
 
 				flight.raise(home())
 
@@ -241,6 +258,24 @@ export function LightboxStage({
 		followPresence(isPresent)
 	}, [isPresent])
 
+	// A zoom is for one photo. When another photo comes to the center outside a
+	// step, as a slide lands or a controlled index changes, the zoom goes back
+	// to rest. A shift of the places in `photos` keeps `photo.index`, and so
+	// keeps the zoom.
+	const center = photos[index]?.index
+
+	const shownCenter = useRef(center)
+
+	const clearZoom = useEffectEvent(() => track.zoom.clear(true))
+
+	useLayoutEffect(() => {
+		if (shownCenter.current === center) return
+
+		shownCenter.current = center
+
+		clearZoom()
+	}, [center])
+
 	const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
 		// A key with a modifier is for the browser, such as its own zoom.
 		if (event.metaKey || event.ctrlKey || event.altKey) return
@@ -271,8 +306,14 @@ export function LightboxStage({
 	// the photo in the center slot, which changes when a slide lands. Each
 	// control follows the photo that the viewer goes to instead, so it changes
 	// when the slide starts and moves with it. A slide that lands changes
-	// `index`, and its aim then ends.
-	const at = aim?.from === index ? aim.to : index
+	// `index` and ends its aim in the same commit.
+	const aimedAt =
+		aim && photos[index]?.index === aim.from
+			? photos.findIndex((photo) => photo.index === aim.to)
+			: -1
+
+	// When the photo `to` is not in `photos`, the controls show the photo in the center.
+	const at = aimedAt === -1 ? index : aimedAt
 
 	const aimed = photos[at]
 
@@ -321,12 +362,15 @@ export function LightboxStage({
 			    arrow keys give each of its actions to the keyboard. */}
 			<div ref={stageRef} data-slot="lightbox-stage" {...track.handlers} className={k.stage}>
 				<div ref={trackRef} className={k.track}>
-					{slotsAround(index, photos).map(({ slot, offset, photo }) => {
+					{slotsAround(index, photos).map(({ offset, photo }) => {
 						const placeholder = photo.thumbnail && photo.thumbnail !== photo.src
 
 						return (
+							// The key is the photo, not its place. A load or a failure of a
+							// thumbnail moves the places, and the photo in the center must
+							// keep its element.
 							<div
-								key={slot}
+								key={photo.index}
 								data-offset={offset}
 								aria-hidden={offset === 0 ? undefined : true}
 								inert={offset !== 0}

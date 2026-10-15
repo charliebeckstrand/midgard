@@ -10,6 +10,7 @@ import { Toolbar } from '../../components/toolbar'
 import { ariaAttr, cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import type { GridExportAction } from './engine/grid-export/types'
+import { preloadGridDataDialogs } from './grid-data-dialogs'
 import type { GridSelection } from './grid-data-types'
 import { GridFilter } from './grid-filter'
 import type { GridColumnFilter, GridGlobalFilterView } from './use-grid-table'
@@ -185,6 +186,8 @@ export function GridToolbar({
 									variant="plain"
 									aria-haspopup="dialog"
 									onClick={onManageColumns}
+									onPointerEnter={preloadGridDataDialogs}
+									onFocus={preloadGridDataDialogs}
 								>
 									<Icon icon={<SlidersHorizontal />} />
 									{columnManagerLabel}

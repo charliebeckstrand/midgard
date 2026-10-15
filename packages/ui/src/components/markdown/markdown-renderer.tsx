@@ -7,6 +7,7 @@ import { k } from '../../recipes/kata/markdown'
 import { clamp } from '../../utilities'
 import { Code, CodeBlock } from '../code'
 import { decodeEntities } from './markdown-entities'
+import { MarkdownTableScroll } from './markdown-table-scroll'
 
 const HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const
 
@@ -21,11 +22,15 @@ const SAFE_URL_SCHEMES = /^(?:https?|mailto|tel)$/i
  * on a known-safe scheme — http/https/mailto/tel, plus `data:` for images.
  * Untrusted Markdown can carry `javascript:`, `data:text/html`, or `vbscript:`
  * URLs that run script when the link is clicked. Those resolve to `undefined`,
- * and no `href`/`src` renders.
+ * and no `href`/`src` renders. Entity references in the URL decode first.
  *
  * @internal
  */
-function safeUrl(url: string, allowData = false): string | undefined {
+function safeUrl(source: string, allowData = false): string | undefined {
+	// The scheme check reads the decoded URL, so `&#106;avascript:` is blocked
+	// as `javascript:`. The decoded URL is also what renders.
+	const url = decodeEntities(source)
+
 	// The URL parser strips every leading C0 control and space (code point
 	// <= 0x20), plus tab/newline anywhere, when resolving a scheme — so
 	// `javascript:` and `java\tscript:` both become `javascript:` at click
@@ -57,21 +62,23 @@ function safeUrl(url: string, allowData = false): string | undefined {
  *
  * @remarks
  * Pure and hook-free itself, so the {@link Markdown} leaf that mounts it stays
- * static and server-renderable. A fenced code token is the one exception,
- * rendered through {@link CodeBlock} (a `'use client'` leaf that lazily
- * syntax-highlights). A code-bearing tree therefore picks up one client boundary
- * there, while the rest stays static. Raw HTML tokens render nothing: the tree
+ * static and server-renderable. A fenced code token renders through
+ * {@link CodeBlock} (a `'use client'` leaf that lazily syntax-highlights), and
+ * a table renders in {@link MarkdownTableScroll} (a `'use client'` scroll box).
+ * A tree with code or a table therefore gets a client boundary there, and the
+ * rest stays static. Raw HTML tokens render nothing: the tree
  * is built only from elements this renderer controls, so source markup never
  * reaches the DOM.
  *
  * marked decodes only the numeric references in a text token, and keeps the
  * other entity references as source text. The renderer decodes text from the
  * source of the token, so that each reference is decoded one time. It decodes
- * text, image `alt`, and titles, as CommonMark specifies, with the subset of
- * names that {@link decodeEntities} knows. The
- * decoded text goes into React text nodes and attributes, so a decoded `<`
- * shows as a character and is never markup. Code spans and code blocks keep
- * their references literal.
+ * text, image `alt`, titles, and link and image destinations, as CommonMark
+ * specifies, with the subset of names that {@link decodeEntities} knows. A
+ * destination decodes before its scheme check, so `&#106;avascript:` is
+ * blocked as `javascript:`. The decoded text goes into React text nodes and
+ * attributes, so a decoded `<` shows as a character and is never markup. Code
+ * spans and code blocks keep their references literal.
  *
  * A heading takes the level of its source depth plus `headingOffset`, in the
  * range 1 to 6. Its look stays that of its source depth.
@@ -166,7 +173,7 @@ function renderToken(token: Token, index: number, offset: number, taskLabel?: st
 				<img
 					key={index}
 					src={safeUrl(token.href, true)}
-					alt={decodeEntities(token.text)}
+					alt={imageAlt(token)}
 					title={decodeTitle(token.title)}
 					className={cn(k.img)}
 				/>
@@ -222,6 +229,17 @@ function renderToken(token: Token, index: number, offset: number, taskLabel?: st
  */
 function decodeTitle(title: string | null | undefined): string | undefined {
 	return title ? decodeEntities(title) : undefined
+}
+
+/**
+ * The `alt` of an image: the plain text of its parsed description, so that
+ * emphasis and escapes do not go into the accessible name. A token with no
+ * children gives its raw `text`, with its entity references decoded.
+ *
+ * @internal
+ */
+function imageAlt(token: Tokens.Image | Tokens.Generic): string {
+	return token.tokens ? plainText(token.tokens) : decodeEntities(token.text)
 }
 
 function renderList(token: Tokens.List, key: number, offset: number): ReactNode {
@@ -281,7 +299,7 @@ function plainText(tokens: Token[]): string {
 				case 'escape':
 					return token.text
 				case 'image':
-					return decodeEntities(token.text)
+					return imageAlt(token)
 				case 'br':
 					return ' '
 				default:
@@ -295,12 +313,14 @@ function plainText(tokens: Token[]): string {
 
 function renderTable(token: Tokens.Table, key: number, offset: number): ReactNode {
 	return (
-		<table key={key} className={cn(k.table)}>
-			<thead>
-				<tr>{token.header.map((cell, index) => renderCell('th', k.th, cell, index, offset))}</tr>
-			</thead>
-			<tbody>{token.rows.map((row, index) => renderRow(row, index, offset))}</tbody>
-		</table>
+		<MarkdownTableScroll key={key}>
+			<table className={cn(k.table)}>
+				<thead>
+					<tr>{token.header.map((cell, index) => renderCell('th', k.th, cell, index, offset))}</tr>
+				</thead>
+				<tbody>{token.rows.map((row, index) => renderRow(row, index, offset))}</tbody>
+			</table>
+		</MarkdownTableScroll>
 	)
 }
 

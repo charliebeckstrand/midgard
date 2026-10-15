@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ReadyReveal } from '../../primitives/ready-reveal'
-import { getSlot, renderUI, screen } from '../helpers'
+import { expectAnnouncement, getSlot, liveRegion, renderUI, screen } from '../helpers'
 
 describe('ReadyReveal', () => {
 	it('renders children content', () => {
@@ -97,26 +97,33 @@ describe('ReadyReveal onReadyComplete', () => {
 		expect(root).not.toHaveAttribute('aria-busy')
 	})
 
-	it('renders no live region without a loadingLabel', () => {
+	it('announces nothing without a loadingLabel', async () => {
 		renderUI(
 			<ReadyReveal ready={false} placeholder={<span>P</span>}>
 				<span>C</span>
 			</ReadyReveal>,
 		)
 
-		expect(screen.queryByRole('status')).toBeNull()
+		// Flush the announcer's microtask, then confirm nothing was written.
+		await Promise.resolve()
+
+		// Lazily created on first announce; absent means nothing was announced.
+		expect(liveRegion()?.textContent ?? '').toBe('')
 	})
 
-	it('announces the loadingLabel in a polite live region while not ready', () => {
+	it('announces the loadingLabel through the shared announcer each time it goes unready', async () => {
 		const { rerender } = renderUI(
 			<ReadyReveal ready={false} loadingLabel="Loading orders" placeholder={<span>P</span>}>
 				<span>C</span>
 			</ReadyReveal>,
 		)
 
-		const status = screen.getByRole('status')
+		await expectAnnouncement('Loading orders')
 
-		expect(status).toHaveTextContent('Loading orders')
+		// The reveal renders no live region of its own.
+		expect(getSlot(document.body, 'ready-reveal').querySelector('[role="status"]')).toBeNull()
+
+		liveRegion()?.replaceChildren()
 
 		rerender(
 			<ReadyReveal ready={true} loadingLabel="Loading orders" placeholder={<span>P</span>}>
@@ -124,7 +131,9 @@ describe('ReadyReveal onReadyComplete', () => {
 			</ReadyReveal>,
 		)
 
-		expect(status).toBeEmptyDOMElement()
+		await Promise.resolve()
+
+		expect(liveRegion()?.textContent).toBe('')
 
 		rerender(
 			<ReadyReveal ready={false} loadingLabel="Loading orders" placeholder={<span>P</span>}>
@@ -132,6 +141,6 @@ describe('ReadyReveal onReadyComplete', () => {
 			</ReadyReveal>,
 		)
 
-		expect(status).toHaveTextContent('Loading orders')
+		await expectAnnouncement('Loading orders')
 	})
 })

@@ -1,5 +1,6 @@
 import { MapPinned, Phone } from 'lucide-react'
 import type { ReactNode } from 'react'
+import type { FormattedInputOptions } from '../../hooks/use-formatted-input'
 import { digitsOnly } from '../../utilities'
 import { Icon } from '../icon'
 import type { InputProps } from '../input'
@@ -13,8 +14,8 @@ export type MaskInputFormat = (raw: string) => string
  */
 export type MaskInputPreset = {
 	format: MaskInputFormat
-	/** Predicate for the characters that the caret counts. */
-	meaningful?: (char: string) => boolean
+	/** Predicate for the characters that the caret counts. See {@link FormattedInputOptions}. */
+	meaningful?: FormattedInputOptions['meaningful']
 	type?: InputProps['type']
 	inputMode?: InputProps['inputMode']
 	autoComplete?: InputProps['autoComplete']
@@ -28,13 +29,17 @@ export type PhoneMaskCountry = 'US' | 'international'
 /** Postal-code locale for {@link zipcodeMask}. */
 export type ZipcodeMaskCountry = 'US' | 'CA' | 'GB' | 'international'
 
-/** @internal North American Numbering Plan mask: strips a leading country `1`, caps at 10 digits, and formats as `(NXX) NXX-XXXX` as they arrive. */
+/**
+ * @internal North American Numbering Plan mask: strips a leading country `1`
+ * when there are more than 10 digits, caps at 10 digits, and formats as
+ * `(NXX) NXX-XXXX` as they arrive.
+ */
 function formatNANP(raw: string) {
 	const digits = digitsOnly(raw)
 
-	const national = (
-		digits.length === 11 && digits.startsWith('1') ? digits.slice(1) : digits
-	).slice(0, 10)
+	const withoutCountry = digits.length > 10 && digits.startsWith('1') ? digits.slice(1) : digits
+
+	const national = withoutCountry.slice(0, 10)
 
 	if (national.length === 0) return ''
 
@@ -57,10 +62,30 @@ function formatInternationalPhone(raw: string) {
 	return hasPlus ? `+${digits}` : digits
 }
 
+/** @internal Counts an ASCII digit, the only digit that `digitsOnly` keeps. */
+function isAsciiDigit(char: string) {
+	return char >= '0' && char <= '9'
+}
+
+/**
+ * @internal Counts the characters that {@link formatInternationalPhone} keeps:
+ * an ASCII digit, and a `+` only when no digit or `+` comes before it.
+ */
+function isInternationalPhoneChar(char: string, index: number, text: string) {
+	if (char === '+') return text.search(/[\d+]/) === index
+
+	return isAsciiDigit(char)
+}
+
 const phoneFormats = {
 	US: formatNANP,
 	international: formatInternationalPhone,
 } satisfies Record<PhoneMaskCountry, MaskInputFormat>
+
+const phoneMeaningful = {
+	US: isAsciiDigit,
+	international: isInternationalPhoneChar,
+} satisfies Record<PhoneMaskCountry, MaskInputPreset['meaningful']>
 
 function formatZipUS(raw: string) {
 	const digits = digitsOnly(raw).slice(0, 9)
@@ -117,13 +142,15 @@ const zipcodePlaceholders = {
 /**
  * Phone-number mask for {@link MaskInput}. It formats per `country`, sets
  * `type="tel"`, `inputMode="tel"`, and `autoComplete="tel"`, and adds a
- * leading phone icon.
+ * leading phone icon. The caret counts only the characters that the format
+ * keeps, so a character that the format removes does not move the caret.
  *
  * @param country - The dialing locale. The default is `'US'`.
  */
 export function phoneMask(country: PhoneMaskCountry = 'US'): MaskInputPreset {
 	return {
 		format: phoneFormats[country],
+		meaningful: phoneMeaningful[country],
 		type: 'tel',
 		inputMode: 'tel',
 		autoComplete: 'tel',

@@ -1,17 +1,16 @@
 'use client'
 
-import { type ComponentProps, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { type ComponentProps, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { isRtl } from '../../hooks/a11y/logical-arrow'
 import { useComposedRef } from '../../hooks/use-composed-ref'
 import type { Mount } from '../mount'
 import { ReducedMotion } from '../reduced-motion'
 import {
-	CurrentAnimationContext,
+	CurrentContentsContext,
+	type CurrentContentsState,
 	type CurrentDirection,
-	CurrentDirectionContext,
-	CurrentMountContext,
-	CurrentSettledContext,
+	STILL_CONTENTS,
 	useCurrent,
 } from './current'
 import { useCurrentContentsMorph } from './use-current-contents-morph'
@@ -128,41 +127,41 @@ export function CurrentContents({
 		setDirection(follows === isRtl(element) ? -1 : 1)
 	}, [animate, value])
 
+	const state = useMemo<CurrentContentsState>(
+		() =>
+			animate === false
+				? { ...STILL_CONTENTS, mount }
+				: { animation: animate, mount, settled: settledRef, direction },
+		[animate, mount, direction],
+	)
+
 	if (animate === false) {
 		return (
-			// Re-scope the animation off, so panels of a still container nested
-			// inside an animating one render the plain branch.
-			<CurrentAnimationContext value={false}>
-				<CurrentMountContext value={mount}>
-					<div ref={ref} data-slot={`${slotPrefix}-contents`} className={className} {...props}>
-						{children}
-					</div>
-				</CurrentMountContext>
-			</CurrentAnimationContext>
+			// Re-scope the state to a still one, so panels of a still container
+			// nested inside an animating one render the plain branch.
+			<CurrentContentsContext value={state}>
+				<div ref={ref} data-slot={`${slotPrefix}-contents`} className={className} {...props}>
+					{children}
+				</div>
+			</CurrentContentsContext>
 		)
 	}
 
 	return (
-		<CurrentAnimationContext value={animate}>
-			<CurrentMountContext value={mount}>
-				<CurrentSettledContext value={settledRef}>
-					<CurrentDirectionContext value={direction}>
-						<ReducedMotion>
-							{/* A plain div. The morph hook pins and tweens the inline height
-						    itself, outside React. No render can therefore stamp the resting
-						    `auto` back over an in-flight morph. */}
-							<div
-								ref={setContainer}
-								data-slot={`${slotPrefix}-contents`}
-								className={cn('relative overflow-hidden', className)}
-								{...props}
-							>
-								{children}
-							</div>
-						</ReducedMotion>
-					</CurrentDirectionContext>
-				</CurrentSettledContext>
-			</CurrentMountContext>
-		</CurrentAnimationContext>
+		<CurrentContentsContext value={state}>
+			<ReducedMotion>
+				{/* A plain div. The morph hook pins and tweens the inline height
+				    itself, outside React. No render can therefore stamp the resting
+				    `auto` back over an in-flight morph. */}
+				<div
+					ref={setContainer}
+					data-slot={`${slotPrefix}-contents`}
+					className={cn('relative overflow-hidden', className)}
+					{...props}
+				>
+					{children}
+				</div>
+			</ReducedMotion>
+		</CurrentContentsContext>
 	)
 }

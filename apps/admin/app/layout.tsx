@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
+import { EventsScript } from 'ui/events'
 import { UIDocument } from 'ui/providers/ui'
 
 import './globals.css'
@@ -11,7 +12,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
 	return (
-		<UIDocument bodyClassName="flex justify-center bg-white dark:bg-zinc-900 antialiased">
+		<UIDocument
+			head={<EventsScript />}
+			bodyClassName="flex justify-center bg-white dark:bg-zinc-900 antialiased"
+		>
 			<Providers>{children}</Providers>
 		</UIDocument>
 	)

@@ -383,6 +383,67 @@ describe('Lightbox', () => {
 		expect(centerPhoto()).toHaveAttribute('alt', 'Field of poppies')
 	})
 
+	it('keeps the photo in the center when a thumbnail before it does not load', () => {
+		renderUI(<Gallery defaultIndex={1} />)
+
+		const center = present(centerPhoto(), 'photo')
+
+		const harbor = present(
+			screen.getByRole('button', { name: 'Harbor at dawn' }).querySelector('img'),
+			'thumbnail',
+		)
+
+		// The viewer drops the first photo, so the place of each photo after it moves.
+		fireEvent.error(harbor)
+
+		expect(centerPhoto()).toBe(center)
+
+		expect(center).toHaveAttribute('src', '/b.jpg')
+	})
+
+	it('counts the shown photo after a slide lands and a thumbnail before it does not load', async () => {
+		renderUI(<Gallery defaultIndex={1} />)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Next photo' }))
+
+		await waitFor(() => expect(centerPhoto()).toHaveAttribute('alt', 'Field of poppies'))
+
+		const harbor = present(
+			screen.getByRole('button', { name: 'Harbor at dawn' }).querySelector('img'),
+			'thumbnail',
+		)
+
+		fireEvent.error(harbor)
+
+		expect(screen.getByText('2 / 2')).toBeInTheDocument()
+
+		expect(screen.getByRole('button', { name: 'Next photo' })).toBeDisabled()
+	})
+
+	it('keeps the controls on the aimed photo when a thumbnail before it does not load during a slide', async () => {
+		renderUI(<Gallery defaultIndex={1} />)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Next photo' }))
+
+		// The slide runs, so the second photo is still in the center slot.
+		expect(centerPhoto()).toHaveAttribute('alt', 'Snow on a ridge')
+
+		const harbor = present(
+			screen.getByRole('button', { name: 'Harbor at dawn' }).querySelector('img'),
+			'thumbnail',
+		)
+
+		fireEvent.error(harbor)
+
+		expect(centerPhoto()).toHaveAttribute('alt', 'Snow on a ridge')
+
+		expect(screen.getByText('2 / 2')).toBeInTheDocument()
+
+		await waitFor(() => expect(centerPhoto()).toHaveAttribute('alt', 'Field of poppies'))
+
+		expect(screen.getByText('2 / 2')).toBeInTheDocument()
+	})
+
 	it('follows a controlled index', () => {
 		const { rerender } = renderUI(<Gallery index={null} />)
 
@@ -746,6 +807,38 @@ describe('Lightbox', () => {
 			expect(stage).not.toHaveAttribute('data-zoomed')
 
 			expect(centerPhoto()).toHaveAttribute('alt', 'Field of poppies')
+		})
+
+		it('takes a zoomed photo back to rest when a controlled index changes the photo', () => {
+			stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+
+			const onIndexChange = vi.fn()
+
+			const { rerender } = renderUI(<Gallery index={1} onIndexChange={onIndexChange} />)
+
+			const stage = getSlot(document.body, 'lightbox-stage')
+
+			const photo = layOut(stage)
+
+			const dialog = screen.getByRole('dialog')
+
+			fireEvent.keyDown(dialog, { key: '+' })
+
+			expect(stage).toHaveAttribute('data-zoomed')
+
+			rerender(<Gallery index={0} onIndexChange={onIndexChange} />)
+
+			expect(centerPhoto()).toHaveAttribute('alt', 'Harbor at dawn')
+
+			// The photo that was zoomed is now beside the center, at rest.
+			expect(photo.style.transform).toBe('none')
+
+			expect(stage).not.toHaveAttribute('data-zoomed')
+
+			// At rest, the arrow keys step and do not pan.
+			fireEvent.keyDown(dialog, { key: 'ArrowRight' })
+
+			expect(onIndexChange).toHaveBeenLastCalledWith(1)
 		})
 	})
 })

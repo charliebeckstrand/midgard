@@ -4,7 +4,7 @@ import { memo, useRef } from 'react'
 import { Swatch } from '../../components/swatch'
 import { Text } from '../../components/text'
 import { cn } from '../../core'
-import { useA11yRoving } from '../../hooks/a11y'
+import { useA11yRoving } from '../../hooks'
 import { k } from '../../recipes/kata/map'
 import {
 	type LegendEmphasis,

@@ -2,16 +2,17 @@
 
 import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 import { createContext } from '../../core'
-import { useIdleLoad } from '../../hooks/use-idle-load'
-import type { Confirm, ConfirmProps } from './confirm'
+import { useIdlePreload, useLazyModule } from '../../hooks/use-lazy-module'
+import { createLazyModule } from '../../utilities/lazy-module'
+import type { ConfirmProps } from './confirm'
 
 /**
- * Loads the module of the dialog. The host loads it in idle time after the
+ * The module of the dialog. The host loads it in idle time after the
  * hydration. Thus the app does not load the dialog before it hydrates, and the
  * first question does not wait for it.
  * @internal
  */
-const loadConfirm = () => import('./confirm')
+const confirmModule = createLazyModule(() => import('./confirm'))
 
 /**
  * The question that {@link useConfirm} asks: the words of the dialog, the two
@@ -73,10 +74,10 @@ const [ConfirmContext, useConfirmContext] = createContext<ConfirmFunction>('Conf
 export function ConfirmHost({ children }: { children: ReactNode }) {
 	const [question, setQuestion] = useState<Question | null>(null)
 
-	// The module of the dialog, from a question before the idle load on.
-	const [asking, setAsking] = useState<{ Confirm: typeof Confirm } | null>(null)
+	useIdlePreload(confirmModule)
 
-	const dialog = useIdleLoad(loadConfirm) ?? asking
+	// A question loads the module itself, so it can reject with the error.
+	const dialog = useLazyModule(confirmModule, false)
 
 	const settleRef = useRef<Settle | null>(null)
 
@@ -105,7 +106,7 @@ export function ConfirmHost({ children }: { children: ReactNode }) {
 
 				// The module caches, so a question after the first load waits for
 				// nothing. A failed load rejects this question while it is open.
-				loadConfirm().then(setAsking, (error: unknown) => {
+				confirmModule.load().catch((error: unknown) => {
 					if (settleRef.current === current) settle()?.reject(error)
 				})
 			}),

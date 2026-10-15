@@ -11,7 +11,9 @@ export type OdometerProps = {
 	/** The target number. A change tweens the readout from the current figure to this one. */
 	value: number
 	/**
-	 * Tween length in milliseconds.
+	 * Tween length in milliseconds. A running tween keeps its length, and a new
+	 * `duration` applies to the next `value`. A change to `0` or less snaps a
+	 * running tween.
 	 * @defaultValue 800
 	 */
 	duration?: number
@@ -32,9 +34,9 @@ export type OdometerProps = {
  * client render show the raw `value` and animation begins after mount. The
  * tweened digits are `aria-hidden`, and a visually hidden copy holds the settled
  * target, so assistive tech reads the final figure as text, not every frame.
- * The root takes no role and is never a live region, and a consumer `role` does
- * not change that. The root has no role, so ARIA does not let it take an
- * `aria-label`: put a label in the text around the readout.
+ * The root takes no role and is never a live region, and a consumer `role` or
+ * `aria-live` does not change that. The root has no role, so ARIA does not let
+ * it take an `aria-label`: put a label in the text around the readout.
  * When the OS asks for reduced motion, or `duration` is `0` or less, the
  * readout goes to the target with no tween (WCAG 2.3.3).
  */
@@ -45,6 +47,8 @@ export function Odometer({
 	className,
 	// Dropped, so a consumer role cannot make the root a live region.
 	role: _role,
+	// Dropped, so a consumer aria-live cannot make the root a live region.
+	'aria-live': _ariaLive,
 	...props
 }: OdometerProps) {
 	const display = useOdometerAnimatedValue({ value, duration })

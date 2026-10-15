@@ -148,6 +148,37 @@ describe('usePasswordStrength', () => {
 		expect(second.mock.calls[0]?.[0]).toMatchObject({ score: 3, level: 'good' })
 	})
 
+	describe('counts passing rules from the results, not from the joined ids', () => {
+		const notEmpty: PasswordRule = { id: '', label: 'Not empty', test: (v) => v.length > 0 }
+
+		const twoChars: PasswordRule = { id: 'two', label: '2+ chars', test: (v) => v.length >= 2 }
+
+		it.each([
+			['no rule passes', [twoChars], 'x', 0, 'weak', []],
+			['one rule with an empty id passes', [notEmpty], 'x', 1, 'strong', ['']],
+			['two rules pass', [notEmpty, twoChars], 'xy', 2, 'strong', ['', 'two']],
+		])('when %s', (_, ruleSet, value, score, level, passed) => {
+			const onStrengthChange = vi.fn()
+
+			const { result } = renderHook(() =>
+				usePasswordStrength({ value, rules: ruleSet, onStrengthChange }),
+			)
+
+			expect(result.current.passedCount).toBe(score)
+
+			expect(result.current.level).toBe(level)
+
+			expect(onStrengthChange).toHaveBeenCalledTimes(1)
+
+			expect(onStrengthChange).toHaveBeenLastCalledWith({
+				score,
+				max: ruleSet.length,
+				level,
+				passed,
+			})
+		})
+	})
+
 	it('handles an empty rules array without dividing by zero', () => {
 		const onStrengthChange = vi.fn()
 

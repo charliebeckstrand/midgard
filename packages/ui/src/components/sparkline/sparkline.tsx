@@ -76,6 +76,11 @@ export type SparklineProps = AccessibleName & {
 	 * bars grow from the zero line in sequence. Honors `prefers-reduced-motion`
 	 * through {@link ReducedMotion}. Off by default — a static grid of many
 	 * sparklines stays a plain-SVG leaf with no motion runtime.
+	 *
+	 * @remarks The reveal plays on a client mount. A sparkline that the server
+	 * renders arrives at rest, because the server cannot read the preference of
+	 * the reader. The marks are then visible before the script loads, and they
+	 * do not draw again after hydration.
 	 * @defaultValue false
 	 */
 	animate?: boolean
@@ -84,9 +89,16 @@ export type SparklineProps = AccessibleName & {
 	 * @defaultValue 1.5
 	 */
 	strokeWidth?: number
-	/** Domain floor; defaults to the series minimum. Pin it to compare sparklines on one scale. */
+	/**
+	 * Domain floor; defaults to the series minimum. Pin it to compare sparklines
+	 * on one scale. A value below it clamps to the bottom edge, also when the
+	 * whole series is below it.
+	 */
 	min?: number
-	/** Domain ceiling; defaults to the series maximum. */
+	/**
+	 * Domain ceiling; defaults to the series maximum. A value above it clamps to
+	 * the top edge, also when the whole series is above it.
+	 */
 	max?: number
 	className?: string
 }
@@ -164,10 +176,10 @@ function SparklineMarks({
 
 /**
  * The Framer Motion marks: the same shapes, revealed on mount. Rendered only
- * under `animate` and always wrapped in {@link ReducedMotion}, so a
- * reduced-motion preference settles the bars at their final state. The draw
- * (`pathLength`) and the pop (`r`) are no transform, so that config does not
- * skip them. Under reduced motion the line and the end point mount at rest.
+ * under `animate` and always wrapped in {@link ReducedMotion}. The grow
+ * (`height`), the draw (`pathLength`), and the pop (`r`) are no transform, so
+ * the reduced-motion config of that root does not skip them. Under reduced
+ * motion the bars, the line, and the end point therefore mount at rest.
  * @internal
  */
 function AnimatedSparklineMarks({
@@ -192,7 +204,7 @@ function AnimatedSparklineMarks({
 				width={bar.width}
 				rx={barRadius}
 				className={fillClass}
-				initial={{ y: geometry.baseline, height: 0 }}
+				initial={still ? false : { y: geometry.baseline, height: 0 }}
 				animate={{ y: bar.y, height: bar.height }}
 				transition={{ ...k.motion.grow, delay: bar.index * k.motion.stagger }}
 			/>

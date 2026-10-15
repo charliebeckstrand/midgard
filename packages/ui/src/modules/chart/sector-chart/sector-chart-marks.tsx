@@ -13,7 +13,7 @@ import { SLICE_FADE, SLICE_SWEEP, SLICE_UNFADE, SLICE_UNSWEEP } from '../engine/
 import { textureClass, textureStyle } from '../engine/chart-pattern-defs'
 import { seriesGroupClass } from '../engine/chart-series'
 import type { ChartTooltipTrigger } from '../engine/chart-tooltip'
-import { useChartHoverStore, useChartSeriesEmphasis, useChartSeriesFocus } from '../engine/context'
+import { useChartActions, useChartHoverStore, useChartSeriesEmphasis } from '../engine/context'
 import { toFrame } from '../engine/use-chart-pointer'
 
 /** One placed segment label: its slice and resolved text. @internal */
@@ -251,7 +251,7 @@ export function SectorChartMarks({
 	// hovered slice isolates itself and recedes the rest, as its legend chip does.
 	const emphasis = useChartSeriesEmphasis()
 
-	const setSeriesFocus = useChartSeriesFocus()
+	const { focusSeries: setSeriesFocus } = useChartActions()
 
 	const sweepId = useId()
 
