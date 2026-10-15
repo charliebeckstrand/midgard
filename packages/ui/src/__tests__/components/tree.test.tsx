@@ -147,6 +147,32 @@ describe('Tree', () => {
 		expect(screen.getByText('deep.ts')).toBeInTheDocument()
 	})
 
+	// Outside `AnimatePresence`, the `m` element does not go `inert` as it exits.
+	// The held group sets it while it closes, so Tab cannot move focus into it
+	// before it lands hidden.
+	it('makes a held group inert while it closes under mount="lazy", and not while it is open', () => {
+		const { container } = renderUI(
+			<Tree aria-label="Files" mount="lazy">
+				<TreeItem label="src" defaultOpen>
+					<TreeItem label="a.ts" />
+				</TreeItem>
+			</Tree>,
+		)
+
+		const group = getSlot(container, 'tree-group')
+
+		expect(group).not.toHaveAttribute('inert')
+
+		fireEvent.click(screen.getByText('src'))
+
+		expect(group).toHaveAttribute('inert')
+
+		// A reopen during the close clears it.
+		fireEvent.click(screen.getByText('src'))
+
+		expect(group).not.toHaveAttribute('inert')
+	})
+
 	it('keeps one Tab stop when a caller closes a held branch that holds it', async () => {
 		const files = (open: boolean) => (
 			<Tree aria-label="Files" mount="lazy">

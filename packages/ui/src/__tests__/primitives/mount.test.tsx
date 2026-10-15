@@ -4,6 +4,7 @@ import { renderToString } from 'react-dom/server'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { type Mount, MountHold, useMountHold, useMountsEveryPanel } from '../../primitives/mount'
 import { mountsEveryPanel } from '../../primitives/mount/mount'
+import { heldMotionProps } from '../../primitives/mount/mount-held-motion'
 import { act, attach, renderUI, screen, setupUser } from '../helpers'
 
 /**
@@ -280,5 +281,23 @@ describe('useMountsEveryPanel', () => {
 		expect(seen.at(-1)).toBe(true)
 
 		expect(container).toHaveTextContent('every panel')
+	})
+})
+
+/**
+ * The motion props of a held panel. The panel animates in place, outside
+ * `AnimatePresence`, so the `m` element does not go `inert` as it closes.
+ */
+describe('heldMotionProps', () => {
+	const preset = { initial: { h: 0 }, animate: { h: 1 }, exit: { h: 0 }, transition: {} }
+
+	const hold = { rest: () => {}, mountedActive: false }
+
+	it('makes the panel inert while it closes', () => {
+		expect(heldMotionProps(preset, false, hold).inert).toBe(true)
+	})
+
+	it('keeps an open panel, and a panel that reopens during its close, out of inert', () => {
+		expect(heldMotionProps(preset, true, hold).inert).toBe(false)
 	})
 })

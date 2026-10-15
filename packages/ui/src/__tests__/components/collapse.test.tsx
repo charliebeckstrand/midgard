@@ -271,6 +271,30 @@ describe('Collapse', () => {
 			expect(screen.getByTestId<HTMLInputElement>('field').value).toBe('typed')
 		})
 
+		// Outside `AnimatePresence`, the `m` element does not go `inert` as it
+		// exits. The held panel sets it while it closes, so Tab cannot move focus
+		// into it before it lands hidden.
+		it('mount="lazy" makes the held panel inert while it closes, and not while it is open', async () => {
+			const user = setupUser()
+
+			renderUI(<Panel mount="lazy" />)
+
+			await user.click(screen.getByText('Toggle'))
+
+			const panel = getSlot(document.body, 'collapse-panel')
+
+			expect(panel).not.toHaveAttribute('inert')
+
+			await user.click(screen.getByText('Toggle'))
+
+			expect(panel).toHaveAttribute('inert')
+
+			// A reopen during the close clears it.
+			await user.click(screen.getByText('Toggle'))
+
+			expect(panel).not.toHaveAttribute('inert')
+		})
+
 		it('mount="always" mounts the panel closed and hidden from the start', () => {
 			renderUI(<Panel mount="always" />)
 

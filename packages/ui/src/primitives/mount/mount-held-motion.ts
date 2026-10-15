@@ -18,6 +18,12 @@ export type HeldMotionPreset = {
  * Both landings arrive on one `onAnimationComplete`: the close that rests the
  * hold, and the open the arrival gate reports.
  *
+ * The panel is `inert` while it is closed. Outside `AnimatePresence`, the `m`
+ * element does not go `inert` as it exits, and the hold hides the panel only
+ * when the close lands. Without this value, Tab can move focus into the closing
+ * panel, and focus falls to the body when the panel goes hidden. An open again
+ * during the close clears the value.
+ *
  * @remarks
  * `initial` keys on the state the panel mounted in, not on the policy. Motion
  * reads `initial` at its first `animateChanges`, which a held panel defers until
@@ -31,8 +37,8 @@ export type HeldMotionPreset = {
  * @param hold - The panel's hold; `rest` latches it on every landing and
  * `mountedActive` names the state it mounted in.
  * @param onAnimationComplete - The arrival gate's completion handler, if the panel has one.
- * @returns The `initial`/`animate`/`transition`/`onAnimationComplete` bag to
- * spread onto the motion element.
+ * @returns The `initial`/`animate`/`transition`/`inert`/`onAnimationComplete`
+ * bag to spread onto the motion element.
  * @internal
  */
 export function heldMotionProps<P extends HeldMotionPreset>(
@@ -44,10 +50,12 @@ export function heldMotionProps<P extends HeldMotionPreset>(
 	initial: P['initial'] | P['animate']
 	animate: P['animate'] | P['exit']
 	transition: P['transition']
+	inert: boolean
 	onAnimationComplete: (definition: unknown) => void
 } {
 	return {
 		...heldMotionTargets(preset, open, hold),
+		inert: !open,
 		onAnimationComplete: (definition) => {
 			hold.rest()
 
@@ -57,9 +65,11 @@ export function heldMotionProps<P extends HeldMotionPreset>(
 }
 
 /**
- * The targets of {@link heldMotionProps} without its landing handler. Use it for a
- * motion element inside a held panel, for example the content that moves in the
- * panel. The panel element itself rests the hold, so this element must not.
+ * The targets of {@link heldMotionProps} without its landing handler and its
+ * `inert` value. Use it for a motion element inside a held panel, for example the
+ * content that moves in the panel. The panel element itself rests the hold, so
+ * this element must not. The `inert` value of the panel also applies to this
+ * element.
  *
  * @param preset - The recipe's enter/exit preset.
  * @param open - Whether the panel is open now.
