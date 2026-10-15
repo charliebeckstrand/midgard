@@ -1,5 +1,6 @@
 import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core'
+import { PolymorphicStatic } from '../../primitives/polymorphic'
 import { type AvatarVariants, k } from '../../recipes/kata/avatar'
 
 /**
@@ -8,8 +9,10 @@ import { type AvatarVariants, k } from '../../recipes/kata/avatar'
  */
 export type AvatarGroupProps = Omit<ComponentProps<'div'>, 'className' | 'children'> & {
 	/**
-	 * The size of each avatar. The group writes it as a density scope. Without
-	 * it, the avatars take the step of the nearest density scope.
+	 * The size of each avatar. The group writes it as a density scope: it writes
+	 * `data-density` and opens the density context around the children, so
+	 * static and client descendants take the same step. Without it, the avatars
+	 * take the step of the nearest density scope.
 	 */
 	size?: AvatarVariants['size']
 	className?: string
@@ -26,13 +29,14 @@ export type AvatarGroupProps = Omit<ComponentProps<'div'>, 'className' | 'childr
  */
 export function AvatarGroup({ size, className, children, ...props }: AvatarGroupProps) {
 	return (
-		<div
+		<PolymorphicStatic
+			as="div"
 			data-slot="avatar-group"
-			data-density={size}
+			density={size}
 			className={cn(k.group.base, k.group.ring, k.group.spacing, className)}
 			{...props}
 		>
 			{children}
-		</div>
+		</PolymorphicStatic>
 	)
 }
