@@ -312,6 +312,27 @@ describe('pdf viewer document cache', () => {
 
 		expect(getDocumentSnapshot('/a.pdf').pages.map((entry) => entry.id)).toEqual([1, 2])
 	})
+
+	it('forgets a failure with no page when its last viewer leaves', async () => {
+		const unsubscribe = subscribeDocument('/a.pdf', vi.fn())
+
+		ensureDocumentLoad('/a.pdf', (report) => {
+			report.documentUrl('blob:doc')
+
+			return Promise.reject(new Error('network down'))
+		})
+
+		await flush()
+
+		expect(getDocumentSnapshot('/a.pdf').error?.message).toBe('network down')
+
+		unsubscribe()
+
+		// A new mount reads the document as not loaded, and paints no stale error.
+		expect(getDocumentSnapshot('/a.pdf')).toBe(EMPTY_DOCUMENT_SNAPSHOT)
+
+		expect(globalThis.URL.revokeObjectURL).toHaveBeenCalledWith('blob:doc')
+	})
 })
 
 describe('pdf viewer document cache · a failed load with holders', () => {
