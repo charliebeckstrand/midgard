@@ -39,7 +39,8 @@ export type SidebarItemProps = NavItemProps & {
  * `<button>` breaks markup. Under the parent's mini rail the label is hidden in
  * place (preserving the accessible name) and echoed into a hover tooltip. The
  * tooltip holds only the `SidebarLabel` children, or all the children when the
- * row has no label.
+ * row has no label. The tooltip repeats the name, so it does not describe the
+ * button. An `aria-describedby` that you give stays.
  */
 export function SidebarItem({
 	icon,
@@ -103,6 +104,10 @@ export function SidebarItem({
 			type="button"
 			data-slot="sidebar-item-inner"
 			aria-current={isCurrent ? currentToken : undefined}
+			// The rail tooltip echoes the accessible name, so its description would
+			// repeat the name. The explicit key wins over the description of the
+			// trigger, and keeps the description of the consumer.
+			aria-describedby={props['aria-describedby']}
 		>
 			<TouchTarget>
 				{icon && <Icon icon={icon} />}
