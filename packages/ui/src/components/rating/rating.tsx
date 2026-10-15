@@ -147,13 +147,14 @@ export type RatingProps = RatingVariants & {
  * Interactive, it is a `role="radiogroup"` over one native `<input type="radio">`
  * per star. Arrow keys, focus, and the announced position therefore come from
  * the platform, rather than from key handlers of its own. It is `Slider`'s
- * bargain, for the same reason. `readOnly` and `disabled` drop the inputs and
+ * bargain, for the same reason. `readOnly` and `disabled` drop the radios and
  * render one `role="img"`. Its name is the consumer's name, then the readout.
  * The readout is necessary, because color and shape alone do not carry a score
  * (WCAG 1.4.1).
  *
  * Binds to an enclosing Form field by `name`. An uncontrolled rating goes back
- * to `defaultValue` on a native form reset, and `onValueChange` reports it. Resolves `id` / `disabled` /
+ * to `defaultValue` on a native form reset, also while it is `readOnly` or
+ * `disabled`, and `onValueChange` reports it. Resolves `id` / `disabled` /
  * `readOnly` / `invalid` from an enclosing `<Control>` or `<Field>`. The stars
  * take the step of the nearest density scope. A `<Label as="span">` in the
  * Field names the stars through `aria-labelledby`. No one element of the stars
@@ -191,6 +192,7 @@ export function Rating({
 }: RatingProps) {
 	const {
 		value: bound,
+		controlled,
 		resetRef,
 		setValue,
 		setTouched,
@@ -324,6 +326,10 @@ export function Rating({
 						{valueText}
 					</span>
 				)}
+				{/* A dead row has no radio, so this input keeps the native reset of an
+				    uncontrolled rating. It has no name and submits nothing. A controlled
+				    row gets no element, because a list draws many of them. */}
+				{!controlled && <input type="hidden" ref={resetRef} />}
 				{stars.map((key, index) => {
 					const fill = starFill(current, index + 1)
 
