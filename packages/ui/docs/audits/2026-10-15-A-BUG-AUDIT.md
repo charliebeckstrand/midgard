@@ -64,7 +64,7 @@ Reach: a page under `packages/ui/src/docs/pages` is a shipped surface, because t
 | Row | File | Symbol | Verdict | Severity | Reach | Group | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | R1 | `recipes/kata/accordion.ts` | `k.trigger`, item focus ring | CONFIRMED | medium | shipped | — | ◐ FIXED |
-| R2 | `components/accordion/use-accordion-selection.ts` | `useAccordionSelection` | NARROWED | low | none | — | ◯ OPEN |
+| R2 | `components/accordion/use-accordion-selection.ts` | `useAccordionSelection` | NARROWED | low | none | — | ◐ FIXED |
 | R3 | `components/accordion/accordion-skeleton.tsx` | `AccordionSkeleton` (TSDoc) | CONFIRMED | low | shipped | — | ◯ OPEN |
 | R4 | `components/accordion/context.ts` | `useAccordionItem` (not exported) | CONFIRMED | low | none | — | ◯ OPEN |
 | R5 | `components/accordion/accordion-panel.tsx` | `AccordionPanel` (held branch) | CONFIRMED | low | none | — | ◯ OPEN |
@@ -72,7 +72,7 @@ Reach: a page under `packages/ui/src/docs/pages` is a shipped surface, because t
 | R7 | `components/aspect-ratio/aspect-ratio.tsx` | `AspectRatio` (invalid number) | CONFIRMED | low | none | G1 | ◯ OPEN |
 | R8 | `components/avatar/avatar.tsx` | `Avatar` (wide initials) | NARROWED | low | shipped | — | ◯ OPEN |
 | R9 | `recipes/kata/alert.ts` | `k.base` (forced colors) | CONFIRMED | medium | shipped | — | ◐ FIXED |
-| R10 | `components/alert/alert.tsx` | `Alert` close `onClick` | CONFIRMED | low | none | — | ◯ OPEN |
+| R10 | `components/alert/alert.tsx` | `Alert` close `onClick` | CONFIRMED | low | none | — | ◐ FIXED |
 | R11 | `components/alert/alert.tsx` | `AlertContent` (`0` title) | CONFIRMED | low | none | G7 | ◯ OPEN |
 | R12 | `components/alert/alert.tsx` | `hasBody` | CONFIRMED | low | none | G7 | ◯ OPEN |
 | R13 | `recipes/kata/alert.ts` | `AlertVariants.color` (TSDoc) | NARROWED | low | none | — | ◐ FIXED |
