@@ -1,5 +1,6 @@
 import { MapPinned, Phone } from 'lucide-react'
 import type { ReactNode } from 'react'
+import type { FormattedInputOptions } from '../../hooks/use-formatted-input'
 import { digitsOnly } from '../../utilities'
 import { Icon } from '../icon'
 import type { InputProps } from '../input'
@@ -13,12 +14,8 @@ export type MaskInputFormat = (raw: string) => string
  */
 export type MaskInputPreset = {
 	format: MaskInputFormat
-	/**
-	 * Predicate for the characters that the caret counts. It gets each
-	 * character, its index, and the full text, so it can count a character
-	 * only at the position where `format` keeps it.
-	 */
-	meaningful?: (char: string, index: number, text: string) => boolean
+	/** Predicate for the characters that the caret counts. See {@link FormattedInputOptions}. */
+	meaningful?: FormattedInputOptions['meaningful']
 	type?: InputProps['type']
 	inputMode?: InputProps['inputMode']
 	autoComplete?: InputProps['autoComplete']

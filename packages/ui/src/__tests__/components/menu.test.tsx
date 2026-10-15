@@ -1,4 +1,4 @@
-import { createRef, type Ref } from 'react'
+import { createRef, type ReactNode, type Ref } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import {
@@ -1462,6 +1462,7 @@ describe('Menu on a phone', () => {
 		glass,
 		label,
 		labelledby,
+		trigger = <button type="button">Add tile</button>,
 	}: {
 		sheet?: boolean
 		title?: string
@@ -1469,6 +1470,7 @@ describe('Menu on a phone', () => {
 		glass?: boolean
 		label?: string
 		labelledby?: string
+		trigger?: ReactNode
 	} = {}) {
 		stubMatchMedia((query) => query.startsWith('(hover: none)'))
 
@@ -1480,10 +1482,10 @@ describe('Menu on a phone', () => {
 			<>
 				<h2 id="tile-menu-name">Dashboard tiles</h2>
 
+				<span id="add-tile-name">Add tile</span>
+
 				<Menu placement="bottom-start" sheet={sheet}>
-					<MenuTrigger>
-						<button type="button">Add tile</button>
-					</MenuTrigger>
+					<MenuTrigger>{trigger}</MenuTrigger>
 
 					<MenuContent
 						title={title}
@@ -1548,8 +1550,8 @@ describe('Menu on a phone', () => {
 		expect(screen.getByRole('menu', { name })).toBeInTheDocument()
 	})
 
-	// The name of the trigger comes from its aria-labelledby, else from an
-	// aria-label that is not empty, else from its text. An icon has no text.
+	// The name of the trigger comes from an aria-label that is not empty, else
+	// from its aria-labelledby, else from its text. An icon has no text.
 	it.each([
 		[
 			'an aria-labelledby',
@@ -1565,23 +1567,7 @@ describe('Menu on a phone', () => {
 			</button>,
 		],
 	])('names the sheet and the menu by a trigger with %s', async (_name, trigger) => {
-		stubMatchMedia((query) => query.startsWith('(hover: none)'))
-
-		const user = setupUser()
-
-		renderUI(
-			<>
-				<span id="add-tile-name">Add tile</span>
-
-				<Menu placement="bottom-start">
-					<MenuTrigger>{trigger}</MenuTrigger>
-
-					<MenuContent>
-						<MenuItem>Orders</MenuItem>
-					</MenuContent>
-				</Menu>
-			</>,
-		)
+		const { user } = renderPhoneMenu({ trigger })
 
 		await user.click(screen.getByRole('button'))
 

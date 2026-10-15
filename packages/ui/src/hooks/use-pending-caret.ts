@@ -12,9 +12,9 @@ import { useComposedRef } from './use-composed-ref'
  * text selection.
  *
  * @param externalRef - Optional input ref composed with the internal one.
- * @returns `{ ref, setCaret }`. Spread `ref` onto the input; `setCaret(pos)`
- * queues a caret restore to `pos` against the formatted value (pass `null` to
- * cancel).
+ * @returns `{ ref, setCaret, inputRef }`. Spread `ref` onto the input;
+ * `setCaret(pos)` queues a caret restore to `pos` against the formatted value
+ * (pass `null` to cancel). `inputRef` holds the attached input.
  */
 export function usePendingCaret(externalRef?: Ref<HTMLInputElement>) {
 	const inputRef = useRef<HTMLInputElement | null>(null)
@@ -54,5 +54,5 @@ export function usePendingCaret(externalRef?: Ref<HTMLInputElement>) {
 		if (position !== null) queueMicrotask(flush)
 	}
 
-	return { ref, setCaret }
+	return { ref, setCaret, inputRef }
 }

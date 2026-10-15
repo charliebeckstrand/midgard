@@ -45,9 +45,10 @@ const defaultMeaningful = (char: string) => /[A-Za-z0-9+]/.test(char)
  * That restore keeps the cursor on the typed character when formatting inserts
  * separators. The caller owns the state the formatted text commits to.
  *
- * @returns `{ ref, reformat }`. Spread `ref` onto the input. Call `reformat(e)`
- * in `onChange` to get the formatted string to commit. That call also queues
- * the caret restore, as a side effect.
+ * @returns `{ ref, reformat, inputRef }`. Spread `ref` onto the input. Call
+ * `reformat(e)` in `onChange` to get the formatted string to commit. That call
+ * also queues the caret restore, as a side effect. `inputRef` holds the
+ * attached input.
  */
 export function useFormattedInput({
 	format,
@@ -55,7 +56,7 @@ export function useFormattedInput({
 	atEnd = 'restore',
 	ref: externalRef,
 }: FormattedInputOptions) {
-	const { ref, setCaret } = usePendingCaret(externalRef)
+	const { ref, setCaret, inputRef } = usePendingCaret(externalRef)
 
 	const reformat = (event: ChangeEvent<HTMLInputElement>) => {
 		const raw = event.target.value
@@ -73,5 +74,5 @@ export function useFormattedInput({
 		return formatted
 	}
 
-	return { ref, reformat }
+	return { ref, reformat, inputRef }
 }
