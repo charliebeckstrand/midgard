@@ -40,7 +40,7 @@ The digest held the P entries of the project record `2026-10-02-component-bug-sw
 | R1 | `components/pdf-viewer/pdf-viewer-highlights.tsx` | `PdfViewerHighlightLayer` (`hovered` element) | NARROWED | medium | shipped | G2 | ◐ FIXED ([#2482](https://github.com/charliebeckstrand/midgard/pull/2482)) |
 | R2 | `components/pdf-viewer/pdf-viewer-highlights.tsx` | `PdfViewerHighlightLayer` (`hovered.label`) | CONFIRMED | low | none | G2 | ◐ FIXED ([#2482](https://github.com/charliebeckstrand/midgard/pull/2482)) |
 | R3 | `components/pdf-viewer/use-pdf-viewer-highlights.ts` | `usePdfViewerHighlights` (`revealRef`) | CONFIRMED | medium | shipped | — | ◯ OPEN |
-| R4 | `components/pdf-viewer/use-pdf-viewer-magnifier.ts` | `usePdfViewerMagnifier` (disable edge) | NARROWED | medium | shipped | — | ◯ OPEN |
+| R4 | `components/pdf-viewer/use-pdf-viewer-magnifier.ts` | `usePdfViewerMagnifier` (disable edge) | NARROWED | medium | shipped | — | ◐ FIXED ([#2490](https://github.com/charliebeckstrand/midgard/pull/2490)) |
 | R5 | `components/pdf-viewer/use-pdf-viewer.ts` | `usePdfViewer` (`thumbsOpen`) | NARROWED | medium | shipped | — | ◐ FIXED ([#2480](https://github.com/charliebeckstrand/midgard/pull/2480)) |
 | R6 | `components/pdf-viewer/use-pdf-viewer.ts` | `usePdfViewer` (load report on remount) | CONFIRMED | low | shipped | G1 | ◯ OPEN |
 | R7 | `components/popover/popover-trigger.tsx` | `PopoverTrigger` (ignore guard drops child handlers) | CONFIRMED | low | none | G3 | ◐ FIXED ([#2489](https://github.com/charliebeckstrand/midgard/pull/2489)) |
