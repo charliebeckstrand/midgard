@@ -172,6 +172,53 @@ describe('RangeSlider', () => {
 		expect(allBySlot(container, 'slider-range-thumb')).toHaveLength(2)
 	})
 
+	// The thumbs, the fill, and the ARIA values show the range in [min, max], in order.
+	it.each([
+		{ value: [-10, 150], shown: [0, 100] },
+		{ value: [80, 20], shown: [20, 80] },
+		{ value: [120, -5], shown: [0, 100] },
+	] as const)('shows the range $value as $shown', ({ value, shown }) => {
+		const { container } = renderUI(
+			<RangeSlider
+				value={[value[0], value[1]]}
+				onValueChange={() => {}}
+				getValueText={(v) => `${v} units`}
+			/>,
+		)
+
+		const [lo, hi] = allBySlot(container, 'slider-range-thumb')
+
+		expect(lo).toHaveAttribute('aria-valuenow', String(shown[0]))
+		expect(lo).toHaveAttribute('aria-valuemax', String(shown[1]))
+		expect(lo).toHaveAttribute('aria-valuetext', `${shown[0]} units`)
+		expect(lo?.style.insetInlineStart).toBe(`${shown[0]}%`)
+
+		expect(hi).toHaveAttribute('aria-valuenow', String(shown[1]))
+		expect(hi).toHaveAttribute('aria-valuemin', String(shown[0]))
+		expect(hi?.style.insetInlineStart).toBe(`${shown[1]}%`)
+
+		const fill = getSlot(container, 'slider-range-fill')
+
+		expect(fill.style.insetInlineStart).toBe(`${shown[0]}%`)
+		expect(fill.style.insetInlineEnd).toBe(`${100 - shown[1]}%`)
+	})
+
+	it('steps the value that a thumb shows from a range out of order', async () => {
+		const user = setupUser()
+
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(
+			<RangeSlider defaultValue={[80, 20]} onValueChange={onValueChange} />,
+		)
+
+		allBySlot(container, 'slider-range-thumb')[0]?.focus()
+
+		await user.keyboard('{ArrowRight}')
+
+		expect(onValueChange).toHaveBeenLastCalledWith([21, 80])
+	})
+
 	it('puts the field id on the start thumb, so the Field Label targets a labelable element', () => {
 		const { container, getByText } = renderUI(
 			<Field>

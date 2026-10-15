@@ -15,3 +15,18 @@ export function snapValue(raw: number, min: number, max: number, step: number) {
 
 	return parseFloat(snapped.toFixed(10))
 }
+
+/**
+ * Clamps both values of `range` into `[min, max]` and puts them in order. The
+ * slider shows this range, and the setter moves a thumb from it, so a value
+ * out of the bounds or a pair out of order does not put a thumb off the track.
+ *
+ * @internal
+ */
+export function boundRange(range: [number, number], min: number, max: number): [number, number] {
+	const lo = clamp(range[0], min, max)
+
+	const hi = clamp(range[1], min, max)
+
+	return lo <= hi ? [lo, hi] : [hi, lo]
+}

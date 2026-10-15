@@ -79,6 +79,44 @@ describe('Listbox panel exit (real engine, real Motion)', () => {
 
 		await gone(panel)
 	})
+
+	// A reopen inside the exit reuses the panel that is still mounted, so no mount
+	// moves the focus into it. The focus must still leave the trigger, or the
+	// arrow keys of the open panel reach nothing.
+	it.each(motionCases)('takes the focus on a reopen under $name', async ({ reduced }) => {
+		renderUI(
+			<Motion reduced={reduced}>
+				<Listbox aria-label="Fruit" value="b" displayValue={(value: string) => value}>
+					<ListboxOption value="a">Apple</ListboxOption>
+					<ListboxOption value="b">Banana</ListboxOption>
+					<ListboxOption value="c">Cherry</ListboxOption>
+				</Listbox>
+			</Motion>,
+		)
+
+		const trigger = screen.getByRole('combobox', { name: 'Fruit' })
+
+		await userEvent.click(trigger)
+
+		const panel = await waitFor(() =>
+			present(document.querySelector<HTMLElement>(panelSelector), 'the panel'),
+		)
+
+		await waitFor(() => expect(panel).toContainElement(focused()))
+
+		fireEvent.keyDown(focused(), { key: 'Escape' })
+
+		expectExiting(panel)
+
+		fireEvent.click(trigger)
+
+		// The same panel opens again, and the focus goes to the selected option.
+		expect(document.querySelector(panelSelector)).toBe(panel)
+
+		await waitFor(() => expect(focused()).toHaveAttribute('aria-selected', 'true'))
+
+		expect(panel).toContainElement(focused())
+	})
 })
 
 describe('Combobox panel exit (real engine, real Motion)', () => {

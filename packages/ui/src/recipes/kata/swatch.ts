@@ -55,6 +55,10 @@ export const k = defineRecipe({
 		{ shape: 'square', class: dan.size.swatch.base },
 		{ shape: 'circle', class: dan.size.swatch.base },
 		{ shape: 'line', class: ['h-0.5', dan.size.swatch.line] },
+		// A 2px line has no room inside a 2px frame, so the frame filled it and the
+		// mark read as a solid bar. An outline line is 4px tall with a 1px edge,
+		// which leaves a 2px core in the surface color.
+		{ shape: 'line', variant: 'outline', class: ['h-1', 'border'] },
 		// Dashed treatment per shape. A line paints a horizontal `currentColor`
 		// dash run — the reference rule's 3:2 dash:gap halved so the pattern reads
 		// across a swatch-width line. A box or dot has no length to run, so it

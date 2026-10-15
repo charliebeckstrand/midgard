@@ -1,6 +1,6 @@
 'use client'
 
-import { type CSSProperties, type FocusEvent, type Ref, useRef } from 'react'
+import { type CSSProperties, type FocusEvent, type Ref, useMemo, useRef } from 'react'
 import { ariaAttr, cn, dataAttr, invalidAttrs } from '../../../core'
 import { useIdScope } from '../../../hooks/use-id-scope'
 import { k, type RangeSliderVariants } from '../../../recipes/kata/slider-range'
@@ -8,6 +8,7 @@ import { pct } from '../../../utilities'
 import { useControl } from '../../control/context'
 import { useControlProps } from '../../control/use-control-props'
 import { useFormValue } from '../../form/use-form-value'
+import { boundRange } from './range-utilities'
 import type { ThumbButtonRefs, ThumbIndex } from './types'
 import { useRangeKeyboard } from './use-range-keyboard'
 import { useRangePointer } from './use-range-pointer'
@@ -116,6 +117,10 @@ export type RangeSliderProps = {
  *
  * A click on a label for the slider focuses the start thumb and keeps both values. The Field
  * Label is such a label. A disabled slider takes no focus from the click.
+ *
+ * A value out of `[min, max]` shows at the nearest bound, and a pair out of order shows in
+ * order. The thumbs and the ARIA values take that range, and a key or a drag moves a value
+ * of it. The slider does not report the bounded range through `onValueChange`.
  */
 export function RangeSlider({
 	id,
@@ -154,7 +159,10 @@ export function RangeSlider({
 			: undefined,
 	})
 
-	const current = range ?? [min, max]
+	// A value out of `[min, max]` or a pair out of order puts a thumb off the
+	// track and breaks the ARIA bounds, so the slider shows the bounded range.
+	// The memo keeps the identity of the pair for the callbacks that read it.
+	const current = useMemo(() => boundRange(range ?? [min, max], min, max), [range, min, max])
 
 	// The root has no role, so the validation state and the description go on
 	// each `role="slider"` thumb.

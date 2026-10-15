@@ -287,6 +287,33 @@ describe('Input defaultValue under a binding (§7.2)', () => {
 			expect(screen.queryByRole('button', { name: 'Clear' })).not.toBeInTheDocument()
 		})
 
+		it('moves the focus to the input when the focused clear button goes away', async () => {
+			const user = setupUser()
+
+			const { container, rerender } = renderUI(
+				<Input clearable defaultValue="abc" aria-label="Search" />,
+			)
+
+			await user.click(getSlot(container, 'input'))
+
+			await user.tab()
+
+			const button = screen.getByRole('button', { name: 'Clear' })
+
+			expect(button).toHaveFocus()
+
+			// A render that keeps the button keeps the focus on it.
+			rerender(<Input clearable defaultValue="abc" aria-label="Search" placeholder="Find" />)
+
+			expect(button).toHaveFocus()
+
+			rerender(<Input clearable={false} defaultValue="abc" aria-label="Search" />)
+
+			expect(screen.queryByRole('button', { name: 'Clear' })).not.toBeInTheDocument()
+
+			expect(getSlot(container, 'input')).toHaveFocus()
+		})
+
 		it('puts the clear button before the suffix', () => {
 			const { container } = renderUI(
 				<Input clearable defaultValue="acme" suffix=".example.com" aria-label="Subdomain" />,
