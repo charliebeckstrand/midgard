@@ -67,10 +67,10 @@ Reach: a page under `packages/ui/src/docs/pages` is a shipped surface, because t
 | R2 | `components/accordion/use-accordion-selection.ts` | `useAccordionSelection` | NARROWED | low | none | — | ✅ RESOLVED ([#2569](https://github.com/charliebeckstrand/midgard/pull/2569)) |
 | R3 | `components/accordion/accordion-skeleton.tsx` | `AccordionSkeleton` (TSDoc) | CONFIRMED | low | shipped | — | ✅ RESOLVED ([#2571](https://github.com/charliebeckstrand/midgard/pull/2571)) |
 | R4 | `components/accordion/context.ts` | `useAccordionItem` (not exported) | CONFIRMED | low | none | — | ✅ RESOLVED ([#2572](https://github.com/charliebeckstrand/midgard/pull/2572)) |
-| R5 | `components/accordion/accordion-panel.tsx` | `AccordionPanel` (held branch) | CONFIRMED | low | none | — | ◯ OPEN |
+| R5 | `components/accordion/accordion-panel.tsx` | `AccordionPanel` (held branch) | CONFIRMED | low | none | — | ✅ RESOLVED ([#2579](https://github.com/charliebeckstrand/midgard/pull/2579)) |
 | R6 | `components/aspect-ratio/aspect-ratio.tsx` | `AspectRatio` (preset style) | CONFIRMED | low | none | G1 | ✅ RESOLVED ([#2577](https://github.com/charliebeckstrand/midgard/pull/2577)) |
 | R7 | `components/aspect-ratio/aspect-ratio.tsx` | `AspectRatio` (invalid number) | CONFIRMED | low | none | G1 | ✅ RESOLVED ([#2577](https://github.com/charliebeckstrand/midgard/pull/2577)) |
-| R8 | `components/avatar/avatar.tsx` | `Avatar` (wide initials) | NARROWED | low | shipped | — | ◯ OPEN |
+| R8 | `components/avatar/avatar.tsx` | `Avatar` (wide initials) | NARROWED | low | shipped | — | ✅ RESOLVED ([#2578](https://github.com/charliebeckstrand/midgard/pull/2578)) |
 | R9 | `recipes/kata/alert.ts` | `k.base` (forced colors) | CONFIRMED | medium | shipped | — | ✅ RESOLVED ([#2574](https://github.com/charliebeckstrand/midgard/pull/2574)) |
 | R10 | `components/alert/alert.tsx` | `Alert` close `onClick` | CONFIRMED | low | none | — | ✅ RESOLVED ([#2573](https://github.com/charliebeckstrand/midgard/pull/2573)) |
 | R11 | `components/alert/alert.tsx` | `AlertContent` (`0` title) | CONFIRMED | low | none | G7 | ◯ OPEN |
