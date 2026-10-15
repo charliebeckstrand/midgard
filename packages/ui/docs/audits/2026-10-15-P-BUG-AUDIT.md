@@ -37,11 +37,11 @@ The digest held the P entries of the project record `2026-10-02-component-bug-sw
 
 | Row | File | Symbol | Verdict | Severity | Reach | Group | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| R1 | `components/pdf-viewer/pdf-viewer-highlights.tsx` | `PdfViewerHighlightLayer` (`hovered` element) | NARROWED | medium | shipped | G2 | ◯ OPEN |
-| R2 | `components/pdf-viewer/pdf-viewer-highlights.tsx` | `PdfViewerHighlightLayer` (`hovered.label`) | CONFIRMED | low | none | G2 | ◯ OPEN |
+| R1 | `components/pdf-viewer/pdf-viewer-highlights.tsx` | `PdfViewerHighlightLayer` (`hovered` element) | NARROWED | medium | shipped | G2 | ◐ FIXED ([#2482](https://github.com/charliebeckstrand/midgard/pull/2482)) |
+| R2 | `components/pdf-viewer/pdf-viewer-highlights.tsx` | `PdfViewerHighlightLayer` (`hovered.label`) | CONFIRMED | low | none | G2 | ◐ FIXED ([#2482](https://github.com/charliebeckstrand/midgard/pull/2482)) |
 | R3 | `components/pdf-viewer/use-pdf-viewer-highlights.ts` | `usePdfViewerHighlights` (`revealRef`) | CONFIRMED | medium | shipped | — | ◯ OPEN |
 | R4 | `components/pdf-viewer/use-pdf-viewer-magnifier.ts` | `usePdfViewerMagnifier` (disable edge) | NARROWED | medium | shipped | — | ◯ OPEN |
-| R5 | `components/pdf-viewer/use-pdf-viewer.ts` | `usePdfViewer` (`thumbsOpen`) | NARROWED | medium | shipped | — | ◯ OPEN |
+| R5 | `components/pdf-viewer/use-pdf-viewer.ts` | `usePdfViewer` (`thumbsOpen`) | NARROWED | medium | shipped | — | ◐ FIXED ([#2480](https://github.com/charliebeckstrand/midgard/pull/2480)) |
 | R6 | `components/pdf-viewer/use-pdf-viewer.ts` | `usePdfViewer` (load report on remount) | CONFIRMED | low | shipped | G1 | ◯ OPEN |
 | R7 | `components/popover/popover-trigger.tsx` | `PopoverTrigger` (ignore guard drops child handlers) | CONFIRMED | low | none | G3 | ◯ OPEN |
 | R8 | `components/popover/popover-trigger.tsx` | `PopoverTrigger` (`shouldIgnore` unbounded) | CONFIRMED | low | none | G3 | ◯ OPEN |
@@ -136,3 +136,6 @@ Answer (2026-10-15, the reader): "Reveal on show" (a). S2 takes the no-box guard
 - Verifier B03: `password-strength.tsx:101` `key={rule.id}`; duplicate rule ids collide as React keys.
 - Verifier B03: `use-password-strength.ts:88`; a rule id that contains `\u0000` splits into extra ids.
 - Verifier B03: `popover-trigger.tsx:59-63` also wraps non-interaction `on*` props of the child (`onFocus`, `onMouseEnter`); S6 closes it.
+- Resolver S1: the R1 trigger needs pages that declare `width` and `height`; without them `usePdfViewerPageSize` resets the natural size on each page turn, the layer unmounts, and the preview resets. The docs pages (`statement.ts`) set sizes, so R1's reach stands.
+- Resolver S1: `useTooltipAnchor` (`components/tooltip/use-tooltip-anchor.ts`) passes `reference` to Floating UI, whose root context reads it only at mount; a caller that changes `reference` without a remount keeps a stale anchor. S1 works around it with a key.
+- Resolver S4: the Biome PostToolUse edit hook processes no file in an agent worktree under `.claude/`; the pre-commit hook and `pnpm check` do check them.
