@@ -98,6 +98,24 @@ describe('NavItem', () => {
 		expect(inner).toHaveAttribute('aria-current', 'true')
 	})
 
+	it('gives a link item no type, as a type on an anchor names a MIME type', () => {
+		const { container } = renderUI(
+			<Nav>
+				<NavList>
+					<NavItem href="/home" type="submit">
+						Home
+					</NavItem>
+				</NavList>
+			</Nav>,
+		)
+
+		const inner = bySlot(container, 'nav-item-inner')
+
+		expect(inner?.tagName).toBe('A')
+
+		expect(inner).not.toHaveAttribute('type')
+	})
+
 	it('renders as a button by default', () => {
 		const { container } = renderUI(
 			<Nav>
