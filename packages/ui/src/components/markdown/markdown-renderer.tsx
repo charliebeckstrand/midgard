@@ -69,11 +69,12 @@ function safeUrl(url: string, allowData = false): string | undefined {
  * marked decodes only the numeric references in a text token, and keeps the
  * other entity references as source text. The renderer decodes text from the
  * source of the token, so that each reference is decoded one time. It decodes
- * text, image `alt`, and titles, as CommonMark specifies, with the subset of
- * names that {@link decodeEntities} knows. The
- * decoded text goes into React text nodes and attributes, so a decoded `<`
- * shows as a character and is never markup. Code spans and code blocks keep
- * their references literal.
+ * text, image `alt`, titles, and link and image destinations, as CommonMark
+ * specifies, with the subset of names that {@link decodeEntities} knows. A
+ * destination decodes before its scheme check, so `&#106;avascript:` is
+ * blocked as `javascript:`. The decoded text goes into React text nodes and
+ * attributes, so a decoded `<` shows as a character and is never markup. Code
+ * spans and code blocks keep their references literal.
  *
  * A heading takes the level of its source depth plus `headingOffset`, in the
  * range 1 to 6. Its look stays that of its source depth.
@@ -156,7 +157,7 @@ function renderToken(token: Token, index: number, offset: number, taskLabel?: st
 			return (
 				<a
 					key={index}
-					href={safeUrl(token.href)}
+					href={safeUrl(decodeEntities(token.href))}
 					title={decodeTitle(token.title)}
 					className={cn(k.link)}
 				>
@@ -167,7 +168,7 @@ function renderToken(token: Token, index: number, offset: number, taskLabel?: st
 			return (
 				<img
 					key={index}
-					src={safeUrl(token.href, true)}
+					src={safeUrl(decodeEntities(token.href), true)}
 					alt={imageAlt(token)}
 					title={decodeTitle(token.title)}
 					className={cn(k.img)}
