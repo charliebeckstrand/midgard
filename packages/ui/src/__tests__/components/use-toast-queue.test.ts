@@ -63,6 +63,29 @@ describe('useToastQueue', () => {
 		expect(toastsRef.current).toEqual([])
 	})
 
+	it('drains a toast whose id is an empty string, and the ids behind it', () => {
+		const toastsRef = { current: [makeToast(''), makeToast('b')] }
+
+		const onRemove = vi.fn()
+
+		const { result } = renderHook(() => useToastQueue(toastsRef, vi.fn(), onRemove))
+
+		act(() => {
+			result.current.start(['', 'b'])
+		})
+
+		// An empty id is a valid id, not the end of the queue.
+		expect(toastsRef.current.map((t) => t.id)).toEqual(['b'])
+
+		act(() => {
+			result.current.handleExitComplete()
+		})
+
+		expect(toastsRef.current).toEqual([])
+
+		expect(onRemove.mock.calls.map(([toast]) => toast.id)).toEqual(['', 'b'])
+	})
+
 	it('skips an id that left the list after it was queued', () => {
 		const toastsRef = { current: [makeToast('a'), makeToast('b'), makeToast('c')] }
 

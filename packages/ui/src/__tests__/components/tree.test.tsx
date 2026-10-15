@@ -147,6 +147,44 @@ describe('Tree', () => {
 		expect(screen.getByText('deep.ts')).toBeInTheDocument()
 	})
 
+	it('keeps one Tab stop when a caller closes a held branch that holds it', async () => {
+		const files = (open: boolean) => (
+			<Tree aria-label="Files" mount="lazy">
+				<TreeItem label="src" open={open}>
+					<TreeItem label="a.ts" />
+				</TreeItem>
+				<TreeItem label="README" />
+			</Tree>
+		)
+
+		const { container, rerender } = renderUI(files(true))
+
+		// A held item stays in the DOM while it is closed.
+		const item = (name: string) => screen.getByRole('treeitem', { name, hidden: true })
+
+		const tabStops = () =>
+			Array.from(container.querySelectorAll<HTMLElement>('[role="treeitem"]')).filter(
+				(row) => row.tabIndex === 0,
+			)
+
+		item('a.ts').focus()
+
+		item('a.ts').blur()
+
+		rerender(files(false))
+
+		// Let the roving MutationObserver run.
+		await Promise.resolve()
+
+		expect(tabStops()).toEqual([item('src')])
+
+		rerender(files(true))
+
+		await Promise.resolve()
+
+		expect(tabStops()).toEqual([item('src')])
+	})
+
 	it('renders with data-slot="tree", role="tree", and the required accessible name', () => {
 		const { container } = renderUI(
 			<Tree aria-label="Files">
@@ -177,6 +215,22 @@ describe('TreeItem', () => {
 		expect(screen.getByText('Parent')).toBeInTheDocument()
 
 		expect(screen.getByText('Child')).toBeInTheDocument()
+	})
+
+	it('turns the chevron on the element that carries the transform transition', () => {
+		renderUI(
+			<Tree aria-label="Files">
+				<TreeItem label="Parent" defaultOpen>
+					<TreeItem label="Child" />
+				</TreeItem>
+			</Tree>,
+		)
+
+		const row = screen.getByRole('treeitem', { name: 'Parent' })
+
+		const turned = row.querySelector('.rotate-90')
+
+		expect(turned).toHaveClass('motion-safe:transition-transform')
 	})
 
 	it('renders prefix and suffix slots', () => {
@@ -232,6 +286,35 @@ describe('TreeItem', () => {
 		fireEvent.click(screen.getByText('Parent'))
 
 		expect(row).toHaveAttribute('aria-expanded', 'true')
+	})
+
+	// A Fragment adds no level, so its contents decide leaf or branch.
+	it.each([
+		['reads an empty Fragment as a leaf', [], null],
+		['reads a Fragment with an item as a branch', ['a.ts'], 'false'],
+	])('%s', (_name, files, expanded) => {
+		const { container } = renderUI(
+			<Tree aria-label="Files">
+				<TreeItem label="Folder">
+					{/* biome-ignore lint/complexity/noUselessFragments: the Fragment is the case under test. */}
+					<>
+						{files.map((file) => (
+							<TreeItem key={file} label={file} />
+						))}
+					</>
+				</TreeItem>
+			</Tree>,
+		)
+
+		const row = getSlot(container, 'tree-item-content')
+
+		if (expanded == null) {
+			expect(row).not.toHaveAttribute('aria-expanded')
+		} else {
+			expect(row).toHaveAttribute('aria-expanded', expanded)
+		}
+
+		expect(row.querySelector('svg') != null).toBe(expanded != null)
 	})
 
 	// Each row presses one key on a parent row that starts open or closed and
@@ -321,6 +404,89 @@ describe('TreeItem', () => {
 		expect(row('src')).toHaveAttribute('aria-expanded', 'false')
 
 		expect(row('src')).toHaveFocus()
+	})
+
+	describe('type-ahead', () => {
+		const row = (name: string) => screen.getByRole('treeitem', { name })
+
+		const type = (...keys: string[]) => {
+			for (const key of keys) {
+				fireEvent.keyDown(present(document.activeElement, 'focused row'), { key })
+			}
+		}
+
+		it('moves to the visible row whose label starts with the typed letters', () => {
+			renderUI(
+				<Tree aria-label="Files">
+					<TreeItem label="alpha" />
+					<TreeItem label="beta" />
+					<TreeItem label="bravo" />
+				</Tree>,
+			)
+
+			row('alpha').focus()
+
+			type('b', 'r')
+
+			expect(row('bravo')).toHaveFocus()
+		})
+
+		it('cycles through the rows that start with a repeated letter', () => {
+			renderUI(
+				<Tree aria-label="Files">
+					<TreeItem label="alpha" />
+					<TreeItem label="beta" />
+					<TreeItem label="bravo" />
+				</Tree>,
+			)
+
+			row('alpha').focus()
+
+			type('b')
+
+			expect(row('beta')).toHaveFocus()
+
+			type('b')
+
+			expect(row('bravo')).toHaveFocus()
+
+			type('b')
+
+			expect(row('beta')).toHaveFocus()
+		})
+
+		it('matches the label alone, not the affix text of the row', () => {
+			renderUI(
+				<Tree aria-label="Files">
+					<TreeItem label="alpha" prefix="zip" suffix="zulu" />
+					<TreeItem label="omega" />
+				</Tree>,
+			)
+
+			row('omega').focus()
+
+			type('z')
+
+			expect(row('omega')).toHaveFocus()
+		})
+
+		it('skips a row inside a closed group', () => {
+			renderUI(
+				<Tree aria-label="Files" mount="always">
+					<TreeItem label="alpha" />
+					<TreeItem label="src">
+						<TreeItem label="secret" />
+					</TreeItem>
+					<TreeItem label="settings" />
+				</Tree>,
+			)
+
+			row('alpha').focus()
+
+			type('s', 'e')
+
+			expect(row('settings')).toHaveFocus()
+		})
 	})
 
 	it('ignores key events that bubble from descendants', () => {

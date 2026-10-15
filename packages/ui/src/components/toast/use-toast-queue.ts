@@ -52,7 +52,7 @@ export function useToastQueue(
 		while (!removed) {
 			const id = queueRef.current.shift()
 
-			if (!id) {
+			if (id === undefined) {
 				runningRef.current = false
 
 				return false

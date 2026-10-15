@@ -78,6 +78,9 @@ export function SectorSegmentLabels({
 }: SectorSegmentLabelsProps) {
 	const emphasis = useChartSeriesEmphasis()
 
+	// The server cannot read the preference, so it renders the labels at rest.
+	const still = usePrefersReducedMotion()
+
 	return (
 		<g data-slot="chart-segment-labels" pointerEvents="none">
 			{items.map(({ slice, text }) => {
@@ -95,7 +98,7 @@ export function SectorSegmentLabels({
 						{animate ? (
 							<m.text
 								{...shared}
-								initial={{ opacity: 0 }}
+								initial={still ? false : { opacity: 0 }}
 								animate={{ opacity: 1 }}
 								exit={{ opacity: 0, transition: SLICE_UNFADE }}
 								transition={{ ...SLICE_FADE, delay: sweepDelay(slice.mid) }}

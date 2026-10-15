@@ -1,7 +1,8 @@
 'use client'
 
-import { Children, type ReactElement, type ReactNode, useId } from 'react'
+import { isValidElement, type ReactElement, type ReactNode, useId } from 'react'
 import { useControllable, useControllableFlag } from '../../hooks/use-controllable'
+import { flattenChildren } from '../../utilities/flatten-children'
 import { TreeItemChildren } from './tree-item-children'
 import { TreeItemContent } from './tree-item-content'
 
@@ -141,11 +142,12 @@ export function TreeItem({
 	// A `'mixed'` row toggles to `true`, as a tri-state checkbox does.
 	const toggleChecked = () => setChecked((prev) => prev !== true)
 
-	// `Children.toArray` drops `null`/`undefined`/`false` and empty arrays, so a
-	// falsy or empty `children` reads as a leaf — no chevron, `aria-expanded`
-	// stays off. A bare `!= null` check would announce `children={[]}` as a
-	// collapsed parent.
-	const hasChildren = Children.toArray(children).length > 0
+	// The row is a branch only when its children hold an element. The check
+	// recurses into each Fragment, as `stampTreePositions` does. Thus a falsy or
+	// empty `children`, or an empty Fragment, reads as a leaf: no chevron, and
+	// `aria-expanded` stays off. A bare `!= null` check, or `Children.toArray`,
+	// would announce `children={[]}` or `<></>` as a collapsed parent.
+	const hasChildren = flattenChildren(children).some(({ node }) => isValidElement(node))
 
 	// The row owns the group by this id, which keeps two trees apart.
 	const groupId = useId()
