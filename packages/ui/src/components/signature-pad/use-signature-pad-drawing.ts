@@ -44,6 +44,10 @@ type SignatureDrawingOptions = {
  * `setCurrent`, which the state hook records as shown, so its value-sync effect
  * skips a repaint of a value it just drew. `commit` returns `true` only
  * when it committed a stroke, and `false` when no stroke was in progress.
+ *
+ * Only the pointer that started the stroke extends it, and only its release
+ * ends it. A second finger or a resting palm draws no line and does not end
+ * the stroke. `commit` with no event ends the stroke of any pointer.
  */
 export function useSignaturePadDrawing({
 	canvasRef,
@@ -57,7 +61,10 @@ export function useSignaturePadDrawing({
 	onDrawStart,
 	onInk,
 }: SignatureDrawingOptions) {
-	const drawingRef = useRef(false)
+	// The pointer that draws the stroke, or `null` when no stroke runs. A second
+	// finger or a resting palm fires its own events on the canvas, and only this
+	// pointer extends or ends the stroke.
+	const pointerRef = useRef<number | null>(null)
 
 	// The pen keeps the crosshair on the page while a stroke runs off the pad.
 	const cursorHold = useDragCursorHold('crosshair')
@@ -87,7 +94,7 @@ export function useSignaturePadDrawing({
 
 		event.currentTarget.setPointerCapture?.(event.pointerId)
 
-		drawingRef.current = true
+		pointerRef.current = event.pointerId
 
 		cursorHold.start()
 
@@ -118,7 +125,7 @@ export function useSignaturePadDrawing({
 	}
 
 	const handlePointerMove = (event: ReactPointerEvent) => {
-		if (!drawingRef.current) return
+		if (event.pointerId !== pointerRef.current) return
 
 		const point = getCanvasPoint(canvasRef.current, event)
 
@@ -144,12 +151,19 @@ export function useSignaturePadDrawing({
 		if (empty) setEmpty(false)
 	}
 
-	const commit = (): boolean => {
+	const commit = (event?: ReactPointerEvent): boolean => {
+		if (pointerRef.current === null) {
+			cursorHold.end()
+
+			return false
+		}
+
+		// The release of another pointer does not end the stroke.
+		if (event && event.pointerId !== pointerRef.current) return false
+
 		cursorHold.end()
 
-		if (!drawingRef.current) return false
-
-		drawingRef.current = false
+		pointerRef.current = null
 
 		lastPointRef.current = null
 

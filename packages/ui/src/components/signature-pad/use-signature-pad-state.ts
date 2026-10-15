@@ -1,6 +1,14 @@
 'use client'
 
-import { type Ref, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import {
+	type PointerEvent as ReactPointerEvent,
+	type Ref,
+	useCallback,
+	useEffect,
+	useImperativeHandle,
+	useRef,
+	useState,
+} from 'react'
 import { useControlProps } from '../control/use-control-props'
 import { useFormValue } from '../form/use-form-value'
 import { drawSnapshot } from './signature-pad-utilities'
@@ -169,9 +177,12 @@ export function useSignaturePadState({
 	// A stroke ending or a clear is the field's "blur" — the user has acted on
 	// the pad, so mark the bound Form field touched (no-op outside a Form). A
 	// pointer release or leave with no stroke is not a stroke end.
-	const commit = useCallback(() => {
-		if (commitStroke()) setTouched()
-	}, [commitStroke, setTouched])
+	const commit = useCallback(
+		(event?: ReactPointerEvent) => {
+			if (commitStroke(event)) setTouched()
+		},
+		[commitStroke, setTouched],
+	)
 
 	const clear = useCallback(() => {
 		const canvas = canvasRef.current
