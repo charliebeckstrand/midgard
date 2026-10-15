@@ -40,7 +40,7 @@ const inner = { xs: 'sm', sm: 'sm', md: 'md', lg: 'lg', xl: 'lg' } as const sati
 
 /**
  * Clamps a step to the inner steps: `xs` becomes `sm`, and `xl` becomes
- * `lg`. A scale with no outer step snaps a step to it (`snapToScale`).
+ * `lg`.
  */
 export function toInnerStep(step: DensityStep): InnerStep {
 	return inner[step]
