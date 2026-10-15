@@ -11,7 +11,11 @@ export type ResizablePanelProps = {
 	 * Initial size as a weight. The group divides 100% in the ratio of the
 	 * weights of its panels, so `30` and `50` give 37.5% and 62.5%. Weights that
 	 * sum to 100 are percentages. Then each panel goes into its `minSize` and
-	 * `maxSize`, and a neighbor panel takes the difference.
+	 * `maxSize`, and a neighbor panel takes the difference. When a panel at a
+	 * bound stops the neighbor from taking the difference, the panels with
+	 * slack share it in proportion to their weights. When no layout meets every
+	 * bound, the sizes still sum to 100%, and one or more panels are not in
+	 * their bounds.
 	 * @defaultValue 50
 	 */
 	defaultSize?: number

@@ -1,7 +1,7 @@
 'use client'
 
 import { Star } from 'lucide-react'
-import { type MouseEvent, type PointerEvent, type ReactNode, useState } from 'react'
+import { type MouseEvent, type PointerEvent, type ReactNode, useRef, useState } from 'react'
 import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { useIdScope } from '../../hooks/use-id-scope'
@@ -102,7 +102,9 @@ export type RatingProps = RatingVariants & {
 	 * clearing star is the only star on the row that answers the pointer with the
 	 * row already drawn. It is worst at a score of one, where the pointer sits on
 	 * the only filled star and nothing at all moves. A touch has no hover, so it
-	 * shows no preview.
+	 * shows no preview. A key that sets or clears the score removes the preview,
+	 * so the stars draw the score of the key until the pointer goes onto a star
+	 * again.
 	 * @defaultValue true
 	 */
 	clearable?: boolean
@@ -145,13 +147,14 @@ export type RatingProps = RatingVariants & {
  * Interactive, it is a `role="radiogroup"` over one native `<input type="radio">`
  * per star. Arrow keys, focus, and the announced position therefore come from
  * the platform, rather than from key handlers of its own. It is `Slider`'s
- * bargain, for the same reason. `readOnly` and `disabled` drop the inputs and
+ * bargain, for the same reason. `readOnly` and `disabled` drop the radios and
  * render one `role="img"`. Its name is the consumer's name, then the readout.
  * The readout is necessary, because color and shape alone do not carry a score
  * (WCAG 1.4.1).
  *
  * Binds to an enclosing Form field by `name`. An uncontrolled rating goes back
- * to `defaultValue` on a native form reset, and `onValueChange` reports it. Resolves `id` / `disabled` /
+ * to `defaultValue` on a native form reset, also while it is `readOnly` or
+ * `disabled`, and `onValueChange` reports it. Resolves `id` / `disabled` /
  * `readOnly` / `invalid` from an enclosing `<Control>` or `<Field>`. The stars
  * take the step of the nearest density scope. A `<Label as="span">` in the
  * Field names the stars through `aria-labelledby`. No one element of the stars
@@ -189,6 +192,7 @@ export function Rating({
 }: RatingProps) {
 	const {
 		value: bound,
+		controlled,
 		resetRef,
 		setValue,
 		setTouched,
@@ -199,6 +203,13 @@ export function Rating({
 	// pointer is over the row. A star rating that does not answer the pointer
 	// makes the reader guess which star they are about to commit to.
 	const [previewed, setPreviewed] = useState<number | null>(null)
+
+	// Whether a press on the row started the click that is now in progress. A
+	// commit with no press comes from a key: an arrow key or Space. The value then
+	// moves away from the star under the pointer, so the preview of that star
+	// goes. A press keeps the preview, so the score it sets recedes under the
+	// pointer as the next click's result.
+	const pressed = useRef(false)
 
 	const control = useControl()
 
@@ -248,7 +259,14 @@ export function Rating({
 		setPreviewed(star)
 	}
 
+	// The commit ends the press. React runs a radio's `onClick` before its
+	// `onChange` in the same click, so the click cannot end the press itself
+	// when a change follows it.
 	function commit(next: number | null) {
+		if (!pressed.current) setPreviewed(null)
+
+		pressed.current = false
+
 		setValue(next)
 
 		setTouched()
@@ -308,6 +326,10 @@ export function Rating({
 						{valueText}
 					</span>
 				)}
+				{/* A dead row has no radio, so this input keeps the native reset of an
+				    uncontrolled rating. It has no name and submits nothing. A controlled
+				    row gets no element, because a list draws many of them. */}
+				{!controlled && <input type="hidden" ref={resetRef} />}
 				{stars.map((key, index) => {
 					const fill = starFill(current, index + 1)
 
@@ -383,7 +405,12 @@ export function Rating({
 					aria-label={getValueText(score, count)}
 					className={cn(k.input)}
 					onChange={() => commit(score)}
-					onClick={(event) => handleClick(event, score)}
+					onClick={(event) => {
+						handleClick(event, score)
+
+						// A click on the checked radio fires no change, so the press ends here.
+						if (current === score) pressed.current = false
+					}}
 				/>
 
 				{children}
@@ -405,6 +432,19 @@ export function Rating({
 			aria-describedby={describedBy}
 			{...validation}
 			className={rowClass}
+			onPointerDown={() => {
+				pressed.current = true
+			}}
+			// A press can end with no click: the platform cancels it, or the pointer
+			// goes up off the row. Such a press commits nothing, so it ends here. A key
+			// always goes down before the commit that it causes, so a key commit never
+			// takes a press that did not end.
+			onPointerCancel={() => {
+				pressed.current = false
+			}}
+			onKeyDown={() => {
+				pressed.current = false
+			}}
 			onPointerLeave={() => setPreviewed(null)}
 			onBlur={() => setTouched()}
 		>

@@ -23,6 +23,10 @@ type DragState = {
 	availableSize: number
 	/** Whether the group lays out right to left. A horizontal drag then mirrors. */
 	rtl: boolean
+	/** The pointer that started the drag. The events of another pointer do not move or end it. */
+	pointerId: number
+	/** The axis that `startPos` and `availableSize` are measured on. */
+	orientation: ResizableOrientation
 }
 
 /**
@@ -32,12 +36,8 @@ type DragState = {
  *
  * @internal
  */
-function dragDeltaPercent(
-	drag: DragState,
-	event: PointerEvent,
-	orientation: ResizableOrientation,
-): number {
-	const horizontal = orientation === 'horizontal'
+function dragDeltaPercent(drag: DragState, event: PointerEvent): number {
+	const horizontal = drag.orientation === 'horizontal'
 
 	const pos = horizontal ? event.clientX : event.clientY
 
@@ -101,6 +101,81 @@ function clampPair(sizes: number[], leftIndex: number, constraints: PanelConfig[
 	return result
 }
 
+/** The tolerance, in percent, for a seed size that is in its bounds or fills the group. */
+const SEED_EPSILON = 1e-9
+
+/** Whether each size is in the min/max of its panel, in the tolerance. */
+function meetsBounds(sizes: number[], configs: PanelConfig[]): boolean {
+	return sizes.every((size, index) => {
+		const config = configs[index]
+
+		return (
+			size >= (config?.minSize ?? 0) - SEED_EPSILON &&
+			size <= (config?.maxSize ?? Number.POSITIVE_INFINITY) + SEED_EPSILON
+		)
+	})
+}
+
+function sumOf(values: number[]): number {
+	return values.reduce((acc, value) => acc + value, 0)
+}
+
+/**
+ * A global fill of 100% against the min/max of each panel. The free panels
+ * share the remainder in proportion to their weights. When a share breaks a
+ * bound, the side with the larger break (the minSizes or the maxSizes) goes to
+ * its bounds, and the fill repeats. A panel with no weight stays at its
+ * minSize.
+ *
+ * @param base - The normalized weights, as percentages summing to 100.
+ * @returns The filled sizes, or `null` when no fill gives a sum of 100.
+ * @internal
+ */
+function fillBounds(base: number[], configs: PanelConfig[]): number[] | null {
+	const fixed = configs.map((config, index) => ((base[index] ?? 0) > 0 ? null : config.minSize))
+
+	for (let round = 0; round <= configs.length; round++) {
+		let freeWeight = 0
+		let remainder = 100
+
+		fixed.forEach((size, index) => {
+			if (size === null) freeWeight += base[index] ?? 0
+			else remainder -= size
+		})
+
+		if (freeWeight <= 0) {
+			return Math.abs(remainder) <= SEED_EPSILON ? fixed.map((size) => size ?? 0) : null
+		}
+
+		const sizes = fixed.map((size, index) => size ?? (remainder * (base[index] ?? 0)) / freeWeight)
+
+		let under = 0
+		let over = 0
+
+		configs.forEach(({ minSize, maxSize }, index) => {
+			const size = sizes[index] ?? 0
+
+			if (fixed[index] !== null) return
+
+			under += Math.max(0, minSize - size)
+			over += Math.max(0, size - maxSize)
+		})
+
+		if (under <= SEED_EPSILON && over <= SEED_EPSILON) return sizes
+
+		configs.forEach(({ minSize, maxSize }, index) => {
+			const size = sizes[index] ?? 0
+
+			if (fixed[index] !== null) return
+
+			if (under > over && size < minSize) fixed[index] = minSize
+			else if (under <= over && size > maxSize) fixed[index] = maxSize
+		})
+	}
+
+	return null
+}
+
 /**
  * The first sizes of the panels, as percentages summing to 100; identity is
  * not preserved. Each `defaultSize` is a weight, so the sizes keep the ratio
@@ -108,20 +183,33 @@ function clampPair(sizes: number[], leftIndex: number, constraints: PanelConfig[
  * the group. Thus each panel goes into its min/max, and the next panel takes
  * the difference. The last panel gives the difference to the panel before it.
  *
+ * The pairwise pass cannot move slack past a panel at a bound. When its
+ * result still breaks a bound, a global fill replaces it: each panel
+ * goes into its min/max, and the panels with slack share the remainder in
+ * proportion to their weights. When no layout meets every bound, the seed
+ * keeps the result of the pairwise pass. That result sums to 100, and one
+ * or more panels are not in their min/max.
+ *
  * @internal
  */
 function seedSizes(configs: PanelConfig[]): number[] {
 	const weights = configs.map((config) => config.defaultSize)
 
-	const total = weights.reduce((sum, weight) => sum + weight, 0)
+	const total = sumOf(weights)
 
-	let sizes = total > 0 ? weights.map((weight) => (weight / total) * 100) : weights
+	const base = total > 0 ? weights.map((weight) => (weight / total) * 100) : weights
+
+	let sizes = base
 
 	for (let leftIndex = 0; leftIndex < sizes.length - 1; leftIndex++) {
 		sizes = clampPair(sizes, leftIndex, configs)
 	}
 
-	return sizes
+	if (meetsBounds(sizes, configs)) return sizes
+
+	const filled = fillBounds(base, configs)
+
+	return filled && meetsBounds(filled, configs) ? filled : sizes
 }
 
 type PanelResize = {
@@ -180,7 +268,8 @@ export function useResizablePanel({
 	const reportResizeEnd = useEffectEvent((handleIndex: number) => onResizeEnd?.(handleIndex))
 
 	// A drag reads the orientation and the constraints of the newest render on
-	// each move, not the ones of the render that started it.
+	// each move, not the ones of the render that started it. A changed
+	// orientation ends the drag, because its start and length are on the old axis.
 	const readLayout = useStableEvent(() => ({ orientation, constraints: panelConfigs }))
 
 	// A discrete event commits before the next one, so each step reads the sizes
@@ -255,6 +344,8 @@ export function useResizablePanel({
 			startSizes: [...sizes],
 			availableSize,
 			rtl: isRtl(group),
+			pointerId: event.pointerId,
+			orientation,
 		}
 
 		setDragging(handleIndex)
@@ -289,7 +380,15 @@ export function useResizablePanel({
 
 			const { orientation: currentOrientation, constraints } = readLayout()
 
-			const deltaPercent = dragDeltaPercent(drag, event, currentOrientation)
+			// A coordinate on the new axis does not agree with a start and a length
+			// on the old one. End the drag at the last sizes, and calculate no delta.
+			if (currentOrientation !== drag.orientation) {
+				onUp()
+
+				return
+			}
+
+			const deltaPercent = dragDeltaPercent(drag, event)
 
 			const leftIndex = drag.handleIndex
 			const rightIndex = drag.handleIndex + 1
@@ -342,12 +441,25 @@ export function useResizablePanel({
 
 		const { signal } = controller
 
-		document.addEventListener('pointermove', onMove, { signal })
-		document.addEventListener('pointerup', onUp, { signal })
+		// Only the pointer that started the drag moves it or ends it. A second
+		// finger on the panel content sends its own events to the document, and
+		// they do nothing. `onUp` takes no event, so the filter is here.
+		const { pointerId } = event
+
+		const onOwnMove = (moveEvent: PointerEvent) => {
+			if (moveEvent.pointerId === pointerId) onMove(moveEvent)
+		}
+
+		const onOwnUp = (upEvent: PointerEvent) => {
+			if (upEvent.pointerId === pointerId) onUp()
+		}
+
+		document.addEventListener('pointermove', onOwnMove, { signal })
+		document.addEventListener('pointerup', onOwnUp, { signal })
 		// A canceled pointer (OS gesture, pen leaving range) never fires
 		// pointerup; without this the drag flag stays set and buttonless
 		// movement keeps resizing.
-		document.addEventListener('pointercancel', onUp, { signal })
+		document.addEventListener('pointercancel', onOwnUp, { signal })
 		document.addEventListener('contextmenu', onUp, { signal })
 
 		cleanupRef.current = () => {
