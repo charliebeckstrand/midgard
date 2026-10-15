@@ -108,6 +108,11 @@ export const size = {
 		 * of a calendar skeleton. The values are the button heights.
 		 */
 		base: box,
+		/**
+		 * The minimum height of a textarea and of its skeleton: the control height,
+		 * so a textarea of one row has the height of an Input at each step.
+		 */
+		floor: 'density-min-h-[6.5,8,9.5,11,12.5]',
 		/** The minimum width of a control skeleton. */
 		min: 'density-min-w-[8,16,24,32,40]',
 	},
