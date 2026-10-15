@@ -126,6 +126,9 @@ export const k = {
 			// First item has no inbound line; last item has no outbound line.
 			'[li:first-child_&]:before:hidden',
 			'[li:last-child_&]:after:hidden',
+			// The rails are only backgrounds, which forced colors remove. They paint
+			// in CanvasText, as a `sen.forced.shape` does.
+			'forced-colors:before:bg-[CanvasText] forced-colors:after:bg-[CanvasText]',
 		],
 		// The inner dot (a StatusDot or a decorative Swatch) fills the marker box
 		// and rides above the connector rails.
