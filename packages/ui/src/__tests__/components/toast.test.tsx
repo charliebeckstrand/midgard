@@ -972,5 +972,74 @@ describe('Toast: useToast behavior', () => {
 
 			expect(onSecond).toHaveBeenCalledExactlyOnceWith('dismissed')
 		})
+
+		// The viewport loads late or not at all, so no exit animation runs. The queue
+		// must not wait for an exit callback that never comes.
+		it('names each timeout in turn with no viewport mounted', () => {
+			let api: ReturnType<typeof useToast> | undefined
+
+			const onA = vi.fn()
+
+			const onB = vi.fn()
+
+			const onC = vi.fn()
+
+			renderUI(
+				<ToastProvider>
+					<Trigger onReady={(c) => (api = c)} />
+				</ToastProvider>,
+			)
+
+			act(() => {
+				api?.toast({ title: 'A', duration: 100, onDismiss: onA })
+				api?.toast({ title: 'B', duration: 200, onDismiss: onB })
+				api?.toast({ title: 'C', duration: 300, onDismiss: onC })
+			})
+
+			act(() => {
+				vi.advanceTimersByTime(5000)
+			})
+
+			for (const onDismiss of [onA, onB, onC]) {
+				expect(onDismiss).toHaveBeenCalledExactlyOnceWith('timeout')
+			}
+		})
+
+		it('staggers the timeouts with the viewport mounted', () => {
+			let api: ReturnType<typeof useToast> | undefined
+
+			const onA = vi.fn()
+
+			const onB = vi.fn()
+
+			renderUI(
+				<ToastProvider>
+					<Trigger onReady={(c) => (api = c)} />
+					<Toast />
+				</ToastProvider>,
+			)
+
+			act(() => {
+				api?.toast({ title: 'A', duration: 100, onDismiss: onA })
+				api?.toast({ title: 'B', duration: 100, onDismiss: onB })
+			})
+
+			act(() => {
+				vi.advanceTimersByTime(100)
+			})
+
+			// The stagger holds: `B` waits for the exit of `A`.
+			expect(onA).toHaveBeenCalledExactlyOnceWith('timeout')
+
+			expect(onB).not.toHaveBeenCalled()
+
+			act(() => {
+				vi.advanceTimersByTime(5000)
+			})
+
+			expect(onB).toHaveBeenCalledExactlyOnceWith('timeout')
+
+			expect(screen.queryByText('B')).not.toBeInTheDocument()
+		})
 	})
 })
