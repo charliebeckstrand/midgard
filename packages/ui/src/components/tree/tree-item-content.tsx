@@ -147,13 +147,12 @@ export function TreeItemContent({
 			onClick={handleClick}
 			onKeyDown={handleKeyDown}
 		>
-			<span className={cn(k.chevron)} aria-hidden="true">
-				{hasChildren && (
-					<Icon
-						icon={<ChevronRight />}
-						className={cn('rtl:-scale-x-100', open && 'rotate-90 rtl:-rotate-90')}
-					/>
-				)}
+			{/* The column turns, not the icon: the transition of the recipe is on the column. */}
+			<span
+				className={cn(k.chevron, 'rtl:-scale-x-100', open && 'rotate-90 rtl:-rotate-90')}
+				aria-hidden="true"
+			>
+				{hasChildren && <Icon icon={<ChevronRight />} />}
 			</span>
 			{checkable && (
 				<span

@@ -179,6 +179,22 @@ describe('TreeItem', () => {
 		expect(screen.getByText('Child')).toBeInTheDocument()
 	})
 
+	it('turns the chevron on the element that carries the transform transition', () => {
+		renderUI(
+			<Tree aria-label="Files">
+				<TreeItem label="Parent" defaultOpen>
+					<TreeItem label="Child" />
+				</TreeItem>
+			</Tree>,
+		)
+
+		const row = screen.getByRole('treeitem', { name: 'Parent' })
+
+		const turned = row.querySelector('.rotate-90')
+
+		expect(turned).toHaveClass('motion-safe:transition-transform')
+	})
+
 	it('renders prefix and suffix slots', () => {
 		const { container } = renderUI(
 			<Tree aria-label="Files">
