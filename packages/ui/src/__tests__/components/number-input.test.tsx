@@ -4,7 +4,7 @@ import { Control } from '../../components/control'
 import { Field } from '../../components/fieldset'
 import { Form } from '../../components/form'
 import { NumberInput } from '../../components/number-input'
-import { liveRegion, renderUI, screen, setupUser } from '../helpers'
+import { act, fireEvent, liveRegion, renderUI, screen, setupUser } from '../helpers'
 
 describe('NumberInput', () => {
 	it('renders an input with type number alongside decrease and increase buttons', () => {
@@ -289,5 +289,38 @@ describe('NumberInput', () => {
 		await user.type(input, 'e')
 
 		expect(onChange).not.toHaveBeenCalled()
+	})
+
+	it('goes back to defaultValue on a native form reset when uncontrolled', async () => {
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<form>
+				<NumberInput defaultValue={5} onValueChange={onValueChange} />
+				<button type="reset">Reset form</button>
+			</form>,
+		)
+
+		const input = screen.getByRole('spinbutton') as HTMLInputElement
+
+		const user = setupUser()
+
+		await user.click(screen.getByLabelText('Increase'))
+
+		expect(input.value).toBe('6')
+
+		onValueChange.mockClear()
+
+		fireEvent.click(screen.getByRole('button', { name: 'Reset form' }))
+
+		await act(() => new Promise(requestAnimationFrame))
+
+		expect(input.value).toBe('5')
+
+		expect(onValueChange).toHaveBeenCalledWith(5)
+
+		await user.click(screen.getByLabelText('Increase'))
+
+		expect(input.value).toBe('6')
 	})
 })
