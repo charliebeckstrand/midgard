@@ -32,7 +32,7 @@ export function Text({ as = 'p', tone, color, size, className, children, ...prop
 		<PolymorphicStatic
 			as={as}
 			data-slot="text"
-			data-density={size}
+			density={size}
 			className={cn(k({ tone, color }), size && k.sized, className)}
 			{...props}
 		>
