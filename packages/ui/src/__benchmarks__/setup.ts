@@ -109,13 +109,6 @@ vi.mock('motion/react', async () => {
 		return { get: () => map(source.get()), set: () => {}, on: () => () => {} }
 	}
 
-	// The benches measure the shipped animated path, so the shim answers as a
-	// machine with motion enabled — reporting a reduced-motion preference would
-	// let components take their static branch and score work they don't do.
-	function useReducedMotion() {
-		return false
-	}
-
 	return {
 		motion,
 		AnimatePresence,
@@ -126,7 +119,6 @@ vi.mock('motion/react', async () => {
 		MotionConfig,
 		useAnimate,
 		useMotionValue,
-		useReducedMotion,
 		useTransform,
 	}
 })
