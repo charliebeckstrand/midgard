@@ -40,7 +40,7 @@ Disclosure: in the B01 blind pass and in the merge pass, a search over `packages
 | Row | File | Symbol | Verdict | Severity | Reach | Group | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | R1 | `components/menu/menu-content.tsx` | `MenuContent` sheet branch (consumer name) | CONFIRMED | low | shipped | G2 | ✅ RESOLVED ([#2449](https://github.com/charliebeckstrand/midgard/pull/2449)) |
-| R2 | `components/menu/menu-sheet.tsx` | `triggerName` | CONFIRMED | low | none | G2 | ◯ OPEN |
+| R2 | `components/menu/menu-sheet.tsx` | `triggerName` | CONFIRMED | low | none | G2 | ✅ RESOLVED ([#2453](https://github.com/charliebeckstrand/midgard/pull/2453)) |
 | R3 | `components/menu/use-menu-root.ts` | `handleContextMenu` (nested surfaces) | CONFIRMED | low | none | G1 | ◯ OPEN |
 | R4 | `components/markdown/markdown-renderer.tsx` | `renderToken` `image` `alt` / `plainText` | CONFIRMED | medium | shipped | G3 | ✅ RESOLVED ([#2448](https://github.com/charliebeckstrand/midgard/pull/2448)) |
 | R5 | `components/markdown/markdown-renderer.tsx` | `renderToken` `link` / `image` `href` | CONFIRMED | medium | shipped | G3 | ✅ RESOLVED ([#2452](https://github.com/charliebeckstrand/midgard/pull/2452)) |
