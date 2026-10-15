@@ -1,7 +1,8 @@
-import { createRef, type ReactElement, useEffect } from 'react'
+import { createRef, type ReactElement, useEffect, useState } from 'react'
 import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import * as accordionBarrel from '../../components/accordion'
 import {
 	Accordion,
 	AccordionItem,
@@ -336,6 +337,44 @@ describe('Accordion single-select behavior', () => {
 		expect(onValueChange).not.toHaveBeenCalled()
 	})
 
+	it('reports nothing for a click on the locked open item of a controlled accordion', () => {
+		const onValueChange = vi.fn()
+
+		function Controlled() {
+			const [value, setValue] = useState<string | null>('a')
+
+			return (
+				<Accordion
+					value={value}
+					collapsible={false}
+					onValueChange={(next) => {
+						onValueChange(next)
+						setValue(next)
+					}}
+				>
+					<AccordionItem value="a">
+						<AccordionTrigger>A</AccordionTrigger>
+						<AccordionPanel>Panel A</AccordionPanel>
+					</AccordionItem>
+					<AccordionItem value="b">
+						<AccordionTrigger>B</AccordionTrigger>
+						<AccordionPanel>Panel B</AccordionPanel>
+					</AccordionItem>
+				</Accordion>
+			)
+		}
+
+		renderUI(<Controlled />)
+
+		fireEvent.click(screen.getByText('B'))
+
+		fireEvent.click(screen.getByText('B'))
+
+		expect(onValueChange).toHaveBeenCalledTimes(1)
+
+		expect(onValueChange).toHaveBeenCalledWith('b')
+	})
+
 	it('switches the open item when a different button is clicked', () => {
 		const onValueChange = vi.fn()
 
@@ -543,6 +582,10 @@ describe('useAccordionItem in trigger children', () => {
 		return open ? 'Open!' : 'Closed'
 	}
 
+	it('is exported from the accordion barrel for a custom trigger or panel', () => {
+		expect(accordionBarrel).toHaveProperty('useAccordionItem', useAccordionItem)
+	})
+
 	it.each([
 		['open=true to trigger children', 'a', 'Open!'],
 		['open=false when the item is closed', undefined, 'Closed'],
@@ -749,6 +792,32 @@ describe('Accordion mount policy', () => {
 		await user.click(screen.getByText('First'))
 
 		expect(screen.getByTestId<HTMLInputElement>('field').value).toBe('typed')
+	})
+
+	// Outside `AnimatePresence`, the `m` element does not go `inert` as it exits.
+	// The held panel sets it while it closes, so Tab cannot move focus into it
+	// before it lands hidden.
+	it('mount="lazy" makes a held panel inert while it closes, and not while it is open', async () => {
+		const user = setupUser()
+
+		renderUI(<Panels mount="lazy" />)
+
+		const first = screen.getByRole('button', { name: 'First' })
+
+		await user.click(first)
+
+		const panel = getSlot(document.body, 'accordion-panel')
+
+		expect(panel).not.toHaveAttribute('inert')
+
+		await user.click(first)
+
+		expect(panel).toHaveAttribute('inert')
+
+		// A reopen during the close clears it.
+		await user.click(first)
+
+		expect(panel).not.toHaveAttribute('inert')
 	})
 
 	it('mount="always" mounts every panel closed and hidden', () => {

@@ -159,14 +159,6 @@ const scopeSources = sources.filter(
 
 const ATTRIBUTE_ONLY_HOSTS = ['components/kbd/kbd.tsx', 'primitives/portal/portal.tsx']
 
-// The hosts below break the rule, and a fix for each is open. Remove each
-// entry when its fix merges. This list has no check for a stale entry, so a
-// fix can merge before or after this guard.
-//
-//   - Text: PR #2553.
-
-const PENDING_FIXES = ['components/text/text.tsx']
-
 /** An attribute that writes the step from an expression, not a literal such as `"slot"`. */
 const DENSITY_ATTRIBUTE = /\sdata-density=\{/g
 
@@ -330,7 +322,7 @@ describe('density scope channels', () => {
 		.sort()
 
 	it('a host that writes data-density around its children also opens the context', () => {
-		expect(found.filter((file) => !PENDING_FIXES.includes(file))).toEqual(ATTRIBUTE_ONLY_HOSTS)
+		expect(found).toEqual(ATTRIBUTE_ONLY_HOSTS)
 	})
 
 	it('reads each host that writes the attribute', () => {

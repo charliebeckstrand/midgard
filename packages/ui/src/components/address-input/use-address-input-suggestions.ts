@@ -48,7 +48,10 @@ export function useAddressInputSuggestions({
 			return
 		}
 
-		if (query.length < minQueryLength) {
+		// Gate on the trimmed length, so white space alone never reaches the
+		// provider (Photon answers HTTP 400 for a blank `q`). The provider still
+		// gets the query as typed: normalizing it is the provider's concern.
+		if (query.trim().length < minQueryLength) {
 			abortRef.current?.abort()
 
 			setSuggestions([])
@@ -78,7 +81,11 @@ export function useAddressInputSuggestions({
 
 			abortRef.current = controller
 
-			fetchSuggestions(query, { signal: controller.signal })
+			// Started inside a promise, so a provider that throws synchronously
+			// takes the same path as one that rejects: `loading` clears and
+			// `onError` fires, where a bare call would throw out of this timer.
+			Promise.resolve()
+				.then(() => fetchSuggestions(query, { signal: controller.signal }))
 				.then((results) => {
 					if (controller.signal.aborted) return
 

@@ -64,6 +64,7 @@ export const utilityTable = {
 	'gap-y': { properties: ['row-gap'], value: 'spacing' },
 	size: { properties: ['width', 'height'], value: 'spacing' },
 	h: { properties: ['height'], value: 'spacing' },
+	'min-h': { properties: ['min-height'], value: 'spacing' },
 	'max-h': { properties: ['max-height'], value: 'spacing' },
 	w: { properties: ['width'], value: 'size' },
 	'min-w': { properties: ['min-width'], value: 'spacing' },

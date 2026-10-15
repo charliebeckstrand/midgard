@@ -3,8 +3,9 @@
  * of lines (`lh`) in the silhouette, and the silhouette adds the vertical
  * padding of the textarea around the strut.
  *
- * `floor` is the minimum height of the border box of the textarea. The
- * Textarea kata reads it. The silhouette keeps the `border-box` of the preflight,
+ * `floor` is the minimum height of the border box of the textarea. It is the
+ * control height of each step (`dan.size.control.floor`), so a textarea of one
+ * row has the height of an Input at each step. The Textarea kata reads it. The silhouette keeps the `border-box` of the preflight,
  * as the textarea does, so the same floor applies to the same box. Thus a
  * silhouette of one or two lines has the height of the real textarea.
  *
@@ -19,7 +20,7 @@
 import { dan } from '../dan'
 import { ji } from '../ji'
 
-const floor = 'min-h-10'
+const floor = dan.size.control.floor
 
 export const textarea = {
 	floor,

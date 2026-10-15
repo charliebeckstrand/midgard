@@ -23,6 +23,12 @@ const inset = 'density-size-[3,3.5,4,4.5,5]'
  */
 const box = 'density-h-[6.5,8,9.5,11,12.5]'
 
+/**
+ * The width of a fixed panel that holds text, 256 px to 384 px: a color panel
+ * and a toast card. The width is 320 px at `md`.
+ */
+const panel = 'density-w-[64,72,80,88,96]'
+
 export const size = {
 	icon: {
 		/** An icon and a loading spinner. `shaku.icon.size` holds the same steps. */
@@ -77,7 +83,7 @@ export const size = {
 		/** The height of a color channel slider. */
 		channel: 'density-h-[2.5,3,3.5,4,4.5]',
 		/** The width of a color panel. */
-		width: 'density-w-[64,72,80,88,96]',
+		width: panel,
 		/**
 		 * The height of the preview row and the channel inputs of a color panel
 		 * skeleton, with the gap between them.
@@ -108,6 +114,11 @@ export const size = {
 		 * of a calendar skeleton. The values are the button heights.
 		 */
 		base: box,
+		/**
+		 * The minimum height of a textarea and of its skeleton: the control height,
+		 * so a textarea of one row has the height of an Input at each step.
+		 */
+		floor: 'density-min-h-[6.5,8,9.5,11,12.5]',
 		/** The minimum width of a control skeleton. */
 		min: 'density-min-w-[8,16,24,32,40]',
 	},
@@ -191,6 +202,13 @@ export const size = {
 	calendar: {
 		/** The width of a calendar. */
 		width: 'density-w-[44,56,68,80,92]',
+	},
+	toast: {
+		/**
+		 * The width of a toast card. The card holds text, so it steps with the text.
+		 * Below `sm`, the card fills the viewport.
+		 */
+		width: panel,
 	},
 	/** The height of a chart skeleton with no ratio. */
 	chart: 'density-h-[20,40,60,80,100]',

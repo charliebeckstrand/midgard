@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
-import { getSlot, renderUI, screen, waitFor } from '../../helpers'
+import { frames, getSlot, renderUI, screen, waitFor } from '../../helpers'
 
 /**
  * Tooltip `:disabled` gating against the real floating engine. The jsdom and
@@ -180,5 +180,65 @@ describe('Tooltip disabled gating (real browser)', () => {
 		rerender(<Harness disabled={false} />)
 
 		await waitFor(() => expect(screen.getByText('Show password')).toBeInTheDocument())
+	})
+
+	// The fieldset toggles with no render of the tooltip, as in the memoized cases above.
+	function Toggled({ disabled, trigger }: { disabled: boolean; trigger: 'hover' | 'click' }) {
+		const tooltip = useMemo(
+			() => (
+				<Tooltip delay={0} trigger={trigger}>
+					<TooltipTrigger>
+						<button type="button">Toggle</button>
+					</TooltipTrigger>
+					<TooltipContent>Show password</TooltipContent>
+				</Tooltip>
+			),
+			[trigger],
+		)
+
+		return <fieldset disabled={disabled}>{tooltip}</fieldset>
+	}
+
+	it('keeps a click tooltip closed when the trigger under the mouse turns enabled', async () => {
+		const { container, rerender } = renderUI(<Toggled disabled={false} trigger="click" />)
+
+		await userEvent.hover(getSlot(container, 'tooltip-trigger'))
+
+		rerender(<Toggled disabled trigger="click" />)
+
+		await frames()
+
+		rerender(<Toggled disabled={false} trigger="click" />)
+
+		// The reopen is synchronous with the effect, so two frames are enough.
+		await frames()
+
+		expect(screen.queryByText('Show password')).not.toBeInTheDocument()
+	})
+
+	it('keeps a hover tooltip closed when the trigger turns enabled after a touch', async () => {
+		const { container, rerender } = renderUI(<Toggled disabled={false} trigger="hover" />)
+
+		const trigger = getSlot(container, 'tooltip-trigger')
+
+		await userEvent.hover(trigger)
+
+		await waitFor(() => expect(screen.getByText('Show password')).toBeInTheDocument())
+
+		// A touch browser keeps `:hover` on the node that a tap hits. The resting
+		// mouse keeps `:hover` here, and the last pointer event is a touch.
+		trigger.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, pointerType: 'touch' }))
+
+		rerender(<Toggled disabled trigger="hover" />)
+
+		await waitFor(() => expect(screen.queryByText('Show password')).not.toBeInTheDocument())
+
+		rerender(<Toggled disabled={false} trigger="hover" />)
+
+		await frames()
+
+		expect(trigger.matches(':hover')).toBe(true)
+
+		expect(screen.queryByText('Show password')).not.toBeInTheDocument()
 	})
 })
