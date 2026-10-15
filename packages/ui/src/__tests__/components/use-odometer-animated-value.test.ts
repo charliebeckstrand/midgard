@@ -3,7 +3,7 @@ import { animate } from 'motion'
 import { describe, expect, it, vi } from 'vitest'
 import { useOdometerAnimatedValue } from '../../components/odometer/use-odometer-animated-value'
 
-// Steady-state contract only. The RAF interpolation path is exercised through odometer.test.tsx.
+// The steady state, and when a tween starts. The RAF interpolation path is in odometer.test.tsx.
 
 describe('useOdometerAnimatedValue', () => {
 	it('returns the initial value on first render', () => {
