@@ -14,7 +14,9 @@
  *                 marked element never holds DOM focus
  *   - `inset`     inset ring, for controls whose fill is already the surface
  *                 (inputs, in-chrome controls) or whose box can't carry an
- *                 outset stroke (bordered, inline)
+ *                 outset stroke (bordered, inline). Forced colors remove
+ *                 the ring, which is a box-shadow, so under forced colors
+ *                 an inset outline shows the focus
  *   - `outline`   2 px outline on a `:has(:focus-visible)` wrapper,
  *                 swapped to an inset border inside scrollable ancestors,
  *                 which clip an outset outline
@@ -50,7 +52,16 @@ export const focus = {
 	// element, e.g. a plain Button day cell; without it the stroke never
 	// renders.
 	virtual: ['outline-solid outline-2 outline-offset-2', 'outline-blue-600'],
-	inset: ['outline-none', 'focus-visible:ring-2 ring-inset focus-visible:ring-blue-600'],
+	inset: [
+		'outline-none',
+		'focus-visible:ring-2 ring-inset focus-visible:ring-blue-600',
+		// Forced colors remove the ring. This outline replaces it there and
+		// stays inside the box, as the ring does. `outline-solid` sets the
+		// style that the ungated `outline-none` removes. The variants keep it
+		// out of the tailwind-merge group of `outline-none`.
+		'forced-colors:focus-visible:outline-solid forced-colors:focus-visible:outline-2',
+		'forced-colors:focus-visible:-outline-offset-2 forced-colors:focus-visible:outline-[Highlight]',
+	],
 	outline: [
 		'has-focus-visible:outline-2 has-focus-visible:outline-blue-600 has-focus-visible:outline-offset-2',
 		/** Swaps to a 2 px border inside `[data-scroll-region]` ancestors, where `overflow-y-auto` clips an outset outline. */
