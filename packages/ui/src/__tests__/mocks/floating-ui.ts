@@ -50,10 +50,12 @@ function MockFloatingFocusManager({ children, initialFocus }: MockFocusManagerPr
 }
 
 /**
- * Composes a list of prop bags into one: function-valued keys under the same
- * name are chained (earlier first), other defined values are copied (later
- * wins), and `undefined` values are skipped. Reference/floating handlers and
- * aria attributes from every interaction merge consistently.
+ * Composes a list of prop bags into one, as the `mergeProps` of
+ * `@floating-ui/react` does. Handlers (`on*` keys) under the same name are
+ * chained (earlier first). Each other key takes the value of the last bag that
+ * has the key, also when that value is `undefined`. Callers put the props of
+ * the interactions first and the props of the caller last, so a prop that the
+ * caller sets wins over a prop of an interaction.
  */
 function mergeProps(list: (MockProps | undefined)[]): MockProps {
 	const out: MockProps = {}
@@ -62,7 +64,9 @@ function mergeProps(list: (MockProps | undefined)[]): MockProps {
 		if (!props) continue
 
 		for (const [key, value] of Object.entries(props)) {
-			if (typeof value === 'function') {
+			if (!key.startsWith('on')) {
+				out[key] = value
+			} else if (typeof value === 'function') {
 				const prev = out[key] as ((...args: unknown[]) => void) | undefined
 				const next = value as (...args: unknown[]) => void
 
@@ -72,8 +76,6 @@ function mergeProps(list: (MockProps | undefined)[]): MockProps {
 							next(...args)
 						}
 					: next
-			} else if (value !== undefined) {
-				out[key] = value
 			}
 		}
 	}
@@ -186,9 +188,9 @@ const floatingUIMock = {
 	}),
 	useInteractions: (interactions: MockInteraction[] = []) => ({
 		getReferenceProps: (userProps: MockProps = {}) =>
-			mergeProps([userProps, ...interactions.map((interaction) => interaction?.reference)]),
+			mergeProps([...interactions.map((interaction) => interaction?.reference), userProps]),
 		getFloatingProps: (userProps: MockProps = {}) =>
-			mergeProps([userProps, ...interactions.map((interaction) => interaction?.floating)]),
+			mergeProps([...interactions.map((interaction) => interaction?.floating), userProps]),
 		getItemProps: identity,
 	}),
 	useRole: (context: MockContext, options?: MockRoleOptions): MockInteraction =>
