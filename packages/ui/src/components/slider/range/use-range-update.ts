@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { snapValue } from './range-utilities'
+import { boundRange, snapValue } from './range-utilities'
 import type { OverlapMode, ThumbIndex } from './types'
 
 /**
@@ -26,7 +26,9 @@ export function useRangeUpdate(options: {
 			const snapped = snapValue(raw, min, max, step)
 
 			setRange((prev) => {
-				const next = [...(prev ?? [min, max])] as [number, number]
+				// The thumbs show the bounded range, so the key or the drag moves a
+				// value of that range.
+				const next = boundRange(prev ?? [min, max], min, max)
 
 				next[index] = snapped
 
