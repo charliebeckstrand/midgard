@@ -32,14 +32,29 @@ const toolbar = defineRecipe({
 	defaults: { orientation: 'horizontal', variant: 'plain' },
 })
 
-/** A group of the toolbar. Its gap caps the hit areas of its buttons, as in `base`. */
+/**
+ * A group of the toolbar. Its gap is below the toolbar gap at each density
+ * step, and it caps the hit areas of its buttons, as in `base`.
+ */
 const group = defineRecipe({
 	// The group is a `<fieldset>`. `min-w-auto` replaces its min-content floor,
 	// so it sizes as a `<div>` does.
 	base: [flex.row, 'min-w-auto'],
 	orientation: {
-		horizontal: 'flex-row gap-0.5 [--touch-target-gap-x:--spacing(0.5)]',
-		vertical: 'flex-col gap-0.5 [--touch-target-gap-y:--spacing(0.5)]',
+		horizontal: ['flex-row', dan.gap.toolbarGroup, dan.gap.touch.toolbarGroup.x],
+		vertical: ['flex-col', dan.gap.toolbarGroup, dan.gap.touch.toolbarGroup.y],
+	},
+	defaults: { orientation: 'horizontal' },
+})
+
+/**
+ * A separator of the toolbar. Its margin is the toolbar gap at each density
+ * step, so the space on each side of the rule is the space between two groups.
+ */
+const separator = defineRecipe({
+	orientation: {
+		horizontal: dan.space.toolbar.separator.x,
+		vertical: dan.space.toolbar.separator.y,
 	},
 	defaults: { orientation: 'horizontal' },
 })
@@ -47,6 +62,7 @@ const group = defineRecipe({
 export const k = {
 	base: toolbar,
 	group,
+	separator,
 } as const
 
 /** Recipe variant props for {@link Toolbar} — the styling axes its kata exposes (`orientation`, `variant`), for consumers composing custom slots. */

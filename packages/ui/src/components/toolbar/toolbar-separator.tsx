@@ -1,6 +1,7 @@
 'use client'
 
 import { cn } from '../../core'
+import { k } from '../../recipes/kata/toolbar'
 import { Divider } from '../divider'
 import { useToolbarContext } from './context'
 
@@ -29,7 +30,11 @@ export function ToolbarSeparator({ className }: ToolbarSeparatorProps) {
 			data-slot="toolbar-separator"
 			orientation={isHorizontal ? 'vertical' : 'horizontal'}
 			soft
-			className={cn(isHorizontal ? 'mx-1 data-row-edge:invisible' : 'my-1', className)}
+			className={cn(
+				k.separator({ orientation }),
+				isHorizontal && 'data-row-edge:invisible',
+				className,
+			)}
 		/>
 	)
 }
