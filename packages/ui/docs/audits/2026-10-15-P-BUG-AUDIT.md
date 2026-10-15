@@ -37,8 +37,8 @@ The digest held the P entries of the project record `2026-10-02-component-bug-sw
 
 | Row | File | Symbol | Verdict | Severity | Reach | Group | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| R1 | `components/pdf-viewer/pdf-viewer-highlights.tsx` | `PdfViewerHighlightLayer` (`hovered` element) | NARROWED | medium | shipped | G2 | ◐ FIXED ([#2482](https://github.com/charliebeckstrand/midgard/pull/2482)) |
-| R2 | `components/pdf-viewer/pdf-viewer-highlights.tsx` | `PdfViewerHighlightLayer` (`hovered.label`) | CONFIRMED | low | none | G2 | ◐ FIXED ([#2482](https://github.com/charliebeckstrand/midgard/pull/2482)) |
+| R1 | `components/pdf-viewer/pdf-viewer-highlights.tsx` | `PdfViewerHighlightLayer` (`hovered` element) | NARROWED | medium | shipped | G2 | ✅ RESOLVED ([#2482](https://github.com/charliebeckstrand/midgard/pull/2482)) |
+| R2 | `components/pdf-viewer/pdf-viewer-highlights.tsx` | `PdfViewerHighlightLayer` (`hovered.label`) | CONFIRMED | low | none | G2 | ✅ RESOLVED ([#2482](https://github.com/charliebeckstrand/midgard/pull/2482)) |
 | R3 | `components/pdf-viewer/use-pdf-viewer-highlights.ts` | `usePdfViewerHighlights` (`revealRef`) | CONFIRMED | medium | shipped | — | ◯ OPEN |
 | R4 | `components/pdf-viewer/use-pdf-viewer-magnifier.ts` | `usePdfViewerMagnifier` (disable edge) | NARROWED | medium | shipped | — | ◐ FIXED ([#2490](https://github.com/charliebeckstrand/midgard/pull/2490)) |
 | R5 | `components/pdf-viewer/use-pdf-viewer.ts` | `usePdfViewer` (`thumbsOpen`) | NARROWED | medium | shipped | — | ✅ RESOLVED ([#2480](https://github.com/charliebeckstrand/midgard/pull/2480)) |
