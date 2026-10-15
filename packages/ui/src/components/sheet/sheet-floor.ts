@@ -19,6 +19,8 @@ const MIN_WIDTH = 280
  * and the axis it resizes on.
  *
  * On the width axis, the floor is {@link MIN_WIDTH}, whatever the sheet holds.
+ * A sheet that is narrower than that, such as a `fit` sheet around narrow
+ * content, has its own size as the floor, so a drag never makes it jump.
  *
  * On the height axis, the floor is everything in the sheet that does not scroll.
  * A `top` or `bottom` sheet's body scrolls on the same axis as a drawer's body.
@@ -31,7 +33,9 @@ const MIN_WIDTH = 280
  * @internal
  */
 export function sheetFloor(panel: HTMLElement, size: number, axis: PanelAxis): number {
-	if (axis === 'width') return MIN_WIDTH
+	// A `fit` sheet can open narrower than the floor. A floor above its size would
+	// make it jump wider on the first move of a drag.
+	if (axis === 'width') return Math.min(size, MIN_WIDTH)
 
 	const body = panel.querySelector('[data-slot="sheet-body"]')
 
