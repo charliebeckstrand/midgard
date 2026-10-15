@@ -1,8 +1,10 @@
 'use client'
 
 import { Minus, Plus } from 'lucide-react'
-import type { ChangeEvent } from 'react'
+import { type ChangeEvent, useRef } from 'react'
 import { announce, cn, composeEventHandlers } from '../../core'
+import { useComposedRef } from '../../hooks'
+import { useFormResetSync } from '../../hooks/use-form-reset-sync'
 import { k } from '../../recipes/kata/input'
 import { clamp } from '../../utilities'
 import { Button } from '../button'
@@ -50,7 +52,9 @@ export type NumberInputProps = Omit<
  * Clamp/round-on-blur and the form's touched tracking compose with — rather than
  * replace — the consumer's `onBlur`. A blur that leaves the value as it is does
  * not fire `onValueChange`. The steppers turn off while the field is disabled
- * or read-only, from its own prop or from an enclosing Control or Field.
+ * or read-only, from its own prop or from an enclosing Control or Field. An
+ * uncontrolled number input goes back to `defaultValue` on a native form reset,
+ * and `onValueChange` reports it.
  * @see {@link Input}
  * @see {@link CurrencyInput}
  */
@@ -78,9 +82,18 @@ export function NumberInput({
 
 	const {
 		value: current,
+		controlled,
 		setValue: setCurrent,
 		setTouched,
 	} = useFormValue<number>(name, { value, defaultValue, onValueChange })
+
+	const inputRef = useRef<HTMLInputElement>(null)
+
+	const setRef = useComposedRef(inputRef, ref)
+
+	// The input is always controlled, so a native reset restores the last value
+	// that React wrote. Set the state back to `defaultValue` instead.
+	useFormResetSync(inputRef, !controlled, () => setCurrent(defaultValue ?? null))
 
 	const precision = stepPrecision(step)
 
@@ -145,7 +158,7 @@ export function NumberInput({
 
 	return (
 		<Input
-			ref={ref}
+			ref={setRef}
 			type="number"
 			inputMode="decimal"
 			data-slot="number-input"
