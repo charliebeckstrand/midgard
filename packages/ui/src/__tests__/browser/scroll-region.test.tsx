@@ -182,6 +182,29 @@ describe('Table scroll container', () => {
 			expect(container().getAttribute(attribute)).toBe(value)
 		},
 	)
+
+	it('takes the aria-label of tableProps before the id of a TableCaption', async () => {
+		renderUI(
+			<div style={{ width: 300 }}>
+				<Table tableProps={{ 'aria-label': 'Orders' }}>
+					<TableCaption id="orders-caption">Q3 report</TableCaption>
+					<TableBody>
+						<TableRow>
+							<TableCell>
+								<div style={{ width: 600 }}>wide cell</div>
+							</TableCell>
+						</TableRow>
+					</TableBody>
+				</Table>
+			</div>,
+		)
+
+		await waitFor(() => expect(container().getAttribute('role')).toBe('region'))
+
+		expect(container().getAttribute('aria-label')).toBe('Orders')
+
+		expect(container().hasAttribute('aria-labelledby')).toBe(false)
+	})
 })
 
 describe('ScrollArea viewport', () => {

@@ -29,7 +29,8 @@ function isPlainF8(event: KeyboardEvent) {
  * @internal
  */
 function firstControlOfNewest(viewport: HTMLElement | null) {
-	for (const item of viewport?.querySelectorAll(':scope > ol > li') ?? []) {
+	// An `inert` item is a toast that leaves.
+	for (const item of viewport?.querySelectorAll(':scope > ol > li:not([inert])') ?? []) {
 		const target = tabbablesIn(item)[0]
 
 		if (target) return target
@@ -58,14 +59,20 @@ export type ToastProps = {
  * @remarks The viewport is not itself a live region. Each toast maps its
  * severity to politeness via its own `role`. `warning` and `error` interrupt as
  * `alert`. Everything else queues as `status`, and is mirrored through a
- * persistent announcer on mount (WCAG 4.1.3). Auto-dismiss pauses while the
- * pointer or focus is inside a toast (WCAG 2.2.1).
+ * persistent announcer on mount (WCAG 4.1.3). Auto-dismiss pauses while a
+ * hovering pointer or focus is inside a toast (WCAG 2.2.1). A touch does not
+ * pause it.
+ *
+ * When a toast that has focus closes, focus goes to the next toast, else to the
+ * previous toast. When it was the last toast, focus goes back to the element
+ * that had focus before focus went into the stack (WCAG 2.4.3). A close while
+ * focus is not in the toast does not move focus.
  *
  * While a toast shows, the viewport is a `section` with the name
  * "Notifications", so it is a `region` landmark, and a screen reader gets to
  * the stack from its landmark list. An empty viewport has no name and is not a
- * landmark. While a toast shows, F8 moves focus to the first control of the newest toast that has one, and
- * that focus pauses auto-dismiss. A keyboard user thus gets to an action such
+ * landmark. While a toast shows, F8 moves focus to the first control of the
+ * newest toast that has one, and that focus pauses auto-dismiss. A keyboard user thus gets to an action such
  * as Undo before the toast times out (WCAG 2.1.1). F8 with a modifier key, and
  * an F8 that a different handler cancels first, do not move focus.
  *
@@ -97,7 +104,30 @@ export function Toast({ position = 'bottom-right' }: ToastProps) {
 	// trips React's hydration mismatch.
 	const hydrated = useHydrated()
 
-	const viewportRef = useRef<HTMLDivElement>(null)
+	const viewportRef = useRef<HTMLElement>(null)
+
+	// The element that held focus before focus entered the stack. When the last
+	// toast closes, focus goes back to it.
+	const returnFocusRef = useRef<HTMLElement | null>(null)
+
+	// The viewport mounts after hydration, so the effect keys on it. The
+	// `relatedTarget` of a focus that comes from outside the viewport is the
+	// element to return to.
+	useEffect(() => {
+		const viewport = viewportRef.current
+
+		if (!hydrated || !viewport) return
+
+		const onFocusIn = (event: FocusEvent) => {
+			const from = event.relatedTarget
+
+			if (from instanceof HTMLElement && !viewport.contains(from)) returnFocusRef.current = from
+		}
+
+		viewport.addEventListener('focusin', onFocusIn)
+
+		return () => viewport.removeEventListener('focusin', onFocusIn)
+	}, [hydrated])
 
 	const hasToasts = toasts.length > 0
 
@@ -147,8 +177,12 @@ export function Toast({ position = 'bottom-right' }: ToastProps) {
 								zIndex={toasts.length - index}
 								closable={toast.closable}
 								onOpenChange={(open, id) => {
+									if (open) return
+
+									moveFocusFromClosingToast(returnFocusRef.current)
+
 									// The only dismissal a reader drives directly, so it names itself.
-									if (!open) dismiss(id, 'close')
+									dismiss(id, 'close')
 								}}
 								onPause={pause}
 								onResume={resume}
@@ -161,4 +195,37 @@ export function Toast({ position = 'bottom-right' }: ToastProps) {
 		</ReducedMotion>,
 		portalContainer ?? document.body,
 	)
+}
+
+/**
+ * Moves focus out of the toast that closes, before its item goes `inert` and
+ * focus falls to the body (WCAG 2.4.3). Focus goes to the next toast in the
+ * list, else to the previous one, else to `returnTo`. When focus is not in a
+ * toast, as on a close by pointer, nothing moves.
+ * @internal
+ */
+function moveFocusFromClosingToast(returnTo: HTMLElement | null) {
+	const active = document.activeElement
+
+	const item = active?.closest('[data-slot="toast-viewport"] li')
+
+	if (!item) return
+
+	// The items in list order, less the ones that already leave.
+	const items = Array.from(item.parentElement?.children ?? []).filter(
+		(sibling) => sibling === item || !sibling.hasAttribute('inert'),
+	)
+
+	const index = items.indexOf(item)
+
+	const neighbor = items[index + 1] ?? items[index - 1]
+
+	const target = neighbor
+		? (neighbor.querySelector<HTMLElement>('button[aria-label="Dismiss"]') ??
+			tabbablesIn(neighbor)[0])
+		: returnTo?.isConnected
+			? returnTo
+			: null
+
+	target?.focus()
 }

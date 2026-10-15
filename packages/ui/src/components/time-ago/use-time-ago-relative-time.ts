@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { getOrCompute } from '../../utilities'
+import { clamp, getOrCompute } from '../../utilities'
 import { DAY, HOUR, MINUTE, MONTH, SECOND, WEEK, YEAR } from './time-ago-constants'
 import { subscribeTimeAgoTick } from './time-ago-ticker'
 
@@ -62,9 +62,34 @@ function adaptiveInterval(absMs: number) {
 	return DAY
 }
 
-// Floor for an explicit numeric interval. `setInterval(fn, 0)` fires
-// continuously; relative text never needs sub-quarter-second refresh.
-const MIN_REFRESH_MS = 250
+/**
+ * Floor for an explicit numeric interval. `setInterval(fn, 0)` fires
+ * continuously, and relative text never needs a refresh faster than a quarter
+ * second.
+ * @internal
+ */
+export const MIN_REFRESH_MS = 250
+
+/**
+ * Ceiling for an explicit numeric interval: the largest delay that a browser
+ * timer keeps. A browser changes a larger delay, or `Infinity`, to a delay near
+ * zero, and the timer then fires continuously.
+ * @internal
+ */
+export const MAX_REFRESH_MS = 2 ** 31 - 1
+
+/**
+ * Resolves the timer delay for `interval`. `'auto'` and a value that is not a
+ * number, such as `NaN`, step with the age of the timestamp. A number clamps to
+ * the range from {@link MIN_REFRESH_MS} to {@link MAX_REFRESH_MS}, so
+ * `Infinity` refreshes at the maximum delay.
+ * @internal
+ */
+export function resolveRefreshInterval(interval: number | 'auto', absMs: number): number {
+	if (typeof interval !== 'number' || Number.isNaN(interval)) return adaptiveInterval(absMs)
+
+	return clamp(interval, MIN_REFRESH_MS, MAX_REFRESH_MS)
+}
 
 type RelativeTimeOptions = {
 	date: Date | string | number
@@ -72,7 +97,11 @@ type RelativeTimeOptions = {
 	format?: (diffMs: number, now: Date, then: Date) => string
 	/** Locale for the default formatter. */
 	locale?: string
-	/** Refresh cadence in ms, or `'auto'` to step coarser as the timestamp ages. */
+	/**
+	 * Refresh cadence in ms, or `'auto'` to step coarser as the timestamp ages.
+	 * A number clamps to the range from {@link MIN_REFRESH_MS} to
+	 * {@link MAX_REFRESH_MS}. `NaN` steps the same as `'auto'`.
+	 */
 	interval?: number | 'auto'
 }
 
@@ -95,8 +124,8 @@ type RelativeTimeResult = {
  * Client-only clock. `now` is `null` until a post-mount effect establishes it.
  * The first render on both server and client therefore emits empty `text`, and
  * hydration matches at unit boundaries. Picks the display unit by the rounded magnitude,
- * caches one `Intl.RelativeTimeFormat` per locale, and floors an explicit
- * `interval` at {@link MIN_REFRESH_MS}.
+ * caches one `Intl.RelativeTimeFormat` per locale, and clamps an explicit
+ * `interval` with {@link resolveRefreshInterval}.
  * @internal
  */
 export function useTimeAgoRelativeTime({
@@ -117,8 +146,7 @@ export function useTimeAgoRelativeTime({
 
 	const absMs = Math.abs(diffMs)
 
-	const intervalMs =
-		interval === 'auto' ? adaptiveInterval(absMs) : Math.max(interval, MIN_REFRESH_MS)
+	const intervalMs = resolveRefreshInterval(interval, absMs)
 
 	useEffect(() => {
 		if (!valid) return

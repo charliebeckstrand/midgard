@@ -29,6 +29,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > The floating pickers `Listbox`, `Combobox`, `DatePicker`, and `ColorPicker` take a `FloatingPlacement` ([`HOOKS.md`](HOOKS.md)). An explicit placement keeps its alignment.
 
+> A `required` `tag-input` needs at least one tag. An enclosing `Control` can also make it required. A native form submit stops while the list is empty, and the typed draft does not count as a tag.
+
 > `checkbox`, `switch`, `RadioGroup`, and `ColorPicker` take `readOnly` from their own prop or from an enclosing `Control`.
 
 ## Form structure

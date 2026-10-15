@@ -20,8 +20,8 @@ import {
 //   - A ramp lives in `recipes/kiso/dan/`. A kata, a skeleton dimension, or a
 //     component imports the ramp and writes no list of its own.
 //   - No file outside the density core picks or clamps steps by hand. A `size`
-//     prop takes `ScaleStep<typeof scale>`, and a JS reader snaps its step
-//     with `snapToScale`.
+//     prop takes `ScaleStep<typeof scale>`. A JS reader reads a value at its
+//     step from the ramp with `rampValue`, or from `geometry.ts`.
 //
 // The scan reads the code of the `ui` package with the comments removed. It
 // leaves out the density core, which defines the steps, and the docs site,

@@ -74,11 +74,12 @@ type ToastAlertProps = {
  * @remarks `warning`/`error` use `role="alert"` (assertive, announces on
  * insertion). Other severities use `role="status"` and are mirrored through the
  * persistent announcer on mount. A screen reader can miss a live region
- * inserted with its text (WCAG 4.1.3). Auto-dismiss pauses while the pointer or
- * focus is inside the toast (WCAG 2.2.1). Hover and focus hold the shared timer
+ * inserted with its text (WCAG 4.1.3). Auto-dismiss pauses while a hovering
+ * pointer (mouse or pen) or focus is inside the toast (WCAG 2.2.1). A touch does
+ * not hold it. Hover and focus hold the shared timer
  * independently (source-counted), and unmount releases this toast's holds. A
  * node removed under a stationary pointer or held focus gets no
- * `mouseleave`/`blur`, and an unreleased hold would freeze auto-dismiss for
+ * `pointerleave`/`blur`, and an unreleased hold would freeze auto-dismiss for
  * every later toast. The outer element is an `li` of the toast list, and the
  * live `role` stays on the inner element, because an `li` takes no live role.
  * Not exported; rendered by {@link Toast}.
@@ -128,7 +129,7 @@ export function ToastAlert({
 	const resume = useEffectEvent(() => onResume())
 
 	// A toast removed while hovered or focused (close click, maxToasts eviction,
-	// programmatic dismiss) gets no mouseleave/blur, so release its holds here —
+	// programmatic dismiss) gets no pointerleave/blur, so release its holds here —
 	// otherwise the stuck count freezes auto-dismiss for every later toast.
 	useEffect(
 		() => () => {
@@ -182,8 +183,12 @@ export function ToastAlert({
 				// Pointer and focus pause auto-dismiss independently (WCAG 2.2.1):
 				// with both holds counted, releasing one under the other — Tab out
 				// while hovered, mouse out while focused — keeps the timer paused.
-				onMouseEnter={() => hold(hoverHeldRef)}
-				onMouseLeave={() => release(hoverHeldRef)}
+				// Only a hovering pointer holds. A tap gets no leave until a later tap
+				// lands elsewhere, and its hold would stop every countdown.
+				onPointerEnter={(event) => {
+					if (event.pointerType !== 'touch') hold(hoverHeldRef)
+				}}
+				onPointerLeave={() => release(hoverHeldRef)}
 				// `onFocus`/`onBlur` bubble (focusin/focusout); a move within the
 				// subtree re-fires them, so the held flag and the relatedTarget
 				// check make those no-ops. Release only when focus leaves the toast.
