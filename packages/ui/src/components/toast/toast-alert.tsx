@@ -167,10 +167,8 @@ export function ToastAlert({
 	return (
 		<m.li
 			layout
-			style={{
-				...(positionTop ? { paddingBottom: k.gap } : { paddingTop: k.gap }),
-				zIndex,
-			}}
+			className={cn(k.item[edge])}
+			style={{ zIndex }}
 			exit={toast.dismissed ? manualDismiss : autoDismiss}
 			transition={layoutTransition}
 		>
