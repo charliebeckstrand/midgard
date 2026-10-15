@@ -196,11 +196,16 @@ function PdfViewerHighlightLayer() {
 	 * The element is kept beside the id because the label anchors to a node. The id is what
 	 * says whether that node is still one of this page's regions. A page turned under the
 	 * pointer would otherwise leave the panel floating against a detached box.
+	 *
+	 * `mount` counts the nodes the preview has anchored to. A region that a page turn remounted
+	 * has the same id and a new node, and the panel must remount against that node (see the key
+	 * below).
 	 */
 	const [hovered, setHovered] = useState<{
 		id: string
 		element: HTMLElement
 		label: string
+		mount: number
 	} | null>(null)
 
 	/*
@@ -254,12 +259,15 @@ function PdfViewerHighlightLayer() {
 
 		setPreviewing(true)
 
-		if (hovered?.id === hit.id) return
+		// The same region under the same node changes nothing. The same id under a new node is a
+		// region that a page turn remounted, and the name must move to the node that is there now.
+		if (hovered?.id === hit.id && hovered.element === hit.element) return
 
 		setHovered({
 			id: hit.id,
 			element: hit.element,
 			label: regions.find((region) => region.id === hit.id)?.label ?? '',
+			mount: (hovered?.mount ?? 0) + 1,
 		})
 	}
 
@@ -477,16 +485,19 @@ function PdfViewerHighlightLayer() {
 			/>
 
 			{/*
-			 * The hovered one is keyed on its region, because floating-ui holds the reference it
-			 * mounted with. Moving a name between boxes therefore has to be a new panel.
-			 * Otherwise the name changes while the box it points at does not. The region
-			 * outlives the pointer (see `previewing`), so the key holds still through the
-			 * fade out.
+			 * The hovered one is keyed on its region's node, because floating-ui holds the
+			 * reference it mounted with. Moving a name between boxes therefore has to be a new
+			 * panel. Otherwise the name changes while the box it points at does not. A region
+			 * that a page turn remounted is a new box with the same id, so the key holds the
+			 * node count too. The region outlives the pointer (see `previewing`), so the key
+			 * holds still through the fade out.
 			 */}
 			<PdfViewerHighlightLabel
-				key={hovered?.id ?? 'none'}
+				key={hovered ? `${hovered.id}:${hovered.mount}` : 'none'}
 				anchor={hovered?.element ?? null}
-				label={hovered?.label ?? null}
+				// The current name while the region is on this page, so a rename shows at once. The
+				// copy is for the exit fade only, after the region has gone.
+				label={previewed?.label ?? hovered?.label ?? null}
 				open={previewOpen}
 			/>
 		</div>
