@@ -14,7 +14,7 @@ import {
 	type VirtualItemSource,
 } from '../../hooks/a11y/use-a11y-roving'
 import { NO_HOVER_QUERY } from '../../utilities/media-query'
-import { attach, makeKeyEvent, mockDomGeometry, stubMatchMedia } from '../helpers'
+import { attach, makeKeyEvent, mockDomGeometry, present, stubMatchMedia } from '../helpers'
 
 describe('queryItems', () => {
 	it('returns empty array for null container', () => {
@@ -445,6 +445,43 @@ describe('useA11yRoving', () => {
 		expect(event.preventDefault).toHaveBeenCalled()
 
 		expect(document.activeElement).toBe(items[2])
+	})
+
+	it('type-ahead: an item with aria-labelledby matches by the referenced text, not its own text', () => {
+		const container = makeLabeledContainer(['Apple 12', 'Banana'])
+
+		const items = container.querySelectorAll('button')
+
+		const first = present(items[0], 'first item')
+
+		const second = present(items[1], 'second item')
+
+		// The own text of the second item starts with "c", but its label does not.
+		second.textContent = ''
+
+		const label = document.createElement('span')
+
+		label.id = 'roving-typeahead-label'
+
+		label.textContent = 'Date'
+
+		const count = document.createElement('span')
+
+		count.textContent = 'Cherry'
+
+		second.append(label, count)
+
+		second.setAttribute('aria-labelledby', label.id)
+
+		first.focus()
+
+		renderRoving(container, { typeahead: true }).current(makeKeyEvent('c'))
+
+		expect(document.activeElement).toBe(first)
+
+		renderRoving(container, { typeahead: true }).current(makeKeyEvent('d'))
+
+		expect(document.activeElement).toBe(second)
 	})
 
 	it.each<[string, Partial<RovingOptions>, string]>([
