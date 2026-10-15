@@ -492,6 +492,22 @@ describe('SidebarItem', () => {
 		expect(inner).toHaveAttribute('aria-current', 'true')
 	})
 
+	it('gives a link item no type, as a type on an anchor names a MIME type', () => {
+		const { container } = renderUI(
+			<Sidebar>
+				<SidebarItem href="/home" type="submit">
+					Home
+				</SidebarItem>
+			</Sidebar>,
+		)
+
+		const inner = bySlot(container, 'sidebar-item-inner')
+
+		expect(inner?.tagName).toBe('A')
+
+		expect(inner).not.toHaveAttribute('type')
+	})
+
 	it('renders an icon prop through the SidebarItem icon slot', () => {
 		const { container } = renderUI(
 			<Sidebar>

@@ -178,7 +178,8 @@ function hasListboxValue<T>(value: T | T[] | undefined, multiple: boolean): bool
  * control and a portaled panel. Binds to an enclosing Form field by `name`;
  * an explicit `value` wins over the bound field. The trigger and the panel
  * take the step of the nearest density scope, and an explicit `size` opens a
- * scope on each.
+ * scope on each. Enter, Space, ArrowDown, or ArrowUp on the closed trigger
+ * opens the panel.
  */
 export function Listbox<T>({
 	name,
@@ -368,6 +369,18 @@ export function Listbox<T>({
 		onBlur?.(event)
 	}
 
+	// ArrowDown and ArrowUp open the closed menu (APG select-only combobox), as
+	// on Combobox. Enter and Space open it through the click of the button. The
+	// guard keeps a read-only listbox closed. An open menu holds the focus, so the
+	// key reaches the trigger only while the menu is closed.
+	const handleTriggerKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+		if (open || (event.key !== 'ArrowDown' && event.key !== 'ArrowUp')) return
+
+		event.preventDefault()
+
+		setOpenGuarded(true)
+	}
+
 	// The trigger button renders the label verbatim (`undefined` skips the placeholder).
 	const label = resolveLabel({ value, displayValue, multiple, capitalize })
 
@@ -469,6 +482,7 @@ export function Listbox<T>({
 						validation={validation}
 						label={label}
 						onBlur={handleTriggerBlur}
+						onKeyDown={handleTriggerKeyDown}
 						placeholder={placeholder}
 						truncate={truncate}
 						truncateTooltip={truncateTooltip}

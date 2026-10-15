@@ -257,6 +257,60 @@ describe('useSignaturePadDrawing', () => {
 		expect(setCurrent).not.toHaveBeenCalled()
 	})
 
+	// A second finger or a resting palm moves over the pad while the first
+	// pointer draws. Only the pointer that started the stroke extends or ends it.
+	describe('a second pointer during a stroke', () => {
+		const second = { pointerId: 2, pointerType: 'touch', isPrimary: false } as const
+
+		it('draws no line to the second pointer', () => {
+			const { result, context } = setup()
+
+			act(() => {
+				result.current.handlePointerDown(pointerEvent({ clientX: 0, clientY: 0 }))
+			})
+
+			act(() => {
+				result.current.handlePointerMove(pointerEvent({ ...second, clientX: 80, clientY: 80 }))
+			})
+
+			expect(context.lineTo).not.toHaveBeenCalled()
+
+			act(() => {
+				result.current.handlePointerMove(pointerEvent({ clientX: 20, clientY: 30 }))
+			})
+
+			expect(context.moveTo).toHaveBeenLastCalledWith(0, 0)
+
+			expect(context.lineTo).toHaveBeenCalledWith(20, 30)
+		})
+
+		it('does not end the stroke when the second pointer lifts', () => {
+			const { result, setCurrent } = setup()
+
+			act(() => {
+				result.current.handlePointerDown(pointerEvent({ clientX: 0, clientY: 0 }))
+			})
+
+			let committed: boolean | undefined
+
+			act(() => {
+				committed = result.current.commit(pointerEvent(second))
+			})
+
+			expect(committed).toBe(false)
+
+			expect(setCurrent).not.toHaveBeenCalled()
+
+			act(() => {
+				committed = result.current.commit(pointerEvent())
+			})
+
+			expect(committed).toBe(true)
+
+			expect(setCurrent).toHaveBeenCalledWith('data:,strokes')
+		})
+	})
+
 	describe('onDrawStart', () => {
 		it('reports the start of a stroke once the pad takes the press', () => {
 			const { result, onDrawStart } = setup()

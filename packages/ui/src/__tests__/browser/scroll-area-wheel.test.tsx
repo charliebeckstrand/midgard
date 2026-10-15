@@ -16,10 +16,15 @@ import { getSlot, renderUI } from '../helpers'
  */
 describe('ScrollArea shift+wheel against real overflow', () => {
 	/** Dispatches a cancelable shift+wheel and reports whether it was consumed. */
-	function shiftWheel(viewport: HTMLElement): boolean {
-		const event = new WheelEvent('wheel', { shiftKey: true, deltaY: 10, cancelable: true })
+	function shiftWheel(target: HTMLElement): boolean {
+		const event = new WheelEvent('wheel', {
+			shiftKey: true,
+			deltaY: 10,
+			bubbles: true,
+			cancelable: true,
+		})
 
-		viewport.dispatchEvent(event)
+		target.dispatchEvent(event)
 
 		return event.defaultPrevented
 	}
@@ -56,6 +61,32 @@ describe('ScrollArea shift+wheel against real overflow', () => {
 		expect(viewport.scrollWidth).toBe(viewport.clientWidth)
 
 		expect(shiftWheel(viewport)).toBe(true)
+	})
+
+	it('leaves the gesture to a horizontal scroller inside the viewport', () => {
+		const { container } = renderUI(
+			<div style={{ width: 300 }}>
+				<ScrollArea>
+					<div data-testid="inner" style={{ overflowX: 'auto' }}>
+						<div style={{ width: 800 }}>content</div>
+					</div>
+				</ScrollArea>
+			</div>,
+		)
+
+		const viewport = getSlot(container, 'scroll-area-viewport')
+
+		const inner = container.querySelector<HTMLElement>('[data-testid="inner"]')
+
+		if (!inner) throw new Error('no inner scroller')
+
+		expect(viewport.scrollWidth).toBe(viewport.clientWidth)
+
+		expect(inner.scrollWidth).toBeGreaterThan(inner.clientWidth)
+
+		// The gesture scrolls the inner scroller natively. The area must not
+		// cancel it and send it to an ancestor.
+		expect(shiftWheel(inner)).toBe(false)
 	})
 
 	it('forwards the gesture once from an area inside another area', () => {

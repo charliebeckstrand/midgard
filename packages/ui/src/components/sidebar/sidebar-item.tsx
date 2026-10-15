@@ -98,9 +98,10 @@ export function SidebarItem({
 			)}
 			onClick={handleClick}
 			// Consumer props spread first; the type, the anchor the Sidebar's roving
-			// selects on, and the current marker below take precedence.
+			// selects on, and the current marker below take precedence. A link takes
+			// no type, because the type of an anchor names a MIME type.
 			{...props}
-			type="button"
+			type={props.href === undefined ? 'button' : undefined}
 			data-slot="sidebar-item-inner"
 			aria-current={isCurrent ? currentToken : undefined}
 		>

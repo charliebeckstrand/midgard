@@ -164,10 +164,10 @@ function SparklineMarks({
 
 /**
  * The Framer Motion marks: the same shapes, revealed on mount. Rendered only
- * under `animate` and always wrapped in {@link ReducedMotion}, so a
- * reduced-motion preference settles the bars at their final state. The draw
- * (`pathLength`) and the pop (`r`) are no transform, so that config does not
- * skip them. Under reduced motion the line and the end point mount at rest.
+ * under `animate` and always wrapped in {@link ReducedMotion}. The grow
+ * (`height`), the draw (`pathLength`), and the pop (`r`) are no transform, so
+ * the reduced-motion config of that root does not skip them. Under reduced
+ * motion the bars, the line, and the end point therefore mount at rest.
  * @internal
  */
 function AnimatedSparklineMarks({
@@ -192,7 +192,7 @@ function AnimatedSparklineMarks({
 				width={bar.width}
 				rx={barRadius}
 				className={fillClass}
-				initial={{ y: geometry.baseline, height: 0 }}
+				initial={still ? false : { y: geometry.baseline, height: 0 }}
 				animate={{ y: bar.y, height: bar.height }}
 				transition={{ ...k.motion.grow, delay: bar.index * k.motion.stagger }}
 			/>

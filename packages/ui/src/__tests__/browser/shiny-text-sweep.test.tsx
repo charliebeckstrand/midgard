@@ -46,4 +46,16 @@ describe('ShinyText sweep (real browser)', () => {
 
 		expect(sweep()).toEqual([])
 	})
+
+	// The text is transparent, and the gradient alone paints the glyphs. A print
+	// with no background graphics drops the gradient, so the span must keep it.
+	it('keeps the gradient in print, so the text does not disappear', () => {
+		const { container } = renderUI(<ShinyText>Shine</ShinyText>)
+
+		const text = bySlot(container, 'shiny-text')
+
+		if (!text) throw new Error('expected the text')
+
+		expect(getComputedStyle(text).printColorAdjust).toBe('exact')
+	})
 })

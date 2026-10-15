@@ -612,6 +612,52 @@ describe('PdfViewer', () => {
 		expect(screen.getByRole('button', { name: 'Close thumbnails' })).toBeInTheDocument()
 	})
 
+	// A tablet rotation across lg with the sheet open. The desktop layout unmounts the sheet
+	// panel. When the viewport narrows again, the modal must not open without a press.
+	it('does not reopen the mobile thumbnails sheet after a trip to desktop', async () => {
+		let wide = false
+
+		const listeners = new Set<() => void>()
+
+		// A live `matches`, since the media-query registry holds one list for each query.
+		vi.stubGlobal('matchMedia', (query: string) => ({
+			media: query,
+			onchange: null,
+			get matches() {
+				return wide && query === `(min-width: ${BREAKPOINT_WIDTHS.lg})`
+			},
+			addEventListener: (_type: string, listener: () => void) => listeners.add(listener),
+			removeEventListener: (_type: string, listener: () => void) => listeners.delete(listener),
+			addListener: noop,
+			removeListener: noop,
+			dispatchEvent: () => false,
+		}))
+
+		const resize = (next: boolean) => {
+			wide = next
+
+			act(() => {
+				for (const listener of listeners) listener()
+			})
+		}
+
+		renderUI(<PdfViewer pages={pages} />)
+
+		await setupUser().click(screen.getByLabelText('Show thumbnails'))
+
+		expect(screen.getByRole('dialog', { name: 'Pages' })).toBeInTheDocument()
+
+		resize(true)
+
+		expect(screen.queryByRole('dialog', { name: 'Pages' })).toBeNull()
+
+		resize(false)
+
+		expect(screen.queryByRole('dialog', { name: 'Pages' })).toBeNull()
+
+		expect(screen.getByLabelText('Show thumbnails')).toHaveAttribute('aria-expanded', 'false')
+	})
+
 	it('exposes the aria-label on the root', () => {
 		const { container } = renderUI(<PdfViewer pages={pages} aria-label="Invoice viewer" />)
 

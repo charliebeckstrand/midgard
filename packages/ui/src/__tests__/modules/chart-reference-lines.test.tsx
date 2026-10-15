@@ -864,8 +864,10 @@ describe('reference lines in the legend', () => {
 
 		const rawSwatch = present(raw?.querySelector('[data-slot="swatch"]'), 'swatch')
 
-		// A raw color bypasses the slot classes and paints inline instead.
-		expect(rawSwatch?.getAttribute('class') ?? '').not.toContain('text-')
+		// A raw color bypasses the slot classes and paints inline instead. Only a
+		// text utility with no variant is a slot class; the forced-colors ink of
+		// the swatch is not.
+		expect(rawSwatch?.getAttribute('class') ?? '').not.toMatch(/(^|\s)text-/)
 
 		expect(rawSwatch?.style.color).toBeTruthy()
 	})

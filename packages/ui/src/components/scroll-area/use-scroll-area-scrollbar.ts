@@ -14,7 +14,11 @@ import { useAnimationFrame, useTimeout } from '../../hooks/use-timeout'
 import type { ScrollOrientation } from '../../types'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
 import { hiddenThumb, SCROLL_FADE_DELAY_MS, type ThumbState } from './scroll-area-constants'
-import { computeThumb, findScrollableAncestor } from './scroll-area-utilities'
+import {
+	computeThumb,
+	findScrollableAncestor,
+	scrollsHorizontallyWithin,
+} from './scroll-area-utilities'
 import type { ScrollbarMode } from './types'
 
 type Orientation = ScrollOrientation
@@ -107,6 +111,35 @@ function beginScrollbarDrag(
 }
 
 /**
+ * Sends a shift+wheel over the viewport to the nearest scrollable ancestor,
+ * when nothing in the viewport can scroll horizontally.
+ *
+ * @internal
+ */
+function forwardShiftWheel(event: WheelEvent, viewport: HTMLElement): void {
+	// A nested area, or another handler, has already taken the gesture.
+	if (!event.shiftKey || event.defaultPrevented) return
+
+	// A horizontally scrollable viewport owns shift+wheel natively;
+	// forwarding hijacks the gesture from its own content.
+	if (viewport.scrollWidth > viewport.clientWidth) return
+
+	// A horizontal scroller inside the viewport owns the gesture in the same way.
+	const origin = event.target instanceof Element ? event.target : null
+
+	if (scrollsHorizontallyWithin(origin, viewport)) return
+
+	event.preventDefault()
+
+	const target = findScrollableAncestor(viewport.parentElement)
+
+	const options: ScrollToOptions = { top: event.deltaY, left: event.deltaX, behavior: 'auto' }
+
+	if (target) target.scrollBy(options)
+	else window.scrollBy(options)
+}
+
+/**
  * Custom scrollbar state: thumb geometry, visibility fade, and drag-to-scroll.
  * Returns viewport/track refs, per-axis thumb state, and event handlers.
  *
@@ -115,7 +148,8 @@ function beginScrollbarDrag(
  * thumb. Re-measures via a {@link ResizeObserver} on the viewport and its children and
  * a {@link MutationObserver} on child additions/removals. Shift+wheel over a
  * non-horizontally-scrollable viewport forwards to the nearest scrollable
- * ancestor, unless a nested area or another handler has already canceled it.
+ * ancestor, unless a horizontal scroller inside the viewport gets it, or a
+ * nested area or another handler has already canceled it.
  *
  * @internal
  */
@@ -209,23 +243,7 @@ export function useScrollAreaScrollbar({ orientation, scrollbar }: ScrollbarOpti
 
 		if (!viewport) return
 
-		const handleWheel = (event: WheelEvent) => {
-			// A nested area, or another handler, has already taken the gesture.
-			if (!event.shiftKey || event.defaultPrevented) return
-
-			// A horizontally scrollable viewport owns shift+wheel natively;
-			// forwarding hijacks the gesture from its own content.
-			if (viewport.scrollWidth > viewport.clientWidth) return
-
-			event.preventDefault()
-
-			const target = findScrollableAncestor(viewport.parentElement)
-
-			const options: ScrollToOptions = { top: event.deltaY, left: event.deltaX, behavior: 'auto' }
-
-			if (target) target.scrollBy(options)
-			else window.scrollBy(options)
-		}
+		const handleWheel = (event: WheelEvent) => forwardShiftWheel(event, viewport)
 
 		viewport.addEventListener('wheel', handleWheel, { passive: false })
 

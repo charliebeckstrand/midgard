@@ -5,9 +5,33 @@ import { cn, composeEventHandlers, invalidAttrs } from '../../core'
 import { useComposedRef } from '../../hooks'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { k, type SliderVariants } from '../../recipes/kata/slider'
-import { pct } from '../../utilities'
+import { clamp, pct } from '../../utilities'
 import { useControlProps } from '../control/use-control-props'
 import { useFormValue } from '../form/use-form-value'
+
+/**
+ * The value that a native range input shows for `value`. The input clamps the
+ * value into `[min, max]` and snaps it to the nearest point of the step grid,
+ * which starts at `min`. A grid point past `max` falls back to the last point
+ * in the range. A tie rounds up, as in the browser.
+ */
+function nativeRangeValue(value: number, min: number, max: number, step: number) {
+	// A `max` below `min` takes the value of `min` in the browser, and a `step`
+	// that is not positive takes the default step of 1.
+	const top = Math.max(min, max)
+
+	const unit = step > 0 ? step : 1
+
+	const steps = Math.round((clamp(value, min, top) - min) / unit)
+
+	// The rounding removes float error: 0.3 / 0.1 is 2.999…, and its floor drops
+	// the last point of the grid.
+	const last = Math.floor(parseFloat(((top - min) / unit).toFixed(10)))
+
+	const snapped = min + Math.min(steps, last) * unit
+
+	return parseFloat(snapped.toFixed(10))
+}
 
 type SliderBaseProps = SliderVariants & {
 	value?: number
@@ -40,7 +64,10 @@ export type SliderProps = SliderBaseProps &
  * @remarks Renders a native `<input type="range">`, so screen-reader semantics
  * and arrow-key stepping come from the platform; only `aria-valuetext` is
  * augmented via `getValueText`. `defaultValue` falls back to `min` (an
- * uncontrolled slider with no default sits at the low end). `required` is
+ * uncontrolled slider with no default sits at the low end). A value off the
+ * step grid or out of `[min, max]` shows as the native input shows it: snapped
+ * to the grid and clamped. The fill and `getValueText` take that value, and the
+ * slider does not report it through `onValueChange`. `required` is
  * intentionally not resolved from context: a range input always carries a value
  * and HTML constraint validation ignores the attribute.
  * @see {@link RangeSlider} for the dual-thumb variant.
@@ -79,7 +106,9 @@ export function Slider({
 		},
 	})
 
-	const current = bound ?? min
+	// The native input moves the thumb to the step grid in `[min, max]`. The
+	// fill and the value text read that value, so they stay on the thumb.
+	const current = nativeRangeValue(bound ?? min, min, max, step)
 
 	const setRef = useComposedRef(resetRef, ref)
 
