@@ -20,8 +20,9 @@ export type AccordionSkeletonProps = AccordionVariants & {
  * size-driven `createSkeleton` factory.
  *
  * @remarks Static leaf: renders in React Server Components. The header box
- * does not follow density, as the trigger does not. The indicator follows
- * the nearest density scope, as the chevron of the trigger does.
+ * follows the nearest density scope, as the box of the trigger does. The
+ * indicator follows the nearest density scope, as the chevron of the
+ * trigger does.
  * @see {@link Accordion}
  */
 export function AccordionSkeleton({ items = 3, variant, className }: AccordionSkeletonProps) {
