@@ -141,9 +141,10 @@ export function Tab({
 	})
 
 	// Explicit-id panels stay mounted; `aria-controls` is always set. Auto panels
-	// unmount when inactive unless an all-mounted TabContents keeps them mounted
-	// (registered via context); then every tab references its panel. A segmented
-	// control often has no panels, so a segment tab also waits for a TabContents.
+	// unmount when inactive unless an all-mounted TabContents or a TabContent
+	// outside a TabContents keeps them mounted (registered via context); then
+	// every tab references its panel. A segmented control often has no panels,
+	// so a segment tab also waits for a registered panel.
 	const panelMounted = current || tabsContext?.panelsMounted
 
 	const panelsExpected = !isSegment || tabsContext?.panelsPresent

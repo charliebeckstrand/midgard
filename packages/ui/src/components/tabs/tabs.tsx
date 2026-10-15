@@ -66,8 +66,9 @@ export function Tabs({
 	const baseId = useId()
 
 	// Ref-count all-mounted TabContents (`mount="always"`, every inactive panel
-	// held in the DOM) so inactive tabs keep aria-controls; a plain boolean would
-	// be cleared by a second registrant unmounting while the first still holds
+	// held in the DOM) and each TabContent outside a TabContents, which is always
+	// mounted, so inactive tabs keep aria-controls; a plain boolean would be
+	// cleared by a second registrant unmounting while the first still holds
 	// panels in the DOM.
 	const [mountedPanelCount, setMountedPanelCount] = useState(0)
 
@@ -79,9 +80,9 @@ export function Tabs({
 
 	const panelsMounted = mountedPanelCount > 0
 
-	// Ref-count every TabContents, so a segment tab sets `aria-controls` only
-	// when a panel can exist. A segmented control with no panels then has no
-	// reference to a missing id.
+	// Ref-count every TabContents and each TabContent outside a TabContents, so
+	// a segment tab sets `aria-controls` only when a panel can exist. A
+	// segmented control with no panels then has no reference to a missing id.
 	const [panelsCount, setPanelsCount] = useState(0)
 
 	const registerPanels = useCallback(() => {
