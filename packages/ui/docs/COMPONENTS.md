@@ -55,6 +55,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > `UIProvider` mounts one `ToastProvider` and its viewport, so `useToast()` works anywhere under it with no setup.
 
+> While a toast shows, the `Toast` viewport is a `region` landmark with the name "Notifications". F8 moves focus to the newest toast, and that focus pauses auto-dismiss.
+
 > `dialog`, `drawer`, and `sheet` have the root-and-parts shape of `popover`: a root such as `Dialog`, a `DialogTrigger`, and a `DialogPanel`.
 
 ## Data display

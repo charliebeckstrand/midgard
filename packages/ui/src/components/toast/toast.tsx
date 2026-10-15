@@ -1,6 +1,7 @@
 'use client'
 
 import { AnimatePresence } from 'motion/react'
+import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { cn } from '../../core'
 import { useHydrated } from '../../hooks/use-hydrated'
@@ -9,9 +10,33 @@ import { useDirectionScope } from '../../primitives/direction'
 import { usePortalContainer } from '../../primitives/portal'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k } from '../../recipes/kata/toast'
+import { subscribeDocumentEvent } from '../../utilities/document-listener'
+import { tabbablesIn } from '../../utilities/focusable-selector'
 import { useToastViewport } from './context'
 import { ToastAlert } from './toast-alert'
 import type { ToastPosition } from './types'
+
+/** True for an F8 with no modifier key that no handler canceled first. @internal */
+function isPlainF8(event: KeyboardEvent) {
+	if (event.key !== 'F8' || event.defaultPrevented) return false
+
+	return !(event.altKey || event.ctrlKey || event.metaKey || event.shiftKey)
+}
+
+/**
+ * The first control of the newest toast that has one. The viewport gets the
+ * newest toast first, so the first item of the list is the newest.
+ * @internal
+ */
+function firstControlOfNewest(viewport: HTMLElement | null) {
+	for (const item of viewport?.querySelectorAll(':scope > ol > li') ?? []) {
+		const target = tabbablesIn(item)[0]
+
+		if (target) return target
+	}
+
+	return undefined
+}
 
 /** Props for {@link Toast}. */
 export type ToastProps = {
@@ -35,6 +60,14 @@ export type ToastProps = {
  * `alert`. Everything else queues as `status`, and is mirrored through a
  * persistent announcer on mount (WCAG 4.1.3). Auto-dismiss pauses while the
  * pointer or focus is inside a toast (WCAG 2.2.1).
+ *
+ * While a toast shows, the viewport is a `section` with the name
+ * "Notifications", so it is a `region` landmark, and a screen reader gets to
+ * the stack from its landmark list. An empty viewport has no name and is not a
+ * landmark. While a toast shows, F8 moves focus to the first control of the newest toast that has one, and
+ * that focus pauses auto-dismiss. A keyboard user thus gets to an action such
+ * as Undo before the toast times out (WCAG 2.1.1). F8 with a modifier key, and
+ * an F8 that a different handler cancels first, do not move focus.
  *
  * Renders nothing on the server and during hydration; the portal mounts in an
  * effect afterwards, keeping the first client render identical to the SSR
@@ -64,15 +97,42 @@ export function Toast({ position = 'bottom-right' }: ToastProps) {
 	// trips React's hydration mismatch.
 	const hydrated = useHydrated()
 
+	const viewportRef = useRef<HTMLDivElement>(null)
+
+	const hasToasts = toasts.length > 0
+
+	// F8 moves focus into the stack, as in Radix. The stack is at the end of the
+	// body, so Tab gets to it only after the full page.
+	useEffect(() => {
+		if (!hasToasts) return
+
+		return subscribeDocumentEvent('keydown', (event) => {
+			if (!isPlainF8(event)) return
+
+			const target = firstControlOfNewest(viewportRef.current)
+
+			if (!target) return
+
+			event.preventDefault()
+
+			target.focus()
+		})
+	}, [hasToasts])
+
 	if (!hydrated) return null
 
 	return createPortal(
 		// `layout`: each toast FLIPs into the slot of a toast that leaves.
 		<ReducedMotion layout>
-			{/* Not itself a live region: each toast carries its own `role` (status /
-			    alert) mapping severity to politeness directly. */}
-			<div
+			{/* A named `section` is a `region` landmark. The viewport is not a live
+			    region: each toast carries its own `role` (status / alert) mapping
+			    severity to politeness directly. */}
+			<section
+				ref={viewportRef}
 				data-slot="toast-viewport"
+				// Named only while it holds a toast: an empty stack is no landmark, and
+				// two empty stacks on one page do not give two of the same name.
+				aria-label={hasToasts ? 'Notifications' : undefined}
 				dir={dir ?? undefined}
 				className={cn(k.viewport({ position }))}
 			>
@@ -97,7 +157,7 @@ export function Toast({ position = 'bottom-right' }: ToastProps) {
 						))}
 					</AnimatePresence>
 				</ol>
-			</div>
+			</section>
 		</ReducedMotion>,
 		portalContainer ?? document.body,
 	)

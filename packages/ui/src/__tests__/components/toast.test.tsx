@@ -974,3 +974,106 @@ describe('Toast: useToast behavior', () => {
 		})
 	})
 })
+
+describe('Toast: keyboard reach', () => {
+	function Fire({ titles }: { titles: string[] }) {
+		const { toast } = useToast()
+
+		const fired = useRef(false)
+
+		useEffect(() => {
+			if (fired.current) return
+
+			fired.current = true
+
+			for (const title of titles) {
+				toast({ title, actions: <button type="button">Undo {title}</button> })
+			}
+		}, [toast, titles])
+
+		return null
+	}
+
+	it('makes the viewport a labelled region landmark while it holds a toast', () => {
+		renderUI(
+			<ToastProvider>
+				<Fire titles={['First']} />
+				<Toast />
+			</ToastProvider>,
+		)
+
+		expect(screen.getByRole('region', { name: 'Notifications' })).toHaveAttribute(
+			'data-slot',
+			'toast-viewport',
+		)
+	})
+
+	it('gives an empty viewport no landmark', () => {
+		renderUI(
+			<ToastProvider>
+				<Toast />
+			</ToastProvider>,
+		)
+
+		expect(screen.queryByRole('region')).not.toBeInTheDocument()
+	})
+
+	it('moves focus into the newest toast on F8', () => {
+		renderUI(
+			<ToastProvider>
+				<button type="button">Outside</button>
+				<Fire titles={['First', 'Second']} />
+				<Toast />
+			</ToastProvider>,
+		)
+
+		screen.getByRole('button', { name: 'Outside' }).focus()
+
+		fireEvent.keyDown(document.body, { key: 'F8' })
+
+		expect(screen.getByRole('button', { name: 'Undo Second' })).toHaveFocus()
+	})
+
+	it('does nothing on F8 when the stack is empty', () => {
+		renderUI(
+			<ToastProvider>
+				<button type="button">Outside</button>
+				<Toast />
+			</ToastProvider>,
+		)
+
+		const outside = screen.getByRole('button', { name: 'Outside' })
+
+		outside.focus()
+
+		const event = new KeyboardEvent('keydown', { key: 'F8', bubbles: true, cancelable: true })
+
+		document.body.dispatchEvent(event)
+
+		expect(outside).toHaveFocus()
+
+		expect(event.defaultPrevented).toBe(false)
+	})
+
+	it('ignores an F8 that a handler before it already took', () => {
+		renderUI(
+			<ToastProvider>
+				<button type="button">Outside</button>
+				<Fire titles={['First']} />
+				<Toast />
+			</ToastProvider>,
+		)
+
+		const outside = screen.getByRole('button', { name: 'Outside' })
+
+		outside.focus()
+
+		const event = new KeyboardEvent('keydown', { key: 'F8', bubbles: true, cancelable: true })
+
+		event.preventDefault()
+
+		outside.dispatchEvent(event)
+
+		expect(outside).toHaveFocus()
+	})
+})
