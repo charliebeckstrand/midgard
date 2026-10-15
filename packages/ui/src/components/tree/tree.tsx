@@ -55,7 +55,7 @@ export type TreeProps = AccessibleName &
 		className?: string
 	}
 
-/** Root of a `role="tree"` with roving-tabindex keyboard navigation and the APG arrow moves to a first child and to a parent. It keeps the first item tabbable across open/close and filtering, and shares depth and `indent` to nested items via context. Requires `aria-label`/`aria-labelledby`. A consumer `ref` reaches the tree element. */
+/** Root of a `role="tree"` with roving-tabindex keyboard navigation and the APG arrow moves to a first child and to a parent. Type-ahead moves to the next visible, enabled row whose label starts with the typed text. It keeps the first item tabbable across open/close and filtering, and shares depth and `indent` to nested items via context. Requires `aria-label`/`aria-labelledby`. A consumer `ref` reaches the tree element. */
 export function Tree({
 	size,
 	indent = true,
@@ -78,6 +78,10 @@ export function Tree({
 		// it there as the rendered set changes, and moves it to the item that takes
 		// focus.
 		manageTabIndex: true,
+		// A printable key moves to the next visible row whose label starts with the
+		// typed text. The row takes its name from its label alone, so the affix text
+		// does not match.
+		typeahead: true,
 	})
 
 	// The horizontal arrows of the tree model: to the first child of an open

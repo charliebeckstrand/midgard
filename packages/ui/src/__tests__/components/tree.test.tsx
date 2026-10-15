@@ -390,6 +390,89 @@ describe('TreeItem', () => {
 		expect(row('src')).toHaveFocus()
 	})
 
+	describe('type-ahead', () => {
+		const row = (name: string) => screen.getByRole('treeitem', { name })
+
+		const type = (...keys: string[]) => {
+			for (const key of keys) {
+				fireEvent.keyDown(present(document.activeElement, 'focused row'), { key })
+			}
+		}
+
+		it('moves to the visible row whose label starts with the typed letters', () => {
+			renderUI(
+				<Tree aria-label="Files">
+					<TreeItem label="alpha" />
+					<TreeItem label="beta" />
+					<TreeItem label="bravo" />
+				</Tree>,
+			)
+
+			row('alpha').focus()
+
+			type('b', 'r')
+
+			expect(row('bravo')).toHaveFocus()
+		})
+
+		it('cycles through the rows that start with a repeated letter', () => {
+			renderUI(
+				<Tree aria-label="Files">
+					<TreeItem label="alpha" />
+					<TreeItem label="beta" />
+					<TreeItem label="bravo" />
+				</Tree>,
+			)
+
+			row('alpha').focus()
+
+			type('b')
+
+			expect(row('beta')).toHaveFocus()
+
+			type('b')
+
+			expect(row('bravo')).toHaveFocus()
+
+			type('b')
+
+			expect(row('beta')).toHaveFocus()
+		})
+
+		it('matches the label alone, not the affix text of the row', () => {
+			renderUI(
+				<Tree aria-label="Files">
+					<TreeItem label="alpha" prefix="zip" suffix="zulu" />
+					<TreeItem label="omega" />
+				</Tree>,
+			)
+
+			row('omega').focus()
+
+			type('z')
+
+			expect(row('omega')).toHaveFocus()
+		})
+
+		it('skips a row inside a closed group', () => {
+			renderUI(
+				<Tree aria-label="Files" mount="always">
+					<TreeItem label="alpha" />
+					<TreeItem label="src">
+						<TreeItem label="secret" />
+					</TreeItem>
+					<TreeItem label="settings" />
+				</Tree>,
+			)
+
+			row('alpha').focus()
+
+			type('s', 'e')
+
+			expect(row('settings')).toHaveFocus()
+		})
+	})
+
 	it('ignores key events that bubble from descendants', () => {
 		const { container } = renderUI(
 			<Tree aria-label="Files">
