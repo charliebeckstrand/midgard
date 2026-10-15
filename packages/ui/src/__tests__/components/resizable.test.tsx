@@ -15,6 +15,16 @@ describe('Resizable', () => {
 		expect(bySlot(container, 'resizable-handle')).toHaveAttribute('role', 'separator')
 	})
 
+	it('renders a panel outside a group at its defaultSize', () => {
+		const { container } = renderUI(<ResizablePanel defaultSize={30}>A</ResizablePanel>)
+
+		const panel = bySlot(container, 'resizable-panel')
+
+		expect(panel).toHaveStyle({ flex: '30 0 0px' })
+
+		expect(panel).not.toHaveAttribute('id')
+	})
+
 	it('names the panel before each handle in aria-controls', () => {
 		const { container } = renderUI(
 			<ResizableGroup>
