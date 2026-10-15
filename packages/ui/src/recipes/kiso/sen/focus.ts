@@ -19,8 +19,9 @@
  *                 swapped to an inset border inside scrollable ancestors,
  *                 which clip an outset outline
  *   - `indicator` background-paint marker on `::after`, in the focus-ring
- *                 color, for a focused tab that does not carry
- *                 `data-current`
+ *                 color, for a focused tab. On the current tab, it paints
+ *                 over the selection bar, so the current tab also shows
+ *                 focus.
  *   - `lifted`    z-shift + shadow for a picked-up element, plus the violet
  *                 accent that reads against the panel backdrop. Split into
  *                 `raise` and one entry per indicator shape, because the host
@@ -55,7 +56,7 @@ export const focus = {
 		/** Swaps to a 2 px border inside `[data-scroll-region]` ancestors, where `overflow-y-auto` clips an outset outline. */
 		'[[data-scroll-region]_&]:has-focus-visible:outline-none [[data-scroll-region]_&]:has-focus-visible:border-2 [[data-scroll-region]_&]:has-focus-visible:border-blue-600',
 	],
-	indicator: 'not-data-current:focus-visible:after:bg-blue-600',
+	indicator: 'focus-visible:after:bg-blue-600',
 	lifted: {
 		/** The raise itself, for whichever box is picked up. */
 		raise: ['z-10', 'shadow-md'],
