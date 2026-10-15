@@ -27,11 +27,18 @@ export function getCanvasPoint(
  * canvas is unchanged until then. Sizes the draw to the CSS box; the context is
  * assumed already scaled to devicePixelRatio by the sizing hook. `onDraw` runs
  * after the draw.
+ *
+ * @returns A function that cancels the draw. Call it when the value changes
+ * before the decode ends, so that the old value does not paint over the new one.
  */
-export function drawSnapshot(canvas: HTMLCanvasElement, src: string, onDraw?: () => void) {
+export function drawSnapshot(
+	canvas: HTMLCanvasElement,
+	src: string,
+	onDraw?: () => void,
+): () => void {
 	const context = canvas.getContext('2d')
 
-	if (!context) return
+	if (!context) return () => {}
 
 	const { width, height } = canvas.getBoundingClientRect()
 
@@ -44,6 +51,10 @@ export function drawSnapshot(canvas: HTMLCanvasElement, src: string, onDraw?: ()
 	}
 
 	image.src = src
+
+	return () => {
+		image.onload = null
+	}
 }
 
 /**
