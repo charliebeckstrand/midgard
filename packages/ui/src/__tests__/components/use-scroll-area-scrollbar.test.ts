@@ -306,6 +306,33 @@ describe('useScrollAreaScrollbar', () => {
 			expect(viewport.scrollTop).toBe(40)
 		})
 
+		it.each([
+			['middle', 1],
+			['secondary', 2],
+		])('does not start a drag on a %s button press', (_, button) => {
+			const { hook, viewport } = setupHook('vertical', 'visible')
+
+			scroll(hook)
+
+			const preventDefault = vi.fn()
+
+			act(() => {
+				hook.result.current.startDrag('y')(
+					makePointerEvent<HTMLDivElement>({ button, clientY: 0, preventDefault }),
+				)
+			})
+
+			// The press keeps its default, such as the context menu. The menu can
+			// take the release, so a drag would follow the pointer with no button held.
+			expect(preventDefault).not.toHaveBeenCalled()
+
+			act(() => {
+				window.dispatchEvent(new PointerEvent('pointermove', { clientY: 10 }))
+			})
+
+			expect(viewport.scrollTop).toBe(0)
+		})
+
 		it('stops the drag on pointercancel', () => {
 			const { hook, viewport } = setupHook('vertical', 'visible')
 
