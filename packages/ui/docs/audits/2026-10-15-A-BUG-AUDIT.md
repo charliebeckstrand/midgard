@@ -86,11 +86,11 @@ Reach: a page under `packages/ui/src/docs/pages` is a shipped surface, because t
 | R21 | `components/address-input/address-input-photon-query.ts` | `splitUsState` (`CT`) | CONFIRMED | medium | shipped | — | ◯ OPEN |
 | R22 | `components/address-input/address-input-photon.ts` | `searchNearPostcode` (`@remarks`) | NARROWED | low | shipped | G5 | ◯ OPEN |
 | R23 | `components/address-input/address-input-photon.ts` | `searchNearPostcode` (empty `layers`) | CONFIRMED | low | none | G5 | ◯ OPEN |
-| R24 | `components/address-input/address-input-photon.ts` | `findPostcode` | CONFIRMED | low | none | — | ◯ OPEN |
+| R24 | `components/address-input/address-input-photon.ts` | `findPostcode` | CONFIRMED | low | none | — | ✅ RESOLVED ([#2584](https://github.com/charliebeckstrand/midgard/pull/2584)) |
 | R25 | `components/address-input/address-input-photon.ts` | `request` | CONFIRMED | low | none | — | ✅ RESOLVED ([#2581](https://github.com/charliebeckstrand/midgard/pull/2581)) |
 | R26 | `components/address-input/use-address-input-suggestions.ts` | `useAddressInputSuggestions` (blank) | NARROWED | low | shipped | G3 | ✅ RESOLVED ([#2580](https://github.com/charliebeckstrand/midgard/pull/2580)) |
 | R27 | `components/address-input/use-address-input-suggestions.ts` | `useAddressInputSuggestions` (throw) | CONFIRMED | low | none | G3 | ✅ RESOLVED ([#2580](https://github.com/charliebeckstrand/midgard/pull/2580)) |
-| R28 | `components/address-input/address-input.tsx` | `AddressInput` (re-pick) | CONFIRMED | low | none | — | ◯ OPEN |
+| R28 | `components/address-input/address-input.tsx` | `AddressInput` (re-pick) | CONFIRMED | low | none | — | ✅ RESOLVED ([#2583](https://github.com/charliebeckstrand/midgard/pull/2583)) |
 
 ## Mechanisms
 
