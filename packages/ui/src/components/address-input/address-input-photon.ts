@@ -447,16 +447,26 @@ function featureToSuggestion(feature: PhotonFeature): AddressSuggestion {
 
 	const street = [properties.housenumber, properties.street].filter(Boolean).join(' ')
 
-	// A city, a state, or a country is its own part of the address, but Photon
-	// leaves that part out of the feature that is the area itself: the city of
-	// Lisbon carries a state and a country, and no city. The name fills it.
+	// A street, a city, a state, a country, or a postal code is its own part of
+	// the address, but Photon leaves that part out of the feature that is the
+	// part itself: the city of Lisbon carries a state and a country, and no city.
+	// A road carries no street, and a postal code carries no code. The name fills
+	// the part. A road keeps its name, but a postal code is not a name, so its
+	// match has no name, as for a plain address.
 	const own = (kind: string) => (properties.type === kind ? properties.name : undefined)
 
+	const isPostcode = properties.osm_value === 'postcode'
+
+	const road = properties.street === undefined ? own('street') : undefined
+
 	const address: AddressParts = {
-		street: street || undefined,
+		street:
+			road === undefined
+				? street || undefined
+				: [properties.housenumber, road].filter(Boolean).join(' '),
 		city: properties.city ?? own('city'),
 		state: properties.state ?? own('state'),
-		postcode: properties.postcode,
+		postcode: properties.postcode ?? (isPostcode ? properties.name : undefined),
 		country: properties.country ?? own('country'),
 	}
 
@@ -475,7 +485,7 @@ function featureToSuggestion(feature: PhotonFeature): AddressSuggestion {
 		id: featureId(properties),
 		label: primary,
 		description: rest.join(', ') || undefined,
-		name: properties.name,
+		name: isPostcode ? undefined : properties.name,
 		address,
 		latitude,
 		longitude,
