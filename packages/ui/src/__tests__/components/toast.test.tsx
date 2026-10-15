@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { useEffect, useRef } from 'react'
+import { StrictMode, useEffect, useRef } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Toast, ToastProvider, useToast } from '../../components/toast'
 import {
@@ -1132,6 +1132,96 @@ describe('Toast: useToast behavior', () => {
 			const first = screen.getByText('First').closest('li') as HTMLElement
 
 			expect(first).toContainElement(document.activeElement as HTMLElement)
+		})
+
+		it('moves focus out when an action in the focused toast calls dismiss', () => {
+			let api: ReturnType<typeof useToast> | null = null
+
+			renderUI(
+				<ToastProvider>
+					<Trigger onReady={(context) => (api = context)} />
+					<button type="button">Delete</button>
+					<Toast />
+				</ToastProvider>,
+			)
+
+			const trigger = screen.getByRole('button', { name: 'Delete' })
+
+			act(() => trigger.focus())
+
+			act(() => {
+				const id = api?.toast({
+					title: 'Deleted',
+					persist: true,
+					actions: (
+						<button type="button" onClick={() => api?.dismiss(id as string)}>
+							Undo
+						</button>
+					),
+				})
+			})
+
+			const undo = screen.getByRole('button', { name: 'Undo' })
+
+			act(() => undo.focus())
+
+			act(() => {
+				fireEvent.click(undo)
+			})
+
+			expect(trigger).toHaveFocus()
+		})
+
+		it('holds the countdown of a toast that gets focus in the commit that mounts it', () => {
+			let api: ReturnType<typeof useToast> | null = null
+
+			// Strict Mode runs the mount effect a second time after its cleanup, as a
+			// re-show under <Activity> does.
+			renderUI(
+				<StrictMode>
+					<ToastProvider>
+						<Trigger onReady={(context) => (api = context)} />
+						<Toast />
+					</ToastProvider>
+				</StrictMode>,
+			)
+
+			act(() => {
+				const id = api?.toast({
+					title: 'Deleted',
+					persist: true,
+					actions: (
+						<button
+							type="button"
+							onClick={() => {
+								api?.dismiss(id as string)
+
+								api?.toast({ title: 'Restored', duration: 1000 })
+							}}
+						>
+							Undo
+						</button>
+					),
+				})
+			})
+
+			const undo = screen.getByRole('button', { name: 'Undo' })
+
+			act(() => undo.focus())
+
+			act(() => {
+				fireEvent.click(undo)
+			})
+
+			const restored = screen.getByText('Restored').closest('li') as HTMLElement
+
+			expect(restored).toContainElement(document.activeElement as HTMLElement)
+
+			act(() => {
+				vi.advanceTimersByTime(5000)
+			})
+
+			expect(screen.getByText('Restored')).toBeInTheDocument()
 		})
 
 		it('returns focus to the page control when the last focused toast closes', () => {

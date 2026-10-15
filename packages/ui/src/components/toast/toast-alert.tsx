@@ -1,6 +1,6 @@
 'use client'
 
-import { type RefObject, useEffect, useEffectEvent, useRef } from 'react'
+import { type RefObject, useEffect, useEffectEvent, useLayoutEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { useAnnounceOnAppear } from '../../hooks/a11y/use-announce-on-appear'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
@@ -64,6 +64,8 @@ type ToastAlertProps = {
 	onPause: () => void
 	onResume: () => void
 	onReset: (id: string) => void
+	/** Called when this toast is marked to leave while focus is inside it. */
+	onLeave: () => void
 }
 
 /**
@@ -94,6 +96,7 @@ export function ToastAlert({
 	onPause,
 	onResume,
 	onReset,
+	onLeave,
 }: ToastAlertProps) {
 	const positionTop = edge === 'top'
 
@@ -124,29 +127,6 @@ export function ToastAlert({
 
 	const focusHeldRef = useRef(false)
 
-	// An effect event: the unmount release must call the current resume without
-	// the effect keying on it — a dep change would release still-live holds mid-life.
-	const resume = useEffectEvent(() => onResume())
-
-	// A toast removed while hovered or focused (close click, maxToasts eviction,
-	// programmatic dismiss) gets no pointerleave/blur, so release its holds here —
-	// otherwise the stuck count freezes auto-dismiss for every later toast.
-	useEffect(
-		() => () => {
-			if (hoverHeldRef.current) resume()
-
-			if (focusHeldRef.current) resume()
-
-			// Reset so a re-show under <Activity> (effect cleanup runs while the
-			// refs persist) starts unheld — a stale flag would swallow the next
-			// hold and let auto-dismiss run under the pointer.
-			hoverHeldRef.current = false
-
-			focusHeldRef.current = false
-		},
-		[],
-	)
-
 	// One hold/release pair per source; `held` is that source's flag.
 	function hold(held: RefObject<boolean>) {
 		if (held.current) return
@@ -164,8 +144,51 @@ export function ToastAlert({
 		onResume()
 	}
 
+	// An effect event: the unmount release must call the current resume without
+	// the effect keying on it — a dep change would release still-live holds mid-life.
+	const resume = useEffectEvent(() => onResume())
+
+	const holdFocus = useEffectEvent(() => hold(focusHeldRef))
+
+	// A toast removed while hovered or focused (close click, maxToasts eviction,
+	// programmatic dismiss) gets no pointerleave/blur, so release its holds here —
+	// otherwise the stuck count freezes auto-dismiss for every later toast.
+	useEffect(() => {
+		// Focus can be in the toast before this effect runs: a close moves focus to
+		// a toast that mounts in the same commit. A re-run after the cleanup below
+		// (a re-show under <Activity>, or Strict Mode) gets no new `focus` event, so
+		// the effect takes the hold again.
+		if (contentRef.current?.contains(document.activeElement)) holdFocus()
+
+		return () => {
+			if (hoverHeldRef.current) resume()
+
+			if (focusHeldRef.current) resume()
+
+			// Reset so a re-show under <Activity> (effect cleanup runs while the
+			// refs persist) starts unheld — a stale flag would swallow the next
+			// hold and let auto-dismiss run under the pointer.
+			hoverHeldRef.current = false
+
+			focusHeldRef.current = false
+		}
+	}, [])
+
+	const itemRef = useRef<HTMLLIElement>(null)
+
+	const leave = useEffectEvent(() => onLeave())
+
+	// Every route that closes a toast marks it `dismissed` first: the close button,
+	// an action that calls `dismiss(id)`, and an eviction. The item goes `inert`
+	// only on its removal, a frame later, so a layout effect on the mark moves
+	// focus out before focus falls to the body (WCAG 2.4.3).
+	useLayoutEffect(() => {
+		if (toast.dismissed && itemRef.current?.contains(document.activeElement)) leave()
+	}, [toast.dismissed])
+
 	return (
 		<m.li
+			ref={itemRef}
 			layout
 			className={cn(k.item[edge])}
 			style={{ zIndex }}

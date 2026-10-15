@@ -64,7 +64,8 @@ export type ToastProps = {
  * pause it.
  *
  * When a toast that has focus closes, focus goes to the next toast, else to the
- * previous toast. When it was the last toast, focus goes back to the element
+ * previous toast. This applies to each route that closes a toast: the close
+ * button, an action that calls `dismiss(id)`, and an eviction by `maxToasts`. When it was the last toast, focus goes back to the element
  * that had focus before focus went into the stack (WCAG 2.4.3). A close while
  * focus is not in the toast does not move focus.
  *
@@ -177,13 +178,10 @@ export function Toast({ position = 'bottom-right' }: ToastProps) {
 								zIndex={toasts.length - index}
 								closable={toast.closable}
 								onOpenChange={(open, id) => {
-									if (open) return
-
-									moveFocusFromClosingToast(returnFocusRef.current)
-
 									// The only dismissal a reader drives directly, so it names itself.
-									dismiss(id, 'close')
+									if (!open) dismiss(id, 'close')
 								}}
+								onLeave={() => moveFocusFromClosingToast(returnFocusRef.current)}
 								onPause={pause}
 								onResume={resume}
 								onReset={reset}
