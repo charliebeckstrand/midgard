@@ -73,15 +73,15 @@ Reach: a page under `packages/ui/src/docs/pages` is a shipped surface, because t
 | R8 | `components/avatar/avatar.tsx` | `Avatar` (wide initials) | NARROWED | low | shipped | — | ✅ RESOLVED ([#2578](https://github.com/charliebeckstrand/midgard/pull/2578)) |
 | R9 | `recipes/kata/alert.ts` | `k.base` (forced colors) | CONFIRMED | medium | shipped | — | ✅ RESOLVED ([#2574](https://github.com/charliebeckstrand/midgard/pull/2574)) |
 | R10 | `components/alert/alert.tsx` | `Alert` close `onClick` | CONFIRMED | low | none | — | ✅ RESOLVED ([#2573](https://github.com/charliebeckstrand/midgard/pull/2573)) |
-| R11 | `components/alert/alert.tsx` | `AlertContent` (`0` title) | CONFIRMED | low | none | G7 | ◯ OPEN |
-| R12 | `components/alert/alert.tsx` | `hasBody` | CONFIRMED | low | none | G7 | ◯ OPEN |
+| R11 | `components/alert/alert.tsx` | `AlertContent` (`0` title) | CONFIRMED | low | none | G7 | ✅ RESOLVED ([#2587](https://github.com/charliebeckstrand/midgard/pull/2587)) |
+| R12 | `components/alert/alert.tsx` | `hasBody` | CONFIRMED | low | none | G7 | ✅ RESOLVED ([#2587](https://github.com/charliebeckstrand/midgard/pull/2587)) |
 | R13 | `recipes/kata/alert.ts` | `AlertVariants.color` (TSDoc) | NARROWED | low | none | — | ✅ RESOLVED ([#2574](https://github.com/charliebeckstrand/midgard/pull/2574)) |
 | R14 | `components/address-input/address-input-photon.ts` | `searchInState` (limit) | CONFIRMED | medium | shipped | G6 | ◯ OPEN |
 | R15 | `components/address-input/address-input-photon.ts` | `boxOf` / `searchInState` | CONFIRMED | medium | shipped | G6 | ◯ OPEN |
-| R16 | `components/address-input/address-input-photon.ts` | `featureToSuggestion` (road) | NARROWED | medium | shipped | G2 | ◯ OPEN |
-| R17 | `components/address-input/address-input-photon.ts` | `featureToSuggestion` (postcode) | NARROWED | medium | shipped | G2 | ◯ OPEN |
-| R18 | `components/address-input/address-input-photon-query.ts` | `splitPostcode` (unspaced) | NARROWED | medium | shipped | G4 | ◯ OPEN |
-| R19 | `components/address-input/address-input-photon-query.ts` | `splitPostcode` (ZIP+4) | CONFIRMED | low | shipped | G4 | ◯ OPEN |
+| R16 | `components/address-input/address-input-photon.ts` | `featureToSuggestion` (road) | NARROWED | medium | shipped | G2 | ✅ RESOLVED ([#2588](https://github.com/charliebeckstrand/midgard/pull/2588)) |
+| R17 | `components/address-input/address-input-photon.ts` | `featureToSuggestion` (postcode) | NARROWED | medium | shipped | G2 | ✅ RESOLVED ([#2588](https://github.com/charliebeckstrand/midgard/pull/2588)) |
+| R18 | `components/address-input/address-input-photon-query.ts` | `splitPostcode` (unspaced) | NARROWED | medium | shipped | G4 | ✅ RESOLVED ([#2589](https://github.com/charliebeckstrand/midgard/pull/2589)) |
+| R19 | `components/address-input/address-input-photon-query.ts` | `splitPostcode` (ZIP+4) | CONFIRMED | low | shipped | G4 | ✅ RESOLVED ([#2589](https://github.com/charliebeckstrand/midgard/pull/2589)) |
 | R20 | `components/address-input/address-input-photon-query.ts` | `splitPostcode` (road number) | NARROWED | low | shipped | G4 | ◯ OPEN |
 | R21 | `components/address-input/address-input-photon-query.ts` | `splitUsState` (`CT`) | CONFIRMED | medium | shipped | — | ◯ OPEN |
 | R22 | `components/address-input/address-input-photon.ts` | `searchNearPostcode` (`@remarks`) | NARROWED | low | shipped | G5 | ◯ OPEN |
