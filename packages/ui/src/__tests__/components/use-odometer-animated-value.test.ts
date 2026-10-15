@@ -1,5 +1,6 @@
 import { renderHook } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { animate } from 'motion'
+import { describe, expect, it, vi } from 'vitest'
 import { useOdometerAnimatedValue } from '../../components/odometer/use-odometer-animated-value'
 
 // Steady-state contract only. The RAF interpolation path is exercised through odometer.test.tsx.
@@ -30,5 +31,25 @@ describe('useOdometerAnimatedValue', () => {
 		rerender({ value: 7 })
 
 		expect(result.current.get()).toBe(7)
+	})
+
+	it('keeps the running tween when only the duration changes', () => {
+		const stop = vi.fn()
+
+		vi.mocked(animate).mockImplementationOnce((() => ({ stop })) as unknown as typeof animate)
+
+		const { rerender } = renderHook(
+			({ value, duration }) => useOdometerAnimatedValue({ value, duration }),
+			{ initialProps: { value: 0, duration: 800 } },
+		)
+
+		rerender({ value: 100, duration: 800 })
+
+		// A new duration with the same target applies to the next target only.
+		rerender({ value: 100, duration: 900 })
+
+		expect(animate).toHaveBeenCalledOnce()
+
+		expect(stop).not.toHaveBeenCalled()
 	})
 })
