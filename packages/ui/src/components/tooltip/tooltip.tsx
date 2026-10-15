@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useMemo, useState } from 'react'
+import { type ReactNode, useMemo, useState, useSyncExternalStore } from 'react'
 import type { FloatingPlacement } from '../../hooks'
 import { useLazyModule } from '../../hooks/use-lazy-module'
 import { TooltipContext, type TooltipContextValue } from './context'
@@ -87,6 +87,12 @@ const noProps = () => ({})
 
 const noop = () => {}
 
+/** The choice of the root holds for the life of the tooltip, so no load renders it again. */
+const subscribeNone = () => noop
+
+/** The server has no loaded module. */
+const serverModule = () => null
+
 /**
  * Hover/focus tooltip root; wires up floating state and shares `placement` and
  * `delay` with its `<TooltipTrigger>` and `<TooltipContent>` via context.
@@ -115,8 +121,12 @@ export function Tooltip({ disabled, children, ...props }: TooltipProps) {
 	// The module as the tooltip mounts. A tooltip that mounts after the load
 	// runs the full state from its first render, so only a tooltip that mounts
 	// before the load takes the light state and the handover. The choice holds
-	// for the life of the tooltip, so the tree keeps its shape.
-	const [module] = useState(tooltipBody.read)
+	// for the life of the tooltip, so the tree keeps its shape. A hydration reads
+	// the snapshot of the server, so it takes the light state as the server did,
+	// also when the client loaded the module before the hydration.
+	const mounting = useSyncExternalStore(subscribeNone, tooltipBody.read, serverModule)
+
+	const [module] = useState(mounting)
 
 	// The public polarity is `disabled`; the state hook and floating-ui's own
 	// hooks under it read `enabled`, so the inversion happens once, here.
@@ -137,7 +147,8 @@ export function Tooltip({ disabled, children, ...props }: TooltipProps) {
 type LightTooltipProps = Omit<TooltipProps, 'disabled'> & { enabled: boolean }
 
 /**
- * A `<Tooltip>` that mounted before the state module loaded. It shares a
+ * A `<Tooltip>` that mounted before the state module loaded, or that hydrated
+ * server markup. It shares a
  * closed state and records the intent of the reader. When the module loads,
  * it renders `TooltipStateHost` beside its children and shares the value that
  * the host gives.
