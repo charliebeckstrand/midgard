@@ -1413,11 +1413,15 @@ describe('Menu on a phone', () => {
 		title,
 		description,
 		glass,
+		label,
+		labelledby,
 	}: {
 		sheet?: boolean
 		title?: string
 		description?: string
 		glass?: boolean
+		label?: string
+		labelledby?: string
 	} = {}) {
 		stubMatchMedia((query) => query.startsWith('(hover: none)'))
 
@@ -1426,16 +1430,26 @@ describe('Menu on a phone', () => {
 		const user = setupUser()
 
 		renderUI(
-			<Menu placement="bottom-start" sheet={sheet}>
-				<MenuTrigger>
-					<button type="button">Add tile</button>
-				</MenuTrigger>
+			<>
+				<h2 id="tile-menu-name">Dashboard tiles</h2>
 
-				<MenuContent title={title} description={description} glass={glass}>
-					<MenuItem onAction={onAction}>Orders</MenuItem>
-					<MenuItem>Revenue</MenuItem>
-				</MenuContent>
-			</Menu>,
+				<Menu placement="bottom-start" sheet={sheet}>
+					<MenuTrigger>
+						<button type="button">Add tile</button>
+					</MenuTrigger>
+
+					<MenuContent
+						title={title}
+						description={description}
+						glass={glass}
+						aria-label={label}
+						aria-labelledby={labelledby}
+					>
+						<MenuItem onAction={onAction}>Orders</MenuItem>
+						<MenuItem>Revenue</MenuItem>
+					</MenuContent>
+				</Menu>
+			</>,
 		)
 
 		return { onAction, user }
@@ -1485,6 +1499,21 @@ describe('Menu on a phone', () => {
 		await user.click(screen.getByRole('button', { name: 'Add tile' }))
 
 		expect(screen.getByRole('menu', { name })).toBeInTheDocument()
+	})
+
+	// A name from the consumer names the menu, as in the popover. The heading
+	// and the name of the sheet stay the title or the trigger.
+	it.each([
+		['the aria-label of the content', { label: 'Tile types' }, 'Tile types'],
+		['the aria-labelledby of the content', { labelledby: 'tile-menu-name' }, 'Dashboard tiles'],
+	])('names the menu in the sheet by %s', async (_name, props, name) => {
+		const { user } = renderPhoneMenu({ title: 'New tile', ...props })
+
+		await user.click(screen.getByRole('button', { name: 'Add tile' }))
+
+		expect(screen.getByRole('menu', { name })).toBeInTheDocument()
+
+		expect(screen.getByRole('dialog', { name: 'New tile' })).toBeInTheDocument()
 	})
 
 	// The per-surface opt-in reaches the sheet, as it reaches the popover, with

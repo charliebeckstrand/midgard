@@ -98,7 +98,14 @@ export function MenuContent({
 
 	if (isSheet) {
 		return (
-			<MenuSheet title={title} description={description} glass={glass} className={className}>
+			<MenuSheet
+				title={title}
+				description={description}
+				glass={glass}
+				aria-label={ariaLabel}
+				aria-labelledby={ariaLabelledby}
+				className={className}
+			>
 				{children}
 			</MenuSheet>
 		)
