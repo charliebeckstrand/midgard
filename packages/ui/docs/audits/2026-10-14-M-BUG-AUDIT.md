@@ -118,3 +118,6 @@ Three lanes with disjoint file sets can run in parallel: Menu (S1, S2, S3), Mark
 - Verifier B02: `formatNANP` strips the `1` at the 11th digit; with the caret mid-text, the caret may move by one, as in R6. Not traced.
 - Merge pass: `credit-card-input/use-credit-card-input-field.ts` also calls `useMaskInput`; whether the card input must follow a native form reset after S8 is not judged.
 - Digest: R16 of `2026-10-11-BUG-AUDIT.md` (`MenuTrigger` `handleTriggerKeyUp`, Firefox Space) is still open on its Q7; this sweep did not raise it again.
+- Resolver S7: the US caret predicate counts a leading `1` that `formatNANP` strips above 10 digits, so the caret can land one place off after a paste of more than 10 digits (true at 11 digits before S7). Not fixed.
+- Resolver S5: autolinks (`<https://…>`, bare URLs, `www.`) reach the same `link` branch, so S5 decodes their destinations too, as a browser does with marked's HTML.
+- Resolvers: the `biome-format.sh` edit hook processes no file under `.claude/worktrees/`, and parallel gate runs on one host can be killed for memory (exit 137) or time out load-sensitive tests (`page-error-boundary`, `page-smoke-grid`, two Grid tests).
