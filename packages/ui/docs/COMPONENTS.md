@@ -23,6 +23,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > `CheckboxGroup` and `RadioGroup` require their own name: give `aria-label` or `aria-labelledby`. The `<legend>` of an enclosing `<fieldset>` does not name the group.
 
+> A `RadioGroup` in a `Field` takes the description of the `Field`. A bare `Radio` in the group does not take the id of the `Field`. Wrap each `Radio` in a `RadioField` to give it an id and a `Label`.
+
 > A `readOnly` or `disabled` `rating` renders one image. Its name is the name of the consumer or the `Field` label.
 
 > The floating pickers `Listbox`, `Combobox`, `DatePicker`, and `ColorPicker` take a `FloatingPlacement` ([`HOOKS.md`](HOOKS.md)). An explicit placement keeps its alignment.

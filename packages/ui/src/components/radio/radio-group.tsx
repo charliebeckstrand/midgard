@@ -1,11 +1,12 @@
 'use client'
 
-import type { ComponentProps } from 'react'
+import { type ComponentProps, useMemo } from 'react'
 import { ariaAttr } from '../../core'
 import { ToggleGroup } from '../../primitives/toggle'
 import type { AccessibleName } from '../../types'
+import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
-import { RadioGroupReadOnlyContext } from './context'
+import { RadioGroupContext } from './context'
 
 /**
  * Props for {@link RadioGroup}. Requires an accessible name (`aria-label` or
@@ -41,16 +42,42 @@ export type RadioGroupProps = AccessibleName & {
  * single-selection and arrow-key navigation. A read-only group sets
  * `aria-readonly`, and each radio in it blocks the check. A radio does not set
  * `aria-readonly`, because ARIA defines it on the group.
+ *
+ * In a `<Field>` or `<Control>`, the group takes the description of that
+ * wrapper as its own `aria-describedby`. A bare {@link Radio} of the group does
+ * not adopt the id or the description of the wrapper, because the wrapper is
+ * for the group. The radio still takes `disabled`, `required`, `readOnly`, and
+ * the validation state of the wrapper. A {@link RadioField} in the group gives
+ * its radio its own id.
  * @see {@link Radio}
  */
-export function RadioGroup({ readOnly, ...props }: RadioGroupProps) {
-	const { readOnly: resolvedReadOnly } = useControlProps({ readOnly })
+export function RadioGroup({
+	readOnly,
+	'aria-describedby': ariaDescribedBy,
+	...props
+}: RadioGroupProps) {
+	const fieldId = useControl()?.id
 
-	// Consumer props spread first; the radiogroup role and the read-only state
-	// after them take precedence.
+	const { readOnly: resolvedReadOnly, 'aria-describedby': resolvedDescribedBy } = useControlProps({
+		readOnly,
+		'aria-describedby': ariaDescribedBy,
+	})
+
+	const group = useMemo(
+		() => ({ readOnly: !!resolvedReadOnly, fieldId }),
+		[resolvedReadOnly, fieldId],
+	)
+
+	// Consumer props spread first; the radiogroup role, the description, and the
+	// read-only state after them take precedence.
 	return (
-		<RadioGroupReadOnlyContext value={!!resolvedReadOnly}>
-			<ToggleGroup {...props} role="radiogroup" aria-readonly={ariaAttr(resolvedReadOnly)} />
-		</RadioGroupReadOnlyContext>
+		<RadioGroupContext value={group}>
+			<ToggleGroup
+				{...props}
+				role="radiogroup"
+				aria-describedby={resolvedDescribedBy}
+				aria-readonly={ariaAttr(resolvedReadOnly)}
+			/>
+		</RadioGroupContext>
 	)
 }
