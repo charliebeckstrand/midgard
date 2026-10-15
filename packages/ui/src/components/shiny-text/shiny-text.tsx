@@ -50,6 +50,10 @@ export type ShinyTextProps = {
  * Chromium paints an animated background in each frame also off screen, so the
  * class comes off when the text leaves the viewport.
  *
+ * The span keeps its gradient in print (`print-color-adjust: exact`). The
+ * glyphs are transparent, so a print with no background graphics otherwise
+ * shows no text.
+ *
  * The five tuning props are deliberate. No app consumes this component, and
  * its demo exercises every one of them. A decorative surface earns its knobs,
  * but the zero-usage rule deleted `delay`, `yoyo`, `pauseOnHover`, and `sweep`.
@@ -81,6 +85,9 @@ export function ShinyText({
 			data-slot="shiny-text"
 			className={cn(
 				'inline-block bg-clip-text text-transparent',
+				// The gradient alone paints the transparent glyphs. A print with no
+				// background graphics drops it, so the span keeps its background in print.
+				'[print-color-adjust:exact]',
 				'[--shiny-text-color:var(--color-zinc-600)] dark:[--shiny-text-color:var(--color-zinc-400)]',
 				// A white shine erases the glyphs on a light page, so the light shine is dark.
 				'[--shiny-text-shine:var(--color-zinc-950)] dark:[--shiny-text-shine:var(--color-white)]',

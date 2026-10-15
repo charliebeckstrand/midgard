@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Lightbox, type LightboxPhoto, LightboxTrigger } from '../../../components/lightbox'
 import { ReducedMotionContext } from '../../../primitives/reduced-motion/context'
-import { frame, frames, present, renderUI, screen } from '../../helpers'
+import { frame, present, renderUI, screen } from '../../helpers'
 import { sampleMotionFrames } from '../helpers/motion-frame'
 
 /**
@@ -64,13 +64,6 @@ async function open(index: number) {
 	await expect.poll(still).toBe(true)
 }
 
-/** Closes the viewer with Escape, and waits two frames into the return. */
-async function startReturn() {
-	await userEvent.keyboard('{Escape}')
-
-	await frames()
-}
-
 /**
  * Holds the tweens of `element` and of its descendants at `progress` of their
  * length, in the frame that starts them, and gives them. A tween runs on
@@ -90,6 +83,21 @@ async function hold(element: HTMLElement, progress: number) {
 	}
 
 	return tweens
+}
+
+/**
+ * Closes the viewer with Escape, and holds the return halfway. The return runs
+ * on wall-clock time. Thus, without the hold, a slow round trip of the key can
+ * let the return land before the reopen, and the reopen then mounts a new
+ * viewer. The sampler starts before the key, so it holds the return in its
+ * first frame. The reopen stops the held tweens.
+ */
+async function startReturn() {
+	const back = hold(slot(0), 0.5)
+
+	await userEvent.keyboard('{Escape}')
+
+	await back
 }
 
 /**

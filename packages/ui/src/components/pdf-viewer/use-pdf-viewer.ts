@@ -240,6 +240,21 @@ export type PdfViewerResult = {
 
 const DEFAULT_ZOOM_LEVELS = [0.5, 0.75, 1, 1.25, 1.5, 2, 3]
 
+/*
+ * The open state of the mobile thumbnail Sheet. The Sheet is for the narrow layout only. At
+ * lg the desktop layout unmounts its panel, but the Sheet root keeps this state. If the state
+ * stays true, the modal opens again without a press when the viewport narrows (a tablet
+ * rotation). Thus the state resets during the render that reaches desktop, and the open
+ * state ignores it at desktop.
+ */
+function useThumbsSheet(isDesktop: boolean): [boolean, (open: boolean) => void] {
+	const [choice, setChoice] = useState(false)
+
+	if (isDesktop && choice) setChoice(false)
+
+	return [choice && !isDesktop, setChoice]
+}
+
 /**
  * Composes the PDF viewer's state — document loading, pagination, per-page
  * rotation, zoom, and the measured viewport/page scale — into one memoized
@@ -508,7 +523,7 @@ export function usePdfViewer({
 
 	const sidebarAnimates = sidebarChoice !== null && !reducedMotion
 
-	const [thumbsOpen, setThumbsOpen] = useState(false)
+	const [thumbsOpen, setThumbsOpen] = useThumbsSheet(isDesktop)
 
 	// Chrome, like the two above: nothing outside drives it, so it is state rather than a
 	// prop. Lives here (not with the overlay's own state) because the toolbar reads it, and
@@ -642,6 +657,7 @@ export function usePdfViewer({
 			sidebarOpen,
 			sidebarAnimates,
 			thumbsOpen,
+			setThumbsOpen,
 			hasHighlights,
 			highlightsVisible,
 			setHighlightsVisible,

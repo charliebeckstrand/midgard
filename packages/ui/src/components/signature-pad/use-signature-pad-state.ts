@@ -1,6 +1,14 @@
 'use client'
 
-import { type Ref, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import {
+	type PointerEvent as ReactPointerEvent,
+	type Ref,
+	useCallback,
+	useEffect,
+	useImperativeHandle,
+	useRef,
+	useState,
+} from 'react'
 import { useControlProps } from '../control/use-control-props'
 import { useFormValue } from '../form/use-form-value'
 import { drawSnapshot } from './signature-pad-utilities'
@@ -55,6 +63,8 @@ export type SignaturePadStateOptions = {
  * differs from the shown value repaints from the snapshot via an effect.
  * External resets therefore stay in sync without re-emitting. A stroke that a
  * controlled owner does not take is wiped, so the pad shows the owner's value.
+ * A new value or a clear cancels the paint of a value that is still in decode,
+ * so the old value does not paint after it.
  */
 export function useSignaturePadState({
 	name,
@@ -107,6 +117,16 @@ export function useSignaturePadState({
 		strokeWidth,
 	})
 
+	// Cancels the draw of a value that is still in decode. A later value or a
+	// clear calls it, so that the old value does not paint after it.
+	const cancelDraw = useRef<(() => void) | null>(null)
+
+	const cancelPendingDraw = useCallback(() => {
+		cancelDraw.current?.()
+
+		cancelDraw.current = null
+	}, [])
+
 	useEffect(() => {
 		if (current === shown) return
 
@@ -117,6 +137,8 @@ export function useSignaturePadState({
 		const context = canvas.getContext('2d')
 
 		if (!context) return
+
+		cancelPendingDraw()
 
 		context.clearRect(0, 0, canvas.width, canvas.height)
 
@@ -130,12 +152,12 @@ export function useSignaturePadState({
 			return
 		}
 
-		drawSnapshot(canvas, current, forgetDrawing)
+		cancelDraw.current = drawSnapshot(canvas, current, forgetDrawing)
 
 		setEmpty(false)
 
 		setShown(current)
-	}, [current, shown, forgetDrawing])
+	}, [current, shown, forgetDrawing, cancelPendingDraw])
 
 	// A stroke end records its snapshot as shown before it emits. The sync
 	// effect then skips a value that the pad drew, and wipes a value that the
@@ -169,11 +191,16 @@ export function useSignaturePadState({
 	// A stroke ending or a clear is the field's "blur" — the user has acted on
 	// the pad, so mark the bound Form field touched (no-op outside a Form). A
 	// pointer release or leave with no stroke is not a stroke end.
-	const commit = useCallback(() => {
-		if (commitStroke()) setTouched()
-	}, [commitStroke, setTouched])
+	const commit = useCallback(
+		(event?: ReactPointerEvent) => {
+			if (commitStroke(event)) setTouched()
+		},
+		[commitStroke, setTouched],
+	)
 
 	const clear = useCallback(() => {
+		cancelPendingDraw()
+
 		const canvas = canvasRef.current
 
 		if (canvas) {
@@ -189,7 +216,7 @@ export function useSignaturePadState({
 		emit(null)
 
 		setTouched()
-	}, [forgetDrawing, emit, setTouched])
+	}, [cancelPendingDraw, forgetDrawing, emit, setTouched])
 
 	useImperativeHandle(
 		ref,

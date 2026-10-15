@@ -31,7 +31,8 @@ const STATE_TEXT = {
  * assistive tech (WCAG 1.4.1). A completed step fills green and draws a
  * checkmark. `<StepperStep>` injects a default instance when the consumer omits
  * one. Pass a number or another glyph as `children` to replace the checkmark; it
- * renders ahead of the `sr-only` suffix.
+ * renders ahead of the `sr-only` suffix. On the current step, it paints in white
+ * above the blue fill.
  */
 export function StepperIndicator({ className, children, ...props }: StepperIndicatorProps) {
 	const { onValueChange } = useStepper()
@@ -39,12 +40,17 @@ export function StepperIndicator({ className, children, ...props }: StepperIndic
 
 	const interactive = onValueChange !== undefined
 
+	const content =
+		children ??
+		(state === 'completed' && <Check aria-hidden="true" className={k.indicator.check} />)
+
 	return (
 		<span
 			data-slot="stepper-indicator"
 			className={cn(
 				k.indicator.base,
 				interactive && k.indicator.interactive,
+				state === 'current' && k.indicator.current,
 				state === 'completed' && k.indicator.completed,
 				className,
 			)}
@@ -53,8 +59,7 @@ export function StepperIndicator({ className, children, ...props }: StepperIndic
 			{state === 'current' && (
 				<ActiveIndicator className={cn(k.indicator.active)} style={{ borderRadius: '9999px' }} />
 			)}
-			{children ??
-				(state === 'completed' && <Check aria-hidden="true" className={k.indicator.check} />)}
+			{content !== false && <span className={cn(k.indicator.content)}>{content}</span>}
 			<span className="sr-only">, {STATE_TEXT[state]}</span>
 		</span>
 	)

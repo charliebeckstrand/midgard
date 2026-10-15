@@ -57,3 +57,29 @@ export function findScrollableAncestor(start: HTMLElement | null): HTMLElement |
 
 	return null
 }
+
+/**
+ * Whether an element from `start` up to `boundary` can scroll horizontally.
+ * The check does not include `boundary`. Treats `auto`, `scroll`, and
+ * `overlay` overflow as scrollable.
+ *
+ * @internal
+ */
+export function scrollsHorizontallyWithin(start: Element | null, boundary: HTMLElement): boolean {
+	let current = start
+
+	while (current && current !== boundary) {
+		const { overflowX } = getComputedStyle(current)
+
+		if (
+			(overflowX === 'auto' || overflowX === 'scroll' || overflowX === 'overlay') &&
+			current.scrollWidth > current.clientWidth
+		) {
+			return true
+		}
+
+		current = current.parentElement
+	}
+
+	return false
+}
