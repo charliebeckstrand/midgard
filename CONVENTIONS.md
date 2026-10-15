@@ -114,7 +114,7 @@ Do not declare a key again when the base gives it. `Omit<ComponentProps<'div'>, 
 | A value that the reader cannot change | `readOnly` | `isReadOnly` |
 | An action in progress | `loading` | `pending` |
 | A close button on the part | `closable` | `dismissible` |
-| The level of a heading | `level`, or `<part>Level` when the level belongs to a part, as `titleLevel`, with the type `HeadingLevel` | A union `1 \| 2 \| 3 \| 4 \| 5 \| 6` written by hand |
+| The level of a heading | `level`, or `<part>Level` when the level belongs to a part, as the `titleLevel` of a Dashboard, with the type `HeadingLevel` | A union `1 \| 2 \| 3 \| 4 \| 5 \| 6` written by hand |
 | The semantic kind of a message | `severity`, with the type `AlertSeverity` or a union that adds to it | A second union of the same kinds |
 | The density step | `size` (§4.4) | |
 | The style of the part | `variant` | |

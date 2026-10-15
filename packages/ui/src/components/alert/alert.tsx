@@ -17,7 +17,6 @@ import { type AlertVariants, k } from '../../recipes/kata/alert'
 import { flattenChildren } from '../../utilities/flatten-children'
 import { Button } from '../button'
 import { type ButtonDefaults, ButtonDefaultsProvider } from '../button/context'
-import type { HeadingLevel } from '../heading'
 import { Icon } from '../icon'
 import { AlertBody } from './alert-body'
 
@@ -83,14 +82,6 @@ export type AlertProps = Omit<AlertVariants, 'color'> &
 		icon?: ReactElement
 		/** The heading of the alert, in the larger, semibold text. A severity icon shows only with a title. */
 		title?: ReactNode
-		/**
-		 * Heading level of the `title`. Set it when the alert heads a part of the page,
-		 * so that a screen reader can find the title in the heading list. Omit it to
-		 * render the title in a `<div>`. The look does not change with the level.
-		 *
-		 * @defaultValue No level: the title renders in a `<div>`.
-		 */
-		titleLevel?: HeadingLevel
 		/** The text under the title, in a tight line height. */
 		description?: ReactNode
 		/**
@@ -181,7 +172,6 @@ function resolveAlertPresentation(
 function AlertContent({
 	resolvedIcon,
 	title,
-	titleLevel,
 	description,
 	actions,
 	actionDefaults,
@@ -189,22 +179,17 @@ function AlertContent({
 }: {
 	resolvedIcon: ReactElement | undefined
 	title: ReactNode
-	titleLevel: HeadingLevel | undefined
 	description: ReactNode
 	actions: ReactNode
 	actionDefaults: ButtonDefaults
 	children: ReactNode
 }) {
-	// Tailwind preflight resets the font and the margin of a heading, so a heading
-	// title looks the same as a `<div>` title.
-	const Title = titleLevel === undefined ? 'div' : (`h${titleLevel}` as const)
-
 	return (
 		<div className={cn(k.content, resolvedIcon ? k.columns : 'flex flex-col')}>
 			{resolvedIcon && <Icon icon={resolvedIcon} className={cn(k.icon)} />}
 
 			{hasContent(title) && (
-				<Title className={cn(k.title, resolvedIcon && 'self-center')}>{title}</Title>
+				<div className={cn(k.title, resolvedIcon && 'self-center')}>{title}</div>
 			)}
 
 			{hasContent(description) && <div className={cn(k.description)}>{description}</div>}
@@ -249,7 +234,6 @@ export function Alert({
 	color,
 	icon,
 	title,
-	titleLevel,
 	description,
 	actions,
 	closable,
@@ -322,7 +306,6 @@ export function Alert({
 			<AlertContent
 				resolvedIcon={resolvedIcon}
 				title={title}
-				titleLevel={titleLevel}
 				description={description}
 				actions={actions}
 				actionDefaults={

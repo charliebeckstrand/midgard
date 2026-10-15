@@ -11,7 +11,7 @@ export default function AlertPage() {
 			<Playground
 				of={AlertPlayground}
 				api={api}
-				omit={['open', 'defaultOpen', 'closable', 'titleLevel', 'announceOnMount', 'color']}
+				omit={['open', 'defaultOpen', 'closable', 'announceOnMount', 'color']}
 				free={{ title: 'Your trial ends in 3 days' }}
 			/>
 			<Example of={WithDescription} />
