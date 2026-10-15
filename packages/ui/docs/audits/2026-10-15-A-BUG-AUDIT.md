@@ -63,7 +63,7 @@ Reach: a page under `packages/ui/src/docs/pages` is a shipped surface, because t
 
 | Row | File | Symbol | Verdict | Severity | Reach | Group | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| R1 | `recipes/kata/accordion.ts` | `k.trigger`, item focus ring | CONFIRMED | medium | shipped | — | ◯ OPEN |
+| R1 | `recipes/kata/accordion.ts` | `k.trigger`, item focus ring | CONFIRMED | medium | shipped | — | ◐ FIXED |
 | R2 | `components/accordion/use-accordion-selection.ts` | `useAccordionSelection` | NARROWED | low | none | — | ◯ OPEN |
 | R3 | `components/accordion/accordion-skeleton.tsx` | `AccordionSkeleton` (TSDoc) | CONFIRMED | low | shipped | — | ◯ OPEN |
 | R4 | `components/accordion/context.ts` | `useAccordionItem` (not exported) | CONFIRMED | low | none | — | ◯ OPEN |
@@ -71,11 +71,11 @@ Reach: a page under `packages/ui/src/docs/pages` is a shipped surface, because t
 | R6 | `components/aspect-ratio/aspect-ratio.tsx` | `AspectRatio` (preset style) | CONFIRMED | low | none | G1 | ◯ OPEN |
 | R7 | `components/aspect-ratio/aspect-ratio.tsx` | `AspectRatio` (invalid number) | CONFIRMED | low | none | G1 | ◯ OPEN |
 | R8 | `components/avatar/avatar.tsx` | `Avatar` (wide initials) | NARROWED | low | shipped | — | ◯ OPEN |
-| R9 | `recipes/kata/alert.ts` | `k.base` (forced colors) | CONFIRMED | medium | shipped | — | ◯ OPEN |
+| R9 | `recipes/kata/alert.ts` | `k.base` (forced colors) | CONFIRMED | medium | shipped | — | ◐ FIXED |
 | R10 | `components/alert/alert.tsx` | `Alert` close `onClick` | CONFIRMED | low | none | — | ◯ OPEN |
 | R11 | `components/alert/alert.tsx` | `AlertContent` (`0` title) | CONFIRMED | low | none | G7 | ◯ OPEN |
 | R12 | `components/alert/alert.tsx` | `hasBody` | CONFIRMED | low | none | G7 | ◯ OPEN |
-| R13 | `recipes/kata/alert.ts` | `AlertVariants.color` (TSDoc) | NARROWED | low | none | — | ◯ OPEN |
+| R13 | `recipes/kata/alert.ts` | `AlertVariants.color` (TSDoc) | NARROWED | low | none | — | ◐ FIXED |
 | R14 | `components/address-input/address-input-photon.ts` | `searchInState` (limit) | CONFIRMED | medium | shipped | G6 | ◯ OPEN |
 | R15 | `components/address-input/address-input-photon.ts` | `boxOf` / `searchInState` | CONFIRMED | medium | shipped | G6 | ◯ OPEN |
 | R16 | `components/address-input/address-input-photon.ts` | `featureToSuggestion` (road) | NARROWED | medium | shipped | G2 | ◯ OPEN |
