@@ -11,7 +11,8 @@ export type OdometerProps = {
 	/** The target number. A change tweens the readout from the current figure to this one. */
 	value: number
 	/**
-	 * Tween length in milliseconds.
+	 * Tween length in milliseconds. A running tween keeps its length, and a new
+	 * `duration` applies to the next `value`.
 	 * @defaultValue 800
 	 */
 	duration?: number
