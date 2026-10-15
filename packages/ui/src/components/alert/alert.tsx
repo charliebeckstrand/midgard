@@ -1,7 +1,7 @@
 'use client'
 
 import { AlertTriangle, CheckCircle, Info, X, XCircle } from 'lucide-react'
-import { type ReactElement, type ReactNode, type RefObject, useRef } from 'react'
+import { type ReactElement, type ReactNode, type RefObject, useLayoutEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { useControllableFlag } from '../../hooks'
 import { useAnnounceOnAppear } from '../../hooks/a11y/use-announce-on-appear'
@@ -116,6 +116,10 @@ export type AlertProps = Omit<AlertVariants, 'color'> & {
 	 * element instead of letting it fall to the document body (WCAG 2.4.3).
 	 * Opt-in; focus is untouched when unset. Point it at the control that
 	 * surfaced the alert.
+	 *
+	 * @remarks
+	 * Focus moves only when the alert closes. A controlled alert that stays
+	 * open after the press keeps focus on its close button.
 	 */
 	returnFocusTo?: RefObject<HTMLElement | null>
 	className?: string
@@ -245,6 +249,19 @@ export function Alert({
 
 	const ref = useRef<HTMLDivElement>(null)
 
+	// Set when the close button is pressed. The focus moves only on the commit
+	// that closes the alert, because a controlled alert can stay open.
+	const closePressedRef = useRef(false)
+
+	useLayoutEffect(() => {
+		if (open || !closePressedRef.current) return
+
+		closePressedRef.current = false
+
+		// Moves focus to the caller's element rather than <body> (WCAG 2.4.3).
+		returnFocusTo?.current?.focus()
+	}, [open, returnFocusTo])
+
 	// Screen readers can miss `role="status"` (info/success) when the live
 	// region and its text are inserted together, so an alert that opens mirrors
 	// its text through the announcer (WCAG 4.1.3). `role="alert"`
@@ -297,10 +314,9 @@ export function Alert({
 						color={variant === 'solid' ? 'inherit' : resolvedColor}
 						aria-label="Dismiss"
 						onClick={() => {
-							setOpen(false)
+							closePressedRef.current = true
 
-							// Moves focus to the caller's element rather than <body> (WCAG 2.4.3).
-							returnFocusTo?.current?.focus()
+							setOpen(false)
 						}}
 					>
 						<Icon icon={<X />} />

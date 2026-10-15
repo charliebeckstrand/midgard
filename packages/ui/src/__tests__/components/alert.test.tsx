@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Alert } from '../../components/alert'
 import { Button } from '../../components/button'
@@ -240,6 +240,68 @@ describe('Alert', () => {
 		// The dismiss button unmounts with the alert; focus lands on the caller's
 		// element rather than falling to <body>.
 		expect(screen.queryByRole('button', { name: 'Dismiss' })).not.toBeInTheDocument()
+
+		expect(screen.getByRole('button', { name: 'Trigger' })).toHaveFocus()
+	})
+
+	it('keeps focus on the dismiss button when a controlled alert stays open', () => {
+		function Harness() {
+			const triggerRef = useRef<HTMLButtonElement>(null)
+
+			return (
+				<>
+					<button ref={triggerRef} type="button">
+						Trigger
+					</button>
+
+					<Alert open closable returnFocusTo={triggerRef}>
+						content
+					</Alert>
+				</>
+			)
+		}
+
+		renderUI(<Harness />)
+
+		const dismiss = screen.getByRole('button', { name: 'Dismiss' })
+
+		dismiss.focus()
+
+		fireEvent.click(dismiss)
+
+		// No `onOpenChange`, so the alert stays open, and focus stays on its button.
+		expect(screen.getByText('content')).toBeInTheDocument()
+
+		expect(dismiss).toHaveFocus()
+	})
+
+	it('moves focus to returnFocusTo when a controlled parent closes the alert', () => {
+		function Harness() {
+			const triggerRef = useRef<HTMLButtonElement>(null)
+			const [open, setOpen] = useState(true)
+
+			return (
+				<>
+					<button ref={triggerRef} type="button">
+						Trigger
+					</button>
+
+					<Alert open={open} onOpenChange={setOpen} closable returnFocusTo={triggerRef}>
+						content
+					</Alert>
+				</>
+			)
+		}
+
+		renderUI(<Harness />)
+
+		const dismiss = screen.getByRole('button', { name: 'Dismiss' })
+
+		dismiss.focus()
+
+		fireEvent.click(dismiss)
+
+		expect(screen.queryByText('content')).not.toBeInTheDocument()
 
 		expect(screen.getByRole('button', { name: 'Trigger' })).toHaveFocus()
 	})
