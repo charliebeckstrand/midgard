@@ -6,6 +6,7 @@ import {
 	type HTMLProps,
 	type KeyboardEventHandler,
 	type ReactNode,
+	useEffect,
 	useRef,
 } from 'react'
 import { cn } from '../../core'
@@ -69,6 +70,26 @@ export function ListboxPanel({
 	// running its initial-focus effect.
 	const initialFocusRef = useRef<HTMLElement | null>(null)
 
+	const floatingRef = useRef<HTMLElement | null>(null)
+
+	// A reopen inside the exit animation reuses the mounted panel. The autofocus of
+	// `PopoverPanel` runs only on a mount, and the focus manager keeps the open
+	// state of the last open render, so neither moves the focus. The focus then
+	// stays on the trigger, and the arrow keys of the open panel reach nothing.
+	// On a fresh open the focus is already in the panel, and this does nothing.
+	useEffect(() => {
+		const node = floatingRef.current
+
+		if (!open || !node || node.contains(document.activeElement)) return
+
+		const target =
+			node.querySelector<HTMLElement>('[role="option"][data-selected]') ??
+			node.querySelector<HTMLElement>('[data-slot="popover-panel"]') ??
+			node
+
+		target.focus({ preventScroll: true })
+	}, [open])
+
 	// The portal carries the density scope of the listbox. An explicit `size` is
 	// the scope of the `PopoverPanel` inside.
 	return (
@@ -90,6 +111,8 @@ export function ListboxPanel({
 				<div
 					ref={(node) => {
 						setFloating(node)
+
+						floatingRef.current = node
 
 						initialFocusRef.current =
 							node?.querySelector<HTMLElement>('[role="option"][data-selected]') ??
