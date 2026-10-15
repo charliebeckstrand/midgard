@@ -157,6 +157,24 @@ describe('sparklineGeometry', () => {
 		expect(geometry.bars[0]).toMatchObject({ y: 37, height: 1 })
 	})
 
+	it('clamps a series below a pinned floor to the bottom edge', () => {
+		const geometry = sparklineGeometry([1, 5, 3], { ...box, min: 10, minBarHeight: 1 })
+
+		// Each value is below the floor, so each point sits on the bottom inset.
+		expect(geometry.points.map((point) => point.y)).toEqual([38, 38, 38])
+
+		expect(geometry.bars[0]).toMatchObject({ y: 37, height: 1 })
+	})
+
+	it('clamps a series above a pinned ceiling to the top edge', () => {
+		const geometry = sparklineGeometry([-1, -5, -3], { ...box, max: -10, minBarHeight: 1 })
+
+		// Each value is above the ceiling, so each point sits on the top inset.
+		expect(geometry.points.map((point) => point.y)).toEqual([2, 2, 2])
+
+		expect(geometry.bars[0]).toMatchObject({ y: 2, height: 1 })
+	})
+
 	it('closes the area on the zero line when the domain crosses zero', () => {
 		const geometry = sparklineGeometry([-1, 1], { ...box })
 
