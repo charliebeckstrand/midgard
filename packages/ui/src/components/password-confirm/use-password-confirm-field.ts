@@ -50,7 +50,8 @@ export function usePasswordConfirmField(
 	let resolved = own
 
 	if (value !== undefined) resolved = toFieldText(value)
-	else if (field) resolved = toFieldText(field.value)
+	// A bound field shows `''` for a value that is not a string, as `useInputValue` does.
+	else if (field) resolved = typeof field.value === 'string' ? field.value : ''
 
 	// Each cleanup clears its report, so an unmounted field stops reporting a
 	// stale mismatch. A re-run writes the new report in the same commit.
