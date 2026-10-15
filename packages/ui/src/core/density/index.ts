@@ -2,6 +2,7 @@ export {
 	defineScale,
 	type Ramp,
 	type RampSteps,
+	rampValue,
 	type Scale,
 	type ScaleStep,
 } from './scale'

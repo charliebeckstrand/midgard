@@ -14,6 +14,7 @@ export {
 	defineScale,
 	densitySteps,
 	type InnerStep,
+	rampValue,
 	type Scale,
 	type ScaleStep,
 } from './density'

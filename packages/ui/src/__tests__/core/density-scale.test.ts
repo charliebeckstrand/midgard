@@ -1,6 +1,12 @@
 // @vitest-environment node
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import { defineScale, type RampSteps, type ScaleStep, stepsOfRamp } from '../../core/density/scale'
+import {
+	defineScale,
+	type RampSteps,
+	rampValue,
+	type ScaleStep,
+	stepsOfRamp,
+} from '../../core/density/scale'
 
 // A scale holds the steps at which a ramp renders a value of its own. A type
 // reads them from the literal class, so a `size` prop offers only those steps.
@@ -54,5 +60,25 @@ describe('defineScale', () => {
 		expectTypeOf<RampSteps<'density-text-[xs,sm,base,lg,lg]'>>().toEqualTypeOf<
 			'xs' | 'sm' | 'md' | 'lg'
 		>()
+	})
+})
+
+describe('rampValue', () => {
+	it('reads the value of each step of five values', () => {
+		expect(rampValue('density-p-[2,3,4,5,6]', 'xs')).toBe('2')
+
+		expect(rampValue('density-p-[2,3,4,5,6]', 'md')).toBe('4')
+	})
+
+	it('gives the clamp that the ramp holds at an outer step', () => {
+		expect(rampValue('density-size-[3,4,5,6,6]', 'xl')).toBe('6')
+
+		expect(rampValue('density-p-[2,3,4]', 'xs')).toBe('2')
+
+		expect(rampValue('density-p-[2,3,4]', 'xl')).toBe('4')
+	})
+
+	it('throws for a list that the utility does not write', () => {
+		expect(() => rampValue('density-p-[2,3]', 'md')).toThrow(/three or five/)
 	})
 })

@@ -28,6 +28,7 @@ import { cn, createContext, createSlot, announce } from 'ui/core'
 | `DensityStep` *(type)* | A step of density: a value of `data-density` and of the density context. |
 | `InnerStep` *(type)* | The three inner steps (`sm` / `md` / `lg`): a density level maps to one, and a JS reader with three values clamps to one. |
 | `defineScale` | Makes the size scale of a component from the ramps that its `size` drives. The scale holds each step at which one ramp at least has a value of its own. |
+| `rampValue` | Reads the value of a ramp at a density step, as the ramp writes it. A ramp gives a value for each step, so a JS reader needs no clamp of its own. |
 | `Scale` *(type)* | A size scale: the steps that a component renders with a look of its own. |
 | `ScaleStep` *(type)* | A step of a scale: the type of a `size` prop that the scale drives. It is a plain union of step literals, such as the steps from `xs` to `xl`. |
 
