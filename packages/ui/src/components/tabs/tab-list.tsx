@@ -17,14 +17,29 @@ import { useTabListScroll } from './use-tab-list-scroll'
  * list, as a hidden `<Activity>` does, and starts it again on the next attach.
  */
 function observeTabbableFloor(list: HTMLDivElement) {
+	// The tab that the floor made tabbable. React does not write its tabIndex
+	// again while its prop stays -1, so the floor must give the stop back.
+	let raised: HTMLButtonElement | null = null
+
 	const ensureTabbable = () => {
 		const tabs = Array.from(list.querySelectorAll<HTMLButtonElement>(TAB_SELECTOR))
+
+		// When a different tab holds the Tab stop, return the raised tab to -1.
+		if (raised && tabs.some((tab) => tab !== raised && tab.tabIndex === 0)) {
+			raised.tabIndex = -1
+
+			raised = null
+		}
 
 		const first = tabs[0]
 
 		if (!first) return
 
-		if (!tabs.some((tab) => tab.tabIndex === 0)) first.tabIndex = 0
+		if (!tabs.some((tab) => tab.tabIndex === 0)) {
+			first.tabIndex = 0
+
+			raised = first
+		}
 	}
 
 	ensureTabbable()

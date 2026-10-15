@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { type ComponentProps, useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Textarea } from '../../../components/textarea'
 import { getSlot, renderUI, setupUser, userEvent } from '../../helpers'
@@ -12,6 +12,17 @@ import { getSlot, renderUI, setupUser, userEvent } from '../../helpers'
  */
 function height(el: HTMLElement): number {
 	return el.getBoundingClientRect().height
+}
+
+/** The height of a fixed textarea with the same props: the floor of an `autoResize` one. */
+function floor(props: ComponentProps<typeof Textarea>, scope?: string): number {
+	const { container } = renderUI(
+		<div data-density={scope}>
+			<Textarea {...props} />
+		</div>,
+	)
+
+	return height(getSlot(container, 'textarea'))
 }
 
 function Controlled({ initial }: { initial: string }) {
@@ -84,5 +95,73 @@ describe('Textarea autoResize (real browser)', () => {
 		expect(height(textarea)).toBe(80)
 
 		expect(textarea.scrollHeight).toBeGreaterThan(textarea.clientHeight)
+	})
+
+	it('refits to the new floor when rows changes with the same text', () => {
+		const { container, rerender } = renderUI(<Textarea autoResize rows={3} />)
+
+		const textarea = getSlot<HTMLTextAreaElement>(container, 'textarea')
+
+		rerender(<Textarea autoResize rows={8} />)
+
+		expect(height(textarea)).toBe(floor({ rows: 8 }))
+
+		rerender(<Textarea autoResize rows={3} />)
+
+		expect(height(textarea)).toBe(floor({ rows: 3 }))
+	})
+
+	it('refits when size changes the padding and the text size', async () => {
+		const { container, rerender } = renderUI(<Textarea autoResize rows={3} size="sm" />)
+
+		const textarea = getSlot<HTMLTextAreaElement>(container, 'textarea')
+
+		const xl = floor({ rows: 3, size: 'xl' })
+
+		expect(height(textarea)).not.toBe(xl)
+
+		rerender(<Textarea autoResize rows={3} size="xl" />)
+
+		await expect.poll(() => height(textarea)).toBe(xl)
+	})
+
+	it('refits when an ancestor density scope changes, with no render', async () => {
+		const { container } = renderUI(
+			<div data-density="sm">
+				<Textarea autoResize rows={3} />
+			</div>,
+		)
+
+		const textarea = getSlot<HTMLTextAreaElement>(container, 'textarea')
+
+		const xl = floor({ rows: 3 }, 'xl')
+
+		expect(height(textarea)).not.toBe(xl)
+
+		textarea.closest('[data-density="sm"]')?.setAttribute('data-density', 'xl')
+
+		await expect.poll(() => height(textarea)).toBe(xl)
+	})
+
+	it('shrinks back to the rows height on a native reset of its form', async () => {
+		const { container } = renderUI(
+			<form>
+				<Textarea autoResize rows={3} />
+			</form>,
+		)
+
+		const textarea = getSlot<HTMLTextAreaElement>(container, 'textarea')
+
+		const min = floor({ rows: 3 })
+
+		await userEvent
+			.setup({ delay: null })
+			.type(textarea, 'a{Enter}b{Enter}c{Enter}d{Enter}e{Enter}f')
+
+		expect(height(textarea)).toBeGreaterThan(min)
+
+		textarea.form?.reset()
+
+		await expect.poll(() => height(textarea)).toBe(min)
 	})
 })
