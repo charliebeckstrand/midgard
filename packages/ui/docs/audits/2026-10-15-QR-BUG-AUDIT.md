@@ -41,7 +41,7 @@ The digest held the Q/R entries of the project record `2026-10-02-component-bug-
 | R3 | `components/resizable/use-resizable-panel.ts` | `seedSizes` (one forward pass) | CONFIRMED | low | none | — | ✅ RESOLVED ([#2518](https://github.com/charliebeckstrand/midgard/pull/2518)) |
 | R4 | `components/resizable/resizable-panel.tsx` | `ResizablePanel` (throws outside a group) | CONFIRMED | low | none | — | ✅ RESOLVED ([#2512](https://github.com/charliebeckstrand/midgard/pull/2512)) |
 | R5 | `components/rating/rating.tsx` | `Rating` (`id` on no element) | CONFIRMED | low | shipped | — | ✅ RESOLVED ([#2513](https://github.com/charliebeckstrand/midgard/pull/2513)) |
-| R6 | `components/rating/rating.tsx` | `Rating` (preview over a keyboard commit) | CONFIRMED | medium | shipped | — | ◯ OPEN |
+| R6 | `components/rating/rating.tsx` | `Rating` (preview over a keyboard commit) | CONFIRMED | medium | shipped | — | ✅ RESOLVED ([#2522](https://github.com/charliebeckstrand/midgard/pull/2522)) |
 | R7 | `components/rating/rating.tsx` | `Rating` (native reset while dead) | CONFIRMED | low | none | — | ◯ OPEN |
 | R8 | `components/radio/radio.tsx` | `Radio` (Field id inside a RadioGroup) | CONFIRMED | low | none | — | ✅ RESOLVED ([#2515](https://github.com/charliebeckstrand/midgard/pull/2515)) |
 | R9 | `components/radio/radio.tsx` | `Radio` (extra `onChange` after read-only) | CONFIRMED | low | test-only | — | ✅ RESOLVED ([#2517](https://github.com/charliebeckstrand/midgard/pull/2517)) |
