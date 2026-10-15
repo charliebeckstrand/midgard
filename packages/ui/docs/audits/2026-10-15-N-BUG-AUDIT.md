@@ -36,8 +36,8 @@ The digest held one source: the project record `2026-10-02-component-bug-sweep.m
 
 | Row | File | Symbol | Verdict | Severity | Reach | Group | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| R1 | `components/nav/use-nav-item.ts` | `useNavItem` `handleClick` (offcanvas close) | NARROWED | low | none | — | ◯ OPEN |
-| R2 | `components/number-input/number-input.tsx` | `NumberInput` (native form reset) | CONFIRMED | low | none | — | ◯ OPEN |
+| R1 | `components/nav/use-nav-item.ts` | `useNavItem` `handleClick` (offcanvas close) | NARROWED | low | none | — | ✅ RESOLVED ([#2457](https://github.com/charliebeckstrand/midgard/pull/2457)) |
+| R2 | `components/number-input/number-input.tsx` | `NumberInput` (native form reset) | CONFIRMED | low | none | — | ✅ RESOLVED ([#2456](https://github.com/charliebeckstrand/midgard/pull/2456)) |
 
 All paths are under `packages/ui/src/`.
 
