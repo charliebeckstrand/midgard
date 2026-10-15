@@ -162,6 +162,18 @@ describe('phoneMask', () => {
 		expect(getSlot<HTMLInputElement>(container, 'mask-input').value).toBe(expected)
 	})
 
+	it.each([
+		['strips a leading 1 from a 12-digit US paste', '155512345678', '(555) 123-4567'],
+		[
+			'strips a leading 1 from a US number with an extension',
+			'1-555-123-4567 x8',
+			'(555) 123-4567',
+		],
+		['keeps a leading 1 at 10 digits while the reader types', '1555123456', '(155) 512-3456'],
+	])('%s', (_name, raw, expected) => {
+		expect(phoneMask().format(raw)).toBe(expected)
+	})
+
 	it('binds to a Form field by name, storing the formatted text', async () => {
 		const onSubmit = vi.fn()
 
