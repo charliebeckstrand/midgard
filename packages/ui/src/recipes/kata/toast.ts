@@ -1,5 +1,6 @@
 import { defineRecipe } from '../../core/recipe'
 import { sou, ugoki } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { spring, toast } = ugoki
 
@@ -42,6 +43,14 @@ export const k = {
 	still: { top: ugoki.still(toast.top), bottom: ugoki.still(toast.bottom) },
 	/** Neighbor re-pack after a dismissal: the FLIP `layout` spring the stack reflows on. */
 	spring: spring.reflow,
-	/** Inter-toast gap (px), animated to 0 on dismiss; neighbors slide in. */
-	gap: 8,
+	/**
+	 * The item of each toast, padded by the gap on the side that faces the next
+	 * toast. The gap steps with the density. The exit animates the padding to 0,
+	 * so the neighbors slide in. The padding is a class, so the exit starts from
+	 * its computed length.
+	 */
+	item: {
+		top: [dan.gap.toast, 'pb-(--toast-gap)'],
+		bottom: [dan.gap.toast, 'pt-(--toast-gap)'],
+	},
 }
