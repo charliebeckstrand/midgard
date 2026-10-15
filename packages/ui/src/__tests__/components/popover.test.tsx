@@ -2,7 +2,7 @@ import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Popover, PopoverClose, PopoverContent, PopoverTrigger } from '../../components/popover'
-import { bySlot, densityStepOf, present, renderUI, screen, setupUser } from '../helpers'
+import { bySlot, densityStepOf, fireEvent, present, renderUI, screen, setupUser } from '../helpers'
 
 describe('Popover', () => {
 	it('renders a default button when PopoverTrigger has non-element children', () => {
@@ -166,6 +166,63 @@ describe('Popover open/close control', () => {
 		expect(popoverContent()).not.toBeNull()
 
 		expect(document.querySelector('button')).toHaveAttribute('aria-expanded', 'true')
+	})
+})
+
+describe('PopoverTrigger ignore subtree', () => {
+	const popoverContent = () => document.querySelector<HTMLElement>('[data-slot="popover-content"]')
+
+	it('runs the handler of the child but not the toggle on a click in an ignored subtree', () => {
+		const track = vi.fn()
+
+		renderUI(
+			<Popover>
+				<PopoverTrigger>
+					<button type="button" onClick={track}>
+						Open <span data-popover-ignore>clear</span>
+					</button>
+				</PopoverTrigger>
+				<PopoverContent>panel</PopoverContent>
+			</Popover>,
+		)
+
+		fireEvent.click(screen.getByText('clear'))
+
+		expect(track).toHaveBeenCalledTimes(1)
+
+		expect(popoverContent()).toBeNull()
+	})
+
+	it('toggles a child trigger inside an ignored ancestor', () => {
+		renderUI(
+			<div data-popover-ignore>
+				<Popover>
+					<PopoverTrigger>
+						<button type="button">Open</button>
+					</PopoverTrigger>
+					<PopoverContent>panel</PopoverContent>
+				</Popover>
+			</div>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Open' }))
+
+		expect(popoverContent()).not.toBeNull()
+	})
+
+	it('toggles its own button inside an ignored ancestor', () => {
+		renderUI(
+			<div data-popover-ignore>
+				<Popover>
+					<PopoverTrigger>Open</PopoverTrigger>
+					<PopoverContent>panel</PopoverContent>
+				</Popover>
+			</div>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Open' }))
+
+		expect(popoverContent()).not.toBeNull()
 	})
 })
 
