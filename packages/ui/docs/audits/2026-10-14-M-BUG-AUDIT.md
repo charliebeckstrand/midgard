@@ -43,7 +43,7 @@ Disclosure: in the B01 blind pass and in the merge pass, a search over `packages
 | R2 | `components/menu/menu-sheet.tsx` | `triggerName` | CONFIRMED | low | none | G2 | ◯ OPEN |
 | R3 | `components/menu/use-menu-root.ts` | `handleContextMenu` (nested surfaces) | CONFIRMED | low | none | G1 | ◯ OPEN |
 | R4 | `components/markdown/markdown-renderer.tsx` | `renderToken` `image` `alt` / `plainText` | CONFIRMED | medium | shipped | G3 | ✅ RESOLVED ([#2448](https://github.com/charliebeckstrand/midgard/pull/2448)) |
-| R5 | `components/markdown/markdown-renderer.tsx` | `renderToken` `link` / `image` `href` | CONFIRMED | medium | shipped | G3 | ◯ OPEN |
+| R5 | `components/markdown/markdown-renderer.tsx` | `renderToken` `link` / `image` `href` | CONFIRMED | medium | shipped | G3 | ✅ RESOLVED ([#2452](https://github.com/charliebeckstrand/midgard/pull/2452)) |
 | R6 | `components/mask-input/mask-input-utilities.tsx` | `phoneMask` (`meaningful`) | CONFIRMED | medium | shipped | — | ✅ RESOLVED ([#2447](https://github.com/charliebeckstrand/midgard/pull/2447)) |
 | R7 | `components/mask-input/mask-input-utilities.tsx` | `formatNANP` | NARROWED | medium | shipped | — | ✅ RESOLVED ([#2451](https://github.com/charliebeckstrand/midgard/pull/2451)) |
 | R8 | `components/mask-input/use-mask-input.ts` | `useMaskInput` (native form reset) | CONFIRMED | low | none | — | ✅ RESOLVED ([#2450](https://github.com/charliebeckstrand/midgard/pull/2450)) |
