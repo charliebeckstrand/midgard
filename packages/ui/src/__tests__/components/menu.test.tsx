@@ -1381,6 +1381,53 @@ describe('Menu context-menu mode', () => {
 	})
 })
 
+describe('Menu nested context surfaces', () => {
+	function renderNested(onAncestorContextMenu = vi.fn()) {
+		renderUI(
+			// biome-ignore lint/a11y/noStaticElementInteractions: the test listens for the bubble only.
+			<div onContextMenu={onAncestorContextMenu}>
+				<Menu>
+					<div data-testid="outer-surface">
+						<Menu>
+							<div data-testid="inner-surface">inner content</div>
+							<MenuContent aria-label="Inner actions">
+								<MenuItem>Inner item</MenuItem>
+							</MenuContent>
+						</Menu>
+					</div>
+					<MenuContent aria-label="Outer actions">
+						<MenuItem>Outer item</MenuItem>
+					</MenuContent>
+				</Menu>
+			</div>,
+		)
+
+		return onAncestorContextMenu
+	}
+
+	// The inner surface handles the right-click, so the event must not reach
+	// the outer surface and open a second menu at the same cursor.
+	it('opens only the inner menu on a right-click of inner content', () => {
+		renderNested()
+
+		fireEvent.contextMenu(screen.getByTestId('inner-surface'), { clientX: 50, clientY: 80 })
+
+		expect(screen.getAllByRole('menu')).toHaveLength(1)
+		expect(screen.getByRole('menu', { name: 'Inner actions' })).toBeInTheDocument()
+	})
+
+	// Ctrl + secondary click yields to the native menu of the browser; the
+	// surface leaves that event free.
+	it('leaves a Ctrl + secondary-button contextmenu free for an ancestor', () => {
+		const onAncestorContextMenu = renderNested()
+
+		fireEvent.contextMenu(screen.getByTestId('inner-surface'), { ctrlKey: true, button: 2 })
+
+		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+		expect(onAncestorContextMenu).toHaveBeenCalledTimes(1)
+	})
+})
+
 describe('MenuItem density', () => {
 	// The row reads no context. Its padding, gap, and text are stepped classes,
 	// and the nearest `data-density` scope selects the step in CSS.
