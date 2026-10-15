@@ -73,6 +73,28 @@ const PHOTON_ENDPOINT = 'https://photon.komoot.io/api/'
 const DEFAULT_LIMIT = 5
 
 /**
+ * The request URL: the endpoint, its own query, then `params`. The split is by
+ * hand and not by `new URL`, because `new URL` needs a base for a relative
+ * endpoint such as a proxy path, and the URL must stay relative. A fragment
+ * does not go to the server, so it is removed.
+ */
+function photonUrl(endpoint: string, params: URLSearchParams): string {
+	const hashAt = endpoint.indexOf('#')
+
+	const bare = hashAt === -1 ? endpoint : endpoint.slice(0, hashAt)
+
+	const queryAt = bare.indexOf('?')
+
+	if (queryAt === -1) return `${bare}?${params}`
+
+	const query = new URLSearchParams(bare.slice(queryAt + 1))
+
+	for (const [key, value] of params) query.append(key, value)
+
+	return `${bare.slice(0, queryAt)}?${query}`
+}
+
+/**
  * A Photon layer: which kind of thing a match stands for. `house` is a street
  * address, `street` a whole road, and the rest are areas of rising size.
  *
@@ -96,7 +118,8 @@ export type PhotonLayer =
 export type PhotonProviderOptions = {
 	/**
 	 * The Photon instance to query. Point it at your own where the public one's
-	 * rate limit or its terms do not suit.
+	 * rate limit or its terms do not suit. The endpoint can have its own query
+	 * string, such as an API key. Each request keeps it and adds its own params.
 	 * @defaultValue the public Komoot endpoint.
 	 */
 	endpoint?: string
@@ -218,7 +241,7 @@ export function createPhotonProvider(options: PhotonProviderOptions = {}): Addre
 	const { endpoint = PHOTON_ENDPOINT, limit = DEFAULT_LIMIT, lang, bias, layers, osmTag } = options
 
 	async function request(params: URLSearchParams, signal: AbortSignal): Promise<PhotonFeature[]> {
-		const response = await fetch(`${endpoint}?${params}`, { signal })
+		const response = await fetch(photonUrl(endpoint, params), { signal })
 
 		if (!response.ok) throw new Error(`Photon request failed: ${response.status}`)
 
