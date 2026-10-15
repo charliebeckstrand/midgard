@@ -15,6 +15,7 @@ import {
 	ensureDocumentLoad,
 	type PdfLoadReport,
 	resetDocumentCache,
+	subscribeDocument,
 } from '../../components/pdf-viewer/pdf-viewer-document-cache'
 import { usePdfViewer } from '../../components/pdf-viewer/use-pdf-viewer'
 import { tick } from '../helpers/frames'
@@ -204,6 +205,96 @@ describe('usePdfViewer · load reporting', () => {
 		expect(onLoad).not.toHaveBeenCalled()
 
 		expect(onError).toHaveBeenCalledOnce()
+	})
+
+	// The mount that saw the failure leaves, and nothing else holds the document. A
+	// failure is not remembered, so the next mount starts clean: no stale error on its
+	// first frame, and no report until its own retry settles.
+	it('does not report a failure again to a remount', async () => {
+		// The first load fails. The retry stays in flight, so the only report it could
+		// make is a stale one.
+		globalThis.fetch = vi
+			.fn()
+			.mockResolvedValueOnce(new Response(null, { status: 404 }))
+			.mockReturnValue(new Promise<Response>(() => {}))
+
+		const first = { onLoad: vi.fn(), onError: vi.fn() }
+
+		let view: ReturnType<typeof renderHook> | undefined
+
+		await act(async () => {
+			view = renderHook(() => usePdfViewer({ src: '/flaky.pdf', ...first }))
+
+			await tick()
+		})
+
+		expect(first.onError).toHaveBeenCalledOnce()
+
+		view?.unmount()
+
+		const second = { onLoad: vi.fn(), onError: vi.fn() }
+
+		const renders: { pending: boolean; error: Error | null }[] = []
+
+		await act(async () => {
+			renderHook(() => {
+				const result = usePdfViewer({ src: '/flaky.pdf', ...second })
+
+				renders.push({ pending: result.pending, error: result.error })
+
+				return result
+			})
+
+			await tick()
+		})
+
+		expect(renders[0]).toEqual({ pending: true, error: null })
+
+		expect(second.onError).not.toHaveBeenCalled()
+
+		expect(second.onLoad).not.toHaveBeenCalled()
+	})
+
+	// The document opened, and a page failed after the open. Another viewer holds it,
+	// so a new mount joins it rather than retrying. The open is the load.
+	it('reports a load to a mount beside a document that opened and then failed', async () => {
+		let report: PdfLoadReport | undefined
+
+		await act(async () => {
+			ensureDocumentLoad('/opened.pdf', (next) => {
+				report = next
+
+				return Promise.reject(new Error('bad page'))
+			})
+
+			report?.open(
+				[1, 2].map((id) => ({
+					id,
+					src: '',
+					label: `Page ${id}`,
+					width: 800,
+					height: 1000,
+					pointWidth: 612,
+					pointHeight: 792,
+				})),
+			)
+
+			await tick()
+		})
+
+		const unsubscribe = subscribeDocument('/opened.pdf', () => {})
+
+		const onLoad = vi.fn()
+
+		const onError = vi.fn()
+
+		renderHook(() => usePdfViewer({ src: '/opened.pdf', onLoad, onError }))
+
+		expect(onLoad).toHaveBeenCalledExactlyOnceWith(2)
+
+		expect(onError).not.toHaveBeenCalled()
+
+		unsubscribe()
 	})
 })
 
