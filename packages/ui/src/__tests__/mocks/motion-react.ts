@@ -244,17 +244,6 @@ function useAnimate(): [{ current: null }, (...args: unknown[]) => void] {
 const { useInView, useMotionValue, useTransform } =
 	await vi.importActual<typeof import('motion/react')>('motion/react')
 
-// Reads the reduced-motion preference from `window.matchMedia`, mirroring the
-// real hook. Defaults to `false` via the jsdom matchMedia stub; a test forces
-// the reduced path with `stubMatchMedia`, and the config's `unstubGlobals`
-// restores the stub before the next test. No per-file `vi.mock` (see
-// setup/module-mocks.ts) and no module-level state to leak between files.
-function useReducedMotion(): boolean {
-	return typeof window !== 'undefined' && typeof window.matchMedia === 'function'
-		? window.matchMedia('(prefers-reduced-motion: reduce)').matches
-		: false
-}
-
 // `Reorder` renders its plain elements. The drag runs only in a real browser
 // (see browser/motion/list-reorder.test.tsx), so the group and the item drop
 // their reorder and drag props.
@@ -308,6 +297,5 @@ export default {
 	useAnimate,
 	useInView,
 	useMotionValue,
-	useReducedMotion,
 	useTransform,
 }
