@@ -6,6 +6,7 @@ import { Segment, SegmentItem } from '../../components/segment'
 import { RangeSlider, Slider } from '../../components/slider'
 import { Switch } from '../../components/switch'
 import { Tab, TabList, Tabs } from '../../components/tabs'
+import { Timeline, TimelineItem, TimelineTitle } from '../../components/timeline'
 import { frames, present, renderUI } from '../helpers'
 
 /**
@@ -14,6 +15,16 @@ import { frames, present, renderUI } from '../helpers'
  * the tabs indicator, the active indicator, and the slider tracks and thumbs
  * draw state only with a background or a shadow, which forced colors remove.
  */
+/** The color that forced colors give the page background. */
+function canvasColor(): string {
+	const probe = document.createElement('div')
+	probe.style.cssText = 'forced-color-adjust: none; background-color: Canvas'
+	document.body.append(probe)
+	const canvas = getComputedStyle(probe).backgroundColor
+	probe.remove()
+	return canvas
+}
+
 async function pixels(ui: ReactElement): Promise<string> {
 	const { container, unmount } = renderUI(<div style={{ padding: 8, width: 240 }}>{ui}</div>)
 	await frames()
@@ -80,11 +91,7 @@ describe('controls show their state under forced colors (real browser)', () => {
 		)
 		const tab = present(container.querySelector('[data-slot=tab][aria-selected=true]'), 'tab')
 		const indicator = present(tab.parentElement?.children[1], 'indicator')
-		const probe = document.createElement('div')
-		probe.style.cssText = 'forced-color-adjust: none; background-color: Canvas'
-		document.body.append(probe)
-		const canvas = getComputedStyle(probe).backgroundColor
-		probe.remove()
+		const canvas = canvasColor()
 		const style = getComputedStyle(indicator)
 		expect(style.backgroundColor === canvas && style.borderTopWidth === '0px').toBe(false)
 	})
@@ -102,6 +109,38 @@ describe('controls show their state under forced colors (real browser)', () => {
 		const indicator = present(container.querySelector('[data-slot=active-indicator]'), 'indicator')
 		expect(getComputedStyle(indicator).outlineStyle).not.toBe('none')
 	})
+
+	// The rails are pseudo-element backgrounds, and a solid dot is a background.
+	// The middle row has both rails. Each rail and each dot must paint in a
+	// color other than Canvas.
+	it.each(['solid', 'outline'] as const)(
+		'timeline (%s): the rails and the dots paint',
+		(variant) => {
+			const { container } = renderUI(
+				<Timeline variant={variant}>
+					<TimelineItem>
+						<TimelineTitle>Alpha</TimelineTitle>
+					</TimelineItem>
+					<TimelineItem status="active" lineBefore="red" lineAfter="blue">
+						<TimelineTitle>Bravo</TimelineTitle>
+					</TimelineItem>
+					<TimelineItem color="green">
+						<TimelineTitle>Charlie</TimelineTitle>
+					</TimelineItem>
+				</Timeline>,
+			)
+			const canvas = canvasColor()
+			const markers = [...container.querySelectorAll<HTMLElement>('[data-slot=timeline-marker]')]
+			expect(markers).toHaveLength(3)
+			const middle = present(markers[1], 'marker')
+			expect(getComputedStyle(middle, '::before').backgroundColor).not.toBe(canvas)
+			expect(getComputedStyle(middle, '::after').backgroundColor).not.toBe(canvas)
+			for (const marker of markers) {
+				const dot = getComputedStyle(present(marker.firstElementChild, 'dot'))
+				expect(dot.backgroundColor === canvas && dot.borderTopWidth === '0px').toBe(false)
+			}
+		},
+	)
 
 	it('slider: 10 and 90 paint differently', async () => {
 		const low = await pixels(<Slider aria-label="Volume" value={10} />)
