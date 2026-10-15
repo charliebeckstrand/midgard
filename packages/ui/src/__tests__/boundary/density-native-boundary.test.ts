@@ -164,14 +164,8 @@ const ATTRIBUTE_ONLY_HOSTS = ['components/kbd/kbd.tsx', 'primitives/portal/porta
 // fix can merge before or after this guard.
 //
 //   - Text: PR #2553.
-//   - StatValue: branch `claude/fix-stat-value-density-scope`.
-//   - AvatarGroup: a fix in progress, with no PR yet.
 
-const PENDING_FIXES = [
-	'components/avatar/avatar-group.tsx',
-	'components/stat/stat-value.tsx',
-	'components/text/text.tsx',
-]
+const PENDING_FIXES = ['components/text/text.tsx']
 
 /** An attribute that writes the step from an expression, not a literal such as `"slot"`. */
 const DENSITY_ATTRIBUTE = /\sdata-density=\{/g

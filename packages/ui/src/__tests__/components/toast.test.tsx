@@ -1030,6 +1030,75 @@ describe('Toast: useToast behavior', () => {
 
 			expect(onSecond).toHaveBeenCalledExactlyOnceWith('dismissed')
 		})
+
+		// The viewport loads late or not at all, so no exit animation runs. The queue
+		// must not wait for an exit callback that never comes.
+		it('names each timeout in turn with no viewport mounted', () => {
+			let api: ReturnType<typeof useToast> | undefined
+
+			const onA = vi.fn()
+
+			const onB = vi.fn()
+
+			const onC = vi.fn()
+
+			renderUI(
+				<ToastProvider>
+					<Trigger onReady={(c) => (api = c)} />
+				</ToastProvider>,
+			)
+
+			act(() => {
+				api?.toast({ title: 'A', duration: 100, onDismiss: onA })
+				api?.toast({ title: 'B', duration: 200, onDismiss: onB })
+				api?.toast({ title: 'C', duration: 300, onDismiss: onC })
+			})
+
+			act(() => {
+				vi.advanceTimersByTime(5000)
+			})
+
+			for (const onDismiss of [onA, onB, onC]) {
+				expect(onDismiss).toHaveBeenCalledExactlyOnceWith('timeout')
+			}
+		})
+
+		it('staggers the timeouts with the viewport mounted', () => {
+			let api: ReturnType<typeof useToast> | undefined
+
+			const onA = vi.fn()
+
+			const onB = vi.fn()
+
+			renderUI(
+				<ToastProvider>
+					<Trigger onReady={(c) => (api = c)} />
+					<Toast />
+				</ToastProvider>,
+			)
+
+			act(() => {
+				api?.toast({ title: 'A', duration: 100, onDismiss: onA })
+				api?.toast({ title: 'B', duration: 100, onDismiss: onB })
+			})
+
+			act(() => {
+				vi.advanceTimersByTime(100)
+			})
+
+			// The stagger holds: `B` waits for the exit of `A`.
+			expect(onA).toHaveBeenCalledExactlyOnceWith('timeout')
+
+			expect(onB).not.toHaveBeenCalled()
+
+			act(() => {
+				vi.advanceTimersByTime(5000)
+			})
+
+			expect(onB).toHaveBeenCalledExactlyOnceWith('timeout')
+
+			expect(screen.queryByText('B')).not.toBeInTheDocument()
+		})
 	})
 
 	describe('focus on close', () => {
@@ -1130,5 +1199,130 @@ describe('Toast: useToast behavior', () => {
 
 			expect(save).toHaveFocus()
 		})
+	})
+})
+
+describe('Toast: keyboard reach', () => {
+	function Fire({ titles }: { titles: string[] }) {
+		const { toast } = useToast()
+
+		const fired = useRef(false)
+
+		useEffect(() => {
+			if (fired.current) return
+
+			fired.current = true
+
+			for (const title of titles) {
+				toast({ title, actions: <button type="button">Undo {title}</button> })
+			}
+		}, [toast, titles])
+
+		return null
+	}
+
+	it('makes the viewport a labelled region landmark while it holds a toast', () => {
+		renderUI(
+			<ToastProvider>
+				<Fire titles={['First']} />
+				<Toast />
+			</ToastProvider>,
+		)
+
+		expect(screen.getByRole('region', { name: 'Notifications' })).toHaveAttribute(
+			'data-slot',
+			'toast-viewport',
+		)
+	})
+
+	it('gives an empty viewport no landmark', () => {
+		renderUI(
+			<ToastProvider>
+				<Toast />
+			</ToastProvider>,
+		)
+
+		expect(screen.queryByRole('region')).not.toBeInTheDocument()
+	})
+
+	it('moves focus into the newest toast on F8', () => {
+		renderUI(
+			<ToastProvider>
+				<button type="button">Outside</button>
+				<Fire titles={['First', 'Second']} />
+				<Toast />
+			</ToastProvider>,
+		)
+
+		screen.getByRole('button', { name: 'Outside' }).focus()
+
+		fireEvent.keyDown(document.body, { key: 'F8' })
+
+		expect(screen.getByRole('button', { name: 'Undo Second' })).toHaveFocus()
+	})
+
+	it('returns focus to the control that F8 left when the last toast closes', () => {
+		renderUI(
+			<ToastProvider>
+				<button type="button">Outside</button>
+				<Fire titles={['First']} />
+				<Toast />
+			</ToastProvider>,
+		)
+
+		const outside = screen.getByRole('button', { name: 'Outside' })
+
+		outside.focus()
+
+		fireEvent.keyDown(document.body, { key: 'F8' })
+
+		expect(screen.getByRole('button', { name: 'Undo First' })).toHaveFocus()
+
+		fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
+
+		expect(outside).toHaveFocus()
+	})
+
+	it('does nothing on F8 when the stack is empty', () => {
+		renderUI(
+			<ToastProvider>
+				<button type="button">Outside</button>
+				<Toast />
+			</ToastProvider>,
+		)
+
+		const outside = screen.getByRole('button', { name: 'Outside' })
+
+		outside.focus()
+
+		const event = new KeyboardEvent('keydown', { key: 'F8', bubbles: true, cancelable: true })
+
+		document.body.dispatchEvent(event)
+
+		expect(outside).toHaveFocus()
+
+		expect(event.defaultPrevented).toBe(false)
+	})
+
+	it('ignores an F8 that a handler before it already took', () => {
+		renderUI(
+			<ToastProvider>
+				<button type="button">Outside</button>
+				<Fire titles={['First']} />
+				<Toast />
+			</ToastProvider>,
+		)
+
+		const outside = screen.getByRole('button', { name: 'Outside' })
+
+		outside.focus()
+
+		const event = new KeyboardEvent('keydown', { key: 'F8', bubbles: true, cancelable: true })
+
+		event.preventDefault()
+
+		outside.dispatchEvent(event)
+
+		expect(outside).toHaveFocus()
 	})
 })

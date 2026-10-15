@@ -32,9 +32,11 @@ function fieldsetAncestors(reference: Element): Element[] {
 
 /**
  * Calls `onChange` when a `disabled` attribute changes on `reference`, on a
- * node inside it, or on a `<fieldset>` ancestor. Each of them can change
- * whether the reference matches `:disabled`, and none of them is a React
- * signal.
+ * node inside it, or on a `<fieldset>` ancestor. It also calls `onChange` when
+ * a node is added to or removed from `reference` or its descendants, because
+ * a remount can put a disabled control in place with no attribute change. Each
+ * of these changes can change whether the reference matches `:disabled`, and
+ * none of them is a React signal.
  *
  * @returns A function that stops the observer.
  * @internal
@@ -44,7 +46,7 @@ export function observeReferenceDisabled(reference: Element, onChange: () => voi
 
 	const watch = { attributes: true, attributeFilter: ['disabled'] }
 
-	observer.observe(reference, { ...watch, subtree: true })
+	observer.observe(reference, { ...watch, childList: true, subtree: true })
 
 	for (const fieldset of fieldsetAncestors(reference)) observer.observe(fieldset, watch)
 

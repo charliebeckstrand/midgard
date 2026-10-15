@@ -157,4 +157,83 @@ describe('useToastQueue', () => {
 
 		expect(result.current.runningRef.current).toBe(false)
 	})
+
+	it('advances after the dismiss motion when no exit comes', () => {
+		vi.useFakeTimers()
+
+		const toastsRef = { current: [makeToast('a'), makeToast('b')] }
+
+		const onTimeout = vi.fn()
+
+		const { result } = renderHook(() => useToastQueue(toastsRef, vi.fn(), onTimeout))
+
+		act(() => {
+			result.current.start(['a', 'b'])
+		})
+
+		expect(toastsRef.current.map((t) => t.id)).toEqual(['b'])
+
+		act(() => {
+			vi.advanceTimersByTime(1000)
+		})
+
+		expect(toastsRef.current).toEqual([])
+
+		expect(onTimeout.mock.calls.map(([t]) => t.id)).toEqual(['a', 'b'])
+
+		expect(result.current.runningRef.current).toBe(false)
+
+		vi.useRealTimers()
+	})
+
+	it('advances once when the exit comes before the fallback', () => {
+		vi.useFakeTimers()
+
+		const toastsRef = { current: [makeToast('a'), makeToast('b'), makeToast('c')] }
+
+		const { result } = renderHook(() => useToastQueue(toastsRef, vi.fn(), vi.fn()))
+
+		act(() => {
+			result.current.start(['a', 'b'])
+		})
+
+		act(() => {
+			result.current.handleExitComplete()
+		})
+
+		expect(toastsRef.current.map((t) => t.id)).toEqual(['c'])
+
+		// The fallback for `a` does not fire after its exit, and `c` is not queued.
+		act(() => {
+			vi.advanceTimersByTime(1000)
+		})
+
+		expect(toastsRef.current.map((t) => t.id)).toEqual(['c'])
+
+		vi.useRealTimers()
+	})
+
+	it('clears the fallback on stop()', () => {
+		vi.useFakeTimers()
+
+		const toastsRef = { current: [makeToast('a'), makeToast('b')] }
+
+		const { result } = renderHook(() => useToastQueue(toastsRef, vi.fn(), vi.fn()))
+
+		act(() => {
+			result.current.start(['a', 'b'])
+		})
+
+		act(() => {
+			result.current.stop()
+		})
+
+		act(() => {
+			vi.advanceTimersByTime(1000)
+		})
+
+		expect(toastsRef.current.map((t) => t.id)).toEqual(['b'])
+
+		vi.useRealTimers()
+	})
 })

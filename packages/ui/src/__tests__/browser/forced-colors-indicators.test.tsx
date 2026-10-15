@@ -5,10 +5,11 @@ import { ProgressBar } from '../../components/progress'
 import { Segment, SegmentItem } from '../../components/segment'
 import { RangeSlider, Slider } from '../../components/slider'
 import { Switch } from '../../components/switch'
+import { Table, TableBody, TableCell, TableRow } from '../../components/table'
 import { Tab, TabList, Tabs } from '../../components/tabs'
 import { Timeline, TimelineItem, TimelineTitle } from '../../components/timeline'
 import { Tree, TreeItem } from '../../components/tree'
-import { frames, present, renderUI } from '../helpers'
+import { frames, present, renderUI, waitFor } from '../helpers'
 
 /**
  * Under forced colors, each control still shows its state. The two renders of
@@ -50,6 +51,55 @@ async function pixels(ui: ReactElement): Promise<string> {
 	let hash = 0
 	for (const byte of data) hash = (hash * 31 + byte) | 0
 	return `${image.width}x${image.height}:${hash}`
+}
+
+/**
+ * The tab stops that show focus with the `focus.inset` ring, focused from the
+ * keyboard. The ring is a box-shadow, which forced colors remove, so the
+ * outline is what the cases read.
+ */
+const insetStops = {
+	'table scroll container': {
+		ui: (
+			<div style={{ width: 300 }}>
+				<Table tableProps={{ 'aria-label': 'Activity' }}>
+					<TableBody>
+						<TableRow>
+							<TableCell>
+								<div style={{ width: 600 }}>wide cell</div>
+							</TableCell>
+						</TableRow>
+					</TableBody>
+				</Table>
+			</div>
+		),
+		selector: '[data-slot="table"]',
+	},
+	'tree row': {
+		ui: (
+			<Tree aria-label="Files">
+				<TreeItem label="a.ts" />
+			</Tree>
+		),
+		selector: '[role="treeitem"]',
+	},
+} as const
+
+/** The computed outline of a stop after a keyboard Tab moves focus to it. */
+async function focusOutline(
+	name: keyof typeof insetStops,
+): Promise<{ style: string; width: string }> {
+	const { ui, selector } = insetStops[name]
+	const { container } = renderUI(ui)
+	const stop = await waitFor(() => {
+		const node = present(container.querySelector<HTMLElement>(selector), name)
+		expect(node.tabIndex).toBe(0)
+		return node
+	})
+	await userEvent.tab()
+	expect(document.activeElement).toBe(stop)
+	const style = getComputedStyle(stop)
+	return { style: style.outlineStyle, width: style.outlineWidth }
 }
 
 describe('controls show their state under forced colors (real browser)', () => {
@@ -163,6 +213,14 @@ describe('controls show their state under forced colors (real browser)', () => {
 		},
 	)
 
+	for (const name of Object.keys(insetStops) as (keyof typeof insetStops)[]) {
+		it(`${name}: keyboard focus draws an outline`, async () => {
+			const outline = await focusOutline(name)
+			expect(outline.style).not.toBe('none')
+			expect(outline.width).not.toBe('0px')
+		})
+	}
+
 	it('slider: 10 and 90 paint differently', async () => {
 		const low = await pixels(<Slider aria-label="Volume" value={10} />)
 		const high = await pixels(<Slider aria-label="Volume" value={90} />)
@@ -196,6 +254,20 @@ describe('controls show their state under forced colors (real browser)', () => {
 		]
 		expect(bar[1]).not.toBe(bar[0])
 		expect(slider[1]).not.toBe(slider[0])
+	})
+
+	it('inset focus: without forced colors, keyboard focus draws no outline', async () => {
+		onTestFinished(async () => {
+			await cdp().send('Emulation.setEmulatedMedia', {
+				features: [{ name: 'forced-colors', value: 'active' }],
+			})
+		})
+		await cdp().send('Emulation.setEmulatedMedia', {
+			features: [{ name: 'forced-colors', value: '' }],
+		})
+		for (const name of Object.keys(insetStops) as (keyof typeof insetStops)[]) {
+			expect((await focusOutline(name)).style).toBe('none')
+		}
 	})
 })
 

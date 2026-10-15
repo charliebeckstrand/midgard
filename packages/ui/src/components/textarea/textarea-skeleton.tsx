@@ -21,15 +21,14 @@ export type TextareaSkeletonProps = {
 
 /**
  * Textarea-shaped placeholder: `rows` lines of the text of a textarea, plus its
- * vertical padding, at the step of the nearest density scope. The height is a
- * count of lines, so it does not use the `createSkeleton` factory.
+ * vertical padding, at the step of the nearest density scope. It is never
+ * shorter than the minimum height of a textarea. The height is a count of
+ * lines, so it does not use the `createSkeleton` factory.
  */
 export function TextareaSkeleton({ rows = 3, size, className }: TextareaSkeletonProps) {
 	return (
-		<Placeholder
-			data-density={size}
-			className={cn(k.skeleton.base, className)}
-			style={{ height: `${rows}lh` }}
-		/>
+		<Placeholder data-density={size} className={cn(k.skeleton.base, className)}>
+			<span className={k.skeleton.strut} style={{ height: `${rows}lh` }} />
+		</Placeholder>
 	)
 }
