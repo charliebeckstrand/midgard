@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { ProgressBar } from '../../../components/progress'
-import { rootReducedMotionClass } from '../../../core/motion/root'
-import { bySlot, renderUI } from '../../helpers'
-import { frames, nextPaint } from '../../helpers/frames'
+import { ProgressBar } from '../../components/progress'
+import { rootReducedMotionClass } from '../../core/motion/root'
+import { bySlot, renderUI } from '../helpers'
+import { frames, nextPaint } from '../helpers/frames'
 
 /**
  * Real-browser check of the indeterminate ProgressBar. A CSS animation of

@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { ProgressBar } from '../../../components/progress'
-import { LocaleProvider } from '../../../providers/locale'
-import { present, renderUI } from '../../helpers'
-import { pause } from '../helpers/wall-clock'
+import { ProgressBar } from '../../components/progress'
+import { LocaleProvider } from '../../providers/locale'
+import { present, renderUI } from '../helpers'
+import { pause } from './helpers/wall-clock'
 
 /**
  * The indeterminate sweep runs from the inline start to the inline end. In a
