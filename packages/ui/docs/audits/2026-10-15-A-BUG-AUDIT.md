@@ -65,8 +65,8 @@ Reach: a page under `packages/ui/src/docs/pages` is a shipped surface, because t
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | R1 | `recipes/kata/accordion.ts` | `k.trigger`, item focus ring | CONFIRMED | medium | shipped | — | ◐ FIXED |
 | R2 | `components/accordion/use-accordion-selection.ts` | `useAccordionSelection` | NARROWED | low | none | — | ◐ FIXED |
-| R3 | `components/accordion/accordion-skeleton.tsx` | `AccordionSkeleton` (TSDoc) | CONFIRMED | low | shipped | — | ◯ OPEN |
-| R4 | `components/accordion/context.ts` | `useAccordionItem` (not exported) | CONFIRMED | low | none | — | ◯ OPEN |
+| R3 | `components/accordion/accordion-skeleton.tsx` | `AccordionSkeleton` (TSDoc) | CONFIRMED | low | shipped | — | ◐ FIXED |
+| R4 | `components/accordion/context.ts` | `useAccordionItem` (not exported) | CONFIRMED | low | none | — | ◐ FIXED |
 | R5 | `components/accordion/accordion-panel.tsx` | `AccordionPanel` (held branch) | CONFIRMED | low | none | — | ◯ OPEN |
 | R6 | `components/aspect-ratio/aspect-ratio.tsx` | `AspectRatio` (preset style) | CONFIRMED | low | none | G1 | ◯ OPEN |
 | R7 | `components/aspect-ratio/aspect-ratio.tsx` | `AspectRatio` (invalid number) | CONFIRMED | low | none | G1 | ◯ OPEN |
