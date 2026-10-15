@@ -1,7 +1,7 @@
 'use client'
 
 import type { ChangeEvent, Ref } from 'react'
-import { useFormResetSync } from '../../hooks/use-form-reset-sync'
+import { useComposedRef } from '../../hooks'
 import { type FormattedInputOptions, useFormattedInput } from '../../hooks/use-formatted-input'
 import { useFormValue } from '../form/use-form-value'
 
@@ -53,7 +53,7 @@ export function useMaskInput({
 }: MaskedInputOptions) {
 	const {
 		value: current,
-		controlled,
+		resetRef,
 		setValue,
 		setTouched,
 		invalid,
@@ -65,11 +65,13 @@ export function useMaskInput({
 		onValueChange: onChange ? (next) => onChange(next ?? '') : undefined,
 	})
 
-	const { ref, reformat, inputRef } = useFormattedInput({ format, meaningful, ref: externalRef })
+	const joinedRef = useComposedRef(resetRef, externalRef)
 
-	// The returned value always controls the input, so the browser reverts it to
-	// the current text. The uncontrolled value then goes back to its seed.
-	useFormResetSync(inputRef, !controlled, () => setValue(format(defaultValue ?? '')))
+	const { ref, reformat } = useFormattedInput({
+		format,
+		meaningful,
+		ref: joinedRef,
+	})
 
 	return {
 		// Format the controlled arm on read. The bound arm stays raw, because the Form submits it.

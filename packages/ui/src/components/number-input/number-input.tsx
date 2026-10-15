@@ -1,10 +1,9 @@
 'use client'
 
 import { Minus, Plus } from 'lucide-react'
-import { type ChangeEvent, useRef } from 'react'
+import type { ChangeEvent } from 'react'
 import { announce, cn, composeEventHandlers } from '../../core'
 import { useComposedRef } from '../../hooks'
-import { useFormResetSync } from '../../hooks/use-form-reset-sync'
 import { k } from '../../recipes/kata/input'
 import { clamp } from '../../utilities'
 import { Button } from '../button'
@@ -82,18 +81,12 @@ export function NumberInput({
 
 	const {
 		value: current,
-		controlled,
+		resetRef,
 		setValue: setCurrent,
 		setTouched,
 	} = useFormValue<number>(name, { value, defaultValue, onValueChange })
 
-	const inputRef = useRef<HTMLInputElement>(null)
-
-	const setRef = useComposedRef(inputRef, ref)
-
-	// The input is always controlled, so a native reset restores the last value
-	// that React wrote. Set the state back to `defaultValue` instead.
-	useFormResetSync(inputRef, !controlled, () => setCurrent(defaultValue ?? null))
+	const setRef = useComposedRef(resetRef, ref)
 
 	const precision = stepPrecision(step)
 

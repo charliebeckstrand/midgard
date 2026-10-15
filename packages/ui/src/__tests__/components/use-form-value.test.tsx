@@ -1,7 +1,36 @@
-import { act, renderHook } from '@testing-library/react'
+import { act, fireEvent, render, renderHook, screen } from '@testing-library/react'
+import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { useFormField, useFormValue } from '../../components/form'
+import { frame } from '../helpers'
 import { makeFormWrapper } from '../helpers/form-wrapper'
+
+/** A control whose input mounts only after a press, as a dead Rating row does. */
+function LateInput({ onReset }: { onReset: () => void }) {
+	const [shown, setShown] = useState(false)
+
+	const { value, resetRef, setValue } = useFormValue<string>(undefined, {
+		defaultValue: 'seed',
+		onReset,
+	})
+
+	return (
+		<>
+			<button type="button" onClick={() => setShown(true)}>
+				Show
+			</button>
+			{shown && (
+				<input
+					ref={resetRef}
+					aria-label="Late"
+					value={value ?? ''}
+					onChange={(event) => setValue(event.target.value)}
+				/>
+			)}
+			<button type="reset">Reset form</button>
+		</>
+	)
+}
 
 describe('useFormValue', () => {
 	it('acts as plain controllable state outside a Form', () => {
@@ -98,5 +127,29 @@ describe('useFormValue', () => {
 		})
 
 		expect(onValueChange).toHaveBeenCalledWith(6)
+	})
+
+	it('sets the value back to defaultValue on a native reset of an input that mounts late', async () => {
+		const onReset = vi.fn()
+
+		render(
+			<form>
+				<LateInput onReset={onReset} />
+			</form>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Show' }))
+
+		const input = screen.getByLabelText('Late') as HTMLInputElement
+
+		fireEvent.change(input, { target: { value: 'edited' } })
+
+		fireEvent.click(screen.getByRole('button', { name: 'Reset form' }))
+
+		await act(frame)
+
+		expect(input.value).toBe('seed')
+
+		expect(onReset).toHaveBeenCalledOnce()
 	})
 })

@@ -114,8 +114,6 @@ export function Input({
 
 	const inputRef = useRef<HTMLInputElement>(null)
 
-	const setRefs = useComposedRef(inputRef, ref)
-
 	// An uncontrolled input keeps its value in the element, so the input follows
 	// each edit to know when it is empty. It does this also while clearable is
 	// off, so the clear button is correct when clearable turns on.
@@ -127,7 +125,9 @@ export function Input({
 
 	// A native form reset reverts the uncontrolled input without firing onChange,
 	// so the input reads the reverted value.
-	useFormResetSync(inputRef, uncontrolled, (input) => setOwnFilled(input.value !== ''))
+	const resetRef = useFormResetSync(uncontrolled, (input) => setOwnFilled(input.value !== ''))
+
+	const setRefs = useComposedRef(inputRef, resetRef, ref)
 
 	const handleChange = uncontrolled
 		? (event: ChangeEvent<HTMLInputElement>) => {

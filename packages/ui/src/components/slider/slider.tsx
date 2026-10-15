@@ -2,6 +2,7 @@
 
 import type { ComponentProps, CSSProperties } from 'react'
 import { cn, composeEventHandlers, invalidAttrs } from '../../core'
+import { useComposedRef } from '../../hooks'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { k, type SliderVariants } from '../../recipes/kata/slider'
 import { pct } from '../../utilities'
@@ -66,6 +67,7 @@ export function Slider({
 }: SliderProps) {
 	const {
 		value: bound,
+		resetRef,
 		setValue,
 		setTouched,
 		invalid,
@@ -78,6 +80,8 @@ export function Slider({
 	})
 
 	const current = bound ?? min
+
+	const setRef = useComposedRef(resetRef, ref)
 
 	const percent = pct(current, min, max)
 
@@ -101,7 +105,7 @@ export function Slider({
 			type="range"
 			data-slot="slider"
 			data-density={size}
-			ref={ref}
+			ref={setRef}
 			id={scope.id}
 			disabled={controlProps.disabled}
 			aria-describedby={controlProps['aria-describedby']}

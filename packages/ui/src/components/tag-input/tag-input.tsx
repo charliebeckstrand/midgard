@@ -12,7 +12,6 @@ import { BadgeRemovable } from '../badge/badge-removable'
 import { Button } from '../button'
 import { useControlFallbackLabel } from '../control/use-control-fallback-label'
 import { useControlProps } from '../control/use-control-props'
-import { useFormResets } from '../form/context'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
 import { hasSeparator, splitTokens, type TokenRejection } from './tag-input-utilities'
@@ -129,8 +128,6 @@ export function TagInput({
 }: TagInputProps) {
 	const inputRef = useRef<HTMLInputElement>(null)
 
-	const setRefs = useComposedRef(inputRef, ref)
-
 	// The Control cascade: an explicit `disabled` wins over the enclosing
 	// Control. A disabled or read-only field keeps its tags and adds none.
 	const ambient = useControlProps({ disabled })
@@ -139,16 +136,6 @@ export function TagInput({
 
 	const fallbackLabel = useControlFallbackLabel(placeholder ?? 'Add tags')
 
-	const { tags, atMax, addTags, removeTag, setTouched, invalid } = useTagInput({
-		name,
-		value,
-		defaultValue,
-		onValueChange,
-		max,
-		validate,
-		onReject,
-	})
-
 	const [inputValue, setInputValue] = useState('')
 
 	// Set when a commit refused tokens, cleared on the next keystroke. The field's own `invalid` can
@@ -156,23 +143,27 @@ export function TagInput({
 	// at all — the reason a refused paste read as nothing happening.
 	const [refused, setRefused] = useState(false)
 
-	// A Form reset restores the bound tags. The draft and the refused mark are
-	// the partial entry of the field, so the reset drops them too. Otherwise a
-	// later blur commits the old draft. As DateInput does, only a bound field
-	// follows the resets of the Form.
-	const formResets = useFormResets()
-
-	const resets = name === undefined ? 0 : formResets
-
-	const [knownResets, setKnownResets] = useState(resets)
-
-	if (knownResets !== resets) {
-		setKnownResets(resets)
-
+	// The draft and the refused mark are the partial entry of the field, so a
+	// reset drops them with the tags. Otherwise a later blur commits the old
+	// draft.
+	const dropDraft = () => {
 		setInputValue('')
 
 		setRefused(false)
 	}
+
+	const { tags, atMax, addTags, removeTag, setTouched, invalid, resetRef } = useTagInput({
+		name,
+		value,
+		defaultValue,
+		onValueChange,
+		max,
+		validate,
+		onReject,
+		onReset: dropDraft,
+	})
+
+	const setRefs = useComposedRef(inputRef, resetRef, ref)
 
 	const color = tagColor ?? 'zinc'
 
