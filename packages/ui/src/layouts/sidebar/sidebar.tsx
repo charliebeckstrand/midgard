@@ -9,7 +9,9 @@ import {
 	type Ref,
 	use,
 	useCallback,
+	useLayoutEffect,
 	useMemo,
+	useRef,
 	useState,
 } from 'react'
 import { defaultKeybindingsHandlerIgnore, type KeybindingFilter } from 'tinykeys'
@@ -198,7 +200,20 @@ export function SidebarLayout({
 
 	const offcanvasValue = useMemo(() => ({ close }), [close])
 
-	const { root: setRoot, bar: setBar } = useStickyBars()
+	const { root: setRoot, bar: setBar, measure } = useStickyBars()
+
+	// A change of `stickyHeader` makes the header stick or stop to stick at the
+	// same size. No resize tells the bars about it, so the layout measures them
+	// again. The mount needs no measure, as the refs measure as they attach.
+	const measuredStickyRef = useRef(stickyHeader)
+
+	useLayoutEffect(() => {
+		if (measuredStickyRef.current === stickyHeader) return
+
+		measuredStickyRef.current = stickyHeader
+
+		measure()
+	}, [measure, stickyHeader])
 
 	const layoutValue = useMemo(() => ({ actions, bar: setBar }), [actions, setBar])
 
