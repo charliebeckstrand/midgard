@@ -153,6 +153,10 @@ export function LegendSwitch({
 			// name then clips and does not overflow the row.
 			className={cn('max-w-full', className)}
 			aria-pressed={!off}
+			// The reveal tooltip echoes the label, which is already in the name of
+			// the switch, so its description would repeat the name. The explicit
+			// key wins over the description of the trigger.
+			aria-describedby={undefined}
 			onClick={onToggle}
 			// A touch is a tap that toggles the entry, not a point. A tap fires
 			// `pointerenter` before its click, and the emphasis dimmed every other
