@@ -21,8 +21,8 @@ const exitFallback = k.motion.dismiss.duration * 1000 * 2
  *
  * @param onRemove - Called with each toast the queue takes out of the list, after the
  * removal. The queue does not name the reason; the provider reads one from the toast.
- * @returns The queue controls (`start`, `stop`, `next`, `handleExitComplete`)
- * plus a `runningRef` flag.
+ * @returns The queue controls (`start`, `stop`, `handleExitComplete`) plus a
+ * `runningRef` flag.
  * @internal
  */
 export function useToastQueue(
@@ -44,37 +44,44 @@ export function useToastQueue(
 		queueRef.current = []
 	}, [fallback])
 
-	const next = useCallback(
-		function advance() {
-			let removed: ToastData | undefined
+	const next = useCallback(() => {
+		let removed: ToastData | undefined
 
-			// Skips an id that left by another route after it was queued: its removal
-			// has no leave animation of its own, so the queue would stall on it.
-			while (!removed) {
-				const id = queueRef.current.shift()
+		// Skips an id that left by another route after it was queued: its removal
+		// has no leave animation of its own, so the queue would stall on it.
+		while (!removed) {
+			const id = queueRef.current.shift()
 
-				if (!id) {
-					runningRef.current = false
+			if (!id) {
+				runningRef.current = false
 
-					return
-				}
-
-				removed = toastsRef.current.find((toast) => toast.id === id)
+				return false
 			}
 
-			const { id } = removed
+			removed = toastsRef.current.find((toast) => toast.id === id)
+		}
 
-			toastsRef.current = toastsRef.current.filter((toast) => toast.id !== id)
-			sync()
+		const { id } = removed
 
-			onRemove(removed)
+		toastsRef.current = toastsRef.current.filter((toast) => toast.id !== id)
+		sync()
 
-			// The exit callback or this timer advances the queue, whichever comes first.
-			// The callback clears the timer, and each advance arms it again.
-			fallback.set(advance, exitFallback)
-		},
-		[toastsRef, sync, onRemove, fallback],
-	)
+		onRemove(removed)
+
+		return true
+	}, [toastsRef, sync, onRemove])
+
+	// The exit callback or the fallback timer advances the queue, whichever comes
+	// first. Each advance clears the timer, and arms it again after a removal.
+	const advance = useCallback(() => {
+		const step = () => {
+			fallback.clear()
+
+			if (next()) fallback.set(step, exitFallback)
+		}
+
+		step()
+	}, [next, fallback])
 
 	// Adds `ids` behind the ids already queued. A running queue takes them on its
 	// next advance; an idle queue starts at once.
@@ -88,18 +95,14 @@ export function useToastQueue(
 
 			runningRef.current = true
 
-			next()
+			advance()
 		},
-		[next],
+		[advance],
 	)
 
 	const handleExitComplete = useCallback(() => {
-		if (!runningRef.current) return
+		if (runningRef.current) advance()
+	}, [advance])
 
-		fallback.clear()
-
-		next()
-	}, [next, fallback])
-
-	return { runningRef, start, stop, next, handleExitComplete }
+	return { runningRef, start, stop, handleExitComplete }
 }
