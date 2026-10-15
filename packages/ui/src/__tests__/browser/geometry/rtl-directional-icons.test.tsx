@@ -18,8 +18,8 @@ import { getSlot, present, renderUI, screen } from '../../helpers'
  * pointed away from its children. Each icon now mirrors in RTL. An open tree chevron turns the
  * other way in RTL, so it still points down.
  *
- * The test composes the computed `rotate` and `scale` of each glyph and reads where its arrow
- * points. Rides the real browser because jsdom loads no stylesheet.
+ * The test composes the computed `rotate` and `scale` of each glyph, or of the tree chevron
+ * column, and reads where its arrow points. Rides the real browser because jsdom loads no stylesheet.
  */
 describe('directional icons in RTL (real browser)', () => {
 	afterEach(() => {
@@ -119,9 +119,13 @@ describe('directional icons in RTL (real browser)', () => {
 					</Tree>,
 				)
 
-				const open = svg(screen.getByRole('treeitem', { name: /open/ }), 'open chevron')
+				// The chevron column turns and mirrors, not the glyph, so the test reads the column.
+				const column = (name: RegExp, what: string) =>
+					present(svg(screen.getByRole('treeitem', { name }), what).parentElement, what)
 
-				const closed = svg(screen.getByRole('treeitem', { name: /closed/ }), 'closed chevron')
+				const open = column(/open/, 'open chevron')
+
+				const closed = column(/closed/, 'closed chevron')
 
 				expect(pointing(closed, 1)).toEqual({ x: end, y: 0 })
 

@@ -880,8 +880,8 @@ describe('skeleton parity (real browser)', () => {
 		)
 	})
 
-	// The calendar has no xs step, so in an xs scope it opens an sm scope. The skeleton with no
-	// size takes the xs scope, so each of its rows must give the sm height at xs.
+	// The calendar and the skeleton with no size both take the xs scope, so each row of the
+	// skeleton must give the height of the calendar at xs.
 	it('CalendarSkeleton with no size has the box of a calendar in an xs scope', () => {
 		const { container } = renderUI(
 			<Box density="xs">

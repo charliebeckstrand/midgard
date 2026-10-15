@@ -1,12 +1,13 @@
 import type { ReactElement } from 'react'
 import { afterAll, beforeAll, describe, expect, it, onTestFinished } from 'vitest'
-import { cdp, page } from 'vitest/browser'
+import { cdp, page, userEvent } from 'vitest/browser'
 import { ProgressBar } from '../../components/progress'
 import { Segment, SegmentItem } from '../../components/segment'
 import { RangeSlider, Slider } from '../../components/slider'
 import { Switch } from '../../components/switch'
 import { Tab, TabList, Tabs } from '../../components/tabs'
 import { Timeline, TimelineItem, TimelineTitle } from '../../components/timeline'
+import { Tree, TreeItem } from '../../components/tree'
 import { frames, present, renderUI } from '../helpers'
 
 /**
@@ -96,6 +97,26 @@ describe('controls show their state under forced colors (real browser)', () => {
 		expect(style.backgroundColor === canvas && style.borderTopWidth === '0px').toBe(false)
 	})
 
+	// The focus marker of an underline tab is a background on `::after`, which
+	// forced colors remove, and the tab sets `outline-none`. The focused tab must
+	// still draw an outline.
+	it('tabs: a keyboard-focused tab draws an outline', async () => {
+		const { container } = renderUI(
+			<Tabs value="a" onValueChange={() => {}}>
+				<TabList aria-label="Sections">
+					<Tab value="a">Alpha</Tab>
+					<Tab value="b">Bravo</Tab>
+				</TabList>
+			</Tabs>,
+		)
+		await userEvent.keyboard('{Tab}')
+		const tab = present(container.querySelector('[data-slot=tab][aria-selected=true]'), 'tab')
+		expect(document.activeElement).toBe(tab)
+		const style = getComputedStyle(tab)
+		expect(style.outlineStyle).not.toBe('none')
+		expect(style.outlineWidth).not.toBe('0px')
+	})
+
 	// The active indicator marks the current item of a segment, a sidebar, a nav,
 	// pagination, a stepper and a chat list. One case per host is not needed:
 	// all of them render the one primitive.
@@ -177,3 +198,52 @@ describe('controls show their state under forced colors (real browser)', () => {
 		expect(slider[1]).not.toBe(slider[0])
 	})
 })
+
+/**
+ * The Tree check box and the current row show their state with a fill, a white
+ * mark, and a text color. Forced colors remove the fill and map the text to
+ * `CanvasText`, and a white mark is lost on a light palette. Each case runs on
+ * the light and the dark forced palette.
+ */
+describe.each(['light', 'dark'])(
+	'tree rows show their state on a %s forced palette (real browser)',
+	(scheme) => {
+		beforeAll(() =>
+			cdp().send('Emulation.setEmulatedMedia', {
+				features: [
+					{ name: 'forced-colors', value: 'active' },
+					{ name: 'prefers-color-scheme', value: scheme },
+				],
+			}),
+		)
+		afterAll(() =>
+			cdp().send('Emulation.setEmulatedMedia', {
+				features: [
+					{ name: 'forced-colors', value: '' },
+					{ name: 'prefers-color-scheme', value: '' },
+				],
+			}),
+		)
+
+		const row = (props: { checked?: boolean | 'mixed'; current?: boolean }) => (
+			<Tree aria-label="Files">
+				<TreeItem label="a.ts" onCheckedChange={() => {}} {...props} />
+			</Tree>
+		)
+
+		it('check box: checked, mixed, and unchecked paint differently', async () => {
+			const off = await pixels(row({ checked: false }))
+			const on = await pixels(row({ checked: true }))
+			const mixed = await pixels(row({ checked: 'mixed' }))
+			expect(on).not.toBe(off)
+			expect(mixed).not.toBe(off)
+			expect(mixed).not.toBe(on)
+		})
+
+		it('current row: paints differently from another row', async () => {
+			const other = await pixels(row({}))
+			const current = await pixels(row({ current: true }))
+			expect(current).not.toBe(other)
+		})
+	},
+)

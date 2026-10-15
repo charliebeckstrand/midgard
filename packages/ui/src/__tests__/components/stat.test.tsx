@@ -7,6 +7,7 @@ import {
 	StatValue,
 	StatValueSkeleton,
 } from '../../components/stat'
+import { Density, useDensityStep } from '../../primitives/density'
 import { bySlot, renderUI } from '../helpers'
 
 describe('Stat skeleton variants', () => {
@@ -27,6 +28,24 @@ describe('StatValue size resolution', () => {
 		const { container } = renderUI(<StatValue size="sm">100</StatValue>)
 
 		expect(bySlot(container, 'stat-value')).toHaveAttribute('data-density', 'sm')
+	})
+
+	it('opens the density context of its size for client descendants', () => {
+		function Probe() {
+			return <span data-slot="probe">{useDensityStep()}</span>
+		}
+
+		const { container } = renderUI(
+			<Density step="lg">
+				<StatValue size="sm">
+					<Probe />
+				</StatValue>
+			</Density>,
+		)
+
+		expect(bySlot(container, 'stat-value')).toHaveAttribute('data-density', 'sm')
+
+		expect(bySlot(container, 'probe')).toHaveTextContent('sm')
 	})
 
 	it('accepts trend on StatDelta', () => {
