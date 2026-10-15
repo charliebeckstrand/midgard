@@ -1,10 +1,13 @@
 import { createRef } from 'react'
+import { hydrateRoot, type Root } from 'react-dom/client'
+import { renderToString } from 'react-dom/server'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { CardTitle } from '../../components/card'
 import { HoldButton } from '../../components/hold-button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { TooltipContext } from '../../components/tooltip/context'
+import { tooltipBody } from '../../components/tooltip/tooltip-body-loader'
 import { type TooltipIntent, useTooltipIntent } from '../../components/tooltip/tooltip-intent'
 import { observeReferenceDisabled } from '../../components/tooltip/tooltip-reference-disabled'
 import { useTooltipState } from '../../components/tooltip/use-tooltip-state'
@@ -528,6 +531,62 @@ describe('TooltipContent', () => {
 
 		// The portal host writes the scope of the surface.
 		expect(panel.closest('[data-slot="portal"]')).toHaveAttribute('data-density', 'lg')
+	})
+})
+
+describe('Tooltip hydration', () => {
+	it('hydrates the server output of an open tooltip after the client loads its module', async ({
+		signal,
+	}) => {
+		const element = (
+			<Tooltip open>
+				<TooltipTrigger>
+					<button type="button">Trigger</button>
+				</TooltipTrigger>
+				<TooltipContent>Tip</TooltipContent>
+			</Tooltip>
+		)
+
+		// The server never loads the module. The files of the suite share it, so
+		// the server render reads no module.
+		const read = vi.spyOn(tooltipBody, 'read').mockReturnValue(null)
+
+		const markup = renderToString(element)
+
+		read.mockRestore()
+
+		// The client loaded the module before it hydrates, as an idle preload does.
+		await tooltipBody.load()
+
+		signal.throwIfAborted()
+
+		const container = attach(document.createElement('div'))
+
+		container.innerHTML = markup
+
+		const onRecoverableError = vi.fn()
+
+		// React reports a mismatch of an attribute on the console, not as a
+		// recoverable error.
+		const consoleError = vi.spyOn(console, 'error').mockImplementation(noop)
+
+		onTestFinished(() => consoleError.mockRestore())
+
+		let root: Root | undefined
+
+		await act(async () => {
+			root = hydrateRoot(container, element, { onRecoverableError })
+		})
+
+		onTestFinished(() => act(() => root?.unmount()))
+
+		expect(onRecoverableError).not.toHaveBeenCalled()
+
+		expect(consoleError).not.toHaveBeenCalled()
+
+		await waitFor(() => expect(screen.getByRole('tooltip')).toHaveTextContent('Tip'))
+
+		expect(screen.getByRole('button', { name: 'Trigger' })).toHaveAttribute('aria-describedby')
 	})
 })
 
