@@ -90,22 +90,24 @@ export function Checkbox({
 
 	// An activation clears the property. The prop does not change, so the effect
 	// does not run again. The wrapper writes the property back, then calls the
-	// resolved handler. It attaches only while the prop is true or the box is
-	// read-only. React then keeps its warning for a `checked` input with no
-	// `onChange` in the other cases.
+	// resolved handler. It attaches only while the prop is true, the box is
+	// read-only, or a handler resolves. React then keeps its warning for a
+	// `checked` input with no `onChange` in the other cases.
 	//
 	// A read-only box undoes the toggle and does not call the resolved handler.
 	// The write goes through the setter, so the change tracker of React keeps the
-	// correct value. A canceled click does not do this. React reads the toggle
-	// before the browser restores the value, and then it misses the next change.
+	// correct value. A canceled click gets the same undo. React reads the toggle
+	// before the browser restores the value, so it sends a change that does not
+	// occur. The `onClick` handlers run before this handler, so the click event
+	// shows the cancel. Without the undo, React then misses the next change.
 	const handleChange: ChangeEventHandler<HTMLInputElement> | undefined =
-		indeterminate || resolvedReadOnly
+		indeterminate || resolvedReadOnly || resolvedOnChange
 			? (event) => {
 					const input = event.currentTarget
 
 					input.indeterminate = !!indeterminate
 
-					if (resolvedReadOnly) {
+					if (resolvedReadOnly || event.nativeEvent.defaultPrevented) {
 						input.checked = !input.checked
 
 						return
@@ -113,7 +115,7 @@ export function Checkbox({
 
 					resolvedOnChange?.(event)
 				}
-			: resolvedOnChange
+			: undefined
 
 	const Mark = indeterminate ? Minus : Check
 
