@@ -141,6 +141,28 @@ describe('Stepper', () => {
 		)
 	})
 
+	it('gives className to the step row in an interactive and in a display-only stepper', () => {
+		for (const props of [{ value: 0 }, { value: 0, onValueChange: () => {} }]) {
+			const { container, unmount } = renderUI(
+				<Stepper {...props} orientation="horizontal" className="justify-center px-0">
+					<StepperStep value={0}>
+						<StepperTitle>Account</StepperTitle>
+					</StepperStep>
+				</Stepper>,
+			)
+
+			// The row is the flex list of the steps. A class such as px-0 must
+			// replace the padding of the row, not land on a wrapper around it.
+			const row = present(container.querySelector('ol'), 'row')
+
+			expect(row).toHaveClass('justify-center', 'px-0')
+
+			expect(row).not.toHaveClass('px-4')
+
+			unmount()
+		}
+	})
+
 	it('roves the arrow keys across the step buttons inside the list', async () => {
 		renderUI(
 			<Stepper defaultValue={0} orientation="horizontal">
