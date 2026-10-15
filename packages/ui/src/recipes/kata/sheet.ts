@@ -84,8 +84,12 @@ export const k = {
 			surface: panel.surface.axis,
 			compound: [
 				...DOCKED_STEPS,
-				{ side: 'right', width: 'full', class: `sm:left-4 ${CAP}` },
-				{ side: 'left', width: 'full', class: `sm:right-4 ${CAP}` },
+				// `full` takes the cap and no second inset. The side's `w-full` under the
+				// cap already puts the far edge a step in from the screen's. A second inset
+				// over-constrains the box once a drag sets a width, and the browser can
+				// then drop the docked inset, so the sheet comes away from its edge.
+				{ side: 'right', width: 'full', class: CAP },
+				{ side: 'left', width: 'full', class: CAP },
 				// Below `sm` the side's own `w-full` still wins, so a phone keeps a
 				// flush, full-width sheet: there is no room there for a panel to be
 				// narrower than the screen.

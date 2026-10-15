@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it, onTestFinished } from 'vitest'
+import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { Sheet, SheetBody, SheetPanel } from '../../../components/sheet'
 import { frames, getSlot, renderUI } from '../../helpers'
@@ -9,9 +9,9 @@ import { drag } from '../helpers/drag'
 /**
  * Real-browser check of the edge a sheet stays docked to while a drag resizes it.
  *
- * A `full` sheet floats on both its inline insets. A dragged width that leaves
- * both insets set over-constrains the box, and the browser then drops the
- * inset at the end of the line. In a left-to-right page, a right-hand sheet
+ * A `full` sheet floats on an inset from the screen edge on each side. If the
+ * recipe states both insets, a dragged width over-constrains the box, and the
+ * browser then drops the inset at the end of the line. In a left-to-right page, a right-hand sheet
  * comes away from the right edge and shrinks toward the left. In a
  * right-to-left page, a left-hand sheet does the same thing the other way.
  * jsdom lays nothing out, so only a real browser shows it.
@@ -21,20 +21,23 @@ import { drag } from '../helpers/drag'
 const STEP = 50
 
 describe('sheet resize edge (real browser)', () => {
-	// The `full` step floats on both insets only above `sm`.
+	// The `full` step floats on its insets only above `sm`.
 	beforeAll(() => page.viewport(1100, 800))
 
+	afterEach(() => document.documentElement.removeAttribute('dir'))
+
 	it.each([
-		['right', 'ltr', 1],
-		['left', 'ltr', -1],
-		['right', 'rtl', 1],
-		['left', 'rtl', -1],
+		['right', 'ltr'],
+		['left', 'ltr'],
+		['right', 'rtl'],
+		['left', 'rtl'],
 	] as const)(
 		'keeps a full %s sheet on its edge as it shrinks, in a %s page',
-		async (side, dir, toward) => {
+		async (side, dir) => {
 			document.documentElement.dir = dir
 
-			onTestFinished(() => document.documentElement.removeAttribute('dir'))
+			// The grip faces the middle of the screen, so a shrink moves it there.
+			const toward = side === 'right' ? 1 : -1
 
 			renderUI(
 				<Sheet open onOpenChange={() => {}}>
