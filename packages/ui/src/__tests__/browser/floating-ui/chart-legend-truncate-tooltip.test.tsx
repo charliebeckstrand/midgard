@@ -32,6 +32,23 @@ describe('chart legend truncation tooltip (real browser)', () => {
 		expect(tip).toHaveTextContent(longLabel)
 	})
 
+	// The tooltip echoes the label, and the label is in the accessible name of
+	// the switch. A description that points at the tooltip makes a screen reader
+	// say the label two times when the keyboard focuses the switch.
+	it('does not describe a clipped entry by the label that names it', async () => {
+		const { container } = renderPie()
+
+		const entry = allBySlot(container, 'chart-legend-item')[0] as HTMLElement
+
+		entry.focus()
+
+		expect(await screen.findByRole('tooltip')).toHaveTextContent(longLabel)
+
+		expect(entry).toHaveAccessibleName(expect.stringContaining(longLabel))
+
+		expect(entry).not.toHaveAttribute('aria-describedby')
+	})
+
 	it('opens no tooltip on an entry whose label fits the column', async () => {
 		const { container } = renderPie()
 

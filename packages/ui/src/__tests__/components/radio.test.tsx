@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { Description, Label } from '../../components/fieldset'
+import { Description, Field, Label } from '../../components/fieldset'
 import { Radio, RadioField, RadioGroup } from '../../components/radio'
 import {
 	act,
@@ -269,6 +269,53 @@ describe('RadioField aria-describedby', () => {
 		expect(description.id).toBeTruthy()
 
 		expect(input).toHaveAttribute('aria-describedby', description.id)
+	})
+})
+
+describe('RadioGroup in a Field', () => {
+	it('keeps the Field id and description off bare radios and gives the description to the group', () => {
+		renderUI(
+			<Field htmlFor="plan" disabled>
+				<Label>Plan</Label>
+				<RadioGroup aria-label="Plan">
+					<Radio name="plan" value="a" />
+					<Radio name="plan" value="b" />
+				</RadioGroup>
+				<Description>Pick one plan.</Description>
+			</Field>,
+		)
+
+		const radios = screen.getAllByRole('radio')
+
+		const description = getSlot(document.body, 'description')
+
+		for (const radio of radios) {
+			expect(radio).not.toHaveAttribute('id')
+
+			expect(radio).not.toHaveAttribute('aria-describedby')
+
+			// A disabled Field still disables each radio of the group.
+			expect(radio).toBeDisabled()
+		}
+
+		expect(screen.getByRole('radiogroup')).toHaveAttribute('aria-describedby', description.id)
+	})
+
+	it('keeps the id of each RadioField in the group', () => {
+		renderUI(
+			<Field htmlFor="plan">
+				<RadioGroup aria-label="Plan">
+					<RadioField htmlFor="plan-a">
+						<Radio name="plan" value="a" />
+					</RadioField>
+					<RadioField htmlFor="plan-b">
+						<Radio name="plan" value="b" />
+					</RadioField>
+				</RadioGroup>
+			</Field>,
+		)
+
+		expect(screen.getAllByRole('radio').map((radio) => radio.id)).toEqual(['plan-a', 'plan-b'])
 	})
 })
 
