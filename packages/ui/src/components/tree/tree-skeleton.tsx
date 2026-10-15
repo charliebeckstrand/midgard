@@ -51,9 +51,6 @@ export function TreeSkeleton({ rows = 5, size, indent = true, className }: TreeS
 
 	const depthOf = (index: number) => DEPTHS[index % DEPTHS.length] ?? 0
 
-	// The tree trims the outer padding of its first and last top-level items.
-	const lastTopLevel = rowKeys.findLastIndex((_, index) => depthOf(index) === 0)
-
 	return (
 		<div data-density={size} aria-hidden="true" className={cn(k.base, className)}>
 			{rowKeys.map((rowKey, index) => (
@@ -62,7 +59,8 @@ export function TreeSkeleton({ rows = 5, size, indent = true, className }: TreeS
 					className={cn(
 						k.skeleton.row,
 						index === 0 && k.skeleton.first,
-						index === lastTopLevel && k.skeleton.last,
+						// The tree trims the outer padding of its first and last visible rows.
+						index === rows - 1 && k.skeleton.last,
 					)}
 				>
 					{indent

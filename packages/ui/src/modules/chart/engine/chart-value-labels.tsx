@@ -1,6 +1,7 @@
 'use client'
 
 import { cn } from '../../../core'
+import { usePrefersReducedMotion } from '../../../hooks/use-prefers-reduced-motion'
 import * as m from '../../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../../recipes/kata/chart'
 import type { ChartValueAxisId } from './chart-axes/schema'
@@ -152,6 +153,9 @@ const LABEL_EXIT = { opacity: 0, transition: POINT_UNPOP }
 export function ChartValueLabels({ labels, animate, dataKey }: ChartValueLabelsProps) {
 	const spark = useChartTier() === 'spark'
 
+	// The server cannot read the preference, so it renders the labels at rest.
+	const still = usePrefersReducedMotion()
+
 	if (spark || labels.length === 0) return null
 
 	return (
@@ -178,7 +182,7 @@ export function ChartValueLabels({ labels, animate, dataKey }: ChartValueLabelsP
 					<m.text
 						key={label.key}
 						{...shared}
-						initial={LABEL_HIDDEN}
+						initial={still ? false : LABEL_HIDDEN}
 						animate={LABEL_SHOWN}
 						exit={LABEL_EXIT}
 						transition={POINT_POP}

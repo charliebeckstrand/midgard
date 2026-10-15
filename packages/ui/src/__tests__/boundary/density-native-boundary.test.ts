@@ -133,6 +133,246 @@ describe('density scopes', () => {
 	})
 })
 
+// A host that writes `data-density={…}` and renders the children of its
+// component makes a scope for those children. If it writes only the
+// attribute, a client reader under it (Calendar, Grid, or Portal, and thus
+// each Tooltip, Menu, Select, and Popover) takes the step of an outer scope.
+// The host must also open the context: the `density` prop of a host
+// primitive, or a `<Density step>` around the children. The scan reads each
+// JSX element that writes the attribute from an expression, and follows each
+// variable that its body renders.
+
+/** The source folders that ship a host. A skeleton renders no consumer children. */
+const SCOPE_LAYERS = /^(?:components|modules|primitives|structure)\//
+
+const scopeSources = sources.filter(
+	({ file }) => SCOPE_LAYERS.test(file) && file.endsWith('.tsx') && !file.endsWith('-skeleton.tsx'),
+)
+
+// The hosts below write the attribute around children, and open no context.
+// Each entry is a reviewed decision. A new entry needs a reason here.
+//
+//   - Kbd: its children are the text of a key, so no client reader is under it.
+//   - Portal: the children keep the context of the tree that opened the portal.
+//     The attribute writes that same scope on the portal host, because the
+//     move to `document.body` breaks the CSS channel.
+
+const ATTRIBUTE_ONLY_HOSTS = ['components/kbd/kbd.tsx', 'primitives/portal/portal.tsx']
+
+// The hosts below break the rule, and a fix for each is open. Remove each
+// entry when its fix merges. This list has no check for a stale entry, so a
+// fix can merge before or after this guard.
+//
+//   - Text: PR #2553.
+//   - StatValue: branch `claude/fix-stat-value-density-scope`.
+//   - AvatarGroup: a fix in progress, with no PR yet.
+
+const PENDING_FIXES = [
+	'components/avatar/avatar-group.tsx',
+	'components/stat/stat-value.tsx',
+	'components/text/text.tsx',
+]
+
+/** An attribute that writes the step from an expression, not a literal such as `"slot"`. */
+const DENSITY_ATTRIBUTE = /\sdata-density=\{/g
+
+/** The `density` prop of a host primitive. */
+const DENSITY_PROP = /(?<![\w-])density=/
+
+/** The index after the bracket that closes the one at `start`. */
+function closeBracket(code: string, start: number): number {
+	let depth = 0
+
+	for (let index = start; index < code.length; index++) {
+		const char = code[index]
+
+		if (char === '(' || char === '[' || char === '{') depth++
+		else if (char === ')' || char === ']' || char === '}') depth--
+
+		if (depth === 0) return index + 1
+	}
+
+	return code.length
+}
+
+/**
+ * The end of the opening tag that starts at `start`, after its `>`, and
+ * whether the tag closes itself. The scan steps over each `{…}` attribute.
+ */
+function openingTagEnd(code: string, start: number): { end: number; selfClosing: boolean } {
+	let index = start + 1
+
+	while (index < code.length) {
+		const char = code[index]
+
+		if (char === '{') {
+			index = closeBracket(code, index)
+
+			continue
+		}
+
+		if (char === '/' && code[index + 1] === '>') return { end: index + 2, selfClosing: true }
+
+		if (char === '>') return { end: index + 1, selfClosing: false }
+
+		index++
+	}
+
+	return { end: code.length, selfClosing: true }
+}
+
+/** The body of the element `tag` whose opening tag ends at `from`, to its closing tag. */
+function elementBody(code: string, tag: string, from: number): string {
+	const name = tag.replace(/\./g, '\\.')
+
+	const pattern = new RegExp(`<${name}(?![\\w.])|</${name}>`, 'g')
+
+	pattern.lastIndex = from
+
+	let depth = 1
+
+	for (let match = pattern.exec(code); match; match = pattern.exec(code)) {
+		if (match[0].startsWith('</')) {
+			depth--
+
+			if (depth === 0) return code.slice(from, match.index)
+		} else if (!openingTagEnd(code, match.index).selfClosing) {
+			depth++
+		}
+	}
+
+	return code.slice(from)
+}
+
+/** The initializer of each `const` or `let` in `code`, by its name. */
+function initializers(code: string): Map<string, string> {
+	const found = new Map<string, string>()
+
+	const declaration = /\b(?:const|let)\s+(\w+)\s*(?::[^=]+)?=(?!=)/g
+
+	for (let match = declaration.exec(code); match; match = declaration.exec(code)) {
+		let end = declaration.lastIndex
+
+		// The statement ends at a line break outside each bracket, unless the
+		// next line continues an expression, such as the branch of a ternary.
+		while (end < code.length) {
+			const char = code[end]
+
+			if (char === '(' || char === '[' || char === '{') {
+				end = closeBracket(code, end)
+
+				continue
+			}
+
+			if (char === ';') break
+
+			if (char === '\n' && !/^\s*(?:\?\?|\?|:|\.|&&|\|\|)/.test(code.slice(end + 1))) break
+
+			end++
+		}
+
+		found.set(match[1] as string, code.slice(declaration.lastIndex, end))
+	}
+
+	return found
+}
+
+/** `body`, with the initializer of each variable that it reads, to a fixed point. */
+function expandBody(body: string, variables: Map<string, string>): string {
+	let expanded = body
+
+	const read = new Set<string>()
+
+	for (let grew = true; grew; ) {
+		grew = false
+
+		for (const [name, initializer] of variables) {
+			if (read.has(name) || !new RegExp(`\\b${name}\\b`).test(expanded)) continue
+
+			read.add(name)
+
+			expanded += `\n${initializer}`
+
+			grew = true
+		}
+	}
+
+	return expanded
+}
+
+/** Whether `code` has a host that writes the attribute, renders the children, and opens no context. */
+function attributeOnlyHosts(code: string): boolean {
+	const variables = initializers(code)
+
+	for (const match of code.matchAll(DENSITY_ATTRIBUTE)) {
+		const tagStart = code.lastIndexOf('<', match.index)
+
+		const tag = /^<([A-Za-z][\w.]*)/.exec(code.slice(tagStart))?.[1]
+
+		if (!tag) continue
+
+		const { end, selfClosing } = openingTagEnd(code, tagStart)
+
+		if (selfClosing) continue
+
+		const body = expandBody(elementBody(code, tag, end), variables)
+
+		if (!/\bchildren\b/.test(body)) continue
+
+		if (DENSITY_PROP.test(code.slice(tagStart, end)) || CONTEXT_OPEN.test(body)) continue
+
+		return true
+	}
+
+	return false
+}
+
+describe('density scope channels', () => {
+	const writers = scopeSources.filter(({ code }) => /\sdata-density=\{/.test(code))
+
+	const found = scopeSources
+		.filter(({ code }) => attributeOnlyHosts(code))
+		.map(({ file }) => file)
+		.sort()
+
+	it('a host that writes data-density around its children also opens the context', () => {
+		expect(found.filter((file) => !PENDING_FIXES.includes(file))).toEqual(ATTRIBUTE_ONLY_HOSTS)
+	})
+
+	it('reads each host that writes the attribute', () => {
+		// A scan that read no host would pass the case above with an empty list.
+		expect(writers.length).toBeGreaterThan(15)
+
+		expect(writers.map(({ file }) => file)).toContain('components/checkbox/checkbox.tsx')
+	})
+
+	it('finds a host that writes only the attribute, and passes a host that opens the context', () => {
+		const component = (host: string) => `export function X({ size, children }) {\n${host}\n}`
+
+		expect(attributeOnlyHosts(component('<div data-density={size}>{children}</div>'))).toBe(true)
+
+		expect(
+			attributeOnlyHosts(
+				component('const body = <b>{children}</b>\nreturn <div data-density={size}>{body}</div>'),
+			),
+		).toBe(true)
+
+		expect(
+			attributeOnlyHosts(component('<Box data-density={size} density={size}>{children}</Box>')),
+		).toBe(false)
+
+		expect(
+			attributeOnlyHosts(
+				component('<div data-density={size}><Density step={size}>{children}</Density></div>'),
+			),
+		).toBe(false)
+
+		expect(attributeOnlyHosts(component('<div data-density="slot">{children}</div>'))).toBe(false)
+
+		expect(attributeOnlyHosts(component('<div data-density={size}><Icon /></div>'))).toBe(false)
+	})
+})
+
 // A class selects a density step through the stepped utilities, which read
 // the weights of the nearest scope. A `data-[density=…]` selector has no
 // proximity, so an outer scope can win over the nearest one. The source
@@ -233,10 +473,7 @@ describe('density after backdrop', () => {
 // server and in the hydration render, so the markup is wrong at the first
 // paint. Only the files below may read it. Each uses the value only for work
 // after mount, or for a context that a client descendant reads after mount.
-// Calendar reads it at the first paint, because its test needs no root step.
 //
-//   - Calendar: a test for `xs`, which opens a scope at `sm`. Only a `size` or
-//     a scope sets `xs`, and the server reads both, so the first paint is right.
 //   - GridData: the virtualizer estimate, the autosizer refit key, and the
 //     step of the overlays that the grid opens.
 //   - The docs playground: the step of the page, to mark the option of a
@@ -246,7 +483,6 @@ describe('density after backdrop', () => {
 // The check reads each name, not only each call, so an aliased import fails it.
 
 const STEP_READERS = [
-	'components/calendar/calendar.tsx',
 	'docs/kit/playground.tsx',
 	'modules/grid/grid-data.tsx',
 	'primitives/density/density.tsx',

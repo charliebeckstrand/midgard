@@ -1,6 +1,7 @@
 import { renderToString } from 'react-dom/server'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { Avatar, AvatarGroup, type AvatarProps, AvatarSkeleton } from '../../components/avatar'
+import { Density, useDensityStep } from '../../primitives/density'
 import type { Color } from '../../recipes'
 import { allBySlot, bySlot, getSlot, renderUI, screen } from '../helpers'
 
@@ -222,5 +223,41 @@ describe('AvatarGroup', () => {
 		expect(bySlot(container, 'avatar-with-status')).not.toHaveAttribute('data-density')
 
 		expect(bySlot(container, 'status-dot')).not.toHaveAttribute('data-density')
+	})
+
+	it('opens the density context of its size for client descendants', () => {
+		function Probe() {
+			return <span data-slot="probe">{useDensityStep()}</span>
+		}
+
+		const { container } = renderUI(
+			<Density step="lg">
+				<AvatarGroup size="sm">
+					<Probe />
+				</AvatarGroup>
+			</Density>,
+		)
+
+		expect(bySlot(container, 'avatar-group')).toHaveAttribute('data-density', 'sm')
+
+		expect(bySlot(container, 'probe')).toHaveTextContent('sm')
+	})
+
+	it('leaves the outer density step to client descendants without a size', () => {
+		function Probe() {
+			return <span data-slot="probe">{useDensityStep()}</span>
+		}
+
+		const { container } = renderUI(
+			<Density step="lg">
+				<AvatarGroup>
+					<Probe />
+				</AvatarGroup>
+			</Density>,
+		)
+
+		expect(bySlot(container, 'avatar-group')).not.toHaveAttribute('data-density')
+
+		expect(bySlot(container, 'probe')).toHaveTextContent('lg')
 	})
 })
