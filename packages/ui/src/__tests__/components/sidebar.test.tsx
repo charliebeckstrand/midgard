@@ -622,6 +622,42 @@ describe('SidebarItem', () => {
 		expect(bySlot(container, 'sidebar-item-suffix')).toBeNull()
 	})
 
+	it('keeps an enclosing drawer open when onClick calls preventDefault', () => {
+		const close = vi.fn()
+
+		renderUI(
+			<OffcanvasContext value={{ close }}>
+				<Sidebar>
+					<SidebarItem onClick={(event) => event.preventDefault()}>
+						<SidebarLabel>Home</SidebarLabel>
+					</SidebarItem>
+				</Sidebar>
+			</OffcanvasContext>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Home' }))
+
+		expect(close).not.toHaveBeenCalled()
+	})
+
+	it('closes an enclosing drawer once when an href item has no onClick', () => {
+		const close = vi.fn()
+
+		renderUI(
+			<OffcanvasContext value={{ close }}>
+				<Sidebar>
+					<SidebarItem href="#home">
+						<SidebarLabel>Home</SidebarLabel>
+					</SidebarItem>
+				</Sidebar>
+			</OffcanvasContext>,
+		)
+
+		fireEvent.click(screen.getByRole('link', { name: 'Home' }))
+
+		expect(close).toHaveBeenCalledOnce()
+	})
+
 	it('renders a suffix control beside the button, not inside it', () => {
 		const { container } = renderUI(
 			<Sidebar>

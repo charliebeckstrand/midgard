@@ -8,6 +8,7 @@ import {
 	useLayoutEffect,
 	useRef,
 } from 'react'
+import { composeEventHandlers } from '../../core'
 import { useScrollWithin } from '../../hooks'
 import { useActiveIndicator } from '../../primitives/active-indicator'
 import { useCurrentItem } from '../../primitives/current/current'
@@ -43,7 +44,9 @@ export type NavItemProps = {
 	/** Classes for the inner button or link. The wrapper of the row does not take them. */
 	className?: string
 	/**
-	 * Keep an enclosing offcanvas drawer open on click instead of dismissing it.
+	 * Keep an enclosing offcanvas drawer open on each click instead of dismissing
+	 * it. To keep the drawer open on one click only, call `preventDefault()` in
+	 * `onClick`.
 	 * @defaultValue false
 	 */
 	preventClose?: boolean
@@ -75,7 +78,8 @@ type NavItemOptions = {
  * explicit `current` prop, from the selection binding via `value`, or from the
  * path binding via `href`. It also
  * scrolls the active item into view. It composes the click handler from the user `onClick`, the selection change, and
- * the offcanvas close.
+ * the offcanvas close. A `preventDefault()` in the user `onClick` cancels the
+ * offcanvas close, and does not cancel the selection change (CONVENTIONS §3.9).
  *
  * Only the wiring lives here; each consuming component owns its own markup,
  * slot names, classes, and icon sizing.
@@ -119,17 +123,21 @@ export function useNavItem({ current, value, href, match, preventClose, onClick 
 		scrollWithin(ref.current, { block: 'nearest' })
 	}, [isCurrent, scrollWithin])
 
-	function handleClick(event: MouseEvent<HTMLElement>) {
-		onClick?.(event as MouseEvent<HTMLButtonElement> & MouseEvent<HTMLAnchorElement>)
-
-		if (value !== undefined) {
-			item.onValueChange?.(value)
-		}
-
-		if (!preventClose) {
-			offcanvas?.close()
-		}
-	}
+	// The selection is the activation of the item, so a consumer
+	// `preventDefault()` does not cancel it. The close is side behavior, so the
+	// outer composition keeps the default check (CONVENTIONS §3.9).
+	const handleClick = composeEventHandlers<MouseEvent<HTMLElement>>(
+		composeEventHandlers(
+			onClick as ((event: MouseEvent<HTMLElement>) => void) | undefined,
+			() => {
+				if (value !== undefined) item.onValueChange?.(value)
+			},
+			{ checkForDefaultPrevented: false },
+		),
+		() => {
+			if (!preventClose) offcanvas?.close()
+		},
+	)
 
 	return { ref, current: isCurrent, indicator, handleClick }
 }
