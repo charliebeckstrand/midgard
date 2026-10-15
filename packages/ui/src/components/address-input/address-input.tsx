@@ -148,21 +148,23 @@ export function AddressInput({
 	// `invalid` it derives from that field reaches the control for free.
 	const bound = useFormField(name)
 
+	// The same order as the Combobox's own cascade (`useFormValue`): an explicit `value`
+	// wins over the field, so the suffix and the Combobox read one selection.
+	const fieldDriven = bound !== undefined && value === undefined
+
 	// Mirrors an unbound Combobox's selection. Both readings feed one question —
 	// whether anything is selected — which the suffix below asks so an undefined
-	// suffix cedes the slot to the Combobox's own clear button.
+	// suffix cedes the slot to the Combobox's own clear button. While the field
+	// drives the selection, this hook does not see a Form reset or a `setValue`.
+	// Thus the Combobox, which reads the field, reports the change to the
+	// consumer, and this hook reports nothing.
 	const [held, setHeld] = useControllable<AddressSuggestion>({
 		value,
 		defaultValue,
-		onValueChange,
+		onValueChange: fieldDriven ? undefined : onValueChange,
 	})
 
-	// The same order as the Combobox's own cascade (`useFormValue`): an explicit `value`
-	// wins over the field, so the suffix and the Combobox read one selection.
-	const selected =
-		bound === undefined || value !== undefined
-			? held
-			: (bound.value as AddressSuggestion | undefined)
+	const selected = fieldDriven ? (bound.value as AddressSuggestion | undefined) : held
 
 	const control = useControl()
 
@@ -190,7 +192,7 @@ export function AddressInput({
 			value={value}
 			defaultValue={defaultValue}
 			displayValue={(suggestion) => suggestion.label}
-			onValueChange={setHeld}
+			onValueChange={fieldDriven ? onValueChange : setHeld}
 			className={cn(loading && 'motion-safe:animate-pulse', className)}
 			placeholder={placeholder}
 			// Yields to a wrapping `<Field>`/`<Label>` from the first render: an own
