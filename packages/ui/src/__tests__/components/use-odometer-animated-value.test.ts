@@ -52,4 +52,24 @@ describe('useOdometerAnimatedValue', () => {
 
 		expect(stop).not.toHaveBeenCalled()
 	})
+
+	it('snaps a running tween when the duration changes to 0', () => {
+		const stop = vi.fn()
+
+		vi.mocked(animate).mockImplementationOnce((() => ({ stop })) as unknown as typeof animate)
+
+		const { result, rerender } = renderHook(
+			({ value, duration }) => useOdometerAnimatedValue({ value, duration }),
+			{ initialProps: { value: 0, duration: 800 } },
+		)
+
+		rerender({ value: 100, duration: 800 })
+
+		// A duration of 0 asks for no tween, as reduced motion does.
+		rerender({ value: 100, duration: 0 })
+
+		expect(stop).toHaveBeenCalledOnce()
+
+		expect(result.current.get()).toBe(100)
+	})
 })
