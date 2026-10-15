@@ -12,30 +12,17 @@ export type StepperIndicatorProps = {
 	className?: string
 } & Omit<ComponentProps<'span'>, 'className'>
 
-// Completed/current/upcoming differ visually by color and the checkmark
-// glyph only (WCAG 1.4.1); the sr-only suffix names the state for AT. The
-// current step has no suffix: its aria-current="step" already reads as
-// "current step".
-const STATE_TEXT = {
-	completed: 'completed',
-	current: undefined,
-	upcoming: 'not started',
-} as const
-
 /**
  * The leading marker of a {@link StepperStep} (number, checkmark, or dot)
  * styled by the step's state. Renders an animated `<ActiveIndicator>` overlay on
  * the current step and an `interactive` variant when the stepper is navigable.
  *
  * @remarks
- * State reads visually through color and the checkmark glyph alone, so an
- * `sr-only` suffix ("completed"/"not started") names it for assistive tech
- * (WCAG 1.4.1). The current step has no suffix, because the
- * `aria-current="step"` of its step already gives "current step". A completed
- * step fills green and draws a checkmark. `<StepperStep>` injects a default
- * instance when the consumer omits one. Pass a number or another glyph as `children` to replace the checkmark; it
- * renders ahead of the `sr-only` suffix. On the current step, it paints in white
- * above the blue fill.
+ * A completed step fills green and draws a checkmark. `<StepperStep>` injects a
+ * default instance when the consumer omits one, and names the state for
+ * assistive tech after the title. Pass a number or another glyph as `children`
+ * to replace the checkmark. On the current step, it paints in white above the
+ * blue fill.
  */
 export function StepperIndicator({ className, children, ...props }: StepperIndicatorProps) {
 	const { onValueChange } = useStepper()
@@ -63,7 +50,6 @@ export function StepperIndicator({ className, children, ...props }: StepperIndic
 				<ActiveIndicator className={cn(k.indicator.active)} style={{ borderRadius: '9999px' }} />
 			)}
 			{content !== false && <span className={cn(k.indicator.content)}>{content}</span>}
-			{STATE_TEXT[state] && <span className="sr-only">, {STATE_TEXT[state]}</span>}
 		</span>
 	)
 }
