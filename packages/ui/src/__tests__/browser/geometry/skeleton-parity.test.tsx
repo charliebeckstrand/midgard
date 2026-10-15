@@ -364,6 +364,28 @@ describe('skeleton parity (real browser)', () => {
 		)
 	})
 
+	it.each(densitySteps.flatMap((size) => [1, 2].map((rows) => [size, rows] as const)))(
+		'TextareaSkeleton has the height of a %s textarea at %i rows',
+		(size, rows) => {
+			const real = box(
+				renderUI(
+					<Box density={size}>
+						<Textarea aria-label="Notes" rows={rows} />
+					</Box>,
+				).container.querySelector('textarea'),
+				'textarea',
+			)
+
+			const skeleton = renderUI(
+				<Box density={size}>
+					<TextareaSkeleton rows={rows} />
+				</Box>,
+			).container.querySelector('[data-slot="placeholder"]')
+
+			expect(box(skeleton, 'skeleton')).toStrictEqual(real)
+		},
+	)
+
 	it.each([
 		['horizontal', 'sm'],
 		['horizontal', 'md'],
