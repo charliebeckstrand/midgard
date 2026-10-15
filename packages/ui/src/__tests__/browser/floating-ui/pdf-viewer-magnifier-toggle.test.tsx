@@ -7,6 +7,7 @@ import {
 } from '../../../components/pdf-viewer/use-pdf-viewer-magnifier'
 import { renderUI, screen, waitFor } from '../../helpers'
 import { settledRect } from '../helpers/sample'
+import { pause } from '../helpers/wall-clock'
 
 /**
  * The page frame is the reference of the lens. A toggle of the loupe can detach the frame from
@@ -77,5 +78,38 @@ describe('PdfViewer magnifier over a toggle of the loupe (real browser)', () => 
 		const after = await dwell()
 
 		expect({ left: after.left, top: after.top }).toEqual({ left: before.left, top: before.top })
+	})
+
+	/*
+	 * A keyboard toggle does not move the pointer, so the page gets no leave while the loupe is
+	 * off. The pointer then moves away. The point that the lens held is stale, and turning the
+	 * loupe on again must not paint it, at once or after a scroll.
+	 */
+	it('shows no lens at a stale point after a keyboard toggle under a resting pointer', async () => {
+		renderUI(<Loupe />)
+
+		await dwell()
+
+		const loupe = screen.getByRole('button', { name: 'Loupe' })
+
+		loupe.focus()
+
+		await userEvent.keyboard('{Enter}')
+
+		await waitFor(() => expect(screen.queryByTestId('lens')).toBeNull())
+
+		await userEvent.hover(loupe)
+
+		await userEvent.keyboard('{Enter}')
+
+		await pause(SETTINGS.delay)
+
+		expect(screen.queryByTestId('lens')).toBeNull()
+
+		document.dispatchEvent(new Event('scroll'))
+
+		await pause(SETTINGS.delay)
+
+		expect(screen.queryByTestId('lens')).toBeNull()
 	})
 })
