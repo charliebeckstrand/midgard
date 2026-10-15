@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Form } from '../../components/form'
 import { SearchInput } from '../../components/search-input'
-import { bySlot, getSlot, renderUI, screen, setupUser } from '../helpers'
+import { bySlot, fireEvent, getSlot, renderUI, screen, setupUser } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
 describe('SearchInput', () => {
@@ -80,6 +80,55 @@ describe('SearchInput', () => {
 		expect(screen.queryByLabelText('Clear search')).not.toBeInTheDocument()
 
 		expect(input).toHaveFocus()
+	})
+
+	it('clears the query on Escape and consumes the key', async () => {
+		const onClear = vi.fn()
+
+		renderUI(<SearchInput defaultValue="query" onClear={onClear} />)
+
+		const input = screen.getByRole('searchbox') as HTMLInputElement
+
+		input.focus()
+
+		const consumed = !fireEvent.keyDown(input, { key: 'Escape' })
+
+		expect(input.value).toBe('')
+
+		expect(onClear).toHaveBeenCalledOnce()
+
+		expect(consumed).toBe(true)
+	})
+
+	it.each([
+		['the field is empty', () => <SearchInput />],
+		['the field is read-only', () => <SearchInput defaultValue="query" readOnly />],
+		[
+			'the caller prevents the default',
+			() => <SearchInput defaultValue="query" onKeyDown={(event) => event.preventDefault()} />,
+		],
+	])('leaves Escape alone when %s', (_name, ui) => {
+		renderUI(ui())
+
+		const input = screen.getByRole('searchbox') as HTMLInputElement
+
+		const before = input.value
+
+		fireEvent.keyDown(input, { key: 'Escape' })
+
+		expect(input.value).toBe(before)
+	})
+
+	it('leaves an Escape that ends an IME composition to the IME', () => {
+		renderUI(<SearchInput defaultValue="query" />)
+
+		const input = screen.getByRole('searchbox') as HTMLInputElement
+
+		const consumed = !fireEvent.keyDown(input, { key: 'Escape', isComposing: true })
+
+		expect(input.value).toBe('query')
+
+		expect(consumed).toBe(false)
 	})
 
 	it('shows spinner when loading', () => {
