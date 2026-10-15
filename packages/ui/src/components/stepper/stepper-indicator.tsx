@@ -13,10 +13,12 @@ export type StepperIndicatorProps = {
 } & Omit<ComponentProps<'span'>, 'className'>
 
 // Completed/current/upcoming differ visually by color and the checkmark
-// glyph only (WCAG 1.4.1); the sr-only suffix names the state for AT.
+// glyph only (WCAG 1.4.1); the sr-only suffix names the state for AT. The
+// current step has no suffix: its aria-current="step" already reads as
+// "current step".
 const STATE_TEXT = {
 	completed: 'completed',
-	current: 'current step',
+	current: undefined,
 	upcoming: 'not started',
 } as const
 
@@ -27,10 +29,11 @@ const STATE_TEXT = {
  *
  * @remarks
  * State reads visually through color and the checkmark glyph alone, so an
- * `sr-only` suffix ("completed"/"current step"/"not started") names it for
- * assistive tech (WCAG 1.4.1). A completed step fills green and draws a
- * checkmark. `<StepperStep>` injects a default instance when the consumer omits
- * one. Pass a number or another glyph as `children` to replace the checkmark; it
+ * `sr-only` suffix ("completed"/"not started") names it for assistive tech
+ * (WCAG 1.4.1). The current step has no suffix, because the
+ * `aria-current="step"` of its step already gives "current step". A completed
+ * step fills green and draws a checkmark. `<StepperStep>` injects a default
+ * instance when the consumer omits one. Pass a number or another glyph as `children` to replace the checkmark; it
  * renders ahead of the `sr-only` suffix. On the current step, it paints in white
  * above the blue fill.
  */
@@ -60,7 +63,7 @@ export function StepperIndicator({ className, children, ...props }: StepperIndic
 				<ActiveIndicator className={cn(k.indicator.active)} style={{ borderRadius: '9999px' }} />
 			)}
 			{content !== false && <span className={cn(k.indicator.content)}>{content}</span>}
-			<span className="sr-only">, {STATE_TEXT[state]}</span>
+			{STATE_TEXT[state] && <span className="sr-only">, {STATE_TEXT[state]}</span>}
 		</span>
 	)
 }
