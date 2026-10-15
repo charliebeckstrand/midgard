@@ -147,6 +147,44 @@ describe('Tree', () => {
 		expect(screen.getByText('deep.ts')).toBeInTheDocument()
 	})
 
+	it('keeps one Tab stop when a caller closes a held branch that holds it', async () => {
+		const files = (open: boolean) => (
+			<Tree aria-label="Files" mount="lazy">
+				<TreeItem label="src" open={open}>
+					<TreeItem label="a.ts" />
+				</TreeItem>
+				<TreeItem label="README" />
+			</Tree>
+		)
+
+		const { container, rerender } = renderUI(files(true))
+
+		// A held item stays in the DOM while it is closed.
+		const item = (name: string) => screen.getByRole('treeitem', { name, hidden: true })
+
+		const tabStops = () =>
+			Array.from(container.querySelectorAll<HTMLElement>('[role="treeitem"]')).filter(
+				(row) => row.tabIndex === 0,
+			)
+
+		item('a.ts').focus()
+
+		item('a.ts').blur()
+
+		rerender(files(false))
+
+		// Let the roving MutationObserver run.
+		await Promise.resolve()
+
+		expect(tabStops()).toEqual([item('src')])
+
+		rerender(files(true))
+
+		await Promise.resolve()
+
+		expect(tabStops()).toEqual([item('src')])
+	})
+
 	it('renders with data-slot="tree", role="tree", and the required accessible name', () => {
 		const { container } = renderUI(
 			<Tree aria-label="Files">
