@@ -340,6 +340,78 @@ describe('RangeSlider', () => {
 
 		expect(hi).toBeDisabled()
 	})
+
+	it('keeps both values of a read-only slider on a key and marks each thumb aria-readonly', async () => {
+		const user = setupUser()
+
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(
+			<RangeSlider readOnly defaultValue={[20, 80]} onValueChange={onValueChange} />,
+		)
+
+		const [lo, hi] = allBySlot(container, 'slider-range-thumb')
+
+		lo?.focus()
+
+		await user.keyboard('{ArrowRight}{End}{PageUp}')
+
+		expect(onValueChange).not.toHaveBeenCalled()
+
+		expect(lo).toHaveAttribute('aria-valuenow', '20')
+
+		expect(hi).toHaveAttribute('aria-valuenow', '80')
+
+		for (const thumb of [lo, hi]) {
+			expect(thumb).toHaveAttribute('aria-readonly', 'true')
+
+			expect(thumb).not.toBeDisabled()
+
+			expect(thumb).toHaveAttribute('tabindex', '0')
+		}
+
+		expect(lo).toHaveFocus()
+	})
+
+	it('takes the read-only state of an enclosing Control', async () => {
+		const user = setupUser()
+
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(
+			<Control readOnly>
+				<RangeSlider defaultValue={[20, 80]} onValueChange={onValueChange} />
+			</Control>,
+		)
+
+		const [lo] = allBySlot(container, 'slider-range-thumb')
+
+		lo?.focus()
+
+		await user.keyboard('{ArrowRight}')
+
+		expect(onValueChange).not.toHaveBeenCalled()
+
+		expect(lo).toHaveAttribute('aria-readonly', 'true')
+	})
+
+	it('keeps an explicit readOnly={false} over a read-only Control', async () => {
+		const user = setupUser()
+
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(
+			<Control readOnly>
+				<RangeSlider readOnly={false} defaultValue={[20, 80]} onValueChange={onValueChange} />
+			</Control>,
+		)
+
+		allBySlot(container, 'slider-range-thumb')[0]?.focus()
+
+		await user.keyboard('{ArrowRight}')
+
+		expect(onValueChange).toHaveBeenCalledWith([21, 80])
+	})
 })
 
 describe('snapValue', () => {

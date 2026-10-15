@@ -98,6 +98,8 @@ export function useRangePointer(options: {
 	max: number
 	step: number
 	disabled: boolean
+	/** A read-only press focuses the nearest thumb and starts no drag. */
+	readOnly?: boolean
 	current: [number, number]
 	trackRef: RefObject<HTMLDivElement | null>
 	setRange: (fn: (prev: [number, number] | undefined) => [number, number]) => void
@@ -111,6 +113,7 @@ export function useRangePointer(options: {
 		max,
 		step,
 		disabled,
+		readOnly = false,
 		current,
 		trackRef,
 		setRange,
@@ -201,11 +204,19 @@ export function useRangePointer(options: {
 
 			event.preventDefault()
 
+			rtlRef.current = isRtl(event.currentTarget)
+
+			// A read-only press sets the keyboard focus, as on a live slider. It
+			// captures no pointer, so no move or lift reaches the drag.
+			if (readOnly) {
+				focusThumb(thumbRefs, closestThumb(valueFromPointer(event.clientX)))
+
+				return
+			}
+
 			event.currentTarget.setPointerCapture(event.pointerId)
 
 			cursorHold.start()
-
-			rtlRef.current = isRtl(event.currentTarget)
 
 			const raw = valueFromPointer(event.clientX)
 
@@ -245,6 +256,7 @@ export function useRangePointer(options: {
 		},
 		[
 			disabled,
+			readOnly,
 			closestThumb,
 			update,
 			valueFromPointer,
