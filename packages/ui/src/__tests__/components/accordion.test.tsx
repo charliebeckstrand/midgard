@@ -1,4 +1,4 @@
-import { createRef, type ReactElement, useEffect } from 'react'
+import { createRef, type ReactElement, useEffect, useState } from 'react'
 import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
@@ -334,6 +334,44 @@ describe('Accordion single-select behavior', () => {
 		fireEvent.click(screen.getByText('Toggle A'))
 
 		expect(onValueChange).not.toHaveBeenCalled()
+	})
+
+	it('reports nothing for a click on the locked open item of a controlled accordion', () => {
+		const onValueChange = vi.fn()
+
+		function Controlled() {
+			const [value, setValue] = useState<string | null>('a')
+
+			return (
+				<Accordion
+					value={value}
+					collapsible={false}
+					onValueChange={(next) => {
+						onValueChange(next)
+						setValue(next)
+					}}
+				>
+					<AccordionItem value="a">
+						<AccordionTrigger>A</AccordionTrigger>
+						<AccordionPanel>Panel A</AccordionPanel>
+					</AccordionItem>
+					<AccordionItem value="b">
+						<AccordionTrigger>B</AccordionTrigger>
+						<AccordionPanel>Panel B</AccordionPanel>
+					</AccordionItem>
+				</Accordion>
+			)
+		}
+
+		renderUI(<Controlled />)
+
+		fireEvent.click(screen.getByText('B'))
+
+		fireEvent.click(screen.getByText('B'))
+
+		expect(onValueChange).toHaveBeenCalledTimes(1)
+
+		expect(onValueChange).toHaveBeenCalledWith('b')
 	})
 
 	it('switches the open item when a different button is clicked', () => {
