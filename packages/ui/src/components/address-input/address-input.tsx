@@ -74,6 +74,9 @@ export type AddressInputProps = Omit<
 	debounceMs?: number
 	/**
 	 * Shortest query length that triggers a fetch; below it the menu stays empty.
+	 * The length counts only the characters inside the leading and trailing white
+	 * space, so a query of white space only does not fetch. The `provider` gets
+	 * the query as typed.
 	 * @defaultValue 3
 	 */
 	minQueryLength?: number
