@@ -225,6 +225,18 @@ describe('Button', () => {
 		expect(skeleton.parentElement?.tagName).toBe('P')
 	})
 
+	// The skeleton takes the stepped radius of a button. A fixed radius matches the button only at
+	// `md`.
+	it('gives the skeleton the stepped radius of a button', () => {
+		const { container } = renderUI(<ButtonSkeleton />)
+
+		const { classList } = getSlot(container, 'placeholder')
+
+		expect(classList).toContain('density-rounded-[1,1.5,2,2.5,3]')
+
+		expect(classList).not.toContain('rounded-lg')
+	})
+
 	describe('size resolution', () => {
 		// jsdom loads no stylesheet, so each test reads the step that the stepped
 		// classes give the button from its density scopes (`densityStepOf`).

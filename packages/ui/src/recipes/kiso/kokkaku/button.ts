@@ -1,7 +1,7 @@
 /**
- * Kokkaku skeleton: button. Rounded-lg silhouette across the four
- * button size steps. The heights match the labeled button: 22, 30, 38, and
- * 46px. The widths are defaults.
+ * Kokkaku skeleton: button. Silhouette across the four button size
+ * steps, with the stepped radius of the button. The heights match the
+ * labeled button: 22, 30, 38, and 46px. The widths are defaults.
  *
  * Each step is a stepped `density-*` class, so the silhouette takes the
  * step of its nearest density scope, as the button does.
@@ -10,15 +10,12 @@
  */
 
 import { dan } from '../dan'
-import { kasane } from '../kasane'
-
-const { rounded } = kasane
 
 // The height of a button at each step. The chart legend reads it too.
 const height = dan.size.button.base
 
 export const button = {
-	base: [rounded.lg, height, dan.size.button.width],
+	base: [dan.radius.button, height, dan.size.button.width],
 	height,
 	density: true,
 	// Inline-level, as the `inline-flex` button is, so the silhouette can stand in

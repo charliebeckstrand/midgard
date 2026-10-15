@@ -147,6 +147,28 @@ describe('skeleton parity (real browser)', () => {
 	)
 
 	it.each(['xs', 'sm', 'md', 'lg'] as const)(
+		'ButtonSkeleton has the radius of a %s button',
+		(size) => {
+			const radius = (el: Element | null | undefined, what: string) =>
+				getComputedStyle(present(el, what)).borderRadius
+
+			expect(
+				radius(
+					renderUI(<ButtonSkeleton size={size} />).container.querySelector(
+						'[data-slot="placeholder"]',
+					),
+					'skeleton',
+				),
+			).toBe(
+				radius(
+					renderUI(<Button size={size}>Save</Button>).container.querySelector('button'),
+					'button',
+				),
+			)
+		},
+	)
+
+	it.each(['xs', 'sm', 'md', 'lg'] as const)(
 		'ToggleIconButtonSkeleton has the box of a %s toggle',
 		(size) => {
 			const real = box(
