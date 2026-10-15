@@ -6,7 +6,7 @@
  * row has the height of a real row at its density step. `icon` has the icon
  * size of the step. The rows use the `labels` widths in turn. `first` and
  * `last` remove the outer padding of the edge rows, as the tree does for its
- * first and last top-level items.
+ * first and last visible rows.
  *
  * Layer: kiso · Concern: skeleton form · Unit: tree
  */

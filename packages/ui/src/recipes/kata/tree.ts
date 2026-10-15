@@ -75,9 +75,11 @@ const chevron = [
 export const k = {
 	base: [
 		flex.col,
-		// Trims outer vertical padding on edge rows, flushing the tree with its container.
+		// Trims the outer block padding of the first and last visible rows, so the
+		// tree is flush with its container. The last visible row is the row of a
+		// last item with no open group, in a chain of last items with open groups.
 		'[&>[data-slot=tree-item]:first-child>[role=treeitem]]:pt-0',
-		'[&>[data-slot=tree-item]:last-child>[role=treeitem]]:pb-0',
+		'[&_[data-slot=tree-item]:last-child:not(:has(>[data-slot=tree-group][data-open])):not([data-slot=tree-item]:not(:last-child)_*):not([data-slot=tree-group]:not([data-open])_*)>[role=treeitem]]:pb-0',
 	],
 	item: {
 		content: itemContent,
