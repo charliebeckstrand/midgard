@@ -214,48 +214,72 @@ Steps that share a file run in the order given. The address steps all share `__t
 - (a) The documented default `'1/1'` (`@defaultValue`). The box keeps a shape.
 - (b) No ratio, as `parseAspectRatio` gives `null` for charts (`utilities/aspect-ratio.ts:2-3`). The box is free-form, and the content sizes it.
 
+Recommended: (a). The `@defaultValue` already names `'1/1'`, and a box that keeps its shape is the safer failure.
+
 **Q2 (R8, S7).** How do wide initials fit the circle?
 
 - (a) Shrink the text to fit (`textLength`, or a size step by length). The content stays as passed.
 - (b) Cap the visible text (for example "99+"). The size stays; the content changes.
+
+Recommended: (a) shrink. A count such as "+100" stays true.
 
 **Q3 (R5, S5).** Fix the inert gap in the accordion only, or in the shared `heldMotionProps`?
 
 - (a) Local: only `accordion-panel.tsx` changes.
 - (b) Shared: Collapse and Tree get the same fix (they build the same held branch, `collapse-panel.tsx:116`, `tree-item-children.tsx:103`), with their own tests. This widens the step past the letter A.
 
+Recommended: (b) shared. The three panels share one mechanism, and a fix in one leaves the other two (no piecemeal patches).
+
 **Q4 (R26, S12).** Where is a blank query stopped?
 
 - (a) In the hook: `minQueryLength` counts trimmed characters, for every provider.
 - (b) In the Photon provider: a blank `q` returns `[]`; custom providers still get whitespace.
+
+Recommended: (a) in the hook. "Below it the menu stays empty" then holds for every provider.
 
 **Q5 (R11, R12, S9).** What is an empty slot in an Alert?
 
 - (a) `0` is content and renders in its slot; `''`, `[]`, `true`, and arrays of only those are empty.
 - (b) `0` is empty, like `''`.
 
+Recommended: (a). React renders `0`, and a count of zero is content.
+
 **Q6 (R22, S18).** Correct the `@remarks` to count a lookup for each candidate, or cap the lookups at one for each query? Decide after Q7.
+
+Recommended: correct the `@remarks`. The lookup is how the design tells a code from a number.
 
 **Q7 (R20, S17).** Chase a road number that is a real code in the region (a table of code lengths for each region), or leave R20 as a known low row?
 
+Recommended: leave R20 open as a known low row; a table of code lengths is more than the defect costs.
+
 **Q8 (R14, S19).** How many matches does the scoped search ask for? Photon has no paging. A larger multiplier costs response size and makes the typed fallback rarer; it keeps the `@remarks` count.
+
+Recommended: four times `limit`, trimmed to `limit` after the filter. Live, "whole foods" in the Maryland box gives 1 of 5 in the state at `limit`.
 
 **Q9 (R15, S19).** For a state whose extent spans the globe:
 
 - (a) Drop the box and bias to the state's point (`area.geometry.coordinates`), still filtered by state.
 - (b) Skip the scoped search and keep the typed results.
 
+Recommended: (a). The search still stays near the state.
+
 **Q10 (R17, S16).** For a postcode feature, fill `address.postcode` from `name`, and:
 
 - (a) keep `name` (the R16 rule). In `apps/places` the name fill then writes "97140" as the place's name (`use-name-fill.ts:34`).
 - (b) leave `name` unset for a postcode feature, as for a plain address (`use-name-fill.ts:13-14` "A match with no name, such as a plain address, leaves the name alone").
+
+Recommended: (b). A postal code is not a place name.
 
 **Q11 (R21, S20).** How does "12 OAK CT" stop reading as Connecticut?
 
 - (a) A USPS code that is also a common street suffix or directional (CT, PL, NE…) after a word does not count as a state. Only `splitUsState` changes.
 - (b) Scoped results merge with the typed results in place of replacing them. Every state query changes, together with Q8.
 
+Recommended: (a). It changes only the parse, and it leaves the R14 merge alone.
+
 **Q12 (R9, S11).** Besides the edge, show the severity under forced colors? It reopens the rule that the icon needs a title (`alert.tsx:131-132`).
+
+Recommended: no cue; the edge only. The icon rule is deliberate, and the text says the severity.
 
 ## Ruled out
 
