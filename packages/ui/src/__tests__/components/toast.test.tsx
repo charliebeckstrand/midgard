@@ -904,6 +904,32 @@ describe('Toast: useToast behavior', () => {
 			expect(onSecond).not.toHaveBeenCalled()
 		})
 
+		it('times out a toast whose id is an empty string', () => {
+			let api: ReturnType<typeof useToast> | undefined
+
+			const onDismiss = vi.fn()
+
+			renderUI(
+				<ToastProvider>
+					<Trigger onReady={(c) => (api = c)} />
+					<Toast />
+				</ToastProvider>,
+			)
+
+			act(() => {
+				api?.toast({ id: '', title: 'Blank', duration: 100, onDismiss })
+			})
+
+			act(() => {
+				vi.advanceTimersByTime(100)
+			})
+
+			// An empty id is a valid id. The queue must not read it as the end of the queue.
+			expect(onDismiss).toHaveBeenCalledExactlyOnceWith('timeout')
+
+			expect(screen.queryByText('Blank')).not.toBeInTheDocument()
+		})
+
 		it('times each toast out on its own duration, not the newest', () => {
 			let api: ReturnType<typeof useToast> | undefined
 
