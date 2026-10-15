@@ -1,6 +1,6 @@
 # Bug audit — 2026-10-15
 
-Letter sweep Q and R of the `packages/ui` components: Radio, Rating, and Resizable. One scope, 16 files, 1,478 lines, 10 claims. Nine are rows below: 2 `medium`, 7 `low`. One claim was refuted (C04). The overturn pass settled four of the eight questions from code; the reader settled Q1 to Q4 as recommended. The settle pass found that Q2's answer does not close R3, so Q2b waits on the reader and gates S2.
+Letter sweep Q and R of the `packages/ui` components: Radio, Rating, and Resizable. One scope, 16 files, 1,478 lines, 10 claims. Nine are rows below: 2 `medium`, 7 `low`. One claim was refuted (C04). The overturn pass settled four of the eight questions from code; the reader settled Q1 to Q4 as recommended. The settle pass found that Q2's answer does not close R3, so the reader settled Q2b too (a global fallback).
 
 ## Scope
 
@@ -43,7 +43,7 @@ The digest held the Q/R entries of the project record `2026-10-02-component-bug-
 | R5 | `components/rating/rating.tsx` | `Rating` (`id` on no element) | CONFIRMED | low | shipped | — | ✅ RESOLVED ([#2513](https://github.com/charliebeckstrand/midgard/pull/2513)) |
 | R6 | `components/rating/rating.tsx` | `Rating` (preview over a keyboard commit) | CONFIRMED | medium | shipped | — | ◯ OPEN |
 | R7 | `components/rating/rating.tsx` | `Rating` (native reset while dead) | CONFIRMED | low | none | — | ◯ OPEN |
-| R8 | `components/radio/radio.tsx` | `Radio` (Field id inside a RadioGroup) | CONFIRMED | low | none | — | ◯ OPEN |
+| R8 | `components/radio/radio.tsx` | `Radio` (Field id inside a RadioGroup) | CONFIRMED | low | none | — | ✅ RESOLVED ([#2515](https://github.com/charliebeckstrand/midgard/pull/2515)) |
 | R9 | `components/radio/radio.tsx` | `Radio` (extra `onChange` after read-only) | CONFIRMED | low | test-only | — | ◯ OPEN |
 
 All paths are under `packages/ui/src/`.
@@ -77,7 +77,7 @@ All paths are under `packages/ui/src/`.
 
 **S1.** Change: add `pointerId` and `orientation` to `DragState`, both set in `startDrag`. `pointermove`, `pointerup`, and `pointercancel` from another `pointerId` do nothing; `contextmenu` still ends the drag. In `onMove`, compare `readLayout().orientation` with `drag.orientation` before the delta; on a mismatch, end the drag through the `onUp` path (flush the last sizes, abort the listeners, fire `onResizeEnd(handleIndex)` once) and compute no delta. The pointer filter sits in the listener wrapper, so `onUp` can run with no event. Rows closed: R1, R2. Files: `components/resizable/use-resizable-panel.ts`, `__tests__/components/use-resizable-panel.test.ts` (the dispatches at `:520` and similar carry no `pointerId`; they need `pointerId: 1`, which `makePointerEvent` already defaults, `__tests__/helpers/make-event.ts:40`). Order: first; S2 edits the same file. Depends on: nothing. Gate: none (Q1 settled). Test seam: synchronous; `renderHook` with `orientation` as a prop, the rAF stub at `:99-105`, and `document.dispatchEvent(new PointerEvent(…, { pointerId }))`. R1: a move and an up from `pointerId: 2` leave the sizes and `dragging` unchanged, with no `onResizeEnd`. R2: rerender with `'vertical'` mid-drag, send one move; `onResizeEnd` fires once, `dragging` is `null`, and the sizes equal the last horizontal commit.
 
-**S2.** Change: in `seedSizes`, after normalization, repeat a forward pass (`leftIndex` 0 → n−2) and a backward pass (n−2 → 0) of `clampPair` until no size changes (a small tolerance, at most n rounds). When the stable result still breaks a bound, do what Q2b decides. Keep `use-resizable-panel.test.ts:117-141`, including `[25, 35, 40]`. Rows closed: R3. Files: as S1. Order: after S1. Depends on: S1 (file order). Gate: Q2b. Test seam: synchronous; `renderPanel({ panelConfigs })` → `result.current.sizes`; add the R3 row (equal weights, `maxSize: 20` on panel 1, `minSize: 60` on panel 2), which expects [20, 20, 60] under Q2b (a).
+**S2.** Change: in `seedSizes`, after normalization, repeat a forward pass (`leftIndex` 0 → n−2) and a backward pass (n−2 → 0) of `clampPair` until no size changes (a small tolerance, at most n rounds). When the stable result still breaks a bound, do what Q2b decides. Keep `use-resizable-panel.test.ts:117-141`, including `[25, 35, 40]`. Rows closed: R3. Files: as S1. Order: after S1. Depends on: S1 (file order). Gate: none (Q2b settled: global fallback). Test seam: synchronous; `renderPanel({ panelConfigs })` → `result.current.sizes`; add the R3 row (equal weights, `maxSize: 20` on panel 1, `minSize: 60` on panel 2), which expects [20, 20, 60] under Q2b (a).
 
 **S3.** Change: let `ResizablePanel` read the group context without a throw (a context default or an optional reader), and use `defaultSize` outside a group. Rows closed: R4. Files: `components/resizable/resizable-panel.tsx`, `components/resizable/context.ts`, `__tests__/components/resizable.test.tsx`. Order: any. Depends on: nothing. Gate: none (settled). Test seam: synchronous render.
 
@@ -113,6 +113,8 @@ Answer (2026-10-15, the reader): "Proceed as recommended." (a). The settle pass 
 
 - (a) A global fallback that runs only then: clamp each panel into its own min/max, and share the remainder among the panels with slack, in proportion to their weights. Gives 20/20/60 for R3. It cannot touch the pinned rows, because they meet every bound after the first pass. Recommended.
 - (b) Accept the pairwise result, and record R3 as known.
+
+Answer (2026-10-15, the reader, on the decision card): "Global fallback" (a). S2 gate: none.
 
 **Q3 (R6, S5).** Does the pointer preview stay over a keyboard commit?
 
