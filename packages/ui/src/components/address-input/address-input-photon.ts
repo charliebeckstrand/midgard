@@ -73,6 +73,13 @@ const PHOTON_ENDPOINT = 'https://photon.komoot.io/api/'
 const DEFAULT_LIMIT = 5
 
 /**
+ * How many times `limit` the search inside a US state asks for. Photon has no
+ * pages, and the matches outside the state are removed after the search, so a
+ * request for only `limit` matches can lose all of them to a neighbor.
+ */
+const STATE_SEARCH_FACTOR = 4
+
+/**
  * The request URL: the endpoint, its own query, then `params`. The split is by
  * hand and not by `new URL`, because `new URL` needs a base for a relative
  * endpoint such as a proxy path, and the URL must stay relative. A fragment
@@ -124,7 +131,8 @@ export type PhotonProviderOptions = {
 	 */
 	endpoint?: string
 	/**
-	 * Matches to ask for.
+	 * Matches to ask for. The search inside a US state asks for four times this
+	 * number, removes the matches outside the state, then keeps this number.
 	 * @defaultValue 5
 	 */
 	limit?: number
@@ -183,6 +191,16 @@ function boxOf(extent: unknown): [number, number, number, number] | undefined {
 	const [west, north, east, south] = extent as number[]
 
 	return [west as number, south as number, east as number, north as number]
+}
+
+/**
+ * Whether a box spans 180 degrees of longitude or more. Photon gives such an
+ * extent to an area that crosses the antimeridian, such as Alaska
+ * (`-180` to `180`). A box like this holds most of the globe, so it does not
+ * keep a search near the area.
+ */
+function spansGlobe([west, , east]: [number, number, number, number]): boolean {
+	return east - west >= 180
 }
 
 /** The region of the browser's language, or `undefined` where there is no browser or no region. */
@@ -281,16 +299,18 @@ export function createPhotonProvider(options: PhotonProviderOptions = {}): Addre
 
 	/**
 	 * Where a search looks: near a point, or only inside a box. `localize: false`
-	 * asks for no language, whatever `lang` is.
+	 * asks for no language, whatever `lang` is. `count` is the number of matches
+	 * to ask for; `limit` otherwise.
 	 */
 	type Scope = {
 		near?: PhotonProviderOptions['bias']
 		box?: [number, number, number, number]
 		localize?: boolean
+		count?: number
 	}
 
 	function search(query: string, scope: Scope, signal: AbortSignal) {
-		const params = new URLSearchParams({ q: query, limit: String(limit) })
+		const params = new URLSearchParams({ q: query, limit: String(scope.count ?? limit) })
 
 		if (lang !== undefined && scope.localize !== false) params.set('lang', lang)
 
@@ -317,9 +337,15 @@ export function createPhotonProvider(options: PhotonProviderOptions = {}): Addre
 	 *
 	 * Photon filters by a box, and a box around a state holds parts of the
 	 * states next to it. A match in another state is therefore removed. The
-	 * filter compares the English name or the USPS code of the state, so this
-	 * search asks for no language: `lang` would give the name of the state in
-	 * that language.
+	 * search asks for `STATE_SEARCH_FACTOR` times `limit` matches, so that the
+	 * matches in the next state do not fill the page, and keeps `limit` after
+	 * the filter. The filter compares the English name or the USPS code of the
+	 * state, so this search asks for no language: `lang` would give the name of
+	 * the state in that language.
+	 *
+	 * Where the box of the state spans the globe, as Alaska's does, the search
+	 * sends no box. It searches near the point of the state, and the filter
+	 * still removes the matches outside the state.
 	 */
 	async function searchInState(
 		rest: string,
@@ -337,14 +363,26 @@ export function createPhotonProvider(options: PhotonProviderOptions = {}): Addre
 
 		const box = boxOf(area?.properties.extent)
 
-		if (box === undefined) return []
+		if (area === undefined || box === undefined) return []
 
-		const features = await search(rest, { box, localize: false }, signal)
+		const [longitude, latitude] = area.geometry.coordinates
 
-		return features.filter(
-			(feature) =>
-				feature.properties.state === state.name || feature.properties.state === state.code,
+		const count = limit * STATE_SEARCH_FACTOR
+
+		const features = await search(
+			rest,
+			spansGlobe(box)
+				? { near: { latitude, longitude }, localize: false, count }
+				: { box, localize: false, count },
+			signal,
 		)
+
+		return features
+			.filter(
+				(feature) =>
+					feature.properties.state === state.name || feature.properties.state === state.code,
+			)
+			.slice(0, limit)
 	}
 
 	/**
@@ -400,8 +438,9 @@ export function createPhotonProvider(options: PhotonProviderOptions = {}): Addre
 		}
 
 		// A state is too large to search near its center, so the search stays
-		// inside it. The query as typed runs beside it, because a state name can
-		// be part of a name: "Mount Washington" is in New Hampshire.
+		// inside its box, where the box does not span the globe. The query as
+		// typed runs beside it, because a state name can be part of a name:
+		// "Mount Washington" is in New Hampshire.
 		const [typed, scoped] = await Promise.all([
 			search(query, { near: bias }, signal),
 			searchInState(inState.rest, inState.state, signal),
