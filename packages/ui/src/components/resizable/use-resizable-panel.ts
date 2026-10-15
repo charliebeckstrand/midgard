@@ -101,7 +101,7 @@ function clampPair(sizes: number[], leftIndex: number, constraints: PanelConfig[
 	return result
 }
 
-/** The tolerance, in percent, for a seed size that is stable or in its bounds. */
+/** The tolerance, in percent, for a seed size that is in its bounds or fills the group. */
 const SEED_EPSILON = 1e-9
 
 /** Whether each size is in the min/max of its panel, in the tolerance. */
@@ -116,130 +116,61 @@ function meetsBounds(sizes: number[], configs: PanelConfig[]): boolean {
 	})
 }
 
-/**
- * Repeats a forward pass and a backward pass of `clampPair` until no size
- * changes, for at most one round for each panel. Each pair keeps its sum, so
- * the sizes keep their sum.
- *
- * @internal
- */
-function settlePairs(start: number[], configs: PanelConfig[]): number[] {
-	let sizes = start
-
-	for (let round = 0; round < sizes.length; round++) {
-		const before = sizes
-
-		for (let leftIndex = 0; leftIndex < sizes.length - 1; leftIndex++) {
-			sizes = clampPair(sizes, leftIndex, configs)
-		}
-
-		for (let leftIndex = sizes.length - 2; leftIndex >= 0; leftIndex--) {
-			sizes = clampPair(sizes, leftIndex, configs)
-		}
-
-		if (sizes.every((size, index) => Math.abs(size - (before[index] ?? 0)) <= SEED_EPSILON)) break
-	}
-
-	return sizes
-}
-
-/** One panel of a global fill: its normalized weight and its bounds. */
-type FillPanel = { weight: number; min: number; max: number }
-
-/** The sizes of a global fill at one `scale`. A panel with no weight stays at its minSize. */
-function fillAt(panels: FillPanel[], scale: number): number[] {
-	return panels.map(({ weight, min, max }) => clamp(weight > 0 ? scale * weight : 0, min, max))
-}
-
-function sumOf(sizes: number[]): number {
-	return sizes.reduce((acc, size) => acc + size, 0)
+function sumOf(values: number[]): number {
+	return values.reduce((acc, value) => acc + value, 0)
 }
 
 /**
- * The scales where a panel of a global fill reaches a bound, sorted, from 0.
- * The sum of the fill is linear in the scale between two breakpoints. The
- * last breakpoint is `Infinity`, so the last segment has no upper end.
- */
-function fillBreakpoints(panels: FillPanel[]): number[] {
-	const breakpoints = [0]
-
-	for (const { weight, min, max } of panels) {
-		if (weight <= 0) continue
-
-		for (const bound of [min, max]) {
-			if (Number.isFinite(bound) && bound > 0) breakpoints.push(bound / weight)
-		}
-	}
-
-	breakpoints.sort((a, b) => a - b)
-
-	breakpoints.push(Number.POSITIVE_INFINITY)
-
-	return breakpoints
-}
-
-/**
- * Solves a global fill in the open segment from `lower` to `upper`. A panel
- * strictly inside its bounds there is free, and each other panel keeps its
- * bound. The free panels share the remainder in proportion to their weights.
- *
- * @returns The sizes, or `null` when no panel is free.
- */
-function fillSegment(panels: FillPanel[], lower: number, upper: number): number[] | null {
-	const probe = fillAt(panels, Number.isFinite(upper) ? (lower + upper) / 2 : lower + 1)
-
-	const free = probe.map((size, index) => {
-		const { min, max } = panels[index] ?? { min: 0, max: 0 }
-
-		return size > min && size < max
-	})
-
-	const freeWeight = panels.reduce(
-		(acc, { weight }, index) => (free[index] ? acc + weight : acc),
-		0,
-	)
-
-	if (freeWeight <= 0) return null
-
-	const remainder = 100 - sumOf(probe.filter((_, index) => !free[index]))
-
-	return probe.map((size, index) =>
-		free[index] ? (remainder * (panels[index]?.weight ?? 0)) / freeWeight : size,
-	)
-}
-
-/**
- * A global fill of 100% against the min/max of each panel. Each panel takes
- * `scale × base` clamped into its own bounds, for the one `scale` that makes
- * the sum 100. Thus each panel at a bound keeps that bound, and the panels with
- * slack share the remainder in proportion to their weights.
+ * A global fill of 100% against the min/max of each panel. The free panels
+ * share the remainder in proportion to their weights. When a share breaks a
+ * bound, the side with the larger break (the minSizes or the maxSizes) goes to
+ * its bounds, and the fill repeats. A panel with no weight stays at its
+ * minSize.
  *
  * @param base - The normalized weights, as percentages summing to 100.
- * @returns The filled sizes, or `null` when no scale gives a sum of 100.
+ * @returns The filled sizes, or `null` when no fill gives a sum of 100.
  * @internal
  */
 function fillBounds(base: number[], configs: PanelConfig[]): number[] | null {
-	const panels = configs.map((config, index) => ({
-		weight: base[index] ?? 0,
-		min: config.minSize,
-		max: config.maxSize,
-	}))
+	const fixed = configs.map((config, index) => ((base[index] ?? 0) > 0 ? null : config.minSize))
 
-	const floor = sumOf(fillAt(panels, 0))
+	for (let round = 0; round <= configs.length; round++) {
+		let freeWeight = 0
+		let remainder = 100
 
-	// The minSizes alone fill the group, or more than fill it.
-	if (floor >= 100 - SEED_EPSILON) {
-		return floor <= 100 + SEED_EPSILON ? fillAt(panels, 0) : null
-	}
+		fixed.forEach((size, index) => {
+			if (size === null) freeWeight += base[index] ?? 0
+			else remainder -= size
+		})
 
-	const breakpoints = fillBreakpoints(panels)
-
-	for (let index = 1; index < breakpoints.length; index++) {
-		const upper = breakpoints[index] ?? 0
-
-		if (sumOf(fillAt(panels, upper)) >= 100 - SEED_EPSILON) {
-			return fillSegment(panels, breakpoints[index - 1] ?? 0, upper)
+		if (freeWeight <= 0) {
+			return Math.abs(remainder) <= SEED_EPSILON ? fixed.map((size) => size ?? 0) : null
 		}
+
+		const sizes = fixed.map((size, index) => size ?? (remainder * (base[index] ?? 0)) / freeWeight)
+
+		let under = 0
+		let over = 0
+
+		configs.forEach(({ minSize, maxSize }, index) => {
+			const size = sizes[index] ?? 0
+
+			if (fixed[index] !== null) return
+
+			under += Math.max(0, minSize - size)
+			over += Math.max(0, size - maxSize)
+		})
+
+		if (under <= SEED_EPSILON && over <= SEED_EPSILON) return sizes
+
+		configs.forEach(({ minSize, maxSize }, index) => {
+			const size = sizes[index] ?? 0
+
+			if (fixed[index] !== null) return
+
+			if (under > over && size < minSize) fixed[index] = minSize
+			else if (under <= over && size > maxSize) fixed[index] = maxSize
+		})
 	}
 
 	return null
@@ -248,15 +179,15 @@ function fillBounds(base: number[], configs: PanelConfig[]): number[] | null {
 /**
  * The first sizes of the panels, as percentages summing to 100; identity is
  * not preserved. Each `defaultSize` is a weight, so the sizes keep the ratio
- * of the weights. Then a forward pass and a backward pass of adjacent pairs
- * clamp the sizes, and repeat until no size changes. Thus each panel goes into
- * its min/max, and a neighbor panel takes the difference.
+ * of the weights. Then each adjacent pair clamps in order from the start of
+ * the group. Thus each panel goes into its min/max, and the next panel takes
+ * the difference. The last panel gives the difference to the panel before it.
  *
- * The pairwise passes cannot move slack past a panel at a bound. When the
- * stable result still breaks a bound, a global fill replaces it: each panel
+ * The pairwise pass cannot move slack past a panel at a bound. When its
+ * result still breaks a bound, a global fill replaces it: each panel
  * goes into its min/max, and the panels with slack share the remainder in
  * proportion to their weights. When no layout meets every bound, the seed
- * keeps the result of the pairwise passes. That result sums to 100, and one
+ * keeps the result of the pairwise pass. That result sums to 100, and one
  * or more panels are not in their min/max.
  *
  * @internal
@@ -264,11 +195,15 @@ function fillBounds(base: number[], configs: PanelConfig[]): number[] | null {
 function seedSizes(configs: PanelConfig[]): number[] {
 	const weights = configs.map((config) => config.defaultSize)
 
-	const total = weights.reduce((sum, weight) => sum + weight, 0)
+	const total = sumOf(weights)
 
 	const base = total > 0 ? weights.map((weight) => (weight / total) * 100) : weights
 
-	const sizes = settlePairs(base, configs)
+	let sizes = base
+
+	for (let leftIndex = 0; leftIndex < sizes.length - 1; leftIndex++) {
+		sizes = clampPair(sizes, leftIndex, configs)
+	}
 
 	if (meetsBounds(sizes, configs)) return sizes
 
