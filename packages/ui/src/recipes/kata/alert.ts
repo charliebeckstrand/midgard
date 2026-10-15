@@ -46,6 +46,12 @@ export const k = defineRecipe({
 export type AlertVariants = Omit<VariantProps<typeof k>, 'variant' | 'color'> & {
 	/** The fill style of the alert. @defaultValue 'soft' */
 	variant?: VariantProps<typeof k>['variant']
-	/** The palette color of the alert. A `severity` sets its own color in place of this one. @defaultValue 'zinc' */
+	/**
+	 * The palette color of the alert. It replaces the color of the `severity`.
+	 * With no `color`, a `severity` sets its own color: blue, green, amber, or
+	 * red.
+	 *
+	 * @defaultValue 'zinc'
+	 */
 	color?: VariantProps<typeof k>['color']
 }
