@@ -789,6 +789,32 @@ describe('Accordion mount policy', () => {
 		expect(screen.getByTestId<HTMLInputElement>('field').value).toBe('typed')
 	})
 
+	// Outside `AnimatePresence`, the `m` element does not go `inert` as it exits.
+	// The held panel sets it while it closes, so Tab cannot move focus into it
+	// before it lands hidden.
+	it('mount="lazy" makes a held panel inert while it closes, and not while it is open', async () => {
+		const user = setupUser()
+
+		renderUI(<Panels mount="lazy" />)
+
+		const first = screen.getByRole('button', { name: 'First' })
+
+		await user.click(first)
+
+		const panel = getSlot(document.body, 'accordion-panel')
+
+		expect(panel).not.toHaveAttribute('inert')
+
+		await user.click(first)
+
+		expect(panel).toHaveAttribute('inert')
+
+		// A reopen during the close clears it.
+		await user.click(first)
+
+		expect(panel).not.toHaveAttribute('inert')
+	})
+
 	it('mount="always" mounts every panel closed and hidden', () => {
 		renderUI(<Panels mount="always" />)
 
