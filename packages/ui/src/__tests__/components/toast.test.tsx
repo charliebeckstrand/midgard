@@ -372,7 +372,7 @@ describe('Toast: useToast behavior', () => {
 			vi.advanceTimersByTime(500)
 		})
 
-		fireEvent.mouseEnter(title)
+		fireEvent.pointerEnter(title, { pointerType: 'mouse' })
 
 		act(() => {
 			vi.advanceTimersByTime(1000)
@@ -380,13 +380,45 @@ describe('Toast: useToast behavior', () => {
 
 		expect(screen.getByText('Hoverable')).toBeInTheDocument()
 
-		fireEvent.mouseLeave(title)
+		fireEvent.pointerLeave(title, { pointerType: 'mouse' })
 
 		act(() => {
 			vi.advanceTimersByTime(1000)
 		})
 
 		expect(screen.queryByText('Hoverable')).not.toBeInTheDocument()
+	})
+
+	it('keeps the countdown running after a tap on the toast', () => {
+		let api: ReturnType<typeof useToast> | null = null
+
+		renderUI(
+			<ToastProvider duration={1000}>
+				<Trigger onReady={(context) => (api = context)} />
+				<Toast />
+			</ToastProvider>,
+		)
+
+		act(() => {
+			api?.toast({ title: 'Tapped' })
+		})
+
+		const title = screen.getByText('Tapped')
+
+		// A phone tap sends a touch pointerenter, then compatibility mouse events.
+		// No leave comes until a later tap lands elsewhere, so a tap must not hold
+		// the timer.
+		fireEvent.pointerEnter(title, { pointerType: 'touch' })
+
+		fireEvent.mouseEnter(title)
+
+		fireEvent.click(title)
+
+		act(() => {
+			vi.advanceTimersByTime(2000)
+		})
+
+		expect(screen.queryByText('Tapped')).not.toBeInTheDocument()
 	})
 
 	it('pauses the timer while focus is inside and resumes on focus leave', () => {
@@ -442,9 +474,9 @@ describe('Toast: useToast behavior', () => {
 		})
 
 		// The pointer parks on the toast (pausing auto-dismiss) and never leaves;
-		// closing it removes the node, so its mouseleave never fires. The unmount
+		// closing it removes the node, so its pointerleave never fires. The unmount
 		// must release the hold — a stuck pause would freeze every later toast.
-		fireEvent.mouseEnter(screen.getByText('First'))
+		fireEvent.pointerEnter(screen.getByText('First'), { pointerType: 'mouse' })
 
 		act(() => {
 			fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
@@ -525,7 +557,7 @@ describe('Toast: useToast behavior', () => {
 		const title = screen.getByText('Held')
 
 		// Both sources hold: the pointer rests on the toast, focus tabs into it.
-		fireEvent.mouseEnter(title)
+		fireEvent.pointerEnter(title, { pointerType: 'mouse' })
 
 		fireEvent.focusIn(title)
 
@@ -539,7 +571,7 @@ describe('Toast: useToast behavior', () => {
 
 		expect(screen.getByText('Held')).toBeInTheDocument()
 
-		fireEvent.mouseLeave(title)
+		fireEvent.pointerLeave(title, { pointerType: 'mouse' })
 
 		act(() => {
 			vi.advanceTimersByTime(1000)

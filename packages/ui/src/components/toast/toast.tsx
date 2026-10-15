@@ -33,8 +33,9 @@ export type ToastProps = {
  * @remarks The viewport is not itself a live region. Each toast maps its
  * severity to politeness via its own `role`. `warning` and `error` interrupt as
  * `alert`. Everything else queues as `status`, and is mirrored through a
- * persistent announcer on mount (WCAG 4.1.3). Auto-dismiss pauses while the
- * pointer or focus is inside a toast (WCAG 2.2.1).
+ * persistent announcer on mount (WCAG 4.1.3). Auto-dismiss pauses while a
+ * hovering pointer or focus is inside a toast (WCAG 2.2.1). A touch does not
+ * pause it.
  *
  * Renders nothing on the server and during hydration; the portal mounts in an
  * effect afterwards, keeping the first client render identical to the SSR
