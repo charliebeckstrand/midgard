@@ -84,9 +84,16 @@ export type SparklineProps = AccessibleName & {
 	 * @defaultValue 1.5
 	 */
 	strokeWidth?: number
-	/** Domain floor; defaults to the series minimum. Pin it to compare sparklines on one scale. */
+	/**
+	 * Domain floor; defaults to the series minimum. Pin it to compare sparklines
+	 * on one scale. A value below it clamps to the bottom edge, also when the
+	 * whole series is below it.
+	 */
 	min?: number
-	/** Domain ceiling; defaults to the series maximum. */
+	/**
+	 * Domain ceiling; defaults to the series maximum. A value above it clamps to
+	 * the top edge, also when the whole series is above it.
+	 */
 	max?: number
 	className?: string
 }
