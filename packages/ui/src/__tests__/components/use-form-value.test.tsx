@@ -2,6 +2,7 @@ import { act, fireEvent, render, renderHook, screen } from '@testing-library/rea
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { useFormField, useFormValue } from '../../components/form'
+import { frame } from '../helpers'
 import { makeFormWrapper } from '../helpers/form-wrapper'
 
 /** A control whose input mounts only after a press, as a dead Rating row does. */
@@ -145,7 +146,7 @@ describe('useFormValue', () => {
 
 		fireEvent.click(screen.getByRole('button', { name: 'Reset form' }))
 
-		await act(() => new Promise(requestAnimationFrame))
+		await act(frame)
 
 		expect(input.value).toBe('seed')
 

@@ -65,10 +65,12 @@ export function useMaskInput({
 		onValueChange: onChange ? (next) => onChange(next ?? '') : undefined,
 	})
 
+	const joinedRef = useComposedRef(resetRef, externalRef)
+
 	const { ref, reformat } = useFormattedInput({
 		format,
 		meaningful,
-		ref: useComposedRef(resetRef, externalRef),
+		ref: joinedRef,
 	})
 
 	return {

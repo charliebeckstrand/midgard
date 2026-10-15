@@ -190,6 +190,8 @@ export function CurrencyInput({
 
 	const affix = useSymbolAffix({ symbol, symbolIsPrefix, prefix, suffix, ariaDescribedBy })
 
+	const joinedRef = useComposedRef(resetRef, ref)
+
 	// `atEnd: 'jump'`: the formatter pads `.` to `0.`, so a restore at the end would
 	// put the next digit in the integer part (`.5` to `5.`). `text` is the text
 	// before the edit. The format compares the edit with it to find the other
@@ -199,7 +201,7 @@ export function CurrencyInput({
 		meaningful: (char, index, edited) =>
 			isMeaningful(char, index, edited, group, decimal, maxFractionDigits, text),
 		atEnd: 'jump',
-		ref: useComposedRef(resetRef, ref),
+		ref: joinedRef,
 	})
 
 	return (

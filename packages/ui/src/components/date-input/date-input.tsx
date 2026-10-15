@@ -245,12 +245,14 @@ export function DateInput({
 		onValidityChange?.({ isValid: Boolean(parsed), isPotentiallyValid: !refused })
 	}
 
+	const joinedRef = useComposedRef(resetRef, labelled.ref)
+
 	// `atEnd: 'jump'`: the mask pads `1/` to `01/`, so a restore at the end would pin
 	// the caret before the padded digit.
 	const { ref: setRefs, reformat } = useFormattedInput({
 		format: (raw) => maskDateText(raw, format),
 		atEnd: 'jump',
-		ref: useComposedRef(resetRef, labelled.ref),
+		ref: joinedRef,
 	})
 
 	// The rule of Input for its clear button. Any text counts, also a partial

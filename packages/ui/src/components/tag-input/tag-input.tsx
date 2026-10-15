@@ -165,10 +165,9 @@ export function TagInput({
 
 	const setRefs = useComposedRef(inputRef, resetRef, ref)
 
-	// A Form reset restores the bound tags. The draft and the refused mark are
-	// the partial entry of the field, so the reset drops them too. Otherwise a
-	// later blur commits the old draft. As DateInput does, only a bound field
-	// follows the resets of the Form.
+	// A Form reset restores the bound tags and drops the draft, or a later blur
+	// commits the old draft. As DateInput does, only a bound field follows the
+	// resets of the Form.
 	const formResets = useFormResets()
 
 	const resets = name === undefined ? 0 : formResets

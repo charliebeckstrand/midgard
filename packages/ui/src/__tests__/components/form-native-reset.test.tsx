@@ -6,7 +6,7 @@ import { DateInput } from '../../components/date-input'
 import { SearchInput } from '../../components/search-input'
 import { Slider } from '../../components/slider'
 import { TagInput } from '../../components/tag-input'
-import { act, fireEvent, getSlot, renderUI, screen, setupUser } from '../helpers'
+import { act, fireEvent, frame, getSlot, noop, renderUI, screen, setupUser } from '../helpers'
 
 // Each control below gives React a controlled value, so a native reset of its
 // `<form>` restores the last value that React wrote. The `resetRef` of
@@ -24,7 +24,7 @@ function renderInForm(control: ReactElement) {
 async function resetForm() {
 	fireEvent.click(screen.getByRole('button', { name: 'Reset form' }))
 
-	await act(() => new Promise(requestAnimationFrame))
+	await act(frame)
 }
 
 describe('native form reset of an uncontrolled control', () => {
@@ -153,7 +153,7 @@ describe('native form reset of an uncontrolled control', () => {
 	})
 
 	it('leaves a controlled control to its owner', async () => {
-		renderInForm(<SearchInput aria-label="Search" value="held" onValueChange={() => {}} />)
+		renderInForm(<SearchInput aria-label="Search" value="held" onValueChange={noop} />)
 
 		await resetForm()
 
