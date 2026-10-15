@@ -209,12 +209,16 @@ Steps that share a file run in the order given. The address steps all share `__t
 
 ## Open questions
 
+Charlie chose "Proceed" on 2026-10-15: each question is settled as its recommendation. Every gate in the resolution steps is open.
+
 **Q1 (R7, S6).** What does a numeric ratio that is not finite or not positive fall back to?
 
 - (a) The documented default `'1/1'` (`@defaultValue`). The box keeps a shape.
 - (b) No ratio, as `parseAspectRatio` gives `null` for charts (`utilities/aspect-ratio.ts:2-3`). The box is free-form, and the content sizes it.
 
 Recommended: (a). The `@defaultValue` already names `'1/1'`, and a box that keeps its shape is the safer failure.
+
+Settled (Charlie, 2026-10-15): "Proceed", as recommended.
 
 **Q2 (R8, S7).** How do wide initials fit the circle?
 
@@ -223,12 +227,16 @@ Recommended: (a). The `@defaultValue` already names `'1/1'`, and a box that keep
 
 Recommended: (a) shrink. A count such as "+100" stays true.
 
+Settled (Charlie, 2026-10-15): "Proceed", as recommended.
+
 **Q3 (R5, S5).** Fix the inert gap in the accordion only, or in the shared `heldMotionProps`?
 
 - (a) Local: only `accordion-panel.tsx` changes.
 - (b) Shared: Collapse and Tree get the same fix (they build the same held branch, `collapse-panel.tsx:116`, `tree-item-children.tsx:103`), with their own tests. This widens the step past the letter A.
 
 Recommended: (b) shared. The three panels share one mechanism, and a fix in one leaves the other two (no piecemeal patches).
+
+Settled (Charlie, 2026-10-15): "Proceed", as recommended.
 
 **Q4 (R26, S12).** Where is a blank query stopped?
 
@@ -237,6 +245,8 @@ Recommended: (b) shared. The three panels share one mechanism, and a fix in one 
 
 Recommended: (a) in the hook. "Below it the menu stays empty" then holds for every provider.
 
+Settled (Charlie, 2026-10-15): "Proceed", as recommended.
+
 **Q5 (R11, R12, S9).** What is an empty slot in an Alert?
 
 - (a) `0` is content and renders in its slot; `''`, `[]`, `true`, and arrays of only those are empty.
@@ -244,17 +254,25 @@ Recommended: (a) in the hook. "Below it the menu stays empty" then holds for eve
 
 Recommended: (a). React renders `0`, and a count of zero is content.
 
+Settled (Charlie, 2026-10-15): "Proceed", as recommended.
+
 **Q6 (R22, S18).** Correct the `@remarks` to count a lookup for each candidate, or cap the lookups at one for each query? Decide after Q7.
 
 Recommended: correct the `@remarks`. The lookup is how the design tells a code from a number.
+
+Settled (Charlie, 2026-10-15): "Proceed", as recommended.
 
 **Q7 (R20, S17).** Chase a road number that is a real code in the region (a table of code lengths for each region), or leave R20 as a known low row?
 
 Recommended: leave R20 open as a known low row; a table of code lengths is more than the defect costs.
 
+Settled (Charlie, 2026-10-15): "Proceed", as recommended.
+
 **Q8 (R14, S19).** How many matches does the scoped search ask for? Photon has no paging. A larger multiplier costs response size and makes the typed fallback rarer; it keeps the `@remarks` count.
 
 Recommended: four times `limit`, trimmed to `limit` after the filter. Live, "whole foods" in the Maryland box gives 1 of 5 in the state at `limit`.
+
+Settled (Charlie, 2026-10-15): "Proceed", as recommended.
 
 **Q9 (R15, S19).** For a state whose extent spans the globe:
 
@@ -263,12 +281,16 @@ Recommended: four times `limit`, trimmed to `limit` after the filter. Live, "who
 
 Recommended: (a). The search still stays near the state.
 
+Settled (Charlie, 2026-10-15): "Proceed", as recommended.
+
 **Q10 (R17, S16).** For a postcode feature, fill `address.postcode` from `name`, and:
 
 - (a) keep `name` (the R16 rule). In `apps/places` the name fill then writes "97140" as the place's name (`use-name-fill.ts:34`).
 - (b) leave `name` unset for a postcode feature, as for a plain address (`use-name-fill.ts:13-14` "A match with no name, such as a plain address, leaves the name alone").
 
 Recommended: (b). A postal code is not a place name.
+
+Settled (Charlie, 2026-10-15): "Proceed", as recommended.
 
 **Q11 (R21, S20).** How does "12 OAK CT" stop reading as Connecticut?
 
@@ -277,9 +299,13 @@ Recommended: (b). A postal code is not a place name.
 
 Recommended: (a). It changes only the parse, and it leaves the R14 merge alone.
 
+Settled (Charlie, 2026-10-15): "Proceed", as recommended.
+
 **Q12 (R9, S11).** Besides the edge, show the severity under forced colors? It reopens the rule that the icon needs a title (`alert.tsx:131-132`).
 
 Recommended: no cue; the edge only. The icon rule is deliberate, and the text says the severity.
+
+Settled (Charlie, 2026-10-15): "Proceed", as recommended.
 
 ## Ruled out
 
