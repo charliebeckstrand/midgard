@@ -31,13 +31,28 @@ const OFFSET = { x: 300, y: 120 }
 /** A client point, as the map and the heatmap send it. */
 const CLIENT = { x: 500, y: 300 }
 
+/**
+ * An origin with a border. Its client box is smaller than its border box, and
+ * its padding box starts at the inner edge of the border. A scrollbar has the
+ * same effect, but this suite launches Chromium with hidden scrollbars.
+ */
+const BORDERED_ORIGIN: CSSProperties = { ...ORIGIN, boxSizing: 'border-box', border: '10px solid' }
+
 /** A wrapper with the frame, which holds the readout and, with `relative`, its origin. */
-function Frame({ frame, relative }: { frame: CSSProperties; relative: boolean }) {
+function Frame({
+	frame,
+	relative,
+	origin: originStyle = ORIGIN,
+}: {
+	frame: CSSProperties
+	relative: boolean
+	origin?: CSSProperties
+}) {
 	const origin = useRef<HTMLDivElement>(null)
 
 	return (
 		<div data-testid="frame" style={{ ...frame, width: 400, marginTop: 100, marginLeft: 50 }}>
-			<div ref={origin} data-testid="origin" style={ORIGIN} />
+			<div ref={origin} data-testid="origin" style={originStyle} />
 
 			<TooltipPointer
 				open
@@ -89,6 +104,33 @@ describe('pointer readout under a transformed ancestor (real browser)', () => {
 
 		expect(box.bottom).toBeCloseTo(origin.top + OFFSET.y * scaleY - GAP, 0)
 	})
+
+	it.each(Object.entries(FRAMES))(
+		'holds an anchor in the padding box of a bordered origin under %s',
+		async (_, frame) => {
+			renderUI(<Frame frame={frame} relative origin={BORDERED_ORIGIN} />)
+
+			const panel = await openPanel()
+
+			const element = document.querySelector<HTMLElement>('[data-testid="origin"]')
+
+			if (!element) throw new Error('expected the origin to be present')
+
+			const origin = element.getBoundingClientRect()
+
+			const box = panel.getBoundingClientRect()
+
+			// The point is in the padding box, so it starts at the border, and the
+			// scale is the drawn border box over the layout border box.
+			const scaleX = origin.width / ORIGIN.width
+
+			const scaleY = origin.height / ORIGIN.height
+
+			expect(centerOf(box).x).toBeCloseTo(origin.left + (element.clientLeft + OFFSET.x) * scaleX, 0)
+
+			expect(box.bottom).toBeCloseTo(origin.top + (element.clientTop + OFFSET.y) * scaleY - GAP, 0)
+		},
+	)
 
 	it.each(Object.entries(FRAMES))('holds a client anchor under %s', async (_, frame) => {
 		renderUI(<Frame frame={frame} relative={false} />)
