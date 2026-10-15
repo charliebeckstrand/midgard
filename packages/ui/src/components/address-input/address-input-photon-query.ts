@@ -122,6 +122,12 @@ const STATE_BY_NAME = new Map(
 	Object.entries(US_STATES).map(([code, name]) => [name.toLowerCase(), { code, name }]),
 )
 
+/**
+ * The USPS codes that are also USPS street suffixes (CT Court, KY Key, MT
+ * Mount, PR Prairie) or a directional (NE Northeast).
+ */
+const STREET_CODES = new Set(['CT', 'KY', 'MT', 'NE', 'PR'])
+
 /** A US state as the query names it: its full name and its USPS code. */
 export type UsState = { code: string; name: string }
 
@@ -132,9 +138,18 @@ export type UsState = { code: string; name: string }
  * A full name matches in any case, up to three words for "District of
  * Columbia". A USPS code matches only in capitals. In lowercase, "or", "in",
  * and "me" are words of the query.
+ *
+ * Some USPS codes are also USPS street suffixes or directionals: CT (Court),
+ * KY (Key), MT (Mount), PR (Prairie), and NE (Northeast). Such a code is a
+ * state only when the first word of the query does not start with a digit.
+ * Thus in "12 OAK CT", "CT" is the street suffix and stays text, but
+ * "Hartford CT" names Connecticut. A full name and the other codes are not
+ * changed by a house number.
  */
 export function splitUsState(query: string): { rest: string; state: UsState } | null {
 	const words = query.trim().replace(/,/g, ' ').split(/\s+/)
+
+	const houseNumber = /^\d/.test(words[0] ?? '')
 
 	for (const count of [3, 2, 1]) {
 		if (words.length <= count) continue
@@ -148,6 +163,9 @@ export function splitUsState(query: string): { rest: string; state: UsState } | 
 		if (named !== undefined) return { rest, state: named }
 
 		const coded = count === 1 ? US_STATES[tail] : undefined
+
+		// After a house number, a code that is also a street word is the street word.
+		if (coded !== undefined && houseNumber && STREET_CODES.has(tail)) continue
 
 		if (coded !== undefined) return { rest, state: { code: tail, name: coded } }
 	}
