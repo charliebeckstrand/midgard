@@ -23,6 +23,10 @@ type DragState = {
 	availableSize: number
 	/** Whether the group lays out right to left. A horizontal drag then mirrors. */
 	rtl: boolean
+	/** The pointer that started the drag. The events of another pointer do not move or end it. */
+	pointerId: number
+	/** The axis that `startPos` and `availableSize` are measured on. */
+	orientation: ResizableOrientation
 }
 
 /**
@@ -32,12 +36,8 @@ type DragState = {
  *
  * @internal
  */
-function dragDeltaPercent(
-	drag: DragState,
-	event: PointerEvent,
-	orientation: ResizableOrientation,
-): number {
-	const horizontal = orientation === 'horizontal'
+function dragDeltaPercent(drag: DragState, event: PointerEvent): number {
+	const horizontal = drag.orientation === 'horizontal'
 
 	const pos = horizontal ? event.clientX : event.clientY
 
@@ -101,12 +101,163 @@ function clampPair(sizes: number[], leftIndex: number, constraints: PanelConfig[
 	return result
 }
 
+/** The tolerance, in percent, for a seed size that is stable or in its bounds. */
+const SEED_EPSILON = 1e-9
+
+/** Whether each size is in the min/max of its panel, in the tolerance. */
+function meetsBounds(sizes: number[], configs: PanelConfig[]): boolean {
+	return sizes.every((size, index) => {
+		const config = configs[index]
+
+		return (
+			size >= (config?.minSize ?? 0) - SEED_EPSILON &&
+			size <= (config?.maxSize ?? Number.POSITIVE_INFINITY) + SEED_EPSILON
+		)
+	})
+}
+
+/**
+ * Repeats a forward pass and a backward pass of `clampPair` until no size
+ * changes, for at most one round for each panel. Each pair keeps its sum, so
+ * the sizes keep their sum.
+ *
+ * @internal
+ */
+function settlePairs(start: number[], configs: PanelConfig[]): number[] {
+	let sizes = start
+
+	for (let round = 0; round < sizes.length; round++) {
+		const before = sizes
+
+		for (let leftIndex = 0; leftIndex < sizes.length - 1; leftIndex++) {
+			sizes = clampPair(sizes, leftIndex, configs)
+		}
+
+		for (let leftIndex = sizes.length - 2; leftIndex >= 0; leftIndex--) {
+			sizes = clampPair(sizes, leftIndex, configs)
+		}
+
+		if (sizes.every((size, index) => Math.abs(size - (before[index] ?? 0)) <= SEED_EPSILON)) break
+	}
+
+	return sizes
+}
+
+/** One panel of a global fill: its normalized weight and its bounds. */
+type FillPanel = { weight: number; min: number; max: number }
+
+/** The sizes of a global fill at one `scale`. A panel with no weight stays at its minSize. */
+function fillAt(panels: FillPanel[], scale: number): number[] {
+	return panels.map(({ weight, min, max }) => clamp(weight > 0 ? scale * weight : 0, min, max))
+}
+
+function sumOf(sizes: number[]): number {
+	return sizes.reduce((acc, size) => acc + size, 0)
+}
+
+/**
+ * The scales where a panel of a global fill reaches a bound, sorted, from 0.
+ * The sum of the fill is linear in the scale between two breakpoints. The
+ * last breakpoint is `Infinity`, so the last segment has no upper end.
+ */
+function fillBreakpoints(panels: FillPanel[]): number[] {
+	const breakpoints = [0]
+
+	for (const { weight, min, max } of panels) {
+		if (weight <= 0) continue
+
+		for (const bound of [min, max]) {
+			if (Number.isFinite(bound) && bound > 0) breakpoints.push(bound / weight)
+		}
+	}
+
+	breakpoints.sort((a, b) => a - b)
+
+	breakpoints.push(Number.POSITIVE_INFINITY)
+
+	return breakpoints
+}
+
+/**
+ * Solves a global fill in the open segment from `lower` to `upper`. A panel
+ * strictly inside its bounds there is free, and each other panel keeps its
+ * bound. The free panels share the remainder in proportion to their weights.
+ *
+ * @returns The sizes, or `null` when no panel is free.
+ */
+function fillSegment(panels: FillPanel[], lower: number, upper: number): number[] | null {
+	const probe = fillAt(panels, Number.isFinite(upper) ? (lower + upper) / 2 : lower + 1)
+
+	const free = probe.map((size, index) => {
+		const { min, max } = panels[index] ?? { min: 0, max: 0 }
+
+		return size > min && size < max
+	})
+
+	const freeWeight = panels.reduce(
+		(acc, { weight }, index) => (free[index] ? acc + weight : acc),
+		0,
+	)
+
+	if (freeWeight <= 0) return null
+
+	const remainder = 100 - sumOf(probe.filter((_, index) => !free[index]))
+
+	return probe.map((size, index) =>
+		free[index] ? (remainder * (panels[index]?.weight ?? 0)) / freeWeight : size,
+	)
+}
+
+/**
+ * A global fill of 100% against the min/max of each panel. Each panel takes
+ * `scale × base` clamped into its own bounds, for the one `scale` that makes
+ * the sum 100. Thus each panel at a bound keeps that bound, and the panels with
+ * slack share the remainder in proportion to their weights.
+ *
+ * @param base - The normalized weights, as percentages summing to 100.
+ * @returns The filled sizes, or `null` when no scale gives a sum of 100.
+ * @internal
+ */
+function fillBounds(base: number[], configs: PanelConfig[]): number[] | null {
+	const panels = configs.map((config, index) => ({
+		weight: base[index] ?? 0,
+		min: config.minSize,
+		max: config.maxSize,
+	}))
+
+	const floor = sumOf(fillAt(panels, 0))
+
+	// The minSizes alone fill the group, or more than fill it.
+	if (floor >= 100 - SEED_EPSILON) {
+		return floor <= 100 + SEED_EPSILON ? fillAt(panels, 0) : null
+	}
+
+	const breakpoints = fillBreakpoints(panels)
+
+	for (let index = 1; index < breakpoints.length; index++) {
+		const upper = breakpoints[index] ?? 0
+
+		if (sumOf(fillAt(panels, upper)) >= 100 - SEED_EPSILON) {
+			return fillSegment(panels, breakpoints[index - 1] ?? 0, upper)
+		}
+	}
+
+	return null
+}
+
 /**
  * The first sizes of the panels, as percentages summing to 100; identity is
  * not preserved. Each `defaultSize` is a weight, so the sizes keep the ratio
- * of the weights. Then each adjacent pair clamps in order from the start of
- * the group. Thus each panel goes into its min/max, and the next panel takes
- * the difference. The last panel gives the difference to the panel before it.
+ * of the weights. Then a forward pass and a backward pass of adjacent pairs
+ * clamp the sizes, and repeat until no size changes. Thus each panel goes into
+ * its min/max, and a neighbor panel takes the difference.
+ *
+ * The pairwise passes cannot move slack past a panel at a bound. When the
+ * stable result still breaks a bound, a global fill replaces it: each panel
+ * goes into its min/max, and the panels with slack share the remainder in
+ * proportion to their weights. When no layout meets every bound, the seed
+ * keeps the result of the pairwise passes. That result sums to 100, and one
+ * or more panels are not in their min/max.
  *
  * @internal
  */
@@ -115,13 +266,15 @@ function seedSizes(configs: PanelConfig[]): number[] {
 
 	const total = weights.reduce((sum, weight) => sum + weight, 0)
 
-	let sizes = total > 0 ? weights.map((weight) => (weight / total) * 100) : weights
+	const base = total > 0 ? weights.map((weight) => (weight / total) * 100) : weights
 
-	for (let leftIndex = 0; leftIndex < sizes.length - 1; leftIndex++) {
-		sizes = clampPair(sizes, leftIndex, configs)
-	}
+	const sizes = settlePairs(base, configs)
 
-	return sizes
+	if (meetsBounds(sizes, configs)) return sizes
+
+	const filled = fillBounds(base, configs)
+
+	return filled && meetsBounds(filled, configs) ? filled : sizes
 }
 
 type PanelResize = {
@@ -180,7 +333,8 @@ export function useResizablePanel({
 	const reportResizeEnd = useEffectEvent((handleIndex: number) => onResizeEnd?.(handleIndex))
 
 	// A drag reads the orientation and the constraints of the newest render on
-	// each move, not the ones of the render that started it.
+	// each move, not the ones of the render that started it. A changed
+	// orientation ends the drag, because its start and length are on the old axis.
 	const readLayout = useStableEvent(() => ({ orientation, constraints: panelConfigs }))
 
 	// A discrete event commits before the next one, so each step reads the sizes
@@ -255,6 +409,8 @@ export function useResizablePanel({
 			startSizes: [...sizes],
 			availableSize,
 			rtl: isRtl(group),
+			pointerId: event.pointerId,
+			orientation,
 		}
 
 		setDragging(handleIndex)
@@ -289,7 +445,15 @@ export function useResizablePanel({
 
 			const { orientation: currentOrientation, constraints } = readLayout()
 
-			const deltaPercent = dragDeltaPercent(drag, event, currentOrientation)
+			// A coordinate on the new axis does not agree with a start and a length
+			// on the old one. End the drag at the last sizes, and calculate no delta.
+			if (currentOrientation !== drag.orientation) {
+				onUp()
+
+				return
+			}
+
+			const deltaPercent = dragDeltaPercent(drag, event)
 
 			const leftIndex = drag.handleIndex
 			const rightIndex = drag.handleIndex + 1
@@ -342,12 +506,25 @@ export function useResizablePanel({
 
 		const { signal } = controller
 
-		document.addEventListener('pointermove', onMove, { signal })
-		document.addEventListener('pointerup', onUp, { signal })
+		// Only the pointer that started the drag moves it or ends it. A second
+		// finger on the panel content sends its own events to the document, and
+		// they do nothing. `onUp` takes no event, so the filter is here.
+		const { pointerId } = event
+
+		const onOwnMove = (moveEvent: PointerEvent) => {
+			if (moveEvent.pointerId === pointerId) onMove(moveEvent)
+		}
+
+		const onOwnUp = (upEvent: PointerEvent) => {
+			if (upEvent.pointerId === pointerId) onUp()
+		}
+
+		document.addEventListener('pointermove', onOwnMove, { signal })
+		document.addEventListener('pointerup', onOwnUp, { signal })
 		// A canceled pointer (OS gesture, pen leaving range) never fires
 		// pointerup; without this the drag flag stays set and buttonless
 		// movement keeps resizing.
-		document.addEventListener('pointercancel', onUp, { signal })
+		document.addEventListener('pointercancel', onOwnUp, { signal })
 		document.addEventListener('contextmenu', onUp, { signal })
 
 		cleanupRef.current = () => {

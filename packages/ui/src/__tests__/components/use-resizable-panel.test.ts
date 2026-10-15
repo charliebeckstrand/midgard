@@ -139,6 +139,26 @@ describe('useResizablePanel', () => {
 				],
 				[25, 35, 40],
 			],
+			// A middle panel at its maxSize stops the pairwise passes, so a
+			// global fill gives the slack to the first panel (B01-R3, B01-Q2b).
+			[
+				'fills past a middle panel at its maxSize',
+				[
+					{ key: '.0', defaultSize: 1, minSize: 0, maxSize: 100 },
+					{ key: '.1', defaultSize: 1, minSize: 0, maxSize: 20 },
+					{ key: '.2', defaultSize: 1, minSize: 60, maxSize: 100 },
+				],
+				[20, 20, 60],
+			],
+			// No layout meets every bound, so the pairwise result stays.
+			[
+				'keeps the pairwise result when no layout meets every bound',
+				[
+					{ key: '.0', defaultSize: 1, minSize: 60, maxSize: 100 },
+					{ key: '.1', defaultSize: 1, minSize: 60, maxSize: 100 },
+				],
+				[60, 40],
+			],
 		])('%s', (_name, panelConfigs, expected) => {
 			const { result } = renderPanel({ panelConfigs })
 
@@ -367,7 +387,7 @@ describe('useResizablePanel', () => {
 			expect(result.current.dragging).toBe(0)
 
 			act(() => {
-				document.dispatchEvent(new Event('pointerup'))
+				document.dispatchEvent(new PointerEvent('pointerup', { pointerId: 1 }))
 			})
 
 			expect(result.current.dragging).toBeNull()
@@ -397,7 +417,9 @@ describe('useResizablePanel', () => {
 			})
 
 			act(() => {
-				document.dispatchEvent(new PointerEvent('pointermove', { clientX: 600, clientY: 0 }))
+				document.dispatchEvent(
+					new PointerEvent('pointermove', { pointerId: 1, clientX: 600, clientY: 0 }),
+				)
 
 				flushFrames()
 			})
@@ -419,7 +441,9 @@ describe('useResizablePanel', () => {
 			})
 
 			act(() => {
-				document.dispatchEvent(new PointerEvent('pointermove', { clientX: 0, clientY: 700 }))
+				document.dispatchEvent(
+					new PointerEvent('pointermove', { pointerId: 1, clientX: 0, clientY: 700 }),
+				)
 
 				flushFrames()
 			})
@@ -437,7 +461,9 @@ describe('useResizablePanel', () => {
 			})
 
 			act(() => {
-				document.dispatchEvent(new PointerEvent('pointermove', { clientX: 0, clientY: 580 }))
+				document.dispatchEvent(
+					new PointerEvent('pointermove', { pointerId: 1, clientX: 0, clientY: 580 }),
+				)
 
 				flushFrames()
 			})
@@ -456,9 +482,13 @@ describe('useResizablePanel', () => {
 			})
 
 			act(() => {
-				document.dispatchEvent(new PointerEvent('pointermove', { clientX: 600, clientY: 0 }))
+				document.dispatchEvent(
+					new PointerEvent('pointermove', { pointerId: 1, clientX: 600, clientY: 0 }),
+				)
 
-				document.dispatchEvent(new PointerEvent('pointermove', { clientX: 700, clientY: 0 }))
+				document.dispatchEvent(
+					new PointerEvent('pointermove', { pointerId: 1, clientX: 700, clientY: 0 }),
+				)
 			})
 
 			// The second move reuses the frame that the first move requested.
@@ -486,9 +516,11 @@ describe('useResizablePanel', () => {
 			})
 
 			act(() => {
-				document.dispatchEvent(new PointerEvent('pointermove', { clientX: 600, clientY: 0 }))
+				document.dispatchEvent(
+					new PointerEvent('pointermove', { pointerId: 1, clientX: 600, clientY: 0 }),
+				)
 
-				document.dispatchEvent(new PointerEvent('pointerup'))
+				document.dispatchEvent(new PointerEvent('pointerup', { pointerId: 1 }))
 			})
 
 			expect(cancelAnimationFrame).toHaveBeenCalledWith(1)
@@ -511,16 +543,132 @@ describe('useResizablePanel', () => {
 			})
 
 			act(() => {
-				document.dispatchEvent(new Event(type))
+				document.dispatchEvent(new PointerEvent(type, { pointerId: 1 }))
 			})
 
 			expect(result.current.dragging).toBeNull()
 
 			act(() => {
-				document.dispatchEvent(new PointerEvent('pointermove', { clientX: 900, clientY: 0 }))
+				document.dispatchEvent(
+					new PointerEvent('pointermove', { pointerId: 1, clientX: 900, clientY: 0 }),
+				)
 			})
 
 			expect(result.current.sizes).toEqual([50, 50])
+		})
+	})
+
+	describe('drag ownership', () => {
+		// A second finger on the panel content sends its own events to the document
+		// (B01-C02).
+		it('ignores the move, the up, and the cancel of another pointer', () => {
+			const onResizeEnd = vi.fn()
+
+			const { result } = renderPanel({ groupRef: wideGroup(), onResizeEnd })
+
+			act(() => {
+				result.current.startDrag(
+					0,
+					handleDown({ button: 0, clientX: 500, clientY: 0, pointerId: 1 }),
+				)
+			})
+
+			act(() => {
+				document.dispatchEvent(new PointerEvent('pointermove', { pointerId: 1, clientX: 600 }))
+
+				flushFrames()
+			})
+
+			expect(result.current.sizes).toEqual([60, 40])
+
+			act(() => {
+				document.dispatchEvent(new PointerEvent('pointermove', { pointerId: 2, clientX: 900 }))
+
+				flushFrames()
+
+				document.dispatchEvent(new PointerEvent('pointerup', { pointerId: 2 }))
+
+				document.dispatchEvent(new PointerEvent('pointercancel', { pointerId: 2 }))
+			})
+
+			expect(result.current.sizes).toEqual([60, 40])
+
+			expect(result.current.dragging).toBe(0)
+
+			expect(onResizeEnd).not.toHaveBeenCalled()
+
+			// The pointer that started the drag still steers it and ends it.
+			act(() => {
+				document.dispatchEvent(new PointerEvent('pointermove', { pointerId: 1, clientX: 700 }))
+
+				document.dispatchEvent(new PointerEvent('pointerup', { pointerId: 1 }))
+			})
+
+			expect(result.current.sizes).toEqual([70, 30])
+
+			expect(result.current.dragging).toBeNull()
+
+			expect(onResizeEnd).toHaveBeenCalledExactlyOnceWith(0)
+		})
+
+		// The orientation of the group flips while a pointer holds a handle
+		// (B01-C03, B01-Q1).
+		it('ends the drag once when the orientation changes mid-drag', () => {
+			const onResizeEnd = vi.fn()
+			const onSizesChange = vi.fn()
+
+			const groupRef = wideGroup()
+
+			const { result, rerender } = renderHook(
+				({ orientation }: Pick<PanelOptions, 'orientation'>) =>
+					useResizablePanel({
+						groupRef,
+						orientation,
+						panelConfigs: equalPanels,
+						onResizeEnd,
+						onSizesChange,
+					}),
+				{ initialProps: { orientation: 'horizontal' } },
+			)
+
+			act(() => {
+				result.current.startDrag(0, handleDown({ button: 0, clientX: 500, clientY: 0 }))
+			})
+
+			act(() => {
+				document.dispatchEvent(new PointerEvent('pointermove', { pointerId: 1, clientX: 600 }))
+
+				flushFrames()
+			})
+
+			expect(result.current.sizes).toEqual([60, 40])
+
+			rerender({ orientation: 'vertical' })
+
+			onSizesChange.mockClear()
+
+			act(() => {
+				document.dispatchEvent(
+					new PointerEvent('pointermove', { pointerId: 1, clientX: 600, clientY: 90 }),
+				)
+
+				flushFrames()
+			})
+
+			expect(onResizeEnd).toHaveBeenCalledExactlyOnceWith(0)
+
+			expect(result.current.dragging).toBeNull()
+
+			expect(result.current.sizes).toEqual([60, 40])
+
+			expect(onSizesChange).not.toHaveBeenCalled()
+
+			// The drag is over, so a later lift reports no second end.
+			act(() => {
+				document.dispatchEvent(new PointerEvent('pointerup', { pointerId: 1 }))
+			})
+
+			expect(onResizeEnd).toHaveBeenCalledOnce()
 		})
 	})
 
@@ -571,7 +719,7 @@ describe('useResizablePanel', () => {
 			expect(onResizeEnd).not.toHaveBeenCalled()
 
 			act(() => {
-				document.dispatchEvent(new PointerEvent('pointerup'))
+				document.dispatchEvent(new PointerEvent('pointerup', { pointerId: 1 }))
 			})
 
 			expect(onResizeEnd).toHaveBeenCalledExactlyOnceWith(0)
@@ -587,9 +735,9 @@ describe('useResizablePanel', () => {
 			})
 
 			act(() => {
-				document.dispatchEvent(new PointerEvent('pointercancel'))
+				document.dispatchEvent(new PointerEvent('pointercancel', { pointerId: 1 }))
 
-				document.dispatchEvent(new PointerEvent('pointerup'))
+				document.dispatchEvent(new PointerEvent('pointerup', { pointerId: 1 }))
 			})
 
 			expect(onResizeEnd).toHaveBeenCalledExactlyOnceWith(0)
@@ -674,7 +822,7 @@ describe('useResizablePanel', () => {
 			unmount()
 
 			act(() => {
-				document.dispatchEvent(new PointerEvent('pointermove', { clientX: 900 }))
+				document.dispatchEvent(new PointerEvent('pointermove', { pointerId: 1, clientX: 900 }))
 			})
 
 			expect(onSizesChange).not.toHaveBeenCalled()
@@ -692,7 +840,9 @@ describe('useResizablePanel', () => {
 			})
 
 			act(() => {
-				document.dispatchEvent(new PointerEvent('pointermove', { clientX: 600, clientY: 0 }))
+				document.dispatchEvent(
+					new PointerEvent('pointermove', { pointerId: 1, clientX: 600, clientY: 0 }),
+				)
 			})
 
 			unmount()
