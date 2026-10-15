@@ -1,6 +1,12 @@
 'use client'
 
-import { type FocusEventHandler, type ReactNode, type Ref, useRef } from 'react'
+import {
+	type FocusEventHandler,
+	type KeyboardEventHandler,
+	type ReactNode,
+	type Ref,
+	useRef,
+} from 'react'
 import { ariaAttr, cn, dataAttr, type ValidationAttrs } from '../../core'
 import { useIsTruncated } from '../../hooks'
 import { HeadlessProvider } from '../../providers/headless'
@@ -23,6 +29,7 @@ type ListboxButtonProps = {
 	validation?: ValidationAttrs
 	label?: ReactNode
 	onBlur?: FocusEventHandler<HTMLButtonElement>
+	onKeyDown?: KeyboardEventHandler<HTMLButtonElement>
 	placeholder: string
 	truncate: boolean
 	/** Shows the whole label in a hover tooltip while the trigger truncates it. A label that is not a string shows no tooltip. */
@@ -84,6 +91,7 @@ export function ListboxButton({
 	validation,
 	label,
 	onBlur,
+	onKeyDown,
 	placeholder,
 	truncate,
 	truncateTooltip,
@@ -108,6 +116,7 @@ export function ListboxButton({
 				disabled={disabled}
 				data-readonly={dataAttr(readOnly)}
 				onBlur={onBlur}
+				onKeyDown={onKeyDown}
 				{...validation}
 				className={cn(k())}
 			>
