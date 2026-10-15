@@ -65,9 +65,9 @@ function rampValues(ramp: string): Record<DensityStep, string> {
  * Reads the value of `ramp` at `step`, as the ramp writes it, for example
  * `'4'` for `md` in `density-p-[2,3,4,5,6]`. A ramp gives a value for each
  * step, and it holds the clamp of an outer step. Thus a JS reader needs no
- * clamp of its own. A ramp of three values gives the value of `sm` at `xs` and the
- * value of `lg` at `xl`, as the CSS does. It throws for a list of another
- * length.
+ * clamp of its own. A ramp of three values gives the value of `sm` at `xs`
+ * and the value of `lg` at `xl`, as the CSS does. It throws for a list of
+ * another length.
  *
  * @example
  * rampValue('density-size-[3,4,5,6,6]', 'xl') // '6'

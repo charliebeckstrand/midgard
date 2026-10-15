@@ -245,13 +245,13 @@ function lengthSum(values: ByStep<string>): string {
  *   style query on a custom property needs Chrome 111, Firefox 151, and
  *   Safari 18, so the floor does not have it. Safari does not let the root
  *   element be a container.
- *
- * The versions come from MDN browser-compat-data 8.1.5 (October 2026).
  * - `@scope` with proximity gives the nearest scope for each rule. But each
  *   rule needs its own `@scope` block, which Tailwind does not write from a
  *   variant. The weights already give the nearest scope for each stepped value.
  * - `inherit()` would let a control slot read the step of its parent with no
  *   host weights. No browser ships it.
+ *
+ * The versions come from MDN browser-compat-data 8.1.5 (October 2026).
  */
 function pick(kind: 'number', values: ByStep<number>): string
 function pick(kind: 'length', values: ByStep<string>): string
