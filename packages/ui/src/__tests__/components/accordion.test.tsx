@@ -2,6 +2,7 @@ import { createRef, type ReactElement, useEffect } from 'react'
 import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import * as accordionBarrel from '../../components/accordion'
 import {
 	Accordion,
 	AccordionItem,
@@ -542,6 +543,10 @@ describe('useAccordionItem in trigger children', () => {
 
 		return open ? 'Open!' : 'Closed'
 	}
+
+	it('is exported from the accordion barrel for a custom trigger or panel', () => {
+		expect(accordionBarrel).toHaveProperty('useAccordionItem', useAccordionItem)
+	})
 
 	it.each([
 		['open=true to trigger children', 'a', 'Open!'],
