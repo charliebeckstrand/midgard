@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { ShinyText } from '../../../components/shiny-text'
-import { rootReducedMotionClass } from '../../../core/motion/root'
-import { bySlot, renderUI } from '../../helpers'
+import { ShinyText } from '../../components/shiny-text'
+import { rootReducedMotionClass } from '../../core/motion/root'
+import { bySlot, renderUI } from '../helpers'
 
 /**
  * Real-browser check of the ShinyText sweep. A CSS animation of
