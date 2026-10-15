@@ -19,6 +19,9 @@ export type TimeAgoProps = Omit<ComponentProps<'time'>, 'dateTime' | 'children' 
 	locale?: string
 	/**
 	 * Refresh cadence in ms, or `'auto'` to step coarser as the timestamp ages.
+	 * A number clamps to the range from 250 ms to 2^31 − 1 ms, the largest delay
+	 * that a browser timer keeps, so `Infinity` refreshes at that maximum. `NaN`
+	 * steps the same as `'auto'`.
 	 * @defaultValue 'auto'
 	 */
 	interval?: number | 'auto'

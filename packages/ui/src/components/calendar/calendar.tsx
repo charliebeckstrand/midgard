@@ -11,12 +11,11 @@ import {
 	useState,
 } from 'react'
 import { cn } from '../../core'
-import { type ScaleStep, snapToScale } from '../../core/density'
+import type { ScaleStep } from '../../core/density'
 import { useA11yAnnouncements } from '../../hooks'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { useDensityStep } from '../../primitives/density'
 import { useLocale } from '../../providers/locale'
-import { k, scale } from '../../recipes/kata/calendar'
+import { k, type scale } from '../../recipes/kata/calendar'
 import { Box } from '../../structure/box'
 import { resolveLocale } from '../../utilities'
 import type { ButtonVariants } from '../button'
@@ -206,8 +205,6 @@ export type CalendarProps = {
  * `min`/`max` bound the selectable range. Resolves `locale` against an
  * enclosing Locale provider. The header, grid, and day cells take the step of
  * the nearest density scope, and a set `size` makes the calendar that scope.
- * `sm` is the smallest step. At `xs`, set or inherited, the calendar opens a
- * scope at `sm`.
  * When a parent steers `active`, the parent owns the keys of the header, the
  * grid, and the footer, and the calendar moves no focus for them. Tab still
  * reaches each header button and the one Tab stop of the grid. Month changes
@@ -266,17 +263,6 @@ export function Calendar({
 	className,
 }: CalendarProps) {
 	const ambient = useLocale()
-
-	// The width has no `xs` value, so at `xs` the buttons and the cells would
-	// shrink inside the `sm` width. A step off the scale makes the calendar a
-	// scope at the nearest step of the scale. Only a `size` or a scope sets such
-	// a step, and the server reads both, so the server and the client agree on
-	// the scope.
-	const step = useDensityStep(size)
-
-	const snapped = snapToScale(step, scale)
-
-	const density = snapped === step ? size : snapped
 
 	const localeTag = resolveLocale(locale ?? ambient.locale)
 
@@ -422,7 +408,7 @@ export function Calendar({
 	const headerActiveIndex = active?.zone === 'header' ? active.index : null
 
 	return (
-		<Box data-slot="calendar" density={density} className={cn(k.base, className)}>
+		<Box data-slot="calendar" density={size} className={cn(k.base, className)}>
 			<CalendarHeader
 				headerRef={headerRef}
 				onHeaderKeyDown={handleHeaderKeyDown}

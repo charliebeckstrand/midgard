@@ -147,6 +147,44 @@ describe('Tree', () => {
 		expect(screen.getByText('deep.ts')).toBeInTheDocument()
 	})
 
+	it('keeps one Tab stop when a caller closes a held branch that holds it', async () => {
+		const files = (open: boolean) => (
+			<Tree aria-label="Files" mount="lazy">
+				<TreeItem label="src" open={open}>
+					<TreeItem label="a.ts" />
+				</TreeItem>
+				<TreeItem label="README" />
+			</Tree>
+		)
+
+		const { container, rerender } = renderUI(files(true))
+
+		// A held item stays in the DOM while it is closed.
+		const item = (name: string) => screen.getByRole('treeitem', { name, hidden: true })
+
+		const tabStops = () =>
+			Array.from(container.querySelectorAll<HTMLElement>('[role="treeitem"]')).filter(
+				(row) => row.tabIndex === 0,
+			)
+
+		item('a.ts').focus()
+
+		item('a.ts').blur()
+
+		rerender(files(false))
+
+		// Let the roving MutationObserver run.
+		await Promise.resolve()
+
+		expect(tabStops()).toEqual([item('src')])
+
+		rerender(files(true))
+
+		await Promise.resolve()
+
+		expect(tabStops()).toEqual([item('src')])
+	})
+
 	it('renders with data-slot="tree", role="tree", and the required accessible name', () => {
 		const { container } = renderUI(
 			<Tree aria-label="Files">
@@ -248,6 +286,35 @@ describe('TreeItem', () => {
 		fireEvent.click(screen.getByText('Parent'))
 
 		expect(row).toHaveAttribute('aria-expanded', 'true')
+	})
+
+	// A Fragment adds no level, so its contents decide leaf or branch.
+	it.each([
+		['reads an empty Fragment as a leaf', [], null],
+		['reads a Fragment with an item as a branch', ['a.ts'], 'false'],
+	])('%s', (_name, files, expanded) => {
+		const { container } = renderUI(
+			<Tree aria-label="Files">
+				<TreeItem label="Folder">
+					{/* biome-ignore lint/complexity/noUselessFragments: the Fragment is the case under test. */}
+					<>
+						{files.map((file) => (
+							<TreeItem key={file} label={file} />
+						))}
+					</>
+				</TreeItem>
+			</Tree>,
+		)
+
+		const row = getSlot(container, 'tree-item-content')
+
+		if (expanded == null) {
+			expect(row).not.toHaveAttribute('aria-expanded')
+		} else {
+			expect(row).toHaveAttribute('aria-expanded', expanded)
+		}
+
+		expect(row.querySelector('svg') != null).toBe(expanded != null)
 	})
 
 	// Each row presses one key on a parent row that starts open or closed and

@@ -5,6 +5,7 @@ import { cn } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { useComposedRef } from '../../hooks/use-composed-ref'
 import { CurrentContent, CurrentContents } from '../../primitives/current'
+import { STILL_CONTENTS, useCurrentContents } from '../../primitives/current/current'
 import { k } from '../../recipes/kata/tabs'
 import { useTabsContext } from './context'
 import { useTabPanelTabIndex } from './use-tab-panel-tab-index'
@@ -79,9 +80,10 @@ export function TabContents({ mount, ...props }: TabContentsProps) {
  * `<Tabs>` it auto-wires `role="tabpanel"`, `aria-labelledby` to the matching
  * tab, and a computed `tabIndex` (`0` when the panel has no focusable child,
  * per APG). It pairs with its `Tab` via the Tabs base id + value, under the
- * `tab` and the `segment` variant alike. A content-only
- * panel that becomes tab-focusable signals focus with the design-system blue
- * ring rather than the browser default.
+ * `tab` and the `segment` variant alike, with or without a `TabContents`. A
+ * panel outside a `TabContents` is always mounted, so every tab points at it.
+ * A content-only panel that becomes tab-focusable signals focus with the
+ * design-system blue ring rather than the browser default.
  */
 export function TabContent({ value, className, ref: consumerRef, ...props }: TabContentProps) {
 	const tabsContext = useTabsContext()
@@ -89,6 +91,31 @@ export function TabContent({ value, className, ref: consumerRef, ...props }: Tab
 	const { panelProps } = useA11yDisclosure({ id: tabsContext?.baseId, key: value })
 
 	const auto = value !== undefined && tabsContext?.baseId !== undefined
+
+	// Outside a container the panel reads the still state, which is never
+	// unmounted. Such a panel registers its own presence, so its tab keeps
+	// `aria-controls`; inside a `TabContents` the container registers.
+	const bare = useCurrentContents() === STILL_CONTENTS
+
+	const registers = auto && bare
+
+	const registerMountedPanels = tabsContext?.registerMountedPanels
+
+	const registerPanels = tabsContext?.registerPanels
+
+	useEffect(() => {
+		if (!registers) return
+
+		const releaseMounted = registerMountedPanels?.()
+
+		const releasePanels = registerPanels?.()
+
+		return () => {
+			releaseMounted?.()
+
+			releasePanels?.()
+		}
+	}, [registers, registerMountedPanels, registerPanels])
 
 	// State, not a ref: the probe re-measures on the node React attaches, which
 	// a `mount` policy that swaps panels in and out recreates.

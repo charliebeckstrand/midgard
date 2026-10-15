@@ -10,9 +10,10 @@ export type TooltipPointerOptions = {
 	/** Whether the readout shows; the caller derives it from its own hover state. */
 	open: boolean
 	/**
-	 * Coordinates to anchor at, or `null` while nothing is pointed. Client
-	 * coordinates, or coordinates in the layout box of {@link originRef} when one
-	 * is given: the CSS pixels of the origin, before an ancestor scale or zoom.
+	 * Coordinates to anchor at, or `null` while nothing is pointed. Without
+	 * {@link originRef}, they are client coordinates. With it, they are in the
+	 * padding box of the origin, in its CSS pixels before an ancestor scale or
+	 * zoom. The padding box starts inside the border, as `offsetX` does.
 	 */
 	point: { x: number; y: number } | null
 	/**
@@ -52,7 +53,40 @@ export type TooltipPointerOptions = {
 }
 
 /**
- * The client point of a point in the layout box of `origin`. An ancestor scale
+ * The layout box of `origin`, in its own CSS pixels. It gives the size of the
+ * box that `getBoundingClientRect` draws, and the offset of its padding box. An
+ * HTML element measures its border box, which holds the border and a
+ * scrollbar. A non-root SVG element has no CSS box, so it measures its bounding
+ * box in user units. Another element measures its client box.
+ *
+ * @internal
+ */
+function layoutBoxOf(origin: Element) {
+	if (origin instanceof HTMLElement) {
+		return {
+			width: origin.offsetWidth,
+			height: origin.offsetHeight,
+			left: origin.clientLeft,
+			top: origin.clientTop,
+		}
+	}
+
+	if (origin.clientWidth === 0 && origin instanceof SVGGraphicsElement && 'getBBox' in origin) {
+		const { width, height } = origin.getBBox()
+
+		return { width, height, left: 0, top: 0 }
+	}
+
+	return {
+		width: origin.clientWidth,
+		height: origin.clientHeight,
+		left: origin.clientLeft,
+		top: origin.clientTop,
+	}
+}
+
+/**
+ * The client point of a point in the padding box of `origin`. An ancestor scale
  * or zoom draws the origin at a size apart from its layout size, so the point
  * scales by the ratio of the two. An origin with no layout size (jsdom) maps by
  * the offset alone.
@@ -64,11 +98,16 @@ function clientPointOf(origin: Element | null, x: number, y: number) {
 
 	const box = origin.getBoundingClientRect()
 
-	const scaleX = origin.clientWidth > 0 ? box.width / origin.clientWidth : 1
+	const layout = layoutBoxOf(origin)
 
-	const scaleY = origin.clientHeight > 0 ? box.height / origin.clientHeight : 1
+	const scaleX = layout.width > 0 ? box.width / layout.width : 1
 
-	return { left: box.left + x * scaleX, top: box.top + y * scaleY }
+	const scaleY = layout.height > 0 ? box.height / layout.height : 1
+
+	return {
+		left: box.left + (layout.left + x) * scaleX,
+		top: box.top + (layout.top + y) * scaleY,
+	}
 }
 
 /**
