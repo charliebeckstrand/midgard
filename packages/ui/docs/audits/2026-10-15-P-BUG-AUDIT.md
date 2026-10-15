@@ -43,8 +43,8 @@ The digest held the P entries of the project record `2026-10-02-component-bug-sw
 | R4 | `components/pdf-viewer/use-pdf-viewer-magnifier.ts` | `usePdfViewerMagnifier` (disable edge) | NARROWED | medium | shipped | — | ◯ OPEN |
 | R5 | `components/pdf-viewer/use-pdf-viewer.ts` | `usePdfViewer` (`thumbsOpen`) | NARROWED | medium | shipped | — | ◐ FIXED ([#2480](https://github.com/charliebeckstrand/midgard/pull/2480)) |
 | R6 | `components/pdf-viewer/use-pdf-viewer.ts` | `usePdfViewer` (load report on remount) | CONFIRMED | low | shipped | G1 | ◯ OPEN |
-| R7 | `components/popover/popover-trigger.tsx` | `PopoverTrigger` (ignore guard drops child handlers) | CONFIRMED | low | none | G3 | ◯ OPEN |
-| R8 | `components/popover/popover-trigger.tsx` | `PopoverTrigger` (`shouldIgnore` unbounded) | CONFIRMED | low | none | G3 | ◯ OPEN |
+| R7 | `components/popover/popover-trigger.tsx` | `PopoverTrigger` (ignore guard drops child handlers) | CONFIRMED | low | none | G3 | ◐ FIXED ([#2489](https://github.com/charliebeckstrand/midgard/pull/2489)) |
+| R8 | `components/popover/popover-trigger.tsx` | `PopoverTrigger` (`shouldIgnore` unbounded) | CONFIRMED | low | none | G3 | ◐ FIXED ([#2489](https://github.com/charliebeckstrand/midgard/pull/2489)) |
 | R9 | `components/password-confirm/use-password-confirm-field.ts` | `usePasswordConfirmField` (non-string field value) | CONFIRMED | low | none | — | ◯ OPEN |
 | R10 | `components/password-strength/use-password-strength.ts` | `usePasswordStrength` (`passedKey` sentinel) | CONFIRMED | low | none | — | ◯ OPEN |
 
@@ -139,3 +139,4 @@ Answer (2026-10-15, the reader): "Reveal on show" (a). S2 takes the no-box guard
 - Resolver S1: the R1 trigger needs pages that declare `width` and `height`; without them `usePdfViewerPageSize` resets the natural size on each page turn, the layer unmounts, and the preview resets. The docs pages (`statement.ts`) set sizes, so R1's reach stands.
 - Resolver S1: `useTooltipAnchor` (`components/tooltip/use-tooltip-anchor.ts`) passes `reference` to Floating UI, whose root context reads it only at mount; a caller that changes `reference` without a remount keeps a stale anchor. S1 works around it with a key.
 - Resolver S4: the Biome PostToolUse edit hook processes no file in an agent worktree under `.claude/`; the pre-commit hook and `pnpm check` do check them.
+- Resolver S6: `data-popover-ignore` came in for the Datepicker clear button (6280bfb4b), but no file in the repository uses it today; the Datepicker may have lost that use. Not checked.
