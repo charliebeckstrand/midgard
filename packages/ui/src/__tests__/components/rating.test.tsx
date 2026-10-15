@@ -206,6 +206,45 @@ describe('Rating', () => {
 				expect(fill).toHaveClass('opacity-40')
 			}
 		})
+
+		// A press that ends with no click commits nothing, so it must not mark the
+		// next commit as a press.
+		it('forgets a canceled press', () => {
+			const { container } = renderUI(<Rating aria-label="Score" defaultValue={1} />)
+
+			fireEvent.pointerEnter(label(container, 2), { pointerType: 'mouse' })
+
+			fireEvent.pointerDown(label(container, 2), { pointerType: 'mouse' })
+
+			fireEvent.pointerCancel(label(container, 2), { pointerType: 'mouse' })
+
+			fireEvent.click(stars(container)[2] as HTMLInputElement)
+
+			const fills = allBySlot(container, 'rating-fill')
+
+			expect(fills).toHaveLength(3)
+
+			for (const fill of fills) expect(fill).not.toHaveClass('opacity-40')
+		})
+
+		it('forgets a press that ended off the row once a key goes down', () => {
+			const { container } = renderUI(<Rating aria-label="Score" defaultValue={1} />)
+
+			fireEvent.pointerEnter(label(container, 2), { pointerType: 'mouse' })
+
+			// The press is dragged off the row and released there, so no click follows.
+			fireEvent.pointerDown(label(container, 2), { pointerType: 'mouse' })
+
+			fireEvent.keyDown(stars(container)[0] as HTMLInputElement, { key: 'ArrowRight' })
+
+			fireEvent.click(stars(container)[2] as HTMLInputElement)
+
+			const fills = allBySlot(container, 'rating-fill')
+
+			expect(fills).toHaveLength(3)
+
+			for (const fill of fills) expect(fill).not.toHaveClass('opacity-40')
+		})
 	})
 
 	it('does not recede when there is nothing to clear', async () => {

@@ -429,6 +429,16 @@ export function Rating({
 			onPointerDown={() => {
 				pressed.current = true
 			}}
+			// A press can end with no click: the platform cancels it, or the pointer
+			// goes up off the row. Such a press commits nothing, so it ends here. A key
+			// always goes down before the commit that it causes, so a key commit never
+			// takes a press that did not end.
+			onPointerCancel={() => {
+				pressed.current = false
+			}}
+			onKeyDown={() => {
+				pressed.current = false
+			}}
 			onPointerLeave={() => setPreviewed(null)}
 			onBlur={() => setTouched()}
 		>
