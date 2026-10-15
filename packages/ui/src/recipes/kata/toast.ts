@@ -37,7 +37,7 @@ export const k = {
 		'w-fit max-sm:w-full',
 		'pointer-events-auto',
 	],
-	card: 'w-80 max-sm:w-full',
+	card: [dan.size.toast.width, 'max-sm:w-full'],
 	motion: toast,
 	/** The motion under reduced motion: the toast shows with no slide. */
 	still: { top: ugoki.still(toast.top), bottom: ugoki.still(toast.bottom) },
