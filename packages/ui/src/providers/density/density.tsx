@@ -23,8 +23,7 @@ export type DensityProviderProps = {
  *
  * The provider also opens the `Density` context at the same step. A `Portal`
  * reads it, so a panel that the region opens keeps the step. The few client
- * components that need the step as a JS value, such as Grid and Calendar,
- * read it too.
+ * components that need the step as a JS value, such as Grid, read it too.
  *
  * @remarks
  * The root element is the scope of the app. `AppearanceScript` and

@@ -1,6 +1,7 @@
 'use client'
 
 import { cn } from '../../../core'
+import { usePrefersReducedMotion } from '../../../hooks/use-prefers-reduced-motion'
 import * as m from '../../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../../recipes/kata/chart'
 import { getOrCompute, sameElements } from '../../../utilities'
@@ -254,6 +255,9 @@ type SectorChartCalloutsProps = {
 export function SectorChartCallouts({ items, animate, selected = null }: SectorChartCalloutsProps) {
 	const emphasis = useChartSeriesEmphasis()
 
+	// The server cannot read the preference, so it renders the callouts at rest.
+	const still = usePrefersReducedMotion()
+
 	return (
 		<g data-slot="chart-callouts" pointerEvents="none">
 			{items.map((item) => {
@@ -284,7 +288,7 @@ export function SectorChartCallouts({ items, animate, selected = null }: SectorC
 					<g key={item.index} className={sliceGroupClass(emphasis, item.index, selected)}>
 						{animate ? (
 							<m.g
-								initial={{ opacity: 0 }}
+								initial={still ? false : { opacity: 0 }}
 								animate={{ opacity: 1 }}
 								exit={{ opacity: 0, transition: SLICE_UNFADE }}
 								transition={{ ...SLICE_FADE, delay: sweepDelay(item.mid) }}

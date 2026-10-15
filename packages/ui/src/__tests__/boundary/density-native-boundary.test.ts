@@ -233,10 +233,7 @@ describe('density after backdrop', () => {
 // server and in the hydration render, so the markup is wrong at the first
 // paint. Only the files below may read it. Each uses the value only for work
 // after mount, or for a context that a client descendant reads after mount.
-// Calendar reads it at the first paint, because its test needs no root step.
 //
-//   - Calendar: a test for `xs`, which opens a scope at `sm`. Only a `size` or
-//     a scope sets `xs`, and the server reads both, so the first paint is right.
 //   - GridData: the virtualizer estimate, the autosizer refit key, and the
 //     step of the overlays that the grid opens.
 //   - The docs playground: the step of the page, to mark the option of a
@@ -246,7 +243,6 @@ describe('density after backdrop', () => {
 // The check reads each name, not only each call, so an aliased import fails it.
 
 const STEP_READERS = [
-	'components/calendar/calendar.tsx',
 	'docs/kit/playground.tsx',
 	'modules/grid/grid-data.tsx',
 	'primitives/density/density.tsx',
