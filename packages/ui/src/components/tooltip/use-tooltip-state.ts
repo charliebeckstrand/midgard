@@ -23,7 +23,7 @@ import { useOpenChange } from '../../hooks/use-open-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { subscribeOverlaySignal } from '../../primitives/overlay'
 import type { TooltipProps } from './tooltip'
-import type { TooltipIntent } from './tooltip-intent'
+import { reopensOnEnable, type TooltipIntent } from './tooltip-intent'
 import { isReferenceDisabled, observeReferenceDisabled } from './tooltip-reference-disabled'
 
 /** Options for {@link useTooltipState}. @internal */
@@ -110,10 +110,10 @@ function replayIntent(
  * @remarks `trigger` selects hover or click, and keyboard focus opens with either.
  * A hover trigger opens on a mouse or pen hover only, so a tap does not open it.
  * Closes on the shared overlay-close signal and stays suppressed while the
- * reference (or a descendant) matches `:disabled`, re-opening on hover once the
- * disabled state clears. Hands the floating root context out as
- * `floatingContext`, which the focus manager of an `interactive`
- * `<TooltipContent>` mounts on.
+ * reference (or a descendant) matches `:disabled`. A hover trigger opens again
+ * under a mouse or pen hover once the disabled state clears. Hands the floating
+ * root context out as `floatingContext`, which the focus manager of an
+ * `interactive` `<TooltipContent>` mounts on.
  * @internal
  * @see {@link isReferenceDisabled}
  * @see {@link useFloatingDisclosure}
@@ -196,8 +196,30 @@ export function useTooltipState({
 		if (disabled && open) setOpen(false)
 	}, [disabled, open, setOpen])
 
-	// A trigger that turns enabled again under the pointer opens it once more, as
-	// a hover would have.
+	// The `pointerType` of the last pointer event on the trigger. The intent
+	// gives the type from before the state loaded.
+	const pointerRef = useRef<string | null>(null)
+
+	useEffect(() => {
+		if (!domReference) return
+
+		// The reference can be an SVG node, and `Element` types its pointer
+		// events as `Event`.
+		const record = (event: Event) => {
+			pointerRef.current = (event as PointerEvent).pointerType
+		}
+
+		domReference.addEventListener('pointerenter', record)
+		domReference.addEventListener('pointerdown', record)
+
+		return () => {
+			domReference.removeEventListener('pointerenter', record)
+			domReference.removeEventListener('pointerdown', record)
+		}
+	}, [domReference])
+
+	// A trigger that turns enabled again under a mouse or pen opens a hover
+	// tooltip once more, as a hover would have.
 	const wasDisabledRef = useRef(disabled)
 
 	useEffect(() => {
@@ -205,8 +227,14 @@ export function useTooltipState({
 
 		wasDisabledRef.current = disabled
 
-		if (wasDisabled && !disabled && domReference?.matches(':hover')) setOpen(true)
-	}, [disabled, domReference, setOpen])
+		if (
+			wasDisabled &&
+			!disabled &&
+			reopensOnEnable({ enabled, trigger }, pointerRef.current) &&
+			domReference?.matches(':hover')
+		)
+			setOpen(true)
+	}, [disabled, domReference, enabled, trigger, setOpen])
 
 	useEffect(() => {
 		if (!open) return
@@ -274,9 +302,18 @@ export function useTooltipState({
 	// trigger does not attach its ref again on each render. A trigger can attach
 	// in the commit that mounts the state, before the layout effects of this
 	// hook run, and the stable event already holds the handler of that commit.
-	const replay = useStableEvent((reference: Element) =>
-		takeIntent ? replayIntent(takeIntent(), reference, context, setOpen, delay) : undefined,
-	)
+	const replay = useStableEvent((reference: Element) => {
+		if (!takeIntent) return undefined
+
+		const intent = takeIntent()
+
+		pointerRef.current = intent.pointer
+
+		// The options can change between the record and the replay.
+		const reenabled = intent.reenabled && reopensOnEnable({ enabled, trigger }, intent.pointer)
+
+		return replayIntent({ ...intent, reenabled }, reference, context, setOpen, delay)
+	})
 
 	const stopReplayRef = useRef<(() => void) | undefined>(undefined)
 
