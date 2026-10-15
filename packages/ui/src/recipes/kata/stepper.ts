@@ -123,6 +123,8 @@ export const k = {
 	indicator: {
 		base: [
 			'relative',
+			flex.inline,
+			'justify-center',
 			'size-4.5 shrink-0',
 			rounded.full,
 			...mode('bg-zinc-400', 'dark:bg-zinc-600'),
@@ -132,12 +134,15 @@ export const k = {
 			'group-focus-visible:outline-2 group-focus-visible:outline-blue-600',
 		],
 		active: ['z-10', 'bg-blue-600 dark:bg-blue-600'],
+		// The current step paints its content in white on the blue fill.
+		current: 'text-white',
+		// The content of the indicator, a number or a glyph. It comes after the fill
+		// in the DOM at the same `z-10`, so it paints above the fill.
+		content: 'relative z-10 inline-flex',
 		// A completed step fills green and carries a checkmark, so it does not read
 		// as the current step or an upcoming step. The hover step comes after the
 		// neutral hover of `interactive`, and the merge keeps it.
 		completed: [
-			flex.inline,
-			'justify-center',
 			'bg-green-600 dark:bg-green-600 text-white',
 			'group-enabled:group-hover:bg-green-500',
 		],
