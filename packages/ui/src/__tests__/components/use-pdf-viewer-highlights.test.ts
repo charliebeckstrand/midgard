@@ -1,8 +1,11 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import type { PdfViewerHighlight, PdfViewerPage } from '../../components/pdf-viewer/types'
-import { usePdfViewerHighlights } from '../../components/pdf-viewer/use-pdf-viewer-highlights'
-import { noop } from '../helpers'
+import {
+	HIGHLIGHT_ID_ATTR,
+	usePdfViewerHighlights,
+} from '../../components/pdf-viewer/use-pdf-viewer-highlights'
+import { attach, mockDomGeometry, noop } from '../helpers'
 
 // The hook takes the document as arguments, so these are the whole of what a case needs: no
 // `<PdfViewer>`, no context stub, and no rasterizer. Each test names the one decision it is
@@ -23,6 +26,54 @@ const unmeasured: PdfViewerPage = { id: 'a', src: 'page-1.png', width: 850, heig
 
 /** The one prop the navigate-latch case varies between renders; `null` is a real value of it. */
 type ActiveIdProps = { activeHighlightId: string | null }
+
+/**
+ * An active region inside a zoomed viewport: it overflows on both axes and is already scrolled.
+ * The region is below the fold. It starts with no box, as a node under a `hidden` layer has;
+ * `show` gives it one.
+ */
+function regionInZoomedViewport(id: string) {
+	const scroller = attach(
+		mockDomGeometry(document.createElement('div'), {
+			clientHeight: 100,
+			clientWidth: 100,
+			scrollHeight: 2000,
+			scrollWidth: 2000,
+			scrollTop: 300,
+			scrollLeft: 300,
+		}),
+	)
+
+	scroller.style.overflowX = 'auto'
+
+	scroller.style.overflowY = 'auto'
+
+	scroller.getBoundingClientRect = () => new DOMRect(100, 100, 100, 100)
+
+	const scrollTo = vi.fn()
+
+	scroller.scrollTo = scrollTo
+
+	const node = document.createElement('button')
+
+	node.setAttribute(HIGHLIGHT_ID_ATTR, id)
+
+	scroller.append(node)
+
+	let box: DOMRect | null = null
+
+	node.getBoundingClientRect = () => box ?? new DOMRect()
+
+	node.getClientRects = () => (box ? [box] : []) as unknown as DOMRectList
+
+	return {
+		node,
+		scrollTo,
+		show: () => {
+			box = new DOMRect(140, 700, 40, 20)
+		},
+	}
+}
 
 const highlights: PdfViewerHighlight[] = [
 	{
@@ -176,5 +227,70 @@ describe('usePdfViewerHighlights', () => {
 		expect(first).not.toHaveBeenCalled()
 
 		expect(second).toHaveBeenCalledExactlyOnceWith('total')
+	})
+
+	it('does not scroll to a region with no box, and reveals it when it next attaches with one', () => {
+		const { result } = renderHook(() =>
+			usePdfViewerHighlights({
+				highlights,
+				activeHighlightId: 'total',
+				onActiveHighlightChange: noop,
+				activePage: letter,
+				safePage: 1,
+				goToPage: noop,
+			}),
+		)
+
+		const { node, scrollTo, show } = regionInZoomedViewport('total')
+
+		result.current.revealRef(node)
+
+		// A hidden region measures all zeros, so a reveal would scroll the viewport back by its
+		// own offset, away from the region.
+		expect(scrollTo).not.toHaveBeenCalled()
+
+		show()
+
+		result.current.revealRef(node)
+
+		expect(scrollTo).toHaveBeenCalledOnce()
+
+		result.current.revealRef(node)
+
+		// The latch is spent on the reveal that scrolled, not on the one that could not.
+		expect(scrollTo).toHaveBeenCalledOnce()
+	})
+
+	it('reveals the region that became active under a hidden overlay once, when the overlay is shown', () => {
+		const { result } = renderHook(() =>
+			usePdfViewerHighlights({
+				highlights,
+				activeHighlightId: 'total',
+				onActiveHighlightChange: noop,
+				activePage: letter,
+				safePage: 1,
+				goToPage: noop,
+			}),
+		)
+
+		const { node, scrollTo, show } = regionInZoomedViewport('total')
+
+		result.current.revealRef(node)
+
+		expect(scrollTo).not.toHaveBeenCalled()
+
+		// The region stays mounted under the hidden layer, so its ref does not fire again.
+		show()
+
+		result.current.revealOnShow()
+
+		expect(scrollTo).toHaveBeenCalledOnce()
+
+		// Down to the region, which sits below the fold, and not back toward the origin.
+		expect(scrollTo.mock.calls[0]?.[0].top).toBeGreaterThan(300)
+
+		result.current.revealOnShow()
+
+		expect(scrollTo).toHaveBeenCalledOnce()
 	})
 })

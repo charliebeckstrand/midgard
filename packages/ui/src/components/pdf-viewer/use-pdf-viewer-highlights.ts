@@ -74,9 +74,17 @@ export type PdfViewerHighlightsResult = {
 	clear: () => void
 	/**
 	 * Callback ref for the active region. Fires on the becoming-active edge, after the
-	 * region has mounted at its measured size, and brings it into view.
+	 * region has mounted at its measured size, and brings it into view. A region with no box,
+	 * under a hidden overlay, is not scrolled to; {@link PdfViewerHighlightsResult.revealOnShow}
+	 * reveals it later.
 	 */
 	revealRef: (node: HTMLElement | null) => void
+	/**
+	 * Brings into view the active region that the reveal could not reach while the overlay was
+	 * hidden. The layer calls it on the edge where the overlay is shown. It does nothing when no
+	 * reveal waits.
+	 */
+	revealOnShow: () => void
 }
 
 /**
@@ -183,8 +191,17 @@ export function usePdfViewerHighlights({
 	// a later attach reads it.
 	const revealedRef = useRef<string | null>(null)
 
+	// The active region that attached with no box: the overlay is hidden, not unmounted, so
+	// the node is in the tree at display: none. It waits here for the overlay to be shown,
+	// because the region's ref does not fire again while it stays mounted.
+	const pendingRevealRef = useRef<HTMLElement | null>(null)
+
 	useLayoutEffect(() => {
 		if (revealedRef.current !== activeId) revealedRef.current = null
+
+		if (pendingRevealRef.current?.getAttribute(HIGHLIGHT_ID_ATTR) !== activeId) {
+			pendingRevealRef.current = null
+		}
 	}, [activeId])
 
 	const revealRef = useCallback(
@@ -194,6 +211,17 @@ export function usePdfViewerHighlights({
 			const id = node.getAttribute(HIGHLIGHT_ID_ATTR)
 
 			if (!id || revealedRef.current === id) return
+
+			// A node with no box measures all zeros. A scroll to it moves the viewport back by
+			// the viewport's own offset, away from the region. Thus keep the latch unspent and
+			// keep the node for the show edge.
+			if (node.getClientRects().length === 0) {
+				pendingRevealRef.current = node
+
+				return
+			}
+
+			pendingRevealRef.current = null
 
 			revealedRef.current = id
 
@@ -209,6 +237,20 @@ export function usePdfViewerHighlights({
 		[scrollWithin, reduceMotion],
 	)
 
+	const revealOnShow = useCallback(() => {
+		const node = pendingRevealRef.current
+
+		// A node that a page turn detached is not the active region any more. The region's
+		// ref fires again when its page comes back.
+		if (!node?.isConnected) {
+			pendingRevealRef.current = null
+
+			return
+		}
+
+		revealRef(node)
+	}, [revealRef])
+
 	const clear = useCallback(() => setActiveId(null), [setActiveId])
 
 	// A stable event, so a consumer that rebuilds the handler each render — the common case
@@ -223,6 +265,7 @@ export function usePdfViewerHighlights({
 		press,
 		clear,
 		revealRef,
+		revealOnShow,
 	}
 }
 

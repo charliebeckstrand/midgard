@@ -1,7 +1,14 @@
 'use client'
 
 import type { KeyboardEvent, MouseEvent, Ref } from 'react'
-import { useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import {
+	useCallback,
+	useEffect,
+	useImperativeHandle,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from 'react'
 import { cn } from '../../core'
 import type { Color } from '../../core/recipe'
 import { useA11yAnnouncements, useA11yRoving, useComposedRef } from '../../hooks'
@@ -138,7 +145,7 @@ export function PdfViewerHighlights() {
 function PdfViewerHighlightLayer() {
 	const { scale, highlightsVisible, viewportRef } = usePdfViewerContext()
 
-	const { regions, interactive, activeLabel, activate, press, clear, revealRef } =
+	const { regions, interactive, activeLabel, activate, press, clear, revealRef, revealOnShow } =
 		usePdfViewerHighlightsContext()
 
 	const layerRef = useRef<HTMLDivElement>(null)
@@ -179,6 +186,13 @@ function PdfViewerHighlightLayer() {
 
 	// The active region is what the reveal scrolls to and what the label hangs off.
 	const activeRegionRef = useComposedRef<HTMLElement>(revealRef, setAnchor)
+
+	// A region that became active while the layer was hidden had no box to scroll to. The
+	// layer stays mounted, so its ref does not fire again. A layout effect, because the commit
+	// that shows the layer has removed `hidden` before it runs, so the region has its box.
+	useLayoutEffect(() => {
+		if (highlightsVisible) revealOnShow()
+	}, [highlightsVisible, revealOnShow])
 
 	/*
 	 * The region under the pointer, which names itself while it is there.
