@@ -25,8 +25,8 @@ function defaultValueText(value: number, count: number): string {
 /**
  * The naming attributes of the display form. The consumer's name labels the
  * image, and the readout follows it through `aria-labelledby`. An `aria-label`
- * joins by a reference to the row itself. With no name from the consumer, the
- * readout is the whole name.
+ * joins by a reference to the row itself, through the row's resolved id. With
+ * no name from the consumer, the readout is the whole name.
  *
  * @internal
  */
@@ -34,11 +34,11 @@ function displayNaming(
 	name: { label: string | undefined; labelledBy: string | undefined },
 	ids: { row: string; value: string },
 	valueText: string,
-): { id?: string; 'aria-label'?: string; 'aria-labelledby'?: string } {
+): { 'aria-label'?: string; 'aria-labelledby'?: string } {
 	if (name.labelledBy) return { 'aria-labelledby': `${name.labelledBy} ${ids.value}` }
 
 	if (name.label) {
-		return { id: ids.row, 'aria-label': name.label, 'aria-labelledby': `${ids.row} ${ids.value}` }
+		return { 'aria-label': name.label, 'aria-labelledby': `${ids.row} ${ids.value}` }
 	}
 
 	return { 'aria-label': valueText }
@@ -210,9 +210,9 @@ export function Rating({
 		validation,
 	} = useControlProps({ id, disabled, readOnly, invalid, 'aria-describedby': ariaDescribedBy })
 
-	// The native grouping name, which is this row's own and never the bound
-	// field's: two ratings bound to different fields would otherwise share a
-	// group and clear each other.
+	// The row's id, in both forms. It is also the native grouping name, which is
+	// this row's own and never the bound field's: two ratings bound to different
+	// fields would otherwise share a group and clear each other.
 	const scope = useIdScope({ id: resolvedId })
 
 	const current = bound ?? 0
@@ -286,12 +286,13 @@ export function Rating({
 
 		const naming = displayNaming(
 			{ label: ariaLabel, labelledBy },
-			{ row: scope.sub('row'), value: scope.sub('value') },
+			{ row: scope.id, value: scope.sub('value') },
 			valueText,
 		)
 
 		return (
 			<span
+				id={scope.id}
 				data-slot={slot}
 				data-density={size}
 				{...(resolvedDisabled ? { 'data-disabled': true } : {})}
@@ -395,6 +396,7 @@ export function Rating({
 	// treatment `RadioGroup` takes, and for the same reason.
 	return (
 		<span
+			id={scope.id}
 			data-slot={slot}
 			data-density={size}
 			role="radiogroup"
