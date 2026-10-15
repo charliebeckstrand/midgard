@@ -96,8 +96,14 @@ export function Switch({
 	// A read-only switch undoes the toggle and does not call the resolved handler.
 	// The write goes through the setter, so the change tracker of React keeps the
 	// correct value, as on Checkbox.
+	//
+	// A canceled click gets the same undo. React reads the toggle before the
+	// browser restores the value, so it sends a change that does not occur. The
+	// `onClick` handlers run before this handler, so the click event shows the
+	// cancel. Without the undo, the tracker keeps the toggled value and React
+	// then misses the next change.
 	const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-		if (resolvedReadOnly) {
+		if (resolvedReadOnly || event.nativeEvent.defaultPrevented) {
 			event.currentTarget.checked = !event.currentTarget.checked
 
 			return
