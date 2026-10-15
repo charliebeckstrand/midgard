@@ -758,6 +758,35 @@ describe('TabList tabbable floor', () => {
 
 		expect(b).toHaveAttribute('tabindex', '0')
 	})
+
+	// The floor raises the first tab. When a different tab becomes current, the
+	// floor must give its stop back, so that the list keeps one Tab stop.
+	it('gives back its stop when a tab other than the first becomes current', async () => {
+		function NullTabs({ value }: { value: string | null }) {
+			return (
+				<Tabs value={value} onValueChange={() => {}}>
+					<TabList aria-label="Sections">
+						<Tab value="a">A</Tab>
+						<Tab value="b">B</Tab>
+					</TabList>
+				</Tabs>
+			)
+		}
+
+		const { rerender } = renderUI(<NullTabs value={null} />)
+
+		const [a, b] = screen.getAllByRole('tab')
+
+		expect(a).toHaveAttribute('tabindex', '0')
+
+		rerender(<NullTabs value="b" />)
+
+		await waitFor(() => expect(a).toHaveAttribute('tabindex', '-1'))
+
+		const stops = screen.getAllByRole('tab').filter((tab) => tab.tabIndex === 0)
+
+		expect(stops).toEqual([b])
+	})
 })
 
 describe('TabList variants', () => {
