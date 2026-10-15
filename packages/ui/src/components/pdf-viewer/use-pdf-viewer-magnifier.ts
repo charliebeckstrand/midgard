@@ -546,16 +546,23 @@ export function usePdfViewerMagnifier(
 		[refs, enabled],
 	)
 
-	/* A hold does not outlive the loupe being switched off, or the viewer. */
+	/*
+	 * A hold, an open lens, and a tracked point do not outlive the loupe being switched off, or
+	 * the viewer. While the loupe is off, the page gets no pointer events, so no leave drops the
+	 * point. A keyboard toggle does not move the pointer, and the pointer can then move away. If
+	 * the point stays, turning the loupe on again paints the lens at once at a point that the
+	 * pointer has left, or a scroll re-opens it there. The scroll effect below clears the
+	 * pending re-open.
+	 */
 	useEffect(() => {
 		if (!enabled) return
 
 		return () => {
 			touchHold.cancel()
 
-			if (!holdingRef.current) return
-
 			holdingRef.current = false
+
+			trackingRef.current = null
 
 			setOpen(false)
 
