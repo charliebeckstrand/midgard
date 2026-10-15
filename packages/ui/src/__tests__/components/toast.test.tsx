@@ -618,9 +618,9 @@ describe('Toast: useToast behavior', () => {
 
 			const item = present(animated.parentElement, 'the toast item')
 
-			expect(item.style.paddingTop).toBe('8px')
+			expect(item).toHaveClass('pt-(--toast-gap)')
 
-			expect(item.style.paddingBottom).toBe('')
+			expect(item).not.toHaveClass('pb-(--toast-gap)')
 
 			expect(item.parentElement).toHaveClass('flex-col-reverse')
 		},
