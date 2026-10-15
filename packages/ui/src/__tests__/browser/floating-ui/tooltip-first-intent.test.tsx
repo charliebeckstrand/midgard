@@ -140,6 +140,25 @@ describe('Tooltip first intent before the state loads (real browser)', () => {
 		await expectOpen()
 	})
 
+	it('keeps a keyboard focus shut that Escape dismissed before the load', async () => {
+		renderUI(
+			<Tooltip>
+				<TooltipTrigger>
+					<button type="button">Toggle</button>
+				</TooltipTrigger>
+				<TooltipContent>Tip</TooltipContent>
+			</Tooltip>,
+		)
+
+		await userEvent.keyboard('{Tab}')
+
+		await userEvent.keyboard('{Escape}')
+
+		tooltipLoad.release()
+
+		await expectClosed()
+	})
+
 	it('opens a click tooltip on a click, and keeps it shut after a second click', async () => {
 		const { container } = renderUI(
 			<Tooltip trigger="click">
