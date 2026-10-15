@@ -46,8 +46,12 @@ type AccordionItemContextValue = {
 }
 
 /**
- * Reads the enclosing {@link AccordionItem} context: open state, toggle, and the
- * disclosure a11y props for wiring a custom trigger/panel. Throws outside an item.
+ * Reads the enclosing {@link AccordionItem} state: its `value`, its open flag and
+ * `toggle`, its `disabled` flag, and the a11y `triggerProps`/`panelProps` wiring.
+ *
+ * @remarks
+ * Call it inside `<AccordionItem>`; it throws outside one. `<AccordionTrigger>`
+ * and `<AccordionPanel>` use it. Use it to make a custom trigger or panel.
  */
 export const [AccordionItemContext, useAccordionItem] =
 	createContext<AccordionItemContextValue>('AccordionItem')
