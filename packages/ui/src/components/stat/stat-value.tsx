@@ -1,5 +1,6 @@
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
+import { PolymorphicStatic } from '../../primitives/polymorphic'
 import { k, type StatValueVariants } from '../../recipes/kata/stat'
 
 /** Props for {@link StatValue}: the `size` variant plus `<div>` attributes. */
@@ -15,8 +16,14 @@ export type StatValueProps = StatValueVariants & {
  */
 export function StatValue({ size, className, children, ...props }: StatValueProps) {
 	return (
-		<div data-slot="stat-value" data-density={size} className={cn(k.value(), className)} {...props}>
+		<PolymorphicStatic
+			as="div"
+			data-slot="stat-value"
+			density={size}
+			className={cn(k.value(), className)}
+			{...props}
+		>
 			{children}
-		</div>
+		</PolymorphicStatic>
 	)
 }
