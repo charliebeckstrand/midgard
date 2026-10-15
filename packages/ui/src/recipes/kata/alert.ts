@@ -1,12 +1,13 @@
 import { definePalette, defineRecipe, type VariantProps } from '../../core/recipe'
 import { bridge } from '../katakana'
-import { iro, ji, kasane, narabi } from '../kiso'
+import { iro, ji, kasane, narabi, sen } from '../kiso'
 import { dan } from '../kiso/dan'
 
 const { palette } = iro
 const { weight, leading } = ji
 const { rounded } = kasane
 const { flex } = narabi
+const { forced } = sen
 
 /** The title size: `text-lg` at `md`, one rung above `ji.ramp` at each step. */
 const titleRamp = dan.text.title
@@ -16,9 +17,13 @@ const titleRamp = dan.text.title
  * nearest density scope, and Icon takes the same step. The close button row
  * reads the title size, so the button stays on the line of the title. At `md`
  * the alert is `p-4` with `text-base` and a `text-lg` title.
+ *
+ * Soft and solid draw the alert with only a background, and the `ring-1` of
+ * outline is a box-shadow. Forced colors remove both, so the base carries a
+ * forced outline to keep the edge of each variant.
  */
 export const k = defineRecipe({
-	base: [flex.row, 'w-fit', dan.space.alert, dan.gap.scale.sm, rounded.lg, ji.ramp],
+	base: [flex.row, 'w-fit', dan.space.alert, dan.gap.scale.sm, rounded.lg, ji.ramp, forced.outline],
 	variant: {
 		outline: 'ring-1 ring-inset',
 	},
