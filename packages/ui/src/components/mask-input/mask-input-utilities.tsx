@@ -13,8 +13,12 @@ export type MaskInputFormat = (raw: string) => string
  */
 export type MaskInputPreset = {
 	format: MaskInputFormat
-	/** Predicate for the characters that the caret counts. */
-	meaningful?: (char: string) => boolean
+	/**
+	 * Predicate for the characters that the caret counts. It gets each
+	 * character, its index, and the full text, so it can count a character
+	 * only at the position where `format` keeps it.
+	 */
+	meaningful?: (char: string, index: number, text: string) => boolean
 	type?: InputProps['type']
 	inputMode?: InputProps['inputMode']
 	autoComplete?: InputProps['autoComplete']
@@ -57,10 +61,30 @@ function formatInternationalPhone(raw: string) {
 	return hasPlus ? `+${digits}` : digits
 }
 
+/** @internal Counts an ASCII digit, the only digit that `digitsOnly` keeps. */
+function isAsciiDigit(char: string) {
+	return char >= '0' && char <= '9'
+}
+
+/**
+ * @internal Counts the characters that {@link formatInternationalPhone} keeps:
+ * an ASCII digit, and a `+` only when no digit or `+` comes before it.
+ */
+function isInternationalPhoneChar(char: string, index: number, text: string) {
+	if (char === '+') return text.search(/[\d+]/) === index
+
+	return isAsciiDigit(char)
+}
+
 const phoneFormats = {
 	US: formatNANP,
 	international: formatInternationalPhone,
 } satisfies Record<PhoneMaskCountry, MaskInputFormat>
+
+const phoneMeaningful = {
+	US: isAsciiDigit,
+	international: isInternationalPhoneChar,
+} satisfies Record<PhoneMaskCountry, MaskInputPreset['meaningful']>
 
 function formatZipUS(raw: string) {
 	const digits = digitsOnly(raw).slice(0, 9)
@@ -117,13 +141,15 @@ const zipcodePlaceholders = {
 /**
  * Phone-number mask for {@link MaskInput}. It formats per `country`, sets
  * `type="tel"`, `inputMode="tel"`, and `autoComplete="tel"`, and adds a
- * leading phone icon.
+ * leading phone icon. The caret counts only the characters that the format
+ * keeps, so a character that the format removes does not move the caret.
  *
  * @param country - The dialing locale. The default is `'US'`.
  */
 export function phoneMask(country: PhoneMaskCountry = 'US'): MaskInputPreset {
 	return {
 		format: phoneFormats[country],
+		meaningful: phoneMeaningful[country],
 		type: 'tel',
 		inputMode: 'tel',
 		autoComplete: 'tel',
