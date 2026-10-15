@@ -129,8 +129,6 @@ export function TagInput({
 }: TagInputProps) {
 	const inputRef = useRef<HTMLInputElement>(null)
 
-	const setRefs = useComposedRef(inputRef, ref)
-
 	// The Control cascade: an explicit `disabled` wins over the enclosing
 	// Control. A disabled or read-only field keeps its tags and adds none.
 	const ambient = useControlProps({ disabled })
@@ -139,7 +137,22 @@ export function TagInput({
 
 	const fallbackLabel = useControlFallbackLabel(placeholder ?? 'Add tags')
 
-	const { tags, atMax, addTags, removeTag, setTouched, invalid } = useTagInput({
+	const [inputValue, setInputValue] = useState('')
+
+	// Set when a commit refused tokens, cleared on the next keystroke. The field's own `invalid` can
+	// only arrive from a bound Form field, so without this a rejected draft had no sighted feedback
+	// at all — the reason a refused paste read as nothing happening.
+	const [refused, setRefused] = useState(false)
+
+	// The draft and the refused mark are the partial entry of the field, so a
+	// reset drops them with the tags, as the Form reset below does.
+	const dropDraft = () => {
+		setInputValue('')
+
+		setRefused(false)
+	}
+
+	const { tags, atMax, addTags, removeTag, setTouched, invalid, resetRef } = useTagInput({
 		name,
 		value,
 		defaultValue,
@@ -147,14 +160,10 @@ export function TagInput({
 		max,
 		validate,
 		onReject,
+		onReset: dropDraft,
 	})
 
-	const [inputValue, setInputValue] = useState('')
-
-	// Set when a commit refused tokens, cleared on the next keystroke. The field's own `invalid` can
-	// only arrive from a bound Form field, so without this a rejected draft had no sighted feedback
-	// at all — the reason a refused paste read as nothing happening.
-	const [refused, setRefused] = useState(false)
+	const setRefs = useComposedRef(inputRef, resetRef, ref)
 
 	// A Form reset restores the bound tags. The draft and the refused mark are
 	// the partial entry of the field, so the reset drops them too. Otherwise a
@@ -169,9 +178,7 @@ export function TagInput({
 	if (knownResets !== resets) {
 		setKnownResets(resets)
 
-		setInputValue('')
-
-		setRefused(false)
+		dropDraft()
 	}
 
 	const color = tagColor ?? 'zinc'

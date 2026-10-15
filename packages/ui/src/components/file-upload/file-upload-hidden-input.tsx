@@ -1,6 +1,6 @@
 'use client'
 
-import type { ChangeEventHandler, RefObject } from 'react'
+import type { ChangeEventHandler, Ref } from 'react'
 import { invalidAttrs } from '../../core'
 import type { ControlContextValue } from '../control/context'
 import { useControlFallbackLabel } from '../control/use-control-fallback-label'
@@ -8,7 +8,7 @@ import { useControlFallbackLabel } from '../control/use-control-fallback-label'
 type FileUploadHiddenInputProps = {
 	ariaLabel: string
 	control: ControlContextValue | undefined
-	inputRef: RefObject<HTMLInputElement | null>
+	inputRef: Ref<HTMLInputElement>
 	accept?: string
 	multiple?: boolean
 	disabled?: boolean

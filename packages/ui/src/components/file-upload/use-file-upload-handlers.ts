@@ -2,7 +2,7 @@
 
 import { type ChangeEvent, type DragEvent, useCallback, useRef, useState } from 'react'
 import { announce } from '../../core'
-import { useFormResetSync } from '../../hooks/use-form-reset-sync'
+import { useComposedRef } from '../../hooks'
 import { useOpenChange } from '../../hooks/use-open-change'
 import { useFormValue } from '../form/use-form-value'
 import {
@@ -83,7 +83,7 @@ export function useFileUploadHandlers({
 
 	const {
 		value: current,
-		controlled,
+		resetRef,
 		setValue: setFiles,
 		setTouched,
 		invalid,
@@ -97,8 +97,8 @@ export function useFileUploadHandlers({
 	const files = current ?? []
 
 	// The hidden input holds no file between picks, so a native form reset has
-	// nothing to revert there. The uncontrolled selection goes back to its seed.
-	useFormResetSync(inputRef, !controlled, () => setFiles(defaultValue ?? []))
+	// nothing to revert there. The reset ref sets the selection back to its seed.
+	const setInputRef = useComposedRef(inputRef, resetRef)
 
 	const dragOver = dragDepth > 0
 
@@ -231,7 +231,7 @@ export function useFileUploadHandlers({
 	)
 
 	return {
-		inputRef,
+		inputRef: setInputRef,
 		dragOver,
 		files,
 		invalid,

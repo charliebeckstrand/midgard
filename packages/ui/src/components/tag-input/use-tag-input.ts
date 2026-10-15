@@ -22,6 +22,8 @@ type TagInputOptions = {
 	validate?: (tag: string) => boolean
 	/** Reports the refused part of a commit. */
 	onReject?: (rejected: TokenRejection) => void
+	/** Runs after a native form reset sets the uncontrolled tags back to `defaultValue`. */
+	onReset?: () => void
 }
 
 /**
@@ -49,12 +51,14 @@ export function useTagInput({
 	max,
 	validate,
 	onReject,
+	onReset,
 }: TagInputOptions) {
 	// Binds the tag list to an enclosing Form field by `name` (the value-typed
 	// cascade); falls back to controlled/uncontrolled state. The inner text
 	// `<Input>` stays nameless — the array is the bound value, not the draft.
 	const {
 		value: current,
+		resetRef,
 		setValue: setTags,
 		setTouched,
 		invalid,
@@ -63,6 +67,7 @@ export function useTagInput({
 		defaultValue: defaultValue ?? [],
 		// A tag list's empty state is `[]`, so a cleared value reports as one.
 		onValueChange: onValueChange && ((next) => onValueChange(next ?? [])),
+		onReset,
 	})
 
 	const tags = current ?? []
@@ -123,5 +128,5 @@ export function useTagInput({
 		[tags, setTags],
 	)
 
-	return { tags, atMax, addTags, removeTag, setTouched, invalid }
+	return { tags, atMax, addTags, removeTag, setTouched, invalid, resetRef }
 }

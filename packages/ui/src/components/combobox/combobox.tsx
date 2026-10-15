@@ -500,6 +500,7 @@ export function Combobox<T>({
 
 	const {
 		value,
+		resetRef,
 		setValue,
 		setTouched,
 		invalid: boundInvalid,
@@ -507,6 +508,13 @@ export function Combobox<T>({
 		value: valueProp,
 		defaultValue: defaultValue as T | T[] | undefined,
 		onValueChange: handleValueChange,
+		// While the query is in edit, the field shows the query and not the value,
+		// so the reset ends the edit too.
+		onReset: () => {
+			setEditing(false)
+
+			setQuery('')
+		},
 	})
 
 	// Resolved after the binding, so the bound field's own errors reach the
@@ -914,6 +922,7 @@ export function Combobox<T>({
 						<ComboboxInput
 							id={id}
 							ref={inputRef}
+							resetRef={resetRef}
 							type="text"
 							// The prop wins, then the Control, then 'off'. The default is not a
 							// parameter default, because that counts as the prop and hides the

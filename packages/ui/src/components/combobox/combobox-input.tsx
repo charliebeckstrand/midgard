@@ -8,12 +8,13 @@ import {
 	type KeyboardEventHandler,
 	type MouseEventHandler,
 	type ReactElement,
+	type Ref,
 	type RefObject,
 	type UIEventHandler,
 	useLayoutEffect,
 } from 'react'
 import { ariaAttr, cn } from '../../core'
-import { useIsTruncated } from '../../hooks'
+import { useComposedRef, useIsTruncated } from '../../hooks'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/combobox'
 import { capitalizeFirst } from '../../utilities'
@@ -33,6 +34,8 @@ type ComboboxInputHandlers = {
 type ComboboxInputProps = {
 	id?: string
 	ref: RefObject<HTMLInputElement | null>
+	/** The `resetRef` of the value binding: a native form reset ends the selection. */
+	resetRef?: Ref<HTMLInputElement>
 	type?: ComponentProps<'input'>['type']
 	autoComplete?: ComponentProps<'input'>['autoComplete']
 	'aria-label'?: string
@@ -112,6 +115,7 @@ function ComboboxTruncateTooltip({
 export function ComboboxInput({
 	id,
 	ref,
+	resetRef,
 	type = 'text',
 	autoComplete,
 	'aria-label': ariaLabel,
@@ -144,11 +148,13 @@ export function ComboboxInput({
 		ref.current?.setCustomValidity(unselected ? UNSELECTED_MESSAGE : '')
 	}, [ref, unselected])
 
+	const setRefs = useComposedRef(ref, resetRef)
+
 	const input = (
 		<Input
 			invalid={invalid}
 			id={id}
-			ref={ref}
+			ref={setRefs}
 			type={type}
 			role="combobox"
 			aria-haspopup="listbox"

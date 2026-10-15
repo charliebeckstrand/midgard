@@ -1,7 +1,8 @@
 'use client'
 
-import { useCallback } from 'react'
+import { type RefCallback, useCallback } from 'react'
 import { type SetValue, useControllable } from '../../hooks/use-controllable'
+import { useFormResetSync } from '../../hooks/use-form-reset-sync'
 import { useFormField } from './context'
 import { hasIssues } from './form-reducer'
 
@@ -12,9 +13,15 @@ type FormValueOptions<T> = {
 	defaultValue?: T | (() => T)
 	/** Fires with the committed value, or `null` once it is cleared (CONVENTIONS §7.3). */
 	onValueChange?: (value: T | null) => void
+	/**
+	 * Runs after a native form reset sets the uncontrolled value back to
+	 * `defaultValue`. It clears the state that the control keeps beside the
+	 * value, such as a typed draft.
+	 */
+	onReset?: () => void
 }
 
-/** Resolved value binding: the current `value`, a `setValue` accepting a value or updater, and a `setTouched` for blur. It also carries an `invalid` flag from any bound field's errors, and the `controlled` flag. */
+/** Resolved value binding: the current `value`, a `setValue` accepting a value or updater, and a `setTouched` for blur. It also carries an `invalid` flag from any bound field's errors, the `controlled` flag, and the `resetRef` for a native form reset. */
 export type FormValueResult<T> = {
 	value: T | undefined
 	/**
@@ -22,6 +29,12 @@ export type FormValueResult<T> = {
 	 * uncontrolled control mirrors a native form reset only while this is `false`.
 	 */
 	controlled: boolean
+	/**
+	 * Put on the native element that the enclosing `<form>` owns. While the
+	 * control is uncontrolled, a native reset of that form sets the value back to
+	 * `defaultValue`, and `onValueChange` reports it.
+	 */
+	resetRef: RefCallback<HTMLInputElement>
 	setValue: (value: SetValue<T>) => void
 	/** Marks the field touched; no-op outside a Form. Call from `onBlur`. */
 	setTouched: () => void
@@ -37,8 +50,8 @@ export type FormValueResult<T> = {
  * @param name - Field key to bind; undefined leaves the hook unbound (plain
  * controlled/uncontrolled state).
  * @param options - `value` (controlled), `defaultValue` (uncontrolled seed,
- * can be a lazy initializer), and `onValueChange`.
- * @returns A {@link FormValueResult} with `value`, `controlled`, `setValue`,
+ * can be a lazy initializer), `onValueChange`, and `onReset`.
+ * @returns A {@link FormValueResult} with `value`, `controlled`, `resetRef`, `setValue`,
  * `setTouched`, and `invalid`.
  * @typeParam T - The control's value type.
  * @remarks Resolution mirrors Input's cascade. An explicit `value` prop wins.
@@ -50,7 +63,7 @@ export type FormValueResult<T> = {
  */
 export function useFormValue<T>(
 	name: string | undefined,
-	{ value, defaultValue, onValueChange }: FormValueOptions<T>,
+	{ value, defaultValue, onValueChange, onReset }: FormValueOptions<T>,
 ): FormValueResult<T> {
 	const field = useFormField(name)
 
@@ -79,9 +92,21 @@ export function useFormValue<T>(
 
 	const setTouched = useCallback(() => touchField?.(), [touchField])
 
+	const controlled = bound || value !== undefined
+
+	// React controls the value of the element, so a native reset restores the
+	// last value that React wrote. Set the state back to the seed instead. A lazy
+	// seed is a valid updater, because an updater can ignore the last value.
+	const resetRef = useFormResetSync(!controlled, () => {
+		setCurrent(defaultValue)
+
+		onReset?.()
+	})
+
 	return {
 		value: current,
-		controlled: bound || value !== undefined,
+		controlled,
+		resetRef,
 		setValue: setCurrent,
 		setTouched,
 		invalid: field && hasIssues(field.errors),

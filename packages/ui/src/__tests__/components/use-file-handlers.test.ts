@@ -42,7 +42,9 @@ describe('useFileUploadHandlers', () => {
 
 		const click = vi.spyOn(input, 'click')
 
-		;(result.current.inputRef as { current: HTMLInputElement | null }).current = input
+		act(() => {
+			result.current.inputRef?.(input)
+		})
 
 		act(() => {
 			result.current.openPicker()
@@ -58,7 +60,9 @@ describe('useFileUploadHandlers', () => {
 
 		const click = vi.spyOn(input, 'click')
 
-		;(result.current.inputRef as { current: HTMLInputElement | null }).current = input
+		act(() => {
+			result.current.inputRef?.(input)
+		})
 
 		act(() => {
 			result.current.openPicker()
@@ -273,7 +277,9 @@ describe('useFileUploadHandlers', () => {
 
 		input.value = 'C:\\fakepath\\a.txt'
 
-		;(result.current.inputRef as { current: HTMLInputElement | null }).current = input
+		act(() => {
+			result.current.inputRef?.(input)
+		})
 
 		act(() => {
 			result.current.clearFiles()

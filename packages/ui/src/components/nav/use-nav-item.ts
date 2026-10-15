@@ -125,18 +125,15 @@ export function useNavItem({ current, value, href, match, preventClose, onClick 
 
 	// The selection is the activation of the item, so a consumer
 	// `preventDefault()` does not cancel it. The close is side behavior, so the
-	// outer composition keeps the default check (CONVENTIONS §3.9).
+	// cancel stops it (CONVENTIONS §3.9).
 	const handleClick = composeEventHandlers<MouseEvent<HTMLElement>>(
-		composeEventHandlers(
-			onClick as ((event: MouseEvent<HTMLElement>) => void) | undefined,
-			() => {
-				if (value !== undefined) item.onValueChange?.(value)
-			},
-			{ checkForDefaultPrevented: false },
-		),
-		() => {
-			if (!preventClose) offcanvas?.close()
+		onClick as ((event: MouseEvent<HTMLElement>) => void) | undefined,
+		(event) => {
+			if (value !== undefined) item.onValueChange?.(value)
+
+			if (!preventClose && !event.defaultPrevented) offcanvas?.close()
 		},
+		{ checkForDefaultPrevented: false },
 	)
 
 	return { ref, current: isCurrent, indicator, handleClick }

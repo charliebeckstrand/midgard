@@ -1,6 +1,6 @@
 'use client'
 
-import { type ChangeEvent, type ComponentProps, useRef } from 'react'
+import type { ChangeEvent, ComponentProps } from 'react'
 import { ariaAttr, cn } from '../../core'
 import { useComposedRef, useControllableFlag } from '../../hooks'
 import { useFormResetSync } from '../../hooks/use-form-reset-sync'
@@ -71,13 +71,11 @@ export function Switch({
 	// controlled and a native `<button type="reset">` cannot revert it.
 	const isControlled = resolvedChecked !== undefined
 
-	const inputRef = useRef<HTMLInputElement>(null)
-
-	const setRef = useComposedRef(inputRef, ref)
-
 	// A native form reset reverts the uncontrolled input without firing onChange;
 	// mirror the reverted value into the owned aria state.
-	useFormResetSync(inputRef, !isControlled, (input) => setOn(input.checked))
+	const resetRef = useFormResetSync(!isControlled, (input) => setOn(input.checked))
+
+	const setRef = useComposedRef(resetRef, ref)
 
 	const {
 		id: resolvedId,

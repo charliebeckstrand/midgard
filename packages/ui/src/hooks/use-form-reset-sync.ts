@@ -1,7 +1,10 @@
 'use client'
 
-import { type RefObject, useEffect } from 'react'
+import { type RefCallback, useCallback } from 'react'
 import { useStableEvent } from './use-stable-event'
+
+/** An element that belongs to a form: an input, a select, a textarea, or a button. */
+type FormAssociated = HTMLElement & { readonly form: HTMLFormElement | null }
 
 /**
  * Mirrors a native `reset` of the enclosing `<form>` into the state of a
@@ -9,48 +12,52 @@ import { useStableEvent } from './use-stable-event'
  *
  * A native form reset reverts an uncontrolled input and does not fire
  * `onChange`. The browser reverts the input after the `reset` event, so the hook
- * calls `onReset` with the input on the next frame. The component then reads
- * the reverted value from the input. A canceled reset does not call `onReset`.
- * Unmount, or a change of `enabled` to
- * `false`, removes the listener and cancels a waiting frame.
+ * calls `onReset` with the element on the next frame. The component then reads
+ * the reverted value from the element, or sets its own state back to its seed.
+ * A canceled reset does not call `onReset`.
  *
- * @param inputRef The input that the form reverts.
- * @param enabled Listens only when `true`. Give `false` when React controls the input.
- * @param onReset Receives the reverted input. It can change on each render.
+ * The hook returns a callback ref. Put it on a form-associated element, and join
+ * it to the other refs of that element through `useComposedRef`. The ref
+ * listens to the form of the element while the element is mounted, so an
+ * element that mounts late, or mounts again, gets the listener too. Unmount, or
+ * a change of `enabled` to `false`, removes the listener and cancels a waiting
+ * frame.
+ *
+ * @param enabled Listens only when `true`. Give `false` when React controls the value.
+ * @param onReset Receives the element after the reset. It can change on each render.
+ * @returns A callback ref for the element that the form reverts.
  * @internal
  */
-export function useFormResetSync(
-	inputRef: RefObject<HTMLInputElement | null>,
+export function useFormResetSync<E extends FormAssociated = HTMLInputElement>(
 	enabled: boolean,
-	onReset: (input: HTMLInputElement) => void,
-): void {
+	onReset: (element: E) => void,
+): RefCallback<E> {
 	const handle = useStableEvent(onReset)
 
-	useEffect(() => {
-		if (!enabled) return
+	return useCallback(
+		(element: E | null) => {
+			const form = element?.form
 
-		const input = inputRef.current
+			if (!enabled || !element || !form) return
 
-		const form = input?.form
+			let frame = 0
 
-		if (!input || !form) return
+			// A handler after this one can cancel the reset, as `Form` does. The frame
+			// reads the result, because a canceled reset reverts nothing.
+			const handleReset = (event: Event) => {
+				frame = requestAnimationFrame(() => {
+					if (!event.defaultPrevented) handle(element)
+				})
+			}
 
-		let frame = 0
+			form.addEventListener('reset', handleReset)
 
-		// A handler after this one can cancel the reset, as `Form` does. The frame
-		// reads the result, because a canceled reset reverts nothing.
-		const handleReset = (event: Event) => {
-			frame = requestAnimationFrame(() => {
-				if (!event.defaultPrevented) handle(input)
-			})
-		}
+			return () => {
+				form.removeEventListener('reset', handleReset)
 
-		form.addEventListener('reset', handleReset)
-
-		return () => {
-			form.removeEventListener('reset', handleReset)
-
-			cancelAnimationFrame(frame)
-		}
-	}, [enabled, inputRef, handle])
+				cancelAnimationFrame(frame)
+			}
+		},
+		[enabled, handle],
+	)
 }

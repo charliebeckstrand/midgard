@@ -1,10 +1,9 @@
 'use client'
 
 import { Star } from 'lucide-react'
-import { type MouseEvent, type PointerEvent, type ReactNode, useRef, useState } from 'react'
+import { type MouseEvent, type PointerEvent, type ReactNode, useState } from 'react'
 import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
-import { useFormResetSync } from '../../hooks/use-form-reset-sync'
 import { useIdScope } from '../../hooks/use-id-scope'
 import type { scale } from '../../recipes/kata/rating'
 import { k, type RatingVariants } from '../../recipes/kata/rating'
@@ -190,7 +189,7 @@ export function Rating({
 }: RatingProps) {
 	const {
 		value: bound,
-		controlled,
+		resetRef,
 		setValue,
 		setTouched,
 		invalid,
@@ -221,13 +220,6 @@ export function Rating({
 	// A disabled row still shows its score and takes no pointer, so the preview
 	// is gated on the input being live rather than dropped at the handler.
 	const live = !resolvedReadOnly && !resolvedDisabled
-
-	// The radio of the first score. Every radio of the row is in the same form.
-	const firstInputRef = useRef<HTMLInputElement>(null)
-
-	// A native form reset reverts the radios without a change event. The
-	// uncontrolled score then goes back to its seed, as the radios do.
-	useFormResetSync(firstInputRef, live && !controlled, () => setValue(defaultValue ?? null))
 
 	// The preview the pointer is asking for, or none. A dead row shows its score
 	// and nothing else, so the gate sits here rather than on each reader below.
@@ -379,7 +371,9 @@ export function Rating({
 				onPointerEnter={(event) => handlePointerEnter(event, score)}
 			>
 				<input
-					ref={score === step ? firstInputRef : undefined}
+					// The radio of the first score carries the reset. Every radio of the row
+					// is in the same form, and a dead row renders no radios.
+					ref={score === step ? resetRef : undefined}
 					type="radio"
 					data-slot="rating-input"
 					name={scope.id}

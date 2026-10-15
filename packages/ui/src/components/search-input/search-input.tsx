@@ -3,6 +3,7 @@
 import { Search } from 'lucide-react'
 import { type ChangeEvent, type ReactNode, useMemo } from 'react'
 import { cn, composeEventHandlers } from '../../core'
+import { useComposedRef } from '../../hooks'
 import { useFormValue } from '../form/use-form-value'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
@@ -85,10 +86,12 @@ export function SearchInput({
 	name,
 	className,
 	suffix: extraSuffix,
+	ref,
 	...props
 }: SearchInputProps) {
 	const {
 		value: current,
+		resetRef,
 		setValue,
 		setTouched,
 	} = useFormValue<string>(name, {
@@ -98,6 +101,8 @@ export function SearchInput({
 		// reaches the consumer.
 		onValueChange: onValueChange && ((next) => onValueChange(next ?? '')),
 	})
+
+	const setRef = useComposedRef(resetRef, ref)
 
 	// The value write runs whatever the caller does (CONVENTIONS.md §3.9). The
 	// clear button of Input empties the field through a native input event, so
@@ -118,6 +123,7 @@ export function SearchInput({
 
 	return (
 		<Input
+			ref={setRef}
 			data-slot="search-input"
 			type="search"
 			name={name}
