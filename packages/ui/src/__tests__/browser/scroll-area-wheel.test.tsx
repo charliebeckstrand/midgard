@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { ScrollArea } from '../../components/scroll-area'
 import { getSlot, renderUI } from '../helpers'
 
@@ -87,5 +87,46 @@ describe('ScrollArea shift+wheel against real overflow', () => {
 		// The gesture scrolls the inner scroller natively. The area must not
 		// cancel it and send it to an ancestor.
 		expect(shiftWheel(inner)).toBe(false)
+	})
+
+	it('forwards the gesture once from an area inside another area', () => {
+		const { container } = renderUI(
+			<div style={{ height: 200 }}>
+				<ScrollArea bare className="h-full">
+					<div style={{ height: 1000 }}>
+						<ScrollArea bare className="h-[50px]">
+							<div style={{ height: 300 }}>content</div>
+						</ScrollArea>
+					</div>
+				</ScrollArea>
+			</div>,
+		)
+
+		const [outer, inner] = container.querySelectorAll<HTMLElement>(
+			'[data-slot="scroll-area-viewport"]',
+		)
+
+		if (!outer || !inner) throw new Error('no nested areas')
+
+		const elementScroll = vi.spyOn(Element.prototype, 'scrollBy')
+
+		const windowScroll = vi.spyOn(window, 'scrollBy')
+
+		const event = new WheelEvent('wheel', {
+			shiftKey: true,
+			deltaY: 10,
+			bubbles: true,
+			cancelable: true,
+		})
+
+		inner.dispatchEvent(event)
+
+		// The inner area hands the gesture to the outer viewport. The outer area
+		// must not then hand the same gesture to its own ancestor.
+		expect(elementScroll).toHaveBeenCalledTimes(1)
+
+		expect(elementScroll.mock.contexts[0]).toBe(outer)
+
+		expect(windowScroll).not.toHaveBeenCalled()
 	})
 })

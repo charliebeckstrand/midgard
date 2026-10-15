@@ -122,7 +122,8 @@ function beginScrollbarDrag(
  * @internal
  */
 function forwardShiftWheel(event: WheelEvent, viewport: HTMLElement): void {
-	if (!event.shiftKey) return
+	// A nested area, or another handler, has already taken the gesture.
+	if (!event.shiftKey || event.defaultPrevented) return
 
 	// A horizontally scrollable viewport owns shift+wheel natively;
 	// forwarding hijacks the gesture from its own content.
@@ -152,7 +153,8 @@ function forwardShiftWheel(event: WheelEvent, viewport: HTMLElement): void {
  * thumb. Re-measures via a {@link ResizeObserver} on the viewport and its children and
  * a {@link MutationObserver} on child additions/removals. Shift+wheel over a
  * non-horizontally-scrollable viewport forwards to the nearest scrollable
- * ancestor, unless a horizontal scroller inside the viewport gets it.
+ * ancestor, unless a horizontal scroller inside the viewport gets it, or a
+ * nested area or another handler has already canceled it.
  *
  * @internal
  */
