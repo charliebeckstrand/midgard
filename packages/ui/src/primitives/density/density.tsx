@@ -23,8 +23,10 @@ const [DensityContext, useDensityScope] = createContext<DensityStep | null>('Den
  * The root step is `md` on the server and in the hydration render (see
  * `useDensityRoot`).
  *
- * A component with a size scale snaps the result to its scale with
- * `snapToScale`.
+ * Use the result only to compare or to key, or to give a scope to a
+ * descendant. For a value at the step, read the ramp or `geometry.ts`, which
+ * give a value for each step. Do not choose a scope from the result. The CSS
+ * chooses it.
  *
  * In a control slot (`data-density="slot"`), the result is the step of the
  * host, and not the step that the CSS paints, which is one step lower. A slot

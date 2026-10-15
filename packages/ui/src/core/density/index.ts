@@ -4,7 +4,6 @@ export {
 	type RampSteps,
 	type Scale,
 	type ScaleStep,
-	snapToScale,
 } from './scale'
 export {
 	type DensityStep,

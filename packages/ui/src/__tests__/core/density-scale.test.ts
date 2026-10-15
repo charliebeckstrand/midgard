@@ -1,12 +1,6 @@
 // @vitest-environment node
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import {
-	defineScale,
-	type RampSteps,
-	type ScaleStep,
-	snapToScale,
-	stepsOfRamp,
-} from '../../core/density/scale'
+import { defineScale, type RampSteps, type ScaleStep, stepsOfRamp } from '../../core/density/scale'
 
 // A scale holds the steps at which a ramp renders a value of its own. A type
 // reads them from the literal class, so a `size` prop offers only those steps.
@@ -60,25 +54,5 @@ describe('defineScale', () => {
 		expectTypeOf<RampSteps<'density-text-[xs,sm,base,lg,lg]'>>().toEqualTypeOf<
 			'xs' | 'sm' | 'md' | 'lg'
 		>()
-	})
-})
-
-describe('snapToScale', () => {
-	const inner = defineScale('density-p-[2,3,4]')
-
-	const withXs = defineScale('density-size-[3,4,5,6,6]')
-
-	it('keeps a step of the scale', () => {
-		expect(snapToScale('md', inner)).toBe('md')
-
-		expect(snapToScale('xs', withXs)).toBe('xs')
-	})
-
-	it('snaps an outer step that the scale does not hold to its inner neighbor', () => {
-		expect(snapToScale('xs', inner)).toBe('sm')
-
-		expect(snapToScale('xl', inner)).toBe('lg')
-
-		expect(snapToScale('xl', withXs)).toBe('lg')
 	})
 })

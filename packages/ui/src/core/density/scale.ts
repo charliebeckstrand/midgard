@@ -86,12 +86,3 @@ export function defineScale<const R extends readonly Ramp[]>(
 
 	return order.filter((step) => steps.has(step)) as unknown as Scale<RampSteps<R[number]>>
 }
-
-/**
- * Snaps `step` to the nearest step of `scale`. A step of the scale stays. An
- * outer step that the scale does not hold becomes its inner neighbor: `xs`
- * becomes `sm`, and `xl` becomes `lg`.
- */
-export function snapToScale<S extends DensityStep>(step: DensityStep, scale: Scale<S>): S {
-	return (scale as readonly DensityStep[]).includes(step) ? (step as S) : (toInnerStep(step) as S)
-}
