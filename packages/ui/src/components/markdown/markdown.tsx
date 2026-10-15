@@ -116,7 +116,8 @@ export type MarkdownProps = {
  * Images additionally allow `data:` URIs, which are inert as an image source.
  *
  * Entity references such as `&amp;` and `&#169;` decode to their characters in
- * text, image `alt`, and titles. Each numeric reference decodes, and so do the
+ * text, image `alt`, titles, and link and image URLs. A URL decodes before its
+ * scheme check. Each numeric reference decodes, and so do the
  * named references that prose uses (the five XML names, `&nbsp;`, and common
  * typography and symbols). A rare name stays as text. Code keeps references
  * literal, as CommonMark specifies.

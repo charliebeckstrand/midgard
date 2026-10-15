@@ -221,6 +221,31 @@ describe('Markdown', () => {
 		expect(el?.querySelector('img')).toHaveAttribute('title', '"t"')
 	})
 
+	it('decodes entity references in link and image destinations', () => {
+		const { container } = renderUI(
+			<Markdown>{'[search](https://example.com/?a=1&amp;b=2) ![i](/i.png?w=1&amp;h=2)'}</Markdown>,
+		)
+
+		const el = bySlot(container, 'markdown')
+
+		expect(el?.querySelector('a')).toHaveAttribute('href', 'https://example.com/?a=1&b=2')
+
+		expect(el?.querySelector('img')).toHaveAttribute('src', '/i.png?w=1&h=2')
+	})
+
+	it('checks the scheme of a destination after it decodes the references', () => {
+		const { container } = renderUI(
+			<Markdown>{'[click](&#106;avascript:alert(1)) ![x](&#x76;bscript:msgbox)'}</Markdown>,
+		)
+
+		const el = bySlot(container, 'markdown')
+
+		// `&#106;avascript:` is `javascript:` after the decode, so no href renders.
+		expect(el?.querySelector('a')).not.toHaveAttribute('href')
+
+		expect(el?.querySelector('img')).not.toHaveAttribute('src')
+	})
+
 	it('gives an image the plain text of its description as alt, with no markup', () => {
 		const { container } = renderUI(<Markdown>{'![**Logo** \\_v2\\_](logo.png)'}</Markdown>)
 
