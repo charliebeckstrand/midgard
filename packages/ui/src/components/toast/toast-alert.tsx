@@ -127,15 +127,32 @@ export function ToastAlert({
 
 	const focusHeldRef = useRef(false)
 
+	// One hold/release pair per source; `held` is that source's flag.
+	function hold(held: RefObject<boolean>) {
+		if (held.current) return
+
+		held.current = true
+
+		onPause()
+	}
+
+	function release(held: RefObject<boolean>) {
+		if (!held.current) return
+
+		held.current = false
+
+		onResume()
+	}
+
 	// An effect event: the unmount release must call the current resume without
 	// the effect keying on it — a dep change would release still-live holds mid-life.
 	const resume = useEffectEvent(() => onResume())
 
+	const holdFocus = useEffectEvent(() => hold(focusHeldRef))
+
 	// A toast removed while hovered or focused (close click, maxToasts eviction,
 	// programmatic dismiss) gets no pointerleave/blur, so release its holds here —
 	// otherwise the stuck count freezes auto-dismiss for every later toast.
-	const holdFocus = useEffectEvent(() => hold(focusHeldRef))
-
 	useEffect(() => {
 		// Focus can be in the toast before this effect runs: a close moves focus to
 		// a toast that mounts in the same commit. A re-run after the cleanup below
@@ -168,23 +185,6 @@ export function ToastAlert({
 	useLayoutEffect(() => {
 		if (toast.dismissed && itemRef.current?.contains(document.activeElement)) leave()
 	}, [toast.dismissed])
-
-	// One hold/release pair per source; `held` is that source's flag.
-	function hold(held: RefObject<boolean>) {
-		if (held.current) return
-
-		held.current = true
-
-		onPause()
-	}
-
-	function release(held: RefObject<boolean>) {
-		if (!held.current) return
-
-		held.current = false
-
-		onResume()
-	}
 
 	return (
 		<m.li
