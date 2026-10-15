@@ -2,8 +2,9 @@
 
 import { ChevronDown } from 'lucide-react'
 import type { ComponentProps } from 'react'
-import { cn, composeEventHandlers } from '../../core'
+import { cn, composeEventHandlers, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/accordion'
+import type { HeadingLevel } from '../heading'
 import { Icon } from '../icon'
 import { useAccordion, useAccordionItem } from './context'
 
@@ -18,14 +19,14 @@ export type AccordionTriggerProps = Omit<ComponentProps<'button'>, 'disabled'> &
 	 * heading.
 	 * @defaultValue 3
 	 */
-	level?: 1 | 2 | 3 | 4 | 5 | 6
+	level?: HeadingLevel
 }
 
 /**
  * Header button that toggles its {@link AccordionItem}. Wraps itself in an
  * `h{level}` element and renders a rotating chevron indicator, per the WAI-ARIA
  * accordion pattern. Is a Tab stop, and takes part in the parent's arrow-key
- * navigation.
+ * navigation. The button stamps `data-open` and `data-disabled` as its item does.
  *
  * @see {@link Accordion}
  * @see {@link AccordionPanel}
@@ -39,7 +40,7 @@ export function AccordionTrigger({
 	...props
 }: AccordionTriggerProps) {
 	const { onTriggerKeyDown } = useAccordion()
-	const { toggle, disabled, triggerProps } = useAccordionItem()
+	const { open, toggle, disabled, triggerProps } = useAccordionItem()
 
 	// Tailwind preflight zeroes heading font and margin; the wrapper is
 	// invisible chrome required by the WAI-ARIA accordion pattern.
@@ -54,6 +55,8 @@ export function AccordionTrigger({
 				type="button"
 				data-slot="accordion-trigger"
 				{...triggerProps}
+				data-open={dataAttr(open)}
+				data-disabled={dataAttr(disabled)}
 				disabled={disabled}
 				// The toggle is the activation the trigger exists to perform, so a
 				// consumer's preventDefault() does not cancel it (CONVENTIONS.md §3.9).

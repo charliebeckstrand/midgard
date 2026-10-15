@@ -7,7 +7,7 @@ import { type AvatarVariants, k } from '../../recipes/kata/avatar'
  * Props for {@link AvatarGroup}: `<div>` attributes, and `size`, the density step
  * of the avatars and their status dots.
  */
-export type AvatarGroupProps = Omit<ComponentProps<'div'>, 'className' | 'children'> & {
+export type AvatarGroupProps = Omit<ComponentProps<'div'>, 'children'> & {
 	/**
 	 * The size of each avatar. The group writes it as a density scope: it writes
 	 * `data-density` and opens the density context around the children, so
@@ -15,7 +15,6 @@ export type AvatarGroupProps = Omit<ComponentProps<'div'>, 'className' | 'childr
 	 * take the step of the nearest density scope.
 	 */
 	size?: AvatarVariants['size']
-	className?: string
 	children: ReactNode
 }
 

@@ -684,9 +684,9 @@ describe('a dot over regions that answer the pointer', () => {
  * difference visible while the request is in flight.
  */
 describe('a map whose values are still loading', () => {
-	it('pulses the region layer while its values are pending, and dims it instead under reduced motion', () => {
+	it('pulses the region layer while its values are loading, and dims it instead under reduced motion', () => {
 		const { container } = renderUI(
-			<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} width={400} pending>
+			<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} width={400} loading>
 				<MapPoint label="Depot" at={[15, 5]} />
 			</MapPlat>,
 		)

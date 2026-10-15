@@ -1,7 +1,11 @@
 import type { ReactNode } from 'react'
+import type { AlertSeverity } from '../alert'
 
-/** Severity of a toast, mapped to the underlying `Alert` tone. */
-export type ToastSeverity = 'info' | 'neutral' | 'success' | 'warning' | 'error'
+/**
+ * Severity of a toast: an {@link AlertSeverity}, or `neutral` for a toast that
+ * takes no semantic tone.
+ */
+export type ToastSeverity = AlertSeverity | 'neutral'
 
 /**
  * Viewport corner the toast stack anchors to. A `start` or `end` corner follows

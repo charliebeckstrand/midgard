@@ -25,7 +25,7 @@ export type ConfirmOptions = Pick<ConfirmProps, 'title' | 'description'> & {
 	cancel?: Pick<NonNullable<ConfirmProps['cancel']>, 'label' | 'color'>
 	/**
 	 * Work that runs when the user confirms. The dialog stays open, with the
-	 * confirm button in its pending state, until the work is done.
+	 * confirm button in its loading state, until the work is done.
 	 *
 	 * @remarks
 	 * While the work runs, the cancel button is disabled, and Escape and the
@@ -49,7 +49,7 @@ export type ConfirmFunction = (options: ConfirmOptions) => Promise<boolean>
 type Settle = { resolve: (confirmed: boolean) => void; reject: (error: unknown) => void }
 
 /** The question that the host shows, and whether its `action` runs. @internal */
-type Question = { options: ConfirmOptions; pending: boolean }
+type Question = { options: ConfirmOptions; loading: boolean }
 
 /** @internal */
 const [ConfirmContext, useConfirmContext] = createContext<ConfirmFunction>('ConfirmHost', {
@@ -102,7 +102,7 @@ export function ConfirmHost({ children }: { children: ReactNode }) {
 
 				settleRef.current = current
 
-				setQuestion({ options, pending: false })
+				setQuestion({ options, loading: false })
 
 				// The module caches, so a question after the first load waits for
 				// nothing. A failed load rejects this question while it is open.
@@ -117,13 +117,13 @@ export function ConfirmHost({ children }: { children: ReactNode }) {
 
 	const asked = question !== null
 
-	const pending = question?.pending ?? false
+	const loading = question?.loading ?? false
 
 	const handleOpenChange = useCallback(
 		(open: boolean) => {
-			if (!open && !pending) settle()?.resolve(false)
+			if (!open && !loading) settle()?.resolve(false)
 		},
-		[pending, settle],
+		[loading, settle],
 	)
 
 	const handleConfirm = useCallback(() => {
@@ -141,7 +141,7 @@ export function ConfirmHost({ children }: { children: ReactNode }) {
 		// replaces it while the work runs, and answers it.
 		const isCurrent = () => settleRef.current === current
 
-		setQuestion((held) => held && { ...held, pending: true })
+		setQuestion((held) => held && { ...held, loading: true })
 
 		// A chain, not `try`, so a throw in the work also rejects, and the
 		// compiler can compile the conditions.
@@ -169,9 +169,9 @@ export function ConfirmHost({ children }: { children: ReactNode }) {
 					onConfirm={handleConfirm}
 					title={options?.title}
 					description={options?.description}
-					confirm={{ ...options?.confirm, pending }}
-					cancel={{ ...options?.cancel, disabled: pending }}
-					dismissOnBackdrop={!pending}
+					confirm={{ ...options?.confirm, loading }}
+					cancel={{ ...options?.cancel, disabled: loading }}
+					dismissOnBackdrop={!loading}
 				/>
 			)}
 		</ConfirmContext>

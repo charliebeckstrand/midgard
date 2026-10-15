@@ -134,6 +134,34 @@ export const dataDisplayCases: readonly Case[] = [
 		skeleton: [
 			{ element: <AccordionSkeleton items={2} />, absentSlot: 'accordion-item', placeholders: 4 },
 		],
+		passthrough: [
+			{
+				render: (props) => (
+					<Accordion>
+						<AccordionItem {...props} value="shipping">
+							<AccordionTrigger>Shipping</AccordionTrigger>
+						</AccordionItem>
+					</Accordion>
+				),
+				slot: 'accordion-item',
+			},
+		],
+		disclosure: [
+			{
+				component: 'Accordion',
+				render: ({ disabled }) => (
+					<Accordion collapsible>
+						<AccordionItem value="shipping" disabled={disabled}>
+							<AccordionTrigger>Shipping</AccordionTrigger>
+							<AccordionPanel>Orders ship within one business day.</AccordionPanel>
+						</AccordionItem>
+					</Accordion>
+				),
+				trigger: 'accordion-trigger',
+				parts: ['accordion-item', 'accordion-trigger', 'accordion-panel'],
+				disabledParts: ['accordion-item', 'accordion-trigger'],
+			},
+		],
 	},
 	{
 		// Single-select segmented control (radiogroup); the group carries an

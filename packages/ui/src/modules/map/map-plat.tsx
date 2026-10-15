@@ -388,14 +388,14 @@ type MapPlatBaseProps = AccessibleName & {
 	 *
 	 * It is distinct from an absent `geography`, which reserves the frame and
 	 * draws nothing at all. Here there is something to look at, and only the paint
-	 * is pending.
+	 * is still loading.
 	 *
 	 * Say it in words too. This is nothing at all to a screen reader, so a caption
 	 * or a status line remains the load's actual disclosure. This only stops the
 	 * drawn map lying in the meantime.
 	 * @defaultValue false
 	 */
-	pending?: boolean
+	loading?: boolean
 	/**
 	 * The selected overlay mark, in the pair its reporters hand back — see
 	 * {@link MapOverlaySelection} for how the pair reads. It is `selectedRegion`
@@ -720,7 +720,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		onRegionContextMenu,
 		onRegionPreload,
 		selectedRegion,
-		pending,
+		loading,
 		selectedOverlay,
 		emphasis: controlledEmphasis,
 		onEmphasisChange,
@@ -1287,7 +1287,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 							onRegionClick={regions.click}
 							onRegionContextMenu={regions.contextMenu}
 							selected={selected}
-							pending={pending}
+							loading={loading}
 						/>
 
 						{children}

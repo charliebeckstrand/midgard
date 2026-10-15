@@ -44,6 +44,7 @@ export const feedbackCases: readonly Case[] = [
 		element: (
 			<Alert key="a" severity="success" title="Saved" description="Your changes are live." />
 		),
+		passthrough: [{ render: (props) => <Alert {...props} title="Saved" />, slot: 'alert' }],
 	},
 	{
 		// Page-level banner (Alert-based); closable, with a named dismiss control.

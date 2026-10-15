@@ -1,4 +1,4 @@
-import type { ChangeEvent, FocusEvent, ReactElement } from 'react'
+import { type ChangeEvent, type FocusEvent, type ReactElement, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Form, useFormField } from '../../components/form'
 import { composeEventHandlers } from '../../core'
@@ -6,6 +6,7 @@ import { Density } from '../../primitives/density'
 import { corpus } from '../a11y/cases'
 import type {
 	DensitySubject,
+	DisclosureSubject,
 	LinkSubject,
 	PassthroughSubject,
 	SkeletonSubject,
@@ -70,6 +71,8 @@ const writes = corpus.flatMap((entry) =>
 		title: `${entry.name} (${subject.slot})`,
 	})),
 )
+
+const disclosures = corpus.flatMap((entry) => entry.disclosure ?? [])
 
 /** The field each touch-on-blur and write-on-change subject binds to. */
 const FIELD = 'swept'
@@ -196,6 +199,46 @@ function fallsBackToMd({ render, slot }: DensitySubject) {
 	expect(stepOf(render(), slot)).toBe(FALLBACK)
 }
 
+/**
+ * The disclosure sweep, open leg: no part stamps `data-open` while closed, and a
+ * click on the trigger stamps it on every part (CONVENTIONS.md §3.11).
+ */
+function stampsOpen({ render, trigger, parts }: DisclosureSubject) {
+	// `baseElement` is the document body, so a portaled part is in reach.
+	const { baseElement } = renderUI(render({}))
+
+	for (const slot of parts) {
+		const part = bySlot(baseElement, slot)
+
+		if (part) expect(part, `${slot} while closed`).not.toHaveAttribute('data-open')
+	}
+
+	fireEvent.click(getSlot(baseElement, trigger))
+
+	for (const slot of parts) {
+		expect(getSlot(baseElement, slot), `${slot} while open`).toHaveAttribute('data-open')
+	}
+}
+
+/** The disclosure sweep, disabled leg: each part that can be disabled stamps `data-disabled`. */
+function stampsDisabled({ render, disabledParts = [] }: DisclosureSubject) {
+	const { baseElement, unmount } = renderUI(render({}))
+
+	for (const slot of disabledParts) {
+		expect(getSlot(baseElement, slot), `${slot} while enabled`).not.toHaveAttribute('data-disabled')
+	}
+
+	unmount()
+
+	const disabled = renderUI(render({ disabled: true }))
+
+	for (const slot of disabledParts) {
+		expect(getSlot(disabled.baseElement, slot), `${slot} while disabled`).toHaveAttribute(
+			'data-disabled',
+		)
+	}
+}
+
 /** The text-input sweep, ref leg: the ref reaches the editable element. */
 function forwardsRef({ render, slot }: TextInputSubject) {
 	let received: HTMLElement | null = null
@@ -308,6 +351,21 @@ describe('component change binding', () => {
 	})
 })
 
+describe('component disclosure state', () => {
+	for (const subject of disclosures) {
+		it(`${subject.component} stamps data-open on each part while open`, () => stampsOpen(subject))
+
+		if (subject.disabledParts) {
+			it(`${subject.component} stamps data-disabled on each part while disabled`, () =>
+				stampsDisabled(subject))
+		}
+	}
+
+	it('has subjects to sweep', () => {
+		expect(disclosures).not.toHaveLength(0)
+	})
+})
+
 /** A bound input that composes its change with the default, so a caller's `preventDefault()` skips the write. */
 function SkippableWrite({
 	name,
@@ -367,6 +425,29 @@ function DeafTouch({ name }: { name: string }) {
 	const field = useFormField(name)
 
 	return <input data-slot="deaf" readOnly value="" onBlur={() => field?.setTouched()} />
+}
+
+/**
+ * A disclosure that stamps `data-open` on its trigger only, and no
+ * `data-disabled` at all.
+ */
+function UnstampedDisclosure({ disabled }: { disabled?: boolean }) {
+	const [open, setOpen] = useState(false)
+
+	return (
+		<>
+			<button
+				type="button"
+				data-slot="unstamped-trigger"
+				data-open={open || undefined}
+				disabled={disabled}
+				onClick={() => setOpen(true)}
+			>
+				Open
+			</button>
+			{open && <div data-slot="unstamped-content">Content</div>}
+		</>
+	)
 }
 
 /**
@@ -507,6 +588,29 @@ describe('capability sweeps: teeth checks', () => {
 					</a>
 				),
 				slot: 'elsewhere',
+			}),
+		).toThrow()
+	})
+
+	it('fails a disclosure part that does not stamp its open state', () => {
+		expect(() =>
+			stampsOpen({
+				component: 'Unstamped',
+				render: () => <UnstampedDisclosure />,
+				trigger: 'unstamped-trigger',
+				parts: ['unstamped-trigger', 'unstamped-content'],
+			}),
+		).toThrow()
+	})
+
+	it('fails a disclosure part that does not stamp its disabled state', () => {
+		expect(() =>
+			stampsDisabled({
+				component: 'Unstamped',
+				render: ({ disabled }) => <UnstampedDisclosure disabled={disabled} />,
+				trigger: 'unstamped-trigger',
+				parts: ['unstamped-trigger'],
+				disabledParts: ['unstamped-trigger'],
 			}),
 		).toThrow()
 	})

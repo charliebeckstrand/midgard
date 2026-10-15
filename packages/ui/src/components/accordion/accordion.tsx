@@ -32,7 +32,7 @@ const TRIGGER_SELECTOR =
  */
 export type AccordionProps = (SingleProps | MultipleProps) &
 	AccordionVariants &
-	Omit<ComponentProps<'div'>, 'className' | 'value' | 'defaultValue' | 'onChange'> & {
+	Omit<ComponentProps<'div'>, 'value' | 'defaultValue' | 'onChange'> & {
 		/**
 		 * How item panels are held while closed.
 		 *
@@ -73,7 +73,6 @@ export type AccordionProps = (SingleProps | MultipleProps) &
 		 * @see {@link DrawerPanelProps.onOpenComplete} for the panel family's form of this callback.
 		 */
 		onOpenComplete?: (value: string) => void
-		className?: string
 		children: ReactNode
 	}
 

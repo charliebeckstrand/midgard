@@ -2,7 +2,7 @@ import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { k, type scale } from '../../recipes/kata/heading'
-import { Heading } from '../heading'
+import { Heading, type HeadingLevel } from '../heading'
 
 /** Props for {@link CardTitle}: the density `size` step, heading `level`, and the underlying `<h3>` attributes. */
 export type CardTitleProps = {
@@ -16,7 +16,7 @@ export type CardTitleProps = {
 	 * Heading level of the rendered title.
 	 * @defaultValue 3
 	 */
-	level?: 1 | 2 | 3 | 4 | 5 | 6
+	level?: HeadingLevel
 } & Omit<ComponentProps<'h3'>, 'className'>
 
 /**
