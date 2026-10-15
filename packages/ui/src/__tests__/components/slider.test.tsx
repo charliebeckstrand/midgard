@@ -68,6 +68,67 @@ describe('Slider', () => {
 		expect(el.value).toBe('42')
 	})
 
+	// A native range input ignores `readonly`, so the Slider keeps the value itself.
+	it('keeps the value of a read-only slider and marks it aria-readonly', async () => {
+		const user = setupUser()
+
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(
+			<Slider readOnly defaultValue={20} onValueChange={onValueChange} />,
+		)
+
+		const el = getSlot<HTMLInputElement>(container, 'slider')
+
+		fireEvent.change(el, { target: { value: '50' } })
+
+		el.focus()
+
+		await user.keyboard('{ArrowRight}')
+
+		expect(onValueChange).not.toHaveBeenCalled()
+
+		expect(el.value).toBe('20')
+
+		expect(el).toHaveAttribute('aria-readonly', 'true')
+
+		expect(el).not.toHaveAttribute('readonly')
+	})
+
+	it('takes the read-only state of an enclosing Control', () => {
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(
+			<Control readOnly>
+				<Slider defaultValue={20} onValueChange={onValueChange} />
+			</Control>,
+		)
+
+		const el = getSlot<HTMLInputElement>(container, 'slider')
+
+		fireEvent.change(el, { target: { value: '50' } })
+
+		expect(onValueChange).not.toHaveBeenCalled()
+
+		expect(el.value).toBe('20')
+
+		expect(el).toHaveAttribute('aria-readonly', 'true')
+	})
+
+	it('keeps an explicit readOnly={false} over a read-only Control', () => {
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(
+			<Control readOnly>
+				<Slider readOnly={false} defaultValue={20} onValueChange={onValueChange} />
+			</Control>,
+		)
+
+		fireEvent.change(getSlot<HTMLInputElement>(container, 'slider'), { target: { value: '50' } })
+
+		expect(onValueChange).toHaveBeenCalledWith(50)
+	})
+
 	it('merges caller-supplied inline style with the slider --slider-value var', () => {
 		const { container } = renderUI(<Slider defaultValue={25} style={{ width: '300px' }} />)
 

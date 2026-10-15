@@ -1,7 +1,7 @@
 'use client'
 
 import type { ComponentProps, CSSProperties } from 'react'
-import { cn, composeEventHandlers, invalidAttrs } from '../../core'
+import { ariaAttr, cn, composeEventHandlers, invalidAttrs } from '../../core'
 import { useComposedRef } from '../../hooks'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { k, type SliderVariants } from '../../recipes/kata/slider'
@@ -21,18 +21,35 @@ type SliderBaseProps = SliderVariants & {
 	step?: number
 	/** Formats the value for assistive tech (`aria-valuetext`): currency, ratings, levels announce as meaningful text instead of a bare number. */
 	getValueText?: (value: number) => string
+	/**
+	 * Keeps the value of the slider. A drag or a key does not change it, and
+	 * `onValueChange` does not fire. The slider keeps the focus, submits its
+	 * value, and sets `aria-readonly`. When omitted, it takes the value of an
+	 * enclosing `<Control>` or `<Field>`.
+	 * @defaultValue `false`, or the state of the enclosing Control.
+	 */
+	readOnly?: boolean
 }
 
 /** Props for {@link Slider}: the controllable value triad, `min`/`max`/`step` bounds, `getValueText` for assistive tech, plus `size`/`color` variants atop native range-`<input>` attributes. */
 export type SliderProps = SliderBaseProps &
 	Omit<
 		ComponentProps<'input'>,
-		'value' | 'defaultValue' | 'onChange' | 'min' | 'max' | 'step' | 'type' | 'size' | 'color'
+		| 'value'
+		| 'defaultValue'
+		| 'onChange'
+		| 'min'
+		| 'max'
+		| 'step'
+		| 'type'
+		| 'size'
+		| 'color'
+		| 'readOnly'
 	>
 
 /**
  * Range input for a single value, controlled or uncontrolled. It resolves `id`,
- * `disabled`, and `invalid` from an enclosing Control or Field, and binds to an
+ * `disabled`, `readOnly`, and `invalid` from an enclosing Control or Field, and binds to an
  * enclosing Form field by `name`. The slider takes the step of the nearest
  * density scope, and an explicit `size` opens a scope on the input. The
  * fill position is exposed as a `--slider-value` CSS variable.
@@ -59,6 +76,7 @@ export function Slider({
 	style,
 	id,
 	disabled,
+	readOnly,
 	name,
 	onBlur,
 	ref,
@@ -85,7 +103,7 @@ export function Slider({
 
 	const percent = pct(current, min, max)
 
-	// Resolves id/disabled/describedby from a wrapping Control or Field, falling
+	// Resolves id/disabled/readOnly/describedby from a wrapping Control or Field, falling
 	// back to a generated id (the same chain Input uses). A sibling <Label
 	// htmlFor> (or a <Field><Label> with no explicit id) names the input via
 	// this id. `required` is not resolved: a range input always has a value and
@@ -94,6 +112,7 @@ export function Slider({
 	const controlProps = useControlProps({
 		id,
 		disabled,
+		readOnly,
 		'aria-describedby': ariaDescribedBy,
 		invalid,
 	})
@@ -109,6 +128,7 @@ export function Slider({
 			id={scope.id}
 			disabled={controlProps.disabled}
 			aria-describedby={controlProps['aria-describedby']}
+			aria-readonly={ariaAttr(controlProps.readOnly)}
 			{...invalidAttrs(controlProps.invalid)}
 			min={min}
 			max={max}
@@ -116,7 +136,11 @@ export function Slider({
 			name={name}
 			aria-valuetext={getValueText?.(current)}
 			value={current}
-			onChange={(event) => setValue(Number(event.target.value))}
+			// A native range input ignores `readonly`. React holds the value of the
+			// input, so a change that the slider does not write goes back.
+			onChange={(event) => {
+				if (!controlProps.readOnly) setValue(Number(event.target.value))
+			}}
 			// The touched mark runs whatever the caller does (CONVENTIONS.md §3.9).
 			onBlur={composeEventHandlers(onBlur, setTouched, { checkForDefaultPrevented: false })}
 			className={cn(k({ color }), className)}
