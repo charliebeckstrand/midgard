@@ -139,6 +139,26 @@ describe('useResizablePanel', () => {
 				],
 				[25, 35, 40],
 			],
+			// A middle panel at its maxSize stops the pairwise passes, so a
+			// global fill gives the slack to the first panel (B01-R3, B01-Q2b).
+			[
+				'fills past a middle panel at its maxSize',
+				[
+					{ key: '.0', defaultSize: 1, minSize: 0, maxSize: 100 },
+					{ key: '.1', defaultSize: 1, minSize: 0, maxSize: 20 },
+					{ key: '.2', defaultSize: 1, minSize: 60, maxSize: 100 },
+				],
+				[20, 20, 60],
+			],
+			// No layout meets every bound, so the pairwise result stays.
+			[
+				'keeps the pairwise result when no layout meets every bound',
+				[
+					{ key: '.0', defaultSize: 1, minSize: 60, maxSize: 100 },
+					{ key: '.1', defaultSize: 1, minSize: 60, maxSize: 100 },
+				],
+				[60, 40],
+			],
 		])('%s', (_name, panelConfigs, expected) => {
 			const { result } = renderPanel({ panelConfigs })
 
