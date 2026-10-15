@@ -61,7 +61,10 @@ export const k = defineRecipe(
 				fg.hover,
 				'text-start',
 				...mode('aria-expanded:text-zinc-950', 'dark:aria-expanded:text-white'),
-				'focus-visible:outline-none',
+				// The ring of the item is a box-shadow, and forced colors remove it.
+				// `outline-hidden` draws no outline in normal mode, but under forced colors
+				// it draws a transparent outline that the browser paints in a system color.
+				'focus-visible:outline-hidden',
 				...disabled,
 				...cursor,
 			],
