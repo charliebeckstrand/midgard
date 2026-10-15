@@ -33,6 +33,34 @@ describe('useTagInputKeyboard', () => {
 		expect(commit).toHaveBeenCalledWith('hello')
 	})
 
+	it('Enter on a draft with a token prevents the default and commits', () => {
+		const { press, commit } = setup('a', 0)
+
+		const event = makeKeyEvent<HTMLInputElement>('Enter')
+
+		press(event)
+
+		expect(event.defaultPrevented).toBe(true)
+
+		expect(commit).toHaveBeenCalledWith('a')
+	})
+
+	// An empty draft has nothing to commit, so Enter keeps its native default: it submits the form.
+	it.each([
+		['empty', ''],
+		['whitespace-only', '   '],
+	])('Enter on an %s draft keeps the default so the form submits', (_name, inputValue) => {
+		const { press, commit } = setup(inputValue, 0)
+
+		const event = makeKeyEvent<HTMLInputElement>('Enter')
+
+		press(event)
+
+		expect(event.defaultPrevented).toBe(false)
+
+		expect(commit).not.toHaveBeenCalled()
+	})
+
 	it('Backspace removes last tag when input is empty', () => {
 		const { press, removeTag } = setup('', 3)
 

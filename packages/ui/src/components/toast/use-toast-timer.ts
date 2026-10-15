@@ -18,7 +18,7 @@ import type { ToastData } from './types'
  * The pause is a source count, not a flag. Each hold (a toast's hover, a
  * toast's focus) pairs one `pause()` with one `resume()`, and the timer runs
  * only at zero. A boolean can't survive a toast unmounting mid-hold. The
- * releasing `mouseleave`/`blur` never fires for a removed node, and a single
+ * releasing `pointerleave`/`blur` never fires for a removed node, and a single
  * flag can't tell which holds remain. Each `ToastAlert` therefore releases its
  * own holds on unmount, and the count settles back to running.
  *

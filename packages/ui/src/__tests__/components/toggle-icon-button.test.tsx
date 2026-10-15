@@ -153,4 +153,20 @@ describe('ToggleIconButton', () => {
 
 		expect(button).toHaveAttribute('aria-pressed', 'false')
 	})
+
+	// Button gives the inline box and the stepped radius. A plain utility in the className comes
+	// after the recipe of Button and wins, so the toggle must not set its own layout or radius.
+	it('keeps the inline box and the stepped radius of a Button', () => {
+		const { container } = renderUI(<ToggleIconButton icon={icon} aria-label="Pin" />)
+
+		const { classList } = getSlot(container, 'toggle-icon-button')
+
+		expect(classList).toContain('inline-flex')
+
+		expect(classList).toContain('density-rounded-[1,1.5,2,2.5,3]')
+
+		expect(classList).not.toContain('flex')
+
+		expect(classList).not.toContain('rounded-lg')
+	})
 })

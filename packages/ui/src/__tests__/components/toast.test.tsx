@@ -372,7 +372,7 @@ describe('Toast: useToast behavior', () => {
 			vi.advanceTimersByTime(500)
 		})
 
-		fireEvent.mouseEnter(title)
+		fireEvent.pointerEnter(title, { pointerType: 'mouse' })
 
 		act(() => {
 			vi.advanceTimersByTime(1000)
@@ -380,13 +380,45 @@ describe('Toast: useToast behavior', () => {
 
 		expect(screen.getByText('Hoverable')).toBeInTheDocument()
 
-		fireEvent.mouseLeave(title)
+		fireEvent.pointerLeave(title, { pointerType: 'mouse' })
 
 		act(() => {
 			vi.advanceTimersByTime(1000)
 		})
 
 		expect(screen.queryByText('Hoverable')).not.toBeInTheDocument()
+	})
+
+	it('keeps the countdown running after a tap on the toast', () => {
+		let api: ReturnType<typeof useToast> | null = null
+
+		renderUI(
+			<ToastProvider duration={1000}>
+				<Trigger onReady={(context) => (api = context)} />
+				<Toast />
+			</ToastProvider>,
+		)
+
+		act(() => {
+			api?.toast({ title: 'Tapped' })
+		})
+
+		const title = screen.getByText('Tapped')
+
+		// A phone tap sends a touch pointerenter, then compatibility mouse events.
+		// No leave comes until a later tap lands elsewhere, so a tap must not hold
+		// the timer.
+		fireEvent.pointerEnter(title, { pointerType: 'touch' })
+
+		fireEvent.mouseEnter(title)
+
+		fireEvent.click(title)
+
+		act(() => {
+			vi.advanceTimersByTime(2000)
+		})
+
+		expect(screen.queryByText('Tapped')).not.toBeInTheDocument()
 	})
 
 	it('pauses the timer while focus is inside and resumes on focus leave', () => {
@@ -442,9 +474,9 @@ describe('Toast: useToast behavior', () => {
 		})
 
 		// The pointer parks on the toast (pausing auto-dismiss) and never leaves;
-		// closing it removes the node, so its mouseleave never fires. The unmount
+		// closing it removes the node, so its pointerleave never fires. The unmount
 		// must release the hold — a stuck pause would freeze every later toast.
-		fireEvent.mouseEnter(screen.getByText('First'))
+		fireEvent.pointerEnter(screen.getByText('First'), { pointerType: 'mouse' })
 
 		act(() => {
 			fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
@@ -525,7 +557,7 @@ describe('Toast: useToast behavior', () => {
 		const title = screen.getByText('Held')
 
 		// Both sources hold: the pointer rests on the toast, focus tabs into it.
-		fireEvent.mouseEnter(title)
+		fireEvent.pointerEnter(title, { pointerType: 'mouse' })
 
 		fireEvent.focusIn(title)
 
@@ -539,7 +571,7 @@ describe('Toast: useToast behavior', () => {
 
 		expect(screen.getByText('Held')).toBeInTheDocument()
 
-		fireEvent.mouseLeave(title)
+		fireEvent.pointerLeave(title, { pointerType: 'mouse' })
 
 		act(() => {
 			vi.advanceTimersByTime(1000)
@@ -618,9 +650,9 @@ describe('Toast: useToast behavior', () => {
 
 			const item = present(animated.parentElement, 'the toast item')
 
-			expect(item.style.paddingTop).toBe('8px')
+			expect(item).toHaveClass('pt-(--toast-gap)')
 
-			expect(item.style.paddingBottom).toBe('')
+			expect(item).not.toHaveClass('pb-(--toast-gap)')
 
 			expect(item.parentElement).toHaveClass('flex-col-reverse')
 		},
@@ -904,6 +936,32 @@ describe('Toast: useToast behavior', () => {
 			expect(onSecond).not.toHaveBeenCalled()
 		})
 
+		it('times out a toast whose id is an empty string', () => {
+			let api: ReturnType<typeof useToast> | undefined
+
+			const onDismiss = vi.fn()
+
+			renderUI(
+				<ToastProvider>
+					<Trigger onReady={(c) => (api = c)} />
+					<Toast />
+				</ToastProvider>,
+			)
+
+			act(() => {
+				api?.toast({ id: '', title: 'Blank', duration: 100, onDismiss })
+			})
+
+			act(() => {
+				vi.advanceTimersByTime(100)
+			})
+
+			// An empty id is a valid id. The queue must not read it as the end of the queue.
+			expect(onDismiss).toHaveBeenCalledExactlyOnceWith('timeout')
+
+			expect(screen.queryByText('Blank')).not.toBeInTheDocument()
+		})
+
 		it('times each toast out on its own duration, not the newest', () => {
 			let api: ReturnType<typeof useToast> | undefined
 
@@ -972,5 +1030,299 @@ describe('Toast: useToast behavior', () => {
 
 			expect(onSecond).toHaveBeenCalledExactlyOnceWith('dismissed')
 		})
+
+		// The viewport loads late or not at all, so no exit animation runs. The queue
+		// must not wait for an exit callback that never comes.
+		it('names each timeout in turn with no viewport mounted', () => {
+			let api: ReturnType<typeof useToast> | undefined
+
+			const onA = vi.fn()
+
+			const onB = vi.fn()
+
+			const onC = vi.fn()
+
+			renderUI(
+				<ToastProvider>
+					<Trigger onReady={(c) => (api = c)} />
+				</ToastProvider>,
+			)
+
+			act(() => {
+				api?.toast({ title: 'A', duration: 100, onDismiss: onA })
+				api?.toast({ title: 'B', duration: 200, onDismiss: onB })
+				api?.toast({ title: 'C', duration: 300, onDismiss: onC })
+			})
+
+			act(() => {
+				vi.advanceTimersByTime(5000)
+			})
+
+			for (const onDismiss of [onA, onB, onC]) {
+				expect(onDismiss).toHaveBeenCalledExactlyOnceWith('timeout')
+			}
+		})
+
+		it('staggers the timeouts with the viewport mounted', () => {
+			let api: ReturnType<typeof useToast> | undefined
+
+			const onA = vi.fn()
+
+			const onB = vi.fn()
+
+			renderUI(
+				<ToastProvider>
+					<Trigger onReady={(c) => (api = c)} />
+					<Toast />
+				</ToastProvider>,
+			)
+
+			act(() => {
+				api?.toast({ title: 'A', duration: 100, onDismiss: onA })
+				api?.toast({ title: 'B', duration: 100, onDismiss: onB })
+			})
+
+			act(() => {
+				vi.advanceTimersByTime(100)
+			})
+
+			// The stagger holds: `B` waits for the exit of `A`.
+			expect(onA).toHaveBeenCalledExactlyOnceWith('timeout')
+
+			expect(onB).not.toHaveBeenCalled()
+
+			act(() => {
+				vi.advanceTimersByTime(5000)
+			})
+
+			expect(onB).toHaveBeenCalledExactlyOnceWith('timeout')
+
+			expect(screen.queryByText('B')).not.toBeInTheDocument()
+		})
+	})
+
+	describe('focus on close', () => {
+		it('moves focus to the next toast when a focused toast closes', () => {
+			let api: ReturnType<typeof useToast> | null = null
+
+			renderUI(
+				<ToastProvider>
+					<Trigger onReady={(context) => (api = context)} />
+					<Toast />
+				</ToastProvider>,
+			)
+
+			act(() => {
+				api?.toast({ title: 'First', persist: true })
+
+				api?.toast({ title: 'Second', persist: true })
+			})
+
+			const close = within(screen.getByText('Second').closest('li') as HTMLElement).getByRole(
+				'button',
+				{ name: 'Dismiss' },
+			)
+
+			act(() => close.focus())
+
+			act(() => {
+				fireEvent.click(close)
+			})
+
+			const first = screen.getByText('First').closest('li') as HTMLElement
+
+			expect(first).toContainElement(document.activeElement as HTMLElement)
+		})
+
+		it('returns focus to the page control when the last focused toast closes', () => {
+			let api: ReturnType<typeof useToast> | null = null
+
+			renderUI(
+				<ToastProvider>
+					<Trigger onReady={(context) => (api = context)} />
+					<button type="button">Save</button>
+					<Toast />
+				</ToastProvider>,
+			)
+
+			const save = screen.getByRole('button', { name: 'Save' })
+
+			act(() => save.focus())
+
+			act(() => {
+				api?.toast({ title: 'Saved', persist: true })
+			})
+
+			const close = screen.getByRole('button', { name: 'Dismiss' })
+
+			act(() => close.focus())
+
+			act(() => {
+				fireEvent.click(close)
+			})
+
+			act(() => {
+				vi.advanceTimersByTime(100)
+			})
+
+			expect(screen.queryByText('Saved')).not.toBeInTheDocument()
+
+			expect(save).toHaveFocus()
+		})
+
+		it('does not move focus when a toast times out while focus is elsewhere', () => {
+			let api: ReturnType<typeof useToast> | null = null
+
+			renderUI(
+				<ToastProvider duration={1000}>
+					<Trigger onReady={(context) => (api = context)} />
+					<button type="button">Save</button>
+					<Toast />
+				</ToastProvider>,
+			)
+
+			act(() => {
+				api?.toast({ title: 'First', persist: true })
+
+				api?.toast({ title: 'Second' })
+			})
+
+			const save = screen.getByRole('button', { name: 'Save' })
+
+			act(() => save.focus())
+
+			act(() => {
+				vi.advanceTimersByTime(2000)
+			})
+
+			expect(screen.queryByText('Second')).not.toBeInTheDocument()
+
+			expect(save).toHaveFocus()
+		})
+	})
+})
+
+describe('Toast: keyboard reach', () => {
+	function Fire({ titles }: { titles: string[] }) {
+		const { toast } = useToast()
+
+		const fired = useRef(false)
+
+		useEffect(() => {
+			if (fired.current) return
+
+			fired.current = true
+
+			for (const title of titles) {
+				toast({ title, actions: <button type="button">Undo {title}</button> })
+			}
+		}, [toast, titles])
+
+		return null
+	}
+
+	it('makes the viewport a labelled region landmark while it holds a toast', () => {
+		renderUI(
+			<ToastProvider>
+				<Fire titles={['First']} />
+				<Toast />
+			</ToastProvider>,
+		)
+
+		expect(screen.getByRole('region', { name: 'Notifications' })).toHaveAttribute(
+			'data-slot',
+			'toast-viewport',
+		)
+	})
+
+	it('gives an empty viewport no landmark', () => {
+		renderUI(
+			<ToastProvider>
+				<Toast />
+			</ToastProvider>,
+		)
+
+		expect(screen.queryByRole('region')).not.toBeInTheDocument()
+	})
+
+	it('moves focus into the newest toast on F8', () => {
+		renderUI(
+			<ToastProvider>
+				<button type="button">Outside</button>
+				<Fire titles={['First', 'Second']} />
+				<Toast />
+			</ToastProvider>,
+		)
+
+		screen.getByRole('button', { name: 'Outside' }).focus()
+
+		fireEvent.keyDown(document.body, { key: 'F8' })
+
+		expect(screen.getByRole('button', { name: 'Undo Second' })).toHaveFocus()
+	})
+
+	it('returns focus to the control that F8 left when the last toast closes', () => {
+		renderUI(
+			<ToastProvider>
+				<button type="button">Outside</button>
+				<Fire titles={['First']} />
+				<Toast />
+			</ToastProvider>,
+		)
+
+		const outside = screen.getByRole('button', { name: 'Outside' })
+
+		outside.focus()
+
+		fireEvent.keyDown(document.body, { key: 'F8' })
+
+		expect(screen.getByRole('button', { name: 'Undo First' })).toHaveFocus()
+
+		fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
+
+		expect(outside).toHaveFocus()
+	})
+
+	it('does nothing on F8 when the stack is empty', () => {
+		renderUI(
+			<ToastProvider>
+				<button type="button">Outside</button>
+				<Toast />
+			</ToastProvider>,
+		)
+
+		const outside = screen.getByRole('button', { name: 'Outside' })
+
+		outside.focus()
+
+		const event = new KeyboardEvent('keydown', { key: 'F8', bubbles: true, cancelable: true })
+
+		document.body.dispatchEvent(event)
+
+		expect(outside).toHaveFocus()
+
+		expect(event.defaultPrevented).toBe(false)
+	})
+
+	it('ignores an F8 that a handler before it already took', () => {
+		renderUI(
+			<ToastProvider>
+				<button type="button">Outside</button>
+				<Fire titles={['First']} />
+				<Toast />
+			</ToastProvider>,
+		)
+
+		const outside = screen.getByRole('button', { name: 'Outside' })
+
+		outside.focus()
+
+		const event = new KeyboardEvent('keydown', { key: 'F8', bubbles: true, cancelable: true })
+
+		event.preventDefault()
+
+		outside.dispatchEvent(event)
+
+		expect(outside).toHaveFocus()
 	})
 })

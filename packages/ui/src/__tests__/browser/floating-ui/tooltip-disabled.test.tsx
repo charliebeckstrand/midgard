@@ -153,4 +153,32 @@ describe('Tooltip disabled gating (real browser)', () => {
 
 		await waitFor(() => expect(screen.getByText('Show password')).toBeInTheDocument())
 	})
+
+	it('closes a held tooltip while its trigger is disabled, and holds it again once enabled', async () => {
+		// `open` holds the tooltip, but the `:disabled` trigger outranks the hold.
+		function Harness({ disabled }: { disabled: boolean }) {
+			return (
+				<Tooltip open>
+					<TooltipTrigger>
+						<button type="button" disabled={disabled}>
+							Toggle
+						</button>
+					</TooltipTrigger>
+					<TooltipContent>Show password</TooltipContent>
+				</Tooltip>
+			)
+		}
+
+		const { rerender } = renderUI(<Harness disabled={false} />)
+
+		await waitFor(() => expect(screen.getByText('Show password')).toBeInTheDocument())
+
+		rerender(<Harness disabled />)
+
+		await waitFor(() => expect(screen.queryByText('Show password')).not.toBeInTheDocument())
+
+		rerender(<Harness disabled={false} />)
+
+		await waitFor(() => expect(screen.getByText('Show password')).toBeInTheDocument())
+	})
 })

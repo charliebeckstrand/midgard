@@ -1,12 +1,14 @@
 import type { ReactElement } from 'react'
 import { afterAll, beforeAll, describe, expect, it, onTestFinished } from 'vitest'
-import { cdp, page } from 'vitest/browser'
+import { cdp, page, userEvent } from 'vitest/browser'
 import { ProgressBar } from '../../components/progress'
 import { Segment, SegmentItem } from '../../components/segment'
 import { RangeSlider, Slider } from '../../components/slider'
 import { Switch } from '../../components/switch'
+import { Table, TableBody, TableCell, TableRow } from '../../components/table'
 import { Tab, TabList, Tabs } from '../../components/tabs'
-import { frames, present, renderUI } from '../helpers'
+import { Tree, TreeItem } from '../../components/tree'
+import { frames, present, renderUI, waitFor } from '../helpers'
 
 /**
  * Under forced colors, each control still shows its state. The two renders of
@@ -38,6 +40,55 @@ async function pixels(ui: ReactElement): Promise<string> {
 	let hash = 0
 	for (const byte of data) hash = (hash * 31 + byte) | 0
 	return `${image.width}x${image.height}:${hash}`
+}
+
+/**
+ * The tab stops that show focus with the `focus.inset` ring, focused from the
+ * keyboard. The ring is a box-shadow, which forced colors remove, so the
+ * outline is what the cases read.
+ */
+const insetStops = {
+	'table scroll container': {
+		ui: (
+			<div style={{ width: 300 }}>
+				<Table tableProps={{ 'aria-label': 'Activity' }}>
+					<TableBody>
+						<TableRow>
+							<TableCell>
+								<div style={{ width: 600 }}>wide cell</div>
+							</TableCell>
+						</TableRow>
+					</TableBody>
+				</Table>
+			</div>
+		),
+		selector: '[data-slot="table"]',
+	},
+	'tree row': {
+		ui: (
+			<Tree aria-label="Files">
+				<TreeItem label="a.ts" />
+			</Tree>
+		),
+		selector: '[role="treeitem"]',
+	},
+} as const
+
+/** The computed outline of a stop after a keyboard Tab moves focus to it. */
+async function focusOutline(
+	name: keyof typeof insetStops,
+): Promise<{ style: string; width: string }> {
+	const { ui, selector } = insetStops[name]
+	const { container } = renderUI(ui)
+	const stop = await waitFor(() => {
+		const node = present(container.querySelector<HTMLElement>(selector), name)
+		expect(node.tabIndex).toBe(0)
+		return node
+	})
+	await userEvent.tab()
+	expect(document.activeElement).toBe(stop)
+	const style = getComputedStyle(stop)
+	return { style: style.outlineStyle, width: style.outlineWidth }
 }
 
 describe('controls show their state under forced colors (real browser)', () => {
@@ -89,6 +140,26 @@ describe('controls show their state under forced colors (real browser)', () => {
 		expect(style.backgroundColor === canvas && style.borderTopWidth === '0px').toBe(false)
 	})
 
+	// The focus marker of an underline tab is a background on `::after`, which
+	// forced colors remove, and the tab sets `outline-none`. The focused tab must
+	// still draw an outline.
+	it('tabs: a keyboard-focused tab draws an outline', async () => {
+		const { container } = renderUI(
+			<Tabs value="a" onValueChange={() => {}}>
+				<TabList aria-label="Sections">
+					<Tab value="a">Alpha</Tab>
+					<Tab value="b">Bravo</Tab>
+				</TabList>
+			</Tabs>,
+		)
+		await userEvent.keyboard('{Tab}')
+		const tab = present(container.querySelector('[data-slot=tab][aria-selected=true]'), 'tab')
+		expect(document.activeElement).toBe(tab)
+		const style = getComputedStyle(tab)
+		expect(style.outlineStyle).not.toBe('none')
+		expect(style.outlineWidth).not.toBe('0px')
+	})
+
 	// The active indicator marks the current item of a segment, a sidebar, a nav,
 	// pagination, a stepper and a chat list. One case per host is not needed:
 	// all of them render the one primitive.
@@ -102,6 +173,14 @@ describe('controls show their state under forced colors (real browser)', () => {
 		const indicator = present(container.querySelector('[data-slot=active-indicator]'), 'indicator')
 		expect(getComputedStyle(indicator).outlineStyle).not.toBe('none')
 	})
+
+	for (const name of Object.keys(insetStops) as (keyof typeof insetStops)[]) {
+		it(`${name}: keyboard focus draws an outline`, async () => {
+			const outline = await focusOutline(name)
+			expect(outline.style).not.toBe('none')
+			expect(outline.width).not.toBe('0px')
+		})
+	}
 
 	it('slider: 10 and 90 paint differently', async () => {
 		const low = await pixels(<Slider aria-label="Volume" value={10} />)
@@ -137,4 +216,67 @@ describe('controls show their state under forced colors (real browser)', () => {
 		expect(bar[1]).not.toBe(bar[0])
 		expect(slider[1]).not.toBe(slider[0])
 	})
+
+	it('inset focus: without forced colors, keyboard focus draws no outline', async () => {
+		onTestFinished(async () => {
+			await cdp().send('Emulation.setEmulatedMedia', {
+				features: [{ name: 'forced-colors', value: 'active' }],
+			})
+		})
+		await cdp().send('Emulation.setEmulatedMedia', {
+			features: [{ name: 'forced-colors', value: '' }],
+		})
+		for (const name of Object.keys(insetStops) as (keyof typeof insetStops)[]) {
+			expect((await focusOutline(name)).style).toBe('none')
+		}
+	})
 })
+
+/**
+ * The Tree check box and the current row show their state with a fill, a white
+ * mark, and a text color. Forced colors remove the fill and map the text to
+ * `CanvasText`, and a white mark is lost on a light palette. Each case runs on
+ * the light and the dark forced palette.
+ */
+describe.each(['light', 'dark'])(
+	'tree rows show their state on a %s forced palette (real browser)',
+	(scheme) => {
+		beforeAll(() =>
+			cdp().send('Emulation.setEmulatedMedia', {
+				features: [
+					{ name: 'forced-colors', value: 'active' },
+					{ name: 'prefers-color-scheme', value: scheme },
+				],
+			}),
+		)
+		afterAll(() =>
+			cdp().send('Emulation.setEmulatedMedia', {
+				features: [
+					{ name: 'forced-colors', value: '' },
+					{ name: 'prefers-color-scheme', value: '' },
+				],
+			}),
+		)
+
+		const row = (props: { checked?: boolean | 'mixed'; current?: boolean }) => (
+			<Tree aria-label="Files">
+				<TreeItem label="a.ts" onCheckedChange={() => {}} {...props} />
+			</Tree>
+		)
+
+		it('check box: checked, mixed, and unchecked paint differently', async () => {
+			const off = await pixels(row({ checked: false }))
+			const on = await pixels(row({ checked: true }))
+			const mixed = await pixels(row({ checked: 'mixed' }))
+			expect(on).not.toBe(off)
+			expect(mixed).not.toBe(off)
+			expect(mixed).not.toBe(on)
+		})
+
+		it('current row: paints differently from another row', async () => {
+			const other = await pixels(row({}))
+			const current = await pixels(row({ current: true }))
+			expect(current).not.toBe(other)
+		})
+	},
+)

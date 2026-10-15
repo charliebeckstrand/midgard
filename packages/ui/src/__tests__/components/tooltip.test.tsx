@@ -9,6 +9,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/toolti
 import { TooltipContext } from '../../components/tooltip/context'
 import { tooltipBody } from '../../components/tooltip/tooltip-body-loader'
 import type { TooltipIntent } from '../../components/tooltip/tooltip-intent'
+import { observeReferenceDisabled } from '../../components/tooltip/tooltip-reference-disabled'
 import { useTooltipState } from '../../components/tooltip/use-tooltip-state'
 import { notifyOverlaySignal } from '../../primitives/overlay'
 import {
@@ -481,5 +482,27 @@ describe('Tooltip hydration', () => {
 		await waitFor(() => expect(screen.getByRole('tooltip')).toHaveTextContent('Tip'))
 
 		expect(screen.getByRole('button', { name: 'Trigger' })).toHaveAttribute('aria-describedby')
+	})
+})
+
+describe('observeReferenceDisabled', () => {
+	it('calls onChange when a disabled control replaces a child of the reference', async () => {
+		const reference = attach(document.createElement('span'))
+
+		reference.append(document.createElement('button'))
+
+		const onChange = vi.fn()
+
+		onTestFinished(observeReferenceDisabled(reference, onChange))
+
+		const disabled = document.createElement('button')
+
+		disabled.disabled = true
+
+		reference.replaceChildren(disabled)
+
+		await Promise.resolve()
+
+		expect(onChange).toHaveBeenCalled()
 	})
 })

@@ -58,7 +58,9 @@ export type TooltipProps = {
 	/**
 	 * Hold the tooltip open regardless of pointer, for a trigger that can't take
 	 * hover — an SVG shape a roving keyboard cursor drives, say. Releasing it hands
-	 * control back to hover / focus / click; `disabled` still wins.
+	 * control back to hover / focus / click; `disabled` still wins. A trigger that
+	 * matches `:disabled` also wins: it closes a held tooltip, and the hold shows
+	 * the tooltip again when the trigger turns enabled.
 	 * @defaultValue false
 	 * @remarks `false` does not hold the tooltip closed. It only releases the hold,
 	 * so a hover or a focus can still open the tooltip. Use `disabled` to keep it

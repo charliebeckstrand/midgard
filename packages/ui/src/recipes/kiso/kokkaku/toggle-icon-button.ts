@@ -10,11 +10,8 @@
  */
 
 import { dan } from '../dan'
-import { kasane } from '../kasane'
-
-const { rounded } = kasane
 
 export const toggleIconButton = {
-	base: [rounded.lg, dan.size.button.icon],
+	base: [dan.radius.button, dan.size.button.icon],
 	density: true,
 } as const

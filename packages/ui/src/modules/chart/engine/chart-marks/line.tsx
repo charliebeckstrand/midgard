@@ -105,9 +105,10 @@ type LineBodyOptions = {
 	/** Reveal the marks through motion; off, they are plain SVG. */
 	animated: boolean
 	/**
-	 * Mount the marks at rest: the reader asks for reduced motion. The draw
-	 * (`pathLength`) and the pop (`r`) are no transform, so the reduced-motion
-	 * config of motion does not skip them.
+	 * Mount the marks at rest: the reader asks for reduced motion, or the render
+	 * is on the server or is the hydration render. The draw (`pathLength`), the
+	 * pop (`r`), and the wash fade are no transform, so the reduced-motion config
+	 * of motion does not skip them.
 	 */
 	still: boolean
 }
@@ -167,7 +168,7 @@ const LineSeriesBody = memo(function LineSeriesBody({
 							fillOpacity={AREA_FILL_OPACITY}
 							style={areaStyle}
 							className={areaClass}
-							initial={AREA_HIDDEN}
+							initial={still ? false : AREA_HIDDEN}
 							animate={AREA_SHOWN}
 							exit={AREA_EXIT}
 							transition={AREA_FADE}
@@ -320,7 +321,9 @@ export function AnimatedChartLineMarks({
 							width={plot.width}
 							height={plot.height}
 							style={{ originX: 0 }}
-							initial={{ scaleX: 0 }}
+							// The server renders the wipe open, or the dashed line is clipped away
+							// until the motion features load.
+							initial={still ? false : { scaleX: 0 }}
 							animate={{ scaleX: 1 }}
 							exit={{ scaleX: 0, transition: LINE_UNDRAW }}
 							transition={LINE_DRAW}

@@ -48,7 +48,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `useA11yControl` | Field a11y scaffolding: `useA11yScope` specialized for a labeled control (label/description/error slots). |
 | `useA11yPanel` | Modal-panel labeling scope: `useA11yScope` for dialog roots, setting role + `aria-modal` and title/desc ids. |
 | `useA11yDisclosure` | Non-modal trigger↔panel pairing: reciprocal `aria-controls`/`aria-labelledby` (+ optional `aria-expanded`). |
-| `useA11yRoving` | Arrow, Home, and End roving over container items, in focus or virtual mode, with one Tab stop. Horizontal arrows swap in RTL. A key skips an item under an `inert` ancestor. |
+| `useA11yRoving` | Arrow, Home, and End roving over container items, in focus or virtual mode, with one Tab stop. Horizontal arrows swap in RTL. A key skips an item under an `inert` ancestor. Optional type-ahead matches the typed text to the start of the name of an item. The name is its `aria-label`, else its `aria-labelledby` text, else its own text. |
 | `useA11yAutoFocus` | Moves focus to a node from a callback ref when `when` becomes true. The focus scrolls nothing. |
 | `useA11yHasTabbable` | Whether a node holds a tab-order descendant, measured again when its subtree changes. |
 | `useA11yLiveRegion` | Props for a consumer-filled live region: status/alert landmark with matching `aria-live`/`aria-atomic`. |

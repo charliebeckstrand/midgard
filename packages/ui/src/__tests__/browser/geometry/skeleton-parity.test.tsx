@@ -162,6 +162,39 @@ describe('skeleton parity (real browser)', () => {
 		},
 	)
 
+	// The toggle is an icon-only Button, so it takes the inline box and the radius of a Button at
+	// each step, and its skeleton takes the same radius.
+	it.each(densitySteps)('ToggleIconButton has the radius and box kind of a %s Button', (size) => {
+		const radius = (el: Element | null | undefined, what: string) =>
+			getComputedStyle(present(el, what)).borderRadius
+
+		const button = renderUI(
+			<Button size={size} aria-label="Pin">
+				<svg data-slot="icon" />
+			</Button>,
+		).container.querySelector('button')
+
+		const toggle = present(
+			renderUI(
+				<ToggleIconButton size={size} aria-label="Pin" icon={<svg data-slot="icon" />} />,
+			).container.querySelector('button'),
+			'toggle',
+		)
+
+		expect(getComputedStyle(toggle).display).toBe('inline-flex')
+
+		expect(radius(toggle, 'toggle')).toBe(radius(button, 'button'))
+
+		expect(
+			radius(
+				renderUI(<ToggleIconButtonSkeleton size={size} />).container.querySelector(
+					'[data-slot="placeholder"]',
+				),
+				'skeleton',
+			),
+		).toBe(radius(button, 'button'))
+	})
+
 	// Each pair renders the real component and its skeleton at one step. The box of the real
 	// component is its `data-slot` element; the skeleton is its placeholder.
 	const pairs: [
@@ -363,6 +396,28 @@ describe('skeleton parity (real browser)', () => {
 			getComputedStyle(present(document.querySelector('textarea'), 'textarea')).borderRadius,
 		)
 	})
+
+	it.each(densitySteps.flatMap((size) => [1, 2].map((rows) => [size, rows] as const)))(
+		'TextareaSkeleton has the height of a %s textarea at %i rows',
+		(size, rows) => {
+			const real = box(
+				renderUI(
+					<Box density={size}>
+						<Textarea aria-label="Notes" rows={rows} />
+					</Box>,
+				).container.querySelector('textarea'),
+				'textarea',
+			)
+
+			const skeleton = renderUI(
+				<Box density={size}>
+					<TextareaSkeleton rows={rows} />
+				</Box>,
+			).container.querySelector('[data-slot="placeholder"]')
+
+			expect(box(skeleton, 'skeleton')).toStrictEqual(real)
+		},
+	)
 
 	it.each([
 		['horizontal', 'sm'],
@@ -880,8 +935,8 @@ describe('skeleton parity (real browser)', () => {
 		)
 	})
 
-	// The calendar has no xs step, so in an xs scope it opens an sm scope. The skeleton with no
-	// size takes the xs scope, so each of its rows must give the sm height at xs.
+	// The calendar and the skeleton with no size both take the xs scope, so each row of the
+	// skeleton must give the height of the calendar at xs.
 	it('CalendarSkeleton with no size has the box of a calendar in an xs scope', () => {
 		const { container } = renderUI(
 			<Box density="xs">
