@@ -77,36 +77,30 @@ export function usePasswordStrength({
 		[rules, value],
 	)
 
-	// Keyed on the joined ids, not `results`: results change identity on every
-	// keystroke, and a fresh `passed` array per keystroke re-fires
-	// onStrengthChange even when the strength is unchanged.
-	const passedKey = useMemo(
-		() =>
-			results
-				.filter((result) => result.passed)
-				.map((result) => result.rule.id)
-				.join('\u0000'),
+	const passedIds = useMemo(
+		() => results.filter((result) => result.passed).map((result) => result.rule.id),
 		[results],
 	)
 
-	const passedIds = useMemo(() => (passedKey === '' ? [] : passedKey.split('\u0000')), [passedKey])
-
 	const passedCount = passedIds.length
+
+	// The re-fire guard only. `passedIds` changes identity on every keystroke,
+	// so the effect keys on the joined ids and the count instead. The count
+	// tells apart no passing rule and one passing rule with the id `''`.
+	const passedKey = passedIds.join('\u0000')
 
 	const level: StrengthLevel = value.length === 0 ? 'empty' : deriveLevel(passedCount, rules.length)
 
-	const reportStrength = useEffectEvent((strength: PasswordStrengthChange) =>
-		onStrengthChange?.(strength),
+	// The event reads `passedIds` from the latest render. The effect gives it
+	// `passedKey` only so that the key stays a used dependency.
+	const reportStrength = useEffectEvent(
+		(strength: Omit<PasswordStrengthChange, 'passed'>, _passedKey: string) =>
+			onStrengthChange?.({ ...strength, passed: passedIds }),
 	)
 
 	useEffect(() => {
-		reportStrength({
-			score: passedCount,
-			max: rules.length,
-			level,
-			passed: passedIds,
-		})
-	}, [passedCount, rules.length, level, passedIds])
+		reportStrength({ score: passedCount, max: rules.length, level }, passedKey)
+	}, [passedKey, passedCount, rules.length, level])
 
 	return { results, level, passedCount }
 }
