@@ -204,10 +204,10 @@ export const dataComplexCases: readonly Case[] = [
 			</Filters>
 		),
 		skeleton: [
-			{ element: <FiltersSkeleton />, absentSlot: 'filter-field', placeholders: 3 },
+			{ element: <FiltersSkeleton />, absentSlot: 'field', placeholders: 3 },
 			{
 				element: <FiltersSkeleton layout="rail" fields={2} />,
-				absentSlot: 'filter-field',
+				absentSlot: 'field',
 				placeholders: 2,
 			},
 		],

@@ -100,17 +100,7 @@ type Waiver = { order?: number; anchor?: number; ref?: number; note: string }
  * violation in an already-waived file, and the pin test fails the moment a
  * count moves in either direction.
  */
-const WAIVERS = new Map<string, Waiver>([
-	['components/fieldset/description.tsx', { anchor: 1, note: 'lead S1' }],
-	['components/fieldset/field.tsx', { anchor: 1, note: 'lead S1' }],
-	['components/fieldset/label.tsx', { anchor: 1, note: 'lead S1' }],
-	['components/fieldset/message.tsx', { anchor: 2, note: 'lead S1' }],
-	['primitives/control/control-frame.tsx', { anchor: 1, note: 'lead S1' }],
-	['primitives/toggle/toggle-field.tsx', { anchor: 1, note: 'lead S1' }],
-	['primitives/toggle/toggle-group.tsx', { anchor: 1, note: 'lead S1' }],
-	// `recipes/kiso/narabi/field.ts` reads the anchor.
-	['structure/flex/flex.tsx', { anchor: 1, note: 'lead S1, joined with the structure scan' }],
-])
+const WAIVERS = new Map<string, Waiver>([])
 
 /** One JSX attribute written before the consumer spread. */
 type Attribute = { name: string; value?: string }

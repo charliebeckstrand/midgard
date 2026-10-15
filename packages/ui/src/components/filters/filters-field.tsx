@@ -77,11 +77,7 @@ export function FiltersField<V = unknown>({ name, children, className }: Filters
 			onValueChange: (next) => setValue(name, next),
 		}
 
-		return (
-			<Field data-slot="filter-field" className={cn(width, className)}>
-				{children(renderProps)}
-			</Field>
-		)
+		return <Field className={cn(width, className)}>{children(renderProps)}</Field>
 	}
 
 	// The first non-decoration child is the control. An object, not a `let`:
@@ -98,9 +94,5 @@ export function FiltersField<V = unknown>({ name, children, className }: Filters
 		return cloneElement(child as ReactElement<{ name?: string }>, { name })
 	})
 
-	return (
-		<Field data-slot="filter-field" className={cn(width, className)}>
-			{processed}
-		</Field>
-	)
+	return <Field className={cn(width, className)}>{processed}</Field>
 }
