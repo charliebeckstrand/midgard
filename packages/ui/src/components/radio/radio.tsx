@@ -74,14 +74,29 @@ export function Radio({
 	// In an uncontrolled group, React reads the old radio before the browser
 	// checks it again. A later click on that checked radio then fires one extra
 	// `onChange`.
-	const handleChange: ChangeEventHandler<HTMLInputElement> | undefined =
-		resolvedReadOnly || groupReadOnly
-			? (event) => {
-					event.currentTarget.checked = false
+	//
+	// A click that an `onClick` cancels gets the same undo. React reads the check
+	// before the browser restores the group, so it sends a change that does not
+	// occur. The `onClick` handlers run before this handler, so the click event
+	// shows the cancel. The wrapper attaches only while the radio is read-only or
+	// has a handler. React then keeps its warning for a `checked` radio with no
+	// `onChange`.
+	const readOnlyRadio = resolvedReadOnly || groupReadOnly
 
-					event.preventDefault()
+	const handleChange: ChangeEventHandler<HTMLInputElement> | undefined =
+		readOnlyRadio || onChange
+			? (event) => {
+					if (readOnlyRadio || event.nativeEvent.defaultPrevented) {
+						event.currentTarget.checked = false
+
+						event.preventDefault()
+
+						return
+					}
+
+					onChange?.(event)
 				}
-			: onChange
+			: undefined
 
 	return (
 		<label
