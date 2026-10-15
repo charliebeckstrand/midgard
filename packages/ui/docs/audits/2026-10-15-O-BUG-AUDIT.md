@@ -35,8 +35,8 @@ The digest held two sources. The project record `2026-10-02-component-bug-sweep.
 
 | Row | File | Symbol | Verdict | Severity | Reach | Group | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| R1 | `components/odometer/odometer.tsx` | `Odometer` (consumer `aria-live`) | CONFIRMED | low | none | G1 | ◯ OPEN |
-| R2 | `components/odometer/use-odometer-animated-value.ts` | `useOdometerAnimatedValue` (`duration` change mid-tween) | CONFIRMED | low | shipped | — | ◯ OPEN |
+| R1 | `components/odometer/odometer.tsx` | `Odometer` (consumer `aria-live`) | CONFIRMED | low | none | G1 | ✅ RESOLVED ([#2461](https://github.com/charliebeckstrand/midgard/pull/2461)) |
+| R2 | `components/odometer/use-odometer-animated-value.ts` | `useOdometerAnimatedValue` (`duration` change mid-tween) | CONFIRMED | low | shipped | — | ✅ RESOLVED ([#2462](https://github.com/charliebeckstrand/midgard/pull/2462)) |
 
 All paths are under `packages/ui/src/`.
 
@@ -85,3 +85,4 @@ Answer (2026-10-15, overturn pass, from code): (a), following HoldButton (`compo
 - (Verifier) L2: `aria-relevant`, `aria-atomic`, and `aria-busy` reach the root and could shape announcements when an ancestor is a live region.
 - (Verifier) L3: other readouts that promise "never a live region" through a list of dropped props may have the same gap. A probe across components.
 - (Verifier) L4: the Toast `duration` prop (`components/toast/types.ts:87`, `toast-provider.tsx:23`) is a dismiss timer; its response to a change in the middle of a run was not read.
+- (Resolver, S2) A change to `duration={0}` in the middle of a tween no longer snaps; it applies to the next target, as settled Q2 (a) says. A reader may expect `0` to act like reduced motion.
