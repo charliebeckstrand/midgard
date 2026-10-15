@@ -162,6 +162,39 @@ describe('skeleton parity (real browser)', () => {
 		},
 	)
 
+	// The toggle is an icon-only Button, so it takes the inline box and the radius of a Button at
+	// each step, and its skeleton takes the same radius.
+	it.each(densitySteps)('ToggleIconButton has the radius and box kind of a %s Button', (size) => {
+		const radius = (el: Element | null | undefined, what: string) =>
+			getComputedStyle(present(el, what)).borderRadius
+
+		const button = renderUI(
+			<Button size={size} aria-label="Pin">
+				<svg data-slot="icon" />
+			</Button>,
+		).container.querySelector('button')
+
+		const toggle = present(
+			renderUI(
+				<ToggleIconButton size={size} aria-label="Pin" icon={<svg data-slot="icon" />} />,
+			).container.querySelector('button'),
+			'toggle',
+		)
+
+		expect(getComputedStyle(toggle).display).toBe('inline-flex')
+
+		expect(radius(toggle, 'toggle')).toBe(radius(button, 'button'))
+
+		expect(
+			radius(
+				renderUI(<ToggleIconButtonSkeleton size={size} />).container.querySelector(
+					'[data-slot="placeholder"]',
+				),
+				'skeleton',
+			),
+		).toBe(radius(button, 'button'))
+	})
+
 	// Each pair renders the real component and its skeleton at one step. The box of the real
 	// component is its `data-slot` element; the skeleton is its placeholder.
 	const pairs: [

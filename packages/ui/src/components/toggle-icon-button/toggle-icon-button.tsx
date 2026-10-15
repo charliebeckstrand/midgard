@@ -1,9 +1,8 @@
 'use client'
 
 import type { ComponentProps, ReactElement } from 'react'
-import { cn, composeEventHandlers } from '../../core'
+import { composeEventHandlers } from '../../core'
 import { useControllableFlag } from '../../hooks/use-controllable'
-import { k } from '../../recipes/kata/toggle-icon-button'
 import type { AccessibleName } from '../../types'
 import { Button, type ButtonVariants } from '../button'
 import { Icon } from '../icon'
@@ -94,7 +93,7 @@ export function ToggleIconButton({
 			size={size}
 			onClick={handleClick}
 			aria-pressed={pressed}
-			className={cn(k.base, className)}
+			className={className}
 			prefix={
 				animate ? (
 					<ToggleIconButtonIcons icon={icon} pressedIcon={pressedIcon} pressed={pressed} />
