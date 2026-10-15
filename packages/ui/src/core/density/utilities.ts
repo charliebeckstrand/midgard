@@ -237,9 +237,16 @@ function lengthSum(values: ByStep<string>): string {
  *
  * - When each browser of the floor ships `if()`, this function can write
  *   `if(style(…))`. It can then take keywords and values that are not finite.
+ *   Chrome 137 ships `if()`, and Chrome 142 adds the range syntax in
+ *   `style()`. Firefox and Safari do not ship it.
  * - A container style query reads the nearest ancestor container, not the
  *   element. So it can give a variant for a descendant or a pseudo-element,
- *   but not for a scope element itself. It does not replace the weights.
+ *   but not for a scope element itself. It does not replace the weights. A
+ *   style query on a custom property needs Chrome 111, Firefox 151, and
+ *   Safari 18, so the floor does not have it. Safari does not let the root
+ *   element be a container.
+ *
+ * The versions come from MDN browser-compat-data 8.1.5 (October 2026).
  * - `@scope` with proximity gives the nearest scope for each rule. But each
  *   rule needs its own `@scope` block, which Tailwind does not write from a
  *   variant. The weights already give the nearest scope for each stepped value.
