@@ -42,7 +42,7 @@ The digest held the P entries of the project record `2026-10-02-component-bug-sw
 | R3 | `components/pdf-viewer/use-pdf-viewer-highlights.ts` | `usePdfViewerHighlights` (`revealRef`) | CONFIRMED | medium | shipped | — | ✅ RESOLVED ([#2494](https://github.com/charliebeckstrand/midgard/pull/2494)) |
 | R4 | `components/pdf-viewer/use-pdf-viewer-magnifier.ts` | `usePdfViewerMagnifier` (disable edge) | NARROWED | medium | shipped | — | ✅ RESOLVED ([#2490](https://github.com/charliebeckstrand/midgard/pull/2490)) |
 | R5 | `components/pdf-viewer/use-pdf-viewer.ts` | `usePdfViewer` (`thumbsOpen`) | NARROWED | medium | shipped | — | ✅ RESOLVED ([#2480](https://github.com/charliebeckstrand/midgard/pull/2480)) |
-| R6 | `components/pdf-viewer/use-pdf-viewer.ts` | `usePdfViewer` (load report on remount) | CONFIRMED | low | shipped | G1 | ◐ FIXED ([#2495](https://github.com/charliebeckstrand/midgard/pull/2495)) |
+| R6 | `components/pdf-viewer/use-pdf-viewer.ts` | `usePdfViewer` (load report on remount) | CONFIRMED | low | shipped | G1 | ✅ RESOLVED ([#2495](https://github.com/charliebeckstrand/midgard/pull/2495)) |
 | R7 | `components/popover/popover-trigger.tsx` | `PopoverTrigger` (ignore guard drops child handlers) | CONFIRMED | low | none | G3 | ✅ RESOLVED ([#2489](https://github.com/charliebeckstrand/midgard/pull/2489)) |
 | R8 | `components/popover/popover-trigger.tsx` | `PopoverTrigger` (`shouldIgnore` unbounded) | CONFIRMED | low | none | G3 | ✅ RESOLVED ([#2489](https://github.com/charliebeckstrand/midgard/pull/2489)) |
 | R9 | `components/password-confirm/use-password-confirm-field.ts` | `usePasswordConfirmField` (non-string field value) | CONFIRMED | low | none | — | ✅ RESOLVED ([#2492](https://github.com/charliebeckstrand/midgard/pull/2492)) |
