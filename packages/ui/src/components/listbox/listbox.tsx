@@ -7,12 +7,14 @@ import {
 	type KeyboardEvent,
 	type ReactNode,
 	useCallback,
+	useEffect,
 	useId,
 	useMemo,
 	useRef,
 } from 'react'
 import type { ScaleStep } from '../../core/density'
 import { type FloatingPlacement, useFloatingUI, useSelectableValueChange } from '../../hooks'
+import { isTypeaheadKey } from '../../hooks/a11y/use-typeahead'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { useGlass } from '../../providers/glass/context'
 import type { scale } from '../../recipes/kata/listbox'
@@ -179,7 +181,8 @@ function hasListboxValue<T>(value: T | T[] | undefined, multiple: boolean): bool
  * an explicit `value` wins over the bound field. The trigger and the panel
  * take the step of the nearest density scope, and an explicit `size` opens a
  * scope on each. Enter, Space, ArrowDown, or ArrowUp on the closed trigger
- * opens the panel.
+ * opens the panel. A printable key opens it and moves to the first option that
+ * matches.
  */
 export function Listbox<T>({
 	name,
@@ -369,17 +372,56 @@ export function Listbox<T>({
 		onBlur?.(event)
 	}
 
+	// A printable key that opened the menu. The panel takes it after the open,
+	// through its own type-ahead.
+	const pendingTypeaheadRef = useRef<string | null>(null)
+
 	// ArrowDown and ArrowUp open the closed menu (APG select-only combobox), as
-	// on Combobox. Enter and Space open it through the click of the button. The
-	// guard keeps a read-only listbox closed. An open menu holds the focus, so the
-	// key reaches the trigger only while the menu is closed.
+	// on Combobox. Enter and Space open it through the click of the button. A
+	// printable key opens it too, and the panel then moves to the first option
+	// that matches. The guard keeps a read-only listbox closed. An open menu holds
+	// the focus, so the key reaches the trigger only while the menu is closed.
 	const handleTriggerKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
-		if (open || (event.key !== 'ArrowDown' && event.key !== 'ArrowUp')) return
+		if (open || locked) return
+
+		const typeahead = isTypeaheadKey(event)
+
+		if (!typeahead && event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return
 
 		event.preventDefault()
 
+		if (typeahead) pendingTypeaheadRef.current = event.key
+
 		setOpenGuarded(true)
 	}
+
+	// The floating element is state, so the effect below runs again when the
+	// portal mounts the panel, which can come one commit after the open.
+	const floatingElement = context.elements.floating
+
+	// The mount of the panel moves the focus into it. The key then goes to the
+	// focused element of the panel, so its type-ahead takes the key into the same
+	// buffer as the keys that follow. A close drops a key that the panel did not
+	// take.
+	useEffect(() => {
+		const key = pendingTypeaheadRef.current
+
+		if (key === null) return
+
+		if (!open) {
+			pendingTypeaheadRef.current = null
+
+			return
+		}
+
+		const target = document.activeElement
+
+		if (!floatingElement || !target || !floatingElement.contains(target)) return
+
+		pendingTypeaheadRef.current = null
+
+		target.dispatchEvent(new globalThis.KeyboardEvent('keydown', { key, bubbles: true }))
+	}, [open, floatingElement])
 
 	// The trigger button renders the label verbatim (`undefined` skips the placeholder).
 	const label = resolveLabel({ value, displayValue, multiple, capitalize })
