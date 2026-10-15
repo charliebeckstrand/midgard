@@ -265,11 +265,14 @@ export function createPhotonProvider(options: PhotonProviderOptions = {}): Addre
 		const features = await request(params, signal)
 
 		// The geocoder matches loosely, so "97140" can answer with 97141. Only a
-		// code that is the typed code is its position.
+		// code that is the typed code is its position. A geocoder can ignore
+		// `countrycode`, so a code in another country is not the code in the region.
 		return features.find(
 			(feature) =>
 				feature.properties.osm_value === 'postcode' &&
-				compact(feature.properties.name ?? '') === compact(postcode),
+				compact(feature.properties.name ?? '') === compact(postcode) &&
+				(region === undefined ||
+					feature.properties.countrycode?.toUpperCase() === region.toUpperCase()),
 		)
 	}
 
