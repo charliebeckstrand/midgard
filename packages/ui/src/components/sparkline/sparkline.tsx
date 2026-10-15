@@ -76,6 +76,11 @@ export type SparklineProps = AccessibleName & {
 	 * bars grow from the zero line in sequence. Honors `prefers-reduced-motion`
 	 * through {@link ReducedMotion}. Off by default — a static grid of many
 	 * sparklines stays a plain-SVG leaf with no motion runtime.
+	 *
+	 * @remarks The reveal plays on a client mount. A sparkline that the server
+	 * renders arrives at rest, because the server cannot read the preference of
+	 * the reader. The marks are then visible before the script loads, and they
+	 * do not draw again after hydration.
 	 * @defaultValue false
 	 */
 	animate?: boolean
