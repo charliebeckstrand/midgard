@@ -610,4 +610,44 @@ describe('observeReferenceDisabled', () => {
 
 		expect(onChange).toHaveBeenCalled()
 	})
+
+	it('calls onChange when a <fieldset> ancestor added after the subscribe turns disabled', async () => {
+		const container = attach(document.createElement('div'))
+
+		const reference = container.appendChild(document.createElement('button'))
+
+		const onChange = vi.fn()
+
+		onTestFinished(observeReferenceDisabled(reference, onChange))
+
+		const fieldset = container.appendChild(document.createElement('fieldset'))
+
+		fieldset.append(reference)
+
+		await Promise.resolve()
+
+		onChange.mockClear()
+
+		fieldset.disabled = true
+
+		await Promise.resolve()
+
+		expect(onChange).toHaveBeenCalled()
+	})
+
+	it('ignores a disabled change on a <fieldset> that does not contain the reference', async () => {
+		const reference = attach(document.createElement('button'))
+
+		const fieldset = attach(document.createElement('fieldset'))
+
+		const onChange = vi.fn()
+
+		onTestFinished(observeReferenceDisabled(reference, onChange))
+
+		fieldset.disabled = true
+
+		await Promise.resolve()
+
+		expect(onChange).not.toHaveBeenCalled()
+	})
 })

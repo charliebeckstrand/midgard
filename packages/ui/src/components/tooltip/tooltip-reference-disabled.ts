@@ -15,19 +15,20 @@ export function isReferenceDisabled(reference: unknown): boolean {
 }
 
 /**
- * The `<fieldset>` ancestors of `reference`, nearest first. A `disabled` change
- * on any of them changes whether the reference matches `:disabled`.
+ * Whether a mutation record can change whether `reference` matches
+ * `:disabled`. A node added to or removed from `reference` can, and so can a
+ * `disabled` change on `reference`, on a node inside it, or on a `<fieldset>`
+ * that contains it.
  */
-function fieldsetAncestors(reference: Element): Element[] {
-	const fieldsets: Element[] = []
+function affectsReference(reference: Element, record: MutationRecord): boolean {
+	if (record.type === 'childList') return true
 
-	for (let node = reference.parentElement?.closest('fieldset'); node; ) {
-		fieldsets.push(node)
+	const target = record.target
 
-		node = node.parentElement?.closest('fieldset')
-	}
-
-	return fieldsets
+	return (
+		reference.contains(target) ||
+		(target instanceof HTMLFieldSetElement && target.contains(reference))
+	)
 }
 
 /**
@@ -38,17 +39,29 @@ function fieldsetAncestors(reference: Element): Element[] {
  * of these changes can change whether the reference matches `:disabled`, and
  * none of them is a React signal.
  *
+ * The observer watches the `disabled` attribute in all of the root node of
+ * `reference` (the document or a shadow root). It keeps only the records that
+ * can change the reference. Thus it also finds a `<fieldset>` that becomes an
+ * ancestor after the observer starts. A move does not call `onChange`, so a
+ * move into a `<fieldset>` that is already disabled is found only at the next
+ * change.
+ *
  * @returns A function that stops the observer.
  * @internal
  */
 export function observeReferenceDisabled(reference: Element, onChange: () => void): () => void {
-	const observer = new MutationObserver(onChange)
+	const observer = new MutationObserver((records) => {
+		if (records.some((record) => affectsReference(reference, record))) onChange()
+	})
 
-	const watch = { attributes: true, attributeFilter: ['disabled'] }
+	const watch = { attributes: true, attributeFilter: ['disabled'], subtree: true }
 
-	observer.observe(reference, { ...watch, childList: true, subtree: true })
+	observer.observe(reference, { ...watch, childList: true })
 
-	for (const fieldset of fieldsetAncestors(reference)) observer.observe(fieldset, watch)
+	const root = reference.getRootNode()
+
+	// A second `observe` call on the same node replaces the first options.
+	if (root !== reference) observer.observe(root, watch)
 
 	return () => observer.disconnect()
 }
