@@ -111,9 +111,9 @@ function replayIntent(
  * A hover trigger opens on a mouse or pen hover only, so a tap does not open it.
  * Closes on the shared overlay-close signal and stays suppressed while the
  * reference (or a descendant) matches `:disabled`. A hover trigger opens again
- * under a mouse or pen hover once the disabled state clears. Hands the floating root context out as
- * `floatingContext`, which the focus manager of an `interactive`
- * `<TooltipContent>` mounts on.
+ * under a mouse or pen hover once the disabled state clears. Hands the floating
+ * root context out as `floatingContext`, which the focus manager of an
+ * `interactive` `<TooltipContent>` mounts on.
  * @internal
  * @see {@link isReferenceDisabled}
  * @see {@link useFloatingDisclosure}
@@ -138,15 +138,21 @@ export function useTooltipState({
 	// `held` here, shows the tooltip open over it: a programmatic reveal that
 	// skips the pointer, for a tooltip whose trigger can't take hover (an SVG
 	// rule the keyboard drives). A release shows this state again. A disabled
-	// tooltip never holds. The disclosure stays controlled through a hold and a
+	// tooltip never holds, and a `:disabled` trigger releases the hold until it
+	// turns enabled again. The disclosure stays controlled through a hold and a
 	// release, because a controllable that took a value stays controlled.
 	const [requested, setRequested] = useState(false)
+
+	// The `:disabled` state of the trigger, held for the derivation of the open
+	// state. The store below reads the trigger from the disclosure, so it comes
+	// after it, and a render-time adjustment carries its value back here.
+	const [heldDisabled, setHeldDisabled] = useState(false)
 
 	const { open, setOpen, refs, floatingStyles, context, dismiss, role } = useFloatingDisclosure({
 		role: dialog ? 'dialog' : 'tooltip',
 		placement,
 		offset: 8,
-		open: (enabled && held) || requested,
+		open: (enabled && held && !heldDisabled) || requested,
 		onOpenChange: setRequested,
 		gate: (next, gateRefs) =>
 			!next || (enabled && !isReferenceDisabled(gateRefs.reference.current)),
@@ -180,6 +186,10 @@ export function useTooltipState({
 		() => isReferenceDisabled(domReference),
 		() => false,
 	)
+
+	// Adjusted during render: a trigger that turns disabled releases the hold in
+	// the same render.
+	if (heldDisabled !== disabled) setHeldDisabled(disabled)
 
 	// A trigger that turns disabled closes its tooltip.
 	useEffect(() => {

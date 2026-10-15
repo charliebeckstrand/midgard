@@ -106,6 +106,12 @@ describe('TagInput', () => {
 
 		await user.type(getInput(container), 'svelte')
 
+		// The first Tab goes to the Add button and keeps the draft. The second
+		// Tab leaves the field.
+		await user.tab()
+
+		expect(onChange).not.toHaveBeenCalled()
+
 		await user.tab()
 
 		expect(onChange).toHaveBeenCalledWith(['svelte'])

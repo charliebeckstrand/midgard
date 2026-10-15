@@ -1,15 +1,17 @@
 import { createRef } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { CardTitle } from '../../components/card'
 import { HoldButton } from '../../components/hold-button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { TooltipContext } from '../../components/tooltip/context'
 import { type TooltipIntent, useTooltipIntent } from '../../components/tooltip/tooltip-intent'
+import { observeReferenceDisabled } from '../../components/tooltip/tooltip-reference-disabled'
 import { useTooltipState } from '../../components/tooltip/use-tooltip-state'
 import { notifyOverlaySignal } from '../../primitives/overlay'
 import {
 	act,
+	attach,
 	bySlot,
 	fireEvent,
 	getSlot,
@@ -526,5 +528,27 @@ describe('TooltipContent', () => {
 
 		// The portal host writes the scope of the surface.
 		expect(panel.closest('[data-slot="portal"]')).toHaveAttribute('data-density', 'lg')
+	})
+})
+
+describe('observeReferenceDisabled', () => {
+	it('calls onChange when a disabled control replaces a child of the reference', async () => {
+		const reference = attach(document.createElement('span'))
+
+		reference.append(document.createElement('button'))
+
+		const onChange = vi.fn()
+
+		onTestFinished(observeReferenceDisabled(reference, onChange))
+
+		const disabled = document.createElement('button')
+
+		disabled.disabled = true
+
+		reference.replaceChildren(disabled)
+
+		await Promise.resolve()
+
+		expect(onChange).toHaveBeenCalled()
 	})
 })

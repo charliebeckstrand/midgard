@@ -8,7 +8,7 @@ const { textarea } = kokkaku
 const { border } = sen
 
 export const k = bridge.control(control, {
-	base: ['block', 'min-h-10'],
+	base: ['block', textarea.floor],
 	resize: {
 		none: 'resize-none',
 		vertical: 'resize-y',
