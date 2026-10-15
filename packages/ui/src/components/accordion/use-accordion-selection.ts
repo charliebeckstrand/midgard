@@ -95,33 +95,29 @@ export function useAccordionSelection(props: SingleProps | MultipleProps): Accor
 	// A multiple accordion closes each open section on a toggle.
 	const collapsible = isMultiple || (props.collapsible ?? true)
 
-	// The open set of the last report. `useControllable` holds this array and
-	// compares by identity.
-	const reportedRef = useRef<string[] | null>(null)
-
 	// The single-mode `toArray` wrap mints a new array each call; memoization
-	// keeps the context identity stable across controlled renders. When the
-	// owner passes back the value of the last report, the hook gives back the
-	// array of that report. A new array would not be equal to the held array,
-	// and a toggle that changes nothing would then report again.
-	const controlledValue = useMemo(() => {
-		if (props.type === 'multiple') return props.value
+	// keeps the context identity stable across controlled renders.
+	const controlledValue = useMemo(
+		() =>
+			props.type === 'multiple'
+				? props.value
+				: props.value !== undefined
+					? toArray(props.value)
+					: undefined,
+		[props.type, props.value],
+	)
 
-		if (props.value === undefined) return undefined
-
-		const reported = reportedRef.current
-
-		if (reported?.length === 1 && reported[0] === props.value) return reported
-
-		return toArray(props.value)
-	}, [props.type, props.value])
+	// Set while a toggle that changes nothing runs. `useControllable` compares
+	// by identity, and the array that the owner passes back is not the array of
+	// the last report, so such a toggle would report the open set again.
+	const unchangedRef = useRef(false)
 
 	const defaultValue = isMultiple ? (props.defaultValue ?? []) : toArray(props.defaultValue)
 
 	// A plain closure: `useControllable` reads its own `onValueChange` off a ref
 	// behind a stable `setValue`, so an inline callback needs no ref or memo here.
 	const onControllableChange = (next: string[] | null) => {
-		reportedRef.current = next
+		if (unchangedRef.current) return
 
 		const values = next ?? []
 
@@ -146,8 +142,17 @@ export function useAccordionSelection(props: SingleProps | MultipleProps): Accor
 	// second toggle in the same batch starts from the first. A toggle that
 	// changes nothing gives the same set back, which reports no change.
 	const toggle = useCallback(
-		(value: string) =>
-			setOpen((prev = []) => nextOpenSet(prev, value, isMultiple, collapsible) ?? prev),
+		(value: string) => {
+			setOpen((prev = []) => {
+				const next = nextOpenSet(prev, value, isMultiple, collapsible)
+
+				unchangedRef.current = next === null
+
+				return next ?? prev
+			})
+
+			unchangedRef.current = false
+		},
 		[collapsible, setOpen, isMultiple],
 	)
 
