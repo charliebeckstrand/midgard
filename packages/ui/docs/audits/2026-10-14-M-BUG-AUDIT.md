@@ -45,7 +45,7 @@ Disclosure: in the B01 blind pass and in the merge pass, a search over `packages
 | R4 | `components/markdown/markdown-renderer.tsx` | `renderToken` `image` `alt` / `plainText` | CONFIRMED | medium | shipped | G3 | ✅ RESOLVED ([#2448](https://github.com/charliebeckstrand/midgard/pull/2448)) |
 | R5 | `components/markdown/markdown-renderer.tsx` | `renderToken` `link` / `image` `href` | CONFIRMED | medium | shipped | G3 | ◯ OPEN |
 | R6 | `components/mask-input/mask-input-utilities.tsx` | `phoneMask` (`meaningful`) | CONFIRMED | medium | shipped | — | ✅ RESOLVED ([#2447](https://github.com/charliebeckstrand/midgard/pull/2447)) |
-| R7 | `components/mask-input/mask-input-utilities.tsx` | `formatNANP` | NARROWED | medium | shipped | — | ◯ OPEN |
+| R7 | `components/mask-input/mask-input-utilities.tsx` | `formatNANP` | NARROWED | medium | shipped | — | ✅ RESOLVED ([#2451](https://github.com/charliebeckstrand/midgard/pull/2451)) |
 | R8 | `components/mask-input/use-mask-input.ts` | `useMaskInput` (native form reset) | CONFIRMED | low | none | — | ✅ RESOLVED ([#2450](https://github.com/charliebeckstrand/midgard/pull/2450)) |
 
 All paths are under `packages/ui/src/`.
