@@ -5,10 +5,20 @@ import { CardTitle } from '../../components/card'
 import { HoldButton } from '../../components/hold-button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { TooltipContext } from '../../components/tooltip/context'
-import type { TooltipIntent } from '../../components/tooltip/tooltip-intent'
+import { type TooltipIntent, useTooltipIntent } from '../../components/tooltip/tooltip-intent'
 import { useTooltipState } from '../../components/tooltip/use-tooltip-state'
 import { notifyOverlaySignal } from '../../primitives/overlay'
-import { act, bySlot, getSlot, noop, renderUI, screen, setupUser, waitFor } from '../helpers'
+import {
+	act,
+	bySlot,
+	fireEvent,
+	getSlot,
+	noop,
+	renderUI,
+	screen,
+	setupUser,
+	waitFor,
+} from '../helpers'
 
 function makeContext(overrides: { open?: boolean; interactive?: boolean } = {}) {
 	return {
@@ -337,6 +347,7 @@ describe('useTooltipState', () => {
 				focus: null,
 				click: new MouseEvent('click'),
 				reenabled: false,
+				pointer: null,
 			}),
 		)
 
@@ -360,6 +371,109 @@ describe('useTooltipState', () => {
 
 		expect(open).toBe(true)
 	})
+})
+
+/**
+ * Makes each node match `:hover`, as a node under a resting pointer does. jsdom
+ * matches `:hover` on no node. Touch browsers keep `:hover` on a tapped node.
+ */
+function stubHover() {
+	const matches = Element.prototype.matches
+
+	return vi.spyOn(Element.prototype, 'matches').mockImplementation(function (
+		this: Element,
+		selector: string,
+	) {
+		return selector === ':hover' || matches.call(this, selector)
+	})
+}
+
+// A trigger that turns enabled under the pointer opens its tooltip again, as a
+// hover would. Only a mouse or pen hover on a hover tooltip does that.
+describe('the reopen of a re-enabled trigger', () => {
+	const cases = [
+		['click', 'mouse', false],
+		['hover', 'touch', false],
+		['hover', 'mouse', true],
+		['hover', 'pen', true],
+	] as const
+
+	it.each(cases)(
+		'replays a re-enabled intent for trigger=%s after a %s pointer as open=%s',
+		(trigger, pointer, expected) => {
+			const hover = stubHover()
+
+			let open = false
+
+			function Harness() {
+				const state = useTooltipState({
+					trigger,
+					takeIntent: () => ({ hover: null, focus: null, click: null, reenabled: true, pointer }),
+				})
+
+				open = state.open
+
+				return (
+					<button type="button" ref={state.setReference}>
+						Trigger
+					</button>
+				)
+			}
+
+			renderUI(<Harness />)
+
+			hover.mockRestore()
+
+			expect(open).toBe(expected)
+		},
+	)
+
+	it.for(cases)(
+		'records a re-enabled intent for trigger=%s after a %s pointer as %s',
+		async ([trigger, pointer, expected], { signal }) => {
+			let take: (() => TooltipIntent) | undefined
+
+			function Harness({ disabled }: { disabled: boolean }) {
+				const { setReference, takeIntent } = useTooltipIntent({ enabled: true, trigger })
+
+				take = takeIntent
+
+				return (
+					<button type="button" disabled={disabled} ref={setReference}>
+						Trigger
+					</button>
+				)
+			}
+
+			const { rerender } = renderUI(<Harness disabled={false} />)
+
+			const button = screen.getByRole('button', { name: 'Trigger' })
+
+			fireEvent.pointerEnter(button, { pointerType: pointer })
+
+			fireEvent.pointerDown(button, { pointerType: pointer })
+
+			fireEvent.pointerLeave(button, { pointerType: pointer })
+
+			// The observer of the `disabled` attribute reports in a microtask, and
+			// it reports each change after its own.
+			rerender(<Harness disabled />)
+
+			await act(async () => {})
+
+			signal.throwIfAborted()
+
+			const hover = stubHover()
+
+			rerender(<Harness disabled={false} />)
+
+			await act(async () => {})
+
+			hover.mockRestore()
+
+			expect(take?.().reenabled).toBe(expected)
+		},
+	)
 })
 
 describe('TooltipContent', () => {

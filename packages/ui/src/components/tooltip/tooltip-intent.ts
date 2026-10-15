@@ -18,8 +18,10 @@ export type TooltipIntent = {
 	focus: FocusEvent | null
 	/** The click that opened a `trigger="click"` tooltip, until a second click closes it. */
 	click: MouseEvent | null
-	/** The trigger turned enabled under the pointer, which opens the tooltip at once. */
+	/** The trigger turned enabled under a mouse or pen hover, which opens the tooltip at once. */
 	reenabled: boolean
+	/** The `pointerType` of the last pointer event on the trigger, or `null` before the first. */
+	pointer: string | null
 }
 
 /** The options that the listeners read at the time of each event. */
@@ -28,12 +30,26 @@ type IntentOptions = { enabled: boolean; trigger: 'hover' | 'click' }
 /** The pointer types that a hover trigger takes, as the `mouseOnly` option of `useHover` reads them. */
 const MOUSE_LIKE = new Set(['mouse', 'pen', ''])
 
+/**
+ * Whether a trigger that turns enabled under the pointer opens its tooltip
+ * again. Only a hover tooltip opens, and only for a mouse or pen. A touch
+ * browser keeps `:hover` on the node that a tap hits, so the type of the last
+ * pointer event decides, not `:hover`. When no pointer event came, a mouse
+ * rests on a node that mounted under it.
+ * @internal
+ */
+export function reopensOnEnable(options: IntentOptions, pointer: string | null): boolean {
+	return (
+		options.enabled && options.trigger === 'hover' && (pointer === null || MOUSE_LIKE.has(pointer))
+	)
+}
+
 /** The nodes that take a typed key, as `isTypeableElement` of Floating UI reads them. */
 const TYPEABLE =
 	'input:not([type="hidden"]):not([disabled]),[contenteditable]:not([contenteditable="false"]),textarea:not([disabled])'
 
 function createIntent(): TooltipIntent {
-	return { hover: null, focus: null, click: null, reenabled: false }
+	return { hover: null, focus: null, click: null, reenabled: false, pointer: null }
 }
 
 function clearIntent(intent: TooltipIntent): void {
@@ -131,8 +147,14 @@ function listenForIntent(
 
 	const pending = () => intent.hover !== null || intent.focus !== null || intent.click !== null
 
+	const onPointerDown = (event: PointerEvent) => {
+		intent.pointer = event.pointerType
+	}
+
 	const onPointerEnter = (event: PointerEvent) => {
 		void tooltipBody.load()
+
+		intent.pointer = event.pointerType
 
 		const { enabled, trigger } = readOptions()
 
@@ -192,7 +214,12 @@ function listenForIntent(
 	const stopObserver = observeReferenceDisabled(node, () => {
 		const next = isReferenceDisabled(node)
 
-		if (disabled && !next && node.matches(':hover')) {
+		if (
+			disabled &&
+			!next &&
+			reopensOnEnable(readOptions(), intent.pointer) &&
+			node.matches(':hover')
+		) {
 			intent.reenabled = true
 
 			void tooltipBody.load()
@@ -204,6 +231,7 @@ function listenForIntent(
 	trackModality()
 
 	node.addEventListener('pointerenter', onPointerEnter)
+	node.addEventListener('pointerdown', onPointerDown)
 	node.addEventListener('pointerleave', onPointerLeave)
 	node.addEventListener('focusin', onFocusIn)
 	node.addEventListener('focusout', onFocusOut)
@@ -214,6 +242,7 @@ function listenForIntent(
 		stopObserver()
 
 		node.removeEventListener('pointerenter', onPointerEnter)
+		node.removeEventListener('pointerdown', onPointerDown)
 		node.removeEventListener('pointerleave', onPointerLeave)
 		node.removeEventListener('focusin', onFocusIn)
 		node.removeEventListener('focusout', onFocusOut)
@@ -246,7 +275,9 @@ export function useTooltipIntent(options: IntentOptions) {
 
 			stopRef.current = null
 
-			clearIntent(intentRef.current)
+			// A new node starts a new intent. The pointer type stays through a clear,
+			// because it tells which pointer is on the node.
+			intentRef.current = createIntent()
 
 			if (node) stopRef.current = listenForIntent(node, intentRef.current, readOptions)
 		},
