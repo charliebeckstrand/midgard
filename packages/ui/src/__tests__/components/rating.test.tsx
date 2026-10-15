@@ -147,6 +147,67 @@ describe('Rating', () => {
 		}
 	})
 
+	// A commit that no press starts is a key: an arrow key or Space. The value
+	// then moves away from the star under the pointer, so the preview of that
+	// star must go (B01-R6).
+	describe('a commit with no press', () => {
+		/** The label of `score`, which takes the pointer. */
+		function label(container: HTMLElement, score: number): HTMLElement {
+			const node = container.querySelector<HTMLElement>(`label[data-value="${score}"]`)
+
+			if (!node) throw new Error(`no label for ${score}`)
+
+			return node
+		}
+
+		it('draws the committed score, not the hovered one', () => {
+			const { container } = renderUI(<Rating aria-label="Score" defaultValue={1} />)
+
+			fireEvent.pointerEnter(label(container, 2), { pointerType: 'mouse' })
+
+			fireEvent.click(stars(container)[2] as HTMLInputElement)
+
+			const fills = allBySlot(container, 'rating-fill')
+
+			expect(fills).toHaveLength(3)
+
+			for (const fill of fills) {
+				expect(fill).toHaveStyle({ width: '100%' })
+
+				expect(fill).not.toHaveClass('opacity-40')
+			}
+		})
+
+		it('draws no stars after a clear', () => {
+			const { container } = renderUI(<Rating aria-label="Score" defaultValue={2} />)
+
+			fireEvent.pointerEnter(label(container, 2), { pointerType: 'mouse' })
+
+			// Space on the checked radio: the click clears the score.
+			fireEvent.click(stars(container)[1] as HTMLInputElement)
+
+			expect(allBySlot(container, 'rating-fill')).toHaveLength(0)
+		})
+
+		it('keeps the preview of a press, so the new score recedes under the pointer', () => {
+			const { container } = renderUI(<Rating aria-label="Score" defaultValue={1} />)
+
+			fireEvent.pointerEnter(label(container, 3), { pointerType: 'mouse' })
+
+			fireEvent.pointerDown(label(container, 3), { pointerType: 'mouse' })
+
+			fireEvent.click(stars(container)[2] as HTMLInputElement)
+
+			const fills = allBySlot(container, 'rating-fill')
+
+			expect(fills).toHaveLength(3)
+
+			for (const fill of fills) {
+				expect(fill).toHaveClass('opacity-40')
+			}
+		})
+	})
+
 	it('does not recede when there is nothing to clear', async () => {
 		const user = setupUser()
 

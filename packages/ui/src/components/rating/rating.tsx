@@ -1,7 +1,7 @@
 'use client'
 
 import { Star } from 'lucide-react'
-import { type MouseEvent, type PointerEvent, type ReactNode, useState } from 'react'
+import { type MouseEvent, type PointerEvent, type ReactNode, useRef, useState } from 'react'
 import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { useIdScope } from '../../hooks/use-id-scope'
@@ -102,7 +102,9 @@ export type RatingProps = RatingVariants & {
 	 * clearing star is the only star on the row that answers the pointer with the
 	 * row already drawn. It is worst at a score of one, where the pointer sits on
 	 * the only filled star and nothing at all moves. A touch has no hover, so it
-	 * shows no preview.
+	 * shows no preview. A key that sets or clears the score removes the preview,
+	 * so the stars draw the score of the key until the pointer goes onto a star
+	 * again.
 	 * @defaultValue true
 	 */
 	clearable?: boolean
@@ -200,6 +202,13 @@ export function Rating({
 	// makes the reader guess which star they are about to commit to.
 	const [previewed, setPreviewed] = useState<number | null>(null)
 
+	// Whether a press on the row started the click that is now in progress. A
+	// commit with no press comes from a key: an arrow key or Space. The value then
+	// moves away from the star under the pointer, so the preview of that star
+	// goes. A press keeps the preview, so the score it sets recedes under the
+	// pointer as the next click's result.
+	const pressed = useRef(false)
+
 	const control = useControl()
 
 	const {
@@ -248,7 +257,14 @@ export function Rating({
 		setPreviewed(star)
 	}
 
+	// The commit ends the press. React runs a radio's `onClick` before its
+	// `onChange` in the same click, so the click cannot end the press itself
+	// when a change follows it.
 	function commit(next: number | null) {
+		if (!pressed.current) setPreviewed(null)
+
+		pressed.current = false
+
 		setValue(next)
 
 		setTouched()
@@ -383,7 +399,12 @@ export function Rating({
 					aria-label={getValueText(score, count)}
 					className={cn(k.input)}
 					onChange={() => commit(score)}
-					onClick={(event) => handleClick(event, score)}
+					onClick={(event) => {
+						handleClick(event, score)
+
+						// A click on the checked radio fires no change, so the press ends here.
+						if (current === score) pressed.current = false
+					}}
 				/>
 
 				{children}
@@ -405,6 +426,9 @@ export function Rating({
 			aria-describedby={describedBy}
 			{...validation}
 			className={rowClass}
+			onPointerDown={() => {
+				pressed.current = true
+			}}
 			onPointerLeave={() => setPreviewed(null)}
 			onBlur={() => setTouched()}
 		>

@@ -78,6 +78,56 @@ describe('Rating: half step', () => {
 		expect(onValueChange).toHaveBeenLastCalledWith(2.5)
 	})
 
+	// The pointer rests on a star while a key moves the score. The stars then
+	// draw the score that the key set, not the star under the pointer (B01-R6).
+	it('draws the score of an arrow key while the pointer rests on a star', async () => {
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(
+			<Rating aria-label="Score" step={0.5} defaultValue={2.5} onValueChange={onValueChange} />,
+		)
+
+		// The end half of the second star, which sets 2.
+		await userEvent.hover(
+			container.querySelectorAll<HTMLElement>('[data-slot="rating-half"]')[3] as HTMLElement,
+		)
+
+		container.querySelector<HTMLInputElement>('input:checked')?.focus()
+
+		await userEvent.keyboard('{ArrowRight}')
+
+		expect(onValueChange).toHaveBeenLastCalledWith(3)
+
+		const fills = [...container.querySelectorAll<HTMLElement>('[data-slot="rating-fill"]')]
+
+		expect(fills.map((fill) => fill.style.width)).toEqual(['100%', '100%', '100%'])
+
+		for (const fill of fills) expect(fill).not.toHaveClass('opacity-40')
+	})
+
+	// React runs a radio's click handler before its change handler. A press must
+	// still keep the preview, so the score it sets recedes under the pointer.
+	it('recedes the score that a click sets under the pointer', async () => {
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(
+			<Rating aria-label="Score" step={0.5} defaultValue={2.5} onValueChange={onValueChange} />,
+		)
+
+		// The end half of the third star, which sets 3.
+		await userEvent.click(
+			container.querySelectorAll<HTMLElement>('[data-slot="rating-half"]')[5] as HTMLElement,
+		)
+
+		expect(onValueChange).toHaveBeenLastCalledWith(3)
+
+		const fills = [...container.querySelectorAll<HTMLElement>('[data-slot="rating-fill"]')]
+
+		expect(fills).toHaveLength(3)
+
+		for (const fill of fills) expect(fill).toHaveClass('opacity-40')
+	})
+
 	it('moves to the next half on ArrowLeft in a right-to-left row', async () => {
 		const onValueChange = vi.fn()
 
