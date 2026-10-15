@@ -282,6 +282,10 @@ export function useMenuRoot({
 
 			event.preventDefault()
 
+			// This surface handles the event, so an enclosing context surface must
+			// not open its menu for the same event. The grid surface does the same.
+			event.stopPropagation()
+
 			// The menu panel and each submenu panel are portaled out of the DOM but
 			// stay React children of this wrapper, so their own contextmenu events
 			// bubble back here. A right-click inside an open panel must not re-anchor
