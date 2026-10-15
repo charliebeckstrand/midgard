@@ -1,5 +1,6 @@
 import {
 	cloneElement,
+	Fragment,
 	isValidElement,
 	type MouseEventHandler,
 	type ReactElement,
@@ -27,10 +28,15 @@ export type TriggerChildElement = ReactElement<
  * Gives the child of a trigger as an element to clone, or `null` when the
  * trigger must render its own element around the children.
  *
+ * A Fragment gives `null`. A Fragment renders no host element, so a clone of
+ * it cannot hold the props and the ref of the trigger.
+ *
  * @internal
  */
 export function triggerChild(children: ReactNode): TriggerChildElement | null {
-	return isValidElement(children) ? (children as TriggerChildElement) : null
+	if (!isValidElement(children) || children.type === Fragment) return null
+
+	return children as TriggerChildElement
 }
 
 /** Props for {@link TriggerChild}. @internal */
