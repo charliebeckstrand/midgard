@@ -72,8 +72,10 @@ export function Radio({
 	// for a controlled group.
 	//
 	// In an uncontrolled group, React reads the old radio before the browser
-	// checks it again. A later click on that checked radio then fires one extra
-	// `onChange`.
+	// checks it again, so the change tracker of React records it as clear. The
+	// browser restore does not go through the setter. So after the click task,
+	// the handler writes each checked radio of the group through the setter
+	// again. A later click on the old radio then fires no `onChange`.
 	//
 	// A click that an `onClick` cancels gets the same undo. React reads the check
 	// before the browser restores the group, so it sends a change that does not
@@ -87,9 +89,23 @@ export function Radio({
 		readOnlyRadio || onChange
 			? (event) => {
 					if (readOnlyRadio || event.nativeEvent.defaultPrevented) {
-						event.currentTarget.checked = false
+						const input = event.currentTarget
+
+						input.checked = false
 
 						event.preventDefault()
+
+						if (input.name) {
+							setTimeout(() => {
+								const group = input.getRootNode() as ParentNode
+
+								const selector = `input[type="radio"][name="${CSS.escape(input.name)}"]:checked`
+
+								for (const radio of group.querySelectorAll<HTMLInputElement>(selector)) {
+									radio.checked = true
+								}
+							})
+						}
 
 						return
 					}
