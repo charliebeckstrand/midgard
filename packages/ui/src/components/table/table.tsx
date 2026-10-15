@@ -94,11 +94,18 @@ export function Table({
 
 	const captionText = typeof caption?.children === 'string' ? caption.children : undefined
 
+	const ownLabel = tableProps?.['aria-label']
+
+	const ownLabelledBy = tableProps?.['aria-labelledby']
+
+	// A name in `tableProps` wins over the caption. Use the caption only when `tableProps` has no name.
+	const ownName = ownLabel !== undefined || ownLabelledBy !== undefined
+
 	return (
 		<TableScroll
 			density={size}
-			label={tableProps?.['aria-label'] ?? (caption?.id ? undefined : captionText)}
-			labelledBy={tableProps?.['aria-labelledby'] ?? caption?.id}
+			label={ownName ? ownLabel : caption?.id ? undefined : captionText}
+			labelledBy={ownName ? ownLabelledBy : caption?.id}
 			className={cn(bleed && '-mx-4 sm:-mx-6')}
 		>
 			<table
