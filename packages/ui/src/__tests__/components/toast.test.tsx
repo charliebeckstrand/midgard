@@ -973,4 +973,104 @@ describe('Toast: useToast behavior', () => {
 			expect(onSecond).toHaveBeenCalledExactlyOnceWith('dismissed')
 		})
 	})
+
+	describe('focus on close', () => {
+		it('moves focus to the next toast when a focused toast closes', () => {
+			let api: ReturnType<typeof useToast> | null = null
+
+			renderUI(
+				<ToastProvider>
+					<Trigger onReady={(context) => (api = context)} />
+					<Toast />
+				</ToastProvider>,
+			)
+
+			act(() => {
+				api?.toast({ title: 'First', persist: true })
+
+				api?.toast({ title: 'Second', persist: true })
+			})
+
+			const close = within(screen.getByText('Second').closest('li') as HTMLElement).getByRole(
+				'button',
+				{ name: 'Dismiss' },
+			)
+
+			act(() => close.focus())
+
+			act(() => {
+				fireEvent.click(close)
+			})
+
+			const first = screen.getByText('First').closest('li') as HTMLElement
+
+			expect(first).toContainElement(document.activeElement as HTMLElement)
+		})
+
+		it('returns focus to the page control when the last focused toast closes', () => {
+			let api: ReturnType<typeof useToast> | null = null
+
+			renderUI(
+				<ToastProvider>
+					<Trigger onReady={(context) => (api = context)} />
+					<button type="button">Save</button>
+					<Toast />
+				</ToastProvider>,
+			)
+
+			const save = screen.getByRole('button', { name: 'Save' })
+
+			act(() => save.focus())
+
+			act(() => {
+				api?.toast({ title: 'Saved', persist: true })
+			})
+
+			const close = screen.getByRole('button', { name: 'Dismiss' })
+
+			act(() => close.focus())
+
+			act(() => {
+				fireEvent.click(close)
+			})
+
+			act(() => {
+				vi.advanceTimersByTime(100)
+			})
+
+			expect(screen.queryByText('Saved')).not.toBeInTheDocument()
+
+			expect(save).toHaveFocus()
+		})
+
+		it('does not move focus when a toast times out while focus is elsewhere', () => {
+			let api: ReturnType<typeof useToast> | null = null
+
+			renderUI(
+				<ToastProvider duration={1000}>
+					<Trigger onReady={(context) => (api = context)} />
+					<button type="button">Save</button>
+					<Toast />
+				</ToastProvider>,
+			)
+
+			act(() => {
+				api?.toast({ title: 'First', persist: true })
+
+				api?.toast({ title: 'Second' })
+			})
+
+			const save = screen.getByRole('button', { name: 'Save' })
+
+			act(() => save.focus())
+
+			act(() => {
+				vi.advanceTimersByTime(2000)
+			})
+
+			expect(screen.queryByText('Second')).not.toBeInTheDocument()
+
+			expect(save).toHaveFocus()
+		})
+	})
 })
