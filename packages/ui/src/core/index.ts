@@ -14,9 +14,9 @@ export {
 	defineScale,
 	densitySteps,
 	type InnerStep,
+	rampValue,
 	type Scale,
 	type ScaleStep,
-	snapToScale,
 } from './density'
 export { downloadBlob } from './download-blob'
 export { invalidAttrs } from './invalid-attrs'

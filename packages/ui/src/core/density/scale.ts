@@ -50,6 +50,32 @@ type StepIn<S> = DensityStep extends infer Step ? (Step extends S ? Step : never
 /** The steps in the order of `densitySteps`. */
 const order: readonly DensityStep[] = ['xs', 'sm', 'md', 'lg', 'xl']
 
+/** The value of each step in `ramp`. It throws for a list that is not a ramp. */
+function rampValues(ramp: string): Record<DensityStep, string> {
+	const list = /^density-[a-z-]+-\[(.+)\]$/.exec(ramp)?.[1]
+
+	const values = list ? valuesByStep(list) : null
+
+	if (!values) throw new Error(`Not a ramp with three or five values: ${ramp}`)
+
+	return values
+}
+
+/**
+ * Reads the value of `ramp` at `step`, as the ramp writes it, for example
+ * `'4'` for `md` in `density-p-[2,3,4,5,6]`. A ramp gives a value for each
+ * step, and it holds the clamp of an outer step. Thus a JS reader needs no
+ * clamp of its own. A ramp of three values gives the value of `sm` at `xs`
+ * and the value of `lg` at `xl`, as the CSS does. It throws for a list of
+ * another length.
+ *
+ * @example
+ * rampValue('density-size-[3,4,5,6,6]', 'xl') // '6'
+ */
+export function rampValue(ramp: Ramp, step: DensityStep): string {
+	return rampValues(ramp)[step]
+}
+
 /**
  * The steps that `ramp` renders with a value of its own. It throws for a list
  * that does not have three or five values, because the utility writes no rule
@@ -58,11 +84,7 @@ const order: readonly DensityStep[] = ['xs', 'sm', 'md', 'lg', 'xl']
  * @internal
  */
 export function stepsOfRamp(ramp: string): DensityStep[] {
-	const list = /^density-[a-z-]+-\[(.+)\]$/.exec(ramp)?.[1]
-
-	const values = list ? valuesByStep(list) : null
-
-	if (!values) throw new Error(`Not a ramp with three or five values: ${ramp}`)
+	const values = rampValues(ramp)
 
 	return order.filter(
 		(step) => step === toInnerStep(step) || values[step] !== values[toInnerStep(step)],
@@ -85,13 +107,4 @@ export function defineScale<const R extends readonly Ramp[]>(
 	const steps = new Set(ramps.flatMap(stepsOfRamp))
 
 	return order.filter((step) => steps.has(step)) as unknown as Scale<RampSteps<R[number]>>
-}
-
-/**
- * Snaps `step` to the nearest step of `scale`. A step of the scale stays. An
- * outer step that the scale does not hold becomes its inner neighbor: `xs`
- * becomes `sm`, and `xl` becomes `lg`.
- */
-export function snapToScale<S extends DensityStep>(step: DensityStep, scale: Scale<S>): S {
-	return (scale as readonly DensityStep[]).includes(step) ? (step as S) : (toInnerStep(step) as S)
 }
