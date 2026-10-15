@@ -118,8 +118,11 @@ export function Textarea({
 		<textarea
 			data-slot="textarea"
 			ref={composedRef}
-			{...field.attrs}
 			rows={rows}
+			{...props}
+			// The bound field state comes after the rest props (§3.9). Thus a stray
+			// `aria-invalid` or `id` cannot change the state of a bound field.
+			{...field.attrs}
 			className={cn(
 				!field.headless &&
 					k({
@@ -129,7 +132,6 @@ export function Textarea({
 				hasActions && k.bare,
 				className,
 			)}
-			{...props}
 		/>
 	)
 

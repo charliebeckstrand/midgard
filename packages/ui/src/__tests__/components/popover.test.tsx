@@ -21,6 +21,33 @@ describe('Popover', () => {
 		expect(trigger?.textContent).toBe('Open')
 	})
 
+	it('renders its own button around a Fragment child, and opens on a click', () => {
+		const { container } = renderUI(
+			<Popover>
+				<PopoverTrigger>
+					<>
+						Open <span data-testid="icon" />
+					</>
+				</PopoverTrigger>
+				<PopoverContent>panel</PopoverContent>
+			</Popover>,
+		)
+
+		const trigger = bySlot(container, 'popover-trigger')
+
+		expect(trigger?.tagName).toBe('BUTTON')
+
+		expect(trigger).toHaveAttribute('aria-expanded', 'false')
+
+		expect(trigger).toContainElement(screen.getByTestId('icon'))
+
+		fireEvent.click(screen.getByRole('button', { name: 'Open' }))
+
+		expect(trigger).toHaveAttribute('aria-expanded', 'true')
+
+		expect(document.querySelector('[data-slot="popover-content"]')).not.toBeNull()
+	})
+
 	it('preserves the original child element on an element trigger', () => {
 		const { container } = renderUI(
 			<Popover>

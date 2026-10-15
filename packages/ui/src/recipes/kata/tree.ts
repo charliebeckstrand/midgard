@@ -35,7 +35,11 @@ const itemContent = defineRecipe(
 			ji.ramp,
 		],
 	},
-	{ current: text.default },
+	{
+		// Forced colors map the text of each row to `CanvasText`, so the current
+		// row also takes an underline there.
+		current: [text.default, 'forced-colors:underline forced-colors:decoration-2'],
+	},
 )
 
 /**
@@ -57,10 +61,16 @@ const check = [
 	'data-checked:bg-zinc-600 data-checked:border-zinc-700/90',
 	'dark:data-checked:bg-zinc-600 dark:data-checked:border-zinc-700/90',
 	'data-checked:group-hover/tree-item:opacity-90',
+	// Forced colors remove the fill, so a checked or mixed box paints in
+	// `Highlight`, as a `sen.forced.mark` does.
+	'forced-colors:data-checked:bg-[Highlight]',
 ]
 
-/** The mark in the check box. It takes the step of the nearest density scope. */
-const mark = ['stroke-white', dan.size.check.mark]
+/**
+ * The mark in the check box. It takes the step of the nearest density scope.
+ * Under forced colors, it paints in `HighlightText` on the `Highlight` box.
+ */
+const mark = ['stroke-white', 'forced-colors:stroke-[HighlightText]', dan.size.check.mark]
 
 /** The chevron column. Its width is the icon size of the step. */
 const chevron = [
@@ -75,9 +85,11 @@ const chevron = [
 export const k = {
 	base: [
 		flex.col,
-		// Trims outer vertical padding on edge rows, flushing the tree with its container.
+		// Trims the outer block padding of the first and last visible rows, so the
+		// tree is flush with its container. The last visible row is the row of a
+		// last item with no open group, in a chain of last items with open groups.
 		'[&>[data-slot=tree-item]:first-child>[role=treeitem]]:pt-0',
-		'[&>[data-slot=tree-item]:last-child>[role=treeitem]]:pb-0',
+		'[&_[data-slot=tree-item]:last-child:not(:has(>[data-slot=tree-group][data-open])):not([data-slot=tree-item]:not(:last-child)_*):not([data-slot=tree-group]:not([data-open])_*)>[role=treeitem]]:pb-0',
 	],
 	item: {
 		content: itemContent,

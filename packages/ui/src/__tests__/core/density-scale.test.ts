@@ -3,8 +3,8 @@ import { describe, expect, expectTypeOf, it } from 'vitest'
 import {
 	defineScale,
 	type RampSteps,
+	rampValue,
 	type ScaleStep,
-	snapToScale,
 	stepsOfRamp,
 } from '../../core/density/scale'
 
@@ -63,22 +63,22 @@ describe('defineScale', () => {
 	})
 })
 
-describe('snapToScale', () => {
-	const inner = defineScale('density-p-[2,3,4]')
+describe('rampValue', () => {
+	it('reads the value of each step of five values', () => {
+		expect(rampValue('density-p-[2,3,4,5,6]', 'xs')).toBe('2')
 
-	const withXs = defineScale('density-size-[3,4,5,6,6]')
-
-	it('keeps a step of the scale', () => {
-		expect(snapToScale('md', inner)).toBe('md')
-
-		expect(snapToScale('xs', withXs)).toBe('xs')
+		expect(rampValue('density-p-[2,3,4,5,6]', 'md')).toBe('4')
 	})
 
-	it('snaps an outer step that the scale does not hold to its inner neighbor', () => {
-		expect(snapToScale('xs', inner)).toBe('sm')
+	it('gives the clamp that the ramp holds at an outer step', () => {
+		expect(rampValue('density-size-[3,4,5,6,6]', 'xl')).toBe('6')
 
-		expect(snapToScale('xl', inner)).toBe('lg')
+		expect(rampValue('density-p-[2,3,4]', 'xs')).toBe('2')
 
-		expect(snapToScale('xl', withXs)).toBe('lg')
+		expect(rampValue('density-p-[2,3,4]', 'xl')).toBe('4')
+	})
+
+	it('throws for a list that the utility does not write', () => {
+		expect(() => rampValue('density-p-[2,3]', 'md')).toThrow(/three or five/)
 	})
 })
