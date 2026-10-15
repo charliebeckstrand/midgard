@@ -3,7 +3,6 @@
 import { MapPin } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '../../core'
-import { useControllable } from '../../hooks'
 import { keyByOccurrence } from '../../utilities'
 import {
 	Combobox,
@@ -148,23 +147,20 @@ export function AddressInput({
 	// `invalid` it derives from that field reaches the control for free.
 	const bound = useFormField(name)
 
-	// The same order as the Combobox's own cascade (`useFormValue`): an explicit `value`
-	// wins over the field, so the suffix and the Combobox read one selection.
-	const fieldDriven = bound !== undefined && value === undefined
+	// The Combobox owns the selection and reports each change itself. This state
+	// only mirrors a pick that no `value` and no field hold, so the suffix below can
+	// ask whether anything is selected. An undefined suffix gives the slot to the
+	// clear button of the Combobox.
+	const [picked, setPicked] = useState(defaultValue)
 
-	// Mirrors an unbound Combobox's selection. Both readings feed one question —
-	// whether anything is selected — which the suffix below asks so an undefined
-	// suffix cedes the slot to the Combobox's own clear button. While the field
-	// drives the selection, this hook does not see a Form reset or a `setValue`.
-	// Thus the Combobox, which reads the field, reports the change to the
-	// consumer, and this hook reports nothing.
-	const [held, setHeld] = useControllable<AddressSuggestion>({
-		value,
-		defaultValue,
-		onValueChange: fieldDriven ? undefined : onValueChange,
-	})
-
-	const selected = fieldDriven ? (bound.value as AddressSuggestion | undefined) : held
+	// The same order as the cascade of the Combobox (`useFormValue`): an explicit
+	// `value` wins over the field, and the field wins over the mirror.
+	const selected =
+		value !== undefined
+			? (value ?? undefined)
+			: bound !== undefined
+				? (bound.value as AddressSuggestion | undefined)
+				: picked
 
 	const control = useControl()
 
@@ -192,7 +188,11 @@ export function AddressInput({
 			value={value}
 			defaultValue={defaultValue}
 			displayValue={(suggestion) => suggestion.label}
-			onValueChange={fieldDriven ? onValueChange : setHeld}
+			onValueChange={(next) => {
+				setPicked(next ?? undefined)
+
+				onValueChange?.(next)
+			}}
 			className={cn(loading && 'motion-safe:animate-pulse', className)}
 			placeholder={placeholder}
 			// Yields to a wrapping `<Field>`/`<Label>` from the first render: an own
