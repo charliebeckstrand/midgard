@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/resizable'
-import { useResizable, useResizableIndex } from './context'
+import { useOptionalResizable, useResizableIndex } from './context'
 
 /** Props for {@link ResizablePanel}: an initial size weight, and min/max bounds as percentages of the group. */
 export type ResizablePanelProps = {
@@ -37,16 +37,17 @@ export type ResizablePanelProps = {
 export function ResizablePanel(props: ResizablePanelProps) {
 	const { defaultSize = 50, className, children } = props
 
-	const { sizes, panelId } = useResizable()
+	const group = useOptionalResizable()
 
 	const { panelIndex } = useResizableIndex()
 
-	const size = panelIndex !== undefined ? (sizes[panelIndex] ?? defaultSize) : defaultSize
+	const size =
+		group && panelIndex !== undefined ? (group.sizes[panelIndex] ?? defaultSize) : defaultSize
 
 	return (
 		<div
 			data-slot="resizable-panel"
-			id={panelIndex !== undefined ? panelId(panelIndex) : undefined}
+			id={group && panelIndex !== undefined ? group.panelId(panelIndex) : undefined}
 			className={cn(k.panel, className)}
 			style={{ flex: `${size} 0 0px` }}
 		>
