@@ -49,6 +49,9 @@ export function sheetFloor(panel: HTMLElement, size: number, axis: PanelAxis): n
 /**
  * The widest a sheet is drawn at: the screen, less the inset it floats on.
  *
+ * The screen is the box the panel docks in: the viewport, or the `container`
+ * of a scoped sheet.
+ *
  * The inset is measured off the panel rather than stated, because it is a
  * breakpoint's decision and not this function's. The panel sits flush on a
  * phone and a step in from every edge above `sm`, and a consumer can move it
@@ -61,10 +64,25 @@ export function sheetFloor(panel: HTMLElement, size: number, axis: PanelAxis): n
 export function sheetCeiling(panel: HTMLElement, viewport: number, axis: PanelAxis): number {
 	const box = panel.getBoundingClientRect()
 
+	// The edges are measured from the start of the box the panel docks in, which
+	// is where `viewport` starts too. A container away from the corner of the
+	// screen moves both edges, and a measure from the screen would get the inset
+	// wrong.
+	const dock = panel.offsetParent
+
+	const origin =
+		dock instanceof HTMLElement
+			? axis === 'width'
+				? dock.getBoundingClientRect().left + dock.clientLeft
+				: dock.getBoundingClientRect().top + dock.clientTop
+			: 0
+
 	// The two edges across the axis the panel is docked on. Whichever sits nearer
-	// the screen's is the inset the reader can see.
+	// the edge of the box is the inset the reader can see.
 	const [near, far] =
-		axis === 'width' ? [box.left, viewport - box.right] : [box.top, viewport - box.bottom]
+		axis === 'width'
+			? [box.left - origin, viewport - (box.right - origin)]
+			: [box.top - origin, viewport - (box.bottom - origin)]
 
 	const inset = Math.max(0, Math.min(near, far))
 
