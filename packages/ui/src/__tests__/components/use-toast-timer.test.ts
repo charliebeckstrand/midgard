@@ -256,17 +256,31 @@ describe('useToastTimer', () => {
 	it.each([Infinity, 2 ** 31 + 1000])(
 		'does not loop the timer when a toast holds a duration of %d',
 		(ms) => {
-			const { result, start } = setup(['long', 'short'])
+			const { result, start, toastsRef } = setup(['long', 'short'])
 
-			const setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout')
+			const toasts = toastsRef.current
+
+			// Each timer callback reads the list. A spy on the global timer would
+			// outlive the fake timers under `restoreMocks`.
+			let reads = 0
+
+			Object.defineProperty(toastsRef, 'current', {
+				get: () => {
+					reads += 1
+
+					return toasts
+				},
+			})
 
 			act(() => result.current.arm('long', ms))
+
+			reads = 0
 
 			vi.advanceTimersByTime(500)
 
 			// The platform timer holds a delay up to 2^31−1. A longer delay must not
 			// fire at once and arm again in a loop.
-			expect(setTimeoutSpy.mock.calls.length).toBeLessThanOrEqual(1)
+			expect(reads).toBe(0)
 
 			// A short toast beside the long one still leaves at its time.
 			act(() => result.current.arm('short', 1000))
@@ -274,8 +288,6 @@ describe('useToastTimer', () => {
 			vi.advanceTimersByTime(1000)
 
 			expect(start).toHaveBeenCalledExactlyOnceWith(['short'])
-
-			setTimeoutSpy.mockRestore()
 		},
 	)
 
