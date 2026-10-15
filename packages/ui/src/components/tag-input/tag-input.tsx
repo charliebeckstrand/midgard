@@ -12,7 +12,6 @@ import { BadgeRemovable } from '../badge/badge-removable'
 import { Button } from '../button'
 import { useControlFallbackLabel } from '../control/use-control-fallback-label'
 import { useControlProps } from '../control/use-control-props'
-import { useFormResets } from '../form/context'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
 import { hasSeparator, splitTokens, type TokenRejection } from './tag-input-utilities'
@@ -145,7 +144,8 @@ export function TagInput({
 	const [refused, setRefused] = useState(false)
 
 	// The draft and the refused mark are the partial entry of the field, so a
-	// reset drops them with the tags, as the Form reset below does.
+	// reset drops them with the tags. Otherwise a later blur commits the old
+	// draft.
 	const dropDraft = () => {
 		setInputValue('')
 
@@ -164,21 +164,6 @@ export function TagInput({
 	})
 
 	const setRefs = useComposedRef(inputRef, resetRef, ref)
-
-	// A Form reset restores the bound tags and drops the draft, or a later blur
-	// commits the old draft. As DateInput does, only a bound field follows the
-	// resets of the Form.
-	const formResets = useFormResets()
-
-	const resets = name === undefined ? 0 : formResets
-
-	const [knownResets, setKnownResets] = useState(resets)
-
-	if (knownResets !== resets) {
-		setKnownResets(resets)
-
-		dropDraft()
-	}
 
 	const color = tagColor ?? 'zinc'
 
