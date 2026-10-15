@@ -32,14 +32,25 @@ type MenuSheetProps = {
 }
 
 /**
- * The accessible name of a trigger: its `aria-label`, else its text.
+ * The accessible name of a trigger: the text of the elements that its
+ * `aria-labelledby` points to, else its `aria-label`, else its text. An empty
+ * value goes to the next source.
  *
  * @internal
  */
 function triggerName(trigger: HTMLElement | null): string | undefined {
-	const name = trigger?.getAttribute('aria-label') ?? trigger?.textContent
+	if (!trigger) return undefined
 
-	return name?.trim() || undefined
+	const labelledby = (trigger.getAttribute('aria-labelledby') ?? '')
+		.split(/\s+/)
+		.filter(Boolean)
+		.map((id) => trigger.ownerDocument.getElementById(id)?.textContent ?? '')
+		.join(' ')
+
+	const name =
+		labelledby.trim() || trigger.getAttribute('aria-label')?.trim() || trigger.textContent?.trim()
+
+	return name || undefined
 }
 
 /**
