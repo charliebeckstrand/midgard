@@ -9,6 +9,7 @@ import { NumberInput } from 'ui/number-input'
 import { useDensityStep } from 'ui/primitives/density'
 import { type DensityStep, isDensityStep, stepDown } from '../../core/density/steps.ts'
 import { omote } from '../../recipes/kiso/index.ts'
+import { SIZE_CLASSES } from '../../types/responsive.ts'
 import type { BarrelApi, DefaultValue, Literal, PropApi } from '../plugin/api.ts'
 import type { ExampleCode } from '../plugin/examples.ts'
 import { ExampleFrame, metaOf } from './example.tsx'
@@ -72,11 +73,22 @@ function Rail({ label, children }: { label: string; children: ReactNode }) {
 	)
 }
 
-/** The label of a value. A value for each breakpoint names the breakpoint from which each value holds. */
+// The size class that starts at each breakpoint, such as `medium` at `sm`.
+const SIZE_CLASS_AT: { readonly [bp: string]: string | undefined } = Object.fromEntries(
+	Object.entries(SIZE_CLASSES).map(([size, bp]) => [bp, size]),
+)
+
+/**
+ * The label of a value. A value for each breakpoint names the size class from
+ * which each value holds, such as "Vertical, Horizontal from medium", or the
+ * breakpoint where no size class starts.
+ */
 function labelOf(value: Value): string {
 	if (typeof value === 'object') {
 		return Object.entries(value)
-			.map(([bp, entry]) => (bp === 'initial' ? labelOf(entry) : `${labelOf(entry)} from ${bp}`))
+			.map(([bp, entry]) =>
+				bp === 'initial' ? labelOf(entry) : `${labelOf(entry)} from ${SIZE_CLASS_AT[bp] ?? bp}`,
+			)
 			.join(', ')
 	}
 

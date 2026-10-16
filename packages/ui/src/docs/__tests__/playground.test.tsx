@@ -125,7 +125,7 @@ describe('Playground', () => {
 
 		const orientation = screen.getByRole('combobox', { name: 'Orientation' })
 
-		expect(orientation.textContent).toContain('Vertical, Horizontal from sm')
+		expect(orientation.textContent).toContain('Vertical, Horizontal from medium')
 
 		expect(instanceProps()).toEqual({})
 
@@ -134,7 +134,7 @@ describe('Playground', () => {
 		const options = screen.getAllByRole('option')
 
 		expect(options.map((option) => option.textContent)).toEqual([
-			'Vertical, Horizontal from smDefault',
+			'Vertical, Horizontal from mediumDefault',
 			'Horizontal',
 			'Vertical',
 		])
