@@ -98,6 +98,27 @@ export type WriteOnChangeSubject = {
 	kind: 'text' | 'toggle'
 }
 
+/**
+ * A disclosure whose parts stamp a boolean `data-open` while it is open, and
+ * `data-disabled` while it is disabled (CONVENTIONS.md §3.11).
+ */
+export type DisclosureSubject = {
+	/**
+	 * The barreled component whose open state the subject drives.
+	 * `disclosure-state-boundary.test.ts` reads this name.
+	 */
+	component: string
+	/**
+	 * Renders the subject open or closed, and disabled when the sweep passes
+	 * `disabled`. An uncontrolled render, such as `defaultOpen`, is enough.
+	 */
+	render: (props: { open: boolean; disabled?: boolean }) => ReactElement
+	/** The `data-slot` of each part that stamps `data-open`, such as the trigger and the content. */
+	parts: readonly string[]
+	/** The `data-slot` of each part that stamps `data-disabled`. Omit it where nothing can be disabled. */
+	disabledParts?: readonly string[]
+}
+
 /** A named, canonical render a gate drives. */
 type Scenario = {
 	/** Scenario name, printed by every gate that sweeps this entry. */
@@ -142,6 +163,8 @@ export type Case = Scenario & {
 	touchOnBlur?: readonly TouchOnBlurSubject[]
 	/** Form-bound controls whose change writes the field, whatever the caller's `onChange` does. */
 	writeOnChange?: readonly WriteOnChangeSubject[]
+	/** Disclosures whose parts stamp their open state and their disabled state. */
+	disclosure?: readonly DisclosureSubject[]
 }
 
 /**

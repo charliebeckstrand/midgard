@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentProps, ReactNode } from 'react'
+import type { ComponentProps, HTMLAttributes, ReactNode } from 'react'
 import type { ScaleStep } from '../../core/density'
 import type { scale as buttonScale } from '../../recipes/kata/button'
 import type { scale as controlScale } from '../../recipes/kata/control'
@@ -68,55 +68,65 @@ type FileUploadSharedProps = {
 
 /**
  * Props for {@link FileUploadDrop}: the shared accept and limit rules, plus the
- * prompt the empty zone shows.
+ * prompt the empty zone shows. The zone takes the rest: a `<button>` while it
+ * is empty, or else a `<div>`. `defaultValue` holds files.
  */
-export type FileUploadDropProps = FileUploadSharedProps & {
-	/**
-	 * Replaces the built-in icon-and-prompt inside the empty zone, and names the
-	 * hidden input. The zone keeps its own height; set another through
-	 * `className`, as `<SignaturePad>` does. The empty zone is a `<button>`, so
-	 * the children must be phrasing content with no interactive element.
-	 */
-	children?: ReactNode
-}
+export type FileUploadDropProps = Omit<HTMLAttributes<HTMLElement>, 'defaultValue'> &
+	FileUploadSharedProps & {
+		/**
+		 * Replaces the built-in icon-and-prompt inside the empty zone, and names the
+		 * hidden input. The zone keeps its own height; set another through
+		 * `className`, as `<SignaturePad>` does. The empty zone is a `<button>`, so
+		 * the children must be phrasing content with no interactive element.
+		 */
+		children?: ReactNode
+	}
 
-/** Props for {@link FileUploadInput}: the shared accept and limit rules, plus the field's size and placeholder. */
-export type FileUploadInputProps = FileUploadSharedProps & {
-	/**
-	 * The density step of the field. Omit it to take the step of the nearest
-	 * density scope. A step makes the field a density scope.
-	 */
-	size?: ScaleStep<typeof controlScale>
-	/**
-	 * Placeholder when empty; also the hidden input's accessible name.
-	 *
-	 * @defaultValue 'Choose a file'
-	 */
-	placeholder?: string
-}
+/**
+ * Props for {@link FileUploadInput}: the shared accept and limit rules, plus the field's size and placeholder.
+ * The root `<div>` takes the rest. The field takes no children, and `defaultValue` holds files.
+ */
+export type FileUploadInputProps = Omit<ComponentProps<'div'>, 'defaultValue' | 'children'> &
+	FileUploadSharedProps & {
+		/**
+		 * The density step of the field. Omit it to take the step of the nearest
+		 * density scope. A step makes the field a density scope.
+		 */
+		size?: ScaleStep<typeof controlScale>
+		/**
+		 * Placeholder when empty; also the hidden input's accessible name.
+		 *
+		 * @defaultValue 'Choose a file'
+		 */
+		placeholder?: string
+	}
 
-/** Props for {@link FileUploadButton}: the shared accept and limit rules, plus the button's size, color, and label. */
-export type FileUploadButtonProps = FileUploadSharedProps & {
-	/**
-	 * The density step of the button. Omit it to take the step of the nearest
-	 * density scope. A step makes the button a density scope.
-	 */
-	size?: ScaleStep<typeof buttonScale>
-	/** The palette color of the button. @defaultValue 'zinc' */
-	color?: ComponentProps<typeof Button>['color']
-	/**
-	 * The style of the button, such as `plain` for an add button among others.
-	 *
-	 * @defaultValue `'solid'`, or the variant of the surface around the button, as for {@link Button}.
-	 */
-	variant?: ComponentProps<typeof Button>['variant']
-	/**
-	 * The trigger's label, and the hidden input's accessible name.
-	 *
-	 * @defaultValue 'Upload'
-	 */
-	children?: ReactNode
-}
+/**
+ * Props for {@link FileUploadButton}: the shared accept and limit rules, plus the button's size, color, and label.
+ * The root `<div>` takes the rest. `color` is the color of the button, and `defaultValue` holds files.
+ */
+export type FileUploadButtonProps = Omit<ComponentProps<'div'>, 'defaultValue' | 'color'> &
+	FileUploadSharedProps & {
+		/**
+		 * The density step of the button. Omit it to take the step of the nearest
+		 * density scope. A step makes the button a density scope.
+		 */
+		size?: ScaleStep<typeof buttonScale>
+		/** The palette color of the button. @defaultValue 'zinc' */
+		color?: ComponentProps<typeof Button>['color']
+		/**
+		 * The style of the button, such as `plain` for an add button among others.
+		 *
+		 * @defaultValue `'solid'`, or the variant of the surface around the button, as for {@link Button}.
+		 */
+		variant?: ComponentProps<typeof Button>['variant']
+		/**
+		 * The trigger's label, and the hidden input's accessible name.
+		 *
+		 * @defaultValue 'Upload'
+		 */
+		children?: ReactNode
+	}
 
 /** Hook output plus the derived selection flags every variant renderer shares. */
 export type FileUploadRenderState = ReturnType<typeof useFileUploadHandlers> & {
@@ -131,6 +141,45 @@ export type FileUploadRenderState = ReturnType<typeof useFileUploadHandlers> & {
 	 * clipped — the `drop` variant detects that per render (`useIsTruncated`); the
 	 * `input` variant relies on this flag alone. */
 	showTooltip: boolean
+}
+
+/**
+ * Separates the keys that {@link useFileUploadState} reads from the other
+ * props. A component spreads the other props on its root element.
+ *
+ * @internal
+ */
+export function splitFileUploadProps<P extends FileUploadSharedProps>({
+	name,
+	value,
+	defaultValue,
+	onValueChange,
+	accept,
+	multiple,
+	disabled,
+	maxSize,
+	maxCount,
+	onAccept,
+	onReject,
+	onDragOverChange,
+	...rest
+}: P) {
+	const shared: FileUploadSharedProps = {
+		name,
+		value,
+		defaultValue,
+		onValueChange,
+		accept,
+		multiple,
+		disabled,
+		maxSize,
+		maxCount,
+		onAccept,
+		onReject,
+		onDragOverChange,
+	}
+
+	return { shared, rest }
 }
 
 /**

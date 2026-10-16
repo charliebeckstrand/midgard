@@ -443,6 +443,9 @@ export type ComboboxProps<T> = ComboboxBaseProps<T> &
  * hover, such as a phone, a filter change clears the highlight, and only an
  * arrow key sets it.
  *
+ * The input and the panel stamp `data-open` while the panel is open, and the
+ * input stamps `data-disabled` while it is disabled.
+ *
  * @typeParam T - The option value type.
  */
 export function Combobox<T>({

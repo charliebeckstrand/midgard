@@ -1,6 +1,6 @@
 'use client'
 
-import { Children, type ReactNode, useMemo } from 'react'
+import { Children, type ComponentProps, type ReactNode, useMemo } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { useMountsEveryPanel } from '../../primitives/mount'
@@ -9,16 +9,19 @@ import { hasChildOfType, partitionByType } from '../../utilities/children'
 import { type StepperLayout, StepperStepContext, type StepState, useStepper } from './context'
 import { StepperIndicator } from './stepper-indicator'
 
-/** Props for {@link StepperStep}: the step's `value` index, an optional `disabled` flag, and child indicator/title/description content. */
-export type StepperStepProps = {
+/**
+ * Props for {@link StepperStep}: the step's `value` index, an optional `disabled` flag, and child indicator/title/description content.
+ * The root `<li>` takes the rest. The step gives `value` a meaning of its own.
+ */
+export type StepperStepProps = Omit<ComponentProps<'li'>, 'value'> & {
 	value: number
 	/**
 	 * Disables the step, so that a press does not select it.
 	 * @defaultValue false
 	 */
 	disabled?: boolean
+	/** The class of the step: the `<button>` of a step that a press selects, else the `<li>`. */
 	className?: string
-	children?: ReactNode
 }
 
 // Completed/current/upcoming differ visually by color and the checkmark glyph
@@ -97,7 +100,7 @@ function ensureStepperIndicator(children: ReactNode): ReactNode {
  * `responsive` layout it splits children into an indicator column and a content
  * column to align the title baseline with the indicator. From `sm`, CSS dissolves the content column of a `responsive` step.
  */
-export function StepperStep({ value, disabled, className, children }: StepperStepProps) {
+export function StepperStep({ value, disabled, className, children, ...props }: StepperStepProps) {
 	const {
 		value: currentValue,
 		onValueChange,
@@ -143,7 +146,7 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 		const isDisabled = disabled === true || (linear && state === 'upcoming')
 
 		return (
-			<li data-slot="stepper-item" className={k.item.base({ orientation: layout })}>
+			<li data-slot="stepper-item" {...props} className={k.item.base({ orientation: layout })}>
 				<button
 					type="button"
 					id={triggerId}
@@ -167,8 +170,10 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 
 	return (
 		<li
-			id={triggerId}
+			{...props}
+			// The roving model of the stepper selects this anchor, so it comes after the spread.
 			data-slot="stepper-step"
+			id={triggerId}
 			data-state={state}
 			aria-current={state === 'current' ? 'step' : undefined}
 			data-disabled={dataAttr(disabled)}

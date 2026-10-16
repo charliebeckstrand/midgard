@@ -1,5 +1,4 @@
 /// <reference types="vite/client" />
-import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { basename, join } from 'node:path'
 import {
 	type ArrowFunction,
@@ -51,6 +50,7 @@ import {
 } from 'typescript/unstable/sync'
 import { describe, expect, it } from 'vitest'
 import type { ResolvedConfig } from '../../core/recipe/engine/types'
+import { publicBarrels, uiRoot } from '../helpers/public-barrels'
 import { srcDir, srcRelative } from '../helpers/walk-source'
 
 // A component applies a default when a prop is unset. The default comes from
@@ -115,8 +115,6 @@ const kataModules = import.meta.glob<Record<string, unknown>>('../../recipes/kat
 	eager: true,
 })
 
-const uiRoot = join(srcDir, '..')
-
 const kataDir = join(srcDir, 'recipes', 'kata')
 
 const engineTypes = join(srcDir, 'core', 'recipe', 'engine', 'types.ts')
@@ -172,43 +170,6 @@ function reachedRecipes(namespace: Record<string, unknown>): Reached[] {
 	for (const [name, value] of Object.entries(namespace)) visit(value, [name], new Set())
 
 	return reached
-}
-
-/**
- * The barrels of the public surface: each `index.ts` that the `exports` map of
- * `package.json` names. A `*` in a target stands for each directory that holds
- * an `index.ts`.
- */
-function publicBarrels(): string[] {
-	const pkg = JSON.parse(readFileSync(join(uiRoot, 'package.json'), 'utf8')) as {
-		exports: Record<string, string | { default: string }>
-	}
-
-	const barrels = new Set<string>()
-
-	for (const target of Object.values(pkg.exports)) {
-		const path = typeof target === 'string' ? target : target.default
-
-		if (!path.endsWith('/index.ts')) continue
-
-		const [head, tail] = path.split('*')
-
-		if (head === undefined) continue
-
-		if (tail === undefined) {
-			barrels.add(join(uiRoot, head))
-
-			continue
-		}
-
-		for (const entry of readdirSync(join(uiRoot, head), { withFileTypes: true })) {
-			const barrel = join(uiRoot, head, entry.name, tail)
-
-			if (entry.isDirectory() && existsSync(barrel)) barrels.add(barrel)
-		}
-	}
-
-	return [...barrels].sort()
 }
 
 /** The source text of a default, as a `@defaultValue` tag writes it: `'solid'`, `false`, `1`. */

@@ -1,18 +1,20 @@
 'use client'
 
-import { Fragment } from 'react'
+import { type ComponentProps, Fragment } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/query-summary'
 import { type QuerySummaryToken, spacedBefore, summarizeQuery } from './engine/query-summary'
 import type { QueryField, QueryGroup } from './engine/types'
 
-/** Props for {@link QuerySummary}: the query `value` to describe and the `fields` resolving each rule's labels. */
-export type QuerySummaryProps = {
+/**
+ * Props for {@link QuerySummary}: the query `value` to describe and the `fields` resolving each rule's labels.
+ * The `<span>` takes the rest. The summary writes its text itself, so it takes no `children`.
+ */
+export type QuerySummaryProps = Omit<ComponentProps<'span'>, 'children'> & {
 	/** The query tree to describe. */
 	value: QueryGroup
 	/** The fields that give the label, the operators, and the options of each rule. */
 	fields: QueryField[]
-	className?: string
 }
 
 /** Renders one summary token: a muted combinator or bracket, or a rule as field · operator · value. @internal */
@@ -55,13 +57,13 @@ function SummaryToken({ token }: { token: QuerySummaryToken }) {
  * reads `is Empty`. For a plain string (a `title`, an aria-label, a log), reach
  * for `formatQuerySummary`.
  */
-export function QuerySummary({ value, fields, className }: QuerySummaryProps) {
+export function QuerySummary({ value, fields, className, ...props }: QuerySummaryProps) {
 	const tokens = summarizeQuery(value, fields)
 
 	if (tokens.length === 0) return null
 
 	return (
-		<span data-slot="query-summary" className={cn(k.base, className)}>
+		<span data-slot="query-summary" {...props} className={cn(k.base, className)}>
 			{tokens.map((token, index) => (
 				// The kind and the source node name a token, as they do in QueryChips.
 				<Fragment key={`${token.kind}:${token.id}`}>

@@ -126,6 +126,7 @@ export function ListboxPanel({
 				>
 					<PopoverPanel
 						density={size}
+						open={open}
 						id={id}
 						role="listbox"
 						aria-label={ariaLabel}

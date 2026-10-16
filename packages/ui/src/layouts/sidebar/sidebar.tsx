@@ -4,9 +4,7 @@ import { Menu } from 'lucide-react'
 import {
 	type ComponentProps,
 	type PointerEvent,
-	type PropsWithChildren,
 	type ReactNode,
-	type Ref,
 	use,
 	useCallback,
 	useLayoutEffect,
@@ -67,8 +65,11 @@ function toggleSidebar(event: KeyboardEvent) {
 	writeChoice(SIDEBAR.key, readChoice(SIDEBAR) === 'offcanvas' ? 'locked' : 'offcanvas')
 }
 
-/** Props for {@link SidebarLayout}: the sidebar content and the slots beside it. */
-export type SidebarLayoutProps = PropsWithChildren<{
+/**
+ * Props for {@link SidebarLayout}: the sidebar content and the slots beside it.
+ * The root `<div>` takes the rest.
+ */
+export type SidebarLayoutProps = ComponentProps<'div'> & {
 	navbar?: ReactNode
 	sidebar: ReactNode
 	/**
@@ -96,7 +97,7 @@ export type SidebarLayoutProps = PropsWithChildren<{
 	 * disclosure, so neither reports here.
 	 */
 	onOpenChange?: (open: boolean) => void
-}>
+}
 
 /**
  * App shell with a persistent sidebar: an inline desktop panel (or a
@@ -148,7 +149,10 @@ export function SidebarLayout({
 	actions,
 	stickyHeader,
 	onOpenChange,
+	className,
 	children,
+	ref,
+	...props
 }: SidebarLayoutProps) {
 	const { open, setOpen, close } = useOffcanvas({ onOpenChange })
 
@@ -200,7 +204,10 @@ export function SidebarLayout({
 
 	const offcanvasValue = useMemo(() => ({ close }), [close])
 
-	const { root: setRoot, bar: setBar, measure } = useStickyBars()
+	const { root: setStickyRoot, bar: setBar, measure } = useStickyBars()
+
+	// The sticky bars read the root, so a consumer `ref` joins it.
+	const setRoot = useComposedRef<HTMLDivElement>(setStickyRoot, ref)
 
 	// A change of `stickyHeader` makes the header stick or stop to stick at the
 	// same size. No resize tells the bars about it, so the layout measures them
@@ -219,7 +226,7 @@ export function SidebarLayout({
 
 	return (
 		<SidebarLayoutContext value={layoutValue}>
-			<div ref={setRoot} className={k.base()}>
+			<div data-slot="sidebar-layout" {...props} ref={setRoot} className={cn(k.base(), className)}>
 				{/* Hot zone to peek the floating sidebar. It shows only while offcanvas. */}
 				<div
 					aria-hidden
@@ -315,17 +322,19 @@ export function SidebarLayout({
 	)
 }
 
-/** Props for {@link SidebarLayoutHeader}. */
-export type SidebarLayoutHeaderProps = PropsWithChildren<{
-	className?: string
-	ref?: Ref<HTMLElement>
-}>
+/** Props for {@link SidebarLayoutHeader}. The `<header>` takes the rest. */
+export type SidebarLayoutHeaderProps = ComponentProps<'header'>
 
 /**
  * Header slot for {@link SidebarLayout} (`data-slot="header"`). Renders the
  * layout's `actions` alongside its children on desktop.
  */
-export function SidebarLayoutHeader({ ref, children, className }: SidebarLayoutHeaderProps) {
+export function SidebarLayoutHeader({
+	ref,
+	children,
+	className,
+	...props
+}: SidebarLayoutHeaderProps) {
 	const layout = use(SidebarLayoutContext)
 
 	const actions = layout?.actions
@@ -334,7 +343,7 @@ export function SidebarLayoutHeader({ ref, children, className }: SidebarLayoutH
 	const setHeader = useComposedRef<HTMLElement>(layout?.bar, ref)
 
 	return (
-		<header ref={setHeader} data-slot="header" className={cn(k.header(), className)}>
+		<header {...props} ref={setHeader} data-slot="header" className={cn(k.header(), className)}>
 			<div className="flex-1 min-w-0">{children}</div>
 			{actions && <div className={cn(k.actions(), 'max-lg:hidden')}>{actions}</div>}
 		</header>

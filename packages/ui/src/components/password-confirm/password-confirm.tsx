@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useCallback, useId, useMemo, useState } from 'react'
+import { type ComponentProps, type ReactNode, useCallback, useId, useMemo, useState } from 'react'
 import { useA11yLiveRegion } from '../../hooks'
 import { Stack } from '../../structure/stack'
 import { useFormContext } from '../form/context'
@@ -8,12 +8,10 @@ import { Text } from '../text'
 import { PasswordConfirmContext, type PasswordConfirmRole } from './context'
 import { usePasswordConfirmState } from './use-password-confirm-state'
 
-/** Props for {@link PasswordConfirm}. */
-export type PasswordConfirmProps = {
+/** Props for {@link PasswordConfirm}. The root `<div>` takes the rest. */
+export type PasswordConfirmProps = ComponentProps<'div'> & {
 	/** Message shown while the two fields disagree (and the password has no form error). */
 	warning?: ReactNode
-	className?: string
-	children?: ReactNode
 	/**
 	 * Fires on a confirmed match/mismatch transition: `true` once both fields are
 	 * non-empty and equal, `false` once they settle non-empty and unequal. It also
@@ -40,6 +38,7 @@ export function PasswordConfirm({
 	warning,
 	className,
 	children,
+	...props
 }: PasswordConfirmProps) {
 	const [passwordName, setPasswordName] = useState<string | undefined>(undefined)
 	const [confirmName, setConfirmName] = useState<string | undefined>(undefined)
@@ -91,7 +90,7 @@ export function PasswordConfirm({
 
 	return (
 		<PasswordConfirmContext value={context}>
-			<div data-slot="password-confirm" className={className}>
+			<div data-slot="password-confirm" {...props} className={className}>
 				<Stack gap="lg">{children}</Stack>
 				{/*
 					The region stays mounted and only its children change: a live region that

@@ -1,10 +1,9 @@
 'use client'
 
-import type { MouseEvent, ReactNode, Ref, RefObject } from 'react'
+import type { ComponentProps, MouseEvent, ReactNode, Ref, RefObject } from 'react'
 import { cn, composeEventHandlers } from '../../core'
 import { k as chart } from '../../recipes/kata/chart'
 import { k } from '../../recipes/kata/map'
-import type { AccessibleName } from '../../types'
 import { noop } from '../../utilities'
 import { legendBandRow } from '../chart/engine/chart-legend/band'
 import { legendAside } from '../chart/engine/chart-legend/schema'
@@ -18,8 +17,13 @@ import type { MapFrameShape } from './use-map-shape'
 import { useMapTouchTap } from './use-map-touch-tap'
 import type { MapZoomOptions } from './use-map-zoom'
 
-/** Props for {@link MapFrame}: the assembled parts laid out around the plot. @internal */
-type MapFrameProps = {
+/**
+ * Props for {@link MapFrame}: the assembled parts laid out around the plot. The
+ * root `<div>` takes the rest, which are the native props of {@link MapPlat}.
+ *
+ * @internal
+ */
+type MapFrameProps = Omit<ComponentProps<'div'>, 'ref' | 'children'> & {
 	legendNode: ReactNode
 	legendPlacement: MapLegendPlacement
 	plotRegion: ReactNode
@@ -41,7 +45,6 @@ type MapFrameProps = {
 	width: number | undefined
 	/** Free-form (`aspectRatio={false}`) sizing: the frame fills its container's height. */
 	fill: boolean
-	className?: string
 }
 
 /** The frame shell: legend and table as plain HTML around the plot, under the hover provider. @internal */
@@ -60,6 +63,8 @@ export function MapFrame({
 	width,
 	fill,
 	className,
+	style,
+	...props
 }: MapFrameProps) {
 	const aside = legendAside(legendPlacement)
 
@@ -70,8 +75,9 @@ export function MapFrame({
 
 	return (
 		<div
-			ref={containerRef}
 			data-slot="map"
+			{...props}
+			ref={containerRef}
 			// A query container, so a side legend lays out against the map's own width
 			// and not the viewport's: a map in a narrow column stacks its legend on a
 			// wide screen too. The floor (`min-w-48`, the rail's own width) stops a
@@ -86,7 +92,7 @@ export function MapFrame({
 				fill && 'h-full',
 				className,
 			)}
-			style={width === undefined ? undefined : { width }}
+			style={width === undefined ? style : { ...style, width }}
 		>
 			<MapHoverProvider
 				enabled={tooltip}
@@ -140,7 +146,7 @@ export function MapFrame({
 const PLOT_FOCUS = cn('rounded-sm', ...k.focus)
 
 /** Props for {@link MapPlotRegion}: the measured box holding the SVG and the tooltip. @internal */
-type MapPlotRegionProps = AccessibleName & {
+type MapPlotRegionProps = Pick<ComponentProps<'div'>, 'aria-label' | 'aria-labelledby'> & {
 	shape: MapFrameShape
 	aside: boolean
 	tooltip: ReactNode
@@ -163,7 +169,8 @@ export function MapPlotRegion({
 	tooltip,
 	keyboard: options,
 	children,
-	...name
+	'aria-label': ariaLabel,
+	'aria-labelledby': ariaLabelledBy,
 }: MapPlotRegionProps) {
 	// Read here rather than passed down: this element is inside the provider and
 	// the plat is above it, which is the whole point of holding the view state
@@ -198,7 +205,8 @@ export function MapPlotRegion({
 			// A touch hold here does not open a context menu.
 			data-touch-readout=""
 			role="img"
-			{...name}
+			aria-label={ariaLabel}
+			aria-labelledby={ariaLabelledBy}
 			{...keyboard}
 			{...surface}
 			{...press}

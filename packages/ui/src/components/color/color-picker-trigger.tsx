@@ -97,6 +97,8 @@ export function ColorPickerTrigger({
 					aria-disabled={ariaAttr(readOnly && !open)}
 					data-readonly={dataAttr(readOnly)}
 					disabled={disabled}
+					data-open={dataAttr(open)}
+					data-disabled={dataAttr(disabled)}
 					{...validation}
 					onClick={() => onOpenChange(!open)}
 					className={cn(k.button())}

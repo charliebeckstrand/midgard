@@ -1,7 +1,8 @@
 'use client'
 
 import { AnimatePresence } from 'motion/react'
-import type { ReactNode } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
+import { dataAttr } from '../../core'
 import { useOpenChange } from '../../hooks/use-open-change'
 import { useOpenComplete } from '../../hooks/use-open-complete'
 import { MountHold, useMountHold } from '../../primitives/mount'
@@ -11,10 +12,15 @@ import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/collapse'
 import { useCollapseContext } from './context'
 
-/** Props for {@link CollapsePanel}. */
-export type CollapsePanelProps = {
+/**
+ * Props for {@link CollapsePanel}. The outer `<div>` of the panel takes the
+ * rest, except the keys that Motion gives a meaning of its own.
+ */
+export type CollapsePanelProps = Omit<
+	ComponentProps<'div'>,
+	'children' | 'onAnimationStart' | 'onDrag' | 'onDragStart' | 'onDragEnd'
+> & {
 	children: ReactNode
-	className?: string
 }
 
 /**
@@ -24,7 +30,8 @@ export type CollapsePanelProps = {
  * moves the content down with the panel edge. The `false` mode renders
  * synchronously without motion. Honors reduced-motion. The panel clips its
  * content only while its height moves, so at rest an outline, a ring, or a
- * shadow at the edge of the content shows in full.
+ * shadow at the edge of the content shows in full. The panel stamps `data-open`
+ * while it is open.
  *
  * @remarks
  * Under the default `mount="active"` the panel unmounts while closed, so
@@ -35,7 +42,7 @@ export type CollapsePanelProps = {
  * closing height transition lands: `display: none` cannot animate, so the hold
  * has to wait for it.
  */
-export function CollapsePanel({ children, className }: CollapsePanelProps) {
+export function CollapsePanel({ children, className, ...props }: CollapsePanelProps) {
 	const { open, animate, mount, onOpenComplete, panelProps } = useCollapseContext()
 
 	const hold = useMountHold(open, mount, { defer: animate !== false })
@@ -62,9 +69,17 @@ export function CollapsePanel({ children, className }: CollapsePanelProps) {
 	const { id } = panelProps
 
 	// The panel's identity — element, a11y wiring, classes — is one shape across
-	// every branch below; only how it animates (or whether it does) differs.
+	// every branch below; only how it animates (or whether it does) differs. The
+	// consumer props spread first, so the id wiring and the motion win.
 	const panel = (motionProps: object, contentProps?: object) => (
-		<m.div id={id} data-slot="collapse-panel" {...motionProps} className={className}>
+		<m.div
+			data-slot="collapse-panel"
+			{...props}
+			id={id}
+			{...motionProps}
+			data-open={dataAttr(open)}
+			className={className}
+		>
 			{contentProps ? <m.div {...contentProps}>{children}</m.div> : children}
 		</m.div>
 	)
@@ -78,7 +93,13 @@ export function CollapsePanel({ children, className }: CollapsePanelProps) {
 
 		return (
 			<MountHold hold={hold} name="collapse-panel">
-				<div id={id} data-slot="collapse-panel" className={className}>
+				<div
+					data-slot="collapse-panel"
+					{...props}
+					id={id}
+					data-open={dataAttr(open)}
+					className={className}
+				>
 					{children}
 				</div>
 			</MountHold>

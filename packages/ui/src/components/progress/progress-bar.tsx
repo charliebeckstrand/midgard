@@ -1,5 +1,6 @@
 'use client'
 
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { ReducedMotion } from '../../primitives/reduced-motion'
@@ -16,27 +17,29 @@ type ProgressColor = NonNullable<ProgressBarFillVariants['color']>
 
 /**
  * Props for {@link ProgressBar}. Requires an accessible name (`aria-label` or
- * `aria-labelledby`), enforced at the type level by `AccessibleName`.
+ * `aria-labelledby`), enforced at the type level by `AccessibleName`. The root
+ * `<div>` takes the rest. The bar gives `color` a meaning of its own, and draws
+ * its own fill in place of `children`.
  */
-export type ProgressBarProps = AccessibleName & {
-	/** Current progress; omit (or pass `NaN`) for an indeterminate bar. */
-	value?: number
-	/**
-	 * The value of a full bar. The bar holds `value` between 0 and `max`.
-	 *
-	 * @defaultValue 100
-	 */
-	max?: number
-	/** The density step of the track height. Omit it to take the step of the nearest density scope. */
-	size?: ProgressTrackVariants['size']
-	/**
-	 * The palette color of the fill.
-	 *
-	 * @defaultValue 'zinc'
-	 */
-	color?: ProgressColor
-	className?: string
-}
+export type ProgressBarProps = AccessibleName &
+	Omit<ComponentProps<'div'>, 'color' | 'children' | 'aria-label' | 'aria-labelledby'> & {
+		/** Current progress; omit (or pass `NaN`) for an indeterminate bar. */
+		value?: number
+		/**
+		 * The value of a full bar. The bar holds `value` between 0 and `max`.
+		 *
+		 * @defaultValue 100
+		 */
+		max?: number
+		/** The density step of the track height. Omit it to take the step of the nearest density scope. */
+		size?: ProgressTrackVariants['size']
+		/**
+		 * The palette color of the fill.
+		 *
+		 * @defaultValue 'zinc'
+		 */
+		color?: ProgressColor
+	}
 
 /**
  * Linear progress indicator rendered as a `role="progressbar"`. Determinate
@@ -58,7 +61,7 @@ export function ProgressBar({
 	size,
 	color,
 	className,
-	...labelProps
+	...props
 }: ProgressBarProps) {
 	// NaN is "no usable value": treating it as determinate renders
 	// aria-valuenow="NaN" and width "NaN%".
@@ -77,7 +80,7 @@ export function ProgressBar({
 		<div
 			data-slot="progress-bar"
 			data-density={size}
-			{...labelProps}
+			{...props}
 			role="progressbar"
 			aria-valuenow={determinate ? clamp(value, 0, max) : undefined}
 			aria-valuemin={0}

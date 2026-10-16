@@ -1,15 +1,18 @@
 'use client'
 
 import { GripVertical } from 'lucide-react'
-import { type ReactNode, useEffect, useId } from 'react'
-import { cn, dataAttr } from '../../core'
+import { type HTMLAttributes, type ReactNode, useEffect, useId } from 'react'
+import { cn, composeEventHandlers, dataAttr } from '../../core'
 import { SortableGrip } from '../../primitives/sortable-grip/sortable-grip'
 import { k } from '../../recipes/kata/kanban'
 import { Icon } from '../icon'
 import { useKanbanCardContext, useKanbanContext } from './context'
 
-/** Props for {@link KanbanCardHandle}: optional handle content, an accessible-name override, and `className`. */
-export type KanbanCardHandleProps = {
+/**
+ * Props for {@link KanbanCardHandle}: optional handle content and an accessible-name override.
+ * The handle takes the rest: a `<button>` on an interactive board, or else a `<span>`.
+ */
+export type KanbanCardHandleProps = HTMLAttributes<HTMLElement> & {
 	/**
 	 * Replaces the accessible name of the handle. By default the name is "Drag",
 	 * followed by the name of the card: the `aria-label` of the card, or else
@@ -19,7 +22,6 @@ export type KanbanCardHandleProps = {
 	'aria-label'?: string
 	/** Content of the handle. @defaultValue a grip icon. */
 	children?: ReactNode
-	className?: string
 }
 
 /**
@@ -42,6 +44,9 @@ export function KanbanCardHandle({
 	'aria-label': ariaLabel,
 	children,
 	className,
+	onKeyDown,
+	onBlur,
+	...props
 }: KanbanCardHandleProps) {
 	const { disabled, onCardKeyDown, onCardBlur } = useKanbanContext()
 
@@ -61,7 +66,11 @@ export function KanbanCardHandle({
 	if (!card?.interactive) {
 		return (
 			<span
+				onKeyDown={onKeyDown}
+				onBlur={onBlur}
+				{...props}
 				aria-hidden="true"
+				// The card selects the handle by this slot, so it comes after the spread.
 				data-slot="kanban-card-handle"
 				// The drag overlay has no card context, and it shows the held hand.
 				data-dragging={dataAttr(!card)}
@@ -77,14 +86,16 @@ export function KanbanCardHandle({
 
 	return (
 		<SortableGrip
+			{...props}
+			// The card and the keyboard select the handle by this slot, so it comes after the spread.
 			data-slot="kanban-card-handle"
 			sortable={{ setActivatorNodeRef, attributes, listeners, dragging }}
 			id={handleId}
 			// "Drag" and then the name of the card item. An explicit name replaces both.
 			label={ariaLabel ?? 'Drag'}
 			aria-labelledby={ariaLabel ? undefined : `${handleId} ${itemId}`}
-			onKeyDown={(event) => onCardKeyDown(cardId, event)}
-			onBlur={onCardBlur}
+			onKeyDown={composeEventHandlers(onKeyDown, (event) => onCardKeyDown(cardId, event))}
+			onBlur={composeEventHandlers(onBlur, onCardBlur)}
 			data-card-id={cardId}
 			className={cn(k.card.handle, className)}
 		>

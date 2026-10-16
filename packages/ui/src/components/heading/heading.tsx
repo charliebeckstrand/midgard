@@ -21,8 +21,7 @@ export type HeadingProps = {
 	 * at `md`, and each step moves it one rung of the type scale.
 	 */
 	size?: ScaleStep<typeof scale>
-	className?: string
-} & Omit<ComponentProps<'h1'>, 'className'>
+} & ComponentProps<'h1'>
 
 /**
  * Semantic heading rendering `h1`-`h6` per `level`. Weight tracks the level.

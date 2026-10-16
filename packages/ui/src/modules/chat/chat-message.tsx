@@ -1,4 +1,4 @@
-import { memo, type ReactNode } from 'react'
+import { type ComponentProps, memo, type ReactNode } from 'react'
 import { Markdown } from '../../components/markdown'
 import { cn } from '../../core'
 import { type ChatMessageVariants, k } from '../../recipes/kata/chat-message'
@@ -46,21 +46,24 @@ function ChatMessageBlock({ part, className }: { part: ChatPart; className?: str
 	}
 }
 
-/** Props for {@link ChatMessage}. */
-export type ChatMessageProps = ChatMessageVariants & {
-	/** Wall-clock label shown below the bubble. */
-	timestamp?: ReactNode
-	/** Pulses the bubble content and shows the progress cursor, while a response streams in. @defaultValue false */
-	streaming?: boolean
-	/** Action rail below the bubble (copy, retry, edit, …). */
-	actions?: ReactNode
-	className?: string
-	/**
-	 * Message content, rendered as GitHub-flavored Markdown: prose, or the blocks
-	 * it is built from.
-	 */
-	children: string | ChatPart[]
-}
+/**
+ * Props for {@link ChatMessage}. The root `<div>` takes the rest. The message
+ * gives `children` a type of its own.
+ */
+export type ChatMessageProps = ChatMessageVariants &
+	Omit<ComponentProps<'div'>, 'children'> & {
+		/** Wall-clock label shown below the bubble. */
+		timestamp?: ReactNode
+		/** Pulses the bubble content and shows the progress cursor, while a response streams in. @defaultValue false */
+		streaming?: boolean
+		/** Action rail below the bubble (copy, retry, edit, …). */
+		actions?: ReactNode
+		/**
+		 * Message content, rendered as GitHub-flavored Markdown: prose, or the blocks
+		 * it is built from.
+		 */
+		children: string | ChatPart[]
+	}
 
 /**
  * Conversational message bubble sided and colored by `sender`: `user`,
@@ -104,6 +107,7 @@ export const ChatMessage = memo(function ChatMessage({
 	actions,
 	className,
 	children,
+	...props
 }: ChatMessageProps) {
 	const resolvedSender = sender ?? 'assistant'
 
@@ -112,6 +116,7 @@ export const ChatMessage = memo(function ChatMessage({
 	return (
 		<div
 			data-slot="chat-message"
+			{...props}
 			data-sender={resolvedSender}
 			className={cn(k({ sender }), className)}
 		>

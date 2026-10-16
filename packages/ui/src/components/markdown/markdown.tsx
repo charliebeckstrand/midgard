@@ -1,5 +1,5 @@
 import { Marked, type Token } from 'marked'
-import { memo } from 'react'
+import { type ComponentProps, memo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/markdown'
 import { type MarkdownHeadingOffset, MarkdownRenderer } from './markdown-renderer'
@@ -65,8 +65,11 @@ export function primeMarkdown(source: string, options?: { breaks?: boolean }): v
 	lex(source, options?.breaks)
 }
 
-/** Props for {@link Markdown}: the Markdown source string to render as prose, and the heading offset. */
-export type MarkdownProps = {
+/**
+ * Props for {@link Markdown}: the Markdown source string to render as prose, and the heading offset.
+ * The `<div>` of the prose takes the rest. `children` is the source string.
+ */
+export type MarkdownProps = Omit<ComponentProps<'div'>, 'children'> & {
 	/** Markdown source to render. */
 	children: string
 	/**
@@ -86,7 +89,6 @@ export type MarkdownProps = {
 	 * @defaultValue false
 	 */
 	breaks?: boolean
-	className?: string
 }
 
 /**
@@ -135,9 +137,15 @@ export const Markdown = memo(function Markdown({
 	headingOffset,
 	breaks,
 	className,
+	...props
 }: MarkdownProps) {
 	return (
-		<div data-slot="markdown" className={cn(k.base, className)}>
+		<div
+			{...props}
+			// The chat message recipe reads this anchor, so it comes after the spread (CONVENTIONS.md §3.9).
+			data-slot="markdown"
+			className={cn(k.base, className)}
+		>
 			<MarkdownRenderer tokens={lex(children, breaks)} headingOffset={headingOffset} />
 		</div>
 	)

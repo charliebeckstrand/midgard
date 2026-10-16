@@ -23,8 +23,7 @@ export type ContainerProps = {
 	 * @defaultValue 'md'
 	 */
 	padding?: ContainerPadding
-	className?: string
-} & Omit<ComponentProps<'div'>, 'className'>
+} & ComponentProps<'div'>
 
 /**
  * Centered page wrapper that fills the height of its parent. It has a maximum

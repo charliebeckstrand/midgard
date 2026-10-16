@@ -3,9 +3,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/table'
 
 /** Props for {@link TableRow}: native `<tr>` attributes, including a `ref` to the row. */
-export type TableRowProps = {
-	className?: string
-} & Omit<ComponentProps<'tr'>, 'className'>
+export type TableRowProps = {} & ComponentProps<'tr'>
 
 /**
  * A table row (`<tr>`) holding {@link TableCell}s or {@link TableHeader}s.

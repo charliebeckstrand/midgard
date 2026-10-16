@@ -1,6 +1,8 @@
 'use client'
 
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
+import { useComposedRef } from '../../hooks/use-composed-ref'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { Sheet } from '../sheet'
 import { PdfViewerContext } from './context'
@@ -19,8 +21,11 @@ import type {
 } from './types'
 import { usePdfViewer } from './use-pdf-viewer'
 
-/** Props for {@link PdfViewer}: the document source (`pages` or `src`), controlled page state, and zoom defaults. */
-export type PdfViewerProps = {
+/**
+ * Props for {@link PdfViewer}: the document source (`pages` or `src`), controlled page state, and zoom defaults.
+ * The root `<section>` takes the rest. `onLoad` and `onError` report the document, not the element.
+ */
+export type PdfViewerProps = Omit<ComponentProps<'section'>, 'children' | 'onLoad' | 'onError'> & {
 	/**
 	 * Pre-rendered page images, in order. When provided, drives what's rendered.
 	 * When omitted, pages are rendered from `src` via pdf.js.
@@ -176,7 +181,6 @@ export type PdfViewerProps = {
 	 * straight back through {@link PdfViewerProps.magnifier}.
 	 */
 	onMagnifierChange?: (state: PdfViewerMagnifierState) => void
-	className?: string
 	/** The accessible name of the viewer. @defaultValue 'PDF viewer' */
 	'aria-label'?: string
 }
@@ -218,6 +222,8 @@ export function PdfViewer({
 	onActiveHighlightChange,
 	className,
 	'aria-label': ariaLabel = 'PDF viewer',
+	ref,
+	...props
 }: PdfViewerProps) {
 	const context = usePdfViewer({
 		pages,
@@ -248,14 +254,18 @@ export function PdfViewer({
 		setThumbsOpen,
 	} = context
 
+	// The viewer reads its root node, so a consumer `ref` joins it.
+	const rootRef = useComposedRef<HTMLElement>(setRoot, ref)
+
 	return (
 		<PdfViewerContext value={context}>
 			{/* The root of the mobile thumbnail sheet. Its trigger is in the toolbar, and its
 			    panel is in the thumbnails, so the root holds both. It renders no element. */}
 			<Sheet open={thumbsOpen} onOpenChange={setThumbsOpen}>
 				<section
-					ref={setRoot}
 					data-slot="pdf-viewer"
+					{...props}
+					ref={rootRef}
 					aria-label={ariaLabel}
 					className={cn(k.base, fitMode === 'width' && k.fill, className)}
 				>

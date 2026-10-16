@@ -250,6 +250,9 @@ export type DatePickerProps = DatePickerBaseProps &
  * content is its value, so a screen reader announces the selected date after
  * the name from `aria-label` or a Field label.
  *
+ * The trigger and the dialog stamp `data-open` while the dialog is open, and the
+ * trigger stamps `data-disabled` while it is disabled.
+ *
  * @see {@link DatePickerProps} for the discriminated value/handler shapes.
  */
 export function DatePicker(props: DatePickerProps) {

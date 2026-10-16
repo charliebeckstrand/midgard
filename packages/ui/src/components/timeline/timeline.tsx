@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentProps, type ReactNode, useMemo } from 'react'
+import { type ComponentProps, useMemo } from 'react'
 import { cn } from '../../core'
 import { useComposedRef, useScrollRegion } from '../../hooks'
 import { k } from '../../recipes/kata/timeline'
@@ -8,7 +8,7 @@ import type { TimelineOrientation, TimelineVariant } from './context'
 import { TimelineContext } from './context'
 
 /** Props for {@link Timeline}. */
-export type TimelineProps = Omit<ComponentProps<'ol'>, 'className' | 'children'> & {
+export type TimelineProps = ComponentProps<'ol'> & {
 	/**
 	 * Layout axis shared with descendant items via context.
 	 * @defaultValue 'vertical'
@@ -19,8 +19,6 @@ export type TimelineProps = Omit<ComponentProps<'ol'>, 'className' | 'children'>
 	 * @defaultValue 'solid'
 	 */
 	variant?: TimelineVariant
-	className?: string
-	children?: ReactNode
 }
 
 /**

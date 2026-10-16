@@ -1,8 +1,9 @@
 'use client'
 
-import { useCallback, useLayoutEffect, useRef } from 'react'
+import { type ComponentProps, useCallback, useLayoutEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { useA11yAnnouncements, usePrefersReducedMotion, useVirtualWindow } from '../../hooks'
+import { useComposedRef } from '../../hooks/use-composed-ref'
 import { k } from '../../recipes/kata/chat-transcript'
 import { ChatMessage } from './chat-message'
 import { ChatRowContext } from './context'
@@ -35,8 +36,11 @@ const OVERSCAN = 4
  */
 const UNMEASURED_ROWS = 20
 
-/** Props for {@link ChatTranscript}. */
-export type ChatTranscriptProps = {
+/**
+ * Props for {@link ChatTranscript}. The scroll `<div>` takes the rest. The
+ * transcript writes its rows itself, so it takes no `children`.
+ */
+export type ChatTranscriptProps = Omit<ComponentProps<'div'>, 'children'> & {
 	/**
 	 * The transcript, oldest first. Give each message an `id`: the window keys
 	 * each row and each measured height by it. A message with no id falls back
@@ -48,7 +52,6 @@ export type ChatTranscriptProps = {
 	 * @defaultValue false
 	 */
 	streaming?: boolean
-	className?: string
 }
 
 /**
@@ -108,8 +111,17 @@ export type ChatTranscriptProps = {
  * mount announces the last reply, which is right: from the reader's side, a
  * reply just landed.
  */
-export function ChatTranscript({ messages, streaming, className }: ChatTranscriptProps) {
+export function ChatTranscript({
+	messages,
+	streaming,
+	className,
+	ref,
+	...props
+}: ChatTranscriptProps) {
 	const containerRef = useRef<HTMLDivElement>(null)
+
+	// The window reads `containerRef`, so a consumer `ref` joins it.
+	const setContainer = useComposedRef(containerRef, ref)
 
 	const count = messages.length
 
@@ -185,8 +197,9 @@ export function ChatTranscript({ messages, streaming, className }: ChatTranscrip
 
 	return (
 		<div
-			ref={containerRef}
 			data-slot="chat-transcript"
+			{...props}
+			ref={setContainer}
 			role="log"
 			aria-live="off"
 			className={cn(k(), className)}

@@ -12,7 +12,7 @@ import {
 	useLayoutEffect,
 	useRef,
 } from 'react'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import type { DensityStep } from '../../core/density'
 import { useComposedRef } from '../../hooks'
 import { k } from '../../recipes/kata/popover'
@@ -73,6 +73,9 @@ export type FloatingSurfaceProps = {
  * `FloatingFocusManager` that traps Tab. It cedes initial focus and close-time
  * restore to the consuming panel hook, which `trapFocusProps` overrides
  * per-surface.
+ *
+ * The positioned wrapper carries `data-slot="floating-surface"`, and it stamps
+ * `data-open` while the surface is open.
  */
 export function FloatingSurface({
 	open,
@@ -131,11 +134,13 @@ export function FloatingSurface({
 	const surface = (
 		<div
 			ref={setWrapper}
+			data-slot="floating-surface"
 			style={style ? { ...floatingStyles, ...style } : floatingStyles}
 			className={cn(k.portal, className)}
 			// Routed through getFloatingProps so consumer handlers compose
 			// with floating-ui's own instead of being overwritten.
 			{...getFloatingProps(rest)}
+			data-open={dataAttr(open)}
 		>
 			{children}
 		</div>

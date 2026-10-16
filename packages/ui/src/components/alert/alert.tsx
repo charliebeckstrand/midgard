@@ -1,15 +1,22 @@
 'use client'
 
 import { AlertTriangle, CheckCircle, Info, X, XCircle } from 'lucide-react'
-import { type ReactElement, type ReactNode, type RefObject, useLayoutEffect, useRef } from 'react'
+import {
+	type ComponentProps,
+	type ReactElement,
+	type ReactNode,
+	type RefObject,
+	useLayoutEffect,
+	useRef,
+} from 'react'
 import { cn } from '../../core'
 import { useControllableFlag } from '../../hooks'
 import { useAnnounceOnAppear } from '../../hooks/a11y/use-announce-on-appear'
+import { useComposedRef } from '../../hooks/use-composed-ref'
 import { type AlertVariants, k } from '../../recipes/kata/alert'
 import { flattenFragments } from '../../utilities/children'
 import { Button } from '../button'
 import { type ButtonDefaults, ButtonDefaultsProvider } from '../button/context'
-import type { HeadingLevel } from '../heading'
 import { Icon } from '../icon'
 import { AlertBody } from './alert-body'
 
@@ -49,93 +56,88 @@ function renderChildren(children: ReactNode): ReactNode {
 	return hasContent(children) ? <AlertBody>{children}</AlertBody> : null
 }
 
-/** Props for {@link Alert}; merges recipe variants with severity, content slots, and controlled/uncontrolled open state. */
-export type AlertProps = Omit<AlertVariants, 'color'> & {
-	/**
-	 * The palette color of the alert. It replaces the color of the `severity`.
-	 *
-	 * @defaultValue `'zinc'`, or the color of the `severity`: blue, green, amber, or red.
-	 */
-	color?: AlertVariants['color']
-	/**
-	 * Semantic kind: drives the default color, an icon, and the ARIA role
-	 * (`'alert'` for warning/error, `'status'` for info/success). The icon shows
-	 * only when the alert has a `title`. An explicit `color` replaces the color
-	 * of the severity. Use `color` alone to render a colored alert with no
-	 * semantic meaning.
-	 *
-	 * @defaultValue No severity: the color is zinc, with no icon and no ARIA role.
-	 */
-	severity?: AlertSeverity
-	/** Icon at the start. It replaces the icon of `severity`, and shows with or without a `title`. */
-	icon?: ReactElement
-	/** The heading of the alert, in the larger, semibold text. A severity icon shows only with a title. */
-	title?: ReactNode
-	/**
-	 * Heading level of the `title`. Set it when the alert heads a part of the page,
-	 * so that a screen reader can find the title in the heading list. Omit it to
-	 * render the title in a `<div>`. The look does not change with the level.
-	 *
-	 * @defaultValue No level: the title renders in a `<div>`.
-	 */
-	titleLevel?: HeadingLevel
-	/** The text under the title, in a tight line height. */
-	description?: ReactNode
-	/**
-	 * Controls under the text. A button in them with no `variant` or `color`
-	 * takes the soft variant in the color of the alert, and a solid alert gives
-	 * it the plain variant in the text color. A solid or a soft button in a solid
-	 * alert takes the color of the recipe, as the text color paints no fill. The
-	 * defaults stop at a portal, such as a dialog that an action opens.
-	 */
-	actions?: ReactNode
-	/**
-	 * Shows a close button that dismisses the alert.
-	 * @defaultValue false
-	 */
-	closable?: boolean
-	/** Initial open state (uncontrolled). @defaultValue true */
-	defaultOpen?: boolean
-	/**
-	 * Controlled open state. A controlled alert stays open until `open` changes,
-	 * so pass `onOpenChange` with it to let the close button dismiss the alert.
-	 *
-	 * @defaultValue Uncontrolled: the state starts from `defaultOpen`.
-	 */
-	open?: boolean
-	/** Called when the open state changes. */
-	onOpenChange?: (open: boolean) => void
-	/**
-	 * Whether an `info` or `success` alert that mounts open is mirrored through
-	 * the announcer, as one that opens later is.
-	 *
-	 * @remarks
-	 * Set it on an alert that a user action renders, such as
-	 * `{saved && <Alert severity="success" announceOnMount />}`. Without it, an
-	 * alert that mounts open stays silent, because it can be part of the page
-	 * as it loads. A `warning` or `error` alert announces on insertion, so the
-	 * prop has no effect there.
-	 *
-	 * @defaultValue false
-	 */
-	announceOnMount?: boolean
-	/**
-	 * When the alert is dismissed via its close button, move focus to this
-	 * element instead of letting it fall to the document body (WCAG 2.4.3).
-	 * Opt-in; focus is untouched when unset. Point it at the control that
-	 * surfaced the alert.
-	 *
-	 * @remarks
-	 * Focus moves only when the alert closes. A controlled alert that stays
-	 * open after the press keeps focus on its close button.
-	 */
-	returnFocusTo?: RefObject<HTMLElement | null>
-	className?: string
-	/** The body of the alert, under the description. The alert wraps it in an `AlertBody`. */
-	children?: ReactNode
-	/** Root slot identifier. Wrappers override it to stamp their own name. */
-	'data-slot'?: string
-}
+/**
+ * Props for {@link Alert}; merges recipe variants with severity, content slots, and controlled/uncontrolled open state.
+ * The root `<div>` takes the rest. The alert gives `title` and `color` a meaning of its own.
+ */
+export type AlertProps = Omit<AlertVariants, 'color'> &
+	Omit<ComponentProps<'div'>, 'title' | 'color'> & {
+		/**
+		 * The palette color of the alert. It replaces the color of the `severity`.
+		 *
+		 * @defaultValue `'zinc'`, or the color of the `severity`: blue, green, amber, or red.
+		 */
+		color?: AlertVariants['color']
+		/**
+		 * Semantic kind: drives the default color, an icon, and the ARIA role
+		 * (`'alert'` for warning/error, `'status'` for info/success). The icon shows
+		 * only when the alert has a `title`. An explicit `color` replaces the color
+		 * of the severity. Use `color` alone to render a colored alert with no
+		 * semantic meaning.
+		 *
+		 * @defaultValue No severity: the color is zinc, with no icon and no ARIA role.
+		 */
+		severity?: AlertSeverity
+		/** Icon at the start. It replaces the icon of `severity`, and shows with or without a `title`. */
+		icon?: ReactElement
+		/** The heading of the alert, in the larger, semibold text. A severity icon shows only with a title. */
+		title?: ReactNode
+		/** The text under the title, in a tight line height. */
+		description?: ReactNode
+		/**
+		 * Controls under the text. A button in them with no `variant` or `color`
+		 * takes the soft variant in the color of the alert, and a solid alert gives
+		 * it the plain variant in the text color. A solid or a soft button in a solid
+		 * alert takes the color of the recipe, as the text color paints no fill. The
+		 * defaults stop at a portal, such as a dialog that an action opens.
+		 */
+		actions?: ReactNode
+		/**
+		 * Shows a close button that dismisses the alert.
+		 * @defaultValue false
+		 */
+		closable?: boolean
+		/** Initial open state (uncontrolled). @defaultValue true */
+		defaultOpen?: boolean
+		/**
+		 * Controlled open state. A controlled alert stays open until `open` changes,
+		 * so pass `onOpenChange` with it to let the close button dismiss the alert.
+		 *
+		 * @defaultValue Uncontrolled: the state starts from `defaultOpen`.
+		 */
+		open?: boolean
+		/** Called when the open state changes. */
+		onOpenChange?: (open: boolean) => void
+		/**
+		 * Whether an `info` or `success` alert that mounts open is mirrored through
+		 * the announcer, as one that opens later is.
+		 *
+		 * @remarks
+		 * Set it on an alert that a user action renders, such as
+		 * `{saved && <Alert severity="success" announceOnMount />}`. Without it, an
+		 * alert that mounts open stays silent, because it can be part of the page
+		 * as it loads. A `warning` or `error` alert announces on insertion, so the
+		 * prop has no effect there.
+		 *
+		 * @defaultValue false
+		 */
+		announceOnMount?: boolean
+		/**
+		 * When the alert is dismissed via its close button, move focus to this
+		 * element instead of letting it fall to the document body (WCAG 2.4.3).
+		 * Opt-in; focus is untouched when unset. Point it at the control that
+		 * surfaced the alert.
+		 *
+		 * @remarks
+		 * Focus moves only when the alert closes. A controlled alert that stays
+		 * open after the press keeps focus on its close button.
+		 */
+		returnFocusTo?: RefObject<HTMLElement | null>
+		/** The body of the alert, under the description. The alert wraps it in an `AlertBody`. */
+		children?: ReactNode
+		/** Root slot identifier. Wrappers override it to stamp their own name. */
+		'data-slot'?: string
+	}
 
 /**
  * Resolves the color, the icon, and the ARIA role from the severity. An explicit
@@ -170,7 +172,6 @@ function resolveAlertPresentation(
 function AlertContent({
 	resolvedIcon,
 	title,
-	titleLevel,
 	description,
 	actions,
 	actionDefaults,
@@ -178,22 +179,17 @@ function AlertContent({
 }: {
 	resolvedIcon: ReactElement | undefined
 	title: ReactNode
-	titleLevel: HeadingLevel | undefined
 	description: ReactNode
 	actions: ReactNode
 	actionDefaults: ButtonDefaults
 	children: ReactNode
 }) {
-	// Tailwind preflight resets the font and the margin of a heading, so a heading
-	// title looks the same as a `<div>` title.
-	const Title = titleLevel === undefined ? 'div' : (`h${titleLevel}` as const)
-
 	return (
 		<div className={cn(k.content, resolvedIcon ? k.columns : 'flex flex-col')}>
 			{resolvedIcon && <Icon icon={resolvedIcon} className={cn(k.icon)} />}
 
 			{hasContent(title) && (
-				<Title className={cn(k.title, resolvedIcon && 'self-center')}>{title}</Title>
+				<div className={cn(k.title, resolvedIcon && 'self-center')}>{title}</div>
 			)}
 
 			{hasContent(description) && <div className={cn(k.description)}>{description}</div>}
@@ -238,7 +234,6 @@ export function Alert({
 	color,
 	icon,
 	title,
-	titleLevel,
 	description,
 	actions,
 	closable,
@@ -250,6 +245,8 @@ export function Alert({
 	className,
 	children,
 	'data-slot': slot = 'alert',
+	ref: consumerRef,
+	...props
 }: AlertProps) {
 	const [open, setOpen] = useControllableFlag({
 		value: openProp,
@@ -258,6 +255,9 @@ export function Alert({
 	})
 
 	const ref = useRef<HTMLDivElement>(null)
+
+	// The announcer reads `ref`, so a consumer `ref` joins it.
+	const setRoot = useComposedRef(ref, consumerRef)
 
 	// Set when the close button is pressed. The focus moves only on the commit
 	// that closes the alert, because a controlled alert can stay open.
@@ -297,15 +297,15 @@ export function Alert({
 
 	return (
 		<div
-			ref={ref}
 			data-slot={slot}
+			{...props}
+			ref={setRoot}
 			role={role}
 			className={cn(k({ variant, color: resolvedColor }), className)}
 		>
 			<AlertContent
 				resolvedIcon={resolvedIcon}
 				title={title}
-				titleLevel={titleLevel}
 				description={description}
 				actions={actions}
 				actionDefaults={

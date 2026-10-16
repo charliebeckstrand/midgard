@@ -1,7 +1,7 @@
 'use client'
 
 import { closestCorners, DndContext } from '@dnd-kit/core'
-import { type ComponentProps, type ReactNode, useCallback, useId, useMemo, useRef } from 'react'
+import { type ComponentProps, useCallback, useId, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useComposedRef, useDragCursor, useScrollRegion, useSortableSensors } from '../../hooks'
 import { keyMatcher, useKeyedStore } from '../../hooks/use-keyed-store'
@@ -21,7 +21,7 @@ import { useKanbanKeyboard } from './use-kanban-keyboard'
  * @typeParam C - Column shape, extending {@link KanbanColumnBase}.
  */
 export type KanbanProps<T, C extends KanbanColumnBase<T>> = AccessibleName &
-	Omit<ComponentProps<'section'>, 'className' | 'children' | 'aria-label' | 'aria-labelledby'> & {
+	Omit<ComponentProps<'section'>, 'aria-label' | 'aria-labelledby'> & {
 		/** Ordered columns. Each column must have a stable `id` and an `items` array. */
 		columns: C[]
 		/** Stable key extractor for items. */
@@ -37,8 +37,6 @@ export type KanbanProps<T, C extends KanbanColumnBase<T>> = AccessibleName &
 		 * @defaultValue false
 		 */
 		disabled?: boolean
-		children?: ReactNode
-		className?: string
 	}
 
 // A drop on a board that is not interactive becomes a cancel.

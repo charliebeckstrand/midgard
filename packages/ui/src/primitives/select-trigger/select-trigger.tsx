@@ -3,6 +3,7 @@
 import type { ComponentProps, ReactNode, Ref } from 'react'
 import { cn, dataAttr } from '../../core'
 import type { ScaleStep } from '../../core/density'
+import { useComposedRef } from '../../hooks/use-composed-ref'
 import type { scale } from '../../recipes/kata/select'
 import { k } from '../../recipes/kata/select'
 import { ControlFrame } from '../control'
@@ -11,12 +12,14 @@ import { PolymorphicStatic } from '../polymorphic'
 /**
  * Props for {@link SelectTrigger}: the floating-reference wiring the caller
  * owns (`open`, `setReference`, `getReferenceProps`), the `glass` / `size`
- * presentation, and the prefix / suffix slot content.
+ * presentation, and the prefix / suffix slot content. The root `<div>` takes
+ * the rest. The floating interactions compose their handlers with the handlers
+ * of the rest.
  */
-export type SelectTriggerProps = {
+export type SelectTriggerProps = Omit<ComponentProps<'div'>, 'prefix' | 'children'> & {
 	open: boolean
 	setReference: Ref<HTMLDivElement>
-	getReferenceProps: () => Record<string, unknown>
+	getReferenceProps: (userProps?: Record<string, unknown>) => Record<string, unknown>
 	glass: boolean
 	/**
 	 * The density step of the host. Omit it to take the step of the nearest
@@ -28,7 +31,6 @@ export type SelectTriggerProps = {
 	suffix?: ReactNode
 	/** Props spread onto the suffix `<span>` slot; Combobox makes the chevron a click target here. */
 	suffixProps?: Omit<ComponentProps<'span'>, 'className' | 'children'>
-	className?: string
 	frameProps?: Omit<ComponentProps<typeof ControlFrame>, 'className' | 'children'>
 	/** Root slot identifier. Wrappers override it to stamp their own name. */
 	'data-slot'?: string
@@ -61,17 +63,25 @@ export function SelectTrigger({
 	suffixProps,
 	className,
 	frameProps,
+	ref,
 	'data-slot': slot = 'control',
 	children,
+	...props
 }: SelectTriggerProps) {
+	// The floating reference reads the node, so a consumer `ref` joins it.
+	const setRoot = useComposedRef(setReference, ref)
+
 	return (
 		<PolymorphicStatic
 			as="div"
 			data-slot={slot}
+			{...props}
+			// The floating interactions come after the rest, and they compose each
+			// handler of the rest with their own.
+			{...getReferenceProps(props)}
 			density={size}
-			ref={setReference}
+			ref={setRoot}
 			className={cn(className)}
-			{...getReferenceProps()}
 		>
 			<ControlFrame
 				data-open={dataAttr(open)}

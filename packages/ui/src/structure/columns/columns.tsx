@@ -26,8 +26,7 @@ export type ColumnsProps = {
 	gap?: ResponsiveColumnsGap
 	/** The block alignment of each cell in its row. Supports responsive breakpoints. */
 	align?: ResponsiveColumnsAlign
-	className?: string
-} & Omit<ComponentProps<'div'>, 'className'>
+} & ComponentProps<'div'>
 
 /**
  * A grid of equal columns. `columns` sets the count of the columns, and `gap`

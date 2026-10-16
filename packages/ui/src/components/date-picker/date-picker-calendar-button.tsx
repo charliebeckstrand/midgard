@@ -1,6 +1,7 @@
 'use client'
 
 import { Calendar as CalendarIcon } from 'lucide-react'
+import { dataAttr } from '../../core'
 import { Button } from '../button'
 import { Icon } from '../icon'
 
@@ -33,6 +34,8 @@ export function DatePickerCalendarButton({
 			aria-haspopup="dialog"
 			aria-expanded={open}
 			disabled={disabled}
+			data-open={dataAttr(open)}
+			data-disabled={dataAttr(disabled)}
 			// Keep focus on the input: a blur here would run the field's
 			// commit-on-blur over a partial entry before the calendar opens.
 			onMouseDown={(event) => event.preventDefault()}

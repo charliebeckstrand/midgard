@@ -121,7 +121,7 @@ export const k = {
 		 * screen. A fully gray map reads as "nobody covers anywhere", which is a
 		 * statement about coverage rather than about a request in flight.
 		 */
-		pending: [ugoki.css.pulse, 'motion-reduce:opacity-50'],
+		loading: [ugoki.css.pulse, 'motion-reduce:opacity-50'],
 		/**
 		 * The pointed region's lit copy carries the hover emphasis statically:
 		 * it is the hovered region by definition, and `:hover` can't reach the

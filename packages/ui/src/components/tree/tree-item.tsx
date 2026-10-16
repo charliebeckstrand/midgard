@@ -1,13 +1,23 @@
 'use client'
 
-import { isValidElement, type ReactElement, type ReactNode, useId } from 'react'
+import {
+	type ComponentProps,
+	isValidElement,
+	type ReactElement,
+	type ReactNode,
+	useId,
+} from 'react'
 import { useControllable, useControllableFlag } from '../../hooks/use-controllable'
 import { flattenFragments } from '../../utilities/children'
 import { TreeItemChildren } from './tree-item-children'
 import { TreeItemContent } from './tree-item-content'
 
-/** Props for {@link TreeItem}. */
-export type TreeItemProps = {
+/**
+ * Props for {@link TreeItem}. The root `<div>`, which holds the row and its
+ * group, takes the rest. The item gives `prefix` and `defaultChecked` a
+ * meaning of its own.
+ */
+export type TreeItemProps = Omit<ComponentProps<'div'>, 'prefix' | 'defaultChecked'> & {
 	/** The item label. */
 	label: ReactNode
 	/** Icon before the label. */
@@ -85,6 +95,7 @@ export type TreeItemProps = {
 	suffix?: ReactNode
 	/** Nested tree items. */
 	children?: ReactNode
+	/** The class of the `role="treeitem"` row, not of the root. */
 	className?: string
 }
 
@@ -103,7 +114,8 @@ export type TreeItemProps = {
  * its name from its `label` alone through `aria-labelledby`, so the text of an
  * affix or of the owned group does not join the name. With `checked` or
  * `defaultChecked`, the row is a checkable item and reflects the state as
- * `aria-checked`. Keyboard: Enter toggles a branch (or the check of a checkable
+ * `aria-checked`. The row and its group stamp `data-open` while the branch is
+ * open. Keyboard: Enter toggles a branch (or the check of a checkable
  * leaf), Space toggles the check of a checkable row and acts as Enter on
  * another row, ArrowRight expands a collapsed branch, ArrowLeft collapses an
  * open one. Focus moves between items on {@link Tree}: ArrowRight on an open
@@ -126,6 +138,7 @@ export function TreeItem({
 	suffix,
 	children,
 	className,
+	...props
 }: TreeItemProps) {
 	const [open, setOpen] = useControllableFlag({
 		value: controlledOpen,
@@ -153,7 +166,8 @@ export function TreeItem({
 	const groupId = useId()
 
 	return (
-		<div data-slot="tree-item">
+		// The kata of the tree selects `tree-item`, so the anchor comes after the spread.
+		<div {...props} data-slot="tree-item">
 			<TreeItemContent
 				label={label}
 				icon={icon}

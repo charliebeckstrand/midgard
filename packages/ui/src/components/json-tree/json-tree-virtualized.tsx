@@ -1,8 +1,10 @@
 'use client'
 
 import {
+	type ComponentProps,
 	type KeyboardEvent,
 	type KeyboardEventHandler,
+	type RefCallback,
 	type RefObject,
 	useCallback,
 	useEffect,
@@ -194,7 +196,11 @@ function focusRowOnMount(container: HTMLElement, index: number): MutationObserve
 }
 
 type JsonTreeVirtualizedProps = {
+	/** The native props of the {@link JsonTree}. The tree element takes them before its own attributes. */
+	rootProps: Omit<ComponentProps<'div'>, 'children'>
 	ref: RefObject<HTMLDivElement | null>
+	/** The ref of the tree element: `ref` joined with the consumer ref. */
+	setRoot: RefCallback<HTMLDivElement> | null
 	data: JsonValue
 	rootKey: string | undefined
 	defaultExpandDepth: number
@@ -215,7 +221,9 @@ type JsonTreeVirtualizedProps = {
 }
 
 export function JsonTreeVirtualized({
+	rootProps,
 	ref,
+	setRoot,
 	data,
 	rootKey,
 	defaultExpandDepth,
@@ -417,13 +425,14 @@ export function JsonTreeVirtualized({
 
 	return (
 		<div
-			ref={ref}
+			data-slot="json-tree"
+			{...rootProps}
+			ref={setRoot}
 			role="tree"
 			aria-label={ariaLabel}
 			aria-labelledby={ariaLabelledby}
-			data-slot="json-tree"
 			className={cn(k.base, k.windowed, className)}
-			style={{ maxHeight, overflow: 'auto' }}
+			style={{ ...rootProps.style, maxHeight, overflow: 'auto' }}
 			// Focus parks here while the focused row is outside the window.
 			tabIndex={-1}
 			onKeyDown={handleKeyDown}

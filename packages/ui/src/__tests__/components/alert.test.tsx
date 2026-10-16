@@ -14,17 +14,10 @@ import {
 } from '../helpers'
 
 describe('Alert', () => {
-	it('renders the title in a div with no titleLevel, and as a heading with one', () => {
-		renderUI(
-			<>
-				<Alert title="Plain" />
-				<Alert severity="error" title="Payment failed" titleLevel={2} />
-			</>,
-		)
+	it('renders the title in a div', () => {
+		renderUI(<Alert severity="error" title="Payment failed" />)
 
-		expect(screen.getByText('Plain').tagName).toBe('DIV')
-
-		expect(screen.getByRole('heading', { level: 2, name: 'Payment failed' })).toBeInTheDocument()
+		expect(screen.getByText('Payment failed').tagName).toBe('DIV')
 	})
 
 	it('gives a button in its actions the soft variant in its own color', () => {

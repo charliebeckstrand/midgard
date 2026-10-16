@@ -1,7 +1,8 @@
-import type { ReactNode } from 'react'
+import type { ComponentProps } from 'react'
+import { cn } from '../core'
 
-/** Props for {@link AuthLayout}: the card or cards to center. */
-export type AuthLayoutProps = { children: ReactNode }
+/** Props for {@link AuthLayout}: the card or cards to center. The `<main>` takes the rest. */
+export type AuthLayoutProps = ComponentProps<'main'>
 
 /**
  * Full-viewport layout that centers its content both axes — the frame for
@@ -9,10 +10,15 @@ export type AuthLayoutProps = { children: ReactNode }
  * a `<main>` filling the dynamic viewport height with a vertical gap between
  * stacked children.
  */
-export function AuthLayout({ children }: AuthLayoutProps) {
+export function AuthLayout({ className, ...props }: AuthLayoutProps) {
 	return (
-		<main className="flex min-h-dvh w-full flex-col items-center justify-center gap-6 p-6">
-			{children}
-		</main>
+		<main
+			data-slot="auth-layout"
+			{...props}
+			className={cn(
+				'flex min-h-dvh w-full flex-col items-center justify-center gap-6 p-6',
+				className,
+			)}
+		/>
 	)
 }

@@ -7,7 +7,11 @@ import { k } from '../../recipes/kata/file-upload'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { FileUploadHiddenInput } from './file-upload-hidden-input'
-import { type FileUploadButtonProps, useFileUploadState } from './file-upload-state'
+import {
+	type FileUploadButtonProps,
+	splitFileUploadProps,
+	useFileUploadState,
+} from './file-upload-state'
 import { triggerLabel } from './file-upload-utilities'
 
 /**
@@ -21,10 +25,14 @@ import { triggerLabel } from './file-upload-utilities'
  *
  * @see {@link FileUploadDrop} · {@link FileUploadInput}
  */
-export function FileUploadButton(props: FileUploadButtonProps) {
-	const state = useFileUploadState(props)
+export function FileUploadButton(allProps: FileUploadButtonProps) {
+	const { shared, rest } = splitFileUploadProps(allProps)
 
-	const { accept, multiple, className, children, size, color, variant } = props
+	const { className, children, size, color, variant, ...props } = rest
+
+	const state = useFileUploadState(shared)
+
+	const { accept, multiple } = shared
 	const { control, disabled, invalid, inputRef, hasFiles, handleChange, openPicker, clearFiles } =
 		state
 
@@ -41,7 +49,7 @@ export function FileUploadButton(props: FileUploadButtonProps) {
 	// different file can be picked — or the selection cleared — without the
 	// trigger swapping out.
 	return (
-		<div data-slot="file-upload" className={cn(k.button, className)}>
+		<div data-slot="file-upload" {...props} className={cn(k.button, className)}>
 			<FileUploadHiddenInput
 				ariaLabel={triggerLabel(children, 'Upload')}
 				control={control}

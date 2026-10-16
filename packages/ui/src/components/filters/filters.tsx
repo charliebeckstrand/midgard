@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useCallback, useMemo, useState } from 'react'
+import { type ComponentProps, type ReactNode, useCallback, useMemo, useState } from 'react'
 import { cn } from '../../core'
 import { useA11yAnnouncements } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
@@ -37,32 +37,38 @@ function isActive(value: unknown): boolean {
 	return true
 }
 
-/** Props for {@link Filters}. Generic over the filter-value record `T`. */
-export type FiltersProps<T extends FilterValue = FilterValue> = AccessibleName & {
-	value?: T
-	defaultValue?: T
-	onValueChange?: (value: T) => void
-	onClear?: () => void
-	/**
-	 * How the bar answers a width that cannot hold its fields — see
-	 * {@link FiltersLayout}.
-	 *
-	 * A `rail` keeps each field at the width that it was given and does not
-	 * shrink it, so give each field a width through its `className`. Under a
-	 * `rail`, a field has no `w-full` default. A field with no width takes the
-	 * width of its content.
-	 *
-	 * @defaultValue 'stack'
-	 */
-	layout?: FiltersLayout
-	/**
-	 * The bar's regions, in order. An optional {@link FiltersPrefix} comes first.
-	 * Then a {@link FiltersBar}, holding a {@link FiltersRow} of fields and
-	 * whatever acts on the whole bar. Then an optional {@link FiltersSuffix}.
-	 */
-	children: ReactNode
-	className?: string
-}
+/**
+ * Props for {@link Filters}. Generic over the filter-value record `T`. The
+ * `<fieldset>` of the bar takes the rest. `defaultValue` holds the record.
+ */
+export type FiltersProps<T extends FilterValue = FilterValue> = AccessibleName &
+	Omit<
+		ComponentProps<'fieldset'>,
+		'aria-label' | 'aria-labelledby' | 'defaultValue' | 'children'
+	> & {
+		value?: T
+		defaultValue?: T
+		onValueChange?: (value: T) => void
+		onClear?: () => void
+		/**
+		 * How the bar answers a width that cannot hold its fields — see
+		 * {@link FiltersLayout}.
+		 *
+		 * A `rail` keeps each field at the width that it was given and does not
+		 * shrink it, so give each field a width through its `className`. Under a
+		 * `rail`, a field has no `w-full` default. A field with no width takes the
+		 * width of its content.
+		 *
+		 * @defaultValue 'stack'
+		 */
+		layout?: FiltersLayout
+		/**
+		 * The bar's regions, in order. An optional {@link FiltersPrefix} comes first.
+		 * Then a {@link FiltersBar}, holding a {@link FiltersRow} of fields and
+		 * whatever acts on the whole bar. Then an optional {@link FiltersSuffix}.
+		 */
+		children: ReactNode
+	}
 
 // The value of a bar that holds none. One object, so the context value keeps
 // its identity.
@@ -106,7 +112,7 @@ export function Filters<T extends FilterValue = FilterValue>({
 	layout = 'stack',
 	children,
 	className,
-	...labelProps
+	...props
 }: FiltersProps<T>) {
 	const [state, setState] = useControllable<T>({
 		value: valueProp,
@@ -183,9 +189,9 @@ export function Filters<T extends FilterValue = FilterValue>({
 	// (WCAG 4.1.3). The hook skips the initial value.
 	useA11yAnnouncements(`${activeCount} ${activeCount === 1 ? 'filter' : 'filters'} active`)
 
-	const label = 'aria-label' in labelProps ? labelProps['aria-label'] : undefined
+	const label = 'aria-label' in props ? props['aria-label'] : undefined
 
-	const labelledBy = 'aria-labelledby' in labelProps ? labelProps['aria-labelledby'] : undefined
+	const labelledBy = 'aria-labelledby' in props ? props['aria-labelledby'] : undefined
 
 	const name = useMemo(() => ({ label, labelledBy }), [label, labelledBy])
 
@@ -199,7 +205,7 @@ export function Filters<T extends FilterValue = FilterValue>({
 			<FiltersNameContext value={name}>
 				{/* `min-w-auto` replaces the min-content floor of a `<fieldset>`, so the
 			    bar sizes as a `<div>` does. */}
-				<fieldset {...labelProps} data-slot="filters" className={cn(k.base, className)}>
+				<fieldset data-slot="filters" {...props} className={cn(k.base, className)}>
 					<FormProvider store={store} actions={formActions} resets={resets}>
 						{children}
 					</FormProvider>

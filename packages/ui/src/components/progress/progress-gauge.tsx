@@ -1,7 +1,7 @@
 'use client'
 
 import { useMotionValue, useTransform } from 'motion/react'
-import type { ReactNode } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { ReducedMotion } from '../../primitives/reduced-motion'
@@ -15,10 +15,13 @@ type ProgressColor = keyof typeof k.color
 
 /**
  * Props for {@link ProgressGauge}. Requires an accessible name (`aria-label` or
- * `aria-labelledby`), enforced at the type level by `AccessibleName`.
+ * `aria-labelledby`), enforced at the type level by `AccessibleName`. The root
+ * `<div>` takes the rest. The gauge gives `color` a meaning of its own, and
+ * draws its own ring in place of `children`.
  */
 export type ProgressGaugeProps = AccessibleName &
-	ProgressGaugeVariants & {
+	ProgressGaugeVariants &
+	Omit<ComponentProps<'div'>, 'color' | 'children' | 'aria-label' | 'aria-labelledby'> & {
 		/**
 		 * The current progress. The gauge holds it between 0 and `max`, and reads `NaN` as 0.
 		 *
@@ -44,7 +47,6 @@ export type ProgressGaugeProps = AccessibleName &
 		 * @defaultValue 3.5
 		 */
 		strokeWidth?: number
-		className?: string
 	}
 
 /**
@@ -67,7 +69,7 @@ export function ProgressGauge({
 	centerLabel,
 	strokeWidth: rawStrokeWidth = 3.5,
 	className,
-	...labelProps
+	...props
 }: ProgressGaugeProps) {
 	// The gauge is always determinate, so a NaN value reads as zero. Otherwise NaN
 	// reaches the ring offset, the readout, and `aria-valuenow`.
@@ -106,11 +108,11 @@ export function ProgressGauge({
 		<div
 			data-slot="progress-gauge"
 			data-density={size}
+			{...props}
 			role="progressbar"
 			aria-valuenow={clamp(value, 0, max)}
 			aria-valuemin={0}
 			aria-valuemax={max}
-			{...labelProps}
 			className={cn(k.gauge.base(), className)}
 		>
 			<svg

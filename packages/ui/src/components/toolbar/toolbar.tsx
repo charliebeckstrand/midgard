@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentProps, type ReactNode, useLayoutEffect, useMemo, useRef } from 'react'
+import { type ComponentProps, useLayoutEffect, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useA11yRoving, useResizeObserver } from '../../hooks'
 import { useComposedRef } from '../../hooks/use-composed-ref'
@@ -14,14 +14,12 @@ import type { ToolbarOrientation } from './types'
 /** Props for {@link Toolbar}. Requires `aria-label` or `aria-labelledby`. */
 export type ToolbarProps = AccessibleName &
 	Omit<ToolbarVariants, 'orientation'> &
-	Omit<ComponentProps<'div'>, 'className' | 'onKeyDown' | 'aria-label' | 'aria-labelledby'> & {
+	Omit<ComponentProps<'div'>, 'onKeyDown' | 'aria-label' | 'aria-labelledby'> & {
 		/**
 		 * Layout axis and arrow-key navigation direction.
 		 * @defaultValue 'horizontal'
 		 */
 		orientation?: ToolbarOrientation
-		className?: string
-		children?: ReactNode
 	}
 
 /**

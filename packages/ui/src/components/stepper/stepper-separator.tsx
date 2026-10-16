@@ -7,9 +7,7 @@ import { k } from '../../recipes/kata/stepper'
 import { useStepper } from './context'
 
 /** Props for {@link StepperSeparator}: `className` plus `<li>` attributes, `ref` included. */
-export type StepperSeparatorProps = {
-	className?: string
-} & Omit<ComponentProps<'li'>, 'className'>
+export type StepperSeparatorProps = {} & ComponentProps<'li'>
 
 /**
  * Decorative connector rule drawn between adjacent {@link StepperStep}s,

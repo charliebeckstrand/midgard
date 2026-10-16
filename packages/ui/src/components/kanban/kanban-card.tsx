@@ -1,6 +1,6 @@
 'use client'
 
-import { memo, type ReactNode, useCallback, useEffect, useId, useMemo, useRef } from 'react'
+import { type ComponentProps, memo, useCallback, useEffect, useId, useMemo, useRef } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useSortableItem } from '../../hooks'
 import { useDevWarning } from '../../hooks/use-dev-warning'
@@ -8,8 +8,13 @@ import { useKeyedValue } from '../../hooks/use-keyed-store'
 import { k } from '../../recipes/kata/kanban'
 import { KanbanCardContext, useKanbanColumnContext, useKanbanContext } from './context'
 
-/** Props for {@link KanbanCard}: the `value` matching a parent-column item, with an optional accessible-name override. */
-export type KanbanCardProps = {
+/**
+ * Props for {@link KanbanCard}: the `value` matching a parent-column item, with
+ * an optional accessible-name override. The `<li>` of the card takes the rest.
+ * The `className` goes on the card, which is the `<div>` inside the `<li>` on an
+ * interactive board.
+ */
+export type KanbanCardProps = Omit<ComponentProps<'li'>, 'value'> & {
 	/** Stable key matching an entry in the parent column's `items`; the keyed-child `value` every compound in the library takes. */
 	value: string
 	/**
@@ -19,8 +24,6 @@ export type KanbanCardProps = {
 	 * Only set this when the content doesn't yield a usable name.
 	 */
 	'aria-label'?: string
-	children?: ReactNode
-	className?: string
 }
 
 /**
@@ -43,12 +46,7 @@ export type KanbanCardProps = {
  * reads only the card-facing {@link KanbanContext}, so a pointer drag doesn't
  * re-render the whole board.
  */
-function KanbanCardImpl({
-	value: cardId,
-	'aria-label': ariaLabel,
-	children,
-	className,
-}: KanbanCardProps) {
+function KanbanCardImpl({ value: cardId, id, children, className, ...props }: KanbanCardProps) {
 	const { interactive, disabled, liftedStore, overlayMap } = useKanbanContext()
 
 	// Surfaces the column context for use within this card.
@@ -68,7 +66,10 @@ function KanbanCardImpl({
 			disabled: !interactive,
 		})
 
-	const itemId = useId()
+	const generatedId = useId()
+
+	// The handle names itself through this id, so a consumer `id` takes its place.
+	const itemId = id ?? generatedId
 
 	// The handles that are mounted in the card. A handle registers in its own
 	// effect, which runs before the effect of the card.
@@ -140,7 +141,10 @@ function KanbanCardImpl({
 		return (
 			<KanbanCardContext value={cardValue}>
 				<li
-					aria-label={ariaLabel}
+					id={id}
+					{...props}
+					// The move announcements read this anchor, so it comes after the
+					// spread (CONVENTIONS.md §3.9).
 					data-slot="kanban-card"
 					data-card-id={cardId}
 					data-disabled={dataAttr(disabled)}
@@ -158,7 +162,7 @@ function KanbanCardImpl({
 	// card adds no role over its content and keeps its touch scrolling.
 	return (
 		<KanbanCardContext value={cardValue}>
-			<li id={itemId} aria-label={ariaLabel} data-slot="kanban-card-item">
+			<li data-slot="kanban-card-item" {...props} id={itemId}>
 				<div
 					ref={setNodeRef}
 					style={style}

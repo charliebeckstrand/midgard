@@ -27,6 +27,7 @@ import { VirtualItemSourceContext } from '../virtual-options/context'
  * @remarks Defaults to `role="listbox"`; override `role` for menus and the
  * like. `role="none"` renders no role attribute. `aria-multiselectable` is honored
  * only on listbox roles. Pass `glass` for the translucent surface variant.
+ * Pass `open` from the owner, and the panel stamps `data-open` while it is open.
  */
 export function PopoverPanel({
 	id,
@@ -41,6 +42,7 @@ export function PopoverPanel({
 	glass = false,
 	multiselectable,
 	density,
+	open,
 	'aria-label': ariaLabel,
 	'aria-labelledby': ariaLabelledby,
 	'aria-describedby': ariaDescribedby,
@@ -117,6 +119,14 @@ export function PopoverPanel({
 	 * subtree of its trigger, so it opens its own scope.
 	 */
 	density?: DensityStep
+	/**
+	 * The open state of the owner, such as a menu or a listbox. The panel stamps
+	 * `data-open` while it is `true`. Omit it for a panel that has no open state,
+	 * such as a `static` menu.
+	 *
+	 * @defaultValue No open state: the panel stamps no `data-open`.
+	 */
+	open?: boolean
 	/** Accessible name for the panel's role (e.g. the listbox), threaded from the owning control. */
 	'aria-label'?: string
 	'aria-labelledby'?: string
@@ -172,6 +182,7 @@ export function PopoverPanel({
 				// below is the other half. See `recipes/kiso/hannou/glass-item.ts`.
 				data-glass={dataAttr(glass)}
 				data-density={density}
+				data-open={dataAttr(open)}
 				role={role === 'none' ? undefined : role}
 				aria-label={ariaLabel}
 				aria-labelledby={ariaLabelledby}

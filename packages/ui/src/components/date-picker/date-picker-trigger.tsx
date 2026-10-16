@@ -165,6 +165,8 @@ export function DatePickerTrigger({
 					data-slot="datepicker-button"
 					disabled={disabled}
 					data-readonly={dataAttr(readOnly)}
+					data-open={dataAttr(open)}
+					data-disabled={dataAttr(disabled)}
 					{...validation}
 					onClick={() => onOpenChange(!open)}
 					onKeyDown={onKeyDown}

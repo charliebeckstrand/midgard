@@ -1,7 +1,7 @@
 'use client'
 
-import type { ReactNode, RefObject } from 'react'
-import { cn, dataAttr } from '../../core'
+import type { ComponentProps, ReactNode, RefObject } from 'react'
+import { cn, composeEventHandlers, dataAttr } from '../../core'
 import { useA11yPanel, useMinBreakpoint } from '../../hooks'
 import { useOpenComplete } from '../../hooks/use-open-complete'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
@@ -23,10 +23,16 @@ export type DialogProps = PanelRootProps
 
 /**
  * Props for {@link DialogPanel}: the `width` variant, align, dismissal, the
- * surface, and accessible naming.
+ * surface, and accessible naming. The animated panel `<div>` takes the rest,
+ * except the keys that Motion gives a meaning of its own. The panel sets its
+ * `id` and its ARIA wiring after the rest.
  */
 export type DialogPanelProps = Omit<DialogPanelVariants, 'surface'> &
-	PanelOverlayProps & {
+	PanelOverlayProps &
+	Omit<
+		ComponentProps<'div'>,
+		'children' | 'role' | 'onAnimationStart' | 'onDrag' | 'onDragStart' | 'onDragEnd'
+	> & {
 		/**
 		 * Fires once the panel has finished arriving — it is up, at rest, and covering
 		 * whatever it covers.
@@ -58,7 +64,6 @@ export type DialogPanelProps = Omit<DialogPanelVariants, 'surface'> &
 		 * @defaultValue `false`, or the flag of the enclosing `<GlassProvider>`.
 		 */
 		glass?: boolean
-		className?: string
 		children: ReactNode
 		/**
 		 * The content of the footer row that the dialog shows when no `DialogFooter`
@@ -134,7 +139,8 @@ export function Dialog(props: DialogProps) {
  * panel, its close parts, and its dismissal share the open-state setter of the root.
  * A click in the panel stops at the panel, so it does not reach a clickable ancestor of the
  * Dialog. With a `container`, the panel stays in the box of that element. The `sm`
- * breakpoint, which selects the layout and the motion, still reads the viewport.
+ * breakpoint, which selects the layout and the motion, still reads the viewport. The
+ * panel stamps `data-open` while it is open.
  */
 export function DialogPanel({
 	onOpenComplete,
@@ -152,6 +158,8 @@ export function DialogPanel({
 	initialFocus,
 	'aria-label': ariaLabel,
 	'data-slot': slot = 'dialog',
+	onClick,
+	...props
 }: DialogPanelProps) {
 	// The root holds the state. One setter drives the Overlay and the close parts.
 	const { open, setOpen, panelId } = usePanelState()
@@ -195,19 +203,24 @@ export function DialogPanel({
 				)}
 			>
 				<m.div
+					data-slot={slot}
+					{...props}
 					{...preset}
 					onAnimationComplete={onAnimationComplete}
 					{...ariaProps}
 					aria-label={ariaLabelledBy ? undefined : ariaLabel}
 					id={panelId}
-					data-slot={slot}
 					// React carries a click in the portal up the component tree. Stop it at
 					// the panel, so a clickable ancestor of the Dialog does not see it.
-					onClick={(event) => event.stopPropagation()}
+					// A consumer's preventDefault() does not let the click past the panel (CONVENTIONS.md §3.9).
+					onClick={composeEventHandlers(onClick, (event) => event.stopPropagation(), {
+						checkForDefaultPrevented: false,
+					})}
 					// Half the marker `hannou.tint.glass` keys on; the `group/glass` class
 					// below is the other half. See `recipes/kiso/hannou/glass-item.ts`. A
 					// command palette's rows hover inside this panel, not inside a popover.
 					data-glass={dataAttr(isGlass)}
+					data-open={dataAttr(open)}
 					className={cn(
 						'pointer-events-auto',
 						isGlass && 'group/glass',

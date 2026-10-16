@@ -1,6 +1,6 @@
 'use client'
 
-import { type Ref, useCallback } from 'react'
+import { type ComponentProps, type Ref, useCallback } from 'react'
 import { ariaAttr, cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/signature-pad'
 import { Button } from '../button'
@@ -10,10 +10,15 @@ export type { SignaturePadHandle }
 
 /**
  * Props for {@link SignaturePad}; controls the bound field value, stroke styling, the stroke bracket, and the optional clear affordance.
+ * The root `<div>` takes the rest. The `aria-label` names the canvas, and the
+ * `ref` takes the imperative handle, not the element.
  *
  * @see {@link SignaturePadHandle} for the imperative `ref` API.
  */
-export type SignaturePadProps = {
+export type SignaturePadProps = Omit<
+	ComponentProps<'div'>,
+	'ref' | 'children' | 'defaultValue' | 'placeholder' | 'aria-label'
+> & {
 	/** Binds the data-URL signature to an enclosing Form field. `Form.defaultValues` must seed `string | null`. */
 	name?: string
 	/** Controlled value: a data URL, or `null` / `undefined` when empty. */
@@ -70,7 +75,6 @@ export type SignaturePadProps = {
 	 */
 	'aria-label'?: string
 	ref?: Ref<SignaturePadHandle>
-	className?: string
 }
 
 /**
@@ -103,6 +107,7 @@ export function SignaturePad({
 	'aria-label': ariaLabel = 'Signature',
 	ref,
 	className,
+	...props
 }: SignaturePadProps) {
 	// The state resolves the Control cascade: the canvas takes the field's
 	// validity and description/error ids, and an ambient disabled or read-only
@@ -141,8 +146,9 @@ export function SignaturePad({
 
 	return (
 		<div
-			ref={containerRef}
 			data-slot="signature-pad"
+			{...props}
+			ref={containerRef}
 			data-empty={dataAttr(empty)}
 			data-disabled={dataAttr(resolvedDisabled)}
 			data-readonly={dataAttr(resolvedReadOnly)}

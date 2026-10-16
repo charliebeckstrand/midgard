@@ -14,7 +14,6 @@ import { useControlFieldContext } from '../control/use-control-field-context'
  */
 export type FieldProps = {
 	autoComplete?: string
-	className?: string
 	/** @defaultValue `false`, or `true` inside a disabled Control or Field. */
 	disabled?: boolean
 	htmlFor?: string
@@ -23,7 +22,7 @@ export type FieldProps = {
 	 * @defaultValue No severity: the field shows no validation ring. An enclosing Control or Field can set one.
 	 */
 	severity?: ControlSeverity
-} & Omit<ComponentProps<'div'>, 'className'>
+} & ComponentProps<'div'>
 
 /**
  * Wraps one form control and its satellites (`<Label>`, `<Description>`,

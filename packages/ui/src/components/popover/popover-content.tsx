@@ -1,9 +1,10 @@
 'use client'
 
-import { type ReactNode, useLayoutEffect, useState } from 'react'
-import { cn } from '../../core'
+import { type ComponentProps, type ReactNode, useLayoutEffect, useState } from 'react'
+import { cn, dataAttr } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { useA11yAutoFocus } from '../../hooks'
+import { useComposedRef } from '../../hooks/use-composed-ref'
 import { FloatingSurface } from '../../primitives/floating-surface'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { useResolvedSurface } from '../../providers/glass/context'
@@ -11,9 +12,16 @@ import { k, type scale } from '../../recipes/kata/popover'
 import { Box } from '../../structure/box'
 import { usePopoverContext, usePopoverPosition } from './context'
 
-/** Props for {@link PopoverContent}: focus behavior (`autoFocus`/`modal`), `size`, and the accessible name. */
-export type PopoverContentProps = {
-	className?: string
+/**
+ * Props for {@link PopoverContent}: focus behavior (`autoFocus`/`modal`), `size`,
+ * and the accessible name. The animated `<div>` of the panel takes the rest,
+ * except the keys that Motion gives a meaning of its own. The `className` goes
+ * on the padded box inside it.
+ */
+export type PopoverContentProps = Omit<
+	ComponentProps<'div'>,
+	'children' | 'onAnimationStart' | 'onDrag' | 'onDragStart' | 'onDragEnd'
+> & {
 	/**
 	 * Moves initial focus into the panel on open.
 	 * @defaultValue false
@@ -49,7 +57,6 @@ export type PopoverContentProps = {
 	 * surface, and the trigger then omits `aria-haspopup`.
 	 */
 	'aria-label'?: string
-	'aria-labelledby'?: string
 	children: ReactNode
 }
 
@@ -59,7 +66,7 @@ export type PopoverContentProps = {
  * trigger into the panel and from the panel on into the page, an outside
  * press dismisses it, and focus returns to the trigger on close. `autoFocus` moves initial focus into the panel on
  * open; `modal` traps focus inside it. Use `Dialog` for page-level modal
- * content.
+ * content. The panel stamps `data-open` while it is open.
  */
 export function PopoverContent({
 	className,
@@ -70,6 +77,8 @@ export function PopoverContent({
 	'aria-label': ariaLabel,
 	'aria-labelledby': ariaLabelledby,
 	children,
+	ref,
+	...props
 }: PopoverContentProps) {
 	const { open, panelId, setDialog, setFloating, getFloatingProps } = usePopoverContext()
 
@@ -88,6 +97,9 @@ export function PopoverContent({
 	// State, not a ref: the panel attaches inside its portal a commit after `open`
 	// flips, and the auto-focus effect must run again when it arrives.
 	const [content, setContent] = useState<HTMLDivElement | null>(null)
+
+	// The auto-focus reads the node, so a consumer `ref` joins it.
+	const setPanel = useComposedRef(setContent, ref)
 
 	const glass = useResolvedSurface(glassProp) === 'glass'
 
@@ -108,14 +120,16 @@ export function PopoverContent({
 			trapFocusProps={{ modal }}
 		>
 			<m.div
+				data-slot="popover-content"
+				{...props}
 				{...k.panel.motion}
-				ref={setContent}
+				ref={setPanel}
 				id={panelId}
 				tabIndex={autoFocus ? -1 : undefined}
 				role={dialog ? 'dialog' : undefined}
 				aria-label={ariaLabel}
 				aria-labelledby={ariaLabelledby}
-				data-slot="popover-content"
+				data-open={dataAttr(open)}
 				className={cn(k.text, glass && k.panel.glass)}
 			>
 				<Box

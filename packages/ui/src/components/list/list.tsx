@@ -19,7 +19,7 @@ import { useListWindow } from './use-list-window'
 // `onDrag`, `onDragStart`, `onDragEnd`, and `onAnimationStart`.
 type BaseListProps<T> = Omit<
 	ComponentProps<'ul'>,
-	'className' | 'children' | 'onDrag' | 'onDragStart' | 'onDragEnd' | 'onAnimationStart'
+	'children' | 'onDrag' | 'onDragStart' | 'onDragEnd' | 'onAnimationStart'
 > & {
 	/** Ordered items. */
 	items: T[]
@@ -34,8 +34,6 @@ type BaseListProps<T> = Omit<
 	disabled?: boolean
 	/** Render function for each item. */
 	children: (item: T, index: number) => ReactNode
-	className?: string
-	'aria-label'?: string
 }
 
 /**

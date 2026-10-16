@@ -4,20 +4,26 @@ import { Upload } from 'lucide-react'
 import {
 	type ChangeEvent,
 	type DragEvent,
+	type HTMLAttributes,
 	type ReactNode,
 	type Ref,
 	useEffect,
 	useId,
 	useRef,
 } from 'react'
-import { cn, dataAttr, invalidAttrs } from '../../core'
+import { cn, composeEventHandlers, dataAttr, invalidAttrs } from '../../core'
 import { useIsTruncated } from '../../hooks'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { k } from '../../recipes/kata/file-upload'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import { FileUploadHiddenInput } from './file-upload-hidden-input'
-import { type FileUploadDropProps, useFileUploadState } from './file-upload-state'
+import {
+	type FileUploadDropProps,
+	splitFileUploadProps,
+	useFileUploadState,
+} from './file-upload-state'
 import { formatFileNames, selectionSummary, triggerLabel } from './file-upload-utilities'
 
 /**
@@ -171,10 +177,24 @@ function DropSelection({
  * @see {@link FileUploadInput} · {@link FileUploadButton}
  * @see {@link useFileUploadHandlers}
  */
-export function FileUploadDrop(props: FileUploadDropProps) {
-	const state = useFileUploadState(props)
+export function FileUploadDrop(allProps: FileUploadDropProps) {
+	const { shared, rest } = splitFileUploadProps(allProps)
 
-	const { accept, multiple, className, children } = props
+	// The type names the element-agnostic base, so the spread carries no `ref`.
+	const {
+		className,
+		children,
+		id,
+		onDragOver,
+		onDragEnter,
+		onDragLeave,
+		onDrop,
+		...props
+	}: Omit<HTMLAttributes<HTMLElement>, 'defaultValue'> & { children?: ReactNode } = rest
+
+	const state = useFileUploadState(shared)
+
+	const { accept, multiple } = shared
 	const {
 		control,
 		disabled,
@@ -207,7 +227,10 @@ export function FileUploadDrop(props: FileUploadDropProps) {
 
 	const overlayRef = useRef<HTMLButtonElement>(null)
 
-	const emptyId = useId()
+	const generatedId = useId()
+
+	// The empty zone names itself through its own id, so a consumer id takes that place.
+	const emptyId = id ?? generatedId
 
 	// The `filled` value that the last event can make, when focus was in the
 	// zone at that event. Otherwise `null`.
@@ -228,11 +251,11 @@ export function FileUploadDrop(props: FileUploadDropProps) {
 		handleChange(event)
 	}
 
-	const handleZoneDrop = (event: DragEvent) => {
+	const handleZoneDrop = useStableEvent((event: DragEvent) => {
 		noteFocus(children == null)
 
 		handleDrop(event)
-	}
+	})
 
 	const handleClear = () => {
 		noteFocus(false)
@@ -242,10 +265,10 @@ export function FileUploadDrop(props: FileUploadDropProps) {
 
 	const dragProps = {
 		'data-drag-over': dataAttr(dragOver),
-		onDragOver: handleDragOver,
-		onDragEnter: handleDragEnter,
-		onDragLeave: handleDragLeave,
-		onDrop: handleZoneDrop,
+		onDragOver: composeEventHandlers(onDragOver, handleDragOver),
+		onDragEnter: composeEventHandlers(onDragEnter, handleDragEnter),
+		onDragLeave: composeEventHandlers(onDragLeave, handleDragLeave),
+		onDrop: composeEventHandlers(onDrop, handleZoneDrop),
 	}
 
 	// The swap unmounts the focused control. Focus then moves to the control
@@ -281,8 +304,10 @@ export function FileUploadDrop(props: FileUploadDropProps) {
 			/>
 			{filled ? (
 				<div
-					ref={filledRef}
 					data-slot="file-upload"
+					id={id}
+					{...props}
+					ref={filledRef}
 					data-disabled={dataAttr(disabled)}
 					className={cn(k.dropzone, 'relative h-40 w-full', className)}
 					{...dragProps}
@@ -301,15 +326,16 @@ export function FileUploadDrop(props: FileUploadDropProps) {
 				</div>
 			) : (
 				<button
+					data-slot="file-upload"
+					{...props}
 					ref={emptyRef}
 					id={emptyId}
 					type="button"
-					data-slot="file-upload"
 					// The self-reference adds the content of the button to the name.
 					aria-labelledby={control?.labelledBy ? `${control.labelledBy} ${emptyId}` : undefined}
 					disabled={disabled}
 					{...invalidAttrs(invalid)}
-					onClick={openPicker}
+					onClick={composeEventHandlers(props.onClick, openPicker)}
 					className={cn(k.dropzone, 'h-40 w-full', className)}
 					{...dragProps}
 				>

@@ -41,17 +41,23 @@ export type TableElementProps = ComponentProps<'table'> & {
 	[key: `data-${string}`]: string | number | boolean | undefined
 }
 
-/** Props for {@link Table}: the {@link TableVariants} modifiers plus a `tableProps` escape hatch onto the `<table>` element. */
-export type TableProps = TableVariants & {
-	className?: string
-	children?: ReactNode
-	/**
-	 * Props spread onto the underlying `<table>` element. Use to attach a ref,
-	 * keyboard handlers, or ARIA attributes (e.g. `role="grid"` for composite
-	 * widgets) directly to the semantic element.
-	 */
-	tableProps?: TableElementProps
-}
+/**
+ * Props for {@link Table}: the {@link TableVariants} modifiers plus a `tableProps` escape hatch onto the `<table>` element.
+ * The root `<div>`, which is the scroll container, takes the rest. The name of
+ * the table goes in `tableProps`, so the root takes no `aria-label` or
+ * `aria-labelledby`.
+ */
+export type TableProps = TableVariants &
+	Omit<ComponentProps<'div'>, 'aria-label' | 'aria-labelledby'> & {
+		/** The class of the `<table>` element, not of the root. */
+		className?: string
+		/**
+		 * Props spread onto the underlying `<table>` element. Use to attach a ref,
+		 * keyboard handlers, or ARIA attributes (e.g. `role="grid"` for composite
+		 * widgets) directly to the semantic element.
+		 */
+		tableProps?: TableElementProps
+	}
 
 /**
  * Styled `<table>` shell. Static leaf: renders in React Server Components.
@@ -85,6 +91,7 @@ export function Table({
 	className,
 	children,
 	tableProps,
+	...props
 }: TableProps) {
 	// `true` keeps the historical default of shading even rows.
 	const stripe = striped === true ? 'even' : striped
@@ -103,6 +110,7 @@ export function Table({
 
 	return (
 		<TableScroll
+			{...props}
 			density={size}
 			label={ownName ? ownLabel : caption?.id ? undefined : captionText}
 			labelledBy={ownName ? ownLabelledBy : caption?.id}

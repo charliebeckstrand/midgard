@@ -58,6 +58,9 @@ const NATIVE_BASE = /\bComponentProps</
 
 const REF_OMITTED = /Omit<\s*ComponentProps<[^>]*>\s*,[^>]*'ref'/
 
+// The element-agnostic base of a component with two elements (§4.3) carries no ref.
+const AGNOSTIC_BASE = /\bHTMLAttributes<HTMLElement>/
+
 /**
  * A rest binding of the props of an enclosing function. `native` is true when
  * the props type admits native attributes, so the rest can carry a consumer
@@ -178,7 +181,12 @@ function sitesIn(file: string, parsed: SourceFile): Site[] {
 
 			const source = text(node.initializer)
 
-			if (parameter && isIdentifier(parameter.name) && parameter.name.text === source) {
+			// A destructure with its own type reads that type.
+			if (node.type) {
+				const rest = restOf(node.name, node.type, parsed)
+
+				if (rest) rests.push(rest)
+			} else if (parameter && isIdentifier(parameter.name) && parameter.name.text === source) {
 				const rest = restOf(node.name, parameter.type, parsed)
 
 				if (rest) rests.push(rest)
@@ -271,7 +279,7 @@ function restOf(
 	return {
 		name: rest.name.text,
 		native: NATIVE_BASE.test(shape),
-		refTaken: bindsRef(pattern) || REF_OMITTED.test(shape),
+		refTaken: bindsRef(pattern) || REF_OMITTED.test(shape) || AGNOSTIC_BASE.test(shape),
 	}
 }
 

@@ -10,7 +10,7 @@ import { k } from '../../recipes/kata/collapse'
 import { CollapseContext } from './context'
 
 /** Props for {@link Collapse}. */
-export type CollapseProps = Omit<ComponentProps<'div'>, 'className' | 'children'> & {
+export type CollapseProps = Omit<ComponentProps<'div'>, 'children'> & {
 	/**
 	 * The initial open state, for an uncontrolled panel.
 	 * @defaultValue false
@@ -56,7 +56,6 @@ export type CollapseProps = Omit<ComponentProps<'div'>, 'className' | 'children'
 	 */
 	mount?: Mount
 	children: ReactNode
-	className?: string
 }
 
 /**

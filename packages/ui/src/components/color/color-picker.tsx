@@ -83,6 +83,9 @@ export type ColorPickerProps = ColorPickerBaseProps & ColorValueProps
  * its parent, and it does not get wider than its parent. Pass a `className`
  * such as `w-full` to make it fill the parent.
  *
+ * The trigger and the dialog stamp `data-open` while the dialog is open, and the
+ * trigger stamps `data-disabled` while it is disabled.
+ *
  * @see {@link ColorPanel} for the inline variant.
  */
 export function ColorPicker(props: ColorPickerProps) {

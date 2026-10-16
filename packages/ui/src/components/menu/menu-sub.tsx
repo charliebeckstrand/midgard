@@ -127,6 +127,9 @@ export type MenuSubProps = {
  * instead: a tap shows the rows of the submenu below it, indented, in the same
  * sheet. The row then has `aria-expanded`, controls a `<fieldset>` (role
  * `group`) of the rows, and has no `aria-haspopup`.
+ *
+ * The row stamps `data-open` while the submenu is open, and `data-disabled`
+ * while it is disabled. The panel or the group of rows stamps `data-open` too.
  * @see {@link MenuItem}
  */
 export function MenuSub(props: MenuSubProps) {
@@ -237,6 +240,7 @@ function MenuSubSheet({
 					id={groupId}
 					aria-labelledby={triggerId}
 					data-slot="menu-sub-group"
+					data-open={dataAttr(open)}
 					className={k.sub.group}
 					onKeyDown={handleGroupKeyDown}
 				>
@@ -517,6 +521,7 @@ function MenuSubFloating({
 					className={k.surface}
 				>
 					<PopoverPanel
+						open={open}
 						id={panelId}
 						role="menu"
 						aria-labelledby={triggerId}

@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useMemo } from 'react'
+import { type ComponentProps, useMemo } from 'react'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/timeline'
 import { TimelineContext, type TimelineVariant, useTimeline } from './context'
@@ -8,9 +8,10 @@ import { TimelineMarker, type TimelineMarkerConfig } from './timeline-marker'
 
 /**
  * Props for {@link TimelineItem}. The marker keys ({@link TimelineMarkerConfig})
- * set the dot and the connector lines of the row.
+ * set the dot and the connector lines of the row. The `<li>` takes the rest. The
+ * row gives `color` to its marker.
  */
-export type TimelineItemProps = {
+export type TimelineItemProps = Omit<ComponentProps<'li'>, 'color'> & {
 	/**
 	 * Marks this row as the active step; sets `aria-current` and a `data-current` styling hook.
 	 * @defaultValue false
@@ -22,8 +23,6 @@ export type TimelineItemProps = {
 	 * @defaultValue `'solid'`, or the `variant` of the enclosing `<Timeline>`.
 	 */
 	variant?: TimelineVariant
-	className?: string
-	children?: ReactNode
 } & TimelineMarkerConfig
 
 /**
@@ -32,7 +31,24 @@ export type TimelineItemProps = {
  * re-shares the resolved orientation and variant to descendants via context.
  */
 export function TimelineItem(props: TimelineItemProps) {
-	const { current, variant: variantProp, className, children, ...markerConfig } = props
+	const {
+		current,
+		variant: variantProp,
+		pulse,
+		lineBefore,
+		lineAfter,
+		status,
+		color,
+		className,
+		children,
+		...rest
+	} = props
+
+	// `status` and `color` exclude each other, so the config holds one of them.
+	const markerConfig: TimelineMarkerConfig =
+		status !== undefined
+			? { pulse, lineBefore, lineAfter, status }
+			: { pulse, lineBefore, lineAfter, color }
 
 	const { orientation, variant: contextVariant } = useTimeline()
 
@@ -43,6 +59,7 @@ export function TimelineItem(props: TimelineItemProps) {
 	return (
 		<li
 			data-slot="timeline-item"
+			{...rest}
 			data-current={dataAttr(current)}
 			aria-current={current ? 'step' : undefined}
 			className={cn(k.item({ orientation }), className)}

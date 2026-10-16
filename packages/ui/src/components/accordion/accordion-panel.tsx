@@ -1,8 +1,8 @@
 'use client'
 
 import { AnimatePresence } from 'motion/react'
-import type { ReactNode } from 'react'
-import { cn } from '../../core'
+import type { ComponentProps, ReactNode } from 'react'
+import { cn, dataAttr } from '../../core'
 import { useOpenComplete } from '../../hooks/use-open-complete'
 import { MountHold, useMountHold } from '../../primitives/mount'
 import { heldMotionProps } from '../../primitives/mount/mount-held-motion'
@@ -11,9 +11,14 @@ import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/accordion'
 import { useAccordion, useAccordionItem } from './context'
 
-/** Props for {@link AccordionPanel}. */
-export type AccordionPanelProps = {
-	className?: string
+/**
+ * Props for {@link AccordionPanel}. The animated `<div>` of the panel takes the
+ * rest, except the keys that Motion gives a meaning of its own.
+ */
+export type AccordionPanelProps = Omit<
+	ComponentProps<'div'>,
+	'children' | 'onAnimationStart' | 'onDrag' | 'onDragStart' | 'onDragEnd'
+> & {
 	children: ReactNode
 }
 
@@ -24,7 +29,8 @@ export type AccordionPanelProps = {
  * @remarks
  * Carries `role="region"`, named by its header button, unless the accordion
  * sets `region={false}`. `className` lands on the inner body element, not the
- * animated wrapper.
+ * animated wrapper. The other props land on the wrapper, which stamps
+ * `data-open` while the section is open.
  *
  * The panel adds nothing to the intrinsic width of the accordion. In a host that
  * fits its content, such as a popover, the accordion thus keeps one width while
@@ -42,7 +48,7 @@ export type AccordionPanelProps = {
  *
  * @see {@link AccordionTrigger}
  */
-export function AccordionPanel({ className, children }: AccordionPanelProps) {
+export function AccordionPanel({ className, children, ...props }: AccordionPanelProps) {
 	const { value, open, panelProps } = useAccordionItem()
 
 	const { mount, region, onOpenComplete } = useAccordion()
@@ -60,9 +66,18 @@ export function AccordionPanel({ className, children }: AccordionPanelProps) {
 		onOpenComplete?.(value),
 	)
 
-	// One shape across every branch below; only how it animates differs.
+	// One shape across every branch below; only how it animates differs. The
+	// consumer props spread first, so the wiring of the item and the motion win.
 	const panel = (motionProps: object) => (
-		<m.div data-slot="accordion-panel" {...a11yProps} {...motionProps} className={cn(k.panel)}>
+		<m.div
+			{...props}
+			// The item reads this anchor, so it comes after the spread (CONVENTIONS.md §3.9).
+			data-slot="accordion-panel"
+			{...a11yProps}
+			{...motionProps}
+			data-open={dataAttr(open)}
+			className={cn(k.panel)}
+		>
 			<div className={cn(k.body, className)}>{children}</div>
 		</m.div>
 	)

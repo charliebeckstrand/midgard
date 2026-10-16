@@ -32,8 +32,7 @@ export type SplitProps = {
 	gap?: ResponsiveSplitGap
 	/** Cross-axis alignment. Supports responsive breakpoints. */
 	align?: ResponsiveSplitAlign
-	className?: string
-} & Omit<ComponentProps<'div'>, 'className'>
+} & ComponentProps<'div'>
 
 /**
  * Two-pane CSS-grid layout. `orientation` chooses columns or rows, and `ratio`

@@ -122,8 +122,7 @@ export type AvatarProps = AvatarVariants & {
 	status?: Status
 	/** Accessible text for the status dot. Defaults to the humanized `status`. */
 	statusLabel?: string
-	className?: string
-} & Omit<ComponentProps<'span'>, 'className' | 'children'>
+} & Omit<ComponentProps<'span'>, 'children'>
 
 /**
  * User image, initials, or fallback in a sized circle. Pair with `status` to

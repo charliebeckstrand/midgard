@@ -6,6 +6,7 @@ import { Density } from '../../primitives/density'
 import { corpus } from '../a11y/cases'
 import type {
 	DensitySubject,
+	DisclosureSubject,
 	LinkSubject,
 	PassthroughSubject,
 	SkeletonSubject,
@@ -70,6 +71,8 @@ const writes = corpus.flatMap((entry) =>
 		title: `${entry.name} (${subject.slot})`,
 	})),
 )
+
+const disclosures = corpus.flatMap((entry) => entry.disclosure ?? [])
 
 /** The field each touch-on-blur and write-on-change subject binds to. */
 const FIELD = 'swept'
@@ -196,6 +199,48 @@ function fallsBackToMd({ render, slot }: DensitySubject) {
 	expect(stepOf(render(), slot)).toBe(FALLBACK)
 }
 
+/**
+ * The disclosure sweep, open leg: no part stamps `data-open` while closed, and
+ * each part stamps it while open (CONVENTIONS.md §3.11).
+ */
+function stampsOpen({ render, parts }: DisclosureSubject) {
+	// `baseElement` is the document body, so a portaled part is in reach.
+	const closed = renderUI(render({ open: false }))
+
+	for (const slot of parts) {
+		const part = bySlot(closed.baseElement, slot)
+
+		if (part) expect(part, `${slot} while closed`).not.toHaveAttribute('data-open')
+	}
+
+	closed.unmount()
+
+	const { baseElement } = renderUI(render({ open: true }))
+
+	for (const slot of parts) {
+		expect(getSlot(baseElement, slot), `${slot} while open`).toHaveAttribute('data-open')
+	}
+}
+
+/** The disclosure sweep, disabled leg: each part that can be disabled stamps `data-disabled`. */
+function stampsDisabled({ render, disabledParts = [] }: DisclosureSubject) {
+	const enabled = renderUI(render({ open: false }))
+
+	for (const slot of disabledParts) {
+		expect(getSlot(enabled.baseElement, slot), `${slot} while enabled`).not.toHaveAttribute(
+			'data-disabled',
+		)
+	}
+
+	enabled.unmount()
+
+	const { baseElement } = renderUI(render({ open: false, disabled: true }))
+
+	for (const slot of disabledParts) {
+		expect(getSlot(baseElement, slot), `${slot} while disabled`).toHaveAttribute('data-disabled')
+	}
+}
+
 /** The text-input sweep, ref leg: the ref reaches the editable element. */
 function forwardsRef({ render, slot }: TextInputSubject) {
 	let received: HTMLElement | null = null
@@ -308,6 +353,21 @@ describe('component change binding', () => {
 	})
 })
 
+describe('component disclosure state', () => {
+	for (const subject of disclosures) {
+		it(`${subject.component} stamps data-open on each part while open`, () => stampsOpen(subject))
+
+		if (subject.disabledParts) {
+			it(`${subject.component} stamps data-disabled on each part while disabled`, () =>
+				stampsDisabled(subject))
+		}
+	}
+
+	it('has subjects to sweep', () => {
+		expect(disclosures).not.toHaveLength(0)
+	})
+})
+
 /** A bound input that composes its change with the default, so a caller's `preventDefault()` skips the write. */
 function SkippableWrite({
 	name,
@@ -367,6 +427,26 @@ function DeafTouch({ name }: { name: string }) {
 	const field = useFormField(name)
 
 	return <input data-slot="deaf" readOnly value="" onBlur={() => field?.setTouched()} />
+}
+
+/**
+ * A disclosure that stamps `data-open` on its trigger only, and no
+ * `data-disabled` at all.
+ */
+function UnstampedDisclosure({ open, disabled }: { open: boolean; disabled?: boolean }) {
+	return (
+		<>
+			<button
+				type="button"
+				data-slot="unstamped-trigger"
+				data-open={open || undefined}
+				disabled={disabled}
+			>
+				Open
+			</button>
+			{open && <div data-slot="unstamped-content">Content</div>}
+		</>
+	)
 }
 
 /**
@@ -507,6 +587,27 @@ describe('capability sweeps: teeth checks', () => {
 					</a>
 				),
 				slot: 'elsewhere',
+			}),
+		).toThrow()
+	})
+
+	it('fails a disclosure part that does not stamp its open state', () => {
+		expect(() =>
+			stampsOpen({
+				component: 'Unstamped',
+				render: (props) => <UnstampedDisclosure {...props} />,
+				parts: ['unstamped-trigger', 'unstamped-content'],
+			}),
+		).toThrow()
+	})
+
+	it('fails a disclosure part that does not stamp its disabled state', () => {
+		expect(() =>
+			stampsDisabled({
+				component: 'Unstamped',
+				render: (props) => <UnstampedDisclosure {...props} />,
+				parts: ['unstamped-trigger'],
+				disabledParts: ['unstamped-trigger'],
 			}),
 		).toThrow()
 	})

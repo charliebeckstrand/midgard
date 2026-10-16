@@ -6,9 +6,8 @@ import { ControlField } from '../control/control-field'
 
 /** Props for {@link SwitchField}: an optional `htmlFor` to pin the shared id, plus `<div>` attributes. */
 export type SwitchFieldProps = {
-	className?: string
 	htmlFor?: string
-} & Omit<ComponentProps<'div'>, 'className'>
+} & ComponentProps<'div'>
 
 /**
  * Pairs a Switch with its Label. Generates a scoped id and broadcasts it

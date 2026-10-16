@@ -9,8 +9,7 @@ export type LoadingSpinnerProps = LoadingSpinnerVariants & {
 	 * @defaultValue 'Loading'
 	 */
 	label?: string
-	className?: string
-} & Omit<ComponentProps<'output'>, 'className' | 'color'>
+} & Omit<ComponentProps<'output'>, 'color'>
 
 const SPINNER_SVG = (
 	<svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="size-full">

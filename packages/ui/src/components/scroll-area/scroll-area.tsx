@@ -24,8 +24,7 @@ export type ScrollAreaProps = Omit<ScrollAreaWrapperVariants, 'orientation' | 'b
 		 * @defaultValue 'auto'
 		 */
 		scrollbar?: ScrollbarMode
-		className?: string
-	} & Omit<ComponentProps<'div'>, 'className'>
+	} & ComponentProps<'div'>
 
 /**
  * Scrollable viewport with custom overlay scrollbars and draggable thumbs.

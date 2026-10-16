@@ -1,9 +1,7 @@
 import type { ComponentProps } from 'react'
 
 /** Props for {@link StepperPanels}: `className` plus `<div>` attributes. */
-export type StepperPanelsProps = {
-	className?: string
-} & Omit<ComponentProps<'div'>, 'className'>
+export type StepperPanelsProps = {} & ComponentProps<'div'>
 
 /**
  * Container grouping the {@link StepperPanel}s of a {@link Stepper}. The

@@ -57,8 +57,7 @@ export type TabProps = {
 	 * warms that half, under every mount policy.
 	 */
 	onPreload?: (value: string | undefined) => void
-	className?: string
-} & Omit<ComponentProps<'button'>, 'className' | 'id' | 'value' | 'color'>
+} & Omit<ComponentProps<'button'>, 'id' | 'value' | 'color'>
 
 /**
  * Resolves the tab's current state plus its auto-wired tab/panel id pair (an

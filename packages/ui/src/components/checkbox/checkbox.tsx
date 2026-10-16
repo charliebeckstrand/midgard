@@ -24,8 +24,7 @@ export type CheckboxProps = CheckboxVariants & {
 	 * @defaultValue `false`, or the state of the enclosing Control.
 	 */
 	readOnly?: boolean
-	className?: string
-} & Omit<ComponentProps<'input'>, 'className' | 'type' | 'size' | 'readOnly'>
+} & Omit<ComponentProps<'input'>, 'type' | 'size' | 'readOnly'>
 
 /**
  * Labeled checkbox with an `indeterminate` tri-state. Binds to enclosing Form

@@ -11,7 +11,6 @@ import { capitalizeFirst, getOrCompute } from '../../utilities'
  * `onSelect` handler, and the active-descendant / commit-on-Tab behavior flags.
  */
 export type OptionProps = {
-	className?: string
 	selected: boolean
 	/**
 	 * Disables the option, so that it cannot be selected.
@@ -38,7 +37,7 @@ export type OptionProps = {
 	commitOnTab?: boolean
 } & Omit<
 	ComponentProps<'div'>,
-	'className' | 'onSelect' | 'role' | 'aria-selected' | 'aria-disabled' | 'tabIndex'
+	'onSelect' | 'role' | 'aria-selected' | 'aria-disabled' | 'tabIndex'
 >
 
 // Selection and the focus hold run after a consumer `preventDefault()`.
