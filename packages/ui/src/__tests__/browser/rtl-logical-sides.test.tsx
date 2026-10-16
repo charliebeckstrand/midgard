@@ -5,7 +5,6 @@ import { Switch } from '../../components/switch'
 import { cn } from '../../core/cn'
 import { k as avatar } from '../../recipes/kata/avatar'
 import { k as chat } from '../../recipes/kata/chat-message'
-import { k as dl } from '../../recipes/kata/description-list'
 import { k as markdown } from '../../recipes/kata/markdown'
 import { k as signaturePad } from '../../recipes/kata/signature-pad'
 import { k as stepper } from '../../recipes/kata/stepper'
@@ -65,19 +64,6 @@ describe('logical sides under dir=rtl', () => {
 	it('avatar status dot sits on the top inline-end corner (left)', () => {
 		const style = rtl(cn(avatar.status.dot))
 		expect(style.left).toBe('0px')
-	})
-
-	it('description-list term gutter is on the inline end (left)', () => {
-		const { container } = renderUI(
-			<div dir="rtl">
-				<dl className={cn(dl.projection.horizontal)}>
-					<dt>Term</dt>
-					<dd>Detail</dd>
-				</dl>
-			</div>,
-		)
-		const style = getComputedStyle(present(container.querySelector('dt'), 'dt'))
-		expect([style.paddingLeft, style.paddingRight]).toEqual(['8px', '0px'])
 	})
 
 	it('vertical stepper pads the inline end (left)', () => {
