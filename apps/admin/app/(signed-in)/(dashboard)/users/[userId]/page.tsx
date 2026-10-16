@@ -69,7 +69,7 @@ async function UserDetails({ params }: { params: Params }) {
 			<PageHeader
 				title={user.email}
 				breadcrumb={
-					<Breadcrumb>
+					<Breadcrumb collapse>
 						<BreadcrumbList>
 							<BreadcrumbItem>
 								<BreadcrumbLink href="/users">Users</BreadcrumbLink>
