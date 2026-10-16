@@ -4,6 +4,7 @@ import {
 	type Breakpoint,
 	type Orientation,
 	type Responsive,
+	valueAt,
 } from '../../types'
 import {
 	type ResponsiveAlign,
@@ -49,28 +50,6 @@ const axisResetClasses = {
 	horizontal: 'grid-rows-none',
 	vertical: 'grid-cols-none',
 } satisfies Record<SplitOrientation, string>
-
-/**
- * The value a responsive prop holds at `bp`: the one named there, else the one
- * carried forward from the last smaller breakpoint that names it.
- *
- * @internal
- */
-function valueAt<T>(value: Responsive<T>, bp: Breakpoint, fallback: T): T {
-	if (typeof value !== 'object' || value === null || Array.isArray(value)) return value
-
-	const named: Partial<Record<Breakpoint, T>> = value
-
-	let held = fallback
-
-	for (const step of BREAKPOINTS) {
-		held = named[step] ?? held
-
-		if (step === bp) break
-	}
-
-	return held
-}
 
 /**
  * Grid-template classes for the `orientation` and `ratio` pair. The two share

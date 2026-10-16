@@ -2,14 +2,15 @@
 
 import { type HTMLAttributes, type ReactNode, type Ref, useId, useMemo, useRef } from 'react'
 import { cn } from '../../core'
-import { useA11yRoving, useComposedRef, useMinBreakpoint } from '../../hooks'
+import { useA11yRoving, useComposedRef, useResponsiveValue } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import type { Mount } from '../../primitives/mount'
 import { k } from '../../recipes/kata/stepper'
 import { Stack } from '../../structure/stack'
+import { type Responsive, resolveVariant } from '../../types'
 import { partitionByType } from '../../utilities/children'
-import { StepperContext, type StepperLayout, type StepperOrientation } from './context'
+import { STEPPER_ORIENTATION, StepperContext, type StepperOrientation } from './context'
 import { StepperPanels } from './stepper-panels'
 
 /** Props for {@link Stepper}: the controlled `value`, its `onValueChange` handler, `linear`/`orientation` modifiers, and step children. */
@@ -54,11 +55,11 @@ export type StepperProps = Omit<
 	 */
 	linear?: boolean
 	/**
-	 * The axis of the row. `'responsive'` is vertical below `sm`, and
-	 * horizontal from it.
-	 * @defaultValue 'responsive'
+	 * The axis of the row. A per-breakpoint map sets the axis from each
+	 * breakpoint, mobile-first. A single value sets it at each width.
+	 * @defaultValue {@link STEPPER_ORIENTATION}
 	 */
-	orientation?: StepperLayout
+	orientation?: Responsive<StepperOrientation>
 	/**
 	 * How {@link StepperPanel}s off the current step are held.
 	 *
@@ -102,11 +103,12 @@ function partitionStepperChildren(children: ReactNode): {
  * by comparing its own index against `value`.
  *
  * @remarks
- * Client component (`'use client'`). Without `orientation`, the row is
- * `vertical` below 640px and `horizontal` from it, since a horizontal row
- * overflows narrow screens. CSS picks that layout, so the server render does
- * not shift after hydration. The arrow-key axis and `aria-orientation` follow
- * the viewport in JavaScript. When `onValueChange` is set, steps
+ * Client component (`'use client'`). By default the row is `vertical` below
+ * the `sm` breakpoint and `horizontal` from it, since a horizontal row
+ * overflows narrow screens. CSS picks the layout at each breakpoint, so the
+ * server render does not shift after hydration. The arrow-key axis and
+ * `aria-orientation` read the same `orientation` at the viewport in JavaScript
+ * (`useResponsiveValue`). When `onValueChange` is set, steps
  * render as buttons and the row is a single Tab stop with roving arrow-key
  * navigation; `linear` then disables upcoming steps. That row has
  * `role="toolbar"`. A display-only stepper (`value` with no `onValueChange` and
@@ -120,7 +122,7 @@ export function Stepper({
 	defaultValue,
 	onValueChange,
 	linear = false,
-	orientation,
+	orientation = STEPPER_ORIENTATION,
 	mount = 'active',
 	'aria-label': ariaLabel = 'Steps',
 	className,
@@ -139,17 +141,10 @@ export function Stepper({
 	// handler. A `value`-only stepper stays a display-only progress readout.
 	const interactive = onValueChange !== undefined || defaultValue !== undefined
 
-	// Without an explicit orientation, CSS picks the layout, so the server render
-	// and the first paint already match the viewport. Only the keyboard axis and
+	// CSS picks the layout at each breakpoint, so the server render and the first
+	// paint already match the viewport. Only the keyboard axis and
 	// `aria-orientation` read the viewport in JavaScript.
-	const layout = orientation ?? 'responsive'
-
-	const isDesktop = useMinBreakpoint('sm')
-
-	const viewportOrientation: StepperOrientation = isDesktop ? 'horizontal' : 'vertical'
-
-	const resolvedOrientation: StepperOrientation =
-		layout === 'responsive' ? viewportOrientation : layout
+	const resolvedOrientation = useResponsiveValue<StepperOrientation>(orientation, 'vertical')
 
 	const { rowChildren, panelsChildren } = useMemo(
 		() => partitionStepperChildren(children),
@@ -179,16 +174,16 @@ export function Stepper({
 		() => ({
 			value: current,
 			onValueChange: interactive ? setCurrent : undefined,
-			layout,
+			orientation,
 			linear,
 			baseId,
 			hasPanels,
 			mount,
 		}),
-		[current, interactive, setCurrent, layout, linear, baseId, hasPanels, mount],
+		[current, interactive, setCurrent, orientation, linear, baseId, hasPanels, mount],
 	)
 
-	const rowClassName = cn(k.base({ orientation: layout }), className)
+	const rowClassName = cn(k.base.base, resolveVariant(orientation, k.base.orientation), className)
 
 	// The steps are an ordered list, so AT gives the count and the position of
 	// each step. An interactive row also groups its step buttons as a toolbar,

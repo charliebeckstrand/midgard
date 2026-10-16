@@ -101,3 +101,18 @@
 @source inline('{sm,md,lg,xl,2xl}:items-{start,center,end,stretch,baseline}');
 @source inline('{sm,md,lg,xl,2xl}:justify-{start,center,end,between,around,evenly}');
 @source inline('{sm,md,lg,xl,2xl}:grid-{cols,rows}-{[1fr_3fr],[1fr_2fr],[1fr_1fr],[2fr_1fr],[3fr_1fr],none}');
+
+/*
+ * The breakpoint classes of the responsive variant axes of the components.
+ * `resolveVariant` in `src/types/responsive.ts` puts the prefix on each class
+ * of a value at run time. A test makes sure that each class it can make is in
+ * these lines. DescriptionList `orientation` (`grid-cols-1` is a line above):
+ */
+@source inline('{sm,md,lg,xl,2xl}:grid-cols-[min(50%,--spacing(56))_auto]');
+@source inline('{sm,md,lg,xl,2xl}:[&>dt]:pe-{0,2}');
+@source inline('{sm,md,lg,xl,2xl}:[&>dt+dd]:pt-{0,(--ui-details-top)}');
+/* Stepper `orientation`: the row, a step, an item, a title, a separator, and the content column. */
+@source inline('{sm,md,lg,xl,2xl}:{flex-row,flex-col,ps-4,ps-0,py-4,py-0,py-1}');
+@source inline('{sm,md,lg,xl,2xl}:{items-center,min-w-20,min-w-auto,w-32,w-full,w-auto,text-center,text-start}');
+@source inline('{sm,md,lg,xl,2xl}:gap-{0.5,(--ui-stepper-gap)}');
+@source inline('{sm,md,lg,xl,2xl}:{mt-2,mt-0,block,hidden,contents,flex}');

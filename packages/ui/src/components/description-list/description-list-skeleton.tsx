@@ -1,9 +1,10 @@
 import { Fragment } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/description-list'
+import { resolveVariant } from '../../types'
 import { rangeKeys } from '../../utilities'
 import { Placeholder } from '../placeholder'
-import type { DescriptionListVariants } from './description-list'
+import { DESCRIPTION_LIST_ORIENTATION, type DescriptionListVariants } from './description-list'
 
 /** Props for {@link DescriptionListSkeleton}: the pair count and the `orientation` of the list. */
 export type DescriptionListSkeletonProps = DescriptionListVariants & {
@@ -30,7 +31,7 @@ export type DescriptionListSkeletonProps = DescriptionListVariants & {
  */
 export function DescriptionListSkeleton({
 	rows = 3,
-	orientation = 'horizontal',
+	orientation = DESCRIPTION_LIST_ORIENTATION,
 	className,
 }: DescriptionListSkeletonProps) {
 	const rowKeys = rangeKeys(rows, 'row')
@@ -38,7 +39,7 @@ export function DescriptionListSkeleton({
 	// The wrapper hides the list, so assistive technology finds no empty terms.
 	return (
 		<div aria-hidden="true" className={className}>
-			<dl className={cn(k.base({ orientation }), k.projection[orientation])}>
+			<dl className={cn(k.base, resolveVariant(orientation, k.orientation))}>
 				{rowKeys.map((rowKey) => (
 					<Fragment key={rowKey}>
 						<dt>

@@ -2,16 +2,16 @@
 
 import { createContext } from '../../core'
 import type { Mount } from '../../primitives/mount'
-import type { Orientation } from '../../types'
+import type { Orientation, Responsive } from '../../types'
 
 /** Layout axis of a {@link Stepper}'s step row: `horizontal` or `vertical`. */
 export type StepperOrientation = Orientation
 
-/**
- * How the step row lays out: a fixed {@link StepperOrientation}, or `responsive`,
- * where CSS makes it vertical below `sm` and horizontal from it.
- */
-export type StepperLayout = StepperOrientation | 'responsive'
+/** The default `orientation` of a {@link Stepper}: vertical below `sm`, horizontal from it. */
+export const STEPPER_ORIENTATION = {
+	initial: 'vertical',
+	sm: 'horizontal',
+} as const satisfies Responsive<StepperOrientation>
 
 /** A step's position relative to the stepper's current `value`: already passed, active, or not yet reached. */
 export type StepState = 'completed' | 'current' | 'upcoming'
@@ -19,7 +19,8 @@ export type StepState = 'completed' | 'current' | 'upcoming'
 type StepperContextValue = {
 	value: number
 	onValueChange?: (value: number) => void
-	layout: StepperLayout
+	/** The `orientation` of the stepper, single or per breakpoint. Each part resolves its classes from it. */
+	orientation: Responsive<StepperOrientation>
 	linear: boolean
 	/** Stable id base wiring each step button to its panel. */
 	baseId: string

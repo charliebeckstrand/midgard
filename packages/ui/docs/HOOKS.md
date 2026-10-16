@@ -66,6 +66,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `useMediaQuery` | True when `query` matches the viewport; true during SSR. |
 | `usePrefersReducedMotion` | True when the reader asks for reduced motion through the platform or `AppearanceProvider`; true during SSR. Use it in place of the `useReducedMotion` of motion. |
 | `useMinBreakpoint` | True when the viewport reaches a named breakpoint, such as `'lg'`, on the scale of the CSS prefixes; true during SSR. |
+| `useResponsiveValue` | The value of a `Responsive<T>` prop at the viewport, as its classes give it. During SSR, the value of the largest breakpoint. |
 | `useIsTruncated` | True when text overflows the element, measured with a `Range` over its contents. |
 | `useInView` | True when `ref.current` is in or near the viewport. By default it disconnects on first sight. |
 | `useScrollRegion` | Callback ref that makes a scroll container a tab stop while its content overflows. A `label` also makes it a named `region`. |
@@ -106,6 +107,7 @@ Hooks export the option and return shapes consumers thread through their own pro
 | `SetValue` | Argument to `useControllable`'s setter: a next value, `null`/`undefined` to clear, or a functional updater. |
 | `InView` / `InViewOptions` | Return shape / options of `useInView` (`ref`, `inView`; `margin`, `once`). |
 | `MinBreakpoint` | The breakpoint names that `useMinBreakpoint` takes. |
+| `Responsive` | A single value or a per-breakpoint map, the type that `useResponsiveValue` takes. |
 | `RovingOptions` | Options for `useA11yRoving`. |
 | `ControllableOptions` | Options for `useControllable`: the controlled `value`, the uncontrolled `defaultValue`, and the change report. |
 | `ControllableFlagOptions` | Options for `useControllableFlag`: the controlled flag, the uncontrolled default (`false`), and the change report. |

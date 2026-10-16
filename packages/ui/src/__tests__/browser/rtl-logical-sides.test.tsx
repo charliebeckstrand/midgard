@@ -5,6 +5,7 @@ import { Switch } from '../../components/switch'
 import { cn } from '../../core/cn'
 import { k as avatar } from '../../recipes/kata/avatar'
 import { k as chat } from '../../recipes/kata/chat-message'
+import { k as dl } from '../../recipes/kata/description-list'
 import { k as markdown } from '../../recipes/kata/markdown'
 import { k as signaturePad } from '../../recipes/kata/signature-pad'
 import { k as stepper } from '../../recipes/kata/stepper'
@@ -12,6 +13,7 @@ import { k as tabs } from '../../recipes/kata/tabs'
 import { k as textarea } from '../../recipes/kata/textarea'
 import { k as timeline } from '../../recipes/kata/timeline'
 import { kokkaku } from '../../recipes/kiso/kokkaku'
+import { resolveVariant } from '../../types'
 import { present, renderUI } from '../helpers'
 
 /**
@@ -66,8 +68,21 @@ describe('logical sides under dir=rtl', () => {
 		expect(style.left).toBe('0px')
 	})
 
+	it('description-list term gutter is on the inline end (left)', () => {
+		const { container } = renderUI(
+			<div dir="rtl">
+				<dl className={cn(dl.base, resolveVariant('horizontal', dl.orientation))}>
+					<dt>Term</dt>
+					<dd>Detail</dd>
+				</dl>
+			</div>,
+		)
+		const style = getComputedStyle(present(container.querySelector('dt'), 'dt'))
+		expect([style.paddingLeft, style.paddingRight]).toEqual(['8px', '0px'])
+	})
+
 	it('vertical stepper pads the inline end (left)', () => {
-		const style = rtl(stepper.base({ orientation: 'vertical' }))
+		const style = rtl(cn(stepper.base.base, resolveVariant('vertical', stepper.base.orientation)))
 		expect([style.paddingLeft, style.paddingRight]).toEqual(['16px', '0px'])
 	})
 

@@ -7,4 +7,6 @@ export {
 	type Breakpoint,
 	type Responsive,
 	resolveResponsive,
+	resolveVariant,
+	valueAt,
 } from './responsive'
