@@ -232,6 +232,68 @@ export function swipeStep(
 	return (rtl ? -forward : forward) as -1 | 1
 }
 
+/** A point of a press on the screen, and its time in ms. @internal */
+export type LightboxSample = { x: number; y: number; time: number }
+
+/** The time, in ms, over which the speed of a swipe is measured. */
+const SPEED_WINDOW = 100
+
+/** The time, in ms, after the last move past which a finger is still. */
+const SPEED_STILL = 50
+
+/**
+ * Adds the point of a move to `samples`, and drops the samples that are older
+ * than {@link SPEED_WINDOW}. It keeps the one sample before the window, so
+ * that {@link releaseSpeed} can read the point at the start of the window.
+ * @internal
+ */
+export function recordSample(samples: LightboxSample[], sample: LightboxSample) {
+	samples.push(sample)
+
+	while (samples.length > 2 && sample.time - (samples[1]?.time ?? 0) > SPEED_WINDOW) samples.shift()
+}
+
+/**
+ * The speed of a press at its lift, in px per ms. It is the travel over the
+ * last {@link SPEED_WINDOW} of the press, with the point at the start of the
+ * window read between the two moves around it. A noisy move at the end thus
+ * does not read as a flick. A press that is shorter than the window measures
+ * from its start. When the last move is older than {@link SPEED_STILL} at
+ * `time`, the finger stopped before the lift, and the speed is 0.
+ *
+ * @param samples - The points of the press, oldest first.
+ * @param time - The time of the lift.
+ * @internal
+ */
+export function releaseSpeed(samples: readonly LightboxSample[], time: number): Vector {
+	const last = samples.at(-1)
+
+	const oldest = samples[0]
+
+	if (!last || !oldest || time - last.time > SPEED_STILL) return { x: 0, y: 0 }
+
+	const start = Math.max(last.time - SPEED_WINDOW, oldest.time)
+
+	const elapsed = last.time - start
+
+	if (elapsed <= 0) return { x: 0, y: 0 }
+
+	// The two samples around the start of the window.
+	const after = samples.findIndex((sample) => sample.time >= start)
+
+	const b = samples[after] ?? last
+
+	const a = samples[after - 1] ?? b
+
+	const progress = b.time > a.time ? (start - a.time) / (b.time - a.time) : 0
+
+	const x = a.x + (b.x - a.x) * progress
+
+	const y = a.y + (b.y - a.y) * progress
+
+	return { x: (last.x - x) / elapsed, y: (last.y - y) / elapsed }
+}
+
 /** A travel or a speed on the screen, along `x` and `y`. */
 type Vector = { x: number; y: number }
 
@@ -298,6 +360,24 @@ export function thumbnailOf(photo: LightboxPhoto): string {
 }
 
 /**
+ * The size of a photo: the size that it gives, or else the natural size of its
+ * thumbnail. A size with no area is no size, because the flight divides by it.
+ *
+ * @param load - How the thumbnail loaded, or `undefined` while it loads.
+ * @internal
+ */
+export function sizeOf(
+	photo: LightboxPhoto,
+	load: LightboxLoad | undefined,
+): { width: number; height: number } | undefined {
+	if (photo.width && photo.height) return { width: photo.width, height: photo.height }
+
+	if (load && load !== 'failed' && load.width > 0 && load.height > 0) return load
+
+	return undefined
+}
+
+/**
  * The photos that the viewer can show, in their order: each photo with a size,
  * given or read from its thumbnail, whose thumbnail did not fail to load.
  *
@@ -312,7 +392,7 @@ export function viewablePhotos(
 
 		if (load === 'failed') return []
 
-		const size = photo.width && photo.height ? { width: photo.width, height: photo.height } : load
+		const size = sizeOf(photo, load)
 
 		return size ? [{ ...photo, ...size, index }] : []
 	})

@@ -5,7 +5,7 @@ import { cn, composeEventHandlers } from '../../core'
 import { k } from '../../recipes/kata/lightbox'
 import { Placeholder } from '../placeholder'
 import { useLightboxContext } from './context'
-import { thumbnailOf } from './lightbox-utilities'
+import { sizeOf, thumbnailOf } from './lightbox-utilities'
 
 /** Props for {@link LightboxTrigger}: the index of its photo, and the `<button>` attributes. */
 export type LightboxTriggerProps = {
@@ -32,7 +32,8 @@ export type LightboxTriggerProps = {
  * A photo with no `width` and `height` takes the size of its thumbnail when
  * the thumbnail loads. Until then, a placeholder pulses in the button, and the
  * button is disabled. A thumbnail that does not load leaves a still
- * placeholder in the box of the button, and no button.
+ * placeholder in the box of the button, and no button. The alternative text
+ * of the photo names the placeholder.
  *
  * @remarks A click opens the viewer, as a press on a `DialogTrigger` does. A
  * thumbnail is often in a page that scrolls, so a touch that starts a scroll
@@ -55,11 +56,21 @@ export function LightboxTrigger({
 
 	const load = loadOf(source)
 
-	if (load === 'failed') {
-		return <Placeholder pulse={false} className={cn(k.trigger.base, className)} />
-	}
+	const ready = sizeOf(photo, load) !== undefined
 
-	const ready = Boolean(photo.width && photo.height) || load !== undefined
+	// A thumbnail that did not load, or that loaded with no size and gives the
+	// photo none, leaves the photo with no box for the viewer.
+	if (load === 'failed' || (load !== undefined && !ready)) {
+		return (
+			<Placeholder
+				pulse={false}
+				role={photo.alt ? 'img' : undefined}
+				aria-label={photo.alt || undefined}
+				aria-hidden={photo.alt ? undefined : true}
+				className={cn(k.trigger.base, className)}
+			/>
+		)
+	}
 
 	return (
 		<button

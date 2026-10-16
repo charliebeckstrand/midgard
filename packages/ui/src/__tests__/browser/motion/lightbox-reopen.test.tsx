@@ -52,7 +52,8 @@ const photoIn = (element: HTMLElement) =>
 const viewerTweens = () =>
 	document.querySelector('[data-slot="lightbox"]')?.getAnimations({ subtree: true }) ?? []
 
-const count = () => document.querySelector('[aria-live="polite"]')?.textContent
+// The live region reads "{alt}, {n} / {count}".
+const count = () => document.querySelector('[aria-live="polite"]')?.textContent?.split(', ').at(-1)
 
 /** Opens the viewer on the photo at `index`, and waits for the photo to land. */
 async function open(index: number) {
