@@ -51,9 +51,9 @@ export type ChartPolicy = {
 	bandAxis: ChartBandAxisMode
 	/**
 	 * How many value ticks to aim for, driven by height (about one per
-	 * {@link TICK_SPACING} px). Density caps it, so space can only take ticks
-	 * away, never add past what the density step allows. `0` at spark, where the
-	 * axis is off.
+	 * {@link TICK_SPACING} px). The fixed `TICK_TARGET` caps it, so space can
+	 * only take ticks away, never add past the cap. `0` at spark, where the axis
+	 * is off.
 	 */
 	tickTarget: number
 	/**
@@ -107,7 +107,7 @@ export const AXIS_TITLE_HEIGHT = 224
 /** Height a stacked legend needs before it can take a second row rather than one. @internal */
 export const TWO_ROW_LEGEND_HEIGHT = 224
 
-/** Plot height one value tick is given, so a taller plot targets more ticks (density still caps it). @internal */
+/** Plot height one value tick is given, so a taller plot targets more ticks (`TICK_TARGET` still caps it). @internal */
 export const TICK_SPACING = 44
 
 /** Fewest value ticks a live axis targets, so a short-but-drawn axis still reads two. @internal */
@@ -180,7 +180,7 @@ export function isSparkBox(width: number, height: number): boolean {
 
 /**
  * Resolves the anatomy {@link ChartPolicy} for a plot box of `width` × `height`,
- * capping the height-driven tick target at the density ceiling `tickCap`. Pure
+ * capping the height-driven tick target at the ceiling `tickCap`. Pure
  * and space-only. It reads the box the frame measured and never the viewport,
  * and it never consults the caller's `axes` / `grid` intent. A chart composes
  * those at the layout boundary. A policy is therefore deterministic in its box
