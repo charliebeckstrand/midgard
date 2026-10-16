@@ -1,14 +1,17 @@
 'use client'
 
 import { useClick, useInteractions } from '@floating-ui/react'
-import { type ReactNode, useEffect, useId, useMemo, useState } from 'react'
+import { type ComponentProps, type ReactNode, useEffect, useId, useMemo, useState } from 'react'
 import { cn } from '../../core'
 import { type FloatingPlacement, useFloatingDisclosure } from '../../hooks'
 import { notifyOverlaySignal } from '../../primitives/overlay'
 import { PopoverContext, PopoverPositionContext } from './context'
 
-/** Props for {@link Popover}: floating `placement` and controlled or uncontrolled `open` state. */
-export type PopoverProps = {
+/**
+ * Props for {@link Popover}: floating `placement` and controlled or uncontrolled
+ * `open` state. The root `<span>` takes the rest.
+ */
+export type PopoverProps = Omit<ComponentProps<'span'>, 'children'> & {
 	/**
 	 * The side and the alignment of the panel. A `<side>-auto` value aligns the panel to the
 	 * edge of the trigger that is nearer to the edge of the viewport.
@@ -50,6 +53,7 @@ export function Popover({
 	onOpenChange,
 	className,
 	children,
+	...props
 }: PopoverProps) {
 	// The trigger (`aria-haspopup="dialog"`) and the panel (`role="dialog"`)
 	// carry their own roles; `role: null` suppresses floating-ui's `useRole`,
@@ -120,7 +124,7 @@ export function Popover({
 				    trigger in the layout of its parent, and breaks a run of text in two. The root
 				    is a `<span>`, so it is valid in phrasing content such as a `<p>`. The panel
 				    renders in a portal, so only the trigger is inside the `<span>`. */}
-				<span data-slot="popover" className={cn('contents', className)}>
+				<span data-slot="popover" {...props} className={cn('contents', className)}>
 					{children}
 				</span>
 			</PopoverPositionContext>

@@ -11,7 +11,8 @@ export type SelectProps<T> = Extract<ListboxProps<T>, { multiple?: false }>
 /**
  * Single-select dropdown: {@link Listbox} narrowed to its non-`multiple`
  * variant, so exactly one option is selected. Compose {@link SelectOption},
- * {@link SelectLabel}, and {@link SelectDescription} as children.
+ * {@link SelectLabel}, and {@link SelectDescription} as children. The open and
+ * disabled state attributes are the same as on {@link Listbox}.
  *
  * @typeParam T - The option value type.
  */

@@ -1,9 +1,18 @@
 'use client'
 
-import { type ReactNode, use, useCallback, useEffect, useMemo, useRef } from 'react'
+import {
+	type ComponentProps,
+	type ReactNode,
+	use,
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+} from 'react'
 import { dataAttr } from '../../core'
 import { useVirtualWindow } from '../../hooks'
 import type { VirtualItemSource } from '../../hooks/a11y/use-a11y-roving'
+import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { VirtualItemSourceContext } from './context'
 
@@ -55,11 +64,11 @@ export type VirtualOptionMeta = {
 }
 
 /**
- * Props for {@link VirtualOptions}.
+ * Props for {@link VirtualOptions}. The wrapper `<div>` takes the rest.
  *
  * @typeParam T - Item type; flows through to the `children` render function.
  */
-export type VirtualOptionsProps<T> = {
+export type VirtualOptionsProps<T> = Omit<ComponentProps<'div'>, 'children'> & {
 	/** Items to render. The current filtered/sorted set, in order. */
 	items: T[]
 	/**
@@ -124,8 +133,13 @@ export function VirtualOptions<T>({
 	isDisabled,
 	getTextValue,
 	children,
+	ref,
+	...props
 }: VirtualOptionsProps<T>) {
 	const containerRef = useRef<HTMLDivElement>(null)
+
+	// The scroll-ancestor walk reads `containerRef`, so a consumer `ref` joins it.
+	const setContainer = useComposedRef(containerRef, ref)
 
 	// The scroll container is stable while mounted, but the virtualizer calls
 	// `getScrollElement` after every commit (its own layout effect plus
@@ -219,8 +233,12 @@ export function VirtualOptions<T>({
 		// wrapper mounts even at zero items, because the scroll-ancestor walk
 		// needs `containerRef`, so the listbox is never CSS `:empty` under
 		// virtualization and a bare `:empty` rule can never fire.
+		//
+		// The `has-[]` rules of the listbox read the anchor, so it comes after the
+		// spread (CONVENTIONS.md §3.9).
 		<div
-			ref={containerRef}
+			{...props}
+			ref={setContainer}
 			role="presentation"
 			data-slot="virtual-options"
 			data-empty={dataAttr(items.length === 0)}

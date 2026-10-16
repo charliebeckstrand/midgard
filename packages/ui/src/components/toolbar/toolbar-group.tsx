@@ -1,16 +1,14 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/toolbar'
 import { useToolbarContext } from './context'
 
-/** Props for {@link ToolbarGroup}. */
-export type ToolbarGroupProps = {
+/** Props for {@link ToolbarGroup}. The `<fieldset>` takes the rest. */
+export type ToolbarGroupProps = ComponentProps<'fieldset'> & {
 	/** The accessible name of the group. Name a group when the toolbar has more than one. */
 	'aria-label'?: string
-	className?: string
-	children?: ReactNode
 }
 
 /**
@@ -18,13 +16,13 @@ export type ToolbarGroupProps = {
  * `<fieldset>`, which has the `group` role. Takes its orientation from toolbar
  * context.
  */
-export function ToolbarGroup({ 'aria-label': ariaLabel, className, children }: ToolbarGroupProps) {
+export function ToolbarGroup({ className, children, ...props }: ToolbarGroupProps) {
 	const { orientation } = useToolbarContext()
 
 	return (
 		<fieldset
 			data-slot="toolbar-group"
-			aria-label={ariaLabel}
+			{...props}
 			className={cn(k.group({ orientation }), className)}
 		>
 			{children}

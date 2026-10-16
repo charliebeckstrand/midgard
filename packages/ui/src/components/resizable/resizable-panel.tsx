@@ -1,12 +1,16 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/resizable'
 import { useOptionalResizable, useResizableIndex } from './context'
 
-/** Props for {@link ResizablePanel}: an initial size weight, and min/max bounds as percentages of the group. */
-export type ResizablePanelProps = {
+/**
+ * Props for {@link ResizablePanel}: an initial size weight, and min/max bounds
+ * as percentages of the group. The root `<div>` takes the rest. Inside a group,
+ * the panel sets its own `id`, which the handle after it names.
+ */
+export type ResizablePanelProps = ComponentProps<'div'> & {
 	/**
 	 * Initial size as a weight. The group divides 100% in the ratio of the
 	 * weights of its panels, so `30` and `50` give 37.5% and 62.5%. Weights that
@@ -29,8 +33,6 @@ export type ResizablePanelProps = {
 	 * @defaultValue 100
 	 */
 	maxSize?: number
-	className?: string
-	children?: ReactNode
 }
 
 /**
@@ -39,7 +41,15 @@ export type ResizablePanelProps = {
  * `defaultSize`/`minSize`/`maxSize` from these props to seed and bound resizing.
  */
 export function ResizablePanel(props: ResizablePanelProps) {
-	const { defaultSize = 50, className, children } = props
+	const {
+		defaultSize = 50,
+		minSize: _minSize,
+		maxSize: _maxSize,
+		className,
+		style,
+		children,
+		...rest
+	} = props
 
 	const group = useOptionalResizable()
 
@@ -51,9 +61,10 @@ export function ResizablePanel(props: ResizablePanelProps) {
 	return (
 		<div
 			data-slot="resizable-panel"
-			id={group && panelIndex !== undefined ? group.panelId(panelIndex) : undefined}
+			{...rest}
+			id={group && panelIndex !== undefined ? group.panelId(panelIndex) : rest.id}
 			className={cn(k.panel, className)}
-			style={{ flex: `${size} 0 0px` }}
+			style={{ ...style, flex: `${size} 0 0px` }}
 		>
 			{children}
 		</div>

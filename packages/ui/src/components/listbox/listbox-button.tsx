@@ -115,6 +115,8 @@ export function ListboxButton({
 				data-slot="listbox-button"
 				disabled={disabled}
 				data-readonly={dataAttr(readOnly)}
+				data-open={dataAttr(open)}
+				data-disabled={dataAttr(disabled)}
 				onBlur={onBlur}
 				onKeyDown={onKeyDown}
 				{...validation}

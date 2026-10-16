@@ -1,7 +1,7 @@
 'use client'
 
-import type { ReactNode, RefObject } from 'react'
-import { cn, dataAttr } from '../../core'
+import type { ComponentProps, ReactNode, RefObject } from 'react'
+import { cn, composeEventHandlers, dataAttr } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { useA11yPanel } from '../../hooks'
 import { useComposedRef } from '../../hooks/use-composed-ref'
@@ -28,9 +28,17 @@ import { DrawerClose, DrawerDefaultFooter } from './slots'
 /** Props for {@link Drawer}: the open state, controlled or uncontrolled. */
 export type DrawerProps = PanelRootProps
 
-/** Props for {@link DrawerPanel}: panel `height`, density `size` scope, dismissal, and accessible naming. */
+/**
+ * Props for {@link DrawerPanel}: panel `height`, density `size` scope, dismissal, and accessible naming.
+ * The animated panel `<div>` takes the rest, except the keys that Motion gives
+ * a meaning of its own. The panel sets its `id` and its ARIA wiring after the rest.
+ */
 export type DrawerPanelProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
-	PanelOverlayProps & {
+	PanelOverlayProps &
+	Omit<
+		ComponentProps<'div'>,
+		'children' | 'onAnimationStart' | 'onDrag' | 'onDragStart' | 'onDragEnd'
+	> & {
 		/**
 		 * Fires once the panel has finished arriving — it is docked, at rest, and covering
 		 * whatever it covers.
@@ -125,7 +133,6 @@ export type DrawerPanelProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
 		 * @defaultValue `false`, or the flag of the enclosing `<GlassProvider>`.
 		 */
 		glass?: boolean
-		className?: string
 		children: ReactNode
 		/**
 		 * The content of the footer row that the drawer shows when no `DrawerFooter`
@@ -195,7 +202,8 @@ export function Drawer(props: DrawerProps) {
  * `aria-label` fallback. The panel stops click propagation to keep the portal's synthetic
  * clicks off the consumer ancestors it renders under. The backdrop is a sibling, so a panel
  * click never reaches its dismiss handler anyway. The panel, its close parts, and its
- * dismissal share the open-state setter of the root.
+ * dismissal share the open-state setter of the root. The panel stamps `data-open` while
+ * it is open.
  */
 export function DrawerPanel({
 	onOpenComplete,
@@ -212,6 +220,10 @@ export function DrawerPanel({
 	backdrop,
 	container,
 	'aria-label': ariaLabel,
+	ref,
+	style,
+	onClick,
+	...props
 }: DrawerPanelProps) {
 	// The root holds the state. One setter drives the Overlay and the close parts.
 	const { open, setOpen, panelId } = usePanelState()
@@ -253,9 +265,10 @@ export function DrawerPanel({
 		transition: k.fit,
 	})
 
-	// One node, two readers of it. The gesture writes the height the reader sets
+	// One node, three readers of it. The gesture writes the height the reader sets
 	// and the fit writes the height the content asks for; both need the element.
-	const panelRef = useComposedRef(resize.ref, fitRef)
+	// A consumer `ref` joins them.
+	const panelRef = useComposedRef(resize.ref, fitRef, ref)
 
 	const { ariaProps, a11y } = useA11yPanel('dialog', modal)
 
@@ -273,12 +286,14 @@ export function DrawerPanel({
 			backdropClassName={k.backdrop({ surface })}
 		>
 			<m.div
+				{...props}
 				{...preset}
 				onAnimationComplete={onAnimationComplete}
 				ref={panelRef}
 				{...ariaProps}
 				aria-label={ariaProps['aria-labelledby'] ? undefined : ariaLabel}
 				id={panelId}
+				// The space recipe reads this anchor, so it comes after the spread (CONVENTIONS.md §3.9).
 				data-slot="drawer"
 				data-density={size}
 				data-height={height ?? 'auto'}
@@ -287,6 +302,7 @@ export function DrawerPanel({
 				// one element. Rows inside take their hover wash at double strength, because
 				// 5% under the translucency of the panel reads as no hover at all.
 				data-glass={dataAttr(isGlass)}
+				data-open={dataAttr(open)}
 				className={cn(
 					'group/drawer',
 					isGlass && 'group/glass',
@@ -310,11 +326,15 @@ export function DrawerPanel({
 				// at rest, and either step once a drag commits a height at the ceiling. A `fit`
 				// panel stamps this attribute itself, so it is left alone here.
 				data-full={hasFixedHeight ? dataAttr(full) : undefined}
-				onClick={(event) => event.stopPropagation()}
+				// A consumer's preventDefault() does not let the click past the panel (CONVENTIONS.md §3.9).
+				onClick={composeEventHandlers(onClick, (event) => event.stopPropagation(), {
+					checkForDefaultPrevented: false,
+				})}
 				// A dragged height beats the variant's — and a `fit` panel's, which stands
 				// down for as long as one is held. It is inline because it is a
 				// measurement rather than a step: there is no class for "412 pixels".
-				style={resize.size === null ? undefined : { height: resize.size }}
+				// The consumer `style` comes first, so the dragged height wins.
+				style={resize.size === null ? style : { ...style, height: resize.size }}
 			>
 				<PanelProviders onOpenChange={setOpen} a11y={a11y}>
 					{grip ? (

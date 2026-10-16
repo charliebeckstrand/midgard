@@ -1,9 +1,9 @@
 'use client'
 
-import { Fragment, type ReactNode, useCallback, useId, useRef } from 'react'
+import { Fragment, type HTMLAttributes, type ReactNode, useCallback, useId, useRef } from 'react'
 import { BadgeRemovable } from '../../components/badge/badge-removable'
 import { Button } from '../../components/button'
-import { announce, cn, dataAttr } from '../../core'
+import { announce, cn, composeEventHandlers, dataAttr } from '../../core'
 import { useA11yRoving } from '../../hooks'
 import { k } from '../../recipes/kata/query-chips'
 import {
@@ -18,8 +18,11 @@ import type { QueryField, QueryGroup } from './engine/types'
 import { useQueryRemovalFocus } from './use-query-removal-focus'
 import { useQueryTree } from './use-query-tree'
 
-/** Props for {@link QueryChips}: the queryable `fields` and the controlled/uncontrolled query tree. */
-export type QueryChipsProps = {
+/**
+ * Props for {@link QueryChips}: the queryable `fields` and the controlled/uncontrolled query tree.
+ * The row takes the rest: a `<fieldset>` when `readOnly`, or else a `<div>`. `defaultValue` holds a query tree.
+ */
+export type QueryChipsProps = Omit<HTMLAttributes<HTMLElement>, 'defaultValue'> & {
 	/** Fields that resolve each rule's labels, operators, and options. */
 	fields: QueryField[]
 	/** The query tree, controlled. Pair it with `onValueChange`. */
@@ -45,7 +48,6 @@ export type QueryChipsProps = {
 	 * @defaultValue 'No filters'
 	 */
 	emptyLabel?: ReactNode
-	className?: string
 }
 
 /**
@@ -146,6 +148,8 @@ export function QueryChips({
 	'aria-label': ariaLabel = 'Filters',
 	emptyLabel = 'No filters',
 	className,
+	onKeyDown: onKeyDownProp,
+	...props
 }: QueryChipsProps) {
 	const { root, actions } = useQueryTree({ fields, value, defaultValue, onValueChange })
 
@@ -236,6 +240,8 @@ export function QueryChips({
 		return (
 			<fieldset
 				data-slot="query-chips"
+				onKeyDown={onKeyDownProp}
+				{...props}
 				data-density="slot"
 				data-readonly=""
 				aria-label={ariaLabel}
@@ -252,6 +258,7 @@ export function QueryChips({
 		<div
 			ref={rowRef}
 			data-slot="query-chips"
+			{...props}
 			data-density="slot"
 			data-empty={dataAttr(empty)}
 			role="toolbar"
@@ -261,7 +268,7 @@ export function QueryChips({
 			// The row takes focus only when its last chip goes; it is never a Tab stop.
 			tabIndex={empty ? -1 : undefined}
 			className={cn(k.base, className)}
-			onKeyDown={onKeyDown}
+			onKeyDown={composeEventHandlers(onKeyDownProp, onKeyDown)}
 		>
 			{empty ? <span className={cn(k.empty)}>{emptyLabel}</span> : body}
 			{/* The full sentence keeps the brackets for assistive technology, which

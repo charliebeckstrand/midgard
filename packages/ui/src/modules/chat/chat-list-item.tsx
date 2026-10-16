@@ -1,13 +1,17 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import type { HTMLAttributes, ReactNode } from 'react'
 import { cn, dataAttr } from '../../core'
 import { ActiveIndicator } from '../../primitives/active-indicator'
 import { k } from '../../recipes/kata/chat-list-item'
 import { useInChatList } from './context'
 
-/** Props for {@link ChatListItem}. */
-export type ChatListItemProps = {
+/**
+ * Props for {@link ChatListItem}. The row takes the rest: an `<li>` in a
+ * {@link ChatList}, or else a `<div>`. `title` is the content of the row, and
+ * `onSelect` selects the conversation.
+ */
+export type ChatListItemProps = Omit<HTMLAttributes<HTMLElement>, 'title' | 'onSelect'> & {
 	/** Conversation title; the primary line, truncated to one line. */
 	title: ReactNode
 	/** Secondary line under the title (e.g. the last message), truncated. */
@@ -21,7 +25,6 @@ export type ChatListItemProps = {
 	onSelect?: () => void
 	/** Trailing controls (e.g. a delete button), kept as a sibling of the select button so it never nests interactives. */
 	actions?: ReactNode
-	className?: string
 }
 
 /**
@@ -54,6 +57,7 @@ export function ChatListItem({
 	onSelect,
 	actions,
 	className,
+	...props
 }: ChatListItemProps) {
 	// Inside a ChatList the row is a list item; standalone it is a plain row.
 	const inList = useInChatList()
@@ -69,6 +73,8 @@ export function ChatListItem({
 
 	return (
 		<Wrapper
+			{...props}
+			// The keyboard navigation of ChatList selects the anchor, so it comes after the spread.
 			data-slot="chat-list-item"
 			data-current={dataAttr(current)}
 			className={cn(k(), className)}

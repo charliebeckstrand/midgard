@@ -3,6 +3,7 @@
 import type { ComponentProps, ReactNode, Ref } from 'react'
 import { cn, dataAttr } from '../../core'
 import type { ScaleStep } from '../../core/density'
+import { useComposedRef } from '../../hooks/use-composed-ref'
 import type { scale } from '../../recipes/kata/select'
 import { k } from '../../recipes/kata/select'
 import type { GroupStampProps } from '../../types/group-stamp'
@@ -12,29 +13,31 @@ import { PolymorphicStatic } from '../polymorphic'
 /**
  * Props for {@link SelectTrigger}: the floating-reference wiring the caller
  * owns (`open`, `setReference`, `getReferenceProps`), the `glass` / `size`
- * presentation, and the prefix / suffix slot content.
+ * presentation, and the prefix / suffix slot content. The root `<div>` takes
+ * the rest. The floating interactions compose their handlers with the handlers
+ * of the rest.
  */
-export type SelectTriggerProps = GroupStampProps & {
-	open: boolean
-	setReference: Ref<HTMLDivElement>
-	getReferenceProps: () => Record<string, unknown>
-	glass: boolean
-	/**
-	 * The density step of the host. Omit it to take the step of the nearest
-	 * density scope. A step makes the trigger a density scope.
-	 */
-	size?: ScaleStep<typeof scale>
-	prefix?: ReactNode
-	/** Suffix rendered inside the standard `<span data-slot="suffix">` slot. */
-	suffix?: ReactNode
-	/** Props spread onto the suffix `<span>` slot; Combobox makes the chevron a click target here. */
-	suffixProps?: Omit<ComponentProps<'span'>, 'className' | 'children'>
-	className?: string
-	frameProps?: Omit<ComponentProps<typeof ControlFrame>, 'className' | 'children'>
-	/** Root slot identifier. Wrappers override it to stamp their own name. */
-	'data-slot'?: string
-	children: ReactNode
-}
+export type SelectTriggerProps = Omit<ComponentProps<'div'>, 'prefix' | 'children'> &
+	GroupStampProps & {
+		open: boolean
+		setReference: Ref<HTMLDivElement>
+		getReferenceProps: (userProps?: Record<string, unknown>) => Record<string, unknown>
+		glass: boolean
+		/**
+		 * The density step of the host. Omit it to take the step of the nearest
+		 * density scope. A step makes the trigger a density scope.
+		 */
+		size?: ScaleStep<typeof scale>
+		prefix?: ReactNode
+		/** Suffix rendered inside the standard `<span data-slot="suffix">` slot. */
+		suffix?: ReactNode
+		/** Props spread onto the suffix `<span>` slot; Combobox makes the chevron a click target here. */
+		suffixProps?: Omit<ComponentProps<'span'>, 'className' | 'children'>
+		frameProps?: Omit<ComponentProps<typeof ControlFrame>, 'className' | 'children'>
+		/** Root slot identifier. Wrappers override it to stamp their own name. */
+		'data-slot'?: string
+		children: ReactNode
+	}
 
 /**
  * Trigger chrome shared by the select family (Listbox, Combobox): the outer
@@ -62,19 +65,27 @@ export function SelectTrigger({
 	suffixProps,
 	className,
 	frameProps,
+	ref,
 	'data-group': dataGroup,
 	'data-group-orientation': dataGroupOrientation,
 	'data-slot': slot = 'control',
 	children,
+	...props
 }: SelectTriggerProps) {
+	// The floating reference reads the node, so a consumer `ref` joins it.
+	const setRoot = useComposedRef(setReference, ref)
+
 	return (
 		<PolymorphicStatic
 			as="div"
 			data-slot={slot}
+			{...props}
+			// The floating interactions come after the rest, and they compose each
+			// handler of the rest with their own.
+			{...getReferenceProps(props)}
 			density={size}
-			ref={setReference}
+			ref={setRoot}
 			className={cn(className)}
-			{...getReferenceProps()}
 		>
 			<ControlFrame
 				data-open={dataAttr(open)}

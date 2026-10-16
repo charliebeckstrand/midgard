@@ -1,14 +1,22 @@
 'use client'
 
-import type { ComponentProps, ReactNode } from 'react'
+import type { ComponentProps, ReactNode, Ref } from 'react'
 import { cn } from '../../core'
+import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useFloatingReference } from '../../hooks/use-floating-reference'
-import { TriggerChild, triggerChild } from '../../primitives/trigger-child/trigger-child'
+import {
+	mergeTriggerProps,
+	TriggerChild,
+	triggerChild,
+} from '../../primitives/trigger-child/trigger-child'
 import { k } from '../../recipes/kata/tooltip'
 import { useTooltipContext } from './context'
 
-/** Props for {@link TooltipTrigger}. */
-export type TooltipTriggerProps = {
+/**
+ * Props for {@link TooltipTrigger}. The fallback `<span>` takes the rest. With a
+ * single element child, the clone of the child takes the rest instead.
+ */
+export type TooltipTriggerProps = Omit<ComponentProps<'span'>, 'children'> & {
 	/**
 	 * The element the tooltip describes. A single valid element receives the
 	 * floating ref and interaction props directly; anything else is wrapped in
@@ -38,6 +46,9 @@ export type TooltipTriggerProps = {
  * such as a `<button>`, that has no `data-slot` of its own. A component child,
  * such as a `<Button>`, keeps the anchor that it writes for itself.
  *
+ * The trigger stamps no `data-open`. It is often a control of the consumer or a
+ * menu trigger, and the recipe of that element can read `data-open`.
+ *
  * The child's own ref merges with the floating ref. The non-element fallback
  * renders a plain `<span>`, which is valid in phrasing content. A `<button>`
  * fallback nested inside interactive content is invalid markup. The fallback
@@ -50,25 +61,38 @@ export type TooltipTriggerProps = {
  * truncating trigger in the library therefore carries `block`: `k.cell.truncate`,
  * `k.head.title`, the date-picker `value` recipe, the chart header and legend.
  * Reversing the merge order would silently drop the ellipsis at all of them.
+ * The `className` of the trigger comes before the `className` of the child too.
+ * The other props of the trigger go to a cloned child, the props of the child
+ * win a clash, and a handler on both runs the two.
  */
-export function TooltipTrigger({ children }: TooltipTriggerProps) {
+export function TooltipTrigger({ children, className, ref, ...props }: TooltipTriggerProps) {
 	const { setReference, getReferenceProps, enabled, triggerId } = useTooltipContext()
 
 	const child = triggerChild(children)
 
-	const childRef = child?.props.ref
+	// A consumer `ref` on the trigger joins the ref of the child.
+	const childRef = useComposedRef<HTMLElement>(
+		child?.props.ref,
+		ref as Ref<HTMLElement> | undefined,
+	)
 
 	// No trigger ref of its own: the tooltip reads its reference through
 	// floating-ui alone.
 	const setTrigger = useFloatingReference<HTMLElement>(setReference, undefined, childRef)
 
-	const triggerClassName = cn(k.trigger.base, enabled && k.trigger.cursor)
+	const triggerClassName = cn(k.trigger.base, enabled && k.trigger.cursor, className)
 
 	if (child) {
+		const childProps = mergeTriggerProps(props, child.props)
+
 		return (
 			<TriggerChild
 				child={child}
-				props={{ ...getReferenceProps(child.props), id: child.props.id ?? triggerId }}
+				props={{
+					...childProps,
+					...getReferenceProps(childProps),
+					id: childProps.id ?? triggerId,
+				}}
 				ref={setTrigger}
 				slot="tooltip-trigger"
 				className={triggerClassName}
@@ -78,11 +102,12 @@ export function TooltipTrigger({ children }: TooltipTriggerProps) {
 
 	return (
 		<span
-			ref={setTrigger}
-			id={triggerId}
 			data-slot="tooltip-trigger"
+			{...props}
+			{...(getReferenceProps(props) as ComponentProps<'span'>)}
+			ref={setTrigger}
+			id={props.id ?? triggerId}
 			className={triggerClassName}
-			{...(getReferenceProps() as ComponentProps<'span'>)}
 		>
 			{children}
 		</span>

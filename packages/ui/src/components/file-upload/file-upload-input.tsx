@@ -13,7 +13,11 @@ import { InputClearButton } from '../input/input-clear-button'
 import { InputFrame } from '../input/input-frame'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import { FileUploadHiddenInput } from './file-upload-hidden-input'
-import { type FileUploadInputProps, useFileUploadState } from './file-upload-state'
+import {
+	type FileUploadInputProps,
+	splitFileUploadProps,
+	useFileUploadState,
+} from './file-upload-state'
 import { formatFileNames, selectionSummary } from './file-upload-utilities'
 
 /**
@@ -40,10 +44,14 @@ import { formatFileNames, selectionSummary } from './file-upload-utilities'
  *
  * @see {@link FileUploadDrop} · {@link FileUploadButton}
  */
-export function FileUploadInput(props: FileUploadInputProps) {
-	const state = useFileUploadState(props)
+export function FileUploadInput(allProps: FileUploadInputProps) {
+	const { shared, rest } = splitFileUploadProps(allProps)
 
-	const { accept, multiple, className, size, placeholder = 'Choose a file' } = props
+	const { className, size, placeholder = 'Choose a file', ...props } = rest
+
+	const state = useFileUploadState(shared)
+
+	const { accept, multiple } = shared
 	const {
 		control,
 		disabled,
@@ -109,7 +117,7 @@ export function FileUploadInput(props: FileUploadInputProps) {
 	)
 
 	return (
-		<div data-slot="file-upload" className={cn('relative', className)}>
+		<div data-slot="file-upload" {...props} className={cn('relative', className)}>
 			<FileUploadHiddenInput
 				ariaLabel={placeholder}
 				control={control}

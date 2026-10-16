@@ -2,14 +2,15 @@
 
 import {
 	Children,
+	type ComponentProps,
 	isValidElement,
-	type ReactNode,
 	useCallback,
 	useId,
 	useMemo,
 	useRef,
 } from 'react'
 import { cn } from '../../core'
+import { useComposedRef } from '../../hooks/use-composed-ref'
 import { k } from '../../recipes/kata/resizable'
 import { ResizableContext, ResizableIndexContext } from './context'
 import { ResizableHandle } from './resizable-handle'
@@ -17,8 +18,11 @@ import { ResizablePanel, type ResizablePanelProps } from './resizable-panel'
 import type { PanelConfig, ResizableOrientation } from './types'
 import { useResizablePanel } from './use-resizable-panel'
 
-/** Props for {@link ResizableGroup}: layout `orientation`, a size-change callback, and the drag bracket. */
-export type ResizableGroupProps = {
+/**
+ * Props for {@link ResizableGroup}: layout `orientation`, a size-change callback,
+ * and the drag bracket. The root `<div>` takes the rest.
+ */
+export type ResizableGroupProps = ComponentProps<'div'> & {
 	/**
 	 * The layout axis: `horizontal` puts the panels in a row, and `vertical` puts
 	 * them in a column.
@@ -49,8 +53,6 @@ export type ResizableGroupProps = {
 	 * `onResizeStart` held.
 	 */
 	onResizeEnd?: (handleIndex: number) => void
-	className?: string
-	children?: ReactNode
 }
 
 /**
@@ -68,10 +70,14 @@ export function ResizableGroup({
 	onSizesChange,
 	onResizeStart,
 	onResizeEnd,
+	ref,
 	className,
 	children,
+	...props
 }: ResizableGroupProps) {
 	const groupRef = useRef<HTMLDivElement>(null)
+
+	const composedRef = useComposedRef(groupRef, ref)
 
 	const panelConfigs = useMemo<PanelConfig[]>(
 		() =>
@@ -141,8 +147,9 @@ export function ResizableGroup({
 	return (
 		<ResizableContext value={contextValue}>
 			<div
-				ref={groupRef}
 				data-slot="resizable-group"
+				{...props}
+				ref={composedRef}
 				data-orientation={orientation}
 				className={cn(k.group({ orientation }), className)}
 			>

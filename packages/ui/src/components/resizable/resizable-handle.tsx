@@ -1,19 +1,25 @@
 'use client'
 
-import { type KeyboardEvent, useCallback } from 'react'
-import { cn, dataAttr } from '../../core'
+import { type ComponentProps, type KeyboardEvent, useCallback } from 'react'
+import { cn, composeEventHandlers, dataAttr } from '../../core'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { PanelSplitter } from '../../primitives/panel/panel-splitter'
 import { k } from '../../recipes/kata/resizable'
 import { useResizable, useResizableIndex } from './context'
 import { pairRange } from './use-resizable-panel'
 
-/** Props for {@link ResizableHandle}: an optional accessible name. */
-export type ResizableHandleProps = {
+/**
+ * Props for {@link ResizableHandle}: an optional accessible name. The root
+ * `<div role="separator">` takes the rest. The handle draws its own grip in
+ * place of `children`, and keeps its own `role` and `tabIndex`.
+ */
+export type ResizableHandleProps = Omit<ComponentProps<'div'>, 'children' | 'role' | 'tabIndex'> & {
 	/** Accessible name; distinguishes multiple handles ("Resize sidebar"). @defaultValue 'Resize' */
 	'aria-label'?: string
-	className?: string
 }
+
+/** The drag and the keys are the activation of the handle, so a consumer cannot cancel them. @internal */
+const alwaysResize = { checkForDefaultPrevented: false }
 
 /**
  * Resize delta for a key press: arrows move by `step` along the panel axis,
@@ -49,9 +55,13 @@ function resizeDeltaForKey(key: string, isHorizontal: boolean, step: number): nu
  * the panel before the handle, which is the primary pane of the APG window
  * splitter.
  */
-export function ResizableHandle(props: ResizableHandleProps) {
-	const { 'aria-label': ariaLabel = 'Resize', className } = props
-
+export function ResizableHandle({
+	'aria-label': ariaLabel = 'Resize',
+	className,
+	onPointerDown,
+	onKeyDown: onKeyDownProp,
+	...props
+}: ResizableHandleProps) {
 	const { orientation, dragging, sizes, panelConfigs, startDrag, resize, panelId } = useResizable()
 	const { handleIndex = 0 } = useResizableIndex()
 
@@ -90,6 +100,8 @@ export function ResizableHandle(props: ResizableHandleProps) {
 
 	return (
 		<PanelSplitter
+			{...props}
+			// The group finds its handles by this anchor, so a consumer cannot replace it.
 			data-slot="resizable-handle"
 			data-dragging={dataAttr(isDragging)}
 			// A separator's orientation is its own, not the group's flex axis: the
@@ -101,8 +113,12 @@ export function ResizableHandle(props: ResizableHandleProps) {
 			aria-valuenow={panelSize}
 			aria-valuemin={panelMinSize}
 			aria-valuemax={panelMaxSize}
-			onPointerDown={(event) => startDrag(handleIndex, event)}
-			onKeyDown={onKeyDown}
+			onPointerDown={composeEventHandlers(
+				onPointerDown,
+				(event) => startDrag(handleIndex, event),
+				alwaysResize,
+			)}
+			onKeyDown={composeEventHandlers(onKeyDownProp, onKeyDown, alwaysResize)}
 			className={cn(
 				k.handle.base,
 				isHorizontal ? k.handle.horizontal : k.handle.vertical,

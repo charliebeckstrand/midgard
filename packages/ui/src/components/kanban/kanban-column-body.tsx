@@ -1,16 +1,17 @@
 'use client'
 
-import { Children, type ReactNode } from 'react'
+import { Children, type HTMLAttributes, type ReactNode } from 'react'
 import { cn } from '../../core'
 import { useScrollRegion } from '../../hooks'
 import { k } from '../../recipes/kata/kanban'
 
-/** Props for {@link KanbanColumnBody}: the card list, plus an `empty` placeholder shown when there are none. */
-export type KanbanColumnBodyProps = {
+/**
+ * Props for {@link KanbanColumnBody}: the card list, plus an `empty` placeholder shown when there are none.
+ * The body takes the rest: a `<ul>` with cards, or else a `<div>`.
+ */
+export type KanbanColumnBodyProps = HTMLAttributes<HTMLElement> & {
 	/** Shown when the column has no cards. */
 	empty?: ReactNode
-	children?: ReactNode
-	className?: string
 }
 
 /**
@@ -21,7 +22,7 @@ export type KanbanColumnBodyProps = {
  * board, the dnd-kit node of each card is a `<div>` inside its `<li>`. The `empty` placeholder is not a list item, so the body is a `<div>`
  * while it shows it. While the cards overflow the body, the body is a tab stop.
  */
-export function KanbanColumnBody({ empty, children, className }: KanbanColumnBodyProps) {
+export function KanbanColumnBody({ empty, children, className, ...props }: KanbanColumnBodyProps) {
 	// Count what React renders, not the slots. A `false` card slot renders
 	// nothing, so it must not hide the placeholder or keep the list. The
 	// body still renders `children` as-is, so no key shifts.
@@ -34,6 +35,7 @@ export function KanbanColumnBody({ empty, children, className }: KanbanColumnBod
 			<ul
 				ref={scrollRegionRef}
 				data-slot="kanban-column-body"
+				{...props}
 				className={cn(k.column.body, className)}
 			>
 				{children}
@@ -45,6 +47,7 @@ export function KanbanColumnBody({ empty, children, className }: KanbanColumnBod
 		<div
 			ref={scrollRegionRef}
 			data-slot="kanban-column-body"
+			{...props}
 			className={cn(k.column.body, className)}
 		>
 			{empty ? <div className={cn(k.column.empty)}>{empty}</div> : null}

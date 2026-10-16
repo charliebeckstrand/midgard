@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { type ComponentProps, useMemo } from 'react'
 import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
@@ -19,89 +19,91 @@ type SparklineColor = keyof typeof k.color
 /**
  * Props for {@link Sparkline}. Requires an accessible name (`aria-label` or
  * `aria-labelledby`), enforced at the type level by `AccessibleName`. A
- * sparkline is `role="img"`, so assistive tech needs a name for it.
+ * sparkline is `role="img"`, so assistive tech needs a name for it. The root
+ * `<span>` takes the rest. The sparkline gives `color` a meaning of its own,
+ * and draws its own SVG in place of `children`.
  */
-export type SparklineProps = AccessibleName & {
-	/**
-	 * The series to plot, oldest to newest. An empty array renders an empty box.
-	 *
-	 * @remarks The projection is memoized on the identity of this array. To
-	 * change the series, pass a new array. A series changed in place keeps its
-	 * identity, so the sparkline goes on drawing the old values.
-	 */
-	data: number[]
-	/**
-	 * Draw the series as a connected line or as discrete bars. The bars and
-	 * the area fill sit on zero, clamped into the domain. When the domain
-	 * crosses zero, a negative value hangs below the zero line, so a mixed
-	 * series reads as wins and losses.
-	 * @defaultValue 'line'
-	 */
-	shape?: 'line' | 'bar'
-	/**
-	 * The palette color of the series: the line and its area, or the bars.
-	 *
-	 * @defaultValue 'zinc'
-	 */
-	color?: SparklineColor
-	/**
-	 * The density step of the box. Omit it to take the step of the nearest
-	 * density scope. A step makes the sparkline a density scope. Each step
-	 * is 3:1 (72×24, 96×32, 120×40), so each step is the same drawing at a
-	 * different size.
-	 */
-	size?: ScaleStep<typeof scale>
-	/**
-	 * Box width in px. With `width` or `height`, the box has a fixed size and
-	 * does not follow the density. The other side is then 96 or 32.
-	 */
-	width?: number
-	/** Box height in px. See `width`. */
-	height?: number
-	/**
-	 * Fill the region under the line with a translucent wash. Ignored for the
-	 * `bar` shape.
-	 * @defaultValue false
-	 */
-	fill?: boolean
-	/**
-	 * Mark the last point with a filled dot — the end-of-series value. Ignored for
-	 * the `bar` shape.
-	 * @defaultValue false
-	 */
-	endPoint?: boolean
-	/**
-	 * Animate the marks in on mount with Framer Motion. The line draws itself
-	 * (`pathLength`), the area wash fades in behind it, the end-point pops, and
-	 * bars grow from the zero line in sequence. Honors `prefers-reduced-motion`
-	 * through {@link ReducedMotion}. Off by default — a static grid of many
-	 * sparklines stays a plain-SVG leaf with no motion runtime.
-	 *
-	 * @remarks The reveal plays on a client mount. A sparkline that the server
-	 * renders arrives at rest, because the server cannot read the preference of
-	 * the reader. The marks are then visible before the script loads, and they
-	 * do not draw again after hydration.
-	 * @defaultValue false
-	 */
-	animate?: boolean
-	/**
-	 * Line stroke width in px.
-	 * @defaultValue 1.5
-	 */
-	strokeWidth?: number
-	/**
-	 * Domain floor; defaults to the series minimum. Pin it to compare sparklines
-	 * on one scale. A value below it clamps to the bottom edge, also when the
-	 * whole series is below it.
-	 */
-	min?: number
-	/**
-	 * Domain ceiling; defaults to the series maximum. A value above it clamps to
-	 * the top edge, also when the whole series is above it.
-	 */
-	max?: number
-	className?: string
-}
+export type SparklineProps = AccessibleName &
+	Omit<ComponentProps<'span'>, 'color' | 'children' | 'aria-label' | 'aria-labelledby'> & {
+		/**
+		 * The series to plot, oldest to newest. An empty array renders an empty box.
+		 *
+		 * @remarks The projection is memoized on the identity of this array. To
+		 * change the series, pass a new array. A series changed in place keeps its
+		 * identity, so the sparkline goes on drawing the old values.
+		 */
+		data: number[]
+		/**
+		 * Draw the series as a connected line or as discrete bars. The bars and
+		 * the area fill sit on zero, clamped into the domain. When the domain
+		 * crosses zero, a negative value hangs below the zero line, so a mixed
+		 * series reads as wins and losses.
+		 * @defaultValue 'line'
+		 */
+		shape?: 'line' | 'bar'
+		/**
+		 * The palette color of the series: the line and its area, or the bars.
+		 *
+		 * @defaultValue 'zinc'
+		 */
+		color?: SparklineColor
+		/**
+		 * The density step of the box. Omit it to take the step of the nearest
+		 * density scope. A step makes the sparkline a density scope. Each step
+		 * is 3:1 (72×24, 96×32, 120×40), so each step is the same drawing at a
+		 * different size.
+		 */
+		size?: ScaleStep<typeof scale>
+		/**
+		 * Box width in px. With `width` or `height`, the box has a fixed size and
+		 * does not follow the density. The other side is then 96 or 32.
+		 */
+		width?: number
+		/** Box height in px. See `width`. */
+		height?: number
+		/**
+		 * Fill the region under the line with a translucent wash. Ignored for the
+		 * `bar` shape.
+		 * @defaultValue false
+		 */
+		fill?: boolean
+		/**
+		 * Mark the last point with a filled dot — the end-of-series value. Ignored for
+		 * the `bar` shape.
+		 * @defaultValue false
+		 */
+		endPoint?: boolean
+		/**
+		 * Animate the marks in on mount with Framer Motion. The line draws itself
+		 * (`pathLength`), the area wash fades in behind it, the end-point pops, and
+		 * bars grow from the zero line in sequence. Honors `prefers-reduced-motion`
+		 * through {@link ReducedMotion}. Off by default — a static grid of many
+		 * sparklines stays a plain-SVG leaf with no motion runtime.
+		 *
+		 * @remarks The reveal plays on a client mount. A sparkline that the server
+		 * renders arrives at rest, because the server cannot read the preference of
+		 * the reader. The marks are then visible before the script loads, and they
+		 * do not draw again after hydration.
+		 * @defaultValue false
+		 */
+		animate?: boolean
+		/**
+		 * Line stroke width in px.
+		 * @defaultValue 1.5
+		 */
+		strokeWidth?: number
+		/**
+		 * Domain floor; defaults to the series minimum. Pin it to compare sparklines
+		 * on one scale. A value below it clamps to the bottom edge, also when the
+		 * whole series is below it.
+		 */
+		min?: number
+		/**
+		 * Domain ceiling; defaults to the series maximum. A value above it clamps to
+		 * the top edge, also when the whole series is above it.
+		 */
+		max?: number
+	}
 
 /** Shared shape for the static and animated mark renderers. @internal */
 type SparklineMarksProps = {
@@ -281,7 +283,7 @@ export function Sparkline({
 	min,
 	max,
 	className,
-	...labelProps
+	...props
 }: SparklineProps) {
 	// An explicit `width` or `height` fixes the box. Otherwise the box is the
 	// 3:1 drawing, and the stepped classes of `k.svg` scale it to the step.
@@ -338,7 +340,7 @@ export function Sparkline({
 	)
 
 	return (
-		// The name rides the wrapper (role="img" + labelProps) and the decorative
+		// The name rides the wrapper (role="img" + the label in props) and the decorative
 		// SVG is aria-hidden, so assistive tech reads one summarized image rather
 		// than the raw shapes — the same split ProgressGauge uses. Under `animate`,
 		// ReducedMotion (MotionConfig) wraps the motion marks so a reduced-motion
@@ -346,8 +348,8 @@ export function Sparkline({
 		<span
 			data-slot="sparkline"
 			data-density={size}
+			{...props}
 			role="img"
-			{...labelProps}
 			className={cn(k(), className)}
 		>
 			{animate ? <ReducedMotion>{svg}</ReducedMotion> : svg}

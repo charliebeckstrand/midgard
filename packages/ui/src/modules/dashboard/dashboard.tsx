@@ -3,6 +3,7 @@
 import { DndContext } from '@dnd-kit/core'
 import {
 	Children,
+	type ComponentProps,
 	type CSSProperties,
 	cloneElement,
 	Fragment,
@@ -192,99 +193,101 @@ function inReadingOrder(children: ReactNode, order: readonly string[]): ReactNod
 
 /**
  * Props for {@link Dashboard}. Requires an accessible name (`aria-label` or
- * `aria-labelledby`), because the dashboard is a landmark region.
+ * `aria-labelledby`), because the dashboard is a landmark region. The
+ * `<section>` takes the rest. The board gives `ref`, `onDragStart`, and
+ * `onDragEnd` a meaning of its own.
  */
-export type DashboardProps = AccessibleName & {
-	/**
-	 * The saved layout. It fires once for each committed change: a drop, a pointer
-	 * resize, a keyboard resize step, or a tidy that moves a tile. Omit it to let
-	 * the dashboard hold the layout, and each tile with no entry takes a new row.
-	 * Apply each value in the same event, as {@link DashboardLayoutBinding} says.
-	 */
-	layout?: DashboardLayoutBinding
-	/** The filter that the app owns. The tiles read it through the scope hooks. */
-	filter?: DashboardFilterBinding
-	/**
-	 * The cross-filter selections that the tiles make. Bind it to save or reset
-	 * them. Read a saved value through `parseDashboardSelection`, which drops each
-	 * malformed selection.
-	 */
-	selection?: DashboardSelectionBinding
-	/**
-	 * Edit mode. The column guides show, each tile gets a drag grip and resize
-	 * splitters, and the content of each tile goes inert. A drag starts only from
-	 * the grip, so the rest of a tile keeps touch scrolling. Edit mode never changes
-	 * a tile size, so no widget re-lays out on the switch. While the responsive
-	 * projection is on screen, edit mode stands down, because a gesture edits the
-	 * saved layout and not the re-pack. When edit mode ends or stands down, or when
-	 * the board unmounts, a live drag or resize ends as canceled.
-	 * @defaultValue false
-	 */
-	editing?: boolean
-	/**
-	 * The column count. The default divides into halves, thirds, quarters, sixths,
-	 * and eighths. A saved entry that does not fit the count clamps into it. When
-	 * the clamp puts a tile on another tile, the tile takes a new row under the
-	 * lowest tile. The next commit saves that place.
-	 * @defaultValue 24
-	 */
-	columns?: number
-	/**
-	 * The gutter between tiles, in px. Each tile insets half of it on each side.
-	 * @defaultValue 12
-	 */
-	gap?: number
-	/**
-	 * Heading level of each tile title. The dashboard shows no heading of its own,
-	 * so set it one level below the heading above the dashboard on the page. The
-	 * level also sets the weight of the title. Level 1 is bold, levels 2 and 3 are
-	 * semibold, and levels 4 to 6 are medium. The size of the title stays the same
-	 * at each level.
-	 * @defaultValue 3
-	 */
-	titleLevel?: HeadingLevel
-	/** Receives the start of each drag. */
-	onDragStart?: (event: DashboardGestureStartEvent) => void
-	/** Receives the end of each drag, with `canceled` when it changed nothing. */
-	onDragEnd?: (event: DashboardGestureEndEvent) => void
-	/** Receives the start of each pointer resize. */
-	onResizeStart?: (event: DashboardGestureStartEvent) => void
-	/** Receives the end of each pointer resize, with `canceled` when it changed nothing. */
-	onResizeEnd?: (event: DashboardGestureEndEvent) => void
-	/** Receives each error that a tile boundary catches, for a log or a report. */
-	onTileError?: (id: string, error: unknown) => void
-	/**
-	 * Receives each change of the responsive projection: `true` when the board
-	 * paints the re-pack, and `false` when the saved layout returns. Edit mode
-	 * stands down while the re-pack is on screen, so use it to disable the
-	 * control that starts edit mode. The server and the first render paint the
-	 * saved layout, so the first call comes only after a measurement projects.
-	 */
-	onProjectedChange?: (projected: boolean) => void
-	/** Receives the commands of the board, such as {@link DashboardHandle.tidy}. */
-	ref?: Ref<DashboardHandle>
-	className?: string
-	/**
-	 * The tiles: `DashboardTile` elements and `DashboardTiles`, in any order. The
-	 * board renders the tiles in reading order, by row and then by column. In
-	 * edit mode the markup holds still, and the new order takes effect when edit
-	 * mode ends.
-	 *
-	 * @remarks
-	 * The order reaches each `DashboardTile` child, also inside a Fragment. A
-	 * component that renders a tile keeps its own slot. `DashboardTiles` orders
-	 * only its own tiles, so a board with JSX tiles and spec tiles orders each group apart.
-	 *
-	 * The tiles with no layout entry take their new rows in markup order. That
-	 * order reads the children, then the `tiles` of each `DashboardTiles`. In one
-	 * component, each `DashboardTiles` and each `DashboardTile` takes its place when
-	 * it mounts, and the elements of one commit keep their markup order. An element
-	 * that mounts after the others of its component goes after them. A reload gives
-	 * the markup order only when they all mount in one commit. A new spec tile keeps
-	 * its place in `tiles`.
-	 */
-	children?: ReactNode
-}
+export type DashboardProps = AccessibleName &
+	Omit<ComponentProps<'section'>, 'ref' | 'onDragStart' | 'onDragEnd'> & {
+		/**
+		 * The saved layout. It fires once for each committed change: a drop, a pointer
+		 * resize, a keyboard resize step, or a tidy that moves a tile. Omit it to let
+		 * the dashboard hold the layout, and each tile with no entry takes a new row.
+		 * Apply each value in the same event, as {@link DashboardLayoutBinding} says.
+		 */
+		layout?: DashboardLayoutBinding
+		/** The filter that the app owns. The tiles read it through the scope hooks. */
+		filter?: DashboardFilterBinding
+		/**
+		 * The cross-filter selections that the tiles make. Bind it to save or reset
+		 * them. Read a saved value through `parseDashboardSelection`, which drops each
+		 * malformed selection.
+		 */
+		selection?: DashboardSelectionBinding
+		/**
+		 * Edit mode. The column guides show, each tile gets a drag grip and resize
+		 * splitters, and the content of each tile goes inert. A drag starts only from
+		 * the grip, so the rest of a tile keeps touch scrolling. Edit mode never changes
+		 * a tile size, so no widget re-lays out on the switch. While the responsive
+		 * projection is on screen, edit mode stands down, because a gesture edits the
+		 * saved layout and not the re-pack. When edit mode ends or stands down, or when
+		 * the board unmounts, a live drag or resize ends as canceled.
+		 * @defaultValue false
+		 */
+		editing?: boolean
+		/**
+		 * The column count. The default divides into halves, thirds, quarters, sixths,
+		 * and eighths. A saved entry that does not fit the count clamps into it. When
+		 * the clamp puts a tile on another tile, the tile takes a new row under the
+		 * lowest tile. The next commit saves that place.
+		 * @defaultValue 24
+		 */
+		columns?: number
+		/**
+		 * The gutter between tiles, in px. Each tile insets half of it on each side.
+		 * @defaultValue 12
+		 */
+		gap?: number
+		/**
+		 * Heading level of each tile title. The dashboard shows no heading of its own,
+		 * so set it one level below the heading above the dashboard on the page. The
+		 * level also sets the weight of the title. Level 1 is bold, levels 2 and 3 are
+		 * semibold, and levels 4 to 6 are medium. The size of the title stays the same
+		 * at each level.
+		 * @defaultValue 3
+		 */
+		titleLevel?: HeadingLevel
+		/** Receives the start of each drag. */
+		onDragStart?: (event: DashboardGestureStartEvent) => void
+		/** Receives the end of each drag, with `canceled` when it changed nothing. */
+		onDragEnd?: (event: DashboardGestureEndEvent) => void
+		/** Receives the start of each pointer resize. */
+		onResizeStart?: (event: DashboardGestureStartEvent) => void
+		/** Receives the end of each pointer resize, with `canceled` when it changed nothing. */
+		onResizeEnd?: (event: DashboardGestureEndEvent) => void
+		/** Receives each error that a tile boundary catches, for a log or a report. */
+		onTileError?: (id: string, error: unknown) => void
+		/**
+		 * Receives each change of the responsive projection: `true` when the board
+		 * paints the re-pack, and `false` when the saved layout returns. Edit mode
+		 * stands down while the re-pack is on screen, so use it to disable the
+		 * control that starts edit mode. The server and the first render paint the
+		 * saved layout, so the first call comes only after a measurement projects.
+		 */
+		onProjectedChange?: (projected: boolean) => void
+		/** Receives the commands of the board, such as {@link DashboardHandle.tidy}. */
+		ref?: Ref<DashboardHandle>
+		/**
+		 * The tiles: `DashboardTile` elements and `DashboardTiles`, in any order. The
+		 * board renders the tiles in reading order, by row and then by column. In
+		 * edit mode the markup holds still, and the new order takes effect when edit
+		 * mode ends.
+		 *
+		 * @remarks
+		 * The order reaches each `DashboardTile` child, also inside a Fragment. A
+		 * component that renders a tile keeps its own slot. `DashboardTiles` orders
+		 * only its own tiles, so a board with JSX tiles and spec tiles orders each group apart.
+		 *
+		 * The tiles with no layout entry take their new rows in markup order. That
+		 * order reads the children, then the `tiles` of each `DashboardTiles`. In one
+		 * component, each `DashboardTiles` and each `DashboardTile` takes its place when
+		 * it mounts, and the elements of one commit keep their markup order. An element
+		 * that mounts after the others of its component goes after them. A reload gives
+		 * the markup order only when they all mount in one commit. A new spec tile keeps
+		 * its place in `tiles`.
+		 */
+		children?: ReactNode
+	}
 
 /**
  * A board of tiles that arranges widgets and shares one filter scope between
@@ -344,7 +347,7 @@ export function Dashboard({
 	ref,
 	className,
 	children,
-	...label
+	...props
 }: DashboardProps) {
 	const [layoutValue, setLayoutValue] = useControllable<DashboardLayoutItem[]>({
 		value: layout?.value,
@@ -537,11 +540,11 @@ export function Dashboard({
 			<DashboardActionsContext value={actions}>
 				<DndContext {...dndContextProps}>
 					<section
+						{...props}
 						data-slot="dashboard"
 						data-editing={dataAttr(editable)}
 						// The focus lands here when a remove takes away the last tile.
 						tabIndex={-1}
-						{...label}
 						className={cn('@container w-full', className)}
 					>
 						<div

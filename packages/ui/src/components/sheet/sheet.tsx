@@ -1,8 +1,9 @@
 'use client'
 
-import type { ReactNode, RefObject } from 'react'
-import { cn } from '../../core'
+import type { ComponentProps, ReactNode, RefObject } from 'react'
+import { cn, composeEventHandlers, dataAttr } from '../../core'
 import { useA11yPanel } from '../../hooks'
+import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useIsRtl } from '../../hooks/use-is-rtl'
 import { useOpenComplete } from '../../hooks/use-open-complete'
 import { panelAxis, usePanelResize } from '../../hooks/use-panel-resize'
@@ -25,9 +26,17 @@ import { SheetClose, SheetDefaultFooter } from './slots'
 /** Props for {@link Sheet}: the open state, controlled or uncontrolled. */
 export type SheetProps = PanelRootProps
 
-/** Props for {@link SheetPanel}: portal `container`, focus, modality, and panel `side`/`width` variants. */
+/**
+ * Props for {@link SheetPanel}: portal `container`, focus, modality, and panel `side`/`width` variants.
+ * The animated panel `<div>` takes the rest, except the keys that Motion gives
+ * a meaning of its own. The panel sets its `id` and its ARIA wiring after the rest.
+ */
 export type SheetPanelProps = Omit<SheetPanelVariants, 'surface' | 'width' | 'side'> &
-	PanelOverlayProps & {
+	PanelOverlayProps &
+	Omit<
+		ComponentProps<'div'>,
+		'children' | 'onAnimationStart' | 'onDrag' | 'onDragStart' | 'onDragEnd'
+	> & {
 		/**
 		 * The edge the panel is docked to and slides in from.
 		 *
@@ -105,7 +114,6 @@ export type SheetPanelProps = Omit<SheetPanelVariants, 'surface' | 'width' | 'si
 		 * @defaultValue `false`, or the flag of the enclosing `<GlassProvider>`.
 		 */
 		glass?: boolean
-		className?: string
 		children: ReactNode
 		/**
 		 * The content of the footer row that the sheet shows when no `SheetFooter`
@@ -171,7 +179,7 @@ export function Sheet(props: SheetProps) {
  * portal's synthetic clicks off the consumer ancestors it renders under. The
  * backdrop is a sibling, so a panel click never reaches its dismiss handler
  * anyway. The panel, its close parts, and its dismissal share the open-state
- * setter of the root.
+ * setter of the root. The panel stamps `data-open` while it is open.
  */
 export function SheetPanel({
 	onOpenComplete,
@@ -188,6 +196,10 @@ export function SheetPanel({
 	modal,
 	backdrop,
 	'aria-label': ariaLabel,
+	ref,
+	style,
+	onClick,
+	...props
 }: SheetPanelProps) {
 	// The root holds the state. One setter drives the Overlay and the close parts.
 	const { open, setOpen, panelId } = usePanelState()
@@ -221,6 +233,12 @@ export function SheetPanel({
 		ceilingOf: (panel, viewport) => sheetCeiling(panel, viewport, axis),
 	})
 
+	// The gesture reads the node only while the panel has a handle. A consumer
+	// `ref` joins it.
+	const panelRef = useComposedRef(handle ? resize.ref : undefined, ref)
+
+	const sized = handle && (resize.resizing || resize.size !== null)
+
 	return (
 		<Overlay
 			open={open}
@@ -233,14 +251,20 @@ export function SheetPanel({
 			backdropClassName={k.backdrop({ surface })}
 		>
 			<m.div
+				{...props}
 				{...preset}
 				onAnimationComplete={onAnimationComplete}
 				{...ariaProps}
 				aria-label={ariaProps['aria-labelledby'] ? undefined : ariaLabel}
 				id={panelId}
+				// The space recipe reads this anchor, so it comes after the spread (CONVENTIONS.md §3.9).
 				data-slot="sheet"
-				ref={handle ? resize.ref : undefined}
-				onClick={(event) => event.stopPropagation()}
+				data-open={dataAttr(open)}
+				ref={panelRef}
+				// A consumer's preventDefault() does not let the click past the panel (CONVENTIONS.md §3.9).
+				onClick={composeEventHandlers(onClick, (event) => event.stopPropagation(), {
+					checkForDefaultPrevented: false,
+				})}
 				// A dragged size beats the variant's, and it is inline because it is a
 				// measurement rather than a step on the scale. On the axis the panel is
 				// docked across, which for a sheet along the top or the bottom is its
@@ -251,12 +275,9 @@ export function SheetPanel({
 				// lands: the `width` variant is a max-width, so leaving it in place would
 				// clamp the panel at its opening width while the drag went on reporting
 				// numbers past it. Cleared before the first move, because `resizing` is
-				// set on the press and the pointer moves after the render.
-				style={
-					handle && (resize.resizing || resize.size !== null)
-						? { [axis]: resize.size ?? undefined, maxWidth: 'none' }
-						: undefined
-				}
+				// set on the press and the pointer moves after the render. The consumer
+				// `style` comes first, so the dragged size wins.
+				style={sized ? { ...style, [axis]: resize.size ?? undefined, maxWidth: 'none' } : style}
 				className={cn(
 					k.panel({ side: edge, width, surface }),
 					// Non-modal overlays disable pointer events on the full-viewport

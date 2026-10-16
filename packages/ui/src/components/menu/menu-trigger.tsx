@@ -1,55 +1,23 @@
 'use client'
 
-import {
-	type ComponentProps,
-	type KeyboardEvent,
-	type ReactElement,
-	type SyntheticEvent,
-	useId,
-	useRef,
-} from 'react'
-import { cn, composeEventHandlers } from '../../core'
+import { type ComponentProps, type KeyboardEvent, type Ref, useId, useRef } from 'react'
+import { cn, dataAttr } from '../../core'
+import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useDeferredFloatingReference } from '../../hooks/use-deferred-floating-reference'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { TriggerChild, triggerChild } from '../../primitives/trigger-child/trigger-child'
+import {
+	mergeTriggerProps,
+	TriggerChild,
+	triggerChild,
+} from '../../primitives/trigger-child/trigger-child'
 import { useMenuActions, useMenuState } from './context'
 import { useMenuPointer } from './use-menu-pointer'
 
-/** Props for {@link MenuTrigger}: either a single child element to clone or native `<button>` attributes. */
-export type MenuTriggerProps =
-	| ({ children: ReactElement } & { className?: string })
-	| ComponentProps<'button'>
-
 /**
- * The props of a cloned child, with the other props of the trigger merged in.
- * The child wins a clash, as its `className` does. A handler on both runs the
- * handler of the child first, and its `preventDefault()` cancels the other.
- *
- * @internal
+ * Props for {@link MenuTrigger}. The `<button>` of the trigger takes the rest.
+ * With a single element child, the clone of the child takes the rest instead.
  */
-function mergeTriggerProps(
-	triggerProps: Record<string, unknown>,
-	childProps: Record<string, unknown>,
-): Record<string, unknown> {
-	const merged: Record<string, unknown> = { ...triggerProps, ...childProps }
-
-	for (const [key, triggerValue] of Object.entries(triggerProps)) {
-		const childValue = childProps[key]
-
-		if (
-			/^on[A-Z]/.test(key) &&
-			typeof triggerValue === 'function' &&
-			typeof childValue === 'function'
-		) {
-			merged[key] = composeEventHandlers(
-				childValue as (event: SyntheticEvent) => void,
-				triggerValue as (event: SyntheticEvent) => void,
-			)
-		}
-	}
-
-	return merged
-}
+export type MenuTriggerProps = ComponentProps<'button'>
 
 /**
  * Disclosure trigger for a dropdown {@link Menu}. Clones a single child element
@@ -70,8 +38,11 @@ function mergeTriggerProps(
  *
  * The trigger keeps focus while the menu is open. Tab off it therefore closes
  * the menu, and lets focus proceed to the next tabbable in one keystroke.
+ *
+ * The trigger stamps `data-open` while the menu is open, and `data-disabled`
+ * while it is disabled.
  */
-export function MenuTrigger({ children, className, ...props }: MenuTriggerProps) {
+export function MenuTrigger({ children, className, ref, ...props }: MenuTriggerProps) {
 	const { open, menuId, getReferenceProps } = useMenuState()
 
 	const { dismissToTab, rovingKeyDown, triggerRef, setReference } = useMenuActions()
@@ -88,7 +59,11 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 	// `PopoverTrigger`.
 	const child = triggerChild(children)
 
-	const childRef = child?.props.ref
+	// A consumer `ref` on the trigger joins the ref of the child.
+	const childRef = useComposedRef<HTMLElement>(
+		child?.props.ref,
+		ref as Ref<HTMLElement> | undefined,
+	)
 
 	// Registration waits for the first open, so a closed menu renders once
 	// rather than twice. That almost halves the cost of a closed menu, measured
@@ -164,8 +139,7 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 	// them (the `TooltipTrigger`/`PopoverTrigger` pattern). The toggle itself is
 	// `useClick`'s, composed at the state level, so only the key handlers wrap.
 	if (child) {
-		const childProps =
-			Object.keys(props).length > 0 ? mergeTriggerProps(props, child.props) : child.props
+		const childProps = mergeTriggerProps(props, child.props)
 
 		const childOnKeyDown = childProps.onKeyDown as ((event: KeyboardEvent) => void) | undefined
 
@@ -190,6 +164,9 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 					'aria-haspopup': 'menu',
 					'aria-expanded': open,
 					'aria-controls': open ? menuId : undefined,
+					'data-open': dataAttr(open),
+					// A child that stamps its own disabled state keeps it.
+					'data-disabled': dataAttr(childProps.disabled === true) ?? childProps['data-disabled'],
 				}}
 				ref={setTrigger}
 				slot="menu-trigger"
@@ -198,11 +175,7 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 		)
 	}
 
-	const {
-		onKeyDown: consumerOnKeyDown,
-		onKeyUp: consumerOnKeyUp,
-		...rest
-	} = props as ComponentProps<'button'>
+	const { onKeyDown: consumerOnKeyDown, onKeyUp: consumerOnKeyUp, ...rest } = props
 
 	return (
 		<button
@@ -227,6 +200,8 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 			aria-haspopup="menu"
 			aria-expanded={open}
 			aria-controls={open ? menuId : undefined}
+			data-open={dataAttr(open)}
+			data-disabled={dataAttr(rest.disabled)}
 		>
 			{children}
 		</button>

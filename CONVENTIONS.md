@@ -78,7 +78,7 @@ An arrow key on a physical axis, such as a slider track or a map cursor, stays p
 
 3.11 Each part that has an open state stamps a boolean `data-open` while it is open. Such parts are a trigger and the content that it opens. A part that can be disabled also stamps `data-disabled` while it is disabled. Use `dataAttr` from `ui/core` (§3.10). A consumer then styles the state of each disclosure with the same selector. A step state that has more than two values, such as the `data-state` of a Stepper step, is not an open state.
 
-The disclosure sweep in `sweeps/capabilities.test.tsx` opens each `disclosure` subject of the corpus and reads the two attributes. `disclosure-state-boundary.test.ts` finds each barreled component whose props take `open`, `defaultOpen`, or `onOpenChange`. It fails when the corpus has no subject for such a component and the lists of the test do not name it. A letter sweep removes its own components from the lists.
+The disclosure sweep in `sweeps/capabilities.test.tsx` opens each `disclosure` subject of the corpus and reads the two attributes. `disclosure-state-boundary.test.ts` finds each barreled component whose props take `open`, `defaultOpen`, or `onOpenChange`. It fails when the corpus has no subject for such a component and the test does not exempt it with a reason.
 
 ## 4. TypeScript
 
@@ -92,7 +92,7 @@ A barreled props type whose component renders an element takes the `ComponentPro
 
 Do not declare a key again when the base gives it. `Omit<ComponentProps<'div'>, 'className'> & { className?: string }` gives the same type as the base alone. When you declare a key that the base gives, change its type or its optionality. Or give it a doccomment that says what the key does in this component.
 
-`props-base-boundary.test.ts` and Biome's `noReactForwardRef` gate the rule. The boundary test holds a list of the components that do not obey the rule yet. A letter sweep removes its own components from the list.
+`props-base-boundary.test.ts` and Biome's `noReactForwardRef` gate the rule. The boundary test lists each exemption with its reason, and each component with two elements that keeps an element-agnostic base.
 
 4.4 A variant axis reaches props from the recipe that declares it: `size?: ButtonVariants['size']`, `SkeletonProps<NonNullable<ButtonVariants['size']>>`. A `size` prop takes `ScaleStep` with the scale that its kata exports (§5.5). Never repeat an axis union in a second place; the `no-respelled-orientation` Biome plugin pins the orientation axis.
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { Check, Dot } from 'lucide-react'
+import type { ComponentProps } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useA11yLiveRegion } from '../../hooks'
 import { k } from '../../recipes/kata/password-strength'
@@ -28,8 +29,11 @@ const strengthLevels = [
 	{ id: 'strong', label: 'Strong' },
 ] as const
 
-/** Props for {@link PasswordStrength}. */
-export type PasswordStrengthProps = {
+/**
+ * Props for {@link PasswordStrength}. The root `<div>` takes the rest. The meter
+ * renders its own content, so it takes no children.
+ */
+export type PasswordStrengthProps = Omit<ComponentProps<'div'>, 'children'> & {
 	/** Password evaluated against `rules`; read-only, the meter never writes back. */
 	value: string
 	/**
@@ -51,7 +55,6 @@ export type PasswordStrengthProps = {
 	 * re-fire; see {@link usePasswordStrength}.
 	 */
 	onStrengthChange?: (strength: PasswordStrengthChange) => void
-	className?: string
 }
 
 /** Password strength meter and rule checklist driven by a `value` against a set of `rules`. Renders a native `meter` with the level as its value text, beside a decorative four-segment bar, and reports the level via `onStrengthChange`. */
@@ -61,6 +64,7 @@ export function PasswordStrength({
 	showRules = true,
 	onStrengthChange,
 	className,
+	...props
 }: PasswordStrengthProps) {
 	const { results, level } = usePasswordStrength({ value, rules, onStrengthChange })
 
@@ -71,7 +75,7 @@ export function PasswordStrength({
 	const label = activeCount === 0 ? 'Empty' : (strengthLevels[activeCount - 1]?.label ?? '')
 
 	return (
-		<div data-slot="password-strength" className={cn(k.base, className)}>
+		<div data-slot="password-strength" {...props} className={cn(k.base, className)}>
 			{/* A native meter cannot draw the segments, so it carries the value for AT, and the segment row is decorative. */}
 			<meter
 				value={activeCount}

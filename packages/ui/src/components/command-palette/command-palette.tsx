@@ -1,7 +1,7 @@
 'use client'
 
 import { Search } from 'lucide-react'
-import { type ReactNode, useMemo } from 'react'
+import { type ComponentProps, type ReactNode, useMemo } from 'react'
 import {
 	defaultKeybindingsHandlerIgnore,
 	type KeybindingFilter,
@@ -45,10 +45,16 @@ const IGNORE_TAKEN_OR_FIELD: KeybindingFilter = (event) =>
 
 /**
  * Props for {@link CommandPalette}. The open state (`open` or `defaultOpen`) comes
- * from {@link DialogProps}, and `glass` comes from {@link DialogPanelProps}.
+ * from {@link DialogProps}, and `glass` comes from {@link DialogPanelProps}. The
+ * panel `<div>` of the dialog takes the rest, except the keys that Motion gives a
+ * meaning of its own. The palette sets the `role` and the `aria-label` of the panel.
  */
 export type CommandPaletteProps = Pick<DialogProps, 'open' | 'defaultOpen'> &
-	Pick<DialogPanelProps, 'glass'> & {
+	Pick<DialogPanelProps, 'glass'> &
+	Omit<
+		ComponentProps<'div'>,
+		'children' | 'role' | 'onAnimationStart' | 'onDrag' | 'onDragStart' | 'onDragEnd'
+	> & {
 		/** The maximum width of the panel. @defaultValue '2xl' */
 		width?: DialogPanelVariants['width']
 		/**
@@ -88,7 +94,6 @@ export type CommandPaletteProps = Pick<DialogProps, 'open' | 'defaultOpen'> &
 		 * @defaultValue `<CommandPaletteClose />`
 		 */
 		footer?: ReactNode
-		className?: string
 		/**
 		 * Global shortcut that toggles the palette; tinykeys syntax, e.g.
 		 * `'$mod+KeyK'` (⌘K / Ctrl+K). Array for multiple bindings, `false` to
@@ -141,6 +146,7 @@ const DEFAULT_TRIGGER_SHORTCUT = '$mod+KeyK'
  * `VirtualOptions` inside `children` registers its windowed item source
  * automatically, so the highlight reaches items outside the rendered window.
  * Roving type-ahead stays off: the search input owns every printable key.
+ * The dialog panel of the palette stamps `data-open` while it is open.
  */
 export function CommandPalette({
 	open: openProp,
@@ -155,6 +161,7 @@ export function CommandPalette({
 	className,
 	triggerShortcut = DEFAULT_TRIGGER_SHORTCUT,
 	children,
+	...props
 }: CommandPaletteProps) {
 	// Controlled when `open` is passed; otherwise uncontrolled from `defaultOpen`,
 	// as in Dialog. The shortcut, the items, and the dialog share this one setter.
@@ -205,6 +212,7 @@ export function CommandPalette({
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogPanel
+				{...props}
 				align="top"
 				dismissOnBackdrop={dismissOnBackdrop}
 				width={width}

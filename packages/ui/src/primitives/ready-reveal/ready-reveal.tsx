@@ -1,6 +1,14 @@
 'use client'
 
-import { Activity, type FocusEvent, type ReactNode, useLayoutEffect, useRef, useState } from 'react'
+import {
+	Activity,
+	type ComponentProps,
+	type FocusEvent,
+	type ReactNode,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from 'react'
 import { cn } from '../../core'
 import { useAnnounceOnAppear } from '../../hooks/a11y/use-announce-on-appear'
 import { k } from '../../recipes/kata/ready-reveal'
@@ -8,8 +16,8 @@ import { FOCUSABLE_SELECTOR } from '../../utilities'
 import { ReducedMotion } from '../reduced-motion'
 import * as m from '../reduced-motion/reduced-motion-elements'
 
-/** Props for {@link ReadyReveal}. */
-export type ReadyRevealProps = {
+/** Props for {@link ReadyReveal}. The root `<div>` takes the rest. */
+export type ReadyRevealProps = Omit<ComponentProps<'div'>, 'children' | 'placeholder'> & {
 	/** When true, reveals `children`; when false, shows `placeholder`. */
 	ready: boolean
 	/**
@@ -123,6 +131,8 @@ export function ReadyReveal({
 	onReadyComplete,
 	loadingLabel,
 	className,
+	style,
+	...props
 }: ReadyRevealProps) {
 	const placeholderRef = useRef<HTMLDivElement>(null)
 
@@ -196,9 +206,12 @@ export function ReadyReveal({
 		<ReducedMotion>
 			<div
 				data-slot="ready-reveal"
+				{...props}
 				aria-busy={ready ? undefined : true}
 				className={cn('relative grid', className)}
-				style={ROOT_GRID}
+				// The grid holds both layers in one cell, so it comes after the
+				// consumer style.
+				style={style ? { ...style, ...ROOT_GRID } : ROOT_GRID}
 			>
 				<Activity mode={ready && settled ? 'hidden' : 'visible'}>
 					<m.div

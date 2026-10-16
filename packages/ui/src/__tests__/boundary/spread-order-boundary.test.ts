@@ -58,6 +58,9 @@ const NATIVE_BASE = /\bComponentProps</
 
 const REF_OMITTED = /Omit<\s*ComponentProps<[^>]*>\s*,[^>]*'ref'/
 
+// The element-agnostic base of a component with two elements (§4.3) carries no ref.
+const AGNOSTIC_BASE = /\bHTMLAttributes<HTMLElement>/
+
 /**
  * A rest binding of the props of an enclosing function. `native` is true when
  * the props type admits native attributes, so the rest can carry a consumer
@@ -101,6 +104,9 @@ type Waiver = { order?: number; anchor?: number; ref?: number; note: string }
  * count moves in either direction.
  */
 const WAIVERS = new Map<string, Waiver>([
+	// The rest comes from `splitFileUploadProps`, so the scan cannot read its
+	// type. The type is the element-agnostic base, which carries no ref.
+	['components/file-upload/file-upload-drop.tsx', { ref: 2, note: 'scan limit: split rest' }],
 	['components/fieldset/description.tsx', { anchor: 1, note: 'lead S1' }],
 	['components/fieldset/field.tsx', { anchor: 1, note: 'lead S1' }],
 	['components/fieldset/label.tsx', { anchor: 1, note: 'lead S1' }],
@@ -281,7 +287,7 @@ function restOf(
 	return {
 		name: rest.name.text,
 		native: NATIVE_BASE.test(shape),
-		refTaken: bindsRef(pattern) || REF_OMITTED.test(shape),
+		refTaken: bindsRef(pattern) || REF_OMITTED.test(shape) || AGNOSTIC_BASE.test(shape),
 	}
 }
 

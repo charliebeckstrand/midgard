@@ -1,8 +1,9 @@
 'use client'
 
-import { type KeyboardEvent, useCallback, useMemo, useRef } from 'react'
-import { cn } from '../../core'
+import { type ComponentProps, type KeyboardEvent, useCallback, useMemo, useRef } from 'react'
+import { cn, composeEventHandlers } from '../../core'
 import { useA11yRoving } from '../../hooks'
+import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useKeyedStore } from '../../hooks/use-keyed-store'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { k } from '../../recipes/kata/json-tree'
@@ -26,8 +27,11 @@ import { useJsonTreeSearchSeed } from './use-json-tree-search-seed'
 /** Row-virtualization options for {@link JsonTree}: the required scroll-container `maxHeight`, plus optional windowing tuning. */
 export type JsonTreeVirtualize = { maxHeight: string; estimateSize?: number; overscan?: number }
 
-/** Props for {@link JsonTree}: the `data` value, expansion controls, `search`, and optional `virtualize` windowing. */
-export type JsonTreeProps = {
+/**
+ * Props for {@link JsonTree}: the `data` value, expansion controls, `search`, and optional `virtualize` windowing.
+ * The `<div>` of the tree takes the rest. The tree sets its `role` after the rest.
+ */
+export type JsonTreeProps = Omit<ComponentProps<'div'>, 'children'> & {
 	/** The JSON value to render. */
 	data: JsonValue
 	/** Root label (renders as the root key). */
@@ -93,7 +97,6 @@ export type JsonTreeProps = {
 	'aria-label'?: string
 	/** Id of a visible element that names the tree. It replaces the default `aria-label`. */
 	'aria-labelledby'?: string
-	className?: string
 }
 
 /** Reads whether a path is in the controlled expanded set. */
@@ -136,8 +139,14 @@ export function JsonTree({
 	'aria-label': ariaLabel,
 	'aria-labelledby': ariaLabelledby,
 	className,
+	ref: consumerRef,
+	onKeyDown,
+	...props
 }: JsonTreeProps) {
 	const ref = useRef<HTMLDivElement>(null)
+
+	// The roving model and the tree moves read `ref`, so a consumer `ref` joins it.
+	const setRoot = useComposedRef(ref, consumerRef)
 
 	// A tree needs a name. A visible label replaces the default.
 	const label = ariaLabelledby === undefined ? (ariaLabel ?? rootKey ?? 'JSON') : ariaLabel
@@ -262,7 +271,9 @@ export function JsonTree({
 	if (windowed) {
 		return (
 			<JsonTreeVirtualized
+				rootProps={props}
 				ref={ref}
+				setRoot={setRoot}
 				data={data}
 				rootKey={rootKey}
 				defaultExpandDepth={defaultExpandDepth}
@@ -275,7 +286,7 @@ export function JsonTree({
 				matchPaths={matchPaths}
 				virtualize={virtualize}
 				maxHeight={virtualize.maxHeight}
-				onKeyDown={handleRovingKeyDown}
+				onKeyDown={composeEventHandlers(onKeyDown, handleRovingKeyDown)}
 				aria-label={label}
 				aria-labelledby={ariaLabelledby}
 				className={className}
@@ -286,13 +297,14 @@ export function JsonTree({
 	return (
 		<JsonTreeContext value={contextValue}>
 			<div
-				ref={ref}
+				data-slot="json-tree"
+				{...props}
+				ref={setRoot}
 				role="tree"
 				aria-label={label}
 				aria-labelledby={ariaLabelledby}
-				data-slot="json-tree"
 				className={cn(k.base, className)}
-				onKeyDown={handleKeyDown}
+				onKeyDown={composeEventHandlers(onKeyDown, handleKeyDown)}
 			>
 				<JsonTreeNode keyName={rootKey} value={data} />
 			</div>

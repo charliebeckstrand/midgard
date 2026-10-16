@@ -7,8 +7,20 @@ import {
 	CommandPaletteLabel,
 } from '../../../components/command-palette'
 import { Confirm } from '../../../components/confirm'
-import { Dialog, DialogBody, DialogPanel, DialogTitle } from '../../../components/dialog'
-import { Drawer, DrawerBody, DrawerPanel, DrawerTitle } from '../../../components/drawer'
+import {
+	Dialog,
+	DialogBody,
+	DialogPanel,
+	DialogTitle,
+	DialogTrigger,
+} from '../../../components/dialog'
+import {
+	Drawer,
+	DrawerBody,
+	DrawerPanel,
+	DrawerTitle,
+	DrawerTrigger,
+} from '../../../components/drawer'
 import { Lightbox, LightboxTrigger } from '../../../components/lightbox'
 import {
 	Menu,
@@ -16,10 +28,11 @@ import {
 	MenuItem,
 	MenuLabel,
 	MenuSection,
+	MenuSub,
 	MenuTrigger,
 } from '../../../components/menu'
 import { Popover, PopoverContent, PopoverTrigger } from '../../../components/popover'
-import { Sheet, SheetBody, SheetPanel, SheetTitle } from '../../../components/sheet'
+import { Sheet, SheetBody, SheetPanel, SheetTitle, SheetTrigger } from '../../../components/sheet'
 import { Toast, ToastProvider, useToast } from '../../../components/toast'
 import { noop } from '../../helpers'
 import type { Case } from './types'
@@ -40,6 +53,19 @@ function ToastCase() {
 }
 
 /**
+ * Opens the first submenu on the page once, on mount. A submenu has no prop that
+ * opens it, so the click drives it open as a reader does. Used by the disclosure
+ * subject of the menu.
+ */
+function OpenFirstSubmenu() {
+	useEffect(() => {
+		document.querySelector<HTMLElement>('[data-slot="menu-sub-trigger"]')?.click()
+	}, [])
+
+	return null
+}
+
+/**
  * Overlay corpus: components whose content is portaled to `document.body`.
  * The gate (`baseline.test.tsx`) renders them open and asserts against the
  * document, not the render container. Each case is authored in its canonical
@@ -57,6 +83,21 @@ export const overlays: readonly Case[] = [
 				</DialogPanel>
 			</Dialog>
 		),
+		disclosure: [
+			{
+				component: 'Dialog',
+				render: ({ open, disabled }) => (
+					<Dialog defaultOpen={open}>
+						<DialogTrigger disabled={disabled}>Create project</DialogTrigger>
+						<DialogPanel>
+							<DialogTitle>Create project</DialogTitle>
+						</DialogPanel>
+					</Dialog>
+				),
+				parts: ['panel-trigger', 'dialog'],
+				disabledParts: ['panel-trigger'],
+			},
+		],
 	},
 	{
 		// Bottom drawer: a modal surface named by its title.
@@ -81,6 +122,21 @@ export const overlays: readonly Case[] = [
 				slot: 'drawer',
 			},
 		],
+		disclosure: [
+			{
+				component: 'Drawer',
+				render: ({ open, disabled }) => (
+					<Drawer defaultOpen={open}>
+						<DrawerTrigger disabled={disabled}>Open drawer</DrawerTrigger>
+						<DrawerPanel>
+							<DrawerTitle>Drawer</DrawerTitle>
+						</DrawerPanel>
+					</Drawer>
+				),
+				parts: ['panel-trigger', 'drawer'],
+				disabledParts: ['panel-trigger'],
+			},
+		],
 	},
 	{
 		// Side sheet: a modal surface named by its title.
@@ -93,6 +149,21 @@ export const overlays: readonly Case[] = [
 				</SheetPanel>
 			</Sheet>
 		),
+		disclosure: [
+			{
+				component: 'Sheet',
+				render: ({ open, disabled }) => (
+					<Sheet defaultOpen={open}>
+						<SheetTrigger disabled={disabled}>Open sheet</SheetTrigger>
+						<SheetPanel>
+							<SheetTitle>Right Sheet</SheetTitle>
+						</SheetPanel>
+					</Sheet>
+				),
+				parts: ['panel-trigger', 'sheet'],
+				disabledParts: ['panel-trigger'],
+			},
+		],
 	},
 	{
 		// Confirmation dialog: named by its title, with confirm/cancel actions.
@@ -109,6 +180,16 @@ export const overlays: readonly Case[] = [
 				cancel={{ label: 'Keep editing' }}
 			/>
 		),
+		disclosure: [
+			{
+				// Controlled only, and with no trigger: the panel is the one part.
+				component: 'Confirm',
+				render: ({ open }) => (
+					<Confirm open={open} onOpenChange={noop} onConfirm={noop} title="Discard changes?" />
+				),
+				parts: ['confirm'],
+			},
+		],
 	},
 	{
 		// Non-modal popover anchored to its trigger button.
@@ -132,6 +213,19 @@ export const overlays: readonly Case[] = [
 					</Popover>
 				),
 				slot: 'popover-content',
+			},
+		],
+		disclosure: [
+			{
+				component: 'Popover',
+				render: ({ open, disabled }) => (
+					<Popover defaultOpen={open}>
+						<PopoverTrigger disabled={disabled}>Open popover</PopoverTrigger>
+						<PopoverContent>content</PopoverContent>
+					</Popover>
+				),
+				parts: ['popover-trigger', 'floating-surface', 'popover-content'],
+				disabledParts: ['popover-trigger'],
 			},
 		],
 	},
@@ -167,6 +261,39 @@ export const overlays: readonly Case[] = [
 				slot: 'menu-item',
 			},
 		],
+		disclosure: [
+			{
+				component: 'Menu',
+				render: ({ open, disabled }) => (
+					<Menu placement="bottom-start" sheet={false} defaultOpen={open}>
+						<MenuTrigger disabled={disabled}>Options</MenuTrigger>
+						<MenuContent>
+							<MenuItem>Edit</MenuItem>
+						</MenuContent>
+					</Menu>
+				),
+				parts: ['menu-trigger', 'floating-surface', 'popover-panel'],
+				disabledParts: ['menu-trigger'],
+			},
+			{
+				// A static menu holds the row, and the mount opens the submenu.
+				component: 'MenuSub',
+				render: ({ open, disabled }) => (
+					<>
+						<Menu defaultOpen>
+							<MenuContent aria-label="Actions">
+								<MenuSub label="Share" disabled={disabled}>
+									<MenuItem>Copy link</MenuItem>
+								</MenuSub>
+							</MenuContent>
+						</Menu>
+						{open ? <OpenFirstSubmenu /> : null}
+					</>
+				),
+				parts: ['menu-sub-trigger', 'floating-surface'],
+				disabledParts: ['menu-sub-trigger'],
+			},
+		],
 	},
 	{
 		// Command palette: a modal search dialog over a grouped result list.
@@ -191,6 +318,18 @@ export const overlays: readonly Case[] = [
 					</CommandPalette>
 				),
 				slot: 'command-palette-item',
+			},
+		],
+		disclosure: [
+			{
+				// No trigger: the dialog panel of the palette is the one part.
+				component: 'CommandPalette',
+				render: ({ open }) => (
+					<CommandPalette defaultOpen={open}>
+						<CommandPaletteItem>New file</CommandPaletteItem>
+					</CommandPalette>
+				),
+				parts: ['dialog'],
 			},
 		],
 	},

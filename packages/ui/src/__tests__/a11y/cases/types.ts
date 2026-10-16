@@ -108,11 +108,12 @@ export type DisclosureSubject = {
 	 * `disclosure-state-boundary.test.ts` reads this name.
 	 */
 	component: string
-	/** Renders the subject closed, and disabled when the sweep passes `disabled`. */
-	render: (props: { disabled?: boolean }) => ReactElement
-	/** The `data-slot` of the part that a click opens. */
-	trigger: string
-	/** The `data-slot` of each part that stamps `data-open`, the trigger with them. */
+	/**
+	 * Renders the subject open or closed, and disabled when the sweep passes
+	 * `disabled`. An uncontrolled render, such as `defaultOpen`, is enough.
+	 */
+	render: (props: { open: boolean; disabled?: boolean }) => ReactElement
+	/** The `data-slot` of each part that stamps `data-open`, such as the trigger and the content. */
 	parts: readonly string[]
 	/** The `data-slot` of each part that stamps `data-disabled`. Omit it where nothing can be disabled. */
 	disabledParts?: readonly string[]

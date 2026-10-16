@@ -152,7 +152,8 @@ export type ConfirmProps = Pick<
  * `description` (a registered {@link DialogDescription}) or, in the title-plus-children
  * form, the `children` wrapped in {@link ConfirmBody}; `description` takes precedence.
  * The children sit in a scroll region between the header and the actions. When they are
- * long, they scroll, and the header and the actions stay in view.
+ * long, they scroll, and the header and the actions stay in view. The panel stamps
+ * `data-open` while it is open.
  * @see {@link Dialog}
  */
 export function Confirm({

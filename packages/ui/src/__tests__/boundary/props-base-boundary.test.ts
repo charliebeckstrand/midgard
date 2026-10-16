@@ -60,6 +60,11 @@ const ELEMENT_ATTRS = /\b[A-Za-z]*HTMLAttributes\s*</g
 const ELEMENT_ATTRS_ALLOWED = new Map([
 	['components/fieldset/message.tsx', 'renders a `<p>` or a `<div>`'],
 	['components/stepper/stepper.tsx', 'renders a `<div>` or an `<ol>`'],
+	['modules/chat/chat-list-item.tsx', 'renders an `<li>` or a `<div>`'],
+	['modules/query/query-chips.tsx', 'renders a `<fieldset>` or a `<div>`'],
+	['components/kanban/kanban-card-handle.tsx', 'renders a `<span>` or a `<button>`'],
+	['components/kanban/kanban-column-body.tsx', 'renders a `<ul>` or a `<div>`'],
+	['components/file-upload/file-upload-state.ts', 'renders a `<div>` or a `<button>`'],
 ])
 
 /**
@@ -126,83 +131,46 @@ describe('props base boundary', () => {
 })
 
 /**
- * The barreled props types whose component renders an element and that take no
- * native base yet (CONVENTIONS §4.3). Each letter sweep removes the rows of its
- * own components, so the list only gets shorter. A new component never goes on
- * it.
- */
-const NO_BASE_BACKLOG = new Set<string>([
-	'components/collapse/collapse-panel.tsx → CollapsePanelProps',
-	'components/color/color-picker.tsx → ColorPickerProps',
-	'components/command-palette/command-palette.tsx → CommandPaletteProps',
-	'components/date-picker/date-picker.tsx → DatePickerProps',
-	'components/dialog/dialog.tsx → DialogPanelProps',
-	'components/drawer/drawer.tsx → DrawerPanelProps',
-	'components/file-upload/file-upload-state.ts → FileUploadButtonProps',
-	'components/file-upload/file-upload-state.ts → FileUploadDropProps',
-	'components/file-upload/file-upload-state.ts → FileUploadInputProps',
-	'components/filters/filters.tsx → FiltersProps',
-	'components/json-tree/json-tree.tsx → JsonTreeProps',
-	'components/kanban/kanban-card-handle.tsx → KanbanCardHandleProps',
-	'components/kanban/kanban-card.tsx → KanbanCardProps',
-	'components/kanban/kanban-column-body.tsx → KanbanColumnBodyProps',
-	'components/kanban/kanban-column-header.tsx → KanbanColumnHeaderProps',
-	'components/kanban/kanban-column.tsx → KanbanColumnProps',
-	'components/list/list-handle.tsx → ListHandleProps',
-	'components/markdown/markdown.tsx → MarkdownProps',
-	'components/menu/menu-content.tsx → MenuContentProps',
-	'components/menu/menu-trigger.tsx → MenuTriggerProps',
-	'components/password-confirm/password-confirm.tsx → PasswordConfirmProps',
-	'components/password-strength/password-strength.tsx → PasswordStrengthProps',
-	'components/pdf-viewer/pdf-viewer.tsx → PdfViewerProps',
-	'components/popover/popover-content.tsx → PopoverContentProps',
-	'components/popover/popover-trigger.tsx → PopoverTriggerProps',
-	'components/popover/popover.tsx → PopoverProps',
-	'components/progress/progress-bar.tsx → ProgressBarProps',
-	'components/progress/progress-gauge.tsx → ProgressGaugeProps',
-	'components/resizable/resizable-group.tsx → ResizableGroupProps',
-	'components/resizable/resizable-handle.tsx → ResizableHandleProps',
-	'components/resizable/resizable-panel.tsx → ResizablePanelProps',
-	'components/sheet/sheet.tsx → SheetPanelProps',
-	'components/signature-pad/signature-pad.tsx → SignaturePadProps',
-	'components/sparkline/sparkline.tsx → SparklineProps',
-	'components/stepper/stepper-step.tsx → StepperStepProps',
-	'components/table/table.tsx → TableProps',
-	'components/timeline/timeline-description.tsx → TimelineDescriptionProps',
-	'components/timeline/timeline-item.tsx → TimelineItemProps',
-	'components/timeline/timeline-timestamp.tsx → TimelineTimestampProps',
-	'components/toast/toast.tsx → ToastProps',
-	'components/toolbar/toolbar-group.tsx → ToolbarGroupProps',
-	'components/tooltip/tooltip-trigger.tsx → TooltipTriggerProps',
-	'components/tree/tree-item.tsx → TreeItemProps',
-	'layouts/auth.tsx → AuthLayoutProps',
-	'layouts/dashboard.tsx → DashboardLayoutProps',
-	'layouts/sidebar/sidebar.tsx → SidebarLayoutHeaderProps',
-	'layouts/sidebar/sidebar.tsx → SidebarLayoutProps',
-	'modules/chart/choropleth-chart/choropleth-chart.tsx → ChoroplethChartProps',
-	'modules/chat/chat-list-item.tsx → ChatListItemProps',
-	'modules/chat/chat-list.tsx → ChatListProps',
-	'modules/chat/chat-message.tsx → ChatMessageProps',
-	'modules/chat/chat-prompt.tsx → ChatPromptProps',
-	'modules/chat/chat-transcript.tsx → ChatTranscriptProps',
-	'modules/dashboard/dashboard.tsx → DashboardProps',
-	'modules/map/map-plat.tsx → MapPlatProps',
-	'modules/query/query-chips.tsx → QueryChipsProps',
-	'modules/query/query-summary.tsx → QuerySummaryProps',
-	'primitives/header-actions/header-actions-slot.tsx → HeaderActionsSlotProps',
-	'primitives/panel/panel-trigger.tsx → PanelTriggerProps',
-	'primitives/polymorphic/polymorphic-static.tsx → PolymorphicStaticProps',
-	'primitives/portal/portal.tsx → PortalProps',
-	'primitives/ready-reveal/ready-reveal.tsx → ReadyRevealProps',
-	'primitives/select-trigger/select-trigger.tsx → SelectTriggerProps',
-	'primitives/virtual-options/virtual-options.tsx → VirtualOptionsProps',
-])
-
-/**
  * The barreled props types whose component renders an element but takes no
  * native base, for a reason that holds. Each row gives the reason.
  */
 const NO_BASE_EXEMPT = new Map<string, string>([
+	[
+		'components/color/color-picker.tsx → ColorPickerProps',
+		'its root is a `display: contents` wrapper with no box, and `className` and the name go to its trigger',
+	],
+	[
+		'components/date-picker/date-picker.tsx → DatePickerProps',
+		'its root is a `display: contents` wrapper with no box, and `className` and the name go to its trigger',
+	],
+	[
+		'components/menu/menu-content.tsx → MenuContentProps',
+		'the `menu` element is in a popover panel, a sheet, or a static panel, so no one element is its root',
+	],
+	[
+		'components/toast/toast.tsx → ToastProps',
+		'its viewport renders in a portal only after hydration, so the props of the root would have no element on the server',
+	],
+	[
+		'layouts/dashboard.tsx → DashboardLayoutProps',
+		'its root is a `StackedLayout`, which renders no element of its own to take the rest',
+	],
+	[
+		'modules/chart/choropleth-chart/choropleth-chart.tsx → ChoroplethChartProps',
+		'the fullscreen view renders the chart a second time, so an `id` or a `ref` would reach two elements',
+	],
+	[
+		'modules/chat/chat-prompt.tsx → ChatPromptProps',
+		'its root is a `Control`, and its `ref` and its name already go to the textarea',
+	],
+	[
+		'primitives/polymorphic/polymorphic-static.tsx → PolymorphicStaticProps',
+		'its props are `ComponentProps` of a generic element, which the checker cannot resolve',
+	],
+	[
+		'primitives/portal/portal.tsx → PortalProps',
+		'its `display: contents` host carries only the density and direction scope of the portal',
+	],
 	[
 		'providers/ui/ui-document.tsx → UIDocumentProps',
 		'it renders the whole document, `<html>` with its `<head>` and `<body>`, so no one element owns its props',
@@ -216,13 +184,6 @@ const NO_BASE_EXEMPT = new Map<string, string>([
 		'a provider writes a `display: contents` span only to carry its state to the DOM (CONVENTIONS §3.8)',
 	],
 ])
-
-/**
- * The declarations of a key that the native base already gives with the same
- * type and the same optionality, and with no doccomment (CONVENTIONS §4.3).
- * Each letter sweep removes the rows of its own components.
- */
-const REDECLARED_BACKLOG = new Set<string>([])
 
 /** The symbol that an import alias names, or the symbol itself. */
 function resolved(checker: Checker, symbol: TsSymbol): TsSymbol {
@@ -458,16 +419,14 @@ describe('props base boundary: the checker', () => {
 	it('a barreled props type whose component renders an element takes its native base', () => {
 		const found = propsWithNoBase(project)
 
-		const violations = found.filter((row) => !NO_BASE_BACKLOG.has(row) && !NO_BASE_EXEMPT.has(row))
+		const violations = found.filter((row) => !NO_BASE_EXEMPT.has(row))
 
 		expect(
 			violations,
 			`take \`ComponentProps<'tag'>\` of the element that the component renders (CONVENTIONS §4.3):\n  ${violations.join('\n  ')}`,
 		).toEqual([])
 
-		const stale = [...NO_BASE_BACKLOG, ...NO_BASE_EXEMPT.keys()].filter(
-			(row) => !found.includes(row),
-		)
+		const stale = [...NO_BASE_EXEMPT.keys()].filter((row) => !found.includes(row))
 
 		expect(stale, `rows that no longer apply; remove them:\n  ${stale.join('\n  ')}`).toEqual([])
 	})
@@ -475,15 +434,9 @@ describe('props base boundary: the checker', () => {
 	it('a props type does not declare again a key that its native base gives', () => {
 		const found = redeclaredKeys(project)
 
-		const violations = found.filter((row) => !REDECLARED_BACKLOG.has(row))
-
 		expect(
-			violations,
-			`remove the key, and its \`Omit\` (CONVENTIONS §4.3):\n  ${violations.join('\n  ')}`,
+			found,
+			`remove the key, and its \`Omit\` (CONVENTIONS §4.3):\n  ${found.join('\n  ')}`,
 		).toEqual([])
-
-		const stale = [...REDECLARED_BACKLOG].filter((row) => !found.includes(row))
-
-		expect(stale, `rows that no longer apply; remove them:\n  ${stale.join('\n  ')}`).toEqual([])
 	})
 })

@@ -1,21 +1,18 @@
 'use client'
 
-import { type ReactNode, useRef } from 'react'
-import { cn } from '../../core'
+import { type ComponentProps, useRef } from 'react'
+import { cn, composeEventHandlers } from '../../core'
 import { useA11yRoving } from '../../hooks'
+import { useComposedRef } from '../../hooks/use-composed-ref'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { ChatListContext } from './context'
 
-/** Props for {@link ChatList}. */
-export type ChatListProps = {
-	/** Accessible name for the list (e.g. `"Conversations"`). */
-	'aria-label'?: string
-	/** Points at a visible heading labeling the list, in place of `aria-label`. */
-	'aria-labelledby'?: string
-	/** {@link ChatListItem} rows. */
-	children?: ReactNode
-	className?: string
-}
+/**
+ * Props for {@link ChatList}. The `<ul>` takes the rest. Name the list with
+ * `aria-label` (for example `"Conversations"`) or `aria-labelledby`. Put
+ * {@link ChatListItem} rows in `children`.
+ */
+export type ChatListProps = ComponentProps<'ul'>
 
 /**
  * Roving-tabindex container for a column of {@link ChatListItem} rows.
@@ -30,13 +27,11 @@ export type ChatListProps = {
  * so the current row's indicator morphs between siblings rather than against
  * indicators outside the list.
  */
-export function ChatList({
-	'aria-label': ariaLabel,
-	'aria-labelledby': ariaLabelledBy,
-	children,
-	className,
-}: ChatListProps) {
+export function ChatList({ className, onKeyDown, ref: consumerRef, ...props }: ChatListProps) {
 	const ref = useRef<HTMLUListElement>(null)
+
+	// The roving model reads `ref`, so a consumer `ref` joins it.
+	const setRef = useComposedRef(ref, consumerRef)
 
 	const handleKeyDown = useA11yRoving(ref, {
 		// Only the focusable select controls are roving stops; a read-only item's
@@ -54,15 +49,14 @@ export function ChatList({
 		<ActiveIndicatorScope>
 			<ChatListContext value={true}>
 				<ul
-					ref={ref}
 					data-slot="chat-list"
-					aria-label={ariaLabel}
-					aria-labelledby={ariaLabelledBy}
+					{...props}
+					ref={setRef}
 					className={cn('flex flex-col gap-0.5', className)}
-					onKeyDown={handleKeyDown}
-				>
-					{children}
-				</ul>
+					onKeyDown={composeEventHandlers(onKeyDown, handleKeyDown, {
+						checkForDefaultPrevented: false,
+					})}
+				/>
 			</ChatListContext>
 		</ActiveIndicatorScope>
 	)

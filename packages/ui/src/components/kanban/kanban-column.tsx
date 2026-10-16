@@ -2,8 +2,9 @@
 
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import { type ReactNode, useCallback, useId, useMemo, useState } from 'react'
+import { type ComponentProps, useCallback, useId, useMemo, useState } from 'react'
 import { cn, dataAttr } from '../../core'
+import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useDevWarning } from '../../hooks/use-dev-warning'
 import { k } from '../../recipes/kata/kanban'
 import { KanbanColumnContext, useKanbanContext, useKanbanDragState } from './context'
@@ -12,14 +13,18 @@ import { KanbanColumnContext, useKanbanContext, useKanbanDragState } from './con
 // does not mint a new identity per render and miss the memo below.
 const NO_ITEMS: string[] = []
 
-/** Props for {@link KanbanColumn}: the `value` matching a board column, with an optional accessible-name override. */
-export type KanbanColumnProps = {
+/**
+ * Props for {@link KanbanColumn}: the `value` matching a board column, with an
+ * optional accessible-name override. The `<fieldset>` of the column takes the
+ * rest.
+ */
+export type KanbanColumnProps = ComponentProps<'fieldset'> & {
 	/** Stable key matching an entry in the `columns` prop; the keyed-child `value` every compound in the library takes. */
 	value: string
-	children?: ReactNode
-	className?: string
 	/** Explicit name for the column group. Defaults to the rendered `KanbanColumnTitle`. */
 	'aria-label'?: string
+	/** Id of an element that names the column group. It replaces the name from the rendered `KanbanColumnTitle`. */
+	'aria-labelledby'?: string
 }
 
 /**
@@ -42,6 +47,9 @@ export function KanbanColumn({
 	children,
 	className,
 	'aria-label': ariaLabel,
+	'aria-labelledby': ariaLabelledby,
+	ref,
+	...props
 }: KanbanColumnProps) {
 	const { interactive } = useKanbanContext()
 
@@ -60,6 +68,9 @@ export function KanbanColumn({
 	)
 
 	const { setNodeRef } = useDroppable({ id: columnId, disabled: !interactive })
+
+	// The droppable reads the node, so a consumer `ref` joins it.
+	const setColumn = useComposedRef(setNodeRef, ref)
 
 	const titleId = useId()
 
@@ -90,14 +101,17 @@ export function KanbanColumn({
 				    the announcements and adds no landmark. `min-w-0` in the recipe replaces
 				    the min-content width floor of a fieldset. */}
 				<fieldset
-					ref={setNodeRef}
+					{...props}
+					ref={setColumn}
+					// The move announcements read this anchor, so it comes after the
+					// spread (CONVENTIONS.md §3.9).
 					data-slot="kanban-column"
 					data-column-id={columnId}
 					data-over={dataAttr(columnId === dropColumnId)}
-					// Names the column from its rendered title; an explicit aria-label
-					// wins, and the reference appears only while a title is mounted.
+					// Names the column from its rendered title; an explicit name wins,
+					// and the reference appears only while a title is mounted.
 					aria-label={ariaLabel}
-					aria-labelledby={!ariaLabel && hasTitle ? titleId : undefined}
+					aria-labelledby={ariaLabelledby ?? (!ariaLabel && hasTitle ? titleId : undefined)}
 					className={cn(k.column.base, className)}
 				>
 					{children}

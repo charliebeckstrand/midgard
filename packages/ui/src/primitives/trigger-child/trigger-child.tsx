@@ -6,6 +6,7 @@ import {
 	type ReactElement,
 	type ReactNode,
 	type Ref,
+	type SyntheticEvent,
 } from 'react'
 import { cn, composeEventHandlers } from '../../core'
 
@@ -37,6 +38,39 @@ export function triggerChild(children: ReactNode): TriggerChildElement | null {
 	if (!isValidElement(children) || children.type === Fragment) return null
 
 	return children as TriggerChildElement
+}
+
+/**
+ * The props of a cloned child, with the other props of the trigger merged in.
+ * The child wins a clash, as its `className` does. A handler on both runs the
+ * handler of the child first, and its `preventDefault()` cancels the other.
+ *
+ * @internal
+ */
+export function mergeTriggerProps(
+	triggerProps: Record<string, unknown>,
+	childProps: Record<string, unknown>,
+): Record<string, unknown> {
+	if (Object.keys(triggerProps).length === 0) return childProps
+
+	const merged: Record<string, unknown> = { ...triggerProps, ...childProps }
+
+	for (const [key, triggerValue] of Object.entries(triggerProps)) {
+		const childValue = childProps[key]
+
+		if (
+			/^on[A-Z]/.test(key) &&
+			typeof triggerValue === 'function' &&
+			typeof childValue === 'function'
+		) {
+			merged[key] = composeEventHandlers(
+				childValue as (event: SyntheticEvent) => void,
+				triggerValue as (event: SyntheticEvent) => void,
+			)
+		}
+	}
+
+	return merged
 }
 
 /** Props for {@link TriggerChild}. @internal */

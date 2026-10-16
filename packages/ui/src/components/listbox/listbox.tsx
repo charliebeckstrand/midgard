@@ -182,7 +182,8 @@ function hasListboxValue<T>(value: T | T[] | undefined, multiple: boolean): bool
  * take the step of the nearest density scope, and an explicit `size` opens a
  * scope on each. Enter, Space, ArrowDown, or ArrowUp on the closed trigger
  * opens the panel. A printable key opens it and moves to the first option that
- * matches.
+ * matches. The trigger and the panel stamp `data-open` while the panel is open,
+ * and the trigger stamps `data-disabled` while it is disabled.
  */
 export function Listbox<T>({
 	name,

@@ -1,24 +1,30 @@
 'use client'
 
-import { type ReactNode, type SyntheticEvent, useCallback } from 'react'
-import { cn, composeEventHandlers } from '../../core'
+import { type ComponentProps, type Ref, type SyntheticEvent, useCallback } from 'react'
+import { cn, composeEventHandlers, dataAttr } from '../../core'
+import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useDeferredFloatingReference } from '../../hooks/use-deferred-floating-reference'
-import { TriggerChild, triggerChild } from '../../primitives/trigger-child/trigger-child'
+import {
+	mergeTriggerProps,
+	TriggerChild,
+	triggerChild,
+} from '../../primitives/trigger-child/trigger-child'
 import { k } from '../../recipes/kata/popover'
 import { usePopoverContext } from './context'
 
-/** Props for {@link PopoverTrigger}. */
-export type PopoverTriggerProps = {
-	children: ReactNode
-	className?: string
-}
+/**
+ * Props for {@link PopoverTrigger}. The `<button>` of the trigger takes the rest.
+ * With a single element child, the clone of the child takes the rest instead.
+ */
+export type PopoverTriggerProps = ComponentProps<'button'>
 
 /**
  * Disclosure trigger for {@link Popover}. Clones a single child element to
  * adopt the floating reference ref and toggle interactions, or renders its own
  * `<button>` otherwise, stamping `aria-haspopup="dialog"`, `aria-expanded`, and
  * `aria-controls`. A {@link PopoverContent} with no accessible name is not a
- * dialog, so the trigger then omits `aria-haspopup`.
+ * dialog, so the trigger then omits `aria-haspopup`. The trigger stamps
+ * `data-open` while the popover is open, and `data-disabled` while it is disabled.
  *
  * A press within a `[data-popover-ignore]` subtree inside the trigger does not
  * toggle the popover. The handlers of the child still run. An ignored element
@@ -28,16 +34,21 @@ export type PopoverTriggerProps = {
  * such as a `<button>`, that has no `data-slot` of its own. A component child,
  * such as a `<Button>`, keeps the anchor that it writes for itself. The
  * `className` of a cloned child comes after the `className` of the trigger, so
- * the child wins a clash.
+ * the child wins a clash. The other props of the trigger go to a cloned child
+ * too. The props of the child win a clash, and a handler on both runs the two.
  */
-export function PopoverTrigger({ children, className }: PopoverTriggerProps) {
+export function PopoverTrigger({ children, className, ref, ...props }: PopoverTriggerProps) {
 	const { open, panelId, dialog, triggerRef, setReference, getReferenceProps } = usePopoverContext()
 
 	const child = triggerChild(children)
 
 	// Merges the child's own ref (React 19 ref-as-prop) with the floating
 	// reference; both receive the node.
-	const childRef = child?.props.ref
+	// A consumer `ref` on the trigger joins the ref of the child.
+	const childRef = useComposedRef<HTMLElement>(
+		child?.props.ref,
+		ref as Ref<HTMLElement> | undefined,
+	)
 
 	// Registration waits for the first open, so a closed popover renders once
 	// rather than twice. `Popover` wires `useClick`, and its outside-press is
@@ -98,14 +109,20 @@ export function PopoverTrigger({ children, className }: PopoverTriggerProps) {
 	)
 
 	if (child) {
+		const childProps = mergeTriggerProps(props, child.props)
+
 		return (
 			<TriggerChild
 				child={child}
 				props={{
-					...wrapReferenceProps(child.props),
+					...childProps,
+					...wrapReferenceProps(childProps),
 					'aria-haspopup': dialog ? 'dialog' : undefined,
 					'aria-expanded': open,
 					'aria-controls': open ? panelId : undefined,
+					'data-open': dataAttr(open),
+					// A child that stamps its own disabled state keeps it.
+					'data-disabled': dataAttr(childProps.disabled === true) ?? childProps['data-disabled'],
 				}}
 				ref={setTrigger}
 				slot="popover-trigger"
@@ -114,17 +131,18 @@ export function PopoverTrigger({ children, className }: PopoverTriggerProps) {
 		)
 	}
 
-	const referenceProps = wrapReferenceProps()
-
 	return (
 		<button
-			{...referenceProps}
+			data-slot="popover-trigger"
+			{...props}
+			{...wrapReferenceProps(props)}
 			ref={setTrigger}
 			type="button"
 			aria-haspopup={dialog ? 'dialog' : undefined}
 			aria-expanded={open}
 			aria-controls={open ? panelId : undefined}
-			data-slot="popover-trigger"
+			data-open={dataAttr(open)}
+			data-disabled={dataAttr(props.disabled)}
 			className={cn(k.trigger, className)}
 		>
 			{children}

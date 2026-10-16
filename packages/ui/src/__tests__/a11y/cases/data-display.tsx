@@ -149,15 +149,14 @@ export const dataDisplayCases: readonly Case[] = [
 		disclosure: [
 			{
 				component: 'Accordion',
-				render: ({ disabled }) => (
-					<Accordion collapsible>
+				render: ({ open, disabled }) => (
+					<Accordion defaultValue={open ? 'shipping' : null}>
 						<AccordionItem value="shipping" disabled={disabled}>
 							<AccordionTrigger>Shipping</AccordionTrigger>
 							<AccordionPanel>Orders ship within one business day.</AccordionPanel>
 						</AccordionItem>
 					</Accordion>
 				),
-				trigger: 'accordion-trigger',
 				parts: ['accordion-item', 'accordion-trigger', 'accordion-panel'],
 				disabledParts: ['accordion-item', 'accordion-trigger'],
 			},
@@ -193,6 +192,19 @@ export const dataDisplayCases: readonly Case[] = [
 			</Tree>
 		),
 		skeleton: [{ element: <TreeSkeleton rows={3} />, absentSlot: 'tree-item', placeholders: 6 }],
+		disclosure: [
+			{
+				component: 'TreeItem',
+				render: ({ open }) => (
+					<Tree aria-label="File tree">
+						<TreeItem label="Documents" defaultOpen={open}>
+							<TreeItem label="report.pdf" />
+						</TreeItem>
+					</Tree>
+				),
+				parts: ['tree-item-content', 'tree-group'],
+			},
+		],
 	},
 	{
 		// Closed listbox: the trigger is a button named by its Field Label; the
@@ -549,6 +561,18 @@ export const dataDisplayCases: readonly Case[] = [
 				<CollapsePanel>The panel body content.</CollapsePanel>
 			</Collapse>
 		),
+		disclosure: [
+			{
+				component: 'Collapse',
+				render: ({ open }) => (
+					<Collapse defaultOpen={open}>
+						<CollapseTrigger>Details</CollapseTrigger>
+						<CollapsePanel>The panel body content.</CollapsePanel>
+					</Collapse>
+				),
+				parts: ['collapse', 'collapse-trigger', 'collapse-panel'],
+			},
+		],
 	},
 	{
 		// Resizable split: each handle is a focusable role=separator with aria-valuenow.

@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Button } from '../../../components/button'
 import { ColorPanelSkeleton, ColorPicker, ColorPickerSkeleton } from '../../../components/color'
 import { Combobox, ComboboxLabel, ComboboxOption } from '../../../components/combobox'
@@ -8,7 +9,7 @@ import { Listbox, ListboxLabel, ListboxOption } from '../../../components/listbo
 import { PdfViewer, type PdfViewerPage } from '../../../components/pdf-viewer'
 import { Select, SelectLabel, SelectOption } from '../../../components/select'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
-import { screen } from '../../helpers'
+import { noop, screen } from '../../helpers'
 import type { InteractiveCase } from './types'
 
 const interactivePeople = ['Wade Cooper', 'Arlene McCoy', 'Devon Webb']
@@ -30,6 +31,19 @@ function FilteredPeople() {
 				<ComboboxLabel>{person}</ComboboxLabel>
 			</ComboboxOption>
 		))
+}
+
+/**
+ * Clicks the first element with the `data-slot` of `slot` once, on mount. A
+ * subject with no prop that opens it uses the click, as a reader does. Used by
+ * the disclosure subject of the color picker.
+ */
+function ClickOnMount({ slot }: { slot: string }) {
+	useEffect(() => {
+		document.querySelector<HTMLElement>(`[data-slot="${slot}"]`)?.click()
+	}, [slot])
+
+	return null
 }
 
 /**
@@ -56,6 +70,22 @@ export const interactive: readonly InteractiveCase[] = [
 
 			await screen.findByText('This is a tooltip')
 		},
+		disclosure: [
+			{
+				// A host child, so the trigger writes its own `data-slot`. The `open`
+				// prop holds the tooltip open.
+				component: 'Tooltip',
+				render: ({ open }) => (
+					<Tooltip open={open}>
+						<TooltipTrigger>
+							<button type="button">Hover me</button>
+						</TooltipTrigger>
+						<TooltipContent>This is a tooltip</TooltipContent>
+					</Tooltip>
+				),
+				parts: ['tooltip-content'],
+			},
+		],
 	},
 	{
 		// Combobox driven through its filter: type to narrow, then the option
@@ -77,6 +107,24 @@ export const interactive: readonly InteractiveCase[] = [
 
 			await screen.findByRole('listbox')
 		},
+		disclosure: [
+			{
+				component: 'Combobox',
+				render: ({ open, disabled }) => (
+					<Combobox
+						aria-label="Assignee"
+						displayValue={(value: string) => value}
+						open={open}
+						onOpenChange={noop}
+						disabled={disabled}
+					>
+						<FilteredPeople />
+					</Combobox>
+				),
+				parts: ['combobox-input', 'control-frame', 'popover-panel'],
+				disabledParts: ['combobox-input'],
+			},
+		],
 	},
 	{
 		// Select: the trigger opens its listbox popover on click.
@@ -99,6 +147,20 @@ export const interactive: readonly InteractiveCase[] = [
 
 			await screen.findByRole('listbox')
 		},
+		disclosure: [
+			{
+				component: 'Select',
+				render: ({ open, disabled }) => (
+					<Select<string> aria-label="Country" open={open} onOpenChange={noop} disabled={disabled}>
+						<SelectOption value="Canada">
+							<SelectLabel>Canada</SelectLabel>
+						</SelectOption>
+					</Select>
+				),
+				parts: ['listbox-button', 'control-frame', 'popover-panel'],
+				disabledParts: ['listbox-button'],
+			},
+		],
 	},
 	{
 		// Listbox: a role="combobox" trigger opens its option listbox popover on
@@ -127,6 +189,20 @@ export const interactive: readonly InteractiveCase[] = [
 
 			await screen.findByRole('listbox')
 		},
+		disclosure: [
+			{
+				component: 'Listbox',
+				render: ({ open, disabled }) => (
+					<Listbox<string> aria-label="Status" open={open} onOpenChange={noop} disabled={disabled}>
+						<ListboxOption value="active">
+							<ListboxLabel>Active</ListboxLabel>
+						</ListboxOption>
+					</Listbox>
+				),
+				parts: ['listbox-button', 'control-frame', 'popover-panel'],
+				disabledParts: ['listbox-button'],
+			},
+		],
 	},
 	{
 		// Date picker: the trigger opens its calendar popover on click.
@@ -145,6 +221,16 @@ export const interactive: readonly InteractiveCase[] = [
 			await screen.findByRole('button', { name: 'Today' })
 		},
 		skeleton: [{ element: <DatePickerSkeleton range />, absentSlot: 'datepicker-button' }],
+		disclosure: [
+			{
+				component: 'DatePicker',
+				render: ({ open, disabled }) => (
+					<DatePicker aria-label="Start date" defaultOpen={open} disabled={disabled} />
+				),
+				parts: ['datepicker-button', 'control-frame', 'floating-surface'],
+				disabledParts: ['datepicker-button'],
+			},
+		],
 	},
 	{
 		// Magnifier settings: in `mode: 'config'` the viewer's toolbar carries a button
@@ -189,6 +275,20 @@ export const interactive: readonly InteractiveCase[] = [
 		skeleton: [
 			{ element: <ColorPanelSkeleton />, absentSlot: 'color-panel' },
 			{ element: <ColorPickerSkeleton alpha />, absentSlot: 'color-picker-button' },
+		],
+		disclosure: [
+			{
+				// The picker has no prop that opens it, so a click opens it.
+				component: 'ColorPicker',
+				render: ({ open, disabled }) => (
+					<>
+						<ColorPicker defaultValue="#6366F1" disabled={disabled} />
+						{open && <ClickOnMount slot="color-picker-button" />}
+					</>
+				),
+				parts: ['color-picker-button', 'control-frame', 'floating-surface'],
+				disabledParts: ['color-picker-button'],
+			},
 		],
 	},
 ]

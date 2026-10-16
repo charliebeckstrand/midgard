@@ -84,7 +84,8 @@ export {
 	/**
 	 * Opens the panel of the enclosing {@link Drawer}. A single element child is cloned, and a
 	 * click on it opens the panel. The trigger stamps `aria-haspopup="dialog"`, `aria-expanded`,
-	 * and, while the panel is open, `aria-controls`. It must be inside the `<Drawer>` root.
+	 * and, while the panel is open, `aria-controls`. It stamps `data-open` while the panel is
+	 * open, and `data-disabled` while it is disabled. It must be inside the `<Drawer>` root.
 	 * Aliases the shared `PanelTrigger` primitive.
 	 */
 	PanelTrigger as DrawerTrigger,

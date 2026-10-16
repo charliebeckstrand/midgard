@@ -13,7 +13,7 @@ import {
 	type UIEventHandler,
 	useLayoutEffect,
 } from 'react'
-import { ariaAttr, cn } from '../../core'
+import { ariaAttr, cn, dataAttr } from '../../core'
 import { useComposedRef, useIsTruncated } from '../../hooks'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/combobox'
@@ -171,6 +171,8 @@ export function ComboboxInput({
 			aria-readonly={ariaAttr(readOnly)}
 			aria-required={ariaAttr(required)}
 			data-slot="combobox-input"
+			data-open={dataAttr(open)}
+			data-disabled={dataAttr(disabled)}
 			autoComplete={autoComplete}
 			disabled={disabled}
 			readOnly={readOnly}

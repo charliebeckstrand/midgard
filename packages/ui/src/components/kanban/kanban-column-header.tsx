@@ -1,21 +1,23 @@
 'use client'
 
-import { type ReactNode, useEffect } from 'react'
+import { type ComponentProps, type ReactNode, useEffect } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/kanban'
 import type { HeadingLevel } from '../heading'
 import { useKanbanColumnContext } from './context'
 
-/** Props for {@link KanbanColumnHeader}: native `<div>` content plus `className`. */
-export type KanbanColumnHeaderProps = {
-	children?: ReactNode
-	className?: string
-}
+/** Props for {@link KanbanColumnHeader}. The `<div>` of the header row takes the rest. */
+export type KanbanColumnHeaderProps = ComponentProps<'div'>
 
-/** Header row of a {@link KanbanColumn}; holds the column title and any per-column controls. */
-export function KanbanColumnHeader({ children, className }: KanbanColumnHeaderProps) {
+/**
+ * Header row of a {@link KanbanColumn}; holds the column title and any per-column controls.
+ *
+ * @remarks The move announcements read the `kanban-column-header` anchor, so
+ * it comes after the consumer props.
+ */
+export function KanbanColumnHeader({ children, className, ...props }: KanbanColumnHeaderProps) {
 	return (
-		<div data-slot="kanban-column-header" className={cn(k.column.header, className)}>
+		<div {...props} data-slot="kanban-column-header" className={cn(k.column.header, className)}>
 			{children}
 		</div>
 	)

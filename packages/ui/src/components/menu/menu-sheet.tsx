@@ -1,7 +1,7 @@
 'use client'
 
 import { type ReactNode, useId, useLayoutEffect, useRef, useState } from 'react'
-import { accessibleName, cn } from '../../core'
+import { accessibleName, cn, dataAttr } from '../../core'
 import { useA11yRoving } from '../../hooks'
 import { k } from '../../recipes/kata/menu'
 import {
@@ -127,6 +127,7 @@ export function MenuSheet({
 						aria-labelledby={labelledby}
 						tabIndex={-1}
 						data-slot="menu-sheet"
+						data-open={dataAttr(open)}
 						className={cn(k.sheet.base, className)}
 						onKeyDown={handleKeyDown}
 					>

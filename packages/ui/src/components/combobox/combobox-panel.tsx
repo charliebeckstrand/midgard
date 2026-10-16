@@ -86,6 +86,7 @@ export function ComboboxPanel({
 				>
 					<PopoverPanel
 						density={size}
+						open={open}
 						// No role: an unnamed `group` adds nothing, and the listbox
 						// inside carries the widget role.
 						role="none"

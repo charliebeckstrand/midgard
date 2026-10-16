@@ -58,7 +58,8 @@ export type MenuContentProps = {
  * Takes the `size` of the enclosing {@link Menu} as its density scope.
  * On a phone, a dropdown opens as a bottom sheet instead, with the same rows
  * and a Close button below them (see the `sheet` prop of {@link Menu}). A
- * `title` and a `description` show above the rows in each form.
+ * `title` and a `description` show above the rows in each form. A floating
+ * panel or a sheet stamps `data-open` while the menu is open.
  *
  * @remarks Items scroll inside a height-capped viewport whose clipped edges
  * fade out while more content lies past them. An overflowing menu therefore
@@ -171,6 +172,7 @@ export function MenuContent({
 		>
 			<PopoverPanel
 				density={size}
+				open={open}
 				id={menuId}
 				role="menu"
 				// The title or the trigger names a dropdown, unless the consumer gives
