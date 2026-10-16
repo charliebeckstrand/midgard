@@ -57,6 +57,7 @@ const STATIC_COMPONENT_FILES = [
 	'description-list/description-term.tsx',
 	'fieldset/fieldset.tsx',
 	'fieldset/legend.tsx',
+	'group/group.tsx',
 	'heading/heading.tsx',
 	'icon/icon.tsx',
 	'kbd/kbd.tsx',

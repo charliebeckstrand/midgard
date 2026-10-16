@@ -2,7 +2,7 @@
 
 import { isValidElement, type ReactElement, type ReactNode, useId } from 'react'
 import { useControllable, useControllableFlag } from '../../hooks/use-controllable'
-import { flattenChildren } from '../../utilities/flatten-children'
+import { flattenFragments } from '../../utilities/children'
 import { TreeItemChildren } from './tree-item-children'
 import { TreeItemContent } from './tree-item-content'
 
@@ -147,7 +147,7 @@ export function TreeItem({
 	// empty `children`, or an empty Fragment, reads as a leaf: no chevron, and
 	// `aria-expanded` stays off. A bare `!= null` check, or `Children.toArray`,
 	// would announce `children={[]}` or `<></>` as a collapsed parent.
-	const hasChildren = flattenChildren(children).some(({ node }) => isValidElement(node))
+	const hasChildren = flattenFragments(children).some(({ node }) => isValidElement(node))
 
 	// The row owns the group by this id, which keeps two trees apart.
 	const groupId = useId()

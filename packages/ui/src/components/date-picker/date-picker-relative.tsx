@@ -36,8 +36,6 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 		clearable = false,
 		className,
 		'aria-label': ariaLabel,
-		'data-group': dataGroup,
-		'data-group-orientation': dataGroupOrientation,
 	} = props
 
 	const state = useDatePickerRelativeState(props)
@@ -92,8 +90,6 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 				hasValue={state.hasValue}
 				onClear={state.onClear}
 				className={className}
-				data-group={dataGroup}
-				data-group-orientation={dataGroupOrientation}
 			>
 				{chipRow}
 			</DatePickerTrigger>

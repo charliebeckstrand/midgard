@@ -14,7 +14,6 @@ import { useComposedRef } from '../../hooks'
 import { useFormResetSync } from '../../hooks/use-form-reset-sync'
 import type { scale } from '../../recipes/kata/input'
 import { type InputVariants, k } from '../../recipes/kata/input'
-import type { GroupStampProps } from '../../types/group-stamp'
 import { clearNativeInput } from '../../utilities'
 import type { ControlVariant } from '../control/context'
 import { InputClearButton } from './input-clear-button'
@@ -22,40 +21,39 @@ import { InputFrame } from './input-frame'
 import { useInputControl } from './use-input-control'
 
 /** Props for {@link Input}: `size`/`variant`, `prefix`/`suffix` affixes, the `clearable` flag and its `clearLabel`, and `invalid` override atop native `<input>` attributes. */
-export type InputProps = GroupStampProps &
-	Omit<InputVariants, 'size' | 'variant'> & {
-		size?: ScaleStep<typeof scale>
-		/**
-		 * The surface of the control: `default` fills it, and `outline` draws a border
-		 * with no fill. When the prop is unset, the input takes the variant of the
-		 * enclosing Control. Without one, it takes the glass surface in a GlassProvider.
-		 * @defaultValue 'default'
-		 */
-		variant?: ControlVariant
-		prefix?: ReactNode
-		suffix?: ReactNode
-		/**
-		 * Shows a clear button in the suffix while the input holds a value. The
-		 * button empties the value through a native `input` event, so `onChange`
-		 * and a bound field see the clear as an edit. A disabled or read-only
-		 * input shows no clear button.
-		 * @defaultValue false
-		 */
-		clearable?: boolean
-		/**
-		 * The accessible name of the clear button of `clearable`.
-		 * @defaultValue 'Clear'
-		 */
-		clearLabel?: string
-		/**
-		 * Forces the invalid state. When omitted, inherits from Control / Form context.
-		 * @defaultValue `false`, or `true` when the bound form field has an error or the enclosing Control has the `error` severity.
-		 */
-		invalid?: boolean
-		/** Controlled value. `undefined` leaves the input uncontrolled; `null` keeps it controlled with no current value (CONVENTIONS §7.3). */
-		value?: ComponentProps<'input'>['value'] | null
-		className?: string
-	} & Omit<ComponentProps<'input'>, 'className' | 'size' | 'prefix' | 'value'>
+export type InputProps = Omit<InputVariants, 'size' | 'variant'> & {
+	size?: ScaleStep<typeof scale>
+	/**
+	 * The surface of the control: `default` fills it, and `outline` draws a border
+	 * with no fill. When the prop is unset, the input takes the variant of the
+	 * enclosing Control. Without one, it takes the glass surface in a GlassProvider.
+	 * @defaultValue 'default'
+	 */
+	variant?: ControlVariant
+	prefix?: ReactNode
+	suffix?: ReactNode
+	/**
+	 * Shows a clear button in the suffix while the input holds a value. The
+	 * button empties the value through a native `input` event, so `onChange`
+	 * and a bound field see the clear as an edit. A disabled or read-only
+	 * input shows no clear button.
+	 * @defaultValue false
+	 */
+	clearable?: boolean
+	/**
+	 * The accessible name of the clear button of `clearable`.
+	 * @defaultValue 'Clear'
+	 */
+	clearLabel?: string
+	/**
+	 * Forces the invalid state. When omitted, inherits from Control / Form context.
+	 * @defaultValue `false`, or `true` when the bound form field has an error or the enclosing Control has the `error` severity.
+	 */
+	invalid?: boolean
+	/** Controlled value. `undefined` leaves the input uncontrolled; `null` keeps it controlled with no current value (CONVENTIONS §7.3). */
+	value?: ComponentProps<'input'>['value'] | null
+	className?: string
+} & Omit<ComponentProps<'input'>, 'className' | 'size' | 'prefix' | 'value'>
 
 /**
  * Text input with optional `prefix`/`suffix` affixes and an optional clear
@@ -100,8 +98,6 @@ export function Input({
 	onBlur,
 	ref,
 	'aria-describedby': ariaDescribedBy,
-	'data-group': dataGroup,
-	'data-group-orientation': dataGroupOrientation,
 	...rest
 }: InputProps) {
 	const field = useInputControl({
@@ -199,8 +195,6 @@ export function Input({
 			suffix={frameSuffix}
 			variant={field.variant}
 			density={size}
-			dataGroup={dataGroup}
-			dataGroupOrientation={dataGroupOrientation}
 		/>
 	)
 }

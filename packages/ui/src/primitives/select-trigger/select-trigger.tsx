@@ -5,7 +5,6 @@ import { cn, dataAttr } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import type { scale } from '../../recipes/kata/select'
 import { k } from '../../recipes/kata/select'
-import type { GroupStampProps } from '../../types/group-stamp'
 import { ControlFrame } from '../control'
 import { PolymorphicStatic } from '../polymorphic'
 
@@ -14,7 +13,7 @@ import { PolymorphicStatic } from '../polymorphic'
  * owns (`open`, `setReference`, `getReferenceProps`), the `glass` / `size`
  * presentation, and the prefix / suffix slot content.
  */
-export type SelectTriggerProps = GroupStampProps & {
+export type SelectTriggerProps = {
 	open: boolean
 	setReference: Ref<HTMLDivElement>
 	getReferenceProps: () => Record<string, unknown>
@@ -62,8 +61,6 @@ export function SelectTrigger({
 	suffixProps,
 	className,
 	frameProps,
-	'data-group': dataGroup,
-	'data-group-orientation': dataGroupOrientation,
 	'data-slot': slot = 'control',
 	children,
 }: SelectTriggerProps) {
@@ -78,8 +75,6 @@ export function SelectTrigger({
 		>
 			<ControlFrame
 				data-open={dataAttr(open)}
-				data-group={dataGroup}
-				data-group-orientation={dataGroupOrientation}
 				className={cn(!glass && k.surface.default)}
 				{...frameProps}
 			>

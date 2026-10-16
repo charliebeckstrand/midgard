@@ -42,7 +42,6 @@ import { SelectTrigger } from '../../primitives/select-trigger'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/context'
 import { useGlass } from '../../providers/glass/context'
 import type { scale } from '../../recipes/kata/combobox'
-import type { GroupStampProps } from '../../types/group-stamp'
 import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { useFormValue } from '../form/use-form-value'
@@ -57,7 +56,7 @@ import { useComboboxInput } from './use-combobox-input'
 import { routeFloatingOpenChange, useComboboxState } from './use-combobox-state'
 import { useComboboxTrigger } from './use-combobox-trigger'
 
-type ComboboxBaseProps<T> = GroupStampProps & {
+type ComboboxBaseProps<T> = {
 	id?: string
 	name?: string
 	/** @defaultValue 'Search' */
@@ -479,8 +478,6 @@ export function Combobox<T>({
 	'aria-label': ariaLabel,
 	'aria-labelledby': ariaLabelledby,
 	'aria-describedby': ariaDescribedBy,
-	'data-group': dataGroup,
-	'data-group-orientation': dataGroupOrientation,
 	'data-slot': slot = 'combobox',
 	children,
 }: ComboboxProps<T>) {
@@ -898,8 +895,6 @@ export function Combobox<T>({
 						glass={glass}
 						size={size}
 						className={className}
-						data-group={dataGroup}
-						data-group-orientation={dataGroupOrientation}
 						data-slot={slot}
 						frameProps={{
 							// The rounded corners of the input do not take a press, so the

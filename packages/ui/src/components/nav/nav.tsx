@@ -3,7 +3,7 @@
 import { type ComponentProps, useMemo } from 'react'
 import { CurrentContext, useCurrentState } from '../../primitives/current'
 import { CurrentStoreContext, useCurrentStore } from '../../primitives/current/current'
-import { partitionByType } from '../../utilities/flatten-children'
+import { partitionByType } from '../../utilities/children'
 import { NavContents } from './nav-content'
 
 /** Props for {@link Nav}: the active `value` and a change callback, plus native `<nav>` attributes (less `onChange` and `defaultValue`). */
