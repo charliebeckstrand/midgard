@@ -3,16 +3,26 @@
  * git history.
  *
  * Run `pnpm quality:report` from `packages/ui`. Add `--weeks <n>` to report
- * more weeks than the default of 4. The report has three parts:
+ * more weeks than the default of 4. The report has these parts:
  *
  * - The count of units in each state of the ledger, `docs/LEDGER.md`.
+ * - The measures of the last quality scan, from the Scan section of the
+ *   ledger, and the units whose files changed after its commit.
+ * - The next passes: each unit with an open finding, ranked by its `high`
+ *   findings, its `medium` findings, its correctness findings, its polish
+ *   findings, its fixes of the last 7 days, and then its name.
  * - The fix-on-fix share of each ISO week. The script reads each `fix` commit
  *   that changes `src`. It runs `git blame` on the parent commit, over the
  *   lines that the fix removes or replaces in the shipped source. The shipped
  *   source is `src` without the tests and without the docs app. The commit
  *   that wrote most of those lines sets the class of the fix. A commit from
- *   the 14 days before the fix is recent. A recent `fix` makes the fix a fix
+ *   the 7 days before the fix is recent. A recent `fix` makes the fix a fix
  *   on a fix. A fix that replaces no line of the shipped source is additive.
+ *   One more column gives the fix-on-fix share with a 14-day window, which
+ *   the report used before, so that the change of window is visible.
+ * - The units with the most fixes in the weeks of the report. A fix counts for
+ *   each unit whose shipped source it changes. A Clean pass takes these units
+ *   first.
  * - The count of units that a commit of each week set to Reopened.
  *
  * The fix-on-fix share is an upper bound on regressions. A fix that changes
@@ -28,7 +38,18 @@ import { execFile } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
-import { LEDGER, LEDGER_REPO_PATH, parseLedger, STATES, TIERS } from './quality-ledger.ts'
+import {
+	LEDGER,
+	LEDGER_REPO_PATH,
+	OPEN_LEVELS,
+	parseLedger,
+	parseOpen,
+	parseScan,
+	SCAN_FIELDS,
+	STATES,
+	TIERS,
+} from './quality-ledger.ts'
+import { QUALITY_SEEDS } from './quality-seeds.ts'
 
 const run = promisify(execFile)
 
@@ -46,8 +67,16 @@ const NOT_SHIPPED = [
 	':(exclude)*.test.tsx',
 ]
 
-/** A commit is recent to a fix when it is at most this old at the time of the fix. */
-const RECENT_MS = 14 * 24 * 60 * 60 * 1000
+const DAY_MS = 24 * 60 * 60 * 1000
+
+/** A commit is recent to a fix when it is at most this many days old at the time of the fix. */
+const RECENT_DAYS = 7
+
+/** The window of the comparison column, which the report used before {@link RECENT_DAYS}. */
+const PREVIOUS_DAYS = 14
+
+/** The count of rows in the table of the units with the most fixes. */
+const TOP_UNITS = 15
 
 /** The number of git processes that run at the same time. */
 const PARALLEL = 8
@@ -162,13 +191,25 @@ async function replacedRanges(sha: string): Promise<Map<string, string[]>> {
 	return ranges
 }
 
-/** Classifies one fix by the commits that wrote the lines that it replaces. */
-async function classify(fix: Commit): Promise<FixClass> {
-	const lines: Record<Exclude<FixClass, 'additive'>, number> = {
-		older: 0,
-		recentFix: 0,
-		recentOther: 0,
-	}
+type ReplacedLines = Record<Exclude<FixClass, 'additive'>, number>
+
+/** The class of a fix from the count of replaced lines in each class. */
+function classOf(lines: ReplacedLines): FixClass {
+	const most = Math.max(...Object.values(lines))
+
+	if (most === 0) return 'additive'
+
+	return TIE_ORDER.find((name) => lines[name as keyof ReplacedLines] === most) as FixClass
+}
+
+/** Classifies one fix by the commits that wrote the lines that it replaces, for each window. */
+async function classify(fix: Commit): Promise<Record<'current' | 'previous', FixClass>> {
+	const windows = { current: RECENT_DAYS, previous: PREVIOUS_DAYS }
+
+	const lines = {
+		current: { older: 0, recentFix: 0, recentOther: 0 },
+		previous: { older: 0, recentFix: 0, recentOther: 0 },
+	} satisfies Record<keyof typeof windows, ReplacedLines>
 
 	const time = Date.parse(fix.date)
 
@@ -178,17 +219,34 @@ async function classify(fix: Commit): Promise<FixClass> {
 		for (const [, sha] of blame.matchAll(/^([0-9a-f]{40}) \d+ \d+/gm)) {
 			const origin = await commitOf(sha as string)
 
-			if (time - Date.parse(origin.date) > RECENT_MS) lines.older++
-			else if (commitType(origin.subject) === 'fix') lines.recentFix++
-			else lines.recentOther++
+			const age = time - Date.parse(origin.date)
+
+			for (const window of ['current', 'previous'] as const) {
+				if (age > windows[window] * DAY_MS) lines[window].older++
+				else if (commitType(origin.subject) === 'fix') lines[window].recentFix++
+				else lines[window].recentOther++
+			}
 		}
 	}
 
-	const most = Math.max(...Object.values(lines))
+	return { current: classOf(lines.current), previous: classOf(lines.previous) }
+}
 
-	if (most === 0) return 'additive'
+/** The ledger keys (`tier/unit`) of the units whose shipped source changes from `from` to `to`. */
+async function unitsOf(from: string, to: string): Promise<Set<string>> {
+	const files = await git('diff', '--name-only', from, to, '--', SOURCE, ...NOT_SHIPPED)
 
-	return TIE_ORDER.find((name) => lines[name as keyof typeof lines] === most) as FixClass
+	const keys = new Set<string>()
+
+	for (const file of files.split('\n')) {
+		const [tier = '', name = ''] = file.slice(SOURCE.length + 1).split('/')
+
+		if (!(TIERS as readonly string[]).includes(tier) || !name || name === 'index.ts') continue
+
+		keys.add(`${tier}/${tier === 'layouts' ? name.replace(/\.[^.]+$/, '') : name}`)
+	}
+
+	return keys
 }
 
 /** The fixes that change {@link SOURCE}, from the Monday of the first week of the report. */
@@ -266,35 +324,26 @@ function weeksArgument(): number {
 	return weeks
 }
 
-async function main() {
-	const weeks = weeksArgument()
+/** The fixes of the report, with the class and the units of each one. */
+type History = {
+	fixCommits: Commit[]
+	classes: Record<'current' | 'previous', FixClass>[]
+	fixUnits: Set<string>[]
+	/** The ISO weeks of the report, the latest first. */
+	weekKeys: string[]
+	/** The Monday of the first week, as `YYYY-MM-DD`. */
+	since: string
+}
 
-	const head = (await git('log', '-1', '--format=%h%x09%cI')).trim().split('\t')
+type Ledger = ReturnType<typeof parseLedger>
 
-	const headDate = head[1] ?? ''
-
-	const start = new Date(`${weekStart(headDate)}T00:00:00Z`)
-
-	start.setUTCDate(start.getUTCDate() - 7 * (weeks - 1))
-
-	const since = start.toISOString().slice(0, 10)
-
-	const ledger = parseLedger(readFileSync(LEDGER, 'utf-8'))
-
-	const fixCommits = await fixes(since)
-
-	const classes = await mapLimited(fixCommits, classify)
-
-	const reopenedWeeks = await reopened(since)
-
-	const out: string[] = [`# ui quality report`, '', `At ${head[0]} (${headDate.slice(0, 10)}).`, '']
-
-	out.push(
+function unitsSection(ledger: Ledger): string[] {
+	const out = [
 		'## Units',
 		'',
 		`| State | ${TIERS.join(' | ')} | Total |`,
 		`|---|${TIERS.map(() => '---|').join('')}---|`,
-	)
+	]
 
 	for (const state of STATES) {
 		const counts = TIERS.map(
@@ -308,35 +357,224 @@ async function main() {
 
 	out.push('', `Units Clean: ${clean} of ${ledger.rows.length}.`, '')
 
-	out.push(
-		'## Fix-on-fix share',
+	return out
+}
+
+/** The measures of the last scan, and the units whose files changed after its commit. */
+async function scanSection(source: string): Promise<{ out: string[]; stale: Set<string> }> {
+	const scan = parseScan(source)
+
+	const commit = scan.Commit?.replace(/`/g, '')
+
+	if (!commit || commit === '—')
+		return {
+			out: ['## Scan', '', `No scan yet. The seeded set holds ${QUALITY_SEEDS.length} fixes.`, ''],
+			stale: new Set(),
+		}
+
+	const out = ['## Scan', '', ...SCAN_FIELDS.map((field) => `- ${field}: ${scan[field] ?? '—'}`)]
+
+	out.push(`- Seeded set: ${QUALITY_SEEDS.length} fixes`, '')
+
+	const stale = await unitsOf(commit, 'HEAD')
+
+	if (stale.size > 0) {
+		const keys = [...stale].sort().map((key) => `\`${key}\``)
+
+		out.push(`Stale since the scan: ${keys.join(', ')}.`, '')
+	}
+
+	return { out, stale }
+}
+
+/** The count of fixes of each unit in the {@link RECENT_DAYS} before `headDate`. */
+function recentFixes(history: History, headDate: string): Map<string, number> {
+	const weekAgo = Date.parse(headDate) - RECENT_DAYS * DAY_MS
+
+	const counts = new Map<string, number>()
+
+	history.fixCommits.forEach((fix, index) => {
+		if (Date.parse(fix.date) < weekAgo) return
+
+		for (const key of history.fixUnits[index] ?? []) counts.set(key, (counts.get(key) ?? 0) + 1)
+	})
+
+	return counts
+}
+
+/** Each unit with an open finding, in the fixed order of the rank. */
+function nextPassesSection(
+	ledger: Ledger,
+	recent: Map<string, number>,
+	stale: Set<string>,
+): string[] {
+	const ranked = ledger.rows
+		.map((row) => ({
+			key: `${row.tier}/${row.unit}`,
+			state: row.state,
+			counts: parseOpen(row.open),
+			recent: recent.get(`${row.tier}/${row.unit}`) ?? 0,
+		}))
+		.filter((row) => row.counts && Object.values(row.counts).some(Boolean))
+		.sort((a, b) => {
+			for (const level of OPEN_LEVELS) {
+				const order = (b.counts?.[level] ?? 0) - (a.counts?.[level] ?? 0)
+
+				if (order !== 0) return order
+			}
+
+			return b.recent - a.recent || a.key.localeCompare(b.key)
+		})
+
+	if (ranked.length === 0) return ['## Next passes', '', 'No unit has an open finding.', '']
+
+	const levels = OPEN_LEVELS.map((level) => `${level[0]?.toUpperCase()}${level.slice(1)}`)
+
+	const out = [
+		'## Next passes',
 		'',
-		'| Week | Fixes | Replaces older code | Additive only | Replaces other recent work | Replaces a recent fix |',
-		'|---|---|---|---|---|---|',
-	)
+		`| Unit | State | ${levels.join(' | ')} | Fixes, last ${RECENT_DAYS} days | Stale |`,
+		`|---|---|${OPEN_LEVELS.map(() => '---|').join('')}---|---|`,
+	]
 
-	const weekKeys = Array.from({ length: weeks }, (_, offset) => {
-		const day = new Date(start)
-
-		day.setUTCDate(day.getUTCDate() + 7 * offset)
-
-		return isoWeek(day.toISOString())
-	}).reverse()
-
-	for (const week of weekKeys) {
-		const inWeek = classes.filter((_, index) => isoWeek(fixCommits[index]?.date ?? '') === week)
-
-		const count = (name: FixClass) =>
-			percent(inWeek.filter((fixClass) => fixClass === name).length, inWeek.length)
+	for (const row of ranked) {
+		const counts = OPEN_LEVELS.map((level) => row.counts?.[level] ?? 0)
 
 		out.push(
-			`| ${week} | ${inWeek.length} | ${count('older')} | ${count('additive')} | ${count('recentOther')} | ${count('recentFix')} |`,
+			`| \`${row.key}\` | ${row.state} | ${counts.join(' | ')} | ${row.recent} | ${stale.has(row.key) ? 'yes' : 'no'} |`,
 		)
 	}
 
-	out.push('', '## Reopened units', '', '| Week | Reopened |', '|---|---|')
+	out.push('')
 
-	for (const week of weekKeys) out.push(`| ${week} | ${reopenedWeeks.get(week) ?? 0} |`)
+	return out
+}
+
+function fixOnFixSection(history: History): string[] {
+	const out = [
+		'## Fix-on-fix share',
+		'',
+		`Work is recent when it is at most ${RECENT_DAYS} days older than the fix. The last column uses the window of ${PREVIOUS_DAYS} days that the report used before.`,
+		'',
+		`| Week | Fixes | Replaces older code | Additive only | Replaces other recent work | Replaces a recent fix | Replaces a fix of the last ${PREVIOUS_DAYS} days |`,
+		'|---|---|---|---|---|---|---|',
+	]
+
+	for (const week of history.weekKeys) {
+		const inWeek = history.classes.filter(
+			(_, index) => isoWeek(history.fixCommits[index]?.date ?? '') === week,
+		)
+
+		const count = (name: FixClass, window: 'current' | 'previous' = 'current') =>
+			percent(inWeek.filter((fixClass) => fixClass[window] === name).length, inWeek.length)
+
+		out.push(
+			`| ${week} | ${inWeek.length} | ${count('older')} | ${count('additive')} | ${count('recentOther')} | ${count('recentFix')} | ${count('recentFix', 'previous')} |`,
+		)
+	}
+
+	out.push('')
+
+	return out
+}
+
+function fixesByUnitSection(history: History, ledger: Ledger): string[] {
+	const latest = history.weekKeys[0]
+
+	const byUnit = new Map<string, { all: number; latest: number; onFix: number }>()
+
+	history.fixCommits.forEach((fix, index) => {
+		for (const key of history.fixUnits[index] ?? []) {
+			const unit = byUnit.get(key) ?? { all: 0, latest: 0, onFix: 0 }
+
+			unit.all++
+
+			if (isoWeek(fix.date) === latest) unit.latest++
+
+			if (history.classes[index]?.current === 'recentFix') unit.onFix++
+
+			byUnit.set(key, unit)
+		}
+	})
+
+	const states = new Map(ledger.rows.map((row) => [`${row.tier}/${row.unit}`, row.state]))
+
+	const out = [
+		'## Fixes by unit',
+		'',
+		`The ${TOP_UNITS} units with the most fixes since ${history.since}. A fix counts for each unit whose shipped source it changes.`,
+		'',
+		`| Unit | State | Fixes | In ${latest} | Replaces a recent fix |`,
+		'|---|---|---|---|---|',
+	]
+
+	const top = [...byUnit]
+		.sort(([a, x], [b, y]) => y.all - x.all || y.latest - x.latest || a.localeCompare(b))
+		.slice(0, TOP_UNITS)
+
+	for (const [key, unit] of top)
+		out.push(
+			`| \`${key}\` | ${states.get(key) ?? '—'} | ${unit.all} | ${unit.latest} | ${unit.onFix} |`,
+		)
+
+	out.push('')
+
+	return out
+}
+
+async function main() {
+	const weeks = weeksArgument()
+
+	const head = (await git('log', '-1', '--format=%h%x09%cI')).trim().split('\t')
+
+	const headDate = head[1] ?? ''
+
+	const start = new Date(`${weekStart(headDate)}T00:00:00Z`)
+
+	start.setUTCDate(start.getUTCDate() - 7 * (weeks - 1))
+
+	const since = start.toISOString().slice(0, 10)
+
+	const source = readFileSync(LEDGER, 'utf-8')
+
+	const ledger = parseLedger(source)
+
+	const fixCommits = await fixes(since)
+
+	const history: History = {
+		fixCommits,
+		classes: await mapLimited(fixCommits, classify),
+		fixUnits: await mapLimited(fixCommits, (fix) => unitsOf(`${fix.sha}^`, fix.sha)),
+		weekKeys: Array.from({ length: weeks }, (_, offset) => {
+			const day = new Date(start)
+
+			day.setUTCDate(day.getUTCDate() + 7 * offset)
+
+			return isoWeek(day.toISOString())
+		}).reverse(),
+		since,
+	}
+
+	const reopenedWeeks = await reopened(since)
+
+	const scan = await scanSection(source)
+
+	const out = [
+		'# ui quality report',
+		'',
+		`At ${head[0]} (${headDate.slice(0, 10)}).`,
+		'',
+		...unitsSection(ledger),
+		...scan.out,
+		...nextPassesSection(ledger, recentFixes(history, headDate), scan.stale),
+		...fixOnFixSection(history),
+		...fixesByUnitSection(history, ledger),
+		'## Reopened units',
+		'',
+		'| Week | Reopened |',
+		'|---|---|',
+		...history.weekKeys.map((week) => `| ${week} | ${reopenedWeeks.get(week) ?? 0} |`),
+	]
 
 	process.stdout.write(`${out.join('\n')}\n`)
 }

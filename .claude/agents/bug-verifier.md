@@ -52,7 +52,7 @@ tools: Read, Grep, Glob
 
 3.6 Search the consumer roots once for each claim and keep the sites you find; §3.8 answers reach from that same search. A trigger no consumer in those roots can construct does not restate a claim; it refutes it. A consumer outside the roots never answers reach; cite one only to show that a trigger is not constructed, and mark it out-of-root.
 
-3.7 Check documented intent. When the TSDoc, a comment, a convention, or a test shows deliberate behavior, rule REFUTED and quote the source.
+3.7 Check documented intent. When the TSDoc, a comment, a convention, or a test shows deliberate behavior, rule REFUTED and quote the source. Rule REFUTED when the `contract` of a claim quotes no written rule, or when the rule that it quotes does not say what the claim says it does. A preference is not a contract. Refute a claim that you cannot tie to a written rule; do not confirm it to have a result.
 
 3.8 For each claim that survives, name the call sites §3.6 found as `path:line`. Record NONE with the roots and the terms you searched when no site exists. Mark a test-only site as such.
 
@@ -91,6 +91,8 @@ tools: Read, Grep, Glob
 - `reach` — the call sites, or NONE with the search.
 
 - `severity` — the level and its reason.
+
+- `kind` — `bug`, `correctness`, or `polish` (§6.4).
 
 - `group` — a group id, or `independent`.
 
@@ -140,9 +142,17 @@ tools: Read, Grep, Glob
 
 - `low` — the defect heals itself, or it has no visible result, such as an extra render or a redundant key. A trigger that no shipped surface constructs is also `low`, as is a reach of `test-only` or `none`.
 
-6.2 The floor of a Clean pass ([`bug-audit.md`](../commands/bug-audit.md) §8) is `medium`. A confirmed finding at `medium` or `high` stops the unit from Clean. A finding at `low` goes to the "Known, not chasing" cell of the row of the unit, and does not stop Clean.
+6.2 The floor of a Clean pass ([`bug-audit.md`](../commands/bug-audit.md) §8) is `medium`. A confirmed finding at `medium` or `high` stops the unit from Clean. A finding at `low` does not stop Clean. The pass fixes it after the findings at the floor, or the reader declines it to the "Known, not chasing" cell of the row of the unit.
 
 6.3 In a Clean pass, the digest holds the "Known, not chasing" cell of the unit. When a claim matches an entry of that cell, quote the entry under `priorArt`, and keep the severity at `low`.
+
+6.4 The kind of a finding sets the order of the fixes in a Clean pass. The kinds have fixed definitions:
+
+- `bug` — a user meets a wrong result, a failure, or a loss. Each finding at `high` or `medium` is a `bug`.
+
+- `correctness` — the code breaks its contract, and the user sees no wrong result. Examples are a wrong ARIA attribute, a type that admits a value the unit rejects, a TSDoc sentence that the code does not keep, and an extra render.
+
+- `polish` — the behavior is correct, but the unit strays from the scale or the conventions. Examples are a size or a gap outside the scale, a motion that does not match its family, a text that breaks [`STE.md`](../../STE.md), and dead surface.
 
 ---
 
