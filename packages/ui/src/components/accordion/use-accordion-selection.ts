@@ -6,21 +6,46 @@ import { useKeyedStore } from '../../hooks/use-keyed-store'
 import { type KeyedStore, toggleListItem } from '../../utilities'
 
 /**
+ * The open set of a single accordion that can close to none.
+ * @internal
+ */
+type CollapsibleSingle = {
+	/**
+	 * Allow closing the open section to leave none open. `false` requires a
+	 * `value` or a `defaultValue`, so that a section is open from the start.
+	 *
+	 * @remarks
+	 * With `false`, one section stays open: a toggle of the open section does
+	 * nothing, and a toggle of another section moves the open section to it.
+	 *
+	 * @defaultValue true
+	 */
+	collapsible?: true
+	value?: string | null
+	defaultValue?: string | null
+	onValueChange?: (value: string | null) => void
+}
+
+/**
+ * The open set of a single accordion that holds one section open. It starts
+ * with that section open, so it takes the section from `value` or
+ * `defaultValue`.
+ * @internal
+ */
+type HeldSingle = {
+	collapsible: false
+	/** A held accordion never closes to none, so it never reports `null`. */
+	onValueChange?: (value: string) => void
+} & ({ value: string; defaultValue?: string } | { value?: undefined; defaultValue: string })
+
+/**
  * Single-open mode: at most one section open at a time.
  * @internal
  */
 export type SingleProps = {
 	/** The open mode. Single mode keeps one section open at most. @defaultValue 'single' */
 	type?: 'single'
-	value?: string | null
-	defaultValue?: string | null
-	onValueChange?: (value: string | null) => void
-	/**
-	 * Allow closing the open section to leave none open.
-	 * @defaultValue true
-	 */
-	collapsible?: boolean
-}
+} & (CollapsibleSingle | HeldSingle)
 
 /**
  * Multiple-open mode: any number of sections open at once.
@@ -126,7 +151,9 @@ export function useAccordionSelection(props: SingleProps | MultipleProps): Accor
 		if (isMultiple) {
 			;(onValueChange as MultipleProps['onValueChange'])?.(values)
 		} else {
-			;(onValueChange as SingleProps['onValueChange'])?.(values[0] ?? null)
+			// A held accordion never empties its open set, so only a collapsible one
+			// reports `null`.
+			;(onValueChange as CollapsibleSingle['onValueChange'])?.(values[0] ?? null)
 		}
 	}
 
