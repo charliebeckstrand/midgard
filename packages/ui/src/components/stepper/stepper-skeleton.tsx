@@ -1,10 +1,10 @@
 import { Fragment } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/stepper'
-import { type Responsive, resolveVariant } from '../../types'
+import type { Responsive } from '../../types'
 import { rangeKeys } from '../../utilities'
 import { Placeholder } from '../placeholder'
-import { STEPPER_ORIENTATION, type StepperOrientation } from './context'
+import { STEPPER_ORIENTATION, type StepperOrientation, stepperLayout } from './context'
 
 /** Props for {@link StepperSkeleton}: the placeholder step count and the `orientation` of the stepper. */
 export type StepperSkeletonProps = {
@@ -42,20 +42,17 @@ export function StepperSkeleton({
 }: StepperSkeletonProps) {
 	const stepKeys = rangeKeys(steps, 'step')
 
-	const at = <T extends string>(table: Record<StepperOrientation, T>) =>
-		resolveVariant(orientation, table)
+	const layout = stepperLayout(orientation)
 
 	return (
-		<div className={cn(k.base.base, at(k.base.orientation), className)}>
+		<div className={cn(k.base.base, layout.base, className)}>
 			{stepKeys.map((stepKey, index) => (
 				<Fragment key={stepKey}>
-					{index > 0 && <div className={cn(k.separator.base, at(k.separator.orientation))} />}
-					<div className={cn(k.step.base, at(k.step.orientation), 'cursor-default')}>
+					{index > 0 && <div className={cn(k.separator.base, layout.separator)} />}
+					<div className={cn(k.step.base, layout.step, 'cursor-default')}>
 						<Placeholder className={cn(k.skeleton.indicator)} />
-						<div className={cn(k.content.base, at(k.content.orientation))}>
-							<Placeholder
-								className={cn(k.title.base(), at(k.title.orientation), k.skeleton.title)}
-							/>
+						<div className={cn(k.content.base, layout.content)}>
+							<Placeholder className={cn(k.title.base(), layout.title, k.skeleton.title)} />
 						</div>
 					</div>
 				</Fragment>

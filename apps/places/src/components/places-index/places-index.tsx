@@ -102,15 +102,15 @@ export function PlacesIndex({
 				id: 'visits',
 				title: 'Visits',
 				// The number of visits, and a button whose tooltip lists the date of
-				// each one, newest first. The tooltip opens on a hover, and on a tap
-				// on touch. The grid leaves a click on the button to the button, so it
-				// does not open the place.
+				// each one, newest first. The tooltip opens on a click or a tap, so a
+				// touch screen shows the dates too. The grid leaves a click on the
+				// button to the button, so it does not open the place.
 				value: (place) => place.visits.length,
 				cell: (place) => (
 					<Flex gap="xs" align="center">
 						<span>{place.visits.length}</span>
 
-						<Tooltip>
+						<Tooltip trigger="click">
 							<TooltipTrigger>
 								<Button
 									type="button"

@@ -4,7 +4,6 @@ import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { useComposedRef } from '../../hooks/use-composed-ref'
 import { k } from '../../recipes/kata/stepper'
-import { resolveVariant } from '../../types'
 import { useStepper } from './context'
 
 /** Props for {@link StepperSeparator}: `className` plus `<li>` attributes, `ref` included. */
@@ -21,15 +20,11 @@ export type StepperSeparatorProps = {} & ComponentProps<'li'>
  * The `ref` gets the `<li>` as an `HTMLLIElement`.
  */
 export function StepperSeparator({ className, ref, ...props }: StepperSeparatorProps) {
-	const { orientation } = useStepper()
+	const { layout } = useStepper()
 
 	const composedRef = useComposedRef<HTMLLIElement>(ref)
 
-	const classes = cn(
-		k.separator.base,
-		resolveVariant(orientation, k.separator.orientation),
-		className,
-	)
+	const classes = cn(k.separator.base, layout.separator, className)
 
 	// The row is an <ol>, which holds only <li> children.
 	return (

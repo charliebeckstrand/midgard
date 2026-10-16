@@ -5,9 +5,8 @@ import { cn, dataAttr } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { useMountsEveryPanel } from '../../primitives/mount'
 import { k } from '../../recipes/kata/stepper'
-import { type Responsive, resolveVariant } from '../../types'
 import { hasChildOfType, partitionByType } from '../../utilities/children'
-import { type StepperOrientation, StepperStepContext, type StepState, useStepper } from './context'
+import { StepperStepContext, type StepState, useStepper } from './context'
 import { StepperIndicator } from './stepper-indicator'
 
 /**
@@ -57,19 +56,13 @@ function computeState(stepValue: number, value: number): StepState {
  *
  * @internal
  */
-function partitionChildren(
-	children: ReactNode,
-	orientation: Responsive<StepperOrientation>,
-): ReactNode {
+function partitionChildren(children: ReactNode, contentClassName: string): ReactNode {
 	const { matched: indicators, rest } = partitionByType(children, StepperIndicator)
 
 	return (
 		<>
 			{indicators}
-			<span
-				data-slot="stepper-content"
-				className={cn(k.content.base, resolveVariant(orientation, k.content.orientation))}
-			>
+			<span data-slot="stepper-content" className={contentClassName}>
 				{rest}
 			</span>
 		</>
@@ -111,7 +104,7 @@ export function StepperStep({ value, disabled, className, children, ...props }: 
 	const {
 		value: currentValue,
 		onValueChange,
-		orientation,
+		layout,
 		linear,
 		baseId,
 		hasPanels,
@@ -125,13 +118,13 @@ export function StepperStep({ value, disabled, className, children, ...props }: 
 
 	const everyPanel = useMountsEveryPanel(mount)
 
-	const stepClasses = cn(k.step.base, resolveVariant(orientation, k.step.orientation))
+	const stepClasses = cn(k.step.base, layout.step)
 
 	const classes = cn(stepClasses, className)
 
 	const layoutChildren = useMemo(
-		() => partitionChildren(ensureStepperIndicator(children), orientation),
-		[children, orientation],
+		() => partitionChildren(ensureStepperIndicator(children), cn(k.content.base, layout.content)),
+		[children, layout.content],
 	)
 
 	const providerValue = useMemo(() => ({ value, state }), [value, state])
@@ -150,11 +143,7 @@ export function StepperStep({ value, disabled, className, children, ...props }: 
 		const isDisabled = disabled === true || (linear && state === 'upcoming')
 
 		return (
-			<li
-				data-slot="stepper-item"
-				{...props}
-				className={cn(k.item.base, resolveVariant(orientation, k.item.orientation))}
-			>
+			<li data-slot="stepper-item" {...props} className={cn(k.item.base, layout.item)}>
 				<button
 					type="button"
 					id={triggerId}

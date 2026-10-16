@@ -12,7 +12,7 @@ Capture is a switch. While it runs, the store keeps each event through a reload,
 
 The view is one header button and one sheet with the Events and Bugs tabs. From `lg` up, Pin docks the view on the end edge of the page, in the `aside` slot of `SidebarLayout`. The pinned panel shows each event as it comes in.
 
-The docs are the first consumer. The adapter of React Router lives in the docs app ([`../../docs/debug/router.ts`](../../docs/debug/router.ts)), so `ui` has no dependency on a framework. The apps on Next.js get their adapter in a later change.
+Each adapter lives in its consumer, so `ui` has no dependency on a framework. The adapter of React Router lives in the docs app ([`../../docs/debug/router.ts`](../../docs/debug/router.ts)). Each app on Next.js starts the events in its own `instrumentation-client.ts`, and the route source (`onRouterTransitionStart`) and the error page that calls `reportBug` are in `packages/shared`.
 
 ## Engine
 
@@ -21,8 +21,6 @@ The store, the sources, the sink, and the recorder are in [`engine/`](engine). T
 The barrel exports only the light modules: the setting, the sink, and the shells of the views. The recorder, the sources, and the store load only while the events run. Thus an app that does not turn on the events loads no part of the recorder.
 
 ## Backlog
-
-- **Next.js adapter.** Give the apps on Next.js an error file and a route source that report to the module.
 
 - **Report export.** Let an app send a report to its own issue tracker, in addition to Copy.
 

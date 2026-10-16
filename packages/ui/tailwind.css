@@ -113,7 +113,7 @@
 @source inline('{sm,md,lg,xl,2xl}:[&>dt+dd]:pt-{0,(--ui-details-top)}');
 /* Stepper `orientation`: the row, a step, an item, a title, a separator, and the content column. */
 @source inline('{sm,md,lg,xl,2xl}:{flex-row,flex-col,ps-4,ps-0,py-4,py-0,py-1}');
-@source inline('{sm,md,lg,xl,2xl}:{items-center,min-w-20,min-w-auto,w-32,w-full,w-auto,text-center,text-start}');
+@source inline('{sm,md,lg,xl,2xl}:{min-w-20,min-w-auto,w-32,w-full,w-auto,text-center,text-start}');
 @source inline('{sm,md,lg,xl,2xl}:gap-{0.5,(--ui-stepper-gap)}');
 @source inline('{sm,md,lg,xl,2xl}:{mt-2,mt-0,block,hidden,contents,flex}');
 /* Dialog `align`: the box (its `items-*` and `p-0` are lines above) and the panel. */
