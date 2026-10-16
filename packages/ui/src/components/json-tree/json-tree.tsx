@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentProps, type KeyboardEvent, useCallback, useMemo, useRef } from 'react'
+import { type ComponentProps, type KeyboardEvent, useMemo, useRef } from 'react'
 import { cn, composeEventHandlers } from '../../core'
 import { useA11yRoving } from '../../hooks'
 import { useComposedRef } from '../../hooks/use-composed-ref'
@@ -217,28 +217,25 @@ export function JsonTree({
 	// takes the two moves. A branch row opens and closes itself first and
 	// cancels the event. The windowed variant moves
 	// over its flat rows, because the target row can be outside the window.
-	const handleKeyDown = useCallback(
-		(event: KeyboardEvent<HTMLDivElement>) => {
-			const container = ref.current
+	const handleKeyDown = useStableEvent((event: KeyboardEvent<HTMLDivElement>) => {
+		const container = ref.current
 
-			const item = event.target
+		const item = event.target
 
-			if (event.defaultPrevented || !container || !(item instanceof HTMLElement)) return
+		if (event.defaultPrevented || !container || !(item instanceof HTMLElement)) return
 
-			const move = jsonTreeMoveForKey(event, item)
+		const move = jsonTreeMoveForKey(event, item)
 
-			if (move === null) {
-				handleRovingKeyDown(event)
+		if (move === null) {
+			handleRovingKeyDown(event)
 
-				return
-			}
+			return
+		}
 
-			event.preventDefault()
+		event.preventDefault()
 
-			treeMoveTarget(container, item, move)?.focus()
-		},
-		[handleRovingKeyDown],
-	)
+		treeMoveTarget(container, item, move)?.focus()
+	})
 
 	// One identity until an input of the tree changes. A new value would render
 	// each node, because each node reads the context.

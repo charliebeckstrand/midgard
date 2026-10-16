@@ -13,6 +13,7 @@ import {
 } from 'react'
 import { cn, composeEventHandlers, dataAttr, invalidAttrs } from '../../core'
 import { useIsTruncated } from '../../hooks'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { k } from '../../recipes/kata/file-upload'
 import { Button } from '../button'
 import { Icon } from '../icon'
@@ -250,11 +251,11 @@ export function FileUploadDrop(allProps: FileUploadDropProps) {
 		handleChange(event)
 	}
 
-	const handleZoneDrop = (event: DragEvent) => {
+	const handleZoneDrop = useStableEvent((event: DragEvent) => {
 		noteFocus(children == null)
 
 		handleDrop(event)
-	}
+	})
 
 	const handleClear = () => {
 		noteFocus(false)

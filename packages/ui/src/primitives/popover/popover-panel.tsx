@@ -123,6 +123,8 @@ export function PopoverPanel({
 	 * The open state of the owner, such as a menu or a listbox. The panel stamps
 	 * `data-open` while it is `true`. Omit it for a panel that has no open state,
 	 * such as a `static` menu.
+	 *
+	 * @defaultValue No open state: the panel stamps no `data-open`.
 	 */
 	open?: boolean
 	/** Accessible name for the panel's role (e.g. the listbox), threaded from the owning control. */
