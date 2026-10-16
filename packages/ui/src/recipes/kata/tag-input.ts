@@ -27,7 +27,8 @@ export const k = {
 	// each step below or above.
 	tags: [dan.space.tags.y, dan.gap.touch.tags.x, dan.gap.touch.tags.y],
 	// The text input keeps a usable width. When the tag row leaves less, the input
-	// moves to the next row of the wrapping frame, and the add button goes with
+	// moves to the next row of the frame, which wraps while it holds tags (`frame`
+	// of the Input kata), and the add button goes with
 	// it. Without the floor, the input took the last sliver of the tag row and the
 	// add button wrapped alone.
 	input: 'min-w-16',

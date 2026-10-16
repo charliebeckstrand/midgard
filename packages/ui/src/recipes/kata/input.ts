@@ -13,8 +13,14 @@ export const k = bridge.control(control, {
 		 * inherits that size. The slot is a scope one step below the control, so
 		 * `ji.ramp` on the slot gives a smaller size. At `md` the text is
 		 * `text-base`.
+		 *
+		 * The frame keeps the input and its affixes on one row, so a narrow host
+		 * cannot move the steppers of a NumberInput below the input. In a narrow
+		 * host, the input shrinks, and then the frame overflows. Only a tag list
+		 * (`data-slot="tags"` of TagInput) makes the frame wrap, because the tags
+		 * can fill more than one row.
 		 */
-		frame: ['group/control flex flex-wrap items-center', ji.ramp],
+		frame: ['group/control flex items-center has-data-[slot=tags]:flex-wrap', ji.ramp],
 		/**
 		 * A prefix or a suffix. It has no gap, so two controls in it touch, such
 		 * as a clear button and the calendar button of a date input. Then each
