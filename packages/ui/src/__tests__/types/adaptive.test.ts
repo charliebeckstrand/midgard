@@ -1,0 +1,33 @@
+// @vitest-environment node
+import { describe, expect, expectTypeOf, it } from 'vitest'
+import { adaptive, SIZE_CLASSES, valueAt } from '../../types/responsive'
+
+describe('adaptive', () => {
+	it('keys each size class by the breakpoint where it starts', () => {
+		expect(adaptive({ compact: 'vertical', medium: 'horizontal' })).toEqual({
+			initial: 'vertical',
+			[SIZE_CLASSES.medium]: 'horizontal',
+		})
+
+		expect(adaptive({ compact: 'col', expanded: 'row' })).toEqual({
+			initial: 'col',
+			[SIZE_CLASSES.expanded]: 'row',
+		})
+	})
+
+	it('keeps each literal in the type, so a reader of the type sees the map', () => {
+		const value = adaptive({ compact: 'bottom', medium: 'center' })
+
+		expectTypeOf(value).toEqualTypeOf<{ readonly initial: 'bottom'; readonly sm: 'center' }>()
+	})
+
+	it('holds the value of the last smaller size class at each breakpoint', () => {
+		const value = adaptive({ compact: 'bottom', medium: 'center', expanded: 'top' })
+
+		expect(valueAt(value, 'initial', 'bottom')).toBe('bottom')
+
+		expect(valueAt(value, 'md', 'bottom')).toBe('center')
+
+		expect(valueAt(value, '2xl', 'bottom')).toBe('top')
+	})
+})

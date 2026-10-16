@@ -31,6 +31,65 @@ export const BREAKPOINT_WIDTHS = {
 export type Responsive<T> = T | Partial<Record<Breakpoint, T>>
 
 /**
+ * The size classes of the viewport, and the breakpoint where each starts. This
+ * table is the one place in `ui` that ties a layout to a width.
+ *
+ * - `compact`: a phone. It starts at the base, below each breakpoint.
+ * - `medium`: a large phone on its side, a tablet, or a narrow window.
+ * - `expanded`: a desktop window, with room for a side panel.
+ *
+ * A component default that changes with the viewport names size classes
+ * through {@link adaptive}, and never a breakpoint. To move where a class
+ * starts, change it here, and each default moves with it.
+ */
+export const SIZE_CLASSES = {
+	compact: 'initial',
+	medium: 'sm',
+	expanded: 'lg',
+} as const satisfies Record<string, Breakpoint>
+
+/** One size class from {@link SIZE_CLASSES}. */
+export type SizeClass = keyof typeof SIZE_CLASSES
+
+/**
+ * The value of a component in each size class. `compact` is required, so the
+ * value is defined at each width. A class with no value keeps the value of the
+ * last smaller class.
+ */
+export type SizeClassMap<T> = { compact: T } & Partial<Record<Exclude<SizeClass, 'compact'>, T>>
+
+/** The per-breakpoint map that {@link adaptive} gives for `M`, keyed by the breakpoint of each size class. */
+export type Adaptive<M> = {
+	readonly [K in keyof M & SizeClass as (typeof SIZE_CLASSES)[K]]: M[K]
+}
+
+/**
+ * The responsive value of a component default, from its value in each size
+ * class. The result is a per-breakpoint map, so `resolveVariant` and
+ * `useResponsiveValue` take it, and a consumer can still pass a map of its
+ * own. The result type keeps each literal, so a tool that reads the type of
+ * an exported default reads the same map.
+ *
+ * @param map - The value in each size class.
+ * @returns The per-breakpoint map.
+ *
+ * @example
+ * export const DIALOG_ALIGN = adaptive({ compact: 'bottom', medium: 'center' })
+ * // { initial: 'bottom', sm: 'center' }
+ */
+export function adaptive<const M extends SizeClassMap<unknown>>(map: M): Adaptive<M> {
+	const named: Partial<Record<SizeClass, unknown>> = map
+
+	const result: Partial<Record<Breakpoint, unknown>> = {}
+
+	for (const size of Object.keys(SIZE_CLASSES) as SizeClass[]) {
+		if (named[size] !== undefined) result[SIZE_CLASSES[size]] = named[size]
+	}
+
+	return result as Adaptive<M>
+}
+
+/**
  * Resolves a {@link Responsive} value to an ordered list of classes by calling
  * `resolver` once per defined breakpoint, ascending. A bare (non-object) value
  * resolves to a single class with no breakpoint; `'initial'` passes `undefined`
@@ -104,6 +163,30 @@ export function valueAt<T>(value: Responsive<T>, bp: Breakpoint, fallback: T): T
 	}
 
 	return held
+}
+
+/**
+ * Maps each value of a responsive prop through `fn`, and keeps the breakpoint
+ * of each. A bare value gives a bare value.
+ *
+ * @param value - The single or per-breakpoint value.
+ * @param fn - Maps one value to its new value.
+ * @returns The mapped value, in the shape of `value`.
+ */
+export function mapResponsive<T, U>(value: Responsive<T>, fn: (value: T) => U): Responsive<U> {
+	if (typeof value !== 'object' || value === null || Array.isArray(value)) return fn(value)
+
+	const named: Partial<Record<Breakpoint, T>> = value
+
+	const mapped: Partial<Record<Breakpoint, U>> = {}
+
+	for (const step of BREAKPOINTS) {
+		const entry = named[step]
+
+		if (entry !== undefined) mapped[step] = fn(entry)
+	}
+
+	return mapped
 }
 
 /**

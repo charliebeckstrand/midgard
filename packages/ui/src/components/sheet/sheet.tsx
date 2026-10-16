@@ -19,9 +19,19 @@ import {
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { k, type SheetPanelVariants } from '../../recipes/kata/sheet'
+import { adaptive, type Responsive, resolveVariant } from '../../types'
 import { sheetCeiling, sheetFloor } from './sheet-floor'
 import { SheetHandle } from './sheet-handle'
 import { SheetClose, SheetDefaultFooter } from './slots'
+
+/** How a {@link SheetPanel} meets the screen: `flush` against its edges, or `floating` in from them. */
+export type SheetLayout = 'flush' | 'floating'
+
+/** The default `layout` of a {@link SheetPanel}: flush on a compact viewport, floating from medium. */
+export const SHEET_LAYOUT = adaptive({
+	compact: 'flush',
+	medium: 'floating',
+}) satisfies Responsive<SheetLayout>
 
 /** Props for {@link Sheet}: the open state, controlled or uncontrolled. */
 export type SheetProps = PanelRootProps
@@ -51,13 +61,23 @@ export type SheetPanelProps = Omit<SheetPanelVariants, 'surface' | 'width' | 'si
 		 */
 		side?: SheetPanelVariants['side'] | 'start' | 'end'
 		/**
+		 * How the panel meets the screen. A `flush` panel meets the screen edges
+		 * with square corners. A `floating` panel on the left or the right stands
+		 * 1rem in from the edges, and a `floating` panel rounds its corners. A
+		 * per-breakpoint map sets the layout from each breakpoint, mobile-first. A
+		 * single value sets it at each width.
+		 * @defaultValue {@link SHEET_LAYOUT}
+		 */
+		layout?: Responsive<SheetLayout>
+		/**
 		 * How wide the panel opens.
 		 *
 		 * The named steps are max-widths: the panel fills the screen on a phone and
 		 * caps at the named width from `sm` up.
 		 *
 		 * `fit` takes the width of what it holds instead, capped at the screen less
-		 * the inset the panel floats on. Pass it for a panel built around its content
+		 * the inset the panel floats on. A `flush` panel (`layout`) fills the screen
+		 * at each width. Pass it for a panel built around its content
 		 * rather than a step chosen for it. A table whose columns decide how much room
 		 * they need is one. What is inside has to be able to state a width of its own.
 		 * A child that fills its container instead (`<Grid>` by default) leaves the
@@ -184,6 +204,7 @@ export function Sheet(props: SheetProps) {
 export function SheetPanel({
 	onOpenComplete,
 	side = 'right',
+	layout = SHEET_LAYOUT,
 	width,
 	handle,
 	glass,
@@ -280,6 +301,10 @@ export function SheetPanel({
 				style={sized ? { ...style, [axis]: resize.size ?? undefined, maxWidth: 'none' } : style}
 				className={cn(
 					k.panel({ side: edge, width, surface }),
+					resolveVariant(layout, k.layout.side[edge]),
+					(width === 'fit' || width === 'full') &&
+						axis === 'width' &&
+						resolveVariant(layout, k.layout.width[width]),
 					// Non-modal overlays disable pointer events on the full-viewport
 					// wrapper so the page stays interactive; the panel re-enables its own.
 					modal === false && 'pointer-events-auto',

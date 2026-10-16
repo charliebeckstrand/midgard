@@ -55,7 +55,7 @@ const alertBySeverity = {
 /** Props for {@link ToastAlert}, wired by {@link Toast} from the queue. @internal */
 type ToastAlertProps = {
 	toast: ToastData
-	/** The viewport edge that the stack is on, after the `sm` breakpoint. */
+	/** The viewport edge that the stack is on, at the `position` in force at the viewport. */
 	edge: 'top' | 'bottom'
 	zIndex: number
 	/** @defaultValue true */

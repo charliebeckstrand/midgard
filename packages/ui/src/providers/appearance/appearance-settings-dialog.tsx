@@ -137,7 +137,7 @@ export function AppearanceSettingsDialog({
 									<ChoiceListbox options={motionModes} value={motion} onValueChange={setMotion} />
 								</Field>
 								{inSidebarLayout && (
-									<Field className="max-lg:hidden">
+									<Field className="hidden lg:block">
 										<Label>Sidebar</Label>
 										<ChoiceListbox
 											options={sidebarModes}

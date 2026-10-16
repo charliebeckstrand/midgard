@@ -120,13 +120,29 @@ describe('Dialog', () => {
 			</Dialog>,
 		)
 
-		// The panel's flex wrapper carries placementClasses[placement]; 'top'
-		// aligns to the start, distinct from the 'center' default.
+		// A single `align` holds at each width, so the box aligns to the start
+		// with no prefix, and the panel does not dock to the bottom edge.
 		const wrapper = bySlot(document.body, 'dialog')?.parentElement
 
-		expect(wrapper?.className).toContain('sm:items-start')
+		expect(wrapper?.className).toContain('items-start')
+
+		expect(wrapper?.className).not.toContain('items-end')
 
 		expect(wrapper?.className).not.toContain('sm:items-center')
+	})
+
+	it('docks to the bottom edge below `sm` and aligns to the top from it, by a per-breakpoint align', () => {
+		renderUI(
+			<Dialog open onOpenChange={() => {}}>
+				<DialogPanel align={{ initial: 'bottom', sm: 'top' }}>Responsive</DialogPanel>
+			</Dialog>,
+		)
+
+		const wrapper = bySlot(document.body, 'dialog')?.parentElement
+
+		expect(wrapper?.className.split(' ')).toEqual(
+			expect.arrayContaining(['items-end', 'p-0', 'sm:items-start', 'sm:p-4']),
+		)
 	})
 
 	it('respects dismissOnBackdrop=false', () => {

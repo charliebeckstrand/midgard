@@ -32,12 +32,15 @@ export const k = {
 	// of an input, so the shares hold. It also keeps the text of a part
 	// readable in a container that sizes to its content, where the equal shares
 	// otherwise cut the longest text. The row (`base`) wraps a part that cannot
-	// get its minimum to a new line. Below `sm` the parts stack, each at full
-	// width.
+	// get its minimum to a new line. In a `vertical` rule the parts stack, each
+	// at full width. Each table is keyed by the `orientation` of the builder, and
+	// each value writes the same properties (`resolveVariant`).
 	parts: {
-		base: 'sm:flex-wrap',
-		item: 'w-full sm:min-w-32 sm:flex-1',
-		range: 'w-full sm:min-w-48 sm:flex-2',
+		base: { vertical: 'flex-nowrap', horizontal: 'flex-wrap' },
+		item: { vertical: 'min-w-auto flex-initial', horizontal: 'min-w-32 flex-1' },
+		range: { vertical: 'min-w-auto flex-initial', horizontal: 'min-w-48 flex-2' },
+		/** The width of each part. In a row, the zero basis of `flex-1` decides it. */
+		width: 'w-full',
 	},
 	remove: 'flex-none',
 	value: ['px-3', size.sm, ...text.muted],

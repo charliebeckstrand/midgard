@@ -1,43 +1,52 @@
-import { defineRecipe } from '../../core/recipe'
 import { sou, ugoki } from '../kiso'
 import { dan } from '../kiso/dan'
 
 const { spring, toast } = ugoki
 
-const viewport = defineRecipe({
-	base: [
+/**
+ * The classes of each physical `position` of the viewport, the stack in it,
+ * and its cards. `Toast` resolves a `start` or `end` corner to a physical one
+ * first. Each value writes the same properties, so a breakpoint replaces each
+ * one (`resolveVariant`). A corner stack takes the width of its cards, and a
+ * full-edge stack and its cards fill the viewport.
+ */
+const position = {
+	viewport: {
+		// biome-ignore-start lint/plugin/no-physical-side: each of these positions names a physical corner or edge
+		'top-right': 'justify-start left-auto right-0',
+		'top-left': 'justify-start left-0 right-auto',
+		'bottom-right': 'justify-end left-auto right-0',
+		'bottom-left': 'justify-end left-0 right-auto',
+		top: 'justify-start left-0 right-0',
+		bottom: 'justify-end left-0 right-0',
+		// biome-ignore-end lint/plugin/no-physical-side: each of these positions names a physical corner or edge
+	},
+	scroll: {
+		'top-right': 'w-fit [--ui-toast-card:var(--ui-toast-width)]',
+		'top-left': 'w-fit [--ui-toast-card:var(--ui-toast-width)]',
+		'bottom-right': 'w-fit [--ui-toast-card:var(--ui-toast-width)]',
+		'bottom-left': 'w-fit [--ui-toast-card:var(--ui-toast-width)]',
+		top: 'w-full [--ui-toast-card:100%]',
+		bottom: 'w-full [--ui-toast-card:100%]',
+	},
+} as const
+
+export const k = {
+	viewport: [
 		sou.toast,
 		'fixed top-0 bottom-0 flex flex-col',
-		'max-sm:inset-x-0 max-sm:justify-end',
 		// The stack keeps clear of the notch and the home indicator in a page with
 		// `viewport-fit=cover`. Elsewhere each inset is zero, and the padding is 1rem.
 		'p-4 pt-[max(--spacing(4),env(safe-area-inset-top))] pb-[max(--spacing(4),env(safe-area-inset-bottom))]',
 		'pointer-events-none',
 	],
-	position: {
-		// biome-ignore-start lint/plugin/no-physical-side: each of these positions names a physical corner
-		'top-right': 'justify-start right-0',
-		'top-left': 'justify-start left-0',
-		'bottom-right': 'justify-end right-0',
-		'bottom-left': 'justify-end left-0',
-		// biome-ignore-end lint/plugin/no-physical-side: each of these positions names a physical corner
-		// A `start` or `end` position follows the reading direction.
-		'top-start': 'justify-start start-0',
-		'top-end': 'justify-start end-0',
-		'bottom-start': 'justify-end start-0',
-		'bottom-end': 'justify-end end-0',
-	},
-	defaults: { position: 'bottom-right' },
-})
-
-export const k = {
-	viewport,
 	scroll: [
 		'flex flex-col max-h-full overflow-y-auto overscroll-contain',
-		'w-fit max-sm:w-full',
+		dan.size.toast.width,
 		'pointer-events-auto',
 	],
-	card: [dan.size.toast.width, 'max-sm:w-full'],
+	position,
+	card: 'w-(--ui-toast-card)',
 	motion: toast,
 	/** The motion under reduced motion: the toast shows with no slide. */
 	still: { top: ugoki.still(toast.top), bottom: ugoki.still(toast.bottom) },

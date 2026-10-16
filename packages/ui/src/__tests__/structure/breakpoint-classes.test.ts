@@ -93,13 +93,9 @@ function prefixedClasses(): string[] {
 			...ALIGNS.flatMap((align) => resolveAlign(at(align))),
 			...JUSTIFIES.flatMap((justify) => resolveJustify(at(justify))),
 			...COUNTS.flatMap((count) => resolveColumns(at(count))),
-			// The change of axis at `breakpoint` also gives the reset of the old axis.
-			...ORIENTATIONS.flatMap((from) =>
-				ORIENTATIONS.flatMap((to) =>
-					RATIOS.flatMap((ratio) =>
-						resolveTemplate({ initial: from, [breakpoint]: to }, at(ratio)),
-					),
-				),
+			// Each template also clears the template of the other axis.
+			...ORIENTATIONS.flatMap((orientation) =>
+				RATIOS.flatMap((ratio) => resolveTemplate(at(orientation), at(ratio))),
 			),
 		]
 
@@ -133,7 +129,7 @@ describe('the breakpoint classes of the structure units', () => {
 		const classes = prefixedClasses()
 
 		// A step of each axis at each breakpoint: 4 × 6 spacing, 4 + 5 + 6
-		// keywords, 5 column counts, and 10 templates and 2 resets.
+		// keywords, 5 column counts, and 10 templates and the 2 clears of the other axis.
 		expect(classes).toHaveLength(MIN_BREAKPOINTS.length * (24 + 15 + 5 + 12))
 
 		// The build with no candidates has only the inline classes. A class

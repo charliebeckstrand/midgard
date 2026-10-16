@@ -18,6 +18,7 @@ const stateValue = {
 	disabled: false,
 	allowGroups: true,
 	hideFieldSelector: false,
+	orientation: 'horizontal' as const,
 	requireRule: false,
 	reorderable: false,
 }

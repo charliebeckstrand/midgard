@@ -1,3 +1,4 @@
+import { mapResponsive } from '../../types/responsive'
 import type { FlexAlign, FlexDirection, ResponsiveAlign, ResponsiveDirection } from './variants'
 
 /**
@@ -19,13 +20,5 @@ function alignForDirection(direction: FlexDirection): FlexAlign {
  * @internal
  */
 export function defaultAlignFromDirection(direction: ResponsiveDirection): ResponsiveAlign {
-	if (typeof direction === 'string') return alignForDirection(direction)
-
-	const align: Record<string, FlexAlign> = {}
-
-	for (const [bp, value] of Object.entries(direction)) {
-		if (value !== undefined) align[bp] = alignForDirection(value)
-	}
-
-	return align
+	return mapResponsive(direction, alignForDirection)
 }

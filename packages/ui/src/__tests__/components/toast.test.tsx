@@ -621,18 +621,43 @@ describe('Toast: useToast behavior', () => {
 		expect(animated).toHaveAttribute('data-initial-transform', `translateY(${expectedY})`)
 	})
 
+	it('keeps a single top position on its edge below `sm`', () => {
+		// A single value holds at each width.
+		stubMatchMedia(() => false)
+
+		let api: ReturnType<typeof useToast> | undefined
+
+		renderUI(
+			<ToastProvider>
+				<Toast position="top-left" />
+				<Trigger onReady={(c) => (api = c)} />
+			</ToastProvider>,
+		)
+
+		act(() => {
+			api?.toast({ title: 'Narrow-top' })
+		})
+
+		const animated = present(
+			screen.getByText('Narrow-top').closest('[data-initial-transform]'),
+			'the animated toast',
+		)
+
+		expect(animated).toHaveAttribute('data-initial-transform', 'translateY(-100%)')
+	})
+
 	it.each(['top-left', 'top-right'] as const)(
-		'stacks the %s toast from the bottom edge below `sm`',
+		'stacks a toast that is at %s from `sm` from the bottom edge below `sm`',
 		(position) => {
-			// Below `sm`, the viewport pins every position to the bottom edge. The
-			// order, the motion, and the gap must follow that edge.
+			// Below `sm`, the position in force is the bottom edge. The order, the
+			// motion, and the gap must follow that edge.
 			stubMatchMedia(() => false)
 
 			let api: ReturnType<typeof useToast> | undefined
 
 			renderUI(
 				<ToastProvider>
-					<Toast position={position} />
+					<Toast position={{ initial: 'bottom', sm: position }} />
 					<Trigger onReady={(c) => (api = c)} />
 				</ToastProvider>,
 			)

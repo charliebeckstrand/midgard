@@ -32,7 +32,7 @@ const base = {
 // horizontal step keeps one size at each density step.
 const step = {
 	base: [
-		'group relative flex first:pt-0',
+		'group relative flex items-center first:pt-0',
 		'outline-none',
 		...disabled,
 		...cursor,
@@ -40,8 +40,8 @@ const step = {
 		dan.gap.stepper,
 	],
 	orientation: {
-		horizontal: 'flex-col items-center min-w-20 w-32 gap-0.5 py-0 text-center',
-		vertical: 'flex-row items-center min-w-auto w-full gap-(--ui-stepper-gap) py-1 text-start',
+		horizontal: 'flex-col min-w-20 w-32 gap-0.5 py-0 text-center',
+		vertical: 'flex-row min-w-auto w-full gap-(--ui-stepper-gap) py-1 text-start',
 	},
 } as const
 

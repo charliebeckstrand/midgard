@@ -34,7 +34,7 @@ The summary now names an operator that the field does not offer. Before, [`descr
 
 Every domain concept lands in [`engine/`](engine), the module's pure functional core: no `'use client'`, no runtime `react` / `motion` / `@dnd-kit` / `@floating-ui` imports, no `index` barrel (the engine is imported file-by-file), no runtime imports from the module root.
 
-[`engine-purity-boundary.test.ts`](../../__tests__/boundary/engine-purity-boundary.test.ts) holds that invariant for this engine, the grid engine, and the map engine together, so it is a gate rather than a paragraph three modules re-assert.
+[`engine-purity-boundary.test.ts`](../../__tests__/boundary/engine-purity-boundary.test.ts) holds that invariant for this engine and each other pure engine together, so it is a gate rather than a paragraph that each module re-asserts.
 
 The [`module-filename-boundary.test.ts`](../../__tests__/boundary/module-filename-boundary.test.ts) suite already enforces the engine's `query-*` filename layout and the `types.ts` exemption, so the folder shape is a gate, not a convention.
 

@@ -294,6 +294,30 @@ describe('usePanelResize', () => {
 			expect(result.current.resizing).toBe(false)
 		})
 
+		// The pointer owns the size until it lets go. An arrow mid-drag committed a
+		// size under the pointer and turned the gesture into a key step.
+		it('takes the arrow but sizes nothing while a pointer drags', () => {
+			const { result } = renderAttached('bottom')
+
+			press(result)
+
+			act(() => {
+				window.dispatchEvent(windowPointer('pointermove', 350, 100))
+			})
+
+			const dragged = result.current.size
+
+			const event = makeKeyEvent<HTMLElement>('ArrowUp')
+
+			act(() => result.current.handleProps.onKeyDown(event))
+
+			expect(event.preventDefault).toHaveBeenCalled()
+
+			expect(result.current.size).toBe(dragged)
+
+			expect(result.current.handleProps['data-dragging']).toBe('')
+		})
+
 		it('takes the arrow but sizes nothing before the panel mounts', () => {
 			const { result } = renderResize('bottom')
 

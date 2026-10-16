@@ -147,13 +147,14 @@ export const space = {
 			sheet: 'last:not-in-[[data-slot=sheet]_:not(:last-child)]:density-mb-[4,5,6,7,8]',
 		},
 		/**
-		 * The bottom padding of a panel that sits on the bottom edge below `sm`.
+		 * The bottom padding of a panel that can sit on the bottom edge.
 		 * `--ui-panel-bottom` holds the stop of `bottom` at the step of the panel.
-		 * Below `sm`, `--ui-panel-safe` holds the inset of the home indicator of a
-		 * page with `viewport-fit=cover`, and elsewhere it is zero. One plain padding
-		 * adds the two, so `cn` merges it with the padding of a consumer `className`.
+		 * The panel sets `--ui-panel-safe` to the inset of the home indicator of a
+		 * page with `viewport-fit=cover` while it is on the bottom edge, and it is
+		 * zero elsewhere. One plain padding adds the two, so `cn` merges it with the
+		 * padding of a consumer `className`.
 		 */
-		safe: 'density-set-[4,5,6,7,8]/[--ui-panel-bottom] max-sm:[--ui-panel-safe:env(safe-area-inset-bottom)] pb-[calc(var(--ui-panel-bottom)+var(--ui-panel-safe,0px))]',
+		safe: 'density-set-[4,5,6,7,8]/[--ui-panel-bottom] pb-[calc(var(--ui-panel-bottom)+var(--ui-panel-safe,0px))]',
 	},
 	shell: {
 		/** The padding of the sidebar layout regions. */
