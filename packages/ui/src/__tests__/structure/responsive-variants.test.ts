@@ -2,10 +2,10 @@
 
 import { join } from 'node:path'
 import { __unstable__loadDesignSystem, compile } from '@tailwindcss/node'
-import { describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import { k as descriptionList } from '../../recipes/kata/description-list'
 import { k as stepper } from '../../recipes/kata/stepper'
-import { BREAKPOINTS, type MinBreakpoint, resolveVariant } from '../../types/responsive'
+import { BREAKPOINT_WIDTHS, type MinBreakpoint, resolveVariant } from '../../types/responsive'
 import { noop } from '../../utilities/noop'
 
 // A responsive variant axis of a component gives the classes of one value at
@@ -31,9 +31,7 @@ const AXES: ReadonlyArray<readonly [string, Record<string, string>]> = [
 	['Stepper content orientation', stepper.content.orientation],
 ]
 
-const MIN_BREAKPOINTS = BREAKPOINTS.filter(
-	(breakpoint): breakpoint is MinBreakpoint => breakpoint !== 'initial',
-)
+const MIN_BREAKPOINTS = Object.keys(BREAKPOINT_WIDTHS) as MinBreakpoint[]
 
 /**
  * The declarations of the CSS of one class, as `context|property`. The context
@@ -59,9 +57,19 @@ function declarations(css: string): string[] {
 }
 
 describe('the responsive variant axes of the components', () => {
-	it.each(AXES)('%s writes the same properties in each value', async (_name, table) => {
-		const system = await __unstable__loadDesignSystem(ENTRY, { base: UI })
+	let system: Awaited<ReturnType<typeof __unstable__loadDesignSystem>>
 
+	let compiler: Awaited<ReturnType<typeof compile>>
+
+	// One design system and one compiler serve each axis.
+	beforeAll(async () => {
+		;[system, compiler] = await Promise.all([
+			__unstable__loadDesignSystem(ENTRY, { base: UI }),
+			compile(ENTRY, { base: UI, onDependency: noop }),
+		])
+	})
+
+	it.each(AXES)('%s writes the same properties in each value', (_name, table) => {
 		const shape = (classes: string) =>
 			system
 				.candidatesToCss(classes.split(' '))
@@ -73,32 +81,27 @@ describe('the responsive variant axes of the components', () => {
 		for (const value of rest) expect(value).toEqual(first)
 	})
 
-	it.each(AXES)(
-		'%s has CSS for each prefixed class from ui/tailwind.css alone',
-		async (_name, table) => {
-			const compiler = await compile(ENTRY, { base: UI, onDependency: noop })
+	it.each(AXES)('%s has CSS for each prefixed class from ui/tailwind.css alone', (_name, table) => {
+		const classes = MIN_BREAKPOINTS.flatMap((breakpoint) =>
+			Object.keys(table).flatMap((value) =>
+				resolveVariant({ [breakpoint]: value }, table).split(' '),
+			),
+		)
 
-			const classes = MIN_BREAKPOINTS.flatMap((breakpoint) =>
-				Object.keys(table).flatMap((value) =>
-					resolveVariant({ [breakpoint]: value }, table).split(' '),
-				),
-			)
+		// The build with no candidates has only the inline classes. A class that
+		// is not one of them adds CSS.
+		let css = compiler.build([])
 
-			// The build with no candidates has only the inline classes. A class that
-			// is not one of them adds CSS.
-			let css = compiler.build([])
+		const missing: string[] = []
 
-			const missing: string[] = []
+		for (const name of classes) {
+			const next = compiler.build([name])
 
-			for (const name of classes) {
-				const next = compiler.build([name])
+			if (next !== css) missing.push(name)
 
-				if (next !== css) missing.push(name)
+			css = next
+		}
 
-				css = next
-			}
-
-			expect(missing).toEqual([])
-		},
-	)
+		expect(missing).toEqual([])
+	})
 })

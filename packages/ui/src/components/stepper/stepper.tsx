@@ -8,9 +8,14 @@ import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import type { Mount } from '../../primitives/mount'
 import { k } from '../../recipes/kata/stepper'
 import { Stack } from '../../structure/stack'
-import { type Responsive, resolveVariant } from '../../types'
+import type { Responsive } from '../../types'
 import { partitionByType } from '../../utilities/children'
-import { STEPPER_ORIENTATION, StepperContext, type StepperOrientation } from './context'
+import {
+	STEPPER_ORIENTATION,
+	StepperContext,
+	type StepperOrientation,
+	stepperLayout,
+} from './context'
 import { StepperPanels } from './stepper-panels'
 
 /** Props for {@link Stepper}: the controlled `value`, its `onValueChange` handler, `linear`/`orientation` modifiers, and step children. */
@@ -170,20 +175,22 @@ export function Stepper({
 
 	const hasPanels = panelsChildren.length > 0
 
+	const layout = useMemo(() => stepperLayout(orientation), [orientation])
+
 	const contextValue = useMemo(
 		() => ({
 			value: current,
 			onValueChange: interactive ? setCurrent : undefined,
-			orientation,
+			layout,
 			linear,
 			baseId,
 			hasPanels,
 			mount,
 		}),
-		[current, interactive, setCurrent, orientation, linear, baseId, hasPanels, mount],
+		[current, interactive, setCurrent, layout, linear, baseId, hasPanels, mount],
 	)
 
-	const rowClassName = cn(k.base.base, resolveVariant(orientation, k.base.orientation), className)
+	const rowClassName = cn(k.base.base, layout.base, className)
 
 	// The steps are an ordered list, so AT gives the count and the position of
 	// each step. An interactive row also groups its step buttons as a toolbar,
