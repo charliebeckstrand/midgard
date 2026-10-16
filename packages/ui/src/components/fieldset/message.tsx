@@ -150,13 +150,13 @@ export function Message({
 		// `<div>`, and a plain `<ul>` inside it keeps the list.
 		return (
 			<div
-				data-slot="message"
 				data-severity={severity}
 				id={elementId}
 				className={classes}
-				// Consumer props spread first; the live-region role below takes
-				// precedence.
+				// Consumer props spread first; the anchor and the live-region role
+				// below take precedence.
 				{...props}
+				data-slot="message"
 				role={role}
 			>
 				<ul>
@@ -172,13 +172,13 @@ export function Message({
 
 	return (
 		<p
-			data-slot="message"
 			data-severity={severity}
 			id={elementId}
 			className={classes}
-			// Consumer props spread first; the live-region role below takes
-			// precedence.
+			// Consumer props spread first; the anchor and the live-region role
+			// below take precedence.
 			{...props}
+			data-slot="message"
 			role={role}
 		>
 			{content}

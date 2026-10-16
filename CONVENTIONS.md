@@ -58,7 +58,7 @@ Pass `checkForDefaultPrevented: false` in three cases only. The first is the act
 
 Side behavior, such as a preload or a pause on hover, keeps the default.
 
-`spread-order-boundary.test.ts` gates the position rules and the internal `ref`. It computes the read set, and its allowlist holds the known backlog. The `no-hand-composed-handler` Biome plugin gates a handler composed by hand inside JSX. No gate holds the rest of the rule for composed keys yet.
+`spread-order-boundary.test.ts` gates the position rules and the internal `ref`. It computes the read set. Its allowlist is empty: a new entry is backlog, and it names the audit row that removes it. The `no-hand-composed-handler` Biome plugin gates a handler composed by hand inside JSX. No gate holds the rest of the rule for composed keys yet.
 
 3.10 A behavior that many components share has one home in `ui`. A component calls the home and never writes its own copy. A gate holds each home:
 

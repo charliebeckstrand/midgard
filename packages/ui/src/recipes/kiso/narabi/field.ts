@@ -19,11 +19,13 @@ export const field = [
 	// it would be dropped. The `:not(description)` arm lets a description hug the
 	// label instead; its own gap to the control is the next rule's job.
 	space.field.label,
-	// A label row: a Flex that holds the label beside an adornment, such as an
-	// info button with a tooltip. The button cannot go in the label, because a
-	// label must not hold a second labelable element. The row takes the gap that
-	// the label takes, and the label in it keeps its weight.
-	'[&>[data-slot=flex]>[data-slot=label]]:font-medium',
+	// A label row: a child, such as a Flex, that holds the label beside an
+	// adornment, such as an info button with a tooltip. The button cannot go in
+	// the label, because a label must not hold a second labelable element. The
+	// row takes the gap that the label takes, and the label in it keeps its
+	// weight. The rule names the row by its label and not by its anchor, so a
+	// wrapper that renames the anchor of the row keeps the rule.
+	'[&>*>[data-slot=label]]:font-medium',
 	space.field.labelRow,
 	space.field.description,
 	space.field.control,

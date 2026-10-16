@@ -108,11 +108,11 @@ export function Label(props: LabelProps) {
 
 	return (
 		<label
-			data-slot="label"
 			id={id}
 			htmlFor={htmlFor ?? control?.id}
 			className={cn(k.label({ as }), className)}
 			{...rest}
+			data-slot="label"
 			onMouseDown={composeEventHandlers(onMouseDown, keepControlFocus)}
 		>
 			{children}

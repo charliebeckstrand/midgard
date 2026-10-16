@@ -379,9 +379,9 @@ export const space = {
 		/** The gap from a label, or a label row, to the control under it. */
 		label:
 			'[&>[data-slot=label]:has(+*:not([data-slot=description]))]:density-mb-[0.25,0.5,1,1.5,2.5]',
-		/** The gap from a label row (a Flex that holds the label) to the control under it. */
+		/** The gap from a label row (a child that holds the label) to the control under it. */
 		labelRow:
-			'[&>[data-slot=flex]:has(>[data-slot=label]):has(+*:not([data-slot=description]))]:density-mb-[0.25,0.5,1,1.5,2.5]',
+			'[&>:has(>[data-slot=label]):has(+*:not([data-slot=description]))]:density-mb-[0.25,0.5,1,1.5,2.5]',
 		/** The gap from a description to the slot under it. */
 		description: '[&>[data-slot=description]+[data-slot]]:density-mt-[0.25,0.5,1,1.5,2.5]',
 		/** The gap from a control to the slot under it. */

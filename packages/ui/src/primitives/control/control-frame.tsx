@@ -24,10 +24,10 @@ export function ControlFrame({ className, density, children, ...props }: Control
 	return (
 		<PolymorphicStatic
 			as="span"
-			data-slot="control-frame"
 			density={density}
 			className={cn(k.frame.base, k.frame.radius, className)}
 			{...props}
+			data-slot="control-frame"
 		>
 			{children}
 		</PolymorphicStatic>
