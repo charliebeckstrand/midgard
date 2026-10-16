@@ -65,12 +65,6 @@ const KNOWN: readonly { path: string; rule: string; reason: string; theme?: Them
 	// of a disabled control, but these spans sit beside the disabled input, not
 	// in it, so axe reads them. Dimmed on the dark surface they measure 2.46:1.
 	{
-		path: '/tag-input',
-		rule: 'color-contrast',
-		reason: 'The tags of the disabled TagInput example, which WCAG exempts as inactive.',
-		theme: 'dark',
-	},
-	{
 		path: '/credit-card-input',
 		rule: 'color-contrast',
 		reason:

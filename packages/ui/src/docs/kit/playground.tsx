@@ -253,7 +253,7 @@ function FreePicker({
 				aria-label={label}
 				prefix={<FieldLabel label={label} />}
 				placeholder={placeholder}
-				className="w-44 shrink-0"
+				className="w-20 shrink-0"
 				value={typeof value === 'number' ? value : null}
 				onValueChange={(next) => onValueChange(next ?? undefined)}
 			/>
