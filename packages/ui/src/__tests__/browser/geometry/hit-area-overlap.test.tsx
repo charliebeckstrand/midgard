@@ -198,6 +198,14 @@ const packed: readonly { name: string; element: ReactElement }[] = [
 		name: `tag input that wraps, ${size}`,
 		element: (
 			<div style={{ width: 300 }}>
+				<TagInput aria-label="Tags" size={size} defaultValue={letters} wrap />
+			</div>
+		),
+	})),
+	...densitySteps.map((size) => ({
+		name: `tag input on one row, ${size}`,
+		element: (
+			<div style={{ width: 300 }}>
 				<TagInput aria-label="Tags" size={size} defaultValue={letters} />
 			</div>
 		),

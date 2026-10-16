@@ -141,7 +141,9 @@ export function overlappingTargets(root: HTMLElement): string[] {
  * target. A container of small hosts caps the hit areas at its gap with
  * `--touch-target-gap-x` or `--touch-target-gap-y` (`primitives/touch-target`).
  *
- * A hidden host and a host inside another host are skipped. The check reads the
+ * A hidden host and a host inside another host are skipped. A box that does not
+ * show its overflow, such as a scroll container, clips each hit area inside it,
+ * because a press outside the box does not reach its content. The check reads the
  * floor that the page has, so a test sets the 44px floor to check a coarse
  * pointer. Overlap up to 1px is tolerated. The members of a `Group` share a 1px
  * border (`-ms-px`), so their boxes, and the hit areas that keep to them, overlap
@@ -152,9 +154,11 @@ export function overlappingHitAreas(root: HTMLElement): string[] {
 		(span) => {
 			const host = span.parentElement
 
-			return host?.checkVisibility({ visibilityProperty: true })
-				? [{ host, box: span.getBoundingClientRect() }]
-				: []
+			if (!host?.checkVisibility({ visibilityProperty: true })) return []
+
+			const box = clipped(span, root)
+
+			return box ? [{ host, box }] : []
 		},
 	)
 
@@ -178,6 +182,26 @@ export function overlappingHitAreas(root: HTMLElement): string[] {
 	}
 
 	return pairs
+}
+
+/** The part of the box of `element` that each clipping ancestor up to `root` shows, or `null` if none shows. */
+function clipped(element: HTMLElement, root: HTMLElement): DOMRect | null {
+	let { left, top, right, bottom } = element.getBoundingClientRect()
+
+	for (let box = element.parentElement; box && box !== root; box = box.parentElement) {
+		const style = getComputedStyle(box)
+
+		if (style.overflowX === 'visible' && style.overflowY === 'visible') continue
+
+		const clip = box.getBoundingClientRect()
+
+		left = Math.max(left, clip.left)
+		top = Math.max(top, clip.top)
+		right = Math.min(right, clip.right)
+		bottom = Math.min(bottom, clip.bottom)
+	}
+
+	return right > left && bottom > top ? new DOMRect(left, top, right - left, bottom - top) : null
 }
 
 /**

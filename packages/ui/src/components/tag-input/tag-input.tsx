@@ -17,6 +17,7 @@ import { Input, type InputProps } from '../input'
 import { hasSeparator, splitTokens, type TokenRejection } from './tag-input-utilities'
 import { useTagInput } from './use-tag-input'
 import { useTagInputKeyboard } from './use-tag-input-keyboard'
+import { useTagInputRowScroll } from './use-tag-input-row-scroll'
 
 /**
  * Props for {@link TagInput}: controlled/uncontrolled tag list plus `max`, `validate`, the `onReject` report, and `<Form>` binding via `name`.
@@ -79,6 +80,13 @@ export type TagInputProps = Omit<
 	 * @defaultValue `false`, or the state of the enclosing Control.
 	 */
 	required?: boolean
+	/**
+	 * Lets the tags wrap onto more rows. The add button then stays at the end of
+	 * the first row, and the text input takes the row below the tags. Without
+	 * `wrap`, the tags stay on one row and scroll on the inline axis.
+	 * @defaultValue false
+	 */
+	wrap?: boolean
 }
 
 /**
@@ -139,6 +147,7 @@ export function TagInput({
 	onKeyDown,
 	onPaste,
 	onBlur,
+	wrap = false,
 	...props
 }: TagInputProps) {
 	const inputRef = useRef<HTMLInputElement>(null)
@@ -302,18 +311,23 @@ export function TagInput({
 	// controlled path can't).
 	const keyedTags = keyByOccurrence(tags)
 
+	// On one row, the list scrolls, and a new tag scrolls into view.
+	const listRef = useTagInputRowScroll(tags.length, wrap)
+
 	// The list sits in the prefix `<span>` of the ControlFrame `<span>`, so it is
 	// a `<span>` and not a `<ul>`.
 	const badges =
 		tags.length > 0 ? (
 			<Flex
 				as="span"
+				ref={listRef}
 				data-slot="tags"
+				data-wrap={wrap || undefined}
 				role="list"
 				aria-label="Tags"
 				gap="xs"
-				wrap
-				className={cn(k.tags)}
+				wrap={wrap}
+				className={cn(k.tags.base, !wrap && k.tags.scroll)}
 			>
 				{keyedTags.map(({ value: tag, key }, index) => (
 					// The chip sits in the prefix scope of the host Input, one step below
@@ -346,6 +360,24 @@ export function TagInput({
 				))}
 			</Flex>
 		) : undefined
+
+	// The box of the add button while the tags wrap.
+	const addBox = wrap && tags.length > 0 ? k.add : undefined
+
+	const addButton = (
+		<Button
+			type="button"
+			ref={addRef}
+			aria-label="Add tag"
+			variant="bare"
+			disabled={locked || atMax || inputValue.trim() === ''}
+			onMouseDown={(event) => event.preventDefault()}
+			onClick={handleSubmit}
+			onBlur={handleAddBlur}
+		>
+			<Icon icon={<CornerLeftDown />} className="rtl:-scale-x-100" />
+		</Button>
+	)
 
 	return (
 		<Input
@@ -380,18 +412,13 @@ export function TagInput({
 			onBlur={handleBlur}
 			prefix={badges}
 			suffix={
-				<Button
-					type="button"
-					ref={addRef}
-					aria-label="Add tag"
-					variant="bare"
-					disabled={locked || atMax || inputValue.trim() === ''}
-					onMouseDown={(event) => event.preventDefault()}
-					onClick={handleSubmit}
-					onBlur={handleAddBlur}
-				>
-					<Icon icon={<CornerLeftDown />} className="rtl:-scale-x-100" />
-				</Button>
+				// With `wrap`, the button sits in a box with the height of one row of
+				// tags, so it aligns with the first row. The boxes are always there and
+				// only their classes change, so the first tag does not remount the
+				// button and take its focus.
+				<span className={cn(addBox?.row)}>
+					<span className={cn(addBox?.chip)}>{addButton}</span>
+				</span>
 			}
 			className={cn(k.input, className, atMax && 'cursor-not-allowed')}
 		/>

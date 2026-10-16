@@ -1,0 +1,49 @@
+'use client'
+
+import { type RefCallback, useEffect, useRef } from 'react'
+import { useComposedRef, useScrollRegion } from '../../hooks'
+
+/**
+ * The scroll of the tag row of a TagInput while the row stays on one line.
+ *
+ * While the row overflows, it is a tab stop ({@link useScrollRegion}), so a
+ * keyboard can scroll past a chip with no remove button. It takes no region
+ * role, because it keeps its list role. A new tag goes at the end of the row,
+ * next to the text input, so the row scrolls to its end to show it. Only a
+ * growth of the list scrolls. A removal or the first render leaves the scroll
+ * where it is.
+ *
+ * @param count - The number of tags.
+ * @param wrap - Whether the row wraps. A wrapped row does not scroll, and the
+ * returned ref is then `undefined`.
+ * @returns A callback ref for the tag row.
+ * @internal
+ */
+export function useTagInputRowScroll(
+	count: number,
+	wrap: boolean,
+): RefCallback<HTMLElement> | null | undefined {
+	const listRef = useRef<HTMLElement>(null)
+
+	const regionRef = useScrollRegion()
+
+	const setRef = useComposedRef(listRef, regionRef)
+
+	const previous = useRef(count)
+
+	useEffect(() => {
+		const list = listRef.current
+
+		const grew = count > previous.current
+
+		previous.current = count
+
+		if (!grew || wrap || !list) return
+
+		const rtl = getComputedStyle(list).direction === 'rtl'
+
+		list.scrollLeft = rtl ? -list.scrollWidth : list.scrollWidth
+	}, [count, wrap])
+
+	return wrap ? undefined : setRef
+}

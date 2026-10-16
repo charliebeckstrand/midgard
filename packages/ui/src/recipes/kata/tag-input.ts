@@ -1,4 +1,4 @@
-import { sen } from '../kiso'
+import { omote, sen } from '../kiso'
 import { dan } from '../kiso/dan'
 
 const { focus } = sen
@@ -19,17 +19,37 @@ export const k = {
 	// step above: `xs` for an `sm` host, `sm` for `md`, and `md` for `lg`.
 	//
 	// The row caps the hit areas of the remove buttons (`TouchTarget`) at the
-	// space between them. The row wraps, and the buttons of two rows are the
+	// space between them. When the row wraps, the buttons of two rows are the
 	// `xs` gap of the row and the `py-ring-1` pad of two chips apart, 10px in all
 	// at `md`. Along the row, a one-letter tag still puts the gap, the leading
 	// pad, and the inner gap of its `xs` chip between two buttons, 14px or more at
 	// `md`. The gap steps with the scope, so each cap is 2px less or more for
 	// each step below or above.
-	tags: [dan.space.tags.y, dan.gap.touch.tags.x, dan.gap.touch.tags.y],
-	// The text input keeps a usable width. When the tag row leaves less, the input
-	// moves to the next row of the frame, which wraps while it holds tags (`frame`
-	// of the Input kata), and the add button goes with
-	// it. Without the floor, the input took the last sliver of the tag row and the
-	// add button wrapped alone.
+	//
+	// By default the row stays on one line and scrolls on the inline axis
+	// (`omote.rail`). A chip does not shrink, so a long tag keeps its full text.
+	// With `wrap`, the row wraps.
+	tags: {
+		base: [dan.space.tags.y, dan.gap.touch.tags.x, dan.gap.touch.tags.y],
+		scroll: [...omote.rail, '*:shrink-0'],
+	},
+	/**
+	 * The box of the add button while the tags wrap. It has the height of one
+	 * row of tags: the block padding of the row, and inside it the line and the
+	 * `py-ring-1` pad of a chip. The button is centered in the box, so it aligns
+	 * with the first row of tags (`frame` of the Input kata). The suffix slot has
+	 * the step of the prefix slot, so the lengths match at each step.
+	 *
+	 * The row of tags can fill the width up to the button. So the box keeps the
+	 * touch gap of the row (`--touch-target-gap-x`) as its start margin, and caps
+	 * the hit area of the button at that gap. Then the hit areas of the button and
+	 * of the last remove button on the row do not overlap.
+	 */
+	add: {
+		row: ['flex', dan.space.tags.y, dan.gap.touch.tags.x, 'ms-(--touch-target-gap-x)'],
+		chip: ['flex items-center min-h-lh py-ring-1', dan.text.chip],
+	},
+	// The text input keeps a usable width. On one line, the tags shrink and
+	// scroll before the input goes below this floor.
 	input: 'min-w-16',
 } as const
