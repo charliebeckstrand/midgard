@@ -46,7 +46,8 @@ const thumbnail = (index: number) => screen.getByRole('button', { name: photos[i
 
 const viewer = () => document.querySelector('[data-slot="lightbox"]')
 
-const count = () => document.querySelector('[aria-live="polite"]')?.textContent
+// The live region reads "{alt}, {n} / {count}".
+const count = () => document.querySelector('[aria-live="polite"]')?.textContent?.split(', ').at(-1)
 
 /** The tweens that run in the viewer: the raise, the return, or a slide. */
 const viewerTweens = () => viewer()?.getAnimations({ subtree: true }) ?? []

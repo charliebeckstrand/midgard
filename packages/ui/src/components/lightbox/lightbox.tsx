@@ -1,11 +1,11 @@
 'use client'
 
-import { type ReactNode, useRef, useState } from 'react'
+import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { useControllable } from '../../hooks/use-controllable'
 import { Overlay } from '../../primitives/overlay'
 import { LightboxContext, type LightboxContextValue } from './context'
 import { LightboxStage } from './lightbox-stage'
-import { viewablePhotos } from './lightbox-utilities'
+import { thumbnailOf, viewablePhotos } from './lightbox-utilities'
 import type { LightboxLoad, LightboxPhoto } from './types'
 
 /** Props for {@link Lightbox}: the photos, the open photo, and the names of the viewer and its controls. */
@@ -19,7 +19,11 @@ export type LightboxProps = {
 	index?: number | null
 	/** The index of the photo that the viewer shows first, uncontrolled. */
 	defaultIndex?: number
-	/** Fires with the index of the photo that the viewer shows, or `null` when it closes. */
+	/**
+	 * Fires with the index of the photo that the viewer shows, or `null` when it
+	 * closes. The viewer also closes, and reports `null`, when its photo leaves
+	 * `photos` or its thumbnail does not load.
+	 */
 	onIndexChange?: (index: number | null) => void
 	/**
 	 * Shows a close button, one gap above the photo. Without it, Escape, a press
@@ -125,6 +129,19 @@ export function Lightbox({
 
 	const open = index !== undefined && viewable.some((photo) => photo.index === index)
 
+	// The photo of `index` left `photos`, or its thumbnail loaded and gave it no
+	// box, so the viewer cannot show it. The viewer closes and reports it, so
+	// that the photo does not open by itself when `photos` grows back. A photo
+	// whose thumbnail still loads waits.
+	const indexPhoto = index === undefined ? undefined : photos[index]
+
+	const gone =
+		index !== undefined && !open && (!indexPhoto || loadOf(thumbnailOf(indexPhoto)) !== undefined)
+
+	useEffect(() => {
+		if (gone) setIndex(null)
+	}, [gone, setIndex])
+
 	// The photo on the stage. It holds the last photo through the return, and the
 	// thumbnail of that photo stays empty until the photo lands in it.
 	const [shown, setShown] = useState<number | null>(open ? index : null)
@@ -152,6 +169,10 @@ export function Lightbox({
 
 	// The place of the shown photo among the photos that the viewer can show.
 	const position = viewable.findIndex((photo) => photo.index === shown)
+
+	// The shown photo left `photos`, so the stage unmounts with no return. Its
+	// thumbnail does not stay empty.
+	if (shown !== null && position < 0) setShown(null)
 
 	return (
 		<LightboxContext value={context}>

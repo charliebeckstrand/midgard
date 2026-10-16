@@ -15,8 +15,11 @@ import {
 	dismissFrame,
 	isDoubleTap,
 	type LightboxPoint,
+	type LightboxSample,
 	type LightboxTap,
 	RESTING_TRANSFORM,
+	recordSample,
+	releaseSpeed,
 	SWIPE_EDGE_RESISTANCE,
 	SWIPE_SLOP,
 	swipeStep,
@@ -101,13 +104,8 @@ type Press = {
 	size: { width: number; height: number }
 	/** The frame that a swipe to close paints now. */
 	frame: { transform: string; opacity: number }
-	/** The last point and time, for the speed at the lift. */
-	lastX: number
-	lastY: number
-	lastTime: number
-	/** The speed at the last move, in px per ms. */
-	speedX: number
-	speedY: number
+	/** The recent points of the press, for the speed at the lift. */
+	samples: LightboxSample[]
 }
 
 /** The slot of a photo by its place from the center: `-1`, `0`, or `1`. */
@@ -156,21 +154,9 @@ function intentOf(
 	return press.base === 0 && dy > dx ? 'dismiss' : 'swipe'
 }
 
-/** Records the point of a move, and the speed since the move before it. */
+/** Records the point of a move, for the speed at the lift. */
 function follow(press: Press, event: PointerEvent) {
-	const elapsed = event.timeStamp - press.lastTime
-
-	if (elapsed > 0) {
-		press.speedX = (event.clientX - press.lastX) / elapsed
-
-		press.speedY = (event.clientY - press.lastY) / elapsed
-	}
-
-	press.lastX = event.clientX
-
-	press.lastY = event.clientY
-
-	press.lastTime = event.timeStamp
+	recordSample(press.samples, { x: event.clientX, y: event.clientY, time: event.timeStamp })
 }
 
 /** Paints the scrim and the controls at `opacity`. */
@@ -631,7 +617,7 @@ export function useLightboxTrack(
 		if (current.mode === 'dismiss') {
 			const traveled = { x: event.clientX - current.x, y: event.clientY - current.y }
 
-			const speed = { x: current.speedX, y: current.speedY }
+			const speed = releaseSpeed(current.samples, event.timeStamp)
 
 			if (dismisses(traveled, speed, track.clientHeight)) {
 				onDismiss()
@@ -647,7 +633,7 @@ export function useLightboxTrack(
 		const direction = swipeStep(
 			current.base + push,
 			push,
-			current.speedX,
+			releaseSpeed(current.samples, event.timeStamp).x,
 			track.clientWidth,
 			current.rtl,
 		)
@@ -735,11 +721,7 @@ export function useLightboxTrack(
 					photo: null,
 					size: { width: 0, height: 0 },
 					frame: { transform: RESTING_TRANSFORM, opacity: 1 },
-					lastX: event.clientX,
-					lastY: event.clientY,
-					lastTime: event.timeStamp,
-					speedX: 0,
-					speedY: 0,
+					samples: [{ x: event.clientX, y: event.clientY, time: event.timeStamp }],
 				}
 			},
 			onPointerMove: (event) => {

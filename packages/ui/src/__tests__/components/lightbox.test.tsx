@@ -841,4 +841,167 @@ describe('Lightbox', () => {
 			expect(onIndexChange).toHaveBeenLastCalledWith(1)
 		})
 	})
+
+	describe('flick speed', () => {
+		// React reads a `timeStamp` of 0 as no time, so each press starts at 1s.
+
+		/** Opens the viewer at the first photo on a track 1000px wide. */
+		function openWide() {
+			stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+
+			renderUI(<Gallery defaultIndex={0} />)
+
+			const stage = getSlot(document.body, 'lightbox-stage')
+
+			Object.defineProperty(stage.firstElementChild, 'clientWidth', { value: 1000 })
+
+			return stage
+		}
+
+		it('steps on a fast flick that lifts at once', () => {
+			const stage = openWide()
+
+			press(stage, 'pointerDown', 600, 100, 1000)
+
+			press(stage, 'pointerMove', 550, 100, 1025)
+
+			press(stage, 'pointerMove', 500, 100, 1050)
+
+			press(stage, 'pointerUp', 500, 100, 1060)
+
+			expect(screen.getByText('2 / 3')).toBeInTheDocument()
+		})
+
+		it('does not step on a fast drag that holds still before the lift', () => {
+			const stage = openWide()
+
+			press(stage, 'pointerDown', 600, 100, 1000)
+
+			press(stage, 'pointerMove', 550, 100, 1025)
+
+			press(stage, 'pointerMove', 500, 100, 1050)
+
+			// A still finger sends no moves. 100px is short of a fifth of the track.
+			press(stage, 'pointerUp', 500, 100, 1550)
+
+			expect(screen.getByText('1 / 3')).toBeInTheDocument()
+		})
+
+		it('does not read the jitter of one fast move at the end of a slow drag as a flick', () => {
+			const stage = openWide()
+
+			press(stage, 'pointerDown', 600, 100, 1000)
+
+			for (let time = 100; time <= 1000; time += 100) {
+				press(stage, 'pointerMove', 600 - time / 10, 100, 1000 + time)
+			}
+
+			// 1px in 1ms, as a mouse that reports at 1,000 Hz can give.
+			press(stage, 'pointerMove', 499, 100, 2001)
+
+			press(stage, 'pointerUp', 499, 100, 2002)
+
+			expect(screen.getByText('1 / 3')).toBeInTheDocument()
+		})
+	})
+
+	describe('changes to the photos while open', () => {
+		it('closes and reports `null` when the open photo leaves `photos`, and does not open again', () => {
+			stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+
+			const onIndexChange = vi.fn()
+
+			const { rerender } = renderUI(<Gallery defaultIndex={2} onIndexChange={onIndexChange} />)
+
+			expect(screen.getByRole('dialog')).toBeInTheDocument()
+
+			rerender(
+				<Gallery photos={photos.slice(0, 2)} defaultIndex={2} onIndexChange={onIndexChange} />,
+			)
+
+			expect(onIndexChange).toHaveBeenLastCalledWith(null)
+
+			rerender(<Gallery defaultIndex={2} onIndexChange={onIndexChange} />)
+
+			expect(screen.queryByRole('dialog')).toBeNull()
+
+			// The thumbnail of the photo that left is not held empty.
+			expect(
+				screen.getByRole('button', { name: 'Field of poppies' }).querySelector('img'),
+			).not.toHaveClass('opacity-0')
+		})
+
+		it('closes and reports `null` when the thumbnail of the open photo does not load', () => {
+			stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+
+			const onIndexChange = vi.fn()
+
+			renderUI(<Gallery defaultIndex={1} onIndexChange={onIndexChange} />)
+
+			fireEvent.error(
+				present(
+					screen.getByRole('button', { name: 'Snow on a ridge' }).querySelector('img'),
+					'thumbnail',
+				),
+			)
+
+			expect(onIndexChange).toHaveBeenLastCalledWith(null)
+		})
+	})
+
+	describe('accessibility', () => {
+		it('announces the name and the place of the photo on a step, with or without the bar', () => {
+			stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+
+			renderUI(<Gallery defaultIndex={0} controls={false} />)
+
+			fireEvent.keyDown(screen.getByRole('dialog'), { key: 'ArrowRight' })
+
+			const live = present(document.querySelector('[aria-live="polite"]'), 'live region')
+
+			expect(live).toHaveTextContent('Snow on a ridge, 2 / 3')
+		})
+
+		it('names the placeholder of a thumbnail that does not load', () => {
+			renderUI(<Gallery />)
+
+			fireEvent.error(
+				present(
+					screen.getByRole('button', { name: 'Snow on a ridge' }).querySelector('img'),
+					'thumbnail',
+				),
+			)
+
+			expect(screen.getByRole('img', { name: 'Snow on a ridge' })).toHaveAttribute(
+				'data-slot',
+				'placeholder',
+			)
+		})
+
+		it('leaves a named placeholder for a photo with no size whose thumbnail loads with none', () => {
+			const unsized = [{ src: '/d.svg', alt: 'Night market' }]
+
+			renderUI(
+				<Lightbox photos={unsized}>
+					<LightboxTrigger index={0} />
+				</Lightbox>,
+			)
+
+			const image = present(
+				screen.getByRole('button', { name: 'Night market' }).querySelector('img'),
+				'thumbnail',
+			)
+
+			Object.defineProperties(image, {
+				naturalWidth: { value: 0 },
+				naturalHeight: { value: 0 },
+			})
+
+			fireEvent.load(image)
+
+			expect(screen.queryByRole('button', { name: 'Night market' })).toBeNull()
+
+			expect(screen.getByRole('img', { name: 'Night market' })).toBeInTheDocument()
+		})
+	})
 })

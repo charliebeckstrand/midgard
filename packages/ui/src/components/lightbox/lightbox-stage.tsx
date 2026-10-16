@@ -428,7 +428,7 @@ export function LightboxStage({
 								>
 									<Icon icon={<ChevronLeft />} className="rtl:-scale-x-100" />
 								</Button>
-								<span aria-live="polite" className={k.count}>
+								<span aria-hidden="true" className={k.count}>
 									{at + 1} / {count}
 								</span>
 								<Button
@@ -448,6 +448,10 @@ export function LightboxStage({
 					)}
 				</m.div>
 			</div>
+			{/* A step names the photo and its place, with or without the bar. */}
+			<span aria-live="polite" className="sr-only">
+				{[aimed?.alt, `${at + 1} / ${count}`].filter(Boolean).join(', ')}
+			</span>
 		</div>
 	)
 }
