@@ -25,37 +25,30 @@ export type ResponsiveSplitRatio = Responsive<SplitRatio>
 
 // The grid template of each axis and ratio. A breakpoint puts its prefix on
 // the class (`atBreakpoint`). The tracks were an inline `gridTemplate*` style
-// before this, and a style attribute has no breakpoint.
+// before this, and a style attribute has no breakpoint. Each value also clears
+// the template of the other axis, so each value writes both properties, and a
+// breakpoint that changes the axis replaces the template of the old axis.
 const templateClasses = {
 	horizontal: {
-		'1/4': 'grid-cols-[1fr_3fr]',
-		'1/3': 'grid-cols-[1fr_2fr]',
-		'1/2': 'grid-cols-[1fr_1fr]',
-		'2/3': 'grid-cols-[2fr_1fr]',
-		'3/4': 'grid-cols-[3fr_1fr]',
+		'1/4': 'grid-cols-[1fr_3fr] grid-rows-none',
+		'1/3': 'grid-cols-[1fr_2fr] grid-rows-none',
+		'1/2': 'grid-cols-[1fr_1fr] grid-rows-none',
+		'2/3': 'grid-cols-[2fr_1fr] grid-rows-none',
+		'3/4': 'grid-cols-[3fr_1fr] grid-rows-none',
 	},
 	vertical: {
-		'1/4': 'grid-rows-[1fr_3fr]',
-		'1/3': 'grid-rows-[1fr_2fr]',
-		'1/2': 'grid-rows-[1fr_1fr]',
-		'2/3': 'grid-rows-[2fr_1fr]',
-		'3/4': 'grid-rows-[3fr_1fr]',
+		'1/4': 'grid-rows-[1fr_3fr] grid-cols-none',
+		'1/3': 'grid-rows-[1fr_2fr] grid-cols-none',
+		'1/2': 'grid-rows-[1fr_1fr] grid-cols-none',
+		'2/3': 'grid-rows-[2fr_1fr] grid-cols-none',
+		'3/4': 'grid-rows-[3fr_1fr] grid-cols-none',
 	},
 } satisfies Record<SplitOrientation, Record<SplitRatio, string>>
-
-// The axis that a breakpoint turns off. A breakpoint that changes the axis sets
-// the template of the new axis only, so the template of the old axis stays in
-// force from the smaller breakpoint. The reset clears it.
-const axisResetClasses = {
-	horizontal: 'grid-rows-none',
-	vertical: 'grid-cols-none',
-} satisfies Record<SplitOrientation, string>
 
 /**
  * Grid-template classes for the `orientation` and `ratio` pair. The two share
  * one class, so a breakpoint named by either emits one: the axis in force
- * there, with the ratio in force there. A breakpoint that changes the axis also
- * resets the template of the old axis.
+ * there, with the ratio in force there.
  *
  * @internal
  */
@@ -75,27 +68,9 @@ export function resolveTemplate(
 		}
 	}
 
-	const classes: string[] = []
-
-	let prev: SplitOrientation | undefined
-
-	for (const bp of BREAKPOINTS) {
-		if (!named.has(bp)) continue
-
-		const current = valueAt(axis, bp, 'horizontal')
-
-		if (bp !== 'initial' && prev !== undefined && current !== prev) {
-			classes.push(atBreakpoint(axisResetClasses[current], bp))
-		}
-
-		const template = templateClasses[current][valueAt(ratios, bp, '1/2')]
-
-		classes.push(atBreakpoint(template, bp))
-
-		prev = current
-	}
-
-	return classes
+	return BREAKPOINTS.filter((bp) => named.has(bp)).map((bp) =>
+		atBreakpoint(templateClasses[valueAt(axis, bp, 'horizontal')][valueAt(ratios, bp, '1/2')], bp),
+	)
 }
 
 /** Flex's align values per breakpoint, or a single value applied at all sizes; the Flex axis. */
