@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 import { Lightbox, type LightboxPhoto, LightboxTrigger } from '../../components/lightbox'
 import { frames, present, renderUI, screen } from '../helpers'
+import { waitForNoTween } from './helpers/motion-frame'
 
 /**
  * The life of a press on the stage of a `Lightbox`. A press ends when its pointer has no button
@@ -58,7 +59,7 @@ function controlsOpacity() {
 
 /** Waits until no tween runs on the page: the flight, a slide, or a restore. */
 async function settle() {
-	await expect.poll(() => document.getAnimations().length).toBe(0)
+	await waitForNoTween(() => document.getAnimations())
 
 	await frames()
 }

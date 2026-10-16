@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { fireEvent, present, renderUI, screen, waitFor } from '../../helpers'
+import { waitForNoTween } from '../helpers/motion-frame'
 
 /** The scale of the computed `transform` of `element`. `none` is a scale of 1. */
 function scaleOf(element: Element) {
@@ -62,7 +63,7 @@ describe('the Tooltip exit (real engine, real Motion)', () => {
 		const panel = present(wrapper.firstElementChild, 'the tooltip panel')
 
 		// The entrance lands.
-		await waitFor(() => expect(panel.getAnimations()).toHaveLength(0))
+		await waitForNoTween(() => panel.getAnimations())
 
 		expect(scaleOf(panel)).toBe(1)
 

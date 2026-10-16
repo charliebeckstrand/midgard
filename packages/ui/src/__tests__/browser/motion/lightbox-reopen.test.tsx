@@ -3,7 +3,7 @@ import { userEvent } from 'vitest/browser'
 import { Lightbox, type LightboxPhoto, LightboxTrigger } from '../../../components/lightbox'
 import { ReducedMotionContext } from '../../../primitives/reduced-motion/context'
 import { frame, present, renderUI, screen } from '../../helpers'
-import { sampleMotionFrames } from '../helpers/motion-frame'
+import { sampleMotionFrames, waitForNoTween } from '../helpers/motion-frame'
 
 /**
  * A `Lightbox` that opens again while its photo goes back to its thumbnail.
@@ -48,10 +48,9 @@ const slot = (offset: number) =>
 const photoIn = (element: HTMLElement) =>
 	present(element.querySelector<HTMLElement>('img'), 'photo of the slot')
 
-/** Whether no tween runs in the viewer: the raise, the return, or a slide. */
-const still = () =>
-	(document.querySelector('[data-slot="lightbox"]')?.getAnimations({ subtree: true }) ?? [])
-		.length === 0
+/** The tweens that run in the viewer: the raise, the return, or a slide. */
+const viewerTweens = () =>
+	document.querySelector('[data-slot="lightbox"]')?.getAnimations({ subtree: true }) ?? []
 
 const count = () => document.querySelector('[aria-live="polite"]')?.textContent
 
@@ -61,7 +60,7 @@ async function open(index: number) {
 
 	await expect.poll(() => document.querySelector('[data-slot="lightbox"]')).not.toBeNull()
 
-	await expect.poll(still).toBe(true)
+	await waitForNoTween(viewerTweens)
 }
 
 /**
@@ -122,7 +121,7 @@ async function reopenAtLanding(tweens: readonly Animation[], index: number) {
 
 describe('Lightbox reopened during the return (real browser)', () => {
 	afterEach(async () => {
-		await expect.poll(still).toBe(true)
+		await waitForNoTween(viewerTweens)
 	})
 
 	it('leaves no frame of the return on the slot of the photo that went back', async () => {
@@ -135,7 +134,7 @@ describe('Lightbox reopened during the return (real browser)', () => {
 		// The click reaches the thumbnail while the overlay is inert.
 		thumbnail(1).click()
 
-		await expect.poll(still).toBe(true)
+		await waitForNoTween(viewerTweens)
 
 		expect(count()).toBe('2 / 5')
 
@@ -161,7 +160,7 @@ describe('Lightbox reopened during the return (real browser)', () => {
 
 		thumbnail(1).click()
 
-		await expect.poll(still).toBe(true)
+		await waitForNoTween(viewerTweens)
 
 		expect(getComputedStyle(photoIn(slot(-1))).opacity).toBe('1')
 	})
@@ -173,7 +172,7 @@ describe('Lightbox reopened during the return (real browser)', () => {
 
 		await userEvent.click(screen.getByRole('button', { name: 'Next photo' }))
 
-		await expect.poll(still).toBe(true)
+		await waitForNoTween(viewerTweens)
 
 		expect(count()).toBe('2 / 5')
 
@@ -244,7 +243,7 @@ describe('Lightbox reopened during the return (real browser)', () => {
 
 			await reopenAtLanding(await back, 1)
 
-			await expect.poll(still).toBe(true)
+			await waitForNoTween(viewerTweens)
 
 			expect(count()).toBe('2 / 5')
 
@@ -275,7 +274,7 @@ describe('Lightbox reopened during the return (real browser)', () => {
 
 		await userEvent.keyboard('+')
 
-		await expect.poll(still).toBe(true)
+		await waitForNoTween(viewerTweens)
 
 		expect(stage).toHaveAttribute('data-zoomed')
 
@@ -283,7 +282,7 @@ describe('Lightbox reopened during the return (real browser)', () => {
 
 		thumbnail(0).click()
 
-		await expect.poll(still).toBe(true)
+		await waitForNoTween(viewerTweens)
 
 		// The reopen keeps the viewer that went back, so this is not a new mount.
 		expect(document.querySelector('[data-slot="lightbox-stage"]')).toBe(stage)
@@ -326,7 +325,7 @@ describe('Lightbox reopened during the return (real browser)', () => {
 
 		for (const tween of tweens) tween.play()
 
-		await expect.poll(still).toBe(true)
+		await waitForNoTween(viewerTweens)
 
 		expect(count()).toBe('1 / 5')
 
