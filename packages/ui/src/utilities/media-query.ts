@@ -1,3 +1,4 @@
+import { BREAKPOINT_WIDTHS } from '../types/responsive'
 import { createListenerRegistry } from './listener-registry'
 
 /** The media query that matches when the reader asks the platform for reduced motion. */
@@ -9,6 +10,14 @@ export const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
  * jsdom, takes the path of a device with hover.
  */
 export const NO_HOVER_QUERY = '(hover: none)'
+
+/**
+ * The media query that matches a phone: no hover, and a viewport narrower than
+ * the `sm` breakpoint. A narrow desktop window does not match, because a
+ * pointer places a popover well. The query asks for the phone, so an
+ * environment that matches nothing, such as jsdom, takes the path of a desktop.
+ */
+export const PHONE_QUERY = `${NO_HOVER_QUERY} and (width < ${BREAKPOINT_WIDTHS.sm})`
 
 /**
  * The media query that matches a device where no pointer hovers, such as a

@@ -67,6 +67,15 @@ export const k = {
 		...picker.content,
 		portal: [focus.ring, ...picker.content.portal],
 		body,
+		sheet: {
+			// The drawer of the bottom sheet on a phone. It holds focus for the
+			// keyboard model, as the popover does, but it shows no ring, because a
+			// tap does not mean keyboard focus.
+			panel: 'outline-hidden',
+			// The content of the sheet. The drawer is the surface and gives the
+			// inset, so the content keeps only the column and its gap.
+			body: [flex.col, 'items-center', dan.gap.y.sm],
+		},
 	},
 	// Relative variant: the preset list and custom-range affordance in the
 	// popover, plus the chip row inside the trigger. Color comes from the

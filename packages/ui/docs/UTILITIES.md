@@ -86,6 +86,7 @@ The sequential-scale primitives the data-driven color charts share — the choro
 | `subscribeMediaQuery` | Subscribes to a media query via one shared `MediaQueryList` and `change` listener per query string; returns an unsubscribe fn. |
 | `matchesMediaQuery` | Whether a media query currently matches, read from the shared `MediaQueryList` when registered (client only). |
 | `NO_HOVER_QUERY` | The `(hover: none)` query, which matches a device with no hover, such as a phone. |
+| `PHONE_QUERY` | The query that matches a phone: no hover, and a viewport narrower than the `sm` breakpoint. A dropdown `Menu` and a `DatePicker` open as a bottom sheet there. |
 | `REDUCED_MOTION_QUERY` | The `(prefers-reduced-motion: reduce)` query, for a caller that reads it outside React. |
 | `isNativeContextMenuRequest` | Whether a `contextmenu` event asks for the browser's native menu (Ctrl + secondary-button click) instead of a custom one. |
 | `isScrollbarPress` | Whether a press landed on the scrollbar gutter of an element, not on its content. A floating surface does not dismiss for a gutter press. |

@@ -15,8 +15,7 @@ import type { ScaleStep } from '../../core/density'
 import { type FloatingPlacement, useFloatingDisclosure, useMediaQuery } from '../../hooks'
 import { clearVirtualActive, useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
 import type { scale } from '../../recipes/kata/menu'
-import { BREAKPOINT_WIDTHS } from '../../types/responsive'
-import { isNativeContextMenuRequest, NO_HOVER_QUERY } from '../../utilities'
+import { isNativeContextMenuRequest, PHONE_QUERY } from '../../utilities'
 import { snapMenuHeight } from './menu-viewport-utilities'
 
 /** Navigable menu items: `role="menuitem"`, excluding disabled rows. @internal */
@@ -29,14 +28,6 @@ export const MENUITEM_SELECTOR = '[role="menuitem"]:not([data-disabled])'
  * @internal
  */
 const MENU_ACTIVATION_KEYS = ['Enter', ' '] as const
-
-/**
- * A phone: no hover, and a viewport narrower than the `sm` breakpoint. A narrow
- * desktop window keeps the popover, because a pointer places it well. The query
- * asks for the phone, so an environment that matches nothing gets the popover.
- * @internal
- */
-const PHONE_QUERY = `${NO_HOVER_QUERY} and (width < ${BREAKPOINT_WIDTHS.sm})`
 
 type MenuStateOptions = {
 	open?: boolean
