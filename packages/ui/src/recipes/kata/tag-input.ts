@@ -27,7 +27,8 @@ export const k = {
 	// each step below or above.
 	//
 	// By default the row stays on one line and scrolls on the inline axis
-	// (`omote.rail`). A chip does not shrink, so a long tag keeps its full text.
+	// (`omote.rail`). A chip does not shrink with the other chips. A tag wider
+	// than the row truncates to the row (`BadgeRemovable`).
 	// With `wrap`, the row wraps.
 	tags: {
 		base: [dan.space.tags.y, dan.gap.touch.tags.x, dan.gap.touch.tags.y],
@@ -49,7 +50,9 @@ export const k = {
 		row: ['flex', dan.space.tags.y, dan.gap.touch.tags.x, 'ms-(--touch-target-gap-x)'],
 		chip: ['flex items-center min-h-lh py-ring-1', dan.text.chip],
 	},
-	// The text input keeps a usable width. On one line, the tags shrink and
-	// scroll before the input goes below this floor.
-	input: 'min-w-16',
+	// The text input keeps a width that a draft tag fits in: half of the frame,
+	// or 160px when that is less. On one line, the tags shrink and scroll before
+	// the input goes below this floor, so a typed draft does not scroll out of
+	// view in a narrow box.
+	input: 'min-w-[min(50%,--spacing(40))]',
 } as const

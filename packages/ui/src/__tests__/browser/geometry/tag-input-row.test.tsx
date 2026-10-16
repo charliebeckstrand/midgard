@@ -36,6 +36,13 @@ describe('the tag row of a TagInput (real browser)', () => {
 
 		expect(middle(input)).toBeNear(middle(first), HALF_PIXEL)
 
+		// The tags give way, and the input keeps room for a draft.
+		const frame = list.closest('[data-slot=prefix]')?.parentElement as HTMLElement
+
+		expect(input.getBoundingClientRect().width).toBeGreaterThanOrEqual(
+			Math.min(frame.clientWidth / 2, 160) - HALF_PIXEL,
+		)
+
 		// The tags give way, and the add button keeps its full box.
 		const suffix = getSlot(container, 'suffix')
 
