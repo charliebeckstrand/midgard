@@ -29,7 +29,7 @@ const layout = defineRecipe({
 	base: [
 		'relative w-full min-h-[100cqh]',
 		'isolate',
-		'flex max-lg:flex-col',
+		'flex flex-col lg:flex-row',
 		'bg-white lg:bg-zinc-100',
 		'dark:bg-zinc-950',
 	],
@@ -64,7 +64,7 @@ const panel = defineRecipe({
 		'lg:sticky lg:top-0 lg:h-[100cqh] lg:overscroll-contain',
 		'overflow-x-hidden overflow-y-auto',
 		// The panel hides while the sidebar is offcanvas.
-		'max-lg:hidden sidebar-offcanvas:hidden',
+		'hidden lg:block sidebar-offcanvas:hidden',
 		// A mini sidebar sets the rail width; the panel follows it instead of
 		// holding the size step open.
 		'has-data-mini:w-fit',
@@ -79,7 +79,7 @@ const panel = defineRecipe({
 const aside = defineRecipe({
 	base: [
 		'shrink-0 min-w-0',
-		'max-lg:hidden',
+		'hidden lg:block',
 		'lg:sticky lg:top-0 lg:h-[100cqh] lg:overscroll-contain',
 		'overflow-x-hidden overflow-y-auto',
 	],
@@ -102,7 +102,7 @@ const floatingBody = defineRecipe({ base: [flex.col, 'h-full', sidebarWidth] })
 // rung's other inhabitant. It starts at the far edge of the floating sheet at
 // each step.
 const floatingBuffer = defineRecipe({
-	base: [sou.chrome, 'fixed top-0 bottom-0 w-10 max-lg:hidden', dan.size.sidebar.edge],
+	base: [sou.chrome, 'fixed top-0 bottom-0 w-10 hidden lg:block', dan.size.sidebar.edge],
 })
 
 // The content flows in the page. Do not give the content or this wrapper an

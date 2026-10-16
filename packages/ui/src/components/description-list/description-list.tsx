@@ -1,13 +1,13 @@
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/description-list'
-import { type Orientation, type Responsive, resolveVariant } from '../../types'
+import { adaptive, type Orientation, type Responsive, resolveVariant } from '../../types'
 
-/** The default `orientation` of {@link DescriptionList}: vertical below `sm`, horizontal from it. */
-export const DESCRIPTION_LIST_ORIENTATION = {
-	initial: 'vertical',
-	sm: 'horizontal',
-} as const satisfies Responsive<Orientation>
+/** The default `orientation` of {@link DescriptionList}: vertical on a compact viewport, horizontal from medium. */
+export const DESCRIPTION_LIST_ORIENTATION = adaptive({
+	compact: 'vertical',
+	medium: 'horizontal',
+}) satisfies Responsive<Orientation>
 
 /** Variant axis for {@link DescriptionList}: term/details `orientation`. */
 export type DescriptionListVariants = {

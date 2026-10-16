@@ -2,7 +2,7 @@
 
 import type { ComponentProps, ReactNode, RefObject } from 'react'
 import { cn, composeEventHandlers, dataAttr } from '../../core'
-import { useA11yPanel, useMinBreakpoint } from '../../hooks'
+import { useA11yPanel, useResponsiveValue } from '../../hooks'
 import { useOpenComplete } from '../../hooks/use-open-complete'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { Overlay } from '../../primitives/overlay'
@@ -16,7 +16,17 @@ import {
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { type DialogPanelVariants, k } from '../../recipes/kata/dialog'
+import { adaptive, type Responsive, resolveVariant } from '../../types'
 import { DialogClose, DialogDefaultFooter } from './slots'
+
+/** Where a {@link DialogPanel} sits: docked to the `bottom` edge, or floating at the `center` or the `top`. */
+export type DialogAlign = 'bottom' | 'center' | 'top'
+
+/** The default `align` of a {@link DialogPanel}: docked to the bottom edge on a compact viewport, centered from medium. */
+export const DIALOG_ALIGN = adaptive({
+	compact: 'bottom',
+	medium: 'center',
+}) satisfies Responsive<DialogAlign>
 
 /** Props for {@link Dialog}: the open state, controlled or uncontrolled. */
 export type DialogProps = PanelRootProps
@@ -43,7 +53,7 @@ export type DialogPanelProps = Omit<DialogPanelVariants, 'surface'> &
 		 * with the animation. Either beats guessing at the motion with a matching delay.
 		 *
 		 * Deliberately named for the open, not for the animation. The panel plays a different
-		 * preset on each side of the `sm` breakpoint, and reports from whichever one ran. A
+		 * preset for each `align`, and reports from whichever one ran. A
 		 * transition the user's reduced-motion preference collapses still resolves, and so
 		 * still reports.
 		 *
@@ -52,8 +62,15 @@ export type DialogPanelProps = Omit<DialogPanelVariants, 'surface'> &
 		 * @see {@link DrawerPanelProps.onOpenComplete} for the same contract on the sibling panel.
 		 */
 		onOpenComplete?: () => void
-		/** Desktop vertical alignment of the panel within the viewport; mobile always docks to the bottom. @defaultValue 'center' */
-		align?: 'center' | 'top'
+		/**
+		 * Where the panel sits: `bottom` docks it to the bottom edge as a sheet,
+		 * and `center` and `top` float it in the middle or near the top. The motion
+		 * follows: a sheet slides up, and a floating panel fades in. A
+		 * per-breakpoint map sets the place from each breakpoint, mobile-first. A
+		 * single value sets it at each width.
+		 * @defaultValue {@link DIALOG_ALIGN}
+		 */
+		align?: Responsive<DialogAlign>
 		/**
 		 * Opt into the glass surface treatment. Omit it to follow the ambient
 		 * `<GlassProvider>`. Set `false` to keep the flat surface inside one.
@@ -93,11 +110,6 @@ export type DialogPanelProps = Omit<DialogPanelVariants, 'surface'> &
 		'data-slot'?: string
 	}
 
-const alignClasses = {
-	center: 'sm:items-center',
-	top: 'sm:items-start',
-} as const
-
 /**
  * Composition root for a modal dialog. It holds the open state, controlled
  * (`open`/`onOpenChange`) or uncontrolled (`defaultOpen`), and gives it to
@@ -125,8 +137,8 @@ export function Dialog(props: DialogProps) {
 
 /**
  * The surface of a {@link Dialog}, rendered in an `Overlay` with focus trapping and
- * backdrop dismiss. It reads the open state of the enclosing `<Dialog>`. It animates
- * as a bottom sheet on mobile and a centered (or `top`-aligned) panel on desktop. The
+ * backdrop dismiss. It reads the open state of the enclosing `<Dialog>`. By default it
+ * is a bottom sheet on a compact viewport and a centered panel from medium (`align`). The
  * surface variant resolves against the enclosing Glass provider. Compose `<DialogClose>`
  * and the slot family (`<DialogContent>`, `<DialogHeader>`, `<DialogTitle>`,
  * `<DialogDescription>`, `<DialogBody>`, `<DialogFooter>`) within. With no
@@ -138,13 +150,13 @@ export function Dialog(props: DialogProps) {
  * `aria-label` fallback. Set `role='alertdialog'` for prompts that demand a response. The
  * panel, its close parts, and its dismissal share the open-state setter of the root.
  * A click in the panel stops at the panel, so it does not reach a clickable ancestor of the
- * Dialog. With a `container`, the panel stays in the box of that element. The `sm`
- * breakpoint, which selects the layout and the motion, still reads the viewport. The
+ * Dialog. With a `container`, the panel stays in the box of that element. The
+ * breakpoints of `align`, which select the layout and the motion, still read the viewport. The
  * panel stamps `data-open` while it is open.
  */
 export function DialogPanel({
 	onOpenComplete,
-	align = 'center',
+	align = DIALOG_ALIGN,
 	dismissOnBackdrop,
 	modal = true,
 	backdrop,
@@ -168,13 +180,13 @@ export function DialogPanel({
 
 	const isGlass = surface === 'glass'
 
-	const isDesktop = useMinBreakpoint('sm')
+	const docked = useResponsiveValue(align, 'bottom') === 'bottom'
 
 	// The phone slide moves `transform`, which `MotionConfig` does not hold still,
 	// so the panel reads the setting itself (WCAG 2.3.3).
 	const presets = usePrefersReducedMotion() ? k.still : k.motion
 
-	const preset = isDesktop ? presets.desktop : presets.mobile
+	const preset = docked ? presets.mobile : presets.desktop
 
 	const { onAnimationComplete } = useOpenComplete(open, preset.animate, onOpenComplete)
 
@@ -198,8 +210,8 @@ export function DialogPanel({
 				className={cn(
 					// The overlay root is positioned in both modes, so the wrapper fills the
 					// root: the part of the screen that the reader sees, or the `container`.
-					'pointer-events-none absolute inset-0 flex min-h-full items-end sm:justify-center sm:p-4',
-					alignClasses[align],
+					'pointer-events-none absolute inset-0 flex min-h-full justify-center',
+					resolveVariant(align, k.align.box),
 				)}
 			>
 				<m.div
@@ -225,6 +237,7 @@ export function DialogPanel({
 						'pointer-events-auto',
 						isGlass && 'group/glass',
 						k.panel({ surface, width }),
+						resolveVariant(align, k.align.panel),
 						className,
 					)}
 				>

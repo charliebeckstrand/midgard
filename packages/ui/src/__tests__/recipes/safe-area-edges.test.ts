@@ -26,9 +26,9 @@ describe('safe-area insets on edge surfaces', () => {
 
 		expect(sheet.panel({ side: 'top' })).toContain('env(safe-area-inset-top)')
 
-		expect(sheet.panel({ side: 'right' })).toContain(bottom)
+		expect(sheet.layout.side.right.flush).toContain(bottom)
 
-		expect(sheet.panel({ side: 'left' })).toContain(bottom)
+		expect(sheet.layout.side.left.flush).toContain(bottom)
 	})
 
 	// `browser/density-contract.test.tsx` holds the length of this inset at each step.
@@ -39,9 +39,11 @@ describe('safe-area insets on edge surfaces', () => {
 
 		expect(classes).toContain('density-set-[4,5,6,7,8]/[--ui-panel-bottom]')
 
-		expect(classes).toContain(`max-sm:[--ui-panel-safe:${bottom}]`)
-
 		expect(classes).toContain('pb-[calc(var(--ui-panel-bottom)+var(--ui-panel-safe,0px))]')
+
+		expect(dialog.align.panel.bottom).toContain(`[--ui-panel-safe:${bottom}]`)
+
+		expect(dialog.align.panel.center).toContain('[--ui-panel-safe:0px]')
 	})
 
 	it('pads each drawer height by the inset alone', () => {
@@ -53,12 +55,10 @@ describe('safe-area insets on edge surfaces', () => {
 	})
 
 	it('pads the toast stack at both ends', () => {
-		for (const position of ['top-right', 'bottom-left'] as const) {
-			const className = toast.viewport({ position })
+		const className = toast.viewport.join(' ')
 
-			expect(className).toContain('env(safe-area-inset-top)')
+		expect(className).toContain('env(safe-area-inset-top)')
 
-			expect(className).toContain(bottom)
-		}
+		expect(className).toContain(bottom)
 	})
 })

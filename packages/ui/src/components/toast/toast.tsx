@@ -5,16 +5,18 @@ import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { cn } from '../../core'
 import { useHydrated } from '../../hooks/use-hydrated'
-import { useMinBreakpoint } from '../../hooks/use-min-breakpoint'
+import { useIsRtl } from '../../hooks/use-is-rtl'
+import { useResponsiveValue } from '../../hooks/use-responsive-value'
 import { useDirectionScope } from '../../primitives/direction'
 import { usePortalContainer } from '../../primitives/portal'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k } from '../../recipes/kata/toast'
+import { mapResponsive, type Responsive, resolveVariant } from '../../types'
 import { subscribeDocumentEvent } from '../../utilities/document-listener'
 import { getTabbableElements } from '../../utilities/focusable-selector'
 import { useToastViewport } from './context'
 import { ToastAlert } from './toast-alert'
-import type { ToastPosition } from './types'
+import { TOAST_POSITION, type ToastPosition } from './types'
 
 /** True for an F8 with no modifier key that no handler canceled first. @internal */
 function isPlainF8(event: KeyboardEvent) {
@@ -42,12 +44,13 @@ function firstControlOfNewest(viewport: HTMLElement | null) {
 /** Props for {@link Toast}. */
 export type ToastProps = {
 	/**
-	 * The viewport corner that the toast stack anchors to. A `start` or `end`
-	 * corner follows the reading direction. Below the `sm` breakpoint, the stack
-	 * is on the bottom edge.
-	 * @defaultValue 'bottom-right'
+	 * Where the toast stack anchors: a corner, or a full `top` or `bottom` edge.
+	 * A `start` or `end` corner follows the reading direction. A per-breakpoint
+	 * map sets the position from each breakpoint, mobile-first. A single value
+	 * sets it at each width.
+	 * @defaultValue {@link TOAST_POSITION}
 	 */
-	position?: ToastPosition
+	position?: Responsive<ToastPosition>
 }
 
 /**
@@ -81,10 +84,11 @@ export type ToastProps = {
  * effect afterwards, keeping the first client render identical to the SSR
  * output.
  *
- * Below the `sm` breakpoint, each `position` stacks on the bottom edge. A `top-*`
- * stack there takes the order, the motion, and the gap of a bottom stack.
+ * By default the stack is on the full bottom edge below the `sm` breakpoint,
+ * and in the bottom right corner from it. The order, the motion, and the gap of
+ * the stack follow the edge of the position in force at the viewport.
  */
-export function Toast({ position = 'bottom-right' }: ToastProps) {
+export function Toast({ position = TOAST_POSITION }: ToastProps) {
 	const { toasts, dismiss, pause, resume, reset, handleExitComplete } = useToastViewport()
 
 	const portalContainer = usePortalContainer()
@@ -94,11 +98,15 @@ export function Toast({ position = 'bottom-right' }: ToastProps) {
 	// the text of each toast then follow that direction.
 	const dir = useDirectionScope()
 
-	// Below `sm`, the viewport pins every position to the bottom edge. The order,
-	// the motion, and the gap of the stack follow the edge that the stack is on.
-	const isDesktop = useMinBreakpoint('sm')
+	// The recipe holds physical positions only, so a `start` or `end` corner
+	// resolves against the direction of the scope first.
+	const rtl = useIsRtl()
 
-	const isTop = isDesktop && position.startsWith('top')
+	const physical = mapResponsive(position, (value) => physicalPosition(value, rtl))
+
+	// The order, the motion, and the gap of the stack follow the edge that the
+	// stack is on at the viewport.
+	const isTop = useResponsiveValue(physical, 'bottom').startsWith('top')
 
 	// Gate on post-mount state rather than `typeof document`: an SSR/client
 	// branch makes the first client render diverge from the server HTML and
@@ -165,10 +173,16 @@ export function Toast({ position = 'bottom-right' }: ToastProps) {
 				// two empty stacks on one page do not give two of the same name.
 				aria-label={hasToasts ? 'Notifications' : undefined}
 				dir={dir ?? undefined}
-				className={cn(k.viewport({ position }))}
+				className={cn(k.viewport, resolveVariant(physical, k.position.viewport))}
 			>
 				{/* A list, so AT gives the count of the toasts and the position of each. */}
-				<ol className={cn(k.scroll, !isTop && 'flex-col-reverse')}>
+				<ol
+					className={cn(
+						k.scroll,
+						resolveVariant(physical, k.position.scroll),
+						!isTop && 'flex-col-reverse',
+					)}
+				>
 					<AnimatePresence onExitComplete={handleExitComplete}>
 						{toasts.map((toast, index) => (
 							<ToastAlert
@@ -226,4 +240,23 @@ function moveFocusFromClosingToast(returnTo: HTMLElement | null) {
 			: null
 
 	target?.focus()
+}
+
+/** A physical {@link ToastPosition}: the recipe's key for each position. @internal */
+type PhysicalPosition = Exclude<ToastPosition, `${string}-${'start' | 'end'}`>
+
+/** The physical position of `position`: `start` and `end` resolve against `rtl`. @internal */
+function physicalPosition(position: ToastPosition, rtl: boolean): PhysicalPosition {
+	switch (position) {
+		case 'top-start':
+			return rtl ? 'top-right' : 'top-left'
+		case 'top-end':
+			return rtl ? 'top-left' : 'top-right'
+		case 'bottom-start':
+			return rtl ? 'bottom-right' : 'bottom-left'
+		case 'bottom-end':
+			return rtl ? 'bottom-left' : 'bottom-right'
+		default:
+			return position
+	}
 }

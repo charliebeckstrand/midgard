@@ -229,7 +229,9 @@ describe('Confirm Dialog props', () => {
 
 		const wrapper = bySlot(document.body, 'confirm')?.parentElement
 
-		expect(wrapper?.className).toContain('sm:items-start')
+		expect(wrapper?.className).toContain('items-start')
+
+		expect(wrapper?.className).not.toContain('items-end')
 	})
 
 	it('passes glass to the Dialog', () => {

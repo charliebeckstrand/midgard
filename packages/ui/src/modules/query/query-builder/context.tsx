@@ -2,6 +2,7 @@
 
 import { type ReactNode, useCallback } from 'react'
 import { createContext } from '../../../core'
+import type { Orientation, Responsive } from '../../../types'
 import type { QueryField, QueryGroup } from '../engine/types'
 import type { QueryTreeActions } from '../use-query-tree'
 
@@ -17,6 +18,8 @@ export type QueryBuilderStateValue = {
 	allowGroups: boolean
 	/** When true, rules omit their field selector — for a single fixed field. @defaultValue false */
 	hideFieldSelector: boolean
+	/** The axis of the parts of each rule, single or per breakpoint. */
+	orientation: Responsive<Orientation>
 	/** When true, the query keeps at least one rule: a group's last rule hides its remove control. @defaultValue false */
 	requireRule: boolean
 	/** When true, each group with more than one child shows a drag grip beside each child. @defaultValue false */

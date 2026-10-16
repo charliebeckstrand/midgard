@@ -13,6 +13,7 @@ import { useKeybindings } from '../../hooks/use-keybindings'
 import { DeferredQueryContext, QueryContext, useQueryValue } from '../../primitives/query'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/context'
 import { k } from '../../recipes/kata/command-palette'
+import { adaptive } from '../../types'
 import { isComposing } from '../../utilities/is-composing'
 import { keepInputFocus } from '../combobox/combobox-utilities'
 import {
@@ -28,6 +29,12 @@ import { Icon } from '../icon'
 import { Input } from '../input'
 import { CommandPaletteClose } from './command-palette-close'
 import { useCommandPaletteState } from './use-command-palette-state'
+
+/** The palette docks to the bottom edge on a compact viewport, and floats near the top from medium. */
+const PALETTE_ALIGN = adaptive({
+	compact: 'bottom',
+	medium: 'top',
+}) satisfies DialogPanelProps['align']
 
 // The filters of the shortcut. Each palette skips a press that an earlier handler
 // took, so that one press toggles one palette. Each palette also skips the OS
@@ -213,7 +220,7 @@ export function CommandPalette({
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogPanel
 				{...props}
-				align="top"
+				align={PALETTE_ALIGN}
 				dismissOnBackdrop={dismissOnBackdrop}
 				width={width}
 				glass={glass}

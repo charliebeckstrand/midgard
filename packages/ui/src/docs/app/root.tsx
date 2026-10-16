@@ -146,7 +146,7 @@ export default function App() {
 							<Flex align="center" gap="md">
 								<Button
 									variant="bare"
-									className="max-lg:hidden"
+									className="hidden lg:inline-flex"
 									aria-label="Toggle sidebar"
 									onClick={() => setSidebar(sidebar === 'offcanvas' ? 'locked' : 'offcanvas')}
 								>

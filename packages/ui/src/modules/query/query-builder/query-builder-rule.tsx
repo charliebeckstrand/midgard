@@ -10,12 +10,18 @@ import { Select } from '../../../components/select'
 import { cn } from '../../../core'
 import { k } from '../../../recipes/kata/query-builder'
 import { Flex } from '../../../structure/flex'
+import { mapResponsive, type Orientation, resolveVariant } from '../../../types'
 import { describeNode } from '../engine/query-announcements'
 import { getOperators } from '../engine/query-operators'
 import type { QueryRule } from '../engine/types'
 import { useFocusableRef, useQueryBuilderActions, useQueryBuilderState } from './context'
 import { focusKeys } from './query-builder-focus'
 import { QueryBuilderRuleValue } from './query-builder-rule-value'
+
+/** The flex direction of the parts of a rule in each orientation. @internal */
+function directionOf(orientation: Orientation) {
+	return orientation === 'vertical' ? 'col' : 'row'
+}
 
 /** Props for {@link QueryBuilderRule}: the rule node to render. @internal */
 export type QueryBuilderRuleProps = {
@@ -39,7 +45,7 @@ export type QueryBuilderRuleProps = {
  * named by its summary, so its controls read as part of one rule. Memoized.
  */
 function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilderRuleProps) {
-	const { fields, getField, disabled, hideFieldSelector } = useQueryBuilderState()
+	const { fields, getField, disabled, hideFieldSelector, orientation } = useQueryBuilderState()
 
 	const { updateRule, remove } = useQueryBuilderActions()
 
@@ -92,6 +98,10 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 
 	const onRemove = useCallback(() => remove(rule.id), [remove, rule.id])
 
+	const partClass = cn(k.parts.width, resolveVariant(orientation, k.parts.item))
+
+	const rangeClass = cn(k.parts.width, resolveVariant(orientation, k.parts.range))
+
 	const removeRef = useFocusableRef(focusKeys.node(rule.id))
 
 	const displayField = useCallback(
@@ -115,7 +125,12 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 			full
 			className={cn(k.rule, className)}
 		>
-			<Flex flex="1" gap="sm" direction={{ initial: 'col', sm: 'row' }} className={k.parts.base}>
+			<Flex
+				flex="1"
+				gap="sm"
+				direction={mapResponsive(orientation, directionOf)}
+				className={resolveVariant(orientation, k.parts.base)}
+			>
 				{!hideFieldSelector && (
 					<Select
 						value={rule.field}
@@ -123,7 +138,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 						onValueChange={onFieldChange}
 						placeholder="Field"
 						aria-label="Field"
-						className={cn(k.parts.item)}
+						className={partClass}
 					>
 						{fields.map((entry) => (
 							<ListboxOption key={entry.name} value={entry.name}>
@@ -139,7 +154,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 					onValueChange={onOperatorChange}
 					placeholder="Operator"
 					aria-label="Operator"
-					className={cn(k.parts.item)}
+					className={partClass}
 				>
 					{operators.map((operator) => (
 						<ListboxOption key={operator.value} value={operator.value}>
@@ -152,7 +167,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 				    affixes puts its `className` on the inner `<input>`, not on the
 				    frame that the row sizes. */}
 				{field && !selectedOperator?.noValue && (
-					<div className={cn(selectedOperator?.range ? k.parts.range : k.parts.item)}>
+					<div className={selectedOperator?.range ? rangeClass : partClass}>
 						<QueryBuilderRuleValue
 							field={field}
 							value={rule.value}
@@ -167,7 +182,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 				    as static text in the value column. The rule then still reads as a
 				    sentence. There is nothing to edit, hence no control. */}
 				{selectedOperator?.noValue && selectedOperator.valueLabel && (
-					<Flex align="center" full className={cn(k.value, k.parts.item)}>
+					<Flex align="center" full className={cn(k.value, partClass)}>
 						{selectedOperator.valueLabel}
 					</Flex>
 				)}

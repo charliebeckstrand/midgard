@@ -9,7 +9,14 @@ import { useOffcanvas } from '../hooks/use-offcanvas'
 import { Box } from '../structure/box'
 import { Flex } from '../structure/flex'
 import { Stack } from '../structure/stack'
+import { adaptive } from '../types'
 import { StackedLayout } from './stacked'
+
+/** The filters and the content stack on a compact or a medium viewport, and sit side by side when expanded. */
+const COLUMNS_DIRECTION = adaptive({ compact: 'col', expanded: 'row' })
+
+/** A row centers its cross axis by default. The rail starts at the top of the main column. */
+const COLUMNS_ALIGN = adaptive({ compact: 'stretch', expanded: 'start' })
 
 /** Props for {@link DashboardLayout}: the filter panel and the main region beside it. */
 export type DashboardLayoutProps = PropsWithChildren<{
@@ -59,17 +66,13 @@ export function DashboardLayout({ filters, onOpenChange, children }: DashboardLa
 		<StackedLayout>
 			{/* A row centers its cross axis by default. The rail starts at the top of the
 			    main column. */}
-			<Flex
-				direction={{ initial: 'col', lg: 'row' }}
-				align={{ initial: 'stretch', lg: 'start' }}
-				gap="md"
-			>
+			<Flex direction={COLUMNS_DIRECTION} align={COLUMNS_ALIGN} gap="md">
 				{filters && (
 					<Drawer open={open} onOpenChange={setOpen}>
 						{/* One filter landmark at each width: the filters from `lg` up, and the
 						    trigger of the drawer below `lg`. The trigger is then in a landmark. */}
 						<aside aria-label="Filters" data-slot="filters" className="shrink-0">
-							<Stack className="max-lg:hidden">{filters}</Stack>
+							<Stack className="hidden lg:flex">{filters}</Stack>
 
 							<Box className="lg:hidden">
 								<DrawerTrigger>
