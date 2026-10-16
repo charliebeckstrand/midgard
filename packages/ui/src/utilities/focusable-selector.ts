@@ -4,7 +4,7 @@
  *
  * @remarks Reads the `disabled` attribute, not the `:disabled` pseudo-class, so
  * a control disabled only through an ancestor `<fieldset disabled>` still
- * matches. {@link tabbablesIn} also drops that control.
+ * matches. {@link getTabbableElements} also drops that control.
  */
 export const FOCUSABLE_SELECTOR =
 	'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'
@@ -26,7 +26,7 @@ export const FOCUSABLE_SELECTOR =
  * @returns The tabbable elements of `root`, not `root` itself.
  * @internal
  */
-export function tabbablesIn(root: Element | null): HTMLElement[] {
+export function getTabbableElements(root: Element | null): HTMLElement[] {
 	if (!root) return []
 
 	return Array.from(root.querySelectorAll<HTMLElement>('*')).filter(

@@ -3,14 +3,13 @@
 import type { ScaleStep } from '../../core/density'
 import type { FloatingPlacement } from '../../hooks'
 import type { scale } from '../../recipes/kata/color-picker'
-import type { GroupStampProps } from '../../types/group-stamp'
 import { type ColorPanel, ColorPanelView } from './color-panel'
 import { ColorPickerContent } from './color-picker-content'
 import { ColorPickerTrigger } from './color-picker-trigger'
 import type { ColorValueProps, Hsva } from './types'
 import { useColorPickerState } from './use-color-picker-state'
 
-type ColorPickerBaseProps = GroupStampProps & {
+type ColorPickerBaseProps = {
 	/**
 	 * Binds the color to the enclosing Form field of this name (CONVENTIONS
 	 * §7.2). Seed `Form.defaultValues` in the picker's own `format`; the field's
@@ -99,8 +98,6 @@ export function ColorPicker(props: ColorPickerProps) {
 		disabled,
 		readOnly,
 		className,
-		'data-group': dataGroup,
-		'data-group-orientation': dataGroupOrientation,
 	} = props
 
 	const format = props.format ?? 'hex'
@@ -143,8 +140,6 @@ export function ColorPicker(props: ColorPickerProps) {
 				readOnly={state.readOnly}
 				validation={state.validation}
 				className={className}
-				data-group={dataGroup}
-				data-group-orientation={dataGroupOrientation}
 			/>
 			<ColorPickerContent
 				open={state.open}

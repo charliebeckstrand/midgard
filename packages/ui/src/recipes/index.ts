@@ -21,7 +21,7 @@
  * `no-value-import-from-recipes-barrel` Biome plugin.
  *
  * This barrel is types-only. It re-exports the recipe-substrate types
- * (`Color`, `Ma`, `GroupOrientation`, `GroupPosition`); consumers
+ * (`Color`, `Ma`, `GroupOrientation`); consumers
  * derive prop unions from them without threading types through their kata.
  * No runtime values pass through; values reach consumers through their kata
  * funnel. The types-only shape is pinned by
@@ -30,4 +30,4 @@
 
 export type { Color } from '../core/recipe'
 export type { Ma } from './kiso/ma'
-export type { GroupOrientation, GroupPosition } from './kiso/tsunagi'
+export type { GroupOrientation } from './kiso/tsunagi'

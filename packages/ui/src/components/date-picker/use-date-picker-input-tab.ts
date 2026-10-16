@@ -1,7 +1,7 @@
 'use client'
 
 import { type KeyboardEvent, type RefObject, useCallback } from 'react'
-import { tabbablesIn } from '../../utilities/focusable-selector'
+import { getTabbableElements } from '../../utilities/focusable-selector'
 
 /** Options for {@link useDatePickerInputTab}. @internal */
 type DatePickerInputTabParams = {
@@ -32,8 +32,8 @@ export function useDatePickerInputTab({ open, triggerRef, floatingRef }: DatePic
 		(event: KeyboardEvent<Element>) => {
 			if (event.key !== 'Tab' || !open) return
 
-			const group = tabbablesIn(event.currentTarget)
-			const dialog = tabbablesIn(floatingRef.current)
+			const group = getTabbableElements(event.currentTarget)
+			const dialog = getTabbableElements(floatingRef.current)
 
 			if (dialog.length === 0) return
 
@@ -56,8 +56,8 @@ export function useDatePickerInputTab({ open, triggerRef, floatingRef }: DatePic
 		(event: KeyboardEvent<Element>) => {
 			if (event.key !== 'Tab' || !open) return
 
-			const group = tabbablesIn(triggerRef.current)
-			const dialog = tabbablesIn(event.currentTarget)
+			const group = getTabbableElements(triggerRef.current)
+			const dialog = getTabbableElements(event.currentTarget)
 
 			if (group.length === 0 || dialog.length === 0) return
 

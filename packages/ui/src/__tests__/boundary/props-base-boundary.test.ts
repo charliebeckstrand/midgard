@@ -64,6 +64,10 @@ const ELEMENT_ATTRS_ALLOWED = new Map([
 	['modules/query/query-chips.tsx', 'renders a `<fieldset>` or a `<div>`'],
 	['components/kanban/kanban-card-handle.tsx', 'renders a `<span>` or a `<button>`'],
 	['components/kanban/kanban-column-body.tsx', 'renders a `<ul>` or a `<div>`'],
+	[
+		'components/file-upload/file-upload-drop.tsx',
+		'types the rest of the split props with the base of the zone, which renders a `<div>` or a `<button>`',
+	],
 	['components/file-upload/file-upload-state.ts', 'renders a `<div>` or a `<button>`'],
 ])
 

@@ -6,7 +6,6 @@ import type { ScaleStep } from '../../core/density'
 import type { FloatingPlacement } from '../../hooks'
 import type { scale } from '../../recipes/kata/date-picker'
 import { k } from '../../recipes/kata/date-picker'
-import type { GroupStampProps } from '../../types/group-stamp'
 import { Calendar } from '../calendar'
 import { DateInput, type DateInputFormat } from '../date-input'
 import { DateInputResetContext, useDateInputResets } from '../date-input/context'
@@ -132,7 +131,7 @@ export type DatePickerFooterConfig = {
  * range); intersected with the discriminated value/handler shape in
  * {@link DatePickerProps}.
  */
-export type DatePickerBaseProps = GroupStampProps & {
+export type DatePickerBaseProps = {
 	/** Binds the value to an enclosing Form field. Seed `Form.defaultValues` with a `Date` (single), `[Date, Date]` (range), or a {@link DatePickerRelativeValue}`[]` (relative). */
 	name?: string
 	/**
@@ -292,8 +291,6 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 		clearable = false,
 		className,
 		'aria-label': ariaLabel,
-		'data-group': dataGroup,
-		'data-group-orientation': dataGroupOrientation,
 	} = props
 
 	const {
@@ -423,8 +420,6 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 								onActivate={() => onOpenChange(!open)}
 							/>
 						}
-						data-group={dataGroup}
-						data-group-orientation={dataGroupOrientation}
 					/>
 				</div>
 				{content}
@@ -456,8 +451,6 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 				hasValue={hasValue}
 				onClear={onClear}
 				className={className}
-				data-group={dataGroup}
-				data-group-orientation={dataGroupOrientation}
 			/>
 			{content}
 		</>

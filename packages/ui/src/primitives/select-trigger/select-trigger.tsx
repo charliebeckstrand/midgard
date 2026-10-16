@@ -6,7 +6,6 @@ import type { ScaleStep } from '../../core/density'
 import { useComposedRef } from '../../hooks/use-composed-ref'
 import type { scale } from '../../recipes/kata/select'
 import { k } from '../../recipes/kata/select'
-import type { GroupStampProps } from '../../types/group-stamp'
 import { ControlFrame } from '../control'
 import { PolymorphicStatic } from '../polymorphic'
 
@@ -17,27 +16,26 @@ import { PolymorphicStatic } from '../polymorphic'
  * the rest. The floating interactions compose their handlers with the handlers
  * of the rest.
  */
-export type SelectTriggerProps = Omit<ComponentProps<'div'>, 'prefix' | 'children'> &
-	GroupStampProps & {
-		open: boolean
-		setReference: Ref<HTMLDivElement>
-		getReferenceProps: (userProps?: Record<string, unknown>) => Record<string, unknown>
-		glass: boolean
-		/**
-		 * The density step of the host. Omit it to take the step of the nearest
-		 * density scope. A step makes the trigger a density scope.
-		 */
-		size?: ScaleStep<typeof scale>
-		prefix?: ReactNode
-		/** Suffix rendered inside the standard `<span data-slot="suffix">` slot. */
-		suffix?: ReactNode
-		/** Props spread onto the suffix `<span>` slot; Combobox makes the chevron a click target here. */
-		suffixProps?: Omit<ComponentProps<'span'>, 'className' | 'children'>
-		frameProps?: Omit<ComponentProps<typeof ControlFrame>, 'className' | 'children'>
-		/** Root slot identifier. Wrappers override it to stamp their own name. */
-		'data-slot'?: string
-		children: ReactNode
-	}
+export type SelectTriggerProps = Omit<ComponentProps<'div'>, 'prefix' | 'children'> & {
+	open: boolean
+	setReference: Ref<HTMLDivElement>
+	getReferenceProps: (userProps?: Record<string, unknown>) => Record<string, unknown>
+	glass: boolean
+	/**
+	 * The density step of the host. Omit it to take the step of the nearest
+	 * density scope. A step makes the trigger a density scope.
+	 */
+	size?: ScaleStep<typeof scale>
+	prefix?: ReactNode
+	/** Suffix rendered inside the standard `<span data-slot="suffix">` slot. */
+	suffix?: ReactNode
+	/** Props spread onto the suffix `<span>` slot; Combobox makes the chevron a click target here. */
+	suffixProps?: Omit<ComponentProps<'span'>, 'className' | 'children'>
+	frameProps?: Omit<ComponentProps<typeof ControlFrame>, 'className' | 'children'>
+	/** Root slot identifier. Wrappers override it to stamp their own name. */
+	'data-slot'?: string
+	children: ReactNode
+}
 
 /**
  * Trigger chrome shared by the select family (Listbox, Combobox): the outer
@@ -66,8 +64,6 @@ export function SelectTrigger({
 	className,
 	frameProps,
 	ref,
-	'data-group': dataGroup,
-	'data-group-orientation': dataGroupOrientation,
 	'data-slot': slot = 'control',
 	children,
 	...props
@@ -89,8 +85,6 @@ export function SelectTrigger({
 		>
 			<ControlFrame
 				data-open={dataAttr(open)}
-				data-group={dataGroup}
-				data-group-orientation={dataGroupOrientation}
 				className={cn(!glass && k.surface.default)}
 				{...frameProps}
 			>

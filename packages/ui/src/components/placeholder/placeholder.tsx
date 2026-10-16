@@ -24,9 +24,8 @@ export type PlaceholderProps = {
  * Skeleton shape that pulses while content loads. Renders a line by default;
  * pass `className` for other shapes, and `pulse={false}` for a still one.
  * @remarks Static leaf: renders in React Server Components.
- * @remarks To join adjacent placeholders like grouped controls, stamp
- * `data-group` / `data-group-orientation` explicitly; they pass through to the
- * element and match the group's container-scoped `tsunagi` join selectors.
+ * @remarks To join adjacent placeholders like grouped controls, render them
+ * as the children of a `<Group>`.
  */
 export function Placeholder({
 	className,

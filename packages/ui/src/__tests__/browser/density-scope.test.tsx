@@ -8,6 +8,7 @@ import { Card, CardBody, CardHeader, CardTitle } from '../../components/card'
 import { Checkbox } from '../../components/checkbox'
 import { Control, ControlSkeleton } from '../../components/control'
 import { Fieldset, Label, Legend } from '../../components/fieldset'
+import { Group } from '../../components/group'
 import { Heading, HeadingSkeleton } from '../../components/heading'
 import { Icon } from '../../components/icon'
 import { Input } from '../../components/input'
@@ -890,7 +891,9 @@ describe('density scopes on static leaves (real browser)', () => {
 		const { container } = renderUI(
 			<DensityProvider density="loose">
 				<SliderSkeleton />
-				<ControlSkeleton data-group="" />
+				<Group>
+					<ControlSkeleton />
+				</Group>
 			</DensityProvider>,
 		)
 

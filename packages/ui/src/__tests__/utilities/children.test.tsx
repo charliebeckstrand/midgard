@@ -2,11 +2,11 @@
 import { isValidElement, type ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
 import {
-	flattenChildren,
+	flattenFragments,
 	hasChildOfType,
 	isElementOfType,
 	partitionByType,
-} from '../../utilities/flatten-children'
+} from '../../utilities/children'
 
 function Slot({ children }: { children?: ReactNode }) {
 	return <span>{children}</span>
@@ -16,9 +16,9 @@ function Other() {
 	return null
 }
 
-describe('flattenChildren', () => {
+describe('flattenFragments', () => {
 	it('walks into each Fragment and keys each child by its path', () => {
-		const flat = flattenChildren([
+		const flat = flattenFragments([
 			<Other key="a" />,
 			<>
 				<Slot />

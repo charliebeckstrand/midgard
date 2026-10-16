@@ -18,7 +18,6 @@ import { isTypeaheadKey } from '../../hooks/a11y/use-typeahead'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { useGlass } from '../../providers/glass/context'
 import type { scale } from '../../recipes/kata/listbox'
-import type { GroupStampProps } from '../../types/group-stamp'
 import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { useFormValue } from '../form/use-form-value'
@@ -30,7 +29,7 @@ import { ListboxPanel } from './listbox-panel'
 import { resolveLabel } from './listbox-utilities'
 import { useListboxState } from './use-listbox-state'
 
-type ListboxBaseProps = GroupStampProps & {
+type ListboxBaseProps = {
 	name?: string
 	/** @defaultValue 'Select' */
 	placeholder?: string
@@ -210,8 +209,6 @@ export function Listbox<T>({
 	open: openProp,
 	onOpenChange,
 	onBlur,
-	'data-group': dataGroup,
-	'data-group-orientation': dataGroupOrientation,
 	'aria-label': ariaLabel,
 	'aria-labelledby': ariaLabelledby,
 	'aria-describedby': ariaDescribedBy,
@@ -487,8 +484,6 @@ export function Listbox<T>({
 					glass={glass}
 					size={size}
 					className={className}
-					data-group={dataGroup}
-					data-group-orientation={dataGroupOrientation}
 					data-slot={slot}
 					frameProps={{
 						onClick: () => setOpenGuarded(!open),

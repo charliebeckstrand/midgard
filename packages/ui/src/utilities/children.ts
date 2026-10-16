@@ -8,7 +8,7 @@ import {
 	type ReactNode,
 } from 'react'
 
-/** One child from {@link flattenChildren}, with its key for the flat list. @internal */
+/** One child from {@link flattenFragments}, with its key for the flat list. @internal */
 export type FlatChild = { node: ReactNode; key: string }
 
 /**
@@ -26,13 +26,13 @@ export type FlatChild = { node: ReactNode; key: string }
  * @returns Each child with its namespaced key, in render order.
  * @internal
  */
-export function flattenChildren(children: ReactNode, prefix = ''): FlatChild[] {
+export function flattenFragments(children: ReactNode, prefix = ''): FlatChild[] {
 	const result: FlatChild[] = []
 
 	Children.forEach(children, (child, index) => {
 		if (isValidElement(child) && child.type === Fragment) {
 			result.push(
-				...flattenChildren(
+				...flattenFragments(
 					(child.props as { children?: ReactNode }).children,
 					`${prefix}${index}.`,
 				),
@@ -67,14 +67,14 @@ export function isElementOfType<P>(
  * @internal
  */
 export function hasChildOfType(children: ReactNode, type: JSXElementConstructor<never>): boolean {
-	return flattenChildren(children).some(({ node }) => isElementOfType(node, type))
+	return flattenFragments(children).some(({ node }) => isElementOfType(node, type))
 }
 
 /**
  * Splits `children` into the elements of `type` and the rest, through each
  * Fragment. A slot in a Fragment is found as if it were a direct child.
  *
- * @remarks Each element takes its key from {@link flattenChildren}, so the two
+ * @remarks Each element takes its key from {@link flattenFragments}, so the two
  * lists render with unique keys.
  *
  * @returns `matched`, the elements of `type`, and `rest`, the other children,
@@ -89,7 +89,7 @@ export function partitionByType<P>(
 
 	const rest: ReactNode[] = []
 
-	for (const { node, key } of flattenChildren(children)) {
+	for (const { node, key } of flattenFragments(children)) {
 		const keyed = isValidElement(node) ? cloneElement(node, { key }) : node
 
 		if (isElementOfType(keyed, type)) {

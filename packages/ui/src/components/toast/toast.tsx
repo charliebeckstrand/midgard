@@ -11,7 +11,7 @@ import { usePortalContainer } from '../../primitives/portal'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k } from '../../recipes/kata/toast'
 import { subscribeDocumentEvent } from '../../utilities/document-listener'
-import { tabbablesIn } from '../../utilities/focusable-selector'
+import { getTabbableElements } from '../../utilities/focusable-selector'
 import { useToastViewport } from './context'
 import { ToastAlert } from './toast-alert'
 import type { ToastPosition } from './types'
@@ -31,7 +31,7 @@ function isPlainF8(event: KeyboardEvent) {
 function firstControlOfNewest(viewport: HTMLElement | null) {
 	// An `inert` item is a toast that leaves.
 	for (const item of viewport?.querySelectorAll(':scope > ol > li:not([inert])') ?? []) {
-		const target = tabbablesIn(item)[0]
+		const target = getTabbableElements(item)[0]
 
 		if (target) return target
 	}
@@ -220,7 +220,7 @@ function moveFocusFromClosingToast(returnTo: HTMLElement | null) {
 
 	const target = neighbor
 		? (neighbor.querySelector<HTMLElement>('button[aria-label="Dismiss"]') ??
-			tabbablesIn(neighbor)[0])
+			getTabbableElements(neighbor)[0])
 		: returnTo?.isConnected
 			? returnTo
 			: null

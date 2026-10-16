@@ -103,20 +103,7 @@ type Waiver = { order?: number; anchor?: number; ref?: number; note: string }
  * violation in an already-waived file, and the pin test fails the moment a
  * count moves in either direction.
  */
-const WAIVERS = new Map<string, Waiver>([
-	// The rest comes from `splitFileUploadProps`, so the scan cannot read its
-	// type. The type is the element-agnostic base, which carries no ref.
-	['components/file-upload/file-upload-drop.tsx', { ref: 2, note: 'scan limit: split rest' }],
-	['components/fieldset/description.tsx', { anchor: 1, note: 'lead S1' }],
-	['components/fieldset/field.tsx', { anchor: 1, note: 'lead S1' }],
-	['components/fieldset/label.tsx', { anchor: 1, note: 'lead S1' }],
-	['components/fieldset/message.tsx', { anchor: 2, note: 'lead S1' }],
-	['primitives/control/control-frame.tsx', { anchor: 1, note: 'lead S1' }],
-	['primitives/toggle/toggle-field.tsx', { anchor: 1, note: 'lead S1' }],
-	['primitives/toggle/toggle-group.tsx', { anchor: 1, note: 'lead S1' }],
-	// `recipes/kiso/narabi/field.ts` reads the anchor.
-	['structure/flex/flex.tsx', { anchor: 1, note: 'lead S1, joined with the structure scan' }],
-])
+const WAIVERS = new Map<string, Waiver>([])
 
 /** One JSX attribute written before the consumer spread. */
 type Attribute = { name: string; value?: string }
@@ -194,7 +181,12 @@ function sitesIn(file: string, parsed: SourceFile): Site[] {
 
 			const source = text(node.initializer)
 
-			if (parameter && isIdentifier(parameter.name) && parameter.name.text === source) {
+			// A destructure with its own type reads that type.
+			if (node.type) {
+				const rest = restOf(node.name, node.type, parsed)
+
+				if (rest) rests.push(rest)
+			} else if (parameter && isIdentifier(parameter.name) && parameter.name.text === source) {
 				const rest = restOf(node.name, parameter.type, parsed)
 
 				if (rest) rests.push(rest)

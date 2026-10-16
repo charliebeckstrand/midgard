@@ -1,5 +1,5 @@
 import { getOrCompute, isComposing, wrap } from '../../../utilities'
-import { tabbablesIn } from '../../../utilities/focusable-selector'
+import { getTabbableElements } from '../../../utilities/focusable-selector'
 import type { GridCellRef } from '../grid-editing-types'
 import { GRID_ROLE } from './grid-constants'
 
@@ -480,7 +480,7 @@ export function tabStaysInCell(target: Element, backward: boolean): boolean {
 
 	if (!cell) return false
 
-	const tabbables = tabbablesIn(cell)
+	const tabbables = getTabbableElements(cell)
 
 	const index = tabbables.findIndex((el) => el.contains(target))
 

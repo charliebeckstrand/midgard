@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { tabbablesIn } from '../../utilities/focusable-selector'
+import { getTabbableElements } from '../../utilities/focusable-selector'
 
-describe('tabbablesIn', () => {
+describe('getTabbableElements', () => {
 	it('keeps the tab order and drops what the browser skips', () => {
 		const root = document.createElement('div')
 
@@ -15,10 +15,10 @@ describe('tabbablesIn', () => {
 			<a id="c" href="#c">C</a>
 		`
 
-		expect(tabbablesIn(root).map((element) => element.id)).toEqual(['a', 'b', 'c'])
+		expect(getTabbableElements(root).map((element) => element.id)).toEqual(['a', 'b', 'c'])
 	})
 
 	it('gives nothing for no root', () => {
-		expect(tabbablesIn(null)).toEqual([])
+		expect(getTabbableElements(null)).toEqual([])
 	})
 })

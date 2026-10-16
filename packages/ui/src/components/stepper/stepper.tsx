@@ -8,7 +8,7 @@ import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import type { Mount } from '../../primitives/mount'
 import { k } from '../../recipes/kata/stepper'
 import { Stack } from '../../structure/stack'
-import { partitionByType } from '../../utilities/flatten-children'
+import { partitionByType } from '../../utilities/children'
 import { StepperContext, type StepperLayout, type StepperOrientation } from './context'
 import { StepperPanels } from './stepper-panels'
 

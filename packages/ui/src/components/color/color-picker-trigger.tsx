@@ -8,12 +8,11 @@ import { useGlass } from '../../providers/glass/context'
 import { HeadlessProvider } from '../../providers/headless'
 import type { scale } from '../../recipes/kata/color-picker'
 import { k } from '../../recipes/kata/color-picker'
-import type { GroupStampProps } from '../../types/group-stamp'
 import { Button } from '../button'
 import { hsvaToCss, hsvaToHex } from './color-utilities'
 import type { Hsva } from './types'
 
-type ColorPickerTriggerProps = GroupStampProps & {
+type ColorPickerTriggerProps = {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	triggerId?: string
@@ -68,8 +67,6 @@ export function ColorPickerTrigger({
 	readOnly = false,
 	validation,
 	className,
-	'data-group': dataGroup,
-	'data-group-orientation': dataGroupOrientation,
 }: ColorPickerTriggerProps) {
 	const glass = useGlass()
 
@@ -87,8 +84,6 @@ export function ColorPickerTrigger({
 			glass={glass}
 			size={size}
 			className={cn(k.root, className)}
-			data-group={dataGroup}
-			data-group-orientation={dataGroupOrientation}
 		>
 			<HeadlessProvider>
 				<Button

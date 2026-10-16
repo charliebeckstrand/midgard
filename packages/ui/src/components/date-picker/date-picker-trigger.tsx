@@ -10,14 +10,13 @@ import { useGlass } from '../../providers/glass/context'
 import { HeadlessProvider } from '../../providers/headless'
 import type { scale } from '../../recipes/kata/date-picker'
 import { k } from '../../recipes/kata/date-picker'
-import type { GroupStampProps } from '../../types/group-stamp'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { InputClearButton } from '../input/input-clear-button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 
 /** Props for {@link DatePickerTrigger}. @internal */
-type DatePickerTriggerProps = GroupStampProps & {
+type DatePickerTriggerProps = {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	triggerId?: string
@@ -100,8 +99,6 @@ export function DatePickerTrigger({
 	onClear,
 	className,
 	children,
-	'data-group': dataGroup,
-	'data-group-orientation': dataGroupOrientation,
 }: DatePickerTriggerProps) {
 	const glass = useGlass()
 
@@ -136,8 +133,6 @@ export function DatePickerTrigger({
 			glass={glass}
 			size={size}
 			className={cn(k.root, className)}
-			data-group={dataGroup}
-			data-group-orientation={dataGroupOrientation}
 			suffix={
 				showClear ? (
 					<InputClearButton

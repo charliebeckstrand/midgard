@@ -4,6 +4,7 @@ import { Upload } from 'lucide-react'
 import {
 	type ChangeEvent,
 	type DragEvent,
+	type HTMLAttributes,
 	type ReactNode,
 	type Ref,
 	useEffect,
@@ -178,7 +179,17 @@ function DropSelection({
 export function FileUploadDrop(allProps: FileUploadDropProps) {
 	const { shared, rest } = splitFileUploadProps(allProps)
 
-	const { className, children, id, onDragOver, onDragEnter, onDragLeave, onDrop, ...props } = rest
+	// The type names the element-agnostic base, so the spread carries no `ref`.
+	const {
+		className,
+		children,
+		id,
+		onDragOver,
+		onDragEnter,
+		onDragLeave,
+		onDrop,
+		...props
+	}: Omit<HTMLAttributes<HTMLElement>, 'defaultValue'> & { children?: ReactNode } = rest
 
 	const state = useFileUploadState(shared)
 
