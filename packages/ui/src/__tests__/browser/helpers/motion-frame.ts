@@ -1,12 +1,13 @@
-import { cancelFrame, frame } from 'motion/react'
+import { cancelFrame, frame } from 'motion'
 import { inject } from 'vitest'
 
 /**
  * Reads a value in each frame of the Motion frame loop, after Motion writes its
  * styles, until `done` accepts the value.
  *
- * Use it in the `motion` project, where `motion/react` is real, to read each
- * frame of a Motion tween. A `requestAnimationFrame` sampler that starts before
+ * Use it to read each frame of a Motion tween. The frame loop comes from
+ * `motion`, and each project gives the real frame loop of `motion`. Thus the
+ * helper also works in a project that mocks `motion/react`. A `requestAnimationFrame` sampler that starts before
  * the tween runs before Motion in each frame, so it reads the styles of the
  * frame before. A tween runs on wall-clock time. Thus after one long frame,
  * Motion can write the last value and land in the same frame. A landing that
@@ -52,4 +53,25 @@ export function sampleMotionFrames<T>(
 
 		frame.postRender(step, true)
 	})
+}
+
+/**
+ * Waits until `animations` gives no tween, in a frame of the Motion frame loop.
+ *
+ * Motion starts a tween in the frame after the call to `animate`. Before that
+ * frame, the element shows no tween, also when a tween is about to start. A
+ * poll can read in that time and accept the state before the tween. This wait
+ * reads first in the `postRender` step of the next frame, after Motion starts
+ * the tweens of that frame. Start the wait in the task of the action that
+ * starts the tweens, or later.
+ *
+ * @param animations - Gives the tweens to wait for, such as
+ * `element.getAnimations({ subtree: true })`.
+ * @throws When a tween still runs at the deadline of {@link sampleMotionFrames}.
+ */
+export async function waitForNoTween(animations: () => readonly Animation[]): Promise<void> {
+	await sampleMotionFrames(
+		() => animations().length,
+		(count) => count === 0,
+	)
 }

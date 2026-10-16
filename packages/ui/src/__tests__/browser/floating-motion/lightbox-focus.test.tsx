@@ -3,6 +3,7 @@ import { userEvent } from 'vitest/browser'
 import { Lightbox, type LightboxPhoto, LightboxTrigger } from '../../../components/lightbox'
 import { ReducedMotionContext } from '../../../primitives/reduced-motion/context'
 import { renderUI, screen, waitFor } from '../../helpers'
+import { waitForNoTween } from '../helpers/motion-frame'
 
 /**
  * When the viewer closes, the photo lands in the thumbnail of the photo on the
@@ -47,8 +48,8 @@ const viewer = () => document.querySelector('[data-slot="lightbox"]')
 
 const count = () => document.querySelector('[aria-live="polite"]')?.textContent
 
-/** Whether no tween runs in the viewer: the raise, the return, or a slide. */
-const still = () => (viewer()?.getAnimations({ subtree: true }) ?? []).length === 0
+/** The tweens that run in the viewer: the raise, the return, or a slide. */
+const viewerTweens = () => viewer()?.getAnimations({ subtree: true }) ?? []
 
 describe('Lightbox focus return (real engine, real Motion)', () => {
 	it.for([
@@ -63,19 +64,19 @@ describe('Lightbox focus return (real engine, real Motion)', () => {
 
 			await waitFor(() => expect(viewer()).toContainElement(document.activeElement as HTMLElement))
 
-			await expect.poll(still).toBe(true)
+			await waitForNoTween(viewerTweens)
 
 			await userEvent.keyboard('{ArrowRight}')
 
 			await expect.poll(count).toBe('2 / 4')
 
-			await expect.poll(still).toBe(true)
+			await waitForNoTween(viewerTweens)
 
 			await userEvent.keyboard('{ArrowRight}')
 
 			await expect.poll(count).toBe('3 / 4')
 
-			await expect.poll(still).toBe(true)
+			await waitForNoTween(viewerTweens)
 
 			await userEvent.keyboard('{Escape}')
 
