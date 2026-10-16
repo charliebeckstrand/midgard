@@ -1,6 +1,7 @@
 'use client'
 
 import type { ComponentProps, ReactElement } from 'react'
+import { ariaAttr, dataAttr } from '../../core'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
@@ -12,6 +13,15 @@ type PdfViewerToolbarButtonProps = {
 	/** The glyph, wrapped in {@link Icon} here so a caller passes the bare element. */
 	icon: ReactElement
 	disabled: boolean
+	/**
+	 * Disables the control but keeps its focus. It is `aria-disabled`, stays in the
+	 * toolbar's arrow order, and cancels each press.
+	 *
+	 * @remarks For a control that its own press disables, such as a zoom step at the
+	 * last level. A native `disabled` there drops the focus to the page (WCAG 2.4.3).
+	 * @defaultValue false
+	 */
+	softDisabled?: boolean
 	/**
 	 * Tooltip text where it carries more than the label — the zoom controls name
 	 * the level they step to.
@@ -69,6 +79,8 @@ export function PdfViewerToolbarButton({
 	disabled,
 	tooltip,
 	active = false,
+	softDisabled = false,
+	onClick,
 	...props
 }: PdfViewerToolbarButtonProps) {
 	return (
@@ -80,6 +92,9 @@ export function PdfViewerToolbarButton({
 					variant={active ? 'soft' : 'plain'}
 					aria-label={label}
 					disabled={disabled}
+					aria-disabled={ariaAttr(softDisabled)}
+					data-disabled={dataAttr(softDisabled)}
+					onClick={softDisabled ? undefined : onClick}
 				>
 					<Icon icon={icon} />
 				</Button>

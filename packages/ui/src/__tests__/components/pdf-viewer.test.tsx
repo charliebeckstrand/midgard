@@ -148,13 +148,29 @@ describe('PdfViewer', () => {
 	it('disables zoom in at the maximum', () => {
 		renderUI(<PdfViewer pages={pages} defaultZoom={4} />)
 
-		expect(screen.getByLabelText('Zoom in')).toBeDisabled()
+		expect(screen.getByLabelText('Zoom in')).toHaveAttribute('aria-disabled', 'true')
 	})
 
 	it('disables zoom out at the minimum', () => {
 		renderUI(<PdfViewer pages={pages} defaultZoom={0.5} />)
 
-		expect(screen.getByLabelText('Zoom out')).toBeDisabled()
+		expect(screen.getByLabelText('Zoom out')).toHaveAttribute('aria-disabled', 'true')
+	})
+
+	it('keeps the focus on a zoom button that its press disables', () => {
+		renderUI(<PdfViewer pages={pages} defaultZoom={2} />)
+
+		const zoomIn = screen.getByLabelText('Zoom in')
+
+		act(() => zoomIn.focus())
+
+		fireEvent.click(zoomIn)
+
+		expect(zoomIn).toHaveAttribute('aria-disabled', 'true')
+
+		expect(zoomIn).toBeEnabled()
+
+		expect(zoomIn).toHaveFocus()
 	})
 
 	it('rotates the active page in 90 degree steps', async () => {
@@ -912,11 +928,13 @@ describe('PdfViewerZoomControls', () => {
 
 		renderControls(1, [], setValue)
 
-		expect(screen.getByLabelText('Zoom in')).toBeDisabled()
+		for (const label of ['Zoom in', 'Zoom out', 'Reset zoom']) {
+			expect(screen.getByLabelText(label)).toHaveAttribute('aria-disabled', 'true')
+		}
 
-		expect(screen.getByLabelText('Zoom out')).toBeDisabled()
+		fireEvent.click(screen.getByLabelText('Zoom in'))
 
-		expect(screen.getByLabelText('Reset zoom')).toBeDisabled()
+		expect(setValue).not.toHaveBeenCalled()
 	})
 })
 
