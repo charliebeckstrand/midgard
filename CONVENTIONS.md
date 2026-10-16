@@ -76,7 +76,7 @@ Side behavior, such as a preload or a pause on hover, keeps the default.
 
 An arrow key on a physical axis, such as a slider track or a map cursor, stays physical. The logical-arrow gate lists each such file with its reason.
 
-3.11 Each part that has an open state stamps a boolean `data-open` while it is open. Such parts are a trigger and the content that it opens. A part that can be disabled also stamps `data-disabled` while it is disabled. Use `dataAttr` from `ui/core` (§3.10). A consumer then styles the state of each disclosure with the same selector. A step state that has more than two values, such as the `data-state` of a Stepper step, is not an open state.
+3.11 Each part that has an open state stamps a boolean `data-open` while it is open. Such parts are a trigger and the content that it opens. A part that can be disabled also stamps `data-disabled` while it is disabled. Use `dataAttr` from `ui/core` (§3.10). A consumer then styles the state of each disclosure with the same selector. A step state that has more than two values, such as the `data-state` of a Stepper step, is not an open state. Content that stays on screen for an exit animation drops `data-open` when the close starts. An `m` element of the library does this while it exits. A node that a parent holds at its last open props takes the attribute from an effect, as `FloatingSurface` does.
 
 The disclosure sweep in `sweeps/capabilities.test.tsx` opens each `disclosure` subject of the corpus and reads the two attributes. `disclosure-state-boundary.test.ts` finds each barreled component whose props take `open`, `defaultOpen`, or `onOpenChange`. It fails when the corpus has no subject for such a component and the test does not exempt it with a reason.
 

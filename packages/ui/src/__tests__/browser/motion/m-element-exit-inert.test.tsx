@@ -7,7 +7,8 @@ import { renderUI, screen, waitFor } from '../../helpers'
 /**
  * An HTML `m` element is `inert` while it exits under `AnimatePresence`, and
  * each `m` element in the exiting subtree is too. The `inert` prop of the
- * caller stays.
+ * caller stays. The exiting element also drops `data-open` (CONVENTIONS.md
+ * §3.11).
  *
  * Real Motion is necessary: the instant mock removes the child in the commit
  * that closes it, so no exit occurs.
@@ -24,7 +25,7 @@ function Panel({ open, inert = false }: { open: boolean; inert?: boolean }) {
 		<ReducedMotion>
 			<AnimatePresence initial={false}>
 				{open && (
-					<m.div data-testid="panel" inert={inert} {...fade}>
+					<m.div data-testid="panel" data-open="" inert={inert} {...fade}>
 						<m.span data-testid="inner" />
 					</m.div>
 				)}
@@ -69,6 +70,24 @@ describe('m element exit (real Motion)', () => {
 		expect(screen.getByTestId('panel')).toBe(panel)
 
 		expect(panel).not.toHaveAttribute('inert')
+	})
+
+	it('drops data-open while it exits, and stamps it again on a second open', () => {
+		const { rerender } = renderUI(<Panel open />)
+
+		const panel = screen.getByTestId('panel')
+
+		expect(panel).toHaveAttribute('data-open')
+
+		rerender(<Panel open={false} />)
+
+		expect(panel).toBeInTheDocument()
+
+		expect(panel).not.toHaveAttribute('data-open')
+
+		rerender(<Panel open />)
+
+		expect(panel).toHaveAttribute('data-open')
 	})
 
 	it('keeps the inert prop of the caller while it is present', () => {

@@ -88,6 +88,12 @@ export function MenuSheet({
 		if (open) setTriggerTitle(triggerName(triggerRef.current))
 	}, [open, triggerRef])
 
+	// The drawer holds the panel at its last open props while it exits, so the
+	// effect writes `data-open` to the node, and the close drops it at once.
+	useLayoutEffect(() => {
+		panelRef.current?.toggleAttribute('data-open', open)
+	}, [open])
+
 	const heading = title ?? triggerTitle
 
 	// A name from the consumer replaces the name from the heading.

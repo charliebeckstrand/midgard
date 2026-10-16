@@ -124,6 +124,9 @@ export function FloatingSurface({
 
 		node.toggleAttribute('inert', inert || !open)
 
+		// The same holds for `data-open`, so the close drops it at once (CONVENTIONS.md §3.11).
+		node.toggleAttribute('data-open', open)
+
 		if (open) return
 
 		const active = node.ownerDocument.activeElement
