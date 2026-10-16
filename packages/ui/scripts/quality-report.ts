@@ -15,6 +15,9 @@
  *   on a fix. A fix that replaces no line of the shipped source is additive.
  *   One more column gives the fix-on-fix share with a 14-day window, which
  *   the report used before, so that the change of window is visible.
+ * - The units with the most fixes in the weeks of the report. A fix counts for
+ *   each unit whose shipped source it changes. A Clean pass takes these units
+ *   first.
  * - The count of units that a commit of each week set to Reopened.
  *
  * The fix-on-fix share is an upper bound on regressions. A fix that changes
@@ -55,6 +58,9 @@ const RECENT_DAYS = 7
 
 /** The window of the comparison column, which the report used before {@link RECENT_DAYS}. */
 const PREVIOUS_DAYS = 14
+
+/** The count of rows in the table of the units with the most fixes. */
+const TOP_UNITS = 15
 
 /** The number of git processes that run at the same time. */
 const PARALLEL = 8
@@ -210,6 +216,23 @@ async function classify(fix: Commit): Promise<Record<'current' | 'previous', Fix
 	return { current: classOf(lines.current), previous: classOf(lines.previous) }
 }
 
+/** The ledger keys (`tier/unit`) of the units whose shipped source a commit changes. */
+async function unitsOf(sha: string): Promise<Set<string>> {
+	const files = await git('diff', '--name-only', `${sha}^`, sha, '--', SOURCE, ...NOT_SHIPPED)
+
+	const keys = new Set<string>()
+
+	for (const file of files.split('\n')) {
+		const [tier = '', name = ''] = file.slice(SOURCE.length + 1).split('/')
+
+		if (!(TIERS as readonly string[]).includes(tier) || !name || name === 'index.ts') continue
+
+		keys.add(`${tier}/${tier === 'layouts' ? name.replace(/\.[^.]+$/, '') : name}`)
+	}
+
+	return keys
+}
+
 /** The fixes that change {@link SOURCE}, from the Monday of the first week of the report. */
 // Each query starts a day early, so a commit whose local date is in the report
 // and whose UTC date is not still comes back. The filter on the local date then
@@ -304,6 +327,8 @@ async function main() {
 
 	const classes = await mapLimited(fixCommits, classify)
 
+	const fixUnits = await mapLimited(fixCommits, (fix) => unitsOf(fix.sha))
+
 	const reopenedWeeks = await reopened(since)
 
 	const out: string[] = [`# ui quality report`, '', `At ${head[0]} (${headDate.slice(0, 10)}).`, '']
@@ -354,6 +379,45 @@ async function main() {
 			`| ${week} | ${inWeek.length} | ${count('older')} | ${count('additive')} | ${count('recentOther')} | ${count('recentFix')} | ${count('recentFix', 'previous')} |`,
 		)
 	}
+
+	const latest = weekKeys[0]
+
+	const byUnit = new Map<string, { all: number; latest: number; onFix: number }>()
+
+	fixCommits.forEach((fix, index) => {
+		for (const key of fixUnits[index] ?? []) {
+			const unit = byUnit.get(key) ?? { all: 0, latest: 0, onFix: 0 }
+
+			unit.all++
+
+			if (isoWeek(fix.date) === latest) unit.latest++
+
+			if (classes[index]?.current === 'recentFix') unit.onFix++
+
+			byUnit.set(key, unit)
+		}
+	})
+
+	const states = new Map(ledger.rows.map((row) => [`${row.tier}/${row.unit}`, row.state]))
+
+	out.push(
+		'',
+		'## Fixes by unit',
+		'',
+		`The ${TOP_UNITS} units with the most fixes since ${since}. A fix counts for each unit whose shipped source it changes.`,
+		'',
+		`| Unit | State | Fixes | In ${latest} | Replaces a recent fix |`,
+		'|---|---|---|---|---|',
+	)
+
+	const top = [...byUnit]
+		.sort(([a, x], [b, y]) => y.all - x.all || y.latest - x.latest || a.localeCompare(b))
+		.slice(0, TOP_UNITS)
+
+	for (const [key, unit] of top)
+		out.push(
+			`| \`${key}\` | ${states.get(key) ?? '—'} | ${unit.all} | ${unit.latest} | ${unit.onFix} |`,
+		)
 
 	out.push('', '## Reopened units', '', '| Week | Reopened |', '|---|---|')
 

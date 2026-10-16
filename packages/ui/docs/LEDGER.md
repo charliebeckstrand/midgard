@@ -9,16 +9,16 @@ A unit is **Clean at a commit** when all five checks pass at that commit. Each c
 1. **Contract written.** The TSDoc of the unit states its behavior in each lens that applies to it.
 2. **Contract tested.** Each lens that applies has a test of the rule, not of one reported case. When units share a mechanism, one table-driven test runs every unit of the family.
 3. **Clean sweep.** A `bug-sweeper` and `bug-verifier` pass over the full file list of the unit returns no confirmed finding at the severity floor or above.
-4. **Phone check.** For a unit with touch or a phone layout, the iPhone checks of the unit passed at the commit or after it. They are on the phone list of its letter.
+4. **Phone check.** For a unit with touch or a phone layout, the iPhone checks of the unit passed at the commit or after it. They are on the phone list of its pass.
 5. **Concise.** The unit does not go around a shared piece, and it has no dead surface.
 
 The lenses and their definitions are in [`bug-sweeper.md` §6](../../../.claude/agents/bug-sweeper.md). The severity levels and the floor are in [`bug-verifier.md` §6](../../../.claude/agents/bug-verifier.md). The floor is `medium`.
 
 ## Passes
 
-A letter sweep ([`bug-audit.md`](../../../.claude/commands/bug-audit.md) §8) takes a unit to Clean. The first fix of the sweep sets its units to In pass. After the fixes merge, one confirmation sweep with the lenses of each unit runs over the units of the letter, at the floor. The pull request of the confirmation sets each unit that passes to Clean. A unit with touch or a phone layout stays In pass until its phone checks pass. Then a pull request sets it to Clean, with the date of the run.
+A Clean pass ([`bug-audit.md`](../../../.claude/commands/bug-audit.md) §8) takes a unit to Clean. A pass takes one unit, or a family of units that share a mechanism. The next pass takes the units with the most fixes in the "Fixes by unit" table of the weekly report.
 
-Each letter has one phone list. The list names the iPhone checks of each unit of the letter that has touch or a phone layout. A maintainer runs the list after the deploy. A unit with no touch and no phone layout has `n/a` and does not wait for the list.
+Each pass has one phone list. The list names the iPhone checks of each unit of the pass that has touch or a phone layout. A maintainer runs the list after the deploy. A unit with no touch and no phone layout has `n/a` and does not wait for the list.
 
 ## States
 
