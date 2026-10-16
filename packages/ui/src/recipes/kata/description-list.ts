@@ -30,24 +30,32 @@ const base = defineRecipe({
  * `[&>dt]` or `[&>dd]` selector in full, and no row builds its class from a
  * template.
  *
+ * Below the `sm` breakpoint a horizontal list stacks each term above its
+ * details. There it takes the padding of a vertical list, so the two
+ * orientations look the same on a phone. From `sm` each cell of a row has a
+ * block padding, `py-2` at `md`, and a term has the `pe-2` gutter. Each
+ * narrow class has `max-sm:` and each wide class has `sm:`, so no property
+ * has two values at one width.
+ *
  * The block padding of each cell takes the step of the nearest density scope.
- * At `md` a horizontal cell has `py-2` from the `sm` breakpoint, and a
- * vertical term has `pt-4` above it. Each stepped class writes one side, so
- * the narrow and the wide rows set no property twice. The `pe-2` gutter of a
- * term keeps one size, because no stepped utility writes `padding-inline-end`.
+ * At `md` a vertical term has `pt-4` above it, and its details have `pt-1`.
+ * The `pe-2` gutter of a term keeps one size, because no stepped utility
+ * writes `padding-inline-end`.
  */
 const projection = {
 	horizontal: [
 		'[&>dt]:col-start-1',
-		dan.space.term.top,
-		'[&>dt]:pe-2',
+		dan.space.term.stacked.narrow,
+		dan.space.detail.stacked.narrow,
+		dan.space.term.row.top,
 		dan.space.term.row.bottom,
-		dan.space.detail.bottom,
+		'sm:[&>dt]:pe-2',
 		dan.space.detail.row.top,
+		dan.space.detail.row.bottom,
 		// The first row has no row above it, so it drops its top padding, as the
 		// vertical list does. The selectors outrank the rows above at each width.
 		'[&>dt:first-child]:pt-0',
-		'[&>dt:first-child+dd]:pt-0',
+		'sm:[&>dt:first-child+dd]:pt-0',
 	],
 	vertical: [dan.space.term.stacked.top, '[&>dt:first-child]:pt-0', dan.space.detail.stacked.top],
 } as const

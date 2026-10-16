@@ -352,27 +352,31 @@ export const space = {
 		end: '[&>*>tr>th[data-resizable]]:density-pe-[1,2,4,6,9]',
 	},
 	term: {
-		/** The top padding of a term in a description list. */
-		top: '[&>dt]:density-pt-[1,1.5,2,2.5,3]',
 		row: {
-			/** The bottom padding of a term in a description list row. */
+			/** The top padding of a term in a description list row, from the `sm` breakpoint. */
+			top: 'sm:[&>dt]:density-pt-[1,1.5,2,2.5,3]',
+			/** The bottom padding of a term in a description list row, from the `sm` breakpoint. */
 			bottom: 'sm:[&>dt]:density-pb-[1,1.5,2,2.5,3]',
 		},
 		stacked: {
 			/** The top padding of a term in a stacked description list. */
 			top: '[&>dt]:density-pt-[2,3,4,5,6]',
+			/** The same padding, below the `sm` breakpoint, where a horizontal list stacks. */
+			narrow: 'max-sm:[&>dt]:density-pt-[2,3,4,5,6]',
 		},
 	},
 	detail: {
-		/** The bottom padding of a detail in a description list. */
-		bottom: '[&>dd]:density-pb-[1,1.5,2,2.5,3]',
 		row: {
-			/** The top padding of a detail in a description list row. */
+			/** The top padding of a detail in a description list row, from the `sm` breakpoint. */
 			top: 'sm:[&>dd]:density-pt-[1,1.5,2,2.5,3]',
+			/** The bottom padding of a detail in a description list row, from the `sm` breakpoint. */
+			bottom: 'sm:[&>dd]:density-pb-[1,1.5,2,2.5,3]',
 		},
 		stacked: {
 			/** The top padding of a detail in a stacked description list. */
 			top: '[&>dd]:density-pt-[0.25,0.5,1,1.5,2.5]',
+			/** The same padding, below the `sm` breakpoint, where a horizontal list stacks. */
+			narrow: 'max-sm:[&>dd]:density-pt-[0.25,0.5,1,1.5,2.5]',
 		},
 	},
 	field: {

@@ -22,6 +22,9 @@ export type DescriptionListProps = DescriptionListVariants & {} & ComponentProps
  * details). It owns every orientation-varying style, and projects it onto
  * direct `dt` / `dd` children, so term and details stay context-free.
  *
+ * Below the `sm` breakpoint a `horizontal` list stacks each term above its
+ * details, with the same spacing as a `vertical` list.
+ *
  * The text and the block padding of each cell take the step of the nearest
  * density scope. At `md` the text is `text-sm`, and a horizontal cell has
  * `py-2` from the `sm` breakpoint.
