@@ -9,7 +9,7 @@ import { NumberInput } from 'ui/number-input'
 import { useDensityStep } from 'ui/primitives/density'
 import { type DensityStep, isDensityStep, stepDown } from '../../core/density/steps.ts'
 import { omote } from '../../recipes/kiso/index.ts'
-import type { BarrelApi, BreakpointValues, Literal, PropApi } from '../plugin/api.ts'
+import type { BarrelApi, DefaultValue, Literal, PropApi } from '../plugin/api.ts'
 import type { ExampleCode } from '../plugin/examples.ts'
 import { ExampleFrame, metaOf } from './example.tsx'
 import { humanize } from './humanize.ts'
@@ -18,7 +18,7 @@ import { humanize } from './humanize.ts'
  * The value of a field: a literal, or a value for each breakpoint, which only
  * the default of a responsive prop is.
  */
-type Value = Literal | BreakpointValues
+type Value = DefaultValue
 
 /** A field that picks one value of a union of literals. */
 type ChoiceField = {
@@ -85,20 +85,14 @@ function labelOf(value: Value): string {
 	return typeof value === 'string' ? (SIZES[value] ?? humanize(value)) : String(value)
 }
 
-/** The default of a free field: the code of the tag, as a number or as the text in its quotes. */
+/** The default of a free field: the default of the prop, when it is a value of the kind of the field. */
 function freeDefaultOf(
 	kind: FreeField['kind'],
-	text: string | undefined,
+	value: DefaultValue | undefined,
 ): string | number | undefined {
-	if (text === undefined) return undefined
+	if (kind === 'number') return typeof value === 'number' ? value : undefined
 
-	if (kind === 'number') {
-		const value = Number(text)
-
-		return text.trim() !== '' && Number.isFinite(value) ? value : undefined
-	}
-
-	return /^(['"`])(.*)\1$/s.exec(text)?.[2]
+	return typeof value === 'string' ? value : undefined
 }
 
 /**
@@ -110,7 +104,7 @@ function freeDefaultOf(
  * of the component, so it gets a field only when `free` names it.
  */
 function freeFieldOf(prop: PropApi, free: Free): FreeField | undefined {
-	const { name, type, default: text } = prop
+	const { name, type, defaultValue } = prop
 
 	if (Object.hasOwn(free, name)) {
 		if (type !== 'string' && type !== 'number' && type !== 'ReactNode') {
@@ -121,7 +115,7 @@ function freeFieldOf(prop: PropApi, free: Free): FreeField | undefined {
 
 		const kind = type === 'number' ? 'number' : 'text'
 
-		const fallback = freeDefaultOf(kind, text)
+		const fallback = freeDefaultOf(kind, defaultValue)
 
 		// An empty string starts the field empty, which omits the prop.
 		const start = free[name] === '' ? undefined : free[name]
@@ -136,7 +130,7 @@ function freeFieldOf(prop: PropApi, free: Free): FreeField | undefined {
 
 	if (type !== 'number' || name.startsWith('default')) return undefined
 
-	const fallback = freeDefaultOf('number', text)
+	const fallback = freeDefaultOf('number', defaultValue)
 
 	return fallback === undefined
 		? undefined
@@ -175,22 +169,23 @@ function fieldsOf(
 }
 
 /**
- * The choice field of a prop with `values`. The tag writes the default as
- * code, such as `'md'` or `true`. The default of a responsive prop can be a
- * value for each breakpoint, which is the first option of the field.
+ * The choice field of a prop with `values`. Its default is the default of the
+ * prop when it is one of the values. A default for each breakpoint, as a
+ * responsive prop can have, is the first option of the field.
  */
 function choiceFieldOf(prop: PropApi, values: readonly Literal[], step: DensityStep): ChoiceField {
-	const { name, default: text, defaultByBreakpoint: byBreakpoint, required } = prop
+	const { name, default: text, defaultValue, required } = prop
 
-	const tagged =
-		byBreakpoint ?? values.find((value) => text === JSON.stringify(value) || text === `'${value}'`)
+	const map = typeof defaultValue === 'object' ? defaultValue : undefined
+
+	const tagged = map ?? values.find((value) => value === defaultValue)
 
 	const fallback = tagged ?? (text === undefined && values.every(isDensityStep) ? step : undefined)
 
 	return {
 		kind: 'choice',
 		name,
-		values: byBreakpoint ? [byBreakpoint, ...values] : values,
+		values: map ? [map, ...values] : values,
 		...(fallback !== undefined && { default: fallback }),
 		...(required && { required }),
 	}

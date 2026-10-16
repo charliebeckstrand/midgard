@@ -34,16 +34,16 @@ const API: BarrelApi = {
 	Thing: {
 		name: 'Thing',
 		props: [
-			{ name: 'defaultCount', type: 'number', default: '3' },
-			{ name: 'label', type: 'string', default: "'Thing'" },
-			{ name: 'max', type: 'number', default: '100' },
+			{ name: 'defaultCount', type: 'number', default: '3', defaultValue: 3 },
+			{ name: 'label', type: 'string', default: "'Thing'", defaultValue: 'Thing' },
+			{ name: 'max', type: 'number', default: '100', defaultValue: 100 },
 			{
 				name: 'orientation',
 				type: 'Responsive<Orientation>',
 				values: ['horizontal', 'vertical'],
 				responsive: true,
 				default: 'THING_ORIENTATION',
-				defaultByBreakpoint: { initial: 'vertical', sm: 'horizontal' },
+				defaultValue: { initial: 'vertical', sm: 'horizontal' },
 			},
 			{ name: 'page', type: 'number' },
 		],

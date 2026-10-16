@@ -23,6 +23,9 @@ export type Literal = string | number | boolean
 /** A value for each breakpoint that it names, as a `Responsive<T>` prop takes it, in breakpoint order. */
 export type BreakpointValues = { readonly [B in Breakpoint]?: Literal }
 
+/** The value of a default: a literal, or a value for each breakpoint. */
+export type DefaultValue = Literal | BreakpointValues
+
 /** One prop of a component, as the API table and the playground read it. */
 export type PropApi = {
 	name: string
@@ -38,12 +41,6 @@ export type PropApi = {
 	values?: Literal[]
 	/** Whether the prop also takes a value for each breakpoint, as `Responsive<T>` does. */
 	responsive?: true
-	/**
-	 * The default of a responsive prop that sets a value for each breakpoint. Its
-	 * `@defaultValue` tag names a constant that the barrel exports, and this is
-	 * the value of the constant.
-	 */
-	defaultByBreakpoint?: BreakpointValues
 	required?: true
 	/**
 	 * The code of the `@defaultValue` tag, such as `'md'` or `2000`. A tag that is
@@ -52,6 +49,13 @@ export type PropApi = {
 	 * such a sentence is the default too.
 	 */
 	default?: string
+	/**
+	 * The value of `default`: a literal, such as `'md'`, or the value of a
+	 * constant that the barrel exports, such as `{ initial: 'vertical', sm:
+	 * 'horizontal' }` for `DESCRIPTION_LIST_ORIENTATION`. Code of another
+	 * kind, such as a function, gives none.
+	 */
+	defaultValue?: DefaultValue
 	/** Markdown. */
 	description?: string
 	/** The text of the `@deprecated` tag, which can be empty. */
@@ -382,14 +386,14 @@ function readBarrel(ts: Ts, ast: Ast, program: Program, checker: Checker, file: 
 			.filter(Boolean)
 			.join('\n\n')
 
-		const byBreakpoint = constantOf(taken.responsive && code)
+		const value = defaultValueOf(code)
 
 		return {
 			name: symbol.name,
 			...taken,
-			...(byBreakpoint && { defaultByBreakpoint: byBreakpoint }),
 			...(required && { required: true }),
 			...(code && { default: code }),
+			...(value !== undefined && { defaultValue: value }),
 			...(description && { description }),
 			...(deprecated !== undefined && { deprecated }),
 		}
@@ -462,12 +466,17 @@ function readBarrel(ts: Ts, ast: Ast, program: Program, checker: Checker, file: 
 		return literalsOf(members.filter((member) => member.isLiteralType()))
 	}
 
+	/** The value of the code of a default: a literal, or a constant that {@link constantOf} reads. */
+	function defaultValueOf(code: string | undefined): DefaultValue | undefined {
+		return code === undefined ? undefined : (literalOfCode(code) ?? constantOf(code))
+	}
+
 	/**
 	 * The value of the constant `name` that the barrel exports, when it is an
 	 * object of literals with breakpoints for keys, such as
 	 * `DESCRIPTION_LIST_ORIENTATION`.
 	 */
-	function constantOf(name: string | undefined): BreakpointValues | undefined {
+	function constantOf(name: string): BreakpointValues | undefined {
 		const exported = exports.find((symbol) => symbol.name === name)
 
 		const symbol = exported && targetOf(exported)
@@ -728,6 +737,19 @@ function sourceOf(declaration: NodeHandle | undefined): Node | undefined {
  */
 function byName(a: { name: string }, b: { name: string }): number {
 	return a.name.localeCompare(b.name, LOCALE)
+}
+
+/** The value of code that is a literal, such as `'md'`, `2000`, or `true`, or `undefined` for other code. */
+function literalOfCode(code: string): Literal | undefined {
+	const quoted = /^(['"`])(.*)\1$/s.exec(code)
+
+	if (quoted) return quoted[2]
+
+	if (code === 'true' || code === 'false') return code === 'true'
+
+	const value = Number(code)
+
+	return code.trim() !== '' && Number.isFinite(value) ? value : undefined
 }
 
 /** The value of a literal type, or `undefined` for another type. */

@@ -90,12 +90,18 @@ describe('API extractor', { timeout: 60_000 }, () => {
 	it('gives a default as code, and a default that is a sentence as prose', async () => {
 		const api = await load()
 
-		expect(propOf(api, 'ToggleIconButton', 'color')?.default).toBe("'zinc'")
+		expect(propOf(api, 'ToggleIconButton', 'color')).toMatchObject({
+			default: "'zinc'",
+			defaultValue: 'zinc',
+		})
 
 		// The default-value gate holds a name as the code of the default.
 		expect(propOf(api, 'ToggleIconButton', 'pressedIcon')?.default).toBe('icon')
 
 		expect(propOf(api, 'ColorPanel', 'swatches')?.default).toBe('DEFAULT_SWATCHES')
+
+		// A constant gives a value only when it sets a value for each breakpoint.
+		expect(propOf(api, 'ColorPanel', 'swatches')?.defaultValue).toBeUndefined()
 
 		const initialFocus = propOf(api, 'Confirm', 'initialFocus')
 
@@ -113,7 +119,7 @@ describe('API extractor', { timeout: 60_000 }, () => {
 		expect(propOf(api, 'Menu', 'sheet')).toBeDefined()
 	})
 
-	it('gives the values of a responsive type, and a default for each breakpoint from its constant', async () => {
+	it('gives the values of a responsive type, and the value of a default constant', async () => {
 		const api = await load()
 
 		expect(propOf(api, 'DescriptionList', 'orientation')).toMatchObject({
@@ -121,17 +127,16 @@ describe('API extractor', { timeout: 60_000 }, () => {
 			values: ['horizontal', 'vertical'],
 			responsive: true,
 			default: 'DESCRIPTION_LIST_ORIENTATION',
-			defaultByBreakpoint: { initial: 'vertical', sm: 'horizontal' },
+			defaultValue: { initial: 'vertical', sm: 'horizontal' },
 		})
 
-		// An alias of `Responsive<T>` passes too, and a single default stays code.
+		// An alias of `Responsive<T>` passes too, with a single default.
 		expect(propOf(api, 'Flex', 'direction')).toMatchObject({
 			type: 'ResponsiveDirection',
 			values: ['col', 'col-reverse', 'row', 'row-reverse'],
 			responsive: true,
 			default: "'row'",
+			defaultValue: 'row',
 		})
-
-		expect(propOf(api, 'Flex', 'direction')?.defaultByBreakpoint).toBeUndefined()
 	})
 })
