@@ -5,6 +5,7 @@ import { BadgeRemovable } from '../../components/badge/badge-removable'
 import { Button } from '../../components/button'
 import { announce, cn, composeEventHandlers, dataAttr } from '../../core'
 import { useA11yRoving } from '../../hooks'
+import { joinAriaIds } from '../../hooks/use-aria-ids'
 import { k } from '../../recipes/kata/query-chips'
 import {
 	formatQuerySummary,
@@ -264,9 +265,10 @@ export function QueryChips({
 			role="toolbar"
 			aria-orientation="horizontal"
 			aria-label={ariaLabel}
-			aria-describedby={empty ? undefined : descriptionId}
-			// The row takes focus only when its last chip goes; it is never a Tab stop.
-			tabIndex={empty ? -1 : undefined}
+			aria-describedby={joinAriaIds([props['aria-describedby'], !empty && descriptionId])}
+			// The row takes focus only when its last chip goes. It is not a Tab stop
+			// unless the consumer makes it one.
+			tabIndex={props.tabIndex ?? (empty ? -1 : undefined)}
 			className={cn(k.base, className)}
 			onKeyDown={composeEventHandlers(onKeyDownProp, onKeyDown)}
 		>

@@ -93,7 +93,9 @@ export function KanbanCardHandle({
 			id={handleId}
 			// "Drag" and then the name of the card item. An explicit name replaces both.
 			label={ariaLabel ?? 'Drag'}
-			aria-labelledby={ariaLabel ? undefined : `${handleId} ${itemId}`}
+			aria-labelledby={
+				props['aria-labelledby'] ?? (ariaLabel ? undefined : `${handleId} ${itemId}`)
+			}
 			onKeyDown={composeEventHandlers(onKeyDown, (event) => onCardKeyDown(cardId, event))}
 			onBlur={composeEventHandlers(onBlur, onCardBlur)}
 			data-card-id={cardId}
