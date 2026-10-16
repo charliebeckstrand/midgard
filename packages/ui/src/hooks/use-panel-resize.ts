@@ -474,7 +474,8 @@ export function usePanelResize({
 
 		event.preventDefault()
 
-		if (panel === null) return
+		// While a pointer drags, the pointer owns the size until it lets go.
+		if (panel === null || grab.current !== null) return
 
 		// The committed size when there is one, so a held arrow reads no layout for
 		// the size after the first press. A key step suspends the size transition, so
