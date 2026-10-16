@@ -115,12 +115,14 @@ Do not declare a key again when the base gives it. `Omit<ComponentProps<'div'>, 
 | An action in progress | `loading` | `pending` |
 | A close button on the part | `closable` | `dismissible` |
 | The level of a heading | `level`, or `<part>Level` when the level belongs to a part, as the `titleLevel` of a Dashboard, with the type `HeadingLevel` | A union `1 \| 2 \| 3 \| 4 \| 5 \| 6` written by hand |
-| The semantic kind of a message | `severity`, with the type `AlertSeverity` or a union that adds to it | A second union of the same kinds |
+| The semantic kind of a message | `severity`, with the type `AlertSeverity`, a union that adds to it, or a part of it, such as the validation `Severity` | A union with another kind for the same idea, such as `danger` |
 | The density step | `size` (§4.4) | |
 | The style of the part | `variant` | |
 | The palette color | `color` | |
 | The element that takes focus when an overlay opens | `initialFocus` | |
 | The element that takes focus when the part closes | `returnFocusTo` | `finalFocus` |
+
+`prop-vocabulary-boundary.test.ts` reads each public props type with the checker. It holds the aliases, the heading level, and the severity rows. No gate holds the `onChange` row, because a native `onChange` is correct on an input.
 
 ## 5. Styling
 
