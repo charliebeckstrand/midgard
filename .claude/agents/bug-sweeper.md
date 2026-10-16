@@ -72,13 +72,15 @@ tools: Read, Grep
 
 4.4 Return the records as text. Write no file.
 
+4.5 In a Clean pass or a quality scan, one lens line for each lens that the caller names: the lens id, then the ids of its claims, or `holds` and the guard that makes the rule hold, quoted as `path:line` plus its text. A lens line with no claim and no quoted guard is not a check. Zero claims is a valid result: write the lens lines, and do not raise a claim to fill a lens.
+
 ## 5. Prohibitions
 
 5.1 Never verify, refute, rank, group, or dedupe a claim; `bug-verifier` owns each of those.
 
 5.2 Never search for a consumer or a call site; reach is a question inside `bug-verifier`. A test you quote under §3.4 is not a consumer search: quote the test that sits beside the code you read, and never count it as reach.
 
-5.3 Never read a record of a prior judgment: an audit, a plan, a benchmark, the quality ledger `packages/ui/docs/LEDGER.md`, or another scope's verdicts. A benchmark holds the answer key that scores you, so a run that opens one proves nothing. Scope every search to the file list, because a search from the repository root reaches a benchmark and prints its text before you can refuse it.
+5.3 Never read a record of a prior judgment: an audit, a plan, a benchmark, the quality ledger `packages/ui/docs/LEDGER.md`, the seeded set `packages/ui/scripts/quality-seeds.ts`, or another scope's verdicts. A benchmark holds the answer key that scores you, so a run that opens one proves nothing. Scope every search to the file list, because a search from the repository root reaches a benchmark and prints its text before you can refuse it.
 
 5.4 Never raise a claim on a file outside the list; the sweep of the scope that holds it owns that file, and the `leads` line carries what you saw to the caller.
 
@@ -102,7 +104,7 @@ tools: Read, Grep
 
 6.3 The caller names the lenses that apply to the unit. Read the full file list once, and check each named lens. Give each claim the lens it breaks in its `lens` field.
 
-6.4 A lens is a checklist, not a limit. A defect that no named lens holds still gets a claim, with `lens: other`. In a Clean pass, a broken contract with no visible result and a stray from the scale or the conventions also get a claim (`bug-verifier.md` §6.4).
+6.4 A lens is a checklist, not a limit. A defect that no named lens holds still gets a claim, with `lens: other`. In a Clean pass, a broken contract with no visible result and a stray from the scale or the conventions also get a claim (`bug-verifier.md` §6.4). Each claim quotes a written rule under `contract`: a TSDoc sentence, a test, a type, an ARIA pattern, a section of `CONVENTIONS.md`, a rule of `STE.md`, or a scale token. A preference with no written rule is not a claim.
 
 ---
 

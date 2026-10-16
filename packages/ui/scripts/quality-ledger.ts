@@ -3,8 +3,10 @@
  *
  * The ledger has one table for each tier of units, under a `## <Tier>`
  * heading. Each table has one row for each unit. `quality-report.ts` counts
- * the states of the rows, and `ledger-boundary.test.ts` checks the rows
- * against the unit directories and against the rules of each cell.
+ * the states of the rows and ranks the open findings, and
+ * `ledger-boundary.test.ts` checks the rows against the unit directories and
+ * against the rules of each cell. The Scan section holds the measures of the
+ * last quality scan.
  */
 
 import { fileURLToPath } from 'node:url'
@@ -36,6 +38,7 @@ export const COLUMNS = [
 	'State',
 	'Clean in',
 	'Lenses',
+	'Open',
 	'Phone check',
 	'Known, not chasing',
 ] as const
@@ -47,6 +50,7 @@ export type LedgerRow = {
 	state: string
 	cleanIn: string
 	lenses: string
+	open: string
 	phone: string
 	known: string
 	/** The line of the row in the ledger, from 1. */
@@ -57,6 +61,64 @@ export type LedgerRow = {
 export type Ledger = {
 	rows: LedgerRow[]
 	errors: string[]
+}
+
+/** The levels of an open finding, in the order of the rank: the two bug levels, then the kinds. */
+export const OPEN_LEVELS = ['high', 'medium', 'correctness', 'polish'] as const
+
+type OpenLevel = (typeof OPEN_LEVELS)[number]
+
+/** The counts of an Open cell, or `undefined` when the unit has no scan or the cell breaks its shape. */
+export function parseOpen(cell: string): Record<OpenLevel, number> | undefined {
+	const counts: Record<OpenLevel, number> = { high: 0, medium: 0, correctness: 0, polish: 0 }
+
+	if (cell === 'none') return counts
+
+	let last = -1
+
+	for (const part of cell.split(', ')) {
+		const match = /^([1-9]\d*) ([a-z]+)$/.exec(part)
+
+		const index = OPEN_LEVELS.indexOf(match?.[2] as OpenLevel)
+
+		// Each level comes once, in the order of the rank.
+		if (!match || index <= last) return undefined
+
+		counts[OPEN_LEVELS[index] as OpenLevel] = Number(match[1])
+
+		last = index
+	}
+
+	return counts
+}
+
+/** The names of the measures in the Scan section, in order. */
+export const SCAN_FIELDS = [
+	'Commit',
+	'Date',
+	'Recall',
+	'Agreement',
+	'Lens coverage',
+	'Unproved',
+] as const
+
+/** The values of the Scan section by name, as written. A missing field has no key. */
+export function parseScan(source: string): Partial<Record<(typeof SCAN_FIELDS)[number], string>> {
+	const start = source.indexOf('\n## Scan\n')
+
+	if (start === -1) return {}
+
+	const section = source.slice(start + 1).split(/\n## /)[0] ?? ''
+
+	const scan: Partial<Record<(typeof SCAN_FIELDS)[number], string>> = {}
+
+	for (const [, name, value] of section.matchAll(/^- \*\*(.+?)\.\*\* (.+)$/gm)) {
+		const field = SCAN_FIELDS.find((candidate) => candidate === name)
+
+		if (field) scan[field] = (value as string).trim()
+	}
+
+	return scan
 }
 
 const TIER_HEADING = /^## (.+)$/
@@ -124,7 +186,7 @@ function readRow(
 		return
 	}
 
-	const [unit = '', state = '', cleanIn = '', lenses = '', phone = '', known = ''] = row
+	const [unit = '', state = '', cleanIn = '', lenses = '', open = '', phone = '', known = ''] = row
 
 	ledger.rows.push({
 		tier,
@@ -132,6 +194,7 @@ function readRow(
 		state,
 		cleanIn,
 		lenses,
+		open,
 		phone,
 		known,
 		line,

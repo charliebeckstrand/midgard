@@ -5,6 +5,9 @@ import {
 	LEDGER,
 	type LedgerRow,
 	parseLedger,
+	parseOpen,
+	parseScan,
+	SCAN_FIELDS,
 	STATES,
 	TIERS,
 	type Tier,
@@ -23,6 +26,16 @@ const NONE = '—'
 const PULL = /^\[#(\d+)\]\(https:\/\/github\.com\/charliebeckstrand\/midgard\/pull\/\1\)$/
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/
+
+/** The shape of each value of the Scan section after the first scan. */
+const SCAN_VALUE: Record<(typeof SCAN_FIELDS)[number], RegExp> = {
+	Commit: /^`[0-9a-f]{10,40}`$/,
+	Date: DATE,
+	Recall: /^\d+ of \d+$/,
+	Agreement: /^\d+ of \d+$/,
+	'Lens coverage': /^\d+ of \d+$/,
+	Unproved: /^\d+$/,
+}
 
 /** The units of one tier: each directory, and each layout file without its extension. */
 function units(tier: Tier): string[] {
@@ -71,6 +84,18 @@ function cellBreaks(row: LedgerRow, lenses: Set<string>): string[] {
 
 	if (row.state === 'Clean' && row.phone === NONE) breaks.push('a Clean unit has no phone check')
 
+	if (row.open !== NONE) {
+		const counts = parseOpen(row.open)
+
+		if (!counts)
+			breaks.push('Open is not —, none, or counts in the order high, medium, correctness, polish')
+
+		if (row.lenses === NONE) breaks.push('a scanned unit names no lens')
+
+		if (row.state === 'Clean' && counts && Object.values(counts).some(Boolean))
+			breaks.push('a Clean unit has an open finding')
+	}
+
 	return breaks.map((text) => `${row.tier}/${row.unit} (line ${row.line}): ${text}`)
 }
 
@@ -103,6 +128,26 @@ describe('quality ledger (CONVENTIONS §12.6)', () => {
 		const lenses = lensIds()
 
 		expect(ledger.rows.flatMap((row) => cellBreaks(row, lenses))).toEqual([])
+	})
+
+	it('records one scan: each row and the Scan section, or none of them', () => {
+		const scanned = ledger.rows.filter((row) => row.open !== NONE).length
+
+		const scan = parseScan(source)
+
+		expect(Object.keys(scan), 'the Scan section names each measure, in order').toEqual([
+			...SCAN_FIELDS,
+		])
+
+		if (scanned === 0) {
+			expect(Object.values(scan).every((value) => value === NONE)).toBe(true)
+
+			return
+		}
+
+		expect(scanned, 'a scan writes the Open cell of every unit').toBe(ledger.rows.length)
+
+		for (const field of SCAN_FIELDS) expect(scan[field], field).toMatch(SCAN_VALUE[field])
 	})
 
 	it('names no audit and no plan (CONVENTIONS §12.4)', () => {

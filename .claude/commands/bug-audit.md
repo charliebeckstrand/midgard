@@ -109,19 +109,19 @@ You are the caller. The three bug agents read and judge. You cut the scopes, mov
 
 8.1 A Clean pass takes one unit, or one family of units that share a mechanism, from the ledger [`packages/ui/docs/LEDGER.md`](../../packages/ui/docs/LEDGER.md). It does not take a free area.
 
-8.2 Choose the units of the next pass in two steps. The "Fixes by unit" table of `pnpm --filter ui quality:report` names the candidates. Then a sweep of the candidates proposes findings. Take the units with the most `bug` findings first, then the most `correctness` findings, then the most `polish` findings (`bug-verifier.md` §6.4). Give the reader the ranked list before the first fix.
+8.2 Take the units at the top of the "Next passes" table of `pnpm --filter ui quality:report`. The quality scan ([`quality-scan.md`](quality-scan.md)) sets that rank from the proved findings of each unit. A pass starts from the rows of the scan record for its units, and does not sweep them again before the first fix.
 
 8.3 Make each scope the full file list of one unit. Give the sweeper the lenses that apply to the unit, with the lens table of `bug-sweeper.md` §6. Do not add a lens, and do not drop one.
 
 8.4 Put the "Known, not chasing" cell of each unit in the prior-art digest (§1.6). Never give the ledger to a sweeper (§7.3).
 
-8.5 The floor is `medium` (`bug-verifier.md` §6). Write each confirmed finding as a row of the record, with its kind. Fix the `bug` rows first, then the `correctness` rows, then the `polish` rows. A row that the reader declines goes to the "Known, not chasing" cell of the unit.
+8.5 The floor is `medium` (`bug-verifier.md` §6). Write each proved finding as a row of the record, with its kind. Fix the `bug` rows first, then the `correctness` rows, then the `polish` rows. A row that the reader declines goes to the "Known, not chasing" cell of the unit.
 
 8.6 In the first pull request of the pass, set each unit to In pass, and write its lenses.
 
-8.7 After the fixes merge, run one confirmation sweep at the new head of `main`. When the confirmation sweep returns a finding at the floor or above, the test of the family is too narrow. Widen the test before the next fix.
+8.7 After the fixes merge, run one confirmation sweep at the new head of `main`, with the method of `quality-scan.md` §3 and §4. When the confirmation sweep returns a finding at the floor or above, the test of the family is too narrow. Widen the test before the next fix.
 
-8.8 In one pull request, set each unit that passes the confirmation sweep and the other checks of the definition of done to Clean, and put that pull request in its Clean in cell. A unit passes when the sweep returns no finding at the floor or above, and each lower finding is fixed or declined. A unit with no touch and no phone layout gets `n/a` in its Phone check cell.
+8.8 In one pull request, set each unit that passes the confirmation sweep and the other checks of the definition of done to Clean, and put that pull request in its Clean in cell. Set its Open cell to `none`. A unit passes when the sweep returns no finding at the floor or above, and each lower finding is fixed or declined. A unit with no touch and no phone layout gets `n/a` in its Phone check cell.
 
 8.9 In the description of that pull request, write the phone list of the pass: one iPhone check for each behavior of touch or of the phone layout of each remaining unit. Give the list to the reader, who runs it after the deploy. When a unit passes its checks, set it to Clean with the date of the run. When a check fails, the unit stays In pass, and the failure is a bug report.
 
