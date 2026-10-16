@@ -24,7 +24,10 @@ export type ColumnsProps = {
 	 * @defaultValue 'lg'
 	 */
 	gap?: ResponsiveColumnsGap
-	/** The block alignment of each cell in its row. Supports responsive breakpoints. */
+	/**
+	 * The block alignment of each cell in its row. Supports responsive breakpoints.
+	 * @defaultValue No alignment: each cell stretches to the height of its row.
+	 */
 	align?: ResponsiveColumnsAlign
 } & ComponentProps<'div'>
 

@@ -6,13 +6,15 @@ import type { ExampleCode, ExampleMeta } from '../plugin/examples.ts'
 
 // The fields of a playground. A prop whose type is a union of literals gets a
 // list, a number prop whose default is a number gets a number field, and a
-// prop that `free` names gets a text or a number field.
+// prop that `free` names gets a text or a number field. A responsive prop gets
+// a list of its values, and its default for each breakpoint is the first option.
 
 type ThingProps = {
 	label?: string
 	max?: number
 	defaultCount?: number
 	page?: number
+	orientation?: 'horizontal' | 'vertical' | { initial?: string; sm?: string }
 }
 
 // The source of the playground with no `{...props}`, and the place of the spread.
@@ -35,6 +37,14 @@ const API: BarrelApi = {
 			{ name: 'defaultCount', type: 'number', default: '3' },
 			{ name: 'label', type: 'string', default: "'Thing'" },
 			{ name: 'max', type: 'number', default: '100' },
+			{
+				name: 'orientation',
+				type: 'Responsive<Orientation>',
+				values: ['horizontal', 'vertical'],
+				responsive: true,
+				default: 'THING_ORIENTATION',
+				defaultByBreakpoint: { initial: 'vertical', sm: 'horizontal' },
+			},
 			{ name: 'page', type: 'number' },
 		],
 		events: [],
@@ -108,6 +118,30 @@ describe('Playground', () => {
 		fireEvent.change(label, { target: { value: '' } })
 
 		expect(instanceProps()).toEqual({})
+	})
+
+	it('gives a responsive prop its default for each breakpoint as the first option', () => {
+		render(<Playground of={ThingPlayground} api={API} />)
+
+		const orientation = screen.getByRole('combobox', { name: 'Orientation' })
+
+		expect(orientation.textContent).toContain('Vertical, Horizontal from sm')
+
+		expect(instanceProps()).toEqual({})
+
+		fireEvent.click(orientation)
+
+		const options = screen.getAllByRole('option')
+
+		expect(options.map((option) => option.textContent)).toEqual([
+			'Vertical, Horizontal from smDefault',
+			'Horizontal',
+			'Vertical',
+		])
+
+		fireEvent.click(options[1] as HTMLElement)
+
+		expect(instanceProps()).toEqual({ orientation: 'horizontal' })
 	})
 
 	it('shows each value that is not the default as an attribute in the code', async () => {

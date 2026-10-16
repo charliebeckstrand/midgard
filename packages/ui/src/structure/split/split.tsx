@@ -30,7 +30,10 @@ export type SplitProps = {
 	 * @defaultValue 'lg'
 	 */
 	gap?: ResponsiveSplitGap
-	/** Cross-axis alignment. Supports responsive breakpoints. */
+	/**
+	 * Cross-axis alignment. Supports responsive breakpoints.
+	 * @defaultValue No alignment: each pane stretches across the cross axis.
+	 */
 	align?: ResponsiveSplitAlign
 } & ComponentProps<'div'>
 

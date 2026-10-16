@@ -10,6 +10,7 @@ import type {
 	Type,
 } from 'typescript/unstable/sync'
 import { densitySteps, isDensityStep } from '../../core/density/steps.ts'
+import { BREAKPOINTS, type Breakpoint } from '../../types/responsive.ts'
 
 // The API data of the docs comes from the TypeScript 7 API, which is
 // `typescript/unstable/sync`. Its name says that a minor release can change
@@ -19,13 +20,30 @@ import { densitySteps, isDensityStep } from '../../core/density/steps.ts'
 /** A value of a prop whose type is a union of literals. */
 export type Literal = string | number | boolean
 
+/** A value for each breakpoint that it names, as a `Responsive<T>` prop takes it, in breakpoint order. */
+export type BreakpointValues = { readonly [B in Breakpoint]?: Literal }
+
 /** One prop of a component, as the API table and the playground read it. */
 export type PropApi = {
 	name: string
-	/** The type as TypeScript writes it, without `undefined`. A type that `values` gives has none. */
+	/**
+	 * The type as TypeScript writes it, without `undefined`. A type that `values`
+	 * gives has none, except a responsive type.
+	 */
 	type?: string
-	/** Each member of a type that is a union of literals, in the order of {@link compareLiterals}. */
+	/**
+	 * Each member of a type that is a union of literals, in the order of
+	 * {@link compareLiterals}. For a `Responsive<T>` type, the members of `T`.
+	 */
 	values?: Literal[]
+	/** Whether the prop also takes a value for each breakpoint, as `Responsive<T>` does. */
+	responsive?: true
+	/**
+	 * The default of a responsive prop that sets a value for each breakpoint. Its
+	 * `@defaultValue` tag names a constant that the barrel exports, and this is
+	 * the value of the constant.
+	 */
+	defaultByBreakpoint?: BreakpointValues
 	required?: true
 	/**
 	 * The code of the `@defaultValue` tag, such as `'md'` or `2000`. A tag that is
@@ -267,12 +285,13 @@ function readBarrel(ts: Ts, ast: Ast, program: Program, checker: Checker, file: 
 
 	if (!module) throw new Error(`docs: no barrel at ${file}`)
 
+	const exports = checker.getExportsOfModule(module)
+
 	/** The component of an export: a PascalCase value that takes props, or nothing. */
 	function component(exported: TsSymbol): ComponentApi | undefined {
 		if (!/^[A-Z]/.test(exported.name)) return undefined
 
-		const symbol =
-			exported.flags & SymbolFlags.Alias ? checker.getAliasedSymbol(exported) : exported
+		const symbol = targetOf(exported)
 
 		const type = symbol.flags & SymbolFlags.Value ? checker.getTypeOfSymbol(symbol) : undefined
 
@@ -350,11 +369,11 @@ function readBarrel(ts: Ts, ast: Ast, program: Program, checker: Checker, file: 
 		// `ContextMenu` gives `Menu`. It is not in the API of the component.
 		if (tags.has('internal')) return undefined
 
-		const values = valuesOf(defined)
+		const taken = takenOf(type, defined)
 
 		const deprecated = tags.get('deprecated')
 
-		const { code, sentence } = defaultOf(tags.get('defaultValue') ?? '', values !== undefined)
+		const { code, sentence } = defaultOf(tags.get('defaultValue') ?? '', taken.values !== undefined)
 
 		const description = [
 			checker.getDocumentationCommentOfSymbol(symbol),
@@ -363,14 +382,31 @@ function readBarrel(ts: Ts, ast: Ast, program: Program, checker: Checker, file: 
 			.filter(Boolean)
 			.join('\n\n')
 
+		const byBreakpoint = constantOf(taken.responsive && code)
+
 		return {
 			name: symbol.name,
-			...(values ? { values } : { type: textOf(type, defined) }),
+			...taken,
+			...(byBreakpoint && { defaultByBreakpoint: byBreakpoint }),
 			...(required && { required: true }),
 			...(code && { default: code }),
 			...(description && { description }),
 			...(deprecated !== undefined && { deprecated }),
 		}
+	}
+
+	/**
+	 * What a prop takes: the members of a union of literals, or the text of
+	 * another type. A responsive type gives both.
+	 */
+	function takenOf(type: Type, defined: Type): Pick<PropApi, 'type' | 'values' | 'responsive'> {
+		const responsive = responsiveOf(defined)
+
+		if (responsive) return { type: textOf(type, defined), values: responsive, responsive: true }
+
+		const values = valuesOf(defined)
+
+		return values ? { values } : { type: textOf(type, defined) }
 	}
 
 	/**
@@ -402,17 +438,59 @@ function readBarrel(ts: Ts, ast: Ast, program: Program, checker: Checker, file: 
 			type.getAliasSymbol()?.declarations.some(isPackage) &&
 			type.getAliasTypeArguments().length === 0
 
-		if (named) return undefined
+		return named ? undefined : literalsOf(type.getTypes())
+	}
 
-		const values: Literal[] = []
+	/**
+	 * The members of `T` in a `Responsive<T>` type: a union of the literals of
+	 * `T` and one object whose keys are breakpoints. The test is on the shape,
+	 * so an alias of the type, such as `ResponsiveGap`, passes too.
+	 */
+	function responsiveOf(type: Type): Literal[] | undefined {
+		if (!type.isUnionType()) return undefined
 
-		for (const member of type.getTypes()) {
-			if (!member.isLiteralType() || typeof member.value === 'bigint') return undefined
+		const members = type.getTypes()
 
-			values.push(member.value)
-		}
+		const [map, ...more] = members.filter((member) => !member.isLiteralType())
 
-		return values.toSorted(compareLiterals)
+		if (!map || more.length > 0) return undefined
+
+		const keys = checker.getPropertiesOfType(map).map((member) => member.name)
+
+		if (keys.length === 0 || !keys.every(isBreakpoint)) return undefined
+
+		return literalsOf(members.filter((member) => member.isLiteralType()))
+	}
+
+	/**
+	 * The value of the constant `name` that the barrel exports, when it is an
+	 * object of literals with breakpoints for keys, such as
+	 * `DESCRIPTION_LIST_ORIENTATION`.
+	 */
+	function constantOf(name: string | undefined): BreakpointValues | undefined {
+		const exported = exports.find((symbol) => symbol.name === name)
+
+		const symbol = exported && targetOf(exported)
+
+		const type = symbol && symbol.flags & SymbolFlags.Variable && checker.getTypeOfSymbol(symbol)
+
+		const members = type ? checker.getPropertiesOfType(type) : []
+
+		const named = new Map(
+			members.map((member) => [member.name, literalOf(checker.getTypeOfSymbol(member))]),
+		)
+
+		const breakpoints = BREAKPOINTS.filter((bp) => named.get(bp) !== undefined)
+
+		// Each key must be a breakpoint with a literal.
+		if (breakpoints.length === 0 || breakpoints.length !== named.size) return undefined
+
+		return Object.fromEntries(breakpoints.map((bp) => [bp, named.get(bp)]))
+	}
+
+	/** The symbol that an export names: the declaration that an alias, such as a re-export, stands for. */
+	function targetOf(exported: TsSymbol): TsSymbol {
+		return exported.flags & SymbolFlags.Alias ? checker.getAliasedSymbol(exported) : exported
 	}
 
 	/** The tags whose HTML attributes a component takes ({@link readComponent}). */
@@ -443,10 +521,7 @@ function readBarrel(ts: Ts, ast: Ast, program: Program, checker: Checker, file: 
 		return [...walk.tags].toSorted()
 	}
 
-	const components = checker
-		.getExportsOfModule(module)
-		.flatMap((symbol) => component(symbol) ?? [])
-		.toSorted(byName)
+	const components = exports.flatMap((symbol) => component(symbol) ?? []).toSorted(byName)
 
 	return Object.fromEntries(components.map((entry) => [entry.name, entry]))
 }
@@ -653,6 +728,24 @@ function sourceOf(declaration: NodeHandle | undefined): Node | undefined {
  */
 function byName(a: { name: string }, b: { name: string }): number {
 	return a.name.localeCompare(b.name, LOCALE)
+}
+
+/** The value of a literal type, or `undefined` for another type. */
+function literalOf(type: Type | undefined): Literal | undefined {
+	if (!type?.isLiteralType() || typeof type.value === 'bigint') return undefined
+
+	return type.value
+}
+
+/** The values of literal types, in order, or `undefined` when one type is not a literal. */
+function literalsOf(types: readonly Type[]): Literal[] | undefined {
+	const values = types.flatMap((type) => literalOf(type) ?? [])
+
+	return values.length === types.length ? values.toSorted(compareLiterals) : undefined
+}
+
+function isBreakpoint(name: string): name is Breakpoint {
+	return (BREAKPOINTS as readonly string[]).includes(name)
 }
 
 /** Whether a declaration is in a package, such as a DOM attribute from `@types/react`. */

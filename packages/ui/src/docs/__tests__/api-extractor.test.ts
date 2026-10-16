@@ -5,7 +5,7 @@ import { type BarrelApi, createApiExtractor } from '../plugin/api.ts'
 
 // The API data that the docs plugin makes for some components whose props
 // have a union, an inherited tag, a default that is a sentence, or an
-// `@internal` tag.
+// `@internal` tag, or a `Responsive<T>` type.
 
 const UI_ROOT = path.resolve(import.meta.dirname, '..', '..', '..')
 
@@ -14,12 +14,14 @@ const BARRELS = [
 	'components/color',
 	'components/confirm',
 	'components/date-picker',
+	'components/description-list',
 	'components/hold-button',
 	'components/menu',
 	'components/segment',
 	'components/table',
 	'components/tabs',
 	'components/toggle-icon-button',
+	'structure/flex',
 ]
 
 const extractor = createApiExtractor(UI_ROOT)
@@ -109,5 +111,27 @@ describe('API extractor', { timeout: 60_000 }, () => {
 		expect(propOf(api, 'Menu', 'disabled')).toBeUndefined()
 
 		expect(propOf(api, 'Menu', 'sheet')).toBeDefined()
+	})
+
+	it('gives the values of a responsive type, and a default for each breakpoint from its constant', async () => {
+		const api = await load()
+
+		expect(propOf(api, 'DescriptionList', 'orientation')).toMatchObject({
+			type: 'Responsive<Orientation>',
+			values: ['horizontal', 'vertical'],
+			responsive: true,
+			default: 'DESCRIPTION_LIST_ORIENTATION',
+			defaultByBreakpoint: { initial: 'vertical', sm: 'horizontal' },
+		})
+
+		// An alias of `Responsive<T>` passes too, and a single default stays code.
+		expect(propOf(api, 'Flex', 'direction')).toMatchObject({
+			type: 'ResponsiveDirection',
+			values: ['col', 'col-reverse', 'row', 'row-reverse'],
+			responsive: true,
+			default: "'row'",
+		})
+
+		expect(propOf(api, 'Flex', 'direction')?.defaultByBreakpoint).toBeUndefined()
 	})
 })
