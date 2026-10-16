@@ -10,7 +10,7 @@ import { Calendar } from '../calendar'
 import { DateInput, type DateInputFormat } from '../date-input'
 import { DateInputResetContext, useDateInputResets } from '../date-input/context'
 import { DatePickerCalendarButton } from './date-picker-calendar-button'
-import { DatePickerContent } from './date-picker-content'
+import { DatePickerContent, useDatePickerSheet } from './date-picker-content'
 import { DatePickerFooter } from './date-picker-footer'
 import { DatePickerRange } from './date-picker-range'
 import { DatePickerRelative } from './date-picker-relative'
@@ -152,6 +152,16 @@ export type DatePickerBaseProps = {
 	 * @defaultValue 'bottom-start'
 	 */
 	placement?: FloatingPlacement
+	/**
+	 * Open the panel as a bottom sheet on a phone, which is a narrow viewport
+	 * with no hover. The sheet holds the same calendar, presets, and footer at
+	 * the full width of the screen, with a Close button below them. The Close
+	 * button, a pick, the backdrop, or `Escape` closes it. Set `false` for a
+	 * picker that must stay next to its trigger. The Start and End fields of a
+	 * `relative` custom range take the same value.
+	 * @defaultValue true
+	 */
+	sheet?: boolean
 	/**
 	 * The density step of the trigger padding, the text, the calendar icon, and
 	 * the panel. Omit it to take the step of the nearest density scope. A step
@@ -331,6 +341,8 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 	// Form down. A reset then drops the typed text, also when the value stays.
 	const resets = useDateInputResets(props.name)
 
+	const sheet = useDatePickerSheet(props.sheet)
+
 	const { onDialogKeyDown, onReferenceKeyDown } = useDatePickerInputTab({
 		open: open,
 		triggerRef: triggerRef,
@@ -338,10 +350,10 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 	})
 
 	// With `input`, the dialog's Tab edges hand focus back to the reference
-	// group before the virtual model sees the key.
-	const handleContentKeyDown = input
-		? composeEventHandlers(onDialogKeyDown, onTriggerKeyDown)
-		: onTriggerKeyDown
+	// group before the virtual model sees the key. The sheet is modal and covers
+	// the reference, so its Tab cycle stays in the sheet.
+	const handleContentKeyDown =
+		input && !sheet ? composeEventHandlers(onDialogKeyDown, onTriggerKeyDown) : onTriggerKeyDown
 
 	const getTriggerElements = () => (triggerRef.current ? [triggerRef.current] : [])
 
@@ -354,6 +366,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 			getFloatingProps={getFloatingProps}
 			context={context}
 			size={size}
+			sheet={sheet}
 			onKeyDown={handleContentKeyDown}
 			// `input` mode seeds open-focus on the editable DateInput (not the dialog
 			// container) so the user can type and the same keydown stream roves the

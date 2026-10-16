@@ -2,7 +2,7 @@
 
 import { CalendarRange } from '../calendar'
 import type { DatePickerBaseProps, DatePickerRangeProps } from './date-picker'
-import { DatePickerContent } from './date-picker-content'
+import { DatePickerContent, useDatePickerSheet } from './date-picker-content'
 import { DatePickerFooter } from './date-picker-footer'
 import { DatePickerTrigger } from './date-picker-trigger'
 import { useDatePickerRangeState } from './use-date-picker-range-state'
@@ -29,6 +29,8 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 		footer,
 		...state
 	} = useDatePickerRangeState(props)
+
+	const sheet = useDatePickerSheet(props.sheet)
 
 	return (
 		<>
@@ -63,6 +65,7 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 				getFloatingProps={state.getFloatingProps}
 				context={state.context}
 				size={size}
+				sheet={sheet}
 				onKeyDown={state.onTriggerKeyDown}
 				onExitComplete={state.onExitComplete}
 			>

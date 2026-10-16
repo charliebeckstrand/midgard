@@ -10,13 +10,28 @@ import {
 } from 'react'
 import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
+import { useMediaQuery } from '../../hooks'
 import { FloatingSurface, type FloatingSurfaceProps } from '../../primitives/floating-surface'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { useGlass } from '../../providers/glass/context'
 import type { scale } from '../../recipes/kata/date-picker'
 import { k } from '../../recipes/kata/date-picker'
 import { Box } from '../../structure/box'
+import { PHONE_QUERY } from '../../utilities'
+import { Drawer, DrawerBody, DrawerHeader, DrawerPanel, DrawerTitle } from '../drawer'
 import { RECLAIM_KEYS } from './use-date-picker-keyboard'
+
+/**
+ * Whether the panel of a {@link DatePicker} opens as a bottom sheet: the
+ * `sheet` prop is on, and the viewport is a phone ({@link PHONE_QUERY}).
+ *
+ * @internal
+ */
+export function useDatePickerSheet(sheet = true): boolean {
+	const phone = useMediaQuery(PHONE_QUERY)
+
+	return sheet && phone
+}
 
 /** Props for {@link DatePickerContent}. @internal */
 type DatePickerContentProps = {
@@ -62,7 +77,16 @@ type DatePickerContentProps = {
 	 * treats it as related and does not self-close.
 	 */
 	initialFocusRef?: RefObject<HTMLElement | null>
+	/**
+	 * Fires when the popover has finished its exit. The sheet does not report
+	 * it. Each variant also resets its draft on the next open.
+	 */
 	onExitComplete?: () => void
+	/**
+	 * Render the panel as a bottom sheet in place of the popover. The variant
+	 * gives the result of {@link useDatePickerSheet}.
+	 */
+	sheet?: boolean
 	/**
 	 * Accessible name for the dialog.
 	 *
@@ -99,6 +123,7 @@ export function DatePickerContent({
 	getInsideElements,
 	initialFocusRef,
 	onExitComplete,
+	sheet = false,
 	label = 'Choose date',
 	children,
 }: DatePickerContentProps) {
@@ -111,7 +136,9 @@ export function DatePickerContent({
 	// editable DateInput via `initialFocusRef`.
 	const dialogRef = useRef<HTMLDivElement | null>(null)
 
-	const focusRef = initialFocusRef ?? dialogRef
+	// The sheet is modal and covers the reference, so focus goes into the sheet
+	// also in `input` mode.
+	const focusRef = (!sheet && initialFocusRef) || dialogRef
 
 	// `FloatingSurface` composes this through floating-ui, so the handlers of the
 	// engine merge with it.
@@ -144,6 +171,34 @@ export function DatePickerContent({
 		}
 
 		onKeyDown(event)
+	}
+
+	if (sheet) {
+		// The drawer is the dialog. It holds the focus of the keyboard model and
+		// takes its keys, as the dialog of the popover does.
+		return (
+			<Drawer open={open} onOpenChange={(next) => context.onOpenChange(next)}>
+				<DrawerPanel
+					ref={dialogRef}
+					size={size}
+					tabIndex={-1}
+					initialFocus={dialogRef}
+					className={cn(k.content.sheet.panel)}
+					onKeyDown={handleDialogKeyDown}
+					onMouseDown={(event) => event.preventDefault()}
+				>
+					<DrawerHeader>
+						<DrawerTitle>{label}</DrawerTitle>
+					</DrawerHeader>
+
+					<DrawerBody>
+						<div id={id} data-slot="datepicker-sheet" className={cn(k.content.sheet.body)}>
+							{children}
+						</div>
+					</DrawerBody>
+				</DrawerPanel>
+			</Drawer>
+		)
 	}
 
 	return (

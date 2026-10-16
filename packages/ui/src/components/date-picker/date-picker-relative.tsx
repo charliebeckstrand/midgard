@@ -12,7 +12,7 @@ import { Icon } from '../icon'
 // Sibling variant reused for the custom range's Start/End fields; safe despite the
 // import cycle since both are hoisted function declarations used only at render.
 import { DatePicker, type DatePickerBaseProps, type DatePickerRelativeProps } from './date-picker'
-import { DatePickerContent } from './date-picker-content'
+import { DatePickerContent, useDatePickerSheet } from './date-picker-content'
 import { DatePickerFooter } from './date-picker-footer'
 import { relativeListRows } from './date-picker-relative-utilities'
 import { DatePickerTrigger } from './date-picker-trigger'
@@ -39,6 +39,8 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 	} = props
 
 	const state = useDatePickerRelativeState(props)
+
+	const sheet = useDatePickerSheet(props.sheet)
 
 	// The custom Start and End pickers get no `name`, so the relative picker
 	// passes the reset count of its Form down to their typed fields.
@@ -101,6 +103,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 				getFloatingProps={state.getFloatingProps}
 				context={state.context}
 				size={size}
+				sheet={sheet}
 				onKeyDown={state.onContentKeyDown}
 				onExitComplete={state.onExitComplete}
 				label={state.mode === 'custom' ? 'Custom range' : 'Select range'}
@@ -174,6 +177,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 								min={props.min}
 								max={state.custom.end ?? props.max}
 								size={size}
+								sheet={props.sheet}
 								footer={props.footer}
 							/>
 						</Field>
@@ -189,6 +193,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 								min={state.custom.start ?? props.min}
 								max={props.max}
 								size={size}
+								sheet={props.sheet}
 								footer={props.footer}
 							/>
 						</Field>
