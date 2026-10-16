@@ -320,6 +320,32 @@ describe('Accordion single-select behavior', () => {
 		expect(onValueChange).toHaveBeenCalledWith(null)
 	})
 
+	it('requires an open section for collapsible={false} (compile-time)', () => {
+		// Never rendered; exists for `tsc`. A held accordion cannot close to none,
+		// so it must start with a section open.
+		const typeChecks = () => (
+			<>
+				{/* @ts-expect-error: collapsible={false} needs a value or a defaultValue */}
+				<Accordion collapsible={false}>items</Accordion>
+
+				{/* @ts-expect-error: a held accordion cannot hold no section */}
+				<Accordion collapsible={false} value={null}>
+					items
+				</Accordion>
+
+				<Accordion collapsible={false} defaultValue="a">
+					items
+				</Accordion>
+
+				<Accordion collapsible={false} value="a" onValueChange={(value: string) => value}>
+					items
+				</Accordion>
+			</>
+		)
+
+		expect(typeChecks).toBeTypeOf('function')
+	})
+
 	it('keeps an item open when collapsible is false', () => {
 		const onValueChange = vi.fn()
 
@@ -341,7 +367,7 @@ describe('Accordion single-select behavior', () => {
 		const onValueChange = vi.fn()
 
 		function Controlled() {
-			const [value, setValue] = useState<string | null>('a')
+			const [value, setValue] = useState('a')
 
 			return (
 				<Accordion
@@ -1007,7 +1033,7 @@ describe('structure roots pass native props through', () => {
 	// name in a process, so neither shows a leak reliably. A string reaches the
 	// DOM whenever the prop does.
 	it('keeps `collapsible` off the root element', () => {
-		const leak = { collapsible: 'leak' } as unknown as { collapsible: boolean }
+		const leak = { collapsible: 'leak' } as unknown as { collapsible: true }
 
 		const { container } = renderUI(
 			<Accordion type="single" {...leak}>
