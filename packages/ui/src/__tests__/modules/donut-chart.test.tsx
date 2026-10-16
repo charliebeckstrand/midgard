@@ -94,10 +94,20 @@ describe('DonutChart', () => {
 		expect(shiftedInner.style.left).not.toBe('50%')
 	})
 
+	it('describes the plot with its center content', () => {
+		const { container } = renderUI(chart({ children: <span>9,340 visits</span> }))
+
+		expect(present(bySlot(container, 'chart-plot'), 'the plot')).toHaveAccessibleDescription(
+			'9,340 visits',
+		)
+	})
+
 	it('omits the center layer when given no children', () => {
 		const { container } = renderUI(chart())
 
 		expect(bySlot(container, 'chart-center')).toBeNull()
+
+		expect(bySlot(container, 'chart-plot')).not.toHaveAttribute('aria-describedby')
 	})
 
 	it('names the pointed slice in the tooltip', () => {

@@ -137,6 +137,17 @@ function plotRegionProps(keyboard: PlotTabStopProps | null, aside: boolean, fill
 }
 
 /**
+ * The overlay node, and the plot's reference to it. See {@link ChartFrameProps.overlay}.
+ *
+ * @internal
+ */
+function describingOverlay(overlay: ReactNode, id: string) {
+	return overlay
+		? { describedBy: id, node: <div id={id}>{overlay}</div> }
+		: { describedBy: undefined, node: null }
+}
+
+/**
  * The series emphasis of a frame: the series that a legend entry, the keyboard
  * cursor, or a pie slice points at, and its setter.
  *
@@ -333,7 +344,13 @@ export type ChartFrameProps = AccessibleName & {
 	 */
 	orientation?: ChartOrientation
 	className?: string
-	/** HTML layered over the SVG inside the plot region — a donut's center content. */
+	/**
+	 * HTML layered over the SVG inside the plot region — a donut's center content.
+	 *
+	 * @remarks The plot takes the overlay as its description (`aria-describedby`).
+	 * The plot is `role="img"`, whose children assistive tech does not read, so the
+	 * reference is what lets a screen reader read the overlay, such as a donut's total.
+	 */
 	overlay?: ReactNode
 	/** Visually-hidden HTML beside the data table — reference-line parity outside the plot. */
 	annotations?: ReactNode
@@ -558,6 +575,8 @@ export function ChartFrame({
 	// A chart with `heading` off keeps its title for the context menu alone.
 	const titleId = useId()
 
+	const plotOverlay = describingOverlay(overlay, useId())
+
 	const {
 		header,
 		sparkVeil,
@@ -571,6 +590,7 @@ export function ChartFrame({
 			data-slot="chart-plot"
 			role="img"
 			{...plotName(label)}
+			aria-describedby={plotOverlay.describedBy}
 			{...plotRegionProps(keyboard, aside, fill)}
 		>
 			{/* ChartPlotBox reserves the box height from its own width, steady before
@@ -581,7 +601,7 @@ export function ChartFrame({
 				{svg}
 			</ChartPlotBox>
 
-			{overlay}
+			{plotOverlay.node}
 
 			{sparkVeil}
 

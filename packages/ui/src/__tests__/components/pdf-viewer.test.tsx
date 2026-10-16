@@ -1,5 +1,6 @@
 import { renderToString } from 'react-dom/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { Dialog, DialogPanel, DialogTrigger } from '../../components/dialog'
 import { PdfViewer, type PdfViewerHighlight, type PdfViewerPage } from '../../components/pdf-viewer'
 import {
 	ensureDocumentLoad,
@@ -9,6 +10,7 @@ import { usePdfViewerHighlightsContext } from '../../components/pdf-viewer/pdf-v
 import { PdfViewerHighlightsProvider } from '../../components/pdf-viewer/pdf-viewer-highlights-provider'
 import { PdfViewerPageImage } from '../../components/pdf-viewer/pdf-viewer-page-image'
 import { PdfViewerThumbnailList } from '../../components/pdf-viewer/pdf-viewer-thumbnail-list'
+import { PdfViewerToolbarButton } from '../../components/pdf-viewer/pdf-viewer-toolbar-button'
 import {
 	downloadPdf,
 	pdfNameFromSrc,
@@ -148,13 +150,29 @@ describe('PdfViewer', () => {
 	it('disables zoom in at the maximum', () => {
 		renderUI(<PdfViewer pages={pages} defaultZoom={4} />)
 
-		expect(screen.getByLabelText('Zoom in')).toBeDisabled()
+		expect(screen.getByLabelText('Zoom in')).toHaveAttribute('aria-disabled', 'true')
 	})
 
 	it('disables zoom out at the minimum', () => {
 		renderUI(<PdfViewer pages={pages} defaultZoom={0.5} />)
 
-		expect(screen.getByLabelText('Zoom out')).toBeDisabled()
+		expect(screen.getByLabelText('Zoom out')).toHaveAttribute('aria-disabled', 'true')
+	})
+
+	it('keeps the focus on a zoom button that its press disables', () => {
+		renderUI(<PdfViewer pages={pages} defaultZoom={2} />)
+
+		const zoomIn = screen.getByLabelText('Zoom in')
+
+		act(() => zoomIn.focus())
+
+		fireEvent.click(zoomIn)
+
+		expect(zoomIn).toHaveAttribute('aria-disabled', 'true')
+
+		expect(zoomIn).toBeEnabled()
+
+		expect(zoomIn).toHaveFocus()
 	})
 
 	it('rotates the active page in 90 degree steps', async () => {
@@ -869,6 +887,29 @@ describe('printPdf', () => {
 	})
 })
 
+describe('PdfViewerToolbarButton', () => {
+	it('stays focusable while disabled, and a press opens nothing', () => {
+		renderUI(
+			<Dialog>
+				<DialogTrigger>
+					<PdfViewerToolbarButton label="Settings" icon={<svg />} disabled />
+				</DialogTrigger>
+				<DialogPanel>Panel</DialogPanel>
+			</Dialog>,
+		)
+
+		const button = screen.getByLabelText('Settings')
+
+		expect(button).toBeEnabled()
+
+		expect(button).toHaveAttribute('aria-disabled', 'true')
+
+		fireEvent.click(button)
+
+		expect(screen.queryByText('Panel')).toBeNull()
+	})
+})
+
 describe('PdfViewerZoomControls', () => {
 	const levels = [0.5, 1, 2]
 
@@ -912,11 +953,13 @@ describe('PdfViewerZoomControls', () => {
 
 		renderControls(1, [], setValue)
 
-		expect(screen.getByLabelText('Zoom in')).toBeDisabled()
+		for (const label of ['Zoom in', 'Zoom out', 'Reset zoom']) {
+			expect(screen.getByLabelText(label)).toHaveAttribute('aria-disabled', 'true')
+		}
 
-		expect(screen.getByLabelText('Zoom out')).toBeDisabled()
+		fireEvent.click(screen.getByLabelText('Zoom in'))
 
-		expect(screen.getByLabelText('Reset zoom')).toBeDisabled()
+		expect(setValue).not.toHaveBeenCalled()
 	})
 })
 
