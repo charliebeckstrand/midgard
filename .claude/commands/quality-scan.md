@@ -33,7 +33,7 @@ The scan uses the bug agents of [`bug-audit.md`](bug-audit.md). That command gov
 
 3.1 Run one `bug-sweeper` for each scope, with the scope, its lenses, and the intent sources. Tell it that zero claims is a valid result. Do not tell it a count to reach, and do not show it a past finding of the unit.
 
-3.2 Check each lens line of the return (`bug-sweeper.md` §4.5). Each lens of the unit has a claim or a `holds` line with a quoted guard. Run the sweep again when a lens has no line, or when a `holds` line quotes no code.
+3.2 Check each lens line and each contract line of the return (`bug-sweeper.md` §4.5, §4.6). Each lens of the unit has a claim or a `holds` line that quotes a guard for each path of `bug-sweeper.md` §6.5 that the unit has. Each contract sentence has a claim or a `kept` line with quoted code. Run the sweep again when a lens or a contract sentence has no line, when a `holds` line leaves out a path, or when a line quotes no code.
 
 ## 4. Verify and prove
 
@@ -51,9 +51,9 @@ The scan uses the bug agents of [`bug-audit.md`](bug-audit.md). That command gov
 
 ## 5. Seeded set
 
-5.1 The seeded set is `QUALITY_SEEDS` in [`packages/ui/scripts/quality-seeds.ts`](../../packages/ui/scripts/quality-seeds.ts). Each seed is a past fix of one unit. Its parent commit holds the defect that the fix repairs.
+5.1 The seeded set is `QUALITY_SEEDS` in [`packages/ui/scripts/quality-seeds.ts`](../../packages/ui/scripts/quality-seeds.ts). Each seed is a past fix of one unit, with a test. Its parent commit holds the defect that the fix repairs. The defect breaks a rule that is written at the parent commit: a TSDoc sentence, a test, a type, an ARIA pattern, a section of `CONVENTIONS.md`, a rule of `STE.md`, or a scale token. A fix with no such rule is not a seed, because the scan cannot find it (`bug-verifier.md` §3.7).
 
-5.2 For each seed, sweep and verify the unit of the seed at the parent commit of the fix, with §3 and §4. Give the sweeper and the verifier no part of the seed: not the commit, the subject, the kind, or the diff.
+5.2 For each seed, sweep and verify the unit of the seed at the parent commit of the fix, with §3 and §4. Give the sweeper and the verifier no part of the seed: not the commit, the subject, the kind, or the diff. Before the sweep, remove from the snapshot each line that names the fix, such as its pull request number in a comment, a test, or a pending-fix list. Keep the rest of the snapshot as it is.
 
 5.3 A seed is found when a confirmed finding names a file that the fix changes, and the fix repairs the wrong result of that finding. Judge each match from the diff of the fix. Write the finding beside the seed in the record.
 
@@ -67,7 +67,7 @@ The scan uses the bug agents of [`bug-audit.md`](bug-audit.md). That command gov
 
 6.2 Sweep, verify, and prove the calibration units a second time, at the same commit, with new agents. Give the second pass nothing from the first pass.
 
-6.3 Agreement is the count of calibration units that get the same count of open bugs in both passes.
+6.3 Agreement is the count of calibration units that get the same open bugs in both passes. Match two bugs when they name the same file and the same wrong result. A unit agrees when each open bug of one pass matches an open bug of the other pass. The same count with different bugs is a disagreement.
 
 ## 7. Measures
 
