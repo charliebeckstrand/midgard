@@ -1,5 +1,5 @@
 import { startAuthentication } from '@simplewebauthn/browser'
-import { act, cleanup, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { getSession, requireGateway, type Session } from 'auth'
 import { type ReactElement, StrictMode } from 'react'
 import { LoginPage } from 'shared/auth'
@@ -149,8 +149,11 @@ describe('LoginPage with the second step', () => {
 		})
 
 		expect(screen.getByText('Confirm that it is you')).toBeTruthy()
+
+		// The form of the second step is a chunk of its own, so it can show after the heading.
+		await vi.waitFor(() => expect(router.push).toHaveBeenCalledExactlyOnceWith('/'))
+
 		expect(startAuthentication).toHaveBeenCalledTimes(1)
-		expect(router.push).toHaveBeenCalledExactlyOnceWith('/')
 	})
 
 	it('keeps the passkey button when the browser refuses the check', async () => {
@@ -160,9 +163,24 @@ describe('LoginPage with the second step', () => {
 			render(<LoginPage secondStep methods={['passkey']} />)
 		})
 
+		expect(
+			await screen.findByText('The passkey check did not complete. Please try again.'),
+		).toBeTruthy()
 		expect(startAuthentication).toHaveBeenCalledTimes(1)
-		expect(screen.getByText('The passkey check did not complete. Please try again.')).toBeTruthy()
 		expect(screen.getByRole('button', { name: 'Use a passkey' })).toBeTruthy()
+		expect(router.push).not.toHaveBeenCalled()
+	})
+
+	it('refreshes the page after a password sign-in', async () => {
+		render(<LoginPage secondStep />)
+
+		fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'admin@example.com' } })
+		fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'secret' } })
+		fireEvent.click(screen.getByRole('button', { name: 'Sign in' }))
+
+		// The page loads the form of the second step, and then lets the server page select it.
+		await vi.waitFor(() => expect(router.refresh).toHaveBeenCalledTimes(1))
+
 		expect(router.push).not.toHaveBeenCalled()
 	})
 })

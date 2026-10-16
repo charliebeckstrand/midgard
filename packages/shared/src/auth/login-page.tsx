@@ -5,6 +5,7 @@ import {
 	startAuthentication,
 } from '@simplewebauthn/browser'
 import type { SignInProvider } from 'auth'
+import dynamic from 'next/dynamic'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import { Button } from 'ui/button'
@@ -21,12 +22,24 @@ import { oauthStartPath, signInProviderNames, signOut } from './account'
 import { bifrost } from './bifrost'
 import { ErrorAlert } from './error-alert'
 import { chain, email, required } from './form-validators'
-import { SecondStep } from './second-step'
 import type { SecondFactorMethod } from './second-step-request'
 import { useLeaving } from './use-leaving'
 import { unexpectedError, useServerError } from './use-server-error'
 
 type LoginValues = { email: string; password: string }
+
+/**
+ * The module of the second step. It carries the ui Dialog and the WebAuthn
+ * code, and only a session that needs the second step uses it, so the sign-in
+ * form does not wait for it.
+ */
+const loadSecondStep = () => import('./second-step')
+
+/**
+ * The form of the second step. The server renders it into the HTML of the
+ * page, so the first paint has the form.
+ */
+const SecondStep = dynamic(() => loadSecondStep().then((module) => module.SecondStep))
 
 const passkeyFailed = 'Passkey sign-in did not complete. Please try again.'
 
@@ -161,12 +174,20 @@ export function LoginPage({
 		setServerError(error?.message || 'Login failed. Please check your credentials and try again.')
 	}
 
+	// A failed load refreshes too, and the form of the second step then loads its module again.
+	function refreshWithSecondStep() {
+		const refresh = () => router.refresh()
+
+		loadSecondStep().then(refresh, refresh)
+	}
+
 	const handleSubmit: FormSubmitHandler<LoginValues> = async (values) => {
 		try {
 			// With `secondStep`, the refresh lets the server page select the second step or a redirect.
+			// The module of the second step loads first, so the form shows with the new page.
 			finish(
 				await bifrost.POST('/auth/login', { body: values }),
-				secondStep ? () => router.refresh() : home,
+				secondStep ? refreshWithSecondStep : home,
 			)
 		} catch {
 			setServerError(unexpectedError)
