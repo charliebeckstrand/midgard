@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { Responsive } from '../../types'
+import { adaptive, type Responsive } from '../../types'
 import type { AlertSeverity } from '../alert'
 
 /**
@@ -27,13 +27,13 @@ export type ToastPosition =
 	| 'bottom'
 
 /**
- * The default `position` of a `Toast`: the full bottom edge below `sm`,
+ * The default `position` of a `Toast`: the full bottom edge on a compact viewport,
  * and the bottom right corner from it.
  */
-export const TOAST_POSITION = {
-	initial: 'bottom',
-	sm: 'bottom-right',
-} as const satisfies Responsive<ToastPosition>
+export const TOAST_POSITION = adaptive({
+	compact: 'bottom',
+	medium: 'bottom-right',
+}) satisfies Responsive<ToastPosition>
 
 /**
  * Why a toast left the queue, handed to {@link ToastData.onDismiss}.

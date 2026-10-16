@@ -4,18 +4,18 @@ import { useCallback, useMemo } from 'react'
 import { Fieldset } from '../../../components/fieldset'
 import { cn } from '../../../core'
 import { k } from '../../../recipes/kata/query-builder'
-import type { Orientation, Responsive } from '../../../types'
+import { adaptive, type Orientation, type Responsive } from '../../../types'
 import type { QueryField, QueryGroup } from '../engine/types'
 import type { QueryBuilderStateValue } from './context'
 import { QueryBuilderProvider } from './context'
 import { QueryBuilderGroup } from './query-builder-group'
 import { useQueryBuilderTree } from './use-query-builder-tree'
 
-/** The default `orientation` of a {@link QueryBuilder}: the parts of a rule stack below `sm`, and share a row from it. */
-export const QUERY_BUILDER_ORIENTATION = {
-	initial: 'vertical',
-	sm: 'horizontal',
-} as const satisfies Responsive<Orientation>
+/** The default `orientation` of a {@link QueryBuilder}: the parts of a rule stack on a compact viewport, and share a row from medium. */
+export const QUERY_BUILDER_ORIENTATION = adaptive({
+	compact: 'vertical',
+	medium: 'horizontal',
+}) satisfies Responsive<Orientation>
 
 /** Props for {@link QueryBuilder}: the queryable `fields` and the controlled/uncontrolled query tree. */
 export type QueryBuilderProps = {

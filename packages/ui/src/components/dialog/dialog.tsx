@@ -16,17 +16,17 @@ import {
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { type DialogPanelVariants, k } from '../../recipes/kata/dialog'
-import { type Responsive, resolveVariant } from '../../types'
+import { adaptive, type Responsive, resolveVariant } from '../../types'
 import { DialogClose, DialogDefaultFooter } from './slots'
 
 /** Where a {@link DialogPanel} sits: docked to the `bottom` edge, or floating at the `center` or the `top`. */
 export type DialogAlign = 'bottom' | 'center' | 'top'
 
-/** The default `align` of a {@link DialogPanel}: docked to the bottom edge below `sm`, centered from it. */
-export const DIALOG_ALIGN = {
-	initial: 'bottom',
-	sm: 'center',
-} as const satisfies Responsive<DialogAlign>
+/** The default `align` of a {@link DialogPanel}: docked to the bottom edge on a compact viewport, centered from medium. */
+export const DIALOG_ALIGN = adaptive({
+	compact: 'bottom',
+	medium: 'center',
+}) satisfies Responsive<DialogAlign>
 
 /** Props for {@link Dialog}: the open state, controlled or uncontrolled. */
 export type DialogProps = PanelRootProps
@@ -138,7 +138,7 @@ export function Dialog(props: DialogProps) {
 /**
  * The surface of a {@link Dialog}, rendered in an `Overlay` with focus trapping and
  * backdrop dismiss. It reads the open state of the enclosing `<Dialog>`. By default it
- * is a bottom sheet below `sm` and a centered panel from it (`align`). The
+ * is a bottom sheet on a compact viewport and a centered panel from medium (`align`). The
  * surface variant resolves against the enclosing Glass provider. Compose `<DialogClose>`
  * and the slot family (`<DialogContent>`, `<DialogHeader>`, `<DialogTitle>`,
  * `<DialogDescription>`, `<DialogBody>`, `<DialogFooter>`) within. With no

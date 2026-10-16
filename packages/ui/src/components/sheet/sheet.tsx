@@ -19,7 +19,7 @@ import {
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { k, type SheetPanelVariants } from '../../recipes/kata/sheet'
-import { type Responsive, resolveVariant } from '../../types'
+import { adaptive, type Responsive, resolveVariant } from '../../types'
 import { sheetCeiling, sheetFloor } from './sheet-floor'
 import { SheetHandle } from './sheet-handle'
 import { SheetClose, SheetDefaultFooter } from './slots'
@@ -27,11 +27,11 @@ import { SheetClose, SheetDefaultFooter } from './slots'
 /** How a {@link SheetPanel} meets the screen: `flush` against its edges, or `floating` in from them. */
 export type SheetLayout = 'flush' | 'floating'
 
-/** The default `layout` of a {@link SheetPanel}: flush below `sm`, floating from it. */
-export const SHEET_LAYOUT = {
-	initial: 'flush',
-	sm: 'floating',
-} as const satisfies Responsive<SheetLayout>
+/** The default `layout` of a {@link SheetPanel}: flush on a compact viewport, floating from medium. */
+export const SHEET_LAYOUT = adaptive({
+	compact: 'flush',
+	medium: 'floating',
+}) satisfies Responsive<SheetLayout>
 
 /** Props for {@link Sheet}: the open state, controlled or uncontrolled. */
 export type SheetProps = PanelRootProps
