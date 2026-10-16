@@ -28,25 +28,34 @@ export { circle, create, g, path, rect, text } from 'motion/react-m'
 // unlike `usePresence`. An open again during the exit clears the value. The
 // `inert` prop of the caller stays.
 //
+// An exiting element also drops `data-open` (CONVENTIONS.md §3.11). The close
+// starts the exit, so a style keyed on `data-open` lets go at the same time as
+// the motion. A prop keyed on `open` never gets to the exiting subtree.
+//
 // The SVG tags stay the plain Motion elements: a chart renders many of them,
 // and an SVG mark holds no row that roving reaches.
+
+/** The props of an `m` element: `inert`, and no `data-open`, while it exits. */
+function exitProps<P extends object>(props: P, inert: boolean | undefined, exiting: boolean): P {
+	return exiting ? { ...props, inert: true, 'data-open': undefined } : { ...props, inert }
+}
 
 function Div({ inert, ...props }: ComponentProps<typeof MotionDiv>): ReactElement {
 	const exiting = !useIsPresent()
 
-	return createElement(MotionDiv, { ...props, inert: inert || exiting })
+	return createElement(MotionDiv, exitProps(props, inert, exiting))
 }
 
 function Li({ inert, ...props }: ComponentProps<typeof MotionLi>): ReactElement {
 	const exiting = !useIsPresent()
 
-	return createElement(MotionLi, { ...props, inert: inert || exiting })
+	return createElement(MotionLi, exitProps(props, inert, exiting))
 }
 
 function Span({ inert, ...props }: ComponentProps<typeof MotionSpan>): ReactElement {
 	const exiting = !useIsPresent()
 
-	return createElement(MotionSpan, { ...props, inert: inert || exiting })
+	return createElement(MotionSpan, exitProps(props, inert, exiting))
 }
 
 export { Div as div, Li as li, Span as span }

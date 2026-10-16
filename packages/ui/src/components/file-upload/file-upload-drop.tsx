@@ -331,8 +331,12 @@ export function FileUploadDrop(allProps: FileUploadDropProps) {
 					ref={emptyRef}
 					id={emptyId}
 					type="button"
-					// The self-reference adds the content of the button to the name.
-					aria-labelledby={control?.labelledBy ? `${control.labelledBy} ${emptyId}` : undefined}
+					// The self-reference adds the content of the button to the name. A name
+					// from the consumer replaces it.
+					aria-labelledby={
+						props['aria-labelledby'] ??
+						(control?.labelledBy ? `${control.labelledBy} ${emptyId}` : undefined)
+					}
 					disabled={disabled}
 					{...invalidAttrs(invalid)}
 					onClick={composeEventHandlers(props.onClick, openPicker)}
