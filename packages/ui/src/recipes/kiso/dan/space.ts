@@ -352,28 +352,19 @@ export const space = {
 		end: '[&>*>tr>th[data-resizable]]:density-pe-[1,2,4,6,9]',
 	},
 	term: {
-		/** The top padding of a term in a description list. */
-		top: '[&>dt]:density-pt-[1,1.5,2,2.5,3]',
-		row: {
-			/** The bottom padding of a term in a description list row. */
-			bottom: 'sm:[&>dt]:density-pb-[1,1.5,2,2.5,3]',
-		},
-		stacked: {
-			/** The top padding of a term in a stacked description list. */
-			top: '[&>dt]:density-pt-[2,3,4,5,6]',
-		},
+		/**
+		 * The top padding of each term of a description list after the first. It
+		 * is the space between two pairs, in each orientation.
+		 */
+		top: '[&>dd+dt]:density-pt-[2,3,4,5,6]',
 	},
 	detail: {
-		/** The bottom padding of a detail in a description list. */
-		bottom: '[&>dd]:density-pb-[1,1.5,2,2.5,3]',
-		row: {
-			/** The top padding of a detail in a description list row. */
-			top: 'sm:[&>dd]:density-pt-[1,1.5,2,2.5,3]',
-		},
-		stacked: {
-			/** The top padding of a detail in a stacked description list. */
-			top: '[&>dd]:density-pt-[0.25,0.5,1,1.5,2.5]',
-		},
+		/**
+		 * The top padding of the details under their term in a vertical
+		 * description list, in `--ui-details-top`. A plain utility reads it, so a
+		 * breakpoint can replace it with the plain `pt-0` of a horizontal list.
+		 */
+		top: 'density-set-[0.25,0.5,1,1.5,2.5]/[--ui-details-top]',
 	},
 	field: {
 		/** The gap from a label, or a label row, to the control under it. */

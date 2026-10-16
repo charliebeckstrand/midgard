@@ -3,6 +3,7 @@ export {
 	type DescriptionDetailsProps,
 } from './description-details'
 export {
+	DESCRIPTION_LIST_ORIENTATION,
 	DescriptionList,
 	type DescriptionListProps,
 	type DescriptionListVariants,

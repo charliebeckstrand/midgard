@@ -1,16 +1,24 @@
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/description-list'
-import type { Orientation } from '../../types'
+import { type Orientation, type Responsive, resolveVariant } from '../../types'
+
+/** The default `orientation` of {@link DescriptionList}: vertical below `sm`, horizontal from it. */
+export const DESCRIPTION_LIST_ORIENTATION = {
+	initial: 'vertical',
+	sm: 'horizontal',
+} as const satisfies Responsive<Orientation>
 
 /** Variant axis for {@link DescriptionList}: term/details `orientation`. */
 export type DescriptionListVariants = {
 	/**
 	 * The layout of each term and its details: `horizontal` puts the term beside
-	 * its details, and `vertical` puts the term above them.
-	 * @defaultValue 'horizontal'
+	 * its details, and `vertical` puts the term above them. A per-breakpoint map
+	 * sets the layout from each breakpoint, mobile-first. A single value sets it
+	 * at each width.
+	 * @defaultValue {@link DESCRIPTION_LIST_ORIENTATION}
 	 */
-	orientation?: Orientation
+	orientation?: Responsive<Orientation>
 }
 
 /** Props for {@link DescriptionList}: `orientation` variant plus native `<dl>` attributes. */
@@ -19,27 +27,31 @@ export type DescriptionListProps = DescriptionListVariants & {} & ComponentProps
 /**
  * Semantic description list (`<dl>`) pairing `<DescriptionTerm>` with `<DescriptionDetails>`.
  * Lays out `horizontal` (terms beside details) or `vertical` (terms above
- * details). It owns every orientation-varying style, and projects it onto
- * direct `dt` / `dd` children, so term and details stay context-free.
+ * details). By default it is vertical below the `sm` breakpoint and horizontal
+ * from it. It owns every orientation-varying style, and projects it onto direct
+ * `dt` / `dd` children, so term and details stay context-free.
  *
  * The text and the block padding of each cell take the step of the nearest
- * density scope. At `md` the text is `text-sm`, and a horizontal cell has
- * `py-2` from the `sm` breakpoint.
+ * density scope. At `md` the text is `text-sm`, each pair after the first has
+ * `pt-4` above it, and the details have `pt-1` under their term. The padding is
+ * the same in each orientation.
  *
  * @remarks
- * Static leaf with no client boundary: renders in React Server Components. Projection targets
- * only direct children — wrapping `dt`/`dd` in intermediate elements bypasses the layout.
+ * Static leaf with no client boundary: renders in React Server Components. CSS
+ * picks the layout at each breakpoint, so the first paint has the final layout.
+ * Projection targets only direct children — wrapping `dt`/`dd` in intermediate
+ * elements bypasses the layout.
  */
 export function DescriptionList({
-	orientation = 'horizontal',
+	orientation = DESCRIPTION_LIST_ORIENTATION,
 	className,
 	...props
 }: DescriptionListProps) {
 	return (
 		<dl
 			data-slot="dl"
-			data-orientation={orientation}
-			className={cn(k.base({ orientation }), k.projection[orientation], className)}
+			data-orientation={typeof orientation === 'string' ? orientation : undefined}
+			className={cn(k.base, resolveVariant(orientation, k.orientation), className)}
 			{...props}
 		/>
 	)

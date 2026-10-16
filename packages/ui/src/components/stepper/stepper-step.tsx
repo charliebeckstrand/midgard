@@ -5,8 +5,9 @@ import { cn, dataAttr } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { useMountsEveryPanel } from '../../primitives/mount'
 import { k } from '../../recipes/kata/stepper'
+import { type Responsive, resolveVariant } from '../../types'
 import { hasChildOfType, partitionByType } from '../../utilities/children'
-import { type StepperLayout, StepperStepContext, type StepState, useStepper } from './context'
+import { type StepperOrientation, StepperStepContext, type StepState, useStepper } from './context'
 import { StepperIndicator } from './stepper-indicator'
 
 /**
@@ -48,12 +49,18 @@ function computeState(stepValue: number, value: number): StepState {
 }
 
 /**
- * Splits children into an indicator column and a content column for vertical layout,
- * wrapping non-indicator nodes in a `stepper-content` slot.
+ * Splits children into the indicator and a content column, wrapping
+ * non-indicator nodes in a `stepper-content` slot. A vertical step lays the
+ * column beside the indicator. A horizontal step dissolves the column
+ * (`display: contents`), so its title and description sit in the step like its
+ * direct children.
  *
  * @internal
  */
-function partitionVerticalChildren(children: ReactNode, layout: StepperLayout): ReactNode {
+function partitionChildren(
+	children: ReactNode,
+	orientation: Responsive<StepperOrientation>,
+): ReactNode {
 	const { matched: indicators, rest } = partitionByType(children, StepperIndicator)
 
 	return (
@@ -61,7 +68,7 @@ function partitionVerticalChildren(children: ReactNode, layout: StepperLayout): 
 			{indicators}
 			<span
 				data-slot="stepper-content"
-				className={cn(k.content.base, layout === 'responsive' && k.content.responsive)}
+				className={cn(k.content.base, resolveVariant(orientation, k.content.orientation))}
 			>
 				{rest}
 			</span>
@@ -96,15 +103,15 @@ function ensureStepperIndicator(children: ReactNode): ReactNode {
  * Renders as a `<button>` in an `<li>` (with `aria-current`, and `aria-controls`
  * wiring to the matching `<StepperPanel>`) when the stepper has an
  * `onValueChange` handler, otherwise a display-only `<li>` (with `aria-current`).
- * Both are items in the list of the stepper. In `linear` steppers, upcoming steps are disabled. In a vertical or
- * `responsive` layout it splits children into an indicator column and a content
- * column to align the title baseline with the indicator. From `sm`, CSS dissolves the content column of a `responsive` step.
+ * Both are items in the list of the stepper. In `linear` steppers, upcoming steps are disabled. It
+ * splits children into the indicator and a content column. A vertical step
+ * aligns the column with the indicator, and a horizontal step dissolves it.
  */
 export function StepperStep({ value, disabled, className, children, ...props }: StepperStepProps) {
 	const {
 		value: currentValue,
 		onValueChange,
-		layout,
+		orientation,
 		linear,
 		baseId,
 		hasPanels,
@@ -118,17 +125,14 @@ export function StepperStep({ value, disabled, className, children, ...props }: 
 
 	const everyPanel = useMountsEveryPanel(mount)
 
-	const classes = cn(k.step({ orientation: layout }), className)
+	const stepClasses = cn(k.step.base, resolveVariant(orientation, k.step.orientation))
 
-	// A layout that can be vertical splits into [indicator, content-column] for
-	// the recipe to align the title baseline with the indicator center.
-	const layoutChildren = useMemo(() => {
-		const withIndicator = ensureStepperIndicator(children)
+	const classes = cn(stepClasses, className)
 
-		return layout === 'horizontal'
-			? withIndicator
-			: partitionVerticalChildren(withIndicator, layout)
-	}, [children, layout])
+	const layoutChildren = useMemo(
+		() => partitionChildren(ensureStepperIndicator(children), orientation),
+		[children, orientation],
+	)
 
 	const providerValue = useMemo(() => ({ value, state }), [value, state])
 
@@ -146,7 +150,11 @@ export function StepperStep({ value, disabled, className, children, ...props }: 
 		const isDisabled = disabled === true || (linear && state === 'upcoming')
 
 		return (
-			<li data-slot="stepper-item" {...props} className={k.item.base({ orientation: layout })}>
+			<li
+				data-slot="stepper-item"
+				{...props}
+				className={cn(k.item.base, resolveVariant(orientation, k.item.orientation))}
+			>
 				<button
 					type="button"
 					id={triggerId}
@@ -160,7 +168,7 @@ export function StepperStep({ value, disabled, className, children, ...props }: 
 					aria-controls={hasPanels && (state === 'current' || everyPanel) ? panelId : undefined}
 					disabled={isDisabled}
 					onClick={() => onValueChange(value)}
-					className={cn(k.step({ orientation: layout }), k.item.button, className)}
+					className={cn(stepClasses, k.item.button, className)}
 				>
 					{inner}
 				</button>

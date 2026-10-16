@@ -81,6 +81,7 @@ export {
 } from './use-plot-frame'
 export { usePrefersReducedMotion } from './use-prefers-reduced-motion'
 export { useResizeObserver } from './use-resize-observer'
+export { type Responsive, useResponsiveValue } from './use-responsive-value'
 export { useScrollLock } from './use-scroll-lock'
 export { type ScrollRegionOptions, useScrollRegion } from './use-scroll-region'
 export { type ScrollWithinOptions, useScrollWithin } from './use-scroll-within'

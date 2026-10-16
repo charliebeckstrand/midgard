@@ -13,6 +13,7 @@ import { k as tabs } from '../../recipes/kata/tabs'
 import { k as textarea } from '../../recipes/kata/textarea'
 import { k as timeline } from '../../recipes/kata/timeline'
 import { kokkaku } from '../../recipes/kiso/kokkaku'
+import { resolveVariant } from '../../types'
 import { present, renderUI } from '../helpers'
 
 /**
@@ -70,7 +71,7 @@ describe('logical sides under dir=rtl', () => {
 	it('description-list term gutter is on the inline end (left)', () => {
 		const { container } = renderUI(
 			<div dir="rtl">
-				<dl className={cn(dl.projection.horizontal)}>
+				<dl className={cn(dl.base, resolveVariant('horizontal', dl.orientation))}>
 					<dt>Term</dt>
 					<dd>Detail</dd>
 				</dl>
@@ -81,7 +82,7 @@ describe('logical sides under dir=rtl', () => {
 	})
 
 	it('vertical stepper pads the inline end (left)', () => {
-		const style = rtl(stepper.base({ orientation: 'vertical' }))
+		const style = rtl(cn(stepper.base.base, resolveVariant('vertical', stepper.base.orientation)))
 		expect([style.paddingLeft, style.paddingRight]).toEqual(['16px', '0px'])
 	})
 

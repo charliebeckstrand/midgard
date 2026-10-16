@@ -9,48 +9,44 @@ const { rounded } = kasane
 const { flex } = narabi
 const { border } = sen
 
-const base = defineRecipe({
-	base: 'flex w-full',
-	orientation: {
-		horizontal: `flex-row items-start ${dan.gap.scale.lg} px-4`,
-		vertical: `flex-col items-start ${dan.gap.scale.lg} pe-4 py-4`,
-		// Vertical below `sm`, horizontal from it. CSS picks the layout, so the first
-		// paint is already correct on a narrow viewport.
-		responsive: `flex-col items-start ${dan.gap.scale.lg} pe-4 py-4 sm:flex-row sm:ps-4 sm:py-0`,
-	},
-	defaults: { orientation: 'horizontal' },
-})
+/*
+ * Each part of the stepper has its classes for both orientations, and
+ * `resolveVariant` gives the classes of the value at each breakpoint. Each value
+ * of an orientation table writes the same properties, so a breakpoint replaces
+ * each one. The classes that both orientations share are in the base of the
+ * part. Tailwind scans whole class literals, and `ui/tailwind.css` lists each
+ * prefixed form in an `@source inline(...)` line.
+ */
 
-const verticalStep = [
-	flex.row,
-	'w-full',
-	`${dan.gap.scale.lg} py-1 first:pt-0`,
-	...border.color.subtle,
-]
+const base = {
+	base: `flex w-full items-start ${dan.gap.scale.lg} pe-4`,
+	orientation: {
+		horizontal: 'flex-row ps-4 py-0',
+		vertical: 'flex-col ps-0 py-4',
+	},
+} as const
 
 // A horizontal step is `w-32` where the row has the space, and shrinks to
 // `min-w-20` where it does not, so that a narrow row does not overlap its steps.
-// Its title and description then wrap in the narrower column.
-const step = defineRecipe({
-	base: ['group relative text-start', 'outline-none', ...disabled, ...cursor],
+// Its title and description then wrap in the narrower column. The gap of a
+// horizontal step keeps one size at each density step.
+const step = {
+	base: [
+		'group relative flex first:pt-0',
+		'outline-none',
+		...disabled,
+		...cursor,
+		...border.color.subtle,
+		dan.gap.stepper,
+	],
 	orientation: {
-		horizontal: 'flex min-w-20 flex-col items-center w-32 gap-0.5 text-center',
-		vertical: verticalStep,
-		responsive: [
-			...verticalStep,
-			'sm:min-w-20 sm:flex-col sm:w-32 sm:gap-0.5 sm:py-0 sm:text-center',
-		],
+		horizontal: 'flex-col items-center min-w-20 w-32 gap-0.5 py-0 text-center',
+		vertical: 'flex-row items-center min-w-auto w-full gap-(--ui-stepper-gap) py-1 text-start',
 	},
-	defaults: { orientation: 'horizontal' },
-})
+} as const
 
 const title = defineRecipe({
 	base: [size.sm, weight.medium, leading.none, ...mode('text-zinc-500', 'dark:text-zinc-400')],
-	orientation: {
-		horizontal: 'mt-2',
-		vertical: '',
-		responsive: 'sm:mt-2',
-	},
 	interactive: {
 		true: [
 			...mode(
@@ -66,59 +62,63 @@ const title = defineRecipe({
 		],
 		false: '',
 	},
-	defaults: { orientation: 'horizontal', interactive: false },
+	defaults: { interactive: false },
 })
 
 // The `li` around an interactive step button. It takes the place of the step in
 // the row, so it carries the width bounds and the vertical padding of the step,
 // and the button fills it. The button is always the first child of its `li`, so
 // the `first:` rule of a vertical step must read the `li`.
-const item = defineRecipe({
-	base: 'flex',
+const item = {
+	base: 'flex first:pt-0',
 	orientation: {
-		horizontal: 'min-w-20',
-		vertical: 'w-full py-1 first:pt-0',
-		responsive: 'w-full py-1 first:pt-0 sm:w-auto sm:min-w-20 sm:py-0',
+		horizontal: 'min-w-20 w-auto py-0',
+		vertical: 'min-w-auto w-full py-1',
 	},
-	defaults: { orientation: 'horizontal' },
-})
+} as const
 
 // The negative margins run the rule under the steps on each side, out to their
 // indicators. With the `lg` gap of the row on each side, `min-w-20` keeps a gap
-// between the boxes of two steps on a narrow row. The gap is 16px at `md`.
-const horizontalRule = [
-	'-mx-12 mt-2.25 min-w-20',
-	flex.fill,
-	'self-start',
-	'border-t',
-	...border.color.default,
-]
-
-const separator = defineRecipe({
-	base: 'shrink-0',
+// between the boxes of two steps on a narrow row. The gap is 16px at `md`. A
+// vertical row has no rule.
+const separator = {
+	base: [
+		'shrink-0 -mx-12 mt-2.25 min-w-20',
+		flex.fill,
+		'self-start border-t',
+		...border.color.default,
+	],
 	orientation: {
-		horizontal: horizontalRule,
+		horizontal: 'block',
 		vertical: 'hidden',
-		responsive: ['max-sm:hidden', ...horizontalRule],
 	},
-	defaults: { orientation: 'horizontal' },
-})
+} as const
 
 export const k = {
 	base,
 	step,
 	item: {
-		base: item,
+		...item,
 		/** The step button inside an `li`. The `li` holds the vertical padding of the step. */
 		button: 'py-0',
 	},
-	title,
+	title: {
+		base: title,
+		orientation: {
+			horizontal: 'mt-2',
+			vertical: 'mt-0',
+		},
+	},
 	separator,
+	// The column of the title and the description beside the indicator of a
+	// vertical step. In a horizontal step the column dissolves, so the title and
+	// the description sit in the step like its direct children.
 	content: {
-		base: `flex flex-1 flex-col ${dan.gap.scale.xs}`,
-		// From `sm`, the column dissolves so the title and description sit in the
-		// horizontal step like its direct children.
-		responsive: 'sm:contents',
+		base: `flex-1 flex-col ${dan.gap.scale.xs}`,
+		orientation: {
+			horizontal: 'contents',
+			vertical: 'flex',
+		},
 	},
 	indicator: {
 		base: [
@@ -152,32 +152,8 @@ export const k = {
 	skeleton: kokkaku.stepper,
 } as const
 
-/** Recipe variant props for {@link Stepper} — its styling axes (`orientation`), for consumers composing custom slots. */
-export type StepperVariants = Omit<VariantProps<typeof base>, 'orientation'> & {
-	/**
-	 * The axis of the steps. `responsive` is vertical below the `sm` width and
-	 * horizontal from it.
-	 * @defaultValue 'horizontal'
-	 */
-	orientation?: VariantProps<typeof base>['orientation']
-}
-/** Recipe variant props for {@link StepperStep} — its styling axes (`orientation`), for consumers composing custom slots. */
-export type StepperStepVariants = Omit<VariantProps<typeof step>, 'orientation'> & {
-	/** The axis of the stepper that holds the step. @defaultValue 'horizontal' */
-	orientation?: VariantProps<typeof step>['orientation']
-}
-/** Recipe variant props for {@link StepperTitle} — its styling axes (`orientation`, `interactive`), for consumers composing custom slots. */
-export type StepperTitleVariants = Omit<
-	VariantProps<typeof title>,
-	'orientation' | 'interactive'
-> & {
-	/** The axis of the stepper that holds the title. @defaultValue 'horizontal' */
-	orientation?: VariantProps<typeof title>['orientation']
+/** Recipe variant props for {@link StepperTitle}: its `interactive` axis, for consumers composing custom slots. */
+export type StepperTitleVariants = Omit<VariantProps<typeof title>, 'interactive'> & {
 	/** Whether the step is a button, so that the title brightens on hover. @defaultValue false */
 	interactive?: VariantProps<typeof title>['interactive']
-}
-/** Recipe variant props for {@link StepperSeparator} — its styling axes (`orientation`), for consumers composing custom slots. */
-export type StepperSeparatorVariants = Omit<VariantProps<typeof separator>, 'orientation'> & {
-	/** The axis of the stepper that holds the separator. @defaultValue 'horizontal' */
-	orientation?: VariantProps<typeof separator>['orientation']
 }

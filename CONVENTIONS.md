@@ -142,6 +142,8 @@ Do not declare a key again when the base gives it. `Omit<ComponentProps<'div'>, 
 
 5.8 In `ui`, a class on the inline axis uses a logical side: `ms-`, `pe-`, `start-`, `end-`, `border-s`, `rounded-e`, or `text-start`. A physical side (`ml-`, `pr-`, `left-`, `border-r`, `rounded-bl`, `text-left`) does not mirror in a right-to-left layout. A class string with an `rtl:` sibling states each direction itself. A site that is physical on purpose, such as a plot that keeps its physical axis, carries a suppression with its reason. The [`no-physical-side`](.biome/plugins/no-physical-side.grit) Biome plugin holds the rule.
 
+5.9 In `ui`, a component whose layout changes at a viewport breakpoint takes that axis as a `Responsive<T>` prop, as the structure units do. The default value of the prop holds the breakpoint, for example `{ initial: 'vertical', sm: 'horizontal' }`. The kata writes the unprefixed classes of each value once, in a table, and `resolveVariant` puts the prefix of each breakpoint on them. Each value of a table writes the same properties on the same selectors, in the same layer. Thus a larger breakpoint replaces each property of a smaller one. A JS reader that must agree with the layout reads the same prop with `useResponsiveValue`. `responsive-variants.test.ts` holds each table to the rule, and makes sure that `ui/tailwind.css` lists each prefixed class.
+
 ## 6. State & data
 
 6.1 No global state library. Cross-cutting state is React Context at `apps/<app>/app/providers.tsx`. Biome's `noRestrictedImports` keeps the common ones out of `apps`.

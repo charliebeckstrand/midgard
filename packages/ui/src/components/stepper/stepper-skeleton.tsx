@@ -1,9 +1,10 @@
 import { Fragment } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/stepper'
+import { type Responsive, resolveVariant } from '../../types'
 import { rangeKeys } from '../../utilities'
 import { Placeholder } from '../placeholder'
-import type { StepperLayout } from './context'
+import { STEPPER_ORIENTATION, type StepperOrientation } from './context'
 
 /** Props for {@link StepperSkeleton}: the placeholder step count and the `orientation` of the stepper. */
 export type StepperSkeletonProps = {
@@ -13,11 +14,11 @@ export type StepperSkeletonProps = {
 	 */
 	steps?: number
 	/**
-	 * The orientation of the stepper it stands in for. `'responsive'` is
-	 * vertical below `sm`, and horizontal from it, as on Stepper.
-	 * @defaultValue 'responsive'
+	 * The orientation of the stepper it stands in for, single or per breakpoint,
+	 * as on Stepper.
+	 * @defaultValue {@link STEPPER_ORIENTATION}
 	 */
-	orientation?: StepperLayout
+	orientation?: Responsive<StepperOrientation>
 	className?: string
 }
 
@@ -34,27 +35,28 @@ export type StepperSkeletonProps = {
  *
  * @see {@link Stepper}
  */
-export function StepperSkeleton({ steps = 3, orientation, className }: StepperSkeletonProps) {
+export function StepperSkeleton({
+	steps = 3,
+	orientation = STEPPER_ORIENTATION,
+	className,
+}: StepperSkeletonProps) {
 	const stepKeys = rangeKeys(steps, 'step')
 
-	const layout = orientation ?? 'responsive'
-
-	const title = <Placeholder className={cn(k.title({ orientation: layout }), k.skeleton.title)} />
+	const at = <T extends string>(table: Record<StepperOrientation, T>) =>
+		resolveVariant(orientation, table)
 
 	return (
-		<div className={cn(k.base({ orientation: layout }), className)}>
+		<div className={cn(k.base.base, at(k.base.orientation), className)}>
 			{stepKeys.map((stepKey, index) => (
 				<Fragment key={stepKey}>
-					{index > 0 && <div className={k.separator({ orientation: layout })} />}
-					<div className={cn(k.step({ orientation: layout }), 'cursor-default')}>
+					{index > 0 && <div className={cn(k.separator.base, at(k.separator.orientation))} />}
+					<div className={cn(k.step.base, at(k.step.orientation), 'cursor-default')}>
 						<Placeholder className={cn(k.skeleton.indicator)} />
-						{layout === 'horizontal' ? (
-							title
-						) : (
-							<div className={cn(k.content.base, layout === 'responsive' && k.content.responsive)}>
-								{title}
-							</div>
-						)}
+						<div className={cn(k.content.base, at(k.content.orientation))}>
+							<Placeholder
+								className={cn(k.title.base(), at(k.title.orientation), k.skeleton.title)}
+							/>
+						</div>
 					</div>
 				</Fragment>
 			))}

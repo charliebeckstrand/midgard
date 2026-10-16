@@ -124,6 +124,12 @@ export const gap = {
 	badge: narrow,
 	/** The gap of loading dots. */
 	dots: 'density-gap-[0.5,1,1.5,2,2.5]',
+	/**
+	 * The gap of a vertical step of a stepper, in `--ui-stepper-gap`: the `lg`
+	 * stop of `scale`. A plain utility reads it, so a breakpoint can replace it
+	 * with the plain gap of a horizontal step.
+	 */
+	stepper: 'density-set-[2,3,4,5,6]/[--ui-stepper-gap]',
 	/** The gap of a rating skeleton. */
 	rating: 'density-gap-[0.25,0.5,0.75,1,1.25]',
 } as const
