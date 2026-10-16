@@ -34,9 +34,15 @@ export type FlexProps = {
 	 * below at `sm`, and the stop above at `lg`.
 	 */
 	gap?: ResponsiveGap
-	/** Cross-axis alignment. Supports responsive breakpoints. */
+	/**
+	 * Cross-axis alignment. Supports responsive breakpoints.
+	 * @defaultValue `'center'` in a row, and `'stretch'` in a column.
+	 */
 	align?: ResponsiveAlign
-	/** Main-axis alignment. Supports responsive breakpoints. */
+	/**
+	 * Main-axis alignment. Supports responsive breakpoints.
+	 * @defaultValue No alignment: the children start at the start of the main axis.
+	 */
 	justify?: ResponsiveJustify
 	/**
 	 * Allow children to wrap onto multiple lines.

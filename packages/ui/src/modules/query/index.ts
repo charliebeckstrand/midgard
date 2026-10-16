@@ -25,6 +25,6 @@ export type {
 	QueryOperator,
 	QueryRule,
 } from './engine/types'
-export { QueryBuilder, type QueryBuilderProps } from './query-builder'
+export { QUERY_BUILDER_ORIENTATION, QueryBuilder, type QueryBuilderProps } from './query-builder'
 export { QueryChips, type QueryChipsProps } from './query-chips'
 export { QuerySummary, type QuerySummaryProps } from './query-summary'

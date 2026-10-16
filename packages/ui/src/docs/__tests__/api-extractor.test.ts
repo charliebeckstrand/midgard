@@ -5,7 +5,7 @@ import { type BarrelApi, createApiExtractor } from '../plugin/api.ts'
 
 // The API data that the docs plugin makes for some components whose props
 // have a union, an inherited tag, a default that is a sentence, or an
-// `@internal` tag.
+// `@internal` tag, or a `Responsive<T>` type.
 
 const UI_ROOT = path.resolve(import.meta.dirname, '..', '..', '..')
 
@@ -14,12 +14,14 @@ const BARRELS = [
 	'components/color',
 	'components/confirm',
 	'components/date-picker',
+	'components/description-list',
 	'components/hold-button',
 	'components/menu',
 	'components/segment',
 	'components/table',
 	'components/tabs',
 	'components/toggle-icon-button',
+	'structure/flex',
 ]
 
 const extractor = createApiExtractor(UI_ROOT)
@@ -88,12 +90,18 @@ describe('API extractor', { timeout: 60_000 }, () => {
 	it('gives a default as code, and a default that is a sentence as prose', async () => {
 		const api = await load()
 
-		expect(propOf(api, 'ToggleIconButton', 'color')?.default).toBe("'zinc'")
+		expect(propOf(api, 'ToggleIconButton', 'color')).toMatchObject({
+			default: "'zinc'",
+			defaultValue: 'zinc',
+		})
 
 		// The default-value gate holds a name as the code of the default.
 		expect(propOf(api, 'ToggleIconButton', 'pressedIcon')?.default).toBe('icon')
 
 		expect(propOf(api, 'ColorPanel', 'swatches')?.default).toBe('DEFAULT_SWATCHES')
+
+		// A constant gives a value only when it sets a value for each breakpoint.
+		expect(propOf(api, 'ColorPanel', 'swatches')?.defaultValue).toBeUndefined()
 
 		const initialFocus = propOf(api, 'Confirm', 'initialFocus')
 
@@ -109,5 +117,26 @@ describe('API extractor', { timeout: 60_000 }, () => {
 		expect(propOf(api, 'Menu', 'disabled')).toBeUndefined()
 
 		expect(propOf(api, 'Menu', 'sheet')).toBeDefined()
+	})
+
+	it('gives the values of a responsive type, and the value of a default constant', async () => {
+		const api = await load()
+
+		expect(propOf(api, 'DescriptionList', 'orientation')).toMatchObject({
+			type: 'Responsive<Orientation>',
+			values: ['horizontal', 'vertical'],
+			responsive: true,
+			default: 'DESCRIPTION_LIST_ORIENTATION',
+			defaultValue: { initial: 'vertical', sm: 'horizontal' },
+		})
+
+		// An alias of `Responsive<T>` passes too, with a single default.
+		expect(propOf(api, 'Flex', 'direction')).toMatchObject({
+			type: 'ResponsiveDirection',
+			values: ['col', 'col-reverse', 'row', 'row-reverse'],
+			responsive: true,
+			default: "'row'",
+			defaultValue: 'row',
+		})
 	})
 })

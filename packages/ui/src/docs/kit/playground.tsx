@@ -9,17 +9,24 @@ import { NumberInput } from 'ui/number-input'
 import { useDensityStep } from 'ui/primitives/density'
 import { type DensityStep, isDensityStep, stepDown } from '../../core/density/steps.ts'
 import { omote } from '../../recipes/kiso/index.ts'
-import type { BarrelApi, Literal, PropApi } from '../plugin/api.ts'
+import { SIZE_CLASSES } from '../../types/responsive.ts'
+import type { BarrelApi, DefaultValue, Literal, PropApi } from '../plugin/api.ts'
 import type { ExampleCode } from '../plugin/examples.ts'
 import { ExampleFrame, metaOf } from './example.tsx'
 import { humanize } from './humanize.ts'
+
+/**
+ * The value of a field: a literal, or a value for each breakpoint, which only
+ * the default of a responsive prop is.
+ */
+type Value = DefaultValue
 
 /** A field that picks one value of a union of literals. */
 type ChoiceField = {
 	kind: 'choice'
 	name: string
-	values: readonly Literal[]
-	default?: Literal
+	values: readonly Value[]
+	default?: Value
 	required?: true
 }
 
@@ -37,7 +44,7 @@ type Free = { readonly [prop: string]: string | number | undefined }
 
 type Field = ChoiceField | FreeField
 
-type Values = { readonly [prop: string]: Literal | undefined }
+type Values = { readonly [prop: string]: Value | undefined }
 
 // The key of the option of a field whose omitted state is no value. The key of
 // a value is its JSON, which never is a bare word.
@@ -66,26 +73,38 @@ function Rail({ label, children }: { label: string; children: ReactNode }) {
 	)
 }
 
-function labelOf(value: Literal): string {
+// The size class that starts at each breakpoint, such as `medium` at `sm`.
+const SIZE_CLASS_AT: { readonly [bp: string]: string | undefined } = Object.fromEntries(
+	Object.entries(SIZE_CLASSES).map(([size, bp]) => [bp, size]),
+)
+
+/**
+ * The label of a value. A value for each breakpoint names the size class from
+ * which each value holds, such as "Vertical, Horizontal from medium", or the
+ * breakpoint where no size class starts.
+ */
+function labelOf(value: Value): string {
+	if (typeof value === 'object') {
+		return Object.entries(value)
+			.map(([bp, entry]) =>
+				bp === 'initial' ? labelOf(entry) : `${labelOf(entry)} from ${SIZE_CLASS_AT[bp] ?? bp}`,
+			)
+			.join(', ')
+	}
+
 	if (typeof value === 'boolean') return value ? 'On' : 'Off'
 
 	return typeof value === 'string' ? (SIZES[value] ?? humanize(value)) : String(value)
 }
 
-/** The default of a free field: the code of the tag, as a number or as the text in its quotes. */
+/** The default of a free field: the default of the prop, when it is a value of the kind of the field. */
 function freeDefaultOf(
 	kind: FreeField['kind'],
-	text: string | undefined,
+	value: DefaultValue | undefined,
 ): string | number | undefined {
-	if (text === undefined) return undefined
+	if (kind === 'number') return typeof value === 'number' ? value : undefined
 
-	if (kind === 'number') {
-		const value = Number(text)
-
-		return text.trim() !== '' && Number.isFinite(value) ? value : undefined
-	}
-
-	return /^(['"`])(.*)\1$/s.exec(text)?.[2]
+	return typeof value === 'string' ? value : undefined
 }
 
 /**
@@ -97,7 +116,7 @@ function freeDefaultOf(
  * of the component, so it gets a field only when `free` names it.
  */
 function freeFieldOf(prop: PropApi, free: Free): FreeField | undefined {
-	const { name, type, default: text } = prop
+	const { name, type, defaultValue } = prop
 
 	if (Object.hasOwn(free, name)) {
 		if (type !== 'string' && type !== 'number' && type !== 'ReactNode') {
@@ -108,7 +127,7 @@ function freeFieldOf(prop: PropApi, free: Free): FreeField | undefined {
 
 		const kind = type === 'number' ? 'number' : 'text'
 
-		const fallback = freeDefaultOf(kind, text)
+		const fallback = freeDefaultOf(kind, defaultValue)
 
 		// An empty string starts the field empty, which omits the prop.
 		const start = free[name] === '' ? undefined : free[name]
@@ -123,7 +142,7 @@ function freeFieldOf(prop: PropApi, free: Free): FreeField | undefined {
 
 	if (type !== 'number' || name.startsWith('default')) return undefined
 
-	const fallback = freeDefaultOf('number', text)
+	const fallback = freeDefaultOf('number', defaultValue)
 
 	return fallback === undefined
 		? undefined
@@ -145,7 +164,7 @@ function fieldsOf(
 	step: DensityStep,
 ): Field[] {
 	return props.flatMap((prop): Field[] => {
-		const { name, default: text, deprecated, required } = prop
+		const { name, deprecated } = prop
 
 		if (deprecated !== undefined || omit.includes(name)) return []
 
@@ -157,22 +176,31 @@ function fieldsOf(
 			return field ? [field] : []
 		}
 
-		// The tag writes the default as code, such as `'md'` or `true`.
-		const tagged = values.find((value) => text === JSON.stringify(value) || text === `'${value}'`)
-
-		const fallback =
-			tagged ?? (text === undefined && values.every(isDensityStep) ? step : undefined)
-
-		return [
-			{
-				kind: 'choice',
-				name,
-				values,
-				...(fallback !== undefined && { default: fallback }),
-				...(required && { required }),
-			},
-		]
+		return [choiceFieldOf(prop, values, step)]
 	})
+}
+
+/**
+ * The choice field of a prop with `values`. Its default is the default of the
+ * prop when it is one of the values. A default for each breakpoint, as a
+ * responsive prop can have, is the first option of the field.
+ */
+function choiceFieldOf(prop: PropApi, values: readonly Literal[], step: DensityStep): ChoiceField {
+	const { name, default: text, defaultValue, required } = prop
+
+	const map = typeof defaultValue === 'object' ? defaultValue : undefined
+
+	const tagged = map ?? values.find((value) => value === defaultValue)
+
+	const fallback = tagged ?? (text === undefined && values.every(isDensityStep) ? step : undefined)
+
+	return {
+		kind: 'choice',
+		name,
+		values: map ? [map, ...values] : values,
+		...(fallback !== undefined && { default: fallback }),
+		...(required && { required }),
+	}
 }
 
 /**
@@ -180,14 +208,30 @@ function fieldsOf(
  * prop with no default. Any other field starts unset, as the component does
  * when the omitted prop is no value. A free field starts at its start.
  */
-function startOf(field: Field): Literal | undefined {
+function startOf(field: Field): Value | undefined {
 	if (field.kind !== 'choice') return field.start
 
 	return field.default ?? (field.required ? field.values[0] : undefined)
 }
 
-/** A prop as a JSX attribute. A string with a quote in it goes in braces. */
-function attribute(name: string, value: Literal): string {
+/** A literal as code, with a string in single quotes. */
+function codeOf(value: Literal): string {
+	return typeof value === 'string' ? `'${value}'` : String(value)
+}
+
+/**
+ * A prop as a JSX attribute. A string with a quote in it goes in braces, and
+ * so does a value for each breakpoint.
+ */
+function attribute(name: string, value: Value): string {
+	if (typeof value === 'object') {
+		const entries = Object.entries(value).map(
+			([bp, entry]) => `${/^\d/.test(bp) ? `'${bp}'` : bp}: ${codeOf(entry)}`,
+		)
+
+		return `${name}={{ ${entries.join(', ')} }}`
+	}
+
 	if (value === true) return name
 
 	if (typeof value !== 'string') return `${name}={${value}}`
@@ -240,8 +284,8 @@ function FreePicker({
 	onValueChange,
 }: {
 	field: FreeField
-	value: Literal | undefined
-	onValueChange: (value: Literal | undefined) => void
+	value: Value | undefined
+	onValueChange: (value: Value | undefined) => void
 }) {
 	const label = humanize(field.name)
 
@@ -283,8 +327,8 @@ function FieldPicker({
 	field: ChoiceField
 	/** The step of the page. The badge is one step below it. */
 	step: DensityStep
-	value: Literal | undefined
-	onValueChange: (value: Literal | undefined) => void
+	value: Value | undefined
+	onValueChange: (value: Value | undefined) => void
 }) {
 	const label = humanize(field.name)
 
@@ -332,6 +376,9 @@ function FieldPicker({
 /**
  * The playground of a page: the default export of its `playground.tsx`, with
  * a field for each prop of its component whose type is a union of literals.
+ * A responsive prop gets a field of its values too, and a default for each
+ * breakpoint, such as `{ initial: 'vertical', sm: 'horizontal' }`, is the
+ * first option of the field.
  * A number prop with a number as its default, such as `max`, gets a number
  * field, and `free` names more props that get a text or a number field. The
  * fields drive this one instance. "Show code" shows the file with the values
@@ -405,7 +452,7 @@ export function Playground<P extends object>({
 			actions={
 				<Rail label="Props">
 					{fields.map((field) => {
-						const handleValueChange = (value: Literal | undefined) =>
+						const handleValueChange = (value: Value | undefined) =>
 							setValues({ ...values, [field.name]: value })
 
 						return field.kind === 'choice' ? (

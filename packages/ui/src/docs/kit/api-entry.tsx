@@ -35,9 +35,16 @@ const KINDS: readonly [RegExp, string | readonly string[]][] = [
 	[/^\{/, 'text-rose-600 dark:text-rose-400'],
 ]
 
-/** What a prop takes: a chip for each literal of a union, or one chip for its type, and the default. */
+/**
+ * What a prop takes: a chip for each literal of a union, or one chip for its
+ * type, and the default. A responsive prop shows its type, which tells that it
+ * takes a value for each breakpoint.
+ */
 function PropFacts({ prop }: { prop: PropApi }) {
-	const options = prop.values?.some((value) => typeof value !== 'boolean') ? prop.values : undefined
+	const options =
+		!prop.responsive && prop.values?.some((value) => typeof value !== 'boolean')
+			? prop.values
+			: undefined
 
 	const type = options ? undefined : (prop.type ?? 'boolean')
 
