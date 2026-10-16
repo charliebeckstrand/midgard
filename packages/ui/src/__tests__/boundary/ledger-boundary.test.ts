@@ -71,8 +71,8 @@ function cellBreaks(row: LedgerRow, lenses: Set<string>): string[] {
 		breaks.push('a Clean unit has no Clean in link')
 
 	if (row.lenses === NONE) {
-		if (!notStarted) breaks.push(`a ${row.state} unit names no lens`)
-	} else {
+		if (!notStarted) breaks.push(`a ${row.state} unit has no lens result`)
+	} else if (row.lenses !== 'none') {
 		const ids = row.lenses.split(',').map((id) => id.trim().replace(/^`|`$/g, ''))
 
 		for (const id of ids) if (!lenses.has(id)) breaks.push(`unknown lens "${id}"`)
@@ -90,7 +90,7 @@ function cellBreaks(row: LedgerRow, lenses: Set<string>): string[] {
 		if (!counts)
 			breaks.push('Open is not —, none, or counts in the order high, medium, correctness, polish')
 
-		if (row.lenses === NONE) breaks.push('a scanned unit names no lens')
+		if (row.lenses === NONE) breaks.push('a scanned unit has no lens result')
 
 		if (row.state === 'Clean' && counts && Object.values(counts).some(Boolean))
 			breaks.push('a Clean unit has an open finding')

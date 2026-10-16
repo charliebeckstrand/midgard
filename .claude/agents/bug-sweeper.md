@@ -90,19 +90,19 @@ tools: Read, Grep
 
 6.2 The lens set:
 
-| Lens | The rule |
-| --- | --- |
-| `keyboard` | A keyboard can do each action that a pointer can do. The focus order, the focus return, and the keys follow the ARIA pattern of the role. |
-| `touch` | A press, a drag, a long press, and a pinch work with a finger on a phone. A touch does not leave a result that only a hover can clear. |
-| `rtl` | In a right-to-left direction, the layout, the arrow keys, and the gestures mirror. |
-| `density` | Each density step sets the size and the gap of the unit from the scale. No size is fixed outside the scale. |
-| `motion` | Under reduced motion, the unit does not animate a move or a scale, and it reaches the same end state. |
-| `forced-colors` | Under forced colors, each state that a color shows stays visible: selected, checked, focused, disabled, and invalid. |
-| `first-paint` | The server render and the first paint show the final layout. Hydration moves no layout and logs no mismatch. |
-| `controlled` | A controlled unit shows its `value` prop and reports each change. An uncontrolled unit keeps its own state from `defaultValue`. |
-| `form-reset` | A reset of a `Form` or of a native form puts the unit back to its default value and clears its own state. |
+| Lens | The rule | Applies when |
+| --- | --- | --- |
+| `keyboard` | A keyboard can do each action that a pointer can do. The focus order, the focus return, and the keys follow the ARIA pattern of the role. | The unit renders an element that a user can focus or activate, or it handles a key event. |
+| `touch` | A press, a drag, a long press, and a pinch work with a finger on a phone. A touch does not leave a result that only a hover can clear. | The unit handles a pointer, touch, or drag event, or its layout changes at the `compact` size class. |
+| `rtl` | In a right-to-left direction, the layout, the arrow keys, and the gestures mirror. | The unit places, orders, or moves content on the inline axis: a start or end side, a horizontal arrow key, or a horizontal gesture. |
+| `density` | Each density step sets the size and the gap of the unit from the scale. No size is fixed outside the scale. | The unit reads the density context, or it sets a size or a gap. |
+| `motion` | Under reduced motion, the unit does not animate a move or a scale, and it reaches the same end state. | The unit animates, with Motion, a CSS transition, or a CSS animation. |
+| `forced-colors` | Under forced colors, each state that a color shows stays visible: selected, checked, focused, disabled, and invalid. | The unit shows a state with a color: selected, checked, current, focused, disabled, or invalid. |
+| `first-paint` | The server render and the first paint show the final layout. Hydration moves no layout and logs no mismatch. | The layout of the unit depends on a client value: a measurement, a media query, storage, or a module that loads late. |
+| `controlled` | A controlled unit shows its `value` prop and reports each change. An uncontrolled unit keeps its own state from `defaultValue`. | The unit takes a state prop with a default prop, such as `value` and `defaultValue`, or `open` and `defaultOpen`. |
+| `form-reset` | A reset of a `Form` or of a native form puts the unit back to its default value and clears its own state. | The unit holds a form value: it takes a `name`, or it reads the value of a `Form` field. |
 
-6.3 The caller names the lenses that apply to the unit. Read the full file list once, and check each named lens. Give each claim the lens it breaks in its `lens` field.
+6.3 A lens applies to a unit when the unit, or a `ui` part that it renders, meets its "Applies when" cell at the scan commit. A unit that renders a surface that animates, or a control that takes focus, gets that lens. The Lenses cell of the ledger records the result. The caller names the lenses that apply to the unit. Read the full file list once, and check each named lens. Give each claim the lens it breaks in its `lens` field.
 
 6.4 A lens is a checklist, not a limit. A defect that no named lens holds still gets a claim, with `lens: other`. In a Clean pass, a broken contract with no visible result and a stray from the scale or the conventions also get a claim (`bug-verifier.md` §6.4). Each claim quotes a written rule under `contract`: a TSDoc sentence, a test, a type, an ARIA pattern, a section of `CONVENTIONS.md`, a rule of `STE.md`, or a scale token. A preference with no written rule is not a claim.
 

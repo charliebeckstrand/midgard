@@ -25,7 +25,7 @@ The scan uses the bug agents of [`bug-audit.md`](bug-audit.md). That command gov
 
 2.2 A scope is the full file list of one unit, from its directory: the shipped source, without the tests, the benchmarks, and the docs app. Never sample, and never split a unit across scopes, unless it has more than about 5,000 lines. Cut a larger unit by theme, as `bug-audit.md` §1.3 does.
 
-2.3 The lenses of a unit are its Lenses cell in [`packages/ui/docs/LEDGER.md`](../../packages/ui/docs/LEDGER.md). A unit with no lenses gets them before its first scan, in a pull request that gives the reason for each lens. Do not add or drop a lens during a scan.
+2.3 The lenses of a unit are its Lenses cell in [`packages/ui/docs/LEDGER.md`](../../packages/ui/docs/LEDGER.md), from the "Applies when" rule of `bug-sweeper.md` §6.2. To set a cell, run two independent passes over the unit, and keep each lens that either pass ties to a quoted line. An extra lens costs one `holds` line, and a missing lens hides a defect. Set the cells again in their own pull request when a rule changes. Do not add or drop a lens during a scan.
 
 2.4 The severity levels and the kinds are in [`bug-verifier.md`](../agents/bug-verifier.md) §6. The lens rules are in [`bug-sweeper.md`](../agents/bug-sweeper.md) §6.
 
