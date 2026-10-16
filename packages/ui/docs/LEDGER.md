@@ -9,19 +9,25 @@ A unit is **Clean at a commit** when all five checks pass at that commit. Each c
 1. **Contract written.** The TSDoc of the unit states its behavior in each lens that applies to it.
 2. **Contract tested.** Each lens that applies has a test of the rule, not of one reported case. When units share a mechanism, one table-driven test runs every unit of the family.
 3. **Clean sweep.** A `bug-sweeper` and `bug-verifier` pass over the full file list of the unit returns no confirmed finding at the severity floor or above.
-4. **Phone check.** For a unit with touch or a phone layout, a maintainer did one named iPhone check at the commit or after it.
+4. **Phone check.** For a unit with touch or a phone layout, the iPhone checks of the unit passed at the commit or after it. They are on the phone list of its letter.
 5. **Concise.** The unit does not go around a shared piece, and it has no dead surface.
 
 The lenses and their definitions are in [`bug-sweeper.md` §6](../../../.claude/agents/bug-sweeper.md). The severity levels and the floor are in [`bug-verifier.md` §6](../../../.claude/agents/bug-verifier.md). The floor is `medium`.
 
+## Passes
+
+A letter sweep ([`bug-audit.md`](../../../.claude/commands/bug-audit.md) §8) takes a unit to Clean. The first fix of the sweep sets its units to In pass. After the fixes merge, one confirmation sweep with the lenses of each unit runs over the units of the letter, at the floor. The pull request of the confirmation sets each unit that passes to Clean. A unit with touch or a phone layout stays In pass until its phone checks pass. Then a pull request sets it to Clean, with the date of the run.
+
+Each letter has one phone list. The list names the iPhone checks of each unit of the letter that has touch or a phone layout. A maintainer runs the list after the deploy. A unit with no touch and no phone layout has `n/a` and does not wait for the list.
+
 ## States
 
 - **Not started.** No pass has started on the unit.
-- **In pass.** A sweep, a fix, or a confirmation sweep of the unit is open.
+- **In pass.** A sweep, a fix, or a confirmation sweep of the unit is open, or its phone checks did not pass yet.
 - **Clean.** The confirmation sweep returned no finding at the floor or above, and the other four checks pass.
-- **Reopened.** A bug report, a failed iPhone check, or a later fix that touches the files of the unit moved it out of Clean.
+- **Reopened.** A bug report, a failed iPhone check, or a later fix that repairs a defect in the unit moved it out of Clean.
 
-A unit leaves Clean only on evidence. A pull request that touches the files of a Clean unit gets a sweep of its diff against the lenses of the unit.
+A unit leaves Clean only on evidence. A refactor does not reopen a unit. A rule that a change applies to all of `ui` does not reopen a unit. A pull request that touches the files of a Clean unit gets a sweep of its diff against the lenses of the unit.
 
 ## Cells
 
@@ -29,7 +35,7 @@ A unit leaves Clean only on evidence. A pull request that touches the files of a
 - **State.** One of the four states.
 - **Clean in.** The pull request that set the unit to Clean, as a link. A Not started unit has `—`. A Reopened unit keeps the last link.
 - **Lenses.** The lenses that apply to the unit, as lens ids. A Not started unit can have `—`. A unit in any other state names one lens or more.
-- **Phone check.** The date of the last iPhone check, as `YYYY-MM-DD`, or `n/a` for a unit with no touch and no phone layout. A Clean unit does not have `—`.
+- **Phone check.** The date of the last passed run of the phone list for the unit, as `YYYY-MM-DD`. A unit with no touch and no phone layout has `n/a`. A Clean unit does not have `—`.
 - **Known, not chasing.** The findings below the floor that a pass recorded, with the pull request that recorded each one. A later sweep does not raise them again. A row cites pull requests only.
 
 ## Components

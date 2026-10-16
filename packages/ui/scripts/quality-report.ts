@@ -11,8 +11,10 @@
  *   lines that the fix removes or replaces in the shipped source. The shipped
  *   source is `src` without the tests and without the docs app. The commit
  *   that wrote most of those lines sets the class of the fix. A commit from
- *   the 14 days before the fix is recent. A recent `fix` makes the fix a fix
+ *   the 7 days before the fix is recent. A recent `fix` makes the fix a fix
  *   on a fix. A fix that replaces no line of the shipped source is additive.
+ *   One more column gives the fix-on-fix share with a 14-day window, which
+ *   the report used before, so that the change of window is visible.
  * - The count of units that a commit of each week set to Reopened.
  *
  * The fix-on-fix share is an upper bound on regressions. A fix that changes
@@ -46,8 +48,13 @@ const NOT_SHIPPED = [
 	':(exclude)*.test.tsx',
 ]
 
-/** A commit is recent to a fix when it is at most this old at the time of the fix. */
-const RECENT_MS = 14 * 24 * 60 * 60 * 1000
+const DAY_MS = 24 * 60 * 60 * 1000
+
+/** A commit is recent to a fix when it is at most this many days old at the time of the fix. */
+const RECENT_DAYS = 7
+
+/** The window of the comparison column, which the report used before {@link RECENT_DAYS}. */
+const PREVIOUS_DAYS = 14
 
 /** The number of git processes that run at the same time. */
 const PARALLEL = 8
@@ -162,13 +169,25 @@ async function replacedRanges(sha: string): Promise<Map<string, string[]>> {
 	return ranges
 }
 
-/** Classifies one fix by the commits that wrote the lines that it replaces. */
-async function classify(fix: Commit): Promise<FixClass> {
-	const lines: Record<Exclude<FixClass, 'additive'>, number> = {
-		older: 0,
-		recentFix: 0,
-		recentOther: 0,
-	}
+type ReplacedLines = Record<Exclude<FixClass, 'additive'>, number>
+
+/** The class of a fix from the count of replaced lines in each class. */
+function classOf(lines: ReplacedLines): FixClass {
+	const most = Math.max(...Object.values(lines))
+
+	if (most === 0) return 'additive'
+
+	return TIE_ORDER.find((name) => lines[name as keyof ReplacedLines] === most) as FixClass
+}
+
+/** Classifies one fix by the commits that wrote the lines that it replaces, for each window. */
+async function classify(fix: Commit): Promise<Record<'current' | 'previous', FixClass>> {
+	const windows = { current: RECENT_DAYS, previous: PREVIOUS_DAYS }
+
+	const lines = {
+		current: { older: 0, recentFix: 0, recentOther: 0 },
+		previous: { older: 0, recentFix: 0, recentOther: 0 },
+	} satisfies Record<keyof typeof windows, ReplacedLines>
 
 	const time = Date.parse(fix.date)
 
@@ -178,17 +197,17 @@ async function classify(fix: Commit): Promise<FixClass> {
 		for (const [, sha] of blame.matchAll(/^([0-9a-f]{40}) \d+ \d+/gm)) {
 			const origin = await commitOf(sha as string)
 
-			if (time - Date.parse(origin.date) > RECENT_MS) lines.older++
-			else if (commitType(origin.subject) === 'fix') lines.recentFix++
-			else lines.recentOther++
+			const age = time - Date.parse(origin.date)
+
+			for (const window of ['current', 'previous'] as const) {
+				if (age > windows[window] * DAY_MS) lines[window].older++
+				else if (commitType(origin.subject) === 'fix') lines[window].recentFix++
+				else lines[window].recentOther++
+			}
 		}
 	}
 
-	const most = Math.max(...Object.values(lines))
-
-	if (most === 0) return 'additive'
-
-	return TIE_ORDER.find((name) => lines[name as keyof typeof lines] === most) as FixClass
+	return { current: classOf(lines.current), previous: classOf(lines.previous) }
 }
 
 /** The fixes that change {@link SOURCE}, from the Monday of the first week of the report. */
@@ -311,8 +330,10 @@ async function main() {
 	out.push(
 		'## Fix-on-fix share',
 		'',
-		'| Week | Fixes | Replaces older code | Additive only | Replaces other recent work | Replaces a recent fix |',
-		'|---|---|---|---|---|---|',
+		`Work is recent when it is at most ${RECENT_DAYS} days older than the fix. The last column uses the window of ${PREVIOUS_DAYS} days that the report used before.`,
+		'',
+		`| Week | Fixes | Replaces older code | Additive only | Replaces other recent work | Replaces a recent fix | Replaces a fix of the last ${PREVIOUS_DAYS} days |`,
+		'|---|---|---|---|---|---|---|',
 	)
 
 	const weekKeys = Array.from({ length: weeks }, (_, offset) => {
@@ -326,11 +347,11 @@ async function main() {
 	for (const week of weekKeys) {
 		const inWeek = classes.filter((_, index) => isoWeek(fixCommits[index]?.date ?? '') === week)
 
-		const count = (name: FixClass) =>
-			percent(inWeek.filter((fixClass) => fixClass === name).length, inWeek.length)
+		const count = (name: FixClass, window: 'current' | 'previous' = 'current') =>
+			percent(inWeek.filter((fixClass) => fixClass[window] === name).length, inWeek.length)
 
 		out.push(
-			`| ${week} | ${inWeek.length} | ${count('older')} | ${count('additive')} | ${count('recentOther')} | ${count('recentFix')} |`,
+			`| ${week} | ${inWeek.length} | ${count('older')} | ${count('additive')} | ${count('recentOther')} | ${count('recentFix')} | ${count('recentFix', 'previous')} |`,
 		)
 	}
 
