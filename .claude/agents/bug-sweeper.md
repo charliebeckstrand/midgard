@@ -102,7 +102,7 @@ tools: Read, Grep
 
 6.3 The caller names the lenses that apply to the unit. Read the full file list once, and check each named lens. Give each claim the lens it breaks in its `lens` field.
 
-6.4 A lens is a checklist, not a limit. A defect that no named lens holds still gets a claim, with `lens: other`.
+6.4 A lens is a checklist, not a limit. A defect that no named lens holds still gets a claim, with `lens: other`. In a Clean pass, a broken contract with no visible result and a stray from the scale or the conventions also get a claim (`bug-verifier.md` §6.4).
 
 ---
 
