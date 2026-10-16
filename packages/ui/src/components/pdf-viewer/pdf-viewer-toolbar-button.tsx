@@ -12,16 +12,15 @@ type PdfViewerToolbarButtonProps = {
 	label: string
 	/** The glyph, wrapped in {@link Icon} here so a caller passes the bare element. */
 	icon: ReactElement
-	disabled: boolean
 	/**
-	 * Disables the control but keeps its focus. It is `aria-disabled`, stays in the
-	 * toolbar's arrow order, and cancels each press.
+	 * Disables the control but keeps it focusable. It is `aria-disabled`, stays in the
+	 * toolbar's arrow order, and drops each press.
 	 *
-	 * @remarks For a control that its own press disables, such as a zoom step at the
-	 * last level. A native `disabled` there drops the focus to the page (WCAG 2.4.3).
-	 * @defaultValue false
+	 * @remarks Not the native `disabled`. A press can disable its own control, such as a
+	 * zoom step at the last level, and a native `disabled` then drops the focus to the
+	 * page (WCAG 2.4.3). The WAI-ARIA toolbar pattern keeps a disabled item focusable too.
 	 */
-	softDisabled?: boolean
+	disabled: boolean
 	/**
 	 * Tooltip text where it carries more than the label — the zoom controls name
 	 * the level they step to.
@@ -79,7 +78,6 @@ export function PdfViewerToolbarButton({
 	disabled,
 	tooltip,
 	active = false,
-	softDisabled = false,
 	onClick,
 	...props
 }: PdfViewerToolbarButtonProps) {
@@ -91,10 +89,9 @@ export function PdfViewerToolbarButton({
 					type="button"
 					variant={active ? 'soft' : 'plain'}
 					aria-label={label}
-					disabled={disabled}
-					aria-disabled={ariaAttr(softDisabled)}
-					data-disabled={dataAttr(softDisabled)}
-					onClick={softDisabled ? undefined : onClick}
+					aria-disabled={ariaAttr(disabled)}
+					data-disabled={dataAttr(disabled)}
+					onClick={disabled ? undefined : onClick}
 				>
 					<Icon icon={icon} />
 				</Button>

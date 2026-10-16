@@ -13,8 +13,8 @@ type PdfViewerZoomControlsProps = {
 /**
  * Zoom out / in / reset buttons. In and out snap to the next discrete level
  * above or below the current scale. Reset returns to 1, which is the base fit,
- * whichever `fit` mode the viewer is in. A button that reaches the end of
- * its range is soft disabled: it keeps its focus, and a press does nothing.
+ * whichever `fit` mode the viewer is in. Buttons disable at the ends of the
+ * level range.
  *
  * @internal
  */
@@ -37,23 +37,20 @@ export function PdfViewerZoomControls({ zoom, disabled }: PdfViewerZoomControlsP
 				label="Zoom out"
 				tooltip={`Zoom Out (${(nextLevelDown * 100).toFixed(0)}%)`}
 				icon={<ZoomOut />}
-				disabled={disabled}
-				softDisabled={zoom.value <= minZoom}
+				disabled={disabled || zoom.value <= minZoom}
 				onClick={zoomOut}
 			/>
 			<PdfViewerToolbarButton
 				label="Zoom in"
 				tooltip={`Zoom In (${(nextLevelUp * 100).toFixed(0)}%)`}
 				icon={<ZoomIn />}
-				disabled={disabled}
-				softDisabled={zoom.value >= maxZoom}
+				disabled={disabled || zoom.value >= maxZoom}
 				onClick={zoomIn}
 			/>
 			<PdfViewerToolbarButton
 				label="Reset zoom"
 				icon={<Maximize2 />}
-				disabled={disabled}
-				softDisabled={zoom.value === 1}
+				disabled={disabled || zoom.value === 1}
 				onClick={resetZoom}
 			/>
 		</ToolbarGroup>
