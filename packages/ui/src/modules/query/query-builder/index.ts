@@ -3,6 +3,7 @@ export {
 	useQueryBuilderContext,
 } from './context'
 export {
+	QUERY_BUILDER_ORIENTATION,
 	QueryBuilder,
 	type QueryBuilderProps,
 } from './query-builder'

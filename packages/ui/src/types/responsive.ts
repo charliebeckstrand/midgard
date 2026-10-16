@@ -107,6 +107,30 @@ export function valueAt<T>(value: Responsive<T>, bp: Breakpoint, fallback: T): T
 }
 
 /**
+ * Maps each value of a responsive prop through `fn`, and keeps the breakpoint
+ * of each. A bare value gives a bare value.
+ *
+ * @param value - The single or per-breakpoint value.
+ * @param fn - Maps one value to its new value.
+ * @returns The mapped value, in the shape of `value`.
+ */
+export function mapResponsive<T, U>(value: Responsive<T>, fn: (value: T) => U): Responsive<U> {
+	if (typeof value !== 'object' || value === null || Array.isArray(value)) return fn(value)
+
+	const named: Partial<Record<Breakpoint, T>> = value
+
+	const mapped: Partial<Record<Breakpoint, U>> = {}
+
+	for (const step of BREAKPOINTS) {
+		const entry = named[step]
+
+		if (entry !== undefined) mapped[step] = fn(entry)
+	}
+
+	return mapped
+}
+
+/**
  * The classes of a responsive variant axis of a recipe. `table` gives the
  * unprefixed classes of each value, and each breakpoint that `value` names
  * takes the classes of its value behind its prefix.

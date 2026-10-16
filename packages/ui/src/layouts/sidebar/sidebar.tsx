@@ -345,7 +345,7 @@ export function SidebarLayoutHeader({
 	return (
 		<header {...props} ref={setHeader} data-slot="header" className={cn(k.header(), className)}>
 			<div className="flex-1 min-w-0">{children}</div>
-			{actions && <div className={cn(k.actions(), 'max-lg:hidden')}>{actions}</div>}
+			{actions && <div className={cn(k.actions(), 'hidden lg:flex')}>{actions}</div>}
 		</header>
 	)
 }

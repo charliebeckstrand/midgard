@@ -29,6 +29,9 @@ import { Input } from '../input'
 import { CommandPaletteClose } from './command-palette-close'
 import { useCommandPaletteState } from './use-command-palette-state'
 
+/** The palette docks to the bottom edge below `sm`, and floats near the top from it. */
+const PALETTE_ALIGN = { initial: 'bottom', sm: 'top' } as const satisfies DialogPanelProps['align']
+
 // The filters of the shortcut. Each palette skips a press that an earlier handler
 // took, so that one press toggles one palette. Each palette also skips the OS
 // auto-repeat of a held chord, so a held key toggles the palette one time, and a
@@ -213,7 +216,7 @@ export function CommandPalette({
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogPanel
 				{...props}
-				align="top"
+				align={PALETTE_ALIGN}
 				dismissOnBackdrop={dismissOnBackdrop}
 				width={width}
 				glass={glass}

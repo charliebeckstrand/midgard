@@ -60,6 +60,7 @@ function renderRule(
 		disabled: false,
 		allowGroups: true,
 		hideFieldSelector: false,
+		orientation: 'horizontal',
 		requireRule: false,
 		reorderable: false,
 		...state,

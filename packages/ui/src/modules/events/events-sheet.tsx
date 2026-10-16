@@ -66,7 +66,7 @@ export function EventsSheet({ open, onOpenChange }: EventsSheetProps) {
 							variant="bare"
 							size="sm"
 							aria-label="Pin"
-							className="max-lg:hidden"
+							className="hidden lg:inline-flex"
 							onClick={() => {
 								setEventsPinned(true)
 

@@ -92,7 +92,7 @@ export function SearchButton() {
 		>
 			<Icon icon={<Search />} />
 			<span className="flex-1 text-start">Search docs</span>
-			<Kbd className="max-lg:hidden">{key}</Kbd>
+			<Kbd className="hidden lg:inline-flex">{key}</Kbd>
 		</Button>
 	)
 }

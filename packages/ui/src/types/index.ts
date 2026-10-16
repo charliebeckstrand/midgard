@@ -5,6 +5,7 @@ export {
 	atBreakpoint,
 	BREAKPOINTS,
 	type Breakpoint,
+	mapResponsive,
 	type Responsive,
 	resolveResponsive,
 	resolveVariant,

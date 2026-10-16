@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import type { Responsive } from '../../types'
 import type { AlertSeverity } from '../alert'
 
 /**
@@ -8,9 +9,10 @@ import type { AlertSeverity } from '../alert'
 export type ToastSeverity = AlertSeverity | 'neutral'
 
 /**
- * Viewport corner the toast stack anchors to. A `start` or `end` corner follows
- * the reading direction, so `bottom-end` is the bottom left corner in a
- * right-to-left layout. A `left` or `right` corner stays physical.
+ * Where the toast stack anchors in the viewport: a corner, or a full `top` or
+ * `bottom` edge. A `start` or `end` corner follows the reading direction, so
+ * `bottom-end` is the bottom left corner in a right-to-left layout. A `left` or
+ * `right` corner stays physical.
  */
 export type ToastPosition =
 	| 'top-right'
@@ -21,6 +23,17 @@ export type ToastPosition =
 	| 'top-end'
 	| 'bottom-start'
 	| 'bottom-end'
+	| 'top'
+	| 'bottom'
+
+/**
+ * The default `position` of a `Toast`: the full bottom edge below `sm`,
+ * and the bottom right corner from it.
+ */
+export const TOAST_POSITION = {
+	initial: 'bottom',
+	sm: 'bottom-right',
+} as const satisfies Responsive<ToastPosition>
 
 /**
  * Why a toast left the queue, handed to {@link ToastData.onDismiss}.

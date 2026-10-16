@@ -4,7 +4,11 @@ import { join } from 'node:path'
 import { __unstable__loadDesignSystem, compile } from '@tailwindcss/node'
 import { describe, expect, it } from 'vitest'
 import { k as descriptionList } from '../../recipes/kata/description-list'
+import { k as dialog } from '../../recipes/kata/dialog'
+import { k as queryBuilder } from '../../recipes/kata/query-builder'
+import { k as sheet } from '../../recipes/kata/sheet'
 import { k as stepper } from '../../recipes/kata/stepper'
+import { k as toast } from '../../recipes/kata/toast'
 import { BREAKPOINTS, type MinBreakpoint, resolveVariant } from '../../types/responsive'
 import { noop } from '../../utilities/noop'
 
@@ -29,6 +33,19 @@ const AXES: ReadonlyArray<readonly [string, Record<string, string>]> = [
 	['Stepper title orientation', stepper.title.orientation],
 	['Stepper separator orientation', stepper.separator.orientation],
 	['Stepper content orientation', stepper.content.orientation],
+	['Dialog box align', dialog.align.box],
+	['Dialog panel align', dialog.align.panel],
+	['Toast viewport position', toast.position.viewport],
+	['Toast stack position', toast.position.scroll],
+	['Sheet right layout', sheet.layout.side.right],
+	['Sheet left layout', sheet.layout.side.left],
+	['Sheet top layout', sheet.layout.side.top],
+	['Sheet bottom layout', sheet.layout.side.bottom],
+	['Sheet fit width layout', sheet.layout.width.fit],
+	['Sheet full width layout', sheet.layout.width.full],
+	['QueryBuilder parts orientation', queryBuilder.parts.base],
+	['QueryBuilder part orientation', queryBuilder.parts.item],
+	['QueryBuilder range orientation', queryBuilder.parts.range],
 ]
 
 const MIN_BREAKPOINTS = BREAKPOINTS.filter(

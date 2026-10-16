@@ -69,7 +69,7 @@ export function DashboardLayout({ filters, onOpenChange, children }: DashboardLa
 						{/* One filter landmark at each width: the filters from `lg` up, and the
 						    trigger of the drawer below `lg`. The trigger is then in a landmark. */}
 						<aside aria-label="Filters" data-slot="filters" className="shrink-0">
-							<Stack className="max-lg:hidden">{filters}</Stack>
+							<Stack className="hidden lg:flex">{filters}</Stack>
 
 							<Box className="lg:hidden">
 								<DrawerTrigger>

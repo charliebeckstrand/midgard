@@ -20,24 +20,42 @@ export const k = {
 			'w-full',
 			layout.inset.x,
 			layout.inset.top,
-			// Each cap is a share of the overlay root. Above `sm`, the root has an
-			// inset of 1rem on each edge, so the full share stops 1rem short of each.
-			'max-sm:rounded-t-2xl max-sm:rounded-b-none max-sm:max-h-[85%] max-sm:overflow-y-auto max-sm:overscroll-contain',
-			// The bottom padding. Below `sm`, the panel sits on the bottom edge, so in
-			// a page with `viewport-fit=cover` the padding also keeps its content clear
-			// of the home indicator.
+			// The bottom padding. On the bottom edge, the `align` table also adds the
+			// inset of the home indicator in a page with `viewport-fit=cover`.
 			layout.inset.safe,
-			'sm:rounded-2xl sm:max-h-full',
 		],
 		surface: surface.axis,
 		width: shaku.panel,
 		defaults: { width: 'lg', surface: 'flat' },
 	}),
 	backdrop: bridge.backdrop(backdrop),
+	/**
+	 * The classes of each `align` of the panel and of the box around it. Each
+	 * value writes the same properties, so a breakpoint replaces each one
+	 * (`resolveVariant`). `bottom` docks the panel to the bottom edge as a sheet:
+	 * it spans the width, rounds its top corners only, and scrolls past 85% of
+	 * the height. `center` and `top` float it in a box with an inset of 1rem on
+	 * each edge, so its full height stops 1rem short of each.
+	 */
+	align: {
+		box: {
+			bottom: 'items-end p-0',
+			center: 'items-center p-4',
+			top: 'items-start p-4',
+		},
+		panel: {
+			bottom:
+				'rounded-t-2xl rounded-b-none max-h-[85%] overflow-y-auto overscroll-contain [--ui-panel-safe:env(safe-area-inset-bottom)]',
+			center:
+				'rounded-t-2xl rounded-b-2xl max-h-full overflow-y-visible overscroll-auto [--ui-panel-safe:0px]',
+			top: 'rounded-t-2xl rounded-b-2xl max-h-full overflow-y-visible overscroll-auto [--ui-panel-safe:0px]',
+		},
+	},
+	/** The motion of a floating panel (`desktop`) and of a panel on the bottom edge (`mobile`). */
 	motion: { desktop: popover, mobile: ugoki.panel.bottom },
 	/**
-	 * The motion under reduced motion: the phone panel shows with no slide. The
-	 * desktop fade moves no box, so it stays as it is.
+	 * The motion under reduced motion: the panel on the bottom edge shows with no
+	 * slide. The fade of a floating panel moves no box, so it stays as it is.
 	 */
 	still: { desktop: popover, mobile: ugoki.still(ugoki.panel.bottom) },
 }

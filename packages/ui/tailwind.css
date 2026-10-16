@@ -116,3 +116,21 @@
 @source inline('{sm,md,lg,xl,2xl}:{items-center,min-w-20,min-w-auto,w-32,w-full,w-auto,text-center,text-start}');
 @source inline('{sm,md,lg,xl,2xl}:gap-{0.5,(--ui-stepper-gap)}');
 @source inline('{sm,md,lg,xl,2xl}:{mt-2,mt-0,block,hidden,contents,flex}');
+/* Dialog `align`: the box (its `items-*` and `p-0` are lines above) and the panel. */
+@source inline('{sm,md,lg,xl,2xl}:p-4');
+@source inline('{sm,md,lg,xl,2xl}:{rounded-t-2xl,rounded-b-none,rounded-b-2xl,max-h-full,overflow-y-auto,overflow-y-visible,overscroll-contain,overscroll-auto}');
+@source inline('{sm,md,lg,xl,2xl}:max-h-[85%]');
+@source inline('{sm,md,lg,xl,2xl}:[--ui-panel-safe:env(safe-area-inset-bottom)]');
+@source inline('{sm,md,lg,xl,2xl}:[--ui-panel-safe:0px]');
+/* Toast `position`: the viewport (its `justify-*` are a line above) and the stack. */
+@source inline('{sm,md,lg,xl,2xl}:{left,right}-{0,auto}');
+@source inline('{sm,md,lg,xl,2xl}:w-fit');
+@source inline('{sm,md,lg,xl,2xl}:[--ui-toast-card:var(--ui-toast-width)]');
+@source inline('{sm,md,lg,xl,2xl}:[--ui-toast-card:100%]');
+/* Sheet `layout`: the side and the width of a `fit` or `full` panel. */
+@source inline('{sm,md,lg,xl,2xl}:{top,right,bottom,left}-{0,4}');
+@source inline('{sm,md,lg,xl,2xl}:{rounded-none,rounded-xl,pb-0,w-max,max-w-none}');
+@source inline('{sm,md,lg,xl,2xl}:pb-[env(safe-area-inset-bottom)]');
+@source inline('{sm,md,lg,xl,2xl}:max-w-[calc(100%-2rem)]');
+/* QueryBuilder `orientation`: the parts of a rule (`min-w-auto` is a line above). */
+@source inline('{sm,md,lg,xl,2xl}:{flex-nowrap,flex-wrap,flex-initial,flex-1,flex-2,min-w-32,min-w-48}');

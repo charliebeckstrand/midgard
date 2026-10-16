@@ -4,11 +4,18 @@ import { useCallback, useMemo } from 'react'
 import { Fieldset } from '../../../components/fieldset'
 import { cn } from '../../../core'
 import { k } from '../../../recipes/kata/query-builder'
+import type { Orientation, Responsive } from '../../../types'
 import type { QueryField, QueryGroup } from '../engine/types'
 import type { QueryBuilderStateValue } from './context'
 import { QueryBuilderProvider } from './context'
 import { QueryBuilderGroup } from './query-builder-group'
 import { useQueryBuilderTree } from './use-query-builder-tree'
+
+/** The default `orientation` of a {@link QueryBuilder}: the parts of a rule stack below `sm`, and share a row from it. */
+export const QUERY_BUILDER_ORIENTATION = {
+	initial: 'vertical',
+	sm: 'horizontal',
+} as const satisfies Responsive<Orientation>
 
 /** Props for {@link QueryBuilder}: the queryable `fields` and the controlled/uncontrolled query tree. */
 export type QueryBuilderProps = {
@@ -34,6 +41,15 @@ export type QueryBuilderProps = {
 	 * @defaultValue false
 	 */
 	hideFieldSelector?: boolean
+	/**
+	 * The axis of the field, the operator, and the value of each rule:
+	 * `vertical` stacks them at full width, and `horizontal` puts them in a row
+	 * that wraps a part that cannot get its minimum width. A per-breakpoint map
+	 * sets the axis from each breakpoint, mobile-first. A single value sets it at
+	 * each width.
+	 * @defaultValue {@link QUERY_BUILDER_ORIENTATION}
+	 */
+	orientation?: Responsive<Orientation>
 	/**
 	 * Keep at least one rule in the query. A group's sole remaining rule hides its
 	 * remove control, so the builder can't be emptied. For always-on filters (a
@@ -68,6 +84,7 @@ export function QueryBuilder({
 	disabled = false,
 	allowGroups = true,
 	hideFieldSelector = false,
+	orientation = QUERY_BUILDER_ORIENTATION,
 	requireRule = false,
 	reorder = false,
 	className,
@@ -91,10 +108,11 @@ export function QueryBuilder({
 			disabled,
 			allowGroups,
 			hideFieldSelector,
+			orientation,
 			requireRule,
 			reorderable: reorder,
 		}),
-		[fields, getField, disabled, allowGroups, hideFieldSelector, requireRule, reorder],
+		[fields, getField, disabled, allowGroups, hideFieldSelector, orientation, requireRule, reorder],
 	)
 
 	return (

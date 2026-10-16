@@ -24,8 +24,8 @@ const inset = 'density-size-[3,3.5,4,4.5,5]'
 const box = 'density-h-[6.5,8,9.5,11,12.5]'
 
 /**
- * The width of a fixed panel that holds text, 256 px to 384 px: a color panel
- * and a toast card. The width is 320 px at `md`.
+ * The width of a fixed panel that holds text, 256 px to 384 px: a color panel.
+ * The width of a toast card (`size.toast.width`) takes the same steps. The width is 320 px at `md`.
  */
 const panel = 'density-w-[64,72,80,88,96]'
 
@@ -205,10 +205,11 @@ export const size = {
 	},
 	toast: {
 		/**
-		 * The width of a toast card. The card holds text, so it steps with the text.
-		 * Below `sm`, the card fills the viewport.
+		 * The width of a toast card in a corner stack, in `--ui-toast-width`. The
+		 * card holds text, so it steps with the text, as `panel` does. A stack on a
+		 * full edge does not read it, and its card fills the viewport.
 		 */
-		width: panel,
+		width: 'density-set-[64,72,80,88,96]/[--ui-toast-width]',
 	},
 	/** The height of a chart skeleton with no ratio. */
 	chart: 'density-h-[20,40,60,80,100]',
