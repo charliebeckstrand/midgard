@@ -46,6 +46,8 @@ tools: Read, Grep
 
 3.6 Do not drop a claim because it looks known or looks small. `bug-verifier` dedupes and ranks.
 
+3.7 Test each written contract of the scope. A contract sentence is a TSDoc sentence that states a behavior: a result, a limit, a default, or a word such as "never", "always", "only", or "when". Take the contract sentences of each export in the list, and of each `ui` context or part whose value the unit reads or passes on, such as a `Field`, a `Form`, or the density context. Test the code against each sentence, in each state that the sentence names. A sentence that the code does not keep in one state is a claim, with `lens: other`.
+
 ## 4. Output
 
 4.1 One record for each claim, with these fields:
@@ -72,7 +74,9 @@ tools: Read, Grep
 
 4.4 Return the records as text. Write no file.
 
-4.5 In a Clean pass or a quality scan, one lens line for each lens that the caller names: the lens id, then the ids of its claims, or `holds` and the guard that makes the rule hold, quoted as `path:line` plus its text. A lens line with no claim and no quoted guard is not a check. Zero claims is a valid result: write the lens lines, and do not raise a claim to fill a lens.
+4.5 In a Clean pass or a quality scan, one lens line for each lens that the caller names: the lens id, then the ids of its claims, or `holds` and the guards that make the rule hold. A `holds` line names each path of §6.5 that the unit has, and for each path it quotes the guard as `path:line` plus its text. Quote the whole guard: each argument and each option that it passes, not the part that looks relevant. A guard that holds one path does not hold the lens. A lens line with no claim and no quoted guard for each path is not a check. Zero claims is a valid result: write the lens lines, and do not raise a claim to fill a lens.
+
+4.6 In a quality scan, one contract line for each contract sentence of §3.7: the sentence quoted with its `path:line`, then the ids of its claims, or `kept` and the code that keeps it in each state that the sentence names, quoted as `path:line` plus its text.
 
 ## 5. Prohibitions
 
@@ -105,6 +109,20 @@ tools: Read, Grep
 6.3 A lens applies to a unit when the unit, or a `ui` part that it renders, meets its "Applies when" cell at the scan commit. A unit that renders a surface that animates, or a control that takes focus, gets that lens. The Lenses cell of the ledger records the result. The caller names the lenses that apply to the unit. Read the full file list once, and check each named lens. Give each claim the lens it breaks in its `lens` field.
 
 6.4 A lens is a checklist, not a limit. A defect that no named lens holds still gets a claim, with `lens: other`. In a Clean pass, a broken contract with no visible result and a stray from the scale or the conventions also get a claim (`bug-verifier.md` §6.4). Each claim quotes a written rule under `contract`: a TSDoc sentence, a test, a type, an ARIA pattern, a section of `CONVENTIONS.md`, a rule of `STE.md`, or a scale token. A preference with no written rule is not a claim.
+
+6.5 A lens holds only when each of its paths holds. Trace each path that the unit has before you write `holds`:
+
+| Lens | The paths |
+| --- | --- |
+| `keyboard` | Each key that the ARIA pattern of the role names. The focus after each route that closes, disables, hides, or removes the focused element. A key that the unit and an enclosing overlay both handle, such as Escape in a `Dialog`. Item selectors and roving scope when an instance holds another instance. |
+| `touch` | One finger, two fingers, and a pen. A gesture that the browser cancels (`pointercancel`). The `touch-action` value against each gesture that the unit handles. A touch on a control that a press makes disabled or removes. |
+| `rtl` | Each start or end side, each horizontal arrow key, and each horizontal gesture. |
+| `density` | Each step from `xs` to `xl`, the end steps too, and each size and gap that the unit sets, its separators and its gaps between items too. |
+| `motion` | Each open, close, and move, with reduced motion on and off. A close that starts while an open runs. |
+| `forced-colors` | Each state of the rule, alone and together with focus. |
+| `first-paint` | The server render, hydration, and each event that comes before hydration, such as an image that loads or fails. |
+| `controlled` | Each prop change while the unit is open, disabled, or busy. An event that a consumer cancels with `preventDefault()`. A prop that goes from `true` to `false` and back. |
+| `form-reset` | A reset of a `Form` and of a native form, with the default value set and not set. |
 
 ---
 

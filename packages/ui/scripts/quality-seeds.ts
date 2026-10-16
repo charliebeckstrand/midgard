@@ -3,7 +3,9 @@
  *
  * Each seed is a past fix of one unit, with a test. The parent commit of the
  * fix holds the defect that the fix repairs, so a scan of the unit at that
- * commit must find it. The share of seeds that a scan finds is its recall.
+ * commit must find it. The defect breaks a rule that is written at that
+ * commit, because a scan refutes a claim with no written rule. The share of
+ * seeds that a scan finds is its recall.
  *
  * The set spans the three kinds of finding and the tiers of the ledger. Each
  * escape of a scan becomes a new seed. Never give a seed to a sweeper or a
@@ -27,7 +29,7 @@ export const QUALITY_SEEDS: readonly Seed[] = [
 	{ commit: '2726f0faf9', unit: 'components/tooltip', kind: 'bug' },
 	{ commit: 'ec4fa11968', unit: 'components/tabs', kind: 'bug' },
 	{ commit: '1903bd4833', unit: 'components/tree', kind: 'bug' },
-	{ commit: 'be8faa4164', unit: 'components/tag-input', kind: 'bug' },
+	{ commit: 'e2ab371e9d', unit: 'components/resizable', kind: 'bug' },
 	{ commit: '30c81d7e7f', unit: 'components/number-input', kind: 'bug' },
 	{ commit: '784a865bba', unit: 'components/checkbox', kind: 'bug' },
 	{ commit: '4f01717d4d', unit: 'components/sheet', kind: 'bug' },
@@ -42,5 +44,5 @@ export const QUALITY_SEEDS: readonly Seed[] = [
 	{ commit: '140d77bb47', unit: 'components/rating', kind: 'correctness' },
 	{ commit: 'a9147be08e', unit: 'components/calendar', kind: 'polish' },
 	{ commit: '953e10c375', unit: 'components/text', kind: 'polish' },
-	{ commit: '842e5f246b', unit: 'providers/appearance', kind: 'polish' },
+	{ commit: 'aa1b6e6768', unit: 'components/toolbar', kind: 'polish' },
 ]

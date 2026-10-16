@@ -72,7 +72,7 @@ tools: Read, Grep, Glob
 
 3.16 In a settle pass, take the reader's answers verbatim and re-derive only the steps an answer changes. Do not re-open a settled question.
 
-3.17 In an overturn pass, take the finished verdict sheet with the sweep's evidence attached. Read the conventions, the TSDoc, the surface docs, the open audits, and the tests. Try to prove each confirmed claim is deliberate or already known.
+3.17 In an overturn pass, take the finished verdict sheet with the sweep's evidence attached. Read the conventions, the TSDoc, the surface docs, the open audits, and the tests. Try to prove each confirmed claim is deliberate or unreachable. A known defect is not deliberate: when a comment, a test, a pending-fix list, or an open record names the defect as one to fix, keep the verdict, quote that source under `priorArt`, and mark the finding known. Rule REFUTED only when the source shows the behavior is intended, or the trigger cannot reach the wrong result.
 
 ## 4. Output
 
