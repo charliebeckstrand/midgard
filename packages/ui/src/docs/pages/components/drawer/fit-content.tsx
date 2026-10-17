@@ -62,7 +62,7 @@ export default function FitContent() {
 				<DrawerTitle>{topic ? topic.question : 'Help'}</DrawerTitle>
 				<DrawerBody>
 					{topic ? (
-						<Text>{topic.answer}</Text>
+						<Text tone="muted">{topic.answer}</Text>
 					) : (
 						<Stack gap="xs" align="start">
 							{topics.map((item) => (
