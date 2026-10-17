@@ -75,6 +75,10 @@ export const k = {
 			// The content of the sheet. The drawer is the surface and gives the
 			// inset, so the content keeps only the column and its gap.
 			body: [flex.col, 'items-center', dan.gap.y.sm],
+			// The actions of the picker in the footer row of the sheet. The auto
+			// margin holds them at the start and the Close button at the end, also
+			// when the picker shows no action.
+			actions: 'me-auto',
 		},
 	},
 	// Relative variant: the preset list and custom-range affordance in the

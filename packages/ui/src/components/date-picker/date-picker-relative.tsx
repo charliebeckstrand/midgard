@@ -104,6 +104,10 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 				context={state.context}
 				size={size}
 				sheet={sheet}
+				// One footer for both modes. Its Clear shows on a committed span in
+				// list mode and on a settled Start+End in custom mode (gated in the
+				// state hook). It clears the whole selection either way.
+				footer={<DatePickerFooter {...state.footer} />}
 				onKeyDown={state.onContentKeyDown}
 				onExitComplete={state.onExitComplete}
 				label={state.mode === 'custom' ? 'Custom range' : 'Select range'}
@@ -199,10 +203,6 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 						</Field>
 					</div>
 				)}
-				{/* One footer for both modes. Its Clear shows on a committed span in
-				    list mode and on a settled Start+End in custom mode (gated in the
-				    state hook). It clears the whole selection either way. */}
-				<DatePickerFooter {...state.footer} />
 			</DatePickerContent>
 		</DateInputResetContext>
 	)
