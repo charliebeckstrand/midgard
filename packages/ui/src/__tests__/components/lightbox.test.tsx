@@ -520,6 +520,67 @@ describe('Lightbox', () => {
 		expect(centerPhoto()).toHaveAttribute('alt', 'Snow on a ridge')
 	})
 
+	it('shows a row of thumbnails in place of the pill with `thumbnails`', () => {
+		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+
+		renderUI(<Gallery defaultIndex={0} thumbnails />)
+
+		expect(screen.queryByRole('button', { name: 'Next photo' })).toBeNull()
+
+		const row = getSlot(document.body, 'lightbox-controls').querySelectorAll('button[aria-current]')
+
+		expect(row).toHaveLength(1)
+
+		const thumbnails = screen
+			.getAllByRole('button', { name: /Harbor|Snow|Field/ })
+			.filter((button) => button.closest('[data-slot="lightbox-controls"]'))
+
+		expect(thumbnails.map((button) => button.getAttribute('tabindex'))).toEqual(['0', '-1', '-1'])
+
+		expect(thumbnails[0]).toHaveAttribute('aria-current', 'true')
+
+		// A thumbnail shows its own copy of the photo.
+		expect(thumbnails[1]?.querySelector('img')).toHaveAttribute('src', '/b-small.jpg')
+	})
+
+	it('shows the photo of a thumbnail that is not next to the current photo', () => {
+		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+
+		const onIndexChange = vi.fn()
+
+		renderUI(<Gallery defaultIndex={0} thumbnails onIndexChange={onIndexChange} />)
+
+		const controls = getSlot(document.body, 'lightbox-controls')
+
+		fireEvent.click(present(controls.querySelectorAll('button')[3], 'thumbnail'))
+
+		expect(onIndexChange).toHaveBeenLastCalledWith(2)
+
+		expect(centerPhoto()).toHaveAttribute('alt', 'Field of poppies')
+
+		expect(controls.querySelector('[aria-current]')).toHaveAccessibleName('Field of poppies')
+	})
+
+	it('moves the focus along the row of thumbnails with the arrow keys', () => {
+		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+
+		renderUI(<Gallery defaultIndex={0} thumbnails />)
+
+		const current = () =>
+			present(
+				getSlot(document.body, 'lightbox-controls').querySelector<HTMLElement>('[aria-current]'),
+				'current thumbnail',
+			)
+
+		current().focus()
+
+		fireEvent.keyDown(current(), { key: 'ArrowRight' })
+
+		expect(current()).toHaveAccessibleName('Snow on a ridge')
+
+		expect(current()).toHaveFocus()
+	})
+
 	it('hides the step button at the first photo, and keeps its place', () => {
 		renderUI(<Gallery defaultIndex={0} />)
 

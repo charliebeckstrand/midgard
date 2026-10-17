@@ -13,12 +13,13 @@ import {
 } from 'react'
 import { cn } from '../../core'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
+import { scrollNodeWithin } from '../../hooks/use-scroll-within'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/lightbox'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { useLightboxContext } from './context'
-import { PAN_KEY_STEP, ZOOM_KEY_STEP } from './lightbox-utilities'
+import { PAN_KEY_STEP, thumbnailOf, ZOOM_KEY_STEP } from './lightbox-utilities'
 import type { LightboxViewPhoto } from './types'
 import { useLightboxFlight } from './use-lightbox-flight'
 import { useLightboxTrack } from './use-lightbox-track'
@@ -47,6 +48,8 @@ export type LightboxStageProps = {
 	closable: boolean
 	/** Whether the viewer shows the previous button, the count, and the next button. */
 	controls: boolean
+	/** Whether the controls show a row of thumbnails in place of the pill. */
+	thumbnails: boolean
 	/** Whether the page behind the scrim is blurred. */
 	blur: boolean
 }
@@ -147,6 +150,7 @@ export function LightboxStage({
 	labels,
 	closable,
 	controls,
+	thumbnails,
 	blur,
 }: LightboxStageProps) {
 	const { thumbnail } = useLightboxContext()
@@ -333,6 +337,39 @@ export function LightboxStage({
 		track.step(step)
 	}
 
+	const rowRef = useRef<HTMLDivElement>(null)
+
+	// The row has scrolled to a thumbnail. Until then, it scrolls at once, and
+	// after that it scrolls with its own `scroll-behavior`.
+	const scrolled = useRef(false)
+
+	// The thumbnail of the photo that the controls show stays in the center of
+	// the row. When the focus is in the row, it goes to that thumbnail, so the
+	// arrow keys move the focus with the photo.
+	const followCurrent = useEffectEvent((place: number) => {
+		const row = rowRef.current
+
+		const current = row?.children[place]
+
+		if (!row || !(current instanceof HTMLElement)) return
+
+		if (row.contains(document.activeElement)) current.focus({ preventScroll: true })
+
+		// A row that fits has nothing to scroll.
+		if (row.scrollWidth > row.clientWidth) {
+			scrollNodeWithin(row, current, {
+				inline: 'center',
+				behavior: scrolled.current ? 'auto' : 'instant',
+			})
+		}
+
+		scrolled.current = true
+	})
+
+	useLayoutEffect(() => {
+		followCurrent(at)
+	}, [at])
+
 	// A press on the stage, the photo, or the scrim has no focusable target, so
 	// the browser moves the focus to `<body>`, and the arrow keys stop. The viewer
 	// takes the focus of such a press instead. `tabIndex={-1}` keeps it out of the
@@ -418,7 +455,31 @@ export function LightboxStage({
 					>
 						<Icon icon={<X />} />
 					</Button>
-					{bar && (
+					{bar && thumbnails && (
+						<div className={cn(k.bar)}>
+							<div ref={rowRef} className={cn(k.thumbnails)}>
+								{photos.map((photo, place) => (
+									<button
+										key={photo.index}
+										type="button"
+										aria-current={place === at ? 'true' : undefined}
+										// One tab stop: the arrow keys move the focus along the row.
+										tabIndex={place === at ? 0 : -1}
+										className={cn(k.thumbnail.base, place === at && k.thumbnail.current)}
+										onClick={() => track.go(place)}
+									>
+										<img
+											src={thumbnailOf(photo)}
+											alt={photo.alt}
+											draggable={false}
+											className={k.thumbnail.image}
+										/>
+									</button>
+								))}
+							</div>
+						</div>
+					)}
+					{bar && !thumbnails && (
 						<div className={cn(k.bar)}>
 							<div className={k.pill}>
 								<Button

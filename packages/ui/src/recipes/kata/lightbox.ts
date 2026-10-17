@@ -1,8 +1,9 @@
-import { kasane, sen, ugoki } from '../kiso'
+import { kasane, omote, sen, ugoki } from '../kiso'
 import { dan } from '../kiso/dan'
 
 const { rounded } = kasane
 const { focus } = sen
+const { rail } = omote
 const { duration, ease } = ugoki
 
 export const k = {
@@ -118,6 +119,31 @@ export const k = {
 	 * It does not follow the color scheme, and the buttons take its text color.
 	 */
 	pill: 'flex items-center rounded-full bg-zinc-800/80 p-1 text-zinc-100 ring-1 ring-white/10',
+	/**
+	 * The row of thumbnails that `thumbnails` shows in place of the pill. It has
+	 * the height of the pill. It is a rail, so it scrolls along the line when the
+	 * thumbnails do not fit, and the edge with more thumbnails behind it fades.
+	 */
+	thumbnails: [
+		...rail,
+		'flex max-w-full gap-1 scroll-smooth p-1 motion-reduce:scroll-auto',
+		'scrollbar-none [&::-webkit-scrollbar]:hidden',
+	],
+	thumbnail: {
+		/**
+		 * The button of one thumbnail. It does not follow the color scheme. A
+		 * thumbnail of a photo that the viewer does not show is dim.
+		 */
+		base: [
+			'shrink-0 overflow-hidden opacity-50 transition-opacity hover:opacity-75',
+			dan.size.lightbox,
+			rounded.md,
+			focus.ring,
+		],
+		/** The thumbnail of the photo that the viewer shows. */
+		current: 'opacity-100 hover:opacity-100',
+		image: 'block size-full object-cover',
+	},
 	/** A step button in the pill. */
 	step: 'rounded-full',
 	/**

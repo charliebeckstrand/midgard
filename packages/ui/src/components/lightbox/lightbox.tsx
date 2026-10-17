@@ -34,11 +34,20 @@ export type LightboxProps = {
 	closable?: boolean
 	/**
 	 * Shows the previous button, the count, and the next button in one pill,
-	 * one gap below the photo, when there is more than one photo. Without them, the arrow keys
-	 * and a swipe still step.
+	 * one gap below the photo, when there is more than one photo. With
+	 * `thumbnails`, a row of thumbnails takes the place of the pill. Without
+	 * them, the arrow keys and a swipe still step.
 	 * @defaultValue true
 	 */
 	controls?: boolean
+	/**
+	 * Shows a row of thumbnails of the photos in place of the pill of `controls`.
+	 * The thumbnail of the photo that the viewer shows is solid, and the others
+	 * are dim. A press on a thumbnail shows its photo. The row scrolls when the
+	 * thumbnails do not fit, and it keeps the current thumbnail in its center.
+	 * @defaultValue false
+	 */
+	thumbnails?: boolean
 	/**
 	 * Blurs the page behind the scrim. The blur fades in and out with the scrim,
 	 * and the scrim lets more of the page through.
@@ -65,7 +74,8 @@ export type LightboxProps = {
  *
  * With more than one photo, the viewer steps through them. The previous and
  * next buttons, `ArrowLeft` and `ArrowRight`, and a swipe on the stage step in
- * the reading order. Escape, the close button, and a press on the stage
+ * the reading order. With `thumbnails`, a row of thumbnails takes the place of
+ * the step buttons, and a press on a thumbnail shows its photo. Escape, the close button, and a press on the stage
  * outside the photo close the viewer, and the focus goes back to the
  * thumbnail.
  *
@@ -107,6 +117,7 @@ export function Lightbox({
 	onIndexChange,
 	closable = false,
 	controls = true,
+	thumbnails = false,
 	blur = true,
 	'aria-label': ariaLabel = 'Photos',
 	closeLabel = 'Close',
@@ -148,20 +159,20 @@ export function Lightbox({
 
 	if (open && shown !== index) setShown(index)
 
-	const thumbnails = useRef(new Map<number, HTMLImageElement>())
+	const images = useRef(new Map<number, HTMLImageElement>())
 
 	const context: LightboxContextValue = {
 		photos,
 		shown,
 		show: setIndex,
 		register: (slot, image) => {
-			thumbnails.current.set(slot, image)
+			images.current.set(slot, image)
 
 			return () => {
-				if (thumbnails.current.get(slot) === image) thumbnails.current.delete(slot)
+				if (images.current.get(slot) === image) images.current.delete(slot)
 			}
 		},
-		thumbnail: (slot) => thumbnails.current.get(slot),
+		thumbnail: (slot) => images.current.get(slot),
 		loadOf,
 		record: (source, load) =>
 			setLoads((prev) => (prev.has(source) ? prev : new Map(prev).set(source, load))),
@@ -198,13 +209,14 @@ export function Lightbox({
 							// focus manager of the overlay unmounts after this, and it does
 							// not move a focus that is outside the overlay.
 							if (shown !== null) {
-								thumbnails.current.get(shown)?.closest('button')?.focus({ preventScroll: true })
+								images.current.get(shown)?.closest('button')?.focus({ preventScroll: true })
 							}
 
 							setShown(null)
 						}}
 						closable={closable}
 						controls={controls}
+						thumbnails={thumbnails}
 						blur={blur}
 						labels={{
 							viewer: ariaLabel,
