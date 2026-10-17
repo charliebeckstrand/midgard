@@ -2,21 +2,13 @@
 
 import type { DragEndEvent, DragOverEvent, DragStartEvent } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
-import {
-	type ReactNode,
-	type RefObject,
-	useCallback,
-	useEffect,
-	useMemo,
-	useRef,
-	useState,
-} from 'react'
+import { type RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { LIFT_INSTRUCTIONS } from '../../hooks/use-keyboard-lifted'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useAnimationFrame } from '../../hooks/use-timeout'
 import { sameElements } from '../../utilities'
 import { kanbanAnnouncements, kanbanNames } from './kanban-announcements'
-import type { KanbanColumnBase } from './types'
+import type { KanbanColumnBase, KanbanOverlayEntry } from './types'
 
 /**
  * The card ids of each column, keyed by column id. A column whose ids equal its
@@ -165,7 +157,7 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 	// The column that holds the card at the drag start.
 	const [originColumnId, setOriginColumnId] = useState<string | null>(null)
 
-	const overlayMap = useRef(new Map<string, ReactNode>())
+	const overlayMap = useRef(new Map<string, KanbanOverlayEntry>())
 
 	// A column whose card ids do not change keeps its array. The array is the
 	// `items` of the column's `SortableContext`, so a new array renders each card
