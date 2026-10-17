@@ -6,9 +6,12 @@ import { isEventsPinned, setEventsPinned } from '../../modules/events/engine/eve
 import { recordEvent, reportBug } from '../../modules/events/engine/events-sink'
 import { EventsAside } from '../../modules/events/events-aside'
 import { EventsButton } from '../../modules/events/events-button'
+import { loadTools } from '../../modules/events/events-load'
 import { EventsPanel } from '../../modules/events/events-panel'
 import { EventsSheet } from '../../modules/events/events-sheet'
 import { EventsSwitch } from '../../modules/events/events-switch'
+import { createLazyModule } from '../../utilities/lazy-module'
+import { deferred } from '../helpers'
 
 // The sheet starts the recorder, which listens on the document. The halt
 // drops the events and ends a capture.
@@ -93,6 +96,48 @@ describe('EventsButton', () => {
 		expect(store.entries.map(({ text }) => text)).not.toContain('/during-load')
 
 		expect(store.entries.at(-1)?.text).toBe('/after-close')
+	})
+})
+
+describe('loadTools', () => {
+	it('pauses the store while a preload loads, and ends the pause when the load ends', async () => {
+		const store = start()
+
+		const load = deferred<object>()
+
+		const preload = loadTools(
+			createLazyModule(() => load.promise),
+			false,
+		)
+
+		expect(store.paused).toBe(true)
+
+		load.resolve({})
+
+		await preload
+
+		expect(store.paused).toBe(false)
+	})
+
+	it('keeps the pause of a press that shares the load of a preload', async () => {
+		const store = start()
+
+		onTestFinished(() => store.setPaused(false))
+
+		const load = deferred<object>()
+
+		const module = createLazyModule(() => load.promise)
+
+		// The hover starts the load, and the press comes before it ends.
+		const preload = loadTools(module, false)
+
+		const press = loadTools(module, true)
+
+		load.resolve({})
+
+		await Promise.all([preload, press])
+
+		expect(store.paused).toBe(true)
 	})
 })
 
