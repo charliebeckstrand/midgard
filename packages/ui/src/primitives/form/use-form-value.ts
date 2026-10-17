@@ -4,7 +4,7 @@ import { type RefCallback, useCallback, useLayoutEffect, useRef } from 'react'
 import { type SetValue, useControllable } from '../../hooks/use-controllable'
 import { useFormResetSync } from '../../hooks/use-form-reset-sync'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { useFormField, useFormResets } from './context'
+import { useFormField, useFormLocked, useFormResets } from './context'
 import { hasIssues } from './form-issues'
 
 type FormValueOptions<T> = {
@@ -62,12 +62,17 @@ export type FormValueResult<T> = {
  * Without either, the hook is plain controlled/uncontrolled state.
  * Subscribes through {@link useFormField}, re-rendering only on this field's
  * change. `setValue` and `setTouched` keep their identity across renders.
+ * While a submit of the form runs, a bound write does nothing, and
+ * `onValueChange` does not fire.
  */
 export function useFormValue<T>(
 	name: string | undefined,
 	{ value, defaultValue, onValueChange, onReset }: FormValueOptions<T>,
 ): FormValueResult<T> {
 	const field = useFormField(name)
+
+	// A locked form refuses the write, so the hook reports no change.
+	const locked = useFormLocked()
 
 	const bound = field !== undefined && value === undefined
 
@@ -78,6 +83,8 @@ export function useFormValue<T>(
 		defaultValue,
 		onValueChange: bound
 			? (next) => {
+					if (locked) return
+
 					// The store's "no value" is `undefined`; §7.3's `null` is a
 					// prop/callback contract, and writing it through would change
 					// submit payloads and reject `optional()` schema validators.

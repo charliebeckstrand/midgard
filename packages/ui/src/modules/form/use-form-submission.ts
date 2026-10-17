@@ -6,7 +6,6 @@ import {
 	type SyntheticEvent,
 	useCallback,
 	useEffect,
-	useLayoutEffect,
 	useRef,
 	useState,
 } from 'react'
@@ -38,8 +37,6 @@ type FormSubmissionOptions<T extends Record<string, unknown>> = {
 	/** The newest validators. Only the handlers read it. */
 	validateRef: RefObject<Validators<T> | undefined>
 	validateOn: ValidateOn
-	/** Whether a submit is in flight. */
-	submitting: boolean
 	setSubmitting: (submitting: boolean) => void
 	setErrors: (errors: Record<string, string | string[] | undefined>) => void
 	/** Resets the store only, and leaves an in-flight submit live. */
@@ -58,29 +55,6 @@ type FormSubmissionResult = {
 	failures: number
 }
 
-/** The element inside `form` that has the focus, or `null`. @internal */
-function focusInside(form: HTMLElement): HTMLElement | null {
-	const active = form.ownerDocument.activeElement
-
-	return active instanceof HTMLElement && form.contains(active) ? active : null
-}
-
-/**
- * Gives the focus back to `el` when the focus fell to the body. An engine that
- * applies the focus fixup rule of HTML moves the focus to the body when the
- * focused field becomes disabled. A focus that went to another element stays
- * there.
- *
- * @internal
- */
-function restoreFocus(el: HTMLElement): void {
-	const { activeElement, body } = el.ownerDocument
-
-	if (activeElement !== null && activeElement !== body) return
-
-	if (el.isConnected) el.focus()
-}
-
 /**
  * Drives the submit of a form. A submit validates every field, runs
  * `onSubmit`, and routes a `{ fieldErrors }` return back into the error map or
@@ -91,10 +65,6 @@ function restoreFocus(el: HTMLElement): void {
  * A superseded handler writes no errors and clears no state. The buttons stay
  * enabled while a submit runs, so a submit that starts during another one is
  * ignored.
- *
- * The form disables its fields while a submit runs, so a focused field becomes
- * disabled. When the submit ends and the focus is on the body, the focus goes
- * back to the element that had it when the submit started.
  * @internal
  */
 export function useFormSubmission<T extends Record<string, unknown>>({
@@ -102,7 +72,6 @@ export function useFormSubmission<T extends Record<string, unknown>>({
 	dispatch,
 	validateRef,
 	validateOn,
-	submitting,
 	setSubmitting,
 	setErrors,
 	resetForm,
@@ -134,21 +103,6 @@ export function useFormSubmission<T extends Record<string, unknown>>({
 	// second submit event can come before the commit that publishes `submitting`.
 	const inFlightRef = useRef<number | null>(null)
 
-	// The element that had the focus when the submit started.
-	const focusRef = useRef<HTMLElement | null>(null)
-
-	// The fields are enabled again after the commit that ends the submit, so the
-	// focus can go back to a field.
-	useLayoutEffect(() => {
-		if (submitting) return
-
-		const el = focusRef.current
-
-		focusRef.current = null
-
-		if (el) restoreFocus(el)
-	}, [submitting])
-
 	const supersede = useCallback(() => {
 		tokenRef.current++
 
@@ -164,8 +118,6 @@ export function useFormSubmission<T extends Record<string, unknown>>({
 			// The buttons stay enabled while a submit runs, so a second click or an
 			// Enter in a field can start a submit here. The first submit continues.
 			if (inFlightRef.current !== null) return
-
-			const form = event.currentTarget
 
 			const submitValues = store.getState().values as T
 
@@ -202,8 +154,6 @@ export function useFormSubmission<T extends Record<string, unknown>>({
 			const token = ++tokenRef.current
 
 			inFlightRef.current = token
-
-			focusRef.current = focusInside(form)
 
 			setSubmitting(true)
 

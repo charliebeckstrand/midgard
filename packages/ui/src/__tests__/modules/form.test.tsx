@@ -17,6 +17,7 @@ import {
 	useFormContext,
 	useFormField,
 	useFormStatus,
+	useFormValue,
 } from '../../modules/form'
 import { useFormReducer } from '../../modules/form/use-form-reducer'
 import { useFormState } from '../../primitives/form/context'
@@ -67,15 +68,9 @@ async function submit(container: HTMLElement) {
 /** The values of the one-field forms below. */
 type Values = { name: string }
 
-/**
- * A submit event for a handler of {@link useFormReducer} called directly. A
- * real event carries its form as `currentTarget` while it dispatches.
- */
+/** A submit event for a handler of {@link useFormReducer} called directly. */
 function submitEvent(): SyntheticEvent<HTMLFormElement> {
-	return {
-		preventDefault: vi.fn(),
-		currentTarget: document.createElement('form'),
-	} as unknown as SyntheticEvent<HTMLFormElement>
+	return { preventDefault: vi.fn() } as unknown as SyntheticEvent<HTMLFormElement>
 }
 
 describe('Form', () => {
@@ -307,7 +302,7 @@ describe('Form', () => {
 		expect(getFieldProbe('name')).toHaveAttribute('data-error', 'taken')
 	})
 
-	it('disables the fields, and not the buttons, while onSubmit is pending', async () => {
+	it('locks the fields, and disables nothing, while onSubmit is pending', async () => {
 		const pending = deferred()
 
 		const onSubmit = vi.fn(() => pending.promise)
@@ -323,6 +318,7 @@ describe('Form', () => {
 					<Checkbox name="terms" />
 					<Label>Terms</Label>
 				</CheckboxField>
+				<FieldProbe name="terms" />
 				<Button type="button">Preview</Button>
 				<button type="submit">Submit</button>
 			</Form>,
@@ -342,11 +338,20 @@ describe('Form', () => {
 		// The fieldset follows only the `disabled` prop.
 		expect(container.querySelector('fieldset')).not.toBeDisabled()
 
-		expect(name).toBeDisabled()
+		for (const field of [name, bare, terms]) expect(field).toBeEnabled()
 
-		expect(bare).toBeDisabled()
+		expect(name).toHaveAttribute('readonly')
 
-		expect(terms).toBeDisabled()
+		expect(bare).toHaveAttribute('readonly')
+
+		// A locked field refuses the write of its control.
+		fireEvent.change(name, { target: { value: 'Grace' } })
+
+		fireEvent.click(terms)
+
+		expect(name).toHaveValue('Ada')
+
+		expect(getFieldProbe('terms').textContent).toBe('false')
 
 		expect(screen.getByRole('button', { name: 'Preview' })).toBeEnabled()
 
@@ -356,11 +361,58 @@ describe('Form', () => {
 			pending.resolve()
 		})
 
-		expect(name).toBeEnabled()
+		expect(name).not.toHaveAttribute('readonly')
 
-		expect(bare).toBeEnabled()
+		// The control: the same writes land once the submit ends.
+		fireEvent.change(name, { target: { value: 'Grace' } })
 
-		expect(terms).toBeEnabled()
+		fireEvent.click(terms)
+
+		expect(name).toHaveValue('Grace')
+
+		expect(getFieldProbe('terms').textContent).toBe('true')
+	})
+
+	it('refuses a useFormValue write while a submit runs, and reports no change', async () => {
+		const pending = deferred()
+
+		const onValueChange = vi.fn()
+
+		function Setter() {
+			const { setValue } = useFormValue<string>('name', { onValueChange })
+
+			return (
+				<button type="button" onClick={() => setValue('Grace')}>
+					Set
+				</button>
+			)
+		}
+
+		const { container } = renderUI(
+			<Form defaultValues={{ name: 'Ada' }} onSubmit={() => pending.promise}>
+				<Setter />
+				<FieldProbe name="name" />
+			</Form>,
+		)
+
+		await submit(container)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Set' }))
+
+		expect(getFieldProbe('name').textContent).toBe('Ada')
+
+		expect(onValueChange).not.toHaveBeenCalled()
+
+		await act(async () => {
+			pending.resolve()
+		})
+
+		// The control: the same write lands once the submit ends.
+		fireEvent.click(screen.getByRole('button', { name: 'Set' }))
+
+		expect(getFieldProbe('name').textContent).toBe('Grace')
+
+		expect(onValueChange).toHaveBeenCalledWith('Grace')
 	})
 
 	it('ignores a submit while one is in flight', async () => {
@@ -1585,137 +1637,31 @@ describe('Form focus during a submit', () => {
 		expect(button).toHaveFocus()
 	})
 
-	it('gives the focus back to a field when it fell to the body', async () => {
-		const pending = deferred<void>()
-
-		const { container } = renderUI(
-			<>
-				<Form defaultValues={{ name: '' }} onSubmit={() => pending.promise}>
-					<Input name="name" aria-label="Name" />
-				</Form>
-				<button type="button" data-testid="outside">
-					Outside
-				</button>
-			</>,
-		)
-
-		const input = screen.getByRole('textbox', { name: 'Name' })
-
-		input.focus()
-
-		await submit(container)
-
-		expect(input).toBeDisabled()
-
-		// An engine that applies the focus fixup rule of HTML moves the focus to
-		// the body when the focused field becomes disabled. jsdom does not, and
-		// it ignores a blur of a disabled field, so the focus goes out and back.
-		const outside = screen.getByTestId('outside')
-
-		act(() => {
-			outside.focus()
-
-			outside.blur()
-		})
-
-		expect(document.body).toHaveFocus()
-
-		await act(async () => {
-			pending.resolve()
-		})
-
-		expect(input).toHaveFocus()
-	})
-
-	it('gives the focus back after a submit that a reset supersedes', async () => {
-		const pending = deferred<void>()
-
-		let actions: ReturnType<typeof useFormActions>
-
-		function ActionsCapture() {
-			actions = useFormActions()
-
-			return null
-		}
-
-		const { container } = renderUI(
-			<>
-				<Form defaultValues={{ name: '' }} onSubmit={() => pending.promise}>
-					<ActionsCapture />
-					<Input name="name" aria-label="Name" />
-				</Form>
-				<button type="button" data-testid="outside">
-					Outside
-				</button>
-			</>,
-		)
-
-		const input = screen.getByRole('textbox', { name: 'Name' })
-
-		input.focus()
-
-		await submit(container)
-
-		// The focus falls to the body, as in an engine with the focus fixup rule.
-		const outside = screen.getByTestId('outside')
-
-		act(() => {
-			outside.focus()
-
-			outside.blur()
-		})
-
-		expect(document.body).toHaveFocus()
-
-		act(() => actions?.reset())
-
-		expect(input).toHaveFocus()
-	})
-
-	it('leaves a focus that went to another element', async () => {
-		const pending = deferred<void>()
-
-		const { container } = renderUI(
-			<>
-				<Form defaultValues={{ name: '' }} onSubmit={() => pending.promise}>
-					<FormSubmit>Save</FormSubmit>
-				</Form>
-				<button type="button" data-testid="outside">
-					Outside
-				</button>
-			</>,
-		)
-
-		getSlot<HTMLButtonElement>(container, 'form-submit').focus()
-
-		await submit(container)
-
-		const outside = screen.getByTestId('outside')
-
-		act(() => outside.focus())
-
-		await act(async () => {
-			pending.resolve()
-		})
-
-		expect(outside).toHaveFocus()
-	})
-
-	it('moves no focus when the focus was outside the form at the start', async () => {
+	it('keeps the focus on a field that an Enter submits, which stays enabled', async () => {
 		const pending = deferred<void>()
 
 		const { container } = renderUI(
 			<Form defaultValues={{ name: '' }} onSubmit={() => pending.promise}>
-				<FormSubmit>Save</FormSubmit>
+				<Input name="name" aria-label="Name" />
 			</Form>,
 		)
 
+		const input = screen.getByRole('textbox', { name: 'Name' })
+
+		input.focus()
+
 		await submit(container)
+
+		expect(input).toHaveAttribute('readonly')
+
+		expect(input).toBeEnabled()
+
+		expect(input).toHaveFocus()
 
 		await act(async () => {
 			pending.resolve()
 		})
 
-		expect(document.body).toHaveFocus()
+		expect(input).toHaveFocus()
 	})
 })

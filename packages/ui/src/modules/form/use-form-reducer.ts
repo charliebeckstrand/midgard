@@ -180,7 +180,6 @@ export function useFormReducer<T extends Record<string, unknown>>({
 		dispatch,
 		validateRef,
 		validateOn,
-		submitting,
 		setSubmitting,
 		setErrors,
 		resetForm,

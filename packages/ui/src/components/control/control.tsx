@@ -14,9 +14,9 @@ import { useControlFieldContext } from './use-control-field-context'
 export type ControlProps = {
 	id?: string
 	autoComplete?: string
-	/** @defaultValue `false`, or `true` inside a disabled Control or Field, or while an enclosing Form submits. */
+	/** @defaultValue `false`, or `true` inside a disabled Control or Field. */
 	disabled?: boolean
-	/** @defaultValue `false`, or `true` inside a read-only Control. */
+	/** @defaultValue `false`, or `true` inside a read-only Control, or while an enclosing Form submits. */
 	readOnly?: boolean
 	/** @defaultValue `false`, or the state of the enclosing Control. */
 	required?: boolean

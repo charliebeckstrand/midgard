@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import { useA11yControl } from '../../hooks'
-import { useFormFieldsDisabled } from '../../primitives/form/context'
+import { useFormLocked } from '../../primitives/form/context'
 import {
 	type ControlContextValue,
 	type ControlSeverity,
@@ -48,8 +48,8 @@ export function useControlFieldContext(
 ): ControlContextValue {
 	const parent = useControl()
 
-	// A form that submits disables each field in it, as a disabled ancestor does.
-	const formDisabled = useFormFieldsDisabled()
+	// A form that submits locks each field in it, as a read-only ancestor does.
+	const locked = useFormLocked()
 
 	const a11y = useA11yControl(id)
 
@@ -61,13 +61,13 @@ export function useControlFieldContext(
 		() => ({
 			id,
 			autoComplete: autoComplete ?? parent?.autoComplete,
-			disabled: formDisabled ? true : disabled || parent?.disabled,
-			readOnly: readOnly || parent?.readOnly,
+			disabled: disabled || parent?.disabled,
+			readOnly: locked ? true : readOnly || parent?.readOnly,
 			required: required ?? parent?.required,
 			severity: severity ?? parent?.severity,
 			variant: variant ?? parent?.variant,
 			...a11y,
 		}),
-		[id, autoComplete, disabled, readOnly, required, severity, variant, parent, formDisabled, a11y],
+		[id, autoComplete, disabled, readOnly, required, severity, variant, parent, locked, a11y],
 	)
 }

@@ -12,9 +12,11 @@ The binding contract moved to [`primitives/form`](../../primitives/form). It hol
 
 The submit flow is a set of small hooks over the engine. [`useFormReducer`](use-form-reducer.ts) holds the state and the field actions. [`useFormSubmission`](use-form-submission.ts) runs a submit, and [`useFormSync`](use-form-sync.ts) syncs the controlled `values` prop. A refused submit and a handler that returns a field issue each count as a failure. The provider gives the count to the parts.
 
-While a submit runs, the form disables its fields and not its buttons. The provider gives a `fieldsDisabled` flag, and the Control cascade reads it: `useControlFieldContext` for a field in a `Field` or a `Control`, and `useControlProps` for a bare control. A disabled `<fieldset>` disabled each button too, and the focused submit button then lost the focus. Now `FormSubmit` stays enabled, its loading state cancels a second click, and the form ignores a submit that starts during another one. The `<fieldset>` follows only the `disabled` prop. A filter bar inside a form provides its own flag, so its fields stay enabled.
+While a submit runs, the form locks its fields, and disables nothing. The provider gives a `locked` flag. The Control cascade reads it as `readOnly`: `useControlFieldContext` for a field in a `Field` or a `Control`, and `useControlProps` for a bare control. The setter of `useFormField` refuses a write while the form is locked, so a control with no read-only state, such as `Calendar`, cannot change its field either. A write through the form actions still lands, because a write from the app must land.
 
-A field that has the focus when the submit starts, after an Enter in it, becomes disabled. An engine that applies the focus fixup rule of HTML then moves the focus to the body. When the submit ends and the focus is on the body, `useFormSubmission` gives the focus back to the element that had it at the start. A focus that went to another element, such as `FormErrorSummary`, stays there.
+A disabled `<fieldset>` locked the fields once, and it disabled the buttons with them. Chromium moves the focus of a control that becomes disabled to the body, so the focused submit button or field lost the focus. Now each field and button keeps the focus. `FormSubmit` stays enabled, its loading state cancels a second click, and the form ignores a submit that starts during another one. The `<fieldset>` follows only the `disabled` prop. A filter bar inside a form provides its own flag, so its fields stay editable.
+
+Three checks hold the lock. The capability sweep submits a form around each control of the corpus that writes its field, and expects no write. [`form-write-boundary.test.ts`](../../__tests__/boundary/form-write-boundary.test.ts) holds each part outside the module to the setter of `useFormField`, and lists each part that reads the form actions. [`form-submit-focus.test.tsx`](../../__tests__/browser/form-submit-focus.test.tsx) holds the focus of the submit button and of a field in Chromium.
 
 Three parts act on the state of the form:
 
@@ -34,7 +36,13 @@ The engine reads `hasIssues` from the binding contract, because a control and th
 
 - **Field labels in the summary.** A row of `FormErrorSummary` shows the issue of its field. A row that also names the field needs the label of the field, which the form does not hold.
 
-- **Native elements in a submit.** A native element that does not read the Control cascade, such as a bare `<input>`, stays enabled while a submit runs.
+- **Native elements in a submit.** A native element that does not bind, such as a bare `<input>`, stays editable while a submit runs.
+
+- **Buttons in a submit.** A button other than `FormSubmit` and `FormReset` stays live while a submit runs, so an action such as "Add stop" can change a value that the submit does not carry. Make each button of a submitting form `aria-disabled`, with the click cancel of the loading state of `Button`, and give a button that must stay live, such as Cancel, a prop to opt out.
+
+- **A lock scope in Control.** The Control cascade reads the lock from the binding contract, so Control knows about forms. A form-agnostic scope in Control that cascades `readOnly` with no id, which `Form` renders, keeps Control apart from forms. A filter bar then needs a way to turn the lock off for its own fields.
+
+- **A busy signal.** Only `FormSubmit` carries `aria-busy` while a submit runs. The shared announcer can speak that the form saves.
 
 - **A focus target with no `Message`.** A row links to a control only when a form-bound `Message` of the field renders. A field with no `Message` shows its issue as text.
 

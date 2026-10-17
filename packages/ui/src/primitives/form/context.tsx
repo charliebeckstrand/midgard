@@ -101,23 +101,24 @@ export function useFormFailures(): number {
 	return useFormFailureContext()
 }
 
-const [FormFieldsDisabledContext, useFormFieldsDisabledContext] = createContext<boolean>(
-	'FormFieldsDisabled',
-	{ default: false },
-)
+const [FormLockedContext, useFormLockedContext] = createContext<boolean>('FormLocked', {
+	default: false,
+})
 
 /**
- * Whether the enclosing form disables its fields: `true` while a submit of a
+ * Whether the enclosing form locks its fields: `true` while a submit of a
  * `Form` runs.
  *
  * @returns The flag, or `false` outside a form.
- * @remarks The Control cascade reads it, so each field of the form is disabled
- * while the buttons stay enabled. A focused submit button then keeps the focus.
- * A filter bar inside a `Form` provides its own `false`.
+ * @remarks The Control cascade reads it as `readOnly`, so each field keeps the
+ * focus and shows that it cannot change. The setter of {@link useFormField}
+ * refuses a write while the form is locked, so a control with no read-only
+ * state cannot change its field either. A filter bar inside a `Form` provides
+ * its own `false`.
  * @internal
  */
-export function useFormFieldsDisabled(): boolean {
-	return useFormFieldsDisabledContext()
+export function useFormLocked(): boolean {
+	return useFormLockedContext()
 }
 
 const [FormFieldTargetsContext, useFormFieldTargetsContext] = createContext<
@@ -135,7 +136,7 @@ export function FormProvider({
 	actions,
 	resets,
 	failures = 0,
-	fieldsDisabled = false,
+	locked = false,
 	children,
 }: {
 	store: FormStore
@@ -143,8 +144,8 @@ export function FormProvider({
 	resets: number
 	/** How many submit attempts have failed. A provider with no submit leaves it at `0`. */
 	failures?: number
-	/** Disables each field of the form through the Control cascade. */
-	fieldsDisabled?: boolean
+	/** Locks each field of the form: the fields are read-only, and a field write does nothing. */
+	locked?: boolean
 	children: ReactNode
 }) {
 	const [targets] = useState(createFormFieldTargets)
@@ -154,9 +155,9 @@ export function FormProvider({
 			<FormStoreContext value={store}>
 				<FormResetContext value={resets}>
 					<FormFailureContext value={failures}>
-						<FormFieldsDisabledContext value={fieldsDisabled}>
+						<FormLockedContext value={locked}>
 							<FormFieldTargetsContext value={targets}>{children}</FormFieldTargetsContext>
-						</FormFieldsDisabledContext>
+						</FormLockedContext>
 					</FormFailureContext>
 				</FormResetContext>
 			</FormStoreContext>
@@ -210,10 +211,14 @@ export type FormFieldState = {
  * snapshot is cached and returned by reference when unchanged, so typing in one
  * field does not re-render its siblings. Used by the binding hooks
  * (`useInputValue`, {@link useFormToggle}, {@link useFormValue}).
+ *
+ * While a submit of the form runs, the form is locked, and `setValue` does
+ * nothing. A write through {@link useFormActions} still lands.
  */
 export function useFormField(name: string | undefined): FormFieldState | undefined {
 	const store = useFormStoreContext()
 	const actions = useFormActions()
+	const locked = useFormLocked()
 
 	// Caches the last slice by content; an unchanged field returns a stable
 	// reference across snapshots.
@@ -255,11 +260,12 @@ export function useFormField(name: string | undefined): FormFieldState | undefin
 		() => select(store?.getServerState()),
 	)
 
+	// A locked form refuses the write, so no field changes while a submit runs.
 	const setValue = useCallback(
 		(value: unknown) => {
-			if (name) actions?.setValue(name, value)
+			if (name && !locked) actions?.setValue(name, value)
 		},
-		[actions, name],
+		[actions, name, locked],
 	)
 
 	const setTouched = useCallback(() => {

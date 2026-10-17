@@ -1,7 +1,8 @@
+import { act } from '@testing-library/react'
 import type { ChangeEvent, FocusEvent, ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { composeEventHandlers } from '../../core'
-import { Form, useFormField } from '../../modules/form'
+import { Form, useFormActions, useFormField } from '../../modules/form'
 import { Density } from '../../primitives/density'
 import { corpus } from '../a11y/cases'
 import type {
@@ -14,7 +15,15 @@ import type {
 	TouchOnBlurSubject,
 	WriteOnChangeSubject,
 } from '../a11y/cases/types'
-import { allBySlot, bySlot, densityStepOf, fireEvent, getSlot, renderUI } from '../helpers'
+import {
+	allBySlot,
+	bySlot,
+	deferred,
+	densityStepOf,
+	fireEvent,
+	getSlot,
+	renderUI,
+} from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
 /**
@@ -149,6 +158,40 @@ function writesOnChange({ render, defaultValue, slot, kind }: WriteOnChangeSubje
 	expect(onChange).toHaveBeenCalledOnce()
 
 	expect(getFieldProbe(FIELD).textContent).toBe(kind === 'text' ? 'swept' : 'true')
+}
+
+/**
+ * The lock sweep: while a submit of its form runs, a bound control stays
+ * enabled, and its change does not write its field.
+ */
+async function holdsWhileLocked({ render, defaultValue, slot, kind }: WriteOnChangeSubject) {
+	const pending = deferred()
+
+	const { container } = renderUI(
+		<Form defaultValues={{ [FIELD]: defaultValue }} onSubmit={() => pending.promise}>
+			{render({ name: FIELD, onChange: vi.fn() })}
+			<FieldProbe name={FIELD} />
+		</Form>,
+	)
+
+	const before = getFieldProbe(FIELD).textContent
+
+	await act(async () => {
+		fireEvent.submit(getSlot(container, 'form'))
+	})
+
+	const element = getSlot(container, slot)
+
+	expect(element).toBeEnabled()
+
+	if (kind === 'text') fireEvent.change(element, { target: { value: 'swept' } })
+	else fireEvent.click(element)
+
+	expect(getFieldProbe(FIELD).textContent).toBe(before)
+
+	await act(async () => {
+		pending.resolve()
+	})
 }
 
 /** The link sweep: the subject's slot becomes an anchor to the href it sets. */
@@ -353,6 +396,17 @@ describe('component change binding', () => {
 	})
 })
 
+describe('component lock during a submit', () => {
+	for (const subject of writes) {
+		it(`${subject.title} stays enabled and does not write its field while the form submits`, () =>
+			holdsWhileLocked(subject))
+	}
+
+	it('has subjects to sweep', () => {
+		expect(writes).not.toHaveLength(0)
+	})
+})
+
 describe('component disclosure state', () => {
 	for (const subject of disclosures) {
 		it(`${subject.component} stamps data-open on each part while open`, () => stampsOpen(subject))
@@ -398,6 +452,21 @@ function DeafWrite({ name }: { name: string }) {
 			data-slot="deaf-write"
 			value={String(field?.value ?? '')}
 			onChange={(event) => field?.setValue(event.target.value)}
+		/>
+	)
+}
+
+/** A bound input that writes its field through the form actions, past the lock of a submit. */
+function UnlockedWrite({ name }: { name: string }) {
+	const field = useFormField(name)
+
+	const actions = useFormActions()
+
+	return (
+		<input
+			data-slot="unlocked-write"
+			value={String(field?.value ?? '')}
+			onChange={(event) => actions?.setValue(name, event.target.value)}
 		/>
 	)
 }
@@ -538,6 +607,17 @@ describe('capability sweeps: teeth checks', () => {
 				kind: 'text',
 			}),
 		).toThrow()
+	})
+
+	it('fails a control that writes its field while the form submits', async () => {
+		await expect(
+			holdsWhileLocked({
+				render: (props) => <UnlockedWrite {...props} />,
+				defaultValue: '',
+				slot: 'unlocked-write',
+				kind: 'text',
+			}),
+		).rejects.toThrow()
 	})
 
 	it('fails a control whose caller can skip the touched mark', () => {
