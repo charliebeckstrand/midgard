@@ -1,8 +1,8 @@
 'use client'
 
+import { useInView } from 'motion/react'
 import { type ReactNode, type RefObject, Suspense, useLayoutEffect, useRef } from 'react'
 import { cn } from '../../core'
-import { useInView } from '../../hooks'
 import { useHydrated } from '../../hooks/use-hydrated'
 import { ContentHeightContext, type ContentHeightHost } from '../../primitives/content-height'
 import { type Mount, MountHold, useMountHold } from '../../primitives/mount'
@@ -169,8 +169,11 @@ function HeldDashboardTileContent({
 	fallback,
 	children,
 }: HeldDashboardTileContentProps) {
+	const ref = useRef<HTMLDivElement>(null)
+
 	// `active` must see the tile leave the viewport, so its observer stays connected.
-	const { ref, inView } = useInView({ once: mount !== 'active' })
+	// The margin prepares a tile just before the reader reaches it.
+	const inView = useInView(ref, { margin: '200px', once: mount !== 'active' })
 
 	useNaturalHeight(id, ref, natural)
 

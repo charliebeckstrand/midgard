@@ -65,7 +65,7 @@ type PdfViewerThumbnailListProps = {
  * the scroll container of the rail, so a tile scrolled out of the rail is out of view, and the
  * 200px margin grows the rail.
  * Where nothing can observe (the server, and jsdom without a stub), every tile counts as in
- * view, as `useInView` does. The cleanup reports none, because a rail that unmounts or hides
+ * view. The cleanup reports none, because a rail that unmounts or hides
  * shows nothing.
  * @internal
  */
