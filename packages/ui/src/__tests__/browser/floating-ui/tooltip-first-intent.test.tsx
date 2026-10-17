@@ -39,8 +39,19 @@ async function expectClosed() {
 
 describe('Tooltip first intent before the state loads (real browser)', () => {
 	it('opens a hover at the end of the delay that started with the hover', async () => {
+		const delay = 400
+
+		// The time of the open comes from the open itself, not from the wait
+		// that sees the text, so the render and the poll do not add to it.
+		let opened = Number.NaN
+
 		const { container } = renderUI(
-			<Tooltip delay={400}>
+			<Tooltip
+				delay={delay}
+				onOpenChange={(open) => {
+					if (open) opened = performance.now()
+				}}
+			>
 				<TooltipTrigger>
 					<button type="button">Toggle</button>
 				</TooltipTrigger>
@@ -69,17 +80,23 @@ describe('Tooltip first intent before the state loads (real browser)', () => {
 
 		await pause(200)
 
+		const released = performance.now()
+
 		tooltipLoad.release()
 
 		await expectOpen()
 
-		const elapsed = performance.now() - start
+		// The load does not skip the delay: the open comes at the end of the
+		// delay from the hover, or at the load if the delay ended before it.
+		// The trigger and the case read the clock in separate listeners, and the
+		// clock is coarse, so this bound keeps a margin.
+		expect(opened - start).toBeGreaterThanOrEqual(delay - 50)
 
-		// The load does not restart the delay: the open comes 400 ms after the
-		// hover, not 400 ms after the load.
-		expect(elapsed).toBeGreaterThanOrEqual(350)
-
-		expect(elapsed).toBeLessThan(550)
+		// The load does not restart the delay, which would open one full delay
+		// after the release. This bound counts from the release, not from the
+		// hover. On a busy runner, the hover call can return late and move the
+		// release past the end of the delay.
+		expect(opened - released).toBeLessThan(delay)
 	})
 
 	it('opens a hover at once when the load ends after the delay', async () => {
