@@ -31,6 +31,8 @@ export type KeyboardReorderOptions<T> = {
 	 * are not steps: the hook handles them.
 	 */
 	stepFor: (key: string) => number | null
+	/** Whether the surface takes a lift. See `useKeyboardLifted`. */
+	enabled: boolean
 }
 
 /** The item a key acts on: its key, its index in `items`, the last index, and its description. */
@@ -67,7 +69,7 @@ export function useKeyboardReorder<T>(options: KeyboardReorderOptions<T>) {
 		drop,
 		refocus,
 		onBlur: onItemBlur,
-	} = useKeyboardLifted(options.focusItem)
+	} = useKeyboardLifted(options.focusItem, options.enabled)
 
 	const onItemKeyDown = useStableEvent((id: string, event: KeyboardEvent) => {
 		// A modified key is a browser or OS gesture, never a move.

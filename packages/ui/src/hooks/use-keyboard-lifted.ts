@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 import { announce } from '../core'
 import { useAnimationFrame } from './use-timeout'
 
@@ -24,6 +24,10 @@ export const LIFT_INSTRUCTIONS = {
  * @param focus - Moves DOM focus to the item with the given id; invoked by
  * `refocus` on the next animation frame. A later `refocus` replaces a pending
  * frame, and an unmount cancels it.
+ * @param enabled - Whether the surface takes a lift. When it turns false, the
+ * lift drops before paint. A disabled surface swaps or disables its handle, so
+ * focus leaves the handle with no blur, and a lift that stays would move the
+ * item on the first arrow after the surface turns enabled again.
  * @returns
  * - `liftedId`: the lifted item of the last render, or `null`.
  * - `readLifted`: the lifted item of the last write. A second key in the same
@@ -31,11 +35,11 @@ export const LIFT_INSTRUCTIONS = {
  * - `setLiftedId`: sets the lift. It writes `readLifted` before the commit.
  * - `toggleLift(id, describe)`: lifts `id`, or drops it when it is lifted. It
  *   announces "Picked up" or "Dropped" with the text that `describe` gives.
- * * - `drop(describe)`: drops the lift and announces "Dropped".
+ * - `drop(describe)`: drops the lift and announces "Dropped".
  * - `refocus(id)`: refocuses after a reorder and keeps the lift through the blur.
  * - `onBlur`: clears the lift unless a reorder is in flight.
  */
-export function useKeyboardLifted(focus: (id: string) => void) {
+export function useKeyboardLifted(focus: (id: string) => void, enabled: boolean) {
 	const [liftedId, setLiftedState] = useState<string | null>(null)
 
 	const liftedRef = useRef<string | null>(null)
@@ -47,6 +51,11 @@ export function useKeyboardLifted(focus: (id: string) => void) {
 	}, [])
 
 	const readLifted = useCallback(() => liftedRef.current, [])
+
+	// A layout effect, so the frame that shows the disabled surface shows no lift.
+	useLayoutEffect(() => {
+		if (!enabled) setLiftedId(null)
+	}, [enabled, setLiftedId])
 
 	const toggleLift = useCallback(
 		(id: string, describe: () => string) => {

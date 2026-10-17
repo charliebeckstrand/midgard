@@ -39,7 +39,7 @@ describe('useKeyboardLifted', () => {
 	it('refocuses the item on the next frame', () => {
 		const focus = vi.fn()
 
-		const { result } = renderHook(() => useKeyboardLifted(focus))
+		const { result } = renderHook(() => useKeyboardLifted(focus, true))
 
 		act(() => result.current.refocus('a'))
 
@@ -51,7 +51,7 @@ describe('useKeyboardLifted', () => {
 	it('replaces a pending refocus with a later one', () => {
 		const focus = vi.fn()
 
-		const { result } = renderHook(() => useKeyboardLifted(focus))
+		const { result } = renderHook(() => useKeyboardLifted(focus, true))
 
 		act(() => {
 			result.current.refocus('a')
@@ -67,7 +67,7 @@ describe('useKeyboardLifted', () => {
 	it('cancels a pending refocus on unmount', () => {
 		const focus = vi.fn()
 
-		const { result, unmount } = renderHook(() => useKeyboardLifted(focus))
+		const { result, unmount } = renderHook(() => useKeyboardLifted(focus, true))
 
 		act(() => result.current.refocus('a'))
 
@@ -81,7 +81,7 @@ describe('useKeyboardLifted', () => {
 	it('lifts and drops through toggleLift and announces each', () => {
 		const announce = vi.spyOn(core, 'announce').mockImplementation(() => {})
 
-		const { result } = renderHook(() => useKeyboardLifted(vi.fn()))
+		const { result } = renderHook(() => useKeyboardLifted(vi.fn(), true))
 
 		act(() => result.current.toggleLift('a', () => 'Alpha, position 1 of 2'))
 
@@ -100,7 +100,7 @@ describe('useKeyboardLifted', () => {
 	it('reads a lift before its commit', () => {
 		vi.spyOn(core, 'announce').mockImplementation(() => {})
 
-		const { result } = renderHook(() => useKeyboardLifted(vi.fn()))
+		const { result } = renderHook(() => useKeyboardLifted(vi.fn(), true))
 
 		const seen: (string | null)[] = []
 
@@ -118,7 +118,7 @@ describe('useKeyboardLifted', () => {
 	})
 
 	it('drops the lift on blur', () => {
-		const { result } = renderHook(() => useKeyboardLifted(vi.fn()))
+		const { result } = renderHook(() => useKeyboardLifted(vi.fn(), true))
 
 		act(() => result.current.setLiftedId('a'))
 

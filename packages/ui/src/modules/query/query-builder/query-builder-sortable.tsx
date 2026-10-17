@@ -84,6 +84,7 @@ export function QueryBuilderSortable({ group, separator, node }: QueryBuilderSor
 		focusItem,
 		itemName: name,
 		stepFor,
+		enabled: !disabled,
 	})
 
 	const { order, sorting, setDraft, onDragStart, onDragEnd } = useReorderDrag({
