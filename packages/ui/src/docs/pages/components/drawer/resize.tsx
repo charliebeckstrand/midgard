@@ -23,7 +23,7 @@ export default function Resize() {
 					<DrawerDescription>Tuesday, June 16</DrawerDescription>
 				</DrawerHeader>
 				<DrawerBody>
-					<Text>
+					<Text tone="muted">
 						The team agreed to ship the new search page next week. Design reviews the empty states
 						on Thursday, and support writes the help article before the release.
 					</Text>

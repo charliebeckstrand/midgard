@@ -30,7 +30,7 @@ export default function InContainer() {
 						<SheetDescription>PDF document, 2.4 MB</SheetDescription>
 					</SheetHeader>
 					<SheetBody>
-						<Text>
+						<Text tone="muted">
 							Jane Smith uploaded this file on March 3. The sheet stays in this box, and the page
 							around it still scrolls.
 						</Text>
