@@ -18,7 +18,9 @@ function GlassDialog() {
 				<DialogPanel>
 					<DialogTitle>Glass dialog</DialogTitle>
 					<DialogBody>
-						<Text>This dialog inherits glass mode from the GlassProvider wrapper.</Text>
+						<Text tone="muted">
+							This dialog inherits glass mode from the GlassProvider wrapper.
+						</Text>
 					</DialogBody>
 					<DialogFooter>
 						<Button variant="plain" onClick={() => setOpen(false)}>
@@ -43,7 +45,7 @@ function GlassDrawer() {
 				<DrawerPanel>
 					<DrawerTitle>Glass drawer</DrawerTitle>
 					<DrawerBody>
-						<Text>Inherits glass mode from context.</Text>
+						<Text tone="muted">Inherits glass mode from context.</Text>
 					</DrawerBody>
 					<DrawerFooter>
 						<Button onClick={() => setOpen(false)}>Close</Button>
@@ -66,7 +68,7 @@ function GlassSheet() {
 				<SheetPanel side="left">
 					<SheetTitle>Glass sheet</SheetTitle>
 					<SheetBody>
-						<Text>Inherits glass mode from context.</Text>
+						<Text tone="muted">Inherits glass mode from context.</Text>
 					</SheetBody>
 					<SheetFooter>
 						<Button onClick={() => setOpen(false)}>Close</Button>

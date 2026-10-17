@@ -23,7 +23,7 @@ export default function DialogPlayground(props: DialogPanelProps) {
 					<DialogDescription>Released on March 3.</DialogDescription>
 				</DialogHeader>
 				<DialogBody>
-					<Text>
+					<Text tone="muted">
 						Search now finds the text in your attachments. Shared folders show who changed each file
 						last, and the dark theme follows the setting of your system.
 					</Text>

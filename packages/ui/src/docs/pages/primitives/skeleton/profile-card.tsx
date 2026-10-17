@@ -28,14 +28,14 @@ export default function ProfileCard() {
 								<Heading level={3}>Jane Doe</Heading>
 							</ReadyReveal>
 							<ReadyReveal ready={ready} placeholder={<TextSkeleton />}>
-								<Text>Senior Engineer</Text>
+								<Text tone="muted">Senior Engineer</Text>
 							</ReadyReveal>
 						</Stack>
 					</Flex>
 				</CardHeader>
 				<CardBody>
 					<ReadyReveal ready={ready} placeholder={<TextSkeleton />}>
-						<Text>Design systems & component libraries.</Text>
+						<Text tone="muted">Design systems & component libraries.</Text>
 					</ReadyReveal>
 				</CardBody>
 			</Card>
