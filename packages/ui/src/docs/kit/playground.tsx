@@ -12,7 +12,8 @@ import { omote } from '../../recipes/kiso/index.ts'
 import { SIZE_CLASSES } from '../../types/responsive.ts'
 import type { BarrelApi, DefaultValue, Literal, PropApi } from '../plugin/api.ts'
 import type { ExampleCode } from '../plugin/examples.ts'
-import { ExampleFrame, metaOf } from './example.tsx'
+import { ExampleFrame, loadCode, metaOf } from './example.tsx'
+import { useFail } from './fail.ts'
 import { humanize } from './humanize.ts'
 
 /**
@@ -214,6 +215,58 @@ function startOf(field: Field): Value | undefined {
 	return field.default ?? (field.required ? field.values[0] : undefined)
 }
 
+/** Tells if `value` is a value of `field`. An omitted value is, unless the field is required. */
+function accepts(field: Field, value: Value | undefined): boolean {
+	if (field.kind !== 'choice') {
+		return value === undefined || typeof value === (field.kind === 'number' ? 'number' : 'string')
+	}
+
+	if (value === undefined) return !field.required
+
+	const key = JSON.stringify(value)
+
+	return field.values.some((option) => JSON.stringify(option) === key)
+}
+
+/**
+ * The value of each field: the value that the reader picked, when it is a
+ * value of the field, else the start of the field. A value that the reader
+ * picked for one component stays when the reader picks another component that
+ * takes it, such as a color.
+ */
+function valuesOf(fields: readonly Field[], picked: Values): Values {
+	return Object.fromEntries(
+		fields.map((field) => [
+			field.name,
+			Object.hasOwn(picked, field.name) && accepts(field, picked[field.name])
+				? picked[field.name]
+				: startOf(field),
+		]),
+	)
+}
+
+function isList<T>(value: T | readonly T[]): value is readonly T[] {
+	return Array.isArray(value)
+}
+
+/**
+ * The field that picks the component of a playground with more than one: a
+ * value for each component, without the words at the start that all of the
+ * names share, so `LoadingSpinner` and `LoadingDots` give `spinner` and
+ * `dots`. The first component is the default.
+ */
+function componentFieldOf(components: readonly string[]): ChoiceField {
+	const words = components.map((component) => humanize(component).toLowerCase().split(' '))
+
+	const [first = []] = words
+
+	const shared = first.findIndex((word, index) => words.some((other) => other[index] !== word))
+
+	const values = words.map((name) => name.slice(Math.max(shared, 0)).join('-'))
+
+	return { kind: 'choice', name: 'component', values, default: values[0], required: true }
+}
+
 /** A literal as code, with a string in single quotes. */
 function codeOf(value: Literal): string {
 	return typeof value === 'string' ? `'${value}'` : String(value)
@@ -384,11 +437,18 @@ function FieldPicker({
  * fields drive this one instance. "Show code" shows the file with the values
  * that are not the defaults as attributes.
  *
+ * A page with more than one component, such as a spinner and dots, gives a
+ * playground module for each, in `playground.tsx` and `playground-<name>.tsx`.
+ * A "Component" field then picks the module, and the first is the default.
+ *
  * @example
  * import api from 'virtual:docs/api/components/button'
  * import ButtonPlayground from './playground.tsx'
  *
  * <Playground of={ButtonPlayground} api={api} />
+ *
+ * @example
+ * <Playground of={[LoadingPlayground, LoadingDotsPlayground]} api={api} />
  */
 export function Playground<P extends object>({
 	of,
@@ -400,9 +460,10 @@ export function Playground<P extends object>({
 }: {
 	/**
 	 * The default export of the playground module. It types its props as the
-	 * props of its component, and the fields give them from the API data.
+	 * props of its component, and the fields give them from the API data. A
+	 * list gives a playground module for each component of the page.
 	 */
-	of: ComponentType<P>
+	of: ComponentType<P> | readonly ComponentType<P>[]
 	/** The API data of the barrel of the component. */
 	api: BarrelApi
 	/** The props that get no field. */
@@ -424,11 +485,19 @@ export function Playground<P extends object>({
 	/** Makes the instance box fill the frame, for a surface of a page. */
 	surface?: boolean
 }) {
-	const meta = metaOf(of)
+	const modules: readonly ComponentType<P>[] = isList(of) ? of : [of]
+
+	const [active, setActive] = useState(0)
+
+	const current = modules[active]
+
+	if (!current) throw new Error('docs: a playground takes one playground module or more')
+
+	const meta = metaOf(current)
 
 	// The fields give each prop from the API data of the component, so the
 	// values are props of it.
-	const Instance = of as ComponentType<Values>
+	const Instance = current as ComponentType<Values>
 
 	const component = meta.component === undefined ? undefined : api[meta.component]
 
@@ -440,9 +509,26 @@ export function Playground<P extends object>({
 
 	const fields = fieldsOf(component.props, omit, given, free, step)
 
-	const [values, setValues] = useState<Values>(() =>
-		Object.fromEntries(fields.map((field) => [field.name, startOf(field)])),
-	)
+	const switcher =
+		modules.length > 1
+			? componentFieldOf(modules.map((playground) => metaOf(playground).component ?? ''))
+			: undefined
+
+	const [picked, setPicked] = useState<Values>({})
+
+	const values = valuesOf(fields, picked)
+
+	const fail = useFail()
+
+	// The code of the next component loads before the switch, so an open
+	// "Show code" shows it at once.
+	const handleComponentChange = (value: Value | undefined) => {
+		const index = value === undefined ? -1 : (switcher?.values.indexOf(value) ?? -1)
+
+		const next = modules[index]
+
+		if (next) loadCode(metaOf(next)).then(() => setActive(index), fail)
+	}
 
 	return (
 		<ExampleFrame
@@ -451,9 +537,17 @@ export function Playground<P extends object>({
 			surface={surface}
 			actions={
 				<Rail label="Props">
+					{switcher && (
+						<FieldPicker
+							field={switcher}
+							step={step}
+							value={switcher.values[active]}
+							onValueChange={handleComponentChange}
+						/>
+					)}
 					{fields.map((field) => {
 						const handleValueChange = (value: Value | undefined) =>
-							setValues({ ...values, [field.name]: value })
+							setPicked({ ...picked, [field.name]: value })
 
 						return field.kind === 'choice' ? (
 							<FieldPicker

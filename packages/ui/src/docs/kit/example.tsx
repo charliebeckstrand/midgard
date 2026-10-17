@@ -36,7 +36,8 @@ const loads = new WeakMap<ExampleMeta, Promise<void>>()
 // render, so an open block paints its code in the frame that opens it.
 const codes = new WeakMap<ExampleMeta, ExampleCode>()
 
-function loadCode(meta: ExampleMeta): Promise<void> {
+/** Loads the code of the example of `meta`, once. */
+export function loadCode(meta: ExampleMeta): Promise<void> {
 	return getOrCompute(loads, meta, () =>
 		meta.code().then((code) => {
 			// The markup from the build paints in the first frame of the block.
