@@ -23,6 +23,9 @@ const inset = 'density-size-[3,3.5,4,4.5,5]'
  */
 const box = 'density-h-[6.5,8,9.5,11,12.5]'
 
+/** A square with the side of {@link box}: a pagination page skeleton and a lightbox thumbnail. */
+const square = 'density-size-[6.5,8,9.5,11,12.5]'
+
 /**
  * The width of a fixed panel that holds text, 256 px to 384 px: a color panel.
  * The width of a toast card (`size.toast.width`) takes the same steps. The width is 320 px at `md`.
@@ -101,7 +104,12 @@ export const size = {
 		icon: 'density-size-[5.5,6.5,7.5,8.5,9.5]',
 	},
 	/** A pagination page skeleton. */
-	pagination: 'density-size-[6.5,8,9.5,11,12.5]',
+	pagination: square,
+	/**
+	 * A thumbnail in the row of a lightbox: the height of a button, so the row
+	 * has the height of the pill that it replaces.
+	 */
+	lightbox: square,
 	badge: {
 		/** The height of a badge skeleton. */
 		base: 'density-h-[6.5,7,7.5,8,8.5]',

@@ -1,7 +1,7 @@
 'use client'
 
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
-import { PresenceContext, usePresence } from 'motion/react'
+import { PresenceContext, useComposedRefs, usePresence } from 'motion/react'
 import {
 	type CSSProperties,
 	type KeyboardEvent,
@@ -13,12 +13,13 @@ import {
 } from 'react'
 import { cn } from '../../core'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
+import { scrollNodeWithin } from '../../hooks/use-scroll-within'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/lightbox'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { useLightboxContext } from './context'
-import { PAN_KEY_STEP, ZOOM_KEY_STEP } from './lightbox-utilities'
+import { PAN_KEY_STEP, thumbnailOf, ZOOM_KEY_STEP } from './lightbox-utilities'
 import type { LightboxViewPhoto } from './types'
 import { useLightboxFlight } from './use-lightbox-flight'
 import { useLightboxTrack } from './use-lightbox-track'
@@ -47,6 +48,8 @@ export type LightboxStageProps = {
 	closable: boolean
 	/** Whether the viewer shows the previous button, the count, and the next button. */
 	controls: boolean
+	/** Whether the controls show a row of thumbnails in place of the pill. */
+	thumbnails: boolean
 	/** Whether the page behind the scrim is blurred. */
 	blur: boolean
 }
@@ -114,6 +117,18 @@ function controlsFrame(photo: LightboxViewPhoto): CSSProperties {
 	} as CSSProperties
 }
 
+/**
+ * Puts the current thumbnail in the center of the row at once. It is the ref
+ * callback of the row: React attaches a ref in the commit, before the browser
+ * paints, so the row paints with the current thumbnail in view. React gives
+ * `null` on detach.
+ */
+function centerCurrentThumbnail(row: HTMLDivElement | null) {
+	const current = row?.querySelector<HTMLElement>('[aria-current]')
+
+	if (row && current) scrollNodeWithin(row, current, { inline: 'center', behavior: 'instant' })
+}
+
 /** The slots of the track: the photo in the center and each photo next to it. */
 function slotsAround(index: number, photos: readonly LightboxViewPhoto[]) {
 	return [-1, 0, 1].flatMap((offset) => {
@@ -147,6 +162,7 @@ export function LightboxStage({
 	labels,
 	closable,
 	controls,
+	thumbnails,
 	blur,
 }: LightboxStageProps) {
 	const { thumbnail } = useLightboxContext()
@@ -333,6 +349,26 @@ export function LightboxStage({
 		track.step(step)
 	}
 
+	const rowRef = useRef<HTMLDivElement>(null)
+
+	const setRow = useComposedRefs(rowRef, centerCurrentThumbnail)
+
+	// The thumbnail of the photo that the controls show stays in the center of
+	// the row, and the row scrolls to it with its own `scroll-behavior`. When the
+	// focus is in the row, it goes to that thumbnail, so the arrow keys move the
+	// focus with the photo.
+	useLayoutEffect(() => {
+		const row = rowRef.current
+
+		const current = row?.children[at]
+
+		if (!row || !(current instanceof HTMLElement)) return
+
+		if (row.contains(document.activeElement)) current.focus({ preventScroll: true })
+
+		scrollNodeWithin(row, current, { inline: 'center' })
+	}, [at])
+
 	// A press on the stage, the photo, or the scrim has no focusable target, so
 	// the browser moves the focus to `<body>`, and the arrow keys stop. The viewer
 	// takes the focus of such a press instead. `tabIndex={-1}` keeps it out of the
@@ -420,35 +456,59 @@ export function LightboxStage({
 					</Button>
 					{bar && (
 						<div className={cn(k.bar)}>
-							<div className={k.pill}>
-								<Button
-									type="button"
-									ref={previousRef}
-									variant="plain"
-									color="inherit"
-									className={cn(k.step, at === 0 && k.ended)}
-									aria-label={labels.previous}
-									disabled={at === 0}
-									onClick={() => stepBy(-1)}
-								>
-									<Icon icon={<ChevronLeft />} className="rtl:-scale-x-100" />
-								</Button>
-								<span aria-hidden="true" className={k.count}>
-									{at + 1} / {count}
-								</span>
-								<Button
-									type="button"
-									ref={nextRef}
-									variant="plain"
-									color="inherit"
-									className={cn(k.step, at === count - 1 && k.ended)}
-									aria-label={labels.next}
-									disabled={at === count - 1}
-									onClick={() => stepBy(1)}
-								>
-									<Icon icon={<ChevronRight />} className="rtl:-scale-x-100" />
-								</Button>
-							</div>
+							{thumbnails ? (
+								<div ref={setRow} className={cn(k.thumbnails)}>
+									{photos.map((photo, place) => (
+										<button
+											key={photo.index}
+											type="button"
+											aria-current={place === at ? 'true' : undefined}
+											// One tab stop: the arrow keys move the focus along the row.
+											tabIndex={place === at ? 0 : -1}
+											className={cn(k.thumbnail.base, place === at && k.thumbnail.current)}
+											onClick={() => track.go(place)}
+										>
+											<img
+												src={thumbnailOf(photo)}
+												alt={photo.alt}
+												draggable={false}
+												decoding="async"
+												className={k.thumbnail.image}
+											/>
+										</button>
+									))}
+								</div>
+							) : (
+								<div className={k.pill}>
+									<Button
+										type="button"
+										ref={previousRef}
+										variant="plain"
+										color="inherit"
+										className={cn(k.step, at === 0 && k.ended)}
+										aria-label={labels.previous}
+										disabled={at === 0}
+										onClick={() => stepBy(-1)}
+									>
+										<Icon icon={<ChevronLeft />} className="rtl:-scale-x-100" />
+									</Button>
+									<span aria-hidden="true" className={k.count}>
+										{at + 1} / {count}
+									</span>
+									<Button
+										type="button"
+										ref={nextRef}
+										variant="plain"
+										color="inherit"
+										className={cn(k.step, at === count - 1 && k.ended)}
+										aria-label={labels.next}
+										disabled={at === count - 1}
+										onClick={() => stepBy(1)}
+									>
+										<Icon icon={<ChevronRight />} className="rtl:-scale-x-100" />
+									</Button>
+								</div>
+							)}
 						</div>
 					)}
 				</m.div>
