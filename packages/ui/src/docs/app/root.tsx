@@ -28,7 +28,7 @@ import { noop } from '../../utilities/noop.ts'
 import { DebugScript } from '../debug/index.tsx'
 import { useIdle } from '../kit/idle.ts'
 import appCss from './app.css?url'
-import { DirectionScript, DirectionSwitch } from './direction.tsx'
+import { DirectionListbox, DirectionScript } from './direction.tsx'
 import { PageError } from './page-error.tsx'
 import { NavigateContext, RouterLink } from './router-link.tsx'
 import { DocsSearch, SearchPaletteHost } from './search.tsx'
@@ -94,7 +94,7 @@ const ACTIONS = (
 	<>
 		<EventsButton />
 		<AppearanceSettings>
-			<DirectionSwitch />
+			<DirectionListbox />
 			<EventsSwitch />
 		</AppearanceSettings>
 	</>
