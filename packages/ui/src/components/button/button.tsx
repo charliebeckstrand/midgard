@@ -8,9 +8,10 @@ import type { PolymorphicProps } from '../../primitives/polymorphic'
 import { TouchTarget } from '../../primitives/touch-target'
 import { useHeadless } from '../../providers/headless/context'
 import { k } from '../../recipes/kata/button'
+import { useControlLock } from '../control/context'
 import { Link } from '../link'
 import { LoadingSpinner } from '../loading'
-import { loadingProps } from './button-constants'
+import { loadingProps, lockedProps } from './button-constants'
 import { ButtonHeadless } from './button-headless'
 import { type ButtonBaseProps, isIconElement, isVisuallyHiddenElement } from './button-utilities'
 import { useButtonDefaults } from './context'
@@ -35,7 +36,9 @@ export type ButtonProps = ButtonBaseProps & PolymorphicProps<'button', 'prefix'>
  *
  * A loading button stays enabled, so it keeps the focus that it has. It is
  * `aria-disabled`, leaves the tab order, and cancels each activation, the
- * submission of its form included.
+ * submission of its form included. In a locked scope, such as a `Form` while a
+ * submit runs, a button is `aria-disabled` and cancels each activation too, but
+ * it stays in the tab order. Pass `lockable={false}` to keep it live.
  *
  * @remarks
  * Mirrors native `<button>` submission semantics. An untyped Button emits no
@@ -52,6 +55,7 @@ export function Button({
 	href,
 	ref,
 	loading = false,
+	lockable = true,
 	prefix,
 	suffix,
 	type,
@@ -61,6 +65,10 @@ export function Button({
 	const headless = useHeadless()
 
 	const { variant, color } = useButtonDefaults({ variant: variantProp, color: colorProp })
+
+	// A locked scope, such as a form that submits, makes the button inert. A link
+	// leaves the page, and the lock does not reach it.
+	const locked = useControlLock() && lockable && href === undefined
 
 	// The spinner takes the place of the leading content while the button loads.
 	const leading = loading ? <LoadingSpinner /> : prefix
@@ -73,6 +81,7 @@ export function Button({
 				data-slot={slot}
 				className={className}
 				loading={loading}
+				locked={locked}
 				type={type as ComponentProps<'button'>['type']}
 				{...(props as ComponentProps<'button'>)}
 			>
@@ -141,8 +150,9 @@ export function Button({
 			className={classes}
 			{...(props as Omit<ComponentProps<'button'>, 'className'>)}
 			type={type}
-			// A loading button stays enabled, so it keeps the focus that it has. These
-			// props cancel its activation instead of `disabled`.
+			// A loading or locked button stays enabled, so it keeps the focus that it
+			// has. These props cancel its activation instead of `disabled`.
+			{...(locked && lockedProps)}
 			{...(loading && loadingProps)}
 		>
 			<TouchTarget>{content}</TouchTarget>

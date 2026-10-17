@@ -3,6 +3,7 @@ import { createRef } from 'react'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, type Mock, vi } from 'vitest'
 import { Button, ButtonSkeleton } from '../../components/button'
+import { ControlLockContext } from '../../components/control/context'
 import { Group } from '../../components/group'
 import { Icon } from '../../components/icon'
 import { Input } from '../../components/input'
@@ -115,6 +116,93 @@ describe('Button', () => {
 		expectGated(button, onClick)
 
 		expect(onSubmit).not.toHaveBeenCalled()
+	})
+
+	it('makes a button inert in a locked scope, and keeps it focusable', () => {
+		const onClick = vi.fn()
+
+		const onSubmit = vi.fn((event: { preventDefault: () => void }) => event.preventDefault())
+
+		const { container } = renderUI(
+			<ControlLockContext value>
+				<form onSubmit={onSubmit}>
+					<Button onClick={onClick}>Preview</Button>
+				</form>
+			</ControlLockContext>,
+		)
+
+		const button = getSlot<HTMLButtonElement>(container, 'button')
+
+		expect(button).toBeEnabled()
+
+		expect(button).toHaveAttribute('aria-disabled', 'true')
+
+		expect(button).toHaveAttribute('data-disabled')
+
+		expect(button).not.toHaveAttribute('aria-busy')
+
+		// It stays in the tab order, so the reader can find it.
+		expect(button).not.toHaveAttribute('tabindex')
+
+		button.focus()
+
+		fireEvent.click(button)
+
+		expect(onClick).not.toHaveBeenCalled()
+
+		expect(onSubmit).not.toHaveBeenCalled()
+
+		expect(button).toHaveFocus()
+	})
+
+	it('keeps a lockable={false} button live in a locked scope', () => {
+		const onClick = vi.fn()
+
+		const { container } = renderUI(
+			<ControlLockContext value>
+				<Button lockable={false} onClick={onClick}>
+					Cancel
+				</Button>
+			</ControlLockContext>,
+		)
+
+		const button = getSlot<HTMLButtonElement>(container, 'button')
+
+		expect(button).not.toHaveAttribute('aria-disabled')
+
+		fireEvent.click(button)
+
+		expect(onClick).toHaveBeenCalledOnce()
+	})
+
+	it('leaves a link live in a locked scope', () => {
+		const { container } = renderUI(
+			<ControlLockContext value>
+				<Button href="/about">About</Button>
+			</ControlLockContext>,
+		)
+
+		expect(getSlot(container, 'button')).not.toHaveAttribute('aria-disabled')
+	})
+
+	it('makes a headless button inert in a locked scope', () => {
+		const onClick = vi.fn()
+
+		const { container } = renderUI(
+			<HeadlessProvider>
+				<ControlLockContext value>
+					<Button onClick={onClick}>Preview</Button>
+				</ControlLockContext>
+			</HeadlessProvider>,
+		)
+
+		const button = getSlot<HTMLButtonElement>(container, 'button')
+
+		expect(button).toHaveAttribute('aria-disabled', 'true')
+
+		fireEvent.click(button)
+
+		expect(onClick).not.toHaveBeenCalled()
 	})
 
 	it('gates a loading link: no navigation, no onClick, out of the tab order', () => {

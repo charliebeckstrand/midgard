@@ -1,16 +1,9 @@
 'use client'
 
-import {
-	type ReactNode,
-	useCallback,
-	useLayoutEffect,
-	useRef,
-	useState,
-	useSyncExternalStore,
-} from 'react'
+import { type ReactNode, useCallback, useRef, useSyncExternalStore } from 'react'
 import { createContext } from '../../core'
 import { noopSubscribe, sameElements } from '../../utilities'
-import { createFormFieldTargets, type FormFieldTargets } from './form-field-targets'
+import type { FormFieldTargets } from './form-field-targets'
 
 /** Snapshot of a form's reactive state: field values, per-field errors/touched/dirty maps, and the derived `dirty`/`valid`/`submitting` flags. */
 export type FormStateValue = {
@@ -110,11 +103,10 @@ const [FormLockedContext, useFormLockedContext] = createContext<boolean>('FormLo
  * `Form` runs.
  *
  * @returns The flag, or `false` outside a form.
- * @remarks The Control cascade reads it as `readOnly`, so each field keeps the
- * focus and shows that it cannot change. The setter of {@link useFormField}
- * refuses a write while the form is locked, so a control with no read-only
- * state cannot change its field either. A filter bar inside a `Form` provides
- * its own `false`.
+ * @remarks The setter of {@link useFormField} refuses a write while the form
+ * is locked, so no control can change its field. `Form` also locks the Control
+ * scope of its parts, which shows each field as read-only. A filter bar inside
+ * a `Form` provides its own `false`.
  * @internal
  */
 export function useFormLocked(): boolean {
@@ -127,7 +119,8 @@ const [FormFieldTargetsContext, useFormFieldTargetsContext] = createContext<
 
 /**
  * Wires the form store and actions into context for descendant field hooks.
- * It also holds the registry of the control ids of the fields.
+ * It also gives the registry of the control ids of the fields, when the owner
+ * of the form gives one.
  *
  * @internal
  */
@@ -137,6 +130,7 @@ export function FormProvider({
 	resets,
 	failures = 0,
 	locked = false,
+	targets,
 	children,
 }: {
 	store: FormStore
@@ -144,12 +138,12 @@ export function FormProvider({
 	resets: number
 	/** How many submit attempts have failed. A provider with no submit leaves it at `0`. */
 	failures?: number
-	/** Locks each field of the form: the fields are read-only, and a field write does nothing. */
+	/** Locks each field of the form: a field write does nothing. */
 	locked?: boolean
+	/** The registry of the control ids of the fields, which a `FormErrorSummary` reads. A provider with no summary leaves it out. */
+	targets?: FormFieldTargets
 	children: ReactNode
 }) {
-	const [targets] = useState(createFormFieldTargets)
-
 	return (
 		<FormActionsContext value={actions}>
 			<FormStoreContext value={store}>
@@ -380,26 +374,6 @@ export function useFormErrors(): FormStateValue['errors'] {
 		() => store?.getState().errors ?? NO_ERRORS,
 		() => store?.getServerState().errors ?? NO_ERRORS,
 	)
-}
-
-/**
- * Registers the control id of a field with the enclosing form, so that a
- * `FormErrorSummary` can move the focus to the control.
- *
- * @param name - The field name. Pass `undefined` to register nothing.
- * @param id - The id of the control. Pass `undefined` to register nothing.
- * @remarks A form-bound `Message` calls it with the id of its control. The
- * registration ends when the caller unmounts or when an argument changes.
- * @internal
- */
-export function useFormFieldTarget(name: string | undefined, id: string | undefined): void {
-	const targets = useFormFieldTargetsContext()
-
-	useLayoutEffect(() => {
-		if (!targets || !name || !id) return
-
-		return targets.register(name, id)
-	}, [targets, name, id])
 }
 
 // The registry of no form. One object, so the snapshot keeps its identity.

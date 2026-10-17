@@ -62,3 +62,41 @@ export const [ControlContext, useControl] = createContext<ControlContextValue | 
 	'Control',
 	{ default: undefined },
 )
+
+/**
+ * Whether the enclosing scope is locked. A locked scope shows its fields as
+ * read-only, and makes its buttons inert, while each part keeps the focus.
+ *
+ * @returns The flag of the nearest scope, or `false` outside a scope.
+ * @remarks The nearest scope wins, so a scope inside a locked one can unlock
+ * its own parts. A `Form` locks its parts while a submit runs, and a filter bar
+ * inside it unlocks its own. The scope reads no form, so any region can lock.
+ * @internal
+ */
+export const [ControlLockContext, useControlLock] = createContext<boolean>('ControlLock', {
+	default: false,
+})
+
+/**
+ * A registry of the control ids of named fields, such as the registry of a
+ * form. A control registers the id of its field under the name of the field.
+ *
+ * @internal
+ */
+export type ControlTargets = {
+	/** Registers the control id of a field, and returns the function that removes it. */
+	register: (name: string, id: string) => () => void
+}
+
+/**
+ * The nearest registry of control ids, or `undefined` outside one.
+ *
+ * @remarks A `Form` provides one, so a `FormErrorSummary` can link a field to
+ * its control. A filter bar inside a `Form` provides none, so its fields do
+ * not register with the form.
+ * @internal
+ */
+export const [ControlTargetsContext, useControlTargets] = createContext<ControlTargets | undefined>(
+	'ControlTargets',
+	{ default: undefined },
+)

@@ -219,7 +219,14 @@ export function Rating({
 		readOnly: resolvedReadOnly,
 		'aria-describedby': describedBy,
 		validation,
-	} = useControlProps({ id, disabled, readOnly, invalid, 'aria-describedby': ariaDescribedBy })
+	} = useControlProps({
+		name,
+		id,
+		disabled,
+		readOnly,
+		invalid,
+		'aria-describedby': ariaDescribedBy,
+	})
 
 	// The row's id, in both forms. It is also the native grouping name, which is
 	// this row's own and never the bound field's: two ratings bound to different

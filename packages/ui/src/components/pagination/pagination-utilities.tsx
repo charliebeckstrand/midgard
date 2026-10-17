@@ -34,6 +34,9 @@ export function PaginationNavButton({
 }: { slot: string } & ButtonProps) {
 	return (
 		<Button
+			// A page change writes no field, so a locked scope, such as a submitting
+			// form, leaves it live.
+			lockable={false}
 			data-slot={slot}
 			variant="plain"
 			{...props}

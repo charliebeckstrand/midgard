@@ -49,6 +49,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > For a copy control with a text label, use `useCopyButtonState` from `copy-button`.
 
+> A `Button` in a locked Control scope, such as a `Form` while a submit runs, is `aria-disabled` and cancels its click. It stays in the tab order. Pass `lockable={false}` to keep it live. A library button that writes no field, such as a `Tab` or a `CopyButton`, stays live.
+
 ## Navigation
 
 `nav` · `sidebar` · `breadcrumb` · `menu` · `context-menu` · `tabs` · `toolbar` · `stepper` · `link` · `command-palette`
