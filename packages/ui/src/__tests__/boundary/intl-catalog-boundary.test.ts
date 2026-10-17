@@ -1,6 +1,6 @@
 // @vitest-environment node
-import { readdirSync, readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { dirname, join, resolve } from 'node:path'
 import { type MessageFormatElement, parse, TYPE } from '@formatjs/icu-messageformat-parser'
 import { describe, expect, it } from 'vitest'
 import {
@@ -21,6 +21,9 @@ import {
 //   2. Each translation has each id of the source catalog, and no other id.
 //   3. Each translated message parses, and it uses the same arguments as its
 //      English default.
+//   4. The modules that a server evaluates to resolve a request locale import
+//      no `react-intl`. `react-intl` is a client module, so a call to it at the
+//      top level of such a module throws in a server render.
 
 const source = JSON.parse(readFileSync(SOURCE_CATALOG, 'utf8')) as Record<string, CatalogEntry>
 
@@ -48,7 +51,41 @@ function argumentNames(elements: MessageFormatElement[], names = new Set<string>
 	return names
 }
 
+// The module that `RequestLocale` in `shared` evaluates on the server.
+const SERVER_ENTRY = join(LANG_DIR, '..', '..', '..', 'providers', 'locale', 'locale-choice.ts')
+
+// The source of `path` and each module that it reaches by a relative import, up
+// to a module with `'use client'`, which a server render gets as a reference.
+function serverModules(path: string, seen = new Map<string, string>()): Map<string, string> {
+	if (seen.has(path)) return seen
+
+	const source = readFileSync(path, 'utf8')
+
+	seen.set(path, source)
+
+	if (/^['"]use client['"]/.test(source)) return seen
+
+	for (const [, specifier] of source.matchAll(/from '(\.[^']+)'/g)) {
+		const base = resolve(dirname(path), specifier ?? '')
+
+		const file = ['.ts', '.tsx', '/index.ts'].map((ext) => base + ext).find(existsSync)
+
+		if (file) serverModules(file, seen)
+	}
+
+	return seen
+}
+
 describe('intl catalog', () => {
+	it('keeps react-intl out of the modules that resolve a request locale', () => {
+		const offenders = [...serverModules(SERVER_ENTRY)]
+			.filter(([, source]) => !/^['"]use client['"]/.test(source))
+			.filter(([, source]) => /from 'react-intl'/.test(source))
+			.map(([path]) => path)
+
+		expect(offenders).toEqual([])
+	})
+
 	it('matches the message descriptors of the source', async () => {
 		const text = catalogText(await extractCatalog())
 

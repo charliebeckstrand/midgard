@@ -1,4 +1,4 @@
-import { languageOf } from '../../primitives/intl/intl-catalog'
+import { languageOf } from '../../primitives/intl/intl-language'
 import {
 	type AppearanceChoice,
 	readChoice,

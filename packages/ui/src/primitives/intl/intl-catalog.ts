@@ -5,6 +5,7 @@ import {
 	type IntlShape,
 	ReactIntlErrorCode,
 } from 'react-intl'
+import { languageOf } from './intl-language'
 import es from './lang/es.json'
 
 // The language of each default message in the source.
@@ -27,15 +28,6 @@ const onError: IntlConfig['onError'] = (error) => {
 	if (error.code === ReactIntlErrorCode.MISSING_TRANSLATION) return
 
 	if (process.env.NODE_ENV !== 'production') console.error(error)
-}
-
-/**
- * The language subtag of a BCP 47 tag, in lowercase, such as `es` for `es-MX`.
- *
- * @internal
- */
-export function languageOf(tag: string): string {
-	return tag.split('-')[0]?.toLowerCase() ?? ''
 }
 
 /**
