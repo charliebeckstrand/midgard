@@ -17,7 +17,8 @@ export type KanbanCardSkeletonProps = {
  * classes of the real card, so it has the padding, gap, and chrome of the real
  * card. A real card holds free content, so the two lines are a default form.
  * The card is an `aria-hidden` `<li>`, as a read-only card is, because the body
- * of a column with cards is a `<ul>`.
+ * of a column with cards is a `<ul>`. A body that holds only skeletons hides
+ * that list from AT.
  * @see {@link KanbanCard}
  */
 export function KanbanCardSkeleton({ className }: KanbanCardSkeletonProps) {
