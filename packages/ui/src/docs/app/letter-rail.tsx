@@ -72,8 +72,22 @@ function letterAtTop(body: HTMLElement): string | undefined {
 	return links[low]?.dataset.letter
 }
 
-/** The measure of the rail for one gesture, and the letter that the gesture selected last. */
-type Gesture = { top: number; height: number; letter?: string }
+/**
+ * How long a touch stays on the rail before the bubble shows, in milliseconds.
+ * A tap ends sooner, so a tap does not flash the bubble.
+ */
+export const HOLD_DELAY = 250
+
+/**
+ * One gesture on the rail: the measure of the rail, the letter that the
+ * gesture selected last, and, for a touch, the timer that shows the bubble.
+ */
+type Gesture = {
+	top: number
+	height: number
+	letter?: string
+	hold?: ReturnType<typeof setTimeout>
+}
 
 /**
  * The letter rail. Each page link in `bodyRef` carries `data-letter`, which
@@ -95,7 +109,8 @@ export function LetterRail({
 	const [active, setActive] = useState<string | undefined>(undefined)
 
 	// A touch covers the letter under the finger, so a slide by touch shows the
-	// letter in a bubble at the side of the rail.
+	// letter in a bubble at the side of the rail. The bubble shows when the slide
+	// gets to a second letter, or when the touch stays for `HOLD_DELAY`.
 	const [bubble, setBubble] = useState(false)
 
 	const gesture = useRef<Gesture | undefined>(undefined)
@@ -106,6 +121,21 @@ export function LetterRail({
 	const rest = useRef<number | undefined>(undefined)
 
 	const cursor = useDragCursorHold('pointer')
+
+	// A gesture that the unmount interrupts does not show the bubble later.
+	useEffect(() => () => clearTimeout(gesture.current?.hold), [])
+
+	const showBubble = () => {
+		const current = gesture.current
+
+		if (current?.hold === undefined) return
+
+		clearTimeout(current.hold)
+
+		current.hold = undefined
+
+		setBubble(true)
+	}
 
 	useEffect(() => {
 		const body = bodyRef.current
@@ -138,6 +168,8 @@ export function LetterRail({
 
 		if (letter === undefined || letter === current.letter) return
 
+		if (current.letter !== undefined) showBubble()
+
 		current.letter = letter
 
 		scrollToLetter(body, letter)
@@ -148,6 +180,8 @@ export function LetterRail({
 	}
 
 	const end = () => {
+		clearTimeout(gesture.current?.hold)
+
 		gesture.current = undefined
 
 		cursor.end()
@@ -163,15 +197,17 @@ export function LetterRail({
 
 		const { top, height } = event.currentTarget.getBoundingClientRect()
 
-		gesture.current = { top, height }
+		gesture.current = {
+			top,
+			height,
+			hold: event.pointerType === 'mouse' ? undefined : setTimeout(showBubble, HOLD_DELAY),
+		}
 
 		// The capture keeps the moves of the gesture on the rail when the pointer
 		// leaves it, so the gesture ends on the rail too.
 		event.currentTarget.setPointerCapture(event.pointerId)
 
 		cursor.start()
-
-		setBubble(event.pointerType !== 'mouse')
 
 		select(event.clientY)
 	}
