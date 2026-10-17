@@ -14,7 +14,9 @@ export default function BareNestedInAContainer() {
 				<ScrollArea bare extent="md">
 					<Stack gap="lg">
 						{paragraphs.map((paragraph) => (
-							<Text key={paragraph.id}>{paragraph.text}</Text>
+							<Text key={paragraph.id} tone="muted">
+								{paragraph.text}
+							</Text>
 						))}
 					</Stack>
 				</ScrollArea>

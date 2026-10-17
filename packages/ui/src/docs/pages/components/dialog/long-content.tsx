@@ -65,7 +65,7 @@ export default function LongContent() {
 						{sections.map((section) => (
 							<Stack key={section.heading} gap="xs">
 								<Heading level={3}>{section.heading}</Heading>
-								<Text>{section.text}</Text>
+								<Text tone="muted">{section.text}</Text>
 							</Stack>
 						))}
 					</Stack>

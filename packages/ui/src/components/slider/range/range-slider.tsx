@@ -167,7 +167,7 @@ export function RangeSlider({
 
 	// The root has no role, so the validation state and the description go on
 	// each `role="slider"` thumb.
-	const controlProps = useControlProps({ id, disabled, readOnly, invalid })
+	const controlProps = useControlProps({ name, id, disabled, readOnly, invalid })
 
 	const scope = useIdScope({ id: controlProps.id })
 

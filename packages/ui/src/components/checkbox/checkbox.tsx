@@ -70,6 +70,7 @@ export function Checkbox({
 		validation,
 		'aria-describedby': resolvedDescribedBy,
 	} = useControlProps({
+		name,
 		id,
 		disabled,
 		required,

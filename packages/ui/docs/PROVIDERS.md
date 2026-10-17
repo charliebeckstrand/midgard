@@ -31,7 +31,7 @@ An app mounts `AppearanceProvider` once at its root. The stylesheet of the app m
 |---|---|
 | `AppearanceProvider` | App-root owner of the theme, density, motion, and sidebar preferences. It keeps them in `localStorage` and writes them as classes on the root element. It loads the latin face of the font, and `ui/tailwind.css` holds the other faces. |
 | `AppearanceProviderProps` *(type)* | Props for `AppearanceProvider`. |
-| `AppearanceSettings` | Settings icon button that opens the appearance, density, motion, and sidebar pickers. ⌘B or Ctrl+B toggles the sidebar. `children` adds more fields. |
+| `AppearanceSettings` | Settings icon button that opens the appearance, density, motion, and sidebar pickers. ⌘B or Ctrl+B toggles the sidebar. Under a `LocaleProvider` with `locales`, it adds the Language picker. `children` adds more fields. |
 | `AppearanceSettingsProps` *(type)* | Props for `AppearanceSettings`: more fields for the dialog. |
 | `AppearanceScript` | Inline head script that applies the stored preferences before the first paint. `UIDocument` renders it. |
 | `useAppearance` | Reads the theme, the density, the motion, the sidebar, and their setters from the nearest `AppearanceProvider`; throws outside one. |
@@ -82,8 +82,8 @@ A formatting provider, not a translation layer: it holds no string catalog.
 
 | Export | Summary |
 |---|---|
-| `LocaleProvider` | Broadcasts `Intl` formatting defaults; explicit component props still win. Its `dir` opens a direction scope that crosses portals. On a page that renders on a server, set its `locale`. |
-| `LocaleProviderProps` *(type)* | Props for `LocaleProvider`: the `LocaleConfig` fields and an optional `dir`. |
+| `LocaleProvider` | Broadcasts `Intl` formatting defaults; explicit component props still win. Its `dir` opens a direction scope that crosses portals. Its `locales` lets the reader choose the locale, and stores the choice. On a page that renders on a server, set its `locale`. |
+| `LocaleProviderProps` *(type)* | Props for `LocaleProvider`: the `LocaleConfig` fields, the optional `locales` that the reader can choose from, and an optional `dir`. |
 | `LocaleConfig` *(type)* | Ambient `Intl` defaults: `locale`, `currency`, `numberFormat`, `dateFormat`, and `timeZone`. |
 | `useLocale` | Reads the ambient `LocaleConfig` from the nearest `<LocaleProvider>`; returns `{}` outside one. |
 | `useFormat` | Resolves a `FormatSpec` to a memoized `(value) => string` formatter, folding in the ambient locale / currency / number-format defaults. |

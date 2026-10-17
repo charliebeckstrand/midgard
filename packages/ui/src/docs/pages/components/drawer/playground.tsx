@@ -23,7 +23,7 @@ export default function DrawerPlayground(props: DrawerPanelProps) {
 					<DrawerDescription>Arrives Thursday, June 18.</DrawerDescription>
 				</DrawerHeader>
 				<DrawerBody>
-					<Text>
+					<Text tone="muted">
 						Your order left the warehouse in Portland on Monday. The carrier scans it at each stop,
 						and this page shows each new scan.
 					</Text>

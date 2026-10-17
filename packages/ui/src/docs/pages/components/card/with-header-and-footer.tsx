@@ -10,7 +10,7 @@ export default function WithHeaderAndFooter() {
 				<CardDescription>Manage your project configuration.</CardDescription>
 			</CardHeader>
 			<CardBody>
-				<Text>Configure your project name, description, and visibility.</Text>
+				<Text tone="muted">Configure your project name, description, and visibility.</Text>
 			</CardBody>
 			<CardFooter>
 				<Button color="blue">Save changes</Button>

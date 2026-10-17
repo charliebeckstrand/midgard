@@ -32,7 +32,9 @@ export default function SheetPlayground(props: SheetPanelProps) {
 				<SheetBody>
 					<Stack gap="sm">
 						{activity.map((line) => (
-							<Text key={line}>{line}</Text>
+							<Text key={line} tone="muted">
+								{line}
+							</Text>
 						))}
 					</Stack>
 				</SheetBody>

@@ -8,6 +8,11 @@ import { UIProvider } from 'ui/providers/ui'
 import { useToast } from 'ui/toast'
 import { createAppQueryClient } from './query-client'
 
+// The locales that a reader can choose in the settings of an app. The text of
+// ui and of the apps is English, so the list holds English locales only. The
+// first is the default.
+const LOCALES = ['en-US', 'en-GB', 'en-CA', 'en-AU'] as const
+
 type AppProvidersProps = {
 	/**
 	 * The query defaults of the app, such as a `staleTime` or no refetch on a
@@ -31,10 +36,13 @@ type AppProvidersProps = {
  * `LocaleProvider`, and one `QueryClient` for the whole app. The root layout
  * renders it in ui's `UIDocument`, which holds the appearance of the app.
  *
- * The locale is `en-US`, the language of the text of ui and of the apps. A
- * fixed locale also makes the server render and the hydration render agree.
- * `LocaleProvider` is above `UIProvider`, so the dialog of `useConfirm`, which
- * `UIProvider` renders, formats dates in the same way as the page.
+ * The reader chooses the locale in the Language picker of `AppearanceSettings`.
+ * The choice starts at System, which follows the languages of the browser. The
+ * picker offers English locales only, because the text of ui and of the apps is
+ * English. The server render and the hydration render use `en-US`, so the two
+ * renders agree, and the choice applies after hydration. `LocaleProvider` is
+ * above `UIProvider`, so the dialog of `useConfirm`, which `UIProvider`
+ * renders, formats dates in the same way as the page.
  *
  * A failed mutation shows its error in a toast, and a `401` sends the page to
  * `/login` (see {@link createAppQueryClient}). The `QueryClientProvider` is in
@@ -47,7 +55,7 @@ type AppProvidersProps = {
  */
 export function AppProviders({ queries, timeZone, dateFormat, children }: AppProvidersProps) {
 	return (
-		<LocaleProvider locale="en-US" timeZone={timeZone} dateFormat={dateFormat}>
+		<LocaleProvider locale="en-US" locales={LOCALES} timeZone={timeZone} dateFormat={dateFormat}>
 			<UIProvider link={NextLink}>
 				<AppQueryProvider queries={queries}>{children}</AppQueryProvider>
 			</UIProvider>
