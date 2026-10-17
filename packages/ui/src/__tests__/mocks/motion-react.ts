@@ -39,6 +39,7 @@ const MOTION_PROPS = new Set([
 	'layoutDependency',
 	'onAnimationComplete',
 	'onAnimationStart',
+	'onLayoutAnimationComplete',
 ])
 
 function stripMotionProps(props: Record<string, unknown>) {
@@ -240,8 +241,9 @@ function useAnimate(): [{ current: null }, (...args: unknown[]) => void] {
 // as the Odometer readout does. They need no animation runtime: a `set` notifies
 // the subscribers at once, and a `useTransform` output follows on the next frame.
 // The real `useInView` watches through the `IntersectionObserver` that the jsdom
-// setup or a suite installs. The real `useComposedRefs` needs no runtime.
-const { useComposedRefs, useInView, useMotionValue, useTransform } =
+// setup or a suite installs. The real `useComposedRefs` and the real `frame`
+// scheduler need no runtime.
+const { frame, useComposedRefs, useInView, useMotionValue, useTransform } =
 	await vi.importActual<typeof import('motion/react')>('motion/react')
 
 // `Reorder` renders its plain elements. The drag runs only in a real browser
@@ -281,6 +283,7 @@ function useDragControls() {
 }
 
 export default {
+	frame,
 	Reorder,
 	useDragControls,
 	motion,

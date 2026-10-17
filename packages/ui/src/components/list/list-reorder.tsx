@@ -1,7 +1,7 @@
 'use client'
 
-import { domMax, LazyMotion, Reorder } from 'motion/react'
-import type { ComponentProps, ReactNode, RefObject } from 'react'
+import { domMax, frame, LazyMotion, Reorder, useComposedRefs } from 'motion/react'
+import { type ComponentProps, type ReactNode, type RefObject, useRef } from 'react'
 import { createContext } from '../../core'
 import type { ListItemContextValue } from './context'
 
@@ -60,13 +60,24 @@ type ListReorderRowProps = Omit<
  * The box of the list bounds the drag, with no give at the edges. A row does
  * not go over the content around the list, because it cannot move to a place
  * outside the list.
+ *
+ * A keyboard move keeps the focus on the row, so the browser does not scroll
+ * the row into view. When the move of a row that holds the focus comes to its
+ * end, the row scrolls into view, such as in the rail of a horizontal list. The
+ * scroll waits until Motion renders that end, because until then a transform
+ * keeps the row at its old place.
  */
-function ListReorderRow({ id, reorder, ...row }: ListReorderRowProps) {
+function ListReorderRow({ id, reorder, ref, ...row }: ListReorderRowProps) {
 	const box = useGroupBox()
+
+	const rowRef = useRef<HTMLLIElement>(null)
+
+	const setRef = useComposedRefs(rowRef, ref)
 
 	return (
 		<Reorder.Item
 			{...row}
+			ref={setRef}
 			as="li"
 			value={id}
 			dragListener={false}
@@ -76,6 +87,15 @@ function ListReorderRow({ id, reorder, ...row }: ListReorderRowProps) {
 			transition={reorder.instant ? INSTANT : undefined}
 			onDragStart={reorder.onDragStart}
 			onDragEnd={reorder.onDragEnd}
+			onLayoutAnimationComplete={() => {
+				// After the render of this frame, which takes the transform off the row.
+				frame.postRender(() => {
+					const node = rowRef.current
+
+					if (node?.contains(document.activeElement))
+						node.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+				})
+			}}
 		/>
 	)
 }

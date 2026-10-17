@@ -36,7 +36,8 @@ export type ListSkeletonProps = {
  * so it does not use the size-driven `createSkeleton` factory.
  *
  * @remarks Static leaf: renders in React Server Components. The row padding
- * follows the nearest density scope, as the rows of the list do.
+ * follows the nearest density scope, as the rows of the list do. A horizontal
+ * placeholder stays on one row in a rail, as a horizontal list does.
  * @see {@link List}
  */
 export function ListSkeleton({
@@ -48,7 +49,7 @@ export function ListSkeleton({
 }: ListSkeletonProps) {
 	const rowKeys = rangeKeys(items, 'row')
 
-	return (
+	const list = (
 		<div className={cn(k.base({ variant, orientation }), className)}>
 			{rowKeys.map((rowKey) => (
 				<div key={rowKey} className={k.item({ variant })}>
@@ -60,4 +61,7 @@ export function ListSkeleton({
 			))}
 		</div>
 	)
+
+	// A horizontal list is in a rail, so the placeholder row is in one too.
+	return orientation === 'horizontal' ? <div className={cn(k.rail)}>{list}</div> : list
 }
