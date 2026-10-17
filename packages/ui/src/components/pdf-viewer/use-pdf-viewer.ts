@@ -2,7 +2,7 @@
 
 import type { RefObject, SyntheticEvent } from 'react'
 import { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
-import { usePrefersReducedMotion, useResponsiveValue } from '../../hooks'
+import { useOffcanvas, usePrefersReducedMotion, useResponsiveValue } from '../../hooks'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { adaptive, type Responsive } from '../../types'
 import { resolveDownloadName } from './pdf-viewer-utilities'
@@ -252,21 +252,6 @@ export const PDF_VIEWER_THUMBNAILS = adaptive({
 	compact: 'sheet',
 	expanded: 'rail',
 }) satisfies Responsive<PdfViewerThumbnailLayout>
-
-/*
- * The open state of the thumbnail Sheet. The Sheet is for the `sheet` layout only. Where the
- * layout is `rail`, the viewer unmounts the panel of the Sheet, but the Sheet root keeps this
- * state. If the state stays true, the modal opens again without a press when the viewport
- * narrows (a tablet rotation). Thus the state resets during the render that reaches the rail,
- * and the open state ignores it there.
- */
-function useThumbsSheet(railed: boolean): [boolean, (open: boolean) => void] {
-	const [choice, setChoice] = useState(false)
-
-	if (railed && choice) setChoice(false)
-
-	return [choice && !railed, setChoice]
-}
 
 /**
  * Composes the PDF viewer's state — document loading, pagination, per-page
@@ -537,7 +522,12 @@ export function usePdfViewer({
 
 	const sidebarAnimates = sidebarChoice !== null && !reducedMotion
 
-	const [thumbsOpen, setThumbsOpen] = useThumbsSheet(railed)
+	// The thumbnail Sheet is an offcanvas drawer of the rail. Where the layout is `rail`, the
+	// hook keeps the Sheet closed, so it does not open again without a press when the viewport
+	// narrows (a tablet rotation).
+	const { open: thumbsOpen, setOpen: setThumbsOpen } = useOffcanvas({
+		layout: railed ? 'inline' : 'drawer',
+	})
 
 	// Chrome, like the two above: nothing outside drives it, so it is state rather than a
 	// prop. Lives here (not with the overlay's own state) because the toolbar reads it, and

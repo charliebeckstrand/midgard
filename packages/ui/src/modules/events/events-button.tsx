@@ -6,7 +6,7 @@ import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { cn } from '../../core'
 import { useLazyModule } from '../../hooks/use-lazy-module'
-import { useSidebarLayoutLayout } from '../../layouts/sidebar/sidebar'
+import { useSidebarLayoutPlacement } from '../../layouts/sidebar/sidebar'
 import { k } from '../../recipes/kata/events'
 import { resolveVariant } from '../../types'
 import { createLazyModule } from '../../utilities/lazy-module'
@@ -37,7 +37,7 @@ export function EventsButton() {
 	const Sheet = useLazyModule(sheet, false)?.EventsSheet
 
 	// Outside a sidebar layout no panel shows, so the button never hides for it.
-	const layout = useSidebarLayoutLayout() ?? 'drawer'
+	const layout = useSidebarLayoutPlacement() ?? 'drawer'
 
 	const show = () => {
 		if (Sheet) {
@@ -56,10 +56,7 @@ export function EventsButton() {
 	return (
 		<span
 			data-events-tool=""
-			className={cn(
-				'hidden [:root[data-events]_&]:contents',
-				resolveVariant(layout, k.layout.button),
-			)}
+			className={cn('hidden [:root[data-events]_&]:contents', resolveVariant(layout, k.button))}
 		>
 			<Button variant="bare" aria-label="Events" className="relative" onClick={show}>
 				<Icon icon={<Activity />} className="[:root[data-events-capture]_&]:text-red-600" />

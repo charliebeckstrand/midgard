@@ -3,9 +3,9 @@
  * the Sidebar component (`kata/sidebar.ts`).
  */
 import { defineRecipe } from '../../core/recipe'
-import type { OffcanvasLayout } from '../../hooks/use-offcanvas'
 import { narabi, omote, sen, sou } from '../kiso'
 import { dan } from '../kiso/dan'
+import type { ByLayout } from './offcanvas'
 
 const { flex } = narabi
 const { gap, space } = dan
@@ -156,6 +156,8 @@ const footer = defineRecipe({ base: 'shrink-0' })
 // the inline values. Each value of a table writes the same properties on the
 // same selectors (CONVENTIONS §5.9). A part that only shows in one layout takes
 // a table of `kata/offcanvas.ts`.
+const top = { drawer: space.shell.top.none, inline: space.shell.top.inline } as const
+
 const byLayout = {
 	base: { drawer: 'flex-col bg-white', inline: 'flex-row bg-zinc-100' },
 	peek: { drawer: 'sidebar-offcanvas:hidden', inline: 'sidebar-offcanvas:block' },
@@ -164,15 +166,15 @@ const byLayout = {
 		inline: 'py-2 pe-2 sidebar-offcanvas:ps-2',
 	},
 	content: {
-		drawer: `${omote.content.flat} not-has-[[data-slot=header]]:${space.shell.top.none}`,
-		inline: `${omote.content.card} not-has-[[data-slot=header]]:${space.shell.top.inline}`,
+		drawer: `${omote.content.flat} not-has-[[data-slot=header]]:${top.drawer}`,
+		inline: `${omote.content.card} not-has-[[data-slot=header]]:${top.inline}`,
 	},
 	stickyHeader: {
 		drawer: '**:data-[slot=header]:static',
 		inline: '**:data-[slot=header]:sticky',
 	},
-	header: { drawer: space.shell.top.none, inline: space.shell.top.inline },
-} as const satisfies Record<string, Record<OffcanvasLayout, string>>
+	header: top,
+} as const satisfies Record<string, ByLayout>
 
 export const k = {
 	base: layout,

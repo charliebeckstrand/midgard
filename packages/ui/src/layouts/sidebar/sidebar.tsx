@@ -50,7 +50,7 @@ const [SidebarLayoutContext] = createContext<{
  *
  * @internal
  */
-export function useSidebarLayoutLayout(): Responsive<OffcanvasLayout> | null {
+export function useSidebarLayoutPlacement(): Responsive<OffcanvasLayout> | null {
 	return use(SidebarLayoutContext)?.layout ?? null
 }
 

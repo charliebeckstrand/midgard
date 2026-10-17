@@ -43,9 +43,7 @@ export type SidebarProps = Omit<ComponentProps<'nav'>, 'aria-label'> & {
  *
  * Content that has to differ between the full sidebar and the mini rail reads
  * the resolved state with {@link useSidebarMini}, from a component inside the
- * sidebar. The state needs no width, so the server renders it too. The root took a render prop for that once, and it was the library's
- * one root render prop. The context it already broadcasts does the same work
- * without one.
+ * sidebar. The state needs no width, so the server renders it too.
  */
 export function Sidebar({
 	'aria-label': ariaLabel = 'Sidebar',

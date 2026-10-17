@@ -59,7 +59,7 @@ const AXES: ReadonlyArray<readonly [string, Record<string, string>]> = [
 	['SidebarLayout content layout', sidebarLayout.layout.content],
 	['SidebarLayout sticky header layout', sidebarLayout.layout.stickyHeader],
 	['SidebarLayout header layout', sidebarLayout.layout.header],
-	['EventsButton layout', events.layout.button],
+	['EventsButton layout', events.button],
 ]
 
 const MIN_BREAKPOINTS = Object.keys(BREAKPOINT_WIDTHS) as MinBreakpoint[]

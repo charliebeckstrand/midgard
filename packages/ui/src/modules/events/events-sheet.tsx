@@ -13,7 +13,7 @@ import {
 	SheetTitle,
 } from '../../components/sheet'
 import { cn } from '../../core'
-import { useSidebarLayoutLayout } from '../../layouts/sidebar/sidebar'
+import { useSidebarLayoutPlacement } from '../../layouts/sidebar/sidebar'
 import { k } from '../../recipes/kata/events'
 import { k as offcanvas } from '../../recipes/kata/offcanvas'
 import { Flex } from '../../structure/flex'
@@ -46,7 +46,7 @@ export function EventsSheet({ open, onOpenChange }: EventsSheetProps) {
 	const dockable = useSyncExternalStore(subscribeDocks, hasEventsDock, noDock)
 
 	// Outside a sidebar layout no aside shows, so Pin never shows.
-	const layout = useSidebarLayoutLayout() ?? 'drawer'
+	const layout = useSidebarLayoutPlacement() ?? 'drawer'
 
 	// A layout effect runs before the effect of the overlay that reports the
 	// open, so the store does not record the open of the sheet. A sheet that

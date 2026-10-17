@@ -7,7 +7,7 @@ import { Field, Label } from '../../components/fieldset'
 import { Icon } from '../../components/icon'
 import { Kbd } from '../../components/kbd'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
-import { useSidebarLayoutLayout } from '../../layouts/sidebar/sidebar'
+import { useSidebarLayoutPlacement } from '../../layouts/sidebar/sidebar'
 import { k } from '../../recipes/kata/offcanvas'
 import { Flex } from '../../structure/flex'
 import { Stack } from '../../structure/stack'
@@ -110,7 +110,7 @@ export function AppearanceSettingsDialog({
 
 	// The Sidebar setting changes the inline sidebar only, so the picker shows
 	// where the enclosing layout is inline.
-	const sidebarLayout = useSidebarLayoutLayout()
+	const sidebarLayout = useSidebarLayoutPlacement()
 
 	const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null)
 

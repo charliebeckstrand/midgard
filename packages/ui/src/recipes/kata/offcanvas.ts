@@ -6,7 +6,8 @@
  */
 import type { OffcanvasLayout } from '../../hooks/use-offcanvas'
 
-type ByLayout = Record<OffcanvasLayout, string>
+/** The classes of a part for each offcanvas layout. */
+export type ByLayout = Record<OffcanvasLayout, string>
 
 export const k = {
 	/** A part that shows in the drawer layout only, such as a trigger of the drawer. */

@@ -31,8 +31,7 @@ export type AppearanceSettingsProps = {
  *
  * Inside a `SidebarLayout`, the dialog also has the Sidebar picker (Locked or
  * Offcanvas), with the key that toggles it: ⌘B on Apple platforms, and Ctrl+B
- * on others. The picker shows from `lg` up,
- * where the layout shows its desktop sidebar.
+ * on others. The picker shows only while the layout is inline.
  *
  * @remarks The dialog module loads in idle time after the hydration. The
  * dialog then renders closed, so the first open is the same as a later open. A
