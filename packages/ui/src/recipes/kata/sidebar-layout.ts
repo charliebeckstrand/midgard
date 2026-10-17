@@ -121,7 +121,6 @@ const content = defineRecipe({
 	base: [
 		flex.col,
 		'grow',
-		'[&:has([data-slot=footer])>[data-slot=body]]:pb-0',
 		// The padding follows the nearest density scope.
 		`${space.shell.x} ${space.shell.bottom}`,
 	],
