@@ -1,5 +1,6 @@
 import { createRef, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+import { LIFT_INSTRUCTIONS } from '../../hooks/use-keyboard-lifted'
 import {
 	Kanban,
 	KanbanCard,
@@ -9,8 +10,7 @@ import {
 	KanbanColumnBody,
 	KanbanColumnHeader,
 	KanbanColumnTitle,
-} from '../../components/kanban'
-import { LIFT_INSTRUCTIONS } from '../../hooks/use-keyboard-lifted'
+} from '../../modules/kanban'
 import {
 	allBySlot,
 	bySlot,

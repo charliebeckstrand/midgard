@@ -7,7 +7,7 @@ import {
 	KanbanCardHandle,
 	KanbanColumn,
 	KanbanColumnBody,
-} from '../../../components/kanban'
+} from '../../../modules/kanban'
 import { renderUI, waitFor } from '../../helpers'
 import { drag } from '../helpers/drag'
 

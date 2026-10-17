@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { KanbanColumnBase } from '../../components/kanban/types'
-import { useKanbanKeyboard } from '../../components/kanban/use-kanban-keyboard'
+import type { KanbanColumnBase } from '../../modules/kanban/types'
+import { useKanbanKeyboard } from '../../modules/kanban/use-kanban-keyboard'
 import { attach, makeKeyEvent } from '../helpers'
 
 const containerRef = { current: document.body }

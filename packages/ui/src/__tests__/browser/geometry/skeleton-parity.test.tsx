@@ -44,15 +44,6 @@ import {
 	FiltersSkeleton,
 } from '../../../components/filters'
 import { Input } from '../../../components/input'
-import {
-	Kanban,
-	KanbanCard,
-	KanbanCardSkeleton,
-	KanbanColumn,
-	KanbanColumnBody,
-	KanbanColumnHeader,
-	KanbanColumnTitle,
-} from '../../../components/kanban'
 import { List, ListDescription, ListItem, ListLabel, ListSkeleton } from '../../../components/list'
 import { Nav, NavItem, NavList, NavSkeleton } from '../../../components/nav'
 import {
@@ -110,6 +101,15 @@ import { Tree, TreeItem, TreeSkeleton } from '../../../components/tree'
 import { type DensityStep, densitySteps } from '../../../core/density'
 import { BarChart, ChartSkeleton, PieChart } from '../../../modules/chart'
 import { ChatMessage, ChatTranscriptSkeleton } from '../../../modules/chat'
+import {
+	Kanban,
+	KanbanCard,
+	KanbanCardSkeleton,
+	KanbanColumn,
+	KanbanColumnBody,
+	KanbanColumnHeader,
+	KanbanColumnTitle,
+} from '../../../modules/kanban'
 import { MapSkeleton } from '../../../modules/map'
 import { ALBERS_USA_ASPECT } from '../../../modules/map/engine/map-constants'
 import { Box } from '../../../structure/box'

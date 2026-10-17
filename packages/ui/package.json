@@ -82,6 +82,10 @@
 			"types": "./src/modules/grid/index.ts",
 			"default": "./src/modules/grid/index.ts"
 		},
+		"./kanban": {
+			"types": "./src/modules/kanban/index.ts",
+			"default": "./src/modules/kanban/index.ts"
+		},
 		"./map": {
 			"types": "./src/modules/map/index.ts",
 			"default": "./src/modules/map/index.ts"

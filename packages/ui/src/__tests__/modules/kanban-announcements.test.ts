@@ -1,6 +1,6 @@
 import type { Active, Over } from '@dnd-kit/core'
 import { describe, expect, it } from 'vitest'
-import { columnName, kanbanAnnouncements } from '../../components/kanban/kanban-announcements'
+import { columnName, kanbanAnnouncements } from '../../modules/kanban/kanban-announcements'
 import { attach } from '../helpers/attach'
 
 type Card = { id: string }

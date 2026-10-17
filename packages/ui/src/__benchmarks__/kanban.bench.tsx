@@ -13,7 +13,7 @@ import {
 	KanbanColumnBody,
 	KanbanColumnHeader,
 	KanbanColumnTitle,
-} from '../components/kanban'
+} from '../modules/kanban'
 import { noop } from '../utilities/noop'
 import { type KanbanItem, makeKanbanColumns } from './fixtures'
 import { mountBenches } from './harness'

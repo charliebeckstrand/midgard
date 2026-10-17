@@ -1,9 +1,9 @@
 'use client'
 
 import { type ComponentProps, type ReactNode, useEffect } from 'react'
+import type { HeadingLevel } from '../../components/heading'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/kanban'
-import type { HeadingLevel } from '../heading'
 import { useKanbanColumnContext } from './context'
 
 /** Props for {@link KanbanColumnHeader}. The `<div>` of the header row takes the rest. */

@@ -1,6 +1,6 @@
+import { Placeholder } from '../../components/placeholder'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/kanban'
-import { Placeholder } from '../placeholder'
 
 /** Props for {@link KanbanCardSkeleton}: `className` only. */
 export type KanbanCardSkeletonProps = {

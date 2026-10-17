@@ -2,15 +2,14 @@ import type { ReactElement } from 'react'
 import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
-
+import { List, ListItem } from '../../components/list'
 import {
 	Kanban,
 	KanbanCard,
 	KanbanCardHandle,
 	KanbanColumn,
 	KanbanColumnBody,
-} from '../../components/kanban'
-import { List, ListItem } from '../../components/list'
+} from '../../modules/kanban'
 import { act, attach } from '../helpers'
 
 type Item = { id: string; label: string }
