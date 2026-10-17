@@ -85,8 +85,14 @@ function frameCeiling(frame: HTMLElement): number {
  * but the gap does.
  * A drag on the end border of the frame resizes the frame, so a reader can see
  * how the instance responds to a narrow column. The drag area is 24px wide and
- * sits across the border, so a finger can find it. A vertical swipe on the drag
- * area scrolls the page, and only a horizontal drag resizes the frame.
+ * sits across the border.
+ *
+ * Where the primary pointer is coarse, only a grip at the middle of the border
+ * resizes the frame. The grip takes the whole touch, so a drag in any direction
+ * resizes. The rest of the border lets the touch through, so a vertical swipe
+ * there scrolls the page. A drag area that both scrolls and resizes cannot work
+ * on a touch screen. The browser takes a diagonal drag for a scroll and cancels
+ * the pointer, so the frame goes back to its width at the press.
  *
  * A surface of a page, such as a chart, a map, or a document viewer, takes the
  * width of its container and has no width of its own. In a box that is as
@@ -149,8 +155,13 @@ export function ExampleFrame({
 					data-slot="example-resize"
 					onPointerDown={resize.handleProps.onPointerDown}
 					data-dragging={resize.handleProps['data-dragging']}
-					className="peer absolute inset-y-0 -end-3 z-10 w-6 cursor-ew-resize touch-pan-y select-none"
-				/>
+					className="peer absolute inset-y-0 -end-3 z-10 w-6 cursor-ew-resize touch-pan-y select-none pointer-coarse:pointer-events-none"
+				>
+					<div
+						data-slot="example-resize-grip"
+						className="pointer-events-auto absolute inset-x-0 top-[calc(50%-1.5rem)] hidden h-12 touch-none after:absolute after:inset-y-2 after:start-[calc(50%-2px)] after:w-1 after:rounded-full after:bg-zinc-400 after:content-[''] pointer-coarse:block dark:after:bg-zinc-600"
+					/>
+				</div>
 				<div className="overflow-auto rounded-lg border border-zinc-200 peer-hover:border-zinc-400 peer-data-dragging:border-zinc-400 dark:border-zinc-800 dark:peer-hover:border-zinc-600 dark:peer-data-dragging:border-zinc-600">
 					<div className="p-4">
 						<Stack
