@@ -5,7 +5,7 @@ import MarkdownPlayground from './playground.tsx'
 export default function MarkdownPage() {
 	return (
 		<>
-			<Playground of={MarkdownPlayground} api={api} />
+			<Playground of={MarkdownPlayground} api={api} omit={['headingOffset']} />
 			<ApiTable api={api} />
 		</>
 	)
