@@ -1,9 +1,15 @@
 import { act } from '@testing-library/react'
+import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+import { Checkbox } from '../../components/checkbox'
+import { ColorPicker } from '../../components/color'
+import { DatePicker } from '../../components/date-picker'
 import { Field, Label, Message } from '../../components/fieldset'
 import { FileUploadButton } from '../../components/file-upload'
 import { Input } from '../../components/input'
 import { Rating } from '../../components/rating'
+import { RangeSlider, Slider } from '../../components/slider'
+import { Switch } from '../../components/switch'
 import {
 	Form,
 	FormErrorSummary,
@@ -206,6 +212,44 @@ describe('FormErrorSummary', () => {
 		const focused = document.activeElement as HTMLElement
 
 		expect(getSlot(container, 'rating').contains(focused)).toBe(true)
+	})
+
+	// A bare control has no id from a Field, a Control, or a prop. It renders an
+	// id that it makes, and registers that id.
+	it.each<[string, unknown, ReactNode]>([
+		['Input', '', <Input key="control" name="field" aria-label="Field" />],
+		['Checkbox', false, <Checkbox key="control" name="field" aria-label="Field" />],
+		['Switch', false, <Switch key="control" name="field" aria-label="Field" />],
+		['Slider', 0, <Slider key="control" name="field" aria-label="Field" />],
+		['Rating', 0, <Rating key="control" name="field" aria-label="Field" />],
+		['RangeSlider', [0, 100], <RangeSlider key="control" name="field" />],
+		['DatePicker', null, <DatePicker key="control" name="field" aria-label="Field" />],
+		['ColorPicker', null, <ColorPicker key="control" name="field" aria-label="Field" />],
+	])('links a bare %s to the id that it renders', async (_, value, control) => {
+		const { container } = renderUI(
+			<Form defaultValues={{ field: value }} validate={{ field: () => 'Fix the field.' }}>
+				<FormErrorSummary />
+				{control}
+			</Form>,
+		)
+
+		await submit(container)
+
+		const link = within(getSlot(container, 'form-error-summary')).getByRole('link', {
+			name: 'Fix the field.',
+		})
+
+		const id = link.getAttribute('href')?.slice(1) ?? ''
+
+		expect(id).not.toBe('')
+
+		expect(document.getElementById(id)).toBeInTheDocument()
+
+		fireEvent.click(link)
+
+		const target = document.getElementById(id) as HTMLElement
+
+		expect(target.contains(document.activeElement)).toBe(true)
 	})
 
 	it('keeps a field of a filter bar out of the targets of the form', async () => {

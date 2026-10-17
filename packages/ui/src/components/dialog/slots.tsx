@@ -33,15 +33,23 @@ export type DialogCloseProps = Partial<PanelCloseProps>
 
 /**
  * Closes the enclosing {@link Dialog}. With no child, it renders the standard
- * Close button, which is also the default footer of the dialog. With one child,
- * a click on the child closes the dialog, and the child's own `onClick` runs
- * first.
+ * Close button, which is also the default footer of the dialog. The standard
+ * button stays live in a locked scope, such as a submitting form. With one
+ * child, a click on the child closes the dialog, and the child's own `onClick`
+ * runs first.
  */
 export function DialogClose({ children }: DialogCloseProps) {
 	return (
 		<PanelClose>
 			{children ?? (
-				<Button type="button" variant="soft" data-slot="dialog-close">
+				<Button
+					// A close writes no field, so a locked scope, such as a submitting
+					// form, leaves it live.
+					lockable={false}
+					type="button"
+					variant="soft"
+					data-slot="dialog-close"
+				>
 					Close
 				</Button>
 			)}
