@@ -156,6 +156,9 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 		[activeId, dropColumnId, columnItemIds],
 	)
 
+	// The overlay repeats the content and the className of the card that it follows.
+	const overlay = activeId ? overlayMap.current.get(activeId) : undefined
+
 	return (
 		<KanbanContext value={contextValue}>
 			<KanbanDragStateContext value={dragStateValue}>
@@ -196,9 +199,9 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 									data-overlay="true"
 									// The clone follows a live drag.
 									data-dragging=""
-									className={cn(k.card.base, k.card.active)}
+									className={cn(k.card.base, k.card.active, overlay?.className)}
 								>
-									{overlayMap.current.get(activeId)}
+									{overlay?.children}
 								</div>
 							) : null}
 						</PortalDragOverlay>

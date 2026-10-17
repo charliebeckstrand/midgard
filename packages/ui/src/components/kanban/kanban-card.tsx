@@ -12,7 +12,7 @@ import { KanbanCardContext, useKanbanColumnContext, useKanbanContext } from './c
  * Props for {@link KanbanCard}: the `value` matching a parent-column item, with
  * an optional accessible-name override. The `<li>` of the card takes the rest.
  * The `className` goes on the card, which is the `<div>` inside the `<li>` on an
- * interactive board.
+ * interactive board. The drag overlay copies the `className` of the card.
  */
 export type KanbanCardProps = Omit<ComponentProps<'li'>, 'value'> & {
 	/** Stable key matching an entry in the parent column's `items`; the keyed-child `value` every compound in the library takes. */
@@ -119,11 +119,11 @@ function KanbanCardImpl({ value: cardId, id, children, className, ...props }: Ka
 	// The card reads its own lift, so a lift renders only the cards that lift and drop.
 	const lifted = useKeyedValue(liftedStore, cardId)
 
-	// Keep the drag-overlay content in sync with the card's latest children.
+	// Keep the drag-overlay content and className in sync with the card's latest props.
 	// Runs post-commit (not in render) so it stays pure under concurrent/StrictMode;
 	// the map is populated at mount, well before any drag reads it.
 	useEffect(() => {
-		if (interactive) overlayMap.current.set(cardId, children)
+		if (interactive) overlayMap.current.set(cardId, { children, className })
 
 		// Drop the entry when the card unmounts (deleted, or moved off the board)
 		// so the map can't grow unbounded across the board's lifetime. A card moved
@@ -132,7 +132,7 @@ function KanbanCardImpl({ value: cardId, id, children, className, ...props }: Ka
 		return () => {
 			overlayMap.current.delete(cardId)
 		}
-	}, [interactive, cardId, children, overlayMap])
+	}, [interactive, cardId, children, className, overlayMap])
 
 	const cardClassName = cn(k.card.base, lifted && k.card.lifted, className)
 

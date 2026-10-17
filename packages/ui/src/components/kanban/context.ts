@@ -1,9 +1,10 @@
 'use client'
 
 import type { DraggableAttributes, DraggableSyntheticListeners } from '@dnd-kit/core'
-import type { KeyboardEvent, ReactNode, RefObject } from 'react'
+import type { KeyboardEvent, RefObject } from 'react'
 import { createContext } from '../../core'
 import type { KeyedStore } from '../../utilities'
+import type { KanbanOverlayEntry } from './types'
 
 /**
  * Card-facing board state: interactivity, the keyboard-lift store, the overlay map,
@@ -27,8 +28,8 @@ export type KanbanContextValue = {
 	 * when its own lift changes.
 	 */
 	liftedStore: KeyedStore<string, boolean>
-	/** Live map of card content keyed by card id, used by the drag overlay. */
-	overlayMap: RefObject<Map<string, ReactNode>>
+	/** Live map of card content and `className` keyed by card id, used by the drag overlay. */
+	overlayMap: RefObject<Map<string, KanbanOverlayEntry>>
 	/** Keyboard handler for cards. It keeps its identity. */
 	onCardKeyDown: (cardId: string, event: KeyboardEvent) => void
 	/** Blur handler; clears lifted state when focus leaves a card. */

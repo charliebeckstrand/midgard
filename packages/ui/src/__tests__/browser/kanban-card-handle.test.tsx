@@ -37,7 +37,13 @@ describe('kanban card handle (real browser)', () => {
 		},
 	]
 
-	function Board({ onReorder }: { onReorder?: (next: Column[]) => void }) {
+	function Board({
+		onReorder,
+		cardClassName,
+	}: {
+		onReorder?: (next: Column[]) => void
+		cardClassName?: string
+	}) {
 		const [columns, setColumns] = useState(initial)
 
 		return (
@@ -55,7 +61,7 @@ describe('kanban card handle (real browser)', () => {
 					<KanbanColumn key={column.id} value={column.id} aria-label="Todo">
 						<KanbanColumnBody>
 							{column.items.map((item) => (
-								<KanbanCard key={item.id} value={item.id}>
+								<KanbanCard key={item.id} value={item.id} className={cardClassName}>
 									<KanbanCardHandle />
 									<span>{item.label}</span>
 									<button type="button">Edit {item.label}</button>
@@ -129,6 +135,34 @@ describe('kanban card handle (real browser)', () => {
 		await held.release()
 
 		await expect.poll(() => card.hasAttribute('data-dragging')).toBe(false)
+	})
+
+	it('gives the drag overlay the className of the card', async () => {
+		const { container } = renderUI(<Board cardClassName="border-red-500" />)
+
+		const [card] = allBySlot(container, 'kanban-card')
+
+		if (!card) throw new Error('expected a card')
+
+		const handle = getSlot(card, 'kanban-card-handle')
+
+		const box = handle.getBoundingClientRect()
+
+		const from = { x: box.left + box.width / 2, y: box.top + box.height / 2 }
+
+		const held = await drag(handle, from, [{ x: from.x, y: from.y + 20 }])
+
+		await expect
+			.poll(() => document.querySelector('[data-slot="kanban-card"][data-overlay]'))
+			.not.toBeNull()
+
+		const overlay = document.querySelector('[data-slot="kanban-card"][data-overlay]')
+
+		if (!overlay) throw new Error('expected the drag overlay')
+
+		expect(getComputedStyle(overlay).borderTopColor).toBe(getComputedStyle(card).borderTopColor)
+
+		await held.release()
 	})
 
 	it('starts no drag from the card body', async () => {
