@@ -154,6 +154,10 @@ export type ConfirmProps = Pick<
  * The children sit in a scroll region between the header and the actions. When they are
  * long, they scroll, and the header and the actions stay in view. The panel stamps
  * `data-open` while it is open.
+ *
+ * In a locked scope, such as a submitting form, the Cancel button stays live,
+ * because it only closes. The confirm action locks, because it runs a handler of
+ * the app.
  * @see {@link Dialog}
  */
 export function Confirm({
@@ -216,6 +220,10 @@ export function Confirm({
 				)}
 				<DialogFooter>
 					<Button
+						// Cancel only closes, so a locked scope, such as a submitting form,
+						// leaves it live. The confirm action runs an app handler, so it
+						// locks.
+						lockable={false}
 						type="button"
 						variant="plain"
 						color={cancel?.color}

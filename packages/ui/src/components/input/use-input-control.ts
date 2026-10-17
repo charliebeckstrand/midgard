@@ -7,6 +7,7 @@ import { useGlass } from '../../providers/glass/context'
 import { useHeadless } from '../../providers/headless/context'
 import { type ControlVariant, useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
+import { useControlTarget } from '../control/use-control-target'
 import { useInputValue } from './use-input-value'
 
 /**
@@ -82,6 +83,11 @@ export function useInputControl<E extends HTMLInputElement | HTMLTextAreaElement
 	})
 
 	const scope = useIdScope({ id: shared.id })
+
+	// The control renders its own id when no Field, Control, or prop gives one.
+	// So it registers that rendered id, and not the id of useControlProps, which
+	// is undefined for a bare control.
+	useControlTarget(name, scope.id)
 
 	return {
 		attrs: {

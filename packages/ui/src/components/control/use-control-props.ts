@@ -19,6 +19,10 @@ export type ControlPropsOptions = {
 	 * The name of the form field that the control binds. The control registers
 	 * its id under the name with the nearest registry, such as a form, so a
 	 * `FormErrorSummary` links the field to the control.
+	 *
+	 * A control that makes its own id when no id resolves, such as `Input`,
+	 * omits the name here. It registers the id that it renders through
+	 * `useControlTarget`, so a bare control also links.
 	 */
 	name?: string
 	/**

@@ -3,10 +3,16 @@ import { type ReactNode, type SyntheticEvent, useLayoutEffect, useState } from '
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Checkbox, CheckboxField } from '../../components/checkbox'
+import { CommandPalette } from '../../components/command-palette'
+import { Confirm } from '../../components/confirm'
 import { CopyButton } from '../../components/copy-button'
+import { Dialog, DialogPanel } from '../../components/dialog'
+import { Drawer, DrawerPanel } from '../../components/drawer'
 import { Field, Label } from '../../components/fieldset'
 import { Input } from '../../components/input'
 import { useInputValue } from '../../components/input/use-input-value'
+import { Popover, PopoverClose, PopoverContent, PopoverTrigger } from '../../components/popover'
+import { Sheet, SheetPanel } from '../../components/sheet'
 import { Tab, TabList, Tabs } from '../../components/tabs'
 import {
 	Form,
@@ -538,6 +544,155 @@ describe('Form', () => {
 		fireEvent.click(billing)
 
 		expect(onValueChange).toHaveBeenCalledWith('b')
+
+		await act(async () => {
+			pending.resolve()
+		})
+	})
+
+	// The lock is context, so it follows the tree into the portal of an overlay.
+	// A field there belongs to the form and locks. The standard Close of the
+	// default footer writes no field.
+	it.each([
+		['Dialog', Dialog, DialogPanel],
+		['Drawer', Drawer, DrawerPanel],
+		['Sheet', Sheet, SheetPanel],
+	] as const)(
+		'locks the fields of a %s in a submitting form, and keeps its close live',
+		async (_, Root, Panel) => {
+			const pending = deferred()
+
+			const onOpenChange = vi.fn()
+
+			const { container } = renderUI(
+				<Form defaultValues={{ name: '' }} onSubmit={() => pending.promise}>
+					<Root open onOpenChange={onOpenChange}>
+						<Panel aria-label="Details">
+							<Field>
+								<Label>Name</Label>
+								<Input name="name" />
+							</Field>
+						</Panel>
+					</Root>
+				</Form>,
+			)
+
+			await submit(container)
+
+			expect(screen.getByRole('textbox', { name: 'Name' })).toHaveAttribute('readonly')
+
+			const close = screen.getByRole('button', { name: 'Close' })
+
+			expect(close).not.toHaveAttribute('aria-disabled')
+
+			fireEvent.click(close)
+
+			expect(onOpenChange).toHaveBeenCalledWith(false)
+
+			await act(async () => {
+				pending.resolve()
+			})
+		},
+	)
+
+	it('locks the fields of a Popover in a submitting form, and keeps its close live', async () => {
+		const pending = deferred()
+
+		const onOpenChange = vi.fn()
+
+		const { container } = renderUI(
+			<Form defaultValues={{ name: '' }} onSubmit={() => pending.promise}>
+				<Popover open onOpenChange={onOpenChange}>
+					<PopoverTrigger>Open</PopoverTrigger>
+					<PopoverContent>
+						<Input name="name" aria-label="Name" />
+						<PopoverClose />
+					</PopoverContent>
+				</Popover>
+			</Form>,
+		)
+
+		await submit(container)
+
+		expect(screen.getByRole('textbox', { name: 'Name' })).toHaveAttribute('readonly')
+
+		const close = screen.getByRole('button', { name: 'Close' })
+
+		expect(close).not.toHaveAttribute('aria-disabled')
+
+		fireEvent.click(close)
+
+		expect(onOpenChange).toHaveBeenCalledWith(false)
+
+		await act(async () => {
+			pending.resolve()
+		})
+	})
+
+	it('keeps the close of a CommandPalette live in a submitting form', async () => {
+		const pending = deferred()
+
+		const onOpenChange = vi.fn()
+
+		const { container } = renderUI(
+			<Form defaultValues={{ name: '' }} onSubmit={() => pending.promise}>
+				<CommandPalette open onOpenChange={onOpenChange}>
+					<div>Items</div>
+				</CommandPalette>
+			</Form>,
+		)
+
+		await submit(container)
+
+		const close = screen.getByRole('button', { name: 'Close' })
+
+		expect(close).not.toHaveAttribute('aria-disabled')
+
+		fireEvent.click(close)
+
+		expect(onOpenChange).toHaveBeenCalledWith(false)
+
+		await act(async () => {
+			pending.resolve()
+		})
+	})
+
+	it('keeps the Cancel of a Confirm live in a submitting form, and locks its action', async () => {
+		const pending = deferred()
+
+		const onCancel = vi.fn()
+
+		const onConfirm = vi.fn()
+
+		const { container } = renderUI(
+			<Form defaultValues={{ name: '' }} onSubmit={() => pending.promise}>
+				<Confirm
+					open
+					onOpenChange={() => {}}
+					title="Discard the draft?"
+					onCancel={onCancel}
+					onConfirm={onConfirm}
+				/>
+			</Form>,
+		)
+
+		await submit(container)
+
+		const confirm = screen.getByRole('button', { name: 'Confirm' })
+
+		expect(confirm).toHaveAttribute('aria-disabled', 'true')
+
+		fireEvent.click(confirm)
+
+		expect(onConfirm).not.toHaveBeenCalled()
+
+		const cancel = screen.getByRole('button', { name: 'Cancel' })
+
+		expect(cancel).not.toHaveAttribute('aria-disabled')
+
+		fireEvent.click(cancel)
+
+		expect(onCancel).toHaveBeenCalled()
 
 		await act(async () => {
 			pending.resolve()

@@ -8,6 +8,7 @@ import { useFormValue } from '../../primitives/form/use-form-value'
 import { k, type SliderVariants } from '../../recipes/kata/slider'
 import { clamp, pct } from '../../utilities'
 import { useControlProps } from '../control/use-control-props'
+import { useControlTarget } from '../control/use-control-target'
 
 /**
  * The value that a native range input shows for `value`. The input clamps the
@@ -148,6 +149,11 @@ export function Slider({
 	})
 
 	const scope = useIdScope({ id: controlProps.id })
+
+	// The control renders its own id when no Field, Control, or prop gives one.
+	// So it registers that rendered id, and not the id of useControlProps, which
+	// is undefined for a bare control.
+	useControlTarget(name, scope.id)
 
 	return (
 		<input

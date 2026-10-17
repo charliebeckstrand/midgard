@@ -4,9 +4,11 @@ import { Check, Minus } from 'lucide-react'
 import { useComposedRefs } from 'motion/react'
 import { type ChangeEventHandler, type ComponentProps, useLayoutEffect, useRef } from 'react'
 import { ariaAttr, cn, dataAttr } from '../../core'
+import { useIdScope } from '../../hooks/use-id-scope'
 import { useFormToggle } from '../../primitives/form/use-form-toggle'
 import { type CheckboxVariants, k } from '../../recipes/kata/checkbox'
 import { useControlProps } from '../control/use-control-props'
+import { useControlTarget } from '../control/use-control-target'
 
 /** Props for {@link Checkbox}. */
 export type CheckboxProps = CheckboxVariants & {
@@ -77,6 +79,12 @@ export function Checkbox({
 		invalid,
 	})
 
+	// A bare box has no id from a Field, a Control, or a prop, so it makes one.
+	// It registers that id, so a FormErrorSummary row links to the box.
+	const scope = useIdScope({ id: resolvedId })
+
+	useControlTarget(name, scope.id)
+
 	const inputRef = useRef<HTMLInputElement>(null)
 
 	const setRef = useComposedRefs(inputRef, ref)
@@ -137,7 +145,7 @@ export function Checkbox({
 				data-slot="checkbox"
 				data-indeterminate={dataAttr(indeterminate)}
 				ref={setRef}
-				id={resolvedId}
+				id={scope.id}
 				name={name}
 				disabled={resolvedDisabled}
 				required={resolvedRequired}
