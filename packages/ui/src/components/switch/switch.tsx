@@ -5,9 +5,9 @@ import type { ChangeEvent, ComponentProps } from 'react'
 import { ariaAttr, cn } from '../../core'
 import { useControllableFlag } from '../../hooks'
 import { useFormResetSync } from '../../hooks/use-form-reset-sync'
+import { useFormToggle } from '../../primitives/form/use-form-toggle'
 import { k, type SwitchVariants } from '../../recipes/kata/switch'
 import { useControlProps } from '../control/use-control-props'
-import { useFormToggle } from '../form/use-form-toggle'
 
 /** Props for {@link Switch}: the recipe `color` and the `size` step, an input `ref`, and native `<input>` attributes minus `type`/`size`. */
 export type SwitchProps = SwitchVariants & {

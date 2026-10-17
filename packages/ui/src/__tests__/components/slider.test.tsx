@@ -2,9 +2,9 @@ import type { ComponentProps, ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
 import { Description, Field, Label, Message } from '../../components/fieldset'
-import { Form } from '../../components/form'
 import { RangeSlider, Slider } from '../../components/slider'
 import { snapValue } from '../../components/slider/range/range-utilities'
+import { Form } from '../../modules/form'
 import {
 	allBySlot,
 	bySlot,

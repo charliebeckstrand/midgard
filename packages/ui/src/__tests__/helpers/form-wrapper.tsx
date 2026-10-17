@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Form, type FormProps } from '../../components/form'
+import { Form, type FormProps } from '../../modules/form'
 
 /**
  * A `renderHook` wrapper that mounts the hook inside a `Form` with the given

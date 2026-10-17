@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Form } from '../../components/form'
 import {
 	PasswordConfirm,
 	PasswordConfirmNew,
 	PasswordConfirmRepeat,
 } from '../../components/password-confirm'
+import { Form } from '../../modules/form'
 import { act, fireEvent, renderUI, screen } from '../helpers'
 
 /** The password input and the confirm input, in document order. */

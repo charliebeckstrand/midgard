@@ -2,8 +2,8 @@
 
 import { type ComponentProps, type ReactNode, useCallback, useId, useMemo, useState } from 'react'
 import { useA11yLiveRegion } from '../../hooks'
+import { useFormContext } from '../../primitives/form/context'
 import { Stack } from '../../structure/stack'
-import { useFormContext } from '../form/context'
 import { Text } from '../text'
 import { PasswordConfirmContext, type PasswordConfirmRole } from './context'
 import { usePasswordConfirmState } from './use-password-confirm-state'

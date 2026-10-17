@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { CurrencyInput } from '../../components/currency-input'
-import { Form } from '../../components/form'
+import { Form } from '../../modules/form'
 import { fireEvent, getSlot, renderUI, screen, setupUser } from '../helpers'
 
 describe('CurrencyInput', () => {

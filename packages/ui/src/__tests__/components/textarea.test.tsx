@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Control } from '../../components/control'
-import { Form } from '../../components/form'
 import { Textarea, TextareaSkeleton } from '../../components/textarea'
+import { Form } from '../../modules/form'
 import { HeadlessProvider } from '../../providers/headless'
 import { bySlot, densityStepOf, getSlot, renderUI, screen, setupUser } from '../helpers'
 

@@ -5,7 +5,7 @@ import { DateInput } from '../../components/date-input'
 import { DateInputResetContext } from '../../components/date-input/context'
 import { localeDateInputFormat } from '../../components/date-input/date-input-utilities'
 import { Field, Label, Message } from '../../components/fieldset'
-import { Form } from '../../components/form'
+import { Form } from '../../modules/form'
 import { LocaleProvider } from '../../providers/locale'
 import {
 	act,

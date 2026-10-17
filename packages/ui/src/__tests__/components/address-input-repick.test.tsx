@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { AddressProvider, AddressSuggestion } from '../../components/address-input'
 import { AddressInput } from '../../components/address-input'
-import { Form } from '../../components/form'
-import { useFormActions } from '../../components/form/context'
+import { Form } from '../../modules/form'
+import { useFormActions } from '../../primitives/form/context'
 import { fireEvent, getSlot, renderUI, screen, withFakeTime } from '../helpers'
 
 // A Form reset or a `setValue` changes the bound field. A pick of the same

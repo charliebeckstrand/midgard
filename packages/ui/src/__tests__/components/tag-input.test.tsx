@@ -1,8 +1,8 @@
 import type { FormEvent, ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
-import { Form } from '../../components/form'
 import { TagInput } from '../../components/tag-input'
+import { Form } from '../../modules/form'
 import {
 	expectAnnouncement,
 	fireEvent,

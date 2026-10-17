@@ -158,9 +158,11 @@ The `no-client-gateway-access` Biome plugin gates the rule. It also keeps a runt
 
 ## 7. Forms
 
-7.1 Forms compose `ui/form`, which owns form state via `useSyncExternalStore` and accepts optional schema resolvers for validation.
+7.1 Forms compose `ui/form`, which owns form state via `useSyncExternalStore` and accepts optional schema resolvers for validation. `form` is a module. Its filter bar, `FormFilters`, binds controls in the same way.
 
-7.2 Bindable controls take `name` to bind their value to the enclosing form field. Resolution order on every control: an explicit `value`/`checked` prop wins, then the bound field, then internal (uncontrolled) state. Consumer change handlers fire in every mode. A bound field ignores the control's `defaultValue`/`defaultChecked`; `Form.defaultValues` is the single source of truth. The cascade lives in `useFormValue` (value-typed controls), `useInputValue` (Input, Textarea), and `useFormToggle` (Checkbox, Switch): new bindable controls compose one of these, never a bespoke branch.
+The bindable controls read a form through `primitives/form`, an internal contract below the components. `Form` and `FormFilters` each provide the contract, and the barrel of the module re-exports its public hooks. Thus a component never imports the module.
+
+7.2 Bindable controls take `name` to bind their value to the enclosing form field. Resolution order on every control: an explicit `value`/`checked` prop wins, then the bound field, then internal (uncontrolled) state. Consumer change handlers fire in every mode. A bound field ignores the control's `defaultValue`/`defaultChecked`; `Form.defaultValues` is the single source of truth. The cascade lives in `useFormValue` (value-typed controls), `useInputValue` (Input, Textarea), and `useFormToggle` (Checkbox, Switch): new bindable controls compose one of these, never a bespoke branch. `useFormValue` and `useFormToggle` live in `primitives/form`.
 
 7.3 In value props, `undefined` leaves the control uncontrolled; `null` keeps it controlled with no current value. A control on `useControllable` stays controlled after its first value, and a later `undefined` reads as `null`. Its change handler fires only for a change.
 

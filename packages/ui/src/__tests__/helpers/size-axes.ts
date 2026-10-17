@@ -47,6 +47,8 @@ export const SIZE_AXES = {
 	DrawerPanel: ['xs', 'sm', 'md', 'lg', 'xl'],
 	FileUploadButton: ['xs', 'sm', 'md', 'lg', 'xl'],
 	FileUploadInput: ['xs', 'sm', 'md', 'lg', 'xl'],
+	FormReset: ['xs', 'sm', 'md', 'lg', 'xl'],
+	FormSubmit: ['xs', 'sm', 'md', 'lg', 'xl'],
 	Grid: ['xs', 'sm', 'md', 'lg', 'xl'],
 	Group: ['xs', 'sm', 'md', 'lg', 'xl'],
 	Heading: ['xs', 'sm', 'md', 'lg', 'xl'],

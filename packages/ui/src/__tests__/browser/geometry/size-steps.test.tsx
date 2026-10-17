@@ -89,6 +89,7 @@ import { tooltipBody } from '../../../components/tooltip/tooltip-body-loader'
 import { Tree, TreeItem, TreeSkeleton } from '../../../components/tree'
 import type { DensityStep } from '../../../core/density'
 import { ChartSkeleton } from '../../../modules/chart'
+import { Form, FormReset, FormSubmit } from '../../../modules/form'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { renderUI } from '../../helpers'
 import { SIZE_AXES, type SizedComponent } from '../../helpers/size-axes'
@@ -225,6 +226,16 @@ const FIXTURES: { [N in SizedComponent]: (size: (typeof SIZE_AXES)[N][number]) =
 	),
 	FileUploadButton: (size) => <FileUploadButton size={size as never} />,
 	FileUploadInput: (size) => <FileUploadInput size={size as never} aria-label="File" />,
+	FormReset: (size) => (
+		<Form defaultValues={{}}>
+			<FormReset size={size as never}>Discard</FormReset>
+		</Form>
+	),
+	FormSubmit: (size) => (
+		<Form defaultValues={{}}>
+			<FormSubmit size={size as never}>Save</FormSubmit>
+		</Form>
+	),
 	Grid: (size) => (
 		<Grid size={size} columns={gridColumns} rows={gridRows} getKey={(row) => row.id} />
 	),

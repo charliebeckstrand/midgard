@@ -3,6 +3,7 @@
 import { MapPin } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '../../core'
+import { useFormField } from '../../primitives/form/context'
 import { keyByOccurrence } from '../../utilities'
 import {
 	Combobox,
@@ -13,7 +14,6 @@ import {
 } from '../combobox'
 import { useControl } from '../control/context'
 import { useControlFallbackLabel } from '../control/use-control-fallback-label'
-import { useFormField } from '../form/context'
 import { Icon } from '../icon'
 import { LoadingSpinner } from '../loading'
 import { photonProvider } from './address-input-photon'

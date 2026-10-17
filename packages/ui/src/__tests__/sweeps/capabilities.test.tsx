@@ -1,7 +1,7 @@
 import type { ChangeEvent, FocusEvent, ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { Form, useFormField } from '../../components/form'
 import { composeEventHandlers } from '../../core'
+import { Form, useFormField } from '../../modules/form'
 import { Density } from '../../primitives/density'
 import { corpus } from '../a11y/cases'
 import type {

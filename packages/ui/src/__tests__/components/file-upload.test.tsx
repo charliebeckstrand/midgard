@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
 import { Description, Field, Label, Message } from '../../components/fieldset'
 import { FileUploadButton, FileUploadDrop, FileUploadInput } from '../../components/file-upload'
-import { Form } from '../../components/form'
+import { Form } from '../../modules/form'
 import { HeadlessProvider } from '../../providers/headless'
 import {
 	act,

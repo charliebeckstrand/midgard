@@ -3,18 +3,23 @@ import { renderToString } from 'react-dom/server'
 import { beforeAll, describe, expect, it, onTestFinished } from 'vitest'
 import { page } from 'vitest/browser'
 import { Label } from '../../../components/fieldset'
-import { Filters, FiltersBar, FiltersField, FiltersRow } from '../../../components/filters'
 import { Input } from '../../../components/input'
 import { Timeline, TimelineItem, TimelineTitle } from '../../../components/timeline'
+import {
+	FormFilters,
+	FormFiltersBar,
+	FormFiltersField,
+	FormFiltersRow,
+} from '../../../modules/form'
 import { frames, getSlot, renderUI, screen, waitFor } from '../../helpers'
 import { nextPaint } from '../../helpers/frames'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
- * At a phone width, a `rail` Filters row and a horizontal Timeline scroll
+ * At a phone width, a `rail` FormFilters row and a horizontal Timeline scroll
  * inside themselves. Each fades the edge that has more content behind it, so
  * the cut does not look like a clip. While it overflows, each is also a tab
- * stop, so a keyboard user can scroll it. The Filters row is a region with the
+ * stop, so a keyboard user can scroll it. The FormFilters row is a region with the
  * name of the bar. The Timeline keeps its `list` role and its own name.
  *
  * jsdom lays nothing out and compiles no Tailwind. Only a real browser proves
@@ -47,18 +52,18 @@ function Rail({
 				toggle
 			</button>
 
-			<Filters aria-label="Order filters" layout={layout}>
-				<FiltersBar>
-					<FiltersRow>
+			<FormFilters aria-label="Order filters" layout={layout}>
+				<FormFiltersBar>
+					<FormFiltersRow>
 						{FIELDS.slice(0, count).map((name) => (
-							<FiltersField key={name} name={name} className="w-48">
+							<FormFiltersField key={name} name={name} className="w-48">
 								<Label>{name}</Label>
 								<Input placeholder={name} />
-							</FiltersField>
+							</FormFiltersField>
 						))}
-					</FiltersRow>
-				</FiltersBar>
-			</Filters>
+					</FormFiltersRow>
+				</FormFiltersBar>
+			</FormFilters>
 		</div>
 	)
 }
@@ -149,7 +154,7 @@ describe('phone scroll cues (real browser, 375px)', () => {
 	beforeAll(() => page.viewport(375, 700))
 
 	describe.each([
-		{ name: 'Filters rail row', Subject: Rail, slot: 'filters-row' },
+		{ name: 'FormFilters rail row', Subject: Rail, slot: 'form-filters-row' },
 		{ name: 'horizontal Timeline', Subject: Line, slot: 'timeline' },
 	])('$name', ({ Subject, slot }) => {
 		it('fades the end edge on attach, both edges mid-travel, and the start edge at the end', async () => {
@@ -221,11 +226,11 @@ describe('phone scroll cues (real browser, 375px)', () => {
 		})
 	})
 
-	describe('Filters rail row as a scroll region', () => {
+	describe('FormFilters rail row as a scroll region', () => {
 		it('is a named region and a tab stop only while it overflows', async () => {
 			const { container } = renderUI(<Rail />)
 
-			const row = getSlot(container, 'filters-row')
+			const row = getSlot(container, 'form-filters-row')
 
 			await waitFor(() => expect(row.getAttribute('tabindex')).toBe('0'))
 
@@ -245,7 +250,7 @@ describe('phone scroll cues (real browser, 375px)', () => {
 		it('scrolls a field that the fade covers clear of the fade on focus', async () => {
 			const { container } = renderUI(<Rail />)
 
-			const row = getSlot(container, 'filters-row')
+			const row = getSlot(container, 'form-filters-row')
 
 			await waitFor(() => expect(fadedSides(row)).toEqual({ left: false, right: true }))
 
@@ -266,7 +271,7 @@ describe('phone scroll cues (real browser, 375px)', () => {
 		it('adds nothing to a stack row', async () => {
 			const { container } = renderUI(<Rail layout="stack" />)
 
-			const row = getSlot(container, 'filters-row')
+			const row = getSlot(container, 'form-filters-row')
 
 			await frames()
 

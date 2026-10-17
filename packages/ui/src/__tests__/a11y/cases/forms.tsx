@@ -1,8 +1,8 @@
 import { Button } from '../../../components/button'
 import { Control } from '../../../components/control'
 import { Field, Label } from '../../../components/fieldset'
-import { Form } from '../../../components/form'
 import { Input } from '../../../components/input'
+import { Form, FormReset, FormSubmit } from '../../../modules/form'
 import { noop } from '../../helpers'
 import type { Case } from './types'
 
@@ -31,6 +31,39 @@ export const formCases: readonly Case[] = [
 					</Form>
 				),
 				slot: 'form',
+			},
+		],
+	},
+	{
+		// The submit and reset parts of the form module. The reset button is
+		// aria-disabled while the form is clean, and it stays in the tab order.
+		name: 'form-submit-reset',
+		element: (
+			<Form key="fsr" defaultValues={{ email: '' }} onSubmit={noop}>
+				<Field>
+					<Label>Email</Label>
+					<Input name="email" type="email" />
+				</Field>
+				<FormSubmit>Save</FormSubmit>
+				<FormReset variant="plain">Discard</FormReset>
+			</Form>
+		),
+		passthrough: [
+			{
+				render: (props) => (
+					<Form defaultValues={{}}>
+						<FormSubmit {...props}>Save</FormSubmit>
+					</Form>
+				),
+				slot: 'form-submit',
+			},
+			{
+				render: (props) => (
+					<Form defaultValues={{}}>
+						<FormReset {...props}>Discard</FormReset>
+					</Form>
+				),
+				slot: 'form-reset',
 			},
 		],
 	},

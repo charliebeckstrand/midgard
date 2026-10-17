@@ -5,12 +5,12 @@ import { type MouseEvent, type PointerEvent, type ReactNode, useRef, useState } 
 import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { useIdScope } from '../../hooks/use-id-scope'
+import { useFormValue } from '../../primitives/form/use-form-value'
 import type { scale } from '../../recipes/kata/rating'
 import { k, type RatingVariants } from '../../recipes/kata/rating'
 import { clamp, rangeKeys } from '../../utilities'
 import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
-import { useFormValue } from '../form/use-form-value'
 
 /** How much of one star fills at `value`: the whole star below it, none above, the remainder on it. @internal */
 function starFill(value: number, star: number): number {

@@ -9,8 +9,8 @@ import {
 	useRef,
 	useState,
 } from 'react'
+import { useFormValue } from '../../primitives/form/use-form-value'
 import { useControlProps } from '../control/use-control-props'
-import { useFormValue } from '../form/use-form-value'
 import { drawSnapshot } from './signature-pad-utilities'
 import { useSignaturePadCanvasSizing } from './use-signature-pad-canvas-sizing'
 import { useSignaturePadDrawing } from './use-signature-pad-drawing'

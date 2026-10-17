@@ -3,7 +3,7 @@
 import { useCallback } from 'react'
 import type { SetValue } from '../../hooks/use-controllable'
 import { useIdScope } from '../../hooks/use-id-scope'
-import { useFormValue } from '../form/use-form-value'
+import { useFormValue } from '../../primitives/form/use-form-value'
 import { useControlProps } from './use-control-props'
 
 type PickerFieldOptions<T> = {

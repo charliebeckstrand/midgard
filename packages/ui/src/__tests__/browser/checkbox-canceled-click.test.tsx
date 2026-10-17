@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Checkbox } from '../../components/checkbox'
-import { Form } from '../../components/form'
+import { Form } from '../../modules/form'
 import { getSlot, renderUI } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 

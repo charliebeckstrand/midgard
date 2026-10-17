@@ -1,9 +1,9 @@
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import { Description, Field, Label } from '../../components/fieldset'
-import { Form } from '../../components/form'
-import { useFormState } from '../../components/form/context'
 import { Rating, RatingSkeleton } from '../../components/rating'
+import { Form } from '../../modules/form'
+import { useFormState } from '../../primitives/form/context'
 import { act, allBySlot, bySlot, fireEvent, renderUI, screen, setupUser } from '../helpers'
 
 /** The stars' own radios, in draw order. */

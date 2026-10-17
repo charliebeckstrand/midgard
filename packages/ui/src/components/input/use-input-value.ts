@@ -2,8 +2,8 @@
 
 import type { ChangeEventHandler, ComponentProps, FocusEventHandler } from 'react'
 import { composeEventHandlers } from '../../core'
-import { useFormField } from '../form/context'
-import { hasIssues } from '../form/form-reducer'
+import { useFormField } from '../../primitives/form/context'
+import { hasIssues } from '../../primitives/form/form-issues'
 
 type InputValueOptions<E extends HTMLInputElement | HTMLTextAreaElement> = {
 	name?: string

@@ -1,5 +1,4 @@
 import { Label } from '../../../components/fieldset'
-import { Filters, FiltersField, FiltersSkeleton } from '../../../components/filters'
 import { Input } from '../../../components/input'
 import { JsonTree } from '../../../components/json-tree'
 import {
@@ -12,6 +11,7 @@ import {
 	KanbanColumnTitle,
 } from '../../../components/kanban'
 import { PivotTable } from '../../../components/pivot-table'
+import { FormFilters, FormFiltersField, FormFiltersSkeleton } from '../../../modules/form'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { createGroup, QueryBuilder, QueryChips, type QueryField } from '../../../modules/query'
 import { noop } from '../../helpers'
@@ -192,21 +192,21 @@ export const dataComplexCases: readonly Case[] = [
 		),
 	},
 	{
-		// Filter bar: FiltersField owns the control context; Label names the
+		// Filter bar: FormFiltersField owns the control context; Label names the
 		// Input directly (no Field wrapper) and the value binds through the slot.
 		name: 'filters',
 		element: (
-			<Filters key="fl" aria-label="Filters" defaultValue={{ search: undefined }}>
-				<FiltersField name="search">
+			<FormFilters key="fl" aria-label="Filters" defaultValue={{ search: undefined }}>
+				<FormFiltersField name="search">
 					<Label>Search</Label>
 					<Input placeholder="Search" />
-				</FiltersField>
-			</Filters>
+				</FormFiltersField>
+			</FormFilters>
 		),
 		skeleton: [
-			{ element: <FiltersSkeleton />, absentSlot: 'field', placeholders: 3 },
+			{ element: <FormFiltersSkeleton />, absentSlot: 'field', placeholders: 3 },
 			{
-				element: <FiltersSkeleton layout="rail" fields={2} />,
+				element: <FormFiltersSkeleton layout="rail" fields={2} />,
 				absentSlot: 'field',
 				placeholders: 2,
 			},

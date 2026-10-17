@@ -6,7 +6,7 @@ import { DatePicker } from '../../components/date-picker'
 import { DatePickerCalendarButton } from '../../components/date-picker/date-picker-calendar-button'
 import { useDatePickerState } from '../../components/date-picker/use-date-picker-state'
 import { Field } from '../../components/fieldset'
-import { Form } from '../../components/form'
+import { Form } from '../../modules/form'
 import { LocaleProvider } from '../../providers/locale'
 import {
 	act,

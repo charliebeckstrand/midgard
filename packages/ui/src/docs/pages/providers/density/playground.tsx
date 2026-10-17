@@ -1,8 +1,15 @@
 import { Activity, Inbox, Pencil, Settings, Trash, Users } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from 'ui/button'
-import { Filters, FiltersBar, FiltersClear, FiltersField, FiltersRow, useFilters } from 'ui/filters'
 import { Flex } from 'ui/flex'
+import {
+	FormFilters,
+	FormFiltersBar,
+	FormFiltersClear,
+	FormFiltersField,
+	FormFiltersRow,
+	useFormFilters,
+} from 'ui/form'
 import { Heading } from 'ui/heading'
 import { Icon } from 'ui/icon'
 import { SidebarLayout, SidebarLayoutBody, SidebarLayoutHeader } from 'ui/layouts'
@@ -44,14 +51,14 @@ type OrderFilters = {
 }
 
 function FiltersReset() {
-	const { activeCount } = useFilters()
+	const { activeCount } = useFormFilters()
 
 	if (activeCount === 0) return null
 
 	return (
-		<FiltersClear>
+		<FormFiltersClear>
 			<ResetButton type="button" />
-		</FiltersClear>
+		</FormFiltersClear>
 	)
 }
 
@@ -63,17 +70,17 @@ function OrdersFilters({
 	onValueChange: (value: OrderFilters) => void
 }) {
 	return (
-		<Filters aria-label="Order filters" value={value} onValueChange={onValueChange}>
-			<FiltersBar>
-				<FiltersRow>
-					<FiltersField name="id">
+		<FormFilters aria-label="Order filters" value={value} onValueChange={onValueChange}>
+			<FormFiltersBar>
+				<FormFiltersRow>
+					<FormFiltersField name="id">
 						<SearchInput
 							aria-label="Order ID"
 							placeholder="Search by order ID"
 							autoComplete="off"
 						/>
-					</FiltersField>
-					<FiltersField name="status">
+					</FormFiltersField>
+					<FormFiltersField name="status">
 						<Select
 							aria-label="Status"
 							placeholder="All statuses"
@@ -89,11 +96,11 @@ function OrdersFilters({
 								<SelectLabel>Pending</SelectLabel>
 							</SelectOption>
 						</Select>
-					</FiltersField>
-				</FiltersRow>
+					</FormFiltersField>
+				</FormFiltersRow>
 				<FiltersReset />
-			</FiltersBar>
-		</Filters>
+			</FormFiltersBar>
+		</FormFilters>
 	)
 }
 

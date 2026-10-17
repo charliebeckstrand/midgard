@@ -11,7 +11,7 @@ import {
 } from 'react'
 import { announce } from '../../core'
 import { useOpenChange } from '../../hooks/use-open-change'
-import { useFormValue } from '../form/use-form-value'
+import { useFormValue } from '../../primitives/form/use-form-value'
 import {
 	type FileRejection,
 	fileListToArray,

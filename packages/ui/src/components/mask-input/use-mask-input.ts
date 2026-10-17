@@ -3,7 +3,7 @@
 import { useComposedRefs } from 'motion/react'
 import type { ChangeEvent, Ref, RefCallback } from 'react'
 import { type FormattedInputOptions, useFormattedInput } from '../../hooks/use-formatted-input'
-import { useFormValue } from '../form/use-form-value'
+import { useFormValue } from '../../primitives/form/use-form-value'
 
 type MaskedInputOptions = {
 	/**

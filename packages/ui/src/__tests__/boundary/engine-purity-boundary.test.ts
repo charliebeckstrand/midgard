@@ -24,7 +24,7 @@ import { isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-s
 // rather than a pure core — it holds `.tsx` components and hooks by design — so
 // the list is explicit rather than a `modules/*/engine` glob, and a new pure
 // engine opts in by joining it.
-const PURE_ENGINES = ['chat', 'dashboard', 'events', 'grid', 'map', 'query'] as const
+const PURE_ENGINES = ['chat', 'dashboard', 'events', 'form', 'grid', 'map', 'query'] as const
 
 const enginePath = (module: string) => join(srcDir, 'modules', module, 'engine')
 

@@ -13,7 +13,7 @@ import { Combobox, ComboboxLabel, ComboboxOption, useComboboxDeferredQuery } fro
 import { ControlSkeleton } from 'ui/control'
 import { DatePickerSkeleton } from 'ui/date-picker'
 import { DescriptionListSkeleton } from 'ui/description-list'
-import { FiltersSkeleton } from 'ui/filters'
+import { FormFiltersSkeleton } from 'ui/form'
 import { HeadingSkeleton } from 'ui/heading'
 import { KanbanCardSkeleton } from 'ui/kanban'
 import { ListSkeleton } from 'ui/list'
@@ -60,7 +60,7 @@ const variants = [
 	{ name: 'Control', skeleton: <ControlSkeleton /> },
 	{ name: 'Date picker', skeleton: <DatePickerSkeleton /> },
 	{ name: 'Description list', skeleton: <DescriptionListSkeleton /> },
-	{ name: 'Filters', skeleton: <FiltersSkeleton /> },
+	{ name: 'Filters', skeleton: <FormFiltersSkeleton /> },
 	{ name: 'Heading', skeleton: <HeadingSkeleton level={3} /> },
 	{ name: 'Kanban card', skeleton: <KanbanCardSkeleton /> },
 	{ name: 'List', skeleton: <ListSkeleton description /> },

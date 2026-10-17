@@ -1,0 +1,136 @@
+'use client'
+
+import { type RefCallback, useCallback, useLayoutEffect, useRef } from 'react'
+import { type SetValue, useControllable } from '../../hooks/use-controllable'
+import { useFormResetSync } from '../../hooks/use-form-reset-sync'
+import { useStableEvent } from '../../hooks/use-stable-event'
+import { useFormField, useFormResets } from './context'
+import { hasIssues } from './form-issues'
+
+type FormValueOptions<T> = {
+	/** Controlled value. Wins over the form field when both are present. */
+	value?: T | null
+	/** Initial value when uncontrolled and not form-bound. */
+	defaultValue?: T | (() => T)
+	/** Fires with the committed value, or `null` once it is cleared (CONVENTIONS §7.3). */
+	onValueChange?: (value: T | null) => void
+	/**
+	 * Runs after a reset of the value: a reset of the Form that binds `name`, or
+	 * a native form reset that sets the uncontrolled value back to
+	 * `defaultValue`. It clears the state that the control keeps beside the
+	 * value, such as a typed draft. It runs before the paint.
+	 */
+	onReset?: () => void
+}
+
+/** Resolved value binding: the current `value`, a `setValue` accepting a value or updater, and a `setTouched` for blur. It also carries an `invalid` flag from any bound field's errors, the `controlled` flag, and the `resetRef` for a native form reset. */
+export type FormValueResult<T> = {
+	value: T | undefined
+	/**
+	 * `true` when a `value` prop or a bound field drives the value. An
+	 * uncontrolled control mirrors a native form reset only while this is `false`.
+	 */
+	controlled: boolean
+	/**
+	 * Put on the native element that the enclosing `<form>` owns. While the
+	 * control is uncontrolled, a native reset of that form sets the value back to
+	 * `defaultValue`, and `onValueChange` reports it.
+	 */
+	resetRef: RefCallback<HTMLInputElement>
+	setValue: (value: SetValue<T>) => void
+	/** Marks the field touched; no-op outside a Form. Call from `onBlur`. */
+	setTouched: () => void
+	/** Pass to `useControlProps`; the field's error state merges into `invalid`. */
+	invalid: boolean | undefined
+}
+
+/**
+ * Binds `useControllable` to an enclosing Form field by `name`: the
+ * value-typed analogue of `useInputValue` / {@link useFormToggle} for
+ * controls that emit `onValueChange` rather than DOM change events.
+ *
+ * @param name - Field key to bind; undefined leaves the hook unbound (plain
+ * controlled/uncontrolled state).
+ * @param options - `value` (controlled), `defaultValue` (uncontrolled seed,
+ * can be a lazy initializer), `onValueChange`, and `onReset`.
+ * @returns A {@link FormValueResult} with `value`, `controlled`, `resetRef`, `setValue`,
+ * `setTouched`, and `invalid`.
+ * @typeParam T - The control's value type.
+ * @remarks Resolution mirrors Input's cascade. An explicit `value` prop wins.
+ * Otherwise a field with this `name` drives the state: the store is the single
+ * source of truth, `defaultValue` is ignored, and writes chain `onValueChange`.
+ * Without either, the hook is plain controlled/uncontrolled state.
+ * Subscribes through {@link useFormField}, re-rendering only on this field's
+ * change. `setValue` and `setTouched` keep their identity across renders.
+ */
+export function useFormValue<T>(
+	name: string | undefined,
+	{ value, defaultValue, onValueChange, onReset }: FormValueOptions<T>,
+): FormValueResult<T> {
+	const field = useFormField(name)
+
+	const bound = field !== undefined && value === undefined
+
+	const [current, setCurrent] = useControllable<T>({
+		// `?? null` keeps a bound control controlled even while the store holds
+		// no value yet.
+		value: bound ? ((field.value as T | undefined) ?? null) : value,
+		defaultValue,
+		onValueChange: bound
+			? (next) => {
+					// The store's "no value" is `undefined`; §7.3's `null` is a
+					// prop/callback contract, and writing it through would change
+					// submit payloads and reject `optional()` schema validators.
+					field.setValue(next ?? undefined)
+					onValueChange?.(next)
+				}
+			: onValueChange,
+	})
+
+	// The field gives a stable `setTouched`, so this one keeps its identity too.
+	// A new function on each render breaks the memo of each row that takes it,
+	// such as a calendar day cell.
+	const touchField = field?.setTouched
+
+	const setTouched = useCallback(() => touchField?.(), [touchField])
+
+	const controlled = bound || value !== undefined
+
+	// React controls the value of the element, so a native reset restores the
+	// last value that React wrote. Set the state back to the seed instead. A lazy
+	// seed is a valid updater, because an updater can ignore the last value.
+	const handleReset = useStableEvent(() => onReset?.())
+
+	const resetRef = useFormResetSync(!controlled, () => {
+		setCurrent(defaultValue)
+
+		handleReset()
+	})
+
+	// A Form reset can leave the value as it was, so the reset count, and not the
+	// value, tells the control to drop its partial entry. Only a bound field
+	// follows the resets of the Form. The setters of the control can come after
+	// this hook, so the call waits for the commit.
+	const formResets = useFormResets()
+
+	const resets = name === undefined ? 0 : formResets
+
+	const seenResets = useRef(resets)
+
+	useLayoutEffect(() => {
+		if (seenResets.current === resets) return
+
+		seenResets.current = resets
+
+		handleReset()
+	}, [resets, handleReset])
+
+	return {
+		value: current,
+		controlled,
+		resetRef,
+		setValue: setCurrent,
+		setTouched,
+		invalid: field && hasIssues(field.errors),
+	}
+}

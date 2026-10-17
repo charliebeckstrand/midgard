@@ -2,8 +2,8 @@ import type { ComponentProps } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
 import { Field } from '../../components/fieldset'
-import { Form } from '../../components/form'
 import { NumberInput } from '../../components/number-input'
+import { Form } from '../../modules/form'
 import { act, fireEvent, liveRegion, renderUI, screen, setupUser } from '../helpers'
 
 describe('NumberInput', () => {

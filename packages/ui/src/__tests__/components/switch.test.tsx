@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Description } from '../../components/fieldset'
-import { Form } from '../../components/form'
 import { Switch, SwitchField } from '../../components/switch'
+import { Form } from '../../modules/form'
 import { act, bySlot, fireEvent, getSlot, present, renderUI, screen, setupUser } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 

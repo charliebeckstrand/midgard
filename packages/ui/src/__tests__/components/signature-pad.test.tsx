@@ -3,13 +3,13 @@ import { act, createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
 import { Description, Message } from '../../components/fieldset'
-import { Form } from '../../components/form'
 import { SignaturePad, type SignaturePadHandle } from '../../components/signature-pad'
 import {
 	configureStroke,
 	drawSnapshot,
 	getCanvasPoint,
 } from '../../components/signature-pad/signature-pad-utilities'
+import { Form } from '../../modules/form'
 import {
 	bySlot,
 	fireEvent,
