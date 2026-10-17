@@ -1,8 +1,17 @@
 import { act } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { Field, Label, Message } from '../../components/fieldset'
+import { FileUploadButton } from '../../components/file-upload'
 import { Input } from '../../components/input'
-import { Form, FormErrorSummary, type FormProps } from '../../modules/form'
+import { Rating } from '../../components/rating'
+import {
+	Form,
+	FormErrorSummary,
+	FormFilters,
+	FormFiltersField,
+	type FormProps,
+	useFormValue,
+} from '../../modules/form'
 import { bySlot, fireEvent, getSlot, renderUI, within } from '../helpers'
 
 type Values = { name: string; email: string }
@@ -103,16 +112,122 @@ describe('FormErrorSummary', () => {
 		expect(container.querySelector('#name-control')).toHaveFocus()
 	})
 
-	it('shows the issue of a field with no bound Message as text', async () => {
+	it('links a field with no bound Message through its control', async () => {
 		const { container } = renderSignup()
 
 		await submit(container)
 
 		const summary = getSlot(container, 'form-error-summary')
 
-		expect(within(summary).queryByRole('link', { name: 'Enter an email address.' })).toBeNull()
+		const link = within(summary).getByRole('link', { name: 'Enter an email address.' })
 
-		expect(within(summary).getByText('Enter an email address.')).toBeInTheDocument()
+		const email = within(container).getByRole('textbox', { name: 'Email' })
+
+		expect(link).toHaveAttribute('href', `#${email.id}`)
+
+		fireEvent.click(link)
+
+		expect(email).toHaveFocus()
+	})
+
+	it('links a file upload with no bound Message to its hidden input', async () => {
+		const { container } = renderUI(
+			<Form defaultValues={{ files: [] }} validate={{ files: () => 'Attach a file.' }}>
+				<FormErrorSummary />
+				<Field htmlFor="files-control">
+					<Label>Files</Label>
+					<FileUploadButton name="files" />
+				</Field>
+			</Form>,
+		)
+
+		await submit(container)
+
+		const link = within(getSlot(container, 'form-error-summary')).getByRole('link', {
+			name: 'Attach a file.',
+		})
+
+		expect(link).toHaveAttribute('href', '#files-control')
+
+		fireEvent.click(link)
+
+		expect(container.querySelector('#files-control')).toHaveFocus()
+	})
+
+	it('shows the issue of a field with no registered control as text', async () => {
+		/** A field that binds through useFormValue, and renders no library control. */
+		function CustomField() {
+			const { value, setValue } = useFormValue<string>('name', {})
+
+			return (
+				<input
+					aria-label="Custom"
+					value={value ?? ''}
+					onChange={(event) => setValue(event.target.value)}
+				/>
+			)
+		}
+
+		const { container } = renderUI(
+			<Form defaultValues={{ name: '' }} validate={{ name: () => 'Enter a name.' }}>
+				<FormErrorSummary />
+				<CustomField />
+			</Form>,
+		)
+
+		await submit(container)
+
+		const summary = getSlot(container, 'form-error-summary')
+
+		expect(within(summary).queryByRole('link')).toBeNull()
+
+		expect(within(summary).getByText('Enter a name.')).toBeInTheDocument()
+	})
+
+	it('focuses the first focusable element of a control whose id is on a wrapper', async () => {
+		const { container } = renderUI(
+			<Form defaultValues={{ score: 0 }} validate={{ score: () => 'Rate the stay.' }}>
+				<FormErrorSummary />
+				<Field>
+					<Label>Score</Label>
+					<Rating name="score" />
+				</Field>
+			</Form>,
+		)
+
+		await submit(container)
+
+		fireEvent.click(
+			within(getSlot(container, 'form-error-summary')).getByRole('link', {
+				name: 'Rate the stay.',
+			}),
+		)
+
+		const focused = document.activeElement as HTMLElement
+
+		expect(getSlot(container, 'rating').contains(focused)).toBe(true)
+	})
+
+	it('keeps a field of a filter bar out of the targets of the form', async () => {
+		const { container } = renderUI(
+			<Form defaultValues={{ name: '' }} validate={{ name: () => 'Enter a name.' }}>
+				<FormErrorSummary />
+				<FormFilters aria-label="Filters" defaultValue={{ name: undefined }}>
+					<FormFiltersField name="name">
+						<Label>Search</Label>
+						<Input />
+					</FormFiltersField>
+				</FormFilters>
+			</Form>,
+		)
+
+		await submit(container)
+
+		expect(
+			within(getSlot(container, 'form-error-summary')).queryByRole('link', {
+				name: 'Enter a name.',
+			}),
+		).toBeNull()
 	})
 
 	it('drops a row when its field becomes valid, and goes with the last row', async () => {

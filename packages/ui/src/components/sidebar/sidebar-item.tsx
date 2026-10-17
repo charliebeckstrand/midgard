@@ -89,6 +89,9 @@ export function SidebarItem({
 
 	const inner = (
 		<Button
+			// Navigation writes no field, so a locked scope, such as a submitting
+			// form, leaves it live.
+			lockable={false}
 			data-current={dataAttr(isCurrent)}
 			className={cn(
 				k.item.base({ chrome: hasAffix ? 'row' : 'item' }),

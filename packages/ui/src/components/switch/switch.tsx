@@ -85,6 +85,7 @@ export function Switch({
 		validation,
 		'aria-describedby': describedBy,
 	} = useControlProps({
+		name,
 		id,
 		disabled,
 		required,

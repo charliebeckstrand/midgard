@@ -6,6 +6,7 @@ import type { scale as buttonScale } from '../../recipes/kata/button'
 import type { scale as controlScale } from '../../recipes/kata/control'
 import type { Button } from '../button'
 import { useControl } from '../control/context'
+import { useControlTarget } from '../control/use-control-target'
 import type { FileRejection } from './file-upload-utilities'
 import { useFileUploadHandlers } from './use-file-upload-handlers'
 
@@ -213,6 +214,10 @@ export function useFileUploadState(props: FileUploadSharedProps): FileUploadRend
 	// the hidden `<input type="file">`, the real control in each component. The
 	// visible `<Input>` of FileUploadInput opts out of this context.
 	const control = useControl()
+
+	// The hidden input takes the id of the Control, so a FormErrorSummary links
+	// the field to it.
+	useControlTarget(name, control?.id)
 
 	// The same cascade as `useControlProps`: an explicit prop wins over the Control.
 	const disabled = props.disabled ?? control?.disabled

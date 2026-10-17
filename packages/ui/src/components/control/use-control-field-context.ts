@@ -2,12 +2,12 @@
 
 import { useMemo } from 'react'
 import { useA11yControl } from '../../hooks'
-import { useFormLocked } from '../../primitives/form/context'
 import {
 	type ControlContextValue,
 	type ControlSeverity,
 	type ControlVariant,
 	useControl,
+	useControlLock,
 } from './context'
 
 /**
@@ -48,8 +48,9 @@ export function useControlFieldContext(
 ): ControlContextValue {
 	const parent = useControl()
 
-	// A form that submits locks each field in it, as a read-only ancestor does.
-	const locked = useFormLocked()
+	// A locked scope, such as a form that submits, makes each field read-only, as
+	// a read-only ancestor does.
+	const locked = useControlLock()
 
 	const a11y = useA11yControl(id)
 

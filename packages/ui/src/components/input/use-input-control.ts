@@ -71,6 +71,7 @@ export function useInputControl<E extends HTMLInputElement | HTMLTextAreaElement
 	const valueState = useInputValue<E>({ name, value, onChange, onBlur })
 
 	const shared = useControlProps({
+		name,
 		id,
 		autoComplete,
 		disabled,

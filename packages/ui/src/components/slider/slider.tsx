@@ -139,6 +139,7 @@ export function Slider({
 	// HTML constraint validation ignores the attribute; only invalid +
 	// describedby carry meaning here.
 	const controlProps = useControlProps({
+		name,
 		id,
 		disabled,
 		readOnly,

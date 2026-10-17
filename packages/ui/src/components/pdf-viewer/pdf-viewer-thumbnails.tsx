@@ -134,6 +134,9 @@ export function PdfViewerThumbnails() {
 					<Flex gap="sm" justify="between" align="center">
 						<SheetTitle>Pages</SheetTitle>
 						<Button
+							// A close writes no field, so a locked scope, such as a
+							// submitting form, leaves it live.
+							lockable={false}
 							type="button"
 							variant="plain"
 							aria-label="Close thumbnails"

@@ -39,7 +39,7 @@ export function useControlPickerField<T>({
 }: PickerFieldOptions<T>) {
 	const bound = useFormValue<T>(name, { value, defaultValue, onValueChange })
 
-	const controlProps = useControlProps({ disabled, readOnly, invalid: bound.invalid })
+	const controlProps = useControlProps({ name, disabled, readOnly, invalid: bound.invalid })
 
 	const scope = useIdScope({ id: controlProps.id })
 

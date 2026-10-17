@@ -527,7 +527,7 @@ export function Combobox<T>({
 		required: resolvedRequired,
 		invalid: resolvedInvalid,
 		autoComplete: resolvedAutoComplete,
-	} = useControlProps({ autoComplete, disabled, readOnly, required, invalid: boundInvalid })
+	} = useControlProps({ name, autoComplete, disabled, readOnly, required, invalid: boundInvalid })
 
 	const listboxId = useId()
 

@@ -31,16 +31,32 @@ export type FormErrorSummaryProps = Omit<ComponentProps<'div'>, 'title' | 'color
 
 const DEFAULT_TITLE = 'There is a problem'
 
+/** An element that takes the focus from a script or from the Tab key. */
+const FOCUSABLE = 'input, select, textarea, button, a[href], [tabindex]'
+
 /**
  * Moves the focus to a control by its id. The link keeps its `href`, so the
  * target stays readable, but the page does not jump or change its URL.
  *
+ * @remarks Some controls put the id of their field on a wrapper, such as the
+ * row of a `Rating`. When the element with the id does not take the focus, the
+ * first element in it that can take the focus does.
  * @internal
  */
 function focusControl(event: MouseEvent<HTMLAnchorElement>, id: string): void {
 	event.preventDefault()
 
-	event.currentTarget.ownerDocument.getElementById(id)?.focus()
+	const doc = event.currentTarget.ownerDocument
+
+	const target = doc.getElementById(id)
+
+	if (!target) return
+
+	target.focus()
+
+	if (doc.activeElement === target) return
+
+	target.querySelector<HTMLElement>(FOCUSABLE)?.focus()
 }
 
 /**
@@ -54,10 +70,11 @@ function focusControl(event: MouseEvent<HTMLAnchorElement>, id: string): void {
  * summary goes with the last row. A reset closes the summary until the next
  * failure.
  *
- * A row links to the control of its field when a form-bound `Message` of the
- * field renders. A click moves the focus to that control. A row with no such
- * `Message` shows the issue as text. Write each issue so that it is clear
- * without its field, such as "Enter an email address".
+ * A row links to the control of its field. A control that binds the field
+ * registers its id, and so does a form-bound `Message`. A click moves the focus
+ * to that control. A row whose field has no registered control shows the issue
+ * as text. Write each issue so that it is clear without its field, such as
+ * "Enter an email address".
  *
  * The summary is an error `Alert`, so it announces itself. It also takes the
  * focus after each failure, so the reader starts from it. An `onInvalidSubmit`

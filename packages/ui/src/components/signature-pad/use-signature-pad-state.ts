@@ -94,7 +94,7 @@ export function useSignaturePadState({
 
 	// The Control cascade: an explicit prop wins over the enclosing Control, and
 	// the field error merges with an ambient error severity.
-	const control = useControlProps({ disabled, readOnly, invalid })
+	const control = useControlProps({ name, disabled, readOnly, invalid })
 
 	const current = currentValue ?? null
 

@@ -3,9 +3,11 @@ import { type ReactNode, type SyntheticEvent, useLayoutEffect, useState } from '
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Checkbox, CheckboxField } from '../../components/checkbox'
+import { CopyButton } from '../../components/copy-button'
 import { Field, Label } from '../../components/fieldset'
 import { Input } from '../../components/input'
 import { useInputValue } from '../../components/input/use-input-value'
+import { Tab, TabList, Tabs } from '../../components/tabs'
 import {
 	Form,
 	FormFilters,
@@ -24,6 +26,7 @@ import { useFormState } from '../../primitives/form/context'
 import {
 	bySlot,
 	deferred,
+	expectAnnouncement,
 	fireEvent,
 	getSlot,
 	makeChangeEvent,
@@ -353,7 +356,12 @@ describe('Form', () => {
 
 		expect(getFieldProbe('terms').textContent).toBe('false')
 
-		expect(screen.getByRole('button', { name: 'Preview' })).toBeEnabled()
+		// The Control scope is locked, so a Button is inert, and stays enabled.
+		const preview = screen.getByRole('button', { name: 'Preview' })
+
+		expect(preview).toBeEnabled()
+
+		expect(preview).toHaveAttribute('aria-disabled', 'true')
 
 		expect(screen.getByRole('button', { name: 'Submit' })).toBeEnabled()
 
@@ -362,6 +370,8 @@ describe('Form', () => {
 		})
 
 		expect(name).not.toHaveAttribute('readonly')
+
+		expect(preview).not.toHaveAttribute('aria-disabled')
 
 		// The control: the same writes land once the submit ends.
 		fireEvent.change(name, { target: { value: 'Grace' } })
@@ -415,6 +425,24 @@ describe('Form', () => {
 		expect(onValueChange).toHaveBeenCalledWith('Grace')
 	})
 
+	it('announces a running submit politely', async () => {
+		const pending = deferred()
+
+		const { container } = renderUI(
+			<Form defaultValues={{ name: 'Ada' }} onSubmit={() => pending.promise}>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		await submit(container)
+
+		await expectAnnouncement('Submitting')
+
+		await act(async () => {
+			pending.resolve()
+		})
+	})
+
 	it('ignores a submit while one is in flight', async () => {
 		const pending = deferred()
 
@@ -451,6 +479,7 @@ describe('Form', () => {
 						<Label>Search</Label>
 						<Input />
 					</FormFiltersField>
+					<Button type="button">Clear</Button>
 				</FormFilters>
 				<SubmittingProbe />
 			</Form>,
@@ -461,7 +490,54 @@ describe('Form', () => {
 		// The control: the submit is in flight.
 		expect(submittingFlag()).toBe('true')
 
-		expect(screen.getByRole('textbox', { name: 'Search' })).toBeEnabled()
+		const search = screen.getByRole('textbox', { name: 'Search' })
+
+		expect(search).toBeEnabled()
+
+		expect(search).not.toHaveAttribute('readonly')
+
+		expect(screen.getByRole('button', { name: 'Clear' })).not.toHaveAttribute('aria-disabled')
+
+		await act(async () => {
+			pending.resolve()
+		})
+	})
+
+	it('leaves a library button that writes no field live while a submit runs', async () => {
+		const pending = deferred()
+
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(
+			<Form defaultValues={{ name: '' }} onSubmit={() => pending.promise}>
+				<Tabs value="a" onValueChange={onValueChange}>
+					<TabList aria-label="Sections">
+						<Tab value="a">Profile</Tab>
+						<Tab value="b">Billing</Tab>
+					</TabList>
+				</Tabs>
+				<CopyButton text="token" aria-label="Copy token" />
+				<Button type="button">Preview</Button>
+				<SubmittingProbe />
+			</Form>,
+		)
+
+		await submit(container)
+
+		// The control: the submit is in flight, and a plain Button is inert.
+		expect(submittingFlag()).toBe('true')
+
+		expect(screen.getByRole('button', { name: 'Preview' })).toHaveAttribute('aria-disabled', 'true')
+
+		const billing = screen.getByRole('tab', { name: 'Billing' })
+
+		expect(billing).not.toHaveAttribute('aria-disabled')
+
+		expect(screen.getByRole('button', { name: 'Copy token' })).not.toHaveAttribute('aria-disabled')
+
+		fireEvent.click(billing)
+
+		expect(onValueChange).toHaveBeenCalledWith('b')
 
 		await act(async () => {
 			pending.resolve()

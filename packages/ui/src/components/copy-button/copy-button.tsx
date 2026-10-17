@@ -102,6 +102,9 @@ export function CopyButton({
 
 	return (
 		<Button
+			// A copy changes no value, so a locked scope, such as a submitting form,
+			// leaves it live.
+			lockable={false}
 			data-slot="copy-button"
 			{...props}
 			type="button"

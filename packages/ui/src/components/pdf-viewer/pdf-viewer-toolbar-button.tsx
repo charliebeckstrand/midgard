@@ -85,6 +85,9 @@ export function PdfViewerToolbarButton({
 		<Tooltip>
 			<TooltipTrigger>
 				<Button
+					// A view control writes no field, so a locked scope, such as a
+					// submitting form, leaves it live.
+					lockable={false}
 					{...props}
 					type="button"
 					variant={active ? 'soft' : 'plain'}
