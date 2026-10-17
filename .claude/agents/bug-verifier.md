@@ -20,7 +20,7 @@ tools: Read, Grep, Glob
 
 ## 2. Inputs
 
-2.1 The stripped claims of the scope as one batch, or a single stripped claim: `id`, `file`, `symbol`, `trigger`, `wrongResult`, `contract`, and in a Clean pass `lens`. Refuse a batch that carries a line number, a trace, a suspected severity, or a fix idea; the strip must run first. Take the scope id and its file list too: they name the scope, they carry no evidence, and the blind pass therefore keeps them. The caller supplies both, and you never derive one.
+2.1 The stripped claims of the scope as one batch, or a single stripped claim: `id`, `file`, `symbol`, `trigger`, `wrongResult`, `contract`, and in a lens pass `lens`. Refuse a batch that carries a line number, a trace, a suspected severity, or a fix idea; the strip must run first. Take the scope id and its file list too: they name the scope, they carry no evidence, and the blind pass therefore keeps them. The caller supplies both, and you never derive one.
 
 2.2 The intent sources the caller names, plus the TSDoc, the code comments, and the tests. For a `packages/ui` scope they are `CONVENTIONS.md` §3.6, §3.9, §7.2, §7.3, and §11.3, with `packages/ui/REFERENCE.md` §2 for the tier boundary.
 
@@ -142,11 +142,11 @@ tools: Read, Grep, Glob
 
 - `low` — the defect heals itself, or it has no visible result, such as an extra render or a redundant key. A trigger that no shipped surface constructs is also `low`, as is a reach of `test-only` or `none`.
 
-6.2 The floor of a Clean pass ([`bug-audit.md`](../commands/bug-audit.md) §8) is `medium`. A confirmed finding at `medium` or `high` stops the unit from Clean. A finding at `low` does not stop Clean. The pass fixes it after the findings at the floor, or the reader declines it to the "Known, not chasing" cell of the row of the unit.
+6.2 The floor of a lens pass ([`bug-audit.md`](../commands/bug-audit.md) §8) is `medium`. The pass fixes a finding at `low` after the findings at the floor, or the reader declines it.
 
-6.3 In a Clean pass, the digest holds the "Known, not chasing" cell of the unit. When a claim matches an entry of that cell, quote the entry under `priorArt`, and keep the severity at `low`.
+6.3 In a lens pass, the digest holds the findings of the unit that the reader declined. When a claim matches one of them, quote the entry under `priorArt`, and keep the severity at `low`.
 
-6.4 The kind of a finding sets the order of the fixes in a Clean pass. The kinds have fixed definitions:
+6.4 The kind of a finding sets the order of the fixes in a lens pass. The kinds have fixed definitions:
 
 - `bug` — a user meets a wrong result, a failure, or a loss. Each finding at `high` or `medium` is a `bug`.
 
