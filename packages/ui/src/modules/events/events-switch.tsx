@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Description, Label } from '../../components/fieldset'
+import { Label } from '../../components/fieldset'
 import { Switch, SwitchField } from '../../components/switch'
 import { isEventsOn, setEventsOn } from './engine/events-setting'
 
@@ -20,9 +20,6 @@ export function EventsSwitch() {
 	return (
 		<SwitchField>
 			<Label>Debug</Label>
-			<Description>
-				Shows the Events button in the header, with the events and the bugs of the page.
-			</Description>
 			<Switch
 				checked={on}
 				onChange={(event) => {
