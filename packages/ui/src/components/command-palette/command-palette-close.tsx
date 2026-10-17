@@ -2,6 +2,8 @@
 
 import type { ReactNode } from 'react'
 import { composeEventHandlers } from '../../core'
+import { intlMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { usePanelCloseContext } from '../../primitives/panel'
 import { Button, type ButtonProps } from '../button'
 
@@ -15,7 +17,7 @@ const alwaysClose = { checkForDefaultPrevented: false }
 export type CommandPaletteCloseProps = {
 	/** The fill style of the button. @defaultValue 'soft' */
 	variant?: ButtonProps['variant']
-	/** The label of the button. @defaultValue 'Close' */
+	/** The label of the button. @defaultValue `'Close'`, in the language of the reader. */
 	children?: ReactNode
 } & Omit<ButtonProps & { href?: never }, 'href' | 'variant' | 'children'>
 
@@ -29,11 +31,13 @@ export type CommandPaletteCloseProps = {
  */
 export function CommandPaletteClose({
 	variant = 'soft',
-	children = 'Close',
+	children,
 	onClick,
 	...props
 }: CommandPaletteCloseProps) {
 	const { close } = usePanelCloseContext()
+
+	const intl = useIntl()
 
 	return (
 		<Button
@@ -43,7 +47,7 @@ export function CommandPaletteClose({
 			type="button"
 			onClick={composeEventHandlers(onClick, close, alwaysClose)}
 		>
-			{children}
+			{children ?? intl.formatMessage(intlMessages.close)}
 		</Button>
 	)
 }

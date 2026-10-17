@@ -51,6 +51,18 @@ import { OPTION_SELECTOR } from './combobox-constants'
 import { ComboboxInput } from './combobox-input'
 import { ComboboxPanel } from './combobox-panel'
 import { resolveInputDisplay, resolveInputTitle } from './combobox-utilities'
+
+const messages = defineMessages({
+	placeholder: {
+		id: 'ui.combobox.placeholder',
+		defaultMessage: 'Search',
+		description: 'The placeholder of a field that filters a list of options as the reader types.',
+	},
+})
+
+import { defineMessages } from 'react-intl'
+import { intlMessages, selectedMessage } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { ComboboxContext } from './context'
 import { useComboboxInput } from './use-combobox-input'
 import { routeFloatingOpenChange, useComboboxState } from './use-combobox-state'
@@ -59,7 +71,7 @@ import { useComboboxTrigger } from './use-combobox-trigger'
 type ComboboxBaseProps<T> = {
 	id?: string
 	name?: string
-	/** @defaultValue 'Search' */
+	/** @defaultValue `'Search'`, in the language of the reader. */
 	placeholder?: string
 	/**
 	 * Formats a stored value for the input's resting display — what shows when the
@@ -96,7 +108,7 @@ type ComboboxBaseProps<T> = {
 	 *
 	 * The full list is still the input's `title` on hover, unsummarized.
 	 *
-	 * @defaultValue `` `${selected.length} selected` ``
+	 * @defaultValue `` `${selected.length} selected` ``, in the language of the reader.
 	 */
 	summarize?: (selected: T[]) => string
 	/**
@@ -457,7 +469,7 @@ export function Combobox<T>({
 	summarize,
 	onValueChange,
 	multiple = false,
-	placeholder = 'Search',
+	placeholder: placeholderProp,
 	placement = 'bottom-start',
 	prefix,
 	suffix,
@@ -484,6 +496,10 @@ export function Combobox<T>({
 	'data-slot': slot = 'combobox',
 	children,
 }: ComboboxProps<T>) {
+	const intl = useIntl()
+
+	const placeholder = placeholderProp ?? intl.formatMessage(messages.placeholder)
+
 	const glass = useGlass()
 
 	const control = useControl()
@@ -776,6 +792,7 @@ export function Combobox<T>({
 		displayValue,
 		summarize,
 		multiple,
+		formatCount: (count) => intl.formatMessage(selectedMessage, { count }),
 	})
 
 	// The field shows how many are picked; this says which, on hover.
@@ -834,7 +851,7 @@ export function Combobox<T>({
 
 	const clearSuffix = showClear ? (
 		<InputClearButton
-			label="Clear selection"
+			label={intl.formatMessage(intlMessages.clearSelection)}
 			onMouseDown={(event) => event.stopPropagation()}
 			onClick={(event) => {
 				event.stopPropagation()

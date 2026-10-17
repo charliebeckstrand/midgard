@@ -12,7 +12,9 @@ import {
 	useRef,
 	useState,
 } from 'react'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { resolveFormat } from '../../utilities'
+import { calendarMessages } from './calendar-messages'
 import type { CalendarPickerGridCell } from './calendar-picker-grid'
 import { calendarPickerReducer, initialCalendarPickerState } from './calendar-picker-reducer'
 import { isYearInRange, MAX_YEAR, MIN_YEAR } from './calendar-utilities'
@@ -81,6 +83,8 @@ export function useCalendarPicker({
 	open,
 	onOpenChange,
 }: CalendarPickerOptions): CalendarPickerResult {
+	const intl = useIntl()
+
 	const [state, dispatch] = useReducer(calendarPickerReducer, year, initialCalendarPickerState)
 
 	// Each open transition reseeds the view on the calendar's year, during render.
@@ -159,9 +163,9 @@ export function useCalendarPicker({
 
 	if (view === 'months') {
 		viewConfig = {
-			gridLabel: 'Select month',
-			prevLabel: 'Previous year',
-			nextLabel: 'Next year',
+			gridLabel: intl.formatMessage(calendarMessages.selectMonth),
+			prevLabel: intl.formatMessage(calendarMessages.previousYear),
+			nextLabel: intl.formatMessage(calendarMessages.nextYear),
 			centerLabel: formatYear(pickerYear),
 			onPrev: () => dispatch({ type: 'stepYear', delta: -1 }),
 			onNext: () => dispatch({ type: 'stepYear', delta: 1 }),
@@ -187,9 +191,9 @@ export function useCalendarPicker({
 		const decadeStart = Math.floor(decadeYear / 10) * 10
 
 		viewConfig = {
-			gridLabel: 'Select year',
-			prevLabel: 'Previous decade',
-			nextLabel: 'Next decade',
+			gridLabel: intl.formatMessage(calendarMessages.selectYear),
+			prevLabel: intl.formatMessage(calendarMessages.previousDecade),
+			nextLabel: intl.formatMessage(calendarMessages.nextDecade),
 			// The label names only the years that the calendar can show.
 			centerLabel: [Math.max(decadeStart, MIN_YEAR), Math.min(decadeStart + 9, MAX_YEAR)]
 				.map(formatYear)

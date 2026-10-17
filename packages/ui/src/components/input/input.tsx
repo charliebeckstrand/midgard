@@ -12,6 +12,8 @@ import {
 import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { useFormResetSync } from '../../hooks/use-form-reset-sync'
+import { intlMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import type { scale } from '../../recipes/kata/input'
 import { type InputVariants, k } from '../../recipes/kata/input'
 import { clearNativeInput } from '../../utilities'
@@ -42,7 +44,7 @@ export type InputProps = Omit<InputVariants, 'size' | 'variant'> & {
 	clearable?: boolean
 	/**
 	 * The accessible name of the clear button of `clearable`.
-	 * @defaultValue 'Clear'
+	 * @defaultValue `'Clear'`, in the language of the reader.
 	 */
 	clearLabel?: string
 	/**
@@ -83,7 +85,7 @@ export function Input({
 	prefix,
 	suffix,
 	clearable = false,
-	clearLabel = 'Clear',
+	clearLabel: clearLabelProp,
 	id,
 	disabled,
 	required,
@@ -99,6 +101,10 @@ export function Input({
 	'aria-describedby': ariaDescribedBy,
 	...rest
 }: InputProps) {
+	const intl = useIntl()
+
+	const clearLabel = clearLabelProp ?? intl.formatMessage(intlMessages.clear)
+
 	const field = useInputControl({
 		id,
 		name,

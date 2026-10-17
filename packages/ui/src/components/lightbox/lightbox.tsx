@@ -1,12 +1,33 @@
 'use client'
 
 import { type ReactNode, useEffect, useRef, useState } from 'react'
+import { defineMessages } from 'react-intl'
 import { useControllable } from '../../hooks/use-controllable'
+import { intlMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { Overlay } from '../../primitives/overlay'
 import { LightboxContext, type LightboxContextValue } from './context'
 import { LightboxStage } from './lightbox-stage'
 import { thumbnailOf, viewablePhotos } from './lightbox-utilities'
 import type { LightboxLoad, LightboxPhoto } from './types'
+
+const messages = defineMessages({
+	photos: {
+		id: 'ui.lightbox.photos',
+		defaultMessage: 'Photos',
+		description: 'The name of the photo viewer.',
+	},
+	previous: {
+		id: 'ui.lightbox.previous',
+		defaultMessage: 'Previous photo',
+		description: 'The name of the button that shows the photo before.',
+	},
+	next: {
+		id: 'ui.lightbox.next',
+		defaultMessage: 'Next photo',
+		description: 'The name of the button that shows the photo after.',
+	},
+})
 
 /** Props for {@link Lightbox}: the photos, the open photo, and the names of the viewer and its controls. */
 export type LightboxProps = {
@@ -54,13 +75,13 @@ export type LightboxProps = {
 	 * @defaultValue true
 	 */
 	blur?: boolean
-	/** The accessible name of the viewer. @defaultValue 'Photos' */
+	/** The accessible name of the viewer. @defaultValue `'Photos'`, in the language of the reader. */
 	'aria-label'?: string
-	/** The accessible name of the close button. @defaultValue 'Close' */
+	/** The accessible name of the close button. @defaultValue `'Close'`, in the language of the reader. */
 	closeLabel?: string
-	/** The accessible name of the button that shows the photo before. @defaultValue 'Previous photo' */
+	/** The accessible name of the button that shows the photo before. @defaultValue `'Previous photo'`, in the language of the reader. */
 	previousLabel?: string
-	/** The accessible name of the button that shows the photo after. @defaultValue 'Next photo' */
+	/** The accessible name of the button that shows the photo after. @defaultValue `'Next photo'`, in the language of the reader. */
 	nextLabel?: string
 	/** The thumbnails (`LightboxTrigger`), in any layout. */
 	children: ReactNode
@@ -119,12 +140,22 @@ export function Lightbox({
 	controls = true,
 	thumbnails = false,
 	blur = true,
-	'aria-label': ariaLabel = 'Photos',
-	closeLabel = 'Close',
-	previousLabel = 'Previous photo',
-	nextLabel = 'Next photo',
+	'aria-label': ariaLabelProp,
+	closeLabel: closeLabelProp,
+	previousLabel: previousLabelProp,
+	nextLabel: nextLabelProp,
 	children,
 }: LightboxProps) {
+	const intl = useIntl()
+
+	const ariaLabel = ariaLabelProp ?? intl.formatMessage(messages.photos)
+
+	const closeLabel = closeLabelProp ?? intl.formatMessage(intlMessages.close)
+
+	const previousLabel = previousLabelProp ?? intl.formatMessage(messages.previous)
+
+	const nextLabel = nextLabelProp ?? intl.formatMessage(messages.next)
+
 	const [index, setIndex] = useControllable<number>({
 		value: indexProp,
 		defaultValue: defaultIndex,

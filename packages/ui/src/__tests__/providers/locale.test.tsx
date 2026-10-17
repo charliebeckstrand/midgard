@@ -1,7 +1,8 @@
 import { renderToString } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { LocaleProvider, useLocale } from '../../providers/locale'
-import { matchLocale } from '../../providers/locale/locale-choice'
+import { Listbox, ListboxOption } from '../../components/listbox'
+import { LocaleProvider, resolveRequestLocale, useLocale } from '../../providers/locale'
+import { matchLocale, writeLocaleChoice } from '../../providers/locale/locale-choice'
 import { act, renderUI, screen } from '../helpers'
 
 // The English locales of the apps, with the default first.
@@ -14,6 +15,9 @@ function stubLanguages(languages: string[]) {
 
 afterEach(() => {
 	localStorage.clear()
+
+	// biome-ignore lint/suspicious/noDocumentCookie: the test removes the cookie that the provider writes.
+	document.cookie = 'locale=; max-age=0; path=/'
 })
 
 function LocaleProbe() {
@@ -118,6 +122,11 @@ describe('LocaleProvider with locales', () => {
 		expect(screen.getByTestId('locale')).toHaveTextContent('en-GB')
 
 		unmount()
+
+		// The first render wrote the stored choice to the cookie. Remove it, so the
+		// second render reads the storage alone.
+		// biome-ignore lint/suspicious/noDocumentCookie: the test removes the cookie that the provider writes.
+		document.cookie = 'locale=; max-age=0; path=/'
 
 		localStorage.setItem('locale', 'fr-FR')
 
@@ -234,5 +243,161 @@ describe('matchLocale', () => {
 		expect(matchLocale(['fr-FR', 'de'], LOCALES)).toBeUndefined()
 
 		expect(matchLocale([], LOCALES)).toBeUndefined()
+	})
+})
+
+/** A listbox with no value, which shows its placeholder. */
+function EmptyListbox() {
+	return (
+		<Listbox aria-label="Fruit">
+			<ListboxOption value="apple">Apple</ListboxOption>
+		</Listbox>
+	)
+}
+
+describe('LocaleProvider messages', () => {
+	it('shows the messages of ui in the language of the locale', () => {
+		renderUI(
+			<LocaleProvider locale="es-MX">
+				<EmptyListbox />
+			</LocaleProvider>,
+		)
+
+		expect(screen.getByRole('combobox', { name: 'Fruit' })).toHaveTextContent('Seleccionar')
+	})
+
+	it('shows the English defaults for a language with no translation', () => {
+		renderUI(
+			<LocaleProvider locale="fr-FR">
+				<EmptyListbox />
+			</LocaleProvider>,
+		)
+
+		expect(screen.getByRole('combobox', { name: 'Fruit' })).toHaveTextContent('Select')
+	})
+
+	it('shows the English defaults with no provider', () => {
+		renderUI(<EmptyListbox />)
+
+		expect(screen.getByRole('combobox', { name: 'Fruit' })).toHaveTextContent('Select')
+	})
+
+	it('lets a nested locale set the language of its region', () => {
+		renderUI(
+			<LocaleProvider locale="es-ES">
+				<LocaleProvider locale="en-US">
+					<EmptyListbox />
+				</LocaleProvider>
+			</LocaleProvider>,
+		)
+
+		expect(screen.getByRole('combobox', { name: 'Fruit' })).toHaveTextContent('Select')
+	})
+
+	it('words a count with the plural rules of the language', () => {
+		renderUI(
+			<LocaleProvider locale="es-ES">
+				<Listbox aria-label="Fruit" multiple value={['a', 'b', 'c', 'd']}>
+					{['a', 'b', 'c', 'd'].map((value) => (
+						<ListboxOption key={value} value={value}>
+							{value}
+						</ListboxOption>
+					))}
+				</Listbox>
+			</LocaleProvider>,
+		)
+
+		expect(screen.getByRole('combobox', { name: 'Fruit' })).toHaveTextContent('4 seleccionados')
+	})
+
+	it('follows the stored locale to its language', () => {
+		localStorage.setItem('locale', 'es-ES')
+
+		renderUI(
+			<LocaleProvider locale="en-US" locales={['en-US', 'es-ES']}>
+				<EmptyListbox />
+			</LocaleProvider>,
+		)
+
+		expect(screen.getByRole('combobox', { name: 'Fruit' })).toHaveTextContent('Seleccionar')
+	})
+})
+
+describe('locale cookie', () => {
+	it('writes the choice to the cookie with the stored choice', () => {
+		writeLocaleChoice('es-MX')
+
+		expect(document.cookie).toContain('locale=es-MX')
+
+		writeLocaleChoice('system')
+
+		expect(document.cookie).toContain('locale=system')
+	})
+
+	it('writes a choice stored before the cookie existed', () => {
+		localStorage.setItem('locale', 'en-GB')
+
+		renderUI(
+			<LocaleProvider locale="en-US" locales={LOCALES}>
+				<LocaleProbe />
+			</LocaleProvider>,
+		)
+
+		expect(document.cookie).toContain('locale=en-GB')
+	})
+
+	it('takes the cookie when the storage holds no choice', () => {
+		// biome-ignore lint/suspicious/noDocumentCookie: the test sets the cookie that a server reads.
+		document.cookie = 'locale=en-AU; path=/'
+
+		renderUI(
+			<LocaleProvider locale="en-US" locales={LOCALES}>
+				<LocaleProbe />
+			</LocaleProvider>,
+		)
+
+		expect(screen.getByTestId('locale')).toHaveTextContent('en-AU')
+	})
+
+	it('writes no cookie for the System choice that the reader has not changed', () => {
+		renderUI(
+			<LocaleProvider locale="en-US" locales={LOCALES}>
+				<LocaleProbe />
+			</LocaleProvider>,
+		)
+
+		expect(document.cookie).not.toContain('locale=')
+	})
+})
+
+describe('resolveRequestLocale', () => {
+	const locales = ['en-US', 'en-GB', 'es-ES', 'es-MX'] as const
+
+	it('takes a cookie that holds one of the locales', () => {
+		expect(resolveRequestLocale({ cookie: 'es-MX', acceptLanguage: 'en-GB', locales })).toBe(
+			'es-MX',
+		)
+	})
+
+	it('matches the accepted languages for the System choice, in the order of their weight', () => {
+		expect(
+			resolveRequestLocale({
+				cookie: 'system',
+				acceptLanguage: 'fr-FR;q=0.9, es-ES;q=0.8, en-GB;q=0.95',
+				locales,
+			}),
+		).toBe('en-GB')
+	})
+
+	it('reads an unknown cookie as the System choice', () => {
+		expect(resolveRequestLocale({ cookie: 'de-DE', acceptLanguage: 'es', locales })).toBe('es-ES')
+	})
+
+	it('falls back when no accepted language matches', () => {
+		expect(
+			resolveRequestLocale({ acceptLanguage: 'fr, *;q=0.1', locales, fallback: 'en-GB' }),
+		).toBe('en-GB')
+
+		expect(resolveRequestLocale({ acceptLanguage: null, locales })).toBe('en-US')
 	})
 })

@@ -3,11 +3,13 @@
 import { AnimatePresence } from 'motion/react'
 import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
+import { defineMessages } from 'react-intl'
 import { cn } from '../../core'
 import { useHydrated } from '../../hooks/use-hydrated'
 import { useIsRtl } from '../../hooks/use-is-rtl'
 import { useResponsiveValue } from '../../hooks/use-responsive-value'
 import { useDirectionScope } from '../../primitives/direction'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { usePortalContainer } from '../../primitives/portal'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k } from '../../recipes/kata/toast'
@@ -17,6 +19,14 @@ import { getTabbableElements } from '../../utilities/focusable-selector'
 import { useToastViewport } from './context'
 import { ToastAlert } from './toast-alert'
 import { TOAST_POSITION, type ToastPosition } from './types'
+
+const messages = defineMessages({
+	notifications: {
+		id: 'ui.toast.notifications',
+		defaultMessage: 'Notifications',
+		description: 'The name of the region that holds the toasts.',
+	},
+})
 
 /** True for an F8 with no modifier key that no handler canceled first. @internal */
 function isPlainF8(event: KeyboardEvent) {
@@ -140,6 +150,8 @@ export function Toast({ position = TOAST_POSITION }: ToastProps) {
 
 	const hasToasts = toasts.length > 0
 
+	const intl = useIntl()
+
 	// F8 moves focus into the stack, as in Radix. The stack is at the end of the
 	// body, so Tab gets to it only after the full page.
 	useEffect(() => {
@@ -171,7 +183,7 @@ export function Toast({ position = TOAST_POSITION }: ToastProps) {
 				data-slot="toast-viewport"
 				// Named only while it holds a toast: an empty stack is no landmark, and
 				// two empty stacks on one page do not give two of the same name.
-				aria-label={hasToasts ? 'Notifications' : undefined}
+				aria-label={hasToasts ? intl.formatMessage(messages.notifications) : undefined}
 				dir={dir ?? undefined}
 				className={cn(k.viewport, resolveVariant(physical, k.position.viewport))}
 			>
@@ -233,7 +245,7 @@ function moveFocusFromClosingToast(returnTo: HTMLElement | null) {
 	const neighbor = items[index + 1] ?? items[index - 1]
 
 	const target = neighbor
-		? (neighbor.querySelector<HTMLElement>('button[aria-label="Dismiss"]') ??
+		? (neighbor.querySelector<HTMLElement>('[data-slot="alert-close"]') ??
 			getTabbableElements(neighbor)[0])
 		: returnTo?.isConnected
 			? returnTo

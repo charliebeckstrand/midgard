@@ -5,6 +5,8 @@ import { type KeyboardEvent, type ReactNode, useRef } from 'react'
 import { ariaAttr, cn, dataAttr, type ValidationAttrs } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { useIsTruncated } from '../../hooks'
+import { intlMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { useGlass } from '../../providers/glass/context'
 import { HeadlessProvider } from '../../providers/headless'
@@ -100,6 +102,8 @@ export function DatePickerTrigger({
 	className,
 	children,
 }: DatePickerTriggerProps) {
+	const intl = useIntl()
+
 	const glass = useGlass()
 
 	const valueRef = useRef<HTMLSpanElement>(null)
@@ -136,7 +140,7 @@ export function DatePickerTrigger({
 			suffix={
 				showClear ? (
 					<InputClearButton
-						label="Clear selection"
+						label={intl.formatMessage(intlMessages.clearSelection)}
 						onMouseDown={(event) => event.stopPropagation()}
 						onClick={(event) => {
 							event.stopPropagation()

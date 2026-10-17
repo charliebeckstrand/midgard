@@ -27,11 +27,23 @@ import { ListboxContext } from './context'
 import { ListboxButton } from './listbox-button'
 import { ListboxPanel } from './listbox-panel'
 import { resolveLabel } from './listbox-utilities'
+
+const messages = defineMessages({
+	placeholder: {
+		id: 'ui.listbox.placeholder',
+		defaultMessage: 'Select',
+		description: 'The placeholder of a picker with no selected value.',
+	},
+})
+
+import { defineMessages } from 'react-intl'
+import { intlMessages, selectedMessage } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { useListboxState } from './use-listbox-state'
 
 type ListboxBaseProps = {
 	name?: string
-	/** @defaultValue 'Select' */
+	/** @defaultValue `'Select'`, in the language of the reader. */
 	placeholder?: string
 	/**
 	 * Side and alignment of the panel. A `<side>-auto` value, such as
@@ -192,7 +204,7 @@ export function Listbox<T>({
 	onValueChange,
 	multiple = false,
 	nullable: nullableProp,
-	placeholder = 'Select',
+	placeholder: placeholderProp,
 	placement = 'bottom-start',
 	prefix,
 	suffix,
@@ -215,6 +227,10 @@ export function Listbox<T>({
 	'data-slot': slot = 'listbox',
 	children,
 }: ListboxProps<T>) {
+	const intl = useIntl()
+
+	const placeholder = placeholderProp ?? intl.formatMessage(messages.placeholder)
+
 	const glass = useGlass()
 	const control = useControl()
 
@@ -422,7 +438,13 @@ export function Listbox<T>({
 	}, [open, floatingElement])
 
 	// The trigger button renders the label verbatim (`undefined` skips the placeholder).
-	const label = resolveLabel({ value, displayValue, multiple, capitalize })
+	const label = resolveLabel({
+		value,
+		displayValue,
+		multiple,
+		capitalize,
+		formatCount: (count) => intl.formatMessage(selectedMessage, { count }),
+	})
 
 	const hasValue = hasListboxValue(value, multiple)
 
@@ -430,7 +452,7 @@ export function Listbox<T>({
 
 	const clearSuffix = showClear ? (
 		<InputClearButton
-			label="Clear selection"
+			label={intl.formatMessage(intlMessages.clearSelection)}
 			onMouseDown={(event) => event.stopPropagation()}
 			onClick={(event) => {
 				event.stopPropagation()

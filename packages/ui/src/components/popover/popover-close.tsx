@@ -1,6 +1,8 @@
 'use client'
 
 import type { MouseEventHandler, ReactElement } from 'react'
+import { intlMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { cloneWithAction } from '../../primitives/trigger-child/trigger-child'
 import { Button } from '../button'
 import { usePopoverContext } from './context'
@@ -19,9 +21,11 @@ export type PopoverCloseProps = {
 export function PopoverClose({ children }: PopoverCloseProps) {
 	const { close } = usePopoverContext()
 
+	const intl = useIntl()
+
 	const child = children ?? (
 		<Button type="button" variant="soft" data-slot="popover-close">
-			Close
+			{intl.formatMessage(intlMessages.close)}
 		</Button>
 	)
 

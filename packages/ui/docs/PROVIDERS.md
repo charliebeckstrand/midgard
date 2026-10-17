@@ -78,14 +78,17 @@ Escape hatch that strips chrome from headless-aware descendants so they render t
 
 ## `ui/providers/locale`
 
-A formatting provider, not a translation layer: it holds no string catalog.
+The locale of the app sets the `Intl` formats and the language of the messages of ui. The catalogs of ui are in `src/primitives/intl/lang`, in English and in Spanish. Run `pnpm intl` to write the English catalog from the message descriptors in the source.
 
 | Export | Summary |
 |---|---|
-| `LocaleProvider` | Broadcasts `Intl` formatting defaults; explicit component props still win. Its `dir` opens a direction scope that crosses portals. Its `locales` lets the reader choose the locale, and stores the choice. On a page that renders on a server, set its `locale`. |
+| `LocaleProvider` | Broadcasts `Intl` formatting defaults, and gives the controls of ui their messages in the language of the locale; explicit component props still win. Its `dir` opens a direction scope that crosses portals. Its `locales` lets the reader choose the locale, and stores the choice in `localStorage` and a cookie. On a page that renders on a server, set its `locale`. |
 | `LocaleProviderProps` *(type)* | Props for `LocaleProvider`: the `LocaleConfig` fields, the optional `locales` that the reader can choose from, and an optional `dir`. |
 | `LocaleConfig` *(type)* | Ambient `Intl` defaults: `locale`, `currency`, `numberFormat`, `dateFormat`, and `timeZone`. |
 | `useLocale` | Reads the ambient `LocaleConfig` from the nearest `<LocaleProvider>`; returns `{}` outside one. |
+| `LOCALE_COOKIE` | The name of the cookie that holds the locale choice of the reader. |
+| `resolveRequestLocale` | Resolves the locale of a request on the server from the locale cookie and the `Accept-Language` header, as the provider resolves it in the browser. |
+| `RequestLocaleInput` *(type)* | The request values that `resolveRequestLocale` reads: the cookie, the header, the `locales`, and a `fallback`. |
 | `useFormat` | Resolves a `FormatSpec` to a memoized `(value) => string` formatter, folding in the ambient locale / currency / number-format defaults. |
 | `useDateFormat` | Resolves `Intl.DateTimeFormat` options to a memoized formatter in the locale of the provider. To render a date, use `DateTime` from `ui/date-time`. |
 | `FormatSpec` *(type)* | What `useFormat` formats a value as: a numeric `Intl` format (`number`/`integer`/`currency`/`percent`/`compact`) or a prefixed `id` (`INV-42`). |

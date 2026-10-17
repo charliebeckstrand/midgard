@@ -1,5 +1,6 @@
 import { requireSession } from 'auth'
 import { Suspense } from 'react'
+import { RequestLocale } from 'shared/locale'
 import { seed } from 'shared/queries'
 import { Container } from 'ui/structure/container'
 import { PicksHeader } from '@/components/picks-header'
@@ -117,7 +118,7 @@ export default async function Page() {
 	const seasonTally = Object.values(tallies).reduce(addTally, EMPTY_TALLY)
 
 	return (
-		<>
+		<RequestLocale>
 			<PicksHeader user={user} />
 
 			<Container size="full" padding="lg" className="py-6">
@@ -135,6 +136,6 @@ export default async function Page() {
 					/>
 				</Suspense>
 			</Container>
-		</>
+		</RequestLocale>
 	)
 }

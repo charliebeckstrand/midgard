@@ -78,7 +78,7 @@ Static leaves that link route through `PolymorphicStatic`: `href` renders a plai
 
 `static-component-boundary.test.ts` pins the contract: it scans every listed source file (the list lives in that test) for directives, hook calls, and ambient imports. The scan is source-level only; a transitive client-only pull through a new dependency surfaces at the consuming app's `next build`, not here.
 
-Two cascades still cross the boundary through context, `locale` and `glass`. A format cannot move to CSS, so `locale` stays in context. Each reader of `glass` is a client component, so the static tier does not need it.
+Two cascades still cross the boundary through context, `locale` and `glass`. A format cannot move to CSS, so `locale` stays in context. The messages of ui ride the `locale` cascade: `LocaleProvider` gives the intl of its locale, and a client control reads it through `useIntl` in `primitives/intl`. A static leaf reads no context, so it takes its text as a prop, as `Breadcrumb` and `LoadingSpinner` do. Each reader of `glass` is a client component, so the static tier does not need it.
 
 ## 3. Composing a new component
 

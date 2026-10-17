@@ -2,8 +2,10 @@
 
 import { Calendar as CalendarIcon } from 'lucide-react'
 import { dataAttr } from '../../core'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { Button } from '../button'
 import { Icon } from '../icon'
+import { datePickerMessages } from './date-picker-messages'
 
 /** Props for {@link DatePickerCalendarButton}. @internal */
 type DatePickerCalendarButtonProps = {
@@ -24,7 +26,11 @@ export function DatePickerCalendarButton({
 	disabled,
 	onActivate,
 }: DatePickerCalendarButtonProps) {
-	const label = open ? 'Close calendar' : 'Open calendar'
+	const intl = useIntl()
+
+	const label = intl.formatMessage(
+		open ? datePickerMessages.closeCalendar : datePickerMessages.openCalendar,
+	)
 
 	return (
 		<Button

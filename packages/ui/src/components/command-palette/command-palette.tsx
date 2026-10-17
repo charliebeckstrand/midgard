@@ -30,6 +30,18 @@ import { Input } from '../input'
 import { CommandPaletteClose } from './command-palette-close'
 import { useCommandPaletteState } from './use-command-palette-state'
 
+const messages = defineMessages({
+	placeholder: {
+		id: 'ui.commandPalette.placeholder',
+		defaultMessage: 'Type a command or search',
+		description: 'The placeholder of the search field of the command palette, and its name.',
+	},
+})
+
+import { defineMessages } from 'react-intl'
+import { intlMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
+
 /** The palette docks to the bottom edge on a compact viewport, and floats near the top from medium. */
 const PALETTE_ALIGN = adaptive({
 	compact: 'bottom',
@@ -87,7 +99,7 @@ export type CommandPaletteProps = Pick<DialogProps, 'open' | 'defaultOpen'> &
 		 * Search-input placeholder text; also names the combobox input and the
 		 * listbox via `aria-label`, since the palette has no visible heading.
 		 *
-		 * @defaultValue 'Type a command or search'
+		 * @defaultValue `'Type a command or search'`, in the language of the reader.
 		 */
 		placeholder?: string
 		/** Close the palette when the backdrop is clicked. @defaultValue true */
@@ -161,7 +173,7 @@ export function CommandPalette({
 	onOpenChange,
 	glass,
 	onActiveChange,
-	placeholder = 'Type a command or search',
+	placeholder: placeholderProp,
 	dismissOnBackdrop = true,
 	footer,
 	width = '2xl',
@@ -177,6 +189,10 @@ export function CommandPalette({
 		defaultValue: defaultOpen,
 		onValueChange: onOpenChange,
 	})
+
+	const intl = useIntl()
+
+	const placeholder = placeholderProp ?? intl.formatMessage(messages.placeholder)
 
 	const {
 		query,
@@ -273,7 +289,7 @@ export function CommandPalette({
 							    accessibility tree, and it holds text only on zero results: a live
 							    region speaks only a change of text. */}
 							<output data-slot="command-palette-no-results" className={cn(k.empty)}>
-								{empty ? 'No results' : null}
+								{empty ? intl.formatMessage(intlMessages.noResults) : null}
 							</output>
 						</DialogBody>
 						{footerContent === null || footerContent === false ? null : (

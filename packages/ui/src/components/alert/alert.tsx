@@ -10,15 +10,25 @@ import {
 	useLayoutEffect,
 	useRef,
 } from 'react'
+import { defineMessages } from 'react-intl'
 import { cn } from '../../core'
 import { useControllableFlag } from '../../hooks'
 import { useAnnounceOnAppear } from '../../hooks/a11y/use-announce-on-appear'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { type AlertVariants, k } from '../../recipes/kata/alert'
 import { flattenFragments } from '../../utilities/children'
 import { Button } from '../button'
 import { type ButtonDefaults, ButtonDefaultsProvider } from '../button/context'
 import { Icon } from '../icon'
 import { AlertBody } from './alert-body'
+
+const messages = defineMessages({
+	dismiss: {
+		id: 'ui.alert.dismiss',
+		defaultMessage: 'Dismiss',
+		description: 'The name of the button that closes a message or a toast.',
+	},
+})
 
 /** Semantic kind of an alert; selects its default color, icon, and ARIA live role. */
 export type AlertSeverity = 'info' | 'success' | 'warning' | 'error'
@@ -254,6 +264,8 @@ export function Alert({
 		onValueChange: onOpenChange,
 	})
 
+	const intl = useIntl()
+
 	const ref = useRef<HTMLDivElement>(null)
 
 	// The announcer reads `ref`, so a consumer `ref` joins it.
@@ -323,7 +335,8 @@ export function Alert({
 						type="button"
 						variant="plain"
 						color={variant === 'solid' ? 'inherit' : resolvedColor}
-						aria-label="Dismiss"
+						data-slot="alert-close"
+						aria-label={intl.formatMessage(messages.dismiss)}
 						onClick={() => {
 							closePressedRef.current = true
 

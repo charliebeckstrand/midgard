@@ -61,6 +61,10 @@ afterEach(() => {
 
 	localStorage.clear()
 
+	// The Language picker writes the locale cookie with the stored choice.
+	// biome-ignore lint/suspicious/noDocumentCookie: the test removes the cookie that the picker writes.
+	document.cookie = 'locale=; max-age=0; path=/'
+
 	document.documentElement.classList.remove('dark', 'reduced-motion', 'sidebar-offcanvas')
 
 	writeRootDensity(document.documentElement, 'md')

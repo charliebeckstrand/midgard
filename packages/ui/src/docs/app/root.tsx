@@ -104,8 +104,10 @@ const ACTIONS = (
 const ASIDE = <EventsAside />
 
 // The locales that a reader can choose in the settings. They are the locales of
-// the apps, so the docs show the same choice. The first is the default.
-const LOCALES = ['en-US', 'en-GB', 'en-CA', 'en-AU'] as const
+// the apps, so the docs show the same choice. The first is the default. A
+// Spanish locale shows the controls of ui in Spanish, and the text of the docs
+// stays English.
+const LOCALES = ['en-US', 'en-GB', 'en-CA', 'en-AU', 'es-ES', 'es-MX'] as const
 
 /**
  * The shell of the docs: the sidebar, the header with the name of the page, and the page.

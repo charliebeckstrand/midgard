@@ -1,0 +1,194 @@
+{
+	"ui.alert.dismiss": {
+		"defaultMessage": "Dismiss",
+		"description": "The name of the button that closes a message or a toast."
+	},
+	"ui.calendar.nextDecade": {
+		"defaultMessage": "Next decade",
+		"description": "The name of the button that shows the ten years after in the year picker."
+	},
+	"ui.calendar.nextMonth": {
+		"defaultMessage": "Next month",
+		"description": "The name of the button that shows the month after."
+	},
+	"ui.calendar.nextYear": {
+		"defaultMessage": "Next year",
+		"description": "The name of the button that shows the year after in the month picker."
+	},
+	"ui.calendar.previousDecade": {
+		"defaultMessage": "Previous decade",
+		"description": "The name of the button that shows the ten years before in the year picker."
+	},
+	"ui.calendar.previousMonth": {
+		"defaultMessage": "Previous month",
+		"description": "The name of the button that shows the month before."
+	},
+	"ui.calendar.previousYear": {
+		"defaultMessage": "Previous year",
+		"description": "The name of the button that shows the year before in the month picker."
+	},
+	"ui.calendar.selectMonth": {
+		"defaultMessage": "Select month",
+		"description": "The name of the grid of months in the month picker."
+	},
+	"ui.calendar.selectYear": {
+		"defaultMessage": "Select year",
+		"description": "The name of the grid of years in the year picker."
+	},
+	"ui.combobox.placeholder": {
+		"defaultMessage": "Search",
+		"description": "The placeholder of a field that filters a list of options as the reader types."
+	},
+	"ui.commandPalette.placeholder": {
+		"defaultMessage": "Type a command or search",
+		"description": "The placeholder of the search field of the command palette, and its name."
+	},
+	"ui.common.cancel": {
+		"defaultMessage": "Cancel",
+		"description": "The label of a button that stops an action and makes no change."
+	},
+	"ui.common.clear": {
+		"defaultMessage": "Clear",
+		"description": "The name of a button that empties a field."
+	},
+	"ui.common.clearSelection": {
+		"defaultMessage": "Clear selection",
+		"description": "The name of a button that removes the selected value of a picker."
+	},
+	"ui.common.close": {
+		"defaultMessage": "Close",
+		"description": "The name of a button that closes a dialog, a sheet, or a panel."
+	},
+	"ui.common.confirm": {
+		"defaultMessage": "Confirm",
+		"description": "The label of a button that does the action that a dialog asks about."
+	},
+	"ui.common.noResults": {
+		"defaultMessage": "No results",
+		"description": "The text of a list when a search finds no item."
+	},
+	"ui.common.selected": {
+		"defaultMessage": "{count, plural, other {# selected}}",
+		"description": "The summary of a picker that holds more than one selected item."
+	},
+	"ui.common.system": {
+		"defaultMessage": "System",
+		"description": "A setting that follows the setting of the operating system or the browser."
+	},
+	"ui.confirm.title": {
+		"defaultMessage": "Are you sure?",
+		"description": "The default title of a dialog that asks the reader to confirm an action."
+	},
+	"ui.copyButton.copied": {
+		"defaultMessage": "Copied",
+		"description": "The name of the copy button, and the announcement, after a copy succeeds."
+	},
+	"ui.copyButton.copy": {
+		"defaultMessage": "Copy to clipboard",
+		"description": "The name of a button that copies a value to the clipboard."
+	},
+	"ui.datePicker.actions": {
+		"defaultMessage": "Date picker actions",
+		"description": "The name of the toolbar with the Clear and Today buttons below the calendar."
+	},
+	"ui.datePicker.closeCalendar": {
+		"defaultMessage": "Close calendar",
+		"description": "The name of the button that closes the calendar of a date field."
+	},
+	"ui.datePicker.openCalendar": {
+		"defaultMessage": "Open calendar",
+		"description": "The name of the button that opens the calendar of a date field."
+	},
+	"ui.datePicker.today": {
+		"defaultMessage": "Today",
+		"description": "The label of the button that selects the date of today."
+	},
+	"ui.lightbox.next": {
+		"defaultMessage": "Next photo",
+		"description": "The name of the button that shows the photo after."
+	},
+	"ui.lightbox.photos": {
+		"defaultMessage": "Photos",
+		"description": "The name of the photo viewer."
+	},
+	"ui.lightbox.previous": {
+		"defaultMessage": "Previous photo",
+		"description": "The name of the button that shows the photo before."
+	},
+	"ui.listbox.placeholder": {
+		"defaultMessage": "Select",
+		"description": "The placeholder of a picker with no selected value."
+	},
+	"ui.passwordInput.hide": {
+		"defaultMessage": "Hide password",
+		"description": "The name of the button that hides the text of a password field."
+	},
+	"ui.passwordInput.show": {
+		"defaultMessage": "Show password",
+		"description": "The name of the button that shows the text of a password field."
+	},
+	"ui.searchInput.clear": {
+		"defaultMessage": "Clear search",
+		"description": "The name of the button that empties a search field."
+	},
+	"ui.settings.appearance": {
+		"defaultMessage": "Appearance",
+		"description": "The label of the picker for the light or dark theme."
+	},
+	"ui.settings.density": {
+		"defaultMessage": "Density",
+		"description": "The label of the picker for the spacing of the interface."
+	},
+	"ui.settings.density.compact": {
+		"defaultMessage": "Compact",
+		"description": "The density with the least space between items."
+	},
+	"ui.settings.density.loose": {
+		"defaultMessage": "Loose",
+		"description": "The density with the most space between items."
+	},
+	"ui.settings.density.snug": {
+		"defaultMessage": "Snug",
+		"description": "The usual density."
+	},
+	"ui.settings.language": {
+		"defaultMessage": "Language",
+		"description": "The label of the picker for the language and the formats of the interface."
+	},
+	"ui.settings.motion": {
+		"defaultMessage": "Motion",
+		"description": "The label of the picker for animation."
+	},
+	"ui.settings.motion.reduced": {
+		"defaultMessage": "Reduced",
+		"description": "A motion setting that removes most animation."
+	},
+	"ui.settings.sidebar": {
+		"defaultMessage": "Sidebar",
+		"description": "The label of the picker for the behavior of the sidebar."
+	},
+	"ui.settings.sidebar.locked": {
+		"defaultMessage": "Locked",
+		"description": "A sidebar setting that keeps the sidebar on the screen."
+	},
+	"ui.settings.sidebar.offcanvas": {
+		"defaultMessage": "Offcanvas",
+		"description": "A sidebar setting that hides the sidebar at the edge until the pointer comes near."
+	},
+	"ui.settings.theme.dark": {
+		"defaultMessage": "Dark",
+		"description": "A theme with light text on a dark background."
+	},
+	"ui.settings.theme.light": {
+		"defaultMessage": "Light",
+		"description": "A theme with dark text on a light background."
+	},
+	"ui.settings.title": {
+		"defaultMessage": "Settings",
+		"description": "The title of the settings dialog, and the name of the button that opens it."
+	},
+	"ui.toast.notifications": {
+		"defaultMessage": "Notifications",
+		"description": "The name of the region that holds the toasts."
+	}
+}

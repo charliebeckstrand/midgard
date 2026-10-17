@@ -4,6 +4,8 @@ import { useComposedRefs } from 'motion/react'
 import type { CSSProperties, ReactNode, Ref } from 'react'
 import { ariaAttr, cn, dataAttr } from '../../core'
 import type { ScaleStep } from '../../core/density'
+import { intlMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { PopoverPanel } from '../../primitives/popover'
 import { Portal } from '../../primitives/portal'
 import type { scale } from '../../recipes/kata/combobox'
@@ -64,6 +66,8 @@ export function ComboboxPanel({
 	onClose,
 	children,
 }: ComboboxPanelProps) {
+	const intl = useIntl()
+
 	// The ref keeps one identity, so the panel attaches and scrolls to the
 	// selection one time for each mount. React calls a new callback ref again at
 	// each commit.
@@ -111,7 +115,7 @@ export function ComboboxPanel({
 						>
 							{children}
 						</div>
-						<output className={cn(k.empty)}>No results</output>
+						<output className={cn(k.empty)}>{intl.formatMessage(intlMessages.noResults)}</output>
 					</PopoverPanel>
 				</div>
 			</div>

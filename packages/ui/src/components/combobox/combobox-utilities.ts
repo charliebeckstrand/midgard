@@ -1,4 +1,6 @@
 import type { MouseEvent } from 'react'
+import { englishIntl } from '../../primitives/intl/intl-catalog'
+import { selectedMessage } from '../../primitives/intl/intl-messages'
 import { isScrollbarPress } from '../../utilities'
 import { OPTION_SELECTOR } from './combobox-constants'
 
@@ -12,6 +14,11 @@ import { OPTION_SELECTOR } from './combobox-constants'
  */
 function selectedValues<T>(value: T | T[] | undefined): T[] {
 	return Array.isArray(value) ? value : []
+}
+
+// The count of the selected values, in English, for a caller with no intl.
+function englishCount(count: number) {
+	return englishIntl.formatMessage(selectedMessage, { count })
 }
 
 /**
@@ -39,6 +46,8 @@ function selectedValues<T>(value: T | T[] | undefined): T[] {
  * wins, so the summary never blocks typing. Every pick resets `editing`, so a query
  * replaces the summary, and the summary comes back with the next pick.
  *
+ * With no `summarize`, `formatCount` words the count in the language of the reader.
+ *
  * @returns The string to render in the input.
  * @internal
  */
@@ -49,6 +58,7 @@ export function resolveInputDisplay<T>({
 	displayValue,
 	summarize,
 	multiple,
+	formatCount = englishCount,
 }: {
 	editing: boolean
 	query: string
@@ -56,6 +66,7 @@ export function resolveInputDisplay<T>({
 	displayValue?: (value: T) => string
 	summarize?: (selected: T[]) => string
 	multiple: boolean
+	formatCount?: (count: number) => string
 }): string {
 	if (editing) return query
 
@@ -69,7 +80,7 @@ export function resolveInputDisplay<T>({
 		// One label fits and reads; two already risk overflowing the field, and with no resolver
 		// a count is the only reading available at any size.
 		if (!displayValue || selected.length > 1) {
-			return summarize ? summarize(selected) : `${selected.length} selected`
+			return summarize ? summarize(selected) : formatCount(selected.length)
 		}
 
 		return displayValue(only)

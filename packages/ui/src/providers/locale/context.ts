@@ -9,9 +9,8 @@ import { createContext } from '../../core'
  * whole tree.
  *
  * @remarks
- * Every field feeds an `Intl.*` formatter. The type carries no string
- * catalog, and it is not a translation layer. A catalog waits for a real
- * second locale.
+ * Every field feeds an `Intl.*` formatter. The `locale` also selects the
+ * catalog of the messages of ui, which `LocaleProvider` gives to the controls.
  */
 export type LocaleConfig = {
 	/**

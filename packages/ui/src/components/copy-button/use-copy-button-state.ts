@@ -5,6 +5,8 @@ import { announce } from '../../core'
 import { useMountedRef } from '../../hooks/use-mounted-ref'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useTimeout } from '../../hooks/use-timeout'
+import { useIntl } from '../../primitives/intl/use-intl'
+import { copyButtonMessages } from './copy-button-messages'
 
 // The longest delay that the platform timer holds: a 32-bit signed count of
 // milliseconds. The timer wraps a longer delay to 32 bits, and `Infinity`
@@ -78,6 +80,8 @@ export function useCopyButtonState({
 }: CopyStateOptions): CopyStateResult {
 	const [copied, setCopied] = useState(false)
 
+	const intl = useIntl()
+
 	const notifyCopiedChange = useStableEvent((next: boolean) => {
 		onCopiedChange?.(next)
 	})
@@ -116,7 +120,7 @@ export function useCopyButtonState({
 			setCopied(true)
 
 			// Screen readers skip label changes on an already-focused control; announce success explicitly.
-			announce('Copied')
+			announce(intl.formatMessage(copyButtonMessages.copied))
 
 			notifyCopiedChange(true)
 
@@ -137,7 +141,7 @@ export function useCopyButtonState({
 			// `copied` stays false and the rejection goes to the caller instead of nowhere.
 			notifyCopyError(error)
 		}
-	}, [text, timeout, notifyCopiedChange, notifyCopyError, mountedRef, revert])
+	}, [text, timeout, intl, notifyCopiedChange, notifyCopyError, mountedRef, revert])
 
 	return { copied, copy }
 }

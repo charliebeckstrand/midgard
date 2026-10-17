@@ -2,12 +2,15 @@
 
 import { ChevronsUpDown } from 'lucide-react'
 import { type ReactNode, useMemo, useState } from 'react'
+import type { MessageDescriptor } from 'react-intl'
 import { Dialog, DialogBody, DialogHeader, DialogPanel, DialogTitle } from '../../components/dialog'
 import { Field, Label } from '../../components/fieldset'
 import { Icon } from '../../components/icon'
 import { Kbd } from '../../components/kbd'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { useSidebarLayoutPlacement } from '../../layouts/sidebar/sidebar'
+import { intlMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/offcanvas'
 import { Flex } from '../../structure/flex'
 import { Stack } from '../../structure/stack'
@@ -16,6 +19,7 @@ import { densityLevels } from '../density/context'
 import { useLocaleChoice } from '../locale/context'
 import { localeOptions } from '../locale/locale-choice'
 import { UIProvider } from '../ui'
+import { appearanceChoiceMessages, appearanceMessages } from './appearance-messages'
 import { useAppearance } from './context'
 import { motionModes, sidebarModes, themeModes } from './modes'
 
@@ -119,7 +123,22 @@ export function AppearanceSettingsDialog({
 
 	const locales = localeChoice?.locales
 
-	const languages = useMemo(() => (locales ? localeOptions(locales) : []), [locales])
+	const intl = useIntl()
+
+	const systemLabel = intl.formatMessage(intlMessages.system)
+
+	const languages = useMemo(
+		() => (locales ? localeOptions(locales, systemLabel) : []),
+		[locales, systemLabel],
+	)
+
+	// The options of a picker, with the label of each choice in the language of the reader.
+	const choices = <T extends keyof typeof appearanceChoiceMessages>(options: { value: T }[]) =>
+		options.map(({ value }) => {
+			const message: MessageDescriptor = appearanceChoiceMessages[value]
+
+			return { value, label: intl.formatMessage(message) }
+		})
 
 	const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null)
 
@@ -127,33 +146,41 @@ export function AppearanceSettingsDialog({
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogPanel width="sm">
 				<DialogHeader>
-					<DialogTitle>Settings</DialogTitle>
+					<DialogTitle>{intl.formatMessage(appearanceMessages.settings)}</DialogTitle>
 				</DialogHeader>
 				<DialogBody>
 					<Stack gap="lg">
 						{portalRoot && (
 							<UIProvider portalContainer={portalRoot}>
 								<Field>
-									<Label>Appearance</Label>
-									<ChoiceListbox options={themeModes} value={theme} onValueChange={setTheme} />
+									<Label>{intl.formatMessage(appearanceMessages.appearance)}</Label>
+									<ChoiceListbox
+										options={choices(themeModes)}
+										value={theme}
+										onValueChange={setTheme}
+									/>
 								</Field>
 								<Field>
-									<Label>Density</Label>
+									<Label>{intl.formatMessage(appearanceMessages.density)}</Label>
 									<ChoiceListbox
-										options={densityLevels}
+										options={choices(densityLevels)}
 										value={density}
 										onValueChange={setDensity}
 									/>
 								</Field>
 								<Field>
-									<Label>Motion</Label>
-									<ChoiceListbox options={motionModes} value={motion} onValueChange={setMotion} />
+									<Label>{intl.formatMessage(appearanceMessages.motion)}</Label>
+									<ChoiceListbox
+										options={choices(motionModes)}
+										value={motion}
+										onValueChange={setMotion}
+									/>
 								</Field>
 								{sidebarLayout && (
 									<Field className={resolveVariant(sidebarLayout, k.inline.block)}>
-										<Label>Sidebar</Label>
+										<Label>{intl.formatMessage(appearanceMessages.sidebar)}</Label>
 										<ChoiceListbox
-											options={sidebarModes}
+											options={choices(sidebarModes)}
 											value={sidebar}
 											onValueChange={setSidebar}
 											suffix={<SidebarSuffix />}
@@ -162,7 +189,7 @@ export function AppearanceSettingsDialog({
 								)}
 								{localeChoice && (
 									<Field>
-										<Label>Language</Label>
+										<Label>{intl.formatMessage(appearanceMessages.language)}</Label>
 										<ChoiceListbox
 											options={languages}
 											value={localeChoice.choice}

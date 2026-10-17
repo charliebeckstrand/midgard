@@ -1,9 +1,12 @@
 'use client'
 
 import { cn } from '../../core'
+import { intlMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/calendar'
 import { Button } from '../button'
 import type { CalendarActive } from '../calendar'
+import { datePickerMessages } from './date-picker-messages'
 import type { FooterButton } from './use-date-picker-keyboard'
 
 /** Props for {@link DatePickerFooter}. @internal */
@@ -29,12 +32,14 @@ export function DatePickerFooter({
 	onClear,
 	onToday,
 }: DatePickerFooterProps) {
+	const intl = useIntl()
+
 	if (footerButtons.length === 0) return null
 
 	return (
 		<div
 			role="toolbar"
-			aria-label="Date picker actions"
+			aria-label={intl.formatMessage(datePickerMessages.actions)}
 			data-slot="calendar-footer"
 			className={cn(k.footer)}
 		>
@@ -49,11 +54,11 @@ export function DatePickerFooter({
 							variant="soft"
 							color="amber"
 							onClick={onClear}
-							aria-label="Clear selection"
+							aria-label={intl.formatMessage(intlMessages.clearSelection)}
 							className={cn(isActive && k.day.active)}
 							data-index={index}
 						>
-							Clear
+							{intl.formatMessage(intlMessages.clear)}
 						</Button>
 					)
 				}
@@ -68,7 +73,7 @@ export function DatePickerFooter({
 						className={cn(isActive && k.day.active)}
 						data-index={index}
 					>
-						Today
+						{intl.formatMessage(datePickerMessages.today)}
 					</Button>
 				)
 			})}

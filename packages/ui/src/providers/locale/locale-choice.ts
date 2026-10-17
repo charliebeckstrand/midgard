@@ -18,6 +18,16 @@ export const SYSTEM_LOCALE = 'system'
 const LOCALE_KEY = 'locale'
 
 /**
+ * The name of the cookie that holds the locale choice of the reader: `'system'`,
+ * or a locale tag. The provider writes it, so a server that renders per request
+ * can read the choice with {@link resolveRequestLocale}.
+ */
+export const LOCALE_COOKIE = 'locale'
+
+// The life of the cookie: one year, in seconds.
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 365
+
+/**
  * The locale choice over `locales`: `'system'`, or one of `locales`. A stored
  * value that is not one of them reads as `'system'`.
  *
@@ -28,12 +38,59 @@ export function localeChoice(locales: readonly string[]): AppearanceChoice<strin
 }
 
 /**
- * Stores a locale choice and notifies each subscriber in this page.
+ * Stores a locale choice, writes it to the locale cookie, and notifies each
+ * subscriber in this page.
  *
  * @internal
  */
 export function writeLocaleChoice(choice: string) {
 	writeChoice(LOCALE_KEY, choice)
+
+	syncLocaleCookie(choice)
+}
+
+// The value of the locale cookie in this page, or `undefined` with no cookie.
+function readLocaleCookie() {
+	const prefix = `${LOCALE_COOKIE}=`
+
+	const entry = document.cookie.split('; ').find((part) => part.startsWith(prefix))
+
+	return entry === undefined ? undefined : decodeURIComponent(entry.slice(prefix.length))
+}
+
+/**
+ * Reads the stored choice of `choice`. With no stored choice, it reads the
+ * locale cookie, so a choice that `localStorage` lost but the cookie kept
+ * still applies, as it does on the server.
+ *
+ * @internal
+ */
+export function readLocaleChoice(choice: AppearanceChoice<string>): string {
+	const stored = readChoice(choice)
+
+	if (stored !== SYSTEM_LOCALE) return stored
+
+	const cookie = readLocaleCookie()
+
+	return cookie !== undefined && choice.values.includes(cookie) ? cookie : SYSTEM_LOCALE
+}
+
+/**
+ * Writes `choice` to the locale cookie when the cookie holds another value. A
+ * missing cookie reads as `'system'`, so the System choice writes no cookie
+ * until the reader changes it.
+ *
+ * @internal
+ */
+export function syncLocaleCookie(choice: string) {
+	const current = readLocaleCookie() ?? SYSTEM_LOCALE
+
+	if (current === choice) return
+
+	const secure = location.protocol === 'https:' ? '; secure' : ''
+
+	// biome-ignore lint/suspicious/noDocumentCookie: the Cookie Store API is above the browser floor.
+	document.cookie = `${LOCALE_COOKIE}=${encodeURIComponent(choice)}; path=/; max-age=${COOKIE_MAX_AGE}; samesite=lax${secure}`
 }
 
 // The language subtag of a BCP 47 tag, such as `en` for `en-GB`.
@@ -73,6 +130,64 @@ export function matchLocale(
 	return undefined
 }
 
+// The tags of an `Accept-Language` header, in the order of their weight. A tag
+// with no weight has the weight 1, and `*` matches no locale.
+function acceptedLanguages(header: string) {
+	return header
+		.split(',')
+		.map((part, index) => {
+			const [tag = '', ...params] = part.trim().split(';')
+
+			const weight = params.find((param) => param.trim().startsWith('q='))
+
+			return { tag: tag.trim(), q: weight ? Number(weight.trim().slice(2)) : 1, index }
+		})
+		.filter(({ tag, q }) => tag !== '' && tag !== '*' && q > 0)
+		.sort((a, b) => b.q - a.q || a.index - b.index)
+		.map(({ tag }) => tag)
+}
+
+/** The request values that {@link resolveRequestLocale} reads. */
+export type RequestLocaleInput = {
+	/** The value of the {@link LOCALE_COOKIE} cookie, if the request has one. */
+	cookie?: string
+	/** The `Accept-Language` header of the request, if it has one. */
+	acceptLanguage?: string | null
+	/** The locales that the reader can choose from, as the provider gets them. */
+	locales: readonly [string, ...string[]]
+	/** The locale when the choice is System and no accepted language matches. */
+	fallback?: string
+}
+
+/**
+ * Resolves the locale of a request on the server, as the provider resolves it
+ * in the browser. A cookie that holds one of `locales` gives that locale. Else
+ * the choice is System, and the `Accept-Language` header takes the place of the
+ * languages of the browser.
+ *
+ * @returns The locale, else `fallback`, else the first entry of `locales`.
+ * @example
+ * ```ts
+ * const locale = resolveRequestLocale({
+ *   cookie: (await cookies()).get(LOCALE_COOKIE)?.value,
+ *   acceptLanguage: (await headers()).get('accept-language'),
+ *   locales: ['en-US', 'es-ES'],
+ * })
+ * ```
+ */
+export function resolveRequestLocale({
+	cookie,
+	acceptLanguage,
+	locales,
+	fallback,
+}: RequestLocaleInput): string {
+	if (cookie !== undefined && locales.includes(cookie)) return cookie
+
+	const match = acceptLanguage ? matchLocale(acceptedLanguages(acceptLanguage), locales) : undefined
+
+	return match ?? fallback ?? locales[0]
+}
+
 /**
  * Resolves the stored choice of `choice` to a locale tag. A stored locale is
  * the result. `'system'` takes the match of the languages of the browser, else
@@ -85,7 +200,7 @@ export function resolveLocaleChoice(
 	locales: readonly string[],
 	fallback: string,
 ): string {
-	const stored = readChoice(choice)
+	const stored = readLocaleChoice(choice)
 
 	if (stored !== SYSTEM_LOCALE) return stored
 
@@ -121,14 +236,17 @@ function localeName(locale: string) {
 }
 
 /**
- * The options of a locale picker: System, then each locale under its name in
- * its own language.
+ * The options of a locale picker: System under `systemLabel`, then each locale
+ * under its name in its own language.
  *
  * @internal
  */
-export function localeOptions(locales: readonly string[]): { label: string; value: string }[] {
+export function localeOptions(
+	locales: readonly string[],
+	systemLabel: string,
+): { label: string; value: string }[] {
 	return [
-		{ label: 'System', value: SYSTEM_LOCALE },
+		{ label: systemLabel, value: SYSTEM_LOCALE },
 		...locales.map((locale) => ({ label: localeName(locale), value: locale })),
 	]
 }

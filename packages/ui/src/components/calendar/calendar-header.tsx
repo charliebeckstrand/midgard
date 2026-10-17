@@ -2,7 +2,9 @@
 
 import { type KeyboardEventHandler, memo, type RefObject } from 'react'
 import { cn } from '../../core'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/calendar'
+import { calendarMessages } from './calendar-messages'
 import { CalendarPicker } from './calendar-picker'
 import { CalendarToolbar } from './calendar-toolbar'
 
@@ -52,13 +54,15 @@ export const CalendarHeader = memo(function CalendarHeader({
 	onPrevMonth,
 	onNextMonth,
 }: CalendarHeaderProps) {
+	const intl = useIntl()
+
 	return (
 		<CalendarToolbar
 			toolbarRef={headerRef}
 			slot="calendar-header"
 			onKeyDown={onHeaderKeyDown}
-			prevLabel="Previous month"
-			nextLabel="Next month"
+			prevLabel={intl.formatMessage(calendarMessages.previousMonth)}
+			nextLabel={intl.formatMessage(calendarMessages.nextMonth)}
 			onPrev={onPrevMonth}
 			onNext={onNextMonth}
 			prevClassName={cn(activeIndex === 0 && k.day.active)}

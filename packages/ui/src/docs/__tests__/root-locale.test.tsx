@@ -47,7 +47,13 @@ describe('docs app shell', () => {
 	it('gives each page the locale that the reader chose', () => {
 		localStorage.setItem('locale', 'en-GB')
 
-		onTestFinished(() => localStorage.removeItem('locale'))
+		// The provider writes the stored choice to the cookie too.
+		onTestFinished(() => {
+			localStorage.removeItem('locale')
+
+			// biome-ignore lint/suspicious/noDocumentCookie: the test removes the cookie that the provider writes.
+			document.cookie = 'locale=; max-age=0; path=/'
+		})
 
 		renderShell()
 

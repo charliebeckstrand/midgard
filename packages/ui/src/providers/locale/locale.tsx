@@ -1,7 +1,10 @@
 'use client'
 
-import { type ReactNode, useMemo } from 'react'
+import { type ReactNode, useEffect, useMemo } from 'react'
+import { RawIntlProvider } from 'react-intl'
 import { Direction, type TextDirection } from '../../primitives/direction'
+import { createLocaleIntl } from '../../primitives/intl/intl-catalog'
+import { useIntl } from '../../primitives/intl/use-intl'
 import {
 	LocaleChoiceContext,
 	type LocaleChoiceValue,
@@ -10,7 +13,7 @@ import {
 	useLocale,
 	useLocaleChoice,
 } from './context'
-import { writeLocaleChoice } from './locale-choice'
+import { SYSTEM_LOCALE, syncLocaleCookie, writeLocaleChoice } from './locale-choice'
 import { useStoredLocale } from './use-stored-locale'
 
 /**
@@ -50,13 +53,16 @@ export type LocaleProviderProps = LocaleConfig & {
  * Broadcasts `Intl` formatting defaults (locale tag, currency, number and date
  * options, time zone) to format-aware components. Explicit props on individual components
  * still win. The default number formats of charts, maps, PivotTable, grid
- * aggregates, and Odometer take its `locale`.
+ * aggregates, and Odometer take its `locale`. The controls of ui also show
+ * their text in the language of the `locale`.
  *
  * @remarks
- * This is a formatting provider, not a translation layer. It holds no string
- * catalog, and it never supplies the text a component renders. Control
- * strings stay hardcoded English until a second locale lands; a catalog
- * waits for that locale, so its keys answer to a real consumer.
+ * The provider also gives the `react-intl` intl of its locale to the controls
+ * of ui. A control shows its built-in text, such as the name of a Close button,
+ * from the catalog of the language of the locale. ui has an English and a
+ * Spanish catalog. A language with no catalog, and a message that a catalog
+ * does not have, show the English default. A prop that sets the text of a
+ * control still wins. The text that an app renders is not in the catalog of ui.
  *
  * A nested provider overrides one field and leaves the rest of the enclosing
  * config alone. So a nested `<LocaleProvider currency="EUR">` keeps the outer
@@ -70,8 +76,11 @@ export type LocaleProviderProps = LocaleConfig & {
  * With `locales`, the reader chooses the locale, and the choice persists in
  * `localStorage`. The server does not know the choice, so the server render and
  * the hydration render use `locale`. A formatted value can thus change its text
- * after hydration, as a date does for the time zone. The choice changes the
- * formats only. The text of the controls stays English.
+ * after hydration, as a date does for the time zone, and the text of a control
+ * can change its language. The provider also writes the choice to the cookie
+ * {@link LOCALE_COOKIE}. A server that renders per request can thus read the
+ * choice with {@link resolveRequestLocale}, and render a nested provider in the
+ * locale of the reader.
  *
  * Set the direction of a region through `dir` here, not through a raw `dir`
  * attribute. A raw attribute is a DOM setting only, and a portaled surface
@@ -93,6 +102,8 @@ export function LocaleProvider({
 
 	const outerChoice = useLocaleChoice()
 
+	const outerIntl = useIntl()
+
 	const stored = useStoredLocale(locales, locale ?? outer.locale ?? locales?.[0])
 
 	const value = useMemo<LocaleConfig>(
@@ -105,6 +116,23 @@ export function LocaleProvider({
 		}),
 		[stored.locale, currency, numberFormat, dateFormat, timeZone, outer],
 	)
+
+	// A provider in the locale of the enclosing intl keeps that intl, so a nested
+	// provider that sets only a currency adds no intl of its own.
+	const intl = useMemo(
+		() =>
+			stored.locale === undefined || stored.locale === outerIntl.locale
+				? outerIntl
+				: createLocaleIntl(stored.locale),
+		[stored.locale, outerIntl],
+	)
+
+	// A choice stored before the cookie existed reaches the cookie here. The
+	// hydration render reads `'system'`, so the effect skips System, and a
+	// System choice that the reader makes reaches the cookie through the setter.
+	useEffect(() => {
+		if (locales && stored.choice !== SYSTEM_LOCALE) syncLocaleCookie(stored.choice)
+	}, [locales, stored.choice])
 
 	const choice = useMemo<LocaleChoiceValue | null>(
 		() => (locales ? { choice: stored.choice, locales, setChoice: writeLocaleChoice } : null),
@@ -123,7 +151,9 @@ export function LocaleProvider({
 	// under a nested provider still edits the choice of the root.
 	return (
 		<LocaleChoiceContext value={choice ?? outerChoice}>
-			<LocaleContext value={value}>{scoped}</LocaleContext>
+			<LocaleContext value={value}>
+				<RawIntlProvider value={intl}>{scoped}</RawIntlProvider>
+			</LocaleContext>
 		</LocaleChoiceContext>
 	)
 }

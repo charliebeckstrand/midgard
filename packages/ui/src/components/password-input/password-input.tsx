@@ -2,12 +2,27 @@
 
 import { Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
+import { defineMessages } from 'react-intl'
 import { useOpenChange } from '../../hooks/use-open-change'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { Button } from '../button'
 import { useControl } from '../control/context'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
+
+const messages = defineMessages({
+	show: {
+		id: 'ui.passwordInput.show',
+		defaultMessage: 'Show password',
+		description: 'The name of the button that shows the text of a password field.',
+	},
+	hide: {
+		id: 'ui.passwordInput.hide',
+		defaultMessage: 'Hide password',
+		description: 'The name of the button that hides the text of a password field.',
+	},
+})
 
 /** Props for {@link PasswordInput}: {@link InputProps} (less `type`/`suffix`) plus the visibility-toggle switch. */
 export type PasswordInputProps = Omit<InputProps, 'type' | 'suffix'> & {
@@ -74,6 +89,8 @@ export function PasswordInput({
 	onVisibleChange,
 	...props
 }: PasswordInputProps) {
+	const intl = useIntl()
+
 	const [visible, setVisible] = useState(false)
 
 	const control = useControl()
@@ -100,8 +117,8 @@ export function PasswordInput({
 					<VisibilityToggle
 						visible={revealed}
 						onToggle={() => setVisible((prev) => !prev)}
-						showLabel="Show password"
-						hideLabel="Hide password"
+						showLabel={intl.formatMessage(messages.show)}
+						hideLabel={intl.formatMessage(messages.hide)}
 						disabled={disabled}
 					/>
 				) : undefined
