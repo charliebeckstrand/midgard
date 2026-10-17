@@ -75,14 +75,14 @@ export function KanbanCardHandle({
 				// The drag overlay has no card context, and it shows the held hand.
 				data-dragging={dataAttr(!card)}
 				data-disabled={dataAttr(!!card && disabled)}
-				className={cn(k.card.handle, className)}
+				className={cn(k.card.handle.base, className)}
 			>
 				{content}
 			</span>
 		)
 	}
 
-	const { cardId, setActivatorNodeRef, attributes, listeners, dragging, itemId } = card
+	const { cardId, setActivatorNodeRef, attributes, listeners, dragging, lifted, itemId } = card
 
 	return (
 		<SortableGrip
@@ -99,7 +99,7 @@ export function KanbanCardHandle({
 			onKeyDown={composeEventHandlers(onKeyDown, (event) => onCardKeyDown(cardId, event))}
 			onBlur={composeEventHandlers(onBlur, onCardBlur)}
 			data-card-id={cardId}
-			className={cn(k.card.handle, className)}
+			className={cn(k.card.handle.base, lifted && k.card.handle.lifted, className)}
 		>
 			{content}
 		</SortableGrip>

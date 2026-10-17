@@ -115,6 +115,42 @@ describe('kanban card handle (real browser)', () => {
 		expect(document.activeElement?.getAttribute('data-slot')).toBe('kanban-card-handle')
 	})
 
+	it('shows the lift accent on the focused handle, not on the card', async () => {
+		const { container } = renderUI(<Board />)
+
+		const [handle] = allBySlot(container, 'kanban-card-handle')
+
+		if (!handle) throw new Error('expected a handle')
+
+		// A Tab gives the handle `:focus-visible`, as a keyboard user has it.
+		await userEvent.keyboard('{Tab}')
+
+		expect(document.activeElement).toBe(handle)
+
+		const resting = getComputedStyle(handle).outlineColor
+
+		await userEvent.keyboard(' ')
+
+		await expect
+			.poll(() => getSlot(container, 'kanban-card').hasAttribute('data-lifted'))
+			.toBe(true)
+
+		// The accent is the color of a probe with the lift outline class.
+		const probe = document.createElement('div')
+
+		probe.className = 'outline-violet-600'
+
+		document.body.append(probe)
+
+		const accent = getComputedStyle(probe).outlineColor
+
+		probe.remove()
+
+		expect(accent).not.toBe(resting)
+
+		await expect.poll(() => getComputedStyle(handle).outlineColor).toBe(accent)
+	})
+
 	it('drags the card with a pointer from the handle', async () => {
 		const { container } = renderUI(<Board />)
 
