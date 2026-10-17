@@ -135,14 +135,18 @@ export const k = {
 		 * thumbnail of a photo that the viewer does not show is dim.
 		 */
 		base: [
-			'shrink-0 overflow-hidden opacity-50 transition-opacity hover:opacity-75',
+			'shrink-0 opacity-30 transition-opacity hover:opacity-60',
 			dan.size.lightbox,
 			rounded.md,
 			focus.ring,
 		],
-		/** The thumbnail of the photo that the viewer shows. */
+		/** The thumbnail of the photo that the viewer shows. It is solid. */
 		current: 'opacity-100 hover:opacity-100',
-		image: 'block size-full object-cover',
+		/**
+		 * The image takes the radius itself. A clip of the button instead leaves
+		 * rough corners on the dim thumbnails.
+		 */
+		image: 'block size-full rounded-[inherit] object-cover',
 	},
 	/** A step button in the pill. */
 	step: 'rounded-full',
