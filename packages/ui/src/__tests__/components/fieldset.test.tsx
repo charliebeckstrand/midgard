@@ -4,11 +4,11 @@ import { describe, expect, it } from 'vitest'
 import { Combobox } from '../../components/combobox'
 import { DatePicker } from '../../components/date-picker'
 import { Description, Field, Fieldset, Label, Legend, Message } from '../../components/fieldset'
-import { Form } from '../../components/form'
 import { Input } from '../../components/input'
 import { Listbox } from '../../components/listbox'
 import { Rating } from '../../components/rating'
 import { Select } from '../../components/select'
+import { Form } from '../../modules/form'
 import { bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
 
 type SetErrors = { setErrors: (errors: Record<string, string | string[]>) => void }

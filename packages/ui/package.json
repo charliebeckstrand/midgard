@@ -78,6 +78,10 @@
 			"types": "./src/modules/events/index.ts",
 			"default": "./src/modules/events/index.ts"
 		},
+		"./form": {
+			"types": "./src/modules/form/index.ts",
+			"default": "./src/modules/form/index.ts"
+		},
 		"./grid": {
 			"types": "./src/modules/grid/index.ts",
 			"default": "./src/modules/grid/index.ts"

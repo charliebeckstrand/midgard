@@ -2,7 +2,7 @@
 
 import { useCallback } from 'react'
 import { announce } from '../../core'
-import { useFormValue } from '../form/use-form-value'
+import { useFormValue } from '../../primitives/form/use-form-value'
 import { classifyTokens, describeBatch, type TokenRejection } from './tag-input-utilities'
 
 /**

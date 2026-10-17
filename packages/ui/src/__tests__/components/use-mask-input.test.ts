@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import { useFormField } from '../../components/form'
 import { useMaskInput } from '../../components/mask-input/use-mask-input'
+import { useFormField } from '../../modules/form'
 import { makeChangeEvent } from '../helpers'
 import { makeFormWrapper } from '../helpers/form-wrapper'
 

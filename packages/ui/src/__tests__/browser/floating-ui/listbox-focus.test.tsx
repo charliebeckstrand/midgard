@@ -1,11 +1,11 @@
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Button } from '../../../components/button'
-import { Form } from '../../../components/form'
 import { Input } from '../../../components/input'
 import { Listbox } from '../../../components/listbox'
 import { ListboxOption } from '../../../components/listbox/listbox-option'
 import { TYPEAHEAD_TIMEOUT_MS } from '../../../hooks/a11y/use-typeahead'
+import { Form } from '../../../modules/form'
 import { renderUI, screen, waitFor } from '../../helpers'
 import { FieldProbe, getFieldProbe } from '../../helpers/field-probe'
 

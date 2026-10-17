@@ -3,7 +3,7 @@ import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 
 import { Calendar, type CalendarHandle, CalendarRange } from '../../components/calendar'
-import { Form } from '../../components/form'
+import { Form } from '../../modules/form'
 import { Box } from '../../structure/box'
 import {
 	act,

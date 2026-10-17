@@ -18,7 +18,7 @@ import type { ColorFormat, Hsva } from '../../components/color/types'
 import { useColorState } from '../../components/color/use-color-state'
 import { Control } from '../../components/control'
 import { Field, Label, Message } from '../../components/fieldset'
-import { Form, useFormActions } from '../../components/form'
+import { Form, useFormActions } from '../../modules/form'
 import {
 	allBySlot,
 	attach,

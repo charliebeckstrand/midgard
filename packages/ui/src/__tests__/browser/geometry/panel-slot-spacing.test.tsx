@@ -19,7 +19,6 @@ import {
 	DrawerPanel,
 	DrawerTitle,
 } from '../../../components/drawer'
-import { Form } from '../../../components/form'
 import {
 	Sheet,
 	SheetBody,
@@ -29,6 +28,7 @@ import {
 	SheetPanel,
 	SheetTitle,
 } from '../../../components/sheet'
+import { Form } from '../../../modules/form'
 import { DensityProvider } from '../../../providers/density'
 import { getSlot, renderUI } from '../../helpers'
 import { settledRect } from '../helpers/sample'

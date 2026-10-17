@@ -3,6 +3,7 @@
 import { type ValidationAttrs, validationAttrs } from '../../core'
 import { useAriaIds } from '../../hooks'
 import { useDevWarning } from '../../hooks/use-dev-warning'
+import { useFormLocked } from '../../primitives/form/context'
 import { useControl } from './context'
 
 /** Field-supplied input to {@link useControlProps}: the explicit form-field props a control passes for resolution against its `<Control>` / `<Field>` context. */
@@ -50,7 +51,8 @@ function strayIdWarning(explicitId: string, wrapperId: string): string {
  *
  * Resolution order: explicit input wins, then the wrapping `<Control>` /
  * `<Field>` context. `invalid` instead OR's the form-bound flag with the
- * context's.
+ * context's. While an enclosing `Form` submits, `readOnly` is `true` whatever
+ * the input says.
  *
  * Does **not** resolve size. A field takes its step from the nearest density
  * scope. The Control context carries no size.
@@ -80,6 +82,10 @@ function strayIdWarning(explicitId: string, wrapperId: string): string {
  */
 export function useControlProps(input: ControlPropsOptions = {}): ControlPropsResult {
 	const control = useControl()
+
+	// A form that submits locks each field in it, whatever the field's own prop
+	// says. A bare control, outside a Field, reads it here.
+	const locked = useFormLocked()
 
 	// Consumer-supplied ids first, then the field's registered description /
 	// error ids. Omitted when neither is present.
@@ -113,7 +119,7 @@ export function useControlProps(input: ControlPropsOptions = {}): ControlPropsRe
 		autoComplete: input.autoComplete ?? control?.autoComplete,
 		disabled: input.disabled ?? control?.disabled,
 		required: input.required ?? control?.required,
-		readOnly: input.readOnly ?? control?.readOnly,
+		readOnly: locked ? true : (input.readOnly ?? control?.readOnly),
 		invalid,
 		'aria-describedby': describedBy,
 		validation,

@@ -16,7 +16,7 @@ export type ControlProps = {
 	autoComplete?: string
 	/** @defaultValue `false`, or `true` inside a disabled Control or Field. */
 	disabled?: boolean
-	/** @defaultValue `false`, or `true` inside a read-only Control. */
+	/** @defaultValue `false`, or `true` inside a read-only Control, or while an enclosing Form submits. */
 	readOnly?: boolean
 	/** @defaultValue `false`, or the state of the enclosing Control. */
 	required?: boolean

@@ -10,7 +10,7 @@ import {
 } from '../../components/credit-card-input'
 import { validateCardExpiry } from '../../components/credit-card-input/credit-card-input-utilities'
 import { Field, Label, Message } from '../../components/fieldset'
-import { Form } from '../../components/form'
+import { Form } from '../../modules/form'
 import {
 	act,
 	allBySlot,

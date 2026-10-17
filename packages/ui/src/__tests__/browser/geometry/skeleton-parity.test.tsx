@@ -36,13 +36,6 @@ import {
 	DescriptionListSkeleton,
 	DescriptionTerm,
 } from '../../../components/description-list'
-import {
-	Filters,
-	FiltersBar,
-	FiltersField,
-	FiltersRow,
-	FiltersSkeleton,
-} from '../../../components/filters'
 import { HeadingSkeleton } from '../../../components/heading'
 import { Input } from '../../../components/input'
 import { List, ListDescription, ListItem, ListLabel, ListSkeleton } from '../../../components/list'
@@ -102,6 +95,13 @@ import { Tree, TreeItem, TreeSkeleton } from '../../../components/tree'
 import { type DensityStep, densitySteps } from '../../../core/density'
 import { BarChart, ChartSkeleton, PieChart } from '../../../modules/chart'
 import { ChatMessage, ChatTranscriptSkeleton } from '../../../modules/chat'
+import {
+	FormFilters,
+	FormFiltersBar,
+	FormFiltersField,
+	FormFiltersRow,
+	FormFiltersSkeleton,
+} from '../../../modules/form'
 import {
 	Kanban,
 	KanbanCard,
@@ -920,29 +920,29 @@ describe('skeleton parity (real browser)', () => {
 	})
 
 	it.each(['stack', 'rail'] as const)(
-		'FiltersSkeleton has the box of a %s filter row',
+		'FormFiltersSkeleton has the box of a %s filter row',
 		(layout) => {
 			const real = box(
 				renderUI(
-					<Filters aria-label="Filters" layout={layout} defaultValue={{}}>
-						<FiltersBar>
-							<FiltersRow>
+					<FormFilters aria-label="Filters" layout={layout} defaultValue={{}}>
+						<FormFiltersBar>
+							<FormFiltersRow>
 								{['a', 'b', 'c'].map((name) => (
-									<FiltersField key={name} name={name} className="w-52">
+									<FormFiltersField key={name} name={name} className="w-52">
 										<Input aria-label={name} />
-									</FiltersField>
+									</FormFiltersField>
 								))}
-							</FiltersRow>
-						</FiltersBar>
-					</Filters>,
-				).container.querySelector('[data-slot="filters-row"]'),
+							</FormFiltersRow>
+						</FormFiltersBar>
+					</FormFilters>,
+				).container.querySelector('[data-slot="form-filters-row"]'),
 				'filter row',
 			)
 
 			expect(
 				box(
-					renderUI(<FiltersSkeleton fields={3} layout={layout} fieldClassName="w-52" />).container
-						.firstElementChild,
+					renderUI(<FormFiltersSkeleton fields={3} layout={layout} fieldClassName="w-52" />)
+						.container.firstElementChild,
 					'skeleton',
 				),
 			).toStrictEqual(real)

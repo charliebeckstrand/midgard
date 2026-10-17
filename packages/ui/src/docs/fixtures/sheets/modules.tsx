@@ -1,7 +1,6 @@
 import states from 'us-atlas/states-10m.json'
 import { Badge } from '../../../components/badge'
 import { Label } from '../../../components/fieldset'
-import { Filters, FiltersBar, FiltersField, FiltersRow } from '../../../components/filters'
 import { Input } from '../../../components/input'
 import { Select, SelectLabel, SelectOption } from '../../../components/select'
 import { Stat, StatDelta, StatDescription, StatValue } from '../../../components/stat'
@@ -13,6 +12,12 @@ import {
 	ChatTranscript,
 } from '../../../modules/chat'
 import { Dashboard, type DashboardLayoutItem, DashboardTile } from '../../../modules/dashboard'
+import {
+	FormFilters,
+	FormFiltersBar,
+	FormFiltersField,
+	FormFiltersRow,
+} from '../../../modules/form'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import {
 	Kanban,
@@ -381,14 +386,14 @@ export function Sheet() {
 			</FixtureGroup>
 			<FixtureGroup title="Filters">
 				<FixtureCase label="two fields" wide>
-					<Filters aria-label="Filters" defaultValue={FILTERS} className="w-full">
-						<FiltersBar>
-							<FiltersRow>
-								<FiltersField name="search">
+					<FormFilters aria-label="Filters" defaultValue={FILTERS} className="w-full">
+						<FormFiltersBar>
+							<FormFiltersRow>
+								<FormFiltersField name="search">
 									<Label>Search</Label>
 									<Input placeholder="Search" />
-								</FiltersField>
-								<FiltersField name="status">
+								</FormFiltersField>
+								<FormFiltersField name="status">
 									<Label>Status</Label>
 									<Select
 										nullable
@@ -402,10 +407,10 @@ export function Sheet() {
 											<SelectLabel>Inactive</SelectLabel>
 										</SelectOption>
 									</Select>
-								</FiltersField>
-							</FiltersRow>
-						</FiltersBar>
-					</Filters>
+								</FormFiltersField>
+							</FormFiltersRow>
+						</FormFiltersBar>
+					</FormFilters>
 				</FixtureCase>
 			</FixtureGroup>
 		</FixtureSheet>

@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
-import { Form } from '../../components/form'
 import { Input } from '../../components/input'
+import { Form } from '../../modules/form'
 import { act, bySlot, getSlot, renderUI, screen, setupUser } from '../helpers'
 
 describe('Input', () => {

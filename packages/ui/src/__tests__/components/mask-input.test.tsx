@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Form } from '../../components/form'
 import { MaskInput } from '../../components/mask-input'
+import { Form } from '../../modules/form'
 import { act, bySlot, fireEvent, getSlot, renderUI, screen, setupUser } from '../helpers'
 
 const formatGroups = (raw: string) => {

@@ -16,7 +16,10 @@ import {
 //      from its owning kata: `recipes/kata/<same-name>` and any sub-kata
 //      `recipes/kata/<same-name>-<anything>`. Kata variants are part of the
 //      component's public API; re-exporting from a sibling component's
-//      internals is not.
+//      internals is not. A module barrel can also re-export from the internal
+//      primitive of its own name (`primitives/<same-name>/<file>`). That
+//      primitive holds the contract that the components read below the
+//      module, and the module is its public surface.
 //   2. No file imports a sibling component's main `<name>.tsx` via a deep
 //      relative path (`'../<other>/<other>'`). The barrel, `'../<other>'`,
 //      is the public entry point; deep main-file imports bypass it.
@@ -59,6 +62,8 @@ describe('component internals boundary', () => {
 					if (!target || target.startsWith('./')) continue
 
 					if (isOwnKataReexport(target, entry.name)) continue
+
+					if (dir === modulesDir && isOwnPrimitiveReexport(target, entry.name)) continue
 
 					violations.push(`${label}/${entry.name}/index.ts → ${target}`)
 				}
@@ -148,4 +153,8 @@ function isOwnKataReexport(target: string, component: string): boolean {
 	if (!kataName) return false
 
 	return kataName === component || kataName.startsWith(`${component}-`)
+}
+
+function isOwnPrimitiveReexport(target: string, unit: string): boolean {
+	return target.match(/^\.\.\/\.\.\/primitives\/([a-z][a-z0-9-]*)\/[a-z][a-z0-9-]*$/)?.[1] === unit
 }

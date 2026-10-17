@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import type { Plugin } from 'vite'
 import { configDefaults, defineConfig } from 'vitest/config'
@@ -98,6 +99,34 @@ const globCache: Plugin = {
 	},
 }
 
+// A bare `ui/*` import resolves through the `exports` map of `package.json`.
+// Vitest keys a cached module on its own text and on the config, and not on
+// that map. So after a change to the map, a module with the same text keeps
+// the old resolution. When `form` became a module, each docs page that imports
+// `ui/form` kept the path of the old component. That folder was gone, and the
+// pages failed in CI too. This generator adds the map to the key of each module
+// that imports `ui/*`, so a change to the map makes those keys miss.
+const UI_EXPORTS = JSON.stringify(
+	(
+		JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as {
+			exports: unknown
+		}
+	).exports,
+)
+
+const uiSpecifier = /['"]ui\//
+
+function keyOnExports({ sourceCode }: { sourceCode: string }): string | undefined {
+	return uiSpecifier.test(sourceCode) ? UI_EXPORTS : undefined
+}
+
+const exportsCache: Plugin = {
+	name: 'midgard:exports-cache',
+	configureVitest({ experimental_defineCacheKeyGenerator }) {
+		experimental_defineCacheKeyGenerator(keyOnExports)
+	},
+}
+
 // Setup files for both jsdom projects (unit, integration). The first one also
 // gives `expect` the geometry matchers (`setup/geometry.ts`).
 const setupFiles = [
@@ -107,7 +136,7 @@ const setupFiles = [
 ]
 
 export default defineConfig({
-	plugins: [globCache],
+	plugins: [globCache, exportsCache],
 	test: {
 		environment: 'jsdom',
 		// Vitest caps a pool at one fewer worker than the machine has cores. Local

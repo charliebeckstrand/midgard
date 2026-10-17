@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react'
 import { useA11yControl } from '../../hooks'
+import { useFormLocked } from '../../primitives/form/context'
 import {
 	type ControlContextValue,
 	type ControlSeverity,
@@ -47,6 +48,9 @@ export function useControlFieldContext(
 ): ControlContextValue {
 	const parent = useControl()
 
+	// A form that submits locks each field in it, as a read-only ancestor does.
+	const locked = useFormLocked()
+
 	const a11y = useA11yControl(id)
 
 	const { autoComplete, disabled, readOnly, required, severity, variant } = overrides
@@ -58,12 +62,12 @@ export function useControlFieldContext(
 			id,
 			autoComplete: autoComplete ?? parent?.autoComplete,
 			disabled: disabled || parent?.disabled,
-			readOnly: readOnly || parent?.readOnly,
+			readOnly: locked ? true : readOnly || parent?.readOnly,
 			required: required ?? parent?.required,
 			severity: severity ?? parent?.severity,
 			variant: variant ?? parent?.variant,
 			...a11y,
 		}),
-		[id, autoComplete, disabled, readOnly, required, severity, variant, parent, a11y],
+		[id, autoComplete, disabled, readOnly, required, severity, variant, parent, locked, a11y],
 	)
 }

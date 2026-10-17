@@ -4,9 +4,9 @@ import { Check, Minus } from 'lucide-react'
 import { useComposedRefs } from 'motion/react'
 import { type ChangeEventHandler, type ComponentProps, useLayoutEffect, useRef } from 'react'
 import { ariaAttr, cn, dataAttr } from '../../core'
+import { useFormToggle } from '../../primitives/form/use-form-toggle'
 import { type CheckboxVariants, k } from '../../recipes/kata/checkbox'
 import { useControlProps } from '../control/use-control-props'
-import { useFormToggle } from '../form/use-form-toggle'
 
 /** Props for {@link Checkbox}. */
 export type CheckboxProps = CheckboxVariants & {

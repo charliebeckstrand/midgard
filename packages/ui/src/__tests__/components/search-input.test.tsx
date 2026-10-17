@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { Form } from '../../components/form'
 import { SearchInput } from '../../components/search-input'
+import { Form } from '../../modules/form'
 import { bySlot, fireEvent, getSlot, renderUI, screen, setupUser } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 

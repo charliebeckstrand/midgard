@@ -1,7 +1,7 @@
 import type { ComponentProps } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { Form } from '../../components/form'
 import { MaskInput, zipcodeMask } from '../../components/mask-input'
+import { Form } from '../../modules/form'
 import { bySlot, getSlot, renderUI, screen, setupUser } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 

@@ -4,10 +4,10 @@ import { useComposedRefs } from 'motion/react'
 import type { ComponentProps, CSSProperties } from 'react'
 import { ariaAttr, cn, composeEventHandlers, invalidAttrs } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
+import { useFormValue } from '../../primitives/form/use-form-value'
 import { k, type SliderVariants } from '../../recipes/kata/slider'
 import { clamp, pct } from '../../utilities'
 import { useControlProps } from '../control/use-control-props'
-import { useFormValue } from '../form/use-form-value'
 
 /**
  * The value that a native range input shows for `value`. The input clamps the

@@ -2,11 +2,11 @@
 
 import { type HTMLAttributes, type ReactNode, useEffect } from 'react'
 import { cn, type Severity } from '../../core'
+import { useFormField, useFormFieldTarget } from '../../primitives/form/context'
+import { hasIssues } from '../../primitives/form/form-issues'
 import { k } from '../../recipes/kata/fieldset'
 import { keyByOccurrence } from '../../utilities'
 import { useControl } from '../control/context'
-import { useFormField } from '../form/context'
-import { hasIssues } from '../form/form-reducer'
 
 /** Tone of a `<Message>`: an assertive `error`, or a polite `warning` / `success`. Aliases the shared {@link Severity} so the validation vocabulary stays single-sourced. */
 export type MessageSeverity = Severity
@@ -83,6 +83,9 @@ function resolveMessageElementId(
  * invalid. Drive the validation ring (and, for `error`, `aria-invalid`) with
  * `<Field severity>` / `<Control severity>`, an explicit `invalid`, or a form
  * binding. Its type scale takes the step of the nearest density scope.
+ *
+ * A form-bound message registers the id of its control with the form. A
+ * `FormErrorSummary` then links the errors of the field to that control.
  */
 export function Message({
 	severity: severityProp,
@@ -96,6 +99,10 @@ export function Message({
 	const control = useControl()
 
 	const field = useFormField(name)
+
+	// A form-bound message names the control of its field, so that a
+	// FormErrorSummary can move the focus to that control.
+	useFormFieldTarget(field ? name : undefined, control?.id)
 
 	// An unbound message takes the tone of its Field (FieldProps.severity). A
 	// form-bound message shows the errors of its field, so it stays `error`.

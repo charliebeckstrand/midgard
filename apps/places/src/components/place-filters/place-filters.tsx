@@ -3,7 +3,13 @@
 import dynamic from 'next/dynamic'
 import { ControlSkeleton } from 'ui/control'
 import type { DatePickerRelativeValue } from 'ui/date-picker'
-import { Filters, FiltersBar, FiltersClear, FiltersField, FiltersRow } from 'ui/filters'
+import {
+	FormFilters,
+	FormFiltersBar,
+	FormFiltersClear,
+	FormFiltersField,
+	FormFiltersRow,
+} from 'ui/form'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 import { Swatch } from 'ui/swatch'
 import { RECORD_KIND_META } from '../../constants'
@@ -60,7 +66,7 @@ function kindLabel(kind: RecordKind): string {
  */
 function ShowField() {
 	return (
-		<FiltersField<RecordKind[]> name="show" className="w-52">
+		<FormFiltersField<RecordKind[]> name="show" className="w-52">
 			{({ value: kinds, onValueChange: setKinds }) => (
 				<Listbox<RecordKind>
 					multiple
@@ -86,7 +92,7 @@ function ShowField() {
 					))}
 				</Listbox>
 			)}
-		</FiltersField>
+		</FormFiltersField>
 	)
 }
 
@@ -103,7 +109,7 @@ function ShowField() {
  * inside the United States — because the same control means a different grain at
  * each level and a fixed label would be wrong at one of them.
  *
- * Every filter goes through `FiltersField`'s render function rather than its
+ * Every filter goes through `FormFiltersField`'s render function rather than its
  * element form. The element form binds `value={fieldValue ?? null}`, and neither
  * a multi-select Listbox nor the relative DatePicker takes a `null` — each holds
  * an array. The render function hands the slot and its setter over untouched.
@@ -123,13 +129,13 @@ export function PlaceFilters({
 		// under this bar is the whole screen, so a column of five controls would take
 		// the thing the bar exists to filter — and on the narrow screen where that
 		// column would appear, the map has the least room to spare.
-		<Filters<PlaceFilterValue>
+		<FormFilters<PlaceFilterValue>
 			aria-label="Filter places"
 			layout="rail"
 			value={value}
 			onValueChange={onValueChange}
 		>
-			<FiltersBar>
+			<FormFiltersBar>
 				{/* The bar's own padding rides the field row rather than a wrapper
 				    around it. Outside the row, a padded band is not the scroll
 				    container. A wheel over the strip above or below the controls —
@@ -139,7 +145,7 @@ export function PlaceFilters({
 				    holds the inset at the right edge, and the gap of the bar holds
 				    the space between the two. With the padding too, the last field
 				    stood four gaps away from Clear. */}
-				<FiltersRow className="px-6 py-3 not-last:pr-0">
+				<FormFiltersRow className="px-6 py-3 not-last:pr-0">
 					{/* Navigation rather than a filter — it projects one region instead of
 					    narrowing the places — but it rides the same rail: two scroll
 					    containers side by side is one the reader's wheel finds and one it
@@ -169,7 +175,7 @@ export function PlaceFilters({
 					    painted and the map reads as one surface with the places on it. It
 					    shows only while the visited regions feature is on. */}
 					{flags.visitedRegions ? (
-						<FiltersField<PlaceVisitFilter> name="visitedRegions" className="w-52">
+						<FormFiltersField<PlaceVisitFilter> name="visitedRegions" className="w-52">
 							{({ value: picked, onValueChange: setPicked }) => (
 								<Listbox<PlaceVisitFilter>
 									aria-label="Visited"
@@ -188,21 +194,21 @@ export function PlaceFilters({
 									</ListboxOption>
 								</Listbox>
 							)}
-						</FiltersField>
+						</FormFiltersField>
 					) : null}
 
-					<FiltersField<PlaceCategory[]> name="categories" className="w-52">
+					<FormFiltersField<PlaceCategory[]> name="categories" className="w-52">
 						{({ value: categories, onValueChange: setCategories }) => (
 							<CategoryPicker
 								value={categories ?? []}
-								// An absent field is what `Filters` reads as unset, and an empty
+								// An absent field is what `FormFilters` reads as unset, and an empty
 								// pick means the reader stopped filtering — so the two meet here.
 								onValueChange={(next) => setCategories(next.length === 0 ? undefined : next)}
 							/>
 						)}
-					</FiltersField>
+					</FormFiltersField>
 
-					<FiltersField<DatePickerRelativeValue[]> name="visited" className="w-52">
+					<FormFiltersField<DatePickerRelativeValue[]> name="visited" className="w-52">
 						{({ value: visited, onValueChange: setVisited }) => (
 							<DatePicker
 								// Text, not chips: the chip row wraps, so a filter bar reflows a
@@ -227,8 +233,8 @@ export function PlaceFilters({
 								}
 							/>
 						)}
-					</FiltersField>
-				</FiltersRow>
+					</FormFiltersField>
+				</FormFiltersRow>
 
 				{/* Only once something is set. A Clear standing over an unfiltered bar
 				    offers to undo nothing, and reads as a control that does not work.
@@ -243,11 +249,11 @@ export function PlaceFilters({
 					// The weight is this app's own: the bar sits over a map that redraws
 					// under it, so the one control that undoes the lot has to be findable
 					// at a glance. The shared default stays neutral for every other bar.
-					<FiltersClear variant="soft" color="red" className="my-3 mr-6">
+					<FormFiltersClear variant="soft" color="red" className="my-3 mr-6">
 						Clear
-					</FiltersClear>
+					</FormFiltersClear>
 				)}
-			</FiltersBar>
-		</Filters>
+			</FormFiltersBar>
+		</FormFilters>
 	)
 }
