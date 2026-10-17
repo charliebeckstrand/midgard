@@ -1,7 +1,7 @@
-import { fireEvent, render } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { act, fireEvent, render } from '@testing-library/react'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { clamp } from '../../utilities/clamp.ts'
-import { bandAt, lettersOf } from '../app/letter-rail.tsx'
+import { bandAt, HOLD_DELAY, lettersOf } from '../app/letter-rail.tsx'
 import { DocsSearch } from '../app/search.tsx'
 import { DocsSidebar } from '../app/sidebar.tsx'
 import type { PageLink } from '../plugin/pages.ts'
@@ -145,6 +145,15 @@ const release = (track: HTMLElement) => {
 	fireEvent.pointerUp(track, { pointerId: 1 })
 }
 
+/** Fakes the timers for the case, so the case decides when the hold of a touch ends. */
+const fakeTimers = () => {
+	vi.useFakeTimers()
+
+	onTestFinished(() => {
+		vi.useRealTimers()
+	})
+}
+
 const tap = (track: HTMLElement, y: number, pointerType?: string) => {
 	press(track, y, pointerType)
 
@@ -269,18 +278,71 @@ describe('LetterRail', () => {
 		expect(active()).toBe('A')
 	})
 
-	it('shows the bubble for a touch slide only', () => {
+	it('shows no bubble for a tap', () => {
+		fakeTimers()
+
 		const { track, bubble } = renderSidebar()
 
 		press(track, inBand(1))
+
+		expect(bubble()).toBe(false)
+
+		release(track)
+
+		act(() => vi.advanceTimersByTime(HOLD_DELAY))
+
+		expect(bubble()).toBe(false)
+	})
+
+	it('shows the bubble when a touch stays on the rail', () => {
+		fakeTimers()
+
+		const { track, bubble } = renderSidebar()
+
+		press(track, inBand(1))
+
+		act(() => vi.advanceTimersByTime(HOLD_DELAY - 1))
+
+		expect(bubble()).toBe(false)
+
+		act(() => vi.advanceTimersByTime(1))
 
 		expect(bubble()).toBe(true)
 
 		release(track)
 
 		expect(bubble()).toBe(false)
+	})
+
+	it('shows the bubble when a touch slides to a second letter', () => {
+		fakeTimers()
+
+		const { track, bubble } = renderSidebar()
+
+		press(track, inBand(1, 2))
+
+		// A move in the band of the first letter is not a slide yet.
+		fireEvent.pointerMove(track, { clientY: inBand(1, BAND - 2), pointerId: 1 })
+
+		expect(bubble()).toBe(false)
+
+		fireEvent.pointerMove(track, { clientY: inBand(2), pointerId: 1 })
+
+		expect(bubble()).toBe(true)
+
+		release(track)
+	})
+
+	it('shows no bubble for a mouse', () => {
+		fakeTimers()
+
+		const { track, bubble } = renderSidebar()
 
 		press(track, inBand(1), 'mouse')
+
+		fireEvent.pointerMove(track, { clientY: inBand(2), pointerId: 1 })
+
+		act(() => vi.advanceTimersByTime(HOLD_DELAY))
 
 		expect(bubble()).toBe(false)
 
