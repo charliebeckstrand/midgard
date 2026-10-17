@@ -92,7 +92,7 @@ describe('Alert icon and close button', () => {
 
 			const title = present(root.querySelector('[data-slot="icon"] + div'), 'the title')
 
-			const close = boxOf(root, 'button[aria-label="Dismiss"]')
+			const close = boxOf(root, '[data-slot="alert-close"]')
 
 			// The description wraps, so a button in the middle of the surface misses the title.
 			expect(root.getBoundingClientRect().height).toBeGreaterThan(close.height * 2)

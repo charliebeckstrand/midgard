@@ -1,7 +1,7 @@
 'use client'
 
+import { defineMessages } from '@formatjs/intl'
 import { type ReactNode, useEffect, useRef, useState } from 'react'
-import { defineMessages } from 'react-intl'
 import { useControllable } from '../../hooks/use-controllable'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -140,21 +140,13 @@ export function Lightbox({
 	controls = true,
 	thumbnails = false,
 	blur = true,
-	'aria-label': ariaLabelProp,
-	closeLabel: closeLabelProp,
-	previousLabel: previousLabelProp,
-	nextLabel: nextLabelProp,
+	'aria-label': ariaLabel,
+	closeLabel,
+	previousLabel,
+	nextLabel,
 	children,
 }: LightboxProps) {
 	const intl = useIntl()
-
-	const ariaLabel = ariaLabelProp ?? intl.formatMessage(messages.photos)
-
-	const closeLabel = closeLabelProp ?? intl.formatMessage(intlMessages.close)
-
-	const previousLabel = previousLabelProp ?? intl.formatMessage(messages.previous)
-
-	const nextLabel = nextLabelProp ?? intl.formatMessage(messages.next)
 
 	const [index, setIndex] = useControllable<number>({
 		value: indexProp,
@@ -250,10 +242,10 @@ export function Lightbox({
 						thumbnails={thumbnails}
 						blur={blur}
 						labels={{
-							viewer: ariaLabel,
-							close: closeLabel,
-							previous: previousLabel,
-							next: nextLabel,
+							viewer: ariaLabel ?? intl.formatMessage(messages.photos),
+							close: closeLabel ?? intl.formatMessage(intlMessages.close),
+							previous: previousLabel ?? intl.formatMessage(messages.previous),
+							next: nextLabel ?? intl.formatMessage(messages.next),
 						}}
 					/>
 				)}

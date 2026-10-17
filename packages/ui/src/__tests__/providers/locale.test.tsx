@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Listbox, ListboxOption } from '../../components/listbox'
 import { LocaleProvider, resolveRequestLocale, useLocale } from '../../providers/locale'
 import { matchLocale, writeLocaleChoice } from '../../providers/locale/locale-choice'
-import { act, renderUI, screen } from '../helpers'
+import { act, clearCookies, renderUI, screen } from '../helpers'
 
 // The English locales of the apps, with the default first.
 const LOCALES = ['en-US', 'en-GB', 'en-CA', 'en-AU'] as const
@@ -15,9 +15,6 @@ function stubLanguages(languages: string[]) {
 
 afterEach(() => {
 	localStorage.clear()
-
-	// biome-ignore lint/suspicious/noDocumentCookie: the test removes the cookie that the provider writes.
-	document.cookie = 'locale=; max-age=0; path=/'
 })
 
 function LocaleProbe() {
@@ -125,8 +122,7 @@ describe('LocaleProvider with locales', () => {
 
 		// The first render wrote the stored choice to the cookie. Remove it, so the
 		// second render reads the storage alone.
-		// biome-ignore lint/suspicious/noDocumentCookie: the test removes the cookie that the provider writes.
-		document.cookie = 'locale=; max-age=0; path=/'
+		clearCookies()
 
 		localStorage.setItem('locale', 'fr-FR')
 
@@ -393,10 +389,8 @@ describe('resolveRequestLocale', () => {
 		expect(resolveRequestLocale({ cookie: 'de-DE', acceptLanguage: 'es', locales })).toBe('es-ES')
 	})
 
-	it('falls back when no accepted language matches', () => {
-		expect(
-			resolveRequestLocale({ acceptLanguage: 'fr, *;q=0.1', locales, fallback: 'en-GB' }),
-		).toBe('en-GB')
+	it('falls back to the first locale when no accepted language matches', () => {
+		expect(resolveRequestLocale({ acceptLanguage: 'fr, *;q=0.1', locales })).toBe('en-US')
 
 		expect(resolveRequestLocale({ acceptLanguage: null, locales })).toBe('en-US')
 	})

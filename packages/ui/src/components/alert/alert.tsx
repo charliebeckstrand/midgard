@@ -1,5 +1,6 @@
 'use client'
 
+import { defineMessages } from '@formatjs/intl'
 import { AlertTriangle, CheckCircle, Info, X, XCircle } from 'lucide-react'
 import { useComposedRefs } from 'motion/react'
 import {
@@ -10,7 +11,6 @@ import {
 	useLayoutEffect,
 	useRef,
 } from 'react'
-import { defineMessages } from 'react-intl'
 import { cn } from '../../core'
 import { useControllableFlag } from '../../hooks'
 import { useAnnounceOnAppear } from '../../hooks/a11y/use-announce-on-appear'

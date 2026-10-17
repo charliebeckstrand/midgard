@@ -117,22 +117,17 @@ export function LocaleProvider({
 		[stored.locale, currency, numberFormat, dateFormat, timeZone, outer],
 	)
 
-	// A provider in the locale of the enclosing intl keeps that intl, so a nested
-	// provider that sets only a currency adds no intl of its own.
-	const intl = useMemo(
-		() =>
-			stored.locale === undefined || stored.locale === outerIntl.locale
-				? outerIntl
-				: createLocaleIntl(stored.locale),
-		[stored.locale, outerIntl],
-	)
+	// One intl serves each locale, so a nested provider in the locale of the
+	// enclosing provider gives the same intl to its subtree.
+	const intl = stored.locale === undefined ? outerIntl : createLocaleIntl(stored.locale)
 
 	// A choice stored before the cookie existed reaches the cookie here. The
-	// hydration render reads `'system'`, so the effect skips System, and a
-	// System choice that the reader makes reaches the cookie through the setter.
+	// hydration render and a provider with no `locales` read `'system'`, so the
+	// effect skips System. A System choice of the reader reaches the cookie
+	// through the setter.
 	useEffect(() => {
-		if (locales && stored.choice !== SYSTEM_LOCALE) syncLocaleCookie(stored.choice)
-	}, [locales, stored.choice])
+		if (stored.choice !== SYSTEM_LOCALE) syncLocaleCookie(stored.choice)
+	}, [stored.choice])
 
 	const choice = useMemo<LocaleChoiceValue | null>(
 		() => (locales ? { choice: stored.choice, locales, setChoice: writeLocaleChoice } : null),

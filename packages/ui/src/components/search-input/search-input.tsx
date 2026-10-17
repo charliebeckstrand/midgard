@@ -1,9 +1,9 @@
 'use client'
 
+import { defineMessages } from '@formatjs/intl'
 import { Search } from 'lucide-react'
 import { useComposedRefs } from 'motion/react'
 import { type ChangeEvent, type KeyboardEvent, type ReactNode, useMemo } from 'react'
-import { defineMessages } from 'react-intl'
 import { cn, composeEventHandlers } from '../../core'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -91,7 +91,7 @@ export function SearchInput({
 	defaultValue,
 	loading,
 	clearable = true,
-	clearLabel: clearLabelProp,
+	clearLabel,
 	onChange,
 	onValueChange,
 	onClear,
@@ -104,8 +104,6 @@ export function SearchInput({
 	...props
 }: SearchInputProps) {
 	const intl = useIntl()
-
-	const clearLabel = clearLabelProp ?? intl.formatMessage(messages.clear)
 
 	const {
 		value: current,
@@ -172,7 +170,7 @@ export function SearchInput({
 			prefix={SEARCH_PREFIX}
 			// The spinner takes the place of the clear button while a query is in flight.
 			clearable={clearable && !loading}
-			clearLabel={clearLabel}
+			clearLabel={clearLabel ?? intl.formatMessage(messages.clear)}
 			suffix={
 				loading ? (
 					<>

@@ -1,5 +1,6 @@
 'use client'
 
+import { defineMessages } from '@formatjs/intl'
 import { ChevronsUpDown } from 'lucide-react'
 import { useComposedRefs } from 'motion/react'
 import {
@@ -38,6 +39,8 @@ import {
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useFormValue } from '../../primitives/form/use-form-value'
+import { intlMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { DeferredQueryContext, QueryContext, useQueryValue } from '../../primitives/query'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/context'
@@ -51,6 +54,10 @@ import { OPTION_SELECTOR } from './combobox-constants'
 import { ComboboxInput } from './combobox-input'
 import { ComboboxPanel } from './combobox-panel'
 import { resolveInputDisplay, resolveInputTitle } from './combobox-utilities'
+import { ComboboxContext } from './context'
+import { useComboboxInput } from './use-combobox-input'
+import { routeFloatingOpenChange, useComboboxState } from './use-combobox-state'
+import { useComboboxTrigger } from './use-combobox-trigger'
 
 const messages = defineMessages({
 	placeholder: {
@@ -59,14 +66,6 @@ const messages = defineMessages({
 		description: 'The placeholder of a field that filters a list of options as the reader types.',
 	},
 })
-
-import { defineMessages } from 'react-intl'
-import { intlMessages, selectedMessage } from '../../primitives/intl/intl-messages'
-import { useIntl } from '../../primitives/intl/use-intl'
-import { ComboboxContext } from './context'
-import { useComboboxInput } from './use-combobox-input'
-import { routeFloatingOpenChange, useComboboxState } from './use-combobox-state'
-import { useComboboxTrigger } from './use-combobox-trigger'
 
 type ComboboxBaseProps<T> = {
 	id?: string
@@ -469,7 +468,7 @@ export function Combobox<T>({
 	summarize,
 	onValueChange,
 	multiple = false,
-	placeholder: placeholderProp,
+	placeholder,
 	placement = 'bottom-start',
 	prefix,
 	suffix,
@@ -497,8 +496,6 @@ export function Combobox<T>({
 	children,
 }: ComboboxProps<T>) {
 	const intl = useIntl()
-
-	const placeholder = placeholderProp ?? intl.formatMessage(messages.placeholder)
 
 	const glass = useGlass()
 
@@ -792,7 +789,7 @@ export function Combobox<T>({
 		displayValue,
 		summarize,
 		multiple,
-		formatCount: (count) => intl.formatMessage(selectedMessage, { count }),
+		intl,
 	})
 
 	// The field shows how many are picked; this says which, on hover.
@@ -959,7 +956,7 @@ export function Combobox<T>({
 							selected={hasValue}
 							invalid={resolvedInvalid}
 							value={inputDisplay}
-							placeholder={placeholder}
+							placeholder={placeholder ?? intl.formatMessage(messages.placeholder)}
 							title={inputTitle}
 							editing={editing}
 							capitalize={capitalize}

@@ -1,14 +1,12 @@
 'use client'
 
-import type { MessageDescriptor } from 'react-intl'
+import type { MessageDescriptor } from '@formatjs/intl'
 import { useIntl } from './use-intl'
 
 /** Props for {@link IntlMessage}. @internal */
 type IntlMessageProps = {
 	/** The message to show. */
 	message: MessageDescriptor
-	/** The values of the placeholders of the message. */
-	values?: Record<string, string | number>
 }
 
 /**
@@ -18,6 +16,6 @@ type IntlMessageProps = {
  *
  * @internal
  */
-export function IntlMessage({ message, values }: IntlMessageProps) {
-	return useIntl().formatMessage(message, values)
+export function IntlMessage({ message }: IntlMessageProps) {
+	return useIntl().formatMessage(message)
 }

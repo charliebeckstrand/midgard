@@ -1,7 +1,7 @@
 import { cookies, headers } from 'next/headers'
 import type { ReactNode } from 'react'
 import { LOCALE_COOKIE, LocaleProvider, resolveRequestLocale } from 'ui/providers/locale'
-import { DEFAULT_LOCALE, LOCALES } from './locales'
+import { LOCALES } from './locales'
 
 /** Props for {@link RequestLocale}. */
 export type RequestLocaleProps = {
@@ -31,7 +31,6 @@ export async function RequestLocale({ children }: RequestLocaleProps) {
 		cookie: cookieStore.get(LOCALE_COOKIE)?.value,
 		acceptLanguage: headerList.get('accept-language'),
 		locales: LOCALES,
-		fallback: DEFAULT_LOCALE,
 	})
 
 	return (

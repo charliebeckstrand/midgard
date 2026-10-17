@@ -1,7 +1,7 @@
 'use client'
 
+import { defineMessages } from '@formatjs/intl'
 import { type ReactNode, useCallback, useEffect } from 'react'
-import { defineMessages } from 'react-intl'
 import { cn } from '../../core'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'

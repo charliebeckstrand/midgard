@@ -85,7 +85,7 @@ export function Input({
 	prefix,
 	suffix,
 	clearable = false,
-	clearLabel: clearLabelProp,
+	clearLabel,
 	id,
 	disabled,
 	required,
@@ -102,8 +102,6 @@ export function Input({
 	...rest
 }: InputProps) {
 	const intl = useIntl()
-
-	const clearLabel = clearLabelProp ?? intl.formatMessage(intlMessages.clear)
 
 	const field = useInputControl({
 		id,
@@ -176,7 +174,7 @@ export function Input({
 		clearable && filled && editable ? (
 			<InputClearButton
 				ref={clearButtonRef}
-				label={clearLabel}
+				label={clearLabel ?? intl.formatMessage(intlMessages.clear)}
 				// Keep the focus in the input, so that no blur runs before the clear.
 				onMouseDown={(event) => event.preventDefault()}
 				onClick={() => clearNativeInput(inputRef.current)}

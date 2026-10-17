@@ -1,3 +1,4 @@
+import { languageOf } from '../../primitives/intl/intl-catalog'
 import {
 	type AppearanceChoice,
 	readChoice,
@@ -93,11 +94,6 @@ export function syncLocaleCookie(choice: string) {
 	document.cookie = `${LOCALE_COOKIE}=${encodeURIComponent(choice)}; path=/; max-age=${COOKIE_MAX_AGE}; samesite=lax${secure}`
 }
 
-// The language subtag of a BCP 47 tag, such as `en` for `en-GB`.
-function languageOf(tag: string) {
-	return tag.split('-')[0]?.toLowerCase()
-}
-
 /**
  * Finds the locale of `locales` that matches the languages of the reader. It
  * reads `preferred` in order, and stops at the first language that one of
@@ -131,20 +127,34 @@ export function matchLocale(
 }
 
 // The tags of an `Accept-Language` header, in the order of their weight. A tag
-// with no weight has the weight 1, and `*` matches no locale.
+// with no weight has the weight 1, and `*` matches no locale. The sort is
+// stable, so tags of the same weight keep the order of the header.
 function acceptedLanguages(header: string) {
 	return header
 		.split(',')
-		.map((part, index) => {
-			const [tag = '', ...params] = part.trim().split(';')
+		.map((part) => {
+			const [tag = '', ...params] = part.split(';').map((piece) => piece.trim())
 
-			const weight = params.find((param) => param.trim().startsWith('q='))
+			const weight = params.find((param) => param.startsWith('q='))
 
-			return { tag: tag.trim(), q: weight ? Number(weight.trim().slice(2)) : 1, index }
+			return { tag, q: weight ? Number(weight.slice(2)) : 1 }
 		})
 		.filter(({ tag, q }) => tag !== '' && tag !== '*' && q > 0)
-		.sort((a, b) => b.q - a.q || a.index - b.index)
+		.sort((a, b) => b.q - a.q)
 		.map(({ tag }) => tag)
+}
+
+// The one rule of the server and the browser: a stored choice that is one of
+// `locales` wins, else the match of the languages of the reader, else `fallback`.
+function pickLocale(
+	choice: string | undefined,
+	preferred: readonly string[],
+	locales: readonly string[],
+	fallback: string,
+): string {
+	if (choice !== undefined && locales.includes(choice)) return choice
+
+	return matchLocale(preferred, locales) ?? fallback
 }
 
 /** The request values that {@link resolveRequestLocale} reads. */
@@ -155,8 +165,6 @@ export type RequestLocaleInput = {
 	acceptLanguage?: string | null
 	/** The locales that the reader can choose from, as the provider gets them. */
 	locales: readonly [string, ...string[]]
-	/** The locale when the choice is System and no accepted language matches. */
-	fallback?: string
 }
 
 /**
@@ -165,7 +173,7 @@ export type RequestLocaleInput = {
  * the choice is System, and the `Accept-Language` header takes the place of the
  * languages of the browser.
  *
- * @returns The locale, else `fallback`, else the first entry of `locales`.
+ * @returns The locale, else the first entry of `locales`.
  * @example
  * ```ts
  * const locale = resolveRequestLocale({
@@ -179,13 +187,10 @@ export function resolveRequestLocale({
 	cookie,
 	acceptLanguage,
 	locales,
-	fallback,
 }: RequestLocaleInput): string {
-	if (cookie !== undefined && locales.includes(cookie)) return cookie
+	const preferred = acceptLanguage ? acceptedLanguages(acceptLanguage) : []
 
-	const match = acceptLanguage ? matchLocale(acceptedLanguages(acceptLanguage), locales) : undefined
-
-	return match ?? fallback ?? locales[0]
+	return pickLocale(cookie, preferred, locales, locales[0])
 }
 
 /**
@@ -200,11 +205,7 @@ export function resolveLocaleChoice(
 	locales: readonly string[],
 	fallback: string,
 ): string {
-	const stored = readLocaleChoice(choice)
-
-	if (stored !== SYSTEM_LOCALE) return stored
-
-	return matchLocale(navigator.languages, locales) ?? fallback
+	return pickLocale(readLocaleChoice(choice), navigator.languages, locales, fallback)
 }
 
 /**

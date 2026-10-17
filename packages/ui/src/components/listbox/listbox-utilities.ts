@@ -1,4 +1,5 @@
 import { createElement, Fragment, type ReactNode } from 'react'
+import type { IntlShape } from 'react-intl'
 import { englishIntl } from '../../primitives/intl/intl-catalog'
 import { selectedMessage } from '../../primitives/intl/intl-messages'
 import { capitalizeFirst } from '../../utilities'
@@ -10,21 +11,20 @@ import { capitalizeFirst } from '../../utilities'
  *
  * In `multiple` mode, a comma and a space join three or fewer values. Strings
  * join into one string. A node in the selection makes the join a node. More
- * values show as a count, which `formatCount` words in the language of the
- * reader.
+ * values show as a count, in the language of `intl`.
  */
 export function resolveLabel<T>({
 	value,
 	displayValue,
 	multiple,
 	capitalize = false,
-	formatCount = englishCount,
+	intl = englishIntl,
 }: {
 	value: T | T[] | undefined
 	displayValue?: (value: T) => ReactNode
 	multiple: boolean
 	capitalize?: boolean
-	formatCount?: (count: number) => string
+	intl?: IntlShape
 }): ReactNode {
 	const display =
 		displayValue && capitalize
@@ -42,17 +42,12 @@ export function resolveLabel<T>({
 
 		if (display && values.length <= 3) return joinLabels(values.map(display))
 
-		return formatCount(values.length)
+		return intl.formatMessage(selectedMessage, { count: values.length })
 	}
 
 	if (value !== undefined && !Array.isArray(value) && display) return display(value)
 
 	return undefined
-}
-
-// The count of the selected values, in English, for a caller with no intl.
-function englishCount(count: number) {
-	return englishIntl.formatMessage(selectedMessage, { count })
 }
 
 /** Joins the labels with a comma and a space: as one string where each is a string, else as a node. @internal */

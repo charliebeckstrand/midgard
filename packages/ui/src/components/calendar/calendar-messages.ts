@@ -1,4 +1,4 @@
-import { defineMessages } from 'react-intl'
+import { defineMessages } from '@formatjs/intl'
 
 /**
  * The messages of the calendar: the names of its step buttons and of its

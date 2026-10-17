@@ -1,4 +1,4 @@
-import { defineMessages } from 'react-intl'
+import { defineMessages } from '@formatjs/intl'
 
 /**
  * The messages of the date picker: its toolbar, its Today button, and the

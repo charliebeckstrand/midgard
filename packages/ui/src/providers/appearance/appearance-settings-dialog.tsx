@@ -1,8 +1,8 @@
 'use client'
 
+import type { MessageDescriptor } from '@formatjs/intl'
 import { ChevronsUpDown } from 'lucide-react'
 import { type ReactNode, useMemo, useState } from 'react'
-import type { MessageDescriptor } from 'react-intl'
 import { Dialog, DialogBody, DialogHeader, DialogPanel, DialogTitle } from '../../components/dialog'
 import { Field, Label } from '../../components/fieldset'
 import { Icon } from '../../components/icon'

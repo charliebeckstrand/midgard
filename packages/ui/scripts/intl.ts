@@ -55,15 +55,12 @@ export async function extractCatalog(): Promise<Record<string, CatalogEntry>> {
 	return JSON.parse(json) as Record<string, CatalogEntry>
 }
 
-/** The text of a catalog file: sorted keys, tab indents, and a final newline. */
+/**
+ * The text of a catalog file: tab indents and a final newline. `extract`
+ * already gives the ids in sorted order.
+ */
 export function catalogText(catalog: Record<string, unknown>): string {
-	const sorted = Object.fromEntries(
-		Object.keys(catalog)
-			.sort()
-			.map((id) => [id, catalog[id]]),
-	)
-
-	return `${JSON.stringify(sorted, null, '\t')}\n`
+	return `${JSON.stringify(catalog, null, '\t')}\n`
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

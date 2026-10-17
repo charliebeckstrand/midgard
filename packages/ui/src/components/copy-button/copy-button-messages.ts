@@ -1,4 +1,4 @@
-import { defineMessages } from 'react-intl'
+import { defineMessages } from '@formatjs/intl'
 
 /**
  * The messages of the copy button: its name before a copy, and the word that

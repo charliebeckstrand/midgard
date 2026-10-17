@@ -1,8 +1,8 @@
 'use client'
 
+import { defineMessages } from '@formatjs/intl'
 import { Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
-import { defineMessages } from 'react-intl'
 import { useOpenChange } from '../../hooks/use-open-change'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Button } from '../button'

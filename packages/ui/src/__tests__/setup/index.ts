@@ -10,6 +10,7 @@ import { installResidueGuard } from '../helpers/residue'
 import './geometry'
 import './jsdom-stubs'
 import './locale-guard'
+import { clearCookies } from '../helpers/clear-cookies'
 
 declare module 'vitest' {
 	interface ProvidedContext {
@@ -84,4 +85,8 @@ afterEach(() => {
 	// thus only in the first file of a worker. Without this removal, the stub and
 	// the text that a case copies stay for each later case and file.
 	Reflect.deleteProperty(navigator, 'clipboard')
+
+	// The locale provider writes a cookie, and the window keeps it for each later
+	// case and file of the worker.
+	clearCookies()
 })

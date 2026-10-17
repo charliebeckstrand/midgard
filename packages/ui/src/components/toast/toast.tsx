@@ -1,9 +1,9 @@
 'use client'
 
+import { defineMessages } from '@formatjs/intl'
 import { AnimatePresence } from 'motion/react'
 import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { defineMessages } from 'react-intl'
 import { cn } from '../../core'
 import { useHydrated } from '../../hooks/use-hydrated'
 import { useIsRtl } from '../../hooks/use-is-rtl'

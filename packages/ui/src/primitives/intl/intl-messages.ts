@@ -1,4 +1,4 @@
-import { defineMessage, defineMessages, type TypedMessageDescriptor } from 'react-intl'
+import { defineMessage, defineMessages, type TypedMessageDescriptor } from '@formatjs/intl'
 
 /**
  * The messages that many controls of ui share. A message that one unit owns

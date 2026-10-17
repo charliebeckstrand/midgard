@@ -1,6 +1,7 @@
 'use client'
 
 import type { OpenChangeReason } from '@floating-ui/react'
+import { defineMessages } from '@formatjs/intl'
 import { ChevronsUpDown } from 'lucide-react'
 import {
 	type FocusEvent,
@@ -16,6 +17,8 @@ import type { ScaleStep } from '../../core/density'
 import { type FloatingPlacement, useFloatingUI, useSelectableValueChange } from '../../hooks'
 import { isTypeaheadKey } from '../../hooks/a11y/use-typeahead'
 import { useFormValue } from '../../primitives/form/use-form-value'
+import { intlMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { useGlass } from '../../providers/glass/context'
 import type { scale } from '../../recipes/kata/listbox'
@@ -27,6 +30,7 @@ import { ListboxContext } from './context'
 import { ListboxButton } from './listbox-button'
 import { ListboxPanel } from './listbox-panel'
 import { resolveLabel } from './listbox-utilities'
+import { useListboxState } from './use-listbox-state'
 
 const messages = defineMessages({
 	placeholder: {
@@ -35,11 +39,6 @@ const messages = defineMessages({
 		description: 'The placeholder of a picker with no selected value.',
 	},
 })
-
-import { defineMessages } from 'react-intl'
-import { intlMessages, selectedMessage } from '../../primitives/intl/intl-messages'
-import { useIntl } from '../../primitives/intl/use-intl'
-import { useListboxState } from './use-listbox-state'
 
 type ListboxBaseProps = {
 	name?: string
@@ -204,7 +203,7 @@ export function Listbox<T>({
 	onValueChange,
 	multiple = false,
 	nullable: nullableProp,
-	placeholder: placeholderProp,
+	placeholder,
 	placement = 'bottom-start',
 	prefix,
 	suffix,
@@ -228,8 +227,6 @@ export function Listbox<T>({
 	children,
 }: ListboxProps<T>) {
 	const intl = useIntl()
-
-	const placeholder = placeholderProp ?? intl.formatMessage(messages.placeholder)
 
 	const glass = useGlass()
 	const control = useControl()
@@ -443,7 +440,7 @@ export function Listbox<T>({
 		displayValue,
 		multiple,
 		capitalize,
-		formatCount: (count) => intl.formatMessage(selectedMessage, { count }),
+		intl,
 	})
 
 	const hasValue = hasListboxValue(value, multiple)
@@ -543,7 +540,7 @@ export function Listbox<T>({
 						label={label}
 						onBlur={handleTriggerBlur}
 						onKeyDown={handleTriggerKeyDown}
-						placeholder={placeholder}
+						placeholder={placeholder ?? intl.formatMessage(messages.placeholder)}
 						truncate={truncate}
 						truncateTooltip={truncateTooltip}
 						truncateTooltipSuppressed={open}

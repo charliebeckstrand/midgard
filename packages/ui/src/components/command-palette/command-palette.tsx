@@ -1,5 +1,6 @@
 'use client'
 
+import { defineMessages } from '@formatjs/intl'
 import { Search } from 'lucide-react'
 import { type ComponentProps, type ReactNode, useMemo } from 'react'
 import {
@@ -10,6 +11,8 @@ import {
 import { cn } from '../../core'
 import { useControllableFlag } from '../../hooks/use-controllable'
 import { useKeybindings } from '../../hooks/use-keybindings'
+import { intlMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { DeferredQueryContext, QueryContext, useQueryValue } from '../../primitives/query'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/context'
 import { k } from '../../recipes/kata/command-palette'
@@ -37,10 +40,6 @@ const messages = defineMessages({
 		description: 'The placeholder of the search field of the command palette, and its name.',
 	},
 })
-
-import { defineMessages } from 'react-intl'
-import { intlMessages } from '../../primitives/intl/intl-messages'
-import { useIntl } from '../../primitives/intl/use-intl'
 
 /** The palette docks to the bottom edge on a compact viewport, and floats near the top from medium. */
 const PALETTE_ALIGN = adaptive({
