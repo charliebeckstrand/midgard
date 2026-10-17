@@ -47,3 +47,29 @@ export type LocaleConfig = {
 export const [LocaleContext, useLocale] = createContext<LocaleConfig>('Locale', {
 	default: {},
 })
+
+/**
+ * The locale choice of the nearest `<LocaleProvider>` that has `locales`. The
+ * Language picker of `AppearanceSettings` reads it.
+ *
+ * @internal
+ */
+export type LocaleChoiceValue = {
+	/** The stored choice: `'system'`, or one of `locales`. */
+	choice: string
+	/** The locales that the reader can choose from. */
+	locales: readonly string[]
+	/** Stores a new choice. */
+	setChoice: (choice: string) => void
+}
+
+/**
+ * Reads the {@link LocaleChoiceValue} of the nearest `<LocaleProvider>` that
+ * has `locales`; returns `null` outside one.
+ *
+ * @internal
+ */
+export const [LocaleChoiceContext, useLocaleChoice] = createContext<LocaleChoiceValue | null>(
+	'LocaleChoice',
+	{ default: null },
+)

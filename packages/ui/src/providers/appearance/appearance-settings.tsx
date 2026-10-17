@@ -18,8 +18,8 @@ const loadDialog = () => import('./appearance-settings-dialog')
 export type AppearanceSettingsProps = {
 	/**
 	 * More fields for the dialog, such as the settings of one app. They go below
-	 * the motion and sidebar pickers, in the same stack. Their floating panels portal into
-	 * the dialog, as the panels of the pickers do.
+	 * the pickers of the dialog, in the same stack. Their floating panels portal
+	 * into the dialog, as the panels of the pickers do.
 	 */
 	children?: ReactNode
 }
@@ -32,6 +32,10 @@ export type AppearanceSettingsProps = {
  * Inside a `SidebarLayout`, the dialog also has the Sidebar picker (Locked or
  * Offcanvas), with the key that toggles it: ⌘B on Apple platforms, and Ctrl+B
  * on others. The picker shows only while the layout is inline.
+ *
+ * Under a `LocaleProvider` that has `locales`, the dialog also has the Language
+ * picker. It offers System and each of the `locales`, with the name of each
+ * locale in its own language.
  *
  * @remarks The dialog module loads in idle time after the hydration. The
  * dialog then renders closed, so the first open is the same as a later open. A
