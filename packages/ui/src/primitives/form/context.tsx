@@ -101,6 +101,25 @@ export function useFormFailures(): number {
 	return useFormFailureContext()
 }
 
+const [FormFieldsDisabledContext, useFormFieldsDisabledContext] = createContext<boolean>(
+	'FormFieldsDisabled',
+	{ default: false },
+)
+
+/**
+ * Whether the enclosing form disables its fields: `true` while a submit of a
+ * `Form` runs.
+ *
+ * @returns The flag, or `false` outside a form.
+ * @remarks The Control cascade reads it, so each field of the form is disabled
+ * while the buttons stay enabled. A focused submit button then keeps the focus.
+ * A filter bar inside a `Form` provides its own `false`.
+ * @internal
+ */
+export function useFormFieldsDisabled(): boolean {
+	return useFormFieldsDisabledContext()
+}
+
 const [FormFieldTargetsContext, useFormFieldTargetsContext] = createContext<
 	FormFieldTargets | undefined
 >('FormFieldTargets', { default: undefined })
@@ -116,6 +135,7 @@ export function FormProvider({
 	actions,
 	resets,
 	failures = 0,
+	fieldsDisabled = false,
 	children,
 }: {
 	store: FormStore
@@ -123,6 +143,8 @@ export function FormProvider({
 	resets: number
 	/** How many submit attempts have failed. A provider with no submit leaves it at `0`. */
 	failures?: number
+	/** Disables each field of the form through the Control cascade. */
+	fieldsDisabled?: boolean
 	children: ReactNode
 }) {
 	const [targets] = useState(createFormFieldTargets)
@@ -132,7 +154,9 @@ export function FormProvider({
 			<FormStoreContext value={store}>
 				<FormResetContext value={resets}>
 					<FormFailureContext value={failures}>
-						<FormFieldTargetsContext value={targets}>{children}</FormFieldTargetsContext>
+						<FormFieldsDisabledContext value={fieldsDisabled}>
+							<FormFieldTargetsContext value={targets}>{children}</FormFieldTargetsContext>
+						</FormFieldsDisabledContext>
 					</FormFailureContext>
 				</FormResetContext>
 			</FormStoreContext>

@@ -106,6 +106,44 @@ describe('FormReset', () => {
 		expect(button).toHaveAttribute('aria-disabled', 'true')
 	})
 
+	it('is aria-disabled while a submit runs, and does not reset the form', async () => {
+		const pending = deferred<void>()
+
+		const onReset = vi.fn()
+
+		const { container } = renderUI(
+			<Form defaultValues={{ name: '' }} onSubmit={() => pending.promise} onReset={onReset}>
+				<Input name="name" />
+				<FormReset>Discard</FormReset>
+			</Form>,
+		)
+
+		fireEvent.change(getSlot<HTMLInputElement>(container, 'input'), {
+			target: { value: 'Jane' },
+		})
+
+		const button = getSlot(container, 'form-reset')
+
+		// The control: a dirty form enables the reset.
+		expect(button).not.toHaveAttribute('aria-disabled')
+
+		await act(async () => {
+			fireEvent.submit(getSlot(container, 'form'))
+		})
+
+		expect(button).toHaveAttribute('aria-disabled', 'true')
+
+		expect(button).toBeEnabled()
+
+		fireEvent.click(button)
+
+		expect(onReset).not.toHaveBeenCalled()
+
+		await act(async () => {
+			pending.resolve()
+		})
+	})
+
 	it('does not reset a clean form on a click', () => {
 		const onReset = vi.fn()
 

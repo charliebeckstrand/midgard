@@ -12,10 +12,14 @@ The binding contract moved to [`primitives/form`](../../primitives/form). It hol
 
 The submit flow is a set of small hooks over the engine. [`useFormReducer`](use-form-reducer.ts) holds the state and the field actions. [`useFormSubmission`](use-form-submission.ts) runs a submit, and [`useFormSync`](use-form-sync.ts) syncs the controlled `values` prop. A refused submit and a handler that returns a field issue each count as a failure. The provider gives the count to the parts.
 
+While a submit runs, the form disables its fields and not its buttons. The provider gives a `fieldsDisabled` flag, and the Control cascade reads it: `useControlFieldContext` for a field in a `Field` or a `Control`, and `useControlProps` for a bare control. A disabled `<fieldset>` disabled each button too, and the focused submit button then lost the focus. Now `FormSubmit` stays enabled, its loading state cancels a second click, and the form ignores a submit that starts during another one. The `<fieldset>` follows only the `disabled` prop. A filter bar inside a form provides its own flag, so its fields stay enabled.
+
+A field that has the focus when the submit starts, after an Enter in it, becomes disabled. An engine that applies the focus fixup rule of HTML then moves the focus to the body. When the submit ends and the focus is on the body, `useFormSubmission` gives the focus back to the element that had it at the start. A focus that went to another element, such as `FormErrorSummary`, stays there.
+
 Three parts act on the state of the form:
 
 - [`FormSubmit`](form-submit.tsx) is a submit button that shows its loading state while a submit runs.
-- [`FormReset`](form-reset.tsx) is a reset button that is `aria-disabled` while the form is clean. It stays enabled, so it keeps the focus after the reset that it starts.
+- [`FormReset`](form-reset.tsx) is a reset button that is `aria-disabled` while the form is clean or a submit runs. It stays enabled, so it keeps the focus after the reset that it starts.
 - [`FormErrorSummary`](form-error-summary.tsx) lists the issue of each invalid field after a failure, and takes the focus. A form-bound `Message` registers the id of its control, so each row links to that control.
 
 ## Engine — the substrate
@@ -30,9 +34,9 @@ The engine reads `hasIssues` from the binding contract, because a control and th
 
 - **Field labels in the summary.** A row of `FormErrorSummary` shows the issue of its field. A row that also names the field needs the label of the field, which the form does not hold.
 
-- **A focus target with no `Message`.** A row links to a control only when a form-bound `Message` of the field renders. A field with no `Message` shows its issue as text.
+- **Native elements in a submit.** A native element that does not read the Control cascade, such as a bare `<input>`, stays enabled while a submit runs.
 
-- **A submit that keeps the focus.** `Form` disables its fieldset while a submit runs, so a focused `FormSubmit` loses the focus. The loading state of `Button` alone cancels a second submit, and it keeps the focus.
+- **A focus target with no `Message`.** A row links to a control only when a form-bound `Message` of the field renders. A field with no `Message` shows its issue as text.
 
 ---
 

@@ -14,9 +14,9 @@ import { MapPlat } from 'ui/modules/map' // or the 'ui/map' shorthand
 
 `chart` · `chat` · `dashboard` · `events` · `form` · `grid` · `map` · `query`
 
-> `form` holds `Form` and its parts. `FormSubmit` shows the loading state while a submit runs. `FormReset` is `aria-disabled` while the form is clean. `FormErrorSummary` lists the errors after a failed submit and takes the focus. `FormFilters` is a filter bar over a value record: `FormFiltersPrefix`, a `FormFiltersBar` that holds a `FormFiltersRow` of `FormFiltersField`s beside a `FormFiltersClear`, and `FormFiltersSuffix`. `FormFiltersSkeleton` stands in for the row while the fields load.
+> `form` holds `Form` and its parts. `FormSubmit` shows the loading state while a submit runs. `FormReset` is `aria-disabled` while the form is clean or a submit runs. `FormErrorSummary` lists the errors after a failed submit and takes the focus. `FormFilters` is a filter bar over a value record: `FormFiltersPrefix`, a `FormFiltersBar` that holds a `FormFiltersRow` of `FormFiltersField`s beside a `FormFiltersClear`, and `FormFiltersSuffix`. `FormFiltersSkeleton` stands in for the row while the fields load.
 
-> `Form` turns off native validation (`noValidate`). Give each native constraint a validator, or pass `noValidate={false}`. The bindable controls read the form through the internal `primitives/form` contract ([`PRIMITIVES.md`](PRIMITIVES.md)), so no component imports the module.
+> `Form` turns off native validation (`noValidate`). Give each native constraint a validator, or pass `noValidate={false}`. While a submit runs, the Control cascade disables each field of the form. The buttons stay enabled, so a focused submit button keeps the focus. The bindable controls read the form through the internal `primitives/form` contract ([`PRIMITIVES.md`](PRIMITIVES.md)), so no component imports the module.
 
 ---
 

@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react'
 import { useA11yControl } from '../../hooks'
+import { useFormFieldsDisabled } from '../../primitives/form/context'
 import {
 	type ControlContextValue,
 	type ControlSeverity,
@@ -47,6 +48,9 @@ export function useControlFieldContext(
 ): ControlContextValue {
 	const parent = useControl()
 
+	// A form that submits disables each field in it, as a disabled ancestor does.
+	const formDisabled = useFormFieldsDisabled()
+
 	const a11y = useA11yControl(id)
 
 	const { autoComplete, disabled, readOnly, required, severity, variant } = overrides
@@ -57,13 +61,13 @@ export function useControlFieldContext(
 		() => ({
 			id,
 			autoComplete: autoComplete ?? parent?.autoComplete,
-			disabled: disabled || parent?.disabled,
+			disabled: formDisabled ? true : disabled || parent?.disabled,
 			readOnly: readOnly || parent?.readOnly,
 			required: required ?? parent?.required,
 			severity: severity ?? parent?.severity,
 			variant: variant ?? parent?.variant,
 			...a11y,
 		}),
-		[id, autoComplete, disabled, readOnly, required, severity, variant, parent, a11y],
+		[id, autoComplete, disabled, readOnly, required, severity, variant, parent, formDisabled, a11y],
 	)
 }

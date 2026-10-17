@@ -44,7 +44,8 @@ export type FormProps<T extends Record<string, unknown>> = {
 	onInvalidSubmit?: (errors: Partial<Record<keyof T, string[]>>) => void
 	onReset?: () => void
 	/**
-	 * Disables the form's `<Fieldset>`; submitting disables it regardless.
+	 * Disables the form's `<Fieldset>`, and with it each control and button of
+	 * the form. A submit disables only the fields.
 	 * @defaultValue false
 	 */
 	disabled?: boolean
@@ -54,7 +55,7 @@ export type FormProps<T extends Record<string, unknown>> = {
 /**
  * Reducer-backed form scope over typed `defaultValues`: tracks dirty, touched,
  * errors, and submitting state, validates on the `validateOn` trigger, and
- * disables its `<Fieldset>` while submitting. Renders a layout-neutral
+ * disables its fields while submitting. Renders a layout-neutral
  * (`display: contents`) `<form>`, so it imposes no box; fields read and mutate
  * state through the context hooks ({@link useFormField}, {@link useFormStatus},
  * {@link useFormActions}) rather than props.
@@ -68,6 +69,14 @@ export type FormProps<T extends Record<string, unknown>> = {
  * guards against superseding resets/unmounts via a monotonic token. A native
  * reset of the `<form>` does not change the inputs: the form cancels it and
  * resets its bound fields.
+ *
+ * While a submit runs, each field of the form is disabled through the Control
+ * cascade, and the buttons stay enabled. A focused submit button thus keeps
+ * the focus, and the form ignores a second submit until the first one ends.
+ * A native element that does not read the cascade, such as a bare `<input>`,
+ * stays enabled. When the submit ends and the focus is on the body, the form
+ * gives the focus back to the element that had it, such as a field that an
+ * engine with the focus fixup rule of HTML blurred.
  *
  * The `<form>` sets `noValidate`, so a native constraint such as `type="url"` or
  * `required` never stops a submit before the validators run. Otherwise the
@@ -109,7 +118,13 @@ export function Form<T extends Record<string, unknown>>({
 	)
 
 	return (
-		<FormProvider store={store} actions={actions} resets={resets} failures={failures}>
+		<FormProvider
+			store={store}
+			actions={actions}
+			resets={resets}
+			failures={failures}
+			fieldsDisabled={formState.submitting}
+		>
 			<form
 				data-slot="form"
 				noValidate
@@ -120,7 +135,7 @@ export function Form<T extends Record<string, unknown>>({
 			>
 				{/* The fieldset only cascades `disabled`. It has no legend, so `role="none"`
 				keeps it from an unnamed `group` around every form. */}
-				<Fieldset role="none" disabled={disabled || formState.submitting} className="contents">
+				<Fieldset role="none" disabled={disabled} className="contents">
 					{children}
 				</Fieldset>
 			</form>
