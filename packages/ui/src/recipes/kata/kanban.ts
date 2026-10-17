@@ -1,8 +1,8 @@
 /**
  * Kanban kata: object-literal surface for the `<Kanban>` board, its columns, and
  * cards. No variants axis. The `column` group nests `base` / `header` / `title`
- * / `body` / `empty` slots, and `base` marks the column a card is over. The `card` group nests `base`, the `handle`, and
- * the drag-state classes (`lifted`, `handleLifted`, `active`). `skeleton` is the
+ * / `body` / `empty` slots, and `base` marks the column a card is over. The `card` group nests `base`, the `handle`
+ * (`base`, `lifted`), and the drag-state classes (`lifted`, `active`). `skeleton` is the
  * form of the lines of the `KanbanCardSkeleton`.
  */
 import { mode } from '../../core/recipe'
@@ -64,20 +64,23 @@ export const k = {
 			...disabled,
 			'data-readonly:cursor-default data-disabled:cursor-not-allowed',
 		],
-		// The only drag surface of an interactive card, and its keyboard stop.
-		handle: [
-			flex.row,
-			'size-6 shrink-0 justify-center',
-			rounded.md,
-			text.muted,
-			...grab.default,
-			'data-disabled:cursor-not-allowed',
-			focus.ring,
-		],
-		// The card raises while the keyboard lifts it. The handle holds the focus,
-		// so the handle takes the accent in the shape of its own focus ring.
+		handle: {
+			// The only drag surface of an interactive card, and its keyboard stop.
+			base: [
+				flex.row,
+				'size-6 shrink-0 justify-center',
+				rounded.md,
+				text.muted,
+				...grab.default,
+				'data-disabled:cursor-not-allowed',
+				focus.ring,
+			],
+			// The handle holds the focus of a lifted card, so it takes the accent in
+			// the shape of its own focus ring.
+			lifted: focus.lifted.outline,
+		},
+		// The card raises while the keyboard lifts it.
 		lifted: focus.lifted.raise,
-		handleLifted: focus.lifted.outline,
 		active: 'z-10 shadow-lg opacity-95',
 	},
 	skeleton: kokkaku.kanban,

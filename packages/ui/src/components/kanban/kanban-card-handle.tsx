@@ -75,7 +75,7 @@ export function KanbanCardHandle({
 				// The drag overlay has no card context, and it shows the held hand.
 				data-dragging={dataAttr(!card)}
 				data-disabled={dataAttr(!!card && disabled)}
-				className={cn(k.card.handle, className)}
+				className={cn(k.card.handle.base, className)}
 			>
 				{content}
 			</span>
@@ -99,8 +99,7 @@ export function KanbanCardHandle({
 			onKeyDown={composeEventHandlers(onKeyDown, (event) => onCardKeyDown(cardId, event))}
 			onBlur={composeEventHandlers(onBlur, onCardBlur)}
 			data-card-id={cardId}
-			// The handle holds the focus of a lifted card, so it takes the lift accent.
-			className={cn(k.card.handle, lifted && k.card.handleLifted, className)}
+			className={cn(k.card.handle.base, lifted && k.card.handle.lifted, className)}
 		>
 			{content}
 		</SortableGrip>
