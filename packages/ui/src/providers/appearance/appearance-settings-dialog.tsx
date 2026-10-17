@@ -7,9 +7,11 @@ import { Field, Label } from '../../components/fieldset'
 import { Icon } from '../../components/icon'
 import { Kbd } from '../../components/kbd'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
-import { useInSidebarLayout } from '../../layouts/sidebar/sidebar'
+import { useSidebarLayoutPlacement } from '../../layouts/sidebar/sidebar'
+import { k } from '../../recipes/kata/offcanvas'
 import { Flex } from '../../structure/flex'
 import { Stack } from '../../structure/stack'
+import { resolveVariant } from '../../types'
 import { densityLevels } from '../density/context'
 import { UIProvider } from '../ui'
 import { useAppearance } from './context'
@@ -106,7 +108,9 @@ export function AppearanceSettingsDialog({
 	const { theme, density, motion, sidebar, setTheme, setDensity, setMotion, setSidebar } =
 		useAppearance()
 
-	const inSidebarLayout = useInSidebarLayout()
+	// The Sidebar setting changes the inline sidebar only, so the picker shows
+	// where the enclosing layout is inline.
+	const sidebarLayout = useSidebarLayoutPlacement()
 
 	const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null)
 
@@ -136,8 +140,8 @@ export function AppearanceSettingsDialog({
 									<Label>Motion</Label>
 									<ChoiceListbox options={motionModes} value={motion} onValueChange={setMotion} />
 								</Field>
-								{inSidebarLayout && (
-									<Field className="hidden lg:block">
+								{sidebarLayout && (
+									<Field className={resolveVariant(sidebarLayout, k.inline.block)}>
 										<Label>Sidebar</Label>
 										<ChoiceListbox
 											options={sidebarModes}

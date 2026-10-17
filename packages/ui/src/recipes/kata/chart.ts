@@ -17,13 +17,13 @@ const { palette, ink, motion } = zu
 
 /**
  * A stroke in the fill of the surface under the chart. It reads `--surface-fill`,
- * which a surface card sets. Without a card, it takes the page ground, as the
- * grid host does.
+ * which a surface card and the content host of the sidebar layout set. Without
+ * either, it takes the page ground, as the grid host does.
  */
-const surfaceStroke = mode('stroke-(--surface-fill,var(--color-white))', [
+const surfaceStroke = mode(
+	'stroke-(--surface-fill,var(--color-white))',
 	'dark:stroke-(--surface-fill,var(--color-zinc-950))',
-	'dark:lg:stroke-(--surface-fill,var(--color-zinc-900))',
-])
+)
 
 /** A named chart color slot: the eight categorical slots plus `zinc`. */
 export type ChartColorSlot = SeriesSlot

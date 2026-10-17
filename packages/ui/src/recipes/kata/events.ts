@@ -8,15 +8,27 @@
  */
 import { iro, omote } from '../kiso'
 import { dan } from '../kiso/dan'
+import type { ByLayout } from './offcanvas'
 
 const { x, top, bottom } = dan.space.panel
 
 const onSurface = iro.extended.bare.text
 
+// The header button follows the layout of the enclosing sidebar layout. The
+// pinned panel shows only beside the inline panel, so the button hides while
+// the panel is pinned there. Pin shows there only (`kata/offcanvas.ts`).
+const button = {
+	drawer: '[:root[data-events][data-events-pinned]_&]:contents',
+	inline: '[:root[data-events][data-events-pinned]_&]:hidden',
+} as const satisfies ByLayout
+
 export const k = {
 	row: [x, top],
+	button,
 	panel: {
-		base: [...omote.content, 'flex h-full min-h-0 flex-col'],
+		// The panel shows only in the aside of a sidebar layout, which shows only
+		// while the layout is inline, so the panel is always a card.
+		base: [omote.content.card, 'flex h-full min-h-0 flex-col'],
 		body: [x, 'min-h-0 flex-1 overflow-auto py-2'],
 		footer: [x, bottom, 'pt-2'],
 	},

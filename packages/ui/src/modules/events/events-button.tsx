@@ -4,7 +4,11 @@ import { Activity } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
+import { cn } from '../../core'
 import { useLazyModule } from '../../hooks/use-lazy-module'
+import { useSidebarLayoutPlacement } from '../../layouts/sidebar/sidebar'
+import { k } from '../../recipes/kata/events'
+import { resolveVariant } from '../../types'
 import { createLazyModule } from '../../utilities/lazy-module'
 import { loadTools } from './events-load'
 
@@ -13,7 +17,8 @@ const sheet = createLazyModule(() => import('./events-sheet'))
 /**
  * The header button of the events. The server renders it, and CSS shows it
  * while the events run, by the attribute that `EventsScript` writes before
- * the first paint. From `lg` up, it hides while the panel is pinned. A dot
+ * the first paint. Where the enclosing `SidebarLayout` is inline, it hides
+ * while the panel is pinned, as the panel shows there. A dot
  * shows while the store holds a report, and the icon is red while a capture
  * runs. The first press loads the sheet.
  *
@@ -30,6 +35,9 @@ export function EventsButton() {
 	if (failure) throw failure.error
 
 	const Sheet = useLazyModule(sheet, false)?.EventsSheet
+
+	// Outside a sidebar layout no panel shows, so the button never hides for it.
+	const layout = useSidebarLayoutPlacement() ?? 'drawer'
 
 	const show = () => {
 		if (Sheet) {
@@ -48,7 +56,7 @@ export function EventsButton() {
 	return (
 		<span
 			data-events-tool=""
-			className="hidden [:root[data-events]_&]:contents lg:[:root[data-events][data-events-pinned]_&]:hidden"
+			className={cn('hidden [:root[data-events]_&]:contents', resolveVariant(layout, k.button))}
 		>
 			<Button variant="bare" aria-label="Events" className="relative" onClick={show}>
 				<Icon icon={<Activity />} className="[:root[data-events-capture]_&]:text-red-600" />

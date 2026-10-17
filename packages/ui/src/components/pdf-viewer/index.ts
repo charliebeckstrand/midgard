@@ -11,4 +11,6 @@ export type {
 	PdfViewerMagnifierState,
 	PdfViewerMagnifierZoom,
 	PdfViewerPage,
+	PdfViewerThumbnailLayout,
 } from './types'
+export { PDF_VIEWER_THUMBNAILS } from './use-pdf-viewer'

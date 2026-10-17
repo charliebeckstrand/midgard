@@ -434,12 +434,12 @@ describe('Grid', () => {
 			expect(container.querySelector('[style*="max-height"]')).toBeInTheDocument()
 		})
 
-		it('paints the sticky header with the surface fill, else the viewport-aware content host', () => {
+		it('paints the sticky header with the surface fill, else the page ground', () => {
 			// Regression: a fixed fill matched only one surface. A plain `bg.surface`
 			// stood out on the mobile page, and the content-host fill stood out in a
 			// mobile card. The header now reads `--surface-fill` from the surface that
-			// holds it. With no surface, it falls back to the content host: the page
-			// background below `lg`, the card surface at `lg`.
+			// holds it. The content host of the sidebar layout sets the fill of its flat
+			// or card value. With no surface at all, it falls back to the page ground.
 			const { container } = renderUI(
 				<Grid
 					columns={columns}
@@ -455,7 +455,6 @@ describe('Grid', () => {
 			expect(header).toHaveClass(
 				'bg-(--surface-fill,var(--color-white))',
 				'dark:bg-(--surface-fill,var(--color-zinc-950))',
-				'dark:lg:bg-(--surface-fill,var(--color-zinc-900))',
 			)
 		})
 	})

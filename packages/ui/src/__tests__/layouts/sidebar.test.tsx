@@ -7,6 +7,7 @@ import {
 } from '../../layouts/sidebar/sidebar'
 import { readChoice, SIDEBAR, writeChoice } from '../../providers/appearance/appearance-storage'
 import { dan } from '../../recipes/kiso/dan'
+import { adaptive } from '../../types/responsive'
 import { act, bySlot, densityStepOf, fireEvent, present, renderUI, screen } from '../helpers'
 
 /** The inline desktop panel (`data-slot="sidebar-panel"`), which takes the width of the sidebar. */
@@ -131,6 +132,35 @@ describe('SidebarLayout', () => {
 		expect(panel).not.toBeNull()
 
 		expect(densityStepOf(panel as Element)).toBe('sm')
+	})
+
+	it('shows the inline panel from the breakpoint that `layout` names', () => {
+		const { container } = renderUI(
+			<SidebarLayout
+				sidebar={<div>sidebar</div>}
+				layout={adaptive({ compact: 'drawer', medium: 'inline' })}
+			>
+				body
+			</SidebarLayout>,
+		)
+
+		const panel = container.querySelector(DESKTOP_PANEL)
+
+		expect(panel).toHaveClass('hidden', 'sm:block')
+
+		expect(panel).not.toHaveClass('lg:block')
+
+		expect(screen.getByRole('region', { name: 'Navigation bar' })).toHaveClass('block', 'sm:hidden')
+	})
+
+	it('keeps the drawer at each width when `layout` is a drawer', () => {
+		const { container } = renderUI(
+			<SidebarLayout sidebar={<div>sidebar</div>} layout="drawer">
+				body
+			</SidebarLayout>,
+		)
+
+		expect(container.querySelector(DESKTOP_PANEL)?.className).not.toMatch(/\b(?:sm|md|lg|xl|2xl):/)
 	})
 
 	it('swaps the inline panel for the hot zone while the sidebar is offcanvas', () => {

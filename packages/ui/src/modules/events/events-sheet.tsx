@@ -13,8 +13,11 @@ import {
 	SheetTitle,
 } from '../../components/sheet'
 import { cn } from '../../core'
+import { useSidebarLayoutPlacement } from '../../layouts/sidebar/sidebar'
 import { k } from '../../recipes/kata/events'
+import { k as offcanvas } from '../../recipes/kata/offcanvas'
 import { Flex } from '../../structure/flex'
+import { resolveVariant } from '../../types'
 import { hasEventsDock, setEventsPinned, subscribeDocks } from './engine/events-setting'
 import { useEventsView } from './use-events-view'
 
@@ -27,9 +30,10 @@ export type EventsSheetProps = { open: boolean; onOpenChange: (open: boolean) =>
 /**
  * The bottom sheet of the events: the view of `useEventsView` in a sheet that
  * takes the height of its content, up to the height of the screen, with a
- * body that scrolls. From `lg` up, Pin closes the sheet and docks the view
- * on the end edge of the page. Pin shows only while the page holds an
- * `EventsAside`, which is the place of the docked view. The store records nothing while the sheet is
+ * body that scrolls. Where the enclosing `SidebarLayout` is inline, Pin closes
+ * the sheet and docks the view on the end edge of the page. Pin shows only
+ * while the page holds an `EventsAside`, which is the place of the docked
+ * view, and only where that aside shows. The store records nothing while the sheet is
  * on screen, so the sheet does not record itself.
  *
  * @internal
@@ -40,6 +44,9 @@ export function EventsSheet({ open, onOpenChange }: EventsSheetProps) {
 	const { store, label, title, actions, body, footer } = useEventsView(open)
 
 	const dockable = useSyncExternalStore(subscribeDocks, hasEventsDock, noDock)
+
+	// Outside a sidebar layout no aside shows, so Pin never shows.
+	const layout = useSidebarLayoutPlacement() ?? 'drawer'
 
 	// A layout effect runs before the effect of the overlay that reports the
 	// open, so the store does not record the open of the sheet. A sheet that
@@ -60,13 +67,13 @@ export function EventsSheet({ open, onOpenChange }: EventsSheetProps) {
 					<SheetTitle className="sr-only p-0">{label}</SheetTitle>
 					{title}
 					{actions}
-					{/* A pinned panel has room from `lg` up only. */}
+					{/* A pinned panel shows in the inline layout only. */}
 					{dockable && (
 						<Button
 							variant="bare"
 							size="sm"
 							aria-label="Pin"
-							className="hidden lg:inline-flex"
+							className={resolveVariant(layout, offcanvas.inline.inlineFlex)}
 							onClick={() => {
 								setEventsPinned(true)
 

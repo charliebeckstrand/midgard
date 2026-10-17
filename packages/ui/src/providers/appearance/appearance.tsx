@@ -43,7 +43,7 @@ export type AppearanceProviderProps = {
  * While the sidebar is `'offcanvas'`, the root element has the
  * `sidebar-offcanvas` class, which the `sidebar-offcanvas` variant of
  * `ui/tailwind.css` reads. `SidebarLayout` then shows its sidebar as a floating
- * sheet from `lg` up.
+ * sheet while its layout is inline.
  *
  * Render one instance for each app. All instances share the storage keys and
  * the root element, so a region cannot hold an appearance of its own.

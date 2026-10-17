@@ -23,30 +23,35 @@ import { useScrollWithin } from '../../hooks'
 import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useIsRtl } from '../../hooks/use-is-rtl'
 import { useKeybindings } from '../../hooks/use-keybindings'
-import { useOffcanvas } from '../../hooks/use-offcanvas'
+import { OFFCANVAS_LAYOUT, type OffcanvasLayout, useOffcanvas } from '../../hooks/use-offcanvas'
 import { OffcanvasContext } from '../../primitives/offcanvas'
 import { Portal } from '../../primitives/portal'
 import { readChoice, SIDEBAR, writeChoice } from '../../providers/appearance/appearance-storage'
 import { useAppearanceChoice } from '../../providers/appearance/use-appearance-choice'
+import { k as offcanvas } from '../../recipes/kata/offcanvas'
 import { k } from '../../recipes/kata/sidebar-layout'
 import { Flex } from '../../structure/flex'
+import { type Responsive, resolveVariant } from '../../types'
 import { type StickyBars, useStickyBars } from './use-sticky-bars'
 
 const [SidebarLayoutContext] = createContext<{
 	actions?: ReactNode
 	bar?: StickyBars['bar']
+	layout: Responsive<OffcanvasLayout>
 } | null>('SidebarLayout', {
 	default: null,
 })
 
 /**
- * Tells whether the caller renders inside a {@link SidebarLayout}.
- * `AppearanceSettings` shows its Sidebar picker only there.
+ * The `layout` of the enclosing {@link SidebarLayout}, or `null` outside one.
+ * A part that shows only beside the inline panel, such as the Sidebar picker
+ * of `AppearanceSettings` or the Pin of the events, resolves its classes from
+ * it, so it shows at the same breakpoints as the panel.
  *
  * @internal
  */
-export function useInSidebarLayout() {
-	return use(SidebarLayoutContext) !== null
+export function useSidebarLayoutPlacement(): Responsive<OffcanvasLayout> | null {
+	return use(SidebarLayoutContext)?.layout ?? null
 }
 
 // The filter of the shortcut. It skips a press that an earlier handler took, so
@@ -73,26 +78,33 @@ export type SidebarLayoutProps = ComponentProps<'div'> & {
 	navbar?: ReactNode
 	sidebar: ReactNode
 	/**
-	 * The actions in the navbar below `lg` and in the header from `lg` up. A gap
-	 * that follows the nearest density scope separates them.
+	 * The actions in the navbar of the drawer layout and in the header of the
+	 * inline layout. A gap that follows the nearest density scope separates them.
 	 */
 	actions?: ReactNode
 	/**
-	 * A panel on the end edge, from `lg` up, such as the pinned panel of the
-	 * events (`EventsAside`). It sticks to the top of the page, has the height of
-	 * the viewport, and its content scrolls on its own, as the desktop sidebar
-	 * does. The content column narrows to give it room. Below `lg` it does not
-	 * show.
+	 * A panel on the end edge in the inline layout, such as the pinned panel of
+	 * the events (`EventsAside`). It sticks to the top of the page, has the
+	 * height of the viewport, and its content scrolls on its own, as the inline
+	 * sidebar does. The content column narrows to give it room. In the drawer
+	 * layout it does not show.
 	 */
 	aside?: ReactNode
-	/** From `lg` up, keeps the header at the top of the content region. @defaultValue false */
+	/** In the inline layout, keeps the header at the top of the content region. @defaultValue false */
 	stickyHeader?: boolean
 	/**
-	 * Fires when the mobile navigation drawer opens or closes, whatever drove it. The
+	 * Where the sidebar is: in a `drawer` that a navbar button opens, or
+	 * `inline` beside the content. A per-breakpoint map sets the layout from
+	 * each breakpoint, mobile-first. A single value sets it at each width.
+	 * @defaultValue {@link OFFCANVAS_LAYOUT}
+	 */
+	layout?: Responsive<OffcanvasLayout>
+	/**
+	 * Fires when the navigation drawer opens or closes, whatever drove it. The
 	 * drivers are the navbar button, a dismissal, a descendant calling `close`, or the
-	 * viewport widening to the `lg` breakpoint.
+	 * viewport widening to the inline layout.
 	 *
-	 * Observation only, and the mobile drawer alone. The desktop sidebar is inline, and
+	 * Observation only, and the drawer alone. The inline sidebar does not open, and
 	 * the hover peek of the offcanvas sidebar is a pointer affordance rather than a
 	 * disclosure, so neither reports here.
 	 */
@@ -100,12 +112,13 @@ export type SidebarLayoutProps = ComponentProps<'div'> & {
 }
 
 /**
- * App shell with a persistent sidebar: an inline desktop panel (or a
- * hover-revealed floating {@link Sheet} when the sidebar is offcanvas), and a
- * mobile {@link Drawer}. A content column hosts {@link SidebarLayoutHeader},
+ * App shell with a persistent sidebar: an inline panel (or a hover-revealed
+ * floating {@link Sheet} when the sidebar is offcanvas), or a {@link Drawer}.
+ * `layout` chooses between the two at each breakpoint: a drawer on a compact or
+ * a medium viewport, and inline when expanded. A content column hosts {@link SidebarLayoutHeader},
  * {@link SidebarLayoutBody}, and {@link SidebarLayoutFooter}.
  *
- * The Sidebar setting of `AppearanceProvider` selects the desktop sidebar:
+ * The Sidebar setting of `AppearanceProvider` selects the inline sidebar:
  * `'locked'` shows the inline panel, and `'offcanvas'` shows the floating sheet.
  * The selection is a class on the root element, which `AppearanceScript` writes
  * before the first paint, so the first paint shows the correct sidebar. ⌘B
@@ -113,11 +126,11 @@ export type SidebarLayoutProps = ComponentProps<'div'> & {
  * time, and a press in a form field does not toggle it.
  *
  * @remarks The page scrolls at each width, so the scroll restoration of a router
- * resets and restores the position of the page. Below `lg`, the navbar is the one
- * bar that sticks to the top. The navbar is a region named "Navigation bar", which
- * holds the menu button, `navbar`, and `actions`. The header scrolls with the
- * content. From `lg` up, the desktop panel sticks to the top, has the height of
- * the viewport, and scrolls on its own. A scroll that reaches the end of the
+ * resets and restores the position of the page. In the drawer layout, the navbar
+ * is the one bar that sticks to the top. The navbar is a region named "Navigation
+ * bar", which holds the menu button, `navbar`, and `actions`. The header scrolls
+ * with the content. In the inline layout, the panel sticks to the top, has the
+ * height of the viewport, and scrolls on its own. A scroll that reaches the end of the
  * panel stops there, and the page does not move. There, `stickyHeader` keeps the
  * header at the top of the page.
  *
@@ -129,11 +142,11 @@ export type SidebarLayoutProps = ComponentProps<'div'> & {
  *
  * To show the layout inside another page, put it in a box that has a height and
  * scrolls. Make the box a size container (`@container-size`). The layout then
- * fills the box, and the box scrolls in place of the page. The switch at `lg`
- * follows the width of the viewport, not the width of the box. Thus a narrow
- * box on a wide screen still shows the desktop panel.
+ * fills the box, and the box scrolls in place of the page. The breakpoints of
+ * `layout` follow the width of the viewport, not the width of the box. Thus a
+ * narrow box on a wide screen still shows the inline panel.
  *
- * Its padding and the width of its desktop panel follow the nearest density
+ * Its padding and the width of its inline panel follow the nearest density
  * scope. The floating sheet has the width of the panel at each step. The
  * floating sidebar is non-modal, so its peek never steals focus or locks body
  * scroll, but `backdrop` still dims the page behind it.
@@ -148,13 +161,14 @@ export function SidebarLayout({
 	aside,
 	actions,
 	stickyHeader,
+	layout = OFFCANVAS_LAYOUT,
 	onOpenChange,
 	className,
 	children,
 	ref,
 	...props
 }: SidebarLayoutProps) {
-	const { open, setOpen, close } = useOffcanvas({ onOpenChange })
+	const { open, setOpen, close } = useOffcanvas({ layout, onOpenChange })
 
 	const [floatingOpen, setFloatingOpen] = useState(false)
 
@@ -222,24 +236,32 @@ export function SidebarLayout({
 		measure()
 	}, [measure, stickyHeader])
 
-	const layoutValue = useMemo(() => ({ actions, bar: setBar }), [actions, setBar])
+	const layoutValue = useMemo(() => ({ actions, bar: setBar, layout }), [actions, setBar, layout])
 
 	return (
 		<SidebarLayoutContext value={layoutValue}>
-			<div data-slot="sidebar-layout" {...props} ref={setRoot} className={cn(k.base(), className)}>
+			<div
+				data-slot="sidebar-layout"
+				{...props}
+				ref={setRoot}
+				className={cn(k.base(), resolveVariant(layout, k.layout.base), className)}
+			>
 				{/* Hot zone to peek the floating sidebar. It shows only while offcanvas. */}
 				<div
 					aria-hidden
-					className={k.floating.peek()}
+					className={cn(k.floating.peek(), resolveVariant(layout, k.layout.peek))}
 					onPointerEnter={() => setFloatingOpen(true)}
 				/>
 
-				{/* Sidebar on desktop: inline when locked. It hides while offcanvas. */}
-				<div data-slot="sidebar-panel" className={k.panel()}>
+				{/* Inline sidebar when locked. It hides while offcanvas. */}
+				<div
+					data-slot="sidebar-panel"
+					className={cn(k.panel(), resolveVariant(layout, offcanvas.inline.block))}
+				>
 					{sidebar}
 				</div>
 
-				{/* Sidebar on desktop: sheet when offcanvas. Non-modal so the hover-revealed
+				{/* Inline sidebar: sheet when offcanvas. Non-modal so the hover-revealed
 				    peek doesn't steal focus or lock body scroll, but `backdrop` still
 				    blurs and dims the page behind it. */}
 				<Sheet open={floatingOpen} onOpenChange={setFloatingOpen}>
@@ -270,13 +292,13 @@ export function SidebarLayout({
 				<Portal open={floatingOpen}>
 					<div
 						aria-hidden
-						className={k.floating.buffer()}
+						className={cn(k.floating.buffer(), resolveVariant(layout, offcanvas.inline.block))}
 						onPointerEnter={() => setFloatingOpen(true)}
 						onPointerLeave={closeOnLeave}
 					/>
 				</Portal>
 
-				{/* Sidebar on mobile. The root holds the drawer and its trigger in the navbar. */}
+				{/* Drawer sidebar. The root holds the drawer and its trigger in the navbar. */}
 				<Drawer open={open} onOpenChange={setOpen}>
 					{/* A nav item and the close of `SidebarHeader` close the navigation, so it has no Close row. */}
 					<DrawerPanel footer={null}>
@@ -287,10 +309,14 @@ export function SidebarLayout({
 						</OffcanvasContext>
 					</DrawerPanel>
 
-					{/* Navbar on mobile. A named section, so the menu button, the navbar, and the
-					    actions are in a landmark below `lg`. The section is the sticky bar, as a
-					    sticky child sticks only inside the box of its parent. */}
-					<section ref={setBar} aria-label="Navigation bar" className={k.navbar()}>
+					{/* Navbar of the drawer layout. A named section, so the menu button, the
+					    navbar, and the actions are in a landmark. The section is the sticky bar,
+					    as a sticky child sticks only inside the box of its parent. */}
+					<section
+						ref={setBar}
+						aria-label="Navigation bar"
+						className={cn(k.navbar(), resolveVariant(layout, offcanvas.drawer.block))}
+					>
 						<Flex align="center">
 							<DrawerTrigger>
 								<Button
@@ -307,13 +333,24 @@ export function SidebarLayout({
 				</Drawer>
 
 				{/* Content */}
-				<div className={k.content.wrapper()}>
-					<div className={k.content.base({ stickyHeader })}>{children}</div>
+				<div className={cn(k.content.wrapper(), resolveVariant(layout, k.layout.wrapper))}>
+					<div
+						className={cn(
+							k.content.base({ stickyHeader }),
+							resolveVariant(layout, k.layout.content),
+							stickyHeader && resolveVariant(layout, k.layout.stickyHeader),
+						)}
+					>
+						{children}
+					</div>
 				</div>
 
-				{/* Aside on desktop: on the end edge, after the content. */}
+				{/* Inline aside: on the end edge, after the content. */}
 				{aside && (
-					<div data-slot="sidebar-aside" className={k.aside()}>
+					<div
+						data-slot="sidebar-aside"
+						className={cn(k.aside(), resolveVariant(layout, offcanvas.inline.block))}
+					>
 						{aside}
 					</div>
 				)}
@@ -327,7 +364,7 @@ export type SidebarLayoutHeaderProps = ComponentProps<'header'>
 
 /**
  * Header slot for {@link SidebarLayout} (`data-slot="header"`). Renders the
- * layout's `actions` alongside its children on desktop.
+ * layout's `actions` alongside its children in the inline layout.
  */
 export function SidebarLayoutHeader({
 	ref,
@@ -339,13 +376,25 @@ export function SidebarLayoutHeader({
 
 	const actions = layout?.actions
 
-	// The header joins the sticky bars, as it sticks from `lg` up with `stickyHeader`.
+	// The header joins the sticky bars, as it sticks in the inline layout with `stickyHeader`.
 	const setHeader = useComposedRef<HTMLElement>(layout?.bar, ref)
 
+	// Outside a layout, the header takes the default layout.
+	const placement = layout?.layout ?? OFFCANVAS_LAYOUT
+
 	return (
-		<header {...props} ref={setHeader} data-slot="header" className={cn(k.header(), className)}>
+		<header
+			{...props}
+			ref={setHeader}
+			data-slot="header"
+			className={cn(k.header(), resolveVariant(placement, k.layout.header), className)}
+		>
 			<div className="flex-1 min-w-0">{children}</div>
-			{actions && <div className={cn(k.actions(), 'hidden lg:flex')}>{actions}</div>}
+			{actions && (
+				<div className={cn(k.actions(), resolveVariant(placement, offcanvas.inline.flex))}>
+					{actions}
+				</div>
+			)}
 		</header>
 	)
 }

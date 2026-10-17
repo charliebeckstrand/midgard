@@ -37,9 +37,9 @@ import {
 import { captureAppended } from '../helpers/capture-appended'
 
 beforeEach(() => {
-	// Defaults to desktop so the thumbnail sidebar renders, and drives isDesktop
-	// through matchMedia because the real `useMinBreakpoint` path is the behavior
-	// under test. Keyed off the scale rather than a literal, so the two cannot drift.
+	// Defaults to an expanded viewport so the thumbnail rail renders, and drives
+	// the default `thumbnails` through matchMedia because the real
+	// `useResponsiveValue` path is the behavior under test. Keyed off the scale rather than a literal, so the two cannot drift.
 	stubMatchMedia((query) => query === `(min-width: ${BREAKPOINT_WIDTHS.lg})`)
 })
 
@@ -611,6 +611,14 @@ describe('PdfViewer', () => {
 		expect(screen.getByLabelText('Show thumbnails')).toHaveAttribute('aria-haspopup', 'dialog')
 
 		expect(screen.getByLabelText('Show thumbnails')).toHaveAttribute('aria-expanded', 'true')
+	})
+
+	it('opens the thumbnails in a sheet at a wide viewport when `thumbnails` is a sheet', () => {
+		const { container } = renderUI(<PdfViewer pages={pages} thumbnails="sheet" />)
+
+		expect(bySlot(container, 'pdf-viewer-sidebar')).toBeNull()
+
+		expect(screen.getByLabelText('Show thumbnails')).toHaveAttribute('aria-haspopup', 'dialog')
 	})
 
 	it('keeps the close button out of the heading of the mobile thumbnails sheet', async () => {

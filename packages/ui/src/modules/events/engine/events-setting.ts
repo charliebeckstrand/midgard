@@ -18,7 +18,7 @@ const PINNED = 'events:pinned'
 /** The attribute of the root element while the events run. CSS shows the header button by it. */
 export const ON_ATTRIBUTE = 'data-events'
 
-/** The attribute of the root element while the panel is pinned. CSS shows the pinned panel by it from `lg` up. */
+/** The attribute of the root element while the panel is pinned. CSS shows the pinned panel by it while the sidebar layout is inline. */
 export const PINNED_ATTRIBUTE = 'data-events-pinned'
 
 /** The attribute of the root element while a capture runs. CSS shows the ring of the header button by it. */

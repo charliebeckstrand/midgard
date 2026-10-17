@@ -51,15 +51,15 @@ const resizeMetrics = [dan.space.resize.end]
  *
  * It reads `--surface-fill`, which `omote.bg.surface` sets on a surface card and
  * on a flat dialog, sheet, or drawer. A dashboard tile is a surface card. With
- * no such surface around it, the grid sits on the content host
- * (`omote.content`). The fallback tracks that host, as the sidebar layout does
- * behind its sticky headers. That is the flush page background below `lg`, and
- * the card surface at `lg`.
+ * no such surface around it, the grid sits on the content host of the sidebar
+ * layout (`omote.content`), which sets the fill of its flat or card value. The
+ * sticky headers of the layout read the same fill. With no host at all, the
+ * grid takes the page ground.
  */
-const hostSurface = mode('bg-(--surface-fill,var(--color-white))', [
+const hostSurface = mode(
+	'bg-(--surface-fill,var(--color-white))',
 	'dark:bg-(--surface-fill,var(--color-zinc-950))',
-	'dark:lg:bg-(--surface-fill,var(--color-zinc-900))',
-])
+)
 
 /**
  * Opaque fill the actively dragged reorder column paints while lifted, so the
@@ -70,10 +70,10 @@ const hostSurface = mode('bg-(--surface-fill,var(--color-white))', [
  * slice of the table rather than a shade-off box. It is gated on the
  * `data-[dragging]` state the dragged column's cells carry.
  */
-const draggingSurface = mode('data-dragging:bg-(--surface-fill,var(--color-white))', [
+const draggingSurface = mode(
+	'data-dragging:bg-(--surface-fill,var(--color-white))',
 	'dark:data-dragging:bg-(--surface-fill,var(--color-zinc-950))',
-	'dark:lg:data-dragging:bg-(--surface-fill,var(--color-zinc-900))',
-])
+)
 
 /**
  * The group rail's 2px neutral inline-start border — a continuous bar down the

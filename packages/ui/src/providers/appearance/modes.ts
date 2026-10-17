@@ -26,7 +26,7 @@ export const motionModes: { label: string; value: MotionMode }[] = [
 
 /**
  * Sidebar preference an `<AppearanceProvider>` holds: `'locked'` keeps the
- * sidebar of a `SidebarLayout` inline from `lg` up, and `'offcanvas'` hides it
+ * sidebar of a `SidebarLayout` inline while the layout is inline, and `'offcanvas'` hides it
  * at the start edge, where a pointer that comes near the edge opens it.
  */
 export type SidebarMode = 'locked' | 'offcanvas'

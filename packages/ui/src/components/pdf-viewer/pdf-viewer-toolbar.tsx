@@ -40,7 +40,7 @@ export function PdfViewerToolbar() {
 		rotate,
 		documentSrc,
 		filename,
-		isDesktop,
+		railed,
 		sidebarOpen,
 		setSidebarOpen,
 		hasHighlights,
@@ -70,7 +70,7 @@ export function PdfViewerToolbar() {
 				<div className={cn(k.toolbar.section)}>
 					{total > 0 && (
 						<>
-							{isDesktop && (
+							{railed && (
 								<PdfViewerToolbarButton
 									label={sidebarToggleLabel}
 									icon={
@@ -91,7 +91,7 @@ export function PdfViewerToolbar() {
 						    button while open and carries its own close, so the button has one action and
 						    one name. `SheetTrigger` stamps `aria-haspopup` and the `aria-expanded` that
 						    reports the Sheet. The `Sheet` root in `PdfViewer` holds the state. */}
-							{!isDesktop && (
+							{!railed && (
 								<SheetTrigger>
 									<PdfViewerToolbarButton
 										label="Show thumbnails"

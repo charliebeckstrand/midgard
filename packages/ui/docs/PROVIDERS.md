@@ -40,7 +40,7 @@ An app mounts `AppearanceProvider` once at its root. The stylesheet of the app m
 | `themeModes` | Selectable theme modes with display labels, for theme pickers. |
 | `MotionMode` *(type)* | Motion preference: `system` follows the platform `prefers-reduced-motion` setting, and `reduced` reduces motion on each platform. |
 | `motionModes` | Selectable motion modes with display labels, for motion pickers. |
-| `SidebarMode` *(type)* | Sidebar preference: `locked` keeps the sidebar of a `SidebarLayout` inline from `lg` up. `offcanvas` hides it at the start edge, and a pointer near the edge opens it. |
+| `SidebarMode` *(type)* | Sidebar preference: `locked` keeps the sidebar of a `SidebarLayout` in its panel where the layout is inline. `offcanvas` hides it at the start edge, and a pointer near the edge opens it. |
 | `sidebarModes` | Selectable sidebar modes with display labels, for sidebar pickers. |
 
 ## `ui/providers/density`

@@ -38,7 +38,7 @@ function namedBreakpoints<T>(value: Responsive<T>): MinBreakpoint[] {
  *
  * The hook watches only the breakpoints that the value names, and a change
  * across another breakpoint does not render the component again. During SSR
- * each breakpoint matches, as with `useMinBreakpoint`, so the server takes the
+ * each breakpoint matches, as with `useMediaQuery`, so the server takes the
  * value of the largest breakpoint.
  *
  * @param value - The single or per-breakpoint value.

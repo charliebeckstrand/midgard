@@ -2,8 +2,9 @@
 
 import type { RefObject, SyntheticEvent } from 'react'
 import { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
-import { useMinBreakpoint, usePrefersReducedMotion } from '../../hooks'
+import { useOffcanvas, usePrefersReducedMotion, useResponsiveValue } from '../../hooks'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { adaptive, type Responsive } from '../../types'
 import { resolveDownloadName } from './pdf-viewer-utilities'
 import type {
 	PdfViewerFit,
@@ -12,6 +13,7 @@ import type {
 	PdfViewerMagnifierState,
 	PdfViewerPage,
 	PdfViewerSlot,
+	PdfViewerThumbnailLayout,
 	PdfViewerZoom,
 } from './types'
 import { usePdfViewerDocument, usePdfViewerDocumentFocus } from './use-pdf-viewer-document'
@@ -127,6 +129,7 @@ type PdfViewerOptions = {
 	defaultZoom?: number
 	zoomLevels?: number[]
 	fit?: PdfViewerFit
+	thumbnails?: Responsive<PdfViewerThumbnailLayout>
 	/** Whether the consumer supplied any highlight regions; gates the toolbar's visibility toggle. */
 	hasHighlights?: boolean
 	magnifier?: boolean | PdfViewerMagnifierOptions
@@ -168,10 +171,10 @@ export type PdfViewerResult = {
 	 */
 	pending: boolean
 	error: Error | null
-	/** True at the desktop breakpoint (≥ 1024px): pins the thumbnail sidebar instead of the Sheet. */
-	isDesktop: boolean
+	/** True where `thumbnails` is `'rail'`: pins the thumbnail sidebar instead of the Sheet. */
+	railed: boolean
 	/**
-	 * Desktop thumbnail sidebar open state; toggled from the toolbar.
+	 * Thumbnail rail open state; toggled from the toolbar.
 	 *
 	 * Mounts closed and opens once the document turns out to carry more than one page. A
 	 * single page has nothing to navigate to. It would spend the rail's width on a tile of
@@ -244,20 +247,11 @@ export type PdfViewerResult = {
 
 const DEFAULT_ZOOM_LEVELS = [0.5, 0.75, 1, 1.25, 1.5, 2, 3]
 
-/*
- * The open state of the mobile thumbnail Sheet. The Sheet is for the narrow layout only. At
- * lg the desktop layout unmounts its panel, but the Sheet root keeps this state. If the state
- * stays true, the modal opens again without a press when the viewport narrows (a tablet
- * rotation). Thus the state resets during the render that reaches desktop, and the open
- * state ignores it at desktop.
- */
-function useThumbsSheet(isDesktop: boolean): [boolean, (open: boolean) => void] {
-	const [choice, setChoice] = useState(false)
-
-	if (isDesktop && choice) setChoice(false)
-
-	return [choice && !isDesktop, setChoice]
-}
+/** The default `thumbnails` of a `PdfViewer`: a sheet on a compact or a medium viewport, and a rail when expanded. */
+export const PDF_VIEWER_THUMBNAILS = adaptive({
+	compact: 'sheet',
+	expanded: 'rail',
+}) satisfies Responsive<PdfViewerThumbnailLayout>
 
 /**
  * Composes the PDF viewer's state — document loading, pagination, per-page
@@ -283,6 +277,7 @@ export function usePdfViewer({
 	defaultZoom = 1,
 	zoomLevels = DEFAULT_ZOOM_LEVELS,
 	fit = 'page',
+	thumbnails = PDF_VIEWER_THUMBNAILS,
 	hasHighlights = false,
 	magnifier: magnifierProp,
 	onHighlightsVisibleChange,
@@ -475,7 +470,7 @@ export function usePdfViewer({
 
 	const total = pages.length
 
-	const isDesktop = useMinBreakpoint('lg')
+	const railed = useResponsiveValue(thumbnails, 'sheet') === 'rail'
 
 	const { safePage, goToPage } = usePdfViewerPagination({
 		total,
@@ -527,7 +522,12 @@ export function usePdfViewer({
 
 	const sidebarAnimates = sidebarChoice !== null && !reducedMotion
 
-	const [thumbsOpen, setThumbsOpen] = useThumbsSheet(isDesktop)
+	// The thumbnail Sheet is an offcanvas drawer of the rail. Where the layout is `rail`, the
+	// hook keeps the Sheet closed, so it does not open again without a press when the viewport
+	// narrows (a tablet rotation).
+	const { open: thumbsOpen, setOpen: setThumbsOpen } = useOffcanvas({
+		layout: railed ? 'inline' : 'drawer',
+	})
 
 	// Chrome, like the two above: nothing outside drives it, so it is state rather than a
 	// prop. Lives here (not with the overlay's own state) because the toolbar reads it, and
@@ -617,7 +617,7 @@ export function usePdfViewer({
 			loading,
 			pending,
 			error,
-			isDesktop,
+			railed,
 			sidebarOpen,
 			setSidebarOpen,
 			sidebarAnimates,
@@ -657,7 +657,7 @@ export function usePdfViewer({
 			loading,
 			pending,
 			error,
-			isDesktop,
+			railed,
 			sidebarOpen,
 			sidebarAnimates,
 			thumbsOpen,
