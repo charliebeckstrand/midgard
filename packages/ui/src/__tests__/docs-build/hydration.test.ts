@@ -10,7 +10,9 @@ import { HYDRATED } from '../../../scripts/docs-server'
 //
 // A tab that the browser restores from its cache after a deploy can name a
 // chunk that is not in the build. Such a page must reload one time, and no
-// more.
+// more. A page whose files all come from the cache hydrates, but a deploy
+// removed its other chunks. Such a page must also reload one time, at the
+// start or when the reader comes back to the tab.
 
 /**
  * The home page, component pages, a module page, a page with a tab in its
@@ -134,4 +136,67 @@ describe('a page whose HTML names a chunk that is not in the build', () => {
 			expect(loads).toBe(2)
 		},
 	)
+})
+
+/**
+ * Opens `/button`, and gives the fallback page for each `HEAD` request of the
+ * manifest file while `stale()` is true, as the host does after a deploy.
+ * Gives the tab and the number of loads of the document so far.
+ */
+async function openReplaced(stale: () => boolean): Promise<{ tab: Page; loads: () => number }> {
+	const tab = await openTab()
+
+	const url = `${origin}/button`
+
+	let loads = 0
+
+	await tab.route(url, (route) => {
+		loads++
+
+		return route.continue()
+	})
+
+	await tab.route(/\/assets\/manifest-[\w-]+\.js$/, async (route) => {
+		if (route.request().method() !== 'HEAD' || !stale()) return route.continue()
+
+		const fallback = await route.fetch({ url: `${origin}/no-such-file`, method: 'GET' })
+
+		return route.fulfill({ response: fallback, body: '' })
+	})
+
+	await tab.goto(url)
+
+	await tab.waitForFunction(HYDRATED)
+
+	await tab.waitForLoadState('networkidle')
+
+	return { tab, loads: () => loads }
+}
+
+describe('a page whose build a deploy replaced', () => {
+	it('reloads one time at the start, and hydrates', async () => {
+		const { tab, loads } = await openReplaced(() => true)
+
+		await tab.waitForFunction(HYDRATED)
+
+		expect(loads()).toBe(2)
+	})
+
+	it('reloads one time when the reader comes back to the tab', async () => {
+		let stale = false
+
+		const { tab, loads } = await openReplaced(() => stale)
+
+		expect(loads()).toBe(1)
+
+		stale = true
+
+		await tab.evaluate(() => document.dispatchEvent(new Event('visibilitychange')))
+
+		await tab.waitForEvent('load')
+
+		await tab.waitForFunction(HYDRATED)
+
+		expect(loads()).toBe(2)
+	})
 })

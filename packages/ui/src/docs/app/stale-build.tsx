@@ -10,6 +10,8 @@ declare global {
 	interface Window {
 		/** Stops the watch of the head script. The client entry calls it. */
 		__staleBuild?: () => void
+		/** The manifest of React Router. Its `url` names the manifest file of the build of the page. */
+		__reactRouterManifest?: { url?: string }
 	}
 }
 
@@ -41,4 +43,81 @@ export function StaleBuildScript() {
  */
 export function endStaleBuildWatch(): void {
 	window.__staleBuild?.()
+}
+
+// A page can also start from cached HTML whose files are all in the cache, so
+// it hydrates. Its other chunks are not in the cache, and the deploy removed
+// them. Each later load of a chunk then fails, such as the features of Motion
+// that animate an open, or the API reference. A tab that stays open across a
+// deploy has the same problem. The client entry thus checks that the manifest
+// file of the page is still on the host. The name of that file changes with
+// each build.
+
+/**
+ * Whether the host no longer has the manifest file of the page. A file that a
+ * deploy removed gets the fallback page, which is HTML. A failed request, or
+ * a status other than 200 and 404, gives `false`, so a bad network does not
+ * reload the page.
+ */
+async function isStale(): Promise<boolean> {
+	const url = window.__reactRouterManifest?.url
+
+	if (!url) return false
+
+	try {
+		const response = await fetch(url, { method: 'HEAD', cache: 'no-store' })
+
+		if (response.status === 404) return true
+
+		return response.ok && !response.headers.get('content-type')?.includes('javascript')
+	} catch {
+		return false
+	}
+}
+
+/** Reloads the page, unless the page reloaded in the last {@link GUARD} ms. */
+function reloadOnce(): void {
+	try {
+		if (Date.now() - Number(sessionStorage.getItem(RELOADED)) < GUARD) return
+
+		sessionStorage.setItem(RELOADED, String(Date.now()))
+	} catch {
+		return
+	}
+
+	location.reload()
+}
+
+/** Whether a check is in progress, so that two events do not start two checks. */
+let checking = false
+
+async function check(): Promise<void> {
+	if (checking) return
+
+	checking = true
+
+	try {
+		if (await isStale()) reloadOnce()
+	} finally {
+		checking = false
+	}
+}
+
+/**
+ * Reloads the page when a deploy replaced the build of the page. The client
+ * entry calls it after {@link endStaleBuildWatch}. The check runs one time at
+ * the start, and again each time that the reader comes back to the tab. The
+ * reload gets the HTML and the files of the new build.
+ */
+export function watchStaleBuild(): void {
+	void check()
+
+	document.addEventListener('visibilitychange', () => {
+		if (document.visibilityState === 'visible') void check()
+	})
+
+	// A page that the browser restores from its back-forward cache fires `pageshow`.
+	window.addEventListener('pageshow', (event) => {
+		if (event.persisted) void check()
+	})
 }
