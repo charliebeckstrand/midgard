@@ -15,7 +15,6 @@
 | Providers | [`docs/PROVIDERS.md`](docs/PROVIDERS.md) | `ui/providers/*` — appearance, density, glass, headless, locale, and the app-root `UIProvider`. |
 | Recipes | [`docs/RECIPES.md`](docs/RECIPES.md) | The design layer — Kiso tokens → Katakana bridge → Kata, plus the recipe engine. |
 | Core | [`docs/CORE.md`](docs/CORE.md) | `ui/core` — `cn`, `createContext`, `createSlot`, `announce`, and friends. |
-| Quality | [`docs/LEDGER.md`](docs/LEDGER.md) | The state of each unit against the definition of done: Not started, In pass, Clean, or Reopened. |
 | Utilities | [`docs/UTILITIES.md`](docs/UTILITIES.md) | Internal pure helpers (numeric, color contrast, caret, dismiss-layers, keyboard navigation). |
 
 Per-symbol behavior, props, and defaults live in each symbol's TSDoc. The docs site (`pnpm --filter ui dev`) renders them beside live examples through the [docs plugin](src/docs/plugin). Keep these docs current per [`../../CONVENTIONS.md`](../../CONVENTIONS.md) §12.
@@ -117,7 +116,6 @@ Enforced by boundary tests (`packages/ui/src/__tests__/boundary/`). Add a page u
 | Percy snapshots of the fixture sheets in `src/docs/fixtures` (needs `PERCY_TOKEN`) | `packages/ui` | `pnpm visual [sheet ids] [--density=<levels>]` |
 | The font files and `src/fonts/fonts.css`, after a change to the source font in `fonts/` or to `scripts/fonts.ts` (`fonts-boundary.test.ts` fails when they do not agree) | `packages/ui` | `pnpm fonts` |
 | Load time of the docs app | `packages/ui` | `pnpm docs:bench` |
-| The weekly quality metrics: ledger states, scan measures, next passes, fix-on-fix share, fixes by unit, and reopened units (`--weeks <n>`, 4 by default) | `packages/ui` | `pnpm quality:report` |
 | Dev (docs site) | `packages/ui` | `pnpm dev` |
 
 `test:changed` also runs the whole `boundary` and `workspace` projects. `pnpm check` runs it only when the branch changes `ui` (`turbo --affected`). A branch that changes only an app or `shared` runs these gates first in CI. CI runs each suite except the benchmarks and the Percy snapshots. The `build` job builds the apps. The `docs` job runs `test:docs-build` on the docs build, in three shards. It fails when a prerendered page of the docs app reports a hydration error. It also fails when a page whose HTML names a removed chunk does not reload one time and hydrate. It fails when the bundle goes over its budget. It fails on a WCAG 2.2 A or AA violation that axe finds in the light or the dark theme. It fails on a link to no page or to no element id. The `ci-ok` job needs each other job of CI. A merge requires `ci-ok` and the `commitlint` check of the `PR title` workflow. Thus a new CI job goes in the `needs` of `ci-ok`. The `Browser stress` workflow runs the browser suite under CPU load each week ([CONVENTIONS.md](../../CONVENTIONS.md) §10.11). The `Visual` workflow runs the Percy snapshots only on demand, from the Actions tab. No schedule, pull request, or push starts it.

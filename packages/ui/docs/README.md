@@ -4,10 +4,9 @@ Documentation for the `ui` package. Authoring conventions live in the repo-root
 [`CONVENTIONS.md`](../../../CONVENTIONS.md); the package hub is
 [`../REFERENCE.md`](../REFERENCE.md).
 
-This folder holds four kinds of material. **Curated surface references** give
-the always-current, quick-glance inventory of the package. The **quality
-ledger** holds the state of each unit. **Audits** and **plans** are temporary
-records, which a later step deletes.
+This folder holds three kinds of material. **Curated surface references** give
+the always-current, quick-glance inventory of the package. **Audits** and
+**plans** are temporary records, which a later step deletes.
 
 ## Structure
 
@@ -21,8 +20,6 @@ records, which a later step deletes.
   [`../REFERENCE.md`](../REFERENCE.md) is the hub that maps to them. When you
   add, remove, or rename an export, update the matching doc in the same change
   ([`CONVENTIONS.md`](../../../CONVENTIONS.md) §12.2).
-- **Quality ledger** — [`LEDGER.md`](LEDGER.md) holds one row for each unit, with
-  its state against the definition of done ([`CONVENTIONS.md`](../../../CONVENTIONS.md) §12.6).
 - **`audits/`** — dated sweeps of one area or one lens. Each audit records what
   the sweep found and the pull request that closed each finding. Delete it once
   the last finding closes ([`CONVENTIONS.md`](../../../CONVENTIONS.md) §12.3, §12.4).

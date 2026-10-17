@@ -34,7 +34,6 @@
 				"package.json",
 				"$TURBO_ROOT$/{CLAUDE,CONVENTIONS,STE}.md",
 				"$TURBO_ROOT$/.claude/agents/*.md",
-				"scripts/quality-ledger.ts",
 				"$TURBO_ROOT$/{Dockerfile,Dockerfile.*,package.json,pnpm-lock.yaml}",
 				"$TURBO_ROOT$/biome.json",
 				"$TURBO_ROOT$/.biome/plugins/**",

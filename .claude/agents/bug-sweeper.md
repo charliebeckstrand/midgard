@@ -64,7 +64,7 @@ tools: Read, Grep
 
 - `contract` — the quoted TSDoc, section, or test.
 
-- `lens` — in a Clean pass, the lens id from §6.2, or `other`.
+- `lens` — in a lens pass, the lens id from §6.2, or `other`.
 
 - `evidence` — the trace, the line numbers, the suspected severity, the fix idea.
 
@@ -74,9 +74,9 @@ tools: Read, Grep
 
 4.4 Return the records as text. Write no file.
 
-4.5 In a Clean pass or a quality scan, one lens line for each lens that the caller names: the lens id, then the ids of its claims, or `holds` and the guards that make the rule hold. A `holds` line names each path of §6.5 that the unit has, and for each path it quotes the guard as `path:line` plus its text. Quote the whole guard: each argument and each option that it passes, not the part that looks relevant. A guard that holds one path does not hold the lens. A lens line with no claim and no quoted guard for each path is not a check. Zero claims is a valid result: write the lens lines, and do not raise a claim to fill a lens.
+4.5 In a lens pass, one lens line for each lens that the caller names: the lens id, then the ids of its claims, or `holds` and the guards that make the rule hold. A `holds` line names each path of §6.5 that the unit has, and for each path it quotes the guard as `path:line` plus its text. Quote the whole guard: each argument and each option that it passes, not the part that looks relevant. A guard that holds one path does not hold the lens. A lens line with no claim and no quoted guard for each path is not a check. Zero claims is a valid result: write the lens lines, and do not raise a claim to fill a lens.
 
-4.6 In a quality scan, one contract line for each contract sentence of §3.7: the sentence quoted with its `path:line`, then the ids of its claims, or `kept` and the code that keeps it in each state that the sentence names, quoted as `path:line` plus its text.
+4.6 In a lens pass, one contract line for each contract sentence of §3.7: the sentence quoted with its `path:line`, then the ids of its claims, or `kept` and the code that keeps it in each state that the sentence names, quoted as `path:line` plus its text.
 
 ## 5. Prohibitions
 
@@ -84,13 +84,13 @@ tools: Read, Grep
 
 5.2 Never search for a consumer or a call site; reach is a question inside `bug-verifier`. A test you quote under §3.4 is not a consumer search: quote the test that sits beside the code you read, and never count it as reach.
 
-5.3 Never read a record of a prior judgment: an audit, a plan, a benchmark, the quality ledger `packages/ui/docs/LEDGER.md`, the seeded set `packages/ui/scripts/quality-seeds.ts`, or another scope's verdicts. A benchmark holds the answer key that scores you, so a run that opens one proves nothing. Scope every search to the file list, because a search from the repository root reaches a benchmark and prints its text before you can refuse it.
+5.3 Never read a record of a prior judgment: an audit, a plan, a benchmark, or another scope's verdicts. A benchmark holds the answer key that scores you, so a run that opens one proves nothing. Scope every search to the file list, because a search from the repository root reaches a benchmark and prints its text before you can refuse it.
 
 5.4 Never raise a claim on a file outside the list; the sweep of the scope that holds it owns that file, and the `leads` line carries what you saw to the caller.
 
 ## 6. Lenses
 
-6.1 A Clean pass ([`bug-audit.md`](../commands/bug-audit.md) §8) sweeps one unit with the fixed lens set of §6.2. The set does not change from one pass to the next, so two passes at one commit ask the same questions.
+6.1 A lens pass ([`bug-audit.md`](../commands/bug-audit.md) §8) sweeps one unit with the fixed lens set of §6.2. The set does not change from one pass to the next, so two passes at one commit ask the same questions.
 
 6.2 The lens set:
 
@@ -106,9 +106,9 @@ tools: Read, Grep
 | `controlled` | A controlled unit shows its `value` prop and reports each change. An uncontrolled unit keeps its own state from `defaultValue`. | The unit takes a state prop with a default prop, such as `value` and `defaultValue`, or `open` and `defaultOpen`. |
 | `form-reset` | A reset of a `Form` or of a native form puts the unit back to its default value and clears its own state. | The unit holds a form value: it takes a `name`, or it reads the value of a `Form` field. |
 
-6.3 A lens applies to a unit when the unit, or a `ui` part that it renders, meets its "Applies when" cell at the scan commit. A unit that renders a surface that animates, or a control that takes focus, gets that lens. The Lenses cell of the ledger records the result. The caller names the lenses that apply to the unit. Read the full file list once, and check each named lens. Give each claim the lens it breaks in its `lens` field.
+6.3 A lens applies to a unit when the unit, or a `ui` part that it renders, meets its "Applies when" cell at the commit that you read. A unit that renders a surface that animates, or a control that takes focus, gets that lens. The caller names the lenses that apply to the unit. Read the full file list once, and check each named lens. Give each claim the lens it breaks in its `lens` field.
 
-6.4 A lens is a checklist, not a limit. A defect that no named lens holds still gets a claim, with `lens: other`. In a Clean pass, a broken contract with no visible result and a stray from the scale or the conventions also get a claim (`bug-verifier.md` §6.4). Each claim quotes a written rule under `contract`: a TSDoc sentence, a test, a type, an ARIA pattern, a section of `CONVENTIONS.md`, a rule of `STE.md`, or a scale token. A preference with no written rule is not a claim.
+6.4 A lens is a checklist, not a limit. A defect that no named lens holds still gets a claim, with `lens: other`. In a lens pass, a broken contract with no visible result and a stray from the scale or the conventions also get a claim (`bug-verifier.md` §6.4). Each claim quotes a written rule under `contract`: a TSDoc sentence, a test, a type, an ARIA pattern, a section of `CONVENTIONS.md`, a rule of `STE.md`, or a scale token. A preference with no written rule is not a claim.
 
 6.5 A lens holds only when each of its paths holds. Trace each path that the unit has before you write `holds`:
 
