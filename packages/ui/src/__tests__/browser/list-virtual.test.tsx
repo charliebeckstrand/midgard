@@ -1,3 +1,4 @@
+import { Profiler } from 'react'
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { List, ListItem } from '../../components/list'
@@ -222,6 +223,49 @@ describe('a virtual list', () => {
 
 			expect(inView).toBeDefined()
 		})
+	})
+
+	it('goes from its first rows to its window in one step in a scroller that grows to a cap', async () => {
+		// Rows much shorter than the first guess of the window, in a scroller that
+		// only a maximum height bounds, as the body of a sheet holds a log of short
+		// lines. The first rows do not fill the cap.
+		const lines = Array.from({ length: COUNT }, (_, index) => ({ id: `line-${index}` }))
+
+		// The count of drawn rows at each commit, with no repeat.
+		const counts: number[] = []
+
+		const record = () => {
+			const count = document.querySelectorAll('[data-slot="list-item"]').length
+
+			if (counts.at(-1) !== count) counts.push(count)
+		}
+
+		const { container } = renderUI(
+			<Profiler id="list" onRender={record}>
+				<div data-scroll-region style={{ maxHeight: 900, width: 360, overflowY: 'auto' }}>
+					<List items={lines} sortable={false} virtual getKey={(line) => line.id}>
+						{(line) => <ListItem>{line.id}</ListItem>}
+					</List>
+				</div>
+			</Profiler>,
+		)
+
+		await frames()
+
+		const region = regionOf(container)
+
+		expect(region.clientHeight).toBe(900)
+
+		const last = present(rowsOf(container).at(-1), 'the last row')
+
+		expect(last.getBoundingClientRect().bottom).toBeGreaterThanOrEqual(
+			region.getBoundingClientRect().bottom,
+		)
+
+		// The first rows, then the window. A window that measured the scroller
+		// before it grew to its cap, or that took the guess for the rows, would
+		// move again when the rows measured.
+		expect(counts).toHaveLength(2)
 	})
 
 	it('renders every row where no scroll region holds it', async () => {

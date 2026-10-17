@@ -1,6 +1,6 @@
 'use client'
 
-import { type RefObject, useCallback, useLayoutEffect, useState } from 'react'
+import { type RefObject, useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useVirtualWindow } from '../../hooks/use-virtual-window'
 
 /**
@@ -91,6 +91,12 @@ export function useListWindow({
 }): ListWindow {
 	const [frame, setFrame] = useState<ListFrame>({ scrollMargin: 0, gap: 0 })
 
+	// The guess for a row that has not rendered. The virtualizer reads it through a
+	// getter, because a new `estimateSize` takes effect only when a row measures.
+	const estimate = useRef(ESTIMATED_ROW_HEIGHT)
+
+	const estimateSize = useCallback(() => estimate.current, [])
+
 	useLayoutEffect(() => {
 		const list = listRef.current
 
@@ -103,6 +109,11 @@ export function useListWindow({
 
 			return
 		}
+
+		// The rows that the first commit draws give the guess. This effect runs before
+		// the virtualizer computes its first window, so that window holds the rows
+		// that the scroller shows, and their measurement does not move it again.
+		estimate.current = meanRowHeight(list) ?? estimate.current
 
 		const measure = () => {
 			const scrollMargin =
@@ -155,28 +166,63 @@ export function useListWindow({
 	const { virtualItems, topSpacer, bottomSpacer, measureRef } = useVirtualWindow({
 		count: windowed ? count : 0,
 		getScrollElement,
-		estimateSize: ESTIMATED_ROW_HEIGHT,
+		estimateSize,
 		overscan: OVERSCAN,
 		scrollMargin: frame?.scrollMargin ?? 0,
 		gap: frame?.gap ?? 0,
 		getItemKey,
 	})
 
+	// The window is a range of indexes. An empty window draws the first rows.
+	const first = virtualItems[0]?.index ?? 0
+
+	const last = virtualItems.at(-1)?.index ?? Math.min(count, UNMEASURED_ROWS) - 1
+
+	// One array for each range, so a render that keeps the range lets the list
+	// keep its row elements.
+	const indexes = useMemo(
+		() => Array.from({ length: Math.max(0, last - first + 1) }, (_, at) => first + at),
+		[first, last],
+	)
+
 	if (!windowed) return { indexes: null, paddingTop: 0, paddingBottom: 0, measureRef }
 
+	// The padding stands in for the rows that the empty window does not draw, so a
+	// scroller that only a maximum height bounds is at its cap when the virtualizer
+	// first measures it. Without it, the first window fills only the height of the
+	// first rows, and the growth of the scroller renders the list again.
 	if (virtualItems.length === 0) {
+		const rest = Math.max(0, count - indexes.length)
+
 		return {
-			indexes: Array.from({ length: Math.min(count, UNMEASURED_ROWS) }, (_, index) => index),
+			indexes,
 			paddingTop: 0,
-			paddingBottom: 0,
+			paddingBottom: rest * (ESTIMATED_ROW_HEIGHT + (frame?.gap ?? 0)),
 			measureRef,
 		}
 	}
 
-	return {
-		indexes: virtualItems.map((item) => item.index),
-		paddingTop: topSpacer,
-		paddingBottom: bottomSpacer,
-		measureRef,
+	return { indexes, paddingTop: topSpacer, paddingBottom: bottomSpacer, measureRef }
+}
+
+/**
+ * The mean height in pixels of the rows that the list draws, or `undefined`
+ * when it draws no row of some height. @internal
+ */
+function meanRowHeight(list: HTMLElement): number | undefined {
+	let total = 0
+
+	let rows = 0
+
+	for (const row of list.children) {
+		const height = (row as HTMLElement).offsetHeight
+
+		if (height > 0) {
+			total += height
+
+			rows++
+		}
 	}
+
+	return rows > 0 ? total / rows : undefined
 }

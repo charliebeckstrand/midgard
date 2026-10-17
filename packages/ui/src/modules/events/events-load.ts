@@ -7,6 +7,11 @@ import { getEventSink } from './engine/events-sink'
  * pause. With `hold`, a load that succeeds keeps the pause, because the sheet
  * that loads then holds it while it is open.
  *
+ * @remarks Two calls can share one load, such as a preload on hover and the
+ * press that follows it. Each call sets the pause when the load resolves, in
+ * the order of the calls, so the last call decides. A press thus keeps the
+ * pause that a preload before it would end.
+ *
  * @internal
  */
 export function loadTools<M>(lazy: LazyModule<M>, hold: boolean): Promise<M> {
@@ -16,7 +21,7 @@ export function loadTools<M>(lazy: LazyModule<M>, hold: boolean): Promise<M> {
 
 	return lazy.load().then(
 		(module) => {
-			if (!hold) store?.setPaused(false)
+			store?.setPaused(hold)
 
 			return module
 		},
