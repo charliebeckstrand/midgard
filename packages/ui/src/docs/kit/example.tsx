@@ -157,9 +157,10 @@ export function ExampleFrame({
 					data-dragging={resize.handleProps['data-dragging']}
 					className="peer absolute inset-y-0 -end-3 z-10 w-6 cursor-ew-resize touch-pan-y select-none pointer-coarse:pointer-events-none"
 				>
+					{/* The bar has an odd width, so it centers on the 1px border at whole pixels. */}
 					<div
 						data-slot="example-resize-grip"
-						className="pointer-events-auto absolute inset-x-0 top-[calc(50%-1.5rem)] hidden h-12 touch-none after:absolute after:inset-y-2 after:start-[calc(50%-2px)] after:w-1 after:rounded-full after:bg-zinc-400 after:content-[''] pointer-coarse:block dark:after:bg-zinc-600"
+						className="pointer-events-auto absolute inset-x-0 top-[calc(50%-1.5rem)] hidden h-12 touch-none after:absolute after:inset-y-2 after:start-[calc(50%-3px)] after:w-[5px] after:rounded-full after:bg-zinc-400 after:content-[''] pointer-coarse:block dark:after:bg-zinc-600"
 					/>
 				</div>
 				<div className="overflow-auto rounded-lg border border-zinc-200 peer-hover:border-zinc-400 peer-data-dragging:border-zinc-400 dark:border-zinc-800 dark:peer-hover:border-zinc-600 dark:peer-data-dragging:border-zinc-600">
