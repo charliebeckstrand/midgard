@@ -176,9 +176,9 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 					onDragCancel={handleDragCancel}
 				>
 					<section
+						data-slot="kanban"
 						{...labelProps}
 						ref={boardRef}
-						data-slot="kanban"
 						className={cn(k.base, className)}
 					>
 						{children}
