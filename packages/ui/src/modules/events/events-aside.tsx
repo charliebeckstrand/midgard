@@ -13,8 +13,8 @@ const panel = createLazyModule(() => import('./events-panel'))
 const pinnedOnServer = () => false
 
 /**
- * The pinned panel of the events, for the `aside` of `SidebarLayout`. From
- * `lg` up, while the events run and the panel is pinned, it shows each event
+ * The pinned panel of the events, for the `aside` of `SidebarLayout`. While
+ * the layout is inline, the events run and the panel is pinned, it shows each event
  * as it comes in, with the Bugs tab and Capture. The Pin of the events sheet
  * pins it, and its Unpin returns the view to `EventsButton`.
  *
@@ -43,7 +43,9 @@ export function EventsAside() {
 		<aside
 			data-events-tool=""
 			aria-label="Events"
-			className="hidden h-full min-h-0 w-96 flex-col py-2 pe-2 lg:[:root[data-events][data-events-pinned]_&]:flex"
+			// The aside of the layout shows only in the inline layout, so the panel
+			// needs no breakpoint of its own.
+			className="hidden h-full min-h-0 w-96 flex-col py-2 pe-2 [:root[data-events][data-events-pinned]_&]:flex"
 		>
 			{pinned && Panel && <Panel />}
 		</aside>

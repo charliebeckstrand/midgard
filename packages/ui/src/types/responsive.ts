@@ -11,7 +11,7 @@ export type MinBreakpoint = Exclude<Breakpoint, 'initial'>
  * Where each breakpoint starts, as Tailwind's own `@theme` declares it.
  *
  * The same scale as the `sm:` / `lg:` prefixes above, in the same unit. A question asked
- * in JavaScript (`useMinBreakpoint('lg')`) and the same question asked in CSS (`lg:`)
+ * in JavaScript (`useResponsiveValue`) and the same question asked in CSS (`lg:`)
  * therefore cannot give different answers. A pixel literal at each call site copies the
  * scale by hand, and no copy moves if the theme's breakpoints change.
  *

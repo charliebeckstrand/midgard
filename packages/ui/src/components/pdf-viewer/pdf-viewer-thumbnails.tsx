@@ -35,7 +35,7 @@ export function PdfViewerThumbnails() {
 		safePage,
 		goToPage,
 		loading,
-		isDesktop,
+		railed,
 		sidebarOpen,
 		sidebarAnimates,
 		setThumbsOpen,
@@ -81,7 +81,7 @@ export function PdfViewerThumbnails() {
 
 	return (
 		<>
-			{isDesktop && (
+			{railed && (
 				<aside
 					ref={sidebarRef}
 					data-slot="pdf-viewer-sidebar"
@@ -121,7 +121,7 @@ export function PdfViewerThumbnails() {
 				</aside>
 			)}
 
-			{!isDesktop && (
+			{!railed && (
 				<SheetPanel
 					side="start"
 					container={root}

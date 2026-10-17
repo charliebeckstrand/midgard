@@ -1,10 +1,10 @@
 'use client'
 
-import { type ComponentProps, useRef } from 'react'
+import { type ComponentProps, use, useRef } from 'react'
 import { cn, composeEventHandlers, dataAttr } from '../../core'
-import { useA11yRoving, useComposedRef, useMinBreakpoint } from '../../hooks'
-import { useHydrated } from '../../hooks/use-hydrated'
+import { useA11yRoving, useComposedRef } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
+import { OffcanvasContext } from '../../primitives/offcanvas'
 import { k } from '../../recipes/kata/sidebar'
 import { SidebarMiniContext } from './context'
 
@@ -17,10 +17,11 @@ export type SidebarProps = Omit<ComponentProps<'nav'>, 'aria-label'> & {
 	 */
 	'aria-label'?: string
 	/**
-	 * Collapse to an icon rail on desktop (`lg+`): labels turn `sr-only`,
-	 * affixes and item actions hide, and items gain a hover tooltip naming the
-	 * label. Below the breakpoint the sidebar keeps its full layout, so the
-	 * mobile drawer is unaffected.
+	 * Collapse to an icon rail: labels turn `sr-only`, affixes and item actions
+	 * hide, and items gain a hover tooltip naming the label. In the drawer of a
+	 * `SidebarLayout` the sidebar keeps its full layout, so the drawer is
+	 * unaffected. The rail shows wherever else the sidebar renders, so the
+	 * `layout` of the `SidebarLayout` decides where it shows.
 	 * @defaultValue false
 	 */
 	mini?: boolean
@@ -42,9 +43,7 @@ export type SidebarProps = Omit<ComponentProps<'nav'>, 'aria-label'> & {
  *
  * Content that has to differ between the full sidebar and the mini rail reads
  * the resolved state with {@link useSidebarMini}, from a component inside the
- * sidebar. The state is full on the server and in the hydration render,
- * because the server knows no width. The CSS draws the rail at `lg` in the
- * first paint, and the state follows after hydration. The root took a render prop for that once, and it was the library's
+ * sidebar. The state needs no width, so the server renders it too. The root took a render prop for that once, and it was the library's
  * one root render prop. The context it already broadcasts does the same work
  * without one.
  */
@@ -79,17 +78,10 @@ export function Sidebar({
 		},
 	})
 
-	// Mini is desktop-only: the recipe's `lg:` scoping handles the CSS collapse,
-	// and the same breakpoint resolves the state that `useSidebarMini` gives to
-	// the content and to the items (which mount their label tooltips from it).
-	// The server knows no width, so the server and the hydration render resolve
-	// to the full state. The CSS draws the rail at `lg` for the first paint, and
-	// the context follows after hydration.
-	const desktop = useMinBreakpoint('lg')
-
-	const hydrated = useHydrated()
-
-	const resolvedMini = mini && desktop && hydrated
+	// The drawer of a layout holds the full sidebar. It is the one place that
+	// provides the offcanvas close handle, so the handle tells the sidebar that
+	// it is in the drawer. The panel and the floating sheet show the rail.
+	const resolvedMini = mini && use(OffcanvasContext) === null
 
 	return (
 		<ActiveIndicatorScope>
@@ -97,7 +89,7 @@ export function Sidebar({
 				<nav
 					ref={composedRef}
 					data-slot="sidebar"
-					data-mini={dataAttr(mini)}
+					data-mini={dataAttr(resolvedMini)}
 					aria-label={ariaLabel}
 					className={cn(k.base, className)}
 					// Roving is a keyboard model no consumer switches off, so a consumer's

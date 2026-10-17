@@ -17,7 +17,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `useIdleLoad` | Loads a value, such as the module of a menu, in idle time after the mount. The mounts of one loader share one load. |
 | `useIntentLoad` | `useIdleLoad` that also loads on a pointer, a focus, or a press, for a trigger that loads its code first. |
 | `useTimeout` | One restartable timer with stable `set`, `clear`, and `pending`, for a debounce or a dwell delay. It clears on unmount. |
-| `useOffcanvas` | Open state of an offcanvas sidebar, which closes when the viewport widens to `lg`. |
+| `useOffcanvas` | Open state of an offcanvas panel, which closes when its `layout` turns `inline` (by default from `lg`). |
 
 ## Floating & overlays
 
@@ -65,7 +65,6 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `usePlotFrame` | Resolves the drawing box of a chart or map frame from a `FrameSizing` policy, and measures only the axes that the policy uses. |
 | `useMediaQuery` | True when `query` matches the viewport; true during SSR. |
 | `usePrefersReducedMotion` | True when the reader asks for reduced motion through the platform or `AppearanceProvider`; true during SSR. Use it in place of the `useReducedMotion` of motion. |
-| `useMinBreakpoint` | True when the viewport reaches a named breakpoint, such as `'lg'`, on the scale of the CSS prefixes; true during SSR. |
 | `useResponsiveValue` | The value of a `Responsive<T>` prop at the viewport, as its classes give it. During SSR, the value of the largest breakpoint. |
 | `useIsTruncated` | True when text overflows the element, measured with a `Range` over its contents. |
 | `useInView` | True when `ref.current` is in or near the viewport. By default it disconnects on first sight. |
@@ -106,7 +105,6 @@ Hooks export the option and return shapes consumers thread through their own pro
 | `IntentLoad` | Return shape of `useIntentLoad`: `module`, `request`, `preload`. |
 | `SetValue` | Argument to `useControllable`'s setter: a next value, `null`/`undefined` to clear, or a functional updater. |
 | `InView` / `InViewOptions` | Return shape / options of `useInView` (`ref`, `inView`; `margin`, `once`). |
-| `MinBreakpoint` | The breakpoint names that `useMinBreakpoint` takes. |
 | `Responsive` | A single value or a per-breakpoint map, the type that `useResponsiveValue` takes. |
 | `RovingOptions` | Options for `useA11yRoving`. |
 | `ControllableOptions` | Options for `useControllable`: the controlled `value`, the uncontrolled `defaultValue`, and the change report. |
@@ -122,7 +120,8 @@ Hooks export the option and return shapes consumers thread through their own pro
 | `FormattedInputOptions` | Options for `useFormattedInput`: the `format` pass, the meaningful-character test, and the ref to compose. |
 | `IdScopeOptions` | Options for `useIdScope`: the id to adopt in place of a generated one. |
 | `KeybindingsOptions` | Options for `useKeybindings`: the enable gate, the target, the capture phase, and the skip predicate. |
-| `OffcanvasOptions` | Options for `useOffcanvas`. |
+| `OffcanvasOptions` | Options for `useOffcanvas`: the `layout` and the change report. |
+| `OffcanvasLayout` | Where an offcanvas panel is: `drawer` or `inline`. `OFFCANVAS_LAYOUT` is the default, the `layout` that `SidebarLayout` and `DashboardLayout` take. |
 | `ScrollRegionOptions` | Options for `useScrollRegion`: the `label` or `labelledBy` that names the region while it scrolls. |
 | `ScrollWithinOptions` | Options for `useScrollWithin`. |
 | `SortableItemOptions` / `SortableListOptions` / `SortableSensorsOptions` | Options for the `@dnd-kit` wrappers. |

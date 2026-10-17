@@ -33,16 +33,16 @@ Client layout building on `StackedLayout` with a responsive filter rail.
 
 | Export | Summary |
 |---|---|
-| `DashboardLayout` | Stacked content layout with a responsive filter rail — filters sit beside the main column on desktop and collapse into an offcanvas drawer on mobile. |
+| `DashboardLayout` | Stacked content layout with a responsive filter rail. Its `layout` sets the place of the filters at each breakpoint. An `inline` layout puts them beside the main column. A `drawer` layout puts them in an offcanvas drawer that a button opens. The default is a drawer on a compact or a medium viewport, and inline when expanded. |
 
 ## `SidebarLayout` — sidebar app shell
 
-Client app shell: a desktop sidebar, a mobile drawer-and-navbar, and a content region.
+Client app shell: an inline sidebar or a drawer-and-navbar, and a content region.
 
 | Export | Summary |
 |---|---|
-| `SidebarLayout` | App shell: a desktop sidebar (inline, or a hover-revealed floating sheet), a mobile drawer-and-navbar, and a density-aware content region. The Sidebar setting of `AppearanceProvider` selects the desktop sidebar. The `locked` sidebar is inline, and the `offcanvas` sidebar is a floating sheet. The ⌘B or Ctrl+B key toggles it one time for each press. The page scrolls at each width: under a sticky navbar below `lg`, and beside a sticky desktop panel from `lg` up. The height of the bar that sticks is the top `scroll-padding` of the scroller. A scroll into view, an anchor, and a `Lightbox` flight keep clear of the bar. The sidebar sits on the start edge. An optional `aside` panel sits on the end edge from `lg` up. It is sticky and as tall as the viewport, as the pinned panel of the events is. |
-| `SidebarLayoutHeader` | Header slot; surfaces the layout's `actions` inline on desktop (`data-slot="header"`). |
+| `SidebarLayout` | App shell: an inline sidebar (a panel, or a hover-revealed floating sheet) or a drawer-and-navbar, and a density-aware content region. Its `layout` chooses at each breakpoint: a drawer on a compact or a medium viewport, and inline when expanded. The Sidebar setting of `AppearanceProvider` selects the inline sidebar. The `locked` sidebar is a panel, and the `offcanvas` sidebar is a floating sheet. The ⌘B or Ctrl+B key toggles it one time for each press. The page scrolls at each width: under a sticky navbar in the drawer layout, and beside a sticky panel in the inline layout. The height of the bar that sticks is the top `scroll-padding` of the scroller. A scroll into view, an anchor, and a `Lightbox` flight keep clear of the bar. The sidebar sits on the start edge. An optional `aside` panel sits on the end edge in the inline layout. It is sticky and as tall as the viewport, as the pinned panel of the events is. |
+| `SidebarLayoutHeader` | Header slot; surfaces the layout's `actions` in the inline layout (`data-slot="header"`). |
 | `SidebarLayoutBody` | Main slot (`data-slot="body"`); scrolls with the page at each width. |
 | `SidebarLayoutFooter` | Footer slot (`data-slot="footer"`). |
 

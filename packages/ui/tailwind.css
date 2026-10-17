@@ -134,3 +134,19 @@
 @source inline('{sm,md,lg,xl,2xl}:max-w-[calc(100%-2rem)]');
 /* QueryBuilder `orientation`: the parts of a rule (`min-w-auto` is a line above). */
 @source inline('{sm,md,lg,xl,2xl}:{flex-nowrap,flex-wrap,flex-initial,flex-1,flex-2,min-w-32,min-w-48}');
+/* Offcanvas `layout`: a part that shows in one layout only (`block`, `hidden`, and `flex` are lines above). */
+@source inline('{sm,md,lg,xl,2xl}:inline-flex');
+/* SidebarLayout `layout`: the root, the peek, the content wrapper, the content, and its header. */
+@source inline('{sm,md,lg,xl,2xl}:bg-{white,zinc-100,transparent}');
+@source inline('{sm,md,lg,xl,2xl}:sidebar-offcanvas:{block,hidden,ps-0,ps-2}');
+@source inline('{sm,md,lg,xl,2xl}:{py-2,pe-0,pe-2,rounded-lg,shadow-none,shadow-xs}');
+@source inline('{sm,md,lg,xl,2xl}:dark:bg-{transparent,zinc-900}');
+@source inline('{sm,md,lg,xl,2xl}:[--surface-fill:var(--color-white)]');
+@source inline('{sm,md,lg,xl,2xl}:dark:[--surface-fill:var(--color-{zinc-900,zinc-950})]');
+@source inline('{sm,md,lg,xl,2xl}:density-pt-[0,0,0,0,0]');
+@source inline('{sm,md,lg,xl,2xl}:density-pt-[2,4,6,8,10]');
+@source inline('{sm,md,lg,xl,2xl}:not-has-[[data-slot=header]]:density-pt-[0,0,0,0,0]');
+@source inline('{sm,md,lg,xl,2xl}:not-has-[[data-slot=header]]:density-pt-[2,4,6,8,10]');
+@source inline('{sm,md,lg,xl,2xl}:**:data-[slot=header]:{static,sticky}');
+/* EventsButton `layout`: the button while the panel is pinned. */
+@source inline('{sm,md,lg,xl,2xl}:[:root[data-events][data-events-pinned]_&]:{contents,hidden}');

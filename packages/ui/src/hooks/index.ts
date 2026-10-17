@@ -70,8 +70,12 @@ export { type KeybindingsOptions, useKeybindings } from './use-keybindings'
 export { useKeyboardLifted } from './use-keyboard-lifted'
 export { useKeyboardSettled } from './use-keyboard-settled'
 export { useMediaQuery } from './use-media-query'
-export { type MinBreakpoint, useMinBreakpoint } from './use-min-breakpoint'
-export { type OffcanvasOptions, useOffcanvas } from './use-offcanvas'
+export {
+	OFFCANVAS_LAYOUT,
+	type OffcanvasLayout,
+	type OffcanvasOptions,
+	useOffcanvas,
+} from './use-offcanvas'
 export { usePendingCaret } from './use-pending-caret'
 export {
 	type FrameReserve,

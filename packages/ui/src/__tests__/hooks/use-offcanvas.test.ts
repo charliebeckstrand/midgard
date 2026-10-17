@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { useOffcanvas } from '../../hooks/use-offcanvas'
-import { BREAKPOINT_WIDTHS } from '../../types/responsive'
+import { adaptive, BREAKPOINT_WIDTHS } from '../../types/responsive'
 import { stubMatchMedia } from '../helpers'
 
 describe('useOffcanvas', () => {
@@ -175,6 +175,42 @@ describe('useOffcanvas: breakpoint listener', () => {
 		expect(onOpenChange).toHaveBeenLastCalledWith(false)
 
 		expect(onOpenChange).toHaveBeenCalledTimes(2)
+	})
+
+	it('stays open at each width when the layout is a drawer at each width', () => {
+		const { cross } = stubViewportCrossing()
+
+		const { result } = renderHook(() => useOffcanvas({ layout: 'drawer' }))
+
+		act(() => {
+			result.current.setOpen(true)
+		})
+
+		act(() => {
+			cross(true)
+		})
+
+		expect(result.current.open).toBe(true)
+	})
+
+	it('keeps the drawer closed while the layout is inline', () => {
+		stubMatchMedia(() => false)
+
+		const { result } = renderHook(() => useOffcanvas({ layout: 'inline' }))
+
+		act(() => {
+			result.current.setOpen(true)
+		})
+
+		expect(result.current.open).toBe(false)
+	})
+
+	it('watches the breakpoint where the layout turns inline', () => {
+		const matchMedia = stubMatchMedia(() => false)
+
+		renderHook(() => useOffcanvas({ layout: adaptive({ compact: 'drawer', medium: 'inline' }) }))
+
+		expect(matchMedia).toHaveBeenCalledWith(`(min-width: ${BREAKPOINT_WIDTHS.sm})`)
 	})
 
 	it('watches the lg breakpoint in the unit Tailwind emits', () => {

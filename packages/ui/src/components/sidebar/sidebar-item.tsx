@@ -80,8 +80,8 @@ export function SidebarItem({
 	// so the slots sit inside the hover tint and focus ring.
 	const hasAffix = prefix != null || suffix != null
 
-	// Resolved by the Sidebar root: true only when mini on a desktop viewport,
-	// so the mobile drawer keeps plain items.
+	// Resolved by the Sidebar root: false in the drawer of a layout, so the
+	// drawer keeps plain items.
 	const mini = useSidebarMini()
 
 	// A link marks the current page, and a button marks the current view.

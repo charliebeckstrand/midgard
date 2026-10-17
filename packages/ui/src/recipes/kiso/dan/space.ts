@@ -164,10 +164,14 @@ export const space = {
 		/** The bottom padding of the sidebar layout regions. */
 		bottom: 'density-pb-[2,4,6,8,10]',
 		top: {
-			/** The top padding of the sidebar layout content from the `lg` breakpoint. */
-			lg: 'lg:density-pt-[2,4,6,8,10]',
-			/** The top padding of the sidebar layout content with no header, from the `lg` breakpoint. */
-			headless: 'lg:not-has-[[data-slot=header]]:density-pt-[2,4,6,8,10]',
+			/** The top padding of the sidebar layout header while the layout is inline. */
+			inline: 'density-pt-[2,4,6,8,10]',
+			/**
+			 * No top padding, for the sidebar layout header while the layout is a
+			 * drawer, as the navbar is above it. It is in the layer of `inline`, so
+			 * a breakpoint can switch the two.
+			 */
+			none: 'density-pt-[0,0,0,0,0]',
 		},
 	},
 	/** The padding of a tooltip, inside its ring. */

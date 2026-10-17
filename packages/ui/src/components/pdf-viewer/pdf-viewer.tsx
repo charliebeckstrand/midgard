@@ -4,6 +4,7 @@ import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { useComposedRef } from '../../hooks/use-composed-ref'
 import { k } from '../../recipes/kata/pdf-viewer'
+import type { Responsive } from '../../types'
 import { Sheet } from '../sheet'
 import { PdfViewerContext } from './context'
 import { PdfViewerHighlightsProvider } from './pdf-viewer-highlights-provider'
@@ -18,8 +19,9 @@ import type {
 	PdfViewerMagnifierOptions,
 	PdfViewerMagnifierState,
 	PdfViewerPage,
+	PdfViewerThumbnailLayout,
 } from './types'
-import { usePdfViewer } from './use-pdf-viewer'
+import { PDF_VIEWER_THUMBNAILS, usePdfViewer } from './use-pdf-viewer'
 
 /**
  * Props for {@link PdfViewer}: the document source (`pages` or `src`), controlled page state, and zoom defaults.
@@ -181,6 +183,14 @@ export type PdfViewerProps = Omit<ComponentProps<'section'>, 'children' | 'onLoa
 	 * straight back through {@link PdfViewerProps.magnifier}.
 	 */
 	onMagnifierChange?: (state: PdfViewerMagnifierState) => void
+	/**
+	 * Where the page thumbnails are: a `rail` pinned beside the page, which the
+	 * toolbar shows and hides, or a `sheet` that the toolbar opens. A
+	 * per-breakpoint map sets the layout from each breakpoint, mobile-first. A
+	 * single value sets it at each width.
+	 * @defaultValue {@link PDF_VIEWER_THUMBNAILS}
+	 */
+	thumbnails?: Responsive<PdfViewerThumbnailLayout>
 	/** The accessible name of the viewer. @defaultValue 'PDF viewer' */
 	'aria-label'?: string
 }
@@ -211,6 +221,7 @@ export function PdfViewer({
 	defaultZoom,
 	zoomLevels,
 	fit,
+	thumbnails,
 	highlights,
 	highlightUnit,
 	activeHighlightId,
@@ -237,6 +248,7 @@ export function PdfViewer({
 		defaultZoom,
 		zoomLevels,
 		fit,
+		thumbnails,
 		hasHighlights: !!highlights?.length,
 		magnifier,
 		onHighlightsVisibleChange,

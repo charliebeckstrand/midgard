@@ -3,6 +3,7 @@
  * the Sidebar component (`kata/sidebar.ts`).
  */
 import { defineRecipe } from '../../core/recipe'
+import type { OffcanvasLayout } from '../../hooks/use-offcanvas'
 import { narabi, omote, sen, sou } from '../kiso'
 import { dan } from '../kiso/dan'
 
@@ -14,10 +15,15 @@ const { gap, space } = dan
 // and only a page that can scroll takes that offset back. The scroll
 // restoration of a router also reads and sets the scroll position of the page.
 //
-// Below `lg`, do not clip the overflow of the layout. WebKit then gives the
-// sticky navbar an ancestor clipping layer, and on iOS the bar stutters while
-// the page scrolls (WebKit bug 247130). From `lg` up, the sticky header and the
-// sticky panel need the same rule, so no width clips the layout.
+// Do not clip the overflow of the layout. In the drawer layout, WebKit then
+// gives the sticky navbar an ancestor clipping layer, and on iOS the bar
+// stutters while the page scrolls (WebKit bug 247130). In the inline layout,
+// the sticky header and the sticky panel need the same rule, so no layout
+// clips.
+//
+// The layout is a drawer or inline at each breakpoint (`layout`). Each part
+// that changes with it has a table of the two values below (`k.layout`), and
+// `resolveVariant` puts the prefix of each breakpoint on its classes.
 //
 // `100cqh` is the height of the nearest size container. With no size
 // container, it is the height of the small viewport (`svh`). The layout thus
@@ -26,13 +32,7 @@ const { gap, space } = dan
 // The layout takes the full width, so a parent that is a flex row does not
 // shrink it to the width of its content.
 const layout = defineRecipe({
-	base: [
-		'relative w-full min-h-[100cqh]',
-		'isolate',
-		'flex flex-col lg:flex-row',
-		'bg-white lg:bg-zinc-100',
-		'dark:bg-zinc-950',
-	],
+	base: ['relative w-full min-h-[100cqh]', 'isolate', 'flex', 'dark:bg-zinc-950'],
 })
 
 // The width of the sidebar. It holds text, so its width follows the nearest
@@ -40,31 +40,32 @@ const layout = defineRecipe({
 // floating sheet both take it, so the text wraps the same in each.
 const sidebarWidth = dan.size.sidebar.width
 
-// Sticks to the top of the page below `lg`, over the content that scrolls under it.
+// Sticks to the top of the page in the drawer layout, over the content that scrolls under it.
 // Keep the background opaque and the bar full width. Safari on iOS 26 then paints
 // the color of the bar under the status bar. The padding follows the nearest
 // density scope.
 const navbar = defineRecipe({
-	base: ['sticky top-0 z-30', 'bg-white dark:bg-zinc-950', `${space.shell.base} lg:hidden`],
+	base: ['sticky top-0 z-30', 'bg-white dark:bg-zinc-950', space.shell.base],
 })
 
-// The actions of the layout, in the navbar below `lg` and in the header from
-// `lg` up. The gap between the actions follows the nearest density scope.
+// The actions of the layout, in the navbar of the drawer layout and in the
+// header of the inline layout. The gap between the actions follows the nearest density scope.
 const actions = defineRecipe({
 	base: ['flex items-center shrink-0', gap.default],
 })
 
-// From `lg` up, the panel sticks to the top of the page. It is as tall as the
-// layout at its minimum (`100cqh`), and it scrolls on its own. A long sidebar
-// thus does not scroll with the page. A scroll that reaches the end of the
-// panel stops there and does not move on to the page (`overscroll-contain`).
+// The panel shows in the inline layout only. It sticks to the top of the page.
+// It is as tall as the layout at its minimum (`100cqh`), and it scrolls on its
+// own. A long sidebar thus does not scroll with the page. A scroll that reaches
+// the end of the panel stops there and does not move on to the page
+// (`overscroll-contain`).
 const panel = defineRecipe({
 	base: [
 		'shrink-0 min-w-0',
-		'lg:sticky lg:top-0 lg:h-[100cqh] lg:overscroll-contain',
+		'sticky top-0 h-[100cqh] overscroll-contain',
 		'overflow-x-hidden overflow-y-auto',
 		// The panel hides while the sidebar is offcanvas.
-		'hidden lg:block sidebar-offcanvas:hidden',
+		'sidebar-offcanvas:hidden',
 		// A mini sidebar sets the rail width; the panel follows it instead of
 		// holding the size step open.
 		'has-data-mini:w-fit',
@@ -72,22 +73,21 @@ const panel = defineRecipe({
 	],
 })
 
-// The aside on the end edge shows from `lg` up. It sticks to the top of the
-// page and is as tall as the layout at its minimum, as the panel is. Its
-// content takes its own width. A scroll that reaches the end of the aside
-// stops there and does not move on to the page.
+// The aside on the end edge shows in the inline layout only. It sticks to the
+// top of the page and is as tall as the layout at its minimum, as the panel
+// is. Its content takes its own width. A scroll that reaches the end of the
+// aside stops there and does not move on to the page.
 const aside = defineRecipe({
 	base: [
 		'shrink-0 min-w-0',
-		'hidden lg:block',
-		'lg:sticky lg:top-0 lg:h-[100cqh] lg:overscroll-contain',
+		'sticky top-0 h-[100cqh] overscroll-contain',
 		'overflow-x-hidden overflow-y-auto',
 	],
 })
 
-// The hot zone shows from `lg` up while the sidebar is offcanvas.
+// The hot zone shows in the inline layout while the sidebar is offcanvas.
 const floatingHotZone = defineRecipe({
-	base: ['absolute inset-y-0 start-0 z-30 w-2', 'hidden lg:sidebar-offcanvas:block'],
+	base: ['absolute inset-y-0 start-0 z-30 w-2', 'hidden'],
 })
 
 // The floating sidebar is a Sheet of `fit` width, and its body takes the width
@@ -102,38 +102,37 @@ const floatingBody = defineRecipe({ base: [flex.col, 'h-full', sidebarWidth] })
 // rung's other inhabitant. It starts at the far edge of the floating sheet at
 // each step.
 const floatingBuffer = defineRecipe({
-	base: [sou.chrome, 'fixed top-0 bottom-0 w-10 hidden lg:block', dan.size.sidebar.edge],
+	base: [sou.chrome, 'fixed top-0 bottom-0 w-10', dan.size.sidebar.edge],
 })
 
 // The content flows in the page. Do not give the content or this wrapper an
 // overflow. That box then becomes the scroller of the sticky header, and the
 // header does not stick to the top of the page.
-// While the sidebar is offcanvas, no panel is at the start edge, so the
-// content takes a start gap too.
+// In the inline layout, while the sidebar is offcanvas, no panel is at the
+// start edge, so the content takes a start gap too.
 const contentWrapper = defineRecipe({
-	base: [flex.col, 'flex-1', 'lg:min-w-0 lg:py-2 lg:pe-2', 'lg:sidebar-offcanvas:ps-2'],
+	base: [flex.col, 'flex-1', 'min-w-0'],
 })
 
+// The content block is flat in the drawer layout and a card in the inline
+// layout (`k.layout.content`). Each sets `--surface-fill`, which the sticky
+// header reads.
 const content = defineRecipe({
 	base: [
-		...omote.content,
 		flex.col,
 		'grow',
 		'[&:has([data-slot=footer])>[data-slot=body]]:pb-0',
 		// The padding follows the nearest density scope.
-		`${space.shell.x} ${space.shell.bottom} ${space.shell.top.headless}`,
+		`${space.shell.x} ${space.shell.bottom}`,
 	],
-	// From `lg` up only, where the header sticks to the top of the page. Below `lg`,
-	// the navbar is the one sticky bar of the page, and the header scrolls with the
-	// content. Two stacked sticky bars show a seam on iOS.
+	// The header sticks in the inline layout only (`k.layout.stickyHeader`). In
+	// the drawer layout, the navbar is the one sticky bar of the page, and the
+	// header scrolls with the content. Two stacked sticky bars show a seam on iOS.
 	stickyHeader: {
 		true: [
-			'**:data-[slot=header]:lg:sticky',
-			'**:data-[slot=header]:lg:top-0',
+			'**:data-[slot=header]:top-0',
 			'**:data-[slot=header]:z-20',
-			'**:data-[slot=header]:bg-white',
-			'**:data-[slot=header]:dark:bg-zinc-950',
-			'**:data-[slot=header]:dark:lg:bg-zinc-900',
+			'**:data-[slot=header]:bg-(--surface-fill)',
 		],
 		false: '',
 	},
@@ -142,7 +141,7 @@ const content = defineRecipe({
 
 // The padding follows the nearest density scope.
 const header = defineRecipe({
-	base: ['flex items-center shrink-0', `${space.shell.top.lg} ${space.shell.bottom}`],
+	base: ['flex items-center shrink-0', space.shell.bottom],
 })
 
 // The body grows into the free height of the content region, so the footer
@@ -153,8 +152,31 @@ const body = defineRecipe({
 
 const footer = defineRecipe({ base: 'shrink-0' })
 
+// The classes of each part that changes with the layout, for the drawer and
+// the inline values. Each value of a table writes the same properties on the
+// same selectors (CONVENTIONS §5.9). A part that only shows in one layout takes
+// a table of `kata/offcanvas.ts`.
+const byLayout = {
+	base: { drawer: 'flex-col bg-white', inline: 'flex-row bg-zinc-100' },
+	peek: { drawer: 'sidebar-offcanvas:hidden', inline: 'sidebar-offcanvas:block' },
+	wrapper: {
+		drawer: 'py-0 pe-0 sidebar-offcanvas:ps-0',
+		inline: 'py-2 pe-2 sidebar-offcanvas:ps-2',
+	},
+	content: {
+		drawer: `${omote.content.flat} not-has-[[data-slot=header]]:${space.shell.top.none}`,
+		inline: `${omote.content.card} not-has-[[data-slot=header]]:${space.shell.top.inline}`,
+	},
+	stickyHeader: {
+		drawer: '**:data-[slot=header]:static',
+		inline: '**:data-[slot=header]:sticky',
+	},
+	header: { drawer: space.shell.top.none, inline: space.shell.top.inline },
+} as const satisfies Record<string, Record<OffcanvasLayout, string>>
+
 export const k = {
 	base: layout,
+	layout: byLayout,
 	navbar,
 	panel,
 	aside,

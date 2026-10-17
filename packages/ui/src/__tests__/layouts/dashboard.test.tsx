@@ -1,8 +1,29 @@
 import { describe, expect, it, vi } from 'vitest'
 import { DashboardLayout } from '../../layouts/dashboard'
+import { adaptive } from '../../types/responsive'
 import { fireEvent, renderUI, screen } from '../helpers'
 
 describe('DashboardLayout', () => {
+	it('lays the filters beside the column from the breakpoint that `layout` names', () => {
+		const { container } = renderUI(
+			<DashboardLayout
+				filters={<div>filter content</div>}
+				layout={adaptive({ compact: 'drawer', medium: 'inline' })}
+			>
+				content
+			</DashboardLayout>,
+		)
+
+		const rail = screen.getByText('filter content').parentElement
+
+		expect(rail).toHaveClass('hidden', 'sm:flex')
+
+		expect(container.querySelector('[data-slot="filters"]')?.parentElement).toHaveClass(
+			'flex-col',
+			'sm:flex-row',
+		)
+	})
+
 	it('does not render the filters trigger when filters are not provided', () => {
 		renderUI(<DashboardLayout>content</DashboardLayout>)
 

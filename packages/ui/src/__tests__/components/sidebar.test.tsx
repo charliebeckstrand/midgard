@@ -224,8 +224,8 @@ describe('Sidebar mini', () => {
 		expect(bySlot(container, 'sidebar')).not.toHaveAttribute('data-mini')
 	})
 
-	it('backs items with a label tooltip on desktop', async () => {
-		// Desktop viewport and a hover-capable pointer.
+	it('backs items with a label tooltip', async () => {
+		// A hover-capable pointer.
 		stubMatchMedia(() => true)
 
 		const user = setupUser()
@@ -279,18 +279,28 @@ describe('Sidebar mini', () => {
 		expect(tooltip).not.toHaveTextContent('remove')
 	})
 
-	it('keeps plain items below the desktop breakpoint', async () => {
-		stubMatchMedia(() => false)
+	// The drawer of a layout provides the offcanvas close handle, and the
+	// sidebar keeps its full layout inside it.
+	const inDrawer = (children: React.ReactNode) => (
+		<OffcanvasContext value={{ close: vi.fn() }}>{children}</OffcanvasContext>
+	)
+
+	it('keeps plain items in the drawer of a layout', async () => {
+		stubMatchMedia(() => true)
 
 		const user = setupUser()
 
 		const { container } = renderUI(
-			<Sidebar mini>
-				<SidebarItem icon={<svg aria-hidden="true" />}>
-					<SidebarLabel>Home</SidebarLabel>
-				</SidebarItem>
-			</Sidebar>,
+			inDrawer(
+				<Sidebar mini>
+					<SidebarItem icon={<svg aria-hidden="true" />}>
+						<SidebarLabel>Home</SidebarLabel>
+					</SidebarItem>
+				</Sidebar>,
+			),
 		)
+
+		expect(bySlot(container, 'sidebar')).not.toHaveAttribute('data-mini')
 
 		const inner = getSlot(container, 'sidebar-item-inner')
 
@@ -308,9 +318,9 @@ describe('Sidebar mini', () => {
 			</Sidebar>,
 		)
 
-		// Visually collapsed on the desktop rail, still in the accessible name.
+		// Visually collapsed on the rail, still in the accessible name.
 		expect(bySlot(container, 'sidebar-label')?.className).toContain(
-			'lg:group-data-mini/sidebar:sr-only',
+			'group-data-mini/sidebar:sr-only',
 		)
 	})
 
@@ -326,19 +336,19 @@ describe('Sidebar mini', () => {
 		// Height follows the rail width, so items stay uniform squares even
 		// when icon glyph aspect ratios differ.
 		expect(bySlot(container, 'sidebar-item-inner')?.className).toContain(
-			'lg:group-data-mini/sidebar:aspect-square',
+			'group-data-mini/sidebar:aspect-square',
 		)
 	})
 
 	// The root took a render prop for this once, and it was the library's one
 	// root render prop. The context it already broadcast does the same work, so
-	// the three cases below read it instead.
+	// the cases below read it instead.
 	function Branch() {
 		return <span data-testid="branch">{useSidebarMini() ? 'rail' : 'full'}</span>
 	}
 
-	it('resolves mini to true on desktop, for a descendant reading the context', () => {
-		stubMatchMedia(() => true)
+	it('resolves mini to true at each width, for a descendant reading the context', () => {
+		stubMatchMedia(() => false)
 
 		renderUI(
 			<Sidebar mini>
@@ -349,21 +359,19 @@ describe('Sidebar mini', () => {
 		expect(screen.getByTestId('branch')).toHaveTextContent('rail')
 	})
 
-	it('resolves mini to false below the desktop breakpoint', () => {
-		stubMatchMedia(() => false)
-
+	it('resolves mini to false in the drawer of a layout', () => {
 		renderUI(
-			<Sidebar mini>
-				<Branch />
-			</Sidebar>,
+			inDrawer(
+				<Sidebar mini>
+					<Branch />
+				</Sidebar>,
+			),
 		)
 
 		expect(screen.getByTestId('branch')).toHaveTextContent('full')
 	})
 
 	it('resolves mini to false when the prop is unset', () => {
-		stubMatchMedia(() => true)
-
 		renderUI(
 			<Sidebar>
 				<Branch />
@@ -373,9 +381,8 @@ describe('Sidebar mini', () => {
 		expect(screen.getByTestId('branch')).toHaveTextContent('full')
 	})
 
-	// The server knows no width. The recipe draws the rail at `lg` from
-	// `data-mini` in CSS, so the server markup holds the full state, which is
-	// correct below `lg` and which the CSS collapses at `lg` and up.
+	// The state reads no width, so the server markup holds the rail, and the
+	// hydration render agrees with it.
 	const miniSidebar = (
 		<Sidebar mini>
 			<Branch />
@@ -387,50 +394,39 @@ describe('Sidebar mini', () => {
 		</Sidebar>
 	)
 
-	it('prerenders the full state with data-mini, so CSS alone draws the rail at lg', () => {
+	it('prerenders the rail', () => {
 		const html = renderToString(miniSidebar)
 
 		expect(html).toContain('data-mini=""')
 
-		expect(html).toContain('<span data-testid="branch">full</span>')
-
-		// The rail button of an item takes this class only in the resolved mini state.
-		expect(html).not.toContain('*:cursor-pointer')
+		expect(html).toContain('<span data-testid="branch">rail</span>')
 	})
 
-	it.each([
-		['a desktop', 'rail', true],
-		['a phone', 'full', false],
-	])(
-		'hydrates on %s viewport with no mismatch, then shows the %s form',
-		(_name, branch, desktop) => {
-			const html = renderToString(miniSidebar)
+	it('hydrates with no mismatch', () => {
+		const html = renderToString(miniSidebar)
 
-			stubMatchMedia(() => desktop)
+		const container = attach(document.createElement('div'))
 
-			const container = attach(document.createElement('div'))
+		container.innerHTML = html
 
-			container.innerHTML = html
+		const onRecoverableError = vi.fn()
 
-			const onRecoverableError = vi.fn()
+		const consoleError = vi.spyOn(console, 'error')
 
-			const consoleError = vi.spyOn(console, 'error')
+		let root: Root | undefined
 
-			let root: Root | undefined
+		act(() => {
+			root = hydrateRoot(container, miniSidebar, { onRecoverableError })
+		})
 
-			act(() => {
-				root = hydrateRoot(container, miniSidebar, { onRecoverableError })
-			})
+		onTestFinished(() => act(() => root?.unmount()))
 
-			onTestFinished(() => act(() => root?.unmount()))
+		expect(onRecoverableError).not.toHaveBeenCalled()
 
-			expect(onRecoverableError).not.toHaveBeenCalled()
+		expect(consoleError).not.toHaveBeenCalled()
 
-			expect(consoleError).not.toHaveBeenCalled()
-
-			expect(screen.getByTestId('branch')).toHaveTextContent(branch)
-		},
-	)
+		expect(screen.getByTestId('branch')).toHaveTextContent('rail')
+	})
 })
 
 describe('SidebarHeader', () => {

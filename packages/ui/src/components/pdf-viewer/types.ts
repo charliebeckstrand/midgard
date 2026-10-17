@@ -13,6 +13,12 @@ export type PdfViewerSlot = PdfViewerPage & {
 	bitmap?: ImageBitmap
 }
 
+/**
+ * Where the thumbnails of a {@link PdfViewer} are: a `rail` pinned beside the
+ * page, or a `sheet` that the toolbar opens.
+ */
+export type PdfViewerThumbnailLayout = 'rail' | 'sheet'
+
 /** A pre-rendered page supplied to {@link PdfViewer}: its image source plus optional thumbnail, label, and intrinsic size. */
 export type PdfViewerPage = {
 	/** Stable key. Falls back to the array index when omitted. */

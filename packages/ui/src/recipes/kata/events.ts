@@ -6,6 +6,7 @@
  * captures, and the bugs. `hash` colors the hash of a report. The colors are
  * the `onSurface` shades of the ramp, which clear AA on the surface.
  */
+import type { OffcanvasLayout } from '../../hooks/use-offcanvas'
 import { iro, omote } from '../kiso'
 import { dan } from '../kiso/dan'
 
@@ -13,10 +14,23 @@ const { x, top, bottom } = dan.space.panel
 
 const onSurface = iro.extended.bare.text
 
+// The parts that follow the layout of the enclosing sidebar layout. The pinned
+// panel shows only beside the inline panel, so the header button hides while
+// the panel is pinned there. Pin shows there only (`kata/offcanvas.ts`).
+const byLayout = {
+	button: {
+		drawer: '[:root[data-events][data-events-pinned]_&]:contents',
+		inline: '[:root[data-events][data-events-pinned]_&]:hidden',
+	},
+} as const satisfies Record<string, Record<OffcanvasLayout, string>>
+
 export const k = {
 	row: [x, top],
+	layout: byLayout,
 	panel: {
-		base: [...omote.content, 'flex h-full min-h-0 flex-col'],
+		// The panel shows only in the aside of a sidebar layout, which shows only
+		// while the layout is inline, so the panel is always a card.
+		base: [omote.content.card, 'flex h-full min-h-0 flex-col'],
 		body: [x, 'min-h-0 flex-1 overflow-auto py-2'],
 		footer: [x, bottom, 'pt-2'],
 	},

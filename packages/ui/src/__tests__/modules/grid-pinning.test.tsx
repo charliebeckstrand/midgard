@@ -220,7 +220,7 @@ describe('Grid column pinning', () => {
 		expect(dataCell(container, 'email')?.style.insetInlineEnd).toBe('140px')
 	})
 
-	it('paints a pinned body cell with the surface fill, else the viewport-aware content host', () => {
+	it('paints a pinned body cell with the surface fill, else the page ground', () => {
 		// Regression: a fixed fill matched only one surface. A plain `bg.surface` read
 		// a shade off on the mobile page, and the content-host fill read a shade off
 		// in a mobile card. The cell now reads `--surface-fill` from the surface that
@@ -237,7 +237,6 @@ describe('Grid column pinning', () => {
 		expect(body).toHaveClass(
 			'bg-(--surface-fill,var(--color-white))',
 			'dark:bg-(--surface-fill,var(--color-zinc-950))',
-			'dark:lg:bg-(--surface-fill,var(--color-zinc-900))',
 		)
 	})
 
@@ -258,7 +257,6 @@ describe('Grid column pinning', () => {
 		expect(head).toHaveClass(
 			'bg-(--surface-fill,var(--color-white))',
 			'dark:bg-(--surface-fill,var(--color-zinc-950))',
-			'dark:lg:bg-(--surface-fill,var(--color-zinc-900))',
 		)
 	})
 
