@@ -113,6 +113,7 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 		columns,
 		getKey,
 		onReorder,
+		interactive,
 		containerRef,
 	})
 

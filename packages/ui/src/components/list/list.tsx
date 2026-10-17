@@ -165,6 +165,7 @@ export function List<T>({
 		getKey: effectiveGetKey,
 		orientation,
 		onReorder,
+		interactive,
 		containerRef,
 	})
 

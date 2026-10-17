@@ -150,11 +150,14 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 	columns,
 	getKey,
 	onReorder,
+	interactive,
 	containerRef,
 }: {
 	columns: C[]
 	getKey: (item: T) => string
 	onReorder?: (next: C[]) => void
+	/** Whether the board takes a lift. When it turns false, the lift drops. */
+	interactive: boolean
 	/** Board root; scopes card lookups so concurrent boards (and the drag overlay clone) don't cross-match. */
 	containerRef: RefObject<HTMLElement | null>
 }) {
@@ -174,7 +177,7 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 		drop,
 		refocus: refocusCard,
 		onBlur: onCardBlur,
-	} = useKeyboardLifted(focusCard)
+	} = useKeyboardLifted(focusCard, interactive)
 
 	const findColumnByCardId = useCallback(
 		(id: string) => columns.find((column) => column.items.some((item) => getKey(item) === id)),

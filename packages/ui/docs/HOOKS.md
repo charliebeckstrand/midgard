@@ -36,7 +36,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 |---|---|
 | `useKeybindings` | Subscribes to tinykeys keybindings for the component's lifetime, reading handlers fresh per event. |
 | `useHasHover` | True when the device has a hover-capable pointer; true during SSR. |
-| `useKeyboardLifted` | Lifted-item state for keyboard reordering, which announces the lift and the drop. |
+| `useKeyboardLifted` | Lifted-item state for keyboard reordering, which announces the lift and the drop. The lift drops when the surface turns disabled. |
 | `useKeyboardSettled` | Defers a callback until the virtual keyboard settles; fires immediately on desktop. |
 | `useHoverAcrossScroll` | Hides a chart/map tooltip while scrolling and recomputes hover at the pointer once the scroll settles. |
 
