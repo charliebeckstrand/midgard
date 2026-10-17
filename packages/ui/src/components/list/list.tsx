@@ -6,6 +6,7 @@ import { LIFT_INSTRUCTIONS } from '../../hooks/use-keyboard-lifted'
 import { keyMatcher, useKeyedStore } from '../../hooks/use-keyed-store'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { useReorderDrag } from '../../hooks/use-reorder-drag'
+import { useScrollRegion } from '../../hooks/use-scroll-region'
 import { k, type ListVariant } from '../../recipes/kata/list'
 import type { Orientation } from '../../types'
 import { ListContext } from './context'
@@ -25,7 +26,11 @@ type BaseListProps<T> = Omit<
 	items: T[]
 	/** Visual variant. `separated` spaces cards apart; `outline` draws one border around the whole list with dividers; `plain` uses dividers only; `solid` renders tinted cards; `bare` spaces rows apart with no chrome, for rows of form controls. @defaultValue 'separated' */
 	variant?: ListVariant
-	/** Layout axis. @defaultValue 'vertical' */
+	/**
+	 * Layout axis. A horizontal list stays on one row, which scrolls when it is
+	 * wider than its parent.
+	 * @defaultValue 'vertical'
+	 */
 	orientation?: Orientation
 	/**
 	 * Disable all drag / keyboard reorder interaction.
@@ -128,6 +133,13 @@ export type ListProps<T> = BaseListProps<T> &
  * the one commit before the first paint. A reorderable or horizontal list
  * ignores `virtual`, because a drag needs every row it can pass over.
  *
+ * A horizontal list does not wrap, because a drag moves a row along the
+ * orientation axis only and cannot reach a row on a second line. The `<ul>` is
+ * in a `list-rail` box that scrolls on the inline axis when the row is wider
+ * than its parent. A dragged row near an edge of the rail scrolls it. While the
+ * rail scrolls, it is a tab stop, and with an `aria-label` on the list it is
+ * also a region of that name, so a keyboard user can scroll it.
+ *
  * @typeParam T - Shape of a single item.
  */
 export function List<T>({
@@ -193,6 +205,8 @@ export function List<T>({
 	})
 
 	const describedBy = useId()
+
+	const railRef = useScrollRegion({ label: ariaLabel })
 
 	// `Reorder` loads in a chunk of its own, so a read-only list does not load it.
 	const reorderParts = useListReorder(interactive)
@@ -338,28 +352,36 @@ export function List<T>({
 		style,
 	}
 
-	return (
-		<ListContext value={contextValue}>
-			{interactive ? (
-				<>
-					{reorderParts ? (
-						<reorderParts.Group
-							{...ulProps}
-							axis={orientation === 'vertical' ? 'y' : 'x'}
-							values={order}
-							onReorder={setDraft}
-						>
-							{rows}
-						</reorderParts.Group>
-					) : (
-						<ul {...ulProps}>{rows}</ul>
-					)}
-					<div hidden id={describedBy}>
-						{LIFT_INSTRUCTIONS.draggable}
-					</div>
-				</>
+	const list = interactive ? (
+		<>
+			{reorderParts ? (
+				<reorderParts.Group
+					{...ulProps}
+					axis={orientation === 'vertical' ? 'y' : 'x'}
+					values={order}
+					onReorder={setDraft}
+				>
+					{rows}
+				</reorderParts.Group>
 			) : (
 				<ul {...ulProps}>{rows}</ul>
+			)}
+			<div hidden id={describedBy}>
+				{LIFT_INSTRUCTIONS.draggable}
+			</div>
+		</>
+	) : (
+		<ul {...ulProps}>{rows}</ul>
+	)
+
+	return (
+		<ListContext value={contextValue}>
+			{orientation === 'horizontal' ? (
+				<div ref={railRef} data-slot="list-rail" className={cn(k.rail)}>
+					{list}
+				</div>
+			) : (
+				list
 			)}
 		</ListContext>
 	)

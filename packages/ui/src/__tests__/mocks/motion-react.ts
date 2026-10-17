@@ -39,6 +39,7 @@ const MOTION_PROPS = new Set([
 	'layoutDependency',
 	'onAnimationComplete',
 	'onAnimationStart',
+	'onLayoutAnimationComplete',
 ])
 
 function stripMotionProps(props: Record<string, unknown>) {

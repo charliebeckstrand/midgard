@@ -71,7 +71,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > `date-time` uses the `timeZone` of the provider for the server render and the hydration render. The render after hydration uses the zone of the reader.
 
-> A `list` loads its drag code only when it has `onReorder`. The `bare` variant has no row padding and no dividers, for rows of form controls.
+> A `list` loads its drag code only when it has `onReorder`. The `bare` variant has no row padding and no dividers, for rows of form controls. A horizontal `list` stays on one row, which scrolls when it is wider than its parent.
 
 > `CodeBlock` highlights with Shiki in a module worker. A Vite app must set `worker.format` to `'es'`.
 

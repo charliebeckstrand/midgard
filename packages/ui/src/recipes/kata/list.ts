@@ -7,7 +7,7 @@ const { on, text } = iro
 const { size } = ji
 const { rounded } = kasane
 const { flex } = narabi
-const { bg } = omote
+const { bg, rail } = omote
 const { border, divider, focus } = sen
 
 /** The `variant` axis of the list: the keys that the recipe of the root declares. */
@@ -22,10 +22,12 @@ const base = defineRecipe({
 		solid: [dan.gap.scale.sm],
 		bare: [dan.gap.scale.sm],
 	},
-	// A horizontal row wraps onto the next line when its items do not fit, so it
-	// stays inside a narrow parent.
+	// A horizontal row stays on one line, because a drag moves a row along the
+	// inline axis only and cannot reach a row on a wrapped line. The row sizes to
+	// its content, never below the width of the rail around it (`rail`), so a
+	// narrow parent scrolls the row and the rows keep their size.
 	orientation: {
-		horizontal: 'flex-row flex-wrap',
+		horizontal: 'flex-row w-max min-w-full',
 		vertical: '',
 	},
 	defaults: { variant: 'separated', orientation: 'vertical' },
@@ -176,6 +178,10 @@ const content = defineRecipe({
 
 export const k = {
 	base,
+	// The scroll container of a horizontal list. While the row overflows, the
+	// edge with more rows behind it fades. Motion's `Reorder` scrolls this box
+	// when a dragged row comes near its edge.
+	rail: [...rail],
 	item,
 	handle: [
 		flex.inline,

@@ -103,7 +103,7 @@ describe('narrow-width fit (real browser)', () => {
 		expect(area.getBoundingClientRect().width).toBeLessThanOrEqual(300)
 	})
 
-	it('wraps a horizontal list inside a narrow parent', () => {
+	it('keeps a horizontal list on one row that scrolls inside a narrow parent', () => {
 		const items = ['Todo', 'In Progress', 'Review', 'Done'].map((label) => ({ id: label, label }))
 
 		const { container } = renderUI(
@@ -114,9 +114,13 @@ describe('narrow-width fit (real browser)', () => {
 			</div>,
 		)
 
-		const list = present(bySlot(container, 'list'), 'list')
+		const rail = present(bySlot(container, 'list-rail'), 'list rail')
 
-		expect(list.scrollWidth).toBeLessThanOrEqual(list.clientWidth)
+		const rows = [...container.querySelectorAll<HTMLElement>('[data-slot="list-item"]')]
+
+		expect(rail.getBoundingClientRect().width).toBeLessThanOrEqual(300)
+
+		expect(new Set(rows.map((row) => row.getBoundingClientRect().top)).size).toBe(1)
 	})
 
 	it('keeps a short chat bubble on one line in a shrink-to-fit parent', () => {
