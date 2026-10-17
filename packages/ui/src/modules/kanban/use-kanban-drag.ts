@@ -1,123 +1,20 @@
 'use client'
 
 import type { DragEndEvent, DragOverEvent, DragStartEvent } from '@dnd-kit/core'
-import { arrayMove } from '@dnd-kit/sortable'
-import { type RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { type RefObject, useEffect, useMemo, useRef, useState } from 'react'
 import { LIFT_INSTRUCTIONS } from '../../hooks/use-keyboard-lifted'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useAnimationFrame } from '../../hooks/use-timeout'
-import { sameElements } from '../../utilities'
-import { kanbanAnnouncements, kanbanNames } from './kanban-announcements'
-import type { KanbanColumnBase, KanbanOverlayEntry } from './types'
-
-/**
- * The card ids of each column, keyed by column id. A column whose ids equal its
- * `prev` ids keeps the `prev` array.
- *
- * @returns `prev` itself when no column changed.
- * @internal
- */
-function reuseColumnIds<T>(
-	prev: Record<string, string[]>,
-	columns: KanbanColumnBase<T>[],
-	getKey: (item: T) => string,
-): Record<string, string[]> {
-	let changed = Object.keys(prev).length !== columns.length
-
-	const next: Record<string, string[]> = {}
-
-	for (const column of columns) {
-		const ids = column.items.map(getKey)
-
-		const prevIds = prev[column.id]
-
-		const same = sameElements(prevIds, ids)
-
-		next[column.id] = same && prevIds ? prevIds : ids
-
-		if (!same) changed = true
-	}
-
-	return changed ? next : prev
-}
-
-/** Dependencies threaded to {@link applyKanbanDragOver}. @internal */
-type KanbanDragDeps<T, C extends KanbanColumnBase<T>> = {
-	onReorder: ((next: C[]) => void) | undefined
-	columns: C[]
-	getKey: (item: T) => string
-	findColumnByCardId: (id: string) => C | undefined
-	findColumn: (id: string) => C | undefined
-}
-
-/**
- * Cross-column move during drag-over: pulls the card from its column and splices
- * it into the column under the pointer. Same-column reorders wait for dragEnd.
- *
- * @returns `true` when it reports a move through `onReorder`.
- * @internal
- */
-function applyKanbanDragOver<T, C extends KanbanColumnBase<T>>(
-	event: DragOverEvent,
-	deps: KanbanDragDeps<T, C>,
-): boolean {
-	const { onReorder, columns, getKey, findColumnByCardId, findColumn } = deps
-
-	if (!onReorder) return false
-
-	const { active, over } = event
-
-	if (!over) return false
-
-	const activeCardId = String(active.id)
-
-	const overId = String(over.id)
-
-	if (activeCardId === overId) return false
-
-	const activeColumn = findColumnByCardId(activeCardId)
-
-	const overColumn = findColumn(overId)
-
-	if (!activeColumn || !overColumn) return false
-
-	// Same-column reorders commit in dragEnd, not dragOver.
-	if (activeColumn.id === overColumn.id) return false
-
-	const activeIndex = activeColumn.items.findIndex((card) => getKey(card) === activeCardId)
-
-	if (activeIndex === -1) return false
-
-	const item = activeColumn.items[activeIndex]
-
-	if (item === undefined) return false
-
-	const overIsColumn = columns.some((column) => column.id === overId)
-
-	const overCardIndex = overColumn.items.findIndex((card) => getKey(card) === overId)
-
-	const insertIndex = overIsColumn || overCardIndex === -1 ? overColumn.items.length : overCardIndex
-
-	const next = columns.map((column) => {
-		if (column.id === activeColumn.id) {
-			return { ...column, items: column.items.filter((_, index) => index !== activeIndex) }
-		}
-
-		if (column.id === overColumn.id) {
-			const nextItems = [...column.items]
-
-			nextItems.splice(insertIndex, 0, item)
-
-			return { ...column, items: nextItems }
-		}
-
-		return column
-	}) as C[]
-
-	onReorder(next)
-
-	return true
-}
+import { kanbanAnnouncements } from './engine/kanban-announcements'
+import {
+	indexBoard,
+	type KanbanColumnBase,
+	reuseColumnIds,
+	targetColumnIndex,
+} from './engine/kanban-board'
+import { dragOverMove, dropMove } from './engine/kanban-move'
+import { kanbanNames } from './kanban-names'
+import type { KanbanOverlayEntry } from './types'
 
 /**
  * Pointer drag-and-drop for the {@link Kanban} board via `@dnd-kit`. Tracks the
@@ -172,35 +69,23 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 		setColumnItemIds((prev) => reuseColumnIds(prev, columns, getKey))
 	}
 
-	// Card-to-column index for `dragOver`, which fires per pointer move.
-	const cardIndex = useMemo(() => {
-		const index = new Map<string, C>()
+	// The index of the board, for `dragOver`, which fires per pointer move.
+	const board = useMemo(() => indexBoard(columns, getKey), [columns, getKey])
 
-		for (const column of columns) {
-			for (const item of column.items) {
-				index.set(getKey(item), column)
-			}
-		}
+	// The id of the column that holds a card, or that a drag target names.
+	const columnIdOf = (id: string) => columns[targetColumnIndex(board, id)]?.id
 
-		return index
-	}, [columns, getKey])
+	const holderOf = (cardId: string) => {
+		const place = board.places.get(cardId)
 
-	const findColumnByCardId = useCallback((id: string) => cardIndex.get(id), [cardIndex])
+		return place ? columns[place.columnIndex]?.id : undefined
+	}
 
 	// The live move on drag-over puts the card in the column that the drop goes
 	// to. That column shows the drop, unless the drag started in it.
-	const holderId = activeId === null ? null : (cardIndex.get(activeId)?.id ?? null)
+	const holderId = activeId === null ? null : (holderOf(activeId) ?? null)
 
 	const dropColumnId = holderId === originColumnId ? null : holderId
-
-	const findColumn = useCallback(
-		(id: string) => {
-			const direct = columns.find((column) => column.id === id)
-
-			return direct ?? findColumnByCardId(id)
-		},
-		[columns, findColumnByCardId],
-	)
 
 	// The columns at the drag start. A cancel reports them again after a
 	// cross-column move. `null` when no move occurred.
@@ -244,23 +129,31 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 
 		setActiveId(cardId)
 
-		setOriginColumnId(findColumnByCardId(cardId)?.id ?? null)
+		setOriginColumnId(holderOf(cardId) ?? null)
 	}
 
 	const handleDragOver = (event: DragOverEvent) => {
 		const fresh = freshMove.current
 
-		const { over } = event
+		const { active, over } = event
+
+		if (!onReorder || !over) return
+
+		const overId = String(over.id)
 
 		// The collision check can read the rects from before the last move. An
 		// over in the column that the card left then moves the card back.
-		if (fresh !== null && over && findColumn(String(over.id))?.id === fresh.from) return
+		if (fresh !== null && columnIdOf(overId) === fresh.from) return
 
-		const from = findColumnByCardId(String(event.active.id))?.id
+		const activeCardId = String(active.id)
 
-		const deps = { onReorder, columns, getKey, findColumnByCardId, findColumn }
+		const from = holderOf(activeCardId)
 
-		if (!applyKanbanDragOver(event, deps)) return
+		const move = dragOverMove(board, activeCardId, overId)
+
+		if (!move) return
+
+		onReorder(move.columns)
 
 		if (originColumns.current === null) originColumns.current = startColumns.current
 
@@ -280,41 +173,16 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 
 		originColumns.current = null
 
-		if (!onReorder) return
-
 		const { active, over } = event
 
-		if (!over) return
-
-		const activeCardId = String(active.id)
-
-		const overId = String(over.id)
-
-		if (activeCardId === overId) return
-
-		const activeColumn = findColumnByCardId(activeCardId)
-
-		const overColumn = findColumn(overId)
-
-		if (!activeColumn || !overColumn) return
+		if (!onReorder || !over) return
 
 		// The card is in the column under the pointer by now: drag-over moved it
 		// there on a cross-column drag. The preview shows the card at the slot of
 		// the card under the pointer, so the drop commits that slot.
-		if (activeColumn.id !== overColumn.id) return
+		const move = dropMove(board, String(active.id), String(over.id))
 
-		const fromIndex = activeColumn.items.findIndex((card) => getKey(card) === activeCardId)
-
-		const toIndex = activeColumn.items.findIndex((card) => getKey(card) === overId)
-
-		if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) return
-
-		const nextItems = arrayMove(activeColumn.items, fromIndex, toIndex)
-
-		const next = columns.map((column) =>
-			column.id === activeColumn.id ? { ...column, items: nextItems } : column,
-		) as C[]
-		onReorder(next)
+		if (move) onReorder(move.columns)
 	}
 
 	const handleDragCancel = () => {

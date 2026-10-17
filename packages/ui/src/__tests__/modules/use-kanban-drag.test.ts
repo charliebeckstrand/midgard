@@ -1,8 +1,8 @@
 import type { DragEndEvent, DragOverEvent, DragStartEvent } from '@dnd-kit/core'
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { KanbanColumnBase } from '../../components/kanban/types'
-import { useKanbanDrag } from '../../components/kanban/use-kanban-drag'
+import type { KanbanColumnBase } from '../../modules/kanban/engine/kanban-board'
+import { useKanbanDrag } from '../../modules/kanban/use-kanban-drag'
 
 /** No root element: these tests read no names. */
 const containerRef = { current: null }

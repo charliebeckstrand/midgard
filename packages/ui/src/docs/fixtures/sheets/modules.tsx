@@ -3,14 +3,6 @@ import { Badge } from '../../../components/badge'
 import { Label } from '../../../components/fieldset'
 import { Filters, FiltersBar, FiltersField, FiltersRow } from '../../../components/filters'
 import { Input } from '../../../components/input'
-import {
-	Kanban,
-	KanbanCard,
-	KanbanColumn,
-	KanbanColumnBody,
-	KanbanColumnHeader,
-	KanbanColumnTitle,
-} from '../../../components/kanban'
 import { Select, SelectLabel, SelectOption } from '../../../components/select'
 import { Stat, StatDelta, StatDescription, StatValue } from '../../../components/stat'
 import {
@@ -22,6 +14,14 @@ import {
 } from '../../../modules/chat'
 import { Dashboard, type DashboardLayoutItem, DashboardTile } from '../../../modules/dashboard'
 import { Grid, type GridColumn } from '../../../modules/grid'
+import {
+	Kanban,
+	KanbanCard,
+	KanbanColumn,
+	KanbanColumnBody,
+	KanbanColumnHeader,
+	KanbanColumnTitle,
+} from '../../../modules/kanban'
 import { type MapCategory, type MapFeature, MapPlat, type MapTopology } from '../../../modules/map'
 import {
 	QueryBuilder,

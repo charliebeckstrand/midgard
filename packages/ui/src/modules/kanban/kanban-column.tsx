@@ -4,6 +4,7 @@ import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, useCallback, useId, useMemo, useState } from 'react'
+import { Card } from '../../components/card'
 import { cn, dataAttr } from '../../core'
 import { useDevWarning } from '../../hooks/use-dev-warning'
 import { k } from '../../recipes/kata/kanban'
@@ -15,10 +16,9 @@ const NO_ITEMS: string[] = []
 
 /**
  * Props for {@link KanbanColumn}: the `value` matching a board column, with an
- * optional accessible-name override. The `<fieldset>` of the column takes the
- * rest.
+ * optional accessible-name override. The `<div>` of the column takes the rest.
  */
-export type KanbanColumnProps = ComponentProps<'fieldset'> & {
+export type KanbanColumnProps = ComponentProps<'div'> & {
 	/** Stable key matching an entry in the `columns` prop; the keyed-child `value` every compound in the library takes. */
 	value: string
 	/** Explicit name for the column group. Defaults to the rendered `KanbanColumnTitle`. */
@@ -29,8 +29,9 @@ export type KanbanColumnProps = ComponentProps<'fieldset'> & {
 
 /**
  * Drop target and sortable context for one board column, keyed by `value`. It
- * provides column context to its cards and title. It is a named group, a
- * `<fieldset>`, and not a landmark: the board is the one region of the board.
+ * provides column context to its cards and title. It is a `Card` with the
+ * `tint` fill, and a named `role="group"`, not a landmark: the board is the one
+ * region of the board.
  * It takes its name from a mounted {@link KanbanColumnTitle}, or from an
  * explicit `aria-label`. With neither, the group has no name, and the move
  * announcements name the column by the text of its {@link KanbanColumnHeader}.
@@ -97,12 +98,13 @@ export function KanbanColumn({
 		<KanbanColumnContext value={value}>
 			<SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
 				{/* A named section is a region landmark, and each column then adds one more
-				    landmark to the page. A fieldset is a group, which keeps the name for
-				    the announcements and adds no landmark. `min-w-0` in the recipe replaces
-				    the min-content width floor of a fieldset. */}
-				<fieldset
+				    landmark to the page. A group keeps the name for the announcements
+				    and adds no landmark. */}
+				<Card
 					{...props}
 					ref={setColumn}
+					bg="tint"
+					role="group"
 					// The move announcements read this anchor, so it comes after the
 					// spread (CONVENTIONS.md §3.9).
 					data-slot="kanban-column"
@@ -115,7 +117,7 @@ export function KanbanColumn({
 					className={cn(k.column.base, className)}
 				>
 					{children}
-				</fieldset>
+				</Card>
 			</SortableContext>
 		</KanbanColumnContext>
 	)

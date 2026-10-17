@@ -1,15 +1,15 @@
 import { type ReactNode, useState } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { List } from '../../components/list'
+import { ListItem } from '../../components/list/list-item'
+import { useSortableItem } from '../../hooks'
 import {
 	Kanban,
 	KanbanCard,
 	KanbanCardHandle,
 	KanbanColumn,
 	KanbanColumnBody,
-} from '../../components/kanban'
-import { List } from '../../components/list'
-import { ListItem } from '../../components/list/list-item'
-import { useSortableItem } from '../../hooks'
+} from '../../modules/kanban'
 import { act, fireEvent, renderUI } from '../helpers'
 
 /**

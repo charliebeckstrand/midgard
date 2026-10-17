@@ -7,7 +7,7 @@ import {
 	KanbanCardHandle,
 	KanbanColumn,
 	KanbanColumnBody,
-} from '../../components/kanban'
+} from '../../modules/kanban'
 import { QueryChips } from '../../modules/query/query-chips'
 import { getSlot, renderUI } from '../helpers'
 
