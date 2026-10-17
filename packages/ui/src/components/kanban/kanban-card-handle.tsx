@@ -82,7 +82,7 @@ export function KanbanCardHandle({
 		)
 	}
 
-	const { cardId, setActivatorNodeRef, attributes, listeners, dragging, itemId } = card
+	const { cardId, setActivatorNodeRef, attributes, listeners, dragging, lifted, itemId } = card
 
 	return (
 		<SortableGrip
@@ -99,7 +99,8 @@ export function KanbanCardHandle({
 			onKeyDown={composeEventHandlers(onKeyDown, (event) => onCardKeyDown(cardId, event))}
 			onBlur={composeEventHandlers(onBlur, onCardBlur)}
 			data-card-id={cardId}
-			className={cn(k.card.handle, className)}
+			// The handle holds the focus of a lifted card, so it takes the lift accent.
+			className={cn(k.card.handle, lifted && k.card.handleLifted, className)}
 		>
 			{content}
 		</SortableGrip>
