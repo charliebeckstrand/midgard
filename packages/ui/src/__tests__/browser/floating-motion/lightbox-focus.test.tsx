@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import { commands, userEvent } from 'vitest/browser'
 import { Lightbox, type LightboxPhoto, LightboxTrigger } from '../../../components/lightbox'
 import { ReducedMotionContext } from '../../../primitives/reduced-motion/context'
-import { renderUI, screen, waitFor } from '../../helpers'
+import { present, renderUI, screen, waitFor } from '../../helpers'
 import { waitForNoTween } from '../helpers/motion-frame'
+import { pause } from '../helpers/wall-clock'
 
 /**
  * When the viewer closes, the photo lands in the thumbnail of the photo on the
@@ -11,6 +12,9 @@ import { waitForNoTween } from '../helpers/motion-frame'
  * opened the viewer. The focus moves when the photo lands. The focus manager
  * of the overlay then unmounts, and it does not move the focus back to the
  * thumbnail that opened the viewer.
+ *
+ * A mouse press on the stage, such as a drag of the photo, keeps the focus in
+ * the viewer, so the arrow keys still step after it.
  *
  * The real engine and real Motion are necessary. The photo lands at the end of
  * the exit of the overlay, and the instant Motion mock removes the overlay in
@@ -52,7 +56,7 @@ const count = () => document.querySelector('[aria-live="polite"]')?.textContent?
 /** The tweens that run in the viewer: the raise, the return, or a slide. */
 const viewerTweens = () => viewer()?.getAnimations({ subtree: true }) ?? []
 
-describe('Lightbox focus return (real engine, real Motion)', () => {
+describe('Lightbox focus (real engine, real Motion)', () => {
 	it.for([
 		{ reduced: false, name: 'the flight' },
 		{ reduced: true, name: 'the fade' },
@@ -87,4 +91,45 @@ describe('Lightbox focus return (real engine, real Motion)', () => {
 			expect(document.activeElement).toBe(thumbnail(2))
 		},
 	)
+
+	it('keeps the focus in the viewer after a mouse drag on the stage', async () => {
+		renderUI(<Gallery reduced={false} />)
+
+		await userEvent.click(thumbnail(0))
+
+		await waitFor(() => expect(viewer()).toContainElement(document.activeElement as HTMLElement))
+
+		await waitForNoTween(viewerTweens)
+
+		const stage = present(
+			document.querySelector<HTMLElement>('[data-slot="lightbox-stage"]'),
+			'stage',
+		)
+
+		const box = stage.getBoundingClientRect()
+
+		const at = (dx: number) => ({ position: { x: box.width / 2 + dx, y: box.height / 2 } })
+
+		// The mouse drags the photo a short way to the side, holds still, and lets go.
+		await commands.pressPointer('[data-offset="0"] img')
+
+		await userEvent.hover(stage, at(-20))
+
+		await userEvent.hover(stage, at(-30))
+
+		await pause(300)
+
+		await commands.releasePointer()
+
+		await waitForNoTween(viewerTweens)
+
+		expect(count()).toBe('1 / 4')
+
+		expect(viewer()).toContainElement(document.activeElement as HTMLElement)
+
+		// The arrow keys still step.
+		await userEvent.keyboard('{ArrowRight}')
+
+		await expect.poll(count).toBe('2 / 4')
+	})
 })

@@ -333,14 +333,19 @@ export function LightboxStage({
 		track.step(step)
 	}
 
+	// A press on the stage, the photo, or the scrim has no focusable target, so
+	// the browser moves the focus to `<body>`, and the arrow keys stop. The viewer
+	// takes the focus of such a press instead. `tabIndex={-1}` keeps it out of the
+	// tab order.
 	return (
 		<div
 			data-slot="lightbox"
 			role="dialog"
 			aria-modal="true"
 			aria-label={labels.viewer}
+			tabIndex={-1}
 			onKeyDown={handleKeyDown}
-			className="absolute inset-0"
+			className="absolute inset-0 outline-hidden"
 		>
 			{blur && (
 				<m.div
