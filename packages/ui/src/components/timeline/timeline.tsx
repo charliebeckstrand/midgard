@@ -1,8 +1,9 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, useMemo } from 'react'
 import { cn } from '../../core'
-import { useComposedRef, useScrollRegion } from '../../hooks'
+import { useScrollRegion } from '../../hooks'
 import { k } from '../../recipes/kata/timeline'
 import type { TimelineOrientation, TimelineVariant } from './context'
 import { TimelineContext } from './context'
@@ -55,7 +56,7 @@ export function Timeline({
 	// the name that the consumer gave.
 	const scrollRegionRef = useScrollRegion()
 
-	const setRoot = useComposedRef<HTMLOListElement>(ref, horizontal ? scrollRegionRef : undefined)
+	const setRoot = useComposedRefs<HTMLOListElement>(ref, horizontal ? scrollRegionRef : undefined)
 
 	return (
 		<TimelineContext value={value}>

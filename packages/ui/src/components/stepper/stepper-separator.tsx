@@ -1,8 +1,8 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
-import { useComposedRef } from '../../hooks/use-composed-ref'
 import { k } from '../../recipes/kata/stepper'
 import { useStepper } from './context'
 
@@ -22,7 +22,7 @@ export type StepperSeparatorProps = {} & ComponentProps<'li'>
 export function StepperSeparator({ className, ref, ...props }: StepperSeparatorProps) {
 	const { layout } = useStepper()
 
-	const composedRef = useComposedRef<HTMLLIElement>(ref)
+	const composedRef = useComposedRefs<HTMLLIElement>(ref)
 
 	const classes = cn(k.separator.base, layout.separator, className)
 

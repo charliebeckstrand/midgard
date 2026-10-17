@@ -5,6 +5,7 @@ import {
 	type FloatingRootContext,
 	useFloatingRootContext,
 } from '@floating-ui/react'
+import { useComposedRefs } from 'motion/react'
 import {
 	type ComponentProps,
 	type ReactElement,
@@ -16,7 +17,6 @@ import {
 	useState,
 } from 'react'
 import { cn } from '../../core'
-import { useComposedRef } from '../../hooks'
 import { useDismissable } from '../../hooks/use-dismissable'
 import { useScrollLock } from '../../hooks/use-scroll-lock'
 import { k } from '../../recipes/kata/overlay'
@@ -163,7 +163,7 @@ export function Overlay({
 
 	const containerRef = useRef<HTMLDivElement>(null)
 
-	const setPanel = useComposedRef<HTMLDivElement>(setFloating, containerRef, ref)
+	const setPanel = useComposedRefs<HTMLDivElement>(setFloating, containerRef, ref)
 
 	useDismissable({
 		open,

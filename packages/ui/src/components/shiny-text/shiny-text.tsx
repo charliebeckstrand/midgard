@@ -1,9 +1,8 @@
 'use client'
 
-import { useInView } from 'motion/react'
+import { useComposedRefs, useInView } from 'motion/react'
 import { type ComponentProps, useRef } from 'react'
 import { cn } from '../../core'
-import { useComposedRef } from '../../hooks/use-composed-ref'
 
 /** Props for {@link ShinyText}; tunes the sweep animation and gradient colors atop a `<span>`. */
 export type ShinyTextProps = {
@@ -76,7 +75,7 @@ export function ShinyText({
 
 	const inView = useInView(own)
 
-	const composedRef = useComposedRef(ref, own)
+	const composedRef = useComposedRefs(ref, own)
 
 	return (
 		<span

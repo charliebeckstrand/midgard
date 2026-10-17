@@ -1,5 +1,6 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import {
 	type ReactElement,
 	type ReactNode,
@@ -12,7 +13,7 @@ import {
 	useState,
 } from 'react'
 import { announce, cn } from '../../../../core'
-import { type FrameReserve, useComposedRef } from '../../../../hooks'
+import type { FrameReserve } from '../../../../hooks'
 import type { PlotTabStopProps } from '../../../../hooks/use-plot-tab-stop'
 import { k } from '../../../../recipes/kata/chart'
 import type { AccessibleName } from '../../../../types'
@@ -423,7 +424,7 @@ export function ChartFrame({
 	// image export.
 	const rootRef = useRef<HTMLDivElement>(null)
 
-	const rootRefs = useComposedRef(rootRef, textHostRef)
+	const rootRefs = useComposedRefs(rootRef, textHostRef)
 
 	// The hover lives in a store the frame makes once. A pointer move then renders
 	// only the readers that subscribe to it (tooltip, crosshair, hit layers), and

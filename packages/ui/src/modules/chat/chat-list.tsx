@@ -1,9 +1,9 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, useRef } from 'react'
 import { cn, composeEventHandlers } from '../../core'
 import { useA11yRoving } from '../../hooks'
-import { useComposedRef } from '../../hooks/use-composed-ref'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { ChatListContext } from './context'
 
@@ -31,7 +31,7 @@ export function ChatList({ className, onKeyDown, ref: consumerRef, ...props }: C
 	const ref = useRef<HTMLUListElement>(null)
 
 	// The roving model reads `ref`, so a consumer `ref` joins it.
-	const setRef = useComposedRef(ref, consumerRef)
+	const setRef = useComposedRefs(ref, consumerRef)
 
 	const handleKeyDown = useA11yRoving(ref, {
 		// Only the focusable select controls are roving stops; a read-only item's

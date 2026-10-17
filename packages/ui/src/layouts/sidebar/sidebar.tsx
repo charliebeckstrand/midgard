@@ -1,6 +1,7 @@
 'use client'
 
 import { Menu } from 'lucide-react'
+import { useComposedRefs } from 'motion/react'
 import {
 	type ComponentProps,
 	type PointerEvent,
@@ -20,7 +21,6 @@ import { Icon } from '../../components/icon'
 import { Sheet, SheetPanel } from '../../components/sheet/sheet'
 import { cn, createContext, createSlot } from '../../core'
 import { useScrollWithin } from '../../hooks'
-import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useIsRtl } from '../../hooks/use-is-rtl'
 import { useKeybindings } from '../../hooks/use-keybindings'
 import { OFFCANVAS_LAYOUT, type OffcanvasLayout, useOffcanvas } from '../../hooks/use-offcanvas'
@@ -221,7 +221,7 @@ export function SidebarLayout({
 	const { root: setStickyRoot, bar: setBar, measure } = useStickyBars()
 
 	// The sticky bars read the root, so a consumer `ref` joins it.
-	const setRoot = useComposedRef<HTMLDivElement>(setStickyRoot, ref)
+	const setRoot = useComposedRefs<HTMLDivElement>(setStickyRoot, ref)
 
 	// A change of `stickyHeader` makes the header stick or stop to stick at the
 	// same size. No resize tells the bars about it, so the layout measures them
@@ -377,7 +377,7 @@ export function SidebarLayoutHeader({
 	const actions = layout?.actions
 
 	// The header joins the sticky bars, as it sticks in the inline layout with `stickyHeader`.
-	const setHeader = useComposedRef<HTMLElement>(layout?.bar, ref)
+	const setHeader = useComposedRefs<HTMLElement>(layout?.bar, ref)
 
 	// Outside a layout, the header takes the default layout.
 	const placement = layout?.layout ?? OFFCANVAS_LAYOUT

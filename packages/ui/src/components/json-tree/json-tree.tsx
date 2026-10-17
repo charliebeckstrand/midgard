@@ -1,9 +1,9 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, type KeyboardEvent, useMemo, useRef } from 'react'
 import { cn, composeEventHandlers } from '../../core'
 import { useA11yRoving } from '../../hooks'
-import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useKeyedStore } from '../../hooks/use-keyed-store'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { k } from '../../recipes/kata/json-tree'
@@ -146,7 +146,7 @@ export function JsonTree({
 	const ref = useRef<HTMLDivElement>(null)
 
 	// The roving model and the tree moves read `ref`, so a consumer `ref` joins it.
-	const setRoot = useComposedRef(ref, consumerRef)
+	const setRoot = useComposedRefs(ref, consumerRef)
 
 	// A tree needs a name. A visible label replaces the default.
 	const label = ariaLabelledby === undefined ? (ariaLabel ?? rootKey ?? 'JSON') : ariaLabel

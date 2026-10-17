@@ -2,9 +2,9 @@
 
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, useCallback, useId, useMemo, useState } from 'react'
 import { cn, dataAttr } from '../../core'
-import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useDevWarning } from '../../hooks/use-dev-warning'
 import { k } from '../../recipes/kata/kanban'
 import { KanbanColumnContext, useKanbanContext, useKanbanDragState } from './context'
@@ -70,7 +70,7 @@ export function KanbanColumn({
 	const { setNodeRef } = useDroppable({ id: columnId, disabled: !interactive })
 
 	// The droppable reads the node, so a consumer `ref` joins it.
-	const setColumn = useComposedRef(setNodeRef, ref)
+	const setColumn = useComposedRefs(setNodeRef, ref)
 
 	const titleId = useId()
 

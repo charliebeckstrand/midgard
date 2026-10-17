@@ -1,9 +1,9 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, useCallback, useLayoutEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { useA11yAnnouncements, usePrefersReducedMotion, useVirtualWindow } from '../../hooks'
-import { useComposedRef } from '../../hooks/use-composed-ref'
 import { k } from '../../recipes/kata/chat-transcript'
 import { ChatMessage } from './chat-message'
 import { ChatRowContext } from './context'
@@ -121,7 +121,7 @@ export function ChatTranscript({
 	const containerRef = useRef<HTMLDivElement>(null)
 
 	// The window reads `containerRef`, so a consumer `ref` joins it.
-	const setContainer = useComposedRef(containerRef, ref)
+	const setContainer = useComposedRefs(containerRef, ref)
 
 	const count = messages.length
 

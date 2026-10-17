@@ -1,9 +1,9 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import type { ComponentProps, ReactNode, Ref } from 'react'
 import { cn, dataAttr } from '../../core'
 import type { ScaleStep } from '../../core/density'
-import { useComposedRef } from '../../hooks/use-composed-ref'
 import type { scale } from '../../recipes/kata/select'
 import { k } from '../../recipes/kata/select'
 import { ControlFrame } from '../control'
@@ -69,7 +69,7 @@ export function SelectTrigger({
 	...props
 }: SelectTriggerProps) {
 	// The floating reference reads the node, so a consumer `ref` joins it.
-	const setRoot = useComposedRef(setReference, ref)
+	const setRoot = useComposedRefs(setReference, ref)
 
 	return (
 		<PolymorphicStatic

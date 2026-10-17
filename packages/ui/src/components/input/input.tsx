@@ -1,5 +1,6 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import {
 	type ChangeEvent,
 	type ComponentProps,
@@ -10,7 +11,6 @@ import {
 } from 'react'
 import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
-import { useComposedRef } from '../../hooks'
 import { useFormResetSync } from '../../hooks/use-form-reset-sync'
 import type { scale } from '../../recipes/kata/input'
 import { type InputVariants, k } from '../../recipes/kata/input'
@@ -130,7 +130,7 @@ export function Input({
 	// so the input reads the reverted value.
 	const resetRef = useFormResetSync(uncontrolled, (input) => setOwnFilled(input.value !== ''))
 
-	const setRefs = useComposedRef(inputRef, resetRef, ref)
+	const setRefs = useComposedRefs(inputRef, resetRef, ref)
 
 	// The clear button can go away while it holds the focus, for example when
 	// the value empties or the caller turns clearable off. The focus then goes

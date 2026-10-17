@@ -5,6 +5,7 @@ import {
 	type FloatingFocusManagerProps,
 	type FloatingRootContext,
 } from '@floating-ui/react'
+import { useComposedRefs } from 'motion/react'
 import {
 	type ComponentProps,
 	type CSSProperties,
@@ -14,7 +15,6 @@ import {
 } from 'react'
 import { cn, dataAttr } from '../../core'
 import type { DensityStep } from '../../core/density'
-import { useComposedRef } from '../../hooks'
 import { k } from '../../recipes/kata/popover'
 import { Density } from '../density'
 import { Portal } from '../portal'
@@ -94,7 +94,7 @@ export function FloatingSurface({
 }: FloatingSurfaceProps) {
 	const wrapperRef = useRef<HTMLDivElement | null>(null)
 
-	const setWrapper = useComposedRef<HTMLDivElement>(wrapperRef, setFloating, ref)
+	const setWrapper = useComposedRefs<HTMLDivElement>(wrapperRef, setFloating, ref)
 
 	const inert = rest.inert === true
 

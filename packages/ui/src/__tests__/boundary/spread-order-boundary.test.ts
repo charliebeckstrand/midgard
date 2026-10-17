@@ -431,7 +431,7 @@ describe('spread order boundary', () => {
 
 		expect(
 			violations,
-			`internal refs a consumer ref replaces (destructure \`ref\` and join it through useComposedRef, CONVENTIONS.md §3.9):\n  ${lines(violations)}`,
+			`internal refs a consumer ref replaces (destructure \`ref\` and join it through useComposedRefs, CONVENTIONS.md §3.9):\n  ${lines(violations)}`,
 		).toEqual([])
 	})
 

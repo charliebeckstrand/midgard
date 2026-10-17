@@ -1,8 +1,8 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import { type KeyboardEvent, type MouseEvent, type Ref, useRef } from 'react'
 import { cn, composeEventHandlers } from '../../core'
-import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
 import { isPrimaryPress } from '../../utilities/primary-press'
@@ -90,7 +90,7 @@ export function HoldButton({
 }: HoldButtonProps) {
 	const buttonRef = useRef<HTMLButtonElement>(null)
 
-	const composedRef = useComposedRef(buttonRef, ref as Ref<HTMLButtonElement> | undefined)
+	const composedRef = useComposedRefs(buttonRef, ref as Ref<HTMLButtonElement> | undefined)
 
 	// A `submit` or `reset` button acts on its form here, after the hold, and
 	// not on the native click.

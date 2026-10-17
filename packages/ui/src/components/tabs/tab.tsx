@@ -1,9 +1,9 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, useRef } from 'react'
 import { cn, composeEventHandlers, dataAttr } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
-import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { ActiveIndicator, useActiveIndicator } from '../../primitives/active-indicator'
 import { useCurrentItem } from '../../primitives/current/current'
@@ -186,7 +186,7 @@ export function Tab({
 	// the list. The segment variant has no viewport.
 	const selectScrollRef = useTabSelectScroll(current, orientation, !isSegment)
 
-	const setTab = useComposedRef(selectScrollRef, consumerRef)
+	const setTab = useComposedRefs(selectScrollRef, consumerRef)
 
 	return (
 		<span className={k.wrapper({ stretch })} {...tapHandlers}>

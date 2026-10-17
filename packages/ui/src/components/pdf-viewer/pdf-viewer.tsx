@@ -1,8 +1,8 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
-import { useComposedRef } from '../../hooks/use-composed-ref'
 import { k } from '../../recipes/kata/pdf-viewer'
 import type { Responsive } from '../../types'
 import { Sheet } from '../sheet'
@@ -267,7 +267,7 @@ export function PdfViewer({
 	} = context
 
 	// The viewer reads its root node, so a consumer `ref` joins it.
-	const rootRef = useComposedRef<HTMLElement>(setRoot, ref)
+	const rootRef = useComposedRefs<HTMLElement>(setRoot, ref)
 
 	return (
 		<PdfViewerContext value={context}>

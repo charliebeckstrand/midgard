@@ -1,5 +1,6 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import {
 	type ChangeEventHandler,
 	type ClipboardEventHandler,
@@ -14,7 +15,7 @@ import {
 	useLayoutEffect,
 } from 'react'
 import { ariaAttr, cn, dataAttr } from '../../core'
-import { useComposedRef, useIsTruncated } from '../../hooks'
+import { useIsTruncated } from '../../hooks'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/combobox'
 import { capitalizeFirst } from '../../utilities'
@@ -148,7 +149,7 @@ export function ComboboxInput({
 		ref.current?.setCustomValidity(unselected ? UNSELECTED_MESSAGE : '')
 	}, [ref, unselected])
 
-	const setRefs = useComposedRef(ref, resetRef)
+	const setRefs = useComposedRefs(ref, resetRef)
 
 	const input = (
 		<Input

@@ -1,5 +1,6 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import type { KeyboardEvent, MouseEvent, Ref } from 'react'
 import {
 	useCallback,
@@ -11,7 +12,7 @@ import {
 } from 'react'
 import { cn } from '../../core'
 import type { Color } from '../../core/recipe'
-import { useA11yAnnouncements, useA11yRoving, useComposedRef } from '../../hooks'
+import { useA11yAnnouncements, useA11yRoving } from '../../hooks'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { isScrollbarPress } from '../../utilities'
 import { usePdfViewerContext } from './context'
@@ -185,7 +186,7 @@ function PdfViewerHighlightLayer() {
 	const anyActive = activeLabel !== null
 
 	// The active region is what the reveal scrolls to and what the label hangs off.
-	const activeRegionRef = useComposedRef<HTMLElement>(revealRef, setAnchor)
+	const activeRegionRef = useComposedRefs<HTMLElement>(revealRef, setAnchor)
 
 	// A region that became active while the layer was hidden had no box to scroll to. The
 	// layer stays mounted, so its ref does not fire again. A layout effect, because the commit

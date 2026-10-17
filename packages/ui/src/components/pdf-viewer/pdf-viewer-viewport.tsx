@@ -1,7 +1,8 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import { cn } from '../../core'
-import { useA11yLiveRegion, useComposedRef, useScrollRegion } from '../../hooks'
+import { useA11yLiveRegion, useScrollRegion } from '../../hooks'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { usePdfViewerContext } from './context'
 import { hasRaster } from './pdf-viewer-document-cache'
@@ -53,7 +54,7 @@ export function PdfViewerViewport() {
 	// changes on each page.
 	const scrollRegionRef = useScrollRegion({ label: 'Page' })
 
-	const composedViewportRef = useComposedRef(viewportRef, scrollRegionRef)
+	const composedViewportRef = useComposedRefs(viewportRef, scrollRegionRef)
 
 	return (
 		<div

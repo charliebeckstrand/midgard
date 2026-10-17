@@ -30,7 +30,6 @@ export {
 	useA11yScope,
 } from './a11y/use-a11y-scope'
 export { useAriaIds } from './use-aria-ids'
-export { useComposedRef } from './use-composed-ref'
 export {
 	type ControllableFlagOptions,
 	type ControllableOptions,

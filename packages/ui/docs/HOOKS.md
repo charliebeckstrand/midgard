@@ -54,7 +54,6 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `useA11yLiveRegion` | Props for a consumer-filled live region: status/alert landmark with matching `aria-live`/`aria-atomic`. |
 | `useA11yAnnouncements` | Sends a changing status string to the live-region announcer. It skips the initial value and consecutive duplicates. |
 | `useAriaIds` | Composes the space-separated id list for `aria-labelledby`/`describedby`; falsy tokens drop, undefined if empty. |
-| `useComposedRef` | Merges several refs into one callback ref; honors React 19 ref cleanup and identity swaps. |
 | `useIdScope` | Stable scoped id plus a `sub(suffix)` deriver for related ids; falls back to a `useId` base. |
 
 ## Measurement & layout

@@ -1,8 +1,8 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import type { ComponentProps, CSSProperties } from 'react'
 import { ariaAttr, cn, composeEventHandlers, invalidAttrs } from '../../core'
-import { useComposedRef } from '../../hooks'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { k, type SliderVariants } from '../../recipes/kata/slider'
 import { clamp, pct } from '../../utilities'
@@ -128,7 +128,7 @@ export function Slider({
 	// fill and the value text read that value, so they stay on the thumb.
 	const current = nativeRangeValue(bound ?? min, min, max, step)
 
-	const setRef = useComposedRef(resetRef, ref)
+	const setRef = useComposedRefs(resetRef, ref)
 
 	const percent = pct(current, min, max)
 

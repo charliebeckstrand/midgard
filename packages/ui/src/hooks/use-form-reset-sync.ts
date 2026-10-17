@@ -14,7 +14,7 @@ import { useStableEvent } from './use-stable-event'
  * A canceled reset does not call `onReset`.
  *
  * The hook returns a callback ref. Put it on the input, and join it to the
- * other refs of that input through `useComposedRef`. The ref listens to the
+ * other refs of that input through `useComposedRefs`. The ref listens to the
  * form of the input while the input is mounted, so an input that mounts late,
  * or mounts again, gets the listener too. Unmount, or a change of `enabled` to
  * `false`, removes the listener and cancels a waiting frame.

@@ -1,7 +1,9 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import {
 	type KeyboardEvent,
+	type RefCallback,
 	type RefObject,
 	useCallback,
 	useDeferredValue,
@@ -18,7 +20,6 @@ import {
 	useA11yRoving,
 	type VirtualItemSource,
 } from '../../hooks/a11y/use-a11y-roving'
-import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { isReservedTextboxKey } from '../combobox/use-combobox-input'
 
@@ -178,7 +179,7 @@ export function useCommandPaletteState({ open, onActiveChange }: CommandPaletteS
 	// it attaches. The ref serves the key handlers and the seed.
 	const [listNode, setListNode] = useState<HTMLDivElement | null>(null)
 
-	const attachList = useComposedRef(listRef, setListNode)
+	const attachList: RefCallback<HTMLDivElement> = useComposedRefs(listRef, setListNode)
 
 	// Logical active index for the virtual source; see `Combobox` for why this
 	// can't be read back off the DOM.

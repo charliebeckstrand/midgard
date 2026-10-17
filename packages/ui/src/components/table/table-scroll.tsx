@@ -1,10 +1,10 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import type { DensityStep } from '../../core/density'
 import { type ScrollRegionOptions, useScrollRegion } from '../../hooks'
-import { useComposedRef } from '../../hooks/use-composed-ref'
 import { k } from '../../recipes/kata/table'
 import { Box } from '../../structure/box'
 import { useTableScrolls } from './context'
@@ -40,7 +40,7 @@ export function TableScroll({
 
 	const scrollRegionRef = useScrollRegion({ label, labelledBy })
 
-	const composedRef = useComposedRef(scrolls ? scrollRegionRef : undefined, ref)
+	const composedRef = useComposedRefs(scrolls ? scrollRegionRef : undefined, ref)
 
 	return (
 		<Box

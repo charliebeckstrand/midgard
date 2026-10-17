@@ -1,7 +1,7 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import { type Ref, type RefCallback, useRef } from 'react'
-import { useComposedRef } from '../../hooks'
 import { useControlFallbackLabel } from './use-control-fallback-label'
 
 /**
@@ -20,10 +20,10 @@ import { useControlFallbackLabel } from './use-control-fallback-label'
 export function useControlLabelRef(
 	fallback: string,
 	ref: Ref<HTMLInputElement> | undefined,
-): { ref: RefCallback<HTMLInputElement> | null; fallbackLabel: string | undefined } {
+): { ref: RefCallback<HTMLInputElement>; fallbackLabel: string | undefined } {
 	const inputRef = useRef<HTMLInputElement>(null)
 
 	const fallbackLabel = useControlFallbackLabel(fallback, inputRef)
 
-	return { ref: useComposedRef(ref, inputRef), fallbackLabel }
+	return { ref: useComposedRefs(ref, inputRef), fallbackLabel }
 }

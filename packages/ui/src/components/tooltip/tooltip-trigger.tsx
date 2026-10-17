@@ -1,8 +1,8 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import type { ComponentProps, ReactNode, Ref } from 'react'
 import { cn } from '../../core'
-import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useFloatingReference } from '../../hooks/use-floating-reference'
 import {
 	mergeTriggerProps,
@@ -71,7 +71,7 @@ export function TooltipTrigger({ children, className, ref, ...props }: TooltipTr
 	const child = triggerChild(children)
 
 	// A consumer `ref` on the trigger joins the ref of the child.
-	const childRef = useComposedRef<HTMLElement>(
+	const childRef = useComposedRefs<HTMLElement>(
 		child?.props.ref,
 		ref as Ref<HTMLElement> | undefined,
 	)

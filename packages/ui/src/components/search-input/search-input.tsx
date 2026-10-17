@@ -1,9 +1,9 @@
 'use client'
 
 import { Search } from 'lucide-react'
+import { useComposedRefs } from 'motion/react'
 import { type ChangeEvent, type KeyboardEvent, type ReactNode, useMemo } from 'react'
 import { cn, composeEventHandlers } from '../../core'
-import { useComposedRef } from '../../hooks'
 import { clearNativeInput, isComposing } from '../../utilities'
 import { useFormValue } from '../form/use-form-value'
 import { Icon } from '../icon'
@@ -106,7 +106,7 @@ export function SearchInput({
 		onValueChange: onValueChange && ((next) => onValueChange(next ?? '')),
 	})
 
-	const setRef = useComposedRef(resetRef, ref)
+	const setRef = useComposedRefs(resetRef, ref)
 
 	// Escape clears a query, as a native search field does in some browsers.
 	// The clear here makes it the same in each browser. `preventDefault` stops

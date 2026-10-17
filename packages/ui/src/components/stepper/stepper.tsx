@@ -1,8 +1,9 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import { type HTMLAttributes, type ReactNode, type Ref, useId, useMemo, useRef } from 'react'
 import { cn } from '../../core'
-import { useA11yRoving, useComposedRef, useResponsiveValue } from '../../hooks'
+import { useA11yRoving, useResponsiveValue } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import type { Mount } from '../../primitives/mount'
@@ -158,7 +159,7 @@ export function Stepper({
 
 	const rowRef = useRef<HTMLDivElement>(null)
 
-	const composedRef = useComposedRef<HTMLElement>(ref, rowRef)
+	const composedRef = useComposedRefs<HTMLElement>(ref, rowRef)
 
 	const baseId = useId()
 

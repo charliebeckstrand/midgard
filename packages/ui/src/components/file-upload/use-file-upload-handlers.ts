@@ -1,8 +1,15 @@
 'use client'
 
-import { type ChangeEvent, type DragEvent, useCallback, useRef, useState } from 'react'
+import { useComposedRefs } from 'motion/react'
+import {
+	type ChangeEvent,
+	type DragEvent,
+	type RefCallback,
+	useCallback,
+	useRef,
+	useState,
+} from 'react'
 import { announce } from '../../core'
-import { useComposedRef } from '../../hooks'
 import { useOpenChange } from '../../hooks/use-open-change'
 import { useFormValue } from '../form/use-form-value'
 import {
@@ -98,7 +105,7 @@ export function useFileUploadHandlers({
 
 	// The hidden input holds no file between picks, so a native form reset has
 	// nothing to revert there. The reset ref sets the selection back to its seed.
-	const setInputRef = useComposedRef(inputRef, resetRef)
+	const setInputRef: RefCallback<HTMLInputElement> = useComposedRefs(inputRef, resetRef)
 
 	const dragOver = dragDepth > 0
 

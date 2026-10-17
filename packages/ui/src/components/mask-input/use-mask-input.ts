@@ -1,7 +1,7 @@
 'use client'
 
-import type { ChangeEvent, Ref } from 'react'
-import { useComposedRef } from '../../hooks'
+import { useComposedRefs } from 'motion/react'
+import type { ChangeEvent, Ref, RefCallback } from 'react'
 import { type FormattedInputOptions, useFormattedInput } from '../../hooks/use-formatted-input'
 import { useFormValue } from '../form/use-form-value'
 
@@ -65,7 +65,7 @@ export function useMaskInput({
 		onValueChange: onChange ? (next) => onChange(next ?? '') : undefined,
 	})
 
-	const joinedRef = useComposedRef(resetRef, externalRef)
+	const joinedRef: RefCallback<HTMLInputElement> = useComposedRefs(resetRef, externalRef)
 
 	const { ref, reformat } = useFormattedInput({
 		format,

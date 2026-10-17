@@ -1,8 +1,9 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import { type ReactNode, useId, useState } from 'react'
 import { cn, composeEventHandlers } from '../../core'
-import { useAriaIds, useComposedRef } from '../../hooks'
+import { useAriaIds } from '../../hooks'
 import { useFormattedInput } from '../../hooks/use-formatted-input'
 import { useHeadless } from '../../providers/headless/context'
 import { useLocale } from '../../providers/locale'
@@ -190,7 +191,7 @@ export function CurrencyInput({
 
 	const affix = useSymbolAffix({ symbol, symbolIsPrefix, prefix, suffix, ariaDescribedBy })
 
-	const joinedRef = useComposedRef(resetRef, ref)
+	const joinedRef = useComposedRefs(resetRef, ref)
 
 	// `atEnd: 'jump'`: the formatter pads `.` to `0.`, so a restore at the end would
 	// put the next digit in the integer part (`.5` to `5.`). `text` is the text

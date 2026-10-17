@@ -1,5 +1,6 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import {
 	Children,
 	type ComponentProps,
@@ -10,7 +11,6 @@ import {
 	useRef,
 } from 'react'
 import { cn } from '../../core'
-import { useComposedRef } from '../../hooks/use-composed-ref'
 import { k } from '../../recipes/kata/resizable'
 import { ResizableContext, ResizableIndexContext } from './context'
 import { ResizableHandle } from './resizable-handle'
@@ -77,7 +77,7 @@ export function ResizableGroup({
 }: ResizableGroupProps) {
 	const groupRef = useRef<HTMLDivElement>(null)
 
-	const composedRef = useComposedRef(groupRef, ref)
+	const composedRef = useComposedRefs(groupRef, ref)
 
 	const panelConfigs = useMemo<PanelConfig[]>(
 		() =>

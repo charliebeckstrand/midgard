@@ -1,8 +1,8 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core'
-import { useComposedRef } from '../../hooks/use-composed-ref'
 import { k } from '../../recipes/kata/chrome'
 import { registerChrome } from './chrome-registry'
 
@@ -59,7 +59,7 @@ function registerRegion(node: HTMLDivElement | null) {
  */
 export function Chrome({ className, children, ref, ...props }: ChromeProps) {
 	// A consumer `ref` joins the registration rather than replaces it.
-	const setRegion = useComposedRef<HTMLDivElement>(registerRegion, ref)
+	const setRegion = useComposedRefs<HTMLDivElement>(registerRegion, ref)
 
 	return (
 		<div ref={setRegion} data-slot="chrome" className={cn(k.region, className)} {...props}>

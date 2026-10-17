@@ -1,9 +1,9 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { isRtl } from '../../hooks/a11y/logical-arrow'
-import { useComposedRef } from '../../hooks/use-composed-ref'
 import type { Mount } from '../mount'
 import { ReducedMotion } from '../reduced-motion'
 import {
@@ -78,7 +78,7 @@ export function CurrentContents({
 
 	// The morph hook reads `containerRef`, so a consumer `ref` joins it rather
 	// than replaces it.
-	const setContainer = useComposedRef(containerRef, ref)
+	const setContainer = useComposedRefs(containerRef, ref)
 
 	useCurrentContentsMorph(containerRef, animate)
 
