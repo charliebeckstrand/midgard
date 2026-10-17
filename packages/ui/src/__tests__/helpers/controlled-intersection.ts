@@ -95,8 +95,8 @@ export function installControlledObserver(): ControlledObserver {
  * The server markup of `element`.
  *
  * @remarks
- * A server has no `IntersectionObserver`, and `useInView` reports each target
- * as visible there. So the markup renders with no observer. The `finally` puts
+ * A server has no `IntersectionObserver`, so the markup renders with no
+ * observer. The `finally` puts
  * the observer back, because a hydration in the same case needs it.
  *
  * @param element - The element to render.

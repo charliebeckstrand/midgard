@@ -16,9 +16,8 @@ const onServer = () => false
  * @remarks
  * Gate on it where a value that only the client can read decides the markup.
  * The server and the hydration render then agree, and the client value takes
- * effect in the render after hydration. `useInView` is the case in point: it
- * reports visible where no observer exists, so a server draws what the first
- * client render defers.
+ * effect in the render after hydration. A viewport gate is the case in point:
+ * a server cannot observe, so the gate opens only after hydration.
  *
  * @returns Whether the client has hydrated.
  * @internal

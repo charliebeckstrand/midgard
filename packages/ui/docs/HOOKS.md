@@ -67,7 +67,6 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `usePrefersReducedMotion` | True when the reader asks for reduced motion through the platform or `AppearanceProvider`; true during SSR. Use it in place of the `useReducedMotion` of motion. |
 | `useResponsiveValue` | The value of a `Responsive<T>` prop at the viewport, as its classes give it. During SSR, the value of the largest breakpoint. |
 | `useIsTruncated` | True when text overflows the element, measured with a `Range` over its contents. |
-| `useInView` | True when `ref.current` is in or near the viewport. By default it disconnects on first sight. |
 | `useScrollRegion` | Callback ref that makes a scroll container a tab stop while its content overflows. A `label` also makes it a named `region`. |
 | `useScrollWithin` | Returns a function that scrolls a node into view in its nearest scrollable ancestor. |
 | `useVirtualWindow` | Drives a vertical windowed list from a `@tanstack/virtual-core` virtualizer, over uniform or measured rows. It gives the visible items and the spacer heights. |
@@ -104,7 +103,6 @@ Hooks export the option and return shapes consumers thread through their own pro
 | `Timeout` | Return shape of `useTimeout`: `set`, `clear`, `pending`. |
 | `IntentLoad` | Return shape of `useIntentLoad`: `module`, `request`, `preload`. |
 | `SetValue` | Argument to `useControllable`'s setter: a next value, `null`/`undefined` to clear, or a functional updater. |
-| `InView` / `InViewOptions` | Return shape / options of `useInView` (`ref`, `inView`; `margin`, `once`). |
 | `Responsive` | A single value or a per-breakpoint map, the type that `useResponsiveValue` takes. |
 | `RovingOptions` | Options for `useA11yRoving`. |
 | `ControllableOptions` | Options for `useControllable`: the controlled `value`, the uncontrolled `defaultValue`, and the change report. |

@@ -27,9 +27,8 @@ if (typeof window.ResizeObserver !== 'function') {
 // jsdom lays nothing out, so it cannot answer whether an element is on screen.
 // A stub that stays silent answers "nothing is ever visible", which is the
 // wrong default: a viewport gate defers work that is otherwise correct, so a
-// silent observer hides content from every test that renders behind one. Same
-// reasoning as `useInView`'s no-observer branch — when the environment cannot
-// tell, show it. A suite that drives the intersection itself replaces this stub
+// silent observer hides content from every test that renders behind one. When
+// the environment cannot tell, show it. A suite that drives the intersection itself replaces this stub
 // through `installControlledObserver` in `helpers/controlled-intersection.ts`.
 if (typeof window.IntersectionObserver !== 'function') {
 	class StubIntersectionObserver implements IntersectionObserver {

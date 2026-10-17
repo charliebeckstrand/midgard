@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useInView } from 'motion/react'
+import { useEffect, useRef } from 'react'
 import { cn } from '../../core'
-import { useInView } from '../../hooks'
 import { useHydrated } from '../../hooks/use-hydrated'
 import { type Mount, MountHold, useMountHold } from '../../primitives/mount'
 import { k } from '../../recipes/kata/chat-message'
@@ -114,9 +114,12 @@ type HeldChatEmbedProps = ChatEmbedProps & {
  * @internal
  */
 function HeldChatEmbed({ part, className, mount, render, address, reached }: HeldChatEmbedProps) {
+	const ref = useRef<HTMLDivElement>(null)
+
 	// `active` must see a block leave the viewport, so its observer stays
-	// connected. `lazy` needs only the first sight.
-	const { ref, inView } = useInView({ once: mount !== 'active' })
+	// connected. `lazy` needs only the first sight. The margin prepares a block
+	// just before the reader reaches it.
+	const inView = useInView(ref, { margin: '200px', once: mount !== 'active' })
 
 	// Under `lazy`, a block the reader reached before is active on its first
 	// render. Its row left the window and came back, and it must not defer again.
