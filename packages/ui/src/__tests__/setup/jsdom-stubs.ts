@@ -116,6 +116,12 @@ if (typeof Element.prototype.scrollIntoView !== 'function') {
 	Element.prototype.scrollIntoView = () => {}
 }
 
+// jsdom has no `Element.prototype.scrollTo`, so `scrollNodeWithin` throws on a
+// scroller that it does not lay out. A plain function, as above.
+if (typeof Element.prototype.scrollTo !== 'function') {
+	Element.prototype.scrollTo = () => {}
+}
+
 // jsdom implements no pointer capture, so a drag handler that captures its
 // pointer throws on the first press. The stub keeps the captured pointer ids of
 // each element, so `hasPointerCapture` answers what the code set and released.

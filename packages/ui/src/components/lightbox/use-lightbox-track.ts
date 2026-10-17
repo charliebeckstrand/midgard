@@ -378,14 +378,19 @@ export function useLightboxTrack(
 
 	// A step takes a zoomed photo back to rest as it slides away. A press that
 	// is live ends first, so the finger and the step do not both move the track.
-	const step = (direction: -1 | 1) => {
+	// It tells whether the track is there to move.
+	const takeTrack = (): boolean => {
 		abandon()
 
-		if (!interrupt()) return
+		if (!interrupt()) return false
 
 		zoom.reset()
 
-		advance(direction)
+		return true
+	}
+
+	const step = (direction: -1 | 1) => {
+		if (takeTrack()) advance(direction)
 	}
 
 	// Reads `index` after `interrupt`, which can land a slide and move it.
@@ -410,13 +415,7 @@ export function useLightboxTrack(
 	})
 
 	const go = (to: number) => {
-		abandon()
-
-		if (!interrupt()) return
-
-		zoom.reset()
-
-		goFromRest(to)
+		if (takeTrack()) goFromRest(to)
 	}
 
 	// A swipe to close that does not close puts the photo back at rest, brings

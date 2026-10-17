@@ -1,7 +1,7 @@
 'use client'
 
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
-import { PresenceContext, usePresence } from 'motion/react'
+import { PresenceContext, useComposedRefs, usePresence } from 'motion/react'
 import {
 	type CSSProperties,
 	type KeyboardEvent,
@@ -115,6 +115,18 @@ function controlsFrame(photo: LightboxViewPhoto): CSSProperties {
 		'--lightbox-edge': `calc(50% + ${height} / 2 + var(--spacing) * 4)`,
 		'--lightbox-end': `calc(50% - ${height} / (${ratio}) / 2)`,
 	} as CSSProperties
+}
+
+/**
+ * Puts the current thumbnail in the center of the row at once. It is the ref
+ * callback of the row: React attaches a ref in the commit, before the browser
+ * paints, so the row paints with the current thumbnail in view. React gives
+ * `null` on detach.
+ */
+function centerCurrentThumbnail(row: HTMLDivElement | null) {
+	const current = row?.querySelector<HTMLElement>('[aria-current]')
+
+	if (row && current) scrollNodeWithin(row, current, { inline: 'center', behavior: 'instant' })
 }
 
 /** The slots of the track: the photo in the center and each photo next to it. */
@@ -339,35 +351,22 @@ export function LightboxStage({
 
 	const rowRef = useRef<HTMLDivElement>(null)
 
-	// The row has scrolled to a thumbnail. Until then, it scrolls at once, and
-	// after that it scrolls with its own `scroll-behavior`.
-	const scrolled = useRef(false)
+	const setRow = useComposedRefs(rowRef, centerCurrentThumbnail)
 
 	// The thumbnail of the photo that the controls show stays in the center of
-	// the row. When the focus is in the row, it goes to that thumbnail, so the
-	// arrow keys move the focus with the photo.
-	const followCurrent = useEffectEvent((place: number) => {
+	// the row, and the row scrolls to it with its own `scroll-behavior`. When the
+	// focus is in the row, it goes to that thumbnail, so the arrow keys move the
+	// focus with the photo.
+	useLayoutEffect(() => {
 		const row = rowRef.current
 
-		const current = row?.children[place]
+		const current = row?.children[at]
 
 		if (!row || !(current instanceof HTMLElement)) return
 
 		if (row.contains(document.activeElement)) current.focus({ preventScroll: true })
 
-		// A row that fits has nothing to scroll.
-		if (row.scrollWidth > row.clientWidth) {
-			scrollNodeWithin(row, current, {
-				inline: 'center',
-				behavior: scrolled.current ? 'auto' : 'instant',
-			})
-		}
-
-		scrolled.current = true
-	})
-
-	useLayoutEffect(() => {
-		followCurrent(at)
+		scrollNodeWithin(row, current, { inline: 'center' })
 	}, [at])
 
 	// A press on the stage, the photo, or the scrim has no focusable target, so
@@ -455,61 +454,61 @@ export function LightboxStage({
 					>
 						<Icon icon={<X />} />
 					</Button>
-					{bar && thumbnails && (
+					{bar && (
 						<div className={cn(k.bar)}>
-							<div ref={rowRef} className={cn(k.thumbnails)}>
-								{photos.map((photo, place) => (
-									<button
-										key={photo.index}
+							{thumbnails ? (
+								<div ref={setRow} className={cn(k.thumbnails)}>
+									{photos.map((photo, place) => (
+										<button
+											key={photo.index}
+											type="button"
+											aria-current={place === at ? 'true' : undefined}
+											// One tab stop: the arrow keys move the focus along the row.
+											tabIndex={place === at ? 0 : -1}
+											className={cn(k.thumbnail.base, place === at && k.thumbnail.current)}
+											onClick={() => track.go(place)}
+										>
+											<img
+												src={thumbnailOf(photo)}
+												alt={photo.alt}
+												draggable={false}
+												decoding="async"
+												className={k.thumbnail.image}
+											/>
+										</button>
+									))}
+								</div>
+							) : (
+								<div className={k.pill}>
+									<Button
 										type="button"
-										aria-current={place === at ? 'true' : undefined}
-										// One tab stop: the arrow keys move the focus along the row.
-										tabIndex={place === at ? 0 : -1}
-										className={cn(k.thumbnail.base, place === at && k.thumbnail.current)}
-										onClick={() => track.go(place)}
+										ref={previousRef}
+										variant="plain"
+										color="inherit"
+										className={cn(k.step, at === 0 && k.ended)}
+										aria-label={labels.previous}
+										disabled={at === 0}
+										onClick={() => stepBy(-1)}
 									>
-										<img
-											src={thumbnailOf(photo)}
-											alt={photo.alt}
-											draggable={false}
-											className={k.thumbnail.image}
-										/>
-									</button>
-								))}
-							</div>
-						</div>
-					)}
-					{bar && !thumbnails && (
-						<div className={cn(k.bar)}>
-							<div className={k.pill}>
-								<Button
-									type="button"
-									ref={previousRef}
-									variant="plain"
-									color="inherit"
-									className={cn(k.step, at === 0 && k.ended)}
-									aria-label={labels.previous}
-									disabled={at === 0}
-									onClick={() => stepBy(-1)}
-								>
-									<Icon icon={<ChevronLeft />} className="rtl:-scale-x-100" />
-								</Button>
-								<span aria-hidden="true" className={k.count}>
-									{at + 1} / {count}
-								</span>
-								<Button
-									type="button"
-									ref={nextRef}
-									variant="plain"
-									color="inherit"
-									className={cn(k.step, at === count - 1 && k.ended)}
-									aria-label={labels.next}
-									disabled={at === count - 1}
-									onClick={() => stepBy(1)}
-								>
-									<Icon icon={<ChevronRight />} className="rtl:-scale-x-100" />
-								</Button>
-							</div>
+										<Icon icon={<ChevronLeft />} className="rtl:-scale-x-100" />
+									</Button>
+									<span aria-hidden="true" className={k.count}>
+										{at + 1} / {count}
+									</span>
+									<Button
+										type="button"
+										ref={nextRef}
+										variant="plain"
+										color="inherit"
+										className={cn(k.step, at === count - 1 && k.ended)}
+										aria-label={labels.next}
+										disabled={at === count - 1}
+										onClick={() => stepBy(1)}
+									>
+										<Icon icon={<ChevronRight />} className="rtl:-scale-x-100" />
+									</Button>
+								</div>
+							)}
 						</div>
 					)}
 				</m.div>
