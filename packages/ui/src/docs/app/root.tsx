@@ -103,12 +103,18 @@ const ACTIONS = (
 // The pinned panel of the events. It takes no props, for the same reason.
 const ASIDE = <EventsAside />
 
+// The locales that a reader can choose in the settings. They are the locales of
+// the apps, so the docs show the same choice. The first is the default.
+const LOCALES = ['en-US', 'en-GB', 'en-CA', 'en-AU'] as const
+
 /**
  * The shell of the docs: the sidebar, the header with the name of the page, and the page.
  *
- * The page renders in the `en-US` locale. The build renders each page with the
+ * The shell renders in the `en-US` locale. The build renders each page with the
  * default locale of Node, and the browser hydrates it with the default locale
- * of the reader. A fixed locale makes the two renders agree.
+ * of the reader. A fixed locale makes the two renders agree. After hydration,
+ * the shell takes the locale that the reader chooses in the settings. The
+ * provider holds the whole shell, so the settings dialog reads the choice.
  */
 export default function App() {
 	const { pathname } = useLocation()
@@ -132,42 +138,42 @@ export default function App() {
 		// The links match the path of the page, so the item of a page is current
 		// on each tab of the page, and no item is current on the not-found page.
 		<NavigateContext value={navigate}>
-			<UIProvider link={RouterLink} pathname={page?.path ?? pathname}>
-				<title>{title ? `${title} · Docs` : 'Docs'}</title>
-				<Stylesheet />
-				<DocsSearch>
-					<SidebarLayout
-						stickyHeader
-						actions={ACTIONS}
-						sidebar={<DocsSidebar pages={pages} />}
-						aside={ASIDE}
-					>
-						<SidebarLayoutHeader>
-							<Flex align="center" gap="md">
-								<Button
-									variant="bare"
-									className="hidden lg:inline-flex"
-									aria-label="Toggle sidebar"
-									onClick={() => setSidebar(sidebar === 'offcanvas' ? 'locked' : 'offcanvas')}
-								>
-									{/* The class of the root selects the icon, so the first paint shows the stored mode. */}
-									<Icon icon={<PanelLeftDashed />} className="sidebar-offcanvas:hidden" />
-									<Icon icon={<PanelLeft />} className="hidden sidebar-offcanvas:block" />
-								</Button>
-								<Heading>{title ?? 'Docs'}</Heading>
-							</Flex>
-						</SidebarLayoutHeader>
-						<SearchPaletteHost />
-						<SidebarLayoutBody>
-							<Stack gap="xl">
-								<LocaleProvider locale="en-US">
+			<LocaleProvider locale="en-US" locales={LOCALES}>
+				<UIProvider link={RouterLink} pathname={page?.path ?? pathname}>
+					<title>{title ? `${title} · Docs` : 'Docs'}</title>
+					<Stylesheet />
+					<DocsSearch>
+						<SidebarLayout
+							stickyHeader
+							actions={ACTIONS}
+							sidebar={<DocsSidebar pages={pages} />}
+							aside={ASIDE}
+						>
+							<SidebarLayoutHeader>
+								<Flex align="center" gap="md">
+									<Button
+										variant="bare"
+										className="hidden lg:inline-flex"
+										aria-label="Toggle sidebar"
+										onClick={() => setSidebar(sidebar === 'offcanvas' ? 'locked' : 'offcanvas')}
+									>
+										{/* The class of the root selects the icon, so the first paint shows the stored mode. */}
+										<Icon icon={<PanelLeftDashed />} className="sidebar-offcanvas:hidden" />
+										<Icon icon={<PanelLeft />} className="hidden sidebar-offcanvas:block" />
+									</Button>
+									<Heading>{title ?? 'Docs'}</Heading>
+								</Flex>
+							</SidebarLayoutHeader>
+							<SearchPaletteHost />
+							<SidebarLayoutBody>
+								<Stack gap="xl">
 									<Outlet />
-								</LocaleProvider>
-							</Stack>
-						</SidebarLayoutBody>
-					</SidebarLayout>
-				</DocsSearch>
-			</UIProvider>
+								</Stack>
+							</SidebarLayoutBody>
+						</SidebarLayout>
+					</DocsSearch>
+				</UIProvider>
+			</LocaleProvider>
 		</NavigateContext>
 	)
 }

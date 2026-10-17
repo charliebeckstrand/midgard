@@ -1,7 +1,7 @@
 'use client'
 
 import { ChevronsUpDown } from 'lucide-react'
-import { type ReactNode, useState } from 'react'
+import { type ReactNode, useMemo, useState } from 'react'
 import { Dialog, DialogBody, DialogHeader, DialogPanel, DialogTitle } from '../../components/dialog'
 import { Field, Label } from '../../components/fieldset'
 import { Icon } from '../../components/icon'
@@ -13,6 +13,8 @@ import { Flex } from '../../structure/flex'
 import { Stack } from '../../structure/stack'
 import { resolveVariant } from '../../types'
 import { densityLevels } from '../density/context'
+import { useLocaleChoice } from '../locale/context'
+import { localeOptions } from '../locale/locale-choice'
 import { UIProvider } from '../ui'
 import { useAppearance } from './context'
 import { motionModes, sidebarModes, themeModes } from './modes'
@@ -84,9 +86,9 @@ type AppearanceSettingsDialogProps = {
 }
 
 /**
- * The dialog of `AppearanceSettings`, with the appearance, density, motion, and
- * sidebar pickers. `AppearanceSettings` loads this module on the first press of
- * its button.
+ * The dialog of `AppearanceSettings`, with the appearance, density, motion,
+ * sidebar, and language pickers. `AppearanceSettings` loads this module on the
+ * first press of its button.
  *
  * The listbox panels portal into a node inside the dialog (through the
  * `portalContainer` of `UIProvider`), not into `document.body`. A modal
@@ -111,6 +113,13 @@ export function AppearanceSettingsDialog({
 	// The Sidebar setting changes the inline sidebar only, so the picker shows
 	// where the enclosing layout is inline.
 	const sidebarLayout = useSidebarLayoutPlacement()
+
+	// The Language picker shows under a `LocaleProvider` that has `locales`.
+	const localeChoice = useLocaleChoice()
+
+	const locales = localeChoice?.locales
+
+	const languages = useMemo(() => (locales ? localeOptions(locales) : []), [locales])
 
 	const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null)
 
@@ -148,6 +157,16 @@ export function AppearanceSettingsDialog({
 											value={sidebar}
 											onValueChange={setSidebar}
 											suffix={<SidebarSuffix />}
+										/>
+									</Field>
+								)}
+								{localeChoice && (
+									<Field>
+										<Label>Language</Label>
+										<ChoiceListbox
+											options={languages}
+											value={localeChoice.choice}
+											onValueChange={localeChoice.setChoice}
 										/>
 									</Field>
 								)}

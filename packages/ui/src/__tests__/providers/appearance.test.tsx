@@ -13,6 +13,7 @@ import {
 	AppearanceSettings,
 	useAppearance,
 } from '../../providers/appearance'
+import { LocaleProvider, useLocale } from '../../providers/locale'
 import {
 	act,
 	bySlot,
@@ -337,7 +338,58 @@ describe('AppearanceSettings', () => {
 
 		expect(document.documentElement).toHaveClass('sidebar-offcanvas')
 	})
+
+	it('shows no language picker under a locale provider with no locales', async () => {
+		renderUI(
+			<AppearanceProvider>
+				<LocaleProvider locale="en-US">
+					<AppearanceSettings />
+				</LocaleProvider>
+			</AppearanceProvider>,
+		)
+
+		await userEvent.click(screen.getByRole('button', { name: 'Settings' }))
+
+		expect(await screen.findByRole('dialog', { name: 'Settings' })).not.toHaveTextContent(
+			'Language',
+		)
+	})
+
+	it('picks the language under a locale provider with locales', async () => {
+		renderUI(
+			<AppearanceProvider>
+				<LocaleProvider locale="en-US" locales={['en-US', 'en-GB']}>
+					<LocaleOutput />
+					<AppearanceSettings />
+				</LocaleProvider>
+			</AppearanceProvider>,
+		)
+
+		await userEvent.click(screen.getByRole('button', { name: 'Settings' }))
+
+		await screen.findByRole('dialog', { name: 'Settings' })
+
+		const picker = screen.getByRole('combobox', { name: 'Language' })
+
+		expect(picker).toHaveTextContent('System')
+
+		await userEvent.click(picker)
+
+		// Each locale has its name in its own language.
+		expect(screen.getByRole('option', { name: 'English (United States)' })).toBeInTheDocument()
+
+		await userEvent.click(screen.getByRole('option', { name: 'English (United Kingdom)' }))
+
+		expect(localStorage.getItem('locale')).toBe('en-GB')
+
+		expect(screen.getByTestId('locale')).toHaveTextContent('en-GB')
+	})
 })
+
+// Writes the locale tag that the page reads.
+function LocaleOutput() {
+	return <output data-testid="locale">{useLocale().locale}</output>
+}
 
 describe('AppearanceScript', () => {
 	function runScript() {
