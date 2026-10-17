@@ -367,6 +367,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 			context={context}
 			size={size}
 			sheet={sheet}
+			footer={<DatePickerFooter {...footer} />}
 			onKeyDown={handleContentKeyDown}
 			// `input` mode seeds open-focus on the editable DateInput (not the dialog
 			// container) so the user can type and the same keydown stream roves the
@@ -390,7 +391,6 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 				listboxId={listboxId}
 				activeDescendantId={activeDescendantId}
 			/>
-			<DatePickerFooter {...footer} />
 		</DatePickerContent>
 	)
 
