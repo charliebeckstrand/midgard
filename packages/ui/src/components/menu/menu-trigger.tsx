@@ -1,8 +1,8 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, type KeyboardEvent, type Ref, useId, useRef } from 'react'
 import { cn, dataAttr } from '../../core'
-import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useDeferredFloatingReference } from '../../hooks/use-deferred-floating-reference'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import {
@@ -60,7 +60,7 @@ export function MenuTrigger({ children, className, ref, ...props }: MenuTriggerP
 	const child = triggerChild(children)
 
 	// A consumer `ref` on the trigger joins the ref of the child.
-	const childRef = useComposedRef<HTMLElement>(
+	const childRef = useComposedRefs<HTMLElement>(
 		child?.props.ref,
 		ref as Ref<HTMLElement> | undefined,
 	)

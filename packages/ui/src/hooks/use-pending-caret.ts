@@ -1,7 +1,7 @@
 'use client'
 
-import { type Ref, useLayoutEffect, useRef } from 'react'
-import { useComposedRef } from './use-composed-ref'
+import { useComposedRefs } from 'motion/react'
+import { type Ref, type RefCallback, useLayoutEffect, useRef } from 'react'
 
 /**
  * Caret-preserving plumbing for formatted text inputs. Spread the returned
@@ -21,7 +21,7 @@ export function usePendingCaret(externalRef?: Ref<HTMLInputElement>) {
 
 	const pendingRef = useRef<number | null>(null)
 
-	const ref = useComposedRef(inputRef, externalRef)
+	const ref: RefCallback<HTMLInputElement> = useComposedRefs(inputRef, externalRef)
 
 	const flush = () => {
 		const target = pendingRef.current

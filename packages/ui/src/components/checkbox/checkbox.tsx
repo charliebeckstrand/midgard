@@ -1,9 +1,9 @@
 'use client'
 
 import { Check, Minus } from 'lucide-react'
+import { useComposedRefs } from 'motion/react'
 import { type ChangeEventHandler, type ComponentProps, useLayoutEffect, useRef } from 'react'
 import { ariaAttr, cn, dataAttr } from '../../core'
-import { useComposedRef } from '../../hooks'
 import { type CheckboxVariants, k } from '../../recipes/kata/checkbox'
 import { useControlProps } from '../control/use-control-props'
 import { useFormToggle } from '../form/use-form-toggle'
@@ -78,7 +78,7 @@ export function Checkbox({
 
 	const inputRef = useRef<HTMLInputElement>(null)
 
-	const setRef = useComposedRef(inputRef, ref)
+	const setRef = useComposedRefs(inputRef, ref)
 
 	// `indeterminate` is a DOM property with no attribute; sync it before paint.
 	// A server render runs no effect, so the input also carries

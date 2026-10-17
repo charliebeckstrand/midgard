@@ -1,6 +1,7 @@
 'use client'
 
 import { ChevronsUpDown } from 'lucide-react'
+import { useComposedRefs } from 'motion/react'
 import {
 	type ClipboardEventHandler,
 	type ComponentProps,
@@ -34,7 +35,6 @@ import {
 	type VirtualItemSource,
 	virtualTopMatchIndex,
 } from '../../hooks/a11y/use-a11y-roving'
-import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { DeferredQueryContext, QueryContext, useQueryValue } from '../../primitives/query'
@@ -540,7 +540,7 @@ export function Combobox<T>({
 	// options when the container attaches. The ref serves the key handlers.
 	const [optionsNode, setOptionsNode] = useState<HTMLDivElement | null>(null)
 
-	const attachOptions = useComposedRef(optionsRef, setOptionsNode)
+	const attachOptions = useComposedRefs(optionsRef, setOptionsNode)
 
 	// Registered by a `VirtualOptions` (with `getOptionId`) inside `children`,
 	// via `VirtualItemSourceContext`; null for a non-virtualized combobox, which

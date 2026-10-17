@@ -1,9 +1,9 @@
 'use client'
 
 import { CornerLeftDown } from 'lucide-react'
+import { useComposedRefs } from 'motion/react'
 import { type FocusEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { ariaAttr, cn, composeEventHandlers } from '../../core'
-import { useComposedRef } from '../../hooks'
 import type { Color } from '../../recipes'
 import { k } from '../../recipes/kata/tag-input'
 import { Flex } from '../../structure/flex'
@@ -190,7 +190,7 @@ export function TagInput({
 		onReset: dropDraft,
 	})
 
-	const setRefs = useComposedRef(inputRef, resetRef, ref)
+	const setRefs = useComposedRefs(inputRef, resetRef, ref)
 
 	const missing = ambient.required === true && tags.length === 0
 

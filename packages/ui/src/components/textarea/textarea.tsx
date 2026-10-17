@@ -1,9 +1,9 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, type ReactNode, useRef } from 'react'
 import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
-import { useComposedRef } from '../../hooks/use-composed-ref'
 import { ControlFrame } from '../../primitives/control'
 import type { scale } from '../../recipes/kata/textarea'
 import { k, type TextareaVariants } from '../../recipes/kata/textarea'
@@ -105,7 +105,7 @@ export function Textarea({
 
 	const fieldRef = useRef<HTMLTextAreaElement>(null)
 
-	const composedRef = useComposedRef(fieldRef, ref)
+	const composedRef = useComposedRefs(fieldRef, ref)
 
 	useTextareaAutoResize(fieldRef, autoResize)
 

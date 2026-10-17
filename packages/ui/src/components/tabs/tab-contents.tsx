@@ -1,9 +1,9 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, useEffect, useState } from 'react'
 import { cn } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
-import { useComposedRef } from '../../hooks/use-composed-ref'
 import { CurrentContent, CurrentContents } from '../../primitives/current'
 import { STILL_CONTENTS, useCurrentContents } from '../../primitives/current/current'
 import { k } from '../../recipes/kata/tabs'
@@ -125,7 +125,7 @@ export function TabContent({ value, className, ref: consumerRef, ...props }: Tab
 	const tabIndex = useTabPanelTabIndex(panel)
 
 	// A consumer ref joins the probe ref instead of replacing it (CONVENTIONS.md §3.9).
-	const composedRef = useComposedRef(setPanel, consumerRef)
+	const composedRef = useComposedRefs(setPanel, consumerRef)
 
 	return (
 		<CurrentContent

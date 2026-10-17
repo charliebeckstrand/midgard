@@ -1,9 +1,9 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import type { ComponentProps, ReactNode, RefObject } from 'react'
 import { cn, composeEventHandlers, dataAttr } from '../../core'
 import { useA11yPanel } from '../../hooks'
-import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useIsRtl } from '../../hooks/use-is-rtl'
 import { useOpenComplete } from '../../hooks/use-open-complete'
 import { panelAxis, usePanelResize } from '../../hooks/use-panel-resize'
@@ -256,7 +256,7 @@ export function SheetPanel({
 
 	// The gesture reads the node only while the panel has a handle. A consumer
 	// `ref` joins it.
-	const panelRef = useComposedRef(handle ? resize.ref : undefined, ref)
+	const panelRef = useComposedRefs(handle ? resize.ref : undefined, ref)
 
 	const sized = handle && (resize.resizing || resize.size !== null)
 

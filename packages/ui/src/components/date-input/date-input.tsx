@@ -1,9 +1,9 @@
 'use client'
 
 import { Calendar as CalendarIcon } from 'lucide-react'
+import { useComposedRefs } from 'motion/react'
 import { type ReactNode, useState } from 'react'
 import { composeEventHandlers } from '../../core'
-import { useComposedRef } from '../../hooks'
 import { useFormattedInput } from '../../hooks/use-formatted-input'
 import { useLocale } from '../../providers/locale'
 import { isComposing } from '../../utilities'
@@ -245,7 +245,7 @@ export function DateInput({
 		onValidityChange?.({ isValid: Boolean(parsed), isPotentiallyValid: !refused })
 	}
 
-	const joinedRef = useComposedRef(resetRef, labelled.ref)
+	const joinedRef = useComposedRefs(resetRef, labelled.ref)
 
 	// `atEnd: 'jump'`: the mask pads `1/` to `01/`, so a restore at the end would pin
 	// the caret before the padded digit.

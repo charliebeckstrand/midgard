@@ -1,8 +1,8 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import { type ChangeEvent, type Ref, useEffect, useState } from 'react'
 import { composeEventHandlers } from '../../core'
-import { useComposedRef } from '../../hooks'
 import { useFormResetSync } from '../../hooks/use-form-reset-sync'
 import { useFormField } from '../form/context'
 import type { PasswordInputProps } from '../password-input'
@@ -70,7 +70,7 @@ export function usePasswordConfirmField(
 	const resetRef = useFormResetSync(tracked, (input) => setOwn(input.value))
 
 	return {
-		ref: useComposedRef(resetRef, ref),
+		ref: useComposedRefs(resetRef, ref),
 		// The coordinator records the edit whatever the caller does
 		// (CONVENTIONS.md §3.9).
 		onChange: composeEventHandlers(

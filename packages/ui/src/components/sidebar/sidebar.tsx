@@ -1,8 +1,9 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, use, useRef } from 'react'
 import { cn, composeEventHandlers, dataAttr } from '../../core'
-import { useA11yRoving, useComposedRef } from '../../hooks'
+import { useA11yRoving } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { OffcanvasContext } from '../../primitives/offcanvas'
 import { k } from '../../recipes/kata/sidebar'
@@ -57,7 +58,7 @@ export function Sidebar({
 	const ref = useRef<HTMLElement>(null)
 
 	// A consumer ref joins the roving ref instead of replacing it (CONVENTIONS.md §3.9).
-	const composedRef = useComposedRef(ref, consumerRef)
+	const composedRef = useComposedRefs(ref, consumerRef)
 
 	const handleKeyDown = useA11yRoving(ref, {
 		itemSelector: '[data-slot="sidebar-item-inner"]:not(:disabled)',

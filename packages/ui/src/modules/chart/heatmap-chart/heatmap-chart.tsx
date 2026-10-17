@@ -1,6 +1,6 @@
 'use client'
 
-import { useComposedRef } from '../../../hooks'
+import { useComposedRefs } from 'motion/react'
 import { useMeasuredWidth } from '../../../hooks/use-measured-width'
 import { useStableEvent } from '../../../hooks/use-stable-event'
 import { ChartAxis } from '../engine/chart-axes/axis'
@@ -133,7 +133,7 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 	const { show, trigger } = resolveTooltip(tooltip)
 
 	// The root measures its width for the rail, and hosts the row label text.
-	const rootRef = useComposedRef(containerRef, textHostRef)
+	const rootRef = useComposedRefs(containerRef, textHostRef)
 
 	const rangeLegend = resolveRangeLegend(legend, containerWidth, boxHeight)
 

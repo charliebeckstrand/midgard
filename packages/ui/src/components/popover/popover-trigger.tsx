@@ -1,8 +1,8 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, type Ref, type SyntheticEvent, useCallback } from 'react'
 import { cn, composeEventHandlers, dataAttr } from '../../core'
-import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useDeferredFloatingReference } from '../../hooks/use-deferred-floating-reference'
 import {
 	mergeTriggerProps,
@@ -45,7 +45,7 @@ export function PopoverTrigger({ children, className, ref, ...props }: PopoverTr
 	// Merges the child's own ref (React 19 ref-as-prop) with the floating
 	// reference; both receive the node.
 	// A consumer `ref` on the trigger joins the ref of the child.
-	const childRef = useComposedRef<HTMLElement>(
+	const childRef = useComposedRefs<HTMLElement>(
 		child?.props.ref,
 		ref as Ref<HTMLElement> | undefined,
 	)

@@ -1,7 +1,8 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import { type RefCallback, useEffect, useRef } from 'react'
-import { useComposedRef, useScrollRegion } from '../../hooks'
+import { useScrollRegion } from '../../hooks'
 
 /**
  * The scroll of the tag row of a TagInput while the row stays on one line.
@@ -22,12 +23,12 @@ import { useComposedRef, useScrollRegion } from '../../hooks'
 export function useTagInputRowScroll(
 	count: number,
 	wrap: boolean,
-): RefCallback<HTMLElement> | null | undefined {
+): RefCallback<HTMLElement> | undefined {
 	const listRef = useRef<HTMLElement>(null)
 
 	const regionRef = useScrollRegion()
 
-	const setRef = useComposedRef(listRef, regionRef)
+	const setRef = useComposedRefs(listRef, regionRef)
 
 	const previous = useRef(count)
 

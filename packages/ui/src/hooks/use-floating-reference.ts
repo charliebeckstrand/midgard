@@ -1,7 +1,7 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import { type Ref, type RefCallback, useCallback } from 'react'
-import { useComposedRef } from './use-composed-ref'
 
 /**
  * Compose a floating element's `setReference` with the refs a trigger owns
@@ -15,9 +15,9 @@ import { useComposedRef } from './use-composed-ref'
  * error while ancestor state is in flux. The other refs are safe to null, and
  * the cleanup nulls them.
  *
- * {@link useComposedRef} cannot carry `setReference` itself. The floating-ui
- * `useMergeRefs` returns no cleanup of its own, so React calls it with `null` on
- * unmount and it nulls every input ref alike.
+ * {@link useComposedRefs} cannot carry `setReference` itself. It returns a
+ * cleanup only when an input ref returns one. Otherwise React calls it with
+ * `null` on unmount, and it nulls every input ref alike.
  *
  * @remarks A caller can pass its own capture function here rather than the
  * engine's setter, and register the node later.
@@ -38,16 +38,18 @@ export function useFloatingReference<T extends HTMLElement>(
 ): RefCallback<T> {
 	// Fixed arity, because these two reach the dependency array of the composed
 	// ref and React rejects an array whose length changes between renders.
-	const setOwnRefs = useComposedRef<T>(triggerRef, childRef)
+	const setOwnRefs = useComposedRefs<T>(triggerRef, childRef)
 
 	return useCallback(
 		(node: T | null) => {
 			setReference(node)
 
-			setOwnRefs?.(node)
+			// A React 19 cleanup from an own ref runs in place of the null call.
+			const cleanup = setOwnRefs(node)
 
 			return () => {
-				setOwnRefs?.(null)
+				if (typeof cleanup === 'function') cleanup()
+				else setOwnRefs(null)
 			}
 		},
 		[setReference, setOwnRefs],

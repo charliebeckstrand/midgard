@@ -1,7 +1,7 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import { type FocusEvent, type RefCallback, useLayoutEffect, useRef } from 'react'
-import { useComposedRef } from '../../hooks/use-composed-ref'
 import { type ScrollWithinOptions, scrollNodeWithin } from '../../hooks/use-scroll-within'
 import type { TabsOrientation } from './context'
 import { TAB_SELECTOR } from './tabs-constants'
@@ -54,7 +54,10 @@ const REVEAL_CURRENT_TAB: Record<TabsOrientation, RefCallback<HTMLDivElement>> =
 export function useTabListScroll(orientation: TabsOrientation, enabled: boolean) {
 	const scrollRef = useRef<HTMLDivElement>(null)
 
-	const setScroller = useComposedRef(scrollRef, REVEAL_CURRENT_TAB[orientation])
+	const setScroller: RefCallback<HTMLDivElement> = useComposedRefs(
+		scrollRef,
+		REVEAL_CURRENT_TAB[orientation],
+	)
 
 	const options = FLOW_SCROLL[orientation]
 

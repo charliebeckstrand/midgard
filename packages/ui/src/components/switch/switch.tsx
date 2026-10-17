@@ -1,8 +1,9 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import type { ChangeEvent, ComponentProps } from 'react'
 import { ariaAttr, cn } from '../../core'
-import { useComposedRef, useControllableFlag } from '../../hooks'
+import { useControllableFlag } from '../../hooks'
 import { useFormResetSync } from '../../hooks/use-form-reset-sync'
 import { k, type SwitchVariants } from '../../recipes/kata/switch'
 import { useControlProps } from '../control/use-control-props'
@@ -74,7 +75,7 @@ export function Switch({
 	// mirror the reverted value into the owned aria state.
 	const resetRef = useFormResetSync(!isControlled, (input) => setOn(input.checked))
 
-	const setRef = useComposedRef(resetRef, ref)
+	const setRef = useComposedRefs(resetRef, ref)
 
 	const {
 		id: resolvedId,

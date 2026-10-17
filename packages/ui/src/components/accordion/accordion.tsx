@@ -1,9 +1,9 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, type ReactNode, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks'
-import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import type { Mount } from '../../primitives/mount'
 import { type AccordionVariants, k } from '../../recipes/kata/accordion'
@@ -124,7 +124,7 @@ export function Accordion(props: AccordionProps) {
 	const ref = useRef<HTMLDivElement>(null)
 
 	// Roving reads `ref`, so a consumer `ref` joins it.
-	const setRoot = useComposedRef(ref, consumerRef)
+	const setRoot = useComposedRefs(ref, consumerRef)
 
 	// Each header button runs the handler. The container has no role in the
 	// WAI-ARIA accordion pattern, so the library puts no key handler on it. The

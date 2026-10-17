@@ -1,5 +1,6 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import {
 	type ComponentProps,
 	type ReactNode,
@@ -12,7 +13,6 @@ import {
 import { dataAttr } from '../../core'
 import { useVirtualWindow } from '../../hooks'
 import type { VirtualItemSource } from '../../hooks/a11y/use-a11y-roving'
-import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { VirtualItemSourceContext } from './context'
 
@@ -139,7 +139,7 @@ export function VirtualOptions<T>({
 	const containerRef = useRef<HTMLDivElement>(null)
 
 	// The scroll-ancestor walk reads `containerRef`, so a consumer `ref` joins it.
-	const setContainer = useComposedRef(containerRef, ref)
+	const setContainer = useComposedRefs(containerRef, ref)
 
 	// The scroll container is stable while mounted, but the virtualizer calls
 	// `getScrollElement` after every commit (its own layout effect plus

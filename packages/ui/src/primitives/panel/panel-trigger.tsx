@@ -1,8 +1,8 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import type { ComponentProps, MouseEventHandler, ReactNode, Ref } from 'react'
 import { composeEventHandlers, dataAttr } from '../../core'
-import { useComposedRef } from '../../hooks/use-composed-ref'
 import { mergeTriggerProps, TriggerChild, triggerChild } from '../trigger-child/trigger-child'
 import { usePanelState } from './panel-root'
 
@@ -45,7 +45,7 @@ export function PanelTrigger({ children, ref, onClick, ...props }: PanelTriggerP
 	const child = triggerChild(children)
 
 	// A consumer `ref` on the trigger joins the ref of the child.
-	const childRef = useComposedRef<HTMLElement>(
+	const childRef = useComposedRefs<HTMLElement>(
 		child?.props.ref,
 		ref as Ref<HTMLElement> | undefined,
 	)
@@ -72,7 +72,7 @@ export function PanelTrigger({ children, ref, onClick, ...props }: PanelTriggerP
 					// A child that stamps its own disabled state keeps it.
 					'data-disabled': dataAttr(childProps.disabled === true) ?? childProps['data-disabled'],
 				}}
-				ref={childRef ?? undefined}
+				ref={childRef}
 				slot="panel-trigger"
 			/>
 		)

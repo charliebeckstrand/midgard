@@ -1,9 +1,9 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, useRef } from 'react'
 import { cn, composeEventHandlers } from '../../core'
 import { useA11yRoving } from '../../hooks'
-import { useComposedRef } from '../../hooks/use-composed-ref'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { k } from '../../recipes/kata/tabs'
 import type { AccessibleName } from '../../types'
@@ -88,7 +88,7 @@ export function TabList({
 	const ref = useRef<HTMLDivElement>(null)
 
 	// Roving reads `ref`, so a consumer `ref` joins it, with the tabbable floor.
-	const setList = useComposedRef(ref, consumerRef, observeTabbableFloor)
+	const setList = useComposedRefs(ref, consumerRef, observeTabbableFloor)
 
 	const handleKeyDown = useA11yRoving(ref, {
 		itemSelector: TAB_SELECTOR,

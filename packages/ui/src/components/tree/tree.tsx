@@ -1,5 +1,6 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import {
 	type ComponentProps,
 	type KeyboardEvent,
@@ -11,7 +12,6 @@ import {
 import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { useA11yRoving } from '../../hooks'
-import { useComposedRef } from '../../hooks/use-composed-ref'
 import type { Mount } from '../../primitives/mount'
 import { k, type scale } from '../../recipes/kata/tree'
 import { Box } from '../../structure/box'
@@ -64,7 +64,7 @@ export function Tree({
 	const ref = useRef<HTMLDivElement>(null)
 
 	// Roving reads `ref`, so a consumer `ref` joins it.
-	const setRoot = useComposedRef(ref, consumerRef)
+	const setRoot = useComposedRefs(ref, consumerRef)
 
 	const rovingKeyDown = useA11yRoving(ref, {
 		itemSelector: ROVING_ITEM_SELECTOR,

@@ -1,8 +1,8 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import type { ComponentProps } from 'react'
 import { cn, composeEventHandlers } from '../../core'
-import { useComposedRef } from '../../hooks'
 import { useScrollRegion } from '../../hooks/use-scroll-region'
 import {
 	k,
@@ -74,7 +74,7 @@ export function ScrollArea({
 			: { 'aria-label': ariaLabel, 'aria-labelledby': ariaLabelledby }
 
 	// A consumer ref joins the viewport ref instead of replacing it (CONVENTIONS.md §3.9).
-	const composedViewportRef = useComposedRef(viewportRef, scrollRegionRef, ref)
+	const composedViewportRef = useComposedRefs(viewportRef, scrollRegionRef, ref)
 
 	const showScrollbar = scrollbar !== 'hidden'
 

@@ -1,9 +1,10 @@
 'use client'
 
 import { closestCorners, DndContext } from '@dnd-kit/core'
+import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, useCallback, useId, useMemo, useRef } from 'react'
 import { cn } from '../../core'
-import { useComposedRef, useDragCursor, useScrollRegion, useSortableSensors } from '../../hooks'
+import { useDragCursor, useScrollRegion, useSortableSensors } from '../../hooks'
 import { keyMatcher, useKeyedStore } from '../../hooks/use-keyed-store'
 import { PortalDragOverlay } from '../../primitives/portal/portal-drag-overlay'
 import { k } from '../../recipes/kata/kanban'
@@ -132,7 +133,7 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 	// also a tab stop, so a keyboard user can scroll it.
 	const scrollRegionRef = useScrollRegion()
 
-	const boardRef = useComposedRef(containerRef, scrollRegionRef, ref)
+	const boardRef = useComposedRefs(containerRef, scrollRegionRef, ref)
 
 	// Card-facing value: stays referentially stable through a pointer drag (which
 	// moves only activeId/columnItemIds), so cards don't re-render per drag move.

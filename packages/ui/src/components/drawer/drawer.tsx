@@ -1,10 +1,10 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import type { ComponentProps, ReactNode, RefObject } from 'react'
 import { cn, composeEventHandlers, dataAttr } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { useA11yPanel } from '../../hooks'
-import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useOpenComplete } from '../../hooks/use-open-complete'
 import { usePanelFit } from '../../hooks/use-panel-fit'
 import { usePanelResize } from '../../hooks/use-panel-resize'
@@ -268,7 +268,7 @@ export function DrawerPanel({
 	// One node, three readers of it. The gesture writes the height the reader sets
 	// and the fit writes the height the content asks for; both need the element.
 	// A consumer `ref` joins them.
-	const panelRef = useComposedRef(resize.ref, fitRef, ref)
+	const panelRef = useComposedRefs(resize.ref, fitRef, ref)
 
 	const { ariaProps, a11y } = useA11yPanel('dialog', modal)
 

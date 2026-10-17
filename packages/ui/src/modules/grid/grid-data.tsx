@@ -1,8 +1,8 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import { type RefObject, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { dataAttr } from '../../core'
-import { useComposedRef } from '../../hooks'
 import { isRtl } from '../../hooks/a11y/logical-arrow'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { useDensityStep } from '../../primitives/density'
@@ -228,7 +228,7 @@ export function GridData<T>({
 	// The consumer's `tableProps.ref`, the grid's own ref, and the row measure,
 	// on one node. The cursor reads the grid's ref to reseat focus on its own
 	// tab stop.
-	const tableElementRef = useComposedRef(tableRef, measureRef, tableProps?.ref)
+	const tableElementRef = useComposedRefs(tableRef, measureRef, tableProps?.ref)
 
 	const {
 		grouping,

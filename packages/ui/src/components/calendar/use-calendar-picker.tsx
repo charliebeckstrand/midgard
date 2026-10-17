@@ -1,5 +1,6 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import {
 	type KeyboardEvent,
 	type ReactNode,
@@ -11,7 +12,6 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { useComposedRef } from '../../hooks/use-composed-ref'
 import { resolveFormat } from '../../utilities'
 import type { CalendarPickerGridCell } from './calendar-picker-grid'
 import { calendarPickerReducer, initialCalendarPickerState } from './calendar-picker-reducer'
@@ -153,7 +153,7 @@ export function useCalendarPicker({
 		return () => cancelAnimationFrame(frame)
 	}, [open, focusGrid])
 
-	const composedGridRef = useComposedRef(gridRef, attachGrid)
+	const composedGridRef = useComposedRefs(gridRef, attachGrid)
 
 	let viewConfig: CalendarPickerViewConfig
 

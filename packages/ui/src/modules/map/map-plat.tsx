@@ -1,5 +1,6 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import {
 	type ComponentProps,
 	type ReactNode,
@@ -10,7 +11,6 @@ import {
 	useRef,
 } from 'react'
 import { cn } from '../../core'
-import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useMeasuredWidth } from '../../hooks/use-measured-width'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
@@ -1220,7 +1220,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// measure is one hook.
 	const { ref: containerRef, width: containerWidth } = useMeasuredWidth(width)
 
-	const rootRef = useComposedRef(containerRef, ref)
+	const rootRef = useComposedRefs(containerRef, ref)
 
 	// The range bar's default format writes numbers in the ambient locale, as the readout does.
 	const { locale } = useLocale()

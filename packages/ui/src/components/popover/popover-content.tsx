@@ -1,10 +1,10 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, type ReactNode, useLayoutEffect, useState } from 'react'
 import { cn, dataAttr } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { useA11yAutoFocus } from '../../hooks'
-import { useComposedRef } from '../../hooks/use-composed-ref'
 import { FloatingSurface } from '../../primitives/floating-surface'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { useResolvedSurface } from '../../providers/glass/context'
@@ -99,7 +99,7 @@ export function PopoverContent({
 	const [content, setContent] = useState<HTMLDivElement | null>(null)
 
 	// The auto-focus reads the node, so a consumer `ref` joins it.
-	const setPanel = useComposedRef(setContent, ref)
+	const setPanel = useComposedRefs(setContent, ref)
 
 	const glass = useResolvedSurface(glassProp) === 'glass'
 

@@ -1,8 +1,8 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, useCallback } from 'react'
 import { cn } from '../../core'
-import { useComposedRef } from '../../hooks/use-composed-ref'
 import type { HeaderActionsHost } from './header-actions'
 
 /**
@@ -23,7 +23,7 @@ export function HeaderActionsSlot({ host, className, ref, ...props }: HeaderActi
 	const hostRef = useCallback((element: HTMLSpanElement | null) => host.set(element), [host])
 
 	// The host reads the node, so a consumer `ref` joins it.
-	const setSlot = useComposedRef(hostRef, ref)
+	const setSlot = useComposedRefs(hostRef, ref)
 
 	return (
 		<span

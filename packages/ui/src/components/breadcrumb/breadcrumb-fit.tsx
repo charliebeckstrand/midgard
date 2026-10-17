@@ -1,5 +1,6 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import {
 	type ComponentProps,
 	useEffect,
@@ -10,7 +11,6 @@ import {
 	useState,
 } from 'react'
 import { cn } from '../../core'
-import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useHydrated } from '../../hooks/use-hydrated'
 import { useResizeObserver } from '../../hooks/use-resize-observer'
 import { InlineScript } from '../../primitives/inline-script/inline-script'
@@ -64,7 +64,7 @@ export function BreadcrumbFit({ ref, className, children, ...props }: ComponentP
 
 	const nav = useRef<HTMLElement>(null)
 
-	const navRef = useComposedRef(nav, ref)
+	const navRef = useComposedRefs(nav, ref)
 
 	// `null` until the first measure: the server, and the hydration render.
 	const [collapsed, setCollapsed] = useState<number | null>(null)

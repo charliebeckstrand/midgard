@@ -1,9 +1,9 @@
 'use client'
 
 import { Minus, Plus } from 'lucide-react'
+import { useComposedRefs } from 'motion/react'
 import type { ChangeEvent } from 'react'
 import { announce, cn, composeEventHandlers } from '../../core'
-import { useComposedRef } from '../../hooks'
 import { k } from '../../recipes/kata/input'
 import { clamp } from '../../utilities'
 import { Button } from '../button'
@@ -86,7 +86,7 @@ export function NumberInput({
 		setTouched,
 	} = useFormValue<number>(name, { value, defaultValue, onValueChange })
 
-	const setRef = useComposedRef(resetRef, ref)
+	const setRef = useComposedRefs(resetRef, ref)
 
 	const precision = stepPrecision(step)
 

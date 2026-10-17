@@ -1,9 +1,9 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, useLayoutEffect, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useA11yRoving, useResizeObserver } from '../../hooks'
-import { useComposedRef } from '../../hooks/use-composed-ref'
 import { k, type ToolbarVariants } from '../../recipes/kata/toolbar'
 import type { AccessibleName } from '../../types'
 import { ToolbarContext, type ToolbarContextValue } from './context'
@@ -46,7 +46,7 @@ export function Toolbar({
 	const ref = useRef<HTMLDivElement>(null)
 
 	// Roving and the row marks read `ref`, so a consumer `ref` joins it.
-	const setRoot = useComposedRef(ref, consumerRef)
+	const setRoot = useComposedRefs(ref, consumerRef)
 
 	const handleKeyDown = useA11yRoving(ref, {
 		itemSelector: TOOLBAR_ITEM_SELECTOR,
