@@ -23,5 +23,9 @@ export function greet(name) {
 `
 
 export default function MarkdownPlayground(props: MarkdownProps) {
-	return <Markdown {...props}>{prose}</Markdown>
+	return (
+		<Markdown headingOffset={2} {...props}>
+			{prose}
+		</Markdown>
+	)
 }
