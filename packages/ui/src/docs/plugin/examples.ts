@@ -25,9 +25,9 @@ export type Highlight = (code: string, lang: string, theme: string) => Promise<S
 
 /** What the plugin adds to the default export of an example module. */
 export type ExampleMeta = {
-	/** The title of the example, from the file name: `with-icon.tsx` gives `With icon`. */
+	/** The title of the example, from the file name: `with-icon.tsx` gives `With icon`. Each playground has the title `Playground`. */
 	title: string
-	/** The id of the heading of the example, from the file name: `with-icon.tsx` gives `with-icon`. */
+	/** The id of the heading of the example, from {@link headingIdOf}: `with-icon.tsx` gives `with-icon`. */
 	id: string
 	/** For a playground, the name of the component that takes the props. */
 	component?: string
@@ -52,7 +52,7 @@ export function codeIdOf(pages: string, file: string): string {
 
 /**
  * The key of the example at `file` in the code module of its folder: the name
- * of the file. It is also the id of the heading of the example.
+ * of the file.
  */
 export function codeKeyOf(file: string): string {
 	return path.basename(file, '.tsx')
@@ -61,8 +61,23 @@ export function codeKeyOf(file: string): string {
 /** An example module in `pages/`: a TSX file that is not the index of a page or a tab. */
 export const EXAMPLE = /(?<!\/index)\.tsx$/
 
-// The file name of the playground of a page.
+// The file name of the playground of a page. A page with more than one
+// component has a playground for each, such as `playground-dots.tsx`.
 const PLAYGROUND = 'playground'
+
+function isPlayground(file: string): boolean {
+	const key = codeKeyOf(file)
+
+	return key === PLAYGROUND || key.startsWith(`${PLAYGROUND}-`)
+}
+
+/**
+ * The id of the heading of the example at `file`: the name of the file. Each
+ * playground of a page shares one heading, `playground`.
+ */
+export function headingIdOf(file: string): string {
+	return isPlayground(file) ? PLAYGROUND : codeKeyOf(file)
+}
 
 type Example = {
 	/** The name of the default export. */
@@ -91,7 +106,7 @@ function readExample(program: ESTree.Program, code: string, file: string): Examp
 
 	const name = declaration.id.name
 
-	if (codeKeyOf(file) !== PLAYGROUND) return { name }
+	if (!isPlayground(file)) return { name }
 
 	const [props] = declaration.params
 
@@ -149,8 +164,8 @@ export function attachMeta(
 	const { name, spread } = example
 
 	const meta = [
-		`title: ${JSON.stringify(humanize(codeKeyOf(file)))}`,
-		`id: ${JSON.stringify(codeKeyOf(file))}`,
+		`title: ${JSON.stringify(humanize(headingIdOf(file)))}`,
+		`id: ${JSON.stringify(headingIdOf(file))}`,
 		...(spread ? [`component: ${JSON.stringify(spread.component)}`] : []),
 		`code: () => import(${JSON.stringify(codeIdOf(pages, file))}).then((module) => module.default[${JSON.stringify(codeKeyOf(file))}])`,
 	]
