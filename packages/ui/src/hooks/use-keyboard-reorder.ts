@@ -31,7 +31,7 @@ export type KeyboardReorderOptions<T> = {
 	 * are not steps: the hook handles them.
 	 */
 	stepFor: (key: string) => number | null
-	/** Whether the list takes a lift. When it turns false, the lift drops. */
+	/** Whether the surface takes a lift. See `useKeyboardLifted`. */
 	enabled: boolean
 }
 

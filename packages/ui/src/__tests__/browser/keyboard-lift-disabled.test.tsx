@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from 'react'
+import { type ReactElement, useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import {
@@ -10,7 +10,7 @@ import {
 } from '../../components/kanban'
 import { List, ListItem } from '../../components/list'
 import { createGroup, QueryBuilder, type QueryRule } from '../../modules/query'
-import { act, allBySlot, getSlot, renderUI, screen } from '../helpers'
+import { allBySlot, getSlot, renderUI, screen } from '../helpers'
 
 /**
  * A keyboard lift ends when its surface stops taking a lift. A disabled board,
@@ -29,19 +29,38 @@ describe('keyboard lift on disable (real browser)', () => {
 		{ id: 'b', label: 'Bravo' },
 	]
 
-	let setDisabled: (disabled: boolean) => void = () => {}
+	/**
+	 * Lifts the first item, disables the surface, and enables it again. The item
+	 * must be at rest while disabled, and the next arrow must not move it.
+	 */
+	async function liftThenDisable(
+		surface: (disabled: boolean) => ReactElement,
+		parts: {
+			handle: () => HTMLElement
+			lifted: () => boolean
+			order: () => (string | undefined)[]
+		},
+	) {
+		const { rerender } = renderUI(surface(false))
 
-	/** Holds the disabled flag of the surface, so the test can toggle it. */
-	function Toggle({ children }: { children: (disabled: boolean) => ReactNode }) {
-		const [disabled, set] = useState(false)
+		parts.handle().focus()
 
-		setDisabled = set
+		await userEvent.keyboard(' ')
 
-		return children(disabled)
-	}
+		await expect.poll(parts.lifted).toBe(true)
 
-	const toggle = async (disabled: boolean) => {
-		await act(async () => setDisabled(disabled))
+		rerender(surface(true))
+
+		expect(parts.lifted()).toBe(false)
+
+		rerender(surface(false))
+
+		parts.handle().focus()
+
+		await userEvent.keyboard('{ArrowDown}')
+
+		// Not lifted, so the arrow moves focus and not the item.
+		expect(parts.order()).toEqual(['a', 'b'])
 	}
 
 	it('drops the lift of a Kanban card when the board turns disabled', async () => {
@@ -74,32 +93,19 @@ describe('keyboard lift on disable (real browser)', () => {
 			)
 		}
 
-		const { container } = renderUI(<Toggle>{(disabled) => <Board disabled={disabled} />}</Toggle>)
+		const cards = () => allBySlot(document.body, 'kanban-card')
 
-		const order = () => allBySlot(container, 'kanban-card').map((card) => card.dataset.cardId)
+		await liftThenDisable((disabled) => <Board disabled={disabled} />, {
+			handle: () => getSlot(cards()[0] as HTMLElement, 'kanban-card-handle'),
+			// A disabled card has no `data-lifted`, so the class of the lift is the
+			// difference from a card that was never lifted.
+			lifted: () => {
+				const [first, second] = cards()
 
-		const card = () => getSlot(container, 'kanban-card')
-
-		getSlot(card(), 'kanban-card-handle').focus()
-
-		await userEvent.keyboard(' ')
-
-		await expect.poll(() => card().hasAttribute('data-lifted')).toBe(true)
-
-		await toggle(true)
-
-		expect(card().className).toBe(allBySlot(container, 'kanban-card')[1]?.className)
-
-		await toggle(false)
-
-		expect(card().hasAttribute('data-lifted')).toBe(false)
-
-		getSlot(card(), 'kanban-card-handle').focus()
-
-		await userEvent.keyboard('{ArrowDown}')
-
-		// Not lifted, so the arrow moves focus and not the card.
-		expect(order()).toEqual(['a', 'b'])
+				return first?.hasAttribute('data-lifted') || first?.className !== second?.className
+			},
+			order: () => cards().map((card) => card.dataset.cardId),
+		})
 	})
 
 	it('drops the lift of a List row when the list turns disabled', async () => {
@@ -113,29 +119,13 @@ describe('keyboard lift on disable (real browser)', () => {
 			)
 		}
 
-		const { container } = renderUI(<Toggle>{(disabled) => <Rows disabled={disabled} />}</Toggle>)
+		const rows = () => allBySlot(document.body, 'list-item')
 
-		const order = () => allBySlot(container, 'list-item').map((row) => row.dataset.itemId)
-
-		const row = () => getSlot(container, 'list-item')
-
-		row().focus()
-
-		await userEvent.keyboard(' ')
-
-		await expect.poll(() => row().hasAttribute('data-lifted')).toBe(true)
-
-		await toggle(true)
-
-		expect(row().hasAttribute('data-lifted')).toBe(false)
-
-		await toggle(false)
-
-		row().focus()
-
-		await userEvent.keyboard('{ArrowDown}')
-
-		expect(order()).toEqual(['a', 'b'])
+		await liftThenDisable((disabled) => <Rows disabled={disabled} />, {
+			handle: () => rows()[0] as HTMLElement,
+			lifted: () => !!rows()[0]?.hasAttribute('data-lifted'),
+			order: () => rows().map((row) => row.dataset.itemId),
+		})
 	})
 
 	it('drops the lift of a query rule when the builder turns disabled', async () => {
@@ -162,28 +152,12 @@ describe('keyboard lift on disable (real browser)', () => {
 			)
 		}
 
-		const { container } = renderUI(<Toggle>{(disabled) => <Builder disabled={disabled} />}</Toggle>)
-
-		const order = () => allBySlot(container, 'query-sortable').map((node) => node.dataset.nodeId)
-
 		const grip = () => screen.getByRole('button', { name: 'Reorder Name contains a' })
 
-		grip().focus()
-
-		await userEvent.keyboard(' ')
-
-		await expect.poll(() => grip().hasAttribute('data-dragging')).toBe(true)
-
-		await toggle(true)
-
-		expect(grip().hasAttribute('data-dragging')).toBe(false)
-
-		await toggle(false)
-
-		grip().focus()
-
-		await userEvent.keyboard('{ArrowDown}')
-
-		expect(order()).toEqual(['a', 'b'])
+		await liftThenDisable((disabled) => <Builder disabled={disabled} />, {
+			handle: grip,
+			lifted: () => grip().hasAttribute('data-dragging'),
+			order: () => allBySlot(document.body, 'query-sortable').map((node) => node.dataset.nodeId),
+		})
 	})
 })

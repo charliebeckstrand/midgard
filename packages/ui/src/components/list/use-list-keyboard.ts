@@ -15,8 +15,8 @@ type Options<T> = {
 	getKey: (item: T) => string
 	orientation: Orientation
 	onReorder?: (next: T[]) => void
-	/** Whether the list takes a lift. When it turns false, the lift drops. */
-	interactive: boolean
+	/** Whether the surface takes a lift. See `useKeyboardLifted`. */
+	enabled: boolean
 	/** List root; scopes item lookups so concurrent lists with overlapping ids don't cross-match. */
 	containerRef: RefObject<HTMLElement | null>
 }
@@ -50,7 +50,7 @@ export function useListKeyboard<T>({
 	getKey,
 	orientation,
 	onReorder,
-	interactive,
+	enabled,
 	containerRef,
 }: Options<T>) {
 	const focusItem = useCallback(
@@ -76,6 +76,6 @@ export function useListKeyboard<T>({
 		focusItem,
 		itemName: (id) => listItemName(containerRef.current, id),
 		stepFor: (key) => listStep(key, orientation, containerRef.current),
-		enabled: interactive,
+		enabled,
 	})
 }

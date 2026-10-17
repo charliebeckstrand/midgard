@@ -25,7 +25,7 @@ function setup(onReorder?: (next: Column[]) => void) {
 			columns: makeColumns(),
 			getKey: (i) => i.id,
 			onReorder,
-			interactive: true,
+			enabled: true,
 		}),
 	)
 

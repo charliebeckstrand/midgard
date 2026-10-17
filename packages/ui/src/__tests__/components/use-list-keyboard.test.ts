@@ -39,7 +39,7 @@ function setup(
 			getKey: (i) => i.id,
 			orientation: options.orientation ?? 'vertical',
 			onReorder: options.onReorder,
-			interactive: true,
+			enabled: true,
 		}),
 	)
 
