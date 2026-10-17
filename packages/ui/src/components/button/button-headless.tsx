@@ -2,7 +2,7 @@
 
 import type { ComponentProps, Ref } from 'react'
 import { Link } from '../link'
-import { loadingProps } from './button-constants'
+import { loadingProps, lockedProps } from './button-constants'
 
 // Loose type at the call boundary: the public discriminated union lives on
 // `ButtonProps`; this internal helper accepts the post-destructure rest and
@@ -12,13 +12,16 @@ type ButtonHeadlessProps = {
 	ref?: Ref<HTMLButtonElement> | Ref<HTMLAnchorElement>
 	'data-slot'?: string
 	loading?: boolean
+	/** Whether a locked scope makes the button inert. */
+	locked?: boolean
 } & Omit<ComponentProps<'button'>, 'href' | 'ref'>
 
 /**
  * Unstyled `Button` fallback rendered under the headless provider: a bare
  * `<button>`, or a `<Link>` anchor when `href` is set. Drops recipe classes,
  * motion, and density resolution, and renders the content that Button builds.
- * Applies {@link loadingProps} to a loading button or anchor.
+ * Applies {@link loadingProps} to a loading button or anchor, and
+ * {@link lockedProps} to a button in a locked scope.
  *
  * @internal
  */
@@ -28,6 +31,7 @@ export function ButtonHeadless({
 	'data-slot': slot = 'button',
 	className,
 	loading = false,
+	locked = false,
 	children,
 	type,
 	...props
@@ -55,6 +59,7 @@ export function ButtonHeadless({
 			className={className}
 			{...props}
 			type={type}
+			{...(locked && lockedProps)}
 			{...(loading && loadingProps)}
 		>
 			{children}

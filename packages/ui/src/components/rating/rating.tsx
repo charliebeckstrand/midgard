@@ -11,6 +11,7 @@ import { k, type RatingVariants } from '../../recipes/kata/rating'
 import { clamp, rangeKeys } from '../../utilities'
 import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
+import { useControlTarget } from '../control/use-control-target'
 
 /** How much of one star fills at `value`: the whole star below it, none above, the remainder on it. @internal */
 function starFill(value: number, star: number): number {
@@ -219,12 +220,23 @@ export function Rating({
 		readOnly: resolvedReadOnly,
 		'aria-describedby': describedBy,
 		validation,
-	} = useControlProps({ id, disabled, readOnly, invalid, 'aria-describedby': ariaDescribedBy })
+	} = useControlProps({
+		id,
+		disabled,
+		readOnly,
+		invalid,
+		'aria-describedby': ariaDescribedBy,
+	})
 
 	// The row's id, in both forms. It is also the native grouping name, which is
 	// this row's own and never the bound field's: two ratings bound to different
 	// fields would otherwise share a group and clear each other.
 	const scope = useIdScope({ id: resolvedId })
+
+	// The control renders its own id when no Field, Control, or prop gives one.
+	// So it registers that rendered id, and not the id of useControlProps, which
+	// is undefined for a bare control.
+	useControlTarget(name, scope.id)
 
 	const current = bound ?? 0
 

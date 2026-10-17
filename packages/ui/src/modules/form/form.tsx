@@ -1,11 +1,17 @@
 'use client'
 
-import type { ComponentProps, ReactNode } from 'react'
+import { type ComponentProps, type ReactNode, useState } from 'react'
+import { ControlLockContext, ControlTargetsContext } from '../../components/control/context'
 import { Fieldset } from '../../components/fieldset'
 import { cn } from '../../core'
+import { useA11yAnnouncements } from '../../hooks'
 import { FormProvider } from '../../primitives/form/context'
+import { createFormFieldTargets } from '../../primitives/form/form-field-targets'
 import type { FormSubmitHandler, SubmitOutcome, ValidateOn, Validators } from './engine/types'
 import { useFormReducer } from './use-form-reducer'
+
+/** What the announcer speaks while a submit runs. */
+const SUBMITTING_MESSAGE = 'Submitting'
 
 /** Props for {@link Form}. Generic over the form-value record `T`; field keys and types flow from `defaultValues`. */
 export type FormProps<T extends Record<string, unknown>> = {
@@ -55,7 +61,7 @@ export type FormProps<T extends Record<string, unknown>> = {
 /**
  * Reducer-backed form scope over typed `defaultValues`: tracks dirty, touched,
  * errors, and submitting state, validates on the `validateOn` trigger, and
- * locks its fields while submitting. Renders a layout-neutral
+ * locks its parts while submitting. Renders a layout-neutral
  * (`display: contents`) `<form>`, so it imposes no box; fields read and mutate
  * state through the context hooks ({@link useFormField}, {@link useFormStatus},
  * {@link useFormActions}) rather than props.
@@ -70,11 +76,12 @@ export type FormProps<T extends Record<string, unknown>> = {
  * reset of the `<form>` does not change the inputs: the form cancels it and
  * resets its bound fields.
  *
- * While a submit runs, the form locks its fields. The Control cascade makes
- * each field read-only, and a bound control cannot write its field. Nothing
- * is disabled, so the focused field or button keeps the focus. The form
- * ignores a second submit until the first one ends. A native element that
- * does not bind, such as a bare `<input>`, stays editable.
+ * While a submit runs, the form announces it politely and locks its parts. It
+ * locks the Control scope, so each field is read-only and each `Button` is
+ * inert, and a bound control cannot write its field. Nothing is disabled, so
+ * the focused field or button keeps the focus. The form ignores a second
+ * submit until the first one ends. A native element that does not bind or
+ * read the scope, such as a bare `<input>`, stays editable.
  *
  * The `<form>` sets `noValidate`, so a native constraint such as `type="url"` or
  * `required` never stops a submit before the validators run. Otherwise the
@@ -115,6 +122,15 @@ export function Form<T extends Record<string, unknown>>({
 		},
 	)
 
+	// The controls of the form register their ids here, and FormErrorSummary
+	// reads them.
+	const [targets] = useState(createFormFieldTargets)
+
+	// Only the busy state of FormSubmit shows that a submit runs, and a screen
+	// reader does not speak it. The empty message ends the run, so each submit
+	// speaks again.
+	useA11yAnnouncements(formState.submitting ? SUBMITTING_MESSAGE : '')
+
 	return (
 		<FormProvider
 			store={store}
@@ -122,6 +138,7 @@ export function Form<T extends Record<string, unknown>>({
 			resets={resets}
 			failures={failures}
 			locked={formState.submitting}
+			targets={targets}
 		>
 			<form
 				data-slot="form"
@@ -134,7 +151,9 @@ export function Form<T extends Record<string, unknown>>({
 				{/* The fieldset only cascades `disabled`. It has no legend, so `role="none"`
 				keeps it from an unnamed `group` around every form. */}
 				<Fieldset role="none" disabled={disabled} className="contents">
-					{children}
+					<ControlTargetsContext value={targets}>
+						<ControlLockContext value={formState.submitting}>{children}</ControlLockContext>
+					</ControlTargetsContext>
 				</Fieldset>
 			</form>
 		</FormProvider>

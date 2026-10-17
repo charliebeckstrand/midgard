@@ -157,7 +157,7 @@ export function TagInput({
 	// The Control cascade: an explicit `disabled` or `required` wins over the
 	// enclosing Control. A disabled or read-only field keeps its tags and adds
 	// none.
-	const ambient = useControlProps({ disabled, required })
+	const ambient = useControlProps({ name, disabled, required })
 
 	const locked = ambient.disabled === true || ambient.readOnly === true
 

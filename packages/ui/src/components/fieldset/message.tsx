@@ -2,11 +2,12 @@
 
 import { type HTMLAttributes, type ReactNode, useEffect } from 'react'
 import { cn, type Severity } from '../../core'
-import { useFormField, useFormFieldTarget } from '../../primitives/form/context'
+import { useFormField } from '../../primitives/form/context'
 import { hasIssues } from '../../primitives/form/form-issues'
 import { k } from '../../recipes/kata/fieldset'
 import { keyByOccurrence } from '../../utilities'
 import { useControl } from '../control/context'
+import { useControlTarget } from '../control/use-control-target'
 
 /** Tone of a `<Message>`: an assertive `error`, or a polite `warning` / `success`. Aliases the shared {@link Severity} so the validation vocabulary stays single-sourced. */
 export type MessageSeverity = Severity
@@ -101,8 +102,10 @@ export function Message({
 	const field = useFormField(name)
 
 	// A form-bound message names the control of its field, so that a
-	// FormErrorSummary can move the focus to that control.
-	useFormFieldTarget(field ? name : undefined, control?.id)
+	// FormErrorSummary can move the focus to that control. A control that passes
+	// its name to useControlProps registers the same id, and the registry counts
+	// both.
+	useControlTarget(field ? name : undefined, control?.id)
 
 	// An unbound message takes the tone of its Field (FieldProps.severity). A
 	// form-bound message shows the errors of its field, so it stays `error`.

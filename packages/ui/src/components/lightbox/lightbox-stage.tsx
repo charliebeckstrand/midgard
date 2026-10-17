@@ -447,6 +447,9 @@ export function LightboxStage({
 					    keyboard focus, so a screen reader and a keyboard always have a
 					    way out. */}
 					<Button
+						// The controls of the stage write no field, so a locked scope, such as a
+						// submitting form, leaves them live.
+						lockable={false}
 						type="button"
 						aria-label={labels.close}
 						onClick={handleClose}
@@ -481,6 +484,7 @@ export function LightboxStage({
 							) : (
 								<div className={k.pill}>
 									<Button
+										lockable={false}
 										type="button"
 										ref={previousRef}
 										variant="plain"
@@ -496,6 +500,7 @@ export function LightboxStage({
 										{at + 1} / {count}
 									</span>
 									<Button
+										lockable={false}
 										type="button"
 										ref={nextRef}
 										variant="plain"

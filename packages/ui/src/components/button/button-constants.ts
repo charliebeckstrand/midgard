@@ -31,3 +31,17 @@ export const loadingProps = {
 	onClick: cancelActivation,
 	onAuxClick: cancelActivation,
 } as const
+
+/**
+ * Props that make a button inert in a locked scope, such as a `Form` while a
+ * submit runs. The button stays enabled and in the tab order, so it keeps the
+ * focus that it has, and the reader can still find it. The props cancel each
+ * activation, as {@link loadingProps} do.
+ *
+ * @internal
+ */
+export const lockedProps = {
+	'aria-disabled': true,
+	'data-disabled': true,
+	onClick: cancelActivation,
+} as const

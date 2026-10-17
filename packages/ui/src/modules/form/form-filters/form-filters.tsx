@@ -1,6 +1,7 @@
 'use client'
 
 import { type ComponentProps, type ReactNode, useCallback, useMemo, useState } from 'react'
+import { ControlLockContext, ControlTargetsContext } from '../../../components/control/context'
 import { cn } from '../../../core'
 import { useA11yAnnouncements } from '../../../hooks'
 import { useControllable } from '../../../hooks/use-controllable'
@@ -161,7 +162,11 @@ export function FormFilters<T extends FilterValue = FilterValue>({
 			    bar sizes as a `<div>` does. */}
 				<fieldset data-slot="form-filters" {...props} className={cn(k.base, className)}>
 					<FormProvider store={store} actions={formActions} resets={resets}>
-						{children}
+						{/* A bar inside a Form holds its own fields. It unlocks them while the
+						Form submits, and keeps them out of the targets of its summary. */}
+						<ControlTargetsContext value={undefined}>
+							<ControlLockContext value={false}>{children}</ControlLockContext>
+						</ControlTargetsContext>
 					</FormProvider>
 				</fieldset>
 			</FormFiltersNameContext>

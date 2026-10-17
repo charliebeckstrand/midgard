@@ -48,15 +48,23 @@ export type SheetCloseProps = Partial<PanelCloseProps>
 
 /**
  * Closes the enclosing {@link Sheet}. With no child, it renders the standard
- * Close button, which is also the default footer of the sheet. With one child,
- * a click on the child closes the sheet, and the child's own `onClick` runs
- * first.
+ * Close button, which is also the default footer of the sheet. The standard
+ * button stays live in a locked scope, such as a submitting form. With one
+ * child, a click on the child closes the sheet, and the child's own `onClick`
+ * runs first.
  */
 export function SheetClose({ children }: SheetCloseProps) {
 	return (
 		<PanelClose>
 			{children ?? (
-				<Button type="button" variant="soft" data-slot="sheet-close">
+				<Button
+					// A close writes no field, so a locked scope, such as a submitting
+					// form, leaves it live.
+					lockable={false}
+					type="button"
+					variant="soft"
+					data-slot="sheet-close"
+				>
 					<IntlMessage message={intlMessages.close} />
 				</Button>
 			)}

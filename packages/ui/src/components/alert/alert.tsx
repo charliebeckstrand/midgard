@@ -332,6 +332,9 @@ export function Alert({
 			{closable && (
 				<div className={cn(k.close.base, multiRow ? k.close.line : 'self-center')}>
 					<Button
+						// A dismissal writes no field, so a locked scope, such as a
+						// submitting form, leaves it live.
+						lockable={false}
 						type="button"
 						variant="plain"
 						color={variant === 'solid' ? 'inherit' : resolvedColor}

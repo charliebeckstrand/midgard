@@ -192,6 +192,9 @@ export function Tab({
 		<span className={k.wrapper({ stretch })} {...tapHandlers}>
 			<HeadlessProvider>
 				<Button
+					// A tab changes no value, so a locked scope, such as a submitting
+					// form, leaves it live.
+					lockable={false}
 					// Forwards the full button surface (aria-label, data-testid,
 					// onBlur, title, …); the tab wiring below wins over any
 					// colliding consumer prop. A caller's onPointerEnter / onFocus

@@ -268,6 +268,7 @@ export function Listbox<T>({
 		'aria-describedby': describedBy,
 		validation,
 	} = useControlProps({
+		name,
 		id,
 		disabled,
 		readOnly,

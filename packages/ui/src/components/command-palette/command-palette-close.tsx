@@ -27,7 +27,8 @@ export type CommandPaletteCloseProps = {
  * close action next to your own actions.
  *
  * @remarks The label is "Close" and the variant is `soft` when you do not set
- * them. The caller `onClick` runs first, then the palette closes.
+ * them. The caller `onClick` runs first, then the palette closes. The button
+ * stays live in a locked scope, such as a submitting form.
  */
 export function CommandPaletteClose({
 	variant = 'soft',
@@ -41,6 +42,9 @@ export function CommandPaletteClose({
 
 	return (
 		<Button
+			// A close writes no field, so a locked scope, such as a submitting form,
+			// leaves it live.
+			lockable={false}
 			data-slot="command-palette-close"
 			variant={variant}
 			{...props}

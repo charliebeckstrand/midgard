@@ -43,15 +43,23 @@ export type DrawerCloseProps = Partial<PanelCloseProps>
 
 /**
  * Closes the enclosing {@link Drawer}. With no child, it renders the standard
- * Close button, which is also the default footer of the drawer. With one child,
- * a click on the child closes the drawer, and the child's own `onClick` runs
- * first.
+ * Close button, which is also the default footer of the drawer. The standard
+ * button stays live in a locked scope, such as a submitting form. With one
+ * child, a click on the child closes the drawer, and the child's own `onClick`
+ * runs first.
  */
 export function DrawerClose({ children }: DrawerCloseProps) {
 	return (
 		<PanelClose>
 			{children ?? (
-				<Button type="button" variant="soft" data-slot="drawer-close">
+				<Button
+					// A close writes no field, so a locked scope, such as a submitting
+					// form, leaves it live.
+					lockable={false}
+					type="button"
+					variant="soft"
+					data-slot="drawer-close"
+				>
 					<IntlMessage message={intlMessages.close} />
 				</Button>
 			)}

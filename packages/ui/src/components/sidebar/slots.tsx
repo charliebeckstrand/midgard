@@ -30,6 +30,9 @@ export function SidebarHeader({ className, children, ...props }: SidebarHeaderPr
 			{children}
 			{offcanvas && (
 				<Button
+					// A close writes no field, so a locked scope, such as a submitting
+					// form, leaves it live.
+					lockable={false}
 					type="button"
 					variant="bare"
 					aria-label="Close navigation"

@@ -50,4 +50,33 @@ describe('createFormFieldTargets', () => {
 
 		expect(targets.getSnapshot()).toEqual({ email: 'field-2' })
 	})
+
+	it('keeps an entry while another registration of the same id lives', () => {
+		const targets = createFormFieldTargets()
+
+		// A control and its Message register one field with one id.
+		const unregisterControl = targets.register('email', 'field-1')
+
+		const unregisterMessage = targets.register('email', 'field-1')
+
+		unregisterMessage()
+
+		expect(targets.getSnapshot()).toEqual({ email: 'field-1' })
+
+		unregisterControl()
+
+		expect(targets.getSnapshot()).toEqual({})
+	})
+
+	it('falls back to the earlier registration when the later one ends', () => {
+		const targets = createFormFieldTargets()
+
+		targets.register('email', 'field-1')
+
+		const unregisterLater = targets.register('email', 'field-2')
+
+		unregisterLater()
+
+		expect(targets.getSnapshot()).toEqual({ email: 'field-1' })
+	})
 })
