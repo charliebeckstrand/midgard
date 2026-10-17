@@ -120,6 +120,8 @@ export type KanbanCardContextValue = {
 	listeners: DraggableSyntheticListeners
 	/** Whether a pointer drags the card now. */
 	dragging: boolean
+	/** Whether the keyboard lifts the card now. The handle takes focus, so it shows the lift accent. */
+	lifted: boolean
 	/** The id of the `<li>` of the card. The handle takes the name of the card from it. */
 	itemId: string
 	/** Handle registrar. The card warns in development when no handle mounts. */

@@ -93,6 +93,9 @@ function KanbanCardImpl({ value: cardId, id, children, className, ...props }: Ka
 		)
 	}, [interactive, cardId])
 
+	// The card reads its own lift, so a lift renders only the cards that lift and drop.
+	const lifted = useKeyedValue(liftedStore, cardId)
+
 	const cardValue = useMemo(
 		() => ({
 			cardId,
@@ -101,6 +104,7 @@ function KanbanCardImpl({ value: cardId, id, children, className, ...props }: Ka
 			attributes,
 			listeners,
 			dragging,
+			lifted,
 			itemId,
 			registerHandle,
 		}),
@@ -111,13 +115,11 @@ function KanbanCardImpl({ value: cardId, id, children, className, ...props }: Ka
 			attributes,
 			listeners,
 			dragging,
+			lifted,
 			itemId,
 			registerHandle,
 		],
 	)
-
-	// The card reads its own lift, so a lift renders only the cards that lift and drop.
-	const lifted = useKeyedValue(liftedStore, cardId)
 
 	// Keep the drag-overlay content in sync with the card's latest children.
 	// Runs post-commit (not in render) so it stays pure under concurrent/StrictMode;
