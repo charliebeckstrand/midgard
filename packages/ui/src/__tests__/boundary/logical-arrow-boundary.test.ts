@@ -32,6 +32,8 @@ const PHYSICAL: Record<string, string> = {
 	'modules/chart/engine/chart-legend/range-legend.tsx':
 		'the scale bar is placed with `left: %` and does not mirror',
 	'modules/map/engine/map-keyboard/cursor.ts': 'ArrowRight moves the map cursor east',
+	'modules/kanban/engine/kanban-navigation.ts':
+		'index math only; useKanbanKeyboard hands it the key after the rule has run',
 	'modules/dashboard/use-dashboard-drag.ts':
 		'moves in pixels; the drag turns pixels into columns with `inlineSign`',
 	'modules/dashboard/dashboard-resize-handle.tsx':

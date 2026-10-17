@@ -469,11 +469,12 @@ describe('KanbanCard', () => {
 			</Kanban>,
 		)
 
-		const card = getSlot(container, 'kanban-card')
+		// Each card is a `Card` inside a list item, and the list item takes the name.
+		const item = getSlot(container, 'kanban-card').closest('li')
 
-		expect(card.tagName).toBe('LI')
+		expect(item).toHaveAttribute('aria-label', 'Card One')
 
-		expect(card).toHaveAttribute('aria-label', 'Card One')
+		expect(item?.parentElement).toBe(bySlot(container, 'kanban-column-body'))
 
 		expect(bySlot(container, 'kanban-column-body')?.tagName).toBe('UL')
 	})
@@ -497,7 +498,10 @@ describe('KanbanCard', () => {
 			</Kanban>,
 		)
 
-		expect(bySlot(container, 'kanban-card')).toHaveAttribute('aria-label', 'Card One')
+		expect(bySlot(container, 'kanban-card')?.closest('li')).toHaveAttribute(
+			'aria-label',
+			'Card One',
+		)
 
 		// A name on an element with no role reads as "incomplete", not as a
 		// violation, so the check reads both result types.
@@ -834,7 +838,7 @@ describe('Kanban keyboard announcements', () => {
 
 		fireEvent.keyDown(handle, { key: 'ArrowRight' })
 
-		await expectAnnouncement('A moved to Done, position 2 of 2', 'assertive')
+		await expectAnnouncement('A moved to position 2 of 2 in Done', 'assertive')
 	})
 
 	it('announces the drop', async () => {

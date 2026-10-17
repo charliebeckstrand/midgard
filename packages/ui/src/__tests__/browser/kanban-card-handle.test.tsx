@@ -174,7 +174,7 @@ describe('kanban card handle (real browser)', () => {
 	})
 
 	it('gives the drag overlay the className of the card', async () => {
-		const { container } = renderUI(<Board cardClassName="border-red-500" />)
+		const { container } = renderUI(<Board cardClassName="outline-red-500" />)
 
 		const [card] = allBySlot(container, 'kanban-card')
 
@@ -196,7 +196,7 @@ describe('kanban card handle (real browser)', () => {
 
 		if (!overlay) throw new Error('expected the drag overlay')
 
-		expect(getComputedStyle(overlay).borderTopColor).toBe(getComputedStyle(card).borderTopColor)
+		expect(getComputedStyle(overlay).outlineColor).toBe(getComputedStyle(card).outlineColor)
 
 		await held.release()
 	})

@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { KanbanColumnBase } from '../../modules/kanban/types'
+import type { KanbanColumnBase } from '../../modules/kanban/engine/kanban-board'
 import { useKanbanKeyboard } from '../../modules/kanban/use-kanban-keyboard'
 import { attach, makeKeyEvent } from '../helpers'
 

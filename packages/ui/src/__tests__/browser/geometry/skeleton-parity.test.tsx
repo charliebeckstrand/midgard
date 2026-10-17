@@ -43,6 +43,7 @@ import {
 	FiltersRow,
 	FiltersSkeleton,
 } from '../../../components/filters'
+import { HeadingSkeleton } from '../../../components/heading'
 import { Input } from '../../../components/input'
 import { List, ListDescription, ListItem, ListLabel, ListSkeleton } from '../../../components/list'
 import { Nav, NavItem, NavList, NavSkeleton } from '../../../components/nav'
@@ -1131,8 +1132,9 @@ describe('skeleton parity (real browser)', () => {
 	})
 
 	// A lane that loads keeps its real column, header, and body. The title text and the cards are
-	// the leaves that load, so the skeleton lane holds a TextSkeleton title and skeleton cards.
-	it('KanbanCardSkeleton and a TextSkeleton title keep the box of a lane', () => {
+	// the leaves that load. The title is a heading, so the skeleton lane holds an inline
+	// HeadingSkeleton in it, as a CardTitle does, and skeleton cards.
+	it('KanbanCardSkeleton and an inline HeadingSkeleton title keep the box of a lane', () => {
 		const lane = (title: ReactElement | string, cards: ReactElement[]) => (
 			<Kanban
 				columns={[{ id: 'todo', items: ['a', 'b', 'c'] }]}
@@ -1162,7 +1164,7 @@ describe('skeleton parity (real browser)', () => {
 
 		const skeleton = renderUI(
 			lane(
-				<TextSkeleton />,
+				<HeadingSkeleton inline />,
 				['a', 'b', 'c'].map((item) => <KanbanCardSkeleton key={item} />),
 			),
 		).container
