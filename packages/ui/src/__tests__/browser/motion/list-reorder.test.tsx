@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+import { userEvent } from 'vitest/browser'
 import { List, ListItem } from '../../../components/list'
 import { allBySlot, frames, getSlot, renderUI } from '../../helpers'
 import { drag } from '../helpers/drag'
@@ -250,5 +252,141 @@ describe('List pointer reorder (real browser)', () => {
 		expect(last.getBoundingClientRect().bottom).toBeLessThanOrEqual(bounds.bottom + 0.5)
 
 		await down.release()
+	})
+
+	// A drag moves a horizontal row along the inline axis only, so a row on a
+	// wrapped line was out of its reach. The row stays on one line in a rail, and
+	// the rail scrolls while the dragged row is near its edge.
+	it('drags a horizontal row past every other row inside a narrow parent', async () => {
+		const columns = ['Todo', 'In progress', 'Review', 'Done', 'Blocked', 'Archived'].map(
+			(label) => ({ id: label, label }),
+		)
+
+		const onReorder = vi.fn()
+
+		const { container } = renderUI(
+			<div style={{ width: 300 }}>
+				<List
+					items={columns}
+					getKey={(item) => item.id}
+					onReorder={onReorder}
+					orientation="horizontal"
+				>
+					{(item) => <ListItem>{item.label}</ListItem>}
+				</List>
+			</div>,
+		)
+
+		const list = getSlot(container, 'list')
+
+		const rows = allBySlot(list, 'list-item')
+
+		expect(new Set(rows.map((row) => row.getBoundingClientRect().top)).size).toBe(1)
+
+		const [first] = rows
+
+		if (!first) throw new Error('expected rows')
+
+		const handle = getSlot(first, 'list-handle')
+
+		const box = handle.getBoundingClientRect()
+
+		const from = { x: box.left + box.width / 2, y: box.top + box.height / 2 }
+
+		const end = getSlot(container, 'list-rail').getBoundingClientRect().right - 10
+
+		// The pointer travels to the end of the rail, then holds there with a small
+		// motion toward the edge while the rail scrolls.
+		const path = [
+			...Array.from({ length: 20 }, (_, index) => ({
+				x: from.x + ((end - from.x) * (index + 1)) / 20,
+				y: from.y,
+			})),
+			...Array.from({ length: 80 }, (_, index) => ({ x: end + (index % 2), y: from.y })),
+		]
+
+		const held = await drag(handle, from, path)
+
+		await expect
+			.poll(() => allBySlot(list, 'list-item').map((row) => row.dataset.itemId))
+			.toEqual(['In progress', 'Review', 'Done', 'Blocked', 'Archived', 'Todo'])
+
+		await held.release()
+
+		await expect.poll(() => onReorder.mock.calls.length).toBe(1)
+
+		expect(onReorder.mock.calls[0]?.[0].map((item: Item) => item.id)).toEqual([
+			'In progress',
+			'Review',
+			'Done',
+			'Blocked',
+			'Archived',
+			'Todo',
+		])
+	})
+
+	// A keyboard move keeps the focus on the row, so the browser did not scroll
+	// the row into view, and a move past the edge of the rail hid the row.
+	it('keeps a horizontal row in view in the rail while the keyboard moves it', async () => {
+		const columns = ['Todo', 'In progress', 'Review', 'Done', 'Blocked', 'Archived'].map(
+			(label) => ({ id: label, label }),
+		)
+
+		function Columns() {
+			const [order, setOrder] = useState(columns)
+
+			return (
+				<div style={{ width: 300 }}>
+					<List
+						items={order}
+						getKey={(item) => item.id}
+						onReorder={setOrder}
+						orientation="horizontal"
+					>
+						{(item) => <ListItem>{item.label}</ListItem>}
+					</List>
+				</div>
+			)
+		}
+
+		const { container } = renderUI(<Columns />)
+
+		const rail = getSlot(container, 'list-rail')
+
+		const [first] = allBySlot(rail, 'list-item')
+
+		if (!first) throw new Error('expected rows')
+
+		// In view once the move comes to its end. Until then, a transform keeps
+		// the row at its old place, which is in view.
+		const settledInView = () => {
+			if (getComputedStyle(first).transform !== 'none') return false
+
+			const row = first.getBoundingClientRect()
+
+			const box = rail.getBoundingClientRect()
+
+			return row.left >= box.left - 1 && row.right <= box.right + 1
+		}
+
+		first.focus()
+
+		await expect.poll(() => document.activeElement).toBe(first)
+
+		await userEvent.keyboard(' ')
+
+		await expect.poll(() => first.hasAttribute('data-lifted')).toBe(true)
+
+		for (let step = 0; step < columns.length - 1; step++) {
+			await userEvent.keyboard('{ArrowRight}')
+
+			await expect.poll(settledInView).toBe(true)
+		}
+
+		expect(allBySlot(rail, 'list-item').at(-1)).toBe(first)
+
+		expect(rail.scrollLeft).toBeGreaterThan(0)
+
+		await userEvent.keyboard('{Escape}')
 	})
 })

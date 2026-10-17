@@ -12,7 +12,7 @@ import { MapPlat } from 'ui/modules/map' // or the 'ui/map' shorthand
 
 ## Modules
 
-`chart` · `chat` · `dashboard` · `events` · `form` · `grid` · `map` · `query`
+`chart` · `chat` · `dashboard` · `events` · `form` · `grid` · `kanban` · `map` · `query`
 
 > `form` holds `Form` and its parts. `FormSubmit` shows the loading state while a submit runs. `FormReset` is `aria-disabled` while the form is clean or a submit runs. `FormErrorSummary` lists the errors after a failed submit and takes the focus. `FormFilters` is a filter bar over a value record: `FormFiltersPrefix`, a `FormFiltersBar` that holds a `FormFiltersRow` of `FormFiltersField`s beside a `FormFiltersClear`, and `FormFiltersSuffix`. `FormFiltersSkeleton` stands in for the row while the fields load.
 

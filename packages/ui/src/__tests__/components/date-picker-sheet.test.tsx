@@ -75,6 +75,36 @@ describe('DatePicker on a phone', () => {
 		await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
 	})
 
+	it('shows the actions of the picker in the sheet footer, before Close', async () => {
+		const { user } = renderPhonePicker({ defaultValue: new Date(2025, 5, 15) })
+
+		await user.click(screen.getByRole('combobox', { name: 'Due date' }))
+
+		const footer = bySlot(screen.getByRole('dialog'), 'drawer-footer')
+
+		if (!footer) throw new Error('No sheet footer')
+
+		const buttons = within(footer).getAllByRole('button')
+
+		expect(buttons.map((button) => button.textContent)).toEqual(['Clear', 'Today', 'Close'])
+
+		expect(within(footer).getByRole('toolbar', { name: 'Date picker actions' })).toBeInTheDocument()
+	})
+
+	it('commits today from the sheet footer', async () => {
+		const onValueChange = vi.fn()
+
+		const { user } = renderPhonePicker({ onValueChange })
+
+		await user.click(screen.getByRole('combobox', { name: 'Due date' }))
+
+		await user.click(screen.getByRole('button', { name: 'Today' }))
+
+		expect(onValueChange).toHaveBeenCalledWith(expect.any(Date))
+
+		await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+	})
+
 	// The sheet covers the field, so focus goes into the sheet, not back to
 	// the typed input as in the popover.
 	it('moves focus into the sheet in input mode', async () => {

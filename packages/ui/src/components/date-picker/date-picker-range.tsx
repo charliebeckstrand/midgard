@@ -66,6 +66,7 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 				context={state.context}
 				size={size}
 				sheet={sheet}
+				footer={<DatePickerFooter {...footer} />}
 				onKeyDown={state.onTriggerKeyDown}
 				onExitComplete={state.onExitComplete}
 			>
@@ -81,7 +82,6 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 					onMonthChange={props.onMonthChange}
 					active={calendar.active}
 				/>
-				<DatePickerFooter {...footer} />
 			</DatePickerContent>
 		</>
 	)

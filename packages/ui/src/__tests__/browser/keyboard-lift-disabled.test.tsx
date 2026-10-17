@@ -1,14 +1,14 @@
 import { type ReactElement, useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
+import { List, ListItem } from '../../components/list'
 import {
 	Kanban,
 	KanbanCard,
 	KanbanCardHandle,
 	KanbanColumn,
 	KanbanColumnBody,
-} from '../../components/kanban'
-import { List, ListItem } from '../../components/list'
+} from '../../modules/kanban'
 import { createGroup, QueryBuilder, type QueryRule } from '../../modules/query'
 import { allBySlot, getSlot, renderUI, screen } from '../helpers'
 

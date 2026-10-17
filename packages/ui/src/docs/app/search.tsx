@@ -85,7 +85,7 @@ export function SearchButton() {
 	return (
 		<Button
 			variant="outline"
-			className="flex-1 justify-start font-normal text-zinc-500 dark:text-zinc-400"
+			className="w-full justify-start font-normal text-zinc-500 dark:text-zinc-400"
 			onPointerEnter={preload}
 			onFocus={preload}
 			onClick={() => request(offcanvas?.close)}

@@ -46,7 +46,7 @@ const viewport = defineRecipe({
 	base: ['scrollbar-none', '[&::-webkit-scrollbar]:hidden'],
 	orientation: {
 		vertical: 'h-full overflow-x-hidden overflow-y-auto',
-		horizontal: ['w-full overflow-y-hidden', ...rail],
+		horizontal: ['w-full', ...rail],
 		both: 'size-full overflow-auto',
 	},
 	bare: {

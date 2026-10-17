@@ -1,6 +1,9 @@
 import { Label } from '../../../components/fieldset'
 import { Input } from '../../../components/input'
 import { JsonTree } from '../../../components/json-tree'
+import { PivotTable } from '../../../components/pivot-table'
+import { FormFilters, FormFiltersField, FormFiltersSkeleton } from '../../../modules/form'
+import { Grid, type GridColumn } from '../../../modules/grid'
 import {
 	Kanban,
 	KanbanCard,
@@ -9,10 +12,7 @@ import {
 	KanbanColumnBody,
 	KanbanColumnHeader,
 	KanbanColumnTitle,
-} from '../../../components/kanban'
-import { PivotTable } from '../../../components/pivot-table'
-import { FormFilters, FormFiltersField, FormFiltersSkeleton } from '../../../modules/form'
-import { Grid, type GridColumn } from '../../../modules/grid'
+} from '../../../modules/kanban'
 import { createGroup, QueryBuilder, QueryChips, type QueryField } from '../../../modules/query'
 import { noop } from '../../helpers'
 import type { Case } from './types'

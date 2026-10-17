@@ -1,9 +1,12 @@
 /**
  * Kanban kata: object-literal surface for the `<Kanban>` board, its columns, and
- * cards. No variants axis. The `column` group nests `base` / `header` / `title`
- * / `body` / `empty` slots, and `base` marks the column a card is over. The `card` group nests `base`, the `handle`
- * (`base`, `lifted`), and the drag-state classes (`lifted`, `active`). `skeleton` is the
- * form of the lines of the `KanbanCardSkeleton`.
+ * cards. No variants axis. A column and a card are each a `Card`, so the card
+ * kata gives their padding, radius, and outline, and each steps with density.
+ * This kata adds the layout and the drag states on top. The `column` group nests
+ * `base` / `header` / `title` / `body` / `empty` slots, and `base` marks the
+ * column a card is over. The `card` group nests `base`, the `content` column,
+ * the `handle` (`base`, `lifted`), and the drag-state classes (`lifted`,
+ * `active`). `skeleton` is the form of the lines of the `KanbanCardSkeleton`.
  */
 import { mode } from '../../core/recipe'
 import { hannou, iro, ji, kasane, kokkaku, narabi, omote, sen } from '../kiso'
@@ -15,27 +18,23 @@ const { size, weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
 const { rail } = omote
-const { border, focus } = sen
+const { focus } = sen
 
 export const k = {
 	// While the columns overflow, the edge with more columns behind it fades, and
 	// the board is a tab stop with an inset ring.
 	base: [`flex ${dan.gap.scale.lg} items-stretch`, 'min-h-0', ...rail],
 	column: {
+		// The column is a `Card` with the `tint` fill. A dragged card from another
+		// column (`data-over`) steps the fill and the outline up one rung, so the
+		// drop target shows.
 		base: [
 			flex.col,
-			'min-w-0',
 			dan.gap.scale.sm,
 			'w-72 shrink-0',
-			'p-4',
-			...mode('bg-zinc-50', 'dark:bg-zinc-900/50'),
-			border.default,
-			rounded.lg,
-			// A dragged card from another column (`data-over`) steps the fill and the
-			// border up one rung, so the drop target shows.
 			...mode(
-				'data-over:bg-zinc-100 data-over:border-zinc-950/20',
-				'dark:data-over:bg-zinc-800/50 dark:data-over:border-white/20',
+				'data-over:bg-zinc-950/10 data-over:outline-zinc-950/20',
+				'dark:data-over:bg-white/15 dark:data-over:outline-white/20',
 			),
 		],
 		header: [flex.row, dan.gap.scale.sm, size.md, text.default, weight.semibold],
@@ -44,26 +43,22 @@ export const k = {
 		empty: [flex.row, 'justify-center', 'min-h-16', size.sm, text.muted],
 	},
 	card: {
-		// A card with a handle holds it at its start edge, centered on the height
-		// of the card. The card pads its start edge by the handle and a space of one
-		// stop (`p-2`, `size-6`, and 4px: 36px), so the other children align with each
-		// other beside it. A card with no handle has no extra padding.
+		// The card is a `Card` with the `surface` fill. It holds its handle at its
+		// start edge, centered on its height, and the `content` column beside it.
+		// A card holds no media, so it does not clip: the focus ring of the handle
+		// stays whole at each density step.
 		base: [
-			'group/kanban-card',
-			'relative',
-			flex.col,
+			'overflow-visible',
+			flex.row,
 			dan.gap.scale.xs,
-			'*:data-[slot=kanban-card-handle]:absolute *:data-[slot=kanban-card-handle]:start-2 *:data-[slot=kanban-card-handle]:inset-y-0 *:data-[slot=kanban-card-handle]:my-auto',
-			'p-2 has-[>[data-slot=kanban-card-handle]]:ps-9',
-			...mode('bg-white', 'dark:bg-zinc-950'),
-			border.default,
 			size.sm,
 			text.default,
-			rounded.md,
 			'transition-shadow',
 			...disabled,
 			'data-readonly:cursor-default data-disabled:cursor-not-allowed',
 		],
+		// Each child of the card other than its handle, in one column.
+		content: [flex.col, flex.fill, 'min-w-0', dan.gap.scale.xs],
 		handle: {
 			// The only drag surface of an interactive card, and its keyboard stop.
 			base: [

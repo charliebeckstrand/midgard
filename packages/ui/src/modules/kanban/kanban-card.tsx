@@ -7,20 +7,21 @@ import { useDevWarning } from '../../hooks/use-dev-warning'
 import { useKeyedValue } from '../../hooks/use-keyed-store'
 import { k } from '../../recipes/kata/kanban'
 import { KanbanCardContext, useKanbanColumnContext, useKanbanContext } from './context'
+import { KanbanCardSurface } from './kanban-card-surface'
 
 /**
  * Props for {@link KanbanCard}: the `value` matching a parent-column item, with
  * an optional accessible-name override. The `<li>` of the card takes the rest.
- * The `className` goes on the card, which is the `<div>` inside the `<li>` on an
- * interactive board. The drag overlay copies the `className` of the card.
+ * The `className` goes on the card, the `Card` inside the `<li>`. The drag
+ * overlay copies the `className` of the card.
  */
 export type KanbanCardProps = Omit<ComponentProps<'li'>, 'value'> & {
 	/** Stable key matching an entry in the parent column's `items`; the keyed-child `value` every compound in the library takes. */
 	value: string
 	/**
 	 * Overrides the card's accessible name on each arm of the board. By default
-	 * the card is named by its own content. On an interactive board, the name
-	 * goes on the `<li>` of the card, and the {@link KanbanCardHandle} reads it.
+	 * the card is named by its own content. The name goes on the `<li>` of the
+	 * card, and on an interactive board the {@link KanbanCardHandle} reads it.
 	 * Only set this when the content doesn't yield a usable name.
 	 */
 	'aria-label'?: string
@@ -34,14 +35,13 @@ export type KanbanCardProps = Omit<ComponentProps<'li'>, 'value'> & {
  *
  * @remarks
  * Client component. The card is a list item of the `<ul>` of its column body.
- * A read-only or disabled card is the `<li>` itself. An interactive card is a
- * `<div>` inside its `<li>`, with no role and no tab stop. A control or a link
- * inside the card thus keeps its own role. Only the {@link KanbanCardHandle}
- * starts a drag: a mouse or a finger on the rest of the card selects text and
- * scrolls. The handle also takes the drag instructions and the keyboard lift.
- * The card holds the handle at its start edge, centered on its height, and
- * pads its other children past the handle, so they align with each other. An interactive
- * card with no handle warns in development. Set
+ * Each card is a `Card` with the `surface` fill inside its `<li>`, with no
+ * role and no tab stop. A control or a link inside the card thus keeps its own
+ * role. Only the {@link KanbanCardHandle} starts a drag: a mouse or a finger on
+ * the rest of the card selects text and scrolls. The handle also takes the drag
+ * instructions and the keyboard lift. The card holds a handle child at its
+ * start edge, centered on its height, and puts its other children in one
+ * column beside it. An interactive card with no handle warns in development. Set
  * `aria-label` only when the content yields no usable name. Memoized: the card
  * reads only the card-facing {@link KanbanContext}, so a pointer drag doesn't
  * re-render the whole board.
@@ -136,46 +136,36 @@ function KanbanCardImpl({ value: cardId, id, children, className, ...props }: Ka
 		}
 	}, [interactive, cardId, children, className, overlayMap])
 
-	const cardClassName = cn(k.card.base, lifted && k.card.lifted, className)
+	// A read-only or disabled card takes no drag bindings. The list item carries
+	// the name, and the handle reads it. The drag attributes, the pointer
+	// listeners, and the keys go on the handle, so the card adds no role over its
+	// content and keeps its touch scrolling.
+	const surface = interactive ? (
+		<KanbanCardSurface
+			ref={setNodeRef}
+			style={style}
+			data-card-id={cardId}
+			data-dragging={dataAttr(dragging)}
+			data-lifted={dataAttr(lifted)}
+			className={cn(lifted && k.card.lifted, className)}
+		>
+			{children}
+		</KanbanCardSurface>
+	) : (
+		<KanbanCardSurface
+			data-card-id={cardId}
+			data-disabled={dataAttr(disabled)}
+			data-readonly={dataAttr(!disabled)}
+			className={className}
+		>
+			{children}
+		</KanbanCardSurface>
+	)
 
-	// A read-only or disabled card is the list item itself.
-	if (!interactive) {
-		return (
-			<KanbanCardContext value={cardValue}>
-				<li
-					id={id}
-					{...props}
-					// The move announcements read this anchor, so it comes after the
-					// spread (CONVENTIONS.md §3.9).
-					data-slot="kanban-card"
-					data-card-id={cardId}
-					data-disabled={dataAttr(disabled)}
-					data-readonly={dataAttr(!disabled)}
-					className={cardClassName}
-				>
-					{children}
-				</li>
-			</KanbanCardContext>
-		)
-	}
-
-	// The list item carries the name, and the handle reads it. The drag
-	// attributes, the pointer listeners, and the keys go on the handle, so the
-	// card adds no role over its content and keeps its touch scrolling.
 	return (
 		<KanbanCardContext value={cardValue}>
 			<li data-slot="kanban-card-item" {...props} id={itemId}>
-				<div
-					ref={setNodeRef}
-					style={style}
-					data-slot="kanban-card"
-					data-card-id={cardId}
-					data-dragging={dataAttr(dragging)}
-					data-lifted={dataAttr(lifted)}
-					className={cardClassName}
-				>
-					{children}
-				</div>
+				{surface}
 			</li>
 		</KanbanCardContext>
 	)

@@ -1,4 +1,4 @@
-import api from 'virtual:docs/api/components/kanban'
+import api from 'virtual:docs/api/modules/kanban'
 import { ApiTable, Example, Playground } from '../../../kit/index.ts'
 import KanbanPlayground from './playground.tsx'
 import ReadOnly from './read-only.tsx'

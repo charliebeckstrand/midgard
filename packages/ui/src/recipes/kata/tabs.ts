@@ -62,7 +62,7 @@ const list = defineRecipe({
 const scroll = defineRecipe({
 	base: ['scrollbar-none', '[&::-webkit-scrollbar]:hidden'],
 	orientation: {
-		horizontal: ['overflow-y-hidden', ...rail],
+		horizontal: [...rail],
 		vertical: 'shrink-0 overflow-y-auto overflow-x-hidden',
 	},
 	defaults: { orientation: 'horizontal' },

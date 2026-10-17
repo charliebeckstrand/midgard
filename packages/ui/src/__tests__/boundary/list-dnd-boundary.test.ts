@@ -11,7 +11,7 @@ import { srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
 const listModule = join(srcDir, 'components', 'list', 'list.tsx')
 
-const kanbanModule = join(srcDir, 'components', 'kanban', 'kanban.tsx')
+const kanbanModule = join(srcDir, 'modules', 'kanban', 'kanban.tsx')
 
 /** The source file that a relative specifier names, or `undefined`. */
 function resolveSource(from: string, specifier: string): string | undefined {

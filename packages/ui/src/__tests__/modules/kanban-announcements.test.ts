@@ -1,7 +1,12 @@
+// @vitest-environment node
 import type { Active, Over } from '@dnd-kit/core'
 import { describe, expect, it } from 'vitest'
-import { columnName, kanbanAnnouncements } from '../../components/kanban/kanban-announcements'
-import { attach } from '../helpers/attach'
+import {
+	describeCard,
+	describeMove,
+	describeReturn,
+	kanbanAnnouncements,
+} from '../../modules/kanban/engine/kanban-announcements'
 
 type Card = { id: string }
 
@@ -90,56 +95,22 @@ describe('kanbanAnnouncements', () => {
 	})
 })
 
-describe('columnName', () => {
-	const cards = `
-		<ul>
-			<li><div data-slot="kanban-card" data-card-id="a">Write the brief</div></li>
-			<li><div data-slot="kanban-card" data-card-id="b">Review the copy</div></li>
-		</ul>`
+describe('the sentences of a move', () => {
+	const slot = { columnId: 'done', position: 2, count: 3 }
 
-	/** A board with one column, `todo`, with the attributes and the content given. */
-	const board = (attributes: string, content: string) => {
-		const container = attach(document.createElement('div'))
-
-		container.innerHTML = `<fieldset data-slot="kanban-column" data-column-id="todo" ${attributes}>${content}</fieldset>`
-
-		return container
-	}
-
-	it('reads the header text only for a column with no name', () => {
-		const container = board('', `<div data-slot="kanban-column-header">Todo</div>${cards}`)
-
-		expect(columnName(container, 'todo')).toBe('Todo')
+	it('names a card with no slot by its name only', () => {
+		expect(describeCard(names, 'a', null)).toBe('A')
 	})
 
-	it('reads the header text when no aria-labelledby target resolves', () => {
-		const container = board(
-			'aria-labelledby="missing"',
-			`<div data-slot="kanban-column-header">Todo</div>${cards}`,
-		)
-
-		expect(columnName(container, 'todo')).toBe('Todo')
+	it('names a card with its position and its column', () => {
+		expect(describeCard(names, 'a', slot)).toBe('A, position 2 of 3 in Done')
 	})
 
-	it('reads the aria-label of the column', () => {
-		const container = board(
-			'aria-label="Backlog"',
-			`<div data-slot="kanban-column-header">Todo</div>${cards}`,
-		)
-
-		expect(columnName(container, 'todo')).toBe('Backlog')
+	it('gives one sentence for a move in the column and across the board', () => {
+		expect(describeMove(names, 'a', slot)).toBe('A moved to position 2 of 3 in Done.')
 	})
 
-	it('reads the title that aria-labelledby names', () => {
-		const container = board(
-			'aria-labelledby="todo-title"',
-			`<div data-slot="kanban-column-header"><h3 id="todo-title">Todo</h3><button>Add</button></div>${cards}`,
-		)
-
-		expect(columnName(container, 'todo')).toBe('Todo')
-	})
-
-	it('gives an empty name for a column with no name and no header', () => {
-		expect(columnName(board('', cards), 'todo')).toBe('')
+	it('returns a card with no slot by its name only', () => {
+		expect(describeReturn(names, 'a', null)).toBe('Returned A.')
 	})
 })

@@ -6,11 +6,11 @@ import { type ComponentProps, useCallback, useId, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useDragCursor, useScrollRegion, useSortableSensors } from '../../hooks'
 import { keyMatcher, useKeyedStore } from '../../hooks/use-keyed-store'
-import { PortalDragOverlay } from '../../primitives/portal/portal-drag-overlay'
 import { k } from '../../recipes/kata/kanban'
 import type { AccessibleName } from '../../types'
 import { KanbanContext, KanbanDragStateContext } from './context'
-import type { KanbanColumnBase } from './types'
+import type { KanbanColumnBase } from './engine/kanban-board'
+import { KanbanDragOverlay } from './kanban-drag-overlay'
 import { useKanbanDrag } from './use-kanban-drag'
 import { useKanbanKeyboard } from './use-kanban-keyboard'
 
@@ -157,9 +157,6 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 		[activeId, dropColumnId, columnItemIds],
 	)
 
-	// The overlay repeats the content and the className of the card that it follows.
-	const overlay = activeId ? overlayMap.current.get(activeId) : undefined
-
 	return (
 		<KanbanContext value={contextValue}>
 			<KanbanDragStateContext value={dragStateValue}>
@@ -187,25 +184,10 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 						{children}
 					</section>
 					{interactive ? (
-						<PortalDragOverlay>
-							{activeId ? (
-								<div
-									// The clone repeats the content of the card that it follows, and
-									// can hold controls. Inert takes the copy out of the
-									// accessibility tree and the tab order. The pointer drag reads
-									// no event from the overlay, so the drag is not affected.
-									inert
-									data-slot="kanban-card"
-									data-card-id={activeId}
-									data-overlay="true"
-									// The clone follows a live drag.
-									data-dragging=""
-									className={cn(k.card.base, k.card.active, overlay?.className)}
-								>
-									{overlay?.children}
-								</div>
-							) : null}
-						</PortalDragOverlay>
+						<KanbanDragOverlay
+							activeId={activeId}
+							entry={activeId ? overlayMap.current.get(activeId) : undefined}
+						/>
 					) : null}
 				</DndContext>
 			</KanbanDragStateContext>

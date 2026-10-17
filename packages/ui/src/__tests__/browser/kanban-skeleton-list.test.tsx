@@ -6,7 +6,7 @@ import {
 	KanbanCardSkeleton,
 	KanbanColumn,
 	KanbanColumnBody,
-} from '../../components/kanban'
+} from '../../modules/kanban'
 import { renderUI } from '../helpers'
 
 /**

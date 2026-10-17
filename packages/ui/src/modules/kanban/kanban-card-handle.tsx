@@ -2,10 +2,10 @@
 
 import { GripVertical } from 'lucide-react'
 import { type HTMLAttributes, type ReactNode, useEffect, useId } from 'react'
+import { Icon } from '../../components/icon'
 import { cn, composeEventHandlers, dataAttr } from '../../core'
 import { SortableGrip } from '../../primitives/sortable-grip/sortable-grip'
 import { k } from '../../recipes/kata/kanban'
-import { Icon } from '../icon'
 import { useKanbanCardContext, useKanbanContext } from './context'
 
 /**

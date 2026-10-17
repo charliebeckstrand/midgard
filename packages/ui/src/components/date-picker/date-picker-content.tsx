@@ -18,7 +18,7 @@ import type { scale } from '../../recipes/kata/date-picker'
 import { k } from '../../recipes/kata/date-picker'
 import { Box } from '../../structure/box'
 import { PHONE_QUERY } from '../../utilities'
-import { Drawer, DrawerBody, DrawerHeader, DrawerPanel, DrawerTitle } from '../drawer'
+import { Drawer, DrawerBody, DrawerClose, DrawerHeader, DrawerPanel, DrawerTitle } from '../drawer'
 import { RECLAIM_KEYS } from './use-date-picker-keyboard'
 
 /**
@@ -93,6 +93,12 @@ type DatePickerContentProps = {
 	 * @defaultValue 'Choose date'
 	 */
 	label?: string
+	/**
+	 * The action row of the picker ({@link DatePickerFooter}). The popover shows
+	 * it below the content. The sheet shows it at the start of its own footer
+	 * row, and the Close button at the end.
+	 */
+	footer?: ReactNode
 	children: ReactNode
 }
 
@@ -125,6 +131,7 @@ export function DatePickerContent({
 	onExitComplete,
 	sheet = false,
 	label = 'Choose date',
+	footer,
 	children,
 }: DatePickerContentProps) {
 	const glass = useGlass()
@@ -186,6 +193,12 @@ export function DatePickerContent({
 					className={cn(k.content.sheet.panel)}
 					onKeyDown={handleDialogKeyDown}
 					onMouseDown={(event) => event.preventDefault()}
+					footer={
+						<>
+							<div className={cn(k.content.sheet.actions)}>{footer}</div>
+							<DrawerClose />
+						</>
+					}
 				>
 					<DrawerHeader>
 						<DrawerTitle>{label}</DrawerTitle>
@@ -236,6 +249,7 @@ export function DatePickerContent({
 					className={cn(k.content.body)}
 				>
 					{children}
+					{footer}
 				</Box>
 			</m.div>
 		</FloatingSurface>

@@ -56,6 +56,12 @@ export type LightboxTrack = {
 	 */
 	step: (step: -1 | 1) => void
 	/**
+	 * Shows the photo at a place in the photos. A photo next to the one in the
+	 * center slides in as a step does, and a photo farther away takes the
+	 * center at once. It first ends a live press.
+	 */
+	go: (index: number) => void
+	/**
 	 * Stops a step that runs and a swipe that a finger holds, and holds the
 	 * track and the photo where they are.
 	 */
@@ -372,14 +378,44 @@ export function useLightboxTrack(
 
 	// A step takes a zoomed photo back to rest as it slides away. A press that
 	// is live ends first, so the finger and the step do not both move the track.
-	const step = (direction: -1 | 1) => {
+	// It tells whether the track is there to move.
+	const takeTrack = (): boolean => {
 		abandon()
 
-		if (!interrupt()) return
+		if (!interrupt()) return false
 
 		zoom.reset()
 
-		advance(direction)
+		return true
+	}
+
+	const step = (direction: -1 | 1) => {
+		if (takeTrack()) advance(direction)
+	}
+
+	// Reads `index` after `interrupt`, which can land a slide and move it.
+	const goFromRest = useStableEvent((to: number) => {
+		const distance = to - index
+
+		if (distance === 1 || distance === -1) {
+			advance(distance)
+
+			return
+		}
+
+		if (distance === 0 || !canStep(distance)) {
+			settle()
+
+			return
+		}
+
+		flushSync(() => onIndexChange(to))
+
+		rest(trackRef.current)
+	})
+
+	const go = (to: number) => {
+		if (takeTrack()) goFromRest(to)
 	}
 
 	// A swipe to close that does not close puts the photo back at rest, brings
@@ -679,6 +715,7 @@ export function useLightboxTrack(
 
 	return {
 		step,
+		go,
 		halt,
 		settle,
 		zoom,
