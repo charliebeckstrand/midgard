@@ -1,7 +1,4 @@
-import { IntlErrorCode } from '@formatjs/intl'
-// The `server` entry of `react-intl` has no `'use client'`, so a server render
-// can evaluate this module.
-import { createIntl, type IntlConfig, type IntlShape } from 'react-intl/server'
+import { createIntl, type IntlConfig, IntlErrorCode, type IntlShape } from '@formatjs/intl'
 import { getOrCompute } from '../../utilities/get-or-compute'
 import { languageOf } from './intl-language'
 import es from './lang/es.json'
@@ -35,7 +32,7 @@ const onError: IntlConfig['onError'] = (error) => {
 export function localeIntl(locale: string): IntlShape {
 	return getOrCompute(intls, locale, (tag) => {
 		// An English locale is the default locale of its own messages. Otherwise
-		// `react-intl` builds a missing-translation error for each default message.
+		// `createIntl` builds a missing-translation error for each default message.
 		const language = languageOf(tag)
 
 		const defaultLocale = language === SOURCE_LANGUAGE ? tag : SOURCE_LANGUAGE

@@ -4,8 +4,7 @@
 
 import type { MessageValues, TypedMessageDescriptor } from '@formatjs/intl'
 
-export type { MessageDescriptor, TypedMessageDescriptor } from '@formatjs/intl'
-export type { IntlShape } from 'react-intl'
+export type { IntlShape, MessageDescriptor, TypedMessageDescriptor } from '@formatjs/intl'
 
 /**
  * The type of an exported set of messages with typed values, from the values

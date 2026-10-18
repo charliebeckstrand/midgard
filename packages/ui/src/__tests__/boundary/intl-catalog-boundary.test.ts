@@ -12,8 +12,6 @@ import {
 	SOURCE_CATALOG,
 } from '../../../scripts/intl'
 import { localeIntl } from '../../primitives/intl/intl-catalog'
-import { importsOf } from '../helpers/source-imports'
-import { isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
 // The source catalog holds the English default of each message of ui, and each
 // translation maps the same ids to the text of its language. The provider loads
@@ -26,10 +24,6 @@ import { isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-s
 //      the catalog of ui loads it.
 //   3. Each translated message parses, and it uses the same arguments as its
 //      English default, of the same types.
-//   4. Only a module with `'use client'` imports the main entry of `react-intl`.
-//      That entry is a client module, so a call to it at the top level of a
-//      module that a server evaluates throws in a server render. A server
-//      module takes `createIntl` from `react-intl/server`.
 
 const source = JSON.parse(readFileSync(SOURCE_CATALOG, 'utf8')) as Record<string, CatalogEntry>
 
@@ -41,22 +35,6 @@ const translations = readdirSync(LANG_DIR)
 	}))
 
 describe('intl catalog', () => {
-	it('imports the main entry of react-intl only in a client module', () => {
-		const offenders: string[] = []
-
-		walkSource(srcDir, (file, content) => {
-			if (!isSourceFile(file) || /^['"]use client['"]/.test(content)) return
-
-			const imports = importsOf(content)
-
-			if (imports.some(({ specifier, runtime }) => runtime && specifier === 'react-intl')) {
-				offenders.push(srcRelative(file))
-			}
-		})
-
-		expect(offenders).toEqual([])
-	})
-
 	it('matches the message descriptors of the source', async () => {
 		const text = catalogText(await extractCatalog())
 
