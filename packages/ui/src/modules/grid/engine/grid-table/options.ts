@@ -276,7 +276,10 @@ export function clampSizingToFloors(
 
 /**
  * The controlled state slices passed to the engine: each active feature's slice
- * is optional, but the grid always owns column order and visibility.
+ * is optional, but the grid always owns column order, visibility, and pinning.
+ * The pinning slice is empty when no column is pinned. If the slice is absent,
+ * the engine keeps the last pinning that it got, and an unpinned column stays
+ * at its pinned edge.
  *
  * @internal
  */
@@ -286,7 +289,7 @@ type GridControlledState = {
 	columnResizing?: columnResizingState
 	globalFilter?: string
 	columnFilters?: ColumnFiltersState
-	columnPinning?: ColumnPinningState
+	columnPinning: ColumnPinningState
 	columnOrder: ColumnOrderState
 	columnVisibility: ColumnVisibilityState
 }
@@ -302,12 +305,12 @@ export function buildState(args: {
 	globalFilter: string
 	columnFiltered: boolean
 	columnFilters: ColumnFiltersState
-	pinned: boolean
 	columnPinning: ColumnPinningState
 	columnOrder: ColumnOrderState
 	columnVisibility: ColumnVisibilityState
 }): GridControlledState {
 	const state: GridControlledState = {
+		columnPinning: args.columnPinning,
 		columnOrder: args.columnOrder,
 		columnVisibility: args.columnVisibility,
 	}
@@ -323,8 +326,6 @@ export function buildState(args: {
 	if (args.globalFiltered) state.globalFilter = args.globalFilter
 
 	if (args.columnFiltered) state.columnFilters = args.columnFilters
-
-	if (args.pinned) state.columnPinning = args.columnPinning
 
 	return state
 }
