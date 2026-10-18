@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { createGroup, createRule } from '../../modules/query/engine/query-node'
 import type { QueryField, QueryGroup, QueryNode } from '../../modules/query/engine/types'
 import { QueryChips } from '../../modules/query/query-chips'
+import { LocaleProvider } from '../../providers/locale'
 import { allBySlot, bySlot, expectAnnouncement, fireEvent, renderUI, screen } from '../helpers'
 
 const fields: QueryField[] = [
@@ -220,5 +221,34 @@ describe('QueryChips', () => {
 		)
 
 		expect(bySlot(container, 'query-chips')).toBeNull()
+	})
+})
+
+describe('QueryChips in a locale', () => {
+	it('names the row, the chips, and the combinator in the language of the locale', () => {
+		renderUI(
+			<LocaleProvider locale="es-ES">
+				<QueryChips fields={fields} defaultValue={tree(statusRule(), nameRule('lee', 'or'))} />
+			</LocaleProvider>,
+		)
+
+		const row = screen.getByRole('toolbar', { name: 'Filtros' })
+
+		expect(allBySlot(row, 'badge').map((chip) => chip.textContent)).toEqual([
+			'Status es Active',
+			'Name contiene lee',
+		])
+
+		expect(screen.getByRole('button', { name: 'O, cambiar a Y' })).toBeInTheDocument()
+	})
+
+	it('shows the empty text in the language of the locale', () => {
+		renderUI(
+			<LocaleProvider locale="es-ES">
+				<QueryChips fields={fields} />
+			</LocaleProvider>,
+		)
+
+		expect(screen.getByRole('toolbar', { name: 'Filtros' })).toHaveTextContent('Sin filtros')
 	})
 })

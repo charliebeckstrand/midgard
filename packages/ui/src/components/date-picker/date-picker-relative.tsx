@@ -3,6 +3,7 @@
 import { ArrowLeft, ChevronRight } from 'lucide-react'
 
 import { cn } from '../../core'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/date-picker'
 import { Badge } from '../badge'
 import { Button } from '../button'
@@ -14,6 +15,7 @@ import { Icon } from '../icon'
 import { DatePicker, type DatePickerBaseProps, type DatePickerRelativeProps } from './date-picker'
 import { DatePickerContent, useDatePickerSheet } from './date-picker-content'
 import { DatePickerFooter } from './date-picker-footer'
+import { datePickerMessages } from './date-picker-messages'
 import { relativeListRows } from './date-picker-relative-utilities'
 import { DatePickerTrigger } from './date-picker-trigger'
 import { useDatePickerRelativeState } from './use-date-picker-relative-state'
@@ -30,7 +32,7 @@ import { useDatePickerRelativeState } from './use-date-picker-relative-state'
  */
 export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelativeProps) {
 	const {
-		placeholder = 'Select range',
+		placeholder,
 		size,
 		truncate = true,
 		clearable = false,
@@ -41,6 +43,12 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 	const state = useDatePickerRelativeState(props)
 
 	const sheet = useDatePickerSheet(props.sheet)
+
+	const intl = useIntl()
+
+	const selectRange = intl.formatMessage(datePickerMessages.selectRange)
+
+	const customRange = intl.formatMessage(datePickerMessages.customRange)
 
 	// The custom Start and End pickers get no `name`, so the relative picker
 	// passes the reset count of its Form down to their typed fields.
@@ -79,7 +87,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 				setReference={state.setReference}
 				getReferenceProps={state.getReferenceProps}
 				displayValue={state.summary}
-				placeholder={placeholder}
+				placeholder={placeholder ?? selectRange}
 				size={size}
 				truncate={truncate}
 				aria-label={ariaLabel}
@@ -110,7 +118,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 				footer={<DatePickerFooter {...state.footer} />}
 				onKeyDown={state.onContentKeyDown}
 				onExitComplete={state.onExitComplete}
-				label={state.mode === 'custom' ? 'Custom range' : 'Select range'}
+				label={state.mode === 'custom' ? customRange : selectRange}
 			>
 				{state.mode === 'list' ? (
 					<div
@@ -146,7 +154,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 							className={cn(k.relative.custom.row)}
 							onClick={state.enterCustom}
 						>
-							Custom range
+							{customRange}
 							<Icon icon={<ChevronRight />} className="rtl:-scale-x-100" />
 						</Button>
 					</div>
@@ -159,7 +167,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 							onClick={state.backToList}
 						>
 							<Icon icon={<ArrowLeft />} className="rtl:-scale-x-100" />
-							Back to presets
+							{intl.formatMessage(datePickerMessages.backToPresets)}
 						</Button>
 						{/* Each field is a single-date picker in `input` mode: a typed
 						    DateInput whose suffix button opens a calendar. The popover
@@ -170,7 +178,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 						    Each field takes the root `footer`, so a footer button that
 						    the author removes does not show in the field calendars. */}
 						<Field onMouseDown={(event) => event.stopPropagation()}>
-							<Label>Start</Label>
+							<Label>{intl.formatMessage(datePickerMessages.start)}</Label>
 							<DatePicker
 								input
 								clearable={false}
@@ -186,7 +194,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 							/>
 						</Field>
 						<Field onMouseDown={(event) => event.stopPropagation()}>
-							<Label>End</Label>
+							<Label>{intl.formatMessage(datePickerMessages.end)}</Label>
 							<DatePicker
 								input
 								clearable={false}

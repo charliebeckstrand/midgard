@@ -8,14 +8,16 @@ import type { JsonValue } from '../../../components/json-tree'
 import { ListboxOption } from '../../../components/listbox'
 import { Select } from '../../../components/select'
 import { cn } from '../../../core'
+import { useIntl } from '../../../primitives/intl/use-intl'
 import { k } from '../../../recipes/kata/query-builder'
 import { Flex } from '../../../structure/flex'
 import { mapResponsive, type Orientation, resolveVariant } from '../../../types'
 import { describeNode } from '../engine/query-announcements'
-import { getOperators } from '../engine/query-operators'
+import { getOperators, operatorLabel, operatorValueLabel } from '../engine/query-operators'
 import type { QueryRule } from '../engine/types'
 import { useFocusableRef, useQueryBuilderActions, useQueryBuilderState } from './context'
 import { focusKeys } from './query-builder-focus'
+import { queryBuilderMessages } from './query-builder-messages'
 import { QueryBuilderRuleValue } from './query-builder-rule-value'
 
 /** The flex direction of the parts of a rule in each orientation. @internal */
@@ -48,6 +50,8 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 	const { fields, getField, disabled, hideFieldSelector, orientation } = useQueryBuilderState()
 
 	const { updateRule, remove } = useQueryBuilderActions()
+
+	const intl = useIntl()
 
 	const field = getField(rule.field)
 
@@ -110,9 +114,19 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 	)
 
 	const displayOperator = useCallback(
-		(operator: string) => operators.find((option) => option.value === operator)?.label ?? '',
-		[operators],
+		(operator: string) => {
+			const option = operators.find((candidate) => candidate.value === operator)
+
+			return option ? operatorLabel(intl, option) : ''
+		},
+		[operators, intl],
 	)
+
+	const subject = selectedOperator?.noValue && operatorValueLabel(intl, selectedOperator)
+
+	const fieldLabel = intl.formatMessage(queryBuilderMessages.field)
+
+	const operatorName = intl.formatMessage(queryBuilderMessages.operator)
 
 	return (
 		// Each rule has a "Field" and an "Operator" select. The group name tells
@@ -120,7 +134,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 		<Flex
 			data-slot="query-rule"
 			role="group"
-			aria-label={describeNode(rule, fields)}
+			aria-label={describeNode(intl, rule, fields)}
 			gap="sm"
 			full
 			className={cn(k.rule, className)}
@@ -136,8 +150,8 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 						value={rule.field}
 						displayValue={displayField}
 						onValueChange={onFieldChange}
-						placeholder="Field"
-						aria-label="Field"
+						placeholder={fieldLabel}
+						aria-label={fieldLabel}
 						className={partClass}
 					>
 						{fields.map((entry) => (
@@ -152,13 +166,13 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 					value={rule.operator}
 					displayValue={displayOperator}
 					onValueChange={onOperatorChange}
-					placeholder="Operator"
-					aria-label="Operator"
+					placeholder={operatorName}
+					aria-label={operatorName}
 					className={partClass}
 				>
 					{operators.map((operator) => (
 						<ListboxOption key={operator.value} value={operator.value}>
-							{operator.label}
+							{operatorLabel(intl, operator)}
 						</ListboxOption>
 					))}
 				</Select>
@@ -181,9 +195,9 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 				{/* A value-less operator naming a fixed subject ("is" · "Empty") shows it
 				    as static text in the value column. The rule then still reads as a
 				    sentence. There is nothing to edit, hence no control. */}
-				{selectedOperator?.noValue && selectedOperator.valueLabel && (
+				{subject && (
 					<Flex align="center" full className={cn(k.value, partClass)}>
-						{selectedOperator.valueLabel}
+						{subject}
 					</Flex>
 				)}
 			</Flex>
@@ -194,7 +208,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 					ref={removeRef}
 					variant="bare"
 					color="red"
-					aria-label="Remove rule"
+					aria-label={intl.formatMessage(queryBuilderMessages.removeRule)}
 					disabled={disabled}
 					className={k.remove}
 					onClick={onRemove}

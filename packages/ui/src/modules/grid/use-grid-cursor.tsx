@@ -13,6 +13,7 @@ import {
 import { announce } from '../../core'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { describeRange } from './engine/grid-announcements'
 import { columnAccessor } from './engine/grid-column/accessor'
 import { columnLabel } from './engine/grid-column/label'
@@ -27,6 +28,7 @@ import {
 	seedFromKey,
 } from './engine/grid-editing-utilities'
 import { cellText } from './engine/grid-export/accessor'
+import { gridMessages } from './engine/grid-messages'
 import { resolveNewRow } from './engine/grid-new-row'
 import {
 	fillPlan,
@@ -281,6 +283,8 @@ export function useGridCursor<T>({
 	/** The fill of the range, for the cell context menu, or `undefined` while the grid cannot fill. */
 	fill: GridRangeFill | undefined
 } {
+	const intl = useIntl()
+
 	const editingEnabled = editable != null
 
 	const cursorEnabled = navigable || editingEnabled
@@ -377,12 +381,15 @@ export function useGridCursor<T>({
 		const columns = dataColumnsRef.current
 
 		const corner = ({ row, col }: Coord) => ({
-			column: columns[col] ? columnLabel(columns[col]) : `column ${col + 1}`,
+			column: columns[col]
+				? columnLabel(columns[col])
+				: intl.formatMessage(gridMessages.columnNumber, { number: col + 1 }),
 			row: row + 1,
 		})
 
 		announce(
 			describeRange(
+				intl,
 				{ rows: cells.rows.length, cols: cells.cols.length },
 				corner(cells.from),
 				corner(cells.to),

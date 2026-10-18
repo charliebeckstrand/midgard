@@ -7,6 +7,7 @@ import {
 	summarizeQuery,
 } from '../../modules/query/engine/query-summary'
 import type { QueryField, QueryNode } from '../../modules/query/engine/types'
+import { localeIntl } from '../../primitives/intl/intl-catalog'
 
 const nameField: QueryField = { name: 'name', label: 'Name', type: 'text' }
 
@@ -360,5 +361,31 @@ describe('summarizeQuery', () => {
 			'rule',
 			'group-close',
 		])
+	})
+})
+
+describe('formatQuerySummary in a locale', () => {
+	it('gives the built-in labels in the language of the intl', () => {
+		const group = createGroup('and', [
+			rule(nameField, { operator: 'isEmpty' }),
+			{ ...rule(ageField, { operator: 'between', value: [18, 65] }), combinator: 'or' as const },
+		])
+
+		expect(formatQuerySummary(group, fields, localeIntl('es-ES'))).toBe(
+			'Name está vacío O Age entre 18 y 65',
+		)
+	})
+
+	it('keeps an operator of the app as the app wrote it', () => {
+		const codeField: QueryField = {
+			name: 'code',
+			label: 'Code',
+			type: 'text',
+			operators: [{ value: 'equals', label: 'matches' }],
+		}
+
+		const group = createGroup('and', [rule(codeField, { operator: 'equals', value: 'A1' })])
+
+		expect(formatQuerySummary(group, [codeField], localeIntl('es-ES'))).toBe('Code matches A1')
 	})
 })

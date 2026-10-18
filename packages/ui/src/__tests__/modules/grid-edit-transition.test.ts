@@ -15,6 +15,7 @@ import {
 } from '../../modules/grid/engine/grid-edit-transition'
 import type { GridEditSource } from '../../modules/grid/grid-data-types'
 import type { GridEditableConfig } from '../../modules/grid/grid-editing-types'
+import { englishIntl } from '../../primitives/intl/intl-catalog'
 
 type Row = { id: number; name: string; note: string }
 
@@ -25,6 +26,7 @@ const source: GridEditSource<Row> = {
 		{ id: 3, name: 'Cleo', note: '' },
 	],
 	getKey: (row) => row.id,
+	intl: englishIntl,
 	columns: [
 		{ id: 'name', field: 'name' },
 		{ id: 'note', field: 'note', readOnly: true },
