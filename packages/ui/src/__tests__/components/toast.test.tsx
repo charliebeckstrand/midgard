@@ -200,7 +200,7 @@ describe('Toast: useToast behavior', () => {
 			api?.toast({ title: 'Saved', description: 'All changes stored' })
 		})
 
-		// The announcer writes asynchronously (one task after it creates its region),
+		// The announcer writes asynchronously (after the next paint once it creates its region),
 		// so insertion and text land in separate frames. `vi.waitFor`, not
 		// `expectAnnouncement`: this suite runs fake timers, which deadlock RTL's
 		// waitFor polling.

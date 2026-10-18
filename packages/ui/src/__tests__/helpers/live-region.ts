@@ -14,14 +14,14 @@ export function liveRegion(politeness: 'polite' | 'assertive' = 'polite'): HTMLE
  *
  * @remarks
  * The announcer writes on a queued microtask (core/announcer.ts), and the first
- * write after it creates a region waits one task, so the text lands after the
- * act() that triggered it; polling keeps the wait on RTL's CI-scaled budget
- * instead of a hand-rolled flush.
+ * write after it creates a region waits for the next paint, so the text lands
+ * after the act() that triggered it; polling keeps the wait on RTL's CI-scaled
+ * budget instead of a hand-rolled flush.
  *
  * Real timers only: waitFor's polling rides the clock, so under installed
  * fake timers this deadlocks — assert on {@link liveRegion} after driving the
- * clock instead. The first write of a region is a timer, so drive the clock
- * past it.
+ * clock instead. The first write of a region waits for a frame and then a
+ * timer, so drive the clock past both.
  */
 export async function expectAnnouncement(
 	text: string | RegExp,

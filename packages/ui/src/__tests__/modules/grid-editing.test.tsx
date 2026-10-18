@@ -30,8 +30,8 @@ import {
 	present,
 	renderUI,
 	setupUser,
-	tick,
 } from '../helpers'
+import { nextPaint } from '../helpers/frames'
 
 type SessionRow = { id: number; name: string; count: number; done: boolean }
 
@@ -352,10 +352,10 @@ describe('Grid per-row editing', () => {
 
 		save()
 
-		// The announcer writes the first text of its region one task after it creates it;
-		// wait that one task rather than longer, so the grid's debounced row-count status
-		// doesn't fire mid-test.
-		await tick()
+		// The announcer writes the first text of its region after the next paint; wait for
+		// that paint rather than longer, so the grid's debounced row-count status doesn't
+		// fire mid-test.
+		await nextPaint()
 
 		expect(liveRegion()).toHaveTextContent('Name updated for row 1')
 	})
@@ -375,7 +375,7 @@ describe('Grid per-row editing', () => {
 
 		save()
 
-		await tick()
+		await nextPaint()
 
 		// The label reads the row that the save commits into, not the draft.
 		expect(liveRegion()).toHaveTextContent(/^2 cells updated for Alice$/)
@@ -413,7 +413,7 @@ describe('Grid per-row editing', () => {
 
 		fireEvent.click(view.getByRole('button', { name: 'save' }))
 
-		await tick()
+		await nextPaint()
 
 		// One batch for each row, and one announcement for the sweep.
 		expect(onCommit).toHaveBeenCalledTimes(2)
@@ -558,7 +558,7 @@ describe('Grid per-row editing', () => {
 
 		fireEvent.click(view.getByRole('button', { name: 'off' }))
 
-		await tick()
+		await nextPaint()
 
 		// The sink went with the binding, so nothing committed. Announcing a save
 		// here would tell assistive tech something that did not happen.

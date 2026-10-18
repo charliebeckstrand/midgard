@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { __resetAnnouncer, announce } from '../../core/announcer'
-import { tick } from '../helpers'
+import { nextPaint } from '../helpers/frames'
 
 // The microtasks only, for a test that fakes the timers.
 const flushMicrotasks = () => new Promise<void>((resolve) => queueMicrotask(resolve))
@@ -19,7 +19,7 @@ describe('announce', () => {
 
 		announce('Saved')
 
-		await tick()
+		await nextPaint()
 
 		expect(regionBy('polite')).toHaveTextContent('Saved')
 	})
@@ -27,7 +27,7 @@ describe('announce', () => {
 	it('routes assertive messages to the assertive region', async () => {
 		announce('Stop', { assertive: true })
 
-		await tick()
+		await nextPaint()
 
 		expect(regionBy('assertive')).toHaveTextContent('Stop')
 
@@ -37,11 +37,11 @@ describe('announce', () => {
 	it('reuses a single region per politeness across calls', async () => {
 		announce('one')
 
-		await tick()
+		await nextPaint()
 
 		announce('two')
 
-		await tick()
+		await nextPaint()
 
 		expect(
 			document.body.querySelectorAll('[data-slot="live-region"][aria-live="polite"]'),
@@ -53,19 +53,19 @@ describe('announce', () => {
 	it('changes the region text when the same message repeats', async () => {
 		announce('Copied')
 
-		await tick()
+		await nextPaint()
 
 		const first = regionBy('polite')?.textContent
 
 		announce('Copied')
 
-		await tick()
+		await nextPaint()
 
 		const second = regionBy('polite')?.textContent
 
 		announce('Copied')
 
-		await tick()
+		await nextPaint()
 
 		// A live region speaks only a real change, so each repeat must differ from the text before it.
 		expect(first).toBe('Copied')
@@ -75,7 +75,7 @@ describe('announce', () => {
 		expect(regionBy('polite')?.textContent).toBe('Copied')
 	})
 
-	it('writes the first text one task after it creates the region', async () => {
+	it('writes the first text after the next paint once it creates the region', async () => {
 		vi.useFakeTimers()
 
 		onTestFinished(() => {
@@ -86,7 +86,12 @@ describe('announce', () => {
 
 		await flushMicrotasks()
 
-		// A new region needs one task to reach the accessibility tree, or a screen reader misses the text.
+		// A new region reaches the accessibility tree in the next rendering update. Text that
+		// lands before that update is not spoken.
+		expect(regionBy('polite')).toBeEmptyDOMElement()
+
+		vi.advanceTimersToNextFrame()
+
 		expect(regionBy('polite')).toBeEmptyDOMElement()
 
 		vi.runOnlyPendingTimers()
@@ -94,7 +99,7 @@ describe('announce', () => {
 		expect(regionBy('polite')).toHaveTextContent('Saved')
 	})
 
-	it('keeps the last text when a new region gets two messages before its first task', async () => {
+	it('keeps the last text when a new region gets two messages before its first write', async () => {
 		vi.useFakeTimers()
 
 		onTestFinished(() => {
@@ -106,6 +111,8 @@ describe('announce', () => {
 
 		await flushMicrotasks()
 
+		vi.advanceTimersToNextFrame()
+
 		vi.runOnlyPendingTimers()
 
 		await flushMicrotasks()
@@ -116,7 +123,7 @@ describe('announce', () => {
 	it('ignores an empty message', async () => {
 		announce('')
 
-		await tick()
+		await nextPaint()
 
 		expect(regionBy('polite')).toBeNull()
 	})

@@ -13,9 +13,10 @@ let politeRegion: HTMLElement | null = null
 
 let assertiveRegion: HTMLElement | null = null
 
-// The text that waits for the first task of a new region, by region. A region that a task
-// creates is not yet in the accessibility tree, so a screen reader misses text that lands
-// in that task.
+// The text that waits for the next paint after a new region, by region. The browser adds a
+// new region to the accessibility tree in its next rendering update. Text that lands before
+// that update reaches a screen reader together with the region, and the region does not
+// speak it.
 const firstWrites = new Map<HTMLElement, string>()
 
 function createRegion(assertive: boolean): HTMLElement {
@@ -49,9 +50,9 @@ function region(assertive: boolean): HTMLElement {
 /**
  * Imperative screen-reader announcement. Sends `message` to a visually-hidden
  * `aria-live` region appended to `document.body`, lazily created on first use
- * and shared process-wide. The first message waits one task after the region
- * is created, so that the region is in the accessibility tree before the text
- * lands. Use it for one-off, event-driven feedback with no natural focus or DOM
+ * and shared process-wide. The first message waits for the next paint after
+ * the region is created, so that the region is in the accessibility tree before
+ * the text lands. Use it for one-off, event-driven feedback with no natural focus or DOM
  * home, such as "Copied" or "Tag added". To narrate a
  * changing value, prefer the declarative `useA11yAnnouncements`. No-op during SSR and
  * for empty messages.
@@ -69,17 +70,20 @@ export function announce(message: string, { assertive = false }: AnnounceOptions
 	const node = region(assertive)
 
 	if (created) {
-		setTimeout(() => {
-			const text = firstWrites.get(node)
+		// The task after a frame callback runs after that frame paints.
+		requestAnimationFrame(() => {
+			setTimeout(() => {
+				const text = firstWrites.get(node)
 
-			firstWrites.delete(node)
+				firstWrites.delete(node)
 
-			if (text !== undefined) node.textContent = text
+				if (text !== undefined) node.textContent = text
+			})
 		})
 	}
 
-	// Until the first task runs, each message replaces the waiting text, as two writes in one
-	// task do.
+	// Until the first write, each message replaces the waiting text, as two writes in one task
+	// do.
 	if (firstWrites.has(node) || created) {
 		firstWrites.set(node, message)
 
