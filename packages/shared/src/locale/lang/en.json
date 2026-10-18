@@ -1,4 +1,20 @@
 {
+	"shared.error.body": {
+		"defaultMessage": "The page could not load. Try again soon.",
+		"description": "The text under the title of the page that shows when a page fails."
+	},
+	"shared.error.retry": {
+		"defaultMessage": "Try again",
+		"description": "The button that loads a failed page again."
+	},
+	"shared.error.title": {
+		"defaultMessage": "Something went wrong",
+		"description": "The title of the page that shows when a page fails."
+	},
+	"shared.notFound.body": {
+		"defaultMessage": "This page could not be found",
+		"description": "The text under the 404 of the page of a path that has no route."
+	},
 	"shared.validation.email": {
 		"defaultMessage": "Please enter a valid email address",
 		"description": "The error of an email field that does not hold an email address."

@@ -823,6 +823,10 @@ export const k = {
 			'data-active:ring-2',
 			'data-active:ring-inset',
 			...mode('data-active:ring-blue-600', 'dark:data-active:ring-blue-500'),
+			// Forced colors remove the ring, which is a box-shadow. This inset outline
+			// replaces it there, as in `focus.inset`.
+			'forced-colors:data-active:outline-solid forced-colors:data-active:outline-2',
+			'forced-colors:data-active:-outline-offset-2 forced-colors:data-active:outline-[Highlight]',
 			// A cell of the cursor's range (`range`) takes a tint and a hairline
 			// outline. The outline, not the tint, holds the 3:1 contrast of the state
 			// (WCAG 1.4.11). It is an outline, so it does not stack with the ring.
