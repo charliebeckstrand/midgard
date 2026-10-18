@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	BarChart,
@@ -8,7 +9,7 @@ import {
 	PieChart,
 } from '../../modules/chart'
 import { readoutToCsv } from '../../modules/chart/engine/chart-export'
-import { createHeaderActionsHost, HeaderActionsContext } from '../../primitives/header-actions'
+import { HeaderActions, HeaderActionsSlot } from '../../primitives/header-actions'
 import { LocaleProvider } from '../../providers/locale'
 import { bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
@@ -25,6 +26,17 @@ const series = [{ xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' } as const]
 /** Right-clicks a chart's root region to open its context menu. */
 function openChartMenu(container: HTMLElement): void {
 	fireEvent.contextMenu(getSlot(container, 'chart'))
+}
+
+/** A box with a header row, as a dashboard tile gives. A widget in the box puts its controls in the slot of the row. */
+function Box({ children }: { children: ReactNode }) {
+	return (
+		<HeaderActions>
+			<HeaderActionsSlot />
+
+			<div data-slot="box-content">{children}</div>
+		</HeaderActions>
+	)
 }
 
 describe('Chart context menu', () => {
@@ -492,41 +504,27 @@ describe('Chart menu button', () => {
 	})
 
 	it('goes to the header actions of the box around the chart', () => {
-		const host = document.createElement('div')
-
-		document.body.append(host)
-
-		const slot = createHeaderActionsHost()
-
-		slot.set(host)
-
 		const { container } = renderUI(
-			<HeaderActionsContext value={slot}>
+			<Box>
 				<BarChart title="Revenue" aria-label="Revenue" data={data} series={[...series]} />
-			</HeaderActionsContext>,
+			</Box>,
 		)
 
-		expect(bySlot(container, 'chart-menu-button')).toBeNull()
+		const host = getSlot(container, 'header-actions')
+
+		expect(bySlot(getSlot(container, 'box-content'), 'chart-menu-button')).toBeNull()
 
 		expect(bySlot(host, 'chart-menu-button')).not.toBeNull()
-
-		host.remove()
 	})
 
 	it('puts a View data button in the header row of a box, and marks its own fullscreen', () => {
-		const host = document.createElement('div')
-
-		document.body.append(host)
-
-		const slot = createHeaderActionsHost()
-
-		slot.set(host)
-
-		renderUI(
-			<HeaderActionsContext value={slot}>
+		const { container } = renderUI(
+			<Box>
 				<BarChart title="Revenue" aria-label="Revenue" data={data} series={[...series]} />
-			</HeaderActionsContext>,
+			</Box>,
 		)
+
+		const host = getSlot(container, 'header-actions')
 
 		// The box hides its own expand control, because the chart menu has Fullscreen.
 		expect(getSlot(host, 'chart-header-actions')).toHaveAttribute('data-own-fullscreen')
@@ -534,8 +532,6 @@ describe('Chart menu button', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'View data for Revenue' }))
 
 		expect(screen.getByRole('dialog')).toBeInTheDocument()
-
-		host.remove()
 	})
 
 	it('shows no View data button outside a box', () => {
@@ -581,19 +577,6 @@ const REGION_SERIES: [ChoroplethChartSeries<(typeof REGIONS)[number]>] = [
 	{ idKey: 'region', colorKey: 'pop', colorRange: ['#fff', '#000'] },
 ]
 
-/** A header actions host, as a dashboard tile gives, and its cleanup. */
-function headerHost() {
-	const host = document.createElement('div')
-
-	document.body.append(host)
-
-	const slot = createHeaderActionsHost()
-
-	slot.set(host)
-
-	return { host, slot }
-}
-
 describe('Chart menu button on a chart with no header', () => {
 	it('sits in the corner of a heatmap outside a box', () => {
 		const { container } = renderUI(
@@ -617,19 +600,17 @@ describe('Chart menu button on a chart with no header', () => {
 	})
 
 	it('goes to the header actions of a box around a heatmap, and not to the corner', () => {
-		const { host, slot } = headerHost()
-
 		const { container } = renderUI(
-			<HeaderActionsContext value={slot}>
+			<Box>
 				<HeatmapChart title="Commits" aria-label="Commits" data={CELLS} series={CELL_SERIES} />
-			</HeaderActionsContext>,
+			</Box>,
 		)
 
-		expect(bySlot(container, 'chart-menu-button')).toBeNull()
+		const host = getSlot(container, 'header-actions')
+
+		expect(bySlot(getSlot(container, 'box-content'), 'chart-menu-button')).toBeNull()
 
 		expect(bySlot(host, 'chart-menu-button')).not.toBeNull()
-
-		host.remove()
 	})
 
 	it('sits in the corner of a choropleth outside a box', () => {
@@ -654,10 +635,8 @@ describe('Chart menu button on a chart with no header', () => {
 	})
 
 	it('goes to the header actions of a box around a choropleth', () => {
-		const { host, slot } = headerHost()
-
 		const { container } = renderUI(
-			<HeaderActionsContext value={slot}>
+			<Box>
 				<ChoroplethChart
 					title="Population"
 					aria-label="Population"
@@ -665,14 +644,14 @@ describe('Chart menu button on a chart with no header', () => {
 					data={REGIONS}
 					series={REGION_SERIES}
 				/>
-			</HeaderActionsContext>,
+			</Box>,
 		)
 
-		expect(bySlot(container, 'chart-menu-button')).toBeNull()
+		const host = getSlot(container, 'header-actions')
+
+		expect(bySlot(getSlot(container, 'box-content'), 'chart-menu-button')).toBeNull()
 
 		expect(bySlot(host, 'chart-menu-button')).not.toBeNull()
-
-		host.remove()
 	})
 
 	it('shows none on a choropleth with the menu off', () => {

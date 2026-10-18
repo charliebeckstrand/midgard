@@ -16,6 +16,7 @@ import {
 } from '../../components/dialog'
 import { Icon } from '../../components/icon'
 import { cn } from '../../core'
+import { HeaderActions } from '../../primitives/header-actions'
 import { IntlMessage } from '../../primitives/intl/intl-message'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -146,19 +147,23 @@ export function DashboardTileExpand({
 							style={{ aspectRatio: shape }}
 							className={cn(k.expanded)}
 						>
-							<DashboardTileContent
-								id={id}
-								label={label}
-								mount="always"
-								inert={false}
-								fallback={fallback}
-								onError={onError}
-								// The dialog keeps the shape of the tile, so a widget there claims nothing.
-								host={null}
-								natural={false}
-							>
-								{children}
-							</DashboardTileContent>
+							{/* The expanded copy of the widget does not reach the header row of the
+							    tile behind the dialog: its controls stay in its own layout. */}
+							<HeaderActions>
+								<DashboardTileContent
+									id={id}
+									label={label}
+									mount="always"
+									inert={false}
+									fallback={fallback}
+									onError={onError}
+									// The dialog keeps the shape of the tile, so a widget there claims nothing.
+									host={null}
+									natural={false}
+								>
+									{children}
+								</DashboardTileContent>
+							</HeaderActions>
 						</div>
 					</DialogBody>
 

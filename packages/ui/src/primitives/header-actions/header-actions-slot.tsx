@@ -3,27 +3,26 @@
 import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, useCallback } from 'react'
 import { cn } from '../../core'
-import type { HeaderActionsHost } from './header-actions'
+import { useHeaderActionsStore } from './header-actions'
 
 /**
  * Props for {@link HeaderActionsSlot}. The `<span>` of the slot takes the rest.
- * It has no `children`, because the host portals the controls into it.
+ * It has no `children`, because the widgets portal their controls into it.
  */
-export type HeaderActionsSlotProps = Omit<ComponentProps<'span'>, 'children'> & {
-	/** The host that the slot gives its element to. */
-	host: HeaderActionsHost
-}
+export type HeaderActionsSlotProps = Omit<ComponentProps<'span'>, 'children'>
 
 /**
- * The element of a {@link HeaderActionsHost}, which the box renders in its
- * header row. It adds no box of its own, so the controls that a widget puts in
- * it lay out as items of the row.
+ * The element in the header row of a {@link HeaderActions}, where a widget in
+ * the box puts its own controls. It adds no box of its own, so the controls lay
+ * out as items of the row. Outside a `HeaderActions`, no widget reads it.
  */
-export function HeaderActionsSlot({ host, className, ref, ...props }: HeaderActionsSlotProps) {
-	const hostRef = useCallback((element: HTMLSpanElement | null) => host.set(element), [host])
+export function HeaderActionsSlot({ className, ref, ...props }: HeaderActionsSlotProps) {
+	const store = useHeaderActionsStore()
 
-	// The host reads the node, so a consumer `ref` joins it.
-	const setSlot = useComposedRefs(hostRef, ref)
+	const storeRef = useCallback((element: HTMLSpanElement | null) => store?.set(element), [store])
+
+	// The store reads the node, so a consumer `ref` joins it.
+	const setSlot = useComposedRefs(storeRef, ref)
 
 	return (
 		<span
