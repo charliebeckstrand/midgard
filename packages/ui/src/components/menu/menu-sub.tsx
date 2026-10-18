@@ -97,7 +97,9 @@ export type MenuSubProps = {
  * floating panel its rows render in. Opens on hover, on click, and — while the
  * row is the roved one — on Enter / Space. Closes on `Escape` or ArrowLeft (ArrowRight in a
  * right-to-left menu), an outside press, or the cursor settling on another row. Selecting a row inside closes the whole menu,
- * as any {@link MenuItem} does.
+ * as any {@link MenuItem} does. A click on the row closes a submenu that a click or a key
+ * opened. After a hover open, the first click puts focus in the submenu, and the second
+ * click closes it.
  *
  * @remarks **An open submenu owns the arrows.** However it was opened, the
  * navigation keys work its rows and wrap inside them, rather than roving on
@@ -299,6 +301,14 @@ function MenuSubFloating({
 	// menu doesn't yank focus off whatever the user is on.
 	const seatFocus = useRef(false)
 
+	// Whether a click or a key opened the submenu, and not only hover. A click
+	// then closes it. Cleared when the submenu closes, whatever closed it.
+	const committed = useRef(false)
+
+	useEffect(() => {
+		if (!open) committed.current = false
+	}, [open])
+
 	// The panel's row container once it mounts. State, not a ref: the portal
 	// renders its children a commit *after* `open` flips, so the focus-seating
 	// effect below needs a re-render to fire on — an `open`-keyed effect alone
@@ -344,6 +354,8 @@ function MenuSubFloating({
 	}, [open, rows])
 
 	const openWithFocus = useCallback(() => {
+		committed.current = true
+
 		// Already open, from a hover the pointer left standing: there is no mount
 		// coming to seat focus on, so take it now. Arming the flag instead would
 		// leave it set for whatever opens next.
@@ -481,10 +493,14 @@ function MenuSubFloating({
 	// one panel rather than a flash per row.
 	const handlePointerMove = useMenuRowPointer(disabled, subKey)
 
-	// Opens rather than toggles: a click landing on a row the pointer has already
-	// hovered open would otherwise shut the submenu the user is reaching for.
+	// Toggles only a submenu that a click or a key opened. A click on a row that
+	// hover opened puts focus in the submenu and does not close it, because the
+	// user reaches for that submenu.
 	const handleClick = useStableEvent(() => {
-		if (!disabled) openWithFocus()
+		if (disabled) return
+
+		if (open && committed.current) collapse()
+		else openWithFocus()
 	})
 
 	return (
