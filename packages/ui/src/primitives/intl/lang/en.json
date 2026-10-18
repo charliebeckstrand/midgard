@@ -35,6 +35,74 @@
 		"defaultMessage": "Select year",
 		"description": "The name of the grid of years in the year picker."
 	},
+	"ui.chart.chart": {
+		"defaultMessage": "Chart",
+		"description": "The name of the fullscreen dialog of a chart that has no title."
+	},
+	"ui.chart.copyData": {
+		"defaultMessage": "Copy data",
+		"description": "The action that copies the values of a chart to the clipboard."
+	},
+	"ui.chart.data": {
+		"defaultMessage": "Chart data",
+		"description": "The title of the dialog with the values of a chart that has no title."
+	},
+	"ui.chart.downloadCsv": {
+		"defaultMessage": "Download CSV",
+		"description": "The action that downloads the values of a chart as a CSV file."
+	},
+	"ui.chart.downloadJpg": {
+		"defaultMessage": "Download JPG",
+		"description": "The action that downloads a chart as a JPG image."
+	},
+	"ui.chart.downloadPng": {
+		"defaultMessage": "Download PNG",
+		"description": "The action that downloads a chart as a PNG image."
+	},
+	"ui.chart.fullscreen": {
+		"defaultMessage": "Fullscreen",
+		"description": "The action that opens a chart in a large dialog."
+	},
+	"ui.chart.legend": {
+		"defaultMessage": "Legend",
+		"description": "The name of the legend of a chart, which names the series by their colors."
+	},
+	"ui.chart.menu": {
+		"defaultMessage": "{title} menu",
+		"description": "The name of the menu of a chart. The title is the title of the chart."
+	},
+	"ui.chart.moreEntries": {
+		"defaultMessage": "More legend entries",
+		"description": "The name of the panel with the legend entries that do not fit."
+	},
+	"ui.chart.nextEntries": {
+		"defaultMessage": "Next legend entries",
+		"description": "The name of the button that shows the page of legend entries after."
+	},
+	"ui.chart.previousEntries": {
+		"defaultMessage": "Previous legend entries",
+		"description": "The name of the button that shows the page of legend entries before."
+	},
+	"ui.chart.showMore": {
+		"defaultMessage": "Show {count} more",
+		"description": "The name of the button that shows the legend entries that do not fit. The count is the number of those entries."
+	},
+	"ui.chart.untitledMenu": {
+		"defaultMessage": "Chart menu",
+		"description": "The name of the menu of a chart that has no title."
+	},
+	"ui.chart.value": {
+		"defaultMessage": "Value",
+		"description": "The name of the color scale bar of a chart that has no name of its own."
+	},
+	"ui.chart.viewData": {
+		"defaultMessage": "View data",
+		"description": "The action that opens a dialog with the values of a chart as a table."
+	},
+	"ui.chart.viewDataFor": {
+		"defaultMessage": "View data for {title}",
+		"description": "The name of the button that opens a dialog with the values of a chart as a table. The title is the title of the chart."
+	},
 	"ui.combobox.placeholder": {
 		"defaultMessage": "Search",
 		"description": "The placeholder of a field that filters a list of options as the reader types."

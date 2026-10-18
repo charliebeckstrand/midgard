@@ -10,7 +10,9 @@ import { Text } from '../../../../components/text'
 import { ariaAttr, cn, dataAttr } from '../../../../core'
 import { useA11yRoving } from '../../../../hooks'
 import { isRtl } from '../../../../hooks/a11y/logical-arrow'
+import { useIntl } from '../../../../primitives/intl/use-intl'
 import type { ChartColorSlot } from '../../../../recipes/kata/chart'
+import { chartMessages } from '../chart-messages'
 import { ChartSwatch } from '../chart-pattern-defs'
 import { useChartActions } from '../context'
 import { OVERFLOW_CHIP_RESERVE, visibleLegendCount } from './fit'
@@ -548,6 +550,8 @@ export function ChartLegend({
 }: ChartLegendProps) {
 	const ref = useRef<HTMLDivElement>(null)
 
+	const intl = useIntl()
+
 	const [page, setPage] = useState(0)
 
 	// Only a side panel clips vertically — the wrap row just grows. Past one
@@ -676,7 +680,7 @@ export function ChartLegend({
 	const toolbarProps = interactive
 		? ({
 				role: 'toolbar',
-				'aria-label': 'Legend',
+				'aria-label': intl.formatMessage(chartMessages.legend),
 				'aria-orientation': orientation,
 				onKeyDown,
 			} as const)
@@ -717,7 +721,7 @@ export function ChartLegend({
 						type="button"
 						size="sm"
 						variant="plain"
-						aria-label="Previous legend entries"
+						aria-label={intl.formatMessage(chartMessages.previousEntries)}
 						aria-disabled={ariaAttr(firstPage)}
 						data-disabled={dataAttr(firstPage)}
 						onClick={() => {
@@ -735,7 +739,7 @@ export function ChartLegend({
 						type="button"
 						size="sm"
 						variant="plain"
-						aria-label="Next legend entries"
+						aria-label={intl.formatMessage(chartMessages.nextEntries)}
 						aria-disabled={ariaAttr(lastPage)}
 						data-disabled={dataAttr(lastPage)}
 						onClick={() => {
@@ -769,7 +773,7 @@ export function ChartLegend({
 							type="button"
 							size="sm"
 							variant="plain"
-							aria-label={`Show ${overflowCount} more`}
+							aria-label={intl.formatMessage(chartMessages.showMore, { count: overflowCount })}
 						>
 							<Text as="span" tone="muted" size="sm" className="tabular-nums">
 								+{overflowCount}
@@ -777,7 +781,7 @@ export function ChartLegend({
 						</Button>
 					</PopoverTrigger>
 
-					<PopoverContent autoFocus aria-label="More legend entries">
+					<PopoverContent autoFocus aria-label={intl.formatMessage(chartMessages.moreEntries)}>
 						<div
 							data-slot="chart-legend-overflow"
 							// The popover is outside the legend, so it caps the hit areas of

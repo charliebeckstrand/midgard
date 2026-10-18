@@ -19,11 +19,13 @@ import {
 } from 'react'
 import { Text } from '../../../../components/text'
 import { cn } from '../../../../core'
+import { useIntl } from '../../../../primitives/intl/use-intl'
 import { k } from '../../../../recipes/kata/chart'
 import type { Orientation } from '../../../../types'
 import { binIndex, quantileBinIndex } from '../../../../utilities'
 import { clamp } from '../../../../utilities/clamp'
 import { hasBrowserModifier } from '../../../../utilities/modifier-keys'
+import { chartMessages } from '../chart-messages'
 
 /**
  * Which way a range legend and its glyph lay out:
@@ -384,6 +386,8 @@ function RangeTrack({
 	onBlur,
 	onKeyDown,
 }: RangeTrackProps) {
+	const intl = useIntl()
+
 	const horizontal = orientation === 'horizontal'
 
 	// Paint the bar with the raw stops — CSS interpolates a smooth ramp: low at
@@ -401,7 +405,7 @@ function RangeTrack({
 			data-slot={`${slot}-track`}
 			role="slider"
 			tabIndex={0}
-			aria-label={label ?? 'Value'}
+			aria-label={label ?? intl.formatMessage(chartMessages.value)}
 			aria-orientation={orientation}
 			aria-valuemin={min}
 			aria-valuemax={max}
