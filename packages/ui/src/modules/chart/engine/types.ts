@@ -394,7 +394,9 @@ export type CartesianFrameProps = {
 	 * either trigger (a `'click'`-triggered readout still pins). It carries a
 	 * pointer cursor across the plot, so the marks read as clickable. On a touch
 	 * screen, a tap fires it on either trigger and opens no readout. A touch reads
-	 * nothing from the chart: "View data" in the chart menu shows the data.
+	 * nothing from the chart: "View data" in the chart menu shows the data. On
+	 * the keyboard, Enter and Space on the plot fire it for the category under the
+	 * cursor. Space then does not scroll the page.
 	 */
 	onCategoryClick?: ChartItemClick
 	/**

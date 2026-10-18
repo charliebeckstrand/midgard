@@ -101,7 +101,9 @@ export type ScatterChartProps<T = never> = AccessibleName &
 		 * so this does not take the module's shared `ChartItemClick`. Setting it
 		 * makes the plot interactive on its own, where the pointer layer otherwise
 		 * mounts only for a tooltip or a crosshair. On a touch screen, a tap fires
-		 * it on either trigger. A touch opens no readout.
+		 * it on either trigger. A touch opens no readout. On the keyboard, Enter and
+		 * Space on the plot fire it for the point under the cursor. Space then does
+		 * not scroll the page.
 		 *
 		 * @remarks Under a snapping crosshair (`crosshair={{ snap: true }}`), a
 		 * click off every disc also fires. It reports the point that the snapped
@@ -363,6 +365,25 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 	// series, as a cartesian cursor does. One visible series has none to recede.
 	const stopSeries = indices.length > 1 ? scatterSnapSeries(snapStops, indices) : undefined
 
+	// A point named by its series and its place in the drawn points, reported by
+	// its row in `data`.
+	const reportPoint =
+		onPointClick &&
+		((at: { series: number; datum: number }) =>
+			onPointClick({
+				series: at.series,
+				datum: metas[at.series]?.drawn[at.datum]?.row ?? at.datum,
+			}))
+
+	// Enter or Space on a keyboard stop reports the point behind that stop.
+	const activatePoint =
+		reportPoint &&
+		((column: number, stop: number) => {
+			const hit = snapStops[column]?.[stop]
+
+			if (hit) reportPoint({ series: indices[hit.series] ?? hit.series, datum: hit.datum })
+		})
+
 	const readout = useScatterChartReadout(
 		data,
 		series,
@@ -418,6 +439,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 			snap={snapTargets(rails, bandPositions, snapColumns)}
 			focus={cartesianFocus(bandPositions, snapColumns, 'vertical', undefined, stopSeries)}
 			keyboardEmphasis
+			onActivate={activatePoint}
 			className={className}
 		>
 			<ScatterChartChrome
@@ -453,14 +475,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 				indices={indices}
 				stops={snapStops}
 				trigger={trigger}
-				onPointClick={
-					onPointClick &&
-					((at) =>
-						onPointClick({
-							series: at.series,
-							datum: metas[at.series]?.drawn[at.datum]?.row ?? at.datum,
-						}))
-				}
+				onPointClick={reportPoint}
 			/>
 		</ChartFrame>
 	)

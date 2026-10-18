@@ -97,7 +97,9 @@ export type SectorBaseProps<T> = ChartBaseProps<T> & {
 	 * either trigger (a `'click'`-triggered readout still pins), and points the
 	 * cursor over the slices so they read as clickable. On a touch screen, a tap
 	 * fires it on either trigger and opens no readout. A touch reads nothing from
-	 * the chart: "View data" in the chart menu shows the data.
+	 * the chart: "View data" in the chart menu shows the data. On the keyboard,
+	 * Enter and Space on the plot fire it for the slice under the cursor. Space
+	 * then does not scroll the page.
 	 */
 	onCategoryClick?: ChartItemClick
 	/**
@@ -364,6 +366,9 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 	// recedes the rest, as a pointed slice does.
 	const focusSeries = focusPoints.map((stops, index) => (stops.length > 0 ? [index] : []))
 
+	// A click on a slice and Enter or Space on its keyboard stop fire the same callback.
+	const activateSlice = sliceActivation(onCategoryClick, sliceLabels)
+
 	const marks = (
 		<>
 			<SectorChartMarks
@@ -376,7 +381,7 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 				fills={sliceFills}
 				textureActive={tex.active}
 				trigger={trigger}
-				onIndexClick={sliceActivation(onCategoryClick, sliceLabels)}
+				onIndexClick={activateSlice}
 			/>
 
 			{labelItems.length > 0 && (
@@ -427,6 +432,7 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 			tooltip={showTooltip}
 			focus={{ points: focusPoints, series: focusSeries }}
 			keyboardEmphasis
+			onActivate={activateSlice}
 			className={className}
 			overlay={
 				innerRatio > 0 && children ? (

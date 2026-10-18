@@ -277,6 +277,11 @@ function keyAction(key: string, orientation: ChartOrientation): CursorAction | n
 	}
 }
 
+/** Whether a key is Enter or Space, the keys that activate the point under the cursor. @internal */
+function isActivationKey(key: string): boolean {
+	return key === 'Enter' || key === ' '
+}
+
 /** Whether a key is one of the four arrows — the keys that enter navigation at the first point. @internal */
 function isArrowKey(key: string): boolean {
 	return key === 'ArrowUp' || key === 'ArrowDown' || key === 'ArrowLeft' || key === 'ArrowRight'
@@ -462,6 +467,9 @@ function sameCursor(a: ChartCursor | null, b: ChartCursor | null): boolean {
  * - Escape drops focus. It claims the press only when it clears a readout. A
  *   dialog around the chart therefore closes on an Escape with nothing to clear,
  *   and on the second Escape after a readout.
+ * - Enter and Space fire `onActivate` for the data point under the cursor, as a
+ *   click on that point fires the click callback of the chart. They claim the
+ *   press only when `onActivate` is set. Else Space scrolls the page.
  *
  * Reference lines join the value-axis roving as their own stops. Landing on one
  * recedes the marks to it, the same emphasis pointing it applies. It also drops
@@ -498,6 +506,10 @@ function sameCursor(a: ChartCursor | null, b: ChartCursor | null): boolean {
  * line from another stop, with the index of that line. The frame announces the
  * label and the value of the line through it. A band step along the same line, a
  * re-anchor, and a pointer move do not call it.
+ * @param onActivate - Called when Enter or Space lands on a data point, with the
+ * hover index that the cursor writes and the place of its stop in the category.
+ * The frame passes the click callback of the chart through it. A cursor on a
+ * reference line, or no cursor, calls nothing.
  * @internal
  */
 export function useChartKeyboard(
@@ -509,6 +521,7 @@ export function useChartKeyboard(
 	setActiveSeries: (series: number | null) => void,
 	onRead?: (index: number, series: number | null) => void,
 	onReadReference?: (reference: number) => void,
+	onActivate?: (index: number, stop: number) => void,
 ): PlotTabStopProps | null {
 	const [cursor, setCursor] = useState<ChartCursor | null>(null)
 
@@ -618,8 +631,24 @@ export function useChartKeyboard(
 		onRead?.(landed.index, landed.series)
 	}
 
+	// Enter and Space activate the point under the cursor, as a click does. With
+	// no callback to fire, the press stays with the browser, so Space scrolls.
+	const activate = (event: KeyboardEvent<HTMLElement>) => {
+		if (!onActivate) return
+
+		event.preventDefault()
+
+		if (stop?.anchor && targets) onActivate(cursorIndex(stop.live, targets), stop.live.value)
+	}
+
 	const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
 		if (!targets || hasBrowserModifier(event)) return
+
+		if (isActivationKey(event.key)) {
+			activate(event)
+
+			return
+		}
 
 		const move = moveCursor(cursor, event.key, targets, orientation)
 

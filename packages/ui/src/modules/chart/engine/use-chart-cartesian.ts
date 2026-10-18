@@ -299,7 +299,8 @@ export type CartesianChart = {
 	 * The consumer's `onCategoryClick` resolved to the hit layer's index-based
 	 * contract, or `undefined` when unset. Pass it to {@link ChartHitArea}'s
 	 * `onIndexClick`. Mount the hit area whenever it's set, so the clicks land
-	 * even with the tooltip off.
+	 * even with the tooltip off. The frame also fires it on Enter and Space, for
+	 * the category under the keyboard cursor.
 	 */
 	onBandClick?: (index: number) => void
 	/**

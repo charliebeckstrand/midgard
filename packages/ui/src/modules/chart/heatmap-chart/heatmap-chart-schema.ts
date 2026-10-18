@@ -116,7 +116,9 @@ export type HeatmapChartProps<T = never> = AccessibleName &
 		 * so this does not take the module's shared `ChartItemClick`. Setting it
 		 * makes the plot interactive on its own, where the pointer layer otherwise
 		 * mounts only for a tooltip. On a touch screen, a tap fires it on either
-		 * trigger. A touch opens no readout.
+		 * trigger. A touch opens no readout. On the keyboard, Enter and Space on the
+		 * plot fire it for the cell under the cursor. Space then does not scroll the
+		 * page.
 		 */
 		onCellClick?: (cell: { x: string; y: string }, at: [row: number, col: number]) => void
 		/**

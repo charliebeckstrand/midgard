@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { AreaChart } from '../../modules/chart/area-chart'
+import { BarChart } from '../../modules/chart/bar-chart'
 import { DonutChart } from '../../modules/chart/donut-chart'
 import {
 	cartesianFocus,
@@ -10,8 +11,10 @@ import {
 	hasFocusTargets,
 	moveCursor,
 } from '../../modules/chart/engine/use-chart-keyboard'
+import { HeatmapChart } from '../../modules/chart/heatmap-chart'
 import { LineChart } from '../../modules/chart/line-chart'
 import { PieChart } from '../../modules/chart/pie-chart'
+import { ScatterChart } from '../../modules/chart/scatter-chart'
 import {
 	act,
 	allBySlot,
@@ -1003,5 +1006,151 @@ describe('PieChart and DonutChart keyboard navigation', () => {
 		fireEvent.keyDown(plot, { key: 'ArrowRight' })
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('North')
+	})
+})
+
+describe('chart keyboard activation', () => {
+	it('fires onCategoryClick for the focused category on Enter and on Space', () => {
+		const onCategoryClick = vi.fn()
+
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Signups"
+				data={DATA}
+				series={[...SERIES]}
+				width={400}
+				onCategoryClick={onCategoryClick}
+			/>,
+		)
+
+		const plot = getSlot(container, 'chart-plot')
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		// `fireEvent` returns false for a press that a handler claimed with `preventDefault`.
+		expect(fireEvent.keyDown(plot, { key: 'Enter' })).toBe(false)
+
+		expect(onCategoryClick).toHaveBeenLastCalledWith('W2', 1)
+
+		expect(fireEvent.keyDown(plot, { key: ' ' })).toBe(false)
+
+		expect(onCategoryClick).toHaveBeenCalledTimes(2)
+
+		expect(onCategoryClick).toHaveBeenLastCalledWith('W2', 1)
+	})
+
+	it('fires nothing before the first arrow places the cursor', () => {
+		const onCategoryClick = vi.fn()
+
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Signups"
+				data={DATA}
+				series={[...SERIES]}
+				width={400}
+				onCategoryClick={onCategoryClick}
+			/>,
+		)
+
+		fireEvent.keyDown(getSlot(container, 'chart-plot'), { key: 'Enter' })
+
+		expect(onCategoryClick).not.toHaveBeenCalled()
+	})
+
+	it('leaves Enter and Space to the browser on a chart with no click callback', () => {
+		const { container } = renderUI(line())
+
+		const plot = getSlot(container, 'chart-plot')
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		// The page scrolls on Space.
+		expect(fireEvent.keyDown(plot, { key: ' ' })).toBe(true)
+
+		expect(fireEvent.keyDown(plot, { key: 'Enter' })).toBe(true)
+	})
+
+	it('fires a pie chart onCategoryClick for the focused slice', () => {
+		const onCategoryClick = vi.fn()
+
+		const { container } = renderUI(
+			<PieChart
+				aria-label="Share"
+				data={SLICES}
+				series={[...SLICE_SERIES]}
+				width={400}
+				onCategoryClick={onCategoryClick}
+			/>,
+		)
+
+		const plot = getSlot(container, 'chart-plot')
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(plot, { key: 'Enter' })
+
+		expect(onCategoryClick).toHaveBeenCalledWith('South', 1)
+	})
+
+	it('fires a heatmap onCellClick for the focused cell', () => {
+		const onCellClick = vi.fn()
+
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Commits"
+				data={[
+					{ day: 'Mon', hour: '9', commits: 1 },
+					{ day: 'Mon', hour: '10', commits: 9 },
+					{ day: 'Tue', hour: '9', commits: 5 },
+					{ day: 'Tue', hour: '10', commits: 2 },
+				]}
+				series={[{ xKey: 'hour', yKey: 'day', colorKey: 'commits', colorRange: ['#fff', '#000'] }]}
+				width={400}
+				onCellClick={onCellClick}
+			/>,
+		)
+
+		const plot = getSlot(container, 'chart-plot')
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(plot, { key: ' ' })
+
+		expect(onCellClick).toHaveBeenCalledWith({ x: '10', y: 'Mon' }, [0, 1])
+	})
+
+	it('fires a scatter onPointClick for the focused point, by its data row', () => {
+		const onPointClick = vi.fn()
+
+		const { container } = renderUI(
+			<ScatterChart
+				aria-label="Dwell against distance"
+				data={[
+					{ distance: 12, dwell: 34 },
+					{ distance: 48, dwell: 18 },
+					{ distance: 30, dwell: 25 },
+				]}
+				series={[{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' }]}
+				width={480}
+				onPointClick={onPointClick}
+			/>,
+		)
+
+		const plot = getSlot(container, 'chart-plot')
+
+		// The columns run in x order, so the second column is the third row.
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(plot, { key: 'Enter' })
+
+		expect(onPointClick).toHaveBeenCalledWith({ series: 0, datum: 2 })
 	})
 })

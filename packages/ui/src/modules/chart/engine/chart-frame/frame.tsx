@@ -335,6 +335,12 @@ export type ChartFrameProps = AccessibleName & {
 	 */
 	keyboardEmphasis?: boolean
 	/**
+	 * The click callback of the chart, as Enter and Space on the plot fire it: the
+	 * hover index of the data point under the keyboard cursor, and the place of its
+	 * stop in the category. Absent, the plot leaves both keys to the browser.
+	 */
+	onActivate?: (index: number, stop: number) => void
+	/**
 	 * The data indices of the held category selection, or `null`. Their marks keep
 	 * full strength and the others recede, until a hover takes the emphasis.
 	 */
@@ -410,6 +416,7 @@ export function ChartFrame({
 	focus,
 	describeReference,
 	keyboardEmphasis = false,
+	onActivate,
 	selected = null,
 	orientation,
 	className,
@@ -511,6 +518,7 @@ export function ChartFrame({
 		keyboardEmphasis ? setSeriesFocus : ignoreActiveSeries,
 		announceRead,
 		announceReference,
+		onActivate,
 	)
 
 	// The marks recede when either input emphasizes a reference: the pointer over a
