@@ -12,7 +12,7 @@ import {
 } from '../../modules/grid/engine/grid-edit-commit'
 import { createDraftStore } from '../../modules/grid/engine/grid-editing-utilities'
 import type { GridEditSource } from '../../modules/grid/grid-data-types'
-import { englishIntl } from '../../primitives/intl/intl-catalog'
+import { intlEn } from '../../primitives/intl/intl-catalog'
 
 type Row = { id: number; name: string; count: number; locked: string }
 
@@ -25,7 +25,7 @@ function sourceOf(rows: Row[]): GridEditSource<Row> {
 	return {
 		rows,
 		getKey: (row) => row.id,
-		intl: englishIntl,
+		intl: intlEn,
 		rowLabel: (row) => row.name,
 		columns: [
 			{ id: 'name', title: 'Name', field: 'name' },

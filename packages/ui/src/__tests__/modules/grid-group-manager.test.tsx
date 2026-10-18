@@ -25,7 +25,7 @@ import {
 	groupManagerAnnouncements,
 } from '../../modules/grid/grid-group-manager'
 import { GridManagerGrip } from '../../modules/grid/grid-manager-grip'
-import { englishIntl } from '../../primitives/intl/intl-catalog'
+import { intlEn } from '../../primitives/intl/intl-catalog'
 import { fireEvent, renderUI, screen } from '../helpers'
 
 describe('group manager reducers', () => {
@@ -602,7 +602,7 @@ describe('groupManagerAnnouncements', () => {
 
 	const zoneMap: ZoneMap = { g1: ['email'], g2: [], [UNGROUPED]: ['name'] }
 
-	const announcements = groupManagerAnnouncements(englishIntl, groups, columnsById, zoneMap)
+	const announcements = groupManagerAnnouncements(intlEn, groups, columnsById, zoneMap)
 
 	const at = (id: string) => ({ id }) as Active & Over
 

@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react'
 import { IntlContext } from './context'
-import { englishIntl, localeIntl } from './intl-catalog'
+import { intlEn, localeIntl } from './intl-catalog'
 
 /**
  * Props for {@link IntlProvider}: the locale of the subtree, plus `children`.
@@ -30,8 +30,6 @@ export type IntlProviderProps = {
  */
 export function IntlProvider({ locale, children }: IntlProviderProps) {
 	return (
-		<IntlContext value={locale === undefined ? englishIntl : localeIntl(locale)}>
-			{children}
-		</IntlContext>
+		<IntlContext value={locale === undefined ? intlEn : localeIntl(locale)}>{children}</IntlContext>
 	)
 }

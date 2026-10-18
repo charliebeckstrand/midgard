@@ -47,4 +47,11 @@ export function localeIntl(locale: string): IntlShape {
  *
  * @internal
  */
-export const englishIntl = localeIntl(SOURCE_LANGUAGE)
+export const intlEn = localeIntl(SOURCE_LANGUAGE)
+
+/**
+ * The intl of Spanish, with the messages of the Spanish catalog.
+ *
+ * @internal
+ */
+export const intlEs = localeIntl('es')

@@ -20,9 +20,9 @@ import {
 	formatRange,
 	startOfDay,
 } from '../../components/date-picker/date-picker-utilities'
-import { englishIntl, localeIntl } from '../../primitives/intl/intl-catalog'
+import { intlEn, intlEs } from '../../primitives/intl/intl-catalog'
 
-const DEFAULT_RELATIVE_PRESETS = defaultRelativePresets(englishIntl)
+const DEFAULT_RELATIVE_PRESETS = defaultRelativePresets(intlEn)
 
 // A fixed reference instant keeps every preset deterministic: 2025-06-15.
 const NOW = new Date(2025, 5, 15)
@@ -82,11 +82,11 @@ describe('DEFAULT_RELATIVE_PRESETS', () => {
 
 describe('resolveRelativePresets', () => {
 	it('returns the built-in list for bare true', () => {
-		expect(resolveRelativePresets(englishIntl, true)).toBe(DEFAULT_RELATIVE_PRESETS)
+		expect(resolveRelativePresets(intlEn, true)).toBe(DEFAULT_RELATIVE_PRESETS)
 	})
 
 	it('falls back to the built-in list for an empty config', () => {
-		expect(resolveRelativePresets(englishIntl, {})).toBe(DEFAULT_RELATIVE_PRESETS)
+		expect(resolveRelativePresets(intlEn, {})).toBe(DEFAULT_RELATIVE_PRESETS)
 	})
 
 	it('replaces the list wholesale when presets are supplied', () => {
@@ -94,7 +94,7 @@ describe('resolveRelativePresets', () => {
 			{ id: 'x', label: 'X', resolve: (now) => ({ from: now, to: now }) },
 		]
 
-		expect(resolveRelativePresets(englishIntl, { presets: custom })).toBe(custom)
+		expect(resolveRelativePresets(intlEn, { presets: custom })).toBe(custom)
 	})
 })
 
@@ -116,13 +116,13 @@ describe('resolveRelativeChips', () => {
 
 describe('relativeSummary', () => {
 	it('is empty for no selection, so the placeholder shows', () => {
-		expect(relativeSummary(englishIntl, [])).toBe('')
+		expect(relativeSummary(intlEn, [])).toBe('')
 	})
 
 	it('reads a lone selection as its own label', () => {
 		expect(
 			relativeSummary(
-				englishIntl,
+				intlEn,
 				relativeChips([resolve('last-7-days')], DEFAULT_RELATIVE_PRESETS, NOW),
 			),
 		).toBe('Last 7 days')
@@ -131,9 +131,9 @@ describe('relativeSummary', () => {
 	it('reads a lone custom span as its formatted range', () => {
 		const custom = { from: new Date(2025, 0, 3), to: new Date(2025, 0, 9) }
 
-		expect(
-			relativeSummary(englishIntl, relativeChips([custom], DEFAULT_RELATIVE_PRESETS, NOW)),
-		).toBe(formatRange(custom.from, custom.to))
+		expect(relativeSummary(intlEn, relativeChips([custom], DEFAULT_RELATIVE_PRESETS, NOW))).toBe(
+			formatRange(custom.from, custom.to),
+		)
 	})
 
 	it('counts a selection past one', () => {
@@ -143,9 +143,9 @@ describe('relativeSummary', () => {
 			NOW,
 		)
 
-		expect(relativeSummary(englishIntl, chips)).toBe('3 selected')
+		expect(relativeSummary(intlEn, chips)).toBe('3 selected')
 
-		expect(relativeSummary(localeIntl('es-ES'), chips)).toBe('3 seleccionados')
+		expect(relativeSummary(intlEs, chips)).toBe('3 seleccionados')
 	})
 })
 
@@ -382,7 +382,7 @@ describe('matchRelativePreset with an explicit pick (span collisions)', () => {
 
 		expect(chips).toEqual([{ key: 'preset-today', label: 'Today' }])
 
-		expect(relativeSummary(englishIntl, chips)).toBe('Today')
+		expect(relativeSummary(intlEn, chips)).toBe('Today')
 	})
 
 	it('drops a repeated span from a hydrated value on the next multi-select commit', () => {

@@ -7,7 +7,7 @@ import {
 	summarizeQuery,
 } from '../../modules/query/engine/query-summary'
 import type { QueryField, QueryNode } from '../../modules/query/engine/types'
-import { localeIntl } from '../../primitives/intl/intl-catalog'
+import { intlEs } from '../../primitives/intl/intl-catalog'
 
 const nameField: QueryField = { name: 'name', label: 'Name', type: 'text' }
 
@@ -371,9 +371,7 @@ describe('formatQuerySummary in a locale', () => {
 			{ ...rule(ageField, { operator: 'between', value: [18, 65] }), combinator: 'or' as const },
 		])
 
-		expect(formatQuerySummary(group, fields, localeIntl('es-ES'))).toBe(
-			'Name está vacío O Age entre 18 y 65',
-		)
+		expect(formatQuerySummary(group, fields, intlEs)).toBe('Name está vacío O Age entre 18 y 65')
 	})
 
 	it('keeps an operator of the app as the app wrote it', () => {
@@ -386,6 +384,6 @@ describe('formatQuerySummary in a locale', () => {
 
 		const group = createGroup('and', [rule(codeField, { operator: 'equals', value: 'A1' })])
 
-		expect(formatQuerySummary(group, [codeField], localeIntl('es-ES'))).toBe('Code matches A1')
+		expect(formatQuerySummary(group, [codeField], intlEs)).toBe('Code matches A1')
 	})
 })

@@ -5,12 +5,12 @@ import {
 	resolveInputTitle,
 	selectSoleOption,
 } from '../../components/combobox/combobox-utilities'
-import { englishIntl } from '../../primitives/intl/intl-catalog'
+import { intlEn } from '../../primitives/intl/intl-catalog'
 
 describe('resolveInputDisplay', () => {
 	it('returns the query while the user is editing', () => {
 		const result = resolveInputDisplay({
-			intl: englishIntl,
+			intl: intlEn,
 			editing: true,
 			query: 'partial',
 			value: 'real',
@@ -23,7 +23,7 @@ describe('resolveInputDisplay', () => {
 
 	it('returns the displayed value when not editing in single-select mode', () => {
 		const result = resolveInputDisplay({
-			intl: englishIntl,
+			intl: intlEn,
 			editing: false,
 			query: '',
 			value: { id: 1, name: 'Alice' },
@@ -36,7 +36,7 @@ describe('resolveInputDisplay', () => {
 
 	it('shows a lone multi selection as its own label', () => {
 		const result = resolveInputDisplay({
-			intl: englishIntl,
+			intl: intlEn,
 			editing: false,
 			query: '',
 			value: ['a'],
@@ -55,7 +55,7 @@ describe('resolveInputDisplay', () => {
 		// shows the middle of a sentence and scrolling right reveals blank space past its end.
 		expect(
 			resolveInputDisplay({
-				intl: englishIntl,
+				intl: intlEn,
 				editing: false,
 				query: '',
 				value: ['a', 'b'],
@@ -66,7 +66,7 @@ describe('resolveInputDisplay', () => {
 
 		expect(
 			resolveInputDisplay({
-				intl: englishIntl,
+				intl: intlEn,
 				editing: false,
 				query: '',
 				value: ['a', 'b', 'c', 'd'],
@@ -82,7 +82,7 @@ describe('resolveInputDisplay', () => {
 		// codes" is fine; in a row of six filters it says how many of nothing in particular.
 		expect(
 			resolveInputDisplay({
-				intl: englishIntl,
+				intl: intlEn,
 				editing: false,
 				query: '',
 				value: ['12345', '84045'],
@@ -96,7 +96,7 @@ describe('resolveInputDisplay', () => {
 	it('summarizes with no displayValue too, which is the case that can only count', () => {
 		expect(
 			resolveInputDisplay({
-				intl: englishIntl,
+				intl: intlEn,
 				editing: false,
 				query: '',
 				value: ['a', 'b'],
@@ -112,7 +112,7 @@ describe('resolveInputDisplay', () => {
 		// instead of holding a summary the next keystroke must displace.
 		expect(
 			resolveInputDisplay({
-				intl: englishIntl,
+				intl: intlEn,
 				editing: false,
 				query: '',
 				value: ['12345', '84045'],
@@ -126,7 +126,7 @@ describe('resolveInputDisplay', () => {
 		// The summary is what replaces a list too long to read; one label is not that.
 		expect(
 			resolveInputDisplay({
-				intl: englishIntl,
+				intl: intlEn,
 				editing: false,
 				query: '',
 				value: ['12345'],
@@ -141,7 +141,7 @@ describe('resolveInputDisplay', () => {
 		// Empty rather than "0 postal codes", which is what lets the placeholder through.
 		expect(
 			resolveInputDisplay({
-				intl: englishIntl,
+				intl: intlEn,
 				editing: false,
 				query: '',
 				value: [],
@@ -154,7 +154,7 @@ describe('resolveInputDisplay', () => {
 
 	it('counts in multi-select mode when there is no displayValue', () => {
 		const result = resolveInputDisplay({
-			intl: englishIntl,
+			intl: intlEn,
 			editing: false,
 			query: '',
 			value: ['a', 'b'],
@@ -166,7 +166,7 @@ describe('resolveInputDisplay', () => {
 
 	it('returns an empty string for an empty multi selection', () => {
 		const result = resolveInputDisplay({
-			intl: englishIntl,
+			intl: intlEn,
 			editing: false,
 			query: '',
 			value: [],
@@ -180,7 +180,7 @@ describe('resolveInputDisplay', () => {
 
 	it('shows the query over a multi selection while editing', () => {
 		const result = resolveInputDisplay({
-			intl: englishIntl,
+			intl: intlEn,
 			editing: false,
 			query: 'typ',
 			value: ['a', 'b'],
@@ -195,7 +195,7 @@ describe('resolveInputDisplay', () => {
 		// `editing`, so the summary comes back between picks.
 		expect(
 			resolveInputDisplay({
-				intl: englishIntl,
+				intl: intlEn,
 				editing: true,
 				query: 'typ',
 				value: ['a', 'b'],
@@ -207,7 +207,7 @@ describe('resolveInputDisplay', () => {
 
 	it('returns an empty string when there is no value', () => {
 		const result = resolveInputDisplay<string>({
-			intl: englishIntl,
+			intl: intlEn,
 			editing: false,
 			query: '',
 			value: undefined,
@@ -220,7 +220,7 @@ describe('resolveInputDisplay', () => {
 
 	it('returns an empty string when there is no displayValue', () => {
 		const result = resolveInputDisplay({
-			intl: englishIntl,
+			intl: intlEn,
 			editing: false,
 			query: '',
 			value: 'x',

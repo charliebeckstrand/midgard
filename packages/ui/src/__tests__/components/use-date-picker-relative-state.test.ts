@@ -2,10 +2,10 @@ import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { defaultRelativePresets } from '../../components/date-picker/date-picker-relative-utilities'
 import { useDatePickerRelativeState } from '../../components/date-picker/use-date-picker-relative-state'
-import { englishIntl } from '../../primitives/intl/intl-catalog'
+import { intlEn } from '../../primitives/intl/intl-catalog'
 import { attach, makeKeyEvent } from '../helpers'
 
-const [today, yesterday] = defaultRelativePresets(englishIntl)
+const [today, yesterday] = defaultRelativePresets(intlEn)
 
 if (!today || !yesterday) throw new Error('The default presets changed.')
 

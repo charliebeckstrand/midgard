@@ -7,7 +7,7 @@ import {
 	describeReturn,
 	kanbanAnnouncements,
 } from '../../modules/kanban/engine/kanban-announcements'
-import { englishIntl } from '../../primitives/intl/intl-catalog'
+import { intlEn } from '../../primitives/intl/intl-catalog'
 
 type Card = { id: string }
 
@@ -29,7 +29,7 @@ const at = (id: string) => ({ id }) as Active & Over
 /** The announcements while the columns of the last commit are `columns`. */
 const announce = (columns: Column[]) =>
 	kanbanAnnouncements(
-		englishIntl,
+		intlEn,
 		() => columns,
 		() => start,
 		(card: Card) => card.id,
@@ -101,18 +101,18 @@ describe('the sentences of a move', () => {
 	const slot = { columnId: 'done', position: 2, count: 3 }
 
 	it('names a card with no slot by its name only', () => {
-		expect(describeCard(englishIntl, names, 'a', null)).toBe('A')
+		expect(describeCard(intlEn, names, 'a', null)).toBe('A')
 	})
 
 	it('names a card with its position and its column', () => {
-		expect(describeCard(englishIntl, names, 'a', slot)).toBe('A, position 2 of 3 in Done')
+		expect(describeCard(intlEn, names, 'a', slot)).toBe('A, position 2 of 3 in Done')
 	})
 
 	it('gives one sentence for a move in the column and across the board', () => {
-		expect(describeMove(englishIntl, names, 'a', slot)).toBe('A moved to position 2 of 3 in Done.')
+		expect(describeMove(intlEn, names, 'a', slot)).toBe('A moved to position 2 of 3 in Done.')
 	})
 
 	it('returns a card with no slot by its name only', () => {
-		expect(describeReturn(englishIntl, names, 'a', null)).toBe('Returned A.')
+		expect(describeReturn(intlEn, names, 'a', null)).toBe('Returned A.')
 	})
 })

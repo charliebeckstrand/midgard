@@ -5,7 +5,7 @@ import {
 	buildRowGroupMenu,
 } from '../../modules/grid/grid-context-menu-utilities'
 import type { GridMenuItem } from '../../modules/grid/types'
-import { englishIntl, localeIntl } from '../../primitives/intl/intl-catalog'
+import { intlEn, intlEs } from '../../primitives/intl/intl-catalog'
 
 /** The rows of a menu by label, and each separator as `---`. */
 const shape = (items: GridMenuItem[]) =>
@@ -13,7 +13,7 @@ const shape = (items: GridMenuItem[]) =>
 
 const rowArgs = {
 	expanded: true,
-	intl: englishIntl,
+	intl: intlEn,
 	manageLabel: 'Manage rows',
 	onManage: vi.fn(),
 	onToggle: vi.fn(),
@@ -59,7 +59,7 @@ describe('the Clear color item of the group menus', () => {
 		const row = buildRowGroupMenu({ ...rowArgs, color: 'blue', onClearColor }).at(-1)
 
 		const column = buildColumnGroupMenu({
-			intl: englishIntl,
+			intl: intlEn,
 			group: { id: 'g', title: 'G', columns: [], color: 'blue' },
 			onClearColor,
 			chooseColumns: null,
@@ -72,7 +72,7 @@ describe('the Clear color item of the group menus', () => {
 
 describe('the group menus in a locale', () => {
 	it('labels the row-group menu in the language of the intl', () => {
-		const items = buildRowGroupMenu({ ...rowArgs, intl: localeIntl('es-ES'), color: 'blue' })
+		const items = buildRowGroupMenu({ ...rowArgs, intl: intlEs, color: 'blue' })
 
 		expect(shape(items)).toEqual([
 			'Manage rows',

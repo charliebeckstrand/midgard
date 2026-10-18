@@ -10,7 +10,7 @@ import {
 	KanbanColumnHeader,
 	KanbanColumnTitle,
 } from '../../modules/kanban'
-import { englishIntl } from '../../primitives/intl/intl-catalog'
+import { intlEn } from '../../primitives/intl/intl-catalog'
 import { reorderMessages } from '../../primitives/intl/intl-reorder'
 import { LocaleProvider } from '../../providers/locale'
 import {
@@ -803,9 +803,7 @@ describe('Kanban drag instructions', () => {
 
 		const instructions = document.getElementById(handle.getAttribute('aria-describedby') ?? '')
 
-		expect(instructions).toHaveTextContent(
-			englishIntl.formatMessage(reorderMessages.liftInstructions),
-		)
+		expect(instructions).toHaveTextContent(intlEn.formatMessage(reorderMessages.liftInstructions))
 	})
 })
 

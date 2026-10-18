@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext } from '../../core'
-import { englishIntl } from './intl-catalog'
+import { intlEn } from './intl-catalog'
 import type { IntlShape } from './types'
 
 /**
@@ -12,5 +12,5 @@ import type { IntlShape } from './types'
  * @internal
  */
 export const [IntlContext, useIntlContext] = createContext<IntlShape>('Intl', {
-	default: englishIntl,
+	default: intlEn,
 })

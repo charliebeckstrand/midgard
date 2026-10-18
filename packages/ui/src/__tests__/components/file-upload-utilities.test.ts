@@ -7,7 +7,7 @@ import {
 	partitionFiles,
 	selectionSummary,
 } from '../../components/file-upload/file-upload-utilities'
-import { englishIntl, localeIntl } from '../../primitives/intl/intl-catalog'
+import { intlEn, intlEs } from '../../primitives/intl/intl-catalog'
 import { makeFileList } from '../helpers/make-file-list'
 
 // File.size is the byte length of its parts; a string of length n yields size n.
@@ -59,15 +59,15 @@ describe('formatFileNames', () => {
 
 describe('selectionSummary', () => {
 	it('returns undefined when no files are provided', () => {
-		expect(selectionSummary(englishIntl, [], true)).toBeUndefined()
+		expect(selectionSummary(intlEn, [], true)).toBeUndefined()
 	})
 
 	it('returns the lone filename for a single-file selection', () => {
 		const file = new File(['x'], 'report.pdf')
 
-		expect(selectionSummary(englishIntl, [file], false)).toBe('report.pdf')
+		expect(selectionSummary(intlEn, [file], false)).toBe('report.pdf')
 
-		expect(selectionSummary(englishIntl, [file], true)).toBe('report.pdf')
+		expect(selectionSummary(intlEn, [file], true)).toBe('report.pdf')
 	})
 
 	it('joins names when multiple files are selected but multiple is falsy', () => {
@@ -75,7 +75,7 @@ describe('selectionSummary', () => {
 
 		const b = new File(['b'], 'b.txt')
 
-		expect(selectionSummary(englishIntl, [a, b], false)).toBe('a.txt, b.txt')
+		expect(selectionSummary(intlEn, [a, b], false)).toBe('a.txt, b.txt')
 	})
 
 	it('summarizes as "x files selected" once multiple yields more than one file', () => {
@@ -85,9 +85,9 @@ describe('selectionSummary', () => {
 
 		const c = new File(['c'], 'c.txt')
 
-		expect(selectionSummary(englishIntl, [a, b, c], true)).toBe('3 files selected')
+		expect(selectionSummary(intlEn, [a, b, c], true)).toBe('3 files selected')
 
-		expect(selectionSummary(localeIntl('es-ES'), [a, b, c], true)).toBe('3 archivos seleccionados')
+		expect(selectionSummary(intlEs, [a, b, c], true)).toBe('3 archivos seleccionados')
 	})
 })
 

@@ -10,7 +10,7 @@ import {
 	describeSettle,
 } from '../../modules/grid/engine/grid-announcements'
 import { GRID_STATUS_DEBOUNCE_MS } from '../../modules/grid/engine/grid-constants'
-import { englishIntl, localeIntl } from '../../primitives/intl/intl-catalog'
+import { intlEn, intlEs } from '../../primitives/intl/intl-catalog'
 import {
 	expectAnnouncement,
 	fireEvent,
@@ -211,47 +211,45 @@ describe('Grid announcements', () => {
  */
 describe('Grid announcement builders', () => {
 	it('describes a pin to each edge and an unpin', () => {
-		expect(describePin(englishIntl, 'Name', 'left')).toBe('Pinned Name to the left')
+		expect(describePin(intlEn, 'Name', 'left')).toBe('Pinned Name to the left')
 
-		expect(describePin(englishIntl, 'Name', 'right')).toBe('Pinned Name to the right')
+		expect(describePin(intlEn, 'Name', 'right')).toBe('Pinned Name to the right')
 
-		expect(describePin(englishIntl, 'Name', false)).toBe('Unpinned Name')
+		expect(describePin(intlEn, 'Name', false)).toBe('Unpinned Name')
 	})
 
 	it('describes a show and a hide', () => {
-		expect(describeColumnVisibility(englishIntl, 'Age', true)).toBe('Hid Age column')
+		expect(describeColumnVisibility(intlEn, 'Age', true)).toBe('Hid Age column')
 
-		expect(describeColumnVisibility(englishIntl, 'Age', false)).toBe('Showed Age column')
+		expect(describeColumnVisibility(intlEn, 'Age', false)).toBe('Showed Age column')
 	})
 
 	it('describes a settled resize, rounding the width', () => {
-		expect(describeResize(englishIntl, 'Name', 240.6)).toBe('Name column 241 pixels')
+		expect(describeResize(intlEn, 'Name', 240.6)).toBe('Name column 241 pixels')
 	})
 
 	it('describes a commit by its column and its row', () => {
-		expect(describeCommit(englishIntl, ['Name'], 'Alice')).toBe('Name updated for Alice')
+		expect(describeCommit(intlEn, ['Name'], 'Alice')).toBe('Name updated for Alice')
 
-		expect(describeCommit(englishIntl, ['Name', 'Age'], 'Alice')).toBe('2 cells updated for Alice')
+		expect(describeCommit(intlEn, ['Name', 'Age'], 'Alice')).toBe('2 cells updated for Alice')
 
 		// Cells across rows name no row.
-		expect(describeCommit(englishIntl, ['Name', 'Name', 'Age'])).toBe('3 cells updated')
+		expect(describeCommit(intlEn, ['Name', 'Name', 'Age'])).toBe('3 cells updated')
 	})
 
 	it('describes a settled batch, accepted, refused, or both', () => {
-		expect(describeSettle(englishIntl, ['Name'], [], 'row 1')).toBe('Name updated for row 1')
+		expect(describeSettle(intlEn, ['Name'], [], 'row 1')).toBe('Name updated for row 1')
 
-		expect(describeSettle(englishIntl, [], ['Name', 'Age'], 'row 1')).toBe(
-			'2 cells not saved for row 1',
-		)
+		expect(describeSettle(intlEn, [], ['Name', 'Age'], 'row 1')).toBe('2 cells not saved for row 1')
 
-		expect(describeSettle(englishIntl, ['Age'], ['Name'], 'row 1')).toBe(
+		expect(describeSettle(intlEn, ['Age'], ['Name'], 'row 1')).toBe(
 			'Age updated, Name not saved for row 1',
 		)
 	})
 })
 
 describe('grid announcements in a locale', () => {
-	const intl = localeIntl('es')
+	const intl = intlEs
 
 	it('speaks the selection and the save in the language of the intl', () => {
 		expect(describeSelection(intl, 3, false, false)).toBe('3 filas seleccionadas')
