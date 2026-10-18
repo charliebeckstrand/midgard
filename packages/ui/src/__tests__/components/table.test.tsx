@@ -4,6 +4,7 @@ import {
 	TableBody,
 	TableCaption,
 	TableCell,
+	TableEmpty,
 	TableFoot,
 	TableHead,
 	TableHeader,
@@ -11,6 +12,7 @@ import {
 	TableRow,
 } from '../../components/table'
 import { DensityProvider } from '../../providers/density'
+import { LocaleProvider } from '../../providers/locale'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Table', () => {
@@ -328,5 +330,39 @@ describe('TableLoading', () => {
 		)
 
 		expect(bySlot(container, 'table-body')).toHaveAttribute('aria-busy', 'true')
+	})
+})
+
+describe('TableEmpty', () => {
+	it('shows the default empty message in the language of the locale', () => {
+		const { rerender } = renderUI(
+			<Table>
+				<TableEmpty columns={2} />
+			</Table>,
+		)
+
+		expect(screen.getByText('No items')).toBeInTheDocument()
+
+		rerender(
+			<LocaleProvider locale="es">
+				<Table>
+					<TableEmpty columns={2} />
+				</Table>
+			</LocaleProvider>,
+		)
+
+		expect(screen.getByText('Sin elementos')).toBeInTheDocument()
+	})
+
+	it('shows its own content in place of the default message', () => {
+		renderUI(
+			<Table>
+				<TableEmpty columns={2}>Nothing yet</TableEmpty>
+			</Table>,
+		)
+
+		expect(screen.getByText('Nothing yet')).toBeInTheDocument()
+
+		expect(screen.queryByText('No items')).not.toBeInTheDocument()
 	})
 })

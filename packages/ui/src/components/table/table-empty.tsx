@@ -1,10 +1,20 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
+import { IntlMessage } from '../../primitives/intl/intl-message'
+import { defineMessages } from '../../primitives/intl/intl-messages'
 import { k } from '../../recipes/kata/table'
 import { Alert } from '../alert'
 import { TableBody } from './table-body'
 import { TableCell } from './table-cell'
 import { TableRow } from './table-row'
+
+const messages = defineMessages({
+	noItems: {
+		id: 'ui.table.noItems',
+		defaultMessage: 'No items',
+		description: 'The title of the empty state of a table that has no rows.',
+	},
+})
 
 /** Props for {@link TableEmpty}: the `columns` count to span, and optional placeholder `children`. */
 export type TableEmptyProps = {
@@ -12,13 +22,16 @@ export type TableEmptyProps = {
 	columns: number
 	/**
 	 * The content of the empty row.
-	 * @defaultValue A soft {@link Alert} at full width, with the title "No items".
+	 * @defaultValue A soft {@link Alert} at full width, with the title "No items"
+	 * in the language of the reader.
 	 */
 	children?: ReactNode
 }
 
 /** @internal A default empty-state alert for {@link TableEmpty}. */
-const TableEmptyAlert = () => <Alert variant="soft" title="No items" className="w-full" />
+const TableEmptyAlert = () => (
+	<Alert variant="soft" title={<IntlMessage message={messages.noItems} />} className="w-full" />
+)
 
 /**
  * Empty-state body for a {@link Table}: a single row whose cell spans all
