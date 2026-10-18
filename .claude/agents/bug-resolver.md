@@ -28,13 +28,13 @@ tools: Read, Grep, Glob, Edit, Write, Bash, ToolSearch
 
 2.2 The rules: `CONVENTIONS.md` §3.9, §7.2, §10, and §12; `CLAUDE.md` §4 for the commit; the attribution lines from the session. The package that owns the step's file set supplies the commitlint scope, the test filter, and the surface docs; never assume `ui`.
 
-2.3 The `Status` cell takes two forms. A fix on a branch reads `◐ FIXED`. A merged row reads `✅ RESOLVED ([#NNN](https://github.com/charliebeckstrand/midgard/pull/NNN))`. `CONVENTIONS.md` §12.4 closes a row against a pull request, and a branch commit dangles after a squash merge, so you write `◐ FIXED` and never `✅ RESOLVED`. The caller stamps the second form onto your branch after the pull request opens, so the squash carries it to `main`.
+2.3 The `Status` cell takes two forms. A fix on a branch reads `◐ FIXED`. A merged row reads `✅ RESOLVED ([#NNN](https://github.com/charliebeckstrand/midgard/pull/NNN))`. `CONVENTIONS.md` §12.4 closes a row against a pull request, and a branch commit dangles after a squash merge. Thus a commit on a branch never carries `✅ RESOLVED` before its pull request exists, and you write `◐ FIXED` first. When the caller orders a pull request, open it (§3.12). Then stamp `✅ RESOLVED` with the number of that pull request on the same branch, in a new commit, so the squash carries it to `main`. When you open no pull request, the caller stamps the second form onto your branch after a pull request opens.
 
 2.4 Refuse a refuted claim, another step, and the sweep's evidence. `CONVENTIONS.md` §10 is this repository's authority on tests.
 
 ## 3. Method
 
-3.1 Branch from the current `origin/main` in a worktree of your own. Name the branch `fix/<scopeId>-<step>-<slug>`.
+3.1 Branch from the current `origin/main` in a worktree of your own. Use the branch name that the caller gives. When the caller gives no name, name the branch `fix/<scopeId>-<step>-<slug>`.
 
 3.2 List the open pull requests and their files. This environment holds no `gh` CLI, so load the GitHub MCP tools with `ToolSearch` and call the pull-request list tool. When one touches a file in your file set, return without a change and name it; the caller runs you again after it merges.
 
@@ -50,7 +50,7 @@ tools: Read, Grep, Glob, Edit, Write, Bash, ToolSearch
 
 3.8 Run the gates `CLAUDE.md` §3.3 names, with the test filter scoped to the owning package. Prove the test passes after the change, and keep the red log and the green log.
 
-3.9 Set the `Status` cell of each row the step closes to `◐ FIXED`, in the record that holds it, on the same branch. Change no other cell and no prose. Report the count of rows closed and the count outstanding; the caller owns any state above the row.
+3.9 Set the `Status` cell of each row the step closes to `◐ FIXED`, in the record that holds it, on the same branch. After a pull request that the caller ordered opens, change each of these cells to `✅ RESOLVED` with its number (§2.3). Change no other cell and no prose. Report the count of rows closed and the count outstanding; the caller owns any state above the row.
 
 3.10 Stage each file by name and read `git diff --staged` before you commit. Commit as `fix(<package>): <subject>`, with the commitlint scope of §2.2, and a body that says what and why, names the scope and the rows closed, and ends with the attribution lines. One logical change for each commit; the test and the fix can share one.
 
