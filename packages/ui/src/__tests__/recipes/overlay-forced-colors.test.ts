@@ -1,6 +1,8 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
+import { k as grid } from '../../recipes/kata/grid'
 import { k as menu } from '../../recipes/kata/menu'
+import { k as resizable } from '../../recipes/kata/resizable'
 import { k as tooltip } from '../../recipes/kata/tooltip'
 import { omote } from '../../recipes/kiso/omote'
 import { panel } from '../../recipes/kiso/panel'
@@ -42,5 +44,39 @@ describe('overlay family under forced colors', () => {
 		)
 
 		expect(restores).toBe(true)
+	})
+})
+
+/**
+ * Under forced colors, each resize grip keeps its shape and its focus mark.
+ *
+ * The grip is a bar that the reader sees only by its background, and the grip
+ * color is the only focus mark of its handle. Forced colors remove both, so the
+ * bar paints in `CanvasText` and the focused handle outlines the bar. The focus
+ * color of the bar outranks the bare shape class, so the shape repeats under focus.
+ */
+describe('resize grips under forced colors', () => {
+	const grips: [string, unknown, string][] = [
+		['the horizontal Resizable grip', [resizable.grip.base, resizable.grip.horizontal], 'handle'],
+		['the vertical Resizable grip', [resizable.grip.base, resizable.grip.vertical], 'handle'],
+		['the Grid column resize grip', grid.resize.grip, 'grid-resize'],
+	]
+
+	it.each(grips)('keeps the shape of %s', (_name, grip) => {
+		expect(classNames([grip])).toContain('forced-colors:bg-[CanvasText]')
+	})
+
+	it.each(grips)('keeps and outlines %s when its handle has focus', (_name, grip, group) => {
+		const focus = `forced-colors:group-focus-visible/${group}:`
+
+		expect(classNames([grip])).toEqual(
+			expect.arrayContaining([
+				`${focus}outline-solid`,
+				`${focus}outline-2`,
+				`${focus}outline-offset-2`,
+				`${focus}outline-[Highlight]`,
+				`${focus}bg-[CanvasText]`,
+			]),
+		)
 	})
 })

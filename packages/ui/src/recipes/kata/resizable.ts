@@ -1,5 +1,5 @@
 import { defineRecipe, mode } from '../../core/recipe'
-import { kasane, narabi } from '../kiso'
+import { kasane, narabi, sen } from '../kiso'
 
 const { rounded } = kasane
 const { flex } = narabi
@@ -26,6 +26,13 @@ export const k = {
 				'dark:bg-zinc-600 dark:group-hover/handle:bg-zinc-500',
 			),
 			'group-focus-visible/handle:bg-blue-500 dark:group-focus-visible/handle:bg-blue-500',
+			sen.forced.shape,
+			// Forced colors remove the focus color of the grip. This outline on the bar
+			// marks the focused handle there, as `kiso/panel/grip.ts` FOCUS does. The
+			// focus color outranks the shape, so the shape repeats under the focus.
+			'forced-colors:group-focus-visible/handle:bg-[CanvasText]',
+			'forced-colors:group-focus-visible/handle:outline-solid forced-colors:group-focus-visible/handle:outline-2',
+			'forced-colors:group-focus-visible/handle:outline-offset-2 forced-colors:group-focus-visible/handle:outline-[Highlight]',
 		],
 		horizontal: 'h-6 w-0.5',
 		vertical: 'w-6 h-0.5',
