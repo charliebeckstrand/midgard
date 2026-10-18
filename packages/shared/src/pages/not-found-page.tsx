@@ -1,26 +1,42 @@
 import type { Metadata } from 'next'
+import { defineMessages, IntlMessage } from 'ui/primitives/intl'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
+
+const messages = defineMessages({
+	body: {
+		id: 'shared.notFound.body',
+		defaultMessage: 'This page could not be found',
+		description: 'The text under the 404 of the page of a path that has no route.',
+	},
+})
 
 /**
  * Page of a path that has no route, or of a page that calls `notFound()`.
  *
  * @remarks
  * Each app re-exports it as the default export of its `app/not-found.tsx`,
- * and re-exports {@link notFoundMetadata} as the `metadata` of the page.
+ * and re-exports {@link notFoundMetadata} as the `metadata` of the page. The
+ * page is a server component, so it shows its text through `IntlMessage`, in
+ * the language of the reader.
  */
 export function NotFoundPage() {
 	return (
 		<Flex justify="center" align="center" className="min-h-dvh grow">
 			<Stack align="center" gap="sm" className="px-4 text-center text-xl dark:text-white">
 				<div className="text-3xl font-black">404</div>
-				<div className="font-light text-gray-400">This page could not be found</div>
+				<div className="font-light text-gray-400">
+					<IntlMessage message={messages.body} />
+				</div>
 			</Stack>
 		</Flex>
 	)
 }
 
-/** The `metadata` of {@link NotFoundPage}. */
+/**
+ * The `metadata` of {@link NotFoundPage}. A static `metadata` cannot read the
+ * locale of the reader, so the title stays in English.
+ */
 export const notFoundMetadata: Metadata = {
 	title: '404 - Page Not Found',
 }

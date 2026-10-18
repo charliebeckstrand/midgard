@@ -1,7 +1,7 @@
 'use client'
 
 import { Download, SlidersHorizontal } from 'lucide-react'
-import { type ReactNode, useState } from 'react'
+import { type ReactNode, useRef, useState } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { LoadingSpinner } from '../../components/loading'
@@ -11,6 +11,7 @@ import { ariaAttr, cn, dataAttr } from '../../core'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
+import { getTabbableElements } from '../../utilities/focusable-selector'
 import type { GridExportAction } from './engine/grid-export/types'
 import { gridMessages } from './engine/grid-messages'
 import { preloadGridDataDialogs } from './grid-data-dialogs'
@@ -115,6 +116,26 @@ function GridExportMenu({ exportActions, exporting }: GridExportMenuProps) {
 }
 
 /**
+ * The element that takes focus from "Clear filters": the search field of the
+ * toolbar when it has one, else the first Tab stop of the table that follows
+ * the toolbar. The button unmounts in the commit that clears the filters, so
+ * the browser drops focus to `body` unless it moves first (WCAG 2.4.3).
+ *
+ * @internal
+ */
+function clearFiltersFocusTarget(toolbar: HTMLElement): HTMLElement | undefined {
+	const search = toolbar.querySelector<HTMLElement>('[data-slot="grid-filter"] input')
+
+	if (search) return search
+
+	return getTabbableElements(toolbar.closest('[data-slot="grid"]')).find(
+		(element) =>
+			element.closest('table') !== null &&
+			Boolean(toolbar.compareDocumentPosition(element) & Node.DOCUMENT_POSITION_FOLLOWING),
+	)
+}
+
+/**
  * The Grid's toolbar region: the single place its above-table controls are
  * assembled. The top row carries the quick-search field at the start, and a
  * "Table tools" cluster at the end. While a column filter constrains rows, an
@@ -150,6 +171,8 @@ export function GridToolbar({
 }: GridToolbarProps) {
 	const intl = useIntl()
 
+	const toolbarRef = useRef<HTMLDivElement>(null)
+
 	const showExport = exportActions.length > 0
 
 	const showTools = showColumnManager || showExport
@@ -163,7 +186,7 @@ export function GridToolbar({
 	if (!showTopRow && !showBatch) return null
 
 	return (
-		<div data-slot="grid-toolbar" className={cn(k.toolbar.base)}>
+		<div ref={toolbarRef} data-slot="grid-toolbar" className={cn(k.toolbar.base)}>
 			{showTopRow && (
 				<div className={cn(k.toolbar.bar)}>
 					{filter && <GridFilter filter={filter} />}
@@ -175,7 +198,12 @@ export function GridToolbar({
 							type="button"
 							variant="soft"
 							color="amber"
-							onClick={() => columnFilters?.clear()}
+							onClick={() => {
+								// Move focus before the clear unmounts this button.
+								if (toolbarRef.current) clearFiltersFocusTarget(toolbarRef.current)?.focus()
+
+								columnFilters?.clear()
+							}}
 						>
 							{intl.formatMessage(gridMessages.clearFilters)}
 						</Button>

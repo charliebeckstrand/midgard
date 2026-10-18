@@ -18,7 +18,16 @@ import {
 	verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { EllipsisVertical, Plus, Trash2 } from 'lucide-react'
-import { memo, type ReactNode, use, useId, useMemo } from 'react'
+import {
+	memo,
+	type ReactNode,
+	type RefObject,
+	use,
+	useId,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+} from 'react'
 import { Button } from '../../components/button'
 import { Card, CardBody, CardHeader } from '../../components/card'
 import { Icon } from '../../components/icon'
@@ -27,6 +36,7 @@ import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../compo
 import { cn, createContext, dataAttr } from '../../core'
 import type { PaletteColor } from '../../core/recipe'
 import { useDragCursor, useSortableItem, useSortableSensors } from '../../hooks'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { useStableValue } from '../../hooks/use-stable-value'
 import { IntlMessage } from '../../primitives/intl/intl-message'
 import { intlMessages } from '../../primitives/intl/intl-messages'
@@ -299,6 +309,45 @@ export function GridGroupManager({
 		sameElements,
 	)
 
+	const rootRef = useRef<HTMLDivElement>(null)
+
+	const newGroupRef = useRef<HTMLButtonElement>(null)
+
+	// The group that Remove group took out, and its index, until the commit that
+	// drops its zone. The focused remove button goes with the zone.
+	const removedRef = useRef<{ id: string | number; index: number } | null>(null)
+
+	const removeGroup = useStableEvent((id: string | number) => {
+		removedRef.current = { id, index: groups.findIndex((group) => group.id === id) }
+
+		manager.removeGroup(id)
+	})
+
+	// The next group's name input takes focus, else the previous one, else New group.
+	useLayoutEffect(() => {
+		const removed = removedRef.current
+
+		removedRef.current = null
+
+		if (!removed || groups.some((group) => group.id === removed.id)) return
+
+		const names = rootRef.current?.querySelectorAll<HTMLInputElement>('[data-group-name]')
+
+		const successor = names?.[removed.index] ?? names?.[removed.index - 1] ?? newGroupRef.current
+
+		successor?.focus()
+	}, [groups])
+
+	// The column whose Move trigger held focus as its row unmounted. A move remounts
+	// the row in another zone, and the new row takes focus back in the same commit.
+	const movedRef = useRef<string | number | null>(null)
+
+	// The rows run their layout effects first, so a record that no row took is
+	// dropped here, and no later mount of that row takes focus.
+	useLayoutEffect(() => {
+		movedRef.current = null
+	})
+
 	const shared = {
 		byId,
 		visibleColumnIds,
@@ -307,8 +356,9 @@ export function GridGroupManager({
 		onToggle,
 		renameGroup: manager.renameGroup,
 		recolorGroup: manager.recolorGroup,
-		removeGroup: manager.removeGroup,
+		removeGroup,
 		assign: manager.assign,
+		movedRef,
 	}
 
 	const intl = useIntl()
@@ -337,7 +387,7 @@ export function GridGroupManager({
 				onDragEnd={manager.handleDragEnd}
 				onDragCancel={manager.handleDragCancel}
 			>
-				<div className={cn(k.manager.base)}>
+				<div ref={rootRef} className={cn(k.manager.base)}>
 					{ungroupedZone && (
 						<GridGroupManagerZoneView
 							zone={ungroupedZone}
@@ -365,7 +415,13 @@ export function GridGroupManager({
 						)}
 					</SortableContext>
 
-					<Button type="button" variant="soft" onClick={manager.addGroup} className="self-start">
+					<Button
+						ref={newGroupRef}
+						type="button"
+						variant="soft"
+						onClick={manager.addGroup}
+						className="self-start"
+					>
 						<Icon icon={<Plus />} />
 						{intl.formatMessage(gridMessages.newGroup)}
 					</Button>
@@ -403,6 +459,8 @@ type GridGroupManagerZoneViewProps = {
 	recolorGroup: (id: string | number, color: PaletteColor | undefined) => void
 	removeGroup: (id: string | number) => void
 	assign: (columnId: string | number, groupId: string | number | null) => void
+	/** The column whose Move trigger held focus as its row unmounted. */
+	movedRef: RefObject<string | number | null>
 	/** The group-reorder drag handle, placed ahead of the name Input; absent on the ungrouped pool. */
 	handle?: ReactNode
 }
@@ -449,6 +507,7 @@ function GridGroupManagerZoneView({
 	recolorGroup,
 	removeGroup,
 	assign,
+	movedRef,
 	handle,
 }: GridGroupManagerZoneViewProps) {
 	const intl = useIntl()
@@ -528,6 +587,7 @@ function GridGroupManagerZoneView({
 										hidden={hidden}
 										onToggle={onToggle}
 										assign={assign}
+										movedRef={movedRef}
 									/>
 								)
 							})}
@@ -570,6 +630,7 @@ function GridGroupManagerZoneHeader({
 
 			<Input
 				className={cn(k.manager.zone.name)}
+				data-group-name=""
 				aria-label={intl.formatMessage(gridMessages.groupNameFor, { group: label })}
 				placeholder={intl.formatMessage(gridMessages.groupName)}
 				value={typeof group.title === 'string' ? group.title : ''}
@@ -605,6 +666,8 @@ type GridGroupManagerColumnRowProps = {
 	hidden: Set<string | number>
 	onToggle: (id: string | number) => void
 	assign: (columnId: string | number, groupId: string | number | null) => void
+	/** The column whose Move trigger held focus as its row unmounted. */
+	movedRef: RefObject<string | number | null>
 }
 
 /**
@@ -621,6 +684,7 @@ const GridGroupManagerColumnRow = memo(function GridGroupManagerColumnRow({
 	hidden,
 	onToggle,
 	assign,
+	movedRef,
 }: GridGroupManagerColumnRowProps) {
 	// The shared sortable hides the source row (`opacity: 0`) while it drags, and
 	// the editor's `<DragOverlay>` stands in, as in List and Kanban.
@@ -630,6 +694,27 @@ const GridGroupManagerColumnRow = memo(function GridGroupManagerColumnRow({
 	const intl = useIntl()
 
 	const label = columnLabel(item)
+
+	const moveRef = useRef<HTMLButtonElement>(null)
+
+	// A Move item moves the row into the list of another zone, so React mounts it
+	// again, and the focused trigger leaves the document. The old row records its
+	// column as it unmounts, and the new row takes focus on its trigger.
+	useLayoutEffect(() => {
+		const trigger = moveRef.current
+
+		if (!movable || !trigger) return
+
+		if (movedRef.current === item.id) {
+			movedRef.current = null
+
+			trigger.focus()
+		}
+
+		return () => {
+			if (trigger.contains(document.activeElement)) movedRef.current = item.id
+		}
+	}, [movable, movedRef, item.id])
 
 	return (
 		<li
@@ -660,6 +745,7 @@ const GridGroupManagerColumnRow = memo(function GridGroupManagerColumnRow({
 				<Menu placement="bottom-end">
 					<MenuTrigger>
 						<Button
+							ref={moveRef}
 							type="button"
 							variant="bare"
 							aria-label={intl.formatMessage(reorderMessages.moveHandle, { item: label })}

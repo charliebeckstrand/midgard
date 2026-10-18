@@ -1,3 +1,7 @@
 {
-	"shared.mutation.failed": "Algo salió mal"
+	"shared.error.body": "No se pudo cargar la página. Vuelve a intentarlo pronto.",
+	"shared.error.retry": "Volver a intentar",
+	"shared.error.title": "Algo salió mal",
+	"shared.mutation.failed": "Algo salió mal",
+	"shared.notFound.body": "No se encontró esta página"
 }

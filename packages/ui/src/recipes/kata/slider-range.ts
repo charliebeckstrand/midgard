@@ -53,6 +53,10 @@ const thumb = defineRecipe({
 		'data-invalid:ring-2 data-invalid:ring-red-600',
 		'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-600',
 		'dark:focus-visible:ring-blue-500',
+		// Forced colors remove the ring, and `forced.mark` paints each thumb in
+		// `Highlight`. This outset outline marks the focused thumb there.
+		'forced-colors:focus-visible:outline-solid forced-colors:focus-visible:outline-2',
+		'forced-colors:focus-visible:outline-offset-2 forced-colors:focus-visible:outline-[Highlight]',
 		dan.size.thumb.base,
 	],
 })
