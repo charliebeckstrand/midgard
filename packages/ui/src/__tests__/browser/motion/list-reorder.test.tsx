@@ -70,6 +70,42 @@ describe('List pointer reorder (real browser)', () => {
 
 		expect(first.getAttribute('aria-describedby')).toBeTruthy()
 	})
+
+	// The drop maps keys back to items. Each item must reach `onReorder` whole,
+	// also when the item is an array, such as an `Object.entries` tuple.
+	it('reports each tuple item whole on the drop', async () => {
+		const onReorder = vi.fn()
+
+		const entries = Object.entries({ a: 'Alpha', b: 'Bravo', c: 'Charlie' })
+
+		const { container } = renderUI(
+			<List items={entries} getKey={([key]) => key} onReorder={onReorder}>
+				{([, label]) => <ListItem>{label}</ListItem>}
+			</List>,
+		)
+
+		const list = getSlot(container, 'list')
+
+		const [first, second] = allBySlot(list, 'list-item')
+
+		if (!first || !second) throw new Error('expected rows')
+
+		const held = await dragDown(first, second)
+
+		await expect
+			.poll(() => allBySlot(list, 'list-item').map((row) => row.dataset.itemId))
+			.toEqual(['b', 'a', 'c'])
+
+		await held.release()
+
+		await expect.poll(() => onReorder.mock.calls.length).toBe(1)
+
+		expect(onReorder.mock.calls[0]?.[0]).toEqual([
+			['b', 'Bravo'],
+			['a', 'Alpha'],
+			['c', 'Charlie'],
+		])
+	})
 	it('puts the rows back and reports nothing when Escape cancels the drag', async () => {
 		const onReorder = vi.fn()
 
