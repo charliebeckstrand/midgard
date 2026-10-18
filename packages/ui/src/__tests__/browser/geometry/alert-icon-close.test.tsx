@@ -6,10 +6,10 @@ import { present, renderUI } from '../../helpers'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
- * The leading icon and the close button of an Alert line up with the title.
- * The title and the icon of an Alert take the step of the nearest density
- * scope, so the icon stays on the line of the title at each step. The close
- * button sits on the title row, also when the description wraps to more lines.
+ * The leading icon of an Alert lines up with the title. The title and the icon
+ * of an Alert take the step of the nearest density scope, so the icon stays on
+ * the line of the title at each step. The close button is centered on the
+ * height of the alert, also when the description wraps to more lines.
  */
 
 const LONG =
@@ -80,7 +80,7 @@ describe('Alert icon and close button', () => {
 		['Alert', Alert, 'alert'],
 		['Banner', Banner, 'banner'],
 	] as const)(
-		'puts the %s close button on the title row when the description wraps',
+		'centers the %s close button on the surface when the description wraps',
 		(_, Surface, slot) => {
 			const { container } = renderUI(
 				<div className="w-72">
@@ -90,14 +90,12 @@ describe('Alert icon and close button', () => {
 
 			const root = present(container.querySelector(`[data-slot="${slot}"]`), slot)
 
-			const title = present(root.querySelector('[data-slot="icon"] + div'), 'the title')
-
 			const close = boxOf(root, '[data-slot="alert-close"]')
 
-			// The description wraps, so a button in the middle of the surface misses the title.
+			// The description wraps, so the middle of the surface is not on the title row.
 			expect(root.getBoundingClientRect().height).toBeGreaterThan(close.height * 2)
 
-			expect(middleOf(close)).toBeNear(middleOf(title.getBoundingClientRect()), HALF_PIXEL)
+			expect(middleOf(close)).toBeNear(middleOf(root.getBoundingClientRect()), HALF_PIXEL)
 		},
 	)
 })

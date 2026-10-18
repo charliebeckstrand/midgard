@@ -302,11 +302,6 @@ export function Alert({
 		hasContent(title),
 	)
 
-	// A title over more rows holds the close button on the title row. A lone
-	// row centers it, so the button keeps the height of the alert.
-	const multiRow =
-		hasContent(title) && (hasContent(description) || hasContent(actions) || hasContent(children))
-
 	return (
 		<div
 			data-slot={slot}
@@ -330,7 +325,7 @@ export function Alert({
 			</AlertContent>
 
 			{closable && (
-				<div className={cn(k.close.base, multiRow ? k.close.line : 'self-center')}>
+				<div className={cn(k.close)}>
 					<Button
 						// A dismissal writes no field, so a locked scope, such as a
 						// submitting form, leaves it live.
