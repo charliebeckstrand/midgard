@@ -4,6 +4,7 @@ import { composeEventHandlers, createContext } from 'ui/core'
 import { useTimeout } from 'ui/hooks'
 import type { LinkProps } from 'ui/primitives/link'
 import { hasBrowserModifier } from '../../utilities/modifier-keys.ts'
+import { isPrimaryPress } from '../../utilities/primary-press.ts'
 
 /**
  * The `navigate` of the shell. The function of the root route does not change,
@@ -14,7 +15,7 @@ export const [NavigateContext, useShellNavigate] = createContext<NavigateFunctio
 /** A click that the browser handles itself: a click with a modifier key, another button, or another target. */
 function isNativeClick(event: MouseEvent<HTMLAnchorElement>, target: string | undefined) {
 	return (
-		event.button !== 0 ||
+		!isPrimaryPress(event) ||
 		(target !== undefined && target !== '_self') ||
 		hasBrowserModifier(event) ||
 		event.shiftKey

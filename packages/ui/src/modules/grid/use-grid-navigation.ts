@@ -22,6 +22,7 @@ import {
 	noopSubscribe,
 	sameElements,
 } from '../../utilities'
+import { isPrimaryPress } from '../../utilities/primary-press'
 import { FLOATING_PORTAL, NAV_PAGE_STEP } from './engine/grid-constants'
 import { type GridRangeCells, inRangeRect, rangeCells, rangeRect } from './engine/grid-range/range'
 import type { GridCellActivate, GridRowActivate } from './engine/grid-row/bridges'
@@ -883,7 +884,7 @@ export function useGridNavigation({
 
 			// A press of another button, such as the one that opens the context
 			// menu, keeps a range that holds the cell, so the menu can act on it.
-			if (event.button !== 0 && inRangeAt(coord.row, coord.col)) return
+			if (!isPrimaryPress(event) && inRangeAt(coord.row, coord.col)) return
 
 			event.preventDefault()
 
