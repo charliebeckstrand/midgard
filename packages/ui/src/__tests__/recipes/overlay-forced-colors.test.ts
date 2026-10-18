@@ -66,6 +66,26 @@ describe('resize grips under forced colors', () => {
 		expect(classNames([grip])).toContain('forced-colors:bg-[CanvasText]')
 	})
 
+	// A state color of the bar, such as the hover or the drag color, outranks the
+	// bare shape class. Thus each state that paints the bar repeats the shape.
+	it.each(grips)('keeps the shape of %s in each state of its handle', (_name, grip) => {
+		const classes = classNames([grip])
+
+		const states = new Set(
+			classes.flatMap((className) => {
+				const state = /^(?:dark:)?(group-[^:]+):bg-/.exec(className)?.[1]
+
+				return state ? [state] : []
+			}),
+		)
+
+		expect(states.size).toBeGreaterThan(0)
+
+		for (const state of states) {
+			expect(classes).toContain(`forced-colors:${state}:bg-[CanvasText]`)
+		}
+	})
+
 	it.each(grips)('keeps and outlines %s when its handle has focus', (_name, grip, group) => {
 		const focus = `forced-colors:group-focus-visible/${group}:`
 
