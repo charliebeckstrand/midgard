@@ -15,7 +15,7 @@ import {
 	sortableAnnouncements,
 	useSortableList,
 } from '../../hooks/use-sortable-list'
-import { englishIntl, localeIntl } from '../../primitives/intl/intl-catalog'
+import { intlEn, intlEs } from '../../primitives/intl/intl-catalog'
 
 type Item = { id: string; label: string }
 
@@ -256,7 +256,7 @@ describe('useSortableList', () => {
 describe('sortableAnnouncements', () => {
 	const names: Record<string, string> = { a: 'Alpha', b: 'Bravo', c: 'Charlie' }
 
-	const announcements = sortableAnnouncements(englishIntl, ['a', 'b', 'c'], (id) => names[id] ?? id)
+	const announcements = sortableAnnouncements(intlEn, ['a', 'b', 'c'], (id) => names[id] ?? id)
 
 	const active = { id: 'a' } as Active
 
@@ -279,11 +279,7 @@ describe('sortableAnnouncements', () => {
 	})
 
 	it('speaks in the language of the intl', () => {
-		const spanish = sortableAnnouncements(
-			localeIntl('es-ES'),
-			['a', 'b', 'c'],
-			(id) => names[id] ?? id,
-		)
+		const spanish = sortableAnnouncements(intlEs, ['a', 'b', 'c'], (id) => names[id] ?? id)
 
 		expect(spanish.onDragStart({ active })).toBe('Tomaste Alpha, posición 1 de 3.')
 

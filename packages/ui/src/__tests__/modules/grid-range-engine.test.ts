@@ -17,7 +17,7 @@ import {
 	rangeRect,
 } from '../../modules/grid/engine/grid-range/range'
 import { parseTsv, toTsv, tsvField, unguardField } from '../../modules/grid/engine/grid-range/tsv'
-import { englishIntl } from '../../primitives/intl/intl-catalog'
+import { intlEn } from '../../primitives/intl/intl-catalog'
 
 describe('rangeRect', () => {
 	it('spans two corners in either order', () => {
@@ -110,7 +110,7 @@ describe('describeRange', () => {
 	it('gives the size and the two corners', () => {
 		expect(
 			describeRange(
-				englishIntl,
+				intlEn,
 				{ rows: 3, cols: 2 },
 				{ column: 'Name', row: 2 },
 				{ column: 'Role', row: 4 },
@@ -119,7 +119,7 @@ describe('describeRange', () => {
 
 		expect(
 			describeRange(
-				englishIntl,
+				intlEn,
 				{ rows: 1, cols: 1 },
 				{ column: 'Name', row: 1 },
 				{ column: 'Name', row: 1 },
@@ -251,15 +251,15 @@ describe('coercePaste', () => {
 
 describe('describeWrite', () => {
 	it('adds the skipped count to the commit', () => {
-		expect(describeWrite(englishIntl, ['Name', 'Count'], undefined, 'pasted', 2)).toBe(
+		expect(describeWrite(intlEn, ['Name', 'Count'], undefined, 'pasted', 2)).toBe(
 			'2 cells pasted, 2 skipped',
 		)
 
-		expect(describeWrite(englishIntl, ['Name'], 'Alice', 'pasted', 0)).toBe('Name pasted for Alice')
+		expect(describeWrite(intlEn, ['Name'], 'Alice', 'pasted', 0)).toBe('Name pasted for Alice')
 
-		expect(describeWrite(englishIntl, [], undefined, 'pasted', 1)).toBe('1 cell skipped')
+		expect(describeWrite(intlEn, [], undefined, 'pasted', 1)).toBe('1 cell skipped')
 
-		expect(describeWrite(englishIntl, [], undefined, 'pasted', 0)).toBeNull()
+		expect(describeWrite(intlEn, [], undefined, 'pasted', 0)).toBeNull()
 	})
 })
 

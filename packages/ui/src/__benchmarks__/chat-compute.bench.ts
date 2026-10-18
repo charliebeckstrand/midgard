@@ -13,7 +13,7 @@ import {
 	seedMessages,
 	truncateToLastUserMessage,
 } from '../modules/chat/engine/chat-transcript'
-import { englishIntl } from '../primitives/intl/intl-catalog'
+import { intlEn } from '../primitives/intl/intl-catalog'
 import { makeTranscript } from './fixtures'
 
 /**
@@ -121,13 +121,13 @@ describe('chat-announcements · describeTranscript (per render)', () => {
 	// checked rather than asserted.
 	for (const { label, messages } of TRANSCRIPTS) {
 		bench(`${label} · streaming`, () => {
-			describeTranscript(englishIntl, messages, true)
+			describeTranscript(intlEn, messages, true)
 		})
 	}
 
 	for (const { label, messages } of TRANSCRIPTS) {
 		bench(`${label} · settled`, () => {
-			describeTranscript(englishIntl, messages, false)
+			describeTranscript(intlEn, messages, false)
 		})
 	}
 })

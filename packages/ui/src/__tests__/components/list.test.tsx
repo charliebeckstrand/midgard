@@ -1,6 +1,6 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { List, ListDescription, ListItem, ListLabel, type ListProps } from '../../components/list'
-import { englishIntl } from '../../primitives/intl/intl-catalog'
+import { intlEn } from '../../primitives/intl/intl-catalog'
 import { reorderMessages } from '../../primitives/intl/intl-reorder'
 import { DensityProvider } from '../../providers/density'
 import {
@@ -607,9 +607,7 @@ describe('List keyboard reordering', () => {
 
 		const instructions = document.getElementById(row.getAttribute('aria-describedby') ?? '')
 
-		expect(instructions).toHaveTextContent(
-			englishIntl.formatMessage(reorderMessages.liftInstructions),
-		)
+		expect(instructions).toHaveTextContent(intlEn.formatMessage(reorderMessages.liftInstructions))
 	})
 
 	it('gives an activatable row one Tab stop, on the content rather than the row', () => {
@@ -752,7 +750,7 @@ describe('List keyboard reordering', () => {
 		expect(ids).toHaveLength(2)
 		expect(ids[0]).toBe('hint')
 		expect(document.getElementById(ids[1] ?? '')).toHaveTextContent(
-			englishIntl.formatMessage(reorderMessages.liftInstructions),
+			intlEn.formatMessage(reorderMessages.liftInstructions),
 		)
 	})
 

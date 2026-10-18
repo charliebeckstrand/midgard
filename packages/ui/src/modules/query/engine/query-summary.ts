@@ -1,4 +1,4 @@
-import { englishIntl } from '../../../primitives/intl/intl-catalog'
+import { intlEn } from '../../../primitives/intl/intl-catalog'
 import type { IntlShape } from '../../../primitives/intl/types'
 import { imposesConstraint, isBlank, RANGE_OPERATORS, VALUELESS_OPERATORS } from './query-evaluate'
 import { combinatorLabel, queryMessages } from './query-messages'
@@ -231,7 +231,7 @@ function describeGroup(
 export function summarizeQuery(
 	group: QueryGroup,
 	fields: QueryField[],
-	intl: IntlShape = englishIntl,
+	intl: IntlShape = intlEn,
 ): QuerySummaryToken[] {
 	return describeGroup(intl, group, fields, false)
 }
@@ -278,7 +278,7 @@ export function renderToken(token: QuerySummaryToken): string {
 export function formatQuerySummary(
 	group: QueryGroup,
 	fields: QueryField[],
-	intl: IntlShape = englishIntl,
+	intl: IntlShape = intlEn,
 ): string {
 	const tokens = summarizeQuery(group, fields, intl)
 

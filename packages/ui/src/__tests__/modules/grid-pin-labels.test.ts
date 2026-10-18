@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { describePin } from '../../modules/grid/engine/grid-announcements'
 import { pinMenuChoices } from '../../modules/grid/engine/grid-pin/overrides'
 import { fillItems } from '../../modules/grid/grid-context-menu-utilities'
-import { englishIntl, localeIntl } from '../../primitives/intl/intl-catalog'
+import { intlEn, intlEs } from '../../primitives/intl/intl-catalog'
 
 /**
  * The pin menu and its announcement name the physical edge a column goes to.
@@ -12,7 +12,7 @@ import { englishIntl, localeIntl } from '../../primitives/intl/intl-catalog'
  */
 describe('pin labels', () => {
 	const labels = (side: 'left' | 'right' | undefined, rtl: boolean) =>
-		pinMenuChoices(englishIntl, side, rtl).map(({ label, target }) => [label, target])
+		pinMenuChoices(intlEn, side, rtl).map(({ label, target }) => [label, target])
 
 	it('names the edges as they are in a left-to-right grid', () => {
 		expect(labels(undefined, false)).toEqual([
@@ -34,13 +34,13 @@ describe('pin labels', () => {
 	})
 
 	it('announces the physical edge', () => {
-		expect(describePin(englishIntl, 'Name', 'left', false)).toBe('Pinned Name to the left')
+		expect(describePin(intlEn, 'Name', 'left', false)).toBe('Pinned Name to the left')
 
-		expect(describePin(englishIntl, 'Name', 'left', true)).toBe('Pinned Name to the right')
+		expect(describePin(intlEn, 'Name', 'left', true)).toBe('Pinned Name to the right')
 
-		expect(describePin(englishIntl, 'Name', 'right', true)).toBe('Pinned Name to the left')
+		expect(describePin(intlEn, 'Name', 'right', true)).toBe('Pinned Name to the left')
 
-		expect(describePin(englishIntl, 'Name', false, true)).toBe('Unpinned Name')
+		expect(describePin(intlEn, 'Name', false, true)).toBe('Unpinned Name')
 	})
 
 	// The across fill goes to the inline end, so it names the left edge in RTL.
@@ -48,10 +48,7 @@ describe('pin labels', () => {
 		const fill = () => () => {}
 
 		const labels = (rtl: boolean) =>
-			fillItems(englishIntl, fill, rtl).map((item) => [
-				item.key,
-				'label' in item ? item.label : null,
-			])
+			fillItems(intlEn, fill, rtl).map((item) => [item.key, 'label' in item ? item.label : null])
 
 		expect(labels(false)).toEqual([
 			['fill-down', 'Fill down'],
@@ -67,7 +64,7 @@ describe('pin labels', () => {
 
 describe('pin labels in a locale', () => {
 	it('names the edges in the language of the intl', () => {
-		expect(pinMenuChoices(localeIntl('es-ES'), 'left', false).map(({ label }) => label)).toEqual([
+		expect(pinMenuChoices(intlEs, 'left', false).map(({ label }) => label)).toEqual([
 			'Fijar a la derecha',
 			'Soltar',
 		])
