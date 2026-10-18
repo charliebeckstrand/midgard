@@ -194,7 +194,7 @@ export type DashboardTileProps = {
  * of 10 rows.
  *
  * A widget can put its own controls in the header row of the tile, after the
- * actions, through `HeaderActionsContext` (`ui/primitives/header-actions`). A
+ * actions, through `useHeaderActions` (`ui/primitives/header-actions`). A
  * chart puts its touch menu button there. The slot exists only at rest, and only
  * on a tile with a header row.
  *
