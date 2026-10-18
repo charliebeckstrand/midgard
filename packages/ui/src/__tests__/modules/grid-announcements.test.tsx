@@ -10,9 +10,9 @@ import {
 } from '../../modules/grid/engine/grid-announcements'
 import { GRID_STATUS_DEBOUNCE_MS } from '../../modules/grid/engine/grid-constants'
 import {
-	afterFirstWrite,
 	expectAnnouncement,
 	fireEvent,
+	flushAnnouncer,
 	liveRegion,
 	renderUI,
 	screen,
@@ -97,7 +97,7 @@ describe('Grid announcements', () => {
 		await user.click(screen.getByText('Alice'))
 
 		// Wait past the first write of a new region, so that the check below can fail.
-		await afterFirstWrite()
+		await flushAnnouncer()
 
 		// No selection column, so a row interaction never narrates a selection count.
 		expect(liveRegion()?.textContent ?? '').toBe('')

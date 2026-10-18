@@ -3,11 +3,11 @@ import { Dialog, DialogPanel } from '../../components/dialog'
 import { MapPlat } from '../../modules/map'
 import {
 	act,
-	afterFirstWrite,
 	allBySlot,
 	bySlot,
 	expectAnnouncement,
 	fireEvent,
+	flushAnnouncer,
 	liveRegion,
 	renderUI,
 	waitFor,
@@ -205,7 +205,7 @@ describe('MapPlat keyboard navigation', () => {
 
 		await act(async () => {})
 
-		await afterFirstWrite()
+		await flushAnnouncer()
 
 		expect(liveRegion()?.textContent ?? '').toBe('')
 	})

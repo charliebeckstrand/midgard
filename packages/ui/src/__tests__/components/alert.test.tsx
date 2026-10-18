@@ -4,10 +4,10 @@ import { Alert } from '../../components/alert'
 import { Button } from '../../components/button'
 import { Dialog, DialogPanel } from '../../components/dialog'
 import {
-	afterFirstWrite,
 	bySlot,
 	expectAnnouncement,
 	fireEvent,
+	flushAnnouncer,
 	liveRegion,
 	renderUI,
 	screen,
@@ -365,7 +365,7 @@ describe('Alert', () => {
 
 			// Wait past the announcer's first write, so that an announcement on mount
 			// shows here.
-			await afterFirstWrite()
+			await flushAnnouncer()
 
 			// Lazily created on first announce; absent means nothing was announced.
 			expect(liveRegion()?.textContent ?? '').toBe('')
@@ -387,7 +387,7 @@ describe('Alert', () => {
 			)
 
 			// Wait past the announcer's first write, then confirm nothing was written.
-			await afterFirstWrite()
+			await flushAnnouncer()
 
 			// Lazily created on first announce; absent means nothing was announced.
 			expect(liveRegion()?.textContent ?? '').toBe('')
@@ -411,7 +411,7 @@ describe('Alert', () => {
 			)
 
 			// Wait past the announcer's first write, then confirm nothing was written.
-			await afterFirstWrite()
+			await flushAnnouncer()
 
 			expect(liveRegion()?.textContent ?? '').toBe('')
 		})
@@ -429,7 +429,7 @@ describe('Alert', () => {
 				</Alert>,
 			)
 
-			await afterFirstWrite()
+			await flushAnnouncer()
 
 			// Lazily created on first announce; absent means nothing was announced.
 			expect(liveRegion()?.textContent ?? '').toBe('')

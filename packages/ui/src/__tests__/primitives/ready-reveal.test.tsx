@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ReadyReveal } from '../../primitives/ready-reveal'
 import {
-	afterFirstWrite,
 	expectAnnouncement,
+	flushAnnouncer,
 	getSlot,
 	liveRegion,
 	renderUI,
@@ -112,7 +112,7 @@ describe('ReadyReveal onReadyComplete', () => {
 		)
 
 		// Wait past the announcer's first write, then confirm nothing was written.
-		await afterFirstWrite()
+		await flushAnnouncer()
 
 		// Lazily created on first announce; absent means nothing was announced.
 		expect(liveRegion()?.textContent ?? '').toBe('')

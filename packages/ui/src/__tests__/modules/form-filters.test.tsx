@@ -21,10 +21,10 @@ import {
 } from '../../modules/form'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import {
-	afterFirstWrite,
 	allBySlot,
 	bySlot,
 	expectAnnouncement,
+	flushAnnouncer,
 	getSlot,
 	liveRegion,
 	renderUI,
@@ -425,7 +425,7 @@ describe('FormFilters announcements', () => {
 
 		// Wait past the announcer's first write, so that an announcement on mount shows
 		// here.
-		await afterFirstWrite()
+		await flushAnnouncer()
 
 		// Lazily created on first announce; absent means nothing was announced on mount.
 		expect(liveRegion()?.textContent ?? '').toBe('')

@@ -42,7 +42,7 @@ export async function expectAnnouncement(
  * fail. The wait starts its frame callback and its timer after the ones of the
  * announcer, so they run after them. Real timers only.
  */
-export async function afterFirstWrite(): Promise<void> {
+export async function flushAnnouncer(): Promise<void> {
 	await nextPaint()
 
 	await new Promise<void>((resolve) => {

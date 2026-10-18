@@ -20,12 +20,12 @@ import {
 } from '../../modules/grid/engine/grid-new-row-column'
 import {
 	act,
-	afterFirstWrite,
 	allBySlot,
 	attach,
 	bySlot,
 	expectAnnouncement,
 	fireEvent,
+	flushAnnouncer,
 	getSlot,
 	liveRegion,
 	present,
@@ -551,7 +551,7 @@ describe('Grid per-row editing', () => {
 
 		fireEvent.click(view.getByRole('button', { name: 'off' }))
 
-		await afterFirstWrite()
+		await flushAnnouncer()
 
 		// The sink went with the binding, so nothing committed. Announcing a save
 		// here would tell assistive tech something that did not happen.
@@ -3955,7 +3955,7 @@ describe('Grid async commit', () => {
 		// Nothing is saved yet, so nothing is announced yet.
 		await act(async () => {})
 
-		await afterFirstWrite()
+		await flushAnnouncer()
 
 		expect(liveRegion()?.textContent ?? '').not.toContain('updated')
 

@@ -14,11 +14,11 @@ import { LineChart } from '../../modules/chart/line-chart'
 import { PieChart } from '../../modules/chart/pie-chart'
 import {
 	act,
-	afterFirstWrite,
 	allBySlot,
 	bySlot,
 	expectAnnouncement,
 	fireEvent,
+	flushAnnouncer,
 	getSlot,
 	liveRegion,
 	renderUI,
@@ -831,7 +831,7 @@ describe('LineChart keyboard announcements', () => {
 		// Wait past the announcer's first write before the check.
 		await act(async () => {})
 
-		await afterFirstWrite()
+		await flushAnnouncer()
 
 		expect(liveRegion()?.textContent ?? '').toBe('')
 	})

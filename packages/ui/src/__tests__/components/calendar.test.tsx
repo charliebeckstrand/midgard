@@ -7,10 +7,10 @@ import { Form } from '../../modules/form'
 import { Box } from '../../structure/box'
 import {
 	act,
-	afterFirstWrite,
 	bySlot,
 	expectAnnouncement,
 	fireEvent,
+	flushAnnouncer,
 	liveRegion,
 	renderUI,
 	screen,
@@ -147,7 +147,7 @@ describe('Calendar', () => {
 
 		// The announcer writes the first text of a region after a delay. Wait for it, so
 		// that an announcement on mount shows here.
-		await afterFirstWrite()
+		await flushAnnouncer()
 
 		// Lazily created on first announce; absent means nothing was announced on mount.
 		expect(liveRegion()?.textContent ?? '').toBe('')
