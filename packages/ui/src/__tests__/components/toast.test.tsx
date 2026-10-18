@@ -1,3 +1,4 @@
+import { configure, getConfig } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { StrictMode, useEffect, useRef } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -72,11 +73,20 @@ describe('Toast', () => {
 })
 
 describe('Toast: useToast behavior', () => {
+	const { defaultIgnore } = getConfig()
+
 	beforeEach(() => {
 		vi.useFakeTimers()
+
+		// The clock runs the first write of the announcer, so its region holds a copy of the
+		// toast text. A text query here finds the toast, and the announcement case reads the
+		// region.
+		configure({ defaultIgnore: `${defaultIgnore}, [data-slot="live-region"]` })
 	})
 
 	afterEach(() => {
+		configure({ defaultIgnore })
+
 		vi.useRealTimers()
 
 		vi.restoreAllMocks()
@@ -190,9 +200,10 @@ describe('Toast: useToast behavior', () => {
 			api?.toast({ title: 'Saved', description: 'All changes stored' })
 		})
 
-		// The announcer writes asynchronously (microtask) so insertion and text
-		// land in separate frames. `vi.waitFor`, not `expectAnnouncement`: this
-		// suite runs fake timers, which deadlock RTL's waitFor polling.
+		// The announcer writes asynchronously (one task after it creates its region),
+		// so insertion and text land in separate frames. `vi.waitFor`, not
+		// `expectAnnouncement`: this suite runs fake timers, which deadlock RTL's
+		// waitFor polling.
 		await vi.waitFor(() => {
 			expect(liveRegion()?.textContent).toContain('Saved')
 		})

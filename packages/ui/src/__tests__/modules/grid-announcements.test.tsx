@@ -181,6 +181,10 @@ describe('Grid announcements', () => {
 			// once the settle window elapses.
 			await clock.advance(GRID_STATUS_DEBOUNCE_MS)
 
+			// The first text of a new region lands one task after the announcer creates it. The
+			// fake clock gives a timer that a tick queues at least 1ms.
+			await clock.advance(1)
+
 			expect(liveRegion()?.textContent ?? '').toMatch(/Name column \d+ pixels/)
 		})
 	})
