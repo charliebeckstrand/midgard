@@ -2,6 +2,7 @@
 	"shared.error.body": "No se pudo cargar la página. Vuelve a intentarlo pronto.",
 	"shared.error.retry": "Volver a intentar",
 	"shared.error.title": "Algo salió mal",
+	"shared.mutation.failed": "Algo salió mal",
 	"shared.notFound.body": "No se encontró esta página",
 	"shared.validation.email": "Introduce una dirección de correo electrónico válida",
 	"shared.validation.minLength": "{min, plural, one {Debe tener al menos # carácter} other {Debe tener al menos # caracteres}}",

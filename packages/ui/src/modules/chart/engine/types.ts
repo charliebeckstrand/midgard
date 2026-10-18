@@ -326,7 +326,8 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 * a menu button opens the same menu. The button sits at the end of the chart
 	 * header, or in the header row of the box around the chart, such as a
 	 * dashboard tile (`primitives/header-actions`). A chart with no title outside
-	 * such a box shows no button.
+	 * such a box shows no button. The heatmap draws no header, so outside such a
+	 * box its button sits in the top end corner of the chart, titled or not.
 	 *
 	 * Pass a config to add custom `items` (each a `{ label, icon, onAction }`).
 	 * Place them `'before'` or `'after'` the defaults, or drop the defaults with

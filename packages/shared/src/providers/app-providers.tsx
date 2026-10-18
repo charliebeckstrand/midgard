@@ -2,7 +2,8 @@
 
 import { type DefaultOptions, QueryClientProvider } from '@tanstack/react-query'
 import NextLink from 'next/link'
-import { type ReactNode, useState } from 'react'
+import { type ReactNode, useEffect, useRef, useState } from 'react'
+import { defineMessages, useIntl } from 'ui/primitives/intl'
 import { type LocaleConfig, LocaleProvider } from 'ui/providers/locale'
 import { UIProvider } from 'ui/providers/ui'
 import { useToast } from 'ui/toast'
@@ -69,6 +70,14 @@ export function AppProviders({ queries, timeZone, dateFormat, children }: AppPro
 	)
 }
 
+const messages = defineMessages({
+	failed: {
+		id: 'shared.mutation.failed',
+		defaultMessage: 'Something went wrong',
+		description: 'The title of the toast that shows the error of a change that failed.',
+	},
+})
+
 // The `toast` of `useToast` keeps one identity, so the client can hold the first one.
 function AppQueryProvider({
 	queries,
@@ -79,7 +88,23 @@ function AppQueryProvider({
 }) {
 	const { toast } = useToast()
 
-	const [client] = useState(() => createAppQueryClient({ queries, toast }))
+	const intl = useIntl()
+
+	// The client lives as long as the app, and the reader can change the locale.
+	// The ref gives the toast title the intl of the newest commit.
+	const intlRef = useRef(intl)
+
+	useEffect(() => {
+		intlRef.current = intl
+	}, [intl])
+
+	const [client] = useState(() =>
+		createAppQueryClient({
+			queries,
+			toast,
+			failureTitle: () => intlRef.current.formatMessage(messages.failed),
+		}),
+	)
 
 	return <QueryClientProvider client={client}>{children}</QueryClientProvider>
 }
