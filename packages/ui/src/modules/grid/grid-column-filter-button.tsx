@@ -90,6 +90,34 @@ function seedQuery(field: QueryField): QueryGroup {
 	return createGroup('and', [field.type === 'text' ? { ...rule, operator: 'contains' } : rule])
 }
 
+/**
+ * Moves focus to the sort button of a column header, else to the header cell.
+ * A header cell is not in the tab order, so it takes `tabindex="-1"` for as
+ * long as it holds focus. Then a click on the header still focuses the grid.
+ *
+ * @internal
+ */
+function focusHeader(header: HTMLElement | null) {
+	if (!header?.isConnected) return
+
+	// The title leaf of a sortable header sits in its sort button.
+	const sort = header.querySelector('[data-grid-content]')?.closest('button')
+
+	if (sort) {
+		sort.focus()
+
+		return
+	}
+
+	if (!header.hasAttribute('tabindex')) {
+		header.tabIndex = -1
+
+		header.addEventListener('blur', () => header.removeAttribute('tabindex'), { once: true })
+	}
+
+	header.focus()
+}
+
 /** Props for {@link GridColumnFilterButton}. @internal */
 type GridColumnFilterButtonProps = {
 	column: FilterColumn
@@ -185,7 +213,7 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 	function apply() {
 		const next = isQueryActive(draft)
 
-		if (next !== active) refocusRef.current = next
+		if (next !== active) settleTo(next)
 
 		filter.setQuery(column.id, draft)
 
@@ -197,7 +225,7 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 	// menu the button becomes while a filter is applied (the sheet is closed then,
 	// so there's no open state to settle).
 	function clear() {
-		refocusRef.current = false
+		settleTo(false)
 
 		filter.setQuery(column.id, undefined)
 	}
@@ -217,18 +245,39 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 	// Apply and Clear swap the resting funnel for the menu trigger, or back. The
 	// sheet and the menu return focus to the trigger that opened them, which is
 	// gone, so focus would fall to the page. The trigger of the new state takes it.
+	// The `'menu'` affordance has no trigger with no filter applied, and an empty
+	// grid hides the whole button. There the header of the column takes focus.
 	const triggerRef = useRef<HTMLButtonElement>(null)
 
 	// The applied state that Apply or Clear moved to, or `null` with no swap to follow.
 	const refocusRef = useRef<boolean | null>(null)
+
+	// The header cell of the trigger, read while the trigger is mounted.
+	const headerRef = useRef<HTMLElement | null>(null)
+
+	function settleTo(next: boolean) {
+		refocusRef.current = next
+
+		headerRef.current = triggerRef.current?.closest('th') ?? null
+	}
 
 	useLayoutEffect(() => {
 		if (refocusRef.current !== active) return
 
 		refocusRef.current = null
 
-		triggerRef.current?.focus()
+		if (triggerRef.current) triggerRef.current.focus()
+		else focusHeader(headerRef.current)
 	}, [active])
+
+	// A Clear that hides the whole button runs no effect above. The cleanup runs
+	// before the trigger leaves the document, so focus moves before it falls.
+	useLayoutEffect(
+		() => () => {
+			if (refocusRef.current === false) focusHeader(headerRef.current)
+		},
+		[],
+	)
 
 	const label = columnLabel(column)
 

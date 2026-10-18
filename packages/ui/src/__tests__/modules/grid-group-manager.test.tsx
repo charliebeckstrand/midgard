@@ -26,7 +26,7 @@ import {
 } from '../../modules/grid/grid-group-manager'
 import { GridManagerGrip } from '../../modules/grid/grid-manager-grip'
 import { intlEn } from '../../primitives/intl/intl-catalog'
-import { fireEvent, renderUI, screen } from '../helpers'
+import { act, fireEvent, renderUI, screen } from '../helpers'
 
 describe('group manager reducers', () => {
 	const groups: GridColumnGroup[] = [
@@ -469,6 +469,116 @@ describe('Grid column-group editor', () => {
 		expect(band(container)).toBeNull()
 
 		expect(screen.getByText('No columns in this group')).toBeInTheDocument()
+	})
+
+	describe('the successor of a removed group', () => {
+		function GroupsHarness() {
+			const [groups, setGroups] = useState<GridColumnGroup[]>([
+				{ id: 'one', title: 'One', columns: [] },
+				{ id: 'two', title: 'Two', columns: [] },
+				{ id: 'three', title: 'Three', columns: [] },
+			])
+
+			return (
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={(row) => row.id}
+					columnGroups={{ value: groups, onValueChange: setGroups }}
+					columnManager={{ toolbar: true, defaultOpen: true }}
+				/>
+			)
+		}
+
+		const remove = (group: string) =>
+			fireEvent.click(screen.getByRole('button', { name: `Remove group ${group}` }))
+
+		it('takes the name input of the next group', () => {
+			renderUI(<GroupsHarness />)
+
+			remove('Two')
+
+			expect(screen.getByLabelText('Group name for Three')).toHaveFocus()
+		})
+
+		it('takes the name input of the previous group when no group follows', () => {
+			renderUI(<GroupsHarness />)
+
+			remove('Three')
+
+			expect(screen.getByLabelText('Group name for Two')).toHaveFocus()
+		})
+
+		it('takes New group when no group is left', () => {
+			renderUI(<GroupsHarness />)
+
+			remove('One')
+
+			remove('Two')
+
+			remove('Three')
+
+			expect(screen.getByRole('button', { name: 'New group' })).toHaveFocus()
+		})
+	})
+
+	it('keeps focus on the Move trigger of a column that moves to another group', () => {
+		// The "Move to" items sit in a floating-ui dropdown, so the harness commits
+		// the move through the groups prop, as the item does.
+		let setGroups: (groups: GridColumnGroup[]) => void = () => {}
+
+		function MoveHarness() {
+			const [groups, set] = useState<GridColumnGroup[]>([
+				{ id: 'one', title: 'One', columns: [] },
+				{ id: 'two', title: 'Two', columns: [] },
+			])
+
+			setGroups = set
+
+			return (
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={(row) => row.id}
+					columnGroups={{ value: groups, onValueChange: set }}
+					columnManager={{ toolbar: true, defaultOpen: true }}
+				/>
+			)
+		}
+
+		renderUI(<MoveHarness />)
+
+		const before = screen.getByRole('button', { name: 'Move First' })
+
+		before.focus()
+
+		act(() =>
+			setGroups([
+				{ id: 'one', title: 'One', columns: ['first'] },
+				{ id: 'two', title: 'Two', columns: [] },
+			]),
+		)
+
+		const after = screen.getByRole('button', { name: 'Move First' })
+
+		// The row mounts again in the zone of its new group.
+		expect(after).not.toBe(before)
+
+		expect(after.closest('li')?.parentElement?.closest('li')).toBe(
+			screen.getByLabelText('Group name for One').closest('li'),
+		)
+
+		expect(after).toHaveFocus()
+
+		// And again when it leaves the group for the ungrouped pool.
+		act(() =>
+			setGroups([
+				{ id: 'one', title: 'One', columns: [] },
+				{ id: 'two', title: 'Two', columns: [] },
+			]),
+		)
+
+		expect(screen.getByRole('button', { name: 'Move First' })).toHaveFocus()
 	})
 
 	it('offers no remove item for an ungrouped column', () => {

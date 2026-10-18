@@ -10,7 +10,7 @@ import {
 } from '../../modules/query'
 import { DensityProvider } from '../../providers/density'
 import { Box } from '../../structure/box'
-import { densityStepOf, fireEvent, getAllSlots, renderUI, screen, waitFor } from '../helpers'
+import { act, densityStepOf, fireEvent, getAllSlots, renderUI, screen, waitFor } from '../helpers'
 
 // The filter sheet loads its code on the first open, so that open waits for the
 // code. One open before the tests loads the code. Each test then opens the sheet
@@ -716,6 +716,65 @@ describe('Grid per-column filters', () => {
 			expect(screen.queryByRole('menuitem', { name: 'Filter “Role”' })).toBeNull()
 		})
 
+		it('moves focus to the sort button of the column when Clear unmounts the trigger', async () => {
+			renderUI(
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					columnFilters={{
+						affordance: 'menu',
+						defaultValue: [{ id: 'name', value: nameContains('Ali') }],
+					}}
+				/>,
+			)
+
+			const active = screen.getByRole('button', { name: 'Filter Name, active' })
+
+			active.focus()
+
+			fireEvent.click(active)
+
+			// Under 'menu' no resting funnel takes the place of the trigger.
+			fireEvent.click(screen.getByRole('menuitem', { name: 'Clear filters' }))
+
+			await waitFor(() =>
+				expect(screen.getByRole('button', { name: 'Sort by Name' })).toHaveFocus(),
+			)
+		})
+
+		it('moves focus to the sort button of the column when Apply of a blank draft unmounts the trigger', async () => {
+			renderUI(
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					columnFilters={{
+						affordance: 'menu',
+						defaultValue: [{ id: 'name', value: nameContains('Ali') }],
+					}}
+				/>,
+			)
+
+			const active = screen.getByRole('button', { name: 'Filter Name, active' })
+
+			active.focus()
+
+			fireEvent.click(active)
+
+			fireEvent.click(screen.getByRole('menuitem', { name: 'Edit filters' }))
+
+			fireEvent.change(screen.getByRole('textbox', { name: 'Name value' }), {
+				target: { value: '' },
+			})
+
+			fireEvent.click(screen.getByRole('button', { name: 'Apply' }))
+
+			await waitFor(() =>
+				expect(screen.getByRole('button', { name: 'Sort by Name' })).toHaveFocus(),
+			)
+		})
+
 		it("withholds the menu row under the 'header' affordance, where the funnel already offers it", () => {
 			renderUI(
 				<Grid columns={columns} rows={rows} getKey={getKey} contextMenu={{ column: true }} />,
@@ -762,6 +821,43 @@ describe('Grid per-column filters', () => {
 			fireEvent.contextMenu(screen.getByRole('columnheader', { name: /Name/ }))
 
 			expect(screen.getByRole('menu')).toBeInTheDocument()
+		})
+
+		it('moves focus to the column header when Clear unmounts the filter button', async () => {
+			renderUI(
+				<Grid
+					columns={columns}
+					rows={[]}
+					getKey={getKey}
+					columnFilters={{
+						manual: true,
+						defaultValue: [{ id: 'name', value: nameContains('zzz') }],
+					}}
+				/>,
+			)
+
+			const active = screen.getByRole('button', { name: 'Filter Name, active' })
+
+			active.focus()
+
+			fireEvent.click(active)
+
+			fireEvent.click(screen.getByRole('menuitem', { name: 'Clear filters' }))
+
+			// The cleared grid is empty, so the header stands down: no filter button and
+			// no sort button stay to take focus.
+			expect(screen.queryByRole('button', { name: /^Filter Name/ })).toBeNull()
+
+			expect(screen.queryByRole('button', { name: 'Sort by Name' })).toBeNull()
+
+			const header = screen.getByRole('columnheader', { name: /Name/ })
+
+			await waitFor(() => expect(header).toHaveFocus())
+
+			// The header leaves the tab order again once focus leaves it.
+			act(() => header.blur())
+
+			expect(header).not.toHaveAttribute('tabindex')
 		})
 
 		it('still stands the header down when the grid is simply empty', () => {
