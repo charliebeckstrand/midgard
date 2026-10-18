@@ -2,7 +2,7 @@
 
 import { createContext } from '../../core'
 import { englishIntl } from './intl-catalog'
-import type { IntlShape } from './intl-define'
+import type { IntlShape } from './types'
 
 /**
  * The context of the intl that `IntlProvider` gives. Outside each provider, it

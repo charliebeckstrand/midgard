@@ -2,8 +2,7 @@
 
 import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { useControllable } from '../../hooks/use-controllable'
-import { defineMessages } from '../../primitives/intl/intl-define'
-import { intlMessages } from '../../primitives/intl/intl-messages'
+import { defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Overlay } from '../../primitives/overlay'
 import { LightboxContext, type LightboxContextValue } from './context'

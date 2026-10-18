@@ -1,5 +1,12 @@
 import { defineMessage, defineMessages, type TypedMessageDescriptor } from '@formatjs/intl'
 
+// A unit outside `primitives/intl` defines its messages with these, because
+// only the primitive imports FormatJS (see the `no-formatjs-import-outside-intl`
+// Biome plugin). The module has no `'use client'`, so a server module and a
+// pure engine can define messages. `pnpm intl` finds a call of
+// `defineMessages` by its name, not by the module it comes from.
+export { defineMessage, defineMessages }
+
 /**
  * The messages that many controls of ui share. A message that one unit owns
  * stays in that unit.

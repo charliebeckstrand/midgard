@@ -4,7 +4,8 @@
  * them. The shared reorder sentences are in `primitives/intl/intl-reorder.ts`.
  */
 
-import { defineMessages, type MessageSet } from '../../../primitives/intl/intl-define'
+import { defineMessages } from '../../../primitives/intl/intl-messages'
+import type { MessageSet } from '../../../primitives/intl/types'
 
 // The values of each grid message, by key.
 type GridValues = {

@@ -101,7 +101,8 @@ import type { IntlShape } from 'react-intl' // flag
 import { createIntl } from 'react-intl/server' // flag
 import { defineMessages } from '@formatjs/intl' // flag
 import { type MessageDescriptor } from '@formatjs/intl' // flag
-import { defineMessages as define, type IntlShape as Intl } from '../primitives/intl/intl-define'
+import { defineMessages as define } from '../primitives/intl/intl-messages'
+import type { IntlShape as Intl } from '../primitives/intl/types'
 import { useState } from 'react'
 export { useIntl, createIntl, defineMessages, define, useState, type IntlShape, type MessageDescriptor, type Intl }
 `,

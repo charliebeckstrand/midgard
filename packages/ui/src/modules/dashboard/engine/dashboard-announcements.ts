@@ -4,7 +4,8 @@
  * intl of the reader and speaks in its language.
  */
 
-import { defineMessages, type IntlShape } from '../../../primitives/intl/intl-define'
+import { defineMessages } from '../../../primitives/intl/intl-messages'
+import type { IntlShape } from '../../../primitives/intl/types'
 import type { DashboardDragKind } from './dashboard-drag'
 import type { DashboardCell } from './dashboard-layout'
 

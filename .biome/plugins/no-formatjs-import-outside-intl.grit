@@ -2,7 +2,7 @@ language js
 
 // The intl primitive (`packages/ui/src/primitives/intl`) is the one module of ui
 // that imports FormatJS. A unit defines its messages with `defineMessages` from
-// `intl-define.ts`, takes the intl type from there, and reads the intl through
+// `intl-messages.ts`, takes the intl types from `types.ts`, and reads the intl through
 // `useIntl` of the primitive, which gives an English intl outside each
 // provider. `LocaleProvider` gives the intl through the `IntlProvider` of the
 // primitive, which takes the locale.
@@ -20,6 +20,6 @@ language js
 	$source <: r"['\"](?:react-intl(?:/[^'\"]*)?|@formatjs/[^'\"]+)['\"]",
 	register_diagnostic(
 		span = $import,
-		message = "import FormatJS only in `primitives/intl`: take `defineMessages` and the intl types from `primitives/intl/intl-define`, and read the intl through `useIntl` of the primitive"
+		message = "import FormatJS only in `primitives/intl`: take `defineMessages` from `primitives/intl/intl-messages` and the intl types from `primitives/intl/types`, and read the intl through `useIntl` of the primitive"
 	)
 }

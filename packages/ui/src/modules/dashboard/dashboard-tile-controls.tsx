@@ -5,7 +5,7 @@ import type { RefObject } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { announce } from '../../core'
-import { defineMessages } from '../../primitives/intl/intl-define'
+import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { describeDuplicate, describeRemove } from './engine/dashboard-announcements'
 

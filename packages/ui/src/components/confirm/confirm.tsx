@@ -2,8 +2,7 @@
 
 import { type ReactNode, useCallback, useEffect } from 'react'
 import { cn } from '../../core'
-import { defineMessages } from '../../primitives/intl/intl-define'
-import { intlMessages } from '../../primitives/intl/intl-messages'
+import { defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { usePanelA11y } from '../../primitives/panel'
 import { k as panel } from '../../recipes/kata/panel'

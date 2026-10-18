@@ -3,7 +3,7 @@
 import { Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
 import { useOpenChange } from '../../hooks/use-open-change'
-import { defineMessages } from '../../primitives/intl/intl-define'
+import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Button } from '../button'
 import { useControl } from '../control/context'

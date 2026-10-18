@@ -1,4 +1,5 @@
-import { defineMessages, type IntlShape, type MessageSet } from './intl-define'
+import { defineMessages } from './intl-messages'
+import type { IntlShape, MessageSet } from './types'
 
 // The values of a message that names an item at its place.
 type SlotValues = { item: string; position: number; total: number }

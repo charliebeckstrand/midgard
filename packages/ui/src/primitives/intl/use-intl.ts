@@ -1,7 +1,7 @@
 'use client'
 
 import { useIntlContext } from './context'
-import type { IntlShape } from './intl-define'
+import type { IntlShape } from './types'
 
 /**
  * Reads the intl of the nearest `IntlProvider`, which `LocaleProvider` renders
