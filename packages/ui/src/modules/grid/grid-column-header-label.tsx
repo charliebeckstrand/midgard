@@ -128,6 +128,11 @@ export function GridColumnHeaderLabel({
 								? `Sort by ${columnLabel(column)}, sort priority ${sortPriority}`
 								: `Sort by ${columnLabel(column)}`
 						}
+						// A string title is in the name, and the tooltip echoes it, so its
+						// description would repeat the name. The explicit key wins over the
+						// description of the trigger. Any other title leaves the column id in
+						// the name, and the description gives the visible title.
+						{...(typeof column.title === 'string' && { 'aria-describedby': undefined })}
 					>
 						{title}
 						{sortDirectionIcon(sorted, direction)}
