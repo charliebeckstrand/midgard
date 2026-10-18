@@ -703,6 +703,44 @@ describe('the range legend under quantile binning, continued', () => {
 
 		expect(track).toHaveAttribute('aria-valuetext', '1–5')
 	})
+
+	it('leaves a key chord with Ctrl, Meta, or Alt to the browser', () => {
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Load"
+				width={400}
+				data={cells([1, 1, 1, 5, 5, 5, 5, 9, 9])}
+				series={[
+					{
+						xKey: 'hour',
+						yKey: 'day',
+						colorKey: 'n',
+						colorRange: ['#fff', '#aaa', '#555', '#000'],
+						binning: 'quantile',
+					},
+				]}
+			/>,
+		)
+
+		const track = getSlot(container, 'heatmap-range-track')
+
+		act(() => track.focus())
+
+		const before = track.getAttribute('aria-valuetext')
+
+		// The browser's own history and scroll keys. A claimed chord would move the
+		// probe and could block the browser.
+		for (const modifier of ['ctrlKey', 'metaKey', 'altKey'] as const) {
+			for (const key of ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End']) {
+				expect(fireEvent.keyDown(track, { key, [modifier]: true })).toBe(true)
+			}
+		}
+
+		expect(track.getAttribute('aria-valuetext')).toBe(before)
+
+		// Shift stays a plain press.
+		expect(fireEvent.keyDown(track, { key: 'End', shiftKey: true })).toBe(false)
+	})
 })
 
 describe('HeatmapChart keyboard navigation', () => {
