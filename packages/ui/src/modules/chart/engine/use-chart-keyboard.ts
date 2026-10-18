@@ -276,6 +276,16 @@ function keyAction(key: string, orientation: ChartOrientation): CursorAction | n
 	}
 }
 
+/**
+ * Whether a key press holds Ctrl, Meta, or Alt. Such a chord is for the browser,
+ * such as its history or its scroll keys. Shift stays a plain press.
+ *
+ * @internal
+ */
+function isBrowserChord(event: KeyboardEvent<HTMLElement>): boolean {
+	return event.ctrlKey || event.metaKey || event.altKey
+}
+
 /** Whether a key is one of the four arrows — the keys that enter navigation at the first point. @internal */
 function isArrowKey(key: string): boolean {
 	return key === 'ArrowUp' || key === 'ArrowDown' || key === 'ArrowLeft' || key === 'ArrowRight'
@@ -618,7 +628,7 @@ export function useChartKeyboard(
 	}
 
 	const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-		if (!targets) return
+		if (!targets || isBrowserChord(event)) return
 
 		const move = moveCursor(cursor, event.key, targets, orientation)
 
