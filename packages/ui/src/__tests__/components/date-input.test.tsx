@@ -1001,3 +1001,23 @@ describe('DateInput form reset', () => {
 		expect(input).not.toHaveAttribute('aria-invalid')
 	})
 })
+
+describe('DateInput in a locale', () => {
+	it('names the field and reports the bound in the language of the locale', async () => {
+		const { container } = renderUI(
+			<LocaleProvider locale="es-ES">
+				<DateInput min={new Date(2026, 0, 1)} max={new Date(2026, 11, 31)} />
+			</LocaleProvider>,
+		)
+
+		const input = screen.getByRole('textbox', { name: 'Fecha' })
+
+		await setupUser().type(input, '15062027')
+
+		expect(bySlot(container, 'message')).toHaveTextContent(
+			'Escribe una fecha entre el 01/01/2026 y el 31/12/2026',
+		)
+
+		expect(screen.getByRole('button', { name: 'Borrar la fecha' })).toBeInTheDocument()
+	})
+})

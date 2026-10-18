@@ -3,6 +3,10 @@
 		"defaultMessage": "Dismiss",
 		"description": "The name of the button that closes a message or a toast."
 	},
+	"ui.calendar.chooseMonthYear": {
+		"defaultMessage": "Choose month and year",
+		"description": "The name of the panel that holds the month picker and the year picker."
+	},
 	"ui.calendar.nextDecade": {
 		"defaultMessage": "Next decade",
 		"description": "The name of the button that shows the ten years after in the year picker."
@@ -143,21 +147,101 @@
 		"defaultMessage": "{moved, plural, =0 {The board is already tidy.} one {Tidied the board. Moved # tile up.} other {Tidied the board. Moved # tiles up.}}",
 		"description": "Spoken when a tidy packs the board. The count is the number of tiles that moved."
 	},
+	"ui.dateInput.between": {
+		"defaultMessage": "Enter a date between {min} and {max}",
+		"description": "The error of a date field whose date is before the first date or after the last date that it accepts."
+	},
+	"ui.dateInput.clear": {
+		"defaultMessage": "Clear date",
+		"description": "The name of the button that clears a date field."
+	},
+	"ui.dateInput.invalid": {
+		"defaultMessage": "Enter a valid date ({format})",
+		"description": "The error of a date field whose text is not a date. The format is the pattern of the field, such as DD/MM/YYYY."
+	},
+	"ui.dateInput.name": {
+		"defaultMessage": "Date",
+		"description": "The name of a date field that has no label."
+	},
+	"ui.dateInput.onOrAfter": {
+		"defaultMessage": "Enter a date on or after {min}",
+		"description": "The error of a date field whose date is before the first date that it accepts."
+	},
+	"ui.dateInput.onOrBefore": {
+		"defaultMessage": "Enter a date on or before {max}",
+		"description": "The error of a date field whose date is after the last date that it accepts."
+	},
 	"ui.datePicker.actions": {
 		"defaultMessage": "Date picker actions",
 		"description": "The name of the toolbar with the Clear and Today buttons below the calendar."
+	},
+	"ui.datePicker.backToPresets": {
+		"defaultMessage": "Back to presets",
+		"description": "The button that goes back from the custom range to the list of ranges."
+	},
+	"ui.datePicker.chooseDate": {
+		"defaultMessage": "Choose date",
+		"description": "The name of the panel of a date picker, which holds the calendar."
 	},
 	"ui.datePicker.closeCalendar": {
 		"defaultMessage": "Close calendar",
 		"description": "The name of the button that closes the calendar of a date field."
 	},
+	"ui.datePicker.customRange": {
+		"defaultMessage": "Custom range",
+		"description": "The button that opens a start date field and an end date field in place of the list of ranges, and the name of that panel."
+	},
+	"ui.datePicker.end": {
+		"defaultMessage": "End",
+		"description": "The label of the field of the last date of a custom range."
+	},
+	"ui.datePicker.lastDays": {
+		"defaultMessage": "{days, plural, one {Last day} other {Last # days}}",
+		"description": "A range of a date picker: today and the days before it. The count is the number of days, today included."
+	},
+	"ui.datePicker.lastMonth": {
+		"defaultMessage": "Last month",
+		"description": "A range of a date picker: all the days of the month before this month."
+	},
+	"ui.datePicker.lastYear": {
+		"defaultMessage": "Last year",
+		"description": "A range of a date picker: all the days of the year before this year."
+	},
 	"ui.datePicker.openCalendar": {
 		"defaultMessage": "Open calendar",
 		"description": "The name of the button that opens the calendar of a date field."
 	},
+	"ui.datePicker.selectDate": {
+		"defaultMessage": "Select a date",
+		"description": "The text of an empty date picker that holds one date."
+	},
+	"ui.datePicker.selectDates": {
+		"defaultMessage": "Select dates",
+		"description": "The text of an empty date picker that holds a start date and an end date."
+	},
+	"ui.datePicker.selectRange": {
+		"defaultMessage": "Select range",
+		"description": "The text of an empty date picker that holds a range, such as Last 7 days, and the name of its list of ranges."
+	},
+	"ui.datePicker.start": {
+		"defaultMessage": "Start",
+		"description": "The label of the field of the first date of a custom range."
+	},
+	"ui.datePicker.thisMonth": {
+		"defaultMessage": "This month",
+		"description": "A range of a date picker: from the first day of this month to today."
+	},
+	"ui.datePicker.thisYear": {
+		"defaultMessage": "This year",
+		"description": "A range of a date picker: from the first day of this year to today."
+	},
 	"ui.datePicker.today": {
 		"defaultMessage": "Today",
 		"description": "The label of the button that selects the date of today."
+	},
+	"ui.datePicker.yesterday": {
+		"defaultMessage": "Yesterday",
+		"description": "A range of a date picker: the day before today."
 	},
 	"ui.grid.columnGroupName": {
 		"defaultMessage": "{group} group",
