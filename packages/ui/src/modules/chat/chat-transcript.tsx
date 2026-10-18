@@ -4,6 +4,7 @@ import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, useCallback, useLayoutEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { useA11yAnnouncements, usePrefersReducedMotion, useVirtualWindow } from '../../hooks'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/chat-transcript'
 import { ChatMessage } from './chat-message'
 import { ChatRowContext } from './context'
@@ -183,7 +184,9 @@ export function ChatTranscript({
 		scrollToIndex(count - 1, { align: 'end', behavior: follow })
 	})
 
-	useA11yAnnouncements(describeTranscript(messages, streaming))
+	const intl = useIntl()
+
+	useA11yAnnouncements(describeTranscript(intl, messages, streaming))
 
 	const measured = virtualItems.length > 0
 
