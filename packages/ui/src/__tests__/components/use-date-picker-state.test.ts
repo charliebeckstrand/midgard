@@ -516,13 +516,13 @@ describe('useDatePickerState', () => {
 	})
 
 	describe('footerButtons', () => {
-		it('exposes "clear" and "today" once a value is set', () => {
+		it('exposes "today" and "clear" once a value is set', () => {
 			const { result } = renderHook(() => useDatePickerState({ defaultValue: Jan15 }))
 
-			expect(result.current.footer.footerButtons).toEqual(['clear', 'today'])
+			expect(result.current.footer.footerButtons).toEqual(['today', 'clear'])
 		})
 
-		it('switches from ["today"] to ["clear","today"] after a selection', () => {
+		it('switches from ["today"] to ["today","clear"] after a selection', () => {
 			const { result } = renderHook(() => useDatePickerState({}))
 
 			expect(result.current.footer.footerButtons).toEqual(['today'])
@@ -531,7 +531,7 @@ describe('useDatePickerState', () => {
 
 			act(() => result.current.calendar.onDayPress(Jan15))
 
-			expect(result.current.footer.footerButtons).toEqual(['clear', 'today'])
+			expect(result.current.footer.footerButtons).toEqual(['today', 'clear'])
 		})
 
 		it('omits "today" when today is outside the min/max range', () => {
