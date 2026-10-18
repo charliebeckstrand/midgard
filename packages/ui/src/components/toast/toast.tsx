@@ -224,9 +224,10 @@ export function Toast({ position = TOAST_POSITION }: ToastProps) {
 
 /**
  * Moves focus out of the toast that closes, before its item goes `inert` and
- * focus falls to the body (WCAG 2.4.3). Focus goes to the next toast in the
- * list, else to the previous one, else to `returnTo`. When focus is not in a
- * toast, as on a close by pointer, nothing moves.
+ * focus falls to the body (WCAG 2.4.3). Focus goes to the nearest next toast
+ * in the list that has a control, else to the nearest previous one, else to
+ * `returnTo`. When focus is not in a toast, as on a close by pointer, nothing
+ * moves.
  * @internal
  */
 function moveFocusFromClosingToast(returnTo: HTMLElement | null) {
@@ -243,14 +244,18 @@ function moveFocusFromClosingToast(returnTo: HTMLElement | null) {
 
 	const index = items.indexOf(item)
 
-	const neighbor = items[index + 1] ?? items[index - 1]
+	// The next toasts, then the previous ones, nearest first. A toast with no
+	// control is skipped.
+	const neighbors = [...items.slice(index + 1), ...items.slice(0, index).reverse()]
 
-	const target = neighbor
-		? (neighbor.querySelector<HTMLElement>('[data-slot="alert-close"]') ??
-			getTabbableElements(neighbor)[0])
-		: returnTo?.isConnected
-			? returnTo
-			: null
+	const target =
+		neighbors
+			.map(
+				(neighbor) =>
+					neighbor.querySelector<HTMLElement>('[data-slot="alert-close"]') ??
+					getTabbableElements(neighbor)[0],
+			)
+			.find(Boolean) ?? (returnTo?.isConnected ? returnTo : null)
 
 	target?.focus()
 }
