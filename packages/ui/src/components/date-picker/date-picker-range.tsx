@@ -1,9 +1,11 @@
 'use client'
 
+import { useIntl } from '../../primitives/intl/use-intl'
 import { CalendarRange } from '../calendar'
 import type { DatePickerBaseProps, DatePickerRangeProps } from './date-picker'
 import { DatePickerContent, useDatePickerSheet } from './date-picker-content'
 import { DatePickerFooter } from './date-picker-footer'
+import { datePickerMessages } from './date-picker-messages'
 import { DatePickerTrigger } from './date-picker-trigger'
 import { useDatePickerRangeState } from './use-date-picker-range-state'
 
@@ -16,7 +18,7 @@ import { useDatePickerRangeState } from './use-date-picker-range-state'
  */
 export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProps) {
 	const {
-		placeholder = 'Select dates',
+		placeholder,
 		size,
 		truncate = true,
 		clearable = false,
@@ -32,6 +34,8 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 
 	const sheet = useDatePickerSheet(props.sheet)
 
+	const intl = useIntl()
+
 	return (
 		<>
 			<DatePickerTrigger
@@ -43,7 +47,7 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 				setReference={state.setReference}
 				getReferenceProps={state.getReferenceProps}
 				displayValue={state.displayValue}
-				placeholder={placeholder}
+				placeholder={placeholder ?? intl.formatMessage(datePickerMessages.selectDates)}
 				size={size}
 				truncate={truncate}
 				aria-label={ariaLabel}

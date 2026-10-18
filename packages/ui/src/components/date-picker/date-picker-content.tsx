@@ -12,6 +12,7 @@ import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { useMediaQuery } from '../../hooks'
 import { FloatingSurface, type FloatingSurfaceProps } from '../../primitives/floating-surface'
+import { useIntl } from '../../primitives/intl/use-intl'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { useGlass } from '../../providers/glass/context'
 import type { scale } from '../../recipes/kata/date-picker'
@@ -19,6 +20,7 @@ import { k } from '../../recipes/kata/date-picker'
 import { Box } from '../../structure/box'
 import { PHONE_QUERY } from '../../utilities'
 import { Drawer, DrawerBody, DrawerClose, DrawerHeader, DrawerPanel, DrawerTitle } from '../drawer'
+import { datePickerMessages } from './date-picker-messages'
 import { RECLAIM_KEYS } from './use-date-picker-keyboard'
 
 /**
@@ -90,7 +92,7 @@ type DatePickerContentProps = {
 	/**
 	 * Accessible name for the dialog.
 	 *
-	 * @defaultValue 'Choose date'
+	 * @defaultValue `'Choose date'`, in the language of the reader.
 	 */
 	label?: string
 	/**
@@ -130,10 +132,14 @@ export function DatePickerContent({
 	initialFocusRef,
 	onExitComplete,
 	sheet = false,
-	label = 'Choose date',
+	label: labelProp,
 	footer,
 	children,
 }: DatePickerContentProps) {
+	const intl = useIntl()
+
+	const label = labelProp ?? intl.formatMessage(datePickerMessages.chooseDate)
+
 	const glass = useGlass()
 
 	// Focus lands on the dialog container (tabIndex -1) instead of floating-ui's

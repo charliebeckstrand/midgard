@@ -6,6 +6,8 @@ import { type ReactNode, useState } from 'react'
 import { composeEventHandlers } from '../../core'
 import { useFormattedInput } from '../../hooks/use-formatted-input'
 import { useFormValue } from '../../primitives/form/use-form-value'
+import type { IntlShape } from '../../primitives/intl/types'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { useLocale } from '../../providers/locale'
 import { isComposing } from '../../utilities'
 import { isDayInRange, isSameDayOrEmpty } from '../calendar/calendar-utilities'
@@ -15,6 +17,7 @@ import { useControlTypedVerdict } from '../control/use-control-typed-verdict'
 import type { CardValidity } from '../credit-card-input/credit-card-input-utilities'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
+import { dateInputMessages } from './date-input-messages'
 import {
 	type DateInputFormat,
 	dateInputSeparator,
@@ -95,7 +98,7 @@ export type DateInputProps = Omit<
 	clearable?: boolean
 	/**
 	 * The accessible name of the clear button.
-	 * @defaultValue 'Clear date'
+	 * @defaultValue `'Clear date'`, in the language of the reader.
 	 */
 	clearLabel?: string
 	/**
@@ -106,7 +109,7 @@ export type DateInputProps = Omit<
 	 * "Enter a date on or after 06/01/2026"). Pass `null` (or `false`) to
 	 * suppress both and supply your own.
 	 *
-	 * @defaultValue `Enter a valid date (${format})`
+	 * @defaultValue `` `Enter a valid date (${format})` ``, in the language of the reader.
 	 */
 	invalidMessage?: ReactNode
 }
@@ -148,7 +151,7 @@ export function DateInput({
 	invalid,
 	suffix,
 	clearable = true,
-	clearLabel = 'Clear date',
+	clearLabel,
 	disabled,
 	readOnly,
 	name,
@@ -163,9 +166,12 @@ export function DateInput({
 
 	const ambient = useLocale()
 
+	const intl = useIntl()
+
 	// Field order follows the ambient locale unless the caller pins it, so the
 	// masked field agrees with the Calendar it pairs with inside a DatePicker.
 	const { format, invalidMessage } = resolveDateInputFormat(
+		intl,
 		formatProp,
 		ambient.locale,
 		invalidMessageProp,
@@ -202,13 +208,13 @@ export function DateInput({
 
 	const text = editingText ?? (date === undefined ? '' : formatDateValue(date, format))
 
-	const labelled = useControlLabelRef('Date', ref)
+	const labelled = useControlLabelRef(intl.formatMessage(dateInputMessages.name), ref)
 
 	const verdict = useControlTypedVerdict({
 		describedBy: ariaDescribedBy,
 		// Resolved eagerly though only an invalid verdict shows it: gating it buys
 		// one skipped parse of a ≤10-character text.
-		message: resolveInvalidMessage(text, format, invalidMessage, min, max),
+		message: resolveInvalidMessage(intl, text, format, invalidMessage, min, max),
 		reportCleared: () => {
 			onValidityChange?.({ isValid: date !== undefined, isPotentiallyValid: true })
 		},
@@ -291,7 +297,7 @@ export function DateInput({
 				disabled={disabled}
 				readOnly={readOnly}
 				clearable={clearable}
-				clearLabel={clearLabel}
+				clearLabel={clearLabel ?? intl.formatMessage(dateInputMessages.clear)}
 				// The default calendar icon gives way to the clear button, so the
 				// trailing glyph holds its place. A suffix of the consumer, such as the
 				// calendar button of a DatePicker in `input` mode, stays beside it.
@@ -365,6 +371,7 @@ export function DateInput({
  * @internal
  */
 function resolveInvalidMessage(
+	intl: IntlShape,
 	text: string,
 	format: DateInputFormat,
 	invalidMessage: ReactNode,
@@ -377,5 +384,5 @@ function resolveInvalidMessage(
 
 	if (completeDate === undefined || isDayInRange(completeDate, min, max)) return invalidMessage
 
-	return outOfRangeMessage(format, min, max) ?? invalidMessage
+	return outOfRangeMessage(intl, format, min, max) ?? invalidMessage
 }
