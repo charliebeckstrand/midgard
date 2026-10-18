@@ -76,7 +76,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 |---|---|
 | `useSortableList` | Single-list reorder backed by @dnd-kit: owns the drag lifecycle and commits via `arrayMove`. It announces each drag step and describes the drag keys in the language of the reader. |
 | `useSortableItem` | Wraps the `useSortable` of dnd-kit with the standard drag style. Under reduced motion the style has no transition. |
-| `useSortableSensors` | The standard dnd-kit sensors: a pointer sensor with a low threshold, and a keyboard sensor on the arrow keys. |
+| `useSortableSensors` | The standard dnd-kit sensors: a pointer sensor with a low threshold, and a keyboard sensor on the arrow keys. The Escape that cancels a drag does not close a dialog around the list. |
 | `useDragCursor` | Holds a drag cursor on the whole page while active. Each drag in the library uses it, and `drag-cursor-boundary.test.ts` holds that rule. |
 
 ## Formatting & input
