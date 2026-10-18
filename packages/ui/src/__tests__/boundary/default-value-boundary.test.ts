@@ -38,6 +38,7 @@ import {
 	isVariableDeclarationList,
 	isVariableStatement,
 	NodeFlags,
+	type ObjectLiteralExpression,
 	SyntaxKind,
 } from 'typescript/unstable/ast'
 import {
@@ -80,7 +81,11 @@ import { srcDir, srcRelative } from '../helpers/walk-source'
 //      and the tag equals the default. A default is in a destructure, in the
 //      parameter or in a `const { … } = props` in the body. A default is also a
 //      fallback after `??` on a prop with no destructured default, as in
-//      `ariaLabel ?? 'Rating'` or `props.format ?? 'hex'`.
+//      `ariaLabel ?? 'Rating'` or `props.format ?? 'hex'`. A fallback that
+//      formats a message of the catalog, as in
+//      `clearLabel ?? intl.formatMessage(intlMessages.clear)`, expects the
+//      English default of the message in the language of the reader:
+//      `` `'Clear'`, in the language of the reader. ``
 //   5. Each prop that the component gives unset to a recipe axis with a default
 //      has one tag on the prop, and the tag equals the recipe default. This rule
 //      also reads the recipes that no exported kata type reaches.
@@ -93,7 +98,8 @@ import { srcDir, srcRelative } from '../helpers/walk-source'
 // `{@link}` to the name is equal to the name.
 //
 // A fallback is a default of an optional prop under two conditions. It is a
-// literal or a `const` at the top level of a module. The result of the `??` is
+// literal, a `const` at the top level of a module, or a call of
+// `formatMessage` on a message whose `defaultMessage` is a literal. The result of the `??` is
 // the value of the prop at that place: a JSX attribute or child, a property,
 // or a variable. A value that the component computes or reads from a context
 // is not a default. A `null` fallback only changes an unset value to `null`.
@@ -252,6 +258,7 @@ type Scan = {
 	components: number
 	destructured: number
 	fallbacks: number
+	messages: number
 	reached: number
 }
 
@@ -322,6 +329,8 @@ function scan(): Scan {
 
 		let fallbacks = 0
 
+		let messages = 0
+
 		let reached = 0
 
 		for (const component of components) {
@@ -330,6 +339,8 @@ function scan(): Scan {
 			destructured += counts.destructured
 
 			fallbacks += counts.fallbacks
+
+			messages += counts.messages
 
 			reached += counts.reached
 		}
@@ -340,6 +351,7 @@ function scan(): Scan {
 			components: components.length,
 			destructured,
 			fallbacks,
+			messages,
 			reached,
 		}
 	} finally {
@@ -637,11 +649,94 @@ function standsAlone(node: AstNode): boolean {
 }
 
 /**
+ * The object literal that a name holds: the initializer of its declaration, or
+ * the first argument when the initializer is a call, as of `defineMessages` or
+ * `defineMessage`. Another expression is `undefined`.
+ */
+function heldLiteral(project: Project, node: Expression): ObjectLiteralExpression | undefined {
+	if (isObjectLiteralExpression(node)) return node
+
+	if (!isIdentifier(node)) return undefined
+
+	const symbol = project.checker.getSymbolAtLocation(node)
+
+	const declaration = symbol && resolved(project.checker, symbol).valueDeclaration?.resolve(project)
+
+	if (!declaration || !isVariableDeclaration(declaration) || !declaration.initializer) {
+		return undefined
+	}
+
+	const value = bare(declaration.initializer)
+
+	const [argument] = isCallExpression(value) ? value.arguments : [value]
+
+	const literal = argument && bare(argument)
+
+	return literal && isObjectLiteralExpression(literal) ? literal : undefined
+}
+
+/**
+ * The object literal of a message descriptor: a literal, a `const` that
+ * `defineMessage` returns, or a property of a `defineMessages` object. The
+ * checker gives the property of such an object no declaration, because
+ * `defineMessages` maps the type of its argument. So the read goes through the
+ * object that holds the property.
+ */
+function descriptorLiteral(
+	project: Project,
+	node: Expression,
+): ObjectLiteralExpression | undefined {
+	if (!isPropertyAccessExpression(node)) return heldLiteral(project, node)
+
+	const container = heldLiteral(project, bare(node.expression))
+
+	for (const property of container?.properties ?? []) {
+		if (!isPropertyAssignment(property) || property.name.getText() !== node.name.text) continue
+
+		const value = bare(property.initializer)
+
+		return isObjectLiteralExpression(value) ? value : undefined
+	}
+
+	return undefined
+}
+
+/**
+ * The English default of the message that `intl.formatMessage(descriptor)`
+ * formats, or `undefined` for another expression or for a default that is not
+ * a literal.
+ */
+function messageDefault(project: Project, node: Expression): string | undefined {
+	if (
+		!isCallExpression(node) ||
+		!isPropertyAccessExpression(node.expression) ||
+		node.expression.name.text !== 'formatMessage'
+	) {
+		return undefined
+	}
+
+	const [argument] = node.arguments
+
+	const descriptor = argument && descriptorLiteral(project, bare(argument))
+
+	for (const property of descriptor?.properties ?? []) {
+		if (!isPropertyAssignment(property) || property.name.getText() !== 'defaultMessage') continue
+
+		const value = bare(property.initializer)
+
+		return isStringLiteral(value) || isNoSubstitutionTemplateLiteral(value) ? value.text : undefined
+	}
+
+	return undefined
+}
+
+/**
  * The tag text that a fallback after `??` expects, and whether the fallback is
  * a name. A literal of a primitive, or an array of them, reads as its source
- * text. A `const` at the top level of a module reads as its value when it
- * holds a primitive, else as its name. Another expression is `undefined`: the
- * component computes it, or reads it from a context.
+ * text. A message of the catalog reads as its English default, in the language
+ * of the reader. A `const` at the top level of a module reads as its value
+ * when it holds a primitive, else as its name. Another expression is
+ * `undefined`: the component computes it, or reads it from a context.
  */
 function fallbackDefault(
 	project: Project,
@@ -660,6 +755,12 @@ function fallbackDefault(
 		node.elements.every((element) => primitiveText(bare(element)) !== undefined)
 	) {
 		return { text: node.getText(), name: false }
+	}
+
+	const message = messageDefault(project, node)
+
+	if (message !== undefined) {
+		return { text: `\`'${message}'\`, in the language of the reader.`, name: false }
 	}
 
 	if (!isIdentifier(node)) return undefined
@@ -694,7 +795,7 @@ function scanComponent(
 	{ name, callable }: Component,
 	recipeByType: ReadonlyMap<number, Recipe>,
 	violations: Set<string>,
-): { destructured: number; fallbacks: number; reached: number } {
+): { destructured: number; fallbacks: number; messages: number; reached: number } {
 	const { checker } = project
 
 	const label = `${srcRelative(callable.getSourceFile().fileName)} → ${name}`
@@ -703,7 +804,7 @@ function scanComponent(
 
 	const [parameter] = callable.parameters
 
-	if (!parameter) return { destructured: 0, fallbacks: 0, reached: 0 }
+	if (!parameter) return { destructured: 0, fallbacks: 0, messages: 0, reached: 0 }
 
 	const propsType = parameter.type
 		? checker.getTypeFromTypeNode(parameter.type)
@@ -782,6 +883,9 @@ function scanComponent(
 
 	let fallbacks = 0
 
+	// The fallbacks that format a message of the catalog.
+	let messages = 0
+
 	const visit = (node: AstNode) => {
 		const [argument] = isCallExpression(node) ? node.arguments : []
 
@@ -806,6 +910,8 @@ function scanComponent(
 
 			if (prop !== undefined && expected) {
 				fallbacks++
+
+				if (messageDefault(project, bare(node.right)) !== undefined) messages++
 
 				check(prop, expected.text, expected.name, 'fallback')
 			}
@@ -849,11 +955,11 @@ function scanComponent(
 		}
 	}
 
-	return { destructured, fallbacks, reached }
+	return { destructured, fallbacks, messages, reached }
 }
 
 describe('default value boundary', () => {
-	const { violations, types, components, destructured, fallbacks, reached } = scan()
+	const { violations, types, components, destructured, fallbacks, messages, reached } = scan()
 
 	it('reads the kata types, the components, and their defaults', () => {
 		// A scan that linked no type to its recipe, found no component, or read no
@@ -865,6 +971,8 @@ describe('default value boundary', () => {
 		expect(destructured).toBeGreaterThan(250)
 
 		expect(fallbacks).toBeGreaterThan(20)
+
+		expect(messages).toBeGreaterThan(8)
 
 		expect(reached).toBeGreaterThan(30)
 	})
