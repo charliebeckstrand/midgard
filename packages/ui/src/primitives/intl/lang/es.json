@@ -53,6 +53,7 @@
 	"ui.grid.rowName": "fila {key}",
 	"ui.grid.selectRow": "Seleccionar {row}",
 	"ui.grid.ungrouped": "Sin grupo",
+	"ui.kanban.drag": "Arrastrar",
 	"ui.lightbox.next": "Foto siguiente",
 	"ui.lightbox.photos": "Fotos",
 	"ui.lightbox.previous": "Foto anterior",

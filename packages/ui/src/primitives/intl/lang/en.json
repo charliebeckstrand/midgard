@@ -215,6 +215,10 @@
 		"defaultMessage": "Ungrouped",
 		"description": "The heading of the columns that are in no group, and their place in an announcement."
 	},
+	"ui.kanban.drag": {
+		"defaultMessage": "Drag",
+		"description": "The first word of the name of the drag handle of a Kanban card. The name of the card follows it."
+	},
 	"ui.lightbox.next": {
 		"defaultMessage": "Next photo",
 		"description": "The name of the button that shows the photo after."
