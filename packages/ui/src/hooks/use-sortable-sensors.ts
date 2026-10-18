@@ -3,16 +3,59 @@
 import {
 	type KeyboardCoordinateGetter,
 	KeyboardSensor,
+	type KeyboardSensorProps,
 	PointerSensor,
 	type PointerSensorOptions,
+	type PointerSensorProps,
+	type SensorProps,
 	useSensor,
 	useSensors,
 } from '@dnd-kit/core'
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { type PointerEvent as ReactPointerEvent, useMemo } from 'react'
+import { registerDismissLayer } from '../utilities/dismiss-layers'
 import { holdTextSelection } from '../utilities/hold-text-selection'
 import { isPrimaryPress } from '../utilities/primary-press'
 import { usePrefersReducedMotion } from './use-prefers-reduced-motion'
+
+/**
+ * Changes the props of a sensor so that the sensor holds the top of the
+ * dismiss stack while its drag runs.
+ *
+ * Each sensor cancels its drag on Escape. Its key listener goes on the
+ * document when the press or the drag starts, after the listener of a dialog
+ * or a sheet around the list. Without a layer of its own, the surface sees the
+ * press first, as the top layer, and closes with the drag. With the layer, the
+ * surface lets the press go, and the next Escape closes it.
+ *
+ * The layer goes when the drag ends or cancels. If the list unmounts during a
+ * drag, the sensor still listens, and its next Escape or drop releases the
+ * layer.
+ *
+ * @internal
+ */
+function layered<T extends SensorProps<unknown>>(props: T): T {
+	let release: (() => void) | undefined
+
+	const settle = (then: () => void) => () => {
+		release?.()
+
+		release = undefined
+
+		then()
+	}
+
+	return {
+		...props,
+		onStart: (coordinates) => {
+			release = registerDismissLayer({})
+
+			props.onStart(coordinates)
+		},
+		onEnd: settle(props.onEnd),
+		onCancel: settle(props.onCancel),
+	}
+}
 
 /**
  * Pointer sensor that activates a drag only on a genuine primary press.
@@ -23,7 +66,8 @@ import { usePrefersReducedMotion } from './use-prefers-reduced-motion'
  * whose `pointerup` the opening context menu swallows, stranding the item
  * mid-drag as if it were still held. Rejecting `ctrlKey` (alongside the
  * non-primary buttons the stock sensor already drops) keeps any context-menu
- * gesture from ever beginning a drag.
+ * gesture from ever beginning a drag. While its drag runs, the sensor holds
+ * the top of the dismiss stack (see {@link layered}).
  *
  * @internal
  */
@@ -45,6 +89,22 @@ class PrimaryPointerSensor extends PointerSensor {
 			},
 		},
 	]
+
+	constructor(props: PointerSensorProps) {
+		super(layered(props))
+	}
+}
+
+/**
+ * Keyboard sensor of dnd-kit that holds the top of the dismiss stack while its
+ * drag runs (see {@link layered}).
+ *
+ * @internal
+ */
+class LayeredKeyboardSensor extends KeyboardSensor {
+	constructor(props: KeyboardSensorProps) {
+		super(layered(props))
+	}
 }
 
 /**
@@ -75,9 +135,10 @@ export type SortableSensorsOptions = {
  * Standard sensor configuration for dnd-kit powered sortable UIs.
  * Pairs a low-threshold {@link PrimaryPointerSensor} (which ignores
  * context-menu presses, including the macOS Ctrl-click) with a keyboard sensor
- * using `sortableKeyboardCoordinates` for arrow-key reordering. A keyboard
- * move scrolls the item into view smoothly, and at once when the reader asks
- * for reduced motion.
+ * using `sortableKeyboardCoordinates` for arrow-key reordering. The Escape that
+ * cancels a drag does not also close a dialog or a sheet around the list. A
+ * keyboard move scrolls the item into view smoothly, and at once when the
+ * reader asks for reduced motion.
  *
  * @returns dnd-kit's `SensorDescriptor[]` to pass to `<DndContext sensors>`;
  * the keyboard sensor is omitted when `keyboard` is false.
@@ -99,7 +160,7 @@ export function useSortableSensors({
 		[keyboardCoordinateGetter, scrollBehavior],
 	)
 
-	const keyboardSensor = useSensor(KeyboardSensor, keyboardOptions)
+	const keyboardSensor = useSensor(LayeredKeyboardSensor, keyboardOptions)
 
 	return useSensors(pointer, keyboard ? keyboardSensor : null)
 }
