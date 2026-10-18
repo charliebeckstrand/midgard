@@ -1,5 +1,7 @@
 import { Download, Printer } from 'lucide-react'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { ToolbarGroup } from '../toolbar'
+import { pdfViewerMessages } from './pdf-viewer-messages'
 import { PdfViewerToolbarButton } from './pdf-viewer-toolbar-button'
 import { downloadPdf, printPdf } from './pdf-viewer-utilities'
 
@@ -27,16 +29,18 @@ export function PdfViewerDocumentActions({
 
 	const print = () => printPdf(src)
 
+	const intl = useIntl()
+
 	return (
-		<ToolbarGroup aria-label="Document">
+		<ToolbarGroup aria-label={intl.formatMessage(pdfViewerMessages.document)}>
 			<PdfViewerToolbarButton
-				label="Download"
+				label={intl.formatMessage(pdfViewerMessages.download)}
 				icon={<Download />}
 				disabled={disabled}
 				onClick={download}
 			/>
 			<PdfViewerToolbarButton
-				label="Print"
+				label={intl.formatMessage(pdfViewerMessages.print)}
 				icon={<Printer />}
 				disabled={disabled}
 				onClick={print}

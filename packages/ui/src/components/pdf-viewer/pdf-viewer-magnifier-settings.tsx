@@ -3,6 +3,7 @@
 import { ScanSearch } from 'lucide-react'
 import { useId } from 'react'
 import { cn } from '../../core'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { Stack } from '../../structure/stack'
 import {
@@ -17,6 +18,7 @@ import { Description, Fieldset, Label, Legend } from '../fieldset'
 import { Radio, RadioField, RadioGroup } from '../radio'
 import { Switch, SwitchField } from '../switch'
 import { usePdfViewerContext } from './context'
+import { pdfViewerMessages } from './pdf-viewer-messages'
 import { PdfViewerToolbarButton } from './pdf-viewer-toolbar-button'
 import {
 	delayOptions,
@@ -66,6 +68,8 @@ export function PdfViewerMagnifierSettings({ disabled }: PdfViewerMagnifierSetti
 	// one page would otherwise share three groups, and each would steer the other's lens.
 	const scope = useId()
 
+	const intl = useIntl()
+
 	// The toolbar renders this only where the consumer asked for a loupe, so the settings are
 	// always there. The guard is what tells the compiler so.
 	if (!choice) return null
@@ -74,7 +78,7 @@ export function PdfViewerMagnifierSettings({ disabled }: PdfViewerMagnifierSetti
 		<Dialog>
 			<DialogTrigger>
 				<PdfViewerToolbarButton
-					label="Magnifier settings"
+					label={intl.formatMessage(pdfViewerMessages.magnifierSettings)}
 					icon={<ScanSearch />}
 					// Keyed on the loupe rather than on the dialog: the glyph stands for the lens, so
 					// the fill has to report whether the lens is on, not whether its settings are up.
@@ -86,16 +90,13 @@ export function PdfViewerMagnifierSettings({ disabled }: PdfViewerMagnifierSetti
 
 			<DialogPanel width="sm" data-slot="pdf-viewer-magnifier-settings">
 				<DialogHeader>
-					<DialogTitle>Magnifier</DialogTitle>
+					<DialogTitle>{intl.formatMessage(pdfViewerMessages.magnifier)}</DialogTitle>
 				</DialogHeader>
 				<DialogBody>
 					<Stack gap="lg">
 						<SwitchField>
-							<Label>Show the magnifier</Label>
-							<Description>
-								A lens beside the cursor while it rests on the page, or above a finger that you hold
-								on the page.
-							</Description>
+							<Label>{intl.formatMessage(pdfViewerMessages.showMagnifier)}</Label>
+							<Description>{intl.formatMessage(pdfViewerMessages.magnifierHint)}</Description>
 							<Switch
 								checked={magnifierOn}
 								onChange={(event) => setMagnifierOn(event.target.checked)}
@@ -104,7 +105,7 @@ export function PdfViewerMagnifierSettings({ disabled }: PdfViewerMagnifierSetti
 
 						<PdfViewerMagnifierChoice
 							name={`${scope}-zoom`}
-							label="Magnification"
+							label={intl.formatMessage(pdfViewerMessages.magnification)}
 							options={zoomOptions}
 							value={choice.zoom}
 							onChange={(zoom) => setMagnifierChoice({ ...choice, zoom })}
@@ -112,7 +113,7 @@ export function PdfViewerMagnifierSettings({ disabled }: PdfViewerMagnifierSetti
 
 						<PdfViewerMagnifierChoice
 							name={`${scope}-size`}
-							label="Size"
+							label={intl.formatMessage(pdfViewerMessages.size)}
 							options={sizeOptions}
 							value={choice.size}
 							onChange={(size) => setMagnifierChoice({ ...choice, size })}
@@ -120,7 +121,7 @@ export function PdfViewerMagnifierSettings({ disabled }: PdfViewerMagnifierSetti
 
 						<PdfViewerMagnifierChoice
 							name={`${scope}-delay`}
-							label="Delay"
+							label={intl.formatMessage(pdfViewerMessages.delay)}
 							options={delayOptions}
 							value={choice.delay}
 							onChange={(delay) => setMagnifierChoice({ ...choice, delay })}
@@ -164,6 +165,8 @@ function PdfViewerMagnifierChoice<T extends string>({
 }: PdfViewerMagnifierChoiceProps<T>) {
 	const legendId = useId()
 
+	const intl = useIntl()
+
 	return (
 		<Fieldset className={cn(k.settings.group)}>
 			<Legend id={legendId}>{label}</Legend>
@@ -176,7 +179,7 @@ function PdfViewerMagnifierChoice<T extends string>({
 							checked={value === option.value}
 							onChange={() => onChange(option.value)}
 						/>
-						<Label>{option.label}</Label>
+						<Label>{option.label(intl)}</Label>
 					</RadioField>
 				))}
 			</RadioGroup>
