@@ -1,6 +1,6 @@
 'use client'
 
-import { type RefCallback, useEffect } from 'react'
+import { type RefCallback, type RefObject, useEffect } from 'react'
 import { useTruncation } from '../../hooks/use-truncation'
 
 /**
@@ -30,6 +30,9 @@ export type GridSettleSubscription = (listener: () => void) => () => void
  * whose reveal the cell holds closed anyway). A flag re-measures on the first
  * commit after it lifts. A body cell passes a function instead, read at each
  * measure. The settle at the end of the drag then measures it again.
+ * @param armRef - The element whose pointer or focus contact arms the measure
+ * (see {@link useTruncation}). The header of a sortable column passes its sort
+ * button, because the button takes the focus and the title does not.
  * @returns `[ref, truncated, contacted]`. Attach `ref` to the single-line
  * element. Read `truncated` to gate the reveal tooltip. Read `contacted` to
  * defer mounting the reveal machinery until the first contact that could open
@@ -39,8 +42,9 @@ export type GridSettleSubscription = (listener: () => void) => () => void
 export function useGridTruncation<E extends HTMLElement>(
 	onSettle?: GridSettleSubscription,
 	suspended?: boolean | (() => boolean),
+	armRef?: RefObject<HTMLElement | null>,
 ): [RefCallback<E>, boolean, boolean] {
-	const [ref, truncated, measure, contacted] = useTruncation<E>({ suspended })
+	const [ref, truncated, measure, contacted] = useTruncation<E>({ armRef, suspended })
 
 	// Only a visited cell has a live `truncated` flag to keep current; before
 	// contact `measure` bails. A subscription for each cell of a wide, un-windowed

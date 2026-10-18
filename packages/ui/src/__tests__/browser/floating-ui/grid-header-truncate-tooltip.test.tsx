@@ -46,6 +46,43 @@ describe('grid header truncation tooltip (real browser)', () => {
 		expect(tip).toHaveTextContent(longTitle)
 	})
 
+	// The sort button takes the focus, so the button is the trigger of the tooltip.
+	it('shows the tooltip when the keyboard focuses the sort button of a truncated header', async () => {
+		const { container } = renderUI(
+			<>
+				<button type="button">before</button>
+
+				<Grid
+					resizable
+					columns={[{ id: 'name', title: longTitle, sortable: true, cell: (row) => row.name }]}
+					columnSizing={narrow}
+					rows={rows}
+					getKey={getKey}
+				/>
+			</>,
+		)
+
+		const sort = screen.getByRole('button', { name: `Sort by ${longTitle}` })
+
+		// A real Tab, not `sort.focus()`. The tooltip opens on a focus that matches
+		// `:focus-visible`, and an earlier test can leave a pointer input.
+		screen.getByRole('button', { name: 'before' }).focus()
+
+		await userEvent.tab()
+
+		expect(document.activeElement).toBe(sort)
+
+		const tip = await screen.findByRole('tooltip')
+
+		expect(tip).toHaveTextContent(longTitle)
+
+		// The tooltip belongs to the focused button, not to a hover that a parked
+		// pointer started on the title.
+		expect(sort).toHaveAttribute('aria-describedby', tip.id)
+
+		expect(container.querySelector('[data-grid-content]')).not.toHaveAttribute('aria-describedby')
+	})
+
 	it('suppresses the tooltip while a column drag-resize is in flight', async () => {
 		const { container } = renderUI(
 			<Grid

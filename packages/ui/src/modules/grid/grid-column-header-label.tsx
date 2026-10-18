@@ -1,7 +1,7 @@
 'use client'
 
 import { ArrowDown, ArrowUp, Pin } from 'lucide-react'
-import type { ReactElement, ReactNode } from 'react'
+import { type ReactElement, type ReactNode, type RefObject, useRef } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
@@ -37,34 +37,54 @@ function sortDirectionIcon(
  * header and its column clip in step. An untruncated title renders just the span;
  * the closed tooltip adds no surface.
  *
+ * `control` wraps the title in the focusable control of a sortable header. That
+ * control is then the tooltip trigger, so a keyboard focus opens the tooltip. A
+ * title with no `control` is not focusable, and its tooltip opens on a pointer
+ * hover only.
+ *
  * @remarks Unlike {@link GridCellContent}, the header always mounts the tooltip
  * and gates it through `disabled`. The overflow `ResizeObserver` therefore never
  * detaches, and a widened column re-measures and closes the tooltip.
  * @internal
  */
-function GridHeaderTitle({ title }: { title: ReactNode }): ReactElement {
+function GridHeaderTitle({
+	title,
+	control,
+}: {
+	title: ReactNode
+	control?: (title: ReactElement, ref: RefObject<HTMLButtonElement | null>) => ReactElement
+}): ReactElement {
 	// No settle key: the header cell re-renders on its own engine `width` prop
 	// (drag and nudge alike), so the commit measure already re-runs at settle —
 	// unlike the memoized body cells, which take the snapshot from the grid.
 	const resizing = useGridResizing()
 
+	const controlRef = useRef<HTMLButtonElement>(null)
+
 	// A drag renders the header on each frame. The body cells stand their
 	// measure down through the drag, and so does the title; the render at the
-	// settle measures it again.
-	const [ref, truncated] = useGridTruncation<HTMLSpanElement>(undefined, resizing)
+	// settle measures it again. The control takes the focus, so its contact
+	// arms the measure.
+	const [ref, truncated] = useGridTruncation<HTMLSpanElement>(
+		undefined,
+		resizing,
+		control && controlRef,
+	)
+
+	// `data-grid-content` marks the title leaf so the autosizer reads its
+	// intrinsic width and decides the column's header-driven minimum.
+	const span = (
+		<span ref={ref} data-grid-content className={cn(k.head.title)}>
+			{title}
+		</span>
+	)
 
 	return (
 		// `!resizing` holds the tooltip closed through a column drag-resize: the
 		// drag reflows the header, and the overflow tooltip would otherwise flash
 		// open over the content the resize is reshaping.
 		<Tooltip disabled={!truncated || resizing}>
-			<TooltipTrigger>
-				{/* `data-grid-content` marks the title leaf so the autosizer reads its
-				    intrinsic width and decides the column's header-driven minimum. */}
-				<span ref={ref} data-grid-content className={cn(k.head.title)}>
-					{title}
-				</span>
-			</TooltipTrigger>
+			<TooltipTrigger>{control ? control(span, controlRef) : span}</TooltipTrigger>
 
 			<TooltipContent className={cn(k.cell.tooltip)}>{title}</TooltipContent>
 		</Tooltip>
@@ -91,28 +111,34 @@ export function GridColumnHeaderLabel({
 
 	return (
 		<HeadlessProvider>
-			<Button
-				type="button"
-				className={cn(k.sort.button)}
-				// A Shift-click folds this column into the existing sort (multi-column);
-				// a plain click collapses the sort to just this column.
-				onClick={(event) => toggleSort(column.id, event.shiftKey)}
-				// The explicit name overrides the inner badge, so fold the multi-column
-				// sort priority into it; otherwise the digit is never announced (WCAG 1.3.1).
-				aria-label={
-					sortPriority != null
-						? `Sort by ${columnLabel(column)}, sort priority ${sortPriority}`
-						: `Sort by ${columnLabel(column)}`
-				}
-			>
-				<GridHeaderTitle title={column.title} />
-				{sortDirectionIcon(sorted, direction)}
-				{sortPriority != null && (
-					<span aria-hidden className={cn(k.sort.badge)}>
-						{sortPriority}
-					</span>
+			<GridHeaderTitle
+				title={column.title}
+				control={(title, ref) => (
+					<Button
+						ref={ref}
+						type="button"
+						className={cn(k.sort.button)}
+						// A Shift-click folds this column into the existing sort (multi-column);
+						// a plain click collapses the sort to just this column.
+						onClick={(event) => toggleSort(column.id, event.shiftKey)}
+						// The explicit name overrides the inner badge, so fold the multi-column
+						// sort priority into it; otherwise the digit is never announced (WCAG 1.3.1).
+						aria-label={
+							sortPriority != null
+								? `Sort by ${columnLabel(column)}, sort priority ${sortPriority}`
+								: `Sort by ${columnLabel(column)}`
+						}
+					>
+						{title}
+						{sortDirectionIcon(sorted, direction)}
+						{sortPriority != null && (
+							<span aria-hidden className={cn(k.sort.badge)}>
+								{sortPriority}
+							</span>
+						)}
+					</Button>
 				)}
-			</Button>
+			/>
 		</HeadlessProvider>
 	)
 }
