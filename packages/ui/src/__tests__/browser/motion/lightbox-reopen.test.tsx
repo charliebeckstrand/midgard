@@ -4,7 +4,6 @@ import { Lightbox, type LightboxPhoto, LightboxTrigger } from '../../../componen
 import { ReducedMotionContext } from '../../../primitives/reduced-motion/context'
 import { frame, present, renderUI, screen } from '../../helpers'
 import { sampleMotionFrames, waitForNoTween } from '../helpers/motion-frame'
-import { budget } from '../helpers/wall-clock'
 
 /**
  * A `Lightbox` that opens again while its photo goes back to its thumbnail.
@@ -66,26 +65,21 @@ async function open(index: number) {
 }
 
 /**
- * The deadline of {@link hold}. A caller starts the hold before a click or a
- * key, so the deadline also counts the round trip of the event. Under the load
- * of the full suite, one round trip took longer than the suite budget of
- * `asyncUtilTimeout`, and the hold failed before the tween started.
- * `disclosure-clip.test.tsx` also starts a sampler before an event, and gives
- * it the same budget.
- */
-const HOLD_DEADLINE = budget(5000)
-
-/**
  * Holds the tweens of `element` and of its descendants at `progress` of their
  * length, in the frame that starts them, and gives them. A tween runs on
  * wall-clock time, so a long frame moves it on before a measure. A held tween
  * stays at its frame. `play()` on each tween lets it go on.
+ *
+ * `during` sends the event that starts the tweens. The sampler starts before
+ * it, so a slow round trip of the event cannot let a tween run on before the
+ * first sample. The deadline starts after the event (see
+ * {@link sampleMotionFrames}).
  */
-async function hold(element: HTMLElement, progress: number) {
+async function hold(element: HTMLElement, progress: number, during?: () => Promise<unknown>) {
 	const tweens = await sampleMotionFrames(
 		() => element.getAnimations({ subtree: true }),
 		(found) => found.length > 0,
-		{ deadline: HOLD_DEADLINE },
+		{ during },
 	)
 
 	for (const tween of tweens) {
@@ -105,11 +99,7 @@ async function hold(element: HTMLElement, progress: number) {
  * first frame. The reopen stops the held tweens.
  */
 async function startReturn() {
-	const back = hold(slot(0), 0.5)
-
-	await userEvent.keyboard('{Escape}')
-
-	await back
+	await hold(slot(0), 0.5, () => userEvent.keyboard('{Escape}'))
 }
 
 /**
@@ -206,14 +196,8 @@ describe('Lightbox reopened during the return (real browser)', () => {
 
 		const center = slot(0)
 
-		// The sampler starts before the key. A slow round trip of the key then
-		// cannot let the return run on before the first sample.
-		const back = hold(center, 0.25)
-
-		await userEvent.keyboard('{Escape}')
-
 		// The photo is a quarter of the way back, and is not at its thumbnail yet.
-		await back
+		await hold(center, 0.25, () => userEvent.keyboard('{Escape}'))
 
 		const painted = center.getBoundingClientRect()
 
@@ -248,13 +232,9 @@ describe('Lightbox reopened during the return (real browser)', () => {
 
 			await open(0)
 
-			// The sampler starts before the key. A slow round trip of the key then
-			// cannot let the return land before the first sample.
-			const back = hold(slot(0), 0.5)
+			const back = await hold(slot(0), 0.5, () => userEvent.keyboard('{Escape}'))
 
-			await userEvent.keyboard('{Escape}')
-
-			await reopenAtLanding(await back, 1)
+			await reopenAtLanding(back, 1)
 
 			await waitForNoTween(viewerTweens)
 
@@ -319,20 +299,13 @@ describe('Lightbox reopened during the return (real browser)', () => {
 
 		const track = present(slot(0).parentElement, 'the track')
 
-		const slide = hold(track, 0.5)
+		await hold(track, 0.5, () =>
+			userEvent.click(screen.getByRole('button', { name: 'Next photo' })),
+		)
 
-		await userEvent.click(screen.getByRole('button', { name: 'Next photo' }))
-
-		await slide
-
-		// The sampler starts before the key, and it holds the return. A slow round
-		// trip of the key then cannot let the return land before the reopen, which
-		// would mount a new track.
-		const back = hold(slot(0), 0.5)
-
-		await userEvent.keyboard('{Escape}')
-
-		const tweens = await back
+		// The hold of the return keeps a slow round trip of the key from letting
+		// the return land before the reopen, which would mount a new track.
+		const tweens = await hold(slot(0), 0.5, () => userEvent.keyboard('{Escape}'))
 
 		thumbnail(0).click()
 

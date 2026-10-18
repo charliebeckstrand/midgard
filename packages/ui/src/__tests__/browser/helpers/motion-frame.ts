@@ -16,21 +16,32 @@ import { inject } from 'vitest'
  * `postRender` step of each frame, so it reads each value that Motion writes,
  * also the last one. Motion reports the landing after that step.
  *
+ * A wait for a tween that an event starts must read the first frame of the
+ * tween, so the sampler starts before the event. Give the event as `during`.
+ * The sampler then starts, the helper sends the event, and the deadline starts
+ * when the event resolves. Thus the round trip of the event, which can take
+ * seconds under the load of the full suite, does not count in the deadline.
+ *
  * @param read - Reads the value.
  * @param done - Accepts the value that ends the wait.
+ * @param options - `deadline` is the time that `done` has to accept a value.
+ * `during` sends the event that starts the tween, after the sampler starts.
  * @returns The value that `done` accepted.
  * @throws When the deadline passes before `done` accepts a value, or when
- * `read` throws. The default deadline is the suite budget of
+ * `read` or `during` throws. The default deadline is the suite budget of
  * `asyncUtilTimeout`.
  */
-export function sampleMotionFrames<T>(
+export async function sampleMotionFrames<T>(
 	read: () => T,
 	done: (value: T) => boolean,
-	{ deadline = inject('asyncUtilTimeout') }: { deadline?: number } = {},
+	{
+		deadline = inject('asyncUtilTimeout'),
+		during,
+	}: { deadline?: number; during?: () => Promise<unknown> } = {},
 ): Promise<T> {
-	const end = performance.now() + deadline
+	let end = during ? Number.POSITIVE_INFINITY : performance.now() + deadline
 
-	return new Promise((resolve, reject) => {
+	const sampling = new Promise<T>((resolve, reject) => {
 		const step = () => {
 			try {
 				const value = read()
@@ -53,6 +64,20 @@ export function sampleMotionFrames<T>(
 
 		frame.postRender(step, true)
 	})
+
+	if (!during) return sampling
+
+	// A rejection of the sampler while the event is in flight is not unhandled:
+	// the return below gives it to the caller.
+	sampling.catch(() => {})
+
+	try {
+		await during()
+	} finally {
+		end = performance.now() + deadline
+	}
+
+	return sampling
 }
 
 /**
