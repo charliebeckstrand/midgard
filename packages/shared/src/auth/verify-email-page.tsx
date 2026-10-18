@@ -5,11 +5,13 @@ import { Button } from 'ui/button'
 import { Heading } from 'ui/heading'
 import { AuthLayout } from 'ui/layouts'
 import { Link } from 'ui/link'
+import { useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/structure/stack'
 import { Text } from 'ui/text'
+import { authMessages } from './auth-messages'
 import { bifrost } from './bifrost'
 import { linkToken } from './link-token'
-import { unexpectedError, useServerError } from './use-server-error'
+import { useServerError } from './use-server-error'
 
 /**
  * Page that verifies an email: posts the token of the emailed link to
@@ -24,6 +26,8 @@ import { unexpectedError, useServerError } from './use-server-error'
  * prerenders all of the page.
  */
 export function VerifyEmailPage() {
+	const intl = useIntl()
+
 	const [state, setState] = useState<'idle' | 'pending' | 'verified'>('idle')
 
 	const [errorAlert, setServerError] = useServerError()
@@ -44,9 +48,9 @@ export function VerifyEmailPage() {
 				return
 			}
 
-			setServerError(error?.message || 'The email was not verified. Please try again.')
+			setServerError(error?.message || intl.formatMessage(authMessages.verifyFailed))
 		} catch {
-			setServerError(unexpectedError)
+			setServerError(intl.formatMessage(authMessages.unexpected))
 		}
 
 		setState('idle')
@@ -55,15 +59,15 @@ export function VerifyEmailPage() {
 	return (
 		<AuthLayout>
 			<Stack gap="lg" className="w-full sm:max-w-sm p-6 text-center">
-				<Heading>Verify your email</Heading>
+				<Heading>{intl.formatMessage(authMessages.verifyTitle)}</Heading>
 
 				{state === 'verified' ? (
 					<>
-						<Text tone="success">Your email is verified.</Text>
+						<Text tone="success">{intl.formatMessage(authMessages.verified)}</Text>
 
 						<Text>
 							<Link href="/" underline>
-								Continue
+								{intl.formatMessage(authMessages.continue)}
 							</Link>
 						</Text>
 					</>
@@ -72,7 +76,7 @@ export function VerifyEmailPage() {
 						{errorAlert}
 
 						<Button className="w-full" disabled={state === 'pending'} onClick={verify}>
-							Verify email
+							{intl.formatMessage(authMessages.verifyEmail)}
 						</Button>
 					</>
 				)}

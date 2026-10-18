@@ -16,15 +16,17 @@ import { Input } from 'ui/input'
 import { AuthLayout } from 'ui/layouts'
 import { Link } from 'ui/link'
 import { PasswordInput } from 'ui/password-input'
+import { type MessageDescriptor, useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import { oauthStartPath, signInProviderNames, signOut } from './account'
+import { authMessages, continueWithMessage } from './auth-messages'
 import { bifrost } from './bifrost'
 import { ErrorAlert } from './error-alert'
 import { chain, email, required } from './form-validators'
 import type { SecondFactorMethod } from './second-step-request'
 import { useLeaving } from './use-leaving'
-import { unexpectedError, useServerError } from './use-server-error'
+import { useServerError } from './use-server-error'
 
 type LoginValues = { email: string; password: string }
 
@@ -41,16 +43,18 @@ const loadSecondStep = () => import('./second-step')
  */
 const SecondStep = dynamic(() => loadSecondStep().then((module) => module.SecondStep))
 
-const passkeyFailed = 'Passkey sign-in did not complete. Please try again.'
-
 /** The messages of the `?error=` codes that a GitHub or Google sign-in comes back with. */
-const signInErrors: Record<string, string> = {
-	oauth_failed: 'That sign-in did not complete. Please try again.',
-	oauth_unavailable: 'That sign-in method is not available.',
-	email_unverified: 'That account has no verified email. Verify it with the provider first.',
-	account_exists:
-		'An account with that email already exists. Sign in with it, then connect this account from the account page.',
-	account_inactive: 'Account is inactive.',
+const signInErrors: Record<string, MessageDescriptor> = {
+	oauth_failed: authMessages.oauthFailed,
+	oauth_unavailable: authMessages.oauthUnavailable,
+	email_unverified: authMessages.emailUnverified,
+	account_exists: authMessages.accountExists,
+	account_inactive: authMessages.accountInactive,
+}
+
+/** The message of a `?error=` code. An unknown code reads as a sign-in that did not complete. */
+function signInError(code: string): MessageDescriptor {
+	return signInErrors[code] ?? authMessages.oauthFailed
 }
 
 /**
@@ -67,24 +71,26 @@ const signInErrors: Record<string, string> = {
  * stays in the prerendered HTML.
  */
 function QueryNotice() {
+	const intl = useIntl()
+
 	const params = useSearchParams()
 
 	const error = params.get('error')
 
 	if (error) {
-		return <ErrorAlert key={error}>{signInErrors[error] ?? signInErrors.oauth_failed}</ErrorAlert>
+		return <ErrorAlert key={error}>{intl.formatMessage(signInError(error))}</ErrorAlert>
 	}
 
 	if (params.get('expired') === 'true') {
-		return <ErrorAlert>Too many wrong tries. Please sign in again.</ErrorAlert>
+		return <ErrorAlert>{intl.formatMessage(authMessages.expired)}</ErrorAlert>
 	}
 
 	if (params.get('reset') === 'true') {
-		return <Text tone="success">Your password is set. Please sign in.</Text>
+		return <Text tone="success">{intl.formatMessage(authMessages.passwordSet)}</Text>
 	}
 
 	return params.get('registered') === 'true' ? (
-		<Text tone="success">Check your email to finish signing up, then sign in.</Text>
+		<Text tone="success">{intl.formatMessage(authMessages.registered)}</Text>
 	) : null
 }
 
@@ -151,6 +157,8 @@ export function LoginPage({
 	secondStep = false,
 	methods,
 }: LoginPageProps) {
+	const intl = useIntl()
+
 	const router = useRouter()
 
 	const [errorAlert, setServerError] = useServerError()
@@ -171,7 +179,7 @@ export function LoginPage({
 			return
 		}
 
-		setServerError(error?.message || 'Login failed. Please check your credentials and try again.')
+		setServerError(error?.message || intl.formatMessage(authMessages.loginFailed))
 	}
 
 	// A failed load refreshes too, and the form of the second step then loads its module again.
@@ -190,7 +198,7 @@ export function LoginPage({
 				secondStep ? refreshWithSecondStep : home,
 			)
 		} catch {
-			setServerError(unexpectedError)
+			setServerError(intl.formatMessage(authMessages.unexpected))
 		}
 	}
 
@@ -201,7 +209,7 @@ export function LoginPage({
 			const { data: options } = await bifrost.POST('/auth/login/options')
 
 			if (!options) {
-				setServerError(passkeyFailed)
+				setServerError(intl.formatMessage(authMessages.passkeySignInFailed))
 
 				return
 			}
@@ -213,7 +221,7 @@ export function LoginPage({
 
 			finish(await bifrost.POST('/auth/login/passkey', { body: credential }))
 		} catch {
-			setServerError(passkeyFailed)
+			setServerError(intl.formatMessage(authMessages.passkeySignInFailed))
 		}
 	}
 
@@ -221,7 +229,9 @@ export function LoginPage({
 		return (
 			<AuthLayout>
 				<Stack gap="xl" className="w-full sm:max-w-sm p-6">
-					<Heading className="text-center">Confirm that it is you</Heading>
+					<Heading className="text-center">
+						{intl.formatMessage(authMessages.confirmIdentity)}
+					</Heading>
 
 					<SecondStep
 						methods={methods}
@@ -229,7 +239,7 @@ export function LoginPage({
 						// A full page load, so that no state of the second step stays.
 						onExpired={() => window.location.assign('/login?expired=true')}
 						onCancel={signOut}
-						cancelLabel="Sign out"
+						cancelLabel={intl.formatMessage(authMessages.signOut)}
 						startPasskey
 					/>
 				</Stack>
@@ -242,14 +252,14 @@ export function LoginPage({
 			<Form<LoginValues>
 				defaultValues={{ email: '', password: '' }}
 				validate={{
-					email: chain(required(), email()),
-					password: chain(required()),
+					email: chain(required(intl), email(intl)),
+					password: chain(required(intl)),
 				}}
 				onSubmit={handleSubmit}
 				disabled={leaving}
 			>
 				<Stack gap="xl" className="w-full sm:max-w-sm p-6">
-					<Heading className="text-center">Sign in to your account</Heading>
+					<Heading className="text-center">{intl.formatMessage(authMessages.loginTitle)}</Heading>
 
 					{errorAlert}
 
@@ -258,30 +268,30 @@ export function LoginPage({
 					</Suspense>
 
 					<Field>
-						<Label>Email</Label>
+						<Label>{intl.formatMessage(authMessages.email)}</Label>
 						<Input type="email" name="email" autoComplete="email" />
 						<Message name="email" />
 					</Field>
 
 					<Field>
-						<Label>Password</Label>
+						<Label>{intl.formatMessage(authMessages.password)}</Label>
 						<PasswordInput name="password" autoComplete="current-password" />
 						<Message name="password" />
 						{passwordReset && (
 							<Text className="text-right">
 								<Link href="/forgot-password" underline>
-									Forgot password?
+									{intl.formatMessage(authMessages.forgotPassword)}
 								</Link>
 							</Text>
 						)}
 					</Field>
 
 					<Button type="submit" className="w-full">
-						Sign in
+						{intl.formatMessage(authMessages.signIn)}
 					</Button>
 
 					<Button type="button" variant="outline" className="w-full" onClick={signInWithPasskey}>
-						Sign in with a passkey
+						{intl.formatMessage(authMessages.signInWithPasskey)}
 					</Button>
 
 					{providers.map((provider) => (
@@ -299,16 +309,18 @@ export function LoginPage({
 								)
 							}
 						>
-							Continue with {signInProviderNames[provider]}
+							{intl.formatMessage(continueWithMessage, {
+								provider: signInProviderNames[provider],
+							})}
 						</Button>
 					))}
 
 					{registration && (
 						<div className="text-center">
 							<Text>
-								Don't have an account?{' '}
+								{intl.formatMessage(authMessages.noAccount)}{' '}
 								<Link href="/register" underline>
-									Create one
+									{intl.formatMessage(authMessages.createOne)}
 								</Link>
 							</Text>
 						</div>

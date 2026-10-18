@@ -8,12 +8,14 @@ import { Heading } from 'ui/heading'
 import { AuthLayout } from 'ui/layouts'
 import { Link } from 'ui/link'
 import { PasswordInput } from 'ui/password-input'
+import { useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
+import { authMessages } from './auth-messages'
 import { bifrost } from './bifrost'
-import { chain, matches, minLength, required } from './form-validators'
+import { chain, matches, minLength, required, validationMessages } from './form-validators'
 import { linkToken } from './link-token'
-import { unexpectedError, useServerError } from './use-server-error'
+import { useServerError } from './use-server-error'
 
 type ResetPasswordValues = { password: string; confirmPassword: string }
 
@@ -30,6 +32,8 @@ type ResetPasswordValues = { password: string; confirmPassword: string }
  * prerenders all of the page.
  */
 export function ResetPasswordPage() {
+	const intl = useIntl()
+
 	const router = useRouter()
 
 	const [errorAlert, setServerError] = useServerError()
@@ -46,9 +50,9 @@ export function ResetPasswordPage() {
 				return
 			}
 
-			setServerError(error?.message || 'The password did not change. Please try again.')
+			setServerError(error?.message || intl.formatMessage(authMessages.resetFailed))
 		} catch {
-			setServerError(unexpectedError)
+			setServerError(intl.formatMessage(authMessages.unexpected))
 		}
 	}
 
@@ -57,37 +61,40 @@ export function ResetPasswordPage() {
 			<Form<ResetPasswordValues>
 				defaultValues={{ password: '', confirmPassword: '' }}
 				validate={{
-					password: chain(required(), minLength(8)),
-					confirmPassword: chain(required(), matches('password', 'password')),
+					password: chain(required(intl), minLength(intl, 8)),
+					confirmPassword: chain(
+						required(intl),
+						matches('password', intl.formatMessage(validationMessages.passwordMismatch)),
+					),
 				}}
 				onSubmit={handleSubmit}
 			>
 				<Stack gap="xl" className="w-full sm:max-w-sm p-6">
-					<Heading className="text-center">Choose a new password</Heading>
+					<Heading className="text-center">{intl.formatMessage(authMessages.resetTitle)}</Heading>
 
 					{errorAlert}
 
 					<Field>
-						<Label>New password</Label>
+						<Label>{intl.formatMessage(authMessages.newPassword)}</Label>
 						<PasswordInput name="password" autoComplete="new-password" />
 						<Message name="password" />
 					</Field>
 
 					<Field>
-						<Label>Confirm password</Label>
+						<Label>{intl.formatMessage(authMessages.confirmPassword)}</Label>
 						<PasswordInput name="confirmPassword" autoComplete="new-password" />
 						<Message name="confirmPassword" />
 					</Field>
 
 					<Button type="submit" className="w-full">
-						Set password
+						{intl.formatMessage(authMessages.setPassword)}
 					</Button>
 
 					<div className="text-center">
 						<Text>
-							Link expired?{' '}
+							{intl.formatMessage(authMessages.linkExpired)}{' '}
 							<Link href="/forgot-password" underline>
-								Get a new one
+								{intl.formatMessage(authMessages.getNewLink)}
 							</Link>
 						</Text>
 					</div>
