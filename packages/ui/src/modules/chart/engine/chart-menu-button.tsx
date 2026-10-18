@@ -34,9 +34,12 @@ export type ChartMenuButtonProps = {
 	 * Where this copy of the button renders. `'host'` puts it in the header row
 	 * of the box around the chart, and renders nothing outside such a box.
 	 * `'header'` puts it at the end of the chart header, and renders nothing
-	 * inside such a box. The frame renders both copies, so exactly one shows.
+	 * inside such a box. `'corner'` puts it in the top end corner of the nearest
+	 * positioned ancestor, for a chart that draws no header, and renders nothing
+	 * inside such a box. A chart renders the host copy and one other copy, so
+	 * exactly one shows.
 	 */
-	place: 'host' | 'header'
+	place: 'host' | 'header' | 'corner'
 }
 
 /** The item of `entries` with `key`, or `undefined`. */
@@ -55,6 +58,10 @@ function itemOf(entries: ContextMenuEntry[], key: string): ContextMenuItem | und
  * such as a dashboard tile, the button goes into the header row of the box with a
  * portal. Otherwise it sits at the end of the chart header. A chart with no
  * title then has no button. The button covers no mark in either place.
+ *
+ * A chart that draws no header, such as the heatmap and the choropleth, puts
+ * the button in the top end corner of the chart instead. There it can cover a
+ * mark, but it reserves no height.
  *
  * In the header row of a box, a View data button comes before the menu
  * button on each pointer, when the menu has the View data entry. The menu has
@@ -79,7 +86,11 @@ export function ChartMenuButton({ title, place }: ChartMenuButtonProps) {
 			data-slot="chart-menu-button"
 			// In the chart header the box keeps the height of one header line, and the
 			// button overflows it. The tier reserve of the header then stays correct.
-			className={cn('hidden shrink-0 items-center pointer-coarse:flex', host === null && 'h-6')}
+			className={cn(
+				'hidden shrink-0 items-center pointer-coarse:flex',
+				place === 'header' && 'h-6',
+				place === 'corner' && 'absolute end-0 top-0 z-10',
+			)}
 		>
 			<Menu placement="bottom-end">
 				<MenuTrigger>

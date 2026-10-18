@@ -1,6 +1,8 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import { useCallback, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { cn } from '../../../core'
 import { useLocale } from '../../../providers/locale'
 import { k } from '../../../recipes/kata/chart'
@@ -18,6 +20,7 @@ import {
 import { numericRegionData } from '../../map/engine/map-region/data'
 import type { ChartContextMenuConfig } from '../engine/chart-context-menu'
 import { ChartContextMenu } from '../engine/chart-context-menu'
+import { ChartMenuButton } from '../engine/chart-menu-button'
 import { READOUT_GAP } from '../engine/chart-series'
 import type { ChartItemClick, ChartReadout, DataKey } from '../engine/types'
 
@@ -170,6 +173,11 @@ export type ChoroplethChartProps<T = never> = AccessibleName & {
 	 * `downloadLegend: false` to export the map without its legend. `false`
 	 * disables the menu, leaving the browser's
 	 * native one.
+	 *
+	 * Where the primary pointer is coarse, a menu button opens the same menu,
+	 * because a touch screen has no right-click. The choropleth draws no header,
+	 * so the button sits in the top end corner of the map. Inside a box that gives
+	 * a header row, such as a dashboard tile, it goes to that row.
 	 * @see {@link ChartContextMenuConfig}
 	 */
 	contextMenu?: ChartContextMenuConfig | false
@@ -277,6 +285,12 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 	// map tightly, with no gutter.
 	const rootRef = useRef<HTMLDivElement>(null)
 
+	// The same root, held as state: the corner menu button portals into it, and
+	// the map takes no HTML children.
+	const [mapRoot, setMapRoot] = useState<HTMLDivElement | null>(null)
+
+	const mapRefs = useComposedRefs(rootRef, setMapRoot)
+
 	// Unwrap the (single) series onto MapPlat's numeric mode. The fields go through
 	// `numericRegionData` rather than onto the literal one at a time: `series[0]`
 	// is possibly absent, so each field read off it widens by `undefined` and the
@@ -326,12 +340,19 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 			>
 				<MapPlat<T>
 					{...mapProps}
-					ref={rootRef}
+					ref={mapRefs}
 					// A long press opens the readout, so the whole chart, legend included,
 					// selects no text under a hold, as the chart frame does.
-					className={cn(k.touch.readout, className)}
+					// The corner menu button anchors to the map root.
+					className={cn(k.touch.readout, 'relative', className)}
 					onRegionContextMenu={onRegionContextMenu}
 				/>
+
+				{/* The touch menu button: in the header row of a box around the map, such
+				    as a dashboard tile, else in the corner of the map. */}
+				<ChartMenuButton title={title} place="host" />
+
+				{mapRoot && createPortal(<ChartMenuButton title={title} place="corner" />, mapRoot)}
 			</div>
 		</ChartContextMenu>
 	)
