@@ -64,21 +64,23 @@ function GridPendingCell({ children }: { children: ReactNode }) {
  * A private class field does not copy, so a method that reads one fails on
  * the copy. @internal
  */
-function pendingRow<T>(row: T, column: GridColumn<T>, value: unknown): T {
+export function pendingRow<T>(row: T, column: GridColumn<T>, value: unknown): T {
 	const field = column.field
 
 	if (field == null || Object.is(row[field], value)) return row
 
-	const copy: T = Object.create(Object.getPrototypeOf(row), Object.getOwnPropertyDescriptors(row))
+	const descriptors: PropertyDescriptorMap = Object.getOwnPropertyDescriptors(row)
 
-	Object.defineProperty(copy, field, {
+	// A frozen row has descriptors that are not configurable, so set the field
+	// in the map before the copy exists. A `defineProperty` on the copy throws.
+	descriptors[field] = {
 		value,
 		writable: true,
 		enumerable: true,
 		configurable: true,
-	})
+	}
 
-	return copy
+	return Object.create(Object.getPrototypeOf(row), descriptors)
 }
 
 /** A data cell that shows its display content, not an editor. @internal */
