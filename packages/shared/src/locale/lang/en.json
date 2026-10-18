@@ -1,1 +1,6 @@
-{}
+{
+	"shared.mutation.failed": {
+		"defaultMessage": "Something went wrong",
+		"description": "The title of the toast that shows the error of a change that failed."
+	}
+}

@@ -8,20 +8,27 @@ afterEach(() => {
 })
 
 // Builds the client of an app, with a spy for the toasts and a spy for the page location.
+// The title of a failure toast can change, as it does when the reader picks another locale.
 function setup() {
 	const toast = vi.fn(() => 'id')
 
 	const assign = vi.fn()
 
+	let title = 'Something went wrong'
+
 	vi.stubGlobal('window', { location: { assign } })
 
-	const client = createAppQueryClient({ toast })
+	const client = createAppQueryClient({ toast, failureTitle: () => title })
 
 	// Runs one mutation to its end, and keeps its failure off the test.
 	const run = (options: MutationOptions<unknown, Error, void>) =>
 		new MutationObserver(client, options).mutate().catch(() => undefined)
 
-	return { client, toast, assign, run }
+	const setTitle = (next: string) => {
+		title = next
+	}
+
+	return { client, toast, assign, run, setTitle }
 }
 
 describe('createAppQueryClient', () => {
@@ -37,6 +44,16 @@ describe('createAppQueryClient', () => {
 		)
 
 		expect(assign).not.toHaveBeenCalled()
+	})
+
+	it('words the title of the toast when the mutation fails, in the newest locale', async () => {
+		const { toast, run, setTitle } = setup()
+
+		setTitle('Algo salió mal')
+
+		await run({ mutationFn: () => Promise.reject(new RequestError('Conflict', 409)) })
+
+		expect(toast).toHaveBeenCalledWith(expect.objectContaining({ title: 'Algo salió mal' }))
 	})
 
 	it('shows a failure that has no status, such as an offline request', async () => {
