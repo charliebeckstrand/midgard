@@ -19,7 +19,7 @@ import {
 	sizePage,
 	subscribeDocument,
 } from './pdf-viewer-document-cache'
-import type { PdfViewerPage } from './types'
+import type { PdfViewerSlot } from './types'
 
 /**
  * Loads pdf.js from its legacy build.
@@ -186,8 +186,11 @@ function renderPage(page: PDFPageProxy, raster: PdfPageRaster, scale: number): P
  * Each slot carries the size of its page at `scale` and in points. The viewport, the page count and
  * the highlight geometry are therefore whole when the document opens.
  *
- * Each slot also carries the page label that the document prints, such as "Page iv" for a
- * preface. A document with no page labels, or a page whose label is empty, gets its page number.
+ * Each slot also carries the page label that the document prints, such as "iv" for a preface.
+ * The cache holds one entry for each `src`, whatever the locale, so the slot keeps the printed
+ * label alone, and the viewer adds the word "Page" in the language of the reader. A document with
+ * no page labels, or a page whose label is empty, gets no printed label, and the viewer names it
+ * by its number.
  * @internal
  */
 async function openSlots(
@@ -197,7 +200,7 @@ async function openSlots(
 ): Promise<PDFPageProxy[]> {
 	const parsed: PDFPageProxy[] = []
 
-	const slots: PdfViewerPage[] = []
+	const slots: PdfViewerSlot[] = []
 
 	const labels = await doc.getPageLabels()
 
@@ -211,7 +214,7 @@ async function openSlots(
 		slots.push({
 			id: pageNumber,
 			src: '',
-			label: `Page ${labels?.[pageNumber - 1] || pageNumber}`,
+			...(labels?.[pageNumber - 1] ? { printedLabel: labels[pageNumber - 1] } : {}),
 			width: viewport.width,
 			height: viewport.height,
 			pointWidth: viewport.width / scale,

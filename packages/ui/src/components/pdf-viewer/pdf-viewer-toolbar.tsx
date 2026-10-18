@@ -3,6 +3,7 @@
 import { Highlighter, PanelLeft, PanelLeftDashed, RotateCw, ScanSearch } from 'lucide-react'
 
 import { cn } from '../../core'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { Listbox, ListboxLabel, ListboxOption } from '../listbox'
 import { SheetTrigger } from '../sheet'
@@ -10,6 +11,7 @@ import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../toolbar'
 import { usePdfViewerContext } from './context'
 import { PdfViewerDocumentActions } from './pdf-viewer-document-actions'
 import { PdfViewerMagnifierSettings } from './pdf-viewer-magnifier-settings'
+import { pageLabel, pdfViewerMessages } from './pdf-viewer-messages'
 import { PdfViewerToolbarButton } from './pdf-viewer-toolbar-button'
 import { PdfViewerZoomControls } from './pdf-viewer-zoom-controls'
 
@@ -51,22 +53,35 @@ export function PdfViewerToolbar() {
 		magnifierMode,
 	} = usePdfViewerContext()
 
+	const intl = useIntl()
+
 	const isEmpty = total === 0
 
 	// The page count is whole when the document opens, so every control works while the
 	// pages render.
 	const controlsDisabled = isEmpty
 
-	const sidebarToggleLabel = sidebarOpen ? 'Hide thumbnails' : 'Show thumbnails'
+	const showThumbnails = intl.formatMessage(pdfViewerMessages.showThumbnails)
 
-	const highlightsToggleLabel = highlightsVisible ? 'Hide highlights' : 'Show highlights'
+	const sidebarToggleLabel = sidebarOpen
+		? intl.formatMessage(pdfViewerMessages.hideThumbnails)
+		: showThumbnails
+
+	const highlightsToggleLabel = intl.formatMessage(
+		highlightsVisible ? pdfViewerMessages.hideHighlights : pdfViewerMessages.showHighlights,
+	)
 
 	// Names the action rather than the state, matching the toggles above it.
-	const magnifierToggleLabel = magnifierOn ? 'Turn magnifier off' : 'Turn magnifier on'
+	const magnifierToggleLabel = intl.formatMessage(
+		magnifierOn ? pdfViewerMessages.magnifierOff : pdfViewerMessages.magnifierOn,
+	)
 
 	return (
 		<div className={cn(k.toolbar.frame)}>
-			<Toolbar aria-label="PDF controls" className={cn(k.toolbar.base)}>
+			<Toolbar
+				aria-label={intl.formatMessage(pdfViewerMessages.controls)}
+				className={cn(k.toolbar.base)}
+			>
 				<div className={cn(k.toolbar.section)}>
 					{total > 0 && (
 						<>
@@ -94,16 +109,16 @@ export function PdfViewerToolbar() {
 							{!railed && (
 								<SheetTrigger>
 									<PdfViewerToolbarButton
-										label="Show thumbnails"
+										label={showThumbnails}
 										icon={<PanelLeft className="rtl:-scale-x-100" />}
 										disabled={controlsDisabled}
 									/>
 								</SheetTrigger>
 							)}
 
-							<ToolbarGroup aria-label="Page navigation">
+							<ToolbarGroup aria-label={intl.formatMessage(pdfViewerMessages.pageNavigation)}>
 								<Listbox<number>
-									aria-label="Current page"
+									aria-label={intl.formatMessage(pdfViewerMessages.currentPage)}
 									value={safePage}
 									onValueChange={(next) => {
 										if (next !== null) goToPage(next)
@@ -117,19 +132,22 @@ export function PdfViewerToolbar() {
 
 										return (
 											<ListboxOption key={page.id ?? index} value={pageNumber}>
-												<ListboxLabel>{page.label ?? `Page ${pageNumber}`}</ListboxLabel>
+												<ListboxLabel>{pageLabel(intl, page, pageNumber)}</ListboxLabel>
 											</ListboxOption>
 										)
 									})}
 								</Listbox>
-								{/* A screen reader reads "of 12", not "slash 12". */}
+								{/* A screen reader reads "of 12", not "slash 12". The visible count is hidden from it,
+								    because the sentence below says the count in the language of the reader. */}
 								<span aria-hidden="true" className="mx-1 select-none">
 									/
 								</span>
 								{/* `-total`, not `-status`: the viewport's live region owns that anchor. */}
 								<span data-slot="pdf-viewer-page-total" className={cn(k.toolbar.total)}>
-									<span className="sr-only">of </span>
-									{total}
+									<span aria-hidden="true">{total}</span>
+									<span className="sr-only">
+										{intl.formatMessage(pdfViewerMessages.ofTotal, { total })}
+									</span>
 								</span>
 							</ToolbarGroup>
 						</>
@@ -138,9 +156,9 @@ export function PdfViewerToolbar() {
 
 				<div className={cn(k.toolbar.section)}>
 					<PdfViewerZoomControls zoom={zoom} disabled={controlsDisabled} />
-					<ToolbarGroup aria-label="View">
+					<ToolbarGroup aria-label={intl.formatMessage(pdfViewerMessages.view)}>
 						<PdfViewerToolbarButton
-							label="Rotate"
+							label={intl.formatMessage(pdfViewerMessages.rotate)}
 							icon={<RotateCw />}
 							disabled={controlsDisabled}
 							onClick={rotate}

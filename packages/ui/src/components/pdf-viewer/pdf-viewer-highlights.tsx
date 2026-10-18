@@ -13,11 +13,13 @@ import {
 import { cn } from '../../core'
 import type { Color } from '../../core/recipe'
 import { useA11yAnnouncements, useA11yRoving } from '../../hooks'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { isScrollbarPress } from '../../utilities'
 import { usePdfViewerContext } from './context'
 import { PdfViewerHighlightLabel } from './pdf-viewer-highlight-label'
 import { usePdfViewerHighlightsContext } from './pdf-viewer-highlights-context'
+import { pdfViewerMessages } from './pdf-viewer-messages'
 import type { PdfViewerHighlightRect } from './types'
 import { HIGHLIGHT_ID_ATTR, HIGHLIGHT_SELECTOR } from './use-pdf-viewer-highlights'
 
@@ -119,11 +121,17 @@ export function PdfViewerHighlights() {
 
 	const { regions, interactive, activeLabel } = usePdfViewerHighlightsContext()
 
+	const intl = useIntl()
+
 	// A visual box announces nothing on its own. The page change an activation can cause
 	// already speaks through the viewport's own live region, so this says only the name —
 	// and only when the regions are in the tree at all, since a decorative layer is
 	// aria-hidden and an announcement would name something a reader cannot reach.
-	useA11yAnnouncements(interactive && activeLabel ? `Highlighted region: ${activeLabel}` : null)
+	useA11yAnnouncements(
+		interactive && activeLabel
+			? intl.formatMessage(pdfViewerMessages.highlightedRegion, { label: activeLabel })
+			: null,
+	)
 
 	if (!visible || regions.length === 0) return null
 
@@ -148,6 +156,8 @@ function PdfViewerHighlightLayer() {
 
 	const { regions, interactive, activeLabel, activate, press, clear, revealRef, revealOnShow } =
 		usePdfViewerHighlightsContext()
+
+	const intl = useIntl()
 
 	const layerRef = useRef<HTMLDivElement>(null)
 
@@ -442,7 +452,7 @@ function PdfViewerHighlightLayer() {
 			{...(interactive
 				? {
 						role: 'group',
-						'aria-label': 'Highlighted regions',
+						'aria-label': intl.formatMessage(pdfViewerMessages.highlightedRegions),
 						onMouseDown: handleMouseDown,
 						onClick: handleClick,
 						onKeyDown: handleKeyDown,

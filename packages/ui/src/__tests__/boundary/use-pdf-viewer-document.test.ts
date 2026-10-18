@@ -18,10 +18,12 @@ import {
 	type PdfLoadReport,
 	resetDocumentCache,
 } from '../../components/pdf-viewer/pdf-viewer-document-cache'
+import { pageLabel } from '../../components/pdf-viewer/pdf-viewer-messages'
 import {
 	usePdfViewerDocument,
 	usePdfViewerDocumentFocus,
 } from '../../components/pdf-viewer/use-pdf-viewer-document'
+import { englishIntl } from '../../primitives/intl/intl-catalog'
 import { tick } from '../helpers/frames'
 
 const originalFetch = globalThis.fetch
@@ -281,7 +283,7 @@ async function openLabels(src: string, count: number) {
 
 	await waitFor(() => expect(result.current.pages).toHaveLength(count))
 
-	return result.current.pages.map((page) => page.label)
+	return result.current.pages.map((page, index) => pageLabel(englishIntl, page, index + 1))
 }
 
 describe('usePdfViewerDocument · page labels', () => {
