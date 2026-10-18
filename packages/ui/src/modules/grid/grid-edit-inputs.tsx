@@ -94,7 +94,10 @@ function GridTextEditInput({
 	)
 }
 
-/** Number editor for numeric cells, backed by `NumberInput`. @internal */
+/**
+ * Number editor for numeric cells, backed by `NumberInput`. It does not round on blur, so
+ * a cell commits the value as typed. @internal
+ */
 function GridNumberEditInput({
 	draft,
 	onValueUpdate,
@@ -114,6 +117,7 @@ function GridNumberEditInput({
 			aria-describedby={error != null ? errorId : undefined}
 			className={k.edit.input}
 			value={typeof draft === 'number' ? draft : null}
+			round={false}
 			onValueChange={(next) => onValueUpdate(next ?? undefined)}
 			onKeyDown={editorKeys({ cancel, managed })}
 		/>
