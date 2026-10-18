@@ -27,7 +27,7 @@ export const SOURCE_CATALOG = join(LANG_DIR, 'en.json')
 // docs app, which keeps its text in English.
 const SKIPPED = new Set(['__tests__', '__benchmarks__', 'docs'])
 
-// The source files of ui, from `SRC_DIR`, in a stable order.
+// The source files of ui, from `SRC_DIR`.
 async function sourceFiles(): Promise<string[]> {
 	const entries = await readdir(SRC_DIR, { recursive: true, withFileTypes: true })
 
@@ -42,7 +42,6 @@ async function sourceFiles(): Promise<string[]> {
 					.split('/')
 					.some((part) => SKIPPED.has(part)),
 		)
-		.sort()
 }
 
 /** One message of the catalog: the English default and the note for the translator. */

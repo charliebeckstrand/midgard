@@ -5,7 +5,7 @@ import { LocaleProvider, resolveRequestLocale, useLocale } from '../../providers
 import { matchLocale, writeLocaleChoice } from '../../providers/locale/locale-choice'
 import { act, clearCookies, renderUI, screen } from '../helpers'
 
-// The English locales of the apps, with the default first.
+// The English locales, with the default first.
 const LOCALES = ['en-US', 'en-GB', 'en-CA', 'en-AU'] as const
 
 /** Makes the browser report `languages` as the languages of the reader. */
@@ -251,31 +251,27 @@ function EmptyListbox() {
 	)
 }
 
+/** The trigger of the listbox, which shows the placeholder or the value. */
+const fruit = () => screen.getByRole('combobox', { name: 'Fruit' })
+
 describe('LocaleProvider messages', () => {
-	it('shows the messages of ui in the language of the locale', () => {
+	it.each([
+		['es-MX', 'Seleccionar'],
+		['fr-FR', 'Select'],
+	])('shows the messages of ui for %s in its language, else in English', (locale, text) => {
 		renderUI(
-			<LocaleProvider locale="es-MX">
+			<LocaleProvider locale={locale}>
 				<EmptyListbox />
 			</LocaleProvider>,
 		)
 
-		expect(screen.getByRole('combobox', { name: 'Fruit' })).toHaveTextContent('Seleccionar')
-	})
-
-	it('shows the English defaults for a language with no translation', () => {
-		renderUI(
-			<LocaleProvider locale="fr-FR">
-				<EmptyListbox />
-			</LocaleProvider>,
-		)
-
-		expect(screen.getByRole('combobox', { name: 'Fruit' })).toHaveTextContent('Select')
+		expect(fruit()).toHaveTextContent(text)
 	})
 
 	it('shows the English defaults with no provider', () => {
 		renderUI(<EmptyListbox />)
 
-		expect(screen.getByRole('combobox', { name: 'Fruit' })).toHaveTextContent('Select')
+		expect(fruit()).toHaveTextContent('Select')
 	})
 
 	it('lets a nested locale set the language of its region', () => {
@@ -287,7 +283,7 @@ describe('LocaleProvider messages', () => {
 			</LocaleProvider>,
 		)
 
-		expect(screen.getByRole('combobox', { name: 'Fruit' })).toHaveTextContent('Select')
+		expect(fruit()).toHaveTextContent('Select')
 	})
 
 	it('words a count with the plural rules of the language', () => {
@@ -303,7 +299,7 @@ describe('LocaleProvider messages', () => {
 			</LocaleProvider>,
 		)
 
-		expect(screen.getByRole('combobox', { name: 'Fruit' })).toHaveTextContent('4 seleccionados')
+		expect(fruit()).toHaveTextContent('4 seleccionados')
 	})
 
 	it('follows the stored locale to its language', () => {
@@ -315,7 +311,7 @@ describe('LocaleProvider messages', () => {
 			</LocaleProvider>,
 		)
 
-		expect(screen.getByRole('combobox', { name: 'Fruit' })).toHaveTextContent('Seleccionar')
+		expect(fruit()).toHaveTextContent('Seleccionar')
 	})
 })
 

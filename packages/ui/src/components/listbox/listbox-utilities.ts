@@ -1,6 +1,5 @@
 import { createElement, Fragment, type ReactNode } from 'react'
 import type { IntlShape } from 'react-intl'
-import { englishIntl } from '../../primitives/intl/intl-catalog'
 import { selectedMessage } from '../../primitives/intl/intl-messages'
 import { capitalizeFirst } from '../../utilities'
 
@@ -18,13 +17,13 @@ export function resolveLabel<T>({
 	displayValue,
 	multiple,
 	capitalize = false,
-	intl = englishIntl,
+	intl,
 }: {
 	value: T | T[] | undefined
 	displayValue?: (value: T) => ReactNode
 	multiple: boolean
 	capitalize?: boolean
-	intl?: IntlShape
+	intl: IntlShape
 }): ReactNode {
 	const display =
 		displayValue && capitalize

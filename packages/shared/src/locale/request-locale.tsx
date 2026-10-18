@@ -3,11 +3,6 @@ import type { ReactNode } from 'react'
 import { LOCALE_COOKIE, LocaleProvider, resolveRequestLocale } from 'ui/providers/locale'
 import { LOCALES } from './locales'
 
-/** Props for {@link RequestLocale}. */
-export type RequestLocaleProps = {
-	children: ReactNode
-}
-
 /**
  * Renders `children` in the locale of the request, so the server markup shows
  * the formats and the messages of ui in the language of the reader. It reads
@@ -24,7 +19,7 @@ export type RequestLocaleProps = {
  * shares the stored choice of the root provider, so a new choice applies to
  * both at once.
  */
-export async function RequestLocale({ children }: RequestLocaleProps) {
+export async function RequestLocale({ children }: { children: ReactNode }) {
 	const [cookieStore, headerList] = await Promise.all([cookies(), headers()])
 
 	const locale = resolveRequestLocale({

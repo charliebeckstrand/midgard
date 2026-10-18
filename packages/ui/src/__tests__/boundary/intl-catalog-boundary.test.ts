@@ -1,7 +1,8 @@
 // @vitest-environment node
-import { existsSync, readdirSync, readFileSync } from 'node:fs'
-import { dirname, join, resolve } from 'node:path'
-import { type MessageFormatElement, parse, TYPE } from '@formatjs/icu-messageformat-parser'
+import { readdirSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { parse } from '@formatjs/icu-messageformat-parser'
+import { isStructurallySame } from '@formatjs/icu-messageformat-parser/manipulator.js'
 import { describe, expect, it } from 'vitest'
 import {
 	type CatalogEntry,
@@ -10,6 +11,9 @@ import {
 	LANG_DIR,
 	SOURCE_CATALOG,
 } from '../../../scripts/intl'
+import { localeIntl } from '../../primitives/intl/intl-catalog'
+import { importsOf } from '../helpers/source-imports'
+import { isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
 // The source catalog holds the English default of each message of ui, and each
 // translation maps the same ids to the text of its language. The provider loads
@@ -18,12 +22,14 @@ import {
 // English in a translated page. This test holds the files in step:
 //
 //   1. The source catalog equals the output of `pnpm intl` (`scripts/intl.ts`).
-//   2. Each translation has each id of the source catalog, and no other id.
+//   2. Each translation has each id of the source catalog, and no other id, and
+//      the catalog of ui loads it.
 //   3. Each translated message parses, and it uses the same arguments as its
-//      English default.
-//   4. The modules that a server evaluates to resolve a request locale import
-//      no `react-intl`. `react-intl` is a client module, so a call to it at the
-//      top level of such a module throws in a server render.
+//      English default, of the same types.
+//   4. Only a module with `'use client'` imports the main entry of `react-intl`.
+//      That entry is a client module, so a call to it at the top level of a
+//      module that a server evaluates throws in a server render. A server
+//      module takes `createIntl` from `react-intl/server`.
 
 const source = JSON.parse(readFileSync(SOURCE_CATALOG, 'utf8')) as Record<string, CatalogEntry>
 
@@ -34,54 +40,19 @@ const translations = readdirSync(LANG_DIR)
 		messages: JSON.parse(readFileSync(join(LANG_DIR, file), 'utf8')) as Record<string, string>,
 	}))
 
-/** The names of the arguments of a parsed message, at each depth. */
-function argumentNames(elements: MessageFormatElement[], names = new Set<string>()): Set<string> {
-	for (const element of elements) {
-		if (element.type === TYPE.literal || element.type === TYPE.pound) continue
-
-		names.add(element.value)
-
-		if (element.type === TYPE.tag) argumentNames(element.children, names)
-
-		if (element.type === TYPE.select || element.type === TYPE.plural) {
-			for (const option of Object.values(element.options)) argumentNames(option.value, names)
-		}
-	}
-
-	return names
-}
-
-// The module that `RequestLocale` in `shared` evaluates on the server.
-const SERVER_ENTRY = join(LANG_DIR, '..', '..', '..', 'providers', 'locale', 'locale-choice.ts')
-
-// The source of `path` and each module that it reaches by a relative import, up
-// to a module with `'use client'`, which a server render gets as a reference.
-function serverModules(path: string, seen = new Map<string, string>()): Map<string, string> {
-	if (seen.has(path)) return seen
-
-	const source = readFileSync(path, 'utf8')
-
-	seen.set(path, source)
-
-	if (/^['"]use client['"]/.test(source)) return seen
-
-	for (const [, specifier] of source.matchAll(/from '(\.[^']+)'/g)) {
-		const base = resolve(dirname(path), specifier ?? '')
-
-		const file = ['.ts', '.tsx', '/index.ts'].map((ext) => base + ext).find(existsSync)
-
-		if (file) serverModules(file, seen)
-	}
-
-	return seen
-}
-
 describe('intl catalog', () => {
-	it('keeps react-intl out of the modules that resolve a request locale', () => {
-		const offenders = [...serverModules(SERVER_ENTRY)]
-			.filter(([, source]) => !/^['"]use client['"]/.test(source))
-			.filter(([, source]) => /from 'react-intl'/.test(source))
-			.map(([path]) => path)
+	it('imports the main entry of react-intl only in a client module', () => {
+		const offenders: string[] = []
+
+		walkSource(srcDir, (file, content) => {
+			if (!isSourceFile(file) || /^['"]use client['"]/.test(content)) return
+
+			const imports = importsOf(content)
+
+			if (imports.some(({ specifier, runtime }) => runtime && specifier === 'react-intl')) {
+				offenders.push(srcRelative(file))
+			}
+		})
 
 		expect(offenders).toEqual([])
 	})
@@ -96,9 +67,13 @@ describe('intl catalog', () => {
 		expect(translations.length).toBeGreaterThan(0)
 	})
 
-	describe.each(translations)('the $language translation', ({ messages }) => {
+	describe.each(translations)('the $language translation', ({ language, messages }) => {
 		it('has each id of the source catalog, and no other id', () => {
 			expect(Object.keys(messages).sort()).toEqual(Object.keys(source).sort())
+		})
+
+		it('loads in the catalog of ui', () => {
+			expect(localeIntl(language).messages).toEqual(messages)
 		})
 
 		it('parses each message, with the arguments of its English default', () => {
@@ -107,9 +82,9 @@ describe('intl catalog', () => {
 
 				if (!entry) continue
 
-				const expected = [...argumentNames(parse(entry.defaultMessage))].sort()
+				const { success, error } = isStructurallySame(parse(entry.defaultMessage), parse(message))
 
-				expect([...argumentNames(parse(message))].sort(), id).toEqual(expected)
+				expect(success, `${id}: ${error?.message}`).toBe(true)
 			}
 		})
 	})

@@ -1,1 +1,1 @@
-export { RequestLocale, type RequestLocaleProps } from './request-locale'
+export { RequestLocale } from './request-locale'

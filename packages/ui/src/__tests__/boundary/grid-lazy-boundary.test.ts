@@ -1,7 +1,7 @@
-import { existsSync, readFileSync } from 'node:fs'
-import { basename, dirname, join, resolve } from 'node:path'
+import { readFileSync } from 'node:fs'
+import { basename, join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { importsOf } from '../helpers/source-imports'
+import { importsOf, resolveSource } from '../helpers/source-imports'
 import { srcDir, srcRelative } from '../helpers/walk-source'
 
 // `Grid` loads its drag and drop module only when it takes a reorder, and its
@@ -24,15 +24,6 @@ const dialogModules = [
 	'grid-manager-dialog.tsx',
 	'grid-row-manager.tsx',
 ].map((file) => join(gridDir, file))
-
-/** The source file that a relative specifier names, or `undefined`. */
-function resolveSource(from: string, specifier: string): string | undefined {
-	const base = resolve(dirname(from), specifier)
-
-	return [`${base}.ts`, `${base}.tsx`, join(base, 'index.ts'), join(base, 'index.tsx')].find(
-		existsSync,
-	)
-}
 
 /**
  * The static module graph of `entry`: each file it reaches, with the file that

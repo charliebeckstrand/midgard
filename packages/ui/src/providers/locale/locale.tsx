@@ -3,8 +3,7 @@
 import { type ReactNode, useEffect, useMemo } from 'react'
 import { RawIntlProvider } from 'react-intl'
 import { Direction, type TextDirection } from '../../primitives/direction'
-import { createLocaleIntl } from '../../primitives/intl/intl-catalog'
-import { useIntl } from '../../primitives/intl/use-intl'
+import { englishIntl, localeIntl } from '../../primitives/intl/intl-catalog'
 import {
 	LocaleChoiceContext,
 	type LocaleChoiceValue,
@@ -28,12 +27,14 @@ export type LocaleProviderProps = LocaleConfig & {
 	 * Language picker. The stored locale replaces `locale` after hydration.
 	 *
 	 * The first choice is System. It takes the locale that matches the languages
-	 * of the browser, else `locale`. The server render and the hydration render
-	 * use `locale`. With no `locale`, they use the locale of the enclosing
-	 * provider, else the first entry of `locales`.
+	 * of the browser, else the locale of the server render. The server render and
+	 * the hydration render use `locale`. With no `locale`, they use the locale of
+	 * the enclosing provider, else the first entry of `locales`.
 	 *
-	 * Set it on the provider at the root of the app only. All the providers with
-	 * `locales` share one stored choice.
+	 * Set it on the provider at the root of the app. All the providers with
+	 * `locales` share one stored choice, so a nested provider with the same
+	 * `locales` follows the choice of the root. A server can render such a nested
+	 * provider in the locale of a request.
 	 */
 	locales?: readonly [string, ...string[]]
 	/**
@@ -74,8 +75,8 @@ export type LocaleProviderProps = LocaleConfig & {
  * hydration render then does not match the server markup.
  *
  * With `locales`, the reader chooses the locale, and the choice persists in
- * `localStorage`. The server does not know the choice, so the server render and
- * the hydration render use `locale`. A formatted value can thus change its text
+ * `localStorage`. The provider cannot read the choice on the server, so the
+ * server render and the hydration render use `locale`. A formatted value can thus change its text
  * after hydration, as a date does for the time zone, and the text of a control
  * can change its language. The provider also writes the choice to the cookie
  * {@link LOCALE_COOKIE}. A server that renders per request can thus read the
@@ -97,29 +98,38 @@ export function LocaleProvider({
 	dir,
 	children,
 }: LocaleProviderProps) {
-	// The outer value keeps its identity until a field of it changes.
 	const outer = useLocale()
 
 	const outerChoice = useLocaleChoice()
 
-	const outerIntl = useIntl()
-
 	const stored = useStoredLocale(locales, locale ?? outer.locale ?? locales?.[0])
+
+	// The memo reads the resolved fields, not the outer value. A nested provider
+	// with its own locale thus keeps its value when only the outer locale
+	// changes, as it does after hydration.
+	const resolvedCurrency = currency ?? outer.currency
+
+	const resolvedNumberFormat = numberFormat ?? outer.numberFormat
+
+	const resolvedDateFormat = dateFormat ?? outer.dateFormat
+
+	const resolvedTimeZone = timeZone ?? outer.timeZone
 
 	const value = useMemo<LocaleConfig>(
 		() => ({
 			locale: stored.locale,
-			currency: currency ?? outer.currency,
-			numberFormat: numberFormat ?? outer.numberFormat,
-			dateFormat: dateFormat ?? outer.dateFormat,
-			timeZone: timeZone ?? outer.timeZone,
+			currency: resolvedCurrency,
+			numberFormat: resolvedNumberFormat,
+			dateFormat: resolvedDateFormat,
+			timeZone: resolvedTimeZone,
 		}),
-		[stored.locale, currency, numberFormat, dateFormat, timeZone, outer],
+		[stored.locale, resolvedCurrency, resolvedNumberFormat, resolvedDateFormat, resolvedTimeZone],
 	)
 
 	// One intl serves each locale, so a nested provider in the locale of the
-	// enclosing provider gives the same intl to its subtree.
-	const intl = stored.locale === undefined ? outerIntl : createLocaleIntl(stored.locale)
+	// enclosing provider gives the same intl to its subtree. A provider has no
+	// locale only when no enclosing provider has one.
+	const intl = stored.locale === undefined ? englishIntl : localeIntl(stored.locale)
 
 	// A choice stored before the cookie existed reaches the cookie here. The
 	// hydration render and a provider with no `locales` read `'system'`, so the

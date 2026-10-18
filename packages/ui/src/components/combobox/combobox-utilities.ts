@@ -1,6 +1,5 @@
 import type { MouseEvent } from 'react'
 import type { IntlShape } from 'react-intl'
-import { englishIntl } from '../../primitives/intl/intl-catalog'
 import { selectedMessage } from '../../primitives/intl/intl-messages'
 import { isScrollbarPress } from '../../utilities'
 import { OPTION_SELECTOR } from './combobox-constants'
@@ -54,7 +53,7 @@ export function resolveInputDisplay<T>({
 	displayValue,
 	summarize,
 	multiple,
-	intl = englishIntl,
+	intl,
 }: {
 	editing: boolean
 	query: string
@@ -62,7 +61,7 @@ export function resolveInputDisplay<T>({
 	displayValue?: (value: T) => string
 	summarize?: (selected: T[]) => string
 	multiple: boolean
-	intl?: IntlShape
+	intl: IntlShape
 }): string {
 	if (editing) return query
 

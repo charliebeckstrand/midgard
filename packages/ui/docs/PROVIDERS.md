@@ -88,7 +88,7 @@ The locale of the app sets the `Intl` formats and the language of the messages o
 | `useLocale` | Reads the ambient `LocaleConfig` from the nearest `<LocaleProvider>`; returns `{}` outside one. |
 | `LOCALE_COOKIE` | The name of the cookie that holds the locale choice of the reader. |
 | `resolveRequestLocale` | Resolves the locale of a request on the server from the locale cookie and the `Accept-Language` header, as the provider resolves it in the browser. |
-| `RequestLocaleInput` *(type)* | The request values that `resolveRequestLocale` reads: the cookie, the header, the `locales`, and a `fallback`. |
+| `RequestLocaleInput` *(type)* | The request values that `resolveRequestLocale` reads: the cookie, the header, and the `locales`. |
 | `useFormat` | Resolves a `FormatSpec` to a memoized `(value) => string` formatter, folding in the ambient locale / currency / number-format defaults. |
 | `useDateFormat` | Resolves `Intl.DateTimeFormat` options to a memoized formatter in the locale of the provider. To render a date, use `DateTime` from `ui/date-time`. |
 | `FormatSpec` *(type)* | What `useFormat` formats a value as: a numeric `Intl` format (`number`/`integer`/`currency`/`percent`/`compact`) or a prefixed `id` (`INV-42`). |
