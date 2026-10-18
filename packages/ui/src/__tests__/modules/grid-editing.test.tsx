@@ -77,9 +77,11 @@ function editorsIn(container: HTMLElement) {
 function renderSessionGrid({
 	editable,
 	cols = sessionColumns,
+	rows = sessionRows,
 }: {
 	editable?: Partial<GridEditableConfig>
 	cols?: GridColumn<SessionRow>[]
+	rows?: SessionRow[]
 } = {}) {
 	const onCommit = vi.fn()
 
@@ -88,7 +90,7 @@ function renderSessionGrid({
 	const view = renderUI(
 		<Grid
 			columns={cols}
-			rows={sessionRows}
+			rows={rows}
 			getKey={(row) => row.id}
 			editable={{ session: 'managed', onRowsChange, onCommit, ...editable }}
 		/>,
@@ -918,6 +920,40 @@ describe("Grid double-click-to-edit (session: 'managed')", () => {
 
 		// The exit reseats focus on the grid, and `NumberInput` commits its typed
 		// text on that blur; the discard has to outlast that last stage.
+		expect(onCommit).not.toHaveBeenCalled()
+	})
+
+	it('commits a typed fraction from the number editor as typed, past its blur', () => {
+		const { container, cell, onCommit } = renderSessionGrid()
+
+		fireEvent.doubleClick(cell('count'))
+
+		const number = getSlot<HTMLInputElement>(container, 'grid-edit-number-input')
+
+		fireEvent.change(number, { target: { value: '19.99' } })
+
+		fireEvent.blur(number)
+
+		fireEvent.keyDown(number, { key: 'Enter' })
+
+		// The step drives only the steppers, so the blur does not round 19.99 to 20.
+		expect(onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'count', value: 19.99 }])
+	})
+
+	it('drops an untouched fraction in the number editor as unchanged, past its blur', () => {
+		const { container, cell, onCommit } = renderSessionGrid({
+			rows: [{ id: 1, name: 'Alice', count: 2.5, done: false }],
+		})
+
+		fireEvent.doubleClick(cell('count'))
+
+		const number = getSlot<HTMLInputElement>(container, 'grid-edit-number-input')
+
+		fireEvent.blur(number)
+
+		fireEvent.keyDown(number, { key: 'Enter' })
+
+		// A blur that rounds 2.5 to 3 stages a change that the user did not make.
 		expect(onCommit).not.toHaveBeenCalled()
 	})
 

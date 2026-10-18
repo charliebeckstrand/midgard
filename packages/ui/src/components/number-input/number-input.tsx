@@ -32,16 +32,23 @@ export type NumberInputProps = Omit<
 	min?: number
 	max?: number
 	/**
-	 * Stepper increment; also sets the rounding precision applied on blur.
+	 * Stepper increment; also sets the rounding precision of the steppers, and of the blur
+	 * while `round` holds.
 	 * @defaultValue 1
 	 */
 	step?: number
+	/**
+	 * Rounds the value to the `step` precision on blur. Set `false` to keep a typed value as
+	 * it is: the blur then only clamps, and `step` drives only the steppers.
+	 * @defaultValue true
+	 */
+	round?: boolean
 }
 
 /**
  * Numeric Input with stepper buttons. Clamps to `min`/`max` and rounds to `step`
- * precision on blur rather than mid-entry, and binds to an enclosing Form field
- * by `name`.
+ * precision on blur rather than mid-entry (unless `round` is `false`), and binds
+ * to an enclosing Form field by `name`.
  *
  * @remarks Stays controlled whenever a `value` prop is present; binds to the
  * Form field named `name` otherwise. Raw input is stored verbatim while typing
@@ -64,6 +71,7 @@ export function NumberInput({
 	min,
 	max,
 	step = 1,
+	round: roundOnBlur = true,
 	disabled,
 	readOnly,
 	size,
@@ -142,7 +150,7 @@ export function NumberInput({
 			if (current === undefined) return
 
 			// A blur that leaves the value as it is emits nothing.
-			const next = clampValue(round(current))
+			const next = clampValue(roundOnBlur ? round(current) : current)
 
 			if (next !== current) setCurrent(next)
 		},

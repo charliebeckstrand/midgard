@@ -226,6 +226,38 @@ describe('NumberInput', () => {
 		expect(onChange).toHaveBeenLastCalledWith(10)
 	})
 
+	it('keeps a typed fraction on blur when round is false', async () => {
+		const onChange = vi.fn()
+
+		renderUI(<NumberInput round={false} onValueChange={onChange} />)
+
+		const user = setupUser()
+
+		await user.type(screen.getByRole('spinbutton'), '19.99')
+
+		onChange.mockClear()
+
+		await user.tab()
+
+		expect(onChange).not.toHaveBeenCalled()
+
+		expect(screen.getByRole('spinbutton')).toHaveValue(19.99)
+	})
+
+	it('still clamps on blur when round is false', async () => {
+		const onChange = vi.fn()
+
+		renderUI(<NumberInput round={false} max={10} onValueChange={onChange} />)
+
+		const user = setupUser()
+
+		await user.type(screen.getByRole('spinbutton'), '12.5')
+
+		await user.tab()
+
+		expect(onChange).toHaveBeenLastCalledWith(10)
+	})
+
 	it('does not emit on a blur that leaves the value as it is', async () => {
 		const onChange = vi.fn()
 
