@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { describeTidy } from '../../modules/dashboard/engine/dashboard-announcements'
 import { collides } from '../../modules/dashboard/engine/dashboard-layout'
 import { tidyCells } from '../../modules/dashboard/engine/dashboard-tidy'
+import { englishIntl } from '../../primitives/intl/intl-catalog'
 import { cell, origins } from '../helpers/dashboard-cells'
 
 describe('tidyCells', () => {
@@ -94,10 +95,10 @@ describe('tidyCells', () => {
 
 describe('describeTidy', () => {
 	it('counts the tiles that moved, or says that the board is already tidy', () => {
-		expect(describeTidy(0)).toBe('The board is already tidy.')
+		expect(describeTidy(englishIntl, 0)).toBe('The board is already tidy.')
 
-		expect(describeTidy(1)).toBe('Tidied the board. Moved 1 tile up.')
+		expect(describeTidy(englishIntl, 1)).toBe('Tidied the board. Moved 1 tile up.')
 
-		expect(describeTidy(3)).toBe('Tidied the board. Moved 3 tiles up.')
+		expect(describeTidy(englishIntl, 3)).toBe('Tidied the board. Moved 3 tiles up.')
 	})
 })

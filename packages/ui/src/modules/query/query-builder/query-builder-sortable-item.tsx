@@ -3,6 +3,8 @@
 import { type DragControls, Reorder, useDragControls } from 'motion/react'
 import { type KeyboardEvent, type PointerEvent, type ReactNode, useState } from 'react'
 import { cn, dataAttr } from '../../../core'
+import { reorderMessages } from '../../../primitives/intl/intl-reorder'
+import { useIntl } from '../../../primitives/intl/use-intl'
 import { SortableGrip } from '../../../primitives/sortable-grip/sortable-grip'
 import { k } from '../../../recipes/kata/query-builder'
 import { holdTextSelection } from '../../../utilities/hold-text-selection'
@@ -58,6 +60,8 @@ export function QueryBuilderSortableItem({
 	onDragEnd,
 	children,
 }: QueryBuilderSortableItemProps) {
+	const intl = useIntl()
+
 	const controls = useDragControls()
 
 	const [dragging, setDragging] = useState(false)
@@ -103,7 +107,7 @@ export function QueryBuilderSortableItem({
 								},
 						dragging: held,
 					}}
-					label={`Reorder ${label}`}
+					label={intl.formatMessage(reorderMessages.reorderHandle, { item: label })}
 					size="sm"
 					disabled={disabled}
 					className={cn(k.sortable.handle)}

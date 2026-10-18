@@ -2,6 +2,8 @@
 
 import { useCallback, useMemo } from 'react'
 import type { SortableListOptions } from '../../hooks/use-sortable-list'
+import { useIntl } from '../../primitives/intl/use-intl'
+import { rowName } from './engine/grid-row/cell'
 import type { GridRowReorder } from './grid-data-types'
 
 /** A row paired with its stable key — the shape the vertical row sortable orders. @internal */
@@ -53,6 +55,8 @@ export function useGridRowReorder<T>({
 	rowKeys,
 	rowLabel,
 }: GridRowReorderOptions<T>) {
+	const intl = useIntl()
+
 	const canReorder = enabled && !!rowReorder && !rowReorder.disabled && rows.length > 1
 
 	const items = useMemo<GridRowItem<T>[]>(
@@ -92,7 +96,7 @@ export function useGridRowReorder<T>({
 		onDragStart: onReorderStart ? handleDragStart : undefined,
 		onDragEnd: onReorderEnd ? handleDragEnd : undefined,
 		// Each drag step is announced by the row's name; the drag gives no visible text cue (WCAG 4.1.3).
-		describe: (item) => rowLabel?.(item.row) ?? `row ${item.key}`,
+		describe: (item) => rowName(intl, rowLabel?.(item.row), item.key),
 	}
 
 	return {

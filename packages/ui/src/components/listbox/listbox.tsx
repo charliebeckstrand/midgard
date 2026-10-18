@@ -1,7 +1,6 @@
 'use client'
 
 import type { OpenChangeReason } from '@floating-ui/react'
-import { defineMessages } from '@formatjs/intl'
 import { ChevronsUpDown } from 'lucide-react'
 import {
 	type FocusEvent,
@@ -17,7 +16,7 @@ import type { ScaleStep } from '../../core/density'
 import { type FloatingPlacement, useFloatingUI, useSelectableValueChange } from '../../hooks'
 import { isTypeaheadKey } from '../../hooks/a11y/use-typeahead'
 import { useFormValue } from '../../primitives/form/use-form-value'
-import { intlMessages } from '../../primitives/intl/intl-messages'
+import { defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { useGlass } from '../../providers/glass/context'

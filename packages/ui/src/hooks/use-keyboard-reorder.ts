@@ -2,6 +2,8 @@
 
 import type { KeyboardEvent } from 'react'
 import { announce } from '../core'
+import { movedText, reorderSubject } from '../primitives/intl/intl-reorder'
+import { useIntl } from '../primitives/intl/use-intl'
 import { clamp, moveItem } from '../utilities'
 import { hasBrowserModifier } from '../utilities/modifier-keys'
 import { useKeyboardLifted } from './use-keyboard-lifted'
@@ -62,6 +64,8 @@ function focusTarget(key: string, step: number | null, { index, last }: ReorderT
  * @internal
  */
 export function useKeyboardReorder<T>(options: KeyboardReorderOptions<T>) {
+	const intl = useIntl()
+
 	const {
 		liftedId,
 		readLifted,
@@ -111,7 +115,7 @@ export function useKeyboardReorder<T>(options: KeyboardReorderOptions<T>) {
 
 			onReorder(moveItem(items, at.index, target), at.id, target)
 
-			announce(`${itemName(at.id)} moved to position ${target + 1} of ${items.length}.`, {
+			announce(movedText(intl, itemName(at.id), { position: target + 1, total: items.length }), {
 				assertive: true,
 			})
 
@@ -121,7 +125,11 @@ export function useKeyboardReorder<T>(options: KeyboardReorderOptions<T>) {
 		const index = items.findIndex((item) => getKey(item) === id)
 
 		const describe = () =>
-			index === -1 ? itemName(id) : `${itemName(id)}, position ${index + 1} of ${items.length}`
+			reorderSubject(
+				intl,
+				itemName(id),
+				index === -1 ? null : { position: index + 1, total: items.length },
+			)
 
 		if (event.key === ' ') {
 			event.preventDefault()

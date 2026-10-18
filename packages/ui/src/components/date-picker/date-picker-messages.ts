@@ -1,4 +1,4 @@
-import { defineMessages } from '@formatjs/intl'
+import { defineMessages } from '../../primitives/intl/intl-messages'
 
 /**
  * The messages of the date picker: its toolbar, its Today button, and the

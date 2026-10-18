@@ -93,6 +93,21 @@ export const d = () => fetch('/auth/logout', { method: 'POST' })
 		},
 		{ file: 'server.tsx', source: `import { bifrost } from 'auth'\n\nexport const a = bifrost\n` },
 	],
+	'no-formatjs-import-outside-intl': [
+		{
+			file: 'intl.tsx',
+			source: `import { useIntl } from 'react-intl' // flag
+import type { IntlShape } from 'react-intl' // flag
+import { createIntl } from 'react-intl/server' // flag
+import { defineMessages } from '@formatjs/intl' // flag
+import { type MessageDescriptor } from '@formatjs/intl' // flag
+import { defineMessages as define } from '../primitives/intl/intl-messages'
+import type { IntlShape as Intl } from '../primitives/intl/types'
+import { useState } from 'react'
+export { useIntl, createIntl, defineMessages, define, useState, type IntlShape, type MessageDescriptor, type Intl }
+`,
+		},
+	],
 	'no-full-motion-component': [
 		{
 			file: 'motion.tsx',
@@ -200,22 +215,6 @@ export const n = 'inset-x-0 text-leftward'
 import { createContext as mine } from 'react' // flag
 import { useState } from 'react'
 export { createContext, mine, useState }
-`,
-		},
-	],
-	'no-react-intl-provider-api': [
-		{
-			file: 'intl.tsx',
-			source: `import { useIntl } from 'react-intl' // flag
-import { defineMessages, FormattedMessage } from 'react-intl' // flag
-import { type IntlShape, IntlProvider } from 'react-intl' // flag
-import { injectIntl as inject } from 'react-intl' // flag
-import { FormattedDate } from 'react-intl' // flag
-import { IntlContext, RawIntlProvider } from 'react-intl'
-import type { FormattedMessage as Message } from 'react-intl'
-import { type FormattedNumber } from 'react-intl'
-import { createIntl } from 'react-intl/server'
-export { useIntl, defineMessages, FormattedMessage, IntlProvider, inject, FormattedDate, IntlContext, RawIntlProvider, createIntl, type IntlShape, type Message, type FormattedNumber }
 `,
 		},
 	],

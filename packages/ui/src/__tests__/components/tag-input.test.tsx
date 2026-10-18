@@ -560,7 +560,7 @@ describe('TagInput announcements', () => {
 
 		await user.type(getInput(container), typed)
 
-		expect(liveRegion()).toHaveTextContent(announcement)
+		await expectAnnouncement(announcement)
 	})
 
 	it('announces a removed tag', async () => {
@@ -570,7 +570,7 @@ describe('TagInput announcements', () => {
 
 		await user.click(getRemoveButtons(container)[0] as Element)
 
-		expect(liveRegion()).toHaveTextContent('Removed react')
+		await expectAnnouncement('Removed react')
 	})
 })
 

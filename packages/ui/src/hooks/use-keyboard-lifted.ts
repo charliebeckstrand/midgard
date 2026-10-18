@@ -2,19 +2,9 @@
 
 import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 import { announce } from '../core'
+import { reorderMessages } from '../primitives/intl/intl-reorder'
+import { useIntl } from '../primitives/intl/use-intl'
 import { useAnimationFrame } from './use-timeout'
-
-/**
- * The dnd-kit `screenReaderInstructions` of a surface with the lift model of
- * {@link useKeyboardLifted}. The surface turns off the dnd-kit keyboard sensor,
- * so the default text of dnd-kit gives keys that do not apply.
- *
- * @internal
- */
-export const LIFT_INSTRUCTIONS = {
-	draggable:
-		'To pick up an item, press Space. Use the arrow keys to move it, then press Space or Enter to drop it.',
-}
 
 /**
  * Lifted-item state for keyboard reordering. Space toggles an item's "lifted"
@@ -34,12 +24,16 @@ export const LIFT_INSTRUCTIONS = {
  *   tick reads the lift of the first. It keeps its identity.
  * - `setLiftedId`: sets the lift. It writes `readLifted` before the commit.
  * - `toggleLift(id, describe)`: lifts `id`, or drops it when it is lifted. It
- *   announces "Picked up" or "Dropped" with the text that `describe` gives.
+ *   announces "Picked up" or "Dropped" with the text that `describe` gives, in
+ *   the language of the reader. A surface with this lift model describes its
+ *   handles with `reorderMessages.liftInstructions`.
  * - `drop(describe)`: drops the lift and announces "Dropped".
  * - `refocus(id)`: refocuses after a reorder and keeps the lift through the blur.
  * - `onBlur`: clears the lift unless a reorder is in flight.
  */
 export function useKeyboardLifted(focus: (id: string) => void, enabled: boolean) {
+	const intl = useIntl()
+
 	const [liftedId, setLiftedState] = useState<string | null>(null)
 
 	const liftedRef = useRef<string | null>(null)
@@ -63,23 +57,27 @@ export function useKeyboardLifted(focus: (id: string) => void, enabled: boolean)
 
 			setLiftedId(lifting ? id : null)
 
+			const subject = describe()
+
 			announce(
 				lifting
-					? `Picked up ${describe()}. Use arrow keys to move, Enter to drop.`
-					: `Dropped ${describe()}.`,
+					? `${intl.formatMessage(reorderMessages.pickedUp, { subject })} ${intl.formatMessage(reorderMessages.liftHint)}`
+					: intl.formatMessage(reorderMessages.dropped, { subject }),
 				{ assertive: true },
 			)
 		},
-		[setLiftedId],
+		[setLiftedId, intl],
 	)
 
 	const drop = useCallback(
 		(describe: () => string) => {
 			setLiftedId(null)
 
-			announce(`Dropped ${describe()}.`, { assertive: true })
+			announce(intl.formatMessage(reorderMessages.dropped, { subject: describe() }), {
+				assertive: true,
+			})
 		},
-		[setLiftedId],
+		[setLiftedId, intl],
 	)
 
 	const movingRef = useRef(false)

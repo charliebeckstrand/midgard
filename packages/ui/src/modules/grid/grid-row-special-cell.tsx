@@ -6,8 +6,11 @@ import type { CSSProperties, ReactNode } from 'react'
 import { Checkbox } from '../../components/checkbox'
 import { Icon } from '../../components/icon'
 import { cn } from '../../core'
+import { reorderMessages } from '../../primitives/intl/intl-reorder'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { SortableGrip } from '../../primitives/sortable-grip/sortable-grip'
 import { k } from '../../recipes/kata/grid'
+import { gridMessages } from './engine/grid-messages'
 import { rowName } from './engine/grid-row/cell'
 import { GridRowActions } from './grid-row-actions'
 import type { GridColumn } from './types'
@@ -46,7 +49,11 @@ type GridRowDragHandleProps = {
  * @internal
  */
 function GridRowDragHandle({ sortable, rowLabel, rowKey }: GridRowDragHandleProps) {
-	const label = `Reorder ${rowName(rowLabel, rowKey)}`
+	const intl = useIntl()
+
+	const label = intl.formatMessage(reorderMessages.reorderHandle, {
+		item: rowName(intl, rowLabel, rowKey),
+	})
 
 	if (!sortable) {
 		return (
@@ -92,6 +99,8 @@ export function GridRowSpecialCell<T>({
 	/** The row's sortable bindings while row reorder is live. */
 	sortable?: GridRowSortable
 }): ReactNode {
+	const intl = useIntl()
+
 	if (col.dragHandle) {
 		return <GridRowDragHandle sortable={sortable} rowLabel={rowLabel} rowKey={rowKey} />
 	}
@@ -101,7 +110,9 @@ export function GridRowSpecialCell<T>({
 			<Checkbox
 				checked={selected}
 				onChange={() => toggleRow(rowKey)}
-				aria-label={`Select ${rowName(rowLabel, rowKey)}`}
+				aria-label={intl.formatMessage(gridMessages.selectRow, {
+					row: rowName(intl, rowLabel, rowKey),
+				})}
 			/>
 		)
 	}

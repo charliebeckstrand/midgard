@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { FIRST_WRITE_DELAY_MS } from '../../core/announcer'
 import { Grid, type GridColumn } from '../../modules/grid'
 import {
 	describeColumnVisibility,
@@ -8,7 +9,16 @@ import {
 	describeSettle,
 } from '../../modules/grid/engine/grid-announcements'
 import { GRID_STATUS_DEBOUNCE_MS } from '../../modules/grid/engine/grid-constants'
-import { fireEvent, liveRegion, renderUI, screen, setupUser, withFakeTime } from '../helpers'
+import {
+	expectAnnouncement,
+	fireEvent,
+	flushAnnouncer,
+	liveRegion,
+	renderUI,
+	screen,
+	setupUser,
+	withFakeTime,
+} from '../helpers'
 
 /**
  * Grid status messages (WCAG 4.1.3): sort, selection, and page changes narrate
@@ -41,7 +51,7 @@ describe('Grid announcements', () => {
 
 		await user.click(screen.getByRole('button', { name: 'Sort by Name' }))
 
-		expect(liveRegion()).toHaveTextContent('Sorted by Name ascending')
+		await expectAnnouncement('Sorted by Name ascending')
 	})
 
 	it('announces the selection count when a selectable grid changes', async () => {
@@ -53,7 +63,7 @@ describe('Grid announcements', () => {
 
 		await user.click(screen.getByRole('checkbox', { name: 'Select all rows' }))
 
-		expect(liveRegion()).toHaveTextContent('All rows selected')
+		await expectAnnouncement('All rows selected')
 	})
 
 	it('scopes the select-all announcement to the page when paginated', async () => {
@@ -76,7 +86,7 @@ describe('Grid announcements', () => {
 		// rather than overclaiming every row across all pages.
 		await user.click(screen.getByRole('checkbox', { name: 'Select all rows on this page' }))
 
-		expect(liveRegion()).toHaveTextContent('All rows on this page selected')
+		await expectAnnouncement('All rows on this page selected')
 	})
 
 	it('stays silent on selection changes when no column is selectable', async () => {
@@ -85,6 +95,9 @@ describe('Grid announcements', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} onRowClick={() => {}} />)
 
 		await user.click(screen.getByText('Alice'))
+
+		// Wait past the first write of a new region, so that the check below can fail.
+		await flushAnnouncer()
 
 		// No selection column, so a row interaction never narrates a selection count.
 		expect(liveRegion()?.textContent ?? '').toBe('')
@@ -127,7 +140,7 @@ describe('Grid announcements', () => {
 
 		await user.click(screen.getByRole('button', { name: 'Unpin Name' }))
 
-		expect(liveRegion()).toHaveTextContent('Unpinned Name')
+		await expectAnnouncement('Unpinned Name')
 	})
 
 	it('announces a column hide from the manager', async () => {
@@ -141,7 +154,7 @@ describe('Grid announcements', () => {
 
 		await user.click(screen.getByRole('checkbox', { name: 'Show Age' }))
 
-		expect(liveRegion()).toHaveTextContent('Hid Age column')
+		await expectAnnouncement('Hid Age column')
 	})
 
 	it('keeps the label of a sorted column that it hides', async () => {
@@ -159,7 +172,7 @@ describe('Grid announcements', () => {
 
 		// The sort survives the hide. Its announcement keeps the label, so it does
 		// not change, and it does not speak the raw column id.
-		expect(liveRegion()).toHaveTextContent('Hid Name column')
+		await expectAnnouncement('Hid Name column')
 
 		expect(liveRegion()).not.toHaveTextContent(/Sorted by name/)
 	})
@@ -180,6 +193,10 @@ describe('Grid announcements', () => {
 			// Debounced: a run of nudges settles into one "Name column N pixels" message
 			// once the settle window elapses.
 			await clock.advance(GRID_STATUS_DEBOUNCE_MS)
+
+			// The first text of a new region lands after the next paint (a frame, 16ms on the
+			// fake clock) and then `FIRST_WRITE_DELAY_MS`.
+			await clock.advance(16 + FIRST_WRITE_DELAY_MS)
 
 			expect(liveRegion()?.textContent ?? '').toMatch(/Name column \d+ pixels/)
 		})

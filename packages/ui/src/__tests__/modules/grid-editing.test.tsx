@@ -25,6 +25,7 @@ import {
 	bySlot,
 	expectAnnouncement,
 	fireEvent,
+	flushAnnouncer,
 	getSlot,
 	liveRegion,
 	present,
@@ -351,11 +352,9 @@ describe('Grid per-row editing', () => {
 
 		save()
 
-		// The announcer sets its region on a microtask; flush it rather than waiting,
-		// so the grid's debounced row-count status doesn't fire mid-test.
-		await Promise.resolve()
-
-		expect(liveRegion()).toHaveTextContent('Name updated for row 1')
+		// The announcer writes the first text of its region before the grid's debounced
+		// row-count status fires, and the wait ends at that write.
+		await expectAnnouncement('Name updated for row 1')
 	})
 
 	it('names the row by its label, and counts the cells of a row save', async () => {
@@ -373,10 +372,8 @@ describe('Grid per-row editing', () => {
 
 		save()
 
-		await Promise.resolve()
-
 		// The label reads the row that the save commits into, not the draft.
-		expect(liveRegion()).toHaveTextContent(/^2 cells updated for Alice$/)
+		await expectAnnouncement(/^2 cells updated for Alice$/)
 	})
 
 	it('names no row when one save spans rows', async () => {
@@ -411,12 +408,10 @@ describe('Grid per-row editing', () => {
 
 		fireEvent.click(view.getByRole('button', { name: 'save' }))
 
-		await Promise.resolve()
-
 		// One batch for each row, and one announcement for the sweep.
-		expect(onCommit).toHaveBeenCalledTimes(2)
+		await expectAnnouncement(/^2 cells updated$/)
 
-		expect(liveRegion()).toHaveTextContent(/^2 cells updated$/)
+		expect(onCommit).toHaveBeenCalledTimes(2)
 	})
 
 	/**
@@ -556,7 +551,7 @@ describe('Grid per-row editing', () => {
 
 		fireEvent.click(view.getByRole('button', { name: 'off' }))
 
-		await Promise.resolve()
+		await flushAnnouncer()
 
 		// The sink went with the binding, so nothing committed. Announcing a save
 		// here would tell assistive tech something that did not happen.
@@ -3959,6 +3954,8 @@ describe('Grid async commit', () => {
 
 		// Nothing is saved yet, so nothing is announced yet.
 		await act(async () => {})
+
+		await flushAnnouncer()
 
 		expect(liveRegion()?.textContent ?? '').not.toContain('updated')
 

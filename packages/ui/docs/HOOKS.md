@@ -36,7 +36,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 |---|---|
 | `useKeybindings` | Subscribes to tinykeys keybindings for the component's lifetime, reading handlers fresh per event. |
 | `useHasHover` | True when the device has a hover-capable pointer; true during SSR. |
-| `useKeyboardLifted` | Lifted-item state for keyboard reordering, which announces the lift and the drop. The lift drops when the surface turns disabled. |
+| `useKeyboardLifted` | Lifted-item state for keyboard reordering, which announces the lift and the drop in the language of the reader. The lift drops when the surface turns disabled. |
 | `useKeyboardSettled` | Defers a callback until the virtual keyboard settles; fires immediately on desktop. |
 | `useHoverAcrossScroll` | Hides a chart/map tooltip while scrolling and recomputes hover at the pointer once the scroll settles. |
 
@@ -74,7 +74,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 
 | Hook | Summary |
 |---|---|
-| `useSortableList` | Single-list reorder backed by @dnd-kit: owns the drag lifecycle and commits via `arrayMove`. |
+| `useSortableList` | Single-list reorder backed by @dnd-kit: owns the drag lifecycle and commits via `arrayMove`. It announces each drag step and describes the drag keys in the language of the reader. |
 | `useSortableItem` | Wraps the `useSortable` of dnd-kit with the standard drag style. Under reduced motion the style has no transition. |
 | `useSortableSensors` | The standard dnd-kit sensors: a pointer sensor with a low threshold, and a keyboard sensor on the arrow keys. |
 | `useDragCursor` | Holds a drag cursor on the whole page while active. Each drag in the library uses it, and `drag-cursor-boundary.test.ts` holds that rule. |

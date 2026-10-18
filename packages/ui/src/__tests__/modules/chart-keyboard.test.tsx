@@ -18,6 +18,7 @@ import {
 	bySlot,
 	expectAnnouncement,
 	fireEvent,
+	flushAnnouncer,
 	getSlot,
 	liveRegion,
 	renderUI,
@@ -827,8 +828,10 @@ describe('LineChart keyboard announcements', () => {
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('W3')
 
-		// The announcer writes on a microtask. Let one pass before the check.
+		// Wait past the announcer's first write before the check.
 		await act(async () => {})
+
+		await flushAnnouncer()
 
 		expect(liveRegion()?.textContent ?? '').toBe('')
 	})

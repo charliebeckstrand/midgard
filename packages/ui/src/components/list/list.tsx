@@ -2,11 +2,12 @@
 
 import { type ComponentProps, type ReactNode, useCallback, useId, useMemo, useRef } from 'react'
 import { cn } from '../../core'
-import { LIFT_INSTRUCTIONS } from '../../hooks/use-keyboard-lifted'
 import { keyMatcher, useKeyedStore } from '../../hooks/use-keyed-store'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { useReorderDrag } from '../../hooks/use-reorder-drag'
 import { useScrollRegion } from '../../hooks/use-scroll-region'
+import { IntlMessage } from '../../primitives/intl/intl-message'
+import { reorderMessages } from '../../primitives/intl/intl-reorder'
 import { k, type ListVariant } from '../../recipes/kata/list'
 import type { Orientation } from '../../types'
 import { ListContext } from './context'
@@ -367,7 +368,7 @@ export function List<T>({
 				<ul {...ulProps}>{rows}</ul>
 			)}
 			<div hidden id={describedBy}>
-				{LIFT_INSTRUCTIONS.draggable}
+				<IntlMessage message={reorderMessages.liftInstructions} />
 			</div>
 		</>
 	) : (

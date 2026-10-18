@@ -1,7 +1,9 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { __resetAnnouncer, announce } from '../../core/announcer'
+import { flushAnnouncer } from '../helpers'
 
-const flush = () => new Promise<void>((resolve) => queueMicrotask(resolve))
+// The microtasks only, for a test that fakes the timers.
+const flushMicrotasks = () => new Promise<void>((resolve) => queueMicrotask(resolve))
 
 function regionBy(politeness: 'polite' | 'assertive') {
 	return document.body.querySelector<HTMLElement>(
@@ -17,7 +19,7 @@ describe('announce', () => {
 
 		announce('Saved')
 
-		await flush()
+		await flushAnnouncer()
 
 		expect(regionBy('polite')).toHaveTextContent('Saved')
 	})
@@ -25,7 +27,7 @@ describe('announce', () => {
 	it('routes assertive messages to the assertive region', async () => {
 		announce('Stop', { assertive: true })
 
-		await flush()
+		await flushAnnouncer()
 
 		expect(regionBy('assertive')).toHaveTextContent('Stop')
 
@@ -35,11 +37,11 @@ describe('announce', () => {
 	it('reuses a single region per politeness across calls', async () => {
 		announce('one')
 
-		await flush()
+		await flushAnnouncer()
 
 		announce('two')
 
-		await flush()
+		await flushAnnouncer()
 
 		expect(
 			document.body.querySelectorAll('[data-slot="live-region"][aria-live="polite"]'),
@@ -51,19 +53,19 @@ describe('announce', () => {
 	it('changes the region text when the same message repeats', async () => {
 		announce('Copied')
 
-		await flush()
+		await flushAnnouncer()
 
 		const first = regionBy('polite')?.textContent
 
 		announce('Copied')
 
-		await flush()
+		await flushAnnouncer()
 
 		const second = regionBy('polite')?.textContent
 
 		announce('Copied')
 
-		await flush()
+		await flushAnnouncer()
 
 		// A live region speaks only a real change, so each repeat must differ from the text before it.
 		expect(first).toBe('Copied')
@@ -73,10 +75,60 @@ describe('announce', () => {
 		expect(regionBy('polite')?.textContent).toBe('Copied')
 	})
 
+	it('writes the first text 100ms after the next paint once it creates the region', async () => {
+		vi.useFakeTimers()
+
+		onTestFinished(() => {
+			vi.useRealTimers()
+		})
+
+		announce('Saved')
+
+		await flushMicrotasks()
+
+		// A new region reaches the accessibility tree in the next rendering update. Text that
+		// lands before that update is not spoken.
+		expect(regionBy('polite')).toBeEmptyDOMElement()
+
+		vi.advanceTimersToNextFrame()
+
+		expect(regionBy('polite')).toBeEmptyDOMElement()
+
+		// VoiceOver in Safari can miss text that lands less than 100ms after the region.
+		vi.advanceTimersByTime(99)
+
+		expect(regionBy('polite')).toBeEmptyDOMElement()
+
+		vi.advanceTimersByTime(1)
+
+		expect(regionBy('polite')).toHaveTextContent('Saved')
+	})
+
+	it('keeps the last text when a new region gets two messages before its first write', async () => {
+		vi.useFakeTimers()
+
+		onTestFinished(() => {
+			vi.useRealTimers()
+		})
+
+		announce('one')
+		announce('two')
+
+		await flushMicrotasks()
+
+		vi.advanceTimersToNextFrame()
+
+		vi.runOnlyPendingTimers()
+
+		await flushMicrotasks()
+
+		expect(regionBy('polite')?.textContent).toBe('two')
+	})
+
 	it('ignores an empty message', async () => {
 		announce('')
 
-		await flush()
+		await flushAnnouncer()
 
 		expect(regionBy('polite')).toBeNull()
 	})

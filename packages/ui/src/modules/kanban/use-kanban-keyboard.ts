@@ -5,6 +5,7 @@ import { announce, querySlot } from '../../core'
 import { useKeyboardLifted } from '../../hooks'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { describeCard, describeMove } from './engine/kanban-announcements'
 import { indexBoard, type KanbanBoard, type KanbanColumnBase } from './engine/kanban-board'
@@ -108,6 +109,8 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 	/** Board root; scopes card lookups so concurrent boards (and the drag overlay clone) don't cross-match. */
 	containerRef: RefObject<HTMLElement | null>
 }) {
+	const intl = useIntl()
+
 	// The handle is the keyboard stop of a card.
 	const focusCard = useCallback(
 		(cardId: string) => {
@@ -140,7 +143,7 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 		const names = kanbanNames(containerRef)
 
 		// The card's name, its 1-based position, and its column, for announcements.
-		const describe = () => describeCard(names, cardId, currentSlot(board, cardId))
+		const describe = () => describeCard(intl, names, cardId, currentSlot(board, cardId))
 
 		if (event.key === ' ') {
 			event.preventDefault()
@@ -168,7 +171,7 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 				((move) => {
 					onReorder(move.columns)
 
-					announce(describeMove(names, cardId, move.slot), { assertive: true })
+					announce(describeMove(intl, names, cardId, move.slot), { assertive: true })
 
 					refocusCard(cardId)
 				}),

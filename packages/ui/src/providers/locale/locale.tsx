@@ -1,9 +1,8 @@
 'use client'
 
 import { type ReactNode, useMemo } from 'react'
-import { RawIntlProvider } from 'react-intl'
 import { Direction, type TextDirection } from '../../primitives/direction'
-import { englishIntl, localeIntl } from '../../primitives/intl/intl-catalog'
+import { IntlProvider } from '../../primitives/intl/intl-provider'
 import { writeChoice } from '../appearance/appearance-storage'
 import {
 	LocaleChoiceContext,
@@ -59,7 +58,7 @@ export type LocaleProviderProps = LocaleConfig & {
  * their text in the language of the `locale`.
  *
  * @remarks
- * The provider also gives the `react-intl` intl of its locale to the controls
+ * The provider also gives the intl of its locale to the controls
  * of ui. A control shows its built-in text, such as the name of a Close button,
  * from the catalog of the language of the locale. ui has an English and a
  * Spanish catalog. A language with no catalog, and a message that a catalog
@@ -128,11 +127,6 @@ export function LocaleProvider({
 		[stored.locale, resolvedCurrency, resolvedNumberFormat, resolvedDateFormat, resolvedTimeZone],
 	)
 
-	// One intl serves each locale, so a nested provider in the locale of the
-	// enclosing provider gives the same intl to its subtree. A provider has no
-	// locale only when no enclosing provider has one.
-	const intl = stored.locale === undefined ? englishIntl : localeIntl(stored.locale)
-
 	const choice = useMemo<LocaleChoiceValue | null>(
 		() =>
 			locales
@@ -158,7 +152,7 @@ export function LocaleProvider({
 	return (
 		<LocaleChoiceContext value={choice ?? outerChoice}>
 			<LocaleContext value={value}>
-				<RawIntlProvider value={intl}>{scoped}</RawIntlProvider>
+				<IntlProvider locale={stored.locale}>{scoped}</IntlProvider>
 			</LocaleContext>
 		</LocaleChoiceContext>
 	)

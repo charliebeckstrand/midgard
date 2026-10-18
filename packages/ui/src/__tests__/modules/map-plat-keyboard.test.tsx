@@ -7,6 +7,7 @@ import {
 	bySlot,
 	expectAnnouncement,
 	fireEvent,
+	flushAnnouncer,
 	liveRegion,
 	renderUI,
 	waitFor,
@@ -203,6 +204,8 @@ describe('MapPlat keyboard navigation', () => {
 		fireEvent.keyDown(plot, { key: 'End' })
 
 		await act(async () => {})
+
+		await flushAnnouncer()
 
 		expect(liveRegion()?.textContent ?? '').toBe('')
 	})

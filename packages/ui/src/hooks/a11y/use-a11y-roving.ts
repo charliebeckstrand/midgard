@@ -588,6 +588,7 @@ export function rovedStop(items: HTMLElement[]): HTMLElement | undefined {
  * Resolves which item holds the focus-mode resting stop:
  *
  * - The focused item if any.
+ * - Else the `activeSelector` match, when `followCurrent` is set.
  * - Else the single existing stop, where the user has roved.
  * - Else the `activeSelector` match.
  * - Else the first item.
@@ -597,16 +598,19 @@ export function rovedStop(items: HTMLElement[]): HTMLElement | undefined {
 function resolveRestingStop(
 	items: HTMLElement[],
 	activeSelector: string | undefined,
+	followCurrent = false,
 ): HTMLElement | undefined {
 	const focused = items.find((item) => item === document.activeElement)
 
 	if (focused) return focused
 
+	const bySelector = activeSelector ? items.find((item) => item.matches(activeSelector)) : undefined
+
+	if (followCurrent && bySelector) return bySelector
+
 	const roved = rovedStop(items)
 
 	if (roved) return roved
-
-	const bySelector = activeSelector ? items.find((item) => item.matches(activeSelector)) : undefined
 
 	return bySelector ?? items[0]
 }
@@ -1138,7 +1142,9 @@ export type RovingOptions = NavigationConfig & {
 	/**
 	 * Focus mode + `manageTabIndex`: selector for the item that holds the resting
 	 * `tabIndex=0` on mount (e.g. `[aria-current="page"]`). Falls back to the
-	 * first item when it matches nothing; applies only until the user roves.
+	 * first item when it matches nothing. After the user roves, the stop stays
+	 * where they left it, until an `aria-current` attribute changes while focus
+	 * is outside the container; then the stop moves back to the match.
 	 */
 	activeSelector?: string
 	/**
@@ -1256,14 +1262,20 @@ export function useA11yRoving(
 
 		if (!container) return
 
-		const normalize = () => {
+		// When `aria-current` changes while focus is outside the container, the
+		// stop moves to the new match, also from a stop where the user roved.
+		const normalize = (records?: MutationRecord[]) => {
 			const items = queryItems(container, itemSelector)
 
 			if (actionSelector) pinRowActions(container, actionSelector)
 
 			if (!items.length) return
 
-			seatTabStop(items, resolveRestingStop(items, activeSelector))
+			const followCurrent =
+				!!records?.some((record) => record.attributeName === 'aria-current') &&
+				!container.contains(container.ownerDocument.activeElement)
+
+			seatTabStop(items, resolveRestingStop(items, activeSelector, followCurrent))
 		}
 
 		normalize()

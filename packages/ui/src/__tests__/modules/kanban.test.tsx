@@ -1,6 +1,5 @@
 import { createRef, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { LIFT_INSTRUCTIONS } from '../../hooks/use-keyboard-lifted'
 import {
 	Kanban,
 	KanbanCard,
@@ -11,6 +10,8 @@ import {
 	KanbanColumnHeader,
 	KanbanColumnTitle,
 } from '../../modules/kanban'
+import { englishIntl } from '../../primitives/intl/intl-catalog'
+import { reorderMessages } from '../../primitives/intl/intl-reorder'
 import {
 	allBySlot,
 	bySlot,
@@ -801,7 +802,9 @@ describe('Kanban drag instructions', () => {
 
 		const instructions = document.getElementById(handle.getAttribute('aria-describedby') ?? '')
 
-		expect(instructions).toHaveTextContent(LIFT_INSTRUCTIONS.draggable)
+		expect(instructions).toHaveTextContent(
+			englishIntl.formatMessage(reorderMessages.liftInstructions),
+		)
 	})
 })
 

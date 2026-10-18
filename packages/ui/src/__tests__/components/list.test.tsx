@@ -1,6 +1,7 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { List, ListDescription, ListItem, ListLabel, type ListProps } from '../../components/list'
-import { LIFT_INSTRUCTIONS } from '../../hooks/use-keyboard-lifted'
+import { englishIntl } from '../../primitives/intl/intl-catalog'
+import { reorderMessages } from '../../primitives/intl/intl-reorder'
 import { DensityProvider } from '../../providers/density'
 import {
 	allBySlot,
@@ -606,7 +607,9 @@ describe('List keyboard reordering', () => {
 
 		const instructions = document.getElementById(row.getAttribute('aria-describedby') ?? '')
 
-		expect(instructions).toHaveTextContent(LIFT_INSTRUCTIONS.draggable)
+		expect(instructions).toHaveTextContent(
+			englishIntl.formatMessage(reorderMessages.liftInstructions),
+		)
 	})
 
 	it('gives an activatable row one Tab stop, on the content rather than the row', () => {
@@ -748,7 +751,9 @@ describe('List keyboard reordering', () => {
 		// The consumer id comes first, then the id of the reorder instructions.
 		expect(ids).toHaveLength(2)
 		expect(ids[0]).toBe('hint')
-		expect(document.getElementById(ids[1] ?? '')).toHaveTextContent(LIFT_INSTRUCTIONS.draggable)
+		expect(document.getElementById(ids[1] ?? '')).toHaveTextContent(
+			englishIntl.formatMessage(reorderMessages.liftInstructions),
+		)
 	})
 
 	it('leaves keys from focusable descendants alone', () => {

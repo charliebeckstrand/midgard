@@ -4,7 +4,7 @@ import { Control } from '../../components/control'
 import { Field } from '../../components/fieldset'
 import { NumberInput } from '../../components/number-input'
 import { Form } from '../../modules/form'
-import { act, fireEvent, liveRegion, renderUI, screen, setupUser } from '../helpers'
+import { act, expectAnnouncement, fireEvent, renderUI, screen, setupUser } from '../helpers'
 
 describe('NumberInput', () => {
 	it('renders an input with type number alongside decrease and increase buttons', () => {
@@ -51,7 +51,7 @@ describe('NumberInput', () => {
 
 		await user.click(screen.getByLabelText('Increase'))
 
-		expect(liveRegion()).toHaveTextContent('5')
+		await expectAnnouncement('5')
 	})
 
 	it('keeps focus on the input when a stepper is pressed', async () => {

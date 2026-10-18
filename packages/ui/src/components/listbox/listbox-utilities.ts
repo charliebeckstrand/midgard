@@ -1,6 +1,6 @@
 import { createElement, Fragment, type ReactNode } from 'react'
-import type { IntlShape } from 'react-intl'
 import { selectedMessage } from '../../primitives/intl/intl-messages'
+import type { IntlShape } from '../../primitives/intl/types'
 import { capitalizeFirst } from '../../utilities'
 
 /**

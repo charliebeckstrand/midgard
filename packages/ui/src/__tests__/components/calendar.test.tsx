@@ -8,7 +8,9 @@ import { Box } from '../../structure/box'
 import {
 	act,
 	bySlot,
+	expectAnnouncement,
 	fireEvent,
+	flushAnnouncer,
 	liveRegion,
 	renderUI,
 	screen,
@@ -143,16 +145,16 @@ describe('Calendar', () => {
 
 		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
 
-		// The announcer writes the region in a microtask. Flush it, so that an
-		// announcement on mount shows here.
-		await Promise.resolve()
+		// The announcer writes the first text of a region after a delay. Wait for it, so
+		// that an announcement on mount shows here.
+		await flushAnnouncer()
 
 		// Lazily created on first announce; absent means nothing was announced on mount.
 		expect(liveRegion()?.textContent ?? '').toBe('')
 
 		await user.click(screen.getByLabelText('Next month'))
 
-		expect(liveRegion()).toHaveTextContent('July 2025')
+		await expectAnnouncement('July 2025')
 	})
 
 	it('changes the month when the previous / next nav buttons are clicked', async () => {

@@ -2,8 +2,10 @@
 
 import { useCallback, useMemo } from 'react'
 import type { SortableListOptions } from '../../hooks/use-sortable-list'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { isDataColumn } from '../../utilities'
 import { columnLabel } from './engine/grid-column/label'
+import { gridMessages } from './engine/grid-messages'
 import { isFrozen } from './engine/grid-pin/overrides'
 import type { GridColumn } from './types'
 
@@ -47,6 +49,8 @@ export function useGridReorder<T>({
 	onReorderStart,
 	onReorderEnd,
 }: GridReorderOptions<T>) {
+	const intl = useIntl()
+
 	const draggableColumns = useMemo(
 		() =>
 			reorder ? visibleColumns.filter((col) => isDataColumn(col) && !isFrozen(col)) : EMPTY_COLUMNS,
@@ -74,7 +78,7 @@ export function useGridReorder<T>({
 		orientation: 'horizontal',
 		onDragStart: onReorderStart ? handleDragStart : undefined,
 		onDragEnd: onReorderEnd ? handleDragEnd : undefined,
-		describe: (col) => `${columnLabel(col)} column`,
+		describe: (col) => intl.formatMessage(gridMessages.columnName, { column: columnLabel(col) }),
 	}
 
 	return { canReorder, sortable }
