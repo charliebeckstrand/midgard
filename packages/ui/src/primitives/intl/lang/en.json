@@ -3,6 +3,10 @@
 		"defaultMessage": "Dismiss",
 		"description": "The name of the button that closes a message or a toast."
 	},
+	"ui.badge.remove": {
+		"defaultMessage": "Remove {label}",
+		"description": "The name of the button that removes a chip, such as a tag. The label is the text of the chip."
+	},
 	"ui.calendar.nextDecade": {
 		"defaultMessage": "Next decade",
 		"description": "The name of the button that shows the ten years after in the year picker."
@@ -402,6 +406,42 @@
 	"ui.settings.title": {
 		"defaultMessage": "Settings",
 		"description": "The title of the settings dialog, and the name of the button that opens it."
+	},
+	"ui.tagInput.addTag": {
+		"defaultMessage": "Add tag",
+		"description": "The name of the button that adds the typed text as a tag."
+	},
+	"ui.tagInput.addTags": {
+		"defaultMessage": "Add tags",
+		"description": "The name of a tag field with no label and no placeholder of its own."
+	},
+	"ui.tagInput.added": {
+		"defaultMessage": "{count, plural, one {Added {tag}} other {Added # tags}}",
+		"description": "Spoken when tags are added. With one tag, it names the tag. Else it gives the count."
+	},
+	"ui.tagInput.duplicates": {
+		"defaultMessage": "{count, plural, one {{tag} is already in the list} other {# already in the list}}",
+		"description": "Spoken when typed or pasted tags are already in the list. With one tag, it names the tag."
+	},
+	"ui.tagInput.limit": {
+		"defaultMessage": "Tag limit reached",
+		"description": "Spoken when the field holds the most tags that it takes, so a tag is not added."
+	},
+	"ui.tagInput.rejected": {
+		"defaultMessage": "{count, plural, one {{tag} is not a valid tag} other {# not valid}}",
+		"description": "Spoken when typed or pasted tags fail the validation. With one tag, it names the tag."
+	},
+	"ui.tagInput.removed": {
+		"defaultMessage": "Removed {tag}",
+		"description": "Spoken when the reader removes a tag."
+	},
+	"ui.tagInput.required": {
+		"defaultMessage": "Add at least one tag",
+		"description": "The validation message of a required tag field that holds no tag."
+	},
+	"ui.tagInput.tags": {
+		"defaultMessage": "Tags",
+		"description": "The name of the list of the tags in a tag field."
 	},
 	"ui.toast.notifications": {
 		"defaultMessage": "Notifications",

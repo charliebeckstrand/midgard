@@ -1,3 +1,45 @@
+import { defineMessages } from '../../primitives/intl/intl-messages'
+import type { IntlShape } from '../../primitives/intl/types'
+
+// The live-region text of a TagInput. A count of one names the tag itself.
+const messages = defineMessages<{
+	added: { count: number; tag: string }
+	duplicates: { count: number; tag: string }
+	limit: Record<never, never>
+	rejected: { count: number; tag: string }
+	removed: { tag: string }
+}>({
+	added: {
+		id: 'ui.tagInput.added',
+		defaultMessage: '{count, plural, one {Added {tag}} other {Added # tags}}',
+		description:
+			'Spoken when tags are added. With one tag, it names the tag. Else it gives the count.',
+	},
+	duplicates: {
+		id: 'ui.tagInput.duplicates',
+		defaultMessage:
+			'{count, plural, one {{tag} is already in the list} other {# already in the list}}',
+		description:
+			'Spoken when typed or pasted tags are already in the list. With one tag, it names the tag.',
+	},
+	limit: {
+		id: 'ui.tagInput.limit',
+		defaultMessage: 'Tag limit reached',
+		description: 'Spoken when the field holds the most tags that it takes, so a tag is not added.',
+	},
+	rejected: {
+		id: 'ui.tagInput.rejected',
+		defaultMessage: '{count, plural, one {{tag} is not a valid tag} other {# not valid}}',
+		description:
+			'Spoken when typed or pasted tags fail the validation. With one tag, it names the tag.',
+	},
+	removed: {
+		id: 'ui.tagInput.removed',
+		defaultMessage: 'Removed {tag}',
+		description: 'Spoken when the reader removes a tag.',
+	},
+})
+
 /**
  * Any run of whitespace, comma or semicolon between tokens.
  *
@@ -128,19 +170,35 @@ export function classifyTokens(
  *
  * @internal
  */
-export function describeBatch({ accepted, rejected, duplicates, overLimit }: TokenBatch): string {
+export function describeBatch(
+	intl: IntlShape,
+	{ accepted, rejected, duplicates, overLimit }: TokenBatch,
+): string {
 	const said: string[] = []
 
-	if (accepted.length === 1) said.push(`Added ${accepted[0]}`)
-	else if (accepted.length > 1) said.push(`Added ${accepted.length} tags`)
+	// One part for each outcome that has tags. A part of one tag names it.
+	const part = (message: (typeof messages)['added'], tags: readonly string[]) => {
+		if (tags.length > 0) {
+			said.push(intl.formatMessage(message, { count: tags.length, tag: tags[0] ?? '' }))
+		}
+	}
 
-	if (duplicates.length === 1) said.push(`${duplicates[0]} is already in the list`)
-	else if (duplicates.length > 1) said.push(`${duplicates.length} already in the list`)
+	part(messages.added, accepted)
 
-	if (overLimit > 0) said.push('Tag limit reached')
+	part(messages.duplicates, duplicates)
 
-	if (rejected.length === 1) said.push(`${rejected[0]} is not a valid tag`)
-	else if (rejected.length > 1) said.push(`${rejected.length} not valid`)
+	if (overLimit > 0) said.push(intl.formatMessage(messages.limit))
+
+	part(messages.rejected, rejected)
 
 	return said.length === 0 ? '' : `${said.join('. ')}.`
+}
+
+/**
+ * The live-region text when the reader removes `tag`.
+ *
+ * @internal
+ */
+export function describeRemoval(intl: IntlShape, tag: string): string {
+	return intl.formatMessage(messages.removed, { tag })
 }

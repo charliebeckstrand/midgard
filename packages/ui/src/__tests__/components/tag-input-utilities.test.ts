@@ -5,6 +5,7 @@ import {
 	describeBatch,
 	splitTokens,
 } from '../../components/tag-input/tag-input-utilities'
+import { englishIntl, localeIntl } from '../../primitives/intl/intl-catalog'
 
 describe('splitTokens', () => {
 	it.each([
@@ -90,14 +91,25 @@ describe('describeBatch', () => {
 		['counts several rejections', { ...empty, rejected: ['x', 'y'] }, '2 not valid.'],
 		['reports the cap', { ...empty, overLimit: 3 }, 'Tag limit reached.'],
 	])('%s', (_name, batch, expected) => {
-		expect(describeBatch(batch)).toBe(expected)
+		expect(describeBatch(englishIntl, batch)).toBe(expected)
 	})
 
 	it('joins every outcome into one message', () => {
 		// ONE announcement per commit, not one per tag: forty separate live-region messages for a single
 		// paste is worse for a screen-reader user than the silence this replaced (WCAG 4.1.3).
 		expect(
-			describeBatch({ accepted: ['a', 'b'], rejected: ['x'], duplicates: ['c'], overLimit: 2 }),
+			describeBatch(englishIntl, {
+				accepted: ['a', 'b'],
+				rejected: ['x'],
+				duplicates: ['c'],
+				overLimit: 2,
+			}),
 		).toBe('Added 2 tags. c is already in the list. Tag limit reached. x is not a valid tag.')
+	})
+
+	it('speaks in the language of the intl', () => {
+		expect(describeBatch(localeIntl('es-ES'), { ...empty, accepted: ['a', 'b'] })).toBe(
+			'Se añadieron 2 etiquetas.',
+		)
 	})
 })
