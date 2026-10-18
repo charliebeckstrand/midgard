@@ -193,7 +193,7 @@ export function List<T>({
 		return (order: string[]) => {
 			const byKey = new Map(ids.map((id, index) => [id, items[index] as T]))
 
-			onReorder(order.flatMap((id) => byKey.get(id) ?? []))
+			onReorder(order.filter((id) => byKey.has(id)).map((id) => byKey.get(id) as T))
 		}
 	}, [ids, items, onReorder])
 
