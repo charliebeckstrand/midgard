@@ -2,8 +2,12 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { Profiler } from 'react'
 import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { halt, start } from '../../modules/events/engine/events-recorder'
-import { isEventsPinned, setEventsPinned } from '../../modules/events/engine/events-setting'
-import { recordEvent, reportBug } from '../../modules/events/engine/events-sink'
+import {
+	isEventsPinned,
+	setEventsOn,
+	setEventsPinned,
+} from '../../modules/events/engine/events-setting'
+import { getEventSink, recordEvent, reportBug } from '../../modules/events/engine/events-sink'
 import { EventsAside } from '../../modules/events/events-aside'
 import { EventsButton } from '../../modules/events/events-button'
 import { loadTools } from '../../modules/events/events-load'
@@ -427,7 +431,7 @@ describe('EventsSheet Bugs', () => {
 })
 
 describe('pin', () => {
-	it('pins the view from the sheet, and the panel unpins it', () => {
+	it('pins the view from the sheet, and the panel unpins it', async () => {
 		// The attribute of the pin follows the pin only while the events run.
 		localStorage.setItem('events:on', '1')
 
@@ -455,9 +459,8 @@ describe('pin', () => {
 
 		expect(onOpenChange).toHaveBeenCalledWith(false)
 
-		render(<EventsPanel />)
-
-		fireEvent.click(screen.getByRole('button', { name: 'Unpin' }))
+		// The aside mounts the panel of the pin.
+		fireEvent.click(await screen.findByRole('button', { name: 'Unpin' }))
 
 		expect(isEventsPinned()).toBe(false)
 
@@ -476,6 +479,39 @@ describe('pin', () => {
 		aside.unmount()
 
 		expect(screen.queryByRole('button', { name: 'Pin' })).toBeNull()
+	})
+
+	it('does not load the panel or start the recorder for a pin while the events are off', async () => {
+		setEventsPinned(true)
+
+		render(<EventsAside />)
+
+		// The load of the panel, when one starts, resolves in this wait.
+		await act(() => import('../../modules/events/events-panel'))
+
+		expect(screen.queryByRole('button', { name: 'Unpin' })).toBeNull()
+
+		expect(getEventSink()).toBeUndefined()
+	})
+
+	it('mounts the pinned panel when the events turn on, and unmounts it when they turn off', async () => {
+		onTestFinished(() => {
+			localStorage.removeItem('events:on')
+
+			document.documentElement.removeAttribute('data-events')
+		})
+
+		setEventsPinned(true)
+
+		render(<EventsAside />)
+
+		act(() => setEventsOn(true))
+
+		expect(await screen.findByRole('button', { name: 'Unpin' })).toBeDefined()
+
+		act(() => setEventsOn(false))
+
+		expect(screen.queryByRole('button', { name: 'Unpin' })).toBeNull()
 	})
 
 	it('shows each new event in the panel, and does not pause the store', async () => {

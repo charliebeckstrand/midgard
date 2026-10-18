@@ -4,13 +4,19 @@ import { useEffect, useSyncExternalStore } from 'react'
 import { useLazyModule } from '../../hooks/use-lazy-module'
 import { createLazyModule } from '../../utilities/lazy-module'
 import { noop } from '../../utilities/noop'
-import { addEventsDock, isEventsPinned, subscribePinned } from './engine/events-setting'
+import {
+	addEventsDock,
+	isEventsOn,
+	isEventsPinned,
+	subscribeOn,
+	subscribePinned,
+} from './engine/events-setting'
 import { loadTools } from './events-load'
 
 const panel = createLazyModule(() => import('./events-panel'))
 
-// The server does not know the setting, so the first render after hydration reads it.
-const pinnedOnServer = () => false
+// The server does not know the settings, so the first render after hydration reads them.
+const offOnServer = () => false
 
 /**
  * The pinned panel of the events, for the `aside` of `SidebarLayout`. While
@@ -25,7 +31,11 @@ const pinnedOnServer = () => false
  * rows, and the panel does not pause the store.
  */
 export function EventsAside() {
-	const pinned = useSyncExternalStore(subscribePinned, isEventsPinned, pinnedOnServer)
+	// The panel starts the recorder, so a pin while the events are off loads
+	// and mounts no panel. The pin stays for the next time they run.
+	const on = useSyncExternalStore(subscribeOn, isEventsOn, offOnServer)
+
+	const pinned = useSyncExternalStore(subscribePinned, isEventsPinned, offOnServer) && on
 
 	const Panel = useLazyModule(panel, false)?.EventsPanel
 
