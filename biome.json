@@ -570,6 +570,10 @@
 		},
 		{
 			"includes": ["packages/ui/src/**", "!**/__tests__/**", "!**/__benchmarks__/**"],
+			"plugins": ["./.biome/plugins/no-react-intl-provider-api.grit"]
+		},
+		{
+			"includes": ["packages/ui/src/**", "!**/__tests__/**", "!**/__benchmarks__/**"],
 			"plugins": ["./.biome/plugins/no-motion-reduced-motion-hook.grit"]
 		},
 		{

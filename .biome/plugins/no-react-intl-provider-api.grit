@@ -1,0 +1,26 @@
+language js
+
+// The controls of ui read the intl through `useIntl` in `primitives/intl`,
+// which gives an English intl outside each provider. The `useIntl` and the
+// `injectIntl` of `react-intl`, and its `Formatted*` components, read the
+// context of `react-intl` and throw outside its provider. So a control that
+// uses one breaks in a tree with no `LocaleProvider`. The `IntlProvider` of
+// `react-intl` builds its own intl, which skips the catalog and the error
+// handler of ui. `LocaleProvider` gives the shared intl of its locale through
+// `RawIntlProvider`.
+//
+// The pattern flags a value specifier of these names. `RawIntlProvider`,
+// `IntlContext`, and a `type` specifier stay free, and so does an `import
+// type`.
+//
+// Reach is the `includes` beside this plugin in `biome.json`: the `ui` source,
+// minus tests and benchmarks.
+`import $clause from $source` as $import where {
+	$source <: r"['\"]react-intl['\"]",
+	not $import <: r"import\s+type\b[\s\S]*",
+	$clause <: r"[\s\S]*[{,]\s*(?:useIntl|injectIntl|IntlProvider|Formatted[A-Za-z]*)\b[\s\S]*",
+	register_diagnostic(
+		span = $import,
+		message = "take no `useIntl`, `injectIntl`, `IntlProvider`, or `Formatted*` from `react-intl` in ui: read the intl through `useIntl` in `primitives/intl`, and render text with `IntlMessage` or `formatMessage`"
+	)
+}

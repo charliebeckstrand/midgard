@@ -203,6 +203,22 @@ export { createContext, mine, useState }
 `,
 		},
 	],
+	'no-react-intl-provider-api': [
+		{
+			file: 'intl.tsx',
+			source: `import { useIntl } from 'react-intl' // flag
+import { defineMessages, FormattedMessage } from 'react-intl' // flag
+import { type IntlShape, IntlProvider } from 'react-intl' // flag
+import { injectIntl as inject } from 'react-intl' // flag
+import { FormattedDate } from 'react-intl' // flag
+import { IntlContext, RawIntlProvider } from 'react-intl'
+import type { FormattedMessage as Message } from 'react-intl'
+import { type FormattedNumber } from 'react-intl'
+import { createIntl } from 'react-intl/server'
+export { useIntl, defineMessages, FormattedMessage, IntlProvider, inject, FormattedDate, IntlContext, RawIntlProvider, createIntl, type IntlShape, type Message, type FormattedNumber }
+`,
+		},
+	],
 	'no-renamed-spacing-utility': [
 		{
 			file: 'spacing.ts',
