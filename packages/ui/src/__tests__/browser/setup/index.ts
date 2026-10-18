@@ -4,6 +4,7 @@ import { toHaveNoViolations } from 'jest-axe'
 import { afterEach, beforeAll, beforeEach, expect, inject, vi } from 'vitest'
 import { commands } from 'vitest/browser'
 import { loadListReorder } from '../../../components/list/use-list-reorder'
+import { loadGridDataDialogs } from '../../../modules/grid/grid-data-dialogs'
 import { installSingletonResets } from '../../helpers/reset-singletons'
 import { installResidueGuard } from '../../helpers/residue'
 import '../../setup/geometry'
@@ -98,3 +99,10 @@ afterEach((ctx) => {
 // the state of a page that already loaded the parts.
 // `list-reorder-hydration.test.tsx` checks a list that hydrates.
 beforeAll(() => loadListReorder())
+
+// The grid loads its dialogs on the first open. Under load, that import took
+// longer than the budget of a `findByRole` that waits for a dialog, so the
+// first case on a page to open one failed at random. The load before each file
+// gives each case the state of a page that already loaded them, as
+// `setup/grid-modules.ts` does for the jsdom suite.
+beforeAll(() => loadGridDataDialogs())
