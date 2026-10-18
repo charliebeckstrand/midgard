@@ -1,6 +1,13 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ReadyReveal } from '../../primitives/ready-reveal'
-import { expectAnnouncement, getSlot, liveRegion, renderUI, screen } from '../helpers'
+import {
+	afterFirstWrite,
+	expectAnnouncement,
+	getSlot,
+	liveRegion,
+	renderUI,
+	screen,
+} from '../helpers'
 
 describe('ReadyReveal', () => {
 	it('renders children content', () => {
@@ -104,8 +111,8 @@ describe('ReadyReveal onReadyComplete', () => {
 			</ReadyReveal>,
 		)
 
-		// Flush the announcer's microtask, then confirm nothing was written.
-		await Promise.resolve()
+		// Wait past the announcer's first write, then confirm nothing was written.
+		await afterFirstWrite()
 
 		// Lazily created on first announce; absent means nothing was announced.
 		expect(liveRegion()?.textContent ?? '').toBe('')

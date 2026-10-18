@@ -3,6 +3,7 @@ import { Dialog, DialogPanel } from '../../components/dialog'
 import { MapPlat } from '../../modules/map'
 import {
 	act,
+	afterFirstWrite,
 	allBySlot,
 	bySlot,
 	expectAnnouncement,
@@ -203,6 +204,8 @@ describe('MapPlat keyboard navigation', () => {
 		fireEvent.keyDown(plot, { key: 'End' })
 
 		await act(async () => {})
+
+		await afterFirstWrite()
 
 		expect(liveRegion()?.textContent ?? '').toBe('')
 	})

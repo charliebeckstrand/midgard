@@ -21,6 +21,7 @@ import {
 } from '../../modules/form'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import {
+	afterFirstWrite,
 	allBySlot,
 	bySlot,
 	expectAnnouncement,
@@ -422,9 +423,9 @@ describe('FormFilters announcements', () => {
 			</FormFilters>,
 		)
 
-		// The announcer writes the region in a microtask. Flush it, so that an
-		// announcement on mount shows here.
-		await Promise.resolve()
+		// Wait past the announcer's first write, so that an announcement on mount shows
+		// here.
+		await afterFirstWrite()
 
 		// Lazily created on first announce; absent means nothing was announced on mount.
 		expect(liveRegion()?.textContent ?? '').toBe('')

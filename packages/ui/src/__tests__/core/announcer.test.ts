@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { __resetAnnouncer, announce } from '../../core/announcer'
-import { nextPaint } from '../helpers/frames'
+import { afterFirstWrite } from '../helpers'
 
 // The microtasks only, for a test that fakes the timers.
 const flushMicrotasks = () => new Promise<void>((resolve) => queueMicrotask(resolve))
@@ -19,7 +19,7 @@ describe('announce', () => {
 
 		announce('Saved')
 
-		await nextPaint()
+		await afterFirstWrite()
 
 		expect(regionBy('polite')).toHaveTextContent('Saved')
 	})
@@ -27,7 +27,7 @@ describe('announce', () => {
 	it('routes assertive messages to the assertive region', async () => {
 		announce('Stop', { assertive: true })
 
-		await nextPaint()
+		await afterFirstWrite()
 
 		expect(regionBy('assertive')).toHaveTextContent('Stop')
 
@@ -37,11 +37,11 @@ describe('announce', () => {
 	it('reuses a single region per politeness across calls', async () => {
 		announce('one')
 
-		await nextPaint()
+		await afterFirstWrite()
 
 		announce('two')
 
-		await nextPaint()
+		await afterFirstWrite()
 
 		expect(
 			document.body.querySelectorAll('[data-slot="live-region"][aria-live="polite"]'),
@@ -53,19 +53,19 @@ describe('announce', () => {
 	it('changes the region text when the same message repeats', async () => {
 		announce('Copied')
 
-		await nextPaint()
+		await afterFirstWrite()
 
 		const first = regionBy('polite')?.textContent
 
 		announce('Copied')
 
-		await nextPaint()
+		await afterFirstWrite()
 
 		const second = regionBy('polite')?.textContent
 
 		announce('Copied')
 
-		await nextPaint()
+		await afterFirstWrite()
 
 		// A live region speaks only a real change, so each repeat must differ from the text before it.
 		expect(first).toBe('Copied')
@@ -75,7 +75,7 @@ describe('announce', () => {
 		expect(regionBy('polite')?.textContent).toBe('Copied')
 	})
 
-	it('writes the first text after the next paint once it creates the region', async () => {
+	it('writes the first text 100ms after the next paint once it creates the region', async () => {
 		vi.useFakeTimers()
 
 		onTestFinished(() => {
@@ -94,7 +94,12 @@ describe('announce', () => {
 
 		expect(regionBy('polite')).toBeEmptyDOMElement()
 
-		vi.runOnlyPendingTimers()
+		// VoiceOver in Safari can miss text that lands less than 100ms after the region.
+		vi.advanceTimersByTime(99)
+
+		expect(regionBy('polite')).toBeEmptyDOMElement()
+
+		vi.advanceTimersByTime(1)
 
 		expect(regionBy('polite')).toHaveTextContent('Saved')
 	})
@@ -123,7 +128,7 @@ describe('announce', () => {
 	it('ignores an empty message', async () => {
 		announce('')
 
-		await nextPaint()
+		await afterFirstWrite()
 
 		expect(regionBy('polite')).toBeNull()
 	})

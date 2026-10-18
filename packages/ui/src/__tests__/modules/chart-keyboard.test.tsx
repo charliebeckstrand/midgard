@@ -14,6 +14,7 @@ import { LineChart } from '../../modules/chart/line-chart'
 import { PieChart } from '../../modules/chart/pie-chart'
 import {
 	act,
+	afterFirstWrite,
 	allBySlot,
 	bySlot,
 	expectAnnouncement,
@@ -827,8 +828,10 @@ describe('LineChart keyboard announcements', () => {
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('W3')
 
-		// The announcer writes on a microtask. Let one pass before the check.
+		// Wait past the announcer's first write before the check.
 		await act(async () => {})
+
+		await afterFirstWrite()
 
 		expect(liveRegion()?.textContent ?? '').toBe('')
 	})

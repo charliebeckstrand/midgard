@@ -7,6 +7,7 @@ import { Form } from '../../modules/form'
 import { Box } from '../../structure/box'
 import {
 	act,
+	afterFirstWrite,
 	bySlot,
 	expectAnnouncement,
 	fireEvent,
@@ -16,7 +17,6 @@ import {
 	setupUser,
 	withFakeTime,
 } from '../helpers'
-import { nextPaint } from '../helpers/frames'
 
 const selectedDay = () =>
 	screen.getAllByRole('option').find((o) => o.getAttribute('aria-selected') === 'true')
@@ -145,9 +145,9 @@ describe('Calendar', () => {
 
 		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
 
-		// The announcer writes the first text of a region after the next paint. Wait for
-		// it, so that an announcement on mount shows here.
-		await nextPaint()
+		// The announcer writes the first text of a region after a delay. Wait for it, so
+		// that an announcement on mount shows here.
+		await afterFirstWrite()
 
 		// Lazily created on first announce; absent means nothing was announced on mount.
 		expect(liveRegion()?.textContent ?? '').toBe('')

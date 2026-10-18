@@ -4,7 +4,7 @@ import { renderToString } from 'react-dom/server'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 
 import { Calendar } from '../../components/calendar'
-import { act, attach, liveRegion, screen } from '../helpers'
+import { act, afterFirstWrite, attach, liveRegion, screen } from '../helpers'
 
 /** The server clock: October 1 in UTC, the zone of the test run. */
 const SERVER_NOW = new Date('2026-10-01T02:00:00Z')
@@ -79,8 +79,10 @@ describe('Calendar hydration with no value and no defaultValue', () => {
 
 		hydrateAcrossMonths(<Calendar onMonthChange={onMonthChange} />)
 
-		// The announcer writes on a microtask.
+		// Wait past the announcer's first write before the check.
 		await act(async () => {})
+
+		await afterFirstWrite()
 
 		expect(onMonthChange).not.toHaveBeenCalled()
 
