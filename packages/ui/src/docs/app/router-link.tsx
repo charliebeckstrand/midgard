@@ -3,6 +3,7 @@ import { type NavigateFunction, PrefetchPageLinks } from 'react-router'
 import { composeEventHandlers, createContext } from 'ui/core'
 import { useTimeout } from 'ui/hooks'
 import type { LinkProps } from 'ui/primitives/link'
+import { hasBrowserModifier } from '../../utilities/modifier-keys.ts'
 
 /**
  * The `navigate` of the shell. The function of the root route does not change,
@@ -15,9 +16,7 @@ function isNativeClick(event: MouseEvent<HTMLAnchorElement>, target: string | un
 	return (
 		event.button !== 0 ||
 		(target !== undefined && target !== '_self') ||
-		event.metaKey ||
-		event.altKey ||
-		event.ctrlKey ||
+		hasBrowserModifier(event) ||
 		event.shiftKey
 	)
 }

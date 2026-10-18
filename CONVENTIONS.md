@@ -73,6 +73,7 @@ Side behavior, such as a preload or a pause on hover, keeps the default.
 | An element that Motion animates | `m` from `primitives/reduced-motion/reduced-motion-elements`, under a `ReducedMotion` root from `primitives/reduced-motion`, which loads the features of Motion in a chunk after it mounts. An HTML `m` element is `inert` while it exits under `AnimatePresence`, and `useA11yRoving` skips each item under an `inert` ancestor | `no-full-motion-component` |
 | A boolean ARIA state or `data-*` attribute | `ariaAttr` and `dataAttr` in `ui/core` | `no-hand-written-bool-attr` |
 | A value held inside a range | `clamp` in `src/utilities` | `no-hand-written-clamp` |
+| A key press or a click that holds Ctrl, Meta, or Alt, which is for the browser | `hasBrowserModifier` in `utilities/modifier-keys.ts` | `browser-modifier-boundary.test.ts` |
 
 An arrow key on a physical axis, such as a slider track or a map cursor, stays physical. The logical-arrow gate lists each such file with its reason.
 
