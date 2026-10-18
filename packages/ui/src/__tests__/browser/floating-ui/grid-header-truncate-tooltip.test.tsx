@@ -46,6 +46,84 @@ describe('grid header truncation tooltip (real browser)', () => {
 		expect(tip).toHaveTextContent(longTitle)
 	})
 
+	/** Tabs from a button before the grid to the sort button, and gives the sort button. */
+	const tabToSort = async (name: string) => {
+		const before = screen.getByRole('button', { name: 'before' })
+
+		// The pointer rests on the button before the grid, so a hover on the
+		// title cannot open the tooltip.
+		await userEvent.hover(before)
+
+		// A real Tab, not `sort.focus()`. The tooltip opens on a focus that matches
+		// `:focus-visible`, and an earlier test can leave a pointer input.
+		before.focus()
+
+		await userEvent.tab()
+
+		const sort = screen.getByRole('button', { name })
+
+		expect(document.activeElement).toBe(sort)
+
+		return sort
+	}
+
+	// The sort button takes the focus, so the button is the trigger of the tooltip.
+	// The tooltip echoes the title, which is already in the name of the button,
+	// so the button takes no description from it.
+	it('shows the tooltip when the keyboard focuses the sort button of a truncated header', async () => {
+		const { container } = renderUI(
+			<>
+				<button type="button">before</button>
+
+				<Grid
+					resizable
+					columns={[{ id: 'name', title: longTitle, sortable: true, cell: (row) => row.name }]}
+					columnSizing={narrow}
+					rows={rows}
+					getKey={getKey}
+				/>
+			</>,
+		)
+
+		const sort = await tabToSort(`Sort by ${longTitle}`)
+
+		const tip = await screen.findByRole('tooltip')
+
+		expect(tip).toHaveTextContent(longTitle)
+
+		expect(sort).not.toHaveAttribute('aria-describedby')
+
+		expect(container.querySelector('[data-grid-content]')).not.toHaveAttribute('aria-describedby')
+	})
+
+	// A title that is not a string leaves the column id in the name of the
+	// button, so the tooltip describes the button with the visible title.
+	it('describes the sort button by the tooltip when the title is not a string', async () => {
+		renderUI(
+			<>
+				<button type="button">before</button>
+
+				<Grid
+					resizable
+					columns={[
+						{ id: 'name', title: <em>{longTitle}</em>, sortable: true, cell: (row) => row.name },
+					]}
+					columnSizing={narrow}
+					rows={rows}
+					getKey={getKey}
+				/>
+			</>,
+		)
+
+		const sort = await tabToSort('Sort by name')
+
+		const tip = await screen.findByRole('tooltip')
+
+		expect(tip).toHaveTextContent(longTitle)
+
+		expect(sort).toHaveAttribute('aria-describedby', tip.id)
+	})
+
 	it('suppresses the tooltip while a column drag-resize is in flight', async () => {
 		const { container } = renderUI(
 			<Grid
@@ -164,6 +242,10 @@ describe('grid header truncation tooltip (real browser)', () => {
 				'no sub-tenth-pixel dead-zone width exists in this environment (font/rounding dependent)',
 			)
 
+		// No tooltip from an earlier width is left. Only this grid is mounted
+		// after it, so the next tooltip is the one of this header.
+		await waitFor(() => expect(screen.queryByRole('tooltip')).toBeNull())
+
 		const { container } = renderUI(
 			<Grid
 				resizable
@@ -185,14 +267,6 @@ describe('grid header truncation tooltip (real browser)', () => {
 		await page.getByRole('columnheader').getByText(longTitle).hover()
 
 		const tip = await screen.findByRole('tooltip')
-
-		// Whichever route opened it, the tooltip must be the one this header
-		// describes — otherwise a tooltip left over from an earlier width would
-		// satisfy the assertion and the detector would go untested. The attribute
-		// sits on the trigger, which is not always the measured span.
-		expect(container.querySelector('[aria-describedby]')?.getAttribute('aria-describedby')).toBe(
-			tip.id,
-		)
 
 		expect(tip).toHaveTextContent(longTitle)
 	})
