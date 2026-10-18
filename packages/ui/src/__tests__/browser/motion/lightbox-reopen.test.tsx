@@ -4,6 +4,7 @@ import { Lightbox, type LightboxPhoto, LightboxTrigger } from '../../../componen
 import { ReducedMotionContext } from '../../../primitives/reduced-motion/context'
 import { frame, present, renderUI, screen } from '../../helpers'
 import { sampleMotionFrames, waitForNoTween } from '../helpers/motion-frame'
+import { budget } from '../helpers/wall-clock'
 
 /**
  * A `Lightbox` that opens again while its photo goes back to its thumbnail.
@@ -65,6 +66,16 @@ async function open(index: number) {
 }
 
 /**
+ * The deadline of {@link hold}. A caller starts the hold before a click or a
+ * key, so the deadline also counts the round trip of the event. Under the load
+ * of the full suite, one round trip took longer than the suite budget of
+ * `asyncUtilTimeout`, and the hold failed before the tween started.
+ * `disclosure-clip.test.tsx` also starts a sampler before an event, and gives
+ * it the same budget.
+ */
+const HOLD_DEADLINE = budget(5000)
+
+/**
  * Holds the tweens of `element` and of its descendants at `progress` of their
  * length, in the frame that starts them, and gives them. A tween runs on
  * wall-clock time, so a long frame moves it on before a measure. A held tween
@@ -74,6 +85,7 @@ async function hold(element: HTMLElement, progress: number) {
 	const tweens = await sampleMotionFrames(
 		() => element.getAnimations({ subtree: true }),
 		(found) => found.length > 0,
+		{ deadline: HOLD_DEADLINE },
 	)
 
 	for (const tween of tweens) {
