@@ -4,7 +4,8 @@ language js
 // that imports FormatJS. A unit defines its messages with `defineMessages` from
 // `intl-define.ts`, takes the intl type from there, and reads the intl through
 // `useIntl` of the primitive, which gives an English intl outside each
-// provider. `LocaleProvider` gives the intl through `IntlScope`.
+// provider. `LocaleProvider` gives the intl through the `IntlProvider` of the
+// primitive, which takes the locale.
 //
 // So no other module reaches the hooks and the components of `react-intl`,
 // which throw outside its provider, or its `IntlProvider`, which skips the
