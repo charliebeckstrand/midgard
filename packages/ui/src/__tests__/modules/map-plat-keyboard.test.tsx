@@ -265,6 +265,25 @@ describe('MapPlat keyboard navigation', () => {
 		await waitFor(() => expect(liveRegion()?.textContent).toBe('Zoom reset'))
 	})
 
+	it('leaves a key chord with Ctrl, Meta, or Alt to the browser', () => {
+		const { container, plot } = renderNavigable(categoricalPlat({ zoom: true }))
+
+		// The browser's own page zoom and history keys. A claimed chord would zoom
+		// the map and could block the page zoom.
+		for (const modifier of ['ctrlKey', 'metaKey', 'altKey'] as const) {
+			for (const key of ['=', '+', '-', '0', 'ArrowLeft', 'ArrowRight']) {
+				expect(fireEvent.keyDown(plot, { key, [modifier]: true })).toBe(true)
+			}
+		}
+
+		expect(liveRegion()?.textContent ?? '').toBe('')
+
+		expect(readout(container)).toBeNull()
+
+		// Shift stays a plain press, because `+` needs it on most layouts.
+		expect(fireEvent.keyDown(plot, { key: '+', shiftKey: true })).toBe(false)
+	})
+
 	it('takes no tab stop before the geography lands', () => {
 		const { container, rerender } = renderUI(categoricalPlat({ geography: null }))
 
