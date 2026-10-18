@@ -9,6 +9,8 @@ import {
 	HeaderActionsContext,
 	HeaderActionsSlot,
 } from '../../primitives/header-actions'
+import { reorderMessages } from '../../primitives/intl/intl-reorder'
+import { useIntl } from '../../primitives/intl/use-intl'
 import type { Mount } from '../../primitives/mount'
 import { SortableGrip } from '../../primitives/sortable-grip/sortable-grip'
 import { k } from '../../recipes/kata/dashboard'
@@ -101,6 +103,8 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 	natural,
 	children,
 }: DashboardTileCardProps) {
+	const intl = useIntl()
+
 	// The element in the header row where the widget puts its own controls, such
 	// as the touch menu button of a chart. Edit mode shows the edit controls
 	// there instead, so the widget then has no slot. A store, not state: the
@@ -116,7 +120,7 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 		<SortableGrip
 			data-slot="dashboard-handle"
 			sortable={{ ...grip, dragging }}
-			label={`Move ${label}`}
+			label={intl.formatMessage(reorderMessages.moveHandle, { item: label })}
 			className={cn(k.handle({ floating: !hasHeader, dragging }))}
 		/>
 	)

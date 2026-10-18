@@ -4,9 +4,11 @@ import type {
 	MouseEvent as ReactMouseEvent,
 	ReactNode,
 } from 'react'
+import type { IntlShape } from 'react-intl'
 import { isDataColumn } from '../../../../utilities'
 import type { GridColumn } from '../../types'
 import { columnAccessor } from '../grid-column/accessor'
+import { gridMessages } from '../grid-messages'
 
 /**
  * Truncation tooltip for a data cell. The `auto` mode shows the cell's own
@@ -97,10 +99,14 @@ export function cellContext<T>(
 
 /**
  * The name of a row in the labels of its controls: the consumer's label, else
- * `row` and the key. @internal
+ * `row` and the key, in the language of `intl`. @internal
  */
-export function rowName(rowLabel: string | undefined, rowKey: string | number): string {
-	return rowLabel ?? `row ${rowKey}`
+export function rowName(
+	intl: IntlShape,
+	rowLabel: string | undefined,
+	rowKey: string | number,
+): string {
+	return rowLabel ?? intl.formatMessage(gridMessages.rowName, { key: String(rowKey) })
 }
 
 /**

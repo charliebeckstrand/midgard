@@ -10,6 +10,8 @@ import type {
 import { type RefObject, useCallback, useId, useMemo, useRef } from 'react'
 import { useSortableSensors } from '../../hooks'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { reorderMessages } from '../../primitives/intl/intl-reorder'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { type DashboardCommit, endGesture, measureGesture, startGesture } from './dashboard-gesture'
 import {
 	describeDragCancel,
@@ -106,6 +108,8 @@ export function useDashboardDrag({
 	onDragStart,
 	onDragEnd,
 }: DashboardDragOptions): DashboardDragHandlers {
+	const intl = useIntl()
+
 	/** The last target, so a move inside one unit does nothing. */
 	const targetRef = useRef<{ x: number; y: number } | null>(null)
 
@@ -319,7 +323,7 @@ export function useDashboardDrag({
 				const cell = currentCell(store, id)
 
 				return cell
-					? describeDragStart(labelOf(store, id), cell, store.getState().columns)
+					? describeDragStart(intl, labelOf(store, id), cell, store.getState().columns)
 					: undefined
 			},
 			onDragMove: ({ active }) => {
@@ -333,7 +337,14 @@ export function useDashboardDrag({
 
 				const partner = gesture?.partner ? labelOf(store, gesture.partner) : null
 
-				return describeDragMove(labelOf(store, id), cell, columns, gesture?.change ?? null, partner)
+				return describeDragMove(
+					intl,
+					labelOf(store, id),
+					cell,
+					columns,
+					gesture?.change ?? null,
+					partner,
+				)
 			},
 			onDragOver: () => undefined,
 			onDragEnd: ({ active }) => {
@@ -347,7 +358,7 @@ export function useDashboardDrag({
 
 				if (cell === null) return undefined
 
-				return describeDragEnd(labelOf(store, id), cell, store.getState().columns, settled)
+				return describeDragEnd(intl, labelOf(store, id), cell, store.getState().columns, settled)
 			},
 			onDragCancel: ({ active }) => {
 				const id = String(active.id)
@@ -357,23 +368,34 @@ export function useDashboardDrag({
 				const cell = store.getView().cells.get(id)
 
 				return cell
-					? describeDragCancel(labelOf(store, id), cell, store.getState().columns)
+					? describeDragCancel(intl, labelOf(store, id), cell, store.getState().columns)
 					: undefined
 			},
 		}
-	}, [store])
+	}, [store, intl])
+
+	// The keyboard sensor of dnd-kit drops with Space and cancels with Escape.
+	const accessibility = useMemo(
+		() => ({
+			announcements,
+			screenReaderInstructions: {
+				draggable: intl.formatMessage(reorderMessages.sensorInstructions),
+			},
+		}),
+		[announcements, intl],
+	)
 
 	const context = useMemo<DndContextProps>(
 		() => ({
 			id,
 			sensors,
-			accessibility: { announcements },
+			accessibility,
 			onDragStart: handleDragStart,
 			onDragMove: handleDragMove,
 			onDragEnd: handleDragEnd,
 			onDragCancel: handleDragCancel,
 		}),
-		[id, sensors, announcements, handleDragStart, handleDragMove, handleDragEnd, handleDragCancel],
+		[id, sensors, accessibility, handleDragStart, handleDragMove, handleDragEnd, handleDragCancel],
 	)
 
 	return { context, cancelDrag }

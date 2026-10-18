@@ -7,9 +7,11 @@ import { Menu } from '../../components/menu'
 import { cn, dataAttr } from '../../core'
 import type { PaletteColor } from '../../core/recipe'
 import { restrictToVerticalAxis, useSortableList } from '../../hooks/use-sortable-list'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k as groupK } from '../../recipes/kata/grid-group'
 import { k } from '../../recipes/kata/grid-row-manager'
 import { columnLabel } from './engine/grid-column/label'
+import { gridMessages } from './engine/grid-messages'
 import { restrictToParentElement } from './engine/grid-reorder-compute'
 import { DEFAULT_COLOR_OPTIONS, GridManagerColorMenu } from './grid-manager-color-menu'
 import { GridManagerGrip } from './grid-manager-grip'
@@ -56,11 +58,16 @@ export function GridRowManager({
 	colorOptions = DEFAULT_COLOR_OPTIONS,
 	className,
 }: GridRowManagerProps) {
+	const intl = useIntl()
+
 	const { itemIds, strategy, dndContextProps } = useSortableList({
 		items: groups,
 		getKey: (group) => String(group.key),
 		onReorder: (next) => onReorderGroups(next.map((group) => group.key)),
-		describe: (group) => `group ${columnLabel({ id: group.key, title: group.label })}`,
+		describe: (group) =>
+			intl.formatMessage(gridMessages.rowGroupName, {
+				group: columnLabel({ id: group.key, title: group.label }),
+			}),
 	})
 
 	return (
@@ -100,6 +107,8 @@ type GridRowManagerZoneProps = {
  * @internal
  */
 function GridRowManagerZone({ group, onRecolor, colorOptions }: GridRowManagerZoneProps) {
+	const intl = useIntl()
+
 	const { setNodeRef, setActivatorNodeRef, attributes, listeners, style, dragging } =
 		useGridZoneSortable(String(group.key))
 
@@ -114,7 +123,7 @@ function GridRowManagerZone({ group, onRecolor, colorOptions }: GridRowManagerZo
 					<div className={cn(k.zone.main)}>
 						<GridManagerGrip
 							sortable={{ setActivatorNodeRef, attributes, listeners, dragging }}
-							label={`Reorder group ${label}`}
+							label={intl.formatMessage(gridMessages.groupHandle, { group: label })}
 						/>
 
 						<span className={cn(k.zone.label)}>{group.label}</span>

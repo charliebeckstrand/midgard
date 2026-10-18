@@ -12,6 +12,8 @@ import {
 } from 'react'
 import { TableHeader } from '../../components/table'
 import { cn, dataAttr } from '../../core'
+import { reorderMessages } from '../../primitives/intl/intl-reorder'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { SortableGrip } from '../../primitives/sortable-grip/sortable-grip'
 import { k } from '../../recipes/kata/grid'
 import type { QueryGroup } from '../query'
@@ -333,6 +335,8 @@ export function GridReorderableColumnHeaderView({
 	handle,
 	sortable,
 }: GridReorderableColumnHeaderProps & { sortable: GridColumnSortable }) {
+	const intl = useIntl()
+
 	const { setNodeRef, setActivatorNodeRef, attributes, listeners, x, isDragging, isSorting } =
 		sortable
 
@@ -411,7 +415,7 @@ export function GridReorderableColumnHeaderView({
 				{handle && (
 					<SortableGrip
 						sortable={{ setActivatorNodeRef, attributes, listeners, dragging: isDragging }}
-						label={`Reorder ${columnLabel(column)}`}
+						label={intl.formatMessage(reorderMessages.reorderHandle, { item: columnLabel(column) })}
 						className={cn(k.reorder.handle)}
 					/>
 				)}

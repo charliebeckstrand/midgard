@@ -2,6 +2,7 @@
 
 import { type Ref, useImperativeHandle } from 'react'
 import { announce } from '../../core'
+import { useIntl } from '../../primitives/intl/use-intl'
 import type { DashboardCommit } from './dashboard-gesture'
 import { describeTidy } from './engine/dashboard-announcements'
 import type { DashboardCell } from './engine/dashboard-layout'
@@ -26,6 +27,8 @@ export type DashboardHandleOptions = {
  * @internal
  */
 export function useDashboardHandle({ ref, store, commit }: DashboardHandleOptions): void {
+	const intl = useIntl()
+
 	useImperativeHandle(
 		ref,
 		() => ({
@@ -40,7 +43,7 @@ export function useDashboardHandle({ ref, store, commit }: DashboardHandleOption
 				// The pack keeps the object of each cell that stays, so identity counts the moves.
 				const moved = cells.filter((cell, index) => cell !== canonical[index]).length
 
-				announce(describeTidy(moved))
+				announce(describeTidy(intl, moved))
 
 				if (moved === 0) return false
 
@@ -51,6 +54,6 @@ export function useDashboardHandle({ ref, store, commit }: DashboardHandleOption
 				return true
 			},
 		}),
-		[store, commit],
+		[store, commit, intl],
 	)
 }
