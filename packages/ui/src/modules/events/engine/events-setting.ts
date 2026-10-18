@@ -45,6 +45,8 @@ let options: StartEventsOptions = {}
 
 const loadRecorder = () => import('./events-recorder')
 
+const onChanges = createEmitter()
+
 const pinnedChanges = createEmitter()
 
 /** The options of the last `startEvents`. @internal */
@@ -86,8 +88,13 @@ export function setEventsOn(on: boolean): void {
 
 	syncAttributes()
 
+	onChanges.emit()
+
 	void loadRecorder().then(({ start, halt }) => (on ? start(options) : halt()), noop)
 }
+
+/** Calls `listener` on each change of the setting that runs the events. @internal */
+export const subscribeOn = onChanges.subscribe
 
 /** Whether the panel is pinned. @internal */
 export function isEventsPinned(): boolean {
