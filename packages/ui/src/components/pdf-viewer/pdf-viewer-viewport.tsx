@@ -3,12 +3,14 @@
 import { useComposedRefs } from 'motion/react'
 import { cn } from '../../core'
 import { useA11yLiveRegion, useScrollRegion } from '../../hooks'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { usePdfViewerContext } from './context'
 import { hasRaster } from './pdf-viewer-document-cache'
 import { PdfViewerHighlights } from './pdf-viewer-highlights'
 import { PdfViewerMagnifier } from './pdf-viewer-magnifier'
 import { usePdfViewerMagnifierContext } from './pdf-viewer-magnifier-context'
+import { pageLabel, pdfViewerMessages } from './pdf-viewer-messages'
 import { PdfViewerPageImage } from './pdf-viewer-page-image'
 
 /**
@@ -47,12 +49,16 @@ export function PdfViewerViewport() {
 	const { aspectRatio, naturalWidth, frameWidth, frameHeight, imageWidth, imageHeight, transform } =
 		scale
 
+	const intl = useIntl()
+
 	const pageStatus = useA11yLiveRegion({ srOnly: true })
 
 	// A zoomed page overflows the viewport. It is then a tab stop and a region
 	// with the name "Page". The name is static, because the status text above
 	// changes on each page.
-	const scrollRegionRef = useScrollRegion({ label: 'Page' })
+	const scrollRegionRef = useScrollRegion({
+		label: intl.formatMessage(pdfViewerMessages.pageRegion),
+	})
 
 	const composedViewportRef = useComposedRefs(viewportRef, scrollRegionRef)
 
@@ -68,7 +74,7 @@ export function PdfViewerViewport() {
 			{/* Live region announces "Page X of Y" on page navigation. */}
 			{total > 0 && (
 				<div data-slot="pdf-viewer-page-status" {...pageStatus}>
-					Page {safePage} of {total}
+					{intl.formatMessage(pdfViewerMessages.pageOfTotal, { page: safePage, total })}
 				</div>
 			)}
 			{hasRaster(activePage) && activePage ? (
@@ -84,7 +90,7 @@ export function PdfViewerViewport() {
 					<PdfViewerPageImage
 						key={activePage.id ?? safePage}
 						page={activePage}
-						alt={activePage.label ?? `Page ${safePage}`}
+						alt={pageLabel(intl, activePage, safePage)}
 						className={cn(k.viewport.page.base)}
 						style={{
 							width: imageWidth,
@@ -99,18 +105,20 @@ export function PdfViewerViewport() {
 				</div>
 			) : error ? (
 				<div role="alert" className={cn(k.viewport.page.empty)}>
-					Failed to load PDF: {error.message}
+					{intl.formatMessage(pdfViewerMessages.loadFailed, { message: error.message })}
 				</div>
 			) : loading || pending || activePage ? (
 				// `pending` covers the render before the load starts, on the server and on a cold
 				// `src`. Without it, that render shows the empty state for one frame.
 				<output
 					data-slot="pdf-viewer-page-frame"
-					aria-label="Loading PDF"
+					aria-label={intl.formatMessage(pdfViewerMessages.loading)}
 					className={cn(k.viewport.page.placeholder)}
 				/>
 			) : (
-				<div className={cn(k.viewport.page.empty)}>No pages to display</div>
+				<div className={cn(k.viewport.page.empty)}>
+					{intl.formatMessage(pdfViewerMessages.noPages)}
+				</div>
 			)}
 		</div>
 	)

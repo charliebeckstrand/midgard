@@ -4,6 +4,7 @@ import { X } from 'lucide-react'
 import { useId, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useA11yRoving, useScrollWithin } from '../../hooks'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { MountHold, useMountHold } from '../../primitives/mount'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { Flex } from '../../structure/flex'
@@ -11,6 +12,7 @@ import { Button } from '../button'
 import { Icon } from '../icon'
 import { SheetBody, SheetPanel, SheetTitle } from '../sheet'
 import { usePdfViewerContext } from './context'
+import { pageLabel, pdfViewerMessages } from './pdf-viewer-messages'
 import { PdfViewerThumbnailList } from './pdf-viewer-thumbnail-list'
 
 /**
@@ -58,6 +60,8 @@ export function PdfViewerThumbnails() {
 		orientation: 'vertical',
 	})
 
+	const intl = useIntl()
+
 	const thumbnails = useMemo(
 		() =>
 			pages.map((page, index) => {
@@ -66,11 +70,11 @@ export function PdfViewerThumbnails() {
 				return {
 					key: page.id ?? index,
 					pageNumber,
-					label: page.label ?? `Page ${pageNumber}`,
+					label: pageLabel(intl, page, pageNumber),
 					thumbnail: page.thumbnail ?? page.src,
 				}
 			}),
-		[pages],
+		[pages, intl],
 	)
 
 	// The "Pages" header names the sidebar, so the sidebar is a named
@@ -107,7 +111,7 @@ export function PdfViewerThumbnails() {
 				>
 					<MountHold hold={sidebarHold} name="pdf-viewer-sidebar">
 						<div id={sidebarTitleId} className={cn(k.sidebar.header)}>
-							Pages
+							{intl.formatMessage(pdfViewerMessages.pages)}
 						</div>
 						<PdfViewerThumbnailList
 							items={thumbnails}
@@ -132,14 +136,14 @@ export function PdfViewerThumbnails() {
 					    phrasing content only, and the title names the dialog. The button
 					    margins repeat the `px-6 pt-6` inset of the title. */}
 					<Flex gap="sm" justify="between" align="center">
-						<SheetTitle>Pages</SheetTitle>
+						<SheetTitle>{intl.formatMessage(pdfViewerMessages.pages)}</SheetTitle>
 						<Button
 							// A close writes no field, so a locked scope, such as a
 							// submitting form, leaves it live.
 							lockable={false}
 							type="button"
 							variant="plain"
-							aria-label="Close thumbnails"
+							aria-label={intl.formatMessage(pdfViewerMessages.closeThumbnails)}
 							className="me-6 mt-6"
 							onClick={() => setThumbsOpen(false)}
 						>
