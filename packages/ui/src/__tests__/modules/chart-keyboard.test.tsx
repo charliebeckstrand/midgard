@@ -494,6 +494,25 @@ describe('LineChart keyboard navigation', () => {
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 	})
 
+	it('leaves a key chord with Ctrl, Meta, or Alt to the browser', () => {
+		const { container } = renderUI(line())
+
+		const plot = getSlot(container, 'chart-plot')
+
+		// The browser's own history and scroll keys. A claimed chord would move the
+		// cursor and could block the browser.
+		for (const modifier of ['ctrlKey', 'metaKey', 'altKey'] as const) {
+			for (const key of ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End']) {
+				expect(fireEvent.keyDown(plot, { key, [modifier]: true })).toBe(true)
+			}
+		}
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		// Shift stays a plain press.
+		expect(fireEvent.keyDown(plot, { key: 'ArrowRight', shiftKey: true })).toBe(false)
+	})
+
 	it('cycles the value crosshair through both series at a category', () => {
 		const { container } = renderUI(line({ crosshair: { x: true, y: false } }))
 
