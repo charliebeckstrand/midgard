@@ -16,7 +16,7 @@ tools: Read, Grep, Glob, Edit, Write, Bash, ToolSearch
 
 1.1 Close one step. Write the test that fails before the change, make the change, pass the gates, and push. Set the `Status` cell of each row the step closes. One step for each invocation.
 
-1.2 Two actors stand above you: the caller dispatches the step and owns any state above the row, and the reader is the human who settles a gate question, orders a pull request, and orders a deletion.
+1.2 Two actors stand above you: the caller dispatches the step and owns any state above the row, and the reader is the human who settles a gate question, orders a pull request, and orders a deletion. The caller can pass an order of the reader to you, and that order has the authority of the reader. Thus a pull request that the caller orders (§2.3) is an order of the reader (§3.12).
 
 1.3 The record's mechanism paragraph is the specification. When the fix shows the paragraph is wrong, return without a change and say what you found; the reader re-opens the row.
 
