@@ -67,7 +67,7 @@ const IGNORE_TAKEN_OR_FIELD: KeybindingFilter = (event) =>
 function toggleSidebar(event: KeyboardEvent) {
 	event.preventDefault()
 
-	writeChoice(SIDEBAR.key, readChoice(SIDEBAR) === 'offcanvas' ? 'locked' : 'offcanvas')
+	writeChoice(SIDEBAR, readChoice(SIDEBAR) === 'offcanvas' ? 'locked' : 'offcanvas')
 }
 
 /**

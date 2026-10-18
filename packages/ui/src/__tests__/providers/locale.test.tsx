@@ -1,8 +1,9 @@
 import { renderToString } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Listbox, ListboxOption } from '../../components/listbox'
+import { writeChoice } from '../../providers/appearance/appearance-storage'
 import { LocaleProvider, resolveRequestLocale, useLocale } from '../../providers/locale'
-import { matchLocale, writeLocaleChoice } from '../../providers/locale/locale-choice'
+import { localeChoice, matchLocale } from '../../providers/locale/locale-choice'
 import { act, clearCookies, renderUI, screen } from '../helpers'
 
 // The English locales, with the default first.
@@ -317,13 +318,32 @@ describe('LocaleProvider messages', () => {
 
 describe('locale cookie', () => {
 	it('writes the choice to the cookie with the stored choice', () => {
-		writeLocaleChoice('es-MX')
+		writeChoice(localeChoice(LOCALES), 'en-GB')
 
-		expect(document.cookie).toContain('locale=es-MX')
+		expect(document.cookie).toContain('locale=en-GB')
 
-		writeLocaleChoice('system')
+		expect(localStorage.getItem('locale')).toBe('en-GB')
+
+		writeChoice(localeChoice(LOCALES), 'system')
 
 		expect(document.cookie).toContain('locale=system')
+	})
+
+	it('takes the cookie over another stored choice, as the server does', () => {
+		localStorage.setItem('locale', 'en-GB')
+
+		// biome-ignore lint/suspicious/noDocumentCookie: the test sets the cookie that a server reads.
+		document.cookie = 'locale=en-AU; path=/'
+
+		renderUI(
+			<LocaleProvider locale="en-US" locales={LOCALES}>
+				<LocaleProbe />
+			</LocaleProvider>,
+		)
+
+		expect(screen.getByTestId('locale')).toHaveTextContent('en-AU')
+
+		expect(document.cookie).toContain('locale=en-AU')
 	})
 
 	it('writes a choice stored before the cookie existed', () => {

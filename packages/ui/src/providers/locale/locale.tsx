@@ -1,9 +1,10 @@
 'use client'
 
-import { type ReactNode, useEffect, useMemo } from 'react'
+import { type ReactNode, useMemo } from 'react'
 import { RawIntlProvider } from 'react-intl'
 import { Direction, type TextDirection } from '../../primitives/direction'
 import { englishIntl, localeIntl } from '../../primitives/intl/intl-catalog'
+import { writeChoice } from '../appearance/appearance-storage'
 import {
 	LocaleChoiceContext,
 	type LocaleChoiceValue,
@@ -12,7 +13,7 @@ import {
 	useLocale,
 	useLocaleChoice,
 } from './context'
-import { SYSTEM_LOCALE, syncLocaleCookie, writeLocaleChoice } from './locale-choice'
+import { localeChoice } from './locale-choice'
 import { useStoredLocale } from './use-stored-locale'
 
 /**
@@ -74,14 +75,15 @@ export type LocaleProviderProps = LocaleConfig & {
  * renders. The server and the browser can have different defaults, and the
  * hydration render then does not match the server markup.
  *
- * With `locales`, the reader chooses the locale, and the choice persists in
- * `localStorage`. The provider cannot read the choice on the server, so the
- * server render and the hydration render use `locale`. A formatted value can thus change its text
- * after hydration, as a date does for the time zone, and the text of a control
- * can change its language. The provider also writes the choice to the cookie
- * {@link LOCALE_COOKIE}. A server that renders per request can thus read the
- * choice with {@link resolveRequestLocale}, and render a nested provider in the
- * locale of the reader.
+ * With `locales`, the reader chooses the locale. The choice persists in the
+ * cookie {@link LOCALE_COOKIE}, with a copy in `localStorage`. The provider
+ * reads the choice in the browser only, so the server render and the hydration
+ * render use `locale`. A formatted value can thus change its text after
+ * hydration, as a date does for the time zone, and the text of a control can
+ * change its language. A server that renders per request can read the cookie
+ * with {@link resolveRequestLocale}, and render a nested provider in the
+ * locale of the reader. That provider agrees with the browser from the first
+ * render.
  *
  * Set the direction of a region through `dir` here, not through a raw `dir`
  * attribute. A raw attribute is a DOM setting only, and a portaled surface
@@ -131,16 +133,15 @@ export function LocaleProvider({
 	// locale only when no enclosing provider has one.
 	const intl = stored.locale === undefined ? englishIntl : localeIntl(stored.locale)
 
-	// A choice stored before the cookie existed reaches the cookie here. The
-	// hydration render and a provider with no `locales` read `'system'`, so the
-	// effect skips System. A System choice of the reader reaches the cookie
-	// through the setter.
-	useEffect(() => {
-		if (stored.choice !== SYSTEM_LOCALE) syncLocaleCookie(stored.choice)
-	}, [stored.choice])
-
 	const choice = useMemo<LocaleChoiceValue | null>(
-		() => (locales ? { choice: stored.choice, locales, setChoice: writeLocaleChoice } : null),
+		() =>
+			locales
+				? {
+						choice: stored.choice,
+						locales,
+						setChoice: (next: string) => writeChoice(localeChoice(locales), next),
+					}
+				: null,
 		[locales, stored.choice],
 	)
 

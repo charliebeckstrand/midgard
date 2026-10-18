@@ -1,9 +1,9 @@
 import { languageOf } from '../../primitives/intl/intl-language'
 import {
 	type AppearanceChoice,
+	parseChoice,
 	readChoice,
 	subscribeChoices,
-	writeChoice,
 } from '../appearance/appearance-storage'
 
 /**
@@ -25,73 +25,20 @@ const LOCALE_KEY = 'locale'
  */
 export const LOCALE_COOKIE = 'locale'
 
-// The life of the cookie: one year, in seconds.
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 365
-
 /**
  * The locale choice over `locales`: `'system'`, or one of `locales`. A stored
- * value that is not one of them reads as `'system'`.
+ * value that is not one of them reads as `'system'`. The choice has the cookie
+ * {@link LOCALE_COOKIE}, so the server and the browser read the same choice.
  *
  * @internal
  */
 export function localeChoice(locales: readonly string[]): AppearanceChoice<string> {
-	return { key: LOCALE_KEY, values: [SYSTEM_LOCALE, ...locales], fallback: SYSTEM_LOCALE }
-}
-
-/**
- * Stores a locale choice, writes it to the locale cookie, and notifies each
- * subscriber in this page.
- *
- * @internal
- */
-export function writeLocaleChoice(choice: string) {
-	writeChoice(LOCALE_KEY, choice)
-
-	syncLocaleCookie(choice)
-}
-
-// The value of the locale cookie in this page, or `undefined` with no cookie.
-function readLocaleCookie() {
-	const prefix = `${LOCALE_COOKIE}=`
-
-	const entry = document.cookie.split('; ').find((part) => part.startsWith(prefix))
-
-	return entry === undefined ? undefined : decodeURIComponent(entry.slice(prefix.length))
-}
-
-/**
- * Reads the stored choice of `choice`. With no stored choice, it reads the
- * locale cookie, so a choice that `localStorage` lost but the cookie kept
- * still applies, as it does on the server.
- *
- * @internal
- */
-export function readLocaleChoice(choice: AppearanceChoice<string>): string {
-	const stored = readChoice(choice)
-
-	if (stored !== SYSTEM_LOCALE) return stored
-
-	const cookie = readLocaleCookie()
-
-	return cookie !== undefined && choice.values.includes(cookie) ? cookie : SYSTEM_LOCALE
-}
-
-/**
- * Writes `choice` to the locale cookie when the cookie holds another value. A
- * missing cookie reads as `'system'`, so the System choice writes no cookie
- * until the reader changes it.
- *
- * @internal
- */
-export function syncLocaleCookie(choice: string) {
-	const current = readLocaleCookie() ?? SYSTEM_LOCALE
-
-	if (current === choice) return
-
-	const secure = location.protocol === 'https:' ? '; secure' : ''
-
-	// biome-ignore lint/suspicious/noDocumentCookie: the Cookie Store API is above the browser floor.
-	document.cookie = `${LOCALE_COOKIE}=${encodeURIComponent(choice)}; path=/; max-age=${COOKIE_MAX_AGE}; samesite=lax${secure}`
+	return {
+		key: LOCALE_KEY,
+		values: [SYSTEM_LOCALE, ...locales],
+		fallback: SYSTEM_LOCALE,
+		cookie: LOCALE_COOKIE,
+	}
 }
 
 /**
@@ -147,12 +94,12 @@ function acceptedLanguages(header: string) {
 // The one rule of the server and the browser: a stored choice that is one of
 // `locales` wins, else the match of the languages of the reader, else `fallback`.
 function pickLocale(
-	choice: string | undefined,
+	choice: string,
 	preferred: readonly string[],
 	locales: readonly string[],
 	fallback: string,
 ): string {
-	if (choice !== undefined && locales.includes(choice)) return choice
+	if (locales.includes(choice)) return choice
 
 	return matchLocale(preferred, locales) ?? fallback
 }
@@ -190,7 +137,7 @@ export function resolveRequestLocale({
 }: RequestLocaleInput): string {
 	const preferred = acceptLanguage ? acceptedLanguages(acceptLanguage) : []
 
-	return pickLocale(cookie, preferred, locales, locales[0])
+	return pickLocale(parseChoice(localeChoice(locales), cookie), preferred, locales, locales[0])
 }
 
 /**
@@ -205,7 +152,7 @@ export function resolveLocaleChoice(
 	locales: readonly string[],
 	fallback: string,
 ): string {
-	return pickLocale(readLocaleChoice(choice), navigator.languages, locales, fallback)
+	return pickLocale(readChoice(choice), navigator.languages, locales, fallback)
 }
 
 /**

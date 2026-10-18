@@ -94,6 +94,13 @@ The sequential-scale primitives the data-driven color charts share — the choro
 | `requestIdle` | Calls a callback in idle time. A browser with no `requestIdleCallback`, such as Safari, calls it after a fallback delay, with no deadline. Import it from `utilities/idle`. |
 | `cancelIdle` | Cancels a callback that `requestIdle` scheduled. |
 
+## Cookies
+
+| Export | Summary |
+|---|---|
+| `readCookie` | The value of a cookie in this page, or `undefined` with no such cookie. Import it from `utilities/cookie`. |
+| `writeCookie` | Writes a cookie for each path of the site, for a number of seconds, so a server can read it. It is `secure` on HTTPS. Import it from `utilities/cookie`. |
+
 ## Measurement
 
 | Export | Summary |

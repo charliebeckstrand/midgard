@@ -13,6 +13,8 @@ import {
 	AppearanceSettings,
 	useAppearance,
 } from '../../providers/appearance'
+import { type AppearanceChoice, parseChoice } from '../../providers/appearance/appearance-storage'
+import { useAppearanceChoice } from '../../providers/appearance/use-appearance-choice'
 import { LocaleProvider, useLocale } from '../../providers/locale'
 import {
 	act,
@@ -453,5 +455,51 @@ describe('AppearanceScript', () => {
 		runScript()
 
 		expect(document.documentElement).toHaveClass('sidebar-offcanvas')
+	})
+})
+
+/** A stored choice with a cookie, as a choice that a server reads declares it. */
+const MIRRORED: AppearanceChoice<'a' | 'b'> = {
+	key: 'mirrored',
+	values: ['a', 'b'],
+	fallback: 'a',
+	cookie: 'mirrored',
+}
+
+function MirroredProbe() {
+	const [value, setValue] = useAppearanceChoice(MIRRORED)
+
+	return (
+		<button type="button" onClick={() => setValue('b')}>
+			{value}
+		</button>
+	)
+}
+
+describe('a stored choice with a cookie', () => {
+	it('writes each choice to its cookie', () => {
+		renderUI(<MirroredProbe />)
+
+		fireEvent.click(screen.getByRole('button'))
+
+		expect(screen.getByRole('button')).toHaveTextContent('b')
+
+		expect(document.cookie).toContain('mirrored=b')
+	})
+
+	it('gives the cookie back from localStorage when the cookie is missing', () => {
+		localStorage.setItem('mirrored', 'b')
+
+		renderUI(<MirroredProbe />)
+
+		expect(document.cookie).toContain('mirrored=b')
+	})
+
+	it('parses the value of a cookie, as a server reads it', () => {
+		expect(parseChoice(MIRRORED, 'b')).toBe('b')
+
+		expect(parseChoice(MIRRORED, 'c')).toBe('a')
+
+		expect(parseChoice(MIRRORED, undefined)).toBe('a')
 	})
 })
