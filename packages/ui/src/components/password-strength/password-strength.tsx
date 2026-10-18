@@ -4,30 +4,123 @@ import { Check, Dot } from 'lucide-react'
 import type { ComponentProps } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useA11yLiveRegion } from '../../hooks'
+import { IntlMessage } from '../../primitives/intl/intl-message'
+import { defineMessages } from '../../primitives/intl/intl-messages'
+import type { MessageDescriptor } from '../../primitives/intl/types'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/password-strength'
 import { Icon } from '../icon'
 import {
 	type PasswordRule,
 	type PasswordStrengthChange,
+	type StrengthLevel,
 	usePasswordStrength,
 } from './use-password-strength'
 
 export type { PasswordRule, PasswordStrengthChange, StrengthLevel } from './use-password-strength'
 
-/** Default rule set: at least 8 characters and at least one uppercase letter, digit, and symbol. */
+const messages = defineMessages({
+	ruleLength: {
+		id: 'ui.passwordStrength.ruleLength',
+		defaultMessage: 'At least 8 characters',
+		description: 'A password rule: the password has 8 characters or more.',
+	},
+	ruleUppercase: {
+		id: 'ui.passwordStrength.ruleUppercase',
+		defaultMessage: 'One uppercase letter',
+		description: 'A password rule: the password has an uppercase letter.',
+	},
+	ruleNumber: {
+		id: 'ui.passwordStrength.ruleNumber',
+		defaultMessage: 'One number',
+		description: 'A password rule: the password has a digit.',
+	},
+	ruleSymbol: {
+		id: 'ui.passwordStrength.ruleSymbol',
+		defaultMessage: 'One symbol',
+		description: 'A password rule: the password has a character that is not a letter or a digit.',
+	},
+	empty: {
+		id: 'ui.passwordStrength.empty',
+		defaultMessage: 'Empty',
+		description: 'The strength of a password field with no text.',
+	},
+	weak: {
+		id: 'ui.passwordStrength.weak',
+		defaultMessage: 'Weak',
+		description: 'The lowest strength of a password.',
+	},
+	fair: {
+		id: 'ui.passwordStrength.fair',
+		defaultMessage: 'Fair',
+		description: 'The second strength of a password, of four.',
+	},
+	good: {
+		id: 'ui.passwordStrength.good',
+		defaultMessage: 'Good',
+		description: 'The third strength of a password, of four.',
+	},
+	strong: {
+		id: 'ui.passwordStrength.strong',
+		defaultMessage: 'Strong',
+		description: 'The highest strength of a password.',
+	},
+	meter: {
+		id: 'ui.passwordStrength.meter',
+		defaultMessage: 'Password strength',
+		description: 'The name of the meter that shows the strength of a password.',
+	},
+	met: {
+		id: 'ui.passwordStrength.met',
+		defaultMessage: 'met',
+		description: 'Read after a password rule that the password passes.',
+	},
+	notMet: {
+		id: 'ui.passwordStrength.notMet',
+		defaultMessage: 'not met',
+		description: 'Read after a password rule that the password does not pass.',
+	},
+})
+
+/**
+ * Default rule set: at least 8 characters and at least one uppercase letter,
+ * digit, and symbol. The label of each rule shows in the language of the
+ * reader.
+ */
 export const defaultPasswordRules: readonly PasswordRule[] = [
-	{ id: 'length', label: 'At least 8 characters', test: (value) => value.length >= 8 },
-	{ id: 'uppercase', label: 'One uppercase letter', test: (value) => /[A-Z]/.test(value) },
-	{ id: 'number', label: 'One number', test: (value) => /\d/.test(value) },
-	{ id: 'symbol', label: 'One symbol', test: (value) => /[^A-Za-z0-9]/.test(value) },
+	{
+		id: 'length',
+		label: <IntlMessage message={messages.ruleLength} />,
+		test: (value) => value.length >= 8,
+	},
+	{
+		id: 'uppercase',
+		label: <IntlMessage message={messages.ruleUppercase} />,
+		test: (value) => /[A-Z]/.test(value),
+	},
+	{
+		id: 'number',
+		label: <IntlMessage message={messages.ruleNumber} />,
+		test: (value) => /\d/.test(value),
+	},
+	{
+		id: 'symbol',
+		label: <IntlMessage message={messages.ruleSymbol} />,
+		test: (value) => /[^A-Za-z0-9]/.test(value),
+	},
 ]
 
-const strengthLevels = [
-	{ id: 'weak', label: 'Weak' },
-	{ id: 'fair', label: 'Fair' },
-	{ id: 'good', label: 'Good' },
-	{ id: 'strong', label: 'Strong' },
-] as const
+/** The levels of the meter, from weak to strong. */
+const strengthLevels = ['weak', 'fair', 'good', 'strong'] as const
+
+/** The name of each level. */
+const levelMessages = {
+	empty: messages.empty,
+	weak: messages.weak,
+	fair: messages.fair,
+	good: messages.good,
+	strong: messages.strong,
+} satisfies Record<StrengthLevel, MessageDescriptor>
 
 /**
  * Props for {@link PasswordStrength}. The root `<div>` takes the rest. The meter
@@ -66,13 +159,15 @@ export function PasswordStrength({
 	className,
 	...props
 }: PasswordStrengthProps) {
+	const intl = useIntl()
+
 	const { results, level } = usePasswordStrength({ value, rules, onStrengthChange })
 
 	const liveLabel = useA11yLiveRegion({ className: k.label({ level }) })
 
-	const activeCount = level === 'empty' ? 0 : strengthLevels.findIndex(({ id }) => id === level) + 1
+	const activeCount = level === 'empty' ? 0 : strengthLevels.indexOf(level) + 1
 
-	const label = activeCount === 0 ? 'Empty' : (strengthLevels[activeCount - 1]?.label ?? '')
+	const label = intl.formatMessage(levelMessages[level])
 
 	return (
 		<div data-slot="password-strength" {...props} className={cn(k.base, className)}>
@@ -82,13 +177,13 @@ export function PasswordStrength({
 				min={0}
 				max={strengthLevels.length}
 				aria-valuetext={label}
-				aria-label="Password strength"
+				aria-label={intl.formatMessage(messages.meter)}
 				className="sr-only"
 			/>
 			<div aria-hidden="true" className={cn(k.meter)}>
 				{strengthLevels.map((strengthLevel, index) => (
 					<div
-						key={strengthLevel.id}
+						key={strengthLevel}
 						data-slot="password-strength-segment"
 						data-active={dataAttr(index < activeCount)}
 						className={k.segment({
@@ -113,7 +208,10 @@ export function PasswordStrength({
 							/>
 							<span className={cn(passed ? k.rule.text.pass : k.rule.text.base)}>{rule.label}</span>
 							{/* Otherwise only the (decorative) icon and color convey pass/fail. */}
-							<span className="sr-only">{passed ? ' — met' : ' — not met'}</span>
+							<span className="sr-only">
+								{' — '}
+								{intl.formatMessage(passed ? messages.met : messages.notMet)}
+							</span>
 						</li>
 					))}
 				</ul>
