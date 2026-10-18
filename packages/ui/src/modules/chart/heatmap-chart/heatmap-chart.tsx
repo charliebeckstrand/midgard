@@ -44,7 +44,8 @@ function gridMarkAt(): ChartMarkRef {
  * The plot is one tab stop. After focus, the left and right arrows move along
  * the columns. The up and down arrows move along the rows, and the tooltip
  * reads the cell under the cursor. Home and End jump to the ends of the row,
- * and Escape clears the cursor.
+ * and Escape clears the cursor. Enter and Space fire `onCellClick` for the cell
+ * under the cursor.
  *
  * @remarks Rows pivot to the grid by their distinct `xKey` (columns) and `yKey`
  * (rows) values in first-seen order. The frame defaults to square-ish cells by
@@ -198,6 +199,7 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 					/>
 				}
 				focus={focus}
+				onActivate={onCellClick ? reportCell : undefined}
 				className={className}
 				contextMenu={contextMenu}
 				fullscreen={<HeatmapChart {...props} />}

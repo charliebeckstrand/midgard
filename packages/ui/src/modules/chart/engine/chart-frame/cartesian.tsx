@@ -243,6 +243,7 @@ export function ChartCartesianFrame({
 				return line ? referenceText(line, chart.formatAxisValue) : null
 			}}
 			keyboardEmphasis
+			onActivate={chart.onBandClick}
 			selected={chart.selected}
 			orientation={orientation}
 			className={className}
