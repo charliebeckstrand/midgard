@@ -1,6 +1,5 @@
 'use client'
 
-import { defineMessages } from '@formatjs/intl'
 import { Search } from 'lucide-react'
 import { type ComponentProps, type ReactNode, useMemo } from 'react'
 import {
@@ -11,7 +10,7 @@ import {
 import { cn } from '../../core'
 import { useControllableFlag } from '../../hooks/use-controllable'
 import { useKeybindings } from '../../hooks/use-keybindings'
-import { intlMessages } from '../../primitives/intl/intl-messages'
+import { defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { DeferredQueryContext, QueryContext, useQueryValue } from '../../primitives/query'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/context'

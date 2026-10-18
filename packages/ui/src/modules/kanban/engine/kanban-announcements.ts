@@ -7,7 +7,6 @@
  */
 
 import type { Announcements, UniqueIdentifier } from '@dnd-kit/core'
-import type { IntlShape } from 'react-intl'
 import {
 	droppedText,
 	movedText,
@@ -16,6 +15,7 @@ import {
 	reorderSubject,
 	returnedText,
 } from '../../../primitives/intl/intl-reorder'
+import type { IntlShape } from '../../../primitives/intl/types'
 import { indexBoard, type KanbanColumnBase } from './kanban-board'
 import { currentSlot, type KanbanSlot, overSlot } from './kanban-slot'
 

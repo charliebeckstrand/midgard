@@ -569,8 +569,13 @@
 			"plugins": ["./.biome/plugins/no-value-import-from-tanstack-table.grit"]
 		},
 		{
-			"includes": ["packages/ui/src/**", "!**/__tests__/**", "!**/__benchmarks__/**"],
-			"plugins": ["./.biome/plugins/no-react-intl-provider-api.grit"]
+			"includes": [
+				"packages/ui/src/**",
+				"!packages/ui/src/primitives/intl/**",
+				"!**/__tests__/**",
+				"!**/__benchmarks__/**"
+			],
+			"plugins": ["./.biome/plugins/no-formatjs-import-outside-intl.grit"]
 		},
 		{
 			"includes": ["packages/ui/src/**", "!**/__tests__/**", "!**/__benchmarks__/**"],

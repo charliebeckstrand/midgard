@@ -1,5 +1,5 @@
-import { defineMessages, type MessageDescriptor } from '@formatjs/intl'
-import { intlMessages } from '../../primitives/intl/intl-messages'
+import { defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
+import type { MessageDescriptor } from '../../primitives/intl/types'
 import type { DensityLevel } from '../density/context'
 import type { MotionMode, SidebarMode, ThemeMode } from './modes'
 

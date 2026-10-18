@@ -1,6 +1,5 @@
 'use client'
 
-import { defineMessages } from '@formatjs/intl'
 import { AlertTriangle, CheckCircle, Info, X, XCircle } from 'lucide-react'
 import { useComposedRefs } from 'motion/react'
 import {
@@ -14,6 +13,7 @@ import {
 import { cn } from '../../core'
 import { useControllableFlag } from '../../hooks'
 import { useAnnounceOnAppear } from '../../hooks/a11y/use-announce-on-appear'
+import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { type AlertVariants, k } from '../../recipes/kata/alert'
 import { flattenFragments } from '../../utilities/children'
