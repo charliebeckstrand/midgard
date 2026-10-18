@@ -82,7 +82,8 @@ export type GridColumnFilterActions = Pick<GridColumnFilter, 'setQuery' | 'clear
 export type GridGlobalFilterView = {
 	value: string
 	setValue: (value: string) => void
-	placeholder: string
+	/** The placeholder of {@link GridSearch}. The search input says "Search" without one. */
+	placeholder: string | undefined
 }
 
 /** Resolves the table-wide filter mode shared by the global and per-column filters. @internal */

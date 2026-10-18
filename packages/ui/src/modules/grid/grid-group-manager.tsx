@@ -29,6 +29,7 @@ import type { PaletteColor } from '../../core/recipe'
 import { useDragCursor, useSortableItem, useSortableSensors } from '../../hooks'
 import { useStableValue } from '../../hooks/use-stable-value'
 import { IntlMessage } from '../../primitives/intl/intl-message'
+import { intlMessages } from '../../primitives/intl/intl-messages'
 import { pickedUpText, reorderMessages } from '../../primitives/intl/intl-reorder'
 import type { IntlShape } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -366,7 +367,7 @@ export function GridGroupManager({
 
 					<Button type="button" variant="soft" onClick={manager.addGroup} className="self-start">
 						<Icon icon={<Plus />} />
-						New group
+						{intl.formatMessage(gridMessages.newGroup)}
 					</Button>
 				</div>
 
@@ -450,6 +451,8 @@ function GridGroupManagerZoneView({
 	assign,
 	handle,
 }: GridGroupManagerZoneViewProps) {
+	const intl = useIntl()
+
 	const { setNodeRef } = useDroppable({ id: zoneDropId(zone.id) })
 
 	// The zone's matching members — all of them with no query typed. Both the render
@@ -473,7 +476,9 @@ function GridGroupManagerZoneView({
 		[groups, zone.group?.id],
 	)
 
-	const emptyLabel = zone.group ? 'No columns in this group' : 'No ungrouped columns'
+	const emptyLabel = intl.formatMessage(
+		zone.group ? gridMessages.noColumnsInGroup : gridMessages.noUngroupedColumns,
+	)
 
 	return (
 		<Card
@@ -504,7 +509,7 @@ function GridGroupManagerZoneView({
 					// (implicit `role="status"`) so emptying one zone is announced even while
 					// the rest of the editor still has matches.
 					<output className={cn(k.manager.zone.empty)}>
-						{columnIds.length > 0 ? 'No results' : emptyLabel}
+						{columnIds.length > 0 ? intl.formatMessage(intlMessages.noResults) : emptyLabel}
 					</output>
 				) : (
 					<SortableContext items={visibleIds} strategy={verticalListSortingStrategy}>
@@ -555,6 +560,8 @@ function GridGroupManagerZoneHeader({
 	recolorGroup,
 	removeGroup,
 }: GridGroupManagerZoneHeaderProps) {
+	const intl = useIntl()
+
 	const label = columnLabel(group)
 
 	return (
@@ -563,8 +570,8 @@ function GridGroupManagerZoneHeader({
 
 			<Input
 				className={cn(k.manager.zone.name)}
-				aria-label={`Group name for ${label}`}
-				placeholder="Group name"
+				aria-label={intl.formatMessage(gridMessages.groupNameFor, { group: label })}
+				placeholder={intl.formatMessage(gridMessages.groupName)}
 				value={typeof group.title === 'string' ? group.title : ''}
 				onChange={(event) => renameGroup(group.id, event.target.value)}
 			/>
@@ -580,7 +587,7 @@ function GridGroupManagerZoneHeader({
 				type="button"
 				variant="bare"
 				color="red"
-				aria-label={`Remove group ${label}`}
+				aria-label={intl.formatMessage(gridMessages.removeGroupNamed, { group: label })}
 				onClick={() => removeGroup(group.id)}
 			>
 				<Icon icon={<Trash2 />} />
@@ -644,7 +651,7 @@ const GridGroupManagerColumnRow = memo(function GridGroupManagerColumnRow({
 				// rather than hiding the row and snapping on drop.
 				disabled={dragging || item.hideable === false}
 				onChange={() => onToggle(item.id)}
-				aria-label={`Show ${label}`}
+				aria-label={intl.formatMessage(gridMessages.showColumn, { column: label })}
 			/>
 
 			{/* The "Move to" menu only means something once a group exists to move into,
@@ -684,6 +691,8 @@ type GridGroupManagerMoveItemsProps = {
  * @internal
  */
 function GridGroupManagerMoveItems({ columnId, zoneId, assign }: GridGroupManagerMoveItemsProps) {
+	const intl = useIntl()
+
 	const groups = use(GroupManagerGroupsContext)
 
 	return (
@@ -692,12 +701,14 @@ function GridGroupManagerMoveItems({ columnId, zoneId, assign }: GridGroupManage
 				.filter((group) => group.id !== zoneId)
 				.map((group) => (
 					<MenuItem key={group.id} onAction={() => assign(columnId, group.id)}>
-						<MenuLabel>Move to {columnLabel(group)}</MenuLabel>
+						<MenuLabel>
+							{intl.formatMessage(gridMessages.moveTo, { group: columnLabel(group) })}
+						</MenuLabel>
 					</MenuItem>
 				))}
 			{zoneId !== UNGROUPED && (
 				<MenuItem onAction={() => assign(columnId, null)}>
-					<MenuLabel>Remove from group</MenuLabel>
+					<MenuLabel>{intl.formatMessage(gridMessages.removeFromGroup)}</MenuLabel>
 				</MenuItem>
 			)}
 		</>
@@ -719,6 +730,8 @@ function GridGroupManagerColumnRowOverlay({
 	item: GridColumnManagerItem
 	checked: boolean
 }) {
+	const intl = useIntl()
+
 	const label = columnLabel(item)
 
 	return (
@@ -731,7 +744,7 @@ function GridGroupManagerColumnRowOverlay({
 				columnTitle={item.title}
 				checked={checked}
 				disabled
-				aria-label={`Show ${label}`}
+				aria-label={intl.formatMessage(gridMessages.showColumn, { column: label })}
 			/>
 		</div>
 	)

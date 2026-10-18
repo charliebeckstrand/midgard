@@ -2,6 +2,8 @@
 
 import type { ComponentProps, ReactNode } from 'react'
 import { Direction } from '../../primitives/direction'
+import { useIntl } from '../../primitives/intl/use-intl'
+import { gridMessages } from './engine/grid-messages'
 import { GridAutoSizeConfirmDialog } from './grid-auto-size-confirm-dialog'
 import { GridColumnManager, type GridColumnManagerProps } from './grid-column-manager'
 import { GridManagerDialog } from './grid-manager-dialog'
@@ -67,13 +69,15 @@ export function GridDataDialogsBody({
  * @internal
  */
 function GridRowManagerRegionDialog({ region }: { region: GridRowManagerRegionResult }) {
+	const intl = useIntl()
+
 	if (!region.reachable) return null
 
 	return (
 		<GridManagerDialog
 			open={region.open}
 			onOpenChange={region.setOpen}
-			label="Manage rows"
+			label={intl.formatMessage(gridMessages.manageRows)}
 			// The group-header menu opens it, and its item is gone by then.
 			focusClose
 		>

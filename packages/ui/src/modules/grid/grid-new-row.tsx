@@ -10,10 +10,12 @@ import {
 } from 'react'
 import { TableCell } from '../../components/table'
 import { ariaAttr, cn } from '../../core'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { GRID_ROLE } from './engine/grid-constants'
 import { isColumnEditable, NEW_ROW_KEY } from './engine/grid-editing-utilities'
+import { gridMessages } from './engine/grid-messages'
 import {
 	isNewRowAddColumn,
 	measureNewRowAddCell,
@@ -31,9 +33,6 @@ import type { GridColumn } from './types'
 import { NEW_ROW_INDEX } from './use-grid-navigation'
 import { stackStickyHead, useGridStickyHead } from './use-grid-sticky-head'
 import type { GridColumnPinning } from './use-grid-table'
-
-/** The accessible name of the new-row slot. @internal */
-const NEW_ROW_LABEL = 'New row'
 
 /** A session call that the new-row slot never makes, because the slot is in no session. @internal */
 function inert(): undefined {
@@ -285,6 +284,8 @@ export function GridNewRow<T>({
 }: GridNewRowProps<T>) {
 	const session = useGridNewRowSession()
 
+	const intl = useIntl()
+
 	const bodyRef = useRef<HTMLTableSectionElement>(null)
 
 	useGridStickyHead(bodyRef, session?.position === 'top' ? placeTopSlot : null)
@@ -313,7 +314,7 @@ export function GridNewRow<T>({
 			<tr
 				data-slot="grid-new-row"
 				data-position={session.position}
-				aria-label={NEW_ROW_LABEL}
+				aria-label={intl.formatMessage(gridMessages.newRow)}
 				aria-rowindex={ariaRowIndex}
 				aria-busy={ariaAttr(session.inFlight)}
 			>

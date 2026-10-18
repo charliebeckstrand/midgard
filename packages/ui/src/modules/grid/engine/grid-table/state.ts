@@ -36,9 +36,6 @@ export const EMPTY_COLUMN_ORDER: (string | number)[] = []
 /** Stable empty column-visibility default (all visible); read-only. @internal */
 export const EMPTY_VISIBILITY: ColumnVisibilityState = {}
 
-/** Search-input placeholder when {@link GridSearch} supplies none. @internal */
-export const DEFAULT_SEARCH_PLACEHOLDER = 'Search'
-
 /**
  * Resolves the engine's sort and filter transform modes. Manual grouping forces
  * both manual. The supplied rows are a positional header/children sequence, and

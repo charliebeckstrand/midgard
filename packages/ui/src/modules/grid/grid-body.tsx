@@ -11,6 +11,7 @@ import {
 } from 'react'
 import { Alert } from '../../components/alert'
 import { TableBody, TableEmpty } from '../../components/table'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { hasErrorSlot } from './engine/grid-data/guards'
 import { applyRowKeyOrder } from './engine/grid-group/row-manager'
@@ -21,6 +22,7 @@ import {
 } from './engine/grid-group/segments'
 import type { GridGroup, GridLeaf } from './engine/grid-group/tree'
 import { detailOpen, groupKeyOf, groupTotaled, totalItemKey } from './engine/grid-items/items'
+import { gridMessages } from './engine/grid-messages'
 import { ariaRowIndex } from './engine/grid-row/shell'
 import { detailCursorRows, GridCursorOrder, groupedCursorRows } from './grid-cursor-order'
 import type { ResolvedInfiniteScroll } from './grid-data-resolvers'
@@ -394,6 +396,8 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 	// The drag and drop module, or `null` until it is loaded. The rows then render at rest.
 	const reorderKit = use(GridReorderKitContext)
 
+	const intl = useIntl()
+
 	if (loading) return <GridLoadingBody columns={visibleColumns} pinning={pinning} />
 
 	// An error state pre-empts the empty slot: a failed fetch has no rows, but the
@@ -402,7 +406,12 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 		return (
 			<TableEmpty columns={visibleColumns.length}>
 				{error === true ? (
-					<Alert severity="error" variant="soft" title="Couldn't load data" className="w-full" />
+					<Alert
+						severity="error"
+						variant="soft"
+						title={intl.formatMessage(gridMessages.loadFailed)}
+						className="w-full"
+					/>
 				) : (
 					error
 				)}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { useIntl } from '../../primitives/intl/use-intl'
 import type { GridSortState } from './context'
 import type { GridGroupResult } from './engine/grid-group/resolve'
 import {
@@ -229,6 +230,8 @@ export function useGridDataFrame<T>({
 	/** The `sort.animate` flag. */
 	animateSort: boolean
 }) {
+	const intl = useIntl()
+
 	// Whether the table can paint yet; holds its first frame until the widths are
 	// settled (see `useTableRevealed`, and the width gate on the `<table>`).
 	const revealed = useTableRevealed(widthsSettled, loading, showingError, renderRows.length)
@@ -317,6 +320,7 @@ export function useGridDataFrame<T>({
 	// The manual grouped body interleaves header and leaf rows without index
 	// bookkeeping, so it stays a native table like the client grouped body.
 	const semantics = resolveGridSemantics(
+		intl,
 		virtualized,
 		pagination,
 		cursorEnabled,

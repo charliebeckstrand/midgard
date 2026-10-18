@@ -19,9 +19,6 @@ export const NEW_ROW_ADD_COLUMN_ID = '__grid-new-row-add'
  */
 export const NEW_ROW_ADD_COLUMN_SIZE = 48
 
-/** The accessible name of the Add column's header. @internal */
-export const NEW_ROW_ADD_COLUMN_LABEL = 'Add row'
-
 /** Whether a column id names the Add column of the new-row slot. @internal */
 export function isNewRowAddColumn(id: string | number): boolean {
 	return id === NEW_ROW_ADD_COLUMN_ID

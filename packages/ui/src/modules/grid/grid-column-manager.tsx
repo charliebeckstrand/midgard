@@ -18,10 +18,12 @@ import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../compo
 import { SearchInput } from '../../components/search-input'
 import { cn, createContext } from '../../core'
 import { isRtl } from '../../hooks/a11y/logical-arrow'
+import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid-column-manager'
 import { toggleItem } from '../../utilities'
 import { columnLabel } from './engine/grid-column/label'
+import { gridMessages } from './engine/grid-messages'
 import { effectivePinSide, physicalSide, pinMenuChoices } from './engine/grid-pin/overrides'
 import { applyColumnReorder } from './engine/grid-reorder-compute'
 import { pinChoiceIcon } from './grid-context-menu-utilities'
@@ -67,7 +69,24 @@ function useManagerDirection(root: RefObject<HTMLElement | null>): boolean {
  *
  * @internal
  */
-const NO_RESULTS = <output className={cn(k.empty)}>No results</output>
+function GridColumnManagerNoResults() {
+	return <output className={cn(k.empty)}>{useIntl().formatMessage(intlMessages.noResults)}</output>
+}
+
+/**
+ * The filter placeholder and the save-preset label of the manager: the props,
+ * else the defaults in the language of the reader.
+ *
+ * @internal
+ */
+function useManagerLabels(filterPlaceholder: string | undefined, savePresetLabel: ReactNode) {
+	const intl = useIntl()
+
+	return {
+		filterPlaceholder: filterPlaceholder ?? intl.formatMessage(gridMessages.filterColumns),
+		savePresetLabel: savePresetLabel ?? intl.formatMessage(gridMessages.savePreset),
+	}
+}
 
 /** Props for {@link GridColumnManager}. */
 export type GridColumnManagerProps = {
@@ -89,7 +108,7 @@ export type GridColumnManagerProps = {
 
 	/**
 	 * Placeholder on the filter field, which doubles as its accessible name.
-	 * @defaultValue 'Filter columns'
+	 * @defaultValue `'Filter columns'`, in the language of the reader.
 	 */
 	filterPlaceholder?: string
 
@@ -159,7 +178,7 @@ export type GridColumnManagerProps = {
 	onSavePreset?: (preset: GridPreferences) => void
 	/**
 	 * Label on the save-preset button.
-	 * @defaultValue 'Save as preset'
+	 * @defaultValue `'Save as preset'`, in the language of the reader.
 	 */
 	savePresetLabel?: ReactNode
 
@@ -200,7 +219,11 @@ function GridColumnPinControl({
 	return (
 		<Menu placement={placement} className={className}>
 			<MenuTrigger>
-				<button type="button" className={cn(k.pin)} aria-label={`Pin ${columnLabel(item)}`}>
+				<button
+					type="button"
+					className={cn(k.pin)}
+					aria-label={intl.formatMessage(gridMessages.pinColumn, { column: columnLabel(item) })}
+				>
 					<Icon icon={side ? <Pin /> : <EllipsisVertical />} />
 				</button>
 			</MenuTrigger>
@@ -288,6 +311,8 @@ function GridColumnManagerFrozenGroup({
 	getKey,
 	onPinChange,
 }: GridColumnManagerFrozenGroupProps) {
+	const intl = useIntl()
+
 	return (
 		<List items={items} getKey={getKey} variant="plain" sortable={false}>
 			{(col) => (
@@ -296,7 +321,10 @@ function GridColumnManagerFrozenGroup({
 						columnTitle={col.title}
 						checked
 						disabled
-						aria-label={`${columnLabel(col)} (${col.locked ? 'locked' : 'pinned'})`}
+						aria-label={intl.formatMessage(gridMessages.frozenColumn, {
+							column: columnLabel(col),
+							state: col.locked ? 'locked' : 'pinned',
+						})}
 					/>
 				</ListItem>
 			)}
@@ -334,6 +362,8 @@ function GridColumnManagerOrderableList({
 	reorderable,
 	onReorder,
 }: GridColumnManagerOrderableListProps) {
+	const intl = useIntl()
+
 	const renderRow = (col: GridColumnManagerItem) => (
 		<ListItem
 			suffix={
@@ -352,7 +382,7 @@ function GridColumnManagerOrderableList({
 				checked={!hidden.has(col.id)}
 				disabled={col.hideable === false}
 				onChange={() => onToggle(col.id)}
-				aria-label={`Show ${columnLabel(col)}`}
+				aria-label={intl.formatMessage(gridMessages.showColumn, { column: columnLabel(col) })}
 			/>
 		</ListItem>
 	)
@@ -365,12 +395,18 @@ function GridColumnManagerOrderableList({
 			getKey={getKey}
 			onReorder={onReorder}
 			variant="plain"
-			aria-label="Reorder columns"
+			aria-label={intl.formatMessage(gridMessages.reorderColumns)}
 		>
 			{renderRow}
 		</List>
 	) : (
-		<List items={items} getKey={getKey} sortable={false} variant="plain" aria-label="Columns">
+		<List
+			items={items}
+			getKey={getKey}
+			sortable={false}
+			variant="plain"
+			aria-label={intl.formatMessage(gridMessages.columns)}
+		>
 			{renderRow}
 		</List>
 	)
@@ -405,7 +441,7 @@ function GridColumnManagerOrderableList({
 export function GridColumnManager({
 	columns,
 	filterable = true,
-	filterPlaceholder = 'Filter columns',
+	filterPlaceholder: filterPlaceholderProp,
 	order: orderProp,
 	defaultOrder,
 	onOrderChange,
@@ -417,7 +453,7 @@ export function GridColumnManager({
 	groups,
 	onGroupsChange,
 	onSavePreset,
-	savePresetLabel = 'Save as preset',
+	savePresetLabel: savePresetLabelProp,
 	className,
 }: GridColumnManagerProps) {
 	const { order, setOrder, hidden, setHidden, byId } = useGridColumnVisibility({
@@ -524,6 +560,11 @@ export function GridColumnManager({
 
 	const rtl = useManagerDirection(rootRef)
 
+	const { filterPlaceholder, savePresetLabel } = useManagerLabels(
+		filterPlaceholderProp,
+		savePresetLabelProp,
+	)
+
 	return (
 		<ManagerRtlContext value={rtl}>
 			<div ref={rootRef} data-slot="grid-column-manager" className={cn(k.base, className)}>
@@ -536,7 +577,7 @@ export function GridColumnManager({
 					/>
 				)}
 				{noMatches ? (
-					NO_RESULTS
+					<GridColumnManagerNoResults />
 				) : (
 					<>
 						{leftColumns.length > 0 && (
@@ -562,7 +603,7 @@ export function GridColumnManager({
 						) : visibleOrderable.length === 0 && orderableColumns.length > 0 ? (
 							// Only the scrolling region emptied — a frozen row still matches, so the
 							// status stands in for the list rather than for the whole editor.
-							NO_RESULTS
+							<GridColumnManagerNoResults />
 						) : (
 							<GridColumnManagerOrderableList
 								items={visibleOrderable}

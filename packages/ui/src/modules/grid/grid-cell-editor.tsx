@@ -15,10 +15,12 @@ import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { cn } from '../../core'
 import { focusWithoutReveal } from '../../hooks/use-truncation'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
 import { useGridCellEditing } from './context'
 import { columnLabel } from './engine/grid-column/label'
 import {
+	COMMIT_REFUSED,
 	EDITOR_FOCUSABLE,
 	type EditorKind,
 	type GridDraftKey,
@@ -26,6 +28,7 @@ import {
 	isBlankDraft,
 	NEW_ROW_KEY,
 } from './engine/grid-editing-utilities'
+import { gridMessages } from './engine/grid-messages'
 import { GridEditInputs } from './grid-edit-inputs'
 import type {
 	GridEditingSession,
@@ -74,8 +77,8 @@ type GridCellEditorProps<T> = {
 
 /** The two ways a cell-scoped session ends, as the controls that end it. @internal */
 const SETTLE_ACTIONS = [
-	{ outcome: 'save', verb: 'Save', color: 'green', icon: <Check /> },
-	{ outcome: 'discard', verb: 'Discard', color: 'red', icon: <X /> },
+	{ outcome: 'save', name: gridMessages.saveCell, color: 'green', icon: <Check /> },
+	{ outcome: 'discard', name: gridMessages.discardCell, color: 'red', icon: <X /> },
 ] as const
 
 /**
@@ -156,6 +159,8 @@ function GridSettleControls({
 	controls: SettleControls
 	settle: (outcome: 'save' | 'discard') => void
 }) {
+	const intl = useIntl()
+
 	if (controls === 'none') return null
 
 	const actions =
@@ -171,7 +176,7 @@ function GridSettleControls({
 					type="button"
 					variant="bare"
 					color={action.color}
-					aria-label={`${action.verb} ${label}`}
+					aria-label={intl.formatMessage(action.name, { cell: label })}
 					tabIndex={-1}
 					onMouseDown={keepFocus}
 					onClick={() => settle(action.outcome)}
@@ -220,6 +225,8 @@ export function GridCellEditor<T>({
 	claimSlot,
 	readRow,
 }: GridCellEditorProps<T>) {
+	const intl = useIntl()
+
 	const seed = column.field != null ? row[column.field] : undefined
 
 	// The key of a data row, or `null` in the new-row slot. The slot is in no
@@ -346,9 +353,11 @@ export function GridCellEditor<T>({
 	// read as one thing to a screen reader rather than unrelated widgets.
 	// `columnLabel` is the module's one column-naming rule, and it degrades to the
 	// column id rather than to a position that shifts as columns move.
-	const label = `${columnLabel(column)}, ${newRow ? 'new row' : `row ${rowIndex + 1}`}`
+	const label = newRow
+		? intl.formatMessage(gridMessages.cellInNewRow, { column: columnLabel(column) })
+		: intl.formatMessage(gridMessages.cellInRow, { column: columnLabel(column), row: rowIndex + 1 })
 
-	const ariaLabel = `Edit ${label}`
+	const ariaLabel = intl.formatMessage(gridMessages.editCell, { cell: label })
 
 	// A cell of the new-row slot with no value adds nothing, so it has nothing
 	// for `validate` to refuse yet.
@@ -356,7 +365,12 @@ export function GridCellEditor<T>({
 
 	const invalid = checked ? column.validate?.(draft, readRow ? readRow() : row) : null
 
-	const error = invalid ?? refusal ?? null
+	// The grid's own refusal is a fixed English sentinel, so it shows in the
+	// language of the reader. A refusal that the consumer wrote shows as it is.
+	const refused =
+		refusal === COMMIT_REFUSED ? intl.formatMessage(gridMessages.commitRefused) : refusal
+
+	const error = invalid ?? refused ?? null
 
 	// Links the editor to its message (aria-describedby) so the error reaches AT,
 	// not just sighted users (WCAG 1.3.1 / 3.3.1).

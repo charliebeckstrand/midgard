@@ -2,7 +2,9 @@
 
 import { useCallback, useMemo, useState } from 'react'
 import { useControllableFlag } from '../../hooks'
+import { useIntl } from '../../primitives/intl/use-intl'
 import type { GridSortState } from './context'
+import { gridMessages } from './engine/grid-messages'
 import { resolveToolSurfaces, SURFACES_OFF } from './engine/grid-tools'
 import type { GridWidthAction } from './grid-auto-size-confirm-dialog'
 import type { GridColumnManagerConfig } from './grid-data-types'
@@ -71,6 +73,8 @@ export function useGridMenuActions<T>({
 	 */
 	hasSizingPreference: boolean
 }) {
+	const intl = useIntl()
+
 	// Context menus are on by default (`false` opts out). With no data they stand
 	// down *behaviorally* (`contextMenuEnabled`), never structurally — resolving
 	// the config to `undefined` here would unmount the menu wrapper and remount
@@ -84,7 +88,7 @@ export function useGridMenuActions<T>({
 
 	const surfaces = columnManager === false ? SURFACES_OFF : resolveToolSurfaces(manager)
 
-	const managerLabel = manager?.label ?? 'Manage columns'
+	const managerLabel = manager?.label ?? intl.formatMessage(gridMessages.manageColumns)
 
 	// Two entry points to the dialog: the opt-in toolbar button, and the header
 	// menu's "Manage columns" item — on by default, but only ever shown inside a

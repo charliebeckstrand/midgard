@@ -5,8 +5,10 @@ import { Input } from '../../components/input'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { NumberInput } from '../../components/number-input'
 import { ariaAttr } from '../../core'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
 import type { EditorKind } from './engine/grid-editing-utilities'
+import { gridMessages } from './engine/grid-messages'
 
 /**
  * Shared props for an internal inline editor: the typed `draft`, the staging and
@@ -119,8 +121,8 @@ function GridNumberEditInput({
 }
 
 const BOOLEAN_OPTIONS = [
-	{ value: 'true', label: 'Yes' },
-	{ value: 'false', label: 'No' },
+	{ value: 'true', label: gridMessages.yes },
+	{ value: 'false', label: gridMessages.no },
 ]
 
 /**
@@ -143,6 +145,8 @@ function GridBooleanEditInput({
 	required,
 	unset,
 }: GridEditInputProps) {
+	const intl = useIntl()
+
 	// `null` keeps the listbox controlled with no selection, so it shows its
 	// placeholder (CONVENTIONS §7.3).
 	const blank = unset && typeof draft !== 'boolean'
@@ -159,13 +163,15 @@ function GridBooleanEditInput({
 			className={k.edit.input}
 			value={value}
 			onValueChange={(next) => onValueUpdate(next === null ? undefined : next === 'true')}
-			displayValue={(option) =>
-				BOOLEAN_OPTIONS.find((candidate) => candidate.value === option)?.label ?? ''
-			}
+			displayValue={(option) => {
+				const label = BOOLEAN_OPTIONS.find((candidate) => candidate.value === option)?.label
+
+				return label ? intl.formatMessage(label) : ''
+			}}
 		>
 			{BOOLEAN_OPTIONS.map((option) => (
 				<ListboxOption key={option.value} value={option.value}>
-					<ListboxLabel>{option.label}</ListboxLabel>
+					<ListboxLabel>{intl.formatMessage(option.label)}</ListboxLabel>
 				</ListboxOption>
 			))}
 		</Listbox>

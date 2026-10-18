@@ -1,6 +1,9 @@
 'use client'
 
 import { Confirm } from '../../components/confirm'
+import type { MessageDescriptor } from '../../primitives/intl/types'
+import { useIntl } from '../../primitives/intl/use-intl'
+import { gridMessages } from './engine/grid-messages'
 
 /**
  * A header-menu width action that discards the saved widths: "Auto-size all
@@ -8,17 +11,20 @@ import { Confirm } from '../../components/confirm'
  */
 export type GridWidthAction = 'auto-size' | 'reset'
 
-/** The copy of {@link GridAutoSizeConfirmDialog}, per action. @internal */
-const COPY: Record<GridWidthAction, { title: string; body: string; confirm: string }> = {
+/** The messages of {@link GridAutoSizeConfirmDialog}, per action. @internal */
+const COPY: Record<
+	GridWidthAction,
+	{ title: MessageDescriptor; body: MessageDescriptor; confirm: MessageDescriptor }
+> = {
 	'auto-size': {
-		title: 'Auto-size all columns?',
-		body: 'This fits every column to its content and replaces the column widths you saved.',
-		confirm: 'Auto-size columns',
+		title: gridMessages.autoSizeTitle,
+		body: gridMessages.autoSizeBody,
+		confirm: gridMessages.autoSizeConfirm,
 	},
 	reset: {
-		title: 'Reset column widths?',
-		body: 'This discards the column widths you saved, and the grid sizes the columns to fit its width again.',
-		confirm: 'Reset widths',
+		title: gridMessages.resetTitle,
+		body: gridMessages.resetBody,
+		confirm: gridMessages.resetConfirm,
 	},
 }
 
@@ -49,15 +55,17 @@ export function GridAutoSizeConfirmDialog({
 }: GridAutoSizeConfirmDialogProps) {
 	const copy = COPY[action]
 
+	const intl = useIntl()
+
 	return (
 		<Confirm
 			open={open}
 			onOpenChange={onOpenChange}
 			width="md"
-			title={copy.title}
-			description={`${copy.body} Your other layout preferences — order, visibility, and pinned columns — stay just as they are.`}
-			cancel={{ label: 'Keep my widths' }}
-			confirm={{ label: copy.confirm, color: 'blue' }}
+			title={intl.formatMessage(copy.title)}
+			description={intl.formatMessage(copy.body)}
+			cancel={{ label: intl.formatMessage(gridMessages.keepWidths) }}
+			confirm={{ label: intl.formatMessage(copy.confirm), color: 'blue' }}
 			onConfirm={() => {
 				onOpenChange(false)
 

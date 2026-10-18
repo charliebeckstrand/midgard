@@ -12,9 +12,11 @@
 import { createElement, type ReactNode } from 'react'
 import type { TableElementProps } from '../../components/table'
 import { cn, composeEventHandlers } from '../../core'
+import type { IntlShape } from '../../primitives/intl/types'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { DEFAULT_OVERSCAN } from './engine/grid-constants'
+import { gridMessages } from './engine/grid-messages'
 import { pageOffset } from './engine/grid-pagination-utilities'
 import type { GridCellClick, GridRowClick } from './engine/grid-row/cell'
 import type {
@@ -196,6 +198,8 @@ function gridHandlers(
  * @internal
  */
 export function resolveTableProps(args: {
+	/** Formats the default name of an unnamed grid. */
+	intl: IntlShape
 	tableProps: TableElementProps | undefined
 	/** Cursor props (tab stop, `aria-activedescendant`, key/focus handlers) under `navigable`. */
 	navTableProps: GridNavTableProps | undefined
@@ -241,7 +245,7 @@ export function resolveTableProps(args: {
 		...(role ? { role } : {}),
 		// A `role="grid"` needs an accessible name (WCAG 1.3.1 / 4.1.2); default one
 		// when the caller named the grid through neither `tableProps` escape hatch.
-		...(unnamed ? { 'aria-label': 'Data grid' } : {}),
+		...(unnamed ? { 'aria-label': args.intl.formatMessage(gridMessages.dataGrid) } : {}),
 		// `aria-multiselectable` is a grid-only state; a windowed `role="table"` or a
 		// native table conveys selection through each row's `aria-selected` alone.
 		...(args.multiSelectable && gridRole ? { 'aria-multiselectable': true } : {}),
@@ -340,6 +344,7 @@ export type GridSemantics = { enabled: boolean; rowOffset: number; selectAllLabe
  * @internal
  */
 export function resolveGridSemantics(
+	intl: IntlShape,
 	virtualizeEnabled: boolean,
 	pagination: GridPaginationView | null,
 	cursorEnabled: boolean,
@@ -348,7 +353,9 @@ export function resolveGridSemantics(
 	return {
 		enabled: !manualGrouped && (virtualizeEnabled || pagination != null || cursorEnabled),
 		rowOffset: pagination ? pageOffset(pagination.pageIndex, pagination.pageSize) : 0,
-		selectAllLabel: pagination ? 'Select all rows on this page' : 'Select all rows',
+		selectAllLabel: intl.formatMessage(
+			pagination ? gridMessages.selectAllOnPage : gridMessages.selectAll,
+		),
 	}
 }
 

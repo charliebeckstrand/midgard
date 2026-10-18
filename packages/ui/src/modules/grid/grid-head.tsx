@@ -26,9 +26,8 @@ type GridHeadProps<T> = {
 	/**
 	 * Accessible name for the select-all checkbox. Under pagination it toggles
 	 * only the current page, so {@link Grid} narrows the label to say so.
-	 * @defaultValue 'Select all rows'
 	 */
-	selectAllLabel?: string
+	selectAllLabel: string
 	/**
 	 * Whether grid semantics hold: under virtualization, pagination, or the
 	 * navigable cursor. The header is then row 1 of the full `aria-rowcount` set,
@@ -83,7 +82,7 @@ export function GridHead<T>({
 	columns,
 	hasRows,
 	interactive,
-	selectAllLabel = 'Select all rows',
+	selectAllLabel,
 	gridSemantics,
 	reorderable = false,
 	reorderHandle = true,

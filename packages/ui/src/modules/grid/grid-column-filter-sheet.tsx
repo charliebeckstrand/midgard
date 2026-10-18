@@ -3,7 +3,10 @@
 import type { SubmitEvent } from 'react'
 import { Button } from '../../components/button'
 import { Sheet, SheetBody, SheetFooter, SheetPanel, SheetTitle } from '../../components/sheet'
+import { intlMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { QueryBuilder, type QueryField, type QueryGroup } from '../query'
+import { gridMessages } from './engine/grid-messages'
 import { GridOverlayDensity } from './grid-region'
 
 /** Props for {@link GridColumnFilterSheet}. @internal */
@@ -41,6 +44,8 @@ export function GridColumnFilterSheet({
 	onDraftChange,
 	onApply,
 }: GridColumnFilterSheetProps) {
+	const intl = useIntl()
+
 	// The sheet body + footer form a `<form>`, so Enter in any rule input settles
 	// the draft — the same commit as the Apply submit button. preventDefault stops
 	// the browser's native navigation before applying. React bubbles a submit
@@ -54,10 +59,12 @@ export function GridColumnFilterSheet({
 		onApply()
 	}
 
+	const title = intl.formatMessage(gridMessages.filterColumn, { column: label })
+
 	return (
 		<GridOverlayDensity>
 			<Sheet open={open} onOpenChange={onOpenChange}>
-				<SheetPanel aria-label={`Filter “${label}”`}>
+				<SheetPanel aria-label={title}>
 					{/* A `contents` form so Enter in a rule input submits (Apply) without
 				    imposing a box — the panel's `gap-4` slot rhythm survives the
 				    display:contents wrapper. It spans the title too so the body stays a
@@ -67,7 +74,7 @@ export function GridColumnFilterSheet({
 					    it. The name therefore reads as the column being filtered, rather
 					    than as part of the title's own wording. The dialog's `aria-label` above
 					    carries the same string. */}
-						<SheetTitle>Filter “{label}”</SheetTitle>
+						<SheetTitle>{title}</SheetTitle>
 
 						<SheetBody>
 							<QueryBuilder
@@ -82,11 +89,11 @@ export function GridColumnFilterSheet({
 
 						<SheetFooter>
 							<Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-								Cancel
+								{intl.formatMessage(intlMessages.cancel)}
 							</Button>
 
 							<Button type="submit" color="blue">
-								Apply
+								{intl.formatMessage(gridMessages.apply)}
 							</Button>
 						</SheetFooter>
 					</form>

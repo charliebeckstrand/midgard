@@ -15,9 +15,11 @@ import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
 import { cn, dataAttr } from '../../core'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
 import { createGroup, createRule, isQueryActive, type QueryField, type QueryGroup } from '../query'
 import { columnLabel } from './engine/grid-column/label'
+import { gridMessages } from './engine/grid-messages'
 import { GridOverlayDensity } from './grid-region'
 import type { GridColumn } from './types'
 import type { GridColumnFacets, GridColumnFilter } from './use-grid-table'
@@ -119,6 +121,8 @@ type GridColumnFilterButtonProps = {
  * @internal
  */
 export function GridColumnFilterButton({ column, filter, query }: GridColumnFilterButtonProps) {
+	const intl = useIntl()
+
 	// The facets the sheet offers, which the grid computes from its rows as the
 	// sheet opens (see `GridColumnFilter.facets`). They change with the rows and
 	// the other filters, so each open reads them again. They stay after a close,
@@ -248,7 +252,7 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 							// Name carries the applied state so it isn't conveyed by color
 							// alone (WCAG 1.4.1 / 4.1.2); the menu's open state rides
 							// aria-expanded, wired by MenuTrigger.
-							aria-label={`Filter ${label}, active`}
+							aria-label={intl.formatMessage(gridMessages.filterActive, { column: label })}
 							data-active={dataAttr(true)}
 							className={cn(k.filter.button)}
 						>
@@ -261,11 +265,11 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 					<GridOverlayDensity>
 						<MenuContent>
 							<MenuItem onAction={() => handleOpenChange(true)}>
-								<MenuLabel>Edit filters</MenuLabel>
+								<MenuLabel>{intl.formatMessage(gridMessages.editFilters)}</MenuLabel>
 							</MenuItem>
 
 							<MenuItem onAction={clear}>
-								<MenuLabel>Clear filters</MenuLabel>
+								<MenuLabel>{intl.formatMessage(gridMessages.clearFilters)}</MenuLabel>
 							</MenuItem>
 						</MenuContent>
 					</GridOverlayDensity>
@@ -275,7 +279,7 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 					ref={triggerRef}
 					type="button"
 					variant="bare"
-					aria-label={`Filter ${label}`}
+					aria-label={intl.formatMessage(gridMessages.filterNamed, { column: label })}
 					aria-haspopup="dialog"
 					aria-expanded={open}
 					// The resting muted tint, dropped once a filter accents the button.
