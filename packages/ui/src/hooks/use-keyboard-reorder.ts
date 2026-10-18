@@ -3,6 +3,7 @@
 import type { KeyboardEvent } from 'react'
 import { announce } from '../core'
 import { clamp, moveItem } from '../utilities'
+import { hasBrowserModifier } from '../utilities/modifier-keys'
 import { useKeyboardLifted } from './use-keyboard-lifted'
 import { useStableEvent } from './use-stable-event'
 
@@ -73,7 +74,7 @@ export function useKeyboardReorder<T>(options: KeyboardReorderOptions<T>) {
 
 	const onItemKeyDown = useStableEvent((id: string, event: KeyboardEvent) => {
 		// A modified key is a browser or OS gesture, never a move.
-		if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return
+		if (hasBrowserModifier(event) || event.shiftKey) return
 
 		const { items, getKey, onReorder, focusItem, itemName, stepFor } = options
 

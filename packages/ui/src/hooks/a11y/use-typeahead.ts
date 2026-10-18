@@ -2,6 +2,7 @@
 
 import { type KeyboardEvent, useCallback, useMemo, useRef } from 'react'
 import { accessibleName } from '../../core'
+import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { type Timeout, useTimeout } from '../use-timeout'
 
 /** Idle window after which the type-ahead buffer resets. @internal */
@@ -9,9 +10,7 @@ export const TYPEAHEAD_TIMEOUT_MS = 500
 
 /** Whether a key event must drive type-ahead: a lone printable character. @internal */
 export function isTypeaheadKey(event: KeyboardEvent): boolean {
-	return (
-		event.key.length === 1 && event.key !== ' ' && !event.ctrlKey && !event.metaKey && !event.altKey
-	)
+	return event.key.length === 1 && event.key !== ' ' && !hasBrowserModifier(event)
 }
 
 /** Label that matches an item during type-ahead: its accessible name, lowercased. @internal */

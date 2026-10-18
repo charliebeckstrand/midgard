@@ -18,6 +18,7 @@ import { useControllable } from '../../hooks'
 import { useMountedRef } from '../../hooks/use-mounted-ref'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { focusWithoutReveal } from '../../hooks/use-truncation'
+import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { createActiveEditStore } from './engine/grid-active-edit-store'
 import {
 	describeCommit,
@@ -286,7 +287,7 @@ type SessionMove = 'down' | 'next' | 'previous' | 'here'
 function editorMove(event: ReactKeyboardEvent<HTMLTableElement>): SessionMove | null {
 	const target = event.target as Element
 
-	if (target === event.currentTarget || event.ctrlKey || event.metaKey || event.altKey) return null
+	if (target === event.currentTarget || hasBrowserModifier(event)) return null
 
 	// Tab moves between the controls of one cell first. Only Tab past the last
 	// control, or Shift+Tab past the first, commits and moves.

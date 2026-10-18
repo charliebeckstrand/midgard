@@ -16,6 +16,7 @@ import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { scrollNodeWithin } from '../../hooks/use-scroll-within'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/lightbox'
+import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { useLightboxContext } from './context'
@@ -294,7 +295,7 @@ export function LightboxStage({
 
 	const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
 		// A key with a modifier is for the browser, such as its own zoom.
-		if (event.metaKey || event.ctrlKey || event.altKey) return
+		if (hasBrowserModifier(event)) return
 
 		if (zoomByKey(event.key, track.zoom, stageRef.current)) {
 			event.preventDefault()
