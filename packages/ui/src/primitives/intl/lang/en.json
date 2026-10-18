@@ -235,6 +235,54 @@
 		"defaultMessage": "Show password",
 		"description": "The name of the button that shows the text of a password field."
 	},
+	"ui.passwordStrength.empty": {
+		"defaultMessage": "Empty",
+		"description": "The strength of a password field with no text."
+	},
+	"ui.passwordStrength.fair": {
+		"defaultMessage": "Fair",
+		"description": "The second strength of a password, of four."
+	},
+	"ui.passwordStrength.good": {
+		"defaultMessage": "Good",
+		"description": "The third strength of a password, of four."
+	},
+	"ui.passwordStrength.met": {
+		"defaultMessage": "met",
+		"description": "Read after a password rule that the password passes."
+	},
+	"ui.passwordStrength.meter": {
+		"defaultMessage": "Password strength",
+		"description": "The name of the meter that shows the strength of a password."
+	},
+	"ui.passwordStrength.notMet": {
+		"defaultMessage": "not met",
+		"description": "Read after a password rule that the password does not pass."
+	},
+	"ui.passwordStrength.ruleLength": {
+		"defaultMessage": "At least 8 characters",
+		"description": "A password rule: the password has 8 characters or more."
+	},
+	"ui.passwordStrength.ruleNumber": {
+		"defaultMessage": "One number",
+		"description": "A password rule: the password has a digit."
+	},
+	"ui.passwordStrength.ruleSymbol": {
+		"defaultMessage": "One symbol",
+		"description": "A password rule: the password has a character that is not a letter or a digit."
+	},
+	"ui.passwordStrength.ruleUppercase": {
+		"defaultMessage": "One uppercase letter",
+		"description": "A password rule: the password has an uppercase letter."
+	},
+	"ui.passwordStrength.strong": {
+		"defaultMessage": "Strong",
+		"description": "The highest strength of a password."
+	},
+	"ui.passwordStrength.weak": {
+		"defaultMessage": "Weak",
+		"description": "The lowest strength of a password."
+	},
 	"ui.reorder.dropped": {
 		"defaultMessage": "Dropped {subject}.",
 		"description": "Spoken when the reader drops a moved item. The subject is the item, with its place when it has one."

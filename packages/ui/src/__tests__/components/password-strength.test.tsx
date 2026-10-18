@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { defaultPasswordRules, PasswordStrength } from '../../components/password-strength'
+import { LocaleProvider } from '../../providers/locale'
 import { allBySlot, renderUI, screen } from '../helpers'
 
 describe('PasswordStrength', () => {
@@ -82,5 +83,20 @@ describe('PasswordStrength', () => {
 		renderUI(<PasswordStrength value="abc" />)
 
 		expect(screen.getByText('Weak')).toBeInTheDocument()
+	})
+
+	it('shows the level and the default rules in the language of the locale', () => {
+		renderUI(
+			<LocaleProvider locale="es-ES">
+				<PasswordStrength value="abc" />
+			</LocaleProvider>,
+		)
+
+		expect(screen.getByRole('meter', { name: 'Seguridad de la contraseña' })).toHaveAttribute(
+			'aria-valuetext',
+			'Débil',
+		)
+
+		expect(screen.getByText('Al menos 8 caracteres')).toBeInTheDocument()
 	})
 })
