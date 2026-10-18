@@ -134,6 +134,10 @@ export const k = {
 		indicator: [
 			'ring-inset',
 			'group-has-[[data-slot=nav-item-inner]:focus-visible]:ring-2 group-has-[[data-slot=nav-item-inner]:focus-visible]:ring-blue-600',
+			// Forced colors remove the ring. The pill keeps its own forced edge, so
+			// focus widens that edge and paints it in `Highlight`.
+			'forced-colors:group-has-[[data-slot=nav-item-inner]:focus-visible]:outline-solid forced-colors:group-has-[[data-slot=nav-item-inner]:focus-visible]:outline-2',
+			'forced-colors:group-has-[[data-slot=nav-item-inner]:focus-visible]:-outline-offset-2 forced-colors:group-has-[[data-slot=nav-item-inner]:focus-visible]:outline-[Highlight]',
 		],
 		/**
 		 * Prefix/suffix slot wrappers; sit beside the inner button inside the

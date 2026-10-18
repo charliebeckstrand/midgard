@@ -192,6 +192,47 @@ async function markOutline(
 	return { style: style.outlineStyle, width: style.outlineWidth }
 }
 
+/**
+ * The current rows that carry an affix. The active indicator is the top surface
+ * of the row, so it covers the outline of the row. Under forced colors the
+ * indicator always draws an edge, so focus must change that edge.
+ */
+const currentRows = {
+	'nav row': (
+		<NavList aria-label="Main">
+			<NavItem current suffix={<span>3</span>}>
+				Inbox
+			</NavItem>
+		</NavList>
+	),
+	'sidebar row': (
+		<Sidebar aria-label="Side">
+			<SidebarBody>
+				<SidebarList aria-label="Main">
+					<SidebarItem current suffix={<span>3</span>}>
+						<SidebarLabel>Inbox</SidebarLabel>
+					</SidebarItem>
+				</SidebarList>
+			</SidebarBody>
+		</Sidebar>
+	),
+	'chat list row': (
+		<ChatList aria-label="Conversations">
+			<ChatListItem title="Kickoff" current onSelect={() => {}} />
+		</ChatList>
+	),
+} as const
+
+/** The outline of the active indicator, as one string. */
+function indicatorOutline(container: HTMLElement): string {
+	const indicator = present(
+		container.querySelector<HTMLElement>('[data-slot=active-indicator]'),
+		'indicator',
+	)
+	const style = getComputedStyle(indicator)
+	return `${style.outlineStyle} ${style.outlineWidth} ${style.outlineColor}`
+}
+
 describe('controls show their state under forced colors (real browser)', () => {
 	beforeAll(() =>
 		cdp().send('Emulation.setEmulatedMedia', {
@@ -316,6 +357,16 @@ describe('controls show their state under forced colors (real browser)', () => {
 			const outline = await markOutline(name)
 			expect(outline.style).not.toBe('none')
 			expect(outline.width).not.toBe('0px')
+		})
+	}
+
+	for (const name of Object.keys(currentRows) as (keyof typeof currentRows)[]) {
+		it(`current ${name} with an affix: keyboard focus changes the indicator edge`, async () => {
+			const { container } = renderUI(currentRows[name])
+			await frames()
+			const rest = indicatorOutline(container)
+			await userEvent.tab()
+			expect(indicatorOutline(container)).not.toBe(rest)
 		})
 	}
 
