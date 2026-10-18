@@ -47,6 +47,12 @@ describe('context menu Escape inside a Dialog (real browser)', () => {
 
 		renderUI(<Report onOpenChange={onOpenChange} />)
 
+		// The Dialog moves focus into itself one frame after it opens. A menu that opens
+		// before then loses the focus to it, and no user can open one that soon.
+		const dialog = await screen.findByRole('dialog')
+
+		await waitFor(() => expect(dialog.contains(document.activeElement)).toBe(true))
+
 		const surface = await screen.findByTestId('surface')
 
 		const rect = surface.getBoundingClientRect()
