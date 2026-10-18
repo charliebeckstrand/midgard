@@ -407,6 +407,182 @@
 		"defaultMessage": "Weak",
 		"description": "The lowest strength of a password."
 	},
+	"ui.query.after": {
+		"defaultMessage": "after",
+		"description": "The operator of a date condition of a filter: the date is after the value."
+	},
+	"ui.query.and": {
+		"defaultMessage": "AND",
+		"description": "The combinator that a row must match both conditions for, between two conditions of a filter."
+	},
+	"ui.query.before": {
+		"defaultMessage": "before",
+		"description": "The operator of a date condition of a filter: the date is before the value."
+	},
+	"ui.query.between": {
+		"defaultMessage": "between",
+		"description": "The operator of a number condition of a filter: the number is in a range."
+	},
+	"ui.query.conditionGroup": {
+		"defaultMessage": "condition group",
+		"description": "The name of a nested group of filter conditions inside a sentence, such as \"Picked up condition group\"."
+	},
+	"ui.query.contains": {
+		"defaultMessage": "contains",
+		"description": "The operator of a text condition of a filter: the text holds the value."
+	},
+	"ui.query.empty": {
+		"defaultMessage": "Empty",
+		"description": "The fixed value of a condition that checks for no text, as in \"Name is Empty\" and \"Name is not Empty\"."
+	},
+	"ui.query.emptyRule": {
+		"defaultMessage": "empty rule",
+		"description": "The name of a filter condition with no field and no value yet."
+	},
+	"ui.query.endsWith": {
+		"defaultMessage": "ends with",
+		"description": "The operator of a text condition of a filter: the text ends with the value."
+	},
+	"ui.query.fieldRule": {
+		"defaultMessage": "{field} rule",
+		"description": "The name of a filter condition with no value yet. The field is the name of its field."
+	},
+	"ui.query.isFalse": {
+		"defaultMessage": "is false",
+		"description": "The operator of a yes-or-no condition of a filter: the value is no."
+	},
+	"ui.query.isTrue": {
+		"defaultMessage": "is true",
+		"description": "The operator of a yes-or-no condition of a filter: the value is yes."
+	},
+	"ui.query.on": {
+		"defaultMessage": "on",
+		"description": "The operator of a date condition of a filter: the date is the value."
+	},
+	"ui.query.or": {
+		"defaultMessage": "OR",
+		"description": "The combinator that a row must match one of the conditions for, between two conditions of a filter."
+	},
+	"ui.query.range": {
+		"defaultMessage": "{min} and {max}",
+		"description": "The value of a \"between\" condition of a filter, such as \"Age between 18 and 65\". The min and the max are numbers."
+	},
+	"ui.query.selectIs": {
+		"defaultMessage": "is",
+		"description": "The operator of a choice condition of a filter: the choice is the value."
+	},
+	"ui.query.selectIsNot": {
+		"defaultMessage": "is not",
+		"description": "The operator of a choice condition of a filter: the choice is not the value."
+	},
+	"ui.query.startsWith": {
+		"defaultMessage": "starts with",
+		"description": "The operator of a text condition of a filter: the text starts with the value."
+	},
+	"ui.query.textEquals": {
+		"defaultMessage": "equals",
+		"description": "The operator of a text condition of a filter: the text is the value."
+	},
+	"ui.query.textIs": {
+		"defaultMessage": "is",
+		"description": "The operator of the condition \"is Empty\" of a text field in a filter."
+	},
+	"ui.query.textIsNot": {
+		"defaultMessage": "is not",
+		"description": "The operator of the condition \"is not Empty\" of a text field in a filter."
+	},
+	"ui.query.textNotEquals": {
+		"defaultMessage": "does not equal",
+		"description": "The operator of a text condition of a filter: the text is not the value."
+	},
+	"ui.queryBuilder.add": {
+		"defaultMessage": "Add",
+		"description": "The button that opens a menu to add a condition or a group to a filter."
+	},
+	"ui.queryBuilder.addGroup": {
+		"defaultMessage": "Add group",
+		"description": "The menu item that adds a nested group of conditions to a filter."
+	},
+	"ui.queryBuilder.addRule": {
+		"defaultMessage": "Add rule",
+		"description": "The menu item that adds a condition to a filter."
+	},
+	"ui.queryBuilder.combinator": {
+		"defaultMessage": "Combinator",
+		"description": "The name of the control that picks AND or OR between two conditions of a filter."
+	},
+	"ui.queryBuilder.field": {
+		"defaultMessage": "Field",
+		"description": "The name of the control that picks the field of a filter condition."
+	},
+	"ui.queryBuilder.fieldMax": {
+		"defaultMessage": "{field} maximum",
+		"description": "The name of the upper bound of a \"between\" condition of a filter. The field is the name of its field."
+	},
+	"ui.queryBuilder.fieldMin": {
+		"defaultMessage": "{field} minimum",
+		"description": "The name of the lower bound of a \"between\" condition of a filter. The field is the name of its field."
+	},
+	"ui.queryBuilder.fieldValue": {
+		"defaultMessage": "{field} value",
+		"description": "The name of the value field of a filter condition. The field is the name of the field of the condition."
+	},
+	"ui.queryBuilder.group": {
+		"defaultMessage": "Condition group",
+		"description": "The name of a nested group of filter conditions."
+	},
+	"ui.queryBuilder.holdToRemoveGroup": {
+		"defaultMessage": "Hold to remove group",
+		"description": "The tooltip of the Remove group button, which removes the group only after a long press."
+	},
+	"ui.queryBuilder.max": {
+		"defaultMessage": "Max",
+		"description": "The hint text of the empty upper bound of a \"between\" condition of a filter."
+	},
+	"ui.queryBuilder.min": {
+		"defaultMessage": "Min",
+		"description": "The hint text of the empty lower bound of a \"between\" condition of a filter."
+	},
+	"ui.queryBuilder.noRules": {
+		"defaultMessage": "No rules added",
+		"description": "The warning of a group of a filter that holds no conditions."
+	},
+	"ui.queryBuilder.operator": {
+		"defaultMessage": "Operator",
+		"description": "The name of the control that picks the operator of a filter condition, such as \"contains\"."
+	},
+	"ui.queryBuilder.removeGroup": {
+		"defaultMessage": "Remove group",
+		"description": "The button that removes a nested group of conditions from a filter."
+	},
+	"ui.queryBuilder.removeRule": {
+		"defaultMessage": "Remove rule",
+		"description": "The name of the button that removes a condition from a filter."
+	},
+	"ui.queryBuilder.value": {
+		"defaultMessage": "Value",
+		"description": "The hint text of the empty value field of a filter condition."
+	},
+	"ui.queryChips.changed": {
+		"defaultMessage": "Changed {combinator} to {next}",
+		"description": "Spoken when the reader switches the combinator between two filter chips."
+	},
+	"ui.queryChips.filters": {
+		"defaultMessage": "Filters",
+		"description": "The name of the row of chips that shows the conditions of a filter."
+	},
+	"ui.queryChips.noFilters": {
+		"defaultMessage": "No filters",
+		"description": "The text of the row of filter chips when the filter has no conditions."
+	},
+	"ui.queryChips.removed": {
+		"defaultMessage": "Removed {item}",
+		"description": "Spoken when the reader removes a condition of a filter, such as \"Removed Status is Active\"."
+	},
+	"ui.queryChips.switchTo": {
+		"defaultMessage": "{combinator}, switch to {next}",
+		"description": "The name of the button between two filter chips that switches the combinator, such as \"AND, switch to OR\"."
+	},
 	"ui.reorder.dropped": {
 		"defaultMessage": "Dropped {subject}.",
 		"description": "Spoken when the reader drops a moved item. The subject is the item, with its place when it has one."
