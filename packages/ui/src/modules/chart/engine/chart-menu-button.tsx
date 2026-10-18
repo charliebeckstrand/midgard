@@ -12,6 +12,8 @@ import { Icon } from '../../../components/icon'
 import { Menu, MenuContent, MenuTrigger } from '../../../components/menu'
 import { cn, createContext, dataAttr } from '../../../core'
 import { useHeaderActionsHost } from '../../../primitives/header-actions'
+import { useIntl } from '../../../primitives/intl/use-intl'
+import { chartMenuName, chartMessages } from './chart-messages'
 
 /**
  * The entries of the chart menu, which {@link ChartContextMenu} publishes for
@@ -66,6 +68,8 @@ export function ChartMenuButton({ title, place }: ChartMenuButtonProps) {
 
 	const host = useHeaderActionsHost()
 
+	const intl = useIntl()
+
 	if (entries === null || entries.length === 0) return null
 
 	if ((place === 'host') !== (host !== null)) return null
@@ -79,7 +83,7 @@ export function ChartMenuButton({ title, place }: ChartMenuButtonProps) {
 		>
 			<Menu placement="bottom-end">
 				<MenuTrigger>
-					<Button type="button" variant="bare" aria-label={title ? `${title} menu` : 'Chart menu'}>
+					<Button type="button" variant="bare" aria-label={chartMenuName(intl, title)}>
 						<Icon icon={<EllipsisVertical />} />
 					</Button>
 				</MenuTrigger>
@@ -107,7 +111,11 @@ export function ChartMenuButton({ title, place }: ChartMenuButtonProps) {
 					variant="bare"
 					data-slot="chart-view-data"
 					disabled={viewData.disabled}
-					aria-label={title ? `View data for ${title}` : 'View data'}
+					aria-label={
+						title
+							? intl.formatMessage(chartMessages.viewDataFor, { title })
+							: intl.formatMessage(chartMessages.viewData)
+					}
 					onClick={viewData.onAction}
 				>
 					<Icon icon={<Table2 />} />
