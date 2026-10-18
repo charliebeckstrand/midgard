@@ -96,6 +96,7 @@
 	"ui.tagInput.limit": "Se alcanzó el límite de etiquetas",
 	"ui.tagInput.rejected": "{count, plural, one {{tag} no es una etiqueta válida} other {# no son válidas}}",
 	"ui.tagInput.removed": "Se quitó {tag}",
+	"ui.tagInput.required": "Añade al menos una etiqueta",
 	"ui.tagInput.tags": "Etiquetas",
 	"ui.toast.notifications": "Notificaciones"
 }

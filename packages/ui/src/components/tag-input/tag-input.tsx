@@ -37,6 +37,11 @@ const messages = defineMessages({
 		defaultMessage: 'Add tag',
 		description: 'The name of the button that adds the typed text as a tag.',
 	},
+	required: {
+		id: 'ui.tagInput.required',
+		defaultMessage: 'Add at least one tag',
+		description: 'The validation message of a required tag field that holds no tag.',
+	},
 })
 
 /**
@@ -220,8 +225,8 @@ export function TagInput({
 	// field, so a native `required` on it blocks a submit that has tags. A custom
 	// validity on the draft blocks the submit only while the list is empty.
 	useEffect(() => {
-		inputRef.current?.setCustomValidity(missing ? 'Add at least one tag' : '')
-	}, [missing])
+		inputRef.current?.setCustomValidity(missing ? intl.formatMessage(messages.required) : '')
+	}, [missing, intl])
 
 	const color = tagColor ?? 'zinc'
 

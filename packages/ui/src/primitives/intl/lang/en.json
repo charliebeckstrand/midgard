@@ -387,6 +387,10 @@
 		"defaultMessage": "Removed {tag}",
 		"description": "Spoken when the reader removes a tag."
 	},
+	"ui.tagInput.required": {
+		"defaultMessage": "Add at least one tag",
+		"description": "The validation message of a required tag field that holds no tag."
+	},
 	"ui.tagInput.tags": {
 		"defaultMessage": "Tags",
 		"description": "The name of the list of the tags in a tag field."
