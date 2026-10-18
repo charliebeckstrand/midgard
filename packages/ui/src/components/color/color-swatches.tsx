@@ -3,8 +3,10 @@
 import { useId, useMemo } from 'react'
 import { cn } from '../../core'
 import { useDevWarning } from '../../hooks/use-dev-warning'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/color-panel'
 import { keyByOccurrence } from '../../utilities'
+import { colorMessages } from './color-messages'
 import { hexToHsva, hsvaToHex } from './color-utilities'
 import { useColorPanelContext } from './context'
 
@@ -27,6 +29,8 @@ type ColorSwatchesProps = {
  * @internal
  */
 export function ColorSwatches({ swatches }: ColorSwatchesProps) {
+	const intl = useIntl()
+
 	const { hsva, setHsva, disabled } = useColorPanelContext()
 
 	const name = useId()
@@ -68,7 +72,12 @@ export function ColorSwatches({ swatches }: ColorSwatchesProps) {
 	const checkedKey = parsedSwatches.find(({ hex }) => hex === currentHex)?.key
 
 	return (
-		<div data-slot="color-swatches" role="radiogroup" aria-label="Swatches" className={k.swatches}>
+		<div
+			data-slot="color-swatches"
+			role="radiogroup"
+			aria-label={intl.formatMessage(colorMessages.swatches)}
+			className={k.swatches}
+		>
 			{parsedSwatches.map(({ key, swatch, parsed }) => (
 				<label
 					key={key}
