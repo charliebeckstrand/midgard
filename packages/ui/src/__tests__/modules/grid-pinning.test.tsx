@@ -427,6 +427,27 @@ describe('Grid column pinning', () => {
 		expect(head?.style.insetInlineStart).toBe('')
 	})
 
+	it('returns an unpinned column to its place in the column order', () => {
+		const columns: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', cell: (row) => row.name },
+			{ id: 'email', title: 'Email', cell: (row) => row.email, pinned: 'left' },
+			{ id: 'status', title: 'Status', cell: (row) => row.status },
+		]
+
+		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		const headOrder = () =>
+			Array.from(container.querySelectorAll<HTMLElement>('th[data-grid-col]'), (th) =>
+				th.getAttribute('data-grid-col'),
+			)
+
+		expect(headOrder()).toEqual(['email', 'name', 'status'])
+
+		fireEvent.click(screen.getByRole('button', { name: 'Unpin Email' }))
+
+		expect(headOrder()).toEqual(['name', 'email', 'status'])
+	})
+
 	it('isolates the grid stacking context so its frozen header stays scoped within it', () => {
 		const columns: GridColumn<Row>[] = [
 			{ id: 'name', title: 'Name', cell: (row) => row.name, pinned: 'left' },
