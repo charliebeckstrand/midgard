@@ -412,11 +412,12 @@ export type PdfLoadReport = {
 	/**
 	 * Publishes one slot for each page of the document, before any page renders.
 	 *
-	 * @remarks A slot carries the page's size and label, and an empty `src`. The page count,
+	 * @remarks A slot carries the page's size, the label that the document prints, and an empty
+	 * `src`. The page count,
 	 * the page navigation, and the highlight geometry read the slots, so they are whole when
 	 * the document opens.
 	 */
-	open: (slots: PdfViewerPage[]) => void
+	open: (slots: PdfViewerSlot[]) => void
 	/**
 	 * Publishes one rendered page.
 	 *

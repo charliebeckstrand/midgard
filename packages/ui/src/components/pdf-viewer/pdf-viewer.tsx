@@ -3,12 +3,14 @@
 import { useComposedRefs } from 'motion/react'
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
 import type { Responsive } from '../../types'
 import { Sheet } from '../sheet'
 import { PdfViewerContext } from './context'
 import { PdfViewerHighlightsProvider } from './pdf-viewer-highlights-provider'
 import { PdfViewerMagnifierProvider } from './pdf-viewer-magnifier-provider'
+import { pdfViewerMessages } from './pdf-viewer-messages'
 import { PdfViewerThumbnails } from './pdf-viewer-thumbnails'
 import { PdfViewerToolbar } from './pdf-viewer-toolbar'
 import { PdfViewerViewport } from './pdf-viewer-viewport'
@@ -191,7 +193,7 @@ export type PdfViewerProps = Omit<ComponentProps<'section'>, 'children' | 'onLoa
 	 * @defaultValue {@link PDF_VIEWER_THUMBNAILS}
 	 */
 	thumbnails?: Responsive<PdfViewerThumbnailLayout>
-	/** The accessible name of the viewer. @defaultValue 'PDF viewer' */
+	/** The accessible name of the viewer. @defaultValue `'PDF viewer'`, in the language of the reader. */
 	'aria-label'?: string
 }
 
@@ -232,10 +234,14 @@ export function PdfViewer({
 	defaultActiveHighlightId,
 	onActiveHighlightChange,
 	className,
-	'aria-label': ariaLabel = 'PDF viewer',
+	'aria-label': ariaLabelProp,
 	ref,
 	...props
 }: PdfViewerProps) {
+	const intl = useIntl()
+
+	const ariaLabel = ariaLabelProp ?? intl.formatMessage(pdfViewerMessages.viewer)
+
 	const context = usePdfViewer({
 		pages,
 		src,

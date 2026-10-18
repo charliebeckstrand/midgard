@@ -11,6 +11,11 @@ import type { Color } from '../../core/recipe'
  */
 export type PdfViewerSlot = PdfViewerPage & {
 	bitmap?: ImageBitmap
+	/**
+	 * The page label that the document prints, such as `iv` for a preface. The viewer names the
+	 * page from it in the language of the reader, such as "Page iv".
+	 */
+	printedLabel?: string
 }
 
 /**
@@ -28,10 +33,11 @@ export type PdfViewerPage = {
 	/** Optional smaller image for the thumbnail sidebar. Falls back to `src`. */
 	thumbnail?: string
 	/**
-	 * Optional accessible label for the page. Falls back to `Page N`.
+	 * Optional accessible label for the page. Falls back to `Page N`, in the language of the
+	 * reader.
 	 *
-	 * @remarks A viewer with a `src` sets it from the page label that the document prints, such
-	 * as `Page iv`.
+	 * @remarks A viewer with a `src` names each page from the page label that the document
+	 * prints, such as `Page iv`, in the language of the reader.
 	 */
 	label?: string
 	/** Intrinsic width in pixels. Sizes the viewport before the image loads. */
