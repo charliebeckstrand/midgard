@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { GridColumnManager } from '../../modules/grid/grid-column-manager'
 import { GridManagerDialog } from '../../modules/grid/grid-manager-dialog'
 import type { GridColumnManagerItem } from '../../modules/grid/types'
+import { LocaleProvider } from '../../providers/locale'
 import { allBySlot, fireEvent, renderUI, screen, setupUser } from '../helpers'
 
 const columns: GridColumnManagerItem[] = [
@@ -629,5 +630,21 @@ describe('GridManagerDialog', () => {
 		await user.click(screen.getByRole('button', { name: 'Close' }))
 
 		expect(screen.queryByRole('button', { name: 'Close' })).not.toBeInTheDocument()
+	})
+})
+
+describe('GridColumnManager in a locale', () => {
+	it('names the filter, the list, and the rows in the language of the locale', () => {
+		renderUI(
+			<LocaleProvider locale="es-ES">
+				<GridColumnManager columns={columns} />
+			</LocaleProvider>,
+		)
+
+		expect(screen.getByRole('searchbox', { name: 'Filtrar columnas' })).toBeInTheDocument()
+
+		expect(screen.getByRole('checkbox', { name: 'Mostrar Email' })).toBeInTheDocument()
+
+		expect(screen.getByRole('checkbox', { name: 'Name (fijada)' })).toBeInTheDocument()
 	})
 })

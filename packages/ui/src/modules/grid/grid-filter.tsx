@@ -4,7 +4,9 @@ import { type SubmitEvent, startTransition, useState } from 'react'
 import { SearchInput } from '../../components/search-input'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useTimeout } from '../../hooks/use-timeout'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { GRID_SEARCH_DEBOUNCE_MS } from './engine/grid-constants'
+import { gridMessages } from './engine/grid-messages'
 import type { GridGlobalFilterView } from './use-grid-table'
 
 /** Props for {@link GridFilter}. @internal */
@@ -32,6 +34,8 @@ type GridFilterProps = {
  * @internal
  */
 export function GridFilter({ filter }: GridFilterProps) {
+	const intl = useIntl()
+
 	const [text, setText] = useState(filter.value)
 
 	// The last query this field sent, and the last value it received. A value
@@ -99,14 +103,16 @@ export function GridFilter({ filter }: GridFilterProps) {
 		push(text)
 	}
 
+	const placeholder = filter.placeholder ?? intl.formatMessage(gridMessages.search)
+
 	return (
 		<form data-slot="grid-filter" onSubmit={submit}>
 			<SearchInput
 				value={text}
 				onChange={(event) => apply(event.target.value)}
 				onClear={() => apply('')}
-				placeholder={filter.placeholder}
-				aria-label={filter.placeholder}
+				placeholder={placeholder}
+				aria-label={placeholder}
 			/>
 		</form>
 	)

@@ -544,7 +544,7 @@ export type GridSelection = {
 export type GridColumnManagerConfig = GridToolSurfaces & {
 	/**
 	 * Label on the toolbar button and the dialog title.
-	 * @defaultValue 'Manage columns'
+	 * @defaultValue `'Manage columns'`, in the language of the reader.
 	 */
 	label?: ReactNode
 

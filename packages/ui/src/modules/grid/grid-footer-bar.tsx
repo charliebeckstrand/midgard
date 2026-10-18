@@ -1,7 +1,10 @@
 'use client'
 
 import { cn } from '../../core'
+import type { IntlShape } from '../../primitives/intl/types'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
+import { gridMessages } from './engine/grid-messages'
 import type { GridFooter as GridFooterConfig, GridFooterStats } from './grid-data-types'
 
 /** Props for {@link GridFooterBar}. @internal */
@@ -24,12 +27,12 @@ type GridFooterProps = {
  *
  * @internal
  */
-function rowTotalLabel({ rows, total }: GridFooterStats): string | null {
+function rowTotalLabel(intl: IntlShape, { rows, total }: GridFooterStats): string | null {
 	if (rows === 0) return null
 
-	if (total > rows) return `${rows} of ${total} rows visible`
+	if (total > rows) return intl.formatMessage(gridMessages.rowsVisible, { rows, total })
 
-	return `${rows} ${rows === 1 ? 'row' : 'rows'}`
+	return intl.formatMessage(gridMessages.rowCount, { rows })
 }
 
 /**
@@ -44,11 +47,10 @@ function rowTotalLabel({ rows, total }: GridFooterStats): string | null {
  *
  * @internal
  */
-function selectedLabel({ rows, selected, hidden }: GridFooterStats): string {
-	if (hidden > 0)
-		return `${selected} ${selected === 1 ? 'row' : 'rows'} selected, ${hidden} not shown`
+function selectedLabel(intl: IntlShape, { rows, selected, hidden }: GridFooterStats): string {
+	if (hidden > 0) return intl.formatMessage(gridMessages.selectedHidden, { selected, hidden })
 
-	return `${selected} of ${rows} ${rows === 1 ? 'row' : 'rows'} selected`
+	return intl.formatMessage(gridMessages.selectedOf, { selected, rows })
 }
 
 /**
@@ -71,6 +73,8 @@ function selectedLabel({ rows, selected, hidden }: GridFooterStats): string {
  * @internal
  */
 export function GridFooterBar({ config, stats }: GridFooterProps) {
+	const intl = useIntl()
+
 	if (!config || !stats) return null
 
 	const showSelected = config.selectedTotal === true && stats.selected > 0
@@ -79,7 +83,11 @@ export function GridFooterBar({ config, stats }: GridFooterProps) {
 
 	// One leading status, chosen by precedence: an active selection replaces the
 	// row-count total in place, its `of` denominator keeping the visible context.
-	const status = showSelected ? selectedLabel(stats) : showRowTotal ? rowTotalLabel(stats) : null
+	const status = showSelected
+		? selectedLabel(intl, stats)
+		: showRowTotal
+			? rowTotalLabel(intl, stats)
+			: null
 
 	const content = config.content?.(stats)
 

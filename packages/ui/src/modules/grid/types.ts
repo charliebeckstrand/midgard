@@ -459,7 +459,7 @@ export type GridSearch = {
 	mode?: 'filter' | 'highlight'
 	/**
 	 * Placeholder for the search input.
-	 * @defaultValue 'Search'
+	 * @defaultValue `'Search'`, in the language of the reader.
 	 */
 	placeholder?: string
 }

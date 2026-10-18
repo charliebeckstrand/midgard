@@ -4,6 +4,8 @@ import type { DragEndEvent, DragOverEvent, DragStartEvent } from '@dnd-kit/core'
 import { useCallback, useId, useMemo, useRef, useState } from 'react'
 import type { PaletteColor } from '../../core/recipe'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { useIntl } from '../../primitives/intl/use-intl'
+import { gridMessages } from './engine/grid-messages'
 import {
 	addGroupTo,
 	assignColumn,
@@ -63,6 +65,8 @@ export function useGridGroupManager({
 	order,
 	onOrderChange,
 }: GridGroupManagerOptions) {
+	const intl = useIntl()
+
 	const baseId = useId()
 
 	const idCounter = useRef(0)
@@ -93,11 +97,11 @@ export function useGridGroupManager({
 		onGroupsChange(
 			addGroupTo(groups, {
 				id: `${baseId}-group-${idCounter.current}`,
-				title: 'New group',
+				title: intl.formatMessage(gridMessages.newGroup),
 				columns: [],
 			}),
 		)
-	}, [groups, onGroupsChange, baseId])
+	}, [groups, onGroupsChange, baseId, intl])
 
 	// The editor hands these four to every zone and every column row, so each
 	// keeps one identity for the mount and reads the newest groups. A rename then

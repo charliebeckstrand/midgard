@@ -487,6 +487,10 @@
 		"defaultMessage": "Upload file",
 		"description": "The name of the file input of a drop zone."
 	},
+	"ui.grid.addRow": {
+		"defaultMessage": "Add row",
+		"description": "The name of the button that adds the new row to a grid."
+	},
 	"ui.grid.allSelected": {
 		"defaultMessage": "All rows selected",
 		"description": "Spoken when the reader selects all the rows of the grid."
@@ -494,6 +498,10 @@
 	"ui.grid.allSelectedOnPage": {
 		"defaultMessage": "All rows on this page selected",
 		"description": "Spoken when the reader selects all the rows of the current page of the grid."
+	},
+	"ui.grid.apply": {
+		"defaultMessage": "Apply",
+		"description": "The button that applies the filter of a column of a grid."
 	},
 	"ui.grid.autoSize": {
 		"defaultMessage": "Auto-size",
@@ -503,13 +511,37 @@
 		"defaultMessage": "Auto-size all columns",
 		"description": "The menu item that fits the width of each grid column to its content."
 	},
+	"ui.grid.autoSizeBody": {
+		"defaultMessage": "This fits every column to its content and replaces the column widths you saved. Your other layout preferences — order, visibility, and pinned columns — stay just as they are.",
+		"description": "The text of the dialog that asks before it fits every column of a grid to its content."
+	},
 	"ui.grid.autoSizeColumn": {
 		"defaultMessage": "Auto-size this column",
 		"description": "The menu item that fits the width of a grid column to its content."
 	},
+	"ui.grid.autoSizeConfirm": {
+		"defaultMessage": "Auto-size columns",
+		"description": "The button that fits every column of a grid to its content."
+	},
+	"ui.grid.autoSizeTitle": {
+		"defaultMessage": "Auto-size all columns?",
+		"description": "The title of the dialog that asks before it fits every column of a grid to its content."
+	},
+	"ui.grid.batchActions": {
+		"defaultMessage": "Batch actions",
+		"description": "The name of the toolbar of the actions on the selected rows of a grid."
+	},
 	"ui.grid.blocked": {
 		"defaultMessage": "{step, select, undo {Cannot undo while a cell has an edit} other {Cannot redo while a cell has an edit}}",
 		"description": "Spoken when the grid cannot undo or redo, because a cell has an open edit."
+	},
+	"ui.grid.cellInNewRow": {
+		"defaultMessage": "{column}, new row",
+		"description": "The name of a cell of the new row of a grid by its column."
+	},
+	"ui.grid.cellInRow": {
+		"defaultMessage": "{column}, row {row, number}",
+		"description": "The name of a cell of a grid by its column and its row number."
 	},
 	"ui.grid.cellMenu": {
 		"defaultMessage": "Cell menu",
@@ -527,6 +559,10 @@
 		"defaultMessage": "Clear color",
 		"description": "The menu item that removes the color of a group of a grid."
 	},
+	"ui.grid.clearFilters": {
+		"defaultMessage": "Clear filters",
+		"description": "The menu item and the button that remove the filters of a grid."
+	},
 	"ui.grid.clearSort": {
 		"defaultMessage": "Clear sort",
 		"description": "The menu item that removes the sort of a grid."
@@ -535,9 +571,33 @@
 		"defaultMessage": "Collapse all groups",
 		"description": "The menu item that closes every row group of a grid."
 	},
+	"ui.grid.collapseDetails": {
+		"defaultMessage": "Collapse details for {row}",
+		"description": "The name of the button that closes the detail panel of a row of a grid."
+	},
 	"ui.grid.collapseGroup": {
 		"defaultMessage": "Collapse group",
 		"description": "The menu item that closes a row group of a grid."
+	},
+	"ui.grid.collapseGroupNamed": {
+		"defaultMessage": "Collapse group {group}",
+		"description": "The name of the button that closes a row group of a grid. The group is its value."
+	},
+	"ui.grid.collapseNamed": {
+		"defaultMessage": "Collapse {group}",
+		"description": "The name of the button that hides the columns of a column group."
+	},
+	"ui.grid.color": {
+		"defaultMessage": "Color",
+		"description": "The button of a group with no color that opens the color choices."
+	},
+	"ui.grid.colorFor": {
+		"defaultMessage": "Color for {group}",
+		"description": "The name of the button of a group with no color that opens the color choices. The group is its name."
+	},
+	"ui.grid.colorOf": {
+		"defaultMessage": "{color} color for {group}",
+		"description": "The name of the button of a group with a color that opens the color choices, such as \"Red color for Contact\"."
 	},
 	"ui.grid.columnGroupName": {
 		"defaultMessage": "{group} group",
@@ -555,9 +615,25 @@
 		"defaultMessage": "column {number}",
 		"description": "The name of a column with no label of its own, inside an announcement. The number is its place, from 1."
 	},
+	"ui.grid.columns": {
+		"defaultMessage": "Columns",
+		"description": "The name of the list of columns in the column manager of a grid."
+	},
+	"ui.grid.commitRefused": {
+		"defaultMessage": "Change not saved",
+		"description": "The error of a cell edit that the app did not save, when the app gives no reason."
+	},
 	"ui.grid.copy": {
 		"defaultMessage": "Copy",
 		"description": "The menu item that copies the selected cells of a grid."
+	},
+	"ui.grid.dataGrid": {
+		"defaultMessage": "Data grid",
+		"description": "The name of a grid that the app gives no name."
+	},
+	"ui.grid.discardCell": {
+		"defaultMessage": "Discard {cell}",
+		"description": "The name of the button that drops the edit of a cell. The cell names its column and row."
 	},
 	"ui.grid.discarded": {
 		"defaultMessage": "{count, plural, one {# change discarded} other {# changes discarded}}",
@@ -571,6 +647,14 @@
 		"defaultMessage": "Dropped {item} where it started.",
 		"description": "Spoken when a dragged column or group drops over no place, so nothing moves."
 	},
+	"ui.grid.editCell": {
+		"defaultMessage": "Edit {cell}",
+		"description": "The name of the editor of a cell of a grid. The cell names its column and row."
+	},
+	"ui.grid.editFilters": {
+		"defaultMessage": "Edit filters",
+		"description": "The menu item that opens the filter of a grid column to change it."
+	},
 	"ui.grid.editor": {
 		"defaultMessage": "the editor",
 		"description": "The group editor as a whole, as a place in an announcement, when a column is over no group."
@@ -579,9 +663,21 @@
 		"defaultMessage": "Expand all groups",
 		"description": "The menu item that opens every row group of a grid."
 	},
+	"ui.grid.expandDetails": {
+		"defaultMessage": "Expand details for {row}",
+		"description": "The name of the button that opens the detail panel of a row of a grid."
+	},
 	"ui.grid.expandGroup": {
 		"defaultMessage": "Expand group",
 		"description": "The menu item that opens a row group of a grid."
+	},
+	"ui.grid.expandGroupNamed": {
+		"defaultMessage": "Expand group {group}",
+		"description": "The name of the button that opens a row group of a grid. The group is its value."
+	},
+	"ui.grid.expandNamed": {
+		"defaultMessage": "Expand {group}",
+		"description": "The name of the button that shows the columns of a collapsed column group."
 	},
 	"ui.grid.export": {
 		"defaultMessage": "Export",
@@ -599,6 +695,10 @@
 		"defaultMessage": "Export to {type}",
 		"description": "The action of an export type that the app adds to a grid. The type is its name."
 	},
+	"ui.grid.exporting": {
+		"defaultMessage": "Exporting",
+		"description": "Shown while a grid exports its rows."
+	},
 	"ui.grid.fillDown": {
 		"defaultMessage": "Fill down",
 		"description": "The menu item that copies the first row of a cell range of a grid down the range."
@@ -611,13 +711,29 @@
 		"defaultMessage": "Fill right",
 		"description": "The menu item that copies the first column of a cell range of a grid to the right."
 	},
+	"ui.grid.filterActive": {
+		"defaultMessage": "Filter {column}, active",
+		"description": "The name of the header button of a grid column whose filter is on."
+	},
 	"ui.grid.filterColumn": {
 		"defaultMessage": "Filter “{column}”",
 		"description": "The menu item that opens the filter of a grid column. The column is its name."
 	},
+	"ui.grid.filterColumns": {
+		"defaultMessage": "Filter columns",
+		"description": "The hint text and the name of the field that filters the columns in the column manager of a grid."
+	},
+	"ui.grid.filterNamed": {
+		"defaultMessage": "Filter {column}",
+		"description": "The name of the header button that opens the filter of a grid column."
+	},
 	"ui.grid.forRow": {
 		"defaultMessage": "{cells} for {row}",
 		"description": "Adds the row to a save announcement of the grid, such as \"Name updated for Alice\"."
+	},
+	"ui.grid.frozenColumn": {
+		"defaultMessage": "{column} ({state, select, locked {locked} other {pinned}})",
+		"description": "The name of the checkbox of a column that the reader cannot hide, because it is locked or pinned."
 	},
 	"ui.grid.groupBy": {
 		"defaultMessage": "Group by “{column}”",
@@ -631,6 +747,14 @@
 		"defaultMessage": "{group} group menu",
 		"description": "The name of the context menu of a group of a grid. The group is its name."
 	},
+	"ui.grid.groupName": {
+		"defaultMessage": "Group name",
+		"description": "The hint text of the field that names a column group of a grid."
+	},
+	"ui.grid.groupNameFor": {
+		"defaultMessage": "Group name for {group}",
+		"description": "The name of the field that names a column group of a grid. The group is its current name."
+	},
 	"ui.grid.groupPosition": {
 		"defaultMessage": "position {position} of {total}",
 		"description": "The place of a dragged group in the list of groups, inside an announcement of the group editor."
@@ -643,6 +767,14 @@
 		"defaultMessage": "{item} is over {place}.",
 		"description": "Spoken while a column or a group is dragged over a place in the group editor, such as \"Name column is over Contact group.\"."
 	},
+	"ui.grid.keepWidths": {
+		"defaultMessage": "Keep my widths",
+		"description": "The button that closes the dialog and keeps the saved column widths of a grid."
+	},
+	"ui.grid.loadFailed": {
+		"defaultMessage": "Couldn't load data",
+		"description": "The error of a grid whose rows did not load."
+	},
 	"ui.grid.manageColumns": {
 		"defaultMessage": "Manage columns",
 		"description": "The menu item that opens the dialog that shows, hides, and orders the columns of a grid."
@@ -651,17 +783,85 @@
 		"defaultMessage": "Manage rows",
 		"description": "The menu item that opens the dialog that orders and colors the row groups of a grid."
 	},
+	"ui.grid.moveTo": {
+		"defaultMessage": "Move to {group}",
+		"description": "The menu item that moves a column into a column group of a grid."
+	},
+	"ui.grid.newGroup": {
+		"defaultMessage": "New group",
+		"description": "The button that adds a column group, and the first name of the new group."
+	},
+	"ui.grid.newRow": {
+		"defaultMessage": "New row",
+		"description": "The name of the row where the reader types a new row of a grid."
+	},
+	"ui.grid.nextPage": {
+		"defaultMessage": "Next page",
+		"description": "The name of the button that shows the page of a grid after this one."
+	},
+	"ui.grid.no": {
+		"defaultMessage": "No",
+		"description": "The false choice of a yes-or-no cell of a grid."
+	},
+	"ui.grid.noColor": {
+		"defaultMessage": "None",
+		"description": "The color choice that removes the color of a group."
+	},
+	"ui.grid.noColumnsInGroup": {
+		"defaultMessage": "No columns in this group",
+		"description": "The text of a column group of a grid that holds no columns."
+	},
+	"ui.grid.noRows": {
+		"defaultMessage": "No rows",
+		"description": "The page status of a grid that has no rows."
+	},
+	"ui.grid.noUngroupedColumns": {
+		"defaultMessage": "No ungrouped columns",
+		"description": "The text of the ungrouped columns of a grid when every column is in a group."
+	},
 	"ui.grid.nothingTo": {
 		"defaultMessage": "{step, select, undo {Nothing to undo} other {Nothing to redo}}",
 		"description": "Spoken when the reader asks the grid to undo or redo and there is nothing to do."
+	},
+	"ui.grid.pageNumber": {
+		"defaultMessage": "Page {page, number}",
+		"description": "The page status of a grid that does not know its number of pages."
+	},
+	"ui.grid.pageOf": {
+		"defaultMessage": "Page {page, number} of {total, number}",
+		"description": "The page status of a grid that knows its number of pages."
+	},
+	"ui.grid.pagination": {
+		"defaultMessage": "Pagination",
+		"description": "The name of the page navigation of a grid with no name."
+	},
+	"ui.grid.paginationOf": {
+		"defaultMessage": "{grid} pagination",
+		"description": "The name of the page navigation of a grid. The grid is its name."
+	},
+	"ui.grid.paginationWord": {
+		"defaultMessage": "pagination",
+		"description": "The hidden word after the name of a grid that names its page navigation."
+	},
+	"ui.grid.paletteColor": {
+		"defaultMessage": "{color, select, zinc {Zinc} red {Red} amber {Amber} green {Green} blue {Blue} rose {Rose} violet {Violet} sky {Sky} other {{color}}}",
+		"description": "The name of a color that a group of a grid can take."
 	},
 	"ui.grid.partial": {
 		"defaultMessage": "{saved}, {failed}",
 		"description": "Joins the saved and the failed cells of one save of the grid, such as \"Name updated, 2 cells not saved\"."
 	},
+	"ui.grid.perPage": {
+		"defaultMessage": "{count, number} / page",
+		"description": "The value of the rows-per-page control of a grid, such as \"25 / page\"."
+	},
 	"ui.grid.pin": {
 		"defaultMessage": "Pin",
 		"description": "The menu item of a grid column that opens the pin choices."
+	},
+	"ui.grid.pinColumn": {
+		"defaultMessage": "Pin {column}",
+		"description": "The name of the button that opens the pin choices of a column in the column manager of a grid."
 	},
 	"ui.grid.pinLeft": {
 		"defaultMessage": "Pin left",
@@ -679,6 +879,10 @@
 		"defaultMessage": "{width, plural, one {# pixel} other {# pixels}}",
 		"description": "The width of a column of the grid, read by its resize handle."
 	},
+	"ui.grid.previousPage": {
+		"defaultMessage": "Previous page",
+		"description": "The name of the button that shows the page of a grid before this one."
+	},
 	"ui.grid.print": {
 		"defaultMessage": "Print",
 		"description": "The action that prints the rows of a grid."
@@ -686,6 +890,38 @@
 	"ui.grid.range": {
 		"defaultMessage": "Range of {rows, plural, one {# row} other {# rows}} and {cols, plural, one {# column} other {# columns}}, {fromColumn} row {fromRow} to {toColumn} row {toRow}",
 		"description": "Spoken when the reader selects a range of cells of the grid: its size, and its two corners by column and row number."
+	},
+	"ui.grid.rangeOf": {
+		"defaultMessage": "{from, number}–{to, number} of {total, number}",
+		"description": "The page status of a grid: the first and the last row of the page, and the count of rows."
+	},
+	"ui.grid.removeFromGroup": {
+		"defaultMessage": "Remove from group",
+		"description": "The menu item that takes a column out of its column group."
+	},
+	"ui.grid.removeGroupNamed": {
+		"defaultMessage": "Remove group {group}",
+		"description": "The name of the button that removes a column group of a grid."
+	},
+	"ui.grid.reorderColumns": {
+		"defaultMessage": "Reorder columns",
+		"description": "The name of the list of columns that the reader can reorder in the column manager of a grid."
+	},
+	"ui.grid.reorderRows": {
+		"defaultMessage": "Reorder rows",
+		"description": "The hidden name of the header of the column of row drag handles."
+	},
+	"ui.grid.resetBody": {
+		"defaultMessage": "This discards the column widths you saved, and the grid sizes the columns to fit its width again. Your other layout preferences — order, visibility, and pinned columns — stay just as they are.",
+		"description": "The text of the dialog that asks before it discards the saved column widths of a grid."
+	},
+	"ui.grid.resetConfirm": {
+		"defaultMessage": "Reset widths",
+		"description": "The button that discards the saved column widths of a grid."
+	},
+	"ui.grid.resetTitle": {
+		"defaultMessage": "Reset column widths?",
+		"description": "The title of the dialog that asks before it discards the saved column widths of a grid."
 	},
 	"ui.grid.resetWidths": {
 		"defaultMessage": "Reset column widths",
@@ -707,6 +943,10 @@
 		"defaultMessage": "Row added",
 		"description": "Spoken when the reader adds a row to the grid."
 	},
+	"ui.grid.rowCount": {
+		"defaultMessage": "{rows, plural, one {# row} other {# rows}}",
+		"description": "The row count in the footer of a grid."
+	},
 	"ui.grid.rowGroupName": {
 		"defaultMessage": "group {group}",
 		"description": "The name of a row group in a reorder announcement, such as \"group Active\"."
@@ -719,17 +959,61 @@
 		"defaultMessage": "{count, plural, one {Row not added, # cell refused} other {Row not added, # cells refused}}",
 		"description": "Spoken when the grid does not add a new row. The count is the number of refused cells."
 	},
+	"ui.grid.rowsPerPage": {
+		"defaultMessage": "Rows per page",
+		"description": "The name of the control that picks the number of rows on a page of a grid."
+	},
+	"ui.grid.rowsResult": {
+		"defaultMessage": "{count, plural, =0 {No results} one {# row} other {# rows}}",
+		"description": "Spoken when the rows of a grid finish loading. The count is the number of rows."
+	},
 	"ui.grid.rowsSelected": {
 		"defaultMessage": "{count, plural, one {# row selected} other {# rows selected}}",
 		"description": "Spoken when the selection of the grid changes. The count is the number of selected rows."
+	},
+	"ui.grid.rowsVisible": {
+		"defaultMessage": "{rows, number} of {total, plural, one {# row} other {# rows}} visible",
+		"description": "The row count in the footer of a filtered grid."
+	},
+	"ui.grid.saveCell": {
+		"defaultMessage": "Save {cell}",
+		"description": "The name of the button that saves the edit of a cell. The cell names its column and row."
+	},
+	"ui.grid.savePreset": {
+		"defaultMessage": "Save as preset",
+		"description": "The button that saves the layout of the columns of a grid as a preset."
+	},
+	"ui.grid.search": {
+		"defaultMessage": "Search",
+		"description": "The hint text and the name of the search field of a grid."
+	},
+	"ui.grid.selectAll": {
+		"defaultMessage": "Select all rows",
+		"description": "The name of the checkbox in the header that selects every row of a grid."
+	},
+	"ui.grid.selectAllOnPage": {
+		"defaultMessage": "Select all rows on this page",
+		"description": "The name of the checkbox in the header that selects every row of the current page of a grid."
 	},
 	"ui.grid.selectRow": {
 		"defaultMessage": "Select {row}",
 		"description": "The name of the checkbox that selects a row."
 	},
+	"ui.grid.selectedHidden": {
+		"defaultMessage": "{selected, plural, one {# row selected} other {# rows selected}}, {hidden, number} not shown",
+		"description": "The selection count in the footer of a grid, when the filter hides some selected rows."
+	},
+	"ui.grid.selectedOf": {
+		"defaultMessage": "{selected, number} of {rows, plural, one {# row} other {# rows}} selected",
+		"description": "The selection count in the footer of a grid."
+	},
 	"ui.grid.selectionCleared": {
 		"defaultMessage": "Selection cleared",
 		"description": "Spoken when no row of the grid is selected any more."
+	},
+	"ui.grid.showColumn": {
+		"defaultMessage": "Show {column}",
+		"description": "The name of the checkbox that shows or hides a column of a grid."
 	},
 	"ui.grid.showed": {
 		"defaultMessage": "Showed {column} column",
@@ -746,6 +1030,14 @@
 	"ui.grid.sortAscending": {
 		"defaultMessage": "Sort ascending",
 		"description": "The menu item that sorts the rows of a grid by a column, from low to high."
+	},
+	"ui.grid.sortBy": {
+		"defaultMessage": "Sort by {column}",
+		"description": "The name of the header button that sorts the rows of a grid by a column."
+	},
+	"ui.grid.sortByPriority": {
+		"defaultMessage": "Sort by {column}, sort priority {priority, number}",
+		"description": "The name of the header button of a column in a sort by many columns. The priority is its place in that sort, from 1."
 	},
 	"ui.grid.sortCleared": {
 		"defaultMessage": "Sorting cleared",
@@ -771,6 +1063,14 @@
 		"defaultMessage": "{step, select, undo {Cannot undo, the cells changed} other {Cannot redo, the cells changed}}",
 		"description": "Spoken when the grid cannot undo or redo, because the cells changed since the edit."
 	},
+	"ui.grid.tableTools": {
+		"defaultMessage": "Table tools",
+		"description": "The name of the toolbar of the tools of a grid."
+	},
+	"ui.grid.total": {
+		"defaultMessage": "Total",
+		"description": "The label of the row that adds up the columns of a grid."
+	},
 	"ui.grid.ungroup": {
 		"defaultMessage": "Ungroup",
 		"description": "The menu item that stops the grouping of the rows of a grid."
@@ -783,6 +1083,10 @@
 		"defaultMessage": "Unpin",
 		"description": "The menu item that unpins a column of a grid."
 	},
+	"ui.grid.unpinColumn": {
+		"defaultMessage": "Unpin {column}",
+		"description": "The name of the button in the header of a pinned column that unpins it."
+	},
 	"ui.grid.unpinned": {
 		"defaultMessage": "Unpinned {column}",
 		"description": "Spoken when the reader unpins a column of the grid."
@@ -790,6 +1094,10 @@
 	"ui.grid.withSkipped": {
 		"defaultMessage": "{saved}, {count, plural, other {# skipped}}",
 		"description": "Adds the skipped cells to a paste announcement of the grid, such as \"12 cells pasted, 2 skipped\"."
+	},
+	"ui.grid.yes": {
+		"defaultMessage": "Yes",
+		"description": "The true choice of a yes-or-no cell of a grid."
 	},
 	"ui.kanban.drag": {
 		"defaultMessage": "Drag",

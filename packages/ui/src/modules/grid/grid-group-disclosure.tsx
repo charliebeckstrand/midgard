@@ -5,8 +5,10 @@ import type { ReactNode } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { cn } from '../../core'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
 import { groupValueLabel } from './engine/grid-column/label'
+import { gridMessages } from './engine/grid-messages'
 import type { GridGroupBy } from './grid-data-types'
 
 /**
@@ -34,9 +36,11 @@ export function GridGroupDisclosure({
 	expanded: boolean
 	onToggle: () => void
 }) {
+	const intl = useIntl()
+
 	const label: ReactNode = renderHeader
 		? renderHeader({ columnId, value, count })
-		: `${groupValueLabel(value)} (${count})`
+		: `${groupValueLabel(value)} (${intl.formatNumber(count)})`
 
 	return (
 		<Button
@@ -44,7 +48,10 @@ export function GridGroupDisclosure({
 			variant="bare"
 			onClick={onToggle}
 			aria-expanded={expanded}
-			aria-label={`${expanded ? 'Collapse' : 'Expand'} group ${groupValueLabel(value)}`}
+			aria-label={intl.formatMessage(
+				expanded ? gridMessages.collapseGroupNamed : gridMessages.expandGroupNamed,
+				{ group: groupValueLabel(value) },
+			)}
 			className="p-0"
 			suffix={
 				<Icon

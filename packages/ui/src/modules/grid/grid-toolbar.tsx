@@ -8,8 +8,11 @@ import { LoadingSpinner } from '../../components/loading'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
 import { Toolbar } from '../../components/toolbar'
 import { ariaAttr, cn, dataAttr } from '../../core'
+import { intlMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
 import type { GridExportAction } from './engine/grid-export/types'
+import { gridMessages } from './engine/grid-messages'
 import { preloadGridDataDialogs } from './grid-data-dialogs'
 import type { GridSelection } from './grid-data-types'
 import { GridFilter } from './grid-filter'
@@ -72,6 +75,8 @@ type GridExportMenuProps = Pick<GridToolbarProps, 'exportActions' | 'exporting'>
  * @internal
  */
 function GridExportMenu({ exportActions, exporting }: GridExportMenuProps) {
+	const intl = useIntl()
+
 	const [open, setOpen] = useState(false)
 
 	return (
@@ -82,11 +87,17 @@ function GridExportMenu({ exportActions, exporting }: GridExportMenuProps) {
 				<Button
 					type="button"
 					variant="plain"
-					prefix={exporting ? <LoadingSpinner /> : <Icon icon={<Download />} />}
+					prefix={
+						exporting ? (
+							<LoadingSpinner label={intl.formatMessage(intlMessages.loading)} />
+						) : (
+							<Icon icon={<Download />} />
+						)
+					}
 					aria-disabled={ariaAttr(exporting)}
 					data-disabled={dataAttr(exporting)}
 				>
-					Export
+					{intl.formatMessage(gridMessages.export)}
 				</Button>
 			</MenuTrigger>
 			<MenuContent>
@@ -137,6 +148,8 @@ export function GridToolbar({
 	selection,
 	setSelection,
 }: GridToolbarProps) {
+	const intl = useIntl()
+
 	const showExport = exportActions.length > 0
 
 	const showTools = showColumnManager || showExport
@@ -164,7 +177,7 @@ export function GridToolbar({
 							color="amber"
 							onClick={() => columnFilters?.clear()}
 						>
-							Clear filters
+							{intl.formatMessage(gridMessages.clearFilters)}
 						</Button>
 					)}
 
@@ -175,7 +188,7 @@ export function GridToolbar({
 
 					{showTools && (
 						<Toolbar
-							aria-label="Table tools"
+							aria-label={intl.formatMessage(gridMessages.tableTools)}
 							// The content ahead already takes the free space. A second auto
 							// margin would split it and open a gap between the two.
 							className={cn(!content && k.toolbar.actions)}
@@ -201,7 +214,9 @@ export function GridToolbar({
 			)}
 
 			{showBatch && (
-				<Toolbar aria-label="Batch actions">{batchActions?.({ selection, setSelection })}</Toolbar>
+				<Toolbar aria-label={intl.formatMessage(gridMessages.batchActions)}>
+					{batchActions?.({ selection, setSelection })}
+				</Toolbar>
 			)}
 		</div>
 	)

@@ -8,11 +8,13 @@ import { Icon } from '../../components/icon'
 import { TableHeader, TableRow } from '../../components/table'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { cn, dataAttr } from '../../core'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k as gridK } from '../../recipes/kata/grid'
 import { k } from '../../recipes/kata/grid-group'
 import { useGrid } from './context'
 import { columnLabel } from './engine/grid-column/label'
 import type { GridGroupHeader } from './engine/grid-group/resolve'
+import { gridMessages } from './engine/grid-messages'
 import { pinnedCellAttribute, pinnedClassName, pinnedOffsetStyle } from './engine/grid-pin/styles'
 import type { GridColumnGroup, GridGroupSpan } from './grid-group-types'
 import type { GridColumnPinning } from './use-grid-table'
@@ -175,6 +177,8 @@ type GridGroupBandProps = {
 
 /** The colored band content: icon + title Badge, a trailing fold chevron (collapsible), and a `+N` count when collapsed. @internal */
 function GridGroupBand({ group, collapsed, onToggleCollapse }: GridGroupBandProps) {
+	const intl = useIntl()
+
 	const label = columnLabel(group)
 
 	// Members the band hides while collapsed — every column but the anchor.
@@ -215,7 +219,10 @@ function GridGroupBand({ group, collapsed, onToggleCollapse }: GridGroupBandProp
 				variant="bare"
 				type="button"
 				aria-expanded={!collapsed}
-				aria-label={collapsed ? `Expand ${label}` : `Collapse ${label}`}
+				aria-label={intl.formatMessage(
+					collapsed ? gridMessages.expandNamed : gridMessages.collapseNamed,
+					{ group: label },
+				)}
 				onClick={() => onToggleCollapse(group.id)}
 			>
 				{/* A column group folds horizontally: a caret to the inline start while
@@ -224,7 +231,9 @@ function GridGroupBand({ group, collapsed, onToggleCollapse }: GridGroupBandProp
 				<Icon icon={collapsed ? <ChevronLeft /> : <ChevronRight />} className={cn(k.band.caret)} />
 			</Button>
 
-			{collapsed && hiddenCount > 0 && <span className={cn(k.count)}>+{hiddenCount}</span>}
+			{collapsed && hiddenCount > 0 && (
+				<span className={cn(k.count)}>+{intl.formatNumber(hiddenCount)}</span>
+			)}
 		</span>
 	)
 }

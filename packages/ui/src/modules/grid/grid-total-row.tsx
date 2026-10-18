@@ -4,11 +4,13 @@ import { type ComponentProps, memo, type ReactNode } from 'react'
 import { TableBody, TableHeader, TableRow } from '../../components/table'
 import { cn, dataAttr } from '../../core'
 import type { PaletteColor } from '../../core/recipe'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { MountHold } from '../../primitives/mount'
 import { useLocale } from '../../providers/locale'
 import { k } from '../../recipes/kata/grid'
 import { aggregateLabelSpan, hasAggregation, renderAggregate } from './engine/grid-aggregate'
 import { NO_PADDING, NO_ROWS } from './engine/grid-constants'
+import { gridMessages } from './engine/grid-messages'
 import type { GridWindowRowProps } from './engine/grid-row/shell'
 import { GridAggregateCells } from './grid-aggregate-cells'
 import { GridNavCell, useGridNavStopProps } from './grid-nav-cell'
@@ -110,7 +112,7 @@ type GridTotalRowProps<T> = {
 	expanded?: boolean
 	/**
 	 * The label in the leading cell.
-	 * @defaultValue 'Total'
+	 * @defaultValue `'Total'`, in the language of the reader.
 	 */
 	label?: ReactNode
 	/** The group's overlay color, washing the group total's cells at low opacity; ignored on the grand variant. */
@@ -186,11 +188,15 @@ function GridTotalRowImpl<T>({
 	rows,
 	variant,
 	expanded = true,
-	label = 'Total',
+	label: labelProp,
 	color,
 	navKey,
 	...windowRow
 }: GridTotalRowProps<T>) {
+	const intl = useIntl()
+
+	const label = labelProp ?? intl.formatMessage(gridMessages.total)
+
 	const span = aggregateLabelSpan(columns)
 
 	// The two variants share the label span and nothing else — different trees,
