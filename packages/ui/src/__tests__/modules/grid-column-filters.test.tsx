@@ -648,6 +648,50 @@ describe('Grid per-column filters', () => {
 
 		expect(screen.queryByRole('button', { name: 'Clear filters' })).toBeNull()
 	})
+
+	it('moves focus to the search field when the toolbar button clears the filters', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				search={{}}
+				columnFilters={{ defaultValue: [{ id: 'name', value: nameContains('Bob') }] }}
+			/>,
+		)
+
+		const clear = screen.getByRole('button', { name: 'Clear filters' })
+
+		clear.focus()
+
+		fireEvent.click(clear)
+
+		expect(screen.queryByRole('button', { name: 'Clear filters' })).toBeNull()
+
+		expect(document.activeElement).toBe(screen.getByRole('searchbox'))
+	})
+
+	it('moves focus to the Tab stop of the table when the toolbar has no search field', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				navigable
+				columnFilters={{ defaultValue: [{ id: 'name', value: nameContains('Bob') }] }}
+			/>,
+		)
+
+		const clear = screen.getByRole('button', { name: 'Clear filters' })
+
+		clear.focus()
+
+		fireEvent.click(clear)
+
+		expect(screen.queryByRole('button', { name: 'Clear filters' })).toBeNull()
+
+		expect(document.activeElement).toBe(screen.getByRole('grid'))
+	})
 	describe("affordance: 'menu'", () => {
 		/** The Name header, found by text — its accessible name carries the sort/filter chrome too. */
 		const nameHeader = () => {
