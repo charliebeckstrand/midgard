@@ -38,6 +38,17 @@ function describeZoom(transform: MapTransform): string {
 	return `Zoom ${Math.round((transform.k / MAP_ZOOM_FIT) * 100)}%`
 }
 
+/**
+ * Whether a key press holds Ctrl, Meta, or Alt. Such a chord is for the browser,
+ * such as its own page zoom or history. Shift stays a plain press, because `+`
+ * needs it.
+ *
+ * @internal
+ */
+function isBrowserChord(event: KeyboardEvent<HTMLElement>): boolean {
+	return event.ctrlKey || event.metaKey || event.altKey
+}
+
 /** What {@link useMapKeyboard} needs from the plat to drive a cursor. @internal */
 export type MapKeyboardOptions = {
 	/** Whether the cursor has an output — a readout, a pick, or both; `false` leaves the region unfocusable. */
@@ -248,7 +259,7 @@ export function useMapKeyboard({
 		anchor(cursorStop, transform)
 	}, [cursorStop, drawn, transform, anchor])
 
-	const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+	const onPlainKeyDown = (event: KeyboardEvent<HTMLElement>) => {
 		// The zoom keys, read first because they claim keys the cursor does not: a
 		// reader who can only point with a keyboard still reaches every scale the
 		// wheel does, and `0` is the way back to the whole geography. The readout
@@ -304,6 +315,10 @@ export function useMapKeyboard({
 		show(move.stop)
 
 		speak(move.stop)
+	}
+
+	const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+		if (!isBrowserChord(event)) onPlainKeyDown(event)
 	}
 
 	return enabled ? { tabIndex: 0, onKeyDown, onBlur } : null
