@@ -68,6 +68,26 @@ describe('resolveFormat', () => {
 		})
 	})
 
+	describe('ambient fraction bounds', () => {
+		it('lowers an ambient floor to a spec ceiling below it', () => {
+			expect(
+				resolveFormat(
+					{ type: 'currency', maximumFractionDigits: 0 },
+					{ numberFormat: { minimumFractionDigits: 2 } },
+				)(71_000),
+			).toBe('$71,000')
+		})
+
+		it('raises an ambient ceiling to a spec floor above it', () => {
+			expect(
+				resolveFormat(
+					{ type: 'number', minimumFractionDigits: 2 },
+					{ numberFormat: { maximumFractionDigits: 0 } },
+				)(1.5),
+			).toBe('1.50')
+		})
+	})
+
 	describe('id', () => {
 		it('prefixes a whole number', () => {
 			expect(resolveFormat({ type: 'id', prefix: 'INV' })(10)).toBe('INV-10')
