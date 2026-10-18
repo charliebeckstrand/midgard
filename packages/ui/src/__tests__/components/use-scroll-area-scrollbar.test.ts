@@ -307,9 +307,11 @@ describe('useScrollAreaScrollbar', () => {
 		})
 
 		it.each([
-			['middle', 1],
-			['secondary', 2],
-		])('does not start a drag on a %s button press', (_, button) => {
+			['a middle button', { button: 1 }],
+			['a secondary button', { button: 2 }],
+			// The macOS secondary click: the primary button with Ctrl.
+			['a Ctrl+primary', { button: 0, ctrlKey: true }],
+		])('does not start a drag on %s press', (_, press) => {
 			const { hook, viewport } = setupHook('vertical', 'visible')
 
 			scroll(hook)
@@ -318,7 +320,7 @@ describe('useScrollAreaScrollbar', () => {
 
 			act(() => {
 				hook.result.current.startDrag('y')(
-					makePointerEvent<HTMLDivElement>({ button, clientY: 0, preventDefault }),
+					makePointerEvent<HTMLDivElement>({ ...press, clientY: 0, preventDefault }),
 				)
 			})
 

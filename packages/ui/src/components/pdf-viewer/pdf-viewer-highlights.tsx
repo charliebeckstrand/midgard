@@ -16,6 +16,7 @@ import { useA11yAnnouncements, useA11yRoving } from '../../hooks'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { isScrollbarPress } from '../../utilities'
+import { isPrimaryPress } from '../../utilities/primary-press'
 import { usePdfViewerContext } from './context'
 import { PdfViewerHighlightLabel } from './pdf-viewer-highlight-label'
 import { usePdfViewerHighlightsContext } from './pdf-viewer-highlights-context'
@@ -348,7 +349,7 @@ function PdfViewerHighlightLayer() {
 	function handleMouseDown(event: MouseEvent<HTMLDivElement>) {
 		// Primary button only: a right press opens the context menu, and a middle one is the
 		// browser's.
-		if (event.button !== 0) return
+		if (!isPrimaryPress(event)) return
 
 		const hit = regionAt(event)
 
@@ -418,7 +419,7 @@ function PdfViewerHighlightLayer() {
 
 		function handlePress(event: globalThis.MouseEvent) {
 			// Primary button only, as the region press is: a right press opens the context menu.
-			if (event.button !== 0) return
+			if (!isPrimaryPress(event)) return
 
 			const target = event.target as HTMLElement
 

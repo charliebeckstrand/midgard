@@ -364,12 +364,16 @@ describe('LetterRail', () => {
 		expect(rule()).toBeUndefined()
 	})
 
-	it('ignores a press of a button other than the primary', () => {
+	it.each([
+		['a secondary button', { button: 2 }],
+		// The macOS secondary click: the primary button with Ctrl.
+		['a Ctrl+primary', { button: 0, ctrlKey: true }],
+	])('ignores %s press', (_, init) => {
 		const { body, track, active } = renderSidebar()
 
 		fireEvent.pointerDown(track, {
 			clientY: inBand(2),
-			button: 2,
+			...init,
 			isPrimary: true,
 			pointerId: 1,
 			pointerType: 'mouse',

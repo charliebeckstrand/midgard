@@ -74,6 +74,7 @@ Side behavior, such as a preload or a pause on hover, keeps the default.
 | A boolean ARIA state or `data-*` attribute | `ariaAttr` and `dataAttr` in `ui/core` | `no-hand-written-bool-attr` |
 | A value held inside a range | `clamp` in `src/utilities` | `no-hand-written-clamp` |
 | A key press or a click that holds Ctrl, Meta, or Alt, which is for the browser | `hasBrowserModifier` in `utilities/modifier-keys.ts` | `browser-modifier-boundary.test.ts` |
+| A primary press, which starts a gesture or acts as a plain click. On macOS a Ctrl-click with the primary button is the secondary click, so it is not a primary press | `isPrimaryPress` in `utilities/primary-press.ts` | `primary-press-boundary.test.ts` |
 
 An arrow key on a physical axis, such as a slider track or a map cursor, stays physical. The logical-arrow gate lists each such file with its reason.
 

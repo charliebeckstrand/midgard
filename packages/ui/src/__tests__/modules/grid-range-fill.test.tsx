@@ -163,6 +163,22 @@ describe('Grid range fill', () => {
 		expect(view.texts().map((row) => row[1])).toEqual(['1', '1', '1'])
 	})
 
+	it('keeps the range on a Ctrl+primary press, the macOS secondary click', () => {
+		const view = renderFillGrid()
+
+		view.select([0, 0], [2, 1])
+
+		fireEvent.mouseDown(view.cell(1, 1), { button: 0, ctrlKey: true })
+
+		expect(view.cell(0, 0)).toHaveAttribute('data-in-range')
+
+		expect(view.cell(2, 1)).toHaveAttribute('data-in-range')
+
+		fireEvent.contextMenu(view.cell(1, 1), { ctrlKey: true })
+
+		expect(screen.getByRole('menuitem', { name: 'Fill down' })).toBeInTheDocument()
+	})
+
 	it('offers no fill item for a range of one cell', () => {
 		const view = renderFillGrid()
 

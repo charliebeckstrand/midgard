@@ -13,6 +13,7 @@ import { holdDragCursor } from '../../hooks/use-drag-cursor'
 import { useAnimationFrame, useTimeout } from '../../hooks/use-timeout'
 import type { ScrollOrientation } from '../../types'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
+import { isPrimaryPress } from '../../utilities/primary-press'
 import { hiddenThumb, SCROLL_FADE_DELAY_MS, type ThumbState } from './scroll-area-constants'
 import {
 	computeThumb,
@@ -51,7 +52,7 @@ function beginScrollbarDrag(
 	// Only the primary button drags, as on a native scrollbar. A secondary press
 	// opens the context menu, which can take the release and leave the drag
 	// on a pointer with no button held.
-	if (event.button !== 0) return
+	if (!isPrimaryPress(event)) return
 
 	const viewport = context.viewportRef.current
 

@@ -2,6 +2,7 @@
 
 import { type MouseEvent, type RefObject, useRef } from 'react'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { isPrimaryPress } from '../../utilities/primary-press'
 import {
 	filledCorners,
 	type GridFillDirection,
@@ -70,7 +71,7 @@ export function useGridFillDrag({
 	const start = useGridRangeDrag({ onCell: grow, onEnd: release, cellCoordOf, scrollContainerRef })
 
 	return useStableEvent((event: MouseEvent<HTMLElement>, grid: HTMLElement | null) => {
-		const source = event.button === 0 ? readSource() : null
+		const source = isPrimaryPress(event) ? readSource() : null
 
 		if (!source) return
 

@@ -2,6 +2,7 @@ import { type PointerEvent, type RefObject, useEffect, useRef, useState } from '
 import { dataAttr } from 'ui/core'
 import { useDragCursorHold } from '../../hooks/use-drag-cursor.ts'
 import { clamp } from '../../utilities/clamp.ts'
+import { isPrimaryPress } from '../../utilities/primary-press.ts'
 import type { PageLink } from '../plugin/pages.ts'
 
 // The letter rail at the side of the sidebar body. A press on a letter scrolls
@@ -190,7 +191,7 @@ export function LetterRail({
 	}
 
 	const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
-		if (!event.isPrimary || event.button !== 0) return
+		if (!isPrimaryPress(event)) return
 
 		// The press keeps the focus where it is and starts no text selection.
 		event.preventDefault()

@@ -1565,6 +1565,29 @@ describe('PdfViewer highlights', () => {
 		expect(onActiveHighlightChange).not.toHaveBeenCalledWith(null)
 	})
 
+	/** A Ctrl+primary press is the macOS secondary click: it opens the context menu, as a right press does. */
+	it('neither selects nor clears on a Ctrl+primary press', () => {
+		const onActiveHighlightChange = vi.fn()
+
+		const { container } = renderUI(
+			<PdfViewer
+				pages={sizedPages}
+				highlights={highlights}
+				onActiveHighlightChange={onActiveHighlightChange}
+			/>,
+		)
+
+		fireEvent.mouseDown(screen.getByLabelText('Total charges'), { button: 0, ctrlKey: true })
+
+		expect(onActiveHighlightChange).not.toHaveBeenCalled()
+
+		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
+
+		fireEvent.mouseDown(getSlot(container, 'pdf-viewer-viewport'), { button: 0, ctrlKey: true })
+
+		expect(onActiveHighlightChange).not.toHaveBeenCalledWith(null)
+	})
+
 	/*
 	 * Hiding the overlay is a reader asking to read the page under the boxes, and the selection
 	 * is meant to survive that. A press on the page while they are reading it is a press on the
