@@ -1,10 +1,16 @@
 // @vitest-environment node
+import states from 'us-atlas/states-10m.json'
 import { describe, expect, it } from 'vitest'
+import type { MapTopology } from '../../modules/map'
 import {
 	AREA_SPARE_FRACTION,
 	POINT_HIT_RADIUS,
 	POINT_RADIUS,
 } from '../../modules/map/engine/map-constants'
+import { projectPoint, unprojectPoint } from '../../modules/map/engine/map-geometry/mark'
+import { geographyFeatures } from '../../modules/map/engine/map-geometry/topology'
+import { rewindFeatures } from '../../modules/map/engine/map-geometry/winding'
+import { fitMapProjection } from '../../modules/map/engine/map-projection/resolve'
 import { NO_REGION_CLAIM, regionSpare } from '../../modules/map/engine/map-region/spare'
 import type { LngLat, MapFeature, MapPoint2D } from '../../modules/map/engine/types'
 
@@ -152,5 +158,47 @@ describe('regionSpare', () => {
 		// The plat states that policy, not this file — the resolver it hands out
 		// instead is the identity of the minimum `markTargets` folds into.
 		expect(NO_REGION_CLAIM({ x: 30, y: 30 }, 1)).toBe(Number.POSITIVE_INFINITY)
+	})
+
+	describe('under the albers-usa composite', () => {
+		// The composite inverts each frame position through the inset whose box holds
+		// it, and through the lower-48 conic everywhere else. A corner of a Hawaii
+		// dot's reach that falls past the inset's edge therefore reads a lon/lat in
+		// the Pacific off Mexico, and the box between the two corners can miss
+		// Hawaii.
+		const features = rewindFeatures(geographyFeatures(states as unknown as MapTopology))
+
+		const projection = fitMapProjection('albers-usa', features, 960, 600)
+
+		const spare = regionSpare(
+			features,
+			(at) => unprojectPoint(projection, at),
+			(position) => projectPoint(projection, position),
+		)
+
+		const at = (position: LngLat): MapPoint2D => {
+			const projected = projectPoint(projection, position)
+
+			if (projected === null) throw new Error(`${position.join(',')} did not project`)
+
+			return projected
+		}
+
+		// Oahu stands clear of every inset edge, so its reach box stays in the inset.
+		const hawaii = spare(at([-157.9, 21.3]), 1)
+
+		it('claims Hawaii’s share for a dot clear of the inset edges', () => {
+			expect(hawaii).toBeLessThan(Number.POSITIVE_INFINITY)
+		})
+
+		it('claims the same share for a dot near the left inset edge', () => {
+			// Kauai stands about 20 frame units inside the left edge, and its reach is 22.
+			expect(spare(at([-159.6, 22]), 1)).toBeNear(hawaii, SPARE_TOLERANCE)
+		})
+
+		it('claims the same share for a dot near the bottom inset edge', () => {
+			// The south tip of the Big Island stands about 6 frame units above the bottom edge.
+			expect(spare(at([-155.68, 18.95]), 1)).toBeNear(hawaii, SPARE_TOLERANCE)
+		})
 	})
 })
