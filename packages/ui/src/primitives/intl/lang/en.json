@@ -99,6 +99,10 @@
 		"defaultMessage": "column {column} of {columns}, row {row}, {width, plural, one {# column} other {# columns}} wide",
 		"description": "The place of a dashboard tile: its first column, the count of columns, its row, and its width."
 	},
+	"ui.dashboard.clearSelection": {
+		"defaultMessage": "Clear the selection in {label}",
+		"description": "The name of the button that clears the selection that a dashboard tile holds."
+	},
 	"ui.dashboard.dragStart": {
 		"defaultMessage": "Picked up {item} at {cell}. Use the arrow keys to move it. Press Space to drop it, or Escape to cancel.",
 		"description": "Spoken when the reader picks up a dashboard tile. The cell is the place of the tile."
@@ -119,6 +123,18 @@
 		"defaultMessage": "Duplicated {item}.",
 		"description": "Spoken when a tile action makes a copy of a tile."
 	},
+	"ui.dashboard.expand": {
+		"defaultMessage": "Expand {label}",
+		"description": "The name of the button that opens a dashboard tile in a dialog."
+	},
+	"ui.dashboard.failed": {
+		"defaultMessage": "{label} failed to render.",
+		"description": "The error text of a dashboard tile whose widget threw an error."
+	},
+	"ui.dashboard.missing": {
+		"defaultMessage": "This dashboard cannot show a “{widget}” tile.",
+		"description": "The text of a dashboard tile whose kind no widget renders. The widget is the name of the kind."
+	},
 	"ui.dashboard.moves": {
 		"defaultMessage": "{item} moves to {cell}.",
 		"description": "Spoken while a dragged tile is over an empty place."
@@ -130,6 +146,14 @@
 	"ui.dashboard.removed": {
 		"defaultMessage": "Removed {item}.",
 		"description": "Spoken when a tile action removes a tile."
+	},
+	"ui.dashboard.resize": {
+		"defaultMessage": "Resize {label}",
+		"description": "The name of the handle that changes the size of a dashboard tile."
+	},
+	"ui.dashboard.retry": {
+		"defaultMessage": "Retry",
+		"description": "The label of the button that renders a failed dashboard tile again."
 	},
 	"ui.dashboard.shifts": {
 		"defaultMessage": "{item} moves before or after {partner}, to {cell}.",

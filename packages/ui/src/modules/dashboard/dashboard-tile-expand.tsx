@@ -16,7 +16,11 @@ import {
 } from '../../components/dialog'
 import { Icon } from '../../components/icon'
 import { cn } from '../../core'
+import { IntlMessage } from '../../primitives/intl/intl-message'
+import { intlMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/dashboard'
+import { dashboardMessages } from './dashboard-messages'
 import { DashboardTileGuard } from './dashboard-tile-boundary'
 import { DashboardTileContent } from './dashboard-tile-content'
 
@@ -81,6 +85,8 @@ export function DashboardTileExpand({
 	shell,
 	children,
 }: DashboardTileExpandProps) {
+	const intl = useIntl()
+
 	const [open, setOpen] = useState(false)
 
 	// The dialog mounts on the first open. Until then, a render of the tile runs none of its hooks.
@@ -112,7 +118,7 @@ export function DashboardTileExpand({
 					type="button"
 					variant="bare"
 					data-slot="dashboard-tile-expand"
-					aria-label={`Expand ${label}`}
+					aria-label={intl.formatMessage(dashboardMessages.expand, { label })}
 				>
 					<Icon icon={<Maximize2 />} />
 				</Button>
@@ -158,7 +164,9 @@ export function DashboardTileExpand({
 
 					<DialogFooter>
 						<DialogClose>
-							<Button type="button">Close</Button>
+							<Button type="button">
+								<IntlMessage message={intlMessages.close} />
+							</Button>
 						</DialogClose>
 					</DialogFooter>
 				</DialogPanel>
