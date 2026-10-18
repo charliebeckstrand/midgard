@@ -128,7 +128,7 @@ function GridRowManagerZone({ group, onRecolor, colorOptions }: GridRowManagerZo
 
 						<span className={cn(k.zone.label)}>{group.label}</span>
 
-						<span className={cn(k.zone.count)}>({group.count})</span>
+						<span className={cn(k.zone.count)}>({intl.formatNumber(group.count)})</span>
 					</div>
 
 					<GridManagerColorMenu

@@ -14,7 +14,8 @@ import {
 	MenuTrigger,
 } from '../../components/menu'
 import { colors, extendedColors, type PaletteColor } from '../../core/recipe'
-import { capitalizeFirst } from '../../utilities'
+import { useIntl } from '../../primitives/intl/use-intl'
+import { gridMessages } from './engine/grid-messages'
 
 /** The palette presets offered by the color Menu: standard palette then extended. @internal */
 export const DEFAULT_COLOR_OPTIONS: PaletteColor[] = [...colors, ...extendedColors]
@@ -48,6 +49,11 @@ export function GridManagerColorMenu({
 	usedColors,
 	onRecolor,
 }: GridManagerColorMenuProps): ReactNode {
+	const intl = useIntl()
+
+	const colorName = (option: PaletteColor) =>
+		intl.formatMessage(gridMessages.paletteColor, { color: option })
+
 	return (
 		<Menu placement="bottom-end">
 			<MenuTrigger>
@@ -57,9 +63,13 @@ export function GridManagerColorMenu({
 					type="button"
 					color={color}
 					variant="soft"
-					aria-label={color ? `${capitalizeFirst(color)} color for ${label}` : `Color for ${label}`}
+					aria-label={
+						color
+							? intl.formatMessage(gridMessages.colorOf, { color: colorName(color), group: label })
+							: intl.formatMessage(gridMessages.colorFor, { group: label })
+					}
 				>
-					{color ? capitalizeFirst(color) : 'Color'}
+					{color ? colorName(color) : intl.formatMessage(gridMessages.color)}
 				</Button>
 			</MenuTrigger>
 			<MenuContent>
@@ -67,7 +77,7 @@ export function GridManagerColorMenu({
 				{color !== undefined && (
 					<MenuItem onAction={() => onRecolor(undefined)}>
 						<Icon icon={<Ban />} />
-						<MenuLabel>None</MenuLabel>
+						<MenuLabel>{intl.formatMessage(gridMessages.noColor)}</MenuLabel>
 					</MenuItem>
 				)}
 				{color !== undefined && <MenuSeparator />}
@@ -78,7 +88,7 @@ export function GridManagerColorMenu({
 						disabled={usedColors?.has(option)}
 					>
 						<Badge color={option} variant="soft">
-							{capitalizeFirst(option)}
+							{colorName(option)}
 						</Badge>
 					</MenuItem>
 				))}

@@ -279,6 +279,10 @@
 		"defaultMessage": "Upload file",
 		"description": "The name of the file input of a drop zone."
 	},
+	"ui.grid.apply": {
+		"defaultMessage": "Apply",
+		"description": "The button that applies the filter of a column of a grid."
+	},
 	"ui.grid.autoSize": {
 		"defaultMessage": "Auto-size",
 		"description": "The menu item of a grid column that opens the choices that fit the widths of the columns."
@@ -287,9 +291,21 @@
 		"defaultMessage": "Auto-size all columns",
 		"description": "The menu item that fits the width of each grid column to its content."
 	},
+	"ui.grid.autoSizeBody": {
+		"defaultMessage": "This fits every column to its content and replaces the column widths you saved. Your other layout preferences — order, visibility, and pinned columns — stay just as they are.",
+		"description": "The text of the dialog that asks before it fits every column of a grid to its content."
+	},
 	"ui.grid.autoSizeColumn": {
 		"defaultMessage": "Auto-size this column",
 		"description": "The menu item that fits the width of a grid column to its content."
+	},
+	"ui.grid.autoSizeConfirm": {
+		"defaultMessage": "Auto-size columns",
+		"description": "The button that fits every column of a grid to its content."
+	},
+	"ui.grid.autoSizeTitle": {
+		"defaultMessage": "Auto-size all columns?",
+		"description": "The title of the dialog that asks before it fits every column of a grid to its content."
 	},
 	"ui.grid.cellMenu": {
 		"defaultMessage": "Cell menu",
@@ -311,6 +327,18 @@
 		"defaultMessage": "Collapse group",
 		"description": "The menu item that closes a row group of a grid."
 	},
+	"ui.grid.color": {
+		"defaultMessage": "Color",
+		"description": "The button of a group with no color that opens the color choices."
+	},
+	"ui.grid.colorFor": {
+		"defaultMessage": "Color for {group}",
+		"description": "The name of the button of a group with no color that opens the color choices. The group is its name."
+	},
+	"ui.grid.colorOf": {
+		"defaultMessage": "{color} color for {group}",
+		"description": "The name of the button of a group with a color that opens the color choices, such as \"Red color for Contact\"."
+	},
 	"ui.grid.columnGroupName": {
 		"defaultMessage": "{group} group",
 		"description": "The name of a column group in an announcement of the group editor, such as \"Contact group\"."
@@ -322,6 +350,10 @@
 	"ui.grid.columnName": {
 		"defaultMessage": "{column} column",
 		"description": "The name of a column in a reorder announcement, such as \"Price column\"."
+	},
+	"ui.grid.columns": {
+		"defaultMessage": "Columns",
+		"description": "The name of the list of columns in the column manager of a grid."
 	},
 	"ui.grid.copy": {
 		"defaultMessage": "Copy",
@@ -379,6 +411,14 @@
 		"defaultMessage": "Filter “{column}”",
 		"description": "The menu item that opens the filter of a grid column. The column is its name."
 	},
+	"ui.grid.filterColumns": {
+		"defaultMessage": "Filter columns",
+		"description": "The hint text and the name of the field that filters the columns in the column manager of a grid."
+	},
+	"ui.grid.frozenColumn": {
+		"defaultMessage": "{column} ({state, select, locked {locked} other {pinned}})",
+		"description": "The name of the checkbox of a column that the reader cannot hide, because it is locked or pinned."
+	},
 	"ui.grid.groupBy": {
 		"defaultMessage": "Group by “{column}”",
 		"description": "The menu item that groups the rows of a grid by a column. The column is its name."
@@ -391,6 +431,14 @@
 		"defaultMessage": "{group} group menu",
 		"description": "The name of the context menu of a group of a grid. The group is its name."
 	},
+	"ui.grid.groupName": {
+		"defaultMessage": "Group name",
+		"description": "The hint text of the field that names a column group of a grid."
+	},
+	"ui.grid.groupNameFor": {
+		"defaultMessage": "Group name for {group}",
+		"description": "The name of the field that names a column group of a grid. The group is its current name."
+	},
 	"ui.grid.groupPosition": {
 		"defaultMessage": "position {position} of {total}",
 		"description": "The place of a dragged group in the list of groups, inside an announcement of the group editor."
@@ -398,6 +446,10 @@
 	"ui.grid.isOver": {
 		"defaultMessage": "{item} is over {place}.",
 		"description": "Spoken while a column or a group is dragged over a place in the group editor, such as \"Name column is over Contact group.\"."
+	},
+	"ui.grid.keepWidths": {
+		"defaultMessage": "Keep my widths",
+		"description": "The button that closes the dialog and keeps the saved column widths of a grid."
 	},
 	"ui.grid.manageColumns": {
 		"defaultMessage": "Manage columns",
@@ -407,9 +459,37 @@
 		"defaultMessage": "Manage rows",
 		"description": "The menu item that opens the dialog that orders and colors the row groups of a grid."
 	},
+	"ui.grid.moveTo": {
+		"defaultMessage": "Move to {group}",
+		"description": "The menu item that moves a column into a column group of a grid."
+	},
+	"ui.grid.newGroup": {
+		"defaultMessage": "New group",
+		"description": "The button that adds a column group, and the first name of the new group."
+	},
+	"ui.grid.noColor": {
+		"defaultMessage": "None",
+		"description": "The color choice that removes the color of a group."
+	},
+	"ui.grid.noColumnsInGroup": {
+		"defaultMessage": "No columns in this group",
+		"description": "The text of a column group of a grid that holds no columns."
+	},
+	"ui.grid.noUngroupedColumns": {
+		"defaultMessage": "No ungrouped columns",
+		"description": "The text of the ungrouped columns of a grid when every column is in a group."
+	},
+	"ui.grid.paletteColor": {
+		"defaultMessage": "{color, select, zinc {Zinc} red {Red} amber {Amber} green {Green} blue {Blue} rose {Rose} violet {Violet} sky {Sky} other {{color}}}",
+		"description": "The name of a color that a group of a grid can take."
+	},
 	"ui.grid.pin": {
 		"defaultMessage": "Pin",
 		"description": "The menu item of a grid column that opens the pin choices."
+	},
+	"ui.grid.pinColumn": {
+		"defaultMessage": "Pin {column}",
+		"description": "The name of the button that opens the pin choices of a column in the column manager of a grid."
 	},
 	"ui.grid.pinLeft": {
 		"defaultMessage": "Pin left",
@@ -422,6 +502,30 @@
 	"ui.grid.print": {
 		"defaultMessage": "Print",
 		"description": "The action that prints the rows of a grid."
+	},
+	"ui.grid.removeFromGroup": {
+		"defaultMessage": "Remove from group",
+		"description": "The menu item that takes a column out of its column group."
+	},
+	"ui.grid.removeGroupNamed": {
+		"defaultMessage": "Remove group {group}",
+		"description": "The name of the button that removes a column group of a grid."
+	},
+	"ui.grid.reorderColumns": {
+		"defaultMessage": "Reorder columns",
+		"description": "The name of the list of columns that the reader can reorder in the column manager of a grid."
+	},
+	"ui.grid.resetBody": {
+		"defaultMessage": "This discards the column widths you saved, and the grid sizes the columns to fit its width again. Your other layout preferences — order, visibility, and pinned columns — stay just as they are.",
+		"description": "The text of the dialog that asks before it discards the saved column widths of a grid."
+	},
+	"ui.grid.resetConfirm": {
+		"defaultMessage": "Reset widths",
+		"description": "The button that discards the saved column widths of a grid."
+	},
+	"ui.grid.resetTitle": {
+		"defaultMessage": "Reset column widths?",
+		"description": "The title of the dialog that asks before it discards the saved column widths of a grid."
 	},
 	"ui.grid.resetWidths": {
 		"defaultMessage": "Reset column widths",
@@ -439,9 +543,17 @@
 		"defaultMessage": "row {key}",
 		"description": "The name of a row with no label of its own. The key is the key of the row."
 	},
+	"ui.grid.savePreset": {
+		"defaultMessage": "Save as preset",
+		"description": "The button that saves the layout of the columns of a grid as a preset."
+	},
 	"ui.grid.selectRow": {
 		"defaultMessage": "Select {row}",
 		"description": "The name of the checkbox that selects a row."
+	},
+	"ui.grid.showColumn": {
+		"defaultMessage": "Show {column}",
+		"description": "The name of the checkbox that shows or hides a column of a grid."
 	},
 	"ui.grid.sort": {
 		"defaultMessage": "Sort",

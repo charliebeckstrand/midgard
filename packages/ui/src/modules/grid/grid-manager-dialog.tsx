@@ -10,6 +10,8 @@ import {
 	DialogPanel,
 	DialogTitle,
 } from '../../components/dialog'
+import { intlMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 
 /** Props for {@link GridManagerDialog}. @internal */
 type GridManagerDialogProps = {
@@ -46,6 +48,8 @@ export function GridManagerDialog({
 }: GridManagerDialogProps) {
 	const closeRef = useRef<HTMLButtonElement>(null)
 
+	const intl = useIntl()
+
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogPanel initialFocus={focusClose ? closeRef : undefined}>
@@ -54,7 +58,7 @@ export function GridManagerDialog({
 				<DialogFooter>
 					<DialogClose>
 						<Button ref={closeRef} type="button" variant="soft">
-							Close
+							{intl.formatMessage(intlMessages.close)}
 						</Button>
 					</DialogClose>
 				</DialogFooter>

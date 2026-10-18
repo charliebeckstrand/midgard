@@ -56,6 +56,34 @@ type GridValues = {
 	cellMenu: Record<never, never>
 	columnMenu: { column: string }
 	groupMenu: { group: string }
+	pinColumn: { column: string }
+	frozenColumn: { column: string; state: 'locked' | 'pinned' }
+	showColumn: { column: string }
+	reorderColumns: Record<never, never>
+	columns: Record<never, never>
+	filterColumns: Record<never, never>
+	savePreset: Record<never, never>
+	newGroup: Record<never, never>
+	noColumnsInGroup: Record<never, never>
+	noUngroupedColumns: Record<never, never>
+	groupName: Record<never, never>
+	groupNameFor: { group: string }
+	removeGroupNamed: { group: string }
+	moveTo: { group: string }
+	removeFromGroup: Record<never, never>
+	color: Record<never, never>
+	colorFor: { group: string }
+	colorOf: { color: string; group: string }
+	noColor: Record<never, never>
+	paletteColor: { color: string }
+	apply: Record<never, never>
+	autoSizeTitle: Record<never, never>
+	autoSizeBody: Record<never, never>
+	autoSizeConfirm: Record<never, never>
+	resetTitle: Record<never, never>
+	resetBody: Record<never, never>
+	resetConfirm: Record<never, never>
+	keepWidths: Record<never, never>
 }
 
 /**
@@ -311,5 +339,159 @@ export const gridMessages: MessageSet<GridValues> = defineMessages<GridValues>({
 		id: 'ui.grid.groupMenu',
 		defaultMessage: '{group} group menu',
 		description: 'The name of the context menu of a group of a grid. The group is its name.',
+	},
+	pinColumn: {
+		id: 'ui.grid.pinColumn',
+		defaultMessage: 'Pin {column}',
+		description:
+			'The name of the button that opens the pin choices of a column in the column manager of a grid.',
+	},
+	frozenColumn: {
+		id: 'ui.grid.frozenColumn',
+		defaultMessage: '{column} ({state, select, locked {locked} other {pinned}})',
+		description:
+			'The name of the checkbox of a column that the reader cannot hide, because it is locked or pinned.',
+	},
+	showColumn: {
+		id: 'ui.grid.showColumn',
+		defaultMessage: 'Show {column}',
+		description: 'The name of the checkbox that shows or hides a column of a grid.',
+	},
+	reorderColumns: {
+		id: 'ui.grid.reorderColumns',
+		defaultMessage: 'Reorder columns',
+		description:
+			'The name of the list of columns that the reader can reorder in the column manager of a grid.',
+	},
+	columns: {
+		id: 'ui.grid.columns',
+		defaultMessage: 'Columns',
+		description: 'The name of the list of columns in the column manager of a grid.',
+	},
+	filterColumns: {
+		id: 'ui.grid.filterColumns',
+		defaultMessage: 'Filter columns',
+		description:
+			'The hint text and the name of the field that filters the columns in the column manager of a grid.',
+	},
+	savePreset: {
+		id: 'ui.grid.savePreset',
+		defaultMessage: 'Save as preset',
+		description: 'The button that saves the layout of the columns of a grid as a preset.',
+	},
+	newGroup: {
+		id: 'ui.grid.newGroup',
+		defaultMessage: 'New group',
+		description: 'The button that adds a column group, and the first name of the new group.',
+	},
+	noColumnsInGroup: {
+		id: 'ui.grid.noColumnsInGroup',
+		defaultMessage: 'No columns in this group',
+		description: 'The text of a column group of a grid that holds no columns.',
+	},
+	noUngroupedColumns: {
+		id: 'ui.grid.noUngroupedColumns',
+		defaultMessage: 'No ungrouped columns',
+		description: 'The text of the ungrouped columns of a grid when every column is in a group.',
+	},
+	groupName: {
+		id: 'ui.grid.groupName',
+		defaultMessage: 'Group name',
+		description: 'The hint text of the field that names a column group of a grid.',
+	},
+	groupNameFor: {
+		id: 'ui.grid.groupNameFor',
+		defaultMessage: 'Group name for {group}',
+		description:
+			'The name of the field that names a column group of a grid. The group is its current name.',
+	},
+	removeGroupNamed: {
+		id: 'ui.grid.removeGroupNamed',
+		defaultMessage: 'Remove group {group}',
+		description: 'The name of the button that removes a column group of a grid.',
+	},
+	moveTo: {
+		id: 'ui.grid.moveTo',
+		defaultMessage: 'Move to {group}',
+		description: 'The menu item that moves a column into a column group of a grid.',
+	},
+	removeFromGroup: {
+		id: 'ui.grid.removeFromGroup',
+		defaultMessage: 'Remove from group',
+		description: 'The menu item that takes a column out of its column group.',
+	},
+	color: {
+		id: 'ui.grid.color',
+		defaultMessage: 'Color',
+		description: 'The button of a group with no color that opens the color choices.',
+	},
+	colorFor: {
+		id: 'ui.grid.colorFor',
+		defaultMessage: 'Color for {group}',
+		description:
+			'The name of the button of a group with no color that opens the color choices. The group is its name.',
+	},
+	colorOf: {
+		id: 'ui.grid.colorOf',
+		defaultMessage: '{color} color for {group}',
+		description:
+			'The name of the button of a group with a color that opens the color choices, such as "Red color for Contact".',
+	},
+	noColor: {
+		id: 'ui.grid.noColor',
+		defaultMessage: 'None',
+		description: 'The color choice that removes the color of a group.',
+	},
+	paletteColor: {
+		id: 'ui.grid.paletteColor',
+		defaultMessage:
+			'{color, select, zinc {Zinc} red {Red} amber {Amber} green {Green} blue {Blue} rose {Rose} violet {Violet} sky {Sky} other {{color}}}',
+		description: 'The name of a color that a group of a grid can take.',
+	},
+	apply: {
+		id: 'ui.grid.apply',
+		defaultMessage: 'Apply',
+		description: 'The button that applies the filter of a column of a grid.',
+	},
+	autoSizeTitle: {
+		id: 'ui.grid.autoSizeTitle',
+		defaultMessage: 'Auto-size all columns?',
+		description:
+			'The title of the dialog that asks before it fits every column of a grid to its content.',
+	},
+	autoSizeBody: {
+		id: 'ui.grid.autoSizeBody',
+		defaultMessage:
+			'This fits every column to its content and replaces the column widths you saved. Your other layout preferences — order, visibility, and pinned columns — stay just as they are.',
+		description:
+			'The text of the dialog that asks before it fits every column of a grid to its content.',
+	},
+	autoSizeConfirm: {
+		id: 'ui.grid.autoSizeConfirm',
+		defaultMessage: 'Auto-size columns',
+		description: 'The button that fits every column of a grid to its content.',
+	},
+	resetTitle: {
+		id: 'ui.grid.resetTitle',
+		defaultMessage: 'Reset column widths?',
+		description:
+			'The title of the dialog that asks before it discards the saved column widths of a grid.',
+	},
+	resetBody: {
+		id: 'ui.grid.resetBody',
+		defaultMessage:
+			'This discards the column widths you saved, and the grid sizes the columns to fit its width again. Your other layout preferences — order, visibility, and pinned columns — stay just as they are.',
+		description:
+			'The text of the dialog that asks before it discards the saved column widths of a grid.',
+	},
+	resetConfirm: {
+		id: 'ui.grid.resetConfirm',
+		defaultMessage: 'Reset widths',
+		description: 'The button that discards the saved column widths of a grid.',
+	},
+	keepWidths: {
+		id: 'ui.grid.keepWidths',
+		defaultMessage: 'Keep my widths',
+		description: 'The button that closes the dialog and keeps the saved column widths of a grid.',
 	},
 })
