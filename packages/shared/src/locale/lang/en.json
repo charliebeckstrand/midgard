@@ -11,6 +11,10 @@
 		"defaultMessage": "Something went wrong",
 		"description": "The title of the page that shows when a page fails."
 	},
+	"shared.mutation.failed": {
+		"defaultMessage": "Something went wrong",
+		"description": "The title of the toast that shows the error of a change that failed."
+	},
 	"shared.notFound.body": {
 		"defaultMessage": "This page could not be found",
 		"description": "The text under the 404 of the page of a path that has no route."

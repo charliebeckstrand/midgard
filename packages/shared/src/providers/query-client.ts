@@ -22,6 +22,12 @@ type AppQueryClientOptions = {
 	queries?: DefaultOptions['queries']
 	/** Shows a toast, such as the `toast` of `useToast`. */
 	toast: (data: ToastInput) => string
+	/**
+	 * Gives the title of the toast of a failed mutation. The client calls it when
+	 * the mutation fails, so the title is in the language of the reader at that
+	 * time, also after a change of the locale.
+	 */
+	failureTitle: () => string
 }
 
 // A `401` means that the session ended, so the page goes to the sign-in page.
@@ -43,7 +49,11 @@ function signedOut(error: Error): boolean {
  * failed query shows nothing here, because the page that reads the query shows
  * its state.
  */
-export function createAppQueryClient({ queries, toast }: AppQueryClientOptions): QueryClient {
+export function createAppQueryClient({
+	queries,
+	toast,
+	failureTitle,
+}: AppQueryClientOptions): QueryClient {
 	return new QueryClient({
 		defaultOptions: { queries },
 		queryCache: new QueryCache({ onError: signedOut }),
@@ -51,7 +61,7 @@ export function createAppQueryClient({ queries, toast }: AppQueryClientOptions):
 			onError: (error, _variables, _result, mutation) => {
 				if (signedOut(error) || mutation.meta?.inlineError) return
 
-				toast({ severity: 'error', title: 'Something went wrong', description: error.message })
+				toast({ severity: 'error', title: failureTitle(), description: error.message })
 			},
 		}),
 	})
