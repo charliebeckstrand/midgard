@@ -1,4 +1,5 @@
 import { parseNumeric } from '../../../../utilities'
+import { reduceNumbers } from '../../../../utilities/aggregate'
 import { inferEditorKind } from '../grid-editing-utilities'
 
 /**
@@ -29,7 +30,11 @@ export function pastePlacement(
 ): GridPasteTarget[] {
 	const height = block.length
 
-	const width = Math.max(0, ...block.map((fields) => fields.length))
+	// The reduce does not spread the rows as call arguments, so a paste of
+	// many rows does not overflow the stack.
+	const lengths = block.map((fields) => fields.length)
+
+	const width = height === 0 ? 0 : reduceNumbers(lengths, 'max')
 
 	const top = area.rows[0]
 

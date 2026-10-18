@@ -219,6 +219,15 @@ describe('pastePlacement', () => {
 	it('writes nothing for an empty block', () => {
 		expect(pastePlacement([], { rows: [0], cols: [0] }, size)).toEqual([])
 	})
+
+	it('places a block with more rows than the engine takes as call arguments', () => {
+		const block = Array.from({ length: 1_000_000 }, (_, i) => [String(i)])
+
+		expect(pastePlacement(block, { rows: [3], cols: [1] }, size)).toEqual([
+			{ row: 3, col: 1, text: '0' },
+			{ row: 4, col: 1, text: '1' },
+		])
+	})
 })
 
 describe('coercePaste', () => {
