@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { FIRST_WRITE_DELAY_MS } from '../../core/announcer'
 import { Grid, type GridColumn } from '../../modules/grid'
 import {
 	describeColumnVisibility,
@@ -11,13 +12,13 @@ import { GRID_STATUS_DEBOUNCE_MS } from '../../modules/grid/engine/grid-constant
 import {
 	expectAnnouncement,
 	fireEvent,
+	flushAnnouncer,
 	liveRegion,
 	renderUI,
 	screen,
 	setupUser,
 	withFakeTime,
 } from '../helpers'
-import { nextPaint } from '../helpers/frames'
 
 /**
  * Grid status messages (WCAG 4.1.3): sort, selection, and page changes narrate
@@ -96,7 +97,7 @@ describe('Grid announcements', () => {
 		await user.click(screen.getByText('Alice'))
 
 		// Wait past the first write of a new region, so that the check below can fail.
-		await nextPaint()
+		await flushAnnouncer()
 
 		// No selection column, so a row interaction never narrates a selection count.
 		expect(liveRegion()?.textContent ?? '').toBe('')
@@ -171,7 +172,7 @@ describe('Grid announcements', () => {
 
 		// The sort survives the hide. Its announcement keeps the label, so it does
 		// not change, and it does not speak the raw column id.
-		expect(liveRegion()).toHaveTextContent('Hid Name column')
+		await expectAnnouncement('Hid Name column')
 
 		expect(liveRegion()).not.toHaveTextContent(/Sorted by name/)
 	})
@@ -193,9 +194,9 @@ describe('Grid announcements', () => {
 			// once the settle window elapses.
 			await clock.advance(GRID_STATUS_DEBOUNCE_MS)
 
-			// The first text of a new region lands after the next paint: a frame (16ms on the
-			// fake clock) and then a timer, which the fake clock queues 1ms late in a tick.
-			await clock.advance(17)
+			// The first text of a new region lands after the next paint (a frame, 16ms on the
+			// fake clock) and then `FIRST_WRITE_DELAY_MS`.
+			await clock.advance(16 + FIRST_WRITE_DELAY_MS)
 
 			expect(liveRegion()?.textContent ?? '').toMatch(/Name column \d+ pixels/)
 		})

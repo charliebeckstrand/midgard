@@ -24,6 +24,7 @@ import {
 	allBySlot,
 	bySlot,
 	expectAnnouncement,
+	flushAnnouncer,
 	getSlot,
 	liveRegion,
 	renderUI,
@@ -422,9 +423,9 @@ describe('FormFilters announcements', () => {
 			</FormFilters>,
 		)
 
-		// The announcer writes the region in a microtask. Flush it, so that an
-		// announcement on mount shows here.
-		await Promise.resolve()
+		// Wait past the announcer's first write, so that an announcement on mount shows
+		// here.
+		await flushAnnouncer()
 
 		// Lazily created on first announce; absent means nothing was announced on mount.
 		expect(liveRegion()?.textContent ?? '').toBe('')

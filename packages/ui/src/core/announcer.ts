@@ -13,11 +13,17 @@ let politeRegion: HTMLElement | null = null
 
 let assertiveRegion: HTMLElement | null = null
 
-// The text that waits for the next paint after a new region, by region. The browser adds a
+// The text that waits for the first write to a new region, by region. The browser adds a
 // new region to the accessibility tree in its next rendering update. Text that lands before
 // that update reaches a screen reader together with the region, and the region does not
 // speak it.
 const firstWrites = new Map<HTMLElement, string>()
+
+/**
+ * The time from the paint after a new region to its first write. VoiceOver in Safari can
+ * miss text that lands sooner. React Aria's `LiveAnnouncer` waits this long for that reason.
+ */
+export const FIRST_WRITE_DELAY_MS = 100
 
 function createRegion(assertive: boolean): HTMLElement {
 	const el = document.createElement('div')
@@ -51,11 +57,11 @@ function region(assertive: boolean): HTMLElement {
  * Imperative screen-reader announcement. Sends `message` to a visually-hidden
  * `aria-live` region appended to `document.body`, lazily created on first use
  * and shared process-wide. The first message waits for the next paint after
- * the region is created, so that the region is in the accessibility tree before
- * the text lands. Use it for one-off, event-driven feedback with no natural focus or DOM
- * home, such as "Copied" or "Tag added". To narrate a
- * changing value, prefer the declarative `useA11yAnnouncements`. No-op during SSR and
- * for empty messages.
+ * the region is created, and then 100ms, so that the region is in the
+ * accessibility tree before the text lands. Use it for one-off, event-driven
+ * feedback with no natural focus or DOM home, such as "Copied" or "Tag added".
+ * To narrate a changing value, prefer the declarative `useA11yAnnouncements`.
+ * No-op during SSR and for empty messages.
  *
  * @remarks
  * A message equal to the current region text gets a trailing no-break space
@@ -70,7 +76,7 @@ export function announce(message: string, { assertive = false }: AnnounceOptions
 	const node = region(assertive)
 
 	if (created) {
-		// The task after a frame callback runs after that frame paints.
+		// A timer that a frame callback starts runs after that frame paints.
 		requestAnimationFrame(() => {
 			setTimeout(() => {
 				const text = firstWrites.get(node)
@@ -78,7 +84,7 @@ export function announce(message: string, { assertive = false }: AnnounceOptions
 				firstWrites.delete(node)
 
 				if (text !== undefined) node.textContent = text
-			})
+			}, FIRST_WRITE_DELAY_MS)
 		})
 	}
 

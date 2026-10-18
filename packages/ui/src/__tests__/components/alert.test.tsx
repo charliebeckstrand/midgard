@@ -7,6 +7,7 @@ import {
 	bySlot,
 	expectAnnouncement,
 	fireEvent,
+	flushAnnouncer,
 	liveRegion,
 	renderUI,
 	screen,
@@ -362,9 +363,9 @@ describe('Alert', () => {
 				</Alert>,
 			)
 
-			// The announcer writes the region in a microtask. Flush it, so that an
-			// announcement on mount shows here.
-			await Promise.resolve()
+			// Wait past the announcer's first write, so that an announcement on mount
+			// shows here.
+			await flushAnnouncer()
 
 			// Lazily created on first announce; absent means nothing was announced.
 			expect(liveRegion()?.textContent ?? '').toBe('')
@@ -385,8 +386,8 @@ describe('Alert', () => {
 				</Alert>,
 			)
 
-			// Flush the announcer's microtask, then confirm nothing was written.
-			await Promise.resolve()
+			// Wait past the announcer's first write, then confirm nothing was written.
+			await flushAnnouncer()
 
 			// Lazily created on first announce; absent means nothing was announced.
 			expect(liveRegion()?.textContent ?? '').toBe('')
@@ -409,8 +410,8 @@ describe('Alert', () => {
 				</Alert>,
 			)
 
-			// Flush the announcer's microtask, then confirm nothing was written.
-			await Promise.resolve()
+			// Wait past the announcer's first write, then confirm nothing was written.
+			await flushAnnouncer()
 
 			expect(liveRegion()?.textContent ?? '').toBe('')
 		})
@@ -428,7 +429,7 @@ describe('Alert', () => {
 				</Alert>,
 			)
 
-			await Promise.resolve()
+			await flushAnnouncer()
 
 			// Lazily created on first announce; absent means nothing was announced.
 			expect(liveRegion()?.textContent ?? '').toBe('')
