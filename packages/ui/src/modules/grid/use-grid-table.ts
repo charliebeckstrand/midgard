@@ -79,7 +79,6 @@ import {
 } from './engine/grid-table/resize-view'
 import {
 	DEFAULT_PAGINATION_STATE,
-	DEFAULT_SEARCH_PLACEHOLDER,
 	EMPTY_COLUMN_FILTERS,
 	EMPTY_COLUMN_ORDER,
 	EMPTY_SIZING,
@@ -898,7 +897,7 @@ export function useGridTable<T>({
 				? {
 						value: resolvedGlobalFilter,
 						setValue: (value: string) => engine.setGlobalFilter(value),
-						placeholder: globalFilterConfig?.placeholder ?? DEFAULT_SEARCH_PLACEHOLDER,
+						placeholder: globalFilterConfig?.placeholder,
 					}
 				: null,
 		[globalConfigured, resolvedGlobalFilter, globalFilterConfig, engine],

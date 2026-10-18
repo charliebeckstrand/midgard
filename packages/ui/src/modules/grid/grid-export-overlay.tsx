@@ -2,7 +2,9 @@
 
 import { LoadingSpinner } from '../../components/loading'
 import { cn } from '../../core'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
+import { gridMessages } from './engine/grid-messages'
 
 /**
  * The grid's "Exporting" overlay: a scrim with a spinner-led label while an
@@ -32,14 +34,18 @@ import { k } from '../../recipes/kata/grid'
  * @internal
  */
 export function GridExportOverlay({ active }: { active: boolean }) {
+	const intl = useIntl()
+
 	if (!active) return null
+
+	const label = intl.formatMessage(gridMessages.exporting)
 
 	return (
 		<div data-slot="grid-export-overlay" className={cn(k.exporting.scrim)}>
 			<div className={cn(k.exporting.label)}>
-				<LoadingSpinner size="sm" label="Exporting" />
+				<LoadingSpinner size="sm" label={label} />
 
-				<span aria-hidden="true">Exporting</span>
+				<span aria-hidden="true">{label}</span>
 			</div>
 		</div>
 	)

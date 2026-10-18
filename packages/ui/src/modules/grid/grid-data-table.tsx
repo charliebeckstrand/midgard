@@ -4,6 +4,7 @@ import type { ComponentProps, ReactNode } from 'react'
 import { Table, type TableElementProps } from '../../components/table'
 import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
+import { useIntl } from '../../primitives/intl/use-intl'
 import type { scale } from '../../recipes/kata/table'
 import { GridHighlightContext } from './context'
 import {
@@ -145,6 +146,8 @@ export function GridDataTable<T>({
 	scroll,
 	highlightQuery,
 }: GridDataTableProps<T>) {
+	const intl = useIntl()
+
 	// The new-row slot, in a body section of its own beside the data body (see
 	// `GridNewRow`). At the top it takes the first index after the header rows,
 	// and the data rows shift down one. At the bottom it takes the last index
@@ -185,6 +188,7 @@ export function GridDataTable<T>({
 					),
 				)}
 				tableProps={resolveTableProps({
+					intl,
 					tableProps: table.props,
 					// The cursor's tab stop, active-cell pointer, and key/focus handlers.
 					navTableProps: cursor.navTableProps,

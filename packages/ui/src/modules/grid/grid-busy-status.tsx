@@ -1,7 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { intlMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { GRID_STATUS_DEBOUNCE_MS } from './engine/grid-constants'
+import { gridMessages } from './engine/grid-messages'
 
 /**
  * The polite live-region message for the grid: `Loading` while loading, then —
@@ -12,23 +15,29 @@ import { GRID_STATUS_DEBOUNCE_MS } from './engine/grid-constants'
  * @internal
  */
 function useGridStatusMessage(loading: boolean, rowCount: number): string {
-	const [message, setMessage] = useState('')
+	const intl = useIntl()
+
+	// The state holds what the region says, not its text, so the text follows
+	// the locale of the reader.
+	const [said, setSaid] = useState<'loading' | number | null>(null)
 
 	useEffect(() => {
 		if (loading) {
-			setMessage('Loading')
+			setSaid('loading')
 
 			return
 		}
 
-		const id = setTimeout(() => {
-			setMessage(rowCount === 1 ? '1 row' : rowCount === 0 ? 'No results' : `${rowCount} rows`)
-		}, GRID_STATUS_DEBOUNCE_MS)
+		const id = setTimeout(() => setSaid(rowCount), GRID_STATUS_DEBOUNCE_MS)
 
 		return () => clearTimeout(id)
 	}, [loading, rowCount])
 
-	return message
+	if (said === null) return ''
+
+	if (said === 'loading') return intl.formatMessage(intlMessages.loading)
+
+	return intl.formatMessage(gridMessages.rowsResult, { count: said })
 }
 
 /**

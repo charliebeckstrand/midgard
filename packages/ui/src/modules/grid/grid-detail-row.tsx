@@ -5,10 +5,13 @@ import { memo, type ReactNode } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { cn, dataAttr } from '../../core'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { MountHold } from '../../primitives/mount'
 import { k } from '../../recipes/kata/grid'
 import { NO_PADDING } from './engine/grid-constants'
 import { detailItemKey } from './engine/grid-items/items'
+import { gridMessages } from './engine/grid-messages'
+import { rowName } from './engine/grid-row/cell'
 import type { GridWindowRowProps } from './engine/grid-row/shell'
 import { GridNavCell, useGridNavStopProps } from './grid-nav-cell'
 import { useGridRevealHold } from './use-grid-reveal-hold'
@@ -46,11 +49,13 @@ export function GridExpandToggle({
 	toggle,
 	panelId,
 }: GridExpandToggleProps) {
+	const intl = useIntl()
+
 	if (!expandable) return null
 
 	// `||`, not `??`: a blank label falls back to the key rather than leaving a
 	// dangling "Expand details for ".
-	const name = rowLabel || `row ${rowKey}`
+	const name = rowName(intl, rowLabel || undefined, rowKey)
 
 	return (
 		<Button
@@ -59,7 +64,10 @@ export function GridExpandToggle({
 			onClick={() => toggle(rowKey)}
 			aria-expanded={expanded}
 			aria-controls={panelId}
-			aria-label={`${expanded ? 'Collapse' : 'Expand'} details for ${name}`}
+			aria-label={intl.formatMessage(
+				expanded ? gridMessages.collapseDetails : gridMessages.expandDetails,
+				{ row: name },
+			)}
 		>
 			{/* `data-open` rides the chevron element itself. An `Icon` clones it and
 			    preserves props it doesn't set, and a lucide glyph forwards `data-*`

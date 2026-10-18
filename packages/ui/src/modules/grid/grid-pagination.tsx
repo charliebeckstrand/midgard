@@ -11,7 +11,10 @@ import {
 } from '../../components/pagination'
 import { Select, SelectLabel, SelectOption } from '../../components/select'
 import { cn } from '../../core'
+import type { IntlShape } from '../../primitives/intl/types'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
+import { gridMessages } from './engine/grid-messages'
 import { getVisiblePages } from './engine/grid-pagination-utilities'
 import type { GridPaginationView } from './use-grid-table'
 
@@ -35,26 +38,32 @@ type GridPaginationProps = {
  *
  * @internal
  */
-function pageStatus({
-	from,
-	to,
-	rowCount,
-	pageNumber,
-	pageCount,
-}: {
-	from: number
-	to: number
-	rowCount: number | undefined
-	pageNumber: number
-	pageCount: number
-}): string {
-	if (rowCount === 0) return 'No rows'
+function pageStatus(
+	intl: IntlShape,
+	{
+		from,
+		to,
+		rowCount,
+		pageNumber,
+		pageCount,
+	}: {
+		from: number
+		to: number
+		rowCount: number | undefined
+		pageNumber: number
+		pageCount: number
+	},
+): string {
+	if (rowCount === 0) return intl.formatMessage(gridMessages.noRows)
 
-	if (rowCount != null) return `${from}–${to} of ${rowCount}`
+	if (rowCount != null)
+		return intl.formatMessage(gridMessages.rangeOf, { from, to, total: rowCount })
 
-	if (pageCount > 0) return `Page ${pageNumber} of ${pageCount}`
+	if (pageCount > 0) {
+		return intl.formatMessage(gridMessages.pageOf, { page: pageNumber, total: pageCount })
+	}
 
-	return `Page ${pageNumber}`
+	return intl.formatMessage(gridMessages.pageNumber, { page: pageNumber })
 }
 
 /**
@@ -74,6 +83,8 @@ function pageStatus({
  * @internal
  */
 export function GridPagination({ pagination, label, labelledBy }: GridPaginationProps) {
+	const intl = useIntl()
+
 	const {
 		pageIndex,
 		pageSize,
@@ -98,12 +109,16 @@ export function GridPagination({ pagination, label, labelledBy }: GridPagination
 	// pages or an unbounded server feed (`pageCount` of -1).
 	const showNav = pageCount !== 0 && pageCount !== 1
 
-	const status = pageStatus({ from, to, rowCount, pageNumber, pageCount })
+	const status = pageStatus(intl, { from, to, rowCount, pageNumber, pageCount })
 
 	// The id of the word that follows the name of the grid in a composed name.
 	const wordId = useId()
 
-	const labelName = label ? { 'aria-label': `${label} pagination` } : {}
+	const labelName = {
+		'aria-label': label
+			? intl.formatMessage(gridMessages.paginationOf, { grid: label })
+			: intl.formatMessage(gridMessages.pagination),
+	}
 
 	const navName = labelledBy
 		? { 'aria-label': undefined, 'aria-labelledby': `${labelledBy} ${wordId}` }
@@ -175,15 +190,15 @@ export function GridPagination({ pagination, label, labelledBy }: GridPagination
 				<div className={cn(k.footer.controls, !showPicker && k.footer.bare.controls)}>
 					{showPicker && (
 						<Select<number>
-							aria-label="Rows per page"
+							aria-label={intl.formatMessage(gridMessages.rowsPerPage)}
 							value={pageSize}
 							onValueChange={(value) => value != null && setPageSize(value)}
-							displayValue={(value) => `${value} / page`}
+							displayValue={(value) => intl.formatMessage(gridMessages.perPage, { count: value })}
 							placement="top-start"
 						>
 							{pageSizeOptions.map((option) => (
 								<SelectOption key={option} value={option}>
-									<SelectLabel>{option}</SelectLabel>
+									<SelectLabel>{intl.formatNumber(option)}</SelectLabel>
 								</SelectOption>
 							))}
 						</Select>
@@ -194,12 +209,13 @@ export function GridPagination({ pagination, label, labelledBy }: GridPagination
 					<div ref={navRef} className={cn(k.footer.nav, !showPicker && k.footer.bare.nav)}>
 						{labelledBy && (
 							<span id={wordId} hidden>
-								pagination
+								{intl.formatMessage(gridMessages.paginationWord)}
 							</span>
 						)}
 
 						<Pagination className={cn(k.footer.pagination)} {...navName}>
 							<PaginationPrevious
+								aria-label={intl.formatMessage(gridMessages.previousPage)}
 								onClick={() => goToPage((index) => index - 1)}
 								disabled={!canPrevious}
 							/>
@@ -215,14 +231,18 @@ export function GridPagination({ pagination, label, labelledBy }: GridPagination
 												current={item === pageNumber}
 												onClick={() => goToPage(item - 1)}
 											>
-												{item}
+												{intl.formatNumber(item)}
 											</PaginationPage>
 										),
 									)}
 								</PaginationList>
 							)}
 
-							<PaginationNext onClick={() => goToPage((index) => index + 1)} disabled={!canNext} />
+							<PaginationNext
+								aria-label={intl.formatMessage(gridMessages.nextPage)}
+								onClick={() => goToPage((index) => index + 1)}
+								disabled={!canNext}
+							/>
 						</Pagination>
 					</div>
 				)}

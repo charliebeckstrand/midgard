@@ -6,10 +6,12 @@ import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { cn } from '../../core'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/grid'
 import { useGridResizing } from './context'
 import { columnLabel } from './engine/grid-column/label'
+import { gridMessages } from './engine/grid-messages'
 import type { GridColumn } from './types'
 import { useGridTruncation } from './use-grid-truncation'
 
@@ -108,6 +110,8 @@ export function GridColumnHeaderLabel({
 	toggleSort: (column: string | number, additive: boolean) => void
 	interactive: boolean
 }): ReactNode {
+	const intl = useIntl()
+
 	if (!column.sortable || !interactive) return <GridHeaderTitle title={column.title} />
 
 	return (
@@ -125,8 +129,11 @@ export function GridColumnHeaderLabel({
 						// sort priority into it; otherwise the digit is never announced (WCAG 1.3.1).
 						aria-label={
 							sortPriority != null
-								? `Sort by ${columnLabel(column)}, sort priority ${sortPriority}`
-								: `Sort by ${columnLabel(column)}`
+								? intl.formatMessage(gridMessages.sortByPriority, {
+										column: columnLabel(column),
+										priority: sortPriority,
+									})
+								: intl.formatMessage(gridMessages.sortBy, { column: columnLabel(column) })
 						}
 						// A string title is in the name, and the tooltip echoes it, so its
 						// description would repeat the name. The explicit key wins over the
@@ -138,7 +145,7 @@ export function GridColumnHeaderLabel({
 						{sortDirectionIcon(sorted, direction)}
 						{sortPriority != null && (
 							<span aria-hidden className={cn(k.sort.badge)}>
-								{sortPriority}
+								{intl.formatNumber(sortPriority)}
 							</span>
 						)}
 					</Button>
@@ -164,12 +171,14 @@ export function GridPinnedHeaderLabel({
 	pinColumn: (column: string | number, side: 'left' | 'right' | false) => void
 	label: ReactNode
 }) {
+	const intl = useIntl()
+
 	return (
 		<span className={cn(k.head.pinned.label)}>
 			<button
 				type="button"
 				className={cn(k.head.pinned.button)}
-				aria-label={`Unpin ${columnLabel(column)}`}
+				aria-label={intl.formatMessage(gridMessages.unpinColumn, { column: columnLabel(column) })}
 				onClick={() => pinColumn(column.id, false)}
 			>
 				<Icon icon={<Pin />} />

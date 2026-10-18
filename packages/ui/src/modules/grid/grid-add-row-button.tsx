@@ -3,7 +3,8 @@
 import { Plus } from 'lucide-react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
-import { NEW_ROW_ADD_COLUMN_LABEL } from './engine/grid-new-row-column'
+import { useIntl } from '../../primitives/intl/use-intl'
+import { gridMessages } from './engine/grid-messages'
 import { keepFocus } from './grid-cell-editor'
 
 /**
@@ -16,12 +17,14 @@ import { keepFocus } from './grid-cell-editor'
  * @internal
  */
 export function GridAddRowButton({ addRow }: { addRow: () => void }) {
+	const intl = useIntl()
+
 	return (
 		<Button
 			type="button"
 			variant="bare"
 			color="green"
-			aria-label={NEW_ROW_ADD_COLUMN_LABEL}
+			aria-label={intl.formatMessage(gridMessages.addRow)}
 			data-slot="grid-new-row-add"
 			onMouseDown={keepFocus}
 			onClick={addRow}

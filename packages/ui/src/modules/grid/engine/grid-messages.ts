@@ -84,6 +84,55 @@ type GridValues = {
 	resetBody: Record<never, never>
 	resetConfirm: Record<never, never>
 	keepWidths: Record<never, never>
+	sortBy: { column: string }
+	sortByPriority: { column: string; priority: number }
+	unpinColumn: { column: string }
+	filterNamed: { column: string }
+	filterActive: { column: string }
+	editFilters: Record<never, never>
+	clearFilters: Record<never, never>
+	reorderRows: Record<never, never>
+	selectAll: Record<never, never>
+	selectAllOnPage: Record<never, never>
+	dataGrid: Record<never, never>
+	saveCell: { cell: string }
+	discardCell: { cell: string }
+	cellInRow: { column: string; row: number }
+	cellInNewRow: { column: string }
+	editCell: { cell: string }
+	yes: Record<never, never>
+	no: Record<never, never>
+	commitRefused: Record<never, never>
+	noRows: Record<never, never>
+	rangeOf: { from: number; to: number; total: number }
+	pageOf: { page: number; total: number }
+	pageNumber: { page: number }
+	paginationOf: { grid: string }
+	paginationWord: Record<never, never>
+	pagination: Record<never, never>
+	rowsPerPage: Record<never, never>
+	perPage: { count: number }
+	previousPage: Record<never, never>
+	nextPage: Record<never, never>
+	rowsVisible: { rows: number; total: number }
+	rowCount: { rows: number }
+	selectedHidden: { selected: number; hidden: number }
+	selectedOf: { selected: number; rows: number }
+	rowsResult: { count: number }
+	total: Record<never, never>
+	exporting: Record<never, never>
+	tableTools: Record<never, never>
+	batchActions: Record<never, never>
+	search: Record<never, never>
+	newRow: Record<never, never>
+	addRow: Record<never, never>
+	expandGroupNamed: { group: string }
+	collapseGroupNamed: { group: string }
+	expandNamed: { group: string }
+	collapseNamed: { group: string }
+	expandDetails: { row: string }
+	collapseDetails: { row: string }
+	loadFailed: Record<never, never>
 }
 
 /**
@@ -493,5 +542,259 @@ export const gridMessages: MessageSet<GridValues> = defineMessages<GridValues>({
 		id: 'ui.grid.keepWidths',
 		defaultMessage: 'Keep my widths',
 		description: 'The button that closes the dialog and keeps the saved column widths of a grid.',
+	},
+	sortBy: {
+		id: 'ui.grid.sortBy',
+		defaultMessage: 'Sort by {column}',
+		description: 'The name of the header button that sorts the rows of a grid by a column.',
+	},
+	sortByPriority: {
+		id: 'ui.grid.sortByPriority',
+		defaultMessage: 'Sort by {column}, sort priority {priority, number}',
+		description:
+			'The name of the header button of a column in a sort by many columns. The priority is its place in that sort, from 1.',
+	},
+	unpinColumn: {
+		id: 'ui.grid.unpinColumn',
+		defaultMessage: 'Unpin {column}',
+		description: 'The name of the button in the header of a pinned column that unpins it.',
+	},
+	filterNamed: {
+		id: 'ui.grid.filterNamed',
+		defaultMessage: 'Filter {column}',
+		description: 'The name of the header button that opens the filter of a grid column.',
+	},
+	filterActive: {
+		id: 'ui.grid.filterActive',
+		defaultMessage: 'Filter {column}, active',
+		description: 'The name of the header button of a grid column whose filter is on.',
+	},
+	editFilters: {
+		id: 'ui.grid.editFilters',
+		defaultMessage: 'Edit filters',
+		description: 'The menu item that opens the filter of a grid column to change it.',
+	},
+	clearFilters: {
+		id: 'ui.grid.clearFilters',
+		defaultMessage: 'Clear filters',
+		description: 'The menu item and the button that remove the filters of a grid.',
+	},
+	reorderRows: {
+		id: 'ui.grid.reorderRows',
+		defaultMessage: 'Reorder rows',
+		description: 'The hidden name of the header of the column of row drag handles.',
+	},
+	selectAll: {
+		id: 'ui.grid.selectAll',
+		defaultMessage: 'Select all rows',
+		description: 'The name of the checkbox in the header that selects every row of a grid.',
+	},
+	selectAllOnPage: {
+		id: 'ui.grid.selectAllOnPage',
+		defaultMessage: 'Select all rows on this page',
+		description:
+			'The name of the checkbox in the header that selects every row of the current page of a grid.',
+	},
+	dataGrid: {
+		id: 'ui.grid.dataGrid',
+		defaultMessage: 'Data grid',
+		description: 'The name of a grid that the app gives no name.',
+	},
+	saveCell: {
+		id: 'ui.grid.saveCell',
+		defaultMessage: 'Save {cell}',
+		description:
+			'The name of the button that saves the edit of a cell. The cell names its column and row.',
+	},
+	discardCell: {
+		id: 'ui.grid.discardCell',
+		defaultMessage: 'Discard {cell}',
+		description:
+			'The name of the button that drops the edit of a cell. The cell names its column and row.',
+	},
+	cellInRow: {
+		id: 'ui.grid.cellInRow',
+		defaultMessage: '{column}, row {row, number}',
+		description: 'The name of a cell of a grid by its column and its row number.',
+	},
+	cellInNewRow: {
+		id: 'ui.grid.cellInNewRow',
+		defaultMessage: '{column}, new row',
+		description: 'The name of a cell of the new row of a grid by its column.',
+	},
+	editCell: {
+		id: 'ui.grid.editCell',
+		defaultMessage: 'Edit {cell}',
+		description: 'The name of the editor of a cell of a grid. The cell names its column and row.',
+	},
+	yes: {
+		id: 'ui.grid.yes',
+		defaultMessage: 'Yes',
+		description: 'The true choice of a yes-or-no cell of a grid.',
+	},
+	no: {
+		id: 'ui.grid.no',
+		defaultMessage: 'No',
+		description: 'The false choice of a yes-or-no cell of a grid.',
+	},
+	commitRefused: {
+		id: 'ui.grid.commitRefused',
+		defaultMessage: 'Change not saved',
+		description:
+			'The error of a cell edit that the app did not save, when the app gives no reason.',
+	},
+	noRows: {
+		id: 'ui.grid.noRows',
+		defaultMessage: 'No rows',
+		description: 'The page status of a grid that has no rows.',
+	},
+	rangeOf: {
+		id: 'ui.grid.rangeOf',
+		defaultMessage: '{from, number}–{to, number} of {total, number}',
+		description:
+			'The page status of a grid: the first and the last row of the page, and the count of rows.',
+	},
+	pageOf: {
+		id: 'ui.grid.pageOf',
+		defaultMessage: 'Page {page, number} of {total, number}',
+		description: 'The page status of a grid that knows its number of pages.',
+	},
+	pageNumber: {
+		id: 'ui.grid.pageNumber',
+		defaultMessage: 'Page {page, number}',
+		description: 'The page status of a grid that does not know its number of pages.',
+	},
+	paginationOf: {
+		id: 'ui.grid.paginationOf',
+		defaultMessage: '{grid} pagination',
+		description: 'The name of the page navigation of a grid. The grid is its name.',
+	},
+	paginationWord: {
+		id: 'ui.grid.paginationWord',
+		defaultMessage: 'pagination',
+		description: 'The hidden word after the name of a grid that names its page navigation.',
+	},
+	pagination: {
+		id: 'ui.grid.pagination',
+		defaultMessage: 'Pagination',
+		description: 'The name of the page navigation of a grid with no name.',
+	},
+	rowsPerPage: {
+		id: 'ui.grid.rowsPerPage',
+		defaultMessage: 'Rows per page',
+		description: 'The name of the control that picks the number of rows on a page of a grid.',
+	},
+	perPage: {
+		id: 'ui.grid.perPage',
+		defaultMessage: '{count, number} / page',
+		description: 'The value of the rows-per-page control of a grid, such as "25 / page".',
+	},
+	previousPage: {
+		id: 'ui.grid.previousPage',
+		defaultMessage: 'Previous page',
+		description: 'The name of the button that shows the page of a grid before this one.',
+	},
+	nextPage: {
+		id: 'ui.grid.nextPage',
+		defaultMessage: 'Next page',
+		description: 'The name of the button that shows the page of a grid after this one.',
+	},
+	rowsVisible: {
+		id: 'ui.grid.rowsVisible',
+		defaultMessage: '{rows, number} of {total, plural, one {# row} other {# rows}} visible',
+		description: 'The row count in the footer of a filtered grid.',
+	},
+	rowCount: {
+		id: 'ui.grid.rowCount',
+		defaultMessage: '{rows, plural, one {# row} other {# rows}}',
+		description: 'The row count in the footer of a grid.',
+	},
+	selectedHidden: {
+		id: 'ui.grid.selectedHidden',
+		defaultMessage:
+			'{selected, plural, one {# row selected} other {# rows selected}}, {hidden, number} not shown',
+		description:
+			'The selection count in the footer of a grid, when the filter hides some selected rows.',
+	},
+	selectedOf: {
+		id: 'ui.grid.selectedOf',
+		defaultMessage: '{selected, number} of {rows, plural, one {# row} other {# rows}} selected',
+		description: 'The selection count in the footer of a grid.',
+	},
+	rowsResult: {
+		id: 'ui.grid.rowsResult',
+		defaultMessage: '{count, plural, =0 {No results} one {# row} other {# rows}}',
+		description: 'Spoken when the rows of a grid finish loading. The count is the number of rows.',
+	},
+	total: {
+		id: 'ui.grid.total',
+		defaultMessage: 'Total',
+		description: 'The label of the row that adds up the columns of a grid.',
+	},
+	exporting: {
+		id: 'ui.grid.exporting',
+		defaultMessage: 'Exporting',
+		description: 'Shown while a grid exports its rows.',
+	},
+	tableTools: {
+		id: 'ui.grid.tableTools',
+		defaultMessage: 'Table tools',
+		description: 'The name of the toolbar of the tools of a grid.',
+	},
+	batchActions: {
+		id: 'ui.grid.batchActions',
+		defaultMessage: 'Batch actions',
+		description: 'The name of the toolbar of the actions on the selected rows of a grid.',
+	},
+	search: {
+		id: 'ui.grid.search',
+		defaultMessage: 'Search',
+		description: 'The hint text and the name of the search field of a grid.',
+	},
+	newRow: {
+		id: 'ui.grid.newRow',
+		defaultMessage: 'New row',
+		description: 'The name of the row where the reader types a new row of a grid.',
+	},
+	addRow: {
+		id: 'ui.grid.addRow',
+		defaultMessage: 'Add row',
+		description: 'The name of the button that adds the new row to a grid.',
+	},
+	expandGroupNamed: {
+		id: 'ui.grid.expandGroupNamed',
+		defaultMessage: 'Expand group {group}',
+		description: 'The name of the button that opens a row group of a grid. The group is its value.',
+	},
+	collapseGroupNamed: {
+		id: 'ui.grid.collapseGroupNamed',
+		defaultMessage: 'Collapse group {group}',
+		description:
+			'The name of the button that closes a row group of a grid. The group is its value.',
+	},
+	expandNamed: {
+		id: 'ui.grid.expandNamed',
+		defaultMessage: 'Expand {group}',
+		description: 'The name of the button that shows the columns of a collapsed column group.',
+	},
+	collapseNamed: {
+		id: 'ui.grid.collapseNamed',
+		defaultMessage: 'Collapse {group}',
+		description: 'The name of the button that hides the columns of a column group.',
+	},
+	expandDetails: {
+		id: 'ui.grid.expandDetails',
+		defaultMessage: 'Expand details for {row}',
+		description: 'The name of the button that opens the detail panel of a row of a grid.',
+	},
+	collapseDetails: {
+		id: 'ui.grid.collapseDetails',
+		defaultMessage: 'Collapse details for {row}',
+		description: 'The name of the button that closes the detail panel of a row of a grid.',
+	},
+	loadFailed: {
+		id: 'ui.grid.loadFailed',
+		defaultMessage: "Couldn't load data",
+		description: 'The error of a grid whose rows did not load.',
 	},
 })

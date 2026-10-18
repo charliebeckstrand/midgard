@@ -3,9 +3,11 @@
 import { Checkbox } from '../../components/checkbox'
 import { TableHeader } from '../../components/table'
 import { cn } from '../../core'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
 import { useGrid } from './context'
-import { isNewRowAddColumn, NEW_ROW_ADD_COLUMN_LABEL } from './engine/grid-new-row-column'
+import { gridMessages } from './engine/grid-messages'
+import { isNewRowAddColumn } from './engine/grid-new-row-column'
 import { pinnedHeaderProps } from './engine/grid-pin/styles'
 import type { GridColumn } from './types'
 import type { GridColumnPinning } from './use-grid-table'
@@ -84,6 +86,8 @@ function GridDragHandleHeaderCell<T>({
 	stickyHeader: boolean
 	pinning: GridColumnPinning | null
 }) {
+	const intl = useIntl()
+
 	return (
 		<TableHeader
 			{...pinnedHeaderCellProps(
@@ -91,7 +95,7 @@ function GridDragHandleHeaderCell<T>({
 				k.row.reorder.cell,
 			)}
 		>
-			<span className="sr-only">Reorder rows</span>
+			<span className="sr-only">{intl.formatMessage(gridMessages.reorderRows)}</span>
 		</TableHeader>
 	)
 }
@@ -113,13 +117,15 @@ function GridNewRowAddHeaderCell<T>({
 	ariaColIndex: number | undefined
 	stickyHeader: boolean
 }) {
+	const intl = useIntl()
+
 	return (
 		<TableHeader
 			aria-colindex={ariaColIndex}
 			className={cn(k.cell.actions, stickyHeader && k.sticky.head)}
 			style={{ width: column.width }}
 		>
-			<span className="sr-only">{NEW_ROW_ADD_COLUMN_LABEL}</span>
+			<span className="sr-only">{intl.formatMessage(gridMessages.addRow)}</span>
 		</TableHeader>
 	)
 }
