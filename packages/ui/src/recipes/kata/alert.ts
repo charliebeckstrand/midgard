@@ -14,9 +14,9 @@ const titleRamp = dan.text.title
 
 /**
  * Alert kata. The padding, the text, and the title take the step of the
- * nearest density scope, and Icon takes the same step. The close button row
- * reads the title size, so the button stays on the line of the title. At `md`
- * the alert is `p-4` with `text-base` and a `text-lg` title.
+ * nearest density scope, and Icon takes the same step. The close button is
+ * centered on the height of the alert. At `md` the alert is `p-4` with
+ * `text-base` and a `text-lg` title.
  *
  * Soft and solid draw the alert with only a background, and the `ring-1` of
  * outline is a box-shadow. Forced colors remove both, so the base carries a
@@ -37,12 +37,7 @@ export const k = defineRecipe({
 		columns: ['grid grid-cols-[auto_minmax(0,1fr)]', dan.gap.x.sm],
 		body: 'col-start-2',
 		actions: [flex.row, dan.gap.scale.xs],
-		close: {
-			base: [flex.row, 'shrink-0'],
-			// One line box of the title: the button centers on it and overhangs it into
-			// the padding of the alert.
-			line: ['h-lh self-start', titleRamp],
-		},
+		close: [flex.row, 'shrink-0 self-center'],
 	},
 	defaults: { variant: 'soft', color: 'zinc' },
 })
