@@ -67,6 +67,10 @@
 		"defaultMessage": "Confirm",
 		"description": "The label of a button that does the action that a dialog asks about."
 	},
+	"ui.common.loading": {
+		"defaultMessage": "Loading",
+		"description": "The name of a spinner that shows that content or an action is loading."
+	},
 	"ui.common.noResults": {
 		"defaultMessage": "No results",
 		"description": "The text of a list when a search finds no item."

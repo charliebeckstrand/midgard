@@ -8,6 +8,7 @@ import { Group } from '../../components/group'
 import { Icon } from '../../components/icon'
 import { Input } from '../../components/input'
 import { HeadlessProvider } from '../../providers/headless'
+import { LocaleProvider } from '../../providers/locale'
 import { k } from '../../recipes/kata/button'
 import { bySlot, densityStepOf, fireEvent, getSlot, present, renderUI, screen } from '../helpers'
 import { findSteps } from '../helpers/class-stops'
@@ -428,5 +429,17 @@ describe('Button', () => {
 
 			expect(bySlot(container, 'button')).not.toHaveAttribute('data-has-label')
 		})
+	})
+})
+
+describe('Button in a locale', () => {
+	it('names the loading spinner in the language of the locale', () => {
+		renderUI(
+			<LocaleProvider locale="es-ES">
+				<Button loading>Save</Button>
+			</LocaleProvider>,
+		)
+
+		expect(screen.getByRole('status')).toHaveTextContent('Cargando')
 	})
 })
