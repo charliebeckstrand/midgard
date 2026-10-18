@@ -1,14 +1,25 @@
 import type { ReactElement } from 'react'
 import { afterAll, beforeAll, describe, expect, it, onTestFinished } from 'vitest'
 import { cdp, page, userEvent } from 'vitest/browser'
+import { JsonTree } from '../../components/json-tree'
+import { NavItem, NavList } from '../../components/nav'
 import { ProgressBar } from '../../components/progress'
 import { Segment, SegmentItem } from '../../components/segment'
+import {
+	Sidebar,
+	SidebarBody,
+	SidebarItem,
+	SidebarLabel,
+	SidebarList,
+} from '../../components/sidebar'
 import { RangeSlider, Slider } from '../../components/slider'
 import { Switch } from '../../components/switch'
 import { Table, TableBody, TableCell, TableRow } from '../../components/table'
 import { Tab, TabList, Tabs } from '../../components/tabs'
 import { Timeline, TimelineItem, TimelineTitle } from '../../components/timeline'
 import { Tree, TreeItem } from '../../components/tree'
+import { ChatList, ChatListItem } from '../../modules/chat'
+import { Grid, type GridColumn } from '../../modules/grid'
 import { frames, present, renderUI, waitFor } from '../helpers'
 
 /**
@@ -99,6 +110,85 @@ async function focusOutline(
 	await userEvent.tab()
 	expect(document.activeElement).toBe(stop)
 	const style = getComputedStyle(stop)
+	return { style: style.outlineStyle, width: style.outlineWidth }
+}
+
+type Person = { id: number; name: string }
+
+const people: Person[] = [
+	{ id: 1, name: 'Alice' },
+	{ id: 2, name: 'Bob' },
+]
+
+const personColumns: GridColumn<Person>[] = [
+	{ id: 'name', title: 'Name', cell: (row) => row.name, value: (row) => row.name },
+]
+
+/**
+ * The focus marks that are a box-shadow ring or a background on an element
+ * other than the focused control. Forced colors remove both, so the mark must
+ * also draw an outline. `mark` finds the marked element from the focused one.
+ */
+const focusMarks = {
+	'nav row with a suffix': {
+		ui: (
+			<NavList aria-label="Main">
+				<NavItem suffix={<span>3</span>}>Inbox</NavItem>
+			</NavList>
+		),
+		mark: (focused: Element) => focused.closest('[data-slot="nav-item"]'),
+	},
+	'sidebar row with a prefix': {
+		ui: (
+			<Sidebar aria-label="Side">
+				<SidebarBody>
+					<SidebarList aria-label="Main">
+						<SidebarItem prefix={<span>1</span>}>
+							<SidebarLabel>Inbox</SidebarLabel>
+						</SidebarItem>
+					</SidebarList>
+				</SidebarBody>
+			</Sidebar>
+		),
+		mark: (focused: Element) => focused.closest('[data-slot="sidebar-item"]'),
+	},
+	'chat list row': {
+		ui: (
+			<ChatList aria-label="Conversations">
+				<ChatListItem title="Kickoff" onSelect={() => {}} />
+			</ChatList>
+		),
+		mark: (focused: Element) => focused.closest('[data-slot="chat-list-item"]'),
+	},
+	'grid active cell': {
+		ui: <Grid navigable columns={personColumns} rows={people} getKey={(row) => row.id} />,
+		mark: (focused: Element) => focused.querySelector('[role="gridcell"][data-active]'),
+	},
+	'json tree row': {
+		ui: <JsonTree data={{ a: 1 }} />,
+		mark: (focused: Element) => focused.parentElement,
+	},
+	'range slider thumb': {
+		ui: <RangeSlider aria-label="Price" value={[10, 40]} />,
+		mark: (focused: Element) => focused,
+	},
+} as const
+
+/**
+ * The computed outline of a focus mark after keyboard Tab moves focus into it.
+ * The grid takes an arrow key too, so that its cursor sits on a cell.
+ */
+async function markOutline(
+	name: keyof typeof focusMarks,
+): Promise<{ style: string; width: string }> {
+	const { ui, mark } = focusMarks[name]
+	renderUI(ui)
+	await frames()
+	await userEvent.tab()
+	const focused = present(document.activeElement, 'focused element')
+	if (name === 'grid active cell') await userEvent.keyboard('{ArrowDown}')
+	const node = await waitFor(() => present(mark(focused), `${name} mark`))
+	const style = getComputedStyle(node)
 	return { style: style.outlineStyle, width: style.outlineWidth }
 }
 
@@ -221,6 +311,14 @@ describe('controls show their state under forced colors (real browser)', () => {
 		})
 	}
 
+	for (const name of Object.keys(focusMarks) as (keyof typeof focusMarks)[]) {
+		it(`${name}: keyboard focus draws an outline`, async () => {
+			const outline = await markOutline(name)
+			expect(outline.style).not.toBe('none')
+			expect(outline.width).not.toBe('0px')
+		})
+	}
+
 	it('slider: 10 and 90 paint differently', async () => {
 		const low = await pixels(<Slider aria-label="Volume" value={10} />)
 		const high = await pixels(<Slider aria-label="Volume" value={90} />)
@@ -267,6 +365,9 @@ describe('controls show their state under forced colors (real browser)', () => {
 		})
 		for (const name of Object.keys(insetStops) as (keyof typeof insetStops)[]) {
 			expect((await focusOutline(name)).style).toBe('none')
+		}
+		for (const name of Object.keys(focusMarks) as (keyof typeof focusMarks)[]) {
+			expect((await markOutline(name)).style, name).toBe('none')
 		}
 	})
 })
