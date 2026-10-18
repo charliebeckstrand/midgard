@@ -418,6 +418,31 @@ function sameWindowState(a: WindowState, b: WindowState): boolean {
 	return a.start === b.start && a.end === b.end && a.sizes === b.sizes
 }
 
+/**
+ * Reads the height of the scroller into the virtualizer before a scroll
+ * command. The rect observer of virtual-core reports a new height only at the
+ * end of the next frame, and a command in that gap aligns against the old
+ * height. A scroller that only `maxHeight` bounds grows when rows replace a
+ * shorter stand-in, such as the loading skeleton of a grid. A step to a row in
+ * full view then moved the scroller, because the old height put the row below
+ * the bottom edge.
+ *
+ * It reads the layout height, which a transform does not change, as the
+ * `border-box` entry of the observer does. A difference of one pixel or less
+ * can come from a rounded value, so the height then stays. @internal
+ */
+function syncScrollHeight(instance: Virtualizer<HTMLElement, Element>): void {
+	const element = instance.scrollElement
+
+	const rect = instance.scrollRect
+
+	if (!element || !rect) return
+
+	const height = element.offsetHeight
+
+	if (Math.abs(height - rect.height) > 1) instance.scrollRect = { ...rect, height }
+}
+
 /** The options that {@link useWindowVirtualizer} passes through. @internal */
 type WindowVirtualizerOptions = Omit<
 	VirtualizerOptions<HTMLElement, Element>,
@@ -493,6 +518,16 @@ function useWindowVirtualizer(options: WindowVirtualizerOptions, adjustAbove: bo
 
 	if (adjustAbove) instance.shouldAdjustScrollPositionOnItemSizeChange = adjustAboveViewport
 
+	// One identity for the mount, as the library method has.
+	const [scrollToIndex] = useState(
+		() =>
+			(...args: Parameters<Virtualizer<HTMLElement, Element>['scrollToIndex']>) => {
+				syncScrollHeight(instance)
+
+				instance.scrollToIndex(...args)
+			},
+	)
+
 	useLayoutEffect(() => instance._didMount(), [instance])
 
 	useLayoutEffect(() => instance._willUpdate())
@@ -506,6 +541,7 @@ function useWindowVirtualizer(options: WindowVirtualizerOptions, adjustAbove: bo
 
 	return {
 		virtualizer: instance,
+		scrollToIndex,
 		record,
 		virtualItems: instance.getVirtualItems(),
 		totalSize: instance.getTotalSize(),
@@ -531,7 +567,9 @@ type VirtualWindow = {
 	bottomSpacer: number
 	/**
 	 * Scrolls the item at `index` into the window, mounting it if it was outside
-	 * it. `behavior: 'smooth'` glides there, and the default jumps.
+	 * it. `behavior: 'smooth'` glides there, and the default jumps. It reads the
+	 * live height of the scroller first, so a call in the frame where the
+	 * scroller grew aligns against the new height.
 	 */
 	scrollToIndex: (
 		index: number,
@@ -667,6 +705,7 @@ export function useVirtualWindow({
 	// path, and a zero scroll margin and paddings where the caller gives none.
 	const {
 		virtualizer,
+		scrollToIndex,
 		record: recordShown,
 		virtualItems,
 		totalSize,
@@ -778,7 +817,7 @@ export function useVirtualWindow({
 		virtualItems,
 		topSpacer,
 		bottomSpacer,
-		scrollToIndex: virtualizer.scrollToIndex,
+		scrollToIndex,
 		measureRef,
 	}
 }
