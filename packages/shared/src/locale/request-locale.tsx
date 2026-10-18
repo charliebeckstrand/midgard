@@ -5,9 +5,9 @@ import { LOCALES } from './locales'
 
 /**
  * Renders `children` in the locale of the request, so the server markup shows
- * the formats and the messages of ui in the language of the reader. It reads
- * the locale cookie, which the Language picker writes, and else the
- * `Accept-Language` header.
+ * the formats, and the messages of ui and of shared, in the language of the
+ * reader. It reads the locale cookie, which the Language picker writes, and
+ * else the `Accept-Language` header.
  *
  * Render it in a layout or a page that already renders for each request, such
  * as one that reads the session. It reads the cookies and the headers, so a
@@ -17,7 +17,8 @@ import { LOCALES } from './locales'
  * choice applies there after hydration. Under this component, the server and
  * the browser agree on the locale from the first render. The provider here
  * shares the stored choice of the root provider, so a new choice applies to
- * both at once.
+ * both at once. It also keeps the catalogs of the root provider in
+ * `AppProviders`, so this server component passes no catalog to the client.
  */
 export async function RequestLocale({ children }: { children: ReactNode }) {
 	const [cookieStore, headerList] = await Promise.all([cookies(), headers()])

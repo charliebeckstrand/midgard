@@ -1,16 +1,14 @@
 // @vitest-environment node
-import { readdirSync, readFileSync } from 'node:fs'
-import { join } from 'node:path'
-import { parse } from '@formatjs/icu-messageformat-parser'
-import { isStructurallySame } from '@formatjs/icu-messageformat-parser/manipulator.js'
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
+import { CATALOG_SOURCE, LANG_DIR, SOURCE_CATALOG } from '../../../scripts/intl'
 import {
-	type CatalogEntry,
+	argumentErrors,
 	catalogText,
 	extractCatalog,
-	LANG_DIR,
-	SOURCE_CATALOG,
-} from '../../../scripts/intl'
+	readCatalog,
+	readTranslations,
+} from '../../../scripts/intl-catalog'
 import { localeIntl } from '../../primitives/intl/intl-catalog'
 
 // The source catalog holds the English default of each message of ui, and each
@@ -25,18 +23,13 @@ import { localeIntl } from '../../primitives/intl/intl-catalog'
 //   3. Each translated message parses, and it uses the same arguments as its
 //      English default, of the same types.
 
-const source = JSON.parse(readFileSync(SOURCE_CATALOG, 'utf8')) as Record<string, CatalogEntry>
+const source = readCatalog(SOURCE_CATALOG)
 
-const translations = readdirSync(LANG_DIR)
-	.filter((file) => file.endsWith('.json') && file !== 'en.json')
-	.map((file) => ({
-		language: file.replace(/\.json$/, ''),
-		messages: JSON.parse(readFileSync(join(LANG_DIR, file), 'utf8')) as Record<string, string>,
-	}))
+const translations = readTranslations(LANG_DIR)
 
 describe('intl catalog', () => {
 	it('matches the message descriptors of the source', async () => {
-		const text = catalogText(await extractCatalog())
+		const text = catalogText(await extractCatalog(CATALOG_SOURCE))
 
 		expect(readFileSync(SOURCE_CATALOG, 'utf8'), 'run `pnpm intl` to write the catalog').toBe(text)
 	})
@@ -55,15 +48,36 @@ describe('intl catalog', () => {
 		})
 
 		it('parses each message, with the arguments of its English default', () => {
-			for (const [id, message] of Object.entries(messages)) {
-				const entry = source[id]
-
-				if (!entry) continue
-
-				const { success, error } = isStructurallySame(parse(entry.defaultMessage), parse(message))
-
-				expect(success, `${id}: ${error?.message}`).toBe(true)
-			}
+			expect(argumentErrors(source, messages)).toEqual([])
 		})
+	})
+})
+
+describe('argumentErrors', () => {
+	const catalog = {
+		'test.count': { defaultMessage: '{count, plural, one {# item} other {# items}}' },
+		'test.name': { defaultMessage: 'Hello {name}' },
+	}
+
+	it('accepts a message with the arguments of its English default', () => {
+		expect(
+			argumentErrors(catalog, {
+				'test.count': '{count, plural, one {# elemento} other {# elementos}}',
+				'test.name': 'Hola {name}',
+			}),
+		).toEqual([])
+	})
+
+	it('reports a message that changes an argument, and a message that does not parse', () => {
+		const errors = argumentErrors(catalog, {
+			'test.count': '{total, plural, one {# elemento} other {# elementos}}',
+			'test.name': 'Hola {name',
+		})
+
+		expect(errors).toHaveLength(2)
+
+		expect(errors[0]).toMatch(/^test\.count: /)
+
+		expect(errors[1]).toMatch(/^test\.name: /)
 	})
 })

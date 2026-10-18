@@ -5,7 +5,22 @@ import { defineMessage, defineMessages, type TypedMessageDescriptor } from '@for
 // Biome plugin). The module has no `'use client'`, so a server module and a
 // pure engine can define messages. `pnpm intl` finds a call of
 // `defineMessages` by its name, not by the module it comes from.
-export { defineMessage, defineMessages }
+export {
+	/**
+	 * Defines one message: an `id`, an English `defaultMessage` in ICU syntax,
+	 * and a `description` for the translator. Give the values of the message as
+	 * the type argument, such as `defineMessage<{ count: number }>({ … })`. The
+	 * `defaultMessage` must be a string literal, so the extraction can read it.
+	 */
+	defineMessage,
+	/**
+	 * Defines a set of messages by key. Each message has an `id`, an English
+	 * `defaultMessage` in ICU syntax, and a `description` for the translator. The
+	 * `defaultMessage` must be a string literal, so the extraction can read it.
+	 * Annotate an exported set with {@link MessageSet}.
+	 */
+	defineMessages,
+}
 
 /**
  * The messages that many controls of ui share. A message that one unit owns

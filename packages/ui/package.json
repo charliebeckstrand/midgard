@@ -99,6 +99,10 @@
 			"default": "./src/modules/query/index.ts"
 		},
 		"./tailwind.css": "./tailwind.css",
+		"./scripts/intl-catalog": {
+			"types": "./scripts/intl-catalog.ts",
+			"default": "./scripts/intl-catalog.ts"
+		},
 		"./*": {
 			"types": "./src/components/*/index.ts",
 			"default": "./src/components/*/index.ts"
@@ -210,7 +214,7 @@
 		"subset-font": "^2.9.0",
 		"tailwindcss": "catalog:",
 		"tsup": "catalog:",
-		"tsx": "^4.19.0",
+		"tsx": "catalog:",
 		"typescript": "7.0.2",
 		"us-atlas": "catalog:",
 		"vite": "^8.3.2",
