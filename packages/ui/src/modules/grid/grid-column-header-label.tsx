@@ -1,7 +1,7 @@
 'use client'
 
 import { ArrowDown, ArrowUp, Pin } from 'lucide-react'
-import { type ReactElement, type ReactNode, type RefObject, useRef } from 'react'
+import { type ReactElement, type ReactNode, useRef } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
@@ -52,14 +52,14 @@ function GridHeaderTitle({
 	control,
 }: {
 	title: ReactNode
-	control?: (title: ReactElement, ref: RefObject<HTMLButtonElement | null>) => ReactElement
+	control?: (title: ReactElement) => ReactElement
 }): ReactElement {
 	// No settle key: the header cell re-renders on its own engine `width` prop
 	// (drag and nudge alike), so the commit measure already re-runs at settle —
 	// unlike the memoized body cells, which take the snapshot from the grid.
 	const resizing = useGridResizing()
 
-	const controlRef = useRef<HTMLButtonElement>(null)
+	const controlRef = useRef<HTMLElement>(null)
 
 	// A drag renders the header on each frame. The body cells stand their
 	// measure down through the drag, and so does the title; the render at the
@@ -84,7 +84,8 @@ function GridHeaderTitle({
 		// drag reflows the header, and the overflow tooltip would otherwise flash
 		// open over the content the resize is reshaping.
 		<Tooltip disabled={!truncated || resizing}>
-			<TooltipTrigger>{control ? control(span, controlRef) : span}</TooltipTrigger>
+			{/* The trigger joins `controlRef` to the ref of the control it clones. */}
+			<TooltipTrigger ref={control && controlRef}>{control ? control(span) : span}</TooltipTrigger>
 
 			<TooltipContent className={cn(k.cell.tooltip)}>{title}</TooltipContent>
 		</Tooltip>
@@ -113,9 +114,8 @@ export function GridColumnHeaderLabel({
 		<HeadlessProvider>
 			<GridHeaderTitle
 				title={column.title}
-				control={(title, ref) => (
+				control={(title) => (
 					<Button
-						ref={ref}
 						type="button"
 						className={cn(k.sort.button)}
 						// A Shift-click folds this column into the existing sort (multi-column);
