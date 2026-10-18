@@ -14,11 +14,13 @@
 /* An element whose children are all phrasing content, the content that HTML
    lets sit in a line of text, such as a button, a badge, or an icon. The
    instance box of an example (`kit/example.tsx`) shows such children in a
-   row, and stacks any other children. */
+   row, and stacks any other children. The wrapper of a glass provider is a
+   `<span>` with `display: contents`, so the variant examines the children of
+   that wrapper and not the wrapper. */
 @custom-variant phrasing (
 	&:not(
 		:has(
-			> :not(
+			:is(& > *, & > [data-slot='glass'] > *):not(
 					a,
 					abbr,
 					audio,
