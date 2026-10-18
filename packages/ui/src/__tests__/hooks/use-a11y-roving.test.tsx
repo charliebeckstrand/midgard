@@ -598,6 +598,75 @@ describe('useA11yRoving: manageTabIndex', () => {
 
 		expect(tabIndices(container)).toEqual([-1, -1, 0])
 	})
+
+	describe('aria-current moves', () => {
+		const options = {
+			itemSelector: '[data-slot="item"]',
+			manageTabIndex: true,
+			activeSelector: '[aria-current="page"]',
+		}
+
+		function moveCurrent(container: HTMLElement, to: number) {
+			const items = Array.from(container.querySelectorAll('button'))
+
+			for (const item of items) item.removeAttribute('aria-current')
+
+			items[to]?.setAttribute('aria-current', 'page')
+		}
+
+		function setup() {
+			const container = makeButtons(3, 0)
+
+			const outside = attach(document.createElement('button'))
+
+			renderHook(() => {
+				const ref = useRef<HTMLElement>(container)
+
+				return useA11yRoving(ref, options)
+			})
+
+			const items = Array.from(container.querySelectorAll('button'))
+
+			return { container, items, outside }
+		}
+
+		it('re-seats the stop that the hook seated when focus is outside', async () => {
+			const { container } = setup()
+
+			expect(tabIndices(container)).toEqual([0, -1, -1])
+
+			moveCurrent(container, 2)
+
+			await waitFor(() => expect(tabIndices(container)).toEqual([-1, -1, 0]))
+		})
+
+		it('re-seats a stop that the user roved to when focus is outside', async () => {
+			const { container, items, outside } = setup()
+
+			items[1]?.focus()
+
+			outside.focus()
+
+			expect(tabIndices(container)).toEqual([-1, 0, -1])
+
+			moveCurrent(container, 2)
+
+			await waitFor(() => expect(tabIndices(container)).toEqual([-1, -1, 0]))
+		})
+
+		it('keeps the stop on the focused item when focus is inside', async () => {
+			const { container, items } = setup()
+
+			items[1]?.focus()
+
+			moveCurrent(container, 2)
+
+			// Let the observer run before the assertion.
+			await Promise.resolve()
+
+			expect(tabIndices(container)).toEqual([-1, 0, -1])
+		})
+	})
 })
 
 describe('useA11yRoving: inert items', () => {
