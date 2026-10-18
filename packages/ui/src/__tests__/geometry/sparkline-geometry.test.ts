@@ -190,4 +190,15 @@ describe('sparklineGeometry', () => {
 
 		expect(geometry.last).toBeNull()
 	})
+
+	it('derives the domain of a series longer than the engine takes as call arguments', () => {
+		const data = Array.from({ length: 1_000_000 }, (_, i) => i % 1000)
+
+		const geometry = sparklineGeometry(data, { ...box })
+
+		// The minimum sits on the bottom inset, and the maximum on the top inset.
+		expect(geometry.points[0]?.y).toBe(38)
+
+		expect(geometry.points[999]?.y).toBe(2)
+	})
 })

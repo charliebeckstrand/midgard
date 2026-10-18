@@ -6,6 +6,7 @@
  */
 
 import { clamp } from '../../utilities'
+import { reduceNumbers } from '../../utilities/aggregate'
 
 /** A resolved point in the sparkline's coordinate box. @internal */
 type SparklinePoint = { x: number; y: number }
@@ -103,10 +104,12 @@ export function sparklineGeometry(
 	if (finite.length === 0) return empty
 
 	// A pinned bound also bounds the derived one. Thus a series wholly past a
-	// pinned bound gives a flat domain at that bound, not an inverted one.
-	const low = min ?? Math.min(...finite, max ?? Number.POSITIVE_INFINITY)
+	// pinned bound gives a flat domain at that bound, not an inverted one. The
+	// reduce does not spread the series as call arguments, so a long series
+	// does not overflow the stack.
+	const low = min ?? Math.min(reduceNumbers(finite, 'min'), max ?? Number.POSITIVE_INFINITY)
 
-	const high = max ?? Math.max(...finite, min ?? Number.NEGATIVE_INFINITY)
+	const high = max ?? Math.max(reduceNumbers(finite, 'max'), min ?? Number.NEGATIVE_INFINITY)
 
 	const span = high - low
 
