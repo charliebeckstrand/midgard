@@ -16,7 +16,7 @@ import {
 	verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { useCallback, useId, useMemo, useRef, useState } from 'react'
-import type { IntlShape } from 'react-intl'
+import type { IntlShape } from '../primitives/intl/intl-define'
 import {
 	droppedText,
 	movedText,

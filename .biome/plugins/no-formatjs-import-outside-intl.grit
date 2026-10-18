@@ -1,0 +1,24 @@
+language js
+
+// The intl primitive (`packages/ui/src/primitives/intl`) is the one module of ui
+// that imports FormatJS. A unit defines its messages with `defineMessages` from
+// `intl-define.ts`, takes the intl type from there, and reads the intl through
+// `useIntl` of the primitive, which gives an English intl outside each
+// provider. `LocaleProvider` gives the intl through `IntlScope`.
+//
+// So no other module reaches the hooks and the components of `react-intl`,
+// which throw outside its provider, or its `IntlProvider`, which skips the
+// catalog of ui. An upgrade of FormatJS also stays inside the primitive.
+//
+// The pattern flags each import from `react-intl`, its subpath entries, and
+// each `@formatjs/` package, a type import too.
+//
+// Reach is the `includes` beside this plugin in `biome.json`: the `ui` source,
+// minus the intl primitive, tests, and benchmarks.
+`import $clause from $source` as $import where {
+	$source <: r"['\"](?:react-intl(?:/[^'\"]*)?|@formatjs/[^'\"]+)['\"]",
+	register_diagnostic(
+		span = $import,
+		message = "import FormatJS only in `primitives/intl`: take `defineMessages` and the intl types from `primitives/intl/intl-define`, and read the intl through `useIntl` of the primitive"
+	)
+}

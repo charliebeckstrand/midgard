@@ -4,7 +4,7 @@ import type {
 	MouseEvent as ReactMouseEvent,
 	ReactNode,
 } from 'react'
-import type { IntlShape } from 'react-intl'
+import type { IntlShape } from '../../../../primitives/intl/intl-define'
 import { isDataColumn } from '../../../../utilities'
 import type { GridColumn } from '../../types'
 import { columnAccessor } from '../grid-column/accessor'

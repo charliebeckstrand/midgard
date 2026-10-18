@@ -1,4 +1,4 @@
-import { defineMessages } from '@formatjs/intl'
+import { defineMessages } from '../../primitives/intl/intl-define'
 
 /**
  * The messages of the copy button: its name before a copy, and the word that

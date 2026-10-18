@@ -1,9 +1,9 @@
 'use client'
 
 import { type ReactNode, useMemo } from 'react'
-import { RawIntlProvider } from 'react-intl'
 import { Direction, type TextDirection } from '../../primitives/direction'
 import { englishIntl, localeIntl } from '../../primitives/intl/intl-catalog'
+import { IntlScope } from '../../primitives/intl/intl-scope'
 import { writeChoice } from '../appearance/appearance-storage'
 import {
 	LocaleChoiceContext,
@@ -158,7 +158,7 @@ export function LocaleProvider({
 	return (
 		<LocaleChoiceContext value={choice ?? outerChoice}>
 			<LocaleContext value={value}>
-				<RawIntlProvider value={intl}>{scoped}</RawIntlProvider>
+				<IntlScope intl={intl}>{scoped}</IntlScope>
 			</LocaleContext>
 		</LocaleChoiceContext>
 	)

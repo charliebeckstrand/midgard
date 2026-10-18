@@ -1,5 +1,4 @@
-import { defineMessages, type TypedMessageDescriptor } from '@formatjs/intl'
-import type { IntlShape } from 'react-intl'
+import { defineMessages, type IntlShape, type MessageSet } from './intl-define'
 
 // The values of a message that names an item at its place.
 type SlotValues = { item: string; position: number; total: number }
@@ -34,9 +33,7 @@ type ReorderValues = {
  *
  * @internal
  */
-export const reorderMessages: {
-	readonly [K in keyof ReorderValues]: TypedMessageDescriptor<ReorderValues[K]>
-} = defineMessages<ReorderValues>({
+export const reorderMessages: MessageSet<ReorderValues> = defineMessages<ReorderValues>({
 	subject: {
 		id: 'ui.reorder.subject',
 		defaultMessage: '{item}, position {position} of {total}',

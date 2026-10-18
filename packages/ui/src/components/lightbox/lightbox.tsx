@@ -1,8 +1,8 @@
 'use client'
 
-import { defineMessages } from '@formatjs/intl'
 import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { useControllable } from '../../hooks/use-controllable'
+import { defineMessages } from '../../primitives/intl/intl-define'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Overlay } from '../../primitives/overlay'

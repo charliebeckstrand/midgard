@@ -1,6 +1,5 @@
 'use client'
 
-import { defineMessages } from '@formatjs/intl'
 import { ChevronsUpDown } from 'lucide-react'
 import { useComposedRefs } from 'motion/react'
 import {
@@ -39,6 +38,7 @@ import {
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useFormValue } from '../../primitives/form/use-form-value'
+import { defineMessages } from '../../primitives/intl/intl-define'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { DeferredQueryContext, QueryContext, useQueryValue } from '../../primitives/query'

@@ -7,7 +7,7 @@
  */
 
 import type { Announcements, UniqueIdentifier } from '@dnd-kit/core'
-import type { IntlShape } from 'react-intl'
+import type { IntlShape } from '../../../primitives/intl/intl-define'
 import {
 	droppedText,
 	movedText,

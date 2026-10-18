@@ -1,11 +1,11 @@
 'use client'
 
-import { defineMessages } from '@formatjs/intl'
 import { Search } from 'lucide-react'
 import { useComposedRefs } from 'motion/react'
 import { type ChangeEvent, type KeyboardEvent, type ReactNode, useMemo } from 'react'
 import { cn, composeEventHandlers } from '../../core'
 import { useFormValue } from '../../primitives/form/use-form-value'
+import { defineMessages } from '../../primitives/intl/intl-define'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { clearNativeInput, isComposing } from '../../utilities'
 import { Icon } from '../icon'

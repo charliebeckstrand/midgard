@@ -4,7 +4,7 @@
  * them. The shared reorder sentences are in `primitives/intl/intl-reorder.ts`.
  */
 
-import { defineMessages, type TypedMessageDescriptor } from '@formatjs/intl'
+import { defineMessages, type MessageSet } from '../../../primitives/intl/intl-define'
 
 // The values of each grid message, by key.
 type GridValues = {
@@ -28,9 +28,7 @@ type GridValues = {
  *
  * @internal
  */
-export const gridMessages: {
-	readonly [K in keyof GridValues]: TypedMessageDescriptor<GridValues[K]>
-} = defineMessages<GridValues>({
+export const gridMessages: MessageSet<GridValues> = defineMessages<GridValues>({
 	columnName: {
 		id: 'ui.grid.columnName',
 		defaultMessage: '{column} column',

@@ -1,4 +1,4 @@
-import { defineMessages } from '@formatjs/intl'
+import { defineMessages } from '../../primitives/intl/intl-define'
 
 /**
  * The messages of the calendar: the names of its step buttons and of its

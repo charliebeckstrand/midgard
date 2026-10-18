@@ -4,8 +4,7 @@
  * intl of the reader and speaks in its language.
  */
 
-import { defineMessages } from '@formatjs/intl'
-import type { IntlShape } from 'react-intl'
+import { defineMessages, type IntlShape } from '../../../primitives/intl/intl-define'
 import type { DashboardDragKind } from './dashboard-drag'
 import type { DashboardCell } from './dashboard-layout'
 
