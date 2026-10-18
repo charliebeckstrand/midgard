@@ -1535,6 +1535,10 @@
 		"defaultMessage": "{combinator}, switch to {next}",
 		"description": "The name of the button between two filter chips that switches the combinator, such as \"AND, switch to OR\"."
 	},
+	"ui.reorder.draggableRole": {
+		"defaultMessage": "draggable",
+		"description": "The role that a screen reader speaks after the name of a handle that drags an item, such as \"Move Revenue, draggable\". Lowercase."
+	},
 	"ui.reorder.dropped": {
 		"defaultMessage": "Dropped {subject}.",
 		"description": "Spoken when the reader drops a moved item. The subject is the item, with its place when it has one."
@@ -1582,6 +1586,10 @@
 	"ui.reorder.sensorInstructions": {
 		"defaultMessage": "To pick up an item, press Space. Use the arrow keys to move it, then press Space to drop it, or Escape to cancel.",
 		"description": "The description of a drag handle whose keyboard drops an item with Space and cancels the move with Escape."
+	},
+	"ui.reorder.sortableRole": {
+		"defaultMessage": "sortable",
+		"description": "The role that a screen reader speaks after the name of a handle that moves an item to a new place in a list, such as \"Reorder Alpha, sortable\". Lowercase."
 	},
 	"ui.reorder.subject": {
 		"defaultMessage": "{item}, position {position} of {total}",

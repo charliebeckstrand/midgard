@@ -91,6 +91,19 @@ describe('DashboardTile actions', () => {
 		expect(screen.getByRole('button', { name: 'Ampliar Tile a' })).toBeInTheDocument()
 	})
 
+	it('gives the tile grip its role description in the language of the locale', () => {
+		renderUI(
+			<LocaleProvider locale="es-ES">
+				<Board editing />
+			</LocaleProvider>,
+		)
+
+		expect(screen.getByRole('button', { name: 'Mover Tile a' })).toHaveAttribute(
+			'aria-roledescription',
+			'arrastrable',
+		)
+	})
+
 	it('shows expand at rest only', () => {
 		const { rerender } = renderUI(<Board expandable />)
 

@@ -65,6 +65,15 @@ describe('Grid surface in a locale', () => {
 		expect(screen.getByRole('rowheader', { name: 'Total' })).toBeInTheDocument()
 	})
 
+	it('names the reorder grip of a header and its role in the language of the locale', () => {
+		renderUI(inSpanish(<Grid columns={columns} rows={rows} getKey={getKey} reorder />))
+
+		expect(screen.getByRole('button', { name: 'Reordenar Name' })).toHaveAttribute(
+			'aria-roledescription',
+			'ordenable',
+		)
+	})
+
 	it('counts the selection in the language of the locale', () => {
 		const { container } = renderUI(
 			inSpanish(
