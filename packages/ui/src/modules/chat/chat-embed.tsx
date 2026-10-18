@@ -83,7 +83,12 @@ export function ChatEmbed({ part, className }: ChatEmbedProps) {
 	// and no address, and the block keeps no memory across a remount.
 	const address = row === undefined ? undefined : `${row}\u0000${part.id}`
 
-	const render = renderers[part.name] ?? fallback ?? statedFallback
+	// The registry is a plain object. The own-key test stops an inherited name,
+	// such as `toString`, from reading as a renderer.
+	const render =
+		(Object.hasOwn(renderers, part.name) ? renderers[part.name] : undefined) ??
+		fallback ??
+		statedFallback
 
 	// `always` pays the mount up front, so the view is live from the first render.
 	// It takes no observer and no hold: a held view would sit hidden, with its

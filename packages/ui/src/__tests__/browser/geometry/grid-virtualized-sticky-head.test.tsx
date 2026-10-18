@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
-import { frames, getSlot, present, renderUI, screen, waitFor } from '../../helpers'
+import { fireEvent, frames, getSlot, present, renderUI, screen, waitFor } from '../../helpers'
 import { boxOf } from '../../helpers/geometry/box'
 import { PIXEL } from '../../helpers/geometry/tolerance'
 
@@ -170,4 +170,28 @@ describe('grid virtualized cursor under a sticky header (real browser)', () => {
 			}
 		})
 	}
+
+	// The window resolves while the loading skeleton gives the scroller its
+	// height: the head and one row, 80 pixels. The `ResizeObserver` of the
+	// virtualizer reports the 220 pixel cap only at the end of the next frame. A
+	// key in that gap, as on a slow machine, must align against the real height.
+	// Against the old height, the step to row 1 scrolled one row, although row 1
+	// was in full view. Each call here is synchronous, so no frame runs.
+	it('keeps the first step still when the key arrives before the first frame', () => {
+		const { scroll, writes } = renderGrid()
+
+		expect(scroll.querySelector('tr[data-row-index="0"]')).not.toBeNull()
+
+		const grid = screen.getByRole('grid')
+
+		grid.focus()
+
+		fireEvent.keyDown(grid, { key: 'ArrowDown' })
+
+		expect(activeCell().closest('tr')?.dataset.rowIndex).toBe('1')
+
+		expect(writes).toEqual([0, 0])
+
+		expect(scroll.scrollTop).toBe(0)
+	})
 })
