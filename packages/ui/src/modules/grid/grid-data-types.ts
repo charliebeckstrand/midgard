@@ -1336,7 +1336,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	/**
 	 * Content shown in place of the body when `rows` is empty and `loading` is
 	 * false.
-	 * @defaultValue A "No items" message.
+	 * @defaultValue A "No items" message, in the language of the reader.
 	 */
 	empty?: ReactNode
 

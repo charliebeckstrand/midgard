@@ -1655,6 +1655,10 @@
 		"defaultMessage": "Settings",
 		"description": "The title of the settings dialog, and the name of the button that opens it."
 	},
+	"ui.table.noItems": {
+		"defaultMessage": "No items",
+		"description": "The title of the empty state of a table that has no rows."
+	},
 	"ui.tagInput.addTag": {
 		"defaultMessage": "Add tag",
 		"description": "The name of the button that adds the typed text as a tag."

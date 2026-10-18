@@ -413,6 +413,7 @@
 	"ui.settings.theme.dark": "Oscuro",
 	"ui.settings.theme.light": "Claro",
 	"ui.settings.title": "Configuración",
+	"ui.table.noItems": "Sin elementos",
 	"ui.tagInput.addTag": "Añadir etiqueta",
 	"ui.tagInput.addTags": "Añadir etiquetas",
 	"ui.tagInput.added": "{count, plural, one {Se añadió {tag}} other {Se añadieron # etiquetas}}",
