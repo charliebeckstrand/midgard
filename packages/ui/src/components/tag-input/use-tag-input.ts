@@ -3,7 +3,13 @@
 import { useCallback } from 'react'
 import { announce } from '../../core'
 import { useFormValue } from '../../primitives/form/use-form-value'
-import { classifyTokens, describeBatch, type TokenRejection } from './tag-input-utilities'
+import { useIntl } from '../../primitives/intl/use-intl'
+import {
+	classifyTokens,
+	describeBatch,
+	describeRemoval,
+	type TokenRejection,
+} from './tag-input-utilities'
 
 /**
  * Options for {@link useTagInput}.
@@ -53,6 +59,8 @@ export function useTagInput({
 	onReject,
 	onReset,
 }: TagInputOptions) {
+	const intl = useIntl()
+
 	// Binds the tag list to an enclosing Form field by `name` (the value-typed
 	// cascade); falls back to controlled/uncontrolled state. The inner text
 	// `<Input>` stays nameless — the array is the bound value, not the draft.
@@ -96,7 +104,7 @@ export function useTagInput({
 
 			if (batch.accepted.length > 0) setTags([...tags, ...batch.accepted])
 
-			const said = describeBatch(batch)
+			const said = describeBatch(intl, batch)
 
 			if (said !== '') announce(said)
 
@@ -114,7 +122,7 @@ export function useTagInput({
 
 			return batch.rejected
 		},
-		[tags, setTags, max, validate, onReject],
+		[tags, setTags, max, validate, onReject, intl],
 	)
 
 	const removeTag = useCallback(
@@ -123,9 +131,9 @@ export function useTagInput({
 
 			setTags(tags.filter((_, i) => i !== index))
 
-			if (removed) announce(`Removed ${removed}`)
+			if (removed) announce(describeRemoval(intl, removed))
 		},
-		[tags, setTags],
+		[tags, setTags, intl],
 	)
 
 	return { tags, atMax, addTags, removeTag, setTouched, invalid, resetRef }

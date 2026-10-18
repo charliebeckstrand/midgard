@@ -3,6 +3,7 @@
 import { Upload } from 'lucide-react'
 import { useId, useRef } from 'react'
 import { cn, invalidAttrs } from '../../core'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { useGlass } from '../../providers/glass/context'
 import { useHeadless } from '../../providers/headless/context'
 import { k } from '../../recipes/kata/file-upload'
@@ -13,6 +14,7 @@ import { InputClearButton } from '../input/input-clear-button'
 import { InputFrame } from '../input/input-frame'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import { FileUploadHiddenInput } from './file-upload-hidden-input'
+import { fileUploadMessages } from './file-upload-messages'
 import {
 	type FileUploadInputProps,
 	splitFileUploadProps,
@@ -47,7 +49,11 @@ import { formatFileNames, selectionSummary } from './file-upload-utilities'
 export function FileUploadInput(allProps: FileUploadInputProps) {
 	const { shared, rest } = splitFileUploadProps(allProps)
 
-	const { className, size, placeholder = 'Choose a file', ...props } = rest
+	const intl = useIntl()
+
+	const { className, size, placeholder: placeholderProp, ...props } = rest
+
+	const placeholder = placeholderProp ?? intl.formatMessage(fileUploadMessages.chooseFile)
 
 	const state = useFileUploadState(shared)
 
@@ -69,7 +75,7 @@ export function FileUploadInput(allProps: FileUploadInputProps) {
 
 	const headless = useHeadless()
 
-	const label = selectionSummary(files, multiple)
+	const label = selectionSummary(intl, files, multiple)
 
 	const valueId = useId()
 
@@ -134,7 +140,7 @@ export function FileUploadInput(allProps: FileUploadInputProps) {
 					{field}
 					{hasFiles && (
 						<InputClearButton
-							label="Clear selected file(s)"
+							label={intl.formatMessage(fileUploadMessages.clear, { count: files.length })}
 							disabled={disabled}
 							onClick={handleClear}
 						/>
@@ -147,7 +153,7 @@ export function FileUploadInput(allProps: FileUploadInputProps) {
 					suffix={
 						hasFiles ? (
 							<InputClearButton
-								label="Clear selected file(s)"
+								label={intl.formatMessage(fileUploadMessages.clear, { count: files.length })}
 								disabled={disabled}
 								onClick={handleClear}
 							/>
@@ -156,7 +162,7 @@ export function FileUploadInput(allProps: FileUploadInputProps) {
 								type="button"
 								variant="bare"
 								className="pointer-events-auto"
-								aria-label="Browse files"
+								aria-label={intl.formatMessage(fileUploadMessages.browse)}
 								disabled={disabled}
 								onClick={handleBrowse}
 							>

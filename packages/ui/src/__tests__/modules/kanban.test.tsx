@@ -12,6 +12,7 @@ import {
 } from '../../modules/kanban'
 import { englishIntl } from '../../primitives/intl/intl-catalog'
 import { reorderMessages } from '../../primitives/intl/intl-reorder'
+import { LocaleProvider } from '../../providers/locale'
 import {
 	allBySlot,
 	bySlot,
@@ -1020,5 +1021,17 @@ describe('KanbanCardSkeleton', () => {
 		expect(body.tagName).toBe('UL')
 
 		expect([...body.children].map((child) => child.tagName)).toEqual(['LI', 'LI'])
+	})
+})
+
+describe('Kanban in a locale', () => {
+	it('names the card handle in the language of the locale', () => {
+		renderUI(
+			<LocaleProvider locale="es-ES">
+				<Board onValueChange={() => {}} />
+			</LocaleProvider>,
+		)
+
+		expect(screen.getByRole('button', { name: 'Arrastrar One' })).toBeInTheDocument()
 	})
 })

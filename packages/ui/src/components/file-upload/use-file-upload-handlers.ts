@@ -12,6 +12,8 @@ import {
 import { announce } from '../../core'
 import { useOpenChange } from '../../hooks/use-open-change'
 import { useFormValue } from '../../primitives/form/use-form-value'
+import { useIntl } from '../../primitives/intl/use-intl'
+import { fileUploadMessages } from './file-upload-messages'
 import {
 	type FileRejection,
 	fileListToArray,
@@ -82,6 +84,8 @@ export function useFileUploadHandlers({
 	onReject,
 	onDragOverChange,
 }: FileHandlersOptions) {
+	const intl = useIntl()
+
 	const inputRef = useRef<HTMLInputElement>(null)
 
 	// Counter rather than boolean: `dragleave` bubbles on every child boundary
@@ -145,10 +149,13 @@ export function useFileUploadHandlers({
 			const names = formatFileNames(accepted)
 
 			announce(
-				accepted.length === 1 ? `Selected ${names}` : `Selected ${accepted.length} files: ${names}`,
+				intl.formatMessage(fileUploadMessages.announced, {
+					count: accepted.length,
+					names: names ?? '',
+				}),
 			)
 		},
-		[accept, maxSize, maxCount, onAccept, onReject, setFiles, setTouched],
+		[accept, maxSize, maxCount, onAccept, onReject, setFiles, setTouched, intl],
 	)
 
 	const handleChange = useCallback(

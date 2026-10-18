@@ -4,6 +4,8 @@ import { CornerLeftDown } from 'lucide-react'
 import { useComposedRefs } from 'motion/react'
 import { type FocusEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { ariaAttr, cn, composeEventHandlers } from '../../core'
+import { defineMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import type { Color } from '../../recipes'
 import { k } from '../../recipes/kata/tag-input'
 import { Flex } from '../../structure/flex'
@@ -18,6 +20,29 @@ import { hasSeparator, splitTokens, type TokenRejection } from './tag-input-util
 import { useTagInput } from './use-tag-input'
 import { useTagInputKeyboard } from './use-tag-input-keyboard'
 import { useTagInputRowScroll } from './use-tag-input-row-scroll'
+
+const messages = defineMessages({
+	addTags: {
+		id: 'ui.tagInput.addTags',
+		defaultMessage: 'Add tags',
+		description: 'The name of a tag field with no label and no placeholder of its own.',
+	},
+	tags: {
+		id: 'ui.tagInput.tags',
+		defaultMessage: 'Tags',
+		description: 'The name of the list of the tags in a tag field.',
+	},
+	addTag: {
+		id: 'ui.tagInput.addTag',
+		defaultMessage: 'Add tag',
+		description: 'The name of the button that adds the typed text as a tag.',
+	},
+	required: {
+		id: 'ui.tagInput.required',
+		defaultMessage: 'Add at least one tag',
+		description: 'The validation message of a required tag field that holds no tag.',
+	},
+})
 
 /**
  * Props for {@link TagInput}: controlled/uncontrolled tag list plus `max`, `validate`, the `onReject` report, and `<Form>` binding via `name`.
@@ -49,7 +74,7 @@ export type TagInputProps = Omit<
 	/**
 	 * Placeholder shown while the tag list is empty. It also names the input,
 	 * where no `aria-label` and no wrapping `<Field>`/`<Label>` does. With no
-	 * placeholder either, the name is "Add tags".
+	 * placeholder either, the name is "Add tags", in the language of the reader.
 	 */
 	placeholder?: string
 	/** Maximum number of tags; at the cap the field goes read-only (further additions are rejected) while existing tags stay removable. */
@@ -161,7 +186,9 @@ export function TagInput({
 
 	const locked = ambient.disabled === true || ambient.readOnly === true
 
-	const fallbackLabel = useControlFallbackLabel(placeholder ?? 'Add tags')
+	const intl = useIntl()
+
+	const fallbackLabel = useControlFallbackLabel(placeholder ?? intl.formatMessage(messages.addTags))
 
 	const [inputValue, setInputValue] = useState('')
 
@@ -198,8 +225,8 @@ export function TagInput({
 	// field, so a native `required` on it blocks a submit that has tags. A custom
 	// validity on the draft blocks the submit only while the list is empty.
 	useEffect(() => {
-		inputRef.current?.setCustomValidity(missing ? 'Add at least one tag' : '')
-	}, [missing])
+		inputRef.current?.setCustomValidity(missing ? intl.formatMessage(messages.required) : '')
+	}, [missing, intl])
 
 	const color = tagColor ?? 'zinc'
 
@@ -324,7 +351,7 @@ export function TagInput({
 				data-slot="tags"
 				data-wrap={wrap || undefined}
 				role="list"
-				aria-label="Tags"
+				aria-label={intl.formatMessage(messages.tags)}
 				gap="xs"
 				wrap={wrap}
 				className={cn(k.tags.base, !wrap && k.tags.scroll)}
@@ -368,7 +395,7 @@ export function TagInput({
 		<Button
 			type="button"
 			ref={addRef}
-			aria-label="Add tag"
+			aria-label={intl.formatMessage(messages.addTag)}
 			variant="bare"
 			disabled={locked || atMax || inputValue.trim() === ''}
 			onMouseDown={(event) => event.preventDefault()}

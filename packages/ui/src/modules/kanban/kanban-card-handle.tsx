@@ -4,9 +4,20 @@ import { GripVertical } from 'lucide-react'
 import { type HTMLAttributes, type ReactNode, useEffect, useId } from 'react'
 import { Icon } from '../../components/icon'
 import { cn, composeEventHandlers, dataAttr } from '../../core'
+import { defineMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { SortableGrip } from '../../primitives/sortable-grip/sortable-grip'
 import { k } from '../../recipes/kata/kanban'
 import { useKanbanCardContext, useKanbanContext } from './context'
+
+const messages = defineMessages({
+	drag: {
+		id: 'ui.kanban.drag',
+		defaultMessage: 'Drag',
+		description:
+			'The first word of the name of the drag handle of a Kanban card. The name of the card follows it.',
+	},
+})
 
 /**
  * Props for {@link KanbanCardHandle}: optional handle content and an accessible-name override.
@@ -17,7 +28,7 @@ export type KanbanCardHandleProps = HTMLAttributes<HTMLElement> & {
 	 * Replaces the accessible name of the handle. By default the name is "Drag",
 	 * followed by the name of the card: the `aria-label` of the card, or else
 	 * the text of the card.
-	 * @defaultValue 'Drag'
+	 * @defaultValue `'Drag'`, in the language of the reader.
 	 */
 	'aria-label'?: string
 	/** Content of the handle. @defaultValue a grip icon. */
@@ -48,6 +59,8 @@ export function KanbanCardHandle({
 	onBlur,
 	...props
 }: KanbanCardHandleProps) {
+	const intl = useIntl()
+
 	const { disabled, onCardKeyDown, onCardBlur } = useKanbanContext()
 
 	const card = useKanbanCardContext()
@@ -92,7 +105,7 @@ export function KanbanCardHandle({
 			sortable={{ setActivatorNodeRef, attributes, listeners, dragging }}
 			id={handleId}
 			// "Drag" and then the name of the card item. An explicit name replaces both.
-			label={ariaLabel ?? 'Drag'}
+			label={ariaLabel ?? intl.formatMessage(messages.drag)}
 			aria-labelledby={
 				props['aria-labelledby'] ?? (ariaLabel ? undefined : `${handleId} ${itemId}`)
 			}
