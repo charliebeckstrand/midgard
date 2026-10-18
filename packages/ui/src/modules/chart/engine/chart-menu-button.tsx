@@ -1,7 +1,6 @@
 'use client'
 
 import { EllipsisVertical, Table2 } from 'lucide-react'
-import type { ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { Button } from '../../../components/button'
 import {
@@ -35,7 +34,7 @@ export type ChartMenuButtonProps = {
 	 * Where this copy of the button renders. `'host'` puts it in the header row
 	 * of the box around the chart, and renders nothing outside such a box.
 	 * `'header'` puts it at the end of the chart header, and `'corner'` puts it
-	 * over the top-end corner of the plot ({@link ChartPlotCorner}). Each of these
+	 * over the top-end corner of the plot (`ChartPlotCorner`). Each of these
 	 * two renders nothing inside such a box. The frame renders the host copy and
 	 * one of the other two, so exactly one shows.
 	 */
@@ -135,55 +134,5 @@ export function ChartMenuButton({ title, place }: ChartMenuButtonProps) {
 			{menu}
 		</span>,
 		host,
-	)
-}
-
-/**
- * The chart title that names the corner menu button of a map plot, which
- * `ChoroplethChart` gives to the map frame. It is `null` outside a
- * choropleth, and the map then has no corner.
- *
- * @internal
- */
-export const [ChartPlotCornerContext, useChartPlotCorner] = createContext<{
-	title?: string
-} | null>('ChartPlotCorner', { default: null })
-
-/** Props for {@link ChartPlotCorner}. @internal */
-export type ChartPlotCornerProps = {
-	/** The chart title, which names the button. */
-	title?: string
-	/** Whether a side legend sits beside the plot, so the plot takes the width remainder. */
-	aside: boolean
-	/** Whether the plot fills the height of its box. */
-	fill: boolean
-	/** The plot region. */
-	children: ReactNode
-}
-
-/**
- * The plot region of a chart that draws no header, with the menu button over
- * its top-end corner. The box takes the place of the plot region in the layout
- * of the chart: it gets the flex classes of the region, and the region fills
- * it. The button is not in the region, because the region is `role="img"`, and
- * the children of an image are not exposed.
- *
- * @internal
- */
-export function ChartPlotCorner({ title, aside, fill, children }: ChartPlotCornerProps) {
-	return (
-		<div
-			data-slot="chart-plot-corner"
-			className={cn(
-				'relative flex flex-col',
-				aside && 'min-w-0',
-				(aside || fill) && 'flex-1',
-				fill && 'min-h-0',
-			)}
-		>
-			{children}
-
-			<ChartMenuButton title={title} place="corner" />
-		</div>
 	)
 }

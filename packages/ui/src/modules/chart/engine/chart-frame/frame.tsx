@@ -23,9 +23,9 @@ import { ChartContextMenu } from '../chart-context-menu'
 import { ChartHeader } from '../chart-header'
 import { legendBandRow } from '../chart-legend/band'
 import { type ChartLegendPlacement, legendAside } from '../chart-legend/schema'
-import { ChartMenuButton, ChartPlotCorner } from '../chart-menu-button'
+import { ChartMenuButton } from '../chart-menu-button'
 import type { ChartOrientation } from '../chart-orientation'
-import { ChartPlotBox } from '../chart-plot-box'
+import { ChartPlotBox, ChartPlotCorner, plotSlotClass } from '../chart-plot-box'
 import type { ChartSnap } from '../chart-snap'
 import { ChartTable } from '../chart-table'
 import type { ChartTier } from '../chart-tier'
@@ -70,6 +70,9 @@ const NONE_HIDDEN: ReadonlySet<number> = new Set()
  * touch menu button, and the name of a figcaption includes the name of that
  * button.
  *
+ * A chart with `heading` off draws no header, so its touch menu button goes
+ * over the top-end corner of the plot (`corner`).
+ *
  * @internal
  */
 function chartChrome(
@@ -79,7 +82,13 @@ function chartChrome(
 	titleId: string,
 	subtitle: string | undefined,
 	legend: ReactNode,
-): { header: ReactNode; sparkVeil: ReactNode; legend: ReactNode; labelledBy?: string } {
+): {
+	header: ReactNode
+	sparkVeil: ReactNode
+	legend: ReactNode
+	labelledBy?: string
+	corner: ReactNode
+} {
 	const spark = tier === 'spark'
 
 	const head =
@@ -98,29 +107,8 @@ function chartChrome(
 		sparkVeil: spark ? head : null,
 		legend: spark ? null : legend,
 		labelledBy: !spark && heading && title ? titleId : undefined,
+		corner: heading ? null : <ChartMenuButton title={title} place="corner" />,
 	}
-}
-
-/**
- * The plot region. A chart that draws no header has it inside a
- * {@link ChartPlotCorner}, so the touch menu button sits over its corner.
- *
- * @internal
- */
-function cornerPlot(
-	region: ReactNode,
-	heading: boolean,
-	title: string | undefined,
-	aside: boolean,
-	fill: boolean,
-): ReactNode {
-	if (heading) return region
-
-	return (
-		<ChartPlotCorner title={title} aside={aside} fill={fill}>
-			{region}
-		</ChartPlotCorner>
-	)
 }
 
 /** The accessible-name attributes of the plot region. @internal */
@@ -149,13 +137,7 @@ export function plotName(label: PlotName): PlotName {
 function plotRegionProps(keyboard: PlotTabStopProps | null, aside: boolean, fill: boolean) {
 	return {
 		...keyboard,
-		className: cn(
-			'relative rounded-sm',
-			keyboard && k.focus,
-			(aside || fill) && 'flex-1',
-			aside && 'min-w-0',
-			fill && 'min-h-0',
-		),
+		className: cn('relative rounded-sm', keyboard && k.focus, plotSlotClass(aside, fill)),
 	}
 }
 
@@ -613,6 +595,7 @@ export function ChartFrame({
 		sparkVeil,
 		legend: legendFrame,
 		labelledBy,
+		corner,
 	} = chartChrome(tier, heading, title, titleId, subtitle, legend)
 
 	const region = (
@@ -654,7 +637,13 @@ export function ChartFrame({
 		</div>
 	)
 
-	const plotRegion = cornerPlot(region, heading, title, aside, fill)
+	// A chart that draws no header has its touch menu button over the corner of
+	// the plot.
+	const plotRegion = (
+		<ChartPlotCorner corner={corner} aside={aside} fill={fill}>
+			{region}
+		</ChartPlotCorner>
+	)
 
 	const chartRoot = (
 		<div

@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useSyncExternalStore } from 'react'
+import { type ReactNode, use, useSyncExternalStore } from 'react'
 import { createContext } from '../../core'
 import type { MapSeriesColor } from '../../recipes/kata/map'
 import { noop } from '../../utilities'
@@ -240,3 +240,14 @@ export type MapPlatContextValue = {
 }
 
 export const [MapPlatContext, useMapPlat] = createContext<MapPlatContextValue>('MapPlat')
+
+/**
+ * The control over the top-end corner of the map plot, such as the touch menu
+ * button that `ChoroplethChart` gives, or `null` for none. The map frame puts it
+ * beside the plot region, not in it, because the region is `role="img"`.
+ *
+ * @internal
+ */
+export const [MapPlotCornerContext, useMapPlotCorner] = createContext<ReactNode>('MapPlotCorner', {
+	default: null,
+})

@@ -3,7 +3,16 @@ import { ChoroplethChart } from '../../modules/chart'
 import { createHeaderActionsHost, HeaderActionsContext } from '../../primitives/header-actions'
 import { LocaleProvider } from '../../providers/locale'
 import { formatFraction } from '../../utilities'
-import { allBySlot, allRegions, bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
+import {
+	allBySlot,
+	allRegions,
+	attach,
+	bySlot,
+	fireEvent,
+	getSlot,
+	renderUI,
+	screen,
+} from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
 const ROWS = [
@@ -444,9 +453,7 @@ describe('ChoroplethChart menu button', () => {
 	})
 
 	it('goes to the header actions of the box around the map', () => {
-		const host = document.createElement('div')
-
-		document.body.append(host)
+		const host = attach(document.createElement('div'))
 
 		const slot = createHeaderActionsHost()
 
@@ -466,12 +473,10 @@ describe('ChoroplethChart menu button', () => {
 
 		expect(bySlot(container, 'chart-menu-button')).toBeNull()
 
-		expect(host.querySelectorAll('[data-slot="chart-menu-button"]')).toHaveLength(1)
+		expect(allBySlot(host, 'chart-menu-button')).toHaveLength(1)
 
 		fireEvent.click(screen.getByRole('button', { name: 'View data for Population by region' }))
 
 		expect(screen.getByRole('dialog')).toBeInTheDocument()
-
-		host.remove()
 	})
 })

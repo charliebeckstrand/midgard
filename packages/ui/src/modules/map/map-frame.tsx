@@ -7,9 +7,8 @@ import { k } from '../../recipes/kata/map'
 import { noop } from '../../utilities'
 import { legendBandRow } from '../chart/engine/chart-legend/band'
 import { legendAside } from '../chart/engine/chart-legend/schema'
-import { ChartPlotCorner, useChartPlotCorner } from '../chart/engine/chart-menu-button'
-import { ChartPlotBox } from '../chart/engine/chart-plot-box'
-import { useMapZoomView } from './context'
+import { ChartPlotBox, ChartPlotCorner, plotSlotClass } from '../chart/engine/chart-plot-box'
+import { useMapPlotCorner, useMapZoomView } from './context'
 import type { MapLegendPlacement } from './engine/types'
 import { MapHoverProvider } from './map-hover-provider'
 import { MapZoomProvider } from './map-zoom-provider'
@@ -72,20 +71,15 @@ export function MapFrame({
 	// The plot alone sits under the view transform's provider. The legend answers
 	// the toggles and the emphasis, never the view, so keeping it outside is what
 	// stops a wheel notch from re-planning it.
-	const zoomed = <MapZoomProvider {...zoom}>{plotRegion}</MapZoomProvider>
+	const corner = useMapPlotCorner()
 
-	// A choropleth has its touch menu button over the corner of the plot, because
-	// it draws no header.
-	const corner = useChartPlotCorner()
-
-	const plot =
-		corner === null ? (
-			zoomed
-		) : (
-			<ChartPlotCorner title={corner.title} aside={aside} fill={fill}>
-				{zoomed}
-			</ChartPlotCorner>
-		)
+	// A control over the corner of the plot, such as the touch menu button of a
+	// choropleth, sits beside the plot region in a box that takes its place.
+	const plot = (
+		<ChartPlotCorner corner={corner} aside={aside} fill={fill}>
+			<MapZoomProvider {...zoom}>{plotRegion}</MapZoomProvider>
+		</ChartPlotCorner>
+	)
 
 	return (
 		<div
@@ -246,9 +240,7 @@ export function MapPlotRegion({
 				// takes only its pinch, which would otherwise zoom the page over the
 				// map. Every other map leaves touch alone entirely.
 				zoom && (zoom.modifier === null ? 'touch-none' : 'touch-pan-x touch-pan-y'),
-				aside && 'min-w-0',
-				(aside || shape.fill) && 'flex-1',
-				shape.fill && 'min-h-0',
+				plotSlotClass(aside, shape.fill),
 			)}
 		>
 			{/* PlotBox reserves the box height from its own width, steady before the

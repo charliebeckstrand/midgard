@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { HeatmapChart, type HeatmapChartSeries } from '../../modules/chart'
 import { LABEL_CHAR_WIDTH } from '../../modules/chart/engine/chart-constants'
 import { createHeaderActionsHost, HeaderActionsContext } from '../../primitives/header-actions'
-import { act, bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
+import { act, allBySlot, attach, bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
 
 type Row = { day: string; hour: string; commits: number }
 
@@ -949,9 +949,7 @@ describe('HeatmapChart menu button', () => {
 	})
 
 	it('goes to the header actions of the box around the heatmap', () => {
-		const host = document.createElement('div')
-
-		document.body.append(host)
+		const host = attach(document.createElement('div'))
 
 		const slot = createHeaderActionsHost()
 
@@ -965,8 +963,6 @@ describe('HeatmapChart menu button', () => {
 
 		expect(bySlot(container, 'chart-menu-button')).toBeNull()
 
-		expect(host.querySelectorAll('[data-slot="chart-menu-button"]')).toHaveLength(1)
-
-		host.remove()
+		expect(allBySlot(host, 'chart-menu-button')).toHaveLength(1)
 	})
 })

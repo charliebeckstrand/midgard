@@ -15,10 +15,11 @@ import {
 	type MapPlatProps,
 	type MapProjection,
 } from '../../map'
+import { MapPlotCornerContext } from '../../map/context'
 import { numericRegionData } from '../../map/engine/map-region/data'
 import type { ChartContextMenuConfig } from '../engine/chart-context-menu'
 import { ChartContextMenu } from '../engine/chart-context-menu'
-import { ChartMenuButton, ChartPlotCornerContext } from '../engine/chart-menu-button'
+import { ChartMenuButton } from '../engine/chart-menu-button'
 import { READOUT_GAP } from '../engine/chart-series'
 import type { ChartItemClick, ChartReadout, DataKey } from '../engine/types'
 
@@ -283,9 +284,6 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 	// map tightly, with no gutter.
 	const rootRef = useRef<HTMLDivElement>(null)
 
-	// The title that names the touch menu button over the corner of the map.
-	const corner = useMemo(() => ({ title }), [title])
-
 	// Unwrap the (single) series onto MapPlat's numeric mode. The fields go through
 	// `numericRegionData` rather than onto the literal one at a time: `series[0]`
 	// is possibly absent, so each field read off it widens by `undefined` and the
@@ -333,7 +331,7 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 				// right-click stays null, an on-region one overwrites with its index.
 				onContextMenuCapture={() => setMenuRegion(null)}
 			>
-				<ChartPlotCornerContext value={corner}>
+				<MapPlotCornerContext value={<ChartMenuButton title={title} place="corner" />}>
 					<MapPlat<T>
 						{...mapProps}
 						ref={rootRef}
@@ -342,7 +340,7 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 						className={cn(k.touch.readout, className)}
 						onRegionContextMenu={onRegionContextMenu}
 					/>
-				</ChartPlotCornerContext>
+				</MapPlotCornerContext>
 
 				{/* Inside a box with a header row, such as a dashboard tile, the touch
 				    menu button goes to that row. Otherwise the map frame puts it over

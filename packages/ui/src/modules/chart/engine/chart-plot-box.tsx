@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { AspectRatio } from '../../../components/aspect-ratio'
+import { cn } from '../../../core'
 import type { FrameReserve } from '../../../hooks'
 
 /** Props for {@link ChartPlotBox}. @internal */
@@ -82,6 +83,54 @@ export function ChartPlotBox({ reserve, height, fill = false, children }: ChartP
 			style={{ paddingBottom: contentPadding(reserve.offset, reserve.min) }}
 		>
 			{children}
+		</div>
+	)
+}
+
+/**
+ * The flex classes of the slot that a plot takes. A side legend (`aside`) gives
+ * the plot the width remainder. A plot that fills its box (`fill`) grows into
+ * the height of the box.
+ *
+ * @internal
+ */
+export function plotSlotClass(aside: boolean, fill: boolean): string {
+	return cn(aside && 'min-w-0', (aside || fill) && 'flex-1', fill && 'min-h-0')
+}
+
+/** Props for {@link ChartPlotCorner}. @internal */
+type ChartPlotCornerProps = {
+	/** The control over the top-end corner of the plot, or `null` for none. */
+	corner: ReactNode
+	/** Whether a side legend sits beside the plot. */
+	aside: boolean
+	/** Whether the plot fills the height of its box. */
+	fill: boolean
+	/** The plot region. */
+	children: ReactNode
+}
+
+/**
+ * The plot region with a control over its top-end corner, such as the touch
+ * menu button of a chart that draws no header. The box takes the place of the
+ * plot region in the layout: it gets the slot classes of the region, and the
+ * region fills it. The control is not in the region, because the region is
+ * `role="img"`, and the children of an image are not exposed. With no control,
+ * the region renders alone.
+ *
+ * @internal
+ */
+export function ChartPlotCorner({ corner, aside, fill, children }: ChartPlotCornerProps) {
+	if (corner == null) return <>{children}</>
+
+	return (
+		<div
+			data-slot="chart-plot-corner"
+			className={cn('relative flex flex-col', plotSlotClass(aside, fill))}
+		>
+			{children}
+
+			{corner}
 		</div>
 	)
 }
