@@ -68,12 +68,180 @@ export const NO_REGION_CLAIM: MapRegionSpare = () => Number.POSITIVE_INFINITY
 type MeasuredRegion = { whole: MapFrameBox | null; boxes: MapAreaBox[]; reach: number }
 
 /**
+ * The halvings that place an inset edge on a ray from the dot. Sixteen place it
+ * to within 1/65,536 of the reach, far below a pixel at any zoom.
+ *
+ * @internal
+ */
+const EDGE_STEPS = 16
+
+/**
+ * The step that reads the local slope of the inverse, as a fraction of the
+ * reach. It is small, so that a dot stands farther than this from its inset's
+ * edge on at least one side.
+ *
+ * @internal
+ */
+const SLOPE_STEP = 1e-6
+
+/**
+ * Degrees of lon/lat for each frame unit along one frame axis, at the dot.
+ *
+ * @internal
+ */
+type MapSlope = { x: LngLat; y: LngLat }
+
+/**
+ * A longitude difference in the range -180 to 180. Thus the antimeridian does
+ * not read as a jump, and the box across it stays as it was.
+ *
+ * @internal
+ */
+function lonStep(difference: number): number {
+	return difference - 360 * Math.round(difference / 360)
+}
+
+/**
+ * The slope of the inverse along one frame axis, read on the two sides of the
+ * dot. A side that crosses an inset edge reads a jump, which is a much steeper
+ * slope, so the gentler side wins. `[0, 0]` where neither side inverts, which
+ * clamps that axis to the dot itself.
+ *
+ * @internal
+ */
+function slopeAlong(
+	unproject: (at: MapPoint2D) => LngLat | null,
+	at: MapPoint2D,
+	origin: LngLat,
+	axis: MapPoint2D,
+	step: number,
+): LngLat {
+	let gentlest: LngLat = [0, 0]
+
+	let found = false
+
+	for (const side of [1, -1]) {
+		const seen = unproject({ x: at.x + side * axis.x * step, y: at.y + side * axis.y * step })
+
+		if (seen === null) continue
+
+		const slope: LngLat = [
+			(side * lonStep(seen[0] - origin[0])) / step,
+			(side * (seen[1] - origin[1])) / step,
+		]
+
+		if (!found || Math.hypot(...slope) < Math.hypot(...gentlest)) gentlest = slope
+
+		found = true
+	}
+
+	return gentlest
+}
+
+/**
+ * The lon/lat at an offset from the dot, or `null` where the offset leaves the
+ * piece of the projection that inverts the dot.
+ *
+ * The test is the slope: inside one piece the inverse is smooth, so the lon/lat
+ * stays near the slope's prediction. A composite sends a position past an inset
+ * edge through another piece, and the lon/lat jumps by many degrees. `d3-geo`'s
+ * `geoAlbersUsa` inverts every position, and so the jump is the only sign of it.
+ *
+ * @internal
+ */
+function pieceInverse(
+	unproject: (at: MapPoint2D) => LngLat | null,
+	at: MapPoint2D,
+	origin: LngLat,
+	slope: MapSlope,
+	offset: MapPoint2D,
+): LngLat | null {
+	const seen = unproject({ x: at.x + offset.x, y: at.y + offset.y })
+
+	if (seen === null) return null
+
+	const lon = offset.x * slope.x[0] + offset.y * slope.y[0]
+
+	const lat = offset.x * slope.x[1] + offset.y * slope.y[1]
+
+	const miss = Math.hypot(lonStep(seen[0] - origin[0]) - lon, seen[1] - origin[1] - lat)
+
+	return miss <= Math.hypot(lon, lat) / 2 ? seen : null
+}
+
+/**
+ * The fraction of an offset that stays in the dot's own piece, by halving.
+ *
+ * @internal
+ */
+function pieceFraction(
+	unproject: (at: MapPoint2D) => LngLat | null,
+	at: MapPoint2D,
+	origin: LngLat,
+	slope: MapSlope,
+	offset: MapPoint2D,
+): number {
+	if (pieceInverse(unproject, at, origin, slope, offset) !== null) return 1
+
+	let inside = 0
+
+	let outside = 1
+
+	for (let step = 0; step < EDGE_STEPS; step += 1) {
+		const middle = (inside + outside) / 2
+
+		const scaled = { x: offset.x * middle, y: offset.y * middle }
+
+		if (pieceInverse(unproject, at, origin, slope, scaled) === null) outside = middle
+		else inside = middle
+	}
+
+	return inside
+}
+
+/**
+ * The lon/lat of one corner of the reach box, with the corner clamped to the
+ * dot's own inset box before it inverts.
+ *
+ * Each axis clamps alone, so a dot near one edge keeps its full reach along the
+ * other. The diagonal clamps last, for a piece whose region is not a box: the
+ * lower-48 conic holds the frame around the insets.
+ *
+ * @internal
+ */
+function pieceCorner(
+	unproject: (at: MapPoint2D) => LngLat | null,
+	at: MapPoint2D,
+	origin: LngLat,
+	slope: MapSlope,
+	corner: MapPoint2D,
+): LngLat {
+	const whole = pieceInverse(unproject, at, origin, slope, corner)
+
+	if (whole !== null) return whole
+
+	const x = corner.x * pieceFraction(unproject, at, origin, slope, { x: corner.x, y: 0 })
+
+	const y = corner.y * pieceFraction(unproject, at, origin, slope, { x: 0, y: corner.y })
+
+	const fraction = pieceFraction(unproject, at, origin, slope, { x, y })
+
+	const clamped = { x: x * fraction, y: y * fraction }
+
+	return pieceInverse(unproject, at, origin, slope, clamped) ?? origin
+}
+
+/**
  * The lon/lat box a dot's widest possible target covers, from the frame box
  * around it. Both corners invert rather than the center alone, because the
  * conversion from pixels to degrees is the projection's own and varies with
  * latitude. An inset composite changes it outright.
  *
- * `null` where either corner does not invert, which reads as no claim. The
+ * Each corner clamps to the dot's own inset box before it inverts. A corner past
+ * an inset edge otherwise inverts through another piece of the composite, and
+ * the box lies to one side of the dot and can miss the region it stands on.
+ *
+ * `null` where the dot itself does not invert, which reads as no claim. The
  * alternative is a box grown to the whole sphere, and a dot the projection has
  * already dropped is not standing on a region. Returning early also keeps a
  * dropped dot from building the atlas index behind it.
@@ -85,15 +253,20 @@ function reachBounds(
 	at: MapPoint2D,
 	reach: number,
 ): MapBounds | null {
-	const low = unproject({ x: at.x - reach, y: at.y + reach })
+	const origin = unproject(at)
 
-	const high = unproject({ x: at.x + reach, y: at.y - reach })
+	if (origin === null) return null
 
-	if (low === null || high === null) return null
+	const step = reach * SLOPE_STEP
 
-	const [west, south] = low
+	const slope = {
+		x: slopeAlong(unproject, at, origin, { x: 1, y: 0 }, step),
+		y: slopeAlong(unproject, at, origin, { x: 0, y: 1 }, step),
+	}
 
-	const [east, north] = high
+	const [west, south] = pieceCorner(unproject, at, origin, slope, { x: -reach, y: reach })
+
+	const [east, north] = pieceCorner(unproject, at, origin, slope, { x: reach, y: -reach })
 
 	// The inverted corners are not ordered where a projection turns the frame —
 	// the composite's insets sit at their own rotations — so the box takes the

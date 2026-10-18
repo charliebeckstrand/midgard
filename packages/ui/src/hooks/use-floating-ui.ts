@@ -38,6 +38,7 @@ import {
 } from '../utilities/floating-portal-registry'
 import { isScrollbarPress } from '../utilities/scrollbar-press'
 import { useEscapeLayer } from './use-escape-layer'
+import { focusWithoutReveal } from './use-truncation'
 
 /**
  * Explicit return shape for {@link useFloatingPanel}.
@@ -394,8 +395,12 @@ export function useFloatingPanel({
 			// Focus already within the trigger means there is nothing to restore;
 			// retargeting its first button would yank focus from a typeable
 			// reference mid-edit.
+			//
+			// The restore runs inside the commit, so it goes through
+			// `focusWithoutReveal`. A truncation arm around the trigger (a grid cell
+			// around its editor) then commits plainly, and does not call `flushSync`.
 			if (trigger && !trigger.contains(document.activeElement))
-				(trigger.querySelector<HTMLElement>('button, [tabindex]') ?? trigger).focus()
+				focusWithoutReveal(trigger.querySelector<HTMLElement>('button, [tabindex]') ?? trigger)
 		}
 
 		closeReasonRef.current = undefined
