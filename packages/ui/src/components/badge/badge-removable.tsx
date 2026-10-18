@@ -3,11 +3,22 @@
 import { X } from 'lucide-react'
 import type { AriaRole, KeyboardEvent, MouseEventHandler, ReactNode, Ref } from 'react'
 import { cn } from '../../core'
+import { defineMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import type { Color } from '../../recipes'
 import { k } from '../../recipes/kata/badge'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { Badge } from './badge'
+
+const messages = defineMessages<{ remove: { label: string } }>({
+	remove: {
+		id: 'ui.badge.remove',
+		defaultMessage: 'Remove {label}',
+		description:
+			'The name of the button that removes a chip, such as a tag. The label is the text of the chip.',
+	},
+})
 
 /**
  * Props for {@link BadgeRemovable}.
@@ -15,7 +26,10 @@ import { Badge } from './badge'
  * @internal
  */
 export type BadgeRemovableProps = {
-	/** The text of the chip. The remove button has the name "Remove <label>". */
+	/**
+	 * The text of the chip. The remove button has the name "Remove <label>", in
+	 * the language of the reader.
+	 */
 	label: string
 	/**
 	 * Rich content in place of `label`. The chip then shows this content, and
@@ -69,6 +83,8 @@ export function BadgeRemovable({
 	removeRef,
 	removeProps,
 }: BadgeRemovableProps) {
+	const intl = useIntl()
+
 	const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
 		if (event.key !== 'Delete' && event.key !== 'Backspace') return
 
@@ -91,7 +107,7 @@ export function BadgeRemovable({
 						ref={removeRef}
 						type="button"
 						variant="bare"
-						aria-label={`Remove ${label}`}
+						aria-label={intl.formatMessage(messages.remove, { label })}
 						disabled={disabled}
 						onClick={(event) => {
 							removeProps?.onClick?.(event)

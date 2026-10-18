@@ -1,5 +1,6 @@
 {
 	"ui.alert.dismiss": "Descartar",
+	"ui.badge.remove": "Quitar {label}",
 	"ui.calendar.nextDecade": "Década siguiente",
 	"ui.calendar.nextMonth": "Mes siguiente",
 	"ui.calendar.nextYear": "Año siguiente",
@@ -88,5 +89,13 @@
 	"ui.settings.theme.dark": "Oscuro",
 	"ui.settings.theme.light": "Claro",
 	"ui.settings.title": "Configuración",
+	"ui.tagInput.addTag": "Añadir etiqueta",
+	"ui.tagInput.addTags": "Añadir etiquetas",
+	"ui.tagInput.added": "{count, plural, one {Se añadió {tag}} other {Se añadieron # etiquetas}}",
+	"ui.tagInput.duplicates": "{count, plural, one {{tag} ya está en la lista} other {# ya están en la lista}}",
+	"ui.tagInput.limit": "Se alcanzó el límite de etiquetas",
+	"ui.tagInput.rejected": "{count, plural, one {{tag} no es una etiqueta válida} other {# no son válidas}}",
+	"ui.tagInput.removed": "Se quitó {tag}",
+	"ui.tagInput.tags": "Etiquetas",
 	"ui.toast.notifications": "Notificaciones"
 }
