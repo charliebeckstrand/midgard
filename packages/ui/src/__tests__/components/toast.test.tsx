@@ -1296,6 +1296,72 @@ describe('Toast: useToast behavior', () => {
 			expect(save).toHaveFocus()
 		})
 
+		it('skips a neighbor with no control when a focused toast closes', () => {
+			let api: ReturnType<typeof useToast> | null = null
+
+			renderUI(
+				<ToastProvider>
+					<Trigger onReady={(context) => (api = context)} />
+					<Toast />
+				</ToastProvider>,
+			)
+
+			act(() => {
+				api?.toast({ title: 'Far', persist: true })
+
+				api?.toast({ title: 'Quiet', persist: true, closable: false })
+
+				api?.toast({ title: 'Near', persist: true })
+			})
+
+			const close = within(screen.getByText('Near').closest('li') as HTMLElement).getByRole(
+				'button',
+				{ name: 'Dismiss' },
+			)
+
+			act(() => close.focus())
+
+			act(() => {
+				fireEvent.click(close)
+			})
+
+			const far = screen.getByText('Far').closest('li') as HTMLElement
+
+			expect(far).toContainElement(document.activeElement as HTMLElement)
+		})
+
+		it('returns focus to the page control when no other toast has a control', () => {
+			let api: ReturnType<typeof useToast> | null = null
+
+			renderUI(
+				<ToastProvider>
+					<Trigger onReady={(context) => (api = context)} />
+					<button type="button">Save</button>
+					<Toast />
+				</ToastProvider>,
+			)
+
+			const save = screen.getByRole('button', { name: 'Save' })
+
+			act(() => save.focus())
+
+			act(() => {
+				api?.toast({ title: 'Uploading', persist: true, closable: false })
+
+				api?.toast({ title: 'Saved', persist: true })
+			})
+
+			const close = screen.getByRole('button', { name: 'Dismiss' })
+
+			act(() => close.focus())
+
+			act(() => {
+				fireEvent.click(close)
+			})
+
+			expect(save).toHaveFocus()
+		})
+
 		it('does not move focus when a toast times out while focus is elsewhere', () => {
 			let api: ReturnType<typeof useToast> | null = null
 
