@@ -3,10 +3,12 @@
 import { Copy } from 'lucide-react'
 import type { ChangeEvent, FocusEvent } from 'react'
 import { useIdScope } from '../../hooks/use-id-scope'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { ControlContext, useControl } from '../control/context'
 import { CopyButton } from '../copy-button'
 import { Label } from '../fieldset'
 import { Input } from '../input'
+import { colorMessages } from './color-messages'
 import { hexToHsva, hsvaToHex } from './color-utilities'
 import { useColorPanelContext } from './context'
 import { useColorField } from './use-color-field'
@@ -25,6 +27,8 @@ const SHORT_HEX = /^#?[0-9a-f]{3,4}$/i
  * its variant.
  */
 export function ColorHexInput() {
+	const intl = useIntl()
+
 	const { hsva, setHsva, alpha, disabled } = useColorPanelContext()
 
 	const control = useControl()
@@ -64,7 +68,7 @@ export function ColorHexInput() {
 	return (
 		<ControlContext value={undefined}>
 			<Label className="sr-only" htmlFor={id}>
-				Hex
+				{intl.formatMessage(colorMessages.hex)}
 			</Label>
 
 			{/* A hex code reads left to right in each direction, as CodeBlock reads code. So an RTL
@@ -82,7 +86,13 @@ export function ColorHexInput() {
 					spellCheck={false}
 					autoComplete="off"
 					className="font-mono uppercase"
-					suffix={<CopyButton text={`#${hex}`} icon={<Copy />} aria-label="Copy hex value" />}
+					suffix={
+						<CopyButton
+							text={`#${hex}`}
+							icon={<Copy />}
+							aria-label={intl.formatMessage(colorMessages.copyHex)}
+						/>
+					}
 				/>
 			</div>
 		</ControlContext>

@@ -2,8 +2,10 @@
 
 import { type KeyboardEvent, useLayoutEffect, useRef } from 'react'
 import { cn, dataAttr } from '../../core'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/dashboard'
 import { useDashboardActions } from './context'
+import { dashboardMessages } from './dashboard-messages'
 import type { DashboardCell } from './engine/dashboard-layout'
 import type { DashboardResizeEdge, DashboardResizeRange } from './engine/dashboard-resize'
 
@@ -54,6 +56,8 @@ export function DashboardResizeHandle({
 	label,
 	resizing,
 }: DashboardResizeHandleProps) {
+	const intl = useIntl()
+
 	const { beginResize, resizeBy } = useDashboardActions()
 
 	const horizontal = edge === 's'
@@ -106,7 +110,7 @@ export function DashboardResizeHandle({
 					role: 'separator',
 					tabIndex: 0,
 					'aria-orientation': horizontal ? ('horizontal' as const) : ('vertical' as const),
-					'aria-label': `Resize ${label}`,
+					'aria-label': intl.formatMessage(dashboardMessages.resize, { label }),
 					'aria-valuenow': span,
 					'aria-valuemin': least,
 					'aria-valuemax': most === undefined ? undefined : Math.max(most, span),

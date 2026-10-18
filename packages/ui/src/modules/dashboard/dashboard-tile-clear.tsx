@@ -2,7 +2,11 @@
 
 import { useCallback } from 'react'
 import { Button } from '../../components/button'
+import { IntlMessage } from '../../primitives/intl/intl-message'
+import { intlMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { useDashboardActions } from './context'
+import { dashboardMessages } from './dashboard-messages'
 import { clearSelection } from './engine/dashboard-scope'
 import type { DashboardState, DashboardView } from './engine/dashboard-store'
 import { useDashboardStore } from './use-dashboard-store'
@@ -24,6 +28,8 @@ export type DashboardTileClearProps = {
  * @internal
  */
 export function DashboardTileClear({ id, label }: DashboardTileClearProps) {
+	const intl = useIntl()
+
 	const selecting = useDashboardStore(
 		useCallback(
 			(_: DashboardView, state: DashboardState) =>
@@ -48,9 +54,9 @@ export function DashboardTileClear({ id, label }: DashboardTileClearProps) {
 			type="button"
 			variant="plain"
 			onClick={handleClear}
-			aria-label={`Clear the selection in ${label}`}
+			aria-label={intl.formatMessage(dashboardMessages.clearSelection, { label })}
 		>
-			Clear
+			<IntlMessage message={intlMessages.clear} />
 		</Button>
 	)
 }

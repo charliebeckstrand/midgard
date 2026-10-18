@@ -3,10 +3,12 @@
 import type { ChangeEvent } from 'react'
 import { cn } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/color-panel'
 import { clamp } from '../../utilities'
 import { ControlContext, useControl } from '../control/context'
 import { Input } from '../input'
+import { colorMessages } from './color-messages'
 import { hsvaToRgba, rgbaToHsva } from './color-utilities'
 import { useColorPanelContext } from './context'
 import { useColorField } from './use-color-field'
@@ -23,6 +25,8 @@ const RGB: ReadonlyArray<'r' | 'g' | 'b'> = ['r', 'g', 'b']
  * `required`, `aria-describedby` or validation state. They keep its variant.
  */
 export function ColorChannelInputs() {
+	const intl = useIntl()
+
 	const { hsva, setHsva, alpha, disabled } = useColorPanelContext()
 
 	const control = useControl()
@@ -74,7 +78,9 @@ export function ColorChannelInputs() {
 			<label className={k.label} htmlFor={scope.sub(channel)}>
 				<span aria-hidden="true">{channel === 'a' ? 'A' : channel.toUpperCase()}</span>
 				<span className="sr-only">
-					{channel === 'a' ? 'Alpha channel' : `${channel.toUpperCase()} channel`}
+					{channel === 'a'
+						? intl.formatMessage(colorMessages.alphaChannel)
+						: intl.formatMessage(colorMessages.channel, { channel: channel.toUpperCase() })}
 				</span>
 			</label>
 			<Input

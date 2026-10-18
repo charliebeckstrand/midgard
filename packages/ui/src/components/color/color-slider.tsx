@@ -2,8 +2,10 @@
 
 import { type ChangeEvent, type KeyboardEvent, useRef } from 'react'
 import { cn } from '../../core'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/color-panel'
 import { clamp, pct } from '../../utilities'
+import { colorMessages } from './color-messages'
 import { hsvaToHex } from './color-utilities'
 import { useColorPanelContext } from './context'
 import { type DragPosition, useColorDrag } from './use-color-drag'
@@ -26,6 +28,8 @@ type ColorSliderProps = {
  * @internal
  */
 export function ColorSlider({ channel }: ColorSliderProps) {
+	const intl = useIntl()
+
 	const { hsva, setHsva, disabled } = useColorPanelContext()
 
 	const ref = useRef<HTMLInputElement>(null)
@@ -129,7 +133,7 @@ export function ColorSlider({ channel }: ColorSliderProps) {
 				step={isHue ? 1 : 0.01}
 				value={isHue ? Math.round(value) : Math.round(value * 100) / 100}
 				disabled={disabled}
-				aria-label={isHue ? 'Hue' : 'Alpha'}
+				aria-label={intl.formatMessage(isHue ? colorMessages.hue : colorMessages.alpha)}
 				aria-valuetext={isHue ? `${Math.round(value)}°` : `${Math.round(value * 100)}%`}
 				className={k.track.input}
 				onKeyDown={handleKeyDown}

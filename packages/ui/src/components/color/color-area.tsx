@@ -2,8 +2,10 @@
 
 import { type KeyboardEvent, useRef } from 'react'
 import { ariaAttr, cn } from '../../core'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/color-panel'
 import { clamp } from '../../utilities'
+import { colorMessages } from './color-messages'
 import { useColorPanelContext } from './context'
 import { type DragPosition, inDisabledFieldset, useColorDrag } from './use-color-drag'
 
@@ -22,6 +24,8 @@ import { type DragPosition, inDisabledFieldset, useColorDrag } from './use-color
  * @internal
  */
 export function ColorArea() {
+	const intl = useIntl()
+
 	const { hsva, setHsva, disabled } = useColorPanelContext()
 
 	const ref = useRef<HTMLDivElement>(null)
@@ -84,11 +88,14 @@ export function ColorArea() {
 			data-slot="color-area"
 			role="slider"
 			tabIndex={disabled ? -1 : 0}
-			aria-label="Saturation and brightness"
+			aria-label={intl.formatMessage(colorMessages.area)}
 			aria-valuemin={0}
 			aria-valuemax={100}
 			aria-valuenow={Math.round(hsva.s)}
-			aria-valuetext={`Saturation ${Math.round(hsva.s)}%, brightness ${Math.round(hsva.v)}%`}
+			aria-valuetext={intl.formatMessage(colorMessages.areaValue, {
+				saturation: Math.round(hsva.s),
+				brightness: Math.round(hsva.v),
+			})}
 			aria-disabled={ariaAttr(disabled)}
 			className={cn(k.area.base, disabled && 'pointer-events-none opacity-50')}
 			style={{ backgroundColor: `hsl(${hsva.h} 100% 50%)` }}

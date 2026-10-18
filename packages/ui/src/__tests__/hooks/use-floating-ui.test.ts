@@ -1,7 +1,8 @@
-import { renderHook } from '@testing-library/react'
-import { createRef } from 'react'
+import { render, renderHook } from '@testing-library/react'
+import { createElement, createRef, useRef } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useFloatingPanel, useFloatingUI } from '../../hooks/use-floating-ui'
+import { useTruncation } from '../../hooks/use-truncation'
 import { attach } from '../helpers'
 
 describe('useFloatingPanel', () => {
@@ -73,6 +74,46 @@ describe('useFloatingPanel', () => {
 		rerender({ open: false })
 
 		expect(focus).toHaveBeenCalledTimes(1)
+	})
+
+	it('restores focus into a truncation arm without a flush inside the commit', () => {
+		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		// The restore runs in a passive effect. A `useTruncation` arm around the
+		// trigger (a grid cell around its editor) takes the `focusin`, and a
+		// `flushSync` there cannot flush.
+		function Panel({ open }: { open: boolean }) {
+			const triggerRef = useRef<HTMLDivElement>(null)
+
+			const [ref] = useTruncation<HTMLDivElement>()
+
+			useFloatingPanel({
+				placement: 'bottom-start',
+				open,
+				onOpenChange: () => {},
+				returnFocusTo: triggerRef,
+			})
+
+			return createElement(
+				'div',
+				{ ref },
+				createElement(
+					'div',
+					{ ref: triggerRef },
+					createElement('button', { type: 'button' }, 'Label'),
+				),
+			)
+		}
+
+		const { rerender, getByRole } = render(createElement(Panel, { open: true }))
+
+		rerender(createElement(Panel, { open: false }))
+
+		expect(getByRole('button')).toHaveFocus()
+
+		expect(error).not.toHaveBeenCalledWith(
+			expect.stringContaining('flushSync was called from inside a lifecycle method'),
+		)
 	})
 
 	it('does not restore focus on an open transition', () => {

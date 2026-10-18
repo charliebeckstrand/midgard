@@ -2,8 +2,10 @@
 
 import { Pipette } from 'lucide-react'
 import { useHydrated } from '../../hooks/use-hydrated'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { Button } from '../button'
 import { Icon } from '../icon'
+import { colorMessages } from './color-messages'
 import { hexToHsva } from './color-utilities'
 import { useColorPanelContext } from './context'
 
@@ -27,6 +29,8 @@ function getEyeDropper(): EyeDropperConstructor | undefined {
  * it.
  */
 export function ColorEyedropper({ className }: { className?: string }) {
+	const intl = useIntl()
+
 	const { setHsva } = useColorPanelContext()
 
 	const EyeDropper = useHydrated() ? getEyeDropper() : undefined
@@ -50,7 +54,7 @@ export function ColorEyedropper({ className }: { className?: string }) {
 			type="button"
 			variant="bare"
 			data-slot="color-eyedropper"
-			aria-label="Pick color from screen"
+			aria-label={intl.formatMessage(colorMessages.eyedropper)}
 			onClick={handlePick}
 			className={className}
 		>
