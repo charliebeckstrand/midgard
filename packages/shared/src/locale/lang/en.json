@@ -1,1 +1,18 @@
-{}
+{
+	"shared.validation.email": {
+		"defaultMessage": "Please enter a valid email address",
+		"description": "The error of an email field that does not hold an email address."
+	},
+	"shared.validation.minLength": {
+		"defaultMessage": "{min, plural, one {Must be at least # character} other {Must be at least # characters}}",
+		"description": "The error of a field that is too short. The min is the shortest length."
+	},
+	"shared.validation.passwordMismatch": {
+		"defaultMessage": "Must match password",
+		"description": "The error of the field that repeats the password, when the two differ."
+	},
+	"shared.validation.required": {
+		"defaultMessage": "This field is required",
+		"description": "The error of a form field that the reader left empty."
+	}
+}

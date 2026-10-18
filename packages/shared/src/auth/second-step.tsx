@@ -11,6 +11,7 @@ import { Dialog, DialogBody, DialogHeader, DialogPanel, DialogTitle } from 'ui/d
 import { Field, Fieldset, Label, Message } from 'ui/fieldset'
 import { Form, type FormSubmitHandler } from 'ui/form'
 import { Input } from 'ui/input'
+import { useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
 import { bifrost } from './bifrost'
 import { chain, required } from './form-validators'
@@ -65,6 +66,8 @@ export function SecondStep({
 	const hasTotp = methods.includes('totp')
 
 	const hasRecovery = methods.includes('recovery_code')
+
+	const intl = useIntl()
 
 	const [usingRecovery, setUsingRecovery] = useState(!hasTotp && !methods.includes('passkey'))
 
@@ -135,7 +138,7 @@ export function SecondStep({
 					<Form<CodeValues>
 						key={usingRecovery ? 'recovery' : 'totp'}
 						defaultValues={{ code: '' }}
-						validate={{ code: chain(required()) }}
+						validate={{ code: chain(required(intl)) }}
 						onSubmit={handleSubmit}
 					>
 						<Stack gap="xl">

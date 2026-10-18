@@ -8,10 +8,11 @@ import { Heading } from 'ui/heading'
 import { AuthLayout } from 'ui/layouts'
 import { Link } from 'ui/link'
 import { PasswordInput } from 'ui/password-input'
+import { useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import { bifrost } from './bifrost'
-import { chain, matches, minLength, required } from './form-validators'
+import { chain, matches, minLength, required, validationMessages } from './form-validators'
 import { linkToken } from './link-token'
 import { unexpectedError, useServerError } from './use-server-error'
 
@@ -30,6 +31,8 @@ type ResetPasswordValues = { password: string; confirmPassword: string }
  * prerenders all of the page.
  */
 export function ResetPasswordPage() {
+	const intl = useIntl()
+
 	const router = useRouter()
 
 	const [errorAlert, setServerError] = useServerError()
@@ -57,8 +60,11 @@ export function ResetPasswordPage() {
 			<Form<ResetPasswordValues>
 				defaultValues={{ password: '', confirmPassword: '' }}
 				validate={{
-					password: chain(required(), minLength(8)),
-					confirmPassword: chain(required(), matches('password', 'password')),
+					password: chain(required(intl), minLength(intl, 8)),
+					confirmPassword: chain(
+						required(intl),
+						matches('password', intl.formatMessage(validationMessages.passwordMismatch)),
+					),
 				}}
 				onSubmit={handleSubmit}
 			>

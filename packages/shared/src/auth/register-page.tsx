@@ -10,10 +10,11 @@ import { Input } from 'ui/input'
 import { AuthLayout } from 'ui/layouts'
 import { Link } from 'ui/link'
 import { PasswordInput } from 'ui/password-input'
+import { useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import { bifrost } from './bifrost'
-import { chain, email, matches, minLength, required } from './form-validators'
+import { chain, email, matches, minLength, required, validationMessages } from './form-validators'
 import { Turnstile } from './turnstile'
 import { unexpectedError, useServerError } from './use-server-error'
 
@@ -42,6 +43,8 @@ type RegisterPageProps = {
  * A token is good for one try, so a failed try mounts a new widget.
  */
 export function RegisterPage({ turnstileSiteKey }: RegisterPageProps) {
+	const intl = useIntl()
+
 	const router = useRouter()
 
 	const [errorAlert, setServerError] = useServerError()
@@ -88,10 +91,13 @@ export function RegisterPage({ turnstileSiteKey }: RegisterPageProps) {
 			<Form<RegisterValues>
 				defaultValues={{ email: '', name: '', password: '', confirmPassword: '' }}
 				validate={{
-					email: chain(required(), email()),
-					name: chain(required()),
-					password: chain(required(), minLength(8)),
-					confirmPassword: chain(required(), matches('password', 'password')),
+					email: chain(required(intl), email(intl)),
+					name: chain(required(intl)),
+					password: chain(required(intl), minLength(intl, 8)),
+					confirmPassword: chain(
+						required(intl),
+						matches('password', intl.formatMessage(validationMessages.passwordMismatch)),
+					),
 				}}
 				onSubmit={handleSubmit}
 			>

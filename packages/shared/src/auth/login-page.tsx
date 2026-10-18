@@ -16,6 +16,7 @@ import { Input } from 'ui/input'
 import { AuthLayout } from 'ui/layouts'
 import { Link } from 'ui/link'
 import { PasswordInput } from 'ui/password-input'
+import { useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import { oauthStartPath, signInProviderNames, signOut } from './account'
@@ -151,6 +152,8 @@ export function LoginPage({
 	secondStep = false,
 	methods,
 }: LoginPageProps) {
+	const intl = useIntl()
+
 	const router = useRouter()
 
 	const [errorAlert, setServerError] = useServerError()
@@ -242,8 +245,8 @@ export function LoginPage({
 			<Form<LoginValues>
 				defaultValues={{ email: '', password: '' }}
 				validate={{
-					email: chain(required(), email()),
-					password: chain(required()),
+					email: chain(required(intl), email(intl)),
+					password: chain(required(intl)),
 				}}
 				onSubmit={handleSubmit}
 				disabled={leaving}

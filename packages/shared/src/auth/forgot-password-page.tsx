@@ -8,6 +8,7 @@ import { Heading } from 'ui/heading'
 import { Input } from 'ui/input'
 import { AuthLayout } from 'ui/layouts'
 import { Link } from 'ui/link'
+import { useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import { bifrost } from './bifrost'
@@ -26,6 +27,8 @@ type ForgotPasswordValues = { email: string }
  * `/reset-password` on this app.
  */
 export function ForgotPasswordPage() {
+	const intl = useIntl()
+
 	const [sent, setSent] = useState(false)
 
 	const [errorAlert, setServerError] = useServerError()
@@ -50,7 +53,7 @@ export function ForgotPasswordPage() {
 		<AuthLayout>
 			<Form<ForgotPasswordValues>
 				defaultValues={{ email: '' }}
-				validate={{ email: chain(required(), email()) }}
+				validate={{ email: chain(required(intl), email(intl)) }}
 				onSubmit={handleSubmit}
 			>
 				<Stack gap="xl" className="w-full sm:max-w-sm p-6">

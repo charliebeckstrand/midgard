@@ -1,1 +1,6 @@
-{}
+{
+	"shared.validation.email": "Introduce una dirección de correo electrónico válida",
+	"shared.validation.minLength": "{min, plural, one {Debe tener al menos # carácter} other {Debe tener al menos # caracteres}}",
+	"shared.validation.passwordMismatch": "Debe coincidir con la contraseña",
+	"shared.validation.required": "Este campo es obligatorio"
+}

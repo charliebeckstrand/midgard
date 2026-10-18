@@ -65,9 +65,11 @@
 		"@biomejs/biome": "catalog:",
 		"@types/node": "catalog:",
 		"@types/react": "catalog:",
+		"@types/react-dom": "catalog:",
 		"next": "catalog:",
 		"openapi-typescript": "^7.13.0",
 		"react": "catalog:",
+		"react-dom": "catalog:",
 		"tsx": "catalog:",
 		"typescript": "catalog:typescript6",
 		"vitest": "catalog:"
