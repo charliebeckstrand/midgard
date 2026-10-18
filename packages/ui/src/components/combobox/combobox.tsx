@@ -1,5 +1,6 @@
 'use client'
 
+import { defineMessages } from '@formatjs/intl'
 import { ChevronsUpDown } from 'lucide-react'
 import { useComposedRefs } from 'motion/react'
 import {
@@ -38,6 +39,8 @@ import {
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useFormValue } from '../../primitives/form/use-form-value'
+import { intlMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { DeferredQueryContext, QueryContext, useQueryValue } from '../../primitives/query'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/context'
@@ -56,10 +59,18 @@ import { useComboboxInput } from './use-combobox-input'
 import { routeFloatingOpenChange, useComboboxState } from './use-combobox-state'
 import { useComboboxTrigger } from './use-combobox-trigger'
 
+const messages = defineMessages({
+	placeholder: {
+		id: 'ui.combobox.placeholder',
+		defaultMessage: 'Search',
+		description: 'The placeholder of a field that filters a list of options as the reader types.',
+	},
+})
+
 type ComboboxBaseProps<T> = {
 	id?: string
 	name?: string
-	/** @defaultValue 'Search' */
+	/** @defaultValue `'Search'`, in the language of the reader. */
 	placeholder?: string
 	/**
 	 * Formats a stored value for the input's resting display — what shows when the
@@ -96,7 +107,7 @@ type ComboboxBaseProps<T> = {
 	 *
 	 * The full list is still the input's `title` on hover, unsummarized.
 	 *
-	 * @defaultValue `` `${selected.length} selected` ``
+	 * @defaultValue `` `${selected.length} selected` ``, in the language of the reader.
 	 */
 	summarize?: (selected: T[]) => string
 	/**
@@ -457,7 +468,7 @@ export function Combobox<T>({
 	summarize,
 	onValueChange,
 	multiple = false,
-	placeholder = 'Search',
+	placeholder,
 	placement = 'bottom-start',
 	prefix,
 	suffix,
@@ -484,6 +495,8 @@ export function Combobox<T>({
 	'data-slot': slot = 'combobox',
 	children,
 }: ComboboxProps<T>) {
+	const intl = useIntl()
+
 	const glass = useGlass()
 
 	const control = useControl()
@@ -776,6 +789,7 @@ export function Combobox<T>({
 		displayValue,
 		summarize,
 		multiple,
+		intl,
 	})
 
 	// The field shows how many are picked; this says which, on hover.
@@ -834,7 +848,7 @@ export function Combobox<T>({
 
 	const clearSuffix = showClear ? (
 		<InputClearButton
-			label="Clear selection"
+			label={intl.formatMessage(intlMessages.clearSelection)}
 			onMouseDown={(event) => event.stopPropagation()}
 			onClick={(event) => {
 				event.stopPropagation()
@@ -942,7 +956,7 @@ export function Combobox<T>({
 							selected={hasValue}
 							invalid={resolvedInvalid}
 							value={inputDisplay}
-							placeholder={placeholder}
+							placeholder={placeholder ?? intl.formatMessage(messages.placeholder)}
 							title={inputTitle}
 							editing={editing}
 							capitalize={capitalize}

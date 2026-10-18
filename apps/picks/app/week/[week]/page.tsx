@@ -1,5 +1,6 @@
 import { requireSession } from 'auth'
 import { notFound } from 'next/navigation'
+import { RequestLocale } from 'shared/locale'
 import { Container } from 'ui/structure/container'
 import { Text } from 'ui/text'
 import { GameCard, GameGrid } from '@/components/game-card'
@@ -38,7 +39,7 @@ export default async function WeekPage({ params }: { params: Promise<{ week: str
 	const skipped = Object.keys(weekPicks).length === 0 && weekClosed(games, Date.now())
 
 	return (
-		<>
+		<RequestLocale>
 			<PicksHeader user={user} week={week.label} />
 
 			<LiveRefresh live={games.some((game) => game.state === 'live')} />
@@ -64,6 +65,6 @@ export default async function WeekPage({ params }: { params: Promise<{ week: str
 					</>
 				)}
 			</Container>
-		</>
+		</RequestLocale>
 	)
 }

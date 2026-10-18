@@ -1,14 +1,24 @@
 'use client'
 
+import { defineMessages } from '@formatjs/intl'
 import { Search } from 'lucide-react'
 import { useComposedRefs } from 'motion/react'
 import { type ChangeEvent, type KeyboardEvent, type ReactNode, useMemo } from 'react'
 import { cn, composeEventHandlers } from '../../core'
 import { useFormValue } from '../../primitives/form/use-form-value'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { clearNativeInput, isComposing } from '../../utilities'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
 import { LoadingSpinner } from '../loading'
+
+const messages = defineMessages({
+	clear: {
+		id: 'ui.searchInput.clear',
+		defaultMessage: 'Clear search',
+		description: 'The name of the button that empties a search field.',
+	},
+})
 
 /**
  * Props for {@link SearchInput}: {@link InputProps} (less `type`/`prefix`/`suffix`/`value`/`defaultValue`/`clearable`/`clearLabel`) plus a loading flag and the clear affordance.
@@ -45,7 +55,7 @@ export type SearchInputProps = Omit<
 	clearable?: boolean
 	/**
 	 * The accessible name of the clear button.
-	 * @defaultValue 'Clear search'
+	 * @defaultValue `'Clear search'`, in the language of the reader.
 	 */
 	clearLabel?: string
 	/** Fires when the field is cleared, whether by the clear button or by emptying it. */
@@ -81,7 +91,7 @@ export function SearchInput({
 	defaultValue,
 	loading,
 	clearable = true,
-	clearLabel = 'Clear search',
+	clearLabel,
 	onChange,
 	onValueChange,
 	onClear,
@@ -93,6 +103,8 @@ export function SearchInput({
 	ref,
 	...props
 }: SearchInputProps) {
+	const intl = useIntl()
+
 	const {
 		value: current,
 		resetRef,
@@ -158,7 +170,7 @@ export function SearchInput({
 			prefix={SEARCH_PREFIX}
 			// The spinner takes the place of the clear button while a query is in flight.
 			clearable={clearable && !loading}
-			clearLabel={clearLabel}
+			clearLabel={clearLabel ?? intl.formatMessage(messages.clear)}
 			suffix={
 				loading ? (
 					<>

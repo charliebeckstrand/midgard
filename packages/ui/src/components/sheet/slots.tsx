@@ -1,3 +1,5 @@
+import { IntlMessage } from '../../primitives/intl/intl-message'
+import { intlMessages } from '../../primitives/intl/intl-messages'
 import {
 	createPanel,
 	type PanelBodyProps,
@@ -63,7 +65,7 @@ export function SheetClose({ children }: SheetCloseProps) {
 					variant="soft"
 					data-slot="sheet-close"
 				>
-					Close
+					<IntlMessage message={intlMessages.close} />
 				</Button>
 			)}
 		</PanelClose>

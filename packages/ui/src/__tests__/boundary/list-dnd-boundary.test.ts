@@ -1,7 +1,7 @@
-import { existsSync, readFileSync } from 'node:fs'
-import { dirname, join, resolve } from 'node:path'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { importsOf } from '../helpers/source-imports'
+import { importsOf, resolveSource } from '../helpers/source-imports'
 import { srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
 // `List` reorders over Motion's `Reorder`, which each page loads. A bundler keeps
@@ -12,15 +12,6 @@ import { srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 const listModule = join(srcDir, 'components', 'list', 'list.tsx')
 
 const kanbanModule = join(srcDir, 'modules', 'kanban', 'kanban.tsx')
-
-/** The source file that a relative specifier names, or `undefined`. */
-function resolveSource(from: string, specifier: string): string | undefined {
-	const base = resolve(dirname(from), specifier)
-
-	return [`${base}.ts`, `${base}.tsx`, join(base, 'index.ts'), join(base, 'index.tsx')].find(
-		existsSync,
-	)
-}
 
 /**
  * Each runtime import of `@dnd-kit` in the module graph of `entry`, as the chain

@@ -1,7 +1,10 @@
 'use client'
 
+import { defineMessages } from '@formatjs/intl'
 import { type ReactNode, useCallback, useEffect } from 'react'
 import { cn } from '../../core'
+import { intlMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { usePanelA11y } from '../../primitives/panel'
 import { k as panel } from '../../recipes/kata/panel'
 import { Button, type ButtonVariants } from '../button'
@@ -14,6 +17,14 @@ import {
 	type DialogPanelProps,
 	DialogTitle,
 } from '../dialog'
+
+const messages = defineMessages({
+	title: {
+		id: 'ui.confirm.title',
+		defaultMessage: 'Are you sure?',
+		description: 'The default title of a dialog that asks the reader to confirm an action.',
+	},
+})
 
 /**
  * Scroll region of the `children`. With `describes`, it is also the
@@ -66,7 +77,7 @@ function ConfirmBody({ describes, children }: { describes: boolean; children: Re
 type ConfirmAction = {
 	/**
 	 * Button text.
-	 * @defaultValue 'Confirm' for the confirm action, 'Cancel' for the cancel action.
+	 * @defaultValue `'Confirm'` for the confirm action and `'Cancel'` for the cancel action, in the language of the reader.
 	 */
 	label?: string
 	/** Button color, forwarded to {@link Button}. */
@@ -115,7 +126,7 @@ export type ConfirmProps = Pick<
 	 * @remarks
 	 * A falsy value, such as `''` or `null`, also falls back to the default, so the
 	 * alertdialog always has a name.
-	 * @defaultValue 'Are you sure?'
+	 * @defaultValue `'Are you sure?'`, in the language of the reader.
 	 */
 	title?: ReactNode
 	/**
@@ -194,7 +205,9 @@ export function Confirm({
 	// One presence rule for the header and the body: a falsy value counts as
 	// absent. A falsy title thus falls back to the default, and a falsy
 	// description lets the children register as the message.
-	const heading = title || 'Are you sure?'
+	const intl = useIntl()
+
+	const heading = title || intl.formatMessage(messages.title)
 
 	const hasDescription = Boolean(description)
 
@@ -230,7 +243,7 @@ export function Confirm({
 						disabled={cancel?.disabled}
 						onClick={handleCancel}
 					>
-						{cancel?.label ?? 'Cancel'}
+						{cancel?.label ?? intl.formatMessage(intlMessages.cancel)}
 					</Button>
 					<Button
 						type="button"
@@ -239,7 +252,7 @@ export function Confirm({
 						loading={confirm?.loading}
 						onClick={handleConfirm}
 					>
-						{confirm?.label ?? 'Confirm'}
+						{confirm?.label ?? intl.formatMessage(intlMessages.confirm)}
 					</Button>
 				</DialogFooter>
 			</DialogPanel>

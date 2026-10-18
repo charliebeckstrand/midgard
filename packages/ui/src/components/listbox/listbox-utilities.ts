@@ -1,4 +1,6 @@
 import { createElement, Fragment, type ReactNode } from 'react'
+import type { IntlShape } from 'react-intl'
+import { selectedMessage } from '../../primitives/intl/intl-messages'
 import { capitalizeFirst } from '../../utilities'
 
 /**
@@ -7,18 +9,21 @@ import { capitalizeFirst } from '../../utilities'
  * as the caller wrote it.
  *
  * In `multiple` mode, a comma and a space join three or fewer values. Strings
- * join into one string. A node in the selection makes the join a node.
+ * join into one string. A node in the selection makes the join a node. More
+ * values show as a count, in the language of `intl`.
  */
 export function resolveLabel<T>({
 	value,
 	displayValue,
 	multiple,
 	capitalize = false,
+	intl,
 }: {
 	value: T | T[] | undefined
 	displayValue?: (value: T) => ReactNode
 	multiple: boolean
 	capitalize?: boolean
+	intl: IntlShape
 }): ReactNode {
 	const display =
 		displayValue && capitalize
@@ -36,7 +41,7 @@ export function resolveLabel<T>({
 
 		if (display && values.length <= 3) return joinLabels(values.map(display))
 
-		return `${values.length} selected`
+		return intl.formatMessage(selectedMessage, { count: values.length })
 	}
 
 	if (value !== undefined && !Array.isArray(value) && display) return display(value)

@@ -5,6 +5,8 @@ import { type ReactNode, useState } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { useIntentLoad } from '../../hooks/use-intent-load'
+import { useIntl } from '../../primitives/intl/use-intl'
+import { appearanceMessages } from './appearance-messages'
 
 /**
  * Loads the module of the dialog, which carries the dialog and the listboxes. A
@@ -48,11 +50,13 @@ export function AppearanceSettings({ children }: AppearanceSettingsProps) {
 
 	const { module: dialog, request, preload } = useIntentLoad(loadDialog)
 
+	const intl = useIntl()
+
 	return (
 		<>
 			<Button
 				variant="bare"
-				aria-label="Settings"
+				aria-label={intl.formatMessage(appearanceMessages.settings)}
 				onPointerEnter={preload}
 				onPointerDown={preload}
 				onFocus={preload}

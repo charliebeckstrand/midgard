@@ -1,7 +1,10 @@
 'use client'
 
 import { type ReactNode, useMemo } from 'react'
+import { RawIntlProvider } from 'react-intl'
 import { Direction, type TextDirection } from '../../primitives/direction'
+import { englishIntl, localeIntl } from '../../primitives/intl/intl-catalog'
+import { writeChoice } from '../appearance/appearance-storage'
 import {
 	LocaleChoiceContext,
 	type LocaleChoiceValue,
@@ -10,7 +13,7 @@ import {
 	useLocale,
 	useLocaleChoice,
 } from './context'
-import { writeLocaleChoice } from './locale-choice'
+import { localeChoice } from './locale-choice'
 import { useStoredLocale } from './use-stored-locale'
 
 /**
@@ -25,12 +28,14 @@ export type LocaleProviderProps = LocaleConfig & {
 	 * Language picker. The stored locale replaces `locale` after hydration.
 	 *
 	 * The first choice is System. It takes the locale that matches the languages
-	 * of the browser, else `locale`. The server render and the hydration render
-	 * use `locale`. With no `locale`, they use the locale of the enclosing
-	 * provider, else the first entry of `locales`.
+	 * of the browser, else the locale of the server render. The server render and
+	 * the hydration render use `locale`. With no `locale`, they use the locale of
+	 * the enclosing provider, else the first entry of `locales`.
 	 *
-	 * Set it on the provider at the root of the app only. All the providers with
-	 * `locales` share one stored choice.
+	 * Set it on the provider at the root of the app. All the providers with
+	 * `locales` share one stored choice, so a nested provider with the same
+	 * `locales` follows the choice of the root. A server can render such a nested
+	 * provider in the locale of a request.
 	 */
 	locales?: readonly [string, ...string[]]
 	/**
@@ -50,13 +55,16 @@ export type LocaleProviderProps = LocaleConfig & {
  * Broadcasts `Intl` formatting defaults (locale tag, currency, number and date
  * options, time zone) to format-aware components. Explicit props on individual components
  * still win. The default number formats of charts, maps, PivotTable, grid
- * aggregates, and Odometer take its `locale`.
+ * aggregates, and Odometer take its `locale`. The controls of ui also show
+ * their text in the language of the `locale`.
  *
  * @remarks
- * This is a formatting provider, not a translation layer. It holds no string
- * catalog, and it never supplies the text a component renders. Control
- * strings stay hardcoded English until a second locale lands; a catalog
- * waits for that locale, so its keys answer to a real consumer.
+ * The provider also gives the `react-intl` intl of its locale to the controls
+ * of ui. A control shows its built-in text, such as the name of a Close button,
+ * from the catalog of the language of the locale. ui has an English and a
+ * Spanish catalog. A language with no catalog, and a message that a catalog
+ * does not have, show the English default. A prop that sets the text of a
+ * control still wins. The text that an app renders is not in the catalog of ui.
  *
  * A nested provider overrides one field and leaves the rest of the enclosing
  * config alone. So a nested `<LocaleProvider currency="EUR">` keeps the outer
@@ -67,11 +75,15 @@ export type LocaleProviderProps = LocaleConfig & {
  * renders. The server and the browser can have different defaults, and the
  * hydration render then does not match the server markup.
  *
- * With `locales`, the reader chooses the locale, and the choice persists in
- * `localStorage`. The server does not know the choice, so the server render and
- * the hydration render use `locale`. A formatted value can thus change its text
- * after hydration, as a date does for the time zone. The choice changes the
- * formats only. The text of the controls stays English.
+ * With `locales`, the reader chooses the locale. The choice persists in the
+ * cookie {@link LOCALE_COOKIE}, with a copy in `localStorage`. The provider
+ * reads the choice in the browser only, so the server render and the hydration
+ * render use `locale`. A formatted value can thus change its text after
+ * hydration, as a date does for the time zone, and the text of a control can
+ * change its language. A server that renders per request can read the cookie
+ * with {@link resolveRequestLocale}, and render a nested provider in the
+ * locale of the reader. That provider agrees with the browser from the first
+ * render.
  *
  * Set the direction of a region through `dir` here, not through a raw `dir`
  * attribute. A raw attribute is a DOM setting only, and a portaled surface
@@ -88,26 +100,48 @@ export function LocaleProvider({
 	dir,
 	children,
 }: LocaleProviderProps) {
-	// The outer value keeps its identity until a field of it changes.
 	const outer = useLocale()
 
 	const outerChoice = useLocaleChoice()
 
 	const stored = useStoredLocale(locales, locale ?? outer.locale ?? locales?.[0])
 
+	// The memo reads the resolved fields, not the outer value. A nested provider
+	// with its own locale thus keeps its value when only the outer locale
+	// changes, as it does after hydration.
+	const resolvedCurrency = currency ?? outer.currency
+
+	const resolvedNumberFormat = numberFormat ?? outer.numberFormat
+
+	const resolvedDateFormat = dateFormat ?? outer.dateFormat
+
+	const resolvedTimeZone = timeZone ?? outer.timeZone
+
 	const value = useMemo<LocaleConfig>(
 		() => ({
 			locale: stored.locale,
-			currency: currency ?? outer.currency,
-			numberFormat: numberFormat ?? outer.numberFormat,
-			dateFormat: dateFormat ?? outer.dateFormat,
-			timeZone: timeZone ?? outer.timeZone,
+			currency: resolvedCurrency,
+			numberFormat: resolvedNumberFormat,
+			dateFormat: resolvedDateFormat,
+			timeZone: resolvedTimeZone,
 		}),
-		[stored.locale, currency, numberFormat, dateFormat, timeZone, outer],
+		[stored.locale, resolvedCurrency, resolvedNumberFormat, resolvedDateFormat, resolvedTimeZone],
 	)
 
+	// One intl serves each locale, so a nested provider in the locale of the
+	// enclosing provider gives the same intl to its subtree. A provider has no
+	// locale only when no enclosing provider has one.
+	const intl = stored.locale === undefined ? englishIntl : localeIntl(stored.locale)
+
 	const choice = useMemo<LocaleChoiceValue | null>(
-		() => (locales ? { choice: stored.choice, locales, setChoice: writeLocaleChoice } : null),
+		() =>
+			locales
+				? {
+						choice: stored.choice,
+						locales,
+						setChoice: (next: string) => writeChoice(localeChoice(locales), next),
+					}
+				: null,
 		[locales, stored.choice],
 	)
 
@@ -123,7 +157,9 @@ export function LocaleProvider({
 	// under a nested provider still edits the choice of the root.
 	return (
 		<LocaleChoiceContext value={choice ?? outerChoice}>
-			<LocaleContext value={value}>{scoped}</LocaleContext>
+			<LocaleContext value={value}>
+				<RawIntlProvider value={intl}>{scoped}</RawIntlProvider>
+			</LocaleContext>
 		</LocaleChoiceContext>
 	)
 }

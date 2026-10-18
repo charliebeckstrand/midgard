@@ -1,3 +1,5 @@
+import { IntlMessage } from '../../primitives/intl/intl-message'
+import { intlMessages } from '../../primitives/intl/intl-messages'
 import {
 	createPanel,
 	type PanelBodyProps,
@@ -58,7 +60,7 @@ export function DrawerClose({ children }: DrawerCloseProps) {
 					variant="soft"
 					data-slot="drawer-close"
 				>
-					Close
+					<IntlMessage message={intlMessages.close} />
 				</Button>
 			)}
 		</PanelClose>

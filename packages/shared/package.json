@@ -31,6 +31,10 @@
 			"types": "./src/events/index.ts",
 			"default": "./src/events/index.ts"
 		},
+		"./locale": {
+			"types": "./src/locale/index.ts",
+			"default": "./src/locale/index.ts"
+		},
 		"./globals.css": "./src/globals.css"
 	},
 	"scripts": {

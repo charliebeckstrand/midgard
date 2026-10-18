@@ -1,10 +1,12 @@
 import { renderToString } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { LocaleProvider, useLocale } from '../../providers/locale'
-import { matchLocale } from '../../providers/locale/locale-choice'
-import { act, renderUI, screen } from '../helpers'
+import { Listbox, ListboxOption } from '../../components/listbox'
+import { writeChoice } from '../../providers/appearance/appearance-storage'
+import { LocaleProvider, resolveRequestLocale, useLocale } from '../../providers/locale'
+import { localeChoice, matchLocale } from '../../providers/locale/locale-choice'
+import { act, clearCookies, renderUI, screen } from '../helpers'
 
-// The English locales of the apps, with the default first.
+// The English locales, with the default first.
 const LOCALES = ['en-US', 'en-GB', 'en-CA', 'en-AU'] as const
 
 /** Makes the browser report `languages` as the languages of the reader. */
@@ -118,6 +120,10 @@ describe('LocaleProvider with locales', () => {
 		expect(screen.getByTestId('locale')).toHaveTextContent('en-GB')
 
 		unmount()
+
+		// The first render wrote the stored choice to the cookie. Remove it, so the
+		// second render reads the storage alone.
+		clearCookies()
 
 		localStorage.setItem('locale', 'fr-FR')
 
@@ -234,5 +240,174 @@ describe('matchLocale', () => {
 		expect(matchLocale(['fr-FR', 'de'], LOCALES)).toBeUndefined()
 
 		expect(matchLocale([], LOCALES)).toBeUndefined()
+	})
+})
+
+/** A listbox with no value, which shows its placeholder. */
+function EmptyListbox() {
+	return (
+		<Listbox aria-label="Fruit">
+			<ListboxOption value="apple">Apple</ListboxOption>
+		</Listbox>
+	)
+}
+
+/** The trigger of the listbox, which shows the placeholder or the value. */
+const fruit = () => screen.getByRole('combobox', { name: 'Fruit' })
+
+describe('LocaleProvider messages', () => {
+	it.each([
+		['es-MX', 'Seleccionar'],
+		['fr-FR', 'Select'],
+	])('shows the messages of ui for %s in its language, else in English', (locale, text) => {
+		renderUI(
+			<LocaleProvider locale={locale}>
+				<EmptyListbox />
+			</LocaleProvider>,
+		)
+
+		expect(fruit()).toHaveTextContent(text)
+	})
+
+	it('shows the English defaults with no provider', () => {
+		renderUI(<EmptyListbox />)
+
+		expect(fruit()).toHaveTextContent('Select')
+	})
+
+	it('lets a nested locale set the language of its region', () => {
+		renderUI(
+			<LocaleProvider locale="es-ES">
+				<LocaleProvider locale="en-US">
+					<EmptyListbox />
+				</LocaleProvider>
+			</LocaleProvider>,
+		)
+
+		expect(fruit()).toHaveTextContent('Select')
+	})
+
+	it('words a count with the plural rules of the language', () => {
+		renderUI(
+			<LocaleProvider locale="es-ES">
+				<Listbox aria-label="Fruit" multiple value={['a', 'b', 'c', 'd']}>
+					{['a', 'b', 'c', 'd'].map((value) => (
+						<ListboxOption key={value} value={value}>
+							{value}
+						</ListboxOption>
+					))}
+				</Listbox>
+			</LocaleProvider>,
+		)
+
+		expect(fruit()).toHaveTextContent('4 seleccionados')
+	})
+
+	it('follows the stored locale to its language', () => {
+		localStorage.setItem('locale', 'es-ES')
+
+		renderUI(
+			<LocaleProvider locale="en-US" locales={['en-US', 'es-ES']}>
+				<EmptyListbox />
+			</LocaleProvider>,
+		)
+
+		expect(fruit()).toHaveTextContent('Seleccionar')
+	})
+})
+
+describe('locale cookie', () => {
+	it('writes the choice to the cookie with the stored choice', () => {
+		writeChoice(localeChoice(LOCALES), 'en-GB')
+
+		expect(document.cookie).toContain('locale=en-GB')
+
+		expect(localStorage.getItem('locale')).toBe('en-GB')
+
+		writeChoice(localeChoice(LOCALES), 'system')
+
+		expect(document.cookie).toContain('locale=system')
+	})
+
+	it('takes the cookie over another stored choice, as the server does', () => {
+		localStorage.setItem('locale', 'en-GB')
+
+		// biome-ignore lint/suspicious/noDocumentCookie: the test sets the cookie that a server reads.
+		document.cookie = 'locale=en-AU; path=/'
+
+		renderUI(
+			<LocaleProvider locale="en-US" locales={LOCALES}>
+				<LocaleProbe />
+			</LocaleProvider>,
+		)
+
+		expect(screen.getByTestId('locale')).toHaveTextContent('en-AU')
+
+		expect(document.cookie).toContain('locale=en-AU')
+	})
+
+	it('writes a choice stored before the cookie existed', () => {
+		localStorage.setItem('locale', 'en-GB')
+
+		renderUI(
+			<LocaleProvider locale="en-US" locales={LOCALES}>
+				<LocaleProbe />
+			</LocaleProvider>,
+		)
+
+		expect(document.cookie).toContain('locale=en-GB')
+	})
+
+	it('takes the cookie when the storage holds no choice', () => {
+		// biome-ignore lint/suspicious/noDocumentCookie: the test sets the cookie that a server reads.
+		document.cookie = 'locale=en-AU; path=/'
+
+		renderUI(
+			<LocaleProvider locale="en-US" locales={LOCALES}>
+				<LocaleProbe />
+			</LocaleProvider>,
+		)
+
+		expect(screen.getByTestId('locale')).toHaveTextContent('en-AU')
+	})
+
+	it('writes no cookie for the System choice that the reader has not changed', () => {
+		renderUI(
+			<LocaleProvider locale="en-US" locales={LOCALES}>
+				<LocaleProbe />
+			</LocaleProvider>,
+		)
+
+		expect(document.cookie).not.toContain('locale=')
+	})
+})
+
+describe('resolveRequestLocale', () => {
+	const locales = ['en-US', 'en-GB', 'es-ES', 'es-MX'] as const
+
+	it('takes a cookie that holds one of the locales', () => {
+		expect(resolveRequestLocale({ cookie: 'es-MX', acceptLanguage: 'en-GB', locales })).toBe(
+			'es-MX',
+		)
+	})
+
+	it('matches the accepted languages for the System choice, in the order of their weight', () => {
+		expect(
+			resolveRequestLocale({
+				cookie: 'system',
+				acceptLanguage: 'fr-FR;q=0.9, es-ES;q=0.8, en-GB;q=0.95',
+				locales,
+			}),
+		).toBe('en-GB')
+	})
+
+	it('reads an unknown cookie as the System choice', () => {
+		expect(resolveRequestLocale({ cookie: 'de-DE', acceptLanguage: 'es', locales })).toBe('es-ES')
+	})
+
+	it('falls back to the first locale when no accepted language matches', () => {
+		expect(resolveRequestLocale({ acceptLanguage: 'fr, *;q=0.1', locales })).toBe('en-US')
+
+		expect(resolveRequestLocale({ acceptLanguage: null, locales })).toBe('en-US')
 	})
 })

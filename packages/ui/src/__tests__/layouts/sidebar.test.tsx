@@ -344,7 +344,7 @@ describe('SidebarLayout offcanvas mode', () => {
 	})
 
 	it('resets the floating sheet to closed when the sidebar mode changes', () => {
-		writeChoice(SIDEBAR.key, 'offcanvas')
+		writeChoice(SIDEBAR, 'offcanvas')
 
 		const { container } = renderUI(<SidebarLayout sidebar={<div>side</div>}>body</SidebarLayout>)
 
@@ -357,9 +357,9 @@ describe('SidebarLayout offcanvas mode', () => {
 
 		// Locking the sidebar closes the sheet; going back to offcanvas keeps it
 		// closed, so the buffer stays absent.
-		act(() => writeChoice(SIDEBAR.key, 'locked'))
+		act(() => writeChoice(SIDEBAR, 'locked'))
 
-		act(() => writeChoice(SIDEBAR.key, 'offcanvas'))
+		act(() => writeChoice(SIDEBAR, 'offcanvas'))
 
 		expect(document.body.querySelector(BUFFER)).not.toBeInTheDocument()
 	})

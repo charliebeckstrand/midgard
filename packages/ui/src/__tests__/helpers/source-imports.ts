@@ -1,3 +1,6 @@
+import { existsSync } from 'node:fs'
+import { dirname, join, resolve } from 'node:path'
+
 /**
  * One import statement's specifier, and whether it survives compilation.
  *
@@ -48,4 +51,13 @@ export function importsOf(content: string): ImportRef[] {
 		specifier: match[3] as string,
 		runtime: isRuntimeClause((match[1] ?? match[2]) as string),
 	}))
+}
+
+/** The source file that a relative specifier names, or `undefined`. */
+export function resolveSource(from: string, specifier: string): string | undefined {
+	const base = resolve(dirname(from), specifier)
+
+	return [`${base}.ts`, `${base}.tsx`, join(base, 'index.ts'), join(base, 'index.tsx')].find(
+		existsSync,
+	)
 }

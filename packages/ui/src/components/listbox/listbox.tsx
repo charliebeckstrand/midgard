@@ -1,6 +1,7 @@
 'use client'
 
 import type { OpenChangeReason } from '@floating-ui/react'
+import { defineMessages } from '@formatjs/intl'
 import { ChevronsUpDown } from 'lucide-react'
 import {
 	type FocusEvent,
@@ -16,6 +17,8 @@ import type { ScaleStep } from '../../core/density'
 import { type FloatingPlacement, useFloatingUI, useSelectableValueChange } from '../../hooks'
 import { isTypeaheadKey } from '../../hooks/a11y/use-typeahead'
 import { useFormValue } from '../../primitives/form/use-form-value'
+import { intlMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { useGlass } from '../../providers/glass/context'
 import type { scale } from '../../recipes/kata/listbox'
@@ -29,9 +32,17 @@ import { ListboxPanel } from './listbox-panel'
 import { resolveLabel } from './listbox-utilities'
 import { useListboxState } from './use-listbox-state'
 
+const messages = defineMessages({
+	placeholder: {
+		id: 'ui.listbox.placeholder',
+		defaultMessage: 'Select',
+		description: 'The placeholder of a picker with no selected value.',
+	},
+})
+
 type ListboxBaseProps = {
 	name?: string
-	/** @defaultValue 'Select' */
+	/** @defaultValue `'Select'`, in the language of the reader. */
 	placeholder?: string
 	/**
 	 * Side and alignment of the panel. A `<side>-auto` value, such as
@@ -192,7 +203,7 @@ export function Listbox<T>({
 	onValueChange,
 	multiple = false,
 	nullable: nullableProp,
-	placeholder = 'Select',
+	placeholder,
 	placement = 'bottom-start',
 	prefix,
 	suffix,
@@ -215,6 +226,8 @@ export function Listbox<T>({
 	'data-slot': slot = 'listbox',
 	children,
 }: ListboxProps<T>) {
+	const intl = useIntl()
+
 	const glass = useGlass()
 	const control = useControl()
 
@@ -423,7 +436,13 @@ export function Listbox<T>({
 	}, [open, floatingElement])
 
 	// The trigger button renders the label verbatim (`undefined` skips the placeholder).
-	const label = resolveLabel({ value, displayValue, multiple, capitalize })
+	const label = resolveLabel({
+		value,
+		displayValue,
+		multiple,
+		capitalize,
+		intl,
+	})
 
 	const hasValue = hasListboxValue(value, multiple)
 
@@ -431,7 +450,7 @@ export function Listbox<T>({
 
 	const clearSuffix = showClear ? (
 		<InputClearButton
-			label="Clear selection"
+			label={intl.formatMessage(intlMessages.clearSelection)}
 			onMouseDown={(event) => event.stopPropagation()}
 			onClick={(event) => {
 				event.stopPropagation()
@@ -522,7 +541,7 @@ export function Listbox<T>({
 						label={label}
 						onBlur={handleTriggerBlur}
 						onKeyDown={handleTriggerKeyDown}
-						placeholder={placeholder}
+						placeholder={placeholder ?? intl.formatMessage(messages.placeholder)}
 						truncate={truncate}
 						truncateTooltip={truncateTooltip}
 						truncateTooltipSuppressed={open}

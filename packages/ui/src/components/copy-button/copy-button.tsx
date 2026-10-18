@@ -3,8 +3,10 @@
 import { Check, Clipboard } from 'lucide-react'
 import { type ComponentProps, type ReactElement, useCallback } from 'react'
 import { dataAttr } from '../../core'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { Button, type ButtonVariants } from '../button'
 import { ToggleIconButtonIcons } from '../toggle-icon-button/toggle-icon-button-icons'
+import { copyButtonMessages } from './copy-button-messages'
 import { useCopyButtonState } from './use-copy-button-state'
 
 /**
@@ -53,7 +55,7 @@ export type CopyButtonProps = {
 	onCopyError?: (error: unknown) => void
 	/**
 	 * The accessible name of the button before a copy. After a copy, the name is "Copied".
-	 * @defaultValue 'Copy to clipboard'
+	 * @defaultValue `'Copy to clipboard'`, in the language of the reader.
 	 */
 	'aria-label'?: string
 } & Omit<ComponentProps<'button'>, 'children' | 'type' | 'color' | 'aria-label'>
@@ -86,6 +88,8 @@ export function CopyButton({
 	'aria-label': ariaLabel,
 	...props
 }: CopyButtonProps) {
+	const intl = useIntl()
+
 	const { copied, copy } = useCopyButtonState({ text, timeout, onCopiedChange, onCopyError })
 
 	// The button stays enabled and focused through the success window;
@@ -116,7 +120,11 @@ export function CopyButton({
 			onClick={handleClick}
 			// In the copied state, the label is always "Copied"; at rest, the caller's
 			// label wins over the generic default.
-			aria-label={copied ? 'Copied' : (ariaLabel ?? 'Copy to clipboard')}
+			aria-label={
+				copied
+					? intl.formatMessage(copyButtonMessages.copied)
+					: (ariaLabel ?? intl.formatMessage(copyButtonMessages.copy))
+			}
 			className={className}
 			prefix={
 				<ToggleIconButtonIcons
