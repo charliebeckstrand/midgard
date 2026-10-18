@@ -151,7 +151,6 @@
 		"marked": "^18.1.0",
 		"motion": "^14.0.0",
 		"pdfjs-dist": "^6.4.299",
-		"react-intl": "^12.1.4",
 		"shiki": "^4.5.0",
 		"tailwind-merge": "^3.7.0",
 		"tinykeys": "^4.0.0",

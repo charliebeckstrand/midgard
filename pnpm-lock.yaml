@@ -606,9 +606,6 @@ importers:
       pdfjs-dist:
         specifier: ^6.4.299
         version: 6.4.299
-      react-intl:
-        specifier: ^12.1.4
-        version: 12.1.4(@types/react@19.3.0)(react@19.3.0)
       shiki:
         specifier: ^4.5.0
         version: 4.5.0
@@ -4808,12 +4805,6 @@ packages:
     resolution: {integrity: sha512-JDk8dgif51OjFoDE70+OT9ICyYr+69HlmihNwp1+Nsfbna3t5sIiCa9ZJktDmQ4/1b/rn26hIAR2uYXDMr5r0Q==}
     peerDependencies:
       react: ^19.3.0
-
-  react-intl@12.1.4:
-    resolution: {integrity: sha512-huK6iXamrEJ4D011VCmO+/CyzFtSKeF7eqcHW1dVe3t2wpgB/Iscl6CoMso/YLItX3Qh/gcVQMXNbbhpGbCrUw==}
-    peerDependencies:
-      '@types/react': '>=18.0.0'
-      react: '>=18.0.0'
 
   react-is@17.0.2:
     resolution: {integrity: sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==}
@@ -9371,14 +9362,6 @@ snapshots:
     dependencies:
       react: 19.3.0
       scheduler: 0.28.0
-
-  react-intl@12.1.4(@types/react@19.3.0)(react@19.3.0):
-    dependencies:
-      '@formatjs/icu-messageformat-parser': 3.5.21
-      '@formatjs/intl': 6.1.3
-      '@types/react': 19.3.0
-      intl-messageformat: 12.1.3
-      react: 19.3.0
 
   react-is@17.0.2: {}
 

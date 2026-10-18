@@ -7,9 +7,9 @@ language js
 // provider. `LocaleProvider` gives the intl through the `IntlProvider` of the
 // primitive, which takes the locale.
 //
-// So no other module reaches the hooks and the components of `react-intl`,
-// which throw outside its provider, or its `IntlProvider`, which skips the
-// catalog of ui. An upgrade of FormatJS also stays inside the primitive.
+// So an upgrade of FormatJS stays inside the primitive. ui does not depend on
+// `react-intl`. The pattern still names it, so that its hooks and components,
+// which throw outside its provider, do not come back.
 //
 // The pattern flags each import from `react-intl`, its subpath entries, and
 // each `@formatjs/` package, a type import too.
