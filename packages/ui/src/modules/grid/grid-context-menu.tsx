@@ -12,6 +12,7 @@ import {
 import { ContextMenuList } from '../../components/context-menu'
 import { Menu, MenuContent, useMenuActions } from '../../components/menu'
 import { isRtl } from '../../hooks/a11y/logical-arrow'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { isDataColumn, isNativeContextMenuRequest } from '../../utilities'
 import { copyText } from '../../utilities/export-output'
 import type { GridSortState } from './context'
@@ -26,6 +27,7 @@ import {
 	tryColumnGroupMenu,
 	tryGroupMenu,
 } from './engine/grid-menu-targeting'
+import { gridMessages } from './engine/grid-messages'
 import { frozenSide, normalizeFreeze } from './engine/grid-pin/overrides'
 import type { GridRangeFill } from './engine/grid-range/fill'
 import {
@@ -44,9 +46,6 @@ import type {
 	GridMenuItem,
 } from './types'
 import type { GridColumnFilter } from './use-grid-table'
-
-/** The name of the menu of a data cell. @internal */
-const CELL_MENU_NAME = 'Cell menu'
 
 /** Props for {@link GridContextMenu}. @internal */
 export type GridContextMenuProps<T> = {
@@ -149,6 +148,8 @@ export function GridContextMenu<T>({
 
 	const [open, setOpen] = useState(false)
 
+	const intl = useIntl()
+
 	const [items, setItems] = useState<GridMenuItem[]>([])
 
 	// The name of the open menu, from its target. A context menu has no trigger
@@ -197,6 +198,7 @@ export function GridContextMenu<T>({
 				: null
 
 			const defaults = columnMenuDefaults({
+				intl,
 				column,
 				sort,
 				sortDirection,
@@ -213,7 +215,7 @@ export function GridContextMenu<T>({
 				rtl,
 			})
 
-			const name = `${columnLabel(column)} column menu`
+			const name = intl.formatMessage(gridMessages.columnMenu, { column: columnLabel(column) })
 
 			// A boolean `column` opt-in takes the defaults untouched; only a builder
 			// function needs the context, so it's built solely on that path.
@@ -254,6 +256,7 @@ export function GridContextMenu<T>({
 			chooseColumns,
 			exportActions,
 			columnFilter,
+			intl,
 		],
 	)
 
@@ -273,11 +276,13 @@ export function GridContextMenu<T>({
 
 			const copy = () => copyText(cellText(value))
 
-			const defaults = cellMenuDefaults(copy, exportActions, fillItems(fill, rtl))
+			const defaults = cellMenuDefaults(intl, copy, exportActions, fillItems(intl, fill, rtl))
+
+			const name = intl.formatMessage(gridMessages.cellMenu)
 
 			// As with columns: the context is built only for a builder function, not
 			// the boolean opt-in that takes the defaults as-is.
-			if (typeof cellMenu !== 'function') return { items: defaults, name: CELL_MENU_NAME }
+			if (typeof cellMenu !== 'function') return { items: defaults, name }
 
 			const context: GridCellMenuContext<T> = {
 				row,
@@ -287,9 +292,9 @@ export function GridContextMenu<T>({
 				exportActions,
 			}
 
-			return { items: cellMenu(context, defaults), name: CELL_MENU_NAME }
+			return { items: cellMenu(context, defaults), name }
 		},
-		[cellMenu, columnById, rows, rowKeys, exportActions, fill],
+		[cellMenu, columnById, rows, rowKeys, exportActions, fill, intl],
 	)
 
 	// `enabled` gates every resolver (a `null` resolution leaves the native menu

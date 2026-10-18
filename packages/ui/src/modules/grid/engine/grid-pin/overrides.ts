@@ -1,5 +1,7 @@
+import type { IntlShape } from '../../../../primitives/intl/types'
 import type { GridPinningState } from '../../grid-data-types'
 import type { GridColumn } from '../../types'
+import { gridMessages } from '../grid-messages'
 
 /** A column's frozen edge once normalized (`true` collapses to `'left'`). @internal */
 export type PinSide = 'left' | 'right'
@@ -138,8 +140,8 @@ export function physicalSide(side: PinSide, rtl: boolean): PinSide {
 	return side === 'left' ? 'right' : 'left'
 }
 
-/** The label of a pin choice, from the physical edge. @internal */
-const PIN_LABEL: Record<PinSide, string> = { left: 'Pin left', right: 'Pin right' }
+/** The message of a pin choice, from the physical edge. @internal */
+const PIN_LABEL = { left: gridMessages.pinLeft, right: gridMessages.pinRight }
 
 /**
  * The pin choices a column's menu offers, from its current frozen edge. They are
@@ -151,25 +153,26 @@ const PIN_LABEL: Record<PinSide, string> = { left: 'Pin left', right: 'Pin right
  * The keys and the targets are logical. The labels name the physical edge, so
  * in a right-to-left grid the `'left'` target reads "Pin right".
  *
+ * @param intl - The intl of the reader, in whose language the labels read.
  * @param rtl - Whether the grid lays out right to left.
  * @internal
  */
-export function pinMenuChoices(side: PinSide | undefined, rtl = false): PinMenuChoice[] {
+export function pinMenuChoices(
+	intl: IntlShape,
+	side: PinSide | undefined,
+	rtl = false,
+): PinMenuChoice[] {
 	const choices: PinMenuChoice[] = []
 
-	if (side !== 'left') {
-		choices.push({ key: 'pin-left', label: PIN_LABEL[physicalSide('left', rtl)], target: 'left' })
-	}
+	const label = (edge: PinSide) => intl.formatMessage(PIN_LABEL[physicalSide(edge, rtl)])
 
-	if (side !== 'right') {
-		choices.push({
-			key: 'pin-right',
-			label: PIN_LABEL[physicalSide('right', rtl)],
-			target: 'right',
-		})
-	}
+	if (side !== 'left') choices.push({ key: 'pin-left', label: label('left'), target: 'left' })
 
-	if (side) choices.push({ key: 'unpin', label: 'Unpin', target: false })
+	if (side !== 'right') choices.push({ key: 'pin-right', label: label('right'), target: 'right' })
+
+	if (side) {
+		choices.push({ key: 'unpin', label: intl.formatMessage(gridMessages.unpin), target: false })
+	}
 
 	return choices
 }

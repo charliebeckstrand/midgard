@@ -27,10 +27,12 @@ import {
 import type { ReactElement, ReactNode } from 'react'
 import { mergeContextMenuItems } from '../../components/context-menu'
 import type { PaletteColor } from '../../core/recipe'
+import type { IntlShape } from '../../primitives/intl/types'
 import { isDataColumn } from '../../utilities'
 import type { GridSortState } from './context'
 import { columnLabel } from './engine/grid-column/label'
 import type { GridExportAction } from './engine/grid-export/types'
+import { gridMessages } from './engine/grid-messages'
 import {
 	isLocked,
 	normalizeFreeze,
@@ -103,6 +105,7 @@ function submenuItems(args: {
  * @internal
  */
 function sortMenuItems<T>(args: {
+	intl: IntlShape
 	column: GridColumn<T>
 	/** The active sort, to tell a direction that changes it from one that repeats it. */
 	sort: GridSortState[]
@@ -110,7 +113,7 @@ function sortMenuItems<T>(args: {
 	sortColumn: SortColumn
 	clearSort: () => void
 }): GridMenuItem[] {
-	const { column, sort, sortDirection, sortColumn, clearSort } = args
+	const { intl, column, sort, sortDirection, sortColumn, clearSort } = args
 
 	if (column.sortable === false) return []
 
@@ -119,7 +122,7 @@ function sortMenuItems<T>(args: {
 	if (!sortsEqual(sort, [{ column: column.id, direction: 'asc' }])) {
 		items.push({
 			key: 'sort-asc',
-			label: 'Sort ascending',
+			label: intl.formatMessage(gridMessages.sortAscending),
 			icon: <ArrowUp />,
 			onAction: () => sortColumn(column.id, 'asc'),
 		})
@@ -128,7 +131,7 @@ function sortMenuItems<T>(args: {
 	if (!sortsEqual(sort, [{ column: column.id, direction: 'desc' }])) {
 		items.push({
 			key: 'sort-desc',
-			label: 'Sort descending',
+			label: intl.formatMessage(gridMessages.sortDescending),
 			icon: <ArrowDown />,
 			onAction: () => sortColumn(column.id, 'desc'),
 		})
@@ -137,7 +140,7 @@ function sortMenuItems<T>(args: {
 	if (sortDirection) {
 		items.push({
 			key: 'clear-sort',
-			label: 'Clear sort',
+			label: intl.formatMessage(gridMessages.clearSort),
 			icon: <ArrowUpDown />,
 			onAction: clearSort,
 		})
@@ -157,19 +160,20 @@ function sortMenuItems<T>(args: {
  * @internal
  */
 function autoSizeMenuItems<T>(args: {
+	intl: IntlShape
 	column: GridColumn<T>
 	autoSizeColumn: ((column: string | number) => void) | null
 	autoSizeColumns: (() => void) | null
 	resetColumnWidths: (() => void) | null
 }): GridMenuItem[] {
-	const { column, autoSizeColumn, autoSizeColumns, resetColumnWidths } = args
+	const { intl, column, autoSizeColumn, autoSizeColumns, resetColumnWidths } = args
 
 	const items: GridMenuItem[] = []
 
 	if (autoSizeColumn && isDataColumn(column)) {
 		items.push({
 			key: 'auto-size-column',
-			label: 'Auto-size this column',
+			label: intl.formatMessage(gridMessages.autoSizeColumn),
 			icon: <MoveHorizontal />,
 			onAction: () => autoSizeColumn(column.id),
 		})
@@ -178,7 +182,7 @@ function autoSizeMenuItems<T>(args: {
 	if (autoSizeColumns) {
 		items.push({
 			key: 'auto-size',
-			label: 'Auto-size all columns',
+			label: intl.formatMessage(gridMessages.autoSizeAll),
 			icon: <StretchHorizontal />,
 			onAction: autoSizeColumns,
 		})
@@ -187,7 +191,7 @@ function autoSizeMenuItems<T>(args: {
 	if (resetColumnWidths) {
 		items.push({
 			key: 'reset-widths',
-			label: 'Reset column widths',
+			label: intl.formatMessage(gridMessages.resetWidths),
 			icon: <RotateCcw />,
 			onAction: resetColumnWidths,
 		})
@@ -222,11 +226,16 @@ export type GridGroupByMenu = {
  *
  * @internal
  */
-function manageColumnsItems(chooseColumns: (() => void) | null): GridMenuItem[] {
+function manageColumnsItems(intl: IntlShape, chooseColumns: (() => void) | null): GridMenuItem[] {
 	if (!chooseColumns) return []
 
 	return [
-		{ key: 'choose-columns', label: 'Manage columns', icon: <Columns3 />, onAction: chooseColumns },
+		{
+			key: 'choose-columns',
+			label: intl.formatMessage(gridMessages.manageColumns),
+			icon: <Columns3 />,
+			onAction: chooseColumns,
+		},
 	]
 }
 
@@ -246,6 +255,8 @@ type ColumnMenuFilter = {
 
 /** Inputs shaping the default header-menu items. @internal */
 type ColumnMenuDefaultArgs<T> = {
+	/** The intl of the reader, in whose language the items read. */
+	intl: IntlShape
 	column: GridColumn<T>
 	/** The active sort in priority order, so a direction that would only repeat it stays off the menu. */
 	sort: GridSortState[]
@@ -280,6 +291,7 @@ type ColumnMenuDefaultArgs<T> = {
  * @internal
  */
 function filterMenuItems<T>(
+	intl: IntlShape,
 	column: GridColumn<T>,
 	filter: ColumnMenuFilter | null,
 ): GridMenuItem[] {
@@ -288,7 +300,7 @@ function filterMenuItems<T>(
 	return [
 		{
 			key: 'filter-column',
-			label: `Filter “${columnLabel(column)}”`,
+			label: intl.formatMessage(gridMessages.filterColumn, { column: columnLabel(column) }),
 			icon: <ListFilter />,
 			onAction: filter.openFilter,
 		},
@@ -305,14 +317,18 @@ function filterMenuItems<T>(
  *
  * @internal
  */
-function groupMenuItems<T>(column: GridColumn<T>, groupBy: GridGroupByMenu | null): GridMenuItem[] {
+function groupMenuItems<T>(
+	intl: IntlShape,
+	column: GridColumn<T>,
+	groupBy: GridGroupByMenu | null,
+): GridMenuItem[] {
 	if (!groupBy || !column.groupable) return []
 
 	if (column.id === groupBy.grouping) {
 		return [
 			{
 				key: 'ungroup',
-				label: 'Ungroup',
+				label: intl.formatMessage(gridMessages.ungroup),
 				icon: <Ungroup />,
 				onAction: () => groupBy.setGrouping(null),
 			},
@@ -322,7 +338,7 @@ function groupMenuItems<T>(column: GridColumn<T>, groupBy: GridGroupByMenu | nul
 	return [
 		{
 			key: 'group-by',
-			label: `Group by “${columnLabel(column)}”`,
+			label: intl.formatMessage(gridMessages.groupBy, { column: columnLabel(column) }),
 			icon: <Group />,
 			onAction: () => groupBy.setGrouping(column.id),
 		},
@@ -339,13 +355,14 @@ function groupMenuItems<T>(column: GridColumn<T>, groupBy: GridGroupByMenu | nul
  * @internal
  */
 function pinMenuItems<T>(
+	intl: IntlShape,
 	column: GridColumn<T>,
 	pinColumn: PinColumn,
 	rtl: boolean,
 ): GridMenuItem[] {
 	if (isLocked(column)) return []
 
-	return pinMenuChoices(normalizeFreeze(column.pinned), rtl).map((choice) => ({
+	return pinMenuChoices(intl, normalizeFreeze(column.pinned), rtl).map((choice) => ({
 		key: choice.key,
 		label: choice.label,
 		icon: pinChoiceIcon(choice.target, rtl),
@@ -389,6 +406,7 @@ export function pinChoiceIcon(target: PinMenuChoice['target'], rtl = false): Rea
  */
 export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuItem[] {
 	const {
+		intl,
 		column,
 		sort,
 		sortDirection,
@@ -411,30 +429,36 @@ export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuI
 	// those: under the `'menu'` affordance it is the only route to the column's
 	// filter, the header having no funnel to click.
 	return [
-		...manageColumnsItems(chooseColumns),
-		...filterMenuItems(column, filter),
+		...manageColumnsItems(intl, chooseColumns),
+		...filterMenuItems(intl, column, filter),
 		...submenuItems({
 			key: 'sort',
-			label: 'Sort',
+			label: intl.formatMessage(gridMessages.sort),
 			icon: <ArrowUpDown />,
-			items: sortMenuItems({ column, sort, sortDirection, sortColumn, clearSort }),
+			items: sortMenuItems({ intl, column, sort, sortDirection, sortColumn, clearSort }),
 		}),
 		...submenuItems({
 			key: 'pin',
-			label: 'Pin',
+			label: intl.formatMessage(gridMessages.pin),
 			icon: <Pin />,
-			items: pinMenuItems(column, pinColumn, rtl),
+			items: pinMenuItems(intl, column, pinColumn, rtl),
 		}),
-		...groupMenuItems(column, groupBy),
+		...groupMenuItems(intl, column, groupBy),
 		...submenuItems({
 			key: 'auto-size-menu',
-			label: 'Auto-size',
+			label: intl.formatMessage(gridMessages.autoSize),
 			icon: <StretchHorizontal />,
-			items: autoSizeMenuItems({ column, autoSizeColumn, autoSizeColumns, resetColumnWidths }),
+			items: autoSizeMenuItems({
+				intl,
+				column,
+				autoSizeColumn,
+				autoSizeColumns,
+				resetColumnWidths,
+			}),
 		}),
 		...submenuItems({
 			key: 'export',
-			label: 'Export',
+			label: intl.formatMessage(gridMessages.export),
 			icon: <Download />,
 			items: gridExportMenuItems(exportActions),
 		}),
@@ -451,20 +475,30 @@ export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuI
  *
  * @internal
  */
-export function fillItems(fill: GridRangeFill | undefined, rtl = false): GridMenuItem[] {
+export function fillItems(
+	intl: IntlShape,
+	fill: GridRangeFill | undefined,
+	rtl = false,
+): GridMenuItem[] {
 	const down = fill?.('down')
 
 	const right = fill?.('right')
 
 	const items: GridMenuItem[] = []
 
-	if (down)
-		items.push({ key: 'fill-down', label: 'Fill down', icon: <ArrowDownToLine />, onAction: down })
+	if (down) {
+		items.push({
+			key: 'fill-down',
+			label: intl.formatMessage(gridMessages.fillDown),
+			icon: <ArrowDownToLine />,
+			onAction: down,
+		})
+	}
 
 	if (right) {
 		items.push({
 			key: 'fill-right',
-			label: rtl ? 'Fill left' : 'Fill right',
+			label: intl.formatMessage(rtl ? gridMessages.fillLeft : gridMessages.fillRight),
 			icon: rtl ? <ArrowLeftToLine /> : <ArrowRightToLine />,
 			onAction: right,
 		})
@@ -483,16 +517,17 @@ export function fillItems(fill: GridRangeFill | undefined, rtl = false): GridMen
  * @internal
  */
 export function cellMenuDefaults(
+	intl: IntlShape,
 	copy: () => void,
 	exportActions: GridExportAction[],
 	fill: GridMenuItem[] = [],
 ): GridMenuItem[] {
 	return [
-		{ key: 'copy', label: 'Copy', icon: <Copy />, onAction: copy },
+		{ key: 'copy', label: intl.formatMessage(gridMessages.copy), icon: <Copy />, onAction: copy },
 		...fill,
 		...submenuItems({
 			key: 'export',
-			label: 'Export',
+			label: intl.formatMessage(gridMessages.export),
 			icon: <Download />,
 			items: gridExportMenuItems(exportActions),
 		}),
@@ -508,6 +543,7 @@ export function cellMenuDefaults(
  * @internal
  */
 export function buildColumnGroupMenu(args: {
+	intl: IntlShape
 	group: GridColumnGroup
 	onClearColor: () => void
 	chooseColumns: (() => void) | null
@@ -526,7 +562,7 @@ export function buildColumnGroupMenu(args: {
 					},
 				]
 			: [],
-		clearColorItems(args.group.color, args.onClearColor),
+		clearColorItems(args.intl, args.group.color, args.onClearColor),
 	])
 }
 
@@ -536,14 +572,27 @@ export function buildColumnGroupMenu(args: {
  *
  * @internal
  */
-function clearColorItems(color: PaletteColor | undefined, onClear: () => void): GridMenuItem[] {
+function clearColorItems(
+	intl: IntlShape,
+	color: PaletteColor | undefined,
+	onClear: () => void,
+): GridMenuItem[] {
 	return color
-		? [{ key: 'clear-color', label: 'Clear color', icon: <Ban />, onAction: onClear }]
+		? [
+				{
+					key: 'clear-color',
+					label: intl.formatMessage(gridMessages.clearColor),
+					icon: <Ban />,
+					onAction: onClear,
+				},
+			]
 		: []
 }
 
 /** Inputs shaping the group-header context menu. @internal */
 type GridRowGroupMenuArgs = {
+	/** The intl of the reader, in whose language the items read. */
+	intl: IntlShape
 	/** Whether the right-clicked group is currently expanded. */
 	expanded: boolean
 	/** The group's overlay color, or `undefined` — gates the "Clear color" item. */
@@ -577,23 +626,25 @@ export function buildRowGroupMenu(args: GridRowGroupMenuArgs): GridMenuItem[] {
 		[
 			{
 				key: 'toggle-group',
-				label: args.expanded ? 'Collapse group' : 'Expand group',
+				label: args.intl.formatMessage(
+					args.expanded ? gridMessages.collapseGroup : gridMessages.expandGroup,
+				),
 				icon: args.expanded ? <ChevronsDownUp /> : <ChevronsUpDown />,
 				onAction: args.onToggle,
 			},
 			{
 				key: 'expand-all',
-				label: 'Expand all groups',
+				label: args.intl.formatMessage(gridMessages.expandAllGroups),
 				icon: <ChevronsUpDown />,
 				onAction: args.onExpandAll,
 			},
 			{
 				key: 'collapse-all',
-				label: 'Collapse all groups',
+				label: args.intl.formatMessage(gridMessages.collapseAllGroups),
 				icon: <ChevronsDownUp />,
 				onAction: args.onCollapseAll,
 			},
 		],
-		clearColorItems(args.color, args.onClearColor),
+		clearColorItems(args.intl, args.color, args.onClearColor),
 	])
 }

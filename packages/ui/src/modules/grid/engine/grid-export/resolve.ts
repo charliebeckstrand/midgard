@@ -1,5 +1,7 @@
+import type { IntlShape } from '../../../../primitives/intl/types'
 import { isDataColumn } from '../../../../utilities'
 import type { GridColumn, GridToolSurfaces } from '../../types'
+import { gridMessages } from '../grid-messages'
 import { DEFAULT_SURFACES, resolveToolSurfaces, SURFACES_OFF } from '../grid-tools'
 import {
 	BUILTIN_EXPORT_LABEL,
@@ -72,6 +74,7 @@ function isBuiltinType(type: GridExportType): type is keyof typeof BUILTIN_EXPOR
  * @internal
  */
 function buildAction<T>(
+	intl: IntlShape,
 	type: GridExportType,
 	onExport: ((context: GridExportContext<T>) => void) | undefined,
 	getContext: () => GridExportContext<T> | Promise<GridExportContext<T>>,
@@ -88,7 +91,9 @@ function buildAction<T>(
 		return null
 	}
 
-	const label = isBuiltinType(type) ? BUILTIN_EXPORT_LABEL[type] : `Export to ${type}`
+	const label = isBuiltinType(type)
+		? intl.formatMessage(BUILTIN_EXPORT_LABEL[type])
+		: intl.formatMessage(gridMessages.exportTo, { type })
 
 	return {
 		type,
@@ -126,17 +131,18 @@ function buildAction<T>(
  * @internal
  */
 function resolveEntry<T>(
+	intl: IntlShape,
 	entry: GridExportEntry<T>,
 	getContext: () => GridExportContext<T> | Promise<GridExportContext<T>>,
 ): GridExportAction[] {
 	if (typeof entry === 'string') {
-		const action = buildAction(entry, undefined, getContext)
+		const action = buildAction(intl, entry, undefined, getContext)
 
 		return action ? [action] : []
 	}
 
 	return (Object.keys(entry) as GridExportType[]).flatMap((type) => {
-		const action = buildAction(type, entry[type]?.onExport, getContext)
+		const action = buildAction(intl, type, entry[type]?.onExport, getContext)
 
 		return action ? [action] : []
 	})
@@ -213,12 +219,14 @@ export function trackPending(
  * leave the context here. Each caller then passes its columns as it holds them.
  *
  * @typeParam T - Shape of a single row.
+ * @param intl - The intl of the reader, in whose language the labels read.
  * @param exportable - The grid's `exportable` prop.
  * @param getContext - Builds the {@link GridExportContext} lazily, so it only
  * runs when an action actually fires.
  * @internal
  */
 export function resolveExportActions<T>(
+	intl: IntlShape,
 	exportable: GridExportable<T> | undefined,
 	getContext: () => GridExportContext<T> | Promise<GridExportContext<T>>,
 ): GridExportAction[] {
@@ -228,7 +236,9 @@ export function resolveExportActions<T>(
 		return context instanceof Promise ? context.then(withDataColumns) : withDataColumns(context)
 	}
 
-	const actions = resolveEntries(exportable).flatMap((entry) => resolveEntry(entry, getDataContext))
+	const actions = resolveEntries(exportable).flatMap((entry) =>
+		resolveEntry(intl, entry, getDataContext),
+	)
 
 	return oneForEachType(actions)
 }

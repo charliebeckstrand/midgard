@@ -5,9 +5,11 @@ import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { cn, createContext, dataAttr } from '../../core'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
 import { columnLabel } from './engine/grid-column/label'
 import type { GridGroupByContextValue } from './engine/grid-group/resolve'
+import { gridMessages } from './engine/grid-messages'
 import type { GridColumn } from './types'
 
 /** Carries the group-by wiring from `GridData` to the header buttons. @internal */
@@ -34,6 +36,8 @@ export function GridGroupByButton({
 }) {
 	const context = useGridGroupByButton()
 
+	const intl = useIntl()
+
 	if (!context?.enabled || !column.groupable) return null
 
 	const grouped = column.id === context.grouping
@@ -42,7 +46,9 @@ export function GridGroupByButton({
 	// name the column when grouping, but a bare "Ungroup" when clearing it. The
 	// quoting matches the column menu's group row, and one string keeps the visible
 	// tooltip inside the accessible name (WCAG 2.5.3).
-	const action = grouped ? 'Ungroup' : `Group by “${columnLabel(column)}”`
+	const action = grouped
+		? intl.formatMessage(gridMessages.ungroup)
+		: intl.formatMessage(gridMessages.groupBy, { column: columnLabel(column) })
 
 	return (
 		<Tooltip>
