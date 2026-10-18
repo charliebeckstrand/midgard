@@ -47,4 +47,9 @@ export const calendarMessages = defineMessages({
 		defaultMessage: 'Next decade',
 		description: 'The name of the button that shows the ten years after in the year picker.',
 	},
+	chooseMonthYear: {
+		id: 'ui.calendar.chooseMonthYear',
+		defaultMessage: 'Choose month and year',
+		description: 'The name of the panel that holds the month picker and the year picker.',
+	},
 })

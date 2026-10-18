@@ -4,6 +4,8 @@ import { useInView } from 'motion/react'
 import { useEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { useHydrated } from '../../hooks/use-hydrated'
+import { defineMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { type Mount, MountHold, useMountHold } from '../../primitives/mount'
 import { k } from '../../recipes/kata/chat-message'
 import { useChatEmbeds, useChatRowKey } from './context'
@@ -26,11 +28,27 @@ const DEFERRED_HEIGHT = 160
  *
  * @internal
  */
-const statedFallback: ChatEmbedRenderer = (part) => (
-	<span data-slot="chat-embed-fallback" className={cn(k.embed.fallback)}>
-		This chat cannot show a “{part.name}” block.
-	</span>
-)
+const statedFallback: ChatEmbedRenderer = (part) => <ChatEmbedMissing name={part.name} />
+
+const messages = defineMessages<{ missing: { name: string } }>({
+	missing: {
+		id: 'ui.chat.missing',
+		defaultMessage: 'This chat cannot show a “{name}” block.',
+		description:
+			'Shown in place of a block of a chat reply that the app cannot draw. The name is the name of the block.',
+	},
+})
+
+// The line of the fallback, in the language of the reader.
+function ChatEmbedMissing({ name }: { name: string }) {
+	const intl = useIntl()
+
+	return (
+		<span data-slot="chat-embed-fallback" className={cn(k.embed.fallback)}>
+			{intl.formatMessage(messages.missing, { name })}
+		</span>
+	)
+}
 
 /** Props for {@link ChatEmbed}. @internal */
 export type ChatEmbedProps = {

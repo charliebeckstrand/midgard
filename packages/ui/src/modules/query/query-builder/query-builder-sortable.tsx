@@ -8,6 +8,7 @@ import { usePrefersReducedMotion } from '../../../hooks/use-prefers-reduced-moti
 import { useReorderDrag } from '../../../hooks/use-reorder-drag'
 import { IntlMessage } from '../../../primitives/intl/intl-message'
 import { reorderMessages } from '../../../primitives/intl/intl-reorder'
+import { useIntl } from '../../../primitives/intl/use-intl'
 import { k } from '../../../recipes/kata/query-builder'
 import { describeNode } from '../engine/query-announcements'
 import type { QueryGroup, QueryNode } from '../engine/types'
@@ -55,6 +56,8 @@ export function QueryBuilderSortable({ group, separator, node }: QueryBuilderSor
 
 	const { move } = useQueryBuilderActions()
 
+	const intl = useIntl()
+
 	const listRef = useRef<HTMLDivElement>(null)
 
 	const children = group.children
@@ -65,9 +68,9 @@ export function QueryBuilderSortable({ group, separator, node }: QueryBuilderSor
 		(id: string) => {
 			const child = children.find((candidate) => candidate.id === id)
 
-			return child === undefined ? '' : describeNode(child, fields)
+			return child === undefined ? '' : describeNode(intl, child, fields)
 		},
-		[children, fields],
+		[children, fields, intl],
 	)
 
 	// The keyboard moves focus to the grip of a node. The ids are unique in the

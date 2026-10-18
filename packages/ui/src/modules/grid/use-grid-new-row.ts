@@ -14,6 +14,7 @@ import { useDevWarning } from '../../hooks/use-dev-warning'
 import { useMountedRef } from '../../hooks/use-mounted-ref'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { focusWithoutReveal } from '../../hooks/use-truncation'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { describeRowAdd } from './engine/grid-announcements'
 import { GRID_ROLE } from './engine/grid-constants'
@@ -112,6 +113,8 @@ export function useGridNewRow<T>({
 	/** The editor that the grid infers for a column of the slot. */
 	editorKind: (column: { id: string | number; field?: PropertyKey }) => EditorKind
 } {
+	const intl = useIntl()
+
 	// A slot that the config cannot show renders nothing, so the setting fails
 	// silently. The warnings tell the developer.
 	const requested = config?.newRow != null
@@ -220,9 +223,9 @@ export function useGridNewRow<T>({
 
 			remount()
 
-			announce(describeRowAdd(0))
+			announce(describeRowAdd(intl, 0))
 		},
-		[drafts, firstEditable, reseat],
+		[drafts, firstEditable, reseat, intl],
 	)
 
 	// Settles an async add. An accepted add clears the slot. A refused one
@@ -255,9 +258,9 @@ export function useGridNewRow<T>({
 
 			remount()
 
-			announce(describeRowAdd(refused.size))
+			announce(describeRowAdd(intl, refused.size))
 		},
-		[drafts, editableColumn, accept, tableRef],
+		[drafts, editableColumn, accept, tableRef, intl],
 	)
 
 	// Adds the row. An add with no value does nothing. A `validate` refusal
@@ -281,7 +284,7 @@ export function useGridNewRow<T>({
 		if (invalid > 0) {
 			check()
 
-			announce(describeRowAdd(invalid))
+			announce(describeRowAdd(intl, invalid))
 
 			return
 		}

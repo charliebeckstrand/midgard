@@ -34,13 +34,13 @@ describe('pin labels', () => {
 	})
 
 	it('announces the physical edge', () => {
-		expect(describePin('Name', 'left', false)).toBe('Pinned Name to the left')
+		expect(describePin(englishIntl, 'Name', 'left', false)).toBe('Pinned Name to the left')
 
-		expect(describePin('Name', 'left', true)).toBe('Pinned Name to the right')
+		expect(describePin(englishIntl, 'Name', 'left', true)).toBe('Pinned Name to the right')
 
-		expect(describePin('Name', 'right', true)).toBe('Pinned Name to the left')
+		expect(describePin(englishIntl, 'Name', 'right', true)).toBe('Pinned Name to the left')
 
-		expect(describePin('Name', false, true)).toBe('Unpinned Name')
+		expect(describePin(englishIntl, 'Name', false, true)).toBe('Unpinned Name')
 	})
 
 	// The across fill goes to the inline end, so it names the left edge in RTL.

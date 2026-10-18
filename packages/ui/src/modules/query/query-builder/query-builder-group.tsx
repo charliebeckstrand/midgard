@@ -10,11 +10,14 @@ import { Menu, MenuContent, MenuItem, MenuTrigger } from '../../../components/me
 import { Segment, SegmentControl, SegmentItem } from '../../../components/segment'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { cn } from '../../../core'
+import { useIntl } from '../../../primitives/intl/use-intl'
 import { k } from '../../../recipes/kata/query-builder'
 import { Flex } from '../../../structure/flex'
+import { queryMessages } from '../engine/query-messages'
 import type { QueryCombinator, QueryGroup, QueryNode } from '../engine/types'
 import { useFocusableRef, useQueryBuilderActions, useQueryBuilderState } from './context'
 import { focusKeys } from './query-builder-focus'
+import { queryBuilderMessages } from './query-builder-messages'
 import { QueryBuilderRule } from './query-builder-rule'
 import { QueryBuilderSortable } from './query-builder-sortable'
 
@@ -55,15 +58,17 @@ const QueryBuilderSeparator = memo(function QueryBuilderSeparator({
 }: QueryBuilderSeparatorProps) {
 	const { updateCombinator } = useQueryBuilderActions()
 
+	const intl = useIntl()
+
 	return (
 		<div data-density="slot">
 			<Segment
 				value={combinator}
 				onValueChange={(next) => next && updateCombinator(id, next as QueryCombinator)}
 			>
-				<SegmentControl aria-label="Combinator">
-					<SegmentItem value="and">AND</SegmentItem>
-					<SegmentItem value="or">OR</SegmentItem>
+				<SegmentControl aria-label={intl.formatMessage(queryBuilderMessages.combinator)}>
+					<SegmentItem value="and">{intl.formatMessage(queryMessages.and)}</SegmentItem>
+					<SegmentItem value="or">{intl.formatMessage(queryMessages.or)}</SegmentItem>
 				</SegmentControl>
 			</Segment>
 		</div>
@@ -81,6 +86,8 @@ function QueryBuilderGroupImpl({ group, root, className }: QueryBuilderGroupProp
 	const { disabled, allowGroups, requireRule, reorderable } = useQueryBuilderState()
 
 	const { addRule, addGroup, remove } = useQueryBuilderActions()
+
+	const intl = useIntl()
 
 	// With `requireRule`, a group keeps its last rule: the sole remaining rule
 	// hides its remove control so the query can't be emptied.
@@ -119,12 +126,17 @@ function QueryBuilderGroupImpl({ group, root, className }: QueryBuilderGroupProp
 		<Wrapper
 			data-slot="query-group"
 			data-combinator={group.combinator}
-			aria-label={root ? undefined : 'Condition group'}
+			aria-label={root ? undefined : intl.formatMessage(queryBuilderMessages.group)}
 			className={cn(k.group.base, !root && k.group.nested, className)}
 		>
 			<div className={cn(k.group.base)}>
 				{group.children.length === 0 ? (
-					<Alert severity="warning" variant="soft" title="No rules added" className="w-full" />
+					<Alert
+						severity="warning"
+						variant="soft"
+						title={intl.formatMessage(queryBuilderMessages.noRules)}
+						className="w-full"
+					/>
 				) : reorderable ? (
 					<QueryBuilderSortable group={group} separator={separator} node={node} />
 				) : (
@@ -147,18 +159,18 @@ function QueryBuilderGroupImpl({ group, root, className }: QueryBuilderGroupProp
 							suffix={<Icon icon={<ChevronDown />} />}
 							disabled={disabled}
 						>
-							Add
+							{intl.formatMessage(queryBuilderMessages.add)}
 						</Button>
 					</MenuTrigger>
 					<MenuContent>
 						<MenuItem onAction={() => addRule(group.id)}>
 							<Icon icon={<Plus />} />
-							Add rule
+							{intl.formatMessage(queryBuilderMessages.addRule)}
 						</MenuItem>
 						{allowGroups && (
 							<MenuItem onAction={() => addGroup(group.id)}>
 								<Icon icon={<CopyPlus />} />
-								Add group
+								{intl.formatMessage(queryBuilderMessages.addGroup)}
 							</MenuItem>
 						)}
 					</MenuContent>
@@ -171,15 +183,17 @@ function QueryBuilderGroupImpl({ group, root, className }: QueryBuilderGroupProp
 									ref={removeRef}
 									variant="soft"
 									color="red"
-									aria-label="Remove group"
+									aria-label={intl.formatMessage(queryBuilderMessages.removeGroup)}
 									disabled={disabled}
 									className={k.remove}
 									onHoldComplete={() => remove(group.id)}
 								>
-									Remove group
+									{intl.formatMessage(queryBuilderMessages.removeGroup)}
 								</HoldButton>
 							</TooltipTrigger>
-							<TooltipContent>Hold to remove group</TooltipContent>
+							<TooltipContent>
+								{intl.formatMessage(queryBuilderMessages.holdToRemoveGroup)}
+							</TooltipContent>
 						</Tooltip>
 					</Flex>
 				)}

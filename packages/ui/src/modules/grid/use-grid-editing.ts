@@ -18,6 +18,7 @@ import { useControllable } from '../../hooks'
 import { useMountedRef } from '../../hooks/use-mounted-ref'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { focusWithoutReveal } from '../../hooks/use-truncation'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { createActiveEditStore } from './engine/grid-active-edit-store'
 import {
@@ -510,6 +511,8 @@ export function useGridEditing<T>({
 	/** The cursor's clamped move, which the commit-and-move keys ride. */
 	moveTo: (coord: Coord) => void
 }): GridEditingApi {
+	const intl = useIntl()
+
 	// Grid-owned session lifecycle (enter on double-click / cursor Enter, exit on
 	// an editor's Enter/Escape); the default 'manual' mode leaves it entirely to
 	// the consumer.
@@ -1494,6 +1497,16 @@ export function useGridEditing<T>({
 
 	const rerender = useForceRender()
 
+	// The announcements of the effects below. An effect event reads the newest
+	// intl, so a change of locale does not run an effect again.
+	const announceDiscard = useEffectEvent((dropped: number) =>
+		announce(describeDiscard(intl, dropped)),
+	)
+
+	const announceCommit = useEffectEvent((columns: readonly string[], row: string | undefined) =>
+		announce(describeCommit(intl, columns, row)),
+	)
+
 	// A controlled `rows` that declines to open a refused row again chose to
 	// close it, so the refused drafts of that row drop. Without this, they
 	// would commit again at the next sweep of an unrelated transition.
@@ -1519,7 +1532,7 @@ export function useGridEditing<T>({
 		if (dropped > 0) {
 			activeEditStore.notify()
 
-			announce(describeDiscard(dropped))
+			announceDiscard(dropped)
 		}
 	})
 
@@ -1570,9 +1583,18 @@ export function useGridEditing<T>({
 				rerender()
 			}
 
-			announce(describeSettle(saved, failed, batch.row, batch.outcome))
+			announce(describeSettle(intl, saved, failed, batch.row, batch.outcome))
 		},
-		[cellScoped, drafts, activeEditStore, setEditableRows, recordEntry, restoreStep, rerender],
+		[
+			cellScoped,
+			drafts,
+			activeEditStore,
+			setEditableRows,
+			recordEntry,
+			restoreStep,
+			rerender,
+			intl,
+		],
 	)
 
 	// Puts the drafts of an async batch back as pending, and settles them when
@@ -1619,7 +1641,7 @@ export function useGridEditing<T>({
 		if (dropped > 0) {
 			activeEditStore.notify()
 
-			announce(describeDiscard(dropped))
+			announceDiscard(dropped)
 		}
 
 		sweptRef.current = { rows: editableRows, cell: activeEdit }
@@ -1636,7 +1658,7 @@ export function useGridEditing<T>({
 
 		// Announce the commit politely, without moving focus (WCAG 4.1.3). An
 		// async batch announces as it settles.
-		if (saved.columns.length > 0) announce(describeCommit(saved.columns, saved.row))
+		if (saved.columns.length > 0) announceCommit(saved.columns, saved.row)
 
 		// One sweep is one user action, so its cells are one entry. An async
 		// batch goes into the history as it settles.
@@ -1689,6 +1711,7 @@ export function useGridEditing<T>({
 			recordEntry(saved.history)
 
 			const message = describeWrite(
+				intl,
 				saved.columns,
 				saved.row,
 				outcome,
@@ -1699,7 +1722,7 @@ export function useGridEditing<T>({
 
 			for (const batch of inFlight) trackBatch(batch)
 		},
-		[editSourceRef, hasCommit, sendCommit, sendReject, recordEntry, trackBatch],
+		[editSourceRef, hasCommit, sendCommit, sendReject, recordEntry, trackBatch, intl],
 	)
 
 	// Writes the text of a paste into its cells, as one save. A cell that its
@@ -1788,7 +1811,7 @@ export function useGridEditing<T>({
 			})
 
 			if (result.status !== 'applied') {
-				announce(describeHistoryMiss(step, result.status))
+				announce(describeHistoryMiss(intl, step, result.status))
 
 				return false
 			}
@@ -1807,7 +1830,7 @@ export function useGridEditing<T>({
 
 			return true
 		},
-		[history.on, editSourceRef, takeStep, drafts, submitCells, moveToCell],
+		[history.on, editSourceRef, takeStep, drafts, submitCells, moveToCell, intl],
 	)
 
 	// The step of the grid's `ref` handle. Focus is on the control that sent it,

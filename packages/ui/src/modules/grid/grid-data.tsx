@@ -6,6 +6,7 @@ import { dataAttr } from '../../core'
 import { isRtl } from '../../hooks/a11y/logical-arrow'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { useDensityStep } from '../../primitives/density'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { GridContext, GridSettleContext } from './context'
 import { gridWrapperClass, resolveStep } from './engine/grid-data/classes'
 import { assertGridProps } from './engine/grid-data/guards'
@@ -254,7 +255,9 @@ export function GridData<T>({
 
 	// Phase 2: the keyboard cursor and its editing layer. The cursor reads the
 	// index state that the view phase resolves, through these refs.
-	const editSource: GridEditSource<T> = { rows, columns, getKey, rowLabel }
+	const intl = useIntl()
+
+	const editSource: GridEditSource<T> = { rows, columns, getKey, rowLabel, intl }
 
 	const indexRefs = useGridIndexRefs(editSource)
 
