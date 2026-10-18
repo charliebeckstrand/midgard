@@ -13,6 +13,9 @@ type GridValues = {
 	columnGroupName: { group: string }
 	rowGroupName: { group: string }
 	rowName: { key: string }
+	columnNumber: { number: number }
+	resizeColumn: { column: string }
+	pixels: { width: number }
 	groupHandle: { group: string }
 	selectRow: { row: string }
 	groupPosition: { position: number; total: number }
@@ -112,6 +115,22 @@ export const gridMessages: MessageSet<GridValues> = defineMessages<GridValues>({
 		id: 'ui.grid.rowName',
 		defaultMessage: 'row {key}',
 		description: 'The name of a row with no label of its own. The key is the key of the row.',
+	},
+	columnNumber: {
+		id: 'ui.grid.columnNumber',
+		defaultMessage: 'column {number}',
+		description:
+			'The name of a column with no label of its own, inside an announcement. The number is its place, from 1.',
+	},
+	resizeColumn: {
+		id: 'ui.grid.resizeColumn',
+		defaultMessage: 'Resize {column}',
+		description: 'The name of the handle that resizes a column of the grid.',
+	},
+	pixels: {
+		id: 'ui.grid.pixels',
+		defaultMessage: '{width, plural, one {# pixel} other {# pixels}}',
+		description: 'The width of a column of the grid, read by its resize handle.',
 	},
 	groupHandle: {
 		id: 'ui.grid.groupHandle',

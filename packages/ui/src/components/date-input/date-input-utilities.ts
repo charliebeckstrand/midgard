@@ -1,6 +1,8 @@
 import { CalendarDate, DateFormatter, endOfMonth } from '@internationalized/date'
 import type { ReactNode } from 'react'
+import type { IntlShape } from '../../primitives/intl/types'
 import { resolveLocale } from '../../utilities'
+import { dateInputMessages } from './date-input-messages'
 
 /**
  * Supported date layout for {@link DateInput}: month/day/year order and the
@@ -52,7 +54,7 @@ const layoutByLocale = new Map<string, DateInputFormat>()
 /**
  * Resolves {@link DateInput}'s layout and its default invalid message together:
  * an unset `format` follows the ambient locale, and the message quotes whichever
- * layout won. Only an absent message takes the default — `null` and `false`
+ * layout won, in the language of `intl`. Only an absent message takes the default — `null` and `false`
  * suppress it, as the prop documents.
  *
  * @remarks
@@ -63,6 +65,7 @@ const layoutByLocale = new Map<string, DateInputFormat>()
  * @internal
  */
 export function resolveDateInputFormat(
+	intl: IntlShape,
 	format: DateInputFormat | undefined,
 	locale: string | undefined,
 	invalidMessage: ReactNode,
@@ -73,7 +76,9 @@ export function resolveDateInputFormat(
 	return {
 		format: resolved,
 		invalidMessage:
-			invalidMessage === undefined ? `Enter a valid date (${resolved})` : invalidMessage,
+			invalidMessage === undefined
+				? intl.formatMessage(dateInputMessages.invalid, { format: resolved })
+				: invalidMessage,
 	}
 }
 
@@ -319,22 +324,28 @@ export function parseDateText(text: string, format: DateInputFormat): Date | und
 
 /**
  * Bound-specific message for a complete date that parses but falls outside
- * `min`/`max`, in the field's format. Returns `undefined` when neither bound is
- * set (no range to report).
+ * `min`/`max`, in the field's format and the language of `intl`. Returns
+ * `undefined` when neither bound is set (no range to report).
  *
  * @internal
  */
 export function outOfRangeMessage(
+	intl: IntlShape,
 	format: DateInputFormat,
 	min?: Date,
 	max?: Date,
 ): string | undefined {
 	if (min && max)
-		return `Enter a date between ${formatDateValue(min, format)} and ${formatDateValue(max, format)}`
+		return intl.formatMessage(dateInputMessages.between, {
+			min: formatDateValue(min, format),
+			max: formatDateValue(max, format),
+		})
 
-	if (min) return `Enter a date on or after ${formatDateValue(min, format)}`
+	if (min)
+		return intl.formatMessage(dateInputMessages.onOrAfter, { min: formatDateValue(min, format) })
 
-	if (max) return `Enter a date on or before ${formatDateValue(max, format)}`
+	if (max)
+		return intl.formatMessage(dateInputMessages.onOrBefore, { max: formatDateValue(max, format) })
 
 	return undefined
 }

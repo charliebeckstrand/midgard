@@ -1,16 +1,127 @@
+import { defineMessages } from '../../../primitives/intl/intl-messages'
+import type { IntlShape, MessageDescriptor } from '../../../primitives/intl/types'
+import { queryMessages } from './query-messages'
 import type { QueryField, QueryFieldType, QueryOperator } from './types'
+
+const messages = defineMessages({
+	textEquals: {
+		id: 'ui.query.textEquals',
+		defaultMessage: 'equals',
+		description: 'The operator of a text condition of a filter: the text is the value.',
+	},
+	textNotEquals: {
+		id: 'ui.query.textNotEquals',
+		defaultMessage: 'does not equal',
+		description: 'The operator of a text condition of a filter: the text is not the value.',
+	},
+	contains: {
+		id: 'ui.query.contains',
+		defaultMessage: 'contains',
+		description: 'The operator of a text condition of a filter: the text holds the value.',
+	},
+	startsWith: {
+		id: 'ui.query.startsWith',
+		defaultMessage: 'starts with',
+		description: 'The operator of a text condition of a filter: the text starts with the value.',
+	},
+	endsWith: {
+		id: 'ui.query.endsWith',
+		defaultMessage: 'ends with',
+		description: 'The operator of a text condition of a filter: the text ends with the value.',
+	},
+	textIs: {
+		id: 'ui.query.textIs',
+		defaultMessage: 'is',
+		description: 'The operator of the condition "is Empty" of a text field in a filter.',
+	},
+	textIsNot: {
+		id: 'ui.query.textIsNot',
+		defaultMessage: 'is not',
+		description: 'The operator of the condition "is not Empty" of a text field in a filter.',
+	},
+	between: {
+		id: 'ui.query.between',
+		defaultMessage: 'between',
+		description: 'The operator of a number condition of a filter: the number is in a range.',
+	},
+	on: {
+		id: 'ui.query.on',
+		defaultMessage: 'on',
+		description: 'The operator of a date condition of a filter: the date is the value.',
+	},
+	before: {
+		id: 'ui.query.before',
+		defaultMessage: 'before',
+		description: 'The operator of a date condition of a filter: the date is before the value.',
+	},
+	after: {
+		id: 'ui.query.after',
+		defaultMessage: 'after',
+		description: 'The operator of a date condition of a filter: the date is after the value.',
+	},
+	selectIs: {
+		id: 'ui.query.selectIs',
+		defaultMessage: 'is',
+		description: 'The operator of a choice condition of a filter: the choice is the value.',
+	},
+	selectIsNot: {
+		id: 'ui.query.selectIsNot',
+		defaultMessage: 'is not',
+		description: 'The operator of a choice condition of a filter: the choice is not the value.',
+	},
+	isTrue: {
+		id: 'ui.query.isTrue',
+		defaultMessage: 'is true',
+		description: 'The operator of a yes-or-no condition of a filter: the value is yes.',
+	},
+	isFalse: {
+		id: 'ui.query.isFalse',
+		defaultMessage: 'is false',
+		description: 'The operator of a yes-or-no condition of a filter: the value is no.',
+	},
+})
+
+// The message of the label and of the fixed value of each built-in operator
+// that has words. A symbol, such as `≥`, has no message.
+const builtInMessages = new WeakMap<
+	QueryOperator,
+	{ label: MessageDescriptor; valueLabel?: MessageDescriptor }
+>()
+
+// A built-in operator whose label is a message. Its `label` and `valueLabel`
+// hold the English defaults, for a reader of the operator that has no intl.
+function worded(
+	value: string,
+	label: MessageDescriptor,
+	extra: Omit<QueryOperator, 'value' | 'label' | 'valueLabel'> & {
+		valueLabel?: MessageDescriptor
+	} = {},
+): QueryOperator {
+	const { valueLabel, ...rest } = extra
+
+	const operator: QueryOperator = {
+		value,
+		label: label.defaultMessage as string,
+		...(valueLabel ? { valueLabel: valueLabel.defaultMessage as string } : {}),
+		...rest,
+	}
+
+	builtInMessages.set(operator, { label, valueLabel })
+
+	return operator
+}
 
 const defaultOperators = {
 	text: [
-		{ value: 'equals', label: 'equals' },
-		{ value: 'notEquals', label: 'does not equal' },
-		{ value: 'contains', label: 'contains' },
-		{ value: 'startsWith', label: 'starts with' },
-		{ value: 'endsWith', label: 'ends with' },
+		worded('equals', messages.textEquals),
+		worded('notEquals', messages.textNotEquals),
+		worded('contains', messages.contains),
+		worded('startsWith', messages.startsWith),
+		worded('endsWith', messages.endsWith),
 		// The emptiness check reads as "is Empty" / "is not Empty": the operator
 		// carries the relation, `valueLabel` the fixed subject it compares against.
-		{ value: 'isEmpty', label: 'is', valueLabel: 'Empty', noValue: true },
-		{ value: 'isNotEmpty', label: 'is not', valueLabel: 'Empty', noValue: true },
+		worded('isEmpty', messages.textIs, { valueLabel: queryMessages.empty, noValue: true }),
+		worded('isNotEmpty', messages.textIsNot, { valueLabel: queryMessages.empty, noValue: true }),
 	],
 	number: [
 		{ value: 'equals', label: '=' },
@@ -19,20 +130,17 @@ const defaultOperators = {
 		{ value: 'gte', label: '≥' },
 		{ value: 'lt', label: '<' },
 		{ value: 'lte', label: '≤' },
-		{ value: 'between', label: 'between', range: true },
+		worded('between', messages.between, { range: true }),
 	],
 	date: [
-		{ value: 'equals', label: 'on' },
-		{ value: 'before', label: 'before' },
-		{ value: 'after', label: 'after' },
+		worded('equals', messages.on),
+		worded('before', messages.before),
+		worded('after', messages.after),
 	],
-	select: [
-		{ value: 'equals', label: 'is' },
-		{ value: 'notEquals', label: 'is not' },
-	],
+	select: [worded('equals', messages.selectIs), worded('notEquals', messages.selectIsNot)],
 	boolean: [
-		{ value: 'isTrue', label: 'is true', noValue: true },
-		{ value: 'isFalse', label: 'is false', noValue: true },
+		worded('isTrue', messages.isTrue, { noValue: true }),
+		worded('isFalse', messages.isFalse, { noValue: true }),
 	],
 } satisfies Record<QueryFieldType, QueryOperator[]>
 
@@ -61,4 +169,30 @@ export function findBuiltInOperator(
 	const own = type && defaultOperators[type]?.find((operator) => operator.value === value)
 
 	return own ?? builtInOperators.find((operator) => operator.value === value)
+}
+
+/**
+ * The label of `operator` in the language of `intl`. A built-in operator takes
+ * its label from the catalog. An operator of the app, or a copy of a built-in
+ * operator, keeps its own `label`.
+ *
+ * @internal
+ */
+export function operatorLabel(intl: IntlShape, operator: QueryOperator): string {
+	const message = builtInMessages.get(operator)?.label
+
+	return message ? intl.formatMessage(message) : operator.label
+}
+
+/**
+ * The fixed value of a value-less `operator`, such as "Empty", in the language
+ * of `intl`, or `undefined` when it names none. It reads the catalog as
+ * {@link operatorLabel} does.
+ *
+ * @internal
+ */
+export function operatorValueLabel(intl: IntlShape, operator: QueryOperator): string | undefined {
+	const message = builtInMessages.get(operator)?.valueLabel
+
+	return message ? intl.formatMessage(message) : operator.valueLabel
 }

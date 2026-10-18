@@ -5,6 +5,7 @@ import { announce } from '../../core'
 import { useControllable } from '../../hooks'
 import { isRtl } from '../../hooks/a11y/logical-arrow'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { describeColumnVisibility, describePin } from './engine/grid-announcements'
 import { columnLabel } from './engine/grid-column/label'
 import { implyVirtualize } from './engine/grid-data/guards'
@@ -80,6 +81,8 @@ export function useGridDataColumns<T>({
 	/** The grid's root, read for its direction when a pin change is narrated. */
 	wrapperRef: RefObject<HTMLDivElement | null>
 }) {
+	const intl = useIntl()
+
 	// Fold the `preferences` snapshot into each column binding as its default,
 	// unless the consumer bound that dimension explicitly (an explicit
 	// value/defaultValue wins). This is the single seed the four bindings share;
@@ -206,9 +209,9 @@ export function useGridDataColumns<T>({
 
 			// Narrate the pin change; the header gives no visible text cue (WCAG 4.1.3).
 			// The words name the physical edge, so they read the grid's direction.
-			announce(describePin(labelOfColumn(id), side, isRtl(wrapperRef.current)))
+			announce(describePin(intl, labelOfColumn(id), side, isRtl(wrapperRef.current)))
 		},
-		[setPinningState, labelOfColumn, wrapperRef, isLockedColumn],
+		[setPinningState, labelOfColumn, wrapperRef, isLockedColumn, intl],
 	)
 
 	// Column groups: the controllable binding, collapse state, the ids collapsed
@@ -230,11 +233,11 @@ export function useGridDataColumns<T>({
 	// diff it against the current one to name the column the toggle moved.
 	const handleHiddenChange = useStableEvent((next: Set<string | number>) => {
 		for (const id of next) {
-			if (!hiddenColumns.has(id)) announce(describeColumnVisibility(labelOfColumn(id), true))
+			if (!hiddenColumns.has(id)) announce(describeColumnVisibility(intl, labelOfColumn(id), true))
 		}
 
 		for (const id of hiddenColumns) {
-			if (!next.has(id)) announce(describeColumnVisibility(labelOfColumn(id), false))
+			if (!next.has(id)) announce(describeColumnVisibility(intl, labelOfColumn(id), false))
 		}
 
 		setHiddenColumns(next)

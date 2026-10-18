@@ -13,7 +13,7 @@ import { LOCALES } from './locales'
  * as one that reads the session. It reads the cookies and the headers, so a
  * prerendered route that renders it would render at request time.
  *
- * @remarks The root layout stays static and renders in `en-US`, and the stored
+ * @remarks The root layout stays static and renders in `en`, and the stored
  * choice applies there after hydration. Under this component, the server and
  * the browser agree on the locale from the first render. The provider here
  * shares the stored choice of the root provider, so a new choice applies to

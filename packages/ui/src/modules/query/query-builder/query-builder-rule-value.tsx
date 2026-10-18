@@ -9,8 +9,10 @@ import { ListboxOption } from '../../../components/listbox'
 import { NumberInput } from '../../../components/number-input'
 import { Select } from '../../../components/select'
 import { cn } from '../../../core'
+import { useIntl } from '../../../primitives/intl/use-intl'
 import { Flex } from '../../../structure/flex'
 import type { QueryField } from '../engine/types'
+import { queryBuilderMessages } from './query-builder-messages'
 
 /** Props for {@link QueryBuilderRuleValue}: the rule's `field` and its current value plus a change callback. @internal */
 export type QueryBuilderRuleValueProps = {
@@ -103,12 +105,16 @@ function RangeValue({
 
 	const [floor, ceiling] = field.span ?? []
 
+	const intl = useIntl()
+
 	return (
 		<Flex gap="sm" className={cn('w-full', className)}>
 			<NumberInput
 				value={lo === '' ? null : lo}
-				placeholder={floor === undefined ? 'Min' : String(floor)}
-				aria-label={`${field.label} minimum`}
+				placeholder={
+					floor === undefined ? intl.formatMessage(queryBuilderMessages.min) : String(floor)
+				}
+				aria-label={intl.formatMessage(queryBuilderMessages.fieldMin, { field: field.label })}
 				min={limits.lo.min}
 				max={limits.lo.max}
 				className="w-full"
@@ -117,8 +123,10 @@ function RangeValue({
 
 			<NumberInput
 				value={hi === '' ? null : hi}
-				placeholder={ceiling === undefined ? 'Max' : String(ceiling)}
-				aria-label={`${field.label} maximum`}
+				placeholder={
+					ceiling === undefined ? intl.formatMessage(queryBuilderMessages.max) : String(ceiling)
+				}
+				aria-label={intl.formatMessage(queryBuilderMessages.fieldMax, { field: field.label })}
 				min={limits.hi.min}
 				max={limits.hi.max}
 				className="w-full"
@@ -146,7 +154,11 @@ export function QueryBuilderRuleValue({
 	range,
 	className,
 }: QueryBuilderRuleValueProps) {
-	const label = `${field.label} value`
+	const intl = useIntl()
+
+	const label = intl.formatMessage(queryBuilderMessages.fieldValue, { field: field.label })
+
+	const placeholder = intl.formatMessage(queryBuilderMessages.value)
 
 	if (range) {
 		return (
@@ -162,7 +174,7 @@ export function QueryBuilderRuleValue({
 					field.options?.find((option) => option.value === selected)?.label ?? ''
 				}
 				onValueChange={(next: string | null) => onValueChange(next ?? '')}
-				placeholder="Value"
+				placeholder={placeholder}
 				aria-label={label}
 				className={className}
 			>
@@ -179,7 +191,7 @@ export function QueryBuilderRuleValue({
 		return (
 			<NumberInput
 				value={value === '' || value == null ? null : Number(value)}
-				placeholder="Value"
+				placeholder={placeholder}
 				aria-label={label}
 				className={className}
 				onValueChange={(next) => onValueChange(next ?? '')}
@@ -193,7 +205,7 @@ export function QueryBuilderRuleValue({
 		return (
 			<DatePicker
 				value={date}
-				placeholder="Value"
+				placeholder={placeholder}
 				aria-label={label}
 				className={className}
 				onValueChange={(next) => onValueChange(next ? toIsoDate(next) : '')}
@@ -205,7 +217,7 @@ export function QueryBuilderRuleValue({
 		<Input
 			type="text"
 			value={(value as string | undefined) ?? ''}
-			placeholder="Value"
+			placeholder={placeholder}
 			aria-label={label}
 			className={className}
 			onChange={(event) => onValueChange(event.target.value)}

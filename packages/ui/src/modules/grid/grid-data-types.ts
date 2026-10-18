@@ -1,6 +1,7 @@
 import type { ReactNode, Ref } from 'react'
 import type { TableElementProps, TableVariants } from '../../components/table'
 import type { ScaleStep } from '../../core/density'
+import type { IntlShape } from '../../primitives/intl/types'
 import type { scale } from '../../recipes/kata/table'
 import type { GridSortState } from './context'
 import type { GridExportable, GridExportRows } from './engine/grid-export/types'
@@ -690,7 +691,13 @@ export type GridHandle = {
  *
  * @internal
  */
-export type GridEditSource<T> = Pick<GridDataProps<T>, 'rows' | 'columns' | 'getKey' | 'rowLabel'>
+export type GridEditSource<T> = Pick<
+	GridDataProps<T>,
+	'rows' | 'columns' | 'getKey' | 'rowLabel'
+> & {
+	/** The intl of the reader, which names a row with no `rowLabel` in a save announcement. */
+	intl: IntlShape
+}
 
 /**
  * Props for a data {@link Grid}. `T` is the row datum type;

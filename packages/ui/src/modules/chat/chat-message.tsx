@@ -1,6 +1,8 @@
 import { type ComponentProps, memo, type ReactNode } from 'react'
 import { Markdown } from '../../components/markdown'
 import { cn } from '../../core'
+import { IntlMessage } from '../../primitives/intl/intl-message'
+import { defineMessages } from '../../primitives/intl/intl-messages'
 import { type ChatMessageVariants, k } from '../../recipes/kata/chat-message'
 import { ChatEmbed } from './chat-embed'
 import { ChatTool, MESSAGE_HEADING_OFFSET } from './chat-tool'
@@ -14,11 +16,26 @@ import type { ChatMessageData } from './engine/types'
  *
  * @internal
  */
-const AUTHOR = {
-	user: 'You said',
-	assistant: 'Assistant said',
-	system: 'System',
-} satisfies Record<ChatMessageData['sender'], string>
+const AUTHOR = defineMessages({
+	user: {
+		id: 'ui.chat.user',
+		defaultMessage: 'You said',
+		description:
+			'The hidden label before a chat message that the reader sent. A screen reader reads it before the message.',
+	},
+	assistant: {
+		id: 'ui.chat.assistant',
+		defaultMessage: 'Assistant said',
+		description:
+			'The hidden label before a chat message from the assistant. A screen reader reads it before the message.',
+	},
+	system: {
+		id: 'ui.chat.system',
+		defaultMessage: 'System',
+		description:
+			'The hidden label before a status line of a chat, which no person said. A screen reader reads it before the line.',
+	},
+} satisfies Record<ChatMessageData['sender'], unknown>)
 
 /**
  * One block of a message. The switch holds every kind, so a kind added later
@@ -111,8 +128,6 @@ export const ChatMessage = memo(function ChatMessage({
 }: ChatMessageProps) {
 	const resolvedSender = sender ?? 'assistant'
 
-	const author = AUTHOR[resolvedSender]
-
 	return (
 		<div
 			data-slot="chat-message"
@@ -122,7 +137,7 @@ export const ChatMessage = memo(function ChatMessage({
 		>
 			<div data-slot="chat-message-bubble" className={cn(k.bubble({ sender, streaming }))}>
 				<span data-slot="chat-message-author" className="sr-only">
-					{author}:{' '}
+					<IntlMessage message={AUTHOR[resolvedSender]} />:{' '}
 				</span>
 				{typeof children === 'string' ? (
 					<Markdown headingOffset={MESSAGE_HEADING_OFFSET}>{children}</Markdown>

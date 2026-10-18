@@ -10,6 +10,7 @@ import {
 } from '../../modules/query/query-builder/context'
 import { QueryBuilderRule } from '../../modules/query/query-builder/query-builder-rule'
 import { QueryBuilderRuleValue } from '../../modules/query/query-builder/query-builder-rule-value'
+import { englishIntl } from '../../primitives/intl/intl-catalog'
 import { bySlot, fireEvent, renderUI, screen, setupUser, within } from '../helpers'
 
 const fields: QueryField[] = [
@@ -204,7 +205,7 @@ describe('QueryBuilderRule', () => {
 		const filled = renderRule(rule)
 
 		const group = within(filled.container).getByRole('group', {
-			name: describeNode(rule, fields),
+			name: describeNode(englishIntl, rule, fields),
 		})
 
 		expect(group).toHaveAccessibleName(/Ada/)

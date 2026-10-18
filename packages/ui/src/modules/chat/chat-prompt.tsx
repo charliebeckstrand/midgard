@@ -8,8 +8,39 @@ import { Control } from '../../components/control'
 import { useFileUploadHandlers } from '../../components/file-upload'
 import { Icon } from '../../components/icon'
 import { Textarea } from '../../components/textarea'
+import { defineMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { isComposing } from '../../utilities'
 import { canSubmitDraft } from './engine/chat-draft'
+
+const messages = defineMessages({
+	placeholder: {
+		id: 'ui.chat.placeholder',
+		defaultMessage: 'Ask anything',
+		description: 'The hint text of the empty field where the reader writes a chat message.',
+	},
+	prompt: {
+		id: 'ui.chat.prompt',
+		defaultMessage: 'Message',
+		description: 'The name of the field where the reader writes a chat message.',
+	},
+	attach: {
+		id: 'ui.chat.attach',
+		defaultMessage: 'Add attachment',
+		description:
+			'The name of the button that opens a file picker to attach files to a chat message.',
+	},
+	stop: {
+		id: 'ui.chat.stop',
+		defaultMessage: 'Stop generating',
+		description: 'The name of the button that stops the reply that the assistant writes.',
+	},
+	send: {
+		id: 'ui.chat.send',
+		defaultMessage: 'Send message',
+		description: 'The name of the button that sends a chat message.',
+	},
+})
 
 /** Props for {@link ChatPrompt}. */
 export type ChatPromptProps = {
@@ -36,7 +67,7 @@ export type ChatPromptProps = {
 	streaming?: boolean
 	/**
 	 * The hint text that the empty textarea shows. It is not an accessible name.
-	 * @defaultValue 'Ask anything'
+	 * @defaultValue `'Ask anything'`, in the language of the reader.
 	 */
 	placeholder?: string
 	/**
@@ -74,7 +105,7 @@ export type ChatPromptProps = {
 	 * the textarea defaults to `"Message"` when neither this nor
 	 * `aria-labelledby` is supplied (WCAG 3.3.2 / 4.1.2). Pass `aria-labelledby`
 	 * instead to point at a visible label.
-	 * @defaultValue 'Message'
+	 * @defaultValue `'Message'`, in the language of the reader.
 	 */
 	'aria-label'?: string
 	/** Points at a visible label for the composer, in place of `aria-label`. */
@@ -95,7 +126,7 @@ export function ChatPrompt({
 	onSubmit,
 	onStop,
 	streaming = false,
-	placeholder = 'Ask anything',
+	placeholder,
 	rows = 2,
 	disabled,
 	onAttach,
@@ -108,6 +139,8 @@ export function ChatPrompt({
 	'aria-label': ariaLabel,
 	'aria-labelledby': ariaLabelledBy,
 }: ChatPromptProps) {
+	const intl = useIntl()
+
 	const canSubmit = !disabled && canSubmitDraft(value)
 
 	const { inputRef, openPicker, handleChange } = useFileUploadHandlers({ onAccept: onAttach })
@@ -116,7 +149,7 @@ export function ChatPrompt({
 	// aria-labelledby wins over aria-label; falls back to 'Message'.
 	const labelProps = ariaLabelledBy
 		? { 'aria-labelledby': ariaLabelledBy }
-		: { 'aria-label': ariaLabel ?? 'Message' }
+		: { 'aria-label': ariaLabel ?? intl.formatMessage(messages.prompt) }
 
 	const handleKeyDown = useCallback(
 		(event: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -144,7 +177,7 @@ export function ChatPrompt({
 				onKeyDown={handleKeyDown}
 				autoResize
 				rows={rows}
-				placeholder={placeholder}
+				placeholder={placeholder ?? intl.formatMessage(messages.placeholder)}
 				{...labelProps}
 				className="max-h-64"
 				actions={
@@ -168,7 +201,7 @@ export function ChatPrompt({
 								<Button
 									type="button"
 									variant="plain"
-									aria-label="Add attachment"
+									aria-label={intl.formatMessage(messages.attach)}
 									onClick={openPicker}
 								>
 									<Icon icon={<Paperclip />} />
@@ -179,7 +212,7 @@ export function ChatPrompt({
 							<Button
 								type="button"
 								color="blue"
-								aria-label="Stop generating"
+								aria-label={intl.formatMessage(messages.stop)}
 								onClick={() => onStop?.()}
 							>
 								<Icon icon={<Square />} />
@@ -188,7 +221,7 @@ export function ChatPrompt({
 							<Button
 								type="button"
 								color="blue"
-								aria-label="Send message"
+								aria-label={intl.formatMessage(messages.send)}
 								disabled={!canSubmit}
 								onClick={() => canSubmit && onSubmit()}
 							>

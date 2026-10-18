@@ -611,3 +611,33 @@ describe('DatePicker (relative)', () => {
 		expect(onMonthChange).toHaveBeenCalled()
 	})
 })
+
+describe('DatePicker (relative) in a locale', () => {
+	it('shows the placeholder, the panel, and the presets in the language of the locale', async () => {
+		const user = openPicker()
+
+		const { container } = renderUI(
+			<LocaleProvider locale="es-ES">
+				<DatePicker relative aria-label="Intervalo" />
+			</LocaleProvider>,
+		)
+
+		expect(container.textContent).toContain('Selecciona un intervalo')
+
+		await user.click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
+
+		expect(screen.getByRole('dialog', { name: 'Selecciona un intervalo' })).toBeInTheDocument()
+
+		expect(screen.getByRole('button', { name: 'Últimos 7 días' })).toBeInTheDocument()
+
+		await user.click(screen.getByRole('button', { name: 'Intervalo personalizado' }))
+
+		expect(screen.getByRole('dialog', { name: 'Intervalo personalizado' })).toBeInTheDocument()
+
+		expect(screen.getByRole('button', { name: 'Volver a los intervalos' })).toBeInTheDocument()
+
+		expect(screen.getByText('Inicio')).toBeInTheDocument()
+
+		expect(screen.getByText('Fin')).toBeInTheDocument()
+	})
+})

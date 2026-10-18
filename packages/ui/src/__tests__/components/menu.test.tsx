@@ -1261,6 +1261,64 @@ describe('MenuSub', () => {
 
 		expect(row).toHaveAttribute('aria-expanded', 'true')
 	})
+
+	it('closes a submenu that a click opened on a second click', () => {
+		renderUI(
+			<Menu defaultOpen>
+				<MenuContent>
+					<MenuSub label="More">
+						<MenuItem>Nested</MenuItem>
+					</MenuSub>
+				</MenuContent>
+			</Menu>,
+		)
+
+		const row = screen.getByRole('menuitem', { name: /More/ })
+
+		fireEvent.click(row)
+
+		expect(row).toHaveAttribute('aria-expanded', 'true')
+
+		fireEvent.click(row)
+
+		expect(row).toHaveAttribute('aria-expanded', 'false')
+
+		expect(row).toHaveFocus()
+
+		fireEvent.click(row)
+
+		expect(row).toHaveAttribute('aria-expanded', 'true')
+	})
+
+	// Hover is not a commitment. The first click on a row that hover opened puts
+	// focus in the submenu, and only the second click closes it.
+	it('keeps a submenu that hover opened open on the first click', () => {
+		renderUI(
+			<Menu defaultOpen>
+				<MenuContent>
+					<MenuSub label="More">
+						<MenuItem>Nested</MenuItem>
+					</MenuSub>
+				</MenuContent>
+			</Menu>,
+		)
+
+		const row = screen.getByRole('menuitem', { name: /More/ })
+
+		fireEvent.pointerMove(row, { pointerType: 'mouse' })
+
+		expect(row).toHaveAttribute('aria-expanded', 'true')
+
+		fireEvent.click(row)
+
+		expect(row).toHaveAttribute('aria-expanded', 'true')
+
+		expect(screen.getByRole('menuitem', { name: 'Nested' })).toHaveFocus()
+
+		fireEvent.click(row)
+
+		expect(row).toHaveAttribute('aria-expanded', 'false')
+	})
 })
 
 describe('MenuLabel / MenuText / MenuDescription / MenuShortcut', () => {

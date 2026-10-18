@@ -167,9 +167,9 @@ export function useDatePickerState({
 
 		const buttons: FooterButton[] = []
 
-		if (showClear && value != null) buttons.push('clear')
-
 		if (showToday && todayInRange) buttons.push('today')
+
+		if (showClear && value != null) buttons.push('clear')
 
 		return buttons
 	}, [field.readOnly, value, min, max, showClear, showToday])
