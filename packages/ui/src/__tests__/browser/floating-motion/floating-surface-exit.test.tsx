@@ -184,6 +184,44 @@ describe('a pointer-opened context menu in its exit (real engine, real Motion)',
 
 		expect(row('More')).toHaveFocus()
 	})
+
+	// A row of the submenu closes the root, and the submenu closes with it. Its
+	// own surface portals apart from the root, so it must go inert by itself.
+	it.each(motionCases)(
+		'runs a submenu row once for a double-click under $name',
+		async ({ reduced }) => {
+			const onAction = vi.fn()
+
+			const panel = await openContextMenu(onAction, reduced)
+
+			row('More').focus()
+
+			fireEvent.keyDown(row('More'), { key: 'Enter' })
+
+			const submenu = await screen.findByRole('menu', { name: 'More' })
+
+			await waitFor(() => expect(row('Nested')).toHaveFocus())
+
+			const nested = row('Nested')
+
+			fireEvent.click(nested)
+
+			expect(onAction).toHaveBeenCalledExactlyOnceWith('Nested')
+
+			expectExiting(panel)
+
+			expectExiting(submenu)
+
+			expect(submenu.closest('[data-slot="floating-surface"]')).not.toHaveAttribute('data-open')
+
+			// The second press of a double-click lands on what lies under the panel.
+			expect(hits(nested)).toBe(false)
+
+			await gone(submenu)
+
+			expect(onAction).toHaveBeenCalledOnce()
+		},
+	)
 })
 
 describe('a dropdown menu in its exit (real engine, real Motion)', () => {

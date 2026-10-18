@@ -275,7 +275,19 @@ function MenuSubFloating({
 	// read — lives in one place rather than in each row's own timers.
 	const { openSubmenu, enterSubmenu, closeSubmenu, moveCursor, registerPanel } = useMenuPointer()
 
-	const open = useMenuOpenSub() === subKey
+	// A row that closes the root changes the root `open` only, and the level keeps
+	// its `openKey`. The gate closes the submenu in the same commit, so its surface
+	// takes no input during the exit of the root.
+	const { open: rootOpen } = useMenuState()
+
+	const shown = useMenuOpenSub() === subKey
+
+	const open = shown && rootOpen
+
+	// Clears the key, so a reopen of the root starts with the submenu closed.
+	useEffect(() => {
+		if (!rootOpen && shown) closeSubmenu(subKey)
+	}, [rootOpen, shown, closeSubmenu, subKey])
 
 	// Watched rather than wrapped around a call site: this row does not own the state. The
 	// enclosing level does, and it flips on routes the row never runs — a sibling taking
