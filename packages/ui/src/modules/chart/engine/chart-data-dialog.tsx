@@ -18,7 +18,10 @@ import {
 	TableHeader,
 	TableRow,
 } from '../../../components/table'
+import { intlMessages } from '../../../primitives/intl/intl-messages'
+import { useIntl } from '../../../primitives/intl/use-intl'
 import { rangeKeys } from '../../../utilities'
+import { chartMessages } from './chart-messages'
 import type { ChartReadoutSource } from './types'
 
 /** Props for {@link ChartDataDialog}. @internal */
@@ -46,17 +49,19 @@ export type ChartDataDialogProps = {
 export function ChartDataDialog({ open, onOpenChange, readout, title }: ChartDataDialogProps) {
 	const closeRef = useRef<HTMLButtonElement>(null)
 
+	const intl = useIntl()
+
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogPanel initialFocus={closeRef}>
-				<DialogTitle>{title ?? 'Chart data'}</DialogTitle>
+				<DialogTitle>{title ?? intl.formatMessage(chartMessages.data)}</DialogTitle>
 
 				<DialogBody>{open && <ChartDataTable readout={readout} />}</DialogBody>
 
 				<DialogFooter>
 					<DialogClose>
 						<Button type="button" ref={closeRef}>
-							Close
+							{intl.formatMessage(intlMessages.close)}
 						</Button>
 					</DialogClose>
 				</DialogFooter>

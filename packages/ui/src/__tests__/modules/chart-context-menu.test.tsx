@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { BarChart, PieChart } from '../../modules/chart'
 import { readoutToCsv } from '../../modules/chart/engine/chart-export'
 import { createHeaderActionsHost, HeaderActionsContext } from '../../primitives/header-actions'
+import { LocaleProvider } from '../../providers/locale'
 import { bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
 
 type Row = { quarter: string; revenue: number }
@@ -336,6 +337,36 @@ describe('Chart context menu', () => {
 		if (inner) fireEvent.contextMenu(inner)
 
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+	})
+})
+
+describe('Chart context menu in a locale', () => {
+	it('names the menu and its actions in the language of the locale', () => {
+		const { container } = renderUI(
+			<LocaleProvider locale="es-ES">
+				<BarChart
+					title="Ingresos"
+					aria-label="Ingresos por trimestre"
+					data={data}
+					series={[...series]}
+				/>
+			</LocaleProvider>,
+		)
+
+		openChartMenu(container)
+
+		expect(screen.getByRole('menu', { name: 'Menú de Ingresos' })).toBeInTheDocument()
+
+		for (const name of [
+			'Pantalla completa',
+			'Descargar PNG',
+			'Descargar JPG',
+			'Ver los datos',
+			'Descargar CSV',
+			'Copiar los datos',
+		]) {
+			expect(screen.getByRole('menuitem', { name })).toBeInTheDocument()
+		}
 	})
 })
 

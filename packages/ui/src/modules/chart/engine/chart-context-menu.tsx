@@ -22,6 +22,8 @@ import {
 import { Dialog, DialogClose, DialogFooter, DialogPanel } from '../../../components/dialog'
 import { downloadBlob } from '../../../core/download-blob'
 import { useStableEvent } from '../../../hooks/use-stable-event'
+import { intlMessages } from '../../../primitives/intl/intl-messages'
+import { useIntl } from '../../../primitives/intl/use-intl'
 import { copyText, downloadCsv } from '../../../utilities/export-output'
 import { ChartDataDialog } from './chart-data-dialog'
 import {
@@ -31,6 +33,7 @@ import {
 	readoutToCsv,
 } from './chart-export'
 import { ChartMenuEntriesContext } from './chart-menu-button'
+import { chartMenuName, chartMessages } from './chart-messages'
 import { ChartFullscreenContext, useChartFullscreen } from './context'
 import type { ChartReadoutSource } from './types'
 
@@ -225,6 +228,8 @@ export function ChartContextMenu({
 
 	const isFullscreen = useChartFullscreen()
 
+	const intl = useIntl()
+
 	const config = contextMenu === false ? undefined : contextMenu
 
 	const items = config?.items
@@ -313,7 +318,7 @@ export function ChartContextMenu({
 				? [
 						{
 							key: 'fullscreen',
-							label: 'Fullscreen',
+							label: intl.formatMessage(chartMessages.fullscreen),
 							icon: <Maximize2 />,
 							onAction: () => handleFullscreenChange(true),
 						},
@@ -321,13 +326,13 @@ export function ChartContextMenu({
 				: []),
 			{
 				key: 'download-png',
-				label: 'Download PNG',
+				label: intl.formatMessage(chartMessages.downloadPng),
 				icon: <ImageIcon />,
 				onAction: () => void exportImage('image/png', 'png'),
 			},
 			{
 				key: 'download-jpg',
-				label: 'Download JPG',
+				label: intl.formatMessage(chartMessages.downloadJpg),
 				icon: <ImageIcon />,
 				onAction: () => void exportImage('image/jpeg', 'jpg'),
 			},
@@ -335,26 +340,26 @@ export function ChartContextMenu({
 				? [
 						{
 							key: 'view-data',
-							label: 'View data',
+							label: intl.formatMessage(chartMessages.viewData),
 							icon: <Table2 />,
 							onAction: () => setDataOpen(true),
 						},
 						{
 							key: 'download-csv',
-							label: 'Download CSV',
+							label: intl.formatMessage(chartMessages.downloadCsv),
 							icon: <Download />,
 							onAction: () => downloadCsv(chartFileName(title, 'csv'), exportCsv(readout)),
 						},
 						{
 							key: 'copy-data',
-							label: 'Copy data',
+							label: intl.formatMessage(chartMessages.copyData),
 							icon: <Clipboard />,
 							onAction: () => copyText(exportCsv(readout)),
 						},
 					]
 				: []),
 		],
-		[hasFullscreen, readout, title, handleFullscreenChange, exportImage],
+		[hasFullscreen, readout, title, handleFullscreenChange, exportImage, intl],
 	)
 
 	// Held as an element, not gated on `open`. A closed Dialog still runs the heaviest
@@ -369,7 +374,7 @@ export function ChartContextMenu({
 				<Dialog open={open} onOpenChange={handleFullscreenChange}>
 					<DialogPanel
 						initialFocus={closeRef}
-						aria-label={title ?? 'Chart'}
+						aria-label={title ?? intl.formatMessage(chartMessages.chart)}
 						// Auto-height: the panel hugs the chart, which fills the panel width at
 						// its 16/9 ratio. Capping the width by the viewport height keeps that
 						// ratio from ever running taller than the screen, so on desktop the
@@ -408,14 +413,14 @@ export function ChartContextMenu({
 						    so the button shares the route Escape and an outside press take. */}
 							<DialogClose>
 								<Button type="button" ref={closeRef}>
-									Close
+									{intl.formatMessage(intlMessages.close)}
 								</Button>
 							</DialogClose>
 						</DialogFooter>
 					</DialogPanel>
 				</Dialog>
 			) : null,
-		[fullscreen, open, handleFullscreenChange, title],
+		[fullscreen, open, handleFullscreenChange, title, intl],
 	)
 
 	// The same entries the right-click menu shows, for the menu button that a
@@ -447,7 +452,7 @@ export function ChartContextMenu({
 				capped={config?.capped}
 				// The same name as the menu button that a touch screen shows, because
 				// the two hold the same entries.
-				aria-label={`${title ?? label ?? 'Chart'} menu`}
+				aria-label={chartMenuName(intl, title ?? label)}
 			>
 				<ChartMenuEntriesContext value={entries}>{children}</ChartMenuEntriesContext>
 			</ContextMenu>
