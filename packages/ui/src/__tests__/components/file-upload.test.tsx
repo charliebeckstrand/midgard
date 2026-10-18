@@ -215,11 +215,11 @@ describe('FileUpload input variant selection', () => {
 	it('swaps the suffix to a clear button once a file is selected', () => {
 		const { container } = renderUI(<FileUploadInput />)
 
-		expect(screen.queryByRole('button', { name: 'Clear selected file(s)' })).not.toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: /Clear selected file/ })).not.toBeInTheDocument()
 
 		selectFiles(container, [new File(['x'], 'resume.pdf')])
 
-		expect(screen.getByRole('button', { name: 'Clear selected file(s)' })).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: /^Clear selected files?$/ })).toBeInTheDocument()
 	})
 
 	it('clears the selection and restores the placeholder when the clear button is clicked', () => {
@@ -229,7 +229,7 @@ describe('FileUpload input variant selection', () => {
 
 		selectFiles(container, [new File(['x'], 'resume.pdf')])
 
-		fireEvent.click(screen.getByRole('button', { name: 'Clear selected file(s)' }))
+		fireEvent.click(screen.getByRole('button', { name: /^Clear selected files?$/ }))
 
 		expect(display(container)).toHaveTextContent('Choose…')
 
@@ -247,11 +247,11 @@ describe('FileUpload input variant under headless', () => {
 			</HeadlessProvider>,
 		)
 
-		expect(screen.queryByRole('button', { name: 'Clear selected file(s)' })).not.toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: /Clear selected file/ })).not.toBeInTheDocument()
 
 		selectFiles(container, [new File(['x'], 'resume.pdf')])
 
-		const clear = screen.getByRole('button', { name: 'Clear selected file(s)' })
+		const clear = screen.getByRole('button', { name: /^Clear selected files?$/ })
 
 		expect(clear).toHaveAttribute('type', 'button')
 
@@ -261,7 +261,7 @@ describe('FileUpload input variant under headless', () => {
 
 		expect(onAccept).toHaveBeenLastCalledWith([])
 
-		expect(screen.queryByRole('button', { name: 'Clear selected file(s)' })).not.toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: /Clear selected file/ })).not.toBeInTheDocument()
 	})
 })
 
@@ -859,7 +859,7 @@ describe('FileUpload focus handoff', () => {
 
 		selectFiles(container, [file])
 
-		const clear = screen.getByRole('button', { name: 'Clear selected file(s)' })
+		const clear = screen.getByRole('button', { name: /^Clear selected files?$/ })
 
 		clear.focus()
 
@@ -912,7 +912,7 @@ describe('FileUpload value binding', () => {
 
 		selectFiles(container, [new File(['x'], 'resume.pdf')])
 
-		fireEvent.click(screen.getByRole('button', { name: 'Clear selected file(s)' }))
+		fireEvent.click(screen.getByRole('button', { name: /^Clear selected files?$/ }))
 
 		expect(onValueChange).toHaveBeenLastCalledWith([])
 	})

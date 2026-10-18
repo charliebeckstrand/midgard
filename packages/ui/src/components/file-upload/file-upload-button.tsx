@@ -3,10 +3,12 @@
 import { Upload } from 'lucide-react'
 import { useRef } from 'react'
 import { cn } from '../../core'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/file-upload'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { FileUploadHiddenInput } from './file-upload-hidden-input'
+import { fileUploadMessages } from './file-upload-messages'
 import {
 	type FileUploadButtonProps,
 	splitFileUploadProps,
@@ -26,6 +28,8 @@ import { triggerLabel } from './file-upload-utilities'
  * @see {@link FileUploadDrop} · {@link FileUploadInput}
  */
 export function FileUploadButton(allProps: FileUploadButtonProps) {
+	const intl = useIntl()
+
 	const { shared, rest } = splitFileUploadProps(allProps)
 
 	const { className, children, size, color, variant, ...props } = rest
@@ -51,7 +55,7 @@ export function FileUploadButton(allProps: FileUploadButtonProps) {
 	return (
 		<div data-slot="file-upload" {...props} className={cn(k.button, className)}>
 			<FileUploadHiddenInput
-				ariaLabel={triggerLabel(children, 'Upload')}
+				ariaLabel={triggerLabel(children, intl.formatMessage(fileUploadMessages.upload))}
 				control={control}
 				inputRef={inputRef}
 				accept={accept}
@@ -72,7 +76,7 @@ export function FileUploadButton(allProps: FileUploadButtonProps) {
 				onClick={openPicker}
 			>
 				<Icon icon={<Upload />} />
-				{children ?? 'Upload'}
+				{children ?? intl.formatMessage(fileUploadMessages.upload)}
 			</Button>
 			{hasFiles && (
 				<Button
@@ -84,7 +88,7 @@ export function FileUploadButton(allProps: FileUploadButtonProps) {
 					className={cn(k.cursor)}
 					onClick={handleReset}
 				>
-					Reset
+					{intl.formatMessage(fileUploadMessages.reset)}
 				</Button>
 			)}
 		</div>

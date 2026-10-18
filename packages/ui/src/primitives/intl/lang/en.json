@@ -159,6 +159,50 @@
 		"defaultMessage": "Today",
 		"description": "The label of the button that selects the date of today."
 	},
+	"ui.fileUpload.announced": {
+		"defaultMessage": "{count, plural, one {Selected {names}} other {Selected # files: {names}}}",
+		"description": "Spoken when the reader selects files. The names are the file names, joined by commas."
+	},
+	"ui.fileUpload.browse": {
+		"defaultMessage": "Browse files",
+		"description": "The name of the button that opens the file picker of a file field."
+	},
+	"ui.fileUpload.chooseDifferent": {
+		"defaultMessage": "Choose a different file",
+		"description": "The name of the drop zone after a selection. A press opens the file picker again."
+	},
+	"ui.fileUpload.chooseFile": {
+		"defaultMessage": "Choose a file",
+		"description": "The placeholder of an empty file field."
+	},
+	"ui.fileUpload.clear": {
+		"defaultMessage": "{count, plural, one {Clear selected file} other {Clear selected files}}",
+		"description": "The name of the button that clears the selected files of a file field."
+	},
+	"ui.fileUpload.dropClick": {
+		"defaultMessage": "Drop files here or click to browse",
+		"description": "The prompt of an empty drop zone on a device with a mouse."
+	},
+	"ui.fileUpload.dropTap": {
+		"defaultMessage": "Drop files here or tap to browse",
+		"description": "The prompt of an empty drop zone on a touch device."
+	},
+	"ui.fileUpload.reset": {
+		"defaultMessage": "Reset",
+		"description": "The label of the button that clears the selected files."
+	},
+	"ui.fileUpload.selected": {
+		"defaultMessage": "{count, plural, one {# file selected} other {# files selected}}",
+		"description": "The summary of a selection of more than one file."
+	},
+	"ui.fileUpload.upload": {
+		"defaultMessage": "Upload",
+		"description": "The label of the button that opens the file picker."
+	},
+	"ui.fileUpload.uploadFile": {
+		"defaultMessage": "Upload file",
+		"description": "The name of the file input of a drop zone."
+	},
 	"ui.grid.columnGroupName": {
 		"defaultMessage": "{group} group",
 		"description": "The name of a column group in an announcement of the group editor, such as \"Contact group\"."

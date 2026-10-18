@@ -97,7 +97,7 @@ export type FileUploadInputProps = Omit<ComponentProps<'div'>, 'defaultValue' | 
 		/**
 		 * Placeholder when empty; also the hidden input's accessible name.
 		 *
-		 * @defaultValue 'Choose a file'
+		 * @defaultValue `'Choose a file'`, in the language of the reader.
 		 */
 		placeholder?: string
 	}
@@ -124,7 +124,7 @@ export type FileUploadButtonProps = Omit<ComponentProps<'div'>, 'defaultValue' |
 		/**
 		 * The trigger's label, and the hidden input's accessible name.
 		 *
-		 * @defaultValue 'Upload'
+		 * @defaultValue `'Upload'`, in the language of the reader.
 		 */
 		children?: ReactNode
 	}
