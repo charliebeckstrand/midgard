@@ -1,7 +1,8 @@
 'use client'
 
 import { ArrowUp, Paperclip, Square } from 'lucide-react'
-import { type KeyboardEvent, type ReactNode, type Ref, useCallback } from 'react'
+import { useComposedRefs } from 'motion/react'
+import { type KeyboardEvent, type ReactNode, type Ref, useCallback, useRef } from 'react'
 import { BadgeRemovable } from '../../components/badge/badge-removable'
 import { Button } from '../../components/button'
 import { Control } from '../../components/control'
@@ -93,7 +94,10 @@ export type ChatPromptProps = {
 	 * remove button when {@link ChatPromptProps.onRemoveAttachment} is provided.
 	 */
 	attachments?: readonly File[]
-	/** Called with the index of the attachment whose remove button was clicked. */
+	/**
+	 * Called with the index of the attachment whose remove button was clicked.
+	 * The textarea then takes the focus (WCAG 2.4.3).
+	 */
 	onRemoveAttachment?: (index: number) => void
 	/** Model picker, slash-command trigger, etc. rendered at the start of the action row, before the paperclip and send controls. */
 	actions?: ReactNode
@@ -145,6 +149,10 @@ export function ChatPrompt({
 
 	const { inputRef, openPicker, handleChange } = useFileUploadHandlers({ onAccept: onAttach })
 
+	const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+	const setTextareaRefs = useComposedRefs(textareaRef, ref)
+
 	// The composer always gets an accessible name (WCAG 3.3.2 / 4.1.2):
 	// aria-labelledby wins over aria-label; falls back to 'Message'.
 	const labelProps = ariaLabelledBy
@@ -170,7 +178,7 @@ export function ChatPrompt({
 		// Control supplies the stable id the textarea resolves through useControlProps.
 		<Control className={className}>
 			<Textarea
-				ref={ref}
+				ref={setTextareaRefs}
 				data-slot="chat-prompt"
 				value={value}
 				onChange={(event) => onValueChange(event.target.value)}
@@ -246,7 +254,15 @@ export function ChatPrompt({
 						<li key={`${file.name}-${file.lastModified}-${file.size}`} className="flex max-w-full">
 							<BadgeRemovable
 								label={file.name}
-								onRemove={onRemoveAttachment && (() => onRemoveAttachment(index))}
+								onRemove={
+									onRemoveAttachment &&
+									(() => {
+										onRemoveAttachment(index)
+
+										// Returns focus to the textarea after chip removal (WCAG 2.4.3).
+										textareaRef.current?.focus()
+									})
+								}
 							/>
 						</li>
 					))}
