@@ -1,5 +1,13 @@
+import { englishIntl } from '../../../primitives/intl/intl-catalog'
+import type { IntlShape } from '../../../primitives/intl/types'
 import { imposesConstraint, isBlank, RANGE_OPERATORS, VALUELESS_OPERATORS } from './query-evaluate'
-import { findBuiltInOperator, getOperators } from './query-operators'
+import { combinatorLabel, queryMessages } from './query-messages'
+import {
+	findBuiltInOperator,
+	getOperators,
+	operatorLabel,
+	operatorValueLabel,
+} from './query-operators'
 import type { QueryCombinator, QueryField, QueryGroup, QueryOperator, QueryRule } from './types'
 
 /**
@@ -47,6 +55,7 @@ export type QuerySummaryToken =
  * @internal
  */
 function describeRange(
+	intl: IntlShape,
 	id: string,
 	field: string,
 	operator: string,
@@ -55,7 +64,9 @@ function describeRange(
 	const [lo, hi] = value as unknown[]
 
 	if (!isBlank(lo) && !isBlank(hi)) {
-		return { kind: 'rule', id, field, operator, value: `${lo} and ${hi}` }
+		const range = intl.formatMessage(queryMessages.range, { min: `${lo}`, max: `${hi}` })
+
+		return { kind: 'rule', id, field, operator, value: range }
 	}
 
 	return isBlank(lo)
@@ -114,34 +125,42 @@ function resolveRule(
  *
  * @internal
  */
-export function describeRule(rule: QueryRule, fields: QueryField[]): QuerySummaryRuleToken | null {
+export function describeRule(
+	intl: IntlShape,
+	rule: QueryRule,
+	fields: QueryField[],
+): QuerySummaryRuleToken | null {
 	if (!imposesConstraint(rule.operator, rule.value)) return null
 
 	const { field, operator } = resolveRule(rule, fields)
 
 	const label = field?.label ?? rule.field
 
+	const relation = operator ? operatorLabel(intl, operator) : rule.operator
+
 	// A value-less operator carries no rule value; it renders its fixed
 	// `valueLabel` ("is Empty") when it names one, else operator alone ("is true").
 	if (VALUELESS_OPERATORS.has(rule.operator)) {
+		const subject = operator && operatorValueLabel(intl, operator)
+
 		return {
 			kind: 'rule',
 			id: rule.id,
 			field: label,
-			operator: operator?.label ?? rule.operator,
-			...(operator?.valueLabel ? { value: operator.valueLabel } : {}),
+			operator: relation,
+			...(subject ? { value: subject } : {}),
 		}
 	}
 
 	if (RANGE_OPERATORS.has(rule.operator)) {
-		return describeRange(rule.id, label, operator?.label ?? rule.operator, rule.value)
+		return describeRange(intl, rule.id, label, relation, rule.value)
 	}
 
 	return {
 		kind: 'rule',
 		id: rule.id,
 		field: label,
-		operator: operator?.label ?? rule.operator,
+		operator: relation,
 		value: describeValue(field, rule.value),
 	}
 }
@@ -155,6 +174,7 @@ export function describeRule(rule: QueryRule, fields: QueryField[]): QuerySummar
  * @internal
  */
 function describeGroup(
+	intl: IntlShape,
 	group: QueryGroup,
 	fields: QueryField[],
 	nested: boolean,
@@ -165,8 +185,8 @@ function describeGroup(
 		// An inactive rule describes to `null`, which the filter drops.
 		const tokens: QuerySummaryToken[] =
 			child.type === 'group'
-				? describeGroup(child, fields, true)
-				: [describeRule(child, fields)].filter((token) => token !== null)
+				? describeGroup(intl, child, fields, true)
+				: [describeRule(intl, child, fields)].filter((token) => token !== null)
 
 		if (tokens.length === 0) continue
 
@@ -177,7 +197,7 @@ function describeGroup(
 				kind: 'combinator',
 				id: child.id,
 				combinator,
-				label: combinator === 'or' ? 'OR' : 'AND',
+				label: combinatorLabel(intl, combinator),
 			})
 		}
 
@@ -200,11 +220,20 @@ function describeGroup(
  * @remarks `QuerySummary` renders the stream as a sentence, and `QueryChips`
  * renders it as a row of chips. Use it for a third view.
  *
+ * The built-in labels, such as the operators and the combinators, are in the
+ * language of `intl`. The labels of the fields, the options, and the operators
+ * of the app stay as the app wrote them.
+ *
  * @param group - The query group (typically the root) to describe.
  * @param fields - Field definitions resolving each rule's labels, operators, and options.
+ * @param intl - The intl whose language the built-in labels take. The default is English.
  */
-export function summarizeQuery(group: QueryGroup, fields: QueryField[]): QuerySummaryToken[] {
-	return describeGroup(group, fields, false)
+export function summarizeQuery(
+	group: QueryGroup,
+	fields: QueryField[],
+	intl: IntlShape = englishIntl,
+): QuerySummaryToken[] {
+	return describeGroup(intl, group, fields, false)
 }
 
 /**
@@ -239,13 +268,19 @@ export function renderToken(token: QuerySummaryToken): string {
  * Renders a query tree as a single human-readable line, e.g. `Status is Active
  * AND (Age ≥ 18 OR Name contains lee)`. Convenience over {@link summarizeQuery}
  * for a plain-text surface (a `title`, an aria-label, a log); empty when the
- * query imposes no constraint.
+ * query imposes no constraint. The built-in labels are in the language of
+ * `intl`, as {@link summarizeQuery} gives them.
  *
  * @param group - The query group (typically the root) to describe.
  * @param fields - Field definitions resolving each rule's labels, operators, and options.
+ * @param intl - The intl whose language the built-in labels take. The default is English.
  */
-export function formatQuerySummary(group: QueryGroup, fields: QueryField[]): string {
-	const tokens = summarizeQuery(group, fields)
+export function formatQuerySummary(
+	group: QueryGroup,
+	fields: QueryField[],
+	intl: IntlShape = englishIntl,
+): string {
+	const tokens = summarizeQuery(group, fields, intl)
 
 	return tokens
 		.map(

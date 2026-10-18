@@ -4,6 +4,7 @@ import type { ReactElement } from 'react'
 import { cn, composeEventHandlers } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import type { FloatingPlacement } from '../../hooks'
+import { useIntl } from '../../primitives/intl/use-intl'
 import type { scale } from '../../recipes/kata/date-picker'
 import { k } from '../../recipes/kata/date-picker'
 import { Calendar } from '../calendar'
@@ -12,6 +13,7 @@ import { DateInputResetContext, useDateInputResets } from '../date-input/context
 import { DatePickerCalendarButton } from './date-picker-calendar-button'
 import { DatePickerContent, useDatePickerSheet } from './date-picker-content'
 import { DatePickerFooter } from './date-picker-footer'
+import { datePickerMessages } from './date-picker-messages'
 import { DatePickerRange } from './date-picker-range'
 import { DatePickerRelative } from './date-picker-relative'
 import type {
@@ -293,7 +295,7 @@ export function DatePicker(props: DatePickerProps) {
 
 function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 	const {
-		placeholder = 'Select a date',
+		placeholder,
 		size,
 		truncate = true,
 		input = false,
@@ -302,6 +304,8 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 		className,
 		'aria-label': ariaLabel,
 	} = props
+
+	const intl = useIntl()
 
 	const {
 		triggerRef,
@@ -451,7 +455,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 				setReference={setReference}
 				getReferenceProps={getReferenceProps}
 				displayValue={displayValue}
-				placeholder={placeholder}
+				placeholder={placeholder ?? intl.formatMessage(datePickerMessages.selectDate)}
 				size={size}
 				truncate={truncate}
 				aria-label={ariaLabel}

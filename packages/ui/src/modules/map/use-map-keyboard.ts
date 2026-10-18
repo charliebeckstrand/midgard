@@ -249,6 +249,31 @@ export function useMapKeyboard({
 		anchor(cursorStop, transform)
 	}, [cursorStop, drawn, transform, anchor])
 
+	/** Moves the cursor for a navigation key, or leaves the region on Escape. */
+	const onMoveKey = (event: KeyboardEvent<HTMLElement>) => {
+		const move = moveMapCursor(at(), event.key, stops())
+
+		if (!move.handled) return
+
+		// Escape claims the press only when it clears a live readout: the cursor's,
+		// or one that the pointer holds. With nothing to clear, the press reaches an
+		// overlay around the map, which closes as it does around a chart.
+		if (move.leave) {
+			leave(event, hovered() !== null)
+
+			return
+		}
+
+		event.preventDefault()
+
+		// A map with no stop claims the key and moves nothing. Focus stays on the map.
+		if (move.stop === null) return
+
+		show(move.stop)
+
+		speak(move.stop)
+	}
+
 	const onPlainKeyDown = (event: KeyboardEvent<HTMLElement>) => {
 		// The zoom keys, read first because they claim keys the cursor does not: a
 		// reader who can only point with a keyboard still reaches every scale the
@@ -287,24 +312,7 @@ export function useMapKeyboard({
 			return
 		}
 
-		const move = moveMapCursor(at(), event.key, stops())
-
-		if (!move.handled) return
-
-		// Escape claims the press only when it clears a live readout: the cursor's,
-		// or one that the pointer holds. With nothing to clear, the press reaches an
-		// overlay around the map, which closes as it does around a chart.
-		if (move.stop === null) {
-			leave(event, hovered() !== null)
-
-			return
-		}
-
-		event.preventDefault()
-
-		show(move.stop)
-
-		speak(move.stop)
+		onMoveKey(event)
 	}
 
 	const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {

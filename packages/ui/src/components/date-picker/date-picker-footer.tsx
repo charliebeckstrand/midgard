@@ -20,7 +20,7 @@ type DatePickerFooterProps = {
 }
 
 /**
- * Action toolbar (Clear/Today) below the calendar grid; renders nothing when
+ * Action toolbar (Today/Clear) below the calendar grid; renders nothing when
  * `footerButtons` is empty. The button matching the `footer`-zone virtual
  * highlight reads as active.
  *

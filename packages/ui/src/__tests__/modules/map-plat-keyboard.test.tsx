@@ -287,6 +287,27 @@ describe('MapPlat keyboard navigation', () => {
 		expect(fireEvent.keyDown(plot, { key: '+', shiftKey: true })).toBe(false)
 	})
 
+	it('claims a navigation key on a zoom map with no stop and keeps focus on it', () => {
+		// The zoom earns the stop on a map that offers nothing to navigate. A
+		// navigation key is claimed and moves nothing, so the page does not scroll,
+		// and only Escape leaves the region.
+		const { plot } = renderNavigable(
+			<MapPlat aria-label="Backdrop" geography={FIXTURE_GEOJSON} width={400} zoom />,
+		)
+
+		plot.focus()
+
+		for (const key of ['ArrowRight', 'ArrowDown', 'Home', 'End']) {
+			expect(fireEvent.keyDown(plot, { key })).toBe(false)
+
+			expect(document.activeElement).toBe(plot)
+		}
+
+		fireEvent.keyDown(plot, { key: 'Escape' })
+
+		expect(document.activeElement).not.toBe(plot)
+	})
+
 	it('takes no tab stop before the geography lands', () => {
 		const { container, rerender } = renderUI(categoricalPlat({ geography: null }))
 

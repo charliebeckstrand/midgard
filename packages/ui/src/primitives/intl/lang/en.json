@@ -7,6 +7,10 @@
 		"defaultMessage": "Remove {label}",
 		"description": "The name of the button that removes a chip, such as a tag. The label is the text of the chip."
 	},
+	"ui.calendar.chooseMonthYear": {
+		"defaultMessage": "Choose month and year",
+		"description": "The name of the panel that holds the month picker and the year picker."
+	},
 	"ui.calendar.nextDecade": {
 		"defaultMessage": "Next decade",
 		"description": "The name of the button that shows the ten years after in the year picker."
@@ -39,6 +43,106 @@
 		"defaultMessage": "Select year",
 		"description": "The name of the grid of years in the year picker."
 	},
+	"ui.chat.assistant": {
+		"defaultMessage": "Assistant said",
+		"description": "The hidden label before a chat message from the assistant. A screen reader reads it before the message."
+	},
+	"ui.chat.attach": {
+		"defaultMessage": "Add attachment",
+		"description": "The name of the button that opens a file picker to attach files to a chat message."
+	},
+	"ui.chat.done": {
+		"defaultMessage": "Done",
+		"description": "The status of a step of the assistant that ended well."
+	},
+	"ui.chat.failed": {
+		"defaultMessage": "Failed",
+		"description": "The status of a step of the assistant that ended with an error."
+	},
+	"ui.chat.missing": {
+		"defaultMessage": "This chat cannot show a “{name}” block.",
+		"description": "Shown in place of a block of a chat reply that the app cannot draw. The name is the name of the block."
+	},
+	"ui.chat.placeholder": {
+		"defaultMessage": "Ask anything",
+		"description": "The hint text of the empty field where the reader writes a chat message."
+	},
+	"ui.chat.prompt": {
+		"defaultMessage": "Message",
+		"description": "The name of the field where the reader writes a chat message."
+	},
+	"ui.chat.replying": {
+		"defaultMessage": "Assistant is replying",
+		"description": "Spoken while a reply of the assistant arrives in a chat."
+	},
+	"ui.chat.running": {
+		"defaultMessage": "Running",
+		"description": "The status of a step of the assistant that has not ended."
+	},
+	"ui.chat.send": {
+		"defaultMessage": "Send message",
+		"description": "The name of the button that sends a chat message."
+	},
+	"ui.chat.stop": {
+		"defaultMessage": "Stop generating",
+		"description": "The name of the button that stops the reply that the assistant writes."
+	},
+	"ui.chat.system": {
+		"defaultMessage": "System",
+		"description": "The hidden label before a status line of a chat, which no person said. A screen reader reads it before the line."
+	},
+	"ui.chat.user": {
+		"defaultMessage": "You said",
+		"description": "The hidden label before a chat message that the reader sent. A screen reader reads it before the message."
+	},
+	"ui.chat.views": {
+		"defaultMessage": "{views, plural, one {# embedded view} other {# embedded views}}",
+		"description": "Spoken after a reply of the assistant that holds views, such as charts. The count is the number of views."
+	},
+	"ui.color.alpha": {
+		"defaultMessage": "Alpha",
+		"description": "The name of the slider that sets the opacity of a color."
+	},
+	"ui.color.alphaChannel": {
+		"defaultMessage": "Alpha channel",
+		"description": "The name of the field of the opacity of a color."
+	},
+	"ui.color.area": {
+		"defaultMessage": "Saturation and brightness",
+		"description": "The name of the two-axis area that sets the saturation and the brightness of a color."
+	},
+	"ui.color.areaValue": {
+		"defaultMessage": "Saturation {saturation}%, brightness {brightness}%",
+		"description": "The value text of the color area. Each value is a percent from 0 to 100."
+	},
+	"ui.color.channel": {
+		"defaultMessage": "{channel} channel",
+		"description": "The name of the field of one color channel. The channel is its letter: R, G, or B."
+	},
+	"ui.color.choose": {
+		"defaultMessage": "Choose color",
+		"description": "The name of the dialog of a color picker."
+	},
+	"ui.color.copyHex": {
+		"defaultMessage": "Copy hex value",
+		"description": "The name of the button that copies the hexadecimal code of a color."
+	},
+	"ui.color.eyedropper": {
+		"defaultMessage": "Pick color from screen",
+		"description": "The name of the button that takes a color from a point on the screen."
+	},
+	"ui.color.hex": {
+		"defaultMessage": "Hex",
+		"description": "The label of the field of the hexadecimal code of a color."
+	},
+	"ui.color.hue": {
+		"defaultMessage": "Hue",
+		"description": "The name of the slider that sets the hue of a color."
+	},
+	"ui.color.swatches": {
+		"defaultMessage": "Swatches",
+		"description": "The name of the group of preset colors."
+	},
 	"ui.combobox.placeholder": {
 		"defaultMessage": "Search",
 		"description": "The placeholder of a field that filters a list of options as the reader types."
@@ -66,6 +170,10 @@
 	"ui.common.confirm": {
 		"defaultMessage": "Confirm",
 		"description": "The label of a button that does the action that a dialog asks about."
+	},
+	"ui.common.loading": {
+		"defaultMessage": "Loading",
+		"description": "The name of a spinner that shows that content or an action is loading."
 	},
 	"ui.common.noResults": {
 		"defaultMessage": "No results",
@@ -103,6 +211,10 @@
 		"defaultMessage": "column {column} of {columns}, row {row}, {width, plural, one {# column} other {# columns}} wide",
 		"description": "The place of a dashboard tile: its first column, the count of columns, its row, and its width."
 	},
+	"ui.dashboard.clearSelection": {
+		"defaultMessage": "Clear the selection in {label}",
+		"description": "The name of the button that clears the selection that a dashboard tile holds."
+	},
 	"ui.dashboard.dragStart": {
 		"defaultMessage": "Picked up {item} at {cell}. Use the arrow keys to move it. Press Space to drop it, or Escape to cancel.",
 		"description": "Spoken when the reader picks up a dashboard tile. The cell is the place of the tile."
@@ -123,6 +235,18 @@
 		"defaultMessage": "Duplicated {item}.",
 		"description": "Spoken when a tile action makes a copy of a tile."
 	},
+	"ui.dashboard.expand": {
+		"defaultMessage": "Expand {label}",
+		"description": "The name of the button that opens a dashboard tile in a dialog."
+	},
+	"ui.dashboard.failed": {
+		"defaultMessage": "{label} failed to render.",
+		"description": "The error text of a dashboard tile whose widget threw an error."
+	},
+	"ui.dashboard.missing": {
+		"defaultMessage": "This dashboard cannot show a “{widget}” tile.",
+		"description": "The text of a dashboard tile whose kind no widget renders. The widget is the name of the kind."
+	},
 	"ui.dashboard.moves": {
 		"defaultMessage": "{item} moves to {cell}.",
 		"description": "Spoken while a dragged tile is over an empty place."
@@ -134,6 +258,14 @@
 	"ui.dashboard.removed": {
 		"defaultMessage": "Removed {item}.",
 		"description": "Spoken when a tile action removes a tile."
+	},
+	"ui.dashboard.resize": {
+		"defaultMessage": "Resize {label}",
+		"description": "The name of the handle that changes the size of a dashboard tile."
+	},
+	"ui.dashboard.retry": {
+		"defaultMessage": "Retry",
+		"description": "The label of the button that renders a failed dashboard tile again."
 	},
 	"ui.dashboard.shifts": {
 		"defaultMessage": "{item} moves before or after {partner}, to {cell}.",
@@ -147,21 +279,165 @@
 		"defaultMessage": "{moved, plural, =0 {The board is already tidy.} one {Tidied the board. Moved # tile up.} other {Tidied the board. Moved # tiles up.}}",
 		"description": "Spoken when a tidy packs the board. The count is the number of tiles that moved."
 	},
+	"ui.dateInput.between": {
+		"defaultMessage": "Enter a date between {min} and {max}",
+		"description": "The error of a date field whose date is before the first date or after the last date that it accepts."
+	},
+	"ui.dateInput.clear": {
+		"defaultMessage": "Clear date",
+		"description": "The name of the button that clears a date field."
+	},
+	"ui.dateInput.invalid": {
+		"defaultMessage": "Enter a valid date ({format})",
+		"description": "The error of a date field whose text is not a date. The format is the pattern of the field, such as DD/MM/YYYY."
+	},
+	"ui.dateInput.name": {
+		"defaultMessage": "Date",
+		"description": "The name of a date field that has no label."
+	},
+	"ui.dateInput.onOrAfter": {
+		"defaultMessage": "Enter a date on or after {min}",
+		"description": "The error of a date field whose date is before the first date that it accepts."
+	},
+	"ui.dateInput.onOrBefore": {
+		"defaultMessage": "Enter a date on or before {max}",
+		"description": "The error of a date field whose date is after the last date that it accepts."
+	},
 	"ui.datePicker.actions": {
 		"defaultMessage": "Date picker actions",
 		"description": "The name of the toolbar with the Clear and Today buttons below the calendar."
+	},
+	"ui.datePicker.backToPresets": {
+		"defaultMessage": "Back to presets",
+		"description": "The button that goes back from the custom range to the list of ranges."
+	},
+	"ui.datePicker.chooseDate": {
+		"defaultMessage": "Choose date",
+		"description": "The name of the panel of a date picker, which holds the calendar."
 	},
 	"ui.datePicker.closeCalendar": {
 		"defaultMessage": "Close calendar",
 		"description": "The name of the button that closes the calendar of a date field."
 	},
+	"ui.datePicker.customRange": {
+		"defaultMessage": "Custom range",
+		"description": "The button that opens a start date field and an end date field in place of the list of ranges, and the name of that panel."
+	},
+	"ui.datePicker.end": {
+		"defaultMessage": "End",
+		"description": "The label of the field of the last date of a custom range."
+	},
+	"ui.datePicker.lastDays": {
+		"defaultMessage": "{days, plural, one {Last day} other {Last # days}}",
+		"description": "A range of a date picker: today and the days before it. The count is the number of days, today included."
+	},
+	"ui.datePicker.lastMonth": {
+		"defaultMessage": "Last month",
+		"description": "A range of a date picker: all the days of the month before this month."
+	},
+	"ui.datePicker.lastYear": {
+		"defaultMessage": "Last year",
+		"description": "A range of a date picker: all the days of the year before this year."
+	},
 	"ui.datePicker.openCalendar": {
 		"defaultMessage": "Open calendar",
 		"description": "The name of the button that opens the calendar of a date field."
 	},
+	"ui.datePicker.selectDate": {
+		"defaultMessage": "Select a date",
+		"description": "The text of an empty date picker that holds one date."
+	},
+	"ui.datePicker.selectDates": {
+		"defaultMessage": "Select dates",
+		"description": "The text of an empty date picker that holds a start date and an end date."
+	},
+	"ui.datePicker.selectRange": {
+		"defaultMessage": "Select range",
+		"description": "The text of an empty date picker that holds a range, such as Last 7 days, and the name of its list of ranges."
+	},
+	"ui.datePicker.start": {
+		"defaultMessage": "Start",
+		"description": "The label of the field of the first date of a custom range."
+	},
+	"ui.datePicker.thisMonth": {
+		"defaultMessage": "This month",
+		"description": "A range of a date picker: from the first day of this month to today."
+	},
+	"ui.datePicker.thisYear": {
+		"defaultMessage": "This year",
+		"description": "A range of a date picker: from the first day of this year to today."
+	},
 	"ui.datePicker.today": {
 		"defaultMessage": "Today",
 		"description": "The label of the button that selects the date of today."
+	},
+	"ui.datePicker.yesterday": {
+		"defaultMessage": "Yesterday",
+		"description": "A range of a date picker: the day before today."
+	},
+	"ui.fileUpload.announced": {
+		"defaultMessage": "{count, plural, one {Selected {names}} other {Selected # files: {names}}}",
+		"description": "Spoken when the reader selects files. The names are the file names, joined by commas."
+	},
+	"ui.fileUpload.browse": {
+		"defaultMessage": "Browse files",
+		"description": "The name of the button that opens the file picker of a file field."
+	},
+	"ui.fileUpload.chooseDifferent": {
+		"defaultMessage": "Choose a different file",
+		"description": "The name of the drop zone after a selection. A press opens the file picker again."
+	},
+	"ui.fileUpload.chooseFile": {
+		"defaultMessage": "Choose a file",
+		"description": "The placeholder of an empty file field."
+	},
+	"ui.fileUpload.clear": {
+		"defaultMessage": "{count, plural, one {Clear selected file} other {Clear selected files}}",
+		"description": "The name of the button that clears the selected files of a file field."
+	},
+	"ui.fileUpload.dropClick": {
+		"defaultMessage": "Drop files here or click to browse",
+		"description": "The prompt of an empty drop zone on a device with a mouse."
+	},
+	"ui.fileUpload.dropTap": {
+		"defaultMessage": "Drop files here or tap to browse",
+		"description": "The prompt of an empty drop zone on a touch device."
+	},
+	"ui.fileUpload.reset": {
+		"defaultMessage": "Reset",
+		"description": "The label of the button that clears the selected files."
+	},
+	"ui.fileUpload.selected": {
+		"defaultMessage": "{count, plural, one {# file selected} other {# files selected}}",
+		"description": "The summary of a selection of more than one file."
+	},
+	"ui.fileUpload.upload": {
+		"defaultMessage": "Upload",
+		"description": "The label of the button that opens the file picker."
+	},
+	"ui.fileUpload.uploadFile": {
+		"defaultMessage": "Upload file",
+		"description": "The name of the file input of a drop zone."
+	},
+	"ui.grid.allSelected": {
+		"defaultMessage": "All rows selected",
+		"description": "Spoken when the reader selects all the rows of the grid."
+	},
+	"ui.grid.allSelectedOnPage": {
+		"defaultMessage": "All rows on this page selected",
+		"description": "Spoken when the reader selects all the rows of the current page of the grid."
+	},
+	"ui.grid.blocked": {
+		"defaultMessage": "{step, select, undo {Cannot undo while a cell has an edit} other {Cannot redo while a cell has an edit}}",
+		"description": "Spoken when the grid cannot undo or redo, because a cell has an open edit."
+	},
+	"ui.grid.cellOutcome": {
+		"defaultMessage": "{column} {outcome, select, updated {updated} undone {undone} redone {redone} pasted {pasted} filled {filled} other {not saved}}",
+		"description": "Spoken when an edit of one cell of the grid saves, undoes, redoes, pastes, fills, or fails. The column names the cell."
+	},
+	"ui.grid.cellsOutcome": {
+		"defaultMessage": "{count, plural, one {# cell} other {# cells}} {outcome, select, updated {updated} undone {undone} redone {redone} pasted {pasted} filled {filled} other {not saved}}",
+		"description": "Spoken when an edit of many cells of the grid saves, undoes, redoes, pastes, fills, or fails. The count is the number of cells."
 	},
 	"ui.grid.columnGroupName": {
 		"defaultMessage": "{group} group",
@@ -170,6 +446,14 @@
 	"ui.grid.columnName": {
 		"defaultMessage": "{column} column",
 		"description": "The name of a column in a reorder announcement, such as \"Price column\"."
+	},
+	"ui.grid.columnNumber": {
+		"defaultMessage": "column {number}",
+		"description": "The name of a column with no label of its own, inside an announcement. The number is its place, from 1."
+	},
+	"ui.grid.discarded": {
+		"defaultMessage": "{count, plural, one {# change discarded} other {# changes discarded}}",
+		"description": "Spoken when the grid drops edits that were not saved. The count is the number of edits."
 	},
 	"ui.grid.droppedIn": {
 		"defaultMessage": "Dropped {item} in {place}.",
@@ -183,6 +467,10 @@
 		"defaultMessage": "the editor",
 		"description": "The group editor as a whole, as a place in an announcement, when a column is over no group."
 	},
+	"ui.grid.forRow": {
+		"defaultMessage": "{cells} for {row}",
+		"description": "Adds the row to a save announcement of the grid, such as \"Name updated for Alice\"."
+	},
 	"ui.grid.groupHandle": {
 		"defaultMessage": "Reorder group {group}",
 		"description": "The name of the handle that drags a group to a new place in the list of groups."
@@ -191,13 +479,49 @@
 		"defaultMessage": "position {position} of {total}",
 		"description": "The place of a dragged group in the list of groups, inside an announcement of the group editor."
 	},
+	"ui.grid.hid": {
+		"defaultMessage": "Hid {column} column",
+		"description": "Spoken when the reader hides a column of the grid."
+	},
 	"ui.grid.isOver": {
 		"defaultMessage": "{item} is over {place}.",
 		"description": "Spoken while a column or a group is dragged over a place in the group editor, such as \"Name column is over Contact group.\"."
 	},
+	"ui.grid.nothingTo": {
+		"defaultMessage": "{step, select, undo {Nothing to undo} other {Nothing to redo}}",
+		"description": "Spoken when the reader asks the grid to undo or redo and there is nothing to do."
+	},
+	"ui.grid.partial": {
+		"defaultMessage": "{saved}, {failed}",
+		"description": "Joins the saved and the failed cells of one save of the grid, such as \"Name updated, 2 cells not saved\"."
+	},
+	"ui.grid.pinned": {
+		"defaultMessage": "Pinned {column} to the {side, select, left {left} other {right}}",
+		"description": "Spoken when the reader pins a column of the grid to an edge."
+	},
+	"ui.grid.pixels": {
+		"defaultMessage": "{width, plural, one {# pixel} other {# pixels}}",
+		"description": "The width of a column of the grid, read by its resize handle."
+	},
+	"ui.grid.range": {
+		"defaultMessage": "Range of {rows, plural, one {# row} other {# rows}} and {cols, plural, one {# column} other {# columns}}, {fromColumn} row {fromRow} to {toColumn} row {toRow}",
+		"description": "Spoken when the reader selects a range of cells of the grid: its size, and its two corners by column and row number."
+	},
+	"ui.grid.resizeColumn": {
+		"defaultMessage": "Resize {column}",
+		"description": "The name of the handle that resizes a column of the grid."
+	},
+	"ui.grid.resized": {
+		"defaultMessage": "{column} column {width, plural, one {# pixel} other {# pixels}}",
+		"description": "Spoken when the reader resizes a column of the grid. The width is in pixels."
+	},
 	"ui.grid.returnedWhereStarted": {
 		"defaultMessage": "Returned {item} to where it started.",
 		"description": "Spoken when a canceled drag in the group editor puts the item back."
+	},
+	"ui.grid.rowAdded": {
+		"defaultMessage": "Row added",
+		"description": "Spoken when the reader adds a row to the grid."
 	},
 	"ui.grid.rowGroupName": {
 		"defaultMessage": "group {group}",
@@ -207,13 +531,61 @@
 		"defaultMessage": "row {key}",
 		"description": "The name of a row with no label of its own. The key is the key of the row."
 	},
+	"ui.grid.rowRefused": {
+		"defaultMessage": "{count, plural, one {Row not added, # cell refused} other {Row not added, # cells refused}}",
+		"description": "Spoken when the grid does not add a new row. The count is the number of refused cells."
+	},
+	"ui.grid.rowsSelected": {
+		"defaultMessage": "{count, plural, one {# row selected} other {# rows selected}}",
+		"description": "Spoken when the selection of the grid changes. The count is the number of selected rows."
+	},
 	"ui.grid.selectRow": {
 		"defaultMessage": "Select {row}",
 		"description": "The name of the checkbox that selects a row."
 	},
+	"ui.grid.selectionCleared": {
+		"defaultMessage": "Selection cleared",
+		"description": "Spoken when no row of the grid is selected any more."
+	},
+	"ui.grid.showed": {
+		"defaultMessage": "Showed {column} column",
+		"description": "Spoken when the reader shows a hidden column of the grid."
+	},
+	"ui.grid.skippedOnly": {
+		"defaultMessage": "{count, plural, one {# cell skipped} other {# cells skipped}}",
+		"description": "Spoken when a paste into the grid skips every cell. The count is the number of cells."
+	},
+	"ui.grid.sortCleared": {
+		"defaultMessage": "Sorting cleared",
+		"description": "Spoken when the grid is no longer sorted."
+	},
+	"ui.grid.sortEntry": {
+		"defaultMessage": "{column} {direction, select, asc {ascending} other {descending}}",
+		"description": "A sorted column and its direction, inside the sort announcement of the grid."
+	},
+	"ui.grid.sortThen": {
+		"defaultMessage": "{first}, then {next}",
+		"description": "Joins the sorted columns of the grid in their order, such as \"Name ascending, then Age descending\"."
+	},
+	"ui.grid.sortedBy": {
+		"defaultMessage": "Sorted by {columns}",
+		"description": "Spoken when the sort of the grid changes. The columns are the sorted columns, in order."
+	},
+	"ui.grid.stale": {
+		"defaultMessage": "{step, select, undo {Cannot undo, the cells changed} other {Cannot redo, the cells changed}}",
+		"description": "Spoken when the grid cannot undo or redo, because the cells changed since the edit."
+	},
 	"ui.grid.ungrouped": {
 		"defaultMessage": "Ungrouped",
 		"description": "The heading of the columns that are in no group, and their place in an announcement."
+	},
+	"ui.grid.unpinned": {
+		"defaultMessage": "Unpinned {column}",
+		"description": "Spoken when the reader unpins a column of the grid."
+	},
+	"ui.grid.withSkipped": {
+		"defaultMessage": "{saved}, {count, plural, other {# skipped}}",
+		"description": "Adds the skipped cells to a paste announcement of the grid, such as \"12 cells pasted, 2 skipped\"."
 	},
 	"ui.kanban.drag": {
 		"defaultMessage": "Drag",
@@ -474,6 +846,182 @@
 	"ui.pdfViewer.zoomOutTo": {
 		"defaultMessage": "Zoom out ({percent})",
 		"description": "The tooltip of the Zoom out button. The percent is the zoom that the button sets, such as \"90%\"."
+	},
+	"ui.query.after": {
+		"defaultMessage": "after",
+		"description": "The operator of a date condition of a filter: the date is after the value."
+	},
+	"ui.query.and": {
+		"defaultMessage": "AND",
+		"description": "The combinator that a row must match both conditions for, between two conditions of a filter."
+	},
+	"ui.query.before": {
+		"defaultMessage": "before",
+		"description": "The operator of a date condition of a filter: the date is before the value."
+	},
+	"ui.query.between": {
+		"defaultMessage": "between",
+		"description": "The operator of a number condition of a filter: the number is in a range."
+	},
+	"ui.query.conditionGroup": {
+		"defaultMessage": "condition group",
+		"description": "The name of a nested group of filter conditions inside a sentence, such as \"Picked up condition group\"."
+	},
+	"ui.query.contains": {
+		"defaultMessage": "contains",
+		"description": "The operator of a text condition of a filter: the text holds the value."
+	},
+	"ui.query.empty": {
+		"defaultMessage": "Empty",
+		"description": "The fixed value of a condition that checks for no text, as in \"Name is Empty\" and \"Name is not Empty\"."
+	},
+	"ui.query.emptyRule": {
+		"defaultMessage": "empty rule",
+		"description": "The name of a filter condition with no field and no value yet."
+	},
+	"ui.query.endsWith": {
+		"defaultMessage": "ends with",
+		"description": "The operator of a text condition of a filter: the text ends with the value."
+	},
+	"ui.query.fieldRule": {
+		"defaultMessage": "{field} rule",
+		"description": "The name of a filter condition with no value yet. The field is the name of its field."
+	},
+	"ui.query.isFalse": {
+		"defaultMessage": "is false",
+		"description": "The operator of a yes-or-no condition of a filter: the value is no."
+	},
+	"ui.query.isTrue": {
+		"defaultMessage": "is true",
+		"description": "The operator of a yes-or-no condition of a filter: the value is yes."
+	},
+	"ui.query.on": {
+		"defaultMessage": "on",
+		"description": "The operator of a date condition of a filter: the date is the value."
+	},
+	"ui.query.or": {
+		"defaultMessage": "OR",
+		"description": "The combinator that a row must match one of the conditions for, between two conditions of a filter."
+	},
+	"ui.query.range": {
+		"defaultMessage": "{min} and {max}",
+		"description": "The value of a \"between\" condition of a filter, such as \"Age between 18 and 65\". The min and the max are numbers."
+	},
+	"ui.query.selectIs": {
+		"defaultMessage": "is",
+		"description": "The operator of a choice condition of a filter: the choice is the value."
+	},
+	"ui.query.selectIsNot": {
+		"defaultMessage": "is not",
+		"description": "The operator of a choice condition of a filter: the choice is not the value."
+	},
+	"ui.query.startsWith": {
+		"defaultMessage": "starts with",
+		"description": "The operator of a text condition of a filter: the text starts with the value."
+	},
+	"ui.query.textEquals": {
+		"defaultMessage": "equals",
+		"description": "The operator of a text condition of a filter: the text is the value."
+	},
+	"ui.query.textIs": {
+		"defaultMessage": "is",
+		"description": "The operator of the condition \"is Empty\" of a text field in a filter."
+	},
+	"ui.query.textIsNot": {
+		"defaultMessage": "is not",
+		"description": "The operator of the condition \"is not Empty\" of a text field in a filter."
+	},
+	"ui.query.textNotEquals": {
+		"defaultMessage": "does not equal",
+		"description": "The operator of a text condition of a filter: the text is not the value."
+	},
+	"ui.queryBuilder.add": {
+		"defaultMessage": "Add",
+		"description": "The button that opens a menu to add a condition or a group to a filter."
+	},
+	"ui.queryBuilder.addGroup": {
+		"defaultMessage": "Add group",
+		"description": "The menu item that adds a nested group of conditions to a filter."
+	},
+	"ui.queryBuilder.addRule": {
+		"defaultMessage": "Add rule",
+		"description": "The menu item that adds a condition to a filter."
+	},
+	"ui.queryBuilder.combinator": {
+		"defaultMessage": "Combinator",
+		"description": "The name of the control that picks AND or OR between two conditions of a filter."
+	},
+	"ui.queryBuilder.field": {
+		"defaultMessage": "Field",
+		"description": "The name of the control that picks the field of a filter condition."
+	},
+	"ui.queryBuilder.fieldMax": {
+		"defaultMessage": "{field} maximum",
+		"description": "The name of the upper bound of a \"between\" condition of a filter. The field is the name of its field."
+	},
+	"ui.queryBuilder.fieldMin": {
+		"defaultMessage": "{field} minimum",
+		"description": "The name of the lower bound of a \"between\" condition of a filter. The field is the name of its field."
+	},
+	"ui.queryBuilder.fieldValue": {
+		"defaultMessage": "{field} value",
+		"description": "The name of the value field of a filter condition. The field is the name of the field of the condition."
+	},
+	"ui.queryBuilder.group": {
+		"defaultMessage": "Condition group",
+		"description": "The name of a nested group of filter conditions."
+	},
+	"ui.queryBuilder.holdToRemoveGroup": {
+		"defaultMessage": "Hold to remove group",
+		"description": "The tooltip of the Remove group button, which removes the group only after a long press."
+	},
+	"ui.queryBuilder.max": {
+		"defaultMessage": "Max",
+		"description": "The hint text of the empty upper bound of a \"between\" condition of a filter."
+	},
+	"ui.queryBuilder.min": {
+		"defaultMessage": "Min",
+		"description": "The hint text of the empty lower bound of a \"between\" condition of a filter."
+	},
+	"ui.queryBuilder.noRules": {
+		"defaultMessage": "No rules added",
+		"description": "The warning of a group of a filter that holds no conditions."
+	},
+	"ui.queryBuilder.operator": {
+		"defaultMessage": "Operator",
+		"description": "The name of the control that picks the operator of a filter condition, such as \"contains\"."
+	},
+	"ui.queryBuilder.removeGroup": {
+		"defaultMessage": "Remove group",
+		"description": "The button that removes a nested group of conditions from a filter."
+	},
+	"ui.queryBuilder.removeRule": {
+		"defaultMessage": "Remove rule",
+		"description": "The name of the button that removes a condition from a filter."
+	},
+	"ui.queryBuilder.value": {
+		"defaultMessage": "Value",
+		"description": "The hint text of the empty value field of a filter condition."
+	},
+	"ui.queryChips.changed": {
+		"defaultMessage": "Changed {combinator} to {next}",
+		"description": "Spoken when the reader switches the combinator between two filter chips."
+	},
+	"ui.queryChips.filters": {
+		"defaultMessage": "Filters",
+		"description": "The name of the row of chips that shows the conditions of a filter."
+	},
+	"ui.queryChips.noFilters": {
+		"defaultMessage": "No filters",
+		"description": "The text of the row of filter chips when the filter has no conditions."
+	},
+	"ui.queryChips.removed": {
+		"defaultMessage": "Removed {item}",
+		"description": "Spoken when the reader removes a condition of a filter, such as \"Removed Status is Active\"."
+	},
+	"ui.queryChips.switchTo": {
+		"defaultMessage": "{combinator}, switch to {next}",
+		"description": "The name of the button between two filter chips that switches the combinator, such as \"AND, switch to OR\"."
 	},
 	"ui.reorder.dropped": {
 		"defaultMessage": "Dropped {subject}.",

@@ -77,7 +77,9 @@ describe('a11y focus trap (real browser): date picker input mode', () => {
 		// Backward from the cycle's first element wraps to the dialog's last.
 		await userEvent.keyboard('{Shift>}{Tab}{/Shift}')
 
-		await waitFor(() => expect(screen.getByRole('button', { name: 'Today' })).toHaveFocus())
+		await waitFor(() =>
+			expect(screen.getByRole('button', { name: 'Clear selection' })).toHaveFocus(),
+		)
 
 		// Forward from the dialog's last tabbable returns to the input.
 		await userEvent.keyboard('{Tab}')

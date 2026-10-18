@@ -1,4 +1,8 @@
+import { defineMessages, selectedMessage } from '../../primitives/intl/intl-messages'
+import type { IntlShape } from '../../primitives/intl/types'
+import { getOrCompute } from '../../utilities/get-or-compute'
 import { isSameDay } from '../calendar/calendar-utilities'
+import { datePickerMessages } from './date-picker-messages'
 import {
 	addDays,
 	addMonths,
@@ -33,8 +37,8 @@ export type DatePickerRelativePreset = {
 
 /**
  * Configuration for the relative {@link DatePicker} variant. Bare `true` takes
- * the built-in {@link DEFAULT_RELATIVE_PRESETS}; an object overrides the list
- * wholesale (presets are an open list, so there is no per-id merge).
+ * the built-in presets ({@link defaultRelativePresets}); an object overrides the
+ * list wholesale (presets are an open list, so there is no per-id merge).
  *
  * @example
  * ```tsx
@@ -46,7 +50,7 @@ export type DatePickerRelativeConfig = {
 	 * Replaces the built-in preset list (not merged); list order is the popover
 	 * order.
 	 *
-	 * @defaultValue {@link DEFAULT_RELATIVE_PRESETS}
+	 * @defaultValue {@link defaultRelativePresets}, in the language of the reader.
 	 */
 	presets?: DatePickerRelativePreset[]
 	/**
@@ -75,20 +79,70 @@ export type DatePickerRelativeConfig = {
 /** A rendered trigger chip: a stable React `key` plus its display label. @internal */
 export type RelativeChip = { key: string; label: string }
 
+const presetMessages = defineMessages<{
+	yesterday: Record<never, never>
+	lastDays: { days: number }
+	thisMonth: Record<never, never>
+	lastMonth: Record<never, never>
+	thisYear: Record<never, never>
+	lastYear: Record<never, never>
+}>({
+	yesterday: {
+		id: 'ui.datePicker.yesterday',
+		defaultMessage: 'Yesterday',
+		description: 'A range of a date picker: the day before today.',
+	},
+	lastDays: {
+		id: 'ui.datePicker.lastDays',
+		defaultMessage: '{days, plural, one {Last day} other {Last # days}}',
+		description:
+			'A range of a date picker: today and the days before it. The count is the number of days, today included.',
+	},
+	thisMonth: {
+		id: 'ui.datePicker.thisMonth',
+		defaultMessage: 'This month',
+		description: 'A range of a date picker: from the first day of this month to today.',
+	},
+	lastMonth: {
+		id: 'ui.datePicker.lastMonth',
+		defaultMessage: 'Last month',
+		description: 'A range of a date picker: all the days of the month before this month.',
+	},
+	thisYear: {
+		id: 'ui.datePicker.thisYear',
+		defaultMessage: 'This year',
+		description: 'A range of a date picker: from the first day of this year to today.',
+	},
+	lastYear: {
+		id: 'ui.datePicker.lastYear',
+		defaultMessage: 'Last year',
+		description: 'A range of a date picker: all the days of the year before this year.',
+	},
+})
+
+// A built-in preset, with a label that the intl of the reader writes.
+type PresetSpec = Omit<DatePickerRelativePreset, 'label'> & { label: (intl: IntlShape) => string }
+
+// The label of a "Last N days" preset.
+const lastDays =
+	(days: number) =>
+	(intl: IntlShape): string =>
+		intl.formatMessage(presetMessages.lastDays, { days })
+
 /**
  * Built-in relative presets, in popover order. All spans are day-granular and
  * inclusive of both endpoints. "Last N days" is inclusive of today, so its span
  * covers today and the preceding `N − 1` days (`from = today − (N − 1)`).
  */
-export const DEFAULT_RELATIVE_PRESETS: DatePickerRelativePreset[] = [
+const PRESET_SPECS: PresetSpec[] = [
 	{
 		id: 'today',
-		label: 'Today',
+		label: (intl) => intl.formatMessage(datePickerMessages.today),
 		resolve: (now) => ({ from: startOfDay(now), to: startOfDay(now) }),
 	},
 	{
 		id: 'yesterday',
-		label: 'Yesterday',
+		label: (intl) => intl.formatMessage(presetMessages.yesterday),
 		resolve: (now) => {
 			const day = addDays(startOfDay(now), -1)
 
@@ -97,27 +151,27 @@ export const DEFAULT_RELATIVE_PRESETS: DatePickerRelativePreset[] = [
 	},
 	{
 		id: 'last-7-days',
-		label: 'Last 7 days',
+		label: lastDays(7),
 		resolve: (now) => ({ from: addDays(startOfDay(now), -6), to: startOfDay(now) }),
 	},
 	{
 		id: 'last-30-days',
-		label: 'Last 30 days',
+		label: lastDays(30),
 		resolve: (now) => ({ from: addDays(startOfDay(now), -29), to: startOfDay(now) }),
 	},
 	{
 		id: 'last-90-days',
-		label: 'Last 90 days',
+		label: lastDays(90),
 		resolve: (now) => ({ from: addDays(startOfDay(now), -89), to: startOfDay(now) }),
 	},
 	{
 		id: 'this-month',
-		label: 'This month',
+		label: (intl) => intl.formatMessage(presetMessages.thisMonth),
 		resolve: (now) => ({ from: startOfMonth(now), to: startOfDay(now) }),
 	},
 	{
 		id: 'last-month',
-		label: 'Last month',
+		label: (intl) => intl.formatMessage(presetMessages.lastMonth),
 		resolve: (now) => {
 			const prior = addMonths(now, -1)
 
@@ -126,12 +180,12 @@ export const DEFAULT_RELATIVE_PRESETS: DatePickerRelativePreset[] = [
 	},
 	{
 		id: 'this-year',
-		label: 'This year',
+		label: (intl) => intl.formatMessage(presetMessages.thisYear),
 		resolve: (now) => ({ from: startOfYear(now), to: startOfDay(now) }),
 	},
 	{
 		id: 'last-year',
-		label: 'Last year',
+		label: (intl) => intl.formatMessage(presetMessages.lastYear),
 		resolve: (now) => {
 			const prior = addMonths(now, -12)
 
@@ -140,13 +194,30 @@ export const DEFAULT_RELATIVE_PRESETS: DatePickerRelativePreset[] = [
 	},
 ]
 
+// The built-in presets of each intl. One list for each intl keeps the identity
+// of the list across renders, so a memo that reads it holds.
+const defaultPresets = new WeakMap<IntlShape, DatePickerRelativePreset[]>()
+
+/**
+ * The built-in relative presets, in popover order, with their labels in the
+ * language of `intl`. Each call with the same `intl` gives the same list.
+ *
+ * @internal
+ */
+export function defaultRelativePresets(intl: IntlShape): DatePickerRelativePreset[] {
+	return getOrCompute(defaultPresets, intl, () =>
+		PRESET_SPECS.map(({ label, ...preset }) => ({ ...preset, label: label(intl) })),
+	)
+}
+
 /** Resolves bare `true` or a config to the active preset list. @internal */
 export function resolveRelativePresets(
+	intl: IntlShape,
 	relative: true | DatePickerRelativeConfig,
 ): DatePickerRelativePreset[] {
-	if (relative === true) return DEFAULT_RELATIVE_PRESETS
+	if (relative === true) return defaultRelativePresets(intl)
 
-	return relative.presets ?? DEFAULT_RELATIVE_PRESETS
+	return relative.presets ?? defaultRelativePresets(intl)
 }
 
 /**
@@ -365,10 +436,12 @@ export function relativeChips(
  *
  * @internal
  */
-export function relativeSummary(chips: RelativeChip[]): string {
+export function relativeSummary(intl: IntlShape, chips: RelativeChip[]): string {
 	const [first] = chips
 
 	if (first === undefined) return ''
 
-	return chips.length === 1 ? first.label : `${chips.length} selected`
+	return chips.length === 1
+		? first.label
+		: intl.formatMessage(selectedMessage, { count: chips.length })
 }

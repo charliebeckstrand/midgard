@@ -4,6 +4,7 @@ import { type KeyboardEvent, useCallback, useMemo, useState } from 'react'
 
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { useLocale } from '../../providers/locale'
 import { wrap } from '../../utilities'
 import { NAVIGATION_KEYS } from '../calendar/use-calendar-focus'
@@ -66,6 +67,9 @@ export function useDatePickerRelativeState({
 }: DatePickerBaseProps & DatePickerRelativeProps) {
 	// Custom-range chip labels read the same ambient locale the Calendar does.
 	const ambient = useLocale()
+
+	// The built-in presets and the count of the summary speak its language.
+	const intl = useIntl()
 
 	// Single-select unless `relative.multiple` opts in; drives the toggle behavior
 	// (replace vs. accumulate). The value is an array in both modes.
@@ -144,7 +148,7 @@ export function useDatePickerRelativeState({
 		}
 	}
 
-	const presets = resolveRelativePresets(relative)
+	const presets = resolveRelativePresets(intl, relative)
 
 	const customActive = isCustomActive(value, presets, now, pickedIds)
 
@@ -336,7 +340,7 @@ export function useDatePickerRelativeState({
 
 	// Derived from the chips, so both readings resolve their labels once and cannot
 	// drift. Not memoized: it returns a string, so there is no identity to hold.
-	const summary = relativeSummary(chips)
+	const summary = relativeSummary(intl, chips)
 
 	const selectedIds = useMemo(
 		() => selectedPresetIds(value, presets, now, pickedIds),

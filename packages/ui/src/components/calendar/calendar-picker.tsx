@@ -1,7 +1,9 @@
 'use client'
 
+import { useIntl } from '../../primitives/intl/use-intl'
 import { Button } from '../button'
 import { Popover, PopoverContent, PopoverTrigger } from '../popover'
+import { calendarMessages } from './calendar-messages'
 import { CalendarPickerGrid } from './calendar-picker-grid'
 import { useCalendarPicker } from './use-calendar-picker'
 
@@ -42,6 +44,8 @@ export function CalendarPicker({
 	triggerClassName,
 	triggerIndex,
 }: CalendarPickerProps) {
+	const intl = useIntl()
+
 	const { headerRef, gridRef, handleHeaderKeyDown, handleGridKeyDown, viewConfig } =
 		useCalendarPicker({
 			year,
@@ -66,7 +70,7 @@ export function CalendarPicker({
 					{monthLabel}
 				</Button>
 			</PopoverTrigger>
-			<PopoverContent modal aria-label="Choose month and year">
+			<PopoverContent modal aria-label={intl.formatMessage(calendarMessages.chooseMonthYear)}>
 				<CalendarPickerGrid
 					headerRef={headerRef}
 					gridRef={gridRef}

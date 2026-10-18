@@ -106,11 +106,13 @@ export function stepNearest(
 	return best
 }
 
-/** The outcome of a keypress: whether it drove the cursor, and which stop it lands on. @internal */
+/** The outcome of a keypress: whether it drove the cursor, whether it leaves, and which stop it lands on. @internal */
 export type MapCursorMove = {
 	/** True when the key drove navigation, so the caller suppresses the browser default. */
 	handled: boolean
-	/** The stop the cursor lands on, or `null` to clear it. Meaningless unless `handled`. */
+	/** True only for the clear action. The cursor clears and focus leaves the region. */
+	leave: boolean
+	/** The stop the cursor lands on, or `null` when it has no stop to land on. Meaningless unless `handled`. */
 	stop: MapStop | null
 }
 
@@ -121,7 +123,9 @@ export type MapCursorMove = {
  * holds. From there each arrow moves to the nearest stop bearing that way. It
  * holds at the edge, rather than wrapping to the far side, which would read as a
  * jump. Home and End go to the ends of the list, which the plat orders
- * geography-first. Unhandled keys pass through untouched.
+ * geography-first. On an empty list, a navigation key is handled and moves
+ * nothing: the key does not scroll the page, and only the clear action leaves.
+ * Unhandled keys pass through untouched.
  *
  * Takes the cursor's position in the list and hands back the stop itself, so no
  * caller converts between the two. The index is this module's own coordinate
@@ -132,19 +136,19 @@ export type MapCursorMove = {
 export function moveMapCursor(cursor: number | null, key: string, stops: MapStop[]): MapCursorMove {
 	const action = keyAction(key)
 
-	if (action === null) return { handled: false, stop: null }
+	if (action === null) return { handled: false, leave: false, stop: null }
 
 	const at = (index: number | null) => (index === null ? null : (stops[index] ?? null))
 
-	if (action === 'clear') return { handled: true, stop: null }
+	if (action === 'clear') return { handled: true, leave: true, stop: null }
 
-	if (action === 'first') return { handled: true, stop: at(0) }
+	if (action === 'first') return { handled: true, leave: false, stop: at(0) }
 
-	if (action === 'last') return { handled: true, stop: at(stops.length - 1) }
+	if (action === 'last') return { handled: true, leave: false, stop: at(stops.length - 1) }
 
 	const base = cursor !== null && stops[cursor] ? cursor : null
 
-	if (base === null) return { handled: true, stop: at(0) }
+	if (base === null) return { handled: true, leave: false, stop: at(0) }
 
-	return { handled: true, stop: at(stepNearest(stops, base, action) ?? base) }
+	return { handled: true, leave: false, stop: at(stepNearest(stops, base, action) ?? base) }
 }

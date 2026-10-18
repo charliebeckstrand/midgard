@@ -2,6 +2,7 @@
 
 import { type RefObject, useLayoutEffect, useMemo } from 'react'
 import { useA11yAnnouncements } from '../../hooks'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { isDataColumn } from '../../utilities'
 import type { GridSortState } from './context'
 import { describeSelection, describeSort } from './engine/grid-announcements'
@@ -76,6 +77,8 @@ export function useGridDataView<T>({
 	virtualized: boolean
 	tableRef: RefObject<HTMLTableElement | null>
 }) {
+	const intl = useIntl()
+
 	// Cursor index space: rendered rows and the visible *data* columns. It skips the
 	// non-data columns (selection, actions, drag handle, expander). Synced into the
 	// refs below, after the engine resolves order and visibility, so the cell ids,
@@ -170,9 +173,9 @@ export function useGridDataView<T>({
 	// Narrate sort and selection changes to assistive tech without moving focus
 	// (WCAG 4.1.3). Both dedupe and skip their initial value; selection stays
 	// silent unless the grid has a selection column.
-	useA11yAnnouncements(describeSort(sort, columns))
+	useA11yAnnouncements(describeSort(intl, sort, columns))
 
-	useA11yAnnouncements(describeSelection(selection.size, allSelected, paginated), {
+	useA11yAnnouncements(describeSelection(intl, selection.size, allSelected, paginated), {
 		enabled: hasSelectionColumn,
 	})
 

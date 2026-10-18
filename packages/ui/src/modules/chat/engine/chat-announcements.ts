@@ -8,21 +8,35 @@
  * reply once it has settled. Never say a chunk. A reply rewrites itself many
  * times a second, and a region that read every rewrite would be worse than
  * silence.
+ *
+ * Each builder takes the intl of the reader and speaks in its language.
  */
 
+import { defineMessages } from '../../../primitives/intl/intl-messages'
+import type { IntlShape } from '../../../primitives/intl/types'
 import { toChatParts } from './chat-content/normalize'
 import { chatContentText } from './chat-content/text'
 import type { ChatPart } from './chat-content/types'
 import type { ChatMessageData } from './types'
 
-/**
- * The announcement while a reply arrives. One string for the whole wait,
- * because the status is the same at every chunk and the announcer speaks only
- * on a change.
- *
- * @internal
- */
-export const REPLY_STARTED = 'Assistant is replying'
+const replyMessages = defineMessages<{
+	replying: Record<never, never>
+	views: { views: number }
+}>({
+	// One string for the whole wait, because the status is the same at every
+	// chunk and the announcer speaks only on a change.
+	replying: {
+		id: 'ui.chat.replying',
+		defaultMessage: 'Assistant is replying',
+		description: 'Spoken while a reply of the assistant arrives in a chat.',
+	},
+	views: {
+		id: 'ui.chat.views',
+		defaultMessage: '{views, plural, one {# embedded view} other {# embedded views}}',
+		description:
+			'Spoken after a reply of the assistant that holds views, such as charts. The count is the number of views.',
+	},
+})
 
 /**
  * How many blocks in the content draw through the embed registry.
@@ -48,14 +62,14 @@ function embedCount(content: string | ChatPart[]): number {
  *
  * @internal
  */
-export function describeReply(content: string | ChatPart[]): string {
+export function describeReply(intl: IntlShape, content: string | ChatPart[]): string {
 	const spoken = chatContentText(content)
 
 	const views = embedCount(content)
 
 	if (views === 0) return spoken
 
-	const summary = `${views} embedded ${views === 1 ? 'view' : 'views'}`
+	const summary = intl.formatMessage(replyMessages.views, { views })
 
 	return spoken ? `${spoken}\n\n${summary}` : summary
 }
@@ -68,14 +82,19 @@ export function describeReply(content: string | ChatPart[]): string {
  * wrote it, so it is not news, and the reply to it has not started yet.
  *
  * @internal
+ * @param intl - The intl of the reader.
  * @param messages - The transcript, oldest first.
  * @param streaming - Whether a reply is in flight. Absent reads as settled, so
  * the rule takes the transcript's own optional prop without a cast.
  */
-export function describeTranscript(messages: ChatMessageData[], streaming = false): string {
-	if (streaming) return REPLY_STARTED
+export function describeTranscript(
+	intl: IntlShape,
+	messages: ChatMessageData[],
+	streaming = false,
+): string {
+	if (streaming) return intl.formatMessage(replyMessages.replying)
 
 	const last = messages.at(-1)
 
-	return last?.sender === 'assistant' ? describeReply(last.content) : ''
+	return last?.sender === 'assistant' ? describeReply(intl, last.content) : ''
 }

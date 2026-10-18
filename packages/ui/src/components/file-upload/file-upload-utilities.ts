@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react'
+import type { IntlShape } from '../../primitives/intl/types'
+import { fileUploadMessages } from './file-upload-messages'
 
 /**
  * Resolves the hidden input's accessible name from a variant's visible
@@ -35,15 +37,21 @@ export function formatFileNames(files: File[]): string | undefined {
 /**
  * Selection status text for the `drop` and `input` variants. It is the file
  * name for a single pick. Once `multiple` yields more than one, it is an
- * "x files selected" summary.
+ * "x files selected" summary, in the language of `intl`.
  *
  * @returns The status text, or `undefined` when there are no files.
  * @internal
  */
-export function selectionSummary(files: File[], multiple?: boolean): string | undefined {
+export function selectionSummary(
+	intl: IntlShape,
+	files: File[],
+	multiple?: boolean,
+): string | undefined {
 	if (files.length === 0) return undefined
 
-	if (multiple && files.length > 1) return `${files.length} files selected`
+	if (multiple && files.length > 1) {
+		return intl.formatMessage(fileUploadMessages.selected, { count: files.length })
+	}
 
 	return formatFileNames(files)
 }

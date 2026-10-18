@@ -4,6 +4,9 @@ import { Collapse, CollapsePanel, CollapseTrigger } from '../../components/colla
 import { Markdown } from '../../components/markdown'
 import { StatusDot, type StatusDotProps } from '../../components/status'
 import { cn } from '../../core'
+import { defineMessages } from '../../primitives/intl/intl-messages'
+import type { MessageDescriptor } from '../../primitives/intl/types'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/chat-message'
 import type { ChatToolPart, ChatToolStatus } from './engine/chat-content/types'
 
@@ -18,7 +21,25 @@ import type { ChatToolPart, ChatToolStatus } from './engine/chat-content/types'
 export const MESSAGE_HEADING_OFFSET = 1
 
 /** How one status draws and what it is called. @internal */
-type StatusLook = { status: StatusDotProps['status']; label: string; pulse: boolean }
+type StatusLook = { status: StatusDotProps['status']; label: MessageDescriptor; pulse: boolean }
+
+const messages = defineMessages({
+	running: {
+		id: 'ui.chat.running',
+		defaultMessage: 'Running',
+		description: 'The status of a step of the assistant that has not ended.',
+	},
+	done: {
+		id: 'ui.chat.done',
+		defaultMessage: 'Done',
+		description: 'The status of a step of the assistant that ended well.',
+	},
+	failed: {
+		id: 'ui.chat.failed',
+		defaultMessage: 'Failed',
+		description: 'The status of a step of the assistant that ended with an error.',
+	},
+})
 
 /**
  * The look and the word per status. Color alone conveys a status, so the dot
@@ -28,9 +49,9 @@ type StatusLook = { status: StatusDotProps['status']; label: string; pulse: bool
  * @internal
  */
 const STATUS = {
-	running: { status: 'info', label: 'Running', pulse: true },
-	done: { status: 'active', label: 'Done', pulse: false },
-	failed: { status: 'error', label: 'Failed', pulse: false },
+	running: { status: 'info', label: messages.running, pulse: true },
+	done: { status: 'active', label: messages.done, pulse: false },
+	failed: { status: 'error', label: messages.failed, pulse: false },
 } as const satisfies Record<ChatToolStatus, StatusLook>
 
 /** Props for {@link ChatTool}. @internal */
@@ -63,13 +84,15 @@ export type ChatToolProps = {
  * @internal
  */
 export function ChatTool({ part, className }: ChatToolProps) {
+	const intl = useIntl()
+
 	const { status, label, pulse } = STATUS[part.status]
 
 	// How it ended, what ran, and the line saying what it did — the same content
 	// whether it heads a plain line or a disclosure trigger.
 	const head = (
 		<>
-			<StatusDot size="sm" status={status} pulse={pulse} label={label} />
+			<StatusDot size="sm" status={status} pulse={pulse} label={intl.formatMessage(label)} />
 			<span data-slot="chat-tool-name" className={cn(k.tool.name)}>
 				{part.name}
 			</span>
