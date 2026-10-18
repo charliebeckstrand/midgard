@@ -1701,6 +1701,42 @@ describe('DatePicker input', () => {
 		expect(input).toHaveFocus()
 	})
 
+	it('drops the grid highlight on a text edit, so Enter commits the typed date', async () => {
+		const user = setupUser()
+
+		const onChange = vi.fn()
+
+		const { container } = renderUI(
+			<DatePicker input defaultValue={new Date(2025, 5, 15)} onValueChange={onChange} />,
+		)
+
+		const input = getSlot<HTMLInputElement>(container, 'datepicker-input')
+
+		input.focus()
+
+		await user.keyboard('{ArrowDown}') // open
+
+		await user.keyboard('{ArrowDown}') // highlight the 15th
+
+		expect(input).toHaveAttribute('aria-activedescendant')
+
+		// Replace the text with a date in another month.
+		await user.type(input, '12252026', {
+			initialSelectionStart: 0,
+			initialSelectionEnd: input.value.length,
+		})
+
+		expect(input).not.toHaveAttribute('aria-activedescendant')
+
+		await user.keyboard('{Enter}')
+
+		const committed = onChange.mock.lastCall?.[0] as Date
+
+		expect(committed).toEqual(new Date(2026, 11, 25))
+
+		expect(input.value).toBe('12/25/2026')
+	})
+
 	it('drops aria-activedescendant when the highlight leaves the grid', async () => {
 		const user = setupUser()
 
