@@ -5,13 +5,15 @@ import { LogOut, MailCheck } from 'lucide-react'
 import { useState } from 'react'
 import { Icon } from 'ui/icon'
 import { MenuItem, MenuLabel, MenuSeparator } from 'ui/menu'
+import { useIntl } from 'ui/primitives/intl'
 import { sendVerificationEmail, signOut } from './account'
+import { authMessages } from './auth-messages'
 
 /** Where sending a verification link stands, and the label it shows. */
 const verifyLabels = {
-	idle: 'Verify your email',
-	sent: 'Link sent, check your email',
-	failed: 'Link not sent, try again later',
+	idle: authMessages.verifyMenu,
+	sent: authMessages.verifyMenuSent,
+	failed: authMessages.verifyMenuFailed,
 } as const
 
 /**
@@ -23,6 +25,8 @@ const verifyLabels = {
  * {@link SignOutMenuItem}.
  */
 export function VerifyEmailMenuItem({ user }: { user: User }) {
+	const intl = useIntl()
+
 	const [verify, setVerify] = useState<keyof typeof verifyLabels>('idle')
 
 	if (user.is_verified) return null
@@ -38,7 +42,7 @@ export function VerifyEmailMenuItem({ user }: { user: User }) {
 		<>
 			<MenuItem onAction={sendVerification} disabled={verify === 'sent'} closeOnAction={false}>
 				<Icon icon={<MailCheck />} />
-				<MenuLabel>{verifyLabels[verify]}</MenuLabel>
+				<MenuLabel>{intl.formatMessage(verifyLabels[verify])}</MenuLabel>
 			</MenuItem>
 
 			<MenuSeparator />
@@ -53,10 +57,12 @@ export function VerifyEmailMenuItem({ user }: { user: User }) {
  * in the query cache.
  */
 export function SignOutMenuItem() {
+	const intl = useIntl()
+
 	return (
 		<MenuItem onAction={signOut}>
 			<Icon icon={<LogOut />} />
-			<MenuLabel>Sign out</MenuLabel>
+			<MenuLabel>{intl.formatMessage(authMessages.signOut)}</MenuLabel>
 		</MenuItem>
 	)
 }

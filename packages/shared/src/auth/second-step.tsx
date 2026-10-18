@@ -13,11 +13,12 @@ import { Form, type FormSubmitHandler } from 'ui/form'
 import { Input } from 'ui/input'
 import { useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
+import { authMessages } from './auth-messages'
 import { bifrost } from './bifrost'
 import { chain, required } from './form-validators'
 import type { SecondFactorMethod } from './second-step-request'
 import { useLeaving } from './use-leaving'
-import { unexpectedError, useServerError } from './use-server-error'
+import { useServerError } from './use-server-error'
 
 /** The proof that `/auth/session/verify` accepts. */
 type SecondFactorProof = Schema<'SecondFactorRequest'>
@@ -38,8 +39,6 @@ type SecondStepProps = {
 }
 
 type CodeValues = { code: string }
-
-const passkeyFailed = 'The passkey check did not complete. Please try again.'
 
 /**
  * Form of the second step: a code from an authenticator app, a recovery code,
@@ -86,9 +85,9 @@ export function SecondStep({
 
 			if (response.status === 410) return leave(onExpired)
 
-			setServerError(error?.message || 'That code was not accepted. Please try again.')
+			setServerError(error?.message || intl.formatMessage(authMessages.codeRejected))
 		} catch {
-			setServerError(unexpectedError)
+			setServerError(intl.formatMessage(authMessages.unexpected))
 		}
 	}
 
@@ -102,7 +101,7 @@ export function SecondStep({
 			const { data: options, error } = await bifrost.POST('/auth/session/verify/options')
 
 			if (!options) {
-				setServerError(error?.message || passkeyFailed)
+				setServerError(error?.message || intl.formatMessage(authMessages.passkeyCheckFailed))
 
 				return
 			}
@@ -112,7 +111,7 @@ export function SecondStep({
 
 			await submit({ passkey: await startAuthentication({ optionsJSON }) })
 		} catch {
-			setServerError(passkeyFailed)
+			setServerError(intl.formatMessage(authMessages.passkeyCheckFailed))
 		}
 	}
 
@@ -144,7 +143,9 @@ export function SecondStep({
 						<Stack gap="xl">
 							<Field>
 								<Label>
-									{usingRecovery ? 'Recovery code' : 'Code from your authenticator app'}
+									{intl.formatMessage(
+										usingRecovery ? authMessages.recoveryCode : authMessages.authenticatorCode,
+									)}
 								</Label>
 								{usingRecovery ? (
 									<Input name="code" autoComplete="off" autoCapitalize="none" spellCheck={false} />
@@ -155,7 +156,7 @@ export function SecondStep({
 							</Field>
 
 							<Button type="submit" className="w-full">
-								Continue
+								{intl.formatMessage(authMessages.continue)}
 							</Button>
 						</Stack>
 					</Form>
@@ -168,7 +169,7 @@ export function SecondStep({
 						className="w-full"
 						onClick={checkPasskey}
 					>
-						Use a passkey
+						{intl.formatMessage(authMessages.usePasskey)}
 					</Button>
 				)}
 
@@ -180,7 +181,7 @@ export function SecondStep({
 						className="self-center"
 						onClick={() => setUsingRecovery(true)}
 					>
-						Use a recovery code
+						{intl.formatMessage(authMessages.useRecoveryCode)}
 					</Button>
 				)}
 
@@ -192,7 +193,7 @@ export function SecondStep({
 						className="self-center"
 						onClick={() => setUsingRecovery(false)}
 					>
-						Use your authenticator app
+						{intl.formatMessage(authMessages.useAuthenticator)}
 					</Button>
 				)}
 
@@ -220,6 +221,8 @@ export type SecondStepPending = {
  * gateway ends the session, and the page goes to `/login?expired=true`.
  */
 export function SecondStepPanel({ pending }: { pending: SecondStepPending | undefined }) {
+	const intl = useIntl()
+
 	return (
 		<Dialog open={pending !== undefined} onOpenChange={(open) => open || pending?.resolve(false)}>
 			<DialogPanel
@@ -227,7 +230,7 @@ export function SecondStepPanel({ pending }: { pending: SecondStepPending | unde
 				footer={null}
 			>
 				<DialogHeader>
-					<DialogTitle>Confirm that it is you</DialogTitle>
+					<DialogTitle>{intl.formatMessage(authMessages.confirmIdentity)}</DialogTitle>
 				</DialogHeader>
 
 				<DialogBody>
@@ -237,7 +240,7 @@ export function SecondStepPanel({ pending }: { pending: SecondStepPending | unde
 							onVerified={() => pending.resolve(true)}
 							onExpired={() => window.location.assign('/login?expired=true')}
 							onCancel={() => pending.resolve(false)}
-							cancelLabel="Cancel"
+							cancelLabel={intl.formatMessage(authMessages.cancel)}
 						/>
 					)}
 				</DialogBody>

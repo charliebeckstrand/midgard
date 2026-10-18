@@ -13,10 +13,11 @@ import { PasswordInput } from 'ui/password-input'
 import { useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
+import { authMessages } from './auth-messages'
 import { bifrost } from './bifrost'
 import { chain, email, matches, minLength, required, validationMessages } from './form-validators'
 import { Turnstile } from './turnstile'
-import { unexpectedError, useServerError } from './use-server-error'
+import { useServerError } from './use-server-error'
 
 type RegisterValues = {
 	email: string
@@ -74,15 +75,13 @@ export function RegisterPage({ turnstileSiteKey }: RegisterPageProps) {
 
 			setAttempt((prev) => prev + 1)
 
-			setServerError(
-				error?.message || 'Registration failed. Please check your details and try again.',
-			)
+			setServerError(error?.message || intl.formatMessage(authMessages.registrationFailed))
 		} catch {
 			setTurnstileToken(null)
 
 			setAttempt((prev) => prev + 1)
 
-			setServerError(unexpectedError)
+			setServerError(intl.formatMessage(authMessages.unexpected))
 		}
 	}
 
@@ -102,30 +101,32 @@ export function RegisterPage({ turnstileSiteKey }: RegisterPageProps) {
 				onSubmit={handleSubmit}
 			>
 				<Stack gap="xl" className="w-full sm:max-w-sm p-6">
-					<Heading className="text-center">Create your account</Heading>
+					<Heading className="text-center">
+						{intl.formatMessage(authMessages.registerTitle)}
+					</Heading>
 
 					{errorAlert}
 
 					<Field>
-						<Label>Email</Label>
+						<Label>{intl.formatMessage(authMessages.email)}</Label>
 						<Input type="email" name="email" autoComplete="email" />
 						<Message name="email" />
 					</Field>
 
 					<Field>
-						<Label>Full name</Label>
+						<Label>{intl.formatMessage(authMessages.fullName)}</Label>
 						<Input name="name" />
 						<Message name="name" />
 					</Field>
 
 					<Field>
-						<Label>Password</Label>
+						<Label>{intl.formatMessage(authMessages.password)}</Label>
 						<PasswordInput name="password" autoComplete="new-password" />
 						<Message name="password" />
 					</Field>
 
 					<Field>
-						<Label>Confirm password</Label>
+						<Label>{intl.formatMessage(authMessages.confirmPassword)}</Label>
 						<PasswordInput name="confirmPassword" />
 						<Message name="confirmPassword" />
 					</Field>
@@ -139,14 +140,14 @@ export function RegisterPage({ turnstileSiteKey }: RegisterPageProps) {
 						className="w-full"
 						disabled={Boolean(turnstileSiteKey) && !turnstileToken}
 					>
-						Create account
+						{intl.formatMessage(authMessages.createAccount)}
 					</Button>
 
 					<div className="text-center">
 						<Text>
-							Already have an account?{' '}
+							{intl.formatMessage(authMessages.haveAccount)}{' '}
 							<Link href="/login" underline>
-								Sign in
+								{intl.formatMessage(authMessages.signIn)}
 							</Link>
 						</Text>
 					</div>

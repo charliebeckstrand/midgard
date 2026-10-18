@@ -1,4 +1,232 @@
 {
+	"shared.auth.accountExists": {
+		"defaultMessage": "An account with that email already exists. Sign in with it, then connect this account from the account page.",
+		"description": "The error of a GitHub or Google sign-in whose email belongs to another account of the app."
+	},
+	"shared.auth.accountInactive": {
+		"defaultMessage": "Account is inactive.",
+		"description": "The error of a sign-in with an account that an admin turned off."
+	},
+	"shared.auth.authenticatorCode": {
+		"defaultMessage": "Code from your authenticator app",
+		"description": "The label of the authenticator code field of the second step."
+	},
+	"shared.auth.backToSignIn": {
+		"defaultMessage": "Back to sign in",
+		"description": "The link back to the sign-in page."
+	},
+	"shared.auth.cancel": {
+		"defaultMessage": "Cancel",
+		"description": "The button that closes the dialog of the second step."
+	},
+	"shared.auth.codeRejected": {
+		"defaultMessage": "That code was not accepted. Please try again.",
+		"description": "The error of a second-step code that the gateway refused without a reason."
+	},
+	"shared.auth.confirmIdentity": {
+		"defaultMessage": "Confirm that it is you",
+		"description": "The title of the second step of a sign-in."
+	},
+	"shared.auth.confirmPassword": {
+		"defaultMessage": "Confirm password",
+		"description": "The label of the field that repeats the new password."
+	},
+	"shared.auth.continue": {
+		"defaultMessage": "Continue",
+		"description": "The button or the link that goes to the next step after a success."
+	},
+	"shared.auth.continueWith": {
+		"defaultMessage": "Continue with {provider}",
+		"description": "The button that signs in with a provider. The provider is a name, such as GitHub."
+	},
+	"shared.auth.createAccount": {
+		"defaultMessage": "Create account",
+		"description": "The button that registers a new account."
+	},
+	"shared.auth.createOne": {
+		"defaultMessage": "Create one",
+		"description": "The link to the register page, after \"Don't have an account?\"."
+	},
+	"shared.auth.email": {
+		"defaultMessage": "Email",
+		"description": "The label of the email field of an auth form."
+	},
+	"shared.auth.emailUnverified": {
+		"defaultMessage": "That account has no verified email. Verify it with the provider first.",
+		"description": "The error of a GitHub or Google sign-in with an account whose email is not verified."
+	},
+	"shared.auth.expired": {
+		"defaultMessage": "Too many wrong tries. Please sign in again.",
+		"description": "The notice after the gateway ended a session for too many wrong second-step tries."
+	},
+	"shared.auth.forgotIntro": {
+		"defaultMessage": "Type the email of your account. We will send you a link to set a new password.",
+		"description": "The text of the page that sends a link to reset the password."
+	},
+	"shared.auth.forgotPassword": {
+		"defaultMessage": "Forgot password?",
+		"description": "The link to the page that sends a link to reset the password."
+	},
+	"shared.auth.forgotSent": {
+		"defaultMessage": "If an account has that email, we sent it a link. The link works for one hour.",
+		"description": "The notice after the page sent a link to reset the password."
+	},
+	"shared.auth.forgotTitle": {
+		"defaultMessage": "Reset your password",
+		"description": "The title of the page that sends a link to reset the password."
+	},
+	"shared.auth.fullName": {
+		"defaultMessage": "Full name",
+		"description": "The label of the name field of the register page."
+	},
+	"shared.auth.getNewLink": {
+		"defaultMessage": "Get a new one",
+		"description": "The link to get a new reset link, after \"Link expired?\"."
+	},
+	"shared.auth.haveAccount": {
+		"defaultMessage": "Already have an account?",
+		"description": "The text before the link to the sign-in page."
+	},
+	"shared.auth.linkExpired": {
+		"defaultMessage": "Link expired?",
+		"description": "The text before the link to get a new reset link."
+	},
+	"shared.auth.loginFailed": {
+		"defaultMessage": "Login failed. Please check your credentials and try again.",
+		"description": "The error of a sign-in that the gateway refused without a reason."
+	},
+	"shared.auth.loginTitle": {
+		"defaultMessage": "Sign in to your account",
+		"description": "The title of the sign-in page."
+	},
+	"shared.auth.newPassword": {
+		"defaultMessage": "New password",
+		"description": "The label of the new password field."
+	},
+	"shared.auth.noAccount": {
+		"defaultMessage": "Don't have an account?",
+		"description": "The text before the link to the register page."
+	},
+	"shared.auth.oauthFailed": {
+		"defaultMessage": "That sign-in did not complete. Please try again.",
+		"description": "The error of a GitHub or Google sign-in that did not complete."
+	},
+	"shared.auth.oauthUnavailable": {
+		"defaultMessage": "That sign-in method is not available.",
+		"description": "The error of a GitHub or Google sign-in that the gateway does not offer."
+	},
+	"shared.auth.passkeyCheckFailed": {
+		"defaultMessage": "The passkey check did not complete. Please try again.",
+		"description": "The error of a passkey second step that the reader or the browser stopped."
+	},
+	"shared.auth.passkeySignInFailed": {
+		"defaultMessage": "Passkey sign-in did not complete. Please try again.",
+		"description": "The error of a passkey sign-in that the reader or the browser stopped."
+	},
+	"shared.auth.password": {
+		"defaultMessage": "Password",
+		"description": "The label of the password field of an auth form."
+	},
+	"shared.auth.passwordSet": {
+		"defaultMessage": "Your password is set. Please sign in.",
+		"description": "The notice on the sign-in page after a password reset."
+	},
+	"shared.auth.recoveryCode": {
+		"defaultMessage": "Recovery code",
+		"description": "The label of the recovery code field of the second step."
+	},
+	"shared.auth.registerTitle": {
+		"defaultMessage": "Create your account",
+		"description": "The title of the register page."
+	},
+	"shared.auth.registered": {
+		"defaultMessage": "Check your email to finish signing up, then sign in.",
+		"description": "The notice on the sign-in page after a registration."
+	},
+	"shared.auth.registrationFailed": {
+		"defaultMessage": "Registration failed. Please check your details and try again.",
+		"description": "The error of a registration that the gateway refused without a reason."
+	},
+	"shared.auth.requestFailed": {
+		"defaultMessage": "The request failed. Please try again.",
+		"description": "The error of a request for a reset link that the gateway refused without a reason."
+	},
+	"shared.auth.resetFailed": {
+		"defaultMessage": "The password did not change. Please try again.",
+		"description": "The error of a password reset that the gateway refused without a reason."
+	},
+	"shared.auth.resetTitle": {
+		"defaultMessage": "Choose a new password",
+		"description": "The title of the page that sets a new password from a reset link."
+	},
+	"shared.auth.sendAnotherLink": {
+		"defaultMessage": "Send another link",
+		"description": "The button that sends the link to reset the password again."
+	},
+	"shared.auth.sendLink": {
+		"defaultMessage": "Send link",
+		"description": "The button that sends a link to reset the password."
+	},
+	"shared.auth.setPassword": {
+		"defaultMessage": "Set password",
+		"description": "The button that sets the new password."
+	},
+	"shared.auth.signIn": {
+		"defaultMessage": "Sign in",
+		"description": "The button that signs in, and the link to the sign-in page."
+	},
+	"shared.auth.signInWithPasskey": {
+		"defaultMessage": "Sign in with a passkey",
+		"description": "The button that signs in with a passkey."
+	},
+	"shared.auth.signOut": {
+		"defaultMessage": "Sign out",
+		"description": "The menu item and the button that end the session."
+	},
+	"shared.auth.unexpected": {
+		"defaultMessage": "An unexpected error occurred. Please try again later.",
+		"description": "The error of an auth request that fails, such as on a network failure."
+	},
+	"shared.auth.useAuthenticator": {
+		"defaultMessage": "Use your authenticator app",
+		"description": "The button that switches the second step to an authenticator code."
+	},
+	"shared.auth.usePasskey": {
+		"defaultMessage": "Use a passkey",
+		"description": "The button that gives the second step with a passkey."
+	},
+	"shared.auth.useRecoveryCode": {
+		"defaultMessage": "Use a recovery code",
+		"description": "The button that switches the second step to a recovery code."
+	},
+	"shared.auth.verified": {
+		"defaultMessage": "Your email is verified.",
+		"description": "The notice after the page verified the email."
+	},
+	"shared.auth.verifyEmail": {
+		"defaultMessage": "Verify email",
+		"description": "The button that verifies the email from the link."
+	},
+	"shared.auth.verifyFailed": {
+		"defaultMessage": "The email was not verified. Please try again.",
+		"description": "The error of an email verification that the gateway refused without a reason."
+	},
+	"shared.auth.verifyMenu": {
+		"defaultMessage": "Verify your email",
+		"description": "The user menu item that sends a link to verify the email."
+	},
+	"shared.auth.verifyMenuFailed": {
+		"defaultMessage": "Link not sent, try again later",
+		"description": "The user menu item after the link to verify the email did not send."
+	},
+	"shared.auth.verifyMenuSent": {
+		"defaultMessage": "Link sent, check your email",
+		"description": "The user menu item after it sent the link to verify the email."
+	},
+	"shared.auth.verifyTitle": {
+		"defaultMessage": "Verify your email",
+		"description": "The title of the page that verifies an email from a link."
+	},
 	"shared.validation.email": {
 		"defaultMessage": "Please enter a valid email address",
 		"description": "The error of an email field that does not hold an email address."

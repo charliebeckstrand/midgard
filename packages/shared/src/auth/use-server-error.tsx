@@ -3,9 +3,6 @@
 import { type ReactNode, useState } from 'react'
 import { ErrorAlert } from './error-alert'
 
-/** The message of a request that throws, for example on a network failure. */
-export const unexpectedError = 'An unexpected error occurred. Please try again later.'
-
 /**
  * Error state of an auth page that is not about one field.
  *
