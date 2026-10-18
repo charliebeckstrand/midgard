@@ -200,7 +200,14 @@ export function MenuContent({
 				glass={glass}
 				className={cn(k.floating, k.content, className)}
 				onKeyDown={(event) => {
-					if (event.key === 'Escape') close()
+					if (event.key !== 'Escape') return
+
+					// React commits the close before the document listener runs, so
+					// the layer below is on top by then. `preventDefault` tells it
+					// that this press is consumed.
+					event.preventDefault()
+
+					close()
 				}}
 			>
 				{header}
