@@ -1,6 +1,7 @@
 'use client'
 
 import { EllipsisVertical, Table2 } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { Button } from '../../../components/button'
 import {
@@ -33,10 +34,12 @@ export type ChartMenuButtonProps = {
 	/**
 	 * Where this copy of the button renders. `'host'` puts it in the header row
 	 * of the box around the chart, and renders nothing outside such a box.
-	 * `'header'` puts it at the end of the chart header, and renders nothing
-	 * inside such a box. The frame renders both copies, so exactly one shows.
+	 * `'header'` puts it at the end of the chart header, and `'corner'` puts it
+	 * over the top-end corner of the plot ({@link ChartPlotCorner}). Each of these
+	 * two renders nothing inside such a box. The frame renders the host copy and
+	 * one of the other two, so exactly one shows.
 	 */
-	place: 'host' | 'header'
+	place: 'host' | 'header' | 'corner'
 }
 
 /** The item of `entries` with `key`, or `undefined`. */
@@ -53,8 +56,11 @@ function itemOf(entries: ContextMenuEntry[], key: string): ContextMenuItem | und
  *
  * Inside a box that gives a header actions element ({@link useHeaderActionsHost}),
  * such as a dashboard tile, the button goes into the header row of the box with a
- * portal. Otherwise it sits at the end of the chart header. A chart with no
- * title then has no button. The button covers no mark in either place.
+ * portal. Otherwise it sits at the end of the chart header, and covers no mark.
+ * A chart that draws no header, such as the heatmap or the choropleth, has the
+ * button over the top-end corner of its plot. There it can cover a mark, and the
+ * layout of the chart does not change. Another chart with no title outside such
+ * a box has no button.
  *
  * In the header row of a box, a View data button comes before the menu
  * button on each pointer, when the menu has the View data entry. The menu has
@@ -79,7 +85,11 @@ export function ChartMenuButton({ title, place }: ChartMenuButtonProps) {
 			data-slot="chart-menu-button"
 			// In the chart header the box keeps the height of one header line, and the
 			// button overflows it. The tier reserve of the header then stays correct.
-			className={cn('hidden shrink-0 items-center pointer-coarse:flex', host === null && 'h-6')}
+			className={cn(
+				'hidden shrink-0 items-center pointer-coarse:flex',
+				place === 'header' && 'h-6',
+				place === 'corner' && 'absolute end-1 top-1',
+			)}
 		>
 			<Menu placement="bottom-end">
 				<MenuTrigger>
@@ -125,5 +135,55 @@ export function ChartMenuButton({ title, place }: ChartMenuButtonProps) {
 			{menu}
 		</span>,
 		host,
+	)
+}
+
+/**
+ * The chart title that names the corner menu button of a map plot, which
+ * `ChoroplethChart` gives to the map frame. It is `null` outside a
+ * choropleth, and the map then has no corner.
+ *
+ * @internal
+ */
+export const [ChartPlotCornerContext, useChartPlotCorner] = createContext<{
+	title?: string
+} | null>('ChartPlotCorner', { default: null })
+
+/** Props for {@link ChartPlotCorner}. @internal */
+export type ChartPlotCornerProps = {
+	/** The chart title, which names the button. */
+	title?: string
+	/** Whether a side legend sits beside the plot, so the plot takes the width remainder. */
+	aside: boolean
+	/** Whether the plot fills the height of its box. */
+	fill: boolean
+	/** The plot region. */
+	children: ReactNode
+}
+
+/**
+ * The plot region of a chart that draws no header, with the menu button over
+ * its top-end corner. The box takes the place of the plot region in the layout
+ * of the chart: it gets the flex classes of the region, and the region fills
+ * it. The button is not in the region, because the region is `role="img"`, and
+ * the children of an image are not exposed.
+ *
+ * @internal
+ */
+export function ChartPlotCorner({ title, aside, fill, children }: ChartPlotCornerProps) {
+	return (
+		<div
+			data-slot="chart-plot-corner"
+			className={cn(
+				'relative flex flex-col',
+				aside && 'min-w-0',
+				(aside || fill) && 'flex-1',
+				fill && 'min-h-0',
+			)}
+		>
+			{children}
+
+			<ChartMenuButton title={title} place="corner" />
+		</div>
 	)
 }

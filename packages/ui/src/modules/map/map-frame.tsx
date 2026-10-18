@@ -7,6 +7,7 @@ import { k } from '../../recipes/kata/map'
 import { noop } from '../../utilities'
 import { legendBandRow } from '../chart/engine/chart-legend/band'
 import { legendAside } from '../chart/engine/chart-legend/schema'
+import { ChartPlotCorner, useChartPlotCorner } from '../chart/engine/chart-menu-button'
 import { ChartPlotBox } from '../chart/engine/chart-plot-box'
 import { useMapZoomView } from './context'
 import type { MapLegendPlacement } from './engine/types'
@@ -71,7 +72,20 @@ export function MapFrame({
 	// The plot alone sits under the view transform's provider. The legend answers
 	// the toggles and the emphasis, never the view, so keeping it outside is what
 	// stops a wheel notch from re-planning it.
-	const plot = <MapZoomProvider {...zoom}>{plotRegion}</MapZoomProvider>
+	const zoomed = <MapZoomProvider {...zoom}>{plotRegion}</MapZoomProvider>
+
+	// A choropleth has its touch menu button over the corner of the plot, because
+	// it draws no header.
+	const corner = useChartPlotCorner()
+
+	const plot =
+		corner === null ? (
+			zoomed
+		) : (
+			<ChartPlotCorner title={corner.title} aside={aside} fill={fill}>
+				{zoomed}
+			</ChartPlotCorner>
+		)
 
 	return (
 		<div

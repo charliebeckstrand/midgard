@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
 import { HeatmapChart, type HeatmapChartSeries } from '../../modules/chart'
 import { LABEL_CHAR_WIDTH } from '../../modules/chart/engine/chart-constants'
-import { act, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
+import { createHeaderActionsHost, HeaderActionsContext } from '../../primitives/header-actions'
+import { act, bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
 
 type Row = { day: string; hour: string; commits: number }
 
@@ -926,5 +927,46 @@ describe('HeatmapChart default ratio', () => {
 		)
 
 		expect(getSlot(container, 'chart-plot').querySelector('svg')).toHaveAttribute('height', '50')
+	})
+})
+
+describe('HeatmapChart menu button', () => {
+	it('sits over the corner of the plot of a titled heatmap outside a box', () => {
+		const { container } = renderUI(
+			<HeatmapChart title="Commits" aria-label="Commits" data={ROWS} series={SERIES} width={400} />,
+		)
+
+		const button = getSlot(container, 'chart-menu-button')
+
+		// Over the plot, not in it: the children of a `role="img"` region are not exposed.
+		expect(button.closest('[role="img"]')).toBeNull()
+
+		expect(getSlot(container, 'chart-plot-corner').contains(button)).toBe(true)
+
+		fireEvent.click(button.querySelector('button') as Element)
+
+		expect(screen.getByRole('menuitem', { name: 'View data' })).toBeInTheDocument()
+	})
+
+	it('goes to the header actions of the box around the heatmap', () => {
+		const host = document.createElement('div')
+
+		document.body.append(host)
+
+		const slot = createHeaderActionsHost()
+
+		slot.set(host)
+
+		const { container } = renderUI(
+			<HeaderActionsContext value={slot}>
+				<HeatmapChart title="Commits" aria-label="Commits" data={ROWS} series={SERIES} />
+			</HeaderActionsContext>,
+		)
+
+		expect(bySlot(container, 'chart-menu-button')).toBeNull()
+
+		expect(host.querySelectorAll('[data-slot="chart-menu-button"]')).toHaveLength(1)
+
+		host.remove()
 	})
 })

@@ -325,8 +325,9 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 * A touch screen has no right-click, so where the primary pointer is coarse
 	 * a menu button opens the same menu. The button sits at the end of the chart
 	 * header, or in the header row of the box around the chart, such as a
-	 * dashboard tile (`primitives/header-actions`). A chart with no title outside
-	 * such a box shows no button.
+	 * dashboard tile (`primitives/header-actions`). A chart that draws no header,
+	 * such as the heatmap, has the button over the top-end corner of its plot.
+	 * Another chart with no title outside such a box shows no button.
 	 *
 	 * Pass a config to add custom `items` (each a `{ label, icon, onAction }`).
 	 * Place them `'before'` or `'after'` the defaults, or drop the defaults with

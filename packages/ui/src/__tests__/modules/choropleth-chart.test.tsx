@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ChoroplethChart } from '../../modules/chart'
+import { createHeaderActionsHost, HeaderActionsContext } from '../../primitives/header-actions'
 import { LocaleProvider } from '../../providers/locale'
 import { formatFraction } from '../../utilities'
 import { allBySlot, allRegions, bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
@@ -413,5 +414,64 @@ describe('under a LocaleProvider', () => {
 		)
 
 		expect(cells).toContain('1.234,5')
+	})
+})
+
+describe('ChoroplethChart menu button', () => {
+	it('sits over the corner of the map plot outside a box', () => {
+		const { container } = renderUI(
+			<ChoroplethChart
+				aria-label="Population"
+				geography={FIXTURE_GEOJSON}
+				data={ROWS}
+				series={[{ idKey: 'region', colorKey: 'pop', colorRange: RANGE }]}
+				width={400}
+			/>,
+		)
+
+		const button = getSlot(container, 'chart-menu-button')
+
+		// Over the plot, not in it: the children of a `role="img"` region are not exposed.
+		expect(button.closest('[role="img"]')).toBeNull()
+
+		expect(getSlot(container, 'chart-plot-corner').contains(getSlot(container, 'map-plot'))).toBe(
+			true,
+		)
+
+		fireEvent.click(button.querySelector('button') as Element)
+
+		expect(screen.getByRole('menuitem', { name: 'Fullscreen' })).toBeInTheDocument()
+	})
+
+	it('goes to the header actions of the box around the map', () => {
+		const host = document.createElement('div')
+
+		document.body.append(host)
+
+		const slot = createHeaderActionsHost()
+
+		slot.set(host)
+
+		const { container } = renderUI(
+			<HeaderActionsContext value={slot}>
+				<ChoroplethChart
+					aria-label="Population"
+					title="Population by region"
+					geography={FIXTURE_GEOJSON}
+					data={ROWS}
+					series={[{ idKey: 'region', colorKey: 'pop', colorRange: RANGE }]}
+				/>
+			</HeaderActionsContext>,
+		)
+
+		expect(bySlot(container, 'chart-menu-button')).toBeNull()
+
+		expect(host.querySelectorAll('[data-slot="chart-menu-button"]')).toHaveLength(1)
+
+		fireEvent.click(screen.getByRole('button', { name: 'View data for Population by region' }))
+
+		expect(screen.getByRole('dialog')).toBeInTheDocument()
+
+		host.remove()
 	})
 })

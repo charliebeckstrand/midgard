@@ -23,7 +23,7 @@ import { ChartContextMenu } from '../chart-context-menu'
 import { ChartHeader } from '../chart-header'
 import { legendBandRow } from '../chart-legend/band'
 import { type ChartLegendPlacement, legendAside } from '../chart-legend/schema'
-import { ChartMenuButton } from '../chart-menu-button'
+import { ChartMenuButton, ChartPlotCorner } from '../chart-menu-button'
 import type { ChartOrientation } from '../chart-orientation'
 import { ChartPlotBox } from '../chart-plot-box'
 import type { ChartSnap } from '../chart-snap'
@@ -99,6 +99,28 @@ function chartChrome(
 		legend: spark ? null : legend,
 		labelledBy: !spark && heading && title ? titleId : undefined,
 	}
+}
+
+/**
+ * The plot region. A chart that draws no header has it inside a
+ * {@link ChartPlotCorner}, so the touch menu button sits over its corner.
+ *
+ * @internal
+ */
+function cornerPlot(
+	region: ReactNode,
+	heading: boolean,
+	title: string | undefined,
+	aside: boolean,
+	fill: boolean,
+): ReactNode {
+	if (heading) return region
+
+	return (
+		<ChartPlotCorner title={title} aside={aside} fill={fill}>
+			{region}
+		</ChartPlotCorner>
+	)
 }
 
 /** The accessible-name attributes of the plot region. @internal */
@@ -593,7 +615,7 @@ export function ChartFrame({
 		labelledBy,
 	} = chartChrome(tier, heading, title, titleId, subtitle, legend)
 
-	const plotRegion = (
+	const region = (
 		<div
 			ref={ref}
 			data-slot="chart-plot"
@@ -631,6 +653,8 @@ export function ChartFrame({
 				))}
 		</div>
 	)
+
+	const plotRegion = cornerPlot(region, heading, title, aside, fill)
 
 	const chartRoot = (
 		<div
@@ -705,7 +729,8 @@ export function ChartFrame({
 			{annotations}
 
 			{/* Inside a box with a header row, such as a dashboard tile, the touch menu
-			    button goes to that row. Otherwise the chart header holds it. */}
+			    button goes to that row. Otherwise the chart header or the corner of
+			    the plot holds it. */}
 			<ChartMenuButton title={title} place="host" />
 		</div>
 	)

@@ -18,6 +18,7 @@ import {
 import { numericRegionData } from '../../map/engine/map-region/data'
 import type { ChartContextMenuConfig } from '../engine/chart-context-menu'
 import { ChartContextMenu } from '../engine/chart-context-menu'
+import { ChartMenuButton, ChartPlotCornerContext } from '../engine/chart-menu-button'
 import { READOUT_GAP } from '../engine/chart-series'
 import type { ChartItemClick, ChartReadout, DataKey } from '../engine/types'
 
@@ -170,6 +171,11 @@ export type ChoroplethChartProps<T = never> = AccessibleName & {
 	 * `downloadLegend: false` to export the map without its legend. `false`
 	 * disables the menu, leaving the browser's
 	 * native one.
+	 *
+	 * A touch screen has no right-click, so where the primary pointer is coarse
+	 * a menu button over the top-end corner of the map opens the same menu. In
+	 * the header row of a box around the map, such as a dashboard tile, the
+	 * button goes in that row.
 	 * @see {@link ChartContextMenuConfig}
 	 */
 	contextMenu?: ChartContextMenuConfig | false
@@ -277,6 +283,9 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 	// map tightly, with no gutter.
 	const rootRef = useRef<HTMLDivElement>(null)
 
+	// The title that names the touch menu button over the corner of the map.
+	const corner = useMemo(() => ({ title }), [title])
+
 	// Unwrap the (single) series onto MapPlat's numeric mode. The fields go through
 	// `numericRegionData` rather than onto the literal one at a time: `series[0]`
 	// is possibly absent, so each field read off it widens by `undefined` and the
@@ -324,14 +333,21 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 				// right-click stays null, an on-region one overwrites with its index.
 				onContextMenuCapture={() => setMenuRegion(null)}
 			>
-				<MapPlat<T>
-					{...mapProps}
-					ref={rootRef}
-					// A long press opens the readout, so the whole chart, legend included,
-					// selects no text under a hold, as the chart frame does.
-					className={cn(k.touch.readout, className)}
-					onRegionContextMenu={onRegionContextMenu}
-				/>
+				<ChartPlotCornerContext value={corner}>
+					<MapPlat<T>
+						{...mapProps}
+						ref={rootRef}
+						// A long press opens the readout, so the whole chart, legend included,
+						// selects no text under a hold, as the chart frame does.
+						className={cn(k.touch.readout, className)}
+						onRegionContextMenu={onRegionContextMenu}
+					/>
+				</ChartPlotCornerContext>
+
+				{/* Inside a box with a header row, such as a dashboard tile, the touch
+				    menu button goes to that row. Otherwise the map frame puts it over
+				    the corner of the plot. */}
+				<ChartMenuButton title={title} place="host" />
 			</div>
 		</ChartContextMenu>
 	)
