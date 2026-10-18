@@ -4,6 +4,8 @@ import { MapPin } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '../../core'
 import { useFormField } from '../../primitives/form/context'
+import { intlMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { keyByOccurrence } from '../../utilities'
 import {
 	Combobox,
@@ -132,6 +134,8 @@ export function AddressInput({
 	'aria-label': ariaLabel,
 	...props
 }: AddressInputProps) {
+	const intl = useIntl()
+
 	const [query, setQuery] = useState('')
 
 	const [menuRequested, setMenuRequested] = useState(false)
@@ -181,7 +185,7 @@ export function AddressInput({
 
 	const pin = showPin ? <Icon icon={<MapPin />} /> : undefined
 
-	const suffix = loading ? <LoadingSpinner /> : pin
+	const suffix = loading ? <LoadingSpinner label={intl.formatMessage(intlMessages.loading)} /> : pin
 
 	return (
 		<Combobox<AddressSuggestion>

@@ -15,6 +15,7 @@
 	"ui.common.clearSelection": "Borrar selección",
 	"ui.common.close": "Cerrar",
 	"ui.common.confirm": "Confirmar",
+	"ui.common.loading": "Cargando",
 	"ui.common.noResults": "Sin resultados",
 	"ui.common.selected": "{count, plural, one {# seleccionado} other {# seleccionados}}",
 	"ui.common.system": "Sistema",
