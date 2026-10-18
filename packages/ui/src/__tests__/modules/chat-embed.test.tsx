@@ -86,6 +86,19 @@ describe('ChatEmbedProvider', () => {
 			)
 		})
 
+		it.each(['constructor', 'toString'])(
+			'states a block named “%s”, which every plain object inherits',
+			(name) => {
+				// The registry is a plain object, so an inherited member must not pass
+				// for a registered renderer.
+				const { container } = renderEmbed(name)
+
+				expect(bySlot(container, 'chat-embed-fallback')).toHaveTextContent(
+					`This chat cannot show a “${name}” block.`,
+				)
+			},
+		)
+
 		it('draws the provider’s own fallback in place of the module’s line', () => {
 			const { container } = renderUI(
 				<ChatEmbedProvider
