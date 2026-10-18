@@ -5,6 +5,7 @@ import { announce } from '../../core'
 import { type PlotTabStopProps, usePlotTabStop } from '../../hooks/use-plot-tab-stop'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { once } from '../../utilities'
+import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { useMapHoverActions } from './context'
 import { MAP_CURSOR_INSET, MAP_ZOOM_FIT } from './engine/map-constants'
 import { type MapHoverTarget, sameTarget } from './engine/map-hover/target'
@@ -36,17 +37,6 @@ function stopKey(target: MapHoverTarget): string {
  */
 function describeZoom(transform: MapTransform): string {
 	return `Zoom ${Math.round((transform.k / MAP_ZOOM_FIT) * 100)}%`
-}
-
-/**
- * Whether a key press holds Ctrl, Meta, or Alt. Such a chord is for the browser,
- * such as its own page zoom or history. Shift stays a plain press, because `+`
- * needs it.
- *
- * @internal
- */
-function isBrowserChord(event: KeyboardEvent<HTMLElement>): boolean {
-	return event.ctrlKey || event.metaKey || event.altKey
 }
 
 /** What {@link useMapKeyboard} needs from the plat to drive a cursor. @internal */
@@ -318,7 +308,7 @@ export function useMapKeyboard({
 	}
 
 	const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-		if (!isBrowserChord(event)) onPlainKeyDown(event)
+		if (!hasBrowserModifier(event)) onPlainKeyDown(event)
 	}
 
 	return enabled ? { tabIndex: 0, onKeyDown, onBlur } : null

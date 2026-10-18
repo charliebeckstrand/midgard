@@ -23,6 +23,7 @@ import { k } from '../../../../recipes/kata/chart'
 import type { Orientation } from '../../../../types'
 import { binIndex, quantileBinIndex } from '../../../../utilities'
 import { clamp } from '../../../../utilities/clamp'
+import { hasBrowserModifier } from '../../../../utilities/modifier-keys'
 
 /**
  * Which way a range legend and its glyph lay out:
@@ -179,16 +180,6 @@ export type RangeLegendProps = RangeScale & {
 	 * renders with no box.
 	 */
 	box?: string
-}
-
-/**
- * Whether a key press holds Ctrl, Meta, or Alt. Such a chord is for the browser,
- * such as its history or its scroll keys. Shift stays a plain press.
- *
- * @internal
- */
-function isBrowserChord(event: KeyboardEvent<HTMLElement>): boolean {
-	return event.ctrlKey || event.metaKey || event.altKey
 }
 
 /** The class-center context {@link rangeKeyValue} walks. @internal */
@@ -539,7 +530,7 @@ export function RangeLegend({
 	// Arrow keys walk whole classes off the shared {@link rangeKeyValue} — both
 	// pairs, so either orientation answers its axis; Escape blurs.
 	const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-		if (isBrowserChord(event)) return
+		if (hasBrowserModifier(event)) return
 
 		if (event.key === 'Escape') {
 			event.currentTarget.blur()

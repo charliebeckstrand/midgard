@@ -4,6 +4,7 @@ import { type KeyboardEvent, useEffect, useEffectEvent, useRef, useState } from 
 import { type PlotTabStopProps, usePlotTabStop } from '../../../hooks/use-plot-tab-stop'
 import { useStableValue } from '../../../hooks/use-stable-value'
 import { clamp } from '../../../utilities'
+import { hasBrowserModifier } from '../../../utilities/modifier-keys'
 import { type ChartOrientation, project, type Vec, valueCoord } from './chart-orientation'
 import { type ChartHoverStore, samePoint } from './context'
 
@@ -274,16 +275,6 @@ function keyAction(key: string, orientation: ChartOrientation): CursorAction | n
 		default:
 			return null
 	}
-}
-
-/**
- * Whether a key press holds Ctrl, Meta, or Alt. Such a chord is for the browser,
- * such as its history or its scroll keys. Shift stays a plain press.
- *
- * @internal
- */
-function isBrowserChord(event: KeyboardEvent<HTMLElement>): boolean {
-	return event.ctrlKey || event.metaKey || event.altKey
 }
 
 /** Whether a key is one of the four arrows — the keys that enter navigation at the first point. @internal */
@@ -628,7 +619,7 @@ export function useChartKeyboard(
 	}
 
 	const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-		if (!targets || isBrowserChord(event)) return
+		if (!targets || hasBrowserModifier(event)) return
 
 		const move = moveCursor(cursor, event.key, targets, orientation)
 

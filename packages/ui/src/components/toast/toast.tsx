@@ -14,6 +14,7 @@ import { k } from '../../recipes/kata/toast'
 import { mapResponsive, type Responsive, resolveVariant } from '../../types'
 import { subscribeDocumentEvent } from '../../utilities/document-listener'
 import { getTabbableElements } from '../../utilities/focusable-selector'
+import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { useToastViewport } from './context'
 import { ToastAlert } from './toast-alert'
 import { TOAST_POSITION, type ToastPosition } from './types'
@@ -22,7 +23,7 @@ import { TOAST_POSITION, type ToastPosition } from './types'
 function isPlainF8(event: KeyboardEvent) {
 	if (event.key !== 'F8' || event.defaultPrevented) return false
 
-	return !(event.altKey || event.ctrlKey || event.metaKey || event.shiftKey)
+	return !(hasBrowserModifier(event) || event.shiftKey)
 }
 
 /**

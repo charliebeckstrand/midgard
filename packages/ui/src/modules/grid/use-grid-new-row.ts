@@ -14,6 +14,7 @@ import { useDevWarning } from '../../hooks/use-dev-warning'
 import { useMountedRef } from '../../hooks/use-mounted-ref'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { focusWithoutReveal } from '../../hooks/use-truncation'
+import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { describeRowAdd } from './engine/grid-announcements'
 import { GRID_ROLE } from './engine/grid-constants'
 import {
@@ -364,7 +365,7 @@ export function useGridNewRow<T>({
 
 			// A shortcut belongs to the editor. Tab moves through the controls of
 			// the slot in the tab order, so the browser keeps it.
-			if (event.ctrlKey || event.metaKey || event.altKey) return true
+			if (hasBrowserModifier(event)) return true
 
 			const columnId = slotColumnOf(cell.getAttribute('data-grid-new-col'), dataColumnsRef.current)
 

@@ -5,6 +5,7 @@ import { announce, querySlot } from '../../core'
 import { useKeyboardLifted } from '../../hooks'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { describeCard, describeMove } from './engine/kanban-announcements'
 import { indexBoard, type KanbanBoard, type KanbanColumnBase } from './engine/kanban-board'
 import { type KanbanMove, stepAcrossColumns, stepInColumn } from './engine/kanban-move'
@@ -132,7 +133,7 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 		// A key from a control inside the card belongs to that control.
 		if (event.target !== event.currentTarget) return
 
-		if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return
+		if (hasBrowserModifier(event) || event.shiftKey) return
 
 		const board = indexBoard(columns, getKey)
 
