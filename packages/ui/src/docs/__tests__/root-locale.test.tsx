@@ -38,20 +38,20 @@ function renderShell() {
 }
 
 describe('docs app shell', () => {
-	it('gives each page the en-US locale', () => {
+	it('gives each page the en locale', () => {
 		renderShell()
 
-		expect(screen.getByTestId('locale').textContent).toBe('en-US')
+		expect(screen.getByTestId('locale').textContent).toBe('en')
 	})
 
 	it('gives each page the locale that the reader chose', () => {
-		localStorage.setItem('locale', 'en-GB')
+		localStorage.setItem('locale', 'es')
 
 		onTestFinished(() => localStorage.removeItem('locale'))
 
 		renderShell()
 
-		expect(screen.getByTestId('locale').textContent).toBe('en-GB')
+		expect(screen.getByTestId('locale').textContent).toBe('es')
 	})
 
 	it('puts the language picker in the settings of the header', async () => {

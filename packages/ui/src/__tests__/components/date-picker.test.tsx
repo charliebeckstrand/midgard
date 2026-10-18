@@ -1349,7 +1349,7 @@ describe('DatePicker input', () => {
 		expect(screen.getByRole('button', { name: 'Previous month' })).toHaveFocus()
 
 		// Forward off the dialog's last tabbable: back to the input.
-		fireEvent.keyDown(screen.getByRole('button', { name: 'Today' }), { key: 'Tab' })
+		fireEvent.keyDown(footerClear(), { key: 'Tab' })
 
 		expect(input).toHaveFocus()
 	})
@@ -1368,7 +1368,7 @@ describe('DatePicker input', () => {
 		// Backward off the reference group's first tabbable: dialog's last.
 		fireEvent.keyDown(input, { key: 'Tab', shiftKey: true })
 
-		expect(screen.getByRole('button', { name: 'Today' })).toHaveFocus()
+		expect(footerClear()).toHaveFocus()
 
 		// Backward off the dialog's first tabbable: the calendar button.
 		fireEvent.keyDown(screen.getByRole('button', { name: 'Previous month' }), {
@@ -1399,7 +1399,7 @@ describe('DatePicker input', () => {
 
 		await user.keyboard('{Shift>}{Tab}{/Shift}')
 
-		expect(screen.getByRole('button', { name: 'Today' })).toHaveFocus()
+		expect(footerClear()).toHaveFocus()
 
 		await user.keyboard('{Escape}')
 
@@ -1487,7 +1487,7 @@ describe('DatePicker input', () => {
 		expect(next).not.toHaveClass('outline-2')
 	})
 
-	// B01-C09, Q2: Left and Right wrap between Today and Clear from a Tab-focused footer button.
+	// B01-C09, Q2: Left and Right wrap between Clear and Today from a Tab-focused footer button.
 	it('wraps the footer highlight on ArrowRight from a focused footer button', async () => {
 		const { user, input } = await openInputPicker()
 
@@ -1495,15 +1495,15 @@ describe('DatePicker input', () => {
 
 		await user.keyboard('{Shift>}{Tab}{/Shift}')
 
-		expect(screen.getByRole('button', { name: 'Today' })).toHaveFocus()
+		expect(footerClear()).toHaveFocus()
 
 		await user.keyboard('{ArrowRight}')
 
 		expect(input).toHaveFocus()
 
-		expect(footerClear()).toHaveClass('outline-2')
+		expect(screen.getByRole('button', { name: 'Today' })).toHaveClass('outline-2')
 
-		expect(screen.getByRole('button', { name: 'Today' })).not.toHaveClass('outline-2')
+		expect(footerClear()).not.toHaveClass('outline-2')
 	})
 
 	// Q7: the close from the calendar button gives focus to the input.

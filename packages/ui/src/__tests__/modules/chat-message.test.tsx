@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { ChatMessage } from '../../modules/chat'
+import { LocaleProvider } from '../../providers/locale'
 import { bySlot, renderUI, screen } from '../helpers'
 
 // The streaming look the bubble projects onto its Markdown child, and the
@@ -115,5 +116,23 @@ describe('ChatMessage', () => {
 		renderUI(<ChatMessage>{[{ kind: 'text', id: 'p1', text: '# Summary' }]}</ChatMessage>)
 
 		expect(screen.getByRole('heading', { name: 'Summary' }).tagName).toBe('H2')
+	})
+})
+
+describe('ChatMessage in a locale', () => {
+	it('names the author in the language of the locale', () => {
+		const { container } = renderUI(
+			<LocaleProvider locale="es-ES">
+				<ChatMessage sender="user">Hola</ChatMessage>
+				<ChatMessage sender="assistant">¿Qué tal?</ChatMessage>
+			</LocaleProvider>,
+		)
+
+		const authors = container.querySelectorAll('[data-slot="chat-message-author"]')
+
+		expect([...authors].map((author) => author.textContent)).toEqual([
+			'Dijiste: ',
+			'El asistente dijo: ',
+		])
 	})
 })

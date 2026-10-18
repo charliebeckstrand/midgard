@@ -2,6 +2,7 @@
 
 import { type ComponentProps, Fragment } from 'react'
 import { cn } from '../../core'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/query-summary'
 import { type QuerySummaryToken, spacedBefore, summarizeQuery } from './engine/query-summary'
 import type { QueryField, QueryGroup } from './engine/types'
@@ -58,7 +59,7 @@ function SummaryToken({ token }: { token: QuerySummaryToken }) {
  * for `formatQuerySummary`.
  */
 export function QuerySummary({ value, fields, className, ...props }: QuerySummaryProps) {
-	const tokens = summarizeQuery(value, fields)
+	const tokens = summarizeQuery(value, fields, useIntl())
 
 	if (tokens.length === 0) return null
 

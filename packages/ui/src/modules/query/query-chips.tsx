@@ -6,7 +6,10 @@ import { Button } from '../../components/button'
 import { announce, cn, composeEventHandlers, dataAttr } from '../../core'
 import { useA11yRoving } from '../../hooks'
 import { joinAriaIds } from '../../hooks/use-aria-ids'
+import { defineMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/query-chips'
+import { combinatorLabel } from './engine/query-messages'
 import {
 	formatQuerySummary,
 	type QuerySummaryRuleToken,
@@ -18,6 +21,42 @@ import {
 import type { QueryField, QueryGroup } from './engine/types'
 import { useQueryRemovalFocus } from './use-query-removal-focus'
 import { useQueryTree } from './use-query-tree'
+
+const messages = defineMessages<{
+	filters: Record<never, never>
+	noFilters: Record<never, never>
+	removed: { item: string }
+	switchTo: { combinator: string; next: string }
+	changed: { combinator: string; next: string }
+}>({
+	filters: {
+		id: 'ui.queryChips.filters',
+		defaultMessage: 'Filters',
+		description: 'The name of the row of chips that shows the conditions of a filter.',
+	},
+	noFilters: {
+		id: 'ui.queryChips.noFilters',
+		defaultMessage: 'No filters',
+		description: 'The text of the row of filter chips when the filter has no conditions.',
+	},
+	removed: {
+		id: 'ui.queryChips.removed',
+		defaultMessage: 'Removed {item}',
+		description:
+			'Spoken when the reader removes a condition of a filter, such as "Removed Status is Active".',
+	},
+	switchTo: {
+		id: 'ui.queryChips.switchTo',
+		defaultMessage: '{combinator}, switch to {next}',
+		description:
+			'The name of the button between two filter chips that switches the combinator, such as "AND, switch to OR".',
+	},
+	changed: {
+		id: 'ui.queryChips.changed',
+		defaultMessage: 'Changed {combinator} to {next}',
+		description: 'Spoken when the reader switches the combinator between two filter chips.',
+	},
+})
 
 /**
  * Props for {@link QueryChips}: the queryable `fields` and the controlled/uncontrolled query tree.
@@ -41,12 +80,12 @@ export type QueryChipsProps = Omit<HTMLAttributes<HTMLElement>, 'defaultValue'> 
 	readOnly?: boolean
 	/** Disables each remove button and each combinator switch. @defaultValue false */
 	disabled?: boolean
-	/** The accessible name of the row. @defaultValue 'Filters' */
+	/** The accessible name of the row. @defaultValue `'Filters'`, in the language of the reader. */
 	'aria-label'?: string
 	/**
 	 * The text of an interactive row when the query puts no constraint on the
 	 * rows.
-	 * @defaultValue 'No filters'
+	 * @defaultValue `'No filters'`, in the language of the reader.
 	 */
 	emptyLabel?: ReactNode
 }
@@ -146,15 +185,21 @@ export function QueryChips({
 	onValueChange,
 	readOnly = false,
 	disabled = false,
-	'aria-label': ariaLabel = 'Filters',
-	emptyLabel = 'No filters',
+	'aria-label': ariaLabelProp,
+	emptyLabel: emptyLabelProp,
 	className,
 	onKeyDown: onKeyDownProp,
 	...props
 }: QueryChipsProps) {
 	const { root, actions } = useQueryTree({ fields, value, defaultValue, onValueChange })
 
-	const tokens = summarizeQuery(root, fields)
+	const intl = useIntl()
+
+	const tokens = summarizeQuery(root, fields, intl)
+
+	const ariaLabel = ariaLabelProp ?? intl.formatMessage(messages.filters)
+
+	const emptyLabel = emptyLabelProp ?? intl.formatMessage(messages.noFilters)
 
 	const rowRef = useRef<HTMLDivElement>(null)
 
@@ -181,7 +226,7 @@ export function QueryChips({
 
 		actions.remove(token.id)
 
-		announce(`Removed ${renderToken(token)}`)
+		announce(intl.formatMessage(messages.removed, { item: renderToken(token) }))
 	}
 
 	if (readOnly && tokens.length === 0) return null
@@ -204,20 +249,20 @@ export function QueryChips({
 
 		if (readOnly) return <span className={cn(k.combinator.base)}>{token.label}</span>
 
-		const next = token.combinator === 'and' ? 'OR' : 'AND'
+		const next = combinatorLabel(intl, token.combinator === 'and' ? 'or' : 'and')
 
 		return (
 			<Button
 				type="button"
 				variant="bare"
 				data-slot="query-chips-combinator"
-				aria-label={`${token.label}, switch to ${next}`}
+				aria-label={intl.formatMessage(messages.switchTo, { combinator: token.label, next })}
 				disabled={disabled}
 				className={cn(k.combinator.base, k.combinator.button)}
 				onClick={() => {
 					actions.updateCombinator(token.id, token.combinator === 'and' ? 'or' : 'and')
 
-					announce(`Changed ${token.label} to ${next}`)
+					announce(intl.formatMessage(messages.changed, { combinator: token.label, next }))
 				}}
 			>
 				{token.label}
@@ -276,7 +321,7 @@ export function QueryChips({
 			{/* The full sentence keeps the brackets for assistive technology, which
 			    hears only the focused control inside the toolbar. */}
 			<span id={descriptionId} hidden>
-				{formatQuerySummary(root, fields)}
+				{formatQuerySummary(root, fields, intl)}
 			</span>
 		</div>
 	)
