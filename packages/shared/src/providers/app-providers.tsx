@@ -35,7 +35,7 @@ type AppProvidersProps = {
  * The reader chooses the locale in the Language picker of `AppearanceSettings`.
  * The choice starts at System, which follows the languages of the browser. The
  * locale sets the formats and the messages of ui. The static shell renders in
- * `en-US`, so its server render and its hydration render agree, and the choice
+ * `en`, so its server render and its hydration render agree, and the choice
  * applies after hydration. A layout that renders per request wraps its subtree
  * in `RequestLocale` from `shared/locale`, so its server markup is already in
  * the locale of the reader. `LocaleProvider` is above `UIProvider`, so the
