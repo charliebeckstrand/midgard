@@ -86,7 +86,7 @@ describe('DatePicker on a phone', () => {
 
 		const buttons = within(footer).getAllByRole('button')
 
-		expect(buttons.map((button) => button.textContent)).toEqual(['Clear', 'Today', 'Close'])
+		expect(buttons.map((button) => button.textContent)).toEqual(['Today', 'Clear', 'Close'])
 
 		expect(within(footer).getByRole('toolbar', { name: 'Date picker actions' })).toBeInTheDocument()
 	})
