@@ -39,6 +39,62 @@
 		"defaultMessage": "Select year",
 		"description": "The name of the grid of years in the year picker."
 	},
+	"ui.chat.assistant": {
+		"defaultMessage": "Assistant said",
+		"description": "The hidden label before a chat message from the assistant. A screen reader reads it before the message."
+	},
+	"ui.chat.attach": {
+		"defaultMessage": "Add attachment",
+		"description": "The name of the button that opens a file picker to attach files to a chat message."
+	},
+	"ui.chat.done": {
+		"defaultMessage": "Done",
+		"description": "The status of a step of the assistant that ended well."
+	},
+	"ui.chat.failed": {
+		"defaultMessage": "Failed",
+		"description": "The status of a step of the assistant that ended with an error."
+	},
+	"ui.chat.missing": {
+		"defaultMessage": "This chat cannot show a “{name}” block.",
+		"description": "Shown in place of a block of a chat reply that the app cannot draw. The name is the name of the block."
+	},
+	"ui.chat.placeholder": {
+		"defaultMessage": "Ask anything",
+		"description": "The hint text of the empty field where the reader writes a chat message."
+	},
+	"ui.chat.prompt": {
+		"defaultMessage": "Message",
+		"description": "The name of the field where the reader writes a chat message."
+	},
+	"ui.chat.replying": {
+		"defaultMessage": "Assistant is replying",
+		"description": "Spoken while a reply of the assistant arrives in a chat."
+	},
+	"ui.chat.running": {
+		"defaultMessage": "Running",
+		"description": "The status of a step of the assistant that has not ended."
+	},
+	"ui.chat.send": {
+		"defaultMessage": "Send message",
+		"description": "The name of the button that sends a chat message."
+	},
+	"ui.chat.stop": {
+		"defaultMessage": "Stop generating",
+		"description": "The name of the button that stops the reply that the assistant writes."
+	},
+	"ui.chat.system": {
+		"defaultMessage": "System",
+		"description": "The hidden label before a status line of a chat, which no person said. A screen reader reads it before the line."
+	},
+	"ui.chat.user": {
+		"defaultMessage": "You said",
+		"description": "The hidden label before a chat message that the reader sent. A screen reader reads it before the message."
+	},
+	"ui.chat.views": {
+		"defaultMessage": "{views, plural, one {# embedded view} other {# embedded views}}",
+		"description": "Spoken after a reply of the assistant that holds views, such as charts. The count is the number of views."
+	},
 	"ui.color.alpha": {
 		"defaultMessage": "Alpha",
 		"description": "The name of the slider that sets the opacity of a color."
