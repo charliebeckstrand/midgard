@@ -324,6 +324,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 		readOnly,
 		invalid,
 		inputAria,
+		onInputEdit,
 		onOpenChange,
 		triggerId,
 		dialogId,
@@ -424,6 +425,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 						// keydown stream drives the grid highlight; DateInput composes this
 						// ahead of its own Enter-to-commit, which a handled key skips.
 						onKeyDown={onTriggerKeyDown}
+						onInput={onInputEdit}
 						{...inputAria}
 						suffix={
 							<DatePickerCalendarButton

@@ -214,6 +214,9 @@ export function useDatePickerState({
 		open,
 		onOpenChange,
 		onTriggerKeyDown,
+		// A text edit in `input` mode drops the grid highlight. Enter then goes to
+		// the DateInput and commits the typed date, not the highlighted day.
+		onInputEdit: clearActive,
 		listboxId,
 		activeDescendantId,
 		// Active-descendant wiring for the DateInput while `input` mode keeps focus
