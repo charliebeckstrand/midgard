@@ -3,6 +3,7 @@
 import { type ReactNode, useMemo } from 'react'
 import { Direction, type TextDirection } from '../../primitives/direction'
 import { IntlProvider } from '../../primitives/intl/intl-provider'
+import type { IntlCatalogs } from '../../primitives/intl/types'
 import { writeChoice } from '../appearance/appearance-storage'
 import {
 	LocaleChoiceContext,
@@ -47,6 +48,17 @@ export type LocaleProviderProps = LocaleConfig & {
 	 * @defaultValue `'ltr'`, or the direction of the enclosing region.
 	 */
 	dir?: TextDirection
+	/**
+	 * The translated messages of an app or a package, by language subtag and
+	 * then by message id. They merge over the catalogs of ui and over the
+	 * catalogs of each enclosing provider, so a nested provider adds to them. A
+	 * message with the same id as an outer message replaces it.
+	 *
+	 * Give a constant of a module, not an object that each render builds: the
+	 * provider keeps one intl for each catalog object, and a new object makes a
+	 * new intl.
+	 */
+	catalogs?: IntlCatalogs
 	children: ReactNode
 }
 
@@ -63,7 +75,9 @@ export type LocaleProviderProps = LocaleConfig & {
  * from the catalog of the language of the locale. ui has an English and a
  * Spanish catalog. A language with no catalog, and a message that a catalog
  * does not have, show the English default. A prop that sets the text of a
- * control still wins. The text that an app renders is not in the catalog of ui.
+ * control still wins. An app or a package gives the translations of its own
+ * messages through `catalogs`, and reads them through `useIntl` from
+ * `ui/primitives/intl`.
  *
  * A nested provider overrides one field and leaves the rest of the enclosing
  * config alone. So a nested `<LocaleProvider currency="EUR">` keeps the outer
@@ -97,6 +111,7 @@ export function LocaleProvider({
 	dateFormat,
 	timeZone,
 	dir,
+	catalogs,
 	children,
 }: LocaleProviderProps) {
 	const outer = useLocale()
@@ -152,7 +167,9 @@ export function LocaleProvider({
 	return (
 		<LocaleChoiceContext value={choice ?? outerChoice}>
 			<LocaleContext value={value}>
-				<IntlProvider locale={stored.locale}>{scoped}</IntlProvider>
+				<IntlProvider locale={stored.locale} catalogs={catalogs}>
+					{scoped}
+				</IntlProvider>
 			</LocaleContext>
 		</LocaleChoiceContext>
 	)

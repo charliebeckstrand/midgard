@@ -1,6 +1,7 @@
 import { renderToString } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Listbox, ListboxOption } from '../../components/listbox'
+import { defineMessages, type IntlShape, useIntl } from '../../primitives/intl'
 import { writeChoice } from '../../providers/appearance/appearance-storage'
 import { LocaleProvider, resolveRequestLocale, useLocale } from '../../providers/locale'
 import { localeChoice, matchLocale } from '../../providers/locale/locale-choice'
@@ -313,6 +314,137 @@ describe('LocaleProvider messages', () => {
 		)
 
 		expect(fruit()).toHaveTextContent('Seleccionar')
+	})
+})
+
+// The messages of a test app, defined as an app defines its own.
+const appMessages = defineMessages({
+	greeting: {
+		id: 'test.greeting',
+		defaultMessage: 'Hello',
+		description: 'The greeting of a test app.',
+	},
+	farewell: {
+		id: 'test.farewell',
+		defaultMessage: 'Goodbye',
+		description: 'The farewell of a test app.',
+	},
+})
+
+// The catalogs of the test app, as a module constant.
+const appCatalogs = { es: { 'test.greeting': 'Hola' } }
+
+/** Shows the messages of the test app in the language of the nearest provider. */
+function AppText() {
+	const intl = useIntl()
+
+	return (
+		<>
+			<span data-testid="greeting">{intl.formatMessage(appMessages.greeting)}</span>
+			<span data-testid="farewell">{intl.formatMessage(appMessages.farewell)}</span>
+		</>
+	)
+}
+
+const greeting = () => screen.getByTestId('greeting')
+
+const farewell = () => screen.getByTestId('farewell')
+
+describe('LocaleProvider catalogs', () => {
+	it('shows a message of an app in the language of the locale, beside the messages of ui', () => {
+		renderUI(
+			<LocaleProvider locale="es-ES" catalogs={appCatalogs}>
+				<AppText />
+				<EmptyListbox />
+			</LocaleProvider>,
+		)
+
+		expect(greeting()).toHaveTextContent('Hola')
+
+		expect(fruit()).toHaveTextContent('Seleccionar')
+	})
+
+	it('shows the English default of a message that the catalog does not have', () => {
+		renderUI(
+			<LocaleProvider locale="es-ES" catalogs={appCatalogs}>
+				<AppText />
+			</LocaleProvider>,
+		)
+
+		expect(farewell()).toHaveTextContent('Goodbye')
+	})
+
+	it('shows the English defaults in a language with no catalog', () => {
+		renderUI(
+			<LocaleProvider locale="fr-FR" catalogs={appCatalogs}>
+				<AppText />
+			</LocaleProvider>,
+		)
+
+		expect(greeting()).toHaveTextContent('Hello')
+	})
+
+	it('gives the catalogs to a nested provider, which adds its own', () => {
+		renderUI(
+			<LocaleProvider locale="es-ES" catalogs={appCatalogs}>
+				<LocaleProvider catalogs={{ es: { 'test.farewell': 'Adiós' } }}>
+					<AppText />
+				</LocaleProvider>
+			</LocaleProvider>,
+		)
+
+		expect(greeting()).toHaveTextContent('Hola')
+
+		expect(farewell()).toHaveTextContent('Adiós')
+	})
+
+	it('lets a nested message replace the outer message with the same id', () => {
+		renderUI(
+			<LocaleProvider locale="es-ES" catalogs={appCatalogs}>
+				<LocaleProvider catalogs={{ es: { 'test.greeting': 'Buenas' } }}>
+					<AppText />
+				</LocaleProvider>
+			</LocaleProvider>,
+		)
+
+		expect(greeting()).toHaveTextContent('Buenas')
+	})
+
+	it('gives the catalogs to a nested provider with a locale of its own, as a request locale does', () => {
+		renderUI(
+			<LocaleProvider locale="en-US" catalogs={appCatalogs}>
+				<LocaleProvider locale="es-ES">
+					<AppText />
+				</LocaleProvider>
+			</LocaleProvider>,
+		)
+
+		expect(greeting()).toHaveTextContent('Hola')
+	})
+
+	it('gives one intl to the providers with the same locale and catalogs', () => {
+		const intls = new Set<IntlShape>()
+
+		function Capture() {
+			intls.add(useIntl())
+
+			return null
+		}
+
+		renderUI(
+			<>
+				<LocaleProvider locale="es-ES" catalogs={appCatalogs}>
+					<Capture />
+				</LocaleProvider>
+				<LocaleProvider locale="es-ES">
+					<LocaleProvider catalogs={appCatalogs}>
+						<Capture />
+					</LocaleProvider>
+				</LocaleProvider>
+			</>,
+		)
+
+		expect(intls.size).toBe(1)
 	})
 })
 

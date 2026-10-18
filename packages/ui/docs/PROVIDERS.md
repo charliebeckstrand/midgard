@@ -78,12 +78,12 @@ Escape hatch that strips chrome from headless-aware descendants so they render t
 
 ## `ui/providers/locale`
 
-The locale of the app sets the `Intl` formats and the language of the messages of ui. The catalogs of ui are in `src/primitives/intl/lang`, in English and in Spanish. Run `pnpm intl` to write the English catalog from the message descriptors in the source.
+The locale of the app sets the `Intl` formats and the language of the messages of ui. The catalogs of ui are in `src/primitives/intl/lang`, in English and in Spanish. Run `pnpm intl` to write the English catalog from the message descriptors in the source. An app or a package gives the translations of its own messages through `catalogs`, and reads them through `useIntl` from `ui/primitives/intl`.
 
 | Export | Summary |
 |---|---|
 | `LocaleProvider` | Broadcasts `Intl` formatting defaults, and gives the controls of ui their messages in the language of the locale; explicit component props still win. Its `dir` opens a direction scope that crosses portals. Its `locales` lets the reader choose the locale, and stores the choice in `localStorage` and a cookie. On a page that renders on a server, set its `locale`. |
-| `LocaleProviderProps` *(type)* | Props for `LocaleProvider`: the `LocaleConfig` fields, the optional `locales` that the reader can choose from, and an optional `dir`. |
+| `LocaleProviderProps` *(type)* | Props for `LocaleProvider`: the `LocaleConfig` fields, the optional `locales` that the reader can choose from, an optional `dir`, and optional `catalogs`. |
 | `LocaleConfig` *(type)* | Ambient `Intl` defaults: `locale`, `currency`, `numberFormat`, `dateFormat`, and `timeZone`. |
 | `useLocale` | Reads the ambient `LocaleConfig` from the nearest `<LocaleProvider>`; returns `{}` outside one. |
 | `LOCALE_COOKIE` | The name of the cookie that holds the locale choice of the reader. |

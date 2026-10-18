@@ -571,6 +571,9 @@
 		{
 			"includes": [
 				"packages/ui/src/**",
+				"packages/shared/src/**",
+				"apps/*/app/**",
+				"apps/*/src/**",
 				"!packages/ui/src/primitives/intl/**",
 				"!**/__tests__/**",
 				"!**/__benchmarks__/**"

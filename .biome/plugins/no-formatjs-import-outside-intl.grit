@@ -1,11 +1,12 @@
 language js
 
-// The intl primitive (`packages/ui/src/primitives/intl`) is the one module of ui
-// that imports FormatJS. A unit defines its messages with `defineMessages` from
+// The intl primitive (`packages/ui/src/primitives/intl`) is the one module that
+// imports FormatJS. A unit of ui defines its messages with `defineMessages` from
 // `intl-messages.ts`, takes the intl types from `types.ts`, and reads the intl through
 // `useIntl` of the primitive, which gives an English intl outside each
 // provider. `LocaleProvider` gives the intl through the `IntlProvider` of the
-// primitive, which takes the locale.
+// primitive, which takes the locale. `shared` and the apps take the same
+// functions and types from the entry point `ui/primitives/intl`.
 //
 // So an upgrade of FormatJS stays inside the primitive. ui does not depend on
 // `react-intl`. The pattern still names it, so that its hooks and components,
@@ -14,12 +15,12 @@ language js
 // The pattern flags each import from `react-intl`, its subpath entries, and
 // each `@formatjs/` package, a type import too.
 //
-// Reach is the `includes` beside this plugin in `biome.json`: the `ui` source,
-// minus the intl primitive, tests, and benchmarks.
+// Reach is the `includes` beside this plugin in `biome.json`: the source of
+// `ui`, `shared`, and the apps, minus the intl primitive, tests, and benchmarks.
 `import $clause from $source` as $import where {
 	$source <: r"['\"](?:react-intl(?:/[^'\"]*)?|@formatjs/[^'\"]+)['\"]",
 	register_diagnostic(
 		span = $import,
-		message = "import FormatJS only in `primitives/intl`: take `defineMessages` from `primitives/intl/intl-messages` and the intl types from `primitives/intl/types`, and read the intl through `useIntl` of the primitive"
+		message = "import FormatJS only in the intl primitive of ui: in ui, take `defineMessages` from `primitives/intl/intl-messages` and the intl types from `primitives/intl/types`, and read the intl through `useIntl` of the primitive; in `shared` and the apps, take them from `ui/primitives/intl`"
 	)
 }
