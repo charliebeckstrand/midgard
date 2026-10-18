@@ -19,6 +19,7 @@ import {
 } from '@dnd-kit/sortable'
 import { EllipsisVertical, Plus, Trash2 } from 'lucide-react'
 import { memo, type ReactNode, use, useId, useMemo } from 'react'
+import type { IntlShape } from 'react-intl'
 import { Button } from '../../components/button'
 import { Card, CardBody, CardHeader } from '../../components/card'
 import { Icon } from '../../components/icon'
@@ -28,10 +29,14 @@ import { cn, createContext, dataAttr } from '../../core'
 import type { PaletteColor } from '../../core/recipe'
 import { useDragCursor, useSortableItem, useSortableSensors } from '../../hooks'
 import { useStableValue } from '../../hooks/use-stable-value'
+import { IntlMessage } from '../../primitives/intl/intl-message'
+import { pickedUpText, reorderMessages } from '../../primitives/intl/intl-reorder'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { PortalDragOverlay } from '../../primitives/portal/portal-drag-overlay'
 import { k } from '../../recipes/kata/grid-group'
 import { sameElements } from '../../utilities'
 import { columnLabel } from './engine/grid-column/label'
+import { gridMessages } from './engine/grid-messages'
 import {
 	findZoneId,
 	GROUP_PREFIX,
@@ -153,15 +158,18 @@ export type GridGroupManagerProps = {
 }
 
 /**
- * The dnd-kit announcements of the group editor. Each names the column or the group, and the
- * zone or the position it lands in, never the generated id that dnd-kit reads by default.
+ * The dnd-kit announcements of the group editor, in the language of `intl`. Each names the
+ * column or the group, and the zone or the position it lands in, never the generated id that
+ * dnd-kit reads by default.
  *
+ * @param intl - The intl of the reader.
  * @param groups - The groups in their order.
  * @param columnsById - The columns by their stringified id.
  * @param zoneMap - The live zone map, which says the zone that holds each column.
  * @internal
  */
 export function groupManagerAnnouncements(
+	intl: IntlShape,
 	groups: readonly GridColumnGroup[],
 	columnsById: ReadonlyMap<string, GridColumnManagerItem>,
 	zoneMap: ZoneMap,
@@ -171,7 +179,9 @@ export function groupManagerAnnouncements(
 	const groupName = (id: string) => {
 		const group = groups[groupIndex(id)]
 
-		return `${group ? columnLabel(group) : id} group`
+		return intl.formatMessage(gridMessages.columnGroupName, {
+			group: group ? columnLabel(group) : id,
+		})
 	}
 
 	const name = (id: UniqueIdentifier) => {
@@ -181,7 +191,9 @@ export function groupManagerAnnouncements(
 
 		const column = columnsById.get(key)
 
-		return `${column ? columnLabel(column) : key} column`
+		return intl.formatMessage(gridMessages.columnName, {
+			column: column ? columnLabel(column) : key,
+		})
 	}
 
 	// A column lands in a zone. A group lands at a position in the group list.
@@ -189,25 +201,37 @@ export function groupManagerAnnouncements(
 		const key = String(over)
 
 		if (isGroupDragId(String(active))) {
-			return `position ${groupIndex(groupIdFromDragId(key)) + 1} of ${groups.length}`
+			return intl.formatMessage(gridMessages.groupPosition, {
+				position: groupIndex(groupIdFromDragId(key)) + 1,
+				total: groups.length,
+			})
 		}
 
 		const zone = findZoneId(zoneMap, key)
 
-		if (zone === undefined) return 'the editor'
+		if (zone === undefined) return intl.formatMessage(gridMessages.editor)
 
-		return zone === UNGROUPED ? 'Ungrouped' : groupName(zone)
+		return zone === UNGROUPED ? intl.formatMessage(gridMessages.ungrouped) : groupName(zone)
 	}
 
 	return {
-		onDragStart: ({ active }) => `Picked up ${name(active.id)}.`,
+		onDragStart: ({ active }) => pickedUpText(intl, name(active.id)),
 		onDragOver: ({ active, over }) =>
-			over ? `${name(active.id)} is over ${place(active.id, over.id)}.` : undefined,
+			over
+				? intl.formatMessage(gridMessages.isOver, {
+						item: name(active.id),
+						place: place(active.id, over.id),
+					})
+				: undefined,
 		onDragEnd: ({ active, over }) =>
 			over
-				? `Dropped ${name(active.id)} in ${place(active.id, over.id)}.`
-				: `Dropped ${name(active.id)} where it started.`,
-		onDragCancel: ({ active }) => `Returned ${name(active.id)} to where it started.`,
+				? intl.formatMessage(gridMessages.droppedIn, {
+						item: name(active.id),
+						place: place(active.id, over.id),
+					})
+				: intl.formatMessage(gridMessages.droppedWhereStarted, { item: name(active.id) }),
+		onDragCancel: ({ active }) =>
+			intl.formatMessage(gridMessages.returnedWhereStarted, { item: name(active.id) }),
 	}
 }
 
@@ -286,16 +310,24 @@ export function GridGroupManager({
 		assign: manager.assign,
 	}
 
-	const announcements = useMemo(
-		() => groupManagerAnnouncements(groups, byId, manager.zoneMap),
-		[groups, byId, manager.zoneMap],
+	const intl = useIntl()
+
+	// The keyboard sensor of dnd-kit drops with Space and cancels with Escape.
+	const accessibility = useMemo(
+		() => ({
+			announcements: groupManagerAnnouncements(intl, groups, byId, manager.zoneMap),
+			screenReaderInstructions: {
+				draggable: intl.formatMessage(reorderMessages.sensorInstructions),
+			},
+		}),
+		[intl, groups, byId, manager.zoneMap],
 	)
 
 	return (
 		<GroupManagerGroupsContext value={groups}>
 			<DndContext
 				id={dndId}
-				accessibility={{ announcements }}
+				accessibility={accessibility}
 				sensors={sensors}
 				collisionDetection={groupAwareCollision}
 				measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
@@ -382,13 +414,17 @@ type GridGroupManagerZoneViewProps = {
  * @internal
  */
 function GridGroupManagerGroupZone(props: GridGroupManagerZoneViewProps) {
+	const intl = useIntl()
+
 	const { setNodeRef, setActivatorNodeRef, attributes, listeners, style, dragging } =
 		useGridZoneSortable(`${GROUP_PREFIX}${props.zone.id}`)
 
 	const handle = (
 		<GridManagerGrip
 			sortable={{ setActivatorNodeRef, attributes, listeners, dragging }}
-			label={`Reorder group ${props.zone.group ? columnLabel(props.zone.group) : ''}`}
+			label={intl.formatMessage(gridMessages.groupHandle, {
+				group: props.zone.group ? columnLabel(props.zone.group) : '',
+			})}
 		/>
 	)
 
@@ -457,7 +493,7 @@ function GridGroupManagerZoneView({
 						removeGroup={removeGroup}
 					/>
 				) : (
-					'Ungrouped'
+					<IntlMessage message={gridMessages.ungrouped} />
 				)}
 			</CardHeader>
 
@@ -584,6 +620,8 @@ const GridGroupManagerColumnRow = memo(function GridGroupManagerColumnRow({
 	const { setNodeRef, setActivatorNodeRef, attributes, listeners, style, dragging } =
 		useSortableItem({ id: String(item.id) })
 
+	const intl = useIntl()
+
 	const label = columnLabel(item)
 
 	return (
@@ -595,7 +633,7 @@ const GridGroupManagerColumnRow = memo(function GridGroupManagerColumnRow({
 		>
 			<GridManagerGrip
 				sortable={{ setActivatorNodeRef, attributes, listeners, dragging }}
-				label={`Reorder ${label}`}
+				label={intl.formatMessage(reorderMessages.reorderHandle, { item: label })}
 			/>
 
 			<GridManagerCheckboxRow
@@ -614,7 +652,11 @@ const GridGroupManagerColumnRow = memo(function GridGroupManagerColumnRow({
 			{movable && (
 				<Menu placement="bottom-end">
 					<MenuTrigger>
-						<Button type="button" variant="bare" aria-label={`Move ${label}`}>
+						<Button
+							type="button"
+							variant="bare"
+							aria-label={intl.formatMessage(reorderMessages.moveHandle, { item: label })}
+						>
 							<Icon icon={<EllipsisVertical />} />
 						</Button>
 					</MenuTrigger>

@@ -1,11 +1,26 @@
 'use client'
 
+import { defineMessages } from '@formatjs/intl'
 import { Copy, X } from 'lucide-react'
 import type { RefObject } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { announce } from '../../core'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { describeDuplicate, describeRemove } from './engine/dashboard-announcements'
+
+const messages = defineMessages<{ duplicate: { item: string }; remove: { item: string } }>({
+	duplicate: {
+		id: 'ui.dashboard.duplicate',
+		defaultMessage: 'Duplicate {item}',
+		description: 'The name of the button that makes a copy of a dashboard tile.',
+	},
+	remove: {
+		id: 'ui.dashboard.remove',
+		defaultMessage: 'Remove {item}',
+		description: 'The name of the button that removes a dashboard tile.',
+	},
+})
 
 /** Props for {@link DashboardTileControls}. @internal */
 export type DashboardTileControlsProps = {
@@ -54,6 +69,8 @@ export function DashboardTileControls({
 	onDuplicate,
 	shell,
 }: DashboardTileControlsProps) {
+	const intl = useIntl()
+
 	return (
 		<>
 			{onDuplicate && (
@@ -61,9 +78,9 @@ export function DashboardTileControls({
 					type="button"
 					variant="bare"
 					data-slot="dashboard-tile-duplicate"
-					aria-label={`Duplicate ${label}`}
+					aria-label={intl.formatMessage(messages.duplicate, { item: label })}
 					onClick={() => {
-						announce(describeDuplicate(label))
+						announce(describeDuplicate(intl, label))
 
 						onDuplicate()
 					}}
@@ -77,11 +94,11 @@ export function DashboardTileControls({
 					type="button"
 					variant="bare"
 					data-slot="dashboard-tile-remove"
-					aria-label={`Remove ${label}`}
+					aria-label={intl.formatMessage(messages.remove, { item: label })}
 					onClick={() => {
 						handOffFocus(shell.current)
 
-						announce(describeRemove(label))
+						announce(describeRemove(intl, label))
 
 						onRemove()
 					}}

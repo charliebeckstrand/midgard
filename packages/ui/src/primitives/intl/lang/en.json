@@ -87,6 +87,62 @@
 		"defaultMessage": "Copy to clipboard",
 		"description": "The name of a button that copies a value to the clipboard."
 	},
+	"ui.dashboard.canceled": {
+		"defaultMessage": "Canceled. {item} returned to {cell}.",
+		"description": "Spoken when a canceled drag puts a tile back at its place."
+	},
+	"ui.dashboard.cannotGo": {
+		"defaultMessage": "{item} cannot go here. A drop now changes nothing.",
+		"description": "Spoken while a dragged tile is over a place where it cannot go."
+	},
+	"ui.dashboard.cell": {
+		"defaultMessage": "column {column} of {columns}, row {row}, {width, plural, one {# column} other {# columns}} wide",
+		"description": "The place of a dashboard tile: its first column, the count of columns, its row, and its width."
+	},
+	"ui.dashboard.dragStart": {
+		"defaultMessage": "Picked up {item} at {cell}. Use the arrow keys to move it. Press Space to drop it, or Escape to cancel.",
+		"description": "Spoken when the reader picks up a dashboard tile. The cell is the place of the tile."
+	},
+	"ui.dashboard.droppedAt": {
+		"defaultMessage": "Dropped {item} at {cell}.",
+		"description": "Spoken when a dragged tile drops at a new place."
+	},
+	"ui.dashboard.droppedUnchanged": {
+		"defaultMessage": "Dropped {item}. The board did not change.",
+		"description": "Spoken when a dragged tile drops and nothing moves."
+	},
+	"ui.dashboard.duplicate": {
+		"defaultMessage": "Duplicate {item}",
+		"description": "The name of the button that makes a copy of a dashboard tile."
+	},
+	"ui.dashboard.duplicated": {
+		"defaultMessage": "Duplicated {item}.",
+		"description": "Spoken when a tile action makes a copy of a tile."
+	},
+	"ui.dashboard.moves": {
+		"defaultMessage": "{item} moves to {cell}.",
+		"description": "Spoken while a dragged tile is over an empty place."
+	},
+	"ui.dashboard.remove": {
+		"defaultMessage": "Remove {item}",
+		"description": "The name of the button that removes a dashboard tile."
+	},
+	"ui.dashboard.removed": {
+		"defaultMessage": "Removed {item}.",
+		"description": "Spoken when a tile action removes a tile."
+	},
+	"ui.dashboard.shifts": {
+		"defaultMessage": "{item} moves before or after {partner}, to {cell}.",
+		"description": "Spoken while a dragged tile is over a place where a drop moves it next to another tile."
+	},
+	"ui.dashboard.swaps": {
+		"defaultMessage": "{item} swaps with {partner}, to {cell}.",
+		"description": "Spoken while a dragged tile is over a place where a drop swaps it with another tile."
+	},
+	"ui.dashboard.tidied": {
+		"defaultMessage": "{moved, plural, =0 {The board is already tidy.} one {Tidied the board. Moved # tile up.} other {Tidied the board. Moved # tiles up.}}",
+		"description": "Spoken when a tidy packs the board. The count is the number of tiles that moved."
+	},
 	"ui.datePicker.actions": {
 		"defaultMessage": "Date picker actions",
 		"description": "The name of the toolbar with the Clear and Today buttons below the calendar."
@@ -102,6 +158,58 @@
 	"ui.datePicker.today": {
 		"defaultMessage": "Today",
 		"description": "The label of the button that selects the date of today."
+	},
+	"ui.grid.columnGroupName": {
+		"defaultMessage": "{group} group",
+		"description": "The name of a column group in an announcement of the group editor, such as \"Contact group\"."
+	},
+	"ui.grid.columnName": {
+		"defaultMessage": "{column} column",
+		"description": "The name of a column in a reorder announcement, such as \"Price column\"."
+	},
+	"ui.grid.droppedIn": {
+		"defaultMessage": "Dropped {item} in {place}.",
+		"description": "Spoken when a dragged column or group drops at a place in the group editor."
+	},
+	"ui.grid.droppedWhereStarted": {
+		"defaultMessage": "Dropped {item} where it started.",
+		"description": "Spoken when a dragged column or group drops over no place, so nothing moves."
+	},
+	"ui.grid.editor": {
+		"defaultMessage": "the editor",
+		"description": "The group editor as a whole, as a place in an announcement, when a column is over no group."
+	},
+	"ui.grid.groupHandle": {
+		"defaultMessage": "Reorder group {group}",
+		"description": "The name of the handle that drags a group to a new place in the list of groups."
+	},
+	"ui.grid.groupPosition": {
+		"defaultMessage": "position {position} of {total}",
+		"description": "The place of a dragged group in the list of groups, inside an announcement of the group editor."
+	},
+	"ui.grid.isOver": {
+		"defaultMessage": "{item} is over {place}.",
+		"description": "Spoken while a column or a group is dragged over a place in the group editor, such as \"Name column is over Contact group.\"."
+	},
+	"ui.grid.returnedWhereStarted": {
+		"defaultMessage": "Returned {item} to where it started.",
+		"description": "Spoken when a canceled drag in the group editor puts the item back."
+	},
+	"ui.grid.rowGroupName": {
+		"defaultMessage": "group {group}",
+		"description": "The name of a row group in a reorder announcement, such as \"group Active\"."
+	},
+	"ui.grid.rowName": {
+		"defaultMessage": "row {key}",
+		"description": "The name of a row with no label of its own. The key is the key of the row."
+	},
+	"ui.grid.selectRow": {
+		"defaultMessage": "Select {row}",
+		"description": "The name of the checkbox that selects a row."
+	},
+	"ui.grid.ungrouped": {
+		"defaultMessage": "Ungrouped",
+		"description": "The heading of the columns that are in no group, and their place in an announcement."
 	},
 	"ui.lightbox.next": {
 		"defaultMessage": "Next photo",
@@ -126,6 +234,66 @@
 	"ui.passwordInput.show": {
 		"defaultMessage": "Show password",
 		"description": "The name of the button that shows the text of a password field."
+	},
+	"ui.reorder.dropped": {
+		"defaultMessage": "Dropped {subject}.",
+		"description": "Spoken when the reader drops a moved item. The subject is the item, with its place when it has one."
+	},
+	"ui.reorder.liftHint": {
+		"defaultMessage": "Use the arrow keys to move it, then press Space or Enter to drop it.",
+		"description": "Spoken after the pick-up of an item with the keyboard."
+	},
+	"ui.reorder.liftInstructions": {
+		"defaultMessage": "To pick up an item, press Space. Use the arrow keys to move it, then press Space or Enter to drop it.",
+		"description": "The description of a reorder handle whose keyboard lifts an item with Space and drops it with Space or Enter."
+	},
+	"ui.reorder.moveHandle": {
+		"defaultMessage": "Move {item}",
+		"description": "The name of a control that moves an item, such as the drag handle of a dashboard tile."
+	},
+	"ui.reorder.moved": {
+		"defaultMessage": "{item} moved to position {position} of {total}.",
+		"description": "Spoken when an item moves to a new place in an ordered list."
+	},
+	"ui.reorder.movedIn": {
+		"defaultMessage": "{item} moved to position {position} of {total} in {container}.",
+		"description": "Spoken when an item moves to a new place in a named group, such as a Kanban column."
+	},
+	"ui.reorder.pickedUp": {
+		"defaultMessage": "Picked up {subject}.",
+		"description": "Spoken when the reader picks up an item to move it. The subject is the item, with its place when it has one."
+	},
+	"ui.reorder.reorderHandle": {
+		"defaultMessage": "Reorder {item}",
+		"description": "The name of the handle that drags an item to a new place in a list."
+	},
+	"ui.reorder.returned": {
+		"defaultMessage": "Returned {item} to position {position} of {total}.",
+		"description": "Spoken when a canceled move puts an item back at its place in an ordered list."
+	},
+	"ui.reorder.returnedBare": {
+		"defaultMessage": "Returned {item}.",
+		"description": "Spoken when a canceled move puts back an item whose place is not known."
+	},
+	"ui.reorder.returnedIn": {
+		"defaultMessage": "Returned {item} to position {position} of {total} in {container}.",
+		"description": "Spoken when a canceled move puts an item back at its place in a named group."
+	},
+	"ui.reorder.sensorInstructions": {
+		"defaultMessage": "To pick up an item, press Space. Use the arrow keys to move it, then press Space to drop it, or Escape to cancel.",
+		"description": "The description of a drag handle whose keyboard drops an item with Space and cancels the move with Escape."
+	},
+	"ui.reorder.subject": {
+		"defaultMessage": "{item}, position {position} of {total}",
+		"description": "An item and its place in an ordered list, inside a reorder announcement, such as \"Alpha, position 2 of 3\"."
+	},
+	"ui.reorder.subjectIn": {
+		"defaultMessage": "{item}, position {position} of {total} in {container}",
+		"description": "An item and its place in a named group, such as a card in a Kanban column, inside a reorder announcement."
+	},
+	"ui.reorder.unnamedItem": {
+		"defaultMessage": "the item",
+		"description": "The name of an item in a reorder announcement when the item has no name."
 	},
 	"ui.searchInput.clear": {
 		"defaultMessage": "Clear search",

@@ -2,9 +2,10 @@
 
 import type { DragEndEvent, DragOverEvent, DragStartEvent } from '@dnd-kit/core'
 import { type RefObject, useEffect, useMemo, useRef, useState } from 'react'
-import { LIFT_INSTRUCTIONS } from '../../hooks/use-keyboard-lifted'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useAnimationFrame } from '../../hooks/use-timeout'
+import { reorderMessages } from '../../primitives/intl/intl-reorder'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { kanbanAnnouncements } from './engine/kanban-announcements'
 import {
 	indexBoard,
@@ -207,17 +208,24 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 
 	const readKey = useStableEvent(getKey)
 
+	const intl = useIntl()
+
+	// The board turns off the keyboard sensor of dnd-kit and lifts with
+	// `useKeyboardLifted`, so the handles take the lift instructions.
 	const accessibility = useMemo(
 		() => ({
 			announcements: kanbanAnnouncements(
+				intl,
 				readColumns,
 				readStartColumns,
 				readKey,
 				kanbanNames(containerRef),
 			),
-			screenReaderInstructions: LIFT_INSTRUCTIONS,
+			screenReaderInstructions: {
+				draggable: intl.formatMessage(reorderMessages.liftInstructions),
+			},
 		}),
-		[readColumns, readStartColumns, readKey, containerRef],
+		[intl, readColumns, readStartColumns, readKey, containerRef],
 	)
 
 	return {

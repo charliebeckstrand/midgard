@@ -3,6 +3,13 @@
 import type { DragControls } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { announce } from '../core'
+import {
+	droppedText,
+	pickedUpText,
+	type ReorderSlot,
+	returnedText,
+} from '../primitives/intl/intl-reorder'
+import { useIntl } from '../primitives/intl/use-intl'
 import { useDragCursorHold } from './use-drag-cursor'
 
 /**
@@ -25,9 +32,11 @@ export type ReorderDragOptions = {
 /** The live drag: the dragged id, its controls, and whether Escape canceled it. */
 type Drag = { id: string; controls: DragControls; canceled: boolean }
 
-/** The position phrase of an announcement. */
-const position = (order: readonly string[], id: string) =>
-	`position ${order.indexOf(id) + 1} of ${order.length}`
+/** The place of an item in an order, for an announcement. */
+const slotOf = (order: readonly string[], id: string): ReorderSlot => ({
+	position: order.indexOf(id) + 1,
+	total: order.length,
+})
 
 /**
  * The pointer drag of one Motion `Reorder.Group`. During a drag, Motion moves
@@ -43,6 +52,8 @@ const position = (order: readonly string[], id: string) =>
  * @internal
  */
 export function useReorderDrag({ ids, onReorder, name, onStart }: ReorderDragOptions) {
+	const intl = useIntl()
+
 	const [draft, setDraftState] = useState<string[] | null>(null)
 
 	// The handlers read the draft at the drop, after the renders of the drag.
@@ -103,9 +114,9 @@ export function useReorderDrag({ ids, onReorder, name, onStart }: ReorderDragOpt
 
 			window.addEventListener('keydown', onKeyDown, true)
 
-			announce(`Picked up ${name(id)}, ${position(ids, id)}.`, { assertive: true })
+			announce(pickedUpText(intl, name(id), slotOf(ids, id)), { assertive: true })
 		},
-		[ids, onStart, setDraft, cursor, unlisten, onKeyDown, name],
+		[ids, onStart, setDraft, cursor, unlisten, onKeyDown, name, intl],
 	)
 
 	const onDragEnd = useCallback(() => {
@@ -124,17 +135,17 @@ export function useReorderDrag({ ids, onReorder, name, onStart }: ReorderDragOpt
 		if (live === null) return
 
 		if (live.canceled) {
-			announce(`Returned ${name(live.id)} to ${position(ids, live.id)}.`, { assertive: true })
+			announce(returnedText(intl, name(live.id), slotOf(ids, live.id)), { assertive: true })
 
 			return
 		}
 
-		announce(`Dropped ${name(live.id)}, ${position(order, live.id)}.`, { assertive: true })
+		announce(droppedText(intl, name(live.id), slotOf(order, live.id)), { assertive: true })
 
 		if (onReorder === undefined || order.every((id, index) => id === ids[index])) return
 
 		onReorder(order, live.id)
-	}, [ids, onReorder, setDraft, cursor, unlisten, name])
+	}, [ids, onReorder, setDraft, cursor, unlisten, name, intl])
 
 	return { order: draft ?? ids, sorting: draft !== null, setDraft, onDragStart, onDragEnd }
 }

@@ -3,10 +3,11 @@
 import { domMax, LazyMotion, Reorder } from 'motion/react'
 import { type ReactNode, useCallback, useId, useMemo, useRef } from 'react'
 import { cn, dataAttr, querySlot } from '../../../core'
-import { LIFT_INSTRUCTIONS } from '../../../hooks/use-keyboard-lifted'
 import { useKeyboardReorder } from '../../../hooks/use-keyboard-reorder'
 import { usePrefersReducedMotion } from '../../../hooks/use-prefers-reduced-motion'
 import { useReorderDrag } from '../../../hooks/use-reorder-drag'
+import { IntlMessage } from '../../../primitives/intl/intl-message'
+import { reorderMessages } from '../../../primitives/intl/intl-reorder'
 import { k } from '../../../recipes/kata/query-builder'
 import { describeNode } from '../engine/query-announcements'
 import type { QueryGroup, QueryNode } from '../engine/types'
@@ -156,7 +157,7 @@ export function QueryBuilderSortable({ group, separator, node }: QueryBuilderSor
 				</Reorder.Group>
 			</LazyMotion>
 			<div hidden id={describedBy}>
-				{LIFT_INSTRUCTIONS.draggable}
+				<IntlMessage message={reorderMessages.liftInstructions} />
 			</div>
 		</>
 	)

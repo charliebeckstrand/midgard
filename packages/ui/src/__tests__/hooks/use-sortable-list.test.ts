@@ -15,6 +15,7 @@ import {
 	sortableAnnouncements,
 	useSortableList,
 } from '../../hooks/use-sortable-list'
+import { englishIntl, localeIntl } from '../../primitives/intl/intl-catalog'
 
 type Item = { id: string; label: string }
 
@@ -255,7 +256,7 @@ describe('useSortableList', () => {
 describe('sortableAnnouncements', () => {
 	const names: Record<string, string> = { a: 'Alpha', b: 'Bravo', c: 'Charlie' }
 
-	const announcements = sortableAnnouncements(['a', 'b', 'c'], (id) => names[id] ?? id)
+	const announcements = sortableAnnouncements(englishIntl, ['a', 'b', 'c'], (id) => names[id] ?? id)
 
 	const active = { id: 'a' } as Active
 
@@ -276,16 +277,32 @@ describe('sortableAnnouncements', () => {
 	it('drops in place with no target', () => {
 		expect(announcements.onDragEnd({ active, over: null })).toBe('Dropped Alpha, position 1 of 3.')
 	})
+
+	it('speaks in the language of the intl', () => {
+		const spanish = sortableAnnouncements(
+			localeIntl('es-ES'),
+			['a', 'b', 'c'],
+			(id) => names[id] ?? id,
+		)
+
+		expect(spanish.onDragStart({ active })).toBe('Tomaste Alpha, posición 1 de 3.')
+
+		expect(spanish.onDragOver({ active, over })).toBe('Alpha se movió a la posición 2 de 3.')
+	})
 })
 
 describe('useSortableList announcements', () => {
 	const announcementsOf = (props: { accessibility?: { announcements?: Announcements } }) =>
 		props.accessibility?.announcements
 
-	it('leaves the dnd-kit default without describe', () => {
+	it('names each item by its key without describe', () => {
 		const { result } = renderHook(() => useSortableList({ items, getKey: (item) => item.id }))
 
-		expect(announcementsOf(result.current.dndContextProps)).toBeUndefined()
+		const announcements = announcementsOf(result.current.dndContextProps)
+
+		expect(announcements?.onDragStart({ active: { id: 'c' } as Active })).toBe(
+			'Picked up c, position 3 of 3.',
+		)
 	})
 
 	it('names each item through describe', () => {
