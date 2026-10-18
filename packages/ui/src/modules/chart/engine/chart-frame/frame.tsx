@@ -70,6 +70,9 @@ const NONE_HIDDEN: ReadonlySet<number> = new Set()
  * touch menu button, and the name of a figcaption includes the name of that
  * button.
  *
+ * A chart with `heading` off puts the touch menu button in the top end corner
+ * of the chart root, and the root then anchors it (`rootClass`).
+ *
  * @internal
  */
 function chartChrome(
@@ -79,7 +82,14 @@ function chartChrome(
 	titleId: string,
 	subtitle: string | undefined,
 	legend: ReactNode,
-): { header: ReactNode; sparkVeil: ReactNode; legend: ReactNode; labelledBy?: string } {
+): {
+	header: ReactNode
+	sparkVeil: ReactNode
+	legend: ReactNode
+	labelledBy?: string
+	corner: ReactNode
+	rootClass?: string
+} {
 	const spark = tier === 'spark'
 
 	const head =
@@ -98,6 +108,8 @@ function chartChrome(
 		sparkVeil: spark ? head : null,
 		legend: spark ? null : legend,
 		labelledBy: !spark && heading && title ? titleId : undefined,
+		corner: heading ? null : <ChartMenuButton title={title} place="corner" />,
+		rootClass: heading ? undefined : 'relative',
 	}
 }
 
@@ -247,7 +259,8 @@ export type ChartFrameProps = AccessibleName & {
 	/**
 	 * Whether the title and the subtitle draw as a header. Off, the title names
 	 * the context menu alone: it heads the fullscreen view and the export files.
-	 * The heatmap draws no heading.
+	 * The touch menu button then sits in the top end corner of the chart. The
+	 * heatmap draws no heading.
 	 * @defaultValue true
 	 */
 	heading?: boolean
@@ -591,6 +604,8 @@ export function ChartFrame({
 		sparkVeil,
 		legend: legendFrame,
 		labelledBy,
+		corner,
+		rootClass,
 	} = chartChrome(tier, heading, title, titleId, subtitle, legend)
 
 	const plotRegion = (
@@ -654,6 +669,7 @@ export function ChartFrame({
 				// The named group scopes the spark header's hover / focus veil to the
 				// chart, so it never trips on an unnamed `group-hover` inside the marks.
 				'group/chart @container flex flex-col gap-3',
+				rootClass,
 				// The whole chart, labels included, selects no text and opens no callout
 				// under a hold.
 				k.touch.readout,
@@ -705,8 +721,11 @@ export function ChartFrame({
 			{annotations}
 
 			{/* Inside a box with a header row, such as a dashboard tile, the touch menu
-			    button goes to that row. Otherwise the chart header holds it. */}
+			    button goes to that row. Otherwise the chart header holds it, or the
+			    corner of the chart when it draws no header. */}
 			<ChartMenuButton title={title} place="host" />
+
+			{corner}
 		</div>
 	)
 

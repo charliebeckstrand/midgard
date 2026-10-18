@@ -1,9 +1,17 @@
 import { describe, expect, it, vi } from 'vitest'
-import { BarChart, PieChart } from '../../modules/chart'
+import {
+	BarChart,
+	ChoroplethChart,
+	type ChoroplethChartSeries,
+	HeatmapChart,
+	type HeatmapChartSeries,
+	PieChart,
+} from '../../modules/chart'
 import { readoutToCsv } from '../../modules/chart/engine/chart-export'
 import { createHeaderActionsHost, HeaderActionsContext } from '../../primitives/header-actions'
 import { LocaleProvider } from '../../providers/locale'
 import { bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
+import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
 type Row = { quarter: string; revenue: number }
 
@@ -552,5 +560,134 @@ describe('Chart menu button', () => {
 		)
 
 		expect(bySlot(off.container, 'chart-menu-button')).toBeNull()
+	})
+})
+
+const CELLS = [
+	{ day: 'Mon', hour: '9', commits: 1 },
+	{ day: 'Tue', hour: '9', commits: 5 },
+]
+
+const CELL_SERIES: [HeatmapChartSeries<(typeof CELLS)[number]>] = [
+	{ xKey: 'hour', yKey: 'day', colorKey: 'commits', colorRange: ['#fff', '#000'] },
+]
+
+const REGIONS = [
+	{ region: 'A', pop: 0 },
+	{ region: 'B', pop: 50 },
+]
+
+const REGION_SERIES: [ChoroplethChartSeries<(typeof REGIONS)[number]>] = [
+	{ idKey: 'region', colorKey: 'pop', colorRange: ['#fff', '#000'] },
+]
+
+/** A header actions host, as a dashboard tile gives, and its cleanup. */
+function headerHost() {
+	const host = document.createElement('div')
+
+	document.body.append(host)
+
+	const slot = createHeaderActionsHost()
+
+	slot.set(host)
+
+	return { host, slot }
+}
+
+describe('Chart menu button on a chart with no header', () => {
+	it('sits in the corner of a heatmap outside a box', () => {
+		const { container } = renderUI(
+			<HeatmapChart
+				title="Commits"
+				aria-label="Commits"
+				data={CELLS}
+				series={CELL_SERIES}
+				width={400}
+			/>,
+		)
+
+		const button = getSlot(container, 'chart-menu-button')
+
+		// The plot is `role="img"`, which hides its children, so the button sits outside it.
+		expect(getSlot(container, 'chart-plot').contains(button)).toBe(false)
+
+		fireEvent.click(button.querySelector('button') as Element)
+
+		expect(screen.getByRole('menuitem', { name: 'View data' })).toBeInTheDocument()
+	})
+
+	it('goes to the header actions of a box around a heatmap, and not to the corner', () => {
+		const { host, slot } = headerHost()
+
+		const { container } = renderUI(
+			<HeaderActionsContext value={slot}>
+				<HeatmapChart title="Commits" aria-label="Commits" data={CELLS} series={CELL_SERIES} />
+			</HeaderActionsContext>,
+		)
+
+		expect(bySlot(container, 'chart-menu-button')).toBeNull()
+
+		expect(bySlot(host, 'chart-menu-button')).not.toBeNull()
+
+		host.remove()
+	})
+
+	it('sits in the corner of a choropleth outside a box', () => {
+		const { container } = renderUI(
+			<ChoroplethChart
+				title="Population"
+				aria-label="Population"
+				geography={FIXTURE_GEOJSON}
+				data={REGIONS}
+				series={REGION_SERIES}
+				width={400}
+			/>,
+		)
+
+		const button = getSlot(container, 'chart-menu-button')
+
+		expect(getSlot(container, 'map').contains(button)).toBe(true)
+
+		fireEvent.click(button.querySelector('button') as Element)
+
+		expect(screen.getByRole('menuitem', { name: 'View data' })).toBeInTheDocument()
+	})
+
+	it('goes to the header actions of a box around a choropleth', () => {
+		const { host, slot } = headerHost()
+
+		const { container } = renderUI(
+			<HeaderActionsContext value={slot}>
+				<ChoroplethChart
+					title="Population"
+					aria-label="Population"
+					geography={FIXTURE_GEOJSON}
+					data={REGIONS}
+					series={REGION_SERIES}
+				/>
+			</HeaderActionsContext>,
+		)
+
+		expect(bySlot(container, 'chart-menu-button')).toBeNull()
+
+		expect(bySlot(host, 'chart-menu-button')).not.toBeNull()
+
+		host.remove()
+	})
+
+	it('shows none on a choropleth with the menu off', () => {
+		const { container } = renderUI(
+			<ChoroplethChart
+				title="Population"
+				aria-label="Population"
+				geography={FIXTURE_GEOJSON}
+				data={REGIONS}
+				series={REGION_SERIES}
+				width={400}
+				contextMenu={false}
+			/>,
+		)
+
+		expect(bySlot(container, 'chart-menu-button')).toBeNull()
 	})
 })
