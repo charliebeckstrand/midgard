@@ -214,9 +214,6 @@ export function useDatePickerState({
 		open,
 		onOpenChange,
 		onTriggerKeyDown,
-		// A text edit in `input` mode drops the grid highlight. Enter then goes to
-		// the DateInput and commits the typed date, not the highlighted day.
-		onInputEdit: clearActive,
 		listboxId,
 		activeDescendantId,
 		// Active-descendant wiring for the DateInput while `input` mode keeps focus
@@ -224,9 +221,13 @@ export function useDatePickerState({
 		// `aria-activedescendant` follows the roved grid cell (the only zone whose
 		// element carries `activeDescendantId`); both drop when there is no grid
 		// highlight, so the header/footer zones and the closed state clear it.
-		inputAria: {
+		// A text edit drops the highlight, so Enter commits the typed date and not
+		// the highlighted day. The keydown handler stays outside the bundle,
+		// because the dialog also composes it.
+		inputProps: {
 			'aria-controls': open ? listboxId : undefined,
 			'aria-activedescendant': active?.zone === 'grid' ? activeDescendantId : undefined,
+			onInput: clearActive,
 		},
 		setReference,
 		setFloating,
