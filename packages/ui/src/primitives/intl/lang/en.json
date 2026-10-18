@@ -279,13 +279,53 @@
 		"defaultMessage": "Upload file",
 		"description": "The name of the file input of a drop zone."
 	},
+	"ui.grid.autoSize": {
+		"defaultMessage": "Auto-size",
+		"description": "The menu item of a grid column that opens the choices that fit the widths of the columns."
+	},
+	"ui.grid.autoSizeAll": {
+		"defaultMessage": "Auto-size all columns",
+		"description": "The menu item that fits the width of each grid column to its content."
+	},
+	"ui.grid.autoSizeColumn": {
+		"defaultMessage": "Auto-size this column",
+		"description": "The menu item that fits the width of a grid column to its content."
+	},
+	"ui.grid.cellMenu": {
+		"defaultMessage": "Cell menu",
+		"description": "The name of the context menu of a grid cell."
+	},
+	"ui.grid.clearColor": {
+		"defaultMessage": "Clear color",
+		"description": "The menu item that removes the color of a group of a grid."
+	},
+	"ui.grid.clearSort": {
+		"defaultMessage": "Clear sort",
+		"description": "The menu item that removes the sort of a grid."
+	},
+	"ui.grid.collapseAllGroups": {
+		"defaultMessage": "Collapse all groups",
+		"description": "The menu item that closes every row group of a grid."
+	},
+	"ui.grid.collapseGroup": {
+		"defaultMessage": "Collapse group",
+		"description": "The menu item that closes a row group of a grid."
+	},
 	"ui.grid.columnGroupName": {
 		"defaultMessage": "{group} group",
 		"description": "The name of a column group in an announcement of the group editor, such as \"Contact group\"."
 	},
+	"ui.grid.columnMenu": {
+		"defaultMessage": "{column} column menu",
+		"description": "The name of the context menu of a grid column. The column is its name."
+	},
 	"ui.grid.columnName": {
 		"defaultMessage": "{column} column",
 		"description": "The name of a column in a reorder announcement, such as \"Price column\"."
+	},
+	"ui.grid.copy": {
+		"defaultMessage": "Copy",
+		"description": "The menu item that copies the selected cells of a grid."
 	},
 	"ui.grid.droppedIn": {
 		"defaultMessage": "Dropped {item} in {place}.",
@@ -299,9 +339,57 @@
 		"defaultMessage": "the editor",
 		"description": "The group editor as a whole, as a place in an announcement, when a column is over no group."
 	},
+	"ui.grid.expandAllGroups": {
+		"defaultMessage": "Expand all groups",
+		"description": "The menu item that opens every row group of a grid."
+	},
+	"ui.grid.expandGroup": {
+		"defaultMessage": "Expand group",
+		"description": "The menu item that opens a row group of a grid."
+	},
+	"ui.grid.export": {
+		"defaultMessage": "Export",
+		"description": "The menu item and the button that open the export choices of a grid."
+	},
+	"ui.grid.exportCsv": {
+		"defaultMessage": "Export to CSV",
+		"description": "The action that downloads the rows of a grid as a CSV file."
+	},
+	"ui.grid.exportExcel": {
+		"defaultMessage": "Export to Excel",
+		"description": "The action that downloads the rows of a grid as an Excel workbook."
+	},
+	"ui.grid.exportTo": {
+		"defaultMessage": "Export to {type}",
+		"description": "The action of an export type that the app adds to a grid. The type is its name."
+	},
+	"ui.grid.fillDown": {
+		"defaultMessage": "Fill down",
+		"description": "The menu item that copies the first row of a cell range of a grid down the range."
+	},
+	"ui.grid.fillLeft": {
+		"defaultMessage": "Fill left",
+		"description": "The menu item that copies the first column of a cell range of a grid to the left."
+	},
+	"ui.grid.fillRight": {
+		"defaultMessage": "Fill right",
+		"description": "The menu item that copies the first column of a cell range of a grid to the right."
+	},
+	"ui.grid.filterColumn": {
+		"defaultMessage": "Filter “{column}”",
+		"description": "The menu item that opens the filter of a grid column. The column is its name."
+	},
+	"ui.grid.groupBy": {
+		"defaultMessage": "Group by “{column}”",
+		"description": "The menu item that groups the rows of a grid by a column. The column is its name."
+	},
 	"ui.grid.groupHandle": {
 		"defaultMessage": "Reorder group {group}",
 		"description": "The name of the handle that drags a group to a new place in the list of groups."
+	},
+	"ui.grid.groupMenu": {
+		"defaultMessage": "{group} group menu",
+		"description": "The name of the context menu of a group of a grid. The group is its name."
 	},
 	"ui.grid.groupPosition": {
 		"defaultMessage": "position {position} of {total}",
@@ -310,6 +398,34 @@
 	"ui.grid.isOver": {
 		"defaultMessage": "{item} is over {place}.",
 		"description": "Spoken while a column or a group is dragged over a place in the group editor, such as \"Name column is over Contact group.\"."
+	},
+	"ui.grid.manageColumns": {
+		"defaultMessage": "Manage columns",
+		"description": "The menu item that opens the dialog that shows, hides, and orders the columns of a grid."
+	},
+	"ui.grid.manageRows": {
+		"defaultMessage": "Manage rows",
+		"description": "The menu item that opens the dialog that orders and colors the row groups of a grid."
+	},
+	"ui.grid.pin": {
+		"defaultMessage": "Pin",
+		"description": "The menu item of a grid column that opens the pin choices."
+	},
+	"ui.grid.pinLeft": {
+		"defaultMessage": "Pin left",
+		"description": "The menu item that pins a column of a grid to the left edge."
+	},
+	"ui.grid.pinRight": {
+		"defaultMessage": "Pin right",
+		"description": "The menu item that pins a column of a grid to the right edge."
+	},
+	"ui.grid.print": {
+		"defaultMessage": "Print",
+		"description": "The action that prints the rows of a grid."
+	},
+	"ui.grid.resetWidths": {
+		"defaultMessage": "Reset column widths",
+		"description": "The menu item that gives the widths of the grid columns back to the automatic fit."
 	},
 	"ui.grid.returnedWhereStarted": {
 		"defaultMessage": "Returned {item} to where it started.",
@@ -327,9 +443,29 @@
 		"defaultMessage": "Select {row}",
 		"description": "The name of the checkbox that selects a row."
 	},
+	"ui.grid.sort": {
+		"defaultMessage": "Sort",
+		"description": "The menu item of a grid column that opens the sort choices."
+	},
+	"ui.grid.sortAscending": {
+		"defaultMessage": "Sort ascending",
+		"description": "The menu item that sorts the rows of a grid by a column, from low to high."
+	},
+	"ui.grid.sortDescending": {
+		"defaultMessage": "Sort descending",
+		"description": "The menu item that sorts the rows of a grid by a column, from high to low."
+	},
+	"ui.grid.ungroup": {
+		"defaultMessage": "Ungroup",
+		"description": "The menu item that stops the grouping of the rows of a grid."
+	},
 	"ui.grid.ungrouped": {
 		"defaultMessage": "Ungrouped",
 		"description": "The heading of the columns that are in no group, and their place in an announcement."
+	},
+	"ui.grid.unpin": {
+		"defaultMessage": "Unpin",
+		"description": "The menu item that unpins a column of a grid."
 	},
 	"ui.kanban.drag": {
 		"defaultMessage": "Drag",

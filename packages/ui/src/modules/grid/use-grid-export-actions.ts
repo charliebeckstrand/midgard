@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { DEFAULT_EXPORTABLE } from './engine/grid-export/registry'
 import { exportRowsContext, resolveExportActions, trackPending } from './engine/grid-export/resolve'
 import type { GridExportAction, GridExportable, GridExportRows } from './engine/grid-export/types'
@@ -43,12 +44,14 @@ export function useGridExportActions<T>(args: {
 
 	const [pendingCount, setPendingCount] = useState(0)
 
+	const intl = useIntl()
+
 	const actions = useMemo(
 		() =>
-			resolveExportActions(exportable, () => exportRowsContext(exportRows, columns)).map(
+			resolveExportActions(intl, exportable, () => exportRowsContext(exportRows, columns)).map(
 				(action) => ({ ...action, run: trackPending(action.run, setPendingCount) }),
 			),
-		[exportable, columns, exportRows],
+		[intl, exportable, columns, exportRows],
 	)
 
 	return { actions, pending: pendingCount > 0 }

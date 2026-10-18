@@ -18,6 +18,7 @@ import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../compo
 import { SearchInput } from '../../components/search-input'
 import { cn, createContext } from '../../core'
 import { isRtl } from '../../hooks/a11y/logical-arrow'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid-column-manager'
 import { toggleItem } from '../../utilities'
 import { columnLabel } from './engine/grid-column/label'
@@ -194,6 +195,8 @@ function GridColumnPinControl({
 }: GridColumnPinControlProps) {
 	const rtl = useManagerRtl()
 
+	const intl = useIntl()
+
 	return (
 		<Menu placement={placement} className={className}>
 			<MenuTrigger>
@@ -202,7 +205,7 @@ function GridColumnPinControl({
 				</button>
 			</MenuTrigger>
 			<MenuContent>
-				{pinMenuChoices(side, rtl).map((choice) => (
+				{pinMenuChoices(intl, side, rtl).map((choice) => (
 					<MenuItem key={choice.key} onAction={() => onPinChange(item.id, choice.target)}>
 						<Icon icon={pinChoiceIcon(choice.target, rtl)} />
 						<MenuLabel>{choice.label}</MenuLabel>

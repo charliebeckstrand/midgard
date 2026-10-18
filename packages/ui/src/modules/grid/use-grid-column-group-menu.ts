@@ -1,8 +1,10 @@
 'use client'
 
 import { type ReactNode, useCallback } from 'react'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { columnLabel } from './engine/grid-column/label'
 import type { GridMenuResolution } from './engine/grid-menu-targeting'
+import { gridMessages } from './engine/grid-messages'
 import { recolorGroupIn } from './engine/grid-zone/map'
 import { buildColumnGroupMenu } from './grid-context-menu-utilities'
 import type { GridColumnGroup } from './grid-group-types'
@@ -28,6 +30,8 @@ export function useGridColumnGroupMenu(args: {
 }): (id: string) => GridMenuResolution | null {
 	const { groups, setGroups, enabled, chooseColumns, manageLabel } = args
 
+	const intl = useIntl()
+
 	return useCallback(
 		(id: string): GridMenuResolution | null => {
 			if (!enabled) return null
@@ -37,14 +41,17 @@ export function useGridColumnGroupMenu(args: {
 			if (!group) return null
 
 			const items = buildColumnGroupMenu({
+				intl,
 				group,
 				onClearColor: () => setGroups(recolorGroupIn(groups, group.id, undefined)),
 				chooseColumns,
 				manageLabel,
 			})
 
-			return items.length > 0 ? { items, name: `${columnLabel(group)} group menu` } : null
+			const name = intl.formatMessage(gridMessages.groupMenu, { group: columnLabel(group) })
+
+			return items.length > 0 ? { items, name } : null
 		},
-		[groups, setGroups, enabled, chooseColumns, manageLabel],
+		[groups, setGroups, enabled, chooseColumns, manageLabel, intl],
 	)
 }

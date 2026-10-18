@@ -3,6 +3,7 @@ import { Grid, type GridColumn, useGridExportActions } from '../../modules/grid'
 import { rowsToCsv } from '../../modules/grid/engine/grid-export/csv'
 import { resolveExportActions } from '../../modules/grid/engine/grid-export/resolve'
 import type { GridExportRows } from '../../modules/grid/engine/grid-export/types'
+import { englishIntl } from '../../primitives/intl/intl-catalog'
 import { downloadCsv } from '../../utilities/export-output'
 import { deferred, fireEvent, renderUI, screen, tick, waitFor, within } from '../helpers'
 import { captureDownload } from '../helpers/capture-download'
@@ -107,6 +108,7 @@ describe('resolveExportActions', () => {
 		const onExport = vi.fn()
 
 		const actions = resolveExportActions<Item>(
+			englishIntl,
 			['csv', 'print', { csv: { onExport } }],
 			() => context,
 		)
@@ -121,7 +123,9 @@ describe('resolveExportActions', () => {
 	it('names no built-in exporter for a key of every object', () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
-		expect(resolveExportActions<Item>(['constructor' as 'csv'], () => context)).toEqual([])
+		expect(
+			resolveExportActions<Item>(englishIntl, ['constructor' as 'csv'], () => context),
+		).toEqual([])
 
 		warn.mockRestore()
 	})
@@ -132,6 +136,7 @@ describe('resolveExportActions', () => {
 		const boom = new Error('exporter broke')
 
 		const [action] = resolveExportActions<Item>(
+			englishIntl,
 			[
 				{
 					csv: {

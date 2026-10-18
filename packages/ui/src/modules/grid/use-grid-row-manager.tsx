@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { PaletteColor } from '../../core/recipe'
 import { useControllable } from '../../hooks'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { groupValueLabel } from './engine/grid-column/label'
 import {
 	applyRowKeyOrder,
@@ -17,6 +18,7 @@ import {
 	type GroupExpansion,
 } from './engine/grid-group/tree'
 import type { GridMenuResolution } from './engine/grid-menu-targeting'
+import { gridMessages } from './engine/grid-messages'
 import { buildRowGroupMenu } from './grid-context-menu-utilities'
 import type { GridGroupBy } from './grid-data-types'
 import type {
@@ -225,6 +227,8 @@ export function useGridRowManagerRegion<T>({
 
 	const { recolor } = manager
 
+	const intl = useIntl()
+
 	const rowGroupMenu = useCallback(
 		(key: string, header: HTMLElement): GridMenuResolution | null => {
 			if (!reachable) return null
@@ -232,9 +236,10 @@ export function useGridRowManagerRegion<T>({
 			const group = groupByKey.get(key)
 
 			const items = buildRowGroupMenu({
+				intl,
 				expanded: group?.expanded ?? false,
 				color: color(key),
-				manageLabel: 'Manage rows',
+				manageLabel: intl.formatMessage(gridMessages.manageRows),
 				onManage: () => openFrom(header),
 				onToggle: () => {
 					if (group) toggleGroup(group.id)
@@ -244,9 +249,13 @@ export function useGridRowManagerRegion<T>({
 				onClearColor: () => recolor(key, undefined),
 			})
 
-			return { items, name: `${groupValueLabel(group ? group.value : key)} group menu` }
+			const name = intl.formatMessage(gridMessages.groupMenu, {
+				group: groupValueLabel(group ? group.value : key),
+			})
+
+			return { items, name }
 		},
-		[reachable, groupByKey, color, recolor, toggleGroup, setGroupExpanded, openFrom],
+		[reachable, groupByKey, color, recolor, toggleGroup, setGroupExpanded, openFrom, intl],
 	)
 
 	return {

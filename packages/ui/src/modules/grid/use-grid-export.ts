@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { useIntl } from '../../primitives/intl/use-intl'
 import {
 	exportRowsContext,
 	resolveExportActions,
@@ -64,12 +65,14 @@ export function useGridExport<T>(args: {
 	// settle before the grid stops reading as busy.
 	const [pendingCount, setPendingCount] = useState(0)
 
+	const intl = useIntl()
+
 	const actions = useMemo(
 		() =>
-			resolveExportActions(exportable, () =>
+			resolveExportActions(intl, exportable, () =>
 				exportRows ? exportRowsContext(exportRows, columns) : { columns, rows: rows() },
 			).map((action) => ({ ...action, run: trackPending(action.run, setPendingCount) })),
-		[exportable, columns, rows, exportRows],
+		[intl, exportable, columns, rows, exportRows],
 	)
 
 	const surfaces = resolveExportSurfaces(exportable)

@@ -1,4 +1,5 @@
 import { downloadCsv } from '../../../../utilities/export-output'
+import { gridMessages } from '../grid-messages'
 import { rowsToCsv } from './csv'
 import { printRows } from './print'
 import type { GridExportContext, GridExportType } from './types'
@@ -17,11 +18,11 @@ export const DEFAULT_EXPORT_TYPES: GridExportType[] = ['csv', 'excel', 'print']
  */
 export const DEFAULT_EXPORTABLE: GridExportType[] = ['csv', 'excel']
 
-/** Menu/toolbar label for each built-in export type. @internal */
-export const BUILTIN_EXPORT_LABEL: Record<'csv' | 'excel' | 'print', string> = {
-	csv: 'Export to CSV',
-	excel: 'Export to Excel',
-	print: 'Print',
+/** The message of the menu and toolbar label of each built-in export type. @internal */
+export const BUILTIN_EXPORT_LABEL = {
+	csv: gridMessages.exportCsv,
+	excel: gridMessages.exportExcel,
+	print: gridMessages.print,
 }
 
 /**
