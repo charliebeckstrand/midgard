@@ -181,6 +181,16 @@ export type RangeLegendProps = RangeScale & {
 	box?: string
 }
 
+/**
+ * Whether a key press holds Ctrl, Meta, or Alt. Such a chord is for the browser,
+ * such as its history or its scroll keys. Shift stays a plain press.
+ *
+ * @internal
+ */
+function isBrowserChord(event: KeyboardEvent<HTMLElement>): boolean {
+	return event.ctrlKey || event.metaKey || event.altKey
+}
+
 /** The class-center context {@link rangeKeyValue} walks. @internal */
 type RangeKeyContext = {
 	min: number
@@ -529,6 +539,8 @@ export function RangeLegend({
 	// Arrow keys walk whole classes off the shared {@link rangeKeyValue} — both
 	// pairs, so either orientation answers its axis; Escape blurs.
 	const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+		if (isBrowserChord(event)) return
+
 		if (event.key === 'Escape') {
 			event.currentTarget.blur()
 
