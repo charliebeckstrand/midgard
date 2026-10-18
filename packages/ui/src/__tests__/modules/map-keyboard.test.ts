@@ -223,17 +223,21 @@ describe('moveMapCursor', () => {
 	})
 
 	it('clears on Escape', () => {
-		expect(moveMapCursor(1, 'Escape', ROW)).toEqual({ handled: true, stop: null })
+		expect(moveMapCursor(1, 'Escape', ROW)).toEqual({ handled: true, leave: true, stop: null })
 	})
 
 	it('leaves an unhandled key alone', () => {
 		expect(moveMapCursor(1, 'a', ROW).handled).toBe(false)
 	})
 
-	it('reports nothing to navigate when the map has no stop', () => {
-		expect(moveMapCursor(null, 'ArrowRight', [])).toEqual({ handled: true, stop: null })
+	it('claims a navigation key on a map with no stop, but does not leave', () => {
+		// A zoom map earns the stop with nothing to navigate. The key must not
+		// scroll the page, and only Escape takes focus off the map.
+		for (const key of ['ArrowRight', 'ArrowUp', 'Home', 'End']) {
+			expect(moveMapCursor(null, key, [])).toEqual({ handled: true, leave: false, stop: null })
+		}
 
-		expect(moveMapCursor(null, 'Home', [])).toEqual({ handled: true, stop: null })
+		expect(moveMapCursor(null, 'Escape', [])).toEqual({ handled: true, leave: true, stop: null })
 	})
 
 	it('re-enters at the first stop when the cursor names one the list has lost', () => {

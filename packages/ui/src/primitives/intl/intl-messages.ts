@@ -39,6 +39,11 @@ export const intlMessages = defineMessages({
 		defaultMessage: 'Confirm',
 		description: 'The label of a button that does the action that a dialog asks about.',
 	},
+	loading: {
+		id: 'ui.common.loading',
+		defaultMessage: 'Loading',
+		description: 'The name of a spinner that shows that content or an action is loading.',
+	},
 	noResults: {
 		id: 'ui.common.noResults',
 		defaultMessage: 'No results',

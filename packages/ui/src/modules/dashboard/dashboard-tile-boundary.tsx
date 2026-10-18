@@ -4,7 +4,9 @@ import { Component, type ErrorInfo, type ReactNode, Suspense } from 'react'
 import { Button } from '../../components/button'
 import { Text } from '../../components/text'
 import { cn } from '../../core'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/dashboard'
+import { dashboardMessages } from './dashboard-messages'
 
 /** Props for {@link DashboardTileBoundary}. @internal */
 export type DashboardTileBoundaryProps = {
@@ -57,17 +59,25 @@ export class DashboardTileBoundary extends Component<
 
 		if (this.props.quiet) return null
 
-		return (
-			<div data-slot="dashboard-tile-error" role="alert" className={cn(k.error)}>
-				<Text tone="muted">{this.props.label} failed to render.</Text>
-
-				{/* `Button` sets no `type`, and a `submit` would send an enclosing form. */}
-				<Button type="button" onClick={this.retry}>
-					Retry
-				</Button>
-			</div>
-		)
+		return <DashboardTileError label={this.props.label} onRetry={this.retry} />
 	}
+}
+
+// The error state of a tile, in the language of the reader. A function, so that
+// it can read the intl, which the class boundary cannot.
+function DashboardTileError({ label, onRetry }: { label: string; onRetry: () => void }) {
+	const intl = useIntl()
+
+	return (
+		<div data-slot="dashboard-tile-error" role="alert" className={cn(k.error)}>
+			<Text tone="muted">{intl.formatMessage(dashboardMessages.failed, { label })}</Text>
+
+			{/* `Button` sets no `type`, and a `submit` would send an enclosing form. */}
+			<Button type="button" onClick={onRetry}>
+				{intl.formatMessage(dashboardMessages.retry)}
+			</Button>
+		</div>
+	)
 }
 
 /** Props for {@link DashboardTileGuard}. @internal */

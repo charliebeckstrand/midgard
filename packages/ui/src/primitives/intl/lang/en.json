@@ -43,6 +43,50 @@
 		"defaultMessage": "Select year",
 		"description": "The name of the grid of years in the year picker."
 	},
+	"ui.color.alpha": {
+		"defaultMessage": "Alpha",
+		"description": "The name of the slider that sets the opacity of a color."
+	},
+	"ui.color.alphaChannel": {
+		"defaultMessage": "Alpha channel",
+		"description": "The name of the field of the opacity of a color."
+	},
+	"ui.color.area": {
+		"defaultMessage": "Saturation and brightness",
+		"description": "The name of the two-axis area that sets the saturation and the brightness of a color."
+	},
+	"ui.color.areaValue": {
+		"defaultMessage": "Saturation {saturation}%, brightness {brightness}%",
+		"description": "The value text of the color area. Each value is a percent from 0 to 100."
+	},
+	"ui.color.channel": {
+		"defaultMessage": "{channel} channel",
+		"description": "The name of the field of one color channel. The channel is its letter: R, G, or B."
+	},
+	"ui.color.choose": {
+		"defaultMessage": "Choose color",
+		"description": "The name of the dialog of a color picker."
+	},
+	"ui.color.copyHex": {
+		"defaultMessage": "Copy hex value",
+		"description": "The name of the button that copies the hexadecimal code of a color."
+	},
+	"ui.color.eyedropper": {
+		"defaultMessage": "Pick color from screen",
+		"description": "The name of the button that takes a color from a point on the screen."
+	},
+	"ui.color.hex": {
+		"defaultMessage": "Hex",
+		"description": "The label of the field of the hexadecimal code of a color."
+	},
+	"ui.color.hue": {
+		"defaultMessage": "Hue",
+		"description": "The name of the slider that sets the hue of a color."
+	},
+	"ui.color.swatches": {
+		"defaultMessage": "Swatches",
+		"description": "The name of the group of preset colors."
+	},
 	"ui.combobox.placeholder": {
 		"defaultMessage": "Search",
 		"description": "The placeholder of a field that filters a list of options as the reader types."
@@ -70,6 +114,10 @@
 	"ui.common.confirm": {
 		"defaultMessage": "Confirm",
 		"description": "The label of a button that does the action that a dialog asks about."
+	},
+	"ui.common.loading": {
+		"defaultMessage": "Loading",
+		"description": "The name of a spinner that shows that content or an action is loading."
 	},
 	"ui.common.noResults": {
 		"defaultMessage": "No results",
@@ -107,6 +155,10 @@
 		"defaultMessage": "column {column} of {columns}, row {row}, {width, plural, one {# column} other {# columns}} wide",
 		"description": "The place of a dashboard tile: its first column, the count of columns, its row, and its width."
 	},
+	"ui.dashboard.clearSelection": {
+		"defaultMessage": "Clear the selection in {label}",
+		"description": "The name of the button that clears the selection that a dashboard tile holds."
+	},
 	"ui.dashboard.dragStart": {
 		"defaultMessage": "Picked up {item} at {cell}. Use the arrow keys to move it. Press Space to drop it, or Escape to cancel.",
 		"description": "Spoken when the reader picks up a dashboard tile. The cell is the place of the tile."
@@ -127,6 +179,18 @@
 		"defaultMessage": "Duplicated {item}.",
 		"description": "Spoken when a tile action makes a copy of a tile."
 	},
+	"ui.dashboard.expand": {
+		"defaultMessage": "Expand {label}",
+		"description": "The name of the button that opens a dashboard tile in a dialog."
+	},
+	"ui.dashboard.failed": {
+		"defaultMessage": "{label} failed to render.",
+		"description": "The error text of a dashboard tile whose widget threw an error."
+	},
+	"ui.dashboard.missing": {
+		"defaultMessage": "This dashboard cannot show a “{widget}” tile.",
+		"description": "The text of a dashboard tile whose kind no widget renders. The widget is the name of the kind."
+	},
 	"ui.dashboard.moves": {
 		"defaultMessage": "{item} moves to {cell}.",
 		"description": "Spoken while a dragged tile is over an empty place."
@@ -138,6 +202,14 @@
 	"ui.dashboard.removed": {
 		"defaultMessage": "Removed {item}.",
 		"description": "Spoken when a tile action removes a tile."
+	},
+	"ui.dashboard.resize": {
+		"defaultMessage": "Resize {label}",
+		"description": "The name of the handle that changes the size of a dashboard tile."
+	},
+	"ui.dashboard.retry": {
+		"defaultMessage": "Retry",
+		"description": "The label of the button that renders a failed dashboard tile again."
 	},
 	"ui.dashboard.shifts": {
 		"defaultMessage": "{item} moves before or after {partner}, to {cell}.",
@@ -246,6 +318,50 @@
 	"ui.datePicker.yesterday": {
 		"defaultMessage": "Yesterday",
 		"description": "A range of a date picker: the day before today."
+	},
+	"ui.fileUpload.announced": {
+		"defaultMessage": "{count, plural, one {Selected {names}} other {Selected # files: {names}}}",
+		"description": "Spoken when the reader selects files. The names are the file names, joined by commas."
+	},
+	"ui.fileUpload.browse": {
+		"defaultMessage": "Browse files",
+		"description": "The name of the button that opens the file picker of a file field."
+	},
+	"ui.fileUpload.chooseDifferent": {
+		"defaultMessage": "Choose a different file",
+		"description": "The name of the drop zone after a selection. A press opens the file picker again."
+	},
+	"ui.fileUpload.chooseFile": {
+		"defaultMessage": "Choose a file",
+		"description": "The placeholder of an empty file field."
+	},
+	"ui.fileUpload.clear": {
+		"defaultMessage": "{count, plural, one {Clear selected file} other {Clear selected files}}",
+		"description": "The name of the button that clears the selected files of a file field."
+	},
+	"ui.fileUpload.dropClick": {
+		"defaultMessage": "Drop files here or click to browse",
+		"description": "The prompt of an empty drop zone on a device with a mouse."
+	},
+	"ui.fileUpload.dropTap": {
+		"defaultMessage": "Drop files here or tap to browse",
+		"description": "The prompt of an empty drop zone on a touch device."
+	},
+	"ui.fileUpload.reset": {
+		"defaultMessage": "Reset",
+		"description": "The label of the button that clears the selected files."
+	},
+	"ui.fileUpload.selected": {
+		"defaultMessage": "{count, plural, one {# file selected} other {# files selected}}",
+		"description": "The summary of a selection of more than one file."
+	},
+	"ui.fileUpload.upload": {
+		"defaultMessage": "Upload",
+		"description": "The label of the button that opens the file picker."
+	},
+	"ui.fileUpload.uploadFile": {
+		"defaultMessage": "Upload file",
+		"description": "The name of the file input of a drop zone."
 	},
 	"ui.grid.columnGroupName": {
 		"defaultMessage": "{group} group",

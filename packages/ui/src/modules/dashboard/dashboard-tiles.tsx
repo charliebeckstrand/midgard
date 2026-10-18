@@ -3,9 +3,11 @@
 import { memo, type ReactNode, useMemo } from 'react'
 import { Text } from '../../components/text'
 import { cn } from '../../core'
+import { useIntl } from '../../primitives/intl/use-intl'
 import type { Mount } from '../../primitives/mount'
 import { k } from '../../recipes/kata/dashboard'
 import { DashboardTileRankContext, useDashboardTileRank, useDashboardWidgets } from './context'
+import { dashboardMessages } from './dashboard-messages'
 import { DashboardTile } from './dashboard-tile'
 import { sortByOrder } from './engine/dashboard-layout'
 import type { DashboardSpecTile } from './engine/dashboard-spec'
@@ -18,10 +20,19 @@ import { useDashboardStore } from './use-dashboard-store'
  * both act on.
  */
 const statedFallback: DashboardWidgetRenderer = (tile) => (
-	<div data-slot="dashboard-tile-missing" className={cn(k.missing)}>
-		<Text tone="muted">This dashboard cannot show a “{tile.widget}” tile.</Text>
-	</div>
+	<DashboardTileMissing widget={tile.widget} />
 )
+
+// The line of the fallback, in the language of the reader.
+function DashboardTileMissing({ widget }: { widget: string }) {
+	const intl = useIntl()
+
+	return (
+		<div data-slot="dashboard-tile-missing" className={cn(k.missing)}>
+			<Text tone="muted">{intl.formatMessage(dashboardMessages.missing, { widget })}</Text>
+		</div>
+	)
+}
 
 /** Props for {@link DashboardTiles}. */
 export type DashboardTilesProps = {

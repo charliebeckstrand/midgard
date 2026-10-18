@@ -14,11 +14,14 @@ import {
 import { cn, composeEventHandlers, dataAttr, invalidAttrs } from '../../core'
 import { useIsTruncated } from '../../hooks'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { IntlMessage } from '../../primitives/intl/intl-message'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/file-upload'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import { FileUploadHiddenInput } from './file-upload-hidden-input'
+import { fileUploadMessages } from './file-upload-messages'
 import {
 	type FileUploadDropProps,
 	splitFileUploadProps,
@@ -39,10 +42,10 @@ function dropPrompt(children: ReactNode) {
 			<>
 				<Icon icon={<Upload />} size="lg" className={k.icon} />
 				<span className={cn('block pointer-coarse:hidden', k.label)}>
-					Drop files here or click to browse
+					<IntlMessage message={fileUploadMessages.dropClick} />
 				</span>
 				<span className={cn('hidden pointer-coarse:block', k.label)}>
-					Drop files here or tap to browse
+					<IntlMessage message={fileUploadMessages.dropTap} />
 				</span>
 			</>
 		)
@@ -93,7 +96,9 @@ function DropSelection({
 
 	const textId = useId()
 
-	const text = selectionSummary(files, multiple) ?? ''
+	const intl = useIntl()
+
+	const text = selectionSummary(intl, files, multiple) ?? ''
 
 	const truncated = useIsTruncated(labelRef, text)
 
@@ -104,7 +109,7 @@ function DropSelection({
 					<button
 						ref={overlayRef}
 						type="button"
-						aria-label="Choose a different file"
+						aria-label={intl.formatMessage(fileUploadMessages.chooseDifferent)}
 						// A Field Label wins over `aria-label`, so the name is the Label
 						// and then the selection text.
 						aria-labelledby={labelledBy ? `${labelledBy} ${textId}` : undefined}
@@ -133,7 +138,7 @@ function DropSelection({
 				onClick={onClear}
 				className="relative z-10"
 			>
-				Reset
+				{intl.formatMessage(fileUploadMessages.reset)}
 			</Button>
 		</>
 	)
@@ -178,6 +183,8 @@ function DropSelection({
  * @see {@link useFileUploadHandlers}
  */
 export function FileUploadDrop(allProps: FileUploadDropProps) {
+	const intl = useIntl()
+
 	const { shared, rest } = splitFileUploadProps(allProps)
 
 	// The type names the element-agnostic base, so the spread carries no `ref`.
@@ -292,7 +299,7 @@ export function FileUploadDrop(allProps: FileUploadDropProps) {
 			{/* Sibling of the trigger, not nested inside it: a focusable `<input>`
 			    inside an interactive control produces nested-interactive markup. */}
 			<FileUploadHiddenInput
-				ariaLabel={triggerLabel(children, 'Upload file')}
+				ariaLabel={triggerLabel(children, intl.formatMessage(fileUploadMessages.uploadFile))}
 				control={control}
 				inputRef={inputRef}
 				accept={accept}

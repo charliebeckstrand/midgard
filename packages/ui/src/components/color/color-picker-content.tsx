@@ -5,11 +5,13 @@ import type { CSSProperties, ReactNode } from 'react'
 import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { FloatingSurface, type FloatingSurfaceProps } from '../../primitives/floating-surface'
+import { useIntl } from '../../primitives/intl/use-intl'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { useGlass } from '../../providers/glass/context'
 import type { scale } from '../../recipes/kata/color-picker'
 import { k } from '../../recipes/kata/color-picker'
 import { Box } from '../../structure/box'
+import { colorMessages } from './color-messages'
 
 type ColorPickerContentProps = {
 	open: boolean
@@ -52,6 +54,8 @@ export function ColorPickerContent({
 	size,
 	children,
 }: ColorPickerContentProps) {
+	const intl = useIntl()
+
 	const glass = useGlass()
 
 	return (
@@ -70,7 +74,7 @@ export function ColorPickerContent({
 			id={id}
 			role="dialog"
 			aria-modal="true"
-			aria-label="Choose color"
+			aria-label={intl.formatMessage(colorMessages.choose)}
 			className={cn(k.content.portal)}
 			tabIndex={-1}
 		>
