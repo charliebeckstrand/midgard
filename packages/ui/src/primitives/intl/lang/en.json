@@ -35,6 +35,50 @@
 		"defaultMessage": "Select year",
 		"description": "The name of the grid of years in the year picker."
 	},
+	"ui.color.alpha": {
+		"defaultMessage": "Alpha",
+		"description": "The name of the slider that sets the opacity of a color."
+	},
+	"ui.color.alphaChannel": {
+		"defaultMessage": "Alpha channel",
+		"description": "The name of the field of the opacity of a color."
+	},
+	"ui.color.area": {
+		"defaultMessage": "Saturation and brightness",
+		"description": "The name of the two-axis area that sets the saturation and the brightness of a color."
+	},
+	"ui.color.areaValue": {
+		"defaultMessage": "Saturation {saturation}%, brightness {brightness}%",
+		"description": "The value text of the color area. Each value is a percent from 0 to 100."
+	},
+	"ui.color.channel": {
+		"defaultMessage": "{channel} channel",
+		"description": "The name of the field of one color channel. The channel is its letter: R, G, or B."
+	},
+	"ui.color.choose": {
+		"defaultMessage": "Choose color",
+		"description": "The name of the dialog of a color picker."
+	},
+	"ui.color.copyHex": {
+		"defaultMessage": "Copy hex value",
+		"description": "The name of the button that copies the hexadecimal code of a color."
+	},
+	"ui.color.eyedropper": {
+		"defaultMessage": "Pick color from screen",
+		"description": "The name of the button that takes a color from a point on the screen."
+	},
+	"ui.color.hex": {
+		"defaultMessage": "Hex",
+		"description": "The label of the field of the hexadecimal code of a color."
+	},
+	"ui.color.hue": {
+		"defaultMessage": "Hue",
+		"description": "The name of the slider that sets the hue of a color."
+	},
+	"ui.color.swatches": {
+		"defaultMessage": "Swatches",
+		"description": "The name of the group of preset colors."
+	},
 	"ui.combobox.placeholder": {
 		"defaultMessage": "Search",
 		"description": "The placeholder of a field that filters a list of options as the reader types."

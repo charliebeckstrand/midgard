@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { ColorPanel } from '../../components/color'
 import type { Hsva } from '../../components/color/types'
 import { Fieldset } from '../../components/fieldset'
+import { LocaleProvider } from '../../providers/locale'
 import { fireEvent, getAllSlots, getSlot, renderUI, screen } from '../helpers'
 
 const start: Hsva = { h: 180, s: 50, v: 50, a: 0.5 }
@@ -284,5 +285,24 @@ describe('ColorSlider (thumb)', () => {
 		expect(getSlot(track(hue), 'color-slider-thumb').style.left).toBe('25%')
 
 		expect(getSlot(track(alpha), 'color-slider-thumb').style.left).toBe('25%')
+	})
+})
+
+describe('ColorPanel in a locale', () => {
+	it('names the sliders and the area in the language of the locale', () => {
+		renderUI(
+			<LocaleProvider locale="es-ES">
+				<ColorPanel alpha format="hsva" defaultValue={start} />
+			</LocaleProvider>,
+		)
+
+		expect(screen.getByRole('slider', { name: 'Tono' })).toBeInTheDocument()
+
+		expect(screen.getByRole('slider', { name: 'Opacidad' })).toBeInTheDocument()
+
+		expect(screen.getByRole('slider', { name: 'Saturación y brillo' })).toHaveAttribute(
+			'aria-valuetext',
+			'Saturación 50 %, brillo 50 %',
+		)
 	})
 })
