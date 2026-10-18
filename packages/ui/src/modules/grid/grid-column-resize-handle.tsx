@@ -6,6 +6,7 @@ import { useDragCursor } from '../../hooks'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useTimeout } from '../../hooks/use-timeout'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { PanelSplitter } from '../../primitives/panel/panel-splitter'
 import { k } from '../../recipes/kata/grid'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
@@ -16,6 +17,7 @@ import {
 	COLUMN_RESIZE_STEP,
 	GRID_STATUS_DEBOUNCE_MS,
 } from './engine/grid-constants'
+import { gridMessages } from './engine/grid-messages'
 import type { GridColumnResizeActions } from './engine/grid-table/resize-view'
 
 /** Props for {@link GridColumnResizeHandle}. @internal */
@@ -52,9 +54,11 @@ export function GridColumnResizeHandle({
 	// control with a cursor of its own.
 	useDragCursor(resizing, 'col-resize')
 
+	const intl = useIntl()
+
 	// A nudge or an auto-size lands in a later commit than the key press, so the
 	// timer calls a stable event, which reads the width of the newest commit.
-	const announceWidth = useStableEvent(() => announce(describeResize(label, size)))
+	const announceWidth = useStableEvent(() => announce(describeResize(intl, label, size)))
 
 	// Debounce the post-resize announcement so a run of keyboard nudges settles into
 	// one polite message rather than chattering on every keystroke (WCAG 4.1.3).
@@ -109,9 +113,9 @@ export function GridColumnResizeHandle({
 	return (
 		<PanelSplitter
 			aria-orientation="vertical"
-			aria-label={`Resize ${label}`}
+			aria-label={intl.formatMessage(gridMessages.resizeColumn, { column: label })}
 			aria-valuenow={Math.round(size)}
-			aria-valuetext={`${Math.round(size)} pixels`}
+			aria-valuetext={intl.formatMessage(gridMessages.pixels, { width: Math.round(size) })}
 			aria-valuemin={min}
 			aria-valuemax={max < Number.MAX_SAFE_INTEGER ? max : undefined}
 			data-resizing={dataAttr(resizing)}

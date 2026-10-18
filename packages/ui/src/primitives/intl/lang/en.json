@@ -279,6 +279,26 @@
 		"defaultMessage": "Upload file",
 		"description": "The name of the file input of a drop zone."
 	},
+	"ui.grid.allSelected": {
+		"defaultMessage": "All rows selected",
+		"description": "Spoken when the reader selects all the rows of the grid."
+	},
+	"ui.grid.allSelectedOnPage": {
+		"defaultMessage": "All rows on this page selected",
+		"description": "Spoken when the reader selects all the rows of the current page of the grid."
+	},
+	"ui.grid.blocked": {
+		"defaultMessage": "{step, select, undo {Cannot undo while a cell has an edit} other {Cannot redo while a cell has an edit}}",
+		"description": "Spoken when the grid cannot undo or redo, because a cell has an open edit."
+	},
+	"ui.grid.cellOutcome": {
+		"defaultMessage": "{column} {outcome, select, updated {updated} undone {undone} redone {redone} pasted {pasted} filled {filled} other {not saved}}",
+		"description": "Spoken when an edit of one cell of the grid saves, undoes, redoes, pastes, fills, or fails. The column names the cell."
+	},
+	"ui.grid.cellsOutcome": {
+		"defaultMessage": "{count, plural, one {# cell} other {# cells}} {outcome, select, updated {updated} undone {undone} redone {redone} pasted {pasted} filled {filled} other {not saved}}",
+		"description": "Spoken when an edit of many cells of the grid saves, undoes, redoes, pastes, fills, or fails. The count is the number of cells."
+	},
 	"ui.grid.columnGroupName": {
 		"defaultMessage": "{group} group",
 		"description": "The name of a column group in an announcement of the group editor, such as \"Contact group\"."
@@ -286,6 +306,14 @@
 	"ui.grid.columnName": {
 		"defaultMessage": "{column} column",
 		"description": "The name of a column in a reorder announcement, such as \"Price column\"."
+	},
+	"ui.grid.columnNumber": {
+		"defaultMessage": "column {number}",
+		"description": "The name of a column with no label of its own, inside an announcement. The number is its place, from 1."
+	},
+	"ui.grid.discarded": {
+		"defaultMessage": "{count, plural, one {# change discarded} other {# changes discarded}}",
+		"description": "Spoken when the grid drops edits that were not saved. The count is the number of edits."
 	},
 	"ui.grid.droppedIn": {
 		"defaultMessage": "Dropped {item} in {place}.",
@@ -299,6 +327,10 @@
 		"defaultMessage": "the editor",
 		"description": "The group editor as a whole, as a place in an announcement, when a column is over no group."
 	},
+	"ui.grid.forRow": {
+		"defaultMessage": "{cells} for {row}",
+		"description": "Adds the row to a save announcement of the grid, such as \"Name updated for Alice\"."
+	},
 	"ui.grid.groupHandle": {
 		"defaultMessage": "Reorder group {group}",
 		"description": "The name of the handle that drags a group to a new place in the list of groups."
@@ -307,13 +339,49 @@
 		"defaultMessage": "position {position} of {total}",
 		"description": "The place of a dragged group in the list of groups, inside an announcement of the group editor."
 	},
+	"ui.grid.hid": {
+		"defaultMessage": "Hid {column} column",
+		"description": "Spoken when the reader hides a column of the grid."
+	},
 	"ui.grid.isOver": {
 		"defaultMessage": "{item} is over {place}.",
 		"description": "Spoken while a column or a group is dragged over a place in the group editor, such as \"Name column is over Contact group.\"."
 	},
+	"ui.grid.nothingTo": {
+		"defaultMessage": "{step, select, undo {Nothing to undo} other {Nothing to redo}}",
+		"description": "Spoken when the reader asks the grid to undo or redo and there is nothing to do."
+	},
+	"ui.grid.partial": {
+		"defaultMessage": "{saved}, {failed}",
+		"description": "Joins the saved and the failed cells of one save of the grid, such as \"Name updated, 2 cells not saved\"."
+	},
+	"ui.grid.pinned": {
+		"defaultMessage": "Pinned {column} to the {side, select, left {left} other {right}}",
+		"description": "Spoken when the reader pins a column of the grid to an edge."
+	},
+	"ui.grid.pixels": {
+		"defaultMessage": "{width, plural, one {# pixel} other {# pixels}}",
+		"description": "The width of a column of the grid, read by its resize handle."
+	},
+	"ui.grid.range": {
+		"defaultMessage": "Range of {rows, plural, one {# row} other {# rows}} and {cols, plural, one {# column} other {# columns}}, {fromColumn} row {fromRow} to {toColumn} row {toRow}",
+		"description": "Spoken when the reader selects a range of cells of the grid: its size, and its two corners by column and row number."
+	},
+	"ui.grid.resizeColumn": {
+		"defaultMessage": "Resize {column}",
+		"description": "The name of the handle that resizes a column of the grid."
+	},
+	"ui.grid.resized": {
+		"defaultMessage": "{column} column {width, plural, one {# pixel} other {# pixels}}",
+		"description": "Spoken when the reader resizes a column of the grid. The width is in pixels."
+	},
 	"ui.grid.returnedWhereStarted": {
 		"defaultMessage": "Returned {item} to where it started.",
 		"description": "Spoken when a canceled drag in the group editor puts the item back."
+	},
+	"ui.grid.rowAdded": {
+		"defaultMessage": "Row added",
+		"description": "Spoken when the reader adds a row to the grid."
 	},
 	"ui.grid.rowGroupName": {
 		"defaultMessage": "group {group}",
@@ -323,13 +391,61 @@
 		"defaultMessage": "row {key}",
 		"description": "The name of a row with no label of its own. The key is the key of the row."
 	},
+	"ui.grid.rowRefused": {
+		"defaultMessage": "{count, plural, one {Row not added, # cell refused} other {Row not added, # cells refused}}",
+		"description": "Spoken when the grid does not add a new row. The count is the number of refused cells."
+	},
+	"ui.grid.rowsSelected": {
+		"defaultMessage": "{count, plural, one {# row selected} other {# rows selected}}",
+		"description": "Spoken when the selection of the grid changes. The count is the number of selected rows."
+	},
 	"ui.grid.selectRow": {
 		"defaultMessage": "Select {row}",
 		"description": "The name of the checkbox that selects a row."
 	},
+	"ui.grid.selectionCleared": {
+		"defaultMessage": "Selection cleared",
+		"description": "Spoken when no row of the grid is selected any more."
+	},
+	"ui.grid.showed": {
+		"defaultMessage": "Showed {column} column",
+		"description": "Spoken when the reader shows a hidden column of the grid."
+	},
+	"ui.grid.skippedOnly": {
+		"defaultMessage": "{count, plural, one {# cell skipped} other {# cells skipped}}",
+		"description": "Spoken when a paste into the grid skips every cell. The count is the number of cells."
+	},
+	"ui.grid.sortCleared": {
+		"defaultMessage": "Sorting cleared",
+		"description": "Spoken when the grid is no longer sorted."
+	},
+	"ui.grid.sortEntry": {
+		"defaultMessage": "{column} {direction, select, asc {ascending} other {descending}}",
+		"description": "A sorted column and its direction, inside the sort announcement of the grid."
+	},
+	"ui.grid.sortThen": {
+		"defaultMessage": "{first}, then {next}",
+		"description": "Joins the sorted columns of the grid in their order, such as \"Name ascending, then Age descending\"."
+	},
+	"ui.grid.sortedBy": {
+		"defaultMessage": "Sorted by {columns}",
+		"description": "Spoken when the sort of the grid changes. The columns are the sorted columns, in order."
+	},
+	"ui.grid.stale": {
+		"defaultMessage": "{step, select, undo {Cannot undo, the cells changed} other {Cannot redo, the cells changed}}",
+		"description": "Spoken when the grid cannot undo or redo, because the cells changed since the edit."
+	},
 	"ui.grid.ungrouped": {
 		"defaultMessage": "Ungrouped",
 		"description": "The heading of the columns that are in no group, and their place in an announcement."
+	},
+	"ui.grid.unpinned": {
+		"defaultMessage": "Unpinned {column}",
+		"description": "Spoken when the reader unpins a column of the grid."
+	},
+	"ui.grid.withSkipped": {
+		"defaultMessage": "{saved}, {count, plural, other {# skipped}}",
+		"description": "Adds the skipped cells to a paste announcement of the grid, such as \"12 cells pasted, 2 skipped\"."
 	},
 	"ui.kanban.drag": {
 		"defaultMessage": "Drag",
