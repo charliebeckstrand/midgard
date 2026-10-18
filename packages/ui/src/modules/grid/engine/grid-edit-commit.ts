@@ -24,6 +24,7 @@ import {
 } from './grid-editing-utilities'
 import { coercePaste } from './grid-range/paste'
 import { unguardField } from './grid-range/tsv'
+import { rowName } from './grid-row/cell'
 
 /** A row's staged drafts, keyed by column id. @internal */
 type RowDrafts = Map<string | number, GridDraft>
@@ -110,14 +111,15 @@ function checkCell<T>(
 
 /**
  * The name of a row in a save announcement: its {@link GridEditSource.rowLabel},
- * else `row` and its key, as the reorder announcement names it. @internal
+ * else `row` and its key in the language of the reader, as the reorder
+ * announcement names it. @internal
  */
-function rowName<T>(
+function rowNameOf<T>(
 	source: GridEditSource<T>,
 	rowKey: string | number,
 	row: T | undefined,
 ): string {
-	return (row !== undefined && source.rowLabel?.(row)) || `row ${rowKey}`
+	return rowName(source.intl, (row !== undefined && source.rowLabel?.(row)) || undefined, rowKey)
 }
 
 /** The label of a column in a save announcement, else its id. @internal */
@@ -359,7 +361,7 @@ function dispatchBatch<T>(
 
 	const result = onCommit(changes)
 
-	const name = rowName(source, rowKey, row)
+	const name = rowNameOf(source, rowKey, row)
 
 	if (!isThenable(result)) {
 		for (const change of changes) tally.columns.push(cellLabel(source, change.columnId))

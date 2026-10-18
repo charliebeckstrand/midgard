@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { describePin } from '../../modules/grid/engine/grid-announcements'
 import { pinMenuChoices } from '../../modules/grid/engine/grid-pin/overrides'
 import { fillItems } from '../../modules/grid/grid-context-menu-utilities'
+import { englishIntl } from '../../primitives/intl/intl-catalog'
 
 /**
  * The pin menu and its announcement name the physical edge a column goes to.
@@ -33,13 +34,13 @@ describe('pin labels', () => {
 	})
 
 	it('announces the physical edge', () => {
-		expect(describePin('Name', 'left', false)).toBe('Pinned Name to the left')
+		expect(describePin(englishIntl, 'Name', 'left', false)).toBe('Pinned Name to the left')
 
-		expect(describePin('Name', 'left', true)).toBe('Pinned Name to the right')
+		expect(describePin(englishIntl, 'Name', 'left', true)).toBe('Pinned Name to the right')
 
-		expect(describePin('Name', 'right', true)).toBe('Pinned Name to the left')
+		expect(describePin(englishIntl, 'Name', 'right', true)).toBe('Pinned Name to the left')
 
-		expect(describePin('Name', false, true)).toBe('Unpinned Name')
+		expect(describePin(englishIntl, 'Name', false, true)).toBe('Unpinned Name')
 	})
 
 	// The across fill goes to the inline end, so it names the left edge in RTL.
