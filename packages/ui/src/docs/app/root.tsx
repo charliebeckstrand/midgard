@@ -107,12 +107,12 @@ const ASIDE = <EventsAside />
 // the apps, so the docs show the same choice. The first is the default. A
 // Spanish locale shows the controls of ui in Spanish, and the text of the docs
 // stays English.
-const LOCALES = ['en-US', 'en-GB', 'en-CA', 'en-AU', 'es-ES', 'es-MX'] as const
+const LOCALES = ['en', 'es'] as const
 
 /**
  * The shell of the docs: the sidebar, the header with the name of the page, and the page.
  *
- * The shell renders in the `en-US` locale. The build renders each page with the
+ * The shell renders in the `en` locale. The build renders each page with the
  * default locale of Node, and the browser hydrates it with the default locale
  * of the reader. A fixed locale makes the two renders agree. After hydration,
  * the shell takes the locale that the reader chooses in the settings. The
@@ -140,7 +140,7 @@ export default function App() {
 		// The links match the path of the page, so the item of a page is current
 		// on each tab of the page, and no item is current on the not-found page.
 		<NavigateContext value={navigate}>
-			<LocaleProvider locale="en-US" locales={LOCALES}>
+			<LocaleProvider locale="en" locales={LOCALES}>
 				<UIProvider link={RouterLink} pathname={page?.path ?? pathname}>
 					<title>{title ? `${title} · Docs` : 'Docs'}</title>
 					<Stylesheet />
