@@ -25,6 +25,10 @@ export const k = defineRecipe({
 		// Action controls keep their own ring, so roving into them reads distinctly.
 		'ring-inset',
 		'has-[[data-slot=chat-list-item-select]:focus-visible]:ring-2 has-[[data-slot=chat-list-item-select]:focus-visible]:ring-blue-600',
+		// Forced colors remove the ring, which is a box-shadow. This inset outline
+		// replaces it there, as in `focus.inset`.
+		'forced-colors:has-[[data-slot=chat-list-item-select]:focus-visible]:outline-solid forced-colors:has-[[data-slot=chat-list-item-select]:focus-visible]:outline-2',
+		'forced-colors:has-[[data-slot=chat-list-item-select]:focus-visible]:-outline-offset-2 forced-colors:has-[[data-slot=chat-list-item-select]:focus-visible]:outline-[Highlight]',
 	],
 	slots: {
 		select: {

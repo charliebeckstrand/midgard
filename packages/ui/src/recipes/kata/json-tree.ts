@@ -37,6 +37,9 @@ const row = [
 	size.sm,
 	rounded.lg,
 	...mode('has-focus-visible:bg-blue-100/60', 'dark:has-focus-visible:bg-blue-500/30'),
+	// Forced colors remove the background. This inset outline shows the focus there.
+	'forced-colors:has-focus-visible:outline-solid forced-colors:has-focus-visible:outline-2',
+	'forced-colors:has-focus-visible:-outline-offset-2 forced-colors:has-focus-visible:outline-[Highlight]',
 ]
 
 export const k = {
