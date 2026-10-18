@@ -2,8 +2,10 @@
 
 import { type Ref, type RefObject, useEffect, useRef } from 'react'
 import { ariaAttr, cn, dataAttr } from '../../core'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { rangeKeys } from '../../utilities'
+import { pdfViewerMessages } from './pdf-viewer-messages'
 
 /** One entry in the thumbnail rail. @internal */
 type PdfViewerThumbnailItem = {
@@ -131,6 +133,8 @@ export function PdfViewerThumbnailList({
 }: PdfViewerThumbnailListProps) {
 	const listRef = useRef<HTMLUListElement>(null)
 
+	const intl = useIntl()
+
 	useVisibleTiles(listRef, items.length, onVisibleChange)
 
 	// While the list holds only the loading placeholders, it hides from
@@ -167,7 +171,7 @@ export function PdfViewerThumbnailList({
 							type="button"
 							data-slot="pdf-viewer-thumbnail"
 							data-current={dataAttr(isCurrent)}
-							aria-label={`Go to ${item.label}`}
+							aria-label={intl.formatMessage(pdfViewerMessages.goTo, { page: item.label })}
 							aria-current={isCurrent ? 'page' : undefined}
 							className={cn(k.thumbnail.base)}
 							onClick={() => {

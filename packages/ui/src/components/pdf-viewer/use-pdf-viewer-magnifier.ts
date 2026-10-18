@@ -13,6 +13,8 @@ import {
 import { useFloatingPanel } from '../../hooks'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useTouchHold } from '../../hooks/use-touch-hold'
+import type { IntlShape } from '../../primitives/intl/types'
+import { pdfViewerMessages } from './pdf-viewer-messages'
 import type { PdfViewerMagnifierOptions } from './types'
 
 /**
@@ -35,8 +37,13 @@ export type MagnifierChoice = Required<Omit<PdfViewerMagnifierOptions, 'mode' | 
  */
 export type ResolvedMagnifier = { zoom: number; size: MagnifierChoice['size']; delay: number }
 
-/** One option in the config dialog: the step it sets, and what that step is to the reader. @internal */
-export type MagnifierOption<T extends string> = { value: T; label: string }
+/**
+ * One option in the config dialog: the step it sets, and what that step is to the reader, in the
+ * language of the intl that the dialog gives.
+ *
+ * @internal
+ */
+export type MagnifierOption<T extends string> = { value: T; label: (intl: IntlShape) => string }
 
 /** The loupe at the middle of each scale: 2.5× through a 192px lens, after a 300ms dwell. */
 const DEFAULT_CHOICE: MagnifierChoice = { zoom: 'md', size: 'md', delay: 'default' }
@@ -55,16 +62,25 @@ const zoomSteps = { sm: 2, md: 2.5, lg: 4 } as const
 
 /** The magnification steps, each named by the power it is. @internal */
 export const zoomOptions: readonly MagnifierOption<MagnifierChoice['zoom']>[] = [
-	{ value: 'sm', label: '2×' },
-	{ value: 'md', label: '2.5×' },
-	{ value: 'lg', label: '4×' },
+	{
+		value: 'sm',
+		label: (intl) => intl.formatMessage(pdfViewerMessages.times, { zoom: zoomSteps.sm }),
+	},
+	{
+		value: 'md',
+		label: (intl) => intl.formatMessage(pdfViewerMessages.times, { zoom: zoomSteps.md }),
+	},
+	{
+		value: 'lg',
+		label: (intl) => intl.formatMessage(pdfViewerMessages.times, { zoom: zoomSteps.lg }),
+	},
 ]
 
 /** The lens diameters, 144, 192 and 240 pixels. The lens kata holds the size classes. @internal */
 export const sizeOptions: readonly MagnifierOption<MagnifierChoice['size']>[] = [
-	{ value: 'sm', label: 'Small' },
-	{ value: 'md', label: 'Medium' },
-	{ value: 'lg', label: 'Large' },
+	{ value: 'sm', label: (intl) => intl.formatMessage(pdfViewerMessages.small) },
+	{ value: 'md', label: (intl) => intl.formatMessage(pdfViewerMessages.medium) },
+	{ value: 'lg', label: (intl) => intl.formatMessage(pdfViewerMessages.large) },
 ]
 
 /** Dwell in milliseconds for each step. */
@@ -72,8 +88,8 @@ const delaySteps = { none: 0, default: 300 } as const
 
 /** @internal */
 export const delayOptions: readonly MagnifierOption<MagnifierChoice['delay']>[] = [
-	{ value: 'none', label: 'None' },
-	{ value: 'default', label: 'Default' },
+	{ value: 'none', label: (intl) => intl.formatMessage(pdfViewerMessages.noDelay) },
+	{ value: 'default', label: (intl) => intl.formatMessage(pdfViewerMessages.defaultDelay) },
 ]
 
 /** The dwell a loupe runs on when its settings are withheld, which is while it is switched off. */

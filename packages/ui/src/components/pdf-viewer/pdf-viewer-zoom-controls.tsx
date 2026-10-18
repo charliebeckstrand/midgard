@@ -1,6 +1,8 @@
 import { Maximize2, ZoomIn, ZoomOut } from 'lucide-react'
 import { useMemo } from 'react'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { ToolbarGroup } from '../toolbar'
+import { pdfViewerMessages } from './pdf-viewer-messages'
 import { PdfViewerToolbarButton } from './pdf-viewer-toolbar-button'
 import type { PdfViewerZoom } from './types'
 
@@ -31,24 +33,30 @@ export function PdfViewerZoomControls({ zoom, disabled }: PdfViewerZoomControlsP
 	const zoomOut = () => zoom.setValue(nextLevelDown)
 	const resetZoom = () => zoom.setValue(1)
 
+	const intl = useIntl()
+
+	const percent = (level: number) => intl.formatNumber(level, { style: 'percent' })
+
 	return (
-		<ToolbarGroup aria-label="Zoom">
+		<ToolbarGroup aria-label={intl.formatMessage(pdfViewerMessages.zoom)}>
 			<PdfViewerToolbarButton
-				label="Zoom out"
-				tooltip={`Zoom Out (${(nextLevelDown * 100).toFixed(0)}%)`}
+				label={intl.formatMessage(pdfViewerMessages.zoomOut)}
+				tooltip={intl.formatMessage(pdfViewerMessages.zoomOutTo, {
+					percent: percent(nextLevelDown),
+				})}
 				icon={<ZoomOut />}
 				disabled={disabled || zoom.value <= minZoom}
 				onClick={zoomOut}
 			/>
 			<PdfViewerToolbarButton
-				label="Zoom in"
-				tooltip={`Zoom In (${(nextLevelUp * 100).toFixed(0)}%)`}
+				label={intl.formatMessage(pdfViewerMessages.zoomIn)}
+				tooltip={intl.formatMessage(pdfViewerMessages.zoomInTo, { percent: percent(nextLevelUp) })}
 				icon={<ZoomIn />}
 				disabled={disabled || zoom.value >= maxZoom}
 				onClick={zoomIn}
 			/>
 			<PdfViewerToolbarButton
-				label="Reset zoom"
+				label={intl.formatMessage(pdfViewerMessages.resetZoom)}
 				icon={<Maximize2 />}
 				disabled={disabled || zoom.value === 1}
 				onClick={resetZoom}
