@@ -22,7 +22,7 @@ type GroupBaseProps = {
 export type GroupProps = GroupBaseProps & Omit<ComponentProps<'div'>, 'className'>
 
 /**
- * Joins adjacent children visually. The container carries the `tsunagi` join
+ * A container that joins adjacent children visually. It carries the `tsunagi` join
  * classes (`recipes/kata/group`). They drop the inner radii and overlap
  * adjacent borders by 1 px, keyed on the DOM position of each child. A child
  * that renders nothing takes no position, and the children of a Fragment join

@@ -75,8 +75,9 @@ export type CreditCardInputExpiryProps = Omit<
 	 * @defaultValue 'MM/YY'
 	 */
 	placeholder?: string
+	/** Fires when the value changes, with the new `MM/YY` text. */
 	onValueChange?: (value: string) => void
-	/** Fires on every change with the expiry's month-range + not-in-past verdict. */
+	/** Fires when the value changes, with the expiry's month-range + not-in-past verdict. */
 	onValidityChange?: (validity: CardValidity) => void
 	/**
 	 * Error message shown while the typed entry is invalid, as an error

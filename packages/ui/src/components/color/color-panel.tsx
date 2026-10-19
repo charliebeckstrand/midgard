@@ -20,7 +20,7 @@ import { type ColorState, useColorState } from './use-color-state'
 
 type ColorPanelBaseProps = {
 	/**
-	 * Enable the alpha channel: adds the alpha slider and emits `#rrggbbaa` / an `a < 1`.
+	 * Enables the alpha channel: adds the alpha slider and emits `#rrggbbaa` / an `a < 1`.
 	 *
 	 * @defaultValue false
 	 */

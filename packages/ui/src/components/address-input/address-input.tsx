@@ -64,6 +64,7 @@ export type AddressInputProps = Omit<
 	name?: string
 	value?: AddressSuggestion | null
 	defaultValue?: AddressSuggestion
+	/** Fires when the selection changes, with the new {@link AddressSuggestion}, or `null` when it is cleared. */
 	onValueChange?: (value: AddressSuggestion | null) => void
 	/**
 	 * Geocoding strategy resolving the query to suggestions.
@@ -73,7 +74,7 @@ export type AddressInputProps = Omit<
 	/** @defaultValue `'Enter an address'`, in the language of the reader. */
 	placeholder?: string
 	/**
-	 * Show a clear button in place of the pin while an address is selected.
+	 * Shows a clear button in place of the pin while an address is selected.
 	 * @defaultValue true
 	 */
 	clearable?: boolean

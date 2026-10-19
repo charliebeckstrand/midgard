@@ -17,7 +17,8 @@ import { isBeforeDay, isBetween, isSameDay } from './calendar-utilities'
 /** Props for {@link CalendarRange}: the controlled `rangeStart`/`rangeEnd` endpoints, hover-date tracking, bounds, locale/size, and `ref`. */
 export type CalendarRangeProps = {
 	/**
-	 * Fires with the day of each press, also a second press of the same day.
+	 * Fires when the reader presses a day, with that day, also on a second press
+	 * of the same day.
 	 *
 	 * @remarks
 	 * An event, not the `on<State>Change` echo the name suggests. The endpoint
@@ -40,9 +41,9 @@ export type CalendarRangeProps = {
 	 * it: the day is not an endpoint and is not selected.
 	 */
 	hoverDate?: Date | null
-	/** Reports the day entered or left so the parent can drive the `hoverDate` preview. */
+	/** Fires when the pointer enters or leaves a day, with that day or `null`, so the parent can drive the `hoverDate` preview. */
 	onHoverDate?: (date: Date | null) => void
-	/** Forwarded to `<Calendar>`. Fires with the first of the month the grid renders. */
+	/** Fires when the month of the grid changes, with the first of that month. The prop passes through to `<Calendar>`. */
 	onMonthChange?: (month: Date) => void
 	active?: CalendarActive | null
 	footerRef?: RefObject<HTMLElement | null>

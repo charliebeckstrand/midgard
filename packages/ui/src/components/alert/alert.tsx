@@ -107,20 +107,20 @@ export type AlertProps = Omit<AlertVariants, 'color'> &
 		 * @defaultValue false
 		 */
 		closable?: boolean
-		/** Initial open state (uncontrolled). @defaultValue true */
+		/** Initial open state when uncontrolled. @defaultValue true */
 		defaultOpen?: boolean
 		/**
 		 * Controlled open state. A controlled alert stays open until `open` changes,
 		 * so pass `onOpenChange` with it to let the close button dismiss the alert.
 		 *
-		 * @defaultValue Uncontrolled: the state starts from `defaultOpen`.
+		 * @defaultValue Uncontrolled, with `defaultOpen` as the first state.
 		 */
 		open?: boolean
-		/** Called when the open state changes. */
+		/** Fires when the open state changes. */
 		onOpenChange?: (open: boolean) => void
 		/**
-		 * Whether an `info` or `success` alert that mounts open is mirrored through
-		 * the announcer, as one that opens later is.
+		 * Mirrors an `info` or `success` alert that mounts open through the
+		 * announcer, as it mirrors one that opens later.
 		 *
 		 * @remarks
 		 * Set it on an alert that a user action renders, such as

@@ -21,7 +21,7 @@ type FileUploadSharedProps = {
 	value?: File[] | null
 	/** The initial selection (uncontrolled). A native form reset goes back to it. */
 	defaultValue?: File[]
-	/** Fires with the next selection, as `onAccept` does. A clear fires with `[]`. */
+	/** Fires when the selection changes, with the next selection, as `onAccept` does. A clear fires with `[]`. */
 	onValueChange?: (files: File[]) => void
 	/**
 	 * Accepted file types (e.g. `"image/*"`, `".pdf,.doc"`). The picker shows
@@ -29,8 +29,8 @@ type FileUploadSharedProps = {
 	 */
 	accept?: string
 	/**
-	 * Allow selecting multiple files. Without it, a drop of more than one file
-	 * keeps the first, and the rest go to `onReject`.
+	 * Allows the selection of more than one file. Without it, a drop of more than
+	 * one file keeps the first, and the rest go to `onReject`.
 	 * @defaultValue false
 	 */
 	multiple?: boolean
@@ -45,14 +45,15 @@ type FileUploadSharedProps = {
 	maxCount?: number
 	className?: string
 	/**
-	 * Fires with the accepted files (after `accept`, `multiple`, `maxSize` and
-	 * `maxCount` filtering). A pick or a drop that accepts no file keeps the
-	 * current selection and does not fire. A clear fires with `[]`.
+	 * Fires when the component accepts files, with the accepted files (after
+	 * `accept`, `multiple`, `maxSize` and `maxCount` filtering). A pick or a drop
+	 * that accepts no file keeps the current selection and does not fire. A clear
+	 * fires with `[]`.
 	 */
 	onAccept?: (files: File[]) => void
 	/**
-	 * Fires with files excluded by `accept`, `multiple`, `maxSize` or
-	 * `maxCount`, each tagged with its reason.
+	 * Fires when `accept`, `multiple`, `maxSize`, or `maxCount` excludes files,
+	 * with each excluded file tagged with its reason.
 	 */
 	onReject?: (rejected: FileRejection[]) => void
 	/**

@@ -31,10 +31,11 @@ export type CreditCardInputProps = Omit<
 	 * @defaultValue '1234 1234 1234 1234'
 	 */
 	placeholder?: string
+	/** Fires when the value changes, with the formatted card number. */
 	onValueChange?: (value: string) => void
 	/**
-	 * Fires on each edit in the field with the brand of the typed digits, or
-	 * `undefined` when no brand matches.
+	 * Fires when the reader edits the field, with the brand of the typed digits,
+	 * or `undefined` when no brand matches.
 	 *
 	 * @remarks
 	 * It fires only on an edit. A seeded `defaultValue`, a controlled `value`, and
@@ -43,7 +44,7 @@ export type CreditCardInputProps = Omit<
 	 * {@link detectCardBrand}.
 	 */
 	onBrandChange?: (brand: CreditCardBrand | undefined) => void
-	/** Fires on every change with the card number's Luhn + length + pattern verdict. */
+	/** Fires when the value changes, with the card number's Luhn + length + pattern verdict. */
 	onValidityChange?: (validity: CardValidity) => void
 	prefix?: ReactNode
 }

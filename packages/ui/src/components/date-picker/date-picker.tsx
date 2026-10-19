@@ -38,6 +38,7 @@ export type DatePickerSingleProps = {
 	relative?: false
 	value?: Date | null
 	defaultValue?: Date
+	/** Fires when the value changes, with the new value. */
 	onValueChange?: (value: Date | null) => void
 	/**
 	 * Renders a typed DateInput in place of the popover trigger. The calendar
@@ -64,6 +65,7 @@ export type DatePickerRangeProps = {
 	relative?: false
 	value?: [Date, Date] | null
 	defaultValue?: [Date, Date]
+	/** Fires when the value changes, with the new value. */
 	onValueChange?: (value: [Date, Date] | null) => void
 }
 
@@ -99,6 +101,7 @@ export type DatePickerRelativeProps = {
 	range?: false
 	value?: DatePickerRelativeValue[] | null
 	defaultValue?: DatePickerRelativeValue[]
+	/** Fires when the value changes, with the new value. */
 	onValueChange?: (value: DatePickerRelativeValue[] | null) => void
 }
 
@@ -137,8 +140,8 @@ export type DatePickerBaseProps = {
 	/** Binds the value to an enclosing Form field. Seed `Form.defaultValues` with a `Date` (single), `[Date, Date]` (range), or a {@link DatePickerRelativeValue}`[]` (relative). */
 	name?: string
 	/**
-	 * Forwarded to the calendar. Fires with the first of the month the grid
-	 * renders, whenever that month changes.
+	 * Fires when the month of the grid changes, with the first of that month. The
+	 * prop passes through to the calendar.
 	 *
 	 * Use it to fetch per-month data behind an open picker. The relative variant
 	 * shows no grid until the reader opens a custom range, so it reports only from
@@ -155,7 +158,7 @@ export type DatePickerBaseProps = {
 	 */
 	placement?: FloatingPlacement
 	/**
-	 * Open the panel as a bottom sheet on a phone, which is a narrow viewport
+	 * Opens the panel as a bottom sheet on a phone, which is a narrow viewport
 	 * with no hover. The sheet holds the same calendar, presets, and footer at
 	 * the full width of the screen, with a Close button below them. The Close
 	 * button, a pick, the backdrop, or `Escape` closes it. Set `false` for a
@@ -196,7 +199,10 @@ export type DatePickerBaseProps = {
 	 */
 	footer?: DatePickerFooterConfig
 	className?: string
-	/** @defaultValue `false`, or the state of the enclosing Control or Field. */
+	/**
+	 * Disables the picker.
+	 * @defaultValue `false`, or the state of the enclosing Control or Field.
+	 */
 	disabled?: boolean
 	/**
 	 * Keeps the trigger focusable and the value submitted, but blocks opening the
@@ -207,8 +213,8 @@ export type DatePickerBaseProps = {
 	 */
 	readOnly?: boolean
 	/**
-	 * Controlled calendar open state. Pair with `onOpenChange`.
-	 * @defaultValue Uncontrolled: the state starts from `defaultOpen`.
+	 * Controlled calendar open state. Pair it with `onOpenChange`.
+	 * @defaultValue Uncontrolled, with `defaultOpen` as the first state.
 	 */
 	open?: boolean
 	/**

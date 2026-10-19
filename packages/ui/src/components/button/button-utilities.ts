@@ -10,14 +10,14 @@ import { Icon } from '../icon'
  */
 export type ButtonBaseProps = ButtonVariants & {
 	/**
-	 * Swap the leading content for a spinner, or the icon of an icon-only
-	 * button, and gate activation. The button keeps its focus.
+	 * Swaps the leading content for a spinner, or the icon of an icon-only
+	 * button, and gates activation. The button keeps its focus.
 	 * @defaultValue false
 	 */
 	loading?: boolean
 	/**
-	 * Whether a locked scope, such as a `Form` while a submit runs, makes the
-	 * button inert. An inert button keeps its focus and its place in the tab
+	 * Lets a locked scope, such as a `Form` while a submit runs, make the button
+	 * inert. An inert button keeps its focus and its place in the tab
 	 * order, and cancels each activation. Pass `false` for a button that must
 	 * work while the scope is locked, such as the Cancel of a drawer. A library
 	 * button that writes no field, such as a `Tab` or a `CopyButton`, passes

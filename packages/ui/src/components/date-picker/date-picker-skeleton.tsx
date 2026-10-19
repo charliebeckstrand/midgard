@@ -12,8 +12,7 @@ export type DatePickerSkeletonProps = {
 	 */
 	size?: ScaleStep<typeof scale>
 	/**
-	 * Set it when the picker has `range`, so the silhouette is as wide as two
-	 * dates.
+	 * Widens the silhouette to two dates. Set it when the picker has `range`.
 	 *
 	 * @defaultValue false
 	 */
@@ -22,11 +21,11 @@ export type DatePickerSkeletonProps = {
 }
 
 /**
- * Loading placeholder for a {@link DatePicker}. It has the height of the
+ * A placeholder for a {@link DatePicker} while it loads. It has the height of the
  * trigger at the same `size`. It is as wide as a trigger that shows a date such
  * as 6/15/2026, or two dates when `range` is set. It does not fill its parent.
  * A date with fewer or more digits makes the trigger some pixels narrower or
- * wider. Compose it in loading trees in place of `<DatePicker>`.
+ * wider.
  */
 export function DatePickerSkeleton({ size, range = false, className }: DatePickerSkeletonProps) {
 	return (

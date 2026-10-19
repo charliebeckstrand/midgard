@@ -16,7 +16,7 @@ export type ContextMenuProps = ContextMenuConfig & {
 	 */
 	defaults?: ContextMenuEntry[]
 	/**
-	 * Suppress the menu, leaving the browser's native menu on a right-click.
+	 * Suppresses the menu, so that a right-click opens the browser's native menu.
 	 * @defaultValue false
 	 */
 	disabled?: boolean
@@ -36,7 +36,7 @@ export type ContextMenuProps = ContextMenuConfig & {
 }
 
 /**
- * Wraps content in a right-click context menu built from a host's `defaults`
+ * A right-click context menu over its content, built from a host's `defaults`
  * merged with a caller's custom {@link ContextMenuConfig}. The custom items sit
  * before or after the defaults per `insert`, with a separator between when
  * both show. With nothing to show — no defaults kept and no custom items, or

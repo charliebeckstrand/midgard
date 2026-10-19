@@ -5,7 +5,7 @@ import { createSkeleton, type SkeletonProps } from '../placeholder'
 export type BadgeSkeletonProps = SkeletonProps<NonNullable<BadgeVariants['size']>>
 
 /**
- * Badge-shaped placeholder; compose in loading trees in place of a {@link Badge}.
+ * A placeholder for a {@link Badge} while it loads.
  *
  * @remarks A `<span>` flowing inline, as the badge itself does, so it stands in for one
  * anywhere a badge can go, a line of text included. A `div` there would be invalid inside a

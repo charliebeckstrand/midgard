@@ -36,7 +36,7 @@ export type CopyButtonProps = {
 	 */
 	timeout?: number
 	/**
-	 * Fires on every copied-state transition, with the new state: `true` after a
+	 * Fires when the copied state changes, with the new state: `true` after a
 	 * copy, and `false` when the state reverts.
 	 *
 	 * The transitions end at unmount. A copy that resolves after the unmount does

@@ -9,7 +9,7 @@ export type BannerProps = Omit<AlertProps, 'closable'> & {
 	 */
 	closable?: AlertProps['closable']
 	/**
-	 * Pin the banner to the top of its scroll container.
+	 * Pins the banner to the top of its scroll container.
 	 * @defaultValue false
 	 */
 	sticky?: boolean

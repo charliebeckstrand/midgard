@@ -34,11 +34,11 @@ export type DialogContentProps = PanelContentProps
 export type DialogCloseProps = Partial<PanelCloseProps>
 
 /**
- * Closes the enclosing {@link Dialog}. With no child, it renders the standard
- * Close button, which is also the default footer of the dialog. The standard
- * button stays live in a locked scope, such as a submitting form. With one
- * child, a click on the child closes the dialog, and the child's own `onClick`
- * runs first.
+ * The close control of the enclosing {@link Dialog}. With no child, it renders
+ * the standard Close button, which is also the default footer of the dialog.
+ * The standard button stays live in a locked scope, such as a submitting form.
+ * With one child, a click on the child closes the dialog, and the child's own
+ * `onClick` runs first.
  */
 export function DialogClose({ children }: DialogCloseProps) {
 	return (

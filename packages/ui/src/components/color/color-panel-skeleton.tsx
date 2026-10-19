@@ -9,7 +9,7 @@ import { DEFAULT_SWATCHES } from './color-constants'
 /** Props for {@link ColorPanelSkeleton}: mirrors the `alpha`, `swatches`, and `size` of {@link ColorPanelProps}. */
 export type ColorPanelSkeletonProps = {
 	/**
-	 * Reserve the alpha slider, as a panel with `alpha` draws it.
+	 * Reserves the alpha slider, as a panel with `alpha` draws it.
 	 * @defaultValue false
 	 */
 	alpha?: boolean
@@ -28,13 +28,12 @@ export type ColorPanelSkeletonProps = {
 }
 
 /**
- * Color-panel-shaped loading placeholder: one block over empty rows that have
- * the structure of the real panel. The color area, the slider stack, the
+ * A placeholder for a ColorPanel while it loads. It is one block over empty
+ * rows that have the structure of the real panel. The color area, the slider stack, the
  * preview row with the channel inputs, and the swatch grid come from the
  * color-panel recipes. So the block has the box of a real panel at each step,
  * with the same `alpha` and `swatches`. The silhouette follows those props as
  * well as the size step, so it does not use the `createSkeleton` factory.
- * Compose it in loading trees in place of `<ColorPanel>`.
  *
  * @remarks Static leaf: renders in React Server Components.
  * @see {@link ColorPanel}

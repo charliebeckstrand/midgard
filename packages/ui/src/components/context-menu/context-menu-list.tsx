@@ -9,8 +9,8 @@ export type ContextMenuListProps = {
 }
 
 /**
- * Renders a resolved list of {@link ContextMenuEntry} rows as `Menu` items,
- * separators, and submenus, for placement inside a `MenuContent`. The one
+ * A resolved list of {@link ContextMenuEntry} rows, rendered as `Menu` items,
+ * separators, and submenus for placement inside a `MenuContent`. The one
  * renderer both the {@link ContextMenu} wrapper and a bespoke right-click
  * surface (a `Grid`'s per-cell menu) draw through, so every context menu reads
  * the same.

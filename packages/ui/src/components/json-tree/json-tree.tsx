@@ -61,7 +61,7 @@ export type JsonTreeProps = Omit<ComponentProps<'div'>, 'children'> & {
 	 * the branches that hold a match to the set through `onExpandedChange`.
 	 */
 	expanded?: Set<string>
-	/** Called when the expanded set changes (controlled mode). */
+	/** Fires when the expanded set changes (controlled mode). */
 	onExpandedChange?: (expanded: Set<string>) => void
 	/**
 	 * Search term to highlight and auto-expand matching nodes. Pass a string or

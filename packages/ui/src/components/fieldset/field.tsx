@@ -14,7 +14,10 @@ import { useControlFieldContext } from '../control/use-control-field-context'
  */
 export type FieldProps = {
 	autoComplete?: string
-	/** @defaultValue `false`, or `true` inside a disabled Control or Field. */
+	/**
+	 * Disables the nested control.
+	 * @defaultValue `false`, or `true` inside a disabled Control or Field.
+	 */
 	disabled?: boolean
 	htmlFor?: string
 	/**
@@ -25,8 +28,8 @@ export type FieldProps = {
 } & ComponentProps<'div'>
 
 /**
- * Wraps one form control and its satellites (`<Label>`, `<Description>`,
- * `<Message>`) in a `<div>`. The wrapper provisions a `<Control>` context, so they
+ * A `<div>` around one form control and its satellites (`<Label>`,
+ * `<Description>`, `<Message>`). The wrapper provisions a `<Control>` context, so they
  * share a generated id and `aria-labelledby`/`aria-describedby` wiring. Inherits
  * autoComplete, readOnly, required, severity, size, and variant from an
  * enclosing Control, and merges `disabled` with the parent's.
