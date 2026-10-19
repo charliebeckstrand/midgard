@@ -26,6 +26,7 @@ import {
 	isColumnEditable,
 	readKeyPress,
 	seedFromKey,
+	shortcutLetter,
 } from './engine/grid-editing-utilities'
 import { cellText } from './engine/grid-export/accessor'
 import { gridMessages } from './engine/grid-messages'
@@ -181,7 +182,7 @@ function fillKey(press: GridKeyPress & { shiftKey: boolean }): GridRangeFillDire
 		return null
 	}
 
-	const key = press.key.toLowerCase()
+	const key = shortcutLetter(press)
 
 	return key === 'd' ? 'down' : key === 'r' ? 'right' : null
 }
