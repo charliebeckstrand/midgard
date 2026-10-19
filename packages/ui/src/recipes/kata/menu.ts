@@ -124,7 +124,7 @@ export const k = {
 	text: narabi.text,
 	// `on.wash.muted`, not `muted`: `hannou.item` / `hannou.active` ground a hovered
 	// or roved row on the tint wash, which `muted` is not legal over. See `iro/ramp.ts`.
-	description: [description, on.wash.muted, 'group-focus/option:text-white'],
+	description: [description, on.wash.muted],
 	shortcut: 'ms-auto',
 	separator: divider.top,
 } as const
