@@ -1,7 +1,6 @@
-import { existsSync } from 'node:fs'
-import { join, relative, sep } from 'node:path'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { srcDir, srcRelative, stripSourceComments, walkSource } from '../helpers/walk-source'
+import { srcDir, workspaceRoot, workspaceSources } from '../helpers/walk-source'
 
 // Inline-scroll boundary.
 //
@@ -31,11 +30,8 @@ import { srcDir, srcRelative, stripSourceComments, walkSource } from '../helpers
 /** The one file that owns the rule. */
 const HOME = 'recipes/kiso/omote/rail.ts'
 
-/** The workspace root, so the scan reaches the apps too. */
-const workspaceRoot = join(srcDir, '..', '..', '..')
-
 /** The trees to scan: the ui source and the source of each app. */
-const SCAN_ROOTS = [srcDir, join(workspaceRoot, 'apps')].filter((root) => existsSync(root))
+const SCAN_ROOTS = [srcDir, join(workspaceRoot, 'apps')]
 
 /** A class or a style that scrolls on the inline axis alone. */
 const INLINE_SCROLL = /\boverflow-x-(?:auto|scroll)\b|\boverflowX:\s*['"](?:auto|scroll)['"]/
@@ -46,35 +42,8 @@ const READS_FADE = /\bfade\.inline\b|\{[^}]*\binline\b[^}]*\}\s*=\s*fade\b/
 /** A scroll edge attribute, as an attribute or as a Tailwind variant. */
 const EDGE_ATTRIBUTE = /\bdata-overflow-(?:start|end|above|below)\b/
 
-/** The key of a file: relative to `src/` in ui, to the workspace root elsewhere. */
-function keyOf(path: string): string {
-	if (path.startsWith(srcDir + sep)) return srcRelative(path)
-
-	return relative(workspaceRoot, path).split(sep).join('/')
-}
-
-/** Each source file outside the tests and the docs build output, keyed, with its code and no comments. */
-function sourceFiles(): Map<string, string> {
-	const files = new Map<string, string>()
-
-	for (const root of SCAN_ROOTS) {
-		walkSource(root, (path, source) => {
-			if (!/\.(?:tsx?|mts|cts)$/.test(path)) return
-
-			const key = keyOf(path)
-
-			if (key.startsWith('docs/dist/')) return
-
-			// Prose that names a class is not a use of it.
-			files.set(key, stripSourceComments(source))
-		})
-	}
-
-	return files
-}
-
 describe('inline-scroll boundary', () => {
-	const files = sourceFiles()
+	const files = workspaceSources(SCAN_ROOTS)
 
 	it('scrolls on the inline axis only through the rail', () => {
 		const violations = [...files]

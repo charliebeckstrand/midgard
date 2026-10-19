@@ -1,7 +1,6 @@
-import { existsSync } from 'node:fs'
-import { join, relative, sep } from 'node:path'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { srcDir, srcRelative, stripSourceComments, walkSource } from '../helpers/walk-source'
+import { srcDir, workspaceRoot, workspaceSources } from '../helpers/walk-source'
 
 // Drag-cursor boundary.
 //
@@ -26,11 +25,8 @@ import { srcDir, srcRelative, stripSourceComments, walkSource } from '../helpers
 /** The one file that owns the rule. */
 const HOME = 'hooks/use-drag-cursor.ts'
 
-/** The workspace root, so the scan reaches the apps too. */
-const workspaceRoot = join(srcDir, '..', '..', '..')
-
 /** The trees to scan: the ui source and the source of each app. */
-const SCAN_ROOTS = [srcDir, join(workspaceRoot, 'apps')].filter((root) => existsSync(root))
+const SCAN_ROOTS = [srcDir, join(workspaceRoot, 'apps')]
 
 /**
  * What starts a drag: a pointer capture, a pointer listener that tracks moves
@@ -54,35 +50,10 @@ const DELEGATED: Record<string, string> = {
 		'tracks the hover through a scroll; no press is held, so no drag starts',
 }
 
-/** The key of a file in the list above: relative to `src/` in ui, to the workspace root elsewhere. */
-function keyOf(path: string): string {
-	if (path.startsWith(srcDir + sep)) return srcRelative(path)
-
-	return relative(workspaceRoot, path).split(sep).join('/')
-}
-
-/** Each source file outside the tests and the docs build output, keyed, with its code and no comments. */
-function sourceFiles(): Map<string, string> {
-	const files = new Map<string, string>()
-
-	for (const root of SCAN_ROOTS) {
-		walkSource(root, (path, source) => {
-			if (!/\.(?:tsx?|mts|cts)$/.test(path)) return
-
-			const key = keyOf(path)
-
-			if (key.startsWith('docs/dist/') || key === HOME) return
-
-			// Prose that names a call is not a use of it.
-			files.set(key, stripSourceComments(source))
-		})
-	}
-
-	return files
-}
-
 describe('drag-cursor boundary', () => {
-	const files = sourceFiles()
+	const files = workspaceSources(SCAN_ROOTS)
+
+	files.delete(HOME)
 
 	const starts = [...files].filter(([, code]) => DRAG_START.test(code))
 

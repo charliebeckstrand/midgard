@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { srcDir } from '../helpers/walk-source'
+import { workspaceRoot } from '../helpers/walk-source'
 
 // Each Dockerfile at the repository root installs pnpm at a pinned version, and
 // runs `turbo prune` through `pnpm dlx` at a pinned version. Renovate updates
@@ -10,11 +10,9 @@ import { srcDir } from '../helpers/walk-source'
 // charliebeckstrand/midgard#1921, an old turbo did not know a key of the root
 // `turbo.json`. Thus each pin must equal the version that the repository uses.
 
-const root = join(srcDir, '..', '..', '..')
-
 /** The pnpm version in the `packageManager` field of the root `package.json`. */
 function managedPnpm(): string {
-	const manifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'))
+	const manifest = JSON.parse(readFileSync(join(workspaceRoot, 'package.json'), 'utf8'))
 
 	// The field can end in a hash, as in `pnpm@12.8.1+sha512.…`.
 	const version = String(manifest.packageManager ?? '').match(/^pnpm@([^+]+)/)?.[1]
@@ -26,7 +24,7 @@ function managedPnpm(): string {
 
 /** The turbo version that `pnpm-lock.yaml` installs for the root package. */
 function lockedTurbo(): string {
-	const lock = readFileSync(join(root, 'pnpm-lock.yaml'), 'utf8')
+	const lock = readFileSync(join(workspaceRoot, 'pnpm-lock.yaml'), 'utf8')
 
 	// A root importer runs from `  .:` to the next blank line. The lockfile has
 	// two: one for the pnpm of the repository, and one for the workspace.
@@ -41,7 +39,7 @@ function lockedTurbo(): string {
 	return version
 }
 
-const dockerfiles = readdirSync(root).filter((name) => /^Dockerfile(\.|$)/.test(name))
+const dockerfiles = readdirSync(workspaceRoot).filter((name) => /^Dockerfile(\.|$)/.test(name))
 
 const tools = [
 	['pnpm', managedPnpm()],
@@ -54,7 +52,7 @@ describe('tool pins in the Dockerfiles', () => {
 	})
 
 	describe.each(dockerfiles)('%s', (name) => {
-		const source = readFileSync(join(root, name), 'utf8')
+		const source = readFileSync(join(workspaceRoot, name), 'utf8')
 
 		it.each(tools)('pins %s at the version of the repository', (tool, version) => {
 			const pins = [...source.matchAll(new RegExp(`\\b${tool}@(\\S+)`, 'g'))].map(

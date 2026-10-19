@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { isSourceFile, srcDir } from '../helpers/walk-source'
+import { isSourceFile, srcDir, workspaceRoot } from '../helpers/walk-source'
 
 // `kata/`, `katakana/`, and `kiso/` are internal-only; see the header in
 // src/recipes/index.ts for the full contract. This test pins four boundaries:
@@ -13,8 +13,6 @@ import { isSourceFile, srcDir } from '../helpers/walk-source'
 //   4. No app or sibling package imports from 'ui/recipes/*'.
 
 const uiRoot = join(srcDir, '..')
-
-const workspaceRoot = join(uiRoot, '../..')
 
 describe('recipes internal-boundary contract', () => {
 	it('package.json exports does not surface ./recipes', () => {

@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, readdirSync, realpathSync, rmSync, writeFileSyn
 import { tmpdir } from 'node:os'
 import { join, relative } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { srcDir } from '../helpers/walk-source'
+import { workspaceRoot } from '../helpers/walk-source'
 
 // Each GritQL plugin in `.biome/plugins` holds a rule at lint time. A plugin
 // that stops matching fails nothing: the lint stays green while the rule rots.
@@ -20,11 +20,9 @@ import { srcDir } from '../helpers/walk-source'
 // Every other line must carry none. For a file-level rule, the flagged line is
 // where the plugin puts its span.
 
-const root = join(srcDir, '..', '..', '..')
+const pluginDir = join(workspaceRoot, '.biome', 'plugins')
 
-const pluginDir = join(root, '.biome', 'plugins')
-
-const biome = join(root, 'node_modules', '@biomejs', 'biome', 'bin', 'biome')
+const biome = join(workspaceRoot, 'node_modules', '@biomejs', 'biome', 'bin', 'biome')
 
 /** The marker that ends a fixture line the plugin must flag. */
 const FLAG = /\/\/ flag$/
