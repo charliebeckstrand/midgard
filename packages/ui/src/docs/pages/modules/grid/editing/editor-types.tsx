@@ -78,6 +78,7 @@ export default function EditorTypes() {
 	// Each row stays in edit mode, so each editor shows at once, and no row saves.
 	// Title gets a text editor and Done a yes or no listbox, from the type of the
 	// value. Status, Due, and Budget get an editor through the `editCell` slot.
+	// `sheet: false` keeps the editors in the cells on a phone too.
 	const editing = useMemo(() => new Set<string | number>(tasks.map((task) => task.id)), [])
 
 	const columns = useMemo(
@@ -127,7 +128,7 @@ export default function EditorTypes() {
 			columns={columns}
 			rows={tasks}
 			getKey={(row) => row.id}
-			editable={{ rows: editing, onCommit: () => {} }}
+			editable={{ rows: editing, sheet: false, onCommit: () => {} }}
 		/>
 	)
 }

@@ -49,6 +49,11 @@ export const intlMessages = defineMessages({
 		defaultMessage: 'Cancel',
 		description: 'The label of a button that stops an action and makes no change.',
 	},
+	save: {
+		id: 'ui.common.save',
+		defaultMessage: 'Save',
+		description: 'The label of a button that keeps the changes of a form.',
+	},
 	confirm: {
 		id: 'ui.common.confirm',
 		defaultMessage: 'Confirm',
