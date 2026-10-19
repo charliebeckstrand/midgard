@@ -77,8 +77,20 @@ describe('chartPolicy band axis', () => {
 		expect(policy.tickTarget).toBeGreaterThan(0)
 	})
 
+	it('keeps the band labels of a short horizontal chart, whose width pays for them', () => {
+		// The labels of a horizontal chart sit in a column at the start, so the
+		// short frame that drops a vertical band row keeps them.
+		expect(chartPolicy(800, BAND_ROW_HEIGHT - 1, CAP, false, 'horizontal').bandAxis).toBe('thinned')
+
+		expect(
+			chartPolicy(COMPACT_WIDTH - 1, BAND_ROW_HEIGHT - 1, CAP, false, 'horizontal').bandAxis,
+		).toBe('ends')
+	})
+
 	it('drops the band at spark', () => {
 		expect(chartPolicy(SPARK_WIDTH - 1, 300, CAP).bandAxis).toBe('off')
+
+		expect(chartPolicy(SPARK_WIDTH - 1, 300, CAP, false, 'horizontal').bandAxis).toBe('off')
 	})
 })
 

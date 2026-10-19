@@ -6,6 +6,7 @@ import {
 	type PlotFrameRef,
 	usePlotFrame,
 } from '../../../hooks'
+import type { ChartOrientation } from './chart-orientation'
 import { type ChartChrome, type ChartPolicy, chartFramePolicy } from './chart-tier'
 
 /** The inputs of {@link useChartFrameSizing}. @internal */
@@ -29,6 +30,8 @@ type ChartFrameSizingInput = {
 	chrome: ChartChrome
 	/** The tick target of the density step, which the tier can only lower. */
 	tickTarget: number
+	/** The direction of the bars of a cartesian chart, which the band axis reads. */
+	orientation?: ChartOrientation
 }
 
 /** What {@link useChartFrameSizing} returns. @internal */
@@ -73,6 +76,7 @@ export function useChartFrameSizing(input: ChartFrameSizingInput): ChartFrameSiz
 		chrome: input.chrome,
 		tickTarget: input.tickTarget,
 		fill: sizing.mode === 'fill',
+		orientation: input.orientation,
 	})
 
 	return { ref, width, height, reserve, policy }

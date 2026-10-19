@@ -6,13 +6,15 @@
  *
  * A chart resolves its anatomy from the box it is handed, never the viewport.
  * Each element binds to the dimension that pays for it. The value gutter and
- * the number format bind to width; the tick count and the band row bind to
- * height. They yield in a fixed order as the box shrinks. One chart therefore
+ * the number format bind to width; the tick count and the band row of a
+ * vertical chart bind to height. They yield in a fixed order as the box shrinks. One chart therefore
  * stays legible from a wide tile down to a sparkline, rather than rendering a
  * squeezed copy of itself.
  * The marks, the tooltip, the keyboard layer, and the visually-hidden data table
  * are never on the ladder; only the chrome around them is.
  */
+
+import type { ChartOrientation } from './chart-orientation'
 
 /**
  * A chart's resolved anatomy tier, narrowest to widest:
@@ -153,14 +155,20 @@ function tierOf(width: number, height: number): Exclude<ChartTier, 'spark'> {
 /**
  * How the band axis presents in a non-spark box:
  *
- * - Dropped in a short frame, where its row costs height.
+ * - Dropped in a short vertical frame, where its row costs height. A
+ *   horizontal chart puts its band labels in a column that the width pays
+ *   for, so a short frame keeps them.
  * - Only the ends in a compact-width one.
  * - Thinned otherwise.
  *
  * @internal
  */
-function bandAxisOf(width: number, height: number): ChartBandAxisMode {
-	if (height < BAND_ROW_HEIGHT) return 'off'
+function bandAxisOf(
+	width: number,
+	height: number,
+	orientation: ChartOrientation,
+): ChartBandAxisMode {
+	if (orientation === 'vertical' && height < BAND_ROW_HEIGHT) return 'off'
 
 	return width < COMPACT_WIDTH ? 'ends' : 'thinned'
 }
@@ -205,6 +213,8 @@ export function isSparkBox(width: number, height: number): boolean {
  * feed back into. A very short fill box draws a cramped-but-stable frame
  * rather than a sparkline; a caller wanting spark-by-height passes a `height`
  * or ratio instead.
+ * @param orientation The direction of the bars, which decides the dimension
+ * that pays for the band axis.
  * @internal
  */
 export function chartPolicy(
@@ -212,6 +222,7 @@ export function chartPolicy(
 	height: number,
 	tickCap: number,
 	fill = false,
+	orientation: ChartOrientation = 'vertical',
 ): ChartPolicy {
 	const spark = fill ? width < SPARK_WIDTH : isSparkBox(width, height)
 
@@ -229,7 +240,7 @@ export function chartPolicy(
 
 	return {
 		tier: tierOf(width, height),
-		bandAxis: bandAxisOf(width, height),
+		bandAxis: bandAxisOf(width, height, orientation),
 		tickTarget: Math.max(MIN_TICK_TARGET, Math.min(Math.floor(height / TICK_SPACING), tickCap)),
 		compactFormat: width < COMPACT_WIDTH,
 		axisTitles: width >= AXIS_TITLE_WIDTH && height >= AXIS_TITLE_HEIGHT,
@@ -346,8 +357,9 @@ export function chartFramePolicy(args: {
 	chrome: ChartChrome
 	tickTarget: number
 	fill: boolean
+	orientation?: ChartOrientation
 }): ChartPolicy {
 	const height = policyPlotHeight(args.height, args.width, args.aspect, args.chrome)
 
-	return chartPolicy(args.width, height, args.tickTarget, args.fill)
+	return chartPolicy(args.width, height, args.tickTarget, args.fill, args.orientation)
 }
