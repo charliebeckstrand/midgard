@@ -119,7 +119,10 @@ type ComboboxBaseProps<T> = {
 	prefix?: ReactNode
 	suffix?: ReactNode
 	size?: ScaleStep<typeof scale>
-	/** @defaultValue `false`, or the state of the enclosing Control or Field. */
+	/**
+	 * Disables the combobox.
+	 * @defaultValue `false`, or the state of the enclosing Control or Field.
+	 */
 	disabled?: boolean
 	/**
 	 * Keeps the input focusable and the value submitted, but blocks typing and
@@ -152,7 +155,7 @@ type ComboboxBaseProps<T> = {
 	/** Consumer-supplied `aria-describedby`, merged ahead of the field's registered description/error ids. */
 	'aria-describedby'?: string
 	/**
-	 * Clicking the selected option clears it.
+	 * Clears the selection on a click of the selected option.
 	 * @defaultValue `true` while neither `value` nor `defaultValue` holds a value, else `false`.
 	 */
 	nullable?: boolean
@@ -168,12 +171,12 @@ type ComboboxBaseProps<T> = {
 	 */
 	clearOnEmpty?: boolean
 	/**
-	 * Show a clear button in place of the chevron when a value is selected.
+	 * Shows a clear button in place of the chevron when a value is selected.
 	 * @defaultValue false
 	 */
 	clearable?: boolean
 	/**
-	 * Runs when the clear button empties the selection, with the combobox's own
+	 * Fires when the clear button empties the selection, with the combobox's own
 	 * input. It runs *instead of* the default's return-focus, so the handler owns
 	 * where focus lands after a clear.
 	 *
@@ -214,8 +217,8 @@ type ComboboxBaseProps<T> = {
 	 */
 	truncateTooltip?: boolean
 	/**
-	 * Controlled menu open state.
-	 * @defaultValue Uncontrolled: the menu starts closed.
+	 * Controlled open state of the menu. Pair it with `onOpenChange`.
+	 * @defaultValue Uncontrolled, with the menu closed at first.
 	 */
 	open?: boolean
 	/** Fires when the menu open state changes. */
@@ -223,9 +226,9 @@ type ComboboxBaseProps<T> = {
 	/** Fires when the input query changes. */
 	onQueryChange?: (query: string) => void
 	/**
-	 * A paste into the input, before the browser inserts it.
+	 * Fires when a paste reaches the input, before the browser inserts it.
 	 *
-	 * For a combobox whose values are TYPED IN rather than picked from a fetched list, a pasted
+	 * For a combobox whose values are TYPED IN rather than selected from a fetched list, a pasted
 	 * delimited list is one value per token. Call `preventDefault` and commit them through
 	 * `onValueChange`. Reading `clipboardData` here is the only point such a list is still
 	 * splittable. A native `<input>` strips newlines from its own value. By `onChange` a pasted
@@ -254,7 +257,7 @@ type ComboboxSingleProps<T> = {
 	/** Controlled value. `undefined` leaves the combobox uncontrolled; `null` keeps it controlled with no selection (CONVENTIONS §7.3). */
 	value?: T | null
 	defaultValue?: T
-	/** Fires with the new selection, or `null` when it is cleared. */
+	/** Fires when the selection changes, with the new selection, or `null` when it is cleared. */
 	onValueChange?: (value: T | null) => void
 	/**
 	 * Allows more than one selection. Set it to `true` to take an array `value`.

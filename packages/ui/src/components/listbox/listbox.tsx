@@ -53,7 +53,10 @@ type ListboxBaseProps = {
 	prefix?: ReactNode
 	suffix?: ReactNode
 	size?: ScaleStep<typeof scale>
-	/** @defaultValue `false`, or the state of the enclosing Control or Field. */
+	/**
+	 * Disables the field.
+	 * @defaultValue `false`, or the state of the enclosing Control or Field.
+	 */
 	disabled?: boolean
 	/**
 	 * Keeps the trigger focusable and the value submitted, but blocks opening and
@@ -80,7 +83,7 @@ type ListboxBaseProps = {
 	'aria-describedby'?: string
 	'aria-labelledby'?: string
 	/**
-	 * Clicking the selected option clears it.
+	 * Clears the selection on a click of the selected option.
 	 * @defaultValue `true` while neither `value` nor `defaultValue` holds a value, else `false`.
 	 */
 	nullable?: boolean
@@ -92,7 +95,7 @@ type ListboxBaseProps = {
 	 */
 	truncate?: boolean
 	/**
-	 * Show a clear button in place of the chevron when a value is selected. A
+	 * Shows a clear button in place of the chevron when a value is selected. A
 	 * custom `suffix` takes the slot before the clear button, as in Combobox.
 	 * @defaultValue false
 	 */
@@ -113,8 +116,8 @@ type ListboxBaseProps = {
 	 */
 	capitalize?: boolean
 	/**
-	 * Controlled menu open state.
-	 * @defaultValue Uncontrolled: the menu starts closed.
+	 * Controlled open state of the menu. Pair it with `onOpenChange`.
+	 * @defaultValue Uncontrolled, with the menu closed at first.
 	 */
 	open?: boolean
 	/** Fires when the menu open state changes. */
@@ -144,7 +147,7 @@ type ListboxSingleProps<T> = {
 	/** Controlled value. `undefined` leaves the listbox uncontrolled; `null` keeps it controlled with no selection (CONVENTIONS §7.3). */
 	value?: T | null
 	defaultValue?: T
-	/** Fires with the new selection, or `null` when it is cleared. */
+	/** Fires when the selection changes, with the new selection, or `null` when it is cleared. */
 	onValueChange?: (value: T | null) => void
 	/**
 	 * Allows more than one selection. Set it to `true` to take an array `value`.

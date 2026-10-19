@@ -44,7 +44,7 @@ export type DialogPanelProps = Omit<DialogPanelVariants, 'surface'> &
 		'children' | 'role' | 'onAnimationStart' | 'onDrag' | 'onDragStart' | 'onDragEnd'
 	> & {
 		/**
-		 * Fires once the panel has finished arriving — it is up, at rest, and covering
+		 * Fires when the panel has finished arriving: it is up, at rest, and covering
 		 * whatever it covers.
 		 *
 		 * The counterpart to `onOpenChange`, which reports the state being *asked for*: this
@@ -72,7 +72,7 @@ export type DialogPanelProps = Omit<DialogPanelVariants, 'surface'> &
 		 */
 		align?: Responsive<DialogAlign>
 		/**
-		 * Opt into the glass surface treatment. Omit it to follow the ambient
+		 * Opts into the glass surface treatment. Omit it to follow the ambient
 		 * `<GlassProvider>`. Set `false` to keep the flat surface inside one.
 		 *
 		 * @remarks Items inside — a command palette's results — take the deeper glass

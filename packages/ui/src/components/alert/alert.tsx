@@ -103,24 +103,24 @@ export type AlertProps = Omit<AlertVariants, 'color'> &
 		 */
 		actions?: ReactNode
 		/**
-		 * Shows a close button that dismisses the alert.
+		 * Shows a close button that closes the alert.
 		 * @defaultValue false
 		 */
 		closable?: boolean
-		/** Initial open state (uncontrolled). @defaultValue true */
+		/** Initial open state when uncontrolled. @defaultValue true */
 		defaultOpen?: boolean
 		/**
 		 * Controlled open state. A controlled alert stays open until `open` changes,
-		 * so pass `onOpenChange` with it to let the close button dismiss the alert.
+		 * so pass `onOpenChange` with it to let the close button close the alert.
 		 *
-		 * @defaultValue Uncontrolled: the state starts from `defaultOpen`.
+		 * @defaultValue Uncontrolled, with `defaultOpen` as the first state.
 		 */
 		open?: boolean
-		/** Called when the open state changes. */
+		/** Fires when the open state changes. */
 		onOpenChange?: (open: boolean) => void
 		/**
-		 * Whether an `info` or `success` alert that mounts open is mirrored through
-		 * the announcer, as one that opens later is.
+		 * Mirrors an `info` or `success` alert that mounts open through the
+		 * announcer, as it mirrors one that opens later.
 		 *
 		 * @remarks
 		 * Set it on an alert that a user action renders, such as
@@ -133,7 +133,7 @@ export type AlertProps = Omit<AlertVariants, 'color'> &
 		 */
 		announceOnMount?: boolean
 		/**
-		 * When the alert is dismissed via its close button, move focus to this
+		 * When the close button closes the alert, the focus moves to this
 		 * element instead of letting it fall to the document body (WCAG 2.4.3).
 		 * Opt-in; focus is untouched when unset. Point it at the control that
 		 * surfaced the alert.
@@ -216,10 +216,10 @@ function AlertContent({
 }
 
 /**
- * Dismissible message bar with severity-driven color, icon, and ARIA role. It
+ * A closable message bar with severity-driven color, icon, and ARIA role. It
  * takes its content through `title`, `description`, `actions`, and `children`,
  * and runs controlled or uncontrolled via `open`/`defaultOpen`. A `closable`
- * close button can return focus to `returnFocusTo` on dismiss.
+ * close button can return focus to `returnFocusTo` when it closes the alert.
  *
  * @remarks
  * The content is props here, and not the compound children §3.6 prefers

@@ -40,7 +40,7 @@ export type DrawerPanelProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
 		'children' | 'onAnimationStart' | 'onDrag' | 'onDragStart' | 'onDragEnd'
 	> & {
 		/**
-		 * Fires once the panel has finished arriving — it is docked, at rest, and covering
+		 * Fires when the panel has finished arriving: it is docked, at rest, and covering
 		 * whatever it covers.
 		 *
 		 * The counterpart to `onOpenChange`, which reports the state being *asked for*: this
@@ -102,7 +102,7 @@ export type DrawerPanelProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
 		 */
 		height?: DrawerPanelVariants['height']
 		/**
-		 * Give a panel with a fixed height (`half` or `full`) a drag handle: a grip on
+		 * Gives a panel with a fixed height (`half` or `full`) a drag handle: a grip on
 		 * its top edge that resizes the panel. On `auto` and `fit` it shows no grip.
 		 *
 		 * The drag sets the height directly, rather than stepping between the `height`
@@ -126,7 +126,7 @@ export type DrawerPanelProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
 		 */
 		handle?: boolean
 		/**
-		 * Opt the panel and backdrop into the translucent glass surface. Omit it to
+		 * Opts the panel and backdrop into the translucent glass surface. Omit it to
 		 * follow the ambient `<GlassProvider>`. Set `false` to keep the flat surface
 		 * inside one.
 		 *

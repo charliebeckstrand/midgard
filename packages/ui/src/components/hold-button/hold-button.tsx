@@ -35,7 +35,7 @@ export type HoldButtonProps = Omit<
 	 * @defaultValue 1000
 	 */
 	duration?: number
-	/** Fires once the press is held for the full `duration`. */
+	/** Fires when the reader holds the press for the full `duration`. */
 	onHoldComplete?: () => void
 	/** Fires when a press begins (pointer down or Space/Enter keydown). */
 	onHoldStart?: () => void

@@ -18,7 +18,7 @@ type ColorPickerBaseProps = {
 	 */
 	name?: string
 	/**
-	 * Enable the alpha channel: adds the alpha slider and emits `#rrggbbaa` / an `a < 1`.
+	 * Enables the alpha channel: adds the alpha slider and emits `#rrggbbaa` / an `a < 1`.
 	 *
 	 * @defaultValue false
 	 */
@@ -52,7 +52,10 @@ type ColorPickerBaseProps = {
 	 * density scopes.
 	 */
 	size?: ScaleStep<typeof scale>
-	/** @defaultValue `false`, or the state of the enclosing Control or Field. */
+	/**
+	 * Disables the picker.
+	 * @defaultValue `false`, or the state of the enclosing Control or Field.
+	 */
 	disabled?: boolean
 	/**
 	 * Blocks the open of the panel, so the color cannot change. An explicit value

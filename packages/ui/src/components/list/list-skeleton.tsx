@@ -31,9 +31,10 @@ export type ListSkeletonProps = {
 }
 
 /**
- * List-shaped placeholder: `items` rows in the chrome of the `variant`, each
- * with a label line and an optional description line. Keyed off the row count,
- * so it does not use the size-driven `createSkeleton` factory.
+ * A placeholder for a List while it loads. It shows `items` rows in the chrome
+ * of the `variant`, each with a label line and an optional description line.
+ * Keyed off the row count, so it does not use the size-driven `createSkeleton`
+ * factory.
  *
  * @remarks Static leaf: renders in React Server Components. The row padding
  * follows the nearest density scope, as the rows of the list do. A horizontal

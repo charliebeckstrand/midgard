@@ -40,9 +40,9 @@ export type LightboxProps = {
 	/** The index of the photo that the viewer shows first, uncontrolled. */
 	defaultIndex?: number
 	/**
-	 * Fires with the index of the photo that the viewer shows, or `null` when it
-	 * closes. The viewer also closes, and reports `null`, when its photo leaves
-	 * `photos` or its thumbnail does not load.
+	 * Fires when the shown photo changes, with the index of the photo that the
+	 * viewer shows, or `null` when it closes. The viewer also closes, and reports
+	 * `null`, when its photo leaves `photos` or its thumbnail does not load.
 	 */
 	onIndexChange?: (index: number | null) => void
 	/**

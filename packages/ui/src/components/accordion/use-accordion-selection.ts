@@ -11,8 +11,8 @@ import { type KeyedStore, toggleListItem } from '../../utilities'
  */
 type CollapsibleSingle = {
 	/**
-	 * Allow closing the open section to leave none open. `false` requires a
-	 * `value` or a `defaultValue`, so that a section is open from the start.
+	 * Lets a toggle close the open section, so that none is open. `false` requires
+	 * a `value` or a `defaultValue`, so that a section is open from the start.
 	 *
 	 * @remarks
 	 * With `false`, one section stays open: a toggle of the open section does
@@ -23,6 +23,11 @@ type CollapsibleSingle = {
 	collapsible?: true
 	value?: string | null
 	defaultValue?: string | null
+	/**
+	 * Fires when the open sections change: a single accordion gives the open
+	 * value, or `null` for none, and a multiple accordion gives the open values.
+	 * A held accordion never closes to none, so it never fires with `null`.
+	 */
 	onValueChange?: (value: string | null) => void
 }
 
@@ -34,7 +39,11 @@ type CollapsibleSingle = {
  */
 type HeldSingle = {
 	collapsible: false
-	/** A held accordion never closes to none, so it never reports `null`. */
+	/**
+	 * Fires when the open sections change: a single accordion gives the open
+	 * value, or `null` for none, and a multiple accordion gives the open values.
+	 * A held accordion never closes to none, so it never fires with `null`.
+	 */
 	onValueChange?: (value: string) => void
 } & ({ value: string; defaultValue?: string } | { value?: undefined; defaultValue: string })
 
@@ -55,6 +64,11 @@ export type MultipleProps = {
 	type: 'multiple'
 	value?: string[]
 	defaultValue?: string[]
+	/**
+	 * Fires when the open sections change: a single accordion gives the open
+	 * value, or `null` for none, and a multiple accordion gives the open values.
+	 * A held accordion never closes to none, so it never fires with `null`.
+	 */
 	onValueChange?: (value: string[]) => void
 	// Single mode's own prop. Declared here so that the root can take it out of
 	// the rest in either mode. It stays undocumented, so the props table keeps

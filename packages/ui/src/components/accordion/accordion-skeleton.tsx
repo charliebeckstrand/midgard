@@ -14,10 +14,10 @@ export type AccordionSkeletonProps = AccordionVariants & {
 }
 
 /**
- * Accordion-shaped placeholder: `items` collapsed items in the chrome of the
- * `variant`, each with a label line and an indicator square in the box of an
- * `AccordionTrigger`. Keyed off the item count, so it does not use the
- * size-driven `createSkeleton` factory.
+ * A placeholder for an Accordion while it loads. It shows `items` collapsed
+ * items in the chrome of the `variant`, each with a label line and an
+ * indicator square in the box of an `AccordionTrigger`. Keyed off the item
+ * count, so it does not use the size-driven `createSkeleton` factory.
  *
  * @remarks Static leaf: renders in React Server Components. The header box
  * follows the nearest density scope, as the box of the trigger does. The

@@ -42,11 +42,11 @@ const { Title, Description, Header, Body, Footer, Content, DefaultFooter } = cre
 export type DrawerCloseProps = Partial<PanelCloseProps>
 
 /**
- * Closes the enclosing {@link Drawer}. With no child, it renders the standard
- * Close button, which is also the default footer of the drawer. The standard
- * button stays live in a locked scope, such as a submitting form. With one
- * child, a click on the child closes the drawer, and the child's own `onClick`
- * runs first.
+ * The close control of the enclosing {@link Drawer}. With no child, it renders
+ * the standard Close button, which is also the default footer of the drawer.
+ * The standard button stays live in a locked scope, such as a submitting form.
+ * With one child, a click on the child closes the drawer, and the child's own
+ * `onClick` runs first.
  */
 export function DrawerClose({ children }: DrawerCloseProps) {
 	return (

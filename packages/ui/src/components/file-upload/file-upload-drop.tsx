@@ -169,7 +169,7 @@ function DropSelection({
  * under it. A `multiple` selection past one shows an "x files selected"
  * summary instead. The label truncates to one line and reveals the full name
  * or names in a tooltip. The zone stays clickable, focusable, and keyboard-operable, so
- * another file can be picked without clearing first.
+ * another file can be selected without clearing first.
  *
  * The swap between the empty and the filled state replaces the focusable
  * control. When focus is in the zone at a pick, a drop, or a `Reset`, it moves

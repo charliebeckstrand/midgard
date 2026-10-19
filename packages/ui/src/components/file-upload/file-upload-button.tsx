@@ -21,7 +21,7 @@ import { triggerLabel } from './file-upload-utilities'
  *
  * @remarks
  * Shares every internal with {@link FileUploadDrop}. Once a selection exists a
- * `Reset` button joins the trigger, so another file can be picked or the
+ * `Reset` button joins the trigger, so another file can be selected or the
  * selection cleared without the trigger swapping out. `Reset` gives focus back
  * to the trigger.
  *

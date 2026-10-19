@@ -14,11 +14,20 @@ import { useControlFieldContext } from './use-control-field-context'
 export type ControlProps = {
 	id?: string
 	autoComplete?: string
-	/** @defaultValue `false`, or `true` inside a disabled Control or Field. */
+	/**
+	 * Disables the control-aware descendants.
+	 * @defaultValue `false`, or `true` inside a disabled Control or Field.
+	 */
 	disabled?: boolean
-	/** @defaultValue `false`, or `true` inside a read-only Control, or while an enclosing Form submits. */
+	/**
+	 * Makes the control-aware descendants read-only.
+	 * @defaultValue `false`, or `true` inside a read-only Control, or while an enclosing Form submits.
+	 */
 	readOnly?: boolean
-	/** @defaultValue `false`, or the state of the enclosing Control. */
+	/**
+	 * Marks the control-aware descendants required.
+	 * @defaultValue `false`, or the state of the enclosing Control.
+	 */
 	required?: boolean
 	/**
 	 * Validation / status severity broadcast to control-aware descendants: `error` (also `aria-invalid`), `warning`, or `success`. Pass `severity="error"` to mark the field invalid.
