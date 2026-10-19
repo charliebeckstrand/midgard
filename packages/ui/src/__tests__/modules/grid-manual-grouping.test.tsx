@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn, type GridGroupHeaderRow } from '../../modules/grid'
 import { MANUAL_GROUP_PLACEHOLDER_ROWS } from '../../modules/grid/engine/grid-constants'
-import { renderUI, screen, setupUser } from '../helpers'
+import { bySlot, renderUI, screen, setupUser } from '../helpers'
 
 /** The placeholder skeleton rows the grid draws under a loading manual group. */
 function placeholderRows() {
@@ -396,5 +396,29 @@ describe('Grid manual (server-side) row grouping', () => {
 		)
 
 		expect(placeholderRows()).toHaveLength(0)
+	})
+
+	it('counts the leaves, not the group headers, in the row total', () => {
+		const { container } = renderUI(
+			<Grid
+				columns={columns}
+				rows={[westHeader, ...westChildren, eastHeader, ...eastChildren]}
+				getKey={getKey}
+				groupBy={{
+					manual: true,
+					value: 'region',
+					groupRow,
+					expanded: new Set(['west', 'east']),
+				}}
+				footer={{ rowTotal: true }}
+			/>,
+		)
+
+		// Nothing narrows the rows, so the footer gives the total, not "of".
+		const footer = bySlot(container, 'grid-footer')?.textContent
+
+		expect(footer).toContain('5 rows')
+
+		expect(footer).not.toContain('of')
 	})
 })
