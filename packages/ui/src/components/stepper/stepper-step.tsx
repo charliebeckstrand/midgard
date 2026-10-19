@@ -3,11 +3,13 @@
 import { Children, type ComponentProps, type ReactNode, useMemo } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { useMountsEveryPanel } from '../../primitives/mount'
 import { k } from '../../recipes/kata/stepper'
 import { hasChildOfType, partitionByType } from '../../utilities/children'
 import { StepperStepContext, type StepState, useStepper } from './context'
 import { StepperIndicator } from './stepper-indicator'
+import { stepperMessages } from './stepper-messages'
 
 /**
  * Props for {@link StepperStep}: the step's `value` index, an optional `disabled` flag, and child indicator/title/description content.
@@ -29,9 +31,9 @@ export type StepperStepProps = Omit<ComponentProps<'li'>, 'value'> & {
 // in the step, so AT reads the title first. The current step has no suffix:
 // its aria-current="step" already reads as "current step".
 const STATE_TEXT = {
-	completed: 'completed',
+	completed: stepperMessages.completed,
 	current: undefined,
-	upcoming: 'not started',
+	upcoming: stepperMessages.notStarted,
 } as const
 
 /**
@@ -111,6 +113,8 @@ export function StepperStep({ value, disabled, className, children, ...props }: 
 		mount,
 	} = useStepper()
 
+	const intl = useIntl()
+
 	const state = computeState(value, currentValue)
 
 	// Shares baseId + value with StepperPanel; the two derive matching ids.
@@ -129,7 +133,9 @@ export function StepperStep({ value, disabled, className, children, ...props }: 
 
 	const providerValue = useMemo(() => ({ value, state }), [value, state])
 
-	const stateText = STATE_TEXT[state]
+	const stateMessage = STATE_TEXT[state]
+
+	const stateText = stateMessage && intl.formatMessage(stateMessage)
 
 	const inner = (
 		<StepperStepContext value={providerValue}>

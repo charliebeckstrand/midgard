@@ -6,6 +6,7 @@ import { cn } from '../../core'
 import { useA11yRoving, useResponsiveValue } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
+import { useIntl } from '../../primitives/intl/use-intl'
 import type { Mount } from '../../primitives/mount'
 import { k } from '../../recipes/kata/stepper'
 import { Stack } from '../../structure/stack'
@@ -17,6 +18,7 @@ import {
 	type StepperOrientation,
 	stepperLayout,
 } from './context'
+import { stepperMessages } from './stepper-messages'
 import { StepperPanels } from './stepper-panels'
 
 /** Props for {@link Stepper}: the controlled `value`, its `onValueChange` handler, `linear`/`orientation` modifiers, and step children. */
@@ -37,7 +39,7 @@ export type StepperProps = Omit<
 	 * The accessible name of the step row. Give each stepper its own name when
 	 * a page shows more than one.
 	 *
-	 * @defaultValue 'Steps'
+	 * @defaultValue `'Steps'`, in the language of the reader.
 	 */
 	'aria-label'?: string
 	/**
@@ -130,12 +132,16 @@ export function Stepper({
 	linear = false,
 	orientation = STEPPER_ORIENTATION,
 	mount = 'active',
-	'aria-label': ariaLabel = 'Steps',
+	'aria-label': ariaLabelProp,
 	className,
 	children,
 	ref,
 	...props
 }: StepperProps) {
+	const intl = useIntl()
+
+	const ariaLabel = ariaLabelProp ?? intl.formatMessage(stepperMessages.label)
+
 	const [current = 0, setCurrent] = useControllable<number>({
 		value,
 		defaultValue: defaultValue ?? 0,

@@ -5,6 +5,9 @@ import type { BundledLanguage, BundledTheme } from 'shiki'
 import { announce, cn } from '../../core'
 import { useScrollRegion } from '../../hooks'
 import { useHydrated } from '../../hooks/use-hydrated'
+import { defineMessage, defineMessages } from '../../primitives/intl/intl-messages'
+import type { IntlShape } from '../../primitives/intl/types'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { type CodeBlockVariants, k } from '../../recipes/kata/code'
 import { CopyButton } from '../copy-button'
 import { DEFAULT_LANG, DEFAULT_THEME, highlightCode, trimBlankLines } from './code-shiki'
@@ -88,22 +91,34 @@ const languageNames: ReadonlyMap<string, string> = new Map(
 	).flatMap(([name, ids]) => ids.map((id) => [id, name] as const)),
 )
 
+const messages = defineMessages({
+	region: {
+		id: 'ui.codeBlock.region',
+		defaultMessage: 'Code',
+		description: 'The name of a scrollable block of code whose language is not known.',
+	},
+	copyFailed: {
+		id: 'ui.codeBlock.copyFailed',
+		defaultMessage: 'Copy failed',
+		description: 'Spoken when the copy button of a code block could not copy the code.',
+	},
+})
+
+/** The name of a block of code in a known language, such as "TypeScript code". */
+const languageRegionMessage = defineMessage<{ language: string }>({
+	id: 'ui.codeBlock.languageRegion',
+	defaultMessage: '{language} code',
+	description:
+		'The name of a scrollable block of code in a known language, such as "TypeScript code". The language is a name, such as TypeScript.',
+})
+
 /** "<Language> code" for a `lang` that the map names, else "Code". @internal */
-function regionName(lang: string | undefined): string {
+function regionName(intl: IntlShape, lang: string | undefined): string {
 	const name = lang === undefined ? undefined : languageNames.get(lang)
 
-	return name === undefined ? 'Code' : `${name} code`
-}
-
-/**
- * Announces a refused copy. After a refused write, the CopyButton stays at
- * rest, and the rest glyph also means "not copied yet". CodeBlock has no prop
- * for the error, so the block reports the failure itself.
- *
- * @internal
- */
-function announceCopyError() {
-	announce('Copy failed')
+	return name === undefined
+		? intl.formatMessage(messages.region)
+		: intl.formatMessage(languageRegionMessage, { language: name })
 }
 
 /**
@@ -144,7 +159,7 @@ export type CodeBlockProps = Omit<ComponentProps<'div'>, 'children' | 'lang'> & 
 	 * `text`, the name is "Code". Two blocks of one language thus have one name.
 	 * Give each one a `label` when both can overflow on one page.
 	 *
-	 * @defaultValue the language of `lang` and "code", such as `'TypeScript code'`, else `'Code'`.
+	 * @defaultValue the language of `lang` and "code", such as `'TypeScript code'`, else `'Code'`, in the language of the reader.
 	 */
 	label?: string
 }
@@ -250,6 +265,8 @@ export function CodeBlock({
 	style,
 	...props
 }: CodeBlockProps) {
+	const intl = useIntl()
+
 	const code = trimBlankLines(rawCode)
 
 	const lang = langProp ?? DEFAULT_LANG
@@ -353,7 +370,12 @@ export function CodeBlock({
 
 	// The default grammar does not say what the code is, so only a `lang` that
 	// the caller gives names the region.
-	const scrollRegionRef = useScrollRegion({ label: label ?? regionName(langProp) })
+	const scrollRegionRef = useScrollRegion({ label: label ?? regionName(intl, langProp) })
+
+	// After a refused write, the CopyButton stays at rest, and the rest glyph
+	// also means "not copied yet". CodeBlock has no prop for the error, so the
+	// block reports the failure itself.
+	const announceCopyError = () => announce(intl.formatMessage(messages.copyFailed))
 
 	// With no highlight, or a theme with no background, the recipe paints the
 	// default canvas.

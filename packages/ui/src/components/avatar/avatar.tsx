@@ -1,11 +1,46 @@
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
+import { IntlMessage } from '../../primitives/intl/intl-message'
+import { defineMessages } from '../../primitives/intl/intl-messages'
 import { type AvatarVariants, k } from '../../recipes/kata/avatar'
-import { capitalizeFirst } from '../../utilities'
 import { StatusDot, type StatusDotProps } from '../status'
 
 // The StatusDot union is the single source of truth for status values.
 type Status = NonNullable<StatusDotProps['status']>
+
+// The name of each status, which the sr-only span reads.
+const statusMessages = defineMessages({
+	inactive: {
+		id: 'ui.avatar.statusInactive',
+		defaultMessage: 'Inactive',
+		description:
+			'The status of a person or an item, which a screen reader speaks after its avatar.',
+	},
+	active: {
+		id: 'ui.avatar.statusActive',
+		defaultMessage: 'Active',
+		description:
+			'The status of a person or an item, which a screen reader speaks after its avatar.',
+	},
+	info: {
+		id: 'ui.avatar.statusInfo',
+		defaultMessage: 'Info',
+		description:
+			'The status of a person or an item that has news, which a screen reader speaks after its avatar.',
+	},
+	warning: {
+		id: 'ui.avatar.statusWarning',
+		defaultMessage: 'Warning',
+		description:
+			'The status of a person or an item that needs attention, which a screen reader speaks after its avatar.',
+	},
+	error: {
+		id: 'ui.avatar.statusError',
+		defaultMessage: 'Error',
+		description:
+			'The status of a person or an item that has a problem, which a screen reader speaks after its avatar.',
+	},
+})
 
 /** A character that ends a CSS string: a quote, a backslash, or a line break. @internal */
 const CSS_STRING_END = /["\\\n\r\f]/g
@@ -120,7 +155,10 @@ export type AvatarProps = AvatarVariants & {
 	 * @defaultValue No status: the avatar shows no dot.
 	 */
 	status?: Status
-	/** Accessible text for the status dot. Defaults to the humanized `status`. */
+	/**
+	 * Accessible text for the status dot. Defaults to the name of the `status`,
+	 * such as "Active", in the language of the reader.
+	 */
 	statusLabel?: string
 } & Omit<ComponentProps<'span'>, 'children'>
 
@@ -215,7 +253,9 @@ export function Avatar({
 			</span>
 			<StatusDot status={status} className={cn(k.status.dot)} />
 			{/* Color alone conveys status; the sr-only span names it for assistive technology. */}
-			<span className="sr-only">{statusLabel ?? capitalizeFirst(status)}</span>
+			<span className="sr-only">
+				{statusLabel ?? <IntlMessage message={statusMessages[status]} />}
+			</span>
 		</span>
 	)
 }

@@ -4,6 +4,7 @@ import { JsonTree, type JsonTreeProps, type JsonTreeVirtualize } from '../../com
 import { flatTreeMoveTarget } from '../../components/json-tree/json-tree-keyboard'
 import { JsonTreeNodeRow } from '../../components/json-tree/json-tree-node-row'
 import { flattenTree } from '../../components/json-tree/json-tree-utilities'
+import { LocaleProvider } from '../../providers/locale'
 import { bySlot, fireEvent, getSlot, present, renderUI, screen } from '../helpers'
 
 describe('JsonTree', () => {
@@ -1293,5 +1294,19 @@ describe('JsonTree exiting group', () => {
 		fireEvent.keyDown(present(document.activeElement, 'focused row'), { key: 'ArrowUp' })
 
 		expect(document.activeElement).toBe(branch)
+	})
+})
+
+describe('JsonTree in a locale', () => {
+	it('counts the items of a closed branch in the language of the locale', () => {
+		renderUI(
+			<LocaleProvider locale="es-ES">
+				<JsonTree data={{ many: [1, 2, 3], one: [1] }} defaultExpandDepth={1} />
+			</LocaleProvider>,
+		)
+
+		expect(screen.getByText('3 elementos')).toBeInTheDocument()
+
+		expect(screen.getByText('1 elemento')).toBeInTheDocument()
 	})
 })

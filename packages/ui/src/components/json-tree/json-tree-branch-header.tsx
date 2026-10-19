@@ -1,10 +1,19 @@
 import { ChevronRight } from 'lucide-react'
 import { type KeyboardEvent, useId } from 'react'
 import { cn, dataAttr } from '../../core'
+import { defineMessage } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/json-tree'
 import { Icon } from '../icon'
 import { branchToggleKey } from '../tree/tree-keyboard'
 import { type FlatSetPosition, NodeKey } from './json-tree-utilities'
+
+/** The summary of a branch, such as "3 items". */
+const itemsMessage = defineMessage<{ count: number }>({
+	id: 'ui.jsonTree.items',
+	defaultMessage: '{count, plural, one {# item} other {# items}}',
+	description: 'The count of the items in an object or an array of a JSON tree, such as "3 items".',
+})
 
 type JsonTreeBranchHeaderProps = {
 	depth: number
@@ -56,11 +65,13 @@ export function JsonTreeBranchHeader({
 }: JsonTreeBranchHeaderProps) {
 	const contentId = useId()
 
+	const intl = useIntl()
+
 	const openBracket = isArray ? '[' : '{'
 	const closeBracket = isArray ? ']' : '}'
 
 	// The summary shows only for a branch with items.
-	const summary = `${count} ${count === 1 ? 'item' : 'items'}`
+	const summary = intl.formatMessage(itemsMessage, { count })
 
 	// The row opens on the arrow toward its children and closes on the arrow
 	// back. The tree moves focus on the other two cases.

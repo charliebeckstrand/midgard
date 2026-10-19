@@ -1,4 +1,14 @@
 import type { FormStateValue } from '../../../primitives/form/context'
+import { defineMessage } from '../../../primitives/intl/intl-messages'
+import type { IntlShape } from '../../../primitives/intl/types'
+
+/** The announcement of the active count of a filter bar, such as "2 filters active". */
+const activeFiltersMessage = defineMessage<{ count: number }>({
+	id: 'ui.formFilters.active',
+	defaultMessage: '{count, plural, one {# filter active} other {# filters active}}',
+	description:
+		'Spoken when a filter changes, with the count of the filters that hold a value, such as "2 filters active".',
+})
 
 /**
  * True when a field value counts as set: not `undefined`, `null`, `''`, or an
@@ -56,8 +66,8 @@ export function countActiveFilters(record: Record<string, unknown>): number {
  *
  * @internal
  */
-export function formatActiveFilters(count: number): string {
-	return `${count} ${count === 1 ? 'filter' : 'filters'} active`
+export function formatActiveFilters(intl: IntlShape, count: number): string {
+	return intl.formatMessage(activeFiltersMessage, { count })
 }
 
 // A filter has no validation, touch, or baseline, so these maps stay empty.
