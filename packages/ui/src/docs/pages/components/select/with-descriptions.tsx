@@ -7,7 +7,7 @@ const plans = [
 	{ id: 'business', name: 'Business', description: 'Single sign-on and audit logs' },
 ]
 
-export default function OptionDescriptions() {
+export default function WithDescriptions() {
 	return (
 		<Field>
 			<Label>Plan</Label>

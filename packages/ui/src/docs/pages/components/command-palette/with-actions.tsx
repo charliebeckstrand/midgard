@@ -27,7 +27,7 @@ function MatchingCommands({ onRun }: { onRun: (label: string) => void }) {
 		))
 }
 
-export default function ItemActions() {
+export default function WithActions() {
 	const [open, setOpen] = useState(false)
 
 	const [lastCommand, setLastCommand] = useState<string | null>(null)

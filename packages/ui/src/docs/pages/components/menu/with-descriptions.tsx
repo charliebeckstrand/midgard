@@ -11,7 +11,7 @@ import {
 	MenuTrigger,
 } from 'ui/menu'
 
-export default function ItemDescriptions() {
+export default function WithDescriptions() {
 	return (
 		<Menu placement="bottom-start">
 			<MenuTrigger>

@@ -32,7 +32,7 @@ function MatchingPeople() {
 		))
 }
 
-export default function Descriptions() {
+export default function WithDescriptions() {
 	const [open, setOpen] = useState(false)
 
 	return (

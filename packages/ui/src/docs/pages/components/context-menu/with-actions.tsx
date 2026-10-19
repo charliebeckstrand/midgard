@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react'
 import { ContextMenu, type ContextMenuItem } from 'ui/context-menu'
 import { Text } from 'ui/text'
 
-export default function Actions() {
+export default function WithActions() {
 	const [action, setAction] = useState<string>()
 
 	const items = useMemo<ContextMenuItem[]>(

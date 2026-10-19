@@ -1,7 +1,7 @@
 import type { SearchEntry, SearchKind } from '../plugin/search.ts'
 
 /** The order of the kinds in the results, for entries that match equally well. */
-const KINDS: readonly SearchKind[] = ['page', 'tab', 'component', 'example', 'prop']
+const KINDS: readonly SearchKind[] = ['page', 'tab', 'component', 'example', 'prop', 'event']
 
 /** Lower case, with each run of other characters as one space: `<DialogPanel />` gives `dialogpanel`. */
 function normalize(text: string): string {

@@ -7,7 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from 'ui/popover'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 
-export default function WithAForm() {
+export default function WithForm() {
 	const [open, setOpen] = useState(false)
 
 	const [name, setName] = useState('Quarterly report')
