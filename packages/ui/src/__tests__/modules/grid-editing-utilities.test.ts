@@ -10,6 +10,7 @@ import {
 /** A plain key press, with no modifier and no input method. */
 const press = (key: string, extra: Partial<GridKeyPress> = {}): GridKeyPress => ({
 	key,
+	code: '',
 	ctrlKey: false,
 	metaKey: false,
 	altKey: false,
@@ -85,6 +86,7 @@ describe('seedFromKey', () => {
 describe('readKeyPress', () => {
 	const event = (extra: { keyCode?: number; isComposing?: boolean }) => ({
 		key: 'a',
+		code: 'KeyA',
 		ctrlKey: false,
 		metaKey: false,
 		altKey: false,

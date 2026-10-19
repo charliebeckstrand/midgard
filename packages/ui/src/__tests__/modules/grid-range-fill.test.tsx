@@ -123,6 +123,20 @@ describe('Grid range fill', () => {
 		await expectAnnouncement('Count filled for Bob, 1 skipped')
 	})
 
+	it('fills and undoes with the physical keys under a layout with no Latin letters', () => {
+		const view = renderFillGrid()
+
+		view.select([0, 0], [2, 0])
+
+		expect(fireEvent.keyDown(view.grid, { key: 'в', code: 'KeyD', ctrlKey: true })).toBe(false)
+
+		expect(view.texts().map((row) => row[0])).toEqual(['Alice', 'Alice', 'Alice'])
+
+		fireEvent.keyDown(view.grid, { key: 'я', code: 'KeyZ', ctrlKey: true })
+
+		expect(view.texts().map((row) => row[0])).toEqual(['Alice', 'Bob', 'Carol'])
+	})
+
 	it('leaves the key to the browser when the range is one cell deep', () => {
 		const view = renderFillGrid()
 
