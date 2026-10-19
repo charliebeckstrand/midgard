@@ -340,6 +340,13 @@ export type ChartFrameProps = AccessibleName & {
 	 */
 	describeReference?: (reference: number) => string | null
 	/**
+	 * The text that a key speaks when it moves the cursor onto the stop at `index`
+	 * of `series`, where `index` is the value of {@link focus}'s `indices` at the
+	 * stop. A chart whose stops do not index the categories of its readout reads
+	 * them with it. Absent, the stop speaks the readout of its category.
+	 */
+	describeRead?: (index: number, series: number | null) => string | null
+	/**
 	 * The keyboard cursor emphasizes the series it lands on (`null` off any), in
 	 * the same channel as the legend. The marks then recede the rest and the
 	 * tooltip dims their rows. Off, keyboard navigation leaves the emphasis alone:
@@ -428,6 +435,7 @@ export function ChartFrame({
 	snap,
 	focus,
 	describeReference,
+	describeRead,
 	keyboardEmphasis = false,
 	onActivate,
 	selected = null,
@@ -507,7 +515,9 @@ export function ChartFrame({
 	// also speaks the readout of that point through the shared polite live
 	// region. A pointer move speaks nothing.
 	const announceRead = (index: number, series: number | null) => {
-		const text = readout && describeReadout(readout(), index, series, readoutOrder)
+		const text = describeRead
+			? describeRead(index, series)
+			: readout && describeReadout(readout(), index, series, readoutOrder)
 
 		if (text) announce(text)
 	}

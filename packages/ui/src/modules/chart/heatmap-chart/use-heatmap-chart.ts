@@ -120,6 +120,30 @@ function heatmapReadout(matrix: HeatmapMatrix, format: (value: number) => string
 }
 
 /**
+ * The text that the keyboard cursor speaks on a cell: its column, then its row
+ * and its value, as the tooltip shows them. `null` for an index past the grid.
+ *
+ * @internal
+ */
+function heatmapCellText(
+	matrix: HeatmapMatrix,
+	format: (value: number) => string,
+	cell: number,
+): string | null {
+	const cols = matrix.columns.length
+
+	const row = Math.floor(cell / cols)
+
+	const column = matrix.columns[cell % cols]
+
+	const label = matrix.rows[row]
+
+	if (column === undefined || label === undefined) return null
+
+	return `${column}, ${label}: ${readoutCell(matrix.values[row]?.[cell % cols], format)}`
+}
+
+/**
  * The keyboard stops of the grid. Each column is a category, and each row is a
  * stop at the cell center. The band arrows therefore walk the columns, and the
  * value arrows walk the rows. Each stop writes its row-major cell index.
@@ -202,6 +226,8 @@ export type HeatmapChartModel = {
 	format: (value: number) => string
 	/** The keyboard stops, one per cell. */
 	focus: ChartFocusTargets
+	/** The text that the keyboard cursor speaks on the cell at a row-major index. */
+	describeCell: (cell: number) => string | null
 	/** Maps a frame point to the row-major index of its cell, or `null` off the grid. */
 	resolveCell: (x: number, y: number) => number | null
 }
@@ -360,6 +386,13 @@ export function useHeatmapChart<T>(
 
 	const focus = useMemo(() => heatmapFocus(cols, rows, xBand, yBand), [cols, rows, xBand, yBand])
 
+	// The stops write a cell index, and the readout has one category per column,
+	// so the cursor speaks the cell and not the readout of a column.
+	const describeCell = useCallback(
+		(cell: number) => heatmapCellText(matrix, format, cell),
+		[matrix, format],
+	)
+
 	// A parent render thins no tick and cuts no row label again.
 	const ticks = useMemo(
 		() => heatmapTicks(matrix, xBand, yBand, plot, rowText.fit),
@@ -400,6 +433,7 @@ export function useHeatmapChart<T>(
 		readout,
 		format,
 		focus,
+		describeCell,
 		resolveCell,
 	}
 }

@@ -840,6 +840,39 @@ describe('LineChart keyboard announcements', () => {
 	})
 })
 
+describe('HeatmapChart keyboard announcements', () => {
+	it('speaks the column, the row, and the value of each cell', async () => {
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Commits"
+				data={[
+					{ day: 'Mon', hour: '9', commits: 1 },
+					{ day: 'Mon', hour: '10', commits: 9 },
+					{ day: 'Tue', hour: '9', commits: 5 },
+					{ day: 'Tue', hour: '10', commits: 2 },
+				]}
+				series={[{ xKey: 'hour', yKey: 'day', colorKey: 'commits', colorRange: ['#fff', '#000'] }]}
+				width={400}
+			/>,
+		)
+
+		const plot = getSlot(container, 'chart-plot')
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		await expectAnnouncement('9, Mon: 1')
+
+		// A cell after the first row speaks its own row, not the column.
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		await expectAnnouncement('9, Tue: 5')
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		await expectAnnouncement('10, Tue: 2')
+	})
+})
+
 describe('LineChart keyboard announcements on a reference line', () => {
 	it('speaks the label and the value of a rule that a key moves the cursor onto', async () => {
 		const { container } = renderUI(line({ reference: [{ value: 50, label: 'Target' }] }))

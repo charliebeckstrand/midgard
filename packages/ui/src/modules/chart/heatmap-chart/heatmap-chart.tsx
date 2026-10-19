@@ -118,6 +118,7 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 		readout,
 		format,
 		focus,
+		describeCell,
 		resolveCell,
 	} = useHeatmapChart(
 		data,
@@ -199,6 +200,7 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 					/>
 				}
 				focus={focus}
+				describeRead={describeCell}
 				onActivate={onCellClick ? reportCell : undefined}
 				className={className}
 				contextMenu={contextMenu}
