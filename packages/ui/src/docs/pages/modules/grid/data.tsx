@@ -31,11 +31,12 @@ export function StatusBadge({ status }: { status: Person['status'] }) {
 	return <Badge color={status === 'active' ? 'green' : 'zinc'}>{statusLabels[status]}</Badge>
 }
 
-// A day in the format of the locale of the reader.
+// A day in the numeric format of the locale of the reader. It is as wide as
+// an ISO date, so the columns keep their widths.
 export function DayText({ date }: { date: Date }) {
 	const intl = useIntl()
 
-	return intl.formatDate(date, { dateStyle: 'medium' })
+	return intl.formatDate(date, { year: 'numeric', month: '2-digit', day: '2-digit' })
 }
 
 // An amount of whole dollars in the format of the locale of the reader.
