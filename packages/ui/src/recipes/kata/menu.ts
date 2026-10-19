@@ -98,7 +98,7 @@ export const k = {
 		// an edge rather than the `Highlight` fill of the roving cursor.
 		trigger: [
 			...mode('data-open:bg-zinc-950/5', 'dark:data-open:bg-white/5'),
-			'forced-colors:data-open:outline forced-colors:data-open:-outline-offset-1',
+			'forced-colors:data-open:outline-solid forced-colors:data-open:outline-1 forced-colors:data-open:-outline-offset-1',
 		],
 		// The chevron of a `MenuSub` row in the bottom sheet, which turns over
 		// while the rows of the submenu show below the row.

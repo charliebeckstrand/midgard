@@ -8,7 +8,7 @@ const { cursor, disabled } = hannou
 const { rounded } = kasane
 const { css } = ugoki
 const { color } = slider
-const { forced } = sen
+const { forced, ring } = sen
 
 const range = defineRecipe({
 	base: [
@@ -42,13 +42,14 @@ const thumb = defineRecipe({
 		// The thumb sits at `inset-inline-start`, so its center offset mirrors in a right-to-left layout.
 		'rtl:translate-x-1/2',
 		'bg-white',
-		...mode('ring-1 ring-zinc-950/20', 'dark:ring-white/20'),
+		...ring.line[1].outset,
+		...mode('ring-zinc-950/20', 'dark:ring-white/20'),
 		'shadow-sm',
 		forced.mark,
 		css.transform,
 		'hover:not-disabled:scale-110',
 		'active:not-disabled:scale-110',
-		// The thumb rings match the native thumb of `Slider` (`kata/slider.ts`).
+		// The thumb rings match the native thumb of `Slider` (`kiso/slider/thumb.ts`).
 		// Tailwind needs literal pseudo-element classes there, so the two lists stay apart.
 		'data-invalid:ring-2 data-invalid:ring-red-600',
 		'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-600',

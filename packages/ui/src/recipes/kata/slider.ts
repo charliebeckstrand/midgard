@@ -1,12 +1,11 @@
 import type { ScaleStep } from '../../core/density'
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { hannou, kokkaku, sen } from '../kiso'
+import { hannou, kokkaku } from '../kiso'
 import { dan } from '../kiso/dan'
 import { slider } from '../kiso/slider'
 
 const { cursor, disabled } = hannou
 const { color } = slider
-const { forced } = sen
 
 export const k = defineRecipe({
 	base: [
@@ -18,11 +17,9 @@ export const k = defineRecipe({
 		...cursor,
 		'outline-none',
 		...disabled,
-		// Forced colors remove the background of the track and the thumb, so the
-		// slider shows the native range, which paints in system colors.
-		forced.control,
-		// The native range draws no focus mark under `outline-none`.
-		...forced.ring.outset,
+		// The rings of the thumb, and the native range and the focus outline that
+		// replace them under forced colors.
+		...slider.thumb,
 
 		// --slider-value is set inline (0-100%); --slider-fill / --slider-track come from the color variant.
 		// A native range runs from the inline start, so the fill does too.
@@ -34,18 +31,10 @@ export const k = defineRecipe({
 		'[&::-webkit-slider-thumb]:appearance-none',
 		'[&::-webkit-slider-thumb]:rounded-full',
 		'[&::-webkit-slider-thumb]:bg-white',
-		'[&::-webkit-slider-thumb]:ring-1 [&::-webkit-slider-thumb]:ring-zinc-950/20',
-		'dark:[&::-webkit-slider-thumb]:ring-white/20',
 		'[&::-webkit-slider-thumb]:shadow-sm',
 		'motion-safe:[&::-webkit-slider-thumb]:transition-transform',
 		'hover:not-disabled:[&::-webkit-slider-thumb]:scale-110',
 		'active:not-disabled:[&::-webkit-slider-thumb]:scale-110',
-		// An invalid slider rings its thumb in red, as an invalid checkbox rings its box.
-		'data-invalid:[&::-webkit-slider-thumb]:ring-2',
-		'data-invalid:[&::-webkit-slider-thumb]:ring-red-600',
-		'focus-visible:[&::-webkit-slider-thumb]:ring-4',
-		'focus-visible:[&::-webkit-slider-thumb]:ring-blue-600',
-		'dark:focus-visible:[&::-webkit-slider-thumb]:ring-blue-500',
 
 		'[&::-moz-range-track]:w-full',
 		'[&::-moz-range-track]:rounded-full',
@@ -54,17 +43,10 @@ export const k = defineRecipe({
 		'[&::-moz-range-thumb]:rounded-full',
 		'[&::-moz-range-thumb]:bg-white',
 		'[&::-moz-range-thumb]:border-0',
-		'[&::-moz-range-thumb]:ring-1 [&::-moz-range-thumb]:ring-zinc-950/20',
-		'dark:[&::-moz-range-thumb]:ring-white/20',
 		'[&::-moz-range-thumb]:shadow-sm',
 		'motion-safe:[&::-moz-range-thumb]:transition-transform',
 		'hover:not-disabled:[&::-moz-range-thumb]:scale-110',
 		'active:not-disabled:[&::-moz-range-thumb]:scale-110',
-		'data-invalid:[&::-moz-range-thumb]:ring-2',
-		'data-invalid:[&::-moz-range-thumb]:ring-red-600',
-		'focus-visible:[&::-moz-range-thumb]:ring-4',
-		'focus-visible:[&::-moz-range-thumb]:ring-blue-600',
-		'dark:focus-visible:[&::-moz-range-thumb]:ring-blue-500',
 
 		// Each size takes the step of the nearest density scope. The vertical
 		// padding extends the native hit area beyond the visible thumb. A

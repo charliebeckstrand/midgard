@@ -483,7 +483,7 @@ export function LightboxStage({
 									))}
 								</div>
 							) : (
-								<div className={k.pill}>
+								<div className={cn(k.pill)}>
 									<Button
 										lockable={false}
 										type="button"

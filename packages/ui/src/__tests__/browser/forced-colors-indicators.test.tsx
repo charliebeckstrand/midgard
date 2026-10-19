@@ -1,7 +1,12 @@
 import type { ReactElement } from 'react'
 import { afterAll, beforeAll, describe, expect, it, onTestFinished } from 'vitest'
 import { cdp, page, userEvent } from 'vitest/browser'
+import { Accordion, AccordionItem, AccordionTrigger } from '../../components/accordion'
+import { Badge } from '../../components/badge'
+import { Button } from '../../components/button'
+import { ColorPicker } from '../../components/color'
 import { Combobox, ComboboxOption } from '../../components/combobox'
+import { DatePicker } from '../../components/date-picker'
 import { Input } from '../../components/input'
 import { JsonTree } from '../../components/json-tree'
 import { NavItem, NavList } from '../../components/nav'
@@ -129,10 +134,31 @@ const personColumns: GridColumn<Person>[] = [
 	{ id: 'name', title: 'Name', cell: (row) => row.name, value: (row) => row.name },
 ]
 
+/** The control frame around a focused control. */
+function controlFrame(focused: Element): Element | null {
+	return focused.closest('[data-slot="control-frame"]')
+}
+
+const input = <Input aria-label="Name" />
+
+const select = (
+	<Select aria-label="Fruit">
+		<SelectOption value="apple">Apple</SelectOption>
+	</Select>
+)
+
+/** A focus mark: the render, the element that draws the mark, and the pseudo-element that draws it. */
+type FocusMark = {
+	ui: ReactElement
+	mark: (focused: Element) => Element | null
+	pseudo?: string
+}
+
 /**
  * The focus marks that are a box-shadow ring or a background on an element
  * other than the focused control. Forced colors remove both, so the mark must
- * also draw an outline. `mark` finds the marked element from the focused one.
+ * also draw an outline. `mark` finds the marked element from the focused one,
+ * and `pseudo` names the pseudo-element of that element that draws the mark.
  */
 const focusMarks = {
 	'nav row with a suffix': {
@@ -169,6 +195,16 @@ const focusMarks = {
 		ui: <Grid navigable columns={personColumns} rows={people} getKey={(row) => row.id} />,
 		mark: (focused: Element) => focused.querySelector('[role="gridcell"][data-active]'),
 	},
+	'accordion item': {
+		ui: (
+			<Accordion>
+				<AccordionItem value="a">
+					<AccordionTrigger>Alpha</AccordionTrigger>
+				</AccordionItem>
+			</Accordion>
+		),
+		mark: (focused: Element) => focused.closest('[data-slot="accordion-item"]'),
+	},
 	'json tree row': {
 		ui: <JsonTree data={{ a: 1 }} />,
 		mark: (focused: Element) => focused.parentElement,
@@ -183,18 +219,16 @@ const focusMarks = {
 		mark: (focused: Element) => focused,
 	},
 	// The focus ring of the control frame is a box-shadow on its `::after`. The
-	// control in the frame draws the outline instead.
+	// `::after` draws the outline too.
 	'text input in a control frame': {
-		ui: <Input aria-label="Name" />,
-		mark: (focused: Element) => focused,
+		ui: input,
+		mark: controlFrame,
+		pseudo: '::after',
 	},
 	'select in a control frame': {
-		ui: (
-			<Select aria-label="Fruit">
-				<SelectOption value="apple">Apple</SelectOption>
-			</Select>
-		),
-		mark: (focused: Element) => focused,
+		ui: select,
+		mark: controlFrame,
+		pseudo: '::after',
 	},
 	'combobox in a control frame': {
 		ui: (
@@ -202,9 +236,20 @@ const focusMarks = {
 				<ComboboxOption value="apple">Apple</ComboboxOption>
 			</Combobox>
 		),
-		mark: (focused: Element) => focused,
+		mark: controlFrame,
+		pseudo: '::after',
 	},
-} as const
+	'date picker in a control frame': {
+		ui: <DatePicker aria-label="Day" />,
+		mark: controlFrame,
+		pseudo: '::after',
+	},
+	'color picker in a control frame': {
+		ui: <ColorPicker aria-label="Color" />,
+		mark: controlFrame,
+		pseudo: '::after',
+	},
+} satisfies Record<string, FocusMark>
 
 /**
  * The computed outline of a focus mark after keyboard Tab moves focus into it.
@@ -213,15 +258,18 @@ const focusMarks = {
 async function markOutline(
 	name: keyof typeof focusMarks,
 ): Promise<{ style: string; width: string }> {
-	const { ui, mark } = focusMarks[name]
-	renderUI(ui)
+	const { ui, mark, pseudo }: FocusMark = focusMarks[name]
+	const { unmount } = renderUI(ui)
 	await frames()
 	await userEvent.tab()
 	const focused = present(document.activeElement, 'focused element')
 	if (name === 'grid active cell') await userEvent.keyboard('{ArrowDown}')
 	const node = await waitFor(() => present(mark(focused), `${name} mark`))
-	const style = getComputedStyle(node)
-	return { style: style.outlineStyle, width: style.outlineWidth }
+	const style = getComputedStyle(node, pseudo)
+	const outline = { style: style.outlineStyle, width: style.outlineWidth }
+	// A later render must take the next Tab.
+	unmount()
+	return outline
 }
 
 /**
@@ -254,6 +302,19 @@ const currentRows = {
 		</ChatList>
 	),
 } as const
+
+/** The controls in a control frame, which draws their focus outline. */
+const controls: Record<string, ReactElement> = {
+	input,
+	select,
+}
+
+/** The parts whose resting edge is a kiso ring. */
+const edges: Record<string, ReactElement> = {
+	'input frame': input,
+	'outline button': <Button variant="outline">Save</Button>,
+	'outline badge': <Badge variant="outline">New</Badge>,
+}
 
 /** The outline of the active indicator, as one string. */
 function indicatorOutline(container: HTMLElement): string {
@@ -408,6 +469,30 @@ describe('controls show their state under forced colors (real browser)', () => {
 			expect(outline.width).not.toBe('0px')
 		})
 	}
+
+	// The frame draws the focus outline, so the control in it draws none. Two
+	// outlines would draw a double edge.
+	it.each(Object.entries(controls))(
+		'%s: the focused control draws no outline',
+		async (_name, ui) => {
+			renderUI(ui)
+			await frames()
+			await userEvent.tab()
+			expect(getComputedStyle(present(document.activeElement, 'focused')).outlineStyle).toBe('none')
+		},
+	)
+
+	// A resting edge is a 1 px ring, which forced colors remove. The outline of
+	// the kiso ring keeps the edge.
+	it.each(Object.entries(edges))('%s: the resting edge draws an outline', async (name, ui) => {
+		const { container } = renderUI(<div>{ui}</div>)
+		await frames()
+		const node = present(container.firstElementChild?.firstElementChild, name)
+		const host = bySlot(node, 'control-frame') ?? node
+		const style = getComputedStyle(host)
+		expect(style.outlineStyle).not.toBe('none')
+		expect(style.outlineWidth).not.toBe('0px')
+	})
 
 	for (const name of Object.keys(currentRows) as (keyof typeof currentRows)[]) {
 		it(`current ${name} with an affix: keyboard focus changes the indicator edge`, async () => {

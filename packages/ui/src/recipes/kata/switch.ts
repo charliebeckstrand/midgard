@@ -6,7 +6,7 @@ import { dan } from '../kiso/dan'
 
 const { cursor } = hannou
 const { rounded } = kasane
-const { focus } = sen
+const { focus, ring } = sen
 const { check } = control
 
 const color = defineColors({
@@ -54,7 +54,7 @@ const color = defineColors({
 // against the page in each mode (WCAG 1.4.11). A checked track replaces it.
 const track = [
 	...mode('bg-zinc-200', 'dark:bg-white/10'),
-	'ring-1 ring-inset',
+	...ring.line[1].inset,
 	...mode('ring-zinc-950/40', 'dark:ring-white/30'),
 ]
 
@@ -98,7 +98,8 @@ export const k = defineRecipe(
 			base: [
 				'absolute inset-s-1 top-1 inline-block',
 				'[:checked~&]:translate-x-full rtl:[:checked~&]:-translate-x-full',
-				'bg-white ring-1 ring-zinc-950/5',
+				'bg-white ring-zinc-950/5',
+				...ring.line[1].outset,
 				'shadow-sm',
 				rounded.full,
 				'pointer-events-none',

@@ -17,7 +17,7 @@ import { dan } from '../kiso/dan'
 const { nav, cursor } = hannou
 const { rounded } = kasane
 const { flex, inset } = narabi
-const { border } = sen
+const { border, focus } = sen
 const { bg, rail } = omote
 
 /**
@@ -58,16 +58,7 @@ const itemShell = [
 const base = defineRecipe({
 	base: ['group relative list-none'],
 	affix: {
-		true: [
-			`flex items-center ${dan.gap.scale.xs}`,
-			...nav.tint,
-			rounded.lg,
-			'ring-inset has-[[data-slot=nav-item-inner]:focus-visible]:ring-2 has-[[data-slot=nav-item-inner]:focus-visible]:ring-blue-600',
-			// Forced colors remove the ring, which is a box-shadow. This inset outline
-			// replaces it there, as in `focus.inset`.
-			'forced-colors:has-[[data-slot=nav-item-inner]:focus-visible]:outline-solid forced-colors:has-[[data-slot=nav-item-inner]:focus-visible]:outline-2',
-			'forced-colors:has-[[data-slot=nav-item-inner]:focus-visible]:-outline-offset-2 forced-colors:has-[[data-slot=nav-item-inner]:focus-visible]:outline-[Highlight]',
-		],
+		true: [`flex items-center ${dan.gap.scale.xs}`, ...nav.tint, rounded.lg, ...focus.within.row],
 		false: '',
 	},
 	defaults: { affix: false },
@@ -131,14 +122,7 @@ export const k = {
 		 * descendants. The focused current row therefore re-draws the ring on the
 		 * pill.
 		 */
-		indicator: [
-			'ring-inset',
-			'group-has-[[data-slot=nav-item-inner]:focus-visible]:ring-2 group-has-[[data-slot=nav-item-inner]:focus-visible]:ring-blue-600',
-			// Forced colors remove the ring. The pill keeps its own forced edge, so
-			// focus widens that edge and paints it in `Highlight`.
-			'forced-colors:group-has-[[data-slot=nav-item-inner]:focus-visible]:outline-solid forced-colors:group-has-[[data-slot=nav-item-inner]:focus-visible]:outline-2',
-			'forced-colors:group-has-[[data-slot=nav-item-inner]:focus-visible]:-outline-offset-2 forced-colors:group-has-[[data-slot=nav-item-inner]:focus-visible]:outline-[Highlight]',
-		],
+		indicator: focus.within.indicator,
 		/**
 		 * Prefix/suffix slot wrappers; sit beside the inner button inside the
 		 * row chrome, above the active indicator. `narabi.inset` moves the outer

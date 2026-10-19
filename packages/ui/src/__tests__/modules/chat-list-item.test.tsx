@@ -86,7 +86,7 @@ describe('ChatListItem', () => {
 		// The row's own ring paints beneath the indicator's opaque fill, so the
 		// focused current row re-draws the ring on the indicator.
 		expect(bySlot(container, 'active-indicator')?.className).toContain(
-			'group-has-[[data-slot=chat-list-item-select]:focus-visible]:ring-2',
+			'group-has-[>:focus-visible]:ring-2',
 		)
 	})
 

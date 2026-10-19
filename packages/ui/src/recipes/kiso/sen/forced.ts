@@ -15,8 +15,12 @@ const ringOutline = [
 ]
 
 export const forced = {
-	/** Panel outline: restores a visible edge when backgrounds are stripped. */
-	outline: 'forced-colors:outline',
+	/**
+	 * Panel outline: restores a visible edge when backgrounds are stripped.
+	 * `outline-solid` sets the style, because a bare `outline` reads the style
+	 * that an ungated `outline-none` sets to none.
+	 */
+	outline: 'forced-colors:outline-solid forced-colors:outline-1',
 	/** Item text: preserves semantic foreground color. */
 	text: 'forced-color-adjust-none forced-colors:text-[CanvasText]',
 	/** Focus state: maps to system highlight colors. */

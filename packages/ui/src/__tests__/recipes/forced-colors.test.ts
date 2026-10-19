@@ -119,24 +119,28 @@ describe('resize grips under forced colors', () => {
 })
 
 /**
- * Under forced colors, the header of an accordion keeps a focus mark.
+ * Under forced colors, the header of an accordion keeps one focus mark.
  *
  * The item draws the focus of its header with a box-shadow ring, and forced
- * colors remove a box-shadow. The header removes its own outline, so the outline
- * must be `outline-hidden`: Tailwind gives it a transparent outline under forced
- * colors, and the browser paints that outline in a system color. `outline-none`
- * has no such fallback, and the header then shows no focus. In normal mode
- * `outline-hidden` draws no outline, so the outline does not double the ring.
+ * colors remove a box-shadow. Thus the item draws a `Highlight` outline behind
+ * the same gate. The header removes its own outline with `outline-none`, which
+ * has no forced-colors outline, so the header does not draw a second mark.
  */
 describe('accordion header focus under forced colors', () => {
-	const trigger = classNames([accordion.trigger])
+	const gate = 'has-[>:is(h1,h2,h3,h4,h5,h6)>:focus-visible]'
 
-	it('hides its focus outline with the forced-colors fallback', () => {
-		expect(trigger).toContain('focus-visible:outline-hidden')
+	it('draws the focus outline of the item behind the gate of its ring', () => {
+		const item = classNames([accordion.item()])
+
+		expect(item).toContain(`${gate}:ring-2`)
+		expect(item).toContain(`forced-colors:${gate}:outline-[Highlight]`)
 	})
 
-	it('removes no outline without the forced-colors fallback', () => {
-		expect(trigger.some((className) => /(?:^|:)outline-none$/.test(className))).toBe(false)
+	it('removes the outline of the header with no forced-colors outline', () => {
+		const trigger = classNames([accordion.trigger])
+
+		expect(trigger).toContain('focus-visible:outline-none')
+		expect(trigger).not.toContain('focus-visible:outline-hidden')
 	})
 })
 

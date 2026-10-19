@@ -1,5 +1,7 @@
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { forced } from '../../recipes/kiso/sen/forced'
+import { classNames } from '../helpers/class-stops'
 import {
 	isSourceFile,
 	srcDir,
@@ -10,18 +12,22 @@ import {
 
 // Forced-colors boundary (CONVENTIONS §5.10).
 //
-// Each recipe ring that shows a state behind a gate has a `forced-colors:`
-// class behind the same gate in the same file. A file that spreads
-// `forced.ring.inset` or `forced.ring.outset` has the fallback for the
-// `focus-visible` gate.
+// A ring is a box-shadow, and forced colors remove it. Kiso owns the rings, and
+// each kiso ring carries an outline that keeps it under forced colors:
 //
-// The test reads the gate of a class from its source text. A ring that a recipe
-// variant turns on, such as `active: ['ring-4']`, has no gate in its class, so
-// `recipes/forced-colors.test.ts` covers it.
+//   - A kata, a component, or a module writes no ring width with no gate. It
+//     takes the ring from `sen.ring` or `sen.focus`.
+//   - A ring behind a gate has a `forced-colors:` class behind the same gate in
+//     the same file. A `forced.<name>` reference in the file counts as the
+//     classes of that entry.
+//   - A kiso ring with no gate has a `forced-colors:` class with no gate in the
+//     same file.
+//   - A fallback does not use a bare `outline`. That class reads the outline
+//     style from a variable, and an ungated `outline-none` or `outline-hidden`
+//     sets the variable to none. `outline-solid` sets the style itself.
 //
 // These gates are not part of the rule:
 //
-//   - No gate: a resting ring is an edge, not a state.
 //   - A hover gate: a hover ring is a preview, and the pointer shows it.
 //   - A validation gate: forced colors make red, amber, and green one color, so
 //     a ring cannot tell the states apart. The message of the field tells them.
@@ -39,25 +45,8 @@ const NOT_GATE = /^(?:dark|forced-colors|before|after|\[&::[^\]]+\]|\*\*?|data-\
 /** A gate on the validation state of a control. */
 const VALIDATION = /data-(?:invalid|warning|valid)\b/
 
-/**
- * The state rings that keep their state without a fallback in the same file,
- * as `file → gate → reason`.
- */
-const EXEMPT: Record<string, Record<string, string>> = {
-	'recipes/kata/accordion.ts': {
-		'[&:has([data-slot=accordion-trigger]:focus-visible):not(:has([data-slot=accordion-panel]_[data-slot=accordion-trigger]:focus-visible))]':
-			'The header keeps `focus-visible:outline-hidden`. Tailwind gives that class an outline under forced colors, and the outline marks the focus.',
-	},
-	'recipes/kiso/kasane/layers.ts': {
-		'focus-within':
-			'The control in the frame keeps `focus:outline-hidden`. Tailwind gives that class an outline under forced colors, and the outline marks the focus.',
-		'data-open':
-			'An open control keeps the focus on its trigger or moves it into its popup, and each of them marks the focus.',
-	},
-}
-
-/** One class: its gate, whether it is a ring, and whether it is a forced-colors class. */
-type Parsed = { name: string; gate: string; ring: boolean; forced: boolean }
+/** One class: its gate, its utility, whether it is a ring, and whether it is a forced-colors class. */
+type Parsed = { name: string; gate: string; utility: string; ring: boolean; forced: boolean }
 
 /** Splits a class into its variants and its utility at each colon that is not inside brackets or parentheses. */
 function split(className: string): string[] {
@@ -88,74 +77,92 @@ function parse(name: string): Parsed {
 
 	const variants = parts.slice(0, -1)
 
+	const utility = (parts.at(-1) ?? '').replace(/^!|!$/g, '')
+
 	return {
 		name,
 		gate: variants.filter((variant) => !NOT_GATE.test(variant)).join(':'),
-		ring: RING.test((parts.at(-1) ?? '').replace(/^!|!$/g, '')),
+		utility,
+		ring: RING.test(utility),
 		forced: variants.includes('forced-colors'),
 	}
 }
 
-/** Each class in the string literals of a source file, parsed, and whether the file spreads `forced.ring`. */
-function read(content: string): { classes: Parsed[]; ringToken: boolean } {
+/** The classes of a `forced.<name>` reference, or none when the path names no entry. */
+function entry(path: string): string[] {
+	return classNames([
+		path
+			.split('.')
+			.reduce<unknown>((node, key) => (node as Record<string, unknown> | undefined)?.[key], forced),
+	])
+}
+
+/** Each class in the string literals of a source file and in its `forced.<name>` references, parsed. */
+function read(content: string): Parsed[] {
 	const code = stripSourceComments(content)
 
-	const names = [...code.matchAll(/(['"`])((?:(?!\1)[^\\\n]|\\.)*)\1/g)].flatMap((match) =>
-		(match[2] ?? '').split(/\s+/).filter(Boolean),
+	const literals = [...code.matchAll(/(['"`])((?:(?!\1)[^\\\n]|\\.)*)\1/g)].map((m) => m[2] ?? '')
+
+	const references = [...code.matchAll(/\bforced\.([\w.]+)/g)].flatMap((m) => entry(m[1] ?? ''))
+
+	const names = [...literals, ...references].flatMap((s) => s.split(/\s+/).filter(Boolean))
+
+	return [...new Set(names)].map(parse)
+}
+
+/** The rings of one file that break the rule, as `file gate (class)`. */
+function offenders(file: string, content: string): string[] {
+	const classes = read(content)
+
+	const bare = classes.filter((c) => c.forced && c.utility === 'outline')
+
+	const fallbacks = new Set(
+		classes.filter((c) => c.forced && c.utility !== 'outline').map((c) => c.gate),
 	)
 
-	return {
-		classes: [...new Set(names)].map(parse),
-		ringToken: /\bforced\.ring\.(?:inset|outset)\b/.test(code),
-	}
+	const kiso = file.startsWith('recipes/kiso/')
+
+	const rings = classes
+		.filter(({ gate, ring, forced: isForced }) => {
+			if (!ring || isForced || /hover/.test(gate) || VALIDATION.test(gate)) return false
+
+			if (gate === '' && !kiso) return true
+
+			return !fallbacks.has(gate)
+		})
+		.map(({ name, gate }) => `${file} ${gate || '(no gate)'} (${name})`)
+
+	return [...rings, ...bare.map(({ name }) => `${file} bare outline (${name})`)]
 }
 
-/** The state rings of one file that have no forced-colors fallback, as `file gate (class)`. */
-function offenders(file: string, content: string): string[] {
-	const { classes, ringToken } = read(content)
+/** The rings that break the rule in the recipes, the components, and the modules. */
+const found: string[] = []
 
-	const fallbacks = new Set(classes.filter((c) => c.forced).map((c) => c.gate))
-
-	if (ringToken) fallbacks.add('focus-visible')
-
-	const exempt = EXEMPT[file] ?? {}
-
-	return classes
-		.filter(
-			({ gate, ring, forced }) =>
-				ring &&
-				!forced &&
-				gate !== '' &&
-				!/hover/.test(gate) &&
-				!VALIDATION.test(gate) &&
-				!fallbacks.has(gate) &&
-				!(gate in exempt),
-		)
-		.map(({ name, gate }) => `${file} ${gate} (${name})`)
+for (const dir of ['recipes', 'components', 'modules']) {
+	walkSource(join(srcDir, dir), (file, content) => {
+		if (isSourceFile(file)) found.push(...offenders(srcRelative(file), content))
+	})
 }
 
-/** Each recipe file by its path from `src`. */
-const recipes = new Map<string, string>()
-
-walkSource(join(srcDir, 'recipes'), (file, content) => {
-	if (isSourceFile(file)) recipes.set(srcRelative(file), content)
-})
-
-describe('forced-colors fallbacks in ui recipes', () => {
-	it('each state ring has a forced-colors fallback behind its gate', () => {
-		expect([...recipes].flatMap(([file, content]) => offenders(file, content))).toEqual([])
+describe('forced-colors fallbacks in ui', () => {
+	it('each ring comes from kiso or has a forced-colors fallback behind its gate', () => {
+		expect(found).toEqual([])
 	})
 
-	it('each exemption names a state ring that the recipe still draws', () => {
-		const stale = Object.entries(EXEMPT).flatMap(([file, gates]) => {
-			const { classes } = read(recipes.get(file) ?? '')
+	it('finds a ring width in a kata', () => {
+		expect(offenders('recipes/kata/x.ts', "'ring-1 ring-inset ring-zinc-950/10'")).toEqual([
+			'recipes/kata/x.ts (no gate) (ring-1)',
+		])
 
-			return Object.keys(gates).flatMap((gate) =>
-				classes.some((c) => c.ring && c.gate === gate) ? [] : [`${file} ${gate}`],
-			)
-		})
+		expect(offenders('components/x.tsx', "'**:data-[slot=avatar]:ring-2'")).toHaveLength(1)
+	})
 
-		expect(stale).toEqual([])
+	it('finds a kiso ring with no fallback', () => {
+		expect(offenders('recipes/kiso/x.ts', "'ring-1'")).toEqual([
+			'recipes/kiso/x.ts (no gate) (ring-1)',
+		])
+
+		expect(offenders('recipes/kiso/x.ts', "'ring-1', forced.outline")).toEqual([])
 	})
 
 	it('finds a state ring with no fallback', () => {
@@ -192,13 +199,25 @@ describe('forced-colors fallbacks in ui recipes', () => {
 		expect(
 			offenders('x.ts', "'data-active:ring-2 forced-colors:focus-visible:outline-2'"),
 		).toHaveLength(1)
+
+		expect(offenders('x.ts', "'data-active:ring-2', ...forced.ring.inset")).toHaveLength(1)
 	})
 
-	it('passes a resting ring, a slot ring, a hover ring, and a validation ring', () => {
+	it('finds a fallback with a bare outline', () => {
+		expect(offenders('x.ts', "'outline-hidden forced-colors:data-open:outline'")).toEqual([
+			'x.ts bare outline (forced-colors:data-open:outline)',
+		])
+
+		expect(
+			offenders('x.ts', "'data-active:ring-2 forced-colors:data-active:outline'"),
+		).toHaveLength(2)
+	})
+
+	it('passes a hover ring and a validation ring', () => {
 		expect(
 			offenders(
-				'x.ts',
-				"'ring-1 ring-inset **:data-[slot=avatar]:ring-2 hover:ring-2 data-invalid:ring-2 has-[[data-invalid]]:ring-2'",
+				'recipes/kata/x.ts',
+				"'hover:ring-2 data-invalid:ring-2 has-[[data-invalid]]:ring-2'",
 			),
 		).toEqual([])
 	})

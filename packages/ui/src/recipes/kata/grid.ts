@@ -17,7 +17,7 @@ const { size, weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
 const { backdrop } = omote
-const { focus } = sen
+const { focus, ring } = sen
 const { css, spring } = ugoki
 
 /** Sort-direction arrow: inked while its column is the active sort, muted otherwise. */
@@ -904,7 +904,7 @@ export const k = {
 				'text-white shadow',
 				...mode('bg-red-600', 'dark:bg-red-500'),
 			],
-			ring: ['ring-2 ring-inset', ...mode('ring-red-600', 'dark:ring-red-500'), rounded.md],
+			ring: [...ring.line[2].inset, ...mode('ring-red-600', 'dark:ring-red-500'), rounded.md],
 		},
 	},
 } as const

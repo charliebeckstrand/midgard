@@ -172,7 +172,7 @@ describe('AvatarGroup', () => {
 		expect(screen.getByRole('img', { name: '3 more' })).toBeInTheDocument()
 	})
 
-	it('projects the ring onto the avatar circle, not the status wrapper', () => {
+	it('projects the gap outline onto the avatar circle, not the status wrapper', () => {
 		const { container } = renderUI(
 			<AvatarGroup>
 				<Avatar initials="A" status="active" />
@@ -181,10 +181,10 @@ describe('AvatarGroup', () => {
 
 		const group = bySlot(container, 'avatar-group')
 
-		// A status child's direct node is the square wrapper, so a `*:` ring misses the circle.
-		expect(group).toHaveClass('**:data-[slot=avatar]:ring-2')
+		// A status child's direct node is the square wrapper, so a `*:` outline misses the circle.
+		expect(group).toHaveClass('**:data-[slot=avatar]:outline-2')
 
-		expect(group?.className).not.toMatch(/(^|\s)\*:ring-2/)
+		expect(group?.className).not.toMatch(/(^|\s)\*:outline-2/)
 
 		expect(
 			bySlot(container, 'avatar-with-status')?.querySelector('[data-slot="avatar"]'),
