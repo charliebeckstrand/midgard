@@ -99,7 +99,7 @@ describe('CalendarRange', () => {
 		expect(findDay(12)).toHaveAttribute('aria-selected', 'false')
 	})
 
-	it('ignores a hover preview with no rangeStart', async ({ clock }) => {
+	it('ignores a hover preview with no rangeStart', ({ clock }) => {
 		// With no endpoint, the grid opens on the month of the clock.
 		clock.set(new Date(2024, 2, 1, 12))
 

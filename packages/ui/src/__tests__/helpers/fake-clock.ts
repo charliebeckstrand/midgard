@@ -1,6 +1,6 @@
 import { act } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { test, vi } from 'vitest'
+import { setupUser } from './setup-user'
 
 /** The fake clock that a test drives. */
 export type FakeClock = {
@@ -15,10 +15,11 @@ export type FakeClock = {
 	set(time: Date | number): void
 
 	/**
-	 * A `userEvent` instance on the fake clock (`advanceTimers`). Its own delays
-	 * then move the clock and do not wait on a clock that does not move.
+	 * A `userEvent` instance with no pause between the events that it sends
+	 * (`setupUser`). A wait that it still makes moves the fake clock
+	 * (`advanceTimers`), so the call does not wait on a clock that does not move.
 	 */
-	user: ReturnType<typeof userEvent.setup>
+	user: ReturnType<typeof setupUser>
 }
 
 /**
@@ -46,22 +47,14 @@ export type FakeClock = {
  * each test, after the spies (`restore-test-state.ts`), also when a test fails
  * or times out.
  */
-export const it = test.extend('clock', async ({ onTestFinished }): Promise<FakeClock> => {
+export const it = test.extend('clock', async (): Promise<FakeClock> => {
 	vi.useFakeTimers()
 
 	// The `act` of RTL waits on a timeout of zero, and it moves the clock for
-	// that timeout only when it finds a `jest` global. Without this shim, each
-	// `clock.user` call waits on the fake clock and never ends.
-	const host = globalThis as { jest?: { advanceTimersByTime: (ms: number) => void } }
-
-	const jest = host.jest
-
-	host.jest = { advanceTimersByTime: (ms) => vi.advanceTimersByTime(ms) }
-
-	onTestFinished(() => {
-		if (jest === undefined) delete host.jest
-		else host.jest = jest
-	})
+	// that timeout only when it finds a `jest` global. Without this stub, each
+	// `clock.user` call waits on the fake clock and never ends. The setups remove
+	// the stub after the test (`unstubAllGlobals`).
+	vi.stubGlobal('jest', { advanceTimersByTime: (ms: number) => vi.advanceTimersByTime(ms) })
 
 	return {
 		advance: (ms) =>
@@ -71,6 +64,6 @@ export const it = test.extend('clock', async ({ onTestFinished }): Promise<FakeC
 		set: (time) => {
 			vi.setSystemTime(time)
 		},
-		user: userEvent.setup({ advanceTimers: (ms) => vi.advanceTimersByTime(ms) }),
+		user: setupUser({ advanceTimers: (ms) => vi.advanceTimersByTime(ms) }),
 	}
 })

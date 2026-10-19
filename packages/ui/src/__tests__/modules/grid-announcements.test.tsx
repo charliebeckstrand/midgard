@@ -186,9 +186,6 @@ describe('Grid announcements', () => {
 
 		separator.focus()
 
-		// `fireEvent`, not `clock.user`: userEvent settles through RTL's asyncWrapper,
-		// whose 0ms drain timer only advances under a `jest` global — under vitest
-		// fake timers it deadlocks.
 		fireEvent.keyDown(separator, { key: 'ArrowRight' })
 
 		// Debounced: a run of nudges settles into one "Name column N pixels" message

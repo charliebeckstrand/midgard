@@ -960,7 +960,7 @@ describe('Calendar Tab stops', () => {
 			.filter((option) => option.tabIndex === 0 && !option.hasAttribute('disabled'))
 			.map((option) => option.textContent)
 
-	it('holds one Tab stop in the day listbox, on the selected day before an earlier today', async ({
+	it('holds one Tab stop in the day listbox, on the selected day before an earlier today', ({
 		clock,
 	}) => {
 		clock.set(new Date(2025, 5, 10, 12))
@@ -970,7 +970,7 @@ describe('Calendar Tab stops', () => {
 		expect(dayStops()).toEqual(['15'])
 	})
 
-	it('seats the day Tab stop on today when no day is selected', async ({ clock }) => {
+	it('seats the day Tab stop on today when no day is selected', ({ clock }) => {
 		clock.set(new Date(2025, 5, 20, 12))
 
 		renderUI(<Calendar />)
@@ -978,9 +978,7 @@ describe('Calendar Tab stops', () => {
 		expect(dayStops()).toEqual(['20'])
 	})
 
-	it('seats the day Tab stop on the first enabled day when today is out of range', async ({
-		clock,
-	}) => {
+	it('seats the day Tab stop on the first enabled day when today is out of range', ({ clock }) => {
 		clock.set(new Date(2025, 5, 5, 12))
 
 		renderUI(<Calendar min={new Date(2025, 5, 10)} />)
@@ -1066,7 +1064,7 @@ describe('Calendar entry date', () => {
 		expect(dayStops()).toEqual(expected ? [String(expected.getDate())] : [])
 	}
 
-	it('enters on the selected day of the shown month', async ({ clock }) => {
+	it('enters on the selected day of the shown month', ({ clock }) => {
 		clock.set(now)
 
 		const ref = createRef<CalendarHandle>()
@@ -1102,7 +1100,7 @@ describe('Calendar entry date', () => {
 		expectEntry(ref, new Date(2025, 2, 10))
 	})
 
-	it('enters on the first enabled day when today is disabled', async ({ clock }) => {
+	it('enters on the first enabled day when today is disabled', ({ clock }) => {
 		clock.set(now)
 
 		const ref = createRef<CalendarHandle>()
@@ -1112,7 +1110,7 @@ describe('Calendar entry date', () => {
 		expectEntry(ref, new Date(2025, 5, 1))
 	})
 
-	it('enters on today when the selected day is disabled', async ({ clock }) => {
+	it('enters on today when the selected day is disabled', ({ clock }) => {
 		clock.set(now)
 
 		const ref = createRef<CalendarHandle>()
@@ -1136,7 +1134,7 @@ describe('Calendar entry date', () => {
 		expectEntry(ref, null)
 	})
 
-	it('enters a range on the earlier endpoint of the shown month', async ({ clock }) => {
+	it('enters a range on the earlier endpoint of the shown month', ({ clock }) => {
 		clock.set(now)
 
 		const ref = createRef<CalendarHandle>()
@@ -1235,7 +1233,7 @@ describe('Calendar + Form', () => {
 			),
 		],
 	])('with %s', (_, calendar) => {
-		it('shows the month of the clock, not the month of defaultValue', async ({ clock }) => {
+		it('shows the month of the clock, not the month of defaultValue', ({ clock }) => {
 			clock.set(new Date(2025, 5, 15, 12))
 
 			renderUI(calendar())
@@ -1343,9 +1341,7 @@ describe('Calendar today', () => {
 		expect(todayCell()).toHaveTextContent(/^16$/)
 	})
 
-	it('moves the today mark when the page shows again after a missed midnight', async ({
-		clock,
-	}) => {
+	it('moves the today mark when the page shows again after a missed midnight', ({ clock }) => {
 		clock.set(new Date(2025, 5, 15, 12))
 
 		renderUI(<Calendar />)
@@ -1359,7 +1355,7 @@ describe('Calendar today', () => {
 		expect(todayCell()).toHaveTextContent(/^16$/)
 	})
 
-	it('commits nothing when the page shows again on the same day', async ({ clock }) => {
+	it('commits nothing when the page shows again on the same day', ({ clock }) => {
 		clock.set(new Date(2025, 5, 15, 9))
 
 		const onRender = vi.fn()

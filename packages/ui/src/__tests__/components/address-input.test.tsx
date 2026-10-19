@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { describe, expect, onTestFinished, vi } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import type { AddressProvider, AddressSuggestion } from '../../components/address-input'
 import { AddressInput, createPhotonProvider, photonProvider } from '../../components/address-input'
 import { splitUsState } from '../../components/address-input/address-input-photon-query'
@@ -145,8 +145,6 @@ describe('AddressInput', () => {
 		]
 
 		const warn = vi.spyOn(console, 'error').mockImplementation(() => {})
-
-		onTestFinished(() => warn.mockRestore())
 
 		const { container } = renderUI(
 			<AddressInput provider={colliding} debounceMs={0} minQueryLength={1} />,
