@@ -114,14 +114,26 @@ type GridColumnSizingResult = {
  * The table's horizontal border chrome (px). Hairline `outline` borders render
  * the table a pixel or two past the summed column widths. That would raise a
  * phantom horizontal scrollbar if the columns filled the full width, so a fit
- * reserves it. @internal
+ * reserves it.
+ *
+ * The chrome is the rendered width less the width that the table renders at.
+ * Both values come from the DOM, so they come from the same commit. The engine
+ * width is not a correct reference: a fit writes it at once, but the DOM shows
+ * it only when React commits. A fit that runs between the two, such as a
+ * `ResizeObserver` tick while a reload hydrates, would otherwise reserve the
+ * full difference as chrome and give the columns no spare width. `totalSize`
+ * is the fallback for a table that has no inline width. @internal
  */
 function tableChrome(container: HTMLElement, totalSize: number): number {
 	const table = container.querySelector('table')
 
 	if (!table) return 0
 
-	return Math.max(0, Math.round(table.getBoundingClientRect().width - totalSize))
+	const rendered = Number.parseFloat(table.style.width)
+
+	const width = Number.isFinite(rendered) ? rendered : totalSize
+
+	return Math.max(0, Math.round(table.getBoundingClientRect().width - width))
 }
 
 /**
