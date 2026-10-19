@@ -108,9 +108,9 @@ describe('chromePaths', () => {
 
 describe('cachedChromePaths', () => {
 	it('holds the paths across a repeat read at one box', () => {
-		const first = cachedChromePaths(FITTED, 400, 200, 10, true)
+		const first = cachedChromePaths(FITTED, 10, true)
 
-		const second = cachedChromePaths(FITTED, 400, 200, 10, true)
+		const second = cachedChromePaths(FITTED, 10, true)
 
 		expect(second).toBe(first)
 
@@ -119,23 +119,43 @@ describe('cachedChromePaths', () => {
 		expect(second.frame).not.toBeNull()
 	})
 
-	it('redraws on a resize and on a changed step', () => {
-		const held = cachedChromePaths(FITTED, 400, 200, 10, true)
+	it('redraws on a changed step and on a changed frame', () => {
+		const held = cachedChromePaths(FITTED, 10, true)
 
-		expect(cachedChromePaths(FITTED, 800, 400, 10, true)).not.toBe(held)
+		expect(cachedChromePaths(FITTED, 30, true)).not.toBe(held)
 
-		expect(cachedChromePaths(FITTED, 400, 200, 30, true)).not.toBe(held)
+		expect(cachedChromePaths(FITTED, 10, true, { x: 20, y: 0, k: 1 })).not.toBe(held)
+	})
+
+	it('redraws when a passed instance refits to new geography', () => {
+		// A passed d3 instance keeps its identity across fits, and each fit
+		// mutates it in place. The box stays the same, but the fit state does not.
+		const passed = geoMercator()
+
+		const { features } = FIXTURE_GEOJSON
+
+		fitMapProjection(passed, features.slice(0, 1), 400, 200)
+
+		const before = cachedChromePaths(passed, 10, true)
+
+		fitMapProjection(passed, features.slice(1), 400, 200)
+
+		const after = cachedChromePaths(passed, 10, true)
+
+		expect(after).not.toBe(before)
+
+		expect(after).toEqual(chromePaths(passed, 10))
 	})
 
 	it('holds them across a sphere toggle, which moves no line', () => {
 		// The outline is the view's business: flipping it must not evict the
 		// graticule pass the memo exists to hold.
-		const outlined = cachedChromePaths(FITTED, 400, 200, 10, true)
+		const outlined = cachedChromePaths(FITTED, 10, true)
 
-		expect(cachedChromePaths(FITTED, 400, 200, 10, false)).toBe(outlined)
+		expect(cachedChromePaths(FITTED, 10, false)).toBe(outlined)
 	})
 
 	it('draws nothing, and takes no slot, while the chrome is off', () => {
-		expect(cachedChromePaths(FITTED, 400, 200, null, false)).toBe(EMPTY_CHROME)
+		expect(cachedChromePaths(FITTED, null, false)).toBe(EMPTY_CHROME)
 	})
 })

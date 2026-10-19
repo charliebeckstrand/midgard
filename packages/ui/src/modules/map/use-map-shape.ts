@@ -226,16 +226,7 @@ export function useMapShape({
 	// holds the canonical stage across instances and mounts.
 	const chrome = useMemo(
 		() =>
-			view.fit === null
-				? EMPTY_CHROME
-				: cachedChromePaths(
-						view.fit,
-						view.viewWidth,
-						view.viewHeight,
-						graticule,
-						sphere,
-						view.frame,
-					),
+			view.fit === null ? EMPTY_CHROME : cachedChromePaths(view.fit, graticule, sphere, view.frame),
 		[view, graticule, sphere],
 	)
 
