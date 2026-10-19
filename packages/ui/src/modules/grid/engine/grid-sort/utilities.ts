@@ -1,4 +1,4 @@
-import { getOrCompute, parseNumeric } from '../../../../utilities'
+import { getOrCompute, parseNumeric, resolveLocale } from '../../../../utilities'
 
 /**
  * Smart client-sort comparators for {@link Grid}. The default column sort runs
@@ -13,27 +13,26 @@ import { getOrCompute, parseNumeric } from '../../../../utilities'
  */
 
 /**
- * The natural, locale-aware collation the string fallback orders by — built
- * once and reused. `String#localeCompare` with options re-resolves collation
- * machinery on every call, which a sort pays O(N log N) times. The shared
- * collator answers the same ordering at a fraction of the per-compare cost.
+ * The natural collator of each locale, built once for each locale and reused.
+ * `String#localeCompare` with options re-resolves collation machinery on every
+ * call, which a sort pays O(N log N) times. The shared collator answers the
+ * same ordering at a fraction of the per-compare cost.
  *
  * @internal
  */
-const NATURAL_COLLATOR = new Intl.Collator(undefined, { numeric: true })
-
-/** The natural collator of each locale, built once for each locale. @internal */
 const collators = new Map<string, Intl.Collator>()
 
 /**
  * The natural collator of `locale`, or the one of the runtime locale when
- * `locale` is unset. The string sort of the grid orders by it, so a
- * `LocaleProvider` sets the collation. @internal
+ * `locale` is unset (see `resolveLocale`). The string sort of the grid orders
+ * by it, so a `LocaleProvider` sets the collation. @internal
  */
 export function naturalCollator(locale: string | undefined): Intl.Collator {
-	if (locale === undefined) return NATURAL_COLLATOR
-
-	return getOrCompute(collators, locale, () => new Intl.Collator(locale, { numeric: true }))
+	return getOrCompute(
+		collators,
+		resolveLocale(locale),
+		(tag) => new Intl.Collator(tag, { numeric: true }),
+	)
 }
 
 /**
@@ -142,7 +141,7 @@ function compareNumbers(a: number, b: number): number {
 export function compareSortKeys(
 	a: SortKey,
 	b: SortKey,
-	collator: Intl.Collator = NATURAL_COLLATOR,
+	collator: Intl.Collator = naturalCollator(undefined),
 ): number {
 	if (a.empty || b.empty) {
 		if (a.empty && b.empty) return 0
@@ -255,7 +254,7 @@ export function sortRowsSmart<T>(
 export function computeSortOrder<T>(
 	rows: readonly T[],
 	fields: SmartSortField<T>[],
-	collator: Intl.Collator = NATURAL_COLLATOR,
+	collator: Intl.Collator = naturalCollator(undefined),
 ): number[] {
 	// One index comparator per field, each closing over its decoded keys (the
 	// costly decode runs once here, not per comparison).
@@ -480,7 +479,7 @@ export function compareDirected(
 	a: SortKey,
 	b: SortKey,
 	descending: boolean,
-	collator: Intl.Collator = NATURAL_COLLATOR,
+	collator: Intl.Collator = naturalCollator(undefined),
 ): number {
 	const raw = compareSortKeys(a, b, collator)
 

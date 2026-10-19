@@ -189,10 +189,12 @@ export function PdfViewerThumbnailList({
 										className={cn(k.thumbnail.image)}
 									/>
 								) : (
-									<span className={cn(k.thumbnail.fallback)}>{item.pageNumber}</span>
+									<span className={cn(k.thumbnail.fallback)}>
+										{intl.formatNumber(item.pageNumber)}
+									</span>
 								)}
 							</span>
-							<span className={cn(k.thumbnail.label)}>{item.pageNumber}</span>
+							<span className={cn(k.thumbnail.label)}>{intl.formatNumber(item.pageNumber)}</span>
 						</button>
 					</li>
 				)

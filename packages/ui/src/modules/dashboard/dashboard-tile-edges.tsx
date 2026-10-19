@@ -2,6 +2,7 @@
 
 import { memo, useCallback, useLayoutEffect } from 'react'
 import { cn } from '../../core'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/dashboard'
 import { useDashboardActions } from './context'
 import { DashboardResizeHandle } from './dashboard-resize-handle'
@@ -51,6 +52,8 @@ export const DashboardTileEdges = memo(function DashboardTileEdges({
 	freeHeight,
 	resizing,
 }: DashboardTileEdgesProps) {
+	const intl = useIntl()
+
 	const { cancelResize } = useDashboardActions()
 
 	// A detached splitter gets no release, so the gesture ends here, before the board paints.
@@ -86,7 +89,7 @@ export const DashboardTileEdges = memo(function DashboardTileEdges({
 
 			{resizing && (
 				<div data-slot="dashboard-resize-readout" className={cn(k.resize.readout)}>
-					{cell.w} × {cell.h}
+					{intl.formatNumber(cell.w)} × {intl.formatNumber(cell.h)}
 				</div>
 			)}
 		</>

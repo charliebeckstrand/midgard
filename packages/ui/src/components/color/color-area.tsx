@@ -93,8 +93,8 @@ export function ColorArea() {
 			aria-valuemax={100}
 			aria-valuenow={Math.round(hsva.s)}
 			aria-valuetext={intl.formatMessage(colorMessages.areaValue, {
-				saturation: Math.round(hsva.s),
-				brightness: Math.round(hsva.v),
+				saturation: Math.round(hsva.s) / 100,
+				brightness: Math.round(hsva.v) / 100,
 			})}
 			aria-disabled={ariaAttr(disabled)}
 			className={cn(k.area.base, disabled && 'pointer-events-none opacity-50')}

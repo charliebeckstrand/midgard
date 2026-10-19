@@ -511,7 +511,7 @@ export function LightboxStage({
 										<Icon icon={<ChevronLeft />} className="rtl:-scale-x-100" />
 									</Button>
 									<span aria-hidden="true" className={k.count}>
-										{at + 1} / {count}
+										{intl.formatNumber(at + 1)} / {intl.formatNumber(count)}
 									</span>
 									<Button
 										lockable={false}

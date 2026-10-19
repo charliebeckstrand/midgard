@@ -1,7 +1,4 @@
-import { defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
-import type { MessageDescriptor } from '../../primitives/intl/types'
-import type { DensityLevel } from '../density/context'
-import type { MotionMode, SidebarMode, ThemeMode } from './modes'
+import { defineMessages } from '../../primitives/intl/intl-messages'
 
 /**
  * The messages of the settings dialog: its title and the label of each picker.
@@ -40,58 +37,3 @@ export const appearanceMessages = defineMessages({
 		description: 'The label of the picker for the language and the formats of the interface.',
 	},
 })
-
-const choiceMessages = defineMessages({
-	light: {
-		id: 'ui.settings.theme.light',
-		defaultMessage: 'Light',
-		description: 'A theme with dark text on a light background.',
-	},
-	dark: {
-		id: 'ui.settings.theme.dark',
-		defaultMessage: 'Dark',
-		description: 'A theme with light text on a dark background.',
-	},
-	reduced: {
-		id: 'ui.settings.motion.reduced',
-		defaultMessage: 'Reduced',
-		description: 'A motion setting that removes most animation.',
-	},
-	locked: {
-		id: 'ui.settings.sidebar.locked',
-		defaultMessage: 'Locked',
-		description: 'A sidebar setting that keeps the sidebar on the screen.',
-	},
-	offcanvas: {
-		id: 'ui.settings.sidebar.offcanvas',
-		defaultMessage: 'Offcanvas',
-		description:
-			'A sidebar setting that hides the sidebar at the edge until the pointer comes near.',
-	},
-	loose: {
-		id: 'ui.settings.density.loose',
-		defaultMessage: 'Loose',
-		description: 'The density with the most space between items.',
-	},
-	snug: {
-		id: 'ui.settings.density.snug',
-		defaultMessage: 'Snug',
-		description: 'The usual density.',
-	},
-	compact: {
-		id: 'ui.settings.density.compact',
-		defaultMessage: 'Compact',
-		description: 'The density with the least space between items.',
-	},
-})
-
-/**
- * The message of each choice of the settings pickers, keyed by the value of
- * the choice.
- *
- * @internal
- */
-export const appearanceChoiceMessages: Record<
-	ThemeMode | MotionMode | SidebarMode | DensityLevel,
-	MessageDescriptor
-> = { ...choiceMessages, system: intlMessages.system }

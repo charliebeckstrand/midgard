@@ -55,6 +55,20 @@ describe('NumberInput', () => {
 		await expectAnnouncement('5')
 	})
 
+	it('announces the stepped value in the number format of the locale', async () => {
+		renderUI(
+			<LocaleProvider locale="es-ES">
+				<NumberInput defaultValue={1} step={0.5} />
+			</LocaleProvider>,
+		)
+
+		const user = setupUser()
+
+		await user.click(screen.getByLabelText('Disminuir'))
+
+		await expectAnnouncement(/^0,5$/)
+	})
+
 	it('keeps focus on the input when a stepper is pressed', async () => {
 		const onBlur = vi.fn()
 

@@ -167,7 +167,7 @@ export const gridMessages: MessageSet<GridValues> = defineMessages<GridValues>({
 	},
 	columnNumber: {
 		id: 'ui.grid.columnNumber',
-		defaultMessage: 'column {number}',
+		defaultMessage: 'column {number, number}',
 		description:
 			'The name of a column with no label of its own, inside an announcement. The number is its place, from 1.',
 	},
@@ -193,7 +193,7 @@ export const gridMessages: MessageSet<GridValues> = defineMessages<GridValues>({
 	},
 	groupPosition: {
 		id: 'ui.grid.groupPosition',
-		defaultMessage: 'position {position} of {total}',
+		defaultMessage: 'position {position, number} of {total, number}',
 		description:
 			'The place of a dragged group in the list of groups, inside an announcement of the group editor.',
 	},

@@ -16,7 +16,7 @@ type PdfViewerValues = {
 	magnifierOff: Record<never, never>
 	pageNavigation: Record<never, never>
 	currentPage: Record<never, never>
-	page: { page: string | number }
+	page: { page: string }
 	ofTotal: { total: number }
 	pageOfTotal: { page: number; total: number }
 	pageRegion: Record<never, never>
@@ -128,13 +128,13 @@ export const pdfViewerMessages: MessageSet<PdfViewerValues> = defineMessages<Pdf
 	},
 	ofTotal: {
 		id: 'ui.pdfViewer.ofTotal',
-		defaultMessage: 'of {total}',
+		defaultMessage: 'of {total, number}',
 		description:
 			'Read after the current page number in the toolbar of a PDF, such as "of 12". The total is the number of pages.',
 	},
 	pageOfTotal: {
 		id: 'ui.pdfViewer.pageOfTotal',
-		defaultMessage: 'Page {page} of {total}',
+		defaultMessage: 'Page {page, number} of {total, number}',
 		description: 'Spoken when the current page of a PDF changes, such as "Page 3 of 12".',
 	},
 	pageRegion: {
@@ -318,6 +318,8 @@ export function pageLabel(
 ): string {
 	return (
 		page?.label ??
-		intl.formatMessage(pdfViewerMessages.page, { page: page?.printedLabel ?? pageNumber })
+		intl.formatMessage(pdfViewerMessages.page, {
+			page: page?.printedLabel ?? intl.formatNumber(pageNumber),
+		})
 	)
 }

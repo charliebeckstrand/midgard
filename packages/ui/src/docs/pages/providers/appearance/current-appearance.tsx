@@ -1,13 +1,21 @@
+import { type MessageDescriptor, useIntl } from 'ui/primitives/intl'
 import { motionModes, sidebarModes, themeModes, useAppearance } from 'ui/providers/appearance'
 import { densityLevels } from 'ui/providers/density'
 import { Text } from 'ui/text'
 
-function labelOf<T>(options: { label: string; value: T }[], value: T) {
-	return options.find((option) => option.value === value)?.label
-}
+type Option<T> = { message: MessageDescriptor; value: T }
 
 export default function CurrentAppearance() {
+	const intl = useIntl()
+
 	const { theme, density, motion, sidebar } = useAppearance()
+
+	// The name of a mode in the language of the reader.
+	const labelOf = <T,>(options: Option<T>[], value: T) => {
+		const option = options.find((candidate) => candidate.value === value)
+
+		return option && intl.formatMessage(option.message)
+	}
 
 	return (
 		<>

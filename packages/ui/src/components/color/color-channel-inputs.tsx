@@ -76,7 +76,7 @@ export function ColorChannelInputs() {
 			{/* The label holds the full name of the input, and the visible letter
 			    starts that name ("R channel", "Alpha channel"). */}
 			<label className={cn(k.label)} htmlFor={scope.sub(channel)}>
-				<span aria-hidden="true">{channel === 'a' ? 'A' : channel.toUpperCase()}</span>
+				<span aria-hidden="true">{channel.toUpperCase()}</span>
 				<span className="sr-only">
 					{channel === 'a'
 						? intl.formatMessage(colorMessages.alphaChannel)

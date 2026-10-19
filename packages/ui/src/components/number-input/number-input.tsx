@@ -133,7 +133,7 @@ export function NumberInput({
 
 		// The steppers are tabIndex -1 and mutate silently for AT virtual-cursor
 		// users; mirror the new value through the announcer (WCAG 4.1.3).
-		announce(String(next))
+		announce(intl.formatNumber(next))
 	}
 
 	const atMin = min !== undefined && current !== undefined && current <= min

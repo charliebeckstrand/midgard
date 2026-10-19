@@ -731,8 +731,17 @@ export function ChartLegend({
 						<Icon icon={<ChevronLeft />} className="rtl:-scale-x-100" />
 					</Button>
 
+					{/* A screen reader reads "Page 2 of 3", not "2 slash 3", in the language of the reader. */}
 					<Text as="span" tone="muted" size="sm" className="tabular-nums">
-						{currentPage + 1} / {pageCount}
+						<span aria-hidden="true">
+							{intl.formatNumber(currentPage + 1)} / {intl.formatNumber(pageCount)}
+						</span>
+						<span className="sr-only">
+							{intl.formatMessage(chartMessages.entriesPage, {
+								page: currentPage + 1,
+								count: pageCount,
+							})}
+						</span>
 					</Text>
 
 					<Button
@@ -776,7 +785,7 @@ export function ChartLegend({
 							aria-label={intl.formatMessage(chartMessages.showMore, { count: overflowCount })}
 						>
 							<Text as="span" tone="muted" size="sm" className="tabular-nums">
-								+{overflowCount}
+								{intl.formatNumber(overflowCount, { signDisplay: 'always' })}
 							</Text>
 						</Button>
 					</PopoverTrigger>

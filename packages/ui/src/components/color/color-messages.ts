@@ -32,8 +32,10 @@ export const colorMessages: MessageSet<ColorValues> = defineMessages<ColorValues
 	},
 	areaValue: {
 		id: 'ui.color.areaValue',
-		defaultMessage: 'Saturation {saturation}%, brightness {brightness}%',
-		description: 'The value text of the color area. Each value is a percent from 0 to 100.',
+		defaultMessage:
+			'Saturation {saturation, number, percent}, brightness {brightness, number, percent}',
+		description:
+			'The value text of the color area. Each value is a fraction from 0 to 1, which shows as a percent.',
 	},
 	channel: {
 		id: 'ui.color.channel',

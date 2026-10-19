@@ -95,6 +95,10 @@
 		"defaultMessage": "Download PNG",
 		"description": "The action that downloads a chart as a PNG image."
 	},
+	"ui.chart.entriesPage": {
+		"defaultMessage": "Page {page, number} of {count, number}",
+		"description": "The text for a screen reader between the page buttons of a legend, such as \"Page 2 of 3\". The screen shows \"2 / 3\"."
+	},
 	"ui.chart.fullscreen": {
 		"defaultMessage": "Fullscreen",
 		"description": "The action that opens a chart in a large dialog."
@@ -120,7 +124,7 @@
 		"description": "The name of the button that shows the page of legend entries before."
 	},
 	"ui.chart.showMore": {
-		"defaultMessage": "Show {count} more",
+		"defaultMessage": "Show {count, number} more",
 		"description": "The name of the button that shows the legend entries that do not fit. The count is the number of those entries."
 	},
 	"ui.chart.untitledMenu": {
@@ -220,8 +224,8 @@
 		"description": "The name of the two-axis area that sets the saturation and the brightness of a color."
 	},
 	"ui.color.areaValue": {
-		"defaultMessage": "Saturation {saturation}%, brightness {brightness}%",
-		"description": "The value text of the color area. Each value is a percent from 0 to 100."
+		"defaultMessage": "Saturation {saturation, number, percent}, brightness {brightness, number, percent}",
+		"description": "The value text of the color area. Each value is a fraction from 0 to 1, which shows as a percent."
 	},
 	"ui.color.channel": {
 		"defaultMessage": "{channel} channel",
@@ -360,7 +364,7 @@
 		"description": "Spoken while a dragged tile is over a place where it cannot go."
 	},
 	"ui.dashboard.cell": {
-		"defaultMessage": "column {column} of {columns}, row {row}, {width, plural, one {# column} other {# columns}} wide",
+		"defaultMessage": "column {column, number} of {columns, number}, row {row, number}, {width, plural, one {# column} other {# columns}} wide",
 		"description": "The place of a dashboard tile: its first column, the count of columns, its row, and its width."
 	},
 	"ui.dashboard.clearSelection": {
@@ -784,7 +788,7 @@
 		"description": "The name of a column in a reorder announcement, such as \"Price column\"."
 	},
 	"ui.grid.columnNumber": {
-		"defaultMessage": "column {number}",
+		"defaultMessage": "column {number, number}",
 		"description": "The name of a column with no label of its own, inside an announcement. The number is its place, from 1."
 	},
 	"ui.grid.columns": {
@@ -928,7 +932,7 @@
 		"description": "The name of the field that names a column group of a grid. The group is its current name."
 	},
 	"ui.grid.groupPosition": {
-		"defaultMessage": "position {position} of {total}",
+		"defaultMessage": "position {position, number} of {total, number}",
 		"description": "The place of a dragged group in the list of groups, inside an announcement of the group editor."
 	},
 	"ui.grid.hid": {
@@ -1060,7 +1064,7 @@
 		"description": "The action that prints the rows of a grid."
 	},
 	"ui.grid.range": {
-		"defaultMessage": "Range of {rows, plural, one {# row} other {# rows}} and {cols, plural, one {# column} other {# columns}}, {fromColumn} row {fromRow} to {toColumn} row {toRow}",
+		"defaultMessage": "Range of {rows, plural, one {# row} other {# rows}} and {cols, plural, one {# column} other {# columns}}, {fromColumn} row {fromRow, number} to {toColumn} row {toRow, number}",
 		"description": "Spoken when the reader selects a range of cells of the grid: its size, and its two corners by column and row number."
 	},
 	"ui.grid.rangeOf": {
@@ -1500,7 +1504,7 @@
 		"description": "The text of a PDF viewer that has no pages."
 	},
 	"ui.pdfViewer.ofTotal": {
-		"defaultMessage": "of {total}",
+		"defaultMessage": "of {total, number}",
 		"description": "Read after the current page number in the toolbar of a PDF, such as \"of 12\". The total is the number of pages."
 	},
 	"ui.pdfViewer.page": {
@@ -1512,7 +1516,7 @@
 		"description": "The name of the group of controls that go to a page of a PDF."
 	},
 	"ui.pdfViewer.pageOfTotal": {
-		"defaultMessage": "Page {page} of {total}",
+		"defaultMessage": "Page {page, number} of {total, number}",
 		"description": "Spoken when the current page of a PDF changes, such as \"Page 3 of 12\"."
 	},
 	"ui.pdfViewer.pageRegion": {
@@ -1804,11 +1808,11 @@
 		"description": "The name of a control that moves an item, such as the drag handle of a dashboard tile."
 	},
 	"ui.reorder.moved": {
-		"defaultMessage": "{item} moved to position {position} of {total}.",
+		"defaultMessage": "{item} moved to position {position, number} of {total, number}.",
 		"description": "Spoken when an item moves to a new place in an ordered list."
 	},
 	"ui.reorder.movedIn": {
-		"defaultMessage": "{item} moved to position {position} of {total} in {container}.",
+		"defaultMessage": "{item} moved to position {position, number} of {total, number} in {container}.",
 		"description": "Spoken when an item moves to a new place in a named group, such as a Kanban column."
 	},
 	"ui.reorder.pickedUp": {
@@ -1820,7 +1824,7 @@
 		"description": "The name of the handle that drags an item to a new place in a list."
 	},
 	"ui.reorder.returned": {
-		"defaultMessage": "Returned {item} to position {position} of {total}.",
+		"defaultMessage": "Returned {item} to position {position, number} of {total, number}.",
 		"description": "Spoken when a canceled move puts an item back at its place in an ordered list."
 	},
 	"ui.reorder.returnedBare": {
@@ -1828,7 +1832,7 @@
 		"description": "Spoken when a canceled move puts back an item whose place is not known."
 	},
 	"ui.reorder.returnedIn": {
-		"defaultMessage": "Returned {item} to position {position} of {total} in {container}.",
+		"defaultMessage": "Returned {item} to position {position, number} of {total, number} in {container}.",
 		"description": "Spoken when a canceled move puts an item back at its place in a named group."
 	},
 	"ui.reorder.sensorInstructions": {
@@ -1840,11 +1844,11 @@
 		"description": "The role that a screen reader speaks after the name of a handle that moves an item to a new place in a list, such as \"Reorder Alpha, sortable\". Lowercase."
 	},
 	"ui.reorder.subject": {
-		"defaultMessage": "{item}, position {position} of {total}",
+		"defaultMessage": "{item}, position {position, number} of {total, number}",
 		"description": "An item and its place in an ordered list, inside a reorder announcement, such as \"Alpha, position 2 of 3\"."
 	},
 	"ui.reorder.subjectIn": {
-		"defaultMessage": "{item}, position {position} of {total} in {container}",
+		"defaultMessage": "{item}, position {position, number} of {total, number} in {container}",
 		"description": "An item and its place in a named group, such as a card in a Kanban column, inside a reorder announcement."
 	},
 	"ui.reorder.unnamedItem": {

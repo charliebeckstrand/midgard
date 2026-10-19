@@ -5,6 +5,7 @@ import type { CSSProperties, SVGProps } from 'react'
 import { memo, useState } from 'react'
 import { cn } from '../../core'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
+import { useIntl } from '../../primitives/intl/use-intl'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/map'
 import { groundPoints, type MapGround } from './engine/map-cluster/ground'
@@ -249,8 +250,12 @@ export function MapDotCount({
 	animate,
 	transition,
 }: MapDotCountProps) {
+	const intl = useIntl()
+
 	// Read at mount, as the dot under it reads its own (see `MapDot`).
 	const [fades] = useState(animate)
+
+	const text = intl.formatNumber(count)
 
 	const shared = {
 		'data-slot': 'map-points-count',
@@ -261,11 +266,11 @@ export function MapDotCount({
 		className: cn('select-none', className),
 	}
 
-	if (!fades) return <text {...shared}>{count}</text>
+	if (!fades) return <text {...shared}>{text}</text>
 
 	return (
 		<m.text {...shared} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={transition}>
-			{count}
+			{text}
 		</m.text>
 	)
 }
