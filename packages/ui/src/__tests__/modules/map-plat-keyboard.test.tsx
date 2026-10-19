@@ -316,6 +316,34 @@ describe('MapPlat keyboard navigation', () => {
 		await waitFor(() => expect(liveRegion()?.textContent).toBe('Beta'))
 	})
 
+	it('speaks the name of each region on a picker with no data', async () => {
+		// A plain region picker: no rows, so no readout, and the pick alone earns
+		// the stop. The names are still the whole of what the reader hears.
+		const onRegionClick = vi.fn()
+
+		const { container, plot } = renderNavigable(
+			<MapPlat
+				aria-label="Pick a region"
+				geography={FIXTURE_GEOJSON}
+				width={400}
+				onRegionClick={onRegionClick}
+			/>,
+		)
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		await waitFor(() => expect(liveRegion()?.textContent).toBe('Alpha'))
+
+		// The names reach the announcement only: no tooltip and no table.
+		expect(readout(container)).toBeNull()
+
+		expect(bySlot(container, 'map-table')).toBeNull()
+
+		fireEvent.keyDown(plot, { key: 'Enter' })
+
+		expect(onRegionClick).toHaveBeenCalledWith('A', 0)
+	})
+
 	it('speaks the new scale for each zoom key', async () => {
 		const { plot } = renderNavigable(categoricalPlat({ zoom: true }))
 
