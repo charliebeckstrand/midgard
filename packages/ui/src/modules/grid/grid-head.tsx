@@ -245,6 +245,8 @@ function GridHeaderCell<T>({
 		interactive,
 		// Identifies a data-column header to the right-click context menu.
 		gridCol: isDataColumn(column) ? column.id : undefined,
+		// Identifies a non-data header to the autosizer, which sizes its column to its content.
+		gridFit: isDataColumn(column) ? undefined : column.id,
 		// Per-column filter controls; the header shows a filter button when set.
 		filter: filters,
 		// The column's live query, read here (this cell re-renders on filter

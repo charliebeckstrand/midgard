@@ -16,7 +16,6 @@ import { reorderMessages } from '../../primitives/intl/intl-reorder'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { SortableGrip } from '../../primitives/sortable-grip/sortable-grip'
 import { k } from '../../recipes/kata/grid'
-import { isDataColumn } from '../../utilities'
 import type { QueryGroup } from '../query'
 import { columnLabel } from './engine/grid-column/label'
 import { pinnedHeaderProps } from './engine/grid-pin/styles'
@@ -103,6 +102,8 @@ export type GridColumnHeaderProps = {
 	interactive: boolean
 	/** Column id for context-menu resolution, or `undefined` for non-data headers. */
 	gridCol: string | number | undefined
+	/** Identifies the header of a non-data column to the autosizer, which sizes it to its content. */
+	gridFit: string | number | undefined
 	/** Per-column filter controls; a filter button shows when the column is filterable. */
 	filter: GridColumnFilter | null
 	/** The column's live query tree, passed so a filter change re-renders this memoized cell. */
@@ -190,6 +191,7 @@ export const GridColumnHeader = memo(function GridColumnHeader({
 	resizing,
 	interactive,
 	gridCol,
+	gridFit,
 	filter,
 	filterQuery,
 	pinning,
@@ -222,8 +224,7 @@ export const GridColumnHeader = memo(function GridColumnHeader({
 			aria-sort={ariaSortValue(column.sortable && interactive, sorted, direction)}
 			data-resizable={dataAttr(canResize)}
 			data-grid-col={gridCol}
-			// A non-data column sizes to its content, its title among it (see `isContentSized`).
-			data-grid-fit={isDataColumn(column) ? undefined : column.id}
+			data-grid-fit={gridFit}
 			className={cn(
 				stickyHeader && k.sticky.head,
 				canResize && !stickyHeader && k.resize.cell,
