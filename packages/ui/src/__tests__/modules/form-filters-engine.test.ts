@@ -8,6 +8,7 @@ import {
 	writeFilter,
 } from '../../modules/form/engine/form-filters'
 import { formFiltersAxis } from '../../modules/form/engine/form-filters-axis'
+import { intlEn, intlEs } from '../../primitives/intl/intl-catalog'
 
 describe('isFilterActive', () => {
 	it.each([
@@ -59,13 +60,17 @@ describe('countActiveFilters', () => {
 
 describe('formatActiveFilters', () => {
 	it('uses the singular for one filter', () => {
-		expect(formatActiveFilters(1)).toBe('1 filter active')
+		expect(formatActiveFilters(intlEn, 1)).toBe('1 filter active')
 	})
 
 	it('uses the plural for another count', () => {
-		expect(formatActiveFilters(0)).toBe('0 filters active')
+		expect(formatActiveFilters(intlEn, 0)).toBe('0 filters active')
 
-		expect(formatActiveFilters(3)).toBe('3 filters active')
+		expect(formatActiveFilters(intlEn, 3)).toBe('3 filters active')
+
+		expect(formatActiveFilters(intlEs, 1)).toBe('1 filtro activo')
+
+		expect(formatActiveFilters(intlEs, 3)).toBe('3 filtros activos')
 	})
 })
 

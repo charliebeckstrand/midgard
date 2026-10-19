@@ -13,6 +13,7 @@ import {
 	StepperTitle,
 } from '../../components/stepper'
 import type { Mount } from '../../primitives/mount'
+import { LocaleProvider } from '../../providers/locale'
 import {
 	act,
 	allBySlot,
@@ -781,5 +782,35 @@ describe('Stepper keyboard navigation', () => {
 
 			expect(step('Two')).not.toHaveAttribute('aria-controls')
 		})
+	})
+})
+
+describe('Stepper in a locale', () => {
+	it('names the row and the step states in the language of the locale', () => {
+		const { container } = renderUI(
+			<LocaleProvider locale="es-ES">
+				<Stepper value={2} onValueChange={() => {}}>
+					<StepperStep value={1}>
+						<StepperTitle>Uno</StepperTitle>
+					</StepperStep>
+					<StepperStep value={2}>
+						<StepperTitle>Dos</StepperTitle>
+					</StepperStep>
+					<StepperStep value={3}>
+						<StepperTitle>Tres</StepperTitle>
+					</StepperStep>
+				</Stepper>
+			</LocaleProvider>,
+		)
+
+		expect(screen.getByRole('toolbar', { name: 'Pasos' })).toBeInTheDocument()
+
+		const steps = Array.from(
+			container.querySelectorAll<HTMLButtonElement>('button[data-slot="stepper-step"]'),
+		)
+
+		expect(steps[0]).toHaveAccessibleName('Uno, completado')
+
+		expect(steps[2]).toHaveAccessibleName('Tres, sin empezar')
 	})
 })

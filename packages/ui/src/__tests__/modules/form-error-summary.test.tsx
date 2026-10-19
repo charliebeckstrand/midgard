@@ -18,6 +18,7 @@ import {
 	type FormProps,
 	useFormValue,
 } from '../../modules/form'
+import { LocaleProvider } from '../../providers/locale'
 import { bySlot, fireEvent, getSlot, renderUI, within } from '../helpers'
 
 type Values = { name: string; email: string }
@@ -354,5 +355,23 @@ describe('FormErrorSummary', () => {
 		const { container } = renderUI(<FormErrorSummary />)
 
 		expect(container).toBeEmptyDOMElement()
+	})
+})
+
+describe('FormErrorSummary in a locale', () => {
+	it('gives the default title in the language of the locale', async () => {
+		const { container } = renderUI(
+			<LocaleProvider locale="es-ES">
+				<Form defaultValues={{ name: '' }} validate={{ name: () => 'Introduce un nombre.' }}>
+					<FormErrorSummary />
+				</Form>
+			</LocaleProvider>,
+		)
+
+		await submit(container)
+
+		expect(
+			within(getSlot(container, 'form-error-summary')).getByText('Hay un problema'),
+		).toBeInTheDocument()
 	})
 })
