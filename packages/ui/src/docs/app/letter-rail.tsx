@@ -2,7 +2,7 @@ import { type PointerEvent, type RefObject, useEffect, useRef, useState } from '
 import { dataAttr } from 'ui/core'
 import { useDragCursorHold } from '../../hooks/use-drag-cursor.ts'
 import { clamp } from '../../utilities/clamp.ts'
-import { isPrimaryPress } from '../../utilities/primary-press.ts'
+import { createPressOwner } from '../../utilities/primary-press.ts'
 import type { PageLink } from '../plugin/pages.ts'
 
 // The letter rail at the side of the sidebar body. A press on a letter scrolls
@@ -123,6 +123,10 @@ export function LetterRail({
 
 	const cursor = useDragCursorHold('pointer')
 
+	// The pointer of the gesture. While a pen drags, the touch of a palm is a primary
+	// press too, and it does not start, move, or end the gesture.
+	const [press] = useState(createPressOwner)
+
 	// A gesture that the unmount interrupts does not show the bubble later.
 	useEffect(() => () => clearTimeout(gesture.current?.hold), [])
 
@@ -180,7 +184,11 @@ export function LetterRail({
 		setActive(letter)
 	}
 
-	const end = () => {
+	const end = (event: PointerEvent<HTMLDivElement>) => {
+		if (!press.owns(event)) return
+
+		press.release()
+
 		clearTimeout(gesture.current?.hold)
 
 		gesture.current = undefined
@@ -191,7 +199,7 @@ export function LetterRail({
 	}
 
 	const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
-		if (!isPrimaryPress(event)) return
+		if (!press.claim(event)) return
 
 		// The press keeps the focus where it is and starts no text selection.
 		event.preventDefault()
@@ -221,7 +229,9 @@ export function LetterRail({
 				data-slot="letter-rail-track"
 				className="relative flex min-h-0 cursor-pointer touch-none select-none flex-col [-webkit-touch-callout:none]"
 				onPointerDown={onPointerDown}
-				onPointerMove={(event) => select(event.clientY)}
+				onPointerMove={(event) => {
+					if (press.owns(event)) select(event.clientY)
+				}}
 				onPointerUp={end}
 				onPointerCancel={end}
 				onLostPointerCapture={end}

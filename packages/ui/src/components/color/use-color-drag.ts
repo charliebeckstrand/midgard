@@ -5,12 +5,12 @@ import {
 	type PointerEvent as ReactPointerEvent,
 	type RefObject,
 	useCallback,
-	useRef,
+	useState,
 } from 'react'
 import { type DragCursor, useDragCursorHold } from '../../hooks/use-drag-cursor'
 import { clamp } from '../../utilities'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
-import { isPrimaryPress } from '../../utilities/primary-press'
+import { createPressOwner } from '../../utilities/primary-press'
 
 /** Pointer position within the tracked element, each axis normalized to `0-1`. */
 export type DragPosition = { x: number; y: number }
@@ -27,7 +27,7 @@ export type ColorDragHandlers = {
 	onPointerMove: (event: ReactPointerEvent<HTMLElement>) => void
 	onPointerUp: (event: ReactPointerEvent<HTMLElement>) => void
 	onPointerCancel: (event: ReactPointerEvent<HTMLElement>) => void
-	onLostPointerCapture: () => void
+	onLostPointerCapture: (event: ReactPointerEvent<HTMLElement>) => void
 }
 
 /**
@@ -89,7 +89,8 @@ export function useColorDrag(
 	disabled: boolean,
 	cursor: DragCursor,
 ): ColorDragHandlers {
-	const dragging = useRef(false)
+	// The pointer that drives the drag. A palm that lands mid-drag moves nothing.
+	const [press] = useState(createPressOwner)
 
 	const cursorHold = useDragCursorHold(cursor)
 
@@ -109,7 +110,7 @@ export function useColorDrag(
 
 	const onPointerDown = useCallback(
 		(event: ReactPointerEvent<HTMLElement>) => {
-			if (disabled || !isPrimaryPress(event) || inDisabledFieldset(event.currentTarget)) return
+			if (disabled || inDisabledFieldset(event.currentTarget) || !press.claim(event)) return
 
 			holdTextSelection(event)
 
@@ -118,27 +119,28 @@ export function useColorDrag(
 			ref.current?.focus({ preventScroll: true })
 			event.currentTarget.setPointerCapture(event.pointerId)
 
-			dragging.current = true
-
 			cursorHold.start()
 
 			onPosition(positionFromEvent(event))
 		},
-		[disabled, onPosition, positionFromEvent, ref, cursorHold],
+		[disabled, press, onPosition, positionFromEvent, ref, cursorHold],
 	)
 
 	const onPointerMove = useCallback(
 		(event: ReactPointerEvent<HTMLElement>) => {
-			if (!dragging.current) return
+			if (!press.owns(event)) return
 
 			onPosition(positionFromEvent(event))
 		},
-		[onPosition, positionFromEvent],
+		[press, onPosition, positionFromEvent],
 	)
 
 	const endDrag = useCallback(
 		(event: ReactPointerEvent<HTMLElement>) => {
-			dragging.current = false
+			// The release of another pointer does not end the drag.
+			if (!press.owns(event)) return
+
+			press.release()
 
 			cursorHold.end()
 
@@ -146,17 +148,22 @@ export function useColorDrag(
 				event.currentTarget.releasePointerCapture(event.pointerId)
 			}
 		},
-		[cursorHold],
+		[press, cursorHold],
 	)
 
 	// `lostpointercapture` fires on every capture end: normal release,
 	// `pointercancel` (browser-claimed gesture), or node removal. It is the
-	// authoritative reset for `dragging`.
-	const onLostPointerCapture = useCallback(() => {
-		dragging.current = false
+	// authoritative reset for the drag.
+	const onLostPointerCapture = useCallback(
+		(event: ReactPointerEvent<HTMLElement>) => {
+			if (!press.owns(event)) return
 
-		cursorHold.end()
-	}, [cursorHold])
+			press.release()
+
+			cursorHold.end()
+		},
+		[press, cursorHold],
+	)
 
 	return {
 		onMouseDown: holdPress,

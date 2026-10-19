@@ -179,6 +179,10 @@ export function columnResizeActions<T>(
 ): Pick<GridColumnResizeActions, 'startResize' | 'nudge'> {
 	return {
 		startResize: (id, event) => {
+			// One drag at a time. While a pen or a mouse drags, the press of a palm is
+			// also a primary press. It starts no drag and does not take the drag that runs.
+			if (table.atoms.columnResizing.get().isResizingColumn) return
+
 			const header = table.getFlatHeaders().find((entry) => entry.column.id === String(id))
 
 			if (header) withResizeDirection(table, header.getResizeHandler())(event)

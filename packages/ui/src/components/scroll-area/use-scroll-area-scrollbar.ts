@@ -13,7 +13,7 @@ import { holdDragCursor } from '../../hooks/use-drag-cursor'
 import { useAnimationFrame, useTimeout } from '../../hooks/use-timeout'
 import type { ScrollOrientation } from '../../types'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
-import { isPrimaryPress } from '../../utilities/primary-press'
+import { createPressOwner, type PressOwner } from '../../utilities/primary-press'
 import { hiddenThumb, SCROLL_FADE_DELAY_MS, type ThumbState } from './scroll-area-constants'
 import {
 	computeThumb,
@@ -36,6 +36,8 @@ type ScrollbarDragContext = {
 	verticalThumb: ThumbState
 	horizontalThumb: ThumbState
 	dragCleanupRef: { current: (() => void) | null }
+	/** The pointer that drives the drag of either thumb. */
+	press: PressOwner
 }
 
 /**
@@ -49,16 +51,14 @@ function beginScrollbarDrag(
 	event: ReactPointerEvent<HTMLDivElement>,
 	context: ScrollbarDragContext,
 ): void {
-	// Only the primary button drags, as on a native scrollbar. A secondary press
-	// opens the context menu, which can take the release and leave the drag
-	// on a pointer with no button held.
-	if (!isPrimaryPress(event)) return
-
 	const viewport = context.viewportRef.current
 
 	const track = axis === 'y' ? context.verticalTrackRef.current : context.horizontalTrackRef.current
 
-	if (!viewport || !track) return
+	// Only the primary button drags, as on a native scrollbar. A secondary press
+	// opens the context menu, which can take the release and leave the drag
+	// on a pointer with no button held. A palm that lands mid-drag takes no drag.
+	if (!viewport || !track || !context.press.claim(event)) return
 
 	event.preventDefault()
 	event.stopPropagation()
@@ -77,10 +77,9 @@ function beginScrollbarDrag(
 
 	const scale = maxOffset > 0 ? maxScroll / maxOffset : 0
 
-	// Cleans up any prior drag (defensive; pointerup handles the usual path).
-	context.dragCleanupRef.current?.()
-
 	const onMove = (moveEvent: PointerEvent) => {
+		if (!context.press.owns(moveEvent)) return
+
 		const delta = (axis === 'y' ? moveEvent.clientY : moveEvent.clientX) - startClient
 
 		const next = startScroll + delta * scale
@@ -104,14 +103,21 @@ function beginScrollbarDrag(
 
 		releaseCursor()
 
+		context.press.release()
+
 		context.dragCleanupRef.current = null
 	}
 
+	// The release of another pointer does not end the drag.
+	const end = (endEvent: PointerEvent) => {
+		if (context.press.owns(endEvent)) cleanup()
+	}
+
 	window.addEventListener('pointermove', onMove, { signal })
-	window.addEventListener('pointerup', cleanup, { signal })
+	window.addEventListener('pointerup', end, { signal })
 	// A canceled pointer (OS gesture, pen leaving range) never fires pointerup;
 	// without this the drag keeps scrolling on buttonless moves.
-	window.addEventListener('pointercancel', cleanup, { signal })
+	window.addEventListener('pointercancel', end, { signal })
 
 	context.dragCleanupRef.current = cleanup
 }
@@ -270,6 +276,8 @@ export function useScrollAreaScrollbar({ orientation, scrollbar }: ScrollbarOpti
 
 	const dragCleanupRef = useRef<(() => void) | null>(null)
 
+	const [press] = useState(createPressOwner)
+
 	const startDrag = (axis: 'x' | 'y') => (event: ReactPointerEvent<HTMLDivElement>) =>
 		beginScrollbarDrag(axis, event, {
 			viewportRef,
@@ -278,6 +286,7 @@ export function useScrollAreaScrollbar({ orientation, scrollbar }: ScrollbarOpti
 			verticalThumb,
 			horizontalThumb,
 			dragCleanupRef,
+			press,
 		})
 
 	// Cleans up global listeners when the component unmounts mid-drag
