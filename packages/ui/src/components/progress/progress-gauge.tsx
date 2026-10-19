@@ -9,7 +9,7 @@ import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k, type ProgressGaugeVariants } from '../../recipes/kata/progress'
 import type { AccessibleName } from '../../types'
 import { clamp, pct } from '../../utilities'
-import { GAUGE_VIEW_BOX } from './progress-gauge-constants'
+import { GAUGE_STROKE_WIDTH, GAUGE_VIEW_BOX } from './progress-gauge-constants'
 
 type ProgressColor = keyof typeof k.color
 
@@ -43,7 +43,10 @@ export type ProgressGaugeProps = AccessibleName &
 		/** Center readout; pass `true` to render the rounded percentage, or a node for custom content. */
 		centerLabel?: ReactNode | boolean
 		/**
-		 * Ring thickness in viewBox units, held between 0 and 18 (half the box).
+		 * Ring thickness in viewBox units, held between 1 and 6. A thinner ring
+		 * breaks up at the smallest step. A thicker ring crowds the center readout.
+		 * @minimum 1
+		 * @maximum 6
 		 * @defaultValue 3.5
 		 */
 		strokeWidth?: number
@@ -75,9 +78,7 @@ export function ProgressGauge({
 	// reaches the ring offset, the readout, and `aria-valuenow`.
 	const value = Number.isNaN(rawValue) ? 0 : rawValue
 
-	// A ring as thick as half the box fills the disc to its center. A thicker
-	// ring gives a radius of zero or less, and the ring does not draw.
-	const strokeWidth = clamp(rawStrokeWidth, 0, GAUGE_VIEW_BOX / 2)
+	const strokeWidth = clamp(rawStrokeWidth, GAUGE_STROKE_WIDTH.min, GAUGE_STROKE_WIDTH.max)
 
 	const radius = (GAUGE_VIEW_BOX - strokeWidth) / 2
 

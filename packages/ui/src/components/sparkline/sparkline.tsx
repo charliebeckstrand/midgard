@@ -8,11 +8,19 @@ import { ReducedMotion } from '../../primitives/reduced-motion'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k, type scale } from '../../recipes/kata/sparkline'
 import type { AccessibleName } from '../../types'
+import { clamp } from '../../utilities'
 import { SPARKLINE_METRICS } from './sparkline-constants'
 import { type SparklineGeometry, sparklineGeometry } from './sparkline-geometry'
 
 /** The area fill's opacity, sitting the wash under the line without muddying it. @internal */
 const AREA_FILL_OPACITY = 0.16
+
+/**
+ * The range of `strokeWidth`. The `@minimum` and `@maximum` tags of the prop
+ * give the same numbers to the docs.
+ * @internal
+ */
+const STROKE_WIDTH = { min: 1, max: 4 } as const
 
 type SparklineColor = keyof typeof k.color
 
@@ -88,7 +96,10 @@ export type SparklineProps = AccessibleName &
 		 */
 		animate?: boolean
 		/**
-		 * Line stroke width in px.
+		 * Line stroke width in px, held between 1 and 4. A thinner line breaks up
+		 * at the smallest step. A thicker line fills the dips of a busy series.
+		 * @minimum 1
+		 * @maximum 4
 		 * @defaultValue 1.5
 		 */
 		strokeWidth?: number
@@ -279,7 +290,7 @@ export function Sparkline({
 	fill = false,
 	endPoint = false,
 	animate = false,
-	strokeWidth = 1.5,
+	strokeWidth: rawStrokeWidth = 1.5,
 	min,
 	max,
 	className,
@@ -288,6 +299,8 @@ export function Sparkline({
 	// An explicit `width` or `height` fixes the box. Otherwise the box is the
 	// 3:1 drawing, and the stepped classes of `k.svg` scale it to the step.
 	const fixed = width !== undefined || height !== undefined
+
+	const strokeWidth = clamp(rawStrokeWidth, STROKE_WIDTH.min, STROKE_WIDTH.max)
 
 	const boxWidth = width ?? SPARKLINE_METRICS.width
 

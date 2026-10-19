@@ -4,8 +4,8 @@ import { afterAll, describe, expect, it } from 'vitest'
 import { type BarrelApi, createApiExtractor } from '../plugin/api.ts'
 
 // The API data that the docs plugin makes for some components whose props
-// have a union, an inherited tag, a default that is a sentence, or an
-// `@internal` tag, or a `Responsive<T>` type.
+// have a union, an inherited tag, a default that is a sentence, an
+// `@internal` tag, a `Responsive<T>` type, or a range.
 
 const UI_ROOT = path.resolve(import.meta.dirname, '..', '..', '..')
 
@@ -18,6 +18,7 @@ const BARRELS = [
 	'components/hold-button',
 	'components/menu',
 	'components/segment',
+	'components/sparkline',
 	'components/table',
 	'components/tabs',
 	'components/toggle-icon-button',
@@ -138,5 +139,18 @@ describe('API extractor', { timeout: 60_000 }, () => {
 			default: "'row'",
 			defaultValue: 'row',
 		})
+	})
+
+	it('gives the range of a number prop from its @minimum and @maximum tags', async () => {
+		const api = await load()
+
+		expect(propOf(api, 'Sparkline', 'strokeWidth')).toMatchObject({
+			type: 'number',
+			default: '1.5',
+			minimum: 1,
+			maximum: 4,
+		})
+
+		expect(propOf(api, 'Sparkline', 'width')).not.toHaveProperty('minimum')
 	})
 })
