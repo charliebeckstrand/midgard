@@ -40,7 +40,6 @@ type PdfViewerValues = {
 	magnifierSettings: Record<never, never>
 	magnifier: Record<never, never>
 	showMagnifier: Record<never, never>
-	magnifierHint: Record<never, never>
 	magnification: Record<never, never>
 	times: { zoom: number }
 	size: Record<never, never>
@@ -246,14 +245,8 @@ export const pdfViewerMessages: MessageSet<PdfViewerValues> = defineMessages<Pdf
 	},
 	showMagnifier: {
 		id: 'ui.pdfViewer.showMagnifier',
-		defaultMessage: 'Show the magnifier',
+		defaultMessage: 'Show magnifier',
 		description: 'The label of the switch that turns on the lens that magnifies the page of a PDF.',
-	},
-	magnifierHint: {
-		id: 'ui.pdfViewer.magnifierHint',
-		defaultMessage:
-			'A lens beside the cursor while it rests on the page, or above a finger that you hold on the page.',
-		description: 'The description of the switch that turns on the magnifier of a PDF.',
 	},
 	magnification: {
 		id: 'ui.pdfViewer.magnification',

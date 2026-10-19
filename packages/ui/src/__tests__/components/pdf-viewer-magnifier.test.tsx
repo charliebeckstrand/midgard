@@ -282,7 +282,7 @@ describe('PdfViewer magnifier controls', () => {
 
 		expect(screen.getByRole('dialog')).toBeInTheDocument()
 
-		expect(screen.getByRole('switch', { name: 'Show the magnifier' })).toBeChecked()
+		expect(screen.getByRole('switch', { name: 'Show magnifier' })).toBeChecked()
 
 		// The consumer asked for the large lens, so that is the option standing selected.
 		expect(screen.getByRole('radio', { name: 'Large' })).toBeChecked()
@@ -345,7 +345,7 @@ describe('PdfViewer magnifier controls', () => {
 
 		fireEvent.click(screen.getByRole('button', { name: 'Magnifier settings' }))
 
-		fireEvent.click(screen.getByRole('switch', { name: 'Show the magnifier' }))
+		fireEvent.click(screen.getByRole('switch', { name: 'Show magnifier' }))
 
 		expect(onMagnifierChange).toHaveBeenCalledExactlyOnceWith({
 			enabled: false,

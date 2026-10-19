@@ -14,7 +14,7 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from '../dialog'
-import { Description, Fieldset, Label, Legend } from '../fieldset'
+import { Fieldset, Label, Legend } from '../fieldset'
 import { Radio, RadioField, RadioGroup } from '../radio'
 import { Switch, SwitchField } from '../switch'
 import { usePdfViewerContext } from './context'
@@ -96,7 +96,6 @@ export function PdfViewerMagnifierSettings({ disabled }: PdfViewerMagnifierSetti
 					<Stack gap="lg">
 						<SwitchField>
 							<Label>{intl.formatMessage(pdfViewerMessages.showMagnifier)}</Label>
-							<Description>{intl.formatMessage(pdfViewerMessages.magnifierHint)}</Description>
 							<Switch
 								checked={magnifierOn}
 								onChange={(event) => setMagnifierOn(event.target.checked)}
