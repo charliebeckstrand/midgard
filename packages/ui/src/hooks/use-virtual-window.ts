@@ -166,28 +166,26 @@ function measureLive(
 }
 
 /**
- * Set while a row ref of this module measures. React calls a ref inside its
- * commit, where `flushSync` cannot flush and warns. A plain render that the
- * commit schedules lands in that same commit, before paint.
+ * Set while the virtualizer applies a row measurement. A change that a
+ * measurement causes renders plainly, not in a `flushSync`. A row ref measures
+ * inside the commit of React, where `flushSync` cannot flush and warns. A
+ * `ResizeObserver` callback measures inside the observation loop of the
+ * browser. A render there mounts and unmounts rows, so the set of observed
+ * elements changes in the loop. The browser then fires "ResizeObserver loop
+ * completed with undelivered notifications" on `window`.
+ *
+ * The plain render is safe because the rows are in the flow of the scroller.
+ * The browser lays out the new size of a rendered row before the measurement,
+ * and the scroll adjustment writes the scroll offset at once. The spacers do not
+ * change, because they hold only the rows that are not rendered. The paint thus
+ * shows the rendered rows at the correct place. Only the window moves later. A
+ * plain render from a commit lands in that commit. After a `ResizeObserver`
+ * callback, the `scroll` event of the adjustment renders the window in the next
+ * frame, and the overscan rows fill the edges until then.
  *
  * @internal
  */
-let attaching = false
-
-/**
- * Runs the measurement of a row ref with {@link attaching} set.
- *
- * @internal
- */
-function attach(measure: () => void): void {
-	attaching = true
-
-	try {
-		measure()
-	} finally {
-		attaching = false
-	}
-}
+let measuring = false
 
 /**
  * Returns the ref callback that measures each row in the commit that attaches
@@ -207,20 +205,16 @@ function attach(measure: () => void): void {
 function measureOnAttach(
 	virtualizer: Virtualizer<HTMLElement, Element>,
 ): (node: Element | null) => void {
-	return (node) =>
-		attach(() => {
-			virtualizer.measureElement(node)
+	return (node) => {
+		virtualizer.measureElement(node)
 
-			// The library measured the row already when it did not count a scroll.
-			if (!node?.isConnected || !virtualizer.isScrolling) return
+		// The library measured the row already when it did not count a scroll.
+		if (!node?.isConnected || !virtualizer.isScrolling) return
 
-			const index = virtualizer.indexFromElement(node)
+		const index = virtualizer.indexFromElement(node)
 
-			virtualizer.resizeItem(
-				index,
-				virtualizer.options.measureElement(node, undefined, virtualizer),
-			)
-		})
+		virtualizer.resizeItem(index, virtualizer.options.measureElement(node, undefined, virtualizer))
+	}
 }
 
 /**
@@ -463,8 +457,8 @@ type WindowVirtualizerOptions = Omit<
  * last commit. The rendered items, their positions, and the total size follow
  * from those and from the options, which change only in a render. A change
  * that the virtualizer marks as synchronous renders in a `flushSync`, as in
- * the library. A change from a row ref renders plainly, because the ref runs
- * inside the commit (see {@link attaching}).
+ * the library. A change from a row measurement renders plainly (see
+ * {@link measuring}).
  *
  * The React Compiler does not compile this hook, by intent. It is the one
  * place that reads the live virtualizer during render. It returns the window
@@ -507,12 +501,30 @@ function useWindowVirtualizer(options: WindowVirtualizerOptions, adjustAbove: bo
 
 			if (prev && sameWindowState(prev, windowState(instance))) return
 
-			if (sync && !attaching) flushSync(rerender)
+			if (sync && !measuring) flushSync(rerender)
 			else rerender()
 		},
 	}
 
-	const [instance] = useState(() => new Virtualizer<HTMLElement, Element>(resolved))
+	const [instance] = useState(() => {
+		const virtualizer = new Virtualizer<HTMLElement, Element>(resolved)
+
+		// Each measurement goes through `resizeItem`: the `ResizeObserver` callback,
+		// `measureElement`, and `measureOnAttach`.
+		const resizeItem = virtualizer.resizeItem
+
+		virtualizer.resizeItem = (index, size) => {
+			measuring = true
+
+			try {
+				resizeItem(index, size)
+			} finally {
+				measuring = false
+			}
+		}
+
+		return virtualizer
+	})
 
 	instance.setOptions(resolved)
 
@@ -753,10 +765,7 @@ export function useVirtualWindow({
 	// The start anchor needs each row to measure in the commit that attaches it.
 	// The end anchor keeps the library's measurement.
 	const measureRef = useMemo(
-		() =>
-			startAnchor
-				? measureOnAttach(virtualizer)
-				: (node: Element | null) => attach(() => virtualizer.measureElement(node)),
+		() => (startAnchor ? measureOnAttach(virtualizer) : virtualizer.measureElement),
 		[startAnchor, virtualizer],
 	)
 
