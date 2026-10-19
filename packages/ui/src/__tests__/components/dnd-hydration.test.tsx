@@ -1,7 +1,6 @@
 import type { ReactElement } from 'react'
-import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { List, ListItem } from '../../components/list'
 import {
 	Kanban,
@@ -10,7 +9,8 @@ import {
 	KanbanColumn,
 	KanbanColumnBody,
 } from '../../modules/kanban'
-import { act, attach } from '../helpers'
+import { attach } from '../helpers'
+import { hydrate } from '../helpers/hydrate'
 
 type Item = { id: string; label: string }
 
@@ -42,17 +42,7 @@ function hydrateAfterTwoServerRenders(element: ReactElement) {
 
 	container.innerHTML = second
 
-	const onRecoverableError = vi.fn()
-
-	const consoleError = vi.spyOn(console, 'error')
-
-	let root: Root | undefined
-
-	act(() => {
-		root = hydrateRoot(container, element, { onRecoverableError })
-	})
-
-	onTestFinished(() => act(() => root?.unmount()))
+	const { onRecoverableError, consoleError } = hydrate(container, element)
 
 	return { first, second, container, onRecoverableError, consoleError }
 }

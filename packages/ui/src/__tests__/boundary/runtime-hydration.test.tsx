@@ -1,5 +1,4 @@
 import type { ReactElement } from 'react'
-import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 
@@ -7,7 +6,8 @@ import { Calendar } from '../../components/calendar'
 import { CurrencyInput } from '../../components/currency-input'
 import { LocaleProvider } from '../../providers/locale'
 import { resolveLocale } from '../../utilities'
-import { act, attach, screen } from '../helpers'
+import { attach, screen } from '../helpers'
+import { hydrate } from '../helpers/hydrate'
 
 /**
  * Server markup that the client hydrates in a different runtime. The server and
@@ -51,17 +51,7 @@ function hydrateAcrossRuntimes(element: () => ReactElement, toClient: () => void
 
 	toClient()
 
-	const onRecoverableError = vi.fn()
-
-	const consoleError = vi.spyOn(console, 'error')
-
-	let root: Root | undefined
-
-	act(() => {
-		root = hydrateRoot(container, element(), { onRecoverableError })
-	})
-
-	onTestFinished(() => act(() => root?.unmount()))
+	const { onRecoverableError, consoleError } = hydrate(container, element())
 
 	return { onRecoverableError, consoleError }
 }

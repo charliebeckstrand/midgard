@@ -1,6 +1,5 @@
 import { act, within as inside, renderHook } from '@testing-library/react'
 import { Profiler, useState } from 'react'
-import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { ColorPanel, ColorPicker } from '../../components/color'
@@ -32,6 +31,7 @@ import {
 	setupUser,
 } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
+import { hydrate } from '../helpers/hydrate'
 
 const within = (a: number, b: number, tolerance = 2) => Math.abs(a - b) <= tolerance
 
@@ -512,15 +512,7 @@ describe('ColorPanel', () => {
 
 			container.innerHTML = markup
 
-			const onRecoverableError = vi.fn()
-
-			let root: Root | undefined
-
-			act(() => {
-				root = hydrateRoot(container, element, { onRecoverableError })
-			})
-
-			onTestFinished(() => act(() => root?.unmount()))
+			const { onRecoverableError } = hydrate(container, element)
 
 			expect(onRecoverableError).not.toHaveBeenCalled()
 

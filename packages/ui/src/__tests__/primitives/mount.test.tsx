@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { type Mount, MountHold, useMountHold, useMountsEveryPanel } from '../../primitives/mount'
 import { mountsEveryPanel } from '../../primitives/mount/mount'
 import { heldMotionProps } from '../../primitives/mount/mount-held-motion'
-import { act, attach, renderUI, screen, setupUser } from '../helpers'
+import { attach, renderUI, screen, setupUser } from '../helpers'
+import { hydrate } from '../helpers/hydrate'
 
 /**
  * The shared mount hold behind the current cascade, the disclosure panels, and
@@ -264,15 +264,7 @@ describe('useMountsEveryPanel', () => {
 
 		const seen: boolean[] = []
 
-		const onRecoverableError = vi.fn()
-
-		let root: Root | undefined
-
-		act(() => {
-			root = hydrateRoot(container, <Probe mount="always" seen={seen} />, { onRecoverableError })
-		})
-
-		onTestFinished(() => act(() => root?.unmount()))
+		const { onRecoverableError } = hydrate(container, <Probe mount="always" seen={seen} />)
 
 		expect(onRecoverableError).not.toHaveBeenCalled()
 

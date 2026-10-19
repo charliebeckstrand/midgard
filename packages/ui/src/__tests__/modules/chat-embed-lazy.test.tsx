@@ -1,7 +1,5 @@
-import { act } from '@testing-library/react'
 import { useEffect } from 'react'
-import { hydrateRoot, type Root } from 'react-dom/client'
-import { beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ChatEmbedProvider, ChatMessage } from '../../modules/chat'
 import type { ChatEmbedPart } from '../../modules/chat/engine/chat-content/types'
 import type { Mount } from '../../primitives/mount'
@@ -11,6 +9,7 @@ import {
 	installControlledObserver,
 	serverMarkup,
 } from '../helpers/controlled-intersection'
+import { hydrate } from '../helpers/hydrate'
 
 let observer: ControlledObserver
 
@@ -193,15 +192,7 @@ describe.each(['lazy', 'active'] as const)('a held-back embed on the server, und
 
 		container.innerHTML = serverMarkup(<Message mount={mount} />)
 
-		const onRecoverableError = vi.fn()
-
-		let root: Root | undefined
-
-		act(() => {
-			root = hydrateRoot(container, <Message mount={mount} />, { onRecoverableError })
-		})
-
-		onTestFinished(() => act(() => root?.unmount()))
+		const { onRecoverableError } = hydrate(container, <Message mount={mount} />)
 
 		expect(onRecoverableError).not.toHaveBeenCalled()
 
@@ -223,15 +214,7 @@ describe('an embed under always, on the server', () => {
 
 		container.innerHTML = html
 
-		const onRecoverableError = vi.fn()
-
-		let root: Root | undefined
-
-		act(() => {
-			root = hydrateRoot(container, <Message mount="always" />, { onRecoverableError })
-		})
-
-		onTestFinished(() => act(() => root?.unmount()))
+		const { onRecoverableError } = hydrate(container, <Message mount="always" />)
 
 		expect(onRecoverableError).not.toHaveBeenCalled()
 	})

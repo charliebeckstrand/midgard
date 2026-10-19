@@ -1,7 +1,5 @@
-import { act } from '@testing-library/react'
 import { Fragment, type ReactElement, type ReactNode, useEffect } from 'react'
-import { hydrateRoot, type Root } from 'react-dom/client'
-import { beforeAll, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
+import { beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import {
 	Dashboard,
 	type DashboardLayoutItem,
@@ -16,6 +14,7 @@ import {
 	installControlledObserver,
 	serverMarkup,
 } from '../helpers/controlled-intersection'
+import { hydrate } from '../helpers/hydrate'
 
 let observer: ControlledObserver
 
@@ -147,15 +146,7 @@ describe('DashboardTile mount', () => {
 
 		expect(container).not.toHaveTextContent('Notes')
 
-		const onRecoverableError = vi.fn()
-
-		let root: Root | undefined
-
-		act(() => {
-			root = hydrateRoot(container, board, { onRecoverableError })
-		})
-
-		onTestFinished(() => act(() => root?.unmount()))
+		const { onRecoverableError } = hydrate(container, board)
 
 		expect(onRecoverableError).not.toHaveBeenCalled()
 
@@ -172,15 +163,7 @@ describe('DashboardTile mount', () => {
 
 		container.innerHTML = serverMarkup(<Board mount="lazy" />)
 
-		const onRecoverableError = vi.fn()
-
-		let root: Root | undefined
-
-		act(() => {
-			root = hydrateRoot(container, <Board mount="lazy" />, { onRecoverableError })
-		})
-
-		onTestFinished(() => act(() => root?.unmount()))
+		const { onRecoverableError } = hydrate(container, <Board mount="lazy" />)
 
 		expect(onRecoverableError).not.toHaveBeenCalled()
 
@@ -237,29 +220,21 @@ describe('a saved selection before the tiles register', () => {
 	}
 
 	/** Renders the board on the server, and hydrates that markup with an error spy. */
-	function hydrate(board: ReactElement) {
+	function hydrateBoard(board: ReactElement) {
 		const container = attach(document.createElement('div'))
 
 		container.innerHTML = serverMarkup(board)
 
 		const server = container.textContent
 
-		const onRecoverableError = vi.fn()
-
-		let root: Root | undefined
-
-		act(() => {
-			root = hydrateRoot(container, board, { onRecoverableError })
-		})
-
-		onTestFinished(() => act(() => root?.unmount()))
+		const { onRecoverableError } = hydrate(container, board)
 
 		return { server, container, onRecoverableError }
 	}
 
 	it('applies no selection of a removed tile with no entry, on the server or after hydration', () => {
 		// A remove drops the entry of the tile, so the saved layout names only the other tile.
-		const { server, container, onRecoverableError } = hydrate(<Board layout={[TOTAL]} />)
+		const { server, container, onRecoverableError } = hydrateBoard(<Board layout={[TOTAL]} />)
 
 		expect(server).toContain('Total 40')
 
@@ -274,7 +249,7 @@ describe('a saved selection before the tiles register', () => {
 		// A JSX board keeps the entry of a tile that left, so the server counts that tile as present.
 		const gone: DashboardLayoutItem = { id: 'regions', x: 12, y: 0, w: 12, h: 10 }
 
-		const { server, container, onRecoverableError } = hydrate(<Board layout={[TOTAL, gone]} />)
+		const { server, container, onRecoverableError } = hydrateBoard(<Board layout={[TOTAL, gone]} />)
 
 		expect(server).toContain('Total 30')
 
@@ -298,7 +273,7 @@ describe('a saved selection before the tiles register', () => {
 		],
 	])('applies the selection of %s with no entry from the server markup on', (_, tile) => {
 		// A tile that the app added after the save has no entry, and the board still sees it.
-		const { server, container, onRecoverableError } = hydrate(
+		const { server, container, onRecoverableError } = hydrateBoard(
 			<Board layout={[TOTAL]}>{tile}</Board>,
 		)
 
