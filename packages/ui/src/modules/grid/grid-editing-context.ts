@@ -146,7 +146,7 @@ export type GridEditingSession = {
 	 * element that had the focus as the row opened. It is `null` when that
 	 * element is gone. The overlay reads it as it closes.
 	 */
-	focusTarget: (rowKey: string | number) => Element | null
+	focusTarget: (rowKey: string | number) => HTMLElement | null
 }
 
 /**
