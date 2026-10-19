@@ -1,7 +1,6 @@
-import { Button } from 'ui/button'
 import { Description, Field, Label, Message } from 'ui/fieldset'
 import { Flex } from 'ui/flex'
-import { Form } from 'ui/form'
+import { Form, FormSubmit } from 'ui/form'
 import { SignaturePad } from 'ui/signature-pad'
 import { Stack } from 'ui/stack'
 
@@ -24,7 +23,7 @@ export default function InAForm() {
 					<Message name="signature" />
 				</Field>
 				<Flex>
-					<Button type="submit">Accept agreement</Button>
+					<FormSubmit>Accept agreement</FormSubmit>
 				</Flex>
 			</Stack>
 		</Form>

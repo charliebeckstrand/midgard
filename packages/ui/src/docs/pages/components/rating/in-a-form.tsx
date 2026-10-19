@@ -1,7 +1,6 @@
-import { Button } from 'ui/button'
 import { Field, Label, Message } from 'ui/fieldset'
 import { Flex } from 'ui/flex'
-import { Form } from 'ui/form'
+import { Form, FormSubmit } from 'ui/form'
 import { Rating } from 'ui/rating'
 import { Stack } from 'ui/stack'
 
@@ -23,7 +22,7 @@ export default function InAForm() {
 					<Message name="score" />
 				</Field>
 				<Flex>
-					<Button type="submit">Send review</Button>
+					<FormSubmit>Send review</FormSubmit>
 				</Flex>
 			</Stack>
 		</Form>

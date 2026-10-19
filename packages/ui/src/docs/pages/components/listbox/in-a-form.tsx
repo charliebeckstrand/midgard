@@ -1,6 +1,5 @@
-import { Button } from 'ui/button'
 import { Field, Label, Message } from 'ui/fieldset'
-import { Form } from 'ui/form'
+import { Form, FormSubmit } from 'ui/form'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 import { Stack } from 'ui/stack'
 import { teamName, teams } from './teams.ts'
@@ -34,7 +33,7 @@ export default function InAForm() {
 					</Listbox>
 					<Message name="teams" />
 				</Field>
-				<Button type="submit">Send announcement</Button>
+				<FormSubmit>Send announcement</FormSubmit>
 			</Stack>
 		</Form>
 	)

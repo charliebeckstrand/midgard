@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Button } from 'ui/button'
 import { Field, Label } from 'ui/fieldset'
-import { Form } from 'ui/form'
+import { Form, FormSubmit } from 'ui/form'
 import { Input } from 'ui/input'
 import {
 	Sheet,
@@ -59,7 +59,7 @@ export default function WithForm() {
 								Cancel
 							</Button>
 						</SheetClose>
-						<Button type="submit">Save</Button>
+						<FormSubmit>Save</FormSubmit>
 					</SheetFooter>
 				</Form>
 			</SheetPanel>

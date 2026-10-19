@@ -1,7 +1,6 @@
-import { Button } from 'ui/button'
 import { Field, Label, Message } from 'ui/fieldset'
 import { Flex } from 'ui/flex'
-import { Form } from 'ui/form'
+import { Form, FormSubmit } from 'ui/form'
 import { PasswordConfirm, PasswordConfirmNew, PasswordConfirmRepeat } from 'ui/password-confirm'
 import { Stack } from 'ui/stack'
 
@@ -29,7 +28,7 @@ export default function InAForm() {
 					</Field>
 				</PasswordConfirm>
 				<Flex>
-					<Button type="submit">Set password</Button>
+					<FormSubmit>Set password</FormSubmit>
 				</Flex>
 			</Stack>
 		</Form>
