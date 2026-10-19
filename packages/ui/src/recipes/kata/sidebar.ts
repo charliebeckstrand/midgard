@@ -116,16 +116,17 @@ const itemSuffix = [...affix, inset.suffix]
 /** The cap on the hit areas of a stack of items: the `gap-0.5` of the stack (`TouchTarget`). */
 const stackTargets = '[--touch-target-gap-y:--spacing(0.5)]'
 
+/**
+ * The scroll of the nav and of its body: on the vertical axis only. A sidebar
+ * never scrolls on the horizontal axis. A vertical scroller also scrolls its
+ * horizontal overflow, and on a coarse pointer the hit area of a small control
+ * at the edge (`TouchTarget`) goes past the edge. The horizontal axis thus
+ * clips, and a label that is too long truncates (`label`).
+ */
+const scroll = 'overflow-x-hidden overflow-y-auto overscroll-contain'
+
 export const k = {
-	base: [
-		'group/sidebar',
-		mini.rail,
-		'overflow-y-auto overscroll-contain',
-		flex.col,
-		dan.gap.y.lg,
-		'h-full',
-		'p-6',
-	],
+	base: ['group/sidebar', mini.rail, scroll, flex.col, dan.gap.y.lg, 'h-full', 'p-6'],
 	item: {
 		base: itemBase,
 		/** Wrapper-row surface for affixed items; pairs with `base({ chrome: 'row' })`. */
@@ -148,7 +149,7 @@ export const k = {
 	list: [flex.col, 'gap-0.5', stackTargets],
 	label: ['truncate', mini.srOnly],
 	header: [flex.row, dan.gap.scale.md],
-	body: ['overflow-y-auto overscroll-contain', flex.col, flex.fill, dan.gap.scale.lg],
+	body: [scroll, flex.col, flex.fill, dan.gap.scale.lg],
 	divider: divider.top,
 	footer: ['sticky bottom-0', flex.col, 'gap-0.5', stackTargets, 'mt-auto'],
 	// A sidebar item has the form of a nav item. The mini rail removes the label

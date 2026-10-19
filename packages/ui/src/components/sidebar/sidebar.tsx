@@ -53,6 +53,10 @@ export type SidebarProps = Omit<ComponentProps<'nav'>, 'aria-label'> & {
  * and the arrow keys move from there. Tell the reader about the arrow keys in
  * the content of the page when the readers need the hint.
  *
+ * The sidebar scrolls on the vertical axis only. It never scrolls on the
+ * horizontal axis: content that is too wide clips, and a `SidebarLabel` that is
+ * too long truncates.
+ *
  * Content that has to differ between the full sidebar and the mini rail reads
  * the resolved state with {@link useSidebarMini}, from a component inside the
  * sidebar. The state needs no width, so the server renders it too.
