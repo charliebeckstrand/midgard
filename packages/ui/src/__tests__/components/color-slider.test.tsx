@@ -304,5 +304,13 @@ describe('ColorPanel in a locale', () => {
 			'aria-valuetext',
 			'Saturación 50 %, brillo 50 %',
 		)
+
+		// The hue and the opacity give their values in the number format of the locale.
+		expect(screen.getByRole('slider', { name: 'Tono' })).toHaveAttribute('aria-valuetext', '180°')
+
+		expect(screen.getByRole('slider', { name: 'Opacidad' })).toHaveAttribute(
+			'aria-valuetext',
+			'50\u00a0%',
+		)
 	})
 })
