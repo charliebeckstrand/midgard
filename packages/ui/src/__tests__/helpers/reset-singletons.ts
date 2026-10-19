@@ -14,7 +14,7 @@ import { __resetTextSelectionHold } from '../../utilities/hold-text-selection'
  * and a new seam reaches every suite at once. Each reset also takes the hook it
  * needs here, because they need different ones.
  *
- * It is deliberately short. Eight modules hold module-scope state, and each
+ * It is deliberately short. More modules hold module-scope state, and each
  * needs a measurement before it gains a seam. A proposed seam for the
  * media-query registries turned out to guard nothing: a registry drops itself
  * when its last subscriber unsubscribes, and cleanup unmounts every subscriber.

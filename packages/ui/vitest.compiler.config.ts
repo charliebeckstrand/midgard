@@ -47,8 +47,8 @@ export default mergeConfig(base, {
 					// and not after the last group. As a last group, it ran alone while the
 					// other workers waited.
 					sequence: { groupOrder: 0 },
-					// The file compiles about 800 modules, which takes longer than the
-					// default limit. Each shard compiles its part of them.
+					// The file compiles each module, which takes longer than the
+					// default limit. Each shard compiles its part of the modules.
 					testTimeout: 120_000,
 				},
 			},

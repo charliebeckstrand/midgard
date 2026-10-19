@@ -4,7 +4,7 @@
 // has to precede it and cannot live in `vitest.config.ts` beside `TZ`; the
 // package's `test` scripts export it. Running vitest by any other route — `npx
 // vitest`, an IDE runner, a debugger launch — skips them, so fail once and say
-// why rather than let ~78 assertions fail for no visible reason.
+// why rather than let the locale assertions fail for no visible reason.
 //
 // Shared by the jsdom setup (`index.ts`) and the `pure` project, which runs no
 // other setup: the format tests live there.

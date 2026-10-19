@@ -82,9 +82,9 @@ beforeEach(() => commands.parkPointer())
 afterEach((ctx) => {
 	// Read before cleanup, so the dump describes the page the failing test left,
 	// and only when there is a failure to explain: the runner sets the result
-	// state before it calls this hook, so the 583 green tests of a clean run pay
+	// state before it calls this hook, so the green tests of a clean run pay
 	// nothing. A dump built for every test would force a layout flush on the
-	// largest tree in the suite, 583 times, and discard all but one.
+	// largest tree in the suite for each test, and discard all but one.
 	if (ctx.task.result?.state === 'fail') console.error(`page state at failure:\n  ${pageState()}`)
 
 	// As in the jsdom setup: the spies, the stubs, and a fake clock that a case

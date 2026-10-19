@@ -85,8 +85,8 @@ function barrelFiles(): string[] {
 /**
  * Compiler options the program builds under, as a tsconfig file writes them.
  *
- * @remarks `noLib` drops the standard library, which is 93 files and 3MB of the
- * text the program would otherwise parse — the single largest share, and read by
+ * @remarks `noLib` drops the standard library, the text the program would
+ * otherwise parse in the single largest share, and read by
  * nothing here (see {@link withheld}). It is stated rather than left to the
  * path rule below, which would catch `lib.*.d.ts` only for as long as the
  * `typescript` package keeps resolving under a `node_modules` segment.
@@ -109,8 +109,8 @@ const PROGRAM_OPTIONS = {
  *
  * @remarks The barrels reach the whole dependency graph. The server withholds
  * the text of each dependency, and `PROGRAM_OPTIONS` drops the library. The
- * program then has 1,602 files and 6.3MB of text, in place of 2,031 files and
- * 11.3MB. The server parses in parallel, so the smaller program builds faster.
+ * program then has fewer files and much less text. The server parses in
+ * parallel, so the smaller program builds faster.
  * The walk takes most of the rest, because each hop of an alias chain is a
  * call to the server.
  *

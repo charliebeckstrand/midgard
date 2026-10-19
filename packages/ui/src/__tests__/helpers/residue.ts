@@ -15,8 +15,8 @@ import { type GlobalListener, liveGlobalListeners, watchGlobalListeners } from '
  * The check reports at the culprit and then absorbs the leak. The test that
  * left the state fails, and the tests after it are not punished for it. Without
  * that, a leak is only ever visible as a failure somewhere downstream. That is
- * how a missing `__resetAnnouncer` call in the browser setup survived a suite
- * that passes 583 tests.
+ * how a missing `__resetAnnouncer` call in the browser setup survived a green
+ * suite.
  *
  * What it watches is every surface a shipped module is known to write outside
  * a React tree, the document click gate {@link swallowsClicks} reads, and the

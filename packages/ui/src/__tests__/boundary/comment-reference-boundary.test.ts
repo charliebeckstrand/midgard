@@ -43,7 +43,7 @@ import { isSourceFile, srcDir, srcRelative } from '../helpers/walk-source'
 //   `core/aria-attr.ts` links `dataAttr`, which lives in its sibling. So a
 //   checker resolves the target against the file's own scope and answers
 //   "absent" for a symbol that is present in the package. Measured against a
-//   program over every barrel, that reads 1,255 of 3,759 sites as unresolved.
+//   program over every barrel, that reads many sites as unresolved.
 //   Such a program is also blind to every file no barrel reaches, and
 //   `__benchmarks__/fixtures.ts` carried one of the five defects that the hand
 //   sweep found.
