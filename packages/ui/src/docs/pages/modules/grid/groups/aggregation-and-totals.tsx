@@ -1,5 +1,5 @@
 import { Grid } from 'ui/grid'
-import { sales, salesColumns } from './data.ts'
+import { sales, salesColumns } from './data.tsx'
 
 export default function AggregationAndTotals() {
 	return (

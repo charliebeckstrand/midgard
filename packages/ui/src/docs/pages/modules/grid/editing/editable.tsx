@@ -59,8 +59,8 @@ export default function Editable() {
 		<>
 			<EditHelp label="Editing help">
 				<PointerHint
-					mouse="Double-click a cell, press F2, start typing, or click the pencil to edit its row: every cell becomes an editor at once. Tab moves between them. Enter saves the row's changes together and moves down a row, as the check saves them in place. Escape discards them."
-					touch="Tap the pencil to edit its row: every cell becomes an editor at once. The check saves the row's changes, and the cross discards them."
+					mouse="Double-click a cell or click the pencil to edit its row."
+					touch="Tap the pencil to edit its row."
 				/>
 			</EditHelp>
 			<Grid

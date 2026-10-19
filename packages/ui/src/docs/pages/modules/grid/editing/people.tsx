@@ -1,21 +1,20 @@
 import { Info } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { Badge } from 'ui/badge'
 import { Button } from 'ui/button'
 import { Flex } from 'ui/flex'
 import type { GridCellChange, GridColumn, GridEditCellContext } from 'ui/grid'
 import { Icon } from 'ui/icon'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
+import { people, roles, StatusBadge } from '../data.tsx'
 
 export type Person = { id: number; name: string; email: string; role: string; active: boolean }
 
-export const initialPeople: Person[] = [
-	{ id: 1, name: 'Wade Cooper', email: 'wade@example.com', role: 'Developer', active: true },
-	{ id: 2, name: 'Arlene McCoy', email: 'arlene@example.com', role: 'Designer', active: true },
-	{ id: 3, name: 'Devon Webb', email: 'devon@example.com', role: 'Manager', active: false },
-	{ id: 4, name: 'Tom Cook', email: 'tom@example.com', role: 'Developer', active: true },
-]
+// The first four people of the page. The status is a yes or no value, so the
+// grid gives the Active column a yes or no editor.
+export const initialPeople: Person[] = people
+	.slice(0, 4)
+	.map(({ status, ...person }) => ({ ...person, active: status === 'active' }))
 
 /**
  * Applies the saved changes to the rows. Each change sets the field of its
@@ -60,7 +59,7 @@ export function EditHelp({ label, children }: { label: string; children: ReactNo
 
 /**
  * An editor for the `editCell` slot of a column: a listbox of options. It
- * stages the picked option, and the save of the row commits it.
+ * stages the selected option, and the save of the row commits it.
  */
 export function CellListbox({
 	value,
@@ -89,10 +88,7 @@ export function CellListbox({
 	)
 }
 
-const roleOptions = ['Developer', 'Designer', 'Manager', 'Analyst'].map((role) => ({
-	label: role,
-	value: role,
-}))
+const roleOptions = roles.map((role) => ({ label: role, value: role }))
 
 // Name and Email get a text editor, and Active gets a yes or no listbox, from
 // the type of the value. Role gets a listbox of its own.
@@ -117,9 +113,7 @@ export const personColumns: GridColumn<Person>[] = [
 		id: 'active',
 		title: 'Active',
 		field: 'active',
-		cell: (row) => (
-			<Badge color={row.active ? 'green' : 'zinc'}>{row.active ? 'Active' : 'Inactive'}</Badge>
-		),
+		cell: (row) => <StatusBadge status={row.active ? 'active' : 'inactive'} />,
 	},
 ]
 

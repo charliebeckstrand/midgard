@@ -44,7 +44,7 @@ function addControlOf(choice: AddControl): GridEditableConfig['newRowAdd'] {
 function refuseNewPerson(values: Record<string, unknown>): GridCellRefusal[] {
 	const name = String(values.name ?? '').trim()
 
-	return name === '' ? [{ rowKey: 'new', columnId: 'name', error: 'A name is required' }] : []
+	return name === '' ? [{ rowKey: 'new', columnId: 'name', error: 'Enter a name.' }] : []
 }
 
 export default function NewRow() {
@@ -111,8 +111,8 @@ export default function NewRow() {
 				</Flex>
 				<EditHelp label="New row help">
 					<PointerHint
-						mouse="The blank row adds a person. Fill its cells, then press Enter or the Add control at the end of the row. Escape clears the row. A name is required. The second segment sets the Add control: the button of the grid, a custom one, or none, so that only Enter adds the row."
-						touch="The blank row adds a person. Fill its cells, then tap the Add control at the end of the row or the Return key. A name is required. The second segment sets the Add control: the button of the grid, a custom one, or none, so that only the Return key adds the row."
+						mouse="Fill in the blank row, then press Enter to add the person."
+						touch="Fill in the blank row, then press Return to add the person."
 					/>
 				</EditHelp>
 			</Flex>

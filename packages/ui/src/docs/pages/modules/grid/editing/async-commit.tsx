@@ -13,7 +13,7 @@ function refuseNames(changes: GridCellChange[]): GridCellRefusal[] {
 			{
 				rowKey: change.rowKey,
 				columnId: change.columnId,
-				error: name === '' ? 'A name is required' : 'Name refused',
+				error: name === '' ? 'Enter a name.' : 'Enter a different name.',
 			},
 		]
 	})
@@ -43,9 +43,7 @@ export default function AsyncCommit() {
 	return (
 		<>
 			<EditHelp label="Async commit help">
-				Each save takes a moment, as a save to a server does. While it runs, the cell pulses and
-				cannot open. The save refuses an empty name and the name Error. A refused cell opens again
-				with your value and the reason under it.
+				Save an empty name, or the name Error, to see the server refuse it.
 			</EditHelp>
 			<Grid
 				columns={personColumns}

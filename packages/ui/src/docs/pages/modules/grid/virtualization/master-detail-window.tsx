@@ -1,6 +1,6 @@
 import { Grid, type GridColumn } from 'ui/grid'
 import { Text } from 'ui/text'
-import { columns, manyPeople, type Person } from '../data.tsx'
+import { columns, manyPeople, type Person, statusLabels } from '../data.tsx'
 
 const expandColumns: GridColumn<Person>[] = [{ id: 'expand', expander: true }, ...columns]
 
@@ -19,7 +19,7 @@ export default function MasterDetailWindow() {
 			expandable={{
 				render: (row) => (
 					<Text size="sm" tone="muted">
-						{row.email} · {row.role} · currently {row.status}
+						{row.email} · {row.role} · {statusLabels[row.status]}
 					</Text>
 				),
 			}}

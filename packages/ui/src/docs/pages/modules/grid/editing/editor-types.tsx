@@ -3,14 +3,14 @@ import { Badge } from 'ui/badge'
 import { CurrencyInput } from 'ui/currency-input'
 import { DatePicker } from 'ui/date-picker'
 import { Grid, type GridColumn, type GridEditCellContext } from 'ui/grid'
-import { useFormat } from 'ui/providers/locale'
-import { CellListbox, EditHelp } from './people.tsx'
+import { useIntl } from 'ui/primitives/intl'
+import { CellListbox } from './people.tsx'
 
 type Task = {
 	id: number
 	title: string
 	status: string
-	due: string
+	due: Date
 	done: boolean
 	budget: number
 }
@@ -20,43 +20,43 @@ const tasks: Task[] = [
 		id: 1,
 		title: 'Fix login redirect',
 		status: 'in-progress',
-		due: '2026-01-15',
+		due: new Date(2026, 0, 15),
 		done: false,
 		budget: 1200,
 	},
-	{ id: 2, title: 'Add dark mode', status: 'todo', due: '2026-03-01', done: false, budget: 800 },
-	{ id: 3, title: 'Write API docs', status: 'done', due: '2026-02-10', done: true, budget: 500 },
+	{
+		id: 2,
+		title: 'Add dark mode',
+		status: 'todo',
+		due: new Date(2026, 2, 1),
+		done: false,
+		budget: 800,
+	},
+	{
+		id: 3,
+		title: 'Write API docs',
+		status: 'done',
+		due: new Date(2026, 1, 10),
+		done: true,
+		budget: 500,
+	},
 ]
 
 const statusOptions = [
-	{ label: 'Todo', value: 'todo' },
+	{ label: 'To do', value: 'todo' },
 	{ label: 'In progress', value: 'in-progress' },
 	{ label: 'Done', value: 'done' },
 ]
 
-function isoToDate(iso: string): Date | undefined {
-	const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso)
-
-	return match ? new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3])) : undefined
-}
-
-function dateToIso(date: Date): string {
-	const month = String(date.getMonth() + 1).padStart(2, '0')
-
-	const day = String(date.getDate()).padStart(2, '0')
-
-	return `${date.getFullYear()}-${month}-${day}`
-}
-
-// A date editor: a typed DatePicker that stages an ISO date.
+// A date editor: a typed DatePicker that stages a date.
 function CellDate({ value, onValueUpdate, ariaLabel }: GridEditCellContext<unknown>) {
 	return (
 		<DatePicker
 			input
 			format="YYYY-MM-DD"
 			aria-label={ariaLabel}
-			value={typeof value === 'string' ? isoToDate(value) : undefined}
-			onValueChange={(date) => onValueUpdate(date ? dateToIso(date) : '')}
+			value={value instanceof Date ? value : undefined}
+			onValueChange={(date) => onValueUpdate(date ?? undefined)}
 		/>
 	)
 }
@@ -73,9 +73,11 @@ function CellCurrency({ value, onValueUpdate, ariaLabel }: GridEditCellContext<u
 }
 
 export default function EditorTypes() {
-	const money = useFormat({ type: 'currency' })
+	const intl = useIntl()
 
 	// Each row stays in edit mode, so each editor shows at once, and no row saves.
+	// Title gets a text editor and Done a yes or no listbox, from the type of the
+	// value. Status, Due, and Budget get an editor through the `editCell` slot.
 	const editing = useMemo(() => new Set<string | number>(tasks.map((task) => task.id)), [])
 
 	const columns = useMemo(
@@ -96,12 +98,18 @@ export default function EditorTypes() {
 					/>
 				),
 			},
-			{ id: 'due', title: 'Due', field: 'due', cell: (row) => row.due, editCell: CellDate },
+			{
+				id: 'due',
+				title: 'Due',
+				field: 'due',
+				cell: (row) => intl.formatDate(row.due, { dateStyle: 'medium' }),
+				editCell: CellDate,
+			},
 			{
 				id: 'budget',
 				title: 'Budget',
 				field: 'budget',
-				cell: (row) => money(row.budget),
+				cell: (row) => intl.formatNumber(row.budget, { style: 'currency', currency: 'USD' }),
 				editCell: CellCurrency,
 			},
 			{
@@ -111,21 +119,15 @@ export default function EditorTypes() {
 				cell: (row) => <Badge color={row.done ? 'green' : 'zinc'}>{row.done ? 'Yes' : 'No'}</Badge>,
 			},
 		],
-		[money],
+		[intl],
 	)
 
 	return (
-		<>
-			<EditHelp label="Editor types help">
-				Title is a text cell and Done a yes/no listbox, from the type of the value. Status, Due, and
-				Budget edit through listbox, date-picker, and currency slots.
-			</EditHelp>
-			<Grid
-				columns={columns}
-				rows={tasks}
-				getKey={(row) => row.id}
-				editable={{ rows: editing, onCommit: () => {} }}
-			/>
-		</>
+		<Grid
+			columns={columns}
+			rows={tasks}
+			getKey={(row) => row.id}
+			editable={{ rows: editing, onCommit: () => {} }}
+		/>
 	)
 }
