@@ -1,7 +1,7 @@
 import { act } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { renderToString } from 'react-dom/server'
-import { onTestFinished, vi } from 'vitest'
+import { vi } from 'vitest'
 
 /**
  * A controlled `IntersectionObserver` for the suites of a mount policy, and the
@@ -33,10 +33,8 @@ export type ControlledObserver = {
  * A suite that states the deferral of a mount policy replaces that stub with
  * this one. Call it in a case or in a `beforeEach`.
  *
- * When the case ends, the helper puts the previous observer back, so no caller
- * restores it. The `unstubGlobals` option restores a global only before the
- * next test. The unit project shares one window across the files of a worker.
- * Without this step, the stub of the last case in a file stays in the next file.
+ * The setups put the previous observer back after each test
+ * (`restore-test-state.ts`), so no caller restores it.
  *
  * @returns The controls of the observer.
  */
@@ -65,13 +63,7 @@ export function installControlledObserver(): ControlledObserver {
 		}
 	}
 
-	const prev = window.IntersectionObserver
-
 	vi.stubGlobal('IntersectionObserver', Observer)
-
-	onTestFinished(() => {
-		window.IntersectionObserver = prev
-	})
 
 	const send = (entries: typeof targets, isIntersecting: boolean) => {
 		act(() => {
@@ -92,7 +84,8 @@ export function installControlledObserver(): ControlledObserver {
 }
 
 /**
- * The server markup of `element`.
+ * The server markup of `element`, as HTML text. `serverMarkup` of
+ * `helpers/hydrate.tsx` gives the same markup in a node.
  *
  * @remarks
  * A server has no `IntersectionObserver`, so the markup renders with no
@@ -102,7 +95,7 @@ export function installControlledObserver(): ControlledObserver {
  * @param element - The element to render.
  * @returns The markup.
  */
-export function serverMarkup(element: ReactElement): string {
+export function serverHtml(element: ReactElement): string {
 	const observer = window.IntersectionObserver
 
 	Reflect.deleteProperty(window, 'IntersectionObserver')

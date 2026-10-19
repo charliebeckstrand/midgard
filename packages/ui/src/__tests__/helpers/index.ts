@@ -15,7 +15,7 @@ export { gridCells } from './grid-cells'
 export { sampleDrift, watchReveals, windowBody } from './grid-window'
 export { holdMouse } from './hold-mouse'
 // `axe`/`axePage` are intentionally not re-exported here: this barrel is imported
-// by ~360 test files, and a re-export evaluates ./axe in every one of them,
+// by most test files, and a re-export evaluates ./axe in every one of them,
 // loading axe-core suite-wide. The a11y suites import them directly from './axe'.
 export { expectAnnouncement, flushAnnouncer, liveRegion } from './live-region'
 export { makeCanvasContext } from './make-canvas-context'

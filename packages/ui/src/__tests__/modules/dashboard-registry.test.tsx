@@ -13,7 +13,7 @@ import {
 	useDashboardScope,
 } from '../../modules/dashboard'
 import { allBySlot, bySlot, fireEvent, renderUI, screen } from '../helpers'
-import { serverMarkup } from '../helpers/controlled-intersection'
+import { serverHtml } from '../helpers/controlled-intersection'
 import { pressSplitter, stubCanvasWidth, useControlledLayout } from '../helpers/dashboard-board'
 
 stubCanvasWidth()
@@ -420,7 +420,7 @@ describe('DashboardWidgetProvider', () => {
 
 	it('applies its mount policy to each spec tile', () => {
 		// A server has no observer, so a held tile renders its fallback there.
-		const html = serverMarkup(
+		const html = serverHtml(
 			<DashboardWidgetProvider widgets={WIDGETS} mount="lazy">
 				<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }}>
 					<DashboardTiles tiles={TILES} />

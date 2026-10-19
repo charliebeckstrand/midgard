@@ -7,7 +7,7 @@ import { attach, bySlot, getSlot, renderUI, screen } from '../helpers'
 import {
 	type ControlledObserver,
 	installControlledObserver,
-	serverMarkup,
+	serverHtml,
 } from '../helpers/controlled-intersection'
 import { hydrate } from '../helpers/hydrate'
 
@@ -178,7 +178,7 @@ describe('the mount policy', () => {
 
 describe.each(['lazy', 'active'] as const)('a held-back embed on the server, under %s', (mount) => {
 	it('reserves its space in the server markup, and draws no view', () => {
-		const html = serverMarkup(<Message mount={mount} />)
+		const html = serverHtml(<Message mount={mount} />)
 
 		expect(html).toContain('data-deferred')
 
@@ -190,7 +190,7 @@ describe.each(['lazy', 'active'] as const)('a held-back embed on the server, und
 	it('hydrates the server markup with no mismatch, and draws once the reader reaches it', () => {
 		const container = attach(document.createElement('div'))
 
-		container.innerHTML = serverMarkup(<Message mount={mount} />)
+		container.innerHTML = serverHtml(<Message mount={mount} />)
 
 		const { onRecoverableError } = hydrate(container, <Message mount={mount} />)
 
@@ -208,7 +208,7 @@ describe('an embed under always, on the server', () => {
 	it('draws in the server markup, and hydrates with no mismatch', () => {
 		const container = attach(document.createElement('div'))
 
-		const html = serverMarkup(<Message mount="always" />)
+		const html = serverHtml(<Message mount="always" />)
 
 		expect(html).toContain('drawn')
 
