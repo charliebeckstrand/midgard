@@ -7,10 +7,12 @@ import { Icon } from '../../components/icon'
 import { List, ListItem } from '../../components/list'
 import { Text } from '../../components/text'
 import { cn } from '../../core'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/events'
 import { Flex } from '../../structure/flex'
 import { markdownOf, titleOf } from './engine/events-report'
 import type { EventEntry, EventReport } from './engine/types'
+import { eventsMessages } from './events-messages'
 
 /** An event with a report. */
 export type ReportEntry = EventEntry & { report: EventReport }
@@ -33,6 +35,8 @@ function ReportLine({
 	onView: () => void
 	onDelete: () => void
 }) {
+	const intl = useIntl()
+
 	const { report } = entry
 
 	return (
@@ -41,11 +45,21 @@ function ReportLine({
 			className="text-start"
 			suffix={
 				<Flex align="center" gap="sm">
-					<Button variant="bare" size="sm" aria-label="View" onClick={onView}>
+					<Button
+						variant="bare"
+						size="sm"
+						aria-label={intl.formatMessage(eventsMessages.viewReport)}
+						onClick={onView}
+					>
 						<Icon icon={<ListX />} />
 					</Button>
 					<CopyButton size="sm" icon={<Copy />} text={() => markdownOf(entry)} />
-					<Button variant="bare" size="sm" aria-label="Delete" onClick={onDelete}>
+					<Button
+						variant="bare"
+						size="sm"
+						aria-label={intl.formatMessage(eventsMessages.delete)}
+						onClick={onDelete}
+					>
 						<Icon icon={<Trash2 />} />
 					</Button>
 				</Flex>
@@ -83,13 +97,15 @@ export function EventsReportList({
 	onView: (id: number) => void
 	onDelete: (id: number) => void
 }) {
+	const intl = useIntl()
+
 	return (
 		<List
 			items={reports.toReversed()}
 			getKey={getKey}
 			variant="plain"
 			sortable={false}
-			aria-label="Bugs"
+			aria-label={intl.formatMessage(eventsMessages.bugs)}
 		>
 			{(entry) => (
 				<ReportLine

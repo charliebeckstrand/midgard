@@ -7,11 +7,13 @@ import { Icon } from '../../components/icon'
 import { JsonTree } from '../../components/json-tree'
 import { List, ListItem } from '../../components/list'
 import { cn } from '../../core'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/events'
 import { Flex } from '../../structure/flex'
 import { getOrCompute } from '../../utilities/get-or-compute'
 import { columns, type EventRow, summaryOf } from './engine/events-text'
 import type { EventEntry } from './engine/types'
+import { eventsMessages } from './events-messages'
 
 // The key of each line. An event is an object that the store keeps until it
 // drops the event, so the key of a line stays while the line stays.
@@ -115,6 +117,8 @@ type LineProps = {
 
 /** The line of one event. Its detail opens in a tree. */
 function EntryLine({ entry, width, state }: Omit<LineProps, 'onReport'> & { entry: EventEntry }) {
+	const intl = useIntl()
+
 	const key = getKey([entry])
 
 	return (
@@ -123,7 +127,11 @@ function EntryLine({ entry, width, state }: Omit<LineProps, 'onReport'> & { entr
 			text={entry.text}
 			panel={
 				entry.detail === undefined || entry.report ? undefined : (
-					<JsonTree data={entry.detail} collapsible={false} aria-label="Details" />
+					<JsonTree
+						data={entry.detail}
+						collapsible={false}
+						aria-label={intl.formatMessage(eventsMessages.details)}
+					/>
 				)
 			}
 			width={width}
@@ -162,6 +170,8 @@ export function EventsList({
 	onReport,
 	...props
 }: LineProps & { rows: readonly EventRow[] }) {
+	const intl = useIntl()
+
 	// The list renders the lines in the view of the body, so a long list opens
 	// as fast as a short one.
 	return (
@@ -171,7 +181,7 @@ export function EventsList({
 			variant="plain"
 			sortable={false}
 			virtual
-			aria-label="Events"
+			aria-label={intl.formatMessage(eventsMessages.events)}
 		>
 			{(row) => {
 				const { report, id } = row[0]
