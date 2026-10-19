@@ -6,6 +6,7 @@ import { useEscapeLayer } from '../../hooks/use-escape-layer'
 import { useSortableItem } from '../../hooks/use-sortable-item'
 import { useSortableSensors } from '../../hooks/use-sortable-sensors'
 import { renderUI } from '../helpers'
+import { keyboardSensorAttached, pointerSensorDetached } from '../helpers/dnd-kit'
 
 /**
  * A drag inside a dismissable surface, such as a dialog. Each sensor of dnd-kit
@@ -46,10 +47,7 @@ async function lift(grip: HTMLElement) {
 		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
 	})
 
-	// The keyboard sensor adds its key listener after a timeout.
-	await act(async () => {
-		await new Promise((resolve) => setTimeout(resolve, 20))
-	})
+	await keyboardSensorAttached()
 }
 
 async function press(target: HTMLElement, code: string, key: string) {
@@ -112,10 +110,7 @@ describe('useSortableSensors in a dismissable surface', () => {
 
 		expect(onDismiss).toHaveBeenCalledTimes(1)
 
-		// The pointer sensor removes its document listeners 50 ms after the drag.
-		await act(async () => {
-			await new Promise((resolve) => setTimeout(resolve, 60))
-		})
+		await pointerSensorDetached()
 	})
 
 	it('gives Escape back to the surface after a drop', async () => {

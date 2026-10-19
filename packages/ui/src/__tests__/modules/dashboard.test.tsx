@@ -49,6 +49,7 @@ import {
 	stubCanvasWidth,
 	useControlledLayout,
 } from '../helpers/dashboard-board'
+import { keyboardSensorAttached, pointerSensorDetached } from '../helpers/dnd-kit'
 
 const LAYOUT: DashboardLayoutItem[] = [
 	{ id: 'a', x: 0, y: 0, w: 12 },
@@ -131,9 +132,6 @@ function dragNarration(): string {
 
 /** The press of the main mouse button, which the pointer sensor needs. */
 const PRIMARY = { isPrimary: true, button: 0 }
-
-/** Lets dnd-kit remove its click guard from the document, 50 ms after a release. */
-const teardown = () => act(() => new Promise((resolve) => setTimeout(resolve, 60)))
 
 describe('Dashboard', () => {
 	it('renders each tile with a layout entry on the server, at its saved cell', () => {
@@ -371,8 +369,7 @@ describe('Dashboard', () => {
 
 		expect(card).toHaveAttribute('data-dragging')
 
-		// The keyboard sensor attaches its keys on a timer after the lift.
-		await act(tick)
+		await keyboardSensorAttached()
 
 		fireEvent.keyDown(grip, { code: 'Escape', key: 'Escape' })
 
@@ -397,8 +394,7 @@ describe('Dashboard', () => {
 
 		expect(grip).not.toHaveClass('focus-visible:outline-blue-600')
 
-		// The keyboard sensor attaches its keys on a timer after the lift.
-		await act(tick)
+		await keyboardSensorAttached()
 
 		fireEvent.keyDown(grip, { code: 'Escape', key: 'Escape' })
 
@@ -426,8 +422,7 @@ describe('Dashboard', () => {
 
 		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
 
-		// The keyboard sensor attaches its keys on a timer after the lift.
-		await act(tick)
+		await keyboardSensorAttached()
 
 		fireEvent.keyDown(grip, { code: 'Escape', key: 'Escape' })
 
@@ -518,7 +513,7 @@ describe('Dashboard', () => {
 			expect.objectContaining({ id: 'a', canceled: false }),
 		)
 
-		await teardown()
+		await pointerSensorDetached()
 	})
 
 	it('starts no drag from a press on the card outside the grip', async () => {
@@ -538,7 +533,7 @@ describe('Dashboard', () => {
 
 		fireEvent.pointerUp(document, { ...PRIMARY, clientX: 10, clientY: 0 })
 
-		await teardown()
+		await pointerSensorDetached()
 	})
 
 	it('starts no drag from a press on a tile control that moves', async () => {
@@ -558,7 +553,7 @@ describe('Dashboard', () => {
 
 		fireEvent.pointerUp(document, { ...PRIMARY, clientX: 10, clientY: 0 })
 
-		await teardown()
+		await pointerSensorDetached()
 	})
 
 	it.each([
@@ -619,7 +614,7 @@ describe('Dashboard', () => {
 
 		expect(onPress).toHaveBeenCalledTimes(1)
 
-		await teardown()
+		await pointerSensorDetached()
 	})
 
 	it('reports each change of the projection to the app', () => {
@@ -746,8 +741,7 @@ describe('Dashboard', () => {
 
 		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
 
-		// The keyboard sensor attaches its keys on a timer after the lift.
-		await act(tick)
+		await keyboardSensorAttached()
 
 		renders.clear()
 
@@ -788,8 +782,7 @@ describe('Dashboard', () => {
 
 		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
 
-		// The keyboard sensor attaches its keys on a timer after the lift.
-		await act(tick)
+		await keyboardSensorAttached()
 
 		const listener = vi.fn()
 
@@ -1824,7 +1817,7 @@ describe('Dashboard gesture owner', () => {
 
 		fireEvent.keyDown(grip, { code: 'Enter', key: 'Enter' })
 
-		await teardown()
+		await pointerSensorDetached()
 
 		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: LAYOUT })
 
@@ -1861,7 +1854,7 @@ describe('Dashboard gesture owner', () => {
 
 		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: LAYOUT })
 
-		await teardown()
+		await pointerSensorDetached()
 
 		rerender(<Controlled onLayout={onLayout} onDragEnd={onDragEnd} />)
 
@@ -1873,7 +1866,7 @@ describe('Dashboard gesture owner', () => {
 
 		expect(onDragEnd).toHaveBeenCalledTimes(2)
 
-		await teardown()
+		await pointerSensorDetached()
 	})
 
 	it('narrates a drop that changes nothing, and ends it once as canceled', async () => {

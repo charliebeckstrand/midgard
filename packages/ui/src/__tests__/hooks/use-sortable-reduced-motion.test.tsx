@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { useSortableItem } from '../../hooks/use-sortable-item'
 import { useSortableSensors } from '../../hooks/use-sortable-sensors'
 import { renderUI, stubMatchMedia } from '../helpers'
+import { keyboardSensorAttached } from '../helpers/dnd-kit'
 
 /**
  * Under reduced motion, the sortable reflow must not carry the default
@@ -51,17 +52,13 @@ describe('useSortableItem under reduced motion', () => {
 			fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
 		})
 
-		await act(async () => {
-			await new Promise((resolve) => setTimeout(resolve, 20))
-		})
+		await keyboardSensorAttached()
 
 		await act(async () => {
 			fireEvent.keyDown(grip, { code: 'ArrowDown', key: 'ArrowDown' })
 		})
 
-		await act(async () => {
-			await new Promise((resolve) => setTimeout(resolve, 20))
-		})
+		await keyboardSensorAttached()
 
 		const transition = screen.getByTestId('b').style.transition
 

@@ -1,4 +1,4 @@
-import { act, fireEvent, screen } from '@testing-library/react'
+import { fireEvent, screen } from '@testing-library/react'
 import { useLayoutEffect, useRef, useState } from 'react'
 import { afterEach, beforeEach, type Mock } from 'vitest'
 import {
@@ -9,7 +9,7 @@ import {
 } from '../../modules/dashboard'
 import { useDashboardStoreContext } from '../../modules/dashboard/context'
 import type { DashboardStore } from '../../modules/dashboard/engine/dashboard-store'
-import { tick } from './frames'
+import { keyboardSensorAttached } from './dnd-kit'
 import { present } from './present'
 
 /**
@@ -69,7 +69,7 @@ export function stubCanvasWidth(width = 1200): void {
  * keyboard.
  */
 export function settleKeyboardLifts(): void {
-	afterEach(() => act(tick))
+	afterEach(keyboardSensorAttached)
 }
 
 /**

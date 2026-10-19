@@ -9,6 +9,7 @@ import {
 	settleKeyboardLifts,
 	stubCanvasWidth,
 } from '../helpers/dashboard-board'
+import { pointerSensorDetached } from '../helpers/dnd-kit'
 
 // A canvas of 1200 px gives a pitch of 50 px at 24 columns.
 stubCanvasWidth()
@@ -203,8 +204,7 @@ describe('the glide of a dashboard tile', () => {
 
 		fireEvent.pointerUp(document, { ...PRIMARY, clientX: 10, clientY: 0 })
 
-		// dnd-kit removes its click guard from the document 50 ms after a release.
-		await act(() => new Promise((resolve) => setTimeout(resolve, 60)))
+		await pointerSensorDetached()
 
 		expect(cancels).toBe(1)
 	})

@@ -1,7 +1,8 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { Component, type ReactNode } from 'react'
 import { MemoryRouter } from 'react-router'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { beforeAll, describe, expect, it, onTestFinished, vi } from 'vitest'
+import { tick } from '../../__tests__/helpers/frames.ts'
 import { ApiTable } from '../kit/api-table.tsx'
 import { ExampleFrame } from '../kit/example.tsx'
 import type { BarrelApi } from '../plugin/api.ts'
@@ -131,13 +132,16 @@ const THING: BarrelApi = {
 }
 
 describe('ApiTable', () => {
+	// The first load of the entry chunk compiles `marked` and the Markdown of `ui`.
+	// It loads once here, so each case waits on its own work only.
+	beforeAll(() => import('../kit/api-entry.tsx'))
+
 	it('opens an entry with its props in it', async () => {
 		renderTable(THING)
 
 		fireEvent.click(screen.getByRole('button', { name: '<Thing />' }))
 
-		// The first load of the entry chunk compiles `marked` and the Markdown of `ui`.
-		const panel = await screen.findByRole('region', { name: '<Thing />' }, { timeout: 5000 })
+		const panel = await screen.findByRole('region', { name: '<Thing />' })
 
 		expect(panel.textContent).toContain('size')
 	})
@@ -154,9 +158,7 @@ describe('ApiTable', () => {
 
 		fireEvent.click(screen.getByRole('button', { name: '<Second />' }))
 
-		expect(
-			await screen.findByRole('region', { name: '<First />' }, { timeout: 5000 }),
-		).not.toBeNull()
+		expect(await screen.findByRole('region', { name: '<First />' })).not.toBeNull()
 
 		expect(screen.getByRole('region', { name: '<Second />' })).not.toBeNull()
 	})
@@ -169,7 +171,7 @@ describe('ApiTable', () => {
 
 		renderTable(THING, '/thing#api-Thing-size')
 
-		await screen.findByRole('region', { name: '<Thing />' }, { timeout: 5000 })
+		await screen.findByRole('region', { name: '<Thing />' })
 
 		await waitFor(() =>
 			expect(scroll.mock.contexts).toEqual([document.getElementById('api-Thing-size')]),
@@ -179,8 +181,13 @@ describe('ApiTable', () => {
 	it('keeps each entry closed when the hash names no entry of the barrel', async () => {
 		renderTable(THING, '/thing#api-Other-size')
 
-		// The entry chunk loads in idle time, so wait past it.
-		await act(() => new Promise((resolve) => setTimeout(resolve, 100)))
+		// Wait for the entry chunk, and then one task, so that an entry that the
+		// load opens is open.
+		await act(async () => {
+			await import('../kit/api-entry.tsx')
+
+			await tick()
+		})
 
 		expect(screen.queryByRole('region', { name: '<Thing />' })).toBeNull()
 	})

@@ -1,8 +1,7 @@
-import { act } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { Dashboard, type DashboardLayoutItem, DashboardTile } from '../../modules/dashboard'
 import { inlineSign } from '../../modules/dashboard/engine/dashboard-layout'
-import { fireEvent, renderUI, screen, tick } from '../helpers'
+import { fireEvent, renderUI, screen } from '../helpers'
 import {
 	lastEntry,
 	pressSplitter,
@@ -10,6 +9,7 @@ import {
 	stubCanvasWidth,
 	useControlledLayout,
 } from '../helpers/dashboard-board'
+import { keyboardSensorAttached } from '../helpers/dnd-kit'
 
 stubCanvasWidth()
 
@@ -89,8 +89,7 @@ describe('a right-to-left board', () => {
 
 		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
 
-		// The keyboard sensor attaches its keys on a timer after the lift.
-		await act(tick)
+		await keyboardSensorAttached()
 
 		fireEvent.keyDown(grip, { code, key: code })
 
