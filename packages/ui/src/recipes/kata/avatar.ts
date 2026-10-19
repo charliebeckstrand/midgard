@@ -67,7 +67,7 @@ export const k = defineRecipe(
 				'**:data-[slot=avatar]:outline-2 **:data-[slot=avatar]:outline-solid **:data-[slot=avatar]:outline-white dark:**:data-[slot=avatar]:outline-zinc-900',
 			/**
 			 * Overlap of each avatar onto the one before it, at the step of the
-			 * nearest density scope. The overlap and the ring together stay
+			 * nearest density scope. The overlap and the gap outline together stay
 			 * narrower than the space at the side of two initials, so the next
 			 * avatar does not cover the initials. The group keeps the value of its
 			 * step, so an avatar with its own `size` takes the overlap of the group.

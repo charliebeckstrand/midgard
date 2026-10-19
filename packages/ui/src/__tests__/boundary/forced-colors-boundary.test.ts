@@ -1,6 +1,7 @@
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { forced } from '../../recipes/kiso/sen/forced'
+import { classNames } from '../helpers/class-stops'
 import {
 	isSourceFile,
 	srcDir,
@@ -83,11 +84,11 @@ function parse(name: string): Parsed {
 
 /** The classes of a `forced.<name>` reference, or none when the path names no entry. */
 function entry(path: string): string[] {
-	const value = path
-		.split('.')
-		.reduce<unknown>((node, key) => (node as Record<string, unknown> | undefined)?.[key], forced)
-
-	return [value].flat(Number.POSITIVE_INFINITY).filter((v): v is string => typeof v === 'string')
+	return classNames([
+		path
+			.split('.')
+			.reduce<unknown>((node, key) => (node as Record<string, unknown> | undefined)?.[key], forced),
+	])
 }
 
 /** Each class in the string literals of a source file and in its `forced.<name>` references, parsed. */
@@ -96,9 +97,7 @@ function read(content: string): Parsed[] {
 
 	const literals = [...code.matchAll(/(['"`])((?:(?!\1)[^\\\n]|\\.)*)\1/g)].map((m) => m[2] ?? '')
 
-	const references = [...code.matchAll(/\bforced((?:\.\w+)+)/g)].flatMap((m) =>
-		entry((m[1] ?? '').slice(1)),
-	)
+	const references = [...code.matchAll(/\bforced\.([\w.]+)/g)].flatMap((m) => entry(m[1] ?? ''))
 
 	const names = [...literals, ...references].flatMap((s) => s.split(/\s+/).filter(Boolean))
 
@@ -124,18 +123,18 @@ function offenders(file: string, content: string): string[] {
 		.map(({ name, gate }) => `${file} ${gate || '(no gate)'} (${name})`)
 }
 
-/** Each source file of the recipes, the components, and the modules, by its path from `src`. */
-const sources = new Map<string, string>()
+/** The rings that break the rule in the recipes, the components, and the modules. */
+const found: string[] = []
 
 for (const dir of ['recipes', 'components', 'modules']) {
 	walkSource(join(srcDir, dir), (file, content) => {
-		if (isSourceFile(file) && !file.includes('__tests__')) sources.set(srcRelative(file), content)
+		if (isSourceFile(file)) found.push(...offenders(srcRelative(file), content))
 	})
 }
 
 describe('forced-colors fallbacks in ui', () => {
 	it('each ring comes from kiso or has a forced-colors fallback behind its gate', () => {
-		expect([...sources].flatMap(([file, content]) => offenders(file, content))).toEqual([])
+		expect(found).toEqual([])
 	})
 
 	it('finds a ring width in a kata', () => {

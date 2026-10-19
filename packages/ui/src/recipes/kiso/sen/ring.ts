@@ -25,7 +25,6 @@ const line = {
 		inset: ['ring-1 ring-inset', forced.outline, 'forced-colors:-outline-offset-1'],
 	},
 	2: {
-		outset: ['ring-2', forced.outline, 'forced-colors:outline-2'],
 		inset: [
 			'ring-2 ring-inset',
 			forced.outline,

@@ -4,7 +4,9 @@ import { cdp, page, userEvent } from 'vitest/browser'
 import { Accordion, AccordionItem, AccordionTrigger } from '../../components/accordion'
 import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
+import { ColorPicker } from '../../components/color'
 import { Combobox, ComboboxOption } from '../../components/combobox'
+import { DatePicker } from '../../components/date-picker'
 import { Input } from '../../components/input'
 import { JsonTree } from '../../components/json-tree'
 import { NavItem, NavList } from '../../components/nav'
@@ -133,8 +135,23 @@ const personColumns: GridColumn<Person>[] = [
 ]
 
 /** The control frame around a focused control. */
-function frame(focused: Element): Element | null {
+function controlFrame(focused: Element): Element | null {
 	return focused.closest('[data-slot="control-frame"]')
+}
+
+const input = <Input aria-label="Name" />
+
+const select = (
+	<Select aria-label="Fruit">
+		<SelectOption value="apple">Apple</SelectOption>
+	</Select>
+)
+
+/** A focus mark: the render, the element that draws the mark, and the pseudo-element that draws it. */
+type FocusMark = {
+	ui: ReactElement
+	mark: (focused: Element) => Element | null
+	pseudo?: string
 }
 
 /**
@@ -204,17 +221,13 @@ const focusMarks = {
 	// The focus ring of the control frame is a box-shadow on its `::after`. The
 	// `::after` draws the outline too.
 	'text input in a control frame': {
-		ui: <Input aria-label="Name" />,
-		mark: frame,
+		ui: input,
+		mark: controlFrame,
 		pseudo: '::after',
 	},
 	'select in a control frame': {
-		ui: (
-			<Select aria-label="Fruit">
-				<SelectOption value="apple">Apple</SelectOption>
-			</Select>
-		),
-		mark: frame,
+		ui: select,
+		mark: controlFrame,
 		pseudo: '::after',
 	},
 	'combobox in a control frame': {
@@ -223,10 +236,20 @@ const focusMarks = {
 				<ComboboxOption value="apple">Apple</ComboboxOption>
 			</Combobox>
 		),
-		mark: frame,
+		mark: controlFrame,
 		pseudo: '::after',
 	},
-} as const
+	'date picker in a control frame': {
+		ui: <DatePicker aria-label="Day" />,
+		mark: controlFrame,
+		pseudo: '::after',
+	},
+	'color picker in a control frame': {
+		ui: <ColorPicker aria-label="Color" />,
+		mark: controlFrame,
+		pseudo: '::after',
+	},
+} satisfies Record<string, FocusMark>
 
 /**
  * The computed outline of a focus mark after keyboard Tab moves focus into it.
@@ -235,15 +258,14 @@ const focusMarks = {
 async function markOutline(
 	name: keyof typeof focusMarks,
 ): Promise<{ style: string; width: string }> {
-	const entry: { ui: ReactElement; mark: (focused: Element) => Element | null; pseudo?: string } =
-		focusMarks[name]
-	const { unmount } = renderUI(entry.ui)
+	const { ui, mark, pseudo }: FocusMark = focusMarks[name]
+	const { unmount } = renderUI(ui)
 	await frames()
 	await userEvent.tab()
 	const focused = present(document.activeElement, 'focused element')
 	if (name === 'grid active cell') await userEvent.keyboard('{ArrowDown}')
-	const node = await waitFor(() => present(entry.mark(focused), `${name} mark`))
-	const style = getComputedStyle(node, entry.pseudo)
+	const node = await waitFor(() => present(mark(focused), `${name} mark`))
+	const style = getComputedStyle(node, pseudo)
 	const outline = { style: style.outlineStyle, width: style.outlineWidth }
 	// A later render must take the next Tab.
 	unmount()
@@ -283,17 +305,13 @@ const currentRows = {
 
 /** The controls in a control frame, which draws their focus outline. */
 const controls: Record<string, ReactElement> = {
-	input: <Input aria-label="Name" />,
-	select: (
-		<Select aria-label="Fruit">
-			<SelectOption value="apple">Apple</SelectOption>
-		</Select>
-	),
+	input,
+	select,
 }
 
 /** The parts whose resting edge is a kiso ring. */
 const edges: Record<string, ReactElement> = {
-	'input frame': <Input aria-label="Name" />,
+	'input frame': input,
 	'outline button': <Button variant="outline">Save</Button>,
 	'outline badge': <Badge variant="outline">New</Badge>,
 }
@@ -470,7 +488,7 @@ describe('controls show their state under forced colors (real browser)', () => {
 		const { container } = renderUI(<div>{ui}</div>)
 		await frames()
 		const node = present(container.firstElementChild?.firstElementChild, name)
-		const host = node.querySelector('[data-slot="control-frame"]') ?? node
+		const host = bySlot(node, 'control-frame') ?? node
 		const style = getComputedStyle(host)
 		expect(style.outlineStyle).not.toBe('none')
 		expect(style.outlineWidth).not.toBe('0px')
