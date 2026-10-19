@@ -58,8 +58,8 @@ export const inputCases: readonly Case[] = [
 		name: 'input in field',
 		element: (
 			<Field key="f">
-				<Label htmlFor="axe-name">Name</Label>
-				<Input id="axe-name" />
+				<Label>Name</Label>
+				<Input />
 			</Field>
 		),
 		textInput: [{ render: (props) => <Input {...props} />, slot: 'input' }],
@@ -77,8 +77,8 @@ export const inputCases: readonly Case[] = [
 		name: 'input in field (warning)',
 		element: (
 			<Field key="f" severity="warning">
-				<Label htmlFor="axe-warn">Warning</Label>
-				<Input id="axe-warn" />
+				<Label>Warning</Label>
+				<Input />
 				<Message severity="warning">Double-check this value</Message>
 			</Field>
 		),
@@ -87,8 +87,8 @@ export const inputCases: readonly Case[] = [
 		name: 'input in field (success)',
 		element: (
 			<Field key="f" severity="success">
-				<Label htmlFor="axe-ok">Success</Label>
-				<Input id="axe-ok" />
+				<Label>Success</Label>
+				<Input />
 				<Message severity="success">Looks good</Message>
 			</Field>
 		),
@@ -97,8 +97,8 @@ export const inputCases: readonly Case[] = [
 		name: 'textarea in field',
 		element: (
 			<Field key="f">
-				<Label htmlFor="axe-bio">Bio</Label>
-				<Textarea id="axe-bio" />
+				<Label>Bio</Label>
+				<Textarea />
 			</Field>
 		),
 		skeleton: [{ element: <TextareaSkeleton />, absentSlot: 'textarea' }],

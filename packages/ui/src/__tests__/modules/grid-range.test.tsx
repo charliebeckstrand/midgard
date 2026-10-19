@@ -112,6 +112,8 @@ describe('Grid range', () => {
 
 		fireEvent.mouseDown(cell(0, 1))
 
+		fireEvent.mouseUp(cell(0, 1))
+
 		fireEvent.mouseDown(cell(2, 2), { shiftKey: true })
 
 		expect(inRange()).toEqual([
@@ -122,6 +124,24 @@ describe('Grid range', () => {
 			[2, 1],
 			[2, 2],
 		])
+	})
+
+	// While a pen drags, the tap of a palm sends a primary press too. A press without a
+	// release in between is that tap: it does not seat the cursor or cut the drag.
+	it('keeps the cursor on the cell of a drag when a palm presses another cell', () => {
+		const { grid } = renderRangeGrid()
+
+		fireEvent.mouseDown(cell(0, 0))
+
+		fireEvent.mouseDown(cell(2, 1))
+
+		expect(grid).toHaveAttribute('aria-activedescendant', cell(0, 0).id)
+
+		fireEvent.mouseUp(cell(0, 0))
+
+		fireEvent.mouseDown(cell(2, 1))
+
+		expect(grid).toHaveAttribute('aria-activedescendant', cell(2, 1).id)
 	})
 
 	it('owns the press on a cell, so the browser starts no text selection', () => {
@@ -279,6 +299,8 @@ describe('Grid range over grouped rows', () => {
 
 		fireEvent.mouseDown(unitsCell('10 units'))
 
+		fireEvent.mouseUp(unitsCell('10 units'))
+
 		fireEvent.mouseDown(unitsCell('20 units'), { shiftKey: true })
 
 		const marked = [...grid.querySelectorAll('td[data-in-range]')].map((node) => node.textContent)
@@ -302,6 +324,8 @@ describe('Grid range in an editable grid', () => {
 		)
 
 		fireEvent.mouseDown(cell(0, 0))
+
+		fireEvent.mouseUp(cell(0, 0))
 
 		fireEvent.mouseDown(cell(1, 1), { shiftKey: true })
 

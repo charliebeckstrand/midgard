@@ -6,10 +6,11 @@ import {
 	type RefObject,
 	type SetStateAction,
 	useRef,
+	useState,
 } from 'react'
 import { useDragCursorHold } from '../../hooks/use-drag-cursor'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
-import { isPrimaryPress } from '../../utilities/primary-press'
+import { createPressOwner } from '../../utilities/primary-press'
 import { getCanvasPoint, resolveStrokeColor } from './signature-pad-utilities'
 
 type SignatureDrawingOptions = {
@@ -61,10 +62,9 @@ export function useSignaturePadDrawing({
 	onDrawStart,
 	onInk,
 }: SignatureDrawingOptions) {
-	// The pointer that draws the stroke, or `null` when no stroke runs. A second
-	// finger or a resting palm fires its own events on the canvas, and only this
-	// pointer extends or ends the stroke.
-	const pointerRef = useRef<number | null>(null)
+	// The pointer that draws the stroke. A second finger or a resting palm fires
+	// its own events on the canvas, and only this pointer extends or ends the stroke.
+	const [press] = useState(createPressOwner)
 
 	// The pen keeps the crosshair on the page while a stroke runs off the pad.
 	const cursorHold = useDragCursorHold('crosshair')
@@ -73,10 +73,6 @@ export function useSignaturePadDrawing({
 
 	const handlePointerDown = (event: ReactPointerEvent) => {
 		if (disabled || readOnly) return
-
-		if (!isPrimaryPress(event)) return
-
-		holdTextSelection(event)
 
 		const point = getCanvasPoint(canvasRef.current, event)
 
@@ -88,13 +84,13 @@ export function useSignaturePadDrawing({
 		// `empty` stays true (placeholder over a "signed" pad, clear button hidden).
 		const context = canvasRef.current?.getContext('2d')
 
-		if (!context) return
+		if (!context || !press.claim(event)) return
+
+		holdTextSelection(event)
 
 		event.preventDefault()
 
 		event.currentTarget.setPointerCapture?.(event.pointerId)
-
-		pointerRef.current = event.pointerId
 
 		cursorHold.start()
 
@@ -125,7 +121,7 @@ export function useSignaturePadDrawing({
 	}
 
 	const handlePointerMove = (event: ReactPointerEvent) => {
-		if (event.pointerId !== pointerRef.current) return
+		if (!press.owns(event)) return
 
 		const point = getCanvasPoint(canvasRef.current, event)
 
@@ -152,18 +148,18 @@ export function useSignaturePadDrawing({
 	}
 
 	const commit = (event?: ReactPointerEvent): boolean => {
-		if (pointerRef.current === null) {
+		if (!press.held()) {
 			cursorHold.end()
 
 			return false
 		}
 
 		// The release of another pointer does not end the stroke.
-		if (event && event.pointerId !== pointerRef.current) return false
+		if (event && !press.owns(event)) return false
 
 		cursorHold.end()
 
-		pointerRef.current = null
+		press.release()
 
 		lastPointRef.current = null
 

@@ -1,4 +1,4 @@
-import { waitFor } from '@testing-library/react'
+import { act, waitFor } from '@testing-library/react'
 import { expect } from 'vitest'
 import { FIRST_WRITE_DELAY_MS } from '../../core/announcer'
 import { nextPaint } from './frames'
@@ -43,9 +43,13 @@ export async function expectAnnouncement(
  * announcer, so they run after them. Real timers only.
  */
 export async function flushAnnouncer(): Promise<void> {
-	await nextPaint()
+	// The wait runs in `act`, so a timer of a component that fires in it, such
+	// as the debounce of the grid status, updates the state inside `act`.
+	await act(async () => {
+		await nextPaint()
 
-	await new Promise<void>((resolve) => {
-		setTimeout(resolve, FIRST_WRITE_DELAY_MS)
+		await new Promise<void>((resolve) => {
+			setTimeout(resolve, FIRST_WRITE_DELAY_MS)
+		})
 	})
 }

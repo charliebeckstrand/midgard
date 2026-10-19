@@ -78,7 +78,11 @@ function renderFillGrid(props: { editable?: Partial<GridEditableConfig> } = {}) 
 	const select = (from: [number, number], to: [number, number]) => {
 		fireEvent.mouseDown(cell(...from))
 
+		fireEvent.mouseUp(cell(...from))
+
 		fireEvent.mouseDown(cell(...to), { shiftKey: true })
+
+		fireEvent.mouseUp(cell(...to))
 	}
 
 	return { ...view, grid, cell, texts, select, onCommit }
@@ -152,7 +156,7 @@ describe('Grid range fill', () => {
 	})
 
 	it('fills nothing without a grid-owned session', () => {
-		const view = renderFillGrid({ editable: { session: 'manual' } })
+		const view = renderFillGrid({ editable: { session: 'manual', scope: 'row' } })
 
 		view.select([0, 0], [2, 0])
 
@@ -229,7 +233,7 @@ describe('Grid range fill', () => {
 	})
 
 	it('shows no fill handle without a grid-owned session', () => {
-		const view = renderFillGrid({ editable: { session: 'manual' } })
+		const view = renderFillGrid({ editable: { session: 'manual', scope: 'row' } })
 
 		fireEvent.mouseDown(view.cell(0, 0))
 

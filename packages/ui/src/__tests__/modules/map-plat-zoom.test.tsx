@@ -675,6 +675,55 @@ describe('MapPlat two-finger gestures', () => {
 		expect(scaleOf(container)).toBeCloseTo(3, 3)
 	})
 
+	// While a pen pans, the touch of a palm is a primary press too. It does not join the pan
+	// as the second finger of a pinch.
+	it('keeps a pen pan from a palm that lands on the plot', () => {
+		const { container, plot } = renderZoomable(DIRECT)
+
+		const pen = { pointerId: 1, pointerType: 'pen', isPrimary: true, button: 0 }
+
+		const palm = { pointerId: 2, pointerType: 'touch', isPrimary: true, button: 0 }
+
+		fireEvent.pointerDown(plot, { ...pen, clientX: 190, clientY: 100 })
+
+		fireEvent.pointerDown(plot, { ...palm, clientX: 210, clientY: 100 })
+
+		act(() => {
+			fireEvent.pointerMove(plot, { pointerId: 2, clientX: 300, clientY: 100 })
+
+			fireEvent.pointerMove(plot, { pointerId: 1, clientX: 170, clientY: 100 })
+		})
+
+		for (const pointerId of [2, 1]) fireEvent.pointerUp(plot, { pointerId })
+
+		expect(scaleOf(container)).toBe(1)
+	})
+
+	it('keeps a pen pan from the touch events of a palm', () => {
+		const { container, plot, svg } = renderZoomable()
+
+		zoomWheel(svg, -400)
+
+		const before = transformOf(container)
+
+		fireEvent.pointerDown(plot, {
+			pointerId: 1,
+			pointerType: 'pen',
+			isPrimary: true,
+			button: 0,
+			clientX: 200,
+			clientY: 100,
+		})
+
+		touch(svg, 'touchStart', [{ id: 7, x: 300, y: 100 }])
+
+		fireEvent.pointerMove(plot, { pointerId: 1, clientX: 140, clientY: 60 })
+
+		fireEvent.pointerUp(plot, { pointerId: 1 })
+
+		expect(transformOf(container)).not.toBe(before)
+	})
+
 	it('applies the pinch on the next frame, while both fingers stay down', async () => {
 		await withFakeTime(async (clock) => {
 			const { container, svg } = renderZoomable()

@@ -309,9 +309,9 @@ An `aria-label` names the content, not the demo: "Monthly revenue", not "Line ch
 | No value in a value readout | Empty | None |
 | No event before the first one | None | Empty |
 | The opening of an event prop in TSDoc | Fires when | Called when, Runs when, Invoked when |
-| The opening of a boolean prop in TSDoc | Whether | Show, Shows, Enables |
+| The opening of a boolean prop in TSDoc | A verb in the third person that says what `true` does, such as "Shows" | Whether, Show |
 
-13.10 The API reference shows the TSDoc of `ui`, and the kit text around it. The first sentence of a component or a type is a noun phrase that states what it is (§12.1). The props of one idea use one wording in each component, such as the openings in §13.9. The kit text uses the same words as the TSDoc.
+13.10 The API reference shows the TSDoc of `ui`, and the kit text around it. The first sentence of a component or a type is a noun phrase that states what it is (§12.1). The props of one idea use one wording in each component, such as the openings in §13.9. A controlled or a default state names its state, such as "Controlled open state". The kit text uses the same words as the TSDoc.
 
 ---
 

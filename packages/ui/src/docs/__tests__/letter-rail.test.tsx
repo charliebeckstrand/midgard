@@ -278,6 +278,29 @@ describe('LetterRail', () => {
 		expect(active()).toBe('A')
 	})
 
+	// While a pen slides, the touch of a palm is a primary press too.
+	it('keeps a pen slide from a palm that lands on the rail', () => {
+		const { track, active } = renderSidebar()
+
+		press(track, inBand(0), 'pen')
+
+		const palm = { pointerId: 2, pointerType: 'touch', isPrimary: true, button: 0 }
+
+		fireEvent.pointerDown(track, { ...palm, clientY: inBand(4) })
+
+		fireEvent.pointerMove(track, { ...palm, clientY: inBand(3) })
+
+		expect(active()).toBe('A')
+
+		fireEvent.pointerUp(track, { pointerId: 2 })
+
+		fireEvent.pointerMove(track, { clientY: inBand(1), pointerId: 1 })
+
+		expect(active()).toBe('B')
+
+		release(track)
+	})
+
 	it('shows no bubble for a tap', () => {
 		fakeTimers()
 
