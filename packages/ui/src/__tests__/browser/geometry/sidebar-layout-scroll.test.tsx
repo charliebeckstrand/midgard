@@ -211,6 +211,30 @@ describe('sidebar layout from lg up (real browser)', () => {
 		expect(clippingAncestors(header)).toEqual([])
 	})
 
+	it('sticks its own header in a wrapper, and not the header of a nested layout', async () => {
+		renderUI(
+			<SidebarLayout stickyHeader sidebar={<nav>Links</nav>}>
+				<div>
+					<SidebarLayoutHeader>Outer</SidebarLayoutHeader>
+				</div>
+				<div className="h-96 overflow-auto">
+					<SidebarLayout sidebar={<nav>Nested links</nav>}>
+						<SidebarLayoutHeader>Inner</SidebarLayoutHeader>
+					</SidebarLayout>
+				</div>
+			</SidebarLayout>,
+		)
+
+		await frames()
+
+		const header = (text: string) =>
+			present(screen.getByText(text).closest<HTMLElement>('[data-slot="header"]'), text)
+
+		expect(getComputedStyle(header('Outer')).position).toBe('sticky')
+
+		expect(getComputedStyle(header('Inner')).position).toBe('static')
+	})
+
 	it('fills the viewport when the content is short', async () => {
 		const { container } = renderUI(<SidebarLayout sidebar={<nav>Links</nav>}>Short</SidebarLayout>)
 

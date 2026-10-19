@@ -124,23 +124,20 @@ const content = defineRecipe({
 		// The padding follows the nearest density scope.
 		`${space.shell.x} ${space.shell.bottom}`,
 	],
-	// The header sticks in the inline layout only (`k.layout.stickyHeader`). In
-	// the drawer layout, the navbar is the one sticky bar of the page, and the
-	// header scrolls with the content. Two stacked sticky bars show a seam on iOS.
+})
+
+// The padding follows the nearest density scope. The header sticks in the
+// inline layout only (`k.layout.stickyHeader`). In the drawer layout, the navbar
+// is the one sticky bar of the page, and the header scrolls with the content.
+// Two stacked sticky bars show a seam on iOS. The header takes these classes
+// itself from its own layout, so a header in a nested layout does not stick.
+const header = defineRecipe({
+	base: ['flex items-center shrink-0', space.shell.bottom],
 	stickyHeader: {
-		true: [
-			'**:data-[slot=header]:top-0',
-			'**:data-[slot=header]:z-20',
-			'**:data-[slot=header]:bg-(--surface-fill)',
-		],
+		true: ['top-0 z-20', 'bg-(--surface-fill)'],
 		false: '',
 	},
 	defaults: { stickyHeader: false },
-})
-
-// The padding follows the nearest density scope.
-const header = defineRecipe({
-	base: ['flex items-center shrink-0', space.shell.bottom],
 })
 
 // The body grows into the free height of the content region, so the footer
@@ -168,10 +165,7 @@ const byLayout = {
 		drawer: `${omote.content.flat} not-has-[[data-slot=header]]:${top.drawer}`,
 		inline: `${omote.content.card} not-has-[[data-slot=header]]:${top.inline}`,
 	},
-	stickyHeader: {
-		drawer: '**:data-[slot=header]:static',
-		inline: '**:data-[slot=header]:sticky',
-	},
+	stickyHeader: { drawer: 'static', inline: 'sticky' },
 	header: top,
 } as const satisfies Record<string, ByLayout>
 

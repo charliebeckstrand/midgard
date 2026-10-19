@@ -40,6 +40,7 @@ const [SidebarLayoutContext] = createContext<{
 	actions?: ReactNode
 	bar?: StickyBars['bar']
 	layout: Responsive<OffcanvasLayout>
+	stickyHeader: boolean
 } | null>('SidebarLayout', {
 	default: null,
 })
@@ -176,7 +177,7 @@ export function SidebarLayout({
 	sidebar,
 	aside,
 	actions,
-	stickyHeader,
+	stickyHeader = false,
 	layout = OFFCANVAS_LAYOUT,
 	onOpenChange,
 	className,
@@ -254,7 +255,10 @@ export function SidebarLayout({
 		measure()
 	}, [measure, stickyHeader])
 
-	const layoutValue = useMemo(() => ({ actions, bar: setBar, layout }), [actions, setBar, layout])
+	const layoutValue = useMemo(
+		() => ({ actions, bar: setBar, layout, stickyHeader }),
+		[actions, setBar, layout, stickyHeader],
+	)
 
 	return (
 		<SidebarLayoutContext value={layoutValue}>
@@ -352,13 +356,7 @@ export function SidebarLayout({
 
 				{/* Content */}
 				<div className={cn(k.content.wrapper(), resolveVariant(layout, k.layout.wrapper))}>
-					<div
-						className={cn(
-							k.content.base({ stickyHeader }),
-							resolveVariant(layout, k.layout.content),
-							stickyHeader && resolveVariant(layout, k.layout.stickyHeader),
-						)}
-					>
+					<div className={cn(k.content.base(), resolveVariant(layout, k.layout.content))}>
 						{children}
 					</div>
 				</div>
@@ -400,12 +398,21 @@ export function SidebarLayoutHeader({
 	// Outside a layout, the header takes the default layout.
 	const placement = layout?.layout ?? OFFCANVAS_LAYOUT
 
+	// The header reads `stickyHeader` from its own layout, so the header of a
+	// nested layout keeps the prop of that layout.
+	const sticky = layout?.stickyHeader ?? false
+
 	return (
 		<header
 			{...props}
 			ref={setHeader}
 			data-slot="header"
-			className={cn(k.header(), resolveVariant(placement, k.layout.header), className)}
+			className={cn(
+				k.header({ stickyHeader: sticky }),
+				resolveVariant(placement, k.layout.header),
+				sticky && resolveVariant(placement, k.layout.stickyHeader),
+				className,
+			)}
 		>
 			<div className="flex-1 min-w-0">{children}</div>
 			{actions && (
