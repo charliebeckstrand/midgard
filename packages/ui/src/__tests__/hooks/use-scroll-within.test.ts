@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { scrollNodeWithin, useScrollWithin } from '../../hooks/use-scroll-within'
 import { attach, mockDomGeometry } from '../helpers'
 
@@ -116,10 +116,6 @@ describe('useScrollWithin', () => {
 	})
 
 	describe('inside a scrollable ancestor', () => {
-		afterEach(() => {
-			vi.restoreAllMocks()
-		})
-
 		function stubScrollable() {
 			vi.spyOn(window, 'getComputedStyle').mockReturnValue({
 				overflowY: 'auto',
@@ -228,10 +224,6 @@ describe('useScrollWithin', () => {
 })
 
 describe('useScrollWithin inline axis', () => {
-	afterEach(() => {
-		vi.restoreAllMocks()
-	})
-
 	/** A scroller that overflows on both axes, with the metrics jsdom reports as 0. */
 	function buildBothAxes() {
 		vi.spyOn(window, 'getComputedStyle').mockReturnValue({

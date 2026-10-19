@@ -2471,8 +2471,6 @@ describe('Grid active-cell binding', () => {
 		expect(onCellChange).not.toHaveBeenCalled()
 
 		expect(warn).toHaveBeenCalledWith(expect.stringContaining('editable.cell'))
-
-		warn.mockRestore()
 	})
 
 	it('reads a cell that is not editable as null, renders no editor, and warns', () => {
@@ -2493,8 +2491,6 @@ describe('Grid active-cell binding', () => {
 		expect(warn).toHaveBeenCalledOnce()
 
 		expect(warn).toHaveBeenCalledWith(expect.stringContaining('editable.cell'))
-
-		warn.mockRestore()
 	})
 
 	it('does not take focus for a cell set from outside while focus is outside the grid', () => {
@@ -3308,8 +3304,6 @@ describe('Grid commitOn', () => {
 		expect(warn).toHaveBeenCalledOnce()
 
 		expect(warn).toHaveBeenCalledWith(expect.stringContaining('editable.commitOn'))
-
-		warn.mockRestore()
 	})
 })
 
@@ -3490,8 +3484,6 @@ describe('Grid session-owned drafts', () => {
 		await expectAnnouncement('Name updated for row 1')
 
 		expect(warn).not.toHaveBeenCalled()
-
-		warn.mockRestore()
 	})
 
 	it('commits the edit of a row on another server page, validated against its snapshot', () => {

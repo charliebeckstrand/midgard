@@ -547,8 +547,6 @@ describe('BubbleChart', () => {
 		expect(plot?.hasAttribute('data-stray')).toBe(false)
 
 		expect(error.mock.calls.flat().join(' ')).not.toContain('texture')
-
-		error.mockRestore()
 	})
 })
 

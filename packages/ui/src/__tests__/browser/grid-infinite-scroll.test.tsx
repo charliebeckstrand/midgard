@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { fireEvent, frames, present, renderUI, screen, waitFor } from '../helpers'
 import { nextPaint } from '../helpers/frames'
@@ -26,10 +26,6 @@ describe('grid infinite scroll (real browser)', () => {
 	}))
 
 	const getKey = (row: Row) => row.id
-
-	afterEach(() => {
-		vi.restoreAllMocks()
-	})
 
 	/** Local infinite scroll: the grid renders a growing slice of `allRows`. */
 	function InfiniteGrid({

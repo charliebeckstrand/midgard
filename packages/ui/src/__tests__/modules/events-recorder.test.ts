@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { begin, halt, listen, start } from '../../modules/events/engine/events-recorder'
 import {
 	eventsRootOptions,
@@ -29,10 +29,6 @@ function listenTo(options?: Parameters<typeof listen>[1]): EventStore {
 
 	return store
 }
-
-afterEach(() => {
-	vi.useRealTimers()
-})
 
 describe('begin', () => {
 	it('writes the separator of the page load and the reading of the viewport', () => {
@@ -370,11 +366,7 @@ describe('the sink', () => {
 
 		vi.stubGlobal('reportError', report)
 
-		onTestFinished(() => {
-			consoleError.mockRestore()
-
-			vi.unstubAllGlobals()
-		})
+		onTestFinished(() => {})
 
 		const caught = new Error('caught')
 
@@ -416,10 +408,6 @@ describe('the sink', () => {
 		const store = listenTo()
 
 		vi.stubGlobal('reportError', vi.fn())
-
-		onTestFinished(() => {
-			vi.unstubAllGlobals()
-		})
 
 		const error = new Error('boom')
 

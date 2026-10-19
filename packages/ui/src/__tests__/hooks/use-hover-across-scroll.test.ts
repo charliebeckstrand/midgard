@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useHoverAcrossScroll } from '../../hooks/use-hover-across-scroll'
 
 /** Move the pointer to a viewport point; the hook records it for the next settle. */
@@ -9,10 +9,6 @@ function movePointer(x: number, y: number): void {
 
 beforeEach(() => {
 	vi.useFakeTimers()
-})
-
-afterEach(() => {
-	vi.useRealTimers()
 })
 
 describe('useHoverAcrossScroll', () => {
@@ -131,8 +127,6 @@ describe('useHoverAcrossScroll', () => {
 		vi.advanceTimersByTime(200)
 
 		expect(resolveAt).toHaveBeenCalledExactlyOnceWith(30, 40)
-
-		add.mockRestore()
 	})
 
 	// A pointer seen before the readout turned off is stale when it turns on again.

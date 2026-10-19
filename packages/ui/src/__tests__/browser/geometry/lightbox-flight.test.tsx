@@ -1,4 +1,4 @@
-import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { Lightbox, type LightboxPhoto, LightboxTrigger } from '../../../components/lightbox'
 import { frames, present, renderUI, screen } from '../../helpers'
@@ -63,8 +63,6 @@ function watchRaise(): FirstFrame[] {
 
 describe('Lightbox flight from a hidden thumbnail (real browser)', () => {
 	beforeAll(() => page.viewport(390, 664))
-
-	afterEach(() => vi.restoreAllMocks())
 
 	it('starts at the part of the thumbnail below the scroll padding of its scroller', async ({
 		signal,

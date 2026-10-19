@@ -1,11 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { AddressProvider } from '../../components/address-input/types'
 import { useAddressInputSuggestions } from '../../components/address-input/use-address-input-suggestions'
-
-afterEach(() => {
-	vi.useRealTimers()
-})
 
 describe('useAddressInputSuggestions guards', () => {
 	it('does not fetch a query of white space only, however long', async () => {

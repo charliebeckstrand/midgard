@@ -474,10 +474,6 @@ describe('ColorPanel', () => {
 					open = () => new Promise<never>(() => {})
 				},
 			)
-
-			onTestFinished(() => {
-				vi.unstubAllGlobals()
-			})
 		}
 
 		// A render that does not hydrate draws the button in its first commit,
@@ -963,10 +959,6 @@ describe('ColorPanel in a ColorPicker', () => {
 				open = () => new Promise<never>(() => {})
 			},
 		)
-
-		onTestFinished(() => {
-			vi.unstubAllGlobals()
-		})
 
 		const { container } = renderUI(<ColorPanel defaultValue="#3b82f6" />)
 

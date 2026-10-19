@@ -1,6 +1,6 @@
 import type { DragEndEvent, DragOverEvent, DragStartEvent } from '@dnd-kit/core'
 import { act, renderHook } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { KanbanColumnBase } from '../../modules/kanban/engine/kanban-board'
 import { useKanbanDrag } from '../../modules/kanban/use-kanban-drag'
 
@@ -315,10 +315,6 @@ describe('useKanbanDrag: cancel', () => {
 describe('useKanbanDrag: reverse over after a cross-column move', () => {
 	beforeEach(() => {
 		vi.useFakeTimers({ toFake: ['requestAnimationFrame', 'cancelAnimationFrame'] })
-	})
-
-	afterEach(() => {
-		vi.useRealTimers()
 	})
 
 	it('ignores an over in the column that the card left until the frame after the commit', () => {

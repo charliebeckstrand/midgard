@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useCalendarToday } from '../../components/calendar/use-calendar-today'
 
 /** Tells the page that the reader shows it again, as a browser does for a tab. */
@@ -23,10 +23,6 @@ beforeEach(() => {
 	vi.useFakeTimers()
 
 	vi.setSystemTime(new Date(2025, 5, 15, 12))
-})
-
-afterEach(() => {
-	vi.useRealTimers()
 })
 
 describe('useCalendarToday', () => {

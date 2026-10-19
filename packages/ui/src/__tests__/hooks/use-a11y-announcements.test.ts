@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as core from '../../core'
 import { useA11yAnnouncements } from '../../hooks/a11y/use-a11y-announcements'
@@ -13,10 +13,6 @@ describe('useA11yAnnouncements', () => {
 
 	beforeEach(() => {
 		announce = vi.spyOn(core, 'announce')
-	})
-
-	afterEach(() => {
-		vi.restoreAllMocks()
 	})
 
 	it('stays silent on the initial message', () => {

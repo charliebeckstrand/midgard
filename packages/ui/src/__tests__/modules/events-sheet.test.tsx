@@ -259,10 +259,6 @@ describe('EventsSheet', () => {
 
 		vi.useFakeTimers()
 
-		onTestFinished(() => {
-			vi.useRealTimers()
-		})
-
 		document.dispatchEvent(new Event('scroll'))
 
 		vi.advanceTimersByTime(150)

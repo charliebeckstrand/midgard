@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	DAY,
 	HOUR,
@@ -22,19 +22,6 @@ beforeEach(() => {
 	vi.useFakeTimers()
 
 	vi.setSystemTime(NOW)
-})
-
-afterEach(() => {
-	// Unwind spies BEFORE uninstalling the clock. The setInterval spies below
-	// are created while fake timers own the global, so the spy saves the FAKE
-	// implementation as its original; restoring mocks after useRealTimers
-	// would re-install a dead fake clock's setInterval onto window — and
-	// `isolate: false` evaluates shared modules (React, RTL) once per worker,
-	// against the first file's globals, so that dead fake then stalls waitFor
-	// polling in every later file of the worker.
-	vi.restoreAllMocks()
-
-	vi.useRealTimers()
 })
 
 describe('useTimeAgoRelativeTime', () => {

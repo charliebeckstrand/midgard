@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ToastData } from '../../components/toast/types'
 import { useToastTimer } from '../../components/toast/use-toast-timer'
 
@@ -22,10 +22,6 @@ function setup(ids: string[] = ['a']) {
 describe('useToastTimer', () => {
 	beforeEach(() => {
 		vi.useFakeTimers()
-	})
-
-	afterEach(() => {
-		vi.useRealTimers()
 	})
 
 	it('fires start with the toast id when its duration elapses', () => {

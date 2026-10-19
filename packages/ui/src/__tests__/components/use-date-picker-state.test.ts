@@ -323,10 +323,6 @@ describe('useDatePickerState', () => {
 			// `max`, and then the cursor clamps to `max` and the case passes on it.
 			vi.useFakeTimers({ now: new Date(2025, 0, 1, 13, 30) })
 
-			onTestFinished(() => {
-				vi.useRealTimers()
-			})
-
 			const { result } = renderHook(() =>
 				useDatePickerState({ min: Jan15, max: new Date(2025, 11, 31) }),
 			)
@@ -351,10 +347,6 @@ describe('useDatePickerState', () => {
 		it('starts the cursor on today when no value is set and today is inside min/max', () => {
 			vi.useFakeTimers({ now: new Date(2025, 5, 15, 13, 30) })
 
-			onTestFinished(() => {
-				vi.useRealTimers()
-			})
-
 			const { result } = renderHook(() => useDatePickerState({ min: Jan15 }))
 
 			act(() => {
@@ -370,10 +362,6 @@ describe('useDatePickerState', () => {
 
 		it('commits today on Enter when no value is set and today is inside min/max', () => {
 			vi.useFakeTimers({ now: new Date(2025, 5, 15, 13, 30) })
-
-			onTestFinished(() => {
-				vi.useRealTimers()
-			})
 
 			const onChange = vi.fn()
 

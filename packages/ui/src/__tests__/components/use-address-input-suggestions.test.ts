@@ -1,15 +1,11 @@
 import { act, renderHook } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { AddressProvider, AddressSuggestion } from '../../components/address-input/types'
 import { useAddressInputSuggestions } from '../../components/address-input/use-address-input-suggestions'
 
 function makeProvider(results: AddressSuggestion[] = []): AddressProvider {
 	return vi.fn().mockResolvedValue(results)
 }
-
-afterEach(() => {
-	vi.useRealTimers()
-})
 
 describe('useAddressInputSuggestions', () => {
 	it('returns empty initial state', () => {

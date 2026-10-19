@@ -1,15 +1,11 @@
 import { render, renderHook } from '@testing-library/react'
 import { createElement, createRef, useRef } from 'react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { useFloatingPanel, useFloatingUI } from '../../hooks/use-floating-ui'
 import { useTruncation } from '../../hooks/use-truncation'
 import { attach } from '../helpers'
 
 describe('useFloatingPanel', () => {
-	afterEach(() => {
-		vi.restoreAllMocks()
-	})
-
 	it('returns refs, floatingStyles, and context', () => {
 		const { result } = renderHook(() =>
 			useFloatingPanel({ placement: 'bottom-start', open: false, onOpenChange: () => {} }),
@@ -252,8 +248,6 @@ describe('useFloatingUI', () => {
 			scroller.dispatchEvent(event)
 
 			expect(onOpenChange).not.toHaveBeenCalled()
-
-			vi.restoreAllMocks()
 		})
 
 		it('does not attach a listener when closed', () => {

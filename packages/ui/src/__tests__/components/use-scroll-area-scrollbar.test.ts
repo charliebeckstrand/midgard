@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useScrollAreaScrollbar } from '../../components/scroll-area/use-scroll-area-scrollbar'
 import { makePointerEvent, mockDomGeometry } from '../helpers'
 
@@ -176,10 +176,6 @@ describe('useScrollAreaScrollbar', () => {
 	describe('scrollbar="auto" fade behavior', () => {
 		beforeEach(() => {
 			vi.useFakeTimers()
-		})
-
-		afterEach(() => {
-			vi.useRealTimers()
 		})
 
 		it('sets isScrolling=true on scroll and fades after the delay', () => {

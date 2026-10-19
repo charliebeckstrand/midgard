@@ -270,8 +270,8 @@ export default defineConfig({
 				// node` docblock (see `nodeEnvironmentFiles` above): a plain node
 				// environment on one shared worker, with no jsdom, no module
 				// doubles, and no RTL setup. The setup is the locale guard, because
-				// the format tests live here, and the geometry matchers, which each
-				// project gives to `expect`. A file here cannot reach the
+				// the format tests live here, the geometry matchers, which each
+				// project gives to `expect`, and the restore after each test. A file here cannot reach the
 				// shared jsdom window by accident, and
 				// `node-environment-boundary.test.ts` keeps the docblock and the
 				// file's DOM use in step both ways.
@@ -283,6 +283,7 @@ export default defineConfig({
 					setupFiles: [
 						'./src/__tests__/setup/locale-guard.ts',
 						'./src/__tests__/setup/geometry.ts',
+						'./src/__tests__/setup/restore.ts',
 					],
 					include: nodeFiles,
 				},
@@ -363,6 +364,7 @@ export default defineConfig({
 					setupFiles: [
 						'./src/__tests__/setup/locale-guard.ts',
 						'./src/__tests__/setup/geometry.ts',
+						'./src/__tests__/setup/restore.ts',
 					],
 					include: ['src/__tests__/geometry/**/*.test.ts'],
 				},

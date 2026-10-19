@@ -402,10 +402,6 @@ describe('useCopyButtonState', () => {
 	it('drops a copy in the copied window, and copies again after the revert', async () => {
 		vi.useFakeTimers()
 
-		onTestFinished(() => {
-			vi.useRealTimers()
-		})
-
 		const writeText = vi.fn().mockResolvedValue(undefined)
 
 		const onCopiedChange = vi.fn()
@@ -442,10 +438,6 @@ describe('useCopyButtonState', () => {
 	// The copy starts the revert window. A later `timeout` applies to the next copy.
 	it('keeps the revert window when the timeout changes while the copied state holds', async () => {
 		vi.useFakeTimers()
-
-		onTestFinished(() => {
-			vi.useRealTimers()
-		})
 
 		stubClipboard(vi.fn().mockResolvedValue(undefined))
 

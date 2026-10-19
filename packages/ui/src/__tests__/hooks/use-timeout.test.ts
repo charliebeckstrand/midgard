@@ -1,14 +1,10 @@
 import { act, renderHook } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useTimeout } from '../../hooks/use-timeout'
 
 describe('useTimeout', () => {
 	beforeEach(() => {
 		vi.useFakeTimers()
-	})
-
-	afterEach(() => {
-		vi.useRealTimers()
 	})
 
 	it('fires the callback once after the delay', () => {

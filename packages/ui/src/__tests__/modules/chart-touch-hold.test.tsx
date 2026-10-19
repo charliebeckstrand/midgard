@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { TOUCH_CONTEXT_MENU_DELAY } from '../../components/menu/use-menu-touch-hold'
 import { TOUCH_TAP_WINDOW } from '../../hooks/use-touch-tap'
 import { BarChart, DonutChart } from '../../modules/chart'
@@ -15,10 +15,6 @@ import { act, bySlot, fireEvent, renderUI, screen } from '../helpers'
 describe('a touch hold on a chart', () => {
 	beforeEach(() => {
 		vi.useFakeTimers()
-	})
-
-	afterEach(() => {
-		vi.useRealTimers()
 	})
 
 	const data = [

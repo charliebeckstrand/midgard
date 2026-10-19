@@ -413,8 +413,6 @@ describe('KanbanCard', () => {
 		)
 
 		expect(warn).toHaveBeenCalledWith(expect.stringContaining('holds no <KanbanCardHandle>'))
-
-		warn.mockRestore()
 	})
 
 	it('does not warn for an interactive card with a handle', () => {
@@ -423,8 +421,6 @@ describe('KanbanCard', () => {
 		renderUI(<Board onValueChange={() => {}} />)
 
 		expect(warn).not.toHaveBeenCalled()
-
-		warn.mockRestore()
 	})
 
 	it('honors a custom aria-label on an interactive card, and names the handle from it', () => {
@@ -970,8 +966,6 @@ describe('Kanban key joins', () => {
 		)
 
 		expect(warn).toHaveBeenCalledWith(expect.stringContaining('names no column'))
-
-		warn.mockRestore()
 	})
 
 	it('warns when a card key names no item in its column', () => {
@@ -986,8 +980,6 @@ describe('Kanban key joins', () => {
 		)
 
 		expect(warn).toHaveBeenCalledWith(expect.stringContaining('names no item'))
-
-		warn.mockRestore()
 	})
 })
 

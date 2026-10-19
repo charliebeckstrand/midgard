@@ -492,8 +492,6 @@ describe('PdfViewer', () => {
 		signal.throwIfAborted()
 
 		resetDocumentCache()
-
-		vi.restoreAllMocks()
 	})
 
 	// The rail names the tiles it shows, and the queue renders their thumbnails. The jsdom

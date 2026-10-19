@@ -6,6 +6,7 @@ import { tooltipBody } from '../../components/tooltip/tooltip-body-loader'
 import { defaultFooterSelector } from '../../core/panel/base'
 import { installSingletonResets } from '../helpers/reset-singletons'
 import { installResidueGuard } from '../helpers/residue'
+import { restoreTestState } from '../helpers/restore-test-state'
 
 import './geometry'
 import './jsdom-stubs'
@@ -70,13 +71,8 @@ if (!document.querySelector('style[data-default-footer-style]')) {
 installSingletonResets()
 
 afterEach(() => {
-	// Fifteen files install a fake clock, and a `finally` in a case restores it
-	// when the body throws but not when the runner aborts the body at
-	// `testTimeout`. The clock then leaks into the next case and, on a shared
-	// worker, into the next file. `useRealTimers` is guarded internally, so this
-	// is a no-op wherever no clock is installed, and no file in the package
-	// installs one in a `beforeAll` that it means to outlive a case.
-	vi.useRealTimers()
+	// Before `cleanup`, so a timer spy cannot outlive the fake clock it wraps.
+	restoreTestState()
 
 	cleanup()
 

@@ -43,8 +43,6 @@ describe('useHoldButtonGesture', () => {
 	afterEach(() => {
 		// Restore the call-through default of animate.
 		vi.mocked(animate).mockRestore()
-
-		vi.useRealTimers()
 	})
 
 	it('fires onHoldStart immediately when start is called', () => {

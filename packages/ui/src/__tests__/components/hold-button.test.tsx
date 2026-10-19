@@ -316,10 +316,6 @@ describe('HoldButton', () => {
 			vi.useFakeTimers()
 		})
 
-		afterEach(() => {
-			vi.useRealTimers()
-		})
-
 		it('fires onHoldComplete after the hold duration elapses', () => {
 			const onHoldComplete = vi.fn()
 
@@ -483,10 +479,6 @@ describe('HoldButton', () => {
 	describe('handler composition', () => {
 		beforeEach(() => {
 			vi.useFakeTimers()
-		})
-
-		afterEach(() => {
-			vi.useRealTimers()
 		})
 
 		it('runs the caller handler before the hold starts and before it cancels', () => {

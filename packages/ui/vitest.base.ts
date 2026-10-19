@@ -35,7 +35,8 @@ export const sequence = { shuffle: true, ...(SEED ? { seed: Number(SEED) } : {})
  * - `unstubGlobals` and `unstubEnvs` revert `vi.stubGlobal` and `vi.stubEnv`.
  *
  * Each runs before `beforeEach`, so a hook or a test body applies its setup
- * again with no change.
+ * again with no change. The setup files also restore after each test
+ * (`helpers/restore-test-state.ts`), so a test file restores nothing itself.
  */
 export const cleanup = {
 	restoreMocks: true,

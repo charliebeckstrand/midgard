@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { TimeAgo } from '../../components/time-ago'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { LocaleProvider } from '../../providers/locale'
@@ -17,17 +17,6 @@ describe('TimeAgo', () => {
 		vi.useFakeTimers()
 
 		vi.setSystemTime(new Date('2026-04-29T12:00:00Z'))
-	})
-
-	afterEach(() => {
-		// Unwind spies BEFORE uninstalling the clock — see
-		// use-time-ago-relative-time.test.ts for why the order matters (a
-		// setInterval spy taken under fake timers restores to a dead fake if
-		// useRealTimers runs first, and `isolate: false` shares that global with
-		// every later file in the worker).
-		vi.restoreAllMocks()
-
-		vi.useRealTimers()
 	})
 
 	it('renders a <time> element with data-slot="time-ago"', () => {

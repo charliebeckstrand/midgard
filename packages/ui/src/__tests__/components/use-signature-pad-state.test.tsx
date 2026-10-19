@@ -1,6 +1,6 @@
 import { act, render } from '@testing-library/react'
 import { createRef, type Ref, useState } from 'react'
-import { afterEach, describe, expect, it, type Mock, vi } from 'vitest'
+import { describe, expect, it, type Mock, vi } from 'vitest'
 import {
 	type SignaturePadHandle,
 	type SignaturePadStateOptions,
@@ -131,10 +131,6 @@ function renderHarness({ context, ...props }: RenderHarness = {} as RenderHarnes
 
 	return { ...utils, context: ctx, captured }
 }
-
-afterEach(() => {
-	vi.restoreAllMocks()
-})
 
 describe('useSignaturePadState', () => {
 	it('starts empty when no value is provided', () => {

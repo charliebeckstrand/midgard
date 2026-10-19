@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { useA11yAutoFocus } from '../../hooks'
 import { PopoverPanel } from '../../primitives/popover'
 import { attach, renderUI } from '../helpers'
@@ -13,10 +13,6 @@ import { attach, renderUI } from '../helpers'
  * is a case here.
  */
 describe('floating autofocus', () => {
-	afterEach(() => {
-		vi.restoreAllMocks()
-	})
-
 	it.each<[string, () => void]>([
 		[
 			'a PopoverPanel with a selected item',

@@ -1,5 +1,5 @@
 import { act, fireEvent, render } from '@testing-library/react'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { clamp } from '../../utilities/clamp.ts'
 import { bandAt, HOLD_DELAY, lettersOf } from '../app/letter-rail.tsx'
 import { DocsSearch } from '../app/search.tsx'
@@ -148,10 +148,6 @@ const release = (track: HTMLElement) => {
 /** Fakes the timers for the case, so the case decides when the hold of a touch ends. */
 const fakeTimers = () => {
 	vi.useFakeTimers()
-
-	onTestFinished(() => {
-		vi.useRealTimers()
-	})
 }
 
 const tap = (track: HTMLElement, y: number, pointerType?: string) => {

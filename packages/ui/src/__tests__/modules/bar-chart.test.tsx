@@ -98,8 +98,6 @@ describe('BarChart', () => {
 		fireEvent.pointerOut(hit, at)
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
-
-		vi.useRealTimers()
 	})
 
 	it('still opens the tooltip and points the bar on a mouse hover', () => {
@@ -152,8 +150,6 @@ describe('BarChart', () => {
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
 		expect(spots(container)).toHaveLength(0)
-
-		vi.useRealTimers()
 	})
 
 	it('cancels the click of a tap, so the browser cannot move it to the legend', () => {
@@ -237,8 +233,6 @@ describe('BarChart', () => {
 		fireEvent.pointerOut(hit, moved)
 
 		expect(select).not.toHaveBeenCalled()
-
-		vi.useRealTimers()
 	})
 
 	it('under the click trigger, activates once on a tap and pins no tooltip', () => {
@@ -290,8 +284,6 @@ describe('BarChart', () => {
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q3')
 
 		expect(select).toHaveBeenCalledTimes(2)
-
-		vi.useRealTimers()
 	})
 
 	it('under the click trigger, points no bar on a touch hold', () => {
@@ -316,8 +308,6 @@ describe('BarChart', () => {
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
 		expect(spots(container)).toHaveLength(0)
-
-		vi.useRealTimers()
 	})
 
 	it('selects on a mouse click', () => {

@@ -78,8 +78,6 @@ describe('useChatSend', () => {
 		// The hook reports rather than repairs: a minted replacement would discard
 		// the id a store persisted.
 		expect(result.current.messages.map((message) => message.id)).toEqual(['server-1', 'server-1'])
-
-		warn.mockRestore()
 	})
 
 	it('stays quiet when every seed message names itself', () => {
@@ -96,8 +94,6 @@ describe('useChatSend', () => {
 		)
 
 		expect(warn).not.toHaveBeenCalled()
-
-		warn.mockRestore()
 	})
 
 	it('edits a seed message by the id it was persisted under', async () => {

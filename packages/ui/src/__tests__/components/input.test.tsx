@@ -125,8 +125,6 @@ describe('Input defaultValue under a binding (§7.2)', () => {
 		)
 
 		expect(warned).toBe(false)
-
-		error.mockRestore()
 	})
 
 	it('keeps defaultValue on an unbound input', () => {

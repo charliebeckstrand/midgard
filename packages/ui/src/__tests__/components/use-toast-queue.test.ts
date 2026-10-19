@@ -182,8 +182,6 @@ describe('useToastQueue', () => {
 		expect(onTimeout.mock.calls.map(([t]) => t.id)).toEqual(['a', 'b'])
 
 		expect(result.current.runningRef.current).toBe(false)
-
-		vi.useRealTimers()
 	})
 
 	it('advances once when the exit comes before the fallback', () => {
@@ -209,8 +207,6 @@ describe('useToastQueue', () => {
 		})
 
 		expect(toastsRef.current.map((t) => t.id)).toEqual(['c'])
-
-		vi.useRealTimers()
 	})
 
 	it('clears the fallback on stop()', () => {
@@ -233,7 +229,5 @@ describe('useToastQueue', () => {
 		})
 
 		expect(toastsRef.current.map((t) => t.id)).toEqual(['b'])
-
-		vi.useRealTimers()
 	})
 })
