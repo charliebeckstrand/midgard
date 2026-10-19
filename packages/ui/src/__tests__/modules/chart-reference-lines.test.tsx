@@ -294,33 +294,29 @@ describe('reference lines', () => {
 	it('draws two lines at one value on two axes, with no duplicate React key', () => {
 		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-		try {
-			const { container } = renderUI(
-				<LineChart
-					aria-label="Dual"
-					data={[
-						{ w: 'W1', a: 10, b: 20 },
-						{ w: 'W2', a: 30, b: 40 },
-					]}
-					width={480}
-					series={[
-						{ xKey: 'w', yKey: 'a', yName: 'A' },
-						{ xKey: 'w', yKey: 'b', yName: 'B', axis: 'y2' },
-					]}
-					reference={[{ value: 25 }, { value: 25, axis: 'y2' }]}
-				/>,
-			)
+		const { container } = renderUI(
+			<LineChart
+				aria-label="Dual"
+				data={[
+					{ w: 'W1', a: 10, b: 20 },
+					{ w: 'W2', a: 30, b: 40 },
+				]}
+				width={480}
+				series={[
+					{ xKey: 'w', yKey: 'a', yName: 'A' },
+					{ xKey: 'w', yKey: 'b', yName: 'B', axis: 'y2' },
+				]}
+				reference={[{ value: 25 }, { value: 25, axis: 'y2' }]}
+			/>,
+		)
 
-			expect(allBySlot(container, 'chart-reference-line')).toHaveLength(2)
+		expect(allBySlot(container, 'chart-reference-line')).toHaveLength(2)
 
-			const duplicate = error.mock.calls.some((call) =>
-				String(call[0]).includes('Encountered two children with the same key'),
-			)
+		const duplicate = error.mock.calls.some((call) =>
+			String(call[0]).includes('Encountered two children with the same key'),
+		)
 
-			expect(duplicate).toBe(false)
-		} finally {
-			error.mockRestore()
-		}
+		expect(duplicate).toBe(false)
 	})
 
 	it('leaves the rule static without animate, no motion wrapper', () => {

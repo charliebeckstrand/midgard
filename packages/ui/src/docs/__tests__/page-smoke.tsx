@@ -7,7 +7,7 @@ import { Heading } from 'ui/heading'
 import type { LinkProps } from 'ui/primitives/link'
 import { AppearanceProvider } from 'ui/providers/appearance'
 import { UIProvider } from 'ui/providers/ui'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { CI } from '../../../vitest.base.ts'
 import { findPages, type Page } from '../plugin/pages.ts'
 import { restoreRootAfterCase } from './restore-root.ts'
@@ -171,11 +171,9 @@ function captureConsole(): string[] {
 	const logged: string[] = []
 
 	for (const level of ['error', 'warn'] as const) {
-		const spy = vi.spyOn(console, level).mockImplementation((...args: unknown[]) => {
+		vi.spyOn(console, level).mockImplementation((...args: unknown[]) => {
 			logged.push(`console.${level}: ${args.map(String).join(' ')}`)
 		})
-
-		onTestFinished(() => spy.mockRestore())
 	}
 
 	return logged

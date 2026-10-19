@@ -70,8 +70,6 @@ describe('LineChart', () => {
 
 		const duplicate = errors.mock.calls.some((call) => String(call[0]).includes('same key'))
 
-		errors.mockRestore()
-
 		expect(duplicate).toBe(false)
 	})
 
@@ -86,27 +84,23 @@ describe('LineChart', () => {
 	it('keys the legend and data table by index, not the label', () => {
 		const errors: string[] = []
 
-		const spy = vi.spyOn(console, 'error').mockImplementation((message) => {
+		vi.spyOn(console, 'error').mockImplementation((message) => {
 			errors.push(String(message))
 		})
 
-		try {
-			const { container } = renderUI(
-				chart({
-					series: [
-						{ xKey: 'week', yKey: 'signups', yName: 'Total' },
-						{ xKey: 'week', yKey: 'churn', yName: 'Total' },
-					],
-				}),
-			)
+		const { container } = renderUI(
+			chart({
+				series: [
+					{ xKey: 'week', yKey: 'signups', yName: 'Total' },
+					{ xKey: 'week', yKey: 'churn', yName: 'Total' },
+				],
+			}),
+		)
 
-			// Both series keep their own data-table column despite sharing a name.
-			expect(
-				container.querySelectorAll('[data-slot="chart-table"] thead th[scope="col"]'),
-			).toHaveLength(2)
-		} finally {
-			spy.mockRestore()
-		}
+		// Both series keep their own data-table column despite sharing a name.
+		expect(
+			container.querySelectorAll('[data-slot="chart-table"] thead th[scope="col"]'),
+		).toHaveLength(2)
 
 		// Keying by the shared label would trip React's duplicate-key reconciliation
 		// warning (and merge the columns on update); keying by index does not.

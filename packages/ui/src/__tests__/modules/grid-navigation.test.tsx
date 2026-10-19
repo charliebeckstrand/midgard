@@ -643,7 +643,7 @@ describe('Grid cursor edges', () => {
 		expect(grid).toHaveAttribute('aria-activedescendant', cells[ROW2_ROLE]?.id)
 	})
 
-	it('keeps the cursor when the whole window loses focus', ({ onTestFinished }) => {
+	it('keeps the cursor when the whole window loses focus', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} navigable />)
 
 		const grid = screen.getByRole('grid')
@@ -652,9 +652,7 @@ describe('Grid cursor edges', () => {
 
 		fireEvent.mouseDown(cells[ROW1_ROLE] as HTMLElement)
 
-		const hasFocus = vi.spyOn(document, 'hasFocus').mockReturnValue(false)
-
-		onTestFinished(() => hasFocus.mockRestore())
+		vi.spyOn(document, 'hasFocus').mockReturnValue(false)
 
 		// A switch of the window blurs with no next target.
 		fireEvent.blur(grid, { relatedTarget: null })

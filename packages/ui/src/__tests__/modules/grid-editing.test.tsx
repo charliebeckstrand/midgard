@@ -4534,40 +4534,34 @@ describe('Grid async commit', () => {
 
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
-		try {
-			const first = renderAsyncGrid()
+		const first = renderAsyncGrid()
 
-			editAndCommit(first, 'name', 'Alicia', 'Enter')
+		editAndCommit(first, 'name', 'Alicia', 'Enter')
 
-			const second = renderAsyncGrid()
+		const second = renderAsyncGrid()
 
-			editAndCommit(second, 'name', 'Alicia', 'Enter')
+		editAndCommit(second, 'name', 'Alicia', 'Enter')
 
-			first.unmount()
+		first.unmount()
 
-			second.unmount()
+		second.unmount()
 
-			// Start from a silent region, so any text below is a late settle's.
-			await act(async () => {})
+		// Start from a silent region, so any text below is a late settle's.
+		await act(async () => {})
 
-			const region = liveRegion()
+		const region = liveRegion()
 
-			if (region) region.textContent = ''
+		if (region) region.textContent = ''
 
-			await first.flights[0]?.accept()
+		await first.flights[0]?.accept()
 
-			await second.flights[0]?.reject(new Error('Server down'))
+		await second.flights[0]?.reject(new Error('Server down'))
 
-			expect(error).not.toHaveBeenCalled()
+		expect(error).not.toHaveBeenCalled()
 
-			expect(warn).not.toHaveBeenCalled()
+		expect(warn).not.toHaveBeenCalled()
 
-			expect(liveRegion()?.textContent ?? '').not.toMatch(/updated|not saved/)
-		} finally {
-			error.mockRestore()
-
-			warn.mockRestore()
-		}
+		expect(liveRegion()?.textContent ?? '').not.toMatch(/updated|not saved/)
 	})
 
 	it('runs two batches of one cell-scoped session at once, and settles each on its own', async () => {

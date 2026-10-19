@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { Component, type ReactNode } from 'react'
 import { MemoryRouter } from 'react-router'
-import { beforeAll, describe, expect, it, onTestFinished, vi } from 'vitest'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { tick } from '../../__tests__/helpers/frames.ts'
 import { ApiTable } from '../kit/api-table.tsx'
 import { ExampleFrame } from '../kit/example.tsx'
@@ -166,8 +166,6 @@ describe('ApiTable', () => {
 	// cannot scroll to it.
 	it('opens the entry that the hash names, and scrolls to the prop', async () => {
 		const scroll = vi.spyOn(Element.prototype, 'scrollIntoView')
-
-		onTestFinished(() => scroll.mockRestore())
 
 		renderTable(THING, '/thing#api-Thing-size')
 

@@ -70,8 +70,6 @@ describe('selectedCategories', () => {
 
 		const leaks = error.mock.calls.filter((call) => call.join(' ').includes('selectedCategories'))
 
-		error.mockRestore()
-
 		expect(leaks).toEqual([])
 
 		expect(container.querySelector('[selectedcategories]')).toBeNull()

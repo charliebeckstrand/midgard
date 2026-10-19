@@ -1,7 +1,7 @@
 import { act, within as inside, renderHook } from '@testing-library/react'
 import { Profiler, useState } from 'react'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { ColorPanel, ColorPicker } from '../../components/color'
 import { ColorPanelView } from '../../components/color/color-panel'
 import {
@@ -375,8 +375,6 @@ describe('ColorPanel', () => {
 	it('gives each chip its own key when the swatches repeat a color', () => {
 		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-		onTestFinished(() => error.mockRestore())
-
 		const { container } = renderUI(
 			<ColorPanel defaultValue="#3b82f6" swatches={['#ffffff', '#000000', '#ffffff']} />,
 		)
@@ -396,8 +394,6 @@ describe('ColorPanel', () => {
 	it('warns in development of a swatch that is not hex, one time for each list', () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
-		onTestFinished(() => warn.mockRestore())
-
 		const { rerender } = renderUI(
 			<ColorPanel defaultValue="#ffffff" swatches={['#ffffff', 'red', '#000']} />,
 		)
@@ -416,8 +412,6 @@ describe('ColorPanel', () => {
 
 	it('warns of nothing when each swatch is hex', () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-
-		onTestFinished(() => warn.mockRestore())
 
 		renderUI(<ColorPanel defaultValue="#ffffff" />)
 
