@@ -1,12 +1,14 @@
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
+import { IntlMessage } from '../../primitives/intl/intl-message'
+import { intlMessages } from '../../primitives/intl/intl-messages'
 import { k, type LoadingSpinnerVariants } from '../../recipes/kata/loading'
 
 /** Props for {@link LoadingSpinner}: the `size` step and the recipe `color`, plus an `sr-only` label and native `<output>` attributes. */
 export type LoadingSpinnerProps = LoadingSpinnerVariants & {
 	/**
 	 * Accessible label announced via the visually hidden `sr-only` span.
-	 * @defaultValue 'Loading'
+	 * @defaultValue `'Loading'`, in the language of the reader.
 	 */
 	label?: string
 } & Omit<ComponentProps<'output'>, 'color'>
@@ -28,13 +30,7 @@ const SPINNER_SVG = (
  * `<Badge>`, the spinner takes the step of the badge, because both follow the
  * same scope.
  */
-export function LoadingSpinner({
-	size,
-	color,
-	label = 'Loading',
-	className,
-	...props
-}: LoadingSpinnerProps) {
+export function LoadingSpinner({ size, color, label, className, ...props }: LoadingSpinnerProps) {
 	return (
 		<output
 			data-slot="loading-spinner"
@@ -43,7 +39,7 @@ export function LoadingSpinner({
 			{...props}
 		>
 			{SPINNER_SVG}
-			<span className="sr-only">{label}</span>
+			<span className="sr-only">{label ?? <IntlMessage message={intlMessages.loading} />}</span>
 		</output>
 	)
 }

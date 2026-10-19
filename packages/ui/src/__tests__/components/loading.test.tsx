@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { LoadingDots, LoadingSpinner } from '../../components/loading'
+import { LocaleProvider } from '../../providers/locale'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe.each([
@@ -18,6 +19,16 @@ describe.each([
 		renderUI(<Loading label="Saving" />)
 
 		expect(screen.getByText('Saving')).toBeInTheDocument()
+	})
+
+	it('speaks the default label in the language of the reader', () => {
+		renderUI(
+			<LocaleProvider locale="es-ES">
+				<Loading />
+			</LocaleProvider>,
+		)
+
+		expect(screen.getByText('Cargando')).toHaveClass('sr-only')
 	})
 })
 

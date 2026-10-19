@@ -14,7 +14,9 @@ import { cn } from '../../core'
 import { useHydrated } from '../../hooks/use-hydrated'
 import { useResizeObserver } from '../../hooks/use-resize-observer'
 import { InlineScript } from '../../primitives/inline-script/inline-script'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { breadcrumbFit, breadcrumbFitRule } from './breadcrumb-fit-rule'
+import { breadcrumbMessages } from './breadcrumb-messages'
 
 /**
  * The pre-paint step of a collapsing trail, for the `<nav>` just before it.
@@ -60,6 +62,8 @@ function fitScript(id: string): string {
  * @internal
  */
 export function BreadcrumbFit({ ref, className, children, ...props }: ComponentProps<'nav'>) {
+	const intl = useIntl()
+
 	const id = useId()
 
 	const nav = useRef<HTMLElement>(null)
@@ -109,7 +113,7 @@ export function BreadcrumbFit({ ref, className, children, ...props }: ComponentP
 			{rule ? <style>{rule}</style> : null}
 
 			<nav
-				aria-label="Breadcrumb"
+				aria-label={intl.formatMessage(breadcrumbMessages.label)}
 				className={cn('flex min-w-0 items-center', className)}
 				{...props}
 				// After the spread: the fit and its rule select on these.
