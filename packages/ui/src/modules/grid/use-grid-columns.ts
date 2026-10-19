@@ -3,7 +3,7 @@
 import { useCallback, useMemo } from 'react'
 import { isDataColumn } from '../../utilities'
 import { EMPTY_SET } from './engine/grid-constants'
-import { groupedColumnOrder } from './engine/grid-group/compute'
+import { collapsedHiddenIds, groupedColumnOrder } from './engine/grid-group/compute'
 import { isFrozen, normalizeFreeze } from './engine/grid-pin/overrides'
 import { applyColumnReorder } from './engine/grid-reorder-compute'
 import type { GridColumnManagerConfig, GridColumnOrder } from './grid-data-types'
@@ -18,11 +18,8 @@ type GridColumnsOptions<T> = {
 	columnManagerConfig: GridColumnManagerConfig | undefined
 	/** Column groups, if any; keep their members contiguous in the effective order. */
 	groups?: GridColumnGroup[]
-	/**
-	 * The ids that collapsed groups hide from the engine, beyond the user-hidden
-	 * set, from the columns that show in a band.
-	 */
-	hideCollapsed?: (shows: (id: string | number) => boolean) => Set<string | number>
+	/** The ids of the collapsed groups, whose members beyond the anchor hide from the engine. */
+	collapsed?: ReadonlySet<string | number>
 }
 
 /** Column slice returned by {@link useGridColumns}. @internal */
@@ -60,7 +57,7 @@ export function useGridColumns<T>({
 	columnOrderConfig,
 	columnManagerConfig,
 	groups,
-	hideCollapsed,
+	collapsed,
 }: GridColumnsOptions<T>): GridColumnsResult {
 	const {
 		order: rawOrder,
@@ -121,8 +118,11 @@ export function useGridColumns<T>({
 	// band: a member that the reader hid, or that is pinned away from the band,
 	// cannot be the anchor.
 	const collapsedHidden = useMemo<ReadonlySet<string | number>>(
-		() => hideCollapsed?.((id) => isOrderable(id) && !hiddenColumns.has(id)) ?? EMPTY_SET,
-		[hideCollapsed, hiddenColumns, isOrderable],
+		() =>
+			groups && collapsed
+				? collapsedHiddenIds(groups, collapsed, (id) => isOrderable(id) && !hiddenColumns.has(id))
+				: EMPTY_SET,
+		[groups, collapsed, hiddenColumns, isOrderable],
 	)
 
 	const columnVisibility = useMemo(() => {
