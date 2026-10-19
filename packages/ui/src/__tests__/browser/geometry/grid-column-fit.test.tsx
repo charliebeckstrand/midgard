@@ -368,6 +368,48 @@ describe('grid column auto-sizing (real browser)', () => {
 		// The bordered table lands on the container exactly — no horizontal scrollbar.
 		expect(scroll.scrollWidth).toBeLessThanOrEqual(scroll.clientWidth)
 	})
+
+	it('fills the scroll region without a phantom scrollbar under its stable gutter', async () => {
+		// A classic scrollbar. The headless browser hides its native bars, so the
+		// styled bar gives the gutter of the scroll region a width.
+		const style = document.createElement('style')
+
+		style.textContent = '::-webkit-scrollbar { width: 15px; height: 15px; }'
+
+		document.head.append(style)
+
+		try {
+			const { container } = renderUI(
+				<div style={{ width: '600px' }}>
+					<Grid
+						header={{ position: 'sticky' }}
+						columns={[
+							{ id: 'name', title: 'Name', cell: (row) => row.tiny },
+							{ id: 'role', title: 'Role', cell: (row) => row.tiny },
+						]}
+						rows={tinyRows}
+						getKey={getKey}
+					/>
+				</div>,
+			)
+
+			const table = present(container.querySelector('table'), 'table')
+
+			const scroll = present(
+				container.querySelector<HTMLElement>('[data-slot="grid-scroll"]'),
+				'[data-slot="grid-scroll"]',
+			)
+
+			await waitFor(() => expect(table.style.width).not.toBe(''))
+
+			// The gutter takes width from the scroll region, so the fit must use its content box.
+			expect(scroll.offsetWidth - scroll.clientWidth).toBeGreaterThan(0)
+
+			expect(scroll.scrollWidth).toBeLessThanOrEqual(scroll.clientWidth)
+		} finally {
+			style.remove()
+		}
+	})
 })
 
 /**
