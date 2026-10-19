@@ -9,7 +9,7 @@ import { join, relative, sep } from 'node:path'
  * (`join(srcDir, 'components')`, …), so a relocated test file can't silently
  * point its scan at the wrong tree.
  */
-export const srcDir = join(__dirname, '..', '..')
+export const srcDir = join(import.meta.dirname, '..', '..')
 
 /**
  * The path of `file` relative to {@link srcDir}, with `/` separators.

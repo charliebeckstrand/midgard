@@ -1,6 +1,6 @@
 import { mergeConfig } from 'vitest/config'
-import base from './vitest.bench.browser.config'
-import { compileUiSource } from './vitest.compiler.preset'
+import base from './vitest.bench.browser.config.ts'
+import { compileUiSource } from './vitest.compiler.preset.ts'
 
 /**
  * The browser benchmarks with the React Compiler on (`pnpm

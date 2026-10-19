@@ -1,6 +1,6 @@
 import { playwright } from '@vitest/browser-playwright'
 import { defineConfig } from 'vitest/config'
-import { servedTailwind } from './vitest.browser.config'
+import { servedTailwind } from './vitest.browser.config.ts'
 
 /**
  * The benchmarks of the ui modules in real Chromium (`pnpm bench:browser`),

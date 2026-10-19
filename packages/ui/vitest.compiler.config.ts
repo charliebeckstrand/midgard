@@ -1,9 +1,9 @@
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import { mergeConfig } from 'vitest/config'
-import { splitSequencer } from './src/__tests__/setup/split-sequencer'
-import { compileUiSource } from './vitest.compiler.preset'
-import base from './vitest.config'
+import { splitSequencer } from './src/__tests__/setup/split-sequencer.ts'
+import { compileUiSource } from './vitest.compiler.preset.ts'
+import base from './vitest.config.ts'
 
 const { version } = createRequire(import.meta.url)('babel-plugin-react-compiler/package.json') as {
 	version: string
