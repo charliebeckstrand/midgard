@@ -6,6 +6,8 @@ import { Button } from '../components/button'
 import { Drawer, DrawerBody, DrawerPanel, DrawerTitle, DrawerTrigger } from '../components/drawer'
 import { Icon } from '../components/icon'
 import { OFFCANVAS_LAYOUT, type OffcanvasLayout, useOffcanvas } from '../hooks/use-offcanvas'
+import { intlMessages } from '../primitives/intl/intl-messages'
+import { useIntl } from '../primitives/intl/use-intl'
 import { k } from '../recipes/kata/offcanvas'
 import { Box } from '../structure/box'
 import { Flex } from '../structure/flex'
@@ -74,6 +76,10 @@ export function DashboardLayout({
 }: DashboardLayoutProps) {
 	const { open, setOpen } = useOffcanvas({ layout, onOpenChange })
 
+	const intl = useIntl()
+
+	const filtersLabel = intl.formatMessage(intlMessages.filters)
+
 	return (
 		<StackedLayout>
 			{/* A row centers its cross axis by default. The rail starts at the top of the
@@ -88,14 +94,14 @@ export function DashboardLayout({
 						{/* One filter landmark at each width: the filters in the inline layout,
 						    and the trigger of the drawer in the drawer layout. The trigger is
 						    then in a landmark. */}
-						<aside aria-label="Filters" data-slot="filters" className="shrink-0">
+						<aside aria-label={filtersLabel} data-slot="filters" className="shrink-0">
 							<Stack className={resolveVariant(layout, k.inline.flex)}>{filters}</Stack>
 
 							<Box className={resolveVariant(layout, k.drawer.block)}>
 								<DrawerTrigger>
 									<Button type="button" variant="outline">
 										<Icon icon={<SlidersHorizontal />} />
-										Filters
+										{filtersLabel}
 									</Button>
 								</DrawerTrigger>
 							</Box>
@@ -103,7 +109,7 @@ export function DashboardLayout({
 
 						{/* Filter drawer */}
 						<DrawerPanel>
-							<DrawerTitle>Filters</DrawerTitle>
+							<DrawerTitle>{filtersLabel}</DrawerTitle>
 							<DrawerBody>
 								<Stack>{filters}</Stack>
 							</DrawerBody>

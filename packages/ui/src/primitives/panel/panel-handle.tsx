@@ -2,7 +2,18 @@
 
 import type { PanelResize } from '../../hooks/use-panel-resize'
 import type { Orientation } from '../../types'
+import { defineMessages } from '../intl/intl-messages'
+import { useIntl } from '../intl/use-intl'
 import { PanelSplitter } from './panel-splitter'
+
+const messages = defineMessages({
+	resize: {
+		id: 'ui.panel.resize',
+		defaultMessage: 'Resize panel',
+		description:
+			'The name of the grab bar that changes the size of a drawer or a sheet, by a drag or by the arrow keys.',
+	},
+})
 
 /** Props for {@link PanelHandle}. @internal */
 export type PanelHandleProps = {
@@ -53,10 +64,12 @@ export function PanelHandle({
 	className,
 	bar,
 }: PanelHandleProps) {
+	const intl = useIntl()
+
 	return (
 		<PanelSplitter
 			data-slot={slot}
-			aria-label="Resize panel"
+			aria-label={intl.formatMessage(messages.resize)}
 			aria-orientation={orientation}
 			aria-controls={controls}
 			aria-valuenow={covers}

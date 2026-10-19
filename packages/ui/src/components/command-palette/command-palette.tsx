@@ -38,6 +38,12 @@ const messages = defineMessages({
 		defaultMessage: 'Type a command or search',
 		description: 'The placeholder of the search field of the command palette, and its name.',
 	},
+	label: {
+		id: 'ui.commandPalette.label',
+		defaultMessage: 'Command palette',
+		description:
+			'The name of the dialog that searches the commands of an app. It has no visible title.',
+	},
 })
 
 /** The palette docks to the bottom edge on a compact viewport, and floats near the top from medium. */
@@ -241,7 +247,7 @@ export function CommandPalette({
 				className={className}
 				initialFocus={inputRef}
 				// Names the dialog directly; the palette has no visible heading.
-				aria-label="Command palette"
+				aria-label={intl.formatMessage(messages.label)}
 				// The palette renders its own footer from `footer`, inside the query
 				// context, so the dialog adds none.
 				footer={null}

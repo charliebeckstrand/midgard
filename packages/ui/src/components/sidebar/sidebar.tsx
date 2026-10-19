@@ -5,16 +5,27 @@ import { type ComponentProps, use, useRef } from 'react'
 import { cn, composeEventHandlers, dataAttr } from '../../core'
 import { useA11yRoving } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
+import { defineMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { OffcanvasContext } from '../../primitives/offcanvas'
 import { k } from '../../recipes/kata/sidebar'
 import { SidebarMiniContext } from './context'
+
+const messages = defineMessages({
+	label: {
+		id: 'ui.sidebar.label',
+		defaultMessage: 'Sidebar',
+		description:
+			'The name of the navigation landmark at the side of a page, which a screen reader speaks with its role.',
+	},
+})
 
 /** Props for {@link Sidebar}: the `mini` rail toggle plus native `<nav>` attributes. */
 export type SidebarProps = Omit<ComponentProps<'nav'>, 'aria-label'> & {
 	/**
 	 * The accessible name of the landmark. Give each navigation landmark its
 	 * own name when a page shows more than one.
-	 * @defaultValue 'Sidebar'
+	 * @defaultValue `'Sidebar'`, in the language of the reader.
 	 */
 	'aria-label'?: string
 	/**
@@ -47,7 +58,7 @@ export type SidebarProps = Omit<ComponentProps<'nav'>, 'aria-label'> & {
  * sidebar. The state needs no width, so the server renders it too.
  */
 export function Sidebar({
-	'aria-label': ariaLabel = 'Sidebar',
+	'aria-label': ariaLabel,
 	mini = false,
 	className,
 	children,
@@ -55,6 +66,8 @@ export function Sidebar({
 	ref: consumerRef,
 	...props
 }: SidebarProps) {
+	const intl = useIntl()
+
 	const ref = useRef<HTMLElement>(null)
 
 	// A consumer ref joins the roving ref instead of replacing it (CONVENTIONS.md §3.9).
@@ -89,7 +102,7 @@ export function Sidebar({
 					ref={composedRef}
 					data-slot="sidebar"
 					data-mini={dataAttr(resolvedMini)}
-					aria-label={ariaLabel}
+					aria-label={ariaLabel ?? intl.formatMessage(messages.label)}
 					className={cn(k.base, className)}
 					// Roving is a keyboard model no consumer switches off, so a consumer's
 					// preventDefault() does not cancel it (CONVENTIONS.md §3.9).
