@@ -176,8 +176,6 @@ describe('Textarea', () => {
 		)
 
 		expect(warned).toBe(false)
-
-		error.mockRestore()
 	})
 })
 

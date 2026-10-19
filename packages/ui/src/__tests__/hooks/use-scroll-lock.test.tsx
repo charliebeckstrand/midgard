@@ -137,8 +137,6 @@ describe('useScrollLock', () => {
 		onTestFinished(() => {
 			if (dir === null) html.removeAttribute('dir')
 			else html.setAttribute('dir', dir)
-
-			vi.restoreAllMocks()
 		})
 
 		const { unmount } = render(<Lock />)

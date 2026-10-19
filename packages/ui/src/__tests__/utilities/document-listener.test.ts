@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { subscribeDocumentEvent } from '../../utilities/document-listener'
 
 describe('subscribeDocumentEvent', () => {
@@ -10,10 +10,6 @@ describe('subscribeDocumentEvent', () => {
 		addSpy = vi.spyOn(document, 'addEventListener')
 
 		removeSpy = vi.spyOn(document, 'removeEventListener')
-	})
-
-	afterEach(() => {
-		vi.restoreAllMocks()
 	})
 
 	it('attaches one document listener for many subscribers of the same event', () => {

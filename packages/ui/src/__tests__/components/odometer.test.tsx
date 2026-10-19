@@ -1,15 +1,11 @@
 import { animate } from 'motion'
 import type { MotionValue } from 'motion/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Odometer } from '../../components/odometer'
 import { LocaleProvider } from '../../providers/locale'
 import { bySlot, renderUI, waitFor } from '../helpers'
 
 describe('Odometer', () => {
-	afterEach(() => {
-		vi.restoreAllMocks()
-	})
-
 	it('renders the initial value using the default formatter', () => {
 		const { container } = renderUI(<Odometer value={1234} />)
 

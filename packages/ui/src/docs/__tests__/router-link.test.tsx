@@ -125,8 +125,6 @@ describe('RouterLink prefetch', () => {
 			for (const [type, listener] of listen.mock.calls) {
 				if (type === 'pagehide') window.removeEventListener(type, listener)
 			}
-
-			listen.mockRestore()
 		})
 
 		const Stub = createRoutesStub([
@@ -144,10 +142,6 @@ describe('RouterLink prefetch', () => {
 
 	it('loads the code of a page 100 ms after a hover', async () => {
 		vi.useFakeTimers()
-
-		onTestFinished(() => {
-			vi.useRealTimers()
-		})
 
 		renderStub()
 

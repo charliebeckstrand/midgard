@@ -86,10 +86,6 @@ describe('Toast: useToast behavior', () => {
 
 	afterEach(() => {
 		configure({ defaultIgnore })
-
-		vi.useRealTimers()
-
-		vi.restoreAllMocks()
 	})
 
 	type TriggerProps = {

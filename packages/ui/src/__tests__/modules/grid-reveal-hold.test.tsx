@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react'
-import { afterEach, expect, it, vi } from 'vitest'
+import { expect, it, vi } from 'vitest'
 import { useGridRevealHold } from '../../modules/grid/use-grid-reveal-hold'
 
 /**
@@ -9,9 +9,6 @@ import { useGridRevealHold } from '../../modules/grid/use-grid-reveal-hold'
  * the row snaps open. The compiled run of this test proves that the React
  * Compiler keeps the flush.
  */
-afterEach(() => {
-	vi.restoreAllMocks()
-})
 
 it('flushes the styles before a waking row opens', () => {
 	const flush = vi.spyOn(document.documentElement, 'getBoundingClientRect')

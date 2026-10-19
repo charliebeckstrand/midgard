@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react'
 import { type RefObject, useRef } from 'react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { useSignaturePadCanvasSizing } from '../../components/signature-pad/use-signature-pad-canvas-sizing'
 import { makeCanvasContext } from '../helpers'
 
@@ -64,10 +64,6 @@ function setup(options: {
 
 	return { result, unmount, canvas, context }
 }
-
-afterEach(() => {
-	vi.restoreAllMocks()
-})
 
 describe('useSignaturePadCanvasSizing', () => {
 	it('sizes the canvas using devicePixelRatio when a container is present', () => {

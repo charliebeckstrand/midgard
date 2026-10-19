@@ -2,11 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { downloadBlob } from '../../core/download-blob'
 
 describe('downloadBlob', () => {
-	afterEach(() => {
-		vi.useRealTimers()
-
-		vi.restoreAllMocks()
-	})
+	afterEach(() => {})
 
 	it('clicks an anchor in the document that names the file and points at the blob', () => {
 		vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:file')

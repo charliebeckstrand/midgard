@@ -146,8 +146,6 @@ describe('rowsToXlsxInSteps', () => {
 		await rowsToXlsxInSteps(columns, many)
 
 		expect(post).toHaveBeenCalled()
-
-		post.mockRestore()
 	})
 
 	it('writes the same worksheet as rowsToXlsx', async () => {

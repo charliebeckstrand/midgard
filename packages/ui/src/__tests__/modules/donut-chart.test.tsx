@@ -151,8 +151,6 @@ describe('DonutChart', () => {
 		expect(receded(slices)).toEqual([false, false, false])
 
 		fireEvent.pointerUp(first, touch)
-
-		vi.useRealTimers()
 	})
 
 	it('still opens the tooltip and isolates the slice on a mouse hover', () => {
@@ -208,8 +206,6 @@ describe('DonutChart', () => {
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
 		expect(receded(allBySlot(container, 'chart-slice'))).toEqual([false, false, false])
-
-		vi.useRealTimers()
 	})
 
 	it('under the click trigger, activates once on a tap and pins no tooltip', () => {

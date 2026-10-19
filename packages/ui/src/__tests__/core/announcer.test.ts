@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { __resetAnnouncer, announce } from '../../core/announcer'
 import { flushAnnouncer } from '../helpers'
 
@@ -78,10 +78,6 @@ describe('announce', () => {
 	it('writes the first text 100ms after the next paint once it creates the region', async () => {
 		vi.useFakeTimers()
 
-		onTestFinished(() => {
-			vi.useRealTimers()
-		})
-
 		announce('Saved')
 
 		await flushMicrotasks()
@@ -106,10 +102,6 @@ describe('announce', () => {
 
 	it('keeps the last text when a new region gets two messages before its first write', async () => {
 		vi.useFakeTimers()
-
-		onTestFinished(() => {
-			vi.useRealTimers()
-		})
 
 		announce('one')
 		announce('two')

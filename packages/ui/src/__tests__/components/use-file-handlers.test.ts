@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import type { DragEvent } from 'react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { useFileUploadHandlers } from '../../components/file-upload/use-file-upload-handlers'
 import { makeChangeEvent, makeFileList } from '../helpers'
 
@@ -23,10 +23,6 @@ function makeDragEvent(files: File[] = [], types: string[] = ['Files']): DragEve
 }
 
 describe('useFileUploadHandlers', () => {
-	afterEach(() => {
-		vi.restoreAllMocks()
-	})
-
 	it('starts with empty files and dragOver=false', () => {
 		const { result } = renderHook(() => useFileUploadHandlers({}))
 

@@ -1,14 +1,10 @@
 import { act, renderHook } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useAnimationFrame } from '../../hooks/use-timeout'
 
 describe('useAnimationFrame', () => {
 	beforeEach(() => {
 		vi.useFakeTimers({ toFake: ['requestAnimationFrame', 'cancelAnimationFrame'] })
-	})
-
-	afterEach(() => {
-		vi.useRealTimers()
 	})
 
 	it('runs the callback once on the next frame', () => {

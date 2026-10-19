@@ -149,8 +149,6 @@ beforeEach(() => {
 
 afterEach(() => {
 	resetDocumentCache()
-
-	vi.restoreAllMocks()
 })
 
 describe('pdf viewer document cache', () => {

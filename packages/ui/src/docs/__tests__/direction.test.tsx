@@ -13,8 +13,6 @@ function resetAfterCase(): void {
 		document.documentElement.removeAttribute('dir')
 
 		sessionStorage.clear()
-
-		vi.restoreAllMocks()
 	})
 }
 

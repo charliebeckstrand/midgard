@@ -326,8 +326,6 @@ describe('primeMarkdown', () => {
 		expect(container.querySelector('em')?.textContent).toBe('primed')
 
 		expect(lex).toHaveBeenCalledTimes(1)
-
-		lex.mockRestore()
 	})
 
 	it('primes the breaks form apart from the plain form', () => {
@@ -346,8 +344,6 @@ describe('primeMarkdown', () => {
 		renderUI(<Markdown>{'A primed\nsource.'}</Markdown>)
 
 		expect(lex).toHaveBeenCalledTimes(2)
-
-		lex.mockRestore()
 	})
 })
 

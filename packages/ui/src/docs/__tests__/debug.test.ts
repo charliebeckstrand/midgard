@@ -22,10 +22,6 @@ function lines(store: EventStore): string[] {
 		.filter((line) => !line.startsWith('load restore '))
 }
 
-afterEach(() => {
-	vi.useRealTimers()
-})
-
 describe('the sources of the docs', () => {
 	afterEach(() => {
 		delete window.__eventReadings

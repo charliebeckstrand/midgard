@@ -94,8 +94,6 @@ describe('Grid per-column filters', () => {
 		)
 
 		expect(warn).toHaveBeenCalledWith(expect.stringContaining('table-wide filtering mode'))
-
-		warn.mockRestore()
 	})
 
 	it('does not warn when the two filter surfaces share a mode', () => {
@@ -112,8 +110,6 @@ describe('Grid per-column filters', () => {
 		)
 
 		expect(warn).not.toHaveBeenCalled()
-
-		warn.mockRestore()
 	})
 
 	it('renders a filter button only for filterable columns', () => {

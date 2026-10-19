@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Menu, MenuContent, MenuItem } from '../../components/menu'
 import { TOUCH_CONTEXT_MENU_DELAY } from '../../components/menu/use-menu-touch-hold'
 import { act, fireEvent, renderUI, screen } from '../helpers'
@@ -13,10 +13,6 @@ import { act, fireEvent, renderUI, screen } from '../helpers'
 describe('a context Menu under a touch long press', () => {
 	beforeEach(() => {
 		vi.useFakeTimers()
-	})
-
-	afterEach(() => {
-		vi.useRealTimers()
 	})
 
 	function renderSurface(onClick = vi.fn(), onEdit = vi.fn()) {

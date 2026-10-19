@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { createListenerRegistry } from '../../utilities/listener-registry'
 
 type Source = { id: number; listener: ((event: string) => void) | null }
@@ -38,10 +38,6 @@ function setup(keep?: boolean) {
 }
 
 describe('createListenerRegistry', () => {
-	afterEach(() => {
-		vi.restoreAllMocks()
-	})
-
 	it('attaches one listener for each key and dispatches in subscription order', () => {
 		const { registry, attach, fire } = setup()
 

@@ -299,10 +299,6 @@ describe('useDatePickerRangeState', () => {
 			// Today is min, so the cursor starts on min.
 			vi.useFakeTimers({ now: new Date(2025, 0, 10, 13, 30) })
 
-			onTestFinished(() => {
-				vi.useRealTimers()
-			})
-
 			const onChange = vi.fn()
 
 			const { result } = renderHook(() =>
@@ -361,10 +357,6 @@ describe('useDatePickerRangeState', () => {
 		it('starts the cursor on today when there is no value and no min', () => {
 			vi.useFakeTimers({ now: new Date(2025, 5, 15, 13, 30) })
 
-			onTestFinished(() => {
-				vi.useRealTimers()
-			})
-
 			const { result } = renderHook(() => useDatePickerRangeState({ range: true }))
 
 			act(() => result.current.onOpenChange(true))
@@ -378,10 +370,6 @@ describe('useDatePickerRangeState', () => {
 		it('starts the cursor on today when there is no value and today is inside min/max', () => {
 			vi.useFakeTimers({ now: new Date(2025, 5, 15, 13, 30) })
 
-			onTestFinished(() => {
-				vi.useRealTimers()
-			})
-
 			const { result } = renderHook(() => useDatePickerRangeState({ range: true, min: Jan15 }))
 
 			act(() => result.current.onOpenChange(true))
@@ -393,10 +381,6 @@ describe('useDatePickerRangeState', () => {
 
 		it('pins today as the start on Enter when there is no value and today is inside min/max', () => {
 			vi.useFakeTimers({ now: new Date(2025, 5, 15, 13, 30) })
-
-			onTestFinished(() => {
-				vi.useRealTimers()
-			})
 
 			const { result } = renderHook(() => useDatePickerRangeState({ range: true, min: Jan15 }))
 

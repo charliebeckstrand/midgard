@@ -41,11 +41,7 @@ function texts(store: EventStore): string[] {
 	return store.entries.map(({ text }) => text)
 }
 
-afterEach(() => {
-	vi.useRealTimers()
-
-	vi.restoreAllMocks()
-})
+afterEach(() => {})
 
 /** Sets the time of the page, which a capture gives to its start and its end. */
 function now(time: number) {

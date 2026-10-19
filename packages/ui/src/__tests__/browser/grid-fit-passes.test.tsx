@@ -1,4 +1,4 @@
-import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn, type GridSortState } from '../../modules/grid'
 import { frames, present, renderUI, screen, waitFor } from '../helpers'
 
@@ -42,10 +42,6 @@ describe('grid fit passes (real browser)', () => {
 	beforeAll(async () => {
 		// The fit skips the web-font re-measure only when the fonts have loaded.
 		await document.fonts.ready
-	})
-
-	afterEach(() => {
-		vi.restoreAllMocks()
 	})
 
 	/** Counts the fit passes from here on. */

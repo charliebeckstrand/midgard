@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { defaultRelativePresets } from '../../components/date-picker/date-picker-relative-utilities'
 import { useDatePickerRelativeState } from '../../components/date-picker/use-date-picker-relative-state'
 import { intlEn } from '../../primitives/intl/intl-catalog'
@@ -169,10 +169,6 @@ describe('useDatePickerRelativeState', () => {
 		// the open transition itself must re-stamp `now`.
 		it('re-stamps the relative anchor when a controlled `open` turns on', () => {
 			vi.useFakeTimers({ now: new Date(2025, 0, 1, 23, 0) })
-
-			onTestFinished(() => {
-				vi.useRealTimers()
-			})
 
 			const value = [today.resolve(new Date(2025, 0, 2))]
 

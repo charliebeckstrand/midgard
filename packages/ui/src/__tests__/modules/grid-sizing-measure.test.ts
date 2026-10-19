@@ -26,8 +26,6 @@ function table(count: number): HTMLElement {
 describe('measureColumns', () => {
 	afterEach(() => {
 		document.body.innerHTML = ''
-
-		vi.restoreAllMocks()
 	})
 
 	it('reads every intrinsic width through one Range, and releases it after each pass', () => {

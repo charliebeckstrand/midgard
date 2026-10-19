@@ -12,8 +12,8 @@ import { beforeEach, onTestFinished } from 'vitest'
  *
  * A test that expects the message spies on the method
  * (`vi.spyOn(console, 'warn')`) and asserts the call. The spy replaces the
- * guard for that test, and `restoreMocks` puts the guard back before the next
- * test.
+ * guard for that test. The restore after the test (`restore-test-state.ts`)
+ * puts the guard back before `cleanup`.
  *
  * The check runs in `onTestFinished`, after each `afterEach`. Thus a message
  * that the unmount of `cleanup` causes fails the test that rendered the tree.

@@ -121,11 +121,9 @@ describe('resolveExportActions', () => {
 	})
 
 	it('names no built-in exporter for a key of every object', () => {
-		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+		const _warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
 		expect(resolveExportActions<Item>(intlEn, ['constructor' as 'csv'], () => context)).toEqual([])
-
-		warn.mockRestore()
 	})
 
 	it('rejects an async export whose exporter throws, and logs no fetch failure', async () => {
@@ -150,8 +148,6 @@ describe('resolveExportActions', () => {
 		await expect(action?.run()).rejects.toBe(boom)
 
 		expect(error).not.toHaveBeenCalled()
-
-		error.mockRestore()
 	})
 })
 
@@ -634,8 +630,6 @@ describe('Grid export', () => {
 		expect(screen.queryByRole('menuitem', { name: 'Export to pdf' })).toBeNull()
 
 		expect(warn).toHaveBeenCalled()
-
-		warn.mockRestore()
 	})
 
 	// A server-paginated grid holds only the page it was handed; `exportRows`
@@ -844,8 +838,6 @@ describe('Grid export', () => {
 		await waitFor(() => expect(error).toHaveBeenCalled())
 
 		expect(download.createObjectURL).not.toHaveBeenCalled()
-
-		error.mockRestore()
 	})
 
 	// The "Exporting" overlay: the indicator for an async export, and the only one a
@@ -891,7 +883,7 @@ describe('Grid export', () => {
 	})
 
 	it('lifts the overlay when an export fails, rather than covering the grid for good', async () => {
-		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+		const _error = vi.spyOn(console, 'error').mockImplementation(() => {})
 
 		const server = deferred<Row[]>()
 
@@ -914,8 +906,6 @@ describe('Grid export', () => {
 		server.reject(new Error('server down'))
 
 		await waitFor(() => expect(overlay()).toBeNull())
-
-		error.mockRestore()
 	})
 
 	it('leaves a synchronous export uncovered — there is no wait to report', () => {

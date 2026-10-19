@@ -27,11 +27,7 @@ function stubIdle(): void {
 	})
 }
 
-afterEach(() => {
-	vi.unstubAllGlobals()
-
-	vi.restoreAllMocks()
-})
+afterEach(() => {})
 
 /** The sources that `marked` lexes from now on. A source in the token cache does not lex again. */
 function spyLex(): () => string[] {

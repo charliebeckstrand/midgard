@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { createPhotonProvider } from '../../components/address-input/address-input-photon'
 
 function makeFeature(
@@ -20,10 +20,6 @@ function stubFeatures(...features: ReturnType<typeof makeFeature>[]) {
 		vi.fn(async () => ({ ok: true, json: async () => ({ features }) }) as Response),
 	)
 }
-
-afterEach(() => {
-	vi.unstubAllGlobals()
-})
 
 describe('createPhotonProvider address parts', () => {
 	it('fills the street of a road match from its name, and keeps the name', async () => {

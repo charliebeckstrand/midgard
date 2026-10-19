@@ -22,11 +22,7 @@ describe('useKeyboardLifted', () => {
 		vi.stubGlobal('cancelAnimationFrame', (id: number) => frames.delete(id))
 	})
 
-	afterEach(() => {
-		vi.unstubAllGlobals()
-
-		vi.restoreAllMocks()
-	})
+	afterEach(() => {})
 
 	function runFrames() {
 		for (const [id, callback] of [...frames]) {

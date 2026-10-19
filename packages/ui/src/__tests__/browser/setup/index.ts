@@ -1,12 +1,13 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup, configure } from '@testing-library/react'
 import { toHaveNoViolations } from 'jest-axe'
-import { afterEach, beforeAll, beforeEach, expect, inject, vi } from 'vitest'
+import { afterEach, beforeAll, beforeEach, expect, inject } from 'vitest'
 import { commands } from 'vitest/browser'
 import { loadListReorder } from '../../../components/list/use-list-reorder'
 import { loadGridDataDialogs } from '../../../modules/grid/grid-data-dialogs'
 import { installSingletonResets } from '../../helpers/reset-singletons'
 import { installResidueGuard } from '../../helpers/residue'
+import { restoreTestState } from '../../helpers/restore-test-state'
 import '../../setup/geometry'
 import { pageState } from './forensics'
 import '../../../fonts/google-sans-flex-latin.js'
@@ -86,9 +87,9 @@ afterEach((ctx) => {
 	// largest tree in the suite, 583 times, and discard all but one.
 	if (ctx.task.result?.state === 'fail') console.error(`page state at failure:\n  ${pageState()}`)
 
-	// A fake clock that a case installs stays on the shared page when the case
-	// times out, as in the jsdom setup. No file installs one today.
-	vi.useRealTimers()
+	// As in the jsdom setup: the spies, the stubs, and a fake clock that a case
+	// times out with come off before `cleanup`.
+	restoreTestState()
 
 	cleanup()
 })

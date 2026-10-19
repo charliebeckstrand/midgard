@@ -34,8 +34,6 @@ async function hydrateOn(platform: string): Promise<{ before: string; after: str
 		act(() => root.unmount())
 
 		container.remove()
-
-		vi.restoreAllMocks()
 	})
 
 	expect(onRecoverableError).not.toHaveBeenCalled()

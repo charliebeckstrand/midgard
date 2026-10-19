@@ -237,8 +237,6 @@ describe('Checkbox defaultChecked under a binding', () => {
 		)
 
 		expect(warned).toBe(false)
-
-		error.mockRestore()
 	})
 
 	it('keeps defaultChecked on an unbound checkbox', () => {
