@@ -107,7 +107,20 @@ type GridEditOverlayProps<T> = {
 export function GridEditOverlay<T>({ kind, session, columns, source }: GridEditOverlayProps<T>) {
 	const intl = useIntl()
 
-	const { activeEditStore: store, readDraft, endSession, saveSession, resumeCell } = session
+	const {
+		activeEditStore: store,
+		readDraft,
+		endSession,
+		saveSession,
+		resumeCell,
+		showOverlay,
+		focusTarget,
+	} = session
+
+	// The element that focus returns to as the overlay closes. The session names
+	// it as Save or Cancel ends the row, so focus does not return to an element
+	// that had the focus before, in this grid or another.
+	const returnRef = useRef<HTMLElement | null>(null)
 
 	const snapshot = useSyncExternalStore(
 		store.subscribe,
@@ -130,6 +143,22 @@ export function GridEditOverlay<T>({ kind, session, columns, source }: GridEditO
 	// the drafts that a refusal staged again with their errors.
 	const [settled, setSettled] = useState(0)
 
+	// Whether the overlay has finished opening. The panel reports it once per
+	// arrival through its `onOpenComplete`.
+	const [landed, setLanded] = useState(false)
+
+	const open = target !== null || busy
+
+	const shownKey = shown?.rowKey ?? null
+
+	// The row actions of the shown row change once the overlay is up. A close
+	// clears the row, and the next arrival names it again.
+	useEffect(() => {
+		showOverlay(open && landed ? shownKey : null)
+	}, [open, landed, shownKey, showOverlay])
+
+	if (!open && landed) setLanded(false)
+
 	const row =
 		shown === null
 			? undefined
@@ -145,8 +174,6 @@ export function GridEditOverlay<T>({ kind, session, columns, source }: GridEditO
 
 	if (shown === null || row === undefined) return null
 
-	const open = target !== null || busy
-
 	function save() {
 		if (shown === null || row === undefined) return
 
@@ -161,6 +188,8 @@ export function GridEditOverlay<T>({ kind, session, columns, source }: GridEditO
 		})
 
 		if (blocked) return
+
+		returnRef.current = focusTarget(rowKey) as HTMLElement | null
 
 		setBusy(true)
 
@@ -178,6 +207,8 @@ export function GridEditOverlay<T>({ kind, session, columns, source }: GridEditO
 
 	function discard() {
 		if (busy || shown === null) return
+
+		returnRef.current = focusTarget(shown.rowKey) as HTMLElement | null
 
 		endSession(shown.rowKey, 'discard')
 	}
@@ -228,13 +259,24 @@ export function GridEditOverlay<T>({ kind, session, columns, source }: GridEditO
 		<GridOverlayDensity>
 			{kind === 'drawer' ? (
 				<Drawer open={open} onOpenChange={onOpenChange}>
-					<DrawerPanel height="fit" aria-label={title}>
+					<DrawerPanel
+						height="fit"
+						aria-label={title}
+						returnFocusTo={returnRef}
+						onOpenComplete={() => setLanded(true)}
+					>
 						{content}
 					</DrawerPanel>
 				</Drawer>
 			) : (
 				<Sheet open={open} onOpenChange={onOpenChange}>
-					<SheetPanel aria-label={title}>{content}</SheetPanel>
+					<SheetPanel
+						aria-label={title}
+						returnFocusTo={returnRef}
+						onOpenComplete={() => setLanded(true)}
+					>
+						{content}
+					</SheetPanel>
 				</Sheet>
 			)}
 		</GridOverlayDensity>

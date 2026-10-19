@@ -30,7 +30,14 @@ export function GridRowActions<T>({
 	const store = session?.activeEditStore
 
 	// The row's own flag, so a row that opens or closes renders its own slot.
-	const readEditing = useCallback(() => store?.rows().has(rowKey) ?? false, [store, rowKey])
+	// On a phone the row edits in an overlay, so the flag waits until that
+	// overlay has finished opening.
+	const overlay = session?.overlay ?? null
+
+	const readEditing = useCallback(
+		() => (store?.rows().has(rowKey) ?? false) && (overlay === null || store?.shown() === rowKey),
+		[store, rowKey, overlay],
+	)
 
 	const editing = useSyncExternalStore(store?.subscribe ?? noopSubscribe, readEditing, readEditing)
 

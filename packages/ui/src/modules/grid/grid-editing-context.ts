@@ -29,6 +29,13 @@ export type GridActiveEditStore = {
 	 * editable cell of a set row mounts its editor.
 	 */
 	get: () => GridActiveEdit | null
+	/**
+	 * The row whose overlay has finished opening on a phone
+	 * ({@link GridEditableConfig.overlay}), or `null` while no overlay is up.
+	 * The row actions read it, so the control of a row changes when its
+	 * overlay is up, not when its session starts.
+	 */
+	shown: () => string | number | null
 }
 
 /**
@@ -128,6 +135,18 @@ export type GridEditingSession = {
 	 * commit has settled, and a refused row is open again.
 	 */
 	saveSession: (rowKey: string | number) => Promise<void>
+	/**
+	 * Names the row whose overlay has finished opening, for the
+	 * `onOpenComplete` of the overlay, or `null` as the overlay closes.
+	 */
+	showOverlay: (rowKey: string | number | null) => void
+	/**
+	 * The element that focus returns to as the session on a row ends: the tab
+	 * stop, with the cursor on the cell that the session edited, or the cell or
+	 * element that had the focus as the row opened. It is `null` when that
+	 * element is gone. The overlay reads it as it closes.
+	 */
+	focusTarget: (rowKey: string | number) => Element | null
 }
 
 /**

@@ -149,6 +149,11 @@ export type SheetPanelProps = Omit<SheetPanelVariants, 'surface' | 'width' | 'si
 		 */
 		initialFocus?: RefObject<HTMLElement | null>
 		/**
+		 * Element to receive the focus when the sheet closes.
+		 * @defaultValue the element that had the focus as the sheet opened.
+		 */
+		returnFocusTo?: RefObject<HTMLElement | null>
+		/**
 		 * Accessible name for sheets without a visible `SheetTitle`. Ignored once a
 		 * `SheetTitle` registers.
 		 */
@@ -214,6 +219,7 @@ export function SheetPanel({
 	container,
 	dismissOnBackdrop,
 	initialFocus,
+	returnFocusTo,
 	modal,
 	backdrop,
 	'aria-label': ariaLabel,
@@ -266,6 +272,7 @@ export function SheetPanel({
 			onOpenChange={setOpen}
 			container={container}
 			initialFocus={initialFocus}
+			returnFocusTo={returnFocusTo}
 			dismissOnBackdrop={dismissOnBackdrop}
 			modal={modal}
 			backdrop={backdrop}
