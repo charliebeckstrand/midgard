@@ -38,9 +38,9 @@ describe('Toggle press area', () => {
 	// iOS moves a press that misses a clickable node to one near it, and it looks
 	// up and to the left first. A press in an empty part of a row thus went to
 	// the row above. On a coarse pointer the label covers its row and half of
-	// each gap, so the rows of a group leave no empty part. Each row with its
-	// share of the gaps is at least 44 px tall there, because a finger press
-	// often lands farther from its target than a shorter row reaches.
+	// each gap, so the rows of a group leave no empty part. The gap between two
+	// rows is wider there and steps with density, because a finger press often
+	// lands farther from its target than the fine gap reaches.
 	it('gives the label the row and half of the gap on a coarse pointer', () => {
 		const { container } = renderUI(
 			<ToggleGroup>
@@ -50,12 +50,13 @@ describe('Toggle press area', () => {
 
 		expect(bySlot(container, 'control')).toHaveClass(
 			'density-set-[0.5,1,2,3,4.5]/[--touch-target-gap-y]',
+			'pointer-coarse:density-set-[4,5,6,7,8]/[--touch-target-gap-y]',
+			'pointer-coarse:[&>[data-slot=field]+[data-slot=field]]:density-mt-[4,5,6,7,8]',
 		)
 
 		expect(bySlot(container, 'field')).toHaveClass(
 			'relative',
 			'isolate',
-			'pointer-coarse:min-h-[calc(2.75rem-var(--touch-target-gap-y,0px))]',
 			'pointer-coarse:*:data-[slot=label]:after:absolute',
 			'pointer-coarse:*:data-[slot=label]:after:-z-1',
 			'pointer-coarse:*:data-[slot=label]:after:inset-x-0',
