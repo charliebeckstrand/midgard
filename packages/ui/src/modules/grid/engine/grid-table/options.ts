@@ -74,17 +74,14 @@ function deriveColumnBehavior<T>(col: GridColumn<T>) {
 }
 
 /**
- * The natural width of a non-data column whose content the design system fixes: a checkbox, a
- * grip, a chevron.
+ * The seed width of a non-data column whose content the design system fixes: a checkbox, a
+ * grip, a chevron. The autosizer replaces it with the content width (see `isContentSized`)
+ * in the pass that reveals the table. The seed holds where no pass runs: a grid without
+ * layout, or one whose sizing the consumer controls.
  *
- * An `actions` column deliberately gets none. Its content is the consumer's: one text button,
- * a save/discard pair, a lone icon. Any number here would be a guess that is wrong for most of
- * them. The consequence is worth knowing before you write one. An `actions` column sits out
- * the autosizer's fit ({@link isAutoSized}). A `resizable` grid takes the engine
- * width verbatim through its fixed-layout colgroup, so the `w-px` on the cell never gets to
- * shrink anything. **A width-less `actions` column therefore renders at
- * {@link DEFAULT_COLUMN_SIZE}, not at its content width** — declare a `width` unless that is
- * what you want.
+ * An `actions` column gets no seed. Its content is the consumer's: one text button, a
+ * save/discard pair, a lone icon. Any number here would be a guess that is wrong for most of
+ * them, and the autosizer measures it like the others.
  *
  * @internal
  */
@@ -122,9 +119,9 @@ function floorOf<T>(col: GridColumn<T>, size: number | undefined): { minSize?: n
  */
 export function toColumnDef<T>(col: GridColumn<T>): EngineColumnDef<T> {
 	// A width-less column takes the engine's 150px default; the selection,
-	// drag-handle, and expander columns instead hold a natural affordance width so
-	// they aren't that wide. (The non-resizable auto layout already sizes them to
-	// content via `w-px`.)
+	// drag-handle, and expander columns instead take a seed width near their
+	// content, until the autosizer measures it. (The non-resizable auto layout
+	// sizes them to content via `w-px`.)
 	const size = parsePxWidth(col.width) ?? affordanceColumnSize(col)
 
 	const { accessorFn, filterFn } = deriveColumnBehavior(col)

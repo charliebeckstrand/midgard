@@ -34,6 +34,8 @@ function fakeGrid(args: {
 	/** Body cells the DOM holds; zero is a loading skeleton. */
 	cells?: number
 	seeded?: Record<string, number>
+	/** The content width of each content-sized column. */
+	fits?: Record<string, number>
 }) {
 	const state: Record<string, number> = { ...args.seeded }
 
@@ -52,7 +54,11 @@ function fakeGrid(args: {
 
 		grid.scans.push([...scan])
 
-		const floors = new Map(grid.columns.map((col) => [String(col.id), args.floors?.[col.id] ?? 40]))
+		const floors = new Map(
+			grid.columns
+				.filter((col) => !col.actions)
+				.map((col) => [String(col.id), args.floors?.[col.id] ?? 40]),
+		)
 
 		const bodies = new Map(
 			grid.cells > 0
@@ -64,7 +70,9 @@ function fakeGrid(args: {
 				: [],
 		)
 
-		return { floors, bodies, cells: grid.cells }
+		const fits = new Map(Object.entries(args.fits ?? {}))
+
+		return { floors, bodies, cells: grid.cells, fits }
 	}
 
 	const env = (): ColumnSizerEnv<Row> => ({
@@ -364,5 +372,46 @@ describe('createColumnSizer', () => {
 			// fill spends the rest around it.
 			expect(grid.state).toEqual({ b: 350 })
 		})
+	})
+})
+
+describe('a content-sized column', () => {
+	const actions = column('actions', { actions: () => null })
+
+	const columns = [column('a'), column('b'), actions]
+
+	const bodies = { a: 60, b: 90 }
+
+	it('takes its content width and none of the spare width', () => {
+		const { env, sizer } = fakeGrid({ columns, space: 600, bodies, fits: { actions: 84 } })
+
+		const write = sizer.refit(env(), true)
+
+		expect(write.sizing.actions).toBe(84)
+
+		expect(total(write.sizing)).toBe(600)
+	})
+
+	it('keeps its content width after the user takes control', () => {
+		const { env, apply, sizer } = fakeGrid({ columns, space: 600, bodies, fits: { actions: 84 } })
+
+		apply(sizer.refit(env(), true))
+
+		sizer.takeControl(columns)
+
+		expect(sizer.refit(env(), true).sizing.actions).toBe(84)
+	})
+
+	it('keeps a declared width', () => {
+		const fixed = column('actions', { actions: () => null, width: 120 })
+
+		const { env, sizer } = fakeGrid({
+			columns: [column('a'), fixed],
+			space: 600,
+			bodies,
+			fits: { actions: 84 },
+		})
+
+		expect(sizer.refit(env(), true).sizing.actions).toBeUndefined()
 	})
 })

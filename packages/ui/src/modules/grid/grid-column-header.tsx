@@ -16,6 +16,7 @@ import { reorderMessages } from '../../primitives/intl/intl-reorder'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { SortableGrip } from '../../primitives/sortable-grip/sortable-grip'
 import { k } from '../../recipes/kata/grid'
+import { isDataColumn } from '../../utilities'
 import type { QueryGroup } from '../query'
 import { columnLabel } from './engine/grid-column/label'
 import { pinnedHeaderProps } from './engine/grid-pin/styles'
@@ -221,6 +222,8 @@ export const GridColumnHeader = memo(function GridColumnHeader({
 			aria-sort={ariaSortValue(column.sortable && interactive, sorted, direction)}
 			data-resizable={dataAttr(canResize)}
 			data-grid-col={gridCol}
+			// A non-data column sizes to its content, its title among it (see `isContentSized`).
+			data-grid-fit={isDataColumn(column) ? undefined : column.id}
 			className={cn(
 				stickyHeader && k.sticky.head,
 				canResize && !stickyHeader && k.resize.cell,

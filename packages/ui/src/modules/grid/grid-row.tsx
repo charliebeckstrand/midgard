@@ -24,7 +24,7 @@ import {
 import { GridDataCell } from './grid-data-cell'
 import { GridDetailRow, GridExpandToggle } from './grid-detail-row'
 import { GridReorderKitContext } from './grid-reorder'
-import { type GridRowSortable, GridRowSpecialCell } from './grid-row-special-cell'
+import { GridFitBox, type GridRowSortable, GridRowSpecialCell } from './grid-row-special-cell'
 import type { GridColumn } from './types'
 import type { GridColumnPinning } from './use-grid-table'
 
@@ -460,16 +460,18 @@ export function GridRowImpl<T>({
 							data-grid-pin={pinned.pin}
 						>
 							{col.expander ? (
-								toggleExpand && (
-									<GridExpandToggle
-										expanded={expanded}
-										expandable={rowExpandable}
-										rowKey={rowKey}
-										rowLabel={rowLabel}
-										toggle={toggleExpand}
-										panelId={detailPanelId}
-									/>
-								)
+								<GridFitBox col={col}>
+									{toggleExpand && (
+										<GridExpandToggle
+											expanded={expanded}
+											expandable={rowExpandable}
+											rowKey={rowKey}
+											rowLabel={rowLabel}
+											toggle={toggleExpand}
+											panelId={detailPanelId}
+										/>
+									)}
+								</GridFitBox>
 							) : (
 								<GridRowSpecialCell
 									col={col}

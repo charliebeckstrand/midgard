@@ -111,7 +111,12 @@ function isSingleWordTitle(title: GridColumn<unknown>['title']): boolean {
  */
 const OWN_CELL = ':not(:scope [data-detail-row] *)'
 
-/** The rendered `<th>`/`<td>` cells grouped by their `data-grid-col` id, read once per measurement pass. @internal */
+/**
+ * The rendered `<th>`/`<td>` cells grouped by their `data-grid-col` id, read once per
+ * measurement pass. The headers also hold the `data-grid-fit` header of each non-data column.
+ *
+ * @internal
+ */
 function collectCells(container: HTMLElement): {
 	headers: Map<string, HTMLElement>
 	bodies: Map<string, HTMLElement[]>
@@ -122,6 +127,13 @@ function collectCells(container: HTMLElement): {
 
 	for (const th of container.querySelectorAll<HTMLElement>(`th[data-grid-col]${OWN_CELL}`)) {
 		const id = th.getAttribute('data-grid-col')
+
+		if (id != null) headers.set(id, th)
+	}
+
+	// The header of a non-data column carries `data-grid-fit` in place of `data-grid-col`.
+	for (const th of container.querySelectorAll<HTMLElement>(`th[data-grid-fit]${OWN_CELL}`)) {
+		const id = th.getAttribute('data-grid-fit')
 
 		if (id != null) headers.set(id, th)
 	}
@@ -291,6 +303,86 @@ function columnFloor<T>(col: GridColumn<T>, th: HTMLElement | undefined, slotGap
 }
 
 /**
+ * The horizontal padding and border (px) of a cell: what the cell adds around a
+ * box of content.
+ *
+ * @internal
+ */
+export function cellChrome(cell: HTMLElement): number {
+	const style = getComputedStyle(cell)
+
+	return [
+		style.paddingInlineStart,
+		style.paddingInlineEnd,
+		style.borderInlineStartWidth,
+		style.borderInlineEndWidth,
+	].reduce((sum, value) => sum + (Number.parseFloat(value) || 0), 0)
+}
+
+/**
+ * Whether a column takes the width of its content and no more: a non-data
+ * column (selection, actions, drag handle, expander) that declares no `width`.
+ * It sits out the fill, so it gets none of the spare width.
+ *
+ * @internal
+ */
+export function isContentSized<T>(col: GridColumn<T>): boolean {
+	return !isDataColumn(col) && col.width == null
+}
+
+/**
+ * The content width (px) of each {@link isContentSized} column, read from its
+ * `data-grid-fit` boxes. Each box is `max-content` wide, whatever the width of
+ * its column. A body box adds the padding and border of its cell. The header
+ * reads its tight width (see {@link headerWidth}), so a column title shows in
+ * full. A column with no box and no header has no entry.
+ *
+ * @internal
+ */
+function fitWidths<T>(
+	columns: readonly GridColumn<T>[],
+	container: HTMLElement,
+	headers: Map<string, HTMLElement>,
+	slotGap: number,
+): Map<string, number> {
+	const widths = new Map<string, number>()
+
+	const ids = new Set(columns.filter(isContentSized).map((col) => String(col.id)))
+
+	if (ids.size === 0) return widths
+
+	const fold = (id: string, width: number) => {
+		widths.set(id, Math.max(widths.get(id) ?? 0, Math.ceil(width)))
+	}
+
+	// The chrome of the first cell of each column. One recipe class pads every cell
+	// of a column, so one computed style read serves the column.
+	const chromes = new Map<string, number>()
+
+	for (const box of container.querySelectorAll<HTMLElement>(`td [data-grid-fit]${OWN_CELL}`)) {
+		const id = box.getAttribute('data-grid-fit')
+
+		const cell = box.closest('td')
+
+		if (id == null || !ids.has(id) || !cell) continue
+
+		const chrome = getOrCompute(chromes, id, () => cellChrome(cell))
+
+		fold(id, chrome + box.getBoundingClientRect().width)
+	}
+
+	for (const id of ids) {
+		const th = headers.get(id)
+
+		const titleLeaf = th?.querySelector<HTMLElement>('[data-grid-content]')
+
+		if (th && titleLeaf) fold(id, headerWidth(th, titleLeaf, intrinsicWidth(titleLeaf), slotGap))
+	}
+
+	return widths
+}
+
+/**
  * The facts one measurement pass reads from the rendered grid. It holds no
  * decision: no content cap, no hold, and no running maximum. The sizer applies
  * those rules (see {@link createColumnSizer}), so a cached fact stays true when
@@ -318,6 +410,8 @@ export type ColumnMeasurement = {
 	 * and measures again at the next trigger.
 	 */
 	cells: number
+	/** The content width (px) of each {@link isContentSized} column (see {@link fitWidths}). */
+	fits: Map<string, number>
 }
 
 /**
@@ -370,6 +464,8 @@ export function measureColumns<T>({
 		if (scan.has(id) && cellsOfColumn) scans.set(id, scanBodyCells(cellsOfColumn))
 	}
 
+	const fits = fitWidths(columns, container, headers, slotGap)
+
 	// Pass two: widen the element-bearing leaves to `max-content` and read the
 	// widths the clipped layout could not show (a Badge shrunk into a narrow cell).
 	resolvePendingLeaves([...scans.values()])
@@ -383,5 +479,5 @@ export function measureColumns<T>({
 	// document start collapses the range there and releases that leaf.
 	sharedRange?.setEnd(document, 0)
 
-	return { floors, bodies: widest, cells }
+	return { floors, bodies: widest, cells, fits }
 }
