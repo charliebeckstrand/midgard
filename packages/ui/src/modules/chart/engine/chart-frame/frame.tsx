@@ -340,6 +340,14 @@ export type ChartFrameProps = AccessibleName & {
 	 */
 	describeReference?: (reference: number) => string | null
 	/**
+	 * The text of the point at a stop of {@link focus}, for a chart whose stops do
+	 * not index {@link readout}'s categories. A key that moves the cursor onto the
+	 * point speaks this text. Absent, the frame speaks the readout at the index of
+	 * the stop. The heatmap names one cell with it, because its stops write a
+	 * row-major cell index and its readout has one category for each column.
+	 */
+	describePoint?: (index: number, series: number | null) => string | null
+	/**
 	 * The keyboard cursor emphasizes the series it lands on (`null` off any), in
 	 * the same channel as the legend. The marks then recede the rest and the
 	 * tooltip dims their rows. Off, keyboard navigation leaves the emphasis alone:
@@ -428,6 +436,7 @@ export function ChartFrame({
 	snap,
 	focus,
 	describeReference,
+	describePoint,
 	keyboardEmphasis = false,
 	onActivate,
 	selected = null,
@@ -507,7 +516,9 @@ export function ChartFrame({
 	// also speaks the readout of that point through the shared polite live
 	// region. A pointer move speaks nothing.
 	const announceRead = (index: number, series: number | null) => {
-		const text = readout && describeReadout(readout(), index, series, readoutOrder)
+		const text = describePoint
+			? describePoint(index, series)
+			: readout && describeReadout(readout(), index, series, readoutOrder)
 
 		if (text) announce(text)
 	}
