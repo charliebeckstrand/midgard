@@ -88,6 +88,7 @@ export function MapPoint({ at, shape = 'circle', ...shared }: MapPointProps) {
 		kind: 'point',
 		swatch: POINT_SWATCH[shape],
 		stops,
+		dots: stops,
 	})
 
 	// Sanitized, because `useId` spells its output with characters a fragment reference cannot carry.

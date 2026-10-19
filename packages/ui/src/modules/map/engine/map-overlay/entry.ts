@@ -73,6 +73,13 @@ export type MapOverlayEntry = {
 	 */
 	stopsAt: () => LngLat[]
 	/**
+	 * The dots the mark draws, in lon/lat, which the plat's dot pool holds. A point's dots are its
+	 * stops. A `MapMarker` draws two pins but has one stop, the middle of its leg. Absent on the
+	 * line and area marks: a route's waypoints and a zone's ring paint nothing a pointer could be
+	 * aimed at instead of. Stable like {@link stopsAt}.
+	 */
+	dotsAt?: () => LngLat[]
+	/**
 	 * What each of this mark's stops reads out, where that differs from the mark's
 	 * own `label` and `detail`. That is a plural mark's dots, each naming its own
 	 * stop. Absent on every singular mark, whose one stop reads the mark.

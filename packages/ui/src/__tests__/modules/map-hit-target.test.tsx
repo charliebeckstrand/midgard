@@ -376,6 +376,30 @@ describe('crowded marks divide their targets', () => {
 		}
 	})
 
+	it('divides a point’s ground against a marker’s pin, not the middle of its leg', () => {
+		// The leg runs from [5, 5] to [25, 5]: its middle is [15, 5].
+		const beside = (at: [number, number]) =>
+			renderUI(
+				overlayPlat(
+					<>
+						<MapMarker label="Haul" start={[5, 5]} end={[25, 5]} />
+
+						<MapPoint label="Depot" at={at} />
+					</>,
+				),
+			)
+
+		const { container: nearPin, unmount } = beside([5.4, 5.2])
+
+		expect(clipOf(bySlot(nearPin, 'map-point-hit'))).not.toBeNull()
+
+		unmount()
+
+		const { container: nearMiddle } = beside([15.4, 5.2])
+
+		expect(clipOf(bySlot(nearMiddle, 'map-point-hit'))).toBeNull()
+	})
+
 	it('clips both points when two separate marks crowd each other', () => {
 		const { container } = crowded()
 

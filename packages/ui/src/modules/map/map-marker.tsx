@@ -54,19 +54,22 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 
 	const [endLng, endLat] = end
 
-	const points = useMemo<LngLat[]>(
-		() =>
-			path && path.length > 0
-				? path
-				: [
-						[startLng, startLat],
-						[endLng, endLat],
-					],
-		[path, startLng, startLat, endLng, endLat],
+	const pins = useMemo<[LngLat, LngLat]>(
+		() => [
+			[startLng, startLat],
+			[endLng, endLat],
+		],
+		[startLng, startLat, endLng, endLat],
 	)
 
-	// Held on `points`, because a new identity tells the plat's pool that the pins moved.
+	const points = useMemo<LngLat[]>(() => (path && path.length > 0 ? path : pins), [path, pins])
+
+	// The keyboard stands on the middle of the leg, and the dot pool holds the two pins. Each is
+	// held on what it reads, because a new identity of `dots` tells the plat's pool that the pins
+	// moved.
 	const stops = useCallback(() => lineAnchor(points), [points])
+
+	const dots = useCallback(() => pins, [pins])
 
 	const {
 		slot,
@@ -84,6 +87,7 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 		kind: 'marker',
 		swatch: 'line',
 		stops,
+		dots,
 	})
 
 	// Memoized so a hover-driven re-render (the plat's pointer state churns the
@@ -95,9 +99,9 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 	// Memoized rather than called inline, because `projectPoint` hands back a fresh
 	// `{ x, y }` per call — so an unmemoized pin is a new identity every render and
 	// the target memo below, whose deps they are, would never hold.
-	const from = useMemo(() => project([startLng, startLat]), [project, startLng, startLat])
+	const from = useMemo(() => project(pins[0]), [project, pins])
 
-	const to = useMemo(() => project([endLng, endLat]), [project, endLng, endLat])
+	const to = useMemo(() => project(pins[1]), [project, pins])
 
 	// The shared rule, over the pair at once: the pins are each other's
 	// neighbors, so a short leg is this mark's own crowding case — a target on one

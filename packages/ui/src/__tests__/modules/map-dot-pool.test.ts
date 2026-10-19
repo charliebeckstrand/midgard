@@ -15,31 +15,37 @@ function project([lng, lat]: LngLat): MapPoint2D {
 	return { x: lng, y: lat }
 }
 
-/** A ledger entry whose stops read the live value in `stops`. */
+/**
+ * A ledger entry whose stops read the live value in `stops`. A dot-drawing kind draws its stops as
+ * its dots, and a line or area kind draws none, as the marks register them.
+ */
 function entry(id: string, stops: { current: LngLat[] }, kind: MapOverlayEntry['kind'] = 'point') {
+	const stopsAt = () => stops.current
+
 	return {
 		id,
 		label: id,
 		kind,
 		swatch: 'dot',
-		stopsAt: () => stops.current,
+		stopsAt,
+		dotsAt: kind === 'route' || kind === 'geofence' ? undefined : stopsAt,
 		stopOf: () => 0,
 	} satisfies MapOverlayEntry
 }
 
 describe('createDotPool', () => {
 	it('gathers nothing until a reader asks', () => {
-		const stopsAt = vi.fn((): LngLat[] => [[1, 1]])
+		const dotsAt = vi.fn((): LngLat[] => [[1, 1]])
 
-		const pool = createDotPool([{ ...entry('a', { current: [] }), stopsAt }], new Set(), project)
+		const pool = createDotPool([{ ...entry('a', { current: [] }), dotsAt }], new Set(), project)
 
 		pool.restake('a')
 
-		expect(stopsAt).not.toHaveBeenCalled()
+		expect(dotsAt).not.toHaveBeenCalled()
 
 		expect(pool.neighbors()('b')).toEqual([{ x: 1, y: 1 }])
 
-		expect(stopsAt).toHaveBeenCalledTimes(1)
+		expect(dotsAt).toHaveBeenCalledTimes(1)
 	})
 
 	it('leaves out the asking mark, hidden marks, and marks that draw no dot', () => {
@@ -55,6 +61,24 @@ describe('createDotPool', () => {
 		)
 
 		expect(pool.neighbors()('a')).toEqual([{ x: 2, y: 2 }])
+	})
+
+	it('holds the drawn dots of a mark that names them apart from its stops', () => {
+		// A marker: its keyboard stop is the middle of its leg, and it draws a pin at each end.
+		const marker = {
+			...entry('m', { current: [[5, 0]] }, 'marker'),
+			dotsAt: (): LngLat[] => [
+				[0, 0],
+				[10, 0],
+			],
+		}
+
+		const pool = createDotPool([marker], new Set(), project)
+
+		expect(pool.neighbors()('p')).toEqual([
+			{ x: 0, y: 0 },
+			{ x: 10, y: 0 },
+		])
 	})
 
 	it('tells its readers when a restaked mark moved, and gives a new snapshot', () => {
