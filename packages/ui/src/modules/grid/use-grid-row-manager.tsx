@@ -19,6 +19,7 @@ import {
 } from './engine/grid-group/tree'
 import type { GridMenuResolution } from './engine/grid-menu-targeting'
 import { gridMessages } from './engine/grid-messages'
+import { applyColumnReorder } from './engine/grid-reorder-compute'
 import { buildRowGroupMenu } from './grid-context-menu-utilities'
 import type { GridGroupBy } from './grid-data-types'
 import type {
@@ -45,8 +46,9 @@ type GridRowManagerOptions = {
  * - the body {@link GridRowGroupPresentation}: a color lookup and the manual
  *   group order;
  * - the display-ordered {@link GridRowManagerGroup} list the manager renders;
- * - the recolor / reorder handlers that commit a *complete* snapshot, an entry
- *   per current group, back through the binding.
+ * - the recolor / reorder handlers that commit a *complete* snapshot back
+ *   through the binding: an entry per current group, and the entries of the
+ *   groups that a filter keeps out of the view, each in its own slot.
  *
  * The snapshot is always complete in keys, so the manual group order can apply
  * without a partial overlay shuffling groups on a mere recolor. The body applies
@@ -104,20 +106,35 @@ export function useGridRowManager({ config, naturalGroups }: GridRowManagerOptio
 	}, [naturalGroups, groupOrder, overlayByKey])
 
 	// Every edit commits a complete snapshot — an entry per group in `groups`
-	// order, each preserving its color unless `override` changes it.
+	// order, each preserving its color unless `override` changes it. A group that
+	// a filter keeps out of the view keeps its overlay entry and its slot, as a
+	// hidden column keeps its slot in a reorder.
 	const commitFrom = useCallback(
 		(groups: GridRowManagerGroup[], override?: { key: string | number; color?: PaletteColor }) => {
-			const next = groups.map((group): GridRowGroup => {
-				const target = override != null && String(override.key) === String(group.key)
+			const shown = new Map(
+				groups.map((group): [string, GridRowGroup] => {
+					const target = override != null && String(override.key) === String(group.key)
 
-				const color = target ? override.color : group.color
+					const color = target ? override.color : group.color
 
-				return color ? { key: group.key, color } : { key: group.key }
-			})
+					return [String(group.key), color ? { key: group.key, color } : { key: group.key }]
+				}),
+			)
+
+			const order = [
+				...overlay.map((group) => group.key),
+				...groups.map((group) => group.key).filter((key) => !overlayByKey.has(String(key))),
+			]
+
+			const next = applyColumnReorder(
+				order,
+				groups.map((group) => group.key),
+				(key) => shown.has(String(key)),
+			).flatMap((key) => shown.get(String(key)) ?? overlayByKey.get(String(key)) ?? [])
 
 			setOverlay(next)
 		},
-		[setOverlay],
+		[setOverlay, overlay, overlayByKey],
 	)
 
 	const recolor = useCallback(
