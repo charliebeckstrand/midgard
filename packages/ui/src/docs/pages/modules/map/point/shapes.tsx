@@ -7,7 +7,7 @@ const depots = deliveryStops.filter((stop) => stop.detail === 'Origin')
 
 const drops = deliveryStops.filter((stop) => stop.detail !== 'Origin')
 
-export default function DepotsAndStops() {
+export default function Shapes() {
 	return (
 		<MapPlat
 			aria-label="Depots and stops"

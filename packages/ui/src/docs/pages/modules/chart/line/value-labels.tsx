@@ -4,7 +4,7 @@ import { swings } from '../data.ts'
 export default function ValueLabels() {
 	return (
 		<LineChart
-			aria-label="Monthly change, with value labels at its endpoints and extremes"
+			aria-label="Revenue change by month"
 			data={swings}
 			series={[{ xKey: 'month', yKey: 'delta', yName: 'Change' }]}
 			points

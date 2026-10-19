@@ -9,7 +9,7 @@ const warehouses: { city: string; at: LngLat; detail: string }[] = [
 	{ city: 'Atlanta', at: [-84.39, 33.75], detail: '11 loads' },
 ]
 
-export default function Warehouses() {
+export default function Basic() {
 	return (
 		<MapPlat
 			aria-label="Warehouse network"

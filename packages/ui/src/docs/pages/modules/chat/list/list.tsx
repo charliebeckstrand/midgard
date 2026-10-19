@@ -2,10 +2,10 @@ import { useState } from 'react'
 import { ChatList, ChatListItem } from 'ui/chat'
 
 const conversations = [
-	{ id: '1', title: 'Project kickoff' },
-	{ id: '2', title: 'Bug investigation' },
-	{ id: '3', title: 'Code review' },
-	{ id: '4', title: 'Architecture design' },
+	{ id: '1', title: 'Monday route plan' },
+	{ id: '2', title: 'Late stops on the north routes' },
+	{ id: '3', title: 'Depot handover' },
+	{ id: '4', title: 'Fuel costs' },
 ]
 
 export default function List() {

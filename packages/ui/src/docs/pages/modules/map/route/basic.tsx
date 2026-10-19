@@ -11,7 +11,7 @@ function RoutedLine({ label, start, end }: { label: string; start: LngLat; end: 
 	return <MapRoute label={label} path={route.path} detail={miles(route.distanceMeters)} />
 }
 
-export default function LongHaulCorridors() {
+export default function Basic() {
 	return (
 		<MapPlat
 			aria-label="Long-haul corridors"

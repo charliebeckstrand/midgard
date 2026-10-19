@@ -20,7 +20,7 @@ export default function SuccessAndFailure() {
 				<Label>Simulate a server error</Label>
 			</SwitchField>
 			<Form
-				defaultValues={{ email: 'jane@example.com' }}
+				defaultValues={{ email: 'wade@example.com' }}
 				onSubmit={async () => {
 					await new Promise((resolve) => setTimeout(resolve, 1000))
 

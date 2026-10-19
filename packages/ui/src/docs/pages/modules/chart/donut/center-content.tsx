@@ -1,8 +1,13 @@
 import { DonutChart } from 'ui/chart'
+import { useIntl } from 'ui/primitives/intl'
 import { Stat, StatLabel, StatValue } from 'ui/stat'
 import { sources } from '../data.ts'
 
+const total = sources.reduce((sum, source) => sum + source.visits, 0)
+
 export default function CenterContent() {
+	const { formatNumber } = useIntl()
+
 	return (
 		<DonutChart
 			aria-label="Traffic by source"
@@ -11,7 +16,7 @@ export default function CenterContent() {
 		>
 			<Stat>
 				<StatLabel>Total visits</StatLabel>
-				<StatValue>9,340</StatValue>
+				<StatValue>{formatNumber(total)}</StatValue>
 			</Stat>
 		</DonutChart>
 	)

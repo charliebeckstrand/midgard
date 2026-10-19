@@ -1,6 +1,6 @@
 import { type LngLat, MapMarker, MapPlat } from 'ui/map'
 import { miles, states } from '../data.ts'
-import { ikeaDestinations, ikeaHub, useRoute } from '../routes.ts'
+import { destinations, hub, useRoute } from '../routes.ts'
 
 // A marker whose line follows the roads. It mounts when the road is in.
 function RoutedMarker({ label, start, end }: { label: string; start: LngLat; end: LngLat }) {
@@ -19,20 +19,20 @@ function RoutedMarker({ label, start, end }: { label: string; start: LngLat; end
 	)
 }
 
-export default function IkeaDistributionNetwork() {
+export default function WithMarkers() {
 	return (
 		<MapPlat
-			aria-label="IKEA distribution network"
+			aria-label="Kansas City distribution network"
 			geography={states}
 			projection="albers-usa"
 			animate
 			legend="right"
 		>
-			{ikeaDestinations.map((destination) => (
+			{destinations.map((destination) => (
 				<RoutedMarker
 					key={destination.abbreviation}
 					label={`KC → ${destination.abbreviation}`}
-					start={ikeaHub}
+					start={hub}
 					end={destination.at}
 				/>
 			))}

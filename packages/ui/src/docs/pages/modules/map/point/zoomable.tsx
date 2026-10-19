@@ -6,21 +6,21 @@ import { PointerHint } from '../../../../kit/pointer-hint.tsx'
 import { states } from '../data.ts'
 import { deliveryStops, roundSummary } from './data.ts'
 
-export default function ZoomIntoTheRounds() {
+export default function Zoomable() {
 	return (
 		<Stack gap="md">
 			<Text>
 				<PointerHint
 					mouse={
 						<>
-							Hold <Kbd>shift</Kbd> and scroll to zoom. Drag to pan.
+							Hold <Kbd>Shift</Kbd> and scroll to zoom. Drag to pan.
 						</>
 					}
 					touch="Pinch to zoom. Drag with two fingers to pan."
 				/>
 			</Text>
 			<MapPlat
-				aria-label="Delivery rounds, zoomable"
+				aria-label="Delivery rounds"
 				geography={states}
 				projection="albers-usa"
 				legend="right"

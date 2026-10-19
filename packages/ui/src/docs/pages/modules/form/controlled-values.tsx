@@ -18,7 +18,7 @@ export default function ControlledValues() {
 
 		await new Promise((resolve) => setTimeout(resolve, 1000))
 
-		setProfile({ name: 'Ada Lovelace', email: 'ada@example.com' })
+		setProfile({ name: 'Arlene McCoy', email: 'arlene@example.com' })
 
 		setLoading(false)
 	}

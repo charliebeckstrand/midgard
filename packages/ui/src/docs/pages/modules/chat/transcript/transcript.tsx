@@ -4,23 +4,23 @@ const messages: ChatMessageData[] = [
 	{
 		id: '1',
 		sender: 'user',
-		content: 'Can you help me plan the project kickoff meeting?',
+		content: 'Can you help me plan the routes for Monday?',
 		timestamp: '11:10 AM',
 	},
 	{
 		id: '2',
 		sender: 'assistant',
-		content: "Of course! Who's attending, and what outcome do you need from it?",
+		content: 'Yes. How many trucks do you have, and which depots do they leave from?',
 	},
 	{
 		id: '3',
 		sender: 'user',
-		content: 'Engineering, product, and design — to align on the Q2 roadmap.',
+		content: 'Six trucks, from the Dallas and Chicago depots.',
 	},
 	{
 		id: '4',
 		sender: 'assistant',
-		content: 'Looking forward to it!',
+		content: 'I will split the stops between the two depots and send you a draft.',
 		timestamp: '11:12 AM',
 	},
 ]

@@ -1,6 +1,6 @@
 import { Example } from '../../../../kit/index.ts'
-import LineHaul from './line-haul.tsx'
+import Basic from './basic.tsx'
 
 export default function MarkerTab() {
-	return <Example of={LineHaul} surface />
+	return <Example of={Basic} surface />
 }
