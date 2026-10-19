@@ -1,19 +1,19 @@
 import api from 'virtual:docs/api/components/progress'
-import { ApiTable, Example, Playground } from '../../../kit/index.ts'
-import GaugeColor from './gauge-color.tsx'
-import GaugeSize from './gauge-size.tsx'
+import { ApiTable, Example, PageTabs, Playground } from '../../../kit/index.ts'
+import Color from './color.tsx'
 import ProgressPlayground from './playground.tsx'
-import Value from './value.tsx'
-import WithLabel from './with-label.tsx'
+import Size from './size.tsx'
+
+const TABS = ['Bar', 'Gauge']
 
 export default function ProgressPage() {
 	return (
 		<>
-			<Playground of={ProgressPlayground} api={api} free={{ value: 60 }} />
-			<Example of={Value} />
-			<Example of={GaugeSize} />
-			<Example of={GaugeColor} />
-			<Example of={WithLabel} />
+			<PageTabs tabs={TABS}>
+				<Playground of={ProgressPlayground} api={api} free={{ value: 60 }} />
+				<Example of={Color} />
+				<Example of={Size} />
+			</PageTabs>
 			<ApiTable api={api} />
 		</>
 	)
