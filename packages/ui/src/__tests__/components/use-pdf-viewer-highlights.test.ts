@@ -198,6 +198,37 @@ describe('usePdfViewerHighlights', () => {
 		expect(goToPage).toHaveBeenCalledTimes(2)
 	})
 
+	it('waits for the pages of a cold document before it turns to the active region', () => {
+		const coldGoToPage = vi.fn()
+
+		const loadedGoToPage = vi.fn()
+
+		type LoadProps = { activePage: typeof letter | undefined; goToPage: (page: number) => void }
+
+		// A cold `src` has no pages yet: no page on screen, and a goToPage that does nothing.
+		const initialProps: LoadProps = { activePage: undefined, goToPage: coldGoToPage }
+
+		const { rerender } = renderHook(
+			({ activePage, goToPage }: LoadProps) =>
+				usePdfViewerHighlights({
+					highlights,
+					activeHighlightId: 'pro',
+					onActiveHighlightChange: noop,
+					activePage,
+					safePage: 1,
+					goToPage,
+				}),
+			{ initialProps },
+		)
+
+		expect(coldGoToPage).not.toHaveBeenCalled()
+
+		// The pages arrive, and the navigation runs once.
+		rerender({ activePage: letter, goToPage: loadedGoToPage })
+
+		expect(loadedGoToPage).toHaveBeenCalledExactlyOnceWith(2)
+	})
+
 	it('reports a press to the handler of the latest render, through one stable function', () => {
 		const first = vi.fn()
 		const second = vi.fn()
