@@ -112,8 +112,9 @@ export type GridEditingApi = {
 	/**
 	 * Opens the named cell for editing and focuses its editor once that mounts —
 	 * the grid-owned entry behind `session: 'managed'`. Under row scope the
-	 * cell names the row to open, and re-entering a row already editing is a
-	 * no-op. Under `scope: 'cell'` it re-points the session: the cell it leaves
+	 * cell names the row to open. An entry on a cell whose editor is already open
+	 * only moves focus into that editor, and a `seed` replaces its draft. Under
+	 * `scope: 'cell'` it re-points the session: the cell it leaves
 	 * commits, and a previous row leaves the set. A transition that changes which
 	 * rows edit goes through the controllable set, so `onRowsChange` reports it. A
 	 * move between cells of one row leaves that set alone. A `seed` opens the
@@ -899,6 +900,23 @@ export function useGridEditing<T>({
 		[controlled, requestCell, setActiveCellValue, activeEditStore],
 	)
 
+	// Moves focus into the open editor of a cell. The editor claims the entry's
+	// intents as it takes the focus, so an intent that no editor took drops here.
+	const focusOpenEditor = useCallback(
+		(rowKey: string | number, columnId: string | number) => {
+			const { row, col } = coordOf(rowKeysRef.current, dataColumnsRef.current, { rowKey, columnId })
+
+			const editor = document
+				.getElementById(cellId(row, col))
+				?.querySelector<HTMLElement>(EDITOR_FOCUSABLE)
+
+			if (editor) focusWithoutReveal(editor)
+
+			dropIntents()
+		},
+		[cellId, dataColumnsRef, dropIntents, rowKeysRef],
+	)
+
 	const enterEdit = useCallback(
 		(rowKey: string | number, columnId: string | number, seed?: string | number) => {
 			const active = activeEditRef.current
@@ -919,11 +937,20 @@ export function useGridEditing<T>({
 
 			// A cell whose commit is in flight cannot open, so no second batch for
 			// it can start before the first settles.
-			if (here || isPending(rowKey, columnId)) return
+			if (isPending(rowKey, columnId)) return
 
 			pendingFocusRef.current = { rowKey, columnId }
 
 			pendingSeedRef.current = { rowKey, columnId, value: seed }
+
+			// The editor of the cell is open, so the entry only moves focus into it.
+			// The editor claims the intents as it takes the focus, with a typed
+			// character in place of its draft.
+			if (here) {
+				focusOpenEditor(rowKey, columnId)
+
+				return
+			}
 
 			// A controlled binding decides the move. The rows it needs follow once
 			// the consumer applies the cell, so a declined move writes nothing.
@@ -973,7 +1000,7 @@ export function useGridEditing<T>({
 				return next.add(rowKey)
 			})
 		},
-		[bump, cellScoped, controlled, isPending, setEditableRows, writeActiveCell],
+		[bump, cellScoped, controlled, focusOpenEditor, isPending, setEditableRows, writeActiveCell],
 	)
 
 	// Drops the drafts that a discard abandons. A cell-scoped session abandons

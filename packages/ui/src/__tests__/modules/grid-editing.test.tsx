@@ -1918,6 +1918,42 @@ describe('Grid commit-and-move keys', () => {
 		expect(view.onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'x' }])
 	})
 
+	// With the default explicit commit, the editor stays open when focus goes back to
+	// the tab stop. A key there then reaches the open editor.
+	it('moves focus into an open editor on Enter, and gives it a printable key', () => {
+		const view = renderKeysGrid()
+
+		const grid = view.getByRole('grid')
+
+		fireEvent.focus(grid)
+
+		fireEvent.keyDown(grid, { key: 'Enter' })
+
+		const input = getSlot<HTMLInputElement>(view.container, 'grid-edit-input')
+
+		act(() => grid.focus())
+
+		expect(input).not.toHaveFocus()
+
+		fireEvent.keyDown(grid, { key: 'Enter' })
+
+		expect(input).toHaveFocus()
+
+		expect(input.value).toBe('Alice')
+
+		act(() => grid.focus())
+
+		fireEvent.keyDown(grid, { key: 'x' })
+
+		expect(input).toHaveFocus()
+
+		expect(input.value).toBe('x')
+
+		fireEvent.keyDown(input, { key: 'Enter' })
+
+		expect(view.onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'x' }])
+	})
+
 	it('seeds a number cell with a digit and ignores a letter there', () => {
 		const view = renderKeysGrid()
 
