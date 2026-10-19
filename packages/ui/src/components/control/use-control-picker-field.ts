@@ -2,10 +2,9 @@
 
 import { useCallback } from 'react'
 import type { SetValue } from '../../hooks/use-controllable'
-import { useIdScope } from '../../hooks/use-id-scope'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import { useControlProps } from './use-control-props'
-import { useControlTarget } from './use-control-target'
+import { useControlScope } from './use-control-target'
 
 type PickerFieldOptions<T> = {
 	/** The Form field name. It binds the value to an enclosing `<Form>`. */
@@ -40,14 +39,9 @@ export function useControlPickerField<T>({
 }: PickerFieldOptions<T>) {
 	const bound = useFormValue<T>(name, { value, defaultValue, onValueChange })
 
-	const controlProps = useControlProps({ name, disabled, readOnly, invalid: bound.invalid })
+	const controlProps = useControlProps({ disabled, readOnly, invalid: bound.invalid })
 
-	const scope = useIdScope({ id: controlProps.id })
-
-	// The control renders its own id when no Field, Control, or prop gives one.
-	// So it registers that rendered id, and not the id of useControlProps, which
-	// is undefined for a bare control.
-	useControlTarget(name, scope.id)
+	const scope = useControlScope(name, controlProps.id)
 
 	const resolvedReadOnly = controlProps.readOnly === true
 

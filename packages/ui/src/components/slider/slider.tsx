@@ -3,12 +3,11 @@
 import { useComposedRefs } from 'motion/react'
 import type { ComponentProps, CSSProperties } from 'react'
 import { ariaAttr, cn, composeEventHandlers, invalidAttrs } from '../../core'
-import { useIdScope } from '../../hooks/use-id-scope'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import { k, type SliderVariants } from '../../recipes/kata/slider'
 import { clamp, pct } from '../../utilities'
 import { useControlProps } from '../control/use-control-props'
-import { useControlTarget } from '../control/use-control-target'
+import { useControlScope } from '../control/use-control-target'
 
 /**
  * The value that a native range input shows for `value`. The input clamps the
@@ -141,7 +140,6 @@ export function Slider({
 	// HTML constraint validation ignores the attribute; only invalid +
 	// describedby carry meaning here.
 	const controlProps = useControlProps({
-		name,
 		id,
 		disabled,
 		readOnly,
@@ -149,12 +147,7 @@ export function Slider({
 		invalid,
 	})
 
-	const scope = useIdScope({ id: controlProps.id })
-
-	// The control renders its own id when no Field, Control, or prop gives one.
-	// So it registers that rendered id, and not the id of useControlProps, which
-	// is undefined for a bare control.
-	useControlTarget(name, scope.id)
+	const scope = useControlScope(name, controlProps.id)
 
 	return (
 		<input

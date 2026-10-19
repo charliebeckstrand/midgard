@@ -5,11 +5,10 @@ import type { ChangeEvent, ComponentProps } from 'react'
 import { ariaAttr, cn } from '../../core'
 import { useControllableFlag } from '../../hooks'
 import { useFormResetSync } from '../../hooks/use-form-reset-sync'
-import { useIdScope } from '../../hooks/use-id-scope'
 import { useFormToggle } from '../../primitives/form/use-form-toggle'
 import { k, type SwitchVariants } from '../../recipes/kata/switch'
 import { useControlProps } from '../control/use-control-props'
-import { useControlTarget } from '../control/use-control-target'
+import { useControlScope } from '../control/use-control-target'
 
 /** Props for {@link Switch}: the recipe `color` and the `size` step, an input `ref`, and native `<input>` attributes minus `type`/`size`. */
 export type SwitchProps = SwitchVariants & {
@@ -87,7 +86,6 @@ export function Switch({
 		validation,
 		'aria-describedby': describedBy,
 	} = useControlProps({
-		name,
 		id,
 		disabled,
 		required,
@@ -96,11 +94,7 @@ export function Switch({
 		invalid,
 	})
 
-	// A bare box has no id from a Field, a Control, or a prop, so it makes one.
-	// It registers that id, so a FormErrorSummary row links to the box.
-	const scope = useIdScope({ id: resolvedId })
-
-	useControlTarget(name, scope.id)
+	const scope = useControlScope(name, resolvedId)
 
 	// A read-only switch undoes the toggle and does not call the resolved handler.
 	// The write goes through the setter, so the change tracker of React keeps the

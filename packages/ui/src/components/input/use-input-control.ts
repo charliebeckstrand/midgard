@@ -2,12 +2,11 @@
 
 import type { ChangeEventHandler, ComponentProps, FocusEventHandler } from 'react'
 import { invalidAttrs } from '../../core'
-import { useIdScope } from '../../hooks/use-id-scope'
 import { useGlass } from '../../providers/glass/context'
 import { useHeadless } from '../../providers/headless/context'
 import { type ControlVariant, useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
-import { useControlTarget } from '../control/use-control-target'
+import { useControlScope } from '../control/use-control-target'
 import { useInputValue } from './use-input-value'
 
 /**
@@ -72,7 +71,6 @@ export function useInputControl<E extends HTMLInputElement | HTMLTextAreaElement
 	const valueState = useInputValue<E>({ name, value, onChange, onBlur })
 
 	const shared = useControlProps({
-		name,
 		id,
 		autoComplete,
 		disabled,
@@ -82,12 +80,7 @@ export function useInputControl<E extends HTMLInputElement | HTMLTextAreaElement
 		invalid: valueState.invalid,
 	})
 
-	const scope = useIdScope({ id: shared.id })
-
-	// The control renders its own id when no Field, Control, or prop gives one.
-	// So it registers that rendered id, and not the id of useControlProps, which
-	// is undefined for a bare control.
-	useControlTarget(name, scope.id)
+	const scope = useControlScope(name, shared.id)
 
 	return {
 		attrs: {
