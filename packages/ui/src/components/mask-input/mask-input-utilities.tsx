@@ -106,17 +106,26 @@ function formatZipCA(raw: string) {
 	return `${clean.slice(0, 3)} ${clean.slice(3)}`
 }
 
+// A GB postcode ends in its inward code: a digit and two letters. The format
+// places the space before that code, as the CA format places its own, so a
+// space that the user types does not count.
 function formatZipGB(raw: string) {
-	return raw
+	const clean = raw
 		.toUpperCase()
-		.replace(/[^A-Z0-9 ]/g, '')
-		.replace(/\s+/g, ' ')
-		.slice(0, 8)
+		.replace(/[^A-Z0-9]/g, '')
+		.slice(0, 7)
+
+	return /^[A-Z0-9]{2,4}\d[A-Z]{2}$/.test(clean)
+		? `${clean.slice(0, -3)} ${clean.slice(-3)}`
+		: clean
 }
 
 function formatZipInternational(raw: string) {
 	return raw.slice(0, 12)
 }
+
+// The international format keeps every character, so every character counts.
+const keepsAll = () => true
 
 const zipcodeFormats = {
 	US: formatZipUS,
@@ -163,13 +172,15 @@ export function phoneMask(country: PhoneMaskCountry = 'US'): MaskInputPreset {
  * Canadian FSA and LDU, UK outward and inward, and a loose international
  * fallback. It matches the keyboard (`inputMode`) and the placeholder to
  * `country`, sets `autoComplete="postal-code"`, and adds a leading map-pin
- * icon.
+ * icon. The US, CA, and GB masks place their own separator. The international
+ * mask keeps the text as typed, and its caret counts every character.
  *
  * @param country - The postal-code locale. The default is `'US'`.
  */
 export function zipcodeMask(country: ZipcodeMaskCountry = 'US'): MaskInputPreset {
 	return {
 		format: zipcodeFormats[country],
+		meaningful: country === 'international' ? keepsAll : undefined,
 		type: 'text',
 		inputMode: zipcodeInputModes[country],
 		autoComplete: 'postal-code',
