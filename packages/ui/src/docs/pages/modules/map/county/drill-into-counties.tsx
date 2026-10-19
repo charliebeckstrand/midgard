@@ -1,5 +1,5 @@
 import { ArrowLeft } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Button } from 'ui/button'
 import { Flex } from 'ui/flex'
 import { Icon } from 'ui/icon'
@@ -33,6 +33,16 @@ export default function DrillIntoCounties() {
 		loadCounties().then(setByState, fail)
 	}
 
+	const mapRef = useRef<HTMLDivElement>(null)
+
+	// The back button leaves with the drill, so it hands focus to the map first.
+	// The map stays mounted across the change, so focus stays on it.
+	const back = () => {
+		mapRef.current?.querySelector<HTMLElement>('[data-slot="map-plot"]')?.focus()
+
+		setDrilled(null)
+	}
+
 	const counties = drilled === null ? null : (byState?.get(drilled.fips) ?? null)
 
 	// The state shows until its counties load.
@@ -50,17 +60,14 @@ export default function DrillIntoCounties() {
 		<Stack gap="md">
 			{drilled ? (
 				<Flex>
-					<Button
-						variant="plain"
-						prefix={<Icon icon={<ArrowLeft />} />}
-						onClick={() => setDrilled(null)}
-					>
+					<Button variant="plain" prefix={<Icon icon={<ArrowLeft />} />} onClick={back}>
 						All states
 					</Button>
 				</Flex>
 			) : null}
 			{drilled !== null ? (
 				<MapPlat
+					ref={mapRef}
 					aria-label={`Counties of ${drilled.name}`}
 					geography={counties ?? frame}
 					projection="albers-usa"
@@ -72,6 +79,7 @@ export default function DrillIntoCounties() {
 				/>
 			) : (
 				<MapPlat
+					ref={mapRef}
 					aria-label="US states"
 					geography={states}
 					projection="albers-usa"
