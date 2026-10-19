@@ -14,11 +14,12 @@ import {
 	useState,
 } from 'react'
 import { announce } from '../../core'
-import { useControllable } from '../../hooks'
+import { useControllable, useMediaQuery } from '../../hooks'
 import { useMountedRef } from '../../hooks/use-mounted-ref'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { focusWithoutReveal } from '../../hooks/use-truncation'
 import { useIntl } from '../../primitives/intl/use-intl'
+import { PHONE_QUERY } from '../../utilities/media-query'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { createActiveEditStore } from './engine/grid-active-edit-store'
 import {
@@ -534,6 +535,12 @@ export function useGridEditing<T>({
 	useGridEditingWarnings({ enabled, config, managed, scopeRequested, cellScoped })
 
 	const commitOn = useCommitOn(enabled ? config?.commitOn : undefined, managed)
+
+	// A phone edits in a sheet, at the rule of the DatePicker sheet. The sheet
+	// commits only on its Save, so no commit on leave runs while it shows.
+	const phone = useMediaQuery(PHONE_QUERY)
+
+	const sheet = enabled && config?.sheet !== false && phone
 
 	// The new-row slot, where the config can show it. Its cells always take a
 	// write, so the draft store reads this at write time.
@@ -1073,6 +1080,30 @@ export function useGridEditing<T>({
 	// `commit`. Each reseats focus on the tab stop.
 	const endSession = useCallback(
 		(rowKey: string | number, outcome: 'save' | 'discard') => exitSession(rowKey, outcome, true),
+		[exitSession],
+	)
+
+	// The saves of the sheet that wait for their row to commit, by row key. The
+	// commit sweep settles them.
+	const saveWaitersRef = useRef(new Map<string | number, (() => void)[]>())
+
+	// The save of the sheet: the exit of Enter, settled when its commit does.
+	// A row that is not open has nothing to commit.
+	const saveSession = useCallback(
+		(rowKey: string | number) =>
+			new Promise<void>((resolve) => {
+				if (!editableRowsRef.current.has(rowKey)) {
+					resolve()
+
+					return
+				}
+
+				const waiters = saveWaitersRef.current.get(rowKey) ?? []
+
+				saveWaitersRef.current.set(rowKey, [...waiters, resolve])
+
+				exitSession(rowKey, 'save', true)
+			}),
 		[exitSession],
 	)
 
@@ -1653,6 +1684,28 @@ export function useGridEditing<T>({
 		[drafts, activeEditStore, settleBatch, mountedRef],
 	)
 
+	// Settles each save whose row this sweep closed: at once for a commit that
+	// ran, or when the async batches of its row settle. The batch settles its
+	// drafts first, so a refused row is open again when the save settles.
+	const settleSaves = useEffectEvent((inFlight: readonly InFlightBatch[]) => {
+		for (const [rowKey, waiters] of saveWaitersRef.current) {
+			if (editableRows.has(rowKey)) continue
+
+			saveWaitersRef.current.delete(rowKey)
+
+			const settle = () => {
+				for (const waiter of waiters) waiter()
+			}
+
+			const results = inFlight
+				.filter((batch) => batch.rowKey === rowKey)
+				.map((batch) => batch.result)
+
+			if (results.length === 0) settle()
+			else void Promise.allSettled(results).then(settle)
+		}
+	})
+
 	// Read by the sweep, so a new callback does not run the sweep again.
 	const trackInFlight = useEffectEvent((batch: InFlightBatch, entry: GridPendingEntry) =>
 		trackBatch(batch, entry),
@@ -1702,6 +1755,8 @@ export function useGridEditing<T>({
 		// One sweep is one user action, so its cells are one entry. With an async
 		// batch, the entry records when the last batch settles.
 		recordWrite(saved.history, inFlight, recordEntry, trackInFlight)
+
+		settleSaves(inFlight)
 	}, [
 		drafts,
 		editableRows,
@@ -1905,6 +1960,8 @@ export function useGridEditing<T>({
 			settleControls,
 			resumeCell,
 			managed,
+			sheet,
+			saveSession,
 		}),
 		[
 			activeEditStore,
@@ -1917,6 +1974,8 @@ export function useGridEditing<T>({
 			claimFocus,
 			settleControls,
 			resumeCell,
+			sheet,
+			saveSession,
 		],
 	)
 
@@ -1928,7 +1987,8 @@ export function useGridEditing<T>({
 		stepHistory: stepFromHandle,
 		pasteCells: managed ? pasteCells : undefined,
 		fillCells: managed ? fillCells : undefined,
-		sessionLeave: commitOn === 'explicit' ? undefined : { blur: sessionLeave, focus: sessionFocus },
+		sessionLeave:
+			commitOn === 'explicit' || sheet ? undefined : { blur: sessionLeave, focus: sessionFocus },
 		newRow: {
 			position: newRowPosition,
 			session: newRow.session,

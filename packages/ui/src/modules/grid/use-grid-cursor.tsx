@@ -46,6 +46,7 @@ import type { GridCellActivate, GridRowActivate } from './engine/grid-row/bridge
 import { resolveCellAt } from './engine/grid-row/bridges'
 import type { GridCellClick, GridCellClickContext } from './engine/grid-row/cell'
 import type { GridEditSource } from './grid-data-types'
+import { GridEditSheet } from './grid-edit-sheet'
 import { GridEditingSessionContext, GridNewRowContext } from './grid-editing-context'
 import type { GridEditableConfig } from './grid-editing-types'
 import type { GridColumn } from './types'
@@ -799,16 +800,22 @@ export function useGridCursor<T>({
 
 	const newRowSession = editing.newRow.session
 
+	// On a phone the sheet holds the open editors. It sits beside the table, so
+	// its keys and focus moves do not reach the key surface of the table.
 	const wrap = useMemo(
 		() =>
 			editingEnabled
 				? (children: ReactNode) => (
 						<GridEditingSessionContext value={session}>
 							<GridNewRowContext value={newRowSession}>{children}</GridNewRowContext>
+
+							{session.sheet && (
+								<GridEditSheet session={session} columns={columns} source={editSource} />
+							)}
 						</GridEditingSessionContext>
 					)
 				: (children: ReactNode) => children,
-		[editingEnabled, session, newRowSession],
+		[editingEnabled, session, newRowSession, columns, editSource],
 	)
 
 	return {

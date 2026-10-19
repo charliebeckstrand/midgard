@@ -1,0 +1,347 @@
+'use client'
+
+import { useEffect, useId, useRef, useState, useSyncExternalStore } from 'react'
+import { Button } from '../../components/button'
+import { Field, Label, Message } from '../../components/fieldset'
+import { Sheet, SheetBody, SheetFooter, SheetPanel, SheetTitle } from '../../components/sheet'
+import { focusWithoutReveal } from '../../hooks/use-truncation'
+import { intlMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
+import { Stack } from '../../structure/stack'
+import { Form, FormSubmit } from '../form'
+import { columnLabel } from './engine/grid-column/label'
+import {
+	COMMIT_REFUSED,
+	EDITOR_FOCUSABLE,
+	type GridActiveEdit,
+	inferEditorKind,
+	isColumnEditable,
+} from './engine/grid-editing-utilities'
+import { gridMessages } from './engine/grid-messages'
+import { rowName } from './engine/grid-row/cell'
+import type { GridEditSource } from './grid-data-types'
+import { GridEditInputs } from './grid-edit-inputs'
+import type { GridEditingSession } from './grid-editing-context'
+import { GridOverlayDensity } from './grid-region'
+import type { GridColumn } from './types'
+
+/**
+ * What the sheet edits: the cell that a cell-scoped session holds, or the
+ * first open row with `columnId` `null`. @internal
+ */
+type SheetTarget = { rowKey: string | number; columnId: string | number | null }
+
+/** The values of the form of the sheet. The fields stage into the session, not the form. @internal */
+const NO_VALUES = {}
+
+/**
+ * Reads the target of the sheet from the store. The cell that a session holds
+ * comes first. A row that the consumer opened shows whole. The snapshot is
+ * the store's own cell, or a row key, so a read with no change is the same
+ * value. @internal
+ */
+function readTarget(
+	store: GridEditingSession['activeEditStore'],
+): GridActiveEdit | string | number | null {
+	const cell = store.get()
+
+	if (cell !== null && store.rows().has(cell.rowKey)) return cell
+
+	const [first] = store.rows()
+
+	return first ?? null
+}
+
+/** The target that a snapshot of {@link readTarget} names. @internal */
+function toTarget(snapshot: GridActiveEdit | string | number | null): SheetTarget | null {
+	if (snapshot === null) return null
+
+	if (typeof snapshot === 'object') return snapshot
+
+	return { rowKey: snapshot, columnId: null }
+}
+
+/** Whether two targets name the same row and the same cell. @internal */
+function sameTarget(a: SheetTarget | null, b: SheetTarget | null): boolean {
+	if (a === null || b === null) return a === b
+
+	return a.rowKey === b.rowKey && a.columnId === b.columnId
+}
+
+/** Props for {@link GridEditSheet}. @internal */
+type GridEditSheetProps<T> = {
+	session: GridEditingSession
+	/** The visible columns of the grid, in display order. The sheet shows the editable ones. */
+	columns: GridColumn<T>[]
+	/** The grid's own rows, which the sheet finds the open row in. */
+	source: GridEditSource<T>
+}
+
+/**
+ * The sheet that a phone edits in ({@link GridEditableConfig.sheet}). It shows
+ * the editors of the open row, or of the one cell that a cell-scoped session
+ * holds, with Cancel and Save. The editors stage into the session as the
+ * editors in the table do. Save ends the session as Enter does, and Cancel,
+ * Escape, and a press outside the sheet end it as Escape does.
+ *
+ * Save holds the sheet open, with its spinner, until the commit settles. An
+ * async commit that the consumer refuses opens the row again with its errors.
+ * Under cell scope the refused cell is held beside the session, so the sheet
+ * moves the session back onto it. Save does nothing while a
+ * {@link GridColumn.validate} refuses a value: the field shows why.
+ *
+ * @remarks The sheet is a sibling of the table in the React tree, so its keys
+ * and focus moves do not reach the key surface of the table.
+ *
+ * @internal
+ */
+export function GridEditSheet<T>({ session, columns, source }: GridEditSheetProps<T>) {
+	const intl = useIntl()
+
+	const { activeEditStore: store, readDraft, endSession, saveSession, resumeCell } = session
+
+	const snapshot = useSyncExternalStore(
+		store.subscribe,
+		() => readTarget(store),
+		() => null,
+	)
+
+	const target = toTarget(snapshot)
+
+	// The target that the sheet shows. It stays while a save settles and while
+	// the sheet slides out, after the session let it go.
+	const [shown, setShown] = useState<SheetTarget | null>(target)
+
+	if (target !== null && !sameTarget(target, shown)) setShown(target)
+
+	// Whether a save waits for its commit.
+	const [busy, setBusy] = useState(false)
+
+	// A counter that a settled save raises. The fields mount again, and read
+	// the drafts that a refusal staged again with their errors.
+	const [settled, setSettled] = useState(0)
+
+	const row =
+		shown === null
+			? undefined
+			: source.rows.find((item, index) => source.getKey(item, index) === shown.rowKey)
+
+	const fields =
+		shown === null || row === undefined
+			? []
+			: columns.filter(
+					(column) =>
+						isColumnEditable(column) && (shown.columnId === null || column.id === shown.columnId),
+				)
+
+	if (shown === null || row === undefined) return null
+
+	const open = target !== null || busy
+
+	function save() {
+		if (shown === null || row === undefined) return
+
+		const { rowKey, columnId } = shown
+
+		// A column that refuses a value blocks the save. The drafts are read
+		// now, because a field stages its value without a render of the sheet.
+		const blocked = fields.some((column) => {
+			const value = readDraft(rowKey, column.id)?.value ?? fieldValue(row, column)
+
+			return column.validate?.(value, row) != null
+		})
+
+		if (blocked) return
+
+		setBusy(true)
+
+		return saveSession(rowKey).then(() => {
+			setBusy(false)
+
+			setSettled((count) => count + 1)
+
+			// A cell-scoped session holds a refused cell beside itself, so the
+			// session moves back onto it, and the sheet shows its error.
+			if (columnId !== null && readDraft(rowKey, columnId)?.error !== undefined)
+				resumeCell(rowKey, columnId)
+		})
+	}
+
+	function discard() {
+		if (busy || shown === null) return
+
+		endSession(shown.rowKey, 'discard')
+	}
+
+	const name = rowName(intl, source.rowLabel?.(row), shown.rowKey)
+
+	const only = shown.columnId === null ? undefined : fields[0]
+
+	const title = intl.formatMessage(gridMessages.editCell, {
+		cell: only ? columnLabel(only) : name,
+	})
+
+	return (
+		<GridOverlayDensity>
+			<Sheet
+				open={open}
+				onOpenChange={(next) => {
+					if (!next) discard()
+				}}
+			>
+				<SheetPanel aria-label={title}>
+					<Form defaultValues={NO_VALUES} onSubmit={save}>
+						<SheetTitle>{title}</SheetTitle>
+
+						<SheetBody>
+							<Stack gap="lg">
+								{fields.map((column) => (
+									<GridEditSheetField
+										key={`${String(shown.rowKey)}:${String(column.id)}:${settled}`}
+										session={session}
+										rowKey={shown.rowKey}
+										row={row}
+										column={column}
+									/>
+								))}
+							</Stack>
+						</SheetBody>
+
+						<SheetFooter>
+							<Button type="button" variant="outline" disabled={busy} onClick={discard}>
+								{intl.formatMessage(intlMessages.cancel)}
+							</Button>
+
+							<FormSubmit color="blue">{intl.formatMessage(intlMessages.save)}</FormSubmit>
+						</SheetFooter>
+					</Form>
+				</SheetPanel>
+			</Sheet>
+		</GridOverlayDensity>
+	)
+}
+
+/** The value of the field of `column` on `row`, or `undefined` for a column with no field. @internal */
+function fieldValue<T>(row: T, column: GridColumn<T>): unknown {
+	return column.field != null ? row[column.field] : undefined
+}
+
+/** Props for {@link GridEditSheetField}. @internal */
+type GridEditSheetFieldProps<T> = {
+	session: GridEditingSession
+	rowKey: string | number
+	row: T
+	column: GridColumn<T>
+}
+
+/**
+ * One field of {@link GridEditSheet}: the label of the column, its editor, and
+ * the message of a value that {@link GridColumn.validate} or the consumer
+ * refuses. The editor is the column's {@link GridColumn.editCell} slot, or the
+ * one that the grid infers, as in the table. It starts from the typed entry,
+ * else from the staged draft, else from the row, and stages each change.
+ *
+ * @internal
+ */
+function GridEditSheetField<T>({ session, rowKey, row, column }: GridEditSheetFieldProps<T>) {
+	const intl = useIntl()
+
+	const { stageDraft, unstageDraft, readDraft, entrySeed, claimFocus } = session
+
+	const seed = fieldValue(row, column)
+
+	const [entry] = useState(() => entrySeed(rowKey, column.id))
+
+	const [draft, setDraft] = useState<unknown>(() => {
+		if (entry !== undefined) return entry
+
+		const staged = readDraft(rowKey, column.id)
+
+		return staged === undefined ? seed : staged.value
+	})
+
+	const [refusal, setRefusal] = useState(() =>
+		entry === undefined ? readDraft(rowKey, column.id)?.error : undefined,
+	)
+
+	const [mountRow] = useState(row)
+
+	useEffect(() => {
+		if (entry !== undefined) stageDraft(rowKey, column.id, entry, mountRow)
+	}, [entry, stageDraft, rowKey, column.id, mountRow])
+
+	const hostRef = useRef<HTMLDivElement>(null)
+
+	// The cell that an entry named takes focus. Each later run drops nothing.
+	useEffect(() => {
+		if (!claimFocus(rowKey, column.id)) return
+
+		const editor = hostRef.current?.querySelector<HTMLElement>(EDITOR_FOCUSABLE)
+
+		if (editor) focusWithoutReveal(editor)
+	})
+
+	const update = (next: unknown) => {
+		setDraft(next)
+
+		setRefusal(undefined)
+
+		stageDraft(rowKey, column.id, next, row)
+	}
+
+	const cancel = () => {
+		setDraft(seed)
+
+		setRefusal(undefined)
+
+		unstageDraft(rowKey, column.id)
+	}
+
+	const label = columnLabel(column)
+
+	const invalid = column.validate?.(draft, row) ?? null
+
+	const refused =
+		refusal === COMMIT_REFUSED ? intl.formatMessage(gridMessages.commitRefused) : refusal
+
+	const error = invalid ?? refused ?? null
+
+	const errorId = useId()
+
+	const body = column.editCell ? (
+		column.editCell({
+			row,
+			value: draft,
+			onValueUpdate: update,
+			// Save commits the sheet, so a slot's commit only stages.
+			commit: (next) => {
+				if (next !== undefined) update(next)
+			},
+			cancel,
+			ariaLabel: label,
+			required: column.required ?? false,
+		})
+	) : (
+		<GridEditInputs
+			kind={inferEditorKind(seed)}
+			draft={draft}
+			onValueUpdate={update}
+			cancel={cancel}
+			ariaLabel={label}
+			error={error}
+			errorId={errorId}
+			required={column.required}
+			managed
+		/>
+	)
+
+	return (
+		<Field ref={hostRef} data-slot="grid-edit-sheet-field" severity={error ? 'error' : undefined}>
+			<Label>{label}</Label>
+
+			{body}
+
+			{error && <Message id={errorId}>{error}</Message>}
+		</Field>
+	)
+}

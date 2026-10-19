@@ -115,6 +115,18 @@ export type GridEditingSession = {
 	resumeCell: (rowKey: string | number, columnId: string | number) => void
 	/** Whether the grid owns entry and the session keys (`session: 'managed'`). */
 	managed: boolean
+	/**
+	 * Whether the open cells edit in the sheet of a phone
+	 * ({@link GridEditableConfig.sheet}). The data cells then show their
+	 * content, and no editor mounts in the table.
+	 */
+	sheet: boolean
+	/**
+	 * Ends the session on a row with a save, as Enter does, for the Save of
+	 * the sheet. It settles when the commit of the row settles, so an async
+	 * commit has settled, and a refused row is open again.
+	 */
+	saveSession: (rowKey: string | number) => Promise<void>
 }
 
 /**

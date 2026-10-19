@@ -315,6 +315,10 @@
 		"defaultMessage": "No results",
 		"description": "The text of a list when a search finds no item."
 	},
+	"ui.common.save": {
+		"defaultMessage": "Save",
+		"description": "The label of a button that keeps the changes of a form."
+	},
 	"ui.common.selected": {
 		"defaultMessage": "{count, plural, other {# selected}}",
 		"description": "The summary of a picker that holds more than one selected item."

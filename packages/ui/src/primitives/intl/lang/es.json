@@ -78,6 +78,7 @@
 	"ui.common.loading": "Cargando",
 	"ui.common.monthLetter": "M",
 	"ui.common.noResults": "Sin resultados",
+	"ui.common.save": "Guardar",
 	"ui.common.selected": "{count, plural, one {# seleccionado} other {# seleccionados}}",
 	"ui.common.system": "Sistema",
 	"ui.common.yearLetter": "A",
