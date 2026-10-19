@@ -3,16 +3,10 @@
 import { createContext } from '../../core'
 import type { Mount } from '../../primitives/mount'
 import { k } from '../../recipes/kata/stepper'
-import { adaptive, type Orientation, type Responsive, resolveVariant } from '../../types'
+import { type Orientation, type Responsive, resolveVariant } from '../../types'
 
 /** Layout axis of a {@link Stepper}'s step row: `horizontal` or `vertical`. */
 export type StepperOrientation = Orientation
-
-/** The default `orientation` of a {@link Stepper}: vertical on a compact viewport, horizontal from medium. */
-export const STEPPER_ORIENTATION = adaptive({
-	compact: 'vertical',
-	medium: 'horizontal',
-}) satisfies Responsive<StepperOrientation>
 
 /** The orientation classes of each part of a stepper, at each breakpoint that its `orientation` names. */
 export type StepperLayout = Record<

@@ -4,7 +4,7 @@ import { k } from '../../recipes/kata/stepper'
 import type { Responsive } from '../../types'
 import { rangeKeys } from '../../utilities'
 import { Placeholder } from '../placeholder'
-import { STEPPER_ORIENTATION, type StepperOrientation, stepperLayout } from './context'
+import { type StepperOrientation, stepperLayout } from './context'
 
 /** Props for {@link StepperSkeleton}: the placeholder step count and the `orientation` of the stepper. */
 export type StepperSkeletonProps = {
@@ -16,7 +16,7 @@ export type StepperSkeletonProps = {
 	/**
 	 * The orientation of the stepper it stands in for, single or per breakpoint,
 	 * as on Stepper.
-	 * @defaultValue {@link STEPPER_ORIENTATION}
+	 * @defaultValue 'vertical'
 	 */
 	orientation?: Responsive<StepperOrientation>
 	className?: string
@@ -37,7 +37,7 @@ export type StepperSkeletonProps = {
  */
 export function StepperSkeleton({
 	steps = 3,
-	orientation = STEPPER_ORIENTATION,
+	orientation = 'vertical',
 	className,
 }: StepperSkeletonProps) {
 	const stepKeys = rangeKeys(steps, 'step')
