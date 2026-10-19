@@ -1,10 +1,10 @@
 import type { ReactElement } from 'react'
-import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { Calendar } from '../../components/calendar'
 import { act, attach, flushAnnouncer, liveRegion, screen } from '../helpers'
+import { hydrate } from '../helpers/hydrate'
 
 /** The server clock: October 1 in UTC, the zone of the test run. */
 const SERVER_NOW = new Date('2026-10-01T02:00:00Z')
@@ -32,17 +32,7 @@ function hydrateAcrossMonths(element: ReactElement) {
 
 	vi.setSystemTime(CLIENT_NOW)
 
-	const onRecoverableError = vi.fn()
-
-	const consoleError = vi.spyOn(console, 'error')
-
-	let root: Root | undefined
-
-	act(() => {
-		root = hydrateRoot(container, element, { onRecoverableError })
-	})
-
-	onTestFinished(() => act(() => root?.unmount()))
+	const { onRecoverableError, consoleError } = hydrate(container, element)
 
 	return { html, onRecoverableError, consoleError }
 }

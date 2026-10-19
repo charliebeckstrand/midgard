@@ -1,9 +1,9 @@
-import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { Drawer, DrawerPanel } from '../../../components/drawer'
-import { act, attach, bySlot, present, waitFor } from '../../helpers'
+import { attach, bySlot, present, waitFor } from '../../helpers'
 import { frame } from '../../helpers/frames'
+import { hydrate } from '../../helpers/hydrate'
 
 /**
  * An overlay that is open in the server render is in the server HTML, in place.
@@ -46,17 +46,7 @@ describe('Overlay open in the server render (real floating-ui)', () => {
 
 		requestAnimationFrame(sample)
 
-		const onRecoverableError = vi.fn()
-
-		const consoleError = vi.spyOn(console, 'error')
-
-		let root: Root | undefined
-
-		act(() => {
-			root = hydrateRoot(container, drawer, { onRecoverableError })
-		})
-
-		onTestFinished(() => act(() => root?.unmount()))
+		const { onRecoverableError, consoleError } = hydrate(container, drawer)
 
 		expect(onRecoverableError).not.toHaveBeenCalled()
 

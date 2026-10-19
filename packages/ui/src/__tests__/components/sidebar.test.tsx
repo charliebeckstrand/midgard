@@ -1,7 +1,6 @@
 import { createRef } from 'react'
-import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import {
 	Sidebar,
@@ -15,7 +14,6 @@ import {
 import { OffcanvasContext } from '../../primitives/offcanvas'
 import { LocaleProvider } from '../../providers/locale'
 import {
-	act,
 	attach,
 	bySlot,
 	densityStepOf,
@@ -26,6 +24,7 @@ import {
 	setupUser,
 	stubMatchMedia,
 } from '../helpers'
+import { hydrate } from '../helpers/hydrate'
 
 describe('Sidebar', () => {
 	it('renders with data-slot="sidebar" and a default aria-label', () => {
@@ -410,17 +409,7 @@ describe('Sidebar mini', () => {
 
 		container.innerHTML = html
 
-		const onRecoverableError = vi.fn()
-
-		const consoleError = vi.spyOn(console, 'error')
-
-		let root: Root | undefined
-
-		act(() => {
-			root = hydrateRoot(container, miniSidebar, { onRecoverableError })
-		})
-
-		onTestFinished(() => act(() => root?.unmount()))
+		const { onRecoverableError, consoleError } = hydrate(container, miniSidebar)
 
 		expect(onRecoverableError).not.toHaveBeenCalled()
 

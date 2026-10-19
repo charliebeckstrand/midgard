@@ -1,9 +1,8 @@
-import { act } from '@testing-library/react'
-import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { useHydrated } from '../../hooks/use-hydrated'
 import { attach, renderUI, screen } from '../helpers'
+import { hydrate } from '../helpers/hydrate'
 
 /** Renders the hook value as text, and records each value that a render reads. */
 function Probe({ seen }: { seen?: boolean[] }) {
@@ -36,15 +35,7 @@ describe('useHydrated', () => {
 
 		const seen: boolean[] = []
 
-		const onRecoverableError = vi.fn()
-
-		let root: Root | undefined
-
-		act(() => {
-			root = hydrateRoot(container, <Probe seen={seen} />, { onRecoverableError })
-		})
-
-		onTestFinished(() => act(() => root?.unmount()))
+		const { onRecoverableError } = hydrate(container, <Probe seen={seen} />)
 
 		expect(onRecoverableError).not.toHaveBeenCalled()
 

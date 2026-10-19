@@ -1,7 +1,6 @@
 import type { ReactElement } from 'react'
-import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import {
 	CreditCardInput,
@@ -13,7 +12,6 @@ import { Field, Label, Message } from '../../components/fieldset'
 import { Form } from '../../modules/form'
 import { LocaleProvider } from '../../providers/locale'
 import {
-	act,
 	allBySlot,
 	attach,
 	bySlot,
@@ -25,6 +23,7 @@ import {
 	userEvent,
 } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
+import { hydrate } from '../helpers/hydrate'
 
 describe('CreditCardInput', () => {
 	it('renders an input with type text, numeric inputMode, and a credit card icon prefix', () => {
@@ -667,17 +666,7 @@ describe.each(cardFields)('%s default name', (_name, field, fallback) => {
 
 		// A text or a node mismatch reaches `onRecoverableError`, and React logs
 		// an attribute mismatch to the console.
-		const onRecoverableError = vi.fn()
-
-		const consoleError = vi.spyOn(console, 'error')
-
-		let root: Root | undefined
-
-		act(() => {
-			root = hydrateRoot(container, element, { onRecoverableError })
-		})
-
-		onTestFinished(() => act(() => root?.unmount()))
+		const { onRecoverableError, consoleError } = hydrate(container, element)
 
 		expect(onRecoverableError).not.toHaveBeenCalled()
 

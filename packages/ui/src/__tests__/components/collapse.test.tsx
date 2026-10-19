@@ -1,7 +1,4 @@
-import type { ReactElement } from 'react'
-import { hydrateRoot, type Root } from 'react-dom/client'
-import { renderToString } from 'react-dom/server'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
 	Collapse,
 	CollapsePanel,
@@ -10,44 +7,8 @@ import {
 	useCollapseContext,
 } from '../../components/collapse'
 import type { Mount } from '../../primitives/mount'
-import { act, attach, bySlot, fireEvent, getSlot, renderUI, screen, setupUser } from '../helpers'
-
-/** Renders `element` to server markup, and parses the markup into a node off the page. */
-function serverMarkup(element: ReactElement) {
-	const markup = document.createElement('div')
-
-	markup.innerHTML = renderToString(element)
-
-	return markup
-}
-
-/**
- * Hydrates the server markup of `element` in a node on the body.
- *
- * @returns Two spies. A node or a text mismatch reaches `onRecoverableError`,
- * and React logs an attribute mismatch to `consoleError`.
- */
-function hydrate(element: ReactElement) {
-	const container = attach(document.createElement('div'))
-
-	container.innerHTML = renderToString(element)
-
-	const onRecoverableError = vi.fn()
-
-	const consoleError = vi.spyOn(console, 'error')
-
-	onTestFinished(() => consoleError.mockRestore())
-
-	let root: Root | undefined
-
-	act(() => {
-		root = hydrateRoot(container, element, { onRecoverableError })
-	})
-
-	onTestFinished(() => act(() => root?.unmount()))
-
-	return { onRecoverableError, consoleError }
-}
+import { bySlot, fireEvent, getSlot, renderUI, screen, setupUser } from '../helpers'
+import { hydrateServerRender, serverMarkup } from '../helpers/hydrate'
 
 describe('Collapse', () => {
 	it('renders panel when open', () => {
@@ -327,7 +288,7 @@ describe('Collapse', () => {
 		})
 
 		it('mount="always" hydrates with no mismatch, then references the closed panel', () => {
-			const { onRecoverableError, consoleError } = hydrate(<Panel mount="always" />)
+			const { onRecoverableError, consoleError } = hydrateServerRender(<Panel mount="always" />)
 
 			expect(onRecoverableError).not.toHaveBeenCalled()
 

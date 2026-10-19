@@ -1,11 +1,9 @@
 import { Profiler, type ReactElement, useLayoutEffect } from 'react'
-import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import type { CodeBlockVariants } from '../../components/code'
 import { CodeBlock, primeCodeBlock } from '../../components/code/code-block'
 import {
-	act,
 	attach,
 	bySlot,
 	densityStepOf,
@@ -18,6 +16,7 @@ import {
 	tick,
 	waitFor,
 } from '../helpers'
+import { hydrate } from '../helpers/hydrate'
 import { DEFAULT_CANVAS, highlight } from '../mocks/shiki'
 
 // The worker port of `CodeBlock` is mocked globally in setup/module-mocks.ts,
@@ -478,20 +477,12 @@ describe('CodeBlock size', () => {
 
 describe('CodeBlock hydration', () => {
 	/** Hydrates `markup` in a new container, and records each recoverable error. */
-	function hydrate(markup: string, element: ReactElement) {
+	function hydrateMarkup(markup: string, element: ReactElement) {
 		const container = attach(document.createElement('div'))
 
 		container.innerHTML = markup
 
-		const onRecoverableError = vi.fn()
-
-		let root: Root | undefined
-
-		act(() => {
-			root = hydrateRoot(container, element, { onRecoverableError })
-		})
-
-		onTestFinished(() => act(() => root?.unmount()))
+		const { onRecoverableError } = hydrate(container, element)
 
 		return { container, onRecoverableError }
 	}
@@ -523,7 +514,7 @@ describe('CodeBlock hydration', () => {
 			...DEFAULT_CANVAS,
 		})
 
-		const { container, onRecoverableError } = hydrate(markup, element)
+		const { container, onRecoverableError } = hydrateMarkup(markup, element)
 
 		expect(onRecoverableError).not.toHaveBeenCalled()
 
@@ -533,7 +524,7 @@ describe('CodeBlock hydration', () => {
 	it('hydrates the server output, and highlights in the worker after it', async () => {
 		const element = <CodeBlock code="hydrate-worker-token" copy={false} />
 
-		const { container, onRecoverableError } = hydrate(renderToString(element), element)
+		const { container, onRecoverableError } = hydrateMarkup(renderToString(element), element)
 
 		expect(onRecoverableError).not.toHaveBeenCalled()
 

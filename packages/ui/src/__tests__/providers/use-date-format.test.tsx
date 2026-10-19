@@ -1,44 +1,14 @@
-import { hydrateRoot, type Root } from 'react-dom/client'
-import { renderToString } from 'react-dom/server'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { DateTime } from '../../components/date-time'
 import { LocaleProvider } from '../../providers/locale'
 import { resolveDateOptions } from '../../providers/locale/use-date-format'
-import { act, attach, renderUI, screen } from '../helpers'
+import { renderUI, screen } from '../helpers'
+import { hydrateServerRender } from '../helpers/hydrate'
 
 /** A kickoff: Sunday 1:00 PM in New York, and 5:00 PM in UTC, the zone of the test run. */
 const KICKOFF = '2026-10-04T17:00:00Z'
 
 const KICKOFF_FORMAT = { weekday: 'short', hour: 'numeric', minute: '2-digit' } as const
-
-/**
- * Renders `element` to server markup, then hydrates that markup. The zone of
- * the test run (UTC) is the zone of the reader.
- *
- * @returns The container and two spies. A text mismatch reaches
- * `onRecoverableError`, and React logs other mismatches to `consoleError`.
- */
-function hydrate(element: React.ReactElement) {
-	const html = renderToString(element)
-
-	const container = attach(document.createElement('div'))
-
-	container.innerHTML = html
-
-	const onRecoverableError = vi.fn()
-
-	const consoleError = vi.spyOn(console, 'error')
-
-	let root: Root | undefined
-
-	act(() => {
-		root = hydrateRoot(container, element, { onRecoverableError })
-	})
-
-	onTestFinished(() => act(() => root?.unmount()))
-
-	return { html, container, onRecoverableError, consoleError }
-}
 
 describe('resolveDateOptions', () => {
 	it('formats in the provider zone with its name before hydration', () => {
@@ -86,7 +56,7 @@ describe('DateTime', () => {
 			</LocaleProvider>
 		)
 
-		const { html, container, onRecoverableError, consoleError } = hydrate(element)
+		const { html, container, onRecoverableError, consoleError } = hydrateServerRender(element)
 
 		expect(html).toContain('Sun, 1:00 PM EDT')
 
@@ -108,7 +78,7 @@ describe('DateTime', () => {
 			</LocaleProvider>
 		)
 
-		const { container, onRecoverableError } = hydrate(element)
+		const { container, onRecoverableError } = hydrateServerRender(element)
 
 		expect(onRecoverableError).not.toHaveBeenCalled()
 

@@ -1,8 +1,8 @@
-import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { List, ListItem } from '../../../components/list'
-import { act, attach, getSlot } from '../../helpers'
+import { attach, getSlot } from '../../helpers'
+import { hydrate } from '../../helpers/hydrate'
 
 const items = [
 	{ id: 'a', label: 'Alpha' },
@@ -31,17 +31,7 @@ describe('reorderable List hydration (real Motion)', () => {
 
 		const serverList = getSlot(container, 'list')
 
-		const onRecoverableError = vi.fn()
-
-		const consoleError = vi.spyOn(console, 'error')
-
-		let root: Root | undefined
-
-		act(() => {
-			root = hydrateRoot(container, list(), { onRecoverableError })
-		})
-
-		onTestFinished(() => act(() => root?.unmount()))
+		const { onRecoverableError, consoleError } = hydrate(container, list())
 
 		expect(onRecoverableError).not.toHaveBeenCalled()
 

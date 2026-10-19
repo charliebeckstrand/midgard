@@ -1,7 +1,5 @@
-import type { ReactElement } from 'react'
-import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
 	Stepper,
 	StepperDescription,
@@ -17,7 +15,6 @@ import { LocaleProvider } from '../../providers/locale'
 import {
 	act,
 	allBySlot,
-	attach,
 	bySlot,
 	fireEvent,
 	getSlot,
@@ -27,43 +24,7 @@ import {
 	setupUser,
 	within,
 } from '../helpers'
-
-/** Renders `element` to server markup, and parses the markup into a node off the page. */
-function serverMarkup(element: ReactElement) {
-	const markup = document.createElement('div')
-
-	markup.innerHTML = renderToString(element)
-
-	return markup
-}
-
-/**
- * Hydrates the server markup of `element` in a node on the body.
- *
- * @returns Two spies. A node or a text mismatch reaches `onRecoverableError`,
- * and React logs an attribute mismatch to `consoleError`.
- */
-function hydrate(element: ReactElement) {
-	const container = attach(document.createElement('div'))
-
-	container.innerHTML = renderToString(element)
-
-	const onRecoverableError = vi.fn()
-
-	const consoleError = vi.spyOn(console, 'error')
-
-	onTestFinished(() => consoleError.mockRestore())
-
-	let root: Root | undefined
-
-	act(() => {
-		root = hydrateRoot(container, element, { onRecoverableError })
-	})
-
-	onTestFinished(() => act(() => root?.unmount()))
-
-	return { onRecoverableError, consoleError }
-}
+import { hydrateServerRender, serverMarkup } from '../helpers/hydrate'
 
 describe('Stepper', () => {
 	it('renders with data-slot="stepper"', () => {
@@ -764,7 +725,7 @@ describe('Stepper keyboard navigation', () => {
 		})
 
 		it('mount="always" hydrates with no mismatch, then lets every step reference its panel', () => {
-			const { onRecoverableError, consoleError } = hydrate(<Flow mount="always" />)
+			const { onRecoverableError, consoleError } = hydrateServerRender(<Flow mount="always" />)
 
 			expect(onRecoverableError).not.toHaveBeenCalled()
 
