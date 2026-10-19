@@ -254,6 +254,28 @@ describe('Grid pagination', () => {
 
 			expect(screen.getByText('11–15 of 25')).toBeInTheDocument()
 		})
+
+		it('reads an unknown page count when the server supplies no total', () => {
+			renderUI(
+				<Grid
+					columns={columns}
+					rows={many.slice(0, 5)}
+					getKey={getKey}
+					pagination={{
+						manual: true,
+						value: { pageIndex: 0, pageSize: 5 },
+						onValueChange: () => {},
+					}}
+				/>,
+			)
+
+			// A full page from a feed of unknown length: the reader can ask for more.
+			expect(screen.getByText('Page 1')).toBeInTheDocument()
+
+			expect(screen.queryByText('Page 1 of 1')).not.toBeInTheDocument()
+
+			expect(screen.getByRole('button', { name: 'Next page' })).toBeEnabled()
+		})
 	})
 
 	describe('controlled binding', () => {

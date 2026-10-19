@@ -2,7 +2,7 @@ import { functionalUpdate, type PaginationState } from '@tanstack/react-table'
 import type { SetStateAction } from 'react'
 import { clamp } from '../../../../utilities'
 import type { GridPagination } from '../../types'
-import { pageCountOf, pageOffset } from '../grid-pagination-utilities'
+import { manualTotals, pageCountOf, pageOffset } from '../grid-pagination-utilities'
 import type { EngineTable } from './features'
 
 /**
@@ -63,8 +63,7 @@ export function buildPaginationView<T>(args: {
 
 	// A server grid supplies its totals. They reach the engine only in manual mode.
 	const pageCount = pageCountOf({
-		pageCount: args.manual ? args.config.pageCount : undefined,
-		rowCount: args.manual ? args.config.rowCount : undefined,
+		...(args.manual ? manualTotals(args.config) : {}),
 		rows: args.rows,
 		pageSize,
 	})

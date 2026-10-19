@@ -22,6 +22,7 @@ import {
 	EXPANDER_COLUMN_SIZE,
 	SELECT_COLUMN_SIZE,
 } from '../grid-constants'
+import { manualTotals } from '../grid-pagination-utilities'
 import type {
 	EngineColumn,
 	EngineColumnDef,
@@ -165,17 +166,6 @@ export function toGridColumns<T>(leaves: readonly EngineColumn<T>[]): GridColumn
 	return leaves.flatMap(
 		(leaf) => (leaf.columnDef.meta?.gridColumn as GridColumn<T> | undefined) ?? [],
 	)
-}
-
-/** Server-mode total-count option: prefer `pageCount`, fall back to `rowCount`, else neither. @internal */
-function manualTotals(
-	config: GridPagination | undefined,
-): { pageCount: number } | { rowCount: number } | undefined {
-	if (config?.pageCount != null) return { pageCount: config.pageCount }
-
-	if (config?.rowCount != null) return { rowCount: config.rowCount }
-
-	return undefined
 }
 
 /**
