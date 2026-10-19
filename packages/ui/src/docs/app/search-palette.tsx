@@ -13,6 +13,7 @@ import {
 import { useTimeout } from 'ui/hooks'
 import { defineMessage, defineMessages, type MessageDescriptor, useIntl } from 'ui/primitives/intl'
 import { VirtualOptions } from 'ui/primitives/virtual-options'
+import { exampleTitle } from '../kit/example-title.ts'
 import type { SearchEntry, SearchKind } from '../plugin/search.ts'
 import { sectionLabel } from './app-messages.ts'
 import { matchEntries } from './search-match.ts'
@@ -135,7 +136,19 @@ function Results({ onPick }: { onPick: () => void }) {
 		return section === undefined ? option.context : sectionLabel(intl, section)
 	}
 
-	const matches = useMemo(() => matchEntries(options, query), [query])
+	// The title of an example shows in the language of the reader, and the
+	// query matches that title. The names from the code stay as they are.
+	const localized = useMemo(
+		() =>
+			options.map((option) =>
+				option.kind === 'example'
+					? { ...option, label: exampleTitle(intl, option.href.split('#')[1] ?? '', option.label) }
+					: option,
+			),
+		[intl],
+	)
+
+	const matches = useMemo(() => matchEntries(localized, query), [localized, query])
 
 	return (
 		<>

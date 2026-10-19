@@ -75,7 +75,7 @@ describe('the chrome of the docs in Spanish', () => {
 		expect(screen.getByRole('button', { name: 'Mostrar código' })).toBeDefined()
 	})
 
-	it('keeps the title of an example, which comes from its file name', () => {
+	it('translates the title of an example, which comes from its file name', () => {
 		const meta: ExampleMeta = {
 			title: 'With icon',
 			id: 'with-icon',
@@ -90,6 +90,24 @@ describe('the chrome of the docs in Spanish', () => {
 			</Spanish>,
 		)
 
-		expect(screen.getByRole('heading', { name: 'With icon' })).toBeDefined()
+		expect(screen.getByRole('heading', { name: 'Con icono' })).toBeDefined()
+	})
+
+	it('keeps the English title of an example that the catalog does not hold', () => {
+		const meta: ExampleMeta = {
+			title: 'Not in the catalog',
+			id: 'not-in-the-catalog',
+			code: () => new Promise(() => {}),
+		}
+
+		render(
+			<Spanish>
+				<ExampleFrame meta={meta}>
+					<span>Instance</span>
+				</ExampleFrame>
+			</Spanish>,
+		)
+
+		expect(screen.getByRole('heading', { name: 'Not in the catalog' })).toBeDefined()
 	})
 })

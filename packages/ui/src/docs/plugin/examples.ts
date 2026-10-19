@@ -63,7 +63,7 @@ export const EXAMPLE = /(?<!\/index)\.tsx$/
 
 // The file name of the playground of a page. A page with more than one
 // component has a playground for each, such as `playground-dots.tsx`.
-const PLAYGROUND = 'playground'
+export const PLAYGROUND = 'playground'
 
 function isPlayground(file: string): boolean {
 	const key = codeKeyOf(file)
