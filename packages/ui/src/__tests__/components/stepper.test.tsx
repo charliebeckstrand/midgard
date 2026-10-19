@@ -496,9 +496,8 @@ describe('StepperStep interactive mode', () => {
 		expect(bySlot(container, 'stepper-content')).toBeInTheDocument()
 	})
 
-	// Asserted against `renderToString`, because the server render is what painted
-	// the desktop row on a phone before hydration.
-	it('lays out by CSS on the server when orientation is not set', () => {
+	// Asserted against `renderToString`, because the server render is the first paint.
+	it('renders a vertical row at each width when orientation is not set', () => {
 		const html = renderToString(
 			<Stepper value={1}>
 				<StepperStep value={1}>
@@ -511,7 +510,9 @@ describe('StepperStep interactive mode', () => {
 
 		expect(rootTag).toContain('flex-col')
 
-		expect(rootTag).toContain('sm:flex-row')
+		expect(rootTag).toContain('data-orientation="vertical"')
+
+		expect(rootTag).not.toContain('sm:flex-row')
 
 		expect(html).toContain('data-slot="stepper-content"')
 	})

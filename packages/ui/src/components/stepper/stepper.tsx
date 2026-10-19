@@ -12,12 +12,7 @@ import { k } from '../../recipes/kata/stepper'
 import { Stack } from '../../structure/stack'
 import type { Responsive } from '../../types'
 import { partitionByType } from '../../utilities/children'
-import {
-	STEPPER_ORIENTATION,
-	StepperContext,
-	type StepperOrientation,
-	stepperLayout,
-} from './context'
+import { StepperContext, type StepperOrientation, stepperLayout } from './context'
 import { stepperMessages } from './stepper-messages'
 import { StepperPanels } from './stepper-panels'
 
@@ -66,7 +61,7 @@ export type StepperProps = Omit<
 	/**
 	 * The axis of the row. A per-breakpoint map sets the axis from each
 	 * breakpoint, mobile-first. A single value sets it at each width.
-	 * @defaultValue {@link STEPPER_ORIENTATION}
+	 * @defaultValue 'vertical'
 	 */
 	orientation?: Responsive<StepperOrientation>
 	/**
@@ -112,10 +107,10 @@ function partitionStepperChildren(children: ReactNode): {
  * by comparing its own index against `value`.
  *
  * @remarks
- * Client component (`'use client'`). By default the row is `vertical` below
- * the `sm` breakpoint and `horizontal` from it, since a horizontal row
- * overflows narrow screens. CSS picks the layout at each breakpoint, so the
- * server render does not shift after hydration. The arrow-key axis and
+ * Client component (`'use client'`). By default the row is `vertical` at
+ * each width. A per-breakpoint `orientation` makes it horizontal from a
+ * breakpoint up. CSS picks the layout at each breakpoint, so the server
+ * render does not shift after hydration. The arrow-key axis and
  * `aria-orientation` read the same `orientation` at the viewport in JavaScript
  * (`useResponsiveValue`). When `onValueChange` is set, steps
  * render as buttons and the row is a single Tab stop with roving arrow-key
@@ -131,7 +126,7 @@ export function Stepper({
 	defaultValue,
 	onValueChange,
 	linear = false,
-	orientation = STEPPER_ORIENTATION,
+	orientation = 'vertical',
 	mount = 'active',
 	'aria-label': ariaLabelProp,
 	className,
