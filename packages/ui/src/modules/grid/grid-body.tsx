@@ -465,6 +465,7 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 					<Alert
 						severity="error"
 						variant="soft"
+						icon={false}
 						title={intl.formatMessage(gridMessages.loadFailed)}
 						className="w-full"
 					/>
