@@ -1,7 +1,15 @@
 import { describe, expect, it, vi } from 'vitest'
 import { HeatmapChart, type HeatmapChartSeries } from '../../modules/chart'
 import { LABEL_CHAR_WIDTH } from '../../modules/chart/engine/chart-constants'
-import { act, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
+import {
+	act,
+	bySlot,
+	expectAnnouncement,
+	fireEvent,
+	getSlot,
+	liveRegion,
+	renderUI,
+} from '../helpers'
 
 type Row = { day: string; hour: string; commits: number }
 
@@ -797,6 +805,31 @@ describe('HeatmapChart keyboard navigation', () => {
 		fireEvent.keyDown(plot, { key: 'Escape' })
 
 		expect(readout(container)).toBeNull()
+	})
+
+	it('speaks the one cell that an arrow key moves the cursor onto', async () => {
+		const { container } = renderUI(
+			<HeatmapChart aria-label="Commits" data={GRID} series={SERIES} width={400} />,
+		)
+
+		const plot = getSlot(container, 'chart-plot')
+
+		// The stop is a row-major cell index, so the text names one cell and not
+		// the column of the readout.
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		await expectAnnouncement('Early, Mon: 11')
+
+		expect(liveRegion()?.textContent).toBe('Early, Mon: 11')
+
+		// A cell past the first row still speaks.
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		await expectAnnouncement('Early, Tue: 33')
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		await expectAnnouncement('Late, Tue: 44')
 	})
 
 	it('marks the keyboard cell on the range legend', () => {

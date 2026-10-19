@@ -2,6 +2,7 @@ import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { Avatar, AvatarGroup, AvatarSkeleton } from '../../components/avatar'
 import { Density, useDensityStep } from '../../primitives/density'
+import { LocaleProvider } from '../../providers/locale'
 import { allBySlot, bySlot, getSlot, renderUI, screen } from '../helpers'
 
 describe('Avatar', () => {
@@ -254,5 +255,25 @@ describe('AvatarGroup', () => {
 		expect(bySlot(container, 'avatar-group')).not.toHaveAttribute('data-density')
 
 		expect(bySlot(container, 'probe')).toHaveTextContent('lg')
+	})
+})
+
+describe('Avatar in a locale', () => {
+	it('names the status in the language of the locale, and keeps a given label', () => {
+		const { container, rerender } = renderUI(
+			<LocaleProvider locale="es-ES">
+				<Avatar initials="AB" status="active" />
+			</LocaleProvider>,
+		)
+
+		expect(bySlot(container, 'avatar-with-status')).toHaveTextContent('Activo')
+
+		rerender(
+			<LocaleProvider locale="es-ES">
+				<Avatar initials="AB" status="active" statusLabel="Conectada" />
+			</LocaleProvider>,
+		)
+
+		expect(bySlot(container, 'avatar-with-status')).toHaveTextContent('Conectada')
 	})
 })

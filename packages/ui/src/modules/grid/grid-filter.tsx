@@ -1,10 +1,11 @@
 'use client'
 
-import { type SubmitEvent, startTransition, useState } from 'react'
+import { type KeyboardEvent, startTransition, useState } from 'react'
 import { SearchInput } from '../../components/search-input'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useTimeout } from '../../hooks/use-timeout'
 import { useIntl } from '../../primitives/intl/use-intl'
+import { isComposing } from '../../utilities'
 import { GRID_SEARCH_DEBOUNCE_MS } from './engine/grid-constants'
 import { gridMessages } from './engine/grid-messages'
 import type { GridGlobalFilterView } from './use-grid-table'
@@ -27,9 +28,10 @@ type GridFilterProps = {
  * the critical path. Clearing bypasses the debounce and applies at once, recovering
  * the hidden rows without the settle lag.
  *
- * The field is a lone control in a `<form>`, so pressing Enter submits it and
- * flushes the pending query immediately. That is the same at-once path as
- * clearing, for a typist who wants the result before the debounce settles.
+ * Enter flushes the pending query immediately. That is the same at-once path
+ * as clearing, for a typist who wants the result before the debounce settles.
+ * The field is not in a `<form>` of its own, because a grid can be in the form
+ * of the consumer, and a `<form>` in a `<form>` is not valid HTML.
  *
  * @internal
  */
@@ -90,13 +92,13 @@ export function GridFilter({ filter }: GridFilterProps) {
 		debounce.set(() => settle(next, resets), GRID_SEARCH_DEBOUNCE_MS)
 	}
 
-	// Enter submits the field: cancel the pending debounce and apply the typed
-	// text now, so a deliberate submit lands the query without the settle wait.
-	// The submit stops here, so a form around the grid does not submit too.
-	const submit = (event: SubmitEvent<HTMLFormElement>) => {
-		event.preventDefault()
+	// Enter cancels the pending debounce and applies the typed text now, so a
+	// deliberate Enter lands the query without the settle wait. preventDefault
+	// stops the implicit submission of a form around the grid.
+	const commit = (event: KeyboardEvent<HTMLInputElement>) => {
+		if (event.key !== 'Enter' || isComposing(event)) return
 
-		event.stopPropagation()
+		event.preventDefault()
 
 		debounce.clear()
 
@@ -106,14 +108,15 @@ export function GridFilter({ filter }: GridFilterProps) {
 	const placeholder = filter.placeholder ?? intl.formatMessage(gridMessages.search)
 
 	return (
-		<form data-slot="grid-filter" onSubmit={submit}>
+		<div data-slot="grid-filter">
 			<SearchInput
 				value={text}
 				onChange={(event) => apply(event.target.value)}
 				onClear={() => apply('')}
+				onKeyDown={commit}
 				placeholder={placeholder}
 				aria-label={placeholder}
 			/>
-		</form>
+		</div>
 	)
 }

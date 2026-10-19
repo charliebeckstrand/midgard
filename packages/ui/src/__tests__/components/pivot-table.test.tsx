@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { PivotTable } from '../../components/pivot-table'
+import { LocaleProvider } from '../../providers/locale'
 import { bySlot, present, renderUI, screen, within } from '../helpers'
 
 type Row = { lane: string; period: string; loads: number }
@@ -213,5 +214,24 @@ describe('PivotTable', () => {
 		expect(rows[1]?.textContent?.startsWith('ORD → ATL')).toBe(true)
 
 		expect(rows[2]?.textContent?.startsWith('LAX → DFW')).toBe(true)
+	})
+})
+
+describe('PivotTable in a locale', () => {
+	it('names the totals in the language of the locale', () => {
+		renderUI(
+			<LocaleProvider locale="es-ES">
+				<PivotTable
+					rows={data}
+					keys={{ row: 'lane', column: 'period', value: 'loads' }}
+					rowHeader="Ruta"
+					totals="both"
+				/>
+			</LocaleProvider>,
+		)
+
+		expect(screen.getByRole('columnheader', { name: 'Total' })).toBeInTheDocument()
+
+		expect(screen.getByRole('rowheader', { name: 'Total' })).toBeInTheDocument()
 	})
 })

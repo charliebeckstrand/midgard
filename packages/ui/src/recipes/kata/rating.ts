@@ -4,8 +4,7 @@
  * density scope, so a rating inside a `<Field>` scales with the controls
  * beside it.
  *
- * The chromatic hues ride the `iro.marker` ramp, not the text ramp, and zinc
- * takes a local pair. A star is a glyph and not a word, so it answers the
+ * The hues ride the `iro.marker` ramp, not the text ramp. A star is a glyph and not a word, so it answers the
  * non-text 3:1 floor (WCAG 1.4.11). The empty
  * track keeps a neutral of its own. A track that took the hue at a lower opacity
  * would read as a part-filled star.
@@ -31,13 +30,12 @@ const { focus } = sen
 
 /**
  * Filled-star hue. The `current` inherits the surrounding text color, for a
- * rating that takes the ink of the row it sits in. Red, amber, green, and blue
- * resolve to the `marker` shade (600 light / 500 dark), which clears the
- * graphical 3:1 floor on the page surface. Zinc takes a local 600 / 400 pair.
+ * rating that takes the ink of the row it sits in. Each color resolves to the
+ * `marker` shade, which clears the graphical 3:1 floor on the page surface.
  */
 const color = {
 	current: 'text-current',
-	zinc: mode('text-zinc-600', 'dark:text-zinc-400'),
+	zinc: marker.zinc,
 	red: marker.red,
 	amber: marker.amber,
 	green: marker.green,

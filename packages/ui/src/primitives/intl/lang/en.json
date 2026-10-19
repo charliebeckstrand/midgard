@@ -7,6 +7,26 @@
 		"defaultMessage": "Dismiss",
 		"description": "The name of the button that closes a message or a toast."
 	},
+	"ui.avatar.statusActive": {
+		"defaultMessage": "Active",
+		"description": "The status of a person or an item, which a screen reader speaks after its avatar."
+	},
+	"ui.avatar.statusError": {
+		"defaultMessage": "Error",
+		"description": "The status of a person or an item that has a problem, which a screen reader speaks after its avatar."
+	},
+	"ui.avatar.statusInactive": {
+		"defaultMessage": "Inactive",
+		"description": "The status of a person or an item, which a screen reader speaks after its avatar."
+	},
+	"ui.avatar.statusInfo": {
+		"defaultMessage": "Info",
+		"description": "The status of a person or an item that has news, which a screen reader speaks after its avatar."
+	},
+	"ui.avatar.statusWarning": {
+		"defaultMessage": "Warning",
+		"description": "The status of a person or an item that needs attention, which a screen reader speaks after its avatar."
+	},
 	"ui.badge.remove": {
 		"defaultMessage": "Remove {label}",
 		"description": "The name of the button that removes a chip, such as a tag. The label is the text of the chip."
@@ -170,6 +190,18 @@
 	"ui.chat.views": {
 		"defaultMessage": "{views, plural, one {# embedded view} other {# embedded views}}",
 		"description": "Spoken after a reply of the assistant that holds views, such as charts. The count is the number of views."
+	},
+	"ui.codeBlock.copyFailed": {
+		"defaultMessage": "Copy failed",
+		"description": "Spoken when the copy button of a code block could not copy the code."
+	},
+	"ui.codeBlock.languageRegion": {
+		"defaultMessage": "{language} code",
+		"description": "The name of a scrollable block of code in a known language, such as \"TypeScript code\". The language is a name, such as TypeScript."
+	},
+	"ui.codeBlock.region": {
+		"defaultMessage": "Code",
+		"description": "The name of a scrollable block of code whose language is not known."
 	},
 	"ui.color.alpha": {
 		"defaultMessage": "Alpha",
@@ -479,6 +511,82 @@
 		"defaultMessage": "Yesterday",
 		"description": "A range of a date picker: the day before today."
 	},
+	"ui.events.batch": {
+		"defaultMessage": "Batch",
+		"description": "The label of the switch that groups repeated events in one line."
+	},
+	"ui.events.bugs": {
+		"defaultMessage": "Bugs",
+		"description": "The name of the list of the bug reports that the debug tool captured."
+	},
+	"ui.events.bugsCount": {
+		"defaultMessage": "Bugs {count, number}",
+		"description": "The tab of the bug reports of the debug tool, with their count, such as \"Bugs 3\"."
+	},
+	"ui.events.capture": {
+		"defaultMessage": "Capture",
+		"description": "The button that starts to record the events for a bug report."
+	},
+	"ui.events.copied": {
+		"defaultMessage": "Copied",
+		"description": "The label of the copy button of the debug tool after a copy succeeds."
+	},
+	"ui.events.copy": {
+		"defaultMessage": "Copy",
+		"description": "The button that copies a bug report of the debug tool as Markdown."
+	},
+	"ui.events.debug": {
+		"defaultMessage": "Debug",
+		"description": "The label of the switch that turns the debug tool on or off."
+	},
+	"ui.events.delete": {
+		"defaultMessage": "Delete",
+		"description": "The button that deletes one bug report of the debug tool."
+	},
+	"ui.events.details": {
+		"defaultMessage": "Details",
+		"description": "The name of the tree that shows the data of one event."
+	},
+	"ui.events.events": {
+		"defaultMessage": "Events",
+		"description": "The name of the debug tool that lists the events of the page, of its button, and of its list."
+	},
+	"ui.events.noBugs": {
+		"defaultMessage": "No bugs",
+		"description": "The text of the list of bug reports when it holds none."
+	},
+	"ui.events.noEvents": {
+		"defaultMessage": "No events",
+		"description": "The text of the list of events when it holds none."
+	},
+	"ui.events.pin": {
+		"defaultMessage": "Pin",
+		"description": "The button that docks the debug tool as a panel at the side of the page."
+	},
+	"ui.events.preserve": {
+		"defaultMessage": "Preserve",
+		"description": "The label of the switch that keeps the events through a reload of the page."
+	},
+	"ui.events.stopCapture": {
+		"defaultMessage": "Stop capture",
+		"description": "The button that stops the record and makes a bug report from it."
+	},
+	"ui.events.trail": {
+		"defaultMessage": "Breadcrumb",
+		"description": "The name of the trail of links above an open bug report, which leads back to the list of bugs."
+	},
+	"ui.events.unpin": {
+		"defaultMessage": "Unpin",
+		"description": "The button that takes the docked debug tool off the side of the page."
+	},
+	"ui.events.view": {
+		"defaultMessage": "View",
+		"description": "The name of the control that switches the debug tool between its events and its bugs."
+	},
+	"ui.events.viewReport": {
+		"defaultMessage": "View",
+		"description": "The name of the button that opens one bug report of the debug tool."
+	},
 	"ui.fileUpload.announced": {
 		"defaultMessage": "{count, plural, one {Selected {names}} other {Selected # files: {names}}}",
 		"description": "Spoken when the reader selects files. The names are the file names, joined by commas."
@@ -522,6 +630,18 @@
 	"ui.fileUpload.uploadFile": {
 		"defaultMessage": "Upload file",
 		"description": "The name of the file input of a drop zone."
+	},
+	"ui.form.submitting": {
+		"defaultMessage": "Submitting",
+		"description": "Spoken while a form sends its values, after the reader submits it."
+	},
+	"ui.formErrorSummary.title": {
+		"defaultMessage": "There is a problem",
+		"description": "The heading of the box at the top of a form that lists the fields with errors, after a failed submit."
+	},
+	"ui.formFilters.active": {
+		"defaultMessage": "{count, plural, one {# filter active} other {# filters active}}",
+		"description": "Spoken when a filter changes, with the count of the filters that hold a value, such as \"2 filters active\"."
 	},
 	"ui.grid.addRow": {
 		"defaultMessage": "Add row",
@@ -1135,6 +1255,10 @@
 		"defaultMessage": "Yes",
 		"description": "The true choice of a yes-or-no cell of a grid."
 	},
+	"ui.jsonTree.items": {
+		"defaultMessage": "{count, plural, one {# item} other {# items}}",
+		"description": "The count of the items in an object or an array of a JSON tree, such as \"3 items\"."
+	},
 	"ui.kanban.drag": {
 		"defaultMessage": "Drag",
 		"description": "The first word of the name of the drag handle of a Kanban card. The name of the card follows it."
@@ -1154,6 +1278,26 @@
 	"ui.listbox.placeholder": {
 		"defaultMessage": "Select",
 		"description": "The placeholder of a picker with no selected value."
+	},
+	"ui.map.detail": {
+		"defaultMessage": "Detail",
+		"description": "The header of the value column of the data table of a map, when the map names no category field."
+	},
+	"ui.map.legend": {
+		"defaultMessage": "Legend",
+		"description": "The name of the legend of a map, which names the categories by their colors."
+	},
+	"ui.map.zoom": {
+		"defaultMessage": "Zoom {scale, number, percent}",
+		"description": "Spoken when a key zooms a map in or out, with the zoom as a percent of the fit, such as \"Zoom 150%\"."
+	},
+	"ui.map.zoomReset": {
+		"defaultMessage": "Zoom reset",
+		"description": "Spoken when a key puts the zoom of a map back to its fit."
+	},
+	"ui.markdown.table": {
+		"defaultMessage": "Table",
+		"description": "The name of the scroll box of a wide table in a Markdown document."
 	},
 	"ui.navBar.label": {
 		"defaultMessage": "Main",
@@ -1410,6 +1554,10 @@
 	"ui.pdfViewer.zoomOutTo": {
 		"defaultMessage": "Zoom out ({percent})",
 		"description": "The tooltip of the Zoom out button. The percent is the zoom that the button sets, such as \"90%\"."
+	},
+	"ui.pivotTable.total": {
+		"defaultMessage": "Total",
+		"description": "The header of the column and of the row that hold the totals of a pivot table."
 	},
 	"ui.query.after": {
 		"defaultMessage": "after",
@@ -1671,6 +1819,10 @@
 		"defaultMessage": "the item",
 		"description": "The name of an item in a reorder announcement when the item has no name."
 	},
+	"ui.resizable.label": {
+		"defaultMessage": "Resize",
+		"description": "The name of the bar between two panels that changes their sizes, by a drag or by the arrow keys."
+	},
 	"ui.searchInput.clear": {
 		"defaultMessage": "Clear search",
 		"description": "The name of the button that empties a search field."
@@ -1762,6 +1914,18 @@
 	"ui.signaturePad.placeholder": {
 		"defaultMessage": "Sign here",
 		"description": "The text over an empty signature pad that asks the reader to draw a signature."
+	},
+	"ui.stepper.completed": {
+		"defaultMessage": "completed",
+		"description": "The state of a step that is done. A screen reader speaks it after the title of the step and a comma. Lowercase."
+	},
+	"ui.stepper.label": {
+		"defaultMessage": "Steps",
+		"description": "The name of the row of the steps of a stepper, when no label names it."
+	},
+	"ui.stepper.notStarted": {
+		"defaultMessage": "not started",
+		"description": "The state of a step after the current step. A screen reader speaks it after the title of the step and a comma. Lowercase."
 	},
 	"ui.table.noItems": {
 		"defaultMessage": "No items",

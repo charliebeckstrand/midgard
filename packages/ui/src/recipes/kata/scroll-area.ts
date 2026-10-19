@@ -87,6 +87,9 @@ const thumb = defineRecipe({
 			'bg-zinc-950/20 hover:bg-zinc-950/30 active:bg-zinc-950/40',
 			'dark:bg-white/20 dark:hover:bg-white/30 dark:active:bg-white/40',
 		),
+		sen.forced.shape,
+		// Each state color above outranks the shape, so the shape repeats in each state.
+		'forced-colors:hover:bg-[CanvasText] forced-colors:active:bg-[CanvasText]',
 	],
 	orientation: {
 		// Anchored at the track origin, which is the inline start for the
