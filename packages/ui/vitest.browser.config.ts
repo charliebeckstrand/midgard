@@ -350,8 +350,8 @@ export default defineConfig({
 			screenshotFailures: false,
 			// The size every file arrives at. Vitest resets the iframe to this value
 			// before each file, so a file that sets its own size keeps it to itself:
-			// measured across a full run, all 108 files arrive here and sixteen
-			// depart at a size of their own. A file inherits nothing from the file
+			// measured across a full run, each file arrives here and some depart
+			// at a size of their own. A file inherits nothing from the file
 			// before it, and needs no restore.
 			//
 			// 414x896 is the value the suite has always run at, because it is

@@ -25,8 +25,8 @@ export type ResizeObserverStub = {
  * keeps it for the life of the module. A subject that observes through
  * `resize`, such as `useTruncation`, therefore does not reach this stub.
  *
- * Kept off `helpers/index.ts`: that barrel reaches ~360 test files and six
- * need this one.
+ * Kept off `helpers/index.ts`: most test files load that barrel, and few need
+ * this one.
  */
 export function stubResizeObserver(): ResizeObserverStub[] {
 	const instances: ResizeObserverStub[] = []

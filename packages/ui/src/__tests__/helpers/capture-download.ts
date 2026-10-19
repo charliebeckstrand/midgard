@@ -31,8 +31,8 @@ export type CapturedDownload = {
  * read through `mock.calls[0]?.[0] as Blob` puts that miss at the next member
  * access, as a `TypeError` on `undefined`.
  *
- * Not re-exported from `helpers/index.ts`: two suites use it, and that barrel
- * is on the path that ~360 files evaluate.
+ * Not re-exported from `helpers/index.ts`: few suites use it, and most test
+ * files load that barrel.
  *
  * @returns The spies, and a reader for the blobs.
  *

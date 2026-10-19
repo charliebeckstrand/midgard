@@ -16,7 +16,7 @@ import { present } from './present'
  * Harnesses for the component suites of the dashboard.
  *
  * Not re-exported from `helpers/index.ts`. Only the dashboard suites use this
- * module, and that barrel reaches about 360 test files.
+ * module, and most test files load that barrel.
  */
 
 /**

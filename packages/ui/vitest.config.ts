@@ -153,11 +153,11 @@ export default defineConfig({
 		expect: assertions,
 		// Keep the transformed module graph on disk between runs. A warm cache cuts
 		// most of the transform time of the `unit` project, and much of its import
-		// time. The cache lives under the workspace root's node_modules and is
-		// about 40 MB. CI keys it on the turbo hash of the packages that ui
-		// resolves (ci.yml), so a change to those packages starts a cold cache. The
-		// option is experimental — re-read its release note on each Vitest bump,
-		// and drop it if the invalidation contract changes.
+		// time. The cache lives under the workspace root's node_modules. CI keys it
+		// on the turbo hash of the packages that ui resolves (ci.yml), so a change
+		// to those packages starts a cold cache. The option is experimental —
+		// re-read its release note on each Vitest bump, and drop it if the
+		// invalidation contract changes.
 		experimental: { fsModuleCache: true },
 		// Machine speed must change when a test passes, never whether it passes:
 		// CI agents are slower and noisier than dev machines, so wall-clock
@@ -327,7 +327,7 @@ export default defineConfig({
 				// fresh jsdom, which the pool above pays once per worker. The
 				// virtualizer, canvas, and PDF suites that declare no mock ran
 				// here once, and they pass on the shared window: the residue
-				// guard holds them to its terms. Moving those 21 files shortened the
+				// guard holds them to its terms. Moving those files shortened the
 				// jsdom run.
 				test: {
 					name: 'integration',

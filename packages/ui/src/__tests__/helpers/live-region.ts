@@ -21,10 +21,8 @@ export function liveRegion(politeness: 'polite' | 'assertive' = 'polite'): HTMLE
  * polling keeps the wait on RTL's CI-scaled budget instead of a hand-rolled
  * flush.
  *
- * Real timers only: waitFor's polling rides the clock, so under installed
- * fake timers this deadlocks — assert on {@link liveRegion} after driving the
- * clock instead. The first write of a region waits for a frame and then a
- * timer of `FIRST_WRITE_DELAY_MS`, so drive the clock past both.
+ * It also works under the `clock` fixture (`fake-clock.ts`). The fixture
+ * stubs a `jest` global, so the polling of `waitFor` moves the fake clock.
  */
 export async function expectAnnouncement(
 	text: string | RegExp,

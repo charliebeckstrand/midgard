@@ -34,8 +34,8 @@ import { startTypeScript } from '../helpers/ts-server'
 // of those has no correct value to reach. The instruction half is categorical
 // but empty by construction: an imperative's main verb is its first word, which
 // is active, so the only passives inside one sit in a subordinate clause that
-// the rule allows. Gating it measured about 1,600 sites nobody could drive to
-// zero, against 33 flagged instructions of which the readable ones were a
+// the rule allows. Gating it flagged more sites than anybody could drive to
+// zero, and the flagged instructions that a reader could check were a
 // suffix heuristic mistaking "is that" and "is honest" for participles. Rule 4
 // stays a review concern.
 

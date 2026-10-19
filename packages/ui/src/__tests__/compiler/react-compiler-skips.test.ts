@@ -14,7 +14,7 @@ import { docsSites, srcDir, srcRelative, walkSource } from '../helpers/walk-sour
 // test (`boundary/compiler-opt-out-boundary.test.ts`) lists it with its reason.
 // Fix a new skip. If you cannot, opt the function out, and add it to that list.
 //
-// The pass compiles about 800 modules and takes a long time, so it runs only in
+// The pass compiles each module and takes a long time, so it runs only in
 // the compiled run (vitest.compiler.config.ts), in a project of its own. Each
 // shard of the run compiles its part of the modules (`setup/shard.ts`).
 

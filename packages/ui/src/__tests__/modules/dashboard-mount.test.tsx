@@ -12,7 +12,7 @@ import { attach, getSlot, renderUI, screen } from '../helpers'
 import {
 	type ControlledObserver,
 	installControlledObserver,
-	serverMarkup,
+	serverHtml,
 } from '../helpers/controlled-intersection'
 import { hydrate } from '../helpers/hydrate'
 
@@ -80,7 +80,7 @@ describe('DashboardTile mount', () => {
 	it.each(['lazy', 'active'] as const)(
 		'renders the fallback of a %s tile on the server',
 		(mount) => {
-			const html = serverMarkup(<Board mount={mount} />)
+			const html = serverHtml(<Board mount={mount} />)
 
 			expect(html).toContain('Waiting')
 
@@ -89,7 +89,7 @@ describe('DashboardTile mount', () => {
 	)
 
 	it('renders the content of an always tile on the server', () => {
-		expect(serverMarkup(<Board />)).toContain('Drawn')
+		expect(serverHtml(<Board />)).toContain('Drawn')
 	})
 
 	it('hydrates a board with a saved selection and a tile with no entry, with no mismatch', () => {
@@ -139,7 +139,7 @@ describe('DashboardTile mount', () => {
 
 		const container = attach(document.createElement('div'))
 
-		container.innerHTML = serverMarkup(board)
+		container.innerHTML = serverHtml(board)
 
 		// The server filters the other tiles, and it draws no tile with no entry.
 		expect(container).toHaveTextContent('Total 30')
@@ -161,7 +161,7 @@ describe('DashboardTile mount', () => {
 	it('hydrates the server markup of a held tile with no mismatch', () => {
 		const container = attach(document.createElement('div'))
 
-		container.innerHTML = serverMarkup(<Board mount="lazy" />)
+		container.innerHTML = serverHtml(<Board mount="lazy" />)
 
 		const { onRecoverableError } = hydrate(container, <Board mount="lazy" />)
 
@@ -223,7 +223,7 @@ describe('a saved selection before the tiles register', () => {
 	function hydrateBoard(board: ReactElement) {
 		const container = attach(document.createElement('div'))
 
-		container.innerHTML = serverMarkup(board)
+		container.innerHTML = serverHtml(board)
 
 		const server = container.textContent
 
