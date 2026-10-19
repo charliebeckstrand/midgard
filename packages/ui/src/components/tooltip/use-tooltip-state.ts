@@ -22,6 +22,7 @@ import { type FloatingPlacement, useFloatingDisclosure } from '../../hooks'
 import { useOpenChange } from '../../hooks/use-open-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { subscribeOverlaySignal } from '../../primitives/overlay'
+import { noop } from '../../utilities/noop'
 import type { TooltipProps } from './tooltip'
 import { reopensOnEnable, type TooltipIntent } from './tooltip-intent'
 import { isReferenceDisabled, observeReferenceDisabled } from './tooltip-reference-disabled'
@@ -42,8 +43,6 @@ export type TooltipStateOptions = {
 	 */
 	takeIntent?: () => TooltipIntent
 }
-
-const noop = () => {}
 
 /**
  * Opens the tooltip for the intent that the trigger recorded before the state
