@@ -78,7 +78,7 @@ Static leaves that link route through `PolymorphicStatic`: `href` renders a plai
 
 `static-component-boundary.test.ts` pins the contract: it scans every listed source file (the list lives in that test) for directives, hook calls, and ambient imports. The scan is source-level only; a transitive client-only pull through a new dependency surfaces at the consuming app's `next build`, not here.
 
-Two cascades still cross the boundary through context, `locale` and `glass`. A format cannot move to CSS, so `locale` stays in context. The messages of ui ride the `locale` cascade: `LocaleProvider` gives the intl of its locale, and a client control reads it through `useIntl` in `primitives/intl`. An app or a package reads the same intl through `ui/primitives/intl`, and gives the translations of its own messages to `LocaleProvider` as `catalogs`. A static leaf reads no context. It renders `IntlMessage` for its text, as `LoadingSpinner` does. For a translated attribute, it renders a client part, as `Breadcrumb` does for the name of its `<nav>`. Each reader of `glass` is a client component, so the static tier does not need it.
+Two cascades still cross the boundary through context, `locale` and `glass`. A format cannot move to CSS, so `locale` stays in context. The messages of ui ride the `locale` cascade: `LocaleProvider` gives the intl of its locale, and a client control reads it through `useIntl` in `primitives/intl`. An app or a package reads the same intl through `ui/primitives/intl`, and gives the translations of its own messages to `LocaleProvider` as `catalogs`. It extracts its catalog with `extractCatalog` from `ui/scripts/intl-catalog`, as `packages/shared/scripts/intl.ts` does. A static leaf reads no context. It renders `IntlMessage` for its text, as `LoadingSpinner` does. For a translated attribute, it renders a client part, as `Breadcrumb` does for the name of its `<nav>`. Each reader of `glass` is a client component, so the static tier does not need it.
 
 ## 3. Composing a new component
 
@@ -115,6 +115,7 @@ Enforced by boundary tests (`packages/ui/src/__tests__/boundary/`). Add a page u
 | Benchmarks | `packages/ui` | `pnpm bench` / `pnpm bench:browser` |
 | Percy snapshots of the fixture sheets in `src/docs/fixtures` (needs `PERCY_TOKEN`) | `packages/ui` | `pnpm visual [sheet ids] [--density=<levels>]` |
 | The font files and `src/fonts/fonts.css`, after a change to the source font in `fonts/` or to `scripts/fonts.ts` (`fonts-boundary.test.ts` fails when they do not agree) | `packages/ui` | `pnpm fonts` |
+| The English catalogs of ui and of the docs app, after a change to a message. `intl-catalog-boundary.test.ts` fails when the catalog of ui is stale | `packages/ui` | `pnpm intl` |
 | Load time of the docs app | `packages/ui` | `pnpm docs:bench` |
 | Dev (docs site) | `packages/ui` | `pnpm dev` |
 
