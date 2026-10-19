@@ -4,20 +4,20 @@ import { List, ListDescription, ListItem, ListLabel } from 'ui/list'
 const initialTasks = [
 	{
 		id: 'a',
-		label: 'Design the sortable hook API',
-		description: 'Decide on the surface area before writing any code',
+		label: 'Write the release notes',
+		description: 'List the new features and the fixes',
 	},
 	{
 		id: 'b',
-		label: 'Write pointer-event reordering logic',
-		description: 'Handle mouse, touch, and pen inputs',
+		label: 'Update the pricing page',
+		description: 'Add the new team plan',
 	},
 	{
 		id: 'c',
-		label: 'Add keyboard a11y',
-		description: 'Space to grab, arrows to move, Escape to cancel',
+		label: 'Test the checkout flow',
+		description: 'Check each payment method on a phone',
 	},
-	{ id: 'd', label: 'Ship docs and tests', description: 'Vertical, horizontal, disabled states' },
+	{ id: 'd', label: 'Send the launch email', description: 'Send it to all customers on Monday' },
 ]
 
 export default function WithDescriptions() {

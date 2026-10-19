@@ -6,8 +6,8 @@ export default function Validation() {
 		<>
 			<Field severity="error">
 				<Label>Email</Label>
-				<Input type="email" defaultValue="jane@example" />
-				<Message>Enter a full email address, such as jane@example.com.</Message>
+				<Input type="email" defaultValue="wade@example" />
+				<Message>Enter a full email address, such as wade@example.com.</Message>
 			</Field>
 			<Field severity="warning">
 				<Label>Phone</Label>
@@ -16,7 +16,7 @@ export default function Validation() {
 			</Field>
 			<Field severity="success">
 				<Label>Username</Label>
-				<Input defaultValue="jane.doe" />
+				<Input defaultValue="wade.cooper" />
 				<Message severity="success">This username is available.</Message>
 			</Field>
 		</>

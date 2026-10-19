@@ -12,11 +12,11 @@ export default function InAForm() {
 			validate={{
 				password: (value) => (value.length < 8 ? 'Use at least 8 characters.' : undefined),
 				confirm: (value, values) =>
-					value === values.password ? undefined : 'Passwords do not match.',
+					value === values.password ? undefined : 'Enter the same password again.',
 			}}
 		>
 			<Stack gap="lg">
-				<PasswordConfirm warning="Passwords do not match.">
+				<PasswordConfirm warning="Enter the same password again.">
 					<Field>
 						<Label>Password</Label>
 						<PasswordConfirmNew name="password" autoComplete="new-password" />

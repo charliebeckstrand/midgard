@@ -3,9 +3,9 @@ import { Description, Field, Label, Message } from 'ui/fieldset'
 import { type FileRejection, FileUploadInput } from 'ui/file-upload'
 
 const errors: Record<FileRejection['reason'], string> = {
-	type: 'Choose a PNG or JPEG image.',
-	size: 'Choose an image that is 1 MB or smaller.',
-	count: 'Choose one image.',
+	type: 'Select a PNG or JPEG image.',
+	size: 'Select an image that is 1 MB or smaller.',
+	count: 'Select one image.',
 }
 
 export default function RejectedFiles() {
