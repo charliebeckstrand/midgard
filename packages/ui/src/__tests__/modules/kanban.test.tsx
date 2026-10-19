@@ -1032,4 +1032,25 @@ describe('Kanban in a locale', () => {
 
 		expect(screen.getByRole('button', { name: 'Arrastrar One' })).toBeInTheDocument()
 	})
+
+	it('gives the card handle its role description in the language of the locale', () => {
+		const { rerender } = renderUI(<Board onValueChange={() => {}} />)
+
+		// dnd-kit gives the role description in English. The handle gives its own.
+		expect(screen.getByRole('button', { name: 'Drag One' })).toHaveAttribute(
+			'aria-roledescription',
+			'sortable',
+		)
+
+		rerender(
+			<LocaleProvider locale="es-ES">
+				<Board onValueChange={() => {}} />
+			</LocaleProvider>,
+		)
+
+		expect(screen.getByRole('button', { name: 'Arrastrar One' })).toHaveAttribute(
+			'aria-roledescription',
+			'ordenable',
+		)
+	})
 })

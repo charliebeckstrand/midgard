@@ -1,6 +1,8 @@
 'use client'
 
 import { type UseSortableArguments, useSortable } from '@dnd-kit/sortable'
+import { reorderMessages } from '../primitives/intl/intl-reorder'
+import { useIntl } from '../primitives/intl/use-intl'
 import { usePrefersReducedMotion } from './use-prefers-reduced-motion'
 
 /**
@@ -14,10 +16,20 @@ import { usePrefersReducedMotion } from './use-prefers-reduced-motion'
  * dnd-kit `transition: null` instead. Each sortable that renders the returned
  * `transition` uses this hook.
  *
+ * The role description of the item is in the language of the reader. The
+ * `attributes` of the caller can replace it.
+ *
  * @internal
  */
 export function useMotionSafeSortable(args: UseSortableArguments) {
 	const still = usePrefersReducedMotion()
 
-	return useSortable(still ? { ...args, transition: null } : args)
+	const intl = useIntl()
+
+	const attributes = {
+		roleDescription: intl.formatMessage(reorderMessages.sortableRole),
+		...args.attributes,
+	}
+
+	return useSortable(still ? { ...args, attributes, transition: null } : { ...args, attributes })
 }
