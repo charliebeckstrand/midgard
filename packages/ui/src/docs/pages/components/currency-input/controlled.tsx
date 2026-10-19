@@ -10,7 +10,7 @@ export default function Controlled() {
 		<>
 			<Field>
 				<Label>Budget</Label>
-				<CurrencyInput currency="USD" locale="en-US" value={value} onValueChange={setValue} />
+				<CurrencyInput currency="USD" value={value} onValueChange={setValue} />
 			</Field>
 			<Text>Value: {value ?? 'Empty'}</Text>
 		</>

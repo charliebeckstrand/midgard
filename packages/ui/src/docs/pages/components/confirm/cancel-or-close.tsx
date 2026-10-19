@@ -6,7 +6,7 @@ import { PointerHint } from '../../../kit/pointer-hint.tsx'
 
 type Result = 'None' | 'Confirmed' | 'Canceled' | 'Closed'
 
-export default function CancelOrDismiss() {
+export default function CancelOrClose() {
 	const [open, setOpen] = useState(false)
 
 	const [result, setResult] = useState<Result>('None')

@@ -31,7 +31,6 @@ export default function Range() {
 	return (
 		<>
 			<CalendarRange
-				locale="en-US"
 				rangeStart={start}
 				rangeEnd={end}
 				hoverDate={end === null ? hover : null}

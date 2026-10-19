@@ -10,7 +10,7 @@ export default function Controlled() {
 
 	return (
 		<>
-			<Calendar locale="en-US" value={date} onValueChange={setDate} />
+			<Calendar value={date} onValueChange={setDate} />
 			<Text>Value: {date ? intl.formatDate(date, { dateStyle: 'long' }) : 'Empty'}</Text>
 		</>
 	)
