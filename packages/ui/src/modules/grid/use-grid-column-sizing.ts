@@ -14,7 +14,7 @@ import type { DensityStep } from '../../core/density'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { isDataColumn } from '../../utilities'
 import { DEFAULT_COLUMN_SIZE } from './engine/grid-constants'
-import { measureColumns } from './engine/grid-sizing/measure'
+import { isContentSized, measureColumns } from './engine/grid-sizing/measure'
 import {
 	type ColumnSizerEnv,
 	type ColumnSizingWrite,
@@ -29,8 +29,9 @@ import type { GridColumn } from './types'
 type GridColumnSizingOptions<T> = {
 	resizable: boolean
 	/**
-	 * Whether the consumer controls `columnSizing`. The automatic fit then stands
-	 * down, and each auto-size action reports its widths through `onValueChange`.
+	 * Whether the consumer controls `columnSizing`. The automatic fit of the data
+	 * columns then stands down, and each auto-size action reports its widths
+	 * through `onValueChange`. A content-sized column still fits.
 	 */
 	controlled: boolean
 	/** The engine. The hook reads and writes it only from its callbacks and effects. */
@@ -88,6 +89,12 @@ type GridColumnSizingOptions<T> = {
 	autoSizingRef?: RefObject<boolean>
 	/** Clears the consumer's saved widths: fires `columnSizing.onValueChange` with `{}`. */
 	clearPreference?: () => void
+	/**
+	 * Writes the widths of the content-sized columns (see `isContentSized`). They are
+	 * no preference, so they stay out of the `columnSizing` state, controlled or not,
+	 * and the table hook lays them over it. Owned by the caller.
+	 */
+	setContentSizing: (update: (prev: Record<string, number>) => Record<string, number>) => void
 }
 
 /** The widths and actions {@link useGridColumnSizing} returns. @internal */
@@ -171,6 +178,28 @@ function nextSizing(
 }
 
 /**
+ * Splits a write into the widths of the content-sized columns (see
+ * `isContentSized`) and the write of every other column. @internal
+ */
+function splitContentSizing<T>(
+	write: ColumnSizingWrite,
+	columns: readonly GridColumn<T>[],
+): [Record<string, number>, ColumnSizingWrite] {
+	const ids = new Set(columns.filter(isContentSized).map((col) => String(col.id)))
+
+	const content: Record<string, number> = {}
+
+	const rest: Record<string, number> = {}
+
+	for (const [id, width] of Object.entries(write.sizing)) {
+		if (ids.has(id)) content[id] = width
+		else rest[id] = width
+	}
+
+	return [content, { ...write, sizing: rest }]
+}
+
+/**
  * Runs a write with `ref` held true, so the table hook keeps it off the
  * consumer's `onValueChange` (see `autoSizingRef`). @internal
  */
@@ -234,8 +263,11 @@ export function useGridColumnSizing<T>({
 	initialSizing,
 	autoSizingRef,
 	clearPreference,
+	setContentSizing,
 }: GridColumnSizingOptions<T>): GridColumnSizingResult {
-	const automatic = resizable && !controlled
+	// Whether the width passes run. A controlled binding holds the data columns, but
+	// a content-sized column is never the consumer's to size, so its fit still runs.
+	const automatic = resizable && (!controlled || columns.some(isContentSized))
 
 	/**
 	 * Whether the first width pass has happened, so the table can be held back until it
@@ -255,7 +287,8 @@ export function useGridColumnSizing<T>({
 	 */
 	// Seeded from `automatic`, so a grid this hook never sizes is settled on the server
 	// too — layout effects don't run there, so a `false` seed would have hidden every
-	// non-resizable and consumer-controlled grid until hydration for no reason.
+	// non-resizable grid, and a controlled one with no content-sized column, until
+	// hydration for no reason.
 	const [settled, setSettled] = useState(!automatic)
 
 	// The width rules and their state live in the sizer, created once per mount. A
@@ -311,14 +344,21 @@ export function useGridColumnSizing<T>({
 		}
 	}, [containerRef, columns, fitContent, table, structSignature, sizer])
 
-	// Writes what the sizer returns. An automatic fit writes flagged, off the
-	// consumer's binding. A user choice writes unflagged, so it persists like a
-	// drag. A reset writes flagged and then clears the saved widths. Under a
-	// controlled binding every write reports its widths, because the consumer
-	// owns the state.
+	// Writes what the sizer returns. The widths of the content-sized columns go to
+	// their own state. An automatic fit writes the rest flagged, off the consumer's
+	// binding. A user choice writes unflagged, so it persists like a drag. A reset
+	// writes flagged and then clears the saved widths. Under a controlled binding
+	// the automatic fit writes no data width, and every other write reports its
+	// widths, because the consumer owns the state.
 	const commit = useCallback(
 		(write: ColumnSizingWrite) => {
-			const apply = () => table.setColumnSizing((prev) => nextSizing(prev, write))
+			const [content, owned] = splitContentSizing(write, columns)
+
+			setContentSizing((prev) => (sizingMoved(prev, content) ? { ...prev, ...content } : prev))
+
+			const apply = () => table.setColumnSizing((prev) => nextSizing(prev, owned))
+
+			if (controlled && write.persist === 'none') return
 
 			if (controlled || write.persist === 'widths') {
 				apply()
@@ -330,7 +370,7 @@ export function useGridColumnSizing<T>({
 
 			if (write.persist === 'clear') clearPreference?.()
 		},
-		[table, controlled, autoSizingRef, clearPreference],
+		[table, columns, controlled, autoSizingRef, clearPreference, setContentSizing],
 	)
 
 	const refit = useCallback(

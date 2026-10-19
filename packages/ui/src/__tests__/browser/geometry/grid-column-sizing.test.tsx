@@ -245,6 +245,45 @@ describe('grid column sizing rules (real browser)', () => {
 		expect(all.c).toBeLessThan(150)
 	})
 
+	it('sizes a content-sized column under a controlled columnSizing, off the binding', async () => {
+		const onValueChange = vi.fn()
+
+		const value: GridColumnSizingState = { a: 300, b: 150, c: 150 }
+
+		const { container } = renderUI(
+			frame(
+				600,
+				<Grid
+					resizable
+					columns={[
+						...columns,
+						{
+							id: 'actions',
+							actions: () => (
+								<button type="button" style={{ width: '24px' }}>
+									x
+								</button>
+							),
+						},
+					]}
+					rows={rows}
+					getKey={getKey}
+					columnSizing={{ value, onValueChange }}
+				/>,
+			),
+		)
+
+		const cell = () => present(container.querySelector('td:last-child'), 'actions cell')
+
+		// The actions column holds its button and the cell padding, not the 150px default.
+		await waitFor(() => expect(cell().getBoundingClientRect().width).toBeLessThan(60))
+
+		// The consumer's widths hold, and the fit reports nothing to the binding.
+		expect(width(container, 'a')).toBe(300)
+
+		expect(onValueChange).not.toHaveBeenCalled()
+	})
+
 	it('"Reset column widths" restores the fill and clears the saved widths', async () => {
 		const onValueChange = vi.fn()
 

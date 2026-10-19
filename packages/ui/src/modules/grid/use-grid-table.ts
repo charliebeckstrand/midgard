@@ -564,7 +564,18 @@ export function useGridTable<T>({
 		},
 	})
 
-	const resolvedSizing = columnSizingState ?? EMPTY_SIZING
+	// The widths of the content-sized columns, which the autosizer writes here and not
+	// to `columnSizing`: they are no preference. Laid over the sizing state, so the
+	// engine reads them under a controlled binding too.
+	const [contentSizing, setContentSizing] = useState<GridColumnSizingState>(EMPTY_SIZING)
+
+	const ownSizing = columnSizingState ?? EMPTY_SIZING
+
+	const resolvedSizing = useMemo(
+		() =>
+			Object.keys(contentSizing).length === 0 ? ownSizing : { ...ownSizing, ...contentSizing },
+		[ownSizing, contentSizing],
+	)
 
 	// The consumer's binding, read at call time, so "Reset column widths" can clear
 	// the saved widths with one callback for the mount.
@@ -870,6 +881,7 @@ export function useGridTable<T>({
 		initialSizing,
 		autoSizingRef,
 		clearPreference: clearSizingPreference,
+		setContentSizing,
 	})
 
 	const { resize, settle } = useResizeView({
