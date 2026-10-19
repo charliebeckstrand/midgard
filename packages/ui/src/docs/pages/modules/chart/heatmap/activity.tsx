@@ -4,15 +4,15 @@ import { activity, greens } from '../data.ts'
 export default function Activity() {
 	return (
 		<HeatmapChart
-			aria-label="Commits by weekday and hour"
+			aria-label="Orders by weekday and hour"
 			data={activity}
 			series={[
 				{
 					xKey: 'hour',
 					yKey: 'day',
-					colorKey: 'commits',
+					colorKey: 'orders',
 					colorRange: greens,
-					colorName: 'Commits',
+					colorName: 'Orders',
 				},
 			]}
 			formatValue={(value) => value.toFixed(0)}

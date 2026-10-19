@@ -12,7 +12,7 @@ const messages: ChatMessageData[] = [
 				id: 's3',
 				name: 'Fetch weather',
 				status: 'failed',
-				summary: 'the provider did not answer',
+				summary: 'No answer from the provider',
 			},
 		],
 	},

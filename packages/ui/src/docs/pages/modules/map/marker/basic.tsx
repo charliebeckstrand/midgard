@@ -2,7 +2,7 @@ import { MapMarker, MapPlat } from 'ui/map'
 import { miles, states } from '../data.ts'
 import { lineHaul, useRoute } from '../routes.ts'
 
-export default function LineHaul() {
+export default function Basic() {
 	const route = useRoute(lineHaul.start, lineHaul.end)
 
 	return (

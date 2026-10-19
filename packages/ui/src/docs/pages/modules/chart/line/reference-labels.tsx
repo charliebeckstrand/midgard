@@ -4,7 +4,7 @@ import { months } from '../data.ts'
 export default function ReferenceLabels() {
 	return (
 		<LineChart
-			aria-label="Revenue by month against a target, with reference labels"
+			aria-label="Revenue by month against a target"
 			data={months}
 			series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }]}
 			reference={[{ value: 60, label: 'Target', color: 'green' }]}

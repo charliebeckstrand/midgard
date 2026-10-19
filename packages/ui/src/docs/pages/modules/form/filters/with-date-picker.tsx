@@ -12,6 +12,15 @@ import { Input } from 'ui/input'
 import { Select, SelectLabel, SelectOption } from 'ui/select'
 import { FiltersReset, FilterValue } from './parts.tsx'
 
+const categories = [
+	{ value: 'engineering', label: 'Engineering' },
+	{ value: 'design', label: 'Design' },
+	{ value: 'marketing', label: 'Marketing' },
+]
+
+const labelOf = (value: string) =>
+	categories.find((category) => category.value === value)?.label ?? value
+
 type Value = {
 	search: string | undefined
 	dateRange: [Date, Date] | undefined
@@ -46,16 +55,12 @@ export default function WithDatePicker() {
 					</FormFiltersField>
 					<FormFiltersField name="category">
 						<Label>Category</Label>
-						<Select nullable placeholder="All categories" displayValue={(value: string) => value}>
-							<SelectOption value="engineering">
-								<SelectLabel>Engineering</SelectLabel>
-							</SelectOption>
-							<SelectOption value="design">
-								<SelectLabel>Design</SelectLabel>
-							</SelectOption>
-							<SelectOption value="marketing">
-								<SelectLabel>Marketing</SelectLabel>
-							</SelectOption>
+						<Select nullable placeholder="All categories" displayValue={labelOf}>
+							{categories.map((category) => (
+								<SelectOption key={category.value} value={category.value}>
+									<SelectLabel>{category.label}</SelectLabel>
+								</SelectOption>
+							))}
 						</Select>
 					</FormFiltersField>
 				</FormFiltersRow>

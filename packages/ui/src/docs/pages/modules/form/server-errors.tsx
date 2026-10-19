@@ -3,18 +3,18 @@ import { Form, FormSubmit } from 'ui/form'
 import { Input } from 'ui/input'
 import { Stack } from 'ui/stack'
 
-const taken = ['admin', 'jane']
+const taken = ['admin', 'wade']
 
 export default function ServerErrors() {
 	return (
 		<Form
-			defaultValues={{ username: 'jane' }}
+			defaultValues={{ username: 'wade' }}
 			validate={{ username: (value) => (value ? undefined : 'Enter a username.') }}
 			onSubmit={async ({ username }) => {
 				await new Promise((resolve) => setTimeout(resolve, 1000))
 
 				return taken.includes(username)
-					? { fieldErrors: { username: 'This username is taken.' } }
+					? { fieldErrors: { username: 'Enter a different username. This one is taken.' } }
 					: undefined
 			}}
 		>

@@ -28,7 +28,7 @@ export default function LegendPlacement() {
 				</Listbox>
 			</Field>
 			<BarChart
-				aria-label={`Revenue and costs by month, legend ${placement}`}
+				aria-label="Revenue and costs by month"
 				data={months}
 				series={[
 					{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },

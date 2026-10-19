@@ -20,7 +20,7 @@ const serviceAreas: {
 	},
 ]
 
-export default function DepotCatchments() {
+export default function Circle() {
 	// Each area draws before its depot, so the dot is on top of the area. The
 	// area and the depot share a group, so the legend shows one entry for each city.
 	return (

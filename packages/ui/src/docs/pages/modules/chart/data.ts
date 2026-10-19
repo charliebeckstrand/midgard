@@ -71,33 +71,22 @@ export const freight: FreightMonth[] = [
 	{ month: 'Jun', rate: 1.58, weight: 585 },
 ]
 
-export const signups: { day: string; count: number }[] = [
-	{ day: '2026-03-02', count: 32 },
-	{ day: '2026-03-03', count: 41 },
-	{ day: '2026-03-04', count: 38 },
-	{ day: '2026-03-05', count: 55 },
-	{ day: '2026-03-06', count: 61 },
-	{ day: '2026-03-07', count: 48 },
-	{ day: '2026-03-08', count: 44 },
-	{ day: '2026-03-09', count: 67 },
-	{ day: '2026-03-10', count: 72 },
-	{ day: '2026-03-11', count: 65 },
-	{ day: '2026-03-12', count: 81 },
-]
+const signupCounts = [32, 41, 38, 55, 61, 48, 44, 67, 72, 65, 81]
 
-export const dailyVisits: { date: string; visits: number }[] = Array.from(
+export const signups: { day: Date; count: number }[] = signupCounts.map((count, index) => ({
+	day: new Date(2026, 2, 2 + index),
+	count,
+}))
+
+export const dailyVisits: { date: Date; visits: number }[] = Array.from(
 	{ length: 118 },
 	(_, index) => {
 		const date = new Date(2026, 0, 1 + index)
 
-		const month = String(date.getMonth() + 1).padStart(2, '0')
-
-		const day = String(date.getDate()).padStart(2, '0')
-
 		const weekend = date.getDay() === 0 || date.getDay() === 6 ? -260 : 0
 
 		return {
-			date: `${date.getFullYear()}-${month}-${day}`,
+			date,
 			visits: 1200 + index * 6 + weekend + Math.round(180 * Math.sin(index / 9)),
 		}
 	},
@@ -118,7 +107,7 @@ const WEIGHT_BY_HOUR: Record<(typeof HOURS)[number], number> = {
 	'21': 2,
 }
 
-export const activity: { day: string; hour: string; commits: number }[] = DAYS.flatMap(
+export const activity: { day: string; hour: string; orders: number }[] = DAYS.flatMap(
 	(day, dayIndex) => {
 		const weekend = dayIndex >= 5 ? 0.25 : 1
 
@@ -127,7 +116,7 @@ export const activity: { day: string; hour: string; commits: number }[] = DAYS.f
 
 			const ripple = Math.round(base * (1 + 0.35 * Math.sin(dayIndex + hourIndex)))
 
-			return { day, hour, commits: Math.max(0, ripple) }
+			return { day, hour, orders: Math.max(0, ripple) }
 		})
 	},
 )
@@ -160,58 +149,58 @@ export const heat: string[] = [
 	'oklch(0.279 0.077 45.635)',
 ]
 
-// The estimated resident population of each state in millions.
+// The number of customers in each state.
 // The name of a state joins the row to its shape in the atlas.
-export const statePopulation: { state: string; people: number }[] = [
-	{ state: 'California', people: 39.4 },
-	{ state: 'Texas', people: 31.7 },
-	{ state: 'Florida', people: 23.5 },
-	{ state: 'New York', people: 20.0 },
-	{ state: 'Pennsylvania', people: 13.1 },
-	{ state: 'Illinois', people: 12.7 },
-	{ state: 'Ohio', people: 11.9 },
-	{ state: 'Georgia', people: 11.3 },
-	{ state: 'North Carolina', people: 11.2 },
-	{ state: 'Michigan', people: 10.1 },
-	{ state: 'New Jersey', people: 9.5 },
-	{ state: 'Virginia', people: 8.9 },
-	{ state: 'Washington', people: 8.0 },
-	{ state: 'Arizona', people: 7.6 },
-	{ state: 'Tennessee', people: 7.3 },
-	{ state: 'Massachusetts', people: 7.2 },
-	{ state: 'Indiana', people: 7.0 },
-	{ state: 'Missouri', people: 6.3 },
-	{ state: 'Maryland', people: 6.3 },
-	{ state: 'Colorado', people: 6.0 },
-	{ state: 'Wisconsin', people: 6.0 },
-	{ state: 'Minnesota', people: 5.8 },
-	{ state: 'South Carolina', people: 5.6 },
-	{ state: 'Alabama', people: 5.2 },
-	{ state: 'Louisiana', people: 4.6 },
-	{ state: 'Kentucky', people: 4.6 },
-	{ state: 'Oregon', people: 4.3 },
-	{ state: 'Oklahoma', people: 4.1 },
-	{ state: 'Connecticut', people: 3.7 },
-	{ state: 'Utah', people: 3.5 },
-	{ state: 'Nevada', people: 3.3 },
-	{ state: 'Iowa', people: 3.2 },
-	{ state: 'Arkansas', people: 3.1 },
-	{ state: 'Kansas', people: 3.0 },
-	{ state: 'Mississippi', people: 3.0 },
-	{ state: 'New Mexico', people: 2.1 },
-	{ state: 'Idaho', people: 2.0 },
-	{ state: 'Nebraska', people: 2.0 },
-	{ state: 'West Virginia', people: 1.8 },
-	{ state: 'Hawaii', people: 1.4 },
-	{ state: 'New Hampshire', people: 1.4 },
-	{ state: 'Maine', people: 1.4 },
-	{ state: 'Montana', people: 1.1 },
-	{ state: 'Rhode Island', people: 1.1 },
-	{ state: 'Delaware', people: 1.1 },
-	{ state: 'South Dakota', people: 0.9 },
-	{ state: 'North Dakota', people: 0.8 },
-	{ state: 'Alaska', people: 0.7 },
-	{ state: 'District of Columbia', people: 0.7 },
-	{ state: 'Vermont', people: 0.6 },
-	{ state: 'Wyoming', people: 0.6 },
+export const customersByState: { state: string; customers: number }[] = [
+	{ state: 'California', customers: 39_400 },
+	{ state: 'Texas', customers: 31_700 },
+	{ state: 'Florida', customers: 23_500 },
+	{ state: 'New York', customers: 20_000 },
+	{ state: 'Pennsylvania', customers: 13_100 },
+	{ state: 'Illinois', customers: 12_700 },
+	{ state: 'Ohio', customers: 11_900 },
+	{ state: 'Georgia', customers: 11_300 },
+	{ state: 'North Carolina', customers: 11_200 },
+	{ state: 'Michigan', customers: 10_100 },
+	{ state: 'New Jersey', customers: 9_500 },
+	{ state: 'Virginia', customers: 8_900 },
+	{ state: 'Washington', customers: 8_000 },
+	{ state: 'Arizona', customers: 7_600 },
+	{ state: 'Tennessee', customers: 7_300 },
+	{ state: 'Massachusetts', customers: 7_200 },
+	{ state: 'Indiana', customers: 7_000 },
+	{ state: 'Missouri', customers: 6_300 },
+	{ state: 'Maryland', customers: 6_300 },
+	{ state: 'Colorado', customers: 6_000 },
+	{ state: 'Wisconsin', customers: 6_000 },
+	{ state: 'Minnesota', customers: 5_800 },
+	{ state: 'South Carolina', customers: 5_600 },
+	{ state: 'Alabama', customers: 5_200 },
+	{ state: 'Louisiana', customers: 4_600 },
+	{ state: 'Kentucky', customers: 4_600 },
+	{ state: 'Oregon', customers: 4_300 },
+	{ state: 'Oklahoma', customers: 4_100 },
+	{ state: 'Connecticut', customers: 3_700 },
+	{ state: 'Utah', customers: 3_500 },
+	{ state: 'Nevada', customers: 3_300 },
+	{ state: 'Iowa', customers: 3_200 },
+	{ state: 'Arkansas', customers: 3_100 },
+	{ state: 'Kansas', customers: 3_000 },
+	{ state: 'Mississippi', customers: 3_000 },
+	{ state: 'New Mexico', customers: 2_100 },
+	{ state: 'Idaho', customers: 2_000 },
+	{ state: 'Nebraska', customers: 2_000 },
+	{ state: 'West Virginia', customers: 1_800 },
+	{ state: 'Hawaii', customers: 1_400 },
+	{ state: 'New Hampshire', customers: 1_400 },
+	{ state: 'Maine', customers: 1_400 },
+	{ state: 'Montana', customers: 1_100 },
+	{ state: 'Rhode Island', customers: 1_100 },
+	{ state: 'Delaware', customers: 1_100 },
+	{ state: 'South Dakota', customers: 900 },
+	{ state: 'North Dakota', customers: 800 },
+	{ state: 'Alaska', customers: 700 },
+	{ state: 'District of Columbia', customers: 700 },
+	{ state: 'Vermont', customers: 600 },
+	{ state: 'Wyoming', customers: 600 },
 ]

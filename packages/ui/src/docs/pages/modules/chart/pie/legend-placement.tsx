@@ -28,7 +28,7 @@ export default function LegendPlacement() {
 				</Listbox>
 			</Field>
 			<PieChart
-				aria-label={`Traffic by source, legend ${placement}`}
+				aria-label="Traffic by source"
 				data={sources}
 				series={[{ xKey: 'source', yKey: 'visits' }]}
 				legend={placement}

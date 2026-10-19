@@ -4,9 +4,9 @@ import { swings } from './data.ts'
 export default function NegativeValues() {
 	return (
 		<BarChart
-			aria-label="Month-over-month swing"
+			aria-label="Revenue change by month"
 			data={swings}
-			series={[{ xKey: 'month', yKey: 'delta', yName: 'Swing' }]}
+			series={[{ xKey: 'month', yKey: 'delta', yName: 'Change' }]}
 			crosshair
 		/>
 	)

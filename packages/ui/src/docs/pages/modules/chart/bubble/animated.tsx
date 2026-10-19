@@ -4,7 +4,7 @@ import { stops } from '../data.ts'
 export default function Animated() {
 	return (
 		<BubbleChart
-			aria-label="Dwell against distance, sized by weight, animated"
+			aria-label="Dwell time by stop distance and weight"
 			data={stops}
 			series={[
 				{

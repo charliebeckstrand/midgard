@@ -1,26 +1,29 @@
 import { ChoroplethChart } from 'ui/chart'
 import type { MapGeography } from 'ui/map'
+import { useIntl } from 'ui/primitives/intl'
 import states from 'us-atlas/states-10m.json'
-import { heat, statePopulation } from '../data.ts'
+import { customersByState, heat } from '../data.ts'
 
 export default function Heatmap() {
+	const { formatNumber } = useIntl()
+
 	return (
 		<ChoroplethChart
-			aria-label="Resident population by state, heatmap"
+			aria-label="Customers by state"
 			geography={states as MapGeography}
 			projection="albers-usa"
 			legend="range"
-			data={statePopulation}
+			data={customersByState}
 			series={[
 				{
 					idKey: 'state',
-					colorKey: 'people',
+					colorKey: 'customers',
 					colorRange: heat,
-					colorName: 'Population',
+					colorName: 'Customers',
 				},
 			]}
 			regionId={(feature) => String(feature.properties?.name)}
-			formatValue={(value) => `${value.toFixed(1)}M`}
+			formatValue={(value) => formatNumber(value, { maximumFractionDigits: 0 })}
 		/>
 	)
 }

@@ -9,7 +9,7 @@ import { deliveryStops, roundSummary, stopStates } from './data.ts'
 // The select offers each state that holds a stop.
 const selectable = [...new Set(stopStates.filter((state) => state !== null))].sort()
 
-export default function DeliveryRounds() {
+export default function Clustering() {
 	const [picked, setPicked] = useState<string | null>(null)
 
 	// The picked stop, by its index in the stops that the map shows.
@@ -37,7 +37,7 @@ export default function DeliveryRounds() {
 			<Flex>
 				<Select<string>
 					aria-label="State"
-					placeholder="Every round"
+					placeholder="All states"
 					value={picked}
 					onValueChange={pickState}
 					displayValue={(state: string) => state}

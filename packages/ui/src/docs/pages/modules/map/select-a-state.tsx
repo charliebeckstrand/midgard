@@ -6,7 +6,7 @@ import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import { stateName, states, timezones, zoneCategories } from './data.ts'
 
-export default function PickAState() {
+export default function SelectAState() {
 	// One value drives the map and the select, so they always show the same state.
 	const [picked, setPicked] = useState<string | null>(null)
 
@@ -25,7 +25,7 @@ export default function PickAState() {
 			<Flex>
 				<Select<string>
 					aria-label="State"
-					placeholder="No state picked"
+					placeholder="Select a state"
 					value={picked}
 					onValueChange={setPicked}
 					displayValue={(state: string) => state}
@@ -38,9 +38,9 @@ export default function PickAState() {
 					))}
 				</Select>
 			</Flex>
-			<Text>{picked === null ? 'Pick a state.' : `${picked} — ${zone} time.`}</Text>
+			<Text>{picked === null ? 'Value: Empty' : `Value: ${picked} (${zone} time)`}</Text>
 			<MapPlat
-				aria-label="Timezones across America"
+				aria-label="US time zones"
 				geography={states}
 				projection="albers-usa"
 				data={timezones}

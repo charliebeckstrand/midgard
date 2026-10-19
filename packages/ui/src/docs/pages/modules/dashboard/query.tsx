@@ -1,5 +1,4 @@
 import { useCallback, useState } from 'react'
-import { Alert } from 'ui/alert'
 import { Badge } from 'ui/badge'
 import { Button } from 'ui/button'
 import {
@@ -25,6 +24,9 @@ const layout: DashboardLayoutItem[] = [
 	{ id: 'orders', x: 0, y: 87, w: 24, h: 44 },
 ]
 
+// A selection names a field, so its badge shows the label of that field.
+const labelOf = (name: string) => fields.find((field) => field.name === name)?.label ?? name
+
 const startFilter: QueryGroup = {
 	id: 'filter',
 	type: 'group',
@@ -49,18 +51,12 @@ export default function Query() {
 
 	return (
 		<Stack gap="md">
-			<Alert
-				severity="info"
-				closable
-				className="w-full"
-				description="A rule narrows the whole board, and a selected bar or slice narrows everything around it."
-			/>
 			<QueryBuilder fields={fields} value={filter} onValueChange={setFilter} />
 			<Flex gap="sm" align="center" wrap>
 				<QuerySummary value={filter} fields={fields} />
 				{selection.map((item) => (
 					<Badge key={`${item.source}:${item.field}`}>
-						{item.field}: {item.values.join(', ')}
+						{labelOf(item.field)}: {item.values.join(', ')}
 					</Badge>
 				))}
 				<Spacer />

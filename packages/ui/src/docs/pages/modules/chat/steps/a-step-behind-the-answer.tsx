@@ -11,9 +11,8 @@ const messages: ChatMessageData[] = [
 				id: 's1',
 				name: 'Filter shipments',
 				status: 'done',
-				summary: 'status is late AND lane is north',
-				detail:
-					'Matched **12** of 240 shipments.\n\n- Route 12 — 5\n- Route 30 — 4\n- Route 41 — 3',
+				summary: 'Status is Late AND Lane is North',
+				detail: 'Matched **12** of 240 shipments.\n\n- Route 12: 5\n- Route 30: 4\n- Route 41: 3',
 			},
 			{ kind: 'text', id: 't1', text: 'Twelve are late, and Route 12 carries most of them.' },
 		],

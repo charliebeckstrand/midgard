@@ -14,7 +14,7 @@ const triangle: LngLat[] = metros.map((metro) => metro.at)
 // The map fits Texas alone.
 const texas = stateFrame('Texas')
 
-export default function TexasTriangle() {
+export default function Polygon() {
 	return (
 		<MapPlat
 			aria-label="Texas Triangle corridor"

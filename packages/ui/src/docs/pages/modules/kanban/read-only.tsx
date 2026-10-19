@@ -12,7 +12,7 @@ import { columns, type Load } from './loads.ts'
 
 export default function ReadOnly() {
 	return (
-		<Kanban columns={columns} getKey={(load: Load) => load.id} aria-label="Read-only load board">
+		<Kanban columns={columns} getKey={(load: Load) => load.id} aria-label="Load board">
 			{columns.map((column) => (
 				<KanbanColumn key={column.id} value={column.id}>
 					<KanbanColumnHeader>

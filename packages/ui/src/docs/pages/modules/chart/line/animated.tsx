@@ -4,7 +4,7 @@ import { months } from '../data.ts'
 export default function Animated() {
 	return (
 		<LineChart
-			aria-label="Revenue and margin by month, animated"
+			aria-label="Revenue and margin by month"
 			data={months}
 			series={[
 				{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
