@@ -536,11 +536,14 @@ export function useGridEditing<T>({
 
 	const commitOn = useCommitOn(enabled ? config?.commitOn : undefined, managed)
 
-	// A phone edits in a sheet, at the rule of the DatePicker sheet. The sheet
-	// commits only on its Save, so no commit on leave runs while it shows.
+	// A phone edits in an overlay, at the rule of the DatePicker sheet. The
+	// overlay commits only on its Save, so no commit on leave runs while it
+	// shows.
 	const phone = useMediaQuery(PHONE_QUERY)
 
-	const sheet = enabled && config?.sheet !== false && phone
+	const overlayKind = config?.overlay ?? 'drawer'
+
+	const overlay = enabled && phone && overlayKind !== false ? overlayKind : null
 
 	// The new-row slot, where the config can show it. Its cells always take a
 	// write, so the draft store reads this at write time.
@@ -1083,11 +1086,11 @@ export function useGridEditing<T>({
 		[exitSession],
 	)
 
-	// The saves of the sheet that wait for their row to commit, by row key. The
+	// The saves of the overlay that wait for their row to commit, by row key. The
 	// commit sweep settles them.
 	const saveWaitersRef = useRef(new Map<string | number, (() => void)[]>())
 
-	// The save of the sheet: the exit of Enter, settled when its commit does.
+	// The save of the overlay: the exit of Enter, settled when its commit does.
 	// A row that is not open has nothing to commit.
 	const saveSession = useCallback(
 		(rowKey: string | number) =>
@@ -1960,7 +1963,7 @@ export function useGridEditing<T>({
 			settleControls,
 			resumeCell,
 			managed,
-			sheet,
+			overlay,
 			saveSession,
 		}),
 		[
@@ -1974,7 +1977,7 @@ export function useGridEditing<T>({
 			claimFocus,
 			settleControls,
 			resumeCell,
-			sheet,
+			overlay,
 			saveSession,
 		],
 	)
@@ -1988,7 +1991,9 @@ export function useGridEditing<T>({
 		pasteCells: managed ? pasteCells : undefined,
 		fillCells: managed ? fillCells : undefined,
 		sessionLeave:
-			commitOn === 'explicit' || sheet ? undefined : { blur: sessionLeave, focus: sessionFocus },
+			commitOn === 'explicit' || overlay !== null
+				? undefined
+				: { blur: sessionLeave, focus: sessionFocus },
 		newRow: {
 			position: newRowPosition,
 			session: newRow.session,

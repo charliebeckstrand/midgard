@@ -116,14 +116,15 @@ export type GridEditingSession = {
 	/** Whether the grid owns entry and the session keys (`session: 'managed'`). */
 	managed: boolean
 	/**
-	 * Whether the open cells edit in the sheet of a phone
-	 * ({@link GridEditableConfig.sheet}). The data cells then show their
-	 * content, and no editor mounts in the table.
+	 * The overlay that the open cells edit in on a phone
+	 * ({@link GridEditableConfig.overlay}), or `null` where they edit in
+	 * place. With an overlay, the data cells show their content, and no editor
+	 * mounts in the table.
 	 */
-	sheet: boolean
+	overlay: 'drawer' | 'sheet' | null
 	/**
 	 * Ends the session on a row with a save, as Enter does, for the Save of
-	 * the sheet. It settles when the commit of the row settles, so an async
+	 * the overlay. It settles when the commit of the row settles, so an async
 	 * commit has settled, and a refused row is open again.
 	 */
 	saveSession: (rowKey: string | number) => Promise<void>

@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from 'react'
 import { Button } from '../../components/button'
+import { Drawer, DrawerBody, DrawerFooter, DrawerPanel, DrawerTitle } from '../../components/drawer'
 import { Field, Label, Message } from '../../components/fieldset'
 import { Sheet, SheetBody, SheetFooter, SheetPanel, SheetTitle } from '../../components/sheet'
 import { focusWithoutReveal } from '../../hooks/use-truncation'
@@ -26,16 +27,16 @@ import { GridOverlayDensity } from './grid-region'
 import type { GridColumn } from './types'
 
 /**
- * What the sheet edits: the cell that a cell-scoped session holds, or the
+ * What the overlay edits: the cell that a cell-scoped session holds, or the
  * first open row with `columnId` `null`. @internal
  */
-type SheetTarget = { rowKey: string | number; columnId: string | number | null }
+type OverlayTarget = { rowKey: string | number; columnId: string | number | null }
 
-/** The values of the form of the sheet. The fields stage into the session, not the form. @internal */
+/** The values of the form of the overlay. The fields stage into the session, not the form. @internal */
 const NO_VALUES = {}
 
 /**
- * Reads the target of the sheet from the store. The cell that a session holds
+ * Reads the target of the overlay from the store. The cell that a session holds
  * comes first. A row that the consumer opened shows whole. The snapshot is
  * the store's own cell, or a row key, so a read with no change is the same
  * value. @internal
@@ -53,7 +54,7 @@ function readTarget(
 }
 
 /** The target that a snapshot of {@link readTarget} names. @internal */
-function toTarget(snapshot: GridActiveEdit | string | number | null): SheetTarget | null {
+function toTarget(snapshot: GridActiveEdit | string | number | null): OverlayTarget | null {
 	if (snapshot === null) return null
 
 	if (typeof snapshot === 'object') return snapshot
@@ -62,40 +63,48 @@ function toTarget(snapshot: GridActiveEdit | string | number | null): SheetTarge
 }
 
 /** Whether two targets name the same row and the same cell. @internal */
-function sameTarget(a: SheetTarget | null, b: SheetTarget | null): boolean {
+function sameTarget(a: OverlayTarget | null, b: OverlayTarget | null): boolean {
 	if (a === null || b === null) return a === b
 
 	return a.rowKey === b.rowKey && a.columnId === b.columnId
 }
 
-/** Props for {@link GridEditSheet}. @internal */
-type GridEditSheetProps<T> = {
+/** The slots of each overlay. The two panels share their slot props. @internal */
+const PARTS = {
+	drawer: { Title: DrawerTitle, Body: DrawerBody, Footer: DrawerFooter },
+	sheet: { Title: SheetTitle, Body: SheetBody, Footer: SheetFooter },
+}
+
+/** Props for {@link GridEditOverlay}. @internal */
+type GridEditOverlayProps<T> = {
+	/** The overlay to edit in: a drawer from the bottom edge, or a sheet from the side. */
+	kind: 'drawer' | 'sheet'
 	session: GridEditingSession
-	/** The visible columns of the grid, in display order. The sheet shows the editable ones. */
+	/** The visible columns of the grid, in display order. The overlay shows the editable ones. */
 	columns: GridColumn<T>[]
-	/** The grid's own rows, which the sheet finds the open row in. */
+	/** The grid's own rows, which the overlay finds the open row in. */
 	source: GridEditSource<T>
 }
 
 /**
- * The sheet that a phone edits in ({@link GridEditableConfig.sheet}). It shows
+ * The overlay that a phone edits in ({@link GridEditableConfig.overlay}). It shows
  * the editors of the open row, or of the one cell that a cell-scoped session
  * holds, with Cancel and Save. The editors stage into the session as the
  * editors in the table do. Save ends the session as Enter does, and Cancel,
- * Escape, and a press outside the sheet end it as Escape does.
+ * Escape, and a press outside the overlay end it as Escape does.
  *
- * Save holds the sheet open, with its spinner, until the commit settles. An
+ * Save holds the overlay open, with its spinner, until the commit settles. An
  * async commit that the consumer refuses opens the row again with its errors.
- * Under cell scope the refused cell is held beside the session, so the sheet
+ * Under cell scope the refused cell is held beside the session, so the overlay
  * moves the session back onto it. Save does nothing while a
  * {@link GridColumn.validate} refuses a value: the field shows why.
  *
- * @remarks The sheet is a sibling of the table in the React tree, so its keys
+ * @remarks The overlay is a sibling of the table in the React tree, so its keys
  * and focus moves do not reach the key surface of the table.
  *
  * @internal
  */
-export function GridEditSheet<T>({ session, columns, source }: GridEditSheetProps<T>) {
+export function GridEditOverlay<T>({ kind, session, columns, source }: GridEditOverlayProps<T>) {
 	const intl = useIntl()
 
 	const { activeEditStore: store, readDraft, endSession, saveSession, resumeCell } = session
@@ -108,9 +117,9 @@ export function GridEditSheet<T>({ session, columns, source }: GridEditSheetProp
 
 	const target = toTarget(snapshot)
 
-	// The target that the sheet shows. It stays while a save settles and while
-	// the sheet slides out, after the session let it go.
-	const [shown, setShown] = useState<SheetTarget | null>(target)
+	// The target that the overlay shows. It stays while a save settles and while
+	// the overlay slides out, after the session let it go.
+	const [shown, setShown] = useState<OverlayTarget | null>(target)
 
 	if (target !== null && !sameTarget(target, shown)) setShown(target)
 
@@ -144,7 +153,7 @@ export function GridEditSheet<T>({ session, columns, source }: GridEditSheetProp
 		const { rowKey, columnId } = shown
 
 		// A column that refuses a value blocks the save. The drafts are read
-		// now, because a field stages its value without a render of the sheet.
+		// now, because a field stages its value without a render of the overlay.
 		const blocked = fields.some((column) => {
 			const value = readDraft(rowKey, column.id)?.value ?? fieldValue(row, column)
 
@@ -161,7 +170,7 @@ export function GridEditSheet<T>({ session, columns, source }: GridEditSheetProp
 			setSettled((count) => count + 1)
 
 			// A cell-scoped session holds a refused cell beside itself, so the
-			// session moves back onto it, and the sheet shows its error.
+			// session moves back onto it, and the overlay shows its error.
 			if (columnId !== null && readDraft(rowKey, columnId)?.error !== undefined)
 				resumeCell(rowKey, columnId)
 		})
@@ -181,42 +190,53 @@ export function GridEditSheet<T>({ session, columns, source }: GridEditSheetProp
 		cell: only ? columnLabel(only) : name,
 	})
 
+	const { Title, Body, Footer } = PARTS[kind]
+
+	const content = (
+		<Form defaultValues={NO_VALUES} onSubmit={save}>
+			<Title>{title}</Title>
+
+			<Body>
+				<Stack gap="lg">
+					{fields.map((column) => (
+						<GridEditOverlayField
+							key={`${String(shown.rowKey)}:${String(column.id)}:${settled}`}
+							session={session}
+							rowKey={shown.rowKey}
+							row={row}
+							column={column}
+						/>
+					))}
+				</Stack>
+			</Body>
+
+			<Footer>
+				<Button type="button" variant="outline" disabled={busy} onClick={discard}>
+					{intl.formatMessage(intlMessages.cancel)}
+				</Button>
+
+				<FormSubmit color="blue">{intl.formatMessage(intlMessages.save)}</FormSubmit>
+			</Footer>
+		</Form>
+	)
+
+	const onOpenChange = (next: boolean) => {
+		if (!next) discard()
+	}
+
 	return (
 		<GridOverlayDensity>
-			<Sheet
-				open={open}
-				onOpenChange={(next) => {
-					if (!next) discard()
-				}}
-			>
-				<SheetPanel aria-label={title}>
-					<Form defaultValues={NO_VALUES} onSubmit={save}>
-						<SheetTitle>{title}</SheetTitle>
-
-						<SheetBody>
-							<Stack gap="lg">
-								{fields.map((column) => (
-									<GridEditSheetField
-										key={`${String(shown.rowKey)}:${String(column.id)}:${settled}`}
-										session={session}
-										rowKey={shown.rowKey}
-										row={row}
-										column={column}
-									/>
-								))}
-							</Stack>
-						</SheetBody>
-
-						<SheetFooter>
-							<Button type="button" variant="outline" disabled={busy} onClick={discard}>
-								{intl.formatMessage(intlMessages.cancel)}
-							</Button>
-
-							<FormSubmit color="blue">{intl.formatMessage(intlMessages.save)}</FormSubmit>
-						</SheetFooter>
-					</Form>
-				</SheetPanel>
-			</Sheet>
+			{kind === 'drawer' ? (
+				<Drawer open={open} onOpenChange={onOpenChange}>
+					<DrawerPanel height="fit" aria-label={title}>
+						{content}
+					</DrawerPanel>
+				</Drawer>
+			) : (
+				<Sheet open={open} onOpenChange={onOpenChange}>
+					<SheetPanel aria-label={title}>{content}</SheetPanel>
+				</Sheet>
+			)}
 		</GridOverlayDensity>
 	)
 }
@@ -226,8 +246,8 @@ function fieldValue<T>(row: T, column: GridColumn<T>): unknown {
 	return column.field != null ? row[column.field] : undefined
 }
 
-/** Props for {@link GridEditSheetField}. @internal */
-type GridEditSheetFieldProps<T> = {
+/** Props for {@link GridEditOverlayField}. @internal */
+type GridEditOverlayFieldProps<T> = {
 	session: GridEditingSession
 	rowKey: string | number
 	row: T
@@ -235,7 +255,7 @@ type GridEditSheetFieldProps<T> = {
 }
 
 /**
- * One field of {@link GridEditSheet}: the label of the column, its editor, and
+ * One field of {@link GridEditOverlay}: the label of the column, its editor, and
  * the message of a value that {@link GridColumn.validate} or the consumer
  * refuses. The editor is the column's {@link GridColumn.editCell} slot, or the
  * one that the grid infers, as in the table. It starts from the typed entry,
@@ -243,7 +263,7 @@ type GridEditSheetFieldProps<T> = {
  *
  * @internal
  */
-function GridEditSheetField<T>({ session, rowKey, row, column }: GridEditSheetFieldProps<T>) {
+function GridEditOverlayField<T>({ session, rowKey, row, column }: GridEditOverlayFieldProps<T>) {
 	const intl = useIntl()
 
 	const { stageDraft, unstageDraft, readDraft, entrySeed, claimFocus } = session
@@ -313,7 +333,7 @@ function GridEditSheetField<T>({ session, rowKey, row, column }: GridEditSheetFi
 			row,
 			value: draft,
 			onValueUpdate: update,
-			// Save commits the sheet, so a slot's commit only stages.
+			// Save commits the overlay, so a slot's commit only stages.
 			commit: (next) => {
 				if (next !== undefined) update(next)
 			},
@@ -336,7 +356,7 @@ function GridEditSheetField<T>({ session, rowKey, row, column }: GridEditSheetFi
 	)
 
 	return (
-		<Field ref={hostRef} data-slot="grid-edit-sheet-field" severity={error ? 'error' : undefined}>
+		<Field ref={hostRef} data-slot="grid-edit-overlay-field" severity={error ? 'error' : undefined}>
 			<Label>{label}</Label>
 
 			{body}

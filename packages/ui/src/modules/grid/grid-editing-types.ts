@@ -321,28 +321,31 @@ export type GridEditableConfig = {
 	 */
 	commitOn?: 'explicit' | 'leaveEditor' | 'leaveGrid'
 	/**
-	 * Whether a phone edits in a sheet. On a phone, a cell does not open an
+	 * The overlay that a phone edits in. On a phone, a cell does not open an
 	 * editor in place. The row or the cell that a session opens shows its
-	 * editors in a sheet, with Cancel and Save. Save commits as Enter does, and
-	 * shows a spinner while an async {@link GridEditableConfig.onCommit} runs.
-	 * Cancel, Escape, and a press outside the sheet discard, as Escape does. The
-	 * phone is the one of the DatePicker sheet: no hover, and a viewport
-	 * narrower than the `sm` breakpoint. A wider screen, and a screen with
-	 * hover, edit in place. Under `scope: 'row'` the sheet shows each editable
-	 * column of the row, and under `scope: 'cell'` it shows the one cell. When
-	 * more than one row is open, the sheet shows the first, and the next one
-	 * shows when the first closes.
+	 * editors in the overlay, with Cancel and Save. `'drawer'` is a
+	 * `Drawer` from the bottom edge, and `'sheet'` is a `Sheet`
+	 * from the side. Save commits as Enter does, and shows a spinner while an
+	 * async {@link GridEditableConfig.onCommit} runs. Cancel, Escape, and a
+	 * press outside the overlay discard, as Escape does. The phone is the one
+	 * of the DatePicker sheet: no hover, and a viewport narrower than the `sm`
+	 * breakpoint. A wider screen, and a screen with hover, edit in place. Under
+	 * `scope: 'row'` the overlay shows each editable column of the row, and
+	 * under `scope: 'cell'` it shows the one cell. When more than one row is
+	 * open, the overlay shows the first, and the next one shows when the first
+	 * closes.
 	 *
 	 * Set `false` to edit in place on a phone too, as in a grid whose rows are
 	 * always open. The new-row slot edits in place on each screen.
 	 *
-	 * @remarks The sheet commits only on Save, so {@link GridEditableConfig.commitOn}
-	 * has no effect while it shows. Save does nothing while a
-	 * {@link GridColumn.validate} refuses a value. A refused async commit opens
-	 * the sheet again, with the error under the field.
-	 * @defaultValue true
+	 * @remarks The overlay commits only on Save, so
+	 * {@link GridEditableConfig.commitOn} has no effect while it shows. Save
+	 * does nothing while a {@link GridColumn.validate} refuses a value. A
+	 * refused async commit opens the overlay again, with the error under the
+	 * field.
+	 * @defaultValue 'drawer'
 	 */
-	sheet?: boolean
+	overlay?: 'drawer' | 'sheet' | false
 	/**
 	 * The controlled active cell of a cell-scoped session: the one cell with an
 	 * open editor. Pair it with {@link GridEditableConfig.onCellChange}.
