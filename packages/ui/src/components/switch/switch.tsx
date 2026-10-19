@@ -8,7 +8,7 @@ import { useFormResetSync } from '../../hooks/use-form-reset-sync'
 import { useFormToggle } from '../../primitives/form/use-form-toggle'
 import { k, type SwitchVariants } from '../../recipes/kata/switch'
 import { useControlProps } from '../control/use-control-props'
-import { useControlScope } from '../control/use-control-target'
+import { useControlScope } from '../control/use-control-scope'
 
 /** Props for {@link Switch}: the recipe `color` and the `size` step, an input `ref`, and native `<input>` attributes minus `type`/`size`. */
 export type SwitchProps = SwitchVariants & {

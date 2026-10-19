@@ -12,7 +12,7 @@ import { k, type RatingVariants } from '../../recipes/kata/rating'
 import { clamp, rangeKeys } from '../../utilities'
 import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
-import { useControlScope } from '../control/use-control-target'
+import { useControlScope } from '../control/use-control-scope'
 
 /** How much of one star fills at `value`: the whole star below it, none above, the remainder on it. @internal */
 function starFill(value: number, star: number): number {

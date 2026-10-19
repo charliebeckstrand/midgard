@@ -6,7 +6,7 @@ import { useGlass } from '../../providers/glass/context'
 import { useHeadless } from '../../providers/headless/context'
 import { type ControlVariant, useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
-import { useControlScope } from '../control/use-control-target'
+import { useControlScope } from '../control/use-control-scope'
 import { useInputValue } from './use-input-value'
 
 /**

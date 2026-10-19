@@ -7,7 +7,7 @@ import { ariaAttr, cn, dataAttr } from '../../core'
 import { useFormToggle } from '../../primitives/form/use-form-toggle'
 import { type CheckboxVariants, k } from '../../recipes/kata/checkbox'
 import { useControlProps } from '../control/use-control-props'
-import { useControlScope } from '../control/use-control-target'
+import { useControlScope } from '../control/use-control-scope'
 
 /** Props for {@link Checkbox}. */
 export type CheckboxProps = CheckboxVariants & {

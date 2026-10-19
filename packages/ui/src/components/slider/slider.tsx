@@ -7,7 +7,7 @@ import { useFormValue } from '../../primitives/form/use-form-value'
 import { k, type SliderVariants } from '../../recipes/kata/slider'
 import { clamp, pct } from '../../utilities'
 import { useControlProps } from '../control/use-control-props'
-import { useControlScope } from '../control/use-control-target'
+import { useControlScope } from '../control/use-control-scope'
 
 /**
  * The value that a native range input shows for `value`. The input clamps the

@@ -4,7 +4,7 @@ import { useCallback } from 'react'
 import type { SetValue } from '../../hooks/use-controllable'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import { useControlProps } from './use-control-props'
-import { useControlScope } from './use-control-target'
+import { useControlScope } from './use-control-scope'
 
 type PickerFieldOptions<T> = {
 	/** The Form field name. It binds the value to an enclosing `<Form>`. */
