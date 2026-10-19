@@ -1,4 +1,4 @@
-import { beforeAll, vi } from 'vitest'
+import { vi } from 'vitest'
 // The mock modules load before the other imports. Each one waits on its real
 // module (`vi.importActual`). A factory that loads a mock later waits behind
 // the module requests of the files, sometimes for seconds. Its request then
@@ -7,7 +7,6 @@ import { beforeAll, vi } from 'vitest'
 // factory gets the mock from the module cache.
 import '../../../mocks/motion-react'
 import '../../../mocks/motion-react-m'
-import { tooltipBody } from '../../../../components/tooltip/tooltip-body-loader'
 
 /**
  * floating-ui-project module mocks. `@floating-ui/react` is deliberately left
@@ -22,13 +21,3 @@ vi.mock('motion/react-m', async () => (await import('../../../mocks/motion-react
 vi.mock('../../../../components/tooltip/tooltip-body-loader', async (importOriginal) =>
 	(await import('../../../mocks/tooltip-body-loader')).default(importOriginal),
 )
-
-// `TooltipContent` loads the module of the panel after it mounts, and a case
-// that reads an open panel after a fixed wait can read before the load ends.
-// The first load of a worker also transforms the module, and a slow runner
-// can take more than two frames for it. The order of the files decides which
-// case of a worker loads first. The load before each file gives each case the
-// state of a page that already loaded the module, as the other setups do.
-// `tooltip-first-intent.test.tsx` holds the load in each case, and thus tests
-// the state before the load.
-beforeAll(() => tooltipBody.load())
