@@ -80,8 +80,10 @@ const card = defineRecipe({
  * title.
  *
  * A widget with a fullscreen view of its own, such as a chart with its menu,
- * marks its controls in the row `data-own-fullscreen`. The row then hides the
- * expand control of the tile, so the tile shows one way to go large.
+ * marks its controls in the row `data-own-fullscreen`. On a coarse pointer, the
+ * row then hides the expand control of the tile, so the tile shows one way to
+ * go large. The menu button of a chart shows only on a coarse pointer, so on a
+ * fine pointer the expand control stays.
  *
  * An icon-only bare button has a pad around its glyph. The pad adds to the gap
  * of the row, so the gap next to a button looks wider than the gap next to a
@@ -98,7 +100,7 @@ const card = defineRecipe({
  */
 const header = [
 	`flex min-w-0 items-center gap-2 ${dan.space.box.bottom} [--touch-target-gap-x:0px]`,
-	'has-data-own-fullscreen:**:data-[slot=dashboard-tile-expand]:hidden',
+	'pointer-coarse:has-data-own-fullscreen:**:data-[slot=dashboard-tile-expand]:hidden',
 	dan.space.dashboard.bare,
 ].join(' ')
 
