@@ -5,6 +5,7 @@ import { Swatch } from '../../components/swatch'
 import { Text } from '../../components/text'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/map'
 import {
 	type LegendEmphasis,
@@ -13,6 +14,7 @@ import {
 } from '../chart/engine/chart-legend/legend-switch'
 import { readoutSwatchShapes } from '../chart/engine/chart-readout-card'
 import type { MapLegendItem } from './engine/map-legend/items'
+import { mapMessages } from './map-messages'
 
 /** Props for {@link MapLegendEntry}. @internal */
 type MapLegendEntryProps = {
@@ -133,6 +135,8 @@ export type MapLegendProps = {
  * @internal
  */
 export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: MapLegendProps) {
+	const intl = useIntl()
+
 	const ref = useRef<HTMLDivElement>(null)
 
 	// The side panel lays the entries in a column, so the arrows rove vertically
@@ -160,7 +164,7 @@ export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: M
 			ref={ref}
 			data-slot="map-legend"
 			role="toolbar"
-			aria-label="Legend"
+			aria-label={intl.formatMessage(mapMessages.legend)}
 			aria-orientation={orientation}
 			onKeyDown={handleKeyDown}
 			className={cn(
