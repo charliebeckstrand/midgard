@@ -690,6 +690,7 @@ export function useGridCursor<T>({
 		fill: fillFromHandle,
 		cellCoordOf: nav.cellCoordOf,
 		scrollContainerRef,
+		press: nav.press,
 	})
 
 	const fills = copies && fillCells !== undefined

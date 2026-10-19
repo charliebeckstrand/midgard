@@ -1,10 +1,16 @@
 'use client'
 
-import { type PointerEvent as ReactPointerEvent, type RefObject, useCallback, useRef } from 'react'
+import {
+	type PointerEvent as ReactPointerEvent,
+	type RefObject,
+	useCallback,
+	useRef,
+	useState,
+} from 'react'
 import { type DragCursor, holdDragCursor } from '../../hooks/use-drag-cursor'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
-import { isPrimaryPress } from '../../utilities/primary-press'
+import { createPressOwner } from '../../utilities/primary-press'
 import { type DashboardCommit, endGesture, measureGesture, startGesture } from './dashboard-gesture'
 import { type DashboardCell, ROW_SUBDIVISION } from './engine/dashboard-layout'
 import {
@@ -112,10 +118,14 @@ export function useDashboardResize({
 	// takes its own listeners away, so the board ends the gesture through this ref.
 	const live = useRef<{ id: string; finish: (keep: boolean) => void } | null>(null)
 
+	// The pointer that drives the resize. A palm that lands on a splitter mid-resize starts
+	// no second resize, and its events do not move or end this one.
+	const [press] = useState(createPressOwner)
+
 	const beginResize = useCallback(
 		(id: string, edge: DashboardResizeEdge, event: ReactPointerEvent<HTMLElement>) => {
 			// A context-menu press can lose its release, so only a primary press starts a resize.
-			if (!isPrimaryPress(event)) return
+			if (!press.claim(event)) return
 
 			holdTextSelection(event)
 
@@ -123,7 +133,11 @@ export function useDashboardResize({
 
 			const context = resizeContext(store, canvas, id)
 
-			if (canvas === null || context === null) return
+			if (canvas === null || context === null) {
+				press.release()
+
+				return
+			}
 
 			event.preventDefault()
 
@@ -198,6 +212,8 @@ export function useDashboardResize({
 			}
 
 			const move = (moveEvent: PointerEvent) => {
+				if (!press.owns(moveEvent)) return
+
 				pointer = { x: moveEvent.clientX, y: moveEvent.clientY }
 
 				update()
@@ -215,6 +231,8 @@ export function useDashboardResize({
 				canvas.style.minHeight = restMinHeight
 
 				live.current = null
+
+				press.release()
 
 				releaseCursor()
 
@@ -240,11 +258,16 @@ export function useDashboardResize({
 
 			handle.addEventListener('pointermove', move, { signal })
 
-			handle.addEventListener('pointerup', () => finish(true), { signal })
+			// The release of another pointer does not end the resize.
+			const end = (keep: boolean) => (endEvent: PointerEvent) => {
+				if (press.owns(endEvent)) finish(keep)
+			}
 
-			handle.addEventListener('pointercancel', () => finish(false), { signal })
+			handle.addEventListener('pointerup', end(true), { signal })
 
-			handle.addEventListener('lostpointercapture', () => finish(false), { signal })
+			handle.addEventListener('pointercancel', end(false), { signal })
+
+			handle.addEventListener('lostpointercapture', end(false), { signal })
 
 			window.addEventListener('keydown', onKey, { capture: true, signal })
 
@@ -253,7 +276,7 @@ export function useDashboardResize({
 
 			live.current = { id, finish }
 		},
-		[store, canvasRef, commitCells, reportResizeStart, reportResizeEnd],
+		[store, canvasRef, press, commitCells, reportResizeStart, reportResizeEnd],
 	)
 
 	const cancelResize = useCallback((id?: string) => {

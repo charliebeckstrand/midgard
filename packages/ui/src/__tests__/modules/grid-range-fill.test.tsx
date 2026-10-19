@@ -78,7 +78,11 @@ function renderFillGrid(props: { editable?: Partial<GridEditableConfig> } = {}) 
 	const select = (from: [number, number], to: [number, number]) => {
 		fireEvent.mouseDown(cell(...from))
 
+		fireEvent.mouseUp(cell(...from))
+
 		fireEvent.mouseDown(cell(...to), { shiftKey: true })
+
+		fireEvent.mouseUp(cell(...to))
 	}
 
 	return { ...view, grid, cell, texts, select, onCommit }

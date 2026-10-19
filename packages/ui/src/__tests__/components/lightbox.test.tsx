@@ -68,12 +68,16 @@ function press(
 	clientX: number,
 	clientY: number,
 	timeStamp: number,
-	{ pointerId = 1, pointerType = 'mouse' }: { pointerId?: number; pointerType?: string } = {},
+	{
+		pointerId = 1,
+		pointerType = 'mouse',
+		isPrimary = pointerId === 1,
+	}: { pointerId?: number; pointerType?: string; isPrimary?: boolean } = {},
 ) {
 	const event = createEvent[type](stage, {
 		pointerId,
 		pointerType,
-		isPrimary: pointerId === 1,
+		isPrimary,
 		button: 0,
 		// A press ends at a move with no button down, so the moves hold the button.
 		buttons: type === 'pointerUp' ? 0 : 1,
@@ -736,6 +740,37 @@ describe('Lightbox', () => {
 			expect(photo.style.transform).toBe('translate(-250px, -200px) scale(3)')
 
 			expect(screen.getByRole('dialog')).toBeInTheDocument()
+		})
+
+		// While a pen presses, the touch of a palm is the primary touch. It does not pinch.
+		it('does not pinch a pen press with a palm', () => {
+			stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+
+			renderUI(<Gallery defaultIndex={1} />)
+
+			const stage = getSlot(document.body, 'lightbox-stage')
+
+			const photo = layOut(stage)
+
+			const pen = { pointerId: 1, pointerType: 'pen' }
+
+			const palm = { pointerId: 2, pointerType: 'touch', isPrimary: true }
+
+			press(stage, 'pointerDown', 150, 400, 0, pen)
+
+			press(stage, 'pointerDown', 250, 400, 10, palm)
+
+			press(stage, 'pointerMove', 350, 400, 20, palm)
+
+			press(stage, 'pointerMove', 50, 400, 30, pen)
+
+			expect(photo.style.transform).not.toContain('scale')
+
+			press(stage, 'pointerUp', 350, 400, 40, palm)
+
+			press(stage, 'pointerUp', 50, 400, 50, pen)
+
+			expect(photo.style.transform).not.toContain('scale')
 		})
 
 		it('pans a zoomed photo with a swipe, and does not step or close', () => {

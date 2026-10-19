@@ -43,10 +43,9 @@ export type ResizableGroupProps = ComponentProps<'div'> & {
 	onResizeStart?: (handleIndex: number) => void
 	/**
 	 * Fires with the handle's index when a pointer drag-resize ends: the pointer lifted,
-	 * the gesture was canceled, a second pointer pressed a handle and superseded the drag,
-	 * or the `orientation` of the group changed (the next move then ends the drag). The
-	 * move or the lift of a different pointer does not end the drag. Exactly one end
-	 * follows each start.
+	 * the gesture was canceled, or the `orientation` of the group changed (the next move
+	 * then ends the drag). The press, the move, or the lift of a different pointer does
+	 * not start a drag or end this one. Exactly one end follows each start.
 	 *
 	 * The settled sizes have already flowed through `onSizesChange`; this only marks the
 	 * drag's conclusion — the point to persist from, or to release whatever

@@ -2,7 +2,7 @@
 
 import { type MouseEvent, type RefObject, useRef } from 'react'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { isPrimaryPress } from '../../utilities/primary-press'
+import { isPrimaryPress, type PressOwner } from '../../utilities/primary-press'
 import {
 	filledCorners,
 	type GridFillDirection,
@@ -29,6 +29,8 @@ type FillDrag = {
  * @param fill - Fills `count` lines after the source in `direction`.
  * @param cellCoordOf - The data cell that an element id names, or `null`.
  * @param scrollContainerRef - The scroll region of the grid, or `null` when it does not scroll.
+ * @param press - The pointer that drives a drag of the grid. A press on the
+ *   handle while it holds a drag starts no fill.
  * @returns The start of a drag, for the press on the handle. The handle is not
  *   in the grid, so the start takes the grid of the drag.
  * @internal
@@ -39,12 +41,14 @@ export function useGridFillDrag({
 	fill,
 	cellCoordOf,
 	scrollContainerRef,
+	press,
 }: {
 	readSource: () => GridFillRect | null
 	showRange: (from: Coord, to: Coord) => void
 	fill: (source: GridFillRect, direction: GridFillDirection, count: number) => void
 	cellCoordOf: (id: string) => Coord | null
 	scrollContainerRef: RefObject<HTMLElement | null>
+	press: PressOwner
 }): (event: MouseEvent<HTMLElement>, grid: HTMLElement | null) => void {
 	const dragRef = useRef<FillDrag | null>(null)
 
@@ -68,10 +72,16 @@ export function useGridFillDrag({
 		if (drag?.fill) fill(drag.source, drag.fill.direction, drag.fill.count)
 	})
 
-	const start = useGridRangeDrag({ onCell: grow, onEnd: release, cellCoordOf, scrollContainerRef })
+	const start = useGridRangeDrag({
+		onCell: grow,
+		onEnd: release,
+		cellCoordOf,
+		scrollContainerRef,
+		press,
+	})
 
 	return useStableEvent((event: MouseEvent<HTMLElement>, grid: HTMLElement | null) => {
-		const source = isPrimaryPress(event) ? readSource() : null
+		const source = isPrimaryPress(event) && !press.held() ? readSource() : null
 
 		if (!source) return
 

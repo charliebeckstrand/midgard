@@ -334,6 +334,40 @@ describe('Grid resizable columns', () => {
 		expect(onResizeEnd).toHaveBeenCalledWith('name')
 	})
 
+	// While a pen or a mouse resizes, the touch of a palm on another handle is a primary
+	// press too. It starts no second drag.
+	it('keeps the drag on its column when a palm touches another handle', () => {
+		const onResizeStart = vi.fn()
+
+		renderUI(
+			<Grid
+				resizable
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				columnSizing={{ onResizeStart }}
+			/>,
+		)
+
+		const name = screen.getByRole('separator', { name: 'Resize Name' })
+
+		const age = screen.getByRole('separator', { name: 'Resize Age' })
+
+		const held = holdMouse(name, { button: 0, clientX: 200 })
+
+		fireEvent.touchStart(age, { touches: [{ clientX: 320, clientY: 0 }] })
+
+		fireEvent.mouseDown(age, { button: 0, clientX: 320 })
+
+		expect(onResizeStart).toHaveBeenCalledExactlyOnceWith('name')
+
+		expect(name).toHaveAttribute('data-resizing')
+
+		expect(age).not.toHaveAttribute('data-resizing')
+
+		held.release()
+	})
+
 	it('fires onResizeEnd when the grid unmounts during a drag', () => {
 		const onResizeEnd = vi.fn()
 
