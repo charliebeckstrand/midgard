@@ -21,6 +21,9 @@ import { inject } from 'vitest'
  * The sampler then starts, the helper sends the event, and the deadline starts
  * when the event resolves. Thus the round trip of the event, which can take
  * seconds under the load of the full suite, does not count in the deadline.
+ * The helper gives the value only after the event resolves. Thus an action
+ * that must occur in the frame of the accepted value, such as a pause of a
+ * tween, goes in `done`.
  *
  * @param read - Reads the value.
  * @param done - Accepts the value that ends the wait.
