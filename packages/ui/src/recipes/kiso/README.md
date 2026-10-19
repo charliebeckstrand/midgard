@@ -4,7 +4,7 @@
 
 ## 1. Boundary
 
-`kiso/` is internal. Its **values** are read only by `kata/`; the katakana bridge receives kiso tokens by argument and imports nothing from kiso, not even types. Components, primitives, and layouts reach kiso through their owning kata (`recipes/kata/<name>`). Foundational types (`Step`, `Ma`, `Color`, `ExtendedColor`, `PaletteColor`, `GroupOrientation`, `GroupPosition`) flow through the types-only `recipes` barrel so consumers can derive prop unions without threading the type through their funnel.
+`kiso/` is internal. Its **values** are read only by `kata/`; the katakana bridge receives kiso tokens by argument and imports nothing from kiso, not even types. Components, primitives, and layouts reach kiso through their owning kata (`recipes/kata/<name>`). Foundational types (`Color`, `Ma`, `GroupOrientation`) flow through the types-only `recipes` barrel so consumers can derive prop unions without threading the type through their funnel.
 
 Composition flows downward only. Within kiso, semantic bundles compose primitive atoms, and atoms can compose sibling atoms. `narabi` reads `dan` · `sen` · `shaku`, and `omote` reads `sen` · `ugoki`. `hannou` reads `iro` · `ji` · `kasane` · `sen` · `ugoki`. `kokkaku` reads `dan` · `ji` · `kasane` · `shaku`, and `shaku` reads `dan` · `ji` · `kasane`. `ji` reads `dan`, which reads no other module. Kiso never reaches upward into `katakana/` or `kata/`. The contract is pinned by the `recipes/kiso/**` override in `biome.json`; the full boundary list lives in [`../README.md`](../README.md#3-boundary).
 
@@ -32,7 +32,7 @@ Every concern file opens with a `Layer: kiso · Concern: <concern>` (or `Layer: 
 | `kokkaku/` (骨格)  | Skeleton placeholder dimensions per component — chrome-, variant-, and color-stripped.                                            | `accordion`, `avatar`, `badge`, `breadcrumb`, `button`, `calendar`, `chart`, `chat`, `checkbox`, `color-panel`, `control`, `description-list`, `heading`, `kanban`, `list`, `map`, `nav`, `pagination`, `progress`, `radio`, `rating`, `segment`, `slider`, `sparkline`, `stat`, `stepper`, `switch`, `tabs`, `text`, `textarea`, `timeline`, `toggle-icon-button`, `tree` |
 | `kara.ts` (空)     | Virtualized emptiness — selectors that read `data-empty` on a `VirtualOptions` wrapper. *Flat file — single coherent concern.* | —                                                                                                                  |
 | `sou.ts` (層)      | App-level stacking order — the ordered rung ladder (`overlay` / `chrome` / `cover` / `float` / `lens` / `toast`) every portaled surface lands on. Component-local `z-*` inside a positioned box stays inline. *Flat file — single coherent concern.* | —                                                                                                                  |
-| `tsunagi.ts` (繋ぎ) | Group-join class fragments — dormant until the parent stamps `data-group` at runtime. *Flat file — single coherent concern.*       | —                                                                                                                  |
+| `tsunagi.ts` (繋ぎ) | Group-join class fragments, keyed on the DOM position of each child of the group. `<Group>` puts the bundle of its orientation on its container. *Flat file — single coherent concern.*       | —                                                                                                                  |
 
 ## 4. Semantic tier — archetype bundles
 
