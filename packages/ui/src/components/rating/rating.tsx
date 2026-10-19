@@ -6,6 +6,8 @@ import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { useFormValue } from '../../primitives/form/use-form-value'
+import { defineMessage, defineMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import type { scale } from '../../recipes/kata/rating'
 import { k, type RatingVariants } from '../../recipes/kata/rating'
 import { clamp, rangeKeys } from '../../utilities'
@@ -18,10 +20,21 @@ function starFill(value: number, star: number): number {
 	return clamp(value - (star - 1), 0, 1)
 }
 
-/** The default readout: `4 out of 5 stars`. @internal */
-function defaultValueText(value: number, count: number): string {
-	return `${value} out of ${count} stars`
-}
+const messages = defineMessages({
+	label: {
+		id: 'ui.rating.label',
+		defaultMessage: 'Rating',
+		description: 'The name of a row of stars that gives a score, when no label names it.',
+	},
+})
+
+/** The default readout, such as "4 out of 5 stars". */
+const valueTextMessage = defineMessage<{ value: number; count: number }>({
+	id: 'ui.rating.valueText',
+	defaultMessage: '{value, number} out of {count, plural, one {# star} other {# stars}}',
+	description:
+		'The score of a star rating that a screen reader speaks, such as "4 out of 5 stars". The value can have a decimal part, such as 4.5.',
+})
 
 /**
  * The naming attributes of the display form. The consumer's name labels the
@@ -112,9 +125,8 @@ export type RatingProps = RatingVariants & {
 	/**
 	 * The readout, for the score in the display form's accessible name and for
 	 * each star's own name in the interactive one. Say what the stars mean where they mean
-	 * something particular: `` (v) => `${v} of 5 — ${LEVELS[v]}` ``. The
-	 * default readout is `` `${value} out of ${count} stars` ``.
-	 * @defaultValue {@link defaultValueText}
+	 * something particular: `` (v) => `${v} of 5 — ${LEVELS[v]}` ``.
+	 * @defaultValue A readout such as "4 out of 5 stars", in the language of the reader.
 	 */
 	getValueText?: (value: number, count: number) => string
 	/** Id for the row; resolves through the explicit prop, then an enclosing `<Control>` / `<Field>`. */
@@ -125,7 +137,7 @@ export type RatingProps = RatingVariants & {
 	 * `role="radiogroup"` is not named by an enclosing `<fieldset>` legend, so a
 	 * bare Rating needs one of these. The display form puts the
 	 * {@link getValueText} readout after this name.
-	 * @defaultValue 'Rating'
+	 * @defaultValue `'Rating'`, in the language of the reader.
 	 */
 	'aria-label'?: string
 	'aria-labelledby'?: string
@@ -183,7 +195,7 @@ export function Rating({
 	disabled,
 	color,
 	clearable = true,
-	getValueText = defaultValueText,
+	getValueText: getValueTextProp,
 	id,
 	className,
 	'aria-label': ariaLabel,
@@ -191,6 +203,12 @@ export function Rating({
 	'aria-describedby': ariaDescribedBy,
 	'data-slot': slot = 'rating',
 }: RatingProps) {
+	const intl = useIntl()
+
+	const getValueText =
+		getValueTextProp ??
+		((value: number, count: number) => intl.formatMessage(valueTextMessage, { value, count }))
+
 	const {
 		value: bound,
 		controlled,
@@ -439,7 +457,7 @@ export function Rating({
 			data-slot={slot}
 			data-density={size}
 			role="radiogroup"
-			aria-label={labelledBy ? undefined : (ariaLabel ?? 'Rating')}
+			aria-label={labelledBy ? undefined : (ariaLabel ?? intl.formatMessage(messages.label))}
 			aria-labelledby={labelledBy}
 			aria-describedby={describedBy}
 			{...validation}

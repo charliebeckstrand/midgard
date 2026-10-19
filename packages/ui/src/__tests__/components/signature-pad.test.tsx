@@ -10,6 +10,7 @@ import {
 	getCanvasPoint,
 } from '../../components/signature-pad/signature-pad-utilities'
 import { Form } from '../../modules/form'
+import { LocaleProvider } from '../../providers/locale'
 import {
 	bySlot,
 	fireEvent,
@@ -382,5 +383,22 @@ describe('SignaturePad + Form', () => {
 		act(() => ref.current?.clear())
 
 		expect(canvas).toHaveAttribute('aria-invalid', 'true')
+	})
+})
+
+describe('SignaturePad in a locale', () => {
+	it('names the pad, its empty state, and its placeholder in the language of the locale', () => {
+		const { container } = renderUI(
+			<LocaleProvider locale="es-ES">
+				<SignaturePad />
+			</LocaleProvider>,
+		)
+
+		expect(bySlot(container, 'signature-pad-canvas')).toHaveAttribute(
+			'aria-label',
+			'Firma, sin firma',
+		)
+
+		expect(screen.getByText('Firma aquí')).toBeInTheDocument()
 	})
 })

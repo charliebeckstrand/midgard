@@ -5,12 +5,29 @@ import { useComposedRefs } from 'motion/react'
 import type { ChangeEvent } from 'react'
 import { announce, cn, composeEventHandlers } from '../../core'
 import { useFormValue } from '../../primitives/form/use-form-value'
+import { defineMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/input'
 import { clamp } from '../../utilities'
 import { Button } from '../button'
 import { useControl } from '../control/context'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
+
+const messages = defineMessages({
+	decrease: {
+		id: 'ui.numberInput.decrease',
+		defaultMessage: 'Decrease',
+		description:
+			'The name of the button that makes the value of a number field smaller by one step.',
+	},
+	increase: {
+		id: 'ui.numberInput.increase',
+		defaultMessage: 'Increase',
+		description:
+			'The name of the button that makes the value of a number field larger by one step.',
+	},
+})
 
 /**
  * Props for {@link NumberInput}: {@link InputProps} with numeric `value`/range fields and a
@@ -97,6 +114,8 @@ export function NumberInput({
 	const setRef = useComposedRefs(resetRef, ref)
 
 	const precision = stepPrecision(step)
+
+	const intl = useIntl()
 
 	const round = (n: number) => Number(n.toFixed(precision))
 
@@ -188,7 +207,7 @@ export function NumberInput({
 						variant="bare"
 						tabIndex={-1}
 						disabled={locked || atMin}
-						aria-label="Decrease"
+						aria-label={intl.formatMessage(messages.decrease)}
 						onMouseDown={(event) => event.preventDefault()}
 						onClick={decrease}
 					>
@@ -199,7 +218,7 @@ export function NumberInput({
 						variant="bare"
 						tabIndex={-1}
 						disabled={locked || atMax}
-						aria-label="Increase"
+						aria-label={intl.formatMessage(messages.increase)}
 						onMouseDown={(event) => event.preventDefault()}
 						onClick={increase}
 					>

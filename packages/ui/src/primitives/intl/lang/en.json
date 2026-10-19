@@ -1119,6 +1119,14 @@
 		"defaultMessage": "Select",
 		"description": "The placeholder of a picker with no selected value."
 	},
+	"ui.numberInput.decrease": {
+		"defaultMessage": "Decrease",
+		"description": "The name of the button that makes the value of a number field smaller by one step."
+	},
+	"ui.numberInput.increase": {
+		"defaultMessage": "Increase",
+		"description": "The name of the button that makes the value of a number field larger by one step."
+	},
 	"ui.passwordInput.hide": {
 		"defaultMessage": "Hide password",
 		"description": "The name of the button that hides the text of a password field."
@@ -1535,6 +1543,22 @@
 		"defaultMessage": "{combinator}, switch to {next}",
 		"description": "The name of the button between two filter chips that switches the combinator, such as \"AND, switch to OR\"."
 	},
+	"ui.rangeSlider.end": {
+		"defaultMessage": "Range end",
+		"description": "The name of the thumb that sets the high end of a range slider."
+	},
+	"ui.rangeSlider.start": {
+		"defaultMessage": "Range start",
+		"description": "The name of the thumb that sets the low end of a range slider."
+	},
+	"ui.rating.label": {
+		"defaultMessage": "Rating",
+		"description": "The name of a row of stars that gives a score, when no label names it."
+	},
+	"ui.rating.valueText": {
+		"defaultMessage": "{value, number} out of {count, plural, one {# star} other {# stars}}",
+		"description": "The score of a star rating that a screen reader speaks, such as \"4 out of 5 stars\". The value can have a decimal part, such as 4.5."
+	},
 	"ui.reorder.dropped": {
 		"defaultMessage": "Dropped {subject}.",
 		"description": "Spoken when the reader drops a moved item. The subject is the item, with its place when it has one."
@@ -1654,6 +1678,22 @@
 	"ui.settings.title": {
 		"defaultMessage": "Settings",
 		"description": "The title of the settings dialog, and the name of the button that opens it."
+	},
+	"ui.signaturePad.clear": {
+		"defaultMessage": "Clear signature",
+		"description": "The name of the button that erases the signature on the pad."
+	},
+	"ui.signaturePad.empty": {
+		"defaultMessage": "{name}, empty",
+		"description": "The name of a signature pad with no signature on it. The name is the name of the pad, such as \"Signature\"."
+	},
+	"ui.signaturePad.label": {
+		"defaultMessage": "Signature",
+		"description": "The name of the canvas of a signature pad, when no label names it."
+	},
+	"ui.signaturePad.placeholder": {
+		"defaultMessage": "Sign here",
+		"description": "The text over an empty signature pad that asks the reader to draw a signature."
 	},
 	"ui.table.noItems": {
 		"defaultMessage": "No items",

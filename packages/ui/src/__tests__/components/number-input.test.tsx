@@ -4,6 +4,7 @@ import { Control } from '../../components/control'
 import { Field } from '../../components/fieldset'
 import { NumberInput } from '../../components/number-input'
 import { Form } from '../../modules/form'
+import { LocaleProvider } from '../../providers/locale'
 import { act, expectAnnouncement, fireEvent, renderUI, screen, setupUser } from '../helpers'
 
 describe('NumberInput', () => {
@@ -354,5 +355,19 @@ describe('NumberInput', () => {
 		await user.click(screen.getByLabelText('Increase'))
 
 		expect(input.value).toBe('6')
+	})
+})
+
+describe('NumberInput in a locale', () => {
+	it('names the steppers in the language of the locale', () => {
+		renderUI(
+			<LocaleProvider locale="es-ES">
+				<NumberInput aria-label="Cantidad" />
+			</LocaleProvider>,
+		)
+
+		expect(screen.getByLabelText('Disminuir')).toBeInTheDocument()
+
+		expect(screen.getByLabelText('Aumentar')).toBeInTheDocument()
 	})
 })
