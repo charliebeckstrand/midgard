@@ -10,7 +10,8 @@ export type PaginationListProps = ComponentProps<'ol'>
  * Ordered list of pagination items; establishes an active-indicator scope so the current page animates between siblings.
  *
  * @remarks
- * Below the `sm` width of the {@link Pagination} container, the list shows only the current page.
+ * Below the `sm` width of the {@link Pagination} container, the list shows the current page and
+ * the two items on each side of it. Below the `2xs` width, it shows only the current page.
  */
 export function PaginationList({ className, children, ...props }: PaginationListProps) {
 	return (

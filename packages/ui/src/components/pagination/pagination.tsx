@@ -18,9 +18,11 @@ export type PaginationProps = ComponentProps<'nav'>
  * @remarks
  * The root fills the inline axis and is a size container. Below the `sm`
  * container width (24rem), {@link PaginationList} goes compact: it keeps the
- * current page and hides the other pages and the gaps, so Previous and Next
- * stay in view. In a flex row, give the root a width (for example `flex-1`),
- * because a size container takes no width from its content.
+ * current page and the two items on each side of it, and hides the other
+ * items. Below the `2xs` width (18rem), it keeps only the current page.
+ * Previous and Next stay in view at each width. In a flex row, give the root a
+ * width (for example `flex-1`), because a size container takes no width from
+ * its content.
  */
 export function Pagination({ className, ...props }: PaginationProps) {
 	const intl = useIntl()
