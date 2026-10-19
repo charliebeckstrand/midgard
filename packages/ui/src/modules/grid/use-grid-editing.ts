@@ -1240,8 +1240,26 @@ export function useGridEditing<T>({
 	)
 
 	// The saves of the overlay that wait for their row to commit, by row key. The
-	// commit sweep settles them.
+	// commit sweep settles a save whose row closed. A save whose row stays open
+	// was declined, and settles at once (see `settleDeclinedSaves`).
 	const saveWaitersRef = useRef(new Map<string | number, (() => void)[]>())
+
+	// Settles the saves of each row in `rowKeys` that is still open. The consumer
+	// kept the row, or a controlled `cell` kept the session, so nothing commits
+	// and the overlay stays open with its values.
+	const settleDeclinedSaves = useCallback((rowKeys: Iterable<string | number>) => {
+		const waitersByRow = saveWaitersRef.current
+
+		for (const rowKey of rowKeys) {
+			const waiters = waitersByRow.get(rowKey)
+
+			if (!waiters || !editableRowsRef.current.has(rowKey)) continue
+
+			waitersByRow.delete(rowKey)
+
+			for (const waiter of waiters) waiter()
+		}
+	}, [])
 
 	// The save of the overlay: the exit of Enter, settled when its commit does.
 	// A row that is not open has nothing to commit.
@@ -1259,9 +1277,20 @@ export function useGridEditing<T>({
 				saveWaitersRef.current.set(rowKey, [...waiters, resolve])
 
 				exitSession(rowKey, 'save', true)
+
+				// A render must follow, even where the consumer declines the rows
+				// write, so that the effect below sees the answer.
+				bump()
 			}),
-		[exitSession],
+		[exitSession, bump],
 	)
+
+	// Settles the saves whose exit the consumer declined. A controlled move
+	// waits for `settleBinding`, which comes after this effect and settles a
+	// declined move itself. Any other exit has its answer in this commit.
+	useLayoutEffect(() => {
+		if (requestRef.current === null) settleDeclinedSaves(saveWaitersRef.current.keys())
+	})
 
 	// Acts on each new value of a controlled `cell`, whether the grid asked
 	// for it or the consumer set it. It runs as a layout effect, so the editor the
@@ -1393,9 +1422,22 @@ export function useGridEditing<T>({
 
 			// An equal value moves nothing. A request that did not land was declined.
 			if (!sameCell(raw, from.raw)) applyTransition(raw, from, request)
-			else if (request) dropIntents()
+			else if (request) {
+				dropIntents()
+
+				settleDeclinedSaves(request.endRows)
+			}
 		},
-		[controlled, settled, setSettled, settleUncontrolled, applyTransition, dropIntents, landWait],
+		[
+			controlled,
+			settled,
+			setSettled,
+			settleUncontrolled,
+			applyTransition,
+			dropIntents,
+			landWait,
+			settleDeclinedSaves,
+		],
 	)
 
 	// Settle the binding after each commit. It acts on a moved value, on a request,

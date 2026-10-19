@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import {
 	Grid,
 	type GridCellChange,
+	type GridCellRef,
 	type GridCellRefusal,
 	type GridColumn,
 	type GridEditableConfig,
@@ -241,5 +242,87 @@ describe('Grid editing on a phone', () => {
 		expect(screen.queryByRole('dialog')).toBeNull()
 
 		expect(bySlot(container, 'grid-edit-input')).toBeInTheDocument()
+	})
+})
+
+describe('Grid editing on a phone, with a save that the consumer declines', () => {
+	it('settles Save when a controlled rows keeps the row open', async () => {
+		// Opens rows, and never closes one.
+		const { user, editRow1, onCommit } = renderPhoneGrid({
+			onRowsChange: () => {},
+		})
+
+		await editRow1()
+
+		const sheet = screen.getByRole('dialog')
+
+		await user.type(within(sheet).getByRole('textbox', { name: 'Name' }), 'x')
+
+		await user.click(within(sheet).getByRole('button', { name: /Save/ }))
+
+		const open = screen.getByRole('dialog')
+
+		expect(within(open).getByRole('button', { name: 'Cancel' })).toBeEnabled()
+
+		expect(within(open).getByRole('textbox', { name: 'Name' })).toHaveValue('Alicex')
+
+		expect(onCommit).not.toHaveBeenCalled()
+	})
+
+	/** A cell-scoped grid on a phone whose `cell` the harness controls. */
+	function renderCellGrid(accept: (next: GridCellRef | null) => boolean) {
+		stubMatchMedia((query) => query.startsWith('(hover: none)'))
+
+		const user = setupUser()
+
+		function Harness() {
+			const [cell, setCell] = useState<GridCellRef | null>(null)
+
+			return (
+				<>
+					<button type="button" onClick={() => setCell({ rowKey: 1, columnId: 'name' })}>
+						edit-1
+					</button>
+					<Grid
+						columns={columns}
+						rows={rows}
+						getKey={(row) => row.id}
+						editable={{
+							session: 'managed',
+							scope: 'cell',
+							cell,
+							onCellChange: (next) => {
+								if (accept(next)) setCell(next)
+							},
+							onCommit: vi.fn(),
+						}}
+					/>
+				</>
+			)
+		}
+
+		renderUI(<Harness />)
+
+		return { user, editRow1: () => user.click(screen.getByRole('button', { name: 'edit-1' })) }
+	}
+
+	it('settles Save when a controlled cell keeps the session', async () => {
+		const { user, editRow1 } = renderCellGrid((next) => next !== null)
+
+		await editRow1()
+
+		await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /Save/ }))
+
+		expect(within(screen.getByRole('dialog')).getByRole('button', { name: 'Cancel' })).toBeEnabled()
+	})
+
+	it('closes the overlay when a controlled cell ends the session', async () => {
+		const { user, editRow1 } = renderCellGrid(() => true)
+
+		await editRow1()
+
+		await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /Save/ }))
+
+		await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
 	})
 })

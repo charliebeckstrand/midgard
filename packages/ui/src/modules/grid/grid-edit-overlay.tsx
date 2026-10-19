@@ -96,8 +96,9 @@ type GridEditOverlayProps<T> = {
  * Save holds the overlay open, with its spinner, until the commit settles. An
  * async commit that the consumer refuses opens the row again with its errors.
  * Under cell scope the refused cell is held beside the session, so the overlay
- * moves the session back onto it. Save does nothing while a
- * {@link GridColumn.validate} refuses a value: the field shows why.
+ * moves the session back onto it. A consumer that declines the exit keeps the
+ * overlay open, and Save settles with nothing committed. Save does nothing
+ * while a {@link GridColumn.validate} refuses a value: the field shows why.
  *
  * @remarks The overlay is a sibling of the table in the React tree, so its keys
  * and focus moves do not reach the key surface of the table.
