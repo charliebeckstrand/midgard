@@ -5,7 +5,7 @@ import { playwright } from '@vitest/browser-playwright'
 import type { Plugin } from 'vite'
 import { configDefaults, defineConfig } from 'vitest/config'
 import type { BrowserCommand } from 'vitest/node'
-import { CI, cleanup, coverageScope, sequence } from './vitest.base'
+import { CI, cleanup, coverageScope, sequence } from './vitest.base.ts'
 
 /**
  * The factor by which a wall-clock budget of the browser suite scales on CI:

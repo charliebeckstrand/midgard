@@ -7,9 +7,9 @@ import {
 	docsTestDir,
 	srcRelative,
 	walkSource,
-} from './src/__tests__/helpers/walk-source'
+} from './src/__tests__/helpers/walk-source.ts'
 import { reactDocs } from './src/docs/plugin/index.ts'
-import { CI, cleanup, coverageScope, sequence } from './vitest.base'
+import { CI, cleanup, coverageScope, sequence } from './vitest.base.ts'
 
 // The test files that open with `// @vitest-environment node`: the `pure`
 // project runs exactly these, and `unit` excludes them. The scan skips

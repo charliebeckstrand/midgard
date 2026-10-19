@@ -1,6 +1,6 @@
 import type { BundledLanguage, BundledTheme } from 'shiki'
-import type { ShikiHighlight, ShikiReply, ShikiRequest } from './code-shiki-highlighter'
-import { openShikiWorker } from './code-shiki-port'
+import type { ShikiHighlight, ShikiReply, ShikiRequest } from './code-shiki-highlighter.ts'
+import { openShikiWorker } from './code-shiki-port.ts'
 
 // The main-thread side of the Shiki worker. Its one runtime import is the
 // small module that starts the worker. A test that must empty the state of this
