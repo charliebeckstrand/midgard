@@ -15,7 +15,7 @@ export default function ItemCount() {
 				<Button variant="outline">Next</Button>
 			</Group>
 			<Group>
-				<Button variant="outline">Only one</Button>
+				<Button variant="outline">Share</Button>
 			</Group>
 		</Stack>
 	)

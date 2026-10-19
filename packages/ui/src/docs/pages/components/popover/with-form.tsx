@@ -40,7 +40,7 @@ export default function WithForm() {
 					</form>
 				</PopoverContent>
 			</Popover>
-			<Text>Name: {name}</Text>
+			<Text>Value: {name}</Text>
 		</>
 	)
 }

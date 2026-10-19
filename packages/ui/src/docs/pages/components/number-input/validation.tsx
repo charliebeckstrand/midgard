@@ -7,7 +7,7 @@ export default function Validation() {
 			<Field severity="success">
 				<Label>Guests</Label>
 				<NumberInput min={1} max={12} defaultValue={4} />
-				<Message severity="success">Tables for up to 6 are free at 7:30 pm.</Message>
+				<Message severity="success">Tables for up to 6 are free at 7:30 PM.</Message>
 			</Field>
 			<Field severity="warning">
 				<Label>Guests</Label>

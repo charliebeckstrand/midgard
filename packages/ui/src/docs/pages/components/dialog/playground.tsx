@@ -20,7 +20,7 @@ export default function DialogPlayground(props: DialogPanelProps) {
 			<DialogPanel {...props}>
 				<DialogHeader>
 					<DialogTitle>What's new in version 2.4</DialogTitle>
-					<DialogDescription>Released on March 3.</DialogDescription>
+					<DialogDescription>Released on March 3</DialogDescription>
 				</DialogHeader>
 				<DialogBody>
 					<Text tone="muted">

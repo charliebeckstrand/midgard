@@ -18,7 +18,7 @@ const topics: Topic[] = [
 	{
 		question: 'How do I change my password?',
 		answer:
-			'Open Settings, then Security, and select Change password. We send a code to your email address before the change applies.',
+			'Open Settings, then Security, and select Change password. You get a code by email before the change applies.',
 	},
 	{
 		question: 'Can I share a folder with a guest?',
@@ -33,7 +33,7 @@ const topics: Topic[] = [
 	{
 		question: 'How do I export my data?',
 		answer:
-			'Open Settings, then Account, and select Export. We send you a link to a ZIP file when the export is ready.',
+			'Open Settings, then Account, and select Export. You get an email with a link to a ZIP file when the export is ready.',
 	},
 	{
 		question: 'Which file types can I preview?',
@@ -43,7 +43,7 @@ const topics: Topic[] = [
 	{
 		question: 'How do I close my account?',
 		answer:
-			'Open Settings, then Account, and select Close account. We keep your files for 30 days in case you change your mind.',
+			'Open Settings, then Account, and select Close account. Your files stay for 30 days in case you change your mind.',
 	},
 ]
 

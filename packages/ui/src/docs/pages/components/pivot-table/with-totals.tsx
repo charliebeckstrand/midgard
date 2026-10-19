@@ -2,7 +2,7 @@ import { PivotTable } from 'ui/pivot-table'
 import { useFormat } from 'ui/providers/locale'
 import { loads } from './loads.ts'
 
-export default function CostByLane() {
+export default function WithTotals() {
 	const currency = useFormat({ type: 'currency', maximumFractionDigits: 0 })
 
 	return (
