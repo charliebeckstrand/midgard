@@ -76,6 +76,11 @@ export function useSignaturePadDrawing({
 
 		if (!isPrimaryPress(event)) return
 
+		// Each pointer type has its own primary pointer, so the first touch of a
+		// palm is primary while a pen draws. A press during a stroke does not
+		// take the stroke.
+		if (pointerRef.current !== null) return
+
 		holdTextSelection(event)
 
 		const point = getCanvasPoint(canvasRef.current, event)
