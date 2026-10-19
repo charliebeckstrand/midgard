@@ -238,6 +238,14 @@ describe('Alert', () => {
 		expect(bySlot(container, 'icon')).toBeInTheDocument()
 	})
 
+	it('removes the severity icon for icon={false} and keeps the role', () => {
+		const { container } = renderUI(<Alert severity="error" icon={false} title="Boom" />)
+
+		expect(bySlot(container, 'icon')).not.toBeInTheDocument()
+
+		expect(screen.getByRole('alert')).toHaveTextContent('Boom')
+	})
+
 	it('dismisses when close button is clicked', () => {
 		const onOpenChange = vi.fn()
 

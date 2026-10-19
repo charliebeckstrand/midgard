@@ -88,8 +88,12 @@ export type AlertProps = Omit<AlertVariants, 'color'> &
 		 * @defaultValue No severity: the color is zinc, with no icon and no ARIA role.
 		 */
 		severity?: AlertSeverity
-		/** Icon at the start. It replaces the icon of `severity`, and shows with or without a `title`. */
-		icon?: ReactElement
+		/**
+		 * Icon at the start. It replaces the icon of `severity`, and shows with or
+		 * without a `title`. `false` removes the icon of `severity` and keeps its
+		 * color and ARIA role.
+		 */
+		icon?: ReactElement | false
 		/** The heading of the alert, in the larger, semibold text. A severity icon shows only with a title. */
 		title?: ReactNode
 		/** The text under the title, in a tight line height. */
@@ -151,8 +155,9 @@ export type AlertProps = Omit<AlertVariants, 'color'> &
 
 /**
  * Resolves the color, the icon, and the ARIA role from the severity. An explicit
- * `color` or `icon` wins over the default of the severity. The icon of a severity
- * needs a title: beside body text alone, it looks too heavy.
+ * `color` or `icon` wins over the default of the severity, and `icon={false}`
+ * removes the icon. The icon of a severity needs a title: beside body text
+ * alone, it looks too heavy.
  *
  * @internal
  */
@@ -160,7 +165,7 @@ function resolveAlertPresentation(
 	severity: AlertSeverity | undefined,
 	politeSeverity: boolean,
 	color: AlertColor | undefined,
-	icon: ReactElement | undefined,
+	icon: ReactElement | false | undefined,
 	hasTitle: boolean,
 ): {
 	resolvedColor: AlertColor
@@ -169,7 +174,9 @@ function resolveAlertPresentation(
 } {
 	const resolvedColor = color ?? (severity ? severityColors[severity] : 'zinc')
 
-	const resolvedIcon = icon ?? (severity && hasTitle ? severityIcons[severity] : undefined)
+	const severityIcon = severity && hasTitle ? severityIcons[severity] : undefined
+
+	const resolvedIcon = icon === false ? undefined : (icon ?? severityIcon)
 
 	const liveRole = politeSeverity ? 'status' : 'alert'
 

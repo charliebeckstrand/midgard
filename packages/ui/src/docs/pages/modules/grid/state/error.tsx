@@ -10,7 +10,13 @@ export default function ErrorState() {
 			rows={people}
 			getKey={(row) => row.id}
 			error={
-				<Alert severity="error" variant="soft" title="Couldn't load people" className="w-full" />
+				<Alert
+					severity="error"
+					variant="soft"
+					icon={false}
+					title="Couldn't load people"
+					className="w-full"
+				/>
 			}
 		/>
 	)

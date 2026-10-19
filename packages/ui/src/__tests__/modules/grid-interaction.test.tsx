@@ -4,7 +4,7 @@ import { Button } from '../../components/button'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '../../components/menu'
 import { Grid, type GridCellClickContext, type GridColumn } from '../../modules/grid'
 import { GRID_STATUS_DEBOUNCE_MS } from '../../modules/grid/engine/grid-constants'
-import { getSlot, renderUI, screen, setupUser, stubMatchMedia, waitFor } from '../helpers'
+import { bySlot, getSlot, renderUI, screen, setupUser, stubMatchMedia, waitFor } from '../helpers'
 import { it } from '../helpers/fake-clock'
 
 describe('Grid row click', () => {
@@ -353,6 +353,8 @@ describe('Grid error state', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} error />)
 
 		expect(screen.getByRole('alert')).toHaveTextContent("Couldn't load data")
+
+		expect(bySlot(document.body, 'icon')).not.toBeInTheDocument()
 	})
 
 	it('falls back to the rows when error is false', () => {
