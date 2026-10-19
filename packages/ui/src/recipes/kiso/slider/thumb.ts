@@ -15,6 +15,9 @@ import { forced } from '../sen/forced'
 export const thumb = [
 	forced.control,
 	...forced.ring.outset,
+	// Forced colors show the native range, so an invalid slider outlines the input there.
+	'forced-colors:data-invalid:outline-solid forced-colors:data-invalid:outline-2',
+	'forced-colors:data-invalid:outline-offset-2',
 
 	'[&::-webkit-slider-thumb]:ring-1 [&::-webkit-slider-thumb]:ring-zinc-950/20',
 	'dark:[&::-webkit-slider-thumb]:ring-white/20',

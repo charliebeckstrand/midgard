@@ -28,12 +28,16 @@ const hidden = ['absolute inset-0', 'opacity-0', ...cursor, forced.control]
  * green, mirroring the framed-control kasane layers. The native input sits
  * inside the surface, so the box / circle / track `has` the attribute. Literal
  * class strings; Tailwind's scanner extracts them statically.
+ *
+ * Forced colors remove the ring and make red, amber, and green one color.
+ * Thus only an invalid control keeps a mark there: a 2 px outline.
  */
 const validation = [
 	'has-[[data-invalid],[data-warning],[data-valid]]:ring-2',
 	'has-[[data-invalid]]:ring-red-600',
 	'has-[[data-warning]]:ring-amber-500',
 	'has-[[data-valid]]:ring-green-600',
+	'forced-colors:has-[[data-invalid]]:outline-solid forced-colors:has-[[data-invalid]]:outline-2',
 ]
 
 /**
