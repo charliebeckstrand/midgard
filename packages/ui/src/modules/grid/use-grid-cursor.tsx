@@ -572,13 +572,10 @@ export function useGridCursor<T>({
 		return (cell) => enterEditAtCell(cell.rowKey, cell.columnId)
 	}, [managed, enterEditAtCell])
 
-	// The touch entry. A touch screen sends no double-click, so a tap on the
-	// cell that holds the cursor opens it (see `useGridTouchEntry`). It opens
-	// through `enterEditAt`, as Enter does, so the same gates apply.
-	const touchEntry = useGridTouchEntry(
-		(coord) => nav.active?.row === coord.row && nav.active.col === coord.col,
-		(coord) => enterEditAt(coord.row, coord.col),
-	)
+	// The touch entry. A touch screen sends no double-click, so the grid finds
+	// a double tap on a cell itself (see `useGridTouchEntry`). It opens through
+	// `enterEditAt`, as Enter does, so the same gates apply.
+	const touchEntry = useGridTouchEntry((coord) => enterEditAt(coord.row, coord.col))
 
 	// Cursor augmentation, editing-aware (which mounts the editors) for an
 	// editable grid.

@@ -60,7 +60,7 @@ export default function Editable() {
 			<EditHelp label="Editing help">
 				<PointerHint
 					mouse="Double-click a cell or click the pencil to edit its row."
-					touch="Tap the pencil to edit its row. On a phone the row opens in a drawer, with Cancel and Save."
+					touch="Double-tap a cell or tap the pencil to edit its row. On a phone the row opens in a drawer, with Cancel and Save."
 				/>
 			</EditHelp>
 			<Grid

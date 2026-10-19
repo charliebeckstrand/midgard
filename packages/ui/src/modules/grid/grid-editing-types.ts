@@ -214,9 +214,9 @@ export type GridEditableConfig = {
 	 * data cell puts its row into edit mode, and focuses that cell's editor. That
 	 * is the grid's built-in cell double-click event, so a consumer
 	 * {@link GridDataProps.onCellDoubleClick} still fires. A touch screen sends
-	 * no double-click, so a tap does the same on the cell that holds the cursor.
-	 * The first tap on a cell only moves the cursor to it. A press that scrolls
-	 * or holds opens nothing. Entering and leaving a row flows through `rows`/`onRowsChange`,
+	 * no double-click, so a double tap on a cell does the same. One tap on a
+	 * cell only moves the cursor to it. A press that scrolls or holds opens
+	 * nothing. Entering and leaving a row flows through `rows`/`onRowsChange`,
 	 * so a controlled binding stays the source of truth for which rows edit. Under
 	 * {@link GridEditableConfig.scope} `'cell'` a move between cells of one row
 	 * leaves that set alone. The cell itself flows through
