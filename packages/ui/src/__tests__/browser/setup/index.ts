@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup, configure } from '@testing-library/react'
 import { toHaveNoViolations } from 'jest-axe'
-import { afterEach, beforeAll, beforeEach, expect, inject, vi } from 'vitest'
+import { afterEach, beforeAll, beforeEach, expect, inject } from 'vitest'
 import { commands } from 'vitest/browser'
 import { loadListReorder } from '../../../components/list/use-list-reorder'
 import { loadGridDataDialogs } from '../../../modules/grid/grid-data-dialogs'

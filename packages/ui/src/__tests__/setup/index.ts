@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup, configure } from '@testing-library/react'
-import { afterEach, beforeAll, inject, vi } from 'vitest'
+import { afterEach, beforeAll, inject } from 'vitest'
 import { loadListReorder } from '../../components/list/use-list-reorder'
 import { tooltipBody } from '../../components/tooltip/tooltip-body-loader'
 import { defaultFooterSelector } from '../../core/panel/base'
