@@ -310,6 +310,28 @@ export function GridCellEditor<T>({
 		return () => markEditing(false)
 	}, [markEditing])
 
+	// An entry on a cell whose editor is already open moves focus into the editor,
+	// and the editor claims the entry's intents here. A typed entry replaces the draft.
+	const claimOpenEntry = useEffectEvent(() => {
+		if (dataKey === null) return
+
+		const typed = entrySeed(dataKey, column.id)
+
+		if (claimFocus(dataKey, column.id) && typed !== undefined) update(typed)
+	})
+
+	useEffect(() => {
+		const host = hostRef.current
+
+		if (!host) return
+
+		const claim = () => claimOpenEntry()
+
+		host.addEventListener('focusin', claim)
+
+		return () => host.removeEventListener('focusin', claim)
+	}, [])
+
 	// Focus into a held editor moves the session onto its cell, so the session
 	// keys and the settle controls act on the cell that has focus.
 	useEffect(() => {
