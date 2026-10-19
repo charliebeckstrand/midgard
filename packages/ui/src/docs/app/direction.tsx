@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Field, Label } from 'ui/fieldset'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
+import { defineMessages, type MessageDescriptor, useIntl } from 'ui/primitives/intl'
+import { intlMessages } from '../../primitives/intl/intl-messages.ts'
 
 // The direction of the docs: a setting that lays out the whole site left to
 // right or right to left, so a reader can check each page in a right-to-left
@@ -17,10 +19,30 @@ import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 /** The choices of the setting. */
 type Direction = 'system' | 'ltr' | 'rtl'
 
-const DIRECTIONS: { label: string; value: Direction }[] = [
-	{ label: 'System', value: 'system' },
-	{ label: 'Left to right', value: 'ltr' },
-	{ label: 'Right to left', value: 'rtl' },
+const messages = defineMessages({
+	label: {
+		id: 'docs.direction.label',
+		defaultMessage: 'Direction',
+		description:
+			'The label of the setting that lays out the docs site left to right or right to left.',
+	},
+	ltr: {
+		id: 'docs.direction.ltr',
+		defaultMessage: 'Left to right',
+		description: 'The option of the direction setting that lays out the site left to right.',
+	},
+	rtl: {
+		id: 'docs.direction.rtl',
+		defaultMessage: 'Right to left',
+		description: 'The option of the direction setting that lays out the site right to left.',
+	},
+})
+
+// "System" shows the message of ui that each System choice of the settings shows.
+const DIRECTIONS: { label: MessageDescriptor; value: Direction }[] = [
+	{ label: intlMessages.system, value: 'system' },
+	{ label: messages.ltr, value: 'ltr' },
+	{ label: messages.rtl, value: 'rtl' },
 ]
 
 /** The `sessionStorage` key of an override. With no key, the setting is "System". */
@@ -77,10 +99,6 @@ function setDirection(choice: Direction): void {
 	else document.documentElement.removeAttribute('dir')
 }
 
-function labelFor(choice: Direction): string {
-	return DIRECTIONS.find((option) => option.value === choice)?.label ?? choice
-}
-
 /**
  * The picker of the direction in the settings. The settings render on the
  * client only, so the picker reads the stored choice at once.
@@ -88,9 +106,17 @@ function labelFor(choice: Direction): string {
 export function DirectionListbox() {
 	const [choice, setChoice] = useState(readSetting)
 
+	const intl = useIntl()
+
+	const labelFor = (value: Direction): string => {
+		const option = DIRECTIONS.find((candidate) => candidate.value === value)
+
+		return option ? intl.formatMessage(option.label) : value
+	}
+
 	return (
 		<Field>
-			<Label>Direction</Label>
+			<Label>{intl.formatMessage(messages.label)}</Label>
 			<Listbox<Direction>
 				value={choice}
 				displayValue={labelFor}
@@ -105,7 +131,7 @@ export function DirectionListbox() {
 			>
 				{DIRECTIONS.map((option) => (
 					<ListboxOption key={option.value} value={option.value}>
-						<ListboxLabel>{option.label}</ListboxLabel>
+						<ListboxLabel>{intl.formatMessage(option.label)}</ListboxLabel>
 					</ListboxOption>
 				))}
 			</Listbox>

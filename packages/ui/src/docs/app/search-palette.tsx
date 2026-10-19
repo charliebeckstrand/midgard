@@ -1,3 +1,4 @@
+import pages from 'virtual:docs/pages'
 import entries from 'virtual:docs/search'
 import { useEffect, useMemo, useState } from 'react'
 import { PrefetchPageLinks } from 'react-router'
@@ -10,22 +11,66 @@ import {
 	useCommandPaletteDeferredQuery,
 } from 'ui/command-palette'
 import { useTimeout } from 'ui/hooks'
+import { defineMessage, defineMessages, type MessageDescriptor, useIntl } from 'ui/primitives/intl'
 import { VirtualOptions } from 'ui/primitives/virtual-options'
 import type { SearchEntry, SearchKind } from '../plugin/search.ts'
+import { sectionLabel } from './app-messages.ts'
 import { matchEntries } from './search-match.ts'
 
 // The palette of the search, with the entries in it. The shell loads this
 // module in idle time after the hydration (`search.tsx`), so the entries do
 // not delay the first paint, and the first open does not wait for them.
 
-const KIND_LABELS: Readonly<Record<SearchKind, string>> = {
-	page: 'Page',
-	tab: 'Tab',
-	example: 'Example',
-	component: 'API reference',
-	prop: 'Prop',
-	event: 'Event',
-}
+const placeholderMessage = defineMessage({
+	id: 'docs.search.placeholder',
+	defaultMessage: 'Search pages, examples, props, and events',
+	description:
+		'The placeholder of the search field of the docs, and its name. Props and events are the inputs of a component.',
+})
+
+// The kind of each entry, which its result shows before the place of the entry.
+const KIND_LABELS: Readonly<Record<SearchKind, MessageDescriptor>> = defineMessages({
+	page: {
+		id: 'docs.search.kind.page',
+		defaultMessage: 'Page',
+		description: 'The kind of a search result that is a page of the docs, such as Button.',
+	},
+	tab: {
+		id: 'docs.search.kind.tab',
+		defaultMessage: 'Tab',
+		description:
+			'The kind of a search result that is a tab of a page of the docs, such as Sorting.',
+	},
+	example: {
+		id: 'docs.search.kind.example',
+		defaultMessage: 'Example',
+		description: 'The kind of a search result that is an example on a page of the docs.',
+	},
+	component: {
+		id: 'docs.search.kind.component',
+		defaultMessage: 'API reference',
+		description:
+			'The kind of a search result that is the API reference of a component: its props and its events.',
+	},
+	prop: {
+		id: 'docs.search.kind.prop',
+		defaultMessage: 'Prop',
+		description:
+			'The kind of a search result that is a prop of a component: an input of the component.',
+	},
+	event: {
+		id: 'docs.search.kind.event',
+		defaultMessage: 'Event',
+		description:
+			'The kind of a search result that is an event prop of a component, such as onChange.',
+	},
+})
+
+// The section of each page, by its path. The result of a page shows the name
+// of its section in the language of the reader.
+const sectionOf: ReadonlyMap<string, string> = new Map(
+	pages.map((page) => [page.path, page.category]),
+)
 
 /** An entry with the id of its option. */
 type Option = SearchEntry & { id: string }
@@ -80,6 +125,16 @@ function PrefetchResults({ query, matches }: { query: string; matches: readonly 
 function Results({ onPick }: { onPick: () => void }) {
 	const query = useCommandPaletteDeferredQuery()
 
+	const intl = useIntl()
+
+	// Where the entry is. The section of a page shows in the language of the
+	// reader. The names from the code stay as they are.
+	const contextOf = (option: Option): string => {
+		const section = option.kind === 'page' ? sectionOf.get(option.href) : undefined
+
+		return section === undefined ? option.context : sectionLabel(intl, section)
+	}
+
 	const matches = useMemo(() => matchEntries(options, query), [query])
 
 	return (
@@ -99,7 +154,7 @@ function Results({ onPick }: { onPick: () => void }) {
 							<CommandPaletteText>
 								<CommandPaletteLabel>{option.label}</CommandPaletteLabel>
 								<CommandPaletteDescription>
-									{`${KIND_LABELS[option.kind]} · ${option.context}`}
+									{`${intl.formatMessage(KIND_LABELS[option.kind])} · ${contextOf(option)}`}
 								</CommandPaletteDescription>
 							</CommandPaletteText>
 						</CommandPaletteItem>
@@ -125,11 +180,13 @@ export function SearchPalette({
 	/** Runs after a pick, as the palette closes. */
 	onPick: () => void
 }) {
+	const intl = useIntl()
+
 	return (
 		<CommandPalette
 			open={open}
 			onOpenChange={onOpenChange}
-			placeholder="Search pages, examples, props, and events"
+			placeholder={intl.formatMessage(placeholderMessage)}
 			footer={null}
 		>
 			<Results onPick={onPick} />

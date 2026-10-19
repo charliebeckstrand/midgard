@@ -1,6 +1,7 @@
 import { memo, useRef } from 'react'
 import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
+import { IntlMessage, useIntl } from 'ui/primitives/intl'
 import {
 	Sidebar,
 	SidebarBody,
@@ -12,6 +13,7 @@ import {
 } from 'ui/sidebar'
 import { Text } from 'ui/text'
 import type { PageLink } from '../plugin/pages.ts'
+import { appMessages, sectionLabel } from './app-messages.ts'
 import { initialOf, LetterRail } from './letter-rail.tsx'
 import { SearchButton } from './search.tsx'
 
@@ -43,29 +45,37 @@ const PageItem = memo(function PageItem({ page }: { page: PageLink }) {
 export const DocsSidebar = memo(function DocsSidebar({ pages }: { pages: readonly PageLink[] }) {
 	const bodyRef = useRef<HTMLDivElement>(null)
 
+	const intl = useIntl()
+
 	const sections = sectionsOf(pages)
 
 	return (
 		<Sidebar>
 			<SidebarHeader>
-				<Heading level={2}>Docs</Heading>
+				<Heading level={2}>
+					<IntlMessage message={appMessages.docs} />
+				</Heading>
 			</SidebarHeader>
 			<SearchButton />
 			<Flex align="stretch" gap="sm" className="-me-4 min-h-0 flex-1">
 				<SidebarBody ref={bodyRef} className="min-w-0">
-					{sections.map(({ section, links }) => (
-						<SidebarSection key={section}>
-							{/* The muted tone is 4.4:1 on the gray of the sidebar, under the 4.5:1 of small text. */}
-							<Text className="density-px-ring-[1.5,2,2.5] mb-2 text-sm text-zinc-600 uppercase tracking-wide dark:text-zinc-400">
-								{section}
-							</Text>
-							<SidebarList aria-label={section}>
-								{links.map((page) => (
-									<PageItem key={page.path} page={page} />
-								))}
-							</SidebarList>
-						</SidebarSection>
-					))}
+					{sections.map(({ section, links }) => {
+						const label = sectionLabel(intl, section)
+
+						return (
+							<SidebarSection key={section}>
+								{/* The muted tone is 4.4:1 on the gray of the sidebar, under the 4.5:1 of small text. */}
+								<Text className="density-px-ring-[1.5,2,2.5] mb-2 text-sm text-zinc-600 uppercase tracking-wide dark:text-zinc-400">
+									{label}
+								</Text>
+								<SidebarList aria-label={label}>
+									{links.map((page) => (
+										<PageItem key={page.path} page={page} />
+									))}
+								</SidebarList>
+							</SidebarSection>
+						)
+					})}
 				</SidebarBody>
 				<LetterRail pages={pages} bodyRef={bodyRef} />
 			</Flex>
