@@ -105,9 +105,14 @@ describe('zipcodeMask', () => {
 			'SW1A 1AA',
 		],
 		[
-			'caps GB postcodes at eight characters',
+			'caps GB postcodes at seven characters',
 			{ mask: zipcodeMask('GB'), defaultValue: 'abcdefghijk' },
-			'ABCDEFGH',
+			'ABCDEFG',
+		],
+		[
+			'places the GB space before the inward code',
+			{ mask: zipcodeMask('GB'), defaultValue: 'm11ae' },
+			'M1 1AE',
 		],
 		[
 			'passes international codes through, truncated to twelve characters',
@@ -122,42 +127,25 @@ describe('zipcodeMask', () => {
 		expect(input.value).toBe(expected)
 	})
 
-	it.each<[string, ReturnType<typeof zipcodeMask>, string]>([
-		['a GB postcode', zipcodeMask('GB'), 'SW1A 1AA'],
-		['an international code with a space', zipcodeMask('international'), '1234 AB'],
-		['an international code with a hyphen', zipcodeMask('international'), '00-950'],
-	])('keeps the caret at the end while the user types %s', async (_name, mask, code) => {
+	it.each<[string, ReturnType<typeof zipcodeMask>, string, string]>([
+		['a GB postcode with its space', zipcodeMask('GB'), 'sw1a 1aa', 'SW1A 1AA'],
+		['a GB postcode with no space', zipcodeMask('GB'), 'sw1a1aa', 'SW1A 1AA'],
+		['an international code with a space', zipcodeMask('international'), '1234 AB', '1234 AB'],
+		['an international code with a hyphen', zipcodeMask('international'), '00-950', '00-950'],
+	])('keeps the caret at the end while the user types %s', async (_name, mask, typed, value) => {
 		const { container } = renderUI(<MaskInput mask={mask} />)
 
 		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
 		input.focus()
 
-		await setupUser().keyboard(code)
+		await setupUser().keyboard(typed)
 
 		await Promise.resolve()
 
-		expect(input.value).toBe(code)
+		expect(input.value).toBe(value)
 
-		expect(input.selectionStart).toBe(code.length)
-	})
-
-	it('keeps the caret before the next character when a GB space collapses', async () => {
-		const { container } = renderUI(<MaskInput mask={zipcodeMask('GB')} defaultValue="SW1A1AA" />)
-
-		const input = getSlot<HTMLInputElement>(container, 'mask-input')
-
-		input.focus()
-
-		input.setSelectionRange(4, 4)
-
-		await setupUser().keyboard('  ')
-
-		await Promise.resolve()
-
-		expect(input.value).toBe('SW1A 1AA')
-
-		expect(input.selectionStart).toBe(5)
+		expect(input.selectionStart).toBe(value.length)
 	})
 
 	it('uses an empty default placeholder for international codes', () => {
