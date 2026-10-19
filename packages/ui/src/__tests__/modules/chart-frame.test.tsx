@@ -102,6 +102,24 @@ describe('ChartFrame', () => {
 		expect(bySlot(rail.container, 'chart-body')).toHaveClass('gap-4')
 	})
 
+	it('keeps the plot mounted when the legend moves between a side and a band', () => {
+		const { container, rerender } = renderUI(frame(400, { legendPlacement: 'right' }))
+
+		const plot = bySlot(container, 'chart-plot')
+
+		rerender(frame(400, { legendPlacement: 'bottom' }))
+
+		expect(bySlot(container, 'chart-plot')).toBe(plot)
+
+		rerender(frame(400, { legendPlacement: 'top' }))
+
+		expect(bySlot(container, 'chart-plot')).toBe(plot)
+
+		rerender(frame(400, { legendPlacement: 'left' }))
+
+		expect(bySlot(container, 'chart-plot')).toBe(plot)
+	})
+
 	it('draws no header for a title that names the context menu alone', () => {
 		const drawn = renderUI(frame(400, { title: 'Revenue' }))
 
