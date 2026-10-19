@@ -87,6 +87,8 @@ export type LightboxTrack = {
 /** A press on the stage, from the first contact to the lift. */
 type Press = {
 	id: number
+	/** The kind of pointer that pressed. Only a touch pinches with a second touch. */
+	type: string
 	x: number
 	y: number
 	/** The travel that the track painted when the press started, in px. */
@@ -723,8 +725,11 @@ export function useLightboxTrack(
 			onPointerDown: (event) => {
 				const held = press.current
 
-				if (held && event.pointerType === 'touch' && event.pointerId !== held.id) {
-					pinch(held, event)
+				// While a press holds, a press of another pointer starts nothing. A second
+				// finger joins a touch as a pinch. While a pen or a mouse presses, the touch
+				// of a palm is a primary press too, and it takes nothing.
+				if (held && event.pointerId !== held.id) {
+					if (event.pointerType === 'touch' && held.type === 'touch') pinch(held, event)
 
 					return
 				}
@@ -747,6 +752,7 @@ export function useLightboxTrack(
 
 				press.current = {
 					id: event.pointerId,
+					type: event.pointerType,
 					x: event.clientX,
 					y: event.clientY,
 					base: travel.current,

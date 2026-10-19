@@ -160,12 +160,12 @@ describe('useColorDrag', () => {
 	})
 
 	// Capture can end without a pointerup reaching the node (a browser-claimed
-	// gesture, the node being torn out); the lost-capture handler clears
-	// `dragging` so the handle stops tracking the pointer.
+	// gesture, the node being torn out); the lost-capture handler ends the drag
+	// so the handle stops tracking the pointer.
 	it.each<[string, (api: ReturnType<typeof setup>['api'], node: HTMLElement) => void]>([
 		['onPointerUp', (api, node) => api.onPointerUp(makeEvent(node))],
 		['onPointerCancel', (api, node) => api.onPointerCancel(makeEvent(node))],
-		['onLostPointerCapture', (api) => api.onLostPointerCapture()],
+		['onLostPointerCapture', (api, node) => api.onLostPointerCapture(makeEvent(node))],
 	])('%s ends the drag so later moves are ignored', (_name, end) => {
 		const { api, node, onPosition } = setup()
 
@@ -178,5 +178,29 @@ describe('useColorDrag', () => {
 		api.onPointerMove(makeEvent(node, { clientX: 100, clientY: 50 }))
 
 		expect(onPosition).not.toHaveBeenCalled()
+	})
+
+	// Each pointer type has its own primary pointer, so a palm is primary while a
+	// pen drags. It moves nothing, and its release leaves the drag alone.
+	it('keeps the drag on the pointer that started it when a palm presses', () => {
+		const { api, node, onPosition } = setup()
+
+		const palm = { pointerId: 2, pointerType: 'touch', isPrimary: true } as const
+
+		api.onPointerDown(makeEvent(node, { clientX: 0, clientY: 0, pointerType: 'pen' }))
+
+		onPosition.mockClear()
+
+		api.onPointerDown(makeEvent(node, { ...palm, clientX: 100, clientY: 50 }))
+
+		api.onPointerMove(makeEvent(node, { ...palm, clientX: 100, clientY: 50 }))
+
+		api.onPointerUp(makeEvent(node, palm))
+
+		expect(onPosition).not.toHaveBeenCalled()
+
+		api.onPointerMove(makeEvent(node, { clientX: 100, clientY: 50, pointerType: 'pen' }))
+
+		expect(onPosition).toHaveBeenCalledTimes(1)
 	})
 })

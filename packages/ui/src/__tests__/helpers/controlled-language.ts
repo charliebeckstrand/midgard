@@ -292,27 +292,21 @@ export function fileBreaks(file: string, source: SourceFile): Break[] {
 	return breaks
 }
 
-// The scan's scope: the shipped tree, less the demo pages. walkSource
-// prunes the test and benchmark trees already.
-const SKIP_ENTRIES = new Set(['demos'])
-
 const SOURCE_FILE = /\.tsx?$/
 
 /**
- * Every rule break in the shipped tree, in file order.
+ * Every rule break in the shipped tree, in file order. The tree includes the
+ * docs site and its demo pages. `walkSource` removes the test and benchmark
+ * trees.
  *
  * @param server - The TypeScript server that parses the tree, in one project.
  */
 export function scanPackage(server: TypeScriptServer): Break[] {
 	const files: string[] = []
 
-	walkSource(
-		srcDir,
-		(file) => {
-			if (SOURCE_FILE.test(file)) files.push(file)
-		},
-		SKIP_ENTRIES,
-	)
+	walkSource(srcDir, (file) => {
+		if (SOURCE_FILE.test(file)) files.push(file)
+	})
 
 	const breaks = [...server.parse(files)].flatMap(([file, source]) =>
 		fileBreaks(srcRelative(file), source),

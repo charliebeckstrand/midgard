@@ -574,7 +574,9 @@ describe('RangeSlider + Control', () => {
 		expect(allBySlot(container, 'slider-range-thumb')[0]).toHaveAttribute('id', 'price')
 	})
 
-	it('keeps an explicit id over the Control id', () => {
+	it('keeps an explicit id over the Control id, and warns that the ids differ', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
 		const { container } = renderUI(
 			<Control id="price">
 				<RangeSlider id="band" />
@@ -582,6 +584,8 @@ describe('RangeSlider + Control', () => {
 		)
 
 		expect(allBySlot(container, 'slider-range-thumb')[0]).toHaveAttribute('id', 'band')
+
+		expect(warn).toHaveBeenCalledWith(expect.stringContaining('htmlFor="band"'))
 	})
 
 	it('names each thumb from the Field label, then the thumb label', () => {

@@ -73,13 +73,13 @@ describe('Lightbox focus (real engine, real Motion)', () => {
 
 			await userEvent.keyboard('{ArrowRight}')
 
-			await expect.poll(count).toBe('2 / 4')
+			await expect.poll(count).toBe('2 of 4')
 
 			await waitForNoTween(viewerTweens)
 
 			await userEvent.keyboard('{ArrowRight}')
 
-			await expect.poll(count).toBe('3 / 4')
+			await expect.poll(count).toBe('3 of 4')
 
 			await waitForNoTween(viewerTweens)
 
@@ -123,13 +123,13 @@ describe('Lightbox focus (real engine, real Motion)', () => {
 
 		await waitForNoTween(viewerTweens)
 
-		expect(count()).toBe('1 / 4')
+		expect(count()).toBe('1 of 4')
 
 		expect(viewer()).toContainElement(document.activeElement as HTMLElement)
 
 		// The arrow keys still step.
 		await userEvent.keyboard('{ArrowRight}')
 
-		await expect.poll(count).toBe('2 / 4')
+		await expect.poll(count).toBe('2 of 4')
 	})
 })

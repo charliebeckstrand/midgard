@@ -84,7 +84,7 @@ describe('Grid client view cost', () => {
 				columns: [{ id: 'name', title: 'Name', value: name, filterable: true }],
 				getKey: (row) => row.id,
 				globalFilter: { value: 'Name 1', manual: true },
-				columnFilters: { value: [] },
+				columnFilters: { value: [], manual: true },
 				sort: [],
 			}),
 		)

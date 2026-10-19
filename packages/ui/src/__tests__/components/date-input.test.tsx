@@ -1020,4 +1020,20 @@ describe('DateInput in a locale', () => {
 
 		expect(screen.getByRole('button', { name: 'Borrar la fecha' })).toBeInTheDocument()
 	})
+
+	it('writes the letters of the placeholder and of the format error in the language of the locale', async () => {
+		const { container } = renderUI(
+			<LocaleProvider locale="es-ES">
+				<DateInput />
+			</LocaleProvider>,
+		)
+
+		const input = screen.getByRole('textbox', { name: 'Fecha' })
+
+		expect(input).toHaveAttribute('placeholder', 'DD/MM/AAAA')
+
+		await setupUser().type(input, '31022026')
+
+		expect(bySlot(container, 'message')).toHaveTextContent('(DD/MM/AAAA)')
+	})
 })
