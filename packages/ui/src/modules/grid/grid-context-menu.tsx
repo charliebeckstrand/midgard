@@ -440,7 +440,7 @@ function GridContextMenuSurface({
 
 			if (tryCellMenu(target, event, resolveItems, commit)) return
 
-			openKeyboardMenu(target, resolveItems, commit, returnFocus)
+			openKeyboardMenu(target, resolveItems, resolveGroupItems, commit, returnFocus)
 		},
 		[openAt, resolveItems, resolveGroupItems, resolveColumnGroupItems, setItems, returnFocus],
 	)

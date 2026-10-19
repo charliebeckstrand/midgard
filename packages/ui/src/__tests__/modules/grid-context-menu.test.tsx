@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn, type GridSortState } from '../../modules/grid'
 import { createGroup, createRule, type QueryField } from '../../modules/query'
-import { fireEvent, present, renderUI, screen } from '../helpers'
+import { act, fireEvent, present, renderUI, screen } from '../helpers'
 
 describe('Grid context menus', () => {
 	type Row = { id: number; name: string; role: string }
@@ -334,6 +334,52 @@ describe('Grid context menus', () => {
 		fireEvent.contextMenu(name)
 
 		expect(screen.getByRole('menuitem', { name: 'Copy' })).toBeInTheDocument()
+	})
+
+	it('opens the group menu from a keyboard context-menu event on a group header', () => {
+		const { container } = renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				navigable
+				groupBy={{ value: 'role', onValueChange: () => {} }}
+			/>,
+		)
+
+		const grid = screen.getByRole('treegrid')
+
+		// The cursor seats on the first row, a group header.
+		fireEvent.focus(grid)
+
+		const active = present(
+			grid.querySelector<HTMLElement>('[role="gridcell"][data-active]'),
+			'the cursor cell',
+		)
+
+		expect(active.closest('tr')).toHaveAttribute('data-group-row')
+
+		const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true })
+
+		act(() => {
+			grid.dispatchEvent(event)
+		})
+
+		// The grid takes the event, so the native menu stays shut.
+		expect(event.defaultPrevented).toBe(true)
+
+		const keyboard = screen.getAllByRole('menuitem').map((item) => item.textContent)
+
+		expect(keyboard.length).toBeGreaterThan(0)
+
+		fireEvent.keyDown(screen.getByRole('menu'), { key: 'Escape' })
+
+		// The same menu a right-click on the row opens.
+		fireEvent.contextMenu(
+			present(container.querySelector('tr[data-group-row] td'), 'a header cell'),
+		)
+
+		expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(keyboard)
 	})
 
 	it('keeps the native menu when a keyboard context-menu event has no active cell', () => {
