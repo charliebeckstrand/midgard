@@ -16,7 +16,14 @@ export type NavContentProps = Omit<
 	'data-slot'?: string
 }
 
-/** Container that swaps in the panel matching the {@link Nav}'s active `value`; collects the {@link NavContent} children. */
+/**
+ * Container that swaps in the panel matching the {@link Nav}'s active `value`; collects the {@link NavContent} children.
+ *
+ * @remarks
+ * Put each {@link NavContent} directly in the container, with no element
+ * between them. The outgoing panel takes the position of the container while
+ * it exits.
+ */
 export function NavContents(props: NavContentsProps) {
 	return <CurrentContents slotPrefix="nav" {...props} />
 }

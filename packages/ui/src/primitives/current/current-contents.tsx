@@ -64,6 +64,14 @@ export type CurrentContentsProps = ComponentProps<'div'> & {
  * {@link Mount} policy, so `CurrentContent` knows whether to keep, lazily
  * mount, or unmount unmatched children. An animating container also broadcasts
  * its post-mount latch, so late-mounting panels enter from transparent. A consumer `ref` reaches the container element.
+ *
+ * @remarks
+ * Put each `CurrentContent` directly in the container, with no element between
+ * them. An animating container is the positioning box of its panels. The
+ * outgoing panel goes to the top edge of the container while it exits. A
+ * padded wrapper between the two thus moves the outgoing panel out of the
+ * padding. The container also finds the panels of a slide among its own
+ * children. To frame the panels, frame the content of each panel.
  */
 export function CurrentContents({
 	slotPrefix,
