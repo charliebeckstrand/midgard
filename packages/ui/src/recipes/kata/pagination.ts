@@ -11,8 +11,9 @@ const { focus } = sen
 
 /**
  * The page list. Below the `sm` width of the pagination container, the list
- * goes compact: it keeps the current page and hides the other pages and the
- * gaps, so Previous and Next stay in the row.
+ * goes compact: it keeps the current page and the two items on each side of it,
+ * and hides the other items. Below the `2xs` width, it keeps only the
+ * current page. Previous and Next stay in the row at each width.
  */
 const list = defineRecipe({
 	base: [
@@ -20,7 +21,8 @@ const list = defineRecipe({
 		'list-none',
 		dan.gap.scale.xs,
 		'm-0 p-0',
-		'@max-sm/pagination:[&>li:not(:has([aria-current=page]))]:hidden',
+		'@max-sm/pagination:[&>li:not(:has([aria-current=page]),:has(+li_[aria-current=page]),:has(+li+li_[aria-current=page]),:has([aria-current=page])+li,:has([aria-current=page])+li+li)]:hidden',
+		'@max-2xs/pagination:[&>li:not(:has([aria-current=page]))]:hidden',
 	],
 })
 

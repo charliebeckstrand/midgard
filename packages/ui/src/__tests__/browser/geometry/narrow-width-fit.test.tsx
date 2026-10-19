@@ -49,8 +49,20 @@ describe('narrow-width fit (real browser)', () => {
 	const shown = (root: Element) =>
 		[...root.querySelectorAll('li')].filter((li) => getComputedStyle(li).display !== 'none')
 
+	it('keeps the current page and the two items on each side of a compact pagination', () => {
+		const { container } = renderPagination(340)
+
+		const nav = getSlot(container, 'pagination')
+
+		expect(shown(nav).map((li) => li.textContent)).toEqual(['1', '2', '3', '…'])
+
+		const next = getSlot(container, 'pagination-next').getBoundingClientRect()
+
+		expect(next.right).toBeLessThanOrEqual(nav.getBoundingClientRect().right)
+	})
+
 	it('keeps only the current page of a narrow pagination, and Next inside it', () => {
-		const { container } = renderPagination(300)
+		const { container } = renderPagination(240)
 
 		const nav = getSlot(container, 'pagination')
 
