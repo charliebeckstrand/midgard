@@ -1,4 +1,5 @@
-import { configureAxe, toHaveNoViolations } from 'jest-axe'
+import { act } from '@testing-library/react'
+import { configureAxe, type JestAxe, toHaveNoViolations } from 'jest-axe'
 import { expect } from 'vitest'
 
 // Register `toHaveNoViolations` here rather than in setup/index.ts so axe-core
@@ -23,6 +24,16 @@ const GEOMETRY_BLIND = {
 const RESULT_TYPES: ['violations'] = ['violations']
 
 /**
+ * Runs each scan in `act`. A scan takes time, and a timer of the component can
+ * fall due before the scan ends (for example, the debounce of the grid status).
+ * In `act`, React keeps the update that the timer causes until the scan ends,
+ * so the scan reads one stable tree and React logs no `act` warning.
+ */
+function inAct(run: JestAxe): JestAxe {
+	return (html, options) => act(() => run(html, options))
+}
+
+/**
  * axe-core runner for the jsdom test environment.
  *
  * jsdom has no layout or rendering engine. `color-contrast` (WCAG 1.4.3 /
@@ -34,15 +45,17 @@ const RESULT_TYPES: ['violations'] = ['violations']
  *
  *     expect(await axe(container)).toHaveNoViolations()
  */
-export const axe = configureAxe({
-	resultTypes: RESULT_TYPES,
-	rules: {
-		...GEOMETRY_BLIND,
-		// `region` fires on every isolated component render (no enclosing landmark).
-		// Re-enabled in the page-scoped `axePage` runner below.
-		region: { enabled: false },
-	},
-})
+export const axe = inAct(
+	configureAxe({
+		resultTypes: RESULT_TYPES,
+		rules: {
+			...GEOMETRY_BLIND,
+			// `region` fires on every isolated component render (no enclosing landmark).
+			// Re-enabled in the page-scoped `axePage` runner below.
+			region: { enabled: false },
+		},
+	}),
+)
 
 /**
  * Page/layout-scoped runner. Enables `region` and the landmark rules
@@ -51,4 +64,4 @@ export const axe = configureAxe({
  * isolated container. Contrast and target-size remain disabled (require a real
  * browser).
  */
-export const axePage = configureAxe({ resultTypes: RESULT_TYPES, rules: GEOMETRY_BLIND })
+export const axePage = inAct(configureAxe({ resultTypes: RESULT_TYPES, rules: GEOMETRY_BLIND }))
