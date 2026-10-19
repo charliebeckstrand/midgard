@@ -34,6 +34,18 @@ describe('formatDate', () => {
 	it('formats in the Gregorian calendar for a locale with another default', () => {
 		expect(formatDate(new Date(2024, 0, 15), 'th-TH')).toContain('2024')
 	})
+
+	// A picked date is local midnight. A zone west of the runtime's would read it
+	// as the day before.
+	it('reads the date in the local time zone, whatever the options name', () => {
+		const options = { dateStyle: 'medium', timeZone: 'Etc/GMT+12' } as const
+
+		expect(formatDate(new Date(2024, 0, 15), 'en-US', options)).toBe('Jan 15, 2024')
+
+		expect(formatRange(new Date(2024, 0, 15), new Date(2024, 0, 16), 'en-US', options)).toMatch(
+			/^Jan 15\s*–\s*16, 2024$/,
+		)
+	})
 })
 
 describe('formatRange', () => {
