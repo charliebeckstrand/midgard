@@ -47,8 +47,11 @@ import {
 import {
 	type GridHistoryCell,
 	type GridHistoryStep,
+	type GridPendingEntry,
 	historyStep,
 	historyValue,
+	recordWrite,
+	settlePendingEntry,
 } from './engine/grid-edit-history'
 import {
 	type CellRequest,
@@ -1569,7 +1572,7 @@ export function useGridEditing<T>({
 	// Under cell scope a refused cell opens beside the session, unless the
 	// session holds it. One polite announcement speaks the batch.
 	const settleBatch = useCallback(
-		(batch: InFlightBatch, refused: Map<string | number, string>) => {
+		(batch: InFlightBatch, refused: Map<string | number, string>, entry: GridPendingEntry) => {
 			const { rowKey } = batch
 
 			// A cell-scoped session holds one cell, so a refused cell opens beside
@@ -1585,19 +1588,26 @@ export function useGridEditing<T>({
 
 			const { saved, failed, accepted } = settleDrafts({ batch, refused, drafts, reopen })
 
+			const step = batch.outcome === 'undone' || batch.outcome === 'redone'
+
+			// An accepted save goes into the entry of its write. An undo or a redo
+			// moved its entry when it was sent, so it adds nothing.
+			settlePendingEntry(
+				entry,
+				step ? [] : batch.history.filter((cell) => accepted.has(cell.columnId)),
+				recordEntry,
+			)
+
 			if (saved.length + failed.length === 0) return
 
 			activeEditStore.notify()
 
-			// An accepted save goes into the history. An undo or a redo moved its
-			// entry when it was sent, so a refused cell goes back.
-			if (batch.outcome === 'undone' || batch.outcome === 'redone') {
+			// A refused cell of an undo or a redo goes back.
+			if (step) {
 				restoreStep(
 					batch.outcome === 'undone' ? 'undo' : 'redo',
 					batch.history.filter((cell) => refused.has(cell.columnId)),
 				)
-			} else {
-				recordEntry(batch.history.filter((cell) => accepted.has(cell.columnId)))
 			}
 
 			if (failed.length > 0 && !cellScoped && !editableRowsRef.current.has(rowKey)) {
@@ -1628,7 +1638,7 @@ export function useGridEditing<T>({
 	// the promise does. A rejection refuses the whole batch. A refusal counts
 	// only for a draft of the batch, on the row of the batch.
 	const trackBatch = useCallback(
-		(batch: InFlightBatch) => {
+		(batch: InFlightBatch, entry: GridPendingEntry) => {
 			for (const [columnId, draft] of batch.drafts) drafts.pend(batch.rowKey, columnId, draft)
 
 			activeEditStore.notify()
@@ -1637,14 +1647,16 @@ export function useGridEditing<T>({
 				refusal.rowKey === batch.rowKey && batch.drafts.has(refusal.columnId)
 
 			trackSink(batch.result, mountedRef, (outcome) =>
-				settleBatch(batch, readRefusals(outcome, batch.drafts.keys(), takes)),
+				settleBatch(batch, readRefusals(outcome, batch.drafts.keys(), takes), entry),
 			)
 		},
 		[drafts, activeEditStore, settleBatch, mountedRef],
 	)
 
 	// Read by the sweep, so a new callback does not run the sweep again.
-	const trackInFlight = useEffectEvent((batch: InFlightBatch) => trackBatch(batch))
+	const trackInFlight = useEffectEvent((batch: InFlightBatch, entry: GridPendingEntry) =>
+		trackBatch(batch, entry),
+	)
 
 	// Commit the cells that the session closed in the render just past. The
 	// drafts belong to the session, and this is where they land in the sink. The
@@ -1687,11 +1699,9 @@ export function useGridEditing<T>({
 		// async batch announces as it settles.
 		if (saved.columns.length > 0) announceCommit(saved.columns, saved.row)
 
-		// One sweep is one user action, so its cells are one entry. An async
-		// batch goes into the history as it settles.
-		recordEntry(saved.history)
-
-		for (const batch of inFlight) trackInFlight(batch)
+		// One sweep is one user action, so its cells are one entry. With an async
+		// batch, the entry records when the last batch settles.
+		recordWrite(saved.history, inFlight, recordEntry, trackInFlight)
 	}, [
 		drafts,
 		editableRows,
@@ -1735,8 +1745,6 @@ export function useGridEditing<T>({
 
 			if (rejected.length > 0) sendReject(rejected)
 
-			recordEntry(saved.history)
-
 			const message = describeWrite(
 				intl,
 				saved.columns,
@@ -1747,7 +1755,7 @@ export function useGridEditing<T>({
 
 			if (message) announce(message)
 
-			for (const batch of inFlight) trackBatch(batch)
+			recordWrite(saved.history, inFlight, recordEntry, trackBatch)
 		},
 		[editSourceRef, hasCommit, sendCommit, sendReject, recordEntry, trackBatch, intl],
 	)

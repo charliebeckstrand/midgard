@@ -463,6 +463,10 @@ export type GridEditableConfig = {
 	 * cell keeps the value with its error. `validate` does not run, because
 	 * each value was valid when it saved.
 	 *
+	 * One save is one step, also when it writes many rows. When `onCommit`
+	 * returns a promise, the save goes into the history after the batch of its
+	 * last row settles, with the cells that `onCommit` accepted.
+	 *
 	 * @remarks The history holds the last 100 saves, and a new save clears the
 	 * steps that redo can take. A step writes a cell only when the cell still
 	 * holds the value that the last save wrote. A cell that changed since, for

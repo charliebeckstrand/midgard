@@ -6,7 +6,7 @@ import {
 	type GridColumn,
 	type GridEditableConfig,
 } from '../../modules/grid'
-import { expectAnnouncement, fireEvent, gridCells, renderUI, screen } from '../helpers'
+import { act, expectAnnouncement, fireEvent, gridCells, renderUI, screen } from '../helpers'
 
 type Row = { id: number; name: string; count: number; code: string }
 
@@ -36,7 +36,11 @@ function applyChanges(current: Row[], changes: GridCellChange[]): Row[] {
 	})
 }
 
-function renderFillGrid(props: { editable?: Partial<GridEditableConfig> } = {}) {
+/**
+ * Renders a fill grid with the history on. `async` makes the sink answer with
+ * a resolved promise, so each row of a write settles as a batch of its own.
+ */
+function renderFillGrid(props: { editable?: Partial<GridEditableConfig>; async?: boolean } = {}) {
 	const onCommit = vi.fn()
 
 	function Harness() {
@@ -58,6 +62,8 @@ function renderFillGrid(props: { editable?: Partial<GridEditableConfig> } = {}) 
 						onCommit(changes)
 
 						setShown((prev) => applyChanges(prev, changes))
+
+						return props.async ? Promise.resolve() : undefined
 					},
 					...props.editable,
 				}}
@@ -109,6 +115,26 @@ describe('Grid range fill', () => {
 		await expectAnnouncement('4 cells filled')
 
 		fireEvent.keyDown(view.grid, { key: 'z', ctrlKey: true })
+
+		expect(view.texts().map((row) => row[0])).toEqual(['Alice', 'Bob', 'Carol'])
+	})
+
+	it('undoes an async fill of many rows as one step', async () => {
+		const view = renderFillGrid({ async: true })
+
+		view.select([0, 0], [2, 0])
+
+		// The fill sends one batch for each row, and both settle.
+		await act(async () => {
+			fireEvent.keyDown(view.grid, { key: 'd', ctrlKey: true })
+		})
+
+		expect(view.texts().map((row) => row[0])).toEqual(['Alice', 'Alice', 'Alice'])
+
+		// One undo puts back both rows.
+		await act(async () => {
+			fireEvent.keyDown(view.grid, { key: 'z', ctrlKey: true })
+		})
 
 		expect(view.texts().map((row) => row[0])).toEqual(['Alice', 'Bob', 'Carol'])
 	})
