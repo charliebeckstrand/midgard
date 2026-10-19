@@ -205,18 +205,6 @@ export default defineConfig({
 		outputFile: {
 			junit: 'test-results/junit.xml',
 		},
-		// @tanstack/virtual-core's isScrolling debounce can outlive the jsdom
-		// environment that ran it; the late timer then throws "window is not
-		// defined" from a virtual-core frame. The virtualizer suites run on a
-		// shared `unit` worker, whose window outlives each file, so the stray
-		// timer can only land after the worker tears its environment down —
-		// ignore exactly that error (message and a virtual-core stack frame
-		// together) so a same-message error from any other source stays fatal.
-		onUnhandledError(error) {
-			return !(
-				error.message?.includes('window is not defined') && error.stack?.includes('virtual-core')
-			)
-		},
 		// `test:coverage` merges this report with the report of the browser run.
 		coverage: { ...coverageScope, reporter: ['text', 'cobertura'] },
 		projects: [

@@ -206,5 +206,1313 @@
 	"docs.tabs.sections": {
 		"defaultMessage": "Sections",
 		"description": "The name of the list of tabs at the top of a page of the docs. Each tab shows one part of the page."
+	},
+	"docs.title.a-step-behind-the-answer": {
+		"defaultMessage": "A step behind the answer",
+		"description": "The title of an example on a page of the docs. It comes from the file name a-step-behind-the-answer.tsx."
+	},
+	"docs.title.activity": {
+		"defaultMessage": "Activity",
+		"description": "The title of an example on a page of the docs. It comes from the file name activity.tsx."
+	},
+	"docs.title.aggregation-and-totals": {
+		"defaultMessage": "Aggregation and totals",
+		"description": "The title of an example on a page of the docs. It comes from the file name aggregation-and-totals.tsx."
+	},
+	"docs.title.align-and-justify": {
+		"defaultMessage": "Align and justify",
+		"description": "The title of an example on a page of the docs. It comes from the file name align-and-justify.tsx."
+	},
+	"docs.title.animated": {
+		"defaultMessage": "Animated",
+		"description": "The title of an example on a page of the docs. It comes from the file name animated.tsx."
+	},
+	"docs.title.animated-sorting": {
+		"defaultMessage": "Animated sorting",
+		"description": "The title of an example on a page of the docs. It comes from the file name animated-sorting.tsx."
+	},
+	"docs.title.animation": {
+		"defaultMessage": "Animation",
+		"description": "The title of an example on a page of the docs. It comes from the file name animation.tsx."
+	},
+	"docs.title.arrays-of-primitives": {
+		"defaultMessage": "Arrays of primitives",
+		"description": "The title of an example on a page of the docs. It comes from the file name arrays-of-primitives.tsx."
+	},
+	"docs.title.ask-with-a-hook": {
+		"defaultMessage": "Ask with a hook",
+		"description": "The title of an example on a page of the docs. It comes from the file name ask-with-a-hook.tsx."
+	},
+	"docs.title.async-commit": {
+		"defaultMessage": "Async commit",
+		"description": "The title of an example on a page of the docs. It comes from the file name async-commit.tsx."
+	},
+	"docs.title.avatar-group": {
+		"defaultMessage": "Avatar group",
+		"description": "The title of an example on a page of the docs. It comes from the file name avatar-group.tsx."
+	},
+	"docs.title.bar-and-line": {
+		"defaultMessage": "Bar and line",
+		"description": "The title of an example on a page of the docs. It comes from the file name bar-and-line.tsx."
+	},
+	"docs.title.bar-area-and-line": {
+		"defaultMessage": "Bar area and line",
+		"description": "The title of an example on a page of the docs. It comes from the file name bar-area-and-line.tsx."
+	},
+	"docs.title.bare-nested-in-a-container": {
+		"defaultMessage": "Bare nested in a container",
+		"description": "The title of an example on a page of the docs. It comes from the file name bare-nested-in-a-container.tsx."
+	},
+	"docs.title.basic": {
+		"defaultMessage": "Basic",
+		"description": "The title of an example on a page of the docs. It comes from the file name basic.tsx."
+	},
+	"docs.title.batch-actions": {
+		"defaultMessage": "Batch actions",
+		"description": "The title of an example on a page of the docs. It comes from the file name batch-actions.tsx."
+	},
+	"docs.title.between-groups": {
+		"defaultMessage": "Between groups",
+		"description": "The title of an example on a page of the docs. It comes from the file name between-groups.tsx."
+	},
+	"docs.title.brand-detection": {
+		"defaultMessage": "Brand detection",
+		"description": "The title of an example on a page of the docs. It comes from the file name brand-detection.tsx."
+	},
+	"docs.title.build-and-save": {
+		"defaultMessage": "Build and save",
+		"description": "The title of an example on a page of the docs. It comes from the file name build-and-save.tsx."
+	},
+	"docs.title.builder": {
+		"defaultMessage": "Builder",
+		"description": "The title of an example on a page of the docs. It comes from the file name builder.tsx."
+	},
+	"docs.title.bulk-edit": {
+		"defaultMessage": "Bulk edit",
+		"description": "The title of an example on a page of the docs. It comes from the file name bulk-edit.tsx."
+	},
+	"docs.title.business-search": {
+		"defaultMessage": "Business search",
+		"description": "The title of an example on a page of the docs. It comes from the file name business-search.tsx."
+	},
+	"docs.title.button": {
+		"defaultMessage": "Button",
+		"description": "The title of an example on a page of the docs. It comes from the file name button.tsx."
+	},
+	"docs.title.calendar-day": {
+		"defaultMessage": "Calendar day",
+		"description": "The title of an example on a page of the docs. It comes from the file name calendar-day.tsx."
+	},
+	"docs.title.callout-labels": {
+		"defaultMessage": "Callout labels",
+		"description": "The title of an example on a page of the docs. It comes from the file name callout-labels.tsx."
+	},
+	"docs.title.cancel-or-close": {
+		"defaultMessage": "Cancel or close",
+		"description": "The title of an example on a page of the docs. It comes from the file name cancel-or-close.tsx."
+	},
+	"docs.title.capped": {
+		"defaultMessage": "Capped",
+		"description": "The title of an example on a page of the docs. It comes from the file name capped.tsx."
+	},
+	"docs.title.card-details": {
+		"defaultMessage": "Card details",
+		"description": "The title of an example on a page of the docs. It comes from the file name card-details.tsx."
+	},
+	"docs.title.card-title-size": {
+		"defaultMessage": "Card title size",
+		"description": "The title of an example on a page of the docs. It comes from the file name card-title-size.tsx."
+	},
+	"docs.title.category-dividers": {
+		"defaultMessage": "Category dividers",
+		"description": "The title of an example on a page of the docs. It comes from the file name category-dividers.tsx."
+	},
+	"docs.title.cell-click": {
+		"defaultMessage": "Cell click",
+		"description": "The title of an example on a page of the docs. It comes from the file name cell-click.tsx."
+	},
+	"docs.title.cell-range": {
+		"defaultMessage": "Cell range",
+		"description": "The title of an example on a page of the docs. It comes from the file name cell-range.tsx."
+	},
+	"docs.title.cell-scope-and-spreadsheet-keys": {
+		"defaultMessage": "Cell scope and spreadsheet keys",
+		"description": "The title of an example on a page of the docs. It comes from the file name cell-scope-and-spreadsheet-keys.tsx."
+	},
+	"docs.title.center-content": {
+		"defaultMessage": "Center content",
+		"description": "The title of an example on a page of the docs. It comes from the file name center-content.tsx."
+	},
+	"docs.title.checkboxes": {
+		"defaultMessage": "Checkboxes",
+		"description": "The title of an example on a page of the docs. It comes from the file name checkboxes.tsx."
+	},
+	"docs.title.chips": {
+		"defaultMessage": "Chips",
+		"description": "The title of an example on a page of the docs. It comes from the file name chips.tsx."
+	},
+	"docs.title.circle": {
+		"defaultMessage": "Circle",
+		"description": "The title of an example on a page of the docs. It comes from the file name circle.tsx."
+	},
+	"docs.title.clamped-range": {
+		"defaultMessage": "Clamped range",
+		"description": "The title of an example on a page of the docs. It comes from the file name clamped-range.tsx."
+	},
+	"docs.title.clearable": {
+		"defaultMessage": "Clearable",
+		"description": "The title of an example on a page of the docs. It comes from the file name clearable.tsx."
+	},
+	"docs.title.client-infinite-scroll": {
+		"defaultMessage": "Client infinite scroll",
+		"description": "The title of an example on a page of the docs. It comes from the file name client-infinite-scroll.tsx."
+	},
+	"docs.title.client-pagination": {
+		"defaultMessage": "Client pagination",
+		"description": "The title of an example on a page of the docs. It comes from the file name client-pagination.tsx."
+	},
+	"docs.title.client-sorting": {
+		"defaultMessage": "Client sorting",
+		"description": "The title of an example on a page of the docs. It comes from the file name client-sorting.tsx."
+	},
+	"docs.title.closable": {
+		"defaultMessage": "Closable",
+		"description": "The title of an example on a page of the docs. It comes from the file name closable.tsx."
+	},
+	"docs.title.clustering": {
+		"defaultMessage": "Clustering",
+		"description": "The title of an example on a page of the docs. It comes from the file name clustering.tsx."
+	},
+	"docs.title.code-block": {
+		"defaultMessage": "Code block",
+		"description": "The title of an example on a page of the docs. It comes from the file name code-block.tsx."
+	},
+	"docs.title.collapsed-by-default": {
+		"defaultMessage": "Collapsed by default",
+		"description": "The title of an example on a page of the docs. It comes from the file name collapsed-by-default.tsx."
+	},
+	"docs.title.collapsed-groups": {
+		"defaultMessage": "Collapsed groups",
+		"description": "The title of an example on a page of the docs. It comes from the file name collapsed-groups.tsx."
+	},
+	"docs.title.collapsible-children": {
+		"defaultMessage": "Collapsible children",
+		"description": "The title of an example on a page of the docs. It comes from the file name collapsible-children.tsx."
+	},
+	"docs.title.collapsible-groups": {
+		"defaultMessage": "Collapsible groups",
+		"description": "The title of an example on a page of the docs. It comes from the file name collapsible-groups.tsx."
+	},
+	"docs.title.color": {
+		"defaultMessage": "Color",
+		"description": "The title of an example on a page of the docs. It comes from the file name color.tsx."
+	},
+	"docs.title.colors": {
+		"defaultMessage": "Colors",
+		"description": "The title of an example on a page of the docs. It comes from the file name colors.tsx."
+	},
+	"docs.title.column": {
+		"defaultMessage": "Column",
+		"description": "The title of an example on a page of the docs. It comes from the file name column.tsx."
+	},
+	"docs.title.column-filters": {
+		"defaultMessage": "Column filters",
+		"description": "The title of an example on a page of the docs. It comes from the file name column-filters.tsx."
+	},
+	"docs.title.column-groups": {
+		"defaultMessage": "Column groups",
+		"description": "The title of an example on a page of the docs. It comes from the file name column-groups.tsx."
+	},
+	"docs.title.column-manager": {
+		"defaultMessage": "Column manager",
+		"description": "The title of an example on a page of the docs. It comes from the file name column-manager.tsx."
+	},
+	"docs.title.column-reorder-with-handle": {
+		"defaultMessage": "Column reorder with handle",
+		"description": "The title of an example on a page of the docs. It comes from the file name column-reorder-with-handle.tsx."
+	},
+	"docs.title.column-reorder-without-handle": {
+		"defaultMessage": "Column reorder without handle",
+		"description": "The title of an example on a page of the docs. It comes from the file name column-reorder-without-handle.tsx."
+	},
+	"docs.title.composed-with-buttons": {
+		"defaultMessage": "Composed with buttons",
+		"description": "The title of an example on a page of the docs. It comes from the file name composed-with-buttons.tsx."
+	},
+	"docs.title.compound-api": {
+		"defaultMessage": "Compound API",
+		"description": "The title of an example on a page of the docs. It comes from the file name compound-api.tsx."
+	},
+	"docs.title.controlled": {
+		"defaultMessage": "Controlled",
+		"description": "The title of an example on a page of the docs. It comes from the file name controlled.tsx."
+	},
+	"docs.title.controlled-values": {
+		"defaultMessage": "Controlled values",
+		"description": "The title of an example on a page of the docs. It comes from the file name controlled-values.tsx."
+	},
+	"docs.title.coordinates": {
+		"defaultMessage": "Coordinates",
+		"description": "The title of an example on a page of the docs. It comes from the file name coordinates.tsx."
+	},
+	"docs.title.creatable": {
+		"defaultMessage": "Creatable",
+		"description": "The title of an example on a page of the docs. It comes from the file name creatable.tsx."
+	},
+	"docs.title.currency": {
+		"defaultMessage": "Currency",
+		"description": "The title of an example on a page of the docs. It comes from the file name currency.tsx."
+	},
+	"docs.title.currency-and-locale": {
+		"defaultMessage": "Currency and locale",
+		"description": "The title of an example on a page of the docs. It comes from the file name currency-and-locale.tsx."
+	},
+	"docs.title.current-appearance": {
+		"defaultMessage": "Current appearance",
+		"description": "The title of an example on a page of the docs. It comes from the file name current-appearance.tsx."
+	},
+	"docs.title.custom-colors": {
+		"defaultMessage": "Custom colors",
+		"description": "The title of an example on a page of the docs. It comes from the file name custom-colors.tsx."
+	},
+	"docs.title.custom-footer": {
+		"defaultMessage": "Custom footer",
+		"description": "The title of an example on a page of the docs. It comes from the file name custom-footer.tsx."
+	},
+	"docs.title.custom-format": {
+		"defaultMessage": "Custom format",
+		"description": "The title of an example on a page of the docs. It comes from the file name custom-format.tsx."
+	},
+	"docs.title.custom-icon": {
+		"defaultMessage": "Custom icon",
+		"description": "The title of an example on a page of the docs. It comes from the file name custom-icon.tsx."
+	},
+	"docs.title.custom-locale": {
+		"defaultMessage": "Custom locale",
+		"description": "The title of an example on a page of the docs. It comes from the file name custom-locale.tsx."
+	},
+	"docs.title.custom-precision": {
+		"defaultMessage": "Custom precision",
+		"description": "The title of an example on a page of the docs. It comes from the file name custom-precision.tsx."
+	},
+	"docs.title.custom-provider": {
+		"defaultMessage": "Custom provider",
+		"description": "The title of an example on a page of the docs. It comes from the file name custom-provider.tsx."
+	},
+	"docs.title.custom-ratio": {
+		"defaultMessage": "Custom ratio",
+		"description": "The title of an example on a page of the docs. It comes from the file name custom-ratio.tsx."
+	},
+	"docs.title.custom-rules": {
+		"defaultMessage": "Custom rules",
+		"description": "The title of an example on a page of the docs. It comes from the file name custom-rules.tsx."
+	},
+	"docs.title.custom-size": {
+		"defaultMessage": "Custom size",
+		"description": "The title of an example on a page of the docs. It comes from the file name custom-size.tsx."
+	},
+	"docs.title.custom-summary": {
+		"defaultMessage": "Custom summary",
+		"description": "The title of an example on a page of the docs. It comes from the file name custom-summary.tsx."
+	},
+	"docs.title.custom-swatches": {
+		"defaultMessage": "Custom swatches",
+		"description": "The title of an example on a page of the docs. It comes from the file name custom-swatches.tsx."
+	},
+	"docs.title.dashboard-grid": {
+		"defaultMessage": "Dashboard grid",
+		"description": "The title of an example on a page of the docs. It comes from the file name dashboard-grid.tsx."
+	},
+	"docs.title.dashed-line": {
+		"defaultMessage": "Dashed line",
+		"description": "The title of an example on a page of the docs. It comes from the file name dashed-line.tsx."
+	},
+	"docs.title.date-labels": {
+		"defaultMessage": "Date labels",
+		"description": "The title of an example on a page of the docs. It comes from the file name date-labels.tsx."
+	},
+	"docs.title.date-number-and-boolean-filters": {
+		"defaultMessage": "Date number and boolean filters",
+		"description": "The title of an example on a page of the docs. It comes from the file name date-number-and-boolean-filters.tsx."
+	},
+	"docs.title.decimal-step": {
+		"defaultMessage": "Decimal step",
+		"description": "The title of an example on a page of the docs. It comes from the file name decimal-step.tsx."
+	},
+	"docs.title.default": {
+		"defaultMessage": "Default",
+		"description": "The title of an example on a page of the docs. It comes from the file name default.tsx."
+	},
+	"docs.title.default-link-component": {
+		"defaultMessage": "Default link component",
+		"description": "The title of an example on a page of the docs. It comes from the file name default-link-component.tsx."
+	},
+	"docs.title.default-open": {
+		"defaultMessage": "Default open",
+		"description": "The title of an example on a page of the docs. It comes from the file name default-open.tsx."
+	},
+	"docs.title.delay": {
+		"defaultMessage": "Delay",
+		"description": "The title of an example on a page of the docs. It comes from the file name delay.tsx."
+	},
+	"docs.title.destructive": {
+		"defaultMessage": "Destructive",
+		"description": "The title of an example on a page of the docs. It comes from the file name destructive.tsx."
+	},
+	"docs.title.disabled": {
+		"defaultMessage": "Disabled",
+		"description": "The title of an example on a page of the docs. It comes from the file name disabled.tsx."
+	},
+	"docs.title.disabled-item": {
+		"defaultMessage": "Disabled item",
+		"description": "The title of an example on a page of the docs. It comes from the file name disabled-item.tsx."
+	},
+	"docs.title.disabled-option": {
+		"defaultMessage": "Disabled option",
+		"description": "The title of an example on a page of the docs. It comes from the file name disabled-option.tsx."
+	},
+	"docs.title.disabled-tab": {
+		"defaultMessage": "Disabled tab",
+		"description": "The title of an example on a page of the docs. It comes from the file name disabled-tab.tsx."
+	},
+	"docs.title.dismiss-reason": {
+		"defaultMessage": "Dismiss reason",
+		"description": "The title of an example on a page of the docs. It comes from the file name dismiss-reason.tsx."
+	},
+	"docs.title.double-click": {
+		"defaultMessage": "Double click",
+		"description": "The title of an example on a page of the docs. It comes from the file name double-click.tsx."
+	},
+	"docs.title.drill-into-counties": {
+		"defaultMessage": "Drill into counties",
+		"description": "The title of an example on a page of the docs. It comes from the file name drill-into-counties.tsx."
+	},
+	"docs.title.driven-from-a-list": {
+		"defaultMessage": "Driven from a list",
+		"description": "The title of an example on a page of the docs. It comes from the file name driven-from-a-list.tsx."
+	},
+	"docs.title.dual-axis": {
+		"defaultMessage": "Dual axis",
+		"description": "The title of an example on a page of the docs. It comes from the file name dual-axis.tsx."
+	},
+	"docs.title.durations": {
+		"defaultMessage": "Durations",
+		"description": "The title of an example on a page of the docs. It comes from the file name durations.tsx."
+	},
+	"docs.title.editable": {
+		"defaultMessage": "Editable",
+		"description": "The title of an example on a page of the docs. It comes from the file name editable.tsx."
+	},
+	"docs.title.editor-types": {
+		"defaultMessage": "Editor types",
+		"description": "The title of an example on a page of the docs. It comes from the file name editor-types.tsx."
+	},
+	"docs.title.empty": {
+		"defaultMessage": "Empty",
+		"description": "The title of an example on a page of the docs. It comes from the file name empty.tsx."
+	},
+	"docs.title.equal": {
+		"defaultMessage": "Equal",
+		"description": "The title of an example on a page of the docs. It comes from the file name equal.tsx."
+	},
+	"docs.title.equal-earth": {
+		"defaultMessage": "Equal Earth",
+		"description": "The title of an example on a page of the docs. It comes from the file name equal-earth.tsx."
+	},
+	"docs.title.error": {
+		"defaultMessage": "Error",
+		"description": "The title of an example on a page of the docs. It comes from the file name error.tsx."
+	},
+	"docs.title.error-summary": {
+		"defaultMessage": "Error summary",
+		"description": "The title of an example on a page of the docs. It comes from the file name error-summary.tsx."
+	},
+	"docs.title.every-state": {
+		"defaultMessage": "Every state",
+		"description": "The title of an example on a page of the docs. It comes from the file name every-state.tsx."
+	},
+	"docs.title.expand-all-levels": {
+		"defaultMessage": "Expand all levels",
+		"description": "The title of an example on a page of the docs. It comes from the file name expand-all-levels.tsx."
+	},
+	"docs.title.expandable-rows": {
+		"defaultMessage": "Expandable rows",
+		"description": "The title of an example on a page of the docs. It comes from the file name expandable-rows.tsx."
+	},
+	"docs.title.export": {
+		"defaultMessage": "Export",
+		"description": "The title of an example on a page of the docs. It comes from the file name export.tsx."
+	},
+	"docs.title.export-with-selection": {
+		"defaultMessage": "Export with selection",
+		"description": "The title of an example on a page of the docs. It comes from the file name export-with-selection.tsx."
+	},
+	"docs.title.external": {
+		"defaultMessage": "External",
+		"description": "The title of an example on a page of the docs. It comes from the file name external.tsx."
+	},
+	"docs.title.filter": {
+		"defaultMessage": "Filter",
+		"description": "The title of an example on a page of the docs. It comes from the file name filter.tsx."
+	},
+	"docs.title.fit-content": {
+		"defaultMessage": "Fit content",
+		"description": "The title of an example on a page of the docs. It comes from the file name fit-content.tsx."
+	},
+	"docs.title.fit-to-width": {
+		"defaultMessage": "Fit to width",
+		"description": "The title of an example on a page of the docs. It comes from the file name fit-to-width.tsx."
+	},
+	"docs.title.footer-buttons": {
+		"defaultMessage": "Footer buttons",
+		"description": "The title of an example on a page of the docs. It comes from the file name footer-buttons.tsx."
+	},
+	"docs.title.form": {
+		"defaultMessage": "Form",
+		"description": "The title of an example on a page of the docs. It comes from the file name form.tsx."
+	},
+	"docs.title.form-controls": {
+		"defaultMessage": "Form controls",
+		"description": "The title of an example on a page of the docs. It comes from the file name form-controls.tsx."
+	},
+	"docs.title.future": {
+		"defaultMessage": "Future",
+		"description": "The title of an example on a page of the docs. It comes from the file name future.tsx."
+	},
+	"docs.title.gallery": {
+		"defaultMessage": "Gallery",
+		"description": "The title of an example on a page of the docs. It comes from the file name gallery.tsx."
+	},
+	"docs.title.gauge-color": {
+		"defaultMessage": "Gauge color",
+		"description": "The title of an example on a page of the docs. It comes from the file name gauge-color.tsx."
+	},
+	"docs.title.gauge-size": {
+		"defaultMessage": "Gauge size",
+		"description": "The title of an example on a page of the docs. It comes from the file name gauge-size.tsx."
+	},
+	"docs.title.glass": {
+		"defaultMessage": "Glass",
+		"description": "The title of an example on a page of the docs. It comes from the file name glass.tsx."
+	},
+	"docs.title.group": {
+		"defaultMessage": "Group",
+		"description": "The title of an example on a page of the docs. It comes from the file name group.tsx."
+	},
+	"docs.title.group-editor": {
+		"defaultMessage": "Group editor",
+		"description": "The title of an example on a page of the docs. It comes from the file name group-editor.tsx."
+	},
+	"docs.title.grouped-window": {
+		"defaultMessage": "Grouped window",
+		"description": "The title of an example on a page of the docs. It comes from the file name grouped-window.tsx."
+	},
+	"docs.title.half-stars": {
+		"defaultMessage": "Half stars",
+		"description": "The title of an example on a page of the docs. It comes from the file name half-stars.tsx."
+	},
+	"docs.title.heatmap": {
+		"defaultMessage": "Heatmap",
+		"description": "The title of an example on a page of the docs. It comes from the file name heatmap.tsx."
+	},
+	"docs.title.held-open": {
+		"defaultMessage": "Held open",
+		"description": "The title of an example on a page of the docs. It comes from the file name held-open.tsx."
+	},
+	"docs.title.highlights": {
+		"defaultMessage": "Highlights",
+		"description": "The title of an example on a page of the docs. It comes from the file name highlights.tsx."
+	},
+	"docs.title.hold-to-confirm": {
+		"defaultMessage": "Hold to confirm",
+		"description": "The title of an example on a page of the docs. It comes from the file name hold-to-confirm.tsx."
+	},
+	"docs.title.horizontal": {
+		"defaultMessage": "Horizontal",
+		"description": "The title of an example on a page of the docs. It comes from the file name horizontal.tsx."
+	},
+	"docs.title.horizontal-with-extent": {
+		"defaultMessage": "Horizontal with extent",
+		"description": "The title of an example on a page of the docs. It comes from the file name horizontal-with-extent.tsx."
+	},
+	"docs.title.icon-only": {
+		"defaultMessage": "Icon only",
+		"description": "The title of an example on a page of the docs. It comes from the file name icon-only.tsx."
+	},
+	"docs.title.icons-and-shortcuts": {
+		"defaultMessage": "Icons and shortcuts",
+		"description": "The title of an example on a page of the docs. It comes from the file name icons-and-shortcuts.tsx."
+	},
+	"docs.title.imperative-handle": {
+		"defaultMessage": "Imperative handle",
+		"description": "The title of an example on a page of the docs. It comes from the file name imperative-handle.tsx."
+	},
+	"docs.title.in-a-container": {
+		"defaultMessage": "In a container",
+		"description": "The title of an example on a page of the docs. It comes from the file name in-a-container.tsx."
+	},
+	"docs.title.in-a-field": {
+		"defaultMessage": "In a field",
+		"description": "The title of an example on a page of the docs. It comes from the file name in-a-field.tsx."
+	},
+	"docs.title.in-a-form": {
+		"defaultMessage": "In a form",
+		"description": "The title of an example on a page of the docs. It comes from the file name in-a-form.tsx."
+	},
+	"docs.title.in-cell-sparklines": {
+		"defaultMessage": "In cell sparklines",
+		"description": "The title of an example on a page of the docs. It comes from the file name in-cell-sparklines.tsx."
+	},
+	"docs.title.inline-panel": {
+		"defaultMessage": "Inline panel",
+		"description": "The title of an example on a page of the docs. It comes from the file name inline-panel.tsx."
+	},
+	"docs.title.inline-with-text": {
+		"defaultMessage": "Inline with text",
+		"description": "The title of an example on a page of the docs. It comes from the file name inline-with-text.tsx."
+	},
+	"docs.title.input": {
+		"defaultMessage": "Input",
+		"description": "The title of an example on a page of the docs. It comes from the file name input.tsx."
+	},
+	"docs.title.inside-a-button": {
+		"defaultMessage": "Inside a button",
+		"description": "The title of an example on a page of the docs. It comes from the file name inside-a-button.tsx."
+	},
+	"docs.title.instant": {
+		"defaultMessage": "Instant",
+		"description": "The title of an example on a page of the docs. It comes from the file name instant.tsx."
+	},
+	"docs.title.interactive-content": {
+		"defaultMessage": "Interactive content",
+		"description": "The title of an example on a page of the docs. It comes from the file name interactive-content.tsx."
+	},
+	"docs.title.interactive-rows": {
+		"defaultMessage": "Interactive rows",
+		"description": "The title of an example on a page of the docs. It comes from the file name interactive-rows.tsx."
+	},
+	"docs.title.international-phone": {
+		"defaultMessage": "International phone",
+		"description": "The title of an example on a page of the docs. It comes from the file name international-phone.tsx."
+	},
+	"docs.title.invalid": {
+		"defaultMessage": "Invalid",
+		"description": "The title of an example on a page of the docs. It comes from the file name invalid.tsx."
+	},
+	"docs.title.invalid-message": {
+		"defaultMessage": "Invalid message",
+		"description": "The title of an example on a page of the docs. It comes from the file name invalid-message.tsx."
+	},
+	"docs.title.item-count": {
+		"defaultMessage": "Item count",
+		"description": "The title of an example on a page of the docs. It comes from the file name item-count.tsx."
+	},
+	"docs.title.item-size": {
+		"defaultMessage": "Item size",
+		"description": "The title of an example on a page of the docs. It comes from the file name item-size.tsx."
+	},
+	"docs.title.item-status": {
+		"defaultMessage": "Item status",
+		"description": "The title of an example on a page of the docs. It comes from the file name item-status.tsx."
+	},
+	"docs.title.keep-open": {
+		"defaultMessage": "Keep open",
+		"description": "The title of an example on a page of the docs. It comes from the file name keep-open.tsx."
+	},
+	"docs.title.keep-panel-state": {
+		"defaultMessage": "Keep panel state",
+		"description": "The title of an example on a page of the docs. It comes from the file name keep-panel-state.tsx."
+	},
+	"docs.title.keyboard-shortcut": {
+		"defaultMessage": "Keyboard shortcut",
+		"description": "The title of an example on a page of the docs. It comes from the file name keyboard-shortcut.tsx."
+	},
+	"docs.title.label-with-hint": {
+		"defaultMessage": "Label with hint",
+		"description": "The title of an example on a page of the docs. It comes from the file name label-with-hint.tsx."
+	},
+	"docs.title.legend-placement": {
+		"defaultMessage": "Legend placement",
+		"description": "The title of an example on a page of the docs. It comes from the file name legend-placement.tsx."
+	},
+	"docs.title.lifecycle-callbacks": {
+		"defaultMessage": "Lifecycle callbacks",
+		"description": "The title of an example on a page of the docs. It comes from the file name lifecycle-callbacks.tsx."
+	},
+	"docs.title.list": {
+		"defaultMessage": "List",
+		"description": "The title of an example on a page of the docs. It comes from the file name list.tsx."
+	},
+	"docs.title.loading": {
+		"defaultMessage": "Loading",
+		"description": "The title of an example on a page of the docs. It comes from the file name loading.tsx."
+	},
+	"docs.title.locale": {
+		"defaultMessage": "Locale",
+		"description": "The title of an example on a page of the docs. It comes from the file name locale.tsx."
+	},
+	"docs.title.locale-provider": {
+		"defaultMessage": "Locale provider",
+		"description": "The title of an example on a page of the docs. It comes from the file name locale-provider.tsx."
+	},
+	"docs.title.locked-left": {
+		"defaultMessage": "Locked left",
+		"description": "The title of an example on a page of the docs. It comes from the file name locked-left.tsx."
+	},
+	"docs.title.locked-on-both-edges": {
+		"defaultMessage": "Locked on both edges",
+		"description": "The title of an example on a page of the docs. It comes from the file name locked-on-both-edges.tsx."
+	},
+	"docs.title.locked-with-pinnable-columns": {
+		"defaultMessage": "Locked with pinnable columns",
+		"description": "The title of an example on a page of the docs. It comes from the file name locked-with-pinnable-columns.tsx."
+	},
+	"docs.title.long-content": {
+		"defaultMessage": "Long content",
+		"description": "The title of an example on a page of the docs. It comes from the file name long-content.tsx."
+	},
+	"docs.title.magnifier": {
+		"defaultMessage": "Magnifier",
+		"description": "The title of an example on a page of the docs. It comes from the file name magnifier.tsx."
+	},
+	"docs.title.magnifier-settings": {
+		"defaultMessage": "Magnifier settings",
+		"description": "The title of an example on a page of the docs. It comes from the file name magnifier-settings.tsx."
+	},
+	"docs.title.master-detail-window": {
+		"defaultMessage": "Master detail window",
+		"description": "The title of an example on a page of the docs. It comes from the file name master-detail-window.tsx."
+	},
+	"docs.title.max-height": {
+		"defaultMessage": "Max height",
+		"description": "The title of an example on a page of the docs. It comes from the file name max-height.tsx."
+	},
+	"docs.title.max-tags": {
+		"defaultMessage": "Max tags",
+		"description": "The title of an example on a page of the docs. It comes from the file name max-tags.tsx."
+	},
+	"docs.title.max-toasts": {
+		"defaultMessage": "Max toasts",
+		"description": "The title of an example on a page of the docs. It comes from the file name max-toasts.tsx."
+	},
+	"docs.title.menus": {
+		"defaultMessage": "Menus",
+		"description": "The title of an example on a page of the docs. It comes from the file name menus.tsx."
+	},
+	"docs.title.mercator": {
+		"defaultMessage": "Mercator",
+		"description": "The title of an example on a page of the docs. It comes from the file name mercator.tsx."
+	},
+	"docs.title.min-and-max": {
+		"defaultMessage": "Min and max",
+		"description": "The title of an example on a page of the docs. It comes from the file name min-and-max.tsx."
+	},
+	"docs.title.minimum-strength": {
+		"defaultMessage": "Minimum strength",
+		"description": "The title of an example on a page of the docs. It comes from the file name minimum-strength.tsx."
+	},
+	"docs.title.modifier-glyphs": {
+		"defaultMessage": "Modifier glyphs",
+		"description": "The title of an example on a page of the docs. It comes from the file name modifier-glyphs.tsx."
+	},
+	"docs.title.multi-series": {
+		"defaultMessage": "Multi series",
+		"description": "The title of an example on a page of the docs. It comes from the file name multi-series.tsx."
+	},
+	"docs.title.multiple": {
+		"defaultMessage": "Multiple",
+		"description": "The title of an example on a page of the docs. It comes from the file name multiple.tsx."
+	},
+	"docs.title.multiple-ranges": {
+		"defaultMessage": "Multiple ranges",
+		"description": "The title of an example on a page of the docs. It comes from the file name multiple-ranges.tsx."
+	},
+	"docs.title.mute-toggle": {
+		"defaultMessage": "Mute toggle",
+		"description": "The title of an example on a page of the docs. It comes from the file name mute-toggle.tsx."
+	},
+	"docs.title.named-levels": {
+		"defaultMessage": "Named levels",
+		"description": "The title of an example on a page of the docs. It comes from the file name named-levels.tsx."
+	},
+	"docs.title.nav-bar": {
+		"defaultMessage": "Nav bar",
+		"description": "The title of an example on a page of the docs. It comes from the file name nav-bar.tsx."
+	},
+	"docs.title.negative-values": {
+		"defaultMessage": "Negative values",
+		"description": "The title of an example on a page of the docs. It comes from the file name negative-values.tsx."
+	},
+	"docs.title.nested": {
+		"defaultMessage": "Nested",
+		"description": "The title of an example on a page of the docs. It comes from the file name nested.tsx."
+	},
+	"docs.title.nested-fields": {
+		"defaultMessage": "Nested fields",
+		"description": "The title of an example on a page of the docs. It comes from the file name nested-fields.tsx."
+	},
+	"docs.title.new-row": {
+		"defaultMessage": "New row",
+		"description": "The title of an example on a page of the docs. It comes from the file name new-row.tsx."
+	},
+	"docs.title.no-fraction-digits": {
+		"defaultMessage": "No fraction digits",
+		"description": "The title of an example on a page of the docs. It comes from the file name no-fraction-digits.tsx."
+	},
+	"docs.title.no-labels": {
+		"defaultMessage": "No labels",
+		"description": "The title of an example on a page of the docs. It comes from the file name no-labels.tsx."
+	},
+	"docs.title.not-collapsible": {
+		"defaultMessage": "Not collapsible",
+		"description": "The title of an example on a page of the docs. It comes from the file name not-collapsible.tsx."
+	},
+	"docs.title.object-value": {
+		"defaultMessage": "Object value",
+		"description": "The title of an example on a page of the docs. It comes from the file name object-value.tsx."
+	},
+	"docs.title.overflow": {
+		"defaultMessage": "Overflow",
+		"description": "The title of an example on a page of the docs. It comes from the file name overflow.tsx."
+	},
+	"docs.title.overlays": {
+		"defaultMessage": "Overlays",
+		"description": "The title of an example on a page of the docs. It comes from the file name overlays.tsx."
+	},
+	"docs.title.past": {
+		"defaultMessage": "Past",
+		"description": "The title of an example on a page of the docs. It comes from the file name past.tsx."
+	},
+	"docs.title.paste-and-fill": {
+		"defaultMessage": "Paste and fill",
+		"description": "The title of an example on a page of the docs. It comes from the file name paste-and-fill.tsx."
+	},
+	"docs.title.per-item-variant": {
+		"defaultMessage": "Per item variant",
+		"description": "The title of an example on a page of the docs. It comes from the file name per-item-variant.tsx."
+	},
+	"docs.title.persist": {
+		"defaultMessage": "Persist",
+		"description": "The title of an example on a page of the docs. It comes from the file name persist.tsx."
+	},
+	"docs.title.pinned-columns": {
+		"defaultMessage": "Pinned columns",
+		"description": "The title of an example on a page of the docs. It comes from the file name pinned-columns.tsx."
+	},
+	"docs.title.pinned-selection": {
+		"defaultMessage": "Pinned selection",
+		"description": "The title of an example on a page of the docs. It comes from the file name pinned-selection.tsx."
+	},
+	"docs.title.polygon": {
+		"defaultMessage": "Polygon",
+		"description": "The title of an example on a page of the docs. It comes from the file name polygon.tsx."
+	},
+	"docs.title.postal-code": {
+		"defaultMessage": "Postal code",
+		"description": "The title of an example on a page of the docs. It comes from the file name postal-code.tsx."
+	},
+	"docs.title.preload": {
+		"defaultMessage": "Preload",
+		"description": "The title of an example on a page of the docs. It comes from the file name preload.tsx."
+	},
+	"docs.title.presets": {
+		"defaultMessage": "Presets",
+		"description": "The title of an example on a page of the docs. It comes from the file name presets.tsx."
+	},
+	"docs.title.preview-and-download": {
+		"defaultMessage": "Preview and download",
+		"description": "The title of an example on a page of the docs. It comes from the file name preview-and-download.tsx."
+	},
+	"docs.title.profile-card": {
+		"defaultMessage": "Profile card",
+		"description": "The title of an example on a page of the docs. It comes from the file name profile-card.tsx."
+	},
+	"docs.title.provider-zone": {
+		"defaultMessage": "Provider zone",
+		"description": "The title of an example on a page of the docs. It comes from the file name provider-zone.tsx."
+	},
+	"docs.title.query": {
+		"defaultMessage": "Query",
+		"description": "The title of an example on a page of the docs. It comes from the file name query.tsx."
+	},
+	"docs.title.range": {
+		"defaultMessage": "Range",
+		"description": "The title of an example on a page of the docs. It comes from the file name range.tsx."
+	},
+	"docs.title.ranges-as-text": {
+		"defaultMessage": "Ranges as text",
+		"description": "The title of an example on a page of the docs. It comes from the file name ranges-as-text.tsx."
+	},
+	"docs.title.read-only": {
+		"defaultMessage": "Read only",
+		"description": "The title of an example on a page of the docs. It comes from the file name read-only.tsx."
+	},
+	"docs.title.read-only-and-disabled": {
+		"defaultMessage": "Read only and disabled",
+		"description": "The title of an example on a page of the docs. It comes from the file name read-only-and-disabled.tsx."
+	},
+	"docs.title.reader-zone": {
+		"defaultMessage": "Reader zone",
+		"description": "The title of an example on a page of the docs. It comes from the file name reader-zone.tsx."
+	},
+	"docs.title.record-an-event": {
+		"defaultMessage": "Record an event",
+		"description": "The title of an example on a page of the docs. It comes from the file name record-an-event.tsx."
+	},
+	"docs.title.reference-labels": {
+		"defaultMessage": "Reference labels",
+		"description": "The title of an example on a page of the docs. It comes from the file name reference-labels.tsx."
+	},
+	"docs.title.reference-lines": {
+		"defaultMessage": "Reference lines",
+		"description": "The title of an example on a page of the docs. It comes from the file name reference-lines.tsx."
+	},
+	"docs.title.registered-link-component": {
+		"defaultMessage": "Registered link component",
+		"description": "The title of an example on a page of the docs. It comes from the file name registered-link-component.tsx."
+	},
+	"docs.title.registered-renderer": {
+		"defaultMessage": "Registered renderer",
+		"description": "The title of an example on a page of the docs. It comes from the file name registered-renderer.tsx."
+	},
+	"docs.title.rejected-files": {
+		"defaultMessage": "Rejected files",
+		"description": "The title of an example on a page of the docs. It comes from the file name rejected-files.tsx."
+	},
+	"docs.title.relative-ranges": {
+		"defaultMessage": "Relative ranges",
+		"description": "The title of an example on a page of the docs. It comes from the file name relative-ranges.tsx."
+	},
+	"docs.title.render-props": {
+		"defaultMessage": "Render props",
+		"description": "The title of an example on a page of the docs. It comes from the file name render-props.tsx."
+	},
+	"docs.title.reorder": {
+		"defaultMessage": "Reorder",
+		"description": "The title of an example on a page of the docs. It comes from the file name reorder.tsx."
+	},
+	"docs.title.report-a-bug": {
+		"defaultMessage": "Report a bug",
+		"description": "The title of an example on a page of the docs. It comes from the file name report-a-bug.tsx."
+	},
+	"docs.title.required": {
+		"defaultMessage": "Required",
+		"description": "The title of an example on a page of the docs. It comes from the file name required.tsx."
+	},
+	"docs.title.resizable-columns": {
+		"defaultMessage": "Resizable columns",
+		"description": "The title of an example on a page of the docs. It comes from the file name resizable-columns.tsx."
+	},
+	"docs.title.resize": {
+		"defaultMessage": "Resize",
+		"description": "The title of an example on a page of the docs. It comes from the file name resize.tsx."
+	},
+	"docs.title.responsive": {
+		"defaultMessage": "Responsive",
+		"description": "The title of an example on a page of the docs. It comes from the file name responsive.tsx."
+	},
+	"docs.title.responsive-direction": {
+		"defaultMessage": "Responsive direction",
+		"description": "The title of an example on a page of the docs. It comes from the file name responsive-direction.tsx."
+	},
+	"docs.title.rich-content": {
+		"defaultMessage": "Rich content",
+		"description": "The title of an example on a page of the docs. It comes from the file name rich-content.tsx."
+	},
+	"docs.title.right-click": {
+		"defaultMessage": "Right click",
+		"description": "The title of an example on a page of the docs. It comes from the file name right-click.tsx."
+	},
+	"docs.title.row": {
+		"defaultMessage": "Row",
+		"description": "The title of an example on a page of the docs. It comes from the file name row.tsx."
+	},
+	"docs.title.row-click": {
+		"defaultMessage": "Row click",
+		"description": "The title of an example on a page of the docs. It comes from the file name row-click.tsx."
+	},
+	"docs.title.row-groups": {
+		"defaultMessage": "Row groups",
+		"description": "The title of an example on a page of the docs. It comes from the file name row-groups.tsx."
+	},
+	"docs.title.row-manager": {
+		"defaultMessage": "Row manager",
+		"description": "The title of an example on a page of the docs. It comes from the file name row-manager.tsx."
+	},
+	"docs.title.row-reorder": {
+		"defaultMessage": "Row reorder",
+		"description": "The title of an example on a page of the docs. It comes from the file name row-reorder.tsx."
+	},
+	"docs.title.row-total": {
+		"defaultMessage": "Row total",
+		"description": "The title of an example on a page of the docs. It comes from the file name row-total.tsx."
+	},
+	"docs.title.search": {
+		"defaultMessage": "Search",
+		"description": "The title of an example on a page of the docs. It comes from the file name search.tsx."
+	},
+	"docs.title.search-and-status": {
+		"defaultMessage": "Search and status",
+		"description": "The title of an example on a page of the docs. It comes from the file name search-and-status.tsx."
+	},
+	"docs.title.search-highlight": {
+		"defaultMessage": "Search highlight",
+		"description": "The title of an example on a page of the docs. It comes from the file name search-highlight.tsx."
+	},
+	"docs.title.search-with-filter": {
+		"defaultMessage": "Search with filter",
+		"description": "The title of an example on a page of the docs. It comes from the file name search-with-filter.tsx."
+	},
+	"docs.title.sections": {
+		"defaultMessage": "Sections",
+		"description": "The title of an example on a page of the docs. It comes from the file name sections.tsx."
+	},
+	"docs.title.sections-divider-and-spacer": {
+		"defaultMessage": "Sections divider and spacer",
+		"description": "The title of an example on a page of the docs. It comes from the file name sections-divider-and-spacer.tsx."
+	},
+	"docs.title.segment-labels": {
+		"defaultMessage": "Segment labels",
+		"description": "The title of an example on a page of the docs. It comes from the file name segment-labels.tsx."
+	},
+	"docs.title.select-a-state": {
+		"defaultMessage": "Select a state",
+		"description": "The title of an example on a page of the docs. It comes from the file name select-a-state.tsx."
+	},
+	"docs.title.select-all": {
+		"defaultMessage": "Select all",
+		"description": "The title of an example on a page of the docs. It comes from the file name select-all.tsx."
+	},
+	"docs.title.selected-files": {
+		"defaultMessage": "Selected files",
+		"description": "The title of an example on a page of the docs. It comes from the file name selected-files.tsx."
+	},
+	"docs.title.selection": {
+		"defaultMessage": "Selection",
+		"description": "The title of an example on a page of the docs. It comes from the file name selection.tsx."
+	},
+	"docs.title.selection-summary": {
+		"defaultMessage": "Selection summary",
+		"description": "The title of an example on a page of the docs. It comes from the file name selection-summary.tsx."
+	},
+	"docs.title.server-errors": {
+		"defaultMessage": "Server errors",
+		"description": "The title of an example on a page of the docs. It comes from the file name server-errors.tsx."
+	},
+	"docs.title.server-infinite-scroll": {
+		"defaultMessage": "Server infinite scroll",
+		"description": "The title of an example on a page of the docs. It comes from the file name server-infinite-scroll.tsx."
+	},
+	"docs.title.server-pagination": {
+		"defaultMessage": "Server pagination",
+		"description": "The title of an example on a page of the docs. It comes from the file name server-pagination.tsx."
+	},
+	"docs.title.server-side-grouping": {
+		"defaultMessage": "Server side grouping",
+		"description": "The title of an example on a page of the docs. It comes from the file name server-side-grouping.tsx."
+	},
+	"docs.title.server-side-sorting": {
+		"defaultMessage": "Server side sorting",
+		"description": "The title of an example on a page of the docs. It comes from the file name server-side-sorting.tsx."
+	},
+	"docs.title.settings-button": {
+		"defaultMessage": "Settings button",
+		"description": "The title of an example on a page of the docs. It comes from the file name settings-button.tsx."
+	},
+	"docs.title.severity": {
+		"defaultMessage": "Severity",
+		"description": "The title of an example on a page of the docs. It comes from the file name severity.tsx."
+	},
+	"docs.title.shapes": {
+		"defaultMessage": "Shapes",
+		"description": "The title of an example on a page of the docs. It comes from the file name shapes.tsx."
+	},
+	"docs.title.sidebar-layout": {
+		"defaultMessage": "Sidebar layout",
+		"description": "The title of an example on a page of the docs. It comes from the file name sidebar-layout.tsx."
+	},
+	"docs.title.single-photo": {
+		"defaultMessage": "Single photo",
+		"description": "The title of an example on a page of the docs. It comes from the file name single-photo.tsx."
+	},
+	"docs.title.single-series": {
+		"defaultMessage": "Single series",
+		"description": "The title of an example on a page of the docs. It comes from the file name single-series.tsx."
+	},
+	"docs.title.size-encoding": {
+		"defaultMessage": "Size encoding",
+		"description": "The title of an example on a page of the docs. It comes from the file name size-encoding.tsx."
+	},
+	"docs.title.sizes": {
+		"defaultMessage": "Sizes",
+		"description": "The title of an example on a page of the docs. It comes from the file name sizes.tsx."
+	},
+	"docs.title.skeleton": {
+		"defaultMessage": "Skeleton",
+		"description": "The title of an example on a page of the docs. It comes from the file name skeleton.tsx."
+	},
+	"docs.title.skeleton-variants": {
+		"defaultMessage": "Skeleton variants",
+		"description": "The title of an example on a page of the docs. It comes from the file name skeleton-variants.tsx."
+	},
+	"docs.title.smart-sorting": {
+		"defaultMessage": "Smart sorting",
+		"description": "The title of an example on a page of the docs. It comes from the file name smart-sorting.tsx."
+	},
+	"docs.title.smooth-interpolation": {
+		"defaultMessage": "Smooth interpolation",
+		"description": "The title of an example on a page of the docs. It comes from the file name smooth-interpolation.tsx."
+	},
+	"docs.title.sortable": {
+		"defaultMessage": "Sortable",
+		"description": "The title of an example on a page of the docs. It comes from the file name sortable.tsx."
+	},
+	"docs.title.speed": {
+		"defaultMessage": "Speed",
+		"description": "The title of an example on a page of the docs. It comes from the file name speed.tsx."
+	},
+	"docs.title.spread": {
+		"defaultMessage": "Spread",
+		"description": "The title of an example on a page of the docs. It comes from the file name spread.tsx."
+	},
+	"docs.title.star-count": {
+		"defaultMessage": "Star count",
+		"description": "The title of an example on a page of the docs. It comes from the file name star-count.tsx."
+	},
+	"docs.title.sticky-header": {
+		"defaultMessage": "Sticky header",
+		"description": "The title of an example on a page of the docs. It comes from the file name sticky-header.tsx."
+	},
+	"docs.title.streaming": {
+		"defaultMessage": "Streaming",
+		"description": "The title of an example on a page of the docs. It comes from the file name streaming.tsx."
+	},
+	"docs.title.stretch": {
+		"defaultMessage": "Stretch",
+		"description": "The title of an example on a page of the docs. It comes from the file name stretch.tsx."
+	},
+	"docs.title.stroke-style": {
+		"defaultMessage": "Stroke style",
+		"description": "The title of an example on a page of the docs. It comes from the file name stroke-style.tsx."
+	},
+	"docs.title.submenus": {
+		"defaultMessage": "Submenus",
+		"description": "The title of an example on a page of the docs. It comes from the file name submenus.tsx."
+	},
+	"docs.title.success-and-failure": {
+		"defaultMessage": "Success and failure",
+		"description": "The title of an example on a page of the docs. It comes from the file name success-and-failure.tsx."
+	},
+	"docs.title.suggestions-on-focus": {
+		"defaultMessage": "Suggestions on focus",
+		"description": "The title of an example on a page of the docs. It comes from the file name suggestions-on-focus.tsx."
+	},
+	"docs.title.switch-views": {
+		"defaultMessage": "Switch views",
+		"description": "The title of an example on a page of the docs. It comes from the file name switch-views.tsx."
+	},
+	"docs.title.theme-toggle": {
+		"defaultMessage": "Theme toggle",
+		"description": "The title of an example on a page of the docs. It comes from the file name theme-toggle.tsx."
+	},
+	"docs.title.three-panels": {
+		"defaultMessage": "Three panels",
+		"description": "The title of an example on a page of the docs. It comes from the file name three-panels.tsx."
+	},
+	"docs.title.thumbnails": {
+		"defaultMessage": "Thumbnails",
+		"description": "The title of an example on a page of the docs. It comes from the file name thumbnails.tsx."
+	},
+	"docs.title.time-axis": {
+		"defaultMessage": "Time axis",
+		"description": "The title of an example on a page of the docs. It comes from the file name time-axis.tsx."
+	},
+	"docs.title.timestamped": {
+		"defaultMessage": "Timestamped",
+		"description": "The title of an example on a page of the docs. It comes from the file name timestamped.tsx."
+	},
+	"docs.title.title-and-description": {
+		"defaultMessage": "Title and description",
+		"description": "The title of an example on a page of the docs. It comes from the file name title-and-description.tsx."
+	},
+	"docs.title.title-and-subtitle": {
+		"defaultMessage": "Title and subtitle",
+		"description": "The title of an example on a page of the docs. It comes from the file name title-and-subtitle.tsx."
+	},
+	"docs.title.toolbar-only": {
+		"defaultMessage": "Toolbar only",
+		"description": "The title of an example on a page of the docs. It comes from the file name toolbar-only.tsx."
+	},
+	"docs.title.tooltip-trigger": {
+		"defaultMessage": "Tooltip trigger",
+		"description": "The title of an example on a page of the docs. It comes from the file name tooltip-trigger.tsx."
+	},
+	"docs.title.transcript": {
+		"defaultMessage": "Transcript",
+		"description": "The title of an example on a page of the docs. It comes from the file name transcript.tsx."
+	},
+	"docs.title.trend": {
+		"defaultMessage": "Trend",
+		"description": "The title of an example on a page of the docs. It comes from the file name trend.tsx."
+	},
+	"docs.title.typed-input": {
+		"defaultMessage": "Typed input",
+		"description": "The title of an example on a page of the docs. It comes from the file name typed-input.tsx."
+	},
+	"docs.title.undo-and-redo": {
+		"defaultMessage": "Undo and redo",
+		"description": "The title of an example on a page of the docs. It comes from the file name undo-and-redo.tsx."
+	},
+	"docs.title.unregistered-name": {
+		"defaultMessage": "Unregistered name",
+		"description": "The title of an example on a page of the docs. It comes from the file name unregistered-name.tsx."
+	},
+	"docs.title.unsaved-changes": {
+		"defaultMessage": "Unsaved changes",
+		"description": "The title of an example on a page of the docs. It comes from the file name unsaved-changes.tsx."
+	},
+	"docs.title.upload-progress": {
+		"defaultMessage": "Upload progress",
+		"description": "The title of an example on a page of the docs. It comes from the file name upload-progress.tsx."
+	},
+	"docs.title.validation": {
+		"defaultMessage": "Validation",
+		"description": "The title of an example on a page of the docs. It comes from the file name validation.tsx."
+	},
+	"docs.title.value": {
+		"defaultMessage": "Value",
+		"description": "The title of an example on a page of the docs. It comes from the file name value.tsx."
+	},
+	"docs.title.value-labels": {
+		"defaultMessage": "Value labels",
+		"description": "The title of an example on a page of the docs. It comes from the file name value-labels.tsx."
+	},
+	"docs.title.vertical": {
+		"defaultMessage": "Vertical",
+		"description": "The title of an example on a page of the docs. It comes from the file name vertical.tsx."
+	},
+	"docs.title.vertical-with-extent": {
+		"defaultMessage": "Vertical with extent",
+		"description": "The title of an example on a page of the docs. It comes from the file name vertical-with-extent.tsx."
+	},
+	"docs.title.virtualized": {
+		"defaultMessage": "Virtualized",
+		"description": "The title of an example on a page of the docs. It comes from the file name virtualized.tsx."
+	},
+	"docs.title.with-absolute-time": {
+		"defaultMessage": "With absolute time",
+		"description": "The title of an example on a page of the docs. It comes from the file name with-absolute-time.tsx."
+	},
+	"docs.title.with-action": {
+		"defaultMessage": "With action",
+		"description": "The title of an example on a page of the docs. It comes from the file name with-action.tsx."
+	},
+	"docs.title.with-actions": {
+		"defaultMessage": "With actions",
+		"description": "The title of an example on a page of the docs. It comes from the file name with-actions.tsx."
+	},
+	"docs.title.with-attachments": {
+		"defaultMessage": "With attachments",
+		"description": "The title of an example on a page of the docs. It comes from the file name with-attachments.tsx."
+	},
+	"docs.title.with-body-content": {
+		"defaultMessage": "With body content",
+		"description": "The title of an example on a page of the docs. It comes from the file name with-body-content.tsx."
+	},
+	"docs.title.with-content": {
+		"defaultMessage": "With content",
+		"description": "The title of an example on a page of the docs. It comes from the file name with-content.tsx."
+	},
+	"docs.title.with-content-panels": {
+		"defaultMessage": "With content panels",
+		"description": "The title of an example on a page of the docs. It comes from the file name with-content-panels.tsx."
+	},
+	"docs.title.with-date-picker": {
+		"defaultMessage": "With date picker",
+		"description": "The title of an example on a page of the docs. It comes from the file name with-date-picker.tsx."
+	},
+	"docs.title.with-delta-and-description": {
+		"defaultMessage": "With delta and description",
+		"description": "The title of an example on a page of the docs. It comes from the file name with-delta-and-description.tsx."
+	},
+	"docs.title.with-description": {
+		"defaultMessage": "With description",
+		"description": "The title of an example on a page of the docs. It comes from the file name with-description.tsx."
+	},
+	"docs.title.with-descriptions": {
+		"defaultMessage": "With descriptions",
+		"description": "The title of an example on a page of the docs. It comes from the file name with-descriptions.tsx."
+	},
+	"docs.title.with-form": {
+		"defaultMessage": "With form",
+		"description": "The title of an example on a page of the docs. It comes from the file name with-form.tsx."
+	},
+	"docs.title.with-groups": {
+		"defaultMessage": "With groups",
+		"description": "The title of an example on a page of the docs. It comes from the file name with-groups.tsx."
+	},
+	"docs.title.with-header-and-footer": {
+		"defaultMessage": "With header and footer",
+		"description": "The title of an example on a page of the docs. It comes from the file name with-header-and-footer.tsx."
+	},
+	"docs.title.with-icon": {
+		"defaultMessage": "With icon",
+		"description": "The title of an example on a page of the docs. It comes from the file name with-icon.tsx."
+	},
+	"docs.title.with-icons": {
+		"defaultMessage": "With icons",
+		"description": "The title of an example on a page of the docs. It comes from the file name with-icons.tsx."
+	},
+	"docs.title.with-input": {
+		"defaultMessage": "With input",
+		"description": "The title of an example on a page of the docs. It comes from the file name with-input.tsx."
+	},
+	"docs.title.with-inputs": {
+		"defaultMessage": "With inputs",
+		"description": "The title of an example on a page of the docs. It comes from the file name with-inputs.tsx."
+	},
+	"docs.title.with-label": {
+		"defaultMessage": "With label",
+		"description": "The title of an example on a page of the docs. It comes from the file name with-label.tsx."
+	},
+	"docs.title.with-language": {
+		"defaultMessage": "With language",
+		"description": "The title of an example on a page of the docs. It comes from the file name with-language.tsx."
+	},
+	"docs.title.with-markers": {
+		"defaultMessage": "With markers",
+		"description": "The title of an example on a page of the docs. It comes from the file name with-markers.tsx."
+	},
+	"docs.title.with-prefix": {
+		"defaultMessage": "With prefix",
+		"description": "The title of an example on a page of the docs. It comes from the file name with-prefix.tsx."
+	},
+	"docs.title.with-strength-meter": {
+		"defaultMessage": "With strength meter",
+		"description": "The title of an example on a page of the docs. It comes from the file name with-strength-meter.tsx."
+	},
+	"docs.title.with-suffix": {
+		"defaultMessage": "With suffix",
+		"description": "The title of an example on a page of the docs. It comes from the file name with-suffix.tsx."
+	},
+	"docs.title.with-suffix-slot": {
+		"defaultMessage": "With suffix slot",
+		"description": "The title of an example on a page of the docs. It comes from the file name with-suffix-slot.tsx."
+	},
+	"docs.title.with-totals": {
+		"defaultMessage": "With totals",
+		"description": "The title of an example on a page of the docs. It comes from the file name with-totals.tsx."
+	},
+	"docs.title.without-icons": {
+		"defaultMessage": "Without icons",
+		"description": "The title of an example on a page of the docs. It comes from the file name without-icons.tsx."
+	},
+	"docs.title.wrap": {
+		"defaultMessage": "Wrap",
+		"description": "The title of an example on a page of the docs. It comes from the file name wrap.tsx."
+	},
+	"docs.title.zoomable": {
+		"defaultMessage": "Zoomable",
+		"description": "The title of an example on a page of the docs. It comes from the file name zoomable.tsx."
 	}
 }

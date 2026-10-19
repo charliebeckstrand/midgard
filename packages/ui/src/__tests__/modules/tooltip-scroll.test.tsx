@@ -51,10 +51,6 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-	vi.useRealTimers()
-
-	vi.restoreAllMocks()
-
 	document.elementFromPoint = undefined as never
 })
 

@@ -1,11 +1,10 @@
 // @vitest-environment node
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { DOCS_CATALOG_SOURCE, DOCS_LANG_DIR, DOCS_SOURCE_CATALOG } from '../../../scripts/intl.ts'
+import { DOCS_LANG_DIR, DOCS_SOURCE_CATALOG, extractDocsCatalog } from '../../../scripts/intl.ts'
 import {
 	argumentErrors,
 	catalogText,
-	extractCatalog,
 	readCatalog,
 	readTranslations,
 } from '../../../scripts/intl-catalog.ts'
@@ -30,7 +29,7 @@ const translations = readTranslations(DOCS_LANG_DIR)
 
 describe('intl catalog of the docs', () => {
 	it('matches the message descriptors of the source', async () => {
-		const text = catalogText(await extractCatalog(DOCS_CATALOG_SOURCE))
+		const text = catalogText(await extractDocsCatalog())
 
 		expect(readFileSync(DOCS_SOURCE_CATALOG, 'utf8'), 'run `pnpm intl` to write the catalog').toBe(
 			text,

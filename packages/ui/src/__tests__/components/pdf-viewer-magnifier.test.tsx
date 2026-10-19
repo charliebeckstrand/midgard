@@ -1,6 +1,6 @@
 import { act, render, renderHook } from '@testing-library/react'
 import type { PointerEvent as ReactPointerEvent } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	PdfViewer,
 	type PdfViewerMagnifierState,
@@ -396,6 +396,10 @@ describe('PdfViewer magnifier controls', () => {
 describe('usePdfViewerMagnifier over a pan', () => {
 	const settings: ResolvedMagnifier = { zoom: 2.5, size: 'md', delay: 300 }
 
+	beforeEach(() => {
+		vi.useFakeTimers()
+	})
+
 	/**
 	 * A page frame that reports where it is, so a pan can be staged by moving it.
 	 *
@@ -422,48 +426,42 @@ describe('usePdfViewerMagnifier over a pan', () => {
 	}
 
 	it('brings the lens back at the pointer once the page comes to rest', () => {
-		vi.useFakeTimers()
+		const { result } = renderHook(() => usePdfViewerMagnifier(settings))
 
-		try {
-			const { result } = renderHook(() => usePdfViewerMagnifier(settings))
+		const move = result.current.referenceProps.onPointerMove as (
+			event: ReactPointerEvent<HTMLElement>,
+		) => void
 
-			const move = result.current.referenceProps.onPointerMove as (
-				event: ReactPointerEvent<HTMLElement>,
-			) => void
+		const scroll = () => document.dispatchEvent(new Event('scroll'))
 
-			const scroll = () => document.dispatchEvent(new Event('scroll'))
+		const frame = frameAt(() => 0)
 
-			const frame = frameAt(() => 0)
+		// The page starts at the top of the viewport; the pointer rests 300px down it.
+		act(() => {
+			move(pointerOn(frame, 120, 300))
+		})
 
-			// The page starts at the top of the viewport; the pointer rests 300px down it.
-			act(() => {
-				move(pointerOn(frame, 120, 300))
-			})
+		// A pointer alone opens nothing here: the dwell belongs to floating-ui, which is mocked.
+		expect(result.current.open).toBe(false)
 
-			// A pointer alone opens nothing here: the dwell belongs to floating-ui, which is mocked.
-			expect(result.current.open).toBe(false)
+		act(() => {
+			scroll()
+		})
 
-			act(() => {
-				scroll()
-			})
+		act(() => {
+			vi.advanceTimersByTime(299)
+		})
 
-			act(() => {
-				vi.advanceTimersByTime(299)
-			})
+		// The reader's own dwell, not a settle time of this hook's invention — a consumer that
+		// tuned one has tuned both.
+		expect(result.current.open).toBe(false)
 
-			// The reader's own dwell, not a settle time of this hook's invention — a consumer that
-			// tuned one has tuned both.
-			expect(result.current.open).toBe(false)
+		act(() => {
+			vi.advanceTimersByTime(1)
+		})
 
-			act(() => {
-				vi.advanceTimersByTime(1)
-			})
-
-			expect(result.current.open).toBe(true)
-			expect(result.current.point).toEqual({ x: 120, y: 300 })
-		} finally {
-			vi.useRealTimers()
-		}
+		expect(result.current.open).toBe(true)
+		expect(result.current.point).toEqual({ x: 120, y: 300 })
 	})
 
 	/**
@@ -471,47 +469,41 @@ describe('usePdfViewerMagnifier over a pan', () => {
 	 * against where the page ended up, not where it was when the pointer last moved.
 	 */
 	it('re-reads the pointer against a page that moved under it', () => {
-		vi.useFakeTimers()
+		/*
+		 * One frame that moves, rather than a second frame: the hook keeps the node the pointer
+		 * arrived on, and a pan moves that node. Replacing it would hand the hook the new
+		 * position through a pointer event, which is the one thing a pan never does.
+		 */
+		let top = 0
 
-		try {
-			/*
-			 * One frame that moves, rather than a second frame: the hook keeps the node the pointer
-			 * arrived on, and a pan moves that node. Replacing it would hand the hook the new
-			 * position through a pointer event, which is the one thing a pan never does.
-			 */
-			let top = 0
+		const frame = frameAt(() => top)
 
-			const frame = frameAt(() => top)
+		const { result } = renderHook(() => usePdfViewerMagnifier(settings))
 
-			const { result } = renderHook(() => usePdfViewerMagnifier(settings))
+		const move = result.current.referenceProps.onPointerMove as (
+			event: ReactPointerEvent<HTMLElement>,
+		) => void
 
-			const move = result.current.referenceProps.onPointerMove as (
-				event: ReactPointerEvent<HTMLElement>,
-			) => void
+		const scroll = () => document.dispatchEvent(new Event('scroll'))
 
-			const scroll = () => document.dispatchEvent(new Event('scroll'))
+		act(() => {
+			move(pointerOn(frame, 120, 300))
+		})
 
-			act(() => {
-				move(pointerOn(frame, 120, 300))
-			})
+		// The pan: the page rides 200px up the viewport while the cursor stays exactly where it
+		// was. No pointer event accompanies it, which is what makes it invisible to the loupe.
+		top = -200
 
-			// The pan: the page rides 200px up the viewport while the cursor stays exactly where it
-			// was. No pointer event accompanies it, which is what makes it invisible to the loupe.
-			top = -200
+		act(() => {
+			scroll()
+		})
 
-			act(() => {
-				scroll()
-			})
+		act(() => {
+			vi.advanceTimersByTime(300)
+		})
 
-			act(() => {
-				vi.advanceTimersByTime(300)
-			})
-
-			// 200px further down the page, from a cursor that never moved.
-			expect(result.current.point).toEqual({ x: 120, y: 500 })
-		} finally {
-			vi.useRealTimers()
-		}
+		// 200px further down the page, from a cursor that never moved.
+		expect(result.current.point).toEqual({ x: 120, y: 500 })
 	})
 
 	/*
@@ -519,38 +511,32 @@ describe('usePdfViewerMagnifier over a pan', () => {
 	 * has nowhere to put a lens, and must not guess at one.
 	 */
 	it('brings nothing back when the pointer has left the page', () => {
-		vi.useFakeTimers()
+		const { result } = renderHook(() => usePdfViewerMagnifier(settings))
 
-		try {
-			const { result } = renderHook(() => usePdfViewerMagnifier(settings))
+		const move = result.current.referenceProps.onPointerMove as (
+			event: ReactPointerEvent<HTMLElement>,
+		) => void
 
-			const move = result.current.referenceProps.onPointerMove as (
-				event: ReactPointerEvent<HTMLElement>,
-			) => void
+		const leave = result.current.referenceProps.onPointerLeave as (
+			event: ReactPointerEvent<HTMLElement>,
+		) => void
 
-			const leave = result.current.referenceProps.onPointerLeave as (
-				event: ReactPointerEvent<HTMLElement>,
-			) => void
+		const scroll = () => document.dispatchEvent(new Event('scroll'))
 
-			const scroll = () => document.dispatchEvent(new Event('scroll'))
+		const frame = frameAt(() => 0)
 
-			const frame = frameAt(() => 0)
+		act(() => {
+			move(pointerOn(frame, 120, 300))
+			scroll()
+			leave(pointerOn(frame, 120, 300))
+		})
 
-			act(() => {
-				move(pointerOn(frame, 120, 300))
-				scroll()
-				leave(pointerOn(frame, 120, 300))
-			})
+		act(() => {
+			vi.advanceTimersByTime(300)
+		})
 
-			act(() => {
-				vi.advanceTimersByTime(300)
-			})
-
-			expect(result.current.open).toBe(false)
-			expect(result.current.point).toBeNull()
-		} finally {
-			vi.useRealTimers()
-		}
+		expect(result.current.open).toBe(false)
+		expect(result.current.point).toBeNull()
 	})
 
 	/*
@@ -559,36 +545,30 @@ describe('usePdfViewerMagnifier over a pan', () => {
 	 * flinching at nothing — which is what a watch on the whole document has to answer for.
 	 */
 	it('stands still for a scroller that does not hold the page', () => {
-		vi.useFakeTimers()
+		const { result } = renderHook(() => usePdfViewerMagnifier(settings))
 
-		try {
-			const { result } = renderHook(() => usePdfViewerMagnifier(settings))
+		const move = result.current.referenceProps.onPointerMove as (
+			event: ReactPointerEvent<HTMLElement>,
+		) => void
 
-			const move = result.current.referenceProps.onPointerMove as (
-				event: ReactPointerEvent<HTMLElement>,
-			) => void
+		const elsewhere = attach(document.createElement('div'))
 
-			const elsewhere = attach(document.createElement('div'))
+		const frame = frameAt(() => 0)
 
-			const frame = frameAt(() => 0)
+		act(() => {
+			move(pointerOn(frame, 120, 300))
+		})
 
-			act(() => {
-				move(pointerOn(frame, 120, 300))
-			})
+		act(() => {
+			elsewhere.dispatchEvent(new Event('scroll'))
+		})
 
-			act(() => {
-				elsewhere.dispatchEvent(new Event('scroll'))
-			})
+		act(() => {
+			vi.advanceTimersByTime(300)
+		})
 
-			act(() => {
-				vi.advanceTimersByTime(300)
-			})
-
-			// The settle is what would have opened it; nothing was scheduled, so nothing did.
-			expect(result.current.open).toBe(false)
-		} finally {
-			vi.useRealTimers()
-		}
+		// The settle is what would have opened it; nothing was scheduled, so nothing did.
+		expect(result.current.open).toBe(false)
 	})
 
 	/** A loupe the consumer never asked for attaches nothing, and a pan is nothing to it. */
@@ -662,137 +642,119 @@ describe('usePdfViewerMagnifier under a held finger', () => {
 		return { frame, hook, props }
 	}
 
-	function withTimers(run: () => void) {
+	beforeEach(() => {
 		vi.useFakeTimers()
-
-		try {
-			run()
-		} finally {
-			vi.useRealTimers()
-		}
-	}
+	})
 
 	it('opens the lens where the finger rests, after the dwell', () => {
-		withTimers(() => {
-			const { frame, hook, props } = setup()
+		const { frame, hook, props } = setup()
 
-			act(() => props().onPointerDown(finger(frame, 120, 300)))
+		act(() => props().onPointerDown(finger(frame, 120, 300)))
 
-			act(() => {
-				vi.advanceTimersByTime(299)
-			})
-
-			expect(hook.result.current.open).toBe(false)
-
-			act(() => {
-				vi.advanceTimersByTime(1)
-			})
-
-			expect(hook.result.current.open).toBe(true)
-			expect(hook.result.current.point).toEqual({ x: 120, y: 300 })
+		act(() => {
+			vi.advanceTimersByTime(299)
 		})
+
+		expect(hook.result.current.open).toBe(false)
+
+		act(() => {
+			vi.advanceTimersByTime(1)
+		})
+
+		expect(hook.result.current.open).toBe(true)
+		expect(hook.result.current.point).toEqual({ x: 120, y: 300 })
 	})
 
 	/** A finger that lands to scroll must not open a lens first, whatever the mouse dwell is. */
 	it('holds for 300ms at the least, under the no-dwell step', () => {
-		withTimers(() => {
-			const { frame, hook, props } = setup({ ...settings, delay: 0 })
+		const { frame, hook, props } = setup({ ...settings, delay: 0 })
 
-			act(() => props().onPointerDown(finger(frame, 120, 300)))
+		act(() => props().onPointerDown(finger(frame, 120, 300)))
 
-			act(() => {
-				vi.advanceTimersByTime(299)
-			})
-
-			expect(hook.result.current.open).toBe(false)
-
-			act(() => {
-				vi.advanceTimersByTime(1)
-			})
-
-			expect(hook.result.current.open).toBe(true)
+		act(() => {
+			vi.advanceTimersByTime(299)
 		})
+
+		expect(hook.result.current.open).toBe(false)
+
+		act(() => {
+			vi.advanceTimersByTime(1)
+		})
+
+		expect(hook.result.current.open).toBe(true)
 	})
 
 	it('opens nothing for a finger that moves off to scroll', () => {
-		withTimers(() => {
-			const { frame, hook, props } = setup()
+		const { frame, hook, props } = setup()
 
-			act(() => props().onPointerDown(finger(frame, 120, 300)))
+		act(() => props().onPointerDown(finger(frame, 120, 300)))
 
-			act(() => props().onPointerMove(finger(frame, 120, 320)))
+		act(() => props().onPointerMove(finger(frame, 120, 320)))
 
-			act(() => {
-				vi.advanceTimersByTime(300)
-			})
-
-			expect(hook.result.current.open).toBe(false)
+		act(() => {
+			vi.advanceTimersByTime(300)
 		})
+
+		expect(hook.result.current.open).toBe(false)
 	})
 
 	it('moves the open lens with the finger, and closes it on the lift', () => {
-		withTimers(() => {
-			const { frame, hook, props } = setup()
+		const { frame, hook, props } = setup()
 
-			act(() => props().onPointerDown(finger(frame, 120, 300)))
+		act(() => props().onPointerDown(finger(frame, 120, 300)))
 
-			act(() => {
-				vi.advanceTimersByTime(300)
-			})
-
-			act(() => props().onPointerMove(finger(frame, 200, 450)))
-
-			expect(hook.result.current.point).toEqual({ x: 200, y: 450 })
-
-			act(() => props().onPointerUp(finger(frame, 200, 450, { type: 'pointerup' })))
-
-			expect(hook.result.current.open).toBe(false)
+		act(() => {
+			vi.advanceTimersByTime(300)
 		})
+
+		act(() => props().onPointerMove(finger(frame, 200, 450)))
+
+		expect(hook.result.current.point).toEqual({ x: 200, y: 450 })
+
+		act(() => props().onPointerUp(finger(frame, 200, 450, { type: 'pointerup' })))
+
+		expect(hook.result.current.open).toBe(false)
 	})
 
 	/** The lift after a read is not a press: a highlight under the finger stays unpressed. */
 	it('swallows the click that the lift fires', () => {
-		withTimers(() => {
-			const { frame, props } = setup()
+		const { frame, props } = setup()
 
-			act(() => props().onPointerDown(finger(frame, 120, 300)))
+		act(() => props().onPointerDown(finger(frame, 120, 300)))
 
-			act(() => {
-				vi.advanceTimersByTime(300)
-			})
-
-			act(() => props().onPointerUp(finger(frame, 120, 300, { type: 'pointerup' })))
-
-			const click = { preventDefault: vi.fn(), stopPropagation: vi.fn() }
-
-			props().onClickCapture(click)
-
-			expect(click.preventDefault).toHaveBeenCalled()
-			expect(click.stopPropagation).toHaveBeenCalled()
-
-			// One click only: the next tap presses as it always did.
-			const next = { preventDefault: vi.fn(), stopPropagation: vi.fn() }
-
-			props().onClickCapture(next)
-
-			expect(next.preventDefault).not.toHaveBeenCalled()
+		act(() => {
+			vi.advanceTimersByTime(300)
 		})
+
+		act(() => props().onPointerUp(finger(frame, 120, 300, { type: 'pointerup' })))
+
+		const click = { preventDefault: vi.fn(), stopPropagation: vi.fn() }
+
+		props().onClickCapture(click)
+
+		expect(click.preventDefault).toHaveBeenCalled()
+		expect(click.stopPropagation).toHaveBeenCalled()
+
+		// One click only: the next tap presses as it always did.
+		const next = { preventDefault: vi.fn(), stopPropagation: vi.fn() }
+
+		props().onClickCapture(next)
+
+		expect(next.preventDefault).not.toHaveBeenCalled()
 	})
 
 	it('leaves the click of a plain tap alone', () => {
-		withTimers(() => {
-			const { frame, props } = setup()
+		const { frame, props } = setup()
 
-			act(() => props().onPointerDown(finger(frame, 120, 300)))
+		act(() => props().onPointerDown(finger(frame, 120, 300)))
 
-			act(() => props().onPointerUp(finger(frame, 120, 300, { type: 'pointerup' })))
+		act(() => props().onPointerUp(finger(frame, 120, 300, { type: 'pointerup' })))
 
-			const click = { preventDefault: vi.fn(), stopPropagation: vi.fn() }
+		const click = { preventDefault: vi.fn(), stopPropagation: vi.fn() }
 
-			props().onClickCapture(click)
+		props().onClickCapture(click)
 
-			expect(click.preventDefault).not.toHaveBeenCalled()
-		})
+		expect(click.preventDefault).not.toHaveBeenCalled()
 	})
 
 	/**
@@ -800,70 +762,64 @@ describe('usePdfViewerMagnifier under a held finger', () => {
 	 * closes for the menu, and the event goes through uncanceled.
 	 */
 	it('gives way to the long-press menu without canceling it', () => {
-		withTimers(() => {
-			const { frame, hook, props } = setup()
+		const { frame, hook, props } = setup()
 
-			act(() => props().onPointerDown(finger(frame, 120, 300)))
+		act(() => props().onPointerDown(finger(frame, 120, 300)))
 
-			act(() => {
-				vi.advanceTimersByTime(300)
-			})
-
-			const menu = { preventDefault: vi.fn(), stopPropagation: vi.fn() }
-
-			act(() => props().onContextMenu(menu))
-
-			expect(hook.result.current.open).toBe(false)
-			expect(menu.preventDefault).not.toHaveBeenCalled()
-			expect(menu.stopPropagation).not.toHaveBeenCalled()
+		act(() => {
+			vi.advanceTimersByTime(300)
 		})
+
+		const menu = { preventDefault: vi.fn(), stopPropagation: vi.fn() }
+
+		act(() => props().onContextMenu(menu))
+
+		expect(hook.result.current.open).toBe(false)
+		expect(menu.preventDefault).not.toHaveBeenCalled()
+		expect(menu.stopPropagation).not.toHaveBeenCalled()
 	})
 
 	it('closes when the browser cancels the finger', () => {
-		withTimers(() => {
-			const { frame, hook, props } = setup()
+		const { frame, hook, props } = setup()
 
-			act(() => props().onPointerDown(finger(frame, 120, 300)))
+		act(() => props().onPointerDown(finger(frame, 120, 300)))
 
-			act(() => {
-				vi.advanceTimersByTime(300)
-			})
-
-			act(() => props().onPointerCancel(finger(frame, 120, 300, { type: 'pointercancel' })))
-
-			expect(hook.result.current.open).toBe(false)
+		act(() => {
+			vi.advanceTimersByTime(300)
 		})
+
+		act(() => props().onPointerCancel(finger(frame, 120, 300, { type: 'pointercancel' })))
+
+		expect(hook.result.current.open).toBe(false)
 	})
 
 	/** Before the lens opens a finger scrolls the page; while it is open, it moves the lens. */
 	it('holds the page still only while the lens is open', () => {
-		withTimers(() => {
-			const { frame, hook, props } = setup()
+		const { frame, hook, props } = setup()
 
-			act(() => hook.result.current.setReference(frame))
+		act(() => hook.result.current.setReference(frame))
 
-			const touchmove = () => {
-				const event = new Event('touchmove', { cancelable: true })
+		const touchmove = () => {
+			const event = new Event('touchmove', { cancelable: true })
 
-				frame.dispatchEvent(event)
+			frame.dispatchEvent(event)
 
-				return event.defaultPrevented
-			}
+			return event.defaultPrevented
+		}
 
-			act(() => props().onPointerDown(finger(frame, 120, 300)))
+		act(() => props().onPointerDown(finger(frame, 120, 300)))
 
-			expect(touchmove()).toBe(false)
+		expect(touchmove()).toBe(false)
 
-			act(() => {
-				vi.advanceTimersByTime(300)
-			})
-
-			expect(touchmove()).toBe(true)
-
-			act(() => props().onPointerUp(finger(frame, 120, 300, { type: 'pointerup' })))
-
-			expect(touchmove()).toBe(false)
+		act(() => {
+			vi.advanceTimersByTime(300)
 		})
+
+		expect(touchmove()).toBe(true)
+
+		act(() => props().onPointerUp(finger(frame, 120, 300, { type: 'pointerup' })))
+
+		expect(touchmove()).toBe(false)
 	})
 
 	/**
@@ -871,73 +827,67 @@ describe('usePdfViewerMagnifier under a held finger', () => {
 	 * would press a region, or clear the selection, before any click arrives.
 	 */
 	it('cancels the touchend of the lift, and leaves the next click alone', () => {
-		withTimers(() => {
-			const { frame, hook, props } = setup()
+		const { frame, hook, props } = setup()
 
-			act(() => hook.result.current.setReference(frame))
+		act(() => hook.result.current.setReference(frame))
 
-			const touchend = () => {
-				const event = new Event('touchend', { cancelable: true })
-
-				frame.dispatchEvent(event)
-
-				return event.defaultPrevented
-			}
-
-			act(() => props().onPointerDown(finger(frame, 120, 300)))
-
-			act(() => {
-				vi.advanceTimersByTime(300)
-			})
-
-			act(() => props().onPointerUp(finger(frame, 120, 300, { type: 'pointerup' })))
-
-			expect(touchend()).toBe(true)
-
-			// The canceled touchend fires no click, so a later click presses as it always did.
-			const click = { preventDefault: vi.fn(), stopPropagation: vi.fn() }
-
-			props().onClickCapture(click)
-
-			expect(click.preventDefault).not.toHaveBeenCalled()
-		})
-	})
-
-	it('leaves the touchend of a plain tap alone', () => {
-		withTimers(() => {
-			const { frame, hook, props } = setup()
-
-			act(() => hook.result.current.setReference(frame))
-
-			act(() => props().onPointerDown(finger(frame, 120, 300)))
-
-			act(() => props().onPointerUp(finger(frame, 120, 300, { type: 'pointerup' })))
-
+		const touchend = () => {
 			const event = new Event('touchend', { cancelable: true })
 
 			frame.dispatchEvent(event)
 
-			expect(event.defaultPrevented).toBe(false)
+			return event.defaultPrevented
+		}
+
+		act(() => props().onPointerDown(finger(frame, 120, 300)))
+
+		act(() => {
+			vi.advanceTimersByTime(300)
 		})
+
+		act(() => props().onPointerUp(finger(frame, 120, 300, { type: 'pointerup' })))
+
+		expect(touchend()).toBe(true)
+
+		// The canceled touchend fires no click, so a later click presses as it always did.
+		const click = { preventDefault: vi.fn(), stopPropagation: vi.fn() }
+
+		props().onClickCapture(click)
+
+		expect(click.preventDefault).not.toHaveBeenCalled()
+	})
+
+	it('leaves the touchend of a plain tap alone', () => {
+		const { frame, hook, props } = setup()
+
+		act(() => hook.result.current.setReference(frame))
+
+		act(() => props().onPointerDown(finger(frame, 120, 300)))
+
+		act(() => props().onPointerUp(finger(frame, 120, 300, { type: 'pointerup' })))
+
+		const event = new Event('touchend', { cancelable: true })
+
+		frame.dispatchEvent(event)
+
+		expect(event.defaultPrevented).toBe(false)
 	})
 
 	/** A scroll that starts under a pending hold is the finger scrolling, not holding. */
 	it('drops a pending hold when the page scrolls', () => {
-		withTimers(() => {
-			const { frame, hook, props } = setup()
+		const { frame, hook, props } = setup()
 
-			act(() => props().onPointerDown(finger(frame, 120, 300)))
+		act(() => props().onPointerDown(finger(frame, 120, 300)))
 
-			act(() => {
-				document.dispatchEvent(new Event('scroll'))
-			})
-
-			act(() => {
-				vi.advanceTimersByTime(1000)
-			})
-
-			expect(hook.result.current.open).toBe(false)
+		act(() => {
+			document.dispatchEvent(new Event('scroll'))
 		})
+
+		act(() => {
+			vi.advanceTimersByTime(1000)
+		})
+
+		expect(hook.result.current.open).toBe(false)
 	})
 })
 

@@ -25,6 +25,36 @@ import { parseAspectRatio } from '../../../../utilities'
 export type ChartAspectRatio = number | `${number}/${number}` | false
 
 /**
+ * The ratio of a chart in the fullscreen dialog. The dialog panel is sized for
+ * a 16/9 chart, the default ratio of the cartesian charts.
+ *
+ * @internal
+ */
+const FULLSCREEN_ASPECT_RATIO: ChartAspectRatio = '16/9'
+
+/**
+ * The aspect ratio that a chart resolves its sizing through, for a chart whose
+ * default ratio fits its own content:
+ *
+ * - The caller's explicit `aspectRatio` when set.
+ * - Else {@link FULLSCREEN_ASPECT_RATIO} while the chart is the copy in the
+ *   fullscreen dialog. A content fit, such as the square of a pie or the shape
+ *   of a heatmap grid, can be taller than the panel, and the copy then
+ *   overruns the height cap of the panel.
+ * - Else `fit`, the chart's own default. `undefined` leaves the frame
+ *   free-form.
+ *
+ * @internal
+ */
+export function chartAspectRatio<Fit extends ChartAspectRatio | undefined>(
+	aspectRatio: ChartAspectRatio | undefined,
+	fit: Fit,
+	fullscreen: boolean,
+): ChartAspectRatio | Fit {
+	return aspectRatio ?? (fullscreen ? FULLSCREEN_ASPECT_RATIO : fit)
+}
+
+/**
  * Resolves a chart frame's sizing policy from its props. An explicit `height`
  * always wins as a fixed pixel box. Otherwise a live `aspectRatio` derives the
  * height from the width, and with the ratio off (or unparseable) the frame is

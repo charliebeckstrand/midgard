@@ -47,36 +47,6 @@ export function donutCenterStyle(
 }
 
 /**
- * The ratio a default pie / donut takes inside the fullscreen dialog. The
- * dialog panel is sized for a 16/9 chart, the same ratio the cartesian charts
- * default to. A pie left at its square content fit therefore fills the panel's
- * width and overruns its height cap. There it adopts the panel's ratio instead.
- * An explicit `aspectRatio` still wins. See {@link ChartContextMenu}.
- *
- * @internal
- */
-const FULLSCREEN_ASPECT_RATIO: ChartAspectRatio = '16/9'
-
-/**
- * The aspect a pie frame resolves its sizing through:
- *
- * - The caller's explicit `aspectRatio` when set.
- * - Else the {@link FULLSCREEN_ASPECT_RATIO} while the chart is the fullscreen
- *   dialog's re-mounted copy.
- * - Else free-form, so the frame fits the pie's own content.
- *
- * Kept off {@link SectorChart}'s own branch count.
- *
- * @internal
- */
-export function sectorAspectRatio(
-	aspectRatio: ChartAspectRatio | undefined,
-	fullscreen: boolean,
-): ChartAspectRatio | undefined {
-	return aspectRatio ?? (fullscreen ? FULLSCREEN_ASPECT_RATIO : undefined)
-}
-
-/**
  * The pie frame's sizing policy: an explicit `height` or `aspectRatio` always
  * wins, resolved the same way every cartesian chart does. Left at both
  * defaults, the frame instead fits its height to the pie's own footprint:

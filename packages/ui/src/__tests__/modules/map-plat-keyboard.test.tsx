@@ -113,6 +113,26 @@ describe('MapPlat keyboard navigation', () => {
 		expect(readout(container)).toBeNull()
 	})
 
+	it('keeps the focused plot when the legend moves between a side and a band', () => {
+		const { container, plot, rerender } = renderNavigable(categoricalPlat({ legend: 'right' }))
+
+		act(() => plot.focus())
+
+		// A drill-down hands the same plat a new atlas without the side legend. The
+		// plot that holds focus must stay mounted, or focus falls to the page.
+		rerender(categoricalPlat({ legend: 'bottom' }))
+
+		expect(bySlot(container, 'map-plot')).toBe(plot)
+
+		expect(plot).toHaveFocus()
+
+		rerender(categoricalPlat({ legend: 'left' }))
+
+		expect(bySlot(container, 'map-plot')).toBe(plot)
+
+		expect(plot).toHaveFocus()
+	})
+
 	it('jumps to the ends of the atlas order with Home and End', () => {
 		const { container, plot } = renderNavigable(categoricalPlat())
 

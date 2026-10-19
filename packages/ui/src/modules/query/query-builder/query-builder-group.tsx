@@ -30,6 +30,12 @@ export type QueryBuilderGroupProps = {
 	 * @defaultValue false
 	 */
 	root?: boolean
+	/**
+	 * When false, the group omits its "remove" button. The parent sets it under
+	 * `requireRule` when the group is its sole child.
+	 * @defaultValue true
+	 */
+	removable?: boolean
 	className?: string
 }
 
@@ -82,16 +88,22 @@ const QueryBuilderSeparator = memo(function QueryBuilderSeparator({
  * with a hold-to-remove control. Memoized: the tree-edit helpers preserve the
  * identity of untouched subtrees, so an edit re-renders only the affected group.
  */
-function QueryBuilderGroupImpl({ group, root, className }: QueryBuilderGroupProps) {
+function QueryBuilderGroupImpl({
+	group,
+	root,
+	removable = true,
+	className,
+}: QueryBuilderGroupProps) {
 	const { disabled, allowGroups, requireRule, reorderable } = useQueryBuilderState()
 
 	const { addRule, addGroup, remove } = useQueryBuilderActions()
 
 	const intl = useIntl()
 
-	// With `requireRule`, a group keeps its last rule: the sole remaining rule
-	// hides its remove control so the query can't be emptied.
-	const rulesRemovable = !requireRule || group.children.length > 1
+	// With `requireRule`, a group keeps its last child: the sole child, a rule or
+	// a group, hides its remove control. A new group starts with a rule, so each
+	// group then holds a rule, and the query can't be emptied.
+	const childRemovable = !requireRule || group.children.length > 1
 
 	// The focus ladder degrades to a group's "add" affordance; that is now the
 	// menu trigger, the always-mounted control that replaced the bare "Add rule"
@@ -108,9 +120,9 @@ function QueryBuilderGroupImpl({ group, root, className }: QueryBuilderGroupProp
 
 	const node = (child: QueryNode) =>
 		child.type === 'group' ? (
-			<QueryBuilderGroup group={child} />
+			<QueryBuilderGroup group={child} removable={childRemovable} />
 		) : (
-			<QueryBuilderRule rule={child} removable={rulesRemovable} />
+			<QueryBuilderRule rule={child} removable={childRemovable} />
 		)
 
 	// The AND/OR before the child at the index.
@@ -175,7 +187,7 @@ function QueryBuilderGroupImpl({ group, root, className }: QueryBuilderGroupProp
 						)}
 					</MenuContent>
 				</Menu>
-				{!root && (
+				{!root && removable && (
 					<Flex justify="end">
 						<Tooltip>
 							<TooltipTrigger>
