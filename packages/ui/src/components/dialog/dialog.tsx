@@ -16,7 +16,7 @@ import {
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { type DialogPanelVariants, k } from '../../recipes/kata/dialog'
-import { adaptive, type Responsive, resolveVariant } from '../../types'
+import { adaptive, type Responsive, resolveVariant, withInitial } from '../../types'
 import { DialogClose, DialogDefaultFooter } from './slots'
 
 /** Where a {@link DialogPanel} sits: docked to the `bottom` edge, or floating at the `center` or the `top`. */
@@ -156,7 +156,7 @@ export function Dialog(props: DialogProps) {
  */
 export function DialogPanel({
 	onOpenComplete,
-	align = DIALOG_ALIGN,
+	align: alignProp = DIALOG_ALIGN,
 	dismissOnBackdrop,
 	modal = true,
 	backdrop,
@@ -179,6 +179,9 @@ export function DialogPanel({
 	const surface = useResolvedSurface(glass)
 
 	const isGlass = surface === 'glass'
+
+	// A map with no `initial` value docks there, in the CSS and in the motion alike.
+	const align = withInitial(alignProp, 'bottom')
 
 	const docked = useResponsiveValue(align, 'bottom') === 'bottom'
 

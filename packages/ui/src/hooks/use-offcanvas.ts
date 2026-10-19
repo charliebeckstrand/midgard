@@ -1,7 +1,7 @@
 'use client'
 
-import { useCallback, useState } from 'react'
-import { adaptive, type Responsive } from '../types/responsive'
+import { useCallback, useMemo, useState } from 'react'
+import { adaptive, type Responsive, withInitial } from '../types/responsive'
 import { useOpenChange } from './use-open-change'
 import { useResponsiveValue } from './use-responsive-value'
 
@@ -45,14 +45,18 @@ export type OffcanvasOptions = {
  * @remarks The hook reads `layout` with `useResponsiveValue`, which reads the
  * same breakpoints as the classes that `resolveVariant` gives for it. While the
  * layout is `inline`, the drawer stays closed, and a `setOpen(true)` has no
- * effect.
- * @returns `{ open, setOpen, close }` — the open flag, its setter, and a
- * memoized `close` convenience.
+ * effect. A map that names no `initial` value takes `drawer` there.
+ * @returns `{ open, setOpen, close, layout }` — the open flag, its setter, a
+ * memoized `close` convenience, and the layout with its `initial` value. Give
+ * that layout to `resolveVariant`, so that the CSS agrees with the open flag.
  */
 export function useOffcanvas({ layout = OFFCANVAS_LAYOUT, onOpenChange }: OffcanvasOptions = {}) {
 	const [choice, setOpen] = useState(false)
 
-	const inline = useResponsiveValue(layout, 'drawer') === 'inline'
+	// The same object while `layout` keeps its identity, so a memo that reads it holds.
+	const filled = useMemo(() => withInitial(layout, 'drawer'), [layout])
+
+	const inline = useResponsiveValue(filled, 'drawer') === 'inline'
 
 	// The drawer root keeps the choice while the layout is inline. If the choice
 	// stays true, the drawer opens again without a press when the viewport
@@ -68,5 +72,5 @@ export function useOffcanvas({ layout = OFFCANVAS_LAYOUT, onOpenChange }: Offcan
 	// call site of its own, and `setOpen` is handed out raw for callers to drive.
 	useOpenChange(open, onOpenChange)
 
-	return { open, setOpen, close }
+	return { open, setOpen, close, layout: filled }
 }

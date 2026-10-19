@@ -166,6 +166,25 @@ export function valueAt<T>(value: Responsive<T>, bp: Breakpoint, fallback: T): T
 }
 
 /**
+ * Gives a per-breakpoint map an `initial` value when it names none. Without
+ * one, `resolveVariant` gives no unprefixed classes, and the CSS below the
+ * first named breakpoint is that of no value. A component that also reads the
+ * value in JavaScript fills the map first, with the fallback of its
+ * `useResponsiveValue` call, so that its CSS and its JavaScript agree there.
+ *
+ * @param value - The single or per-breakpoint value.
+ * @param fallback - The value below the first breakpoint that the map names.
+ * @returns `value` when it is a bare value or names `initial`, else a copy that names `initial`.
+ */
+export function withInitial<T>(value: Responsive<T>, fallback: T): Responsive<T> {
+	if (typeof value !== 'object' || value === null || Array.isArray(value)) return value
+
+	const named: Partial<Record<Breakpoint, T>> = value
+
+	return named.initial === undefined ? { ...named, initial: fallback } : value
+}
+
+/**
  * Maps each value of a responsive prop through `fn`, and keeps the breakpoint
  * of each. A bare value gives a bare value.
  *

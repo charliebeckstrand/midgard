@@ -13,7 +13,7 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { usePortalContainer } from '../../primitives/portal'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k } from '../../recipes/kata/toast'
-import { mapResponsive, type Responsive, resolveVariant } from '../../types'
+import { mapResponsive, type Responsive, resolveVariant, withInitial } from '../../types'
 import { subscribeDocumentEvent } from '../../utilities/document-listener'
 import { getTabbableElements } from '../../utilities/focusable-selector'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
@@ -113,7 +113,11 @@ export function Toast({ position = TOAST_POSITION }: ToastProps) {
 	// resolves against the direction of the scope first.
 	const rtl = useIsRtl()
 
-	const physical = mapResponsive(position, (value) => physicalPosition(value, rtl))
+	// A map with no `initial` value takes the bottom edge there, in the CSS and in the order alike.
+	const physical = withInitial(
+		mapResponsive(position, (value) => physicalPosition(value, rtl)),
+		'bottom',
+	)
 
 	// The order, the motion, and the gap of the stack follow the edge that the
 	// stack is on at the viewport.

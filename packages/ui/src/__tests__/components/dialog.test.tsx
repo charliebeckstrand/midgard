@@ -145,6 +145,20 @@ describe('Dialog', () => {
 		)
 	})
 
+	it('docks to the bottom edge below the first breakpoint of an align that names no `initial`', () => {
+		renderUI(
+			<Dialog open onOpenChange={() => {}}>
+				<DialogPanel align={{ sm: 'top' }}>Responsive</DialogPanel>
+			</Dialog>,
+		)
+
+		const wrapper = bySlot(document.body, 'dialog')?.parentElement
+
+		expect(wrapper?.className.split(' ')).toEqual(
+			expect.arrayContaining(['items-end', 'p-0', 'sm:items-start', 'sm:p-4']),
+		)
+	})
+
 	it('respects dismissOnBackdrop=false', () => {
 		const onOpenChange = vi.fn()
 
