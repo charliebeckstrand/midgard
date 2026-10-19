@@ -570,6 +570,7 @@ export function GridData<T>({
 		resize,
 		className,
 		group,
+		collapsedHidden: columnState.collapsedHidden,
 		pinning,
 		grandTotalRow,
 		grandTotalRows,

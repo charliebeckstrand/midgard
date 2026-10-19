@@ -143,7 +143,7 @@ describe('useGridColumns', () => {
 				columnManagerConfig: undefined,
 				groups: [{ id: 'g', columns: ['b', 'c'] }],
 				// The group is collapsed, so its second member is hidden and has no handle.
-				forcedHidden: new Set(['c']),
+				collapsed: new Set(['g']),
 			}),
 		)
 

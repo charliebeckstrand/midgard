@@ -59,22 +59,26 @@ export function groupedColumnOrder(
 }
 
 /**
- * Column ids a collapsed group hides from the engine: every member but the
- * first, which stays as the band's visible anchor and expand affordance. Absent
- * groups and expanded groups contribute nothing.
+ * Column ids a collapsed group hides from the engine: every member that shows
+ * but the first, which stays as the band's visible anchor and expand
+ * affordance. A member that the reader hid, or that is pinned away from the
+ * band, does not show, so it is neither the anchor nor counted as hidden by the
+ * collapse. Absent groups and expanded groups contribute nothing.
  *
+ * @param shows - Whether a column shows in the band when no group is collapsed.
  * @internal
  */
 export function collapsedHiddenIds(
 	groups: GridColumnGroup[],
 	collapsed: ReadonlySet<string | number>,
+	shows: (id: string | number) => boolean = () => true,
 ): Set<string | number> {
 	const hidden = new Set<string | number>()
 
 	for (const group of groups) {
 		if (!collapsed.has(group.id)) continue
 
-		for (const id of group.columns.slice(1)) hidden.add(id)
+		for (const id of group.columns.filter(shows).slice(1)) hidden.add(id)
 	}
 
 	return hidden
