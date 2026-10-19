@@ -1,5 +1,4 @@
-import { beforeAll, vi } from 'vitest'
-import { tooltipBody } from '../../../../components/tooltip/tooltip-body-loader'
+import { vi } from 'vitest'
 import { loadMotionFeatures } from '../../../../primitives/reduced-motion/reduced-motion-features'
 import { giveReducedMotionHint } from '../../setup/reduced-motion-hint'
 
@@ -22,7 +21,3 @@ await Promise.all([loadMotionFeatures('animation'), loadMotionFeatures('layout')
 // Motion is real here, so its one hint for reduced motion lands before the
 // files (see `browser/setup/reduced-motion-hint.ts`).
 giveReducedMotionHint()
-
-// The `floating-ui` project loads the tooltip body before each file for the
-// reason that its setup gives.
-beforeAll(() => tooltipBody.load())
