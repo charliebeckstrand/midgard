@@ -777,6 +777,10 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		[shape.features, regionId],
 	)
 
+	// A region pick earns the cursor a stop on a map with no readout, and on that
+	// stop each arrow key speaks the name of the region it moves onto. So a pick
+	// asks for the names, though the tooltip stays away.
+	//
 	// The props go in whole: the region-data union's branches are exclusive only
 	// while the object holds together, so an object rebuilt from the bindings
 	// above matches no branch and needs a cast to pass.
@@ -788,7 +792,13 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		regionNumbers,
 		domain: valueExtent,
 		thresholds: valueThresholds,
-	} = useMapRegionReadout(shape.features, props, regionIds, regionLabel, nameRegions)
+	} = useMapRegionReadout(
+		shape.features,
+		props,
+		regionIds,
+		regionLabel,
+		nameRegions || onRegionClick !== undefined,
+	)
 
 	const {
 		hidden: switched,
