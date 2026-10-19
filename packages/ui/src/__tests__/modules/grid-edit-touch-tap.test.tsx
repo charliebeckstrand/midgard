@@ -1,9 +1,19 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { TOUCH_SLOP } from '../../hooks/use-touch-tap'
 import { Grid, type GridColumn, type GridEditableConfig } from '../../modules/grid'
+import { GRID_DOUBLE_TAP_WINDOW } from '../../modules/grid/use-grid-touch-entry'
 import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 
 type Row = { id: number; name: string; count: number; done: boolean }
+
+/** The clock that the double tap reads. */
+let now = 0
+
+beforeEach(() => {
+	now = 1_000
+
+	vi.spyOn(performance, 'now').mockImplementation(() => now)
+})
 
 const rows: Row[] = [
 	{ id: 1, name: 'Alice', count: 2, done: false },
@@ -92,7 +102,7 @@ describe('Grid touch entry to edit', () => {
 		expect(editors()).toHaveLength(0)
 	})
 
-	it('opens the selected cell on a tap and focuses its editor', () => {
+	it('opens a cell on a double tap and focuses its editor', () => {
 		const { container, cell } = renderGrid()
 
 		tap(cell('name'))
@@ -100,6 +110,27 @@ describe('Grid touch entry to edit', () => {
 		tap(cell('name'))
 
 		expect(bySlot(container, 'grid-edit-input')).toHaveFocus()
+	})
+
+	it('only selects a cell on a second tap after the double-tap window', () => {
+		const { cell, editors } = renderGrid()
+
+		tap(cell('name'))
+
+		now += GRID_DOUBLE_TAP_WINDOW + 1
+
+		tap(cell('name'))
+
+		expect(cell('name')).toHaveAttribute('data-active')
+
+		expect(editors()).toHaveLength(0)
+
+		// The late tap starts a new pair.
+		now += 100
+
+		tap(cell('name'))
+
+		expect(editors()).toHaveLength(1)
 	})
 
 	it('only selects an unselected cell when another cell is selected', () => {
@@ -124,7 +155,7 @@ describe('Grid touch entry to edit', () => {
 		expect(bySlot(container, 'listbox-button')).toHaveFocus()
 	})
 
-	it('opens the selected cell of a row-scope session', () => {
+	it('opens a cell of a row-scope session on a double tap', () => {
 		const { container, cell } = renderGrid({ scope: 'row' })
 
 		tap(cell('name'))
@@ -144,7 +175,7 @@ describe('Grid touch entry to edit', () => {
 		expect(editors()).toHaveLength(0)
 	})
 
-	it('does not open the selected cell when a scroll starts on it', () => {
+	it('does not open a cell when a scroll starts on it', () => {
 		const { cell, editors } = renderGrid()
 
 		tap(cell('name'))
@@ -195,7 +226,7 @@ describe('Grid touch entry to edit', () => {
 		expect(editors()).toHaveLength(0)
 	})
 
-	it('does not open a selected cell on a tap in the manual mode', () => {
+	it('does not open a cell on a double tap in the manual mode', () => {
 		const { cell, editors } = renderGrid({ session: 'manual', scope: 'row' })
 
 		tap(cell('name'))

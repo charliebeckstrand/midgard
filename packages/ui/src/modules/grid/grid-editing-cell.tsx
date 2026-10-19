@@ -100,8 +100,8 @@ const CELL_HELD = 'held'
  * which carries the active-cursor ring. A cell-scoped session (`scope: 'cell'`)
  * narrows that to the one cell it names. A cell whose commit is in flight shows
  * the value as pending and mounts no editor, whatever the session holds. On a
- * phone the open cell shows its content, and the sheet of the grid holds its
- * editor ({@link GridEditableConfig.sheet}). The
+ * phone the open cell shows its content, and the overlay of the grid holds its
+ * editor ({@link GridEditableConfig.overlay}). The
  * cell reads the coord and the editable set from the session's store through
  * its own flag. A session move therefore re-renders the two cells whose flag
  * flipped, and a row that opens re-renders only its own cells.
@@ -127,7 +127,7 @@ export function GridEditingCell<T>({
 		settleControls,
 		resumeCell,
 		managed,
-		sheet,
+		overlay,
 	} = useGridEditingSession()
 
 	const columnId = column.id
@@ -171,8 +171,8 @@ export function GridEditingCell<T>({
 	// The editor keeps the cursor ring. Under the default `commitOn`, focus can
 	// leave the grid with the editor open. When focus comes back, the cursor can
 	// seat on this cell, and the ring is then the only mark of it (WCAG 2.4.7).
-	// The sheet of a phone holds the open editors, so the cell shows its content.
-	if (!sheet && flag !== CELL_READING && isColumnEditable(column)) {
+	// The overlay of a phone holds the open editors, so the cell shows its content.
+	if (overlay === null && flag !== CELL_READING && isColumnEditable(column)) {
 		return (
 			<GridNavCell row={rowIndex} col={colIndex}>
 				<GridCellEditor

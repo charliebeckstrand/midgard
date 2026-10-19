@@ -7,6 +7,18 @@ import { useTouchTap } from '../../hooks/use-touch-tap'
 import type { Coord } from './use-grid-navigation'
 
 /**
+ * Time, in ms, from the lift of one tap to the lift of the next, in which two
+ * taps on one cell are a double tap. It is the window of the double tap of the
+ * map.
+ *
+ * @internal
+ */
+export const GRID_DOUBLE_TAP_WINDOW = 400
+
+/** A tap on a cell: where and when it lifted. @internal */
+type CellTap = { coord: Coord; at: number }
+
+/**
  * The touch handlers of the editable cells of a grid. Each handler keeps one
  * identity for the mount.
  *
@@ -25,15 +37,15 @@ export type GridTouchEntry = {
 }
 
 /**
- * Opens the editor of the active cell on a tap of a finger. It is the touch
- * peer of the double-click, which a touch screen does not send: the root
+ * Opens the editor of a cell on a double tap of a finger. It is the touch peer
+ * of the double-click, which a touch screen does not send: the root
  * `touch-action: manipulation` of `ui` stops the double-tap on iOS.
  *
- * The first tap on a cell moves the cursor to it, through the mouse events
- * that the browser makes from the tap. A tap on the cell that holds the cursor
- * opens that cell. The press records whether the cell held the cursor as the
- * finger came down, and the lift opens it. Thus the tap that moves the cursor
- * never opens the cell, and no time limit joins two taps.
+ * One tap on a cell moves the cursor to it, through the mouse events that the
+ * browser makes from the tap, and opens nothing. That is true also for a tap
+ * on the cell that holds the cursor. A second tap on the same cell that lifts
+ * in {@link GRID_DOUBLE_TAP_WINDOW} of the first opens the cell. A third tap
+ * starts a new pair.
  *
  * {@link useTouchTap} finds the tap. A press that travels more than its
  * slop is a scroll, and a press that the browser cancels is a scroll that the
@@ -47,19 +59,18 @@ export type GridTouchEntry = {
  * mouse events and the click that the browser makes from the tap. Without it,
  * the mouse press can take focus from the editor back to the grid.
  *
- * @param isActive - Whether the cursor is on the cell at `coord` now.
  * @param enter - Opens the cell at `coord`. The caller gates a cell that cannot
  * edit.
  * @returns The handlers, with one identity for the mount.
  *
  * @internal
  */
-export function useGridTouchEntry(
-	isActive: (coord: Coord) => boolean,
-	enter: (coord: Coord) => void,
-): GridTouchEntry {
-	// The cell of the press, when it held the cursor as the finger came down.
+export function useGridTouchEntry(enter: (coord: Coord) => void): GridTouchEntry {
+	// The cell of the touch press.
 	const pressed = useRef<Coord | null>(null)
+
+	// The last tap, which the next tap on its cell makes a double tap.
+	const prevTap = useRef<CellTap | null>(null)
 
 	// Whether the last tap opened a cell, so its touch end cancels the click.
 	const opened = useRef(false)
@@ -71,7 +82,29 @@ export function useGridTouchEntry(
 
 		pressed.current = null
 
-		if (coord === null) return
+		if (coord === null) {
+			prevTap.current = null
+
+			return
+		}
+
+		const at = performance.now()
+
+		const prev = prevTap.current
+
+		const double =
+			prev !== null &&
+			prev.coord.row === coord.row &&
+			prev.coord.col === coord.col &&
+			at - prev.at <= GRID_DOUBLE_TAP_WINDOW
+
+		if (!double) {
+			prevTap.current = { coord, at }
+
+			return
+		}
+
+		prevTap.current = null
 
 		opened.current = true
 
@@ -81,8 +114,7 @@ export function useGridTouchEntry(
 	const down = useStableEvent((coord: Coord | null, event: PointerEvent<Element>) => {
 		opened.current = false
 
-		pressed.current =
-			coord !== null && event.pointerType === 'touch' && isActive(coord) ? coord : null
+		pressed.current = event.pointerType === 'touch' ? coord : null
 
 		touch.onPointerDown(event)
 	})

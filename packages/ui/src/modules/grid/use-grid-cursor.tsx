@@ -46,7 +46,7 @@ import type { GridCellActivate, GridRowActivate } from './engine/grid-row/bridge
 import { resolveCellAt } from './engine/grid-row/bridges'
 import type { GridCellClick, GridCellClickContext } from './engine/grid-row/cell'
 import type { GridEditSource } from './grid-data-types'
-import { GridEditSheet } from './grid-edit-sheet'
+import { GridEditOverlay } from './grid-edit-overlay'
 import { GridEditingSessionContext, GridNewRowContext } from './grid-editing-context'
 import type { GridEditableConfig } from './grid-editing-types'
 import type { GridColumn } from './types'
@@ -572,13 +572,10 @@ export function useGridCursor<T>({
 		return (cell) => enterEditAtCell(cell.rowKey, cell.columnId)
 	}, [managed, enterEditAtCell])
 
-	// The touch entry. A touch screen sends no double-click, so a tap on the
-	// cell that holds the cursor opens it (see `useGridTouchEntry`). It opens
-	// through `enterEditAt`, as Enter does, so the same gates apply.
-	const touchEntry = useGridTouchEntry(
-		(coord) => nav.active?.row === coord.row && nav.active.col === coord.col,
-		(coord) => enterEditAt(coord.row, coord.col),
-	)
+	// The touch entry. A touch screen sends no double-click, so the grid finds
+	// a double tap on a cell itself (see `useGridTouchEntry`). It opens through
+	// `enterEditAt`, as Enter does, so the same gates apply.
+	const touchEntry = useGridTouchEntry((coord) => enterEditAt(coord.row, coord.col))
 
 	// Cursor augmentation, editing-aware (which mounts the editors) for an
 	// editable grid.
@@ -800,7 +797,7 @@ export function useGridCursor<T>({
 
 	const newRowSession = editing.newRow.session
 
-	// On a phone the sheet holds the open editors. It sits beside the table, so
+	// On a phone the overlay holds the open editors. It sits beside the table, so
 	// its keys and focus moves do not reach the key surface of the table.
 	const wrap = useMemo(
 		() =>
@@ -809,8 +806,13 @@ export function useGridCursor<T>({
 						<GridEditingSessionContext value={session}>
 							<GridNewRowContext value={newRowSession}>{children}</GridNewRowContext>
 
-							{session.sheet && (
-								<GridEditSheet session={session} columns={columns} source={editSource} />
+							{session.overlay !== null && (
+								<GridEditOverlay
+									kind={session.overlay}
+									session={session}
+									columns={columns}
+									source={editSource}
+								/>
 							)}
 						</GridEditingSessionContext>
 					)

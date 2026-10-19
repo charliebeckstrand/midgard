@@ -128,7 +128,7 @@ export default function EditorTypes() {
 			columns={columns}
 			rows={tasks}
 			getKey={(row) => row.id}
-			editable={{ rows: editing, sheet: false, onCommit: () => {} }}
+			editable={{ rows: editing, overlay: false, onCommit: () => {} }}
 		/>
 	)
 }

@@ -57,7 +57,7 @@ export default function CellScopeAndSpreadsheetKeys() {
 				<EditHelp label="Editing help">
 					<PointerHint
 						mouse="Double-click a cell to edit it, then press Enter or Tab to save and move."
-						touch="Tap a cell twice to edit it. On a phone the cell opens in a sheet, so tap Save. On a tablet, press Return to save and move down."
+						touch="Double-tap a cell to edit it. On a phone the cell opens in a drawer, so tap Save. On a tablet, press Return to save and move down."
 					/>
 				</EditHelp>
 			</Flex>

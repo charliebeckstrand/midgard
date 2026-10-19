@@ -1434,7 +1434,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 *
 	 * Set {@link GridEditableConfig.session} to `'managed'` for grid-owned edit
 	 * sessions. Double-clicking an editable cell starts its row's edit, as do
-	 * Enter on the keyboard cursor's active cell and a tap on the active cell. An editor's Enter saves the row,
+	 * Enter on the keyboard cursor's active cell and a double tap on a cell. An editor's Enter saves the row,
 	 * and Escape abandons it. Such a session can narrow to the entered cell
 	 * rather than its whole row through {@link GridEditableConfig.scope}. Omit for
 	 * a read-only grid.

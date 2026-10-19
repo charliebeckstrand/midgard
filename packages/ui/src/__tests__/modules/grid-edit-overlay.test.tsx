@@ -33,7 +33,7 @@ const columns: GridColumn<Row>[] = [
 /**
  * A grid on a phone, with a button that opens row 1 as the pencil of a
  * consumer does. The phone is a stubbed media query: no hover and a narrow
- * viewport, as for the sheet of the DatePicker.
+ * viewport, as for the drawer of the DatePicker.
  */
 function renderPhoneGrid(
 	editable: Partial<GridEditableConfig> = {},
@@ -71,12 +71,14 @@ function renderPhoneGrid(
 }
 
 describe('Grid editing on a phone', () => {
-	it('opens the row in a sheet, and mounts no editor in the table', async () => {
+	it('opens the row in a drawer, and mounts no editor in the table', async () => {
 		const { container, editRow1 } = renderPhoneGrid()
 
 		await editRow1()
 
 		const sheet = screen.getByRole('dialog', { name: 'Edit row 1' })
+
+		expect(sheet).toHaveAttribute('data-slot', 'drawer')
 
 		expect(within(sheet).getByRole('textbox', { name: 'Name' })).toHaveValue('Alice')
 
@@ -147,7 +149,7 @@ describe('Grid editing on a phone', () => {
 		expect(screen.getByRole('dialog')).toBeInTheDocument()
 	})
 
-	it('holds the sheet open while an async commit settles, and shows a refusal', async () => {
+	it('holds the drawer open while an async commit settles, and shows a refusal', async () => {
 		let settle: (refused: GridCellRefusal[]) => void = () => {}
 
 		const onCommit = vi.fn(
@@ -186,8 +188,20 @@ describe('Grid editing on a phone', () => {
 		)
 	})
 
-	it('keeps the editors in the table with sheet false', async () => {
-		const { container, editRow1 } = renderPhoneGrid({ sheet: false })
+	it('opens the row in a sheet with overlay sheet', async () => {
+		const { editRow1 } = renderPhoneGrid({ overlay: 'sheet' })
+
+		await editRow1()
+
+		const sheet = screen.getByRole('dialog', { name: 'Edit row 1' })
+
+		expect(sheet).toHaveAttribute('data-slot', 'sheet')
+
+		expect(within(sheet).getByRole('button', { name: 'Save' })).toBeInTheDocument()
+	})
+
+	it('keeps the editors in the table with overlay false', async () => {
+		const { container, editRow1 } = renderPhoneGrid({ overlay: false })
 
 		await editRow1()
 
