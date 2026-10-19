@@ -1,8 +1,9 @@
 import { act, renderHook } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import type { CalendarHandle } from '../../components/calendar'
 import { useDatePickerState } from '../../components/date-picker/use-date-picker-state'
 import { attach, makeKeyEvent } from '../helpers'
+import { it } from '../helpers/fake-clock'
 
 const Jan1 = new Date(2025, 0, 1)
 
@@ -318,10 +319,10 @@ describe('useDatePickerState', () => {
 	})
 
 	describe('initial active date', () => {
-		it('clamps the initial date to min when no value is set', () => {
+		it('clamps the initial date to min when no value is set', async ({ clock }) => {
 			// Today must fall before `min`. On the real clock, today can fall after
 			// `max`, and then the cursor clamps to `max` and the case passes on it.
-			vi.useFakeTimers({ now: new Date(2025, 0, 1, 13, 30) })
+			clock.set(new Date(2025, 0, 1, 13, 30))
 
 			const { result } = renderHook(() =>
 				useDatePickerState({ min: Jan15, max: new Date(2025, 11, 31) }),
@@ -344,8 +345,10 @@ describe('useDatePickerState', () => {
 		})
 
 		// B02-C06: a past `min` bounds the cursor. It is not the start point.
-		it('starts the cursor on today when no value is set and today is inside min/max', () => {
-			vi.useFakeTimers({ now: new Date(2025, 5, 15, 13, 30) })
+		it('starts the cursor on today when no value is set and today is inside min/max', async ({
+			clock,
+		}) => {
+			clock.set(new Date(2025, 5, 15, 13, 30))
 
 			const { result } = renderHook(() => useDatePickerState({ min: Jan15 }))
 
@@ -360,8 +363,10 @@ describe('useDatePickerState', () => {
 			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: new Date(2025, 5, 15) })
 		})
 
-		it('commits today on Enter when no value is set and today is inside min/max', () => {
-			vi.useFakeTimers({ now: new Date(2025, 5, 15, 13, 30) })
+		it('commits today on Enter when no value is set and today is inside min/max', async ({
+			clock,
+		}) => {
+			clock.set(new Date(2025, 5, 15, 13, 30))
 
 			const onChange = vi.fn()
 

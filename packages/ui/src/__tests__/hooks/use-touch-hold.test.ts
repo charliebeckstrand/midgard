@@ -1,9 +1,10 @@
-import { act, renderHook } from '@testing-library/react'
+import { renderHook } from '@testing-library/react'
 import type { PointerEvent } from 'react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, vi } from 'vitest'
 import { useTouchHold } from '../../hooks/use-touch-hold'
 import { TOUCH_SLOP } from '../../hooks/use-touch-tap'
 import { __resetTextSelectionHold } from '../../utilities/hold-text-selection'
+import { it, onFakeClock } from '../helpers/fake-clock'
 
 const target = document.createElement('div')
 
@@ -22,9 +23,7 @@ function press(clientX: number, clientY: number, extra: Record<string, unknown> 
 }
 
 describe('useTouchHold', () => {
-	beforeEach(() => {
-		vi.useFakeTimers()
-	})
+	onFakeClock()
 
 	afterEach(() => {
 		__resetTextSelectionHold()
@@ -38,25 +37,23 @@ describe('useTouchHold', () => {
 		return { onHold, hold: () => result.current, unmount }
 	}
 
-	it('fires with the press after the delay', () => {
+	it('fires with the press after the delay', async ({ clock }) => {
 		const { onHold, hold } = setup()
 
 		expect(hold().start(press(40, 60), 500)).toBe(true)
 
-		act(() => {
-			vi.advanceTimersByTime(499)
-		})
+		await clock.advance(499)
 
 		expect(onHold).not.toHaveBeenCalled()
 
-		act(() => {
-			vi.advanceTimersByTime(1)
-		})
+		await clock.advance(1)
 
 		expect(onHold).toHaveBeenCalledWith({ id: 1, x: 40, y: 60, target })
 	})
 
-	it('ends a pending hold whose pointer moves past the slop, and keeps one inside it', () => {
+	it('ends a pending hold whose pointer moves past the slop, and keeps one inside it', async ({
+		clock,
+	}) => {
 		const { onHold, hold } = setup()
 
 		hold().start(press(40, 60), 500)
@@ -69,9 +66,7 @@ describe('useTouchHold', () => {
 
 		expect(hold().active()).toBe(false)
 
-		act(() => {
-			vi.advanceTimersByTime(500)
-		})
+		await clock.advance(500)
 
 		expect(onHold).not.toHaveBeenCalled()
 	})
@@ -86,14 +81,12 @@ describe('useTouchHold', () => {
 		expect(hold().pending()).toBe(true)
 	})
 
-	it('keeps a fired hold, and its pointer, until it is canceled', () => {
+	it('keeps a fired hold, and its pointer, until it is canceled', async ({ clock }) => {
 		const { hold } = setup()
 
 		hold().start(press(40, 60), 500)
 
-		act(() => {
-			vi.advanceTimersByTime(500)
-		})
+		await clock.advance(500)
 
 		// A held finger moves freely: the slop ends only a pending hold.
 		expect(hold().move(press(300, 300))).toBe(false)
@@ -120,7 +113,7 @@ describe('useTouchHold', () => {
 	})
 
 	// While a pen holds, the touch of a palm is the primary touch.
-	it('leaves the held press alone when a palm lands', () => {
+	it('leaves the held press alone when a palm lands', async ({ clock }) => {
 		const { onHold, hold } = setup()
 
 		hold().start(press(40, 60, { pointerType: 'pen' }), 500)
@@ -131,9 +124,7 @@ describe('useTouchHold', () => {
 
 		expect(hold().active(2)).toBe(false)
 
-		act(() => {
-			vi.advanceTimersByTime(500)
-		})
+		await clock.advance(500)
 
 		expect(onHold).toHaveBeenCalledExactlyOnceWith({ id: 1, x: 40, y: 60, target })
 	})
@@ -154,16 +145,14 @@ describe('useTouchHold', () => {
 		expect(document.documentElement).toHaveClass('select-none')
 	})
 
-	it('does not fire after the unmount', () => {
+	it('does not fire after the unmount', async ({ clock }) => {
 		const { onHold, hold, unmount } = setup()
 
 		hold().start(press(40, 60), 500)
 
 		unmount()
 
-		act(() => {
-			vi.advanceTimersByTime(500)
-		})
+		await clock.advance(500)
 
 		expect(onHold).not.toHaveBeenCalled()
 	})

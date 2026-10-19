@@ -1,4 +1,4 @@
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, onTestFinished, vi } from 'vitest'
 import { begin, halt, listen, start } from '../../modules/events/engine/events-recorder'
 import {
 	eventsRootOptions,
@@ -11,6 +11,7 @@ import { OWN } from '../../modules/events/engine/events-target'
 import { notifyOverlaySignal } from '../../primitives/overlay/overlay-signal'
 import { attach } from '../helpers/attach'
 import { createStorage } from '../helpers/event-storage'
+import { it } from '../helpers/fake-clock'
 
 function entry(time: number): NewEntry {
 	return { time, kind: 'input', text: `input at ${time}`, y: 0 }
@@ -61,9 +62,9 @@ describe('begin', () => {
 })
 
 describe('listen', () => {
-	it('records the input events of a tap, and a default that a script cancels', () => {
-		vi.useFakeTimers()
-
+	it('records the input events of a tap, and a default that a script cancels', async ({
+		clock,
+	}) => {
 		const store = listenTo()
 
 		const button = attach(document.createElement('button'))
@@ -74,7 +75,7 @@ describe('listen', () => {
 
 		button.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
 
-		vi.runOnlyPendingTimers()
+		await clock.runPending()
 
 		expect(texts(store)).toEqual([
 			'pointerdown button synthetic',
@@ -83,9 +84,7 @@ describe('listen', () => {
 		])
 	})
 
-	it('writes no event that a source writes after the stop', () => {
-		vi.useFakeTimers()
-
+	it('writes no event that a source writes after the stop', async ({ clock }) => {
 		const store = new EventStore(createStorage())
 
 		const stop = listen(store)
@@ -99,7 +98,7 @@ describe('listen', () => {
 		stop()
 
 		// The line of the cancelled default comes from a timer after the stop.
-		vi.runOnlyPendingTimers()
+		await clock.runPending()
 
 		expect(texts(store)).toEqual(['click button synthetic'])
 	})
@@ -143,20 +142,18 @@ describe('listen', () => {
 		expect(store.entries[0]?.detail).toEqual({ key: 'Tab', code: 'Tab', repeat: false })
 	})
 
-	it('records the start and the end of a scroll as one batch', () => {
-		vi.useFakeTimers()
-
+	it('records the start and the end of a scroll as one batch', async ({ clock }) => {
 		const store = listenTo()
 
 		document.dispatchEvent(new Event('scroll'))
 
 		document.dispatchEvent(new Event('scroll'))
 
-		vi.advanceTimersByTime(150)
+		await clock.advance(150)
 
 		document.dispatchEvent(new Event('scroll'))
 
-		vi.advanceTimersByTime(150)
+		await clock.advance(150)
 
 		expect(texts(store)).toEqual([
 			'scroll starts page',

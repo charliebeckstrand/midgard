@@ -1,7 +1,7 @@
 import { configure, getConfig } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { StrictMode, useEffect, useRef } from 'react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, vi } from 'vitest'
 import { Toast, ToastProvider, useToast } from '../../components/toast'
 import {
 	act,
@@ -13,6 +13,7 @@ import {
 	stubMatchMedia,
 	within,
 } from '../helpers'
+import { it, onFakeClock } from '../helpers/fake-clock'
 
 describe('Toast', () => {
 	it('renders a toast viewport that does not force a single politeness', () => {
@@ -75,9 +76,9 @@ describe('Toast', () => {
 describe('Toast: useToast behavior', () => {
 	const { defaultIgnore } = getConfig()
 
-	beforeEach(() => {
-		vi.useFakeTimers()
+	onFakeClock()
 
+	beforeEach(() => {
 		// The clock runs the first write of the announcer, so its region holds a copy of the
 		// toast text. A text query here finds the toast, and the announcement case reads the
 		// region.
@@ -259,7 +260,7 @@ describe('Toast: useToast behavior', () => {
 		expect(screen.getByText('C')).toBeInTheDocument()
 	})
 
-	it('drains non-persist toasts after the duration elapses', () => {
+	it('drains non-persist toasts after the duration elapses', async ({ clock }) => {
 		let api: ReturnType<typeof useToast> | null = null
 
 		renderUI(
@@ -275,14 +276,12 @@ describe('Toast: useToast behavior', () => {
 
 		expect(screen.getByText('Temporary')).toBeInTheDocument()
 
-		act(() => {
-			vi.advanceTimersByTime(1500)
-		})
+		await clock.advance(1500)
 
 		expect(screen.queryByText('Temporary')).not.toBeInTheDocument()
 	})
 
-	it('keeps persist toasts past the duration', () => {
+	it('keeps persist toasts past the duration', async ({ clock }) => {
 		let api: ReturnType<typeof useToast> | null = null
 
 		renderUI(
@@ -296,14 +295,12 @@ describe('Toast: useToast behavior', () => {
 			api?.toast({ title: 'Sticky', persist: true })
 		})
 
-		act(() => {
-			vi.advanceTimersByTime(1500)
-		})
+		await clock.advance(1500)
 
 		expect(screen.getByText('Sticky')).toBeInTheDocument()
 	})
 
-	it('uses a per-toast duration override', () => {
+	it('uses a per-toast duration override', async ({ clock }) => {
 		let api: ReturnType<typeof useToast> | null = null
 
 		renderUI(
@@ -317,14 +314,12 @@ describe('Toast: useToast behavior', () => {
 			api?.toast({ title: 'Fast', duration: 200 })
 		})
 
-		act(() => {
-			vi.advanceTimersByTime(300)
-		})
+		await clock.advance(300)
 
 		expect(screen.queryByText('Fast')).not.toBeInTheDocument()
 	})
 
-	it('resets the dismiss timer when the toast is clicked', () => {
+	it('resets the dismiss timer when the toast is clicked', async ({ clock }) => {
 		let api: ReturnType<typeof useToast> | null = null
 
 		renderUI(
@@ -340,26 +335,20 @@ describe('Toast: useToast behavior', () => {
 
 		const title = screen.getByText('Clickable')
 
-		act(() => {
-			vi.advanceTimersByTime(800)
-		})
+		await clock.advance(800)
 
 		fireEvent.click(title)
 
-		act(() => {
-			vi.advanceTimersByTime(800)
-		})
+		await clock.advance(800)
 
 		expect(screen.getByText('Clickable')).toBeInTheDocument()
 
-		act(() => {
-			vi.advanceTimersByTime(500)
-		})
+		await clock.advance(500)
 
 		expect(screen.queryByText('Clickable')).not.toBeInTheDocument()
 	})
 
-	it('pauses the timer on hover and resumes on leave', () => {
+	it('pauses the timer on hover and resumes on leave', async ({ clock }) => {
 		let api: ReturnType<typeof useToast> | null = null
 
 		renderUI(
@@ -375,28 +364,22 @@ describe('Toast: useToast behavior', () => {
 
 		const title = screen.getByText('Hoverable')
 
-		act(() => {
-			vi.advanceTimersByTime(500)
-		})
+		await clock.advance(500)
 
 		fireEvent.pointerEnter(title, { pointerType: 'mouse' })
 
-		act(() => {
-			vi.advanceTimersByTime(1000)
-		})
+		await clock.advance(1000)
 
 		expect(screen.getByText('Hoverable')).toBeInTheDocument()
 
 		fireEvent.pointerLeave(title, { pointerType: 'mouse' })
 
-		act(() => {
-			vi.advanceTimersByTime(1000)
-		})
+		await clock.advance(1000)
 
 		expect(screen.queryByText('Hoverable')).not.toBeInTheDocument()
 	})
 
-	it('keeps the countdown running after a tap on the toast', () => {
+	it('keeps the countdown running after a tap on the toast', async ({ clock }) => {
 		let api: ReturnType<typeof useToast> | null = null
 
 		renderUI(
@@ -421,14 +404,12 @@ describe('Toast: useToast behavior', () => {
 
 		fireEvent.click(title)
 
-		act(() => {
-			vi.advanceTimersByTime(2000)
-		})
+		await clock.advance(2000)
 
 		expect(screen.queryByText('Tapped')).not.toBeInTheDocument()
 	})
 
-	it('pauses the timer while focus is inside and resumes on focus leave', () => {
+	it('pauses the timer while focus is inside and resumes on focus leave', async ({ clock }) => {
 		let api: ReturnType<typeof useToast> | null = null
 
 		renderUI(
@@ -444,29 +425,25 @@ describe('Toast: useToast behavior', () => {
 
 		const title = screen.getByText('Focusable')
 
-		act(() => {
-			vi.advanceTimersByTime(500)
-		})
+		await clock.advance(500)
 
 		// Keyboard parity with hover: focus inside the toast holds the timer.
 		fireEvent.focusIn(title)
 
-		act(() => {
-			vi.advanceTimersByTime(1000)
-		})
+		await clock.advance(1000)
 
 		expect(screen.getByText('Focusable')).toBeInTheDocument()
 
 		fireEvent.focusOut(title)
 
-		act(() => {
-			vi.advanceTimersByTime(1000)
-		})
+		await clock.advance(1000)
 
 		expect(screen.queryByText('Focusable')).not.toBeInTheDocument()
 	})
 
-	it('auto-dismisses later toasts after one is closed under a hovering pointer', () => {
+	it('auto-dismisses later toasts after one is closed under a hovering pointer', async ({
+		clock,
+	}) => {
 		let api: ReturnType<typeof useToast> | null = null
 
 		renderUI(
@@ -490,9 +467,7 @@ describe('Toast: useToast behavior', () => {
 		})
 
 		// Drain the dismissed toast's removal (rAF) through the mocked exit.
-		act(() => {
-			vi.advanceTimersByTime(100)
-		})
+		await clock.advance(100)
 
 		expect(screen.queryByText('First')).not.toBeInTheDocument()
 
@@ -500,14 +475,14 @@ describe('Toast: useToast behavior', () => {
 			api?.toast({ title: 'Second' })
 		})
 
-		act(() => {
-			vi.advanceTimersByTime(2000)
-		})
+		await clock.advance(2000)
 
 		expect(screen.queryByText('Second')).not.toBeInTheDocument()
 	})
 
-	it('auto-dismisses later toasts after one is closed while keyboard-focused', () => {
+	it('auto-dismisses later toasts after one is closed while keyboard-focused', async ({
+		clock,
+	}) => {
 		let api: ReturnType<typeof useToast> | null = null
 
 		renderUI(
@@ -530,9 +505,7 @@ describe('Toast: useToast behavior', () => {
 			fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
 		})
 
-		act(() => {
-			vi.advanceTimersByTime(100)
-		})
+		await clock.advance(100)
 
 		expect(screen.queryByText('First')).not.toBeInTheDocument()
 
@@ -540,14 +513,14 @@ describe('Toast: useToast behavior', () => {
 			api?.toast({ title: 'Second' })
 		})
 
-		act(() => {
-			vi.advanceTimersByTime(2000)
-		})
+		await clock.advance(2000)
 
 		expect(screen.queryByText('Second')).not.toBeInTheDocument()
 	})
 
-	it('keeps the timer paused when focus leaves while the pointer still hovers', () => {
+	it('keeps the timer paused when focus leaves while the pointer still hovers', async ({
+		clock,
+	}) => {
 		let api: ReturnType<typeof useToast> | null = null
 
 		renderUI(
@@ -572,17 +545,13 @@ describe('Toast: useToast behavior', () => {
 		// (WCAG 2.2.1 — no live timer under the user's pointer).
 		fireEvent.focusOut(title)
 
-		act(() => {
-			vi.advanceTimersByTime(2000)
-		})
+		await clock.advance(2000)
 
 		expect(screen.getByText('Held')).toBeInTheDocument()
 
 		fireEvent.pointerLeave(title, { pointerType: 'mouse' })
 
-		act(() => {
-			vi.advanceTimersByTime(1000)
-		})
+		await clock.advance(1000)
 
 		expect(screen.queryByText('Held')).not.toBeInTheDocument()
 	})
@@ -729,7 +698,7 @@ describe('Toast: useToast behavior', () => {
 		expect(document.querySelector('[data-slot="alert-close"]')).toBeNull()
 	})
 
-	it('dismisses the toast when the Alert close button is clicked', () => {
+	it('dismisses the toast when the Alert close button is clicked', async ({ clock }) => {
 		let api: ReturnType<typeof useToast> | undefined
 
 		renderUI(
@@ -753,9 +722,7 @@ describe('Toast: useToast behavior', () => {
 
 		// First click marks it dismissed (still in the queue for exit animation),
 		// drain it with a follow-up dispatch through the (mocked) AnimatePresence.
-		act(() => {
-			vi.advanceTimersByTime(1000)
-		})
+		await clock.advance(1000)
 
 		expect(screen.queryByText('Closable')).not.toBeInTheDocument()
 	})
@@ -915,7 +882,7 @@ describe('Toast: useToast behavior', () => {
 			expect(onDismiss).toHaveBeenCalledExactlyOnceWith('evicted')
 		})
 
-		it('names the lifetime running out', () => {
+		it('names the lifetime running out', async ({ clock }) => {
 			let api: ReturnType<typeof useToast> | undefined
 
 			const onDismiss = vi.fn()
@@ -931,14 +898,12 @@ describe('Toast: useToast behavior', () => {
 				api?.toast({ title: 'Fleeting', onDismiss })
 			})
 
-			act(() => {
-				vi.advanceTimersByTime(1000)
-			})
+			await clock.advance(1000)
 
 			expect(onDismiss).toHaveBeenCalledExactlyOnceWith('timeout')
 		})
 
-		it('rides its own toast rather than the stack', () => {
+		it('rides its own toast rather than the stack', async ({ clock }) => {
 			let api: ReturnType<typeof useToast> | undefined
 
 			const onFirst = vi.fn()
@@ -957,9 +922,7 @@ describe('Toast: useToast behavior', () => {
 				api?.toast({ title: 'Second', onDismiss: onSecond })
 			})
 
-			act(() => {
-				vi.advanceTimersByTime(1000)
-			})
+			await clock.advance(1000)
 
 			// The queue drains from the head one at a time, so only the first has left.
 			// Each callback hears about its own toast and no other.
@@ -968,7 +931,7 @@ describe('Toast: useToast behavior', () => {
 			expect(onSecond).not.toHaveBeenCalled()
 		})
 
-		it('times out a toast whose id is an empty string', () => {
+		it('times out a toast whose id is an empty string', async ({ clock }) => {
 			let api: ReturnType<typeof useToast> | undefined
 
 			const onDismiss = vi.fn()
@@ -984,9 +947,7 @@ describe('Toast: useToast behavior', () => {
 				api?.toast({ id: '', title: 'Blank', duration: 100, onDismiss })
 			})
 
-			act(() => {
-				vi.advanceTimersByTime(100)
-			})
+			await clock.advance(100)
 
 			// An empty id is a valid id. The queue must not read it as the end of the queue.
 			expect(onDismiss).toHaveBeenCalledExactlyOnceWith('timeout')
@@ -994,7 +955,7 @@ describe('Toast: useToast behavior', () => {
 			expect(screen.queryByText('Blank')).not.toBeInTheDocument()
 		})
 
-		it('times each toast out on its own duration, not the newest', () => {
+		it('times each toast out on its own duration, not the newest', async ({ clock }) => {
 			let api: ReturnType<typeof useToast> | undefined
 
 			const onLong = vi.fn()
@@ -1011,18 +972,14 @@ describe('Toast: useToast behavior', () => {
 				api?.toast({ title: 'Long', duration: 10000, onDismiss: onLong })
 			})
 
-			act(() => {
-				vi.advanceTimersByTime(1000)
-			})
+			await clock.advance(1000)
 
 			act(() => {
 				api?.toast({ title: 'Short', duration: 1000, onDismiss: onShort })
 			})
 
 			// The short toast's time is up. The long toast has 8000 ms left.
-			act(() => {
-				vi.advanceTimersByTime(1000)
-			})
+			await clock.advance(1000)
 
 			expect(onShort).toHaveBeenCalledExactlyOnceWith('timeout')
 
@@ -1065,7 +1022,7 @@ describe('Toast: useToast behavior', () => {
 
 		// The viewport loads late or not at all, so no exit animation runs. The queue
 		// must not wait for an exit callback that never comes.
-		it('names each timeout in turn with no viewport mounted', () => {
+		it('names each timeout in turn with no viewport mounted', async ({ clock }) => {
 			let api: ReturnType<typeof useToast> | undefined
 
 			const onA = vi.fn()
@@ -1086,16 +1043,14 @@ describe('Toast: useToast behavior', () => {
 				api?.toast({ title: 'C', duration: 300, onDismiss: onC })
 			})
 
-			act(() => {
-				vi.advanceTimersByTime(5000)
-			})
+			await clock.advance(5000)
 
 			for (const onDismiss of [onA, onB, onC]) {
 				expect(onDismiss).toHaveBeenCalledExactlyOnceWith('timeout')
 			}
 		})
 
-		it('staggers the timeouts with the viewport mounted', () => {
+		it('staggers the timeouts with the viewport mounted', async ({ clock }) => {
 			let api: ReturnType<typeof useToast> | undefined
 
 			const onA = vi.fn()
@@ -1114,18 +1069,14 @@ describe('Toast: useToast behavior', () => {
 				api?.toast({ title: 'B', duration: 100, onDismiss: onB })
 			})
 
-			act(() => {
-				vi.advanceTimersByTime(100)
-			})
+			await clock.advance(100)
 
 			// The stagger holds: `B` waits for the exit of `A`.
 			expect(onA).toHaveBeenCalledExactlyOnceWith('timeout')
 
 			expect(onB).not.toHaveBeenCalled()
 
-			act(() => {
-				vi.advanceTimersByTime(5000)
-			})
+			await clock.advance(5000)
 
 			expect(onB).toHaveBeenCalledExactlyOnceWith('timeout')
 
@@ -1204,7 +1155,9 @@ describe('Toast: useToast behavior', () => {
 			expect(trigger).toHaveFocus()
 		})
 
-		it('holds the countdown of a toast that gets focus in the commit that mounts it', () => {
+		it('holds the countdown of a toast that gets focus in the commit that mounts it', async ({
+			clock,
+		}) => {
 			let api: ReturnType<typeof useToast> | null = null
 
 			// Strict Mode runs the mount effect a second time after its cleanup, as a
@@ -1249,14 +1202,14 @@ describe('Toast: useToast behavior', () => {
 
 			expect(restored).toContainElement(document.activeElement as HTMLElement)
 
-			act(() => {
-				vi.advanceTimersByTime(5000)
-			})
+			await clock.advance(5000)
 
 			expect(screen.getByText('Restored')).toBeInTheDocument()
 		})
 
-		it('returns focus to the page control when the last focused toast closes', () => {
+		it('returns focus to the page control when the last focused toast closes', async ({
+			clock,
+		}) => {
 			let api: ReturnType<typeof useToast> | null = null
 
 			renderUI(
@@ -1283,9 +1236,7 @@ describe('Toast: useToast behavior', () => {
 				fireEvent.click(close)
 			})
 
-			act(() => {
-				vi.advanceTimersByTime(100)
-			})
+			await clock.advance(100)
 
 			expect(screen.queryByText('Saved')).not.toBeInTheDocument()
 
@@ -1358,7 +1309,7 @@ describe('Toast: useToast behavior', () => {
 			expect(save).toHaveFocus()
 		})
 
-		it('does not move focus when a toast times out while focus is elsewhere', () => {
+		it('does not move focus when a toast times out while focus is elsewhere', async ({ clock }) => {
 			let api: ReturnType<typeof useToast> | null = null
 
 			renderUI(
@@ -1379,9 +1330,7 @@ describe('Toast: useToast behavior', () => {
 
 			act(() => save.focus())
 
-			act(() => {
-				vi.advanceTimersByTime(2000)
-			})
+			await clock.advance(2000)
 
 			expect(screen.queryByText('Second')).not.toBeInTheDocument()
 

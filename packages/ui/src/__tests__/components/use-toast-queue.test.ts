@@ -1,7 +1,8 @@
 import { act, renderHook } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import type { ToastData } from '../../components/toast/types'
 import { useToastQueue } from '../../components/toast/use-toast-queue'
+import { it } from '../helpers/fake-clock'
 
 function makeToast(id: string): ToastData {
 	return { id, title: id, duration: 1000 }
@@ -158,9 +159,7 @@ describe('useToastQueue', () => {
 		expect(result.current.runningRef.current).toBe(false)
 	})
 
-	it('advances after the dismiss motion when no exit comes', () => {
-		vi.useFakeTimers()
-
+	it('advances after the dismiss motion when no exit comes', async ({ clock }) => {
 		const toastsRef = { current: [makeToast('a'), makeToast('b')] }
 
 		const onTimeout = vi.fn()
@@ -173,9 +172,7 @@ describe('useToastQueue', () => {
 
 		expect(toastsRef.current.map((t) => t.id)).toEqual(['b'])
 
-		act(() => {
-			vi.advanceTimersByTime(1000)
-		})
+		await clock.advance(1000)
 
 		expect(toastsRef.current).toEqual([])
 
@@ -184,9 +181,7 @@ describe('useToastQueue', () => {
 		expect(result.current.runningRef.current).toBe(false)
 	})
 
-	it('advances once when the exit comes before the fallback', () => {
-		vi.useFakeTimers()
-
+	it('advances once when the exit comes before the fallback', async ({ clock }) => {
 		const toastsRef = { current: [makeToast('a'), makeToast('b'), makeToast('c')] }
 
 		const { result } = renderHook(() => useToastQueue(toastsRef, vi.fn(), vi.fn()))
@@ -202,16 +197,12 @@ describe('useToastQueue', () => {
 		expect(toastsRef.current.map((t) => t.id)).toEqual(['c'])
 
 		// The fallback for `a` does not fire after its exit, and `c` is not queued.
-		act(() => {
-			vi.advanceTimersByTime(1000)
-		})
+		await clock.advance(1000)
 
 		expect(toastsRef.current.map((t) => t.id)).toEqual(['c'])
 	})
 
-	it('clears the fallback on stop()', () => {
-		vi.useFakeTimers()
-
+	it('clears the fallback on stop()', async ({ clock }) => {
 		const toastsRef = { current: [makeToast('a'), makeToast('b')] }
 
 		const { result } = renderHook(() => useToastQueue(toastsRef, vi.fn(), vi.fn()))
@@ -224,9 +215,7 @@ describe('useToastQueue', () => {
 			result.current.stop()
 		})
 
-		act(() => {
-			vi.advanceTimersByTime(1000)
-		})
+		await clock.advance(1000)
 
 		expect(toastsRef.current.map((t) => t.id)).toEqual(['b'])
 	})

@@ -5,8 +5,6 @@ import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
 const originalVisualViewport = window.visualViewport
 
 afterEach(() => {
-	vi.restoreAllMocks()
-
 	Object.defineProperty(window, 'visualViewport', {
 		value: originalVisualViewport,
 		writable: true,

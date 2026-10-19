@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { Profiler } from 'react'
-import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest'
+import { afterEach, describe, expect, onTestFinished, vi } from 'vitest'
 import { halt, start } from '../../modules/events/engine/events-recorder'
 import {
 	isEventsPinned,
@@ -17,6 +17,7 @@ import { EventsSwitch } from '../../modules/events/events-switch'
 import { LocaleProvider } from '../../providers/locale'
 import { createLazyModule } from '../../utilities/lazy-module'
 import { deferred } from '../helpers'
+import { it } from '../helpers/fake-clock'
 
 // The sheet starts the recorder, which listens on the document. The halt
 // drops the events and ends a capture. This hook runs before the `cleanup` of
@@ -251,7 +252,9 @@ describe('EventsSheet', () => {
 		expect(lines[index + 4]).toMatch(/\/plain$/)
 	})
 
-	it('shows a batch as one line, which opens to its lines, and each event as its own line with "Batch" off', async () => {
+	it('shows a batch as one line, which opens to its lines, and each event as its own line with "Batch" off', async ({
+		clock,
+	}) => {
 		const store = start()
 
 		onTestFinished(() => {
@@ -260,13 +263,9 @@ describe('EventsSheet', () => {
 
 		const sheet = renderSheet()
 
-		vi.useFakeTimers()
-
 		document.dispatchEvent(new Event('scroll'))
 
-		vi.advanceTimersByTime(150)
-
-		vi.useRealTimers()
+		await clock.advance(150)
 
 		sheet.open()
 

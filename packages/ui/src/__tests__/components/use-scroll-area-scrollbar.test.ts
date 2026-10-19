@@ -1,7 +1,8 @@
 import { act, renderHook } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, vi } from 'vitest'
 import { useScrollAreaScrollbar } from '../../components/scroll-area/use-scroll-area-scrollbar'
 import { makePointerEvent, mockDomGeometry } from '../helpers'
+import { it, onFakeClock } from '../helpers/fake-clock'
 
 /**
  * Hook mechanics, and they belong under jsdom.
@@ -174,44 +175,36 @@ describe('useScrollAreaScrollbar', () => {
 	})
 
 	describe('scrollbar="auto" fade behavior', () => {
-		beforeEach(() => {
-			vi.useFakeTimers()
-		})
+		onFakeClock()
 
-		it('sets isScrolling=true on scroll and fades after the delay', () => {
+		it('sets isScrolling=true on scroll and fades after the delay', async ({ clock }) => {
 			const { hook } = setupHook('vertical', 'auto')
 
 			scroll(hook)
 
 			expect(hook.result.current.isScrolling).toBe(true)
 
-			act(() => {
-				vi.advanceTimersByTime(800)
-			})
+			await clock.advance(800)
 
 			expect(hook.result.current.isScrolling).toBe(false)
 		})
 
-		it('resets the fade timer on each scroll', () => {
+		it('resets the fade timer on each scroll', async ({ clock, signal }) => {
 			const { hook } = setupHook('vertical', 'auto')
 
 			scroll(hook)
 
-			act(() => {
-				vi.advanceTimersByTime(600)
-			})
+			await clock.advance(600)
+
+			signal.throwIfAborted()
 
 			scroll(hook)
 
-			act(() => {
-				vi.advanceTimersByTime(600)
-			})
+			await clock.advance(600)
 
 			expect(hook.result.current.isScrolling).toBe(true)
 
-			act(() => {
-				vi.advanceTimersByTime(300)
-			})
+			await clock.advance(300)
 
 			expect(hook.result.current.isScrolling).toBe(false)
 		})

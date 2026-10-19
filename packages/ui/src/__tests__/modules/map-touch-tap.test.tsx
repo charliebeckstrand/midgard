@@ -17,8 +17,6 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-	vi.restoreAllMocks()
-
 	document.elementFromPoint = undefined as never
 })
 

@@ -1,6 +1,7 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect } from 'vitest'
 import { __resetAnnouncer, announce } from '../../core/announcer'
 import { flushAnnouncer } from '../helpers'
+import { it } from '../helpers/fake-clock'
 
 // The microtasks only, for a test that fakes the timers.
 const flushMicrotasks = () => new Promise<void>((resolve) => queueMicrotask(resolve))
@@ -75,9 +76,9 @@ describe('announce', () => {
 		expect(regionBy('polite')?.textContent).toBe('Copied')
 	})
 
-	it('writes the first text 100ms after the next paint once it creates the region', async () => {
-		vi.useFakeTimers()
-
+	it('writes the first text 100ms after the next paint once it creates the region', async ({
+		clock,
+	}) => {
 		announce('Saved')
 
 		await flushMicrotasks()
@@ -86,31 +87,31 @@ describe('announce', () => {
 		// lands before that update is not spoken.
 		expect(regionBy('polite')).toBeEmptyDOMElement()
 
-		vi.advanceTimersToNextFrame()
+		await clock.nextFrame()
 
 		expect(regionBy('polite')).toBeEmptyDOMElement()
 
 		// VoiceOver in Safari can miss text that lands less than 100ms after the region.
-		vi.advanceTimersByTime(99)
+		await clock.advance(99)
 
 		expect(regionBy('polite')).toBeEmptyDOMElement()
 
-		vi.advanceTimersByTime(1)
+		await clock.advance(1)
 
 		expect(regionBy('polite')).toHaveTextContent('Saved')
 	})
 
-	it('keeps the last text when a new region gets two messages before its first write', async () => {
-		vi.useFakeTimers()
-
+	it('keeps the last text when a new region gets two messages before its first write', async ({
+		clock,
+	}) => {
 		announce('one')
 		announce('two')
 
 		await flushMicrotasks()
 
-		vi.advanceTimersToNextFrame()
+		await clock.nextFrame()
 
-		vi.runOnlyPendingTimers()
+		await clock.runPending()
 
 		await flushMicrotasks()
 

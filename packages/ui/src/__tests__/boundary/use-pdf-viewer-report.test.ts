@@ -33,8 +33,6 @@ beforeEach(() => {
 afterEach(() => {
 	resetDocumentCache()
 
-	vi.restoreAllMocks()
-
 	globalThis.fetch = originalFetch
 })
 

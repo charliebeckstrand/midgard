@@ -1,11 +1,12 @@
 import { act, renderHook } from '@testing-library/react'
 import { animate } from 'motion'
 import { useEffect } from 'react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, vi } from 'vitest'
 import {
 	type HoldGestureOptions,
 	useHoldButtonGesture,
 } from '../../components/hold-button/use-hold-button-gesture'
+import { it, onFakeClock } from '../helpers/fake-clock'
 
 function renderGesture(initial: HoldGestureOptions) {
 	return renderHook(
@@ -34,9 +35,9 @@ describe('useHoldButtonGesture', () => {
 	// animation. A real Motion animation under fake timers waits on a fake frame,
 	// and the frame loop of Motion then stays stuck for the next files of the
 	// worker, because the suites run with `isolate: false`.
-	beforeEach(() => {
-		vi.useFakeTimers()
+	onFakeClock()
 
+	beforeEach(() => {
 		vi.mocked(animate).mockReturnValue({} as ReturnType<typeof animate>)
 	})
 
@@ -55,7 +56,7 @@ describe('useHoldButtonGesture', () => {
 		expect(onHoldStart).toHaveBeenCalledTimes(1)
 	})
 
-	it('fires onHoldComplete after the configured duration', () => {
+	it('fires onHoldComplete after the configured duration', async ({ clock }) => {
 		const onHoldComplete = vi.fn()
 
 		const { result } = renderGesture({ duration: 500, disabled: false, onHoldComplete })
@@ -64,14 +65,12 @@ describe('useHoldButtonGesture', () => {
 
 		expect(onHoldComplete).not.toHaveBeenCalled()
 
-		act(() => {
-			vi.advanceTimersByTime(500)
-		})
+		await clock.advance(500)
 
 		expect(onHoldComplete).toHaveBeenCalledTimes(1)
 	})
 
-	it('does not fire onHoldComplete when cancel runs before duration elapses', () => {
+	it('does not fire onHoldComplete when cancel runs before duration elapses', async ({ clock }) => {
 		const onHoldComplete = vi.fn()
 
 		const onHoldCancel = vi.fn()
@@ -85,22 +84,18 @@ describe('useHoldButtonGesture', () => {
 
 		act(() => result.current.start())
 
-		act(() => {
-			vi.advanceTimersByTime(200)
-		})
+		await clock.advance(200)
 
 		act(() => result.current.cancel())
 
-		act(() => {
-			vi.advanceTimersByTime(1000)
-		})
+		await clock.advance(1000)
 
 		expect(onHoldComplete).not.toHaveBeenCalled()
 
 		expect(onHoldCancel).toHaveBeenCalledTimes(1)
 	})
 
-	it('ignores start when disabled is true', () => {
+	it('ignores start when disabled is true', async ({ clock }) => {
 		const onHoldStart = vi.fn()
 
 		const onHoldComplete = vi.fn()
@@ -114,9 +109,7 @@ describe('useHoldButtonGesture', () => {
 
 		act(() => result.current.start())
 
-		act(() => {
-			vi.advanceTimersByTime(500)
-		})
+		await clock.advance(500)
 
 		expect(onHoldStart).not.toHaveBeenCalled()
 
@@ -145,7 +138,7 @@ describe('useHoldButtonGesture', () => {
 		expect(onHoldCancel).not.toHaveBeenCalled()
 	})
 
-	it('auto-cancels a pending hold when disabled flips to true', () => {
+	it('auto-cancels a pending hold when disabled flips to true', async ({ clock }) => {
 		const onHoldCancel = vi.fn()
 
 		const onHoldComplete = vi.fn()
@@ -165,14 +158,12 @@ describe('useHoldButtonGesture', () => {
 
 		expect(onHoldCancel).toHaveBeenCalledTimes(1)
 
-		act(() => {
-			vi.advanceTimersByTime(500)
-		})
+		await clock.advance(500)
 
 		expect(onHoldComplete).not.toHaveBeenCalled()
 	})
 
-	it('clears the pending timer on unmount so onHoldComplete never fires', () => {
+	it('clears the pending timer on unmount so onHoldComplete never fires', async ({ clock }) => {
 		const onHoldComplete = vi.fn()
 
 		const { result, unmount } = renderGesture({
@@ -185,9 +176,7 @@ describe('useHoldButtonGesture', () => {
 
 		unmount()
 
-		act(() => {
-			vi.advanceTimersByTime(500)
-		})
+		await clock.advance(500)
 
 		expect(onHoldComplete).not.toHaveBeenCalled()
 	})
@@ -218,7 +207,7 @@ describe('useHoldButtonGesture', () => {
 		)
 	})
 
-	it('allows a new hold to start after the previous one completed', () => {
+	it('allows a new hold to start after the previous one completed', async ({ clock }) => {
 		const onHoldStart = vi.fn()
 
 		const onHoldComplete = vi.fn()
@@ -232,9 +221,7 @@ describe('useHoldButtonGesture', () => {
 
 		act(() => result.current.start())
 
-		act(() => {
-			vi.advanceTimersByTime(500)
-		})
+		await clock.advance(500)
 
 		act(() => result.current.start())
 

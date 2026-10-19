@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, vi } from 'vitest'
 import {
 	CAPACITY,
 	CAPTURE_CAPACITY,
@@ -9,6 +9,7 @@ import {
 } from '../../modules/events/engine/events-store'
 import type { EventStorage } from '../../modules/events/engine/types'
 import { createStorage } from '../helpers/event-storage'
+import { it } from '../helpers/fake-clock'
 
 /** A storage whose each access throws, as with site data off. */
 const blocked: EventStorage = {
@@ -83,9 +84,7 @@ describe('EventStore', () => {
 		expect(reloaded.entries.map(({ id }) => id)).toEqual([1, 2])
 	})
 
-	it('saves the events 500 ms after the last event', () => {
-		vi.useFakeTimers()
-
+	it('saves the events 500 ms after the last event', async ({ clock }) => {
 		const storage = createStorage()
 
 		const store = new EventStore(storage)
@@ -94,11 +93,11 @@ describe('EventStore', () => {
 
 		store.add(entry(10))
 
-		vi.advanceTimersByTime(499)
+		await clock.advance(499)
 
 		expect(new EventStore(storage).entries).toEqual([])
 
-		vi.advanceTimersByTime(1)
+		await clock.advance(1)
 
 		expect(texts(new EventStore(storage))).toEqual(['input at 10'])
 	})

@@ -46,8 +46,6 @@ afterEach(() => {
 	// the next one's surprise cache hit.
 	resetDocumentCache()
 
-	vi.restoreAllMocks()
-
 	globalThis.fetch = originalFetch
 
 	for (const link of document.head.querySelectorAll('link[rel="preload"]')) link.remove()

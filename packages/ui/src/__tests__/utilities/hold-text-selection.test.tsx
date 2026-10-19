@@ -1,5 +1,5 @@
 import { animate } from 'motion'
-import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
+import { afterEach, describe, expect, onTestFinished, vi } from 'vitest'
 import { HoldButton } from '../../components/hold-button'
 import { Menu, MenuContent, MenuItem } from '../../components/menu'
 import {
@@ -7,6 +7,7 @@ import {
 	TEXT_SELECTION_RELEASE_DELAY,
 } from '../../utilities/hold-text-selection'
 import { act, fireEvent, renderUI, screen } from '../helpers'
+import { type FakeClock, it, onFakeClock } from '../helpers/fake-clock'
 
 /**
  * A held touch selects no text on the page.
@@ -17,9 +18,7 @@ import { act, fireEvent, renderUI, screen } from '../helpers'
 describe('holdTextSelection', () => {
 	const root = document.documentElement
 
-	beforeEach(() => {
-		vi.useFakeTimers()
-	})
+	onFakeClock()
 
 	afterEach(() => {
 		// End every touch that a test left down, so no hold carries into the next test.
@@ -32,11 +31,7 @@ describe('holdTextSelection', () => {
 		root.classList.remove('select-none')
 	})
 
-	const release = () => {
-		act(() => {
-			vi.advanceTimersByTime(TEXT_SELECTION_RELEASE_DELAY)
-		})
-	}
+	const release = (clock: FakeClock) => clock.advance(TEXT_SELECTION_RELEASE_DELAY)
 
 	/** Hides the page, as a browser does for a tab in the background. */
 	const hidePage = () => {
@@ -49,30 +44,30 @@ describe('holdTextSelection', () => {
 		hidden.mockRestore()
 	}
 
-	it('turns off selection on the root element until the delay after the touch ends', () => {
+	it('turns off selection on the root element until the delay after the touch ends', async ({
+		clock,
+	}) => {
 		holdTextSelection({ pointerType: 'touch', pointerId: 1 })
 
 		expect(root).toHaveClass('select-none')
 
 		fireEvent.pointerUp(window, { pointerType: 'touch', pointerId: 1 })
 
-		act(() => {
-			vi.advanceTimersByTime(TEXT_SELECTION_RELEASE_DELAY - 1)
-		})
+		await clock.advance(TEXT_SELECTION_RELEASE_DELAY - 1)
 
 		expect(root).toHaveClass('select-none')
 
-		release()
+		await release(clock)
 
 		expect(root).not.toHaveClass('select-none')
 	})
 
-	it('releases after a cancelled touch, such as a scroll', () => {
+	it('releases after a cancelled touch, such as a scroll', async ({ clock }) => {
 		holdTextSelection({ pointerType: 'touch', pointerId: 1 })
 
 		fireEvent.pointerCancel(window, { pointerType: 'touch', pointerId: 1 })
 
-		release()
+		await release(clock)
 
 		expect(root).not.toHaveClass('select-none')
 	})
@@ -85,32 +80,32 @@ describe('holdTextSelection', () => {
 		expect(root).not.toHaveClass('select-none')
 	})
 
-	it('holds until the last touch ends', () => {
+	it('holds until the last touch ends', async ({ clock }) => {
 		holdTextSelection({ pointerType: 'touch', pointerId: 1 })
 
 		holdTextSelection({ pointerType: 'touch', pointerId: 2 })
 
 		fireEvent.pointerUp(window, { pointerType: 'touch', pointerId: 1 })
 
-		release()
+		await release(clock)
 
 		expect(root).toHaveClass('select-none')
 
 		fireEvent.pointerUp(window, { pointerType: 'touch', pointerId: 2 })
 
-		release()
+		await release(clock)
 
 		expect(root).not.toHaveClass('select-none')
 	})
 
-	it('keeps the hold when a new touch starts inside the delay', () => {
+	it('keeps the hold when a new touch starts inside the delay', async ({ clock }) => {
 		holdTextSelection({ pointerType: 'touch', pointerId: 1 })
 
 		fireEvent.pointerUp(window, { pointerType: 'touch', pointerId: 1 })
 
 		holdTextSelection({ pointerType: 'touch', pointerId: 2 })
 
-		release()
+		await release(clock)
 
 		expect(root).toHaveClass('select-none')
 	})
@@ -125,7 +120,7 @@ describe('holdTextSelection', () => {
 		expect(root).not.toHaveClass('select-none')
 	})
 
-	it('releases a later touch after the page hides during a touch', () => {
+	it('releases a later touch after the page hides during a touch', async ({ clock }) => {
 		holdTextSelection({ pointerType: 'touch', pointerId: 1 })
 
 		hidePage()
@@ -134,7 +129,7 @@ describe('holdTextSelection', () => {
 
 		fireEvent.pointerUp(window, { pointerType: 'touch', pointerId: 2 })
 
-		release()
+		await release(clock)
 
 		expect(root).not.toHaveClass('select-none')
 	})
@@ -149,14 +144,14 @@ describe('holdTextSelection', () => {
 		expect(root).toHaveClass('select-none')
 	})
 
-	it('keeps a class that the root element had before the hold', () => {
+	it('keeps a class that the root element had before the hold', async ({ clock }) => {
 		root.classList.add('select-none')
 
 		holdTextSelection({ pointerType: 'touch', pointerId: 1 })
 
 		fireEvent.pointerUp(window, { pointerType: 'touch', pointerId: 1 })
 
-		release()
+		await release(clock)
 
 		expect(root).toHaveClass('select-none')
 	})
