@@ -184,6 +184,18 @@ const HAND_RESTORE = {
 /** The one file that makes the restores of {@link HAND_RESTORE}. */
 const RESTORE_HOME = new Set(['restore-test-state.ts'])
 
+// A test that needs the whole fake clock takes the `clock` fixture of
+// `helpers/fake-clock.ts`, which also gives the test the `act` that a React
+// commit needs. A call outside the fixture names its fakes with `toFake`, so
+// the other clocks stay real.
+const WHOLE_FAKE_CLOCK = {
+	label: 'whole fake clock outside the clock fixture',
+	regex: /\b(?:vi|vitest)\s*\.\s*useFakeTimers\s*\(\s*(?!\{[^{}]*\btoFake\b)/g,
+} as const
+
+/** The one file that installs the clock of {@link WHOLE_FAKE_CLOCK}. */
+const FAKE_CLOCK_HOME = new Set(['fake-clock.ts'])
+
 // CONVENTIONS.md §10.9. A case that runs longer than `testTimeout` fails, but
 // its body does not stop. JavaScript cannot cancel a pending promise, so the
 // body continues at its next `await` while a later case runs.
@@ -930,6 +942,22 @@ describe('test isolation boundary', () => {
 		).toEqual([])
 	})
 
+	it('fakes the whole clock only through the clock fixture', () => {
+		const fakes = [testsDir, docsTestDir].flatMap((dir) =>
+			collectPatternViolations({
+				dir,
+				patterns: [WHOLE_FAKE_CLOCK],
+				skip: FAKE_CLOCK_HOME,
+				stripComments: true,
+			}),
+		)
+
+		expect(
+			fakes,
+			`take the \`clock\` fixture of \`helpers/fake-clock.ts\` for the whole fake clock, or name the fakes with \`toFake\`:\n  ${fakes.join('\n  ')}`,
+		).toEqual([])
+	})
+
 	it('stops a case at its signal before it writes shared state after an await', () => {
 		const tests: string[] = []
 
@@ -1013,6 +1041,25 @@ describe('test isolation boundary', () => {
 		expect(restoresIn(`${vi}.useFakeTimers()`)).toBe(0)
 
 		expect(restoresIn(`${vi}.unstubGlobal('x')`)).toBe(0)
+	})
+
+	it('reads a whole fake clock in each spelling', () => {
+		// The scan above reads this file too, so no fixture spells a call whole.
+		const vi = 'vi'
+
+		const fakesIn = (text: string) => [...text.matchAll(WHOLE_FAKE_CLOCK.regex)].length
+
+		expect(fakesIn(`${vi}.useFakeTimers()`)).toBe(1)
+
+		expect(fakesIn(`${vi}.useFakeTimers({ now: 0 })`)).toBe(1)
+
+		expect(fakesIn(`vitest\n\t.useFakeTimers ()`)).toBe(1)
+
+		expect(fakesIn(`${vi}.useFakeTimers({ toFake: ['Date'] })`)).toBe(0)
+
+		expect(
+			fakesIn(`${vi}.useFakeTimers({\n\tnow: new Date(2026, 9, 5),\n\ttoFake: ['Date'],\n})`),
+		).toBe(0)
 	})
 
 	it('reads a viewport hook in a nested block', () => {

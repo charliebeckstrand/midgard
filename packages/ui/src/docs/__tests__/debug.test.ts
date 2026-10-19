@@ -1,5 +1,6 @@
-import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest'
+import { afterEach, describe, expect, onTestFinished, vi } from 'vitest'
 import { noStorage } from '../../__tests__/helpers/event-storage.ts'
+import { it } from '../../__tests__/helpers/fake-clock'
 import { listen } from '../../modules/events/engine/events-recorder.ts'
 import { EventStore } from '../../modules/events/engine/events-store.ts'
 import { componentEvent } from '../debug/component-events.ts'
@@ -79,9 +80,9 @@ describe('the sources of the docs', () => {
 		])
 	})
 
-	it('batches the calls of one callback of one component while they come less than 150 ms apart', () => {
-		vi.useFakeTimers()
-
+	it('batches the calls of one callback of one component while they come less than 150 ms apart', async ({
+		clock,
+	}) => {
 		const store = listenTo()
 
 		const onSortChange = componentEvent('module', 'Grid', 'onSortChange', vi.fn())
@@ -90,13 +91,13 @@ describe('the sources of the docs', () => {
 
 		onSortChange('name')
 
-		vi.advanceTimersByTime(100)
+		await clock.advance(100)
 
 		onSortChange('age')
 
 		onPageChange(2)
 
-		vi.advanceTimersByTime(150)
+		await clock.advance(150)
 
 		onSortChange('name')
 

@@ -170,7 +170,9 @@ describe('highlightCode', () => {
 
 		signal.throwIfAborted()
 
-		vi.useFakeTimers()
+		// The client times a request with `setTimeout`. The fake starts after the
+		// cold load, which runs on the real clock.
+		vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
 
 		const warmup = expect(loadShiki()).rejects.toThrow('the Shiki worker sent no reply')
 
