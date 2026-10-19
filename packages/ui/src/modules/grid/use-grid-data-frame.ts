@@ -313,10 +313,12 @@ export function useGridDataFrame<T>({
 	// Counts for the optional summary footer, which track client-side
 	// search/filtering (see `resolveFooterStats`); `null` when no `footer` is
 	// configured, so no bar renders. An infinite-scroll `totalRows` reports the
-	// real (server) set rather than the loaded extent.
+	// real (server) set rather than the loaded extent. Manual grouping carries
+	// its group headers in `rows`, so its source is the leaves, which no filter
+	// narrows.
 	const footerStats = resolveFooterStats({
 		footer,
-		sourceCount: rows.length,
+		sourceCount: manualGroupingActive ? renderRows.length : rows.length,
 		filteredCount: dataRowCount,
 		selected: selectedCount,
 		hidden: hiddenSelected,
