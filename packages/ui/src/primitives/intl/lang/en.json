@@ -1475,10 +1475,6 @@
 		"defaultMessage": "Magnifier",
 		"description": "The title of the dialog with the settings of the lens that magnifies the page of a PDF."
 	},
-	"ui.pdfViewer.magnifierHint": {
-		"defaultMessage": "A lens beside the cursor while it rests on the page, or above a finger that you hold on the page.",
-		"description": "The description of the switch that turns on the magnifier of a PDF."
-	},
 	"ui.pdfViewer.magnifierOff": {
 		"defaultMessage": "Turn magnifier off",
 		"description": "The button that turns off the lens that magnifies the page of a PDF."
@@ -1544,7 +1540,7 @@
 		"description": "The button that shows the highlighted regions on the pages of a PDF."
 	},
 	"ui.pdfViewer.showMagnifier": {
-		"defaultMessage": "Show the magnifier",
+		"defaultMessage": "Show magnifier",
 		"description": "The label of the switch that turns on the lens that magnifies the page of a PDF."
 	},
 	"ui.pdfViewer.showThumbnails": {
