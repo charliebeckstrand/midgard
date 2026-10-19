@@ -394,6 +394,12 @@ export const space = {
 		legend: '[&>legend+*]:density-pt-[2,3,4,5,6]',
 		/** The gap between two fields of a group. */
 		field: '[&>[data-slot=field]+[data-slot=field]]:density-mt-[0.5,1,2,3,4.5]',
+		/**
+		 * The gap between two toggle fields of a group on a coarse pointer, the `xl`
+		 * stop of `dan.gap.scale`. A finger press needs a pitch near 44 px at `md`
+		 * between two rows, and the gap of `field` gives only about 32 px.
+		 */
+		toggle: 'pointer-coarse:[&>[data-slot=field]+[data-slot=field]]:density-mt-[4,5,6,7,8]',
 		/** The gap from the label of a group to its first field. */
 		label: '[&>[data-slot=label]+[data-slot=field]]:density-mt-[2,3,4,5,6]',
 	},
