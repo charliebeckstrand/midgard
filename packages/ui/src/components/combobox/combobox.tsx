@@ -228,7 +228,7 @@ type ComboboxBaseProps<T> = {
 	/**
 	 * Fires when a paste reaches the input, before the browser inserts it.
 	 *
-	 * For a combobox whose values are TYPED IN rather than picked from a fetched list, a pasted
+	 * For a combobox whose values are TYPED IN rather than selected from a fetched list, a pasted
 	 * delimited list is one value per token. Call `preventDefault` and commit them through
 	 * `onValueChange`. Reading `clipboardData` here is the only point such a list is still
 	 * splittable. A native `<input>` strips newlines from its own value. By `onChange` a pasted

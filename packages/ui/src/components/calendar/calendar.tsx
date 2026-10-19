@@ -119,7 +119,7 @@ export type CalendarProps = {
 	/**
 	 * Fires when the reader presses a day, by pointer or by keyboard, with that day.
 	 * It fires also for the day that is already selected. It is an event, not a
-	 * change report. Use it to act on a pick, as a parent that commits a range or
+	 * change report. Use it to act on a selection, as a parent that commits a range or
 	 * closes a popover does.
 	 */
 	onDayPress?: (date: Date) => void

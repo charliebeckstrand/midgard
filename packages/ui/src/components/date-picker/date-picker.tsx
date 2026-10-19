@@ -27,7 +27,7 @@ import { useDatePickerState } from './use-date-picker-state'
 /** Single-date arm of {@link DatePickerProps} (`range` and `relative` absent or `false`). */
 export type DatePickerSingleProps = {
 	/**
-	 * Picks a `[Date, Date]` range in place of one date ({@link DatePickerRangeProps}).
+	 * Selects a `[Date, Date]` range in place of one date ({@link DatePickerRangeProps}).
 	 * @defaultValue false
 	 */
 	range?: false
@@ -43,7 +43,7 @@ export type DatePickerSingleProps = {
 	/**
 	 * Renders a typed DateInput in place of the popover trigger. The calendar
 	 * icon becomes a labeled suffix button that opens the calendar, and a
-	 * picked date writes back into the input. Opening keeps focus on the input.
+	 * selected date writes back into the input. Opening keeps focus on the input.
 	 * ArrowDown opens, and the arrow keys then rove the grid through the input's
 	 * `aria-activedescendant`. Enter commits the highlighted day.
 	 * @defaultValue false
@@ -74,10 +74,10 @@ export type DatePickerRangeProps = {
  * {@link DatePickerRelativeValue} spans (`{ from, to }`).
  *
  * The popover opens to a list of relative presets ("Last 7 days", "This year",
- * …). Single-select by default — the array holds one span; picking another
- * preset replaces it and re-picking clears — while `relative={{ multiple: true }}`
+ * …). Single-select by default — the array holds one span; selecting another
+ * preset replaces it and selecting it again clears — while `relative={{ multiple: true }}`
  * lets several stack. A "Custom range" row swaps to Start/End date fields (typed
- * or calendar-picked) for an arbitrary absolute span, mutually exclusive with the
+ * or selected in the calendar) for an arbitrary absolute span, mutually exclusive with the
  * presets. Pass `relative` (bare `true`) for the built-in presets. Pass a
  * {@link DatePickerRelativeConfig} to override the list, enable `multiple`, or
  * turn the trigger's chips off.
@@ -161,7 +161,7 @@ export type DatePickerBaseProps = {
 	 * Opens the panel as a bottom sheet on a phone, which is a narrow viewport
 	 * with no hover. The sheet holds the same calendar, presets, and footer at
 	 * the full width of the screen, with a Close button below them. The Close
-	 * button, a pick, the backdrop, or `Escape` closes it. Set `false` for a
+	 * button, a selection, the backdrop, or `Escape` closes it. Set `false` for a
 	 * picker that must stay next to its trigger. The Start and End fields of a
 	 * `relative` custom range take the same value.
 	 * @defaultValue true

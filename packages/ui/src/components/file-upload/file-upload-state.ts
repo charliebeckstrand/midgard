@@ -46,7 +46,7 @@ type FileUploadSharedProps = {
 	className?: string
 	/**
 	 * Fires when the component accepts files, with the accepted files (after
-	 * `accept`, `multiple`, `maxSize` and `maxCount` filtering). A pick or a drop
+	 * `accept`, `multiple`, `maxSize` and `maxCount` filtering). A selection or a drop
 	 * that accepts no file keeps the current selection and does not fire. A clear
 	 * fires with `[]`.
 	 */
