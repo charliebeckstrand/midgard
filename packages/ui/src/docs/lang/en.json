@@ -209,7 +209,7 @@
 	},
 	"docs.tab.bar": {
 		"defaultMessage": "Bar",
-		"description": "The name of a tab on the Chart page of the docs. The tab shows one part of the page."
+		"description": "The name of a tab on the Progress and Chart pages of the docs. The tab shows one part of the page."
 	},
 	"docs.tab.bubble": {
 		"defaultMessage": "Bubble",
@@ -262,6 +262,10 @@
 	"docs.tab.form": {
 		"defaultMessage": "Form",
 		"description": "The name of a tab on the Form page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.gauge": {
+		"defaultMessage": "Gauge",
+		"description": "The name of a tab on the Progress page of the docs. The tab shows one part of the page."
 	},
 	"docs.tab.geofence": {
 		"defaultMessage": "Geofence",
@@ -859,14 +863,6 @@
 		"defaultMessage": "Gallery",
 		"description": "The title of an example on a page of the docs. It comes from the file name gallery.tsx."
 	},
-	"docs.title.gauge-color": {
-		"defaultMessage": "Gauge color",
-		"description": "The title of an example on a page of the docs. It comes from the file name gauge-color.tsx."
-	},
-	"docs.title.gauge-size": {
-		"defaultMessage": "Gauge size",
-		"description": "The title of an example on a page of the docs. It comes from the file name gauge-size.tsx."
-	},
 	"docs.title.glass": {
 		"defaultMessage": "Glass",
 		"description": "The title of an example on a page of the docs. It comes from the file name glass.tsx."
@@ -1415,6 +1411,10 @@
 		"defaultMessage": "Single series",
 		"description": "The title of an example on a page of the docs. It comes from the file name single-series.tsx."
 	},
+	"docs.title.size": {
+		"defaultMessage": "Size",
+		"description": "The title of an example on a page of the docs. It comes from the file name size.tsx."
+	},
 	"docs.title.size-encoding": {
 		"defaultMessage": "Size encoding",
 		"description": "The title of an example on a page of the docs. It comes from the file name size-encoding.tsx."
@@ -1555,10 +1555,6 @@
 		"defaultMessage": "Validation",
 		"description": "The title of an example on a page of the docs. It comes from the file name validation.tsx."
 	},
-	"docs.title.value": {
-		"defaultMessage": "Value",
-		"description": "The title of an example on a page of the docs. It comes from the file name value.tsx."
-	},
 	"docs.title.value-labels": {
 		"defaultMessage": "Value labels",
 		"description": "The title of an example on a page of the docs. It comes from the file name value-labels.tsx."
@@ -1646,10 +1642,6 @@
 	"docs.title.with-inputs": {
 		"defaultMessage": "With inputs",
 		"description": "The title of an example on a page of the docs. It comes from the file name with-inputs.tsx."
-	},
-	"docs.title.with-label": {
-		"defaultMessage": "With label",
-		"description": "The title of an example on a page of the docs. It comes from the file name with-label.tsx."
 	},
 	"docs.title.with-language": {
 		"defaultMessage": "With language",

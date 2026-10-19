@@ -1,9 +1,9 @@
 import { Flex } from 'ui/flex'
 import { ProgressGauge } from 'ui/progress'
 
-const sizes = ['sm', 'md', 'lg'] as const
+const sizes = ['xs', 'sm', 'md', 'lg', 'xl'] as const
 
-export default function GaugeSize() {
+export default function Size() {
 	return (
 		<Flex gap="md" align="center" wrap>
 			{sizes.map((size) => (

@@ -3,7 +3,7 @@ import { ProgressGauge } from 'ui/progress'
 
 const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 
-export default function GaugeColor() {
+export default function Color() {
 	return (
 		<Flex gap="md" align="center" wrap>
 			{colors.map((color) => (
