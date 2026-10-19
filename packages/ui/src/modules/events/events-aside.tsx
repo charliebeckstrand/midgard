@@ -2,6 +2,7 @@
 
 import { useEffect, useSyncExternalStore } from 'react'
 import { useLazyModule } from '../../hooks/use-lazy-module'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { createLazyModule } from '../../utilities/lazy-module'
 import { noop } from '../../utilities/noop'
 import {
@@ -12,6 +13,7 @@ import {
 	subscribePinned,
 } from './engine/events-setting'
 import { loadTools } from './events-load'
+import { eventsMessages } from './events-messages'
 
 const panel = createLazyModule(() => import('./events-panel'))
 
@@ -31,6 +33,8 @@ const offOnServer = () => false
  * rows, and the panel does not pause the store.
  */
 export function EventsAside() {
+	const intl = useIntl()
+
 	// The panel starts the recorder, so a pin while the events are off loads
 	// and mounts no panel. The pin stays for the next time they run.
 	const on = useSyncExternalStore(subscribeOn, isEventsOn, offOnServer)
@@ -52,7 +56,7 @@ export function EventsAside() {
 	return (
 		<aside
 			data-events-tool=""
-			aria-label="Events"
+			aria-label={intl.formatMessage(eventsMessages.events)}
 			// The aside of the layout shows only in the inline layout, so the panel
 			// needs no breakpoint of its own.
 			className="hidden h-full min-h-0 w-96 flex-col py-2 pe-2 [:root[data-events][data-events-pinned]_&]:flex"

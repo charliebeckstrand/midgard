@@ -3,7 +3,9 @@
 import { useState } from 'react'
 import { Label } from '../../components/fieldset'
 import { Switch, SwitchField } from '../../components/switch'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { isEventsOn, setEventsOn } from './engine/events-setting'
+import { eventsMessages } from './events-messages'
 
 /**
  * The Debug switch of the events, for the settings of the app, such as the
@@ -17,9 +19,11 @@ import { isEventsOn, setEventsOn } from './engine/events-setting'
 export function EventsSwitch() {
 	const [on, setOn] = useState(isEventsOn)
 
+	const intl = useIntl()
+
 	return (
 		<SwitchField>
-			<Label>Debug</Label>
+			<Label>{intl.formatMessage(eventsMessages.debug)}</Label>
 			<Switch
 				checked={on}
 				onChange={(event) => {

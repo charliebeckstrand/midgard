@@ -4,6 +4,8 @@ import { type KeyboardEvent, type RefObject, useEffect, useMemo, useRef, useStat
 import { announce } from '../../core'
 import { type PlotTabStopProps, usePlotTabStop } from '../../hooks/use-plot-tab-stop'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import type { IntlShape } from '../../primitives/intl/types'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { once } from '../../utilities'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { useMapHoverActions } from './context'
@@ -15,6 +17,7 @@ import { frameToClient } from './engine/map-projection/frame'
 import { mapZoomKey, zoomKeyFactor } from './engine/map-zoom/gesture'
 import { applyTransform, MAP_FIT_TRANSFORM, type MapTransform } from './engine/map-zoom/transform'
 import type { MapPoint2D } from './engine/types'
+import { mapMessages, mapZoomMessage } from './map-messages'
 import type { MapZoomCursor } from './use-map-zoom'
 
 /**
@@ -35,8 +38,8 @@ function stopKey(target: MapHoverTarget): string {
  *
  * @internal
  */
-function describeZoom(transform: MapTransform): string {
-	return `Zoom ${Math.round((transform.k / MAP_ZOOM_FIT) * 100)}%`
+function describeZoom(intl: IntlShape, transform: MapTransform): string {
+	return intl.formatMessage(mapZoomMessage, { scale: transform.k / MAP_ZOOM_FIT })
 }
 
 /** What {@link useMapKeyboard} needs from the plat to drive a cursor. @internal */
@@ -125,6 +128,8 @@ export function useMapKeyboard({
 	zoom,
 }: MapKeyboardOptions): PlotTabStopProps | null {
 	const { set, get: hovered } = useMapHoverActions()
+
+	const intl = useIntl()
 
 	// The cursor holds the mark it sits on, not its position in the stop list: an
 	// overlay that registers or unmounts re-orders that list, and an index would
@@ -290,9 +295,9 @@ export function useMapKeyboard({
 				if (scale === 'fit') {
 					zoom.fit()
 
-					announce('Zoom reset')
+					announce(intl.formatMessage(mapMessages.zoomReset))
 				} else {
-					announce(describeZoom(zoom.stepZoom(zoomKeyFactor(scale))))
+					announce(describeZoom(intl, zoom.stepZoom(zoomKeyFactor(scale))))
 				}
 
 				return

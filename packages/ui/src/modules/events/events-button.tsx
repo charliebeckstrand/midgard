@@ -7,11 +7,13 @@ import { Icon } from '../../components/icon'
 import { cn } from '../../core'
 import { useLazyModule } from '../../hooks/use-lazy-module'
 import { useSidebarLayoutPlacement } from '../../layouts/sidebar/sidebar'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/events'
 import { resolveVariant } from '../../types'
 import { createLazyModule } from '../../utilities/lazy-module'
 import { noop } from '../../utilities/noop'
 import { loadTools } from './events-load'
+import { eventsMessages } from './events-messages'
 
 const sheet = createLazyModule(() => import('./events-sheet'))
 
@@ -30,6 +32,8 @@ const sheet = createLazyModule(() => import('./events-sheet'))
  * fails throws in the next render, so the nearest error boundary shows it.
  */
 export function EventsButton() {
+	const intl = useIntl()
+
 	// No sheet renders before the first open.
 	const [open, setOpen] = useState<boolean>()
 
@@ -68,7 +72,7 @@ export function EventsButton() {
 		>
 			<Button
 				variant="bare"
-				aria-label="Events"
+				aria-label={intl.formatMessage(eventsMessages.events)}
 				className="relative"
 				onClick={show}
 				onPointerEnter={preload}

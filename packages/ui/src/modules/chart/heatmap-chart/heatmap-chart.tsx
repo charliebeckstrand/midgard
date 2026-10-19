@@ -8,6 +8,7 @@ import { ChartFrame } from '../engine/chart-frame/frame'
 import { ChartHitArea } from '../engine/chart-hit-area'
 import { rangeLegendPlacement, resolveRangeLegend } from '../engine/chart-legend/range'
 import { legendAside } from '../engine/chart-legend/schema'
+import { readoutCell } from '../engine/chart-series'
 import { resolveTooltip } from '../engine/chart-tooltip'
 import type { ChartMarkRef } from '../engine/context'
 import { HeatmapFocusProvider } from './context'
@@ -43,9 +44,10 @@ function gridMarkAt(): ChartMarkRef {
  *
  * The plot is one tab stop. After focus, the left and right arrows move along
  * the columns. The up and down arrows move along the rows, and the tooltip
- * reads the cell under the cursor. Home and End jump to the ends of the row,
- * and Escape clears the cursor. Enter and Space fire `onCellClick` for the cell
- * under the cursor.
+ * reads the cell under the cursor. Each step also speaks that cell through the
+ * polite live region: its column, its row, and its value. Home and End jump to
+ * the ends of the row, and Escape clears the cursor. Enter and Space fire
+ * `onCellClick` for the cell under the cursor.
  *
  * @remarks Rows pivot to the grid by their distinct `xKey` (columns) and `yKey`
  * (rows) values in first-seen order. The frame defaults to square-ish cells by
@@ -154,6 +156,22 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 		if (x !== undefined && y !== undefined) onCellClick?.({ x, y }, [row, col])
 	})
 
+	// A keyboard stop speaks its one cell: the column, the row, and the value. The
+	// readout has one category for each column, so it cannot name a cell.
+	const describeCell = useStableEvent((index: number) => {
+		const row = Math.floor(index / cols)
+
+		const col = index % cols
+
+		const x = matrix.columns[col]
+
+		const y = matrix.rows[row]
+
+		if (x === undefined || y === undefined) return null
+
+		return `${x}, ${y}: ${readoutCell(matrix.values[row]?.[col], format)}`
+	})
+
 	return (
 		<HeatmapFocusProvider>
 			<ChartFrame
@@ -199,6 +217,7 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 					/>
 				}
 				focus={focus}
+				describePoint={describeCell}
 				onActivate={onCellClick ? reportCell : undefined}
 				className={className}
 				contextMenu={contextMenu}

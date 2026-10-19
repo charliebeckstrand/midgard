@@ -14,11 +14,13 @@ import {
 } from '../../components/sheet'
 import { cn } from '../../core'
 import { useSidebarLayoutPlacement } from '../../layouts/sidebar/sidebar'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/events'
 import { k as offcanvas } from '../../recipes/kata/offcanvas'
 import { Flex } from '../../structure/flex'
 import { resolveVariant } from '../../types'
 import { hasEventsDock, setEventsPinned, subscribeDocks } from './engine/events-setting'
+import { eventsMessages } from './events-messages'
 import { useEventsView } from './use-events-view'
 
 // The server renders no panel.
@@ -42,6 +44,8 @@ export function EventsSheet({ open, onOpenChange }: EventsSheetProps) {
 	// The closed sheet stays mounted, and it does not render for each new event.
 	// Each open starts on the list.
 	const { store, label, title, actions, body, footer } = useEventsView(open)
+
+	const intl = useIntl()
 
 	const dockable = useSyncExternalStore(subscribeDocks, hasEventsDock, noDock)
 
@@ -72,7 +76,7 @@ export function EventsSheet({ open, onOpenChange }: EventsSheetProps) {
 						<Button
 							variant="bare"
 							size="sm"
-							aria-label="Pin"
+							aria-label={intl.formatMessage(eventsMessages.pin)}
 							className={resolveVariant(layout, offcanvas.inline.inlineFlex)}
 							onClick={() => {
 								setEventsPinned(true)
