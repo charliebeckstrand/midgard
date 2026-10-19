@@ -3,10 +3,21 @@
 import { type ComponentProps, type KeyboardEvent, useCallback } from 'react'
 import { cn, composeEventHandlers, dataAttr } from '../../core'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
+import { defineMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { PanelSplitter } from '../../primitives/panel/panel-splitter'
 import { k } from '../../recipes/kata/resizable'
 import { useResizable, useResizableIndex } from './context'
 import { pairRange } from './use-resizable-panel'
+
+const messages = defineMessages({
+	label: {
+		id: 'ui.resizable.label',
+		defaultMessage: 'Resize',
+		description:
+			'The name of the bar between two panels that changes their sizes, by a drag or by the arrow keys.',
+	},
+})
 
 /**
  * Props for {@link ResizableHandle}: an optional accessible name. The root
@@ -14,7 +25,10 @@ import { pairRange } from './use-resizable-panel'
  * place of `children`, and keeps its own `role` and `tabIndex`.
  */
 export type ResizableHandleProps = Omit<ComponentProps<'div'>, 'children' | 'role' | 'tabIndex'> & {
-	/** Accessible name; distinguishes multiple handles ("Resize sidebar"). @defaultValue 'Resize' */
+	/**
+	 * Accessible name; distinguishes multiple handles ("Resize sidebar").
+	 * @defaultValue `'Resize'`, in the language of the reader.
+	 */
 	'aria-label'?: string
 }
 
@@ -56,12 +70,14 @@ function resizeDeltaForKey(key: string, isHorizontal: boolean, step: number): nu
  * splitter.
  */
 export function ResizableHandle({
-	'aria-label': ariaLabel = 'Resize',
+	'aria-label': ariaLabel,
 	className,
 	onPointerDown,
 	onKeyDown: onKeyDownProp,
 	...props
 }: ResizableHandleProps) {
+	const intl = useIntl()
+
 	const { orientation, dragging, sizes, panelConfigs, startDrag, resize, panelId } = useResizable()
 	const { handleIndex = 0 } = useResizableIndex()
 
@@ -107,7 +123,7 @@ export function ResizableHandle({
 			// A separator's orientation is its own, not the group's flex axis: the
 			// handle between side-by-side panels is a vertical bar.
 			aria-orientation={isHorizontal ? 'vertical' : 'horizontal'}
-			aria-label={ariaLabel}
+			aria-label={ariaLabel ?? intl.formatMessage(messages.label)}
 			// The primary pane is the panel before the handle, whose size the value gives.
 			aria-controls={handleIndex < panelConfigs.length ? panelId(handleIndex) : undefined}
 			aria-valuenow={panelSize}
