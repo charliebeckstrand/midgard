@@ -523,6 +523,18 @@
 		"defaultMessage": "Upload file",
 		"description": "The name of the file input of a drop zone."
 	},
+	"ui.form.submitting": {
+		"defaultMessage": "Submitting",
+		"description": "Spoken while a form sends its values, after the reader submits it."
+	},
+	"ui.formErrorSummary.title": {
+		"defaultMessage": "There is a problem",
+		"description": "The heading of the box at the top of a form that lists the fields with errors, after a failed submit."
+	},
+	"ui.formFilters.active": {
+		"defaultMessage": "{count, plural, one {# filter active} other {# filters active}}",
+		"description": "Spoken when a filter changes, with the count of the filters that hold a value, such as \"2 filters active\"."
+	},
 	"ui.grid.addRow": {
 		"defaultMessage": "Add row",
 		"description": "The name of the button that adds the new row to a grid."
