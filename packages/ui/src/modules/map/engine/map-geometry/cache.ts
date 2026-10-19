@@ -217,18 +217,39 @@ export function cachedRegionCentroids(features: MapFeature[]): (LngLat | null)[]
 // pass twice and no remount ever hit. The canonical projection is itself shared
 // across instances and mounts (`staticMapGeometry`), so its chrome is drawn once
 // per atlas and step for good; a measured fit is a fresh instance per box, and
-// its entry falls with it. The box stays in the slot for the one projection that
-// keeps its identity across fits — a passed d3 instance, which `fitSize` mutates
-// in place — so a resize can never read a stale path off one.
+// its entry falls with it. The fit state stays in the slot for the one
+// projection that keeps its identity across fits — a passed d3 instance, which
+// a fit mutates in place — so a resize or a refit to new geography can never
+// read a stale path off one.
 const chrome = new WeakMap<
 	GeoProjection,
-	{ width: number; height: number; step: number | null; paths: MapChromePaths }
+	{ fit: ChromeFit; step: number | null; paths: MapChromePaths }
 >()
 
 /**
- * The chrome paths under a fit, memoized on the fitted projection by frame box
- * and graticule step. Chrome off yields {@link EMPTY_CHROME} without touching
- * the cache, so the default map pays neither the pass nor a slot.
+ * The state that the chrome paths read from a fit: the scale and the translate
+ * of the projection, and the frame transform. @internal
+ */
+type ChromeFit = readonly [
+	scale: number,
+	x: number,
+	y: number,
+	frameX: number,
+	frameY: number,
+	frameK: number,
+]
+
+/** The {@link ChromeFit} of `fitted` under `frame`. @internal */
+function chromeFit(fitted: GeoProjection, frame: MapTransform | null): ChromeFit {
+	const [x, y] = fitted.translate()
+
+	return [fitted.scale(), x, y, frame?.x ?? 0, frame?.y ?? 0, frame?.k ?? 1]
+}
+
+/**
+ * The chrome paths under a fit, memoized on the fitted projection by its fit
+ * state and the graticule step. Chrome off yields {@link EMPTY_CHROME} without
+ * touching the cache, so the default map pays neither the pass nor a slot.
  *
  * `sphere` only gates that early return. The frame path resolves for either
  * part: drawn it is the sphere outline, unstroked it bounds the graticule. It
@@ -239,23 +260,27 @@ const chrome = new WeakMap<
  */
 export function cachedChromePaths(
 	fitted: GeoProjection,
-	width: number,
-	height: number,
 	step: number | null,
 	sphere: boolean,
 	frame: MapTransform | null = null,
 ): MapChromePaths {
 	if (step === null && !sphere) return EMPTY_CHROME
 
+	const fit = chromeFit(fitted, frame)
+
 	const hit = chrome.get(fitted)
 
-	if (hit !== undefined && hit.width === width && hit.height === height && hit.step === step) {
+	if (
+		hit !== undefined &&
+		hit.step === step &&
+		hit.fit.every((value, index) => value === fit[index])
+	) {
 		return hit.paths
 	}
 
 	const paths = chromePaths(fitted, step, frame)
 
-	chrome.set(fitted, { width, height, step, paths })
+	chrome.set(fitted, { fit, step, paths })
 
 	return paths
 }
