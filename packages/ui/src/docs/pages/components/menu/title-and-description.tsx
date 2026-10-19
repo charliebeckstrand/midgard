@@ -11,7 +11,7 @@ export default function TitleAndDescription() {
 					Account
 				</Button>
 			</MenuTrigger>
-			<MenuContent title="Jane Cooper" description="jane@example.com">
+			<MenuContent title="Wade Cooper" description="wade@example.com">
 				<MenuItem>
 					<Icon icon={<User />} />
 					<MenuLabel>Profile</MenuLabel>

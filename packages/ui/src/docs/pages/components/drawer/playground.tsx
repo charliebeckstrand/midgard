@@ -20,12 +20,12 @@ export default function DrawerPlayground(props: DrawerPanelProps) {
 			<DrawerPanel {...props}>
 				<DrawerHeader>
 					<DrawerTitle>Order #1042</DrawerTitle>
-					<DrawerDescription>Arrives Thursday, June 18.</DrawerDescription>
+					<DrawerDescription>Arrives Thursday, June 18</DrawerDescription>
 				</DrawerHeader>
 				<DrawerBody>
 					<Text tone="muted">
-						Your order left the warehouse in Portland on Monday. The carrier scans it at each stop,
-						and this page shows each new scan.
+						Your order left the warehouse on Monday. The carrier scans it at each stop, and this
+						page shows each new scan.
 					</Text>
 				</DrawerBody>
 				{/* With no footer of its own, the drawer shows the standard Close button. */}

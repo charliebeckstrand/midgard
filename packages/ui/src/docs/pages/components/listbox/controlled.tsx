@@ -25,7 +25,7 @@ export default function Controlled() {
 					))}
 				</Listbox>
 			</Field>
-			<Text>Value: {selected.length > 0 ? selected.join(', ') : 'Empty'}</Text>
+			<Text>Value: {selected.length > 0 ? selected.map(teamName).join(', ') : 'Empty'}</Text>
 		</>
 	)
 }

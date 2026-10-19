@@ -15,9 +15,9 @@ export default function Highlights() {
 				pages={pages}
 				highlights={regions}
 				onActiveHighlightChange={setActive}
-				aria-label="Statement with highlights"
+				aria-label="Invoice 1042"
 			/>
-			<Text tone="muted">Selected: {label ?? 'None'}</Text>
+			<Text tone="muted">Value: {label ?? 'Empty'}</Text>
 		</Stack>
 	)
 }

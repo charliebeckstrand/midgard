@@ -12,7 +12,7 @@ export default function Controlled() {
 				<Label>Quantity</Label>
 				<NumberInput value={quantity} onValueChange={setQuantity} min={0} max={10} />
 			</Field>
-			<Text>Value: {String(quantity)}</Text>
+			<Text>Value: {quantity ?? 'Empty'}</Text>
 		</>
 	)
 }

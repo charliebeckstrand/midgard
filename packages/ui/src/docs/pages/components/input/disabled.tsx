@@ -5,7 +5,7 @@ export default function Disabled() {
 	return (
 		<Field>
 			<Label>Email</Label>
-			<Input type="email" disabled defaultValue="jane@example.com" />
+			<Input type="email" disabled defaultValue="wade@example.com" />
 		</Field>
 	)
 }
