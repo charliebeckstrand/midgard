@@ -57,6 +57,24 @@ describe('createDotPool', () => {
 		expect(pool.neighbors()('a')).toEqual([{ x: 2, y: 2 }])
 	})
 
+	it('holds the drawn dots of a mark that names them apart from its stops', () => {
+		// A marker: its keyboard stop is the middle of its leg, and it draws a pin at each end.
+		const marker = {
+			...entry('m', { current: [[5, 0]] }, 'marker'),
+			dotsAt: (): LngLat[] => [
+				[0, 0],
+				[10, 0],
+			],
+		}
+
+		const pool = createDotPool([marker], new Set(), project)
+
+		expect(pool.neighbors()('p')).toEqual([
+			{ x: 0, y: 0 },
+			{ x: 10, y: 0 },
+		])
+	})
+
 	it('tells its readers when a restaked mark moved, and gives a new snapshot', () => {
 		const a = { current: [[1, 1]] as LngLat[] }
 

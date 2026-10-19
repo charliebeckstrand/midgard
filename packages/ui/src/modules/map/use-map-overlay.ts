@@ -144,6 +144,12 @@ type MapOverlayConfig = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> &
 		 */
 		stops: () => LngLat[]
 		/**
+		 * The dots the mark draws, where they are not its {@link stops} — see
+		 * {@link MapOverlayEntry.dotsAt}. Hold its identity until the dots move, as
+		 * for `stops`: a new identity restakes the mark's dots.
+		 */
+		dots?: () => LngLat[]
+		/**
 		 * How much reach this mark leaves a dot standing on it — see
 		 * {@link MapOverlayEntry.spare}. Passed by the area-shaped marks alone, and
 		 * read live like {@link stops}, so a redrawn zone never re-registers.
@@ -292,6 +298,7 @@ export function useMapOverlay({
 	kind,
 	swatch,
 	stops,
+	dots,
 	spare: ownSpare,
 	stopRows,
 	stopOf,
@@ -344,26 +351,33 @@ export function useMapOverlay({
 	// table resolves its picked row once per `entries` or pick. By the time any of
 	// those runs again, this effect has written the committed values. The restake
 	// below also reads `stopsAt`, so it must stay after this effect.
-	const live = useRef({ stops, resolveStop, ownSpare })
+	const live = useRef({ stops, dots, resolveStop, ownSpare })
 
 	useLayoutEffect(() => {
-		live.current = { stops, resolveStop, ownSpare }
-	}, [stops, resolveStop, ownSpare])
+		live.current = { stops, dots, resolveStop, ownSpare }
+	}, [stops, dots, resolveStop, ownSpare])
 
 	const stopsAt = useCallback(() => live.current.stops(), [])
 
+	const dotsAt = useCallback(() => (live.current.dots ?? live.current.stops)(), [])
+
+	// Registered only where the mark draws dots apart from its stops, a fact fixed per mark kind.
+	const ownDots = dots === undefined ? undefined : dotsAt
+
 	// A move changes no entry of the ledger, so it cannot reach the pool through the plat. The mark
-	// restakes its own dots instead, off the identity of its stops. A layout effect, so that the dots
-	// near it divide their ground again before the move paints.
-	const staked = useRef(stops)
+	// restakes its own dots instead, off the identity of the thunk that gives them. A layout effect,
+	// so that the dots near it divide their ground again before the move paints.
+	const pooled = dots ?? stops
+
+	const staked = useRef(pooled)
 
 	useLayoutEffect(() => {
-		if (staked.current === stops) return
+		if (staked.current === pooled) return
 
-		staked.current = stops
+		staked.current = pooled
 
 		pool.restake(id)
-	}, [pool, id, stops])
+	}, [pool, id, pooled])
 
 	const neighbors = useSyncExternalStore(pool.subscribe, pool.neighbors, pool.neighbors)
 
@@ -429,6 +443,7 @@ export function useMapOverlay({
 				color,
 				detail,
 				stopsAt,
+				dotsAt: ownDots,
 				stopRows: heldRows,
 				activate,
 				spare: budget,
@@ -444,6 +459,7 @@ export function useMapOverlay({
 			color,
 			detail,
 			stopsAt,
+			ownDots,
 			heldRows,
 			activate,
 			budget,

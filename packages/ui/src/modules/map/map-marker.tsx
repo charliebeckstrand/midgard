@@ -65,8 +65,18 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 		[path, startLng, startLat, endLng, endLat],
 	)
 
-	// Held on `points`, because a new identity tells the plat's pool that the pins moved.
+	// The keyboard stands on the middle of the leg, and the dot pool holds the two pins. Each is
+	// held on what it reads, because a new identity of `dots` tells the plat's pool that the pins
+	// moved.
 	const stops = useCallback(() => lineAnchor(points), [points])
+
+	const dots = useCallback(
+		(): LngLat[] => [
+			[startLng, startLat],
+			[endLng, endLat],
+		],
+		[startLng, startLat, endLng, endLat],
+	)
 
 	const {
 		slot,
@@ -84,6 +94,7 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 		kind: 'marker',
 		swatch: 'line',
 		stops,
+		dots,
 	})
 
 	// Memoized so a hover-driven re-render (the plat's pointer state churns the

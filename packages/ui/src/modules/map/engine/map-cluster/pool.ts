@@ -136,8 +136,9 @@ function gatherDots(
  * of. A zone's claim on the ground is a `spare` budget rather than a boundary. Read as a negative so a
  * dot-drawing kind added later joins the rule without this being edited.
  *
- * Off-projection stops are dropped — they draw nothing, so they crowd nothing; the US composite drops
- * points outside its insets.
+ * The dots are the entry's `dotsAt` where it has one, else its stops. Off-projection dots are
+ * dropped — they draw nothing, so they crowd nothing; the US composite drops points outside its
+ * insets.
  *
  * @internal
  */
@@ -152,8 +153,8 @@ function entryDots(
 
 	const dots: MapPoint2D[] = []
 
-	for (const stop of entry.stopsAt()) {
-		const at = project(stop)
+	for (const dot of (entry.dotsAt ?? entry.stopsAt)()) {
+		const at = project(dot)
 
 		if (at !== null) dots.push(at)
 	}
