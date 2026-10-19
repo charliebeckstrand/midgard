@@ -1,20 +1,9 @@
 import type { ReactNode } from 'react'
-import { beforeAll, describe, expect, expectTypeOf, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
-import { DatePicker, type DatePickerProps } from '../../../components/date-picker'
-import {
-	Popover,
-	PopoverContent,
-	type PopoverProps,
-	PopoverTrigger,
-} from '../../../components/popover'
-import {
-	Tooltip,
-	TooltipContent,
-	type TooltipProps,
-	TooltipTrigger,
-} from '../../../components/tooltip'
-import type { FloatingPlacement } from '../../../hooks'
+import { DatePicker } from '../../../components/date-picker'
+import { Popover, PopoverContent, PopoverTrigger } from '../../../components/popover'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { frames, getSlot, renderUI, screen } from '../../helpers'
 
 /**
@@ -24,14 +13,6 @@ import { frames, getSlot, renderUI, screen } from '../../helpers'
  * engine, because the jsdom suite mocks `@floating-ui/react`.
  */
 describe('the auto alignment of Popover, Tooltip, and DatePicker (real floating engine)', () => {
-	it('types placement as FloatingPlacement', () => {
-		expectTypeOf<PopoverProps['placement']>().toEqualTypeOf<FloatingPlacement | undefined>()
-
-		expectTypeOf<TooltipProps['placement']>().toEqualTypeOf<FloatingPlacement | undefined>()
-
-		expectTypeOf<DatePickerProps['placement']>().toEqualTypeOf<FloatingPlacement | undefined>()
-	})
-
 	// The calendar of the DatePicker is wider than the default viewport allows
 	// beside the inset.
 	beforeAll(() => page.viewport(1024, 768))

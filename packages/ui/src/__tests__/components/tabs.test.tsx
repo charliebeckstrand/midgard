@@ -1,6 +1,6 @@
 import { Activity, createRef, type ReactNode } from 'react'
-import { describe, expect, expectTypeOf, it, vi } from 'vitest'
-import { Tab, TabContent, TabContents, TabList, Tabs, type TabsProps } from '../../components/tabs'
+import { describe, expect, it, vi } from 'vitest'
+import { Tab, TabContent, TabContents, TabList, Tabs } from '../../components/tabs'
 import { DensityProvider } from '../../providers/density'
 import {
 	act,
@@ -989,10 +989,6 @@ describe('Tab handler composition', () => {
 // The native `defaultValue` of the `<div>` is wider than the selection value.
 // Without an Omit, the intersection prints as `string | (readonly string[] & string)`.
 describe('Tabs selection value types', () => {
-	it('types defaultValue as a plain string', () => {
-		expectTypeOf<TabsProps['defaultValue']>().toEqualTypeOf<string | undefined>()
-	})
-
 	// The value names the tab and its panel in the ids of the pair. A value
 	// with a space made `aria-controls` and `aria-labelledby` name ids that do
 	// not exist.

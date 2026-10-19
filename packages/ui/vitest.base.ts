@@ -45,6 +45,14 @@ export const cleanup = {
 } as const
 
 /**
+ * A test that makes no assertion fails. Its body ran, but nothing checked the
+ * result, so the pass says nothing. A type assertion (`expectTypeOf`) does not
+ * count, because it does nothing at run time: the type cases live in
+ * `*.test-d.ts` files, which `check-types` reads and Vitest does not run.
+ */
+export const assertions = { requireAssertions: true } as const
+
+/**
  * The source that coverage measures. The jsdom run and the browser run each
  * write a report over this scope, and `scripts/merge-coverage.ts` merges the
  * two. A file that only the browser suite tests then counts as covered.

@@ -1,15 +1,6 @@
-import { describe, expect, expectTypeOf, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
-import {
-	Nav,
-	NavBar,
-	NavContent,
-	NavContents,
-	NavItem,
-	NavList,
-	type NavMenuItemProps,
-	type NavProps,
-} from '../../components/nav'
+import { Nav, NavBar, NavContent, NavContents, NavItem, NavList } from '../../components/nav'
 import { OffcanvasContext } from '../../primitives/offcanvas'
 import { LocaleProvider } from '../../providers/locale'
 import { bySlot, densityStepOf, fireEvent, renderUI, screen } from '../helpers'
@@ -393,17 +384,6 @@ describe('NavContent / NavContents', () => {
 		expect(screen.getByText('Billing panel')).toBeInTheDocument()
 
 		expect(screen.queryByText('Account panel')).not.toBeInTheDocument()
-	})
-})
-
-// The native `defaultValue` and `value` of the element are wider than the
-// selection value. Without an Omit, the intersection prints as
-// `string | (readonly string[] & string)`.
-describe('Nav and NavItem selection value types', () => {
-	it('types Nav defaultValue and NavItem value as a plain string', () => {
-		expectTypeOf<NavProps['defaultValue']>().toEqualTypeOf<string | undefined>()
-
-		expectTypeOf<NavMenuItemProps['value']>().toEqualTypeOf<string | undefined>()
 	})
 })
 

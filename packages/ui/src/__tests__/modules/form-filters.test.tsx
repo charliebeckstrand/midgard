@@ -1,4 +1,4 @@
-import { describe, expect, expectTypeOf, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Checkbox } from '../../components/checkbox'
 import { Label } from '../../components/fieldset'
@@ -776,14 +776,6 @@ describe('FormFilters context', () => {
 })
 
 describe('FormFiltersField value types', () => {
-	it('types the render-prop value and setter from the type argument', () => {
-		expectTypeOf<FormFiltersFieldRenderProps<number>['value']>().toEqualTypeOf<number | undefined>()
-
-		expectTypeOf<FormFiltersFieldRenderProps<number>['onValueChange']>()
-			.parameter(0)
-			.toEqualTypeOf<number | undefined>()
-	})
-
 	it('infers the value type from an annotated render function', () => {
 		renderUI(
 			<FormFilters aria-label="Filters" defaultValue={{ tags: ['north', 'south'] }}>
@@ -794,9 +786,5 @@ describe('FormFiltersField value types', () => {
 		)
 
 		expect(screen.getByText('north, south')).toBeInTheDocument()
-	})
-
-	it('keeps the value unknown when the call site names no type', () => {
-		expectTypeOf<FormFiltersFieldRenderProps['value']>().toEqualTypeOf<unknown>()
 	})
 })

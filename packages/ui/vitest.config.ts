@@ -9,7 +9,7 @@ import {
 	walkSource,
 } from './src/__tests__/helpers/walk-source.ts'
 import { reactDocs } from './src/docs/plugin/index.ts'
-import { CI, cleanup, coverageScope, sequence } from './vitest.base.ts'
+import { assertions, CI, cleanup, coverageScope, sequence } from './vitest.base.ts'
 
 // The test files that open with `// @vitest-environment node`: the `pure`
 // project runs exactly these, and `unit` excludes them. The scan skips
@@ -149,6 +149,7 @@ export default defineConfig({
 		// flat. Re-measure before you trust this on a much larger machine.
 		...(CI ? {} : { maxWorkers: '100%' }),
 		globals: true,
+		expect: assertions,
 		// Keep the transformed module graph on disk between runs. A warm cache cuts
 		// most of the transform time of the `unit` project, and much of its import
 		// time. The cache lives under the workspace root's node_modules and is

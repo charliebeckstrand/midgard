@@ -409,14 +409,3 @@ export function markdownBreaks(file: string, source: string): Break[] {
 
 	return breaks
 }
-
-/**
- * Writes the breaks of an advisory check to the log, and does not fail the run.
- *
- * @remarks
- * An advisory check reports and does not gate, so its breaks do not stop a
- * build. Review decides what to fix.
- */
-export function advise(title: string, breaks: string[]): void {
-	if (breaks.length > 0) console.warn(`${title} (advisory):\n${breaks.join('\n')}`)
-}

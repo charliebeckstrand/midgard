@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { fc, test } from '@fast-check/vitest'
-import { describe, expect, expectTypeOf, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import type { JsonValue } from '../../components/json-tree'
 import {
 	createGroup,
@@ -78,10 +78,6 @@ describe('isQueryNode', () => {
 })
 
 describe('serializeQuery', () => {
-	it('types a query tree as a JSON value', () => {
-		expectTypeOf<QueryGroup>().toExtend<JsonValue>()
-	})
-
 	it('writes compact positional arrays with no ids', () => {
 		const query = createGroup('and', [
 			rule('name', 'contains', 'ad'),

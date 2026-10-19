@@ -394,19 +394,24 @@ describe('matchQueryRule · properties', () => {
 	})
 
 	// A prefix and a suffix are each a substring, so either match obliges the
-	// looser one. The relation holds whatever the two strings are.
-	test.prop([fc.string({ maxLength: 8 }), stated()])(
-		'contains whatever it starts with or ends with',
-		(value, rule) => {
-			if (matchQueryRule('startsWith', value, rule)) {
-				expect(matchQueryRule('contains', value, rule)).toBe(true)
-			}
+	// looser one. Two random strings rarely share a prefix or a suffix, so the
+	// values also put the rule at each end, and the claim meets a match in each
+	// run.
+	test.prop([
+		stated(),
+		fc.string({ maxLength: 4 }),
+		fc.string({ maxLength: 4 }),
+		fc.string({ maxLength: 8 }),
+	])('contains whatever it starts with or ends with', (rule, before, after, other) => {
+		const values = [`${rule}${after}`, `${before}${rule}`, other]
 
-			if (matchQueryRule('endsWith', value, rule)) {
-				expect(matchQueryRule('contains', value, rule)).toBe(true)
-			}
-		},
-	)
+		const bound = values.filter(
+			(value) =>
+				matchQueryRule('startsWith', value, rule) || matchQueryRule('endsWith', value, rule),
+		)
+
+		expect(bound.filter((value) => !matchQueryRule('contains', value, rule))).toEqual([])
+	})
 
 	test.prop([numeric(), numeric()])('reads gt and lte as exact opposites', (value, rule) => {
 		expect(matchQueryRule('gt', value, rule)).toBe(!matchQueryRule('lte', value, rule))

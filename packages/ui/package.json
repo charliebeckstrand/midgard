@@ -117,6 +117,7 @@
 		"docs:preview": "tsx scripts/docs-server.ts",
 		"docs:bench": "tsx scripts/docs-bench.ts",
 		"docs:parity": "tsx scripts/density-parity.ts",
+		"ste:report": "tsx scripts/ste-report.ts",
 		"test": "LANG=en-US vitest run --project unit --project pure --project boundary --project integration --project geometry",
 		"test:workspace": "LANG=en-US vitest run --project workspace",
 		"test:browser": "LANG=en-US vitest run --config vitest.browser.config.ts",
