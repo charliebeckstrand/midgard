@@ -3,9 +3,10 @@
  * axes plus a type scale. `tone` pulls the semantic `iro.text` tokens
  * (default / primary / success / warning / error / muted) and is the
  * meaning-bearing axis. It is an emphasis ladder, not the feedback set
- * `severity` names on Alert and the Control cascade. `color` is a separate
- * literal-hue override authored inline with `mode()`. A consumer sets one or
- * the other — tone for emphasis, color for a bespoke tint.
+ * `severity` names on Alert and the Control cascade. `color` names a hue in
+ * place of a purpose, and takes the `onSurface` shade of that hue from the iro
+ * ramp, as `tone` does. A consumer sets one or the other — tone for emphasis,
+ * color for a hue.
  *
  * `size` is a density step from `xs` to `xl` (`text-xs` to `text-xl`). The
  * component writes it as a density scope, and `sized` gives the text the step
@@ -18,7 +19,9 @@ import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
 import { iro, kokkaku } from '../kiso'
 import { dan } from '../kiso/dan'
 
-const { text } = iro
+const { palette, text } = iro
+
+const { text: hue } = palette.bare
 
 export const k = defineRecipe(
 	{
@@ -32,11 +35,11 @@ export const k = defineRecipe(
 		},
 		color: {
 			current: mode('text-current', 'dark:text-current'),
-			zinc: mode('text-zinc-600', 'dark:text-zinc-400'),
-			red: mode('text-red-600', 'dark:text-red-500'),
-			amber: mode('text-amber-700', 'dark:text-amber-400'),
-			green: mode('text-green-700', 'dark:text-green-500'),
-			blue: mode('text-blue-600', 'dark:text-blue-500'),
+			zinc: [...hue.zinc],
+			red: [...hue.red],
+			amber: [...hue.amber],
+			green: [...hue.green],
+			blue: [...hue.blue],
 		},
 		defaults: { tone: 'default' },
 		// One line: the `md` line, or the line of the explicit `size`.
@@ -56,7 +59,8 @@ export type TextVariants = Omit<VariantProps<typeof k>, 'tone' | 'color'> & {
 	/** The emphasis of the text, which sets a semantic text color. @defaultValue 'default' */
 	tone?: VariantProps<typeof k>['tone']
 	/**
-	 * A literal hue for the text. Set it in place of `tone` for a custom tint.
+	 * A hue for the text, at the shade that clears text AA on the page surface.
+	 * Set it in place of `tone` for a hue that names no purpose.
 	 * @defaultValue No color: the `tone` sets the text color.
 	 */
 	color?: VariantProps<typeof k>['color']
