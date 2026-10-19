@@ -127,6 +127,28 @@ describe('QueryBuilder', () => {
 		expect(screen.getAllByRole('button', { name: 'Remove rule' })).toHaveLength(2)
 	})
 
+	it('hides a sole group’s remove button under requireRule, keeping it beside a rule', () => {
+		const nested = createGroup('and', [createRule(fields[0])])
+
+		const { rerender } = renderUI(
+			<QueryBuilder fields={fields} value={createGroup('and', [nested])} requireRule />,
+		)
+
+		// The group is the root's sole child: removing it would empty the query.
+		expect(screen.queryByRole('button', { name: 'Remove group' })).not.toBeInTheDocument()
+
+		rerender(
+			<QueryBuilder
+				fields={fields}
+				value={createGroup('and', [createRule(fields[0]), nested])}
+				requireRule
+			/>,
+		)
+
+		// A rule beside it keeps the query non-empty, so the group is removable.
+		expect(screen.getByRole('button', { name: 'Remove group' })).toBeInTheDocument()
+	})
+
 	it('disables the remove rule button when QueryBuilder is disabled', () => {
 		const initialRule = createRule(fields[0])
 
