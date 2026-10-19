@@ -365,9 +365,11 @@ export type GridPagination = {
 	pageSizeOptions?: number[]
 
 	/**
-	 * Server-side (manual) pagination: the consumer supplies each page's `rows`
-	 * and a `rowCount`/`pageCount`. When omitted, defaults to `true` if either
-	 * total is given, else `false` (client-side slicing of `rows`).
+	 * Server-side (manual) pagination: the consumer supplies each page's `rows`,
+	 * and a `rowCount` or `pageCount` where the total is known. With neither, the
+	 * page count is unknown: the footer reads "Page N" and Next stays on. When
+	 * omitted, defaults to `true` if either total is given, else `false`
+	 * (client-side slicing of `rows`).
 	 */
 	manual?: boolean
 }

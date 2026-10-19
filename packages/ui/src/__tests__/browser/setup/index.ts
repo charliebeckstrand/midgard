@@ -107,3 +107,19 @@ beforeAll(() => loadListReorder())
 // gives each case the state of a page that already loaded them, as
 // `setup/grid-modules.ts` does for the jsdom suite.
 beforeAll(() => loadGridDataDialogs())
+
+// A tooltip loads the module of its panel after it mounts. The first load in a
+// page also transforms the module, and a slow runner can take more than two
+// frames for it. A case that reads an open panel can then read before the panel
+// is there, and a case that counts commits can see the handover to the loaded
+// state. The order of the files decides which case loads first. The load
+// before each file gives each case the state of a page that already loaded the
+// module. It runs in each instance, also in the density instances, which load
+// no module mock. The import waits for this hook, so a project that mocks the
+// loader gets its mock. `tooltip-first-intent.test.tsx` holds the load in each
+// case, and thus tests the state before the load.
+beforeAll(async () => {
+	const { tooltipBody } = await import('../../../components/tooltip/tooltip-body-loader')
+
+	await tooltipBody.load()
+})

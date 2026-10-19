@@ -37,6 +37,23 @@ export function isManualPagination(config: GridPagination | undefined): boolean 
 }
 
 /**
+ * The totals that a server grid gives the engine: its `pageCount`, else its
+ * `rowCount`. With neither, the page count is unknown, and the engine takes its
+ * own sentinel for that, a `pageCount` of `-1`. Next then stays on.
+ *
+ * @internal
+ */
+export function manualTotals(
+	config: GridPagination | undefined,
+): { pageCount: number } | { rowCount: number } {
+	if (config?.pageCount != null) return { pageCount: config.pageCount }
+
+	if (config?.rowCount != null) return { rowCount: config.rowCount }
+
+	return { pageCount: -1 }
+}
+
+/**
  * The page count of a grid, as the engine counts it (`getPageCount`).
  *
  * @remarks
