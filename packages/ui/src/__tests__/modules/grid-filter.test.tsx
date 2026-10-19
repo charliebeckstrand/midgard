@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { GRID_SEARCH_DEBOUNCE_MS } from '../../modules/grid/engine/grid-constants'
-import { fireEvent, present, renderUI, screen, withFakeTime } from '../helpers'
+import { renderUI, screen, withFakeTime } from '../helpers'
 
 describe('Grid search', () => {
 	type Row = { id: number; name: string; role: string }
@@ -51,7 +51,7 @@ describe('Grid search', () => {
 		await withFakeTime(async (clock) => {
 			renderUI(<Grid columns={columns} rows={rows} getKey={getKey} search={{}} />)
 
-			// Submitting the field bypasses the debounce, so the rows filter without
+			// Enter bypasses the debounce, so the rows filter without
 			// advancing time — Bob is gone the moment Enter lands.
 			await clock.user.type(screen.getByRole('searchbox'), 'Alice{Enter}')
 
@@ -218,17 +218,25 @@ describe('Grid search', () => {
 	})
 
 	it('submits no form around the grid on Enter in the search', async () => {
-		const onSubmit = vi.fn((event: { preventDefault: () => void }) => event.preventDefault())
+		await withFakeTime(async (clock) => {
+			const onSubmit = vi.fn((event: { preventDefault: () => void }) => event.preventDefault())
 
-		renderUI(
-			<form onSubmit={onSubmit}>
-				<Grid columns={columns} rows={rows} getKey={getKey} search={{}} />
-			</form>,
-		)
+			renderUI(
+				<form onSubmit={onSubmit}>
+					<Grid columns={columns} rows={rows} getKey={getKey} search={{}} />
+				</form>,
+			)
 
-		fireEvent.submit(present(screen.getByRole('searchbox').closest('form'), 'the search form'))
+			// The grid renders no form of its own, so a form around it is valid HTML.
+			expect(document.querySelectorAll('form')).toHaveLength(1)
 
-		expect(onSubmit).not.toHaveBeenCalled()
+			await clock.user.type(screen.getByRole('searchbox'), 'Alice{Enter}')
+
+			expect(onSubmit).not.toHaveBeenCalled()
+
+			// Enter still applies the query at once.
+			expect(screen.queryByText('Bob')).not.toBeInTheDocument()
+		})
 	})
 
 	describe("highlight mode (mode: 'highlight')", () => {
