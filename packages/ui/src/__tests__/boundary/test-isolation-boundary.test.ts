@@ -181,6 +181,16 @@ const HAND_RESTORE = {
 		/\b(?:vi|vitest)\s*\.\s*(?:restoreAllMocks|unstubAllGlobals|unstubAllEnvs|useRealTimers)\s*\(/g,
 } as const
 
+// A teardown hook that restores one `vi.spyOn` spy repeats the restore of the
+// setups too. A restore in the middle of a case stays, because the rest of the
+// case needs the real method. A module mock (`vi.mocked(fn)`) is not a spy that
+// the setups restore, so the rule reads only a plain name.
+const HOOK_SPY_RESTORE = {
+	label: 'spy restore in a teardown hook',
+	regex:
+		/\b(?:onTestFinished|afterEach|afterAll)\s*\(\s*(?:async\s*)?\(\s*\)\s*=>\s*\{?\s*[\w$.]+\s*\.\s*mockRestore\s*\(/g,
+} as const
+
 /** The one file that makes the restores of {@link HAND_RESTORE}. */
 const RESTORE_HOME = new Set(['restore-test-state.ts'])
 
@@ -930,7 +940,7 @@ describe('test isolation boundary', () => {
 		const restores = [testsDir, docsTestDir].flatMap((dir) =>
 			collectPatternViolations({
 				dir,
-				patterns: [HAND_RESTORE],
+				patterns: [HAND_RESTORE, HOOK_SPY_RESTORE],
 				skip: RESTORE_HOME,
 				stripComments: true,
 			}),
@@ -1041,6 +1051,23 @@ describe('test isolation boundary', () => {
 		expect(restoresIn(`${vi}.useFakeTimers()`)).toBe(0)
 
 		expect(restoresIn(`${vi}.unstubGlobal('x')`)).toBe(0)
+	})
+
+	it('reads a spy restore in a teardown hook in each spelling', () => {
+		// The scan above reads this file too, so no fixture spells a hook whole.
+		const hook = 'onTestFinished'
+
+		const restoresIn = (text: string) => [...text.matchAll(HOOK_SPY_RESTORE.regex)].length
+
+		expect(restoresIn(`${hook}(() => spy.mockRestore())`)).toBe(1)
+
+		expect(restoresIn(`${hook}(async () => {\n\tspy.mockRestore()\n})`)).toBe(1)
+
+		expect(restoresIn(`after${'Each'}(() => console.error.mockRestore())`)).toBe(1)
+
+		expect(restoresIn(`${hook}(() => ${'vi'}.mocked(animate).mockRestore())`)).toBe(0)
+
+		expect(restoresIn(`${hook}(() => root.unmount())`)).toBe(0)
 	})
 
 	it('reads a whole fake clock in each spelling', () => {

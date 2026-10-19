@@ -99,8 +99,6 @@ describe('a collapsing breadcrumb (real browser)', () => {
 
 		const error = vi.spyOn(console, 'error')
 
-		onTestFinished(() => error.mockRestore())
-
 		let root: Root | undefined
 
 		act(() => {

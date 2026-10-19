@@ -1,4 +1,4 @@
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Button } from '../../../components/button'
 import { Input } from '../../../components/input'
@@ -64,8 +64,6 @@ describe('Listbox focus (real browser)', () => {
 			.spyOn(globalThis, 'setTimeout')
 			.mockImplementation(((callback: () => void, ms?: number, ...args: unknown[]) =>
 				ms === TYPEAHEAD_TIMEOUT_MS ? 0 : setTimer(callback, ms, ...args)) as typeof setTimeout)
-
-		onTestFinished(() => timers.mockRestore())
 
 		renderUI(
 			<Listbox aria-label="pick">

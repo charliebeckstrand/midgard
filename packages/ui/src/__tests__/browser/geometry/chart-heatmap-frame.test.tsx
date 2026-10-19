@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it, onTestFinished, vi } from 'vitest'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { page } from 'vitest/browser'
 import { HeatmapChart, type HeatmapChartSeries } from '../../../modules/chart/heatmap-chart'
 import { frames, getSlot, renderUI, waitFor } from '../../helpers'
@@ -33,8 +33,6 @@ describe('heatmap frame (real browser)', () => {
 
 	it('settles a wide grid whose rail would push the plot under the spark floor', async () => {
 		const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
-
-		onTestFinished(() => errors.mockRestore())
 
 		// The loop sits where the grid is just tall enough without the rail, and
 		// too short beside it: a narrow band of widths above the side-rail floor.

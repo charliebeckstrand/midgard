@@ -403,8 +403,6 @@ describe('SidebarLayout offcanvas mode', () => {
 
 		const current = lookup.mock.calls.filter(([selector]) => selector === '[data-current]')
 
-		lookup.mockRestore()
-
 		expect(current).toHaveLength(1)
 	})
 })

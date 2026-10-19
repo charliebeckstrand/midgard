@@ -570,8 +570,6 @@ describe('Tooltip hydration', () => {
 		// recoverable error.
 		const consoleError = vi.spyOn(console, 'error').mockImplementation(noop)
 
-		onTestFinished(() => consoleError.mockRestore())
-
 		let root: Root | undefined
 
 		await act(async () => {
