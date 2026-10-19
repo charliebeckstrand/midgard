@@ -11,6 +11,7 @@ import {
 import { validateCardExpiry } from '../../components/credit-card-input/credit-card-input-utilities'
 import { Field, Label, Message } from '../../components/fieldset'
 import { Form } from '../../modules/form'
+import { LocaleProvider } from '../../providers/locale'
 import {
 	act,
 	allBySlot,
@@ -904,5 +905,35 @@ describe('CreditCardInputExpiry form reset', () => {
 		expect(screen.queryByText('Enter a valid expiration date (MM/YY)')).not.toBeInTheDocument()
 
 		expect(onValidityChange).toHaveBeenLastCalledWith(validateCardExpiry(''))
+	})
+})
+
+describe('CreditCardInput in a locale', () => {
+	it('names the bare fields in the language of the locale', () => {
+		renderUI(
+			<LocaleProvider locale="es-ES">
+				<CreditCardInput />
+				<CreditCardInputExpiry />
+				<CreditCardInputCvv />
+			</LocaleProvider>,
+		)
+
+		for (const name of ['Número de tarjeta', 'Fecha de vencimiento', 'Código de seguridad']) {
+			expect(screen.getByRole('textbox', { name })).toBeInTheDocument()
+		}
+	})
+
+	it('shows the expiry error in the language of the locale', async () => {
+		const { container } = renderUI(
+			<LocaleProvider locale="es-ES">
+				<CreditCardInputExpiry />
+			</LocaleProvider>,
+		)
+
+		await setupUser().type(getSlot<HTMLInputElement>(container, 'credit-card-input-expiry'), '1330')
+
+		expect(bySlot(container, 'message')).toHaveTextContent(
+			'Introduce una fecha de vencimiento válida (MM/YY)',
+		)
 	})
 })

@@ -18,6 +18,7 @@ import type { VirtualItemSource } from '../../hooks/a11y/use-a11y-roving'
 import { Form } from '../../modules/form'
 import { VirtualOptions } from '../../primitives/virtual-options'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/context'
+import { LocaleProvider } from '../../providers/locale'
 import { NO_HOVER_QUERY } from '../../utilities/media-query'
 import {
 	act,
@@ -1850,5 +1851,25 @@ describe('ComboboxOption outside a Combobox', () => {
 		expect(() => renderUI(<ComboboxOption value="apple">Apple</ComboboxOption>)).toThrow(
 			'ComboboxOption must be used within <Combobox>',
 		)
+	})
+})
+
+describe('Combobox required in a locale', () => {
+	it('gives the native message of typed text with no selection in the language of the locale', async () => {
+		const { container } = renderUI(
+			<LocaleProvider locale="es-ES">
+				<form>
+					<Combobox required aria-label="Ciudad">
+						<ComboboxOption value="a">A</ComboboxOption>
+					</Combobox>
+				</form>
+			</LocaleProvider>,
+		)
+
+		const input = getSlot<HTMLInputElement>(container, 'combobox-input')
+
+		await setupUser().type(input, 'Ber')
+
+		expect(input.validationMessage).toBe('Selecciona una opción de la lista.')
 	})
 })
