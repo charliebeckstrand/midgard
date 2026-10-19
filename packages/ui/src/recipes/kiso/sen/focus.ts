@@ -57,9 +57,7 @@ export const focus = {
 	inset: [
 		'outline-none',
 		'focus-visible:ring-2 ring-inset focus-visible:ring-blue-600',
-		// Forced colors remove the ring. This outline replaces it there and
-		// stays inside the box, as the ring does. The variants keep it out of
-		// the tailwind-merge group of `outline-none`.
+		// The variants keep the fallback out of the tailwind-merge group of `outline-none`.
 		...forced.ring.inset,
 	],
 	outline: [

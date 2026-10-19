@@ -21,9 +21,7 @@ export const k = defineRecipe({
 		// Forced colors remove the background of the track and the thumb, so the
 		// slider shows the native range, which paints in system colors.
 		forced.control,
-		// The focus ring of the thumb is a box-shadow, which forced colors remove,
-		// and the native range draws no focus mark under `outline-none`. This
-		// outline marks the focused slider there.
+		// The native range draws no focus mark under `outline-none`.
 		...forced.ring.outset,
 
 		// --slider-value is set inline (0-100%); --slider-fill / --slider-track come from the color variant.

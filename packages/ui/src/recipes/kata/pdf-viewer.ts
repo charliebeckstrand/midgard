@@ -16,7 +16,7 @@ const { palette, text } = iro
 const { size, weight } = ji
 const { flex } = narabi
 const { bg, rail, skeleton } = omote
-const { border, focus } = sen
+const { border, focus, forced } = sen
 
 // The page image and every layer drawn over it must sit in the same place, so the centering
 // has one home — the rotation half of the same invariant is the `transform` string
@@ -244,9 +244,9 @@ export const k = {
 					base: [
 						'absolute block',
 						'ring-1 ring-inset',
-						// Forced colors remove the ring, which is a box-shadow. This inset
-						// outline draws the edge of the region there.
-						'forced-colors:outline forced-colors:-outline-offset-1',
+						// The edge under forced colors, inside the box as the ring is.
+						forced.outline,
+						'forced-colors:-outline-offset-1',
 						...cursor,
 						...focus.inset,
 					],

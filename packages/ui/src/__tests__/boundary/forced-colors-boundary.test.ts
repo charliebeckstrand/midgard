@@ -1,24 +1,27 @@
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { srcDir, srcRelative, stripSourceComments, walkSource } from '../helpers/walk-source'
+import {
+	isSourceFile,
+	srcDir,
+	srcRelative,
+	stripSourceComments,
+	walkSource,
+} from '../helpers/walk-source'
 
-// Forced-colors boundary.
+// Forced-colors boundary (CONVENTIONS §5.10).
 //
-// A ring is a box-shadow, and forced colors remove a box-shadow. When a recipe
-// draws a state with a ring behind a variant, such as a focus ring or the mark
-// of an active cell, the state disappears under forced colors. Thus each state
-// ring has a `forced-colors:` class behind the same gate in the same file,
-// usually a `Highlight` outline. A file can also spread `sen.forced.ring`,
-// which holds that outline for the `focus-visible` gate (CONVENTIONS §5).
+// Each recipe ring that shows a state behind a gate has a `forced-colors:`
+// class behind the same gate in the same file. A file that spreads
+// `forced.ring.inset` or `forced.ring.outset` has the fallback for the
+// `focus-visible` gate.
 //
 // The test reads the gate of a class from its source text. A ring that a recipe
 // variant turns on, such as `active: ['ring-4']`, has no gate in its class, so
-// the recipe test `recipes/forced-colors.test.ts` covers it.
+// `recipes/forced-colors.test.ts` covers it.
 //
 // These gates are not part of the rule:
 //
-//   - No gate: a resting ring is an edge, not a state. The recipe test covers
-//     the edges that are the only paint of a part.
+//   - No gate: a resting ring is an edge, not a state.
 //   - A hover gate: a hover ring is a preview, and the pointer shows it.
 //   - A validation gate: forced colors make red, amber, and green one color, so
 //     a ring cannot tell the states apart. The message of the field tells them.
@@ -26,8 +29,12 @@ import { srcDir, srcRelative, stripSourceComments, walkSource } from '../helpers
 /** The width utility of a box-shadow ring: `ring`, `ring-2`, `ring-4`. */
 const RING = /^ring(?:-\d+)?$/
 
-/** A variant that names a pseudo-element. The fallback can go on the pseudo-element or on its host. */
-const PSEUDO_ELEMENT = /^(?:before|after|\[&::[^\]]+\])$/
+/**
+ * A variant that is not part of a gate: the color scheme, a pseudo-element
+ * (the fallback can go on the pseudo-element or on its host), or a selector of
+ * the children that take the class.
+ */
+const NOT_GATE = /^(?:dark|forced-colors|before|after|\[&::[^\]]+\]|\*\*?|data-\[slot=[^\]]+\])$/
 
 /** A gate on the validation state of a control. */
 const VALIDATION = /data-(?:invalid|warning|valid)\b/
@@ -41,9 +48,6 @@ const EXEMPT: Record<string, Record<string, string>> = {
 		'[&:has([data-slot=accordion-trigger]:focus-visible):not(:has([data-slot=accordion-panel]_[data-slot=accordion-trigger]:focus-visible))]':
 			'The header keeps `focus-visible:outline-hidden`. Tailwind gives that class an outline under forced colors, and the outline marks the focus.',
 	},
-	'recipes/kata/avatar.ts': {
-		'**:data-[slot=avatar]': 'The ring is the gap between two stacked avatars. It is not a state.',
-	},
 	'recipes/kiso/kasane/layers.ts': {
 		'focus-within':
 			'The control in the frame keeps `focus:outline-hidden`. Tailwind gives that class an outline under forced colors, and the outline marks the focus.',
@@ -52,10 +56,10 @@ const EXEMPT: Record<string, Record<string, string>> = {
 	},
 }
 
-/**
- * Splits a class into its variants and its utility at each colon that is not
- * inside brackets or parentheses.
- */
+/** One class: its gate, whether it is a ring, and whether it is a forced-colors class. */
+type Parsed = { name: string; gate: string; ring: boolean; forced: boolean }
+
+/** Splits a class into its variants and its utility at each colon that is not inside brackets or parentheses. */
 function split(className: string): string[] {
 	const parts: string[] = []
 
@@ -79,94 +83,76 @@ function split(className: string): string[] {
 	return parts
 }
 
-/** The gate of a class: its variants without `dark`, `forced-colors`, and the pseudo-element variants. */
-function gateOf(variants: readonly string[]): string {
-	return variants
-		.filter(
-			(variant) =>
-				variant !== 'dark' && variant !== 'forced-colors' && !PSEUDO_ELEMENT.test(variant),
-		)
-		.join(':')
+function parse(name: string): Parsed {
+	const parts = split(name)
+
+	const variants = parts.slice(0, -1)
+
+	return {
+		name,
+		gate: variants.filter((variant) => !NOT_GATE.test(variant)).join(':'),
+		ring: RING.test((parts.at(-1) ?? '').replace(/^!|!$/g, '')),
+		forced: variants.includes('forced-colors'),
+	}
 }
 
-/** Each class name in the string literals of `code`. */
-function classNamesIn(code: string): string[] {
-	return [...code.matchAll(/(['"`])((?:(?!\1)[^\\\n]|\\.)*)\1/g)].flatMap((match) =>
-		(match[2] ?? '').split(/\s+/).filter(Boolean),
-	)
-}
-
-/** The state rings of one recipe file that have no forced-colors fallback, as `file gate (class)`. */
-function offenders(file: string, content: string): string[] {
+/** Each class in the string literals of a source file, parsed, and whether the file spreads `forced.ring`. */
+function read(content: string): { classes: Parsed[]; ringToken: boolean } {
 	const code = stripSourceComments(content)
 
-	const classes = classNamesIn(code)
-
-	const fallbacks = new Set(
-		classes.flatMap((className) => {
-			const parts = split(className)
-
-			return parts.includes('forced-colors') ? [gateOf(parts.slice(0, -1))] : []
-		}),
+	const names = [...code.matchAll(/(['"`])((?:(?!\1)[^\\\n]|\\.)*)\1/g)].flatMap((match) =>
+		(match[2] ?? '').split(/\s+/).filter(Boolean),
 	)
 
-	// `sen.forced.ring` holds the fallback for the `focus-visible` gate.
-	if (/\bforced\.ring\.(?:inset|outset)\b/.test(code)) fallbacks.add('focus-visible')
+	return {
+		classes: [...new Set(names)].map(parse),
+		ringToken: /\bforced\.ring\.(?:inset|outset)\b/.test(code),
+	}
+}
+
+/** The state rings of one file that have no forced-colors fallback, as `file gate (class)`. */
+function offenders(file: string, content: string): string[] {
+	const { classes, ringToken } = read(content)
+
+	const fallbacks = new Set(classes.filter((c) => c.forced).map((c) => c.gate))
+
+	if (ringToken) fallbacks.add('focus-visible')
 
 	const exempt = EXEMPT[file] ?? {}
 
-	const found = new Set<string>()
-
-	for (const className of classes) {
-		const parts = split(className)
-
-		const utility = (parts.at(-1) ?? '').replace(/^!|!$/g, '')
-
-		if (!RING.test(utility) || parts.includes('forced-colors')) continue
-
-		const gate = gateOf(parts.slice(0, -1))
-
-		if (gate === '' || /hover/.test(gate) || VALIDATION.test(gate)) continue
-
-		if (fallbacks.has(gate) || gate in exempt) continue
-
-		found.add(`${file} ${gate} (${className})`)
-	}
-
-	return [...found]
+	return classes
+		.filter(
+			({ gate, ring, forced }) =>
+				ring &&
+				!forced &&
+				gate !== '' &&
+				!/hover/.test(gate) &&
+				!VALIDATION.test(gate) &&
+				!fallbacks.has(gate) &&
+				!(gate in exempt),
+		)
+		.map(({ name, gate }) => `${file} ${gate} (${name})`)
 }
 
-/** Each recipe file with its path from `src`. */
-function recipeFiles(): [string, string][] {
-	const files: [string, string][] = []
+/** Each recipe file by its path from `src`. */
+const recipes = new Map<string, string>()
 
-	walkSource(join(srcDir, 'recipes'), (file, content) => {
-		if (/\.ts$/.test(file)) files.push([srcRelative(file), content])
-	})
-
-	return files
-}
+walkSource(join(srcDir, 'recipes'), (file, content) => {
+	if (isSourceFile(file)) recipes.set(srcRelative(file), content)
+})
 
 describe('forced-colors fallbacks in ui recipes', () => {
 	it('each state ring has a forced-colors fallback behind its gate', () => {
-		expect(recipeFiles().flatMap(([file, content]) => offenders(file, content))).toEqual([])
+		expect([...recipes].flatMap(([file, content]) => offenders(file, content))).toEqual([])
 	})
 
 	it('each exemption names a state ring that the recipe still draws', () => {
-		const files = new Map(recipeFiles())
-
 		const stale = Object.entries(EXEMPT).flatMap(([file, gates]) => {
-			const classes = classNamesIn(stripSourceComments(files.get(file) ?? ''))
+			const { classes } = read(recipes.get(file) ?? '')
 
-			return Object.keys(gates).flatMap((gate) => {
-				const used = classes.some((className) => {
-					const parts = split(className)
-
-					return RING.test(parts.at(-1) ?? '') && gateOf(parts.slice(0, -1)) === gate
-				})
-
-				return used ? [] : [`${file} ${gate}`]
-			})
+			return Object.keys(gates).flatMap((gate) =>
+				classes.some((c) => c.ring && c.gate === gate) ? [] : [`${file} ${gate}`],
+			)
 		})
 
 		expect(stale).toEqual([])
@@ -208,11 +194,11 @@ describe('forced-colors fallbacks in ui recipes', () => {
 		).toHaveLength(1)
 	})
 
-	it('passes a resting ring, a hover ring, and a validation ring', () => {
+	it('passes a resting ring, a slot ring, a hover ring, and a validation ring', () => {
 		expect(
 			offenders(
 				'x.ts',
-				"'ring-1 ring-inset hover:ring-2 data-invalid:ring-2 has-[[data-invalid]]:ring-2'",
+				"'ring-1 ring-inset **:data-[slot=avatar]:ring-2 hover:ring-2 data-invalid:ring-2 has-[[data-invalid]]:ring-2'",
 			),
 		).toEqual([])
 	})

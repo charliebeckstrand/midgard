@@ -5,6 +5,15 @@
  * Layer: kiso · Concern: forced-colors fallbacks
  */
 
+/**
+ * The style, width, and color of the ring fallback. `outline-solid` sets the
+ * style that an ungated `outline-none` removes.
+ */
+const ringOutline = [
+	'forced-colors:focus-visible:outline-solid forced-colors:focus-visible:outline-2',
+	'forced-colors:focus-visible:outline-[Highlight]',
+]
+
 export const forced = {
 	/** Panel outline: restores a visible edge when backgrounds are stripped. */
 	outline: 'forced-colors:outline',
@@ -29,27 +38,15 @@ export const forced = {
 	 */
 	shape: 'forced-colors:bg-[CanvasText]',
 	/**
-	 * Ring fallback: a 2 px `Highlight` outline that replaces a keyboard focus
-	 * ring. A ring is a box-shadow, and forced colors remove a box-shadow.
-	 * `outline-solid` sets the style that an ungated `outline-none` removes.
-	 *
-	 * These two entries hold the `focus-visible` gate only. A ring behind another
-	 * gate, such as `has-[…]` or `group-focus-visible/name`, writes the same four
-	 * classes behind that gate, because Tailwind reads only literal class names.
-	 * The forced-colors boundary test makes sure that each state ring has its
-	 * fallback.
+	 * Ring fallback: the 2 px `Highlight` outline that replaces a focus ring
+	 * behind the `focus-visible` gate. See CONVENTIONS §5.10 for a ring behind
+	 * another gate.
 	 */
 	ring: {
 		/** Inside the box, as for an inset ring, or where a scroll container clips an outset stroke. */
-		inset: [
-			'forced-colors:focus-visible:outline-solid forced-colors:focus-visible:outline-2',
-			'forced-colors:focus-visible:-outline-offset-2 forced-colors:focus-visible:outline-[Highlight]',
-		],
+		inset: [...ringOutline, 'forced-colors:focus-visible:-outline-offset-2'],
 		/** Outside the box, as for an outset ring. */
-		outset: [
-			'forced-colors:focus-visible:outline-solid forced-colors:focus-visible:outline-2',
-			'forced-colors:focus-visible:outline-offset-2 forced-colors:focus-visible:outline-[Highlight]',
-		],
+		outset: [...ringOutline, 'forced-colors:focus-visible:outline-offset-2'],
 	},
 	/** Icon slot: keeps data-slot=icon children on CanvasText. */
 	icon: 'forced-colors:*:data-[slot=icon]:text-[CanvasText]',
