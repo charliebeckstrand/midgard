@@ -6,6 +6,7 @@ import { Input } from '../../components/input'
 import { JsonTree } from '../../components/json-tree'
 import { NavItem, NavList } from '../../components/nav'
 import { ProgressBar } from '../../components/progress'
+import { ScrollArea } from '../../components/scroll-area'
 import { Segment, SegmentItem } from '../../components/segment'
 import { Select, SelectOption } from '../../components/select'
 import {
@@ -307,6 +308,23 @@ describe('controls show their state under forced colors (real browser)', () => {
 		const canvas = canvasColor()
 		const style = getComputedStyle(indicator)
 		expect(style.backgroundColor === canvas && style.borderTopWidth === '0px').toBe(false)
+	})
+
+	// The viewport hides the native scrollbar, and the thumb paints only with a
+	// background. Forced colors keep the alpha of that background, so a thumb
+	// mapped to Canvas is Canvas over Canvas. The color of the thumb, without its
+	// alpha, must not be Canvas.
+	it('scroll area: the thumb paints in a color other than Canvas', async () => {
+		const { container } = renderUI(
+			<ScrollArea scrollbar="visible" style={{ height: 80 }} aria-label="Log">
+				<div style={{ height: 400 }}>tall content</div>
+			</ScrollArea>,
+		)
+		const thumb = await waitFor(() =>
+			present(container.querySelector<HTMLElement>('[data-slot=scroll-area-thumb]'), 'thumb'),
+		)
+		const channels = (color: string) => color.match(/\d+/g)?.slice(0, 3).join()
+		expect(channels(getComputedStyle(thumb).backgroundColor)).not.toBe(channels(canvasColor()))
 	})
 
 	// The focus marker of an underline tab is a background on `::after`, which
