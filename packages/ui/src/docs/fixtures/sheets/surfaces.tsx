@@ -63,17 +63,6 @@ const TEXT_SIZES = ['xs', 'sm', 'md', 'lg'] as const
 
 const ICON_SIZES = ['xs', 'sm', 'md', 'lg'] as const
 
-const PARAGRAPHS = [
-	'Paragraph 1. The quick brown fox jumps over the lazy dog.',
-	'Paragraph 2. Sphinx of black quartz, judge my vow.',
-	'Paragraph 3. Pack my box with five dozen liquor jugs.',
-	'Paragraph 4. How vexingly quick daft zebras jump.',
-	'Paragraph 5. The five boxing wizards jump quickly.',
-	'Paragraph 6. Jackdaws love my big sphinx of quartz.',
-]
-
-const TAGS = ['react', 'typescript', 'tailwind', 'motion', 'vite', 'biome', 'pnpm', 'turborepo']
-
 const MARKDOWN = `## Release notes
 
 Render **Markdown** as styled prose, with _emphasis_, \`inline code\`, and [links](https://example.com).
