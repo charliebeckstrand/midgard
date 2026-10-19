@@ -24,6 +24,18 @@ export const toggle = [
 	// that time is a double tap, and neither tap toggles a control.
 	// `touch-manipulation` on the row, gaps included, stops the wait, as on Button.
 	'touch-manipulation',
+	// On a coarse pointer, the label also takes the press in the empty parts of
+	// the row: the space around the control, the space after the label text, and
+	// half of the gap to the next row (`--touch-target-gap-y`, which the group
+	// sets). Without this, iOS moves a press that misses the control and the label
+	// to a clickable node near it, and it looks up and to the left first. Thus a
+	// press a little above a row went to the row above. The area of the label sits
+	// behind the other slots of the row, so a press on the description does not
+	// toggle the control.
+	'relative isolate',
+	'pointer-coarse:*:data-[slot=label]:after:absolute pointer-coarse:*:data-[slot=label]:after:-z-1',
+	'pointer-coarse:*:data-[slot=label]:after:inset-x-0',
+	'pointer-coarse:*:data-[slot=label]:after:-inset-y-[calc(var(--touch-target-gap-y,0px)/2)]',
 	'*:data-[slot=control]:col-start-1 *:data-[slot=control]:row-start-1 *:data-[slot=control]:self-center',
 	'*:data-[slot=label]:col-start-2 *:data-[slot=label]:row-start-1',
 	// A control that is taller than the label line makes the row taller. The
