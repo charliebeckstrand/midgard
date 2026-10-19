@@ -259,11 +259,25 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 	// the whole-widget items alone.
 	const [menuRegion, setMenuRegion] = useState<number | null>(null)
 
-	// Identity is the map's to report, but the menu target is positional — a
-	// consumer reads the underlying row out of its own data by index.
-	const onRegionContextMenu = useCallback((_id: string, index: number) => setMenuRegion(index), [])
-
 	const [primary] = series
+
+	// The menu target is the index of the region's row in `data`, so a consumer
+	// reads the row out of its own data by index. The map reports the region id
+	// and the feature index, and the feature order is not the data order. The
+	// map joins a region to the last row with its id, so this does too. A region
+	// with no row targets no row.
+	const rowIndexById = useMemo(() => {
+		const idKey = primary?.idKey
+
+		if (!idKey || !data) return new Map<string, number>()
+
+		return new Map(data.map((row, index) => [String(row[idKey]), index]))
+	}, [data, primary?.idKey])
+
+	const onRegionContextMenu = useCallback(
+		(id: string) => setMenuRegion(rowIndexById.get(id) ?? null),
+		[rowIndexById],
+	)
 
 	// The default writes numbers in the ambient locale, as a cartesian chart does.
 	const { locale } = useLocale()
