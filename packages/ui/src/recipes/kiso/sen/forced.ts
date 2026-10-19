@@ -52,6 +52,27 @@ export const forced = {
 		/** Outside the box, as for an outset ring. */
 		outset: [...ringOutline, 'forced-colors:focus-visible:outline-offset-2'],
 	},
+	/**
+	 * Invalid fallback: the 2 px outline that replaces a red validation ring.
+	 * Forced colors make red, amber, and green one color, so only the invalid
+	 * state keeps a mark. The outline takes the text color, and a focus
+	 * fallback paints it in `Highlight`.
+	 */
+	invalid: {
+		/** Outside the invalid control itself, as for the thumb of a slider. */
+		outset: [
+			'forced-colors:data-invalid:outline-solid forced-colors:data-invalid:outline-2',
+			'forced-colors:data-invalid:outline-offset-2',
+		],
+		/** On a surface that holds the invalid control, as for the box of a checkbox. */
+		within:
+			'forced-colors:has-[[data-invalid]]:outline-solid forced-colors:has-[[data-invalid]]:outline-2',
+		/** Inside the `::after` overlay of a control frame that holds the invalid control. */
+		overlay: [
+			'forced-colors:has-[[data-invalid]]:after:outline-solid forced-colors:has-[[data-invalid]]:after:outline-2',
+			'forced-colors:has-[[data-invalid]]:after:-outline-offset-2',
+		],
+	},
 	/** Icon slot: keeps data-slot=icon children on CanvasText. */
 	icon: 'forced-colors:*:data-[slot=icon]:text-[CanvasText]',
 } as const
