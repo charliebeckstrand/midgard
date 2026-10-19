@@ -8,7 +8,7 @@ const { cursor, disabled } = hannou
 const { weight } = ji
 const { button } = kokkaku
 const { flex } = narabi
-const { focus } = sen
+const { focus, ring } = sen
 
 export const k = defineRecipe({
 	base: [
@@ -46,7 +46,7 @@ export const k = defineRecipe({
 	variant: {
 		solid: focus.ring,
 		soft: focus.inset,
-		outline: ['ring-1 ring-inset', focus.inset],
+		outline: [...ring.line[1].inset, focus.inset],
 		plain: focus.inset,
 		// Icon-only floor: a square pad per step keeps an icon-only bare button
 		// even-sided. `not-data-has-label` yields to the base padding once a

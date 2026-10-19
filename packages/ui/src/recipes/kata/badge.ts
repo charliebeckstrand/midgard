@@ -18,7 +18,7 @@ const { weight } = ji
 const { rounded } = kasane
 const { badge } = kokkaku
 const { flex } = narabi
-const { focus } = sen
+const { focus, ring } = sen
 
 /**
  * The hover wash of a link badge: one compound rule for each variant and color,
@@ -64,7 +64,7 @@ export const k = defineRecipe(
 			dan.space.badge.base,
 		],
 		variant: {
-			outline: 'ring-1 ring-inset',
+			outline: ring.line[1].inset,
 		},
 		radius: rounded,
 		// A badge with an `href` is a link, and it takes the hover wash of its

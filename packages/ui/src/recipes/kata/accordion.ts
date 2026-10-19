@@ -6,7 +6,7 @@ const { cursor, disabled, fg } = hannou
 const { text } = iro
 const { rounded } = kasane
 const { flex } = narabi
-const { border, divider } = sen
+const { border, divider, focus } = sen
 const { collapse, css } = ugoki
 
 const item = defineRecipe({
@@ -15,11 +15,8 @@ const item = defineRecipe({
 		'group/accordion-item',
 		// The item rings while its own header button has keyboard focus. A nested
 		// accordion is in the panel, so the focus of a nested header does not ring the
-		// item. The variant is arbitrary because `not-has-[]` wraps its selector in
-		// `:is()`, and `:is()` matches a panel anywhere above the button, not only in the item.
-		'[&:has([data-slot=accordion-trigger]:focus-visible):not(:has([data-slot=accordion-panel]_[data-slot=accordion-trigger]:focus-visible))]:ring-2',
-		'[&:has([data-slot=accordion-trigger]:focus-visible):not(:has([data-slot=accordion-panel]_[data-slot=accordion-trigger]:focus-visible))]:ring-blue-600',
-		'[&:has([data-slot=accordion-trigger]:focus-visible):not(:has([data-slot=accordion-panel]_[data-slot=accordion-trigger]:focus-visible))]:ring-inset',
+		// item.
+		...focus.within.heading,
 	],
 	variant: {
 		separated: ['overflow-hidden', rounded.lg, ...border.default],
@@ -61,10 +58,8 @@ export const k = defineRecipe(
 				fg.hover,
 				'text-start',
 				...mode('aria-expanded:text-zinc-950', 'dark:aria-expanded:text-white'),
-				// The ring of the item is a box-shadow, and forced colors remove it.
-				// `outline-hidden` draws no outline in normal mode, but under forced colors
-				// it draws a transparent outline that the browser paints in a system color.
-				'focus-visible:outline-hidden',
+				// The item draws the focus ring, and its forced-colors outline.
+				'focus-visible:outline-none',
 				...disabled,
 				...cursor,
 			],

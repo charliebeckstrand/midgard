@@ -22,7 +22,8 @@ const handle = [
 	'absolute pointer-events-none',
 	'size-4 -translate-x-1/2 -translate-y-1/2',
 	rounded.full,
-	'border-2 border-white shadow-sm ring-1 ring-black/25',
+	'border-2 border-white shadow-sm ring-black/25',
+	...ring.line[1].outset,
 ] as const
 
 const area = [

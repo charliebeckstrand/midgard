@@ -5,7 +5,7 @@ import { dan } from '../kiso/dan'
 
 const { nav, cursor } = hannou
 const { flex, inset } = narabi
-const { divider } = sen
+const { divider, focus } = sen
 
 /**
  * Mini (icon-rail) rules, active when the nav carries `data-mini`. The nav
@@ -87,11 +87,7 @@ const itemRow = defineRecipe({
 			// The wrapper only needs a radius when it carries the affixed row chrome.
 			dan.radius.control,
 			...nav.tint,
-			'ring-inset has-[[data-slot=sidebar-item-inner]:focus-visible]:ring-2 has-[[data-slot=sidebar-item-inner]:focus-visible]:ring-blue-600',
-			// Forced colors remove the ring, which is a box-shadow. This inset outline
-			// replaces it there, as in `focus.inset`.
-			'forced-colors:has-[[data-slot=sidebar-item-inner]:focus-visible]:outline-solid forced-colors:has-[[data-slot=sidebar-item-inner]:focus-visible]:outline-2',
-			'forced-colors:has-[[data-slot=sidebar-item-inner]:focus-visible]:-outline-offset-2 forced-colors:has-[[data-slot=sidebar-item-inner]:focus-visible]:outline-[Highlight]',
+			...focus.within.row,
 		],
 		false: '',
 	},
@@ -141,14 +137,7 @@ export const k = {
 		 * positioned descendants. The focused current row therefore re-draws the ring
 		 * on the pill, the topmost full-row surface.
 		 */
-		indicator: [
-			'ring-inset',
-			'group-has-[[data-slot=sidebar-item-inner]:focus-visible]:ring-2 group-has-[[data-slot=sidebar-item-inner]:focus-visible]:ring-blue-600',
-			// Forced colors remove the ring. The pill keeps its own forced edge, so
-			// focus widens that edge and paints it in `Highlight`.
-			'forced-colors:group-has-[[data-slot=sidebar-item-inner]:focus-visible]:outline-solid forced-colors:group-has-[[data-slot=sidebar-item-inner]:focus-visible]:outline-2',
-			'forced-colors:group-has-[[data-slot=sidebar-item-inner]:focus-visible]:-outline-offset-2 forced-colors:group-has-[[data-slot=sidebar-item-inner]:focus-visible]:outline-[Highlight]',
-		],
+		indicator: focus.within.indicator,
 		prefix: itemPrefix,
 		suffix: itemSuffix,
 		/** The box of the inner button, with no interaction surface, for the skeleton row. */

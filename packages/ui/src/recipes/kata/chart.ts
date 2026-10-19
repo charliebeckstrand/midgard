@@ -82,6 +82,8 @@ export const k = {
 	focus: sen.focus.ring,
 	/** The range legend's hover arrow: foreground ink (via `currentColor`), so the class glyph reads over the panel. */
 	arrow: text.default,
+	/** The range legend's probe marker: a white tick with a 1 px edge, so it reads over any stop of the scale. */
+	marker: ['absolute bg-white shadow-sm ring-black/20', ...sen.ring.line[1].outset],
 	/**
 	 * The drawing SVG's pointer posture at the resolved tier: at spark the whole
 	 * drawing goes inert. A sparkline is read-only, so no mark hover styling,
