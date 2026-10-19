@@ -4,7 +4,7 @@ const snippet = `
 import { Button } from 'ui/button'
 
 export function Example() {
-	return <Button color="blue">Click me</Button>
+	return <Button color="blue">Save</Button>
 }
 `
 
