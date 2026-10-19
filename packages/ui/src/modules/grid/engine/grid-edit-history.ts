@@ -21,8 +21,61 @@ export type GridHistoryCell = {
 	after: unknown
 }
 
-/** The saved cells of one user action: one commit sweep, or one settled batch. @internal */
+/**
+ * The saved cells of one user action: one commit sweep, or one write such as
+ * a paste or a fill. @internal
+ */
 export type GridHistoryEntry = readonly GridHistoryCell[]
+
+/**
+ * The entry of one user action while its async batches are in flight. `cells`
+ * holds the cells saved so far, and `open` counts the batches that have not
+ * settled. @internal
+ */
+export type GridPendingEntry = { cells: GridHistoryCell[]; open: number }
+
+/**
+ * Records the entry of one user action. Its sync cells are `cells`, and
+ * `batches` are its async batches, one for each row. With no batch, the entry
+ * records now. Otherwise each batch goes to `track` with the pending entry,
+ * and the entry records when the last batch settles (see
+ * {@link settlePendingEntry}). A write in many rows thus gives one entry, not
+ * one for each row, and undo cannot reach it while a batch is in flight.
+ *
+ * @internal
+ */
+export function recordWrite<B>(
+	cells: readonly GridHistoryCell[],
+	batches: readonly B[],
+	record: (entry: GridHistoryEntry) => void,
+	track: (batch: B, entry: GridPendingEntry) => void,
+): void {
+	if (batches.length === 0) {
+		record(cells)
+
+		return
+	}
+
+	const entry: GridPendingEntry = { cells: [...cells], open: batches.length }
+
+	for (const batch of batches) track(batch, entry)
+}
+
+/**
+ * Adds the accepted cells of one settled batch to its pending entry, and
+ * records the entry when no batch of it is in flight. @internal
+ */
+export function settlePendingEntry(
+	entry: GridPendingEntry,
+	accepted: readonly GridHistoryCell[],
+	record: (entry: GridHistoryEntry) => void,
+): void {
+	entry.cells.push(...accepted)
+
+	entry.open -= 1
+
+	if (entry.open === 0) record(entry.cells)
+}
 
 /** The two stacks of the history, with the newest entry last in each. @internal */
 export type GridHistory = {
