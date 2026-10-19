@@ -5,9 +5,11 @@ import { Button } from '../../components/button'
 import { Heading } from '../../components/heading'
 import { Icon } from '../../components/icon'
 import { cn } from '../../core'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/events'
 import { Flex } from '../../structure/flex'
 import { setEventsPinned } from './engine/events-setting'
+import { eventsMessages } from './events-messages'
 import { useEventsView } from './use-events-view'
 
 /**
@@ -22,6 +24,8 @@ import { useEventsView } from './use-events-view'
 export function EventsPanel() {
 	const { label, title, actions, body, footer } = useEventsView(true)
 
+	const intl = useIntl()
+
 	return (
 		<div className={cn(k.panel.base)}>
 			<Flex wrap align="center" gap="md" className={cn(k.row)}>
@@ -30,7 +34,12 @@ export function EventsPanel() {
 				</Heading>
 				{title}
 				{actions}
-				<Button variant="bare" size="sm" aria-label="Unpin" onClick={() => setEventsPinned(false)}>
+				<Button
+					variant="bare"
+					size="sm"
+					aria-label={intl.formatMessage(eventsMessages.unpin)}
+					onClick={() => setEventsPinned(false)}
+				>
 					<Icon icon={<PinOff />} />
 				</Button>
 			</Flex>

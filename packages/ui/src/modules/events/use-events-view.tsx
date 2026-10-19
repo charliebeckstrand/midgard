@@ -14,12 +14,15 @@ import { Icon } from '../../components/icon'
 import { Markdown } from '../../components/markdown'
 import { Segment, SegmentControl, SegmentItem } from '../../components/segment'
 import { Text } from '../../components/text'
+import { intlMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { markdownOf } from './engine/events-report'
 import type { EventStore } from './engine/events-store'
 import { kindWidth, rowsOf, rowText } from './engine/events-text'
 import { EventsCopyButton } from './events-copy-button'
 import { EventsFlagField } from './events-flag-field'
 import { EventsList, type EventsOpenState } from './events-list'
+import { bugsCountMessage, eventsMessages } from './events-messages'
 import { EventsReportList, type ReportEntry } from './events-report-list'
 import { useEvents } from './use-events'
 
@@ -56,6 +59,8 @@ export type EventsViewParts = {
  */
 export function useEventsView(live: boolean): EventsViewParts {
 	const { store, entries, preserve, batched, capturing } = useEvents(live)
+
+	const intl = useIntl()
 
 	const [tab, setTab] = useState<Tab>('events')
 
@@ -117,19 +122,19 @@ export function useEventsView(live: boolean): EventsViewParts {
 				if (id !== undefined) view(id)
 			}}
 		>
-			{capturing ? 'Stop capture' : 'Capture'}
+			{intl.formatMessage(capturing ? eventsMessages.stopCapture : eventsMessages.capture)}
 		</Button>
 	)
 
 	const clear = entries.length > 0 && (
 		<Button size="sm" color="amber" onClick={() => store.clear()}>
-			Clear
+			{intl.formatMessage(intlMessages.clear)}
 		</Button>
 	)
 
 	const preserveField = (
 		<EventsFlagField
-			label="Preserve"
+			label={intl.formatMessage(eventsMessages.preserve)}
 			checked={preserve}
 			// A capture keeps its events through a reload, so "Preserve" is on while it runs.
 			disabled={capturing}
@@ -144,10 +149,13 @@ export function useEventsView(live: boolean): EventsViewParts {
 
 		return {
 			store,
-			label: 'Bugs',
+			label: intl.formatMessage(eventsMessages.bugs),
 			// The crumbs name the report and lead back to the list.
 			title: (
-				<Breadcrumb className="me-auto min-w-0">
+				<Breadcrumb
+					className="me-auto min-w-0"
+					aria-label={intl.formatMessage(eventsMessages.trail)}
+				>
 					<BreadcrumbList className="text-xl/8">
 						<BreadcrumbItem>
 							<BreadcrumbLink
@@ -159,7 +167,7 @@ export function useEventsView(live: boolean): EventsViewParts {
 									setViewed(undefined)
 								}}
 							>
-								Bugs
+								{intl.formatMessage(eventsMessages.bugs)}
 							</BreadcrumbLink>
 						</BreadcrumbItem>
 						<BreadcrumbSeparator />
@@ -185,7 +193,7 @@ export function useEventsView(live: boolean): EventsViewParts {
 							store.removeReport(report.id)
 						}}
 					>
-						Delete
+						{intl.formatMessage(eventsMessages.delete)}
 					</Button>
 				</>
 			),
@@ -198,10 +206,12 @@ export function useEventsView(live: boolean): EventsViewParts {
 			value={tab}
 			onValueChange={(value) => setTab(value === 'bugs' ? 'bugs' : 'events')}
 		>
-			<SegmentControl aria-label="View">
-				<SegmentItem value="events">Events</SegmentItem>
+			<SegmentControl aria-label={intl.formatMessage(eventsMessages.view)}>
+				<SegmentItem value="events">{intl.formatMessage(eventsMessages.events)}</SegmentItem>
 				<SegmentItem value="bugs">
-					{reports.length > 0 ? `Bugs ${reports.length}` : 'Bugs'}
+					{reports.length > 0
+						? intl.formatMessage(bugsCountMessage, { count: reports.length })
+						: intl.formatMessage(eventsMessages.bugs)}
 				</SegmentItem>
 			</SegmentControl>
 		</Segment>
@@ -210,7 +220,7 @@ export function useEventsView(live: boolean): EventsViewParts {
 	if (tab === 'bugs')
 		return {
 			store,
-			label: 'Bugs',
+			label: intl.formatMessage(eventsMessages.bugs),
 			title: tabs,
 			actions: preserveField,
 			body:
@@ -221,7 +231,7 @@ export function useEventsView(live: boolean): EventsViewParts {
 						onDelete={(id) => store.removeReport(id)}
 					/>
 				) : (
-					<Text tone="muted">No bugs</Text>
+					<Text tone="muted">{intl.formatMessage(eventsMessages.noBugs)}</Text>
 				),
 			footer: (
 				<>
@@ -237,13 +247,13 @@ export function useEventsView(live: boolean): EventsViewParts {
 
 	return {
 		store,
-		label: 'Events',
+		label: intl.formatMessage(eventsMessages.events),
 		title: tabs,
 		actions: (
 			<>
 				{preserveField}
 				<EventsFlagField
-					label="Batch"
+					label={intl.formatMessage(eventsMessages.batch)}
 					checked={batched}
 					onChange={(checked) => {
 						store.setBatched(checked)
@@ -255,7 +265,7 @@ export function useEventsView(live: boolean): EventsViewParts {
 			entries.length > 0 ? (
 				<EventsList rows={rows} width={width} state={state} onReport={view} />
 			) : (
-				<Text tone="muted">No events</Text>
+				<Text tone="muted">{intl.formatMessage(eventsMessages.noEvents)}</Text>
 			),
 		footer: (
 			<>
