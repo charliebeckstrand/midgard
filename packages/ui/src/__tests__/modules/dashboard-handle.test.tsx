@@ -7,8 +7,9 @@ import {
 	type DashboardLayoutItem,
 	DashboardTile,
 } from '../../modules/dashboard'
-import { expectAnnouncement, fireEvent, renderUI, screen, tick } from '../helpers'
+import { expectAnnouncement, fireEvent, renderUI, screen } from '../helpers'
 import { settleKeyboardLifts, stubCanvasWidth } from '../helpers/dashboard-board'
+import { keyboardSensorAttached } from '../helpers/dnd-kit'
 
 stubCanvasWidth()
 
@@ -168,8 +169,7 @@ describe('DashboardHandle.tidy', () => {
 
 		expect(moved).toBe(false)
 
-		// The keyboard sensor attaches its keys on a timer after the lift.
-		await act(tick)
+		await keyboardSensorAttached()
 
 		fireEvent.keyDown(grip, { code: 'Escape', key: 'Escape' })
 
