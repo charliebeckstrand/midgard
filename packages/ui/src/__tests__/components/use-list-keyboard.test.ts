@@ -1,7 +1,8 @@
 import { act, renderHook } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import { useListKeyboard } from '../../components/list/use-list-keyboard'
 import { attach, makeKeyEvent } from '../helpers'
+import { it, onFakeClock } from '../helpers/fake-clock'
 
 const containerRef = { current: document.body }
 
@@ -135,9 +136,7 @@ describe('useListKeyboard', () => {
 	})
 
 	describe('reorder when lifted', () => {
-		beforeEach(() => {
-			vi.useFakeTimers()
-		})
+		onFakeClock()
 
 		it('ArrowDown moves the lifted item forward and calls onReorder', () => {
 			const onReorder = vi.fn()

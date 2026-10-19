@@ -1,8 +1,9 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import { TimeAgo } from '../../components/time-ago'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { LocaleProvider } from '../../providers/locale'
 import { act, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
+import { it, onFakeClock } from '../helpers/fake-clock'
 
 const SECOND = 1000
 
@@ -13,10 +14,10 @@ const HOUR = 60 * MINUTE
 const DAY = 24 * HOUR
 
 describe('TimeAgo', () => {
-	beforeEach(() => {
-		vi.useFakeTimers()
+	onFakeClock()
 
-		vi.setSystemTime(new Date('2026-04-29T12:00:00Z'))
+	it.beforeEach(({ clock }) => {
+		clock.set(new Date('2026-04-29T12:00:00Z'))
 	})
 
 	it('renders a <time> element with data-slot="time-ago"', () => {
@@ -126,16 +127,14 @@ describe('TimeAgo', () => {
 		expect(bySlot(container, 'time-ago')?.textContent).toBe('-90000ms')
 	})
 
-	it('updates as time passes', () => {
+	it('updates as time passes', async ({ clock }) => {
 		const past = new Date(Date.now() - 1 * MINUTE)
 
 		const { container } = renderUI(<TimeAgo date={past} locale="en-US" />)
 
 		expect(bySlot(container, 'time-ago')?.textContent).toBe('1 minute ago')
 
-		act(() => {
-			vi.advanceTimersByTime(60 * SECOND)
-		})
+		await clock.advance(60 * SECOND)
 
 		expect(bySlot(container, 'time-ago')?.textContent).toBe('2 minutes ago')
 	})

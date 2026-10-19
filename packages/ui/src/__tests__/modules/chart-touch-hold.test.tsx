@@ -1,8 +1,9 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect } from 'vitest'
 import { TOUCH_CONTEXT_MENU_DELAY } from '../../components/menu/use-menu-touch-hold'
 import { TOUCH_TAP_WINDOW } from '../../hooks/use-touch-tap'
 import { BarChart, DonutChart } from '../../modules/chart'
-import { act, bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { type FakeClock, it, onFakeClock } from '../helpers/fake-clock'
 
 /**
  * A touch hold on a chart does nothing: it opens no readout and no context menu.
@@ -13,16 +14,14 @@ import { act, bySlot, fireEvent, renderUI, screen } from '../helpers'
  * opens the menu, and "View data" in the menu shows the data.
  */
 describe('a touch hold on a chart', () => {
-	beforeEach(() => {
-		vi.useFakeTimers()
-	})
+	onFakeClock()
 
 	const data = [
 		{ quarter: 'Q1', revenue: 40 },
 		{ quarter: 'Q2', revenue: 80 },
 	]
 
-	it('opens no context menu', () => {
+	it('opens no context menu', async ({ clock }) => {
 		const { container } = renderUI(
 			<BarChart
 				aria-label="Revenue by quarter"
@@ -41,9 +40,7 @@ describe('a touch hold on a chart', () => {
 			clientY: 100,
 		})
 
-		act(() => {
-			vi.advanceTimersByTime(TOUCH_CONTEXT_MENU_DELAY)
-		})
+		await clock.advance(TOUCH_CONTEXT_MENU_DELAY)
 
 		expect(screen.queryByRole('menu')).toBeNull()
 
@@ -53,23 +50,21 @@ describe('a touch hold on a chart', () => {
 	})
 
 	/** Holds a touch still on the element past the tap window, then lifts it. */
-	function hold(target: Element) {
+	async function hold(target: Element, clock: FakeClock) {
 		const touch = { pointerType: 'touch', isPrimary: true, pointerId: 1 }
 
 		fireEvent.pointerOver(target, touch)
 
 		fireEvent.pointerDown(target, touch)
 
-		act(() => {
-			vi.advanceTimersByTime(TOUCH_TAP_WINDOW * 2)
-		})
+		await clock.advance(TOUCH_TAP_WINDOW * 2)
 
 		expect(screen.queryByRole('tooltip')).toBeNull()
 
 		fireEvent.pointerUp(target, touch)
 	}
 
-	it('opens no tooltip on a cartesian chart', () => {
+	it('opens no tooltip on a cartesian chart', async ({ clock }) => {
 		const { container } = renderUI(
 			<BarChart
 				aria-label="Revenue by quarter"
@@ -79,14 +74,14 @@ describe('a touch hold on a chart', () => {
 			/>,
 		)
 
-		hold(bySlot(container, 'chart-hit') as Element)
+		await hold(bySlot(container, 'chart-hit') as Element, clock)
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
 		expect(bySlot(container, 'chart-bar-spot')).toBeNull()
 	})
 
-	it('opens no tooltip on a donut', () => {
+	it('opens no tooltip on a donut', async ({ clock }) => {
 		const { container } = renderUI(
 			<DonutChart
 				aria-label="Revenue by quarter"
@@ -97,7 +92,7 @@ describe('a touch hold on a chart', () => {
 			/>,
 		)
 
-		hold(bySlot(container, 'chart-slice') as Element)
+		await hold(bySlot(container, 'chart-slice') as Element, clock)
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 

@@ -1,18 +1,17 @@
 import { renderHook } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import { useHoverAcrossScroll } from '../../hooks/use-hover-across-scroll'
+import { it, onFakeClock } from '../helpers/fake-clock'
 
 /** Move the pointer to a viewport point; the hook records it for the next settle. */
 function movePointer(x: number, y: number): void {
 	window.dispatchEvent(new PointerEvent('pointermove', { clientX: x, clientY: y }))
 }
 
-beforeEach(() => {
-	vi.useFakeTimers()
-})
-
 describe('useHoverAcrossScroll', () => {
-	it('hides on scroll and re-resolves at the pointer once it settles', () => {
+	onFakeClock()
+
+	it('hides on scroll and re-resolves at the pointer once it settles', async ({ clock }) => {
 		const clear = vi.fn()
 
 		const resolveAt = vi.fn()
@@ -28,12 +27,12 @@ describe('useHoverAcrossScroll', () => {
 
 		expect(resolveAt).not.toHaveBeenCalled()
 
-		vi.advanceTimersByTime(200)
+		await clock.advance(200)
 
 		expect(resolveAt).toHaveBeenCalledExactlyOnceWith(120, 80)
 	})
 
-	it('debounces a burst of scroll frames into one settle', () => {
+	it('debounces a burst of scroll frames into one settle', async ({ clock }) => {
 		const clear = vi.fn()
 
 		const resolveAt = vi.fn()
@@ -45,7 +44,7 @@ describe('useHoverAcrossScroll', () => {
 		for (let i = 0; i < 5; i++) {
 			window.dispatchEvent(new Event('scroll'))
 
-			vi.advanceTimersByTime(40)
+			await clock.advance(40)
 		}
 
 		// Each frame hid the readout; none settled yet (frames were < 120ms apart).
@@ -53,12 +52,12 @@ describe('useHoverAcrossScroll', () => {
 
 		expect(resolveAt).not.toHaveBeenCalled()
 
-		vi.advanceTimersByTime(200)
+		await clock.advance(200)
 
 		expect(resolveAt).toHaveBeenCalledExactlyOnceWith(50, 50)
 	})
 
-	it('does not re-resolve when no pointer has been seen', () => {
+	it('does not re-resolve when no pointer has been seen', async ({ clock }) => {
 		const clear = vi.fn()
 
 		const resolveAt = vi.fn()
@@ -67,14 +66,14 @@ describe('useHoverAcrossScroll', () => {
 
 		window.dispatchEvent(new Event('scroll'))
 
-		vi.advanceTimersByTime(200)
+		await clock.advance(200)
 
 		expect(clear).toHaveBeenCalledOnce()
 
 		expect(resolveAt).not.toHaveBeenCalled()
 	})
 
-	it('ignores scroll while disabled', () => {
+	it('ignores scroll while disabled', async ({ clock }) => {
 		const clear = vi.fn()
 
 		const resolveAt = vi.fn()
@@ -85,7 +84,7 @@ describe('useHoverAcrossScroll', () => {
 
 		window.dispatchEvent(new Event('scroll'))
 
-		vi.advanceTimersByTime(200)
+		await clock.advance(200)
 
 		expect(clear).not.toHaveBeenCalled()
 
@@ -94,7 +93,7 @@ describe('useHoverAcrossScroll', () => {
 
 	// A chart with no tooltip adds no listener. Once the readout turns on, the hook
 	// knows the pointer only from the next move.
-	it('tracks no pointer while disabled', () => {
+	it('tracks no pointer while disabled', async ({ clock }) => {
 		const add = vi.spyOn(window, 'addEventListener')
 
 		const clear = vi.fn()
@@ -114,7 +113,7 @@ describe('useHoverAcrossScroll', () => {
 
 		window.dispatchEvent(new Event('scroll'))
 
-		vi.advanceTimersByTime(200)
+		await clock.advance(200)
 
 		expect(clear).toHaveBeenCalledOnce()
 
@@ -124,13 +123,13 @@ describe('useHoverAcrossScroll', () => {
 
 		window.dispatchEvent(new Event('scroll'))
 
-		vi.advanceTimersByTime(200)
+		await clock.advance(200)
 
 		expect(resolveAt).toHaveBeenCalledExactlyOnceWith(30, 40)
 	})
 
 	// A pointer seen before the readout turned off is stale when it turns on again.
-	it('forgets the pointer when it turns off', () => {
+	it('forgets the pointer when it turns off', async ({ clock }) => {
 		const resolveAt = vi.fn()
 
 		const { rerender } = renderHook(
@@ -146,7 +145,7 @@ describe('useHoverAcrossScroll', () => {
 
 		window.dispatchEvent(new Event('scroll'))
 
-		vi.advanceTimersByTime(200)
+		await clock.advance(200)
 
 		expect(resolveAt).not.toHaveBeenCalled()
 	})
@@ -172,7 +171,7 @@ describe('useHoverAcrossScroll', () => {
 		expect(secondClear).toHaveBeenCalledOnce()
 	})
 
-	it('drops a pending settle when it unmounts mid-scroll', () => {
+	it('drops a pending settle when it unmounts mid-scroll', async ({ clock }) => {
 		const clear = vi.fn()
 
 		const resolveAt = vi.fn()
@@ -185,7 +184,7 @@ describe('useHoverAcrossScroll', () => {
 
 		unmount()
 
-		vi.advanceTimersByTime(200)
+		await clock.advance(200)
 
 		expect(resolveAt).not.toHaveBeenCalled()
 	})

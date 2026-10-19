@@ -1,13 +1,12 @@
 import { act, renderHook } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import { useTimeout } from '../../hooks/use-timeout'
+import { it, onFakeClock } from '../helpers/fake-clock'
 
 describe('useTimeout', () => {
-	beforeEach(() => {
-		vi.useFakeTimers()
-	})
+	onFakeClock()
 
-	it('fires the callback once after the delay', () => {
+	it('fires the callback once after the delay', async ({ clock }) => {
 		const callback = vi.fn()
 
 		const { result } = renderHook(() => useTimeout())
@@ -16,14 +15,14 @@ describe('useTimeout', () => {
 
 		expect(result.current.pending()).toBe(true)
 
-		vi.advanceTimersByTime(100)
+		await clock.advance(100)
 
 		expect(callback).toHaveBeenCalledTimes(1)
 
 		expect(result.current.pending()).toBe(false)
 	})
 
-	it('replaces a pending timer with a later one', () => {
+	it('replaces a pending timer with a later one', async ({ clock }) => {
 		const first = vi.fn()
 
 		const second = vi.fn()
@@ -36,26 +35,26 @@ describe('useTimeout', () => {
 			result.current.set(second, 100)
 		})
 
-		vi.advanceTimersByTime(100)
+		await clock.advance(100)
 
 		expect(first).not.toHaveBeenCalled()
 
 		expect(second).toHaveBeenCalledTimes(1)
 	})
 
-	it('reads as settled inside its own callback', () => {
+	it('reads as settled inside its own callback', async ({ clock }) => {
 		const { result } = renderHook(() => useTimeout())
 
 		let pendingInside: boolean | undefined
 
 		act(() => result.current.set(() => (pendingInside = result.current.pending()), 10))
 
-		vi.advanceTimersByTime(10)
+		await clock.advance(10)
 
 		expect(pendingInside).toBe(false)
 	})
 
-	it('clears a pending timer', () => {
+	it('clears a pending timer', async ({ clock }) => {
 		const callback = vi.fn()
 
 		const { result } = renderHook(() => useTimeout())
@@ -64,14 +63,14 @@ describe('useTimeout', () => {
 
 		act(() => result.current.clear())
 
-		vi.advanceTimersByTime(100)
+		await clock.advance(100)
 
 		expect(callback).not.toHaveBeenCalled()
 
 		expect(result.current.pending()).toBe(false)
 	})
 
-	it('clears a pending timer on unmount', () => {
+	it('clears a pending timer on unmount', async ({ clock }) => {
 		const callback = vi.fn()
 
 		const { result, unmount } = renderHook(() => useTimeout())
@@ -80,7 +79,7 @@ describe('useTimeout', () => {
 
 		unmount()
 
-		vi.advanceTimersByTime(100)
+		await clock.advance(100)
 
 		expect(callback).not.toHaveBeenCalled()
 	})

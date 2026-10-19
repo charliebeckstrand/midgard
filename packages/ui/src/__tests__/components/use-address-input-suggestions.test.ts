@@ -1,7 +1,8 @@
 import { act, renderHook } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import type { AddressProvider, AddressSuggestion } from '../../components/address-input/types'
 import { useAddressInputSuggestions } from '../../components/address-input/use-address-input-suggestions'
+import { it } from '../helpers/fake-clock'
 
 function makeProvider(results: AddressSuggestion[] = []): AddressProvider {
 	return vi.fn().mockResolvedValue(results)
@@ -44,9 +45,7 @@ describe('useAddressInputSuggestions', () => {
 		expect(result.current.suggestions).toEqual([])
 	})
 
-	it('resets when the query falls below the minimum length', async () => {
-		vi.useFakeTimers()
-
+	it('resets when the query falls below the minimum length', async ({ clock }) => {
 		const provider = makeProvider([{ id: '1', label: 'one' } as AddressSuggestion])
 
 		const { result, rerender } = renderHook(
@@ -61,9 +60,7 @@ describe('useAddressInputSuggestions', () => {
 			{ initialProps: { query: 'abc' } },
 		)
 
-		await act(async () => {
-			await vi.runAllTimersAsync()
-		})
+		await clock.runAll()
 
 		expect(result.current.suggestions.length).toBeGreaterThan(0)
 
@@ -76,9 +73,7 @@ describe('useAddressInputSuggestions', () => {
 		expect(result.current.ready).toBe(false)
 	})
 
-	it('fetches suggestions after the debounce window elapses', async () => {
-		vi.useFakeTimers()
-
+	it('fetches suggestions after the debounce window elapses', async ({ clock }) => {
 		const provider = makeProvider([
 			{ id: '1', label: 'first' } as AddressSuggestion,
 			{ id: '2', label: 'second' } as AddressSuggestion,
@@ -96,9 +91,7 @@ describe('useAddressInputSuggestions', () => {
 
 		expect(result.current.loading).toBe(true)
 
-		await act(async () => {
-			await vi.runAllTimersAsync()
-		})
+		await clock.runAll()
 
 		expect(result.current.ready).toBe(true)
 
@@ -107,9 +100,7 @@ describe('useAddressInputSuggestions', () => {
 		expect(result.current.loading).toBe(false)
 	})
 
-	it('runs immediately for an empty-but-enabled query (delay = 0)', async () => {
-		vi.useFakeTimers()
-
+	it('runs immediately for an empty-but-enabled query (delay = 0)', async ({ clock }) => {
 		const provider = makeProvider([])
 
 		renderHook(() =>
@@ -124,16 +115,12 @@ describe('useAddressInputSuggestions', () => {
 
 		// Zero, not every pending timer: running them all fires the 200ms debounce
 		// too, so the case passed whatever the delay was.
-		await act(async () => {
-			await vi.advanceTimersByTimeAsync(0)
-		})
+		await clock.advance(0)
 
 		expect(provider).toHaveBeenCalled()
 	})
 
-	it('swallows AbortError without flipping loading state', async () => {
-		vi.useFakeTimers()
-
+	it('swallows AbortError without flipping loading state', async ({ clock }) => {
 		const provider = vi.fn().mockImplementation(
 			() =>
 				new Promise((_, reject) => {
@@ -156,7 +143,7 @@ describe('useAddressInputSuggestions', () => {
 		)
 
 		await act(async () => {
-			vi.advanceTimersByTime(10)
+			await clock.advance(10)
 
 			await Promise.resolve()
 		})
@@ -170,9 +157,9 @@ describe('useAddressInputSuggestions', () => {
 		expect(result.current.ready).toBe(false)
 	})
 
-	it('clears suggestions and marks ready when the provider rejects with a non-abort error', async () => {
-		vi.useFakeTimers()
-
+	it('clears suggestions and marks ready when the provider rejects with a non-abort error', async ({
+		clock,
+	}) => {
 		const provider = vi.fn().mockRejectedValue(new Error('network down'))
 
 		const { result } = renderHook(() =>
@@ -185,9 +172,7 @@ describe('useAddressInputSuggestions', () => {
 			}),
 		)
 
-		await act(async () => {
-			await vi.runAllTimersAsync()
-		})
+		await clock.runAll()
 
 		expect(result.current.ready).toBe(true)
 
@@ -196,9 +181,7 @@ describe('useAddressInputSuggestions', () => {
 		expect(result.current.loading).toBe(false)
 	})
 
-	it('aborts the in-flight request on unmount', () => {
-		vi.useFakeTimers()
-
+	it('aborts the in-flight request on unmount', async ({ clock }) => {
 		const provider = vi.fn().mockImplementation(() => new Promise(() => {}))
 
 		const { unmount } = renderHook(() =>
@@ -211,9 +194,7 @@ describe('useAddressInputSuggestions', () => {
 			}),
 		)
 
-		act(() => {
-			vi.advanceTimersByTime(0)
-		})
+		await clock.advance(0)
 
 		expect(() => unmount()).not.toThrow()
 	})

@@ -1,8 +1,9 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import { TOUCH_SLOP, TOUCH_TAP_WINDOW } from '../../hooks/use-touch-tap'
 import { BarChart } from '../../modules/chart/bar-chart'
 import { TICK_CHAR_WIDTH } from '../../modules/chart/engine/chart-constants'
 import { act, allBySlot, bySlot, fireEvent, getSlot, nonEmpty, present, renderUI } from '../helpers'
+import { it } from '../helpers/fake-clock'
 import { subpathCount } from '../helpers/geometry/svg-path'
 
 /**
@@ -69,9 +70,7 @@ describe('BarChart', () => {
 		expect(bySlot(one.container, 'chart-legend')).toBeNull()
 	})
 
-	it('opens no tooltip and points no bar on a touch hold', () => {
-		vi.useFakeTimers()
-
+	it('opens no tooltip and points no bar on a touch hold', async ({ clock }) => {
 		const { container } = renderUI(chart())
 
 		const hit = getSlot(container, 'chart-hit')
@@ -85,9 +84,7 @@ describe('BarChart', () => {
 
 		fireEvent.pointerMove(hit, { ...at, clientX: 282 })
 
-		act(() => {
-			vi.advanceTimersByTime(TOUCH_TAP_WINDOW * 2)
-		})
+		await clock.advance(TOUCH_TAP_WINDOW * 2)
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
@@ -118,9 +115,7 @@ describe('BarChart', () => {
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 	})
 
-	it('selects once on a tap and opens no tooltip', () => {
-		vi.useFakeTimers()
-
+	it('selects once on a tap and opens no tooltip', async ({ clock }) => {
 		const select = vi.fn()
 
 		const { container } = renderUI(chart({ onCategoryClick: select }))
@@ -139,9 +134,7 @@ describe('BarChart', () => {
 
 		fireEvent.click(hit, at)
 
-		act(() => {
-			vi.advanceTimersByTime(TOUCH_TAP_WINDOW)
-		})
+		await clock.advance(TOUCH_TAP_WINDOW)
 
 		expect(select).toHaveBeenCalledOnce()
 
@@ -192,9 +185,7 @@ describe('BarChart', () => {
 		expect(select).toHaveBeenCalledOnce()
 	})
 
-	it('selects nothing on a touch hold or a touch drag', () => {
-		vi.useFakeTimers()
-
+	it('selects nothing on a touch hold or a touch drag', async ({ clock }) => {
 		const select = vi.fn()
 
 		const { container } = renderUI(chart({ onCategoryClick: select }))
@@ -207,9 +198,7 @@ describe('BarChart', () => {
 
 		fireEvent.pointerDown(hit, at)
 
-		act(() => {
-			vi.advanceTimersByTime(TOUCH_TAP_WINDOW)
-		})
+		await clock.advance(TOUCH_TAP_WINDOW)
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
@@ -235,9 +224,7 @@ describe('BarChart', () => {
 		expect(select).not.toHaveBeenCalled()
 	})
 
-	it('under the click trigger, activates once on a tap and pins no tooltip', () => {
-		vi.useFakeTimers()
-
+	it('under the click trigger, activates once on a tap and pins no tooltip', async ({ clock }) => {
 		const select = vi.fn()
 
 		const { container } = renderUI(
@@ -264,9 +251,7 @@ describe('BarChart', () => {
 
 		fireEvent.pointerOut(hit, at)
 
-		act(() => {
-			vi.advanceTimersByTime(TOUCH_TAP_WINDOW)
-		})
+		await clock.advance(TOUCH_TAP_WINDOW)
 
 		expect(select).toHaveBeenCalledOnce()
 
@@ -286,9 +271,7 @@ describe('BarChart', () => {
 		expect(select).toHaveBeenCalledTimes(2)
 	})
 
-	it('under the click trigger, points no bar on a touch hold', () => {
-		vi.useFakeTimers()
-
+	it('under the click trigger, points no bar on a touch hold', async ({ clock }) => {
 		const { container } = renderUI(chart({ tooltip: { trigger: 'click' } }))
 
 		const hit = getSlot(container, 'chart-hit')
@@ -299,9 +282,7 @@ describe('BarChart', () => {
 
 		fireEvent.pointerMove(hit, { ...at, clientX: 282 })
 
-		act(() => {
-			vi.advanceTimersByTime(TOUCH_TAP_WINDOW * 2)
-		})
+		await clock.advance(TOUCH_TAP_WINDOW * 2)
 
 		fireEvent.pointerUp(hit, at)
 

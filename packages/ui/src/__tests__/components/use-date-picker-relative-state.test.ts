@@ -1,9 +1,10 @@
 import { act, renderHook } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import { defaultRelativePresets } from '../../components/date-picker/date-picker-relative-utilities'
 import { useDatePickerRelativeState } from '../../components/date-picker/use-date-picker-relative-state'
 import { intlEn } from '../../primitives/intl/intl-catalog'
 import { attach, makeKeyEvent } from '../helpers'
+import { it } from '../helpers/fake-clock'
 
 const [today, yesterday] = defaultRelativePresets(intlEn)
 
@@ -167,8 +168,8 @@ describe('useDatePickerRelativeState', () => {
 	describe('open and close', () => {
 		// B02-C09: the parent opens a controlled picker without `openPicker`, so
 		// the open transition itself must re-stamp `now`.
-		it('re-stamps the relative anchor when a controlled `open` turns on', () => {
-			vi.useFakeTimers({ now: new Date(2025, 0, 1, 23, 0) })
+		it('re-stamps the relative anchor when a controlled `open` turns on', async ({ clock }) => {
+			clock.set(new Date(2025, 0, 1, 23, 0))
 
 			const value = [today.resolve(new Date(2025, 0, 2))]
 
@@ -179,7 +180,7 @@ describe('useDatePickerRelativeState', () => {
 
 			expect(result.current.selectedIds.has(today.id)).toBe(false)
 
-			vi.setSystemTime(new Date(2025, 0, 2, 9, 0))
+			clock.set(new Date(2025, 0, 2, 9, 0))
 
 			rerender({ open: true })
 

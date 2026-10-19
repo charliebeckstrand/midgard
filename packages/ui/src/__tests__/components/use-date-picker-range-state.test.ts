@@ -1,8 +1,9 @@
 import { act, renderHook } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import type { CalendarHandle } from '../../components/calendar'
 import { useDatePickerRangeState } from '../../components/date-picker/use-date-picker-range-state'
 import { attach, makeKeyEvent } from '../helpers'
+import { it } from '../helpers/fake-clock'
 
 const Jan1 = new Date(2025, 0, 1)
 
@@ -295,9 +296,11 @@ describe('useDatePickerRangeState', () => {
 			expect(onChange).toHaveBeenCalledWith([Jan15, Jan20])
 		})
 
-		it('keeps the keyboard cursor inside min/max and commits the clamped range', () => {
+		it('keeps the keyboard cursor inside min/max and commits the clamped range', async ({
+			clock,
+		}) => {
 			// Today is min, so the cursor starts on min.
-			vi.useFakeTimers({ now: new Date(2025, 0, 10, 13, 30) })
+			clock.set(new Date(2025, 0, 10, 13, 30))
 
 			const onChange = vi.fn()
 
@@ -354,8 +357,8 @@ describe('useDatePickerRangeState', () => {
 			expect(result.current.calendar.hoverDate).toBeNull()
 		})
 
-		it('starts the cursor on today when there is no value and no min', () => {
-			vi.useFakeTimers({ now: new Date(2025, 5, 15, 13, 30) })
+		it('starts the cursor on today when there is no value and no min', async ({ clock }) => {
+			clock.set(new Date(2025, 5, 15, 13, 30))
 
 			const { result } = renderHook(() => useDatePickerRangeState({ range: true }))
 
@@ -367,8 +370,10 @@ describe('useDatePickerRangeState', () => {
 		})
 
 		// A past `min` bounds the cursor. It is not the start point.
-		it('starts the cursor on today when there is no value and today is inside min/max', () => {
-			vi.useFakeTimers({ now: new Date(2025, 5, 15, 13, 30) })
+		it('starts the cursor on today when there is no value and today is inside min/max', async ({
+			clock,
+		}) => {
+			clock.set(new Date(2025, 5, 15, 13, 30))
 
 			const { result } = renderHook(() => useDatePickerRangeState({ range: true, min: Jan15 }))
 
@@ -379,8 +384,10 @@ describe('useDatePickerRangeState', () => {
 			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: new Date(2025, 5, 15) })
 		})
 
-		it('pins today as the start on Enter when there is no value and today is inside min/max', () => {
-			vi.useFakeTimers({ now: new Date(2025, 5, 15, 13, 30) })
+		it('pins today as the start on Enter when there is no value and today is inside min/max', async ({
+			clock,
+		}) => {
+			clock.set(new Date(2025, 5, 15, 13, 30))
 
 			const { result } = renderHook(() => useDatePickerRangeState({ range: true, min: Jan15 }))
 

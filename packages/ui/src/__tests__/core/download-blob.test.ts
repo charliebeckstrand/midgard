@@ -1,8 +1,10 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import { downloadBlob } from '../../core/download-blob'
+import { it, onFakeClock } from '../helpers/fake-clock'
 
 describe('downloadBlob', () => {
-	afterEach(() => {})
+	// Each download queues its revoke on a timer, so no revoke reaches the next test.
+	onFakeClock()
 
 	it('clicks an anchor in the document that names the file and points at the blob', () => {
 		vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:file')
@@ -25,9 +27,7 @@ describe('downloadBlob', () => {
 	})
 
 	// A revoke in the tick of the click can cancel the download in Firefox and Safari.
-	it('revokes the object URL only after the tick of the click', () => {
-		vi.useFakeTimers()
-
+	it('revokes the object URL only after the tick of the click', async ({ clock }) => {
 		vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:file')
 
 		const revoke = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
@@ -38,7 +38,7 @@ describe('downloadBlob', () => {
 
 		expect(revoke).not.toHaveBeenCalled()
 
-		vi.runAllTimers()
+		await clock.runAll()
 
 		expect(revoke).toHaveBeenCalledExactlyOnceWith('blob:file')
 	})

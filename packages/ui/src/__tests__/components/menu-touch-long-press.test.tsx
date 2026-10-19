@@ -1,7 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import { Menu, MenuContent, MenuItem } from '../../components/menu'
 import { TOUCH_CONTEXT_MENU_DELAY } from '../../components/menu/use-menu-touch-hold'
-import { act, fireEvent, renderUI, screen } from '../helpers'
+import { fireEvent, renderUI, screen } from '../helpers'
+import { it, onFakeClock } from '../helpers/fake-clock'
 
 /**
  * A context menu opens on a touch long press.
@@ -11,9 +12,7 @@ import { act, fireEvent, renderUI, screen } from '../helpers'
  * dispatches `contextmenu` itself when the hold reaches the delay.
  */
 describe('a context Menu under a touch long press', () => {
-	beforeEach(() => {
-		vi.useFakeTimers()
-	})
+	onFakeClock()
 
 	function renderSurface(onClick = vi.fn(), onEdit = vi.fn()) {
 		renderUI(
@@ -32,34 +31,28 @@ describe('a context Menu under a touch long press', () => {
 
 	const touch = { pointerType: 'touch', isPrimary: true, clientX: 40, clientY: 60 }
 
-	it('opens the menu when a touch holds for the delay', () => {
+	it('opens the menu when a touch holds for the delay', async ({ clock }) => {
 		const surface = renderSurface()
 
 		fireEvent.pointerDown(surface, touch)
 
-		act(() => {
-			vi.advanceTimersByTime(TOUCH_CONTEXT_MENU_DELAY - 1)
-		})
+		await clock.advance(TOUCH_CONTEXT_MENU_DELAY - 1)
 
 		expect(screen.queryByRole('menu')).toBeNull()
 
-		act(() => {
-			vi.advanceTimersByTime(1)
-		})
+		await clock.advance(1)
 
 		expect(screen.getByRole('menu')).toBeInTheDocument()
 	})
 
-	it('drops the click that ends the hold', () => {
+	it('drops the click that ends the hold', async ({ clock }) => {
 		const onClick = vi.fn()
 
 		const surface = renderSurface(onClick)
 
 		fireEvent.pointerDown(surface, touch)
 
-		act(() => {
-			vi.advanceTimersByTime(TOUCH_CONTEXT_MENU_DELAY)
-		})
+		await clock.advance(TOUCH_CONTEXT_MENU_DELAY)
 
 		fireEvent.pointerUp(surface, touch)
 
@@ -68,16 +61,14 @@ describe('a context Menu under a touch long press', () => {
 		expect(onClick).not.toHaveBeenCalled()
 	})
 
-	it('keeps a quick tap on an item of the opened menu', () => {
+	it('keeps a quick tap on an item of the opened menu', async ({ clock }) => {
 		const onEdit = vi.fn()
 
 		const surface = renderSurface(vi.fn(), onEdit)
 
 		fireEvent.pointerDown(surface, touch)
 
-		act(() => {
-			vi.advanceTimersByTime(TOUCH_CONTEXT_MENU_DELAY)
-		})
+		await clock.advance(TOUCH_CONTEXT_MENU_DELAY)
 
 		// iOS can end a long press with no click. The next tap is a new press.
 		fireEvent.pointerUp(surface, touch)
@@ -93,35 +84,31 @@ describe('a context Menu under a touch long press', () => {
 		expect(onEdit).toHaveBeenCalledTimes(1)
 	})
 
-	it('does not open when the touch lifts before the delay', () => {
+	it('does not open when the touch lifts before the delay', async ({ clock }) => {
 		const surface = renderSurface()
 
 		fireEvent.pointerDown(surface, touch)
 
 		fireEvent.pointerUp(surface, touch)
 
-		act(() => {
-			vi.advanceTimersByTime(TOUCH_CONTEXT_MENU_DELAY)
-		})
+		await clock.advance(TOUCH_CONTEXT_MENU_DELAY)
 
 		expect(screen.queryByRole('menu')).toBeNull()
 	})
 
-	it('does not open when the touch moves into a scroll', () => {
+	it('does not open when the touch moves into a scroll', async ({ clock }) => {
 		const surface = renderSurface()
 
 		fireEvent.pointerDown(surface, touch)
 
 		fireEvent.pointerMove(surface, { ...touch, clientY: 90 })
 
-		act(() => {
-			vi.advanceTimersByTime(TOUCH_CONTEXT_MENU_DELAY)
-		})
+		await clock.advance(TOUCH_CONTEXT_MENU_DELAY)
 
 		expect(screen.queryByRole('menu')).toBeNull()
 	})
 
-	it('leaves a hold in a readout surface to that readout', () => {
+	it('leaves a hold in a readout surface to that readout', async ({ clock }) => {
 		renderUI(
 			<Menu>
 				<div data-touch-readout="">
@@ -135,21 +122,17 @@ describe('a context Menu under a touch long press', () => {
 
 		fireEvent.pointerDown(screen.getByTestId('mark'), touch)
 
-		act(() => {
-			vi.advanceTimersByTime(TOUCH_CONTEXT_MENU_DELAY)
-		})
+		await clock.advance(TOUCH_CONTEXT_MENU_DELAY)
 
 		expect(screen.queryByRole('menu')).toBeNull()
 	})
 
-	it('leaves a mouse press to the right-click', () => {
+	it('leaves a mouse press to the right-click', async ({ clock }) => {
 		const surface = renderSurface()
 
 		fireEvent.pointerDown(surface, { ...touch, pointerType: 'mouse' })
 
-		act(() => {
-			vi.advanceTimersByTime(TOUCH_CONTEXT_MENU_DELAY)
-		})
+		await clock.advance(TOUCH_CONTEXT_MENU_DELAY)
 
 		expect(screen.queryByRole('menu')).toBeNull()
 	})

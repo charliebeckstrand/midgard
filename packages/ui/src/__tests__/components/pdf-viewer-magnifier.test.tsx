@@ -1,6 +1,6 @@
 import { act, render, renderHook } from '@testing-library/react'
 import type { PointerEvent as ReactPointerEvent } from 'react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import {
 	PdfViewer,
 	type PdfViewerMagnifierState,
@@ -15,6 +15,7 @@ import {
 	usePdfViewerMagnifier,
 } from '../../components/pdf-viewer/use-pdf-viewer-magnifier'
 import { attach, fireEvent, renderUI, screen } from '../helpers'
+import { it, onFakeClock } from '../helpers/fake-clock'
 
 /**
  * The hover loupe's settled parts: what the boolean-or-object prop resolves to, and where the
@@ -396,9 +397,7 @@ describe('PdfViewer magnifier controls', () => {
 describe('usePdfViewerMagnifier over a pan', () => {
 	const settings: ResolvedMagnifier = { zoom: 2.5, size: 'md', delay: 300 }
 
-	beforeEach(() => {
-		vi.useFakeTimers()
-	})
+	onFakeClock()
 
 	/**
 	 * A page frame that reports where it is, so a pan can be staged by moving it.
@@ -425,7 +424,7 @@ describe('usePdfViewerMagnifier over a pan', () => {
 		} as unknown as ReactPointerEvent<HTMLElement>
 	}
 
-	it('brings the lens back at the pointer once the page comes to rest', () => {
+	it('brings the lens back at the pointer once the page comes to rest', async ({ clock }) => {
 		const { result } = renderHook(() => usePdfViewerMagnifier(settings))
 
 		const move = result.current.referenceProps.onPointerMove as (
@@ -448,17 +447,13 @@ describe('usePdfViewerMagnifier over a pan', () => {
 			scroll()
 		})
 
-		act(() => {
-			vi.advanceTimersByTime(299)
-		})
+		await clock.advance(299)
 
 		// The reader's own dwell, not a settle time of this hook's invention — a consumer that
 		// tuned one has tuned both.
 		expect(result.current.open).toBe(false)
 
-		act(() => {
-			vi.advanceTimersByTime(1)
-		})
+		await clock.advance(1)
 
 		expect(result.current.open).toBe(true)
 		expect(result.current.point).toEqual({ x: 120, y: 300 })
@@ -468,7 +463,7 @@ describe('usePdfViewerMagnifier over a pan', () => {
 	 * The whole point of withdrawing rather than following: what the lens shows has to be measured
 	 * against where the page ended up, not where it was when the pointer last moved.
 	 */
-	it('re-reads the pointer against a page that moved under it', () => {
+	it('re-reads the pointer against a page that moved under it', async ({ clock }) => {
 		/*
 		 * One frame that moves, rather than a second frame: the hook keeps the node the pointer
 		 * arrived on, and a pan moves that node. Replacing it would hand the hook the new
@@ -498,9 +493,7 @@ describe('usePdfViewerMagnifier over a pan', () => {
 			scroll()
 		})
 
-		act(() => {
-			vi.advanceTimersByTime(300)
-		})
+		await clock.advance(300)
 
 		// 200px further down the page, from a cursor that never moved.
 		expect(result.current.point).toEqual({ x: 120, y: 500 })
@@ -510,7 +503,7 @@ describe('usePdfViewerMagnifier over a pan', () => {
 	 * A pan that carries the page out from under the cursor — or a reader who leaves mid-gesture —
 	 * has nowhere to put a lens, and must not guess at one.
 	 */
-	it('brings nothing back when the pointer has left the page', () => {
+	it('brings nothing back when the pointer has left the page', async ({ clock }) => {
 		const { result } = renderHook(() => usePdfViewerMagnifier(settings))
 
 		const move = result.current.referenceProps.onPointerMove as (
@@ -531,9 +524,7 @@ describe('usePdfViewerMagnifier over a pan', () => {
 			leave(pointerOn(frame, 120, 300))
 		})
 
-		act(() => {
-			vi.advanceTimersByTime(300)
-		})
+		await clock.advance(300)
 
 		expect(result.current.open).toBe(false)
 		expect(result.current.point).toBeNull()
@@ -544,7 +535,7 @@ describe('usePdfViewerMagnifier over a pan', () => {
 	 * screen moves nothing the lens is showing, and a lens that withdrew for one would be
 	 * flinching at nothing — which is what a watch on the whole document has to answer for.
 	 */
-	it('stands still for a scroller that does not hold the page', () => {
+	it('stands still for a scroller that does not hold the page', async ({ clock }) => {
 		const { result } = renderHook(() => usePdfViewerMagnifier(settings))
 
 		const move = result.current.referenceProps.onPointerMove as (
@@ -563,9 +554,7 @@ describe('usePdfViewerMagnifier over a pan', () => {
 			elsewhere.dispatchEvent(new Event('scroll'))
 		})
 
-		act(() => {
-			vi.advanceTimersByTime(300)
-		})
+		await clock.advance(300)
 
 		// The settle is what would have opened it; nothing was scheduled, so nothing did.
 		expect(result.current.open).toBe(false)
@@ -642,70 +631,56 @@ describe('usePdfViewerMagnifier under a held finger', () => {
 		return { frame, hook, props }
 	}
 
-	beforeEach(() => {
-		vi.useFakeTimers()
-	})
+	onFakeClock()
 
-	it('opens the lens where the finger rests, after the dwell', () => {
+	it('opens the lens where the finger rests, after the dwell', async ({ clock }) => {
 		const { frame, hook, props } = setup()
 
 		act(() => props().onPointerDown(finger(frame, 120, 300)))
 
-		act(() => {
-			vi.advanceTimersByTime(299)
-		})
+		await clock.advance(299)
 
 		expect(hook.result.current.open).toBe(false)
 
-		act(() => {
-			vi.advanceTimersByTime(1)
-		})
+		await clock.advance(1)
 
 		expect(hook.result.current.open).toBe(true)
 		expect(hook.result.current.point).toEqual({ x: 120, y: 300 })
 	})
 
 	/** A finger that lands to scroll must not open a lens first, whatever the mouse dwell is. */
-	it('holds for 300ms at the least, under the no-dwell step', () => {
+	it('holds for 300ms at the least, under the no-dwell step', async ({ clock }) => {
 		const { frame, hook, props } = setup({ ...settings, delay: 0 })
 
 		act(() => props().onPointerDown(finger(frame, 120, 300)))
 
-		act(() => {
-			vi.advanceTimersByTime(299)
-		})
+		await clock.advance(299)
 
 		expect(hook.result.current.open).toBe(false)
 
-		act(() => {
-			vi.advanceTimersByTime(1)
-		})
+		await clock.advance(1)
 
 		expect(hook.result.current.open).toBe(true)
 	})
 
-	it('opens nothing for a finger that moves off to scroll', () => {
+	it('opens nothing for a finger that moves off to scroll', async ({ clock }) => {
 		const { frame, hook, props } = setup()
 
 		act(() => props().onPointerDown(finger(frame, 120, 300)))
 
 		act(() => props().onPointerMove(finger(frame, 120, 320)))
 
-		act(() => {
-			vi.advanceTimersByTime(300)
-		})
+		await clock.advance(300)
 
 		expect(hook.result.current.open).toBe(false)
 	})
 
-	it('moves the open lens with the finger, and closes it on the lift', () => {
+	it('moves the open lens with the finger, and closes it on the lift', async ({ clock }) => {
 		const { frame, hook, props } = setup()
 
 		act(() => props().onPointerDown(finger(frame, 120, 300)))
 
-		act(() => {
-			vi.advanceTimersByTime(300)
-		})
+		await clock.advance(300)
 
 		act(() => props().onPointerMove(finger(frame, 200, 450)))
 
@@ -717,14 +692,12 @@ describe('usePdfViewerMagnifier under a held finger', () => {
 	})
 
 	/** The lift after a read is not a press: a highlight under the finger stays unpressed. */
-	it('swallows the click that the lift fires', () => {
+	it('swallows the click that the lift fires', async ({ clock }) => {
 		const { frame, props } = setup()
 
 		act(() => props().onPointerDown(finger(frame, 120, 300)))
 
-		act(() => {
-			vi.advanceTimersByTime(300)
-		})
+		await clock.advance(300)
 
 		act(() => props().onPointerUp(finger(frame, 120, 300, { type: 'pointerup' })))
 
@@ -761,14 +734,12 @@ describe('usePdfViewerMagnifier under a held finger', () => {
 	 * The browser's long-press menu is the reader's, and the loupe does not take it. The lens
 	 * closes for the menu, and the event goes through uncanceled.
 	 */
-	it('gives way to the long-press menu without canceling it', () => {
+	it('gives way to the long-press menu without canceling it', async ({ clock }) => {
 		const { frame, hook, props } = setup()
 
 		act(() => props().onPointerDown(finger(frame, 120, 300)))
 
-		act(() => {
-			vi.advanceTimersByTime(300)
-		})
+		await clock.advance(300)
 
 		const menu = { preventDefault: vi.fn(), stopPropagation: vi.fn() }
 
@@ -779,14 +750,12 @@ describe('usePdfViewerMagnifier under a held finger', () => {
 		expect(menu.stopPropagation).not.toHaveBeenCalled()
 	})
 
-	it('closes when the browser cancels the finger', () => {
+	it('closes when the browser cancels the finger', async ({ clock }) => {
 		const { frame, hook, props } = setup()
 
 		act(() => props().onPointerDown(finger(frame, 120, 300)))
 
-		act(() => {
-			vi.advanceTimersByTime(300)
-		})
+		await clock.advance(300)
 
 		act(() => props().onPointerCancel(finger(frame, 120, 300, { type: 'pointercancel' })))
 
@@ -794,7 +763,7 @@ describe('usePdfViewerMagnifier under a held finger', () => {
 	})
 
 	/** Before the lens opens a finger scrolls the page; while it is open, it moves the lens. */
-	it('holds the page still only while the lens is open', () => {
+	it('holds the page still only while the lens is open', async ({ clock }) => {
 		const { frame, hook, props } = setup()
 
 		act(() => hook.result.current.setReference(frame))
@@ -811,9 +780,7 @@ describe('usePdfViewerMagnifier under a held finger', () => {
 
 		expect(touchmove()).toBe(false)
 
-		act(() => {
-			vi.advanceTimersByTime(300)
-		})
+		await clock.advance(300)
 
 		expect(touchmove()).toBe(true)
 
@@ -826,7 +793,7 @@ describe('usePdfViewerMagnifier under a held finger', () => {
 	 * The lift after a read fires no compatibility mouse events. A `mousedown` from the lift
 	 * would press a region, or clear the selection, before any click arrives.
 	 */
-	it('cancels the touchend of the lift, and leaves the next click alone', () => {
+	it('cancels the touchend of the lift, and leaves the next click alone', async ({ clock }) => {
 		const { frame, hook, props } = setup()
 
 		act(() => hook.result.current.setReference(frame))
@@ -841,9 +808,7 @@ describe('usePdfViewerMagnifier under a held finger', () => {
 
 		act(() => props().onPointerDown(finger(frame, 120, 300)))
 
-		act(() => {
-			vi.advanceTimersByTime(300)
-		})
+		await clock.advance(300)
 
 		act(() => props().onPointerUp(finger(frame, 120, 300, { type: 'pointerup' })))
 
@@ -874,7 +839,7 @@ describe('usePdfViewerMagnifier under a held finger', () => {
 	})
 
 	/** A scroll that starts under a pending hold is the finger scrolling, not holding. */
-	it('drops a pending hold when the page scrolls', () => {
+	it('drops a pending hold when the page scrolls', async ({ clock }) => {
 		const { frame, hook, props } = setup()
 
 		act(() => props().onPointerDown(finger(frame, 120, 300)))
@@ -883,9 +848,7 @@ describe('usePdfViewerMagnifier under a held finger', () => {
 			document.dispatchEvent(new Event('scroll'))
 		})
 
-		act(() => {
-			vi.advanceTimersByTime(1000)
-		})
+		await clock.advance(1000)
 
 		expect(hook.result.current.open).toBe(false)
 	})

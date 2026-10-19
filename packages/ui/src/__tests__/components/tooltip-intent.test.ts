@@ -1,6 +1,7 @@
 import { renderHook } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, vi } from 'vitest'
 import { useTooltipIntent } from '../../components/tooltip/tooltip-intent'
+import { it } from '../helpers/fake-clock'
 
 /** A trigger that matches `:focus-visible`, as a keyboard focus makes it. jsdom does not match it for a programmatic focus. */
 function keyboardTrigger(): HTMLButtonElement {
@@ -41,9 +42,7 @@ describe('useTooltipIntent', () => {
 		expect(result.current.takeIntent().focus).toBeNull()
 	})
 
-	it('records the focus again when focus leaves and comes back after Escape', () => {
-		vi.useFakeTimers()
-
+	it('records the focus again when focus leaves and comes back after Escape', async ({ clock }) => {
 		const node = keyboardTrigger()
 
 		const { result } = renderHook(() => useTooltipIntent({ enabled: true, trigger: 'hover' }))
@@ -56,7 +55,7 @@ describe('useTooltipIntent', () => {
 
 		node.blur()
 
-		vi.runAllTimers()
+		await clock.runAll()
 
 		node.focus()
 

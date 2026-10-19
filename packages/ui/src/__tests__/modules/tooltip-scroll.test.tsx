@@ -1,10 +1,11 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, vi } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
 import { HeatmapChart } from '../../modules/chart/heatmap-chart'
 import { PieChart } from '../../modules/chart/pie-chart'
 import { ScatterChart } from '../../modules/chart/scatter-chart'
 import { MapPlat } from '../../modules/map'
 import { act, allBySlot, allRegions, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
+import { it, onFakeClock } from '../helpers/fake-clock'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
 
 const DATA = [
@@ -46,16 +47,16 @@ function movePointer(x: number, y: number): void {
 	window.dispatchEvent(new PointerEvent('pointermove', { clientX: x, clientY: y }))
 }
 
-beforeEach(() => {
-	vi.useFakeTimers()
-})
-
 afterEach(() => {
 	document.elementFromPoint = undefined as never
 })
 
 describe('tooltip across a scroll', () => {
-	it('chart: hides on scroll, then re-reads the band under the settled pointer', () => {
+	onFakeClock()
+
+	it('chart: hides on scroll, then re-reads the band under the settled pointer', async ({
+		clock,
+	}) => {
 		const { container } = renderUI(
 			<BarChart aria-label="Revenue by quarter" data={DATA} series={[...SERIES]} width={400} />,
 		)
@@ -75,12 +76,14 @@ describe('tooltip across a scroll', () => {
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
 		// ...and once the scroll settles it returns over the same band — no move.
-		act(() => vi.advanceTimersByTime(150))
+		await clock.advance(150)
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q3')
 	})
 
-	it('heatmap: hides on scroll, then re-reads the cell under the settled pointer', () => {
+	it('heatmap: hides on scroll, then re-reads the cell under the settled pointer', async ({
+		clock,
+	}) => {
 		const { container } = renderUI(
 			<HeatmapChart
 				aria-label="Commits"
@@ -107,12 +110,14 @@ describe('tooltip across a scroll', () => {
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
-		act(() => vi.advanceTimersByTime(150))
+		await clock.advance(150)
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('10')
 	})
 
-	it('pie: hides on scroll, then re-reads the slice under the settled pointer', () => {
+	it('pie: hides on scroll, then re-reads the slice under the settled pointer', async ({
+		clock,
+	}) => {
 		const { container } = renderUI(
 			<PieChart
 				aria-label="Traffic by source"
@@ -142,12 +147,12 @@ describe('tooltip across a scroll', () => {
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
-		act(() => vi.advanceTimersByTime(150))
+		await clock.advance(150)
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Direct')
 	})
 
-	it('pie: stays hidden when the settled pointer rests off every slice', () => {
+	it('pie: stays hidden when the settled pointer rests off every slice', async ({ clock }) => {
 		const { container } = renderUI(
 			<PieChart
 				aria-label="Traffic by source"
@@ -174,7 +179,7 @@ describe('tooltip across a scroll', () => {
 
 		act(() => fireEvent.scroll(window))
 
-		act(() => vi.advanceTimersByTime(150))
+		await clock.advance(150)
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 	})
@@ -228,7 +233,7 @@ describe('tooltip across a scroll', () => {
 		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
 	})
 
-	it('chart: stays hidden when the settled pointer rests off the plot', () => {
+	it('chart: stays hidden when the settled pointer rests off the plot', async ({ clock }) => {
 		const { container } = renderUI(
 			<BarChart aria-label="Revenue by quarter" data={DATA} series={[...SERIES]} width={400} />,
 		)
@@ -246,12 +251,14 @@ describe('tooltip across a scroll', () => {
 
 		act(() => fireEvent.scroll(window))
 
-		act(() => vi.advanceTimersByTime(150))
+		await clock.advance(150)
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 	})
 
-	it('map: hides on scroll, then re-reads the region under the settled pointer', () => {
+	it('map: hides on scroll, then re-reads the region under the settled pointer', async ({
+		clock,
+	}) => {
 		const { container } = renderUI(
 			<MapPlat
 				aria-label="Zones"
@@ -278,12 +285,12 @@ describe('tooltip across a scroll', () => {
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
-		act(() => vi.advanceTimersByTime(150))
+		await clock.advance(150)
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Alpha')
 	})
 
-	it('map: stays hidden when the settled pointer rests off every region', () => {
+	it('map: stays hidden when the settled pointer rests off every region', async ({ clock }) => {
 		const { container } = renderUI(
 			<MapPlat
 				aria-label="Zones"
@@ -308,7 +315,7 @@ describe('tooltip across a scroll', () => {
 
 		act(() => fireEvent.scroll(window))
 
-		act(() => vi.advanceTimersByTime(150))
+		await clock.advance(150)
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 	})

@@ -1,5 +1,5 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, onTestFinished, vi } from 'vitest'
 import { CopyButton, useCopyButtonState } from '../../components/copy-button'
 import {
 	bySlot,
@@ -10,6 +10,7 @@ import {
 	present,
 	renderUI,
 } from '../helpers'
+import { it } from '../helpers/fake-clock'
 
 /**
  * Puts `writeText` on `navigator.clipboard` for the current case.
@@ -63,9 +64,7 @@ describe('CopyButton', () => {
 	// The code-block kata reads this attribute: its light-mode override paints
 	// only while the attribute is absent, and so yields to the green palette of
 	// the copied state.
-	it('writes data-copied only while the copied state holds', async () => {
-		vi.useFakeTimers()
-
+	it('writes data-copied only while the copied state holds', async ({ clock }) => {
 		stubClipboard(vi.fn().mockResolvedValue(undefined))
 
 		const { container } = renderUI(<CopyButton text="hello" timeout={2000} />)
@@ -82,9 +81,7 @@ describe('CopyButton', () => {
 
 		expect(button).toHaveAttribute('data-copied', '')
 
-		act(() => {
-			vi.advanceTimersByTime(2000)
-		})
+		await clock.advance(2000)
 
 		expect(button).not.toHaveAttribute('data-copied')
 	})
@@ -182,9 +179,9 @@ describe('CopyButton', () => {
 		expect(second).not.toHaveBeenCalled()
 	})
 
-	it('fires onCopiedChange with true after a successful copy and false after the timeout', async () => {
-		vi.useFakeTimers()
-
+	it('fires onCopiedChange with true after a successful copy and false after the timeout', async ({
+		clock,
+	}) => {
 		const writeText = vi.fn().mockResolvedValue(undefined)
 
 		const onCopiedChange = vi.fn()
@@ -205,9 +202,7 @@ describe('CopyButton', () => {
 
 		expect(onCopiedChange).toHaveBeenCalledTimes(1)
 
-		act(() => {
-			vi.advanceTimersByTime(2000)
-		})
+		await clock.advance(2000)
 
 		expect(onCopiedChange).toHaveBeenLastCalledWith(false)
 
@@ -216,11 +211,9 @@ describe('CopyButton', () => {
 
 	// The platform timer holds a 32-bit signed delay. Without the clamp, each of
 	// these values overflows, and the copied state reverts at once.
-	it.each([Infinity, 2 ** 31, 2 ** 32])(
+	it.for([Infinity, 2 ** 31, 2 ** 32])(
 		'holds the copied state for 2^31-1 ms when timeout is %d',
-		async (timeout) => {
-			vi.useFakeTimers()
-
+		async (timeout, { clock }) => {
 			const write = deferred()
 
 			stubClipboard(vi.fn(() => write.promise))
@@ -235,15 +228,11 @@ describe('CopyButton', () => {
 				write.resolve()
 			})
 
-			act(() => {
-				vi.advanceTimersByTime(2 ** 31 - 2)
-			})
+			await clock.advance(2 ** 31 - 2)
 
 			expect(button).toHaveAttribute('aria-label', 'Copied')
 
-			act(() => {
-				vi.advanceTimersByTime(1)
-			})
+			await clock.advance(1)
 
 			expect(button).toHaveAttribute('aria-label', 'Copy to clipboard')
 		},
@@ -338,9 +327,7 @@ describe('CopyButton', () => {
 
 	// No callback runs during the unmount, so the true that the consumer saw
 	// gets no false.
-	it('runs no callback when it unmounts in the copied window', async () => {
-		vi.useFakeTimers()
-
+	it('runs no callback when it unmounts in the copied window', async ({ clock }) => {
 		const onCopiedChange = vi.fn()
 
 		stubClipboard(vi.fn().mockResolvedValue(undefined))
@@ -357,9 +344,7 @@ describe('CopyButton', () => {
 
 		unmount()
 
-		act(() => {
-			vi.advanceTimersByTime(2000)
-		})
+		await clock.advance(2000)
 
 		expect(onCopiedChange).toHaveBeenCalledExactlyOnceWith(true)
 	})
@@ -399,9 +384,7 @@ describe('useCopyButtonState', () => {
 	// A control other than CopyButton calls `copy` on each click. The copied state
 	// is one window: a second call in it does not write, announce, or tell the
 	// consumer that the state turned true again.
-	it('drops a copy in the copied window, and copies again after the revert', async () => {
-		vi.useFakeTimers()
-
+	it('drops a copy in the copied window, and copies again after the revert', async ({ clock }) => {
 		const writeText = vi.fn().mockResolvedValue(undefined)
 
 		const onCopiedChange = vi.fn()
@@ -422,9 +405,7 @@ describe('useCopyButtonState', () => {
 
 		expect(onCopiedChange).toHaveBeenCalledExactlyOnceWith(true)
 
-		act(() => {
-			vi.advanceTimersByTime(1000)
-		})
+		await clock.advance(1000)
 
 		expect(result.current.copied).toBe(false)
 
@@ -436,9 +417,9 @@ describe('useCopyButtonState', () => {
 	})
 
 	// The copy starts the revert window. A later `timeout` applies to the next copy.
-	it('keeps the revert window when the timeout changes while the copied state holds', async () => {
-		vi.useFakeTimers()
-
+	it('keeps the revert window when the timeout changes while the copied state holds', async ({
+		clock,
+	}) => {
 		stubClipboard(vi.fn().mockResolvedValue(undefined))
 
 		const { result, rerender } = renderHook(
@@ -448,29 +429,21 @@ describe('useCopyButtonState', () => {
 
 		await act(() => result.current.copy())
 
-		act(() => {
-			vi.advanceTimersByTime(600)
-		})
+		await clock.advance(600)
 
 		rerender({ timeout: 5000 })
 
-		act(() => {
-			vi.advanceTimersByTime(400)
-		})
+		await clock.advance(400)
 
 		expect(result.current.copied).toBe(false)
 
 		await act(() => result.current.copy())
 
-		act(() => {
-			vi.advanceTimersByTime(4999)
-		})
+		await clock.advance(4999)
 
 		expect(result.current.copied).toBe(true)
 
-		act(() => {
-			vi.advanceTimersByTime(1)
-		})
+		await clock.advance(1)
 
 		expect(result.current.copied).toBe(false)
 	})

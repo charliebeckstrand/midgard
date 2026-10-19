@@ -1,8 +1,9 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import { TOUCH_TAP_WINDOW } from '../../hooks/use-touch-tap'
 import { DonutChart } from '../../modules/chart/donut-chart'
 import { ChartFullscreenContext } from '../../modules/chart/engine/context'
-import { act, allBySlot, bySlot, fireEvent, present, renderUI } from '../helpers'
+import { allBySlot, bySlot, fireEvent, present, renderUI } from '../helpers'
+import { it } from '../helpers/fake-clock'
 
 /** Whether each slice recedes behind an emphasis. */
 function receded(slices: Element[]): boolean[] {
@@ -124,9 +125,7 @@ describe('DonutChart', () => {
 		expect(tooltip?.textContent).toContain('60')
 	})
 
-	it('opens no tooltip and isolates no slice on a touch hold', () => {
-		vi.useFakeTimers()
-
+	it('opens no tooltip and isolates no slice on a touch hold', async ({ clock }) => {
 		const { container } = renderUI(chart())
 
 		const slices = allBySlot(container, 'chart-slice')
@@ -142,9 +141,7 @@ describe('DonutChart', () => {
 
 		fireEvent.pointerMove(first, touch)
 
-		act(() => {
-			vi.advanceTimersByTime(TOUCH_TAP_WINDOW * 2)
-		})
+		await clock.advance(TOUCH_TAP_WINDOW * 2)
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
@@ -165,9 +162,7 @@ describe('DonutChart', () => {
 		expect(receded(slices)).toEqual([false, true, true])
 	})
 
-	it('selects a slice once on a tap, click or none, and opens no tooltip', () => {
-		vi.useFakeTimers()
-
+	it('selects a slice once on a tap, click or none, and opens no tooltip', async ({ clock }) => {
 		const select = vi.fn()
 
 		const { container } = renderUI(chart({ onCategoryClick: select }))
@@ -199,9 +194,7 @@ describe('DonutChart', () => {
 
 		expect(select).toHaveBeenCalledTimes(2)
 
-		act(() => {
-			vi.advanceTimersByTime(TOUCH_TAP_WINDOW)
-		})
+		await clock.advance(TOUCH_TAP_WINDOW)
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 

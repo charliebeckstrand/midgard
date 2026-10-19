@@ -1,5 +1,5 @@
-import { act, renderHook } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { renderHook } from '@testing-library/react'
+import { describe, expect, vi } from 'vitest'
 import {
 	DAY,
 	HOUR,
@@ -15,16 +15,17 @@ import {
 	resolveRefreshInterval,
 	useTimeAgoRelativeTime,
 } from '../../components/time-ago/use-time-ago-relative-time'
+import { it, onFakeClock } from '../helpers/fake-clock'
 
 const NOW = new Date('2026-05-19T12:00:00Z')
 
-beforeEach(() => {
-	vi.useFakeTimers()
-
-	vi.setSystemTime(NOW)
-})
-
 describe('useTimeAgoRelativeTime', () => {
+	onFakeClock()
+
+	it.beforeEach(({ clock }) => {
+		clock.set(NOW)
+	})
+
 	it('returns valid=false and empty text for an unparsable date', () => {
 		const { result } = renderHook(() => useTimeAgoRelativeTime({ date: 'not-a-date' }))
 
@@ -99,27 +100,28 @@ describe('useTimeAgoRelativeTime', () => {
 		expect(setIntervalSpy).not.toHaveBeenCalled()
 	})
 
-	it.each([
+	it.for<[string, number]>([
 		['Infinity', Number.POSITIVE_INFINITY],
 		['a 30-day interval above the timer range', 30 * DAY],
-	])('does not tick within a few hundred ms for interval=%s', (_name, interval) => {
-		const format = vi.fn(() => 'x')
+	])(
+		'does not tick within a few hundred ms for interval=%s',
+		async ([_name, interval], { clock }) => {
+			const format = vi.fn(() => 'x')
 
-		renderHook(() =>
-			useTimeAgoRelativeTime({ date: new Date(NOW.getTime() - SECOND), format, interval }),
-		)
+			renderHook(() =>
+				useTimeAgoRelativeTime({ date: new Date(NOW.getTime() - SECOND), format, interval }),
+			)
 
-		const calls = format.mock.calls.length
+			const calls = format.mock.calls.length
 
-		// One step per act: React batches every tick inside one act into one render.
-		for (let step = 0; step < 10; step++) {
-			act(() => {
-				vi.advanceTimersByTime(50)
-			})
-		}
+			// One step per act: React batches every tick inside one act into one render.
+			for (let step = 0; step < 10; step++) {
+				await clock.advance(50)
+			}
 
-		expect(format).toHaveBeenCalledTimes(calls)
-	})
+			expect(format).toHaveBeenCalledTimes(calls)
+		},
+	)
 })
 
 describe('resolveRefreshInterval', () => {

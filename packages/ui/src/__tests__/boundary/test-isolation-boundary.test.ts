@@ -169,6 +169,21 @@ const NULLABLE_CAST = {
 		/(?:bySlot|querySelector(?:All)?)(?:<[^<>]*>)?\((?:[^()]|\([^()]*\))*\)\s+as\s+(?:HTML|SVG)[A-Za-z]*Element(?!\s*\|)/g,
 } as const
 
+// Each setup calls `restoreTestState` after each test. It restores the spies,
+// the stubs, the environment, and the clock, in an order that matters (see
+// `helpers/restore-test-state.ts`). A test file that makes one of these calls
+// itself repeats the restore, or makes it out of order. A test that needs the
+// fake clock takes the `clock` fixture of `helpers/fake-clock.ts`, and does not
+// go back to the real clock.
+const HAND_RESTORE = {
+	label: 'restore that the setups make',
+	regex:
+		/\b(?:vi|vitest)\s*\.\s*(?:restoreAllMocks|unstubAllGlobals|unstubAllEnvs|useRealTimers)\s*\(/g,
+} as const
+
+/** The one file that makes the restores of {@link HAND_RESTORE}. */
+const RESTORE_HOME = new Set(['restore-test-state.ts'])
+
 // CONVENTIONS.md §10.9. A case that runs longer than `testTimeout` fails, but
 // its body does not stop. JavaScript cannot cancel a pending promise, so the
 // body continues at its next `await` while a later case runs.
@@ -899,6 +914,22 @@ describe('test isolation boundary', () => {
 		).toEqual([])
 	})
 
+	it('restores no spy, stub, or clock by hand', () => {
+		const restores = [testsDir, docsTestDir].flatMap((dir) =>
+			collectPatternViolations({
+				dir,
+				patterns: [HAND_RESTORE],
+				skip: RESTORE_HOME,
+				stripComments: true,
+			}),
+		)
+
+		expect(
+			restores,
+			`the setups restore the spies, the stubs, the environment, and the clock after each test (\`restoreTestState\`) — remove the call, and take the \`clock\` fixture for fake time:\n  ${restores.join('\n  ')}`,
+		).toEqual([])
+	})
+
 	it('stops a case at its signal before it writes shared state after an await', () => {
 		const tests: string[] = []
 
@@ -963,6 +994,25 @@ describe('test isolation boundary', () => {
 		expect(forbiddenIn(`${vi}.mockObject(api)`)).toEqual([])
 
 		expect(forbiddenIn(`na${vi}.mock('x')`)).toEqual([])
+	})
+
+	it('reads a restore by hand in each spelling', () => {
+		// The scan above reads this file too, so no fixture spells a call whole.
+		const vi = 'vi'
+
+		const restoresIn = (text: string) => [...text.matchAll(HAND_RESTORE.regex)].length
+
+		expect(restoresIn(`${vi}.restoreAllMocks()`)).toBe(1)
+
+		expect(restoresIn(`${vi}.useRealTimers ()`)).toBe(1)
+
+		expect(restoresIn(`vitest\n\t.unstubAllGlobals()`)).toBe(1)
+
+		expect(restoresIn(`${vi}.unstubAllEnvs()`)).toBe(1)
+
+		expect(restoresIn(`${vi}.useFakeTimers()`)).toBe(0)
+
+		expect(restoresIn(`${vi}.unstubGlobal('x')`)).toBe(0)
 	})
 
 	it('reads a viewport hook in a nested block', () => {

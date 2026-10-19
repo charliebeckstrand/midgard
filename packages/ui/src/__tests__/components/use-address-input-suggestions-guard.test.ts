@@ -1,12 +1,11 @@
-import { act, renderHook } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { renderHook } from '@testing-library/react'
+import { describe, expect, vi } from 'vitest'
 import type { AddressProvider } from '../../components/address-input/types'
 import { useAddressInputSuggestions } from '../../components/address-input/use-address-input-suggestions'
+import { it } from '../helpers/fake-clock'
 
 describe('useAddressInputSuggestions guards', () => {
-	it('does not fetch a query of white space only, however long', async () => {
-		vi.useFakeTimers()
-
+	it('does not fetch a query of white space only, however long', async ({ clock }) => {
 		const provider: AddressProvider = vi.fn().mockResolvedValue([])
 
 		const { result } = renderHook(() =>
@@ -19,18 +18,16 @@ describe('useAddressInputSuggestions guards', () => {
 			}),
 		)
 
-		await act(async () => {
-			await vi.runAllTimersAsync()
-		})
+		await clock.runAll()
 
 		expect(provider).not.toHaveBeenCalled()
 
 		expect(result.current.loading).toBe(false)
 	})
 
-	it('counts only the characters inside the leading and trailing white space', async () => {
-		vi.useFakeTimers()
-
+	it('counts only the characters inside the leading and trailing white space', async ({
+		clock,
+	}) => {
 		const provider: AddressProvider = vi.fn().mockResolvedValue([])
 
 		renderHook(() =>
@@ -43,16 +40,12 @@ describe('useAddressInputSuggestions guards', () => {
 			}),
 		)
 
-		await act(async () => {
-			await vi.runAllTimersAsync()
-		})
+		await clock.runAll()
 
 		expect(provider).not.toHaveBeenCalled()
 	})
 
-	it('passes the query as typed once the trimmed length reaches the minimum', async () => {
-		vi.useFakeTimers()
-
+	it('passes the query as typed once the trimmed length reaches the minimum', async ({ clock }) => {
 		const provider: AddressProvider = vi.fn().mockResolvedValue([])
 
 		renderHook(() =>
@@ -65,16 +58,12 @@ describe('useAddressInputSuggestions guards', () => {
 			}),
 		)
 
-		await act(async () => {
-			await vi.runAllTimersAsync()
-		})
+		await clock.runAll()
 
 		expect(provider).toHaveBeenCalledWith(' abc ', expect.anything())
 	})
 
-	it('still fetches an empty query when the minimum is zero', async () => {
-		vi.useFakeTimers()
-
+	it('still fetches an empty query when the minimum is zero', async ({ clock }) => {
 		const provider: AddressProvider = vi.fn().mockResolvedValue([])
 
 		renderHook(() =>
@@ -87,16 +76,12 @@ describe('useAddressInputSuggestions guards', () => {
 			}),
 		)
 
-		await act(async () => {
-			await vi.advanceTimersByTimeAsync(0)
-		})
+		await clock.advance(0)
 
 		expect(provider).toHaveBeenCalledWith('', expect.anything())
 	})
 
-	it('treats a provider that throws synchronously as a rejection', async () => {
-		vi.useFakeTimers()
-
+	it('treats a provider that throws synchronously as a rejection', async ({ clock }) => {
 		const error = new Error('bad config')
 
 		const provider: AddressProvider = vi.fn(() => {
@@ -118,15 +103,10 @@ describe('useAddressInputSuggestions guards', () => {
 
 		// A throw that escapes the debounce timer is the defect, so it is caught
 		// here and the assertions below report it.
-		let escaped: unknown
-
-		await act(async () => {
-			try {
-				await vi.runAllTimersAsync()
-			} catch (thrown) {
-				escaped = thrown
-			}
-		})
+		const escaped = await clock.runAll().then(
+			() => undefined,
+			(thrown: unknown) => thrown,
+		)
 
 		expect(escaped).toBeUndefined()
 
