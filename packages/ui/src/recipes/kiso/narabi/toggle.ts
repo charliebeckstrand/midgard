@@ -32,7 +32,13 @@ export const toggle = [
 	// press a little above a row went to the row above. The area of the label sits
 	// behind the other slots of the row, so a press on the description does not
 	// toggle the control.
+	//
+	// A row and its share of the gaps is also at least 44 px tall on a coarse
+	// pointer, the floor of `TouchTarget`. A row with only a label is shorter
+	// than that, and a finger press often lands that far from its target. Thus a
+	// press then went to the next row.
 	'relative isolate',
+	'pointer-coarse:min-h-[calc(2.75rem-var(--touch-target-gap-y,0px))]',
 	'pointer-coarse:*:data-[slot=label]:after:absolute pointer-coarse:*:data-[slot=label]:after:-z-1',
 	'pointer-coarse:*:data-[slot=label]:after:inset-x-0',
 	'pointer-coarse:*:data-[slot=label]:after:-inset-y-[calc(var(--touch-target-gap-y,0px)/2)]',
