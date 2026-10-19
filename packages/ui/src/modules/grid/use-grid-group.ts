@@ -40,7 +40,7 @@ function resolveGroupsBinding(groups: GridColumnGroups | undefined): {
 export function useGridGroup(
 	groups: GridColumnGroups | undefined,
 	onCollapsedChange?: (collapsed: ReadonlySet<string | number>) => void,
-): GridGroupResult {
+): Omit<GridGroupResult, 'collapsedHidden'> {
 	const binding = resolveGroupsBinding(groups)
 
 	const [controlledGroups, setGroups] = useControllable<GridColumnGroup[]>({
@@ -71,8 +71,9 @@ export function useGridGroup(
 	// transition, so a grid that mounts with a band already shut says nothing.
 	useReportedChange(collapsed, onCollapsedChange)
 
-	const collapsedHidden = useMemo(
-		() => collapsedHiddenIds(resolvedGroups, collapsed),
+	const hideCollapsed = useCallback(
+		(shows: (id: string | number) => boolean) =>
+			collapsedHiddenIds(resolvedGroups, collapsed, shows),
 		[resolvedGroups, collapsed],
 	)
 
@@ -82,9 +83,11 @@ export function useGridGroup(
 		(
 			visibleColumnIds: (string | number)[],
 			pinnedSide: (id: string | number) => 'left' | 'right' | undefined,
+			collapsedHidden: ReadonlySet<string | number>,
 		): GridGroupHeader => ({
 			spans: buildGroupSpans(visibleColumnIds, colToGroup, pinnedSide),
 			collapsed,
+			collapsedHidden,
 			onToggleCollapse: toggleCollapse,
 		}),
 		[colToGroup, collapsed, toggleCollapse],
@@ -101,7 +104,7 @@ export function useGridGroup(
 		editorSetGroups: enabled ? setGroups : undefined,
 		collapsed,
 		toggleCollapse,
-		collapsedHidden,
+		hideCollapsed,
 		resolveHeader,
 	}
 }

@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo } from 'react'
 import { isDataColumn } from '../../utilities'
+import { EMPTY_SET } from './engine/grid-constants'
 import { groupedColumnOrder } from './engine/grid-group/compute'
 import { isFrozen, normalizeFreeze } from './engine/grid-pin/overrides'
 import { applyColumnReorder } from './engine/grid-reorder-compute'
@@ -17,8 +18,11 @@ type GridColumnsOptions<T> = {
 	columnManagerConfig: GridColumnManagerConfig | undefined
 	/** Column groups, if any; keep their members contiguous in the effective order. */
 	groups?: GridColumnGroup[]
-	/** Extra ids to hide from the engine beyond the user-hidden set (collapsed-group members). */
-	forcedHidden?: Set<string | number>
+	/**
+	 * The ids that collapsed groups hide from the engine, beyond the user-hidden
+	 * set, from the columns that show in a band.
+	 */
+	hideCollapsed?: (shows: (id: string | number) => boolean) => Set<string | number>
 }
 
 /** Column slice returned by {@link useGridColumns}. @internal */
@@ -27,6 +31,8 @@ type GridColumnsResult = {
 	setColumnOrder: (next: (string | number)[]) => void
 	hiddenColumns: Set<string | number>
 	setHiddenColumns: (next: Set<string | number>) => void
+	/** The ids that collapsed groups hide, kept apart from the user-hidden set. */
+	collapsedHidden: ReadonlySet<string | number>
 	/**
 	 * Hidden-column map for the engine's `columnVisibility` state (`{ id: false }`);
 	 * pinned and non-data columns are never marked hidden, so they always show.
@@ -54,7 +60,7 @@ export function useGridColumns<T>({
 	columnOrderConfig,
 	columnManagerConfig,
 	groups,
-	forcedHidden,
+	hideCollapsed,
 }: GridColumnsOptions<T>): GridColumnsResult {
 	const {
 		order: rawOrder,
@@ -111,15 +117,23 @@ export function useGridColumns<T>({
 	// so non-data and frozen columns always show, and an id absent from the map
 	// defaults to visible. Collapsed-group members hide here too, kept apart from
 	// the manager's user-hidden set so collapsing a group doesn't uncheck them.
+	// A collapsed group keeps its first member that shows as the anchor of its
+	// band: a member that the reader hid, or that is pinned away from the band,
+	// cannot be the anchor.
+	const collapsedHidden = useMemo<ReadonlySet<string | number>>(
+		() => hideCollapsed?.((id) => isOrderable(id) && !hiddenColumns.has(id)) ?? EMPTY_SET,
+		[hideCollapsed, hiddenColumns, isOrderable],
+	)
+
 	const columnVisibility = useMemo(() => {
 		const visibility: Record<string, boolean> = {}
 
 		for (const id of hiddenColumns) if (isOrderable(id)) visibility[String(id)] = false
 
-		for (const id of forcedHidden ?? []) if (isOrderable(id)) visibility[String(id)] = false
+		for (const id of collapsedHidden) visibility[String(id)] = false
 
 		return visibility
-	}, [hiddenColumns, forcedHidden, isOrderable])
+	}, [hiddenColumns, collapsedHidden, isOrderable])
 
 	const managerItems = useMemo<GridColumnManagerItem[]>(
 		() =>
@@ -141,6 +155,7 @@ export function useGridColumns<T>({
 		setColumnOrder,
 		hiddenColumns,
 		setHiddenColumns,
+		collapsedHidden,
 		columnVisibility,
 		reorderColumns,
 		managerItems,

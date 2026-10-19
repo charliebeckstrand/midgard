@@ -216,15 +216,18 @@ export function useGridDataColumns<T>({
 
 	// Column groups: the controllable binding, collapse state, the ids collapsed
 	// groups hide from the engine, and the band-row resolver.
-	const group = useGridGroup(groupsConfig, onCollapsedChange)
+	const groupState = useGridGroup(groupsConfig, onCollapsedChange)
 
 	const columnState = useGridColumns<T>({
 		columns: pinnedColumns,
 		columnOrderConfig,
 		columnManagerConfig,
-		groups: group.groups,
-		forcedHidden: group.collapsedHidden,
+		groups: groupState.groups,
+		hideCollapsed: groupState.hideCollapsed,
 	})
+
+	// The band reads the ids that the collapse hides, which the column slice resolves.
+	const group = { ...groupState, collapsedHidden: columnState.collapsedHidden }
 
 	const { hiddenColumns, setHiddenColumns } = columnState
 

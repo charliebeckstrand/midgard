@@ -38,6 +38,8 @@ export type GridDetailExpansion<T> = {
 export type GridGroupHeader = {
 	spans: GridGroupSpan[]
 	collapsed: ReadonlySet<string | number>
+	/** The ids that collapsed groups hide, so a band counts its own. */
+	collapsedHidden: ReadonlySet<string | number>
 	onToggleCollapse: (id: string | number) => void
 }
 
@@ -56,12 +58,19 @@ export type GridGroupResult = {
 	editorSetGroups: ((next: GridColumnGroup[]) => void) | undefined
 	collapsed: ReadonlySet<string | number>
 	toggleCollapse: (id: string | number) => void
-	/** Ids collapsed groups hide from the engine; union into `columnVisibility`. */
-	collapsedHidden: Set<string | number>
+	/**
+	 * The ids collapsed groups hide from the engine, from the columns that show
+	 * in a band (see `collapsedHiddenIds`). The column slice unions them
+	 * into `columnVisibility`.
+	 */
+	hideCollapsed: (shows: (id: string | number) => boolean) => Set<string | number>
+	/** The ids that {@link GridGroupResult.hideCollapsed} gave for the current columns. */
+	collapsedHidden: ReadonlySet<string | number>
 	/** Resolves the band row for the current visible columns and their pin sides. */
 	resolveHeader: (
 		visibleColumnIds: (string | number)[],
 		pinnedSide: (id: string | number) => 'left' | 'right' | undefined,
+		collapsedHidden: ReadonlySet<string | number>,
 	) => GridGroupHeader
 }
 
@@ -328,6 +337,7 @@ export function resolveGroupHeaderRow<T>(
 	const header = group.resolveHeader(
 		visibleColumns.map((column) => column.id),
 		(id) => pinning?.column(id)?.side,
+		group.collapsedHidden,
 	)
 
 	return { header, hasGroupRow: header.spans.some((span) => span.kind === 'group') }
