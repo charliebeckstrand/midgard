@@ -1,8 +1,18 @@
 'use client'
 
 import type { ReactNode } from 'react'
+import { defineMessage } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { ComboboxOption } from './combobox-option'
 import { useComboboxQuery } from './use-combobox-query'
+
+/** The default label of the row, such as "Create “Design”". */
+const createMessage = defineMessage<{ name: string }>({
+	id: 'ui.combobox.create',
+	defaultMessage: 'Create “{name}”',
+	description:
+		'The option at the end of a combobox list that creates a new item from the typed text. The name is the typed text.',
+})
 
 /** Props for {@link ComboboxCreateOption}. */
 export type ComboboxCreateOptionProps = {
@@ -18,7 +28,7 @@ export type ComboboxCreateOptionProps = {
 	/**
 	 * Label for the row, given the trimmed query.
 	 *
-	 * @defaultValue `Create “{name}”`
+	 * @defaultValue `Create “{name}”`, in the language of the reader.
 	 */
 	children?: (name: string) => ReactNode
 	className?: string
@@ -74,6 +84,8 @@ export function ComboboxCreateOption({
 	className,
 	id,
 }: ComboboxCreateOptionProps) {
+	const intl = useIntl()
+
 	const { query, deferredQuery } = useComboboxQuery()
 
 	const name = deferredQuery.trim()
@@ -84,7 +96,7 @@ export function ComboboxCreateOption({
 
 	return (
 		<ComboboxOption id={id} value={value} className={className}>
-			{children ? children(name) : `Create “${name}”`}
+			{children ? children(name) : intl.formatMessage(createMessage, { name })}
 		</ComboboxOption>
 	)
 }

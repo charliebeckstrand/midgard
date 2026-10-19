@@ -91,12 +91,8 @@ const tab = defineRecipe({
 		...cursor,
 		'after:absolute after:rounded-full',
 		'after:bg-transparent',
-		// Forced colors remove the `::after` background, so the focused tab draws
-		// an outline in `Highlight`. `outline-solid` overrides the `outline-none`
-		// above. The negative offset keeps the stroke inside the tab, because the
-		// scroll viewport clips the cross axis.
-		'forced-colors:focus-visible:outline-solid forced-colors:focus-visible:outline-2',
-		'forced-colors:focus-visible:-outline-offset-2 forced-colors:focus-visible:outline-[Highlight]',
+		// Inset, because the scroll viewport clips the cross axis.
+		...forced.ring.inset,
 		// Padding, text, the icon slot, and the gap follow the nearest density scope.
 		ji.ramp,
 		...narabi.item,

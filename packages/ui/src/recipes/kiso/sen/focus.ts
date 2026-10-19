@@ -37,6 +37,8 @@
  * Layer: kiso · Concern: focus indicators
  */
 
+import { forced } from './forced'
+
 export const focus = {
 	ring: [
 		// CSS outline, not a box-shadow ring: one crisp stroke along the radius.
@@ -55,12 +57,8 @@ export const focus = {
 	inset: [
 		'outline-none',
 		'focus-visible:ring-2 ring-inset focus-visible:ring-blue-600',
-		// Forced colors remove the ring. This outline replaces it there and
-		// stays inside the box, as the ring does. `outline-solid` sets the
-		// style that the ungated `outline-none` removes. The variants keep it
-		// out of the tailwind-merge group of `outline-none`.
-		'forced-colors:focus-visible:outline-solid forced-colors:focus-visible:outline-2',
-		'forced-colors:focus-visible:-outline-offset-2 forced-colors:focus-visible:outline-[Highlight]',
+		// The variants keep the fallback out of the tailwind-merge group of `outline-none`.
+		...forced.ring.inset,
 	],
 	outline: [
 		'has-focus-visible:outline-2 has-focus-visible:outline-blue-600 has-focus-visible:outline-offset-2',

@@ -2,9 +2,37 @@
 
 import { type ComponentProps, type Ref, useCallback } from 'react'
 import { ariaAttr, cn, dataAttr } from '../../core'
+import { defineMessage, defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/signature-pad'
 import { Button } from '../button'
 import { type SignaturePadHandle, useSignaturePadState } from './use-signature-pad-state'
+
+const messages = defineMessages({
+	placeholder: {
+		id: 'ui.signaturePad.placeholder',
+		defaultMessage: 'Sign here',
+		description: 'The text over an empty signature pad that asks the reader to draw a signature.',
+	},
+	label: {
+		id: 'ui.signaturePad.label',
+		defaultMessage: 'Signature',
+		description: 'The name of the canvas of a signature pad, when no label names it.',
+	},
+	clear: {
+		id: 'ui.signaturePad.clear',
+		defaultMessage: 'Clear signature',
+		description: 'The name of the button that erases the signature on the pad.',
+	},
+})
+
+/** The name of an empty pad, such as "Signature, empty". */
+const emptyMessage = defineMessage<{ name: string }>({
+	id: 'ui.signaturePad.empty',
+	defaultMessage: '{name}, empty',
+	description:
+		'The name of a signature pad with no signature on it. The name is the name of the pad, such as "Signature".',
+})
 
 export type { SignaturePadHandle }
 
@@ -46,7 +74,7 @@ export type SignaturePadProps = Omit<
 	 * Placeholder rendered over an empty pad. A disabled or read-only pad
 	 * hides it, because the pad takes no stroke.
 	 *
-	 * @defaultValue 'Sign here'
+	 * @defaultValue `'Sign here'`, in the language of the reader.
 	 */
 	placeholder?: string
 	/**
@@ -69,9 +97,10 @@ export type SignaturePadProps = Omit<
 	 */
 	clearable?: boolean
 	/**
-	 * Accessible name for the canvas; `, empty` is appended while no stroke is present.
+	 * Accessible name for the canvas. While no stroke is present, the name says
+	 * that the pad is empty, as in "Signature, empty".
 	 *
-	 * @defaultValue 'Signature'
+	 * @defaultValue `'Signature'`, in the language of the reader.
 	 */
 	'aria-label'?: string
 	ref?: Ref<SignaturePadHandle>
@@ -100,15 +129,21 @@ export function SignaturePad({
 	onDrawStart,
 	disabled,
 	readOnly,
-	placeholder = 'Sign here',
+	placeholder: placeholderProp,
 	strokeColor,
 	strokeWidth = 2,
 	clearable = true,
-	'aria-label': ariaLabel = 'Signature',
+	'aria-label': ariaLabelProp,
 	ref,
 	className,
 	...props
 }: SignaturePadProps) {
+	const intl = useIntl()
+
+	const placeholder = placeholderProp ?? intl.formatMessage(messages.placeholder)
+
+	const ariaLabel = ariaLabelProp ?? intl.formatMessage(messages.label)
+
 	// The state resolves the Control cascade: the canvas takes the field's
 	// validity and description/error ids, and an ambient disabled or read-only
 	// Control stops drawing unless an explicit prop says otherwise.
@@ -161,7 +196,7 @@ export function SignaturePad({
 				// has no implicit role. Empty state rides the name (`, empty`);
 				// disabled/read-only is conveyed via `aria-disabled` below.
 				role="img"
-				aria-label={empty ? `${ariaLabel}, empty` : ariaLabel}
+				aria-label={empty ? intl.formatMessage(emptyMessage, { name: ariaLabel }) : ariaLabel}
 				aria-describedby={describedBy}
 				aria-disabled={ariaAttr(resolvedDisabled || resolvedReadOnly)}
 				// Programmatically focusable (not in the tab order); receives focus
@@ -193,13 +228,13 @@ export function SignaturePad({
 						size="sm"
 						color="amber"
 						data-slot="signature-pad-clear"
-						aria-label="Clear signature"
+						aria-label={intl.formatMessage(messages.clear)}
 						onPointerDown={(event) => {
 							event.stopPropagation()
 						}}
 						onClick={handleClear}
 					>
-						Clear
+						{intl.formatMessage(intlMessages.clear)}
 					</Button>
 				</div>
 			)}

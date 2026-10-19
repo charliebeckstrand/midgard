@@ -4,7 +4,7 @@ import { MapPin } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '../../core'
 import { useFormField } from '../../primitives/form/context'
-import { intlMessages } from '../../primitives/intl/intl-messages'
+import { defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { keyByOccurrence } from '../../utilities'
 import {
@@ -21,6 +21,15 @@ import { LoadingSpinner } from '../loading'
 import { photonProvider } from './address-input-photon'
 import type { AddressProvider, AddressSuggestion } from './types'
 import { useAddressInputSuggestions } from './use-address-input-suggestions'
+
+const messages = defineMessages({
+	placeholder: {
+		id: 'ui.addressInput.placeholder',
+		defaultMessage: 'Enter an address',
+		description:
+			'The placeholder of a field that searches for an address or a place. It is also the name of the field when no label names it.',
+	},
+})
 
 /** Props for {@link AddressInput}; selection is an {@link AddressSuggestion}, bound by `name`, controlled via `value`, or uncontrolled via `defaultValue`. */
 export type AddressInputProps = Omit<
@@ -61,7 +70,7 @@ export type AddressInputProps = Omit<
 	 * @defaultValue {@link photonProvider}
 	 */
 	provider?: AddressProvider
-	/** @defaultValue 'Enter an address' */
+	/** @defaultValue `'Enter an address'`, in the language of the reader. */
 	placeholder?: string
 	/**
 	 * Show a clear button in place of the pin while an address is selected.
@@ -128,13 +137,15 @@ export function AddressInput({
 	debounceMs = 500,
 	minQueryLength = 3,
 	onError,
-	placeholder = 'Enter an address',
+	placeholder: placeholderProp,
 	clearable = true,
 	className,
 	'aria-label': ariaLabel,
 	...props
 }: AddressInputProps) {
 	const intl = useIntl()
+
+	const placeholder = placeholderProp ?? intl.formatMessage(messages.placeholder)
 
 	const [query, setQuery] = useState('')
 

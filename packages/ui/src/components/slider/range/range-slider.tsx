@@ -4,6 +4,8 @@ import { type CSSProperties, type FocusEvent, type Ref, useMemo, useRef } from '
 import { ariaAttr, cn, dataAttr, invalidAttrs } from '../../../core'
 import { useIdScope } from '../../../hooks/use-id-scope'
 import { useFormValue } from '../../../primitives/form/use-form-value'
+import { defineMessages } from '../../../primitives/intl/intl-messages'
+import { useIntl } from '../../../primitives/intl/use-intl'
 import { k, type RangeSliderVariants } from '../../../recipes/kata/slider-range'
 import { pct } from '../../../utilities'
 import { useControl } from '../../control/context'
@@ -13,6 +15,19 @@ import { boundRange } from './range-utilities'
 import type { ThumbButtonRefs, ThumbIndex } from './types'
 import { useRangeKeyboard } from './use-range-keyboard'
 import { useRangePointer } from './use-range-pointer'
+
+const messages = defineMessages({
+	start: {
+		id: 'ui.rangeSlider.start',
+		defaultMessage: 'Range start',
+		description: 'The name of the thumb that sets the low end of a range slider.',
+	},
+	end: {
+		id: 'ui.rangeSlider.end',
+		defaultMessage: 'Range end',
+		description: 'The name of the thumb that sets the high end of a range slider.',
+	},
+})
 
 /** Props for {@link RangeSlider}: the `[start, end]` controllable triad, `min`/`max`/`step` bounds, `allowCross` overlap policy, the pointer-drag bracket, per-thumb `labels` and `getValueText` for assistive tech, plus `size`/`color` variants. */
 export type RangeSliderProps = {
@@ -58,7 +73,7 @@ export type RangeSliderProps = {
 	 * bounds (e.g. `['Min price', 'Max price']`). In a Field with a Label, each
 	 * thumb name starts with the Label text, for example "Price Minimum".
 	 *
-	 * @defaultValue ['Range start', 'Range end']
+	 * @defaultValue `['Range start', 'Range end']`, in the language of the reader.
 	 */
 	labels?: [string, string]
 	/** Formats a thumb's value for assistive tech (`aria-valuetext`): currency, ratings, levels announce as meaningful text instead of a bare number. */
@@ -137,7 +152,7 @@ export function RangeSlider({
 	disabled,
 	readOnly,
 	allowCross = true,
-	labels = ['Range start', 'Range end'],
+	labels: labelsProp,
 	getValueText,
 	onDragStart,
 	onDragEnd,
@@ -145,6 +160,13 @@ export function RangeSlider({
 	style,
 	ref,
 }: RangeSliderProps) {
+	const intl = useIntl()
+
+	const labels = labelsProp ?? [
+		intl.formatMessage(messages.start),
+		intl.formatMessage(messages.end),
+	]
+
 	const {
 		value: range,
 		setValue: setRange,
