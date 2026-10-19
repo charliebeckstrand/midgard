@@ -4,13 +4,16 @@ import { cdp, page, userEvent } from 'vitest/browser'
 import { Accordion, AccordionItem, AccordionTrigger } from '../../components/accordion'
 import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
+import { Checkbox } from '../../components/checkbox'
 import { ColorPicker } from '../../components/color'
 import { Combobox, ComboboxOption } from '../../components/combobox'
+import { Control } from '../../components/control'
 import { DatePicker } from '../../components/date-picker'
 import { Input } from '../../components/input'
 import { JsonTree } from '../../components/json-tree'
 import { NavItem, NavList } from '../../components/nav'
 import { ProgressBar } from '../../components/progress'
+import { Rating } from '../../components/rating'
 import { ScrollArea } from '../../components/scroll-area'
 import { Segment, SegmentItem } from '../../components/segment'
 import { Select, SelectOption } from '../../components/select'
@@ -508,6 +511,20 @@ describe('controls show their state under forced colors (real browser)', () => {
 		const low = await pixels(<Slider aria-label="Volume" value={10} />)
 		const high = await pixels(<Slider aria-label="Volume" value={90} />)
 		expect(high).not.toBe(low)
+	})
+
+	// Forced colors make red, amber, and green one color, so only the invalid
+	// state keeps a mark: an outline in place of the red ring.
+	it.each([
+		['input', <Input key="input" aria-label="Name" />],
+		['checkbox', <Checkbox key="checkbox" aria-label="Agree" />],
+		['slider', <Slider key="slider" aria-label="Volume" value={10} />],
+		['range slider', <RangeSlider key="range" aria-label="Price" value={[10, 40]} />],
+		['rating', <Rating key="rating" aria-label="Score" />],
+	] as const)('%s: an invalid control paints differently', async (_name, ui) => {
+		const valid = await pixels(<Control>{ui}</Control>)
+		const invalid = await pixels(<Control severity="error">{ui}</Control>)
+		expect(invalid).not.toBe(valid)
 	})
 
 	it('range slider: 10 to 40 and 60 to 90 paint differently', async () => {

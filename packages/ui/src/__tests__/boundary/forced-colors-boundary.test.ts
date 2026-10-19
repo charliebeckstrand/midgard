@@ -29,8 +29,9 @@ import {
 // These gates are not part of the rule:
 //
 //   - A hover gate: a hover ring is a preview, and the pointer shows it.
-//   - A validation gate: forced colors make red, amber, and green one color, so
-//     a ring cannot tell the states apart. The message of the field tells them.
+//   - A warning gate or a valid gate: forced colors make red, amber, and green
+//     one color, so only the invalid state keeps a mark. A ring behind a gate
+//     that names `data-invalid` passes with any fallback whose gate names it.
 
 /** The width utility of a box-shadow ring: `ring`, `ring-2`, `ring-4`. */
 const RING = /^ring(?:-\d+)?$/
@@ -42,8 +43,11 @@ const RING = /^ring(?:-\d+)?$/
  */
 const NOT_GATE = /^(?:dark|forced-colors|before|after|\[&::[^\]]+\]|\*\*?|data-\[slot=[^\]]+\])$/
 
-/** A gate on the validation state of a control. */
-const VALIDATION = /data-(?:invalid|warning|valid)\b/
+/** A gate on the invalid state of a control. */
+const INVALID = /data-invalid\b/
+
+/** A gate on the warning or the valid state of a control. */
+const ADVISORY = /data-(?:warning|valid)\b/
 
 /** One class: its gate, its utility, whether it is a ring, and whether it is a forced-colors class. */
 type Parsed = { name: string; gate: string; utility: string; ring: boolean; forced: boolean }
@@ -122,9 +126,15 @@ function offenders(file: string, content: string): string[] {
 
 	const kiso = file.startsWith('recipes/kiso/')
 
+	const invalid = [...fallbacks].some((gate) => INVALID.test(gate))
+
 	const rings = classes
 		.filter(({ gate, ring, forced: isForced }) => {
-			if (!ring || isForced || /hover/.test(gate) || VALIDATION.test(gate)) return false
+			if (!ring || isForced || /hover/.test(gate)) return false
+
+			if (INVALID.test(gate)) return !invalid
+
+			if (ADVISORY.test(gate)) return false
 
 			if (gate === '' && !kiso) return true
 
@@ -213,11 +223,24 @@ describe('forced-colors fallbacks in ui', () => {
 		).toHaveLength(2)
 	})
 
-	it('passes a hover ring and a validation ring', () => {
+	it('passes a hover ring, a warning ring, and a valid ring', () => {
 		expect(
 			offenders(
 				'recipes/kata/x.ts',
-				"'hover:ring-2 data-invalid:ring-2 has-[[data-invalid]]:ring-2'",
+				"'hover:ring-2 data-warning:ring-2 has-[[data-valid]]:ring-2'",
+			),
+		).toEqual([])
+	})
+
+	it('finds an invalid ring with no fallback behind an invalid gate', () => {
+		expect(offenders('x.ts', "'data-invalid:ring-2'")).toEqual([
+			'x.ts data-invalid (data-invalid:ring-2)',
+		])
+
+		expect(
+			offenders(
+				'x.ts',
+				"'has-[[data-invalid],[data-valid]]:ring-2 forced-colors:has-[[data-invalid]]:outline-2'",
 			),
 		).toEqual([])
 	})

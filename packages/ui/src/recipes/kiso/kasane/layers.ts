@@ -10,6 +10,7 @@
  */
 
 import { mode } from '../../../core/recipe'
+import { forced } from '../sen/forced'
 import { ring } from '../sen/ring'
 
 /**
@@ -74,12 +75,17 @@ const focus = [
  * each state, and the focus and open classes make it 2 px. The selectors stay
  * literal, because Tailwind's source scanner can't see template-constructed
  * classes.
+ *
+ * Forced colors remove the rings, so an invalid control takes the outline of
+ * `forced.invalid` there. The focus and the open classes paint it in
+ * `Highlight`.
  */
 const validation = [
 	'has-[[data-invalid],[data-valid],[data-warning]]:not-focus-within:after:ring-1',
 	'has-[[data-valid]]:ring-green-600 has-[[data-valid]]:after:ring-green-600',
 	'has-[[data-warning]]:ring-amber-500 has-[[data-warning]]:after:ring-amber-500',
 	'has-[[data-invalid]]:ring-red-600 has-[[data-invalid]]:after:ring-red-600',
+	...forced.invalid.overlay,
 ]
 
 /** Disabled state: dims and locks pointer when the wrapped element is :disabled. */

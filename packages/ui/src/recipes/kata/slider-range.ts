@@ -52,6 +52,7 @@ const thumb = defineRecipe({
 		// The thumb rings match the native thumb of `Slider` (`kiso/slider/thumb.ts`).
 		// Tailwind needs literal pseudo-element classes there, so the two lists stay apart.
 		'data-invalid:ring-2 data-invalid:ring-red-600',
+		...forced.invalid.outset,
 		'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-600',
 		'dark:focus-visible:ring-blue-500',
 		...forced.ring.outset,
