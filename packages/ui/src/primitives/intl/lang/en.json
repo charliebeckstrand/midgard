@@ -1155,6 +1155,22 @@
 		"defaultMessage": "Select",
 		"description": "The placeholder of a picker with no selected value."
 	},
+	"ui.map.detail": {
+		"defaultMessage": "Detail",
+		"description": "The header of the value column of the data table of a map, when the map names no category field."
+	},
+	"ui.map.legend": {
+		"defaultMessage": "Legend",
+		"description": "The name of the legend of a map, which names the categories by their colors."
+	},
+	"ui.map.zoom": {
+		"defaultMessage": "Zoom {scale, number, percent}",
+		"description": "Spoken when a key zooms a map in or out, with the zoom as a percent of the fit, such as \"Zoom 150%\"."
+	},
+	"ui.map.zoomReset": {
+		"defaultMessage": "Zoom reset",
+		"description": "Spoken when a key puts the zoom of a map back to its fit."
+	},
 	"ui.navBar.label": {
 		"defaultMessage": "Main",
 		"description": "The name of the main navigation landmark of a page, which a screen reader speaks with its role, as in \"Main navigation\"."

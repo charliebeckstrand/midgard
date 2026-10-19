@@ -15,6 +15,7 @@ import {
 	REGION_STAGGER,
 	REGION_WASH_SETTLE,
 } from '../../modules/map/engine/map-motion'
+import { LocaleProvider } from '../../providers/locale'
 import {
 	act,
 	allBySlot,
@@ -451,6 +452,14 @@ describe('MapPlat', () => {
 		const { container } = renderUI(categoricalPlat())
 
 		expect(bySlot(container, 'map-legend')).toHaveAttribute('aria-label', 'Legend')
+	})
+
+	it('names the legend toolbar in the language of the locale', () => {
+		const { container } = renderUI(
+			<LocaleProvider locale="es-ES">{categoricalPlat()}</LocaleProvider>,
+		)
+
+		expect(bySlot(container, 'map-legend')).toHaveAttribute('aria-label', 'Leyenda')
 	})
 
 	it('holds the emphasis off while a toggled-on category washes back in', async () => {
