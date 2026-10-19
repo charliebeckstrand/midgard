@@ -73,9 +73,10 @@ export type MapOverlayEntry = {
 	 */
 	stopsAt: () => LngLat[]
 	/**
-	 * The dots the mark draws, in lon/lat, where they are not its stops. The plat's dot pool holds
-	 * these. A `MapMarker` draws two pins but has one stop, the middle of its leg. Absent where the
-	 * dots are the stops. Stable like {@link stopsAt}.
+	 * The dots the mark draws, in lon/lat, which the plat's dot pool holds. A point's dots are its
+	 * stops. A `MapMarker` draws two pins but has one stop, the middle of its leg. Absent on the
+	 * line and area marks: a route's waypoints and a zone's ring paint nothing a pointer could be
+	 * aimed at instead of. Stable like {@link stopsAt}.
 	 */
 	dotsAt?: () => LngLat[]
 	/**

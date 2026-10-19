@@ -131,14 +131,12 @@ function gatherDots(
 /**
  * The dots one mark puts in the pool, or `undefined` where it puts none.
  *
- * Skips hidden marks, which hold no ground while the legend has them away. Skips the line and area
- * kinds. A route's waypoints and a zone's ring paint nothing a pointer could be aimed at instead
- * of. A zone's claim on the ground is a `spare` budget rather than a boundary. Read as a negative so a
- * dot-drawing kind added later joins the rule without this being edited.
+ * Skips hidden marks, which hold no ground while the legend has them away, and marks with no
+ * `dotsAt`, which draw no dots. A zone's claim on the ground is a `spare` budget rather than a
+ * boundary.
  *
- * The dots are the entry's `dotsAt` where it has one, else its stops. Off-projection dots are
- * dropped — they draw nothing, so they crowd nothing; the US composite drops points outside its
- * insets.
+ * Off-projection dots are dropped — they draw nothing, so they crowd nothing; the US composite
+ * drops points outside its insets.
  *
  * @internal
  */
@@ -147,13 +145,11 @@ function entryDots(
 	hidden: ReadonlySet<string>,
 	project: (at: LngLat) => MapPoint2D | null,
 ): MapPoint2D[] | undefined {
-	if (hidden.has(entry.id)) return undefined
-
-	if (entry.kind === 'route' || entry.kind === 'geofence') return undefined
+	if (hidden.has(entry.id) || !entry.dotsAt) return undefined
 
 	const dots: MapPoint2D[] = []
 
-	for (const dot of (entry.dotsAt ?? entry.stopsAt)()) {
+	for (const dot of entry.dotsAt()) {
 		const at = project(dot)
 
 		if (at !== null) dots.push(at)

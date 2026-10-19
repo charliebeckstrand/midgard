@@ -462,6 +462,7 @@ export function MapPoints({
 		kind: 'point',
 		swatch: POINT_SWATCH[shape],
 		stops,
+		dots: stops,
 		stopRows: rows,
 		// The inverse of `report` above: a pick names the caller's own point, and
 		// this reads back which drawn dot holds it — so the halo and the picked row

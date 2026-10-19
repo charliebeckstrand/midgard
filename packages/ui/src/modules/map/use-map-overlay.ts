@@ -138,15 +138,17 @@ type MapOverlayConfig = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> &
 		 * A thunk, so a plural mark's O(N) build lands on the one keypress that
 		 * reads it rather than on every render.
 		 *
-		 * Hold its identity until the stops move. A new identity restakes the
-		 * mark's dots in the plat's pool, so the dots near it divide their ground
-		 * again. A thunk made inline therefore gathers the mark again on each render.
+		 * Hold its identity until the stops move.
 		 */
 		stops: () => LngLat[]
 		/**
-		 * The dots the mark draws, where they are not its {@link stops} — see
-		 * {@link MapOverlayEntry.dotsAt}. Hold its identity until the dots move, as
-		 * for `stops`: a new identity restakes the mark's dots.
+		 * The dots the mark draws, in lon/lat, for the plat's dot pool — see
+		 * {@link MapOverlayEntry.dotsAt}. Passed by the dot-drawing marks alone. A
+		 * point passes its `stops`, and a marker passes its two pins.
+		 *
+		 * Hold its identity until the dots move. A new identity restakes the
+		 * mark's dots in the pool, so the dots near it divide their ground again.
+		 * A thunk made inline therefore gathers the mark again on each render.
 		 */
 		dots?: () => LngLat[]
 		/**
@@ -215,7 +217,7 @@ export type MapOverlay = {
 	 *
 	 * A resolver rather than the pool itself, and bound to this mark's id. The exclusion is the one
 	 * part a mark could get wrong, and it is still not the mark's to state. Lazy because only a
-	 * dot-shaped mark reads it, and the pool invokes every other entry's `stopsAt`. `MapPoints`
+	 * dot-shaped mark reads it, and the pool invokes every other entry's `dotsAt`. `MapPoints`
 	 * registers that as a thunk, precisely so the pass lands on the one reader. Resolved eagerly
 	 * here, every mark would trigger that pass for every other mark — M² of them. It would discard
 	 * the answer in all M cases wherever no dot-shaped mark was mounted. Memoize the result at the
@@ -350,7 +352,7 @@ export function useMapOverlay({
 	// gathers the dot pool once per `entries`, `hidden`, or projection, and the
 	// table resolves its picked row once per `entries` or pick. By the time any of
 	// those runs again, this effect has written the committed values. The restake
-	// below also reads `stopsAt`, so it must stay after this effect.
+	// below also reads `dotsAt`, so it must stay after this effect.
 	const live = useRef({ stops, dots, resolveStop, ownSpare })
 
 	useLayoutEffect(() => {
@@ -359,25 +361,23 @@ export function useMapOverlay({
 
 	const stopsAt = useCallback(() => live.current.stops(), [])
 
-	const dotsAt = useCallback(() => (live.current.dots ?? live.current.stops)(), [])
+	const dotsAt = useCallback(() => live.current.dots?.() ?? [], [])
 
-	// Registered only where the mark draws dots apart from its stops, a fact fixed per mark kind.
+	// Registered by the dot-drawing marks alone, a fact fixed per mark kind.
 	const ownDots = dots === undefined ? undefined : dotsAt
 
 	// A move changes no entry of the ledger, so it cannot reach the pool through the plat. The mark
-	// restakes its own dots instead, off the identity of the thunk that gives them. A layout effect,
-	// so that the dots near it divide their ground again before the move paints.
-	const pooled = dots ?? stops
-
-	const staked = useRef(pooled)
+	// restakes its own dots instead, off the identity of `dots`. A layout effect, so that the dots
+	// near it divide their ground again before the move paints.
+	const staked = useRef(dots)
 
 	useLayoutEffect(() => {
-		if (staked.current === pooled) return
+		if (staked.current === dots) return
 
-		staked.current = pooled
+		staked.current = dots
 
 		pool.restake(id)
-	}, [pool, id, pooled])
+	}, [pool, id, dots])
 
 	const neighbors = useSyncExternalStore(pool.subscribe, pool.neighbors, pool.neighbors)
 
