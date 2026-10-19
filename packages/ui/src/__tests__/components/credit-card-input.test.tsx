@@ -686,8 +686,10 @@ describe.each(cardFields)('%s default name', (_name, field, fallback) => {
 		expect(screen.getByRole('textbox', { name: 'Payment' })).not.toHaveAttribute('aria-label')
 	})
 
-	it.each<[string, (input: ReactElement) => ReactElement]>([
-		['with no label', (input) => input],
+	// Only the native label needs the id. A Field gives its control the id of
+	// its Label.
+	it.each<[string, (input: ReactElement) => ReactElement, string | undefined]>([
+		['with no label', (input) => input, undefined],
 		[
 			'in a Field with a Label',
 			(input) => (
@@ -696,6 +698,7 @@ describe.each(cardFields)('%s default name', (_name, field, fallback) => {
 					{input}
 				</Field>
 			),
+			undefined,
 		],
 		[
 			'next to a native label',
@@ -705,9 +708,10 @@ describe.each(cardFields)('%s default name', (_name, field, fallback) => {
 					{input}
 				</>
 			),
+			FIELD_ID,
 		],
-	])('lets an explicit aria-label win %s', (_context, wrap) => {
-		renderUI(wrap(field({ id: FIELD_ID, 'aria-label': 'Card details' })))
+	])('lets an explicit aria-label win %s', (_context, wrap, id) => {
+		renderUI(wrap(field({ id, 'aria-label': 'Card details' })))
 
 		expect(screen.getByRole('textbox', { name: 'Card details' })).toHaveAttribute(
 			'aria-label',

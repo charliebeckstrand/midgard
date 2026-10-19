@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { servePdf } from '../../__benchmarks__/browser/pdf-fixtures'
 import { PdfViewer } from '../../components/pdf-viewer'
 import { resetDocumentCache } from '../../components/pdf-viewer/pdf-viewer-document-cache'
@@ -105,20 +105,26 @@ function makeImagePdf(filter: string, base64: string): Uint8Array {
 	])
 }
 
-/** A PDF whose page shows text in a non-embedded CID font with a predefined CMap. */
+/**
+ * A PDF whose page shows text in a non-embedded CID font with a predefined CMap.
+ *
+ * No machine has the font, so pdf.js always falls back to a font of the page, and always warns
+ * that it cannot load the font. A real Japanese font, such as `HeiseiKakuGo-W5`, is on some
+ * machines and not on others, so the warning came on some runs only.
+ */
 function makeCMapPdf(): Uint8Array {
 	return makePdf('<< /Font << /R 5 0 R >> >>', CMAP_CONTENT, [
 		{
 			dictionary:
-				'<< /Type /Font /Subtype /Type0 /BaseFont /HeiseiKakuGo-W5 /Encoding /UniJIS-UCS2-H /DescendantFonts [6 0 R] >>',
+				'<< /Type /Font /Subtype /Type0 /BaseFont /MidgardMissingGothic /Encoding /UniJIS-UCS2-H /DescendantFonts [6 0 R] >>',
 		},
 		{
 			dictionary:
-				'<< /Type /Font /Subtype /CIDFontType0 /BaseFont /HeiseiKakuGo-W5 /CIDSystemInfo << /Registry (Adobe) /Ordering (Japan1) /Supplement 2 >> /FontDescriptor 7 0 R >>',
+				'<< /Type /Font /Subtype /CIDFontType0 /BaseFont /MidgardMissingGothic /CIDSystemInfo << /Registry (Adobe) /Ordering (Japan1) /Supplement 2 >> /FontDescriptor 7 0 R >>',
 		},
 		{
 			dictionary:
-				'<< /Type /FontDescriptor /FontName /HeiseiKakuGo-W5 /Flags 4 /FontBBox [0 -200 1000 900] /ItalicAngle 0 /Ascent 880 /Descent -120 /CapHeight 700 /StemV 80 >>',
+				'<< /Type /FontDescriptor /FontName /MidgardMissingGothic /Flags 4 /FontBBox [0 -200 1000 900] /ItalicAngle 0 /Ascent 880 /Descent -120 /CapHeight 700 /StemV 80 >>',
 		},
 	])
 }
@@ -192,6 +198,12 @@ describe('pdf viewer binary data (real browser)', () => {
 	})
 
 	it('renders text in a font with a predefined CMap', { timeout: budget(15_000) }, async () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
 		expect(await inkOf(makeCMapPdf())).toBeGreaterThan(0.01)
+
+		expect(warn).toHaveBeenCalledWith(
+			expect.stringContaining('Cannot load system font: MidgardMissingGothic'),
+		)
 	})
 })

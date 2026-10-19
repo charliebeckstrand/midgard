@@ -15,6 +15,7 @@ import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
 import { cn, dataAttr } from '../../core'
+import { focusWithoutReveal } from '../../hooks/use-truncation'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
 import { createGroup, createRule, isQueryActive, type QueryField, type QueryGroup } from '../query'
@@ -100,11 +101,14 @@ function seedQuery(field: QueryField): QueryGroup {
 function focusHeader(header: HTMLElement | null) {
 	if (!header?.isConnected) return
 
-	// The title leaf of a sortable header sits in its sort button.
+	// The title leaf of a sortable header sits in its sort button. The callers
+	// run in a layout effect, inside a React commit, and the button arms the
+	// truncation measure of its title on focus. A plain `focus()` would make
+	// that arm call `flushSync` in the commit.
 	const sort = header.querySelector('[data-grid-content]')?.closest('button')
 
 	if (sort) {
-		sort.focus()
+		focusWithoutReveal(sort)
 
 		return
 	}

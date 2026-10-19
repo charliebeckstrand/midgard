@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn, type GridProps } from '../../modules/grid'
-import { fireEvent, renderUI, screen } from '../helpers'
+import { act, fireEvent, renderUI, screen } from '../helpers'
 
 /**
  * Row drag-reorder gating (the `rowReorder` binding + a `dragHandle` column). A
@@ -77,7 +77,8 @@ describe('Grid row reorder', () => {
 
 		const sort = screen.getByRole('button', { name: 'Sort by Name' })
 
-		sort.focus()
+		// The focus arms the truncation measure of the title, which updates state.
+		act(() => sort.focus())
 
 		fireEvent.click(sort)
 
