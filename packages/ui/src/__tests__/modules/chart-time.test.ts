@@ -52,6 +52,18 @@ describe('parseInstant', () => {
 		expect(parseInstant('10.06.2026, 09:30')).toBe(new Date(2026, 5, 10, 9, 30).getTime())
 	})
 
+	it('returns null for a month and a day with no year', () => {
+		// V8 fills the year with 2001, and Firefox and Safari refuse the string.
+		for (const value of ['Jun 10', '10 June', 'June 10th', 'Jun. 10']) {
+			expect(parseInstant(value)).toBeNull()
+		}
+
+		// A year, alone or after the day, still reads.
+		expect(parseInstant('Jun 2026')).toBe(Date.parse('Jun 2026'))
+
+		expect(parseInstant('10 June 2026')).toBe(Date.parse('10 June 2026'))
+	})
+
 	it('returns null for a dotted date outside the calendar', () => {
 		expect(parseInstant('10.13.2026')).toBeNull()
 
@@ -342,6 +354,12 @@ describe('timeCategory', () => {
 })
 
 describe('dateCategoryFormat', () => {
+	it('keeps the raw labels of month-and-day values with no year', () => {
+		expect(dateCategoryFormat(['Jun 10', 'Jun 11', 'Jun 12'], 2026, 'en-US')).toBeNull()
+
+		expect(timeCategory('en-US')('Jun 10')).toBe('Jun 10')
+	})
+
 	it('labels a single-year span month/day, dropping the reference year', () => {
 		const format = dateCategoryFormat(['2026-06-10', '2026-07-04', '2026-12-31'], 2026, 'en-US')
 
