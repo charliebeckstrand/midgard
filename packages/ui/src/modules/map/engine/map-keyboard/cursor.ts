@@ -46,8 +46,8 @@ export function isMapActivateKey(key: string): boolean {
  * Whether the offset `dx`, `dy` bears in `action`'s direction. Its quadrant is
  * the 90° wedge around that compass axis. The four wedges therefore tile the
  * plane, and every other region lies in exactly one of them. A region exactly on
- * a diagonal lies in two, and either reading is true. Nothing is therefore unreachable
- * from anywhere, and no step needs a fallback.
+ * a diagonal lies in two, and either reading is true. A stop at a zero offset
+ * bears no direction: {@link stepNearest} reaches it through its stack.
  *
  * Frame coordinates put y downward, so north is the negative side.
  */
@@ -70,6 +70,11 @@ function bears(dx: number, dy: number, action: MapCompassAction): boolean {
  * rather than wraps, the clamp a chart's category step keeps. Distance is compared
  * squared, so the scan takes no square root.
  *
+ * Stops at one point form a stack, such as a geofence and the point at its
+ * center. An arrow visits each stop of the stack in list order before it leaves
+ * the stack. A step into a stack lands on its first stop, so no stop of the
+ * stack is unreachable.
+ *
  * @internal
  */
 export function stepNearest(
@@ -80,6 +85,12 @@ export function stepNearest(
 	const origin = stops[from]
 
 	if (!origin) return null
+
+	for (let index = from + 1; index < stops.length; index++) {
+		const at = stops[index]?.at
+
+		if (at?.x === origin.at.x && at.y === origin.at.y) return index
+	}
 
 	let best: number | null = null
 

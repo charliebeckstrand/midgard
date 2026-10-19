@@ -7,6 +7,13 @@ import { Input } from 'ui/input'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 import { NumberInput } from 'ui/number-input'
 import { useDensityStep } from 'ui/primitives/density'
+import {
+	defineMessage,
+	defineMessages,
+	type IntlShape,
+	type MessageDescriptor,
+	useIntl,
+} from 'ui/primitives/intl'
 import { type DensityStep, isDensityStep, stepDown } from '../../core/density/steps.ts'
 import { omote } from '../../recipes/kiso/index.ts'
 import { SIZE_CLASSES } from '../../types/responsive.ts'
@@ -51,13 +58,80 @@ type Values = { readonly [prop: string]: Value | undefined }
 // a value is its JSON, which never is a bare word.
 const UNSET = 'unset'
 
-const SIZES: Readonly<Record<string, string>> = {
-	xs: 'Extra small',
-	sm: 'Small',
-	md: 'Medium',
-	lg: 'Large',
-	xl: 'Extra large',
-}
+const messages = defineMessages({
+	props: {
+		id: 'docs.playground.props',
+		defaultMessage: 'Props',
+		description:
+			'The name of the row of fields above a playground. Each field sets one prop of the component: one of its inputs.',
+	},
+	component: {
+		id: 'docs.playground.component',
+		defaultMessage: 'Component',
+		description:
+			'The label of the field of a playground that selects the component to show, on a page with more than one component.',
+	},
+	on: {
+		id: 'docs.playground.on',
+		defaultMessage: 'On',
+		description: 'The option of a field of a playground that sets a true or false prop to true.',
+	},
+	off: {
+		id: 'docs.playground.off',
+		defaultMessage: 'Off',
+		description: 'The option of a field of a playground that sets a true or false prop to false.',
+	},
+	none: {
+		id: 'docs.playground.none',
+		defaultMessage: 'None',
+		description:
+			'The option of a field of a playground that leaves the prop unset, when an unset prop has no value.',
+	},
+	default: {
+		id: 'docs.playground.default',
+		defaultMessage: 'Default',
+		description:
+			'The badge next to the option of a field of a playground that the component uses when the prop is unset.',
+	},
+})
+
+// The label of each size step, by its value.
+const SIZES: Readonly<Record<string, MessageDescriptor>> = defineMessages({
+	xs: {
+		id: 'docs.playground.size.xs',
+		defaultMessage: 'Extra small',
+		description: 'The option of the size field of a playground for the smallest size.',
+	},
+	sm: {
+		id: 'docs.playground.size.sm',
+		defaultMessage: 'Small',
+		description: 'The option of the size field of a playground for the small size.',
+	},
+	md: {
+		id: 'docs.playground.size.md',
+		defaultMessage: 'Medium',
+		description: 'The option of the size field of a playground for the medium size.',
+	},
+	lg: {
+		id: 'docs.playground.size.lg',
+		defaultMessage: 'Large',
+		description: 'The option of the size field of a playground for the large size.',
+	},
+	xl: {
+		id: 'docs.playground.size.xl',
+		defaultMessage: 'Extra large',
+		description: 'The option of the size field of a playground for the largest size.',
+	},
+})
+
+// A value of a responsive prop that holds from a size class, such as
+// "Horizontal from medium". The size class is a name from the code.
+const fromSizeClassMessage = defineMessage<{ value: string; sizeClass: string }>({
+	id: 'docs.playground.fromSizeClass',
+	defaultMessage: '{value} from {sizeClass}',
+	description:
+		'A value of a prop that holds from a screen width up, such as "Horizontal from medium". The value and the size class are names from the code, in English.',
+})
 
 /**
  * A row of controls that stays on one line, and scrolls when the controls do
@@ -80,22 +154,33 @@ const SIZE_CLASS_AT: { readonly [bp: string]: string | undefined } = Object.from
 )
 
 /**
- * The label of a value. A value for each breakpoint names the size class from
- * which each value holds, such as "Vertical, Horizontal from medium", or the
- * breakpoint where no size class starts.
+ * The label of a value, in the language of `intl`. A value for each breakpoint
+ * names the size class from which each value holds, such as "Vertical,
+ * Horizontal from medium", or the breakpoint where no size class starts. A
+ * size step and a boolean show translated labels. A label from a code value
+ * stays English.
  */
-function labelOf(value: Value): string {
+function labelOf(intl: IntlShape, value: Value): string {
 	if (typeof value === 'object') {
 		return Object.entries(value)
 			.map(([bp, entry]) =>
-				bp === 'initial' ? labelOf(entry) : `${labelOf(entry)} from ${SIZE_CLASS_AT[bp] ?? bp}`,
+				bp === 'initial'
+					? labelOf(intl, entry)
+					: intl.formatMessage(fromSizeClassMessage, {
+							value: labelOf(intl, entry),
+							sizeClass: SIZE_CLASS_AT[bp] ?? bp,
+						}),
 			)
 			.join(', ')
 	}
 
-	if (typeof value === 'boolean') return value ? 'On' : 'Off'
+	if (typeof value === 'boolean') return intl.formatMessage(value ? messages.on : messages.off)
 
-	return typeof value === 'string' ? (SIZES[value] ?? humanize(value)) : String(value)
+	if (typeof value !== 'string') return String(value)
+
+	const size = SIZES[value]
+
+	return size ? intl.formatMessage(size) : humanize(value)
 }
 
 /** The default of a free field: the default of the prop, when it is a value of the kind of the field. */
@@ -373,17 +458,20 @@ function FreePicker({
 
 function FieldPicker({
 	field,
+	label = humanize(field.name),
 	step,
 	value,
 	onValueChange,
 }: {
 	field: ChoiceField
+	/** The label of the field. It is the name of the prop when it is not given. */
+	label?: string
 	/** The step of the page. The badge is one step below it. */
 	step: DensityStep
 	value: Value | undefined
 	onValueChange: (value: Value | undefined) => void
 }) {
-	const label = humanize(field.name)
+	const intl = useIntl()
 
 	// The option of the omitted prop has a "Default" badge. When the omitted
 	// prop is no value, such as an Alert with no severity, that option is
@@ -391,10 +479,10 @@ function FieldPicker({
 	const unset = field.default === undefined && !field.required
 
 	const options = [
-		...(unset ? [{ key: UNSET, label: 'None', fallback: true }] : []),
+		...(unset ? [{ key: UNSET, label: intl.formatMessage(messages.none), fallback: true }] : []),
 		...field.values.map((option) => ({
 			key: JSON.stringify(option),
-			label: labelOf(option),
+			label: labelOf(intl, option),
 			fallback: option === field.default,
 		})),
 	]
@@ -416,7 +504,7 @@ function FieldPicker({
 						<ListboxLabel>{option.label}</ListboxLabel>
 						{option.fallback && (
 							<Badge size={stepDown(step)} variant="soft" color="blue">
-								Default
+								{intl.formatMessage(messages.default)}
 							</Badge>
 						)}
 					</Flex>
@@ -520,6 +608,8 @@ export function Playground<P extends object>({
 
 	const fail = useFail()
 
+	const intl = useIntl()
+
 	// The code of the next component loads before the switch, so an open
 	// "Show code" shows it at once.
 	const handleComponentChange = (value: Value | undefined) => {
@@ -536,10 +626,11 @@ export function Playground<P extends object>({
 			print={(code) => printCode(code, fields, values)}
 			surface={surface}
 			actions={
-				<Rail label="Props">
+				<Rail label={intl.formatMessage(messages.props)}>
 					{switcher && (
 						<FieldPicker
 							field={switcher}
+							label={intl.formatMessage(messages.component)}
 							step={step}
 							value={switcher.values[active]}
 							onValueChange={handleComponentChange}

@@ -6,6 +6,7 @@ import {
 	BreadcrumbList,
 	BreadcrumbSeparator,
 } from '../../components/breadcrumb'
+import { LocaleProvider } from '../../providers/locale'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Breadcrumb', () => {
@@ -17,6 +18,23 @@ describe('Breadcrumb', () => {
 		expect(el).toBeInTheDocument()
 
 		expect(el?.tagName).toBe('NAV')
+	})
+
+	it('names the landmark in the language of the reader, collapsed or not', () => {
+		renderUI(
+			<LocaleProvider locale="es-ES">
+				<Breadcrumb>content</Breadcrumb>
+				<Breadcrumb collapse>content</Breadcrumb>
+			</LocaleProvider>,
+		)
+
+		expect(screen.getAllByRole('navigation', { name: 'Ruta de navegación' })).toHaveLength(2)
+	})
+
+	it('keeps a name that the caller passes', () => {
+		renderUI(<Breadcrumb aria-label="Folders">content</Breadcrumb>)
+
+		expect(screen.getByRole('navigation', { name: 'Folders' })).toBeInTheDocument()
 	})
 })
 

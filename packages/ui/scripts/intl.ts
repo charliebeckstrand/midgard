@@ -1,14 +1,16 @@
 /**
- * Writes the source catalog of ui, `src/primitives/intl/lang/en.json`, from the
- * message descriptors in the source.
+ * Writes the source catalog of ui, `src/primitives/intl/lang/en.json`, and the
+ * source catalog of the docs app, `src/docs/lang/en.json`, from the message
+ * descriptors in the source.
  *
- * Run `pnpm intl` after you add, change, or remove a message. The catalog holds
+ * Run `pnpm intl` after you add, change, or remove a message. A catalog holds
  * the id, the English default, and the description of each message, for the
- * translators. Each translation in `src/primitives/intl/lang` maps the same ids
- * to the text of its language. The test `intl-catalog-boundary.test.ts` compares
- * the catalog with the output of this script, and each translation with the
- * catalog. The extraction and the checks are in `intl-catalog.ts`, which the
- * other packages also use.
+ * translators. Each translation in the folder of a catalog maps the same ids
+ * to the text of its language. The test `intl-catalog-boundary.test.ts`
+ * compares the catalog of ui with the output of this script, and each
+ * translation with the catalog. The test `src/docs/__tests__/intl-catalog.test.ts`
+ * does the same for the docs. The extraction and the checks are in
+ * `intl-catalog.ts`, which the other packages also use.
  */
 
 import { writeFile } from 'node:fs/promises'
@@ -26,13 +28,32 @@ export const SOURCE_CATALOG = join(LANG_DIR, 'en.json')
 
 /**
  * The source of the catalog of ui. The tests, the benchmarks, and the docs app
- * hold no message of ui. The docs app keeps its text in English.
+ * hold no message of ui. The docs app has a catalog of its own, so its
+ * messages do not ship with the library.
  */
 export const CATALOG_SOURCE: CatalogSource = {
 	srcDir: SRC_DIR,
 	skipped: ['__tests__', '__benchmarks__', 'docs'],
 }
 
+const DOCS_DIR = join(SRC_DIR, 'docs')
+
+/** The directory of the catalog of the docs app and of its translations. */
+export const DOCS_LANG_DIR = join(DOCS_DIR, 'lang')
+
+/** The source catalog of the docs app, in English. */
+export const DOCS_SOURCE_CATALOG = join(DOCS_LANG_DIR, 'en.json')
+
+/** The source of the catalog of the docs app. The tests hold no message of the docs. */
+export const DOCS_CATALOG_SOURCE: CatalogSource = { srcDir: DOCS_DIR, skipped: ['__tests__'] }
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-	await writeFile(SOURCE_CATALOG, catalogText(await extractCatalog(CATALOG_SOURCE)))
+	const [ui, docs] = await Promise.all([
+		extractCatalog(CATALOG_SOURCE),
+		extractCatalog(DOCS_CATALOG_SOURCE),
+	])
+
+	await writeFile(SOURCE_CATALOG, catalogText(ui))
+
+	await writeFile(DOCS_SOURCE_CATALOG, catalogText(docs))
 }

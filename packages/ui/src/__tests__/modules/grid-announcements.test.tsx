@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect } from 'vitest'
 import { FIRST_WRITE_DELAY_MS } from '../../core/announcer'
 import { Grid, type GridColumn } from '../../modules/grid'
 import {
@@ -19,8 +19,8 @@ import {
 	renderUI,
 	screen,
 	setupUser,
-	withFakeTime,
 } from '../helpers'
+import { it } from '../helpers/fake-clock'
 
 /**
  * Grid status messages (WCAG 4.1.3): sort, selection, and page changes narrate
@@ -179,29 +179,24 @@ describe('Grid announcements', () => {
 		expect(liveRegion()).not.toHaveTextContent(/Sorted by name/)
 	})
 
-	it('announces a settled column resize after a keyboard nudge', async () => {
-		await withFakeTime(async (clock) => {
-			renderUI(<Grid resizable columns={columns} rows={rows} getKey={getKey} />)
+	it('announces a settled column resize after a keyboard nudge', async ({ clock }) => {
+		renderUI(<Grid resizable columns={columns} rows={rows} getKey={getKey} />)
 
-			const separator = screen.getByRole('separator', { name: 'Resize Name' })
+		const separator = screen.getByRole('separator', { name: 'Resize Name' })
 
-			separator.focus()
+		separator.focus()
 
-			// `fireEvent`, not `clock.user`: userEvent settles through RTL's asyncWrapper,
-			// whose 0ms drain timer only advances under a `jest` global — under vitest
-			// fake timers it deadlocks.
-			fireEvent.keyDown(separator, { key: 'ArrowRight' })
+		fireEvent.keyDown(separator, { key: 'ArrowRight' })
 
-			// Debounced: a run of nudges settles into one "Name column N pixels" message
-			// once the settle window elapses.
-			await clock.advance(GRID_STATUS_DEBOUNCE_MS)
+		// Debounced: a run of nudges settles into one "Name column N pixels" message
+		// once the settle window elapses.
+		await clock.advance(GRID_STATUS_DEBOUNCE_MS)
 
-			// The first text of a new region lands after the next paint (a frame, 16ms on the
-			// fake clock) and then `FIRST_WRITE_DELAY_MS`.
-			await clock.advance(16 + FIRST_WRITE_DELAY_MS)
+		// The first text of a new region lands after the next paint (a frame, 16ms on the
+		// fake clock) and then `FIRST_WRITE_DELAY_MS`.
+		await clock.advance(16 + FIRST_WRITE_DELAY_MS)
 
-			expect(liveRegion()?.textContent ?? '').toMatch(/Name column \d+ pixels/)
-		})
+		expect(liveRegion()?.textContent ?? '').toMatch(/Name column \d+ pixels/)
 	})
 })
 

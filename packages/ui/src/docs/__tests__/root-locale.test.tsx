@@ -52,6 +52,9 @@ describe('docs app shell', () => {
 		renderShell()
 
 		expect(screen.getByTestId('locale').textContent).toBe('es')
+
+		// The shell shows its own text in the language of the reader too.
+		expect(screen.getByText('Buscar')).toBeDefined()
 	})
 
 	it('puts the language picker in the settings of the header', async () => {

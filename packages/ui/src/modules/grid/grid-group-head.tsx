@@ -146,6 +146,7 @@ function GridGroupHeadCell({
 					<GridGroupBand
 						group={span.group}
 						collapsed={header.collapsed.has(span.group.id)}
+						hiddenCount={countHidden(span.group, header.collapsedHidden)}
 						onToggleCollapse={header.onToggleCollapse}
 					/>
 
@@ -172,17 +173,25 @@ function GridGroupHeadCell({
 type GridGroupBandProps = {
 	group: GridColumnGroup
 	collapsed: boolean
+	/** The number of members that the collapse hides. */
+	hiddenCount: number
 	onToggleCollapse: (id: string | number) => void
 }
 
+/**
+ * The number of the members of `group` that its collapse hides. A member that
+ * the reader hid, or that is pinned away from the band, does not count.
+ * @internal
+ */
+function countHidden(group: GridColumnGroup, collapsedHidden: ReadonlySet<string | number>) {
+	return group.columns.filter((id) => collapsedHidden.has(id)).length
+}
+
 /** The colored band content: icon + title Badge, a trailing fold chevron (collapsible), and a `+N` count when collapsed. @internal */
-function GridGroupBand({ group, collapsed, onToggleCollapse }: GridGroupBandProps) {
+function GridGroupBand({ group, collapsed, hiddenCount, onToggleCollapse }: GridGroupBandProps) {
 	const intl = useIntl()
 
 	const label = columnLabel(group)
-
-	// Members the band hides while collapsed — every column but the anchor.
-	const hiddenCount = Math.max(0, group.columns.length - 1)
 
 	const badge: ReactNode = (
 		<Badge

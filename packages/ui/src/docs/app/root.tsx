@@ -19,6 +19,7 @@ import { Heading } from 'ui/heading'
 import { Icon } from 'ui/icon'
 import { SidebarLayout, SidebarLayoutBody, SidebarLayoutHeader } from 'ui/layouts'
 import { CurrentScrollScript } from 'ui/primitives/current'
+import { defineMessage, defineMessages, useIntl } from 'ui/primitives/intl'
 import { AppearanceSettings, useAppearance } from 'ui/providers/appearance'
 import { LocaleProvider } from 'ui/providers/locale'
 import { UIDocument, UIProvider } from 'ui/providers/ui'
@@ -28,6 +29,8 @@ import { noop } from '../../utilities/noop.ts'
 import { DebugScript } from '../debug/index.tsx'
 import { useIdle } from '../kit/idle.ts'
 import appCss from './app.css?url'
+import { appMessages } from './app-messages.ts'
+import { catalogs } from './catalogs.ts'
 import { DirectionListbox, DirectionScript } from './direction.tsx'
 import { PageError } from './page-error.tsx'
 import { NavigateContext, RouterLink } from './router-link.tsx'
@@ -105,9 +108,33 @@ const ASIDE = <EventsAside />
 
 // The locales that a reader can choose in the settings. They are the locales of
 // the apps, so the docs show the same choice. The first is the default. A
-// Spanish locale shows the controls of ui in Spanish, and the text of the docs
-// stays English.
+// Spanish locale shows the controls of ui and the text of the shell and the
+// kit in Spanish. The names from the code, the TSDoc, and the text of the
+// demos stay English.
 const LOCALES = ['en', 'es'] as const
+
+const messages = defineMessages({
+	notFound: {
+		id: 'docs.app.notFound',
+		defaultMessage: 'Not found',
+		description:
+			'The title of a page whose path has no page of the docs. It shows in the header and in the title of the browser tab.',
+	},
+	toggleSidebar: {
+		id: 'docs.app.toggleSidebar',
+		defaultMessage: 'Toggle sidebar',
+		description:
+			'The name of the button in the header that shows or hides the sidebar on a wide screen.',
+	},
+})
+
+// The title of the browser tab on a page: the name of the page, then the name of the docs.
+const pageTitleMessage = defineMessage<{ page: string }>({
+	id: 'docs.app.pageTitle',
+	defaultMessage: '{page} · Docs',
+	description:
+		'The title of the browser tab on a page of the docs. The page is the name of the page, such as Button.',
+})
 
 /**
  * The shell of the docs: the sidebar, the header with the name of the page, and the page.
@@ -116,67 +143,80 @@ const LOCALES = ['en', 'es'] as const
  * default locale of Node, and the browser hydrates it with the default locale
  * of the reader. A fixed locale makes the two renders agree. After hydration,
  * the shell takes the locale that the reader chooses in the settings. The
- * provider holds the whole shell, so the settings dialog reads the choice.
+ * provider holds the whole shell, so the settings dialog reads the choice, and
+ * the shell shows its text in the language of the choice.
  */
 export default function App() {
+	const navigate = useNavigate()
+
+	return (
+		<NavigateContext value={navigate}>
+			<LocaleProvider locale="en" locales={LOCALES} catalogs={catalogs}>
+				<Shell />
+			</LocaleProvider>
+		</NavigateContext>
+	)
+}
+
+// The content of the shell. It reads the intl of the locale provider of the
+// shell, so it is a component under that provider.
+function Shell() {
 	const { pathname } = useLocation()
 
 	const { sidebar, setSidebar } = useAppearance()
 
 	const matches = useMatches()
 
-	const navigate = useNavigate()
+	const intl = useIntl()
 
 	// The page of the matched route. A path that only starts with the path of a
 	// page, such as `/button/foo`, matches the not-found route, so it has no page.
 	const page = pages.find((link) => matches.some((match) => match.id === link.path))
 
 	// The root path lists the pages, and has no title of its own.
-	const title = page?.name ?? (pathname === '/' ? undefined : 'Not found')
+	const title = page?.name ?? (pathname === '/' ? undefined : intl.formatMessage(messages.notFound))
+
+	const docs = intl.formatMessage(appMessages.docs)
 
 	useIdle(warmShiki)
 
 	return (
 		// The links match the path of the page, so the item of a page is current
 		// on each tab of the page, and no item is current on the not-found page.
-		<NavigateContext value={navigate}>
-			<LocaleProvider locale="en" locales={LOCALES}>
-				<UIProvider link={RouterLink} pathname={page?.path ?? pathname}>
-					<title>{title ? `${title} · Docs` : 'Docs'}</title>
-					<Stylesheet />
-					<DocsSearch>
-						<SidebarLayout
-							stickyHeader
-							actions={ACTIONS}
-							sidebar={<DocsSidebar pages={pages} />}
-							aside={ASIDE}
-						>
-							<SidebarLayoutHeader>
-								<Flex align="center" gap="md">
-									<Button
-										variant="bare"
-										className="hidden lg:inline-flex"
-										aria-label="Toggle sidebar"
-										onClick={() => setSidebar(sidebar === 'offcanvas' ? 'locked' : 'offcanvas')}
-									>
-										{/* The class of the root selects the icon, so the first paint shows the stored mode. */}
-										<Icon icon={<PanelLeftDashed />} className="sidebar-offcanvas:hidden" />
-										<Icon icon={<PanelLeft />} className="hidden sidebar-offcanvas:block" />
-									</Button>
-									<Heading>{title ?? 'Docs'}</Heading>
-								</Flex>
-							</SidebarLayoutHeader>
-							<SearchPaletteHost />
-							<SidebarLayoutBody>
-								<Stack gap="xl">
-									<Outlet />
-								</Stack>
-							</SidebarLayoutBody>
-						</SidebarLayout>
-					</DocsSearch>
-				</UIProvider>
-			</LocaleProvider>
-		</NavigateContext>
+		<UIProvider link={RouterLink} pathname={page?.path ?? pathname}>
+			<title>{title ? intl.formatMessage(pageTitleMessage, { page: title }) : docs}</title>
+			<Stylesheet />
+			<DocsSearch>
+				<SidebarLayout
+					stickyHeader
+					actions={ACTIONS}
+					sidebar={<DocsSidebar pages={pages} />}
+					aside={ASIDE}
+				>
+					<SidebarLayoutHeader>
+						<Flex align="center" gap="md">
+							<Button
+								variant="bare"
+								className="hidden lg:inline-flex"
+								aria-label={intl.formatMessage(messages.toggleSidebar)}
+								onClick={() => setSidebar(sidebar === 'offcanvas' ? 'locked' : 'offcanvas')}
+							>
+								{/* The class of the root selects the icon, so the first paint shows the stored mode. */}
+								<Icon icon={<PanelLeftDashed />} className="sidebar-offcanvas:hidden" />
+								<Icon icon={<PanelLeft />} className="hidden sidebar-offcanvas:block" />
+							</Button>
+							<Heading>{title ?? docs}</Heading>
+						</Flex>
+					</SidebarLayoutHeader>
+					<SearchPaletteHost />
+					<SidebarLayoutBody>
+						<Stack gap="xl">
+							<Outlet />
+						</Stack>
+					</SidebarLayoutBody>
+				</SidebarLayout>
+			</DocsSearch>
+		</UIProvider>
 	)
 }
 

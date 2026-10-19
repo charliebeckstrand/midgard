@@ -5,6 +5,7 @@ import { createContext } from 'ui/core'
 import { useIntentLoad } from 'ui/hooks'
 import { Icon } from 'ui/icon'
 import { Kbd } from 'ui/kbd'
+import { defineMessages, IntlMessage } from 'ui/primitives/intl'
 import { OffcanvasContext } from 'ui/primitives/offcanvas'
 import { useStableEvent } from '../../hooks/use-stable-event.ts'
 import { noopSubscribe } from '../../utilities/noop.ts'
@@ -32,6 +33,15 @@ type SearchState = {
 }
 
 const [SearchContext, useSearch] = createContext<SearchState>('DocsSearch')
+
+const messages = defineMessages({
+	button: {
+		id: 'docs.search.button',
+		defaultMessage: 'Search docs',
+		description:
+			'The label of the button at the top of the sidebar that opens the search of the docs.',
+	},
+})
 
 /**
  * Holds the state of the search for the shell. The button is in the sidebar
@@ -91,7 +101,9 @@ export function SearchButton() {
 			onClick={() => request(offcanvas?.close)}
 		>
 			<Icon icon={<Search />} />
-			<span className="flex-1 text-start">Search docs</span>
+			<span className="flex-1 text-start">
+				<IntlMessage message={messages.button} />
+			</span>
 			<Kbd className="hidden lg:inline-flex">{key}</Kbd>
 		</Button>
 	)

@@ -7,8 +7,16 @@ import {
 	useOutlet,
 	useResolvedPath,
 } from 'react-router'
+import { defineMessage, useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from 'ui/tabs'
+
+const sectionsMessage = defineMessage({
+	id: 'docs.tabs.sections',
+	defaultMessage: 'Sections',
+	description:
+		'The name of the list of tabs at the top of a page of the docs. Each tab shows one part of the page.',
+})
 
 /** The path part of a tab: `Server grouping` gives `server-grouping`. */
 function slugOf(tab: string): string {
@@ -59,6 +67,8 @@ export function PageTabs({ tabs, children }: { tabs: readonly string[]; children
 
 	const [intent, setIntent] = useState<string>()
 
+	const intl = useIntl()
+
 	return (
 		<Tabs
 			value={current}
@@ -69,7 +79,7 @@ export function PageTabs({ tabs, children }: { tabs: readonly string[]; children
 				navigate(tab === slugOf(first) ? '.' : tab, { preventScrollReset: true })
 			}}
 		>
-			<TabList aria-label="Sections">
+			<TabList aria-label={intl.formatMessage(sectionsMessage)}>
 				{tabs.map((tab) => (
 					<Tab key={tab} value={slugOf(tab)} onPreload={setIntent}>
 						{tab}

@@ -96,6 +96,18 @@ describe('collapsedHiddenIds', () => {
 	it('accumulates hidden ids across several collapsed groups', () => {
 		expect(collapsedHiddenIds(groups, new Set(['g', 'h']))).toEqual(new Set(['b', 'c', 'e']))
 	})
+
+	it('keeps the first member that shows as the anchor', () => {
+		const shows = (id: string | number) => id !== 'a'
+
+		expect(collapsedHiddenIds(groups, new Set(['g']), shows)).toEqual(new Set(['c']))
+	})
+
+	it('hides no member that does not show', () => {
+		const shows = (id: string | number) => id !== 'b'
+
+		expect(collapsedHiddenIds(groups, new Set(['g']), shows)).toEqual(new Set(['c']))
+	})
 })
 
 describe('buildGroupSpans', () => {

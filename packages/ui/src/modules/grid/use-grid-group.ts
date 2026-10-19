@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState } from 'react'
 import { useControllable } from '../../hooks'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { toggleItem } from '../../utilities'
-import { buildGroupSpans, collapsedHiddenIds, groupByColumn } from './engine/grid-group/compute'
+import { buildGroupSpans, groupByColumn } from './engine/grid-group/compute'
 import type { GridGroupHeader, GridGroupResult } from './engine/grid-group/resolve'
 import type { GridColumnGroup, GridColumnGroups, GridGroupSpan } from './grid-group-types'
 
@@ -28,12 +28,12 @@ function resolveGroupsBinding(groups: GridColumnGroups | undefined): {
 /**
  * Owns the grid's column-group slice: the controllable `groups` binding (array
  * shorthand or object binding). It also owns the collapse state, seeded once
- * from each group's `defaultCollapsed`, and the ids collapsed groups hide from
- * the engine. A `resolveHeader` maps the current visible columns into the
- * band-row {@link GridGroupSpan}s. Kept apart from the engine so `grid-data`
- * only wires it. That module feeds the grouped order (via
- * {@link groupedColumnOrder}) and `collapsedHidden` into the column slice, then
- * renders `resolveHeader` above the column header.
+ * from each group's `defaultCollapsed`. A `resolveHeader` maps the current
+ * visible columns into the band-row {@link GridGroupSpan}s. Kept apart from the
+ * engine so `grid-data` only wires it. That module feeds the groups and the
+ * collapse state into the column slice, which resolves the order and the ids
+ * that the collapse hides. It then renders `resolveHeader` above the column
+ * header.
  *
  * @internal
  */
@@ -71,20 +71,17 @@ export function useGridGroup(
 	// transition, so a grid that mounts with a band already shut says nothing.
 	useReportedChange(collapsed, onCollapsedChange)
 
-	const collapsedHidden = useMemo(
-		() => collapsedHiddenIds(resolvedGroups, collapsed),
-		[resolvedGroups, collapsed],
-	)
-
 	const colToGroup = useMemo(() => groupByColumn(resolvedGroups), [resolvedGroups])
 
 	const resolveHeader = useCallback(
 		(
 			visibleColumnIds: (string | number)[],
 			pinnedSide: (id: string | number) => 'left' | 'right' | undefined,
+			collapsedHidden: ReadonlySet<string | number>,
 		): GridGroupHeader => ({
 			spans: buildGroupSpans(visibleColumnIds, colToGroup, pinnedSide),
 			collapsed,
+			collapsedHidden,
 			onToggleCollapse: toggleCollapse,
 		}),
 		[colToGroup, collapsed, toggleCollapse],
@@ -101,7 +98,6 @@ export function useGridGroup(
 		editorSetGroups: enabled ? setGroups : undefined,
 		collapsed,
 		toggleCollapse,
-		collapsedHidden,
 		resolveHeader,
 	}
 }

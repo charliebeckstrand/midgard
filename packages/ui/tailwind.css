@@ -147,6 +147,6 @@
 @source inline('{sm,md,lg,xl,2xl}:density-pt-[2,4,6,8,10]');
 @source inline('{sm,md,lg,xl,2xl}:not-has-[[data-slot=header]]:density-pt-[0,0,0,0,0]');
 @source inline('{sm,md,lg,xl,2xl}:not-has-[[data-slot=header]]:density-pt-[2,4,6,8,10]');
-@source inline('{sm,md,lg,xl,2xl}:**:data-[slot=header]:{static,sticky}');
+@source inline('{sm,md,lg,xl,2xl}:{static,sticky}');
 /* EventsButton `layout`: the button while the panel is pinned. */
 @source inline('{sm,md,lg,xl,2xl}:[:root[data-events][data-events-pinned]_&]:{contents,hidden}');

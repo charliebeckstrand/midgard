@@ -1,8 +1,9 @@
 import { animate } from 'motion'
 import type { FormEvent } from 'react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, vi } from 'vitest'
 import { HoldButton } from '../../components/hold-button'
-import { act, bySlot, fireEvent, getSlot, present, renderUI, withFakeTime } from '../helpers'
+import { act, bySlot, fireEvent, getSlot, present, renderUI } from '../helpers'
+import { it } from '../helpers/fake-clock'
 
 // `animate` is the shared module spy (setup/module-mocks.ts). The stub runs no
 // animation. A real Motion animation under fake timers waits on a fake frame,
@@ -89,88 +90,84 @@ describe('HoldButton', () => {
 		expect(onHoldCancel).toHaveBeenCalledOnce()
 	})
 
-	it('cancels a keyboard hold on blur instead of completing after focus loss', async () => {
-		await withFakeTime(async (clock) => {
-			const onHoldComplete = vi.fn()
+	it('cancels a keyboard hold on blur instead of completing after focus loss', async ({
+		clock,
+	}) => {
+		const onHoldComplete = vi.fn()
 
-			const onHoldCancel = vi.fn()
+		const onHoldCancel = vi.fn()
 
-			const { container } = renderUI(
-				<HoldButton duration={500} onHoldComplete={onHoldComplete} onHoldCancel={onHoldCancel}>
-					Hold
-				</HoldButton>,
-			)
+		const { container } = renderUI(
+			<HoldButton duration={500} onHoldComplete={onHoldComplete} onHoldCancel={onHoldCancel}>
+				Hold
+			</HoldButton>,
+		)
 
-			const el = getSlot(container, 'hold-button')
+		const el = getSlot(container, 'hold-button')
 
-			fireEvent.keyDown(el, { key: ' ' })
+		fireEvent.keyDown(el, { key: ' ' })
 
-			// Tab-away routes the keyup elsewhere; the irreversible action must
-			// not fire for an unfocused control.
-			fireEvent.blur(el)
+		// Tab-away routes the keyup elsewhere; the irreversible action must
+		// not fire for an unfocused control.
+		fireEvent.blur(el)
 
-			await clock.advance(600)
+		await clock.advance(600)
 
-			expect(onHoldComplete).not.toHaveBeenCalled()
+		expect(onHoldComplete).not.toHaveBeenCalled()
 
-			expect(onHoldCancel).toHaveBeenCalledOnce()
-		})
+		expect(onHoldCancel).toHaveBeenCalledOnce()
 	})
 
-	it('cancels a keyboard hold when the window loses focus', async () => {
-		await withFakeTime(async (clock) => {
-			const onHoldComplete = vi.fn()
+	it('cancels a keyboard hold when the window loses focus', async ({ clock }) => {
+		const onHoldComplete = vi.fn()
 
-			const { container } = renderUI(
-				<HoldButton duration={500} onHoldComplete={onHoldComplete}>
-					Hold
-				</HoldButton>,
-			)
+		const { container } = renderUI(
+			<HoldButton duration={500} onHoldComplete={onHoldComplete}>
+				Hold
+			</HoldButton>,
+		)
 
-			const el = getSlot(container, 'hold-button')
+		const el = getSlot(container, 'hold-button')
 
-			fireEvent.keyDown(el, { key: ' ' })
+		fireEvent.keyDown(el, { key: ' ' })
 
-			fireEvent.blur(window)
+		fireEvent.blur(window)
 
-			await clock.advance(600)
+		await clock.advance(600)
 
-			expect(onHoldComplete).not.toHaveBeenCalled()
-		})
+		expect(onHoldComplete).not.toHaveBeenCalled()
 	})
 
-	it('ignores releasing the other activation key mid-hold', async () => {
-		await withFakeTime(async (clock) => {
-			const onHoldComplete = vi.fn()
+	it('ignores releasing the other activation key mid-hold', async ({ clock }) => {
+		const onHoldComplete = vi.fn()
 
-			const onHoldCancel = vi.fn()
+		const onHoldCancel = vi.fn()
 
-			const { container } = renderUI(
-				<HoldButton duration={500} onHoldComplete={onHoldComplete} onHoldCancel={onHoldCancel}>
-					Hold
-				</HoldButton>,
-			)
+		const { container } = renderUI(
+			<HoldButton duration={500} onHoldComplete={onHoldComplete} onHoldCancel={onHoldCancel}>
+				Hold
+			</HoldButton>,
+		)
 
-			const el = getSlot(container, 'hold-button')
+		const el = getSlot(container, 'hold-button')
 
-			// Space starts the hold; pressing and releasing Enter must not abort it.
-			fireEvent.keyDown(el, { key: ' ' })
+		// Space starts the hold; pressing and releasing Enter must not abort it.
+		fireEvent.keyDown(el, { key: ' ' })
 
-			fireEvent.keyDown(el, { key: 'Enter' })
+		fireEvent.keyDown(el, { key: 'Enter' })
 
-			fireEvent.keyUp(el, { key: 'Enter' })
+		fireEvent.keyUp(el, { key: 'Enter' })
 
-			expect(onHoldCancel).not.toHaveBeenCalled()
+		expect(onHoldCancel).not.toHaveBeenCalled()
 
-			await clock.advance(600)
+		await clock.advance(600)
 
-			expect(onHoldComplete).toHaveBeenCalledOnce()
+		expect(onHoldComplete).toHaveBeenCalledOnce()
 
-			// The initiating key's release after completion is a no-op.
-			fireEvent.keyUp(el, { key: ' ' })
+		// The initiating key's release after completion is a no-op.
+		fireEvent.keyUp(el, { key: ' ' })
 
-			expect(onHoldCancel).not.toHaveBeenCalled()
-		})
+		expect(onHoldCancel).not.toHaveBeenCalled()
 	})
 
 	it('starts on Space keydown', () => {

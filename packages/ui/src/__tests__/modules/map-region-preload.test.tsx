@@ -1,7 +1,8 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import { MapPlat } from '../../modules/map'
 import { MAP_PRELOAD_DWELL_MS } from '../../modules/map/engine/map-constants'
-import { allRegions, bySlot, fireEvent, renderUI, withFakeTime } from '../helpers'
+import { allRegions, bySlot, fireEvent, renderUI } from '../helpers'
+import { it } from '../helpers/fake-clock'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 import { renderNavigable } from '../helpers/map-navigable'
 import { categoricalPlat } from '../helpers/map-plat'
@@ -17,211 +18,195 @@ function leave(container: HTMLElement) {
 }
 
 describe('MapPlat onRegionPreload', () => {
-	it('warms the region held through the dwell, by the identity a click reports', async () => {
-		await withFakeTime(async (clock) => {
-			const preload = vi.fn()
+	it('warms the region held through the dwell, by the identity a click reports', async ({
+		clock,
+	}) => {
+		const preload = vi.fn()
 
-			const { container } = renderUI(categoricalPlat({ onRegionPreload: preload }))
+		const { container } = renderUI(categoricalPlat({ onRegionPreload: preload }))
 
-			const [alpha] = allRegions(container)
+		const [alpha] = allRegions(container)
 
-			point(alpha as Element)
+		point(alpha as Element)
 
-			await clock.advance(MAP_PRELOAD_DWELL_MS - 1)
+		await clock.advance(MAP_PRELOAD_DWELL_MS - 1)
 
-			expect(preload).not.toHaveBeenCalled()
+		expect(preload).not.toHaveBeenCalled()
 
-			await clock.advance(1)
+		await clock.advance(1)
 
-			expect(preload).toHaveBeenCalledExactlyOnceWith('A', 0)
-		})
+		expect(preload).toHaveBeenCalledExactlyOnceWith('A', 0)
 	})
 
-	it('warms nothing for a region the pointer only passes through', async () => {
-		await withFakeTime(async (clock) => {
-			const preload = vi.fn()
+	it('warms nothing for a region the pointer only passes through', async ({ clock }) => {
+		const preload = vi.fn()
 
-			const { container } = renderUI(categoricalPlat({ onRegionPreload: preload }))
+		const { container } = renderUI(categoricalPlat({ onRegionPreload: preload }))
 
-			const [alpha, beta, gamma] = allRegions(container)
+		const [alpha, beta, gamma] = allRegions(container)
 
-			// The travel a pointer makes reaching the far side of a map: every region
-			// on the way is crossed, and none of them is the one the reader wants.
-			point(alpha as Element)
+		// The travel a pointer makes reaching the far side of a map: every region
+		// on the way is crossed, and none of them is the one the reader wants.
+		point(alpha as Element)
 
-			point(beta as Element)
+		point(beta as Element)
 
-			point(gamma as Element)
+		point(gamma as Element)
 
-			await clock.advance(MAP_PRELOAD_DWELL_MS)
+		await clock.advance(MAP_PRELOAD_DWELL_MS)
 
-			// Only where it came to rest.
-			expect(preload).toHaveBeenCalledExactlyOnceWith('C', 2)
-		})
+		// Only where it came to rest.
+		expect(preload).toHaveBeenCalledExactlyOnceWith('C', 2)
 	})
 
-	it('warms nothing when the pointer leaves the map inside the dwell', async () => {
-		await withFakeTime(async (clock) => {
-			const preload = vi.fn()
+	it('warms nothing when the pointer leaves the map inside the dwell', async ({ clock }) => {
+		const preload = vi.fn()
 
-			const { container } = renderUI(categoricalPlat({ onRegionPreload: preload }))
+		const { container } = renderUI(categoricalPlat({ onRegionPreload: preload }))
 
-			const [alpha] = allRegions(container)
+		const [alpha] = allRegions(container)
 
-			point(alpha as Element)
+		point(alpha as Element)
 
-			leave(container)
+		leave(container)
 
-			await clock.advance(MAP_PRELOAD_DWELL_MS)
+		await clock.advance(MAP_PRELOAD_DWELL_MS)
 
-			expect(preload).not.toHaveBeenCalled()
-		})
+		expect(preload).not.toHaveBeenCalled()
 	})
 
-	it('warms a region once, however often the pointer crosses back over it', async () => {
-		await withFakeTime(async (clock) => {
-			const preload = vi.fn()
+	it('warms a region once, however often the pointer crosses back over it', async ({ clock }) => {
+		const preload = vi.fn()
 
-			const { container } = renderUI(categoricalPlat({ onRegionPreload: preload }))
+		const { container } = renderUI(categoricalPlat({ onRegionPreload: preload }))
 
-			const [alpha, beta] = allRegions(container)
+		const [alpha, beta] = allRegions(container)
 
-			point(alpha as Element)
+		point(alpha as Element)
 
-			await clock.advance(MAP_PRELOAD_DWELL_MS)
+		await clock.advance(MAP_PRELOAD_DWELL_MS)
 
-			point(beta as Element)
+		point(beta as Element)
 
-			await clock.advance(MAP_PRELOAD_DWELL_MS)
+		await clock.advance(MAP_PRELOAD_DWELL_MS)
 
-			point(alpha as Element)
+		point(alpha as Element)
 
-			await clock.advance(MAP_PRELOAD_DWELL_MS)
+		await clock.advance(MAP_PRELOAD_DWELL_MS)
 
-			expect(preload.mock.calls).toEqual([
-				['A', 0],
-				['B', 1],
-			])
-		})
+		expect(preload.mock.calls).toEqual([
+			['A', 0],
+			['B', 1],
+		])
 	})
 
-	it('holds the latch across a re-render that churns the handler identity', async () => {
-		await withFakeTime(async (clock) => {
-			const preload = vi.fn()
+	it('holds the latch across a re-render that churns the handler identity', async ({ clock }) => {
+		const preload = vi.fn()
 
-			// The inline arrow a consumer writes: a fresh identity on every render,
-			// which must not re-arm a region the reader already warmed.
-			const { container, rerender } = renderUI(
-				categoricalPlat({ onRegionPreload: (id, index) => preload(id, index) }),
-			)
+		// The inline arrow a consumer writes: a fresh identity on every render,
+		// which must not re-arm a region the reader already warmed.
+		const { container, rerender } = renderUI(
+			categoricalPlat({ onRegionPreload: (id, index) => preload(id, index) }),
+		)
 
-			const [alpha] = allRegions(container)
+		const [alpha] = allRegions(container)
 
-			point(alpha as Element)
+		point(alpha as Element)
 
-			await clock.advance(MAP_PRELOAD_DWELL_MS)
+		await clock.advance(MAP_PRELOAD_DWELL_MS)
 
-			leave(container)
+		leave(container)
 
-			rerender(categoricalPlat({ onRegionPreload: (id, index) => preload(id, index) }))
+		rerender(categoricalPlat({ onRegionPreload: (id, index) => preload(id, index) }))
 
-			point(allRegions(container)[0] as Element)
+		point(allRegions(container)[0] as Element)
 
-			await clock.advance(MAP_PRELOAD_DWELL_MS)
+		await clock.advance(MAP_PRELOAD_DWELL_MS)
 
-			expect(preload).toHaveBeenCalledOnce()
-		})
+		expect(preload).toHaveBeenCalledOnce()
 	})
 
-	it('re-arms every region when the geography changes', async () => {
-		await withFakeTime(async (clock) => {
-			const preload = vi.fn()
+	it('re-arms every region when the geography changes', async ({ clock }) => {
+		const preload = vi.fn()
 
-			const { container, rerender } = renderUI(categoricalPlat({ onRegionPreload: preload }))
+		const { container, rerender } = renderUI(categoricalPlat({ onRegionPreload: preload }))
 
-			point(allRegions(container)[0] as Element)
+		point(allRegions(container)[0] as Element)
 
-			await clock.advance(MAP_PRELOAD_DWELL_MS)
+		await clock.advance(MAP_PRELOAD_DWELL_MS)
 
-			leave(container)
+		leave(container)
 
-			// A feature index means nothing against features it did not come from, so
-			// the latch belongs to the geography and goes with it.
-			rerender(
-				categoricalPlat({
-					onRegionPreload: preload,
-					geography: { ...FIXTURE_GEOJSON, features: [...FIXTURE_GEOJSON.features] },
-				}),
-			)
+		// A feature index means nothing against features it did not come from, so
+		// the latch belongs to the geography and goes with it.
+		rerender(
+			categoricalPlat({
+				onRegionPreload: preload,
+				geography: { ...FIXTURE_GEOJSON, features: [...FIXTURE_GEOJSON.features] },
+			}),
+		)
 
-			point(allRegions(container)[0] as Element)
+		point(allRegions(container)[0] as Element)
 
-			await clock.advance(MAP_PRELOAD_DWELL_MS)
+		await clock.advance(MAP_PRELOAD_DWELL_MS)
 
-			expect(preload.mock.calls).toEqual([
-				['A', 0],
-				['A', 0],
-			])
-		})
+		expect(preload.mock.calls).toEqual([
+			['A', 0],
+			['A', 0],
+		])
 	})
 
-	it('warms a region carrying no data', async () => {
-		await withFakeTime(async (clock) => {
-			const preload = vi.fn()
+	it('warms a region carrying no data', async ({ clock }) => {
+		const preload = vi.fn()
 
-			const { container } = renderUI(categoricalPlat({ onRegionPreload: preload }))
+		const { container } = renderUI(categoricalPlat({ onRegionPreload: preload }))
 
-			// Gamma matches no row, so it takes no pointed emphasis. What it opens
-			// into is a different question, and it still answers this one.
-			const [, , gamma] = allRegions(container)
+		// Gamma matches no row, so it takes no pointed emphasis. What it opens
+		// into is a different question, and it still answers this one.
+		const [, , gamma] = allRegions(container)
 
-			point(gamma as Element)
+		point(gamma as Element)
 
-			await clock.advance(MAP_PRELOAD_DWELL_MS)
+		await clock.advance(MAP_PRELOAD_DWELL_MS)
 
-			expect(bySlot(container, 'map-regions-lit')).toBeNull()
+		expect(bySlot(container, 'map-regions-lit')).toBeNull()
 
-			expect(preload).toHaveBeenCalledExactlyOnceWith('C', 2)
-		})
+		expect(preload).toHaveBeenCalledExactlyOnceWith('C', 2)
 	})
 
-	it('warms on a plain navigation map, which has no readout to track by', async () => {
-		await withFakeTime(async (clock) => {
-			const preload = vi.fn()
+	it('warms on a plain navigation map, which has no readout to track by', async ({ clock }) => {
+		const preload = vi.fn()
 
-			// A geography and the prop, no `data` at all: without warming lifting the
-			// layer's tracking with it, the pointer half of the report would be dead.
-			const { container } = renderUI(
-				<MapPlat
-					aria-label="States"
-					geography={FIXTURE_GEOJSON}
-					width={400}
-					onRegionPreload={preload}
-				/>,
-			)
+		// A geography and the prop, no `data` at all: without warming lifting the
+		// layer's tracking with it, the pointer half of the report would be dead.
+		const { container } = renderUI(
+			<MapPlat
+				aria-label="States"
+				geography={FIXTURE_GEOJSON}
+				width={400}
+				onRegionPreload={preload}
+			/>,
+		)
 
-			point(allRegions(container)[1] as Element)
+		point(allRegions(container)[1] as Element)
 
-			await clock.advance(MAP_PRELOAD_DWELL_MS)
+		await clock.advance(MAP_PRELOAD_DWELL_MS)
 
-			expect(preload).toHaveBeenCalledExactlyOnceWith('B', 1)
-		})
+		expect(preload).toHaveBeenCalledExactlyOnceWith('B', 1)
 	})
 
-	it('warms from the keyboard cursor, so both inputs signal the same intent', async () => {
-		await withFakeTime(async (clock) => {
-			const preload = vi.fn()
+	it('warms from the keyboard cursor, so both inputs signal the same intent', async ({ clock }) => {
+		const preload = vi.fn()
 
-			const { plot } = renderNavigable(categoricalPlat({ onRegionPreload: preload }))
+		const { plot } = renderNavigable(categoricalPlat({ onRegionPreload: preload }))
 
-			// The arrow keys move the same hover target a pointer does, so the reader
-			// who navigates by keyboard warms what the pointing one warms.
-			fireEvent.keyDown(plot, { key: 'ArrowRight' })
+		// The arrow keys move the same hover target a pointer does, so the reader
+		// who navigates by keyboard warms what the pointing one warms.
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
 
-			await clock.advance(MAP_PRELOAD_DWELL_MS)
+		await clock.advance(MAP_PRELOAD_DWELL_MS)
 
-			expect(preload).toHaveBeenCalledExactlyOnceWith('A', 0)
-		})
+		expect(preload).toHaveBeenCalledExactlyOnceWith('A', 0)
 	})
 })
 

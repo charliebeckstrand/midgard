@@ -1,5 +1,6 @@
 import type { ComponentProps } from 'react'
 import { BreadcrumbFit } from './breadcrumb-fit'
+import { BreadcrumbNav } from './breadcrumb-nav'
 
 /** Props for {@link Breadcrumb}; the `collapse` flag plus the underlying `<nav>` attributes. */
 export type BreadcrumbProps = {
@@ -24,16 +25,17 @@ export type BreadcrumbProps = {
 } & ComponentProps<'nav'>
 
 /**
- * Breadcrumb navigation landmark: renders a `<nav>` labeled
- * `aria-label="Breadcrumb"` (APG). Holds a `<BreadcrumbList>` of
+ * Breadcrumb navigation landmark: renders a `<nav>` named "Breadcrumb" in the
+ * language of the reader (APG). Holds a `<BreadcrumbList>` of
  * `<BreadcrumbItem>`s, each wrapping a `<BreadcrumbLink>`, with
  * `<BreadcrumbSeparator>`s between crumbs. Set `collapse` to keep a long trail
- * on one line. Static leaf: renders in React Server Components, and a
- * collapsing trail renders its client part. Compose `<BreadcrumbSkeleton>` for
- * loading trees.
+ * on one line. Static leaf: renders in React Server Components. The `<nav>`
+ * is its client part, which reads the name from the nearest `LocaleProvider`.
+ * Pass `aria-label` to give the trail another name. Compose
+ * `<BreadcrumbSkeleton>` for loading trees.
  */
 export function Breadcrumb({ collapse = false, ...props }: BreadcrumbProps) {
 	if (collapse) return <BreadcrumbFit {...props} />
 
-	return <nav data-slot="breadcrumb" aria-label="Breadcrumb" {...props} />
+	return <BreadcrumbNav {...props} />
 }

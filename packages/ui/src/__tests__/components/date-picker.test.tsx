@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { describe, expect, it, vi } from 'vitest'
-
+import { describe, expect, vi } from 'vitest'
 import { Control } from '../../components/control'
 import { DatePicker } from '../../components/date-picker'
 import { DatePickerCalendarButton } from '../../components/date-picker/date-picker-calendar-button'
@@ -8,18 +7,9 @@ import { useDatePickerState } from '../../components/date-picker/use-date-picker
 import { Field } from '../../components/fieldset'
 import { Form } from '../../modules/form'
 import { LocaleProvider } from '../../providers/locale'
-import {
-	act,
-	bySlot,
-	fireEvent,
-	getSlot,
-	renderUI,
-	screen,
-	setupUser,
-	withFakeTime,
-	within,
-} from '../helpers'
+import { act, bySlot, fireEvent, getSlot, renderUI, screen, setupUser, within } from '../helpers'
 import { axe } from '../helpers/axe'
+import { it } from '../helpers/fake-clock'
 
 // The footer Clear and the trigger clear share the "Clear selection" name; scope
 // footer-clear queries to the popover toolbar so the closed trigger's clear (now
@@ -834,41 +824,39 @@ describe('DatePicker keyboard', () => {
 		expect(screen.getByRole('dialog', { name: 'Choose date' })).toHaveFocus()
 	})
 
-	it('keeps arrow keys inside the open month picker', async () => {
-		await withFakeTime(async (clock) => {
-			const { container } = renderUI(<DatePicker defaultValue={new Date(2025, 5, 15)} />)
+	it('keeps arrow keys inside the open month picker', async ({ clock }) => {
+		const { container } = renderUI(<DatePicker defaultValue={new Date(2025, 5, 15)} />)
 
-			const button = getSlot<HTMLButtonElement>(container, 'datepicker-button')
+		const button = getSlot<HTMLButtonElement>(container, 'datepicker-button')
 
-			button.focus()
+		button.focus()
 
-			await clock.user.keyboard('{ArrowDown}') // open
+		await clock.user.keyboard('{ArrowDown}') // open
 
-			await clock.user.click(screen.getByRole('button', { name: /June 2025/ }))
+		await clock.user.click(screen.getByRole('button', { name: /June 2025/ }))
 
-			const jun = screen.getByRole('option', { name: 'Jun', selected: true })
+		const jun = screen.getByRole('option', { name: 'Jun', selected: true })
 
-			// The picker focuses its selected cell one frame after open.
-			await clock.advance(16)
+		// The picker focuses its selected cell one frame after open.
+		await clock.advance(16)
 
-			expect(jun).toHaveFocus()
+		expect(jun).toHaveFocus()
 
-			await clock.user.keyboard('{ArrowUp}') // second row → first row (Mar)
+		await clock.user.keyboard('{ArrowUp}') // second row → first row (Mar)
 
-			await clock.user.keyboard('{ArrowUp}') // first row → year label in the picker header
+		await clock.user.keyboard('{ArrowUp}') // first row → year label in the picker header
 
-			const yearLabel = screen.getByRole('button', { name: '2025' })
+		const yearLabel = screen.getByRole('button', { name: '2025' })
 
-			expect(yearLabel).toHaveFocus()
+		expect(yearLabel).toHaveFocus()
 
-			// No move applies; the press must stay sealed in the picker rather than
-			// drive the calendar underneath or pull focus back to the dialog.
-			await clock.user.keyboard('{ArrowUp}')
+		// No move applies; the press must stay sealed in the picker rather than
+		// drive the calendar underneath or pull focus back to the dialog.
+		await clock.user.keyboard('{ArrowUp}')
 
-			expect(yearLabel).toHaveFocus()
+		expect(yearLabel).toHaveFocus()
 
-			expect(screen.getByRole('listbox', { name: 'Select month' })).toBeInTheDocument()
-		})
+		expect(screen.getByRole('listbox', { name: 'Select month' })).toBeInTheDocument()
 	})
 
 	it('moves the active day with arrows and commits it with Enter', async () => {
