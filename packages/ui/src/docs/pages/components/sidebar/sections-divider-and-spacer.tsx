@@ -39,7 +39,7 @@ export default function SectionsDividerAndSpacer() {
 	const [active, setActive] = useState('home')
 
 	return (
-		<Sidebar aria-label="Sidebar with sections">
+		<Sidebar aria-label="Workspace">
 			<SidebarHeader>
 				<Heading level={3}>Workspace</Heading>
 			</SidebarHeader>
@@ -116,7 +116,7 @@ export default function SectionsDividerAndSpacer() {
 							<SidebarLabel>Settings</SidebarLabel>
 						</SidebarItem>
 						<SidebarItem icon={<LogOut />}>
-							<SidebarLabel>Log out</SidebarLabel>
+							<SidebarLabel>Sign out</SidebarLabel>
 						</SidebarItem>
 					</SidebarList>
 				</SidebarSection>

@@ -14,7 +14,7 @@ export default function InteractiveContent() {
 			</TooltipTrigger>
 			<TooltipContent>
 				<Flex align="center" gap="sm">
-					Draft saved.
+					Draft saved
 					<Button size="sm" variant="outline">
 						Undo
 					</Button>

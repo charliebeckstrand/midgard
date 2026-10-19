@@ -11,7 +11,7 @@ import {
 } from 'ui/sheet'
 import { Text } from 'ui/text'
 
-export default function InContainer() {
+export default function InAContainer() {
 	const [container, setContainer] = useState<HTMLDivElement | null>(null)
 
 	return (
@@ -30,10 +30,7 @@ export default function InContainer() {
 						<SheetDescription>PDF document, 2.4 MB</SheetDescription>
 					</SheetHeader>
 					<SheetBody>
-						<Text tone="muted">
-							Jane Smith uploaded this file on March 3. The sheet stays in this box, and the page
-							around it still scrolls.
-						</Text>
+						<Text tone="muted">Mia Chen uploaded this file on March 3.</Text>
 					</SheetBody>
 				</SheetPanel>
 			</Sheet>

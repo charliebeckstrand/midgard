@@ -1,6 +1,6 @@
 import api from 'virtual:docs/api/components/sheet'
 import { ApiTable, Example, Playground } from '../../../kit/index.ts'
-import InContainer from './in-container.tsx'
+import InAContainer from './in-a-container.tsx'
 import SheetPlayground from './playground.tsx'
 import WithForm from './with-form.tsx'
 
@@ -9,7 +9,7 @@ export default function SheetPage() {
 		<>
 			<Playground of={SheetPlayground} api={api} />
 			<Example of={WithForm} />
-			<Example of={InContainer} />
+			<Example of={InAContainer} />
 			<ApiTable api={api} />
 		</>
 	)

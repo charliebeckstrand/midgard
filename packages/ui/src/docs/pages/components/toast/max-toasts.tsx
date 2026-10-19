@@ -12,7 +12,7 @@ function ShowToast() {
 
 		setCount(next)
 
-		toast({ title: `Notification ${next}`, description: 'Only the three newest toasts stay.' })
+		toast({ title: `Notification ${next}`, description: 'Ravi Shah replied to your comment.' })
 	}
 
 	return <Button onClick={show}>Show toast</Button>

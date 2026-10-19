@@ -4,9 +4,9 @@ import { Flex } from 'ui/flex'
 export default function Equal() {
 	return (
 		<Flex gap="md" className="*:flex-1">
-			<Card>Narrow</Card>
-			<Card>Wider content here</Card>
-			<Card>Even wider content in this card</Card>
+			<Card>To do</Card>
+			<Card>In progress</Card>
+			<Card>Waiting for review by the design team</Card>
 		</Flex>
 	)
 }

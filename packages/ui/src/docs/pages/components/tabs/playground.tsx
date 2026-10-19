@@ -1,22 +1,21 @@
 import { Tab, TabContent, TabContents, TabList, Tabs, type TabsProps } from 'ui/tabs'
 import { Text } from 'ui/text'
-
-const sections = ['Account', 'Notifications', 'Billing']
+import { settings } from './settings.ts'
 
 export default function TabsPlayground(props: TabsProps) {
 	return (
 		<Tabs defaultValue="Account" {...props}>
 			<TabList aria-label="Settings">
-				{sections.map((section) => (
-					<Tab key={section} value={section}>
-						{section}
+				{settings.map((section) => (
+					<Tab key={section.name} value={section.name}>
+						{section.name}
 					</Tab>
 				))}
 			</TabList>
 			<TabContents>
-				{sections.map((section) => (
-					<TabContent key={section} value={section}>
-						<Text tone="muted">{section} settings would go here.</Text>
+				{settings.map((section) => (
+					<TabContent key={section.name} value={section.name}>
+						<Text tone="muted">{section.text}</Text>
 					</TabContent>
 				))}
 			</TabContents>
