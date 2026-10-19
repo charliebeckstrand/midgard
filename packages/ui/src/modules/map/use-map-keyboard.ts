@@ -60,6 +60,12 @@ export type MapKeyboardOptions = {
 	view: { width: number; height: number }
 	/** The plot's SVG, whose box places a stop in the viewport. */
 	svgRef: RefObject<SVGSVGElement | null>
+	/**
+	 * The identity of the geography that the region stops come from. A change
+	 * clears the cursor, because a region index means nothing against features
+	 * it did not come from.
+	 */
+	subject: unknown
 	/** Picks the stop under the cursor — a region by index, an overlay through its own reporter. */
 	activate: (target: MapHoverTarget) => void
 	/**
@@ -123,6 +129,7 @@ export function useMapKeyboard({
 	resolveStops,
 	view,
 	svgRef,
+	subject,
 	activate,
 	describe,
 	zoom,
@@ -135,6 +142,17 @@ export function useMapKeyboard({
 	// overlay that registers or unmounts re-orders that list, and an index would
 	// silently re-point at a different mark.
 	const [cursor, setCursor] = useState<MapHoverTarget | null>(null)
+
+	// A new geography clears the cursor in the render that brings it, before an
+	// effect can re-anchor the old index on a different feature. The hover
+	// provider clears the readout in the same render.
+	const [cursorSubject, setCursorSubject] = useState(subject)
+
+	if (cursorSubject !== subject) {
+		setCursorSubject(subject)
+
+		setCursor(null)
+	}
 
 	// The resolver's result for its own identity, so a refit or a registration
 	// that hands over a new resolver is the one thing that resolves again. The
