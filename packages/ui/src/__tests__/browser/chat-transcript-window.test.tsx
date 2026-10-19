@@ -171,6 +171,52 @@ describe('the transcript window', () => {
 		expect(transcript.scrollHeight).toBeGreaterThan(before + HEIGHT)
 	})
 
+	// A measurement at the end moves the scroll offset, and the window moves with
+	// it. A growth unmounts rows above the window. A shrink mounts rows there. The
+	// render must not change the observed rows inside the `ResizeObserver` callback.
+	it('moves the window for a resized last row with no ResizeObserver loop error', async () => {
+		const messages = history(200)
+
+		const withReply = (chunks: number): ChatMessageData[] => [
+			...messages,
+			{
+				id: 'reply',
+				sender: 'assistant',
+				content: `Late ${filler(4).repeat(chunks)} end-${chunks}`,
+			},
+		]
+
+		const errors: string[] = []
+
+		const record = (event: ErrorEvent) => {
+			errors.push(event.message)
+		}
+
+		window.addEventListener('error', record)
+
+		onTestFinished(() => window.removeEventListener('error', record))
+
+		const { container, rerender } = renderUI(<Frame messages={withReply(1)} streaming />)
+
+		const transcript = transcriptOf(container)
+
+		await landed(transcript)
+
+		for (const chunks of [4, 6, 3, 0]) {
+			rerender(<Frame messages={withReply(chunks)} streaming />)
+
+			await waitFor(() => {
+				expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1)
+
+				expect(showsEnd(transcript, `end-${chunks}`)).toBe(true)
+			})
+
+			await frames()
+		}
+
+		expect(errors).toEqual([])
+	})
+
 	it('follows new rows smoothly while they measure, and lands on the newest', async () => {
 		const messages = history(200)
 
