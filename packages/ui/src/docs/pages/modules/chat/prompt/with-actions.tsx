@@ -15,7 +15,7 @@ export default function WithActions() {
 			actions={
 				<Button variant="plain">
 					<Icon icon={<CircleDashed />} />
-					Data Analyst
+					Route planner
 				</Button>
 			}
 		/>

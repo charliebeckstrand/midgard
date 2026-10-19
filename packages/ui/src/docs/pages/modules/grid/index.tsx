@@ -7,12 +7,12 @@ const TABS = [
 	'Sorting',
 	'Selection',
 	'Events',
-	'Reorder',
-	'Resize',
-	'Expand',
+	'Reordering',
+	'Resizing',
+	'Expansion',
 	'Groups',
-	'Pin',
-	'Lock',
+	'Pinning',
+	'Locking',
 	'Filters',
 	'Header',
 	'Footer',
@@ -22,7 +22,7 @@ const TABS = [
 	'Pagination',
 	'Virtualization',
 	'State',
-	'Editable',
+	'Editing',
 ]
 
 export default function GridPage() {

@@ -10,7 +10,7 @@ export default function TitleAndSubtitle() {
 				{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
 				{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
 			]}
-			title="Revenue & costs"
+			title="Revenue and costs"
 			subtitle="Last six months"
 		/>
 	)

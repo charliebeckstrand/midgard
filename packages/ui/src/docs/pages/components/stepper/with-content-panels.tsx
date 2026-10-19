@@ -13,6 +13,12 @@ import {
 import { Text } from 'ui/text'
 import { steps } from './steps.ts'
 
+const instructions = [
+	'Enter your email and a password.',
+	'Add your name and a photo.',
+	'Check your details.',
+]
+
 export default function WithContentPanels() {
 	const [step, setStep] = useState(0)
 
@@ -31,7 +37,7 @@ export default function WithContentPanels() {
 					{steps.map((title, index) => (
 						<StepperPanel key={title} value={index}>
 							<Card>
-								<Text tone="muted">{title} content goes here.</Text>
+								<Text tone="muted">{instructions[index]}</Text>
 							</Card>
 						</StepperPanel>
 					))}

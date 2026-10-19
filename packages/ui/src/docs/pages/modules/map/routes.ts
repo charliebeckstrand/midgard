@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react'
 import { fetchOsrmRoute, type LngLat, type MapRouteAnswer, type MapRouteResult } from 'ui/map'
 
 /** The hub of a distribution network in Kansas City. The network is not real. */
-export const ikeaHub: LngLat = [-94.58, 39.1]
+export const hub: LngLat = [-94.58, 39.1]
 
-/** The destinations of the network from {@link ikeaHub}. */
-export const ikeaDestinations: { abbreviation: string; at: LngLat }[] = [
+/** The destinations of the network from {@link hub}. */
+export const destinations: { abbreviation: string; at: LngLat }[] = [
 	{ abbreviation: 'LA', at: [-118.24, 34.05] },
 	{ abbreviation: 'SEA', at: [-122.33, 47.61] },
 	{ abbreviation: 'NYC', at: [-74.0, 40.71] },

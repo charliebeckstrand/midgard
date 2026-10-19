@@ -10,7 +10,7 @@ export default function WithActions() {
 			sender="assistant"
 			actions={
 				<>
-					<CopyButton size="sm" text="Heading out now, ETA 3pm." />
+					<CopyButton size="sm" text="Heading out now. ETA 3:00 PM." />
 					<Button variant="bare" size="sm" aria-label="Retry">
 						<Icon icon={<RotateCcw />} />
 					</Button>
@@ -20,7 +20,7 @@ export default function WithActions() {
 				</>
 			}
 		>
-			Heading out now, ETA 3pm.
+			Heading out now. ETA 3:00 PM.
 		</ChatMessage>
 	)
 }

@@ -8,7 +8,7 @@ export default function BareNestedInAContainer() {
 	return (
 		<Card>
 			<CardHeader>
-				<CardTitle>Paragraphs</CardTitle>
+				<CardTitle>Release notes</CardTitle>
 			</CardHeader>
 			<CardBody>
 				<ScrollArea bare extent="md">

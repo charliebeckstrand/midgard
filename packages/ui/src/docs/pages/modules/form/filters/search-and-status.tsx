@@ -11,6 +11,14 @@ import { Input } from 'ui/input'
 import { Select, SelectLabel, SelectOption } from 'ui/select'
 import { FiltersReset, FilterValue } from './parts.tsx'
 
+const statuses = [
+	{ value: 'active', label: 'Active' },
+	{ value: 'inactive', label: 'Inactive' },
+	{ value: 'pending', label: 'Pending' },
+]
+
+const labelOf = (value: string) => statuses.find((status) => status.value === value)?.label ?? value
+
 type Value = {
 	search: string | undefined
 	status: string | undefined
@@ -36,16 +44,12 @@ export default function SearchAndStatus() {
 					</FormFiltersField>
 					<FormFiltersField name="status">
 						<Label>Status</Label>
-						<Select nullable placeholder="All statuses" displayValue={(value: string) => value}>
-							<SelectOption value="active">
-								<SelectLabel>Active</SelectLabel>
-							</SelectOption>
-							<SelectOption value="inactive">
-								<SelectLabel>Inactive</SelectLabel>
-							</SelectOption>
-							<SelectOption value="pending">
-								<SelectLabel>Pending</SelectLabel>
-							</SelectOption>
+						<Select nullable placeholder="All statuses" displayValue={labelOf}>
+							{statuses.map((status) => (
+								<SelectOption key={status.value} value={status.value}>
+									<SelectLabel>{status.label}</SelectLabel>
+								</SelectOption>
+							))}
 						</Select>
 					</FormFiltersField>
 				</FormFiltersRow>

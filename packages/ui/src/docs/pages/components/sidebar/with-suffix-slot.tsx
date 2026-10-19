@@ -4,7 +4,7 @@ import { Sidebar, SidebarBody, SidebarItem, SidebarLabel, SidebarList } from 'ui
 
 export default function WithSuffixSlot() {
 	return (
-		<Sidebar aria-label="Sidebar with suffixes">
+		<Sidebar aria-label="Mail">
 			<SidebarBody>
 				<SidebarList aria-label="Main">
 					<SidebarItem

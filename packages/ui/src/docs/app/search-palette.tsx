@@ -22,8 +22,9 @@ const KIND_LABELS: Readonly<Record<SearchKind, string>> = {
 	page: 'Page',
 	tab: 'Tab',
 	example: 'Example',
-	component: 'API',
+	component: 'API reference',
 	prop: 'Prop',
+	event: 'Event',
 }
 
 /** An entry with the id of its option. */
@@ -128,7 +129,7 @@ export function SearchPalette({
 		<CommandPalette
 			open={open}
 			onOpenChange={onOpenChange}
-			placeholder="Search pages, examples, and props"
+			placeholder="Search pages, examples, props, and events"
 			footer={null}
 		>
 			<Results onPick={onPick} />

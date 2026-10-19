@@ -8,9 +8,9 @@ export default function SpacerPlayground(props: SpacerProps) {
 	return (
 		<Card>
 			<Flex align="center">
-				<Heading level={3}>Title</Heading>
+				<Heading level={3}>Team members</Heading>
 				<Spacer {...props} />
-				<Button>Action</Button>
+				<Button>Invite</Button>
 			</Flex>
 		</Card>
 	)

@@ -15,7 +15,7 @@ export default function SearchHighlight() {
 				value: query,
 				onValueChange: setQuery,
 				mode: 'highlight',
-				placeholder: 'Highlight people',
+				placeholder: 'Search people',
 			}}
 		/>
 	)

@@ -7,7 +7,7 @@ import { exampleFiles, examplesIn, headingIdOf, type Parse } from './examples.ts
 import { findPages } from './pages.ts'
 
 /** What an entry of the search is. */
-export type SearchKind = 'page' | 'tab' | 'example' | 'component' | 'prop'
+export type SearchKind = 'page' | 'tab' | 'example' | 'component' | 'prop' | 'event'
 
 /** One entry of the search of the docs. */
 export type SearchEntry = {
@@ -83,11 +83,19 @@ export async function searchEntries(
 									href: `${href}#${apiIdOf(component.name)}`,
 									context,
 								},
-								...[...component.props, ...component.events].map(
+								...component.props.map(
 									(prop): SearchEntry => ({
 										kind: 'prop',
 										label: prop.name,
 										href: `${href}#${apiIdOf(component.name, prop.name)}`,
+										context: `<${component.name} />`,
+									}),
+								),
+								...component.events.map(
+									(event): SearchEntry => ({
+										kind: 'event',
+										label: event.name,
+										href: `${href}#${apiIdOf(component.name, event.name)}`,
 										context: `<${component.name} />`,
 									}),
 								),

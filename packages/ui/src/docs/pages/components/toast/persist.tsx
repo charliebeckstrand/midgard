@@ -9,7 +9,7 @@ export default function Persist() {
 			onClick={() =>
 				toast({
 					title: 'Connection lost',
-					description: 'This toast stays until you close it.',
+					description: 'Your changes save when the connection returns.',
 					severity: 'warning',
 					persist: true,
 				})

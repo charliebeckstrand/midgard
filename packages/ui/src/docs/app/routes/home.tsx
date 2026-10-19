@@ -10,7 +10,8 @@ export default function Home() {
 	return (
 		<Stack gap="lg">
 			<Text tone="muted">
-				The components and modules of ui, each with a playground, examples, and its API.
+				Each component, module, structure, provider, and primitive of ui, with a playground,
+				examples, and an API reference.
 			</Text>
 			{sectionsOf(pages).map(({ section, links }) => (
 				<Stack key={section} gap="sm">

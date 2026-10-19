@@ -1,23 +1,23 @@
 import { Markdown, type MarkdownProps } from 'ui/markdown'
 
 const prose = `
-# Markdown
+# Release notes
 
-Render **Markdown** as styled prose with [marked](https://marked.js.org) —
-_emphasis_, \`inline code\`, and [links](https://example.com) all render.
+Version 2.4 adds **search in attachments**. Run \`app update\` to get it, or
+read the _full list_ of [changes](https://example.com).
 
-## Lists
+## Changes
 
-- First item
-- Second item
-  - Nested item
-- Third item
+- Search finds the text in attachments
+- Shared folders show who changed each file
+  - The list shows the last ten changes
+- The dark theme follows the setting of your system
 
-> Blockquotes set an aside off from the surrounding copy.
+> Back up your files before you update.
 
 \`\`\`ts
-export function greet(name) {
-	return 'Hello, ' + name
+export function isLatest(version: string) {
+	return version === '2.4'
 }
 \`\`\`
 `

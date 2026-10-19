@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Grid, type GridRowGroup } from 'ui/grid'
-import { sales, salesColumns } from './data.ts'
+import { sales, salesColumns } from './data.tsx'
 
 export default function RowManager() {
 	const [rowGroups, setRowGroups] = useState<GridRowGroup[]>([
@@ -8,7 +8,7 @@ export default function RowManager() {
 		{ key: 'East', color: 'amber' },
 	])
 
-	// Right-click a group header and pick "Manage rows" to color the groups,
+	// Right-click a group header and select "Manage rows" to color the groups,
 	// to put the groups in order, and to put the rows of a group in order.
 	return (
 		<Grid

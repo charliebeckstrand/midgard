@@ -3,10 +3,10 @@ import { Swatch } from 'ui/swatch'
 import { Text } from 'ui/text'
 
 const colors = [
-	{ color: 'violet', format: 'palette name' },
-	{ color: '#7c3aed', format: 'hex' },
-	{ color: 'oklch(54.1% 0.281 293.009)', format: 'oklch' },
-	{ color: 'text-violet-600 dark:text-violet-500', format: 'utility class' },
+	{ color: 'violet', format: 'Palette name' },
+	{ color: '#7c3aed', format: 'Hex' },
+	{ color: 'oklch(54.1% 0.281 293.009)', format: 'OKLCH' },
+	{ color: 'text-violet-600 dark:text-violet-500', format: 'Utility class' },
 ]
 
 export default function Color() {

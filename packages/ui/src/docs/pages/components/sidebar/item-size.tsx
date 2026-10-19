@@ -3,7 +3,7 @@ import { Sidebar, SidebarBody, SidebarItem, SidebarLabel, SidebarList } from 'ui
 
 export default function ItemSize() {
 	return (
-		<Sidebar aria-label="Sidebar item sizes">
+		<Sidebar aria-label="Item sizes">
 			<SidebarBody>
 				<SidebarList aria-label="Sizes">
 					<SidebarItem size="sm" icon={<House />}>

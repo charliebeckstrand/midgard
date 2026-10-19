@@ -13,7 +13,7 @@ export default function InAForm() {
 	return (
 		<Form
 			defaultValues={defaultValues}
-			validate={{ score: (value) => (value === null ? 'Pick a score from 1 to 5.' : undefined) }}
+			validate={{ score: (value) => (value === null ? 'Select a score from 1 to 5.' : undefined) }}
 			onSubmit={() => new Promise((resolve) => setTimeout(resolve, 1000))}
 		>
 			<Stack gap="lg">

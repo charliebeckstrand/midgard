@@ -10,16 +10,16 @@ export default function FieldsetPlayground(props: FieldsetProps) {
 			<Stack gap="lg">
 				<Field autoComplete="name">
 					<Label>Full name</Label>
-					<Input placeholder="Jane Smith" />
+					<Input placeholder="Wade Cooper" />
 				</Field>
 				<Field autoComplete="email">
 					<Label>Email</Label>
-					<Description>We send account notices to this address.</Description>
-					<Input type="email" placeholder="jane@example.com" />
+					<Description>Account notices go to this address.</Description>
+					<Input type="email" placeholder="wade@example.com" />
 				</Field>
 				<Field>
 					<Label>Bio</Label>
-					<Textarea placeholder="Tell us about yourself" rows={3} />
+					<Textarea placeholder="Tell your team about yourself" rows={3} />
 				</Field>
 			</Stack>
 		</Fieldset>

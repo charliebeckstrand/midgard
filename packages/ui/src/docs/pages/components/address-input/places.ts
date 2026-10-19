@@ -1,41 +1,41 @@
 import type { AddressProvider, AddressSuggestion } from 'ui/address-input'
 
 export const madrid: AddressSuggestion = {
-	id: 'alcala',
-	label: 'calle de Alcalá 42',
+	id: 'calle-del-prado',
+	label: 'Calle del Prado 18',
 	description: 'Madrid, Spain',
-	latitude: 40.418,
-	longitude: -3.697,
+	latitude: 40.414,
+	longitude: -3.698,
 }
 
 export const places: AddressSuggestion[] = [
 	{
-		id: 'amphitheatre',
-		label: '1600 Amphitheatre Parkway',
+		id: 'orchard-lane',
+		label: '410 Orchard Lane',
 		description: 'Mountain View, CA, USA',
-		latitude: 37.422,
-		longitude: -122.084,
+		latitude: 37.394,
+		longitude: -122.079,
 	},
 	{
-		id: 'fifth-avenue',
-		label: '350 5th Ave',
+		id: 'linden-avenue',
+		label: '75 Linden Avenue',
 		description: 'New York, NY, USA',
-		latitude: 40.748,
-		longitude: -73.985,
+		latitude: 40.741,
+		longitude: -73.989,
 	},
 	{
 		id: 'baker-street',
-		label: '221B Baker Street',
+		label: '18 Baker Street',
 		description: 'London, UK',
-		latitude: 51.523,
-		longitude: -0.158,
+		latitude: 51.519,
+		longitude: -0.157,
 	},
 	{
-		id: 'downing-street',
-		label: '10 Downing Street',
+		id: 'elm-row',
+		label: '6 Elm Row',
 		description: 'London, UK',
-		latitude: 51.503,
-		longitude: -0.127,
+		latitude: 51.512,
+		longitude: -0.132,
 	},
 	madrid,
 ]

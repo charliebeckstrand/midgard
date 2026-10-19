@@ -144,18 +144,18 @@ function ElementsNote({ elements }: { elements: readonly string[] }) {
 
 	const tags = elements.filter(Boolean)
 
-	if (tags.length === 0) return <Text tone="muted">Also accepts all HTML attributes.</Text>
+	if (tags.length === 0) return <Text tone="muted">Also takes the HTML attributes.</Text>
 
 	return (
 		<Text tone="muted">
-			Also accepts all{' '}
+			Also takes the HTML attributes of{' '}
 			{tags.map((tag, index) => (
 				<span key={tag}>
 					{index > 0 && ', '}
 					<code>{`<${tag}>`}</code>
 				</span>
-			))}{' '}
-			HTML attributes.
+			))}
+			.
 		</Text>
 	)
 }
@@ -171,7 +171,7 @@ export function ApiEntry({ component }: { component: ComponentApi }) {
 					<PropSection title="Events" component={component.name} props={component.events} />
 				</Stack>
 			) : (
-				<Text tone="muted">This component accepts no explicit props.</Text>
+				<Text tone="muted">This component takes no props of its own.</Text>
 			)}
 			<ElementsNote elements={component.elements ?? []} />
 		</Stack>

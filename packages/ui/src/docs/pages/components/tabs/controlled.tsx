@@ -6,6 +6,12 @@ import { Text } from 'ui/text'
 
 const steps = ['Shipping', 'Payment', 'Review']
 
+const instructions: Record<string, string> = {
+	Shipping: 'Enter your shipping address.',
+	Payment: 'Enter your card details.',
+	Review: 'Check your order before you pay.',
+}
+
 export default function Controlled() {
 	const [step, setStep] = useState('Shipping')
 
@@ -23,7 +29,7 @@ export default function Controlled() {
 			<TabContents>
 				{steps.map((name) => (
 					<TabContent key={name} value={name}>
-						<Text tone="muted">Enter the {name.toLowerCase()} details.</Text>
+						<Text tone="muted">{instructions[name]}</Text>
 					</TabContent>
 				))}
 			</TabContents>

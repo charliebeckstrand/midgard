@@ -5,7 +5,7 @@ export default function MapPlayground(props: MapPlatCategoricalProps<StateZone>)
 	return (
 		<MapPlat
 			{...props}
-			aria-label="Timezones across America"
+			aria-label="US time zones"
 			geography={states}
 			projection="albers-usa"
 			data={timezones}

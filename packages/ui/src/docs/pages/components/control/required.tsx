@@ -15,7 +15,7 @@ export default function Required() {
 			<Stack gap="lg">
 				<Control required>
 					<Label>Full name</Label>
-					<Input name="name" placeholder="Jane Smith" />
+					<Input name="name" placeholder="Wade Cooper" />
 					<Message name="name" />
 				</Control>
 				<Button type="submit">Submit</Button>

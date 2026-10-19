@@ -21,7 +21,7 @@ function Actions() {
 export default function UnsavedChanges() {
 	return (
 		<Form
-			defaultValues={{ username: 'jane', bio: 'Product designer in Lisbon.' }}
+			defaultValues={{ username: 'wade', bio: 'Product designer on the checkout team.' }}
 			validate={{
 				username: (value) => (value.length < 3 ? 'Use at least 3 characters.' : undefined),
 			}}

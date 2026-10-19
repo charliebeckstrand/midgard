@@ -4,13 +4,13 @@ import Capped from './capped.tsx'
 import Controlled from './controlled.tsx'
 import Glass from './glass.tsx'
 import IconsAndShortcuts from './icons-and-shortcuts.tsx'
-import ItemDescriptions from './item-descriptions.tsx'
 import KeepOpen from './keep-open.tsx'
 import MenuPlayground from './playground.tsx'
 import RightClick from './right-click.tsx'
 import Sections from './sections.tsx'
 import Submenus from './submenus.tsx'
 import TitleAndDescription from './title-and-description.tsx'
+import WithDescriptions from './with-descriptions.tsx'
 
 export default function MenuPage() {
 	return (
@@ -22,7 +22,7 @@ export default function MenuPage() {
 			/>
 			<Example of={IconsAndShortcuts} />
 			<Example of={Sections} />
-			<Example of={ItemDescriptions} />
+			<Example of={WithDescriptions} />
 			<Example of={Submenus} />
 			<Example of={TitleAndDescription} />
 			<Example of={KeepOpen} />

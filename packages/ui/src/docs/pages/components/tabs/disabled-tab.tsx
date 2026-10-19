@@ -13,10 +13,12 @@ export default function DisabledTab() {
 			</TabList>
 			<TabContents>
 				<TabContent value="Overview">
-					<Text tone="muted">The project at a glance. Reports open on the Pro plan.</Text>
+					<Text tone="muted">
+						Track the tasks of the project. Upgrade to the Pro plan to open reports.
+					</Text>
 				</TabContent>
 				<TabContent value="Analytics">
-					<Text tone="muted">Visits and conversions for the last 30 days.</Text>
+					<Text tone="muted">See the visits and the conversions of the last 30 days.</Text>
 				</TabContent>
 			</TabContents>
 		</Tabs>

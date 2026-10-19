@@ -8,8 +8,8 @@ export default function MagnifierSettings() {
 	const [state, setState] = useState<PdfViewerMagnifierState | null>(null)
 
 	const summary = state
-		? `${state.enabled ? 'on' : 'off'}, zoom ${state.zoom}, size ${state.size}, delay ${state.delay}`
-		: 'press the lens button in the toolbar'
+		? `${state.enabled ? 'On' : 'Off'}, zoom ${state.zoom}, size ${state.size}, delay ${state.delay}`
+		: 'None'
 
 	return (
 		<Stack gap="md">
@@ -17,9 +17,9 @@ export default function MagnifierSettings() {
 				pages={pages}
 				magnifier={{ mode: 'config' }}
 				onMagnifierChange={setState}
-				aria-label="Statement with magnifier settings"
+				aria-label="Invoice 1046"
 			/>
-			<Text tone="muted">Magnifier: {summary}</Text>
+			<Text tone="muted">Last change: {summary}</Text>
 		</Stack>
 	)
 }

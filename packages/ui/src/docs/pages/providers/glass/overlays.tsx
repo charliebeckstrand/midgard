@@ -12,15 +12,13 @@ function GlassDialog() {
 	return (
 		<>
 			<Button variant="outline" onClick={() => setOpen(true)}>
-				Dialog
+				Share
 			</Button>
 			<Dialog open={open} onOpenChange={setOpen}>
 				<DialogPanel>
-					<DialogTitle>Glass dialog</DialogTitle>
+					<DialogTitle>Share the project</DialogTitle>
 					<DialogBody>
-						<Text tone="muted">
-							This dialog inherits glass mode from the GlassProvider wrapper.
-						</Text>
+						<Text tone="muted">Ravi Shah and Mia Chen can edit this project.</Text>
 					</DialogBody>
 					<DialogFooter>
 						<Button variant="plain" onClick={() => setOpen(false)}>
@@ -39,13 +37,13 @@ function GlassDrawer() {
 	return (
 		<>
 			<Button variant="outline" onClick={() => setOpen(true)}>
-				Drawer
+				Comments
 			</Button>
 			<Drawer open={open} onOpenChange={setOpen}>
 				<DrawerPanel>
-					<DrawerTitle>Glass drawer</DrawerTitle>
+					<DrawerTitle>Comments</DrawerTitle>
 					<DrawerBody>
-						<Text tone="muted">Inherits glass mode from context.</Text>
+						<Text tone="muted">Tanya Fox approved the new header.</Text>
 					</DrawerBody>
 					<DrawerFooter>
 						<Button onClick={() => setOpen(false)}>Close</Button>
@@ -62,13 +60,13 @@ function GlassSheet() {
 	return (
 		<>
 			<Button variant="outline" onClick={() => setOpen(true)}>
-				Sheet
+				Details
 			</Button>
 			<Sheet open={open} onOpenChange={setOpen}>
 				<SheetPanel side="left">
-					<SheetTitle>Glass sheet</SheetTitle>
+					<SheetTitle>Project details</SheetTitle>
 					<SheetBody>
-						<Text tone="muted">Inherits glass mode from context.</Text>
+						<Text tone="muted">Wade Cooper created this project on June 18.</Text>
 					</SheetBody>
 					<SheetFooter>
 						<Button onClick={() => setOpen(false)}>Close</Button>

@@ -1,4 +1,3 @@
-import { Code } from 'ui/code'
 import { Collapse, CollapsePanel, type CollapseProps, CollapseTrigger } from 'ui/collapse'
 import { Text } from 'ui/text'
 
@@ -8,7 +7,7 @@ export default function CollapsePlayground(props: CollapseProps) {
 			<CollapseTrigger>Show details</CollapseTrigger>
 			<CollapsePanel>
 				<Text tone="muted">
-					A string in <Code>CollapseTrigger</Code> renders as muted text that highlights on hover.
+					Your order ships in one business day. You get a tracking link by email.
 				</Text>
 			</CollapsePanel>
 		</Collapse>

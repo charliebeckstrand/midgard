@@ -8,7 +8,7 @@ import {
 
 export default function PasswordConfirmPlayground(props: PasswordConfirmProps) {
 	return (
-		<PasswordConfirm {...props} warning="Passwords do not match.">
+		<PasswordConfirm {...props} warning="Enter the same password again.">
 			<Field>
 				<Label>Password</Label>
 				<PasswordConfirmNew placeholder="Enter password" autoComplete="new-password" />

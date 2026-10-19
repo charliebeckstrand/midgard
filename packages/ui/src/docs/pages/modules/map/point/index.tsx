@@ -1,16 +1,16 @@
 import { Example } from '../../../../kit/index.ts'
-import DeliveryRounds from './delivery-rounds.tsx'
-import DepotsAndStops from './depots-and-stops.tsx'
-import Warehouses from './warehouses.tsx'
-import ZoomIntoTheRounds from './zoom-into-the-rounds.tsx'
+import Basic from './basic.tsx'
+import Clustering from './clustering.tsx'
+import Shapes from './shapes.tsx'
+import Zoomable from './zoomable.tsx'
 
 export default function PointTab() {
 	return (
 		<>
-			<Example of={Warehouses} surface />
-			<Example of={DeliveryRounds} surface />
-			<Example of={DepotsAndStops} surface />
-			<Example of={ZoomIntoTheRounds} surface />
+			<Example of={Basic} surface />
+			<Example of={Clustering} surface />
+			<Example of={Shapes} surface />
+			<Example of={Zoomable} surface />
 		</>
 	)
 }

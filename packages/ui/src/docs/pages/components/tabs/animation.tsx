@@ -3,8 +3,7 @@ import { Segment, SegmentControl, SegmentItem } from 'ui/segment'
 import { Stack } from 'ui/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from 'ui/tabs'
 import { Text } from 'ui/text'
-
-const sections = ['Account', 'Notifications', 'Billing']
+import { settings } from './settings.ts'
 
 const animations = { fade: 'fade', slide: 'slide', off: false } as const
 
@@ -27,16 +26,16 @@ export default function Animation() {
 			</Segment>
 			<Tabs defaultValue="Account">
 				<TabList aria-label="Settings">
-					{sections.map((section) => (
-						<Tab key={section} value={section}>
-							{section}
+					{settings.map((section) => (
+						<Tab key={section.name} value={section.name}>
+							{section.name}
 						</Tab>
 					))}
 				</TabList>
 				<TabContents animate={animations[animation]}>
-					{sections.map((section) => (
-						<TabContent key={section} value={section}>
-							<Text tone="muted">{section} settings would go here.</Text>
+					{settings.map((section) => (
+						<TabContent key={section.name} value={section.name}>
+							<Text tone="muted">{section.text}</Text>
 						</TabContent>
 					))}
 				</TabContents>

@@ -3,18 +3,18 @@ import { Flex } from 'ui/flex'
 import { ScrollArea } from 'ui/scroll-area'
 
 const tags = [
-	'react',
-	'typescript',
-	'tailwind',
-	'motion',
-	'vite',
-	'biome',
-	'pnpm',
-	'turborepo',
-	'lucide',
-	'clsx',
-	'floating-ui',
-	'shiki',
+	'Design',
+	'Engineering',
+	'Marketing',
+	'Sales',
+	'Support',
+	'Finance',
+	'Legal',
+	'Operations',
+	'Research',
+	'Product',
+	'Security',
+	'People',
 ]
 
 export default function HorizontalWithExtent() {

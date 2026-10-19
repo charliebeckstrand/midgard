@@ -18,7 +18,7 @@ export default function Validation() {
 					return issues
 				},
 				confirm: (value, values) =>
-					value === values.password ? undefined : 'The passwords do not match.',
+					value === values.password ? undefined : 'Enter the same password again.',
 			}}
 			onSubmit={() => new Promise((resolve) => setTimeout(resolve, 1000))}
 		>
