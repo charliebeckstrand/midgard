@@ -182,8 +182,11 @@ export function seatingCellProps<T>(args: {
 				// on the cell, so it must not pull focus onto the grid.
 				const inCell = event.target instanceof Node && event.currentTarget.contains(event.target)
 
+				// The pressed cell is in view, and the cursor reveals it. A focus that
+				// scrolls would reveal the whole table, and WebKit then scrolls the
+				// page under the finger between the two taps of a double tap.
 				if (inCell && !fromInteractiveContent(event.target)) {
-					event.currentTarget.closest<HTMLElement>(GRID_ROLE)?.focus()
+					event.currentTarget.closest<HTMLElement>(GRID_ROLE)?.focus({ preventScroll: true })
 
 					seat({ row: rowIndex, col: colIndex }, event)
 				}
@@ -256,7 +259,8 @@ export function useGridNavStopProps(key: string): ComponentProps<'td'> {
 
 			if (!inCell || fromInteractiveContent(event.target)) return
 
-			event.currentTarget.closest<HTMLElement>(GRID_ROLE)?.focus()
+			// As on a data cell, the pressed cell is in view, so the focus does not scroll.
+			event.currentTarget.closest<HTMLElement>(GRID_ROLE)?.focus({ preventScroll: true })
 
 			store.seatStop(key)
 		},

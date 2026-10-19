@@ -67,6 +67,14 @@ export type OverlayProps = {
 	 */
 	initialFocus?: RefObject<HTMLElement | null>
 	/**
+	 * Element to receive the focus when a modal overlay closes. Give it when the
+	 * element that had the focus as the overlay opened can be gone at the
+	 * close, or when the focus belongs elsewhere.
+	 *
+	 * @defaultValue the element that had the focus as the overlay opened.
+	 */
+	returnFocusTo?: RefObject<HTMLElement | null>
+	/**
 	 * Modal overlays (the default) trap focus, move it into the panel on open,
 	 * lock body scroll, and dim the page behind a blocking backdrop. Pass
 	 * `false` for transient, pointer-driven surfaces that must not steal focus or
@@ -138,6 +146,7 @@ export function Overlay({
 	children,
 	container,
 	initialFocus,
+	returnFocusTo,
 	modal = true,
 	backdrop = modal,
 	coverChrome = false,
@@ -269,6 +278,7 @@ export function Overlay({
 				regions={coverChrome ? noRegions : chromeRegions}
 				context={context}
 				initialFocus={initialFocus}
+				returnFocusTo={returnFocusTo}
 			>
 				{panel}
 			</OverlayFocus>
@@ -292,6 +302,7 @@ function OverlayFocus({
 	regions,
 	context,
 	initialFocus,
+	returnFocusTo,
 	children,
 }: {
 	modal: boolean
@@ -299,6 +310,7 @@ function OverlayFocus({
 	regions: () => HTMLElement[]
 	context: FloatingRootContext
 	initialFocus: RefObject<HTMLElement | null> | undefined
+	returnFocusTo: RefObject<HTMLElement | null> | undefined
 	children: ReactElement
 }) {
 	if (!modal) return children
@@ -323,6 +335,7 @@ function OverlayFocus({
 			context={context}
 			modal
 			initialFocus={initialFocus}
+			returnFocus={returnFocusTo ?? true}
 			guards={chrome.length === 0}
 			outsideElementsInert={chrome.length > 0}
 			getInsideElements={regions}

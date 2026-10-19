@@ -200,6 +200,39 @@ describe('Grid editing on a phone', () => {
 		expect(within(sheet).getByRole('button', { name: 'Save' })).toBeInTheDocument()
 	})
 
+	it('keeps the row out of edit in its actions until the drawer lands', async () => {
+		// The motion mock lands no arrival, so the drawer never reports one.
+		const { editRow1 } = renderPhoneGrid({}, [
+			...columns,
+			{
+				id: 'actions',
+				actions: (row, { editing }) => (editing ? `check-${row.id}` : `pencil-${row.id}`),
+			},
+		])
+
+		await editRow1()
+
+		expect(screen.getByRole('dialog')).toBeInTheDocument()
+
+		expect(screen.getByText('pencil-1')).toBeInTheDocument()
+
+		expect(screen.queryByText('check-1')).toBeNull()
+	})
+
+	it('focuses the grid with no scroll when a cell is pressed', async () => {
+		const { user } = renderPhoneGrid()
+
+		const focus = vi.spyOn(HTMLElement.prototype, 'focus')
+
+		await user.click(screen.getByRole('gridcell', { name: 'Bob' }))
+
+		expect(focus).toHaveBeenCalledWith({ preventScroll: true })
+
+		expect(screen.getByRole('grid')).toHaveFocus()
+
+		focus.mockRestore()
+	})
+
 	it('keeps the editors in the table with overlay false', async () => {
 		const { container, editRow1 } = renderPhoneGrid({ overlay: false })
 

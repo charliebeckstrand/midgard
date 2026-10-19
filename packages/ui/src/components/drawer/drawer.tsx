@@ -148,6 +148,11 @@ export type DrawerPanelProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
 		 */
 		initialFocus?: RefObject<HTMLElement | null>
 		/**
+		 * Element to receive the focus when the drawer closes.
+		 * @defaultValue the element that had the focus as the drawer opened.
+		 */
+		returnFocusTo?: RefObject<HTMLElement | null>
+		/**
 		 * Accessible name for drawers without a visible `DrawerTitle`. Ignored once a
 		 * `DrawerTitle` registers.
 		 */
@@ -215,6 +220,7 @@ export function DrawerPanel({
 	children,
 	footer,
 	initialFocus,
+	returnFocusTo,
 	dismissOnBackdrop,
 	modal = true,
 	backdrop,
@@ -279,6 +285,7 @@ export function DrawerPanel({
 			open={open}
 			onOpenChange={setOpen}
 			initialFocus={initialFocus}
+			returnFocusTo={returnFocusTo}
 			dismissOnBackdrop={dismissOnBackdrop}
 			modal={modal}
 			backdrop={backdrop}

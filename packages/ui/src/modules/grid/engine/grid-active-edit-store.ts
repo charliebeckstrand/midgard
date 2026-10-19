@@ -23,12 +23,15 @@ function sameKeys(a: ReadonlySet<string | number>, b: ReadonlySet<string | numbe
  * renders nothing. `setRows` does the same for the set of editable rows, by
  * its keys: a controlled `rows` built again with the same keys renders
  * nothing. `notify` tells every listener that a draft changed status.
+ * `setShown` names the row whose overlay has finished opening, and notifies
+ * when it names another row.
  * @internal
  */
 export function createActiveEditStore(): GridActiveEditStore & {
 	seat: (next: GridActiveEdit | null, rows: ReadonlySet<string | number>) => void
 	set: (next: GridActiveEdit | null) => void
 	setRows: (next: ReadonlySet<string | number>) => void
+	setShown: (next: string | number | null) => void
 	notify: () => void
 } {
 	let coord: GridActiveEdit | null = null
@@ -39,12 +42,15 @@ export function createActiveEditStore(): GridActiveEditStore & {
 
 	let toldRows: ReadonlySet<string | number> = EMPTY_SET
 
+	let shown: string | number | null = null
+
 	const { subscribe, emit } = createEmitter()
 
 	return {
 		subscribe,
 		get: () => coord,
 		rows: () => rows,
+		shown: () => shown,
 		seat: (next, nextRows) => {
 			coord = next
 
@@ -67,6 +73,13 @@ export function createActiveEditStore(): GridActiveEditStore & {
 			toldRows = next
 
 			if (!same) emit()
+		},
+		setShown: (next) => {
+			if (next === shown) return
+
+			shown = next
+
+			emit()
 		},
 		notify: emit,
 	}

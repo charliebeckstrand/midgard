@@ -237,6 +237,54 @@ function reseatFlagged(flag: { current: boolean }, grid: HTMLElement | null): vo
 }
 
 /**
+ * Where focus returns as a session on a row ends: the cell that the session
+ * entered, or the element that had the focus as the row opened. @internal
+ */
+type FocusOrigin = { cell: GridActiveEdit } | { element: Element }
+
+/**
+ * The element that had the focus as a row opened, read for `table`. A press on
+ * content in a cell, such as a pencil, gives that cell, because the content
+ * can be gone at the close. The tab stop gives the table, and focus outside
+ * the grid gives that element. The pencil of a row can unmount in the render
+ * that opens the row, so focus on `<body>` falls back to `last`, the last
+ * element in the grid that had the focus. @internal
+ */
+function focusOrigin(table: HTMLElement | null, last: Element | null): Element | null {
+	const active = table?.ownerDocument.activeElement ?? null
+
+	const node = active !== null && active !== table?.ownerDocument.body ? active : last
+
+	if (table === null || node === null || !table.contains(node) || node === table) return node
+
+	const cell = node.closest('td')
+
+	return cell !== null && cell.closest('table') === table ? cell : table
+}
+
+/**
+ * Moves focus to `target` with `flag` set, as {@link reseatFlagged} does. A
+ * cell gives its first tabbable element, such as the pencil that mounts again
+ * in it. The page does not scroll. @internal
+ */
+function returnFlagged(flag: { current: boolean }, target: Element): void {
+	const focusable =
+		target.tagName === 'TD' ? target.querySelector<HTMLElement>(TABBABLE) : (target as HTMLElement)
+
+	flag.current = true
+
+	try {
+		focusable?.focus({ preventScroll: true })
+	} finally {
+		flag.current = false
+	}
+}
+
+/** The tabbable content of a cell. @internal */
+const TABBABLE =
+	'button:not(:disabled), [href], input:not(:disabled), [tabindex]:not([tabindex="-1"])'
+
+/**
  * `node` when its nearest `<table>` is `table`, else `null`. A detail panel can
  * hold a nested grid. The row index or the column id of a row or a cell of
  * that grid can match one of this grid, so the session must not read it.
@@ -777,6 +825,91 @@ export function useGridEditing<T>({
 	// grid's own move for the commit on leave.
 	const reseat = useCallback(() => reseatFlagged(reseatingRef, tableRef.current), [tableRef])
 
+	// Where focus returns as the session on each open row ends. A cell entry
+	// records its cell. A row that the consumer opens records the element that
+	// had the focus, so focus returns only to a cell that the session edited or
+	// that had the focus as it started.
+	const originsRef = useRef(new Map<string | number, FocusOrigin>())
+
+	// The last element in the grid that had the focus, for a row that opens as
+	// its pencil unmounts. Focus that leaves for the page clears it.
+	const lastFocusRef = useRef<Element | null>(null)
+
+	useEffect(() => {
+		const table = tableRef.current
+
+		if (!table) return
+
+		const focusIn = (event: FocusEvent) => {
+			lastFocusRef.current = event.target instanceof Element ? event.target : null
+		}
+
+		const focusOut = (event: FocusEvent) => {
+			if (event.relatedTarget instanceof Node && !table.contains(event.relatedTarget))
+				lastFocusRef.current = null
+		}
+
+		table.addEventListener('focusin', focusIn)
+
+		table.addEventListener('focusout', focusOut)
+
+		return () => {
+			table.removeEventListener('focusin', focusIn)
+
+			table.removeEventListener('focusout', focusOut)
+		}
+	}, [tableRef])
+
+	useLayoutEffect(() => {
+		const origins = originsRef.current
+
+		for (const key of origins.keys()) if (!editableRows.has(key)) origins.delete(key)
+
+		for (const key of editableRows) {
+			if (origins.has(key)) continue
+
+			const element = focusOrigin(tableRef.current, lastFocusRef.current)
+
+			if (element) origins.set(key, { element })
+		}
+	}, [editableRows, tableRef])
+
+	// The element that focus returns to as the session on `rowKey` ends, or
+	// `null` for none. A cell origin moves the cursor onto the cell that the
+	// session edited, and gives the tab stop.
+	const focusTarget = useCallback(
+		(rowKey: string | number): Element | null => {
+			const origin = originsRef.current.get(rowKey)
+
+			if (!origin) return null
+
+			if ('element' in origin) return origin.element.isConnected ? origin.element : null
+
+			const active = activeEditRef.current
+
+			const cell = active?.rowKey === rowKey ? active : origin.cell
+
+			const coord = coordOf(rowKeysRef.current, dataColumnsRef.current, cell)
+
+			if (coord.row >= 0 && coord.col >= 0) moveTo(coord)
+
+			return tableRef.current
+		},
+		[dataColumnsRef, moveTo, rowKeysRef, tableRef],
+	)
+
+	// Returns focus as the session on `rowKey` ends, when focus is in the grid.
+	const returnFocus = useCallback(
+		(rowKey: string | number) => {
+			if (!isInGrid(document.activeElement, tableRef.current)) return
+
+			const target = focusTarget(rowKey)
+
+			if (target) returnFlagged(reseatingRef, target)
+		},
+		[focusTarget, tableRef],
+	)
+
 	const newRow = useGridNewRow<T>({
 		config,
 		managed,
@@ -956,6 +1089,8 @@ export function useGridEditing<T>({
 
 			pendingSeedRef.current = { rowKey, columnId, value: seed }
 
+			originsRef.current.set(rowKey, { cell: { rowKey, columnId } })
+
 			// The editor of the cell is open, so the entry only moves focus into it.
 			// The editor claims the intents as it takes the focus, with a typed
 			// character in place of its draft.
@@ -1054,7 +1189,7 @@ export function useGridEditing<T>({
 			// Reseat focus ahead of the discard, not after. An editor blurred on the
 			// way out can stage one last value; `NumberInput` commits its typed text
 			// there. That write must not outlive the values being dropped.
-			if (reseatFocus) reseat()
+			if (reseatFocus) returnFocus(rowKey)
 
 			if (outcome === 'discard') discardDrafts(rowKey, cell)
 
@@ -1076,7 +1211,7 @@ export function useGridEditing<T>({
 				return next
 			})
 		},
-		[controlled, requestCell, discardDrafts, setEditableRows, writeActiveCell, reseat],
+		[controlled, requestCell, discardDrafts, setEditableRows, writeActiveCell, returnFocus],
 	)
 
 	// The session's own exit, from its keys, its settle controls, and a slot's
@@ -1965,6 +2100,8 @@ export function useGridEditing<T>({
 			managed,
 			overlay,
 			saveSession,
+			showOverlay: activeEditStore.setShown,
+			focusTarget,
 		}),
 		[
 			activeEditStore,
@@ -1979,6 +2116,7 @@ export function useGridEditing<T>({
 			resumeCell,
 			overlay,
 			saveSession,
+			focusTarget,
 		],
 	)
 
