@@ -118,6 +118,22 @@ function formatZipInternational(raw: string) {
 	return raw.slice(0, 12)
 }
 
+// The GB format keeps one space of each run, so the caret counts the first
+// space of a run and no other.
+function isZipGBChar(char: string, index: number, text: string) {
+	if (char === ' ') return text.charAt(index - 1) !== ' '
+
+	return /[A-Za-z0-9]/.test(char)
+}
+
+const zipcodeMeaningful = {
+	US: undefined,
+	CA: undefined,
+	GB: isZipGBChar,
+	// The international format keeps every character.
+	international: () => true,
+} satisfies Record<ZipcodeMaskCountry, MaskInputPreset['meaningful']>
+
 const zipcodeFormats = {
 	US: formatZipUS,
 	CA: formatZipCA,
@@ -163,13 +179,15 @@ export function phoneMask(country: PhoneMaskCountry = 'US'): MaskInputPreset {
  * Canadian FSA and LDU, UK outward and inward, and a loose international
  * fallback. It matches the keyboard (`inputMode`) and the placeholder to
  * `country`, sets `autoComplete="postal-code"`, and adds a leading map-pin
- * icon.
+ * icon. The caret counts the separators that the format keeps, so a typed
+ * space or hyphen stays before the caret.
  *
  * @param country - The postal-code locale. The default is `'US'`.
  */
 export function zipcodeMask(country: ZipcodeMaskCountry = 'US'): MaskInputPreset {
 	return {
 		format: zipcodeFormats[country],
+		meaningful: zipcodeMeaningful[country],
 		type: 'text',
 		inputMode: zipcodeInputModes[country],
 		autoComplete: 'postal-code',

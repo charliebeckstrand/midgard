@@ -122,6 +122,44 @@ describe('zipcodeMask', () => {
 		expect(input.value).toBe(expected)
 	})
 
+	it.each<[string, ReturnType<typeof zipcodeMask>, string]>([
+		['a GB postcode', zipcodeMask('GB'), 'SW1A 1AA'],
+		['an international code with a space', zipcodeMask('international'), '1234 AB'],
+		['an international code with a hyphen', zipcodeMask('international'), '00-950'],
+	])('keeps the caret at the end while the user types %s', async (_name, mask, code) => {
+		const { container } = renderUI(<MaskInput mask={mask} />)
+
+		const input = getSlot<HTMLInputElement>(container, 'mask-input')
+
+		input.focus()
+
+		await setupUser().keyboard(code)
+
+		await Promise.resolve()
+
+		expect(input.value).toBe(code)
+
+		expect(input.selectionStart).toBe(code.length)
+	})
+
+	it('keeps the caret before the next character when a GB space collapses', async () => {
+		const { container } = renderUI(<MaskInput mask={zipcodeMask('GB')} defaultValue="SW1A1AA" />)
+
+		const input = getSlot<HTMLInputElement>(container, 'mask-input')
+
+		input.focus()
+
+		input.setSelectionRange(4, 4)
+
+		await setupUser().keyboard('  ')
+
+		await Promise.resolve()
+
+		expect(input.value).toBe('SW1A 1AA')
+
+		expect(input.selectionStart).toBe(5)
+	})
+
 	it('uses an empty default placeholder for international codes', () => {
 		const { container } = renderUI(<MaskInput mask={zipcodeMask('international')} />)
 
