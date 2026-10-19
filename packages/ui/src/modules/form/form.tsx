@@ -7,11 +7,18 @@ import { cn } from '../../core'
 import { useA11yAnnouncements } from '../../hooks'
 import { FormProvider } from '../../primitives/form/context'
 import { createFormFieldTargets } from '../../primitives/form/form-field-targets'
+import { defineMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import type { FormSubmitHandler, SubmitOutcome, ValidateOn, Validators } from './engine/types'
 import { useFormReducer } from './use-form-reducer'
 
-/** What the announcer speaks while a submit runs. */
-const SUBMITTING_MESSAGE = 'Submitting'
+const messages = defineMessages({
+	submitting: {
+		id: 'ui.form.submitting',
+		defaultMessage: 'Submitting',
+		description: 'Spoken while a form sends its values, after the reader submits it.',
+	},
+})
 
 /** Props for {@link Form}. Generic over the form-value record `T`; field keys and types flow from `defaultValues`. */
 export type FormProps<T extends Record<string, unknown>> = {
@@ -109,6 +116,8 @@ export function Form<T extends Record<string, unknown>>({
 	children,
 	...props
 }: FormProps<T>) {
+	const intl = useIntl()
+
 	const { formState, store, actions, handleSubmit, handleReset, resets, failures } = useFormReducer(
 		{
 			defaultValues,
@@ -129,7 +138,7 @@ export function Form<T extends Record<string, unknown>>({
 	// Only the busy state of FormSubmit shows that a submit runs, and a screen
 	// reader does not speak it. The empty message ends the run, so each submit
 	// speaks again.
-	useA11yAnnouncements(formState.submitting ? SUBMITTING_MESSAGE : '')
+	useA11yAnnouncements(formState.submitting ? intl.formatMessage(messages.submitting) : '')
 
 	return (
 		<FormProvider

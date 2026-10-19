@@ -6,6 +6,7 @@ import { cn } from '../../../core'
 import { useA11yAnnouncements } from '../../../hooks'
 import { useControllable } from '../../../hooks/use-controllable'
 import { type FormActions, FormProvider } from '../../../primitives/form/context'
+import { useIntl } from '../../../primitives/intl/use-intl'
 import { k } from '../../../recipes/kata/form-filters'
 import type { AccessibleName } from '../../../types'
 import { noop } from '../../../utilities'
@@ -138,11 +139,13 @@ export function FormFilters<T extends FilterValue = FilterValue>({
 		[store, setValue, setState, defaultValue],
 	)
 
+	const intl = useIntl()
+
 	const activeCount = useMemo(() => countActiveFilters(filterValue), [filterValue])
 
 	// Changing a filter re-renders results silently; narrate the active count
 	// (WCAG 4.1.3). The hook skips the initial value.
-	useA11yAnnouncements(formatActiveFilters(activeCount))
+	useA11yAnnouncements(formatActiveFilters(intl, activeCount))
 
 	const label = 'aria-label' in props ? props['aria-label'] : undefined
 

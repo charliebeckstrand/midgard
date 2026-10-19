@@ -17,6 +17,8 @@ import {
 	useFormFieldTargets,
 	useFormResets,
 } from '../../primitives/form/context'
+import { defineMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k as linkK } from '../../recipes/kata/link'
 import { summarizeErrors } from './engine/form-error-summary'
 
@@ -24,12 +26,19 @@ import { summarizeErrors } from './engine/form-error-summary'
 export type FormErrorSummaryProps = Omit<ComponentProps<'div'>, 'title' | 'color' | 'children'> & {
 	/**
 	 * The heading of the summary.
-	 * @defaultValue 'There is a problem'
+	 * @defaultValue `'There is a problem'`, in the language of the reader.
 	 */
 	title?: ReactNode
 }
 
-const DEFAULT_TITLE = 'There is a problem'
+const messages = defineMessages({
+	title: {
+		id: 'ui.formErrorSummary.title',
+		defaultMessage: 'There is a problem',
+		description:
+			'The heading of the box at the top of a form that lists the fields with errors, after a failed submit.',
+	},
+})
 
 /** An element that takes the focus from a script or from the Tab key. */
 const FOCUSABLE = 'input, select, textarea, button, a[href], [tabindex]'
@@ -81,11 +90,16 @@ function focusControl(event: MouseEvent<HTMLAnchorElement>, id: string): void {
  * that moves the focus runs after it, and wins.
  */
 export function FormErrorSummary({
-	title = DEFAULT_TITLE,
+	title: titleProp,
 	ref,
 	className,
 	...props
 }: FormErrorSummaryProps) {
+	const intl = useIntl()
+
+	// Only an absent title takes the default, so `null` still removes the heading.
+	const title = titleProp === undefined ? intl.formatMessage(messages.title) : titleProp
+
 	const errors = useFormErrors()
 
 	const targets = useFormFieldTargets()

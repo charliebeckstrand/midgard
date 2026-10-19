@@ -3,6 +3,8 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../../core'
 import { useScrollRegion } from '../../../hooks'
+import { intlMessages } from '../../../primitives/intl/intl-messages'
+import { useIntl } from '../../../primitives/intl/use-intl'
 import { k } from '../../../recipes/kata/form-filters'
 import { Flex } from '../../../structure/flex'
 import { useFormFiltersAxis, useFormFiltersName } from './context'
@@ -25,9 +27,6 @@ export type FormFiltersRowProps = {
 	className?: string
 	children: ReactNode
 }
-
-/** The name of a `rail` region when the bar has no name of its own. @internal */
-const DEFAULT_REGION_LABEL = 'Filters'
 
 /**
  * The field row of a {@link FormFilters} bar: the region that scrolls under a
@@ -53,8 +52,11 @@ export function FormFiltersRow({ equal, className, children }: FormFiltersRowPro
 
 	const name = useFormFiltersName()
 
+	const intl = useIntl()
+
+	// The name of a `rail` region when the bar has no name of its own.
 	const scrollRegionRef = useScrollRegion(
-		name.label || name.labelledBy ? name : { label: DEFAULT_REGION_LABEL },
+		name.label || name.labelledBy ? name : { label: intl.formatMessage(intlMessages.filters) },
 	)
 
 	return (
