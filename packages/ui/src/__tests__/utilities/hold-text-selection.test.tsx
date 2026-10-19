@@ -29,8 +29,6 @@ describe('holdTextSelection', () => {
 			vi.runOnlyPendingTimers()
 		})
 
-		vi.useRealTimers()
-
 		root.classList.remove('select-none')
 	})
 

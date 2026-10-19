@@ -27,8 +27,6 @@ describe('useTouchHold', () => {
 	})
 
 	afterEach(() => {
-		vi.useRealTimers()
-
 		__resetTextSelectionHold()
 	})
 
