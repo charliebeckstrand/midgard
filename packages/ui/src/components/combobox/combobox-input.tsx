@@ -16,6 +16,8 @@ import {
 } from 'react'
 import { ariaAttr, cn, dataAttr } from '../../core'
 import { useIsTruncated } from '../../hooks'
+import { defineMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/combobox'
 import { capitalizeFirst } from '../../utilities'
@@ -72,11 +74,14 @@ type ComboboxInputProps = {
 	handlers: ComboboxInputHandlers
 }
 
-/**
- * The native validation message of a required input that shows typed text and
- * holds no selection.
- */
-const UNSELECTED_MESSAGE = 'Select an option from the list.'
+const messages = defineMessages({
+	unselected: {
+		id: 'ui.combobox.unselected',
+		defaultMessage: 'Select an option from the list.',
+		description:
+			'The browser validation message of a required combobox that holds typed text but no selected option.',
+	},
+})
 
 /**
  * Wraps the input in a tooltip that shows `text` while the input truncates it.
@@ -137,6 +142,8 @@ export function ComboboxInput({
 	truncateTooltip = false,
 	handlers,
 }: ComboboxInputProps) {
+	const intl = useIntl()
+
 	// Transform only the resolved value; the live query renders as typed.
 	const display = capitalize && !editing ? capitalizeFirst(value) : value
 
@@ -145,9 +152,13 @@ export function ComboboxInput({
 	// input still fails as `valueMissing`.
 	const unselected = Boolean(required) && !selected && value !== ''
 
+	// The native validation message of a required input that shows typed text and
+	// holds no selection.
+	const unselectedMessage = intl.formatMessage(messages.unselected)
+
 	useLayoutEffect(() => {
-		ref.current?.setCustomValidity(unselected ? UNSELECTED_MESSAGE : '')
-	}, [ref, unselected])
+		ref.current?.setCustomValidity(unselected ? unselectedMessage : '')
+	}, [ref, unselected, unselectedMessage])
 
 	const setRefs = useComposedRefs(ref, resetRef)
 

@@ -1,4 +1,8 @@
 {
+	"ui.addressInput.placeholder": {
+		"defaultMessage": "Enter an address",
+		"description": "The placeholder of a field that searches for an address or a place. It is also the name of the field when no label names it."
+	},
 	"ui.alert.dismiss": {
 		"defaultMessage": "Dismiss",
 		"description": "The name of the button that closes a message or a toast."
@@ -211,9 +215,17 @@
 		"defaultMessage": "Swatches",
 		"description": "The name of the group of preset colors."
 	},
+	"ui.combobox.create": {
+		"defaultMessage": "Create “{name}”",
+		"description": "The option at the end of a combobox list that creates a new item from the typed text. The name is the typed text."
+	},
 	"ui.combobox.placeholder": {
 		"defaultMessage": "Search",
 		"description": "The placeholder of a field that filters a list of options as the reader types."
+	},
+	"ui.combobox.unselected": {
+		"defaultMessage": "Select an option from the list.",
+		"description": "The browser validation message of a required combobox that holds typed text but no selected option."
 	},
 	"ui.commandPalette.label": {
 		"defaultMessage": "Command palette",
@@ -274,6 +286,22 @@
 	"ui.copyButton.copy": {
 		"defaultMessage": "Copy to clipboard",
 		"description": "The name of a button that copies a value to the clipboard."
+	},
+	"ui.creditCardInput.expiry": {
+		"defaultMessage": "Expiration date",
+		"description": "The name of the field of the expiration date of a payment card, when no label names it."
+	},
+	"ui.creditCardInput.invalidExpiry": {
+		"defaultMessage": "Enter a valid expiration date ({format})",
+		"description": "The error of an expiration date that cannot be valid, such as a past month. The format is the letters of the mask, such as MM/YY."
+	},
+	"ui.creditCardInput.number": {
+		"defaultMessage": "Card number",
+		"description": "The name of the field of a payment card number, when no label names it."
+	},
+	"ui.creditCardInput.securityCode": {
+		"defaultMessage": "Security code",
+		"description": "The name of the field of the 3- or 4-digit security code of a payment card, when no label names it."
 	},
 	"ui.dashboard.canceled": {
 		"defaultMessage": "Canceled. {item} returned to {cell}.",

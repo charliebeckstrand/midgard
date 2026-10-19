@@ -10,6 +10,7 @@ import {
 import { ComboboxContext } from '../../components/combobox/context'
 import { useComboboxQuery } from '../../components/combobox/use-combobox-query'
 import { DeferredQueryContext, QueryContext } from '../../primitives/query'
+import { LocaleProvider } from '../../providers/locale'
 import { fireEvent, renderUI, screen, setupUser } from '../helpers'
 
 const NAMES = ['Texas LTL', 'Georgia TL']
@@ -212,5 +213,24 @@ describe('ComboboxCreateOption', () => {
 
 			expect(screen.queryByRole('option')).toBeNull()
 		})
+	})
+})
+
+describe('ComboboxCreateOption in a locale', () => {
+	it('labels the row in the language of the locale', async () => {
+		const user = setupUser()
+
+		renderUI(
+			<LocaleProvider locale="es-ES">
+				<Combobox<string> displayValue={(v) => v} aria-label="Nombre">
+					<ComboboxCreateOption />
+				</Combobox>
+			</LocaleProvider>,
+		)
+
+		await user.click(screen.getByRole('combobox'))
+		await user.keyboard('Tex')
+
+		expect(screen.getByText('Crear «Tex»')).toBeInTheDocument()
 	})
 })
