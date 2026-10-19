@@ -23,6 +23,11 @@ const { border, focus, ring } = sen
 // `usePdfViewerPageScale` computes once.
 const centered = 'absolute top-1/2 left-1/2 origin-center'
 
+// The box of a thumbnail tile: the frame over the label. `w-full`, because a button sizes to
+// its content even as a flex container. A tile with no image yet would then shrink its frame
+// to the width of nothing, and grow when the image lands.
+const tile = [flex.col, 'items-center', 'w-full', dan.gap.scale.sm]
+
 export const k = {
 	base: ['relative', flex.col, 'overflow-hidden', bg.surface, border.default],
 	/**
@@ -113,15 +118,9 @@ export const k = {
 		grid: ['grid grid-cols-2', dan.gap.scale.sm],
 	},
 	thumbnail: {
-		base: [
-			'group/thumb',
-			flex.col,
-			'items-center',
-			dan.gap.scale.sm,
-			'bg-transparent',
-			'outline-none',
-			...cursor,
-		],
+		base: ['group/thumb', ...tile, 'bg-transparent', 'outline-none', ...cursor],
+		/** The box of a tile while the document loads: a tile with no button. */
+		placeholder: tile,
 		frame: [
 			'relative block w-full aspect-3/4',
 			'overflow-hidden',
@@ -144,8 +143,8 @@ export const k = {
 		 * the letterbox of `object-contain`.
 		 */
 		image: ['block w-full h-full object-contain', 'drop-shadow-sm'],
-		fallback: [flex.row, 'justify-center', 'h-full w-full', size.sm, text.muted],
-		placeholder: ['block w-full aspect-3/4', skeleton.base],
+		/** Fills the frame until the image of the page lands, so the tile has its final box. */
+		skeleton: ['block w-full h-full', skeleton.base],
 		label: [
 			size.sm,
 			text.muted,

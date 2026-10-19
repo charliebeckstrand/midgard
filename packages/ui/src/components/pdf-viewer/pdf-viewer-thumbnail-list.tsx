@@ -15,7 +15,7 @@ type PdfViewerThumbnailItem = {
 	thumbnail: string
 }
 
-// Stable keys for the skeleton tiles shown before the first thumbnail resolves;
+// Stable keys for the skeleton tiles shown before the pages are known;
 // the length is the placeholder count.
 const PLACEHOLDER_KEYS = rangeKeys(6, 'placeholder')
 
@@ -115,7 +115,9 @@ function useVisibleTiles(
 
 /**
  * The thumbnail rail shared by the sidebar and grid layouts. Renders skeleton
- * placeholders until the first thumbnail resolves, then one button per page.
+ * placeholders until the pages are known, then one button per page. A page with no
+ * thumbnail yet shows a skeleton in its frame. Every tile has its final box from the
+ * first frame, so the rail does not move as the thumbnails land.
  * The current page is marked `aria-current` and receives the scroll-into-view
  * ref, so it stays visible as the document is paged.
  *
@@ -152,11 +154,17 @@ export function PdfViewerThumbnailList({
 			{placeholdersOnly
 				? PLACEHOLDER_KEYS.map((key) => (
 						<li key={key}>
+							{/* The box of a tile: a skeleton frame over a blank label line. */}
 							<span
 								aria-hidden="true"
 								data-slot="pdf-viewer-thumbnail-placeholder"
 								className={cn(k.thumbnail.placeholder)}
-							/>
+							>
+								<span className={cn(k.thumbnail.frame)}>
+									<span className={cn(k.thumbnail.skeleton)} />
+								</span>
+								<span className={cn(k.thumbnail.label)}>{'\u00a0'}</span>
+							</span>
 						</li>
 					))
 				: null}
@@ -189,9 +197,10 @@ export function PdfViewerThumbnailList({
 										className={cn(k.thumbnail.image)}
 									/>
 								) : (
-									<span className={cn(k.thumbnail.fallback)}>
-										{intl.formatNumber(item.pageNumber)}
-									</span>
+									<span
+										data-slot="pdf-viewer-thumbnail-skeleton"
+										className={cn(k.thumbnail.skeleton)}
+									/>
 								)}
 							</span>
 							<span className={cn(k.thumbnail.label)}>{intl.formatNumber(item.pageNumber)}</span>
