@@ -1,7 +1,10 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
+import { k as accordion } from '../../recipes/kata/accordion'
+import { k as alert } from '../../recipes/kata/alert'
 import { k as grid } from '../../recipes/kata/grid'
 import { k as menu } from '../../recipes/kata/menu'
+import { k as pdfViewer } from '../../recipes/kata/pdf-viewer'
 import { k as resizable } from '../../recipes/kata/resizable'
 import { k as tooltip } from '../../recipes/kata/tooltip'
 import { omote } from '../../recipes/kiso/omote'
@@ -10,16 +13,18 @@ import { popover } from '../../recipes/kiso/popover'
 import { classNames } from '../helpers/class-stops'
 
 /**
- * Under forced colors, each part of the overlay family that the reader sees only
- * by its background or by a box-shadow keeps a paint.
+ * Under forced colors, each part that the reader sees only by its background or
+ * by a box-shadow keeps a paint.
  *
- * Forced colors replace a background and remove a box-shadow. A part drawn with
- * only those vanished: the grip of a panel, the edge of a flat popover or
- * tooltip, and the trail row of an open submenu. Each part has a case here, so a
- * new surface of the family that draws its edge with a ring alone fails the
- * table.
+ * Forced colors replace a background and remove a box-shadow. The boundary test
+ * `boundary/forced-colors-boundary.test.ts` finds a state ring from the gate in
+ * its class. The parts here have no such gate: a resting edge, or a state that a
+ * recipe variant or a prop turns on. Each part has a case here, so a part that
+ * loses its fallback fails the table.
  */
-describe('overlay family under forced colors', () => {
+describe('edges and state marks under forced colors', () => {
+	const region = pdfViewer.viewport.page.highlights.region
+
 	const parts: [string, unknown][] = [
 		['the panel surface', panel.surface.base],
 		['the panel chrome', panel.surface.chrome],
@@ -31,6 +36,11 @@ describe('overlay family under forced colors', () => {
 		['the flat tooltip', tooltip.content.surface.default],
 		['the glass tooltip', tooltip.content.surface.glass],
 		['the open submenu row', menu.sub.trigger],
+		['the soft alert', alert({ variant: 'soft', color: 'red' })],
+		['the solid alert', alert({ variant: 'solid', color: 'red' })],
+		['the outline alert', alert({ variant: 'outline', color: 'red' })],
+		['the PDF region', region.base],
+		['the selected PDF region', region.active.base],
 	]
 
 	it.each(parts)('keeps a paint on %s', (_name, part) => {
@@ -44,6 +54,12 @@ describe('overlay family under forced colors', () => {
 		)
 
 		expect(restores).toBe(true)
+	})
+
+	// The selected region draws a heavier stroke than a resting one, so the
+	// selection does not depend on the wash, which forced colors remove.
+	it('draws the selected PDF region heavier than a resting one', () => {
+		expect(classNames([region.active.base])).toContain('forced-colors:outline-4')
 	})
 })
 
@@ -98,5 +114,27 @@ describe('resize grips under forced colors', () => {
 				`${focus}bg-[CanvasText]`,
 			]),
 		)
+	})
+})
+
+/**
+ * Under forced colors, the header of an accordion keeps a focus mark.
+ *
+ * The item draws the focus of its header with a box-shadow ring, and forced
+ * colors remove a box-shadow. The header removes its own outline, so the outline
+ * must be `outline-hidden`: Tailwind gives it a transparent outline under forced
+ * colors, and the browser paints that outline in a system color. `outline-none`
+ * has no such fallback, and the header then shows no focus. In normal mode
+ * `outline-hidden` draws no outline, so the outline does not double the ring.
+ */
+describe('accordion header focus under forced colors', () => {
+	const trigger = classNames([accordion.trigger])
+
+	it('hides its focus outline with the forced-colors fallback', () => {
+		expect(trigger).toContain('focus-visible:outline-hidden')
+	})
+
+	it('removes no outline without the forced-colors fallback', () => {
+		expect(trigger.some((className) => /(?:^|:)outline-none$/.test(className))).toBe(false)
 	})
 })

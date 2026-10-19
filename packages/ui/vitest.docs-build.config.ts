@@ -1,5 +1,5 @@
 import { defineConfig } from 'vitest/config'
-import { splitSequencer } from './src/__tests__/setup/split-sequencer'
+import { splitSequencer } from './src/__tests__/setup/split-sequencer.ts'
 
 /**
  * The suite of the docs build (src/__tests__/docs-build/). It reads the output

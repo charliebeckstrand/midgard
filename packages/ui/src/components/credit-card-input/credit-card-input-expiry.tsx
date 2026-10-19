@@ -2,8 +2,10 @@
 
 import { type ChangeEvent, type ReactNode, useState } from 'react'
 import { composeEventHandlers } from '../../core'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { useControlTypedVerdict } from '../control/use-control-typed-verdict'
 import { Input, type InputProps } from '../input'
+import { creditCardMessages, invalidExpiryMessage } from './credit-card-input-messages'
 import {
 	type CardValidity,
 	cardDigits,
@@ -12,9 +14,6 @@ import {
 	validateCardExpiry,
 } from './credit-card-input-utilities'
 import { useCreditCardInputField } from './use-credit-card-input-field'
-
-/** The default `invalidMessage`. A module constant, because the compiler cannot compile a template literal default. */
-const DEFAULT_INVALID_MESSAGE = `Enter a valid expiration date (${EXPIRY_PATTERN})`
 
 /**
  * Masks the digits of a change into "MM/YY" with no pad of a one-digit month.
@@ -83,10 +82,9 @@ export type CreditCardInputExpiryProps = Omit<
 	 * Error message shown while the typed entry is invalid, as an error
 	 * `<Message>` with an id of its own, wired into the `aria-describedby` of the
 	 * input, also outside a Field. Pass `null` (or `false`) to suppress it and
-	 * supply your own. The default message is "Enter a valid expiration date
-	 * (MM/YY)".
+	 * supply your own.
 	 *
-	 * @defaultValue {@link DEFAULT_INVALID_MESSAGE}
+	 * @defaultValue `'Enter a valid expiration date (MM/YY)'`, in the language of the reader.
 	 */
 	invalidMessage?: ReactNode
 }
@@ -98,8 +96,8 @@ export type CreditCardInputExpiryProps = Omit<
  * `invalidMessage`, when a complete entry can't be valid (a bad month or a past
  * date). It does the same when blur leaves a partial entry behind. A value from
  * outside, such as a form reset, clears that mark. Sets `autoComplete="cc-exp"`
- * and defaults an "Expiration date" aria-label, yielding to a Field
- * `<Label>` or a native `<label>`.
+ * and defaults an "Expiration date" aria-label, in the language of the reader,
+ * yielding to a Field `<Label>` or a native `<label>`.
  *
  * @see {@link CreditCardInput}
  */
@@ -109,7 +107,7 @@ export function CreditCardInputExpiry({
 	placeholder,
 	onValueChange,
 	onValidityChange,
-	invalidMessage = DEFAULT_INVALID_MESSAGE,
+	invalidMessage: invalidMessageProp,
 	invalid,
 	name,
 	onBlur,
@@ -118,6 +116,14 @@ export function CreditCardInputExpiry({
 	'aria-describedby': ariaDescribedBy,
 	...props
 }: CreditCardInputExpiryProps) {
+	const intl = useIntl()
+
+	// Only an absent message takes the default; `null`/`false` suppress it.
+	const invalidMessage =
+		invalidMessageProp === undefined
+			? intl.formatMessage(invalidExpiryMessage, { format: EXPIRY_PATTERN })
+			: invalidMessageProp
+
 	const verdict = useControlTypedVerdict({
 		describedBy: ariaDescribedBy,
 		message: invalidMessage,
@@ -135,7 +141,7 @@ export function CreditCardInputExpiry({
 		onBlur: onFieldBlur,
 		fallbackLabel,
 	} = useCreditCardInputField({
-		fallbackLabel: 'Expiration date',
+		fallbackLabel: intl.formatMessage(creditCardMessages.expiry),
 		ref,
 		name,
 		// The mask adds no pad. A value from outside gets the pad here, and a

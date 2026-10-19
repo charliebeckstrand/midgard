@@ -1,4 +1,11 @@
 import { vi } from 'vitest'
+// The mock modules load before the other imports. Each one waits on its real
+// module (`vi.importActual`). A factory that loads a mock later waits behind
+// the module requests of the files, sometimes for seconds. Its request then
+// stays open while thousands of other requests pass, and Playwright disposes
+// it ("route.fulfill: The object has been collected"). Loaded here, the
+// factory gets the mock from the module cache.
+import '../../../mocks/floating-ui'
 import { loadMotionFeatures } from '../../../../primitives/reduced-motion/reduced-motion-features'
 
 /**
