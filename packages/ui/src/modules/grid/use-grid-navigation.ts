@@ -22,7 +22,7 @@ import {
 	noopSubscribe,
 	sameElements,
 } from '../../utilities'
-import { isPrimaryPress } from '../../utilities/primary-press'
+import { createPressOwner, isPrimaryPress, type PressOwner } from '../../utilities/primary-press'
 import { FLOATING_PORTAL, NAV_PAGE_STEP } from './engine/grid-constants'
 import { type GridRangeCells, inRangeRect, rangeCells, rangeRect } from './engine/grid-range/range'
 import type { GridCellActivate, GridRowActivate } from './engine/grid-row/bridges'
@@ -651,6 +651,12 @@ export function useGridNavigation({
 	 * the range to the cell, and a press without it can start a drag.
 	 */
 	seat: (coord: Coord, event: MouseEvent<HTMLElement>) => void
+	/**
+	 * The pointer that drives a drag of the range or of the fill handle. While a
+	 * pen or a mouse drags, the press of a palm is also a primary press. A press
+	 * while it holds a drag does not seat the cursor or start a drag.
+	 */
+	press: PressOwner
 	/** Moves the cursor to a data cell, and keeps the range anchor where it is. */
 	extendTo: (coord: Coord) => void
 	/** The data cell that an element id names, or `null` for another id. */
@@ -834,7 +840,9 @@ export function useGridNavigation({
 		[cellId],
 	)
 
-	const startDrag = useGridRangeDrag({ onCell: extendTo, cellCoordOf, scrollContainerRef })
+	const [press] = useState(createPressOwner)
+
+	const startDrag = useGridRangeDrag({ onCell: extendTo, cellCoordOf, scrollContainerRef, press })
 
 	// Shows the range between two data cells, the first as its anchor and the
 	// second as the cursor, as the drag of the fill handle grows it. The pointer
@@ -876,6 +884,8 @@ export function useGridNavigation({
 
 	const seat = useCallback(
 		(coord: Coord, event: MouseEvent<HTMLElement>) => {
+			if (press.held()) return
+
 			if (!range) {
 				moveTo(coord)
 
@@ -898,7 +908,7 @@ export function useGridNavigation({
 
 			startDrag(event)
 		},
-		[range, moveTo, extendTo, startDrag, inRangeAt],
+		[range, press, moveTo, extendTo, startDrag, inRangeAt],
 	)
 
 	const readRange = useCallback((): GridRangeCells | null => {
@@ -1285,6 +1295,7 @@ export function useGridNavigation({
 		moveTo,
 		reconcile,
 		seat,
+		press,
 		extendTo,
 		cellCoordOf,
 		rangeAnchor: enabled ? anchor : null,

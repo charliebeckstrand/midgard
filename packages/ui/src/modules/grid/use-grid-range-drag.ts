@@ -3,7 +3,7 @@
 import { type MouseEvent, type RefObject, useEffect, useRef } from 'react'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { clamp } from '../../utilities'
-import { isPrimaryPress } from '../../utilities/primary-press'
+import type { PressOwner } from '../../utilities/primary-press'
 import { GRID_ROLE } from './engine/grid-constants'
 import { edgeScrollStep, RANGE_EDGE } from './engine/grid-range/range'
 import type { Coord } from './use-grid-navigation'
@@ -17,10 +17,12 @@ import type { Coord } from './use-grid-navigation'
  * handle both run on it.
  *
  * @param onCell - Takes the data cell under the pointer.
- * @param onEnd - Runs when a release ends the drag. A drag that a new press or
- *   an unmount cuts off does not call it.
+ * @param onEnd - Runs when a release ends the drag. A drag that an unmount cuts
+ *   off does not call it.
  * @param cellCoordOf - The data cell that an element id names, or `null`.
  * @param scrollContainerRef - The scroll region of the grid, or `null` when it does not scroll.
+ * @param press - The pointer that drives the drag. A press while it holds a drag
+ *   starts no drag and does not cut the drag that runs.
  * @returns The start of a drag, for the press. The drag reads the cells of
  *   the grid that the start names, else of the grid that holds the pressed element.
  * @internal
@@ -30,11 +32,13 @@ export function useGridRangeDrag({
 	onEnd,
 	cellCoordOf,
 	scrollContainerRef,
+	press,
 }: {
 	onCell: (coord: Coord) => void
 	onEnd?: () => void
 	cellCoordOf: (id: string) => Coord | null
 	scrollContainerRef: RefObject<HTMLElement | null>
+	press: PressOwner
 }): (event: MouseEvent<HTMLElement>, root?: HTMLElement | null) => void {
 	// Ends the drag in progress, or `null` when none runs. `release` tells a
 	// release from a cut.
@@ -43,11 +47,9 @@ export function useGridRangeDrag({
 	useEffect(() => () => stopRef.current?.(false), [])
 
 	return useStableEvent((event: MouseEvent<HTMLElement>, root?: HTMLElement | null) => {
-		stopRef.current?.(false)
-
 		const grid = root ?? event.currentTarget.closest<HTMLElement>(GRID_ROLE)
 
-		if (!isPrimaryPress(event) || !grid) return
+		if (!grid || !press.claim(event)) return
 
 		let point = { x: event.clientX, y: event.clientY }
 
@@ -112,6 +114,8 @@ export function useGridRangeDrag({
 			window.removeEventListener('mouseup', release)
 
 			cancelAnimationFrame(frame)
+
+			press.release()
 
 			stopRef.current = null
 

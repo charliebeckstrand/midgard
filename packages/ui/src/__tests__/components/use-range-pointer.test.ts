@@ -162,10 +162,42 @@ describe('useRangePointer', () => {
 		expect(firstUpdate(setRange, [30, 80])).toEqual([60, 80])
 	})
 
+	// Each pointer type has its own primary pointer, so a palm is primary while a
+	// pen drags. It grabs no thumb, and its moves and release leave the drag alone.
+	it('keeps the drag on the pointer that started it when a palm presses', () => {
+		const { api, setRange, onDragStart, onDragEnd } = setup({ current: [20, 80] })
+
+		const palm = { pointerId: 2, pointerType: 'touch', isPrimary: true } as const
+
+		api.onPointerDown(makeEvent({ clientX: 30, pointerType: 'pen' }))
+
+		setRange.mockClear()
+
+		api.onPointerDown(makeEvent({ ...palm, clientX: 90 }))
+
+		api.onPointerMove(makeEvent({ ...palm, clientX: 95 }))
+
+		api.onPointerUp(makeEvent(palm))
+
+		expect(setRange).not.toHaveBeenCalled()
+
+		expect(onDragEnd).not.toHaveBeenCalled()
+
+		api.onPointerMove(makeEvent({ clientX: 40, pointerType: 'pen' }))
+
+		expect(firstUpdate(setRange, [30, 80])).toEqual([40, 80])
+
+		api.onPointerUp(makeEvent({ pointerType: 'pen' }))
+
+		expect(onDragStart).toHaveBeenCalledExactlyOnceWith(0)
+
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith(0)
+	})
+
 	it.each<[string, (api: ReturnType<typeof setup>['api']) => void]>([
-		['onPointerUp', (api) => api.onPointerUp()],
-		['onPointerCancel', (api) => api.onPointerCancel()],
-		['onLostPointerCapture', (api) => api.onLostPointerCapture()],
+		['onPointerUp', (api) => api.onPointerUp(makeEvent())],
+		['onPointerCancel', (api) => api.onPointerCancel(makeEvent())],
+		['onLostPointerCapture', (api) => api.onLostPointerCapture(makeEvent())],
 	])('%s clears the drag so subsequent moves are ignored', (_name, end) => {
 		const { api, setRange } = setup({ current: [20, 80] })
 
@@ -343,9 +375,9 @@ describe('useRangePointer', () => {
 		})
 
 		it.each<[string, (api: ReturnType<typeof setup>['api']) => void]>([
-			['onPointerUp', (api) => api.onPointerUp()],
-			['onPointerCancel', (api) => api.onPointerCancel()],
-			['onLostPointerCapture', (api) => api.onLostPointerCapture()],
+			['onPointerUp', (api) => api.onPointerUp(makeEvent())],
+			['onPointerCancel', (api) => api.onPointerCancel(makeEvent())],
+			['onLostPointerCapture', (api) => api.onLostPointerCapture(makeEvent())],
 		])('%s ends the drag on the grabbed thumb', (_name, end) => {
 			const { api, onDragStart, onDragEnd } = setup({ current: [20, 80] })
 
@@ -367,7 +399,7 @@ describe('useRangePointer', () => {
 
 			expect(onDragStart).not.toHaveBeenCalled()
 
-			api.onPointerUp()
+			api.onPointerUp(makeEvent())
 
 			expect(onDragEnd).not.toHaveBeenCalled()
 		})
@@ -404,7 +436,7 @@ describe('useRangePointer', () => {
 
 			api.onPointerMove(makeEvent({ clientX: 90 }))
 
-			api.onPointerUp()
+			api.onPointerUp(makeEvent())
 
 			expect(onDragStart).toHaveBeenCalledExactlyOnceWith(0)
 
@@ -420,7 +452,7 @@ describe('useRangePointer', () => {
 
 			api.onPointerDown(makeEvent({ clientX: 30, ...overrides }))
 
-			api.onPointerUp()
+			api.onPointerUp(makeEvent())
 
 			expect(onDragStart).not.toHaveBeenCalled()
 

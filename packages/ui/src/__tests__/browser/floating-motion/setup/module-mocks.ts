@@ -1,6 +1,7 @@
 import { beforeAll, vi } from 'vitest'
 import { tooltipBody } from '../../../../components/tooltip/tooltip-body-loader'
 import { loadMotionFeatures } from '../../../../primitives/reduced-motion/reduced-motion-features'
+import { giveReducedMotionHint } from '../../setup/reduced-motion-hint'
 
 /**
  * floating-motion-project module mocks. `@floating-ui/react` and `motion/react`
@@ -17,6 +18,10 @@ vi.mock('../../../../components/tooltip/tooltip-body-loader', async (importOrigi
 // The `motion` project loads the Motion features before its files for the
 // reason that its setup gives.
 await Promise.all([loadMotionFeatures('animation'), loadMotionFeatures('layout')])
+
+// Motion is real here, so its one hint for reduced motion lands before the
+// files (see `browser/setup/reduced-motion-hint.ts`).
+giveReducedMotionHint()
 
 // The `floating-ui` project loads the tooltip body before each file for the
 // reason that its setup gives.

@@ -284,6 +284,50 @@ describe('useSignaturePadDrawing', () => {
 			expect(context.lineTo).toHaveBeenCalledWith(20, 30)
 		})
 
+		it('keeps the stroke when a primary pointer of another type presses', () => {
+			const { result, context, onDrawStart } = setup()
+
+			const palm = { pointerId: 3, pointerType: 'touch', isPrimary: true } as const
+
+			act(() => {
+				result.current.handlePointerDown(
+					pointerEvent({ pointerType: 'pen', clientX: 0, clientY: 0 }),
+				)
+			})
+
+			act(() => {
+				result.current.handlePointerDown(pointerEvent({ ...palm, clientX: 80, clientY: 80 }))
+			})
+
+			expect(context.arc).toHaveBeenCalledTimes(1)
+
+			expect(onDrawStart).toHaveBeenCalledTimes(1)
+
+			act(() => {
+				result.current.handlePointerMove(
+					pointerEvent({ pointerType: 'pen', clientX: 20, clientY: 30 }),
+				)
+			})
+
+			expect(context.moveTo).toHaveBeenLastCalledWith(0, 0)
+
+			expect(context.lineTo).toHaveBeenCalledWith(20, 30)
+
+			let committed: boolean | undefined
+
+			act(() => {
+				committed = result.current.commit(pointerEvent(palm))
+			})
+
+			expect(committed).toBe(false)
+
+			act(() => {
+				committed = result.current.commit(pointerEvent({ pointerType: 'pen' }))
+			})
+
+			expect(committed).toBe(true)
+		})
+
 		it('does not end the stroke when the second pointer lifts', () => {
 			const { result, setCurrent } = setup()
 

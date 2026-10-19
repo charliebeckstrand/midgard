@@ -6,6 +6,7 @@ import { type ReactNode, useState } from 'react'
 import { composeEventHandlers } from '../../core'
 import { useFormattedInput } from '../../hooks/use-formatted-input'
 import { useFormValue } from '../../primitives/form/use-form-value'
+import { formatDatePattern } from '../../primitives/intl/intl-date-pattern'
 import type { IntlShape } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { useLocale } from '../../providers/locale'
@@ -292,7 +293,7 @@ export function DateInput({
 				// defaults an aria-label, yielding to a Field <Label> from the first
 				// render and to a native label after each commit (useControlLabelRef).
 				aria-label={ariaLabel ?? labelled.fallbackLabel}
-				placeholder={placeholder ?? format}
+				placeholder={placeholder ?? formatDatePattern(intl, format)}
 				autoComplete="off"
 				disabled={disabled}
 				readOnly={readOnly}

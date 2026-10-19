@@ -327,6 +327,7 @@ export default defineConfig({
 		sequence,
 		setupFiles: [
 			'./src/__tests__/browser/setup/index.ts',
+			'./src/__tests__/setup/console-guard.ts',
 			// `userEvent.setup()` patches HTMLElement.prototype.focus with a
 			// getter-only accessor and never restores it. Under `isolate: false` the
 			// prototype is shared across the instance's files, so the patch outlives

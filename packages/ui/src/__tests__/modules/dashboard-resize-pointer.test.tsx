@@ -430,4 +430,39 @@ describe('Dashboard pointer resize', () => {
 
 		expect(spies.onLayout).not.toHaveBeenCalled()
 	})
+
+	// While a pen or a mouse resizes, the first touch of a palm is also a primary press.
+	it('keeps the resize on the pointer that started it when a palm presses', () => {
+		const spies = makeSpies()
+
+		const { container } = renderUI(<Board spies={spies} />)
+
+		const east = eastSplitter()
+
+		pressAndMove(east)
+
+		fireEvent.pointerDown(east, {
+			pointerId: 2,
+			isPrimary: true,
+			button: 0,
+			clientX: 0,
+			clientY: 0,
+		})
+
+		fireEvent.pointerMove(east, { pointerId: 2, clientX: 0, clientY: 0 })
+
+		fireEvent.pointerUp(east, { pointerId: 2 })
+
+		expect(spies.onResizeStart).toHaveBeenCalledTimes(1)
+
+		expect(spies.onResizeEnd).not.toHaveBeenCalled()
+
+		expect(area(container)).toBe('1 / 1 / span 10 / span 10')
+
+		fireEvent.pointerUp(east, { pointerId: 1 })
+
+		expect(spies.onLayout).toHaveBeenCalledExactlyOnceWith([{ id: 'a', x: 0, y: 0, w: 10, h: 10 }])
+
+		expect(spies.onResizeEnd).toHaveBeenCalledTimes(1)
+	})
 })
