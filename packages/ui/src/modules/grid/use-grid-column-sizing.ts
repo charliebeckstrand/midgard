@@ -125,6 +125,23 @@ function tableChrome(container: HTMLElement, totalSize: number): number {
 }
 
 /**
+ * The width that a fit fills (px). A sticky or virtualized grid puts its table in
+ * a scroll region whose `scrollbar-gutter: stable` keeps the track of the
+ * scrollbar. A fit to the full container then makes the table wider than the
+ * content box of that region, and a horizontal scrollbar shows. Thus the fit
+ * uses the content box of the scroll region when the grid has one. @internal
+ */
+function fitWidth(container: HTMLElement): number {
+	const scroller = container
+		.querySelector('table')
+		?.closest<HTMLElement>('[data-slot="grid-scroll"]')
+
+	// A grid in the detail panel of another grid can find the scroll region of
+	// the outer grid. That region is not in this container, so it does not apply.
+	return scroller && container.contains(scroller) ? scroller.clientWidth : container.clientWidth
+}
+
+/**
  * Whether `next` moves any column off `prev`. A height-only resize tick must not
  * allocate a fresh sizing object and re-render the head, body, and footer for
  * nothing. Nor must any change landing on the same pixels. @internal
@@ -275,7 +292,7 @@ export function useGridColumnSizing<T>({
 	const envOf = useCallback((): ColumnSizerEnv<T> | null => {
 		const container = containerRef?.current
 
-		const width = container?.clientWidth ?? 0
+		const width = container ? fitWidth(container) : 0
 
 		if (!container || !width) return null
 
