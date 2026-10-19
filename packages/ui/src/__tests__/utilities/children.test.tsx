@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { isValidElement, type ReactNode } from 'react'
+import { Fragment, isValidElement, type ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
 import {
 	flattenFragments,
@@ -26,7 +26,48 @@ describe('flattenFragments', () => {
 			</>,
 		])
 
-		expect(flat.map(({ key }) => key)).toEqual(['a', '1.0', '1.1'])
+		expect(flat.map(({ key }) => key)).toEqual(['$a', '1.0', '1.1'])
+	})
+
+	it('keeps an explicit key apart from the index of an unkeyed sibling', () => {
+		const { children } = (
+			<Slot>
+				<Other key="1" />
+				<Other key="0" />
+				<Other />
+				<Other />
+			</Slot>
+		).props
+
+		const flat = flattenFragments(children)
+
+		expect(flat.map(({ key }) => key)).toEqual(['$1', '$0', '2', '3'])
+	})
+
+	it('carries the key of a keyed Fragment, so its children keep their keys when it moves', () => {
+		const keys = (order: string[]) =>
+			flattenFragments(
+				order.map((id) => (
+					<Fragment key={id}>
+						<Slot />
+					</Fragment>
+				)),
+			).map(({ key }) => key)
+
+		expect(keys(['a', 'b'])).toEqual(['$a.0', '$b.0'])
+
+		expect(keys(['b', 'a'])).toEqual(['$b.0', '$a.0'])
+	})
+
+	it('escapes a dot in an explicit key, so it cannot read as a Fragment path', () => {
+		const flat = flattenFragments([
+			<Other key="a.0" />,
+			<Fragment key="a">
+				<Slot />
+			</Fragment>,
+		])
+
+		expect(new Set(flat.map(({ key }) => key)).size).toBe(2)
 	})
 })
 
@@ -76,6 +117,6 @@ describe('partitionByType', () => {
 
 		expect(rest[0]).toBe('lead')
 
-		expect(isValidElement(rest[1]) && rest[1].key).toBe('o')
+		expect(isValidElement(rest[1]) && rest[1].key).toBe('$o')
 	})
 })
