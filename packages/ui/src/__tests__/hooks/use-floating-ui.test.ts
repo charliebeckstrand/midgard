@@ -313,6 +313,52 @@ describe('useFloatingUI', () => {
 			expect(focus).not.toHaveBeenCalled()
 		})
 
+		it('returns focus on a later close after a refused outside press', async () => {
+			const trigger = document.createElement('button')
+
+			const focus = vi.spyOn(trigger, 'focus')
+
+			const triggerRef = { current: trigger as HTMLElement }
+
+			const reference = document.createElement('button')
+
+			const floating = document.createElement('div')
+
+			attach(reference)
+
+			attach(floating)
+
+			// The owner refuses the close: it keeps `open` true and renders nothing.
+			const { result, rerender } = renderHook(
+				({ open }: { open: boolean }) =>
+					useFloatingUI({
+						placement: 'bottom-start',
+						open,
+						onOpenChange: () => {},
+						returnFocusTo: triggerRef,
+					}),
+				{ initialProps: { open: true } },
+			)
+
+			result.current.refs.domReference.current = reference
+
+			result.current.refs.floating.current = floating
+
+			const outside = document.createElement('div')
+
+			attach(outside)
+
+			outside.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))
+
+			// The task of the refused request ends.
+			await Promise.resolve()
+
+			// A later close with no reason, such as a close button, restores focus.
+			rerender({ open: false })
+
+			expect(focus).toHaveBeenCalledTimes(1)
+		})
+
 		it('returns focus when the close was an Escape press', () => {
 			const trigger = document.createElement('button')
 

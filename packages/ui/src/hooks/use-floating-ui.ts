@@ -337,8 +337,11 @@ export function useFloatingPanel({
 	// Reason of the pending close request; the focus-return effect reads it.
 	// Every close that flows through floating-ui's `context.onOpenChange`
 	// (interaction hooks, `FloatingFocusManager`, `useFloatingUI`'s dismiss
-	// listeners) records one; programmatic closes carry none.
-	const closeReasonRef = useRef<OpenChangeReason | undefined>(undefined)
+	// listeners) records one; programmatic closes carry none. A record lives to
+	// the end of its task, as a refused set does in `useControllable`: an
+	// accepted close commits in that task, and a refused one commits nothing, so
+	// its reason must not reach a later close.
+	const closeReasonRef = useRef<{ reason: OpenChangeReason | undefined } | undefined>(undefined)
 
 	// A plain closure, deliberately unmemoized. `useFloating` re-wraps whatever
 	// it is handed in an effect event of its own and reads the option nowhere
@@ -346,9 +349,23 @@ export function useFloatingPanel({
 	// newest closure is the one it calls. Neither a ref shadow nor a stable
 	// identity buys anything here.
 	const handleOpenChange = (nextOpen: boolean, event?: Event, reason?: OpenChangeReason) => {
-		if (!nextOpen) closeReasonRef.current = reason
+		if (nextOpen) {
+			onOpenChange?.(nextOpen, event, reason)
+
+			return
+		}
+
+		const record = { reason }
+
+		closeReasonRef.current = record
 
 		onOpenChange?.(nextOpen, event, reason)
+
+		// Queued after the owner sets state, so the commit of an accepted close
+		// runs first. A later request in the same task keeps its own record.
+		queueMicrotask(() => {
+			if (closeReasonRef.current === record) closeReasonRef.current = undefined
+		})
 	}
 
 	const {
@@ -387,7 +404,7 @@ export function useFloatingPanel({
 		// does a focus-out (Tab moved focus to the next tabbable; APG select
 		// closes and lets the keystroke proceed). Every other close (Escape,
 		// selection, programmatic) restores it.
-		const reason = closeReasonRef.current
+		const reason = closeReasonRef.current?.reason
 
 		if (prevOpenRef.current && !open && reason !== 'outside-press' && reason !== 'focus-out') {
 			const trigger = returnFocusTo?.current
