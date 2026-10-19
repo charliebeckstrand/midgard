@@ -77,12 +77,13 @@ export default function NewRow() {
 		return []
 	}
 
-	// `newRow` pins a blank row to the body, outside the rows. It has its own
+	// On a phone, the two Segments stack, as the second does not fit beside the
+	// first. `newRow` pins a blank row to the body, outside the rows. It has its own
 	// sink, `onRowAdd`, as a new person has no key yet.
 	return (
 		<>
-			<Flex justify="between" align="center">
-				<Flex gap="sm">
+			<Flex justify="between" align={{ initial: 'start', sm: 'center' }}>
+				<Flex direction={{ initial: 'col', sm: 'row' }} gap="sm" align="start">
 					<Segment
 						value={position}
 						onValueChange={(next) =>
