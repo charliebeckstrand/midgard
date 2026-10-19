@@ -232,6 +232,28 @@ describe('Grid grouped-body roving', () => {
 
 		expect(onCellClick).toHaveBeenCalledTimes(1)
 	})
+
+	it('keeps a clickable leaf out of the Tab order under the navigable cursor', () => {
+		const { container } = renderUI(
+			<Grid
+				navigable
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				groupBy={{ value: 'role' }}
+				onRowClick={vi.fn()}
+			/>,
+		)
+
+		const leaves = Array.from(
+			container.querySelectorAll<HTMLElement>('tr[data-grid-row]:not([data-group-row])'),
+		)
+
+		expect(leaves.length).toBeGreaterThan(0)
+
+		// The cursor is the single Tab stop, as it is for a flat row.
+		expect(leaves.filter((leaf) => leaf.hasAttribute('tabindex'))).toEqual([])
+	})
 })
 
 describe("Grid cell roving with a column's own key handler", () => {
