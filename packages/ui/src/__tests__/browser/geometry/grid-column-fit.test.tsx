@@ -630,3 +630,55 @@ describe('grid column auto-sizing at device pixel ratio 2 (real browser)', () =>
 		})
 	}
 })
+
+describe('grid column fit while a width write waits for its commit (real browser)', () => {
+	type Person = { id: number; name: string; role: string }
+
+	const columns: GridColumn<Person>[] = [
+		{ id: 'name', title: 'Name', cell: (row) => row.name },
+		{ id: 'role', title: 'Role', cell: (row) => row.role },
+	]
+
+	/*
+	 * A fit writes the engine widths at once, but the DOM shows them only when
+	 * React commits. On a reload, a `ResizeObserver` tick can fit in that gap,
+	 * while the table still has the declared width of the server markup. The
+	 * case makes that gap: it puts the table back at the declared width, then
+	 * resizes the frame. The fit must not read the difference as border chrome,
+	 * or the columns lose the spare width and hug their headers.
+	 */
+	it.each([
+		['loading', { loading: true, rows: [] }],
+		['empty', { rows: [] }],
+		['filled', { rows: [{ id: 1, name: 'Ada', role: 'Admin' }] }],
+	] as const)(
+		'fills the frame when a %s grid fits against a stale table width',
+		async (_, props) => {
+			const { container } = renderUI(
+				<div style={{ width: '320px' }}>
+					<Grid columns={columns} getKey={(row) => row.id} {...props} />
+				</div>,
+			)
+
+			const frameBox = present(container.firstElementChild as HTMLElement | null, 'frame')
+
+			const table = present(container.querySelector('table'), 'table')
+
+			const scroll = present(container.querySelector('[data-slot="table"]'), '[data-slot="table"]')
+
+			await waitFor(() =>
+				expect(table.getBoundingClientRect().width).toBeNear(scroll.clientWidth, PIXEL),
+			)
+
+			table.style.width = '600px'
+
+			frameBox.style.width = '330px'
+
+			await waitFor(() => expect(table.style.width).not.toBe('600px'))
+
+			await frames()
+
+			expect(table.getBoundingClientRect().width).toBeNear(scroll.clientWidth, PIXEL)
+		},
+	)
+})
