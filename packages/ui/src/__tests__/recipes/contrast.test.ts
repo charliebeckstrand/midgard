@@ -224,13 +224,6 @@ const TINT_CONSUMERS: readonly {
 	surfaces: readonly ClassTree[]
 	/** The composited ground this file's inks sit on. @defaultValue WASH */
 	ground?: typeof WASH
-	/**
-	 * Inks this file paints on some *other* ground, named so the wash rule skips
-	 * them. Each one is a state that re-grounds the row — a focused menu row
-	 * swaps to a solid accent fill — and is measured against that fill by the
-	 * archetype that owns it, not here.
-	 */
-	regrounded?: readonly string[]
 }[] = [
 	// The `solid` row variant, inked by the row itself, `description`, and the
 	// interactive `content` column.
@@ -256,8 +249,6 @@ const TINT_CONSUMERS: readonly {
 		file: 'recipes/kata/menu.ts',
 		surfaces: [menu.item, menu.description],
 		ground: HOVER_WASH,
-		// The focused row takes a solid accent fill, not the wash.
-		regrounded: ['group-focus/option:text-white'],
 	},
 	{
 		file: 'recipes/kata/option.ts',
@@ -319,17 +310,15 @@ describe('tint wash foreground contrast', () => {
 	// has nothing to measure and would assert `[] === []` in its name's stead.
 	describe.each(TINT_CONSUMERS.filter(({ surfaces }) => surfaces.length > 0))(
 		'$file',
-		({ surfaces, ground = WASH, regrounded = [] }) => {
+		({ surfaces, ground = WASH }) => {
 			const inks = inksByMode(surfaces)
 
 			it.each(MODES)('grounds no ink below text AA on the wash in %s mode', (mode) => {
-				const failing = inks[mode]
-					.filter((ink) => !regrounded.includes(ink))
-					.flatMap((ink) => {
-						const ratio = contrastOf(ink, ground[mode])
+				const failing = inks[mode].flatMap((ink) => {
+					const ratio = contrastOf(ink, ground[mode])
 
-						return ratio < TEXT_AA ? [`${ink} @ ${ratio.toFixed(2)}:1`] : []
-					})
+					return ratio < TEXT_AA ? [`${ink} @ ${ratio.toFixed(2)}:1`] : []
+				})
 
 				expect(failing).toEqual([])
 			})

@@ -753,6 +753,52 @@ describe('Form', () => {
 		expect(submittingFlag()).toBe('false')
 	})
 
+	it('drops a helpers.setErrors call from a submit that a reset superseded', async () => {
+		const pending = deferred()
+
+		const onSubmit = vi.fn(async (_values: unknown, helpers: FormHelpers<{ name: string }>) => {
+			await pending.promise
+
+			helpers.setErrors({ name: 'taken on the server' })
+		})
+
+		let actions: ReturnType<typeof useFormActions>
+
+		function ActionsCapture() {
+			actions = useFormActions()
+
+			return null
+		}
+
+		const { container } = renderUI(
+			<Form defaultValues={{ name: 'Ada' }} onSubmit={onSubmit}>
+				<ActionsCapture />
+				<FieldProbe name="name" />
+				<ValidProbe />
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		await submit(container)
+
+		expect(onSubmit).toHaveBeenCalledOnce()
+
+		await act(async () => {
+			actions?.reset()
+		})
+
+		// The handler writes its errors only now, after the reset.
+		await act(async () => {
+			pending.resolve(undefined)
+		})
+
+		expect(getFieldProbe('name').textContent).toBe('Ada')
+
+		expect(getFieldProbe('name')).not.toHaveAttribute('data-error')
+
+		expect(screen.getByTestId('valid').textContent).toBe('true')
+	})
+
 	it('keeps its own submit live when onSubmit calls helpers.reset, then settles', async () => {
 		const pending = deferred()
 

@@ -286,8 +286,9 @@ export const [ChartSeriesEmphasisContext, useChartSeriesEmphasis] = createContex
  * the menu, never another menu host, which would recurse. Default `false` for a
  * chart in the page.
  *
- * `SectorChart` reads it for a different reason: a pie takes the dialog's wider
- * aspect ratio rather than its free-form square.
+ * `SectorChart` and `HeatmapChart` read it for a different reason: a chart
+ * whose default ratio fits its content takes the ratio of the dialog
+ * (`chartAspectRatio`).
  *
  * @internal
  */

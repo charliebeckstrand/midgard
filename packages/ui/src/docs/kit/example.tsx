@@ -10,6 +10,7 @@ import { useIsRtl } from '../../hooks/use-is-rtl.ts'
 import { usePanelResize } from '../../hooks/use-panel-resize.ts'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
 import type { ExampleCode, ExampleMeta } from '../plugin/examples.ts'
+import { exampleTitle } from './example-title.ts'
 import { useLoadThenOpen } from './load-then-open.ts'
 
 const messages = defineMessages({
@@ -152,9 +153,12 @@ export function ExampleFrame({
 
 	const intl = useIntl()
 
-	// The title of an example comes from its file name, so it stays English. The
-	// title of a playground is the same on each page, so it shows translated.
-	const title = meta.component === undefined ? meta.title : intl.formatMessage(messages.playground)
+	// The title of an example comes from its file name, and the docs catalog
+	// translates it. The title of a playground is the same on each page.
+	const title =
+		meta.component === undefined
+			? exampleTitle(intl, meta.id, meta.title)
+			: intl.formatMessage(messages.playground)
 
 	const resize = usePanelResize({
 		side: isRtl ? 'right' : 'left',

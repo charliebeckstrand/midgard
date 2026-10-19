@@ -24,8 +24,6 @@ function pressEscape(node: HTMLElement): void {
 /** The intent that the trigger records before the tooltip state loads. */
 describe('useTooltipIntent', () => {
 	afterEach(() => {
-		vi.useRealTimers()
-
 		document.body.replaceChildren()
 	})
 

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { HeatmapChart, type HeatmapChartSeries } from '../../modules/chart'
 import { LABEL_CHAR_WIDTH } from '../../modules/chart/engine/chart-constants'
+import { ChartFullscreenContext } from '../../modules/chart/engine/context'
 import {
 	act,
 	bySlot,
@@ -959,5 +960,26 @@ describe('HeatmapChart default ratio', () => {
 		)
 
 		expect(getSlot(container, 'chart-plot').querySelector('svg')).toHaveAttribute('height', '50')
+	})
+
+	it('takes the 16/9 ratio of the panel inside the fullscreen dialog', () => {
+		// A grid of 8 columns over 7 rows fits a ratio of about 1.14, taller than
+		// the 16/9 panel, so the copy in the dialog takes the ratio of the panel.
+		const { container } = renderUI(
+			<ChartFullscreenContext value={true}>
+				<HeatmapChart
+					aria-label="Commits"
+					data={grid(7, 8)}
+					series={SERIES}
+					width={400}
+					legend={false}
+				/>
+			</ChartFullscreenContext>,
+		)
+
+		expect(getSlot(container, 'chart-plot').querySelector('svg')).toHaveAttribute(
+			'height',
+			String(Math.round(400 / (16 / 9))),
+		)
 	})
 })

@@ -808,30 +808,31 @@ function ChartFigure({
 	// rail bands beside the plot in a row once the container has room (`@sm`, the
 	// rail's engage width) — below that it stacks under the plot at full width, and
 	// a left rail reverses the row rather than moving in the DOM. A stacked legend
-	// bands above or below directly, no wrapper. Either way the `flex-1` plot draws
-	// into the ratio's remainder, so the whole figure still holds the ratio.
-	const body = aside ? (
+	// bands above or below in the figure's own column, so the wrapper takes no box
+	// (`contents`). Either way the `flex-1` plot draws into the ratio's remainder,
+	// so the whole figure still holds the ratio. The wrapper and the plot's slot in
+	// it are the same in both layouts, so a legend that moves between a side and a
+	// band keeps the plot mounted, and a plot that holds focus keeps it.
+	const body = (
 		<div
 			data-slot="chart-body"
-			className={cn(
-				'flex min-h-0 flex-1 flex-col',
-				rail ? 'gap-4' : 'gap-2',
-				stretch ? '@sm:items-stretch' : '@sm:items-center',
-				legendBandRow(legendPlacement, 'sm'),
-			)}
+			className={
+				aside
+					? cn(
+							'flex min-h-0 flex-1 flex-col',
+							rail ? 'gap-4' : 'gap-2',
+							stretch ? '@sm:items-stretch' : '@sm:items-center',
+							legendBandRow(legendPlacement, 'sm'),
+						)
+					: 'contents'
+			}
 		>
-			{plot}
-
-			{legend}
-		</div>
-	) : (
-		<>
 			{legendPlacement === 'top' && legend}
 
 			{plot}
 
-			{legendPlacement === 'bottom' && legend}
-		</>
+			{(aside || legendPlacement === 'bottom') && legend}
+		</div>
 	)
 
 	return (

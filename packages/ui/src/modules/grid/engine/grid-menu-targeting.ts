@@ -111,7 +111,8 @@ export function tryCellMenu(
  * Handles a keyboard context menu (Shift+F10 / the ContextMenu key), which fires
  * on the focused grid rather than a cell. It retargets to the active cursor
  * cell, records the grid to restore focus to on close, and opens below the cell
- * (WCAG 2.1.1). No-ops when no cell is active.
+ * (WCAG 2.1.1). The cursor on a group-header row opens the menu of the group, as
+ * a right-click on the row does. No-ops when no cell is active.
  *
  * @remarks Only an event on the grid element itself retargets. A right-click
  * in a cell with no menu of its own, such as a selection or actions cell,
@@ -122,6 +123,7 @@ export function tryCellMenu(
 export function openKeyboardMenu(
 	target: HTMLElement,
 	resolveItems: (target: HTMLElement) => GridMenuResolution | null,
+	resolveGroupItems: (key: string, header: HTMLElement) => GridMenuResolution | null,
 	commit: CommitMenu,
 	returnFocus: RefObject<HTMLElement | null>,
 ): void {
@@ -136,7 +138,12 @@ export function openKeyboardMenu(
 
 	if (!active) return
 
-	const menu = resolveItems(active)
+	const groupRow = active.closest<HTMLElement>('tr[data-group-row]')
+
+	const menu =
+		groupRow?.dataset.groupKey === undefined
+			? resolveItems(active)
+			: resolveGroupItems(groupRow.dataset.groupKey, groupRow)
 
 	if (!menu || menu.items.length === 0) return
 

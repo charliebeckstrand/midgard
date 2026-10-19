@@ -28,13 +28,18 @@ import {
 	LABEL_CHAR_WIDTH,
 	TICK_CHAR_WIDTH,
 } from '../engine/chart-constants'
-import { type ChartAspectRatio, chartFrameSizing } from '../engine/chart-frame/sizing'
+import {
+	type ChartAspectRatio,
+	chartAspectRatio,
+	chartFrameSizing,
+} from '../engine/chart-frame/sizing'
 import { cellAt, type HeatmapCell, heatmapCells } from '../engine/chart-geometry/heatmap'
 import { bandTicksOf, plotRect, thinned } from '../engine/chart-layout'
 import type { PlotRect } from '../engine/chart-orientation'
 import { type BandScale, bandScale } from '../engine/chart-scale'
 import { readoutCell } from '../engine/chart-series'
 import { type ChartTier, COMPACT_WIDTH, chartPolicy, SPARK_HEIGHT } from '../engine/chart-tier'
+import { useChartFullscreen } from '../engine/context'
 import type { ChartReadout, ChartReadoutSource } from '../engine/types'
 import type { ChartFocusTargets } from '../engine/use-chart-keyboard'
 import { useChartTextWidth } from '../engine/use-chart-text-width'
@@ -246,8 +251,9 @@ export function useHeatmapChart<T>(
 
 	// Fit the frame to the grid so cells read square-ish; the reserved gutter and
 	// axis band shave it a touch, which is fine for a categorical key. An explicit
-	// `aspectRatio` is not bounded.
-	const ratio = aspectRatio ?? gridRatio(cols, rows)
+	// `aspectRatio` is not bounded. The copy in the fullscreen dialog takes the
+	// ratio of the panel, as a grid can be taller than the panel.
+	const ratio = chartAspectRatio(aspectRatio, gridRatio(cols, rows), useChartFullscreen())
 
 	const sizing = chartFrameSizing(height, ratio)
 
