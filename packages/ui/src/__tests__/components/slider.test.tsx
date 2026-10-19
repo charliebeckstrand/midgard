@@ -5,6 +5,7 @@ import { Description, Field, Label, Message } from '../../components/fieldset'
 import { RangeSlider, Slider } from '../../components/slider'
 import { snapValue } from '../../components/slider/range/range-utilities'
 import { Form } from '../../modules/form'
+import { LocaleProvider } from '../../providers/locale'
 import {
 	allBySlot,
 	bySlot,
@@ -822,5 +823,27 @@ describe('RangeSlider + Form', () => {
 		await userEvent.click(screen.getByText('Other'))
 
 		expect(screen.getByRole('textbox')).toHaveFocus()
+	})
+})
+
+describe('RangeSlider in a locale', () => {
+	it('names the thumbs in the language of the locale, and keeps given names', () => {
+		const { rerender } = renderUI(
+			<LocaleProvider locale="es-ES">
+				<RangeSlider />
+			</LocaleProvider>,
+		)
+
+		expect(screen.getByRole('slider', { name: 'Inicio del rango' })).toBeInTheDocument()
+
+		expect(screen.getByRole('slider', { name: 'Fin del rango' })).toBeInTheDocument()
+
+		rerender(
+			<LocaleProvider locale="es-ES">
+				<RangeSlider labels={['Precio mínimo', 'Precio máximo']} />
+			</LocaleProvider>,
+		)
+
+		expect(screen.getByRole('slider', { name: 'Precio mínimo' })).toBeInTheDocument()
 	})
 })
