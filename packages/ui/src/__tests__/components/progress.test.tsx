@@ -113,6 +113,20 @@ describe('ProgressGauge', () => {
 		}
 	})
 
+	it.each([
+		[0, '1'],
+		[5, '5'],
+		[18, '6'],
+	])('holds strokeWidth=%s between 1 and 6', (strokeWidth, drawn) => {
+		const { container } = renderUI(
+			<ProgressGauge value={40} strokeWidth={strokeWidth} aria-label="Progress" />,
+		)
+
+		for (const circle of bySlot(container, 'progress-gauge')?.querySelectorAll('circle') ?? []) {
+			expect(circle).toHaveAttribute('stroke-width', drawn)
+		}
+	})
+
 	it.each([36, 50])('keeps a positive ring radius for strokeWidth=%i', (strokeWidth) => {
 		const { container } = renderUI(
 			<ProgressGauge value={40} strokeWidth={strokeWidth} aria-label="Progress" />,

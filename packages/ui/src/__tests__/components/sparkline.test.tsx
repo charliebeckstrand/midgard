@@ -180,6 +180,18 @@ describe('Sparkline density', () => {
 		)
 	})
 
+	it.each([
+		[0, '1'],
+		[2.5, '2.5'],
+		[12, '4'],
+	])('holds strokeWidth=%s between 1 and 4', (strokeWidth, drawn) => {
+		const { container } = renderUI(
+			<Sparkline data={[1, 3, 2]} strokeWidth={strokeWidth} aria-label="Held" />,
+		)
+
+		expect(container.querySelector('path')).toHaveAttribute('stroke-width', drawn)
+	})
+
 	it('draws one 3:1 viewBox at each step and pins the box to an explicit width', () => {
 		const { container } = renderUI(
 			<>

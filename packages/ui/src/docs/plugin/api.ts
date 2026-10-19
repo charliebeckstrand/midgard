@@ -56,6 +56,13 @@ export type PropApi = {
 	 * kind, such as a function, gives none.
 	 */
 	defaultValue?: DefaultValue
+	/**
+	 * The value of the `@minimum` tag: the lowest number that the component
+	 * takes. The component holds a lower value at it.
+	 */
+	minimum?: number
+	/** The value of the `@maximum` tag. See `minimum`. */
+	maximum?: number
 	/** Markdown. */
 	description?: string
 	/** The text of the `@deprecated` tag, which can be empty. */
@@ -394,6 +401,7 @@ function readBarrel(ts: Ts, ast: Ast, program: Program, checker: Checker, file: 
 			...(required && { required: true }),
 			...(code && { default: code }),
 			...(value !== undefined && { defaultValue: value }),
+			...rangeOf(symbol.name, tags),
 			...(description && { description }),
 			...(deprecated !== undefined && { deprecated }),
 		}
@@ -750,6 +758,38 @@ function literalOfCode(code: string): Literal | undefined {
 	const value = Number(code)
 
 	return code.trim() !== '' && Number.isFinite(value) ? value : undefined
+}
+
+/** The `@minimum` and the `@maximum` tags of a prop, each when the prop has it. */
+function rangeOf(
+	prop: string,
+	tags: ReadonlyMap<string, string>,
+): Pick<PropApi, 'minimum' | 'maximum'> {
+	const minimum = boundOf(prop, 'minimum', tags.get('minimum'))
+
+	const maximum = boundOf(prop, 'maximum', tags.get('maximum'))
+
+	if (minimum !== undefined && maximum !== undefined && minimum > maximum) {
+		throw new Error(`docs: the @minimum of the prop ${prop} is above its @maximum`)
+	}
+
+	return {
+		...(minimum !== undefined && { minimum }),
+		...(maximum !== undefined && { maximum }),
+	}
+}
+
+/** The number of a `@minimum` or a `@maximum` tag, or `undefined` for no tag. */
+function boundOf(prop: string, tag: string, text: string | undefined): number | undefined {
+	if (text === undefined) return undefined
+
+	const value = Number(text.trim())
+
+	if (text.trim() === '' || !Number.isFinite(value)) {
+		throw new Error(`docs: the @${tag} of the prop ${prop} is not a number`)
+	}
+
+	return value
 }
 
 /** The value of a literal type, or `undefined` for another type. */

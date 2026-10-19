@@ -45,6 +45,10 @@ type FreeField = {
 	default?: string | number
 	/** The value that the field starts at. A field with none starts empty. */
 	start?: string | number
+	/** The lowest value of a number field, from the `@minimum` tag of the prop. */
+	min?: number
+	/** The highest value of a number field, from the `@maximum` tag of the prop. */
+	max?: number
 }
 
 /** The props that get a free field, with the value that each field starts at. */
@@ -193,16 +197,27 @@ function freeDefaultOf(
 	return typeof value === 'string' ? value : undefined
 }
 
+/** The `min` and the `max` of a number field: the `@minimum` and the `@maximum` tags of its prop. */
+function rangeOf({ minimum, maximum }: PropApi): Pick<FreeField, 'min' | 'max'> {
+	return {
+		...(minimum !== undefined && { min: minimum }),
+		...(maximum !== undefined && { max: maximum }),
+	}
+}
+
 /**
  * The free field of a prop, or `undefined` when it gets none. A number prop
  * with a number as its default is a setting of the component, such as `max`
- * or `duration`, so it gets a number field. A prop that `free` names gets a
- * text field or a number field by its type, and starts at the value that
- * `free` gives. A prop whose name starts with `default` sets the first state
+ * or `duration`, so it gets a number field. A number field holds its value
+ * between the `@minimum` and the `@maximum` tags of the prop. A prop that
+ * `free` names gets a text field or a number field by its type, and starts at
+ * the value that `free` gives. A prop whose name starts with `default` sets the first state
  * of the component, so it gets a field only when `free` names it.
  */
 function freeFieldOf(prop: PropApi, free: Free): FreeField | undefined {
 	const { name, type, defaultValue } = prop
+
+	const range = rangeOf(prop)
 
 	if (Object.hasOwn(free, name)) {
 		if (type !== 'string' && type !== 'number' && type !== 'ReactNode') {
@@ -223,6 +238,7 @@ function freeFieldOf(prop: PropApi, free: Free): FreeField | undefined {
 			name,
 			...(fallback !== undefined && { default: fallback }),
 			...(start !== undefined && { start }),
+			...range,
 		}
 	}
 
@@ -232,7 +248,7 @@ function freeFieldOf(prop: PropApi, free: Free): FreeField | undefined {
 
 	return fallback === undefined
 		? undefined
-		: { kind: 'number', name, default: fallback, start: fallback }
+		: { kind: 'number', name, default: fallback, start: fallback, ...range }
 }
 
 /**
@@ -435,6 +451,8 @@ function FreePicker({
 				aria-label={label}
 				prefix={<FieldLabel label={label} />}
 				placeholder={placeholder}
+				min={field.min}
+				max={field.max}
 				className="w-20 shrink-0"
 				value={typeof value === 'number' ? value : null}
 				onValueChange={(next) => onValueChange(next ?? undefined)}

@@ -5,6 +5,7 @@ import { ariaAttr, cn, dataAttr } from '../../core'
 import { defineMessage, defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/signature-pad'
+import { clamp } from '../../utilities'
 import { Button } from '../button'
 import { type SignaturePadHandle, useSignaturePadState } from './use-signature-pad-state'
 
@@ -25,6 +26,13 @@ const messages = defineMessages({
 		description: 'The name of the button that erases the signature on the pad.',
 	},
 })
+
+/**
+ * The range of `strokeWidth`. The `@minimum` and `@maximum` tags of the prop
+ * give the same numbers to the docs.
+ * @internal
+ */
+const STROKE_WIDTH = { min: 1, max: 6 } as const
 
 /** The name of an empty pad, such as "Signature, empty". */
 const emptyMessage = defineMessage<{ name: string }>({
@@ -91,8 +99,11 @@ export type SignaturePadProps = Omit<
 	 */
 	strokeColor?: string
 	/**
-	 * Stroke width in CSS pixels.
+	 * Stroke width in CSS pixels, held between 1 and 6. A thicker stroke fills
+	 * the small loops of a signature.
 	 *
+	 * @minimum 1
+	 * @maximum 6
 	 * @defaultValue 2
 	 */
 	strokeWidth?: number
@@ -137,7 +148,7 @@ export function SignaturePad({
 	readOnly,
 	placeholder: placeholderProp,
 	strokeColor,
-	strokeWidth = 2,
+	strokeWidth: rawStrokeWidth = 2,
 	clearable = true,
 	'aria-label': ariaLabelProp,
 	ref,
@@ -149,6 +160,8 @@ export function SignaturePad({
 	const placeholder = placeholderProp ?? intl.formatMessage(messages.placeholder)
 
 	const ariaLabel = ariaLabelProp ?? intl.formatMessage(messages.label)
+
+	const strokeWidth = clamp(rawStrokeWidth, STROKE_WIDTH.min, STROKE_WIDTH.max)
 
 	// The state resolves the Control cascade: the canvas takes the field's
 	// validity and description/error ids, and an ambient disabled or read-only
