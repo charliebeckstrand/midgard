@@ -218,6 +218,41 @@ describe('ChoroplethChart context menu', () => {
 		expect(onInspect).toHaveBeenCalledOnce()
 	})
 
+	it('targets the row of the right-clicked region in data order', () => {
+		const items = vi.fn(() => [])
+
+		// Data order differs from feature order (A, B, C), and Gamma has no row.
+		const data = [
+			{ region: 'B', pop: 50 },
+			{ region: 'A', pop: 0 },
+		]
+
+		const { container } = renderUI(
+			<ChoroplethChart
+				aria-label="Population"
+				geography={FIXTURE_GEOJSON}
+				data={data}
+				series={[{ idKey: 'region', colorKey: 'pop', colorRange: RANGE }]}
+				width={400}
+				contextMenu={{ items }}
+			/>,
+		)
+
+		const [alpha, , gamma] = allRegions(container)
+
+		if (!alpha || !gamma) throw new Error('no region paths')
+
+		fireEvent.contextMenu(alpha)
+
+		expect(items).toHaveBeenLastCalledWith({ index: 1 })
+
+		fireEvent.keyDown(document.activeElement ?? document.body, { key: 'Escape' })
+
+		fireEvent.contextMenu(gamma)
+
+		expect(items).toHaveBeenLastCalledWith({ index: null })
+	})
+
 	it('opens a live fullscreen copy that does not nest a second menu', () => {
 		const { container } = renderUI(
 			<ChoroplethChart
