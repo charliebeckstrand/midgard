@@ -16,10 +16,11 @@ export type ChatTranscriptSkeletonProps = {
 }
 
 /**
- * Transcript-shaped placeholder: `messages` bubbles that alternate between
- * the user side and the assistant side, as a conversation does. A user bubble
- * holds one text line, and an assistant bubble holds two. Keyed off the
- * message count, so it does not use the size-driven `createSkeleton` factory.
+ * A placeholder for a {@link ChatTranscript} while it loads. It holds `messages`
+ * bubbles that alternate between the user side and the assistant side, as a
+ * conversation does. A user bubble holds one text line, and an assistant bubble
+ * holds two. Keyed off the message count, so it does not use the size-driven
+ * `createSkeleton` factory.
  *
  * @remarks Static leaf: renders in React Server Components. Each bubble has
  * the width cap, the padding, the radius, and the side of a real bubble, and

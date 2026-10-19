@@ -11,8 +11,8 @@ export type ChatEmbedProviderProps = ChatEmbedRegistry & {
 }
 
 /**
- * Registers the renderers a transcript below it draws an `embed` part with, by
- * name.
+ * The registry of the renderers that a transcript below it draws an `embed`
+ * part with, by name.
  *
  * @remarks
  * This is the seam that keeps a chart, a grid, and a map out of the chat. The

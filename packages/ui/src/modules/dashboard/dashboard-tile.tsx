@@ -137,20 +137,21 @@ export type DashboardTileProps = {
 	/** What the tile shows while its content suspends or is held back. Defaults to a placeholder block. */
 	fallback?: ReactNode
 	/**
-	 * Removes the tile. When set, edit mode shows a remove control in the header
-	 * row. The app owns the tile list, so it does the remove: for a spec tile,
-	 * with `removeSpecTile`. For a JSX tile, also drop its entry from the saved
-	 * layout. Else a later tile with that id takes its stale place. The focus moves
-	 * to the grip of a neighbor tile.
+	 * Fires when the user presses the remove control. When set, edit mode shows that
+	 * control in the header row. The app owns the tile list, so it does the remove:
+	 * for a spec tile, with `removeSpecTile`. For a JSX tile, also drop its entry
+	 * from the saved layout. Else a later tile with that id takes its stale place.
+	 * The focus moves to the grip of a neighbor tile.
 	 */
 	onRemove?: () => void
 	/**
-	 * Duplicates the tile. When set, edit mode shows a duplicate control in the
-	 * header row. For a spec tile, do the copy with `duplicateSpecTile`.
+	 * Fires when the user presses the duplicate control. When set, edit mode shows
+	 * that control in the header row. For a spec tile, do the copy with
+	 * `duplicateSpecTile`.
 	 */
 	onDuplicate?: () => void
 	/**
-	 * Show an expand control at rest. It opens the content in a dialog, at a
+	 * Shows an expand control at rest. It opens the content in a dialog, at a
 	 * larger size, in the scope of the same tile. The content box of the dialog
 	 * keeps the shape of the tile on the board, up to 70% of the viewport
 	 * height. When edit mode starts, an open dialog closes. The focus then moves

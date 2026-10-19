@@ -27,10 +27,10 @@ export type KanbanProps<T, C extends KanbanColumnBase<T>> = AccessibleName &
 		columns: C[]
 		/** Stable key extractor for items. */
 		getKey: (item: T) => string
-		/** Called with the next columns whenever ordering changes. Omit for read-only. */
+		/** Fires when the ordering changes, with the next columns. Omit for read-only. */
 		onReorder?: (next: C[]) => void
 		/**
-		 * Disable all drag / keyboard reorder interaction. It has an effect only
+		 * Disables all drag / keyboard reorder interaction. It has an effect only
 		 * when `onReorder` is set. A board with no `onReorder` is read-only.
 		 * When the board becomes disabled or read-only during a pointer drag, the
 		 * drop does not move the card. The board cancels the drag, and when

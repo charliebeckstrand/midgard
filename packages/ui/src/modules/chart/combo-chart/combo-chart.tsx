@@ -31,7 +31,7 @@ export type ComboChartProps<T = never> = AccessibleName &
 		/** The series to plot, each drawn as bars, a line, or a filled area; slot colors follow this order. */
 		series: ComboChartSeries<T>[]
 		/**
-		 * Mark every line and area point with a filled dot. While bars draw, each
+		 * Marks every line and area point with a filled dot. While bars draw, each
 		 * dot also takes a ring in the surface color, so it stays clear where it
 		 * crosses a bar.
 		 * @defaultValue false

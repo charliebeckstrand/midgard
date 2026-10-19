@@ -54,13 +54,13 @@ export type MapSkeletonProps = {
 }
 
 /**
- * Map-shaped loading placeholder reserving the frame a {@link MapPlat} will
- * take. The placeholder holds the resolved ratio, so swapping the loaded
- * map in causes no layout shift. Compose it in loading trees that stand in for a
- * plat, such as a Suspense fallback while geography data fetches. Pass the
- * plat's own `aspectRatio` when it fixes one, and its `projection` otherwise,
- * so the two reserve the same box. Where the projection has an outline and
- * `outline` is on, the skeleton draws that outline in place of the rectangle.
+ * A placeholder for a {@link MapPlat} while it loads, which reserves the frame
+ * that the plat takes. The placeholder holds the resolved ratio, so swapping the
+ * loaded map in causes no layout shift. Use it where a plat loads, such as in a
+ * Suspense fallback while geography data fetches. Pass the plat's own
+ * `aspectRatio` when it fixes one, and its `projection` otherwise, so the two
+ * reserve the same box. Where the projection has an outline and `outline` is on,
+ * the skeleton draws that outline in place of the rectangle.
  */
 export function MapSkeleton({ aspectRatio, projection, outline, className }: MapSkeletonProps) {
 	// The plat's own policy, not a copy of it: `mapFrameSizing` is the function

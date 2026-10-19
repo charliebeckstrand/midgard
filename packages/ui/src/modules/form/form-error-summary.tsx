@@ -69,8 +69,8 @@ function focusControl(event: MouseEvent<HTMLAnchorElement>, id: string): void {
 }
 
 /**
- * Lists the errors of the enclosing `Form` after a submit fails, and takes the
- * focus. Each row links to the control of its field.
+ * A list of the errors of the enclosing `Form`, which shows after a submit fails
+ * and takes the focus. Each row links to the control of its field.
  *
  * @remarks
  * A refused submit fails, and so does a handler that returns a field issue.

@@ -31,9 +31,13 @@ export type FormFiltersProps<T extends FilterValue = FilterValue> = AccessibleNa
 		ComponentProps<'fieldset'>,
 		'aria-label' | 'aria-labelledby' | 'defaultValue' | 'children'
 	> & {
+		/** Controlled filter value. Pair it with `onValueChange`. */
 		value?: T
+		/** Initial filter value when uncontrolled. */
 		defaultValue?: T
+		/** Fires when the filter value changes, with the next value. */
 		onValueChange?: (value: T) => void
+		/** Fires when the clear action of the bar runs, after the value resets. */
 		onClear?: () => void
 		/**
 		 * How the bar answers a width that cannot hold its fields. See

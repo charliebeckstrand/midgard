@@ -33,7 +33,7 @@ export type FormFiltersClearProps = {
 }
 
 /**
- * Wires its child to the enclosing {@link FormFilters} clear action. A single valid
+ * The clear trigger of the enclosing {@link FormFilters}. A single valid
  * element child is cloned with a merged `onClick` (the child's own handler runs
  * first). Any other children fall back to a default `<Button>` trigger, whose
  * `variant` and `color` are overridable.

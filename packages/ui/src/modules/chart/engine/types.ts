@@ -68,14 +68,14 @@ export type ChartSeries<T> = {
 	 */
 	axis?: ChartValueAxisId
 	/**
-	 * Dash this series' connecting stroke instead of drawing it solid. It is a
-	 * second identity channel beside color, so two lines sharing one chart tell
+	 * Dashes the connecting stroke of this series instead of drawing it solid. It is
+	 * a second identity channel beside color, so two lines sharing one chart tell
 	 * apart beyond hue. They stay tellable apart in print, or under color-vision
 	 * deficiency. Reuses the reference-line dash, keeping the two dash idioms one
 	 * pattern. Only the stroke changes. The series keeps its point markers, legend
 	 * chip, tooltip, crosshair snap, and keyboard behavior. An area series' fill
-	 * wash stays solid under its dashed edge. A bar series has no stroke to
-	 * dash, so it ignores this. Under `animate` the draw-on reveal still plays.
+	 * wash stays solid under its dashed edge. A bar series has no stroke to dash, so
+	 * it ignores this. Under `animate` the draw-on reveal still plays.
 	 * @defaultValue false
 	 */
 	dashed?: boolean
@@ -233,7 +233,7 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 */
 	aspectRatio?: ChartAspectRatio
 	/**
-	 * Show the legend. Defaults to on for two or more series (or slices) and off
+	 * Shows the legend. Defaults to on for two or more series (or slices) and off
 	 * for one — a single series is already named by the chart's accessible name.
 	 * Forced on for a lone series (or slice), its single entry is still a live
 	 * switch. Toggling it off empties the chart, and the forced-on legend holds the
@@ -251,7 +251,8 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 */
 	legend?: boolean | ChartLegendPlacement | ChartLegendConfig
 	/**
-	 * Fires with the set of series indexes the legend has switched off.
+	 * Fires when the legend switches a series on or off, with the set of series
+	 * indexes that it has switched off.
 	 *
 	 * Observation only. The legend owns the set and there is no `hidden` option to
 	 * pair with — the same shape `onFullscreenChange` keeps. A click on a legend
@@ -283,7 +284,7 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 */
 	tooltip?: boolean | ChartTooltipConfig
 	/**
-	 * Animate the marks in on mount with Framer Motion, honoring
+	 * Animates the marks in on mount with Framer Motion, honoring
 	 * `prefers-reduced-motion` through the `ReducedMotion` primitive. Where present,
 	 * the reference rules rise along the value axis to their values. Off by
 	 * default — a static dashboard of charts stays a plain-SVG tree with no
@@ -300,15 +301,14 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 */
 	animate?: boolean
 	/**
-	 * Hatch each series' filled marks with a slot-keyed texture. It is a second
-	 * identity channel beside color. Bars, areas, and slices therefore stay
+	 * Hatches the filled marks of each series with a slot-keyed texture. It is a
+	 * second identity channel beside color. Bars, areas, and slices therefore stay
 	 * tellable apart in print, under severe color-vision deficiency, or wherever
 	 * color is unreliable. The texture also engages automatically under
-	 * `forced-colors`
-	 * (Windows High Contrast) and print even when this is off, where the color
-	 * channel is already gone. On-screen color rendering is never changed by that
-	 * fallback. Line strokes carry no fill, so a
-	 * pure-line series is unaffected.
+	 * `forced-colors` (Windows High Contrast) and print even when this is off, where
+	 * the color channel is already gone. On-screen color rendering is never changed
+	 * by that fallback. Line strokes carry no fill, so a pure-line series is
+	 * unaffected.
 	 * @defaultValue false
 	 */
 	texture?: boolean
@@ -369,7 +369,7 @@ export type CartesianFrameProps = {
 	 */
 	axes?: boolean | CartesianAxes
 	/**
-	 * Draw a hover crosshair. `true` (the shorthand) draws both rules: a horizontal
+	 * Draws a hover crosshair. `true` (the shorthand) draws both rules: a horizontal
 	 * value rule and a vertical category rule. A {@link Crosshair} object snaps
 	 * them to the nearest point (`snap`), or drops one (`x` / `y` set `false`).
 	 * Opt-in: nothing is drawn unless set.

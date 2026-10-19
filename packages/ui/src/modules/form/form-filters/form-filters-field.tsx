@@ -40,10 +40,11 @@ export type FormFiltersFieldProps<V = unknown> = {
 }
 
 /**
- * Binds a single named slot of the enclosing {@link FormFilters} value to a control.
- * Given a render function, supplies `{ value, onValueChange }`; given elements,
- * gives the slot `name` to the first non-decoration child (passing
- * `Label`/`Description`/`Message` through untouched).
+ * A field of the enclosing {@link FormFilters} that binds one named slot of its
+ * value to a control. Given a render function, supplies
+ * `{ value, onValueChange }`; given elements, gives the slot `name` to the first
+ * non-decoration child (passing `Label`/`Description`/`Message` through
+ * untouched).
  *
  * @remarks
  * The bar is the form store of its fields, so the element form follows the

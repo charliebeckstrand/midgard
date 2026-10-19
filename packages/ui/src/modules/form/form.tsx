@@ -42,7 +42,9 @@ export type FormProps<T extends Record<string, unknown>> = {
 	 * @defaultValue 'touched'
 	 */
 	validateOn?: ValidateOn
+	/** Fires when a submit passes client validation, with the values and the form helpers. */
 	onSubmit?: FormSubmitHandler<T>
+	/** Fires when a submit attempt reaches its terminal outcome, with that outcome. */
 	onSettled?: (outcome: SubmitOutcome<T>) => void
 	/**
 	 * Fires when client validation refuses a submit, with the failed fields only.
@@ -55,6 +57,7 @@ export type FormProps<T extends Record<string, unknown>> = {
 	 * Every field present carries at least one issue, so the list is never empty.
 	 */
 	onInvalidSubmit?: (errors: Partial<Record<keyof T, string[]>>) => void
+	/** Fires when the form resets. */
 	onReset?: () => void
 	/**
 	 * Disables the form's `<Fieldset>`, and with it each control and button of

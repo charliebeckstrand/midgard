@@ -25,7 +25,7 @@ import { useChartCartesian } from '../engine/use-chart-cartesian'
  */
 export type AreaChartProps<T = never> = CartesianChartProps<T> & {
 	/**
-	 * Draw a hover crosshair. Alone among the cartesian charts this defaults on:
+	 * Draws a hover crosshair. Alone among the cartesian charts this defaults on:
 	 * a snapping vertical category rule (`{ y: true, snap: true }`) that meets the
 	 * nearest band-edge point and carries the tooltip there. Smooth interpolation
 	 * drops the snap so the rule and tooltip track the pointer along the curve
@@ -35,14 +35,14 @@ export type AreaChartProps<T = never> = CartesianChartProps<T> & {
 	 */
 	crosshair?: boolean | Crosshair
 	/**
-	 * Stack the series so each rides the running total below it. The fills then
+	 * Stacks the series so each rides the running total below it. The fills then
 	 * read as parts of a whole. Otherwise each is its own area from the zero
 	 * baseline, washes overlapping.
 	 * @defaultValue false
 	 */
 	stacked?: boolean
 	/**
-	 * Mark every band-edge point with a filled dot.
+	 * Marks every band-edge point with a filled dot.
 	 * @defaultValue false
 	 */
 	points?: boolean

@@ -30,11 +30,11 @@ export type ChartSkeletonProps = {
 }
 
 /**
- * Loading placeholder that reserves the box of a chart. A chart takes its
- * height from its width, so the skeleton reserves the ratio of the chart. The
- * default is the 16/9 of the cartesian charts (bar, line, area, combo,
- * scatter, and bubble). `sector` gives the square plot and the legend row of a
- * pie or a donut.
+ * A placeholder for a chart while it loads, which reserves the box of the chart.
+ * A chart takes its height from its width, so the skeleton reserves the ratio of
+ * the chart. The default is the 16/9 of the cartesian charts (bar, line, area,
+ * combo, scatter, and bubble). `sector` gives the square plot and the legend row
+ * of a pie or a donut.
  *
  * @remarks Static leaf: renders in React Server Components.
  */
