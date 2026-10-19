@@ -16,7 +16,9 @@
 import { writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { type CatalogSource, catalogText, extractCatalog } from './intl-catalog'
+import { parseAst } from 'vite'
+import { titleEntries } from '../src/docs/plugin/titles.ts'
+import { type CatalogEntry, type CatalogSource, catalogText, extractCatalog } from './intl-catalog'
 
 const SRC_DIR = fileURLToPath(new URL('../src', import.meta.url))
 
@@ -47,11 +49,23 @@ export const DOCS_SOURCE_CATALOG = join(DOCS_LANG_DIR, 'en.json')
 /** The source of the catalog of the docs app. The tests hold no message of the docs. */
 export const DOCS_CATALOG_SOURCE: CatalogSource = { srcDir: DOCS_DIR, skipped: ['__tests__'] }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
-	const [ui, docs] = await Promise.all([
-		extractCatalog(CATALOG_SOURCE),
+/**
+ * The catalog of the docs app: the message descriptors of its source, and the
+ * title of each example, which comes from a file name and has no descriptor.
+ */
+export async function extractDocsCatalog(): Promise<Record<string, CatalogEntry>> {
+	const [messages, titles] = await Promise.all([
 		extractCatalog(DOCS_CATALOG_SOURCE),
+		titleEntries(DOCS_DIR, (code, options) => parseAst(code, options)),
 	])
+
+	return Object.fromEntries(
+		Object.entries({ ...messages, ...titles }).toSorted(([a], [b]) => (a < b ? -1 : 1)),
+	)
+}
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+	const [ui, docs] = await Promise.all([extractCatalog(CATALOG_SOURCE), extractDocsCatalog()])
 
 	await writeFile(SOURCE_CATALOG, catalogText(ui))
 
