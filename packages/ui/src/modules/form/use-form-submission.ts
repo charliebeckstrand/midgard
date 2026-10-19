@@ -159,9 +159,12 @@ export function useFormSubmission<T extends Record<string, unknown>>({
 
 			// A reset from the handler of the current attempt resets the store and
 			// keeps the attempt live. A handler that a newer submit or an outside
-			// reset superseded resets in full, as an outside reset does.
+			// reset superseded resets in full, as an outside reset does, and writes
+			// no errors.
 			const helpers: FormHelpers<T> = {
-				setErrors,
+				setErrors: (fieldErrors) => {
+					if (tokenRef.current === token) setErrors(fieldErrors)
+				},
 				reset: (nextDefaults) => {
 					if (tokenRef.current !== token) supersede()
 

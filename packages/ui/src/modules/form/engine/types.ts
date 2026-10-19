@@ -86,6 +86,13 @@ export type SubmitOutcome<T> = { ok: true; values: T } | { ok: false; error: Err
 
 /** Second argument to a {@link FormSubmitHandler}: imperatively set field errors (e.g. from a server response) or reset the form, optionally to new defaults. */
 export type FormHelpers<T> = {
+	/**
+	 * Sets field errors, such as the errors of a server response.
+	 *
+	 * @remarks
+	 * A call from the handler of an attempt that a newer submit or an outside
+	 * reset superseded writes nothing.
+	 */
 	setErrors: (errors: Partial<Record<keyof T, string | string[]>>) => void
 	/**
 	 * Resets the form, optionally to new defaults.
