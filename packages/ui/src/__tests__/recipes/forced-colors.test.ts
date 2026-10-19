@@ -40,7 +40,7 @@ describe('edges and state marks under forced colors', () => {
 		['the soft alert', alert({ variant: 'soft', color: 'red' })],
 		['the solid alert', alert({ variant: 'solid', color: 'red' })],
 		['the outline alert', alert({ variant: 'outline', color: 'red' })],
-		['the PDF region', region.base],
+		['the PDF region', region.edge],
 		['the selected PDF region', region.active.base],
 	]
 
@@ -60,7 +60,7 @@ describe('edges and state marks under forced colors', () => {
 	// The selected region draws a heavier stroke than a resting one, so the
 	// selection does not depend on the wash, which forced colors remove.
 	it('draws the selected PDF region heavier than a resting one', () => {
-		expect(classNames([region.active.base])).toContain('forced-colors:outline-4')
+		expect(classNames([region.active.base])).toContain('forced-colors:outline-2')
 	})
 })
 

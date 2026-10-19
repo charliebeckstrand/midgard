@@ -241,7 +241,18 @@ export const k = {
 					behind: 'opacity-25',
 				},
 				region: {
-					base: ['absolute block', ...ring.line[1].inset, ...cursor, ...focus.inset],
+					/**
+					 * The focus mark is the library's outset outline (`focus.ring`), as on a selected
+					 * day or a swatch. A region is a mark on the ink, so a mark that grows inward
+					 * covers the ink that it marks. The outline also keeps the focus off the
+					 * box-shadow, which the selected stroke uses.
+					 */
+					base: ['absolute block', ...cursor, ...focus.ring],
+					/**
+					 * The edge of a region that is not selected: a 1 px inset ring. It is not in
+					 * `base`, because `ring-inset` would also turn the selected stroke inward.
+					 */
+					edge: ring.line[1].inset,
 					/** Translucent per-color wash, from the shared palette. */
 					fill: palette.soft.bg,
 					ring: palette.outline.ring,
@@ -250,11 +261,15 @@ export const k = {
 						/**
 						 * A heavier stroke, and lifted above its neighbors.
 						 *
+						 * The stroke is outset. A region is often one line of text high, and an inset
+						 * stroke covered most of the ink in it. The outset stroke grows the box and
+						 * keeps all of the ink visible under the wash.
+						 *
 						 * `z-10` matters on a dense page. Regions paint in document order. Without it, a
 						 * later region overlapping the selected one covers the very emphasis that says
 						 * which is selected.
 						 */
-						base: [...ring.line[4].inset, 'z-10'],
+						base: [...ring.line[2].outset, 'z-10'],
 						/**
 						 * The wash — the palette's doubled rung.
 						 *
@@ -275,12 +290,11 @@ export const k = {
 					 *
 					 * A width step rather than a color or a fill. `active.fill` is what *selected*
 					 * looks like, and a hover that previewed it would say the region is chosen a
-					 * moment before it is. This lands between `ring-1` and the selection's `ring-4`,
-					 * which is the order the three states must read in.
+					 * moment before it is. It is inset, inside the resting edge. The selection is
+					 * the only state whose stroke goes outside the box.
 					 *
-					 * Applied to resting regions only. On the selected one it would fight `ring-4`
-					 * and win — `:hover` outranks a bare class — undoing the emphasis that says
-					 * which region is selected. A decorative layer never sees it either way:
+					 * Applied to resting regions only. The selected one takes no `edge`, so its stroke
+					 * stays outset; a hover step there would only add a second stroke rule. A decorative layer never sees it either way:
 					 * `inert` takes its pointer events, so nothing there can be hovered.
 					 */
 					hover: ['hover:ring-2'],

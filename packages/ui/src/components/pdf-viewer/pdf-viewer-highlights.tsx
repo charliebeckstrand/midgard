@@ -51,9 +51,9 @@ function regionClass(color: Color, active: boolean, dimmed: boolean) {
 			regionKata.base,
 			active ? regionKata.active.fill[color] : regionKata.fill[color],
 			regionKata.ring[color],
-			// Selected or hoverable, never both: see the kata's `hover` note — a hover step on
-			// the selected region outranks its own `ring-4` and flattens the selection.
-			active ? regionKata.active.base : regionKata.hover,
+			// Selected or resting, never both. The resting edge is inset, and its `ring-inset`
+			// would turn the outset stroke of the selected region inward. See the kata's `edge`.
+			active ? regionKata.active.base : [regionKata.edge, regionKata.hover],
 			dimmed && regionKata.dimmed,
 		)
 
