@@ -22,6 +22,9 @@ import {
 //     classes of that entry.
 //   - A kiso ring with no gate has a `forced-colors:` class with no gate in the
 //     same file.
+//   - A fallback does not use a bare `outline`. That class reads the outline
+//     style from a variable, and an ungated `outline-none` or `outline-hidden`
+//     sets the variable to none. `outline-solid` sets the style itself.
 //
 // These gates are not part of the rule:
 //
@@ -42,8 +45,8 @@ const NOT_GATE = /^(?:dark|forced-colors|before|after|\[&::[^\]]+\]|\*\*?|data-\
 /** A gate on the validation state of a control. */
 const VALIDATION = /data-(?:invalid|warning|valid)\b/
 
-/** One class: its gate, whether it is a ring, and whether it is a forced-colors class. */
-type Parsed = { name: string; gate: string; ring: boolean; forced: boolean }
+/** One class: its gate, its utility, whether it is a ring, and whether it is a forced-colors class. */
+type Parsed = { name: string; gate: string; utility: string; ring: boolean; forced: boolean }
 
 /** Splits a class into its variants and its utility at each colon that is not inside brackets or parentheses. */
 function split(className: string): string[] {
@@ -74,10 +77,13 @@ function parse(name: string): Parsed {
 
 	const variants = parts.slice(0, -1)
 
+	const utility = (parts.at(-1) ?? '').replace(/^!|!$/g, '')
+
 	return {
 		name,
 		gate: variants.filter((variant) => !NOT_GATE.test(variant)).join(':'),
-		ring: RING.test((parts.at(-1) ?? '').replace(/^!|!$/g, '')),
+		utility,
+		ring: RING.test(utility),
 		forced: variants.includes('forced-colors'),
 	}
 }
@@ -108,11 +114,15 @@ function read(content: string): Parsed[] {
 function offenders(file: string, content: string): string[] {
 	const classes = read(content)
 
-	const fallbacks = new Set(classes.filter((c) => c.forced).map((c) => c.gate))
+	const bare = classes.filter((c) => c.forced && c.utility === 'outline')
+
+	const fallbacks = new Set(
+		classes.filter((c) => c.forced && c.utility !== 'outline').map((c) => c.gate),
+	)
 
 	const kiso = file.startsWith('recipes/kiso/')
 
-	return classes
+	const rings = classes
 		.filter(({ gate, ring, forced: isForced }) => {
 			if (!ring || isForced || /hover/.test(gate) || VALIDATION.test(gate)) return false
 
@@ -121,6 +131,8 @@ function offenders(file: string, content: string): string[] {
 			return !fallbacks.has(gate)
 		})
 		.map(({ name, gate }) => `${file} ${gate || '(no gate)'} (${name})`)
+
+	return [...rings, ...bare.map(({ name }) => `${file} bare outline (${name})`)]
 }
 
 /** The rings that break the rule in the recipes, the components, and the modules. */
@@ -189,6 +201,16 @@ describe('forced-colors fallbacks in ui', () => {
 		).toHaveLength(1)
 
 		expect(offenders('x.ts', "'data-active:ring-2', ...forced.ring.inset")).toHaveLength(1)
+	})
+
+	it('finds a fallback with a bare outline', () => {
+		expect(offenders('x.ts', "'outline-hidden forced-colors:data-open:outline'")).toEqual([
+			'x.ts bare outline (forced-colors:data-open:outline)',
+		])
+
+		expect(
+			offenders('x.ts', "'data-active:ring-2 forced-colors:data-active:outline'"),
+		).toHaveLength(2)
 	})
 
 	it('passes a hover ring and a validation ring', () => {

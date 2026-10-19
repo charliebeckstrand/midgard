@@ -1,5 +1,5 @@
 /**
- * Sen focus: how an element signals keyboard focus. Six named shapes
+ * Sen focus: how an element signals keyboard focus. Seven named shapes
  * cover the patterns the library uses:
  *
  *   - `ring`      outset CSS outline + transparent offset gap. Renders as one
@@ -20,6 +20,9 @@
  *   - `outline`   2 px outline on a `:has(:focus-visible)` wrapper,
  *                 swapped to an inset border inside scrollable ancestors,
  *                 which clip an outset outline
+ *   - `within`    inset ring on a box whose child control has the focus,
+ *                 such as a row with an affix, for a control that cannot
+ *                 draw its own ring around its neighbors
  *   - `indicator` background-paint marker on `::after`, in the focus-ring
  *                 color, for a focused tab. On the current tab, it paints
  *                 over the selection bar, so the current tab also shows
