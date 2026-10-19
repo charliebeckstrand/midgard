@@ -57,7 +57,10 @@ export function SidebarHeader({ className, children, ...props }: SidebarHeaderPr
 	)
 }
 
-/** Scrollable main region of a `Sidebar` holding its sections and lists. */
+/**
+ * Main region of a `Sidebar` holding its sections and lists. It scrolls on the
+ * vertical axis only, and clips the horizontal axis, as the sidebar does.
+ */
 export const SidebarBody = createSlot('div', 'sidebar-body', k.body)
 
 /** Bottom region of a `Sidebar`, pinned below the body for footer content. */
