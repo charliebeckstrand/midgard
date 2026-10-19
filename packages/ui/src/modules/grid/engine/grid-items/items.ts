@@ -396,15 +396,14 @@ export function windowItemEstimate(item: { size?: number }, rowHeight: number): 
 }
 
 /**
- * The count of data-body rows that `aria-rowcount` spans. A windowed grouped or
- * master-detail body counts its exposed items: {@link groupedWindowRowCount} or
- * {@link detailWindowRowCount}. Every other body counts its data rows, as
- * before.
+ * The count of data-body rows that `aria-rowcount` spans. A grouped or
+ * master-detail body counts its exposed rows: {@link groupedWindowRowCount} or
+ * {@link detailWindowRowCount}. A windowed body and a plain body count the
+ * same rows. Every other body counts its data rows.
  *
  * @internal
  */
 export function bodyRowCount<T>(args: {
-	virtualize: boolean
 	rows: readonly T[]
 	rowKeys: (string | number)[]
 	/** The client groups, or `null` outside client grouping. */
@@ -416,8 +415,6 @@ export function bodyRowCount<T>(args: {
 	/** The master-detail wiring, or `null` when the grid is not expandable. */
 	expansion: DetailWiring<T> | null | undefined
 }): number {
-	if (!args.virtualize) return args.rows.length
-
 	if (args.groups) {
 		return groupedWindowRowCount(args.groups, groupTotaled(args.groupTotalRow, args.columns))
 	}

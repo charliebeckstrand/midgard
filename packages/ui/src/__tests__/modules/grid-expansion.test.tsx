@@ -200,4 +200,33 @@ describe('Grid master-detail', () => {
 
 		expect(track()).not.toHaveAttribute('data-open')
 	})
+
+	it('counts and indexes an open panel as a row under the cursor', async () => {
+		const user = setupUser()
+
+		const { container } = renderUI(
+			<Grid
+				columns={columns}
+				rows={people}
+				getKey={getKey}
+				expandable={{ render: detail }}
+				navigable
+			/>,
+		)
+
+		const table = container.querySelector('table')
+
+		expect(table).toHaveAttribute('aria-rowcount', '4')
+
+		await user.click(screen.getByRole('button', { name: 'Expand details for row 1' }))
+
+		// The open panel is the row after its data row, and the rows below it move down.
+		expect(table).toHaveAttribute('aria-rowcount', '5')
+
+		expect(detailRow(container, 1)).toHaveAttribute('aria-rowindex', '3')
+
+		expect(detailRow(container, 2)).not.toHaveAttribute('aria-rowindex')
+
+		expect(screen.getByText('Devon').closest('tr')).toHaveAttribute('aria-rowindex', '5')
+	})
 })

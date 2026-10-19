@@ -202,13 +202,12 @@ describe('bodyRowCount', () => {
 
 	const rows: Person[] = [{ id: 1 }, { id: 2 }, { id: 3 }]
 
-	it('counts the data rows when the body is not windowed', () => {
+	it('counts the data rows of a flat body', () => {
 		expect(
 			bodyRowCount({
-				virtualize: false,
 				rows,
 				rowKeys: [1, 2, 3],
-				groups: [group('role:A', true, ['1', '2', '3'])],
+				groups: null,
 				groupTotalRow: true,
 				columns,
 				expansion: null,
@@ -216,10 +215,9 @@ describe('bodyRowCount', () => {
 		).toBe(3)
 	})
 
-	it('counts the headers and totals of a windowed grouped body', () => {
+	it('counts the headers and totals of a grouped body', () => {
 		expect(
 			bodyRowCount({
-				virtualize: true,
 				rows,
 				rowKeys: [1, 2, 3],
 				groups: [group('role:A', true, ['1', '2']), group('role:B', false, ['3'])],

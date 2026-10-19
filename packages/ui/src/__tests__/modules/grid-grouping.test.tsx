@@ -253,4 +253,36 @@ describe('Grid row grouping', () => {
 
 		expect(screen.queryAllByRole('button', { name: /^Collapse group/ })).toHaveLength(0)
 	})
+
+	it('counts and indexes the exposed rows of a plain grouped body under the cursor', async () => {
+		const user = setupUser()
+
+		const { container } = renderUI(
+			<Grid
+				columns={columns}
+				rows={people}
+				getKey={getKey}
+				groupBy={{ value: 'role' }}
+				navigable
+			/>,
+		)
+
+		const table = container.querySelector('table')
+
+		// The header row, three group headers, and five leaves.
+		expect(table).toHaveAttribute('aria-rowcount', '9')
+
+		const indices = () =>
+			[...container.querySelectorAll('tbody tr')].map((row) => row.getAttribute('aria-rowindex'))
+
+		// Each header, then its leaves, in order after the column header.
+		expect(indices()).toEqual(['2', '3', '4', '5', '6', '7', '8', '9'])
+
+		await user.click(screen.getByRole('button', { name: 'Collapse group Developer' }))
+
+		// The hidden leaves take no place, and the rows below them move up.
+		expect(table).toHaveAttribute('aria-rowcount', '7')
+
+		expect(indices()).toEqual(['2', null, null, '3', '4', '5', '6', '7'])
+	})
 })

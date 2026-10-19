@@ -21,9 +21,15 @@ import {
 	segmentManualGroupRows,
 } from './engine/grid-group/segments'
 import type { GridGroup, GridLeaf } from './engine/grid-group/tree'
-import { detailOpen, groupKeyOf, groupTotaled, totalItemKey } from './engine/grid-items/items'
+import {
+	detailOpen,
+	groupedWindowRowCount,
+	groupKeyOf,
+	groupTotaled,
+	totalItemKey,
+} from './engine/grid-items/items'
 import { gridMessages } from './engine/grid-messages'
-import { ariaRowIndex } from './engine/grid-row/shell'
+import { ariaRowIndex, itemAriaRowIndex } from './engine/grid-row/shell'
 import { detailCursorRows, GridCursorOrder, groupedCursorRows } from './grid-cursor-order'
 import type { ResolvedInfiniteScroll } from './grid-data-resolvers'
 import type { GridGroupBy, GridGroupHeaderRow } from './grid-data-types'
@@ -185,6 +191,10 @@ function resolveRowWindow(
  * collapse therefore plays reliably, rather than relying on `AnimatePresence` to
  * track a table row's exit. Resolved from the shared body wiring, keyed by group id.
  *
+ * The header takes the place `position`, and the leaves and the total of an
+ * expanded group take the places after it, as in the windowed body. The rows
+ * of a collapsed group are hidden from assistive tech, so they take no place.
+ *
  * @internal
  */
 function renderGroup<T>(
@@ -197,11 +207,21 @@ function renderGroup<T>(
 		totaled: boolean
 		/** The row-manager overlay presentation (per-group color), or `null` when off. */
 		presentation: GridRowGroupPresentation | null
+		/** The 0-based place of the header among the rows that assistive tech sees. */
+		position: number
 	},
 ): ReactElement {
-	const { props, columnId, renderHeader, totaled, presentation } = args
+	const { props, columnId, renderHeader, totaled, presentation, position } = args
 
 	const { expanded } = group
+
+	// The `aria-rowindex` of the row `offset` places after the header.
+	const rowIndex = (offset: number) =>
+		itemAriaRowIndex(
+			props.gridSemantics,
+			props.rowIndexOffset,
+			offset === 0 || expanded ? position + offset : -1,
+		)
 
 	// The group's row-manager color tints its header aggregates, total footer, and
 	// rail; the leaves render in the engine's natural order (row order isn't managed).
@@ -216,11 +236,13 @@ function renderGroup<T>(
 				columnId={columnId}
 				renderHeader={renderHeader}
 				color={color}
+				aria-rowindex={rowIndex(0)}
 			/>
-			{group.leaves.map((leaf) => (
+			{group.leaves.map((leaf, index) => (
 				<GridGroupLeafRow<T>
 					key={leaf.id}
 					{...leafRowProps(props, leaf, { expanded, color, level: 2 })}
+					aria-rowindex={rowIndex(index + 1)}
 				/>
 			))}
 			{totaled && (
@@ -231,6 +253,7 @@ function renderGroup<T>(
 					expanded={expanded}
 					color={color}
 					navKey={totalItemKey(group.id)}
+					aria-rowindex={rowIndex(group.leaves.length + 1)}
 				/>
 			)}
 		</Fragment>
@@ -336,18 +359,27 @@ function renderGroupedBody<T>(
 		)
 	}
 
+	// Each group starts at the place after the rows of the groups above it (see
+	// `groupedWindowRowCount`).
+	let position = 0
+
 	return (
 		<TableBody>
 			<GridGroupedCursorOrder groups={ordered} totaled={totaled} toggle={props.toggleGroup} />
-			{ordered.map((group) =>
-				renderGroup(group, {
+			{ordered.map((group) => {
+				const node = renderGroup(group, {
 					props,
 					columnId: groupColumnId,
 					renderHeader: groupRenderHeader,
 					totaled,
 					presentation: rowGroupPresentation,
-				}),
-			)}
+					position,
+				})
+
+				position += groupedWindowRowCount([group], totaled)
+
+				return node
+			})}
 		</TableBody>
 	)
 }
@@ -364,6 +396,30 @@ function renderWindowedBody<T>(props: GridBodyProps<T>, rowWindow: GridRowWindow
 	) : (
 		<GridVirtualizedBody<T> {...props} {...rowWindow} />
 	)
+}
+
+/**
+ * The 0-based place of each row among the rows that assistive tech sees. An
+ * open detail panel takes the place after its row, as in the windowed body.
+ *
+ * @internal
+ */
+function rowPlaces<T>(
+	rows: readonly T[],
+	rowKeys: (string | number)[],
+	expansion: GridBodyProps<T>['expansion'],
+): number[] {
+	const places: number[] = []
+
+	let next = 0
+
+	for (const [index, row] of rows.entries()) {
+		places.push(next)
+
+		next += expansion && detailOpen(row, rowKeys[index] as string | number, expansion) ? 2 : 1
+	}
+
+	return places
 }
 
 /**
@@ -467,14 +523,19 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 	// measured window (see `GridVirtualizedDetailBody`).
 	if (rowWindow) return renderWindowedBody(props, rowWindow)
 
+	const { expansion } = props
+
 	// Global row indices only under grid semantics (a plain table conveys them
-	// natively); see `ariaRowIndex` for the offset math.
+	// natively); see `ariaRowIndex` for the offset math. An open detail panel
+	// takes the place after its row, as in the windowed body.
+	const places = rowPlaces(rows, props.rowKeys, expansion)
+
 	const rowNodes = rows.map((row, index) =>
 		renderGridRow(
 			props,
 			row,
 			index,
-			gridSemantics ? ariaRowIndex(rowIndexOffset, index) : undefined,
+			gridSemantics ? ariaRowIndex(rowIndexOffset, places[index] as number) : undefined,
 		),
 	)
 
@@ -487,8 +548,6 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 	// by the grid). A DOM-less fragment, so it nests inside `<tbody>` without
 	// adding an element.
 	// A master-detail body gives its panels to the cursor as rows of their own.
-	const { expansion } = props
-
 	return (
 		<TableBody>
 			{expansion && (

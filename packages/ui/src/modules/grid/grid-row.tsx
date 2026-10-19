@@ -212,6 +212,9 @@ export function renderGridRow<T>(
 				render={props.expansion.render}
 				colSpan={props.visibleColumns.length}
 				expanded={expanded}
+				// An open panel is the row after its data row. A closed one is hidden
+				// from assistive tech, so it takes no place.
+				aria-rowindex={expanded && rowIndex !== undefined ? rowIndex + 1 : undefined}
 			/>
 		</Fragment>
 	)

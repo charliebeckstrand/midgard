@@ -32,12 +32,11 @@ import type { GridColumnPinning, GridColumnResize, GridPaginationView } from './
 type RowGrouping<T> = ReturnType<typeof useGridRowGrouping<T>>
 
 /**
- * {@link bodyRowCount}, memoized. A windowed grouped or master-detail body
- * walks each group or row to count its rows. The count therefore runs again
+ * {@link bodyRowCount}, memoized. A grouped or master-detail body walks each
+ * group or row to count its rows. The count therefore runs again
  * only when the rows, the columns, or an expansion change. @internal
  */
 function useBodyRowCount<T>(args: {
-	virtualize: boolean
 	rows: readonly T[]
 	rowKeys: (string | number)[]
 	/** The client groups. A toggle gives a new list, so the count follows it. */
@@ -47,14 +46,13 @@ function useBodyRowCount<T>(args: {
 	expanded: ReadonlySet<string | number> | undefined
 	rowExpandable: ((row: T) => boolean) | undefined
 }): number {
-	const { virtualize, rows, rowKeys, groups, groupTotalRow, columns } = args
+	const { rows, rowKeys, groups, groupTotalRow, columns } = args
 
 	const { expanded, rowExpandable } = args
 
 	return useMemo(
 		() =>
 			bodyRowCount({
-				virtualize,
 				rows,
 				rowKeys,
 				groups,
@@ -62,7 +60,7 @@ function useBodyRowCount<T>(args: {
 				columns,
 				expansion: expanded && rowExpandable ? { expanded, rowExpandable } : null,
 			}),
-		[virtualize, rows, rowKeys, groups, groupTotalRow, columns, expanded, rowExpandable],
+		[rows, rowKeys, groups, groupTotalRow, columns, expanded, rowExpandable],
 	)
 }
 
@@ -287,13 +285,12 @@ export function useGridDataFrame<T>({
 	// the count spans them; and infinite scroll with more rows to load can't state
 	// the whole extent — unless the binding's `totalRows` states it — so the count
 	// goes ARIA-indeterminate (`-1`) rather than advertising the loaded window as
-	// the full set (see `resolveAriaRowCount`). A windowed grouped or master-detail
-	// body counts its headers, totals, and open detail panels as rows (see
+	// the full set (see `resolveAriaRowCount`). A grouped or master-detail body
+	// counts its headers, totals, and open detail panels as rows (see
 	// `bodyRowCount`).
 	const ariaRowCount = resolveAriaRowCount(
 		pagination,
 		useBodyRowCount({
-			virtualize: virtualized,
 			rows: renderRows,
 			rowKeys,
 			groups,
