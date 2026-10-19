@@ -1,7 +1,9 @@
 'use client'
 
 import { useEffect, useEffectEvent, useRef } from 'react'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { Input, type InputProps } from '../input'
+import { creditCardMessages } from './credit-card-input-messages'
 import { type CardValidity, formatCvv, validateCardCvv } from './credit-card-input-utilities'
 import type { CreditCardBrand } from './types'
 import { useCreditCardInputField } from './use-credit-card-input-field'
@@ -48,7 +50,8 @@ function resolveCvvLength(brand: CreditCardBrand | undefined): number {
  * a brand is known. When the
  * brand shrinks the length it re-truncates the stored value and re-reports
  * validity. Sets `autoComplete="cc-csc"` and defaults a "Security code"
- * aria-label, yielding to a Field `<Label>` or a native `<label>`.
+ * aria-label, in the language of the reader, yielding to a Field `<Label>` or a
+ * native `<label>`.
  *
  * @see {@link CreditCardInput}
  */
@@ -65,6 +68,8 @@ export function CreditCardInputCvv({
 	'aria-label': ariaLabel,
 	...props
 }: CreditCardInputCvvProps) {
+	const intl = useIntl()
+
 	const maxLength = resolveCvvLength(brand)
 
 	const {
@@ -75,7 +80,7 @@ export function CreditCardInputCvv({
 		onBlur: onFieldBlur,
 		fallbackLabel,
 	} = useCreditCardInputField({
-		fallbackLabel: 'Security code',
+		fallbackLabel: intl.formatMessage(creditCardMessages.securityCode),
 		ref,
 		name,
 		value,

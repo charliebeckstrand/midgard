@@ -16,6 +16,7 @@ import {
 } from '../../components/command-palette'
 import type { VirtualItemSource } from '../../hooks/a11y/use-a11y-roving'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/context'
+import { LocaleProvider } from '../../providers/locale'
 import { NO_HOVER_QUERY } from '../../utilities/media-query'
 import {
 	act,
@@ -1557,5 +1558,19 @@ describe('CommandPalette glass', () => {
 		)
 
 		expect(screen.getByRole('dialog')).toHaveAttribute('data-glass', '')
+	})
+})
+
+describe('CommandPalette in a locale', () => {
+	it('names the dialog in the language of the locale', () => {
+		renderUI(
+			<LocaleProvider locale="es-ES">
+				<CommandPalette open onOpenChange={() => {}}>
+					<div>Items</div>
+				</CommandPalette>
+			</LocaleProvider>,
+		)
+
+		expect(screen.getByRole('dialog', { name: 'Paleta de comandos' })).toBeInTheDocument()
 	})
 })

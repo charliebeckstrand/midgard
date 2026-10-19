@@ -1,11 +1,14 @@
 import type { ReactElement } from 'react'
 import { afterAll, beforeAll, describe, expect, it, onTestFinished } from 'vitest'
 import { cdp, page, userEvent } from 'vitest/browser'
+import { Combobox, ComboboxOption } from '../../components/combobox'
+import { Input } from '../../components/input'
 import { JsonTree } from '../../components/json-tree'
 import { NavItem, NavList } from '../../components/nav'
 import { ProgressBar } from '../../components/progress'
 import { ScrollArea } from '../../components/scroll-area'
 import { Segment, SegmentItem } from '../../components/segment'
+import { Select, SelectOption } from '../../components/select'
 import {
 	Sidebar,
 	SidebarBody,
@@ -14,6 +17,7 @@ import {
 	SidebarList,
 } from '../../components/sidebar'
 import { RangeSlider, Slider } from '../../components/slider'
+import { Swatch } from '../../components/swatch'
 import { Switch } from '../../components/switch'
 import { Table, TableBody, TableCell, TableRow } from '../../components/table'
 import { Tab, TabList, Tabs } from '../../components/tabs'
@@ -21,7 +25,7 @@ import { Timeline, TimelineItem, TimelineTitle } from '../../components/timeline
 import { Tree, TreeItem } from '../../components/tree'
 import { ChatList, ChatListItem } from '../../modules/chat'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { frames, present, renderUI, waitFor } from '../helpers'
+import { bySlot, frames, present, renderUI, waitFor } from '../helpers'
 
 /**
  * Under forced colors, each control still shows its state. The two renders of
@@ -171,6 +175,33 @@ const focusMarks = {
 	},
 	'range slider thumb': {
 		ui: <RangeSlider aria-label="Price" value={[10, 40]} />,
+		mark: (focused: Element) => focused,
+	},
+	// The thumb ring of the native range is a box-shadow on a pseudo-element.
+	slider: {
+		ui: <Slider aria-label="Volume" value={10} />,
+		mark: (focused: Element) => focused,
+	},
+	// The focus ring of the control frame is a box-shadow on its `::after`. The
+	// control in the frame draws the outline instead.
+	'text input in a control frame': {
+		ui: <Input aria-label="Name" />,
+		mark: (focused: Element) => focused,
+	},
+	'select in a control frame': {
+		ui: (
+			<Select aria-label="Fruit">
+				<SelectOption value="apple">Apple</SelectOption>
+			</Select>
+		),
+		mark: (focused: Element) => focused,
+	},
+	'combobox in a control frame': {
+		ui: (
+			<Combobox aria-label="Fruit">
+				<ComboboxOption value="apple">Apple</ComboboxOption>
+			</Combobox>
+		),
 		mark: (focused: Element) => focused,
 	},
 } as const
@@ -489,3 +520,40 @@ describe.each(['light', 'dark'])(
 		})
 	},
 )
+
+/**
+ * A `solid` swatch is only its `currentColor` background, and a `dashed` line is
+ * only a gradient. Forced colors replace the background with `Canvas` and
+ * remove the gradient. Each mark must still paint, or it disappears from the
+ * legend, the tooltip, and the status dot.
+ */
+describe('Swatch under forced colors (real browser)', () => {
+	beforeAll(() =>
+		cdp().send('Emulation.setEmulatedMedia', {
+			features: [{ name: 'forced-colors', value: 'active' }],
+		}),
+	)
+	afterAll(() =>
+		cdp().send('Emulation.setEmulatedMedia', { features: [{ name: 'forced-colors', value: '' }] }),
+	)
+
+	it.each(['square', 'circle', 'line'] as const)(
+		'a solid %s paints a color other than Canvas',
+		(shape) => {
+			const { container } = renderUI(<Swatch shape={shape} color="blue" />)
+			const el = present(bySlot(container, 'swatch'), 'swatch')
+
+			expect(getComputedStyle(el).backgroundColor).not.toBe(canvasColor())
+		},
+	)
+
+	it('a dashed line keeps its dash run in CanvasText', () => {
+		const { container } = renderUI(<Swatch shape="line" variant="dashed" color="blue" />)
+		const el = present(bySlot(container, 'swatch'), 'swatch')
+		const style = getComputedStyle(el)
+
+		expect(style.backgroundImage).toContain('repeating-linear-gradient')
+
+		expect(style.color).not.toBe(canvasColor())
+	})
+})

@@ -24,13 +24,17 @@ type ReorderValues = {
 	reorderHandle: { item: string }
 	moveHandle: { item: string }
 	unnamedItem: Record<never, never>
+	sortableRole: Record<never, never>
+	draggableRole: Record<never, never>
 }
 
 /**
  * The messages of a reorder: the live-region text of a pick-up, a move, a
  * drop, and a return, the instructions of the keyboard, and the names of the
  * reorder handles. A list, a query builder, a Kanban, and a grid use them, for
- * a pointer drag and for the keyboard.
+ * a pointer drag and for the keyboard. The handle of a dnd-kit item speaks
+ * its role with `sortableRole` or `draggableRole`, in place of the English
+ * role of dnd-kit.
  *
  * @internal
  */
@@ -119,6 +123,18 @@ export const reorderMessages: MessageSet<ReorderValues> = defineMessages<Reorder
 		id: 'ui.reorder.unnamedItem',
 		defaultMessage: 'the item',
 		description: 'The name of an item in a reorder announcement when the item has no name.',
+	},
+	sortableRole: {
+		id: 'ui.reorder.sortableRole',
+		defaultMessage: 'sortable',
+		description:
+			'The role that a screen reader speaks after the name of a handle that moves an item to a new place in a list, such as "Reorder Alpha, sortable". Lowercase.',
+	},
+	draggableRole: {
+		id: 'ui.reorder.draggableRole',
+		defaultMessage: 'draggable',
+		description:
+			'The role that a screen reader speaks after the name of a handle that drags an item, such as "Move Revenue, draggable". Lowercase.',
 	},
 })
 

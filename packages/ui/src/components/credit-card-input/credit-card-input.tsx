@@ -3,10 +3,12 @@
 import { CreditCard } from 'lucide-react'
 import { type ReactNode, useId, useMemo } from 'react'
 import { useAriaIds } from '../../hooks'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { useHeadless } from '../../providers/headless/context'
 import { digitsOnly } from '../../utilities'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
+import { creditCardMessages } from './credit-card-input-messages'
 import {
 	type CardValidity,
 	detectCardBrand,
@@ -53,8 +55,8 @@ export type CreditCardInputProps = Omit<
  * (`aria-describedby`), so a screen reader reads it with the number. Emits the formatted value, brand, and
  * Luhn + length + pattern validity through `onValueChange`, `onBrandChange`,
  * and `onValidityChange`, and binds to an enclosing Form field by `name`. Sets
- * `autoComplete="cc-number"` and defaults a "Card number" aria-label, yielding
- * to a Field `<Label>` or a native `<label>`.
+ * `autoComplete="cc-number"` and defaults a "Card number" aria-label, in the
+ * language of the reader, yielding to a Field `<Label>` or a native `<label>`.
  *
  * @see {@link CreditCardInputExpiry}
  * @see {@link CreditCardInputCvv}
@@ -77,6 +79,8 @@ export function CreditCardInput({
 }: CreditCardInputProps) {
 	const headless = useHeadless()
 
+	const intl = useIntl()
+
 	const brandId = useId()
 
 	const {
@@ -86,7 +90,7 @@ export function CreditCardInput({
 		onBlur: onFieldBlur,
 		fallbackLabel,
 	} = useCreditCardInputField({
-		fallbackLabel: 'Card number',
+		fallbackLabel: intl.formatMessage(creditCardMessages.number),
 		ref,
 		name,
 		value,

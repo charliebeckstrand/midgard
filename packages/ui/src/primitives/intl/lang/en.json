@@ -1,4 +1,8 @@
 {
+	"ui.addressInput.placeholder": {
+		"defaultMessage": "Enter an address",
+		"description": "The placeholder of a field that searches for an address or a place. It is also the name of the field when no label names it."
+	},
 	"ui.alert.dismiss": {
 		"defaultMessage": "Dismiss",
 		"description": "The name of the button that closes a message or a toast."
@@ -211,9 +215,21 @@
 		"defaultMessage": "Swatches",
 		"description": "The name of the group of preset colors."
 	},
+	"ui.combobox.create": {
+		"defaultMessage": "Create “{name}”",
+		"description": "The option at the end of a combobox list that creates a new item from the typed text. The name is the typed text."
+	},
 	"ui.combobox.placeholder": {
 		"defaultMessage": "Search",
 		"description": "The placeholder of a field that filters a list of options as the reader types."
+	},
+	"ui.combobox.unselected": {
+		"defaultMessage": "Select an option from the list.",
+		"description": "The browser validation message of a required combobox that holds typed text but no selected option."
+	},
+	"ui.commandPalette.label": {
+		"defaultMessage": "Command palette",
+		"description": "The name of the dialog that searches the commands of an app. It has no visible title."
 	},
 	"ui.commandPalette.placeholder": {
 		"defaultMessage": "Type a command or search",
@@ -238,6 +254,10 @@
 	"ui.common.confirm": {
 		"defaultMessage": "Confirm",
 		"description": "The label of a button that does the action that a dialog asks about."
+	},
+	"ui.common.filters": {
+		"defaultMessage": "Filters",
+		"description": "The name of a group of filter controls, and the label of the button that opens them."
 	},
 	"ui.common.loading": {
 		"defaultMessage": "Loading",
@@ -266,6 +286,22 @@
 	"ui.copyButton.copy": {
 		"defaultMessage": "Copy to clipboard",
 		"description": "The name of a button that copies a value to the clipboard."
+	},
+	"ui.creditCardInput.expiry": {
+		"defaultMessage": "Expiration date",
+		"description": "The name of the field of the expiration date of a payment card, when no label names it."
+	},
+	"ui.creditCardInput.invalidExpiry": {
+		"defaultMessage": "Enter a valid expiration date ({format})",
+		"description": "The error of an expiration date that cannot be valid, such as a past month. The format is the letters of the mask, such as MM/YY."
+	},
+	"ui.creditCardInput.number": {
+		"defaultMessage": "Card number",
+		"description": "The name of the field of a payment card number, when no label names it."
+	},
+	"ui.creditCardInput.securityCode": {
+		"defaultMessage": "Security code",
+		"description": "The name of the field of the 3- or 4-digit security code of a payment card, when no label names it."
 	},
 	"ui.dashboard.canceled": {
 		"defaultMessage": "Canceled. {item} returned to {cell}.",
@@ -1119,6 +1155,22 @@
 		"defaultMessage": "Select",
 		"description": "The placeholder of a picker with no selected value."
 	},
+	"ui.navBar.label": {
+		"defaultMessage": "Main",
+		"description": "The name of the main navigation landmark of a page, which a screen reader speaks with its role, as in \"Main navigation\"."
+	},
+	"ui.numberInput.decrease": {
+		"defaultMessage": "Decrease",
+		"description": "The name of the button that makes the value of a number field smaller by one step."
+	},
+	"ui.numberInput.increase": {
+		"defaultMessage": "Increase",
+		"description": "The name of the button that makes the value of a number field larger by one step."
+	},
+	"ui.panel.resize": {
+		"defaultMessage": "Resize panel",
+		"description": "The name of the grab bar that changes the size of a drawer or a sheet, by a drag or by the arrow keys."
+	},
 	"ui.passwordInput.hide": {
 		"defaultMessage": "Hide password",
 		"description": "The name of the button that hides the text of a password field."
@@ -1535,6 +1587,26 @@
 		"defaultMessage": "{combinator}, switch to {next}",
 		"description": "The name of the button between two filter chips that switches the combinator, such as \"AND, switch to OR\"."
 	},
+	"ui.rangeSlider.end": {
+		"defaultMessage": "Range end",
+		"description": "The name of the thumb that sets the high end of a range slider."
+	},
+	"ui.rangeSlider.start": {
+		"defaultMessage": "Range start",
+		"description": "The name of the thumb that sets the low end of a range slider."
+	},
+	"ui.rating.label": {
+		"defaultMessage": "Rating",
+		"description": "The name of a row of stars that gives a score, when no label names it."
+	},
+	"ui.rating.valueText": {
+		"defaultMessage": "{value, number} out of {count, plural, one {# star} other {# stars}}",
+		"description": "The score of a star rating that a screen reader speaks, such as \"4 out of 5 stars\". The value can have a decimal part, such as 4.5."
+	},
+	"ui.reorder.draggableRole": {
+		"defaultMessage": "draggable",
+		"description": "The role that a screen reader speaks after the name of a handle that drags an item, such as \"Move Revenue, draggable\". Lowercase."
+	},
 	"ui.reorder.dropped": {
 		"defaultMessage": "Dropped {subject}.",
 		"description": "Spoken when the reader drops a moved item. The subject is the item, with its place when it has one."
@@ -1582,6 +1654,10 @@
 	"ui.reorder.sensorInstructions": {
 		"defaultMessage": "To pick up an item, press Space. Use the arrow keys to move it, then press Space to drop it, or Escape to cancel.",
 		"description": "The description of a drag handle whose keyboard drops an item with Space and cancels the move with Escape."
+	},
+	"ui.reorder.sortableRole": {
+		"defaultMessage": "sortable",
+		"description": "The role that a screen reader speaks after the name of a handle that moves an item to a new place in a list, such as \"Reorder Alpha, sortable\". Lowercase."
 	},
 	"ui.reorder.subject": {
 		"defaultMessage": "{item}, position {position} of {total}",
@@ -1654,6 +1730,38 @@
 	"ui.settings.title": {
 		"defaultMessage": "Settings",
 		"description": "The title of the settings dialog, and the name of the button that opens it."
+	},
+	"ui.sidebar.closeNavigation": {
+		"defaultMessage": "Close navigation",
+		"description": "The name of the button that closes the navigation drawer of a narrow page."
+	},
+	"ui.sidebar.label": {
+		"defaultMessage": "Sidebar",
+		"description": "The name of the navigation landmark at the side of a page, which a screen reader speaks with its role."
+	},
+	"ui.sidebarLayout.navigationBar": {
+		"defaultMessage": "Navigation bar",
+		"description": "The name of the bar at the top of a narrow page that holds the button that opens the navigation."
+	},
+	"ui.sidebarLayout.openNavigation": {
+		"defaultMessage": "Open navigation",
+		"description": "The name of the menu button that opens the navigation of a narrow page."
+	},
+	"ui.signaturePad.clear": {
+		"defaultMessage": "Clear signature",
+		"description": "The name of the button that erases the signature on the pad."
+	},
+	"ui.signaturePad.empty": {
+		"defaultMessage": "{name}, empty",
+		"description": "The name of a signature pad with no signature on it. The name is the name of the pad, such as \"Signature\"."
+	},
+	"ui.signaturePad.label": {
+		"defaultMessage": "Signature",
+		"description": "The name of the canvas of a signature pad, when no label names it."
+	},
+	"ui.signaturePad.placeholder": {
+		"defaultMessage": "Sign here",
+		"description": "The text over an empty signature pad that asks the reader to draw a signature."
 	},
 	"ui.table.noItems": {
 		"defaultMessage": "No items",

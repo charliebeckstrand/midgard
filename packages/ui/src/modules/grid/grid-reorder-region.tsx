@@ -12,6 +12,8 @@ import {
 	type SortableListOptions,
 	useSortableList,
 } from '../../hooks/use-sortable-list'
+import { reorderMessages } from '../../primitives/intl/intl-reorder'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { restrictToFirstScrollableAncestor } from './engine/grid-reorder-compute'
 import {
 	type GridReorderableColumnHeaderProps,
@@ -156,6 +158,8 @@ function RowSortableScope({ children }: { children: ReactNode }) {
  * @internal
  */
 function SortableColumnHeader(props: GridReorderableColumnHeaderProps) {
+	const intl = useIntl()
+
 	const {
 		setNodeRef,
 		setActivatorNodeRef,
@@ -164,7 +168,10 @@ function SortableColumnHeader(props: GridReorderableColumnHeaderProps) {
 		transform,
 		isDragging,
 		isSorting,
-	} = useSortable({ id: String(props.column.id) })
+	} = useSortable({
+		id: String(props.column.id),
+		attributes: { roleDescription: intl.formatMessage(reorderMessages.sortableRole) },
+	})
 
 	return (
 		<GridReorderableColumnHeaderView

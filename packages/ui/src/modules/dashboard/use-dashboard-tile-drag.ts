@@ -6,6 +6,8 @@ import {
 	useDraggable,
 } from '@dnd-kit/core'
 import { type RefObject, useCallback, useMemo } from 'react'
+import { reorderMessages } from '../../primitives/intl/intl-reorder'
+import { useIntl } from '../../primitives/intl/use-intl'
 import {
 	type DashboardDragTravel,
 	type DashboardOffset,
@@ -67,8 +69,14 @@ export function useDashboardTileDrag(
 	cell: DashboardCell | undefined,
 	movable: boolean,
 ): DashboardTileDrag {
+	const intl = useIntl()
+
 	const { attributes, listeners, setNodeRef, node, setActivatorNodeRef, transform, isDragging } =
-		useDraggable({ id, disabled: !movable })
+		useDraggable({
+			id,
+			disabled: !movable,
+			attributes: { roleDescription: intl.formatMessage(reorderMessages.draggableRole) },
+		})
 
 	const owned = useDashboardStore(
 		useCallback(

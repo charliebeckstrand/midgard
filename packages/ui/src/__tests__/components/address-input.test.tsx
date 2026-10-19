@@ -5,6 +5,7 @@ import { AddressInput, createPhotonProvider, photonProvider } from '../../compon
 import { splitUsState } from '../../components/address-input/address-input-photon-query'
 import { Form } from '../../modules/form'
 import { useFormState } from '../../primitives/form/context'
+import { LocaleProvider } from '../../providers/locale'
 import {
 	bySlot,
 	deferred,
@@ -1145,5 +1146,21 @@ describe('splitUsState', () => {
 		expect(splitUsState('Oregon')).toBeNull()
 
 		expect(splitUsState('New York')).toBeNull()
+	})
+})
+
+describe('AddressInput in a locale', () => {
+	it('gives the placeholder and the fallback name in the language of the locale', () => {
+		const { container } = renderUI(
+			<LocaleProvider locale="es-ES">
+				<AddressInput />
+			</LocaleProvider>,
+		)
+
+		const input = bySlot(container, 'combobox-input')
+
+		expect(input).toHaveAttribute('placeholder', 'Introduce una dirección')
+
+		expect(input).toHaveAttribute('aria-label', 'Introduce una dirección')
 	})
 })
