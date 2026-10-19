@@ -240,6 +240,30 @@ describe('chart image capture (real browser)', () => {
 			height: Math.round(rect.height),
 		})
 	})
+
+	it('lays out a chart with a margin at the origin of its box', async () => {
+		const root = await renderChart('bottom')
+
+		root.style.margin = '24px 40px'
+
+		const svg = relative(drawing(root), root)
+
+		const { box, clone } = prepareChartCapture(root, true)
+
+		layOut(clone)
+
+		// The host sits at the page origin, so the clone and its drawing sit where
+		// the box puts them, with no offset from the margin.
+		expect(clone.getBoundingClientRect().left).toBeNear(0, PIXEL)
+
+		expect(clone.getBoundingClientRect().top).toBeNear(0, PIXEL)
+
+		expect(clone.getBoundingClientRect().width).toBeNear(box.width, PIXEL)
+
+		expect(drawing(clone).getBoundingClientRect().left).toBeNear(svg.left, PIXEL)
+
+		expect(drawing(clone).getBoundingClientRect().top).toBeNear(svg.top, PIXEL)
+	})
 })
 
 describe('chart image ground (real browser)', () => {

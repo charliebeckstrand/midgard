@@ -455,6 +455,7 @@ function drawnBox(root: HTMLElement, plan: CapturePlan, full: CaptureBox): Captu
  * half of {@link rasterizeChartImage}. It reads the live chart and writes nothing
  * to it. It clones the root and freezes the computed style of each node onto the
  * clone. It drops each node that paints nothing, such as the hidden data table.
+ * The clone of the root has no margin, so it fills the box from its origin.
  *
  * Without the legend, it prunes each legend box from the clone and closes the
  * band that the box leaves. It then crops to the drawing and the header text.
@@ -481,6 +482,10 @@ export function prepareChartCapture(root: HTMLElement, includeLegend: boolean): 
 	const clone = root.cloneNode(true) as HTMLElement
 
 	freezeStyleTree(root, clone, getComputedStyle(root), plan)
+
+	// The box is the border box of the root, which excludes its margin. The
+	// clone therefore drops the margin, so it starts at the origin of the box.
+	clone.style.margin = '0'
 
 	return { clone, box, ground: groundOf(root) }
 }
