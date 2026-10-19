@@ -9,7 +9,7 @@ function RouterLink({ children, ...props }: LinkProps) {
 export default function RegisteredLinkComponent() {
 	return (
 		<UIProvider link={RouterLink}>
-			<Link href="/providers/ui">Link</Link>
+			<Link href="/providers/ui">UI provider</Link>
 		</UIProvider>
 	)
 }

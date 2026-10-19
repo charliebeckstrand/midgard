@@ -32,6 +32,7 @@ export type CurrencyInputProps = Omit<
 	 */
 	value?: number | null
 	defaultValue?: number
+	/** Fires when the amount changes, with the parsed number. */
 	onValueChange?: (value: number | null) => void
 	/** ISO 4217 currency code. Falls back to `<LocaleProvider currency>`, then `USD`. */
 	currency?: string

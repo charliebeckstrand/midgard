@@ -114,7 +114,7 @@ export default function SkeletonVariants() {
 				value={selected}
 				onValueChange={(value) => setSelected(value ?? 'Button')}
 				displayValue={(name) => name}
-				placeholder="Search component"
+				placeholder="Search components"
 				aria-label="Skeleton variant"
 			>
 				<MatchingVariants />

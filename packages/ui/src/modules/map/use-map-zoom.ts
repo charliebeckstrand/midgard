@@ -233,6 +233,11 @@ export function useMapZoom({
 	// from the touch events instead — see {@link useMapTouchPinch}.
 	const pointers = useRef(new Map<number, MapPoint2D>())
 
+	// The kind of pointer that started the pointer gesture, or `null`. A pointer of
+	// another kind does not join the gesture: while a pen pans, the touch of a palm is
+	// a primary press too.
+	const holder = useRef<string | null>(null)
+
 	// A pinch holds the readout until the gesture settles. See {@link MapHoverActions.hold}.
 	const { hold: holdReadout } = useMapHoverActions()
 
@@ -432,6 +437,8 @@ export function useMapZoom({
 		if (pointers.current.size === 0) {
 			press.current = null
 
+			holder.current = null
+
 			gestureBox.current = null
 
 			cursorHold.end()
@@ -495,6 +502,9 @@ export function useMapZoom({
 	 * Returns whether the plot still holds a contact.
 	 */
 	function onTouch(event: TouchEvent): boolean {
+		// The touch of a palm while a pen or a mouse holds the map.
+		if (holder.current !== null) return false
+
 		const contacts = contactsOf(event, pointers.current)
 
 		claimTouch(event, contacts)
@@ -571,8 +581,17 @@ export function useMapZoom({
 
 		// A right-click or a macOS Ctrl-click opens the region menu the plat
 		// reports for, so only a primary press starts a gesture. A further
-		// pointer joins the gesture under way, as the second finger of a pinch.
-		if (!isPrimaryPress(event) && (pointers.current.size === 0 || event.button !== 0)) return
+		// pointer of the same kind joins the gesture under way, as the second
+		// finger of a pinch.
+		const joins = pointers.current.size > 0
+
+		const starts = joins
+			? event.button === 0 && event.pointerType === holder.current
+			: isPrimaryPress(event)
+
+		if (!starts) return
+
+		if (!joins) holder.current = event.pointerType
 
 		const at = { x: event.clientX, y: event.clientY }
 

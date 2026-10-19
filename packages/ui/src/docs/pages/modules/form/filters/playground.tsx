@@ -10,6 +10,13 @@ import {
 import { Input } from 'ui/input'
 import { Select, SelectLabel, SelectOption } from 'ui/select'
 
+const statuses = [
+	{ value: 'active', label: 'Active' },
+	{ value: 'inactive', label: 'Inactive' },
+]
+
+const labelOf = (value: string) => statuses.find((status) => status.value === value)?.label ?? value
+
 export default function FiltersPlayground(props: FormFiltersProps) {
 	return (
 		<FormFilters {...props} aria-label="Filters">
@@ -21,13 +28,12 @@ export default function FiltersPlayground(props: FormFiltersProps) {
 					</FormFiltersField>
 					<FormFiltersField name="status">
 						<Label>Status</Label>
-						<Select nullable placeholder="All statuses" displayValue={(value: string) => value}>
-							<SelectOption value="active">
-								<SelectLabel>Active</SelectLabel>
-							</SelectOption>
-							<SelectOption value="inactive">
-								<SelectLabel>Inactive</SelectLabel>
-							</SelectOption>
+						<Select nullable placeholder="All statuses" displayValue={labelOf}>
+							{statuses.map((status) => (
+								<SelectOption key={status.value} value={status.value}>
+									<SelectLabel>{status.label}</SelectLabel>
+								</SelectOption>
+							))}
 						</Select>
 					</FormFiltersField>
 				</FormFiltersRow>

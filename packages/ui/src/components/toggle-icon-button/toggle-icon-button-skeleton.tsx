@@ -7,7 +7,10 @@ import { createSkeleton, type SkeletonProps } from '../placeholder'
 /** Props for {@link ToggleIconButtonSkeleton}; `size` matches the resolved button hit area. */
 export type ToggleIconButtonSkeletonProps = SkeletonProps<NonNullable<ButtonVariants['size']>>
 
-/** Square loading placeholder matching a {@link ToggleIconButton}'s footprint. Compose in loading trees. */
+/**
+ * A placeholder for a {@link ToggleIconButton} while it loads. It is a square
+ * with the footprint of the button.
+ */
 export const ToggleIconButtonSkeleton = createSkeleton<ScaleStep<typeof scale>>(
 	k.skeleton,
 	'ToggleIconButtonSkeleton',

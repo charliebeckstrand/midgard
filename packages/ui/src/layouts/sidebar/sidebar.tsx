@@ -106,7 +106,7 @@ export type SidebarLayoutProps = ComponentProps<'div'> & {
 	 * layout it does not show.
 	 */
 	aside?: ReactNode
-	/** In the inline layout, keeps the header at the top of the content region. @defaultValue false */
+	/** Keeps the header at the top of the content region in the inline layout. @defaultValue false */
 	stickyHeader?: boolean
 	/**
 	 * Where the sidebar is: in a `drawer` that a navbar button opens, or

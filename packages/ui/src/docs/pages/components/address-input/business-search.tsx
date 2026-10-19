@@ -19,7 +19,7 @@ export default function BusinessSearch() {
 					value={place}
 					onValueChange={setPlace}
 					provider={coastalPlaces}
-					placeholder="Try 'Clearwater' or 'Mo's'"
+					placeholder="Try 'aquarium' or 'lighthouse'"
 				/>
 			</Field>
 			{place ? (

@@ -53,11 +53,12 @@ export type PdfViewerProps = Omit<ComponentProps<'section'>, 'children' | 'onLoa
 	filename?: string
 	/** Controlled current page (1-based). */
 	page?: number
-	/** Initial page in uncontrolled mode (1-based). */
+	/** Initial page when uncontrolled (1-based). */
 	defaultPage?: number
+	/** Fires when the current page changes. */
 	onPageChange?: (page: number) => void
 	/**
-	 * Fires once the document at `src` opens, with its page count. The pages
+	 * Fires when the document at `src` opens, with its page count. The pages
 	 * render after it, the active page first.
 	 *
 	 * The viewer owns the whole fetch-and-rasterize lifecycle and reported neither
@@ -115,7 +116,7 @@ export type PdfViewerProps = Omit<ComponentProps<'section'>, 'children' | 'onLoa
 	highlightUnit?: PdfViewerHighlightUnit
 	/** Controlled active region id; `null` for none. Setting it navigates to that region's page and brings it into view. */
 	activeHighlightId?: string | null
-	/** Initial active region id in uncontrolled mode. */
+	/** Initial active region id when uncontrolled. */
 	defaultActiveHighlightId?: string
 	/**
 	 * Fires when the active region changes from inside the viewer — a press or
@@ -129,7 +130,7 @@ export type PdfViewerProps = Omit<ComponentProps<'section'>, 'children' | 'onLoa
 	 */
 	onActiveHighlightChange?: (id: string | null) => void
 	/**
-	 * Fires on every press of a region, the already-active one included.
+	 * Fires when the reader presses a region, the already-active one included.
 	 *
 	 * @remarks Distinct from {@link onActiveHighlightChange}, which reports *selection*:
 	 * re-pressing the active region changes nothing to select, so that callback stays silent.
@@ -140,7 +141,7 @@ export type PdfViewerProps = Omit<ComponentProps<'section'>, 'children' | 'onLoa
 	 */
 	onHighlightPress?: (id: string) => void
 	/**
-	 * Show a magnifying lens beside the cursor while it rests over the page.
+	 * Shows a magnifying lens beside the cursor while it rests over the page.
 	 *
 	 * @remarks For a viewer opened on the whole page, where the ink is legible enough to
 	 * navigate by but not to read. An invoice scan or a plan sheet is one. A reader can then

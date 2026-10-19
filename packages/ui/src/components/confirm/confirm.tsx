@@ -105,7 +105,9 @@ export type ConfirmProps = Pick<
 	DialogPanelProps,
 	'width' | 'align' | 'glass' | 'initialFocus' | 'container' | 'dismissOnBackdrop'
 > & {
+	/** Controlled open state. Pair it with `onOpenChange`. */
 	open: boolean
+	/** Fires when the open state changes. */
 	onOpenChange: (open: boolean) => void
 	/** Fires when the confirm action is pressed; does not close the dialog (drive `open` from your handler). */
 	onConfirm: () => void

@@ -424,7 +424,7 @@ function RangeTrack({
 					aria-hidden="true"
 					data-slot={`${slot}-marker`}
 					className={cn(
-						'absolute bg-white shadow-sm ring-1 ring-black/20',
+						k.marker,
 						horizontal
 							? '-inset-y-0.5 w-0.5 -translate-x-1/2'
 							: '-inset-x-0.5 h-0.5 -translate-y-1/2',

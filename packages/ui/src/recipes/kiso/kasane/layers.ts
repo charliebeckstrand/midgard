@@ -10,6 +10,8 @@
  */
 
 import { mode } from '../../../core/recipe'
+import { forced } from '../sen/forced'
+import { ring } from '../sen/ring'
 
 /**
  * Base ring under the other layers. The ring uses solid colors, not
@@ -18,7 +20,7 @@ import { mode } from '../../../core/recipe'
  * is not bundled; each composer adds its own radius, as a stepped
  * `density-rounded-*` class when it follows density.
  */
-const base = ['ring-1 ring-inset ring-zinc-300 dark:ring-zinc-700']
+const base = [...ring.line[1].inset, 'ring-zinc-300 dark:ring-zinc-700']
 
 /**
  * `::before` inset fill: paints the surface inside the 1 px outer ring.
@@ -55,6 +57,12 @@ const focus = [
 	'data-open:z-10',
 	'focus-within:after:ring-2',
 	'data-open:after:ring-2',
+	// Forced colors remove the ring, which is a box-shadow. This inset outline
+	// marks the focused or open control there, in `Highlight`.
+	'forced-colors:focus-within:after:outline-solid forced-colors:focus-within:after:outline-2',
+	'forced-colors:focus-within:after:-outline-offset-2 forced-colors:focus-within:after:outline-[Highlight]',
+	'forced-colors:data-open:after:outline-solid forced-colors:data-open:after:outline-2',
+	'forced-colors:data-open:after:-outline-offset-2 forced-colors:data-open:after:outline-[Highlight]',
 	'not-has-[[data-invalid],[data-valid],[data-warning]]:focus-within:after:ring-blue-600',
 	'not-has-[[data-invalid],[data-valid],[data-warning]]:data-open:after:ring-blue-600',
 ]
@@ -67,12 +75,17 @@ const focus = [
  * each state, and the focus and open classes make it 2 px. The selectors stay
  * literal, because Tailwind's source scanner can't see template-constructed
  * classes.
+ *
+ * Forced colors remove the rings, so an invalid control takes the outline of
+ * `forced.invalid` there. The focus and the open classes paint it in
+ * `Highlight`.
  */
 const validation = [
 	'has-[[data-invalid],[data-valid],[data-warning]]:not-focus-within:after:ring-1',
 	'has-[[data-valid]]:ring-green-600 has-[[data-valid]]:after:ring-green-600',
 	'has-[[data-warning]]:ring-amber-500 has-[[data-warning]]:after:ring-amber-500',
 	'has-[[data-invalid]]:ring-red-600 has-[[data-invalid]]:after:ring-red-600',
+	...forced.invalid.overlay,
 ]
 
 /** Disabled state: dims and locks pointer when the wrapped element is :disabled. */

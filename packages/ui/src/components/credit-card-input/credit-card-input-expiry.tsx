@@ -2,6 +2,7 @@
 
 import { type ChangeEvent, type ReactNode, useState } from 'react'
 import { composeEventHandlers } from '../../core'
+import { formatDatePattern } from '../../primitives/intl/intl-date-pattern'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { useControlTypedVerdict } from '../control/use-control-typed-verdict'
 import { Input, type InputProps } from '../input'
@@ -72,11 +73,12 @@ export type CreditCardInputExpiryProps = Omit<
 	invalid?: boolean
 	/**
 	 * The placeholder of the expiry field.
-	 * @defaultValue 'MM/YY'
+	 * @defaultValue `'MM/YY'`, with the letters in the language of the reader.
 	 */
 	placeholder?: string
+	/** Fires when the value changes, with the new `MM/YY` text. */
 	onValueChange?: (value: string) => void
-	/** Fires on every change with the expiry's month-range + not-in-past verdict. */
+	/** Fires when the value changes, with the expiry's month-range + not-in-past verdict. */
 	onValidityChange?: (validity: CardValidity) => void
 	/**
 	 * Error message shown while the typed entry is invalid, as an error
@@ -121,7 +123,9 @@ export function CreditCardInputExpiry({
 	// Only an absent message takes the default; `null`/`false` suppress it.
 	const invalidMessage =
 		invalidMessageProp === undefined
-			? intl.formatMessage(invalidExpiryMessage, { format: EXPIRY_PATTERN })
+			? intl.formatMessage(invalidExpiryMessage, {
+					format: formatDatePattern(intl, EXPIRY_PATTERN),
+				})
 			: invalidMessageProp
 
 	const verdict = useControlTypedVerdict({
@@ -190,7 +194,7 @@ export function CreditCardInputExpiry({
 				// render and to a native label after each commit
 				// (useControlLabelRef).
 				aria-label={ariaLabel ?? fallbackLabel}
-				placeholder={placeholder ?? EXPIRY_PATTERN}
+				placeholder={placeholder ?? formatDatePattern(intl, EXPIRY_PATTERN)}
 				invalid={invalid ?? (verdict.invalid || undefined)}
 				name={name}
 				value={maskedValue}

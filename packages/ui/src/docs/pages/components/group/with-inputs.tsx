@@ -6,16 +6,16 @@ export default function WithInputs() {
 	return (
 		<Stack gap="lg">
 			<Group>
-				<Input aria-label="First" placeholder="First" />
-				<Input aria-label="Second" placeholder="Second" />
-				<Input aria-label="Third" placeholder="Third" />
+				<Input aria-label="Street" placeholder="Street" />
+				<Input aria-label="City" placeholder="City" />
+				<Input aria-label="Postal code" placeholder="Postal code" />
 			</Group>
 			<Group>
-				<Input aria-label="First" placeholder="First" />
-				<Input aria-label="Last" placeholder="Last" />
+				<Input aria-label="First name" placeholder="First name" />
+				<Input aria-label="Last name" placeholder="Last name" />
 			</Group>
 			<Group>
-				<Input aria-label="Only one" placeholder="Only one" />
+				<Input aria-label="Email" placeholder="Email" />
 			</Group>
 		</Stack>
 	)

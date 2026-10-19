@@ -1,12 +1,12 @@
 'use client'
 
-import { type PointerEvent, type RefObject, useCallback, useRef } from 'react'
+import { type PointerEvent, type RefObject, useCallback, useRef, useState } from 'react'
 import { isRtl } from '../../../hooks/a11y/logical-arrow'
 import { useDragCursorHold } from '../../../hooks/use-drag-cursor'
 import { useStableEvent } from '../../../hooks/use-stable-event'
 import { clamp } from '../../../utilities'
 import { holdTextSelection } from '../../../utilities/hold-text-selection'
-import { isPrimaryPress } from '../../../utilities/primary-press'
+import { createPressOwner } from '../../../utilities/primary-press'
 import { snapValue } from './range-utilities'
 import type { OverlapMode, ThumbButtonRefs, ThumbIndex } from './types'
 import { useRangeUpdate } from './use-range-update'
@@ -139,6 +139,9 @@ export function useRangePointer(options: {
 	// does not.
 	const gestureThumbRef = useRef<ThumbIndex | null>(null)
 
+	// The pointer that drives the drag. A palm that lands mid-drag grabs no thumb.
+	const [press] = useState(createPressOwner)
+
 	// The track keeps its cursor on the page while the press holds, off the track too.
 	const cursorHold = useDragCursorHold('pointer')
 
@@ -197,8 +200,8 @@ export function useRangePointer(options: {
 	const onPointerDown = useCallback(
 		(event: PointerEvent) => {
 			// A context-menu press, a macOS Ctrl-click included, writes no value.
-			// A second finger grabs no thumb.
-			if (disabled || !isPrimaryPress(event)) return
+			// A second finger, or a pointer of another type mid-drag, grabs no thumb.
+			if (disabled || !press.claim(event)) return
 
 			holdTextSelection(event)
 
@@ -209,6 +212,8 @@ export function useRangePointer(options: {
 			// A read-only press sets the keyboard focus, as on a live slider. It
 			// captures no pointer, so no move or lift reaches the drag.
 			if (readOnly) {
+				press.release()
+
 				focusThumb(thumbRefs, closestThumb(valueFromPointer(event.clientX)))
 
 				return
@@ -257,6 +262,7 @@ export function useRangePointer(options: {
 		[
 			disabled,
 			readOnly,
+			press,
 			closestThumb,
 			update,
 			valueFromPointer,
@@ -273,6 +279,8 @@ export function useRangePointer(options: {
 
 	const onPointerMove = useCallback(
 		(event: PointerEvent) => {
+			if (!press.owns(event)) return
+
 			const wasPending = pendingStackedRef.current !== null
 
 			const dragging = resolveDraggingThumb(
@@ -317,6 +325,7 @@ export function useRangePointer(options: {
 			update(dragging, raw)
 		},
 		[
+			press,
 			update,
 			valueFromPointer,
 			inlinePosition,
@@ -330,19 +339,27 @@ export function useRangePointer(options: {
 		],
 	)
 
-	const endDrag = useCallback(() => {
-		const grabbed = gestureThumbRef.current
+	const endDrag = useCallback(
+		(event: PointerEvent) => {
+			// The release of another pointer does not end the drag.
+			if (!press.owns(event)) return
 
-		draggingRef.current = null
-		pendingStackedRef.current = null
-		gestureThumbRef.current = null
+			press.release()
 
-		cursorHold.end()
+			const grabbed = gestureThumbRef.current
 
-		// A press on the stack that did not move grabbed no thumb, so it closes no
-		// bracket. Every other route latched a thumb and owes one end.
-		if (grabbed !== null) reportDragEnd(grabbed)
-	}, [reportDragEnd, cursorHold])
+			draggingRef.current = null
+			pendingStackedRef.current = null
+			gestureThumbRef.current = null
+
+			cursorHold.end()
+
+			// A press on the stack that did not move grabbed no thumb, so it closes no
+			// bracket. Every other route latched a thumb and owes one end.
+			if (grabbed !== null) reportDragEnd(grabbed)
+		},
+		[press, reportDragEnd, cursorHold],
+	)
 
 	// `lostpointercapture` fires on every capture end: normal release,
 	// `pointercancel` (browser-claimed gesture), or node removal. It is the

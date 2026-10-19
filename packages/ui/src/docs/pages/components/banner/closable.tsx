@@ -13,7 +13,7 @@ export default function Closable() {
 		<Banner
 			severity="info"
 			title="New version available"
-			description="Version 2.0 has been released with new features and improvements."
+			description="Version 2.4 is ready to install."
 			open={open}
 			onOpenChange={setOpen}
 		/>

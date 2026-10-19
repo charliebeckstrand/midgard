@@ -29,7 +29,7 @@ export default function UploadProgress() {
 			{file && (
 				<Stack gap="sm">
 					<ProgressBar aria-label={`Upload of ${file.name}`} value={progress} />
-					<Text>{progress < 100 ? `Uploading ${file.name}…` : `Uploaded ${file.name}.`}</Text>
+					<Text>{progress < 100 ? `Uploading ${file.name}…` : `Uploaded ${file.name}`}</Text>
 				</Stack>
 			)}
 		</Stack>

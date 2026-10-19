@@ -10,8 +10,9 @@ export type PanelCloseProps = {
 }
 
 /**
- * Wraps a single child; clicking it closes the enclosing panel (Dialog, Sheet,
- * Drawer). The child's own `onClick` runs first, then the panel's `close()`.
+ * A wrapper that makes its single child close the enclosing panel (Dialog,
+ * Sheet, Drawer) on a click. The child's own `onClick` runs first, then the
+ * panel's `close()`.
  */
 export function PanelClose({ children }: PanelCloseProps) {
 	const { close } = usePanelCloseContext()

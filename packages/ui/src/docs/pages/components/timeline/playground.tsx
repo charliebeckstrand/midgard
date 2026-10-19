@@ -11,19 +11,21 @@ export default function TimelinePlayground(props: TimelineProps) {
 	return (
 		<Timeline {...props}>
 			<TimelineItem>
-				<TimelineTimestamp>Jan 2026</TimelineTimestamp>
+				<TimelineTimestamp>January 2026</TimelineTimestamp>
 				<TimelineTitle>Project kicked off</TimelineTitle>
-				<TimelineDescription>Initial planning and team assembly.</TimelineDescription>
+				<TimelineDescription>The team planned the scope and the schedule.</TimelineDescription>
 			</TimelineItem>
 			<TimelineItem>
-				<TimelineTimestamp>Feb 2026</TimelineTimestamp>
+				<TimelineTimestamp>February 2026</TimelineTimestamp>
 				<TimelineTitle>Design completed</TimelineTitle>
-				<TimelineDescription>Finalized wireframes and design system tokens.</TimelineDescription>
+				<TimelineDescription>
+					The team finished the wireframes and the design tokens.
+				</TimelineDescription>
 			</TimelineItem>
 			<TimelineItem status="active">
-				<TimelineTimestamp>Mar 2026</TimelineTimestamp>
+				<TimelineTimestamp>March 2026</TimelineTimestamp>
 				<TimelineTitle>Beta released</TimelineTitle>
-				<TimelineDescription>Shipped to early adopters for feedback.</TimelineDescription>
+				<TimelineDescription>Early users got the beta and sent feedback.</TimelineDescription>
 			</TimelineItem>
 		</Timeline>
 	)

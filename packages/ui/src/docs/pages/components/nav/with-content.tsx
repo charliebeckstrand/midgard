@@ -13,9 +13,9 @@ export default function WithContent() {
 			</NavList>
 			<NavContents>
 				<Card>
-					<NavContent value="account">Account settings</NavContent>
-					<NavContent value="notifications">Notification preferences</NavContent>
-					<NavContent value="billing">Billing information</NavContent>
+					<NavContent value="account">Signed in as wade@example.com</NavContent>
+					<NavContent value="notifications">You get an email for each new comment.</NavContent>
+					<NavContent value="billing">Team plan, renews on July 1</NavContent>
 				</Card>
 			</NavContents>
 		</Nav>

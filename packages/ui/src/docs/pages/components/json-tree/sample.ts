@@ -2,13 +2,13 @@ import type { JsonValue } from 'ui/json-tree'
 
 export const sample: JsonValue = {
 	id: 42,
-	name: 'Ada Lovelace',
+	name: 'Mia Chen',
 	active: true,
 	meta: null,
-	tags: ['engineer', 'mathematician'],
+	tags: ['engineer', 'manager'],
 	address: {
-		city: 'London',
-		zip: 'WC2N',
+		city: 'Riverton',
+		zip: '10042',
 		geo: { lat: 51.507, lng: -0.127 },
 	},
 	orders: [

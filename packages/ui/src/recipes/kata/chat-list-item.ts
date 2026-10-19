@@ -1,11 +1,12 @@
 import { defineRecipe, mode } from '../../core/recipe'
-import { hannou, iro, ji, narabi } from '../kiso'
+import { hannou, iro, ji, narabi, sen } from '../kiso'
 import { dan } from '../kiso/dan'
 
 const { nav, cursor } = hannou
 const { text } = iro
 const { size } = ji
 const { flex } = narabi
+const { focus } = sen
 
 export const k = defineRecipe({
 	base: [
@@ -23,12 +24,7 @@ export const k = defineRecipe({
 		// Keyboard focus projects onto the whole item: when the inner select control
 		// is focus-visible the ring wraps the entire row, not just the text region.
 		// Action controls keep their own ring, so roving into them reads distinctly.
-		'ring-inset',
-		'has-[[data-slot=chat-list-item-select]:focus-visible]:ring-2 has-[[data-slot=chat-list-item-select]:focus-visible]:ring-blue-600',
-		// Forced colors remove the ring, which is a box-shadow. This inset outline
-		// replaces it there, as in `focus.inset`.
-		'forced-colors:has-[[data-slot=chat-list-item-select]:focus-visible]:outline-solid forced-colors:has-[[data-slot=chat-list-item-select]:focus-visible]:outline-2',
-		'forced-colors:has-[[data-slot=chat-list-item-select]:focus-visible]:-outline-offset-2 forced-colors:has-[[data-slot=chat-list-item-select]:focus-visible]:outline-[Highlight]',
+		...focus.within.row,
 	],
 	slots: {
 		select: {
@@ -59,13 +55,6 @@ export const k = defineRecipe({
 		// ring beneath the indicator's opaque fill (rings render with the element's
 		// own layer, under positioned descendants), so the focused current row
 		// re-draws the ring on the indicator itself — the topmost full-row surface.
-		indicator: [
-			'ring-inset',
-			'group-has-[[data-slot=chat-list-item-select]:focus-visible]:ring-2 group-has-[[data-slot=chat-list-item-select]:focus-visible]:ring-blue-600',
-			// Forced colors remove the ring. The pill keeps its own forced edge, so
-			// focus widens that edge and paints it in `Highlight`.
-			'forced-colors:group-has-[[data-slot=chat-list-item-select]:focus-visible]:outline-solid forced-colors:group-has-[[data-slot=chat-list-item-select]:focus-visible]:outline-2',
-			'forced-colors:group-has-[[data-slot=chat-list-item-select]:focus-visible]:-outline-offset-2 forced-colors:group-has-[[data-slot=chat-list-item-select]:focus-visible]:outline-[Highlight]',
-		],
+		indicator: focus.within.indicator,
 	},
 })

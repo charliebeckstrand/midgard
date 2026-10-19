@@ -1,5 +1,5 @@
 /**
- * Sen focus: how an element signals keyboard focus. Six named shapes
+ * Sen focus: how an element signals keyboard focus. Seven named shapes
  * cover the patterns the library uses:
  *
  *   - `ring`      outset CSS outline + transparent offset gap. Renders as one
@@ -20,6 +20,9 @@
  *   - `outline`   2 px outline on a `:has(:focus-visible)` wrapper,
  *                 swapped to an inset border inside scrollable ancestors,
  *                 which clip an outset outline
+ *   - `within`    inset ring on a box whose child control has the focus,
+ *                 such as a row with an affix, for a control that cannot
+ *                 draw its own ring around its neighbors
  *   - `indicator` background-paint marker on `::after`, in the focus-ring
  *                 color, for a focused tab. On the current tab, it paints
  *                 over the selection bar, so the current tab also shows
@@ -66,6 +69,37 @@ export const focus = {
 		'[[data-scroll-region]_&]:has-focus-visible:outline-none [[data-scroll-region]_&]:has-focus-visible:border-2 [[data-scroll-region]_&]:has-focus-visible:border-blue-600',
 	],
 	indicator: 'focus-visible:after:bg-blue-600',
+	/**
+	 * The inset ring of a box whose control has keyboard focus. The control
+	 * removes its own outline, and the box draws the ring around the control and
+	 * its neighbors. A control that sits deeper, such as an action in an affix
+	 * slot or a header in a nested panel, keeps its own ring. Each entry carries
+	 * the forced-colors outline of `ring.inset`.
+	 */
+	within: {
+		/** A row whose child control has the focus: the affixed row of Nav, Sidebar, and ChatList. */
+		row: [
+			'ring-inset has-[>:focus-visible]:ring-2 has-[>:focus-visible]:ring-blue-600',
+			'forced-colors:has-[>:focus-visible]:outline-solid forced-colors:has-[>:focus-visible]:outline-2',
+			'forced-colors:has-[>:focus-visible]:-outline-offset-2 forced-colors:has-[>:focus-visible]:outline-[Highlight]',
+		],
+		/**
+		 * The same ring on a surface inside the `group` row, such as the active
+		 * indicator. The row paints its ring beneath a positioned descendant, so
+		 * the opaque surface draws the ring again.
+		 */
+		indicator: [
+			'ring-inset group-has-[>:focus-visible]:ring-2 group-has-[>:focus-visible]:ring-blue-600',
+			'forced-colors:group-has-[>:focus-visible]:outline-solid forced-colors:group-has-[>:focus-visible]:outline-2',
+			'forced-colors:group-has-[>:focus-visible]:-outline-offset-2 forced-colors:group-has-[>:focus-visible]:outline-[Highlight]',
+		],
+		/** A section whose heading holds the control that has the focus: the item of Accordion. */
+		heading: [
+			'ring-inset has-[>:is(h1,h2,h3,h4,h5,h6)>:focus-visible]:ring-2 has-[>:is(h1,h2,h3,h4,h5,h6)>:focus-visible]:ring-blue-600',
+			'forced-colors:has-[>:is(h1,h2,h3,h4,h5,h6)>:focus-visible]:outline-solid forced-colors:has-[>:is(h1,h2,h3,h4,h5,h6)>:focus-visible]:outline-2',
+			'forced-colors:has-[>:is(h1,h2,h3,h4,h5,h6)>:focus-visible]:-outline-offset-2 forced-colors:has-[>:is(h1,h2,h3,h4,h5,h6)>:focus-visible]:outline-[Highlight]',
+		],
+	},
 	lifted: {
 		/** The raise itself, for whichever box is picked up. */
 		raise: ['z-10', 'shadow-md'],

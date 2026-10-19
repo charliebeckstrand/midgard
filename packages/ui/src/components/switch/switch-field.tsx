@@ -10,9 +10,9 @@ export type SwitchFieldProps = {
 } & ComponentProps<'div'>
 
 /**
- * Pairs a Switch with its Label. Generates a scoped id and broadcasts it
- * through `ControlContext`; the inner Switch and Label auto-wire without
- * the consumer touching `id` / `htmlFor`. Pass `htmlFor` to pin the id.
+ * A field that pairs a Switch with its Label. Generates a scoped id and
+ * broadcasts it through `ControlContext`; the inner Switch and Label auto-wire
+ * without the consumer touching `id` / `htmlFor`. Pass `htmlFor` to pin the id.
  */
 export function SwitchField({ htmlFor, ...props }: SwitchFieldProps) {
 	return (

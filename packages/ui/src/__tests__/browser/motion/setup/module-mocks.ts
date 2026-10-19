@@ -7,6 +7,7 @@ import { vi } from 'vitest'
 // factory gets the mock from the module cache.
 import '../../../mocks/floating-ui'
 import { loadMotionFeatures } from '../../../../primitives/reduced-motion/reduced-motion-features'
+import { giveReducedMotionHint } from '../../setup/reduced-motion-hint'
 
 /**
  * motion-project module mocks. `motion/react` is not mocked: this project
@@ -21,3 +22,7 @@ vi.mock('@floating-ui/react', async () => (await import('../../../mocks/floating
 // the features in its first render. `lazy-features.test.tsx` checks the state
 // before the features arrive.
 await Promise.all([loadMotionFeatures('animation'), loadMotionFeatures('layout')])
+
+// Motion is real here, so its one hint for reduced motion lands before the
+// files (see `browser/setup/reduced-motion-hint.ts`).
+giveReducedMotionHint()

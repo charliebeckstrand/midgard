@@ -21,22 +21,22 @@ export const QUERY_BUILDER_ORIENTATION = adaptive({
 export type QueryBuilderProps = {
 	/** Fields available to rules, each with a type and operator set. */
 	fields: QueryField[]
-	/** The query tree, controlled. Pair it with `onValueChange`. */
+	/** Controlled query tree. Pair it with `onValueChange`. */
 	value?: QueryGroup
-	/** The initial query tree, uncontrolled. Omitted, the tree starts as an empty `and` group. */
+	/** Initial query tree when uncontrolled. Omitted, the tree starts as an empty `and` group. */
 	defaultValue?: QueryGroup
-	/** Receives the next query tree after each edit. */
+	/** Fires when an edit changes the query, with the next query tree. */
 	onValueChange?: (value: QueryGroup) => void
 	/** Disables every control in the tree. @defaultValue false */
 	disabled?: boolean
 	/**
-	 * Allow nested groups via an "Add group" action. Set `false` for a flat list
+	 * Allows nested groups via an "Add group" action. Set `false` for a flat list
 	 * of rules joined by AND/OR.
 	 * @defaultValue true
 	 */
 	allowGroups?: boolean
 	/**
-	 * Hide each rule's field selector — for a single fixed field, e.g. a
+	 * Hides the field selector of each rule, for a single fixed field such as a
 	 * column-scoped filter. Supply that one field in `fields`.
 	 * @defaultValue false
 	 */
@@ -51,14 +51,14 @@ export type QueryBuilderProps = {
 	 */
 	orientation?: Responsive<Orientation>
 	/**
-	 * Keep at least one rule in the query. A group's sole remaining rule hides its
+	 * Keeps at least one rule in the query. A group's sole remaining rule hides its
 	 * remove control, so the builder can't be emptied. For always-on filters (a
 	 * column filter) that must keep a rule to edit.
 	 * @defaultValue false
 	 */
 	requireRule?: boolean
 	/**
-	 * Let the user reorder the children of each group, by drag or by keyboard.
+	 * Lets the user reorder the children of each group, by drag or by keyboard.
 	 * Each child shows a grip when its group has more than one child. A node
 	 * moves only among its siblings, and each AND/OR stays in its position. A
 	 * pointer drag calls `onValueChange` once, on the drop, and Escape cancels

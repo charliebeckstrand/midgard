@@ -4,7 +4,7 @@ import { sources } from '../data.ts'
 export default function Animated() {
 	return (
 		<PieChart
-			aria-label="Traffic by source, animated"
+			aria-label="Traffic by source"
 			data={sources}
 			series={[{ xKey: 'source', yKey: 'visits' }]}
 			animate

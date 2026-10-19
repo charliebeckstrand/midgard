@@ -1,5 +1,6 @@
 import { CalendarDate, DateFormatter, endOfMonth } from '@internationalized/date'
 import type { ReactNode } from 'react'
+import { formatDatePattern } from '../../primitives/intl/intl-date-pattern'
 import type { IntlShape } from '../../primitives/intl/types'
 import { resolveLocale } from '../../utilities'
 import { dateInputMessages } from './date-input-messages'
@@ -77,7 +78,9 @@ export function resolveDateInputFormat(
 		format: resolved,
 		invalidMessage:
 			invalidMessage === undefined
-				? intl.formatMessage(dateInputMessages.invalid, { format: resolved })
+				? intl.formatMessage(dateInputMessages.invalid, {
+						format: formatDatePattern(intl, resolved),
+					})
 				: invalidMessage,
 	}
 }

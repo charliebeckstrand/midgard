@@ -12,7 +12,7 @@ import { useFormFiltersAxis, useFormFiltersName } from './context'
 /** Props for {@link FormFiltersRow}: the bar's field row, plus the `equal` and scroll knobs it owns. */
 export type FormFiltersRowProps = {
 	/**
-	 * Stretch each field to equal width.
+	 * Stretches each field to equal width.
 	 * @defaultValue false
 	 */
 	equal?: boolean

@@ -7,7 +7,7 @@ const { palette } = iro
 const { weight, leading } = ji
 const { rounded } = kasane
 const { flex } = narabi
-const { forced } = sen
+const { forced, ring } = sen
 
 /** The title size: `text-lg` at `md`, one rung above `ji.ramp` at each step. */
 const titleRamp = dan.text.title
@@ -25,7 +25,7 @@ const titleRamp = dan.text.title
 export const k = defineRecipe({
 	base: [flex.row, 'w-fit', dan.space.alert, dan.gap.scale.sm, rounded.lg, ji.ramp, forced.outline],
 	variant: {
-		outline: 'ring-1 ring-inset',
+		outline: ring.line[1].inset,
 	},
 	palette: definePalette({ ...bridge.palette(palette), plain: palette.plain.text }),
 	slots: {

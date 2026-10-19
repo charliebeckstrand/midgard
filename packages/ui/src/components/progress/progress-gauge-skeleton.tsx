@@ -5,7 +5,7 @@ import { createSkeleton, type SkeletonProps } from '../placeholder'
 export type ProgressGaugeSkeletonProps = SkeletonProps<NonNullable<ProgressGaugeVariants['size']>>
 
 /**
- * Loading placeholder matching the {@link ProgressGauge} ring silhouette.
+ * A placeholder for a {@link ProgressGauge} while it loads. It has the shape of the ring.
  * @remarks Static leaf: renders in React Server Components.
  */
 export const ProgressGaugeSkeleton = createSkeleton<NonNullable<ProgressGaugeVariants['size']>>(

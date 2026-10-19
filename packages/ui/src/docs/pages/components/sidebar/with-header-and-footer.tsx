@@ -22,9 +22,9 @@ export default function WithHeaderAndFooter() {
 	const [active, setActive] = useState('home')
 
 	return (
-		<Sidebar aria-label="Sidebar with header and footer">
+		<Sidebar aria-label="Harbor Labs">
 			<SidebarHeader>
-				<Heading level={3}>Acme Inc.</Heading>
+				<Heading level={3}>Harbor Labs</Heading>
 			</SidebarHeader>
 			<SidebarBody>
 				<SidebarList aria-label="Main">

@@ -9,8 +9,8 @@ import { SidebarListContext } from './context'
 export type SidebarListProps = ComponentProps<'ul'>
 
 /**
- * Groups `SidebarItem`s into a real `<ul>`, so screen readers expose the set's
- * count and position. Keep non-item content in the surrounding
+ * A group of `SidebarItem`s in a real `<ul>`, so screen readers expose the
+ * set's count and position. Keep non-item content in the surrounding
  * `SidebarSection`, outside the list — a section heading, or a divider. Pass
  * `aria-label` or `aria-labelledby` to name the list after that heading.
  */

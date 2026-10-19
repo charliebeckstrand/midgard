@@ -351,8 +351,8 @@ export default function BuildAndSave() {
 				className="w-full"
 				description={
 					<PointerHint
-						mouse="Pick a template, then add tiles, drag them into place, and resize them. The board remembers your layout, even after a reload."
-						touch="Pick a template, then add tiles, drag them into place by their grips, and resize them by their edges. The board remembers your layout, even after a reload."
+						mouse="Select a template, add tiles, then drag and resize them."
+						touch="Select a template, add tiles, then drag them by their grips and resize them by their edges."
 					/>
 				}
 			/>
@@ -379,12 +379,7 @@ export default function BuildAndSave() {
 				</Box>
 			)}
 			<Divider />
-			<Stack gap="sm">
-				<Text tone="muted">
-					Saved as plain JSON: each tile names its widget, and the registry draws it.
-				</Text>
-				<JsonTree data={json} rootKey="spec" defaultExpandDepth={0} />
-			</Stack>
+			<JsonTree data={json} rootKey="spec" defaultExpandDepth={0} />
 		</Stack>
 	)
 }

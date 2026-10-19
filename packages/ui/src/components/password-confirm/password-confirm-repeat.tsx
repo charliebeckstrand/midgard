@@ -13,6 +13,7 @@ export type PasswordConfirmRepeatProps = Omit<PasswordInputProps, 'onChange' | '
 	 * @defaultValue `false`, or `true` while the two fields do not agree. A form error or an `error` severity of the enclosing Control also sets it.
 	 */
 	invalid?: boolean
+	/** Fires when the text of the field changes, before the coordinator records the edit. */
 	onChange?: (event: ChangeEvent<HTMLInputElement>) => void
 }
 

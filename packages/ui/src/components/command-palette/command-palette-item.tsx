@@ -18,12 +18,12 @@ type CommandPaletteItemBaseProps = {
 	className?: string
 	children?: ReactNode
 	/**
-	 * Runs when the reader chooses the item: a click, or Enter while the item has
+	 * Fires when the reader selects the item: a click, or Enter while the item has
 	 * the highlight. It runs after the `onClick` of the item, and then the palette
 	 * closes unless `closeOnAction` is false. A disabled item does not run it.
 	 */
 	onAction?: () => void
-	/** Close the palette after the action. @defaultValue true */
+	/** Closes the palette after the action. @defaultValue true */
 	closeOnAction?: boolean
 }
 

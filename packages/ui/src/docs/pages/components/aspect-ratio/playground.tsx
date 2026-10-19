@@ -5,7 +5,7 @@ export default function AspectRatioPlayground(props: AspectRatioProps) {
 	return (
 		<Card className="p-0">
 			<AspectRatio {...props} className="flex items-center justify-center">
-				Content
+				{props.ratio ?? '1/1'}
 			</AspectRatio>
 		</Card>
 	)

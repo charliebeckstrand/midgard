@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react'
+import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { DirectionListbox, DirectionScript } from '../app/direction.tsx'
 
@@ -20,13 +21,18 @@ function setLanguage(language: string): void {
 	vi.spyOn(navigator, 'language', 'get').mockReturnValue(language)
 }
 
-/** Runs the head script, as the browser does before the first paint. */
+/**
+ * Runs the head script, as the browser does before the first paint. The script
+ * renders on the server: React warns for a `<script>` that the client renders,
+ * because the browser does not run it.
+ */
 function runScript(): void {
-	const { container, unmount } = render(<DirectionScript />)
+	const markup = new DOMParser().parseFromString(
+		renderToStaticMarkup(<DirectionScript />),
+		'text/html',
+	)
 
-	new Function(container.querySelector('script')?.textContent ?? '')()
-
-	unmount()
+	new Function(markup.querySelector('script')?.textContent ?? '')()
 }
 
 /** Opens the picker and clicks the option with the given name. */

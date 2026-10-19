@@ -76,7 +76,7 @@ export type GridVirtualize = boolean | { estimateSize?: number; overscan?: numbe
  */
 export type GridInfiniteScroll = {
 	/**
-	 * Called when the scroll reaches within {@link GridInfiniteScroll.threshold}
+	 * Fires when the scroll reaches within {@link GridInfiniteScroll.threshold}
 	 * rows of the loaded end and more rows remain. It fires at most once per
 	 * scroll interaction, plus the bounded viewport-fill; see the binding
 	 * remarks. Append the next rows to your `rows` — a local slice, or a server
@@ -84,8 +84,8 @@ export type GridInfiniteScroll = {
 	 */
 	onLoadMore: () => void
 	/**
-	 * Whether more rows remain beyond the loaded set. Once `false`, the grid stops
-	 * calling `onLoadMore` and drops the trailing indicator.
+	 * Tells the grid that more rows remain beyond the loaded set. Once `false`, the
+	 * grid stops calling `onLoadMore` and drops the trailing indicator.
 	 * @defaultValue `rows.length < totalRows` when {@link GridInfiniteScroll.totalRows} is set, else true.
 	 */
 	hasMore?: boolean
@@ -97,7 +97,7 @@ export type GridInfiniteScroll = {
 	 */
 	totalRows?: number
 	/**
-	 * Whether a load is in flight. Suppresses re-requesting while the current
+	 * Marks a load as in flight. Suppresses re-requesting while the current
 	 * batch resolves; leave unset for a synchronous local source, which appends
 	 * without a pending state. Drives the trailing loading indicator only when
 	 * `loadingIndicator` opts in.
@@ -133,7 +133,7 @@ export type GridInfiniteScroll = {
 	 */
 	error?: ReactNode
 	/**
-	 * Freeze the auto-fit column widths at their first measurement of rendered
+	 * Freezes the auto-fit column widths at their first measurement of rendered
 	 * rows, so an appended batch never reflows the columns. Later content wider
 	 * than a column truncates instead of widening it. A structural change —
 	 * columns, density, or a container resize — still re-fits. Rows that arrive
@@ -156,6 +156,7 @@ export type GridInfiniteScroll = {
 export type GridSort = {
 	value?: GridSortState[]
 	defaultValue?: GridSortState[]
+	/** Fires when the sort changes, with the next list of sorted columns. */
 	onValueChange?: (sort: GridSortState[]) => void
 	/**
 	 * Server-side (manual) sorting: the consumer sorts `rows` and the grid leaves
@@ -166,7 +167,7 @@ export type GridSort = {
 	 */
 	manual?: boolean
 	/**
-	 * Animate rows sliding to their new places when a sort reorders them. It is a
+	 * Animates rows sliding to their new places when a sort reorders them. It is a
 	 * Framer Motion layout (FLIP) glide over the rows' position change, rather
 	 * than an instant repaint. Applies to the plain body only. It stands down
 	 * under `virtualize`, where windowed rows mount and unmount on scroll, so no
@@ -251,18 +252,18 @@ export type GridGroupHeaderRow = {
  * never reads the rows through this binding.
  */
 export type GridGroupBy<T = unknown> = {
-	/** The grouped column id, or `null` for no grouping. Pairs with {@link GridGroupBy.onValueChange}. */
+	/** Controlled grouped column id, or `null` for no grouping. Pair it with {@link GridGroupBy.onValueChange}. */
 	value?: string | number | null
-	/** Initial grouped column id for the uncontrolled case. @defaultValue null */
+	/** Initial grouped column id when uncontrolled. @defaultValue null */
 	defaultValue?: string | number | null
-	/** Fires with the next grouped column id (or `null` when grouping is cleared) — a {@link GridGroupBy.groupButton} press, or a controlled write. */
+	/** Fires when a {@link GridGroupBy.groupButton} press or a controlled write changes the grouping, with the next grouped column id (or `null` when grouping is cleared). */
 	onValueChange?: (columnId: string | number | null) => void
 	/**
-	 * Whether groups start expanded (rows visible) or collapsed (just the group
-	 * headers). Each group's header toggles it thereafter. Under
-	 * {@link GridGroupBy.manual} a boolean can't enumerate the (server-known)
-	 * groups. Pass a `Set` of group keys to seed the uncontrolled expanded
-	 * state instead; a manual grid otherwise starts fully collapsed.
+	 * Initial expanded state of the groups when uncontrolled: expanded (rows
+	 * visible) or collapsed (just the group headers). Each group's header toggles it
+	 * thereafter. Under {@link GridGroupBy.manual} a boolean can't enumerate the
+	 * (server-known) groups. Pass a `Set` of group keys to seed the uncontrolled
+	 * expanded state instead; a manual grid otherwise starts fully collapsed.
 	 * @defaultValue true
 	 */
 	defaultExpanded?: boolean | Set<string | number>
@@ -309,14 +310,14 @@ export type GridGroupBy<T = unknown> = {
 	 */
 	expanded?: Set<string | number>
 	/**
-	 * Fires with the next expanded key set when a manual group header toggles.
+	 * Fires when a manual group header toggles, with the next expanded key set.
 	 * Coalesced to a concrete set, never `undefined` — matching the other grid
 	 * bindings.
 	 */
 	onExpandedChange?: (expanded: Set<string | number>) => void
 	/**
-	 * Fires with a group's key when its collapsed header expands. It is the
-	 * manual mode's lazy-load hook: fetch that group's children and append them
+	 * Fires when a collapsed group header expands, with the key of the group. It is
+	 * the manual mode's lazy-load hook: fetch that group's children and append them
 	 * to `rows` after its header. Not fired on collapse, nor by client grouping.
 	 *
 	 * @remarks The group opens the instant its header is toggled (expansion is
@@ -348,11 +349,12 @@ export type GridGroupBy<T = unknown> = {
 	 */
 	rowGroups?: GridRowGroups
 	/**
-	 * The row manager, a "Manage rows" dialog reached from the group-header
+	 * Turns on the row manager, a "Manage rows" dialog reached from the group-header
 	 * right-click menu. Each group takes a color and a place in the group order
-	 * there. Rows keep the engine order. The dialog commits through {@link GridGroupBy.rowGroups}. On by
-	 * default whenever client grouping and the header context menu are both live;
-	 * `false` is the off switch — no "Manage rows" item, no dialog.
+	 * there. Rows keep the engine order. The dialog commits through
+	 * {@link GridGroupBy.rowGroups}. On by default whenever client grouping and the
+	 * header context menu are both live; `false` is the off switch — no "Manage
+	 * rows" item, no dialog.
 	 * @defaultValue true
 	 */
 	rowManager?: boolean
@@ -370,11 +372,11 @@ export type GridGroupBy<T = unknown> = {
 export type GridExpandable<T> = {
 	/** Controlled set of expanded row keys; pair with {@link GridExpandable.onValueChange}. */
 	value?: Set<string | number>
-	/** Initial expanded keys for the uncontrolled case. @defaultValue an empty set. */
+	/** Initial expanded keys when uncontrolled. @defaultValue an empty set. */
 	defaultValue?: Set<string | number>
 	/**
-	 * Fires with the next expanded set. Coalesced to a concrete set, never
-	 * `undefined` — matching the other grid bindings.
+	 * Fires when the expanded set changes, with the next set. Coalesced to a
+	 * concrete set, never `undefined` — matching the other grid bindings.
 	 */
 	onValueChange?: (expanded: Set<string | number>) => void
 	/** Renders the detail panel for an expanded row; the panel spans the full row width. */
@@ -412,14 +414,14 @@ export type GridRowReorder<T> = {
 	 */
 	disabled?: boolean
 	/**
-	 * Fires with the dragged row's key when a reorder drag begins. Pair with
+	 * Fires when a reorder drag begins, with the key of the dragged row. Pair with
 	 * {@link GridRowReorder.onReorderEnd} to bracket the drag.
 	 */
 	onReorderStart?: (rowKey: string | number) => void
 	/**
-	 * Fires with the dragged row's key when a reorder drag ends — a drop (whether
-	 * or not the order changed) or a cancel. The reordered rows, when they changed,
-	 * arrive separately through {@link GridRowReorder.onReorder}.
+	 * Fires when a reorder drag ends (a drop, whether or not the order changed, or a
+	 * cancel), with the key of the dragged row. The reordered rows, when they
+	 * changed, arrive separately through {@link GridRowReorder.onReorder}.
 	 */
 	onReorderEnd?: (rowKey: string | number) => void
 }
@@ -433,17 +435,18 @@ export type GridRowReorder<T> = {
 export type GridColumnOrder = {
 	value?: (string | number)[]
 	defaultValue?: (string | number)[]
+	/** Fires when the column order changes, with the next order. */
 	onValueChange?: (order: (string | number)[]) => void
 	/**
-	 * Fires with the dragged column's id when a header reorder drag begins (the
-	 * `reorder` handles). Pair with {@link GridColumnOrder.onReorderEnd} to bracket
-	 * the drag.
+	 * Fires when a header reorder drag begins (the `reorder` handles), with the id
+	 * of the dragged column. Pair with {@link GridColumnOrder.onReorderEnd} to
+	 * bracket the drag.
 	 */
 	onReorderStart?: (columnId: string | number) => void
 	/**
-	 * Fires with the dragged column's id when a header reorder drag ends — a drop
-	 * (whether or not the order changed) or a cancel. The new order, when it
-	 * changed, arrives separately through {@link GridColumnOrder.onValueChange}.
+	 * Fires when a header reorder drag ends (a drop, whether or not the order
+	 * changed, or a cancel), with the id of the dragged column. The new order, when
+	 * it changed, arrives separately through {@link GridColumnOrder.onValueChange}.
 	 */
 	onReorderEnd?: (columnId: string | number) => void
 }
@@ -456,12 +459,12 @@ export type GridColumnOrder = {
  */
 export type GridReorder = {
 	/**
-	 * The drag affordance. `true` prefixes each reorderable header with a grip
-	 * button that carries the drag activator. `false` makes the *entire* header
-	 * the drag handle. The header cell takes the grab cursor, grabbing while
-	 * lifted, plus the pointer and keyboard activator, and no grip renders. A sortable
-	 * column's sort control keeps its pointer cursor — set on the control itself,
-	 * it out-resolves the header's inherited grab cursor on that child.
+	 * Prefixes each reorderable header with a grip button that carries the drag
+	 * activator. `false` makes the *entire* header the drag handle. The header cell
+	 * takes the grab cursor, grabbing while lifted, plus the pointer and keyboard
+	 * activator, and no grip renders. A sortable column's sort control keeps its
+	 * pointer cursor — set on the control itself, it out-resolves the header's
+	 * inherited grab cursor on that child.
 	 * @defaultValue true
 	 */
 	handle?: boolean
@@ -488,6 +491,7 @@ export type GridPinningState = Record<string, 'left' | 'right' | 'none'>
 export type GridPinning = {
 	value?: GridPinningState
 	defaultValue?: GridPinningState
+	/** Fires when the pin state changes, with the next state. */
 	onValueChange?: (pinning: GridPinningState) => void
 }
 
@@ -518,9 +522,9 @@ export type GridSelection = {
 	value?: Set<string | number>
 	defaultValue?: Set<string | number>
 	/**
-	 * Fires with the next selection. The grid coalesces an internal clear to an
-	 * empty set, so the payload is never `undefined` — matching the other grid
-	 * bindings' non-nullable callbacks.
+	 * Fires when the selection changes, with the next selection. The grid coalesces
+	 * an internal clear to an empty set, so the payload is never `undefined` —
+	 * matching the other grid bindings' non-nullable callbacks.
 	 */
 	onValueChange?: (selection: Set<string | number>) => void
 	/**
@@ -549,7 +553,7 @@ export type GridColumnManagerConfig = GridToolSurfaces & {
 	label?: ReactNode
 
 	/**
-	 * Whether the dialog heads its manager with a filter field that narrows the
+	 * Heads the manager of the dialog with a filter field that narrows the
 	 * list to the columns whose label matches the typed text. `false` drops it —
 	 * worth doing on a grid with few enough columns that the field is only noise.
 	 * @defaultValue true
@@ -559,22 +563,24 @@ export type GridColumnManagerConfig = GridToolSurfaces & {
 	/** Controlled set of hidden column ids; pair with {@link GridColumnManagerConfig.onHiddenChange}. */
 	hidden?: Set<string | number>
 
-	/** Initial hidden column ids for the uncontrolled case. */
+	/** Initial hidden column ids when uncontrolled. */
 	defaultHidden?: Set<string | number>
 
 	/**
-	 * Fires with the next hidden set. Named `onHiddenChange` rather than the usual
-	 * `onValueChange` because this config also carries the `open`/`onOpenChange`
-	 * controllable, so each binding names its own field.
+	 * Fires when the hidden set changes, with the next set. Named `onHiddenChange`
+	 * rather than the usual `onValueChange` because this config also carries the
+	 * `open`/`onOpenChange` controllable, so each binding names its own field.
 	 */
 	onHiddenChange?: (hidden: Set<string | number>) => void
 
-	/** Controlled open state of the manager dialog; pair with {@link GridColumnManagerConfig.onOpenChange}. */
+	/** Controlled open state of the manager dialog. Pair it with {@link GridColumnManagerConfig.onOpenChange}. */
 	open?: boolean
+	/** Initial open state of the manager dialog when uncontrolled. */
 	defaultOpen?: boolean
+	/** Fires when the open state of the manager dialog changes. */
 	onOpenChange?: (open: boolean) => void
 
-	/** Called when the manager's "save preset" action fires, with the current order and hidden ids as a {@link GridPreferences} snapshot that seeds `preferences` back. */
+	/** Fires when the user runs the "save preset" action, with the current order and hidden ids as a {@link GridPreferences} snapshot that seeds `preferences` back. */
 	onSavePreset?: (preset: GridPreferences) => void
 }
 
@@ -629,7 +635,7 @@ export type GridFooterStats = {
  */
 export type GridFooter = {
 	/**
-	 * Show the total row count: `'47 rows'`, or `'12 of 47 rows visible'` while a
+	 * Shows the total row count: `'47 rows'`, or `'12 of 47 rows visible'` while a
 	 * client-side search or filter narrows the set. Counts the full filtered extent
 	 * across all pages, not just the rendered window. An active
 	 * {@link GridFooter.selectedTotal} replaces this count in place rather than
@@ -641,7 +647,7 @@ export type GridFooter = {
 	 */
 	rowTotal?: boolean
 	/**
-	 * Show the selected-row count nested against the visible extent
+	 * Shows the selected-row count nested against the visible extent
 	 * (`'3 of 12 rows selected'`) while a selection is active; silent when nothing
 	 * is selected. Takes the leading slot from {@link GridFooter.rowTotal} while
 	 * active — its `of` denominator keeps the visible context the total would show.
@@ -719,7 +725,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	size?: ScaleStep<typeof scale>
 
 	/**
-	 * Tight, all-dimensions-down preset that steps the grid below what
+	 * Applies a tight preset that steps every dimension of the grid below what
 	 * {@link GridDataProps.size | size} alone reaches. On its own `size`
 	 * controls padding only. `condensed` forces the `sm` padding step, which
 	 * overrides `size` for every density-derived metric: cell padding,
@@ -1190,8 +1196,8 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	range?: boolean
 
 	/**
-	 * Fires with the cell the keyboard cursor sits on, whenever the cursor moves,
-	 * and with `null` when it clears.
+	 * Fires when the keyboard cursor moves or clears, with the cell that it sits
+	 * on, or with `null`.
 	 *
 	 * The cursor moves on every arrow key, Home/End, PageUp/PageDown, and on a
 	 * click that seats it. {@link GridDataProps.onCellClick} covers the pointer
@@ -1205,7 +1211,8 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	onActiveCellChange?: (cell: GridCellClickContext<T> | null) => void
 
 	/**
-	 * Fires with the ids of the column-group bands currently collapsed.
+	 * Fires when a column-group band collapses or expands, with the ids of the
+	 * bands that are collapsed.
 	 *
 	 * Collapse is grid-owned view state, seeded once from each group's
 	 * {@link GridColumnGroup.defaultCollapsed}. It was never reported, so a band
@@ -1219,10 +1226,10 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	onCollapsedChange?: (collapsed: ReadonlySet<string | number>) => void
 
 	/**
-	 * Truncate overflowing cell content to a single line with an ellipsis. Show a
-	 * tooltip with the full content on hover or focus when a cell is
-	 * truncated. A column supersedes or disables that tooltip via
-	 * {@link GridColumn.cellTooltip}. Set `false` to let cells wrap instead.
+	 * Truncates overflowing cell content to a single line with an ellipsis. A
+	 * truncated cell shows a tooltip with the full content on hover or focus. A
+	 * column supersedes or disables that tooltip via {@link GridColumn.cellTooltip}.
+	 * Set `false` to let cells wrap instead.
 	 * @defaultValue true
 	 */
 	truncate?: boolean
@@ -1231,7 +1238,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	rowClassName?: (row: T) => string | undefined
 
 	/**
-	 * Invoked when a row is clicked, with the row datum and the originating
+	 * Fires when the user clicks a row, with the row datum and the originating
 	 * event. A click that lands on interactive cell content — a button, link,
 	 * input, or the selection checkbox — is ignored, so per-row controls keep
 	 * working. Place primary actions in an interactive cell rather than relying
@@ -1247,7 +1254,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	onRowClick?: GridRowClick<T>
 
 	/**
-	 * Invoked when a data cell is clicked, with the {@link GridCellClickContext}
+	 * Fires when the user clicks a data cell, with the {@link GridCellClickContext}
 	 * and the originating event. That context carries the row datum, its key, the
 	 * column id, and the cell's value. The value is the column's
 	 * {@link GridColumn.value} accessor, else the row field named by the column
@@ -1267,8 +1274,8 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	onCellClick?: GridCellClick<T>
 
 	/**
-	 * Invoked when a row is double-clicked, with the row datum and the
-	 * originating event — a secondary "open" affordance layered over a primary
+	 * Fires when the user double-clicks a row, with the row datum and the
+	 * originating event. It is a secondary "open" affordance layered over a primary
 	 * {@link GridDataProps.onRowClick}. Per the DOM's event order a double-click
 	 * also fires the single-click handlers twice first; keep the two actions
 	 * compatible. The interactive-content guard of `onRowClick` applies.
@@ -1276,7 +1283,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	onRowDoubleClick?: GridRowClick<T>
 
 	/**
-	 * Invoked when a data cell is double-clicked, with the
+	 * Fires when the user double-clicks a data cell, with the
 	 * {@link GridCellClickContext} and the originating event. It is the cell-level
 	 * counterpart of {@link GridDataProps.onRowDoubleClick}, fired ahead of it on
 	 * the same double-click.

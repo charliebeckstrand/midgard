@@ -140,6 +140,8 @@ describe('Grid range paste', () => {
 
 		fireEvent.mouseDown(view.cell(0, 1))
 
+		fireEvent.mouseUp(view.cell(0, 1))
+
 		fireEvent.mouseDown(view.cell(2, 1), { shiftKey: true })
 
 		view.paste('7')

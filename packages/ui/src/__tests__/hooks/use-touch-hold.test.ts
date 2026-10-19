@@ -121,6 +121,25 @@ describe('useTouchHold', () => {
 		expect(hold().pending()).toBe(true)
 	})
 
+	// While a pen holds, the touch of a palm is the primary touch.
+	it('leaves the held press alone when a palm lands', () => {
+		const { onHold, hold } = setup()
+
+		hold().start(press(40, 60, { pointerType: 'pen' }), 500)
+
+		expect(hold().start(press(300, 300, { pointerId: 2 }), 500)).toBe(false)
+
+		expect(hold().active(1)).toBe(true)
+
+		expect(hold().active(2)).toBe(false)
+
+		act(() => {
+			vi.advanceTimersByTime(500)
+		})
+
+		expect(onHold).toHaveBeenCalledExactlyOnceWith({ id: 1, x: 40, y: 60, target })
+	})
+
 	it('starts nothing from a Ctrl press', () => {
 		const { hold } = setup()
 

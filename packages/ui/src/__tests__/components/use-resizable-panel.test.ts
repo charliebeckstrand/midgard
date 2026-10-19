@@ -743,7 +743,9 @@ describe('useResizablePanel', () => {
 			expect(onResizeEnd).toHaveBeenCalledExactlyOnceWith(0)
 		})
 
-		it('closes the first bracket when a second pointer supersedes the drag', () => {
+		// Each pointer type has its own primary pointer, so a palm is primary while a
+		// pen drags. It takes no drag on any handle, and the first drag runs on.
+		it('keeps the drag when a palm presses another handle', () => {
 			const onResizeStart = vi.fn()
 			const onResizeEnd = vi.fn()
 
@@ -758,15 +760,28 @@ describe('useResizablePanel', () => {
 				result.current.startDrag(0, handleDown({ button: 0, clientX: 300, clientY: 0 }))
 			})
 
-			// A second handle grabbed before the first lifts. The superseded drag is over,
-			// so its bracket closes rather than dangling.
 			act(() => {
-				result.current.startDrag(1, handleDown({ button: 0, clientX: 600, clientY: 0 }))
+				result.current.startDrag(
+					1,
+					handleDown({ button: 0, clientX: 600, clientY: 0, pointerId: 2, isPrimary: true }),
+				)
+			})
+
+			expect(onResizeStart.mock.calls).toEqual([[0]])
+
+			expect(onResizeEnd).not.toHaveBeenCalled()
+
+			act(() => {
+				document.dispatchEvent(new PointerEvent('pointerup', { pointerId: 2 }))
+			})
+
+			expect(onResizeEnd).not.toHaveBeenCalled()
+
+			act(() => {
+				document.dispatchEvent(new PointerEvent('pointerup', { pointerId: 1 }))
 			})
 
 			expect(onResizeEnd).toHaveBeenCalledExactlyOnceWith(0)
-
-			expect(onResizeStart.mock.calls).toEqual([[0], [1]])
 		})
 
 		it('closes the bracket when the group unmounts mid-drag', () => {

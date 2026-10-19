@@ -10,11 +10,17 @@ import { type SearchEntry, searchEntries } from '../plugin/search.ts'
 
 const DOCS = path.resolve(import.meta.dirname, '..')
 
-/** The API data of each barrel: one component, named after the barrel, with one prop. */
+/** The API data of each barrel: one component, named after the barrel, with one prop and one event. */
 async function stubApi(barrel: string): Promise<BarrelApi> {
 	const name = `Stub${barrel.split('/').at(-1)?.replaceAll('-', '')}`
 
-	return { [name]: { name, props: [{ name: 'size', type: 'string' }], events: [] } }
+	return {
+		[name]: {
+			name,
+			props: [{ name: 'size', type: 'string' }],
+			events: [{ name: 'onSizeChange', type: '(size: string) => void' }],
+		},
+	}
 }
 
 let loaded: Promise<SearchEntry[]> | undefined
@@ -43,6 +49,12 @@ describe('searchEntries', () => {
 					kind: 'prop',
 					label: 'size',
 					href: '/button#api-Stubbutton-size',
+					context: '<Stubbutton />',
+				},
+				{
+					kind: 'event',
+					label: 'onSizeChange',
+					href: '/button#api-Stubbutton-onSizeChange',
 					context: '<Stubbutton />',
 				},
 			]),

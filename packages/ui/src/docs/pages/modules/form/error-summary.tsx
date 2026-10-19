@@ -21,7 +21,7 @@ export default function ErrorSummary() {
 			validate={{
 				name: (value) => (value.trim() ? undefined : 'Enter your name.'),
 				email: (value) => (value.includes('@') ? undefined : 'Enter a valid email address.'),
-				plan: (value) => (value ? undefined : 'Choose a plan.'),
+				plan: (value) => (value ? undefined : 'Select a plan.'),
 				terms: (value) => (value ? undefined : 'Accept the terms to continue.'),
 			}}
 			onSubmit={() => new Promise((resolve) => setTimeout(resolve, 1000))}
@@ -42,7 +42,7 @@ export default function ErrorSummary() {
 					<Label>Plan</Label>
 					<Select
 						name="plan"
-						placeholder="Choose a plan"
+						placeholder="Select a plan"
 						displayValue={(id: string) => plans.find((plan) => plan.id === id)?.name ?? id}
 					>
 						{plans.map((plan) => (

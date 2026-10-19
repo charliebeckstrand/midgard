@@ -15,9 +15,9 @@ export type ControlSkeletonProps = {
 }
 
 /**
- * Control-shaped placeholder. Static leaf: an explicit `size` writes
- * `data-density`, and with no `size` the silhouette follows the nearest
- * density scope.
+ * A placeholder for a framed control, such as an Input or a Combobox, while it
+ * loads. Static leaf: an explicit `size` writes `data-density`, and with no
+ * `size` the silhouette follows the nearest density scope.
  *
  * @remarks
  * The joined silhouette comes from CSS alone. In a `<Group>`, the join

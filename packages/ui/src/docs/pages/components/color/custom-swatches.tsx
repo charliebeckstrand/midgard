@@ -7,7 +7,7 @@ export default function CustomSwatches() {
 	return (
 		<Field>
 			<Label>Brand color</Label>
-			<Description>Pick one of the brand colors, or enter a hex value.</Description>
+			<Description>Select a brand color, or enter a hex value.</Description>
 			<ColorPicker swatches={brandColors} defaultValue="#1d4ed8" />
 		</Field>
 	)

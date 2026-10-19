@@ -27,7 +27,7 @@ export default function DrivenFromAList() {
 				highlights={regions}
 				activeHighlightId={active}
 				onActiveHighlightChange={setActive}
-				aria-label="Statement driven from a list"
+				aria-label="Invoice 1043"
 			/>
 		</Stack>
 	)

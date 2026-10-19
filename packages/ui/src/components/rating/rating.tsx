@@ -64,7 +64,7 @@ export type RatingProps = RatingVariants & {
 	value?: number | null
 	/** Initial value when uncontrolled and not form-bound. */
 	defaultValue?: number
-	/** Fires with the new score, or `null` once it is cleared. */
+	/** Fires when the score changes, with the new score, or `null` once it is cleared. */
 	onValueChange?: (value: number | null) => void
 	/**
 	 * Stars in the row, which is also the highest score.
@@ -93,7 +93,7 @@ export type RatingProps = RatingVariants & {
 	 */
 	size?: ScaleStep<typeof scale>
 	/**
-	 * Show the score and take no input. The row renders as one `role="img"`,
+	 * Shows the score and takes no input. The row renders as one `role="img"`,
 	 * because a reader has no reason to walk five radios that answer nothing. Its
 	 * name is the consumer's name followed by the {@link getValueText} readout.
 	 * With no name, the readout is the whole name. The image keeps the
@@ -105,10 +105,13 @@ export type RatingProps = RatingVariants & {
 	 * @defaultValue `false`, or the state of the enclosing Control.
 	 */
 	readOnly?: boolean
-	/** @defaultValue `false`, or the state of the enclosing Control or Field. */
+	/**
+	 * Disables the rating.
+	 * @defaultValue `false`, or the state of the enclosing Control or Field.
+	 */
 	disabled?: boolean
 	/**
-	 * Let a click on the current score clear it. A star rating has no other way
+	 * Lets a click on the current score clear it. A star rating has no other way
 	 * back to "unrated", because every star a reader can reach sets a score.
 	 *
 	 * The stars recede while the pointer rests on the one that would clear them,

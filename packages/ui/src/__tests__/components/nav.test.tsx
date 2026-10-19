@@ -255,7 +255,7 @@ describe('NavItem', () => {
 
 		// The wrapper row has the hover tint and projects the inner button's
 		// focus ring via :has, so affix slots render inside the chrome.
-		expect(affixed?.className).toContain('has-[[data-slot=nav-item-inner]:focus-visible]:ring-2')
+		expect(affixed?.className).toContain('has-[>:focus-visible]:ring-2')
 
 		expect(affixed?.className).toContain('hover:bg-zinc-950/5')
 
@@ -306,7 +306,7 @@ describe('NavItem', () => {
 		// The row's own ring paints beneath the indicator's opaque pill, so the
 		// focused current row re-draws the ring on the pill.
 		expect(bySlot(container, 'active-indicator')?.className).toContain(
-			'group-has-[[data-slot=nav-item-inner]:focus-visible]:ring-2',
+			'group-has-[>:focus-visible]:ring-2',
 		)
 	})
 

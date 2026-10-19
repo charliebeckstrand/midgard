@@ -6,7 +6,7 @@ export default function Validation() {
 		<>
 			<Field severity="success">
 				<Label>Bio</Label>
-				<Textarea defaultValue="Product designer in Lisbon. I work on design systems and type." />
+				<Textarea defaultValue="Product designer. I work on design systems and typography." />
 				<Message severity="success">Your bio is saved.</Message>
 			</Field>
 			<Field severity="warning">

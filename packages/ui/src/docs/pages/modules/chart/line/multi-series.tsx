@@ -4,7 +4,7 @@ import { months } from '../data.ts'
 export default function MultiSeries() {
 	return (
 		<LineChart
-			aria-label="Revenue and margin by month"
+			aria-label="Revenue, margin, and costs by month"
 			data={months}
 			series={[
 				{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },

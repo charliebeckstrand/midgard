@@ -34,7 +34,7 @@ type BaseListProps<T> = Omit<
 	 */
 	orientation?: Orientation
 	/**
-	 * Disable all drag / keyboard reorder interaction.
+	 * Disables all drag and keyboard reorder interaction.
 	 * @defaultValue false
 	 */
 	disabled?: boolean
@@ -57,8 +57,9 @@ type ListKey<T> = {
 /** The reorder callback of {@link List}. Two arms of {@link ListProps} take this one declaration. */
 type ListReorder<T> = {
 	/**
-	 * Called with the next ordering. Omit it to render a list that does not
-	 * reorder. With `sortable: false`, render a `<ListHandle>` in each item.
+	 * Fires when the reader reorders the list, with the next ordering. Omit it to
+	 * render a list that does not reorder. With `sortable: false`, render a
+	 * `<ListHandle>` in each item.
 	 */
 	onReorder?: (next: T[]) => void
 }
@@ -74,7 +75,7 @@ export type ListProps<T> = BaseListProps<T> &
 		| (Required<ListKey<T>> &
 				ListReorder<T> & {
 					/**
-					 * Auto-insert a `<ListHandle>` as the first child of each `<ListItem>`. The handle shows only when `onReorder` is set.
+					 * Inserts a `<ListHandle>` as the first child of each `<ListItem>`. The handle shows only when `onReorder` is set.
 					 * @defaultValue true
 					 */
 					sortable?: true
@@ -89,7 +90,7 @@ export type ListProps<T> = BaseListProps<T> &
 				sortable: false
 				onReorder?: undefined
 				/**
-				 * Render only the rows in view, plus a few on each side, in the scroll
+				 * Renders only the rows in view, plus a few on each side, in the scroll
 				 * region of the nearest panel body. For a long read-only vertical list.
 				 * See {@link List}.
 				 * @defaultValue false
@@ -99,7 +100,7 @@ export type ListProps<T> = BaseListProps<T> &
 	)
 
 /**
- * Renders an ordered `items` source as a `<ul>` through a `children` render
+ * An ordered `items` source, rendered as a `<ul>` through a `children` render
  * function, in one of five `variant`s and either orientation. With `onReorder`
  * it becomes reorderable over Motion's `Reorder`, by pointer drag on the handle
  * or keyboard lift (Space then arrows). It auto-inserts a {@link ListHandle}

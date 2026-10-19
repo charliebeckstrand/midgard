@@ -20,7 +20,7 @@ class Boundary extends Component<{ children: ReactNode; onReset: () => void }, {
 
 		return (
 			<Flex align="center" gap="sm">
-				<Text tone="muted">Caught: {error.message}</Text>
+				<Text tone="muted">Last error: {error.message}</Text>
 				<ResetButton size="sm" onClick={this.props.onReset} />
 			</Flex>
 		)
@@ -28,7 +28,7 @@ class Boundary extends Component<{ children: ReactNode; onReset: () => void }, {
 }
 
 function Thrower(): ReactNode {
-	throw new Error('render fails')
+	throw new Error('Render failed')
 }
 
 export default function ReportABug() {
@@ -40,18 +40,18 @@ export default function ReportABug() {
 		<Stack gap="md">
 			{/* The reset removes the component that throws. The new key then mounts a new boundary with no error. */}
 			<Boundary key={String(broken)} onReset={() => setBroken(false)}>
-				{broken ? <Thrower /> : <Text tone="muted">The boundary holds no error.</Text>}
+				{broken ? <Thrower /> : <Text tone="muted">Last error: None</Text>}
 			</Boundary>
 			<Flex wrap gap="sm">
 				<Button onClick={() => setBroken(true)}>Throw in render</Button>
 				<Button
 					onClick={() => {
-						throw new Error('handler fails')
+						throw new Error('Handler failed')
 					}}
 				>
 					Throw in a handler
 				</Button>
-				<Button onClick={() => void Promise.reject(new Error('request fails'))}>
+				<Button onClick={() => void Promise.reject(new Error('Request failed'))}>
 					Reject a promise
 				</Button>
 			</Flex>

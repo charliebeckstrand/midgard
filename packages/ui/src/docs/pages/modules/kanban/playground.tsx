@@ -10,10 +10,13 @@ import {
 	KanbanColumnTitle,
 	type KanbanProps,
 } from 'ui/kanban'
+import { useIntl } from 'ui/primitives/intl'
 import { Text } from 'ui/text'
 import { type Column, columns as initialColumns, type Load } from './loads.ts'
 
 export default function KanbanPlayground(props: KanbanProps<Load, Column>) {
+	const { formatNumber } = useIntl()
+
 	const [columns, setColumns] = useState(initialColumns)
 
 	return (
@@ -41,7 +44,7 @@ export default function KanbanPlayground(props: KanbanProps<Load, Column>) {
 									{load.customer}
 								</Text>
 								<Text tone="muted" size="xs">
-									{load.weight}
+									{formatNumber(load.weight, { style: 'unit', unit: 'pound' })}
 								</Text>
 							</KanbanCard>
 						))}

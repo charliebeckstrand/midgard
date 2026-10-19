@@ -205,6 +205,9 @@ describe('grid infinite scroll (real browser)', () => {
 	it('caps the fetches and fails loud when the scroll container is unbounded', async () => {
 		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
 
+		// The grid also warns that a percentage `maxHeight` cannot bind.
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
 		const onLoadMore = vi.fn()
 
 		// The OOM regression: a percentage maxHeight inside an auto-height parent
@@ -227,6 +230,8 @@ describe('grid infinite scroll (real browser)', () => {
 		await pause(150)
 
 		expect(screen.queryByText('Name 200')).toBeNull()
+
+		expect(warn).toHaveBeenCalledWith(expect.stringContaining("a percentage can't bind"))
 	})
 
 	it('re-arms on scroll after a failed fetch instead of dead-locking', async () => {

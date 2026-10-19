@@ -6,7 +6,7 @@ export default function WithActions() {
 		<Banner
 			severity="info"
 			title="New version available"
-			description="Version 2.0 has been released with new features and improvements."
+			description="Version 2.4 is ready to install."
 			actions={<Button size="sm">Update now</Button>}
 			closable={false}
 		/>

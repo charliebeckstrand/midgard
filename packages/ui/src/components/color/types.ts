@@ -26,6 +26,7 @@ type ColorHexValueProps = {
 	 */
 	value?: string | null
 	defaultValue?: string
+	/** Fires when the color changes, with the new color in the `format`. */
 	onValueChange?: (value: string) => void
 }
 
@@ -38,6 +39,7 @@ type ColorHsvaValueProps = {
 	 */
 	value?: Hsva | null
 	defaultValue?: Hsva
+	/** Fires when the color changes, with the new color in the `format`. */
 	onValueChange?: (value: Hsva) => void
 }
 

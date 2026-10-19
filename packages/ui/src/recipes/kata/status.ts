@@ -42,7 +42,7 @@ export type StatusDotVariants = {
 	 */
 	size?: SwatchVariants['size']
 	/**
-	 * Pulse the dot to draw attention.
+	 * Pulses the dot to draw attention.
 	 * @defaultValue false
 	 */
 	pulse?: boolean

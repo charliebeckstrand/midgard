@@ -4,7 +4,7 @@ import { GlassProvider } from 'ui/providers/glass'
 export default function Glass() {
 	return (
 		<GlassProvider>
-			<DatePicker range aria-label="Stay dates" />
+			<DatePicker range aria-label="Project dates" />
 		</GlassProvider>
 	)
 }

@@ -19,12 +19,12 @@ export default function FormPlayground(props: FormProps<Invite>) {
 			<Stack gap="lg">
 				<Field>
 					<Label>Name</Label>
-					<Input name="name" placeholder="Jane Smith" />
+					<Input name="name" placeholder="Wade Cooper" />
 					<Message name="name" />
 				</Field>
 				<Field>
 					<Label>Email</Label>
-					<Input name="email" type="email" placeholder="jane@example.com" />
+					<Input name="email" type="email" placeholder="wade@example.com" />
 					<Message name="email" />
 				</Field>
 				<FormSubmit>Send invite</FormSubmit>

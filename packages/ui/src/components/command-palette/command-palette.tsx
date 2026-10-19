@@ -81,14 +81,15 @@ export type CommandPaletteProps = Pick<DialogProps, 'open' | 'defaultOpen'> &
 		/** The maximum width of the panel. @defaultValue '2xl' */
 		width?: DialogPanelVariants['width']
 		/**
-		 * Fires with the open state that the palette asks for: `true` from
-		 * `triggerShortcut` while closed, and `false` from `triggerShortcut`, Escape, a
-		 * backdrop click, the Close button, or a chosen item while open.
+		 * Fires when the palette asks for a new open state, with that state. It asks
+		 * for `true` from `triggerShortcut` while closed. It asks for `false` from
+		 * `triggerShortcut`, Escape, a backdrop click, the Close button, or a
+		 * selected item while open.
 		 */
 		onOpenChange?: (open: boolean) => void
 		/**
-		 * Fires with the id of the option the keyboard highlight sits on, or `null`
-		 * when nothing is highlighted.
+		 * Fires when the keyboard highlight moves, with the id of the highlighted
+		 * option, or `null` when nothing is highlighted.
 		 *
 		 * Focus stays in the search field and the highlight moves by
 		 * `aria-activedescendant`, so the only readout was that attribute. Use it to
@@ -106,7 +107,7 @@ export type CommandPaletteProps = Pick<DialogProps, 'open' | 'defaultOpen'> &
 		 * @defaultValue `'Type a command or search'`, in the language of the reader.
 		 */
 		placeholder?: string
-		/** Close the palette when the backdrop is clicked. @defaultValue true */
+		/** Closes the palette on a click of the backdrop. @defaultValue true */
 		dismissOnBackdrop?: boolean
 		/**
 		 * Content of the footer row under the results. Set it to replace the

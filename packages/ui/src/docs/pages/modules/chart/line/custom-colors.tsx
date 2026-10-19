@@ -4,7 +4,7 @@ import { months } from '../data.ts'
 export default function CustomColors() {
 	return (
 		<LineChart
-			aria-label="Revenue and margin by month, in custom colors"
+			aria-label="Revenue and margin by month"
 			data={months}
 			series={[
 				{ xKey: 'month', yKey: 'revenue', yName: 'Revenue', color: '#e11d48' },

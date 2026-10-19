@@ -31,7 +31,7 @@ export type TreeProps = AccessibleName &
 		 */
 		size?: ScaleStep<typeof scale>
 		/**
-		 * Indent each nested group by the chevron width plus the row gap.
+		 * Indents each nested group by the chevron width plus the row gap.
 		 * @defaultValue true
 		 */
 		indent?: boolean

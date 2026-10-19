@@ -1,11 +1,16 @@
 /**
- * Sen ring: `ring-1` and `ring-1 ring-inset` in the default tone. The
- * inset variant is the one composers reach for inside translucent
- * containers (popover, panel) where an outset ring would visually
- * crop against the surface chrome.
+ * Sen ring: the box-shadow rings of the library. A kata takes a ring from here
+ * and does not write a ring width itself (CONVENTIONS §5.10).
  *
- * A ring is a box-shadow, which forced colors remove, so the default ring
- * carries an outline that keeps the edge there.
+ * A ring is a box-shadow, which forced colors remove, so each ring carries an
+ * outline of the same width and position. The outline keeps the edge under
+ * forced colors.
+ *
+ *   - `default`, `inset`: the 1 px ring in the default tone. The inset ring is
+ *     the one composers reach for inside translucent containers (popover,
+ *     panel), where an outset ring would crop against the surface chrome.
+ *   - `line`: the ring of each width with no color, for a kata that sets its own
+ *     color. `line[1].inset` is the 1 px inset ring.
  *
  * Layer: kiso · Concern: rings
  */
@@ -13,9 +18,32 @@
 import { forced } from './forced'
 import { tone } from './tone'
 
+/** The ring of each width and position, each with its forced-colors outline. */
+const line = {
+	1: {
+		outset: ['ring-1', forced.outline],
+		inset: ['ring-1 ring-inset', forced.outline, 'forced-colors:-outline-offset-1'],
+	},
+	2: {
+		inset: [
+			'ring-2 ring-inset',
+			forced.outline,
+			'forced-colors:outline-2 forced-colors:-outline-offset-2',
+		],
+	},
+	4: {
+		inset: [
+			'ring-4 ring-inset',
+			forced.outline,
+			'forced-colors:outline-4 forced-colors:-outline-offset-4',
+		],
+	},
+} as const
+
 export const ring = {
 	/** Default ring: 1 px line, low-contrast palette, and an outline under forced colors. */
-	default: ['ring-1', ...tone.ring, forced.outline],
+	default: [...line[1].outset, ...tone.ring],
 	/** Inset ring: sits inside the element, subtle in light / stronger in dark. */
-	inset: ['ring-1', ...tone.ring, 'ring-inset'],
+	inset: [...line[1].inset, ...tone.ring],
+	line,
 } as const

@@ -7,7 +7,7 @@ import { createSkeleton, type SkeletonProps } from '../placeholder'
 export type ButtonSkeletonProps = SkeletonProps<NonNullable<ButtonVariants['size']>>
 
 /**
- * Button-shaped loading placeholder; size-driven via the `createSkeleton`
- * factory. Compose in loading trees in place of `<Button>`.
+ * A placeholder for a Button while it loads. It is size-driven through the
+ * `createSkeleton` factory.
  */
 export const ButtonSkeleton = createSkeleton<ScaleStep<typeof scale>>(k.skeleton, 'ButtonSkeleton')

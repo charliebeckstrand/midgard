@@ -6,7 +6,7 @@ import { Sidebar, SidebarBody, SidebarItem, SidebarLabel, SidebarList } from 'ui
 
 export default function WithActions() {
 	return (
-		<Sidebar aria-label="Sidebar with actions">
+		<Sidebar aria-label="Folders">
 			<SidebarBody>
 				<SidebarList aria-label="Main">
 					<SidebarItem

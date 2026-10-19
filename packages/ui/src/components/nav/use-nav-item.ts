@@ -44,7 +44,7 @@ export type NavItemProps = {
 	/** Classes for the inner button or link. The wrapper of the row does not take them. */
 	className?: string
 	/**
-	 * Keep an enclosing offcanvas drawer open on each click instead of dismissing
+	 * Keeps an enclosing offcanvas drawer open on each click instead of closing
 	 * it. To keep the drawer open on one click only, call `preventDefault()` in
 	 * `onClick`.
 	 * @defaultValue false

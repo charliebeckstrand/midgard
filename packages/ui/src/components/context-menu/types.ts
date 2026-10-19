@@ -18,9 +18,9 @@ export type ContextMenuItem = {
 	label: ReactNode
 	/** Leading icon element (e.g. a Lucide icon), rendered through `Icon`. */
 	icon?: ReactElement
-	/** Runs when the entry is chosen; the menu closes afterward. */
+	/** Fires when the reader selects the entry; the menu closes afterward. */
 	onAction?: () => void
-	/** Render the entry inert and dimmed. @defaultValue false */
+	/** Renders the entry inert and dimmed. @defaultValue false */
 	disabled?: boolean
 }
 
@@ -50,7 +50,7 @@ export type ContextMenuSubmenu = {
 	label: ReactNode
 	/** Leading icon element (e.g. a Lucide icon), rendered through `Icon`. */
 	icon?: ReactElement
-	/** Render the row inert and dimmed; the submenu never opens. @defaultValue false */
+	/** Renders the row inert and dimmed; the submenu never opens. @defaultValue false */
 	disabled?: boolean
 	/** The rows the submenu reveals, in order. */
 	items: ContextMenuEntry[]
@@ -81,7 +81,7 @@ export type ContextMenuConfig = {
 	 */
 	items?: ContextMenuEntry[]
 	/**
-	 * Keep the host's built-in items. Turn off to show only the custom `items`.
+	 * Keeps the host's built-in items. Turn it off to show only the custom `items`.
 	 * @defaultValue true
 	 */
 	defaultItems?: boolean
@@ -92,10 +92,10 @@ export type ContextMenuConfig = {
 	 */
 	insert?: ContextMenuInsert
 	/**
-	 * Cap the menu at its density height, scrolling past it. Off by default, since
-	 * a right-click menu is normally a short, fixed item set where a cap clips the
-	 * last row and reads as truncation. Turn it on for a menu long enough to run
-	 * past the viewport. Applies to any submenu too.
+	 * Caps the menu at its density height, so that it scrolls past it. Off by
+	 * default, since a right-click menu is normally a short, fixed item set where a
+	 * cap clips the last row and reads as truncation. Turn it on for a menu long
+	 * enough to run past the viewport. Applies to any submenu too.
 	 * @defaultValue false
 	 */
 	capped?: boolean

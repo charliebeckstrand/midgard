@@ -21,7 +21,10 @@ export type ChatListItemProps = Omit<HTMLAttributes<HTMLElement>, 'title' | 'onS
 	 * @defaultValue false
 	 */
 	current?: boolean
-	/** Selects this conversation. When set, the title/preview region is a button. */
+	/**
+	 * Fires when the user selects this conversation. When set, the title/preview
+	 * region is a button.
+	 */
 	onSelect?: () => void
 	/** Trailing controls (e.g. a delete button), kept as a sibling of the select button so it never nests interactives. */
 	actions?: ReactNode

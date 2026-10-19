@@ -6,6 +6,7 @@ import { type ReactNode, useState } from 'react'
 import { composeEventHandlers } from '../../core'
 import { useFormattedInput } from '../../hooks/use-formatted-input'
 import { useFormValue } from '../../primitives/form/use-form-value'
+import { formatDatePattern } from '../../primitives/intl/intl-date-pattern'
 import type { IntlShape } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { useLocale } from '../../providers/locale'
@@ -55,11 +56,11 @@ export type DateInputProps = Omit<
 	/** Controlled date. `null` keeps the field controlled with no current value. */
 	value?: Date | null
 	defaultValue?: Date
-	/** Fires with the parsed Date once the text is a complete in-range date; fires `null` when it stops being one. */
+	/** Fires when the text becomes a complete in-range date, with the parsed Date, and with `null` when it stops being one. */
 	onValueChange?: (value: Date | null) => void
 	/**
-	 * Fires on every change and on blur with the field's verdict on the typed
-	 * text.
+	 * Fires when the text changes and on blur, with the field's verdict on the
+	 * typed text.
 	 *
 	 * The field already holds that verdict — it is what renders the error Message
 	 * and sets `aria-invalid` — and kept it. The `onValueChange` cannot stand in.
@@ -292,7 +293,7 @@ export function DateInput({
 				// defaults an aria-label, yielding to a Field <Label> from the first
 				// render and to a native label after each commit (useControlLabelRef).
 				aria-label={ariaLabel ?? labelled.fallbackLabel}
-				placeholder={placeholder ?? format}
+				placeholder={placeholder ?? formatDatePattern(intl, format)}
 				autoComplete="off"
 				disabled={disabled}
 				readOnly={readOnly}

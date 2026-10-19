@@ -31,7 +31,7 @@ const [CommandPaletteGroupContext, useCommandPaletteGroupContext] = createContex
 export type CommandPaletteGroupProps = ComponentProps<'div'>
 
 /**
- * Groups palette items as a `role="group"` region within the listbox. Nest a
+ * A `role="group"` region of palette items within the listbox. Nest a
  * {@link CommandPaletteHeading} to name it, the way `<MenuSection>` pairs with
  * `<MenuHeading>`.
  *
@@ -69,8 +69,8 @@ export function CommandPaletteGroup({ className, children, ...props }: CommandPa
 export type CommandPaletteHeadingProps = ComponentProps<'div'>
 
 /**
- * Names the enclosing {@link CommandPaletteGroup}; renders the group's visible
- * title and registers as its `aria-labelledby` target.
+ * The heading of the enclosing {@link CommandPaletteGroup}, which renders the
+ * group's visible title and registers as its `aria-labelledby` target.
  */
 export function CommandPaletteHeading({ className, id, ...props }: CommandPaletteHeadingProps) {
 	const group = useCommandPaletteGroupContext()
@@ -104,9 +104,9 @@ export const CommandPaletteLabel = createSlot('span', 'command-palette-label', k
 export type CommandPaletteTextProps = ComponentProps<'span'>
 
 /**
- * Stacks a {@link CommandPaletteLabel} over a {@link CommandPaletteDescription}
- * in a {@link CommandPaletteItem}; renders a `<span>`. Without it, the
- * description sits beside the label. It takes the free width of the row, so a
+ * A `<span>` that stacks a {@link CommandPaletteLabel} over a
+ * {@link CommandPaletteDescription} in a {@link CommandPaletteItem}. Without
+ * it, the description sits beside the label. It takes the free width of the row, so a
  * leading icon stays beside the text and a shortcut stays at the end.
  *
  * @example

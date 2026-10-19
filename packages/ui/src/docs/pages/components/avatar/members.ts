@@ -1,7 +1,7 @@
 export const members = [
-	{ name: 'Ava Brooks', initials: 'AB', color: 'zinc' },
+	{ name: 'Wade Cooper', initials: 'WC', color: 'zinc' },
 	{ name: 'Ravi Shah', initials: 'RS', color: 'red' },
 	{ name: 'Mia Chen', initials: 'MC', color: 'amber' },
-	{ name: 'Leo Garcia', initials: 'LG', color: 'green' },
-	{ name: 'Nora Kim', initials: 'NK', color: 'blue' },
+	{ name: 'Arlene McCoy', initials: 'AM', color: 'green' },
+	{ name: 'Devon Webb', initials: 'DW', color: 'blue' },
 ] as const

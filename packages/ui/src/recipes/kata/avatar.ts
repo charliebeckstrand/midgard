@@ -58,13 +58,16 @@ export const k = defineRecipe(
 		group: {
 			base: flex.row,
 			/**
-			 * Ring on each descendant avatar circle. `**:` reaches an avatar inside
-			 * its with-status wrapper, so the ring follows the round box.
+			 * The gap around each descendant avatar circle, in the color of the page.
+			 * `**:` reaches an avatar inside its with-status wrapper, so the gap
+			 * follows the round box. The gap is an outline, not a ring, because forced
+			 * colors keep an outline and remove a box-shadow.
 			 */
-			ring: '**:data-[slot=avatar]:ring-2 **:data-[slot=avatar]:ring-white dark:**:data-[slot=avatar]:ring-zinc-900',
+			outline:
+				'**:data-[slot=avatar]:outline-2 **:data-[slot=avatar]:outline-solid **:data-[slot=avatar]:outline-white dark:**:data-[slot=avatar]:outline-zinc-900',
 			/**
 			 * Overlap of each avatar onto the one before it, at the step of the
-			 * nearest density scope. The overlap and the ring together stay
+			 * nearest density scope. The overlap and the gap outline together stay
 			 * narrower than the space at the side of two initials, so the next
 			 * avatar does not cover the initials. The group keeps the value of its
 			 * step, so an avatar with its own `size` takes the overlap of the group.
@@ -80,8 +83,11 @@ export const k = defineRecipe(
 			 * takes the margin.
 			 */
 			base: ['relative inline-flex size-fit', sidebarItemMargin],
-			/** The indicator, on the top inline-end corner of the avatar, with a ring around it. */
-			dot: ['absolute top-0 inset-e-0', 'ring-2 ring-white dark:ring-zinc-900'],
+			/** The indicator, on the top inline-end corner of the avatar, with a gap around it, as in a group. */
+			dot: [
+				'absolute top-0 inset-e-0',
+				'outline-2 outline-solid outline-white dark:outline-zinc-900',
+			],
 		},
 	},
 )

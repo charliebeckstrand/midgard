@@ -24,7 +24,7 @@ export type MessageProps = {
 	className?: string
 	name?: string
 	/**
-	 * When form-bound and the field has multiple errors, render every one as a list. Defaults to the first error only.
+	 * Renders every error of a form-bound field as a list, when it has more than one. Defaults to the first error only.
 	 * @defaultValue false
 	 */
 	all?: boolean

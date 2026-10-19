@@ -5,7 +5,7 @@ export default function Mercator() {
 	// A ratio taller than the land, so that the north edge of the globe shows above Greenland.
 	return (
 		<MapPlat
-			aria-label="Countries of the world on Mercator"
+			aria-label="Countries of the world"
 			geography={world}
 			geographyObject="countries"
 			projection="mercator"

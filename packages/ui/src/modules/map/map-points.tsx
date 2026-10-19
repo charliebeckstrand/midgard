@@ -231,13 +231,13 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
 	/** The dots, in the order they draw and the order the cursor walks them. */
 	points: MapPointDatum[]
 	/**
-	 * Draw dots the frame puts too close together to tell apart as one summary
-	 * dot. Its size grades with how many stops it holds, and its label carries
-	 * the count. A number sets the clear space, in device pixels, two marks keep
-	 * between their edges before they merge. It is measured edge to edge, so the
-	 * one number holds however wide a summary grows. `0` lets marks touch but
-	 * never overlap. A negative gap would ask for the overlap this exists to
-	 * remove, so it reads as `0`.
+	 * Draws the dots that the frame puts too close together to tell apart as one
+	 * summary dot. Its size grades with how many stops it holds, and its label
+	 * carries the count. A number sets the clear space, in device pixels, two marks
+	 * keep between their edges before they merge. It is measured edge to edge, so
+	 * the one number holds however wide a summary grows. `0` lets marks touch but
+	 * never overlap. A negative gap would ask for the overlap this exists to remove,
+	 * so it reads as `0`.
 	 *
 	 * Grouping reads the drawn frame, not the data, so it answers the scale the
 	 * map is at. A national frame summarizes a metro round to one mark. The same
@@ -285,7 +285,7 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
 	 * the dot it stands on with Enter or Space.
 	 */
 	onClick?: MapPointsPick
-	/** Fires on a right-click, with the same arguments {@link onClick} reports. */
+	/** Fires when a right-click lands on a dot, with the same arguments {@link onClick} reports. */
 	onContextMenu?: MapPointsPick
 }
 

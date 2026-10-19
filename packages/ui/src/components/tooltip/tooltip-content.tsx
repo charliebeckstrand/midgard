@@ -27,7 +27,7 @@ export type TooltipContentProps = {
 	 */
 	surfaceClassName?: string
 	/**
-	 * Opt the surface into the translucent glass chrome, as the panel family
+	 * Opts the surface into the translucent glass chrome, as the panel family
 	 * does. An ambient `<GlassProvider>` already turns it on; this is the
 	 * per-surface opt-in for a tree that has none. Set `false` to keep the flat
 	 * surface inside a `<GlassProvider>`.

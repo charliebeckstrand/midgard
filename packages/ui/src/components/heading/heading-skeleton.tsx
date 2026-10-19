@@ -14,7 +14,7 @@ export type HeadingSkeletonProps = {
 	 */
 	size?: ScaleStep<typeof scale>
 	/**
-	 * Render a `span` that sits inside a real heading, one em tall, in place of a
+	 * Renders a `span` that sits inside a real heading, one em tall, in place of a
 	 * block. Use it when the heading renders at once and only its text loads, as
 	 * in `<CardTitle><HeadingSkeleton inline /></CardTitle>`. The heading then
 	 * keeps its settled height. `level` and `size` do not apply, because the
@@ -26,10 +26,11 @@ export type HeadingSkeletonProps = {
 }
 
 /**
- * Heading-shaped placeholder. Its height tracks the rung of the heading at each
- * step, and it takes the step of the nearest density scope, as the heading
- * does. Keyed off the level, so it does not use the `createSkeleton` factory.
- * With `inline`, it is a span that sits inside a real heading.
+ * A placeholder for a Heading while it loads. Its height tracks the rung of the
+ * heading at each step, and it takes the step of the nearest density scope, as
+ * the heading does. Keyed off the level, so it does not use the
+ * `createSkeleton` factory. With `inline`, it is a span that sits inside a real
+ * heading.
  * @remarks Static leaf: renders in React Server Components.
  * @see {@link Heading}
  */

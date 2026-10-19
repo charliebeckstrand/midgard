@@ -12,17 +12,17 @@ export default function PerItemVariant() {
 			<TimelineItem variant="solid" status="info">
 				<TimelineTimestamp>Step 1</TimelineTimestamp>
 				<TimelineTitle>Account created</TimelineTitle>
-				<TimelineDescription>Highlighted with a solid marker override.</TimelineDescription>
+				<TimelineDescription>You created your account.</TimelineDescription>
 			</TimelineItem>
 			<TimelineItem>
 				<TimelineTimestamp>Step 2</TimelineTimestamp>
 				<TimelineTitle>Email verified</TimelineTitle>
-				<TimelineDescription>Inherits the outline variant from Timeline.</TimelineDescription>
+				<TimelineDescription>You confirmed your email address.</TimelineDescription>
 			</TimelineItem>
 			<TimelineItem>
 				<TimelineTimestamp>Step 3</TimelineTimestamp>
 				<TimelineTitle>Profile completed</TimelineTitle>
-				<TimelineDescription>Inherits the outline variant from Timeline.</TimelineDescription>
+				<TimelineDescription>You added your name and a photo.</TimelineDescription>
 			</TimelineItem>
 		</Timeline>
 	)

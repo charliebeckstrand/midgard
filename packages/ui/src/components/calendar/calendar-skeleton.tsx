@@ -18,11 +18,10 @@ const weekdays = rangeKeys(7, 'weekday')
 const dayRows = rangeKeys(6, 'week')
 
 /**
- * Calendar-shaped loading placeholder: one block over empty rows that have the
- * structure of the real month grid. The header row, the square weekday row, and
- * six day rows come from the calendar recipes, so the block has the box of a
- * real calendar at each step. Compose it in loading trees in place of
- * `<Calendar>`.
+ * A placeholder for a Calendar while it loads. It is one block over empty rows
+ * that have the structure of the real month grid. The header row, the square
+ * weekday row, and six day rows come from the calendar recipes, so the block
+ * has the box of a real calendar at each step.
  *
  * @remarks Static leaf: renders in React Server Components.
  * @see {@link Calendar}

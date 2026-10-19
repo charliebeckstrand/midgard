@@ -7,18 +7,18 @@ import {
 } from 'ui/combobox'
 
 const topics = [
-	'accessibility',
-	'design systems',
-	'performance',
-	'server rendering and streaming',
-	'testing',
+	'Accessibility',
+	'Design systems',
+	'Performance',
+	'Server rendering and streaming',
+	'Testing',
 ]
 
 function MatchingTopics() {
 	const query = useComboboxDeferredQuery().toLowerCase()
 
 	return topics
-		.filter((topic) => topic.includes(query))
+		.filter((topic) => topic.toLowerCase().includes(query))
 		.map((topic) => (
 			<ComboboxOption key={topic} value={topic}>
 				<ComboboxLabel>{topic}</ComboboxLabel>

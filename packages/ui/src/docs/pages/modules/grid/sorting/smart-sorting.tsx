@@ -10,6 +10,8 @@ const invoices: Invoice[] = [
 
 const statusOrder: Record<Invoice['status'], number> = { paid: 0, due: 1 }
 
+const statusLabels: Record<Invoice['status'], string> = { paid: 'Paid', due: 'Due' }
+
 const invoiceColumns: GridColumn<Invoice>[] = [
 	// The numbers in a reference sort as numbers: INV-1, INV-2, INV-10.
 	{ id: 'ref', title: 'Reference', cell: (row) => row.ref, value: (row) => row.ref },
@@ -19,7 +21,7 @@ const invoiceColumns: GridColumn<Invoice>[] = [
 	{
 		id: 'status',
 		title: 'Status',
-		cell: (row) => row.status,
+		cell: (row) => statusLabels[row.status],
 		value: (row) => row.status,
 		sortFn: (a, b) => statusOrder[a.status] - statusOrder[b.status],
 	},

@@ -215,13 +215,13 @@ export type DashboardProps = AccessibleName &
 		 */
 		selection?: DashboardSelectionBinding
 		/**
-		 * Edit mode. The column guides show, each tile gets a drag grip and resize
-		 * splitters, and the content of each tile goes inert. A drag starts only from
-		 * the grip, so the rest of a tile keeps touch scrolling. Edit mode never changes
-		 * a tile size, so no widget re-lays out on the switch. While the responsive
-		 * projection is on screen, edit mode stands down, because a gesture edits the
-		 * saved layout and not the re-pack. When edit mode ends or stands down, or when
-		 * the board unmounts, a live drag or resize ends as canceled.
+		 * Turns on edit mode. The column guides show, each tile gets a drag grip and
+		 * resize splitters, and the content of each tile goes inert. A drag starts only
+		 * from the grip, so the rest of a tile keeps touch scrolling. Edit mode never
+		 * changes a tile size, so no widget re-lays out on the switch. While the
+		 * responsive projection is on screen, edit mode stands down, because a gesture
+		 * edits the saved layout and not the re-pack. When edit mode ends or stands
+		 * down, or when the board unmounts, a live drag or resize ends as canceled.
 		 * @defaultValue false
 		 */
 		editing?: boolean
@@ -247,18 +247,18 @@ export type DashboardProps = AccessibleName &
 		 * @defaultValue 3
 		 */
 		titleLevel?: HeadingLevel
-		/** Receives the start of each drag. */
+		/** Fires when a drag starts. */
 		onDragStart?: (event: DashboardGestureStartEvent) => void
-		/** Receives the end of each drag, with `canceled` when it changed nothing. */
+		/** Fires when a drag ends, with `canceled` when it changed nothing. */
 		onDragEnd?: (event: DashboardGestureEndEvent) => void
-		/** Receives the start of each pointer resize. */
+		/** Fires when a pointer resize starts. */
 		onResizeStart?: (event: DashboardGestureStartEvent) => void
-		/** Receives the end of each pointer resize, with `canceled` when it changed nothing. */
+		/** Fires when a pointer resize ends, with `canceled` when it changed nothing. */
 		onResizeEnd?: (event: DashboardGestureEndEvent) => void
-		/** Receives each error that a tile boundary catches, for a log or a report. */
+		/** Fires when a tile boundary catches an error, for a log or a report. */
 		onTileError?: (id: string, error: unknown) => void
 		/**
-		 * Receives each change of the responsive projection: `true` when the board
+		 * Fires when the responsive projection changes: `true` when the board
 		 * paints the re-pack, and `false` when the saved layout returns. Edit mode
 		 * stands down while the re-pack is on screen, so use it to disable the
 		 * control that starts edit mode. The server and the first render paint the

@@ -65,11 +65,11 @@ const messages = defineMessages<{
 export type QueryChipsProps = Omit<HTMLAttributes<HTMLElement>, 'defaultValue'> & {
 	/** Fields that resolve each rule's labels, operators, and options. */
 	fields: QueryField[]
-	/** The query tree, controlled. Pair it with `onValueChange`. */
+	/** Controlled query tree. Pair it with `onValueChange`. */
 	value?: QueryGroup
-	/** The initial query tree, uncontrolled. Omitted, the tree starts as an empty `and` group. */
+	/** Initial query tree when uncontrolled. Omitted, the tree starts as an empty `and` group. */
 	defaultValue?: QueryGroup
-	/** Receives the next query tree after each remove or combinator switch. */
+	/** Fires when a remove or a combinator switch changes the query, with the next query tree. */
 	onValueChange?: (value: QueryGroup) => void
 	/**
 	 * Renders the chips with no controls: no remove button, and each combinator

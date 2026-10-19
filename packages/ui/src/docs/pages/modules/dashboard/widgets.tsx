@@ -1,13 +1,17 @@
-import { useLayoutEffect } from 'react'
+import { useLayoutEffect, useMemo } from 'react'
 import { BarChart, DonutChart, LineChart } from 'ui/chart'
 import { useDashboardRows, useDashboardScope } from 'ui/dashboard'
 import { Flex } from 'ui/flex'
 import { Grid, type GridColumn } from 'ui/grid'
 import { useContentHeightHost } from 'ui/primitives/content-height'
+import { useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
 import { Stat, StatDelta, StatDescription, StatValue } from 'ui/stat'
 import { PointerHint } from '../../../kit/pointer-hint.tsx'
 import { products, type Sale, sales, sumBy } from './data.ts'
+
+// Revenue is an amount in whole dollars.
+const dollars = { style: 'currency', currency: 'USD', maximumFractionDigits: 0 } as const
 
 /** The hint names the gesture of the pointer that the device has. A tap on a touch screen selects. */
 export function FilterHint({ mark }: { mark: 'bar' | 'slice' }) {
@@ -73,6 +77,8 @@ function useStatFlow() {
 }
 
 export function Units() {
+	const { formatNumber } = useIntl()
+
 	const rows = useDashboardRows(sales)
 
 	const units = rows.reduce((sum, row) => sum + row.units, 0)
@@ -85,7 +91,7 @@ export function Units() {
 		<Stack gap="sm" className={flow.root}>
 			<Stat className="h-auto">
 				<Flex align="baseline" gap="sm" wrap>
-					<StatValue size="sm">{units.toLocaleString('en-US')}</StatValue>
+					<StatValue size="sm">{formatNumber(units)}</StatValue>
 					<StatDescription>in {data.length} months</StatDescription>
 				</Flex>
 			</Stat>
@@ -119,6 +125,8 @@ export type KpiProps = { value: 'revenue' | 'units' }
 const arrows = { up: '↑', down: '↓', neutral: '→' } as const
 
 export function Kpi({ value }: KpiProps) {
+	const { formatNumber } = useIntl()
+
 	const data = sumBy(useDashboardRows(sales), 'month', value)
 
 	const latest = data.at(-1)
@@ -131,15 +139,23 @@ export function Kpi({ value }: KpiProps) {
 
 	const name = value === 'units' ? 'Units' : 'Revenue'
 
+	const total = latest ? formatNumber(latest.total, value === 'revenue' ? dollars : undefined) : '–'
+
+	const percent = formatNumber(Math.abs(change), {
+		style: 'percent',
+		minimumFractionDigits: 1,
+		maximumFractionDigits: 1,
+	})
+
 	const flow = useStatFlow()
 
 	return (
 		<Stack gap="sm" className={flow.root}>
 			<Stat className="h-auto">
 				<Flex align="baseline" gap="sm" wrap>
-					<StatValue size="sm">{latest?.total.toLocaleString('en-US') ?? '–'}</StatValue>
+					<StatValue size="sm">{total}</StatValue>
 					<StatDelta trend={trend}>
-						{arrows[trend]} {Math.abs(change * 100).toFixed(1)}% vs {prev?.key ?? 'last month'}
+						{arrows[trend]} {percent} vs {prev?.key ?? 'last month'}
 					</StatDelta>
 				</Flex>
 			</Stat>
@@ -155,17 +171,22 @@ export function Kpi({ value }: KpiProps) {
 	)
 }
 
-const columns: GridColumn<Sale>[] = [
-	{ id: 'month', title: 'Month', cell: (row) => row.month },
-	{ id: 'region', title: 'Region', cell: (row) => row.region },
-	{ id: 'product', title: 'Product', cell: (row) => row.product },
-	{ id: 'units', title: 'Units', cell: (row) => row.units },
-	{ id: 'revenue', title: 'Revenue', cell: (row) => row.revenue },
-]
-
 // The grid fills the tile and scrolls its rows under a sticky header. On a
 // narrow board, the grid shows pages of 10 rows, and the tile grows to hold them.
 export function Orders() {
+	const { formatNumber } = useIntl()
+
+	const columns = useMemo<GridColumn<Sale>[]>(
+		() => [
+			{ id: 'month', title: 'Month', cell: (row) => row.month },
+			{ id: 'region', title: 'Region', cell: (row) => row.region },
+			{ id: 'product', title: 'Product', cell: (row) => row.product },
+			{ id: 'units', title: 'Units', cell: (row) => row.units },
+			{ id: 'revenue', title: 'Revenue', cell: (row) => formatNumber(row.revenue, dollars) },
+		],
+		[formatNumber],
+	)
+
 	return (
 		<Grid
 			columns={columns}

@@ -72,7 +72,7 @@ export default function DrillIntoCounties() {
 				/>
 			) : (
 				<MapPlat
-					aria-label="States of America"
+					aria-label="US states"
 					geography={states}
 					projection="albers-usa"
 					data={timezones}

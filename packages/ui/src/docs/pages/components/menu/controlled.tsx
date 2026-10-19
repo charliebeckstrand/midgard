@@ -30,7 +30,7 @@ export default function Controlled() {
 					</MenuItem>
 				</MenuContent>
 			</Menu>
-			<Text>State: {open ? 'Open' : 'Closed'}</Text>
+			<Text>Value: {open ? 'Open' : 'Closed'}</Text>
 			<Text>Last action: {action ?? 'None'}</Text>
 		</>
 	)

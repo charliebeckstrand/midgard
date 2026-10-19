@@ -12,20 +12,21 @@ import { CollapseContext } from './context'
 /** Props for {@link Collapse}. */
 export type CollapseProps = Omit<ComponentProps<'div'>, 'children'> & {
 	/**
-	 * The initial open state, for an uncontrolled panel.
+	 * Initial open state when uncontrolled.
 	 * @defaultValue false
 	 */
 	defaultOpen?: boolean
 	/**
-	 * The open state, for a controlled panel. Pair it with `onOpenChange`.
+	 * Controlled open state. Pair it with `onOpenChange`.
 	 *
-	 * @defaultValue Uncontrolled: the state starts from `defaultOpen`.
+	 * @defaultValue Uncontrolled, with `defaultOpen` as the first state.
 	 */
 	open?: boolean
+	/** Fires when the open state changes. */
 	onOpenChange?: (open: boolean) => void
 	/**
-	 * Fires once the panel has finished opening and is at rest — after the height
-	 * transition lands, or immediately on the open when `animate` is `false`.
+	 * Fires when the panel has finished opening and is at rest: after the height
+	 * transition lands, or at once on the open when `animate` is `false`.
 	 *
 	 * A state change is not an arrival: `onOpenChange` reports the flip, and the panel
 	 * is still growing when it does. Use this to focus, measure, or start work that

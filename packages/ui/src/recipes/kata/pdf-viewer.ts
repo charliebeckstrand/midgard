@@ -16,7 +16,7 @@ const { palette, text } = iro
 const { size, weight } = ji
 const { flex } = narabi
 const { bg, rail, skeleton } = omote
-const { border, focus, forced } = sen
+const { border, focus, ring } = sen
 
 // The page image and every layer drawn over it must sit in the same place, so the centering
 // has one home — the rotation half of the same invariant is the `transform` string
@@ -199,7 +199,7 @@ export const k = {
 					'pointer-events-none overflow-hidden',
 					'rounded-full',
 					'shadow-2xl',
-					'ring-1 ring-inset',
+					...ring.line[1].inset,
 					border.color.default,
 					...mode('bg-white ring-zinc-950/20', 'dark:bg-zinc-950 dark:ring-white/20'),
 				],
@@ -241,15 +241,7 @@ export const k = {
 					behind: 'opacity-25',
 				},
 				region: {
-					base: [
-						'absolute block',
-						'ring-1 ring-inset',
-						// The edge under forced colors, inside the box as the ring is.
-						forced.outline,
-						'forced-colors:-outline-offset-1',
-						...cursor,
-						...focus.inset,
-					],
+					base: ['absolute block', ...ring.line[1].inset, ...cursor, ...focus.inset],
 					/** Translucent per-color wash, from the shared palette. */
 					fill: palette.soft.bg,
 					ring: palette.outline.ring,
@@ -262,12 +254,7 @@ export const k = {
 						 * later region overlapping the selected one covers the very emphasis that says
 						 * which is selected.
 						 */
-						base: [
-							'ring-4',
-							'z-10',
-							// Under forced colors the heavier stroke is the outline, as the edge is.
-							'forced-colors:outline-4 forced-colors:-outline-offset-4',
-						],
+						base: [...ring.line[4].inset, 'z-10'],
 						/**
 						 * The wash — the palette's doubled rung.
 						 *

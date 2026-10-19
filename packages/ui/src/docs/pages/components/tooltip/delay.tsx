@@ -12,13 +12,13 @@ export default function Delay() {
 				<TooltipTrigger>
 					<Button variant="outline">No delay</Button>
 				</TooltipTrigger>
-				<TooltipContent>This tooltip opens at once.</TooltipContent>
+				<TooltipContent>Opens at once</TooltipContent>
 			</Tooltip>
 			<Tooltip delay={1000} trigger={trigger}>
 				<TooltipTrigger>
 					<Button variant="outline">One second</Button>
 				</TooltipTrigger>
-				<TooltipContent>This tooltip opens after 1000 ms.</TooltipContent>
+				<TooltipContent>Opens after one second</TooltipContent>
 			</Tooltip>
 		</>
 	)

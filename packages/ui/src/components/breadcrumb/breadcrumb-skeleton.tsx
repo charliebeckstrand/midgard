@@ -9,9 +9,9 @@ export type BreadcrumbSkeletonProps = {
 }
 
 /**
- * Breadcrumb-shaped placeholder: crumb lines with chevron-sized
- * separators between them. Keyed off the crumb count rather than a size
- * step; it does not use the size-driven `createSkeleton` factory.
+ * A placeholder for a Breadcrumb while it loads. It shows crumb lines with
+ * chevron-sized separators between them. Keyed off the crumb count rather
+ * than a size step; it does not use the size-driven `createSkeleton` factory.
  */
 export function BreadcrumbSkeleton({ crumbs = 3, className }: BreadcrumbSkeletonProps) {
 	return renderRowSkeleton({

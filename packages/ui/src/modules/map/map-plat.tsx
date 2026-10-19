@@ -79,7 +79,7 @@ import { useMapToggle } from './use-map-toggle'
  * @internal
  */
 type MapPlatBaseProps = AccessibleName &
-	ComponentProps<'div'> & {
+	Omit<ComponentProps<'div'>, 'ref'> & {
 		/**
 		 * The geometry to draw: a TopoJSON topology or a GeoJSON feature
 		 * collection. The package ships no atlas data — pass `us-atlas`,
@@ -128,7 +128,7 @@ type MapPlatBaseProps = AccessibleName &
 		 */
 		aspectRatio?: MapAspectRatio
 		/**
-		 * Rule meridian and parallel hairlines under the geography, on the chart's
+		 * Rules meridian and parallel hairlines under the geography, on the chart's
 		 * gridline ink. `true` takes d3-geo's ten-degree step, and a number sets that
 		 * step in degrees. The lines draw beneath every region, and answer no
 		 * pointer. A region fill covers the ones crossing it, so the graticule reads
@@ -150,8 +150,8 @@ type MapPlatBaseProps = AccessibleName &
 		 */
 		graticule?: boolean | number
 		/**
-		 * Outline the globe's own edge, on the chart's axis-baseline ink — the frame
-		 * a whole-world map closes itself with, under `'mercator'` or
+		 * Outlines the globe's own edge, on the chart's axis-baseline ink: the frame
+		 * that a whole-world map closes itself with, under `'mercator'` or
 		 * `'equal-earth'`. A composite projection has no single edge, so
 		 * `'albers-usa'` outlines its own clip frames instead: the lower-48 box and
 		 * the two inset boxes.
@@ -159,7 +159,7 @@ type MapPlatBaseProps = AccessibleName &
 		 */
 		sphere?: boolean
 		/**
-		 * Show the readout naming the pointed region or overlay. It also gates
+		 * Shows the readout naming the pointed region or overlay. It also gates
 		 * keyboard navigation, which the readout is the whole output of. Each arrow
 		 * key that moves the cursor onto a stop speaks the readout of that stop
 		 * through a polite live region, because the tooltip is `aria-hidden`. A
@@ -176,7 +176,7 @@ type MapPlatBaseProps = AccessibleName &
 		 */
 		tooltip?: boolean
 		/**
-		 * Name every region the pointer rests on, not only the ones a row matched.
+		 * Names every region the pointer rests on, not only the ones a row matched.
 		 *
 		 * A region with no row has nothing to say about the data. It is still a shape
 		 * the reader is pointing at, and on a navigation map its name is the whole
@@ -200,7 +200,7 @@ type MapPlatBaseProps = AccessibleName &
 		 */
 		nameRegions?: boolean
 		/**
-		 * Let the reader zoom and pan the drawn geography. Shift and a wheel zoom
+		 * Lets the reader zoom and pan the drawn geography. Shift and a wheel zoom
 		 * about the pointer, a drag pans, and two touches pan and pinch. The plot's
 		 * own tab stop takes `+`, `-`, and `0`, so the keyboard reaches every scale
 		 * the pointer does. Each of these keys speaks the result through a polite
@@ -248,8 +248,8 @@ type MapPlatBaseProps = AccessibleName &
 		 */
 		zoom?: MapZoomInput
 		/**
-		 * Fires with the view transform whenever it changes: `x` and `y` pan the
-		 * fitted geography in frame units, `k` scales it.
+		 * Fires when the view transform changes, with that transform: `x` and `y` pan
+		 * the fitted geography in frame units, `k` scales it.
 		 *
 		 * The plat owns that transform outright, and nothing reported it, so the
 		 * package's own tests read it off the `transform` attribute. Use it to mirror
@@ -261,7 +261,7 @@ type MapPlatBaseProps = AccessibleName &
 		 */
 		onViewChange?: (view: MapTransform) => void
 		/**
-		 * Whether the drawn regions answer the pointer at all.
+		 * Lets the drawn regions answer the pointer at all.
 		 *
 		 * `false` makes the layer inert: no readout, no pick, no menu. The marks
 		 * standing on it keep their whole target, since a dot only narrows to give
@@ -284,7 +284,7 @@ type MapPlatBaseProps = AccessibleName &
 		 */
 		regionPointer?: boolean
 		/**
-		 * Animate the map in on mount. The neutral geography paints at once, then
+		 * Animates the map in on mount. The neutral geography paints at once, then
 		 * category color washes in region by region. Routes draw themselves, and
 		 * points pop once their route lands. The geography itself never fades, so the
 		 * map is legible immediately and only the data animates on. Honors
@@ -295,8 +295,8 @@ type MapPlatBaseProps = AccessibleName &
 		 */
 		animate?: boolean
 		/**
-		 * The map's root element: the frame that holds the legend, the plot, and
-		 * the data table. A host that captures or measures the whole map reads it.
+		 * Receives the root `<div>` of the map, the frame that holds the legend, the
+		 * plot, and the data table.
 		 */
 		ref?: Ref<HTMLDivElement>
 		/**
@@ -389,8 +389,8 @@ type MapPlatBaseProps = AccessibleName &
 		 */
 		selectedRegion?: string | null
 		/**
-		 * Whether the region VALUES are still loading — the atlas is drawn and its numbers are
-		 * not in yet.
+		 * Marks the region VALUES as still loading: the atlas is drawn and its numbers
+		 * are not in yet.
 		 *
 		 * The shapes pulse while it holds, and a reader who asked for reduced motion
 		 * gets a standing dim in place of the pulse. A choropleth with no data takes
@@ -447,8 +447,8 @@ type MapPlatBaseProps = AccessibleName &
 		 */
 		emphasis?: string | null
 		/**
-		 * Fires with the legend id this plat's own legend emphasizes, or `null` when
-		 * the emphasis clears.
+		 * Fires when the plat's own legend changes its emphasis, with the legend id
+		 * that it emphasizes, or `null` when the emphasis clears.
 		 *
 		 * The plat's legend writes that state on hover and on focus, and reported
 		 * nothing. A caller could therefore either read the emphasis or keep the
@@ -461,7 +461,8 @@ type MapPlatBaseProps = AccessibleName &
 		 */
 		onEmphasisChange?: (emphasis: string | null) => void
 		/**
-		 * Fires with the set of legend ids the plat's legend has switched off.
+		 * Fires when the plat's legend switches a group on or off, with the set of
+		 * legend ids that it has switched off.
 		 *
 		 * Observation only. The legend owns the set and there is no `hidden` option
 		 * to pair with. Hiding a group changes what the reader sees and reported

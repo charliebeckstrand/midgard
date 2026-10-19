@@ -5,7 +5,7 @@ import { createSkeleton, type SkeletonProps } from '../placeholder'
 export type ProgressBarSkeletonProps = SkeletonProps<NonNullable<ProgressTrackVariants['size']>>
 
 /**
- * Loading placeholder matching the {@link ProgressBar} track silhouette.
+ * A placeholder for a {@link ProgressBar} while it loads. It has the shape of the track.
  * @remarks Static leaf: renders in React Server Components.
  */
 export const ProgressBarSkeleton = createSkeleton<NonNullable<ProgressTrackVariants['size']>>(

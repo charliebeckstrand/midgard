@@ -19,5 +19,6 @@ export const reset = [
 	'border-0',
 	...text.default,
 	'placeholder:text-zinc-500 dark:placeholder:text-zinc-400',
-	'focus:outline-hidden',
+	// The control frame draws the focus ring, and its forced-colors outline.
+	'focus:outline-none',
 ]

@@ -287,6 +287,10 @@
 		"defaultMessage": "Confirm",
 		"description": "The label of a button that does the action that a dialog asks about."
 	},
+	"ui.common.dayLetter": {
+		"defaultMessage": "D",
+		"description": "The letter that stands for one digit of the day in a date pattern, such as each D of DD/MM/YYYY. One letter."
+	},
 	"ui.common.filters": {
 		"defaultMessage": "Filters",
 		"description": "The name of a group of filter controls, and the label of the button that opens them."
@@ -294,6 +298,10 @@
 	"ui.common.loading": {
 		"defaultMessage": "Loading",
 		"description": "The name of a spinner that shows that content or an action is loading."
+	},
+	"ui.common.monthLetter": {
+		"defaultMessage": "M",
+		"description": "The letter that stands for one digit of the month in a date pattern, such as each M of DD/MM/YYYY. One letter."
 	},
 	"ui.common.noResults": {
 		"defaultMessage": "No results",
@@ -306,6 +314,10 @@
 	"ui.common.system": {
 		"defaultMessage": "System",
 		"description": "A setting that follows the setting of the operating system or the browser."
+	},
+	"ui.common.yearLetter": {
+		"defaultMessage": "Y",
+		"description": "The letter that stands for one digit of the year in a date pattern, such as each Y of DD/MM/YYYY. One letter."
 	},
 	"ui.confirm.title": {
 		"defaultMessage": "Are you sure?",
@@ -1270,6 +1282,10 @@
 	"ui.lightbox.photos": {
 		"defaultMessage": "Photos",
 		"description": "The name of the photo viewer."
+	},
+	"ui.lightbox.position": {
+		"defaultMessage": "{position, number} of {total, number}",
+		"description": "The place of the photo on view among all the photos, which a screen reader speaks after its description, such as \"3 of 10\"."
 	},
 	"ui.lightbox.previous": {
 		"defaultMessage": "Previous photo",

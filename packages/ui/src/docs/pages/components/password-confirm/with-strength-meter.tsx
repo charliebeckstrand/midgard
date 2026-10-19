@@ -7,7 +7,7 @@ export default function WithStrengthMeter() {
 	const [password, setPassword] = useState('')
 
 	return (
-		<PasswordConfirm warning="Passwords do not match.">
+		<PasswordConfirm warning="Enter the same password again.">
 			<Field>
 				<Label>Password</Label>
 				<PasswordConfirmNew

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Grid, type GridColumn, type GridGroupHeaderRow } from 'ui/grid'
+import { MoneyText } from '../data.tsx'
 
 // One row shape for both kinds of row from the server. A group header has the
 // `group` marker, and its sums in the fields of a row.
@@ -53,8 +54,6 @@ const fetchChildren = (country: string) => respond(customersByCountry[country] ?
 
 const fetchRows = () => respond(Object.values(customersByCountry).flat())
 
-const dollars = (value: unknown) => `$${Number(value).toLocaleString('en-US')}`
-
 const orderColumns: GridColumn<Order>[] = [
 	// A `groupable` column has a button on its header that groups by it. It is
 	// sortable too, so a sort moves the groups. Manual grouping makes the sort of
@@ -87,10 +86,10 @@ const orderColumns: GridColumn<Order>[] = [
 		id: 'revenue',
 		title: 'Revenue',
 		sortable: false,
-		cell: (row) => dollars(row.revenue),
+		cell: (row) => <MoneyText amount={row.revenue} />,
 		value: (row) => row.revenue,
 		aggFunc: 'sum',
-		aggCell: ({ value }) => dollars(value),
+		aggCell: ({ value }) => <MoneyText amount={Number(value)} />,
 	},
 ]
 

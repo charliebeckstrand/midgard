@@ -6,7 +6,7 @@ export default function ControlPlayground(props: ControlProps) {
 	return (
 		<Control {...props}>
 			<Label>Email</Label>
-			<Input type="email" defaultValue="jane@example.com" />
+			<Input type="email" defaultValue="wade@example.com" />
 		</Control>
 	)
 }

@@ -22,6 +22,6 @@ export const k = defineRecipe({
 export type DividerVariants = Omit<VariantProps<typeof k>, 'orientation' | 'soft'> & {
 	/** The axis of the rule. @defaultValue 'horizontal' */
 	orientation?: VariantProps<typeof k>['orientation']
-	/** Whether the rule takes the subtle border color. @defaultValue false */
+	/** Gives the rule the subtle border color. @defaultValue false */
 	soft?: VariantProps<typeof k>['soft']
 }

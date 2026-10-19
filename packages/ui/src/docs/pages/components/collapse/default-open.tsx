@@ -4,11 +4,9 @@ import { Text } from 'ui/text'
 export default function DefaultOpen() {
 	return (
 		<Collapse defaultOpen>
-			<CollapseTrigger>Toggle details</CollapseTrigger>
+			<CollapseTrigger>Shipping details</CollapseTrigger>
 			<CollapsePanel>
-				<Text tone="muted">
-					This content is visible by default because the collapse starts open.
-				</Text>
+				<Text tone="muted">Standard shipping takes three to five business days.</Text>
 			</CollapsePanel>
 		</Collapse>
 	)

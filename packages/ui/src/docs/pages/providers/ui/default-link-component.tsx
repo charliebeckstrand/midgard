@@ -1,5 +1,5 @@
 import { Link } from 'ui/link'
 
 export default function DefaultLinkComponent() {
-	return <Link href="/providers/ui">Link</Link>
+	return <Link href="/providers/ui">UI provider</Link>
 }

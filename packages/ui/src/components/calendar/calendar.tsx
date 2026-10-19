@@ -117,9 +117,10 @@ export type CalendarProps = {
 	/** Fires when the selected date changes. A press of the day that is already selected changes nothing, so it does not fire. */
 	onValueChange?: (value: Date | null) => void
 	/**
-	 * Fires with the day of each press, by pointer or by keyboard, also a press of
-	 * the day that is already selected. It is an event, not a change report. Use it
-	 * to act on a pick, as a parent that commits a range or closes a popover does.
+	 * Fires when the reader presses a day, by pointer or by keyboard, with that day.
+	 * It fires also for the day that is already selected. It is an event, not a
+	 * change report. Use it to act on a selection, as a parent that commits a range or
+	 * closes a popover does.
 	 */
 	onDayPress?: (date: Date) => void
 	min?: Date
@@ -134,8 +135,7 @@ export type CalendarProps = {
 	 */
 	active?: CalendarActive | null
 	/**
-	 * Fires with the first of the month the grid renders, whenever that month
-	 * changes.
+	 * Fires when the month of the grid changes, with the first of that month.
 	 *
 	 * The calendar owns the rendered month outright, and `onValueChange` reports a
 	 * selection rather than a view. A consumer that fetches per-month data therefore

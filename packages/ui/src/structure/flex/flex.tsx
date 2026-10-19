@@ -45,12 +45,12 @@ export type FlexProps = {
 	 */
 	justify?: ResponsiveJustify
 	/**
-	 * Allow children to wrap onto multiple lines.
+	 * Lets children wrap onto multiple lines.
 	 * @defaultValue false
 	 */
 	wrap?: boolean
 	/**
-	 * Fill available space. `'1'` is `flex: 1 1 0%`; `'auto'` is `flex: 1 1 auto`.
+	 * Fills the available space. `'1'` is `flex: 1 1 0%`; `'auto'` is `flex: 1 1 auto`.
 	 * @defaultValue false
 	 */
 	flex?: '1' | 'auto' | false

@@ -18,7 +18,7 @@ export type TabsProps = Omit<ComponentProps<'div'>, 'defaultValue'> & {
 	value?: string | null
 	/** The `value` of the initial current tab, for an uncontrolled group. */
 	defaultValue?: string
-	/** Fires with the `value` of the tab that the user selects. */
+	/** Fires when the user selects a tab, with the `value` of that tab. */
 	onValueChange?: (value: string | null) => void
 	/**
 	 * The look of the group: underlined `tab` triggers or a segmented control.

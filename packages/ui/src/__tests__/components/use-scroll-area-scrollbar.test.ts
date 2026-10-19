@@ -283,7 +283,7 @@ describe('useScrollAreaScrollbar', () => {
 			expect(stopPropagation).toHaveBeenCalled()
 
 			act(() => {
-				window.dispatchEvent(new PointerEvent('pointermove', { clientY: 10 }))
+				window.dispatchEvent(new PointerEvent('pointermove', { pointerId: 1, clientY: 10 }))
 			})
 
 			// trackSize=100, thumbSize=25 → maxOffset=75; maxScroll=300; scale=4
@@ -291,12 +291,12 @@ describe('useScrollAreaScrollbar', () => {
 			expect(viewport.scrollTop).toBe(40)
 
 			act(() => {
-				window.dispatchEvent(new PointerEvent('pointerup'))
+				window.dispatchEvent(new PointerEvent('pointerup', { pointerId: 1 }))
 			})
 
 			// After pointerup, further moves are ignored.
 			act(() => {
-				window.dispatchEvent(new PointerEvent('pointermove', { clientY: 50 }))
+				window.dispatchEvent(new PointerEvent('pointermove', { pointerId: 1, clientY: 50 }))
 			})
 
 			expect(viewport.scrollTop).toBe(40)
@@ -325,7 +325,7 @@ describe('useScrollAreaScrollbar', () => {
 			expect(preventDefault).not.toHaveBeenCalled()
 
 			act(() => {
-				window.dispatchEvent(new PointerEvent('pointermove', { clientY: 10 }))
+				window.dispatchEvent(new PointerEvent('pointermove', { pointerId: 1, clientY: 10 }))
 			})
 
 			expect(viewport.scrollTop).toBe(0)
@@ -343,12 +343,12 @@ describe('useScrollAreaScrollbar', () => {
 			})
 
 			act(() => {
-				window.dispatchEvent(new PointerEvent('pointercancel'))
+				window.dispatchEvent(new PointerEvent('pointercancel', { pointerId: 1 }))
 			})
 
 			// A canceled pointer must end the drag; buttonless moves do nothing.
 			act(() => {
-				window.dispatchEvent(new PointerEvent('pointermove', { clientY: 50 }))
+				window.dispatchEvent(new PointerEvent('pointermove', { pointerId: 1, clientY: 50 }))
 			})
 
 			expect(viewport.scrollTop).toBe(0)
@@ -368,7 +368,7 @@ describe('useScrollAreaScrollbar', () => {
 			hook.unmount()
 
 			act(() => {
-				window.dispatchEvent(new PointerEvent('pointermove', { clientY: 100 }))
+				window.dispatchEvent(new PointerEvent('pointermove', { pointerId: 1, clientY: 100 }))
 			})
 
 			// scrollTop must not be mutated after unmount.
@@ -389,7 +389,7 @@ describe('useScrollAreaScrollbar', () => {
 			})
 
 			act(() => {
-				window.dispatchEvent(new PointerEvent('pointermove', { clientX: 5 }))
+				window.dispatchEvent(new PointerEvent('pointermove', { pointerId: 1, clientX: 5 }))
 			})
 
 			// Same geometry as the vertical drag test, but scrollLeft must move
@@ -397,7 +397,9 @@ describe('useScrollAreaScrollbar', () => {
 			expect(viewport.scrollLeft).toBeGreaterThan(0)
 		})
 
-		it('cleans up a prior drag if startDrag is called again before pointerup', () => {
+		// Each pointer type has its own primary pointer, so a palm is primary while a
+		// pen drags. It starts no drag, and its moves and release leave the drag alone.
+		it('keeps the drag on the pointer that started it when a palm presses', () => {
 			const { hook, viewport } = setupHook('vertical', 'visible')
 
 			scroll(hook)
@@ -405,19 +407,34 @@ describe('useScrollAreaScrollbar', () => {
 			const handler = hook.result.current.startDrag('y')
 
 			act(() => {
-				handler(makePointerEvent<HTMLDivElement>({ clientY: 0, clientX: 0 }))
-			})
-
-			// Restart the drag from a new origin; the prior cleanup runs first.
-			act(() => {
-				handler(makePointerEvent<HTMLDivElement>({ clientY: 50, clientX: 0 }))
+				handler(makePointerEvent<HTMLDivElement>({ clientY: 0, clientX: 0, pointerType: 'pen' }))
 			})
 
 			act(() => {
-				window.dispatchEvent(new PointerEvent('pointermove', { clientY: 60 }))
+				handler(
+					makePointerEvent<HTMLDivElement>({
+						clientY: 50,
+						clientX: 0,
+						pointerId: 2,
+						pointerType: 'touch',
+						isPrimary: true,
+					}),
+				)
 			})
 
-			// The new drag uses the new startClient = 50; delta = 10 → scrollTop 40.
+			act(() => {
+				window.dispatchEvent(new PointerEvent('pointermove', { pointerId: 2, clientY: 70 }))
+
+				window.dispatchEvent(new PointerEvent('pointerup', { pointerId: 2 }))
+			})
+
+			expect(viewport.scrollTop).toBe(0)
+
+			act(() => {
+				window.dispatchEvent(new PointerEvent('pointermove', { pointerId: 1, clientY: 10 }))
+			})
+
+			// The drag keeps its origin at 0: delta = 10 → scrollTop 40.
 			expect(viewport.scrollTop).toBe(40)
 		})
 
@@ -436,7 +453,7 @@ describe('useScrollAreaScrollbar', () => {
 			})
 
 			act(() => {
-				window.dispatchEvent(new PointerEvent('pointermove', { clientY: 200 }))
+				window.dispatchEvent(new PointerEvent('pointermove', { pointerId: 1, clientY: 200 }))
 			})
 
 			expect(viewport.scrollTop).toBe(0)

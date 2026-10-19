@@ -19,7 +19,7 @@ import {
 // the commit that makes it:
 //
 //   - The layout in a module page: an error state, a template picker, and the
-//     alerts of a board.
+//     alert of a board.
 //   - A frame that an example draws to hold the component: the box of `Flex`.
 //   - The `w-max` content of a `ScrollArea`, which overflows.
 //   - The cap of the `Overflow` example of `Tabs`, which makes the tab list
@@ -30,7 +30,6 @@ const WIDTHS: Record<string, readonly string[]> = {
 	'docs/pages/components/scroll-area/playground.tsx': ['w-max'],
 	'docs/pages/components/tabs/overflow.tsx': ['max-w-sm'],
 	'docs/pages/modules/dashboard/build-and-save.tsx': ['w-56', 'w-full'],
-	'docs/pages/modules/dashboard/query.tsx': ['w-full'],
 	'docs/pages/modules/grid/state/error.tsx': ['w-full'],
 	'docs/pages/structure/flex/wrap.tsx': ['w-64'],
 }

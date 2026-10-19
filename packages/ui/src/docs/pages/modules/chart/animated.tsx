@@ -4,7 +4,7 @@ import { months } from './data.ts'
 export default function Animated() {
 	return (
 		<BarChart
-			aria-label="Revenue and costs by month, animated"
+			aria-label="Revenue and costs by month"
 			data={months}
 			series={[
 				{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },

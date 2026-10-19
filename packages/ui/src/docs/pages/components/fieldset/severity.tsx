@@ -12,8 +12,8 @@ export default function Severity() {
 			</Field>
 			<Field severity="warning">
 				<Label>Email</Label>
-				<Input type="email" defaultValue="jane@gmial.com" />
-				<Message severity="warning">Check the domain. Did you mean gmail.com?</Message>
+				<Input type="email" defaultValue="wade@exmaple.com" />
+				<Message severity="warning">Check the domain. Did you mean example.com?</Message>
 			</Field>
 			<Field severity="success">
 				<Label>Promo code</Label>

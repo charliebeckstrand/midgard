@@ -27,7 +27,7 @@ export default function BatchActions() {
 								setSelection(new Set())
 							}}
 						>
-							Delete {selection.size} items
+							Delete {selection.size} {selection.size === 1 ? 'person' : 'people'}
 						</HoldButton>
 					),
 				}}

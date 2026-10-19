@@ -14,6 +14,8 @@ import {
 import { cn } from '../../core'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { scrollNodeWithin } from '../../hooks/use-scroll-within'
+import { defineMessage } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/lightbox'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
@@ -23,6 +25,15 @@ import { useLightboxContext } from './context'
 import { PAN_KEY_STEP, thumbnailOf, ZOOM_KEY_STEP } from './lightbox-utilities'
 import type { LightboxViewPhoto } from './types'
 import { useLightboxFlight } from './use-lightbox-flight'
+
+/** The place of the photo on view, such as "3 of 10". */
+const positionMessage = defineMessage<{ position: number; total: number }>({
+	id: 'ui.lightbox.position',
+	defaultMessage: '{position, number} of {total, number}',
+	description:
+		'The place of the photo on view among all the photos, which a screen reader speaks after its description, such as "3 of 10".',
+})
+
 import { useLightboxTrack } from './use-lightbox-track'
 import type { LightboxZoom } from './use-lightbox-zoom'
 
@@ -167,6 +178,8 @@ export function LightboxStage({
 	blur,
 }: LightboxStageProps) {
 	const { thumbnail } = useLightboxContext()
+
+	const intl = useIntl()
 
 	// The thumbnail of the photo in the center, where it rises from and goes back to.
 	const home = () => thumbnail(photos[index]?.index ?? -1)
@@ -483,7 +496,7 @@ export function LightboxStage({
 									))}
 								</div>
 							) : (
-								<div className={k.pill}>
+								<div className={cn(k.pill)}>
 									<Button
 										lockable={false}
 										type="button"
@@ -521,7 +534,9 @@ export function LightboxStage({
 			</div>
 			{/* A step names the photo and its place, with or without the bar. */}
 			<span aria-live="polite" className="sr-only">
-				{[aimed?.alt, `${at + 1} / ${count}`].filter(Boolean).join(', ')}
+				{[aimed?.alt, intl.formatMessage(positionMessage, { position: at + 1, total: count })]
+					.filter(Boolean)
+					.join(', ')}
 			</span>
 		</div>
 	)

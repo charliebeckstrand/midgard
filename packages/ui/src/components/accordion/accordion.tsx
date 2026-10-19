@@ -48,7 +48,7 @@ export type AccordionProps = (SingleProps | MultipleProps) &
 		 */
 		mount?: Mount
 		/**
-		 * Whether each open panel is a `region` landmark, named by its header button.
+		 * Makes each open panel a `region` landmark, named by its header button.
 		 *
 		 * @remarks
 		 * A region helps a short accordion, where the panels are the main parts of
@@ -61,7 +61,7 @@ export type AccordionProps = (SingleProps | MultipleProps) &
 		 */
 		region?: boolean
 		/**
-		 * Fires once a section has finished opening and is at rest, with the `value` of the
+		 * Fires when a section has finished opening and is at rest, with the `value` of the
 		 * section that landed.
 		 *
 		 * A state change is not an arrival: `onValueChange` reports the flip, and the panel

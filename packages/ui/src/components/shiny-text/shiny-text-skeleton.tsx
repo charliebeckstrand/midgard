@@ -5,7 +5,7 @@ import { createSkeleton, type SkeletonProps } from '../placeholder'
 export type ShinyTextSkeletonProps = SkeletonProps
 
 /**
- * Placeholder standing in for {@link ShinyText} while its content loads.
+ * A placeholder for a {@link ShinyText} while it loads.
  * @remarks Static leaf: renders in React Server Components.
  */
 export const ShinyTextSkeleton = createSkeleton(k.skeleton, 'ShinyTextSkeleton')

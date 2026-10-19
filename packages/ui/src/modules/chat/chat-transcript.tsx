@@ -49,14 +49,15 @@ export type ChatTranscriptProps = Omit<ComponentProps<'div'>, 'children'> & {
 	 */
 	messages: ChatMessageData[]
 	/**
-	 * Whether a reply is currently streaming; marks the last message when it is an assistant bubble.
+	 * Marks the last message as a streaming reply when it is an assistant bubble.
 	 * @defaultValue false
 	 */
 	streaming?: boolean
 }
 
 /**
- * Renders a chat transcript as a window over its messages, pinned to the newest.
+ * A chat transcript that renders a window over its messages, pinned to the
+ * newest.
  *
  * @remarks
  * Each message's `sender` reaches {@link ChatMessage} unchanged, because the data

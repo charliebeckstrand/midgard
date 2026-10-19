@@ -1,8 +1,8 @@
 'use client'
 
-import { type PointerEvent, useMemo, useRef } from 'react'
+import { type PointerEvent, useMemo, useRef, useState } from 'react'
 import { holdTextSelection } from '../utilities/hold-text-selection'
-import { isPrimaryPress } from '../utilities/primary-press'
+import { createPressOwner, type isPrimaryPress } from '../utilities/primary-press'
 import { useStableEvent } from './use-stable-event'
 import { useTimeout } from './use-timeout'
 import { TOUCH_SLOP } from './use-touch-tap'
@@ -13,8 +13,9 @@ export type TouchPress = { id: number; x: number; y: number; target: EventTarget
 /** The controls {@link useTouchHold} gives. Each function keeps its identity. @internal */
 export type TouchHold = {
 	/**
-	 * Starts a hold from a `pointerdown`, and ends the hold before it. A press that cannot start a
-	 * gesture (see {@link isPrimaryPress}) changes nothing. The caller filters the pointer type.
+	 * Starts a hold from a `pointerdown`. A press that cannot start a gesture (see
+	 * {@link isPrimaryPress}), or a press while another pointer holds, changes nothing. The caller
+	 * filters the pointer type.
 	 *
 	 * @returns Whether the hold started.
 	 */
@@ -56,6 +57,9 @@ export function useTouchHold(onHold: (press: TouchPress) => void): TouchHold {
 
 	const press = useRef<TouchPress | null>(null)
 
+	// The pointer that holds. While a pen holds, the touch of a palm is also a primary press.
+	const [owner] = useState(createPressOwner)
+
 	const hold = useStableEvent(onHold)
 
 	return useMemo<TouchHold>(() => {
@@ -63,14 +67,14 @@ export function useTouchHold(onHold: (press: TouchPress) => void): TouchHold {
 			timer.clear()
 
 			press.current = null
+
+			owner.release()
 		}
 
 		return {
 			start: (event, delay) => {
-				// A second finger leaves the held press alone, so a pinch does not end it.
-				if (!isPrimaryPress(event)) return false
-
-				cancel()
+				// A second finger or a palm leaves the held press alone, so a pinch does not end it.
+				if (!owner.claim(event)) return false
 
 				holdTextSelection(event)
 
@@ -90,7 +94,7 @@ export function useTouchHold(onHold: (press: TouchPress) => void): TouchHold {
 			move: (event) => {
 				const current = press.current
 
-				if (current === null || event.pointerId !== current.id || !timer.pending()) return false
+				if (current === null || !owner.owns(event) || !timer.pending()) return false
 
 				if (Math.hypot(event.clientX - current.x, event.clientY - current.y) <= TOUCH_SLOP) {
 					return false
@@ -101,9 +105,8 @@ export function useTouchHold(onHold: (press: TouchPress) => void): TouchHold {
 				return true
 			},
 			cancel,
-			active: (pointerId) =>
-				press.current !== null && (pointerId === undefined || press.current.id === pointerId),
+			active: (pointerId) => (pointerId === undefined ? owner.held() : owner.owns({ pointerId })),
 			pending: timer.pending,
 		}
-	}, [timer, hold])
+	}, [timer, hold, owner])
 }

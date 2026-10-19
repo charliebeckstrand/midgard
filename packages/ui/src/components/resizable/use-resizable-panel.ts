@@ -13,7 +13,7 @@ import { isRtl } from '../../hooks/a11y/logical-arrow'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { clamp } from '../../utilities'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
-import { isPrimaryPress } from '../../utilities/primary-press'
+import { createPressOwner } from '../../utilities/primary-press'
 import type { PanelConfig, ResizableOrientation } from './types'
 
 type DragState = {
@@ -239,6 +239,9 @@ export function useResizablePanel({
 }: PanelResize) {
 	const dragRef = useRef<DragState | null>(null)
 	const cleanupRef = useRef<(() => void) | null>(null)
+
+	// The pointer that drives the drag, on whichever handle it pressed.
+	const [press] = useState(createPressOwner)
 	// Seed the sizes from the panel defaults: normalized to 100%, then clamped.
 	const [sizes, setSizes] = useState(() => seedSizes(panelConfigs))
 
@@ -299,7 +302,8 @@ export function useResizablePanel({
 	const startDrag = useStableEvent((handleIndex: number, event: ReactPointerEvent) => {
 		const group = groupRef.current
 
-		if (!group || !isPrimaryPress(event)) return
+		// A palm that lands on any handle mid-drag takes no drag.
+		if (!group || !press.claim(event)) return
 
 		holdTextSelection(event)
 
@@ -320,15 +324,11 @@ export function useResizablePanel({
 
 		const availableSize = totalSize - handleWidth
 
-		if (availableSize <= 0) return
+		if (availableSize <= 0) {
+			press.release()
 
-		// A new drag supersedes any still-active one (a second pointer landing on
-		// another handle before the first lifts): tear down the prior drag's
-		// listeners first, or they outlive cleanupRef — which holds only the
-		// latest — and fire a post-unmount setSizes. Mirrors beginScrollbarDrag.
-		// Placed after the guard so a pointerdown that can't start a drag (group
-		// collapsed to <= handle size) leaves the still-live drag intact.
-		cleanupRef.current?.()
+			return
+		}
 
 		// Capture holds the handle as the pointer target for the whole drag, so
 		// the panel content under the pointer shows no hover. `useDragCursor`
@@ -420,13 +420,15 @@ export function useResizablePanel({
 
 			controller.abort()
 
+			press.release()
+
 			cleanupRef.current = null
 
 			/*
 			 * Last, and that ordering is what keeps the bracket balanced without a latch.
 			 * The abort drops all four listeners, so a canceled pointer that also fires
-			 * pointerup cannot re-enter. Clearing `cleanupRef` disarms the supersede and
-			 * unmount exits, so a consumer starting a fresh drag from inside this
+			 * pointerup cannot re-enter. Clearing `cleanupRef` disarms the unmount exit,
+			 * so a consumer starting a fresh drag from inside this
 			 * callback gets a clean one. The flush above has already delivered the settled sizes
 			 * through `onSizesChange`.
 			 */
@@ -434,7 +436,7 @@ export function useResizablePanel({
 		}
 
 		// One controller for the drag's whole listener set: `onUp` and the
-		// supersede path in `cleanupRef` tear down the same four listeners, and
+		// unmount path in `cleanupRef` tear down the same four listeners, and
 		// a single `abort()` cannot drift from the add list the way two hand-kept
 		// removal lists can.
 		const controller = new AbortController()
@@ -444,14 +446,12 @@ export function useResizablePanel({
 		// Only the pointer that started the drag moves it or ends it. A second
 		// finger on the panel content sends its own events to the document, and
 		// they do nothing. `onUp` takes no event, so the filter is here.
-		const { pointerId } = event
-
 		const onOwnMove = (moveEvent: PointerEvent) => {
-			if (moveEvent.pointerId === pointerId) onMove(moveEvent)
+			if (press.owns(moveEvent)) onMove(moveEvent)
 		}
 
 		const onOwnUp = (upEvent: PointerEvent) => {
-			if (upEvent.pointerId === pointerId) onUp()
+			if (press.owns(upEvent)) onUp()
 		}
 
 		document.addEventListener('pointermove', onOwnMove, { signal })
@@ -467,7 +467,9 @@ export function useResizablePanel({
 
 			controller.abort()
 
-			// The supersede and unmount exits close the bracket too. `onUp` clears
+			press.release()
+
+			// The unmount exit closes the bracket too. `onUp` clears
 			// `cleanupRef` before it reports, so a normal lift never reaches here.
 			reportResizeEnd(handleIndex)
 		}
