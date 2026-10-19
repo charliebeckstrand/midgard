@@ -188,6 +188,21 @@ describe('stepNearest', () => {
 		expect(stepNearest(diagonal, 0, 'west')).toBeNull()
 	})
 
+	it('visits each stop of a stack in list order before it leaves the stack', () => {
+		// A geofence and the point at its center share one position.
+		const stacked = [region(0, 0, 0), entry('zone', 10, 0), entry('depot', 10, 0), region(1, 20, 0)]
+
+		expect(stepNearest(stacked, 0, 'east')).toBe(1)
+
+		// Any arrow steps down the stack first.
+		expect(stepNearest(stacked, 1, 'west')).toBe(2)
+
+		expect(stepNearest(stacked, 2, 'east')).toBe(3)
+
+		// A step back into the stack lands on its first stop.
+		expect(stepNearest(stacked, 3, 'west')).toBe(1)
+	})
+
 	it('crosses between a region and an overlay, which share one field', () => {
 		const mixed = [region(0, 0, 0), entry('depot', 10, 0)]
 
