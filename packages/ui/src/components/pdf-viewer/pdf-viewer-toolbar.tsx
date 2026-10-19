@@ -123,7 +123,7 @@ export function PdfViewerToolbar() {
 									onValueChange={(next) => {
 										if (next !== null) goToPage(next)
 									}}
-									displayValue={(pageNumber) => String(pageNumber)}
+									displayValue={(pageNumber) => intl.formatNumber(pageNumber)}
 									disabled={controlsDisabled}
 									className="tabular-nums"
 								>
@@ -144,7 +144,7 @@ export function PdfViewerToolbar() {
 								</span>
 								{/* `-total`, not `-status`: the viewport's live region owns that anchor. */}
 								<span data-slot="pdf-viewer-page-total" className={cn(k.toolbar.total)}>
-									<span aria-hidden="true">{total}</span>
+									<span aria-hidden="true">{intl.formatNumber(total)}</span>
 									<span className="sr-only">
 										{intl.formatMessage(pdfViewerMessages.ofTotal, { total })}
 									</span>

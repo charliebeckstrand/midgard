@@ -41,13 +41,13 @@ type ReorderValues = {
 export const reorderMessages: MessageSet<ReorderValues> = defineMessages<ReorderValues>({
 	subject: {
 		id: 'ui.reorder.subject',
-		defaultMessage: '{item}, position {position} of {total}',
+		defaultMessage: '{item}, position {position, number} of {total, number}',
 		description:
 			'An item and its place in an ordered list, inside a reorder announcement, such as "Alpha, position 2 of 3".',
 	},
 	subjectIn: {
 		id: 'ui.reorder.subjectIn',
-		defaultMessage: '{item}, position {position} of {total} in {container}',
+		defaultMessage: '{item}, position {position, number} of {total, number} in {container}',
 		description:
 			'An item and its place in a named group, such as a card in a Kanban column, inside a reorder announcement.',
 	},
@@ -65,23 +65,25 @@ export const reorderMessages: MessageSet<ReorderValues> = defineMessages<Reorder
 	},
 	moved: {
 		id: 'ui.reorder.moved',
-		defaultMessage: '{item} moved to position {position} of {total}.',
+		defaultMessage: '{item} moved to position {position, number} of {total, number}.',
 		description: 'Spoken when an item moves to a new place in an ordered list.',
 	},
 	movedIn: {
 		id: 'ui.reorder.movedIn',
-		defaultMessage: '{item} moved to position {position} of {total} in {container}.',
+		defaultMessage:
+			'{item} moved to position {position, number} of {total, number} in {container}.',
 		description:
 			'Spoken when an item moves to a new place in a named group, such as a Kanban column.',
 	},
 	returned: {
 		id: 'ui.reorder.returned',
-		defaultMessage: 'Returned {item} to position {position} of {total}.',
+		defaultMessage: 'Returned {item} to position {position, number} of {total, number}.',
 		description: 'Spoken when a canceled move puts an item back at its place in an ordered list.',
 	},
 	returnedIn: {
 		id: 'ui.reorder.returnedIn',
-		defaultMessage: 'Returned {item} to position {position} of {total} in {container}.',
+		defaultMessage:
+			'Returned {item} to position {position, number} of {total, number} in {container}.',
 		description: 'Spoken when a canceled move puts an item back at its place in a named group.',
 	},
 	returnedBare: {

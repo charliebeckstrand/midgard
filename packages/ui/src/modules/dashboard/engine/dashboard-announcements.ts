@@ -29,7 +29,7 @@ const messages = defineMessages<{
 	cell: {
 		id: 'ui.dashboard.cell',
 		defaultMessage:
-			'column {column} of {columns}, row {row}, {width, plural, one {# column} other {# columns}} wide',
+			'column {column, number} of {columns, number}, row {row, number}, {width, plural, one {# column} other {# columns}} wide',
 		description:
 			'The place of a dashboard tile: its first column, the count of columns, its row, and its width.',
 	},

@@ -1,6 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { PieChart } from '../../modules/chart/pie-chart'
+import { LocaleProvider } from '../../providers/locale'
 import { getSlot, renderUI, screen, waitFor } from '../helpers'
 
 /**
@@ -61,5 +62,31 @@ describe('chart legend pager focus (real browser)', () => {
 		expect(document.activeElement).toBe(previous)
 		expect(previous).toHaveAttribute('aria-disabled', 'true')
 		expect(next).not.toHaveAttribute('aria-disabled')
+	})
+
+	it('says the page in the language of the reader, and hides the slash from a screen reader', () => {
+		const { container } = renderUI(
+			<LocaleProvider locale="es-ES">
+				<PieChart
+					aria-label="Tráfico por fuente"
+					data={data}
+					series={[{ xKey: 'source', yKey: 'visits' }]}
+					width={640}
+					height={320}
+					legend="right"
+				/>
+			</LocaleProvider>,
+		)
+
+		const pager = getSlot(container, 'chart-legend-pagination')
+
+		const sentence = pager.querySelector('.sr-only')
+
+		expect(sentence).toHaveTextContent('Página 1 de 2')
+
+		// The visible count sits beside the sentence, out of the accessibility tree.
+		expect(sentence?.previousElementSibling).toHaveAttribute('aria-hidden', 'true')
+
+		expect(sentence?.previousElementSibling).toHaveTextContent('1 / 2')
 	})
 })

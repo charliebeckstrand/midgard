@@ -1,6 +1,7 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { useDensityStep } from '../../primitives/density'
+import { localeIntl } from '../../primitives/intl/intl-catalog'
 import { DensityProvider, densityLevels, levelToStep } from '../../providers/density'
 import { bySlot, renderUI } from '../helpers'
 
@@ -11,12 +12,21 @@ describe('levelToStep', () => {
 })
 
 describe('densityLevels', () => {
-	it('lists the three levels with display labels, loose → compact', () => {
-		expect(densityLevels).toEqual([
+	it('lists the three levels with English labels, loose → compact', () => {
+		expect(densityLevels.map(({ label, value }) => ({ label, value }))).toEqual([
 			{ label: 'Loose', value: 'loose' },
 			{ label: 'Snug', value: 'snug' },
 			{ label: 'Compact', value: 'compact' },
 		])
+	})
+
+	it('names each level in the language of the reader', () => {
+		const names = (locale: string) =>
+			densityLevels.map((level) => localeIntl(locale).formatMessage(level.message))
+
+		expect(names('en-US')).toEqual(['Loose', 'Snug', 'Compact'])
+
+		expect(names('es-ES')).toEqual(['Amplia', 'Estándar', 'Compacta'])
 	})
 })
 

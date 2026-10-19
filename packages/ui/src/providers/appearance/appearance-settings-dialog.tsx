@@ -19,7 +19,7 @@ import { densityLevels } from '../density/context'
 import { useLocaleChoice } from '../locale/context'
 import { localeOptions } from '../locale/locale-choice'
 import { UIProvider } from '../ui'
-import { appearanceChoiceMessages, appearanceMessages } from './appearance-messages'
+import { appearanceMessages } from './appearance-messages'
 import { useAppearance } from './context'
 import { motionModes, sidebarModes, themeModes } from './modes'
 
@@ -133,12 +133,8 @@ export function AppearanceSettingsDialog({
 	)
 
 	// The options of a picker, with the label of each choice in the language of the reader.
-	const choices = <T extends keyof typeof appearanceChoiceMessages>(options: { value: T }[]) =>
-		options.map(({ value }) => {
-			const message: MessageDescriptor = appearanceChoiceMessages[value]
-
-			return { value, label: intl.formatMessage(message) }
-		})
+	const choices = <T extends string>(options: { message: MessageDescriptor; value: T }[]) =>
+		options.map(({ message, value }) => ({ value, label: intl.formatMessage(message) }))
 
 	const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null)
 

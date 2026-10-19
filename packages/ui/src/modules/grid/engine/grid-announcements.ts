@@ -194,7 +194,7 @@ const messages = defineMessages<{
 	range: {
 		id: 'ui.grid.range',
 		defaultMessage:
-			'Range of {rows, plural, one {# row} other {# rows}} and {cols, plural, one {# column} other {# columns}}, {fromColumn} row {fromRow} to {toColumn} row {toRow}',
+			'Range of {rows, plural, one {# row} other {# rows}} and {cols, plural, one {# column} other {# columns}}, {fromColumn} row {fromRow, number} to {toColumn} row {toRow, number}',
 		description:
 			'Spoken when the reader selects a range of cells of the grid: its size, and its two corners by column and row number.',
 	},

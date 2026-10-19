@@ -300,9 +300,10 @@ describe('ColorPanel in a locale', () => {
 
 		expect(screen.getByRole('slider', { name: 'Opacidad' })).toBeInTheDocument()
 
+		// The percent format of Spanish puts a no-break space before the sign.
 		expect(screen.getByRole('slider', { name: 'Saturación y brillo' })).toHaveAttribute(
 			'aria-valuetext',
-			'Saturación 50 %, brillo 50 %',
+			'Saturación 50\u00a0%, brillo 50\u00a0%',
 		)
 
 		// The hue and the opacity give their values in the number format of the locale.

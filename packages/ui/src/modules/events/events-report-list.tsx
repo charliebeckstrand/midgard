@@ -75,7 +75,8 @@ function ReportLine({
 					{titleOf(entry)}
 				</Text>
 				<Text tone="muted" className="truncate text-xs">
-					{report.page} · {new Date(report.at).toLocaleTimeString()} · {report.origin}
+					{report.page} · {intl.formatTime(new Date(report.at), { timeStyle: 'medium' })} ·{' '}
+					{report.origin}
 				</Text>
 				<Text className={cn('truncate font-mono text-xs', k.hash)}>{report.hash}</Text>
 			</span>

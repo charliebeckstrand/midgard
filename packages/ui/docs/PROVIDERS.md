@@ -37,11 +37,11 @@ An app mounts `AppearanceProvider` once at its root. The stylesheet of the app m
 | `useAppearance` | Reads the theme, the density, the motion, the sidebar, and their setters from the nearest `AppearanceProvider`; throws outside one. |
 | `AppearanceContextValue` *(type)* | The value that `useAppearance` returns. |
 | `ThemeMode` *(type)* | Theme preference: `light`, `dark`, or `system`. |
-| `themeModes` | Selectable theme modes with display labels, for theme pickers. |
+| `themeModes` | The theme modes, for a theme picker: an English `label` and a translated `message` for each. |
 | `MotionMode` *(type)* | Motion preference: `system` follows the platform `prefers-reduced-motion` setting, and `reduced` reduces motion on each platform. |
-| `motionModes` | Selectable motion modes with display labels, for motion pickers. |
+| `motionModes` | The motion modes, for a motion picker: an English `label` and a translated `message` for each. |
 | `SidebarMode` *(type)* | Sidebar preference: `locked` keeps the sidebar of a `SidebarLayout` in its panel where the layout is inline. `offcanvas` hides it at the start edge, and a pointer near the edge opens it. |
-| `sidebarModes` | Selectable sidebar modes with display labels, for sidebar pickers. |
+| `sidebarModes` | The sidebar modes, for a sidebar picker: an English `label` and a translated `message` for each. |
 
 ## `ui/providers/density`
 
@@ -52,7 +52,7 @@ Opens a density scope for a region, and maps the friendly density levels to dens
 | `DensityProvider` | Opens a density scope for a region at a friendly level (`compact` / `snug` / `loose`). |
 | `DensityProviderProps` *(type)* | Props for `DensityProvider`. |
 | `DensityLevel` *(type)* | Friendly density level: the stored density setting and the `density` prop of `DensityProvider`; `'snug'` is the baseline. |
-| `densityLevels` | Selectable density levels with display labels, ordered loose → compact, for density pickers. |
+| `densityLevels` | The density levels, ordered loose → compact, for a density picker: an English `label` and a translated `message` for each. |
 | `levelToStep` | Maps each friendly density level to its density step (loose→lg, snug→md, compact→sm). |
 
 ## `ui/providers/glass`

@@ -22,6 +22,7 @@ type ChartValues = {
 	legend: Record<never, never>
 	previousEntries: Record<never, never>
 	nextEntries: Record<never, never>
+	entriesPage: { page: number; count: number }
 	showMore: { count: number }
 	moreEntries: Record<never, never>
 	value: Record<never, never>
@@ -104,9 +105,15 @@ export const chartMessages: MessageSet<ChartValues> = defineMessages<ChartValues
 		defaultMessage: 'Next legend entries',
 		description: 'The name of the button that shows the page of legend entries after.',
 	},
+	entriesPage: {
+		id: 'ui.chart.entriesPage',
+		defaultMessage: 'Page {page, number} of {count, number}',
+		description:
+			'The text for a screen reader between the page buttons of a legend, such as "Page 2 of 3". The screen shows "2 / 3".',
+	},
 	showMore: {
 		id: 'ui.chart.showMore',
-		defaultMessage: 'Show {count} more',
+		defaultMessage: 'Show {count, number} more',
 		description:
 			'The name of the button that shows the legend entries that do not fit. The count is the number of those entries.',
 	},
