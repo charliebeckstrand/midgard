@@ -2,7 +2,6 @@
 
 import { type CSSProperties, type FocusEvent, type Ref, useMemo, useRef } from 'react'
 import { ariaAttr, cn, dataAttr, invalidAttrs } from '../../../core'
-import { useIdScope } from '../../../hooks/use-id-scope'
 import { useFormValue } from '../../../primitives/form/use-form-value'
 import { defineMessages } from '../../../primitives/intl/intl-messages'
 import { useIntl } from '../../../primitives/intl/use-intl'
@@ -10,7 +9,7 @@ import { k, type RangeSliderVariants } from '../../../recipes/kata/slider-range'
 import { pct } from '../../../utilities'
 import { useControl } from '../../control/context'
 import { useControlProps } from '../../control/use-control-props'
-import { useControlTarget } from '../../control/use-control-target'
+import { useControlScope } from '../../control/use-control-scope'
 import { boundRange } from './range-utilities'
 import type { ThumbButtonRefs, ThumbIndex } from './types'
 import { useRangeKeyboard } from './use-range-keyboard'
@@ -190,14 +189,9 @@ export function RangeSlider({
 
 	// The root has no role, so the validation state and the description go on
 	// each `role="slider"` thumb.
-	const controlProps = useControlProps({ name, id, disabled, readOnly, invalid })
+	const controlProps = useControlProps({ id, disabled, readOnly, invalid })
 
-	const scope = useIdScope({ id: controlProps.id })
-
-	// The control renders its own id when no Field, Control, or prop gives one.
-	// So it registers that rendered id, and not the id of useControlProps, which
-	// is undefined for a bare control.
-	useControlTarget(name, scope.id)
+	const scope = useControlScope(name, controlProps.id)
 
 	// A Field Label names each thumb together with the thumb label. The thumb
 	// label then needs an element with an id, so it renders as a hidden span.

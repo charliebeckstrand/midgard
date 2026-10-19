@@ -4,6 +4,7 @@ import type { PDFDocumentProxy, PDFPageProxy } from 'pdfjs-dist'
 import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
 import { preload } from 'react-dom'
 import { clamp } from '../../utilities'
+import { noop } from '../../utilities/noop'
 import { PdfBinaryData } from './pdf-viewer-binary-data'
 import {
 	EMPTY_DOCUMENT_SNAPSHOT,
@@ -117,6 +118,16 @@ type PdfDocumentResult = PdfDocumentSnapshot & {
 const THUMBNAIL_WIDTH = 192
 
 /**
+ * The device pixels that a render draws for each CSS pixel: the device pixel ratio, from `min`
+ * up to 2.
+ *
+ * @internal
+ */
+function pixelDensity(min: number): number {
+	return clamp(window.devicePixelRatio || 1, min, 2)
+}
+
+/**
  * Renders one parsed page onto a canvas of its own, and keeps the result.
  *
  * @returns A job that gives the raster, or `null` for a page with no 2D context or an encode
@@ -138,7 +149,7 @@ const THUMBNAIL_WIDTH = 192
 function renderPage(page: PDFPageProxy, raster: PdfPageRaster, scale: number): PdfRenderJob {
 	const points = page.getViewport({ scale: 1 })
 
-	const density = clamp(window.devicePixelRatio || 1, 1, 2)
+	const density = pixelDensity(1)
 
 	const viewport = page.getViewport({
 		scale:
@@ -154,7 +165,7 @@ function renderPage(page: PDFPageProxy, raster: PdfPageRaster, scale: number): P
 
 	const context = canvas.getContext('2d')
 
-	if (!context) return { promise: Promise.resolve(null), cancel: () => {} }
+	if (!context) return { promise: Promise.resolve(null), cancel: noop }
 
 	const task = page.render({ canvas, canvasContext: context, viewport })
 
@@ -265,7 +276,7 @@ async function rasterizeDocument(src: string, report: PdfLoadReport): Promise<vo
 
 		opened = doc
 
-		const scale = clamp(window.devicePixelRatio || 1, 1.5, 2)
+		const scale = pixelDensity(1.5)
 
 		const parsed = await openSlots(doc, scale, report)
 
@@ -277,7 +288,7 @@ async function rasterizeDocument(src: string, report: PdfLoadReport): Promise<vo
 		report.serve((index, raster, factor = 1) => {
 			const page = parsed[index]
 
-			if (!page) return { promise: Promise.resolve(null), cancel: () => {} }
+			if (!page) return { promise: Promise.resolve(null), cancel: noop }
 
 			return renderPage(page, raster, scale * factor)
 		})
@@ -366,8 +377,8 @@ export function usePdfViewerDocumentFocus(
 	useEffect(() => focusPage(src, token, Math.max(page - 1, 0)), [src, token, page])
 
 	useEffect(() => {
-		// The same density as a render: device pixels, up to 2 for each CSS pixel.
-		const density = clamp(window.devicePixelRatio || 1, 1, 2)
+		// The same density as a render.
+		const density = pixelDensity(1)
 
 		return sizePage(src, token, width * density)
 	}, [src, token, width])

@@ -11,6 +11,7 @@ import {
 } from 'react'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import { useControlProps } from '../control/use-control-props'
+import { useControlScope } from '../control/use-control-scope'
 import { drawSnapshot } from './signature-pad-utilities'
 import { useSignaturePadCanvasSizing } from './use-signature-pad-canvas-sizing'
 import { useSignaturePadDrawing } from './use-signature-pad-drawing'
@@ -94,7 +95,9 @@ export function useSignaturePadState({
 
 	// The Control cascade: an explicit prop wins over the enclosing Control, and
 	// the field error merges with an ambient error severity.
-	const control = useControlProps({ name, disabled, readOnly, invalid })
+	const control = useControlProps({ disabled, readOnly, invalid })
+
+	const scope = useControlScope(name, control.id)
 
 	const current = currentValue ?? null
 
@@ -229,6 +232,7 @@ export function useSignaturePadState({
 	)
 
 	return {
+		id: scope.id,
 		containerRef,
 		canvasRef,
 		empty,

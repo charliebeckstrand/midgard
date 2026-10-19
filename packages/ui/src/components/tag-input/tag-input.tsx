@@ -14,6 +14,7 @@ import { BadgeRemovable } from '../badge/badge-removable'
 import { Button } from '../button'
 import { useControlFallbackLabel } from '../control/use-control-fallback-label'
 import { useControlProps } from '../control/use-control-props'
+import { useControlScope } from '../control/use-control-scope'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
 import { hasSeparator, splitTokens, type TokenRejection } from './tag-input-utilities'
@@ -185,7 +186,10 @@ export function TagInput({
 	// The Control cascade: an explicit `disabled` or `required` wins over the
 	// enclosing Control. A disabled or read-only field keeps its tags and adds
 	// none.
-	const ambient = useControlProps({ name, disabled, required })
+	const ambient = useControlProps({ id: props.id, disabled, required })
+
+	// The inner Input is nameless, so the field registers the id that it renders.
+	const scope = useControlScope(name, ambient.id)
 
 	const locked = ambient.disabled === true || ambient.readOnly === true
 
@@ -412,6 +416,7 @@ export function TagInput({
 	return (
 		<Input
 			{...props}
+			id={scope.id}
 			ref={setRefs}
 			size={size}
 			disabled={disabled}

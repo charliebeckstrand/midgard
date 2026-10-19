@@ -4,7 +4,6 @@ import { Star } from 'lucide-react'
 import { type MouseEvent, type PointerEvent, type ReactNode, useRef, useState } from 'react'
 import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
-import { useIdScope } from '../../hooks/use-id-scope'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import { defineMessage, defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -13,7 +12,7 @@ import { k, type RatingVariants } from '../../recipes/kata/rating'
 import { clamp, rangeKeys } from '../../utilities'
 import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
-import { useControlTarget } from '../control/use-control-target'
+import { useControlScope } from '../control/use-control-scope'
 
 /** How much of one star fills at `value`: the whole star below it, none above, the remainder on it. @internal */
 function starFill(value: number, star: number): number {
@@ -252,12 +251,7 @@ export function Rating({
 	// The row's id, in both forms. It is also the native grouping name, which is
 	// this row's own and never the bound field's: two ratings bound to different
 	// fields would otherwise share a group and clear each other.
-	const scope = useIdScope({ id: resolvedId })
-
-	// The control renders its own id when no Field, Control, or prop gives one.
-	// So it registers that rendered id, and not the id of useControlProps, which
-	// is undefined for a bare control.
-	useControlTarget(name, scope.id)
+	const scope = useControlScope(name, resolvedId)
 
 	const current = bound ?? 0
 

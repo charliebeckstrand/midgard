@@ -23,6 +23,7 @@ import { useGlass } from '../../providers/glass/context'
 import type { scale } from '../../recipes/kata/listbox'
 import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
+import { useControlScope } from '../control/use-control-scope'
 import { Icon } from '../icon'
 import { InputClearButton } from '../input/input-clear-button'
 import { ListboxContext } from './context'
@@ -270,7 +271,6 @@ export function Listbox<T>({
 		'aria-describedby': describedBy,
 		validation,
 	} = useControlProps({
-		name,
 		id,
 		disabled,
 		readOnly,
@@ -278,6 +278,8 @@ export function Listbox<T>({
 		invalid: boundInvalid,
 		'aria-describedby': ariaDescribedBy,
 	})
+
+	const scope = useControlScope(name, resolvedId)
 
 	const listboxId = useId()
 
@@ -529,7 +531,7 @@ export function Listbox<T>({
 					}
 				>
 					<ListboxButton
-						id={resolvedId}
+						id={scope.id}
 						ref={triggerRef}
 						open={open}
 						controlsId={listboxId}

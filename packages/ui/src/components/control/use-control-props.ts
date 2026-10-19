@@ -22,7 +22,7 @@ export type ControlPropsOptions = {
 	 *
 	 * A control that makes its own id when no id resolves, such as `Input`,
 	 * omits the name here. It registers the id that it renders through
-	 * `useControlTarget`, so a bare control also links.
+	 * `useControlScope`, so a bare control also links.
 	 */
 	name?: string
 	/**

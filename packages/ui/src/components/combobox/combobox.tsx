@@ -47,6 +47,7 @@ import { useGlass } from '../../providers/glass/context'
 import type { scale } from '../../recipes/kata/combobox'
 import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
+import { useControlScope } from '../control/use-control-scope'
 import { Icon } from '../icon'
 import { InputClearButton } from '../input/input-clear-button'
 import { OPTION_SELECTOR } from './combobox-constants'
@@ -537,12 +538,15 @@ export function Combobox<T>({
 	// Combobox that withheld them rang only for a `<Field severity>` its consumer
 	// set by hand — where the Input beside it rang for its own validator.
 	const {
+		id: resolvedId,
 		disabled: resolvedDisabled,
 		readOnly: resolvedReadOnly,
 		required: resolvedRequired,
 		invalid: resolvedInvalid,
 		autoComplete: resolvedAutoComplete,
-	} = useControlProps({ name, autoComplete, disabled, readOnly, required, invalid: boundInvalid })
+	} = useControlProps({ id, autoComplete, disabled, readOnly, required, invalid: boundInvalid })
+
+	const scope = useControlScope(name, resolvedId)
 
 	const listboxId = useId()
 
@@ -934,7 +938,7 @@ export function Combobox<T>({
 						}}
 					>
 						<ComboboxInput
-							id={id}
+							id={scope.id}
 							ref={inputRef}
 							resetRef={resetRef}
 							type="text"

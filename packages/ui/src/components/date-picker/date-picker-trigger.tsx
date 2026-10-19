@@ -17,8 +17,13 @@ import { Icon } from '../icon'
 import { InputClearButton } from '../input/input-clear-button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 
-/** Props for {@link DatePickerTrigger}. @internal */
-type DatePickerTriggerProps = {
+/**
+ * The part of the state of a {@link DatePicker} variant that {@link DatePickerTrigger}
+ * reads. Each variant state hook returns it, so a variant passes its state whole.
+ *
+ * @internal
+ */
+export type DatePickerTriggerState = {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	triggerId?: string
@@ -27,6 +32,26 @@ type DatePickerTriggerProps = {
 	describedBy?: string
 	setReference: (node: HTMLElement | null) => void
 	getReferenceProps: () => Record<string, unknown>
+	disabled?: boolean
+	/**
+	 * Marks the trigger with `aria-readonly` and `data-readonly`, as on Listbox.
+	 * It also hides the clear button, because a read-only value cannot change.
+	 */
+	readOnly?: boolean
+	required?: boolean
+	/** The resolved validation attributes. The frame paints its ring from them. */
+	validation?: ValidationAttrs
+	onTriggerKeyDown: (event: KeyboardEvent<HTMLElement>) => void
+	/** Whether a value is set; gates the clear button alongside `clearable`. */
+	hasValue?: boolean
+	/** Clears the value; fired by the clear button. */
+	onClear?: () => void
+}
+
+/** Props for {@link DatePickerTrigger}. @internal */
+type DatePickerTriggerProps = {
+	/** The state of the variant. */
+	state: DatePickerTriggerState
 	/** Text label for the selected value; ignored when `children` is provided. */
 	displayValue?: string
 	placeholder: string
@@ -43,22 +68,8 @@ type DatePickerTriggerProps = {
 	 * empty/placeholder rendering and the `min-w-0 flex-1` layout.
 	 */
 	children?: ReactNode
-	disabled?: boolean
-	/**
-	 * Marks the trigger with `aria-readonly` and `data-readonly`, as on Listbox.
-	 * It also hides the clear button, because a read-only value cannot change.
-	 */
-	readOnly?: boolean
-	required?: boolean
-	/** The resolved validation attributes. The frame paints its ring from them. */
-	validation?: ValidationAttrs
-	onKeyDown: (event: KeyboardEvent<HTMLElement>) => void
-	/** Renders a clear button in place of the calendar icon while `hasValue`. */
+	/** Renders a clear button in place of the calendar icon while the state `hasValue`. */
 	clearable?: boolean
-	/** Whether a value is set; gates the clear button alongside `clearable`. */
-	hasValue?: boolean
-	/** Clears the value; fired by the clear button. */
-	onClear?: () => void
 	/** Accessible name for the trigger when no Field label wraps it; the placeholder is not a programmatic name. */
 	'aria-label'?: string
 	className?: string
@@ -79,29 +90,33 @@ type DatePickerTriggerProps = {
  * @internal
  */
 export function DatePickerTrigger({
-	open,
-	onOpenChange,
-	triggerId,
-	dialogId,
-	describedBy,
-	setReference,
-	getReferenceProps,
+	state,
 	displayValue = '',
 	placeholder,
 	size,
 	'aria-label': ariaLabel,
 	truncate = true,
-	disabled = false,
-	readOnly = false,
-	required = false,
-	validation,
-	onKeyDown,
 	clearable = false,
-	hasValue = false,
-	onClear,
 	className,
 	children,
 }: DatePickerTriggerProps) {
+	const {
+		open,
+		onOpenChange,
+		triggerId,
+		dialogId,
+		describedBy,
+		setReference,
+		getReferenceProps,
+		disabled = false,
+		readOnly = false,
+		required = false,
+		validation,
+		onTriggerKeyDown,
+		hasValue = false,
+		onClear,
+	} = state
+
 	const intl = useIntl()
 
 	const glass = useGlass()
@@ -173,7 +188,7 @@ export function DatePickerTrigger({
 					data-disabled={dataAttr(disabled)}
 					{...validation}
 					onClick={() => onOpenChange(!open)}
-					onKeyDown={onKeyDown}
+					onKeyDown={onTriggerKeyDown}
 					className={cn(k.button())}
 				>
 					{children ?? (
