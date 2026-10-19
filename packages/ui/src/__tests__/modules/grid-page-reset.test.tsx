@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { act, renderUI, screen, setupUser, waitFor } from '../helpers'
+import { renderUI, screen, setupUser, waitFor } from '../helpers'
 
 type Row = { id: number; name: string }
 
@@ -37,9 +37,7 @@ describe('Grid page reset on a search', () => {
 		expect(screen.getByRole('button', { current: 'page' })).toHaveTextContent('3')
 
 		// "Row 1" matches Row 1 and Row 10 to Row 19: eleven rows, three pages.
-		await act(async () => {
-			await user.type(screen.getByRole('searchbox'), 'Row 1')
-		})
+		await user.type(screen.getByRole('searchbox'), 'Row 1')
 
 		// The search commits after its debounce.
 		await waitFor(() =>
@@ -62,9 +60,7 @@ describe('Grid page reset on a search', () => {
 			/>,
 		)
 
-		await act(async () => {
-			await user.type(screen.getByRole('searchbox'), 'Row 1')
-		})
+		await user.type(screen.getByRole('searchbox'), 'Row 1')
 
 		// Page 2 shows Row 6 to Row 10 before the search commits, and the fifth to
 		// the ninth match after it: Row 14 to Row 18. Wait for the commit, so the

@@ -131,6 +131,7 @@ const exportsCache: Plugin = {
 // gives `expect` the geometry matchers (`setup/geometry.ts`).
 const setupFiles = [
 	'./src/__tests__/setup/index.ts',
+	'./src/__tests__/setup/console-guard.ts',
 	'./src/__tests__/setup/module-mocks.ts',
 	'./src/__tests__/setup/restore-prototype-focus.ts',
 ]
@@ -173,6 +174,12 @@ export default defineConfig({
 		// would read as set and change nothing. The `test` scripts export `LANG`
 		// ahead of Node instead.
 		env: { TZ: 'UTC' },
+		// Vitest processes no CSS, and it gives each CSS import an empty module.
+		// An import with `?url` does not want the CSS but its URL, so it goes to
+		// Vite, which gives the path of the file, as the dev server does. Without
+		// it, the docs shell (`app/root.tsx`) renders its stylesheet link with an
+		// empty `href`, and React warns.
+		css: { include: [/\.css\?url$/] },
 		// `shuffle` selects RandomSequencer, which drops the project grouping
 		// BaseSequencer applies. Every project's files then land in one queue, and
 		// a worker is terminated at each crossing — along with the module graph
@@ -282,6 +289,7 @@ export default defineConfig({
 					setupFiles: [
 						'./src/__tests__/setup/locale-guard.ts',
 						'./src/__tests__/setup/geometry.ts',
+						'./src/__tests__/setup/console-guard.ts',
 					],
 					include: nodeFiles,
 				},
@@ -362,6 +370,7 @@ export default defineConfig({
 					setupFiles: [
 						'./src/__tests__/setup/locale-guard.ts',
 						'./src/__tests__/setup/geometry.ts',
+						'./src/__tests__/setup/console-guard.ts',
 					],
 					include: ['src/__tests__/geometry/**/*.test.ts'],
 				},

@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react'
 import type { ReactNode } from 'react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { ControlContext, type ControlContextValue } from '../../components/control/context'
 import { useControlProps } from '../../components/control/use-control-props'
 
@@ -48,6 +48,9 @@ describe('useControlProps', () => {
 	})
 
 	it('explicit input wins over Control context', () => {
+		// The ids differ, so the hook also warns (see `control.test.tsx`).
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
 		const { result } = renderHook(
 			() =>
 				useControlProps({
@@ -77,6 +80,8 @@ describe('useControlProps', () => {
 		expect(result.current.required).toBe(false)
 
 		expect(result.current.readOnly).toBe(false)
+
+		expect(warn).toHaveBeenCalledWith(expect.stringContaining('htmlFor="mine"'))
 	})
 
 	it('resolves invalid from the form-bound flag when Control has none', () => {

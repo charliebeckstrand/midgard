@@ -196,7 +196,7 @@ describe('Grid touch entry to edit', () => {
 	})
 
 	it('does not open a selected cell on a tap in the manual mode', () => {
-		const { cell, editors } = renderGrid({ session: 'manual' })
+		const { cell, editors } = renderGrid({ session: 'manual', scope: 'row' })
 
 		tap(cell('name'))
 

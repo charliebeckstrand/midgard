@@ -1,6 +1,7 @@
 import { cleanup } from '@testing-library/react'
 import { MotionConfigContext } from 'motion/react'
 import { use } from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it } from 'vitest'
 import { readRootDensity, writeRootDensity } from '../../core/density'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
@@ -394,11 +395,16 @@ function LocaleOutput() {
 }
 
 describe('AppearanceScript', () => {
+	// The script renders on the server. React warns for a `<script>` that the
+	// client renders, because the browser does not run it.
 	function runScript() {
-		const { container } = renderUI(<AppearanceScript />)
+		const markup = new DOMParser().parseFromString(
+			renderToStaticMarkup(<AppearanceScript />),
+			'text/html',
+		)
 
 		// Runs the constant script of the component, as the browser does.
-		new Function(container.querySelector('script')?.textContent ?? '')()
+		new Function(markup.querySelector('script')?.textContent ?? '')()
 	}
 
 	it('writes the step of the stored density on the root element', () => {

@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { Profiler } from 'react'
 import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { halt, start } from '../../modules/events/engine/events-recorder'
@@ -19,11 +19,14 @@ import { createLazyModule } from '../../utilities/lazy-module'
 import { deferred } from '../helpers'
 
 // The sheet starts the recorder, which listens on the document. The halt
-// drops the events and ends a capture.
+// drops the events and ends a capture. This hook runs before the `cleanup` of
+// the setup, so the tree is still mounted, and the two calls update it.
 afterEach(() => {
-	halt()
+	act(() => {
+		halt()
 
-	setEventsPinned(false)
+		setEventsPinned(false)
+	})
 })
 
 /** Replaces the clipboard for the test, and returns its `writeText`. */
@@ -285,7 +288,7 @@ describe('EventsSheet', () => {
 
 		// The view renders the change in the next frame. The open batch already
 		// shows its lines, so the test waits for the summary to go.
-		await vi.waitFor(() => expect(screen.queryByText(/\(2 lines,/)).toBeNull())
+		await waitFor(() => expect(screen.queryByText(/\(2 lines,/)).toBeNull())
 
 		expect(screen.getByText('scroll starts page')).toBeDefined()
 	})
@@ -559,7 +562,7 @@ describe('EventsSwitch', () => {
 })
 
 describe('EventsSheet in a locale', () => {
-	it('names its controls in the language of the locale, and keeps the report in English', () => {
+	it('names its controls in the language of the locale, and keeps the report in English', async () => {
 		const sheet = (open: boolean) => (
 			<LocaleProvider locale="es-ES">
 				<EventsSheet open={open} onOpenChange={() => undefined} />
@@ -584,5 +587,12 @@ describe('EventsSheet in a locale', () => {
 		expect(within(crumbs).getByRole('link', { name: 'Errores' })).toBeDefined()
 
 		expect(screen.getByRole('button', { name: 'Eliminar' })).toBeDefined()
+
+		// The code blocks of the report highlight after they mount.
+		await waitFor(() => {
+			for (const block of document.querySelectorAll('[data-slot="code-block"]')) {
+				expect(block.querySelector('pre.shiki')).not.toBeNull()
+			}
+		})
 	})
 })
