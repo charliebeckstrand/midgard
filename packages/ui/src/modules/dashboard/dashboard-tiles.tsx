@@ -57,26 +57,28 @@ export type DashboardTilesProps = {
 	 */
 	actions?: (tile: DashboardSpecTile) => ReactNode
 	/**
-	 * Removes a spec tile. When set, edit mode shows a remove control on each
-	 * tile. Apply it with `removeSpecTile`. Hoist it or wrap it in `useCallback`.
+	 * Fires when the user presses the remove control of a spec tile. When set, edit
+	 * mode shows that control on each tile. Apply it with `removeSpecTile`. Hoist it
+	 * or wrap it in `useCallback`.
 	 */
 	onRemove?: (tile: DashboardSpecTile) => void
 	/**
-	 * Duplicates a spec tile. When set, edit mode shows a duplicate control on
-	 * each tile. Apply it with `duplicateSpecTile`. Hoist it or wrap it in `useCallback`.
+	 * Fires when the user presses the duplicate control of a spec tile. When set,
+	 * edit mode shows that control on each tile. Apply it with `duplicateSpecTile`.
+	 * Hoist it or wrap it in `useCallback`.
 	 */
 	onDuplicate?: (tile: DashboardSpecTile) => void
 	/**
-	 * Show an expand control on each tile at rest.
+	 * Shows an expand control on each tile at rest.
 	 * @defaultValue false
 	 */
 	expandable?: boolean
 }
 
 /**
- * Renders one `DashboardTile` for each spec tile, through the widget kinds of the
- * nearest `DashboardWidgetProvider`. Place it inside a `Dashboard`, beside any
- * JSX tiles.
+ * The spec tiles of a dashboard, each rendered as a `DashboardTile` through the
+ * widget kinds of the nearest `DashboardWidgetProvider`. Place it inside a
+ * `Dashboard`, beside any JSX tiles.
  *
  * The kind gives the tile its `ratio`, its `minWidth`, its `defaultSize`, and its
  * `minSize` and `maxSize`. The spec tile gives the title and the description,
@@ -213,11 +215,11 @@ type DashboardSpecTileViewProps = {
 	mount?: Mount
 	/** The header controls of the tile. */
 	actions?: (tile: DashboardSpecTile) => ReactNode
-	/** Removes a spec tile. */
+	/** Fires when the user presses the remove control of the spec tile. */
 	onRemove?: (tile: DashboardSpecTile) => void
-	/** Duplicates a spec tile. */
+	/** Fires when the user presses the duplicate control of the spec tile. */
 	onDuplicate?: (tile: DashboardSpecTile) => void
-	/** Whether the tile shows an expand control at rest. */
+	/** Shows an expand control on the tile at rest. */
 	expandable?: boolean
 }
 

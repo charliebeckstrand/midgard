@@ -54,14 +54,14 @@ export type ChatPromptProps = {
 	 * a second source of truth. Pair the two.
 	 */
 	value: string
-	/** Called with the next value as the user types. */
+	/** Fires when the user types, with the next value. */
 	onValueChange: (value: string) => void
-	/** Called when the user submits (Enter without Shift, or send button). */
+	/** Fires when the user submits (Enter without Shift, or the send button). */
 	onSubmit: () => void
-	/** Called when the user stops a streaming response via the send→stop toggle. */
+	/** Fires when the user stops a streaming response via the send→stop toggle. */
 	onStop?: () => void
 	/**
-	 * When true, the send button renders as a stop button and invokes `onStop`.
+	 * Renders the send button as a stop button that calls `onStop`.
 	 *
 	 * @defaultValue false
 	 */
@@ -83,7 +83,7 @@ export type ChatPromptProps = {
 	 */
 	disabled?: boolean
 	/**
-	 * Called with the chosen files when the user picks attachments. The
+	 * Fires when the user selects attachments, with the selected files. The
 	 * paperclip button renders only when this is provided.
 	 */
 	onAttach?: (files: File[]) => void
@@ -95,8 +95,8 @@ export type ChatPromptProps = {
 	 */
 	attachments?: readonly File[]
 	/**
-	 * Called with the index of the attachment whose remove button was clicked.
-	 * The textarea then takes the focus (WCAG 2.4.3).
+	 * Fires when the user clicks the remove button of an attachment, with the
+	 * index of that attachment. The textarea then takes the focus (WCAG 2.4.3).
 	 */
 	onRemoveAttachment?: (index: number) => void
 	/** Model picker, slash-command trigger, etc. rendered at the start of the action row, before the paperclip and send controls. */

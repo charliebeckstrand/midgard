@@ -30,7 +30,7 @@ export type BarChartProps<T = never> = CartesianChartProps<T> & {
 	 */
 	orientation?: ChartOrientation
 	/**
-	 * Stack each category's series into one column, instead of grouping them side
+	 * Stacks each category's series into one column, instead of grouping them side
 	 * by side. Segments pile to their running total, and the value axis scales to
 	 * that sum. A surface gap separates the segments and only the outermost
 	 * keeps a rounded end.
@@ -41,7 +41,7 @@ export type BarChartProps<T = never> = CartesianChartProps<T> & {
 	 */
 	stacked?: boolean
 	/**
-	 * Let the bars fill their band instead of capping at the spec thickness.
+	 * Lets the bars fill their band instead of capping at the spec thickness.
 	 * Grouped bars split the band by series and the surface gaps, and a stacked
 	 * column takes the whole band. Suits a sparse category axis, where the
 	 * default ceiling would otherwise strand narrow bars in wide bands.

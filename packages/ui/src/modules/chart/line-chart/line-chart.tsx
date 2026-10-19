@@ -17,13 +17,13 @@ import { useChartCartesian } from '../engine/use-chart-cartesian'
  */
 export type LineChartProps<T = never> = CartesianChartProps<T> & {
 	/**
-	 * Mark every plotted point with a filled dot. Points isolated between gaps
+	 * Marks every plotted point with a filled dot. Points isolated between gaps
 	 * always get one — they'd be invisible otherwise.
 	 * @defaultValue false
 	 */
 	points?: boolean
 	/**
-	 * Fill the region under each line with a translucent wash.
+	 * Fills the region under each line with a translucent wash.
 	 * @defaultValue false
 	 */
 	fill?: boolean

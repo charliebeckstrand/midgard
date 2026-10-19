@@ -129,7 +129,7 @@ export type ChoroplethChartProps<T = never> = AccessibleName & {
 	 */
 	aspectRatio?: MapAspectRatio
 	/**
-	 * Show the legend. `'range'` swaps the binned switchboard for a continuous
+	 * Shows the legend. `'range'` swaps the binned switchboard for a continuous
 	 * color-scale bar — the heatmap legend — and the object form `{ placement }`
 	 * places that bar explicitly. A placement moves the legend above (`'top'`),
 	 * below (`'bottom'`), or beside the plot (`'left'` / `'right'`). The range bar
@@ -141,7 +141,7 @@ export type ChoroplethChartProps<T = never> = AccessibleName & {
 	 */
 	legend?: MapLegendInput
 	/**
-	 * Show the hover tooltip naming the pointed region and its value.
+	 * Shows the hover tooltip naming the pointed region and its value.
 	 * @defaultValue true
 	 */
 	tooltip?: boolean
@@ -153,7 +153,7 @@ export type ChoroplethChartProps<T = never> = AccessibleName & {
 	 */
 	onRegionClick?: ChartItemClick
 	/**
-	 * Animate the scale in on mount: the neutral geography paints at once, then
+	 * Animates the scale in on mount: the neutral geography paints at once, then
 	 * the color washes in region by region.
 	 * @defaultValue false
 	 */

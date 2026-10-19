@@ -24,11 +24,11 @@ export type FormFiltersSkeletonProps = {
 }
 
 /**
- * Filter-bar-shaped placeholder: one control placeholder for each field, on the
- * axis of the `layout`. A `rail` holds one row and clips the fields that do not
- * fit. A `stack` drops to a column on a narrow screen, as the real bar does.
- * Keyed off the field count rather than a size step; it does not use the
- * size-driven `createSkeleton` factory.
+ * A placeholder for a {@link FormFilters} while it loads. It holds one control
+ * placeholder for each field, on the axis of the `layout`. A `rail` holds one
+ * row and clips the fields that do not fit. A `stack` drops to a column on a
+ * narrow screen, as the real bar does. Keyed off the field count rather than a
+ * size step; it does not use the size-driven `createSkeleton` factory.
  *
  * @remarks Static leaf: renders in React Server Components.
  * @see {@link FormFilters}

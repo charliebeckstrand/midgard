@@ -9,10 +9,11 @@ export type KanbanCardSkeletonProps = {
 }
 
 /**
- * Card-shaped placeholder for a {@link KanbanColumnBody}: the box of a real
- * card with two lines in it. Render one for each card that loads, in a real
- * column. To show a lane title that loads, put an inline `HeadingSkeleton` in
- * a real {@link KanbanColumnTitle}, as in a `CardTitle`.
+ * A placeholder for a {@link KanbanCard} while it loads, in a
+ * {@link KanbanColumnBody}: the box of a real card with two lines in it. Render
+ * one for each card that loads, in a real column. To show a lane title that
+ * loads, put an inline `HeadingSkeleton` in a real {@link KanbanColumnTitle}, as
+ * in a `CardTitle`.
  *
  * @remarks Static leaf: renders in React Server Components. The skeleton is a
  * `Card` with the classes of the real card, so it has the padding, gap, and

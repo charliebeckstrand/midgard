@@ -11,7 +11,7 @@ export type DashboardWidgetProviderProps = DashboardWidgetRegistry & {
 }
 
 /**
- * Registers the widget kinds that the spec tiles below it draw, by name.
+ * The registry of the widget kinds that the spec tiles below it draw, by name.
  *
  * @remarks
  * This is the seam that keeps a chart, a grid, and a map out of the dashboard.
