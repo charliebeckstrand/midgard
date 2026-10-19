@@ -8,6 +8,7 @@ import { fractionFormat, once, percentFormat } from '../../../utilities'
 import { categorySlots } from '../engine/chart-color/palette'
 import { MARK_GAP, TICK_TARGET } from '../engine/chart-constants'
 import { ChartFrame } from '../engine/chart-frame/frame'
+import { chartAspectRatio } from '../engine/chart-frame/sizing'
 import {
 	CALLOUT_CHAR_WIDTH,
 	CALLOUT_LEADER,
@@ -41,7 +42,6 @@ import {
 import {
 	donutCenterStyle,
 	resolveSectorLabels,
-	sectorAspectRatio,
 	sectorFrame,
 	sectorFrameSizing,
 	sectorLegendItems,
@@ -166,7 +166,7 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 	// Free-form, a pie fits its own square footprint; inside the fullscreen dialog
 	// that square overruns the 16/9 panel, so the re-mounted copy takes the panel's
 	// ratio there instead.
-	const frameAspectRatio = sectorAspectRatio(aspectRatio, useChartFullscreen())
+	const frameAspectRatio = chartAspectRatio(aspectRatio, undefined, useChartFullscreen())
 
 	const { segment: showSegmentLabels, callouts: showCallouts } = resolveSectorLabels(labels)
 
