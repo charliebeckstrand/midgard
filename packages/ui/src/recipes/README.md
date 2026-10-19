@@ -56,7 +56,7 @@ The keys of a kata surface, a kiso bundle, and a bridge result follow one patter
 
 In `dan`, a ramp nests under the unit that reads it, then the part or the side: `space.box.bottom`, `space.tab.pill.x`, `size.menu.max`.
 
-Two names keep their form. A key that names a component with a name of two words keeps the name of the component (`colorPanel`, `datePicker`, `scrollArea`). A key that mirrors a public prop or a library term keeps that name, such as the `stickyHeader` axis, which mirrors the prop of `SidebarLayout`.
+Two names keep their form. A key that names a component with a name of two words keeps the name of the component (`colorPanel`, `datePicker`). A key that mirrors a public prop or a library term keeps that name, such as the `stickyHeader` axis, which mirrors the prop of `SidebarLayout`.
 
 ---
 

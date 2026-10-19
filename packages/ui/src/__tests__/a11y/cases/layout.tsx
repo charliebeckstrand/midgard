@@ -3,7 +3,6 @@ import { Card, CardBody, CardTitle } from '../../../components/card'
 import { Divider } from '../../../components/divider'
 import { Group } from '../../../components/group'
 import { Placeholder } from '../../../components/placeholder'
-import { ScrollArea } from '../../../components/scroll-area'
 import { GlassProvider } from '../../../providers/glass'
 import { Box } from '../../../structure/box'
 import { Container } from '../../../structure/container'
@@ -120,19 +119,5 @@ export const layoutCases: readonly Case[] = [
 		name: 'placeholder',
 		element: <Placeholder key="pl" />,
 		passthrough: [{ render: (props) => <Placeholder {...props} />, slot: 'placeholder' }],
-	},
-	{
-		name: 'scroll area',
-		element: (
-			<ScrollArea key="sa" className="max-h-24">
-				<div className="h-48">Scrollable content</div>
-			</ScrollArea>
-		),
-		passthrough: [
-			{
-				render: (props) => <ScrollArea {...props}>content</ScrollArea>,
-				slot: 'scroll-area-viewport',
-			},
-		],
 	},
 ]

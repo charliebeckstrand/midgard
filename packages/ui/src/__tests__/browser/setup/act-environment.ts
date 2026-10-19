@@ -1,7 +1,7 @@
 /**
  * The browser suite runs in a real engine, where updates land outside any
  * `act()` scope by design: ResizeObserver and scroll callbacks fire for real
- * (ScrollArea, the virtualized tables), and the floating-ui project drives
+ * (the virtualized tables), and the floating-ui project drives
  * components with real CDP events (`vitest/browser` userEvent). Tests await
  * outcomes with `waitFor` instead of simulating commits, so the act
  * environment RTL switches on suite-wide must come back off. RTL still
