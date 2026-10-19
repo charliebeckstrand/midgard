@@ -1,14 +1,10 @@
 'use client'
 
-import { memo, type ReactNode, type RefObject, useState } from 'react'
+import { memo, type ReactNode, type RefObject } from 'react'
 import { Card } from '../../components/card'
 import { cn, dataAttr } from '../../core'
 import type { ContentHeightHost } from '../../primitives/content-height'
-import {
-	createHeaderActionsHost,
-	HeaderActionsContext,
-	HeaderActionsSlot,
-} from '../../primitives/header-actions'
+import { HeaderActions, HeaderActionsSlot } from '../../primitives/header-actions'
 import { reorderMessages } from '../../primitives/intl/intl-reorder'
 import { useIntl } from '../../primitives/intl/use-intl'
 import type { Mount } from '../../primitives/mount'
@@ -105,13 +101,6 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 }: DashboardTileCardProps) {
 	const intl = useIntl()
 
-	// The element in the header row where the widget puts its own controls, such
-	// as the touch menu button of a chart. Edit mode shows the edit controls
-	// there instead, so the widget then has no slot. A store, not state: the
-	// element arrives after the first commit, and only the widget that reads it
-	// renders again.
-	const [widgetActions] = useState(createHeaderActionsHost)
-
 	// The grip is the only part of the tile that starts a drag, so the rest of
 	// the card keeps touch scrolling. With the keyboard, Space picks the tile
 	// up, the arrow keys move it, and Space drops it. A tile with no header row
@@ -151,32 +140,35 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 	)
 
 	return (
-		<Card
-			size="sm"
-			bg="surface"
-			{...(title === undefined ? {} : { role: 'group', 'aria-labelledby': titleId })}
-			data-dragging={dataAttr(dragging)}
-			className={cn(k.card({ editable: movable, dragging }))}
-		>
-			{!hasHeader && handle}
+		// The header row holds a slot where the widget puts its own controls, such as
+		// the touch menu button of a chart. Edit mode shows the edit controls there
+		// instead, so the widget then has no slot.
+		<HeaderActions>
+			<Card
+				size="sm"
+				bg="surface"
+				{...(title === undefined ? {} : { role: 'group', 'aria-labelledby': titleId })}
+				data-dragging={dataAttr(dragging)}
+				className={cn(k.card({ editable: movable, dragging }))}
+			>
+				{!hasHeader && handle}
 
-			{hasHeader && (
-				<DashboardTileHeader
-					label={label}
-					titleId={titleId}
-					title={title}
-					description={description}
-					actions={actions}
-					clear={<DashboardTileClear id={id} label={label} />}
-					widget={editable ? null : <HeaderActionsSlot host={widgetActions} />}
-					handle={handle}
-					editing={editable}
-					onError={onError}
-					controls={controls}
-				/>
-			)}
+				{hasHeader && (
+					<DashboardTileHeader
+						label={label}
+						titleId={titleId}
+						title={title}
+						description={description}
+						actions={actions}
+						clear={<DashboardTileClear id={id} label={label} />}
+						widget={editable ? null : <HeaderActionsSlot />}
+						handle={handle}
+						editing={editable}
+						onError={onError}
+						controls={controls}
+					/>
+				)}
 
-			<HeaderActionsContext value={widgetActions}>
 				<DashboardTileContent
 					id={id}
 					label={label}
@@ -189,7 +181,7 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 				>
 					{children}
 				</DashboardTileContent>
-			</HeaderActionsContext>
-		</Card>
+			</Card>
+		</HeaderActions>
 	)
 })

@@ -71,24 +71,27 @@ async function open(index: number) {
  * stays at its frame. `play()` on each tween lets it go on.
  *
  * `during` sends the event that starts the tweens. The sampler starts before
- * it, so a slow round trip of the event cannot let a tween run on before the
- * first sample. The deadline starts after the event (see
- * {@link sampleMotionFrames}).
+ * it, and the hold occurs in the frame that finds the tweens. Thus a slow
+ * round trip of the event cannot let a tween run on, or land, before the hold.
+ * The sampler gives the tweens only after the event resolves (see
+ * {@link sampleMotionFrames}), so a hold after the sampler is too late.
  */
 async function hold(element: HTMLElement, progress: number, during?: () => Promise<unknown>) {
-	const tweens = await sampleMotionFrames(
+	return sampleMotionFrames(
 		() => element.getAnimations({ subtree: true }),
-		(found) => found.length > 0,
+		(found) => {
+			if (found.length === 0) return false
+
+			for (const tween of found) {
+				tween.pause()
+
+				tween.currentTime = progress * Number(tween.effect?.getComputedTiming().duration)
+			}
+
+			return true
+		},
 		{ during },
 	)
-
-	for (const tween of tweens) {
-		tween.pause()
-
-		tween.currentTime = progress * Number(tween.effect?.getComputedTiming().duration)
-	}
-
-	return tweens
 }
 
 /**

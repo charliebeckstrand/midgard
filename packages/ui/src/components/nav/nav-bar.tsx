@@ -3,8 +3,19 @@
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
+import { defineMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k, type NavBarVariants } from '../../recipes/kata/nav'
 import { NavBarContext } from './context'
+
+const messages = defineMessages({
+	label: {
+		id: 'ui.navBar.label',
+		defaultMessage: 'Main',
+		description:
+			'The name of the main navigation landmark of a page, which a screen reader speaks with its role, as in "Main navigation".',
+	},
+})
 
 /** Props for {@link NavBar}: recipe `variant` plus native `<nav>` attributes. */
 export type NavBarProps = NavBarVariants &
@@ -12,7 +23,7 @@ export type NavBarProps = NavBarVariants &
 		/**
 		 * The accessible name of the landmark. Give each navigation landmark its
 		 * own name when a page shows more than one.
-		 * @defaultValue 'Main'
+		 * @defaultValue `'Main'`, in the language of the reader.
 		 */
 		'aria-label'?: string
 	}
@@ -31,17 +42,19 @@ export type NavBarProps = NavBarVariants &
  */
 export function NavBar({
 	variant = 'solid',
-	'aria-label': ariaLabel = 'Main',
+	'aria-label': ariaLabel,
 	className,
 	children,
 	...props
 }: NavBarProps) {
+	const intl = useIntl()
+
 	return (
 		<NavBarContext value={true}>
 			<ActiveIndicatorScope>
 				<nav
 					data-slot="nav-bar"
-					aria-label={ariaLabel}
+					aria-label={ariaLabel ?? intl.formatMessage(messages.label)}
 					className={cn(k.bar.base({ variant }), className)}
 					{...props}
 				>

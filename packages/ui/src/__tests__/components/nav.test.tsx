@@ -11,6 +11,7 @@ import {
 	type NavProps,
 } from '../../components/nav'
 import { OffcanvasContext } from '../../primitives/offcanvas'
+import { LocaleProvider } from '../../providers/locale'
 import { bySlot, densityStepOf, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Nav', () => {
@@ -403,5 +404,25 @@ describe('Nav and NavItem selection value types', () => {
 		expectTypeOf<NavProps['defaultValue']>().toEqualTypeOf<string | undefined>()
 
 		expectTypeOf<NavMenuItemProps['value']>().toEqualTypeOf<string | undefined>()
+	})
+})
+
+describe('NavBar in a locale', () => {
+	it('names the landmark in the language of the locale, and keeps a given name', () => {
+		const { container, rerender } = renderUI(
+			<LocaleProvider locale="es-ES">
+				<NavBar>content</NavBar>
+			</LocaleProvider>,
+		)
+
+		expect(bySlot(container, 'nav-bar')).toHaveAttribute('aria-label', 'Principal')
+
+		rerender(
+			<LocaleProvider locale="es-ES">
+				<NavBar aria-label="Cuenta">content</NavBar>
+			</LocaleProvider>,
+		)
+
+		expect(bySlot(container, 'nav-bar')).toHaveAttribute('aria-label', 'Cuenta')
 	})
 })

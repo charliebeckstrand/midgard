@@ -28,7 +28,7 @@ import {
 } from '../../modules/dashboard'
 import type { DashboardStore } from '../../modules/dashboard/engine/dashboard-store'
 import type { QueryGroup } from '../../modules/query/engine/types'
-import { useHeaderActionsHost } from '../../primitives/header-actions'
+import { useHeaderActions } from '../../primitives/header-actions'
 import { k } from '../../recipes/kata/dashboard'
 import {
 	allBySlot,
@@ -220,7 +220,7 @@ describe('Dashboard', () => {
 
 	it('gives the widget a slot in the header row at rest, and none in edit mode', () => {
 		function Widget({ name }: { name: string }) {
-			const host = useHeaderActionsHost()
+			const host = useHeaderActions()
 
 			return host && createPortal(<button type="button">{name} menu</button>, host)
 		}
@@ -251,6 +251,29 @@ describe('Dashboard', () => {
 		rerender(board(true))
 
 		expect(screen.queryByRole('button', { name: 'Revenue menu' })).toBeNull()
+	})
+
+	it('keeps the expanded copy of the widget out of the header row of the tile', () => {
+		function Widget() {
+			const host = useHeaderActions()
+
+			return host ? createPortal(<button type="button">Menu</button>, host) : <span>Inline</span>
+		}
+
+		renderUI(
+			<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }}>
+				<DashboardTile id="a" title="Revenue" expandable>
+					<Widget />
+				</DashboardTile>
+			</Dashboard>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Expand Revenue' }))
+
+		// The tile keeps one control in its header row, and the copy in the dialog keeps its own.
+		expect(screen.getAllByRole('button', { name: 'Menu' })).toHaveLength(1)
+
+		expect(within(screen.getByRole('dialog')).getByText('Inline')).toBeInTheDocument()
 	})
 
 	it('keeps the hit area of each header button to its own width', () => {

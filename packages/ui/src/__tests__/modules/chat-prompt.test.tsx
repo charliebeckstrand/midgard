@@ -1,4 +1,4 @@
-import { createRef } from 'react'
+import { createRef, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { ChatPrompt } from '../../modules/chat'
 import { LocaleProvider } from '../../providers/locale'
@@ -414,6 +414,38 @@ describe('ChatPrompt', () => {
 			expect(event.defaultPrevented).toBe(true)
 		},
 	)
+
+	it('returns focus to the textarea after a chip removal (WCAG 2.4.3)', async () => {
+		const first = new File(['a'], 'first.pdf', { type: 'application/pdf' })
+
+		const second = new File(['b'], 'second.pdf', { type: 'application/pdf' })
+
+		function Harness() {
+			const [files, setFiles] = useState([first, second])
+
+			return (
+				<ChatPrompt
+					value=""
+					onValueChange={noop}
+					onSubmit={noop}
+					attachments={files}
+					onRemoveAttachment={(index) => setFiles((prev) => prev.filter((_, i) => i !== index))}
+				/>
+			)
+		}
+
+		renderUI(<Harness />)
+
+		const user = setupUser()
+
+		screen.getByRole('button', { name: 'Remove second.pdf' }).focus()
+
+		await user.keyboard('{Enter}')
+
+		expect(screen.queryByRole('button', { name: 'Remove second.pdf' })).not.toBeInTheDocument()
+
+		expect(screen.getByRole('textbox', { name: 'Message' })).toHaveFocus()
+	})
 })
 
 describe('ChatPrompt in a locale', () => {

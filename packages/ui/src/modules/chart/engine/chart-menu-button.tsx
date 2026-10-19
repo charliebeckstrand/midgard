@@ -11,7 +11,7 @@ import {
 import { Icon } from '../../../components/icon'
 import { Menu, MenuContent, MenuTrigger } from '../../../components/menu'
 import { cn, createContext, dataAttr } from '../../../core'
-import { useHeaderActionsHost } from '../../../primitives/header-actions'
+import { useHeaderActions } from '../../../primitives/header-actions'
 import { useIntl } from '../../../primitives/intl/use-intl'
 import { chartMenuName, chartMessages } from './chart-messages'
 
@@ -54,7 +54,7 @@ function itemOf(entries: ContextMenuEntry[], key: string): ContextMenuItem | und
  * shows only where the primary pointer is coarse, and it holds the same
  * entries as the right-click menu.
  *
- * Inside a box that gives a header actions element ({@link useHeaderActionsHost}),
+ * Inside a box that gives a header actions element ({@link useHeaderActions}),
  * such as a dashboard tile, the button goes into the header row of the box with a
  * portal. Otherwise it sits at the end of the chart header. A chart with no
  * title then has no button. The button covers no mark in either place.
@@ -73,7 +73,7 @@ function itemOf(entries: ContextMenuEntry[], key: string): ContextMenuItem | und
 export function ChartMenuButton({ title, place }: ChartMenuButtonProps) {
 	const entries = useChartMenuEntries()
 
-	const host = useHeaderActionsHost()
+	const host = useHeaderActions()
 
 	const intl = useIntl()
 

@@ -50,7 +50,7 @@ The keys of a kata surface, a kiso bundle, and a bridge result follow one patter
 1. **One word for each key.** A compound name nests under the part that it belongs to: `bar.rail`, not `barRail`.
 2. **The part holds its children.** A part with children is an object, and its own classes are `base`: `bar: { base, rail }`. The root part of a kata is `base` too.
 3. **One element, one key.** Keys that always go on the same element merge into one key. A key that adds to a part in some states only nests under that part: `trigger: { base, cursor }`.
-4. **A recipe can nest.** A recipe that a kata calls holds a nested part in a slot group, and the engine merges each entry: `slots: { close: { base, line } }` gives `k.close.base`.
+4. **A recipe can nest.** A recipe that a kata calls holds a nested part in a slot group, and the engine merges each entry: `slots: { trigger: { base, button } }` gives `k.trigger.base`.
 5. **A config stays whole.** A motion config, a per-color record, and a step map are leaves. Do not put a child key in one.
 6. **A kata exports `k`, its scale, and its types.** The scale is `scale`, or `scale.<part>` when the kata has two (`scale.bar`, `scale.gauge`).
 

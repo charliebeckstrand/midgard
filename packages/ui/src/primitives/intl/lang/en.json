@@ -215,6 +215,10 @@
 		"defaultMessage": "Search",
 		"description": "The placeholder of a field that filters a list of options as the reader types."
 	},
+	"ui.commandPalette.label": {
+		"defaultMessage": "Command palette",
+		"description": "The name of the dialog that searches the commands of an app. It has no visible title."
+	},
 	"ui.commandPalette.placeholder": {
 		"defaultMessage": "Type a command or search",
 		"description": "The placeholder of the search field of the command palette, and its name."
@@ -238,6 +242,10 @@
 	"ui.common.confirm": {
 		"defaultMessage": "Confirm",
 		"description": "The label of a button that does the action that a dialog asks about."
+	},
+	"ui.common.filters": {
+		"defaultMessage": "Filters",
+		"description": "The name of a group of filter controls, and the label of the button that opens them."
 	},
 	"ui.common.loading": {
 		"defaultMessage": "Loading",
@@ -1119,6 +1127,10 @@
 		"defaultMessage": "Select",
 		"description": "The placeholder of a picker with no selected value."
 	},
+	"ui.navBar.label": {
+		"defaultMessage": "Main",
+		"description": "The name of the main navigation landmark of a page, which a screen reader speaks with its role, as in \"Main navigation\"."
+	},
 	"ui.numberInput.decrease": {
 		"defaultMessage": "Decrease",
 		"description": "The name of the button that makes the value of a number field smaller by one step."
@@ -1126,6 +1138,10 @@
 	"ui.numberInput.increase": {
 		"defaultMessage": "Increase",
 		"description": "The name of the button that makes the value of a number field larger by one step."
+	},
+	"ui.panel.resize": {
+		"defaultMessage": "Resize panel",
+		"description": "The name of the grab bar that changes the size of a drawer or a sheet, by a drag or by the arrow keys."
 	},
 	"ui.passwordInput.hide": {
 		"defaultMessage": "Hide password",
@@ -1559,6 +1575,10 @@
 		"defaultMessage": "{value, number} out of {count, plural, one {# star} other {# stars}}",
 		"description": "The score of a star rating that a screen reader speaks, such as \"4 out of 5 stars\". The value can have a decimal part, such as 4.5."
 	},
+	"ui.reorder.draggableRole": {
+		"defaultMessage": "draggable",
+		"description": "The role that a screen reader speaks after the name of a handle that drags an item, such as \"Move Revenue, draggable\". Lowercase."
+	},
 	"ui.reorder.dropped": {
 		"defaultMessage": "Dropped {subject}.",
 		"description": "Spoken when the reader drops a moved item. The subject is the item, with its place when it has one."
@@ -1606,6 +1626,10 @@
 	"ui.reorder.sensorInstructions": {
 		"defaultMessage": "To pick up an item, press Space. Use the arrow keys to move it, then press Space to drop it, or Escape to cancel.",
 		"description": "The description of a drag handle whose keyboard drops an item with Space and cancels the move with Escape."
+	},
+	"ui.reorder.sortableRole": {
+		"defaultMessage": "sortable",
+		"description": "The role that a screen reader speaks after the name of a handle that moves an item to a new place in a list, such as \"Reorder Alpha, sortable\". Lowercase."
 	},
 	"ui.reorder.subject": {
 		"defaultMessage": "{item}, position {position} of {total}",
@@ -1678,6 +1702,22 @@
 	"ui.settings.title": {
 		"defaultMessage": "Settings",
 		"description": "The title of the settings dialog, and the name of the button that opens it."
+	},
+	"ui.sidebar.closeNavigation": {
+		"defaultMessage": "Close navigation",
+		"description": "The name of the button that closes the navigation drawer of a narrow page."
+	},
+	"ui.sidebar.label": {
+		"defaultMessage": "Sidebar",
+		"description": "The name of the navigation landmark at the side of a page, which a screen reader speaks with its role."
+	},
+	"ui.sidebarLayout.navigationBar": {
+		"defaultMessage": "Navigation bar",
+		"description": "The name of the bar at the top of a narrow page that holds the button that opens the navigation."
+	},
+	"ui.sidebarLayout.openNavigation": {
+		"defaultMessage": "Open navigation",
+		"description": "The name of the menu button that opens the navigation of a narrow page."
 	},
 	"ui.signaturePad.clear": {
 		"defaultMessage": "Clear signature",

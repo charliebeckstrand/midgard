@@ -59,6 +59,12 @@ export const intlMessages = defineMessages({
 		defaultMessage: 'Loading',
 		description: 'The name of a spinner that shows that content or an action is loading.',
 	},
+	filters: {
+		id: 'ui.common.filters',
+		defaultMessage: 'Filters',
+		description:
+			'The name of a group of filter controls, and the label of the button that opens them.',
+	},
 	noResults: {
 		id: 'ui.common.noResults',
 		defaultMessage: 'No results',

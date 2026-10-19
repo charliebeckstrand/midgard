@@ -683,6 +683,13 @@ export const k = {
 			),
 			'group-focus-visible/grid-resize:bg-blue-500 dark:group-focus-visible/grid-resize:bg-blue-500',
 			'group-data-resizing/grid-resize:bg-blue-500 dark:group-data-resizing/grid-resize:bg-blue-500',
+			sen.forced.shape,
+			// Each state color above outranks the shape, so the shape repeats in each state.
+			'forced-colors:group-hover/grid-resize:bg-[CanvasText] forced-colors:group-focus-visible/grid-resize:bg-[CanvasText] forced-colors:group-data-resizing/grid-resize:bg-[CanvasText]',
+			// Forced colors remove the focus color of the grip. This outline on the bar
+			// marks the focused handle there, as `kiso/panel/grip.ts` FOCUS does.
+			'forced-colors:group-focus-visible/grid-resize:outline-solid forced-colors:group-focus-visible/grid-resize:outline-2',
+			'forced-colors:group-focus-visible/grid-resize:outline-offset-2 forced-colors:group-focus-visible/grid-resize:outline-[Highlight]',
 		],
 	},
 	filter: {
