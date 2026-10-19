@@ -7,8 +7,8 @@ export type GlassProviderProps = {
 }
 
 /**
- * Sets the ambient glass flag for the wrapped subtree, switching every
- * glass-aware descendant to its glass variant. Form fields adopt the glass
+ * The provider of the ambient glass flag for the wrapped subtree, which switches
+ * every glass-aware descendant to its glass variant. Form fields adopt the glass
  * variant when no explicit variant is set. Dialog, Drawer, Sheet, Popover,
  * Menu, and Tooltip read the flag themselves through `useResolvedSurface`.
  * Button does not read the flag. Renders a `display: contents` span.

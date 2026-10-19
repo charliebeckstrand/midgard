@@ -140,7 +140,7 @@ export type PasswordStrengthProps = Omit<ComponentProps<'div'>, 'children'> & {
 	 */
 	showRules?: boolean
 	/**
-	 * Fires on every strength transition, including first render. See
+	 * Fires when the strength changes, and on the first render. See
 	 * {@link PasswordStrengthChange} for the payload.
 	 *
 	 * @remarks

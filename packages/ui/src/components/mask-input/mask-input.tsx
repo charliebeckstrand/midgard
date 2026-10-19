@@ -10,7 +10,7 @@ export type MaskInputProps = Omit<InputProps, 'value' | 'defaultValue' | 'onChan
 	/** Controlled text; `null` is controlled-and-empty (CONVENTIONS §7.3). */
 	value?: string | null
 	defaultValue?: string
-	/** Fires with the formatted value after each edit. */
+	/** Fires when an edit changes the value, with the formatted value. */
 	onValueChange?: (value: string) => void
 	/**
 	 * The mask: a format function or a preset. A format function maps a raw

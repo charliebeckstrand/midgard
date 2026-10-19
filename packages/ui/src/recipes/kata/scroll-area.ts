@@ -112,7 +112,7 @@ export type ScrollAreaWrapperVariants = Omit<
 	VariantProps<typeof wrapper>,
 	'rounded' | 'bare' | 'orientation' | 'extent'
 > & {
-	/** Whether the frame has rounded corners. @defaultValue false */
+	/** Rounds the corners of the frame. @defaultValue false */
 	rounded?: VariantProps<typeof wrapper>['rounded']
 	/** Whether the frame drops its border. @defaultValue false */
 	bare?: VariantProps<typeof wrapper>['bare']
