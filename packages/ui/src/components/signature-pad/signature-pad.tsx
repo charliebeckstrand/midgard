@@ -154,6 +154,7 @@ export function SignaturePad({
 	// validity and description/error ids, and an ambient disabled or read-only
 	// Control stops drawing unless an explicit prop says otherwise.
 	const {
+		id,
 		containerRef,
 		canvasRef,
 		empty,
@@ -196,6 +197,7 @@ export function SignaturePad({
 			className={cn(k.base, 'h-40', className)}
 		>
 			<canvas
+				id={id}
 				ref={canvasRef}
 				data-slot="signature-pad-canvas"
 				// `role="img"` makes the `aria-label` perceivable; a bare `<canvas>`

@@ -3,13 +3,17 @@ import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Checkbox } from '../../components/checkbox'
 import { ColorPicker } from '../../components/color'
+import { Combobox } from '../../components/combobox'
 import { DatePicker } from '../../components/date-picker'
 import { Field, Label, Message } from '../../components/fieldset'
 import { FileUploadButton } from '../../components/file-upload'
 import { Input } from '../../components/input'
+import { Listbox } from '../../components/listbox'
 import { Rating } from '../../components/rating'
+import { SignaturePad } from '../../components/signature-pad'
 import { RangeSlider, Slider } from '../../components/slider'
 import { Switch } from '../../components/switch'
+import { TagInput } from '../../components/tag-input'
 import {
 	Form,
 	FormErrorSummary,
@@ -226,6 +230,22 @@ describe('FormErrorSummary', () => {
 		['RangeSlider', [0, 100], <RangeSlider key="control" name="field" />],
 		['DatePicker', null, <DatePicker key="control" name="field" aria-label="Field" />],
 		['ColorPicker', null, <ColorPicker key="control" name="field" aria-label="Field" />],
+		[
+			'Listbox',
+			null,
+			<Listbox key="control" name="field" aria-label="Field">
+				<div>Option</div>
+			</Listbox>,
+		],
+		[
+			'Combobox',
+			null,
+			<Combobox<string> key="control" name="field" displayValue={(v) => v} aria-label="Field">
+				<div>Option</div>
+			</Combobox>,
+		],
+		['TagInput', [], <TagInput key="control" name="field" aria-label="Field" />],
+		['SignaturePad', null, <SignaturePad key="control" name="field" aria-label="Field" />],
 	])('links a bare %s to the id that it renders', async (_, value, control) => {
 		const { container } = renderUI(
 			<Form defaultValues={{ field: value }} validate={{ field: () => 'Fix the field.' }}>
