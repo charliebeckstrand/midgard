@@ -80,6 +80,48 @@ describe('Overlay', () => {
 		expect(onOpenChange).toHaveBeenCalledWith(false)
 	})
 
+	it('closes for a press that starts on the backdrop', () => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<Overlay open onOpenChange={onOpenChange}>
+				<span>content</span>
+			</Overlay>,
+		)
+
+		const backdrop = present(
+			document.querySelector('[data-slot="overlay-backdrop"]'),
+			'[data-slot="overlay-backdrop"]',
+		)
+
+		fireEvent.pointerDown(backdrop)
+
+		fireEvent.click(backdrop, { detail: 1 })
+
+		expect(onOpenChange).toHaveBeenCalledWith(false)
+	})
+
+	// On iOS, a tap that opens an overlay on its lift sends its click after the
+	// overlay is up. That click lands on the backdrop with no press there.
+	it('stays open for a click whose press started before the overlay opened', () => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<Overlay open onOpenChange={onOpenChange}>
+				<span>content</span>
+			</Overlay>,
+		)
+
+		const backdrop = present(
+			document.querySelector('[data-slot="overlay-backdrop"]'),
+			'[data-slot="overlay-backdrop"]',
+		)
+
+		fireEvent.click(backdrop, { detail: 1 })
+
+		expect(onOpenChange).not.toHaveBeenCalled()
+	})
+
 	// React carries a click in the portal up the component tree. A press on the
 	// backdrop dismisses the overlay and does nothing more, so an ancestor must not see it.
 	it('keeps a backdrop click from the click handler of a consumer ancestor', () => {

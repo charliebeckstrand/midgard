@@ -189,7 +189,7 @@ export function GridEditOverlay<T>({ kind, session, columns, source }: GridEditO
 
 		if (blocked) return
 
-		returnRef.current = focusTarget(rowKey) as HTMLElement | null
+		returnRef.current = focusTarget(rowKey)
 
 		setBusy(true)
 
@@ -208,7 +208,7 @@ export function GridEditOverlay<T>({ kind, session, columns, source }: GridEditO
 	function discard() {
 		if (busy || shown === null) return
 
-		returnRef.current = focusTarget(shown.rowKey) as HTMLElement | null
+		returnRef.current = focusTarget(shown.rowKey)
 
 		endSession(shown.rowKey, 'discard')
 	}

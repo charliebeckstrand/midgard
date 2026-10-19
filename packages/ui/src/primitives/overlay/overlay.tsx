@@ -199,6 +199,9 @@ export function Overlay({
 	// backdrop stays for that press alone.
 	const catchesPress = modal && dismissOnBackdrop
 
+	// Whether the current press started on the backdrop.
+	const pressedRef = useRef(false)
+
 	useEffect(() => {
 		if (open) notifyOverlaySignal()
 	}, [open])
@@ -259,10 +262,21 @@ export function Overlay({
 					// panel stops its own clicks. The backdrop stops its clicks too. If it
 					// did not, the press that dismisses a menu sheet would also click the
 					// grid row that holds the menu.
+					onPointerDown={() => {
+						pressedRef.current = true
+					}}
 					onClick={(event) => {
 						event.stopPropagation()
 
-						if (dismissOnBackdrop) onOpenChange(false)
+						const pressed = pressedRef.current
+
+						pressedRef.current = false
+
+						// A click closes only for a press that started on the backdrop. On
+						// iOS, the tap that opens an overlay on its lift still sends its click
+						// after the overlay is up, and that click lands on the backdrop. A
+						// click from a script has no press (`detail` 0), so it closes.
+						if (dismissOnBackdrop && (pressed || event.detail === 0)) onOpenChange(false)
 					}}
 					aria-hidden="true"
 				/>

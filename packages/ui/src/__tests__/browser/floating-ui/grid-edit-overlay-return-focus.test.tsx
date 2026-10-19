@@ -89,6 +89,43 @@ describe('grid edit overlay return focus (real floating engine)', () => {
 		await waitFor(() => expect(pencil).toHaveFocus())
 	})
 
+	// Safari does not focus a button on a tap, so the table keeps the focus of
+	// the earlier press while the pencil opens its row.
+	it('returns the focus to the pencil when the press did not focus it', async () => {
+		stubMatchMedia((query) => query.startsWith('(hover: none)'))
+
+		renderUI(
+			<>
+				<PhoneGrid />
+				<PhoneGrid />
+			</>,
+		)
+
+		const [first] = grids()
+
+		await userEvent.click(within(first).getByRole('gridcell', { name: 'Alice' }))
+
+		await waitFor(() => expect(first).toHaveFocus())
+
+		const pencil = within(first).getByRole('button', { name: 'edit-2' })
+
+		const keepFocus = (event: MouseEvent) => event.preventDefault()
+
+		pencil.addEventListener('mousedown', keepFocus)
+
+		await userEvent.click(pencil)
+
+		pencil.removeEventListener('mousedown', keepFocus)
+
+		await screen.findByRole('dialog', { name: 'Edit row 2' })
+
+		await cancel()
+
+		await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+
+		await waitFor(() => expect(pencil).toHaveFocus())
+	})
+
 	it('returns the focus to the edited cell after a double click', async () => {
 		stubMatchMedia((query) => query.startsWith('(hover: none)'))
 

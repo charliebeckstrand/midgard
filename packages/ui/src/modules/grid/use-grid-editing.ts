@@ -238,46 +238,49 @@ function reseatFlagged(flag: { current: boolean }, grid: HTMLElement | null): vo
 
 /**
  * Where focus returns as a session on a row ends: the cell that the session
- * entered, or the element that had the focus as the row opened. @internal
+ * entered, or the place of the last press or focus as the row opened. @internal
  */
 type FocusOrigin = { cell: GridActiveEdit } | { element: Element }
 
 /**
- * The element that had the focus as a row opened, read for `table`. A press on
- * content in a cell, such as a pencil, gives that cell, because the content
- * can be gone at the close. The tab stop gives the table, and focus outside
- * the grid gives that element. The pencil of a row can unmount in the render
- * that opens the row, so focus on `<body>` falls back to `last`, the last
- * element in the grid that had the focus. @internal
+ * The place of a press or a focus on `target`, read for `table`. Content in a
+ * cell, such as a pencil, gives that cell, because the content can be gone when
+ * the row closes. The tab stop gives the table, and an element outside the grid
+ * gives itself. @internal
  */
-function focusOrigin(table: HTMLElement | null, last: Element | null): Element | null {
-	const active = table?.ownerDocument.activeElement ?? null
+function interactionPlace(table: HTMLElement, target: Element): Element {
+	if (target === table || !table.contains(target)) return target
 
-	const node = active !== null && active !== table?.ownerDocument.body ? active : last
-
-	if (table === null || node === null || !table.contains(node) || node === table) return node
-
-	const cell = node.closest('td')
+	const cell = target.closest('td')
 
 	return cell !== null && cell.closest('table') === table ? cell : table
 }
 
 /**
- * Moves focus to `target` with `flag` set, as {@link reseatFlagged} does. A
- * cell gives its first tabbable element, such as the pencil that mounts again
- * in it. The page does not scroll. @internal
+ * Moves focus to `target` with `flag` set, as {@link reseatFlagged} does. The
+ * page does not scroll. @internal
  */
-function returnFlagged(flag: { current: boolean }, target: Element): void {
-	const focusable =
-		target.tagName === 'TD' ? target.querySelector<HTMLElement>(TABBABLE) : (target as HTMLElement)
-
+function returnFlagged(flag: { current: boolean }, target: HTMLElement): void {
 	flag.current = true
 
 	try {
-		focusable?.focus({ preventScroll: true })
+		target.focus({ preventScroll: true })
 	} finally {
 		flag.current = false
 	}
+}
+
+/**
+ * The element that focus returns to for an element origin, or `null` when it
+ * is gone. A cell gives its first tabbable element, such as its pencil, or the
+ * tab stop `table` when it has none. @internal
+ */
+function returnElement(element: Element, table: HTMLElement | null): HTMLElement | null {
+	if (!element.isConnected || !(element instanceof HTMLElement)) return null
+
+	if (element.tagName !== 'TD') return element
+
+	return element.querySelector<HTMLElement>(TABBABLE) ?? table
 }
 
 /** The tabbable content of a cell. @internal */
@@ -826,37 +829,49 @@ export function useGridEditing<T>({
 	const reseat = useCallback(() => reseatFlagged(reseatingRef, tableRef.current), [tableRef])
 
 	// Where focus returns as the session on each open row ends. A cell entry
-	// records its cell. A row that the consumer opens records the element that
-	// had the focus, so focus returns only to a cell that the session edited or
-	// that had the focus as it started.
+	// records its cell. A row that the consumer opens records the place of the
+	// last press or focus, so focus returns only to a cell that the session
+	// edited or that was in use as it started.
 	const originsRef = useRef(new Map<string | number, FocusOrigin>())
 
-	// The last element in the grid that had the focus, for a row that opens as
-	// its pencil unmounts. Focus that leaves for the page clears it.
-	const lastFocusRef = useRef<Element | null>(null)
+	// The place of the last press or focus on the page, as `interactionPlace`
+	// gives it. A row that the consumer opens takes it as its origin. A press
+	// counts as well as a focus, because a tap on a button in Safari does not
+	// focus the button. The place is read at the event, because a pencil can
+	// unmount in the render that opens its row.
+	const lastPlaceRef = useRef<Element | null>(null)
 
 	useEffect(() => {
 		const table = tableRef.current
 
 		if (!table) return
 
+		const doc = table.ownerDocument
+
+		const press = (event: PointerEvent) => {
+			lastPlaceRef.current =
+				event.target instanceof Element ? interactionPlace(table, event.target) : null
+		}
+
 		const focusIn = (event: FocusEvent) => {
-			lastFocusRef.current = event.target instanceof Element ? event.target : null
+			const target = event.target instanceof Element ? event.target : null
+
+			// A press on a cell focuses the table, and the press names the cell.
+			const last = lastPlaceRef.current
+
+			if (target === table && last !== null && last !== table && table.contains(last)) return
+
+			lastPlaceRef.current = target === null ? null : interactionPlace(table, target)
 		}
 
-		const focusOut = (event: FocusEvent) => {
-			if (event.relatedTarget instanceof Node && !table.contains(event.relatedTarget))
-				lastFocusRef.current = null
-		}
+		doc.addEventListener('pointerdown', press, true)
 
-		table.addEventListener('focusin', focusIn)
-
-		table.addEventListener('focusout', focusOut)
+		doc.addEventListener('focusin', focusIn, true)
 
 		return () => {
-			table.removeEventListener('focusin', focusIn)
+			doc.removeEventListener('pointerdown', press, true)
 
-			table.removeEventListener('focusout', focusOut)
+			doc.removeEventListener('focusin', focusIn, true)
 		}
 	}, [tableRef])
 
@@ -868,22 +883,25 @@ export function useGridEditing<T>({
 		for (const key of editableRows) {
 			if (origins.has(key)) continue
 
-			const element = focusOrigin(tableRef.current, lastFocusRef.current)
+			const element = lastPlaceRef.current
 
 			if (element) origins.set(key, { element })
 		}
-	}, [editableRows, tableRef])
+	}, [editableRows])
 
 	// The element that focus returns to as the session on `rowKey` ends, or
 	// `null` for none. A cell origin moves the cursor onto the cell that the
-	// session edited, and gives the tab stop.
+	// session edited, and gives the tab stop. An element origin gives what
+	// `returnElement` gives.
 	const focusTarget = useCallback(
-		(rowKey: string | number): Element | null => {
+		(rowKey: string | number): HTMLElement | null => {
 			const origin = originsRef.current.get(rowKey)
 
 			if (!origin) return null
 
-			if ('element' in origin) return origin.element.isConnected ? origin.element : null
+			const table = tableRef.current
+
+			if ('element' in origin) return returnElement(origin.element, table)
 
 			const active = activeEditRef.current
 
@@ -893,7 +911,7 @@ export function useGridEditing<T>({
 
 			if (coord.row >= 0 && coord.col >= 0) moveTo(coord)
 
-			return tableRef.current
+			return table
 		},
 		[dataColumnsRef, moveTo, rowKeysRef, tableRef],
 	)
