@@ -24,9 +24,10 @@ export type TabListSkeletonProps = {
 }
 
 /**
- * Tab-list-shaped placeholder: the list rail of the `orientation`, holding
- * `tabs` line placeholders. Keyed off the tab count rather than a size step
- * alone; it does not use the size-driven `createSkeleton` factory.
+ * A placeholder for a TabList while it loads. It shows the list rail of the
+ * `orientation`, holding `tabs` line placeholders. Keyed off the tab count
+ * rather than a size step alone; it does not use the size-driven
+ * `createSkeleton` factory.
  */
 export function TabListSkeleton({
 	tabs = 3,

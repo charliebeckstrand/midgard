@@ -20,9 +20,9 @@ export type PanelTriggerProps = ComponentProps<'button'> & {
 }
 
 /**
- * Opens the panel of the enclosing Dialog, Sheet, or Drawer root. A single
- * element child is cloned, and a click on it opens the panel after the child's
- * own `onClick`. Anything else renders inside the trigger's own `<button>`.
+ * A trigger that opens the panel of the enclosing Dialog, Sheet, or Drawer root.
+ * A single element child is cloned, and a click on it opens the panel after the
+ * child's own `onClick`. Anything else renders inside the trigger's own `<button>`.
  * Either way the trigger carries `aria-haspopup="dialog"`, `aria-expanded`, and,
  * while the panel is open, `aria-controls`. The other props of the trigger go
  * to a cloned child. The props of the child win a clash, and a handler on both

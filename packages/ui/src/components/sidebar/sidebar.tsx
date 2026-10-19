@@ -29,7 +29,7 @@ export type SidebarProps = Omit<ComponentProps<'nav'>, 'aria-label'> & {
 	 */
 	'aria-label'?: string
 	/**
-	 * Collapse to an icon rail: labels turn `sr-only`, affixes and item actions
+	 * Collapses to an icon rail: labels turn `sr-only`, affixes and item actions
 	 * hide, and items gain a hover tooltip naming the label. In the drawer of a
 	 * `SidebarLayout` the sidebar keeps its full layout, so the drawer is
 	 * unaffected. The rail shows wherever else the sidebar renders, so the

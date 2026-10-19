@@ -12,10 +12,10 @@ export type PaginationSkeletonProps = {
 }
 
 /**
- * Pagination-shaped placeholder: a row of page-button squares between the
- * squares of the Previous and Next buttons. Keyed off
- * the button count rather than a size step; it does not use the
- * size-driven `createSkeleton` factory.
+ * A placeholder for a Pagination while it loads. It shows a row of page-button
+ * squares between the squares of the Previous and Next buttons. Keyed off the
+ * button count rather than a size step; it does not use the size-driven
+ * `createSkeleton` factory.
  */
 export function PaginationSkeleton({ pages = 7, className }: PaginationSkeletonProps) {
 	return renderRowSkeleton({

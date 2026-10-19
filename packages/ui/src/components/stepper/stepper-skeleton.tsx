@@ -23,11 +23,11 @@ export type StepperSkeletonProps = {
 }
 
 /**
- * Stepper-shaped placeholder: indicator dots with title lines, joined by the
- * real separator rule. The root, the steps, the separators, and the title
- * offset come from the stepper recipes, so each layout matches the real
- * stepper. Keyed off the step count rather than a size step; it does not use
- * the size-driven `createSkeleton` factory.
+ * A placeholder for a Stepper while it loads. It shows indicator dots with
+ * title lines, joined by the real separator rule. The root, the steps, the
+ * separators, and the title offset come from the stepper recipes, so each
+ * layout matches the real stepper. Keyed off the step count rather than a size
+ * step; it does not use the size-driven `createSkeleton` factory.
  *
  * @remarks
  * `steps` sets the silhouette's segment count; match it to the expected step

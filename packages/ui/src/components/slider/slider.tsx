@@ -37,6 +37,7 @@ function nativeRangeValue(value: number, min: number, max: number, step: number)
 type SliderBaseProps = SliderVariants & {
 	value?: number
 	defaultValue?: number
+	/** Fires when the value changes. */
 	onValueChange?: (value: number) => void
 	/** @defaultValue 0 */
 	min?: number

@@ -6,6 +6,7 @@ import { usePasswordConfirmField } from './use-password-confirm-field'
 
 /** Props for {@link PasswordConfirmNew}: {@link PasswordInputProps} with an `onChange` that runs before the coordinator records the edit. Its `preventDefault()` does not skip the record. */
 export type PasswordConfirmNewProps = Omit<PasswordInputProps, 'onChange'> & {
+	/** Fires when the text of the field changes, before the coordinator records the edit. */
 	onChange?: (event: ChangeEvent<HTMLInputElement>) => void
 }
 

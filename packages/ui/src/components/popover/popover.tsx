@@ -19,9 +19,9 @@ export type PopoverProps = Omit<ComponentProps<'span'>, 'children'> & {
 	 */
 	placement?: FloatingPlacement
 	/**
-	 * Controlled open state. Pair with `onOpenChange`.
+	 * Controlled open state. Pair it with `onOpenChange`.
 	 *
-	 * @defaultValue Uncontrolled: the state starts from `defaultOpen`.
+	 * @defaultValue Uncontrolled, with `defaultOpen` as the first state.
 	 */
 	open?: boolean
 	/**
@@ -29,6 +29,7 @@ export type PopoverProps = Omit<ComponentProps<'span'>, 'children'> & {
 	 * @defaultValue false
 	 */
 	defaultOpen?: boolean
+	/** Fires when the open state changes. */
 	onOpenChange?: (open: boolean) => void
 	/**
 	 * Classes for the root. The root is `display: contents`, so it adds no box to the layout, and a

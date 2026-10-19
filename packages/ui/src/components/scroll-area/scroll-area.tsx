@@ -17,7 +17,7 @@ export type ScrollAreaProps = Omit<ScrollAreaWrapperVariants, 'orientation' | 'b
 	Omit<ScrollAreaViewportVariants, 'orientation' | 'bare'> & {
 		/** The axis that scrolls. @defaultValue 'vertical' */
 		orientation?: ScrollAreaWrapperVariants['orientation']
-		/** Whether the area drops the border of its frame and the padding of its viewport. @defaultValue false */
+		/** Drops the border of the frame and the padding of the viewport. @defaultValue false */
 		bare?: ScrollAreaWrapperVariants['bare']
 		/**
 		 * Scrollbar visibility behavior.

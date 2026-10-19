@@ -12,7 +12,7 @@ export type PlaceholderProps = {
 	 */
 	as?: 'div' | 'span'
 	/**
-	 * Pulse to show that content loads. Pass `false` for a still shape, such as
+	 * Pulses to show that content loads. Pass `false` for a still shape, such as
 	 * one that stays in place of content that did not load.
 	 * @defaultValue true
 	 */

@@ -20,10 +20,10 @@ export type TextareaSkeletonProps = {
 }
 
 /**
- * Textarea-shaped placeholder: `rows` lines of the text of a textarea, plus its
- * vertical padding, at the step of the nearest density scope. It is never
- * shorter than the minimum height of a textarea. The height is a count of
- * lines, so it does not use the `createSkeleton` factory.
+ * A placeholder for a Textarea while it loads. It holds `rows` lines of the
+ * text of a textarea, plus its vertical padding, at the step of the nearest
+ * density scope. It is never shorter than the minimum height of a textarea. The
+ * height is a count of lines, so it does not use the `createSkeleton` factory.
  */
 export function TextareaSkeleton({ rows = 3, size, className }: TextareaSkeletonProps) {
 	return (

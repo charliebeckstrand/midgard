@@ -18,16 +18,16 @@ export type TableVariants = {
 	 * @defaultValue false
 	 */
 	bleed?: boolean
-	/** Draw hairline borders around every cell. @defaultValue false */
+	/** Draws hairline borders around every cell. @defaultValue false */
 	outline?: boolean
 	/**
-	 * Zebra-stripe the body rows. `true` shades even rows (equivalent to
+	 * Zebra-stripes the body rows. `true` shades even rows (equivalent to
 	 * `'even'`); pass `'odd'` to shade odd rows instead.
 	 * @defaultValue false
 	 */
 	striped?: boolean | 'odd' | 'even'
 	/**
-	 * Wash the body row under the pointer with the standard hover tint,
+	 * Washes the body row under the pointer with the standard hover tint,
 	 * projected from the `<table>` onto its `tbody` rows. An interactive
 	 * variant, so it out-cascades the {@link TableVariants.striped} shade on the
 	 * hovered row. Header rows are untouched.

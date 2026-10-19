@@ -35,7 +35,7 @@ export type TooltipProps = {
 	 */
 	delay?: number
 	/**
-	 * Keep the content open while the pointer travels into it (safe-polygon),
+	 * Keeps the content open while the pointer travels into it (safe-polygon),
 	 * letting users interact with its contents.
 	 * @defaultValue false
 	 * @remarks The travel must read as deliberate: a pointer that crosses slower
@@ -56,11 +56,11 @@ export type TooltipProps = {
 	 */
 	disabled?: boolean
 	/**
-	 * Hold the tooltip open regardless of pointer, for a trigger that can't take
-	 * hover — an SVG shape a roving keyboard cursor drives, say. Releasing it hands
-	 * control back to hover / focus / click; `disabled` still wins. A trigger that
-	 * matches `:disabled` also wins: it closes a held tooltip, and the hold shows
-	 * the tooltip again when the trigger turns enabled.
+	 * Holds the tooltip open regardless of pointer, for a trigger that can't take
+	 * hover, such as an SVG shape that a roving keyboard cursor drives. Releasing
+	 * it hands control back to hover / focus / click; `disabled` still wins. A
+	 * trigger that matches `:disabled` also wins: it closes a held tooltip, and
+	 * the hold shows the tooltip again when the trigger turns enabled.
 	 * @defaultValue false
 	 * @remarks `false` does not hold the tooltip closed. It only releases the hold,
 	 * so a hover or a focus can still open the tooltip. Use `disabled` to keep it

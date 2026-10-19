@@ -34,10 +34,10 @@ export type TreeSkeletonProps = {
 }
 
 /**
- * Tree-shaped placeholder: `rows` rows of an icon and a label line. The rows
- * go to a depth from a fixed pattern, so the silhouette shows nested
- * branches. Keyed off the row count, so it does not use the size-driven
- * `createSkeleton` factory.
+ * A placeholder for a Tree while it loads. It holds `rows` rows of an icon and
+ * a label line. The rows go to a depth from a fixed pattern, so the silhouette
+ * shows nested branches. Keyed off the row count, so it does not use the
+ * size-driven `createSkeleton` factory.
  *
  * @remarks Static leaf: renders in React Server Components. Each row has the
  * box of a real row: the same padding, gap, and chevron column, and a label

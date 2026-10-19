@@ -6,8 +6,8 @@ import { createSkeleton, type SkeletonProps } from '../placeholder'
 export type SegmentSkeletonProps = SkeletonProps<ScaleStep<typeof scale>>
 
 /**
- * Loading placeholder matching the {@link Segment} control silhouette, sized
- * by the optional `size` step.
+ * A placeholder for a {@link Segment} while it loads. The optional `size` step
+ * sets its size.
  * @remarks Static leaf: renders in React Server Components.
  * @see {@link Segment}
  */

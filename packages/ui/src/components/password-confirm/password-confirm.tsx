@@ -13,9 +13,9 @@ export type PasswordConfirmProps = ComponentProps<'div'> & {
 	/** Message shown while the two fields disagree (and the password has no form error). */
 	warning?: ReactNode
 	/**
-	 * Fires on a confirmed match/mismatch transition: `true` once both fields are
-	 * non-empty and equal, `false` once they settle non-empty and unequal. It also
-	 * fires `false` when a match ends because a field becomes empty or the
+	 * Fires when a confirmed match or mismatch starts: `true` once both fields
+	 * are non-empty and equal, `false` once they settle non-empty and unequal. It
+	 * also fires `false` when a match ends because a field becomes empty or the
 	 * confirmation becomes partial. Transitions only (no re-fire on repeats), and
 	 * never while the password has a form error.
 	 */

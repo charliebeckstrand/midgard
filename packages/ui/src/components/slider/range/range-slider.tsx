@@ -37,6 +37,7 @@ export type RangeSliderProps = {
 	name?: string
 	value?: [number, number]
 	defaultValue?: [number, number]
+	/** Fires when the `[start, end]` range changes. */
 	onValueChange?: (value: [number, number]) => void
 	/** @defaultValue 0 */
 	min?: number
@@ -61,7 +62,7 @@ export type RangeSliderProps = {
 	 */
 	readOnly?: boolean
 	/**
-	 * Whether moving a thumb past the other swaps their roles. When `false`,
+	 * Swaps the roles of the thumbs when one moves past the other. When `false`,
 	 * each thumb is clamped at the other's value. On a swap, from a key or a
 	 * pointer drag, focus follows the moving value to the other thumb button.
 	 *
@@ -79,7 +80,7 @@ export type RangeSliderProps = {
 	/** Formats a thumb's value for assistive tech (`aria-valuetext`): currency, ratings, levels announce as meaningful text instead of a bare number. */
 	getValueText?: (value: number, thumb: ThumbIndex) => string
 	/**
-	 * Fires with the grabbed thumb when a pointer drag starts. Pair it with
+	 * Fires when a pointer drag starts, with the grabbed thumb. Pair it with
 	 * {@link RangeSliderProps.onDragEnd} to bracket the drag.
 	 *
 	 * `onValueChange` reports the values, not the gesture. It also fires once per
@@ -90,7 +91,7 @@ export type RangeSliderProps = {
 	 */
 	onDragStart?: (thumb: ThumbIndex) => void
 	/**
-	 * Fires with the grabbed thumb when a pointer drag ends. The pointer lift, a
+	 * Fires when a pointer drag ends, with the grabbed thumb. The pointer lift, a
 	 * cancel, and a lost capture all end the drag. Exactly one end follows each
 	 * start.
 	 *

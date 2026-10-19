@@ -22,15 +22,15 @@ export type TreeItemProps = Omit<ComponentProps<'div'>, 'prefix' | 'defaultCheck
 	label: ReactNode
 	/** Icon before the label. */
 	icon?: ReactElement
-	/** Initially expanded (uncontrolled). Ignored when `open` is provided. @defaultValue false */
+	/** Initial open state when uncontrolled. Ignored when `open` is provided. @defaultValue false */
 	defaultOpen?: boolean
 	/**
-	 * Controlled expanded state. When provided, the item operates in controlled mode.
+	 * Controlled open state. Pair it with `onOpenChange`.
 	 *
-	 * @defaultValue Uncontrolled: the state starts from `defaultOpen`.
+	 * @defaultValue Uncontrolled, with `defaultOpen` as the first state.
 	 */
 	open?: boolean
-	/** Called when the user toggles the item. Fires in both controlled and uncontrolled modes. */
+	/** Fires when the user toggles the item, in both controlled and uncontrolled modes. */
 	onOpenChange?: (open: boolean) => void
 	/**
 	 * Fires when the row is activated, by a click or by Enter. Space also
@@ -57,7 +57,7 @@ export type TreeItemProps = Omit<ComponentProps<'div'>, 'prefix' | 'defaultCheck
 	 */
 	current?: boolean
 	/**
-	 * The controlled check state. A value makes the row a checkable item: the row
+	 * Controlled check state. A value makes the row a checkable item: the row
 	 * gets `aria-checked` and draws a check box before the icon.
 	 *
 	 * @remarks
@@ -66,17 +66,18 @@ export type TreeItemProps = Omit<ComponentProps<'div'>, 'prefix' | 'defaultCheck
 	 * checked. The tree does not compute it, because the caller holds the state
 	 * of each item.
 	 *
-	 * @defaultValue Uncontrolled: the state starts from `defaultChecked`.
+	 * @defaultValue Uncontrolled, with `defaultChecked` as the first state.
 	 */
 	checked?: boolean | 'mixed'
 	/**
-	 * The initial check state (uncontrolled). A value makes the row a checkable item. Ignored when `checked` is provided.
+	 * Initial check state when uncontrolled. A value makes the row a checkable
+	 * item. Ignored when `checked` is provided.
 	 *
 	 * @defaultValue No check state: the row is not a checkable item.
 	 */
 	defaultChecked?: boolean | 'mixed'
 	/**
-	 * Called when the user toggles the check, by Space, by a click on the box, or
+	 * Fires when the user toggles the check, by Space, by a click on the box, or
 	 * by an activation of a leaf row. A `'mixed'` row toggles to `true`. Fires in
 	 * both controlled and uncontrolled modes.
 	 */

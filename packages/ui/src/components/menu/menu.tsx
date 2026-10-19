@@ -16,15 +16,15 @@ import { useMenuTouchHold } from './use-menu-touch-hold'
  */
 export type MenuProps = {
 	/**
-	 * Open state, controlled. Pair it with `onOpenChange`.
+	 * Controlled open state. Pair it with `onOpenChange`.
 	 *
-	 * @defaultValue Uncontrolled: the state starts from `defaultOpen`.
+	 * @defaultValue Uncontrolled, with `defaultOpen` as the first state.
 	 */
 	open?: boolean
 	/**
-	 * Open state at mount, uncontrolled. With no `placement`, a `true` value also
-	 * selects the static inline mode. The panel then renders in place, traps no
-	 * focus, and never dismisses. With a `placement`, the dropdown starts open.
+	 * Initial open state when uncontrolled. With no `placement`, a `true` value
+	 * also selects the static inline mode. The panel then renders in place, traps
+	 * no focus, and never closes. With a `placement`, the dropdown starts open.
 	 * @defaultValue false
 	 */
 	defaultOpen?: boolean
@@ -49,19 +49,19 @@ export type MenuProps = {
 	 */
 	size?: ScaleStep<typeof scale>
 	/**
-	 * Cap the panel at its density height, scrolling past it. Off by default. A
-	 * menu is normally a short, fixed item set. A cap there clips the last row and
-	 * reads as truncation, rather than as more content below. Turn it on for a long
-	 * menu that must stay short where the viewport has space for all of it. The
-	 * panel then scrolls inside the cap instead of growing. A floating panel does
-	 * not need the cap to stay on screen, because the floating layer also caps it
-	 * at the space on its side of the trigger. Applies to the panel and to every
-	 * submenu under it.
+	 * Caps the panel at its density height, and scrolls past it. Off by default.
+	 * A menu is normally a short, fixed item set. A cap there clips the last row
+	 * and reads as truncation, rather than as more content below. Turn it on for
+	 * a long menu that must stay short where the viewport has space for all of
+	 * it. The panel then scrolls inside the cap instead of growing. A floating
+	 * panel does not need the cap to stay on screen, because the floating layer
+	 * also caps it at the space on its side of the trigger. Applies to the panel
+	 * and to every submenu under it.
 	 * @defaultValue false
 	 */
 	capped?: boolean
 	/**
-	 * Open a dropdown as a bottom sheet on a phone, which is a narrow viewport
+	 * Opens a dropdown as a bottom sheet on a phone, which is a narrow viewport
 	 * with no hover. The sheet holds the same rows at the full width of the
 	 * screen, with a Close button below them. The Close button, a pick, the
 	 * backdrop, or `Escape` closes it. Set `false` for a dropdown that must stay

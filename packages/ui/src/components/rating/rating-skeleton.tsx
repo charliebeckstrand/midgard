@@ -19,10 +19,11 @@ export type RatingSkeletonProps = {
 }
 
 /**
- * Rating-shaped placeholder: a row of star-sized squares. Keyed off the star
- * count as well as the size step, so it does not use the size-driven
- * `createSkeleton` factory. An explicit `size` writes `data-density` on the
- * row, and with no `size` the row follows the nearest density scope.
+ * A placeholder for a Rating while it loads. It shows a row of star-sized
+ * squares. Keyed off the star count as well as the size step, so it does not
+ * use the size-driven `createSkeleton` factory. An explicit `size` writes
+ * `data-density` on the row, and with no `size` the row follows the nearest
+ * density scope.
  *
  * @remarks A `<span>` row of `<span>` stars, as the rating itself is, so it stands in for one
  * anywhere a rating can go, a line of text included.

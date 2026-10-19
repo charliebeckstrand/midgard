@@ -95,7 +95,7 @@ export type SheetPanelProps = Omit<SheetPanelVariants, 'surface' | 'width' | 'si
 		 */
 		width?: SheetPanelVariants['width']
 		/**
-		 * Give the panel a drag handle. The reader can then resize it past the `width`
+		 * Gives the panel a drag handle. The reader can then resize it past the `width`
 		 * scale.
 		 *
 		 * The drag sets the width directly rather than stepping between the `width`
@@ -108,7 +108,7 @@ export type SheetPanelProps = Omit<SheetPanelVariants, 'surface' | 'width' | 'si
 		 */
 		handle?: boolean
 		/**
-		 * Fires once the panel has finished arriving — it is in from its edge, at rest, and
+		 * Fires when the panel has finished arriving: it is in from its edge, at rest, and
 		 * covering whatever it covers.
 		 *
 		 * The counterpart to `onOpenChange`, which reports the state being *asked for*: this
@@ -127,7 +127,7 @@ export type SheetPanelProps = Omit<SheetPanelVariants, 'surface' | 'width' | 'si
 		 */
 		onOpenComplete?: () => void
 		/**
-		 * Opt the panel and backdrop into the translucent glass surface. Omit it to
+		 * Opts the panel and backdrop into the translucent glass surface. Omit it to
 		 * follow the ambient `<GlassProvider>`. Set `false` to keep the flat surface
 		 * inside one.
 		 *

@@ -6,7 +6,7 @@ import { createSkeleton, type SkeletonProps } from '../placeholder'
 export type SparklineSkeletonProps = SkeletonProps<ScaleStep<typeof scale>>
 
 /**
- * Loading placeholder on the {@link Sparkline} silhouette.
+ * A placeholder for a {@link Sparkline} while it loads.
  * @remarks Static leaf: renders in React Server Components.
  */
 export const SparklineSkeleton = createSkeleton<ScaleStep<typeof scale>>(

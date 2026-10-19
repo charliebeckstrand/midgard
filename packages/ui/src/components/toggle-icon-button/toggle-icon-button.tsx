@@ -16,9 +16,9 @@ import { ToggleIconButtonIcons } from './toggle-icon-button-icons'
  */
 export type ToggleIconButtonProps = AccessibleName & {
 	/**
-	 * Controlled pressed state, reflected as `aria-pressed`. Pair with `onPressedChange`.
+	 * Controlled pressed state, reflected as `aria-pressed`. Pair it with `onPressedChange`.
 	 *
-	 * @defaultValue Uncontrolled: the state starts from `defaultPressed`.
+	 * @defaultValue Uncontrolled, with `defaultPressed` as the first state.
 	 */
 	pressed?: boolean
 	/**
@@ -26,7 +26,7 @@ export type ToggleIconButtonProps = AccessibleName & {
 	 * @defaultValue false
 	 */
 	defaultPressed?: boolean
-	/** Fires with the next pressed state when the button is activated. */
+	/** Fires when the button is activated, with the next pressed state. */
 	onPressedChange?: (pressed: boolean) => void
 	/** Icon shown in the unpressed state. */
 	icon: ReactElement
@@ -36,7 +36,7 @@ export type ToggleIconButtonProps = AccessibleName & {
 	 */
 	pressedIcon?: ReactElement
 	/**
-	 * Cross-fade between `icon` and `pressedIcon` on toggle; set false for an instant swap.
+	 * Cross-fades between `icon` and `pressedIcon` on toggle; set false for an instant swap.
 	 * @defaultValue true
 	 */
 	animate?: boolean

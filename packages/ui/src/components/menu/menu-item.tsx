@@ -23,10 +23,13 @@ type MenuItemBaseProps = {
 	disabled?: boolean
 	className?: string
 	children?: ReactNode
-	/** Runs on selection (click or Enter/Space), then closes the menu. */
+	/**
+	 * Fires when the reader selects the item (click or Enter/Space), before the
+	 * menu closes.
+	 */
 	onAction?: () => void
 	/**
-	 * Close the menu after `onAction`. Set `false` for a row that toggles
+	 * Closes the menu after `onAction`. Set `false` for a row that toggles
 	 * state the reader keeps adjusting.
 	 * @defaultValue true
 	 */

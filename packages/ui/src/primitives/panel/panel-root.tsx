@@ -25,8 +25,8 @@ export const [PanelStateContext, usePanelState] = createContext<PanelStateContex
 /** Props for {@link PanelRoot}: the open state, controlled or uncontrolled. */
 export type PanelRootProps = {
 	/**
-	 * Controlled open state. Pair with `onOpenChange`.
-	 * @defaultValue Uncontrolled: the state starts from `defaultOpen`.
+	 * Controlled open state. Pair it with `onOpenChange`.
+	 * @defaultValue Uncontrolled, with `defaultOpen` as the first state.
 	 */
 	open?: boolean
 	/**
@@ -41,9 +41,9 @@ export type PanelRootProps = {
 }
 
 /**
- * Holds the open state of a panel and gives it to the trigger and the panel,
- * which read it with {@link usePanelState}. Controlled when `open` is set, and
- * uncontrolled from `defaultOpen` when it is not. It renders no element.
+ * The root that holds the open state of a panel and gives it to the trigger and
+ * the panel, which read it with {@link usePanelState}. Controlled when `open` is
+ * set, and uncontrolled from `defaultOpen` when it is not. It renders no element.
  */
 export function PanelRoot({ open, defaultOpen, onOpenChange, children }: PanelRootProps) {
 	const [resolvedOpen, setOpen] = useControllableFlag({
