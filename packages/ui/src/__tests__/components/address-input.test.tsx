@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, onTestFinished, vi } from 'vitest'
 import type { AddressProvider, AddressSuggestion } from '../../components/address-input'
 import { AddressInput, createPhotonProvider, photonProvider } from '../../components/address-input'
 import { splitUsState } from '../../components/address-input/address-input-photon-query'
@@ -15,8 +15,8 @@ import {
 	screen,
 	setupUser,
 	waitFor,
-	withFakeTime,
 } from '../helpers'
+import { it } from '../helpers/fake-clock'
 
 const mockProvider: AddressProvider = async (query) => [
 	{ id: '1', label: `${query} Main St`, description: 'Somewhere, CA' },
@@ -79,24 +79,22 @@ describe('AddressInput', () => {
 		expect(input).toHaveAttribute('autoComplete', 'off')
 	})
 
-	it('calls the provider with the typed query after debounce', async () => {
-		await withFakeTime(async (clock) => {
-			const provider = vi.fn(mockProvider)
+	it('calls the provider with the typed query after debounce', async ({ clock }) => {
+		const provider = vi.fn(mockProvider)
 
-			const { container } = renderUI(<AddressInput provider={provider} debounceMs={0} />)
+		const { container } = renderUI(<AddressInput provider={provider} debounceMs={0} />)
 
-			const input = getSlot<HTMLInputElement>(container, 'combobox-input')
+		const input = getSlot<HTMLInputElement>(container, 'combobox-input')
 
-			await clock.user.type(input, '123')
+		await clock.user.type(input, '123')
 
-			await clock.advance(0)
+		await clock.advance(0)
 
-			expect(provider).toHaveBeenCalled()
+		expect(provider).toHaveBeenCalled()
 
-			const [lastQuery] = provider.mock.calls.at(-1) ?? []
+		const [lastQuery] = provider.mock.calls.at(-1) ?? []
 
-			expect(lastQuery).toBe('123')
-		})
+		expect(lastQuery).toBe('123')
 	})
 
 	it('does not call the provider below minQueryLength', async () => {
@@ -116,29 +114,27 @@ describe('AddressInput', () => {
 		expect(provider).not.toHaveBeenCalled()
 	})
 
-	it('renders suggestions returned by the provider', async () => {
-		await withFakeTime(async (clock) => {
-			const provider = vi.fn(mockProvider)
+	it('renders suggestions returned by the provider', async ({ clock }) => {
+		const provider = vi.fn(mockProvider)
 
-			const { container, getByText } = renderUI(
-				<AddressInput provider={provider} debounceMs={0} minQueryLength={1} />,
-			)
+		const { container, getByText } = renderUI(
+			<AddressInput provider={provider} debounceMs={0} minQueryLength={1} />,
+		)
 
-			const input = getSlot<HTMLInputElement>(container, 'combobox-input')
+		const input = getSlot<HTMLInputElement>(container, 'combobox-input')
 
-			await clock.user.type(input, 'x')
+		await clock.user.type(input, 'x')
 
-			await clock.advance(0)
+		await clock.advance(0)
 
-			// `capitalize` defaults on: string option labels render (and expose
-			// their accessible name) first-word-capitalized.
-			expect(getByText('X Main St')).toBeInTheDocument()
+		// `capitalize` defaults on: string option labels render (and expose
+		// their accessible name) first-word-capitalized.
+		expect(getByText('X Main St')).toBeInTheDocument()
 
-			expect(getByText('X Oak Ave')).toBeInTheDocument()
-		})
+		expect(getByText('X Oak Ave')).toBeInTheDocument()
 	})
 
-	it('renders every match when a provider returns colliding ids', async () => {
+	it('renders every match when a provider returns colliding ids', async ({ clock }) => {
 		// Photon does this: one OSM object is several documents in its index, so a
 		// search can return the same `osm_type`/`osm_id` pair twice. Keyed by the
 		// id alone, React warned and was free to drop or duplicate a row on the
@@ -152,19 +148,17 @@ describe('AddressInput', () => {
 
 		onTestFinished(() => warn.mockRestore())
 
-		await withFakeTime(async (clock) => {
-			const { container } = renderUI(
-				<AddressInput provider={colliding} debounceMs={0} minQueryLength={1} />,
-			)
+		const { container } = renderUI(
+			<AddressInput provider={colliding} debounceMs={0} minQueryLength={1} />,
+		)
 
-			const input = getSlot<HTMLInputElement>(container, 'combobox-input')
+		const input = getSlot<HTMLInputElement>(container, 'combobox-input')
 
-			await clock.user.type(input, 'c')
+		await clock.user.type(input, 'c')
 
-			await clock.advance(0)
+		await clock.advance(0)
 
-			expect(screen.getAllByRole('option')).toHaveLength(2)
-		})
+		expect(screen.getAllByRole('option')).toHaveLength(2)
 
 		const keyWarnings = warn.mock.calls.filter((call) =>
 			call.some((arg) => typeof arg === 'string' && arg.includes('same key')),
@@ -173,27 +167,25 @@ describe('AddressInput', () => {
 		expect(keyWarnings).toEqual([])
 	})
 
-	it('binds the selection to a Form field by name', async () => {
-		await withFakeTime(async (clock) => {
-			const { container } = renderUI(
-				<Form defaultValues={{ address: undefined as AddressSuggestion | undefined }}>
-					<AddressInput name="address" provider={mockProvider} debounceMs={0} minQueryLength={1} />
-					<FormValue name="address" />
-				</Form>,
-			)
+	it('binds the selection to a Form field by name', async ({ clock }) => {
+		const { container } = renderUI(
+			<Form defaultValues={{ address: undefined as AddressSuggestion | undefined }}>
+				<AddressInput name="address" provider={mockProvider} debounceMs={0} minQueryLength={1} />
+				<FormValue name="address" />
+			</Form>,
+		)
 
-			const input = getSlot<HTMLInputElement>(container, 'combobox-input')
+		const input = getSlot<HTMLInputElement>(container, 'combobox-input')
 
-			await clock.user.type(input, 'x')
+		await clock.user.type(input, 'x')
 
-			await clock.advance(0)
+		await clock.advance(0)
 
-			await clock.user.click(screen.getByRole('option', { name: /X Main St/ }))
+		await clock.user.click(screen.getByRole('option', { name: /X Main St/ }))
 
-			// The field holds the suggestion the provider returned; `capitalize`
-			// styles the display and never the stored value.
-			expect(screen.getByTestId('bound')).toHaveTextContent('x Main St')
-		})
+		// The field holds the suggestion the provider returned; `capitalize`
+		// styles the display and never the stored value.
+		expect(screen.getByTestId('bound')).toHaveTextContent('x Main St')
 	})
 
 	it('seeds the field value into the input display', () => {
@@ -217,61 +209,57 @@ describe('AddressInput', () => {
 		expect(screen.getByRole('button', { name: 'Clear selection' })).toBeInTheDocument()
 	})
 
-	it('aborts the in-flight request when the query changes', async () => {
-		await withFakeTime(async (clock) => {
-			const signals: AbortSignal[] = []
+	it('aborts the in-flight request when the query changes', async ({ clock }) => {
+		const signals: AbortSignal[] = []
 
-			const provider: AddressProvider = (_, { signal }) => {
-				signals.push(signal)
+		const provider: AddressProvider = (_, { signal }) => {
+			signals.push(signal)
 
-				return new Promise(() => {})
-			}
+			return new Promise(() => {})
+		}
 
-			const { container } = renderUI(
-				<AddressInput provider={provider} debounceMs={0} minQueryLength={1} />,
-			)
+		const { container } = renderUI(
+			<AddressInput provider={provider} debounceMs={0} minQueryLength={1} />,
+		)
 
-			const input = getSlot<HTMLInputElement>(container, 'combobox-input')
+		const input = getSlot<HTMLInputElement>(container, 'combobox-input')
 
-			await clock.user.type(input, 'a')
+		await clock.user.type(input, 'a')
 
-			await clock.advance(0)
+		await clock.advance(0)
 
-			expect(signals.length).toBeGreaterThanOrEqual(1)
+		expect(signals.length).toBeGreaterThanOrEqual(1)
 
-			await clock.user.type(input, 'b')
+		await clock.user.type(input, 'b')
 
-			expect(signals[0]?.aborted).toBe(true)
-		})
+		expect(signals[0]?.aborted).toBe(true)
 	})
 
-	it('focuses the input and opens the menu from the suffix icon', async () => {
-		await withFakeTime(async (clock) => {
-			const provider = vi.fn(mockProvider)
+	it('focuses the input and opens the menu from the suffix icon', async ({ clock }) => {
+		const provider = vi.fn(mockProvider)
 
-			const { container } = renderUI(
-				<AddressInput provider={provider} debounceMs={0} minQueryLength={0} />,
-			)
+		const { container } = renderUI(
+			<AddressInput provider={provider} debounceMs={0} minQueryLength={0} />,
+		)
 
-			const input = getSlot<HTMLInputElement>(container, 'combobox-input')
+		const input = getSlot<HTMLInputElement>(container, 'combobox-input')
 
-			// The menu has not been requested yet; the provider stays idle.
-			expect(provider).not.toHaveBeenCalled()
+		// The menu has not been requested yet; the provider stays idle.
+		expect(provider).not.toHaveBeenCalled()
 
-			expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
 
-			const suffix = bySlot(container, 'suffix')
+		const suffix = bySlot(container, 'suffix')
 
-			if (!suffix) throw new Error('suffix slot not found')
+		if (!suffix) throw new Error('suffix slot not found')
 
-			fireEvent.mouseDown(suffix)
+		fireEvent.mouseDown(suffix)
 
-			expect(input).toHaveFocus()
+		expect(input).toHaveFocus()
 
-			await clock.advance(0)
+		await clock.advance(0)
 
-			expect(screen.getByRole('listbox')).toBeInTheDocument()
-		})
+		expect(screen.getByRole('listbox')).toBeInTheDocument()
 	})
 
 	it('renders the selected suggestion label as the input display value', () => {
@@ -288,7 +276,7 @@ describe('AddressInput', () => {
 		expect(input.value).toBe('10 Main St')
 	})
 
-	it('stays empty on blur after clearing a controlled selection', async () => {
+	it('stays empty on blur after clearing a controlled selection', async ({ clock }) => {
 		function Controlled() {
 			const [address, setAddress] = useState<AddressSuggestion | null>(null)
 
@@ -303,73 +291,69 @@ describe('AddressInput', () => {
 			)
 		}
 
-		await withFakeTime(async (clock) => {
-			const { container } = renderUI(<Controlled />)
+		const { container } = renderUI(<Controlled />)
 
-			const input = getSlot<HTMLInputElement>(container, 'combobox-input')
+		const input = getSlot<HTMLInputElement>(container, 'combobox-input')
 
-			await clock.user.type(input, 'x')
+		await clock.user.type(input, 'x')
 
-			await clock.advance(0)
+		await clock.advance(0)
 
-			await clock.user.click(screen.getByRole('option', { name: /X Main St/ }))
+		await clock.user.click(screen.getByRole('option', { name: /X Main St/ }))
 
-			// `capitalize` defaults on, so the resolved display value is
-			// first-word-capitalized in the input's DOM value.
-			expect(input.value).toBe('X Main St')
+		// `capitalize` defaults on, so the resolved display value is
+		// first-word-capitalized in the input's DOM value.
+		expect(input.value).toBe('X Main St')
 
-			await clock.user.clear(input)
+		await clock.user.clear(input)
 
-			expect(input.value).toBe('')
+		expect(input.value).toBe('')
 
-			// Blur leaves editing mode; the display must not resurrect the cleared value.
-			fireEvent.blur(input)
+		// Blur leaves editing mode; the display must not resurrect the cleared value.
+		fireEvent.blur(input)
 
-			expect(input.value).toBe('')
-		})
+		expect(input.value).toBe('')
 	})
 
-	it('swaps the pin for a clear button while an address is selected', async () => {
-		await withFakeTime(async (clock) => {
-			const onValueChange = vi.fn()
+	it('swaps the pin for a clear button while an address is selected', async ({ clock }) => {
+		const onValueChange = vi.fn()
 
-			const { container } = renderUI(
-				<AddressInput
-					provider={mockProvider}
-					debounceMs={0}
-					minQueryLength={1}
-					onValueChange={onValueChange}
-				/>,
-			)
+		const { container } = renderUI(
+			<AddressInput
+				provider={mockProvider}
+				debounceMs={0}
+				minQueryLength={1}
+				onValueChange={onValueChange}
+			/>,
+		)
 
-			const input = getSlot<HTMLInputElement>(container, 'combobox-input')
+		const input = getSlot<HTMLInputElement>(container, 'combobox-input')
 
-			expect(screen.queryByRole('button', { name: 'Clear selection' })).not.toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: 'Clear selection' })).not.toBeInTheDocument()
 
-			await clock.user.type(input, 'x')
+		await clock.user.type(input, 'x')
 
-			await clock.advance(0)
+		await clock.advance(0)
 
-			await clock.user.click(screen.getByRole('option', { name: /X Main St/ }))
+		await clock.user.click(screen.getByRole('option', { name: /X Main St/ }))
 
-			const clear = screen.getByRole('button', { name: 'Clear selection' })
+		const clear = screen.getByRole('button', { name: 'Clear selection' })
 
-			// The suffix slot around the button toggles the menu on mousedown, and its
-			// handler cancels the press. The button stops the press first, so it comes
-			// back uncanceled.
-			expect(fireEvent.mouseDown(clear)).toBe(true)
+		// The suffix slot around the button toggles the menu on mousedown, and its
+		// handler cancels the press. The button stops the press first, so it comes
+		// back uncanceled.
+		expect(fireEvent.mouseDown(clear)).toBe(true)
 
-			fireEvent.click(clear)
+		fireEvent.click(clear)
 
-			expect(onValueChange).toHaveBeenLastCalledWith(null)
+		expect(onValueChange).toHaveBeenLastCalledWith(null)
 
-			expect(input.value).toBe('')
+		expect(input.value).toBe('')
 
-			expect(screen.queryByRole('button', { name: 'Clear selection' })).not.toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: 'Clear selection' })).not.toBeInTheDocument()
 
-			// The pin returns once the selection is cleared.
-			expect(bySlot(container, 'suffix')?.querySelector('[data-slot="icon"]')).toBeInTheDocument()
-		})
+		// The pin returns once the selection is cleared.
+		expect(bySlot(container, 'suffix')?.querySelector('[data-slot="icon"]')).toBeInTheDocument()
 	})
 
 	it('shows the clear button for a controlled initial value', () => {
@@ -412,29 +396,27 @@ describe('AddressInput', () => {
 		expect(bySlot(container, 'suffix')?.querySelector('svg.lucide-map-pin')).toBeInTheDocument()
 	})
 
-	it('pulses the field while a fetch is in flight, then settles', async () => {
-		await withFakeTime(async (clock) => {
-			const suggestions = deferred<AddressSuggestion[]>()
+	it('pulses the field while a fetch is in flight, then settles', async ({ clock }) => {
+		const suggestions = deferred<AddressSuggestion[]>()
 
-			const provider: AddressProvider = () => suggestions.promise
+		const provider: AddressProvider = () => suggestions.promise
 
-			const { container } = renderUI(<AddressInput provider={provider} debounceMs={0} />)
+		const { container } = renderUI(<AddressInput provider={provider} debounceMs={0} />)
 
-			const input = getSlot<HTMLInputElement>(container, 'combobox-input')
+		const input = getSlot<HTMLInputElement>(container, 'combobox-input')
 
-			const field = bySlot(container, 'address-input')
+		const field = bySlot(container, 'address-input')
 
-			await clock.user.type(input, '123')
+		await clock.user.type(input, '123')
 
-			await clock.advance(0)
+		await clock.advance(0)
 
-			expect(field).toHaveClass('motion-safe:animate-pulse')
+		expect(field).toHaveClass('motion-safe:animate-pulse')
 
-			suggestions.resolve([{ id: '1', label: '123 Main St' }])
+		suggestions.resolve([{ id: '1', label: '123 Main St' }])
 
-			await waitFor(() => {
-				expect(field).not.toHaveClass('motion-safe:animate-pulse')
-			})
+		await waitFor(() => {
+			expect(field).not.toHaveClass('motion-safe:animate-pulse')
 		})
 	})
 })
@@ -1048,77 +1030,71 @@ describe('createPhotonProvider', () => {
 })
 
 describe('AddressInput onError', () => {
-	it('hands the provider rejection to onError', async () => {
-		await withFakeTime(async (clock) => {
-			const outage = new Error('geocoder unavailable')
+	it('hands the provider rejection to onError', async ({ clock }) => {
+		const outage = new Error('geocoder unavailable')
 
-			const onError = vi.fn()
+		const onError = vi.fn()
 
-			const { container } = renderUI(
-				<AddressInput
-					provider={() => Promise.reject(outage)}
-					debounceMs={0}
-					minQueryLength={1}
-					onError={onError}
-				/>,
-			)
+		const { container } = renderUI(
+			<AddressInput
+				provider={() => Promise.reject(outage)}
+				debounceMs={0}
+				minQueryLength={1}
+				onError={onError}
+			/>,
+		)
 
-			await clock.user.type(getSlot<HTMLInputElement>(container, 'combobox-input'), 'a')
+		await clock.user.type(getSlot<HTMLInputElement>(container, 'combobox-input'), 'a')
 
-			await clock.advance(0)
+		await clock.advance(0)
 
-			await waitFor(() => expect(onError).toHaveBeenCalledExactlyOnceWith(outage))
-		})
+		await waitFor(() => expect(onError).toHaveBeenCalledExactlyOnceWith(outage))
 	})
 
 	// An abort is the field's own doing — a keystroke supersedes the request in
 	// flight — so it is no failure to report.
-	it('says nothing when the request is aborted', async () => {
-		await withFakeTime(async (clock) => {
-			const onError = vi.fn()
+	it('says nothing when the request is aborted', async ({ clock }) => {
+		const onError = vi.fn()
 
-			const provider: AddressProvider = (_, { signal }) =>
-				new Promise((_resolve, reject) => {
-					signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')))
-				})
+		const provider: AddressProvider = (_, { signal }) =>
+			new Promise((_resolve, reject) => {
+				signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')))
+			})
 
-			const { container } = renderUI(
-				<AddressInput provider={provider} debounceMs={0} minQueryLength={1} onError={onError} />,
-			)
+		const { container } = renderUI(
+			<AddressInput provider={provider} debounceMs={0} minQueryLength={1} onError={onError} />,
+		)
 
-			const input = getSlot<HTMLInputElement>(container, 'combobox-input')
+		const input = getSlot<HTMLInputElement>(container, 'combobox-input')
 
-			await clock.user.type(input, 'a')
+		await clock.user.type(input, 'a')
 
-			await clock.advance(0)
+		await clock.advance(0)
 
-			await clock.user.type(input, 'b')
+		await clock.user.type(input, 'b')
 
-			await clock.advance(0)
+		await clock.advance(0)
 
-			expect(onError).not.toHaveBeenCalled()
-		})
+		expect(onError).not.toHaveBeenCalled()
 	})
 
-	it('says nothing when the provider resolves, even with no matches', async () => {
-		await withFakeTime(async (clock) => {
-			const onError = vi.fn()
+	it('says nothing when the provider resolves, even with no matches', async ({ clock }) => {
+		const onError = vi.fn()
 
-			const { container } = renderUI(
-				<AddressInput
-					provider={async () => []}
-					debounceMs={0}
-					minQueryLength={1}
-					onError={onError}
-				/>,
-			)
+		const { container } = renderUI(
+			<AddressInput
+				provider={async () => []}
+				debounceMs={0}
+				minQueryLength={1}
+				onError={onError}
+			/>,
+		)
 
-			await clock.user.type(getSlot<HTMLInputElement>(container, 'combobox-input'), 'a')
+		await clock.user.type(getSlot<HTMLInputElement>(container, 'combobox-input'), 'a')
 
-			await clock.advance(0)
+		await clock.advance(0)
 
-			expect(onError).not.toHaveBeenCalled()
-		})
+		expect(onError).not.toHaveBeenCalled()
 	})
 })
 

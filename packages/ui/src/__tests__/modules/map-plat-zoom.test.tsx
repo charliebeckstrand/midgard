@@ -1,7 +1,8 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import type { MapFeatureCollection } from '../../modules/map'
 import { REGION_STROKE_WIDTH } from '../../modules/map/engine/map-constants'
-import { act, bySlot, fireEvent, firstRegion, layerScale, present, withFakeTime } from '../helpers'
+import { act, bySlot, fireEvent, firstRegion, layerScale, present } from '../helpers'
+import { it } from '../helpers/fake-clock'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 import { renderNavigable } from '../helpers/map-navigable'
 import { categoricalPlat } from '../helpers/map-plat'
@@ -179,35 +180,35 @@ describe('MapPlat zoom layer', () => {
 })
 
 describe('MapPlat gesture suspends the readout', () => {
-	it('stops the drawing answering the pointer while a wheel zoom runs, and gives it back once it settles', async () => {
-		await withFakeTime(async (clock) => {
-			const { container, svg } = renderZoomable()
+	it('stops the drawing answering the pointer while a wheel zoom runs, and gives it back once it settles', async ({
+		clock,
+	}) => {
+		const { container, svg } = renderZoomable()
 
-			expect(answersPointer(container)).toBe(true)
+		expect(answersPointer(container)).toBe(true)
 
-			zoomWheel(svg, -200)
+		zoomWheel(svg, -200)
 
-			// A scaling frame sweeps the geography under a stationary pointer, so
-			// every dot it crosses would raise its own readout. The layer goes inert
-			// for the gesture instead.
-			expect(answersPointer(container)).toBe(false)
+		// A scaling frame sweeps the geography under a stationary pointer, so
+		// every dot it crosses would raise its own readout. The layer goes inert
+		// for the gesture instead.
+		expect(answersPointer(container)).toBe(false)
 
-			await clock.advance(60)
+		await clock.advance(60)
 
-			// A wheel reports no end, so the gesture is still live inside the window.
-			expect(answersPointer(container)).toBe(false)
+		// A wheel reports no end, so the gesture is still live inside the window.
+		expect(answersPointer(container)).toBe(false)
 
-			zoomWheel(svg, -200)
+		zoomWheel(svg, -200)
 
-			await clock.advance(60)
+		await clock.advance(60)
 
-			// The second notch re-armed it, so the two read as one gesture.
-			expect(answersPointer(container)).toBe(false)
+		// The second notch re-armed it, so the two read as one gesture.
+		expect(answersPointer(container)).toBe(false)
 
-			await clock.advance(200)
+		await clock.advance(200)
 
-			expect(answersPointer(container)).toBe(true)
-		})
+		expect(answersPointer(container)).toBe(true)
 	})
 
 	it('stops it while a pan runs, and gives it back on release', () => {
@@ -259,32 +260,30 @@ describe('MapPlat gesture suspends the readout', () => {
 		expect(answersPointer(container)).toBe(true)
 	})
 
-	it('holds the drawing inert while a wheel settles under a live pan', async () => {
-		await withFakeTime(async (clock) => {
-			const { container, plot, svg } = renderZoomable()
+	it('holds the drawing inert while a wheel settles under a live pan', async ({ clock }) => {
+		const { container, plot, svg } = renderZoomable()
 
-			zoomWheel(svg, -400)
+		zoomWheel(svg, -400)
 
-			fireEvent.pointerDown(plot, {
-				isPrimary: true,
-				pointerId: 1,
-				button: 0,
-				clientX: 200,
-				clientY: 100,
-			})
-
-			fireEvent.pointerMove(plot, { pointerId: 1, clientX: 140, clientY: 60 })
-
-			// The wheel's window closes while the pointer is still down; the pan is
-			// the live gesture now, so neither release lets go on its own.
-			await clock.advance(400)
-
-			expect(answersPointer(container)).toBe(false)
-
-			fireEvent.pointerUp(plot, { pointerId: 1 })
-
-			expect(answersPointer(container)).toBe(true)
+		fireEvent.pointerDown(plot, {
+			isPrimary: true,
+			pointerId: 1,
+			button: 0,
+			clientX: 200,
+			clientY: 100,
 		})
+
+		fireEvent.pointerMove(plot, { pointerId: 1, clientX: 140, clientY: 60 })
+
+		// The wheel's window closes while the pointer is still down; the pan is
+		// the live gesture now, so neither release lets go on its own.
+		await clock.advance(400)
+
+		expect(answersPointer(container)).toBe(false)
+
+		fireEvent.pointerUp(plot, { pointerId: 1 })
+
+		expect(answersPointer(container)).toBe(true)
 	})
 })
 
@@ -405,18 +404,16 @@ describe('MapPlat wheel after the shift key is let go', () => {
 		expect(wheel(svg, -30).defaultPrevented).toBe(true)
 	})
 
-	it('lets the page have a wheel that arrives after the stream settles', async () => {
-		await withFakeTime(async (clock) => {
-			const { svg } = renderZoomable()
+	it('lets the page have a wheel that arrives after the stream settles', async ({ clock }) => {
+		const { svg } = renderZoomable()
 
-			zoomWheel(svg, -40)
+		zoomWheel(svg, -40)
 
-			await clock.advance(400)
+		await clock.advance(400)
 
-			// Past the settle gap there is no stream left to continue, so this is a
-			// plain wheel and the map never sees a claim on it.
-			expect(wheel(svg, -30).defaultPrevented).toBe(false)
-		})
+		// Past the settle gap there is no stream left to continue, so this is a
+		// plain wheel and the map never sees a claim on it.
+		expect(wheel(svg, -30).defaultPrevented).toBe(false)
 	})
 })
 
@@ -724,27 +721,25 @@ describe('MapPlat two-finger gestures', () => {
 		expect(transformOf(container)).not.toBe(before)
 	})
 
-	it('applies the pinch on the next frame, while both fingers stay down', async () => {
-		await withFakeTime(async (clock) => {
-			const { container, svg } = renderZoomable()
+	it('applies the pinch on the next frame, while both fingers stay down', async ({ clock }) => {
+		const { container, svg } = renderZoomable()
 
-			touch(svg, 'touchStart', [
-				{ id: 1, x: 190, y: 100 },
-				{ id: 2, x: 210, y: 100 },
-			])
+		touch(svg, 'touchStart', [
+			{ id: 1, x: 190, y: 100 },
+			{ id: 2, x: 210, y: 100 },
+		])
 
-			touch(svg, 'touchMove', [
-				{ id: 1, x: 170, y: 100 },
-				{ id: 2, x: 230, y: 100 },
-			])
+		touch(svg, 'touchMove', [
+			{ id: 1, x: 170, y: 100 },
+			{ id: 2, x: 230, y: 100 },
+		])
 
-			// Both moves wait for one frame, which applies them together.
-			expect(scaleOf(container)).toBe(1)
+		// Both moves wait for one frame, which applies them together.
+		expect(scaleOf(container)).toBe(1)
 
-			await clock.advance(20)
+		await clock.advance(20)
 
-			expect(scaleOf(container)).toBeCloseTo(3, 3)
-		})
+		expect(scaleOf(container)).toBeCloseTo(3, 3)
 	})
 })
 

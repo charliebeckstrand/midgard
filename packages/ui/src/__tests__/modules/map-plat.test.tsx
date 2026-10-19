@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import { MapPlat } from '../../modules/map'
 import { REGION_STROKE_WIDTH } from '../../modules/map/engine/map-constants'
 import {
@@ -18,9 +18,9 @@ import {
 	renderUI,
 	stubMatchMedia,
 	tableRows,
-	withFakeTime,
 	within,
 } from '../helpers'
+import { it } from '../helpers/fake-clock'
 import { FIXTURE_GEOJSON, FIXTURE_TOPOLOGY } from '../helpers/map-geography'
 import { categoricalPlat } from '../helpers/map-plat'
 
@@ -147,27 +147,27 @@ describe('MapPlat', () => {
 		expect(alpha?.getAttribute('class')).toContain('fill-blue-600')
 	})
 
-	it('retires the reveal stagger, so a later toggle repaints without waiting one out', async () => {
-		await withFakeTime(async (clock) => {
-			const { container } = renderUI(categoricalPlat({ animate: true }))
+	it('retires the reveal stagger, so a later toggle repaints without waiting one out', async ({
+		clock,
+	}) => {
+		const { container } = renderUI(categoricalPlat({ animate: true }))
 
-			const region = () => allRegions(container)[2]?.getAttribute('style') ?? ''
+		const region = () => allRegions(container)[2]?.getAttribute('style') ?? ''
 
-			// The reveal washes the geography on region by region, so each region
-			// holds its own delay while it runs.
-			expect(region()).toContain(`transition-delay: ${REGION_STAGGER * 2 * 1000}ms`)
+		// The reveal washes the geography on region by region, so each region
+		// holds its own delay while it runs.
+		expect(region()).toContain(`transition-delay: ${REGION_STAGGER * 2 * 1000}ms`)
 
-			await clock.advance(REGION_WASH_SETTLE * 1000)
+		await clock.advance(REGION_WASH_SETTLE * 1000)
 
-			// Past the reveal the stagger is gone. Left standing it delays every later
-			// fill change, and on an atlas of any size nearly every region sits at the
-			// cap — so a legend toggle would pay that beat before its color so much as
-			// began to move.
-			expect(region()).not.toContain('transition-delay')
+		// Past the reveal the stagger is gone. Left standing it delays every later
+		// fill change, and on an atlas of any size nearly every region sits at the
+		// cap — so a legend toggle would pay that beat before its color so much as
+		// began to move.
+		expect(region()).not.toContain('transition-delay')
 
-			// The fade itself stands; only the delay retires.
-			expect(region()).toContain(`transition-duration: ${REGION_FADE.duration * 1000}ms`)
-		})
+		// The fade itself stands; only the delay retires.
+		expect(region()).toContain(`transition-duration: ${REGION_FADE.duration * 1000}ms`)
 	})
 
 	it('colors matched regions by category slot and leaves the rest neutral', () => {
@@ -438,49 +438,47 @@ describe('MapPlat', () => {
 		expect(bySlot(container, 'map-legend')).toHaveAttribute('aria-label', 'Leyenda')
 	})
 
-	it('holds the emphasis off while a toggled-on category washes back in', async () => {
-		await withFakeTime(async (clock) => {
-			const { container } = renderUI(categoricalPlat({ animate: true }))
+	it('holds the emphasis off while a toggled-on category washes back in', async ({ clock }) => {
+		const { container } = renderUI(categoricalPlat({ animate: true }))
 
-			const lit = () => bySlot(container, 'map-regions-lit')
+		const lit = () => bySlot(container, 'map-regions-lit')
 
-			const recede = () => bySlot(container, 'map-regions-recede')?.getAttribute('class') ?? ''
+		const recede = () => bySlot(container, 'map-regions-recede')?.getAttribute('class') ?? ''
 
-			const [east] = allBySlot(container, 'map-legend-item')
+		const [east] = allBySlot(container, 'map-legend-item')
 
-			await clock.advance(REGION_WASH_SETTLE * 1000)
+		await clock.advance(REGION_WASH_SETTLE * 1000)
 
-			// The click that toggles an entry is also what puts the pointer on it, so
-			// the emphasis is live across both halves of the round trip.
-			fireEvent.pointerEnter(east as HTMLButtonElement)
+		// The click that toggles an entry is also what puts the pointer on it, so
+		// the emphasis is live across both halves of the round trip.
+		fireEvent.pointerEnter(east as HTMLButtonElement)
 
-			fireEvent.click(east as HTMLButtonElement)
+		fireEvent.click(east as HTMLButtonElement)
 
-			// Hiding drops the emphasis outright — a hidden entry can't hold one — so
-			// the wash out has always played in the open.
-			expect(lit()).toBeNull()
+		// Hiding drops the emphasis outright — a hidden entry can't hold one — so
+		// the wash out has always played in the open.
+		expect(lit()).toBeNull()
 
-			await clock.advance(REGION_FADE.duration * 1000)
+		await clock.advance(REGION_FADE.duration * 1000)
 
-			fireEvent.click(east as HTMLButtonElement)
+		fireEvent.click(east as HTMLButtonElement)
 
-			// The color is restored and washing back in. The emphasis waits it out:
-			// a lit copy mounted now would paint the category's landed color over the
-			// very wash bringing it there, and the reader would never see it move.
-			expect(allRegions(container)[0]?.getAttribute('class')).toContain('fill-blue-600')
+		// The color is restored and washing back in. The emphasis waits it out:
+		// a lit copy mounted now would paint the category's landed color over the
+		// very wash bringing it there, and the reader would never see it move.
+		expect(allRegions(container)[0]?.getAttribute('class')).toContain('fill-blue-600')
 
-			expect(lit()).toBeNull()
+		expect(lit()).toBeNull()
 
-			expect(recede()).not.toContain('opacity-25')
+		expect(recede()).not.toContain('opacity-25')
 
-			await clock.advance(REGION_FADE.duration * 1000)
+		await clock.advance(REGION_FADE.duration * 1000)
 
-			// The wash has landed, so the emphasis takes over: the map dims around a
-			// category that has finished arriving.
-			expect(lit()?.querySelectorAll('path')).toHaveLength(1)
+		// The wash has landed, so the emphasis takes over: the map dims around a
+		// category that has finished arriving.
+		expect(lit()?.querySelectorAll('path')).toHaveLength(1)
 
-			expect(recede()).toContain('opacity-25')
-		})
+		expect(recede()).toContain('opacity-25')
 	})
 
 	/** Toggles a category off and straight back on with the pointer held on its chip. */

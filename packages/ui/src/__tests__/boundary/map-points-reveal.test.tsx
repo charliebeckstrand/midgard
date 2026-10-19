@@ -1,8 +1,9 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, vi } from 'vitest'
 import { MapPlat, MapPoints } from '../../modules/map'
 import { POINT_REVEAL_SETTLE } from '../../modules/map/engine/map-motion'
 import { MapDot } from '../../modules/map/map-dot'
-import { fireEvent, withFakeTime } from '../helpers'
+import { fireEvent } from '../helpers'
+import { it } from '../helpers/fake-clock'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 import { renderNavigable } from '../helpers/map-navigable'
 
@@ -56,56 +57,54 @@ describe('an animated set', () => {
 		expect(vi.mocked(MapDot).mock.calls.at(-1)?.[0]).toMatchObject({ animate: true })
 	})
 
-	it('draws a dot that a zoom splits from a summary at once after the reveal', async () => {
-		await withFakeTime(async (clock) => {
-			const { plot } = renderNavigable(
-				<MapPlat aria-label="Fleet" geography={FIXTURE_GEOJSON} width={400} zoom animate>
-					<MapPoints label="Stops" points={BUNCHED} />
-				</MapPlat>,
-			)
+	it('draws a dot that a zoom splits from a summary at once after the reveal', async ({
+		clock,
+	}) => {
+		const { plot } = renderNavigable(
+			<MapPlat aria-label="Fleet" geography={FIXTURE_GEOJSON} width={400} zoom animate>
+				<MapPoints label="Stops" points={BUNCHED} />
+			</MapPlat>,
+		)
 
-			await clock.advance(POINT_REVEAL_SETTLE * 1000)
+		await clock.advance(POINT_REVEAL_SETTLE * 1000)
 
-			// Zoomed from the keyboard, so each step lands without a tween to wait out.
-			for (let step = 0; step < 4; step++) fireEvent.keyDown(plot, { key: '+' })
+		// Zoomed from the keyboard, so each step lands without a tween to wait out.
+		for (let step = 0; step < 4; step++) fireEvent.keyDown(plot, { key: '+' })
 
-			const dots = drawn()
+		const dots = drawn()
 
-			expect(dots.map((dot) => dot.slot)).toEqual([
-				'map-points-dot',
-				'map-points-dot',
-				'map-points-dot',
-			])
+		expect(dots.map((dot) => dot.slot)).toEqual([
+			'map-points-dot',
+			'map-points-dot',
+			'map-points-dot',
+		])
 
-			for (const dot of dots) expect(dot.animate).toBe(false)
-		})
+		for (const dot of dots) expect(dot.animate).toBe(false)
 	})
 
 	// The end of the reveal changes the prop of each dot, not its element, so
 	// React mounts no dot again.
-	it('keeps the element of each dot that popped when the reveal ends', async () => {
-		await withFakeTime(async (clock) => {
-			const { container } = renderNavigable(
-				<MapPlat aria-label="Fleet" geography={FIXTURE_GEOJSON} width={400} zoom animate>
-					<MapPoints label="Stops" points={BUNCHED} />
-				</MapPlat>,
-			)
+	it('keeps the element of each dot that popped when the reveal ends', async ({ clock }) => {
+		const { container } = renderNavigable(
+			<MapPlat aria-label="Fleet" geography={FIXTURE_GEOJSON} width={400} zoom animate>
+				<MapPoints label="Stops" points={BUNCHED} />
+			</MapPlat>,
+		)
 
-			const dots = () => [
-				...container.querySelectorAll(
-					'[data-slot="map-points-dot"], [data-slot="map-points-cluster"]',
-				),
-			]
+		const dots = () => [
+			...container.querySelectorAll(
+				'[data-slot="map-points-dot"], [data-slot="map-points-cluster"]',
+			),
+		]
 
-			const before = dots()
+		const before = dots()
 
-			expect(before.length).toBeGreaterThan(0)
+		expect(before.length).toBeGreaterThan(0)
 
-			await clock.advance(POINT_REVEAL_SETTLE * 1000)
+		await clock.advance(POINT_REVEAL_SETTLE * 1000)
 
-			dots().forEach((dot, index) => {
-				expect(dot).toBe(before[index])
-			})
+		dots().forEach((dot, index) => {
+			expect(dot).toBe(before[index])
 		})
 	})
 })

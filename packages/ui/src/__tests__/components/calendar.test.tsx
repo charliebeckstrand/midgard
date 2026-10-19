@@ -1,7 +1,6 @@
 import { createRef, Profiler, useState } from 'react'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it, vi } from 'vitest'
-
+import { describe, expect, vi } from 'vitest'
 import { Calendar, type CalendarHandle, CalendarRange } from '../../components/calendar'
 import { Form } from '../../modules/form'
 import { Box } from '../../structure/box'
@@ -15,8 +14,8 @@ import {
 	renderUI,
 	screen,
 	setupUser,
-	withFakeTime,
 } from '../helpers'
+import { it } from '../helpers/fake-clock'
 
 const selectedDay = () =>
 	screen.getAllByRole('option').find((o) => o.getAttribute('aria-selected') === 'true')
@@ -961,48 +960,44 @@ describe('Calendar Tab stops', () => {
 			.filter((option) => option.tabIndex === 0 && !option.hasAttribute('disabled'))
 			.map((option) => option.textContent)
 
-	it('holds one Tab stop in the day listbox, on the selected day before an earlier today', async () => {
-		await withFakeTime(() => {
-			vi.setSystemTime(new Date(2025, 5, 10, 12))
+	it('holds one Tab stop in the day listbox, on the selected day before an earlier today', async ({
+		clock,
+	}) => {
+		clock.set(new Date(2025, 5, 10, 12))
 
-			renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
 
-			expect(dayStops()).toEqual(['15'])
-		})
+		expect(dayStops()).toEqual(['15'])
 	})
 
-	it('seats the day Tab stop on today when no day is selected', async () => {
-		await withFakeTime(() => {
-			vi.setSystemTime(new Date(2025, 5, 20, 12))
+	it('seats the day Tab stop on today when no day is selected', async ({ clock }) => {
+		clock.set(new Date(2025, 5, 20, 12))
 
-			renderUI(<Calendar />)
+		renderUI(<Calendar />)
 
-			expect(dayStops()).toEqual(['20'])
-		})
+		expect(dayStops()).toEqual(['20'])
 	})
 
-	it('seats the day Tab stop on the first enabled day when today is out of range', async () => {
-		await withFakeTime(() => {
-			vi.setSystemTime(new Date(2025, 5, 5, 12))
+	it('seats the day Tab stop on the first enabled day when today is out of range', async ({
+		clock,
+	}) => {
+		clock.set(new Date(2025, 5, 5, 12))
 
-			renderUI(<Calendar min={new Date(2025, 5, 10)} />)
+		renderUI(<Calendar min={new Date(2025, 5, 10)} />)
 
-			expect(dayStops()).toEqual(['10'])
-		})
+		expect(dayStops()).toEqual(['10'])
 	})
 
-	it('seats one day Tab stop again after the month changes', async () => {
-		await withFakeTime(async (clock) => {
-			vi.setSystemTime(new Date(2025, 5, 20, 12))
+	it('seats one day Tab stop again after the month changes', async ({ clock }) => {
+		clock.set(new Date(2025, 5, 20, 12))
 
-			renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
 
-			await clock.user.click(screen.getByLabelText('Next month'))
+		await clock.user.click(screen.getByLabelText('Next month'))
 
-			expect(screen.getByRole('button', { name: /July 2025/ })).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: /July 2025/ })).toBeInTheDocument()
 
-			expect(dayStops()).toEqual(['1'])
-		})
+		expect(dayStops()).toEqual(['1'])
 	})
 
 	it('keeps the month header controls as plain buttons, each a Tab stop', () => {
@@ -1071,125 +1066,109 @@ describe('Calendar entry date', () => {
 		expect(dayStops()).toEqual(expected ? [String(expected.getDate())] : [])
 	}
 
-	it('enters on the selected day of the shown month', async () => {
-		await withFakeTime(() => {
-			vi.setSystemTime(now)
+	it('enters on the selected day of the shown month', async ({ clock }) => {
+		clock.set(now)
 
-			const ref = createRef<CalendarHandle>()
+		const ref = createRef<CalendarHandle>()
 
-			renderUI(<Calendar ref={ref} value={new Date(2025, 5, 20)} />)
+		renderUI(<Calendar ref={ref} value={new Date(2025, 5, 20)} />)
 
-			expectEntry(ref, new Date(2025, 5, 20))
-		})
+		expectEntry(ref, new Date(2025, 5, 20))
 	})
 
-	it('enters on today when the shown month holds no selected day', async () => {
-		await withFakeTime(async () => {
-			vi.setSystemTime(now)
+	it('enters on today when the shown month holds no selected day', async ({ clock }) => {
+		clock.set(now)
 
-			const ref = createRef<CalendarHandle>()
+		const ref = createRef<CalendarHandle>()
 
-			renderUI(<Calendar ref={ref} defaultValue={new Date(2025, 4, 20)} />)
+		renderUI(<Calendar ref={ref} defaultValue={new Date(2025, 4, 20)} />)
 
-			await act(async () => ref.current?.nextMonth())
+		await act(async () => ref.current?.nextMonth())
 
-			expectEntry(ref, new Date(2025, 5, 15))
-		})
+		expectEntry(ref, new Date(2025, 5, 15))
 	})
 
-	it('enters on min when min is in the middle of the shown month', async () => {
-		await withFakeTime(async () => {
-			vi.setSystemTime(now)
+	it('enters on min when min is in the middle of the shown month', async ({ clock }) => {
+		clock.set(now)
 
-			const ref = createRef<CalendarHandle>()
+		const ref = createRef<CalendarHandle>()
 
-			renderUI(
-				<Calendar ref={ref} defaultValue={new Date(2025, 1, 20)} min={new Date(2025, 2, 10)} />,
-			)
+		renderUI(
+			<Calendar ref={ref} defaultValue={new Date(2025, 1, 20)} min={new Date(2025, 2, 10)} />,
+		)
 
-			await act(async () => ref.current?.nextMonth())
+		await act(async () => ref.current?.nextMonth())
 
-			expectEntry(ref, new Date(2025, 2, 10))
-		})
+		expectEntry(ref, new Date(2025, 2, 10))
 	})
 
-	it('enters on the first enabled day when today is disabled', async () => {
-		await withFakeTime(() => {
-			vi.setSystemTime(now)
+	it('enters on the first enabled day when today is disabled', async ({ clock }) => {
+		clock.set(now)
 
-			const ref = createRef<CalendarHandle>()
+		const ref = createRef<CalendarHandle>()
 
-			renderUI(<Calendar ref={ref} max={new Date(2025, 5, 10)} />)
+		renderUI(<Calendar ref={ref} max={new Date(2025, 5, 10)} />)
 
-			expectEntry(ref, new Date(2025, 5, 1))
-		})
+		expectEntry(ref, new Date(2025, 5, 1))
 	})
 
-	it('enters on today when the selected day is disabled', async () => {
-		await withFakeTime(() => {
-			vi.setSystemTime(now)
+	it('enters on today when the selected day is disabled', async ({ clock }) => {
+		clock.set(now)
 
-			const ref = createRef<CalendarHandle>()
+		const ref = createRef<CalendarHandle>()
 
-			renderUI(<Calendar ref={ref} value={new Date(2025, 5, 20)} max={new Date(2025, 5, 18)} />)
+		renderUI(<Calendar ref={ref} value={new Date(2025, 5, 20)} max={new Date(2025, 5, 18)} />)
 
-			expectEntry(ref, new Date(2025, 5, 15))
-		})
+		expectEntry(ref, new Date(2025, 5, 15))
 	})
 
-	it('gives null when the shown month holds no enabled day', async () => {
-		await withFakeTime(async () => {
-			vi.setSystemTime(now)
+	it('gives null when the shown month holds no enabled day', async ({ clock }) => {
+		clock.set(now)
 
-			const ref = createRef<CalendarHandle>()
+		const ref = createRef<CalendarHandle>()
 
-			renderUI(<Calendar ref={ref} value={new Date(2025, 5, 15)} max={new Date(2025, 5, 30)} />)
+		renderUI(<Calendar ref={ref} value={new Date(2025, 5, 15)} max={new Date(2025, 5, 30)} />)
 
-			await act(async () => ref.current?.nextMonth())
+		await act(async () => ref.current?.nextMonth())
 
-			expect(screen.getByRole('listbox', { name: 'July 2025' })).toBeInTheDocument()
+		expect(screen.getByRole('listbox', { name: 'July 2025' })).toBeInTheDocument()
 
-			expectEntry(ref, null)
-		})
+		expectEntry(ref, null)
 	})
 
-	it('enters a range on the earlier endpoint of the shown month', async () => {
-		await withFakeTime(() => {
-			vi.setSystemTime(now)
+	it('enters a range on the earlier endpoint of the shown month', async ({ clock }) => {
+		clock.set(now)
 
-			const ref = createRef<CalendarHandle>()
+		const ref = createRef<CalendarHandle>()
 
-			// The start comes after the end, so the earlier endpoint is the end.
-			renderUI(
-				<CalendarRange
-					ref={ref}
-					rangeStart={new Date(2025, 5, 20)}
-					rangeEnd={new Date(2025, 5, 10)}
-				/>,
-			)
+		// The start comes after the end, so the earlier endpoint is the end.
+		renderUI(
+			<CalendarRange
+				ref={ref}
+				rangeStart={new Date(2025, 5, 20)}
+				rangeEnd={new Date(2025, 5, 10)}
+			/>,
+		)
 
-			expectEntry(ref, new Date(2025, 5, 10))
-		})
+		expectEntry(ref, new Date(2025, 5, 10))
 	})
 
-	it('enters a range on its endpoint in the shown month', async () => {
-		await withFakeTime(async () => {
-			vi.setSystemTime(now)
+	it('enters a range on its endpoint in the shown month', async ({ clock }) => {
+		clock.set(now)
 
-			const ref = createRef<CalendarHandle>()
+		const ref = createRef<CalendarHandle>()
 
-			renderUI(
-				<CalendarRange
-					ref={ref}
-					rangeStart={new Date(2025, 4, 20)}
-					rangeEnd={new Date(2025, 5, 25)}
-				/>,
-			)
+		renderUI(
+			<CalendarRange
+				ref={ref}
+				rangeStart={new Date(2025, 4, 20)}
+				rangeEnd={new Date(2025, 5, 25)}
+			/>,
+		)
 
-			await act(async () => ref.current?.nextMonth())
+		await act(async () => ref.current?.nextMonth())
 
-			expectEntry(ref, new Date(2025, 5, 25))
-		})
+		expectEntry(ref, new Date(2025, 5, 25))
 	})
 })
 
@@ -1256,16 +1235,14 @@ describe('Calendar + Form', () => {
 			),
 		],
 	])('with %s', (_, calendar) => {
-		it('shows the month of the clock, not the month of defaultValue', async () => {
-			await withFakeTime(() => {
-				vi.setSystemTime(new Date(2025, 5, 15, 12))
+		it('shows the month of the clock, not the month of defaultValue', async ({ clock }) => {
+			clock.set(new Date(2025, 5, 15, 12))
 
-				renderUI(calendar())
+			renderUI(calendar())
 
-				expect(screen.getByRole('listbox', { name: 'June 2025' })).toBeInTheDocument()
+			expect(screen.getByRole('listbox', { name: 'June 2025' })).toBeInTheDocument()
 
-				expect(selectedDay()).toBeUndefined()
-			})
+			expect(selectedDay()).toBeUndefined()
 		})
 
 		it('holds the month back in the server markup', () => {
@@ -1354,70 +1331,64 @@ describe('Calendar today', () => {
 		})
 	}
 
-	it('moves the today mark to the next day at local midnight', async () => {
-		await withFakeTime(async (clock) => {
-			vi.setSystemTime(new Date(2025, 5, 15, 23, 59, 30))
+	it('moves the today mark to the next day at local midnight', async ({ clock }) => {
+		clock.set(new Date(2025, 5, 15, 23, 59, 30))
 
-			renderUI(<Calendar />)
+		renderUI(<Calendar />)
 
-			expect(todayCell()).toHaveTextContent(/^15$/)
+		expect(todayCell()).toHaveTextContent(/^15$/)
 
-			await clock.advance(30_000)
+		await clock.advance(30_000)
 
-			expect(todayCell()).toHaveTextContent(/^16$/)
-		})
+		expect(todayCell()).toHaveTextContent(/^16$/)
 	})
 
-	it('moves the today mark when the page shows again after a missed midnight', async () => {
-		await withFakeTime(() => {
-			vi.setSystemTime(new Date(2025, 5, 15, 12))
+	it('moves the today mark when the page shows again after a missed midnight', async ({
+		clock,
+	}) => {
+		clock.set(new Date(2025, 5, 15, 12))
 
-			renderUI(<Calendar />)
+		renderUI(<Calendar />)
 
-			// A browser holds the timers of a hidden tab. The clock moves past
-			// midnight, and the midnight timer does not run.
-			vi.setSystemTime(new Date(2025, 5, 16, 9))
+		// A browser holds the timers of a hidden tab. The clock moves past
+		// midnight, and the midnight timer does not run.
+		clock.set(new Date(2025, 5, 16, 9))
 
-			showPage()
+		showPage()
 
-			expect(todayCell()).toHaveTextContent(/^16$/)
-		})
+		expect(todayCell()).toHaveTextContent(/^16$/)
 	})
 
-	it('commits nothing when the page shows again on the same day', async () => {
-		await withFakeTime(() => {
-			vi.setSystemTime(new Date(2025, 5, 15, 9))
+	it('commits nothing when the page shows again on the same day', async ({ clock }) => {
+		clock.set(new Date(2025, 5, 15, 9))
 
-			const onRender = vi.fn()
+		const onRender = vi.fn()
 
-			renderUI(
-				<Profiler id="calendar" onRender={onRender}>
-					<Calendar />
-				</Profiler>,
-			)
+		renderUI(
+			<Profiler id="calendar" onRender={onRender}>
+				<Calendar />
+			</Profiler>,
+		)
 
-			vi.setSystemTime(new Date(2025, 5, 15, 21))
+		clock.set(new Date(2025, 5, 15, 21))
 
-			showPage()
+		showPage()
 
-			expect(onRender).toHaveBeenCalledOnce()
-		})
+		expect(onRender).toHaveBeenCalledOnce()
 	})
 
-	it('marks the new month in the month picker after a month boundary', async () => {
-		await withFakeTime(async (clock) => {
-			vi.setSystemTime(new Date(2025, 5, 30, 23, 59))
+	it('marks the new month in the month picker after a month boundary', async ({ clock }) => {
+		clock.set(new Date(2025, 5, 30, 23, 59))
 
-			renderUI(<Calendar />)
+		renderUI(<Calendar />)
 
-			await clock.advance(60_000)
+		await clock.advance(60_000)
 
-			// The view stays on the month that the reader looks at.
-			await clock.user.click(screen.getByRole('button', { name: /June 2025/ }))
+		// The view stays on the month that the reader looks at.
+		await clock.user.click(screen.getByRole('button', { name: /June 2025/ }))
 
-			expect(screen.getByRole('option', { name: 'Jul' })).toHaveAttribute('aria-current', 'date')
+		expect(screen.getByRole('option', { name: 'Jul' })).toHaveAttribute('aria-current', 'date')
 
-			expect(screen.getByRole('option', { name: 'Jun' })).not.toHaveAttribute('aria-current')
-		})
+		expect(screen.getByRole('option', { name: 'Jun' })).not.toHaveAttribute('aria-current')
 	})
 })

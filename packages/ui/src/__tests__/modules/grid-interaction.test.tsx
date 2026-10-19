@@ -1,18 +1,11 @@
 import { useLayoutEffect } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '../../components/menu'
 import { Grid, type GridCellClickContext, type GridColumn } from '../../modules/grid'
 import { GRID_STATUS_DEBOUNCE_MS } from '../../modules/grid/engine/grid-constants'
-import {
-	getSlot,
-	renderUI,
-	screen,
-	setupUser,
-	stubMatchMedia,
-	waitFor,
-	withFakeTime,
-} from '../helpers'
+import { getSlot, renderUI, screen, setupUser, stubMatchMedia, waitFor } from '../helpers'
+import { it } from '../helpers/fake-clock'
 
 describe('Grid row click', () => {
 	type Row = { id: number; name: string }
@@ -531,25 +524,21 @@ describe('Grid busy live region', () => {
 
 	const getKey = (row: Row) => row.id
 
-	it('announces the settled row count to assistive tech', async () => {
-		await withFakeTime(async (clock) => {
-			renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+	it('announces the settled row count to assistive tech', async ({ clock }) => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
-			// The polite status region settles (debounced) to the result count.
-			await clock.advance(GRID_STATUS_DEBOUNCE_MS)
+		// The polite status region settles (debounced) to the result count.
+		await clock.advance(GRID_STATUS_DEBOUNCE_MS)
 
-			expect(screen.getByText('2 rows')).toHaveClass('sr-only')
-		})
+		expect(screen.getByText('2 rows')).toHaveClass('sr-only')
 	})
 
-	it('announces No results for an empty grid', async () => {
-		await withFakeTime(async (clock) => {
-			renderUI(<Grid columns={columns} rows={[]} getKey={getKey} />)
+	it('announces No results for an empty grid', async ({ clock }) => {
+		renderUI(<Grid columns={columns} rows={[]} getKey={getKey} />)
 
-			await clock.advance(GRID_STATUS_DEBOUNCE_MS)
+		await clock.advance(GRID_STATUS_DEBOUNCE_MS)
 
-			expect(screen.getByText('No results')).toBeInTheDocument()
-		})
+		expect(screen.getByText('No results')).toBeInTheDocument()
 	})
 
 	// A live region speaks a change of its text, not the text it mounts with. A
