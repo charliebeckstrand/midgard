@@ -221,9 +221,11 @@ describe('resolveLayout · properties', () => {
 				)
 			}
 
-			for (const [a, b] of overlaps(resolveLayout(items, demands, columns))) {
-				expect(keepsPlace(a) && keepsPlace(b)).toBe(true)
-			}
+			const moved = overlaps(resolveLayout(items, demands, columns)).filter(
+				([a, b]) => !(keepsPlace(a) && keepsPlace(b)),
+			)
+
+			expect(moved).toEqual([])
 		},
 	)
 
@@ -295,11 +297,9 @@ describe('placeEntries · properties', () => {
 
 			const cells = placed.map((item) => resolveCell(item, undefined, columns))
 
-			for (const [a, b] of overlaps(cells)) {
-				expect(own.has(byId.get(a.id) as DashboardLayoutItem)).toBe(true)
+			const saved = (cell: DashboardCell) => own.has(byId.get(cell.id) as DashboardLayoutItem)
 
-				expect(own.has(byId.get(b.id) as DashboardLayoutItem)).toBe(true)
-			}
+			expect(overlaps(cells).filter(([a, b]) => !(saved(a) && saved(b)))).toEqual([])
 		},
 	)
 

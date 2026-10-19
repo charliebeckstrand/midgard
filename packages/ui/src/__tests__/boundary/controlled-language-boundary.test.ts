@@ -2,7 +2,6 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { afterAll, describe, expect, it } from 'vitest'
 import {
-	advise,
 	extractComments,
 	fileBreaks,
 	LIVING_MARKDOWN,
@@ -21,8 +20,8 @@ import { startTypeScript } from '../helpers/ts-server'
 //   1. Rule 10 in the comments is pinned at zero. The rule admits no judgment —
 //      "must" states a requirement and "can" states a possibility — so any site
 //      is a break.
-//   2. Rule 6 in the comments is advisory. The test writes each break to the
-//      log and does not fail the run, and review decides what to fix.
+//   2. Rule 6 in the comments is not gated. `pnpm ste:report` lists the
+//      breaks, and review decides what to fix.
 //   3. The curated surface docs carry no debt in rules 3, 6, and 10.
 //   4. Neither do the rule documents at the repository root.
 //   5. Rule 3 in the comments is pinned at zero: one spelling, the American one
@@ -69,17 +68,6 @@ describe('controlled-language boundary', () => {
 			violations,
 			`British spelling in a comment — the prose uses the American form, as the identifiers do (STE.md rule 3):\n${violations.join('\n')}`,
 		).toEqual([])
-	})
-
-	it('reports a comment past the sentence cap (STE.md rule 6)', () => {
-		const violations = breaks
-			.filter((item) => item.rule === 6)
-			.map((item) => `${item.file}:${item.line} — ${item.text}`)
-
-		advise(
-			`sentence past the cap — 20 words for an instruction, 25 for a description (STE.md rule 6)`,
-			violations,
-		)
 	})
 
 	it('the living Markdown keeps rules 3, 6, and 10 (CONVENTIONS.md §12.2)', () => {

@@ -205,13 +205,11 @@ describe('rowsToCsv · properties', () => {
 	// a number". The next property covers the other direction: a number that the
 	// guard lets through.
 	test.prop([sheet()])('guards each sign-led field that is not a number', ({ labels, rows }) => {
-		for (const record of parseCsv(write(labels, rows))) {
-			for (const field of record) {
-				if (field.text[0] === '+' || field.text[0] === '-') {
-					expect(Number.isNaN(Number(field.text))).toBe(false)
-				}
-			}
-		}
+		const signLed = parseCsv(write(labels, rows))
+			.flat()
+			.filter((field) => field.text[0] === '+' || field.text[0] === '-')
+
+		expect(signLed.filter((field) => Number.isNaN(Number(field.text)))).toEqual([])
 	})
 
 	// The guard stands aside for a number, so a numeric column still parses. The

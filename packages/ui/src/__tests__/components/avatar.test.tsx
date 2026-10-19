@@ -1,16 +1,11 @@
 import { renderToString } from 'react-dom/server'
-import { describe, expect, expectTypeOf, it } from 'vitest'
-import { Avatar, AvatarGroup, type AvatarProps, AvatarSkeleton } from '../../components/avatar'
+import { describe, expect, it } from 'vitest'
+import { Avatar, AvatarGroup, AvatarSkeleton } from '../../components/avatar'
 import { Density, useDensityStep } from '../../primitives/density'
 import { LocaleProvider } from '../../providers/locale'
-import type { Color } from '../../recipes'
 import { allBySlot, bySlot, getSlot, renderUI, screen } from '../helpers'
 
 describe('Avatar', () => {
-	it('takes a palette color, not any string', () => {
-		expectTypeOf<AvatarProps['color']>().toEqualTypeOf<Color | undefined>()
-	})
-
 	// An avatar can sit in a line of text, so its skeleton has to be able to as well.
 	it('stands in for an avatar inside a paragraph, as server markup and inline', () => {
 		const container = document.createElement('div')

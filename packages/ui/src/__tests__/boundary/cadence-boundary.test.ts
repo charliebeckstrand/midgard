@@ -1,13 +1,13 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { advise, RULE_DOCUMENTS, rootDir } from '../helpers/controlled-language'
+import { RULE_DOCUMENTS, rootDir } from '../helpers/controlled-language'
 
 // The cadence rules of STE.md set the spacing and the shape of authored text.
 // CLAUDE.md once asked for a check by hand before each commit, but no tool made
-// the check, and Biome does not read Markdown. This test reports the breaks of the
-// parts of the cadence that a reader can measure in the rule documents. It is
-// advisory: it writes each break to the log and does not fail the run.
+// the check, and Biome does not read Markdown. This test reads the parts of the
+// cadence that a reader can measure in the rule documents, and a break fails the
+// run.
 //
 //   - Rule 1: one blank line before each numbered clause, and never two blank
 //     lines in a row.
@@ -96,12 +96,12 @@ function cadenceBreaks(file: string, source: string): string[] {
 }
 
 describe('cadence boundary', () => {
-	it('reports cadence breaks in the rule documents (STE.md cadence rules 1, 3, 4, 7)', () => {
+	it('the rule documents keep the cadence (STE.md cadence rules 1, 3, 4, 7)', () => {
 		const violations = RULE_DOCUMENTS.flatMap((file) =>
 			cadenceBreaks(file, readFileSync(join(rootDir, file), 'utf8')),
 		)
 
-		advise('cadence break in a rule document (STE.md cadence)', violations)
+		expect(violations, `cadence break in a rule document:\n${violations.join('\n')}`).toEqual([])
 	})
 })
 

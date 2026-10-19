@@ -1,4 +1,3 @@
-// @vitest-environment node
 import { describe, expectTypeOf, it } from 'vitest'
 import type { ColorPickerProps } from '../../components/color'
 import type { ComboboxProps } from '../../components/combobox'
