@@ -145,6 +145,7 @@ describe('restoreHistory', () => {
 describe('historyStep', () => {
 	const press = (key: string, extra: Partial<Parameters<typeof historyStep>[0]> = {}) => ({
 		key,
+		code: `Key${key.toUpperCase()}`,
 		ctrlKey: false,
 		metaKey: false,
 		altKey: false,
@@ -165,6 +166,21 @@ describe('historyStep', () => {
 		expect(historyStep(press('z', { metaKey: true, shiftKey: true }))).toBe('redo')
 
 		expect(historyStep(press('y', { ctrlKey: true }))).toBe('redo')
+	})
+
+	it('reads the physical Z and Y keys under a layout with no Latin letters', () => {
+		expect(historyStep(press('я', { code: 'KeyZ', ctrlKey: true }))).toBe('undo')
+
+		expect(historyStep(press('Я', { code: 'KeyZ', ctrlKey: true, shiftKey: true }))).toBe('redo')
+
+		expect(historyStep(press('ν', { code: 'KeyY', metaKey: true }))).toBe('redo')
+	})
+
+	it('reads the letter that a Latin layout writes, not the physical key', () => {
+		// Dvorak writes ; on the physical Z key, and Z on the physical / key.
+		expect(historyStep(press(';', { code: 'KeyZ', ctrlKey: true }))).toBeNull()
+
+		expect(historyStep(press('z', { code: 'Slash', ctrlKey: true }))).toBe('undo')
 	})
 
 	it('ignores a press with no Ctrl or Cmd, with Alt, or in composition', () => {

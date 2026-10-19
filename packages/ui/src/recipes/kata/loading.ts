@@ -1,5 +1,5 @@
 import { defineScale, type ScaleStep } from '../../core/density'
-import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
+import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { iro, narabi } from '../kiso'
 import { dan } from '../kiso/dan'
 
@@ -9,13 +9,12 @@ const { flex } = narabi
 /**
  * Indicator color, shared by both loading surfaces. Resolves to a `text-*`
  * class; dots (`bg-current`) and the spinner SVG (`currentColor`) both inherit
- * it. Chromatic colors use the `iro.marker` shade (600 light / 500 dark),
- * which clears non-text 3:1 on the page. `current` inherits the surrounding
- * text color; `zinc` uses its stronger neutral.
+ * it. Each color uses the `iro.marker` shade, which clears non-text 3:1 on the
+ * page. `current` inherits the surrounding text color.
  */
 const color = {
 	current: 'text-current',
-	zinc: mode('text-zinc-600', 'dark:text-zinc-400'),
+	zinc: marker.zinc,
 	red: marker.red,
 	amber: marker.amber,
 	green: marker.green,

@@ -11,9 +11,10 @@
 
 import { defineScale } from '../../core/density'
 import { defineRecipe } from '../../core/recipe'
-import { kasane, kokkaku, omote, sen } from '../kiso'
+import { iro, kasane, kokkaku, omote, sen } from '../kiso'
 import { dan } from '../kiso/dan'
 
+const { text } = iro
 const { rounded } = kasane
 const { focus, ring } = sen
 
@@ -82,7 +83,7 @@ export const k = defineRecipe(
 		channels: ['grid', dan.gap.scale.sm],
 		/** Label-above-input column for one channel input. */
 		field: `flex min-w-0 flex-col ${dan.gap.scale.xs}`,
-		label: 'text-[10px] font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400',
+		label: ['text-[10px] font-medium uppercase tracking-wide', ...text.muted],
 		swatches: 'grid grid-cols-10 gap-1.5',
 		/**
 		 * One preset chip: a label around a visually hidden radio. The inset ring

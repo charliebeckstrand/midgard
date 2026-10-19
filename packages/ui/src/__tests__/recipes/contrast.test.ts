@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 
 import { colors, extendedColors } from '../../core/recipe'
 import { k as commandPalette } from '../../recipes/kata/command-palette'
+import { k as kanban } from '../../recipes/kata/kanban'
 import { k as list } from '../../recipes/kata/list'
 import { k as menu } from '../../recipes/kata/menu'
 import { k as nav } from '../../recipes/kata/nav'
@@ -399,5 +400,23 @@ describe('PdfViewer viewport message', () => {
 		const surface = tinted(GROUND[mode].replace('dark:', ''), SURFACE[mode])
 
 		expect(contrastOf(INK[mode], surface)).toBeGreaterThanOrEqual(TEXT_AA)
+	})
+})
+
+/**
+ * A Kanban column is a `Card` with the tint fill (`omote.bg.tint`), and the
+ * empty message of a column sits on that fill. The Card takes the fill through
+ * its `bg` prop, so the tint-wash registry above cannot see the pairing, and
+ * this block measures it. A column that shows its empty message holds no card,
+ * so it never takes the `data-over` fill.
+ */
+describe('Kanban empty column message', () => {
+	const inks = inksByMode([kanban.column.empty])
+
+	it.each(MODES)('clears text AA on the %s column fill', (mode) => {
+		expect(inks[mode]).not.toEqual([])
+
+		for (const ink of inks[mode])
+			expect(contrastOf(ink, WASH[mode]), ink).toBeGreaterThanOrEqual(TEXT_AA)
 	})
 })

@@ -14,6 +14,8 @@ import { cn } from '../../core'
 import { useMeasuredWidth } from '../../hooks/use-measured-width'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import type { IntlShape } from '../../primitives/intl/types'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { useLocale } from '../../providers/locale'
 import type { MapSeriesColor } from '../../recipes/kata/map'
@@ -54,6 +56,7 @@ import type {
 import { MapChrome } from './map-chrome'
 import { MapFrame, MapPlotRegion } from './map-frame'
 import { MapLegendRegion } from './map-legend-region'
+import { mapMessages } from './map-messages'
 import { MapRegions } from './map-regions'
 import { MapTable } from './map-table'
 import {
@@ -556,13 +559,14 @@ function MapZoomLayer({ children }: { children: ReactNode }) {
 
 /** The data table's value-column header: the value's name in numeric mode, else the category field. @internal */
 function valueColumnHeader(
+	intl: IntlShape,
 	categoryKey: string | undefined,
 	valueKey: string | undefined,
 	colorName: string | undefined,
 ): string {
 	if (valueKey !== undefined) return colorName ?? valueKey
 
-	return categoryKey ?? 'Detail'
+	return categoryKey ?? intl.formatMessage(mapMessages.detail)
 }
 
 /**
@@ -1225,6 +1229,8 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// The range bar's default format writes numbers in the ambient locale, as the readout does.
 	const { locale } = useLocale()
 
+	const intl = useIntl()
+
 	const {
 		show: showLegend,
 		placement: legendPlacement,
@@ -1320,7 +1326,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		() =>
 			hasReadout ? (
 				<MapTable
-					header={valueColumnHeader(categoryKey, valueKey, colorName)}
+					header={valueColumnHeader(intl, categoryKey, valueKey, colorName)}
 					regionNames={regionNames}
 					regionCategory={regionCategory}
 					regionValues={regionValues}
@@ -1334,6 +1340,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			) : null,
 		[
 			hasReadout,
+			intl,
 			categoryKey,
 			valueKey,
 			colorName,

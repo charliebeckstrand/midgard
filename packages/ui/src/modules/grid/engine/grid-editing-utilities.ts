@@ -89,6 +89,8 @@ export function stepEditableColumn(
 /** The facts of one key press that a type-to-edit decision reads. @internal */
 export type GridKeyPress = {
 	key: string
+	/** The physical key, such as `KeyZ`. It does not change with the layout. */
+	code: string
 	ctrlKey: boolean
 	metaKey: boolean
 	altKey: boolean
@@ -106,6 +108,7 @@ export type GridKeyPress = {
  */
 export function readKeyPress(event: {
 	key: string
+	code: string
 	ctrlKey: boolean
 	metaKey: boolean
 	altKey: boolean
@@ -115,12 +118,31 @@ export function readKeyPress(event: {
 }): GridKeyPress {
 	return {
 		key: event.key,
+		code: event.code,
 		ctrlKey: event.ctrlKey,
 		metaKey: event.metaKey,
 		altKey: event.altKey,
 		composing: isComposing(event),
 		altGraph: event.getModifierState('AltGraph'),
 	}
+}
+
+/**
+ * The Latin letter of a shortcut press, in lower case, or `null`. A layout
+ * with no Latin letters (Cyrillic, Greek, Hebrew) puts its own character in
+ * `key`, so the letter then comes from the physical key in `code`. A Latin
+ * layout puts an ASCII character in `key`, and that character decides, so
+ * under Dvorak the key that writes Z is the Z.
+ *
+ * @internal
+ */
+export function shortcutLetter(press: Pick<GridKeyPress, 'key' | 'code'>): string | null {
+	if (/^[\x21-\x7e]$/.test(press.key))
+		return /^[a-z]$/i.test(press.key) ? press.key.toLowerCase() : null
+
+	const letter = /^Key([A-Z])$/.exec(press.code)?.[1]
+
+	return letter ? letter.toLowerCase() : null
 }
 
 /**

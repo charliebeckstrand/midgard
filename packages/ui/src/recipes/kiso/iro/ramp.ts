@@ -7,7 +7,8 @@
  * class literals (Tailwind's scanner sees only literals; nothing is composed at
  * runtime). Each shade is the least-emphatic rung that clears its contrast
  * floor on its surface. A few taste bumps are the exception: amber / green ride
- * a lighter dark rung.
+ * a lighter dark rung, and the zinc `marker` rides the stronger light rung
+ * (600), so a neutral spinner or star reads as firmly as a chromatic one.
  *
  * Roles:
  *   - `onSurface`: foreground on the page / card surface (white · zinc-900).
@@ -42,7 +43,7 @@ const RAMP = {
 	zinc: {
 		onSurface: ['text-zinc-500', 'dark:text-zinc-400'],
 		onTint: ['text-zinc-700', 'dark:text-zinc-400'],
-		marker: ['text-zinc-500', 'dark:text-zinc-400'],
+		marker: ['text-zinc-600', 'dark:text-zinc-400'],
 	},
 	red: {
 		onSurface: ['text-red-600', 'dark:text-red-500'],

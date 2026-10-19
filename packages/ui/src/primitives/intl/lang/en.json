@@ -511,6 +511,82 @@
 		"defaultMessage": "Yesterday",
 		"description": "A range of a date picker: the day before today."
 	},
+	"ui.events.batch": {
+		"defaultMessage": "Batch",
+		"description": "The label of the switch that groups repeated events in one line."
+	},
+	"ui.events.bugs": {
+		"defaultMessage": "Bugs",
+		"description": "The name of the list of the bug reports that the debug tool captured."
+	},
+	"ui.events.bugsCount": {
+		"defaultMessage": "Bugs {count, number}",
+		"description": "The tab of the bug reports of the debug tool, with their count, such as \"Bugs 3\"."
+	},
+	"ui.events.capture": {
+		"defaultMessage": "Capture",
+		"description": "The button that starts to record the events for a bug report."
+	},
+	"ui.events.copied": {
+		"defaultMessage": "Copied",
+		"description": "The label of the copy button of the debug tool after a copy succeeds."
+	},
+	"ui.events.copy": {
+		"defaultMessage": "Copy",
+		"description": "The button that copies a bug report of the debug tool as Markdown."
+	},
+	"ui.events.debug": {
+		"defaultMessage": "Debug",
+		"description": "The label of the switch that turns the debug tool on or off."
+	},
+	"ui.events.delete": {
+		"defaultMessage": "Delete",
+		"description": "The button that deletes one bug report of the debug tool."
+	},
+	"ui.events.details": {
+		"defaultMessage": "Details",
+		"description": "The name of the tree that shows the data of one event."
+	},
+	"ui.events.events": {
+		"defaultMessage": "Events",
+		"description": "The name of the debug tool that lists the events of the page, of its button, and of its list."
+	},
+	"ui.events.noBugs": {
+		"defaultMessage": "No bugs",
+		"description": "The text of the list of bug reports when it holds none."
+	},
+	"ui.events.noEvents": {
+		"defaultMessage": "No events",
+		"description": "The text of the list of events when it holds none."
+	},
+	"ui.events.pin": {
+		"defaultMessage": "Pin",
+		"description": "The button that docks the debug tool as a panel at the side of the page."
+	},
+	"ui.events.preserve": {
+		"defaultMessage": "Preserve",
+		"description": "The label of the switch that keeps the events through a reload of the page."
+	},
+	"ui.events.stopCapture": {
+		"defaultMessage": "Stop capture",
+		"description": "The button that stops the record and makes a bug report from it."
+	},
+	"ui.events.trail": {
+		"defaultMessage": "Breadcrumb",
+		"description": "The name of the trail of links above an open bug report, which leads back to the list of bugs."
+	},
+	"ui.events.unpin": {
+		"defaultMessage": "Unpin",
+		"description": "The button that takes the docked debug tool off the side of the page."
+	},
+	"ui.events.view": {
+		"defaultMessage": "View",
+		"description": "The name of the control that switches the debug tool between its events and its bugs."
+	},
+	"ui.events.viewReport": {
+		"defaultMessage": "View",
+		"description": "The name of the button that opens one bug report of the debug tool."
+	},
 	"ui.fileUpload.announced": {
 		"defaultMessage": "{count, plural, one {Selected {names}} other {Selected # files: {names}}}",
 		"description": "Spoken when the reader selects files. The names are the file names, joined by commas."
@@ -1202,6 +1278,22 @@
 	"ui.listbox.placeholder": {
 		"defaultMessage": "Select",
 		"description": "The placeholder of a picker with no selected value."
+	},
+	"ui.map.detail": {
+		"defaultMessage": "Detail",
+		"description": "The header of the value column of the data table of a map, when the map names no category field."
+	},
+	"ui.map.legend": {
+		"defaultMessage": "Legend",
+		"description": "The name of the legend of a map, which names the categories by their colors."
+	},
+	"ui.map.zoom": {
+		"defaultMessage": "Zoom {scale, number, percent}",
+		"description": "Spoken when a key zooms a map in or out, with the zoom as a percent of the fit, such as \"Zoom 150%\"."
+	},
+	"ui.map.zoomReset": {
+		"defaultMessage": "Zoom reset",
+		"description": "Spoken when a key puts the zoom of a map back to its fit."
 	},
 	"ui.markdown.table": {
 		"defaultMessage": "Table",

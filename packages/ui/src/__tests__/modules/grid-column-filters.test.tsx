@@ -8,6 +8,7 @@ import {
 	type QueryGroup,
 	serializeQuery,
 } from '../../modules/query'
+import { PortalContext } from '../../primitives/portal'
 import { DensityProvider } from '../../providers/density'
 import { Box } from '../../structure/box'
 import { act, densityStepOf, fireEvent, getAllSlots, renderUI, screen, waitFor } from '../helpers'
@@ -286,10 +287,15 @@ describe('Grid per-column filters', () => {
 	it('submits no form around the grid on Apply in the filter sheet', () => {
 		const onSubmit = vi.fn((event: { preventDefault: () => void }) => event.preventDefault())
 
+		// The sheet portals to the body, as it does in a browser, so its form is
+		// not in the form around the grid. React still bubbles the submit through
+		// the portal.
 		renderUI(
-			<form onSubmit={onSubmit}>
-				<Grid columns={columns} rows={rows} getKey={getKey} />
-			</form>,
+			<PortalContext value={document.body}>
+				<form onSubmit={onSubmit}>
+					<Grid columns={columns} rows={rows} getKey={getKey} />
+				</form>
+			</PortalContext>,
 		)
 
 		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
