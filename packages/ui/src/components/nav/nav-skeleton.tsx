@@ -20,9 +20,9 @@ export type NavSkeletonProps = {
 }
 
 /**
- * Nav-list-shaped placeholder: `items` rows on the axis of the
- * `orientation`, each with an icon square and a label line in the box of a
- * `NavItem`. Keyed off the row count, so it does not use the size-driven
+ * A placeholder for a NavList while it loads. It holds `items` rows on the axis
+ * of the `orientation`, each with an icon square and a label line in the box of
+ * a `NavItem`. Keyed off the row count, so it does not use the size-driven
  * `createSkeleton` factory.
  *
  * @remarks Static leaf: renders in React Server Components. The row box

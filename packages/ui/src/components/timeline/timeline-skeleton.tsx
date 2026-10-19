@@ -20,11 +20,11 @@ export type TimelineSkeletonProps = {
 }
 
 /**
- * Timeline-shaped placeholder: `items` rows, each with a marker dot on the
- * real connector rail, a title line, and a timestamp line. The root, the
- * items, the marker, and the place of each line come from the timeline
- * recipes, so each orientation matches the real timeline. Keyed off the item
- * count, so it does not use the size-driven `createSkeleton` factory.
+ * A placeholder for a Timeline while it loads. It holds `items` rows, each with
+ * a marker dot on the real connector rail, a title line, and a timestamp line.
+ * The root, the items, the marker, and the place of each line come from the
+ * timeline recipes, so each orientation matches the real timeline. Keyed off
+ * the item count, so it does not use the size-driven `createSkeleton` factory.
  *
  * @remarks Static leaf: renders in React Server Components. The item spacing
  * follows the nearest density scope, as the items of the timeline do. The

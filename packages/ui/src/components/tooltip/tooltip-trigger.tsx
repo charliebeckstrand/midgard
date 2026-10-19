@@ -28,14 +28,15 @@ export type TooltipTriggerProps = Omit<ComponentProps<'span'>, 'children'> & {
 }
 
 /**
- * Wires the floating reference onto the trigger. When `children` is an element,
- * the trigger clones the reference props and ref onto that element rather than
- * a wrapping `<span>`. Those props are the focus/hover/click handlers plus the
- * `useRole` tooltip `aria-describedby`. Keyboard focus reaches the trigger, and
- * the description announces on the focusable node itself (WCAG 2.1.1 / 1.4.13 / 4.1.2).
- * Before the tooltip state loads, the trigger takes no props from it. Native
- * listeners on the node record the first hover, focus, or click, and the
- * state replays that intent when it takes over (see {@link Tooltip}).
+ * The trigger of a {@link Tooltip}, wired with the floating reference. When
+ * `children` is an element, the trigger clones the reference props and ref onto
+ * that element rather than a wrapping `<span>`. Those props are the
+ * focus/hover/click handlers plus the `useRole` tooltip `aria-describedby`.
+ * Keyboard focus reaches the trigger, and the description announces on the
+ * focusable node itself (WCAG 2.1.1 / 1.4.13 / 4.1.2). Before the tooltip state
+ * loads, the trigger takes no props from it. Native listeners on the node
+ * record the first hover, focus, or click, and the state replays that intent
+ * when it takes over (see {@link Tooltip}).
  *
  * When the panel is a dialog (an `interactive` panel that holds a tabbable
  * control), the trigger carries `aria-haspopup="dialog"`, `aria-expanded`, and

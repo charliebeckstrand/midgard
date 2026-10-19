@@ -14,7 +14,7 @@ import { useControlTarget } from '../control/use-control-target'
 /** Props for {@link Switch}: the recipe `color` and the `size` step, an input `ref`, and native `<input>` attributes minus `type`/`size`. */
 export type SwitchProps = SwitchVariants & {
 	/**
-	 * The initial state when uncontrolled.
+	 * Initial checked state when uncontrolled.
 	 * @defaultValue false
 	 */
 	defaultChecked?: boolean

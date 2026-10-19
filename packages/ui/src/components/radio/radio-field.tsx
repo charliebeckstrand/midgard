@@ -10,9 +10,9 @@ export type RadioFieldProps = {
 } & ComponentProps<'div'>
 
 /**
- * Pairs a Radio with its Label. Generates a scoped id and broadcasts it
- * through `ControlContext`; the inner Radio and Label auto-wire without
- * the consumer touching `id` / `htmlFor`. Pass `htmlFor` to pin the id.
+ * A field that pairs a Radio with its Label. Generates a scoped id and
+ * broadcasts it through `ControlContext`; the inner Radio and Label auto-wire
+ * without the consumer touching `id` / `htmlFor`. Pass `htmlFor` to pin the id.
  */
 export function RadioField({ htmlFor, ...props }: RadioFieldProps) {
 	return (

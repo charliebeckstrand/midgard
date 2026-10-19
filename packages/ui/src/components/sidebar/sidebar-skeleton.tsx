@@ -22,10 +22,10 @@ export type SidebarSkeletonProps = {
 }
 
 /**
- * Sidebar-list-shaped placeholder: `items` rows in the stack of a
- * `SidebarList`, each with an icon square and a label line in the box of a
- * `SidebarItem`. Keyed off the row count, so it does not use the size-driven
- * `createSkeleton` factory.
+ * A placeholder for a SidebarList while it loads. It holds `items` rows in the
+ * stack of a `SidebarList`, each with an icon square and a label line in the
+ * box of a `SidebarItem`. Keyed off the row count, so it does not use the
+ * size-driven `createSkeleton` factory.
  *
  * @remarks Static leaf: renders in React Server Components. The row box
  * follows the nearest density scope, as the items do. Under the mini rail of

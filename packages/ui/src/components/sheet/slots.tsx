@@ -47,11 +47,11 @@ const { Title, Description, Header, Body, Footer, Content, DefaultFooter } = cre
 export type SheetCloseProps = Partial<PanelCloseProps>
 
 /**
- * Closes the enclosing {@link Sheet}. With no child, it renders the standard
- * Close button, which is also the default footer of the sheet. The standard
- * button stays live in a locked scope, such as a submitting form. With one
- * child, a click on the child closes the sheet, and the child's own `onClick`
- * runs first.
+ * A control that closes the enclosing {@link Sheet}. With no child, it renders
+ * the standard Close button, which is also the default footer of the sheet.
+ * The standard button stays live in a locked scope, such as a submitting form.
+ * With one child, a click on the child closes the sheet, and the child's own
+ * `onClick` runs first.
  */
 export function SheetClose({ children }: SheetCloseProps) {
 	return (
@@ -73,9 +73,12 @@ export function SheetClose({ children }: SheetCloseProps) {
 }
 
 export {
-	/** `<div>` scroll region for the sheet's main content; fills remaining height and scrolls on overflow. */
+	/**
+	 * The body of a sheet, which scrolls when its content is tall. It is a `<div>`
+	 * that fills the remaining height.
+	 */
 	Body as SheetBody,
-	/** `<div>` wrapper for arbitrary sheet content outside the header/body/footer rhythm. */
+	/** A wrapper for sheet content outside the header/body/footer rhythm; renders a `<div>`. */
 	Content as SheetContent,
 	/**
 	 * The footer that {@link Sheet} renders after its children while no `SheetFooter` is
@@ -84,24 +87,28 @@ export {
 	 * @internal
 	 */
 	DefaultFooter as SheetDefaultFooter,
-	/** `<p>` supporting copy; registers as the sheet's `aria-describedby` target. */
+	/** The description of a sheet: a `<p>` that registers as the sheet's `aria-describedby` target. */
 	Description as SheetDescription,
 	/**
-	 * `<div>` action row pinned to the sheet's foot. It replaces the default footer of
-	 * the sheet, which holds the standard Close button.
+	 * The footer of a sheet: a `<div>` action row pinned to the sheet's foot. It replaces the
+	 * default footer of the sheet, which holds the standard Close button.
 	 */
 	Footer as SheetFooter,
-	/** `<div>` grouping the sheet's title and description. */
+	/** The header of a sheet: a `<div>` that groups the sheet's title and description. */
 	Header as SheetHeader,
 	/**
-	 * Opens the panel of the enclosing {@link Sheet}. A single element child is cloned, and a
-	 * click on it opens the panel. The trigger stamps `aria-haspopup="dialog"`, `aria-expanded`,
-	 * and, while the panel is open, `aria-controls`. It stamps `data-open` while the panel is
-	 * open, and `data-disabled` while it is disabled. It must be inside the `<Sheet>` root.
+	 * A trigger that opens the panel of the enclosing {@link Sheet}. A single
+	 * element child is cloned, and a click on it opens the panel. The trigger
+	 * stamps `aria-haspopup="dialog"`, `aria-expanded`, and, while the panel is
+	 * open, `aria-controls`. It stamps `data-open` while the panel is open, and
+	 * `data-disabled` while it is disabled. It must be inside the `<Sheet>` root.
 	 * Aliases the shared `PanelTrigger` primitive.
 	 */
 	PanelTrigger as SheetTrigger,
 	type PanelTriggerProps as SheetTriggerProps,
-	/** `h{level}` heading, `<h2>` by default; registers as the sheet's `aria-labelledby` target with density-scaled type. */
+	/**
+	 * The title of a sheet: an `h{level}` heading, `<h2>` by default, that registers as the
+	 * sheet's `aria-labelledby` target. Its type scales with density.
+	 */
 	Title as SheetTitle,
 }

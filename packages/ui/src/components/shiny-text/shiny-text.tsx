@@ -7,7 +7,7 @@ import { cn } from '../../core'
 /** Props for {@link ShinyText}; tunes the sweep animation and gradient colors atop a `<span>`. */
 export type ShinyTextProps = {
 	/**
-	 * Halt the sweep, leaving the shine parked off-screen so only the base color shows.
+	 * Halts the sweep, leaving the shine parked off-screen so only the base color shows.
 	 * @defaultValue false
 	 */
 	disabled?: boolean

@@ -140,5 +140,34 @@ export function createPanel(slotPrefix: string, slots?: PanelSlots) {
 		)
 	}
 
-	return { Title, Description, Header, Body, Footer, Content, DefaultFooter }
+	return {
+		/**
+		 * The title of a panel: an `h{level}` heading, `<h2>` by default, that registers
+		 * as the `aria-labelledby` target of the panel. Its type scales with density.
+		 */
+		Title,
+		/**
+		 * The description of a panel: a `<p>` that registers as the
+		 * `aria-describedby` target of the panel.
+		 */
+		Description,
+		/** The header of a panel: a `<div>` that groups the title and the description. */
+		Header,
+		/**
+		 * The body of a panel, which scrolls when its content is tall. It is a `<div>`
+		 * that fills the remaining height.
+		 */
+		Body,
+		/**
+		 * The footer of a panel: a `<div>` action row at its foot. It replaces the
+		 * default footer, which holds the standard Close button.
+		 */
+		Footer,
+		/**
+		 * A wrapper for panel content outside the rhythm of the header, body, and
+		 * footer; renders a `<div>`.
+		 */
+		Content,
+		DefaultFooter,
+	}
 }

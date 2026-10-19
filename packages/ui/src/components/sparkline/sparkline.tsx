@@ -62,19 +62,19 @@ export type SparklineProps = AccessibleName &
 		/** Box height in px. See `width`. */
 		height?: number
 		/**
-		 * Fill the region under the line with a translucent wash. Ignored for the
+		 * Fills the region under the line with a translucent wash. Ignored for the
 		 * `bar` shape.
 		 * @defaultValue false
 		 */
 		fill?: boolean
 		/**
-		 * Mark the last point with a filled dot — the end-of-series value. Ignored for
-		 * the `bar` shape.
+		 * Marks the last point, the end-of-series value, with a filled dot. Ignored
+		 * for the `bar` shape.
 		 * @defaultValue false
 		 */
 		endPoint?: boolean
 		/**
-		 * Animate the marks in on mount with Framer Motion. The line draws itself
+		 * Animates the marks in on mount with Framer Motion. The line draws itself
 		 * (`pathLength`), the area wash fades in behind it, the end-point pops, and
 		 * bars grow from the zero line in sequence. Honors `prefers-reduced-motion`
 		 * through {@link ReducedMotion}. Off by default — a static grid of many

@@ -39,7 +39,7 @@ export type TabProps = {
 	 */
 	disabled?: boolean
 	/**
-	 * Fires once when the user first signals intent to open an inactive tab, with
+	 * Fires when the user first signals intent to open an inactive tab, with
 	 * the tab's `value`. Intent is the pointer entering its trigger, or the
 	 * trigger taking focus. The moment to warm what the panel will need: prefetch
 	 * its data (a `queryClient.prefetchQuery`, a route fetch) so the panel is

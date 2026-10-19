@@ -174,7 +174,10 @@ export function OptionText({ className, ...props }: ComponentProps<'span'>) {
 /** Props for a select-like option produced by `createSelectOption`; `value` is matched against the host's selection. */
 export type SelectOptionProps<TValue = unknown> = {
 	value: TValue
-	/** @defaultValue false */
+	/**
+	 * Disables the option, so that it cannot be selected.
+	 * @defaultValue false
+	 */
 	disabled?: boolean
 	className?: string
 	children?: ReactNode
@@ -346,5 +349,17 @@ export function createSelectOption<
 		)
 	}
 
-	return { Option: SelectOption, Label, Text, Description }
+	return {
+		/** A selectable option of the enclosing list, which carries the `value` that a press selects. */
+		Option: SelectOption,
+		/** The primary text of an option; renders a `<span>`. */
+		Label,
+		/**
+		 * A wrapper that stacks the label of an option over its description; renders a
+		 * `<span>`. Without it, the description sits beside the label.
+		 */
+		Text,
+		/** The secondary text of an option; renders a `<span>`. */
+		Description,
+	}
 }

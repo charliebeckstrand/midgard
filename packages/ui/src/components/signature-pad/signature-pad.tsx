@@ -51,7 +51,7 @@ export type SignaturePadProps = Omit<
 	name?: string
 	/** Controlled value: a data URL, or `null` / `undefined` when empty. */
 	value?: string | null
-	/** Initial value for uncontrolled mode. */
+	/** Initial value when uncontrolled. */
 	defaultValue?: string | null
 	/** Fires when a stroke ends. Receives the signature as a data URL, or `null` when cleared. */
 	onValueChange?: (value: string | null) => void
@@ -66,9 +66,15 @@ export type SignaturePadProps = Omit<
 	 * 2D context. All of them return before the stroke starts.
 	 */
 	onDrawStart?: () => void
-	/** @defaultValue `false`, or the state of the enclosing Control or Field. */
+	/**
+	 * Disables the pad.
+	 * @defaultValue `false`, or the state of the enclosing Control or Field.
+	 */
 	disabled?: boolean
-	/** @defaultValue `false`, or the state of the enclosing Control. */
+	/**
+	 * Shows the signature and takes no stroke.
+	 * @defaultValue `false`, or the state of the enclosing Control.
+	 */
 	readOnly?: boolean
 	/**
 	 * Placeholder rendered over an empty pad. A disabled or read-only pad
@@ -91,7 +97,7 @@ export type SignaturePadProps = Omit<
 	 */
 	strokeWidth?: number
 	/**
-	 * Render the built-in clear button.
+	 * Renders the built-in clear button.
 	 *
 	 * @defaultValue true
 	 */

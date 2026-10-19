@@ -31,21 +31,21 @@ export type PanelContentProps = ComponentProps<'div'>
  */
 export type PanelOverlayProps = {
 	/**
-	 * Whether a press on the backdrop closes the panel.
+	 * Lets a press on the backdrop close the panel.
 	 * @defaultValue true
 	 */
 	dismissOnBackdrop?: boolean
 	/**
-	 * Modal panels (the default) trap focus, move it into the panel on open,
-	 * lock body scroll, and dim the page behind a blocking backdrop. Pass
-	 * `false` for a transient, pointer-driven surface that leaves focus and the
-	 * page alone. A hover-revealed peek is the example. Escape or a press
-	 * outside still dismisses.
+	 * Makes the panel modal (the default). A modal panel traps focus, moves it
+	 * into the panel on open, locks body scroll, and dims the page behind a
+	 * blocking backdrop. Pass `false` for a transient, pointer-driven surface
+	 * that leaves focus and the page alone. A hover-revealed peek is the example.
+	 * Escape or a press outside still closes it.
 	 * @defaultValue true
 	 */
 	modal?: boolean
 	/**
-	 * Paint the dimming backdrop independently of modality. A non-modal panel
+	 * Paints the dimming backdrop independently of modality. A non-modal panel
 	 * renders none by default; opt in to blur and dim the page behind it. The
 	 * scrim stays non-interactive, so the page stays usable. A modal panel with
 	 * no backdrop still closes on a press outside it, unless `dismissOnBackdrop`

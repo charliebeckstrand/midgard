@@ -53,13 +53,13 @@ export type PivotTableProps<T> = {
 	 * nearest density scope. A step makes the table a density scope.
 	 */
 	size?: ScaleStep<typeof scale>
-	/** Draw hairline borders around every cell. @defaultValue false */
+	/** Draws hairline borders around every cell. @defaultValue false */
 	outline?: boolean
-	/** Zebra-stripe the body rows; `'odd'` / `'even'` pick which. @defaultValue false */
+	/** Zebra-stripes the body rows; `'odd'` / `'even'` select which. @defaultValue false */
 	striped?: boolean | 'odd' | 'even'
-	/** Wash the body row under the pointer. @defaultValue false */
+	/** Washes the body row under the pointer. @defaultValue false */
 	hover?: boolean
-	/** Run the table edge-to-edge, dropping the outer gutter. @defaultValue false */
+	/** Runs the table edge-to-edge, dropping the outer gutter. @defaultValue false */
 	bleed?: boolean
 	/** Classes for the `<table>` element. */
 	className?: string

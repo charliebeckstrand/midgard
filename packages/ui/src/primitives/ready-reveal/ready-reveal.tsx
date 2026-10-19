@@ -18,7 +18,7 @@ import * as m from '../reduced-motion/reduced-motion-elements'
 
 /** Props for {@link ReadyReveal}. The root `<div>` takes the rest. */
 export type ReadyRevealProps = Omit<ComponentProps<'div'>, 'children' | 'placeholder'> & {
-	/** When true, reveals `children`; when false, shows `placeholder`. */
+	/** Reveals `children`. While `false`, the reveal shows `placeholder`. */
 	ready: boolean
 	/**
 	 * Content shown while not ready.
@@ -32,7 +32,7 @@ export type ReadyRevealProps = Omit<ComponentProps<'div'>, 'children' | 'placeho
 	/** Content revealed once ready. It sets the size of the box in both states. */
 	children: ReactNode
 	/**
-	 * Fires once the reveal crossfade has landed and the placeholder is at rest.
+	 * Fires when the reveal crossfade has landed and the placeholder is at rest.
 	 *
 	 * `ready` flipping is not an arrival: the placeholder is still fading when it does.
 	 * Use this to measure or focus the revealed content. Never fires for the return to
@@ -86,12 +86,12 @@ const CONTENT_CELL = { gridArea: '1 / 1' } as const
 const PLACEHOLDER_CELL = { position: 'absolute', inset: 0 } as const
 
 /**
- * Gates content on a `ready` flag, crossfading from `placeholder` to
- * `children` to avoid a flash of unready content. The placeholder fades and
- * blurs out, and the content fades in with opacity alone. The two layers stack
- * in one grid cell. The content layer sits in flow, and the placeholder is
- * lifted out of flow over it. The content alone therefore sizes the cell, and
- * the box stays put across the swap.
+ * A gate on a `ready` flag that crossfades from `placeholder` to `children`, to
+ * avoid a flash of unready content. The placeholder fades and blurs out, and
+ * the content fades in with opacity alone. The two layers stack in one grid
+ * cell. The content layer sits in flow, and the placeholder is lifted out of
+ * flow over it. The content alone therefore sizes the cell, and the box stays
+ * put across the swap.
  *
  * @remarks
  * Wraps its layers in {@link ReducedMotion}, so the crossfade honors

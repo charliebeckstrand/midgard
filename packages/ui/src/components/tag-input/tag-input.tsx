@@ -65,11 +65,14 @@ export type TagInputProps = Omit<
 	name?: string
 	/** Badge color for every tag. @defaultValue 'zinc' */
 	tagColor?: Color
-	/** Current tag values (controlled); `null` is controlled-and-empty (CONVENTIONS §7.3). */
+	/**
+	 * Controlled tag values. Pair it with `onValueChange`; `null` is
+	 * controlled-and-empty (CONVENTIONS §7.3).
+	 */
 	value?: string[] | null
-	/** Initial tag values (uncontrolled). */
+	/** Initial tag values when uncontrolled. */
 	defaultValue?: string[]
-	/** Called when the tag list changes. */
+	/** Fires when the tag list changes. */
 	onValueChange?: (value: string[]) => void
 	/**
 	 * Placeholder shown while the tag list is empty. It also names the input,
@@ -88,8 +91,8 @@ export type TagInputProps = Omit<
 	 */
 	validate?: (tag: string) => boolean
 	/**
-	 * Fires with the refused part of a commit: the tags `validate` turned away, the
-	 * ones already held, and how many had no room.
+	 * Fires when a commit refuses tags: the tags `validate` turned away, the ones
+	 * already held, and how many had no room.
 	 *
 	 * Every commit splits four ways, and `onValueChange` reports one part of it.
 	 * The other three reach the live region and stop there, which no caller can

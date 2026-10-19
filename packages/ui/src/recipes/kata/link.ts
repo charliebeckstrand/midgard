@@ -23,6 +23,6 @@ export const k = defineRecipe({
 export type LinkVariants = Omit<VariantProps<typeof k>, 'color' | 'underline'> & {
 	/** The text color of the link. `current` takes the color of the text around it. @defaultValue 'current' */
 	color?: VariantProps<typeof k>['color']
-	/** Whether the link shows an underline at rest. @defaultValue false */
+	/** Shows an underline at rest. @defaultValue false */
 	underline?: VariantProps<typeof k>['underline']
 }

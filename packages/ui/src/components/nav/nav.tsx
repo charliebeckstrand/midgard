@@ -8,10 +8,11 @@ import { NavContents } from './nav-content'
 
 /** Props for {@link Nav}: the active `value` and a change callback, plus native `<nav>` attributes (less `onChange` and `defaultValue`). */
 export type NavProps = Omit<ComponentProps<'nav'>, 'onChange' | 'defaultValue'> & {
-	/** Controlled active value. Pair with `onValueChange`. */
+	/** Controlled active value. Pair it with `onValueChange`. */
 	value?: string | null
 	/** Initial active value when uncontrolled. */
 	defaultValue?: string
+	/** Fires when the active value changes. */
 	onValueChange?: (value: string | null) => void
 }
 

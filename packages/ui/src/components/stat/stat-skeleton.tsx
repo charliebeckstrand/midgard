@@ -27,10 +27,10 @@ export type StatSkeletonProps = {
 }
 
 /**
- * Stat-shaped placeholder: a label line and a value line in the column of a
- * {@link Stat}, with an optional delta line and description line. It puts the
- * slot skeletons in the order of the slots in a `Stat`. For a different order,
- * compose the slot skeletons in a `Stat`.
+ * A placeholder for a {@link Stat} while it loads. It holds a label line and a
+ * value line in the column of a Stat, with an optional delta line and
+ * description line. It puts the slot skeletons in the order of the slots in a
+ * `Stat`. For a different order, compose the slot skeletons in a `Stat`.
  *
  * @remarks Static leaf: renders in React Server Components.
  * @see {@link Stat}

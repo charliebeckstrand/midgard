@@ -43,7 +43,7 @@ export type StepperProps = Omit<
 	 */
 	'aria-label'?: string
 	/**
-	 * Controlled current step index. Pair with `onValueChange`.
+	 * Controlled current step index. Pair it with `onValueChange`.
 	 *
 	 * @remarks
 	 * Stepper is index-only and takes no `null`, as an exemption from
@@ -56,6 +56,7 @@ export type StepperProps = Omit<
 	 * @defaultValue 0
 	 */
 	defaultValue?: number
+	/** Fires when the current step changes. */
 	onValueChange?: (value: number) => void
 	/**
 	 * Restricts navigation to completed and current steps.

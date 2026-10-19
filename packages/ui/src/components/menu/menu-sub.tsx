@@ -74,7 +74,7 @@ export type MenuSubProps = {
 	label: ReactNode
 	/** Leading icon element (e.g. a Lucide icon), rendered through `Icon`. */
 	icon?: ReactElement
-	/** Render the parent row inert and dimmed; the submenu never opens. @defaultValue false */
+	/** Renders the parent row inert and dimmed; the submenu never opens. @defaultValue false */
 	disabled?: boolean
 	/**
 	 * Fires when this submenu opens or closes, whatever drove it. That covers hover

@@ -44,7 +44,7 @@ export type NumberInputProps = Omit<
 > & {
 	value?: number | null
 	defaultValue?: number
-	/** Fires with the parsed value, or `null` when the field is cleared. */
+	/** Fires when the value changes, with the parsed value, or `null` when the field is cleared. */
 	onValueChange?: (value: number | null) => void
 	min?: number
 	max?: number

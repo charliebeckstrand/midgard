@@ -6,14 +6,14 @@ import { Kbd, type KbdProps } from '../kbd'
 /** Props for {@link MenuSection}: native `<fieldset>` attributes. */
 export type MenuSectionProps = ComponentProps<'fieldset'>
 
-/** Groups related menu items under a {@link MenuHeading}; renders a `<fieldset>`. */
+/** A group of related menu items under a {@link MenuHeading}; renders a `<fieldset>`. */
 export const MenuSection = createSlot('fieldset', 'menu-section', k.section)
 
 /** Props for {@link MenuHeading}: native `<legend>` attributes. */
 export type MenuHeadingProps = ComponentProps<'legend'>
 
 /**
- * Names a {@link MenuSection}; renders a `<legend>`. Put it as the first child of a
+ * The name of a {@link MenuSection}; renders a `<legend>`. Put it as the first child of a
  * `MenuSection` only. HTML allows a `<legend>` only as the first child of a
  * `<fieldset>`, so a `MenuHeading` in another place is invalid and names nothing.
  */
@@ -35,9 +35,10 @@ export const MenuLabel = createSlot('span', 'menu-label', k.label)
 export type MenuTextProps = ComponentProps<'span'>
 
 /**
- * Stacks a {@link MenuLabel} over a {@link MenuDescription} in a {@link MenuItem};
- * renders a `<span>`. Without it, the description sits beside the label. It takes
- * the free width of the row, so a leading icon stays beside the text.
+ * A wrapper that stacks a {@link MenuLabel} over a {@link MenuDescription} in a
+ * {@link MenuItem}; renders a `<span>`. Without it, the description sits beside
+ * the label. It takes the free width of the row, so a leading icon stays beside
+ * the text.
  *
  * @example
  * ```tsx

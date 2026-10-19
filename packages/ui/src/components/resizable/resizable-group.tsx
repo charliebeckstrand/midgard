@@ -29,10 +29,10 @@ export type ResizableGroupProps = ComponentProps<'div'> & {
 	 * @defaultValue 'horizontal'
 	 */
 	orientation?: ResizableOrientation
-	/** Fires with the panels' sizes (percentages summing to 100) after each resize. */
+	/** Fires when a resize changes the sizes, with the panel sizes (percentages summing to 100). */
 	onSizesChange?: (sizes: number[]) => void
 	/**
-	 * Fires with the handle's index when a pointer drag-resize begins. Pair with
+	 * Fires when a pointer drag-resize begins, with the index of the handle. Pair with
 	 * {@link ResizableGroupProps.onResizeEnd} to bracket the drag.
 	 *
 	 * `onSizesChange` reports the sizes but not the gesture, and it fires once per
@@ -42,7 +42,7 @@ export type ResizableGroupProps = ComponentProps<'div'> & {
 	 */
 	onResizeStart?: (handleIndex: number) => void
 	/**
-	 * Fires with the handle's index when a pointer drag-resize ends: the pointer lifted,
+	 * Fires when a pointer drag-resize ends, with the index of the handle: the pointer lifted,
 	 * the gesture was canceled, or the `orientation` of the group changed (the next move
 	 * then ends the drag). The press, the move, or the lift of a different pointer does
 	 * not start a drag or end this one. Exactly one end follows each start.

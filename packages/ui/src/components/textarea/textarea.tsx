@@ -22,7 +22,7 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 	 */
 	variant?: ControlVariant
 	/**
-	 * Grow and shrink the field with its content. `rows` sets the minimum
+	 * Grows and shrinks the field with its content. `rows` sets the minimum
 	 * height, and a `max-height` class sets the maximum height.
 	 * @defaultValue false
 	 */
