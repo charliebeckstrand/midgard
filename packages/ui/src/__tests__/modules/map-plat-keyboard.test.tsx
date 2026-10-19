@@ -66,6 +66,53 @@ describe('MapPlat keyboard navigation', () => {
 		expect(readout(container)).toContain('Alpha')
 	})
 
+	it('clears the cursor and its readout when the geography changes in place', () => {
+		const { container, plot, rerender } = renderNavigable(categoricalPlat())
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		expect(readout(container)).toContain('Beta')
+
+		// The same plat takes a new atlas in which index 1 is Alpha, a region with
+		// a row. The old index must not light it.
+		const { features } = FIXTURE_GEOJSON
+
+		const turned = [...features.slice(2), ...features.slice(0, 2)]
+
+		rerender(categoricalPlat({ geography: { ...FIXTURE_GEOJSON, features: turned } }))
+
+		expect(readout(container)).toBeNull()
+
+		// The next key enters the new atlas afresh: End lands on its last stop.
+		fireEvent.keyDown(plot, { key: 'End' })
+
+		expect(readout(container)).toContain('Beta')
+	})
+
+	it('clears the readout when the new geography remounts the plot', () => {
+		const { container, plot, rerender } = renderNavigable(categoricalPlat({ legend: 'right' }))
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		expect(readout(container)).toContain('Beta')
+
+		// A side legend sits in another layout, so its removal remounts the plot,
+		// and the cursor with it. The readout lives above the plot.
+		const { features } = FIXTURE_GEOJSON
+
+		const turned = [...features.slice(2), ...features.slice(0, 2)]
+
+		rerender(
+			categoricalPlat({ legend: undefined, geography: { ...FIXTURE_GEOJSON, features: turned } }),
+		)
+
+		expect(readout(container)).toBeNull()
+	})
+
 	it('jumps to the ends of the atlas order with Home and End', () => {
 		const { container, plot } = renderNavigable(categoricalPlat())
 

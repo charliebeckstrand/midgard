@@ -100,6 +100,7 @@ export function MapFrame({
 				regionActive={regionActive}
 				emphasis={emphasis}
 				preloadRegion={preloadRegion}
+				subject={zoom.subject}
 			>
 				{aside ? (
 					// The panel and plot sit side by side once the map's own box reaches

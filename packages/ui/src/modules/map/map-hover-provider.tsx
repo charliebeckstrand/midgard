@@ -35,8 +35,18 @@ type MapHoverProviderProps = {
 	emphasis: string | null
 	/** Warms the region the pointer settles on; `undefined` on a plat that asked for no warming. */
 	preloadRegion: ((index: number) => void) | undefined
+	/**
+	 * The identity of the geography that a region target indexes. A change clears
+	 * the readout, because a region index means nothing against features it did
+	 * not come from. The plot under the provider can remount on the same change,
+	 * so the provider is the one place that sees it.
+	 */
+	subject: unknown
 	children: ReactNode
 }
+
+/** The readout at rest. @internal */
+const NO_HOVER: MapHoverState = { target: null, point: null }
 
 /** A {@link MapPointedStore} and its writer. @internal */
 function createPointedStore(): MapPointedStore & {
@@ -92,9 +102,20 @@ export function MapHoverProvider({
 	regionActive,
 	emphasis,
 	preloadRegion,
+	subject,
 	children,
 }: MapHoverProviderProps) {
-	const [state, setState] = useState<MapHoverState>({ target: null, point: null })
+	const [state, setState] = useState<MapHoverState>(NO_HOVER)
+
+	// A new geography clears the readout in the render that brings it, so no
+	// mark, preload, or tooltip reads the old index against the new features.
+	const [stateSubject, setStateSubject] = useState(subject)
+
+	if (stateSubject !== subject) {
+		setStateSubject(subject)
+
+		setState(NO_HOVER)
+	}
 
 	// Whether a pinch holds the readout. See {@link MapHoverActions.hold}.
 	const held = useRef(false)
@@ -154,6 +175,12 @@ export function MapHoverProvider({
 	const [pointedStore] = useState(createPointedStore)
 
 	useLayoutEffect(() => pointedStore.publish(pointed, emphasis), [pointedStore, pointed, emphasis])
+
+	// The committed target, for a reader that runs after a clear that `set`
+	// did not make: the clear of a new geography above.
+	useLayoutEffect(() => {
+		if (target === null) hovered.current = null
+	}, [target])
 
 	const get = useCallback(() => hovered.current, [])
 
