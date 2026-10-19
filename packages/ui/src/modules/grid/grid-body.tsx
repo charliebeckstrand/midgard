@@ -399,6 +399,30 @@ function renderWindowedBody<T>(props: GridBodyProps<T>, rowWindow: GridRowWindow
 }
 
 /**
+ * The 0-based place of each row among the rows that assistive tech sees. An
+ * open detail panel takes the place after its row, as in the windowed body.
+ *
+ * @internal
+ */
+function rowPlaces<T>(
+	rows: readonly T[],
+	rowKeys: (string | number)[],
+	expansion: GridBodyProps<T>['expansion'],
+): number[] {
+	const places: number[] = []
+
+	let next = 0
+
+	for (const [index, row] of rows.entries()) {
+		places.push(next)
+
+		next += expansion && detailOpen(row, rowKeys[index] as string | number, expansion) ? 2 : 1
+	}
+
+	return places
+}
+
+/**
  * Body for {@link Grid}. It branches between the loading skeleton, the error
  * slot, the `empty` slot, the grouped body, the virtualized window, and the
  * plain row map. It threads per-row state to each {@link GridRow}.
@@ -504,24 +528,16 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 	// Global row indices only under grid semantics (a plain table conveys them
 	// natively); see `ariaRowIndex` for the offset math. An open detail panel
 	// takes the place after its row, as in the windowed body.
-	let position = 0
+	const places = rowPlaces(rows, props.rowKeys, expansion)
 
-	const rowNodes = rows.map((row, index) => {
-		const node = renderGridRow(
+	const rowNodes = rows.map((row, index) =>
+		renderGridRow(
 			props,
 			row,
 			index,
-			gridSemantics ? ariaRowIndex(rowIndexOffset, position) : undefined,
-		)
-
-		position += 1
-
-		if (expansion && detailOpen(row, props.rowKeys[index] as string | number, expansion)) {
-			position += 1
-		}
-
-		return node
-	})
+			gridSemantics ? ariaRowIndex(rowIndexOffset, places[index] as number) : undefined,
+		),
+	)
 
 	// Sort-animated rows load layout projection through one root for the body. The
 	// root renders no element, so it nests inside `<tbody>`.
