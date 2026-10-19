@@ -172,6 +172,7 @@ export type GridNavTableProps = {
 	onKeyDown: (event: KeyboardEvent<HTMLTableElement>) => void
 	onFocus: (event: FocusEvent<HTMLTableElement>) => void
 	onBlur: (event: FocusEvent<HTMLTableElement>) => void
+	onPointerDown: () => void
 }
 
 /**
@@ -1187,11 +1188,25 @@ export function useGridNavigation({
 		],
 	)
 
+	// Set by a pointer press in the table, and read by the focus that the press
+	// gives. A press seats the cursor where it lands (see `seat`), so the focus of
+	// a press on the header chrome seeds no cursor and scrolls nothing.
+	const pressedRef = useRef(false)
+
+	const onPointerDown = useCallback(() => {
+		pressedRef.current = true
+	}, [])
+
 	const onFocus = useCallback(
 		(event: FocusEvent<HTMLTableElement>) => {
+			const pressed = pressedRef.current
+
+			pressedRef.current = false
+
 			// Seed only when the table itself takes focus (not a focusable descendant)
-			// and the cursor is unseated.
-			if (event.target !== event.currentTarget || readActive()) return
+			// from the keyboard, and the cursor is unseated. The first arrow key seeds
+			// the cursor after a press.
+			if (event.target !== event.currentTarget || pressed || readActive()) return
 
 			const from = event.relatedTarget
 
@@ -1222,6 +1237,8 @@ export function useGridNavigation({
 	)
 
 	const onBlur = useCallback((event: FocusEvent<HTMLTableElement>) => {
+		pressedRef.current = false
+
 		const next = event.relatedTarget
 
 		// Keep the cursor while focus moves to focusable cell content inside the grid;
@@ -1285,6 +1302,7 @@ export function useGridNavigation({
 				onKeyDown,
 				onFocus,
 				onBlur,
+				onPointerDown,
 			}
 		: undefined
 
