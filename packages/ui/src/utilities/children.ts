@@ -12,14 +12,30 @@ import {
 export type FlatChild = { node: ReactNode; key: string }
 
 /**
+ * The key segment of one child at its level. An explicit key takes a `$` mark,
+ * and an index stays bare, so the two namespaces do not meet: `key="3"` gives
+ * `$3`, and the child at index 3 gives `3`. A `.` in an explicit key is
+ * escaped, so it cannot read as a level of the path.
+ *
+ * @internal
+ */
+function keySegment(child: ReactNode, index: number): string {
+	if (!isValidElement(child) || child.key == null) return String(index)
+
+	return `$${child.key.replace(/[=.]/g, (match) => (match === '=' ? '=0' : '=1'))}`
+}
+
+/**
  * Flattens `children` into one list, and recurses into each Fragment.
  * `Children.toArray` treats a Fragment as one opaque child, so a caller that
  * counts siblings reads the wrong number.
  *
- * @remarks Each key carries its Fragment path, so keys stay unique in one flat
- * list. `Children.forEach` keeps the slot index of a `false` child. Thus a
- * sibling key does not shift when a conditional child toggles. Non-element
- * children (text, numbers) stay in place.
+ * @remarks Each key is the path of key segments from the top, joined by `.`.
+ * A keyed Fragment gives its own key to the path, so its children keep their
+ * keys when the Fragment moves. Keys therefore stay unique in one flat list.
+ * `Children.forEach` keeps the slot index of a `false` child. Thus a sibling
+ * key does not shift when a conditional child toggles. Non-element children
+ * (text, numbers) stay in place.
  *
  * @param children - The children to flatten.
  * @param prefix - The Fragment path of the current level; the recursion sets it.
@@ -30,20 +46,17 @@ export function flattenFragments(children: ReactNode, prefix = ''): FlatChild[] 
 	const result: FlatChild[] = []
 
 	Children.forEach(children, (child, index) => {
+		const key = `${prefix}${keySegment(child, index)}`
+
 		if (isValidElement(child) && child.type === Fragment) {
 			result.push(
-				...flattenFragments(
-					(child.props as { children?: ReactNode }).children,
-					`${prefix}${index}.`,
-				),
+				...flattenFragments((child.props as { children?: ReactNode }).children, `${key}.`),
 			)
 
 			return
 		}
 
-		const ownKey = isValidElement(child) && child.key != null ? child.key : String(index)
-
-		result.push({ node: child, key: `${prefix}${ownKey}` })
+		result.push({ node: child, key })
 	})
 
 	return result
