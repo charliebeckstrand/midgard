@@ -129,6 +129,10 @@ export const k = {
 			'after:pointer-events-none after:absolute after:inset-0 after:ring-inset',
 			'group-focus-visible/thumb:after:ring-4',
 			'group-focus-visible/thumb:after:ring-blue-600',
+			// Forced colors remove the ring, which is a box-shadow, and the thumbnail
+			// sets `outline-none`. This inset outline marks the focused page there.
+			'forced-colors:group-focus-visible/thumb:after:outline-solid forced-colors:group-focus-visible/thumb:after:outline-2',
+			'forced-colors:group-focus-visible/thumb:after:-outline-offset-2 forced-colors:group-focus-visible/thumb:after:outline-[Highlight]',
 			'group-focus-visible/thumb:opacity-75',
 			'group-data-current/thumb:opacity-100',
 			'group-hover/thumb:opacity-75',
@@ -237,7 +241,15 @@ export const k = {
 					behind: 'opacity-25',
 				},
 				region: {
-					base: ['absolute block', 'ring-1 ring-inset', ...cursor, ...focus.inset],
+					base: [
+						'absolute block',
+						'ring-1 ring-inset',
+						// Forced colors remove the ring, which is a box-shadow. This inset
+						// outline draws the edge of the region there.
+						'forced-colors:outline forced-colors:-outline-offset-1',
+						...cursor,
+						...focus.inset,
+					],
 					/** Translucent per-color wash, from the shared palette. */
 					fill: palette.soft.bg,
 					ring: palette.outline.ring,
@@ -250,7 +262,12 @@ export const k = {
 						 * later region overlapping the selected one covers the very emphasis that says
 						 * which is selected.
 						 */
-						base: ['ring-4', 'z-10'],
+						base: [
+							'ring-4',
+							'z-10',
+							// Under forced colors the heavier stroke is the outline, as the edge is.
+							'forced-colors:outline-4 forced-colors:-outline-offset-4',
+						],
 						/**
 						 * The wash — the palette's doubled rung.
 						 *
