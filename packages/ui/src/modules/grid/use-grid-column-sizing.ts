@@ -40,6 +40,11 @@ type GridColumnSizingOptions<T> = {
 	/** Grid wrapper whose width the columns fill (and which holds the rendered cells). */
 	containerRef: RefObject<HTMLElement | null> | undefined
 	/**
+	 * The grid's own scroll region, when it has one. It reserves a scrollbar
+	 * gutter, so its content box, and not the wrapper, is the width to fill.
+	 */
+	scrollRef?: RefObject<HTMLElement | null>
+	/**
 	 * Fingerprint of the set of rendered rows, supplied by the caller from data it
 	 * already holds (see `rowsSignatureOf`). A page turn or filter that changes the
 	 * visible rows re-measures, since new content can be wider. A sort reorders
@@ -208,6 +213,7 @@ export function useGridColumnSizing<T>({
 	table,
 	columns,
 	containerRef,
+	scrollRef,
 	rowsSignature,
 	density,
 	fitContent,
@@ -275,7 +281,9 @@ export function useGridColumnSizing<T>({
 	const envOf = useCallback((): ColumnSizerEnv<T> | null => {
 		const container = containerRef?.current
 
-		const width = container?.clientWidth ?? 0
+		// `clientWidth` leaves out a scrollbar, so the scroll region gives the width
+		// that the table can take without a horizontal bar.
+		const width = (scrollRef?.current ?? container)?.clientWidth ?? 0
 
 		if (!container || !width) return null
 
@@ -292,7 +300,7 @@ export function useGridColumnSizing<T>({
 			sizeOf: (id) => table.getColumn(id)?.getSize() ?? DEFAULT_COLUMN_SIZE,
 			measure: (scan) => measureColumns({ columns, container, scan }),
 		}
-	}, [containerRef, columns, fitContent, table, structSignature, sizer])
+	}, [containerRef, scrollRef, columns, fitContent, table, structSignature, sizer])
 
 	// Writes what the sizer returns. An automatic fit writes flagged, off the
 	// consumer's binding. A user choice writes unflagged, so it persists like a

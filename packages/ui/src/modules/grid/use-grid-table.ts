@@ -160,6 +160,11 @@ type GridTableParams<T> = {
 	columnFilters?: GridColumnFilters
 	/** Grid wrapper element; measured to auto-size resizable columns to fill its width. */
 	containerRef?: RefObject<HTMLElement | null>
+	/**
+	 * The grid's own scroll region, mounted under a sticky header or `virtualize`.
+	 * Its content box leaves out the scrollbar gutter, so the fit fills that box.
+	 */
+	scrollRef?: RefObject<HTMLElement | null>
 	/** Table density; threaded to the autosizer, whose measurements scale with it. */
 	density?: DensityStep
 	/**
@@ -502,6 +507,7 @@ export function useGridTable<T>({
 	globalFilter: globalFilterConfig,
 	columnFilters: columnFiltersConfig,
 	containerRef,
+	scrollRef,
 	density,
 	grandTotal = false,
 }: GridTableParams<T>): GridTableResult<T> {
@@ -856,6 +862,7 @@ export function useGridTable<T>({
 		// Fit distributes width across the *visible* data columns, not the hidden ones.
 		columns: visibleColumns,
 		containerRef,
+		scrollRef,
 		// Fingerprint from the keys the grid already derived, so the autosizer
 		// never walks the rows just to notice a row change.
 		rowsSignature,

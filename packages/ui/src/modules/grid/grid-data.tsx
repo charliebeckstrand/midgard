@@ -375,6 +375,7 @@ export function GridData<T>({
 		globalFilter: searchConfig,
 		columnFilters: columnFiltersConfig,
 		containerRef: wrapperRef,
+		scrollRef,
 		density: step,
 		// The grid collects the filtered rows only for a grand total.
 		grandTotal: grandTotalRow,

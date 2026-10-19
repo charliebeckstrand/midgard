@@ -368,6 +368,37 @@ describe('grid column auto-sizing (real browser)', () => {
 		// The bordered table lands on the container exactly — no horizontal scrollbar.
 		expect(scroll.scrollWidth).toBeLessThanOrEqual(scroll.clientWidth)
 	})
+
+	it('fills the scroll region, not the wrapper, under a sticky header', async () => {
+		const { container } = renderUI(
+			<div style={{ width: '600px' }}>
+				<Grid
+					header={{ position: 'sticky' }}
+					columns={[
+						{ id: 'name', title: 'Name', cell: (row) => row.tiny },
+						{ id: 'role', title: 'Role', cell: (row) => row.tiny },
+					]}
+					rows={tinyRows}
+					getKey={getKey}
+				/>
+			</div>,
+		)
+
+		const table = present(container.querySelector('table'), 'table')
+
+		const scroll = present(
+			container.querySelector<HTMLElement>('[data-slot="grid-scroll"]'),
+			'[data-slot="grid-scroll"]',
+		)
+
+		await waitFor(() => expect(table.style.width).not.toBe(''))
+
+		// The region reserves its scrollbar gutter, so its content box is narrower
+		// than the wrapper. The columns fill that box and raise no horizontal bar.
+		expect(scroll.offsetWidth - scroll.clientWidth).toBeGreaterThan(0)
+
+		expect(scroll.scrollWidth).toBeLessThanOrEqual(scroll.clientWidth)
+	})
 })
 
 /**
