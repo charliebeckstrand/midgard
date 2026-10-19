@@ -132,6 +132,28 @@ describe('Grid pagination', () => {
 			expect(screen.getByText('1–3 of 3')).toBeInTheDocument()
 		})
 
+		it('steps back from the shown page when the rows shrink under the current page', async () => {
+			const ui = (rows: Row[]) => (
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					pagination={{ defaultValue: { pageIndex: 4, pageSize: 5 } }}
+				/>
+			)
+
+			const view = renderUI(ui(many))
+
+			// Three pages are left, and the view holds the stored page 5 to page 3.
+			view.rerender(ui(many.slice(0, 15)))
+
+			expect(screen.getByText('11–15 of 15')).toBeInTheDocument()
+
+			await setupUser().click(screen.getByRole('button', { name: 'Previous page' }))
+
+			expect(screen.getByText('6–10 of 15')).toBeInTheDocument()
+		})
+
 		it('counts the rows and indexes them from 1 with an unbounded page size', () => {
 			const { container } = renderUI(
 				<Grid
