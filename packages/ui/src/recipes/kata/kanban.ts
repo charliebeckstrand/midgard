@@ -13,7 +13,7 @@ import { hannou, iro, ji, kasane, kokkaku, narabi, omote, sen } from '../kiso'
 import { dan } from '../kiso/dan'
 
 const { disabled, grab } = hannou
-const { text } = iro
+const { on, text } = iro
 const { size, weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
@@ -40,7 +40,9 @@ export const k = {
 		header: [flex.row, dan.gap.scale.sm, size.md, text.default, weight.semibold],
 		title: [flex.fill, 'min-w-0 truncate'],
 		body: [flex.col, flex.fill, dan.gap.scale.xs, 'overflow-y-auto', focus.inset],
-		empty: [flex.row, 'justify-center', 'min-h-16', size.sm, text.muted],
+		// `on.wash.muted`, not `muted`: the empty message sits on the tint fill of
+		// the column Card, which `muted` is not legal over. See `iro/ramp.ts`.
+		empty: [flex.row, 'justify-center', 'min-h-16', size.sm, on.wash.muted],
 	},
 	card: {
 		// The card is a `Card` with the `surface` fill. It holds its handle at its

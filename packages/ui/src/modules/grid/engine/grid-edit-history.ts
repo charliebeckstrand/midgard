@@ -11,6 +11,8 @@
  * that changed since keeps its value.
  */
 
+import { shortcutLetter } from './grid-editing-utilities'
+
 /** One saved cell: its address, and its value before and after the save. @internal */
 export type GridHistoryCell = {
 	rowKey: string | number
@@ -166,11 +168,13 @@ export function historyValue(cell: GridHistoryCell, step: GridHistoryStep): unkn
  * The step that a key press asks for, or `null`. Ctrl or Cmd with Z undoes.
  * Ctrl or Cmd with Shift and Z redoes, and so does Ctrl or Cmd with Y. A press
  * with Alt is not a step, and neither is a press that an input method composes.
+ * Under a layout with no Latin letters, the physical Z and Y keys count.
  *
  * @internal
  */
 export function historyStep(press: {
 	key: string
+	code: string
 	ctrlKey: boolean
 	metaKey: boolean
 	altKey: boolean
@@ -179,7 +183,7 @@ export function historyStep(press: {
 }): GridHistoryStep | null {
 	if (press.composing || press.altKey || !(press.ctrlKey || press.metaKey)) return null
 
-	const key = press.key.toLowerCase()
+	const key = shortcutLetter(press)
 
 	if (key === 'y') return 'redo'
 

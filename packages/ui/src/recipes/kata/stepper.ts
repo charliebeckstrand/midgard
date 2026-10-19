@@ -46,7 +46,7 @@ const step = {
 } as const
 
 const title = defineRecipe({
-	base: [size.sm, weight.medium, leading.none, ...mode('text-zinc-500', 'dark:text-zinc-400')],
+	base: [size.sm, weight.medium, leading.none, ...text.muted],
 	interactive: {
 		true: [
 			...mode(
