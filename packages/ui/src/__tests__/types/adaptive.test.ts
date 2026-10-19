@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { adaptive, SIZE_CLASSES, valueAt } from '../../types/responsive'
+import { adaptive, SIZE_CLASSES, valueAt, withInitial } from '../../types/responsive'
 
 describe('adaptive', () => {
 	it('keys each size class by the breakpoint where it starts', () => {
@@ -23,5 +23,19 @@ describe('adaptive', () => {
 		expect(valueAt(value, 'md', 'bottom')).toBe('center')
 
 		expect(valueAt(value, '2xl', 'bottom')).toBe('top')
+	})
+})
+
+describe('withInitial', () => {
+	it('names the fallback as `initial` in a map that names none', () => {
+		expect(withInitial({ md: 'inline' }, 'drawer')).toEqual({ initial: 'drawer', md: 'inline' })
+	})
+
+	it('keeps a bare value and a map that names `initial`', () => {
+		const named = { initial: 'inline', md: 'drawer' }
+
+		expect(withInitial(named, 'drawer')).toBe(named)
+
+		expect(withInitial('inline', 'drawer')).toBe('inline')
 	})
 })

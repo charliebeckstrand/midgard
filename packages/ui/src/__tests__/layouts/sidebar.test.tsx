@@ -154,6 +154,18 @@ describe('SidebarLayout', () => {
 		expect(screen.getByRole('region', { name: 'Navigation bar' })).toHaveClass('block', 'sm:hidden')
 	})
 
+	it('keeps the drawer below the first breakpoint of a map that names no `initial`', () => {
+		const { container } = renderUI(
+			<SidebarLayout sidebar={<div>sidebar</div>} layout={{ md: 'inline' }}>
+				body
+			</SidebarLayout>,
+		)
+
+		expect(container.querySelector(DESKTOP_PANEL)).toHaveClass('hidden', 'md:block')
+
+		expect(screen.getByRole('region', { name: 'Navigation bar' })).toHaveClass('block', 'md:hidden')
+	})
+
 	it('keeps the drawer at each width when `layout` is a drawer', () => {
 		const { container } = renderUI(
 			<SidebarLayout sidebar={<div>sidebar</div>} layout="drawer">

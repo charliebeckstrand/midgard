@@ -178,14 +178,14 @@ export function SidebarLayout({
 	aside,
 	actions,
 	stickyHeader = false,
-	layout = OFFCANVAS_LAYOUT,
+	layout: layoutProp = OFFCANVAS_LAYOUT,
 	onOpenChange,
 	className,
 	children,
 	ref,
 	...props
 }: SidebarLayoutProps) {
-	const { open, setOpen, close } = useOffcanvas({ layout, onOpenChange })
+	const { open, setOpen, close, layout } = useOffcanvas({ layout: layoutProp, onOpenChange })
 
 	const intl = useIntl()
 

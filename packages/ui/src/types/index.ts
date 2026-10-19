@@ -15,4 +15,5 @@ export {
 	type SizeClass,
 	type SizeClassMap,
 	valueAt,
+	withInitial,
 } from './responsive'

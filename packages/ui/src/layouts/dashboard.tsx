@@ -70,11 +70,11 @@ export type DashboardLayoutProps = PropsWithChildren<{
  */
 export function DashboardLayout({
 	filters,
-	layout = OFFCANVAS_LAYOUT,
+	layout: layoutProp = OFFCANVAS_LAYOUT,
 	onOpenChange,
 	children,
 }: DashboardLayoutProps) {
-	const { open, setOpen } = useOffcanvas({ layout, onOpenChange })
+	const { open, setOpen, layout } = useOffcanvas({ layout: layoutProp, onOpenChange })
 
 	const intl = useIntl()
 

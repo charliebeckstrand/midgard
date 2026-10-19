@@ -17,7 +17,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `useIdleLoad` | Loads a value, such as the module of a menu, in idle time after the mount. The mounts of one loader share one load. |
 | `useIntentLoad` | `useIdleLoad` that also loads on a pointer, a focus, or a press, for a trigger that loads its code first. |
 | `useTimeout` | One restartable timer with stable `set`, `clear`, and `pending`, for a debounce or a dwell delay. It clears on unmount. |
-| `useOffcanvas` | Open state of an offcanvas panel, which closes when its `layout` turns `inline` (by default from `lg`). |
+| `useOffcanvas` | Open state of an offcanvas panel, which closes when its `layout` turns `inline` (by default from `lg`). It also gives the `layout`, with `drawer` as its `initial` value when the map names none. |
 
 ## Floating & overlays
 

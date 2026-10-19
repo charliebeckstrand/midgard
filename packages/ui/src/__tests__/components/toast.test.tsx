@@ -628,6 +628,39 @@ describe('Toast: useToast behavior', () => {
 		expect(animated).toHaveAttribute('data-initial-transform', `translateY(${expectedY})`)
 	})
 
+	it('puts a position that names no `initial` on the bottom edge below its first breakpoint', () => {
+		stubMatchMedia(() => false)
+
+		let api: ReturnType<typeof useToast> | undefined
+
+		renderUI(
+			<ToastProvider>
+				<Toast position={{ sm: 'top-right' }} />
+				<Trigger onReady={(c) => (api = c)} />
+			</ToastProvider>,
+		)
+
+		act(() => {
+			api?.toast({ title: 'No initial' })
+		})
+
+		const viewport = present(
+			screen.getByText('No initial').closest('[data-slot="toast-viewport"]'),
+			'the viewport',
+		)
+
+		// The CSS and the order both take the bottom edge.
+		expect(viewport).toHaveClass(
+			'justify-end',
+			'left-0',
+			'right-0',
+			'sm:justify-start',
+			'sm:right-0',
+		)
+
+		expect(viewport.querySelector('ol')).toHaveClass('flex-col-reverse')
+	})
+
 	it('keeps a single top position on its edge below `sm`', () => {
 		// A single value holds at each width.
 		stubMatchMedia(() => false)
