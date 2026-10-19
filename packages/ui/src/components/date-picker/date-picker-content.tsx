@@ -35,15 +35,31 @@ export function useDatePickerSheet(sheet = true): boolean {
 	return sheet && phone
 }
 
-/** Props for {@link DatePickerContent}. @internal */
-type DatePickerContentProps = {
+/**
+ * The part of the state of a {@link DatePicker} variant that {@link DatePickerContent}
+ * reads. Each variant state hook returns it, so a variant passes its state whole.
+ *
+ * @internal
+ */
+export type DatePickerContentState = {
 	/** The dialog id, which the trigger names in `aria-controls`. */
-	id?: string
+	dialogId?: string
 	open: boolean
 	setFloating: (node: HTMLElement | null) => void
 	floatingStyles: CSSProperties
 	getFloatingProps: FloatingSurfaceProps['getFloatingProps']
 	context: FloatingRootContext
+	/**
+	 * Fires when the popover has finished its exit. The sheet does not report
+	 * it. Each variant also resets its draft on the next open.
+	 */
+	onExitComplete?: () => void
+}
+
+/** Props for {@link DatePickerContent}. @internal */
+type DatePickerContentProps = {
+	/** The state of the variant. */
+	state: DatePickerContentState
 	/**
 	 * The density step of `<DatePicker>`. Omit it to take the step of the
 	 * nearest density scope of the picker, which the portal carries. A step
@@ -80,11 +96,6 @@ type DatePickerContentProps = {
 	 */
 	initialFocusRef?: RefObject<HTMLElement | null>
 	/**
-	 * Fires when the popover has finished its exit. The sheet does not report
-	 * it. Each variant also resets its draft on the next open.
-	 */
-	onExitComplete?: () => void
-	/**
 	 * Render the panel as a bottom sheet in place of the popover. The variant
 	 * gives the result of {@link useDatePickerSheet}.
 	 */
@@ -120,22 +131,19 @@ type DatePickerContentProps = {
  * @internal
  */
 export function DatePickerContent({
-	id,
-	open,
-	setFloating,
-	floatingStyles,
-	getFloatingProps,
-	context,
+	state,
 	size,
 	onKeyDown,
 	getInsideElements,
 	initialFocusRef,
-	onExitComplete,
 	sheet = false,
 	label: labelProp,
 	footer,
 	children,
 }: DatePickerContentProps) {
+	const { dialogId, open, setFloating, floatingStyles, getFloatingProps, context, onExitComplete } =
+		state
+
 	const intl = useIntl()
 
 	const label = labelProp ?? intl.formatMessage(datePickerMessages.chooseDate)
@@ -211,7 +219,7 @@ export function DatePickerContent({
 					</DrawerHeader>
 
 					<DrawerBody>
-						<div id={id} data-slot="datepicker-sheet" className={cn(k.content.sheet.body)}>
+						<div id={dialogId} data-slot="datepicker-sheet" className={cn(k.content.sheet.body)}>
 							{children}
 						</div>
 					</DrawerBody>
@@ -234,7 +242,7 @@ export function DatePickerContent({
 			trapFocusContext={context}
 			trapFocusProps={{ initialFocus: focusRef, getInsideElements }}
 			ref={dialogRef}
-			id={id}
+			id={dialogId}
 			role="dialog"
 			aria-modal="true"
 			aria-label={label}

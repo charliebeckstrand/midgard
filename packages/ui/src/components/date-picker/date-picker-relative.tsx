@@ -79,37 +79,19 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 	return (
 		<DateInputResetContext value={resets}>
 			<DatePickerTrigger
-				open={state.open}
-				onOpenChange={state.onOpenChange}
-				triggerId={state.triggerId}
-				dialogId={state.dialogId}
-				describedBy={state.describedBy}
-				setReference={state.setReference}
-				getReferenceProps={state.getReferenceProps}
+				state={state}
 				displayValue={state.summary}
 				placeholder={placeholder ?? selectRange}
 				size={size}
 				truncate={truncate}
 				aria-label={ariaLabel}
-				disabled={state.disabled}
-				readOnly={state.readOnly}
-				required={state.required}
-				validation={state.validation}
-				onKeyDown={state.onTriggerKeyDown}
 				clearable={clearable}
-				hasValue={state.hasValue}
-				onClear={state.onClear}
 				className={className}
 			>
 				{chipRow}
 			</DatePickerTrigger>
 			<DatePickerContent
-				id={state.dialogId}
-				open={state.open}
-				setFloating={state.setFloating}
-				floatingStyles={state.floatingStyles}
-				getFloatingProps={state.getFloatingProps}
-				context={state.context}
+				state={state}
 				size={size}
 				sheet={sheet}
 				// One footer for both modes. Its Clear shows on a committed span in
@@ -117,7 +99,6 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 				// state hook). It clears the whole selection either way.
 				footer={<DatePickerFooter {...state.footer} />}
 				onKeyDown={state.onContentKeyDown}
-				onExitComplete={state.onExitComplete}
 				label={state.mode === 'custom' ? customRange : selectRange}
 			>
 				{state.mode === 'list' ? (

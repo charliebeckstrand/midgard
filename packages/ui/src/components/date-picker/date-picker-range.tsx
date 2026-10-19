@@ -39,40 +39,21 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 	return (
 		<>
 			<DatePickerTrigger
-				open={state.open}
-				onOpenChange={state.onOpenChange}
-				triggerId={state.triggerId}
-				dialogId={state.dialogId}
-				describedBy={state.describedBy}
-				setReference={state.setReference}
-				getReferenceProps={state.getReferenceProps}
+				state={state}
 				displayValue={state.displayValue}
 				placeholder={placeholder ?? intl.formatMessage(datePickerMessages.selectDates)}
 				size={size}
 				truncate={truncate}
 				aria-label={ariaLabel}
-				disabled={state.disabled}
-				readOnly={state.readOnly}
-				required={state.required}
-				validation={state.validation}
-				onKeyDown={state.onTriggerKeyDown}
 				clearable={clearable}
-				hasValue={state.hasValue}
-				onClear={state.onClear}
 				className={className}
 			/>
 			<DatePickerContent
-				id={state.dialogId}
-				open={state.open}
-				setFloating={state.setFloating}
-				floatingStyles={state.floatingStyles}
-				getFloatingProps={state.getFloatingProps}
-				context={state.context}
+				state={state}
 				size={size}
 				sheet={sheet}
 				footer={<DatePickerFooter {...footer} />}
 				onKeyDown={state.onTriggerKeyDown}
-				onExitComplete={state.onExitComplete}
 			>
 				<CalendarRange
 					ref={calendarRef}

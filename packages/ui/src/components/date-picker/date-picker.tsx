@@ -313,6 +313,8 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 
 	const intl = useIntl()
 
+	const state = useDatePickerState(props)
+
 	const {
 		triggerRef,
 		inputRef,
@@ -320,10 +322,6 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 		floatingRef,
 		open,
 		onTriggerKeyDown,
-		setFloating,
-		floatingStyles,
-		getFloatingProps,
-		context,
 		listboxId,
 		activeDescendantId,
 		setReference,
@@ -335,17 +333,10 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 		invalid,
 		inputProps,
 		onOpenChange,
-		triggerId,
-		dialogId,
-		describedBy,
 		displayValue,
-		required,
-		validation,
-		hasValue,
-		onClear,
 		calendar: { calendarRef, ...calendar },
 		footer,
-	} = useDatePickerState(props)
+	} = state
 
 	// The DateInput gets no `name`, so the picker passes the reset count of its
 	// Form down. A reset then drops the typed text, also when the value stays.
@@ -369,12 +360,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 
 	const content = (
 		<DatePickerContent
-			id={dialogId}
-			open={open}
-			setFloating={setFloating}
-			floatingStyles={floatingStyles}
-			getFloatingProps={getFloatingProps}
-			context={context}
+			state={state}
 			size={size}
 			sheet={sheet}
 			footer={<DatePickerFooter {...footer} />}
@@ -453,26 +439,13 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 	return (
 		<>
 			<DatePickerTrigger
-				open={open}
-				onOpenChange={onOpenChange}
-				triggerId={triggerId}
-				dialogId={dialogId}
-				describedBy={describedBy}
-				setReference={setReference}
-				getReferenceProps={getReferenceProps}
+				state={state}
 				displayValue={displayValue}
 				placeholder={placeholder ?? intl.formatMessage(datePickerMessages.selectDate)}
 				size={size}
 				truncate={truncate}
 				aria-label={ariaLabel}
-				disabled={disabled}
-				readOnly={readOnly}
-				required={required}
-				validation={validation}
-				onKeyDown={onTriggerKeyDown}
 				clearable={clearable}
-				hasValue={hasValue}
-				onClear={onClear}
 				className={className}
 			/>
 			{content}
