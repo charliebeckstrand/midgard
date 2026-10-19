@@ -134,7 +134,15 @@ export function ColorSlider({ channel }: ColorSliderProps) {
 				value={isHue ? Math.round(value) : Math.round(value * 100) / 100}
 				disabled={disabled}
 				aria-label={intl.formatMessage(isHue ? colorMessages.hue : colorMessages.alpha)}
-				aria-valuetext={isHue ? `${Math.round(value)}°` : `${Math.round(value * 100)}%`}
+				aria-valuetext={
+					isHue
+						? intl.formatNumber(Math.round(value), {
+								style: 'unit',
+								unit: 'degree',
+								unitDisplay: 'narrow',
+							})
+						: intl.formatNumber(Math.round(value * 100) / 100, { style: 'percent' })
+				}
 				className={k.track.input}
 				onKeyDown={handleKeyDown}
 				onChange={handleChange}

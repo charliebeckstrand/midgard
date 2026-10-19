@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Lightbox, type LightboxPhoto, LightboxTrigger } from '../../components/lightbox'
+import { LocaleProvider } from '../../providers/locale'
 import { REDUCED_MOTION_QUERY } from '../../utilities/media-query'
 import {
 	createEvent,
@@ -1055,7 +1056,23 @@ describe('Lightbox', () => {
 
 			const live = present(document.querySelector('[aria-live="polite"]'), 'live region')
 
-			expect(live).toHaveTextContent('Snow on a ridge, 2 / 3')
+			expect(live).toHaveTextContent('Snow on a ridge, 2 of 3')
+		})
+
+		it('announces the place of the photo in the language of the locale', () => {
+			stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+
+			renderUI(
+				<LocaleProvider locale="es-ES">
+					<Gallery defaultIndex={0} controls={false} />
+				</LocaleProvider>,
+			)
+
+			fireEvent.keyDown(screen.getByRole('dialog'), { key: 'ArrowRight' })
+
+			const live = present(document.querySelector('[aria-live="polite"]'), 'live region')
+
+			expect(live).toHaveTextContent('Snow on a ridge, 2 de 3')
 		})
 
 		it('names the placeholder of a thumbnail that does not load', () => {

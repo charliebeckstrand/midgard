@@ -142,7 +142,7 @@ describe('Lightbox reopened during the return (real browser)', () => {
 
 		await waitForNoTween(viewerTweens)
 
-		expect(count()).toBe('2 / 5')
+		expect(count()).toBe('2 of 5')
 
 		const before = slot(-1)
 
@@ -180,13 +180,13 @@ describe('Lightbox reopened during the return (real browser)', () => {
 
 		await waitForNoTween(viewerTweens)
 
-		expect(count()).toBe('2 / 5')
+		expect(count()).toBe('2 of 5')
 
 		await startReturn()
 
 		thumbnail(0).click()
 
-		await expect.poll(count).toBe('1 / 5')
+		await expect.poll(count).toBe('1 of 5')
 
 		// The first photo hides its previous button, so the role query does not find it.
 		expect(document.querySelector('button[aria-label="Previous photo"]')).toBeDisabled()
@@ -241,7 +241,7 @@ describe('Lightbox reopened during the return (real browser)', () => {
 
 			await waitForNoTween(viewerTweens)
 
-			expect(count()).toBe('2 / 5')
+			expect(count()).toBe('2 of 5')
 
 			const before = slot(-1)
 
@@ -289,7 +289,7 @@ describe('Lightbox reopened during the return (real browser)', () => {
 
 		await userEvent.keyboard('{ArrowRight}')
 
-		await expect.poll(count).toBe('2 / 5')
+		await expect.poll(count).toBe('2 of 5')
 	})
 
 	// A close during a step stops the slide where it paints. A reopen then
@@ -316,7 +316,7 @@ describe('Lightbox reopened during the return (real browser)', () => {
 
 		await waitForNoTween(viewerTweens)
 
-		expect(count()).toBe('1 / 5')
+		expect(count()).toBe('1 of 5')
 
 		expect(getComputedStyle(track).transform).toBe('none')
 

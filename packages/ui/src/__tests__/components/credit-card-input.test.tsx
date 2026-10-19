@@ -937,7 +937,17 @@ describe('CreditCardInput in a locale', () => {
 		await setupUser().type(getSlot<HTMLInputElement>(container, 'credit-card-input-expiry'), '1330')
 
 		expect(bySlot(container, 'message')).toHaveTextContent(
-			'Introduce una fecha de vencimiento válida (MM/YY)',
+			'Introduce una fecha de vencimiento válida (MM/AA)',
 		)
+	})
+
+	it('writes the letters of the expiry placeholder in the language of the locale', () => {
+		const { container } = renderUI(
+			<LocaleProvider locale="es-ES">
+				<CreditCardInputExpiry />
+			</LocaleProvider>,
+		)
+
+		expect(bySlot(container, 'credit-card-input-expiry')).toHaveAttribute('placeholder', 'MM/AA')
 	})
 })
