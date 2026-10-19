@@ -13,6 +13,7 @@ import {
 	useSidebarMini,
 } from '../../components/sidebar'
 import { OffcanvasContext } from '../../primitives/offcanvas'
+import { LocaleProvider } from '../../providers/locale'
 import {
 	act,
 	attach,
@@ -755,5 +756,23 @@ describe('SidebarList', () => {
 
 		// A `<span>` slot cannot hold a `<div>`.
 		expect(bySlot(container, 'sidebar-item-suffix')?.tagName).toBe('DIV')
+	})
+})
+
+describe('Sidebar in a locale', () => {
+	it('names the landmark and the close button in the language of the locale', () => {
+		renderUI(
+			<LocaleProvider locale="es-ES">
+				<OffcanvasContext value={{ close: vi.fn() }}>
+					<Sidebar>
+						<SidebarHeader>Header</SidebarHeader>
+					</Sidebar>
+				</OffcanvasContext>
+			</LocaleProvider>,
+		)
+
+		expect(screen.getByRole('navigation', { name: 'Barra lateral' })).toBeInTheDocument()
+
+		expect(screen.getByRole('button', { name: 'Cerrar navegación' })).toBeInTheDocument()
 	})
 })

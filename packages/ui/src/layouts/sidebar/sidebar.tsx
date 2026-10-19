@@ -24,6 +24,8 @@ import { useScrollWithin } from '../../hooks'
 import { useIsRtl } from '../../hooks/use-is-rtl'
 import { useKeybindings } from '../../hooks/use-keybindings'
 import { OFFCANVAS_LAYOUT, type OffcanvasLayout, useOffcanvas } from '../../hooks/use-offcanvas'
+import { defineMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { OffcanvasContext } from '../../primitives/offcanvas'
 import { Portal } from '../../primitives/portal'
 import { readChoice, SIDEBAR, writeChoice } from '../../providers/appearance/appearance-storage'
@@ -53,6 +55,20 @@ const [SidebarLayoutContext] = createContext<{
 export function useSidebarLayoutPlacement(): Responsive<OffcanvasLayout> | null {
 	return use(SidebarLayoutContext)?.layout ?? null
 }
+
+const messages = defineMessages({
+	navigationBar: {
+		id: 'ui.sidebarLayout.navigationBar',
+		defaultMessage: 'Navigation bar',
+		description:
+			'The name of the bar at the top of a narrow page that holds the button that opens the navigation.',
+	},
+	openNavigation: {
+		id: 'ui.sidebarLayout.openNavigation',
+		defaultMessage: 'Open navigation',
+		description: 'The name of the menu button that opens the navigation of a narrow page.',
+	},
+})
 
 // The filter of the shortcut. It skips a press that an earlier handler took, so
 // that one press toggles the setting one time when a page nests a layout. The
@@ -169,6 +185,8 @@ export function SidebarLayout({
 	...props
 }: SidebarLayoutProps) {
 	const { open, setOpen, close } = useOffcanvas({ layout, onOpenChange })
+
+	const intl = useIntl()
 
 	const [floatingOpen, setFloatingOpen] = useState(false)
 
@@ -314,7 +332,7 @@ export function SidebarLayout({
 					    as a sticky child sticks only inside the box of its parent. */}
 					<section
 						ref={setBar}
-						aria-label="Navigation bar"
+						aria-label={intl.formatMessage(messages.navigationBar)}
 						className={cn(k.navbar(), resolveVariant(layout, offcanvas.drawer.block))}
 					>
 						<Flex align="center">
@@ -322,7 +340,7 @@ export function SidebarLayout({
 								<Button
 									type="button"
 									variant="bare"
-									aria-label="Open navigation"
+									aria-label={intl.formatMessage(messages.openNavigation)}
 									prefix={<Icon icon={<Menu />} />}
 								/>
 							</DrawerTrigger>
