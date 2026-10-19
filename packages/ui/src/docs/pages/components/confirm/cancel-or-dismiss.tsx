@@ -4,18 +4,18 @@ import { Confirm } from 'ui/confirm'
 import { Text } from 'ui/text'
 import { PointerHint } from '../../../kit/pointer-hint.tsx'
 
-type Outcome = 'None' | 'Confirmed' | 'Canceled' | 'Dismissed'
+type Result = 'None' | 'Confirmed' | 'Canceled' | 'Closed'
 
 export default function CancelOrDismiss() {
 	const [open, setOpen] = useState(false)
 
-	const [outcome, setOutcome] = useState<Outcome>('None')
+	const [result, setResult] = useState<Result>('None')
 
 	return (
 		<>
 			<Button
 				onClick={() => {
-					setOutcome('None')
+					setResult('None')
 					setOpen(true)
 				}}
 			>
@@ -25,24 +25,24 @@ export default function CancelOrDismiss() {
 				open={open}
 				onOpenChange={(next) => {
 					setOpen(next)
-					// The Cancel button also closes the dialog. Keep its outcome.
-					if (!next) setOutcome((prev) => (prev === 'Canceled' ? prev : 'Dismissed'))
+					// The Cancel button also closes the dialog. Keep its result.
+					if (!next) setResult((prev) => (prev === 'Canceled' ? prev : 'Closed'))
 				}}
-				onCancel={() => setOutcome('Canceled')}
+				onCancel={() => setResult('Canceled')}
 				onConfirm={() => {
-					setOutcome('Confirmed')
+					setResult('Confirmed')
 					setOpen(false)
 				}}
-				title="Archive project?"
+				title="Archive the project?"
 				description={
 					<PointerHint
-						mouse="Press Escape or the backdrop to dismiss the dialog without an answer."
-						touch="Tap the backdrop to dismiss the dialog without an answer."
+						mouse="Press Escape or click the backdrop to close the dialog without an answer."
+						touch="Tap the backdrop to close the dialog without an answer."
 					/>
 				}
 				confirm={{ label: 'Archive' }}
 			/>
-			<Text>Outcome: {outcome}</Text>
+			<Text>Last result: {result}</Text>
 		</>
 	)
 }

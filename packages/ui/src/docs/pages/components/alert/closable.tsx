@@ -13,7 +13,7 @@ export default function Closable() {
 		<Alert
 			severity="success"
 			title="Changes saved"
-			description="Your changes have been saved successfully."
+			description="Your profile is up to date."
 			closable
 			open={open}
 			onOpenChange={setOpen}

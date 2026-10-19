@@ -21,19 +21,19 @@ export default function WithBodyContent() {
 					setOpen(true)
 				}}
 			>
-				Accept terms and conditions
+				Accept terms of service
 			</Button>
 			<Confirm
 				open={open}
 				onOpenChange={setOpen}
 				onConfirm={() => setOpen(false)}
-				title="Terms and conditions"
+				title="Terms of service"
 				confirm={{ label: 'Accept', color: 'blue', disabled: !accepted }}
 			>
 				<DialogBody>
 					<Stack gap="md">
 						<Text>
-							You own the files that you upload. You give us permission to store them, copy them for
+							You own the files that you upload. You let the service store them, copy them for
 							backups, and show them to the people that you share them with.
 						</Text>
 						<Text>
@@ -46,7 +46,7 @@ export default function WithBodyContent() {
 								checked={accepted}
 								onChange={(event) => setAccepted(event.target.checked)}
 							/>
-							<Label>I accept the terms and conditions</Label>
+							<Label>I accept the terms of service</Label>
 						</CheckboxField>
 					</Stack>
 				</DialogBody>

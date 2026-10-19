@@ -3,35 +3,35 @@ import { Checkbox, CheckboxField, CheckboxGroup } from 'ui/checkbox'
 import { Label } from 'ui/fieldset'
 import { Text } from 'ui/text'
 
-const toppings = ['Cheese', 'Mushrooms', 'Olives']
+const channels = ['Email', 'Push', 'SMS']
 
 export default function SelectAll() {
-	const [selected, setSelected] = useState(['Cheese'])
+	const [selected, setSelected] = useState(['Email'])
 
 	return (
 		<>
-			<CheckboxGroup aria-label="Toppings">
+			<CheckboxGroup aria-label="Notification channels">
 				<CheckboxField>
 					<Checkbox
-						checked={selected.length === toppings.length}
-						indeterminate={selected.length > 0 && selected.length < toppings.length}
-						onChange={(event) => setSelected(event.target.checked ? toppings : [])}
+						checked={selected.length === channels.length}
+						indeterminate={selected.length > 0 && selected.length < channels.length}
+						onChange={(event) => setSelected(event.target.checked ? channels : [])}
 					/>
-					<Label>All toppings</Label>
+					<Label>All channels</Label>
 				</CheckboxField>
-				{toppings.map((topping) => (
-					<CheckboxField key={topping}>
+				{channels.map((channel) => (
+					<CheckboxField key={channel}>
 						<Checkbox
-							checked={selected.includes(topping)}
+							checked={selected.includes(channel)}
 							onChange={(event) =>
 								setSelected(
-									toppings.filter((item) =>
-										item === topping ? event.target.checked : selected.includes(item),
+									channels.filter((item) =>
+										item === channel ? event.target.checked : selected.includes(item),
 									),
 								)
 							}
 						/>
-						<Label>{topping}</Label>
+						<Label>{channel}</Label>
 					</CheckboxField>
 				))}
 			</CheckboxGroup>

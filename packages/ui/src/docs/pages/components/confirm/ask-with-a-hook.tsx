@@ -9,7 +9,7 @@ const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 export default function AskWithAHook() {
 	const confirm = useConfirm()
 
-	const [outcome, setOutcome] = useState('None')
+	const [result, setResult] = useState('None')
 
 	return (
 		<>
@@ -23,12 +23,12 @@ export default function AskWithAHook() {
 						action: () => wait(1000),
 					})
 
-					setOutcome(confirmed ? 'Deleted' : 'Kept')
+					setResult(confirmed ? 'Deleted' : 'Kept')
 				}}
 			>
 				Delete report
 			</Button>
-			<Text>Outcome: {outcome}</Text>
+			<Text>Last result: {result}</Text>
 		</>
 	)
 }

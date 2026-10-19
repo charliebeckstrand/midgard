@@ -1,5 +1,5 @@
 import { Avatar, type AvatarProps } from 'ui/avatar'
 
 export default function AvatarPlayground(props: AvatarProps) {
-	return <Avatar alt="Ava Brooks" {...props} />
+	return <Avatar alt="Wade Cooper" {...props} />
 }

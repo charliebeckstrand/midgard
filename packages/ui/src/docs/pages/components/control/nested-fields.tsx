@@ -13,7 +13,7 @@ export default function NestedFields() {
 				</Field>
 				<Field>
 					<Label>Owner</Label>
-					<Input type="email" defaultValue="jane@example.com" />
+					<Input type="email" defaultValue="wade@example.com" />
 				</Field>
 			</Stack>
 		</Control>
