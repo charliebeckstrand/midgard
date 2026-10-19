@@ -27,8 +27,8 @@ describe('chart Escape inside an overlay (real browser)', () => {
 							data={DATA}
 							series={[{ xKey: 'week', yKey: 'value', yName: 'Value' }]}
 							aspectRatio={false}
-							// With its menu, the chart has its own Fullscreen, and the tile hides
-							// its expand control. Without the menu, the tile keeps it.
+							// With its menu, the chart has its own Fullscreen. The tile hides its
+							// expand control only on a coarse pointer, where the menu button shows.
 							contextMenu={menu ? undefined : false}
 							{...(pin ? { tooltip: { trigger: 'click' }, crosshair: { snap: true } } : {})}
 						/>
@@ -56,12 +56,12 @@ describe('chart Escape inside an overlay (real browser)', () => {
 		return dialog
 	}
 
-	it('shows View data and hides the expand control while the chart menu has Fullscreen', async () => {
+	it('shows View data and keeps the expand control on a fine pointer while the chart menu has Fullscreen', async () => {
 		renderUI(<Board menu />)
 
 		await expect.poll(() => screen.queryByRole('button', { name: 'View data' })).not.toBeNull()
 
-		expect(screen.queryByRole('button', { name: 'Expand Trend' })).toBeNull()
+		expect(screen.queryByRole('button', { name: 'Expand Trend' })).not.toBeNull()
 	})
 
 	it('closes on Escape while its chart holds the focus with no readout', async () => {
