@@ -4,12 +4,34 @@ import { Collapse, CollapsePanel, CollapseTrigger } from 'ui/collapse'
 import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
 import { Link } from 'ui/link'
+import { defineMessages, useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
 import { useIsRtl } from '../../hooks/use-is-rtl.ts'
 import { usePanelResize } from '../../hooks/use-panel-resize.ts'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
 import type { ExampleCode, ExampleMeta } from '../plugin/examples.ts'
 import { useLoadThenOpen } from './load-then-open.ts'
+
+const messages = defineMessages({
+	showCode: {
+		id: 'docs.example.showCode',
+		defaultMessage: 'Show code',
+		description:
+			'The label of the button under an example that shows the source code of the example.',
+	},
+	hideCode: {
+		id: 'docs.example.hideCode',
+		defaultMessage: 'Hide code',
+		description:
+			'The label of the button under an example that hides the source code of the example.',
+	},
+	playground: {
+		id: 'docs.example.playground',
+		defaultMessage: 'Playground',
+		description:
+			'The heading of the first example of a page, where the reader changes the props of the component to see the result.',
+	},
+})
 
 function isExample(component: object): component is ExampleMeta {
 	return 'title' in component && 'code' in component
@@ -128,6 +150,12 @@ export function ExampleFrame({
 	// The frame stays at its start edge, and the drag moves its end edge.
 	const isRtl = useIsRtl()
 
+	const intl = useIntl()
+
+	// The title of an example comes from its file name, so it stays English. The
+	// title of a playground is the same on each page, so it shows translated.
+	const title = meta.component === undefined ? meta.title : intl.formatMessage(messages.playground)
+
 	const resize = usePanelResize({
 		side: isRtl ? 'right' : 'left',
 		open: true,
@@ -140,7 +168,7 @@ export function ExampleFrame({
 		<Stack gap="sm" data-slot="example">
 			<Flex gap="md" direction="col" align="start">
 				<Heading level={2} id={meta.id}>
-					<Link href={`#${meta.id}`}>{meta.title}</Link>
+					<Link href={`#${meta.id}`}>{title}</Link>
 				</Heading>
 				{actions}
 			</Flex>
@@ -185,7 +213,7 @@ export function ExampleFrame({
 								onPointerDown={warm}
 								onFocus={warm}
 							>
-								{open ? 'Hide code' : 'Show code'}
+								{intl.formatMessage(open ? messages.hideCode : messages.showCode)}
 							</CollapseTrigger>
 						</div>
 						<CollapsePanel>

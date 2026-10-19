@@ -3,11 +3,19 @@ import { useLocation } from 'react-router'
 import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger } from 'ui/accordion'
 import { Heading } from 'ui/heading'
 import { Link } from 'ui/link'
+import { defineMessage, IntlMessage } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
 import type { BarrelApi } from '../plugin/api.ts'
 import { API, apiIdOf, componentOfHash } from './anchors.ts'
 import { useLoadThenOpen } from './load-then-open.ts'
 import { type PendingAnchor, PendingAnchorContext, scrollToPending } from './pending-anchor.ts'
+
+const apiReferenceMessage = defineMessage({
+	id: 'docs.api.reference',
+	defaultMessage: 'API reference',
+	description:
+		'The heading of the part of a page that lists each component with its props and its events.',
+})
 
 // The entry renders TSDoc as Markdown, so it carries `marked`. It is a chunk
 // of its own, so it does not delay the first paint. It loads in idle time
@@ -98,7 +106,9 @@ export function ApiTable({ api }: { api: BarrelApi }) {
 	return (
 		<Stack gap="sm">
 			<Heading level={2} id={API}>
-				<Link href={`#${API}`}>API reference</Link>
+				<Link href={`#${API}`}>
+					<IntlMessage message={apiReferenceMessage} />
+				</Link>
 			</Heading>
 			<PendingAnchorContext value={pending}>
 				<Accordion
